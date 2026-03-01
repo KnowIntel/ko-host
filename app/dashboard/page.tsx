@@ -24,10 +24,6 @@ export default async function DashboardPage() {
           Browse templates
         </Link>
       </div>
-
-      <p className="mt-4 text-sm text-neutral-700">
-        Phase 1: Auth + DB are in place. Next: Stripe billing + entitlements.
-      </p>
     </div>
   );
 }

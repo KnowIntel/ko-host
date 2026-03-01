@@ -10,8 +10,9 @@ type Template = {
 };
 
 async function fetchTemplates(): Promise<Template[]> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/templates`, {
-    next: { revalidate: 300 } // cache for 5 minutes
+  const base = process.env.NEXT_PUBLIC_APP_URL;
+  const res = await fetch(`${base}/api/templates`, {
+    next: { revalidate: 300 }
   });
   if (!res.ok) return [];
   return (await res.json()) as Template[];
@@ -41,8 +42,8 @@ export default async function HomePage() {
             </div>
 
             <p className="mt-4 text-sm text-neutral-600">
-              Pricing: <span className="font-medium text-neutral-900">$14 / template / month</span>.
-              Subscribe only to the templates you use.
+              Pricing: <span className="font-medium text-neutral-900">$14 / template / month</span>. Subscribe only to
+              the templates you use.
             </p>
           </div>
         </Container>
