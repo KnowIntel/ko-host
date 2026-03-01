@@ -15,7 +15,6 @@ function mustGetEnv(name: string): string {
 function templateKeyFromPriceId(priceId: string | null | undefined): string | null {
   if (!priceId) return null;
 
-  // Compare against your LIVE env price ids (single source of truth)
   const map: Array<[string, string]> = [
     ["wedding_rsvp", mustGetEnv("STRIPE_PRICE_WEDDING")],
     ["party_birthday", mustGetEnv("STRIPE_PRICE_PARTY")],
@@ -83,21 +82,17 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
     }
 
-    // Handle only the events we subscribed to
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
 
-        // We expect subscription mode
         const clerkUserId =
           (session.metadata?.clerk_user_id as string | undefined) ??
           (session.client_reference_id as string | null) ??
           null;
 
-        const templateKey =
-          (session.metadata?.template_key as string | undefined) ?? null;
+        const templateKey = (session.metadata?.template_key as string | undefined) ?? null;
 
-        // If metadata is missing, subscription events will still handle it.
         if (!clerkUserId || !templateKey) {
           console.log("checkout.session.completed: missing metadata; skipping", {
             clerkUserId,
@@ -107,7 +102,6 @@ export async function POST(req: Request) {
           break;
         }
 
-        // Mark as pending/active (subscription.* events will finalize)
         await upsertEntitlement({
           clerkUserId,
           templateKey,
@@ -123,14 +117,12 @@ export async function POST(req: Request) {
       case "customer.subscription.created":
       case "customer.subscription.updated":
       case "customer.subscription.deleted": {
+        // Stripe SDK type mismatch fix: treat the payload as unknown-ish at runtime
         const sub = event.data.object as Stripe.Subscription;
 
-        const clerkUserId =
-          (sub.metadata?.clerk_user_id as string | undefined) ??
-          null;
+        const clerkUserId = (sub.metadata?.clerk_user_id as string | undefined) ?? null;
 
-        // Determine price id from the first subscription item
-        const firstItem = sub.items.data[0];
+        const firstItem = sub.items?.data?.[0];
         const priceId = firstItem?.price?.id ?? null;
 
         const templateKey =
@@ -140,7 +132,7 @@ export async function POST(req: Request) {
         if (!clerkUserId || !templateKey) {
           console.error("subscription event missing clerkUserId/templateKey", {
             type: event.type,
-            subId: sub.id,
+            subId: (sub as any)?.id,
             clerkUserId,
             templateKey,
             priceId
@@ -148,25 +140,25 @@ export async function POST(req: Request) {
           break;
         }
 
-        // Stripe status examples: active, trialing, past_due, canceled, unpaid, incomplete, incomplete_expired
-        const status = sub.status;
+        const status = (sub as any)?.status ?? "unknown";
+
+        // Some Stripe SDK typings omit current_period_end; read safely from runtime payload.
+        const currentPeriodEndUnix = (sub as any)?.current_period_end as number | undefined;
 
         await upsertEntitlement({
           clerkUserId,
           templateKey,
           status,
-          stripeSubscriptionId: sub.id,
+          stripeSubscriptionId: (sub as any)?.id ?? null,
           stripePriceId: priceId,
-          currentPeriodEnd: toIsoFromUnixSeconds(sub.current_period_end)
+          currentPeriodEnd: toIsoFromUnixSeconds(currentPeriodEndUnix)
         });
 
         break;
       }
 
-      default: {
-        // Ignore unhandled events
+      default:
         break;
-      }
     }
 
     return NextResponse.json({ received: true }, { status: 200 });
