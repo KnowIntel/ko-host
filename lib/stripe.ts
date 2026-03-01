@@ -7,10 +7,8 @@ function mustGetEnv(name: string): string {
   return v;
 }
 
-// Use Stripe's typed latest API version from the installed SDK.
-// This avoids TS mismatches while still pinning behavior to the SDK version.
-const apiVersion = Stripe.apiVersion as Stripe.StripeConfig["apiVersion"];
-
-export const stripe = new Stripe(mustGetEnv("STRIPE_SECRET_KEY"), {
-  apiVersion
-});
+/**
+ * Stripe SDK already pins an API version internally.
+ * Do NOT set apiVersion manually to avoid TS mismatches across SDK versions.
+ */
+export const stripe = new Stripe(mustGetEnv("STRIPE_SECRET_KEY"));
