@@ -6,17 +6,44 @@ import { stripe } from "@/lib/stripe";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { getPriceIdForTemplate } from "@/lib/stripePrices";
 
-const BodySchema = z.object({
+const JsonBodySchema = z.object({
   templateKey: z.string().min(1),
-  // Optional: if you want to redirect somewhere specific after checkout
   successPath: z.string().optional(),
   cancelPath: z.string().optional()
+});
+
+const FormSchema = z.object({
+  templateKey: z.string().min(1)
 });
 
 function appUrl(): string {
   const v = process.env.NEXT_PUBLIC_APP_URL;
   if (!v) throw new Error("Missing env var: NEXT_PUBLIC_APP_URL");
   return v.replace(/\/+$/, "");
+}
+
+async function parseRequest(req: Request): Promise<{
+  templateKey: string;
+  successPath?: string;
+  cancelPath?: string;
+  wantsRedirect: boolean;
+}> {
+  const contentType = req.headers.get("content-type") || "";
+
+  // HTML <form> POST
+  if (contentType.includes("application/x-www-form-urlencoded") || contentType.includes("multipart/form-data")) {
+    const form = await req.formData();
+    const raw = {
+      templateKey: String(form.get("templateKey") ?? "")
+    };
+    const parsed = FormSchema.parse(raw);
+    return { templateKey: parsed.templateKey, wantsRedirect: true };
+  }
+
+  // JSON POST
+  const json = await req.json().catch(() => null);
+  const parsed = JsonBodySchema.parse(json);
+  return { ...parsed, wantsRedirect: false };
 }
 
 export async function POST(req: Request) {
@@ -26,16 +53,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const json = await req.json().catch(() => null);
-    const parsed = BodySchema.safeParse(json);
-    if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Invalid request", issues: parsed.error.issues },
-        { status: 400 }
-      );
-    }
-
-    const { templateKey, successPath, cancelPath } = parsed.data;
+    const { templateKey, successPath, cancelPath, wantsRedirect } = await parseRequest(req);
 
     const priceId = getPriceIdForTemplate(templateKey);
     if (!priceId) {
@@ -66,10 +84,7 @@ export async function POST(req: Request) {
       stripeCustomerId = customer.id;
 
       const { error: upsertErr } = await sb.from("stripe_customers").upsert(
-        {
-          clerk_user_id: userId,
-          stripe_customer_id: stripeCustomerId
-        },
+        { clerk_user_id: userId, stripe_customer_id: stripeCustomerId },
         { onConflict: "clerk_user_id" }
       );
 
@@ -90,7 +105,6 @@ export async function POST(req: Request) {
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: successUrl,
       cancel_url: cancelUrl,
-      // metadata helps webhook reconciliation
       metadata: {
         clerk_user_id: userId,
         template_key: templateKey
@@ -101,13 +115,23 @@ export async function POST(req: Request) {
           template_key: templateKey
         }
       },
-      // keep tax OFF for now (you explicitly skipped Stripe Tax)
       automatic_tax: { enabled: false }
     });
 
+    if (!session.url) {
+      return NextResponse.json({ error: "Stripe session missing url" }, { status: 500 });
+    }
+
+    // If this came from an HTML form, redirect the browser straight to Stripe
+    if (wantsRedirect) {
+      return NextResponse.redirect(session.url, 303);
+    }
+
+    // JSON clients can use the url
     return NextResponse.json({ url: session.url }, { status: 200 });
-  } catch (err) {
+  } catch (err: any) {
+    const msg = typeof err?.message === "string" ? err.message : "Server error";
     console.error("POST /api/stripe/checkout failed", err);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
