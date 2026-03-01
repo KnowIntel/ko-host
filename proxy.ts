@@ -1,5 +1,4 @@
-// middleware.ts
-import type { NextRequest } from "next/server";
+// proxy.ts
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
 const isPublicRoute = createRouteMatcher([
@@ -9,9 +8,8 @@ const isPublicRoute = createRouteMatcher([
   "/sign-up(.*)"
 ]);
 
-export default clerkMiddleware(async (auth, req: NextRequest) => {
+export default clerkMiddleware(async (auth, req) => {
   if (!isPublicRoute(req)) {
-    // New Clerk middleware pattern: protect is on the auth object
     await auth.protect();
   }
 });
