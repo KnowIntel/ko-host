@@ -5,11 +5,17 @@ import { stripe } from "@/lib/stripe";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 
 export const runtime = "nodejs"; // MUST be node for Stripe webhook verification
+export const dynamic = "force-dynamic"; // ensure not cached / always available
 
 function mustGetEnv(name: string): string {
   const v = process.env[name];
   if (!v) throw new Error(`Missing env var: ${name}`);
   return v;
+}
+
+// Healthcheck so we can verify the route exists in production from the browser.
+export async function GET() {
+  return NextResponse.json({ ok: true, route: "/api/stripe/webhook" }, { status: 200 });
 }
 
 function templateKeyFromPriceId(priceId: string | null | undefined): string | null {
@@ -117,7 +123,6 @@ export async function POST(req: Request) {
       case "customer.subscription.created":
       case "customer.subscription.updated":
       case "customer.subscription.deleted": {
-        // Stripe SDK type mismatch fix: treat the payload as unknown-ish at runtime
         const sub = event.data.object as Stripe.Subscription;
 
         const clerkUserId = (sub.metadata?.clerk_user_id as string | undefined) ?? null;
@@ -141,8 +146,6 @@ export async function POST(req: Request) {
         }
 
         const status = (sub as any)?.status ?? "unknown";
-
-        // Some Stripe SDK typings omit current_period_end; read safely from runtime payload.
         const currentPeriodEndUnix = (sub as any)?.current_period_end as number | undefined;
 
         await upsertEntitlement({
