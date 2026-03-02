@@ -6,8 +6,9 @@ import { requireAuth } from "@/lib/clerk";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
-const BodySchema = z.object({
+const Schema = z.object({
   micrositeId: z.string().uuid(),
 });
 
@@ -17,10 +18,32 @@ function mustGetEnv(name: string) {
   return v;
 }
 
+async function parseBody(req: Request): Promise<{ micrositeId?: string }> {
+  const contentType = req.headers.get("content-type") || "";
+
+  // Form POST from <form>
+  if (contentType.includes("application/x-www-form-urlencoded") || contentType.includes("multipart/form-data")) {
+    const fd = await req.formData();
+    const micrositeId = fd.get("micrositeId");
+    return { micrositeId: typeof micrositeId === "string" ? micrositeId : undefined };
+  }
+
+  // JSON POST from fetch
+  const json = await req.json().catch(() => ({}));
+  return { micrositeId: json?.micrositeId };
+}
+
 export async function POST(req: Request) {
-  const { userId } = await requireAuth();
-  const body = await req.json().catch(() => ({}));
-  const parsed = BodySchema.safeParse(body);
+  let userId: string;
+  try {
+    const auth = await requireAuth();
+    userId = auth.userId;
+  } catch {
+    return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+  }
+
+  const raw = await parseBody(req);
+  const parsed = Schema.safeParse(raw);
 
   if (!parsed.success) {
     return NextResponse.json({ ok: false, error: "Invalid request" }, { status: 400 });
@@ -33,17 +56,21 @@ export async function POST(req: Request) {
   // Validate ownership
   const { data: site, error } = await sb
     .from("microsites")
-    .select("id, owner_clerk_user_id, slug, template_key")
+    .select("id, owner_clerk_user_id, slug, template_key, title")
     .eq("id", micrositeId)
     .maybeSingle();
 
-  if (error || !site || site.owner_clerk_user_id !== userId) {
-    return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 403 });
+  if (error || !site) {
+    return NextResponse.json({ ok: false, error: "Not found" }, { status: 404 });
   }
 
-  const baseUrl =
-    process.env.NEXT_PUBLIC_APP_URL ||
-    mustGetEnv("NEXT_PUBLIC_APP_URL");
+  if (site.owner_clerk_user_id !== userId) {
+    return NextResponse.json({ ok: false, error: "Forbidden" }, { status: 403 });
+  }
+
+  const baseUrl = mustGetEnv("NEXT_PUBLIC_APP_URL");
+
+  const displayName = site.title || site.slug;
 
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
@@ -55,7 +82,7 @@ export async function POST(req: Request) {
           unit_amount: 1400,
           product_data: {
             name: `${site.template_key} – 90 Days`,
-            description: "Temporary microsite access for 90 days.",
+            description: `Ko-Host microsite: ${displayName}`,
           },
         },
         quantity: 1,
@@ -70,8 +97,14 @@ export async function POST(req: Request) {
     cancel_url: `${baseUrl}/dashboard/microsites?checkout=cancel`,
   });
 
-  return NextResponse.json({
-    ok: true,
-    url: session.url,
-  });
+  // If called by a form submit, redirect directly to Stripe
+  const accept = req.headers.get("accept") || "";
+  const isBrowserFormPost = accept.includes("text/html");
+
+  if (isBrowserFormPost && session.url) {
+    return NextResponse.redirect(session.url, { status: 303 });
+  }
+
+  // Otherwise return JSON for programmatic callers
+  return NextResponse.json({ ok: true, url: session.url }, { status: 200 });
 }
