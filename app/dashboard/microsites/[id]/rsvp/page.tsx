@@ -46,7 +46,8 @@ export default async function MicrositeRsvpAdminPage({
           <div className="text-sm text-neutral-600">Ko-Host</div>
           <h1 className="mt-2 text-xl font-semibold tracking-tight">RSVP Admin</h1>
           <p className="mt-2 text-sm text-neutral-700">
-            RSVP admin is currently implemented only for <span className="font-mono">wedding_rsvp</span>.
+            RSVP admin is currently implemented only for{" "}
+            <span className="font-mono">wedding_rsvp</span>.
           </p>
           <div className="mt-4">
             <Link className="underline underline-offset-4" href="/dashboard/microsites">
@@ -84,17 +85,31 @@ export default async function MicrositeRsvpAdminPage({
             <div className="text-sm text-neutral-600">Ko-Host</div>
             <h1 className="mt-2 text-xl font-semibold tracking-tight">RSVP Admin</h1>
             <div className="mt-2 text-sm text-neutral-700">
-              <div><span className="font-medium">Microsite:</span> {site.title || "(Untitled)"}</div>
-              <div><span className="font-medium">Slug:</span> <span className="font-mono">{site.slug}</span></div>
+              <div>
+                <span className="font-medium">Microsite:</span> {site.title || "(Untitled)"}
+              </div>
+              <div>
+                <span className="font-medium">Slug:</span>{" "}
+                <span className="font-mono">{site.slug}</span>
+              </div>
             </div>
           </div>
 
-          <Link
-            href="/dashboard/microsites"
-            className="text-sm font-medium text-neutral-900 underline underline-offset-4"
-          >
-            Back
-          </Link>
+          <div className="flex items-center gap-3">
+            <a
+              href={`/api/dashboard/microsites/${site.id}/rsvp/export`}
+              className="inline-flex items-center justify-center rounded-xl bg-neutral-900 px-3 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+            >
+              Download CSV
+            </a>
+
+            <Link
+              href="/dashboard/microsites"
+              className="text-sm font-medium text-neutral-900 underline underline-offset-4"
+            >
+              Back
+            </Link>
+          </div>
         </div>
 
         <div className="mt-5 grid gap-3 sm:grid-cols-3">
