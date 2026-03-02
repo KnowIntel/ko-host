@@ -30,17 +30,17 @@ async function parseRequest(req: Request): Promise<{
 }> {
   const contentType = req.headers.get("content-type") || "";
 
-  // HTML <form> POST
-  if (contentType.includes("application/x-www-form-urlencoded") || contentType.includes("multipart/form-data")) {
+  if (
+    contentType.includes("application/x-www-form-urlencoded") ||
+    contentType.includes("multipart/form-data")
+  ) {
     const form = await req.formData();
-    const raw = {
+    const parsed = FormSchema.parse({
       templateKey: String(form.get("templateKey") ?? "")
-    };
-    const parsed = FormSchema.parse(raw);
+    });
     return { templateKey: parsed.templateKey, wantsRedirect: true };
   }
 
-  // JSON POST
   const json = await req.json().catch(() => null);
   const parsed = JsonBodySchema.parse(json);
   return { ...parsed, wantsRedirect: false };
@@ -53,7 +53,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { templateKey, successPath, cancelPath, wantsRedirect } = await parseRequest(req);
+    const { templateKey, successPath, cancelPath, wantsRedirect } =
+      await parseRequest(req);
 
     const priceId = getPriceIdForTemplate(templateKey);
     if (!priceId) {
@@ -62,17 +63,34 @@ export async function POST(req: Request) {
 
     const sb = getSupabaseAdmin();
 
-    // 1) Find or create Stripe customer for this Clerk user
-    const { data: existing, error: existingErr } = await sb
+    // 🚨 SERVER-SIDE ENTITLEMENT GUARD
+    const { data: entitlement } = await sb
+      .from("entitlements")
+      .select("*")
+      .eq("clerk_user_id", userId)
+      .eq("template_key", templateKey)
+      .maybeSingle();
+
+    const now = new Date();
+
+    if (
+      entitlement &&
+      entitlement.status === "active" &&
+      entitlement.current_period_end &&
+      new Date(entitlement.current_period_end) > now
+    ) {
+      return NextResponse.json(
+        { error: "Subscription already active" },
+        { status: 400 }
+      );
+    }
+
+    // Find or create Stripe customer
+    const { data: existing } = await sb
       .from("stripe_customers")
       .select("stripe_customer_id")
       .eq("clerk_user_id", userId)
       .maybeSingle();
-
-    if (existingErr) {
-      console.error("stripe_customers lookup failed", { existingErr, userId });
-      return NextResponse.json({ error: "DB error" }, { status: 500 });
-    }
 
     let stripeCustomerId = existing?.stripe_customer_id ?? null;
 
@@ -83,18 +101,12 @@ export async function POST(req: Request) {
 
       stripeCustomerId = customer.id;
 
-      const { error: upsertErr } = await sb.from("stripe_customers").upsert(
+      await sb.from("stripe_customers").upsert(
         { clerk_user_id: userId, stripe_customer_id: stripeCustomerId },
         { onConflict: "clerk_user_id" }
       );
-
-      if (upsertErr) {
-        console.error("stripe_customers upsert failed", { upsertErr, userId, stripeCustomerId });
-        return NextResponse.json({ error: "DB error" }, { status: 500 });
-      }
     }
 
-    // 2) Create Checkout Session
     const successUrl = `${appUrl()}${successPath ?? "/dashboard?checkout=success"}`;
     const cancelUrl = `${appUrl()}${cancelPath ?? "/dashboard?checkout=cancel"}`;
 
@@ -114,24 +126,26 @@ export async function POST(req: Request) {
           clerk_user_id: userId,
           template_key: templateKey
         }
-      },
-      automatic_tax: { enabled: false }
+      }
     });
 
     if (!session.url) {
-      return NextResponse.json({ error: "Stripe session missing url" }, { status: 500 });
+      return NextResponse.json(
+        { error: "Stripe session missing url" },
+        { status: 500 }
+      );
     }
 
-    // If this came from an HTML form, redirect the browser straight to Stripe
     if (wantsRedirect) {
       return NextResponse.redirect(session.url, 303);
     }
 
-    // JSON clients can use the url
     return NextResponse.json({ url: session.url }, { status: 200 });
   } catch (err: any) {
-    const msg = typeof err?.message === "string" ? err.message : "Server error";
     console.error("POST /api/stripe/checkout failed", err);
-    return NextResponse.json({ error: msg }, { status: 500 });
+    return NextResponse.json(
+      { error: err?.message ?? "Server error" },
+      { status: 500 }
+    );
   }
 }
