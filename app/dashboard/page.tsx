@@ -1,4 +1,5 @@
 // app/dashboard/page.tsx
+import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 
@@ -22,10 +23,24 @@ export default async function DashboardPage() {
   const isActive = entitlement?.status === "active";
 
   return (
-    <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-      <h1 className="text-xl font-semibold tracking-tight">Dashboard</h1>
+    <div className="space-y-6">
+      <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+        <h1 className="text-xl font-semibold tracking-tight">Dashboard</h1>
+        <p className="mt-2 text-sm text-neutral-700">
+          Manage your templates, microsites, and submissions.
+        </p>
 
-      <div className="mt-6 rounded-2xl border border-neutral-200 bg-neutral-50 p-5">
+        <div className="mt-4">
+          <Link
+            href="/dashboard/microsites"
+            className="inline-flex items-center justify-center rounded-xl bg-neutral-900 px-3 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+          >
+            View Microsites
+          </Link>
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
         <div className="text-base font-semibold">Wedding RSVP Template</div>
 
         {isActive ? (
@@ -39,11 +54,7 @@ export default async function DashboardPage() {
             </div>
 
             <form action="/api/stripe/checkout" method="POST" className="mt-4">
-              <input
-                type="hidden"
-                name="templateKey"
-                value="wedding_rsvp"
-              />
+              <input type="hidden" name="templateKey" value="wedding_rsvp" />
               <button
                 type="submit"
                 className="inline-flex items-center justify-center rounded-xl bg-neutral-900 px-3 py-2 text-sm font-medium text-white hover:bg-neutral-800"
