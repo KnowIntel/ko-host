@@ -15,18 +15,19 @@ function csvEscape(value: unknown): string {
 }
 
 export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } }
+  _req: NextRequest,
+  ctx: { params: Promise<{ id: string }> }
 ) {
+  const { id: micrositeId } = await ctx.params;
+
   const { userId } = await auth();
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const micrositeId = params.id;
-
   const sb = getSupabaseAdmin();
 
+  // Ownership check
   const { data: site, error: siteErr } = await sb
     .from("microsites")
     .select("id, owner_clerk_user_id, slug, template_key")
@@ -73,24 +74,25 @@ export async function GET(
   for (const r of rows ?? []) {
     lines.push(
       [
-        csvEscape(r.created_at),
-        csvEscape(r.name),
-        csvEscape(r.email),
-        csvEscape(r.attending_count),
-        csvEscape(r.has_plus_one),
-        csvEscape(r.meal_choice),
-        csvEscape(r.notes),
+        csvEscape((r as any).created_at),
+        csvEscape((r as any).name),
+        csvEscape((r as any).email),
+        csvEscape((r as any).attending_count),
+        csvEscape((r as any).has_plus_one),
+        csvEscape((r as any).meal_choice),
+        csvEscape((r as any).notes),
       ].join(",")
     );
   }
 
   const csv = lines.join("\n");
+  const filename = `rsvp_${site.slug}.csv`;
 
   return new NextResponse(csv, {
     status: 200,
     headers: {
       "content-type": "text/csv; charset=utf-8",
-      "content-disposition": `attachment; filename="rsvp_${site.slug}.csv"`,
+      "content-disposition": `attachment; filename="${filename}"`,
       "cache-control": "no-store",
     },
   });
