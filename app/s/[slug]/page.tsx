@@ -23,7 +23,7 @@ export default async function PublicMicrositePage({
 
   const { data: site, error } = await sb
     .from("microsites")
-    .select("id, slug, title, template_key, is_published, expires_at")
+    .select("id, slug, title, template_key, is_published, expires_at, paid_until")
     .eq("slug", slug)
     .maybeSingle();
 
@@ -32,14 +32,21 @@ export default async function PublicMicrositePage({
   const now = new Date();
   const isExpired = site.expires_at ? new Date(site.expires_at) <= now : false;
 
-  if (!site.is_published || isExpired) {
+  // ✅ NEW: paid access window
+  const paidActive = site.paid_until ? new Date(site.paid_until) > now : false;
+
+  if (!site.is_published || isExpired || !paidActive) {
     return (
       <main className="mx-auto max-w-3xl px-4 py-10">
         <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
           <div className="text-sm text-neutral-600">Ko-Host</div>
           <h1 className="mt-2 text-2xl font-semibold tracking-tight">This site isn’t available</h1>
           <p className="mt-3 text-sm text-neutral-700">
-            {isExpired ? "This microsite has expired." : "This microsite is not published yet."}
+            {!site.is_published
+              ? "This microsite is not published yet."
+              : isExpired
+              ? "This microsite has expired."
+              : "This microsite’s moment has ended."}
           </p>
         </div>
       </main>
