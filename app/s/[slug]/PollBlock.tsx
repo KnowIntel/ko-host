@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type Option = { id: string; label: string };
 type Poll = {
@@ -11,6 +11,8 @@ type Poll = {
   showResultsPublic: boolean;
   options: Option[];
 };
+
+type ResultRow = { optionId: string; label: string; count: number };
 
 export default function PollBlock({
   micrositeSlug,
@@ -25,6 +27,10 @@ export default function PollBlock({
 
   // honeypot
   const [company, setCompany] = useState("");
+
+  const [results, setResults] = useState<ResultRow[] | null>(null);
+  const [totalVotes, setTotalVotes] = useState<number>(0);
+  const [loadingResults, setLoadingResults] = useState<boolean>(false);
 
   const canSubmit = useMemo(() => {
     if (status === "submitting") return false;
@@ -42,6 +48,39 @@ export default function PollBlock({
       prev.includes(optionId) ? prev.filter((x) => x !== optionId) : [...prev, optionId]
     );
   }
+
+  async function fetchResults() {
+    if (!poll.showResultsPublic) return;
+    setLoadingResults(true);
+    try {
+      const res = await fetch(
+        `/api/public/poll/results?micrositeSlug=${encodeURIComponent(micrositeSlug)}&pollId=${encodeURIComponent(
+          poll.id
+        )}`,
+        { method: "GET" }
+      );
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        // If results are hidden or fail, just don't show them
+        setLoadingResults(false);
+        return;
+      }
+
+      setResults(data.results ?? null);
+      setTotalVotes(typeof data.total === "number" ? data.total : 0);
+    } finally {
+      setLoadingResults(false);
+    }
+  }
+
+  // If results are public, we can show them even before voting (nice UX)
+  useEffect(() => {
+    if (poll.showResultsPublic) {
+      fetchResults();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [poll.id]);
 
   async function submitVote() {
     setStatus("submitting");
@@ -71,10 +110,16 @@ export default function PollBlock({
       }
 
       setStatus("success");
+      await fetchResults();
     } catch {
       setStatus("error");
       setErrorMsg("Network error. Please try again.");
     }
+  }
+
+  function percent(count: number) {
+    if (!totalVotes) return 0;
+    return Math.round((count / totalVotes) * 100);
   }
 
   return (
@@ -91,6 +136,52 @@ export default function PollBlock({
         <input value={company} onChange={(e) => setCompany(e.target.value)} />
       </label>
 
+      {/* Results (if public) */}
+      {poll.showResultsPublic ? (
+        <div className="mt-4 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+          <div className="flex items-center justify-between">
+            <div className="text-xs font-medium text-neutral-700">Results</div>
+            <div className="text-xs text-neutral-600">
+              {loadingResults ? "Updating..." : `${totalVotes} vote${totalVotes === 1 ? "" : "s"}`}
+            </div>
+          </div>
+
+          <div className="mt-3 grid gap-2">
+            {(results ??
+              poll.options.map((o) => ({ optionId: o.id, label: o.label, count: 0 }))
+            ).map((r) => {
+              const p = percent(r.count);
+              return (
+                <div key={r.optionId} className="grid gap-1">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-neutral-900">{r.label}</span>
+                    <span className="text-neutral-700">
+                      {r.count} ({p}%)
+                    </span>
+                  </div>
+                  <div className="h-2 w-full rounded-full bg-white border border-neutral-200 overflow-hidden">
+                    <div
+                      className="h-full bg-neutral-900"
+                      style={{ width: `${p}%` }}
+                      aria-hidden="true"
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <button
+            type="button"
+            onClick={fetchResults}
+            className="mt-3 text-xs font-medium text-neutral-900 underline underline-offset-4"
+          >
+            Refresh results
+          </button>
+        </div>
+      ) : null}
+
+      {/* Voting UI */}
       {status === "success" ? (
         <div className="mt-4 rounded-xl border border-green-200 bg-green-50 p-3 text-sm text-green-800">
           Vote recorded. Thank you!
