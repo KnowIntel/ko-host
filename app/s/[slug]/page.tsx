@@ -1,6 +1,7 @@
 // app/s/[slug]/page.tsx
 import { notFound } from "next/navigation";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
+import RsvpForm from "./RsvpForm";
 
 export const dynamic = "force-dynamic";
 
@@ -25,13 +26,7 @@ export default async function PublicMicrositePage({
     .eq("slug", slug)
     .maybeSingle();
 
-  if (error) {
-    // deterministic: log and show 404 to avoid leaking internal errors publicly
-    console.error("microsite lookup failed", { slug, error });
-    return notFound();
-  }
-
-  if (!site) return notFound();
+  if (error || !site) return notFound();
 
   const now = new Date();
   const isExpired = site.expires_at ? new Date(site.expires_at) <= now : false;
@@ -41,46 +36,40 @@ export default async function PublicMicrositePage({
       <main className="mx-auto max-w-3xl px-4 py-10">
         <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
           <div className="text-sm text-neutral-600">Ko-Host</div>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight">
-            This site isn’t available
-          </h1>
+          <h1 className="mt-2 text-2xl font-semibold tracking-tight">This site isn’t available</h1>
           <p className="mt-3 text-sm text-neutral-700">
-            {isExpired
-              ? "This microsite has expired."
-              : "This microsite is not published yet."}
+            {isExpired ? "This microsite has expired." : "This microsite is not published yet."}
           </p>
         </div>
       </main>
     );
   }
 
+  const isWedding = site.template_key === "wedding_rsvp";
+
   return (
     <main className="mx-auto max-w-3xl px-4 py-10">
       <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-        <div className="text-sm text-neutral-600">Ko-Host Public Microsite</div>
-
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight">
+        <div className="text-sm text-neutral-600">Ko-Host</div>
+        <h1 className="mt-2 text-3xl font-semibold tracking-tight">
           {site.title || `${site.slug}.ko-host.com`}
         </h1>
-
-        <div className="mt-3 text-sm text-neutral-700">
-          <div>
-            <span className="font-medium">Template:</span>{" "}
-            <span className="font-mono">{site.template_key}</span>
-          </div>
-          <div className="mt-1">
-            <span className="font-medium">Slug:</span>{" "}
-            <span className="font-mono">{site.slug}</span>
-          </div>
+        <div className="mt-2 text-sm text-neutral-700">
+          Template: <span className="font-mono">{site.template_key}</span>
         </div>
+      </div>
 
-        <div className="mt-6 rounded-xl bg-neutral-50 p-4 text-sm text-neutral-700">
-          <div className="font-medium">Next</div>
-          <div className="mt-1">
-            Phase 4 will render the actual template modules (RSVP, polls, gallery,
-            etc.) based on <code className="rounded bg-white px-1 py-0.5">template_key</code>.
+      <div className="mt-6">
+        {isWedding ? (
+          <RsvpForm micrositeSlug={site.slug} />
+        ) : (
+          <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+            <div className="text-sm text-neutral-600">Modules</div>
+            <div className="mt-2 text-sm text-neutral-700">
+              This template’s modules will be implemented next.
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </main>
   );
