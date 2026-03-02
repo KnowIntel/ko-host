@@ -2,6 +2,7 @@
 import { notFound } from "next/navigation";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import RsvpForm from "./RsvpForm";
+import PollBlock from "./PollBlock";
 
 export const dynamic = "force-dynamic";
 
@@ -45,6 +46,31 @@ export default async function PublicMicrositePage({
     );
   }
 
+  // Load polls for this microsite (if any)
+  const { data: pollRows } = await sb
+    .from("polls")
+    .select("id, title, description, is_multi_select, show_results_public, is_open")
+    .eq("microsite_id", site.id)
+    .order("created_at", { ascending: true });
+
+  const polls = pollRows ?? [];
+
+  const pollIds = polls.map((p) => p.id);
+  const { data: optionRows } = pollIds.length
+    ? await sb
+        .from("poll_options")
+        .select("id, poll_id, label, sort_order")
+        .in("poll_id", pollIds)
+        .order("sort_order", { ascending: true })
+    : { data: [] as any[] };
+
+  const optionsByPoll = new Map<string, { id: string; label: string }[]>();
+  for (const o of optionRows ?? []) {
+    const arr = optionsByPoll.get(o.poll_id) ?? [];
+    arr.push({ id: o.id, label: o.label });
+    optionsByPoll.set(o.poll_id, arr);
+  }
+
   const isWedding = site.template_key === "wedding_rsvp";
 
   return (
@@ -59,17 +85,32 @@ export default async function PublicMicrositePage({
         </div>
       </div>
 
-      <div className="mt-6">
-        {isWedding ? (
-          <RsvpForm micrositeSlug={site.slug} />
-        ) : (
+      <div className="mt-6 grid gap-6">
+        {isWedding ? <RsvpForm micrositeSlug={site.slug} /> : null}
+
+        {polls.map((p) => (
+          <PollBlock
+            key={p.id}
+            micrositeSlug={site.slug}
+            poll={{
+              id: p.id,
+              title: p.title,
+              description: p.description,
+              isMultiSelect: p.is_multi_select,
+              showResultsPublic: p.show_results_public,
+              options: optionsByPoll.get(p.id) ?? [],
+            }}
+          />
+        ))}
+
+        {!isWedding && polls.length === 0 ? (
           <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
             <div className="text-sm text-neutral-600">Modules</div>
             <div className="mt-2 text-sm text-neutral-700">
               This template’s modules will be implemented next.
             </div>
           </div>
-        )}
+        ) : null}
       </div>
     </main>
   );
