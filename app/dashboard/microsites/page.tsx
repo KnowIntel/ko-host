@@ -11,8 +11,14 @@ type MicrositeRow = {
   title: string;
   template_key: string;
   is_published: boolean;
+  paid_until: string | null;
   created_at: string;
 };
+
+function isPaidActive(paidUntil: string | null) {
+  if (!paidUntil) return false;
+  return new Date(paidUntil).getTime() > Date.now();
+}
 
 export default async function MicrositesListPage() {
   const { userId } = await auth();
@@ -22,7 +28,7 @@ export default async function MicrositesListPage() {
 
   const { data, error } = await sb
     .from("microsites")
-    .select("id, slug, title, template_key, is_published, created_at")
+    .select("id, slug, title, template_key, is_published, paid_until, created_at")
     .eq("owner_clerk_user_id", userId)
     .order("created_at", { ascending: false });
 
@@ -39,7 +45,7 @@ export default async function MicrositesListPage() {
         <div>
           <h1 className="text-xl font-semibold tracking-tight">Microsites</h1>
           <p className="mt-1 text-sm text-neutral-700">
-            Manage your sites and view submissions.
+            Manage your sites and view submissions. Pay per microsite for 90 days.
           </p>
         </div>
 
@@ -58,6 +64,7 @@ export default async function MicrositesListPage() {
               <th className="px-4 py-3 font-medium text-neutral-700">Title</th>
               <th className="px-4 py-3 font-medium text-neutral-700">Slug</th>
               <th className="px-4 py-3 font-medium text-neutral-700">Template</th>
+              <th className="px-4 py-3 font-medium text-neutral-700">Access</th>
               <th className="px-4 py-3 font-medium text-neutral-700">Published</th>
               <th className="px-4 py-3 font-medium text-neutral-700">Actions</th>
             </tr>
@@ -65,47 +72,86 @@ export default async function MicrositesListPage() {
           <tbody>
             {microsites.length === 0 ? (
               <tr>
-                <td className="px-4 py-4 text-neutral-600" colSpan={5}>
+                <td className="px-4 py-4 text-neutral-600" colSpan={6}>
                   No microsites yet.
                 </td>
               </tr>
             ) : (
-              microsites.map((m) => (
-                <tr key={m.id} className="border-t border-neutral-200">
-                  <td className="px-4 py-3 font-medium text-neutral-900">
-                    {m.title || "(Untitled)"}
-                  </td>
-                  <td className="px-4 py-3 font-mono text-neutral-800">
-                    {m.slug}
-                  </td>
-                  <td className="px-4 py-3 font-mono text-neutral-800">
-                    {m.template_key}
-                  </td>
-                  <td className="px-4 py-3">
-                    {m.is_published ? (
-                      <span className="rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700">
-                        Yes
-                      </span>
-                    ) : (
-                      <span className="rounded-full bg-neutral-100 px-2 py-1 text-xs font-medium text-neutral-700">
-                        No
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    <Link
-                      href={`/dashboard/microsites/${m.id}/rsvp`}
-                      className="text-sm font-medium text-neutral-900 underline underline-offset-4"
-                    >
-                      RSVP submissions
-                    </Link>
-                  </td>
-                </tr>
-              ))
+              microsites.map((m) => {
+                const active = isPaidActive(m.paid_until);
+
+                return (
+                  <tr key={m.id} className="border-t border-neutral-200">
+                    <td className="px-4 py-3 font-medium text-neutral-900">
+                      {m.title || "(Untitled)"}
+                    </td>
+                    <td className="px-4 py-3 font-mono text-neutral-800">{m.slug}</td>
+                    <td className="px-4 py-3 font-mono text-neutral-800">{m.template_key}</td>
+
+                    <td className="px-4 py-3">
+                      {active ? (
+                        <div className="text-xs">
+                          <span className="rounded-full bg-green-50 px-2 py-1 font-medium text-green-700">
+                            Active
+                          </span>
+                          <div className="mt-1 text-neutral-600">
+                            Until {new Date(m.paid_until as string).toLocaleDateString()}
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="rounded-full bg-neutral-100 px-2 py-1 text-xs font-medium text-neutral-700">
+                          Not paid
+                        </span>
+                      )}
+                    </td>
+
+                    <td className="px-4 py-3">
+                      {m.is_published ? (
+                        <span className="rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700">
+                          Yes
+                        </span>
+                      ) : (
+                        <span className="rounded-full bg-neutral-100 px-2 py-1 text-xs font-medium text-neutral-700">
+                          No
+                        </span>
+                      )}
+                    </td>
+
+                    <td className="px-4 py-3">
+                      <div className="flex flex-wrap items-center gap-3">
+                        <Link
+                          href={`/dashboard/microsites/${m.id}/rsvp`}
+                          className="text-sm font-medium text-neutral-900 underline underline-offset-4"
+                        >
+                          RSVP submissions
+                        </Link>
+
+                        <form
+                          action="/api/stripe/checkout"
+                          method="POST"
+                          className="inline-flex"
+                        >
+                          <input type="hidden" name="micrositeId" value={m.id} />
+                          <button
+                            type="submit"
+                            className="inline-flex items-center justify-center rounded-xl bg-neutral-900 px-3 py-2 text-xs font-medium text-white hover:bg-neutral-800"
+                          >
+                            Pay $14 (90 days)
+                          </button>
+                        </form>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>
       </div>
+
+      <p className="mt-4 text-xs text-neutral-600">
+        Tip: repurchase to extend time. Paid time stacks automatically.
+      </p>
     </div>
   );
 }
