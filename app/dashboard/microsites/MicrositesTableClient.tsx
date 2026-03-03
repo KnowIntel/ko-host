@@ -42,7 +42,6 @@ export default function MicrositesTableClient({ microsites }: { microsites: Micr
         return;
       }
 
-      // simplest, reliable refresh
       window.location.reload();
     } finally {
       setBusyId(null);
@@ -95,7 +94,13 @@ export default function MicrositesTableClient({ microsites }: { microsites: Micr
                 return (
                   <tr key={m.id} className="border-t border-neutral-200 align-top">
                     <td className="px-4 py-3 font-medium text-neutral-900">
-                      {m.title || "(Untitled)"}
+                      <Link
+                        href={`/dashboard/microsites/${m.id}`}
+                        className="underline underline-offset-4"
+                      >
+                        {m.title || "(Untitled)"}
+                      </Link>
+
                       <div className="mt-1 text-xs text-neutral-600">
                         <a
                           className="underline underline-offset-4"
@@ -145,13 +150,19 @@ export default function MicrositesTableClient({ microsites }: { microsites: Micr
                     <td className="px-4 py-3">
                       <div className="flex flex-wrap items-center gap-3">
                         <Link
+                          href={`/dashboard/microsites/${m.id}`}
+                          className="text-sm font-medium text-neutral-900 underline underline-offset-4"
+                        >
+                          Manage
+                        </Link>
+
+                        <Link
                           href={`/dashboard/microsites/${m.id}/rsvp`}
                           className="text-sm font-medium text-neutral-900 underline underline-offset-4"
                         >
                           RSVP submissions
                         </Link>
 
-                        {/* Pay button */}
                         <form action="/api/stripe/checkout" method="POST" className="inline-flex">
                           <input type="hidden" name="micrositeId" value={m.id} />
                           <button
@@ -162,7 +173,6 @@ export default function MicrositesTableClient({ microsites }: { microsites: Micr
                           </button>
                         </form>
 
-                        {/* Publish/unpublish */}
                         <button
                           type="button"
                           disabled={busyId === m.id}
