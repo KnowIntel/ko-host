@@ -16,6 +16,8 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     const body = await req.json().catch(() => null);
     const storage_path = String(body?.storage_path || "");
     const public_url = String(body?.public_url || "");
+    const thumbnail_url = body?.thumbnail_url ? String(body.thumbnail_url) : null;
+
     const caption = body?.caption ? String(body.caption).slice(0, 140) : null;
     const media_type = String(body?.media_type || "image");
     const mime_type = body?.mime_type ? String(body.mime_type) : null;
@@ -47,7 +49,6 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     const paidActive = site.paid_until ? new Date(site.paid_until) > now : false;
     if (!paidActive) return NextResponse.json({ ok: false, error: "Payment required" }, { status: 402 });
 
-    // Insert row
     const { data: row, error: insErr } = await sb
       .from("gallery_items")
       .insert({
@@ -55,12 +56,13 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
         storage_bucket: BUCKET,
         storage_path,
         public_url,
+        thumbnail_url,
         caption,
         sort_order,
         media_type,
         mime_type,
       })
-      .select("id, public_url, caption, sort_order, created_at, media_type, mime_type")
+      .select("id, public_url, thumbnail_url, caption, sort_order, created_at, media_type, mime_type")
       .single();
 
     if (insErr) {

@@ -42,7 +42,7 @@ export default async function HomePage() {
             </div>
 
             <p className="mt-4 text-sm text-neutral-600">
-              Pricing: <span className="font-medium text-neutral-900">$12 / microsite</span>. Subscribe only to
+              Pricing: <span className="font-medium text-neutral-900">$12 / microsite (90 days)</span>. Subscribe only to
               the templates you use.
             </p>
           </div>
