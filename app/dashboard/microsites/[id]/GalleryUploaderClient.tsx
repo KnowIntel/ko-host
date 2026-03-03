@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { createClient } from "@supabase/supabase-js";
 
 type GalleryItem = {
   id: string;
@@ -13,6 +14,13 @@ type GalleryItem = {
 };
 
 const MAX_ITEMS = 24;
+
+// browser-side client (anon)
+function getBrowserSupabase() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+  return createClient(url, anon);
+}
 
 export default function GalleryUploaderClient({ micrositeId }: { micrositeId: string }) {
   const [file, setFile] = useState<File | null>(null);
@@ -44,15 +52,6 @@ export default function GalleryUploaderClient({ micrositeId }: { micrositeId: st
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [micrositeId]);
 
-  async function fileToBase64(f: File): Promise<string> {
-    return await new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(String(reader.result));
-      reader.onerror = () => reject(new Error("Failed to read file"));
-      reader.readAsDataURL(f);
-    });
-  }
-
   async function onUpload() {
     if (!file) return;
     if (atLimit) {
@@ -64,22 +63,71 @@ export default function GalleryUploaderClient({ micrositeId }: { micrositeId: st
     setMsg(null);
 
     try {
-      const base64 = await fileToBase64(file);
-
-      const res = await fetch(`/api/dashboard/microsites/${micrositeId}/gallery/upload`, {
+      // 1) ask server for a signed upload token + path
+      const signedRes = await fetch(`/api/dashboard/microsites/${micrositeId}/gallery/signed-upload`, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          base64,
           mime: file.type || "application/octet-stream",
           caption: caption.trim() ? caption.trim() : null,
         }),
       });
 
-      const json = await res.json().catch(() => ({}));
+      const signedJson = await signedRes.json().catch(() => ({}));
+      if (!signedRes.ok || !signedJson?.ok) {
+        setMsg(signedJson?.error || `Signed upload failed (${signedRes.status})`);
+        return;
+      }
 
-      if (!res.ok || !json?.ok) {
-        setMsg(json?.error || `Upload failed (${res.status})`);
+      const {
+        bucket,
+        storage_path,
+        token,
+        public_url,
+        mime_type,
+        media_type,
+        caption: serverCaption,
+        next_sort_order,
+      } = signedJson as {
+        bucket: string;
+        storage_path: string;
+        token: string;
+        public_url: string;
+        mime_type: string;
+        media_type: "image" | "video";
+        caption: string | null;
+        next_sort_order: number;
+      };
+
+      // 2) upload directly from browser to storage
+      const sb = getBrowserSupabase();
+      const { error: upErr } = await sb.storage.from(bucket).uploadToSignedUrl(storage_path, token, file, {
+        contentType: mime_type,
+        upsert: false,
+      });
+
+      if (upErr) {
+        setMsg(upErr.message || "Upload failed");
+        return;
+      }
+
+      // 3) finalize DB row (server-side)
+      const finRes = await fetch(`/api/dashboard/microsites/${micrositeId}/gallery/finalize`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          storage_path,
+          public_url,
+          caption: serverCaption,
+          media_type,
+          mime_type,
+          sort_order: next_sort_order,
+        }),
+      });
+
+      const finJson = await finRes.json().catch(() => ({}));
+      if (!finRes.ok || !finJson?.ok) {
+        setMsg(finJson?.error || `Finalize failed (${finRes.status})`);
         return;
       }
 
@@ -201,7 +249,7 @@ export default function GalleryUploaderClient({ micrositeId }: { micrositeId: st
           disabled={!file || busy || atLimit}
           onClick={onUpload}
         >
-          {busy ? "Working..." : "Upload"}
+          {busy ? "Uploading..." : "Upload"}
         </button>
 
         {msg ? <div className="text-sm text-neutral-700">{msg}</div> : null}
