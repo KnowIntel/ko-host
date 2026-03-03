@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 type GalleryItem = {
   id: string;
   public_url: string;
+  thumbnail_url?: string | null;
   caption: string | null;
   media_type: "image" | "video";
   mime_type: string | null;
@@ -13,6 +14,7 @@ type GalleryItem = {
 export default function GalleryBlock({ micrositeSlug }: { micrositeSlug: string }) {
   const [items, setItems] = useState<GalleryItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [locked, setLocked] = useState(false);
   const [openId, setOpenId] = useState<string | null>(null);
 
   const openIndex = useMemo(() => {
@@ -27,15 +29,28 @@ export default function GalleryBlock({ micrositeSlug }: { micrositeSlug: string 
     let cancelled = false;
 
     (async () => {
+      setLoading(true);
+      setLocked(false);
+
       try {
         const res = await fetch(
           `/api/public/gallery/list?slug=${encodeURIComponent(micrositeSlug)}`,
           { cache: "no-store" }
         );
-        const json = await res.json();
+
         if (cancelled) return;
 
-        if (json?.ok) setItems(json.items ?? []);
+        // ✅ If paid/published gating blocks gallery, show lock UI (not generic)
+        if (res.status === 402 || res.status === 403) {
+          setLocked(true);
+          setItems([]);
+          return;
+        }
+
+        const json = await res.json().catch(() => ({}));
+        if (cancelled) return;
+
+        if (res.ok && json?.ok) setItems(json.items ?? []);
         else setItems([]);
       } catch {
         if (!cancelled) setItems([]);
@@ -81,6 +96,10 @@ export default function GalleryBlock({ micrositeSlug }: { micrositeSlug: string 
 
       {loading ? (
         <div className="mt-3 text-sm text-neutral-700">Loading...</div>
+      ) : locked ? (
+        <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+          Gallery locked — pay to unlock.
+        </div>
       ) : items.length === 0 ? (
         <div className="mt-3 text-sm text-neutral-700">No media yet.</div>
       ) : (
@@ -94,20 +113,33 @@ export default function GalleryBlock({ micrositeSlug }: { micrositeSlug: string 
               aria-label="Open media"
             >
               {it.media_type === "video" ? (
-                <div className="relative h-40 w-full bg-black">
-                  <video
-                    src={it.public_url}
-                    className="h-40 w-full object-cover opacity-90"
-                    preload="metadata"
-                    muted
-                    playsInline
-                  />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="rounded-full bg-black/50 px-3 py-2 text-xs text-white">
-                      ▶ Video
+                it.thumbnail_url ? (
+                  <div className="relative h-40 w-full bg-black">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={it.thumbnail_url}
+                      alt={it.caption ?? "Video thumbnail"}
+                      className="h-40 w-full object-cover opacity-95"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="rounded-full bg-black/50 px-3 py-2 text-xs text-white">▶ Video</div>
                     </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="relative h-40 w-full bg-black">
+                    <video
+                      src={it.public_url}
+                      className="h-40 w-full object-cover opacity-90"
+                      preload="metadata"
+                      muted
+                      playsInline
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="rounded-full bg-black/50 px-3 py-2 text-xs text-white">▶ Video</div>
+                    </div>
+                  </div>
+                )
               ) : (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -132,7 +164,6 @@ export default function GalleryBlock({ micrositeSlug }: { micrositeSlug: string 
           className="fixed inset-0 z-50 bg-black/80"
           role="dialog"
           aria-modal="true"
-          // ✅ Only close by clicking backdrop for IMAGES. Videos require Close button / Esc.
           onClick={isVideoOpen ? undefined : () => setOpenId(null)}
         >
           <div className="flex h-full w-full items-center justify-center p-4">
@@ -147,10 +178,8 @@ export default function GalleryBlock({ micrositeSlug }: { micrositeSlug: string 
 
               <div
                 className="relative overflow-hidden rounded-2xl bg-black"
-                // ✅ Never let clicks inside bubble to backdrop
                 onClick={(e) => e.stopPropagation()}
               >
-                {/* Tap zones ONLY for images */}
                 {openItem.media_type === "image" ? (
                   <>
                     <button
@@ -215,12 +244,6 @@ export default function GalleryBlock({ micrositeSlug }: { micrositeSlug: string 
                 >
                   Next →
                 </button>
-              </div>
-
-              <div className="mt-2 text-center text-xs text-white/60">
-                {openItem.media_type === "image"
-                  ? "Tap left/right side to navigate. Click outside to close. Esc closes."
-                  : "Video: use controls to play. Use Close ✕ or Esc to close."}
               </div>
             </div>
           </div>
