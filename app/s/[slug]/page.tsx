@@ -1,8 +1,8 @@
-// app/s/[slug]/page.tsx
 import { notFound } from "next/navigation";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import RsvpForm from "./RsvpForm";
 import PollBlock from "./PollBlock";
+import GalleryBlock from "./GalleryBlock";
 
 export const dynamic = "force-dynamic";
 
@@ -31,8 +31,6 @@ export default async function PublicMicrositePage({
 
   const now = new Date();
   const isExpired = site.expires_at ? new Date(site.expires_at) <= now : false;
-
-  // ✅ NEW: paid access window
   const paidActive = site.paid_until ? new Date(site.paid_until) > now : false;
 
   if (!site.is_published || isExpired || !paidActive) {
@@ -53,7 +51,6 @@ export default async function PublicMicrositePage({
     );
   }
 
-  // Load polls for this microsite (if any)
   const { data: pollRows } = await sb
     .from("polls")
     .select("id, title, description, is_multi_select, show_results_public, is_open")
@@ -94,6 +91,8 @@ export default async function PublicMicrositePage({
 
       <div className="mt-6 grid gap-6">
         {isWedding ? <RsvpForm micrositeSlug={site.slug} /> : null}
+
+        {isWedding ? <GalleryBlock micrositeSlug={site.slug} /> : null}
 
         {polls.map((p) => (
           <PollBlock
