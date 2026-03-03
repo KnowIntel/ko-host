@@ -35,16 +35,14 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
 
     const { data: site, error: siteErr } = await sb
       .from("microsites")
-      .select("id, owner_clerk_user_id, template_key, paid_until")
+      .select("id, owner_clerk_user_id, paid_until")
       .eq("id", micrositeId)
       .maybeSingle();
 
     if (siteErr || !site) return NextResponse.json({ ok: false, error: "Not found" }, { status: 404 });
     if (site.owner_clerk_user_id !== userId) return NextResponse.json({ ok: false, error: "Forbidden" }, { status: 403 });
-    if (site.template_key !== "wedding_rsvp") {
-      return NextResponse.json({ ok: false, error: "Gallery not enabled for this template" }, { status: 400 });
-    }
 
+    // ✅ ALL templates allowed — paid_until required
     const now = new Date();
     const paidActive = site.paid_until ? new Date(site.paid_until) > now : false;
     if (!paidActive) return NextResponse.json({ ok: false, error: "Payment required" }, { status: 402 });
