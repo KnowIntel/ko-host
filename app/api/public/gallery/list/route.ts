@@ -20,27 +20,26 @@ export async function GET(req: Request) {
 
     const { data: site, error: siteErr } = await sb
       .from("microsites")
-      .select("id, template_key, is_published, expires_at, paid_until")
+      .select("id, is_published, expires_at, paid_until")
       .eq("slug", slug)
       .maybeSingle();
 
-    if (siteErr || !site) return NextResponse.json({ ok: false, error: "Not found" }, { status: 404 });
-
-    if (site.template_key !== "wedding_rsvp") {
-      return NextResponse.json({ ok: true, items: [] });
+    if (siteErr || !site) {
+      return NextResponse.json({ ok: false, error: "Not found" }, { status: 404 });
     }
 
     const now = new Date();
     const isExpired = site.expires_at ? new Date(site.expires_at) <= now : false;
     const paidActive = site.paid_until ? new Date(site.paid_until) > now : false;
 
+    // ✅ Public access requires: published + not expired + paid active
     if (!site.is_published || isExpired || !paidActive) {
       return NextResponse.json({ ok: false, error: "Unavailable" }, { status: 403 });
     }
 
     const { data: items, error: itemsErr } = await sb
       .from("gallery_items")
-      .select("id, public_url, caption, sort_order, created_at, media_type, mime_type")
+      .select("id, public_url, thumbnail_url, caption, sort_order, created_at, media_type, mime_type")
       .eq("microsite_id", site.id)
       .order("sort_order", { ascending: true })
       .order("created_at", { ascending: true });
