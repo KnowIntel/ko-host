@@ -118,7 +118,9 @@ export default function GalleryBlock({ micrositeSlug }: { micrositeSlug: string 
                 />
               )}
 
-              {it.caption ? <div className="px-3 py-2 text-xs text-neutral-700">{it.caption}</div> : null}
+              {it.caption ? (
+                <div className="px-3 py-2 text-xs text-neutral-700">{it.caption}</div>
+              ) : null}
             </button>
           ))}
         </div>
@@ -143,33 +145,35 @@ export default function GalleryBlock({ micrositeSlug }: { micrositeSlug: string 
               </button>
 
               <div className="relative overflow-hidden rounded-2xl bg-black">
-                {/* left tap zone */}
-                <button
-                  type="button"
-                  aria-label="Previous"
-                  className="absolute left-0 top-0 h-full w-1/3 bg-transparent"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    goPrev();
-                  }}
-                />
-                {/* right tap zone */}
-                <button
-                  type="button"
-                  aria-label="Next"
-                  className="absolute right-0 top-0 h-full w-1/3 bg-transparent"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    goNext();
-                  }}
-                />
+                {/* ✅ Tap zones ONLY for images so video controls stay clickable */}
+                {openItem.media_type === "image" ? (
+                  <>
+                    <button
+                      type="button"
+                      aria-label="Previous"
+                      className="absolute left-0 top-0 h-full w-1/3 bg-transparent"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        goPrev();
+                      }}
+                    />
+                    <button
+                      type="button"
+                      aria-label="Next"
+                      className="absolute right-0 top-0 h-full w-1/3 bg-transparent"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        goNext();
+                      }}
+                    />
+                  </>
+                ) : null}
 
                 {openItem.media_type === "video" ? (
                   <video
                     src={openItem.public_url}
                     className="max-h-[75vh] w-full object-contain"
                     controls
-                    autoPlay
                     playsInline
                   />
                 ) : (
@@ -211,7 +215,9 @@ export default function GalleryBlock({ micrositeSlug }: { micrositeSlug: string 
               </div>
 
               <div className="mt-2 text-center text-xs text-white/60">
-                Tap left/right side to navigate. Esc closes.
+                {openItem.media_type === "image"
+                  ? "Tap left/right side to navigate. Esc closes."
+                  : "Use Prev/Next or ← → keys to navigate. Esc closes."}
               </div>
             </div>
           </div>
