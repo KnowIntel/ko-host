@@ -33,19 +33,26 @@ export default async function PublicMicrositePage({
   const isExpired = site.expires_at ? new Date(site.expires_at) <= now : false;
   const paidActive = site.paid_until ? new Date(site.paid_until) > now : false;
 
+  // Keep full-site gating (published + not expired + paid)
   if (!site.is_published || isExpired || !paidActive) {
+    const headline = !site.is_published
+      ? "This microsite isn’t published yet"
+      : isExpired
+      ? "This microsite has expired"
+      : "This microsite’s moment has ended";
+
+    const body = !site.is_published
+      ? "The owner hasn’t published this page yet."
+      : isExpired
+      ? "This page reached its expiration date."
+      : "The 90-day access window ended. The owner can repurchase to bring it back.";
+
     return (
       <main className="mx-auto max-w-3xl px-4 py-10">
         <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
           <div className="text-sm text-neutral-600">Ko-Host</div>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight">This site isn’t available</h1>
-          <p className="mt-3 text-sm text-neutral-700">
-            {!site.is_published
-              ? "This microsite is not published yet."
-              : isExpired
-              ? "This microsite has expired."
-              : "This microsite’s moment has ended."}
-          </p>
+          <h1 className="mt-2 text-2xl font-semibold tracking-tight">{headline}</h1>
+          <p className="mt-3 text-sm text-neutral-700">{body}</p>
         </div>
       </main>
     );
@@ -90,9 +97,11 @@ export default async function PublicMicrositePage({
       </div>
 
       <div className="mt-6 grid gap-6">
+        {/* RSVP stays wedding-only */}
         {isWedding ? <RsvpForm micrositeSlug={site.slug} /> : null}
 
-        {isWedding ? <GalleryBlock micrositeSlug={site.slug} /> : null}
+        {/* ✅ Gallery now available for ALL templates */}
+        <GalleryBlock micrositeSlug={site.slug} />
 
         {polls.map((p) => (
           <PollBlock
@@ -109,11 +118,12 @@ export default async function PublicMicrositePage({
           />
         ))}
 
+        {/* Only show placeholder if there are no modules at all */}
         {!isWedding && polls.length === 0 ? (
           <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
             <div className="text-sm text-neutral-600">Modules</div>
             <div className="mt-2 text-sm text-neutral-700">
-              This template’s modules will be implemented next.
+              More modules will be added soon.
             </div>
           </div>
         ) : null}
