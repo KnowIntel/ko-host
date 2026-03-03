@@ -18,18 +18,14 @@ export async function GET(req: Request) {
 
     const sb = getSupabaseAdmin();
 
-    // Load microsite
     const { data: site, error: siteErr } = await sb
       .from("microsites")
       .select("id, template_key, is_published, expires_at, paid_until")
       .eq("slug", slug)
       .maybeSingle();
 
-    if (siteErr || !site) {
-      return NextResponse.json({ ok: false, error: "Not found" }, { status: 404 });
-    }
+    if (siteErr || !site) return NextResponse.json({ ok: false, error: "Not found" }, { status: 404 });
 
-    // Template gating (Option 2)
     if (site.template_key !== "wedding_rsvp") {
       return NextResponse.json({ ok: true, items: [] });
     }
@@ -44,7 +40,7 @@ export async function GET(req: Request) {
 
     const { data: items, error: itemsErr } = await sb
       .from("gallery_items")
-      .select("id, public_url, caption, sort_order, created_at")
+      .select("id, public_url, caption, sort_order, created_at, media_type, mime_type")
       .eq("microsite_id", site.id)
       .order("sort_order", { ascending: true })
       .order("created_at", { ascending: true });

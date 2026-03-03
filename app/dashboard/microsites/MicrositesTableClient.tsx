@@ -169,7 +169,7 @@ export default function MicrositesTableClient({ microsites }: { microsites: Micr
                             type="submit"
                             className="inline-flex items-center justify-center rounded-xl bg-neutral-900 px-3 py-2 text-xs font-medium text-white hover:bg-neutral-800"
                           >
-                            Pay $14 (90 days)
+                            Pay $12 (90 days)
                           </button>
                         </form>
 

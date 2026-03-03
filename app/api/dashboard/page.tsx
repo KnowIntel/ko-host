@@ -59,7 +59,7 @@ export default async function DashboardPage() {
                 type="submit"
                 className="inline-flex items-center justify-center rounded-xl bg-neutral-900 px-3 py-2 text-sm font-medium text-white hover:bg-neutral-800"
               >
-                Subscribe ($14/mo)
+                Subscribe ($12/microsite)
               </button>
             </form>
           </>
