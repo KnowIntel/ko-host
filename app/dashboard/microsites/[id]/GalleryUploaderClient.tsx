@@ -20,7 +20,7 @@ const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 
 // ✅ duration cap
-const MAX_VIDEO_SECONDS = 60;
+const MAX_VIDEO_SECONDS = 180;
 
 function prettyMB(bytes: number) {
   return `${Math.ceil(bytes / (1024 * 1024))}MB`;
