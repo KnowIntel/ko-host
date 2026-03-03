@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { createClient } from "@supabase/supabase-js";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type GalleryItem = {
   id: string;
@@ -16,22 +15,38 @@ type GalleryItem = {
 
 const MAX_ITEMS = 24;
 
-// match your storage limit
+// storage caps
 const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
 
-function getBrowserSupabase() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-  return createClient(url, anon);
-}
+// ✅ duration cap
+const MAX_VIDEO_SECONDS = 60;
 
 function prettyMB(bytes: number) {
   return `${Math.ceil(bytes / (1024 * 1024))}MB`;
 }
 
+async function getVideoDurationSeconds(file: File): Promise<number> {
+  const url = URL.createObjectURL(file);
+  try {
+    const video = document.createElement("video");
+    video.preload = "metadata";
+    video.src = url;
+    video.muted = true;
+    video.playsInline = true;
+
+    const dur = await new Promise<number>((resolve, reject) => {
+      video.onloadedmetadata = () => resolve(Number.isFinite(video.duration) ? video.duration : 0);
+      video.onerror = () => reject(new Error("Could not read video metadata"));
+    });
+
+    return dur || 0;
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
 async function fileToImageJpegThumbnail(videoFile: File): Promise<Blob> {
-  // Create hidden video element
   const url = URL.createObjectURL(videoFile);
   const video = document.createElement("video");
   video.src = url;
@@ -39,13 +54,11 @@ async function fileToImageJpegThumbnail(videoFile: File): Promise<Blob> {
   video.playsInline = true;
   video.preload = "metadata";
 
-  // Wait metadata (dimensions/duration)
   await new Promise<void>((resolve, reject) => {
     video.onloadedmetadata = () => resolve();
     video.onerror = () => reject(new Error("Could not read video metadata"));
   });
 
-  // Seek to ~0.2s (or start)
   const seekTime = Math.min(0.2, Math.max(0, (video.duration || 0) * 0.05));
   await new Promise<void>((resolve) => {
     const onSeeked = () => {
@@ -56,7 +69,6 @@ async function fileToImageJpegThumbnail(videoFile: File): Promise<Blob> {
     try {
       video.currentTime = seekTime;
     } catch {
-      // some browsers block; fallback to 0
       video.currentTime = 0;
     }
   });
@@ -65,7 +77,6 @@ async function fileToImageJpegThumbnail(videoFile: File): Promise<Blob> {
   const w = video.videoWidth || 1280;
   const h = video.videoHeight || 720;
 
-  // scale to max width 720 for thumbnail
   const maxW = 720;
   const scale = w > maxW ? maxW / w : 1;
 
@@ -78,15 +89,54 @@ async function fileToImageJpegThumbnail(videoFile: File): Promise<Blob> {
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
   const blob = await new Promise<Blob>((resolve, reject) => {
-    canvas.toBlob(
-      (b) => (b ? resolve(b) : reject(new Error("Failed to create thumbnail"))),
-      "image/jpeg",
-      0.82
-    );
+    canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("Failed to create thumbnail"))), "image/jpeg", 0.82);
   });
 
   URL.revokeObjectURL(url);
   return blob;
+}
+
+// ✅ XHR upload to signedUrl with progress
+async function uploadWithProgress(
+  signedUrl: string,
+  fileOrBlob: Blob,
+  contentType: string,
+  onProgress: (pct: number) => void,
+  signal?: AbortSignal
+): Promise<void> {
+  await new Promise<void>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("PUT", signedUrl);
+    xhr.setRequestHeader("Content-Type", contentType);
+
+    xhr.upload.onprogress = (evt) => {
+      if (!evt.lengthComputable) return;
+      const pct = Math.max(0, Math.min(100, Math.round((evt.loaded / evt.total) * 100)));
+      onProgress(pct);
+    };
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) resolve();
+      else reject(new Error(`Upload failed (HTTP ${xhr.status})`));
+    };
+
+    xhr.onerror = () => reject(new Error("Upload failed (network error)"));
+
+    if (signal) {
+      signal.addEventListener(
+        "abort",
+        () => {
+          try {
+            xhr.abort();
+          } catch {}
+          reject(new Error("Upload cancelled"));
+        },
+        { once: true }
+      );
+    }
+
+    xhr.send(fileOrBlob);
+  });
 }
 
 export default function GalleryUploaderClient({ micrositeId }: { micrositeId: string }) {
@@ -98,14 +148,15 @@ export default function GalleryUploaderClient({ micrositeId }: { micrositeId: st
   const [items, setItems] = useState<GalleryItem[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [progress, setProgress] = useState<number>(0);
+  const abortRef = useRef<AbortController | null>(null);
+
   const atLimit = items.length >= MAX_ITEMS;
 
   async function refresh() {
     setLoading(true);
     try {
-      const res = await fetch(`/api/dashboard/microsites/${micrositeId}/gallery/list`, {
-        cache: "no-store",
-      });
+      const res = await fetch(`/api/dashboard/microsites/${micrositeId}/gallery/list`, { cache: "no-store" });
       const json = await res.json().catch(() => ({}));
       if (res.ok && json?.ok) setItems(json.items ?? []);
       else setItems([]);
@@ -129,19 +180,30 @@ export default function GalleryUploaderClient({ micrositeId }: { micrositeId: st
     const isVideo = file.type === "video/mp4" || file.type === "video/webm";
     const maxBytes = isVideo ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES;
     if (file.size > maxBytes) {
-      setMsg(
-        `${isVideo ? "Video" : "Image"} too large (${prettyMB(file.size)}). Max allowed is ${prettyMB(
-          maxBytes
-        )}.`
-      );
+      setMsg(`${isVideo ? "Video" : "Image"} too large (${prettyMB(file.size)}). Max allowed is ${prettyMB(maxBytes)}.`);
       return;
     }
 
+    // ✅ duration check
+    if (isVideo) {
+      setMsg("Checking video duration…");
+      const dur = await getVideoDurationSeconds(file).catch(() => 0);
+      if (dur > MAX_VIDEO_SECONDS) {
+        setMsg(`Video too long (${Math.ceil(dur)}s). Max allowed is ${MAX_VIDEO_SECONDS}s.`);
+        return;
+      }
+      setMsg(null);
+    }
+
     setBusy(true);
+    setProgress(0);
     setMsg(null);
 
+    const abort = new AbortController();
+    abortRef.current = abort;
+
     try {
-      // 1) signed upload for MEDIA
+      // 1) request signed upload for MEDIA
       const signedRes = await fetch(`/api/dashboard/microsites/${micrositeId}/gallery/signed-upload`, {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -162,72 +224,50 @@ export default function GalleryUploaderClient({ micrositeId }: { micrositeId: st
         bucket,
         storage_path,
         token,
+        signed_url,
         public_url,
         mime_type,
         media_type,
         caption: serverCaption,
         next_sort_order,
-      } = signedJson as {
-        bucket: string;
-        storage_path: string;
-        token: string;
-        public_url: string;
-        mime_type: string;
-        media_type: "image" | "video";
-        caption: string | null;
-        next_sort_order: number;
-      };
+      } = signedJson as any;
 
-      const sb = getBrowserSupabase();
-
-      // 2) upload MEDIA
-      const { error: upErr } = await sb.storage.from(bucket).uploadToSignedUrl(storage_path, token, file, {
-        contentType: mime_type,
-        upsert: false,
-      });
-
-      if (upErr) {
-        setMsg(upErr.message || "Upload failed");
+      // 2) upload MEDIA with progress (requires signed_url)
+      if (!signed_url) {
+        setMsg("Upload error: signed_url missing. Redeploy signed-upload route.");
         return;
       }
 
-      // 3) if VIDEO: generate thumbnail + upload thumbnail
+      await uploadWithProgress(signed_url, file, mime_type, setProgress, abort.signal);
+
+      // 3) thumbnail best-effort for videos
       let thumbnail_url: string | null = null;
 
       if (media_type === "video") {
         try {
           const thumbBlob = await fileToImageJpegThumbnail(file);
 
-          const thumbSignedRes = await fetch(
-            `/api/dashboard/microsites/${micrositeId}/gallery/signed-upload`,
-            {
-              method: "POST",
-              headers: { "content-type": "application/json" },
-              body: JSON.stringify({
-                purpose: "thumbnail",
-                mime: "image/jpeg",
-                base_storage_path: storage_path,
-              }),
-            }
-          );
+          const thumbSignedRes = await fetch(`/api/dashboard/microsites/${micrositeId}/gallery/signed-upload`, {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              purpose: "thumbnail",
+              mime: "image/jpeg",
+              base_storage_path: storage_path,
+            }),
+          });
 
           const thumbSignedJson = await thumbSignedRes.json().catch(() => ({}));
           if (thumbSignedRes.ok && thumbSignedJson?.ok) {
-            const { storage_path: tPath, token: tToken, public_url: tUrl } = thumbSignedJson as {
-              storage_path: string;
-              token: string;
-              public_url: string;
-            };
-
-            const { error: tErr } = await sb.storage.from(bucket).uploadToSignedUrl(tPath, tToken, thumbBlob, {
-              contentType: "image/jpeg",
-              upsert: true,
-            });
-
-            if (!tErr) thumbnail_url = tUrl;
+            const tSignedUrl = thumbSignedJson?.signed_url;
+            const tUrl = thumbSignedJson?.public_url;
+            if (tSignedUrl && tUrl) {
+              await uploadWithProgress(tSignedUrl, thumbBlob, "image/jpeg", () => {}, abort.signal);
+              thumbnail_url = tUrl;
+            }
           }
         } catch {
-          // thumbnail is best-effort; ignore failures
+          // ignore
         }
       }
 
@@ -260,7 +300,15 @@ export default function GalleryUploaderClient({ micrositeId }: { micrositeId: st
       setMsg(e?.message || "Upload failed");
     } finally {
       setBusy(false);
+      abortRef.current = null;
+      setTimeout(() => setProgress(0), 800);
     }
+  }
+
+  function onCancel() {
+    try {
+      abortRef.current?.abort();
+    } catch {}
   }
 
   async function onDelete(itemId: string) {
@@ -365,15 +413,42 @@ export default function GalleryUploaderClient({ micrositeId }: { micrositeId: st
           maxLength={140}
         />
 
-        <button
-          className="rounded-xl bg-black px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-          disabled={!file || busy || atLimit}
-          onClick={onUpload}
-        >
-          {busy ? "Uploading..." : "Upload"}
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            className="rounded-xl bg-black px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+            disabled={!file || busy || atLimit}
+            onClick={onUpload}
+          >
+            {busy ? "Uploading..." : "Upload"}
+          </button>
+
+          {busy ? (
+            <button
+              type="button"
+              className="rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm font-medium text-neutral-900 hover:border-neutral-900"
+              onClick={onCancel}
+            >
+              Cancel
+            </button>
+          ) : null}
+        </div>
+
+        {busy ? (
+          <div className="mt-1">
+            <div className="flex items-center justify-between text-xs text-neutral-600">
+              <span>Upload progress</span>
+              <span>{progress}%</span>
+            </div>
+            <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-neutral-200">
+              <div className="h-2 rounded-full bg-neutral-900" style={{ width: `${progress}%` }} />
+            </div>
+          </div>
+        ) : null}
 
         {msg ? <div className="text-sm text-neutral-700">{msg}</div> : null}
+        <div className="text-xs text-neutral-500">
+          Video limit: {MAX_VIDEO_SECONDS}s • Max video size: {prettyMB(MAX_VIDEO_BYTES)}
+        </div>
       </div>
 
       <div className="mt-6">
@@ -388,7 +463,6 @@ export default function GalleryUploaderClient({ micrositeId }: { micrositeId: st
             {items.map((it) => (
               <div key={it.id} className="overflow-hidden rounded-xl border border-neutral-200">
                 {it.media_type === "video" ? (
-                  // If thumbnail exists, show it; else show playable preview
                   it.thumbnail_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
