@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type GalleryItem = {
   id: string;
@@ -13,12 +13,7 @@ type GalleryItem = {
 export default function GalleryBlock({ micrositeSlug }: { micrositeSlug: string }) {
   const [items, setItems] = useState<GalleryItem[]>([]);
   const [loading, setLoading] = useState(true);
-
   const [openId, setOpenId] = useState<string | null>(null);
-  const [videoReady, setVideoReady] = useState(false);
-  const [videoError, setVideoError] = useState<string | null>(null);
-
-  const videoRef = useRef<HTMLVideoElement | null>(null);
 
   const openIndex = useMemo(() => {
     if (!openId) return -1;
@@ -26,6 +21,7 @@ export default function GalleryBlock({ micrositeSlug }: { micrositeSlug: string 
   }, [openId, items]);
 
   const openItem = openIndex >= 0 ? items[openIndex] : null;
+  const isVideoOpen = openItem?.media_type === "video";
 
   useEffect(() => {
     let cancelled = false;
@@ -53,20 +49,6 @@ export default function GalleryBlock({ micrositeSlug }: { micrositeSlug: string 
     };
   }, [micrositeSlug]);
 
-  // Reset video state whenever lightbox changes
-  useEffect(() => {
-    setVideoReady(false);
-    setVideoError(null);
-
-    // stop any playing video when closing or switching
-    if (!openItem || openItem.media_type !== "video") return;
-    return () => {
-      try {
-        videoRef.current?.pause();
-      } catch {}
-    };
-  }, [openItem?.id, openItem?.media_type]);
-
   useEffect(() => {
     if (!openId) return;
 
@@ -91,18 +73,6 @@ export default function GalleryBlock({ micrositeSlug }: { micrositeSlug: string 
     if (items.length === 0 || openIndex < 0) return;
     const next = (openIndex + 1) % items.length;
     setOpenId(items[next].id);
-  }
-
-  async function tryPlay() {
-    const el = videoRef.current;
-    if (!el) return;
-    try {
-      await el.play();
-    } catch (e: any) {
-      setVideoError(
-        "This video can’t be played in your browser (often due to codec). Try a different video export (H.264) or download it."
-      );
-    }
   }
 
   return (
@@ -148,7 +118,9 @@ export default function GalleryBlock({ micrositeSlug }: { micrositeSlug: string 
                 />
               )}
 
-              {it.caption ? <div className="px-3 py-2 text-xs text-neutral-700">{it.caption}</div> : null}
+              {it.caption ? (
+                <div className="px-3 py-2 text-xs text-neutral-700">{it.caption}</div>
+              ) : null}
             </button>
           ))}
         </div>
@@ -160,10 +132,11 @@ export default function GalleryBlock({ micrositeSlug }: { micrositeSlug: string 
           className="fixed inset-0 z-50 bg-black/80"
           role="dialog"
           aria-modal="true"
-          onClick={() => setOpenId(null)}
+          // ✅ Only close by clicking backdrop for IMAGES. Videos require Close button / Esc.
+          onClick={isVideoOpen ? undefined : () => setOpenId(null)}
         >
           <div className="flex h-full w-full items-center justify-center p-4">
-            <div className="relative w-full max-w-5xl" onClick={(e) => e.stopPropagation()}>
+            <div className="relative w-full max-w-5xl">
               <button
                 type="button"
                 className="absolute right-0 top-[-44px] rounded-lg bg-white/10 px-3 py-2 text-sm text-white hover:bg-white/20"
@@ -172,7 +145,11 @@ export default function GalleryBlock({ micrositeSlug }: { micrositeSlug: string 
                 Close ✕
               </button>
 
-              <div className="relative overflow-hidden rounded-2xl bg-black">
+              <div
+                className="relative overflow-hidden rounded-2xl bg-black"
+                // ✅ Never let clicks inside bubble to backdrop
+                onClick={(e) => e.stopPropagation()}
+              >
                 {/* Tap zones ONLY for images */}
                 {openItem.media_type === "image" ? (
                   <>
@@ -194,66 +171,20 @@ export default function GalleryBlock({ micrositeSlug }: { micrositeSlug: string 
                         goNext();
                       }}
                     />
-                  </>
-                ) : null}
-
-                {openItem.media_type === "video" ? (
-                  <div className="relative">
-                    <video
-                      ref={videoRef}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={openItem.public_url}
+                      alt={openItem.caption ?? "Gallery item"}
                       className="max-h-[75vh] w-full object-contain"
-                      controls
-                      playsInline
-                      preload="metadata"
-                      onCanPlay={() => setVideoReady(true)}
-                      onError={() =>
-                        setVideoError(
-                          "This video can’t be played in your browser (often due to codec). Try a different video export (H.264) or download it."
-                        )
-                      }
-                    >
-                      <source src={openItem.public_url} type={openItem.mime_type ?? "video/mp4"} />
-                    </video>
-
-                    {/* Tap-to-play overlay (only if not playing/ready yet) */}
-                    {!videoError ? (
-                      <button
-                        type="button"
-                        className="absolute inset-0 flex items-center justify-center bg-black/20 text-white"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          tryPlay();
-                        }}
-                        style={{ display: videoReady ? "none" : "flex" }}
-                        aria-label="Play video"
-                      >
-                        <div className="rounded-full bg-black/60 px-4 py-3 text-sm font-medium">
-                          Tap to play ▶
-                        </div>
-                      </button>
-                    ) : null}
-
-                    {videoError ? (
-                      <div className="p-4 text-sm text-white/90">
-                        <div className="font-medium">Can’t play this video.</div>
-                        <div className="mt-1 text-white/70">{videoError}</div>
-                        <a
-                          className="mt-3 inline-block rounded-lg bg-white/10 px-3 py-2 text-sm text-white hover:bg-white/20"
-                          href={openItem.public_url}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          Download video
-                        </a>
-                      </div>
-                    ) : null}
-                  </div>
+                    />
+                  </>
                 ) : (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
+                  <video
                     src={openItem.public_url}
-                    alt={openItem.caption ?? "Gallery item"}
                     className="max-h-[75vh] w-full object-contain"
+                    controls
+                    playsInline
+                    preload="metadata"
                   />
                 )}
               </div>
@@ -288,8 +219,8 @@ export default function GalleryBlock({ micrositeSlug }: { micrositeSlug: string 
 
               <div className="mt-2 text-center text-xs text-white/60">
                 {openItem.media_type === "image"
-                  ? "Tap left/right side to navigate. Esc closes."
-                  : "Use Prev/Next or ← → keys to navigate. Esc closes."}
+                  ? "Tap left/right side to navigate. Click outside to close. Esc closes."
+                  : "Video: use controls to play. Use Close ✕ or Esc to close."}
               </div>
             </div>
           </div>
