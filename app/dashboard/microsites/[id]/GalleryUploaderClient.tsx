@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import JSZip from "jszip";
 
 type GalleryItem = {
   id: string;
@@ -17,12 +18,28 @@ const MAX_ITEMS = 24;
 
 const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
-
-// ✅ duration cap
 const MAX_VIDEO_SECONDS = 180;
 
 function prettyMB(bytes: number) {
   return `${Math.ceil(bytes / (1024 * 1024))}MB`;
+}
+
+function safeName(s: string) {
+  return (s || "file")
+    .toLowerCase()
+    .replace(/[^a-z0-9-_]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 60);
+}
+
+function extFromMime(mime: string | null, mediaType: "image" | "video") {
+  if (mime === "image/png") return "png";
+  if (mime === "image/webp") return "webp";
+  if (mime === "image/jpeg") return "jpg";
+  if (mime === "video/webm") return "webm";
+  if (mime === "video/mp4") return "mp4";
+  return mediaType === "video" ? "mp4" : "jpg";
 }
 
 async function getVideoDurationSeconds(file: File): Promise<number> {
@@ -137,6 +154,12 @@ async function uploadWithProgress(
   });
 }
 
+async function fetchAsArrayBuffer(url: string) {
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) throw new Error(`Download failed: ${res.status}`);
+  return await res.arrayBuffer();
+}
+
 export default function GalleryUploaderClient({ micrositeId }: { micrositeId: string }) {
   const [file, setFile] = useState<File | null>(null);
   const [caption, setCaption] = useState("");
@@ -149,9 +172,11 @@ export default function GalleryUploaderClient({ micrositeId }: { micrositeId: st
   const [progress, setProgress] = useState<number>(0);
   const abortRef = useRef<AbortController | null>(null);
 
-  // ✅ inline editing
   const [editId, setEditId] = useState<string | null>(null);
   const [editCaption, setEditCaption] = useState<string>("");
+
+  const [zipBusy, setZipBusy] = useState(false);
+  const [zipMsg, setZipMsg] = useState<string | null>(null);
 
   const atLimit = items.length >= MAX_ITEMS;
 
@@ -324,7 +349,6 @@ export default function GalleryUploaderClient({ micrositeId }: { micrositeId: st
         return;
       }
 
-      // if you delete the item you're editing, reset edit state
       if (editId === itemId) {
         setEditId(null);
         setEditCaption("");
@@ -358,7 +382,6 @@ export default function GalleryUploaderClient({ micrositeId }: { micrositeId: st
         return;
       }
 
-      // update local list (no reload)
       setItems((prev) => prev.map((p) => (p.id === item.id ? { ...p, caption: json.item.caption } : p)));
       setEditId(null);
       setEditCaption("");
@@ -413,14 +436,87 @@ export default function GalleryUploaderClient({ micrositeId }: { micrositeId: st
     reorder(next);
   }
 
+  async function onDownloadZip() {
+    setZipBusy(true);
+    setZipMsg("Preparing ZIP…");
+
+    try {
+      const res = await fetch(`/api/dashboard/microsites/${micrositeId}/gallery/download-manifest`, {
+        cache: "no-store",
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || !json?.ok) {
+        setZipMsg(json?.error || `Manifest failed (${res.status})`);
+        return;
+      }
+
+      const slug: string = json?.microsite?.slug || "microsite";
+      const manifestItems: GalleryItem[] = json?.items || [];
+
+      if (!manifestItems.length) {
+        setZipMsg("No media to download.");
+        return;
+      }
+
+      const zip = new JSZip();
+      const folder = zip.folder(safeName(slug)) || zip;
+
+      // Download sequentially to avoid rate-limit spikes
+      for (let i = 0; i < manifestItems.length; i++) {
+        const it = manifestItems[i];
+        const ext = extFromMime(it.mime_type, it.media_type);
+        const name = `${String(i + 1).padStart(2, "0")}-${it.media_type}.${ext}`;
+
+        setZipMsg(`Downloading ${i + 1}/${manifestItems.length}…`);
+
+        const buf = await fetchAsArrayBuffer(it.public_url);
+        folder.file(name, buf);
+
+        // Optional: include captions in a txt
+        if (it.caption) {
+          folder.file(`${String(i + 1).padStart(2, "0")}-caption.txt`, it.caption);
+        }
+      }
+
+      setZipMsg("Building ZIP…");
+      const blob = await zip.generateAsync({ type: "blob" });
+
+      const a = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      a.href = url;
+      a.download = `${safeName(slug)}-gallery.zip`;
+      a.click();
+      URL.revokeObjectURL(url);
+
+      setZipMsg("Downloaded ✅");
+    } catch (e: any) {
+      setZipMsg(e?.message || "ZIP download failed");
+    } finally {
+      setZipBusy(false);
+      setTimeout(() => setZipMsg(null), 2500);
+    }
+  }
+
   return (
     <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
       <div className="flex items-center justify-between gap-3">
-        <div className="text-sm text-neutral-600">Gallery (Wedding template only)</div>
-        <div className="text-xs text-neutral-600">
-          {items.length}/{MAX_ITEMS}
+        <div className="text-sm text-neutral-600">Gallery</div>
+        <div className="flex items-center gap-2">
+          <div className="text-xs text-neutral-600">
+            {items.length}/{MAX_ITEMS}
+          </div>
+          <button
+            type="button"
+            disabled={zipBusy}
+            onClick={onDownloadZip}
+            className="rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs font-medium text-neutral-900 hover:border-neutral-900 disabled:opacity-50"
+          >
+            {zipBusy ? "Working..." : "Download ZIP"}
+          </button>
         </div>
       </div>
+
+      {zipMsg ? <div className="mt-2 text-sm text-neutral-700">{zipMsg}</div> : null}
 
       <div className="mt-4 grid gap-3">
         {atLimit ? (
@@ -512,9 +608,7 @@ export default function GalleryUploaderClient({ micrositeId }: { micrositeId: st
                 )}
 
                 <div className="p-3">
-                  <div className="text-[11px] text-neutral-500">
-                    {it.media_type === "video" ? "Video" : "Image"}
-                  </div>
+                  <div className="text-[11px] text-neutral-500">{it.media_type === "video" ? "Video" : "Image"}</div>
 
                   {editId === it.id ? (
                     <div className="mt-2 grid gap-2">
@@ -551,7 +645,11 @@ export default function GalleryUploaderClient({ micrositeId }: { micrositeId: st
                     </div>
                   ) : (
                     <div className="mt-2">
-                      {it.caption ? <div className="text-xs text-neutral-700">{it.caption}</div> : <div className="text-xs text-neutral-400">No caption</div>}
+                      {it.caption ? (
+                        <div className="text-xs text-neutral-700">{it.caption}</div>
+                      ) : (
+                        <div className="text-xs text-neutral-400">No caption</div>
+                      )}
                       <button
                         type="button"
                         className="mt-2 rounded-lg border border-neutral-200 bg-white px-2 py-1 text-xs hover:bg-neutral-50 disabled:opacity-50"
