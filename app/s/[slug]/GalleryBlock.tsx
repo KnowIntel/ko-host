@@ -23,7 +23,6 @@ export default function GalleryBlock({ micrositeSlug }: { micrositeSlug: string 
   }, [openId, items]);
 
   const openItem = openIndex >= 0 ? items[openIndex] : null;
-  const isVideoOpen = openItem?.media_type === "video";
 
   useEffect(() => {
     let cancelled = false;
@@ -33,14 +32,12 @@ export default function GalleryBlock({ micrositeSlug }: { micrositeSlug: string 
       setLocked(false);
 
       try {
-        const res = await fetch(
-          `/api/public/gallery/list?slug=${encodeURIComponent(micrositeSlug)}`,
-          { cache: "no-store" }
-        );
+        const res = await fetch(`/api/public/gallery/list?slug=${encodeURIComponent(micrositeSlug)}`, {
+          cache: "no-store",
+        });
 
         if (cancelled) return;
 
-        // ✅ If paid/published gating blocks gallery, show lock UI (not generic)
         if (res.status === 402 || res.status === 403) {
           setLocked(true);
           setItems([]);
@@ -150,9 +147,7 @@ export default function GalleryBlock({ micrositeSlug }: { micrositeSlug: string 
                 />
               )}
 
-              {it.caption ? (
-                <div className="px-3 py-2 text-xs text-neutral-700">{it.caption}</div>
-              ) : null}
+              {it.caption ? <div className="px-3 py-2 text-xs text-neutral-700">{it.caption}</div> : null}
             </button>
           ))}
         </div>
@@ -164,21 +159,24 @@ export default function GalleryBlock({ micrositeSlug }: { micrositeSlug: string 
           className="fixed inset-0 z-50 bg-black/80"
           role="dialog"
           aria-modal="true"
-          onClick={isVideoOpen ? undefined : () => setOpenId(null)}
+          onClick={() => setOpenId(null)} // ✅ outside click always closes
         >
           <div className="flex h-full w-full items-center justify-center p-4">
             <div className="relative w-full max-w-5xl">
               <button
                 type="button"
                 className="absolute right-0 top-[-44px] rounded-lg bg-white/10 px-3 py-2 text-sm text-white hover:bg-white/20"
-                onClick={() => setOpenId(null)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setOpenId(null);
+                }}
               >
                 Close ✕
               </button>
 
               <div
                 className="relative overflow-hidden rounded-2xl bg-black"
-                onClick={(e) => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()} // ✅ clicks on media/container don't close
               >
                 {openItem.media_type === "image" ? (
                   <>
