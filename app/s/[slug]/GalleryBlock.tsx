@@ -111,60 +111,58 @@ export default function GalleryBlock({ micrositeSlug }: { micrositeSlug: string 
       {/* Lightbox */}
       {openItem ? (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+          className="fixed inset-0 z-50 bg-black/70"
           role="dialog"
           aria-modal="true"
-          onMouseDown={(e) => {
-            // close if clicking backdrop
-            if (e.target === e.currentTarget) setOpenId(null);
-          }}
+          onClick={() => setOpenId(null)} // ✅ clicking backdrop closes
         >
-          <div className="relative w-full max-w-5xl">
-            <button
-              type="button"
-              className="absolute right-0 top-[-44px] rounded-lg bg-white/10 px-3 py-2 text-sm text-white hover:bg-white/20"
-              onClick={() => setOpenId(null)}
+          <div className="flex h-full w-full items-center justify-center p-4">
+            <div
+              className="relative w-full max-w-5xl"
+              onClick={(e) => e.stopPropagation()} // ✅ prevent close on inner clicks
             >
-              Close ✕
-            </button>
-
-            <div className="overflow-hidden rounded-2xl bg-black">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={openItem.public_url}
-                alt={openItem.caption ?? "Gallery photo"}
-                className="max-h-[75vh] w-full object-contain"
-              />
-            </div>
-
-            <div className="mt-3 flex items-center justify-between gap-3">
               <button
                 type="button"
-                className="rounded-xl bg-white/10 px-4 py-2 text-sm font-medium text-white hover:bg-white/20"
-                onClick={goPrev}
+                className="absolute right-0 top-[-44px] rounded-lg bg-white/10 px-3 py-2 text-sm text-white hover:bg-white/20"
+                onClick={() => setOpenId(null)}
               >
-                ← Prev
+                Close ✕
               </button>
 
-              <div className="min-w-0 flex-1 text-center text-sm text-white/90">
-                {openItem.caption ? (
-                  <span className="truncate">{openItem.caption}</span>
-                ) : (
-                  <span className="text-white/70"> </span>
-                )}
+              <div className="overflow-hidden rounded-2xl bg-black">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={openItem.public_url}
+                  alt={openItem.caption ?? "Gallery photo"}
+                  className="max-h-[75vh] w-full object-contain"
+                />
               </div>
 
-              <button
-                type="button"
-                className="rounded-xl bg-white/10 px-4 py-2 text-sm font-medium text-white hover:bg-white/20"
-                onClick={goNext}
-              >
-                Next →
-              </button>
-            </div>
+              <div className="mt-3 flex items-center justify-between gap-3">
+                <button
+                  type="button"
+                  className="rounded-xl bg-white/10 px-4 py-2 text-sm font-medium text-white hover:bg-white/20"
+                  onClick={goPrev}
+                >
+                  ← Prev
+                </button>
 
-            <div className="mt-2 text-center text-xs text-white/60">
-              Tip: use ← → arrows, Esc to close
+                <div className="min-w-0 flex-1 text-center text-sm text-white/90">
+                  {openItem.caption ?? <span className="text-white/70"> </span>}
+                </div>
+
+                <button
+                  type="button"
+                  className="rounded-xl bg-white/10 px-4 py-2 text-sm font-medium text-white hover:bg-white/20"
+                  onClick={goNext}
+                >
+                  Next →
+                </button>
+              </div>
+
+              <div className="mt-2 text-center text-xs text-white/60">
+                Tip: use ← → arrows, Esc to close
+              </div>
             </div>
           </div>
         </div>
