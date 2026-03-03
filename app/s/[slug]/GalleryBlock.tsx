@@ -6,13 +6,14 @@ type GalleryItem = {
   id: string;
   public_url: string;
   caption: string | null;
+  media_type: "image" | "video";
+  mime_type: string | null;
 };
 
 export default function GalleryBlock({ micrositeSlug }: { micrositeSlug: string }) {
   const [items, setItems] = useState<GalleryItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // lightbox state
   const [openId, setOpenId] = useState<string | null>(null);
 
   const openIndex = useMemo(() => {
@@ -48,7 +49,6 @@ export default function GalleryBlock({ micrositeSlug }: { micrositeSlug: string 
     };
   }, [micrositeSlug]);
 
-  // keyboard controls when lightbox open
   useEffect(() => {
     if (!openId) return;
 
@@ -82,7 +82,7 @@ export default function GalleryBlock({ micrositeSlug }: { micrositeSlug: string 
       {loading ? (
         <div className="mt-3 text-sm text-neutral-700">Loading...</div>
       ) : items.length === 0 ? (
-        <div className="mt-3 text-sm text-neutral-700">No photos yet.</div>
+        <div className="mt-3 text-sm text-neutral-700">No media yet.</div>
       ) : (
         <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
           {items.map((it) => (
@@ -91,18 +91,34 @@ export default function GalleryBlock({ micrositeSlug }: { micrositeSlug: string 
               type="button"
               className="group overflow-hidden rounded-xl border border-neutral-200 text-left"
               onClick={() => setOpenId(it.id)}
-              aria-label="Open photo"
+              aria-label="Open media"
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={it.public_url}
-                alt={it.caption ?? "Gallery photo"}
-                className="h-40 w-full object-cover transition-transform duration-200 group-hover:scale-[1.02]"
-                loading="lazy"
-              />
-              {it.caption ? (
-                <div className="px-3 py-2 text-xs text-neutral-700">{it.caption}</div>
-              ) : null}
+              {it.media_type === "video" ? (
+                <div className="relative h-40 w-full bg-black">
+                  <video
+                    src={it.public_url}
+                    className="h-40 w-full object-cover opacity-90"
+                    preload="metadata"
+                    muted
+                    playsInline
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="rounded-full bg-black/50 px-3 py-2 text-xs text-white">
+                      ▶ Video
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={it.public_url}
+                  alt={it.caption ?? "Gallery item"}
+                  className="h-40 w-full object-cover transition-transform duration-200 group-hover:scale-[1.02]"
+                  loading="lazy"
+                />
+              )}
+
+              {it.caption ? <div className="px-3 py-2 text-xs text-neutral-700">{it.caption}</div> : null}
             </button>
           ))}
         </div>
@@ -111,16 +127,13 @@ export default function GalleryBlock({ micrositeSlug }: { micrositeSlug: string 
       {/* Lightbox */}
       {openItem ? (
         <div
-          className="fixed inset-0 z-50 bg-black/70"
+          className="fixed inset-0 z-50 bg-black/80"
           role="dialog"
           aria-modal="true"
-          onClick={() => setOpenId(null)} // ✅ clicking backdrop closes
+          onClick={() => setOpenId(null)}
         >
           <div className="flex h-full w-full items-center justify-center p-4">
-            <div
-              className="relative w-full max-w-5xl"
-              onClick={(e) => e.stopPropagation()} // ✅ prevent close on inner clicks
-            >
+            <div className="relative w-full max-w-5xl" onClick={(e) => e.stopPropagation()}>
               <button
                 type="button"
                 className="absolute right-0 top-[-44px] rounded-lg bg-white/10 px-3 py-2 text-sm text-white hover:bg-white/20"
@@ -129,20 +142,54 @@ export default function GalleryBlock({ micrositeSlug }: { micrositeSlug: string 
                 Close ✕
               </button>
 
-              <div className="overflow-hidden rounded-2xl bg-black">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={openItem.public_url}
-                  alt={openItem.caption ?? "Gallery photo"}
-                  className="max-h-[75vh] w-full object-contain"
+              <div className="relative overflow-hidden rounded-2xl bg-black">
+                {/* left tap zone */}
+                <button
+                  type="button"
+                  aria-label="Previous"
+                  className="absolute left-0 top-0 h-full w-1/3 bg-transparent"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    goPrev();
+                  }}
                 />
+                {/* right tap zone */}
+                <button
+                  type="button"
+                  aria-label="Next"
+                  className="absolute right-0 top-0 h-full w-1/3 bg-transparent"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    goNext();
+                  }}
+                />
+
+                {openItem.media_type === "video" ? (
+                  <video
+                    src={openItem.public_url}
+                    className="max-h-[75vh] w-full object-contain"
+                    controls
+                    autoPlay
+                    playsInline
+                  />
+                ) : (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={openItem.public_url}
+                    alt={openItem.caption ?? "Gallery item"}
+                    className="max-h-[75vh] w-full object-contain"
+                  />
+                )}
               </div>
 
               <div className="mt-3 flex items-center justify-between gap-3">
                 <button
                   type="button"
                   className="rounded-xl bg-white/10 px-4 py-2 text-sm font-medium text-white hover:bg-white/20"
-                  onClick={goPrev}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    goPrev();
+                  }}
                 >
                   ← Prev
                 </button>
@@ -154,14 +201,17 @@ export default function GalleryBlock({ micrositeSlug }: { micrositeSlug: string 
                 <button
                   type="button"
                   className="rounded-xl bg-white/10 px-4 py-2 text-sm font-medium text-white hover:bg-white/20"
-                  onClick={goNext}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    goNext();
+                  }}
                 >
                   Next →
                 </button>
               </div>
 
               <div className="mt-2 text-center text-xs text-white/60">
-                Tip: use ← → arrows, Esc to close
+                Tap left/right side to navigate. Esc closes.
               </div>
             </div>
           </div>

@@ -8,7 +8,11 @@ type GalleryItem = {
   caption: string | null;
   sort_order: number;
   created_at: string;
+  media_type: "image" | "video";
+  mime_type: string | null;
 };
+
+const MAX_ITEMS = 24;
 
 export default function GalleryUploaderClient({ micrositeId }: { micrositeId: string }) {
   const [file, setFile] = useState<File | null>(null);
@@ -18,6 +22,8 @@ export default function GalleryUploaderClient({ micrositeId }: { micrositeId: st
 
   const [items, setItems] = useState<GalleryItem[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const atLimit = items.length >= MAX_ITEMS;
 
   async function refresh() {
     setLoading(true);
@@ -49,6 +55,11 @@ export default function GalleryUploaderClient({ micrositeId }: { micrositeId: st
 
   async function onUpload() {
     if (!file) return;
+    if (atLimit) {
+      setMsg(`Gallery limit reached (${MAX_ITEMS}). Delete an item to add another.`);
+      return;
+    }
+
     setBusy(true);
     setMsg(null);
 
@@ -60,7 +71,7 @@ export default function GalleryUploaderClient({ micrositeId }: { micrositeId: st
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           base64,
-          mime: file.type || "image/jpeg",
+          mime: file.type || "application/octet-stream",
           caption: caption.trim() ? caption.trim() : null,
         }),
       });
@@ -84,7 +95,7 @@ export default function GalleryUploaderClient({ micrositeId }: { micrositeId: st
   }
 
   async function onDelete(itemId: string) {
-    if (!confirm("Delete this photo?")) return;
+    if (!confirm("Delete this item?")) return;
     setBusy(true);
     setMsg(null);
 
@@ -112,7 +123,6 @@ export default function GalleryUploaderClient({ micrositeId }: { micrositeId: st
   const canMoveDown = useMemo(() => new Set(items.slice(0, -1).map((i) => i.id)), [items]);
 
   async function reorder(newItems: GalleryItem[]) {
-    // normalize sort_order
     const payload = newItems.map((it, idx) => ({ id: it.id, sort_order: idx }));
 
     setBusy(true);
@@ -156,13 +166,24 @@ export default function GalleryUploaderClient({ micrositeId }: { micrositeId: st
 
   return (
     <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-      <div className="text-sm text-neutral-600">Gallery (Wedding template only)</div>
+      <div className="flex items-center justify-between gap-3">
+        <div className="text-sm text-neutral-600">Gallery (Wedding template only)</div>
+        <div className="text-xs text-neutral-600">
+          {items.length}/{MAX_ITEMS}
+        </div>
+      </div>
 
       <div className="mt-4 grid gap-3">
+        {atLimit ? (
+          <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+            Limit reached ({MAX_ITEMS}). Delete an item to upload more.
+          </div>
+        ) : null}
+
         <input
           type="file"
-          accept="image/png,image/jpeg,image/webp"
-          disabled={busy}
+          accept="image/png,image/jpeg,image/webp,video/mp4,video/webm"
+          disabled={busy || atLimit}
           onChange={(e) => setFile(e.target.files?.[0] ?? null)}
         />
 
@@ -170,38 +191,55 @@ export default function GalleryUploaderClient({ micrositeId }: { micrositeId: st
           className="w-full rounded-xl border border-neutral-200 px-3 py-2 text-sm"
           placeholder="Caption (optional)"
           value={caption}
-          disabled={busy}
+          disabled={busy || atLimit}
           onChange={(e) => setCaption(e.target.value)}
           maxLength={140}
         />
 
         <button
           className="rounded-xl bg-black px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-          disabled={!file || busy}
+          disabled={!file || busy || atLimit}
           onClick={onUpload}
         >
-          {busy ? "Working..." : "Upload Photo"}
+          {busy ? "Working..." : "Upload"}
         </button>
 
         {msg ? <div className="text-sm text-neutral-700">{msg}</div> : null}
       </div>
 
       <div className="mt-6">
-        <div className="text-sm font-medium text-neutral-900">Current photos</div>
+        <div className="text-sm font-medium text-neutral-900">Current items</div>
 
         {loading ? (
           <div className="mt-2 text-sm text-neutral-700">Loading…</div>
         ) : items.length === 0 ? (
-          <div className="mt-2 text-sm text-neutral-700">No photos yet.</div>
+          <div className="mt-2 text-sm text-neutral-700">No items yet.</div>
         ) : (
           <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
             {items.map((it) => (
               <div key={it.id} className="overflow-hidden rounded-xl border border-neutral-200">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={it.public_url} alt={it.caption ?? "Photo"} className="h-40 w-full object-cover" />
+                {it.media_type === "video" ? (
+                  <video
+                    src={it.public_url}
+                    className="h-40 w-full object-cover"
+                    controls
+                    preload="metadata"
+                  />
+                ) : (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={it.public_url}
+                    alt={it.caption ?? "Media"}
+                    className="h-40 w-full object-cover"
+                    loading="lazy"
+                  />
+                )}
 
                 <div className="p-3">
                   {it.caption ? <div className="text-xs text-neutral-700">{it.caption}</div> : null}
+                  <div className="mt-1 text-[11px] text-neutral-500">
+                    {it.media_type === "video" ? "Video" : "Image"}
+                  </div>
 
                   <div className="mt-2 flex flex-wrap gap-2">
                     <button

@@ -23,7 +23,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
 
     const { data: items, error: itemsErr } = await sb
       .from("gallery_items")
-      .select("id, public_url, caption, sort_order, created_at")
+      .select("id, public_url, caption, sort_order, created_at, media_type, mime_type")
       .eq("microsite_id", micrositeId)
       .order("sort_order", { ascending: true })
       .order("created_at", { ascending: true });
