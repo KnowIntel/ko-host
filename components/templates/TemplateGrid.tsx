@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import TemplateCard from "./TemplateCard";
 import { TEMPLATE_DEFS, type TemplateDef } from "@/lib/templates/registry";
 
@@ -7,10 +8,40 @@ function thumbToImageUrl(thumb: string) {
   return `/templates/${thumb}.png`;
 }
 
-const CARD = 140; // must match TemplateCard clamps
+const CARD = 140; // must match TemplateCard
+const GAP = 12;
 
 export default function TemplateGrid() {
-  const templates: TemplateDef[] = TEMPLATE_DEFS;
+  // ✅ hide temp resume card from public gallery
+  const templates: TemplateDef[] = useMemo(
+    () => TEMPLATE_DEFS.filter((t) => t.key !== "resume_portfolio_temp"),
+    []
+  );
+
+  // ✅ 3 cols mobile, 6 cols desktop
+  const [cols, setCols] = useState<number>(3);
+
+  useEffect(() => {
+    function computeCols() {
+      const w = window.innerWidth || 0;
+      setCols(w >= 1024 ? 6 : 3); // lg breakpoint
+    }
+    computeCols();
+    window.addEventListener("resize", computeCols);
+    return () => window.removeEventListener("resize", computeCols);
+  }, []);
+
+  const gridStyle = useMemo(
+    () => ({
+      display: "grid" as const,
+      gridTemplateColumns: `repeat(${cols}, ${CARD}px)`,
+      gap: `${GAP}px`,
+      justifyContent: "center" as const,
+      paddingLeft: "12px", // ✅ prevents left cut-off on mobile
+      paddingRight: "12px",
+    }),
+    [cols]
+  );
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
@@ -23,17 +54,9 @@ export default function TemplateGrid() {
         </div>
       </div>
 
-      {/* ✅ Hard grid: 3 cols mobile, 6 cols desktop, fixed column width */}
-      <div className="mt-6 overflow-x-auto">
-        <div
-          style={{
-            display: "grid",
-            justifyContent: "center",
-            gap: 12,
-            gridTemplateColumns: `repeat(3, ${CARD}px)`,
-          }}
-          className="lg:[grid-template-columns:repeat(6,140px)]"
-        >
+      {/* ✅ no overflow clipping; centered; mobile safe padding */}
+      <div className="mt-6 w-full">
+        <div style={gridStyle}>
           {templates.map((t) => (
             <TemplateCard
               key={t.key}
