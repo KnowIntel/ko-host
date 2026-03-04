@@ -3,18 +3,28 @@ import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
+const RESERVED = new Set([
+  "www",
+  "app",
+  "api",
+  "admin",
+  "dashboard",
+  "mail",
+  "ftp",
+  "blog",
+  "support",
+]);
+
 export default async function CatchAllPage() {
   const h = await headers();
-  const host = h.get("host") || "";
+  const host = (h.get("host") || "").toLowerCase();
 
   const m = host.match(/^([^.]+)\.ko-host\.com(?::\d+)?$/i);
   const slugFromHost = m?.[1] || null;
 
-  // If we're on a wildcard subdomain, force everything to the microsite root
-  if (slugFromHost) {
+  if (slugFromHost && !RESERVED.has(slugFromHost)) {
     redirect(`/s/${slugFromHost}`);
   }
 
-  // Otherwise, just go home
-  redirect("/");
+  redirect("/templates");
 }
