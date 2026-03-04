@@ -14,3 +14,24 @@ body {
 body {
   @apply bg-white text-neutral-900;
 }
+
+/* Ko-Host Templates page background animations */
+@keyframes kht-float {
+  0% { transform: translate(-50%, 0px); }
+  50% { transform: translate(-50%, 22px); }
+  100% { transform: translate(-50%, 0px); }
+}
+@keyframes kht-float2 {
+  0% { transform: translate(0px, 0px); }
+  50% { transform: translate(18px, -18px); }
+  100% { transform: translate(0px, 0px); }
+}
+@keyframes kht-float3 {
+  0% { transform: translate(0px, 0px); }
+  50% { transform: translate(-16px, 16px); }
+  100% { transform: translate(0px, 0px); }
+}
+
+.animate-kht-float { animation: kht-float 10s ease-in-out infinite; }
+.animate-kht-float2 { animation: kht-float2 12s ease-in-out infinite; }
+.animate-kht-float3 { animation: kht-float3 14s ease-in-out infinite; }
