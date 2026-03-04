@@ -9,9 +9,10 @@ export default function TemplatesPage() {
         <div className="mx-auto max-w-6xl px-4 py-10">
           <div className="max-w-2xl">
             <div className="text-sm font-medium text-neutral-600">Ko-Host</div>
-            <h1 className="mt-2 text-3xl font-semibold tracking-tight">
-              Pick a template. Customize free. Publish for $12.
-            </h1>
+              <h1 className="mt-2 text-3xl font-semibold tracking-tight">
+                Pick a template. Customize free. Publish for $12.{" "}
+                <span className="text-xs text-red-600">(TEMPLATES PAGE v2)</span>
+              </h1>
             <p className="mt-3 text-neutral-700">
               Temporary, single-purpose microsites with structured modules (RSVP, polls, gallery, and more).
               No domain purchase. No long-term commitment.
