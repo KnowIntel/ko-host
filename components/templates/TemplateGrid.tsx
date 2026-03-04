@@ -7,12 +7,14 @@ function thumbToImageUrl(thumb: string) {
   return `/templates/${thumb}.png`;
 }
 
+const CARD = 140; // must match TemplateCard clamps
+
 export default function TemplateGrid() {
   const templates: TemplateDef[] = TEMPLATE_DEFS;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
-      <div className="flex items-end justify-between gap-3">
+      <div className="flex items-end justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Templates</h1>
           <p className="mt-1 text-sm text-neutral-700">
@@ -21,33 +23,26 @@ export default function TemplateGrid() {
         </div>
       </div>
 
-      {/* ✅ Fixed sizing grid: 3 cols on mobile, 6 on desktop, with card width clamps */}
-      <div
-        className="
-          mt-6 grid justify-center gap-4
-          grid-cols-3
-          lg:grid-cols-6
-        "
-        style={{
-          // clamp each column so it cannot get huge or overlap
-          gridAutoRows: "auto",
-        }}
-      >
-        {templates.map((t) => (
-          <div
-            key={t.key}
-            style={{
-              width: 160,
-              maxWidth: 160,
-            }}
-          >
+      {/* ✅ Hard grid: 3 cols mobile, 6 cols desktop, fixed column width */}
+      <div className="mt-6 overflow-x-auto">
+        <div
+          style={{
+            display: "grid",
+            justifyContent: "center",
+            gap: 12,
+            gridTemplateColumns: `repeat(3, ${CARD}px)`,
+          }}
+          className="lg:[grid-template-columns:repeat(6,140px)]"
+        >
+          {templates.map((t) => (
             <TemplateCard
+              key={t.key}
               templateKey={t.key}
               title={t.title}
               thumbnailUrl={thumbToImageUrl(t.thumb)}
             />
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );
