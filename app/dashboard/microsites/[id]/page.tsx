@@ -1,108 +1,203 @@
-import { auth } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
+// app/dashboard/microsites/page.tsx
 import Link from "next/link";
+import { auth } from "@clerk/nextjs/server";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
-import GalleryUploaderClient from "./GalleryUploaderClient";
 
 export const dynamic = "force-dynamic";
 
-export default async function MicrositeDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { userId } = await auth();
-  if (!userId) redirect("/sign-in");
+type MicrositeRow = {
+  id: string;
+  slug: string;
+  title: string;
+  template_key: string;
+  is_published: boolean;
+  paid_until: string | null;
+  created_at: string;
+};
 
-  const { id } = await params;
+function isPaidActive(paidUntil: string | null) {
+  if (!paidUntil) return false;
+  return new Date(paidUntil).getTime() > Date.now();
+}
+
+export default async function MicrositesListPage() {
+  const { userId } = await auth();
+  if (!userId) return <div className="p-6">Unauthorized</div>;
 
   const sb = getSupabaseAdmin();
 
-  const { data: site, error } = await sb
+  const { data, error } = await sb
     .from("microsites")
     .select("id, slug, title, template_key, is_published, paid_until, created_at")
-    .eq("id", id)
-    .maybeSingle();
+    .eq("owner_clerk_user_id", userId)
+    .order("created_at", { ascending: false });
 
-  if (error || !site) {
-    return (
-      <main className="mx-auto max-w-3xl px-4 py-10">
-        <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-          <div className="text-sm text-neutral-600">Dashboard</div>
-          <h1 className="mt-2 text-2xl font-semibold">Microsite not found</h1>
-          <div className="mt-4">
-            <Link className="text-sm underline" href="/dashboard/microsites">
-              Back to microsites
-            </Link>
-          </div>
-        </div>
-      </main>
-    );
+  if (error) {
+    console.error("microsites list failed", error);
+    return <div className="p-6">Failed to load microsites.</div>;
   }
 
-  // Ownership check (server-side)
-  // NOTE: this relies on your microsites table having owner_clerk_user_id (it does)
-  const { data: ownerRow } = await sb
-    .from("microsites")
-    .select("owner_clerk_user_id")
-    .eq("id", id)
-    .maybeSingle();
-
-  if (!ownerRow || ownerRow.owner_clerk_user_id !== userId) {
-    return (
-      <main className="mx-auto max-w-3xl px-4 py-10">
-        <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-          <h1 className="text-2xl font-semibold">Forbidden</h1>
-          <p className="mt-2 text-sm text-neutral-700">You don’t have access to this microsite.</p>
-        </div>
-      </main>
-    );
-  }
-
-  const publicUrl = `/s/${site.slug}`;
+  const microsites = (data ?? []) as MicrositeRow[];
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-10">
-      <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-        <div className="text-sm text-neutral-600">Microsite</div>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight">
-          {site.title || site.slug}
-        </h1>
-        <div className="mt-2 text-sm text-neutral-700">
-          Template: <span className="font-mono">{site.template_key}</span>
+    <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-semibold tracking-tight">Microsites</h1>
+          <p className="mt-1 text-sm text-neutral-700">
+            Manage your sites and view submissions. Pay per microsite for 90 days.
+          </p>
         </div>
 
-        <div className="mt-4 flex flex-wrap gap-3">
-          <Link
-            className="rounded-xl border border-neutral-200 bg-white px-4 py-2 text-sm"
-            href={publicUrl}
-            target="_blank"
-          >
-            View public page
-          </Link>
-
-          <Link
-            className="rounded-xl border border-neutral-200 bg-white px-4 py-2 text-sm"
-            href="/dashboard/microsites"
-          >
-            Back
-          </Link>
-        </div>
+        <Link
+          href="/dashboard"
+          className="text-sm font-medium text-neutral-900 underline underline-offset-4"
+        >
+          Back
+        </Link>
       </div>
 
-      <div className="mt-6 grid gap-6">
-        {site.template_key === "wedding_rsvp" ? (
-          <GalleryUploaderClient micrositeId={site.id} />
-        ) : (
-          <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-            <div className="text-sm text-neutral-600">Gallery</div>
-            <div className="mt-2 text-sm text-neutral-700">
-              Gallery is only enabled for the <span className="font-mono">wedding_rsvp</span>{" "}
-              template right now.
-            </div>
-          </div>
-        )}
+      <div className="mt-6 overflow-hidden rounded-2xl border border-neutral-200">
+        <table className="w-full text-left text-sm">
+          <thead className="bg-neutral-50">
+            <tr>
+              <th className="px-4 py-3 font-medium text-neutral-700">Title</th>
+              <th className="px-4 py-3 font-medium text-neutral-700">Site</th>
+              <th className="px-4 py-3 font-medium text-neutral-700">Template</th>
+              <th className="px-4 py-3 font-medium text-neutral-700">Access</th>
+              <th className="px-4 py-3 font-medium text-neutral-700">Published</th>
+              <th className="px-4 py-3 font-medium text-neutral-700">Actions</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {microsites.length === 0 ? (
+              <tr>
+                <td className="px-4 py-4 text-neutral-600" colSpan={6}>
+                  No microsites yet.
+                </td>
+              </tr>
+            ) : (
+              microsites.map((m) => {
+                const active = isPaidActive(m.paid_until);
+                const publicUrl = `https://${m.slug}.ko-host.com`;
+
+                return (
+                  <tr key={m.id} className="border-t border-neutral-200 align-top">
+                    <td className="px-4 py-3 font-medium text-neutral-900">
+                      {m.title || "(Untitled)"}
+                      <div className="mt-1 text-xs text-neutral-600">
+                        <a
+                          className="underline underline-offset-4"
+                          href={`/s/${m.slug}`}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Preview (/s/{m.slug})
+                        </a>
+                        <span className="mx-2">·</span>
+                        <span className="font-mono">{publicUrl}</span>
+                      </div>
+                    </td>
+
+                    {/* ✅ renamed column + clearer URL */}
+                    <td className="px-4 py-3">
+                      <div className="font-mono text-neutral-900">{m.slug}</div>
+                      <div className="mt-1 text-xs font-mono text-neutral-600">{publicUrl}</div>
+                    </td>
+
+                    <td className="px-4 py-3 font-mono text-neutral-800">{m.template_key}</td>
+
+                    <td className="px-4 py-3">
+                      {active ? (
+                        <div className="text-xs">
+                          <span className="rounded-full bg-green-50 px-2 py-1 font-medium text-green-700">
+                            Active
+                          </span>
+                          <div className="mt-1 text-neutral-600">
+                            Until {new Date(m.paid_until as string).toLocaleString()}
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="rounded-full bg-neutral-100 px-2 py-1 text-xs font-medium text-neutral-700">
+                          Not paid
+                        </span>
+                      )}
+                    </td>
+
+                    <td className="px-4 py-3">
+                      {m.is_published ? (
+                        <span className="rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700">
+                          Yes
+                        </span>
+                      ) : (
+                        <span className="rounded-full bg-neutral-100 px-2 py-1 text-xs font-medium text-neutral-700">
+                          No
+                        </span>
+                      )}
+                    </td>
+
+                    <td className="px-4 py-3">
+                      <div className="flex flex-wrap items-center gap-3">
+                        <Link
+                          href={`/dashboard/microsites/${m.id}/rsvp`}
+                          className="text-sm font-medium text-neutral-900 underline underline-offset-4"
+                        >
+                          RSVP submissions
+                        </Link>
+
+                        {/* Pay button */}
+                        <form action="/api/stripe/checkout" method="POST" className="inline-flex">
+                          <input type="hidden" name="micrositeId" value={m.id} />
+                          <button
+                            type="submit"
+                            className="inline-flex items-center justify-center rounded-xl bg-neutral-900 px-3 py-2 text-xs font-medium text-white hover:bg-neutral-800"
+                          >
+                            Pay $12 (90 days)
+                          </button>
+                        </form>
+
+                        {/* Publish/unpublish */}
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            const res = await fetch(`/api/dashboard/microsites/${m.id}/publish`, {
+                              method: "POST",
+                              headers: { "content-type": "application/json" },
+                              body: JSON.stringify({ publish: !m.is_published }),
+                            });
+
+                            if (res.status === 402) {
+                              alert("Payment required to publish.");
+                              return;
+                            }
+                            if (!res.ok) {
+                              alert("Failed to update publish status.");
+                              return;
+                            }
+                            window.location.reload();
+                          }}
+                          className="inline-flex items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs font-medium text-neutral-900 hover:border-neutral-900"
+                        >
+                          {m.is_published ? "Unpublish" : "Publish"}
+                        </button>
+                      </div>
+
+                      {!active && !m.is_published ? (
+                        <div className="mt-2 text-xs text-neutral-600">Pay to unlock publishing.</div>
+                      ) : null}
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
       </div>
-    </main>
+
+      <p className="mt-4 text-xs text-neutral-600">
+        Repurchase to extend time. Paid time stacks automatically.
+      </p>
+    </div>
   );
 }

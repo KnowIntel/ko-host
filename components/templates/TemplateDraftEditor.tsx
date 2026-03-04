@@ -12,13 +12,12 @@ function storageKey(templateKey: string) {
   return `kohost:draft:${templateKey}`;
 }
 
-// ✅ Slug rules: lowercase, no spaces, URL-safe
 function normalizeSlug(input: string) {
   return input
     .toLowerCase()
     .trim()
     .replace(/\s+/g, "-")          // spaces -> dashes
-    .replace(/[^a-z0-9-]/g, "")    // drop invalid chars
+    .replace(/[^a-z0-9-]/g, "")    // keep only url-safe chars
     .replace(/-+/g, "-")           // collapse dashes
     .replace(/^-|-$/g, "");        // trim dashes
 }
@@ -48,10 +47,11 @@ export function TemplateDraftEditor({
     window.localStorage.setItem(key, JSON.stringify(draft));
   }, [key, draft]);
 
-  // ✅ Live preview value
-  const normalizedSlug = useMemo(() => normalizeSlug(draft.slugSuggestion || ""), [draft.slugSuggestion]);
+  const normalizedSlug = useMemo(
+    () => normalizeSlug(draft.slugSuggestion || ""),
+    [draft.slugSuggestion]
+  );
 
-  // If you later switch published convention, change this ONE line:
   const previewUrl = useMemo(() => {
     const slug = normalizedSlug || "your-page";
     return `https://${slug}.ko-host.com`;
@@ -69,7 +69,7 @@ export function TemplateDraftEditor({
 
         <div className="space-y-4">
           <div>
-            <label className="text-sm font-medium">Page Title</label>
+            <label className="text-sm font-medium">Page title</label>
             <input
               value={draft.title}
               onChange={(e) => setDraft((d) => ({ ...d, title: e.target.value }))}
@@ -79,13 +79,17 @@ export function TemplateDraftEditor({
           </div>
 
           <div>
-            {/* ✅ Rename field */}
-            <label className="text-sm font-medium">Site Name</label>
+            <div className="mb-2 rounded-lg bg-yellow-200 px-2 py-1 text-[11px] font-bold text-black">
+  TRACER: TemplateDraftEditor.tsx
+</div>
+            <label className="text-sm font-medium">Site name</label>
 
-            {/* ✅ Live URL preview (updates as user types) */}
+            {/* ✅ Live URL preview */}
             <div className="mt-1 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2">
-              <div className="text-[11px] font-semibold text-neutral-600">Your URL will be:</div>
-              <div className="mt-0.5 text-[12px] font-semibold text-neutral-900 break-all">
+              <div className="text-[11px] font-semibold text-neutral-600">
+                Your URL will be:
+              </div>
+              <div className="mt-0.5 break-all font-mono text-[12px] font-semibold text-neutral-900">
                 {previewUrl}
               </div>
             </div>
@@ -93,8 +97,7 @@ export function TemplateDraftEditor({
             <input
               value={draft.slugSuggestion}
               onChange={(e) => {
-                const raw = e.target.value;
-                const cleaned = normalizeSlug(raw);
+                const cleaned = normalizeSlug(e.target.value);
                 setDraft((d) => ({ ...d, slugSuggestion: cleaned }));
               }}
               className="mt-2 w-full rounded-xl border px-3 py-2 text-sm"

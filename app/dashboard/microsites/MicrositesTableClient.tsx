@@ -41,7 +41,6 @@ export default function MicrositesTableClient({ microsites }: { microsites: Micr
 
   const focusPaidActive = focusRow ? isPaidActive(focusRow.paid_until) : false;
 
-  // Auto-refresh only while waiting for webhook (stop once paid is active)
   useEffect(() => {
     if (checkout !== "success") return;
     if (!focusRow) return;
@@ -62,7 +61,6 @@ export default function MicrositesTableClient({ microsites }: { microsites: Micr
     return () => clearInterval(t);
   }, [checkout, focusRow, focusPaidActive]);
 
-    // After payment is confirmed active, clean the URL so we don't keep showing the banner forever
   useEffect(() => {
     if (checkout !== "success") return;
     if (!focusRow) return;
@@ -74,7 +72,7 @@ export default function MicrositesTableClient({ microsites }: { microsites: Micr
     url.searchParams.delete("slug");
     window.history.replaceState({}, "", url.toString());
   }, [checkout, focusRow, focusPaidActive]);
-  
+
   async function togglePublish(m: MicrositeRow, publishOverride?: boolean) {
     try {
       setBusyId(m.id);
@@ -114,10 +112,7 @@ export default function MicrositesTableClient({ microsites }: { microsites: Micr
           </p>
         </div>
 
-        <Link
-          href="/dashboard"
-          className="text-sm font-medium text-neutral-900 underline underline-offset-4"
-        >
+        <Link href="/dashboard" className="text-sm font-medium text-neutral-900 underline underline-offset-4">
           Back
         </Link>
       </div>
@@ -138,10 +133,7 @@ export default function MicrositesTableClient({ microsites }: { microsites: Micr
             <div className="mt-1 flex flex-wrap items-center gap-3 text-sm text-green-900/80">
               <div>
                 Access active until{" "}
-                <span className="font-medium">
-                  {new Date(focusRow.paid_until as string).toLocaleString()}
-                </span>
-                .
+                <span className="font-medium">{new Date(focusRow.paid_until as string).toLocaleString()}</span>.
               </div>
 
               {!focusRow.is_published ? (
@@ -175,7 +167,7 @@ export default function MicrositesTableClient({ microsites }: { microsites: Micr
           <thead className="bg-neutral-50">
             <tr>
               <th className="px-4 py-3 font-medium text-neutral-700">Title</th>
-              <th className="px-4 py-3 font-medium text-neutral-700">Site Name</th>
+              <th className="px-4 py-3 font-medium text-neutral-700">Site</th>
               <th className="px-4 py-3 font-medium text-neutral-700">Template</th>
               <th className="px-4 py-3 font-medium text-neutral-700">Access</th>
               <th className="px-4 py-3 font-medium text-neutral-700">Published</th>
@@ -214,12 +206,7 @@ export default function MicrositesTableClient({ microsites }: { microsites: Micr
                       </Link>
 
                       <div className="mt-1 text-xs text-neutral-600">
-                        <a
-                          className="underline underline-offset-4"
-                          href={`/s/${m.slug}`}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
+                        <a className="underline underline-offset-4" href={`/s/${m.slug}`} target="_blank" rel="noreferrer">
                           Preview (/s/{m.slug})
                         </a>
                         <span className="mx-2">·</span>
@@ -227,7 +214,12 @@ export default function MicrositesTableClient({ microsites }: { microsites: Micr
                       </div>
                     </td>
 
-                    <td className="px-4 py-3 font-mono text-neutral-800">{m.slug}</td>
+                    {/* ✅ renamed column + clearer URL */}
+                    <td className="px-4 py-3">
+                      <div className="font-mono text-neutral-900">{m.slug}</div>
+                      <div className="mt-1 text-xs font-mono text-neutral-600">{publicUrl}</div>
+                    </td>
+
                     <td className="px-4 py-3 font-mono text-neutral-800">{m.template_key}</td>
 
                     <td className="px-4 py-3">
@@ -291,11 +283,7 @@ export default function MicrositesTableClient({ microsites }: { microsites: Micr
                           onClick={() => togglePublish(m)}
                           className="inline-flex items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs font-medium text-neutral-900 hover:border-neutral-900 disabled:opacity-50"
                         >
-                          {busyId === m.id
-                            ? "Working..."
-                            : m.is_published
-                            ? "Unpublish"
-                            : "Publish"}
+                          {busyId === m.id ? "Working..." : m.is_published ? "Unpublish" : "Publish"}
                         </button>
                       </div>
 
