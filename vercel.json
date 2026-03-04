@@ -1,8 +1,9 @@
 {
-  "crons": [
+  "redirects": [
     {
-      "path": "/api/cron/expire-microsites",
-      "schedule": "0 4 * * *"
+      "source": "https://www.ko-host.com/:path*",
+      "destination": "https://ko-host.com/:path*",
+      "permanent": true
     }
   ]
 }

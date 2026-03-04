@@ -63,7 +63,7 @@ function getDescription(t: TemplateDef) {
 }
 
 /**
- * Preview metadata
+ * Preview metadata (still used in modal)
  */
 const PREVIEW_META: Record<string, PreviewMeta> = {
   wedding_rsvp: {
@@ -256,7 +256,6 @@ export default function TemplateGrid(props: {
   const { searchQuery, category, sort, onCountChange } = props;
 
   const allTemplates: TemplateDef[] = useMemo(() => {
-    // ✅ remove temp resume variant
     const base = Array.isArray(TEMPLATE_DEFS) ? TEMPLATE_DEFS : [];
     return base.filter((t) => t.key !== "resume_portfolio_temp");
   }, []);
@@ -448,7 +447,7 @@ export default function TemplateGrid(props: {
           return (
             <TemplateCard
               key={t.key}
-              templateKey={t.key}
+              templateKey={t.key as any}
               title={t.title}
               description={getDescription(t)}
               thumbnailUrl={thumbToImageUrl((t as any).thumb)}
@@ -456,7 +455,6 @@ export default function TemplateGrid(props: {
               isFavorite={favorites.includes(t.key)}
               onToggleFavorite={toggleFavorite}
               onPreview={openPreview}
-              tags={meta.tags}
               setupMins={meta.setupMins}
             />
           );
