@@ -1,54 +1,68 @@
 import Link from "next/link";
-import { getTemplateDef } from "@/lib/templates/registry";
+import { notFound } from "next/navigation";
+import { TEMPLATE_DEFS, getTemplateDef } from "@/lib/templates/registry";
 
-export default function TemplatePreviewPage({ params }: { params: { template: string } }) {
-  const t = getTemplateDef(params.template);
+export const dynamic = "force-dynamic";
 
-  if (!t) {
-    return (
-      <main className="mx-auto max-w-3xl px-4 py-10">
-        <h1 className="text-xl font-semibold">Template not found</h1>
-        <Link className="mt-4 inline-block underline" href="/templates">
-          Back to templates
-        </Link>
-      </main>
-    );
-  }
+export default async function TemplateDetailPage({
+  params,
+}: {
+  params: Promise<{ template: string }>;
+}) {
+  const { template } = await params;
+
+  const t = getTemplateDef(template);
+  if (!t) return notFound();
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-10">
-      <header className="rounded-2xl border bg-white p-6 shadow-sm">
-        <div className="flex items-start justify-between gap-4">
+    <main className="mx-auto max-w-3xl px-4 py-10">
+      <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+        <div className="text-sm text-neutral-600">Ko-Host Template</div>
+
+        <div className="mt-2 flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h1 className="text-3xl font-semibold">{t.title}</h1>
-            <p className="mt-2 text-neutral-600">{t.description}</p>
+            <h1 className="text-2xl font-semibold tracking-tight">{t.title}</h1>
+            <p className="mt-2 text-neutral-700">{t.description}</p>
           </div>
-          <div className="rounded-full border px-3 py-1 text-sm">{t.priceLabel}</div>
+
+          {/* ✅ fixed: no priceLabel on TemplateDef */}
+          <div className="rounded-full border border-neutral-200 px-3 py-1 text-sm text-neutral-800">
+            $12 / 90 days
+          </div>
         </div>
 
-        <div className="mt-4 flex gap-2">
+        <div className="mt-6 flex flex-wrap gap-3">
           <Link
             href={`/create/${t.key}`}
-            className="rounded-xl bg-black px-4 py-2 text-sm text-white hover:opacity-90"
+            className="inline-flex items-center justify-center rounded-2xl bg-neutral-900 px-4 py-3 text-sm font-semibold text-white hover:bg-neutral-800"
           >
-            Create for free
+            Create
           </Link>
-          <Link href="/templates" className="rounded-xl border px-4 py-2 text-sm hover:bg-neutral-50">
-            Browse templates
+
+          <Link
+            href="/templates"
+            className="inline-flex items-center justify-center rounded-2xl border border-neutral-300 bg-white px-4 py-3 text-sm font-semibold text-neutral-900 hover:border-neutral-900"
+          >
+            Back to templates
           </Link>
         </div>
-      </header>
+      </div>
 
-      <section className="mt-6 rounded-2xl border bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold">What’s included</h2>
-        <ul className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
-          {t.features.map((f) => (
-            <li key={f} className="rounded-xl border px-3 py-2 text-sm">
-              {f}
-            </li>
+      {/* Optional: show other templates */}
+      <div className="mt-10">
+        <div className="text-sm font-semibold text-neutral-900">More templates</div>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {TEMPLATE_DEFS.filter((x) => x.key !== t.key).slice(0, 6).map((x) => (
+            <Link
+              key={x.key}
+              href={`/create/${x.key}`}
+              className="rounded-full border border-neutral-200 px-3 py-1 text-xs text-neutral-800 hover:border-neutral-900"
+            >
+              {x.title}
+            </Link>
           ))}
-        </ul>
-      </section>
+        </div>
+      </div>
     </main>
   );
 }
