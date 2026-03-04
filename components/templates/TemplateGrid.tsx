@@ -12,36 +12,36 @@ const CARD = 140; // must match TemplateCard
 const GAP = 12;
 
 export default function TemplateGrid() {
-  // ✅ hide temp resume card from public gallery
   const templates: TemplateDef[] = useMemo(
     () => TEMPLATE_DEFS.filter((t) => t.key !== "resume_portfolio_temp"),
     []
   );
 
-  // ✅ 3 cols mobile, 6 cols desktop
-  const [cols, setCols] = useState<number>(3);
+  // mobile stays 3 cols; desktop becomes auto-fit
+  const [isDesktop, setIsDesktop] = useState(false);
 
   useEffect(() => {
-    function computeCols() {
+    function compute() {
       const w = window.innerWidth || 0;
-      setCols(w >= 1024 ? 6 : 3); // lg breakpoint
+      setIsDesktop(w >= 1024);
     }
-    computeCols();
-    window.addEventListener("resize", computeCols);
-    return () => window.removeEventListener("resize", computeCols);
+    compute();
+    window.addEventListener("resize", compute);
+    return () => window.removeEventListener("resize", compute);
   }, []);
 
-  const gridStyle = useMemo(
-    () => ({
+  const gridStyle = useMemo(() => {
+    return {
       display: "grid" as const,
-      gridTemplateColumns: `repeat(${cols}, ${CARD}px)`,
       gap: `${GAP}px`,
       justifyContent: "center" as const,
-      paddingLeft: "12px", // ✅ prevents left cut-off on mobile
+      paddingLeft: "12px",
       paddingRight: "12px",
-    }),
-    [cols]
-  );
+      gridTemplateColumns: isDesktop
+        ? `repeat(auto-fit, ${CARD}px)` // ✅ dynamic columns
+        : `repeat(3, ${CARD}px)`,       // ✅ fixed 3 on mobile
+    };
+  }, [isDesktop]);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
@@ -54,7 +54,6 @@ export default function TemplateGrid() {
         </div>
       </div>
 
-      {/* ✅ no overflow clipping; centered; mobile safe padding */}
       <div className="mt-6 w-full">
         <div style={gridStyle}>
           {templates.map((t) => (
