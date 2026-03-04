@@ -27,7 +27,7 @@ export default function TemplateGrid() {
   const gridStyle = useMemo(
     () => ({
       display: "grid" as const,
-      gap: "16px",
+      gap: "14px",
       gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
     }),
     [cols]

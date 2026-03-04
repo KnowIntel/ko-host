@@ -7,60 +7,65 @@ export default function TemplateCard(props: {
 }) {
   const { templateKey, title, thumbnailUrl } = props;
 
+  const src = thumbnailUrl || "/templates/placeholder.png";
+
   return (
-    <div className="group">
-      <Link href={`/create/${templateKey}`} className="block">
-        <div className="relative overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-50 shadow-sm">
-          {/* Thumbnail */}
-          <div className="aspect-[4/3] w-full">
-            {thumbnailUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={thumbnailUrl}
-                alt={title}
-                className="h-full w-full object-cover"
-                loading="lazy"
-              />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center text-xs text-neutral-500">
-                No preview
-              </div>
-            )}
+    <Link href={`/create/${templateKey}`} className="group block">
+      <div className="relative overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:shadow-md">
+        {/* Media */}
+        <div className="relative aspect-[4/3] w-full bg-neutral-100">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={src}
+            alt={title}
+            className="h-full w-full select-none object-cover"
+            draggable={false}
+            loading="lazy"
+            style={{ pointerEvents: "none" }}
+          />
+
+          {/* Subtle bottom gradient for legibility */}
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/35 via-black/0 to-black/0 opacity-70 transition-opacity group-hover:opacity-90" />
+
+          {/* Price pill (top-left) */}
+          <div className="pointer-events-none absolute left-3 top-3">
+            <div className="rounded-full bg-white/90 px-3 py-1 text-[11px] font-semibold text-neutral-900 backdrop-blur">
+              $12 • 90 days
+            </div>
           </div>
 
-          {/* Darken on hover */}
-          <div className="pointer-events-none absolute inset-0 bg-black/0 transition group-hover:bg-black/35" />
-
-          {/* Create pill */}
+          {/* Hover CTA */}
           <div className="absolute inset-x-0 bottom-3 flex justify-center px-3">
-            <div className="kht-create inline-flex items-center justify-center rounded-xl bg-white/95 px-3 py-2 text-xs font-semibold text-neutral-900 shadow-sm backdrop-blur">
+            <div className="kht-create inline-flex items-center justify-center rounded-xl bg-white/95 px-4 py-2 text-xs font-semibold text-neutral-900 shadow-sm backdrop-blur">
               Create
             </div>
           </div>
         </div>
 
-        {/* Title under thumbnail */}
-        <div className="mt-2 text-center text-xs font-semibold text-neutral-900">{title}</div>
-      </Link>
+        {/* Footer */}
+        <div className="p-3">
+          <div className="text-center text-xs font-semibold text-neutral-900">{title}</div>
+        </div>
+      </div>
 
-      {/* Guaranteed hover behavior */}
+      {/* Hover behavior: hidden on hover-capable devices until hover; visible on touch */}
       <style jsx>{`
-        /* Default (touch/no-hover): visible */
         .kht-create {
           opacity: 1;
-          transition: opacity 160ms ease;
+          transform: translateY(0px);
+          transition: opacity 160ms ease, transform 160ms ease;
         }
-
-        /* Hover-capable devices: hide until hover */
         @media (hover: hover) and (pointer: fine) {
           .kht-create {
             opacity: 0;
+            transform: translateY(6px);
           }
           .group:hover .kht-create {
             opacity: 1;
+            transform: translateY(0px);
           }
         }
       `}</style>
-    </div>
+    </Link>
   );
 }
