@@ -8,6 +8,10 @@ function thumbToImageUrl(thumb: string) {
   return `/templates/${thumb}.png`;
 }
 
+// Card width constraints (thumbnail will scale to this, not to your source image size)
+const CARD_MIN_PX = 170; // mobile-friendly
+const CARD_MAX_PX = 215; // keeps thumbnails from looking huge
+
 export default function TemplateGrid() {
   const templates: TemplateDef[] = TEMPLATE_DEFS;
 
@@ -24,14 +28,19 @@ export default function TemplateGrid() {
     return () => window.removeEventListener("resize", computeCols);
   }, []);
 
-  const gridStyle = useMemo(
-    () => ({
+  const gridStyle = useMemo(() => {
+    // Fixed-ish card widths so thumbnails never become huge.
+    // We still "aim" for 3/6 columns by changing the template,
+    // but each column is clamped to CARD_MIN_PX..CARD_MAX_PX.
+    const colDef = `minmax(${CARD_MIN_PX}px, ${CARD_MAX_PX}px)`;
+
+    return {
       display: "grid" as const,
-      gap: "14px",
-      gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
-    }),
-    [cols]
-  );
+      gap: "16px",
+      justifyContent: "center",
+      gridTemplateColumns: `repeat(${cols}, ${colDef})`,
+    };
+  }, [cols]);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">

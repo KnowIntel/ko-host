@@ -11,7 +11,16 @@ export default function TemplateCard(props: {
 
   return (
     <Link href={`/create/${templateKey}`} className="group block">
-      <div className="relative overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:shadow-md">
+      <div
+        className="relative overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:shadow-md"
+        style={{
+          // Safety clamp: prevents “huge thumbnails” if grid ever changes
+          width: "100%",
+          maxWidth: 215,
+          marginLeft: "auto",
+          marginRight: "auto",
+        }}
+      >
         {/* Media */}
         <div className="relative aspect-[4/3] w-full bg-neutral-100">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -21,7 +30,7 @@ export default function TemplateCard(props: {
             className="h-full w-full select-none object-cover"
             draggable={false}
             loading="lazy"
-            style={{ pointerEvents: "none" }}
+            style={{ pointerEvents: "none" }} // read-only image
           />
 
           {/* Subtle bottom gradient for legibility */}
