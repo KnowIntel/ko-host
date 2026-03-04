@@ -9,6 +9,14 @@ function formatLabel(title: string) {
   return (title || "").trim();
 }
 
+function notify(name: "kht:recent" | "kht:stats") {
+  try {
+    window.dispatchEvent(new Event(name));
+  } catch {
+    // ignore
+  }
+}
+
 function readStringArray(key: string): string[] {
   if (typeof window === "undefined") return [];
   try {
@@ -33,6 +41,7 @@ function markRecentlyViewed(templateKey: string) {
   const prev = readStringArray(key);
   const next = [templateKey, ...prev.filter((k) => k !== templateKey)].slice(0, 12);
   writeStringArray(key, next);
+  notify("kht:recent");
 }
 
 type StatsMap = Record<string, { views: number; creates: number; updatedAt: number }>;
@@ -66,6 +75,7 @@ function bumpStat(templateKey: string, field: "views" | "creates") {
   };
   stats[templateKey] = next;
   writeStats(stats);
+  notify("kht:stats");
 }
 
 export default function TemplateCard(props: {
@@ -98,7 +108,6 @@ export default function TemplateCard(props: {
   }
 
   function handleCardClick() {
-    // card click navigates to /create
     markRecentlyViewed(templateKey);
     bumpStat(templateKey, "creates");
   }
@@ -106,7 +115,6 @@ export default function TemplateCard(props: {
   function handlePreview(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
-    // preview = a "view"
     markRecentlyViewed(templateKey);
     bumpStat(templateKey, "views");
     onPreview?.(templateKey);

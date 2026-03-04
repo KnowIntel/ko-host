@@ -120,7 +120,11 @@ const PREVIEW_META: Record<string, PreviewMeta> = {
   property_listing_rental: {
     tags: ["Apply", "Real Estate"],
     setupMins: 5,
-    features: ["Availability + pricing", "Apply / inquiry CTA", "Screening info section"],
+    features: [
+      "Availability + pricing",
+      "Apply / inquiry CTA",
+      "Screening info section",
+    ],
   },
 
   product_launch: {
@@ -255,7 +259,6 @@ function readStats(): StatsMap {
 function popularityScore(stats: StatsMap, key: string) {
   const s = stats[key];
   if (!s) return 0;
-  // weight creates higher than views
   const views = Number(s.views || 0);
   const creates = Number(s.creates || 0);
   return creates * 5 + views * 1;
@@ -283,20 +286,40 @@ export default function TemplateGrid(props: {
     setStats(readStats());
   }, []);
 
-  // keep Recently viewed + stats fresh (back nav, tab focus)
+  // ✅ Immediate refresh when TemplateCard writes stats/recent
   useEffect(() => {
-    const refresh = () => {
+    const refreshAll = () => {
       setRecent(readStringArray("kht:recent"));
       setStats(readStats());
+      // favorites updated via toggleFavorite, but also safe to keep in sync:
+      setFavorites(readStringArray("kht:favorites"));
     };
-    refresh();
-    window.addEventListener("focus", refresh);
-    window.addEventListener("pageshow", refresh);
-    window.addEventListener("visibilitychange", refresh);
+
+    // in-app custom events
+    window.addEventListener("kht:recent", refreshAll as any);
+    window.addEventListener("kht:stats", refreshAll as any);
+
+    // cross-tab updates
+    const onStorage = (e: StorageEvent) => {
+      if (!e.key) return;
+      if (e.key === "kht:recent" || e.key === "kht:stats" || e.key === "kht:favorites") {
+        refreshAll();
+      }
+    };
+    window.addEventListener("storage", onStorage);
+
+    // also refresh on navigation/focus situations
+    window.addEventListener("focus", refreshAll);
+    window.addEventListener("pageshow", refreshAll);
+    window.addEventListener("visibilitychange", refreshAll);
+
     return () => {
-      window.removeEventListener("focus", refresh);
-      window.removeEventListener("pageshow", refresh);
-      window.removeEventListener("visibilitychange", refresh);
+      window.removeEventListener("kht:recent", refreshAll as any);
+      window.removeEventListener("kht:stats", refreshAll as any);
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("focus", refreshAll);
+      window.removeEventListener("pageshow", refreshAll);
+      window.removeEventListener("visibilitychange", refreshAll);
     };
   }, []);
 
@@ -326,7 +349,6 @@ export default function TemplateGrid(props: {
   const filteredTemplates = useMemo(() => {
     const q = (searchQuery || "").trim().toLowerCase();
 
-    // for "Recently viewed", keep recency order
     const recentOrder = new Map<string, number>();
     recent.forEach((k, idx) => recentOrder.set(k, idx));
 
@@ -377,7 +399,6 @@ export default function TemplateGrid(props: {
         return byTitle(a, b);
       });
     } else if (sort === "Popular") {
-      // ✅ REAL popularity sort (creates weighted > views)
       sorted.sort((a, b) => {
         const pa = popularityScore(stats, a.key);
         const pb = popularityScore(stats, b.key);
@@ -411,7 +432,7 @@ export default function TemplateGrid(props: {
     return {
       display: "grid" as const,
       gap: `${GAP}px`,
-      justifyContent: "center" as const,
+      justifyContent: isDesktop ? ("center" as const) : ("start" as const),
       paddingLeft: "12px",
       paddingRight: "12px",
       gridTemplateColumns: isDesktop
@@ -437,21 +458,23 @@ export default function TemplateGrid(props: {
         </div>
       ) : null}
 
-      <div style={gridStyle}>
-        {filteredTemplates.map((t) => (
-          <TemplateCard
-            key={t.key}
-            templateKey={t.key}
-            title={t.title}
-            description={getDescription(t)}
-            thumbnailUrl={thumbToImageUrl((t as any).thumb)}
-            badge={badgeForTemplateKey(t.key)}
-            isFavorite={favorites.includes(t.key)}
-            onToggleFavorite={toggleFavorite}
-            onPreview={openPreview}
-          />
-        ))}
-      </div>
+      <div className="overflow-x-auto -mx-4 px-4">
+  <div style={gridStyle}>
+    {filteredTemplates.map((t) => (
+      <TemplateCard
+        key={t.key}
+        templateKey={t.key}
+        title={t.title}
+        description={getDescription(t)}
+        thumbnailUrl={thumbToImageUrl((t as any).thumb)}
+        badge={badgeForTemplateKey(t.key)}
+        isFavorite={favorites.includes(t.key)}
+        onToggleFavorite={toggleFavorite}
+        onPreview={openPreview}
+      />
+    ))}
+  </div>
+</div>
 
       <TemplatePreviewModal
         open={previewOpen}

@@ -1,19 +1,36 @@
-// components/ui/Nav.tsx
+"use client";
+
 import Link from "next/link";
+import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import { Container } from "@/components/ui/Container";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 
 export function Nav() {
+  const pathname = usePathname() || "";
+
+  // ✅ Hide global nav on published microsite pages (your route: /s/[slug]/...)
+  if (pathname === "/s" || pathname.startsWith("/s/")) {
+    return null;
+  }
+
   return (
     <header className="border-b border-neutral-200">
       <Container className="flex h-14 items-center justify-between">
-        <Link href="/" className="font-semibold tracking-tight">
-          Ko-Host
+        <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight">
+          <Image
+            src="/icon.png"
+            alt="Ko-Host"
+            width={22}
+            height={22}
+            className="rounded-[6px]"
+            priority
+          />
+          <span>Ko-Host</span>
         </Link>
 
         <nav className="flex items-center gap-3">
-          {/* Always visible */}
           <Link href="/templates" className="text-sm text-neutral-700 hover:text-neutral-900">
             Templates
           </Link>
