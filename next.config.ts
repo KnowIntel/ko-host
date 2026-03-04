@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Wildcard routing is handled in app/page.tsx + app/[...catchall]/page.tsx
 };
 
 export default nextConfig;

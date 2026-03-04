@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 type MicrositeRow = {
   id: string;
@@ -20,15 +21,70 @@ function isPaidActive(paidUntil: string | null) {
 
 export default function MicrositesTableClient({ microsites }: { microsites: MicrositeRow[] }) {
   const [busyId, setBusyId] = useState<string | null>(null);
+  const sp = useSearchParams();
 
-  async function togglePublish(m: MicrositeRow) {
+  const checkout = sp.get("checkout"); // success | cancel | null
+  const checkoutMicrositeId = sp.get("micrositeId") || "";
+  const checkoutSlug = sp.get("slug") || "";
+
+  const focusRow = useMemo(() => {
+    if (checkoutMicrositeId) {
+      const byId = microsites.find((m) => m.id === checkoutMicrositeId);
+      if (byId) return byId;
+    }
+    if (checkoutSlug) {
+      const bySlug = microsites.find((m) => m.slug === checkoutSlug);
+      if (bySlug) return bySlug;
+    }
+    return null;
+  }, [checkoutMicrositeId, checkoutSlug, microsites]);
+
+  const focusPaidActive = focusRow ? isPaidActive(focusRow.paid_until) : false;
+
+  // Auto-refresh only while waiting for webhook (stop once paid is active)
+  useEffect(() => {
+    if (checkout !== "success") return;
+    if (!focusRow) return;
+    if (focusPaidActive) return;
+
+    let tries = 0;
+    const max = 5;
+
+    const t = setInterval(() => {
+      tries += 1;
+      if (tries > max) {
+        clearInterval(t);
+        return;
+      }
+      window.location.reload();
+    }, 2000);
+
+    return () => clearInterval(t);
+  }, [checkout, focusRow, focusPaidActive]);
+
+    // After payment is confirmed active, clean the URL so we don't keep showing the banner forever
+  useEffect(() => {
+    if (checkout !== "success") return;
+    if (!focusRow) return;
+    if (!focusPaidActive) return;
+
+    const url = new URL(window.location.href);
+    url.searchParams.delete("checkout");
+    url.searchParams.delete("micrositeId");
+    url.searchParams.delete("slug");
+    window.history.replaceState({}, "", url.toString());
+  }, [checkout, focusRow, focusPaidActive]);
+  
+  async function togglePublish(m: MicrositeRow, publishOverride?: boolean) {
     try {
       setBusyId(m.id);
+
+      const next = typeof publishOverride === "boolean" ? publishOverride : !m.is_published;
 
       const res = await fetch(`/api/dashboard/microsites/${m.id}/publish`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ publish: !m.is_published }),
+        body: JSON.stringify({ publish: next }),
       });
 
       if (res.status === 402) {
@@ -66,6 +122,54 @@ export default function MicrositesTableClient({ microsites }: { microsites: Micr
         </Link>
       </div>
 
+      {checkout === "success" ? (
+        <div className="mt-6 rounded-2xl border border-green-200 bg-green-50 p-4">
+          <div className="text-sm font-semibold text-green-900">Payment successful</div>
+
+          {!focusRow ? (
+            <div className="mt-1 text-sm text-green-900/80">
+              Returning… If you don’t see your microsite highlighted, refresh once.
+            </div>
+          ) : !focusPaidActive ? (
+            <div className="mt-1 text-sm text-green-900/80">
+              Processing payment… this page will refresh automatically.
+            </div>
+          ) : (
+            <div className="mt-1 flex flex-wrap items-center gap-3 text-sm text-green-900/80">
+              <div>
+                Access active until{" "}
+                <span className="font-medium">
+                  {new Date(focusRow.paid_until as string).toLocaleString()}
+                </span>
+                .
+              </div>
+
+              {!focusRow.is_published ? (
+                <button
+                  type="button"
+                  disabled={busyId === focusRow.id}
+                  onClick={() => togglePublish(focusRow, true)}
+                  className="inline-flex items-center justify-center rounded-xl bg-green-700 px-3 py-2 text-xs font-semibold text-white hover:bg-green-800 disabled:opacity-50"
+                >
+                  {busyId === focusRow.id ? "Publishing…" : "Publish now"}
+                </button>
+              ) : (
+                <span className="rounded-full bg-white px-2 py-1 text-xs font-semibold text-green-800">
+                  Already published
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+      ) : checkout === "cancel" ? (
+        <div className="mt-6 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+          <div className="text-sm font-semibold text-neutral-900">Checkout canceled</div>
+          <div className="mt-1 text-sm text-neutral-700">
+            No worries — you can try again anytime from the microsite row.
+          </div>
+        </div>
+      ) : null}
+
       <div className="mt-6 overflow-hidden rounded-2xl border border-neutral-200">
         <table className="w-full text-left text-sm">
           <thead className="bg-neutral-50">
@@ -91,8 +195,16 @@ export default function MicrositesTableClient({ microsites }: { microsites: Micr
                 const active = isPaidActive(m.paid_until);
                 const publicUrl = `https://${m.slug}.ko-host.com`;
 
+                const isFocused =
+                  (checkoutMicrositeId && m.id === checkoutMicrositeId) ||
+                  (checkoutSlug && m.slug === checkoutSlug);
+
                 return (
-                  <tr key={m.id} className="border-t border-neutral-200 align-top">
+                  <tr
+                    key={m.id}
+                    className="border-t border-neutral-200 align-top"
+                    style={isFocused ? { backgroundColor: "#FEF9C3" } : undefined}
+                  >
                     <td className="px-4 py-3 font-medium text-neutral-900">
                       <Link
                         href={`/dashboard/microsites/${m.id}`}

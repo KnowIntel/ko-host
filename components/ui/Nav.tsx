@@ -13,7 +13,8 @@ export function Nav() {
         </Link>
 
         <nav className="flex items-center gap-3">
-          <Link href="/#templates" className="text-sm text-neutral-700 hover:text-neutral-900">
+          {/* Always visible */}
+          <Link href="/templates" className="text-sm text-neutral-700 hover:text-neutral-900">
             Templates
           </Link>
 
@@ -21,7 +22,7 @@ export function Nav() {
             <ButtonLink href="/sign-in" variant="secondary">
               Sign in
             </ButtonLink>
-            <ButtonLink href="/sign-up">Get started</ButtonLink>
+            <ButtonLink href="/templates">Get started</ButtonLink>
           </SignedOut>
 
           <SignedIn>
