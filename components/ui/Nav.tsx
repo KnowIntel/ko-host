@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import { Container } from "@/components/ui/Container";
@@ -11,21 +10,19 @@ export function Nav() {
   const pathname = usePathname() || "";
 
   // ✅ Hide global nav on published microsite pages (your route: /s/[slug]/...)
-  if (pathname === "/s" || pathname.startsWith("/s/")) {
-    return null;
-  }
+  if (pathname === "/s" || pathname.startsWith("/s/")) return null;
 
   return (
     <header className="border-b border-neutral-200">
       <Container className="flex h-14 items-center justify-between">
         <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight">
-          <Image
+          <img
             src="/icon.png"
             alt="Ko-Host"
             width={22}
             height={22}
-            className="rounded-[6px]"
-            priority
+            className="h-[22px] w-[22px] rounded-[6px]"
+            draggable={false}
           />
           <span>Ko-Host</span>
         </Link>

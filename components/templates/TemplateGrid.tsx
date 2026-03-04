@@ -95,11 +95,7 @@ const PREVIEW_META: Record<string, PreviewMeta> = {
   memorial_tribute: {
     tags: ["Personal"],
     setupMins: 3,
-    features: [
-      "Announcement details",
-      "Photo + message section",
-      "Shareable tribute link",
-    ],
+    features: ["Announcement details", "Photo + message section", "Shareable tribute link"],
   },
 
   open_house: {
@@ -120,11 +116,7 @@ const PREVIEW_META: Record<string, PreviewMeta> = {
   property_listing_rental: {
     tags: ["Apply", "Real Estate"],
     setupMins: 5,
-    features: [
-      "Availability + pricing",
-      "Apply / inquiry CTA",
-      "Screening info section",
-    ],
+    features: ["Availability + pricing", "Apply / inquiry CTA", "Screening info section"],
   },
 
   product_launch: {
@@ -286,20 +278,16 @@ export default function TemplateGrid(props: {
     setStats(readStats());
   }, []);
 
-  // ✅ Immediate refresh when TemplateCard writes stats/recent
   useEffect(() => {
     const refreshAll = () => {
       setRecent(readStringArray("kht:recent"));
       setStats(readStats());
-      // favorites updated via toggleFavorite, but also safe to keep in sync:
       setFavorites(readStringArray("kht:favorites"));
     };
 
-    // in-app custom events
     window.addEventListener("kht:recent", refreshAll as any);
     window.addEventListener("kht:stats", refreshAll as any);
 
-    // cross-tab updates
     const onStorage = (e: StorageEvent) => {
       if (!e.key) return;
       if (e.key === "kht:recent" || e.key === "kht:stats" || e.key === "kht:favorites") {
@@ -308,7 +296,6 @@ export default function TemplateGrid(props: {
     };
     window.addEventListener("storage", onStorage);
 
-    // also refresh on navigation/focus situations
     window.addEventListener("focus", refreshAll);
     window.addEventListener("pageshow", refreshAll);
     window.addEventListener("visibilitychange", refreshAll);
@@ -416,12 +403,18 @@ export default function TemplateGrid(props: {
     onCountChange?.(filteredTemplates.length);
   }, [filteredTemplates.length, onCountChange]);
 
+  // ✅ Responsive rule requested:
+  // Desktop: dynamic auto-fit
+  // Mobile portrait: fixed 2 cols
+  // Mobile landscape: dynamic auto-fit
   const [isDesktop, setIsDesktop] = useState(false);
+  const [isLandscape, setIsLandscape] = useState(false);
 
   useEffect(() => {
     function compute() {
       const w = window.innerWidth || 0;
       setIsDesktop(w >= 1024);
+      setIsLandscape(window.matchMedia?.("(orientation: landscape)")?.matches ?? false);
     }
     compute();
     window.addEventListener("resize", compute);
@@ -429,17 +422,20 @@ export default function TemplateGrid(props: {
   }, []);
 
   const gridStyle = useMemo(() => {
+    const columns =
+      isDesktop || isLandscape
+        ? `repeat(auto-fit, ${CARD}px)`
+        : `repeat(2, ${CARD}px)`; // ✅ portrait mobile: 2 columns
+
     return {
       display: "grid" as const,
       gap: `${GAP}px`,
-      justifyContent: isDesktop ? ("center" as const) : ("start" as const),
+      justifyContent: "center" as const,
       paddingLeft: "12px",
       paddingRight: "12px",
-      gridTemplateColumns: isDesktop
-        ? `repeat(auto-fit, ${CARD}px)`
-        : `repeat(3, ${CARD}px)`,
+      gridTemplateColumns: columns,
     };
-  }, [isDesktop]);
+  }, [isDesktop, isLandscape]);
 
   function openPreview(key: string) {
     setPreviewKey(key);
@@ -458,23 +454,21 @@ export default function TemplateGrid(props: {
         </div>
       ) : null}
 
-      <div className="overflow-x-auto -mx-4 px-4">
-  <div style={gridStyle}>
-    {filteredTemplates.map((t) => (
-      <TemplateCard
-        key={t.key}
-        templateKey={t.key}
-        title={t.title}
-        description={getDescription(t)}
-        thumbnailUrl={thumbToImageUrl((t as any).thumb)}
-        badge={badgeForTemplateKey(t.key)}
-        isFavorite={favorites.includes(t.key)}
-        onToggleFavorite={toggleFavorite}
-        onPreview={openPreview}
-      />
-    ))}
-  </div>
-</div>
+      <div style={gridStyle}>
+        {filteredTemplates.map((t) => (
+          <TemplateCard
+            key={t.key}
+            templateKey={t.key}
+            title={t.title}
+            description={getDescription(t)}
+            thumbnailUrl={thumbToImageUrl((t as any).thumb)}
+            badge={badgeForTemplateKey(t.key)}
+            isFavorite={favorites.includes(t.key)}
+            onToggleFavorite={toggleFavorite}
+            onPreview={openPreview}
+          />
+        ))}
+      </div>
 
       <TemplatePreviewModal
         open={previewOpen}
