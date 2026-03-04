@@ -1,30 +1,14 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { getSlugFromHost } from "@/lib/hostSlug";
 
 export const dynamic = "force-dynamic";
 
-const RESERVED = new Set([
-  "www",
-  "app",
-  "api",
-  "admin",
-  "dashboard",
-  "mail",
-  "ftp",
-  "blog",
-  "support",
-]);
-
 export default async function CatchAllPage() {
   const h = await headers();
-  const host = (h.get("host") || "").toLowerCase();
+  const slug = getSlugFromHost(h.get("host"));
 
-  const m = host.match(/^([^.]+)\.ko-host\.com(?::\d+)?$/i);
-  const slugFromHost = m?.[1] || null;
-
-  if (slugFromHost && !RESERVED.has(slugFromHost)) {
-    redirect(`/s/${slugFromHost}`);
-  }
+  if (slug) redirect(`/s/${slug}`);
 
   redirect("/templates");
 }
