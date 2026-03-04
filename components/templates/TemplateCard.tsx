@@ -3,8 +3,8 @@
 import { useRouter } from "next/navigation";
 import type { MouseEvent } from "react";
 
-const W = 140; // keep in sync with grid
-const H = 105; // 4:3
+const W = 140;
+const H = 105;
 
 function formatLabel(title: string) {
   return (title || "").trim();
@@ -63,11 +63,7 @@ function writeStats(stats: StatsMap) {
 function bumpStat(templateKey: string, field: "views" | "creates") {
   const stats = readStats();
   const cur = stats[templateKey] || { views: 0, creates: 0, updatedAt: Date.now() };
-  const next = {
-    ...cur,
-    [field]: (cur[field] || 0) + 1,
-    updatedAt: Date.now(),
-  };
+  const next = { ...cur, [field]: (cur[field] || 0) + 1, updatedAt: Date.now() };
   stats[templateKey] = next;
   writeStats(stats);
   notify("kht:stats");
@@ -115,26 +111,30 @@ export default function TemplateCard(props: {
     router.push(`/create/${templateKey}`);
   }
 
-  function onCardClick() {
+  function handleCardClick(e: React.MouseEvent<HTMLDivElement>) {
+    const target = e.target as HTMLElement | null;
+    if (target?.closest?.("[data-kht-stop]")) return;
     goCreate();
   }
 
+  function stopAll(e: any) {
+    e.preventDefault?.();
+    e.stopPropagation?.();
+  }
+
   function toggleFavorite(e: MouseEvent) {
-    e.preventDefault();
-    e.stopPropagation();
+    stopAll(e);
     onToggleFavorite?.(templateKey);
   }
 
   function handlePreview(e: MouseEvent) {
-    e.preventDefault();
-    e.stopPropagation();
+    stopAll(e);
     trackPreview();
     onPreview?.(templateKey);
   }
 
   function handleCreate(e: MouseEvent) {
-    e.preventDefault();
-    e.stopPropagation();
+    stopAll(e);
     goCreate();
   }
 
@@ -142,7 +142,7 @@ export default function TemplateCard(props: {
     <div
       className="group block cursor-pointer select-none"
       style={{ width: W, maxWidth: W, minWidth: W }}
-      onClick={onCardClick}
+      onClick={handleCardClick}
       role="button"
       tabIndex={0}
       onKeyDown={(e) => {
@@ -161,11 +161,6 @@ export default function TemplateCard(props: {
         ].join(" ")}
         style={{ width: W, maxWidth: W, minWidth: W }}
       >
-        {/* Hover glow */}
-        <div className="pointer-events-none absolute -inset-16 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-          <div className="h-full w-full bg-[radial-gradient(circle_at_50%_0%,rgba(59,130,246,0.28),transparent_60%)]" />
-        </div>
-
         {/* Media */}
         <div className="relative bg-neutral-100" style={{ width: W, height: H, overflow: "hidden" }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -174,7 +169,6 @@ export default function TemplateCard(props: {
             alt={title}
             draggable={false}
             loading="lazy"
-            className="transition-transform duration-200 ease-out group-hover:scale-[1.03]"
             style={{
               pointerEvents: "none",
               width: W,
@@ -185,8 +179,8 @@ export default function TemplateCard(props: {
             }}
           />
 
-          {/* Image overlay */}
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-black/0 to-black/0 opacity-70 transition-opacity duration-150 group-hover:opacity-90" />
+          {/* overlay */}
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-black/0 to-black/0 opacity-70" />
 
           {/* Price pill */}
           <div className="pointer-events-none absolute left-2 top-2 z-10">
@@ -195,7 +189,7 @@ export default function TemplateCard(props: {
             </div>
           </div>
 
-          {/* Top-right: badge + star */}
+          {/* Badge + Star */}
           <div className="absolute right-2 top-2 z-20 flex items-center gap-1">
             {badge ? (
               <div className="pointer-events-none">
@@ -213,60 +207,43 @@ export default function TemplateCard(props: {
             <button
               type="button"
               onClick={toggleFavorite}
-              className={[
-                "inline-flex h-7 w-7 items-center justify-center rounded-full",
-                "bg-white/90 backdrop-blur shadow-sm",
-                "transition hover:bg-white",
-              ].join(" ")}
+              className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/90 backdrop-blur shadow-sm hover:bg-white"
               aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
               title={isFavorite ? "Favorited" : "Favorite"}
+              data-kht-stop
             >
-              <span
-                className={[
-                  "text-[14px] leading-none",
-                  isFavorite ? "text-amber-500" : "text-neutral-400",
-                ].join(" ")}
-              >
-                ★
-              </span>
+              <span className={isFavorite ? "text-amber-500" : "text-neutral-400"}>★</span>
             </button>
           </div>
+        </div>
 
-          {/* Slim hover overlay: duration + Preview + Create */}
-          <div className="pointer-events-none absolute inset-0 z-30 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-
-            <div className="absolute inset-x-0 bottom-2 px-2">
-              <div className="rounded-xl bg-white/95 p-2 shadow-sm backdrop-blur">
-                <div className="text-[10px] font-semibold text-neutral-700">
-                  ⚡ {setupMins ?? 3} min
-                </div>
-
-                <div className="mt-1.5 flex gap-1.5 pointer-events-auto">
-                  <button
-                    type="button"
-                    onClick={handlePreview}
-                    className="flex-1 rounded-lg border border-neutral-200 bg-white px-2 py-1 text-[10px] font-semibold text-neutral-900 hover:bg-neutral-50"
-                  >
-                    Preview
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleCreate}
-                    className="flex-1 rounded-lg bg-neutral-900 px-2 py-1 text-[10px] font-semibold text-white hover:bg-neutral-800"
-                  >
-                    Create
-                  </button>
-                </div>
-              </div>
+        {/* ✅ ALWAYS VISIBLE ACTIONS (debug) */}
+        <div
+          className="px-2 pt-2"
+          data-kht-stop
+          onClickCapture={(e) => e.stopPropagation()}
+        >
+          <div className="flex items-center justify-between">
+            <div className="text-[10px] font-semibold text-neutral-600">
+              ⚡ {setupMins ?? 3} min
             </div>
-          </div>
-
-          {/* Keep old Create CTA behavior (fine-pointer hover) */}
-          <div className="absolute inset-x-0 bottom-2 z-10 flex justify-center px-2">
-            <div className="kht-create inline-flex items-center justify-center rounded-full bg-white/95 px-3 py-1.5 text-[11px] font-semibold text-neutral-900 shadow-sm backdrop-blur">
-              Create
+            <div className="flex gap-1.5">
+              <button
+                type="button"
+                onClick={handlePreview}
+                className="rounded-lg border border-neutral-200 bg-white px-2 py-1 text-[10px] font-semibold text-neutral-900 hover:bg-neutral-50"
+                data-kht-stop
+              >
+                Preview
+              </button>
+              <button
+                type="button"
+                onClick={handleCreate}
+                className="rounded-lg bg-neutral-900 px-2 py-1 text-[10px] font-semibold text-white hover:bg-neutral-800"
+                data-kht-stop
+              >
+                Create
+              </button>
             </div>
           </div>
         </div>
@@ -299,30 +276,7 @@ export default function TemplateCard(props: {
             {description?.trim() ? description.trim() : " "}
           </div>
         </div>
-
-        {/* Shine */}
-        <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-          <div className="absolute -left-10 top-0 h-full w-24 rotate-12 bg-white/20 blur-xl" />
-        </div>
       </div>
-
-      <style jsx>{`
-        .kht-create {
-          opacity: 1;
-          transform: translateY(0px);
-          transition: opacity 160ms ease, transform 160ms ease;
-        }
-        @media (hover: hover) and (pointer: fine) {
-          .kht-create {
-            opacity: 0;
-            transform: translateY(6px);
-          }
-          .group:hover .kht-create {
-            opacity: 1;
-            transform: translateY(0px);
-          }
-        }
-      `}</style>
     </div>
   );
 }

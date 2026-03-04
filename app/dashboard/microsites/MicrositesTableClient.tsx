@@ -175,7 +175,7 @@ export default function MicrositesTableClient({ microsites }: { microsites: Micr
           <thead className="bg-neutral-50">
             <tr>
               <th className="px-4 py-3 font-medium text-neutral-700">Title</th>
-              <th className="px-4 py-3 font-medium text-neutral-700">Slug</th>
+              <th className="px-4 py-3 font-medium text-neutral-700">Site Name</th>
               <th className="px-4 py-3 font-medium text-neutral-700">Template</th>
               <th className="px-4 py-3 font-medium text-neutral-700">Access</th>
               <th className="px-4 py-3 font-medium text-neutral-700">Published</th>

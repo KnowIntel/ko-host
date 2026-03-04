@@ -12,42 +12,15 @@ function storageKey(templateKey: string) {
   return `kohost:draft:${templateKey}`;
 }
 
-// ✅ Replace spaces with "-" + allow only a-z 0-9 -
-// also: collapse multiple dashes, trim leading/trailing dashes
-function sanitizeSlugInput(raw: string) {
-  const original = raw;
-
-  let v = (raw || "")
+// ✅ Slug rules: lowercase, no spaces, URL-safe
+function normalizeSlug(input: string) {
+  return input
     .toLowerCase()
-    .replaceAll(" ", "-"); // your preference
-
-  // turn any whitespace into dash (covers tabs)
-  v = v.replace(/\s+/g, "-");
-
-  // remove invalid chars
-  v = v.replace(/[^a-z0-9-]/g, "");
-
-  // collapse multiple dashes
-  v = v.replace(/-+/g, "-");
-
-  // trim dashes
-  v = v.replace(/^-+/, "").replace(/-+$/, "");
-
-  const isEmpty = v.trim().length === 0;
-  const changed = v !== original;
-
-  return { value: v, isEmpty, changed };
-}
-
-function validateSlug(v: string) {
-  if (!v.trim()) return "Slug is required.";
-  if (v.includes(" ")) return "No spaces allowed.";
-  if (!/^[a-z0-9-]+$/.test(v)) return "Use only letters, numbers, and hyphens.";
-  if (v.startsWith("-") || v.endsWith("-")) return "Cannot start or end with a hyphen.";
-  if (v.includes("--")) return "Avoid consecutive hyphens.";
-  if (v.length < 3) return "Slug is too short (min 3).";
-  if (v.length > 40) return "Slug is too long (max 40).";
-  return null;
+    .trim()
+    .replace(/\s+/g, "-")          // spaces -> dashes
+    .replace(/[^a-z0-9-]/g, "")    // drop invalid chars
+    .replace(/-+/g, "-")           // collapse dashes
+    .replace(/^-|-$/g, "");        // trim dashes
 }
 
 export function TemplateDraftEditor({
@@ -75,7 +48,14 @@ export function TemplateDraftEditor({
     window.localStorage.setItem(key, JSON.stringify(draft));
   }, [key, draft]);
 
-  const slugError = useMemo(() => validateSlug(draft.slugSuggestion || ""), [draft.slugSuggestion]);
+  // ✅ Live preview value
+  const normalizedSlug = useMemo(() => normalizeSlug(draft.slugSuggestion || ""), [draft.slugSuggestion]);
+
+  // If you later switch published convention, change this ONE line:
+  const previewUrl = useMemo(() => {
+    const slug = normalizedSlug || "your-page";
+    return `https://${slug}.ko-host.com`;
+  }, [normalizedSlug]);
 
   return (
     <div className="grid gap-4 lg:grid-cols-[1fr_340px]">
@@ -89,7 +69,7 @@ export function TemplateDraftEditor({
 
         <div className="space-y-4">
           <div>
-            <label className="text-sm font-medium">Page title</label>
+            <label className="text-sm font-medium">Page Title</label>
             <input
               value={draft.title}
               onChange={(e) => setDraft((d) => ({ ...d, title: e.target.value }))}
@@ -99,32 +79,34 @@ export function TemplateDraftEditor({
           </div>
 
           <div>
-            <label className="text-sm font-medium">Slug</label>
+            {/* ✅ Rename field */}
+            <label className="text-sm font-medium">Site Name</label>
+
+            {/* ✅ Live URL preview (updates as user types) */}
+            <div className="mt-1 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2">
+              <div className="text-[11px] font-semibold text-neutral-600">Your URL will be:</div>
+              <div className="mt-0.5 text-[12px] font-semibold text-neutral-900 break-all">
+                {previewUrl}
+              </div>
+            </div>
+
             <input
               value={draft.slugSuggestion}
               onChange={(e) => {
-                const { value } = sanitizeSlugInput(e.target.value);
-                setDraft((d) => ({ ...d, slugSuggestion: value }));
+                const raw = e.target.value;
+                const cleaned = normalizeSlug(raw);
+                setDraft((d) => ({ ...d, slugSuggestion: cleaned }));
               }}
-              className={[
-                "mt-1 w-full rounded-xl border px-3 py-2 text-sm outline-none",
-                slugError ? "border-red-300 focus:border-red-500" : "focus:border-neutral-900",
-              ].join(" ")}
-              placeholder="e.g., our-wedding"
-              inputMode="text"
+              className="mt-2 w-full rounded-xl border px-3 py-2 text-sm"
+              placeholder="e.g., ourwedding"
+              inputMode="url"
               autoCapitalize="none"
               autoCorrect="off"
               spellCheck={false}
             />
 
-            <div className="mt-1 text-[12px]">
-              {slugError ? (
-                <span className="font-medium text-red-600">{slugError}</span>
-              ) : (
-                <span className="text-neutral-500">
-                  URL: <span className="font-medium text-neutral-700">{draft.slugSuggestion}.ko-host.com</span>
-                </span>
-              )}
+            <div className="mt-1 text-[11px] text-neutral-500">
+              Letters, numbers, and dashes only. No spaces.
             </div>
           </div>
         </div>
