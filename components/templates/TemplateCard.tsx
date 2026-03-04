@@ -1,6 +1,7 @@
 "use client";
 
-import Link from "next/link";
+import { useRouter } from "next/navigation";
+import type { MouseEvent } from "react";
 
 const W = 140; // keep in sync with grid
 const H = 105; // 4:3
@@ -12,9 +13,7 @@ function formatLabel(title: string) {
 function notify(name: "kht:recent" | "kht:stats") {
   try {
     window.dispatchEvent(new Event(name));
-  } catch {
-    // ignore
-  }
+  } catch {}
 }
 
 function readStringArray(key: string): string[] {
@@ -31,9 +30,7 @@ function readStringArray(key: string): string[] {
 function writeStringArray(key: string, arr: string[]) {
   try {
     window.localStorage.setItem(key, JSON.stringify(arr));
-  } catch {
-    // ignore
-  }
+  } catch {}
 }
 
 function markRecentlyViewed(templateKey: string) {
@@ -60,9 +57,7 @@ function readStats(): StatsMap {
 function writeStats(stats: StatsMap) {
   try {
     window.localStorage.setItem("kht:stats", JSON.stringify(stats));
-  } catch {
-    // ignore
-  }
+  } catch {}
 }
 
 function bumpStat(templateKey: string, field: "views" | "creates") {
@@ -87,7 +82,10 @@ export default function TemplateCard(props: {
   isFavorite?: boolean;
   onToggleFavorite?: (templateKey: string) => void;
   onPreview?: (templateKey: string) => void;
+  setupMins?: number;
 }) {
+  const router = useRouter();
+
   const {
     templateKey,
     title,
@@ -97,35 +95,63 @@ export default function TemplateCard(props: {
     isFavorite = false,
     onToggleFavorite,
     onPreview,
+    setupMins,
   } = props;
 
   const src = thumbnailUrl || "/templates/placeholder.png";
 
-  function toggleFavorite(e: React.MouseEvent) {
+  function trackCreate() {
+    markRecentlyViewed(templateKey);
+    bumpStat(templateKey, "creates");
+  }
+
+  function trackPreview() {
+    markRecentlyViewed(templateKey);
+    bumpStat(templateKey, "views");
+  }
+
+  function goCreate() {
+    trackCreate();
+    router.push(`/create/${templateKey}`);
+  }
+
+  function onCardClick() {
+    goCreate();
+  }
+
+  function toggleFavorite(e: MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
     onToggleFavorite?.(templateKey);
   }
 
-  function handleCardClick() {
-    markRecentlyViewed(templateKey);
-    bumpStat(templateKey, "creates");
-  }
-
-  function handlePreview(e: React.MouseEvent) {
+  function handlePreview(e: MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
-    markRecentlyViewed(templateKey);
-    bumpStat(templateKey, "views");
+    trackPreview();
     onPreview?.(templateKey);
   }
 
+  function handleCreate(e: MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    goCreate();
+  }
+
   return (
-    <Link
-      href={`/create/${templateKey}`}
-      onClick={handleCardClick}
-      className="group block"
+    <div
+      className="group block cursor-pointer select-none"
       style={{ width: W, maxWidth: W, minWidth: W }}
+      onClick={onCardClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          goCreate();
+        }
+      }}
+      aria-label={`Create ${title}`}
     >
       <div
         className={[
@@ -148,6 +174,7 @@ export default function TemplateCard(props: {
             alt={title}
             draggable={false}
             loading="lazy"
+            className="transition-transform duration-200 ease-out group-hover:scale-[1.03]"
             style={{
               pointerEvents: "none",
               width: W,
@@ -162,67 +189,82 @@ export default function TemplateCard(props: {
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-black/0 to-black/0 opacity-70 transition-opacity duration-150 group-hover:opacity-90" />
 
           {/* Price pill */}
-          <div className="pointer-events-none absolute left-2 top-2">
+          <div className="pointer-events-none absolute left-2 top-2 z-10">
             <div className="rounded-full bg-white/90 px-2 py-1 text-[10px] font-semibold text-neutral-900 backdrop-blur">
               $12
             </div>
           </div>
 
-          {/* Badge */}
-          {badge ? (
-            <div className="pointer-events-none absolute right-2 top-2">
-              <div
+          {/* Top-right: badge + star */}
+          <div className="absolute right-2 top-2 z-20 flex items-center gap-1">
+            {badge ? (
+              <div className="pointer-events-none">
+                <div
+                  className={[
+                    "rounded-full px-2 py-1 text-[10px] font-semibold text-white backdrop-blur",
+                    badge === "Popular" ? "bg-neutral-900/90" : "bg-emerald-600/90",
+                  ].join(" ")}
+                >
+                  {badge}
+                </div>
+              </div>
+            ) : null}
+
+            <button
+              type="button"
+              onClick={toggleFavorite}
+              className={[
+                "inline-flex h-7 w-7 items-center justify-center rounded-full",
+                "bg-white/90 backdrop-blur shadow-sm",
+                "transition hover:bg-white",
+              ].join(" ")}
+              aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+              title={isFavorite ? "Favorited" : "Favorite"}
+            >
+              <span
                 className={[
-                  "rounded-full px-2 py-1 text-[10px] font-semibold text-white backdrop-blur",
-                  badge === "Popular" ? "bg-neutral-900/90" : "bg-emerald-600/90",
+                  "text-[14px] leading-none",
+                  isFavorite ? "text-amber-500" : "text-neutral-400",
                 ].join(" ")}
               >
-                {badge}
+                ★
+              </span>
+            </button>
+          </div>
+
+          {/* Slim hover overlay: duration + Preview + Create */}
+          <div className="pointer-events-none absolute inset-0 z-30 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+
+            <div className="absolute inset-x-0 bottom-2 px-2">
+              <div className="rounded-xl bg-white/95 p-2 shadow-sm backdrop-blur">
+                <div className="text-[10px] font-semibold text-neutral-700">
+                  ⚡ {setupMins ?? 3} min
+                </div>
+
+                <div className="mt-1.5 flex gap-1.5 pointer-events-auto">
+                  <button
+                    type="button"
+                    onClick={handlePreview}
+                    className="flex-1 rounded-lg border border-neutral-200 bg-white px-2 py-1 text-[10px] font-semibold text-neutral-900 hover:bg-neutral-50"
+                  >
+                    Preview
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleCreate}
+                    className="flex-1 rounded-lg bg-neutral-900 px-2 py-1 text-[10px] font-semibold text-white hover:bg-neutral-800"
+                  >
+                    Create
+                  </button>
+                </div>
               </div>
             </div>
-          ) : null}
+          </div>
 
-          {/* Favorite star */}
-          <button
-            type="button"
-            onClick={toggleFavorite}
-            className={[
-              "absolute left-2 bottom-2 z-10",
-              "inline-flex h-7 w-7 items-center justify-center rounded-full",
-              "bg-white/90 backdrop-blur shadow-sm",
-              "transition hover:bg-white",
-            ].join(" ")}
-            aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
-            title={isFavorite ? "Favorited" : "Favorite"}
-          >
-            <span
-              className={[
-                "text-[14px] leading-none",
-                isFavorite ? "text-amber-500" : "text-neutral-400",
-              ].join(" ")}
-            >
-              ★
-            </span>
-          </button>
-
-          {/* Preview button */}
-          <button
-            type="button"
-            onClick={handlePreview}
-            className={[
-              "absolute right-2 bottom-2 z-10",
-              "inline-flex items-center justify-center rounded-full",
-              "bg-white/90 px-3 py-1.5 text-[11px] font-semibold text-neutral-900",
-              "backdrop-blur shadow-sm transition hover:bg-white",
-            ].join(" ")}
-            aria-label="Preview template"
-            title="Preview"
-          >
-            Preview
-          </button>
-
-          {/* Create CTA */}
-          <div className="absolute inset-x-0 bottom-2 flex justify-center px-2">
+          {/* Keep old Create CTA behavior (fine-pointer hover) */}
+          <div className="absolute inset-x-0 bottom-2 z-10 flex justify-center px-2">
             <div className="kht-create inline-flex items-center justify-center rounded-full bg-white/95 px-3 py-1.5 text-[11px] font-semibold text-neutral-900 shadow-sm backdrop-blur">
               Create
             </div>
@@ -281,6 +323,6 @@ export default function TemplateCard(props: {
           }
         }
       `}</style>
-    </Link>
+    </div>
   );
 }

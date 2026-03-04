@@ -48,7 +48,6 @@ const DESC: Record<string, string> = {
   crowdfunding_campaign: "Pitch it. Fund it. Update it.",
 
   resume_portfolio: "Your story, links, and work.",
-  resume_portfolio_temp: "Your story, links, and work.",
 
   placeholder: "A clean page in minutes.",
 };
@@ -145,11 +144,6 @@ const PREVIEW_META: Record<string, PreviewMeta> = {
     setupMins: 5,
     features: ["Bio + links", "Projects section", "Contact CTA"],
   },
-  resume_portfolio_temp: {
-    tags: ["Portfolio", "Career"],
-    setupMins: 5,
-    features: ["Bio + links", "Projects section", "Contact CTA"],
-  },
 
   placeholder: {
     tags: ["Simple", "Personal"],
@@ -203,7 +197,6 @@ const CATEGORY_BY_KEY: Record<
   rental_listing: "Real Estate",
 
   resume_portfolio: "Career",
-  resume_portfolio_temp: "Career",
 
   placeholder: "Personal",
 };
@@ -230,9 +223,7 @@ function readStringArray(key: string): string[] {
 function writeStringArray(key: string, arr: string[]) {
   try {
     window.localStorage.setItem(key, JSON.stringify(arr));
-  } catch {
-    // ignore
-  }
+  } catch {}
 }
 
 type StatsMap = Record<string, { views: number; creates: number; updatedAt: number }>;
@@ -265,7 +256,9 @@ export default function TemplateGrid(props: {
   const { searchQuery, category, sort, onCountChange } = props;
 
   const allTemplates: TemplateDef[] = useMemo(() => {
-    return Array.isArray(TEMPLATE_DEFS) ? TEMPLATE_DEFS : [];
+    // ✅ remove temp resume variant
+    const base = Array.isArray(TEMPLATE_DEFS) ? TEMPLATE_DEFS : [];
+    return base.filter((t) => t.key !== "resume_portfolio_temp");
   }, []);
 
   const [favorites, setFavorites] = useState<string[]>([]);
@@ -403,10 +396,7 @@ export default function TemplateGrid(props: {
     onCountChange?.(filteredTemplates.length);
   }, [filteredTemplates.length, onCountChange]);
 
-  // ✅ Responsive rule requested:
-  // Desktop: dynamic auto-fit
-  // Mobile portrait: fixed 2 cols
-  // Mobile landscape: dynamic auto-fit
+  // Mobile: portrait = 2 cols, landscape = dynamic, desktop = dynamic
   const [isDesktop, setIsDesktop] = useState(false);
   const [isLandscape, setIsLandscape] = useState(false);
 
@@ -423,9 +413,7 @@ export default function TemplateGrid(props: {
 
   const gridStyle = useMemo(() => {
     const columns =
-      isDesktop || isLandscape
-        ? `repeat(auto-fit, ${CARD}px)`
-        : `repeat(2, ${CARD}px)`; // ✅ portrait mobile: 2 columns
+      isDesktop || isLandscape ? `repeat(auto-fit, ${CARD}px)` : `repeat(2, ${CARD}px)`;
 
     return {
       display: "grid" as const,
@@ -455,19 +443,24 @@ export default function TemplateGrid(props: {
       ) : null}
 
       <div style={gridStyle}>
-        {filteredTemplates.map((t) => (
-          <TemplateCard
-            key={t.key}
-            templateKey={t.key}
-            title={t.title}
-            description={getDescription(t)}
-            thumbnailUrl={thumbToImageUrl((t as any).thumb)}
-            badge={badgeForTemplateKey(t.key)}
-            isFavorite={favorites.includes(t.key)}
-            onToggleFavorite={toggleFavorite}
-            onPreview={openPreview}
-          />
-        ))}
+        {filteredTemplates.map((t) => {
+          const meta = getPreviewMeta(t);
+          return (
+            <TemplateCard
+              key={t.key}
+              templateKey={t.key}
+              title={t.title}
+              description={getDescription(t)}
+              thumbnailUrl={thumbToImageUrl((t as any).thumb)}
+              badge={badgeForTemplateKey(t.key)}
+              isFavorite={favorites.includes(t.key)}
+              onToggleFavorite={toggleFavorite}
+              onPreview={openPreview}
+              tags={meta.tags}
+              setupMins={meta.setupMins}
+            />
+          );
+        })}
       </div>
 
       <TemplatePreviewModal
