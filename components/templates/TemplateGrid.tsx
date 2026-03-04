@@ -5,7 +5,7 @@ import TemplateCard from "./TemplateCard";
 import { TEMPLATE_DEFS, type TemplateDef } from "@/lib/templates/registry";
 
 function thumbToImageUrl(thumb: string) {
-  return `/templates/${thumb}.jpg`;
+  return `/templates/${thumb}.png`;
 }
 
 export default function TemplateGrid() {
