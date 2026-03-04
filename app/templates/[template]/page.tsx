@@ -25,7 +25,6 @@ export default async function TemplateDetailPage({
             <p className="mt-2 text-neutral-700">{t.description}</p>
           </div>
 
-          {/* ✅ fixed: no priceLabel on TemplateDef */}
           <div className="rounded-full border border-neutral-200 px-3 py-1 text-sm text-neutral-800">
             $12 / 90 days
           </div>
@@ -48,19 +47,20 @@ export default async function TemplateDetailPage({
         </div>
       </div>
 
-      {/* Optional: show other templates */}
       <div className="mt-10">
         <div className="text-sm font-semibold text-neutral-900">More templates</div>
         <div className="mt-3 flex flex-wrap gap-2">
-          {TEMPLATE_DEFS.filter((x) => x.key !== t.key).slice(0, 6).map((x) => (
-            <Link
-              key={x.key}
-              href={`/create/${x.key}`}
-              className="rounded-full border border-neutral-200 px-3 py-1 text-xs text-neutral-800 hover:border-neutral-900"
-            >
-              {x.title}
-            </Link>
-          ))}
+          {TEMPLATE_DEFS.filter((x) => x.key !== t.key)
+            .slice(0, 6)
+            .map((x) => (
+              <Link
+                key={x.key}
+                href={`/create/${x.key}`}
+                className="rounded-full border border-neutral-200 px-3 py-1 text-xs text-neutral-800 hover:border-neutral-900"
+              >
+                {x.title}
+              </Link>
+            ))}
         </div>
       </div>
     </main>
