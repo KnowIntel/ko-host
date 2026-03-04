@@ -14,16 +14,16 @@ export function Nav() {
 
   return (
     <header className="border-b border-neutral-200">
-      <Container className="flex h-14 items-center justify-between">
+      <Container className="flex h-16 items-center justify-between">
         <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight">
           <img
-            src="/icon.png"
-            alt="Ko-Host"
-            width={22}
-            height={22}
-            className="h-[22px] w-[22px] rounded-[6px]"
-            draggable={false}
-          />
+          src="/icon.png"
+          alt="Ko-Host"
+          width={44}
+          height={44}
+          className="h-[44px] w-[44px]"
+          draggable={false}
+        />
           <span>Ko-Host</span>
         </Link>
 
