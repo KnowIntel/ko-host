@@ -3,9 +3,21 @@
 import { useState } from "react";
 import { useAuth, SignInButton } from "@clerk/nextjs";
 
+type LinkItem = { label: string; url: string };
+
 export default function KoHostItButton(props: {
   templateKey: string;
-  draft: { title: string; slugSuggestion: string };
+  draft: {
+    title: string;
+    slugSuggestion: string;
+
+    // NEW fields from editor
+    announcement?: string;
+    links?: LinkItem[];
+    contactName?: string;
+    contactEmail?: string;
+    contactPhone?: string;
+  };
 }) {
   const { isSignedIn } = useAuth();
   const [busy, setBusy] = useState(false);
@@ -30,7 +42,6 @@ export default function KoHostItButton(props: {
         return;
       }
 
-      // Browser redirect to checkout route (which redirects to Stripe)
       window.location.href = data.url as string;
     } finally {
       setBusy(false);
@@ -38,9 +49,11 @@ export default function KoHostItButton(props: {
   }
 
   if (!isSignedIn) {
-    // ✅ Sign in only at publish step; return to this page after sign-in
     return (
-      <SignInButton mode="modal" forceRedirectUrl={typeof window !== "undefined" ? window.location.href : "/templates"}>
+      <SignInButton
+        mode="modal"
+        forceRedirectUrl={typeof window !== "undefined" ? window.location.href : "/templates"}
+      >
         <button
           type="button"
           className="inline-flex items-center justify-center rounded-2xl bg-neutral-900 px-4 py-3 text-sm font-semibold text-white hover:bg-neutral-800"

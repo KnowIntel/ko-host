@@ -7,9 +7,6 @@ import { Container } from "@/components/ui/Container";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import InstallButton from "@/components/pwa/InstallButton";
 
-// inside JSX
-<InstallButton label="Install App" />
-
 export function Nav() {
   const pathname = usePathname() || "";
 
@@ -22,6 +19,7 @@ export function Nav() {
     <header className="border-b border-neutral-200">
       <Container className="flex h-16 items-center justify-between">
         <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/KH_LOGO.png"
             alt="Ko-Host"
@@ -33,12 +31,11 @@ export function Nav() {
         </Link>
 
         <nav className="flex items-center gap-3">
-          {/* Hide this link if already on Templates page */}
+          {/* Install button (only appears when browser allows it) */}
+          <InstallButton label="Install" />
+
           {!isTemplatesPage && (
-            <Link
-              href="/templates"
-              className="text-sm text-neutral-700 hover:text-neutral-900"
-            >
+            <Link href="/templates" className="text-sm text-neutral-700 hover:text-neutral-900">
               Templates
             </Link>
           )}
