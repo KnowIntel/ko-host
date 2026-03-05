@@ -94,9 +94,6 @@ export default function TemplateCard(props: {
     setupMins,
   } = props;
 
-  // Remove temp card entirely
-  if (templateKey === "resume_portfolio_temp") return null;
-
   const src = thumbnailUrl || "/templates/placeholder.png";
 
   function trackCreate() {
@@ -173,6 +170,7 @@ export default function TemplateCard(props: {
 
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-black/0 to-black/0 opacity-70" />
 
+          {/* Price */}
           <div className="pointer-events-none absolute left-2 top-2 z-10">
             <div className="rounded-full bg-white/90 px-2 py-1 text-[10px] font-semibold text-neutral-900 backdrop-blur">
               $12
@@ -192,6 +190,17 @@ export default function TemplateCard(props: {
               </div>
             </div>
           ) : null}
+
+          {/* Favorite STAR BOTTOM-RIGHT (image area) */}
+          <button
+            type="button"
+            onClick={toggleFavorite}
+            className="absolute bottom-2 right-2 z-20 inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/90 backdrop-blur shadow-sm hover:bg-white"
+            aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+            title={isFavorite ? "Favorited" : "Favorite"}
+          >
+            <span className={isFavorite ? "text-amber-500" : "text-neutral-400"}>★</span>
+          </button>
         </div>
 
         {/* Actions row: duration + Preview */}
@@ -212,18 +221,7 @@ export default function TemplateCard(props: {
         </div>
 
         {/* Footer */}
-        <div className="relative px-3 py-2">
-          {/* Favorite STAR BOTTOM-LEFT */}
-          <button
-            type="button"
-            onClick={toggleFavorite}
-            className="absolute bottom-2 left-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/95 backdrop-blur shadow-sm hover:bg-white border border-neutral-200"
-            aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
-            title={isFavorite ? "Favorited" : "Favorite"}
-          >
-            <span className={isFavorite ? "text-amber-500" : "text-neutral-400"}>★</span>
-          </button>
-
+        <div className="px-3 py-2">
           <div
             className="text-[12px] font-semibold tracking-tight text-neutral-900"
             style={{
@@ -231,7 +229,6 @@ export default function TemplateCard(props: {
               whiteSpace: "nowrap",
               overflow: "hidden",
               textOverflow: "ellipsis",
-              paddingLeft: "28px", // make room for star
             }}
             title={title}
           >
@@ -245,7 +242,6 @@ export default function TemplateCard(props: {
               whiteSpace: "nowrap",
               overflow: "hidden",
               textOverflow: "ellipsis",
-              paddingLeft: "28px", // align with title
             }}
             title={description || ""}
           >
