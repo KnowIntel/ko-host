@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
+import { headers } from "next/headers";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
+import { TEMPLATE_DEFS, getTemplateDef } from "@/lib/templates/registry";
 import RsvpForm from "./RsvpForm";
 import PollBlock from "./PollBlock";
 import GalleryBlock from "./GalleryBlock";
@@ -10,12 +12,72 @@ function isValidSlug(slug: string) {
   return /^[a-z0-9-]{2,40}$/.test(slug);
 }
 
+function getDemoTemplateKeyFromSubdomain(subdomain: string) {
+  const s = (subdomain || "").trim().toLowerCase();
+  if (!s) return null;
+
+  const match = TEMPLATE_DEFS.find((t) => (t as any).demoSlug === s);
+  return match?.key ?? null;
+}
+
+function DemoPage({ templateKey }: { templateKey: string }) {
+  const def = getTemplateDef(templateKey);
+  const title = def?.title ?? "Demo";
+
+  return (
+    <main className="mx-auto max-w-3xl px-4 py-10">
+      <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+        <div className="text-sm text-neutral-600">Ko-Host Demo</div>
+        <h1 className="mt-2 text-3xl font-semibold tracking-tight">{title}</h1>
+        <div className="mt-2 text-sm text-neutral-700">
+          Template: <span className="font-mono">{templateKey}</span>
+        </div>
+      </div>
+
+      <div className="mt-6 grid gap-6">
+        {templateKey === "wedding_rsvp" ? (
+          <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+            <div className="text-sm text-neutral-600">RSVP</div>
+            <div className="mt-2 text-sm text-neutral-700">
+              Demo mode. RSVP submission is disabled.
+            </div>
+          </div>
+        ) : null}
+
+        <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+          <div className="text-sm text-neutral-600">Gallery</div>
+          <div className="mt-2 text-sm text-neutral-700">
+            Demo mode. Gallery uploads are disabled.
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+          <div className="text-sm text-neutral-600">Polls</div>
+          <div className="mt-2 text-sm text-neutral-700">
+            Demo mode. Poll voting is disabled.
+          </div>
+        </div>
+      </div>
+    </main>
+  );
+}
+
 export default async function PublicMicrositePage({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
+
+  // /demo on any subdomain
+  if (slug === "demo") {
+    const h = await headers(); // <-- FIX
+    const host = (h.get("host") || "").toLowerCase(); // e.g. reunion.ko-host.com
+    const subdomain = host.split(".")[0]; // reunion
+    const demoKey = getDemoTemplateKeyFromSubdomain(subdomain);
+    if (!demoKey) return notFound();
+    return <DemoPage templateKey={demoKey} />;
+  }
 
   if (!isValidSlug(slug)) return notFound();
 
@@ -33,7 +95,6 @@ export default async function PublicMicrositePage({
   const isExpired = site.expires_at ? new Date(site.expires_at) <= now : false;
   const paidActive = site.paid_until ? new Date(site.paid_until) > now : false;
 
-  // Keep full-site gating (published + not expired + paid)
   if (!site.is_published || isExpired || !paidActive) {
     const headline = !site.is_published
       ? "This microsite isn’t published yet"
@@ -97,10 +158,8 @@ export default async function PublicMicrositePage({
       </div>
 
       <div className="mt-6 grid gap-6">
-        {/* RSVP stays wedding-only */}
         {isWedding ? <RsvpForm micrositeSlug={site.slug} /> : null}
 
-        {/* ✅ Gallery now available for ALL templates */}
         <GalleryBlock micrositeSlug={site.slug} />
 
         {polls.map((p) => (
@@ -118,7 +177,6 @@ export default async function PublicMicrositePage({
           />
         ))}
 
-        {/* Only show placeholder if there are no modules at all */}
         {!isWedding && polls.length === 0 ? (
           <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
             <div className="text-sm text-neutral-600">Modules</div>
