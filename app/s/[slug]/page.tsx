@@ -1,10 +1,18 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { headers } from "next/headers";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
-import { TEMPLATE_DEFS, getTemplateDef } from "@/lib/templates/registry";
+import { TEMPLATE_DEFS, getTemplateDef, type TemplateKey } from "@/lib/templates/registry";
+
 import RsvpForm from "./RsvpForm";
 import PollBlock from "./PollBlock";
 import GalleryBlock from "./GalleryBlock";
+
+import AnnouncementBlock from "./AnnouncementBlock";
+import LinksBlock from "./LinksBlock";
+import ContactBlock from "./ContactBlock";
+
+import DemoTemplatePage from "@/components/demo/DemoTemplatePage";
 
 export const dynamic = "force-dynamic";
 
@@ -12,67 +20,35 @@ function isValidSlug(slug: string) {
   return /^[a-z0-9-]{2,40}$/.test(slug);
 }
 
-async function getHost() {
-  const h = await headers();
-  const host = (h.get("x-forwarded-host") || h.get("host") || "").toLowerCase();
-  return host.split(":")[0]; // strip port
-}
-
-function getSubdomain(host: string) {
-  if (!host) return "";
-  const parts = host.split(".");
-  if (parts.length < 3) return "";
-  return parts[0] || "";
-}
-
-function getDemoTemplateKeyFromSubdomain(subdomain: string) {
+function getDemoTemplateKeyFromSubdomain(subdomain: string): TemplateKey | null {
   const s = (subdomain || "").trim().toLowerCase();
   if (!s) return null;
 
-  const match = TEMPLATE_DEFS.find((t) => (t as any).demoSlug === s);
+  const match = TEMPLATE_DEFS.find((t) => t.demoSlug === s);
   return match?.key ?? null;
 }
 
-function DemoPage({ templateKey }: { templateKey: string }) {
-  const def = getTemplateDef(templateKey);
-  const title = def?.title ?? "Demo";
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
 
-  return (
-    <main className="mx-auto max-w-3xl px-4 py-10">
-      <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-        <div className="text-sm text-neutral-600">Ko-Host Demo</div>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight">{title}</h1>
-        <div className="mt-2 text-sm text-neutral-700">
-          Template: <span className="font-mono">{templateKey}</span>
-        </div>
-      </div>
+  // Demo pages: "<Template> Demo"
+  if (slug === "demo") {
+    const h = await headers();
+    const host = (h.get("host") || "").toLowerCase();
+    const subdomain = host.split(".")[0];
+    const demoKey = getDemoTemplateKeyFromSubdomain(subdomain);
+    const def = demoKey ? getTemplateDef(demoKey) : null;
 
-      <div className="mt-6 grid gap-6">
-        {templateKey === "wedding_rsvp" ? (
-          <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-            <div className="text-sm text-neutral-600">RSVP</div>
-            <div className="mt-2 text-sm text-neutral-700">
-              Demo mode. RSVP submission is disabled.
-            </div>
-          </div>
-        ) : null}
+    const name = def?.title ?? "Demo";
+    return { title: `${name} Demo` };
+  }
 
-        <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-          <div className="text-sm text-neutral-600">Gallery</div>
-          <div className="mt-2 text-sm text-neutral-700">
-            Demo mode. Gallery uploads are disabled.
-          </div>
-        </div>
-
-        <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-          <div className="text-sm text-neutral-600">Polls</div>
-          <div className="mt-2 text-sm text-neutral-700">
-            Demo mode. Poll voting is disabled.
-          </div>
-        </div>
-      </div>
-    </main>
-  );
+  // For now keep default title for public microsites (we can enhance later)
+  return { title: "Ko-Host" };
 }
 
 export default async function PublicMicrositePage({
@@ -82,15 +58,22 @@ export default async function PublicMicrositePage({
 }) {
   const { slug } = await params;
 
-  // /demo on any subdomain
+  // /demo on any subdomain (e.g. reunion.ko-host.com/demo)
   if (slug === "demo") {
-    const host = await getHost(); // reunion.ko-host.com
-    const subdomain = getSubdomain(host); // reunion
+    const h = await headers();
+    const host = (h.get("host") || "").toLowerCase(); // e.g. reunion.ko-host.com
+    const subdomain = host.split(".")[0]; // reunion
+
     const demoKey = getDemoTemplateKeyFromSubdomain(subdomain);
     if (!demoKey) return notFound();
-    return <DemoPage templateKey={demoKey} />;
+
+    const def = getTemplateDef(demoKey);
+    if (!def) return notFound();
+
+    return <DemoTemplatePage template={def} originHost={host} />;
   }
 
+  // Normal microsite render
   if (!isValidSlug(slug)) return notFound();
 
   const sb = getSupabaseAdmin();
@@ -107,6 +90,7 @@ export default async function PublicMicrositePage({
   const isExpired = site.expires_at ? new Date(site.expires_at) <= now : false;
   const paidActive = site.paid_until ? new Date(site.paid_until) > now : false;
 
+  // Keep full-site gating (published + not expired + paid)
   if (!site.is_published || isExpired || !paidActive) {
     const headline = !site.is_published
       ? "This microsite isn’t published yet"
@@ -170,10 +154,18 @@ export default async function PublicMicrositePage({
       </div>
 
       <div className="mt-6 grid gap-6">
+        {/* Wedding-only module */}
         {isWedding ? <RsvpForm micrositeSlug={site.slug} /> : null}
 
+        {/* Universal modules */}
+        <AnnouncementBlock micrositeId={site.id} />
+        <LinksBlock micrositeId={site.id} />
+        <ContactBlock micrositeId={site.id} />
+
+        {/* ✅ Gallery available for ALL templates */}
         <GalleryBlock micrositeSlug={site.slug} />
 
+        {/* Polls */}
         {polls.map((p) => (
           <PollBlock
             key={p.id}
@@ -189,12 +181,11 @@ export default async function PublicMicrositePage({
           />
         ))}
 
+        {/* Fallback if literally no modules exist */}
         {!isWedding && polls.length === 0 ? (
           <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
             <div className="text-sm text-neutral-600">Modules</div>
-            <div className="mt-2 text-sm text-neutral-700">
-              More modules will be added soon.
-            </div>
+            <div className="mt-2 text-sm text-neutral-700">More modules will be added soon.</div>
           </div>
         ) : null}
       </div>

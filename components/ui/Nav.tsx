@@ -5,6 +5,10 @@ import { usePathname } from "next/navigation";
 import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import { Container } from "@/components/ui/Container";
 import { ButtonLink } from "@/components/ui/ButtonLink";
+import InstallButton from "@/components/pwa/InstallButton";
+
+// inside JSX
+<InstallButton label="Install App" />
 
 export function Nav() {
   const pathname = usePathname() || "";
