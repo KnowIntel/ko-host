@@ -1,3 +1,5 @@
+// lib/templates/registry.ts
+
 export type TemplateKey =
   // Existing
   | "baby_shower"
@@ -40,7 +42,13 @@ export type TemplateKey =
   | "relocation"
   | "service_promo";
 
-export const TEMPLATE_CATEGORIES = ["Events", "Business", "Real Estate", "Personal", "Career"] as const;
+export const TEMPLATE_CATEGORIES = [
+  "Events",
+  "Business",
+  "Real Estate",
+  "Personal",
+  "Career",
+] as const;
 export type TemplateCategory = (typeof TEMPLATE_CATEGORIES)[number];
 
 export type TemplateBadge = "Popular" | "New" | null;
@@ -55,9 +63,9 @@ export type TemplateDef = {
 
   // ✅ registry-driven display fields
   category: TemplateCategory;
-  badge?: TemplateBadge;
-  features?: string[];
-  tags?: string[];
+  badge: TemplateBadge;
+  features: string[];
+  tags: string[];
 
   defaultDraft: {
     title: string;
@@ -109,8 +117,9 @@ function inferCategory(key: TemplateKey): TemplateCategory {
     key === "graduation" ||
     key === "group_trip" ||
     key === "engagement_announcement"
-  )
+  ) {
     return "Events";
+  }
 
   // Business
   if (
@@ -128,8 +137,9 @@ function inferCategory(key: TemplateKey): TemplateCategory {
     key === "election_campaign" ||
     key === "job_fair" ||
     key === "companion_service"
-  )
+  ) {
     return "Business";
+  }
 
   // Real Estate
   if (
@@ -139,12 +149,18 @@ function inferCategory(key: TemplateKey): TemplateCategory {
     key === "for_sale_by_owner" ||
     key === "relocation" ||
     key === "hoa_announcement"
-  )
+  ) {
     return "Real Estate";
+  }
 
   // Career
-  if (key === "resume_portfolio" || key === "contractor_portfolio" || key === "creator_portfolio")
+  if (
+    key === "resume_portfolio" ||
+    key === "contractor_portfolio" ||
+    key === "creator_portfolio"
+  ) {
     return "Career";
+  }
 
   // Personal
   return "Personal";
@@ -198,17 +214,26 @@ function inferFeatures(key: TemplateKey): string[] {
   return map[key] ?? ["Gallery", "Polls"];
 }
 
-function inferTags(t: TemplateDef): string[] {
+function inferTags(base: Pick<TemplateDef, "key" | "category" | "badge">): string[] {
   const tags = new Set<string>();
-  tags.add(t.category);
-  if (t.key.includes("waitlist")) tags.add("Waitlist");
-  if (t.key.includes("portfolio")) tags.add("Portfolio");
-  if (t.badge === "Popular") tags.add("Popular");
-  if (t.badge === "New") tags.add("New");
+  tags.add(base.category);
+
+  if (base.key.includes("waitlist")) tags.add("Waitlist");
+  if (base.key.includes("portfolio")) tags.add("Portfolio");
+  if (base.badge === "Popular") tags.add("Popular");
+  if (base.badge === "New") tags.add("New");
+
   return Array.from(tags).slice(0, 4);
 }
 
-function applyRegistryDefaults(input: Omit<TemplateDef, "category" | "badge" | "features" | "tags"> & Partial<Pick<TemplateDef, "category" | "badge" | "features" | "tags">>): TemplateDef {
+type RawTemplateDef = Omit<TemplateDef, "category" | "badge" | "features" | "tags"> & {
+  category?: TemplateCategory;
+  badge?: TemplateBadge;
+  features?: string[];
+  tags?: string[];
+};
+
+function applyRegistryDefaults(input: RawTemplateDef): TemplateDef {
   const category = input.category ?? inferCategory(input.key);
   const badge = (input.badge ?? inferBadge(input.key)) as TemplateBadge;
   const features = input.features ?? inferFeatures(input.key);
@@ -226,13 +251,10 @@ function applyRegistryDefaults(input: Omit<TemplateDef, "category" | "badge" | "
 }
 
 // -------------------------
-// Templates
+// Templates (raw + normalized)
 // -------------------------
 
-const RAW_TEMPLATE_DEFS: Array<
-  Omit<TemplateDef, "category" | "badge" | "features" | "tags"> &
-    Partial<Pick<TemplateDef, "category" | "badge" | "features" | "tags">>
-> = [
+const RAW_TEMPLATE_DEFS: RawTemplateDef[] = [
   // Existing templates
   {
     key: "wedding_rsvp",
