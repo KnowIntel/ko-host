@@ -71,7 +71,7 @@ export default function TemplatesPage() {
             <div>
               <h1 className="text-2xl font-semibold tracking-tight">Templates</h1>
               <p className="mt-1 text-sm text-neutral-700">
-                Pick a template, customize it, then publish. For 90 days, that's your public site.
+                Pick a template, customize it, then publish. For 90 days, you own that site.
               </p>
               <div className="mt-1 text-[12px] font-medium text-neutral-500">
                 {count} template{count === 1 ? "" : "s"}

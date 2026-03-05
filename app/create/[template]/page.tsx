@@ -2,12 +2,13 @@
 
 import { useMemo } from "react";
 import { useParams } from "next/navigation";
-import {
-  getTemplateDef,
-  normalizeTemplateKey,
-  TEMPLATE_DEFS,
-} from "@/lib/templates/registry";
+import { getTemplateDef, normalizeTemplateKey, TEMPLATE_DEFS } from "@/lib/templates/registry";
 import { TemplateDraftEditor } from "@/components/templates/TemplateDraftEditor";
+
+type Draft = {
+  title: string;
+  slugSuggestion: string;
+};
 
 export default function CreateTemplatePage() {
   const params = useParams();
@@ -41,12 +42,17 @@ export default function CreateTemplatePage() {
     );
   }
 
+  const defaultDraft: Draft = {
+    title: (t as any)?.defaultDraft?.title ?? "",
+    slugSuggestion: (t as any)?.defaultDraft?.slugSuggestion ?? "",
+  };
+
   return (
     <main className="mx-auto max-w-6xl px-4 py-8">
       <TemplateDraftEditor
         templateKey={t.key}
         templateTitle={t.title}
-        defaultDraft={t.defaultDraft}
+        defaultDraft={defaultDraft}
       />
     </main>
   );
