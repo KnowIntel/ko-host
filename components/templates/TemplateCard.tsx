@@ -177,9 +177,9 @@ export default function TemplateCard(props: {
             </div>
           </div>
 
-          {/* Badge TOP-CENTER */}
+          {/* Badge TOP-RIGHT */}
           {badge ? (
-            <div className="pointer-events-none absolute left-1/2 top-2 z-20 -translate-x-1/2">
+            <div className="pointer-events-none absolute right-2 top-2 z-20">
               <div
                 className={[
                   "rounded-full px-2 py-1 text-[10px] font-semibold text-white backdrop-blur",
