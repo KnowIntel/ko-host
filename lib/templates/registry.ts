@@ -14,7 +14,8 @@ export type TemplateKey =
   | "property_listing_rental"
   | "resume_portfolio"
   | "wedding_rsvp"
-  // New
+
+  // New (batch 1)
   | "beta_testing"
   | "business_card"
   | "church_event"
@@ -40,15 +41,34 @@ export type TemplateKey =
   | "pet_adoption"
   | "private_discord"
   | "relocation"
-  | "service_promo";
+  | "service_promo"
 
-export const TEMPLATE_CATEGORIES = [
-  "Events",
-  "Business",
-  "Real Estate",
-  "Personal",
-  "Career",
-] as const;
+  // New (batch 2)
+  | "corporate_event"
+  | "deal_room"
+  | "dedication"
+  | "disaster_relief"
+  | "engagement"
+  | "hackathon"
+  | "landlord_property"
+  | "legal_defense"
+  | "live_entertainment"
+  | "masterclass"
+  | "meet_and_greet"
+  | "members_only"
+  | "missing_person"
+  | "online_course"
+  | "school_fundraiser"
+  | "secure_document"
+  | "service_ad"
+  | "settlement_info"
+  | "software_trial"
+  | "stock_trade_thesis"
+  | "vip_access"
+  | "webinar"
+  | "workshop";
+
+export const TEMPLATE_CATEGORIES = ["Events", "Business", "Real Estate", "Personal", "Career"] as const;
 export type TemplateCategory = (typeof TEMPLATE_CATEGORIES)[number];
 
 export type TemplateBadge = "Popular" | "New" | null;
@@ -63,9 +83,9 @@ export type TemplateDef = {
 
   // ✅ registry-driven display fields
   category: TemplateCategory;
-  badge: TemplateBadge;
-  features: string[];
-  tags: string[];
+  badge?: TemplateBadge;
+  features?: string[];
+  tags?: string[];
 
   defaultDraft: {
     title: string;
@@ -85,6 +105,9 @@ const POPULAR_KEYS = new Set<TemplateKey>([
   "business_card",
   "service_promo",
   "for_sale_by_owner",
+  // optional strong performers:
+  "deal_room",
+  "secure_document",
 ]);
 
 const NEW_KEYS = new Set<TemplateKey>([
@@ -94,6 +117,10 @@ const NEW_KEYS = new Set<TemplateKey>([
   "private_discord",
   "community_alert",
   "job_fair",
+  // new batch
+  "hackathon",
+  "software_trial",
+  "corporate_event",
 ]);
 
 function inferBadge(key: TemplateKey): TemplateBadge {
@@ -116,7 +143,17 @@ function inferCategory(key: TemplateKey): TemplateCategory {
     key === "gender_reveal" ||
     key === "graduation" ||
     key === "group_trip" ||
-    key === "engagement_announcement"
+    key === "engagement_announcement" ||
+    // new batch
+    key === "corporate_event" ||
+    key === "hackathon" ||
+    key === "live_entertainment" ||
+    key === "meet_and_greet" ||
+    key === "webinar" ||
+    key === "workshop" ||
+    key === "masterclass" ||
+    key === "engagement" ||
+    key === "dedication"
   ) {
     return "Events";
   }
@@ -136,7 +173,16 @@ function inferCategory(key: TemplateKey): TemplateCategory {
     key === "service_promo" ||
     key === "election_campaign" ||
     key === "job_fair" ||
-    key === "companion_service"
+    key === "companion_service" ||
+    // new batch
+    key === "deal_room" ||
+    key === "members_only" ||
+    key === "online_course" ||
+    key === "secure_document" ||
+    key === "software_trial" ||
+    key === "stock_trade_thesis" ||
+    key === "vip_access" ||
+    key === "service_ad"
   ) {
     return "Business";
   }
@@ -148,21 +194,19 @@ function inferCategory(key: TemplateKey): TemplateCategory {
     key === "commercial_leasing" ||
     key === "for_sale_by_owner" ||
     key === "relocation" ||
-    key === "hoa_announcement"
+    key === "hoa_announcement" ||
+    // new batch
+    key === "landlord_property"
   ) {
     return "Real Estate";
   }
 
   // Career
-  if (
-    key === "resume_portfolio" ||
-    key === "contractor_portfolio" ||
-    key === "creator_portfolio"
-  ) {
+  if (key === "resume_portfolio" || key === "contractor_portfolio" || key === "creator_portfolio") {
     return "Career";
   }
 
-  // Personal
+  // Personal (default)
   return "Personal";
 }
 
@@ -182,7 +226,7 @@ function inferFeatures(key: TemplateKey): string[] {
     property_listing_rental: ["Availability", "Requirements", "Contact"],
     resume_portfolio: ["Links", "Bio", "Work showcase"],
 
-    // New
+    // Batch 1
     beta_testing: ["Signup", "Feedback link", "Updates"],
     business_card: ["Links", "Contact", "Socials"],
     church_event: ["Schedule", "Directions", "Updates"],
@@ -209,53 +253,73 @@ function inferFeatures(key: TemplateKey): string[] {
     private_discord: ["Rules", "Invite link", "Updates"],
     relocation: ["Timeline", "New info", "Updates"],
     service_promo: ["Offer", "Pricing", "Contact"],
+
+    // Batch 2
+    corporate_event: ["Agenda", "Location", "RSVP / Registration"],
+    deal_room: ["Secure access", "Document links", "Due diligence"],
+    dedication: ["Message", "Photos", "Event details"],
+    disaster_relief: ["Donation / Help links", "Updates", "Resources"],
+    engagement: ["Announcement", "Photos", "Event details"],
+    hackathon: ["Schedule", "Rules", "Registration"],
+    landlord_property: ["Property info", "Tenant info", "Contact"],
+    legal_defense: ["Fund goal", "Updates", "Donation links"],
+    live_entertainment: ["Lineup", "Tickets", "Venue details"],
+    masterclass: ["Details", "Enrollment", "Resources"],
+    meet_and_greet: ["Time/location", "RSVP", "Info"],
+    members_only: ["Access info", "Rules", "Join link"],
+    missing_person: ["Details", "Photos", "Contact tips"],
+    online_course: ["Course outline", "Enroll link", "Resources"],
+    school_fundraiser: ["Goal", "Updates", "Donate / Participate"],
+    secure_document: ["Secure link", "Instructions", "Contact"],
+    service_ad: ["Offer", "Pricing", "Contact"],
+    settlement_info: ["Timeline", "FAQ", "Contact"],
+    software_trial: ["Trial CTA", "Key features", "Signup link"],
+    stock_trade_thesis: ["Thesis", "Catalysts", "Risk notes"],
+    vip_access: ["Access details", "Rules", "Redeem link"],
+    webinar: ["Registration", "Agenda", "Join link"],
+    workshop: ["Schedule", "Registration", "Materials"],
   };
 
   return map[key] ?? ["Gallery", "Polls"];
 }
 
-function inferTags(base: Pick<TemplateDef, "key" | "category" | "badge">): string[] {
+function inferTags(t: { key: TemplateKey; category: TemplateCategory; badge: TemplateBadge }): string[] {
   const tags = new Set<string>();
-  tags.add(base.category);
-
-  if (base.key.includes("waitlist")) tags.add("Waitlist");
-  if (base.key.includes("portfolio")) tags.add("Portfolio");
-  if (base.badge === "Popular") tags.add("Popular");
-  if (base.badge === "New") tags.add("New");
-
+  tags.add(t.category);
+  if (t.key.includes("waitlist")) tags.add("Waitlist");
+  if (t.key.includes("portfolio")) tags.add("Portfolio");
+  if (t.badge === "Popular") tags.add("Popular");
+  if (t.badge === "New") tags.add("New");
   return Array.from(tags).slice(0, 4);
 }
 
-type RawTemplateDef = Omit<TemplateDef, "category" | "badge" | "features" | "tags"> & {
-  category?: TemplateCategory;
-  badge?: TemplateBadge;
-  features?: string[];
-  tags?: string[];
-};
+type RawTemplateDef = Omit<TemplateDef, "category" | "badge" | "features" | "tags"> &
+  Partial<Pick<TemplateDef, "category" | "badge" | "features" | "tags">>;
 
 function applyRegistryDefaults(input: RawTemplateDef): TemplateDef {
   const category = input.category ?? inferCategory(input.key);
   const badge = (input.badge ?? inferBadge(input.key)) as TemplateBadge;
   const features = input.features ?? inferFeatures(input.key);
 
-  const base: TemplateDef = {
+  const tags = input.tags && input.tags.length ? input.tags : inferTags({ key: input.key, category, badge });
+
+  return {
     ...input,
     category,
     badge,
     features,
-    tags: input.tags ?? [],
+    tags,
   };
-
-  base.tags = base.tags.length ? base.tags : inferTags(base);
-  return base;
 }
 
 // -------------------------
-// Templates (raw + normalized)
+// Templates
 // -------------------------
 
 const RAW_TEMPLATE_DEFS: RawTemplateDef[] = [
+  // -------------------------
   // Existing templates
+  // -------------------------
   {
     key: "wedding_rsvp",
     title: "Wedding",
@@ -365,7 +429,9 @@ const RAW_TEMPLATE_DEFS: RawTemplateDef[] = [
     defaultDraft: { title: "My Portfolio", slugSuggestion: "myportfolio" },
   },
 
-  // New templates
+  // -------------------------
+  // Batch 1 templates
+  // -------------------------
   {
     key: "beta_testing",
     title: "Beta Testing",
@@ -467,7 +533,7 @@ const RAW_TEMPLATE_DEFS: RawTemplateDef[] = [
   },
   {
     key: "engagement_announcement",
-    title: "Engagement",
+    title: "Engagement (Announcement)",
     description: "Share the news + details.",
     thumb: "engagement",
     setupMins: 3,
@@ -599,6 +665,220 @@ const RAW_TEMPLATE_DEFS: RawTemplateDef[] = [
     setupMins: 3,
     demoSlug: "promo",
     defaultDraft: { title: "Special Offer", slugSuggestion: "promo" },
+  },
+
+  // -------------------------
+  // Batch 2 templates
+  // -------------------------
+  {
+    key: "corporate_event",
+    title: "Corporate Event",
+    description: "Agenda, venue details, and registration in one link.",
+    thumb: "corporateevent",
+    setupMins: 4,
+    demoSlug: "corporate",
+    defaultDraft: { title: "Corporate Event", slugSuggestion: "corporateevent" },
+  },
+  {
+    key: "deal_room",
+    title: "Deal Room",
+    description: "Secure document access for deals, diligence, and sharing.",
+    thumb: "dealroom",
+    setupMins: 4,
+    demoSlug: "dealroom",
+    defaultDraft: { title: "Deal Room", slugSuggestion: "dealroom" },
+  },
+  {
+    key: "dedication",
+    title: "Dedication",
+    description: "Share a dedication message, photos, and event details.",
+    thumb: "dedication",
+    setupMins: 3,
+    demoSlug: "dedication",
+    defaultDraft: { title: "Dedication", slugSuggestion: "dedication" },
+  },
+  {
+    key: "disaster_relief",
+    title: "Disaster Relief",
+    description: "Centralize resources, updates, and ways to help.",
+    thumb: "disasterrelief",
+    setupMins: 3,
+    demoSlug: "relief",
+    defaultDraft: { title: "Disaster Relief", slugSuggestion: "disasterrelief" },
+  },
+  {
+    key: "engagement",
+    title: "Engagement",
+    description: "Share the announcement, photos, and celebration details.",
+    thumb: "engagement",
+    setupMins: 3,
+    // NOTE: to avoid clashing with engagement_announcement demoSlug, we give this a unique one.
+    // If you WANT https://engagement.ko-host.com/demo to point here, set demoSlug: "engagement"
+    // and change the other one.
+    demoSlug: "engagement2",
+    defaultDraft: { title: "We’re Engaged!", slugSuggestion: "engaged" },
+  },
+  {
+    key: "hackathon",
+    title: "Hackathon",
+    description: "Schedule, rules, prizes, and registration.",
+    thumb: "hackathon",
+    setupMins: 5,
+    demoSlug: "hackathon",
+    defaultDraft: { title: "Hackathon", slugSuggestion: "hackathon" },
+  },
+  {
+    key: "landlord_property",
+    title: "Landlord Property",
+    description: "Property info, tenant details, and contact in one place.",
+    thumb: "landlordproperty",
+    setupMins: 4,
+    demoSlug: "landlord",
+    defaultDraft: { title: "Property Info", slugSuggestion: "landlordproperty" },
+  },
+  {
+    key: "legal_defense",
+    title: "Legal Defense",
+    description: "Raise support, share updates, and provide official links.",
+    thumb: "legaldefensefund",
+    setupMins: 4,
+    demoSlug: "defense",
+    defaultDraft: { title: "Legal Defense Fund", slugSuggestion: "legaldefense" },
+  },
+  {
+    key: "live_entertainment",
+    title: "Live Entertainment",
+    description: "Lineup, tickets, venue, and showtime info.",
+    thumb: "liveentertainment",
+    setupMins: 4,
+    demoSlug: "live",
+    defaultDraft: { title: "Live Entertainment", slugSuggestion: "liveevent" },
+  },
+  {
+    key: "masterclass",
+    title: "Masterclass",
+    description: "Promote your masterclass with enrollment and resources.",
+    thumb: "masterclass",
+    setupMins: 4,
+    demoSlug: "masterclass",
+    defaultDraft: { title: "Masterclass", slugSuggestion: "masterclass" },
+  },
+  {
+    key: "meet_and_greet",
+    title: "Meet & Greet",
+    description: "Time, place, RSVP, and updates.",
+    thumb: "meetandgreet",
+    setupMins: 3,
+    demoSlug: "meet",
+    defaultDraft: { title: "Meet & Greet", slugSuggestion: "meetandgreet" },
+  },
+  {
+    key: "members_only",
+    title: "Members Only",
+    description: "Private access hub for members, links, and rules.",
+    thumb: "membersonly",
+    setupMins: 3,
+    demoSlug: "members",
+    defaultDraft: { title: "Members Only", slugSuggestion: "membersonly" },
+  },
+  {
+    key: "missing_person",
+    title: "Missing Person",
+    description: "Share details quickly and collect credible tips.",
+    thumb: "missingperson",
+    setupMins: 3,
+    demoSlug: "missing",
+    defaultDraft: { title: "Missing Person", slugSuggestion: "missingperson" },
+  },
+  {
+    key: "online_course",
+    title: "Online Course",
+    description: "Course outline, enrollment link, and resources.",
+    thumb: "onlinecourse",
+    setupMins: 4,
+    demoSlug: "course",
+    defaultDraft: { title: "Online Course", slugSuggestion: "onlinecourse" },
+  },
+  {
+    key: "school_fundraiser",
+    title: "School Fundraiser",
+    description: "Goal, updates, and donation/participation links.",
+    thumb: "schoolfundraiser",
+    setupMins: 4,
+    demoSlug: "school",
+    defaultDraft: { title: "School Fundraiser", slugSuggestion: "schoolfundraiser" },
+  },
+  {
+    key: "secure_document",
+    title: "Secure Document",
+    description: "Share a protected document link with instructions.",
+    thumb: "securedocument",
+    setupMins: 3,
+    demoSlug: "secure",
+    defaultDraft: { title: "Secure Document", slugSuggestion: "securedocument" },
+  },
+  {
+    key: "service_ad",
+    title: "Service Ad",
+    description: "Promote a service with pricing and contact.",
+    thumb: "servicead",
+    setupMins: 2,
+    demoSlug: "servicead",
+    defaultDraft: { title: "Service Ad", slugSuggestion: "servicead" },
+  },
+  {
+    key: "settlement_info",
+    title: "Settlement Info",
+    description: "Timeline, updates, and next steps in one page.",
+    thumb: "settlmentinfo",
+    setupMins: 3,
+    demoSlug: "settlement",
+    defaultDraft: { title: "Settlement Info", slugSuggestion: "settlementinfo" },
+  },
+  {
+    key: "software_trial",
+    title: "Software Trial",
+    description: "Trial CTA, features, and signup links.",
+    thumb: "softwaretrial",
+    setupMins: 3,
+    demoSlug: "trial",
+    defaultDraft: { title: "Start Your Trial", slugSuggestion: "softwaretrial" },
+  },
+  {
+    key: "stock_trade_thesis",
+    title: "Stock Trade Thesis",
+    description: "Thesis, catalysts, risk notes, and key links.",
+    thumb: "stocktradethesis",
+    setupMins: 4,
+    demoSlug: "thesis",
+    defaultDraft: { title: "Trade Thesis", slugSuggestion: "stockthesis" },
+  },
+  {
+    key: "vip_access",
+    title: "VIP Access",
+    description: "Exclusive access details, rules, and redemption link.",
+    thumb: "vipaccess",
+    setupMins: 2,
+    demoSlug: "vip",
+    defaultDraft: { title: "VIP Access", slugSuggestion: "vipaccess" },
+  },
+  {
+    key: "webinar",
+    title: "Webinar",
+    description: "Registration, agenda, and join link.",
+    thumb: "webinar",
+    setupMins: 3,
+    demoSlug: "webinar",
+    defaultDraft: { title: "Webinar", slugSuggestion: "webinar" },
+  },
+  {
+    key: "workshop",
+    title: "Workshop",
+    description: "Schedule, registration, and materials.",
+    thumb: "workshop",
+    setupMins: 4,
+    demoSlug: "workshop",
+    defaultDraft: { title: "Workshop", slugSuggestion: "workshop" },
   },
 ];
 
