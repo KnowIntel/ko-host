@@ -72,6 +72,11 @@ export default function TemplateGrid(props: {
     return Array.isArray(TEMPLATE_DEFS) ? TEMPLATE_DEFS : [];
   }, []);
 
+useEffect(() => {
+  console.log("TEMPLATE-_DEFS loaded:", allTemplates.length);
+  console.log("Keys:", allTemplates.map(t => t.key));
+}, [allTemplates]);
+  
   const [favorites, setFavorites] = useState<string[]>([]);
   const [recent, setRecent] = useState<string[]>([]);
 
