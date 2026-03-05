@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import TemplateCard from "./TemplateCard";
-import TemplatePreviewModal from "./TemplatePreviewModal";
+import TemplatePreviewModal, { type PreviewMeta } from "./TemplatePreviewModal";
 import { TEMPLATE_DEFS, type TemplateDef } from "@/lib/templates/registry";
 
 function thumbToImageUrl(thumb: string) {
@@ -33,9 +33,7 @@ function badgeForTemplateKey(key: string): Badge {
     key === "product_launch_waitlist"
   )
     return "Popular";
-
   if (key === "open_house" || key === "crowdfunding_campaign") return "New";
-
   return null;
 }
 
@@ -65,11 +63,9 @@ const DESC: Record<string, string> = {
 
 function getDescription(t: TemplateDef) {
   if (DESC[t.key]) return DESC[t.key];
-
   const raw = (t as any).description as string | undefined;
   const fromRegistry = raw?.trim();
   if (fromRegistry) return fromRegistry;
-
   return "A clean page in minutes.";
 }
 
@@ -122,6 +118,36 @@ function writeStringArray(key: string, arr: string[]) {
   } catch {}
 }
 
+function metaForTemplate(t: TemplateDef): PreviewMeta {
+  const setupMins = (t as any).setupMins ?? 3;
+
+  const featuresByKey: Record<string, string[]> = {
+    wedding_rsvp: ["RSVP", "Gallery", "Polls", "Announcements"],
+    baby_shower: ["Details", "Gallery", "Polls"],
+    birthday_party: ["Details", "Gallery", "Polls"],
+    family_reunion: ["Schedule", "Gallery", "Polls"],
+    memorial_tribute: ["Details", "Gallery"],
+    open_house: ["Details", "Photos", "Contact"],
+    product_launch: ["Hero section", "Links", "Media"],
+    product_launch_waitlist: ["Waitlist form", "Email capture"],
+    crowdfunding_campaign: ["Pitch", "Updates", "CTA links"],
+    property_listing: ["Photos", "Highlights", "Contact"],
+    property_listing_rental: ["Availability", "Requirements", "Contact"],
+    resume_portfolio: ["Links", "Bio", "Work showcase"],
+    placeholder: ["Basic content blocks"],
+  };
+
+  const tags = Array.from(
+    new Set([getCategoryForTemplateKey(t.key), ...(t.key.includes("waitlist") ? ["Waitlist"] : [])])
+  ).slice(0, 4);
+
+  return {
+    tags,
+    setupMins,
+    features: featuresByKey[t.key] ?? ["Gallery", "Polls"],
+  };
+}
+
 export default function TemplateGrid(props: {
   searchQuery: string;
   category: Category;
@@ -138,16 +164,20 @@ export default function TemplateGrid(props: {
   const [recent, setRecent] = useState<string[]>([]);
 
   const [previewOpen, setPreviewOpen] = useState(false);
-  const [previewTitle, setPreviewTitle] = useState("");
+  const [previewTemplate, setPreviewTemplate] = useState<TemplateDef | null>(null);
   const [previewDescription, setPreviewDescription] = useState("");
   const [previewThumb, setPreviewThumb] = useState("");
+  const [previewMeta, setPreviewMeta] = useState<PreviewMeta>({
+    tags: [],
+    setupMins: 3,
+    features: [],
+  });
 
   useEffect(() => {
     setFavorites(readStringArray("kht:favorites"));
     setRecent(readStringArray("kht:recent"));
   }, []);
 
-  // keep recent fresh on back-nav / focus
   useEffect(() => {
     const refresh = () => setRecent(readStringArray("kht:recent"));
     refresh();
@@ -173,9 +203,10 @@ export default function TemplateGrid(props: {
     const t = allTemplates.find((x) => x.key === templateKey);
     if (!t) return;
 
-    setPreviewTitle(t.title);
+    setPreviewTemplate(t);
     setPreviewDescription(getDescription(t));
     setPreviewThumb(thumbToImageUrl(t.thumb));
+    setPreviewMeta(metaForTemplate(t));
     setPreviewOpen(true);
   }
 
@@ -186,19 +217,13 @@ export default function TemplateGrid(props: {
     recent.forEach((k, idx) => recentOrder.set(k, idx));
 
     const filtered = allTemplates.filter((t) => {
-      if (category === "Favorites") {
-        if (!favorites.includes(t.key)) return false;
-      } else if (category === "Recently viewed") {
-        if (!recent.includes(t.key)) return false;
-      } else if (category !== "All") {
-        const cat = getCategoryForTemplateKey(t.key);
-        if (cat !== category) return false;
-      }
+      if (category === "Favorites") return favorites.includes(t.key);
+      if (category === "Recently viewed") return recent.includes(t.key);
+      if (category !== "All") return getCategoryForTemplateKey(t.key) === category;
 
       if (!q) return true;
 
       const catForSearch = getCategoryForTemplateKey(t.key);
-
       const hay = [t.title || "", getDescription(t) || "", t.key || "", catForSearch]
         .join(" ")
         .toLowerCase();
@@ -223,16 +248,18 @@ export default function TemplateGrid(props: {
       return sorted;
     }
 
-    if (sort === "A–Z") {
-      sorted.sort(byTitle);
-    } else if (sort === "New") {
+    if (sort === "A–Z") sorted.sort(byTitle);
+
+    if (sort === "New") {
       sorted.sort((a, b) => {
         const ra = badgeRank(badgeForTemplateKey(a.key), "New");
         const rb = badgeRank(badgeForTemplateKey(b.key), "New");
         if (ra !== rb) return ra - rb;
         return byTitle(a, b);
       });
-    } else if (sort === "Popular") {
+    }
+
+    if (sort === "Popular") {
       sorted.sort((a, b) => {
         const ra = badgeRank(badgeForTemplateKey(a.key), "Popular");
         const rb = badgeRank(badgeForTemplateKey(b.key), "Popular");
@@ -294,10 +321,11 @@ export default function TemplateGrid(props: {
 
       <TemplatePreviewModal
         open={previewOpen}
-        title={previewTitle}
+        onClose={() => setPreviewOpen(false)}
+        template={previewTemplate}
         description={previewDescription}
         thumbnailUrl={previewThumb}
-        onClose={() => setPreviewOpen(false)}
+        meta={previewMeta}
       />
     </div>
   );
