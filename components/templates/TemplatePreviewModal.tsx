@@ -10,11 +10,31 @@ export type PreviewMeta = {
   features: string[];
 };
 
-function getDemoUrl(template: TemplateDef) {
-  const slug = (template as any).demoSlug as string | undefined;
-  const safe = (slug || "").trim().toLowerCase();
-  if (!safe) return "";
-  return `https://${safe}.ko-host.com/demo`;
+function demoUrlForTemplate(template: TemplateDef) {
+  // Primary: always use registry-driven demoSlug
+  const demoSlug = (template.demoSlug || "").trim().toLowerCase();
+  if (!demoSlug) return "";
+
+  // If we're on production/root domain, point at the wildcard subdomain demo
+  // (Works with: *.ko-host.com)
+  if (typeof window !== "undefined") {
+    const host = window.location.hostname.toLowerCase();
+
+    // If you're already on ko-host.com (or www.ko-host.com), build the real demo URL
+    if (host === "ko-host.com" || host.endsWith(".ko-host.com")) {
+      return `https://${demoSlug}.ko-host.com/demo`;
+    }
+
+    // If you're on a vercel preview domain, wildcard subdomains won't work there.
+    // Still return the intended production demo URL so the behavior is consistent.
+    // (This avoids generating broken URLs like demoSlug.<random>.vercel.app)
+    if (host.endsWith(".vercel.app")) {
+      return `https://${demoSlug}.ko-host.com/demo`;
+    }
+  }
+
+  // Fallback
+  return `https://${demoSlug}.ko-host.com/demo`;
 }
 
 export default function TemplatePreviewModal(props: {
@@ -31,11 +51,10 @@ export default function TemplatePreviewModal(props: {
 
   const demoUrl = useMemo(() => {
     if (!template) return "";
-    return getDemoUrl(template);
+    return demoUrlForTemplate(template);
   }, [template]);
 
   async function copyDemo() {
-    if (!demoUrl) return;
     try {
       await navigator.clipboard.writeText(demoUrl);
       setCopied(true);
@@ -105,25 +124,20 @@ export default function TemplatePreviewModal(props: {
 
             <div className="mt-3 rounded-xl border border-neutral-200 bg-white px-3 py-2">
               <div className="text-[12px] font-semibold text-neutral-700">Demo link</div>
+              <div className="mt-1 flex items-center gap-2">
+                <div className="min-w-0 flex-1 truncate text-[12px] font-medium text-neutral-600">
+                  {demoUrl || "—"}
+                </div>
 
-              {demoUrl ? (
-                <div className="mt-1 flex items-center gap-2">
-                  <div className="min-w-0 flex-1 truncate text-[12px] font-medium text-neutral-600">
-                    {demoUrl}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={copyDemo}
-                    className="shrink-0 rounded-lg border border-neutral-200 bg-white px-2.5 py-1 text-[12px] font-semibold text-neutral-800 hover:bg-neutral-50"
-                  >
-                    {copied ? "Copied" : "Copy"}
-                  </button>
-                </div>
-              ) : (
-                <div className="mt-1 text-[12px] font-medium text-neutral-500">
-                  Demo not configured for this template yet.
-                </div>
-              )}
+                <button
+                  type="button"
+                  onClick={copyDemo}
+                  disabled={!demoUrl}
+                  className="shrink-0 rounded-lg border border-neutral-200 bg-white px-2.5 py-1 text-[12px] font-semibold text-neutral-800 hover:bg-neutral-50 disabled:opacity-50"
+                >
+                  {copied ? "Copied" : "Copy"}
+                </button>
+              </div>
             </div>
 
             <div className="mt-3 text-[12px] font-medium text-neutral-500">
@@ -144,19 +158,10 @@ export default function TemplatePreviewModal(props: {
 
             <div className="mt-6 flex flex-col gap-2">
               <a
-                href={demoUrl || "#"}
-                target={demoUrl ? "_blank" : undefined}
-                rel={demoUrl ? "noreferrer" : undefined}
-                aria-disabled={!demoUrl}
-                className={[
-                  "inline-flex w-full items-center justify-center rounded-xl border px-4 py-2.5 text-sm font-semibold",
-                  demoUrl
-                    ? "border-neutral-200 bg-white text-neutral-900 hover:bg-neutral-50"
-                    : "border-neutral-200 bg-neutral-100 text-neutral-400 cursor-not-allowed",
-                ].join(" ")}
-                onClick={(e) => {
-                  if (!demoUrl) e.preventDefault();
-                }}
+                href={demoUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex w-full items-center justify-center rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm font-semibold text-neutral-900 hover:bg-neutral-50"
               >
                 Open demo
               </a>
