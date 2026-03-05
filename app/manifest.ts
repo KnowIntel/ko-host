@@ -5,16 +5,21 @@ import { TEMPLATE_DEFS, getTemplateDef } from "@/lib/templates/registry";
 
 export const dynamic = "force-dynamic";
 
+type ManifestIcon = NonNullable<MetadataRoute.Manifest["icons"]>[number];
+
 function getSubdomainFromHost(host: string) {
   const h = (host || "").toLowerCase().trim();
   if (!h) return null;
 
-  // strip port if present
   const noPort = h.split(":")[0];
 
-  // if not our domain, bail
-  if (!noPort.endsWith(".ko-host.com") && noPort !== "ko-host.com" && noPort !== "www.ko-host.com")
+  if (
+    !noPort.endsWith(".ko-host.com") &&
+    noPort !== "ko-host.com" &&
+    noPort !== "www.ko-host.com"
+  ) {
     return null;
+  }
 
   if (noPort === "ko-host.com" || noPort === "www.ko-host.com") return null;
 
@@ -24,7 +29,7 @@ function getSubdomainFromHost(host: string) {
   return sub;
 }
 
-function baseIcons() {
+function baseIcons(): ManifestIcon[] {
   return [
     { src: "/icon.png", sizes: "192x192", type: "image/png" },
     { src: "/icon.png", sizes: "512x512", type: "image/png" },
@@ -36,7 +41,7 @@ function baseIcons() {
       type: "image/png",
       purpose: "maskable",
     },
-  ] as MetadataRoute.Manifest["icons"];
+  ];
 }
 
 export default async function manifest(): Promise<MetadataRoute.Manifest> {
@@ -44,7 +49,6 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
   const host = (h.get("host") || "").toLowerCase();
   const sub = getSubdomainFromHost(host);
 
-  // Default (main marketing app manifest)
   const base: MetadataRoute.Manifest = {
     id: "/",
     name: "Ko-Host",
@@ -86,99 +90,91 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
     ],
   };
 
-  // If we're on a subdomain, try to make it a “microsite app”
-  if (sub) {
-    // 1) Demo subdomains (match registry demoSlug)
-    const demoMatch = TEMPLATE_DEFS.find((t) => t.demoSlug === sub);
-    if (demoMatch) {
-      const def = getTemplateDef(demoMatch.key);
-      const name = def?.title ? `${def.title} Demo` : "Demo";
+  if (!sub) return base;
 
-      // optional: use template thumb as icon if you want (keeps defaults too)
-      const thumbIcon = def?.thumb ? `/templates/${def.thumb}.png` : null;
+  // 1) Demo subdomains (match registry demoSlug)
+  const demoMatch = TEMPLATE_DEFS.find((t) => t.demoSlug === sub);
+  if (demoMatch) {
+    const def = getTemplateDef(demoMatch.key);
+    const name = def?.title ? `${def.title} Demo` : "Demo";
+    const thumbIcon = def?.thumb ? `/templates/${def.thumb}.png` : null;
 
-      return {
-        ...base,
-        name,
-        short_name: name,
-        description: "Preview this template. Customize your own in minutes.",
-        id: "/",
-        start_url: "/demo",
-        scope: "/",
-        icons: [
-          ...(thumbIcon
-            ? [
-                {
-                  src: thumbIcon,
-                  sizes: "512x512",
-                  type: "image/png",
-                },
-              ]
-            : []),
-          ...baseIcons(),
-        ],
-      };
-    }
-
-    // 2) Real microsite subdomains (slug = subdomain)
-    // NOTE: This assumes your wildcard routing already serves the microsite at subdomain root.
-    // The manifest is still safe even if you also support /s/[slug] routes.
-    try {
-      const sb = getSupabaseAdmin();
-
-      const { data: site } = await sb
-        .from("microsites")
-        .select("slug, title, template_key, is_published, expires_at, paid_until")
-        .eq("slug", sub)
-        .maybeSingle();
-
-      if (site?.slug) {
-        const now = new Date();
-        const isExpired = site.expires_at ? new Date(site.expires_at) <= now : false;
-        const paidActive = site.paid_until ? new Date(site.paid_until) > now : false;
-
-        // Only treat published, active sites as installable “apps”
-        if (site.is_published && !isExpired && paidActive) {
-          const def = getTemplateDef(site.template_key);
-          const name = (site.title || `${site.slug}.ko-host.com`).trim();
-
-          const thumbIcon = def?.thumb ? `/templates/${def.thumb}.png` : null;
-
-          return {
-            ...base,
-            name,
-            short_name: name.length > 12 ? name.slice(0, 12) : name,
-            description: def?.description || "A Ko-Host microsite",
-            id: "/",
-            start_url: "/",
-            scope: "/",
-            icons: [
-              ...(thumbIcon
-                ? [
-                    {
-                      src: thumbIcon,
-                      sizes: "512x512",
-                      type: "image/png",
-                    },
-                  ]
-                : []),
-              ...baseIcons(),
-            ],
-            shortcuts: [
+    return {
+      ...base,
+      name,
+      short_name: name,
+      description: "Preview this template. Customize your own in minutes.",
+      id: "/",
+      start_url: "/demo",
+      scope: "/",
+      icons: [
+        ...(thumbIcon
+          ? ([
               {
-                name: "Home",
-                short_name: "Home",
-                description: "Open this microsite",
-                url: "/",
-                icons: [{ src: "/icon.png", sizes: "192x192", type: "image/png" }],
+                src: thumbIcon,
+                sizes: "512x512",
+                type: "image/png",
               },
-            ],
-          };
-        }
+            ] as ManifestIcon[])
+          : []),
+        ...baseIcons(),
+      ],
+    };
+  }
+
+  // 2) Real microsite subdomains (slug=subdomain)
+  try {
+    const sb = getSupabaseAdmin();
+    const { data: site } = await sb
+      .from("microsites")
+      .select("slug, title, template_key, is_published, expires_at, paid_until")
+      .eq("slug", sub)
+      .maybeSingle();
+
+    if (site?.slug) {
+      const now = new Date();
+      const isExpired = site.expires_at ? new Date(site.expires_at) <= now : false;
+      const paidActive = site.paid_until ? new Date(site.paid_until) > now : false;
+
+      if (site.is_published && !isExpired && paidActive) {
+        const def = getTemplateDef(site.template_key);
+        const name = (site.title || `${site.slug}.ko-host.com`).trim();
+        const thumbIcon = def?.thumb ? `/templates/${def.thumb}.png` : null;
+
+        return {
+          ...base,
+          name,
+          short_name: name.length > 12 ? name.slice(0, 12) : name,
+          description: def?.description || "A Ko-Host microsite",
+          id: "/",
+          start_url: "/",
+          scope: "/",
+          icons: [
+            ...(thumbIcon
+              ? ([
+                  {
+                    src: thumbIcon,
+                    sizes: "512x512",
+                    type: "image/png",
+                  },
+                ] as ManifestIcon[])
+              : []),
+            ...baseIcons(),
+          ],
+          shortcuts: [
+            {
+              name: "Home",
+              short_name: "Home",
+              description: "Open this microsite",
+              url: "/",
+              icons: [{ src: "/icon.png", sizes: "192x192", type: "image/png" }],
+            },
+          ],
+        };
       }
-    } catch {
-      // ignore and fall back to base
     }
+  } catch {
+    // fall back to base manifest
   }
 
   return base;

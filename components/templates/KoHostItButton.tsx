@@ -3,22 +3,15 @@
 import { useState } from "react";
 import { useAuth, SignInButton } from "@clerk/nextjs";
 
-type LinkItem = { label: string; url: string };
+type Draft = {
+  title: string;
+  slugSuggestion: string;
+  announcement?: { headline: string; body: string };
+  links?: Array<{ id: string; label: string; url: string }>;
+  contact?: { name: string; email: string; phone: string };
+};
 
-export default function KoHostItButton(props: {
-  templateKey: string;
-  draft: {
-    title: string;
-    slugSuggestion: string;
-
-    // NEW fields from editor
-    announcement?: string;
-    links?: LinkItem[];
-    contactName?: string;
-    contactEmail?: string;
-    contactPhone?: string;
-  };
-}) {
+export default function KoHostItButton(props: { templateKey: string; draft: Draft }) {
   const { isSignedIn } = useAuth();
   const [busy, setBusy] = useState(false);
 
