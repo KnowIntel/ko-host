@@ -1,88 +1,281 @@
 "use client";
 
-import Image from "next/image";
-import { Star } from "lucide-react";
+import { useRouter } from "next/navigation";
+import type { MouseEvent } from "react";
 
-export interface TemplateCardProps {
-  templateKey: string;
-  title: string;
-  description: string;
-  thumbnailUrl: string;
-  badge?: "New" | "Popular";
-  isFavorite: boolean;
-  onToggleFavorite: (key: string) => void;
-  onPreview: (templateKey: string) => void;
+const W = 140;
+const H = 105;
+
+function formatLabel(title: string) {
+  return (title || "").trim();
 }
 
-export default function TemplateCard({
-  templateKey,
-  title,
-  description,
-  thumbnailUrl,
-  badge,
-  isFavorite,
-  onToggleFavorite,
-  onPreview,
-}: TemplateCardProps) {
+function notify(name: "kht:recent" | "kht:stats") {
+  try {
+    window.dispatchEvent(new Event(name));
+  } catch {}
+}
+
+function readStringArray(key: string): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(key);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed.filter((x) => typeof x === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeStringArray(key: string, arr: string[]) {
+  try {
+    window.localStorage.setItem(key, JSON.stringify(arr));
+  } catch {}
+}
+
+function markRecentlyViewed(templateKey: string) {
+  const key = "kht:recent";
+  const prev = readStringArray(key);
+  const next = [templateKey, ...prev.filter((k) => k !== templateKey)].slice(0, 12);
+  writeStringArray(key, next);
+  notify("kht:recent");
+}
+
+type StatsMap = Record<string, { views: number; creates: number; updatedAt: number }>;
+
+function readStats(): StatsMap {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = window.localStorage.getItem("kht:stats");
+    const parsed = raw ? JSON.parse(raw) : {};
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function writeStats(stats: StatsMap) {
+  try {
+    window.localStorage.setItem("kht:stats", JSON.stringify(stats));
+  } catch {}
+}
+
+function bumpStat(templateKey: string, field: "views" | "creates") {
+  const stats = readStats();
+  const cur = stats[templateKey] || { views: 0, creates: 0, updatedAt: Date.now() };
+  const next = { ...cur, [field]: (cur[field] || 0) + 1, updatedAt: Date.now() };
+  stats[templateKey] = next;
+  writeStats(stats);
+  notify("kht:stats");
+}
+
+export default function TemplateCard(props: {
+  templateKey: string;
+  title: string;
+  description?: string | null;
+  thumbnailUrl?: string | null;
+  badge?: "Popular" | "New" | null;
+  isFavorite?: boolean;
+  onToggleFavorite?: (templateKey: string) => void;
+  onPreview?: (templateKey: string) => void;
+  setupMins?: number;
+}) {
+  const router = useRouter();
+
+  const {
+    templateKey,
+    title,
+    description,
+    thumbnailUrl,
+    badge = null,
+    isFavorite = false,
+    onToggleFavorite,
+    onPreview,
+    setupMins,
+  } = props;
+
+  const src = thumbnailUrl || "/templates/placeholder.png";
+
+  function trackCreate() {
+    markRecentlyViewed(templateKey);
+    bumpStat(templateKey, "creates");
+  }
+
+  function trackPreview() {
+    markRecentlyViewed(templateKey);
+    bumpStat(templateKey, "views");
+  }
+
+  function goCreate() {
+    trackCreate();
+    router.push(`/create/${templateKey}`);
+  }
+
+  function handleCardClick(e: React.MouseEvent<HTMLDivElement>) {
+    const target = e.target as HTMLElement | null;
+    if (target?.closest?.("[data-kht-stop]")) return;
+    goCreate();
+  }
+
+  function stopAll(e: any) {
+    e.preventDefault?.();
+    e.stopPropagation?.();
+  }
+
+  function toggleFavorite(e: MouseEvent) {
+    stopAll(e);
+    onToggleFavorite?.(templateKey);
+  }
+
+  function handlePreview(e: MouseEvent) {
+    stopAll(e);
+    trackPreview();
+    onPreview?.(templateKey);
+  }
+
+  function handleCreate(e: MouseEvent) {
+    stopAll(e);
+    goCreate();
+  }
+
   return (
-    <div className="group relative rounded-xl border border-neutral-800 bg-neutral-900 overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:shadow-purple-500/20">
+    <div
+      className="group block cursor-pointer select-none"
+      style={{ width: W, maxWidth: W, minWidth: W }}
+      onClick={handleCardClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          goCreate();
+        }
+      }}
+      aria-label={`Create ${title}`}
+    >
+      <div
+        className={[
+          "relative overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm",
+          "transition-all duration-200 ease-out transform-gpu",
+          "group-hover:-translate-y-[4px] group-hover:shadow-xl",
+        ].join(" ")}
+        style={{ width: W, maxWidth: W, minWidth: W }}
+      >
+        {/* Media */}
+        <div className="relative bg-neutral-100" style={{ width: W, height: H, overflow: "hidden" }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={src}
+            alt={title}
+            draggable={false}
+            loading="lazy"
+            style={{
+              pointerEvents: "none",
+              width: W,
+              height: H,
+              objectFit: "cover",
+              userSelect: "none",
+              display: "block",
+            }}
+          />
 
-      {/* Thumbnail */}
-      <div className="relative w-full h-40 bg-neutral-800">
-        <Image
-          src={thumbnailUrl}
-          alt={title}
-          fill
-          className="object-cover"
-        />
+          {/* overlay */}
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-black/0 to-black/0 opacity-70" />
 
-        {badge && (
-          <div className="absolute top-2 left-2 text-xs px-2 py-1 rounded bg-purple-600 text-white">
-            {badge}
+          {/* Price pill */}
+          <div className="pointer-events-none absolute left-2 top-2 z-10">
+            <div className="rounded-full bg-white/90 px-2 py-1 text-[10px] font-semibold text-neutral-900 backdrop-blur">
+              $12
+            </div>
           </div>
-        )}
-      </div>
 
-      {/* Content */}
-      <div className="p-4 space-y-2">
+          {/* Badge + Star */}
+          <div className="absolute right-2 top-2 z-20 flex items-center gap-1">
+            {badge ? (
+              <div className="pointer-events-none">
+                <div
+                  className={[
+                    "rounded-full px-2 py-1 text-[10px] font-semibold text-white backdrop-blur",
+                    badge === "Popular" ? "bg-neutral-900/90" : "bg-emerald-600/90",
+                  ].join(" ")}
+                >
+                  {badge}
+                </div>
+              </div>
+            ) : null}
 
-        <div className="flex justify-between items-start">
-          <h3 className="font-semibold text-sm">{title}</h3>
-
-          <button
-            onClick={() => onToggleFavorite(templateKey)}
-            className="opacity-0 group-hover:opacity-100 transition"
-          >
-            <Star
-              size={16}
-              className={isFavorite ? "fill-yellow-400 text-yellow-400" : ""}
-            />
-          </button>
+            <button
+              type="button"
+              onClick={toggleFavorite}
+              className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/90 backdrop-blur shadow-sm hover:bg-white"
+              aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+              title={isFavorite ? "Favorited" : "Favorite"}
+              data-kht-stop
+            >
+              <span className={isFavorite ? "text-amber-500" : "text-neutral-400"}>★</span>
+            </button>
+          </div>
         </div>
 
-        <p className="text-xs text-neutral-400">
-          {description}
-        </p>
-
-        {/* Buttons */}
-        <div className="flex gap-2 pt-3">
-
-          <button
-            onClick={() => onPreview(templateKey)}
-            className="flex-1 text-center text-xs px-3 py-2 rounded bg-neutral-800 hover:bg-neutral-700"
-          >
-            Preview
-          </button>
-
-          <a
-            href={`/create/${templateKey}`}
-            className="flex-1 text-center text-xs px-3 py-2 rounded bg-purple-600 hover:bg-purple-500"
-          >
-            Create
-          </a>
-
+        {/* ✅ ALWAYS VISIBLE ACTIONS (debug) */}
+        <div
+          className="px-2 pt-2"
+          data-kht-stop
+          onClickCapture={(e) => e.stopPropagation()}
+        >
+          <div className="flex items-center justify-between">
+            <div className="text-[10px] font-semibold text-neutral-600">
+              ⚡ {setupMins ?? 3} min
+            </div>
+            <div className="flex gap-1.5">
+              <button
+                type="button"
+                onClick={handlePreview}
+                className="rounded-lg border border-neutral-200 bg-white px-2 py-1 text-[10px] font-semibold text-neutral-900 hover:bg-neutral-50"
+                data-kht-stop
+              >
+                Preview
+              </button>
+              <button
+                type="button"
+                onClick={handleCreate}
+                className="rounded-lg bg-neutral-900 px-2 py-1 text-[10px] font-semibold text-white hover:bg-neutral-800"
+                data-kht-stop
+              >
+                Create
+              </button>
+            </div>
+          </div>
         </div>
 
+        {/* Footer */}
+        <div className="px-3 py-2">
+          <div
+            className="text-[12px] font-semibold tracking-tight text-neutral-900"
+            style={{
+              lineHeight: "1.2",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+            title={title}
+          >
+            {formatLabel(title)}
+          </div>
+
+          <div
+            className="mt-1 text-[10px] font-medium text-neutral-500"
+            style={{
+              lineHeight: "1.2",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+            title={description || ""}
+          >
+            {description?.trim() ? description.trim() : " "}
+          </div>
+        </div>
       </div>
     </div>
   );

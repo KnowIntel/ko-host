@@ -296,7 +296,7 @@ export default function TemplateGrid(props: {
             title={t.title}
             description={getDescription(t)}
             thumbnailUrl={thumbToImageUrl(t.thumb)}
-            badge={badgeForTemplateKey(t.key) ?? undefined}
+            badge={badgeForTemplateKey(t.key)}
             isFavorite={favorites.includes(t.key)}
             onToggleFavorite={toggleFavorite}
             onPreview={openPreview}
