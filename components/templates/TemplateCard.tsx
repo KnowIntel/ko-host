@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import type { MouseEvent } from "react";
 
 const W = 140;
@@ -94,6 +95,9 @@ export default function TemplateCard(props: {
     setupMins,
   } = props;
 
+  // Auto-hide the temp resume card even if registry still includes it
+  if (templateKey === "resume_portfolio_temp") return null;
+
   const src = thumbnailUrl || "/templates/placeholder.png";
 
   function trackCreate() {
@@ -133,10 +137,10 @@ export default function TemplateCard(props: {
     onPreview?.(templateKey);
   }
 
-  function handleCreate(e: MouseEvent) {
-    stopAll(e);
-    goCreate();
-  }
+  // Ensure keyboard behavior stays consistent
+  useEffect(() => {
+    // no-op; kept for future tracking hooks if needed
+  }, []);
 
   return (
     <div
@@ -217,34 +221,21 @@ export default function TemplateCard(props: {
           </div>
         </div>
 
-        {/* ✅ ALWAYS VISIBLE ACTIONS (debug) */}
-        <div
-          className="px-2 pt-2"
-          data-kht-stop
-          onClickCapture={(e) => e.stopPropagation()}
-        >
+        {/* Actions row (Preview + duration label on one line) */}
+        <div className="px-2 pt-2" data-kht-stop onClickCapture={(e) => e.stopPropagation()}>
           <div className="flex items-center justify-between">
-            <div className="text-[10px] font-semibold text-neutral-600">
+            <div className="text-[10px] font-semibold text-neutral-600 whitespace-nowrap">
               ⚡ {setupMins ?? 3} min
             </div>
-            <div className="flex gap-1.5">
-              <button
-                type="button"
-                onClick={handlePreview}
-                className="rounded-lg border border-neutral-200 bg-white px-2 py-1 text-[10px] font-semibold text-neutral-900 hover:bg-neutral-50"
-                data-kht-stop
-              >
-                Preview
-              </button>
-              <button
-                type="button"
-                onClick={handleCreate}
-                className="rounded-lg bg-neutral-900 px-2 py-1 text-[10px] font-semibold text-white hover:bg-neutral-800"
-                data-kht-stop
-              >
-                Create
-              </button>
-            </div>
+
+            <button
+              type="button"
+              onClick={handlePreview}
+              className="rounded-lg border border-neutral-200 bg-white px-2 py-1 text-[10px] font-semibold text-neutral-900 hover:bg-neutral-50"
+              data-kht-stop
+            >
+              Preview
+            </button>
           </div>
         </div>
 
