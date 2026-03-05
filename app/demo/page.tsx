@@ -1,13 +1,13 @@
 import { notFound } from "next/navigation";
 import { headers } from "next/headers";
-import { getTemplateDef, type TemplateKey } from "@/lib/templates/registry";
+import { getTemplateDef } from "@/lib/templates/registry";
 
 export const dynamic = "force-dynamic";
 
-function templateKeyFromSubdomain(sub: string): TemplateKey | null {
+function templateKeyFromSubdomain(sub: string): string | null {
   const s = (sub || "").trim().toLowerCase();
 
-  const map: Record<string, TemplateKey> = {
+  const map: Record<string, string> = {
     wedding: "wedding_rsvp",
     baby: "baby_shower",
     birthday: "party_birthday",
@@ -27,7 +27,7 @@ function templateKeyFromSubdomain(sub: string): TemplateKey | null {
 
 export default async function DemoPage() {
   const h = await headers();
-  const host = (h.get("host") || "").toLowerCase(); // reunion.ko-host.com
+  const host = (h.get("host") || "").toLowerCase();
   const subdomain = host.split(".")[0] || "";
 
   const key = templateKeyFromSubdomain(subdomain);
@@ -44,8 +44,7 @@ export default async function DemoPage() {
           {def.title} Demo
         </h1>
         <p className="mt-2 text-sm text-neutral-700">
-          This is a demo preview for <span className="font-mono">{subdomain}</span>
-          .ko-host.com
+          Demo preview for <span className="font-mono">{subdomain}</span>.ko-host.com
         </p>
       </div>
 
@@ -53,7 +52,7 @@ export default async function DemoPage() {
         <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
           <div className="text-sm font-semibold text-neutral-900">What you get</div>
           <div className="mt-2 text-sm text-neutral-700">
-            This page shows a lightweight demo experience. Interactive submissions are disabled.
+            Lightweight demo experience. Interactive submissions are disabled.
           </div>
         </div>
 
@@ -61,13 +60,6 @@ export default async function DemoPage() {
           <div className="text-sm text-neutral-600">Modules</div>
           <div className="mt-2 text-sm text-neutral-700">
             Gallery • Polls • RSVP (template-dependent)
-          </div>
-        </div>
-
-        <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-          <div className="text-sm text-neutral-600">Next</div>
-          <div className="mt-2 text-sm text-neutral-700">
-            Want this live? Create your own microsite from the Templates page.
           </div>
         </div>
       </div>
