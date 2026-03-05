@@ -73,8 +73,9 @@ export default function TemplateGrid(props: {
   }, []);
 
 useEffect(() => {
-  console.log("TEMPLATE-_DEFS loaded:", allTemplates.length);
-  console.log("Keys:", allTemplates.map(t => t.key));
+  const keys = allTemplates.map(t => t.key);
+  const dupes = keys.filter((k, i) => keys.indexOf(k) !== i);
+  if (dupes.length) console.warn("DUPLICATE TEMPLATE KEYS:", dupes);
 }, [allTemplates]);
   
   const [favorites, setFavorites] = useState<string[]>([]);
