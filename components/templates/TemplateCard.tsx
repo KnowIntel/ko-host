@@ -1,7 +1,6 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 import type { MouseEvent } from "react";
 
 const W = 140;
@@ -95,7 +94,7 @@ export default function TemplateCard(props: {
     setupMins,
   } = props;
 
-  // Auto-hide the temp resume card even if registry still includes it
+  // Remove temp card entirely
   if (templateKey === "resume_portfolio_temp") return null;
 
   const src = thumbnailUrl || "/templates/placeholder.png";
@@ -115,12 +114,6 @@ export default function TemplateCard(props: {
     router.push(`/create/${templateKey}`);
   }
 
-  function handleCardClick(e: React.MouseEvent<HTMLDivElement>) {
-    const target = e.target as HTMLElement | null;
-    if (target?.closest?.("[data-kht-stop]")) return;
-    goCreate();
-  }
-
   function stopAll(e: any) {
     e.preventDefault?.();
     e.stopPropagation?.();
@@ -137,16 +130,11 @@ export default function TemplateCard(props: {
     onPreview?.(templateKey);
   }
 
-  // Ensure keyboard behavior stays consistent
-  useEffect(() => {
-    // no-op; kept for future tracking hooks if needed
-  }, []);
-
   return (
     <div
       className="group block cursor-pointer select-none"
       style={{ width: W, maxWidth: W, minWidth: W }}
-      onClick={handleCardClick}
+      onClick={() => goCreate()}
       role="button"
       tabIndex={0}
       onKeyDown={(e) => {
@@ -183,17 +171,14 @@ export default function TemplateCard(props: {
             }}
           />
 
-          {/* overlay */}
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-black/0 to-black/0 opacity-70" />
 
-          {/* Price pill */}
           <div className="pointer-events-none absolute left-2 top-2 z-10">
             <div className="rounded-full bg-white/90 px-2 py-1 text-[10px] font-semibold text-neutral-900 backdrop-blur">
               $12
             </div>
           </div>
 
-          {/* Badge + Star */}
           <div className="absolute right-2 top-2 z-20 flex items-center gap-1">
             {badge ? (
               <div className="pointer-events-none">
@@ -214,15 +199,14 @@ export default function TemplateCard(props: {
               className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/90 backdrop-blur shadow-sm hover:bg-white"
               aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
               title={isFavorite ? "Favorited" : "Favorite"}
-              data-kht-stop
             >
               <span className={isFavorite ? "text-amber-500" : "text-neutral-400"}>★</span>
             </button>
           </div>
         </div>
 
-        {/* Actions row (Preview + duration label on one line) */}
-        <div className="px-2 pt-2" data-kht-stop onClickCapture={(e) => e.stopPropagation()}>
+        {/* Actions row: duration + Preview */}
+        <div className="px-2 pt-2" onClick={(e) => e.stopPropagation()}>
           <div className="flex items-center justify-between">
             <div className="text-[10px] font-semibold text-neutral-600 whitespace-nowrap">
               ⚡ {setupMins ?? 3} min
@@ -232,7 +216,6 @@ export default function TemplateCard(props: {
               type="button"
               onClick={handlePreview}
               className="rounded-lg border border-neutral-200 bg-white px-2 py-1 text-[10px] font-semibold text-neutral-900 hover:bg-neutral-50"
-              data-kht-stop
             >
               Preview
             </button>
