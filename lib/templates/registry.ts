@@ -12,7 +12,6 @@ export type TemplateKey =
   | "property_listing_rental"
   | "resume_portfolio"
   | "wedding_rsvp"
-
   // New
   | "beta_testing"
   | "business_card"
@@ -41,27 +40,204 @@ export type TemplateKey =
   | "relocation"
   | "service_promo";
 
+export const TEMPLATE_CATEGORIES = ["Events", "Business", "Real Estate", "Personal", "Career"] as const;
+export type TemplateCategory = (typeof TEMPLATE_CATEGORIES)[number];
+
+export type TemplateBadge = "Popular" | "New" | null;
+
 export type TemplateDef = {
   key: TemplateKey; // MUST match public.templates.template_key
   title: string;
-  description: string;
+  description: string; // marketplace description (TemplateGrid uses this directly)
   thumb: string; // filename (without extension) in /public/templates/
   setupMins: number;
   demoSlug: string; // used for /demo links (subdomain/demo)
+
+  // ✅ registry-driven display fields
+  category: TemplateCategory;
+  badge?: TemplateBadge;
+  features?: string[];
+  tags?: string[];
+
   defaultDraft: {
     title: string;
     slugSuggestion: string;
   };
 };
 
-export const TEMPLATE_DEFS: TemplateDef[] = [
-  // -------------------------
+// -------------------------
+// Centralized defaults (ONLY HERE; TemplateGrid stays dumb)
+// -------------------------
+
+const POPULAR_KEYS = new Set<TemplateKey>([
+  "wedding_rsvp",
+  "property_listing_rental",
+  "product_launch_waitlist",
+  "investor_pitch",
+  "business_card",
+  "service_promo",
+  "for_sale_by_owner",
+]);
+
+const NEW_KEYS = new Set<TemplateKey>([
+  "open_house",
+  "crowdfunding_campaign",
+  "beta_testing",
+  "private_discord",
+  "community_alert",
+  "job_fair",
+]);
+
+function inferBadge(key: TemplateKey): TemplateBadge {
+  if (POPULAR_KEYS.has(key)) return "Popular";
+  if (NEW_KEYS.has(key)) return "New";
+  return null;
+}
+
+function inferCategory(key: TemplateKey): TemplateCategory {
+  // Events
+  if (
+    key === "wedding_rsvp" ||
+    key === "baby_shower" ||
+    key === "birthday_party" ||
+    key === "family_reunion" ||
+    key === "memorial_tribute" ||
+    key === "open_house" ||
+    key === "church_event" ||
+    key === "conference" ||
+    key === "gender_reveal" ||
+    key === "graduation" ||
+    key === "group_trip" ||
+    key === "engagement_announcement"
+  )
+    return "Events";
+
+  // Business
+  if (
+    key === "product_launch" ||
+    key === "product_launch_waitlist" ||
+    key === "crowdfunding_campaign" ||
+    key === "beta_testing" ||
+    key === "business_card" ||
+    key === "community_alert" ||
+    key === "investor_pitch" ||
+    key === "merchant_drop" ||
+    key === "nft_drop" ||
+    key === "private_discord" ||
+    key === "service_promo" ||
+    key === "election_campaign" ||
+    key === "job_fair" ||
+    key === "companion_service"
+  )
+    return "Business";
+
+  // Real Estate
+  if (
+    key === "property_listing" ||
+    key === "property_listing_rental" ||
+    key === "commercial_leasing" ||
+    key === "for_sale_by_owner" ||
+    key === "relocation" ||
+    key === "hoa_announcement"
+  )
+    return "Real Estate";
+
+  // Career
+  if (key === "resume_portfolio" || key === "contractor_portfolio" || key === "creator_portfolio")
+    return "Career";
+
+  // Personal
+  return "Personal";
+}
+
+function inferFeatures(key: TemplateKey): string[] {
+  const map: Partial<Record<TemplateKey, string[]>> = {
+    // Existing
+    wedding_rsvp: ["RSVP", "Gallery", "Polls", "Announcements"],
+    baby_shower: ["Details", "Gallery", "Polls"],
+    birthday_party: ["Details", "Gallery", "Polls"],
+    family_reunion: ["Schedule", "Gallery", "Polls"],
+    memorial_tribute: ["Details", "Gallery"],
+    open_house: ["Details", "Photos", "Contact"],
+    product_launch: ["Hero section", "Links", "Media"],
+    product_launch_waitlist: ["Waitlist form", "Email capture"],
+    crowdfunding_campaign: ["Pitch", "Updates", "CTA links"],
+    property_listing: ["Photos", "Highlights", "Contact"],
+    property_listing_rental: ["Availability", "Requirements", "Contact"],
+    resume_portfolio: ["Links", "Bio", "Work showcase"],
+
+    // New
+    beta_testing: ["Signup", "Feedback link", "Updates"],
+    business_card: ["Links", "Contact", "Socials"],
+    church_event: ["Schedule", "Directions", "Updates"],
+    commercial_leasing: ["Photos", "Availability", "Inquiries"],
+    community_alert: ["Announcement", "Links", "Contact"],
+    companion_service: ["Services", "Availability", "Contact"],
+    conference: ["Agenda", "Speakers", "Venue info"],
+    contractor_portfolio: ["Projects", "Services", "Contact"],
+    creator_portfolio: ["Links", "Media", "Highlights"],
+    divorce_announcement: ["Announcement", "FAQ", "Contact"],
+    election_campaign: ["Platform", "Events", "Volunteer CTA"],
+    engagement_announcement: ["Announcement", "Photos", "Details"],
+    exploration_guide: ["Itinerary", "Maps", "Recommendations"],
+    for_sale_by_owner: ["Photos", "Details", "Contact"],
+    nft_drop: ["Mint link", "Roadmap", "Links"],
+    gender_reveal: ["Event details", "RSVP", "Updates"],
+    graduation: ["Event details", "Photos", "Updates"],
+    group_trip: ["Itinerary", "Packing list", "Updates"],
+    hoa_announcement: ["Notice", "Rules", "Updates"],
+    investor_pitch: ["Deck link", "Traction", "Contact"],
+    job_fair: ["Schedule", "Registration", "Location"],
+    merchant_drop: ["Drop details", "Links", "Promo"],
+    pet_adoption: ["Bio", "Photos", "Interest CTA"],
+    private_discord: ["Rules", "Invite link", "Updates"],
+    relocation: ["Timeline", "New info", "Updates"],
+    service_promo: ["Offer", "Pricing", "Contact"],
+  };
+
+  return map[key] ?? ["Gallery", "Polls"];
+}
+
+function inferTags(t: TemplateDef): string[] {
+  const tags = new Set<string>();
+  tags.add(t.category);
+  if (t.key.includes("waitlist")) tags.add("Waitlist");
+  if (t.key.includes("portfolio")) tags.add("Portfolio");
+  if (t.badge === "Popular") tags.add("Popular");
+  if (t.badge === "New") tags.add("New");
+  return Array.from(tags).slice(0, 4);
+}
+
+function applyRegistryDefaults(input: Omit<TemplateDef, "category" | "badge" | "features" | "tags"> & Partial<Pick<TemplateDef, "category" | "badge" | "features" | "tags">>): TemplateDef {
+  const category = input.category ?? inferCategory(input.key);
+  const badge = (input.badge ?? inferBadge(input.key)) as TemplateBadge;
+  const features = input.features ?? inferFeatures(input.key);
+
+  const base: TemplateDef = {
+    ...input,
+    category,
+    badge,
+    features,
+    tags: input.tags ?? [],
+  };
+
+  base.tags = base.tags.length ? base.tags : inferTags(base);
+  return base;
+}
+
+// -------------------------
+// Templates
+// -------------------------
+
+const RAW_TEMPLATE_DEFS: Array<
+  Omit<TemplateDef, "category" | "badge" | "features" | "tags"> &
+    Partial<Pick<TemplateDef, "category" | "badge" | "features" | "tags">>
+> = [
   // Existing templates
-  // -------------------------
   {
     key: "wedding_rsvp",
     title: "Wedding",
-    description: "RSVPs, details, updates, gallery, polls.",
+    description: "Invite everyone. Track RSVPs.",
     thumb: "wedding",
     setupMins: 5,
     demoSlug: "wedding",
@@ -70,7 +246,7 @@ export const TEMPLATE_DEFS: TemplateDef[] = [
   {
     key: "baby_shower",
     title: "Baby Shower",
-    description: "Event details, RSVP, links, gallery.",
+    description: "Share details. Collect RSVPs.",
     thumb: "baby",
     setupMins: 4,
     demoSlug: "baby",
@@ -79,7 +255,7 @@ export const TEMPLATE_DEFS: TemplateDef[] = [
   {
     key: "birthday_party",
     title: "Birthday",
-    description: "RSVP, polls, gallery for celebrations.",
+    description: "Party info + RSVP in one link.",
     thumb: "party",
     setupMins: 3,
     demoSlug: "birthday",
@@ -88,7 +264,7 @@ export const TEMPLATE_DEFS: TemplateDef[] = [
   {
     key: "family_reunion",
     title: "Reunion",
-    description: "Plans, RSVPs, polls, shared photos.",
+    description: "Schedule, location, and updates.",
     thumb: "reunion",
     setupMins: 4,
     demoSlug: "reunion",
@@ -106,7 +282,7 @@ export const TEMPLATE_DEFS: TemplateDef[] = [
   {
     key: "open_house",
     title: "Open House",
-    description: "Time/location, photos, contact.",
+    description: "Show details. Capture leads fast.",
     thumb: "openhouse",
     setupMins: 3,
     demoSlug: "openhouse",
@@ -115,7 +291,7 @@ export const TEMPLATE_DEFS: TemplateDef[] = [
   {
     key: "product_launch",
     title: "Product Launch",
-    description: "Launch page with links and media.",
+    description: "Launch info, links, and updates.",
     thumb: "launch",
     setupMins: 4,
     demoSlug: "launch",
@@ -124,7 +300,7 @@ export const TEMPLATE_DEFS: TemplateDef[] = [
   {
     key: "product_launch_waitlist",
     title: "Waitlist",
-    description: "Collect interest before you drop.",
+    description: "Collect waitlist signups fast.",
     thumb: "waitlist",
     setupMins: 2,
     demoSlug: "waitlist",
@@ -133,7 +309,7 @@ export const TEMPLATE_DEFS: TemplateDef[] = [
   {
     key: "crowdfunding_campaign",
     title: "Crowdfunding",
-    description: "Tell the story, share progress, drive action.",
+    description: "Pitch it. Fund it. Update it.",
     thumb: "crowdfunding",
     setupMins: 5,
     demoSlug: "crowdfunding",
@@ -142,7 +318,7 @@ export const TEMPLATE_DEFS: TemplateDef[] = [
   {
     key: "property_listing",
     title: "Property Listing",
-    description: "Showcase photos, details, contact.",
+    description: "Photos, highlights, and inquiries.",
     thumb: "property",
     setupMins: 4,
     demoSlug: "property",
@@ -151,7 +327,7 @@ export const TEMPLATE_DEFS: TemplateDef[] = [
   {
     key: "property_listing_rental",
     title: "Rental Listing",
-    description: "Rent details, requirements, photos, contact.",
+    description: "Availability, pricing, and apply.",
     thumb: "rental",
     setupMins: 4,
     demoSlug: "rental",
@@ -160,20 +336,18 @@ export const TEMPLATE_DEFS: TemplateDef[] = [
   {
     key: "resume_portfolio",
     title: "Portfolio",
-    description: "Clean one-page portfolio link.",
+    description: "Your story, links, and work.",
     thumb: "resume",
     setupMins: 3,
     demoSlug: "portfolio",
     defaultDraft: { title: "My Portfolio", slugSuggestion: "myportfolio" },
   },
 
-  // -------------------------
-  // New templates (your list)
-  // -------------------------
+  // New templates
   {
     key: "beta_testing",
     title: "Beta Testing",
-    description: "Recruit testers, collect feedback, ship faster.",
+    description: "Recruit testers. Collect feedback.",
     thumb: "betaprogram",
     setupMins: 3,
     demoSlug: "beta",
@@ -182,7 +356,7 @@ export const TEMPLATE_DEFS: TemplateDef[] = [
   {
     key: "business_card",
     title: "Business Card",
-    description: "One link with your info, links, and contact.",
+    description: "A clean, shareable digital card.",
     thumb: "businesscard",
     setupMins: 2,
     demoSlug: "card",
@@ -191,7 +365,7 @@ export const TEMPLATE_DEFS: TemplateDef[] = [
   {
     key: "church_event",
     title: "Church Event",
-    description: "Event details, schedule, and updates in one place.",
+    description: "Details, schedule, and updates.",
     thumb: "churchevent",
     setupMins: 3,
     demoSlug: "church",
@@ -200,7 +374,7 @@ export const TEMPLATE_DEFS: TemplateDef[] = [
   {
     key: "commercial_leasing",
     title: "Commercial Leasing",
-    description: "Space highlights, availability, and inquiries.",
+    description: "Availability, highlights, inquiries.",
     thumb: "commerciallease",
     setupMins: 4,
     demoSlug: "lease",
@@ -209,7 +383,7 @@ export const TEMPLATE_DEFS: TemplateDef[] = [
   {
     key: "community_alert",
     title: "Community Alert",
-    description: "Post urgent updates and keep everyone informed.",
+    description: "Post urgent updates fast.",
     thumb: "communityalert",
     setupMins: 2,
     demoSlug: "alert",
@@ -218,7 +392,7 @@ export const TEMPLATE_DEFS: TemplateDef[] = [
   {
     key: "companion_service",
     title: "Companion Service",
-    description: "Service overview, availability, and contact.",
+    description: "Service overview + contact.",
     thumb: "companionservice",
     setupMins: 3,
     demoSlug: "companion",
@@ -227,7 +401,7 @@ export const TEMPLATE_DEFS: TemplateDef[] = [
   {
     key: "conference",
     title: "Conference",
-    description: "Agenda, speakers, venue, and links.",
+    description: "Agenda, speakers, venue, links.",
     thumb: "conference",
     setupMins: 5,
     demoSlug: "conf",
@@ -236,7 +410,7 @@ export const TEMPLATE_DEFS: TemplateDef[] = [
   {
     key: "contractor_portfolio",
     title: "Contractor Portfolio",
-    description: "Show your work, services, and contact.",
+    description: "Showcase work + services.",
     thumb: "contractor",
     setupMins: 4,
     demoSlug: "contractor",
@@ -245,7 +419,7 @@ export const TEMPLATE_DEFS: TemplateDef[] = [
   {
     key: "creator_portfolio",
     title: "Creator Portfolio",
-    description: "Links, media, and your best work in one page.",
+    description: "Links, media, and highlights.",
     thumb: "creators",
     setupMins: 3,
     demoSlug: "creator",
@@ -254,7 +428,7 @@ export const TEMPLATE_DEFS: TemplateDef[] = [
   {
     key: "divorce_announcement",
     title: "Divorce Announcement",
-    description: "Share a respectful update and next steps.",
+    description: "Share a respectful update.",
     thumb: "divorce",
     setupMins: 2,
     demoSlug: "divorce",
@@ -263,7 +437,7 @@ export const TEMPLATE_DEFS: TemplateDef[] = [
   {
     key: "election_campaign",
     title: "Election Campaign",
-    description: "Platform, events, donations, and volunteer signup.",
+    description: "Platform, events, and volunteers.",
     thumb: "election",
     setupMins: 5,
     demoSlug: "election",
@@ -272,7 +446,7 @@ export const TEMPLATE_DEFS: TemplateDef[] = [
   {
     key: "engagement_announcement",
     title: "Engagement",
-    description: "Share the news, photos, and event details.",
+    description: "Share the news + details.",
     thumb: "engagement",
     setupMins: 3,
     demoSlug: "engagement",
@@ -281,7 +455,7 @@ export const TEMPLATE_DEFS: TemplateDef[] = [
   {
     key: "exploration_guide",
     title: "Exploration Guide",
-    description: "Itinerary, maps, and must-see spots.",
+    description: "Itinerary, maps, and tips.",
     thumb: "exploration",
     setupMins: 4,
     demoSlug: "explore",
@@ -290,7 +464,7 @@ export const TEMPLATE_DEFS: TemplateDef[] = [
   {
     key: "for_sale_by_owner",
     title: "For Sale By Owner",
-    description: "Photos, details, and direct inquiries.",
+    description: "Photos, details, direct inquiries.",
     thumb: "fsbo",
     setupMins: 4,
     demoSlug: "fsbo",
@@ -299,7 +473,7 @@ export const TEMPLATE_DEFS: TemplateDef[] = [
   {
     key: "nft_drop",
     title: "NFT Drop",
-    description: "Drop details, mint link, and roadmap.",
+    description: "Drop details, links, roadmap.",
     thumb: "nftdrop",
     setupMins: 4,
     demoSlug: "nft",
@@ -308,7 +482,7 @@ export const TEMPLATE_DEFS: TemplateDef[] = [
   {
     key: "gender_reveal",
     title: "Gender Reveal",
-    description: "Details, countdown, and RSVP.",
+    description: "Details + RSVP + updates.",
     thumb: "genderreveal",
     setupMins: 3,
     demoSlug: "reveal",
@@ -317,7 +491,7 @@ export const TEMPLATE_DEFS: TemplateDef[] = [
   {
     key: "graduation",
     title: "Graduation",
-    description: "Ceremony info, RSVP, and photos.",
+    description: "Ceremony details + photos.",
     thumb: "graduation",
     setupMins: 3,
     demoSlug: "grad",
@@ -326,7 +500,7 @@ export const TEMPLATE_DEFS: TemplateDef[] = [
   {
     key: "group_trip",
     title: "Group Trip",
-    description: "Plans, itinerary, and group updates.",
+    description: "Itinerary + group updates.",
     thumb: "grouptrip",
     setupMins: 4,
     demoSlug: "trip",
@@ -335,7 +509,7 @@ export const TEMPLATE_DEFS: TemplateDef[] = [
   {
     key: "hoa_announcement",
     title: "HOA Announcement",
-    description: "Post notices, policies, and updates.",
+    description: "Notices, rules, updates.",
     thumb: "hoaannouncement",
     setupMins: 2,
     demoSlug: "hoa",
@@ -344,7 +518,7 @@ export const TEMPLATE_DEFS: TemplateDef[] = [
   {
     key: "investor_pitch",
     title: "Investor Pitch",
-    description: "Pitch, traction, deck link, and contact.",
+    description: "Deck link, traction, contact.",
     thumb: "investorpitch",
     setupMins: 4,
     demoSlug: "pitch",
@@ -353,7 +527,7 @@ export const TEMPLATE_DEFS: TemplateDef[] = [
   {
     key: "job_fair",
     title: "Job Fair",
-    description: "Details, schedule, and registration.",
+    description: "Schedule, details, registration.",
     thumb: "jobfair",
     setupMins: 4,
     demoSlug: "jobfair",
@@ -362,7 +536,7 @@ export const TEMPLATE_DEFS: TemplateDef[] = [
   {
     key: "merchant_drop",
     title: "Merchant Drop",
-    description: "New drop info, links, and promo details.",
+    description: "Drop info, links, promo.",
     thumb: "merchdrop",
     setupMins: 3,
     demoSlug: "drop",
@@ -371,7 +545,7 @@ export const TEMPLATE_DEFS: TemplateDef[] = [
   {
     key: "pet_adoption",
     title: "Pet Adoption",
-    description: "Meet the pet, details, and adoption interest form.",
+    description: "Meet the pet + interest.",
     thumb: "petadoption",
     setupMins: 3,
     demoSlug: "pet",
@@ -380,7 +554,7 @@ export const TEMPLATE_DEFS: TemplateDef[] = [
   {
     key: "private_discord",
     title: "Private Discord",
-    description: "Invite details, rules, and join link.",
+    description: "Invite details + join link.",
     thumb: "privatediscord",
     setupMins: 2,
     demoSlug: "discord",
@@ -389,7 +563,7 @@ export const TEMPLATE_DEFS: TemplateDef[] = [
   {
     key: "relocation",
     title: "Relocation",
-    description: "Moving update, timeline, and info.",
+    description: "Moving update + timeline.",
     thumb: "relocation",
     setupMins: 2,
     demoSlug: "move",
@@ -398,18 +572,15 @@ export const TEMPLATE_DEFS: TemplateDef[] = [
   {
     key: "service_promo",
     title: "Service Promo",
-    description: "Promote a service with pricing and contact.",
+    description: "Offer, pricing, contact.",
     thumb: "servicepromo",
     setupMins: 3,
     demoSlug: "promo",
     defaultDraft: { title: "Special Offer", slugSuggestion: "promo" },
   },
-
-  // NOTE: If you want these two from your list as separate templates later:
-  // "Commercial Leasing" already added above.
-  // "Conference" already added above.
-  // "Group Trip" already added above.
 ];
+
+export const TEMPLATE_DEFS: TemplateDef[] = RAW_TEMPLATE_DEFS.map(applyRegistryDefaults);
 
 export function normalizeTemplateKey(input: string) {
   let s = (input || "").trim().toLowerCase();
@@ -425,7 +596,7 @@ export function normalizeTemplateKey(input: string) {
 const TEMPLATE_KEY_ALIASES: Record<string, TemplateKey> = {
   party_birthday: "birthday_party",
   birthday: "birthday_party",
-  resume_portfolio_temp: "resume_portfolio", // old temp key maps to portfolio
+  resume_portfolio_temp: "resume_portfolio",
 };
 
 export function getTemplateDef(key: string) {
