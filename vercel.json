@@ -1,7 +1,13 @@
 {
   "redirects": [
     {
-      "source": "https://www.ko-host.com/:path*",
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.ko-host.com"
+        }
+      ],
       "destination": "https://ko-host.com/:path*",
       "permanent": true
     }
