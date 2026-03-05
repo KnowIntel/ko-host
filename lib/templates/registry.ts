@@ -4,13 +4,12 @@ export type TemplateKey =
   | "family_reunion"
   | "memorial_tribute"
   | "open_house"
-  | "party_birthday"
+  | "birthday_party"
   | "product_launch"
   | "product_launch_waitlist"
   | "property_listing"
   | "property_listing_rental"
   | "resume_portfolio"
-  | "resume_portfolio_temp"
   | "wedding_rsvp";
 
 export type TemplateDef = {
@@ -18,6 +17,8 @@ export type TemplateDef = {
   title: string;
   description: string;
   thumb: string; // filename (without extension) in /public/templates/
+  setupMins: number;
+  demoSlug: string; // used for /demo links (subdomain/demo)
   defaultDraft: {
     title: string;
     slugSuggestion: string;
@@ -30,6 +31,8 @@ export const TEMPLATE_DEFS: TemplateDef[] = [
     title: "Wedding",
     description: "RSVPs, details, updates, gallery, polls.",
     thumb: "wedding",
+    setupMins: 5,
+    demoSlug: "wedding",
     defaultDraft: { title: "Our Wedding", slugSuggestion: "ourwedding" },
   },
   {
@@ -37,13 +40,17 @@ export const TEMPLATE_DEFS: TemplateDef[] = [
     title: "Baby Shower",
     description: "Event details, RSVP, links, gallery.",
     thumb: "baby",
+    setupMins: 4,
+    demoSlug: "baby",
     defaultDraft: { title: "Baby Shower", slugSuggestion: "babyshower" },
   },
   {
-    key: "party_birthday",
+    key: "birthday_party",
     title: "Birthday",
     description: "RSVP, polls, gallery for celebrations.",
     thumb: "party",
+    setupMins: 3,
+    demoSlug: "birthday",
     defaultDraft: { title: "Party Time", slugSuggestion: "partytime" },
   },
   {
@@ -51,6 +58,8 @@ export const TEMPLATE_DEFS: TemplateDef[] = [
     title: "Reunion",
     description: "Plans, RSVPs, polls, shared photos.",
     thumb: "reunion",
+    setupMins: 4,
+    demoSlug: "reunion",
     defaultDraft: { title: "Family Reunion", slugSuggestion: "familyreunion" },
   },
   {
@@ -58,6 +67,8 @@ export const TEMPLATE_DEFS: TemplateDef[] = [
     title: "Memorial",
     description: "Share details and memories respectfully.",
     thumb: "memorial",
+    setupMins: 6,
+    demoSlug: "memorial",
     defaultDraft: { title: "In Loving Memory", slugSuggestion: "inmemory" },
   },
   {
@@ -65,6 +76,8 @@ export const TEMPLATE_DEFS: TemplateDef[] = [
     title: "Open House",
     description: "Time/location, photos, contact.",
     thumb: "openhouse",
+    setupMins: 3,
+    demoSlug: "open-house",
     defaultDraft: { title: "Open House", slugSuggestion: "openhouse" },
   },
   {
@@ -72,6 +85,8 @@ export const TEMPLATE_DEFS: TemplateDef[] = [
     title: "Product Launch",
     description: "Launch page with links and media.",
     thumb: "launch",
+    setupMins: 4,
+    demoSlug: "launch",
     defaultDraft: { title: "Product Launch", slugSuggestion: "productlaunch" },
   },
   {
@@ -79,6 +94,8 @@ export const TEMPLATE_DEFS: TemplateDef[] = [
     title: "Waitlist",
     description: "Collect interest before you drop.",
     thumb: "waitlist",
+    setupMins: 2,
+    demoSlug: "waitlist",
     defaultDraft: { title: "Join the Waitlist", slugSuggestion: "waitlist" },
   },
   {
@@ -86,6 +103,8 @@ export const TEMPLATE_DEFS: TemplateDef[] = [
     title: "Crowdfunding",
     description: "Tell the story, share progress, drive action.",
     thumb: "crowdfunding",
+    setupMins: 5,
+    demoSlug: "crowdfunding",
     defaultDraft: { title: "Support Our Campaign", slugSuggestion: "campaign" },
   },
   {
@@ -93,6 +112,8 @@ export const TEMPLATE_DEFS: TemplateDef[] = [
     title: "Property Listing",
     description: "Showcase photos, details, contact.",
     thumb: "property",
+    setupMins: 4,
+    demoSlug: "property",
     defaultDraft: { title: "Property Listing", slugSuggestion: "listing" },
   },
   {
@@ -100,6 +121,8 @@ export const TEMPLATE_DEFS: TemplateDef[] = [
     title: "Rental Listing",
     description: "Rent details, requirements, photos, contact.",
     thumb: "rental",
+    setupMins: 4,
+    demoSlug: "rental",
     defaultDraft: { title: "Rental Listing", slugSuggestion: "rental" },
   },
   {
@@ -107,14 +130,9 @@ export const TEMPLATE_DEFS: TemplateDef[] = [
     title: "Portfolio",
     description: "Clean one-page portfolio link.",
     thumb: "resume",
+    setupMins: 3,
+    demoSlug: "portfolio",
     defaultDraft: { title: "My Portfolio", slugSuggestion: "myportfolio" },
-  },
-  {
-    key: "resume_portfolio_temp",
-    title: "Portfolio (Temp)",
-    description: "Quick temporary portfolio link.",
-    thumb: "resume",
-    defaultDraft: { title: "My Portfolio", slugSuggestion: "portfolio" },
   },
 ];
 
@@ -128,12 +146,21 @@ export function normalizeTemplateKey(input: string) {
   return s.replace(/\s+/g, "_").replace(/-/g, "_").replace(/__+/g, "_");
 }
 
+// Backwards-compatible aliases for older keys
+const TEMPLATE_KEY_ALIASES: Record<string, TemplateKey> = {
+  party_birthday: "birthday_party",
+  birthday: "birthday_party",
+  resume_portfolio_temp: "resume_portfolio", // old temp key maps to portfolio
+};
+
 export function getTemplateDef(key: string) {
   const nk = normalizeTemplateKey(key);
-  return TEMPLATE_DEFS.find((t) => t.key === nk);
+  const aliased = (TEMPLATE_KEY_ALIASES[nk] || nk) as string;
+  return TEMPLATE_DEFS.find((t) => t.key === aliased);
 }
 
 export function isValidTemplateKey(key: string): key is TemplateKey {
   const nk = normalizeTemplateKey(key);
-  return TEMPLATE_DEFS.some((t) => t.key === nk);
+  const aliased = (TEMPLATE_KEY_ALIASES[nk] || nk) as string;
+  return TEMPLATE_DEFS.some((t) => t.key === aliased);
 }
