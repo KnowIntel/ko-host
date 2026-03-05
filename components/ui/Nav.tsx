@@ -19,14 +19,13 @@ export function Nav() {
       <Container className="flex h-16 items-center justify-between">
         <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight">
           <img
-            src="/icon.png"
+            src="/KH_LOGO.png"
             alt="Ko-Host"
-            width={44}
+            width={92}
             height={44}
-            className="h-[44px] w-[44px]"
+            className="h-[44px] w-[92px]"
             draggable={false}
           />
-          <span>Ko-Host</span>
         </Link>
 
         <nav className="flex items-center gap-3">
