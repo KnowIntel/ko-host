@@ -12,6 +12,22 @@ function isValidSlug(slug: string) {
   return /^[a-z0-9-]{2,40}$/.test(slug);
 }
 
+function getHost() {
+  const h = headers();
+  const host = (h.get("x-forwarded-host") || h.get("host") || "").toLowerCase();
+  // strip port (localhost:3000)
+  return host.split(":")[0];
+}
+
+function getSubdomain(host: string) {
+  // reunion.ko-host.com -> reunion
+  // ko-host.com -> ""
+  if (!host) return "";
+  const parts = host.split(".");
+  if (parts.length < 3) return "";
+  return parts[0] || "";
+}
+
 function getDemoTemplateKeyFromSubdomain(subdomain: string) {
   const s = (subdomain || "").trim().toLowerCase();
   if (!s) return null;
@@ -71,9 +87,8 @@ export default async function PublicMicrositePage({
 
   // /demo on any subdomain
   if (slug === "demo") {
-    const h = await headers(); // <-- FIX
-    const host = (h.get("host") || "").toLowerCase(); // e.g. reunion.ko-host.com
-    const subdomain = host.split(".")[0]; // reunion
+    const host = getHost(); // reunion.ko-host.com
+    const subdomain = getSubdomain(host); // reunion
     const demoKey = getDemoTemplateKeyFromSubdomain(subdomain);
     if (!demoKey) return notFound();
     return <DemoPage templateKey={demoKey} />;

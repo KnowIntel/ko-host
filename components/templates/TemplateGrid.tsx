@@ -26,39 +26,76 @@ export type Sort = "Recommended" | "A–Z" | "New" | "Popular";
 
 type Badge = "Popular" | "New" | null;
 
+const POPULAR_KEYS = new Set<string>([
+  "wedding_rsvp",
+  "property_listing_rental",
+  "product_launch_waitlist",
+  "investor_pitch",
+  "business_card",
+  "service_promo",
+  "for_sale_by_owner",
+]);
+
+const NEW_KEYS = new Set<string>([
+  "open_house",
+  "crowdfunding_campaign",
+  "beta_testing",
+  "private_discord",
+  "community_alert",
+  "job_fair",
+]);
+
 function badgeForTemplateKey(key: string): Badge {
-  if (
-    key === "wedding_rsvp" ||
-    key === "property_listing_rental" ||
-    key === "product_launch_waitlist"
-  )
-    return "Popular";
-  if (key === "open_house" || key === "crowdfunding_campaign") return "New";
+  if (POPULAR_KEYS.has(key)) return "Popular";
+  if (NEW_KEYS.has(key)) return "New";
   return null;
 }
 
+/**
+ * Marketplace descriptions (override registry where present)
+ */
 const DESC: Record<string, string> = {
+  // Existing
   wedding_rsvp: "Invite everyone. Track RSVPs.",
-  wedding: "Invite everyone. Track RSVPs.",
-
   baby_shower: "Share details. Collect RSVPs.",
   birthday_party: "Party info + RSVP in one link.",
   family_reunion: "Schedule, location, and updates.",
   memorial_tribute: "Share memories and announcements.",
-
   open_house: "Show details. Capture leads fast.",
-  property_listing: "Photos, highlights, and inquiries.",
-  rental_listing: "List it. Screen it. Fill it.",
-  property_listing_rental: "Availability, pricing, and apply.",
-
   product_launch: "Launch info, links, and updates.",
   product_launch_waitlist: "Collect waitlist signups fast.",
-  event_waitlist: "Signups now. Notifications later.",
   crowdfunding_campaign: "Pitch it. Fund it. Update it.",
-
+  property_listing: "Photos, highlights, and inquiries.",
+  property_listing_rental: "Availability, pricing, and apply.",
   resume_portfolio: "Your story, links, and work.",
 
-  placeholder: "A clean page in minutes.",
+  // New
+  beta_testing: "Recruit testers. Collect feedback.",
+  business_card: "A clean, shareable digital card.",
+  church_event: "Details, schedule, and updates.",
+  commercial_leasing: "Availability, highlights, inquiries.",
+  community_alert: "Post urgent updates fast.",
+  companion_service: "Service overview + contact.",
+  conference: "Agenda, speakers, venue, links.",
+  contractor_portfolio: "Showcase work + services.",
+  creator_portfolio: "Links, media, and highlights.",
+  divorce_announcement: "Share a respectful update.",
+  election_campaign: "Platform, events, and volunteers.",
+  engagement_announcement: "Share the news + details.",
+  exploration_guide: "Itinerary, maps, and tips.",
+  for_sale_by_owner: "Photos, details, direct inquiries.",
+  nft_drop: "Drop details, links, roadmap.",
+  gender_reveal: "Details + RSVP + updates.",
+  graduation: "Ceremony details + photos.",
+  group_trip: "Itinerary + group updates.",
+  hoa_announcement: "Notices, rules, updates.",
+  investor_pitch: "Deck link, traction, contact.",
+  job_fair: "Schedule, details, registration.",
+  merchant_drop: "Drop info, links, promo.",
+  pet_adoption: "Meet the pet + interest.",
+  private_discord: "Invite details + join link.",
+  relocation: "Moving update + timeline.",
+  service_promo: "Offer, pricing, contact.",
 };
 
 function getDescription(t: TemplateDef) {
@@ -73,26 +110,53 @@ const CATEGORY_BY_KEY: Record<
   string,
   Exclude<Category, "All" | "Favorites" | "Recently viewed">
 > = {
+  // Events
   wedding_rsvp: "Events",
-  wedding: "Events",
   baby_shower: "Events",
   birthday_party: "Events",
   family_reunion: "Events",
   memorial_tribute: "Events",
   open_house: "Events",
-  event_waitlist: "Events",
+  church_event: "Events",
+  conference: "Events",
+  gender_reveal: "Events",
+  graduation: "Events",
+  group_trip: "Events",
+  engagement_announcement: "Events",
 
+  // Business
   product_launch: "Business",
   product_launch_waitlist: "Business",
   crowdfunding_campaign: "Business",
+  beta_testing: "Business",
+  business_card: "Business",
+  community_alert: "Business",
+  investor_pitch: "Business",
+  merchant_drop: "Business",
+  nft_drop: "Business",
+  private_discord: "Business",
+  service_promo: "Business",
+  election_campaign: "Business",
+  job_fair: "Business",
+  companion_service: "Business",
 
+  // Real Estate
   property_listing: "Real Estate",
   property_listing_rental: "Real Estate",
-  rental_listing: "Real Estate",
+  commercial_leasing: "Real Estate",
+  for_sale_by_owner: "Real Estate",
+  relocation: "Real Estate",
+  hoa_announcement: "Real Estate",
 
+  // Career
   resume_portfolio: "Career",
+  contractor_portfolio: "Career",
+  creator_portfolio: "Career",
 
-  placeholder: "Personal",
+  // Personal
+  divorce_announcement: "Personal",
+  exploration_guide: "Personal",
+  pet_adoption: "Personal",
 };
 
 function getCategoryForTemplateKey(
@@ -122,6 +186,7 @@ function metaForTemplate(t: TemplateDef): PreviewMeta {
   const setupMins = (t as any).setupMins ?? 3;
 
   const featuresByKey: Record<string, string[]> = {
+    // Existing
     wedding_rsvp: ["RSVP", "Gallery", "Polls", "Announcements"],
     baby_shower: ["Details", "Gallery", "Polls"],
     birthday_party: ["Details", "Gallery", "Polls"],
@@ -134,11 +199,42 @@ function metaForTemplate(t: TemplateDef): PreviewMeta {
     property_listing: ["Photos", "Highlights", "Contact"],
     property_listing_rental: ["Availability", "Requirements", "Contact"],
     resume_portfolio: ["Links", "Bio", "Work showcase"],
-    placeholder: ["Basic content blocks"],
+
+    // New
+    beta_testing: ["Signup", "Feedback link", "Updates"],
+    business_card: ["Links", "Contact", "Socials"],
+    church_event: ["Schedule", "Directions", "Updates"],
+    commercial_leasing: ["Photos", "Availability", "Inquiries"],
+    community_alert: ["Announcement", "Links", "Contact"],
+    companion_service: ["Services", "Availability", "Contact"],
+    conference: ["Agenda", "Speakers", "Venue info"],
+    contractor_portfolio: ["Projects", "Services", "Contact"],
+    creator_portfolio: ["Links", "Media", "Highlights"],
+    divorce_announcement: ["Announcement", "FAQ", "Contact"],
+    election_campaign: ["Platform", "Events", "Volunteer CTA"],
+    engagement_announcement: ["Announcement", "Photos", "Details"],
+    exploration_guide: ["Itinerary", "Maps", "Recommendations"],
+    for_sale_by_owner: ["Photos", "Details", "Contact"],
+    nft_drop: ["Mint link", "Roadmap", "Links"],
+    gender_reveal: ["Event details", "RSVP", "Updates"],
+    graduation: ["Event details", "Photos", "Updates"],
+    group_trip: ["Itinerary", "Packing list", "Updates"],
+    hoa_announcement: ["Notice", "Rules", "Updates"],
+    investor_pitch: ["Deck link", "Traction", "Contact"],
+    job_fair: ["Schedule", "Registration", "Location"],
+    merchant_drop: ["Drop details", "Links", "Promo"],
+    pet_adoption: ["Bio", "Photos", "Interest CTA"],
+    private_discord: ["Rules", "Invite link", "Updates"],
+    relocation: ["Timeline", "New info", "Updates"],
+    service_promo: ["Offer", "Pricing", "Contact"],
   };
 
   const tags = Array.from(
-    new Set([getCategoryForTemplateKey(t.key), ...(t.key.includes("waitlist") ? ["Waitlist"] : [])])
+    new Set([
+      getCategoryForTemplateKey(t.key),
+      ...(t.key.includes("waitlist") ? ["Waitlist"] : []),
+      ...(t.key.includes("portfolio") ? ["Portfolio"] : []),
+    ])
   ).slice(0, 4);
 
   return {
@@ -294,9 +390,7 @@ export default function TemplateGrid(props: {
       justifyContent: "center" as const,
       paddingLeft: "12px",
       paddingRight: "12px",
-      gridTemplateColumns: isDesktop
-        ? `repeat(auto-fit, ${CARD}px)`
-        : `repeat(3, ${CARD}px)`,
+      gridTemplateColumns: isDesktop ? `repeat(auto-fit, ${CARD}px)` : `repeat(3, ${CARD}px)`,
     };
   }, [isDesktop]);
 

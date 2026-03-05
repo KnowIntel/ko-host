@@ -10,25 +10,11 @@ export type PreviewMeta = {
   features: string[];
 };
 
-function demoUrlForKey(key: string) {
-  const slug = key
-    .replaceAll("_rsvp", "")
-    .replaceAll("_waitlist", "")
-    .replaceAll("_campaign", "")
-    .replaceAll("property_listing_rental", "rental")
-    .replaceAll("property_listing", "property")
-    .replaceAll("rental_listing", "rental")
-    .replaceAll("family_reunion", "reunion")
-    .replaceAll("memorial_tribute", "memorial")
-    .replaceAll("birthday_party", "birthday")
-    .replaceAll("baby_shower", "baby")
-    .replaceAll("product_launch", "launch")
-    .replaceAll("event_waitlist", "waitlist")
-    .replaceAll("resume_portfolio", "portfolio")
-    .replaceAll("open_house", "openhouse")
-    .replaceAll("placeholder", "demo");
-
-  return `https://${slug}.ko-host.com/demo`;
+function getDemoUrl(template: TemplateDef) {
+  const slug = (template as any).demoSlug as string | undefined;
+  const safe = (slug || "").trim().toLowerCase();
+  if (!safe) return "";
+  return `https://${safe}.ko-host.com/demo`;
 }
 
 export default function TemplatePreviewModal(props: {
@@ -45,10 +31,11 @@ export default function TemplatePreviewModal(props: {
 
   const demoUrl = useMemo(() => {
     if (!template) return "";
-    return demoUrlForKey(template.key);
+    return getDemoUrl(template);
   }, [template]);
 
   async function copyDemo() {
+    if (!demoUrl) return;
     try {
       await navigator.clipboard.writeText(demoUrl);
       setCopied(true);
@@ -118,18 +105,25 @@ export default function TemplatePreviewModal(props: {
 
             <div className="mt-3 rounded-xl border border-neutral-200 bg-white px-3 py-2">
               <div className="text-[12px] font-semibold text-neutral-700">Demo link</div>
-              <div className="mt-1 flex items-center gap-2">
-                <div className="min-w-0 flex-1 truncate text-[12px] font-medium text-neutral-600">
-                  {demoUrl}
+
+              {demoUrl ? (
+                <div className="mt-1 flex items-center gap-2">
+                  <div className="min-w-0 flex-1 truncate text-[12px] font-medium text-neutral-600">
+                    {demoUrl}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={copyDemo}
+                    className="shrink-0 rounded-lg border border-neutral-200 bg-white px-2.5 py-1 text-[12px] font-semibold text-neutral-800 hover:bg-neutral-50"
+                  >
+                    {copied ? "Copied" : "Copy"}
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={copyDemo}
-                  className="shrink-0 rounded-lg border border-neutral-200 bg-white px-2.5 py-1 text-[12px] font-semibold text-neutral-800 hover:bg-neutral-50"
-                >
-                  {copied ? "Copied" : "Copy"}
-                </button>
-              </div>
+              ) : (
+                <div className="mt-1 text-[12px] font-medium text-neutral-500">
+                  Demo not configured for this template yet.
+                </div>
+              )}
             </div>
 
             <div className="mt-3 text-[12px] font-medium text-neutral-500">
@@ -150,10 +144,19 @@ export default function TemplatePreviewModal(props: {
 
             <div className="mt-6 flex flex-col gap-2">
               <a
-                href={demoUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex w-full items-center justify-center rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm font-semibold text-neutral-900 hover:bg-neutral-50"
+                href={demoUrl || "#"}
+                target={demoUrl ? "_blank" : undefined}
+                rel={demoUrl ? "noreferrer" : undefined}
+                aria-disabled={!demoUrl}
+                className={[
+                  "inline-flex w-full items-center justify-center rounded-xl border px-4 py-2.5 text-sm font-semibold",
+                  demoUrl
+                    ? "border-neutral-200 bg-white text-neutral-900 hover:bg-neutral-50"
+                    : "border-neutral-200 bg-neutral-100 text-neutral-400 cursor-not-allowed",
+                ].join(" ")}
+                onClick={(e) => {
+                  if (!demoUrl) e.preventDefault();
+                }}
               >
                 Open demo
               </a>
