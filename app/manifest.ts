@@ -31,7 +31,6 @@ export default function manifest(): MetadataRoute.Manifest {
         sizes: "512x512",
         type: "image/png",
       },
-
       {
         src: "/icons/pwa-192.png",
         sizes: "192x192",
@@ -42,13 +41,12 @@ export default function manifest(): MetadataRoute.Manifest {
         sizes: "512x512",
         type: "image/png",
       },
-
       {
         src: "/icons/pwa-maskable-512.png",
         sizes: "512x512",
         type: "image/png",
         purpose: "maskable",
-      }
+      },
     ],
 
     shortcuts: [
@@ -57,15 +55,27 @@ export default function manifest(): MetadataRoute.Manifest {
         short_name: "Create",
         description: "Create a new microsite",
         url: "/templates",
-        icons: [{ src: "/icon.png", sizes: "192x192" }]
+        icons: [
+          {
+            src: "/icon.png",
+            sizes: "192x192",
+            type: "image/png",
+          },
+        ],
       },
       {
         name: "Browse Templates",
         short_name: "Templates",
         description: "Browse Ko-Host templates",
         url: "/templates",
-        icons: [{ src: "/icon.png", sizes: "192x192" }]
-      }
+        icons: [
+          {
+            src: "/icon.png",
+            sizes: "192x192",
+            type: "image/png",
+          },
+        ],
+      },
     ],
 
     screenshots: [
@@ -73,13 +83,13 @@ export default function manifest(): MetadataRoute.Manifest {
         src: "/screenshots/desktop.png",
         sizes: "1280x800",
         type: "image/png",
-        form_factor: "wide"
+        form_factor: "wide",
       },
       {
         src: "/screenshots/mobile.png",
         sizes: "390x844",
-        type: "image/png"
-      }
-    ]
+        type: "image/png",
+      },
+    ],
   };
 }
