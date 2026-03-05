@@ -147,6 +147,20 @@ export default function TemplateGrid(props: {
     setRecent(readStringArray("kht:recent"));
   }, []);
 
+  // keep recent fresh on back-nav / focus
+  useEffect(() => {
+    const refresh = () => setRecent(readStringArray("kht:recent"));
+    refresh();
+    window.addEventListener("focus", refresh);
+    window.addEventListener("pageshow", refresh);
+    window.addEventListener("visibilitychange", refresh);
+    return () => {
+      window.removeEventListener("focus", refresh);
+      window.removeEventListener("pageshow", refresh);
+      window.removeEventListener("visibilitychange", refresh);
+    };
+  }, []);
+
   function toggleFavorite(key: string) {
     setFavorites((prev) => {
       const next = prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key];
@@ -168,9 +182,10 @@ export default function TemplateGrid(props: {
   const filteredTemplates = useMemo(() => {
     const q = (searchQuery || "").trim().toLowerCase();
 
-    const filtered = allTemplates.filter((t) => {
-      if (t.key === "resume_portfolio_temp") return false;
+    const recentOrder = new Map<string, number>();
+    recent.forEach((k, idx) => recentOrder.set(k, idx));
 
+    const filtered = allTemplates.filter((t) => {
       if (category === "Favorites") {
         if (!favorites.includes(t.key)) return false;
       } else if (category === "Recently viewed") {
@@ -198,6 +213,15 @@ export default function TemplateGrid(props: {
       b === target ? 0 : b === null ? 2 : 1;
 
     const sorted = [...filtered];
+
+    if (category === "Recently viewed") {
+      sorted.sort((a, b) => {
+        const ra = recentOrder.get(a.key) ?? 9999;
+        const rb = recentOrder.get(b.key) ?? 9999;
+        return ra - rb;
+      });
+      return sorted;
+    }
 
     if (sort === "A–Z") {
       sorted.sort(byTitle);
@@ -263,6 +287,7 @@ export default function TemplateGrid(props: {
             isFavorite={favorites.includes(t.key)}
             onToggleFavorite={toggleFavorite}
             onPreview={openPreview}
+            setupMins={(t as any).setupMins ?? 3}
           />
         ))}
       </div>
