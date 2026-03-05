@@ -1,35 +1,36 @@
 "use client";
 
-import Link from "next/link";
 import Image from "next/image";
 import { Star } from "lucide-react";
 
-interface TemplateCardProps {
+export interface TemplateCardProps {
   templateKey: string;
   title: string;
-  thumb: string;
-  description?: string;
-  tags?: string[];
-  setupMins?: number;
-  badge?: string;
+  description: string;
+  thumbnailUrl: string;
+  badge?: "New" | "Popular";
+  isFavorite: boolean;
+  onToggleFavorite: (key: string) => void;
+  onPreview: (templateKey: string) => void;
 }
 
 export default function TemplateCard({
   templateKey,
   title,
-  thumb,
   description,
-  tags,
-  setupMins,
+  thumbnailUrl,
   badge,
+  isFavorite,
+  onToggleFavorite,
+  onPreview,
 }: TemplateCardProps) {
   return (
-    <div className="group relative rounded-xl border border-neutral-800 bg-neutral-900 overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:shadow-purple-500/10">
+    <div className="group relative rounded-xl border border-neutral-800 bg-neutral-900 overflow-hidden transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:shadow-purple-500/20">
 
       {/* Thumbnail */}
       <div className="relative w-full h-40 bg-neutral-800">
         <Image
-          src={thumb}
+          src={thumbnailUrl}
           alt={title}
           fill
           className="object-cover"
@@ -48,52 +49,37 @@ export default function TemplateCard({
         <div className="flex justify-between items-start">
           <h3 className="font-semibold text-sm">{title}</h3>
 
-          <button className="opacity-0 group-hover:opacity-100 transition">
-            <Star size={16} />
+          <button
+            onClick={() => onToggleFavorite(templateKey)}
+            className="opacity-0 group-hover:opacity-100 transition"
+          >
+            <Star
+              size={16}
+              className={isFavorite ? "fill-yellow-400 text-yellow-400" : ""}
+            />
           </button>
         </div>
 
-        {description && (
-          <p className="text-xs text-neutral-400">
-            {description}
-          </p>
-        )}
-
-        {tags && (
-          <div className="flex flex-wrap gap-1 pt-1">
-            {tags.map((tag) => (
-              <span
-                key={tag}
-                className="text-[10px] px-2 py-1 rounded bg-neutral-800 text-neutral-300"
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-        )}
-
-        {setupMins && (
-          <div className="text-[11px] text-neutral-500">
-            ~{setupMins} min setup
-          </div>
-        )}
+        <p className="text-xs text-neutral-400">
+          {description}
+        </p>
 
         {/* Buttons */}
         <div className="flex gap-2 pt-3">
 
-          <Link
-            href={`/preview/${templateKey}`}
+          <button
+            onClick={() => onPreview(templateKey)}
             className="flex-1 text-center text-xs px-3 py-2 rounded bg-neutral-800 hover:bg-neutral-700"
           >
             Preview
-          </Link>
+          </button>
 
-          <Link
+          <a
             href={`/create/${templateKey}`}
             className="flex-1 text-center text-xs px-3 py-2 rounded bg-purple-600 hover:bg-purple-500"
           >
             Create
-          </Link>
+          </a>
 
         </div>
 
