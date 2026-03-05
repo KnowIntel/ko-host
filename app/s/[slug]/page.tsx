@@ -12,16 +12,13 @@ function isValidSlug(slug: string) {
   return /^[a-z0-9-]{2,40}$/.test(slug);
 }
 
-function getHost() {
-  const h = headers();
+async function getHost() {
+  const h = await headers();
   const host = (h.get("x-forwarded-host") || h.get("host") || "").toLowerCase();
-  // strip port (localhost:3000)
-  return host.split(":")[0];
+  return host.split(":")[0]; // strip port
 }
 
 function getSubdomain(host: string) {
-  // reunion.ko-host.com -> reunion
-  // ko-host.com -> ""
   if (!host) return "";
   const parts = host.split(".");
   if (parts.length < 3) return "";
@@ -87,7 +84,7 @@ export default async function PublicMicrositePage({
 
   // /demo on any subdomain
   if (slug === "demo") {
-    const host = getHost(); // reunion.ko-host.com
+    const host = await getHost(); // reunion.ko-host.com
     const subdomain = getSubdomain(host); // reunion
     const demoKey = getDemoTemplateKeyFromSubdomain(subdomain);
     if (!demoKey) return notFound();
