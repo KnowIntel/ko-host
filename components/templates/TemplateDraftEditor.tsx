@@ -16,10 +16,10 @@ function normalizeSlug(input: string) {
   return input
     .toLowerCase()
     .trim()
-    .replace(/\s+/g, "-") // spaces -> dashes
-    .replace(/[^a-z0-9-]/g, "") // keep only url-safe chars
-    .replace(/-+/g, "-") // collapse dashes
-    .replace(/^-|-$/g, ""); // trim dashes
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-]/g, "")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
 }
 
 type AvailabilityState =
@@ -29,6 +29,31 @@ type AvailabilityState =
   | { status: "taken" }
   | { status: "invalid" }
   | { status: "error"; message?: string };
+
+function availabilityPill(avail: AvailabilityState) {
+  const base =
+    "inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold";
+
+  if (avail.status === "idle") return null;
+
+  if (avail.status === "checking") {
+    return <span className={`${base} bg-neutral-100 text-neutral-700`}>Checking…</span>;
+  }
+
+  if (avail.status === "available") {
+    return <span className={`${base} bg-green-50 text-green-700`}>✓ Available</span>;
+  }
+
+  if (avail.status === "taken") {
+    return <span className={`${base} bg-red-50 text-red-700`}>✗ Taken</span>;
+  }
+
+  if (avail.status === "invalid") {
+    return <span className={`${base} bg-amber-50 text-amber-800`}>Invalid</span>;
+  }
+
+  return <span className={`${base} bg-neutral-100 text-neutral-700`}>Couldn’t check</span>;
+}
 
 export function TemplateDraftEditor({
   templateKey,
@@ -42,7 +67,6 @@ export function TemplateDraftEditor({
   const key = useMemo(() => storageKey(templateKey), [templateKey]);
   const [draft, setDraft] = useState<Draft>(defaultDraft);
 
-  // slug availability state
   const [avail, setAvail] = useState<AvailabilityState>({ status: "idle" });
   const lastCheckedRef = useRef<string>("");
 
@@ -69,19 +93,18 @@ export function TemplateDraftEditor({
     return `https://${slug}.ko-host.com`;
   }, [normalizedSlug]);
 
-  // ✅ Live slug availability check (debounced)
+  // live slug availability check (debounced)
   useEffect(() => {
     const slug = normalizedSlug;
 
-    // don't re-check the same slug
     if (slug && slug === lastCheckedRef.current) return;
 
-    // basic validity gating (matches your server regex: /^[a-z0-9-]+$/ and length 2..40)
     if (!slug) {
       setAvail({ status: "idle" });
       lastCheckedRef.current = "";
       return;
     }
+
     if (slug.length < 2 || slug.length > 40 || !/^[a-z0-9-]+$/.test(slug)) {
       setAvail({ status: "invalid" });
       lastCheckedRef.current = "";
@@ -120,74 +143,7 @@ export function TemplateDraftEditor({
     return () => window.clearTimeout(t);
   }, [normalizedSlug]);
 
-  const availabilityRow = useMemo(() => {
-    const slug = normalizedSlug || "your-page";
-
-    const badgeBase =
-      "inline-flex items-center rounded-full px-2 py-1 text-[11px] font-semibold";
-
-    if (avail.status === "idle") {
-      return (
-        <div className="mt-2 text-[11px] text-neutral-500">
-          URL: <span className="font-mono">{slug}.ko-host.com</span>
-        </div>
-      );
-    }
-
-    if (avail.status === "checking") {
-      return (
-        <div className="mt-2 flex items-center gap-2 text-[11px] text-neutral-600">
-          <span className="font-mono">{slug}.ko-host.com</span>
-          <span className={`${badgeBase} bg-neutral-100 text-neutral-700`}>
-            Checking…
-          </span>
-        </div>
-      );
-    }
-
-    if (avail.status === "available") {
-      return (
-        <div className="mt-2 flex items-center gap-2 text-[11px]">
-          <span className="font-mono text-neutral-700">{slug}.ko-host.com</span>
-          <span className={`${badgeBase} bg-green-50 text-green-700`}>
-            ✓ Available
-          </span>
-        </div>
-      );
-    }
-
-    if (avail.status === "taken") {
-      return (
-        <div className="mt-2 flex items-center gap-2 text-[11px]">
-          <span className="font-mono text-neutral-700">{slug}.ko-host.com</span>
-          <span className={`${badgeBase} bg-red-50 text-red-700`}>
-            ✗ Taken
-          </span>
-        </div>
-      );
-    }
-
-    if (avail.status === "invalid") {
-      return (
-        <div className="mt-2 flex items-center gap-2 text-[11px]">
-          <span className="font-mono text-neutral-700">{slug}.ko-host.com</span>
-          <span className={`${badgeBase} bg-amber-50 text-amber-800`}>
-            Invalid
-          </span>
-        </div>
-      );
-    }
-
-    // error
-    return (
-      <div className="mt-2 flex items-center gap-2 text-[11px]">
-        <span className="font-mono text-neutral-700">{slug}.ko-host.com</span>
-        <span className={`${badgeBase} bg-neutral-100 text-neutral-700`}>
-          Couldn’t check
-        </span>
-      </div>
-    );
-  }, [avail.status, normalizedSlug]);
+  const pill = useMemo(() => availabilityPill(avail), [avail]);
 
   return (
     <div className="grid gap-4 lg:grid-cols-[1fr_340px]">
@@ -213,14 +169,18 @@ export function TemplateDraftEditor({
           <div>
             <label className="text-sm font-medium">Site name</label>
 
-            {/* ✅ Live URL preview */}
-            <div className="mt-1 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2">
-              <div className="text-[11px] font-semibold text-neutral-600">
-                Your URL will be:
+            {/* ✅ URL preview + availability pill (same row) */}
+            <div className="mt-1 flex items-center justify-between gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2">
+              <div className="min-w-0">
+                <div className="text-[11px] font-semibold text-neutral-600">
+                  Your URL will be:
+                </div>
+                <div className="mt-0.5 truncate font-mono text-[12px] font-semibold text-neutral-900">
+                  {previewUrl}
+                </div>
               </div>
-              <div className="mt-0.5 break-all font-mono text-[12px] font-semibold text-neutral-900">
-                {previewUrl}
-              </div>
+
+              <div className="shrink-0">{pill}</div>
             </div>
 
             <input
@@ -228,7 +188,6 @@ export function TemplateDraftEditor({
               onChange={(e) => {
                 const cleaned = normalizeSlug(e.target.value);
                 setDraft((d) => ({ ...d, slugSuggestion: cleaned }));
-                // reset check for new value
                 setAvail(cleaned ? { status: "checking" } : { status: "idle" });
                 lastCheckedRef.current = "";
               }}
@@ -243,9 +202,6 @@ export function TemplateDraftEditor({
             <div className="mt-1 text-[11px] text-neutral-500">
               Letters, numbers, and dashes only. No spaces.
             </div>
-
-            {/* ✅ Availability status */}
-            {availabilityRow}
           </div>
         </div>
       </section>
