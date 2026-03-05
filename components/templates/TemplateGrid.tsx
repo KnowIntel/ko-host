@@ -455,7 +455,6 @@ export default function TemplateGrid(props: {
               isFavorite={favorites.includes(t.key)}
               onToggleFavorite={toggleFavorite}
               onPreview={openPreview}
-              setupMins={meta.setupMins}
             />
           );
         })}
