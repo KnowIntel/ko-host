@@ -1,7 +1,17 @@
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 
-function prettyPhone(p?: string | null) {
-  return (p || "").trim();
+function normalizeWebsite(input?: string | null) {
+  const raw = (input || "").trim();
+  if (!raw) return "";
+
+  if (/^https?:\/\//i.test(raw)) return raw;
+  if (/^[a-z0-9.-]+\.[a-z]{2,}(\/.*)?$/i.test(raw)) return `https://${raw}`;
+
+  return raw; // last resort
+}
+
+function normalizePhone(input?: string | null) {
+  return (input || "").trim();
 }
 
 export default async function ContactBlock({
@@ -11,23 +21,30 @@ export default async function ContactBlock({
 }) {
   const sb = getSupabaseAdmin();
 
-  const { data } = await sb
+  // If your table currently only has (email, phone, website), this still works.
+  // If you later add "name", it will start showing automatically.
+  const { data, error } = await sb
     .from("microsite_contact")
-    .select("email, phone, website")
+    .select("name, email, phone, website")
     .eq("microsite_id", micrositeId)
     .maybeSingle();
 
-  if (!data) return null;
+  if (error || !data) return null;
 
-  const email = (data.email || "").trim();
-  const phone = prettyPhone(data.phone);
-  const website = (data.website || "").trim();
+  const name = (data as any).name ? String((data as any).name).trim() : "";
+  const email = String((data as any).email || "").trim();
+  const phone = normalizePhone((data as any).phone);
+  const website = normalizeWebsite((data as any).website);
 
-  if (!email && !phone && !website) return null;
+  if (!name && !email && !phone && !website) return null;
 
   return (
     <section className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-      <div className="text-sm text-neutral-600">Contact</div>
+      <div className="text-sm font-semibold text-neutral-600">Contact</div>
+
+      {name ? (
+        <div className="mt-2 text-sm font-semibold text-neutral-900">{name}</div>
+      ) : null}
 
       <div className="mt-3 grid gap-2">
         {email ? (
@@ -35,7 +52,7 @@ export default async function ContactBlock({
             className="rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm font-semibold text-neutral-900 hover:bg-neutral-50"
             href={`mailto:${email}`}
           >
-            Email: {email}
+            Email: <span className="font-mono font-semibold">{email}</span>
           </a>
         ) : null}
 
@@ -44,7 +61,7 @@ export default async function ContactBlock({
             className="rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm font-semibold text-neutral-900 hover:bg-neutral-50"
             href={`tel:${phone}`}
           >
-            Phone: {phone}
+            Phone: <span className="font-mono font-semibold">{phone}</span>
           </a>
         ) : null}
 
@@ -55,7 +72,7 @@ export default async function ContactBlock({
             target="_blank"
             rel="noreferrer"
           >
-            Website: {website}
+            Website: <span className="font-mono font-semibold">{website}</span>
           </a>
         ) : null}
       </div>

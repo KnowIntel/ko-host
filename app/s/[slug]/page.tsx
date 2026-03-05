@@ -28,6 +28,12 @@ function getDemoTemplateKeyFromSubdomain(subdomain: string): TemplateKey | null 
   return match?.key ?? null;
 }
 
+function titleForSite(site: { title: string | null; slug: string }) {
+  const t = (site.title || "").trim();
+  if (t) return `${t} | Ko-Host`;
+  return `${site.slug}.ko-host.com | Ko-Host`;
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -47,8 +53,27 @@ export async function generateMetadata({
     return { title: `${name} Demo` };
   }
 
-  // For now keep default title for public microsites (we can enhance later)
-  return { title: "Ko-Host" };
+  // Normal microsite pages: use the site title for the browser tab
+  if (!isValidSlug(slug)) return { title: "Ko-Host" };
+
+  const sb = getSupabaseAdmin();
+  const { data: site } = await sb
+    .from("microsites")
+    .select("slug, title, is_published, expires_at, paid_until")
+    .eq("slug", slug)
+    .maybeSingle();
+
+  if (!site) return { title: "Ko-Host" };
+
+  const now = new Date();
+  const isExpired = site.expires_at ? new Date(site.expires_at) <= now : false;
+  const paidActive = site.paid_until ? new Date(site.paid_until) > now : false;
+
+  if (!site.is_published) return { title: "Not Published | Ko-Host" };
+  if (isExpired) return { title: "Expired | Ko-Host" };
+  if (!paidActive) return { title: "Access Ended | Ko-Host" };
+
+  return { title: titleForSite(site) };
 }
 
 export default async function PublicMicrositePage({
@@ -115,6 +140,11 @@ export default async function PublicMicrositePage({
     );
   }
 
+  // -----------------------
+  // Fetch modules content (for rendering + accurate fallback)
+  // -----------------------
+
+  // Polls
   const { data: pollRows } = await sb
     .from("polls")
     .select("id, title, description, is_multi_select, show_results_public, is_open")
@@ -139,7 +169,42 @@ export default async function PublicMicrositePage({
     optionsByPoll.set(o.poll_id, arr);
   }
 
+  // Announcement existence
+  const { data: annRows } = await sb
+    .from("microsite_announcements")
+    .select("id")
+    .eq("microsite_id", site.id)
+    .order("created_at", { ascending: false })
+    .limit(1);
+
+  const hasAnnouncement = !!annRows?.length;
+
+  // Links existence
+  const { data: linkRows } = await sb
+    .from("microsite_links")
+    .select("id")
+    .eq("microsite_id", site.id)
+    .limit(1);
+
+  const hasLinks = !!linkRows?.length;
+
+  // Contact existence (any field filled)
+  const { data: contactRow } = await sb
+    .from("microsite_contact")
+    .select("email, phone, website")
+    .eq("microsite_id", site.id)
+    .maybeSingle();
+
+  const hasContact =
+    !!(contactRow?.email || "").trim() ||
+    !!(contactRow?.phone || "").trim() ||
+    !!(contactRow?.website || "").trim();
+
   const isWedding = site.template_key === "wedding_rsvp";
+
+  // ✅ Accurate fallback: show only if EVERYTHING is empty
+  const shouldShowEmptyFallback =
+    !isWedding && polls.length === 0 && !hasAnnouncement && !hasLinks && !hasContact;
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-10">
@@ -157,12 +222,12 @@ export default async function PublicMicrositePage({
         {/* Wedding-only module */}
         {isWedding ? <RsvpForm micrositeSlug={site.slug} /> : null}
 
-        {/* Universal modules */}
+        {/* Universal usable microsite modules */}
         <AnnouncementBlock micrositeId={site.id} />
         <LinksBlock micrositeId={site.id} />
         <ContactBlock micrositeId={site.id} />
 
-        {/* ✅ Gallery available for ALL templates */}
+        {/* Gallery for all templates */}
         <GalleryBlock micrositeSlug={site.slug} />
 
         {/* Polls */}
@@ -181,11 +246,13 @@ export default async function PublicMicrositePage({
           />
         ))}
 
-        {/* Fallback if literally no modules exist */}
-        {!isWedding && polls.length === 0 ? (
+        {/* Accurate fallback */}
+        {shouldShowEmptyFallback ? (
           <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
             <div className="text-sm text-neutral-600">Modules</div>
-            <div className="mt-2 text-sm text-neutral-700">More modules will be added soon.</div>
+            <div className="mt-2 text-sm text-neutral-700">
+              Add an announcement, links, or contact info to make this microsite useful.
+            </div>
           </div>
         ) : null}
       </div>
