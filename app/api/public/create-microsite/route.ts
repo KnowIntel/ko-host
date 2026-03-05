@@ -8,8 +8,9 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const LinkSchema = z.object({
-  label: z.string().optional().default(""),
-  url: z.string().optional().default(""),
+  id: z.string().min(1),
+  label: z.string().trim().min(1),
+  url: z.string().trim().min(3),
 });
 
 const BodySchema = z.object({
@@ -18,13 +19,22 @@ const BodySchema = z.object({
     title: z.string().min(1),
     slugSuggestion: z.string().min(1),
 
-    // NEW optional fields
-    announcement: z.string().optional().default(""),
+    announcement: z
+      .object({
+        headline: z.string().optional().default(""),
+        body: z.string().optional().default(""),
+      })
+      .optional(),
+
     links: z.array(LinkSchema).optional().default([]),
 
-    contactName: z.string().optional().default(""),
-    contactEmail: z.string().optional().default(""),
-    contactPhone: z.string().optional().default(""),
+    contact: z
+      .object({
+        name: z.string().optional().default(""),
+        email: z.string().optional().default(""),
+        phone: z.string().optional().default(""),
+      })
+      .optional(),
   }),
 });
 
@@ -36,16 +46,6 @@ function normalizeSlug(input: string) {
     .replace(/-+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 40);
-}
-
-function normalizeLinks(input: Array<{ label?: string; url?: string }>) {
-  return (input || [])
-    .map((x) => ({
-      label: (x.label || "").trim(),
-      url: (x.url || "").trim(),
-    }))
-    .filter((x) => x.label || x.url)
-    .slice(0, 20);
 }
 
 export async function POST(req: Request) {
@@ -77,20 +77,16 @@ export async function POST(req: Request) {
   const slug = normalizeSlug(parsed.data.draft.slugSuggestion);
 
   if (!slug || slug.length < 3) {
-    return NextResponse.json(
-      { ok: false, error: "Slug must be at least 3 characters" },
-      { status: 400 }
-    );
+    return NextResponse.json({ ok: false, error: "Slug must be at least 3 characters" }, { status: 400 });
   }
 
-  const announcementText = (parsed.data.draft.announcement || "").trim();
-  const links = normalizeLinks(parsed.data.draft.links || []);
-  const contactName = (parsed.data.draft.contactName || "").trim();
-  const contactEmail = (parsed.data.draft.contactEmail || "").trim();
-  const contactPhone = (parsed.data.draft.contactPhone || "").trim();
+  const announcement = parsed.data.draft.announcement;
+  const links = parsed.data.draft.links ?? [];
+  const contact = parsed.data.draft.contact;
 
   const sb = getSupabaseAdmin();
 
+  // 1) Create microsite
   const { data: site, error: siteErr } = await sb
     .from("microsites")
     .insert({
@@ -100,13 +96,6 @@ export async function POST(req: Request) {
       title,
       status: "draft",
       is_published: false,
-
-      // NEW content fields
-      announcement_text: announcementText || null,
-      links: links.length ? links : null,
-      contact_name: contactName || null,
-      contact_email: contactEmail || null,
-      contact_phone: contactPhone || null,
     })
     .select("id")
     .single();
@@ -114,13 +103,51 @@ export async function POST(req: Request) {
   if (siteErr || !site) {
     const msg = siteErr?.message || "Failed to create microsite";
     if (msg.toLowerCase().includes("duplicate") || msg.toLowerCase().includes("unique")) {
-      return NextResponse.json(
-        { ok: false, error: "That slug is already taken. Try another." },
-        { status: 409 }
-      );
+      return NextResponse.json({ ok: false, error: "That slug is already taken. Try another." }, { status: 409 });
     }
     return NextResponse.json({ ok: false, error: msg }, { status: 500 });
   }
 
-  return NextResponse.json({ ok: true, url: `/api/stripe/checkout?micrositeId=${site.id}` }, { status: 200 });
+  // 2) Save announcement (optional)
+  if ((announcement?.headline || "").trim() || (announcement?.body || "").trim()) {
+    await sb.from("microsite_announcements").upsert({
+      microsite_id: site.id,
+      headline: (announcement?.headline || "").trim(),
+      body: (announcement?.body || "").trim(),
+      updated_at: new Date().toISOString(),
+    });
+  }
+
+  // 3) Save contact (optional)
+  if ((contact?.name || "").trim() || (contact?.email || "").trim() || (contact?.phone || "").trim()) {
+    await sb.from("microsite_contact").upsert({
+      microsite_id: site.id,
+      name: (contact?.name || "").trim(),
+      email: (contact?.email || "").trim(),
+      phone: (contact?.phone || "").trim(),
+      updated_at: new Date().toISOString(),
+    });
+  }
+
+  // 4) Save links (optional)
+  if (links.length) {
+    const rows = links
+      .map((l, idx) => ({
+        microsite_id: site.id,
+        label: l.label.trim(),
+        url: l.url.trim(),
+        sort_order: idx,
+      }))
+      .filter((x) => x.label && x.url);
+
+    if (rows.length) {
+      await sb.from("microsite_links").insert(rows);
+    }
+  }
+
+  // Redirect browser to checkout endpoint
+  return NextResponse.json(
+    { ok: true, url: `/api/stripe/checkout?micrositeId=${site.id}` },
+    { status: 200 }
+  );
 }
