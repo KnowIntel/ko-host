@@ -1,7 +1,6 @@
 // lib/templates/registry.ts
 
 export type TemplateKey =
-  // Existing
   | "baby_shower"
   | "crowdfunding_campaign"
   | "family_reunion"
@@ -14,12 +13,10 @@ export type TemplateKey =
   | "property_listing_rental"
   | "resume_profile"
   | "wedding_rsvp"
-
-  // Previous “new” batch
   | "beta_testing"
   | "business_card"
   | "church_event"
-  | "commercial_leasing" // keep key; thumb now commercialleasingpage
+  | "commercial_leasing"
   | "community_alert"
   | "companion_service"
   | "conference"
@@ -27,13 +24,13 @@ export type TemplateKey =
   | "creator_portfolio"
   | "divorce_announcement"
   | "election_campaign"
-  | "engagement_announcement" // ✅ single “engagement” template
+  | "engagement_announcement"
   | "exploration_guide"
   | "for_sale_by_owner"
   | "nft_drop"
   | "gender_reveal"
   | "graduation"
-  | "group_trip" // ✅ keep key for DB stability, title/thumb updated to “Group Travel”
+  | "group_trip"
   | "hoa_announcement"
   | "investor_pitch"
   | "job_fair"
@@ -42,8 +39,6 @@ export type TemplateKey =
   | "private_discord"
   | "relocation"
   | "service_promo"
-
-  // Added from your newest PNG list (23)
   | "corporate_event"
   | "deal_room"
   | "dedication"
@@ -66,8 +61,6 @@ export type TemplateKey =
   | "vip_access"
   | "webinar"
   | "workshop"
-
-  // ✅ Newly requested templates (big batch)
   | "photo_gallery"
   | "block_party"
   | "surprise_party"
@@ -137,43 +130,44 @@ export type TemplateKey =
   | "lost_found_notice"
   | "pet_missing_alert"
   | "local_classified_ad"
-  | "temporary_project";
+  | "temporary_project"
+  | "focus_group"
+  | "obstacle_race"
+  | "memory_timeline"
+  | "after_grad"
+  | "cancer_journey"
+  | "bible_study"
+  | "chat_room"
+  | "speed_dating"
+  | "weight_loss_journey";
 
-export const TEMPLATE_CATEGORIES = ["Events", "Business", "Real Estate", "Personal", "Career"] as const;
+export const TEMPLATE_CATEGORIES = [
+  "Events",
+  "Business",
+  "Real Estate",
+  "Personal",
+  "Career",
+] as const;
+
 export type TemplateCategory = (typeof TEMPLATE_CATEGORIES)[number];
-
 export type TemplateBadge = "Popular" | "New" | null;
 
 export type TemplateDef = {
-  key: TemplateKey; // MUST match public.templates.template_key
+  key: TemplateKey;
   title: string;
   description: string;
-
-  /**
-   * Filename (WITHOUT extension) in /public/templates/
-   * NOTE: Your assets are now .webp (600x400).
-   * Keep this as the basename only; the UI should append ".webp".
-   */
   thumb: string;
-
   setupMins: number;
-  demoSlug: string; // used for /demo links (subdomain/demo)
-
-  // required (no undefined issues)
+  demoSlug: string;
   category: TemplateCategory;
   badge: TemplateBadge;
   features: string[];
   tags: string[];
-
   defaultDraft: {
     title: string;
     slugSuggestion: string;
   };
 };
-
-// -------------------------
-// Defaults & inference (only here; TemplateGrid stays dumb)
-// -------------------------
 
 const POPULAR_KEYS = new Set<TemplateKey>([
   "wedding_rsvp",
@@ -202,6 +196,10 @@ const NEW_KEYS = new Set<TemplateKey>([
   "startup_demo_day",
   "brand_collaboration",
   "creator_link_hub",
+  "focus_group",
+  "memory_timeline",
+  "chat_room",
+  "speed_dating",
 ]);
 
 function inferBadge(key: TemplateKey): TemplateBadge {
@@ -211,7 +209,6 @@ function inferBadge(key: TemplateKey): TemplateBadge {
 }
 
 function inferCategory(key: TemplateKey): TemplateCategory {
-  // Career heuristics
   if (
     key.includes("portfolio") ||
     key.includes("resume") ||
@@ -221,7 +218,6 @@ function inferCategory(key: TemplateKey): TemplateCategory {
     return "Career";
   }
 
-  // Real estate heuristics
   if (
     key.includes("property") ||
     key.includes("leasing") ||
@@ -234,7 +230,6 @@ function inferCategory(key: TemplateKey): TemplateCategory {
     return "Real Estate";
   }
 
-  // Events heuristics
   const eventish = [
     "wedding",
     "shower",
@@ -265,10 +260,13 @@ function inferCategory(key: TemplateKey): TemplateCategory {
     "meet_and_greet",
     "alumni",
     "block_party",
+    "bible_study",
+    "speed_dating",
+    "obstacle_race",
   ];
+
   if (eventish.some((s) => key.includes(s))) return "Events";
 
-  // Business heuristics
   const businessish = [
     "campaign",
     "promotion",
@@ -294,7 +292,9 @@ function inferCategory(key: TemplateKey): TemplateCategory {
     "secure_document",
     "investor_pitch",
     "business_card",
+    "focus_group",
   ];
+
   if (businessish.some((s) => key.includes(s))) return "Business";
 
   return "Personal";
@@ -312,19 +312,35 @@ function inferFeatures(key: TemplateKey): string[] {
     stock_trade_thesis: ["Thesis", "Catalysts", "Risk notes"],
     community_poll: ["Poll", "Results", "Updates"],
     newsletter_signup: ["Signup", "Benefits", "Links"],
+    focus_group: ["Signup", "Schedule", "Details"],
+    chat_room: ["Thread", "Updates", "Links"],
+    memory_timeline: ["Milestones", "Gallery", "Notes"],
+    cancer_journey: ["Updates", "Resources", "Support links"],
+    weight_loss_journey: ["Milestones", "Progress", "Updates"],
   };
 
   return map[key] ?? ["Announcement", "Links", "Contact"];
 }
 
-function inferTags(input: { key: TemplateKey; category: TemplateCategory; badge: TemplateBadge }): string[] {
+function inferTags(input: {
+  key: TemplateKey;
+  category: TemplateCategory;
+  badge: TemplateBadge;
+}): string[] {
   const tags = new Set<string>();
+
   tags.add(input.category);
 
   if (input.key.includes("waitlist")) tags.add("Waitlist");
   if (input.key.includes("portfolio") || input.key.includes("resume")) tags.add("Portfolio");
-  if (input.key.includes("sale") || input.key.includes("promotion") || input.key.includes("offer"))
+  if (
+    input.key.includes("sale") ||
+    input.key.includes("promotion") ||
+    input.key.includes("offer")
+  ) {
     tags.add("Promotion");
+  }
+
   if (input.badge === "Popular") tags.add("Popular");
   if (input.badge === "New") tags.add("New");
 
@@ -339,7 +355,9 @@ function applyRegistryDefaults(input: TemplateInput): TemplateDef {
   const badge = (input.badge ?? inferBadge(input.key)) as TemplateBadge;
   const features = input.features ?? inferFeatures(input.key);
   const tags =
-    input.tags && input.tags.length ? input.tags : inferTags({ key: input.key, category, badge });
+    input.tags && input.tags.length
+      ? input.tags
+      : inferTags({ key: input.key, category, badge });
 
   return {
     ...input,
@@ -353,19 +371,18 @@ function applyRegistryDefaults(input: TemplateInput): TemplateDef {
 function assertUniqueKeys(defs: { key: string }[]) {
   const seen = new Set<string>();
   const dupes: string[] = [];
+
   for (const d of defs) {
     if (seen.has(d.key)) dupes.push(d.key);
     seen.add(d.key);
   }
-  if (dupes.length) throw new Error(`Duplicate TemplateDef keys: ${dupes.join(", ")}`);
+
+  if (dupes.length) {
+    throw new Error(`Duplicate TemplateDef keys: ${dupes.join(", ")}`);
+  }
 }
 
-// -------------------------
-// Templates (single source of truth)
-// -------------------------
-
 const RAW_TEMPLATE_DEFS: TemplateInput[] = [
-  // Existing
   {
     key: "wedding_rsvp",
     title: "Wedding",
@@ -379,7 +396,6 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     key: "baby_shower",
     title: "Baby Shower",
     description: "Share details. Collect RSVPs.",
-    // ✅ baby.png -> babyshower.png (and now .webp)
     thumb: "babyshower",
     setupMins: 4,
     demoSlug: "baby",
@@ -475,8 +491,6 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "resume",
     defaultDraft: { title: "My Resume", slugSuggestion: "myresume" },
   },
-
-  // Previous “new” batch
   {
     key: "beta_testing",
     title: "Beta Testing",
@@ -711,8 +725,6 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "promo",
     defaultDraft: { title: "Special Offer", slugSuggestion: "promo" },
   },
-
-  // 23 list
   {
     key: "corporate_event",
     title: "Corporate Event",
@@ -911,8 +923,6 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "workshop",
     defaultDraft: { title: "Workshop", slugSuggestion: "workshop" },
   },
-
-  // ✅ Big new batch (kept identical from your provided list)
   {
     key: "photo_gallery",
     title: "Photo Gallery",
@@ -1093,8 +1103,6 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "recital",
     defaultDraft: { title: "Music Recital", slugSuggestion: "musicrecital" },
   },
-
-  // (rest of big batch unchanged)
   {
     key: "limited_time_offer",
     title: "Limited Time Offer",
@@ -1545,6 +1553,97 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "project",
     defaultDraft: { title: "Temporary Project", slugSuggestion: "temporaryproject" },
   },
+
+  {
+    key: "focus_group",
+    title: "Focus Group",
+    description: "Collect signups, share details, and coordinate sessions.",
+    thumb: "focusgroup",
+    setupMins: 2,
+    demoSlug: "focusgroup",
+    category: "Business",
+    defaultDraft: { title: "Focus Group", slugSuggestion: "focusgroup" },
+  },
+  {
+    key: "obstacle_race",
+    title: "Obstacle Race",
+    description: "Share race details, schedule, and signup info.",
+    thumb: "obstaclerace",
+    setupMins: 2,
+    demoSlug: "obstaclerace",
+    category: "Events",
+    defaultDraft: { title: "Obstacle Race", slugSuggestion: "obstaclerace" },
+  },
+  {
+    key: "memory_timeline",
+    title: "Memory Timeline",
+    description: "Tell a story through milestones, photos, and memories.",
+    thumb: "memorytimeline",
+    setupMins: 3,
+    demoSlug: "memorytimeline",
+    category: "Personal",
+    defaultDraft: { title: "Memory Timeline", slugSuggestion: "memorytimeline" },
+  },
+  {
+    key: "after_grad",
+    title: "After Grad",
+    description: "Share next steps, celebration details, and updates after graduation.",
+    thumb: "aftergrad",
+    setupMins: 2,
+    demoSlug: "aftergrad",
+    category: "Personal",
+    defaultDraft: { title: "After Grad", slugSuggestion: "aftergrad" },
+  },
+  {
+    key: "cancer_journey",
+    title: "Cancer Journey",
+    description: "Share updates, milestones, support links, and resources.",
+    thumb: "cancerjourney",
+    setupMins: 3,
+    demoSlug: "cancerjourney",
+    category: "Personal",
+    defaultDraft: { title: "Cancer Journey", slugSuggestion: "cancerjourney" },
+  },
+  {
+    key: "bible_study",
+    title: "Bible Study",
+    description: "Share meeting details, reading plans, and updates.",
+    thumb: "biblestudy",
+    setupMins: 2,
+    demoSlug: "biblestudy",
+    category: "Events",
+    defaultDraft: { title: "Bible Study", slugSuggestion: "biblestudy" },
+  },
+  {
+    key: "chat_room",
+    title: "Chat Room",
+    description: "Create a simple shared space for discussion and updates.",
+    thumb: "chatroom",
+    setupMins: 2,
+    demoSlug: "chatroom",
+    category: "Personal",
+    defaultDraft: { title: "Chat Room", slugSuggestion: "chatroom" },
+  },
+  {
+    key: "speed_dating",
+    title: "Speed Dating",
+    description: "Share time, location, format, and signup details.",
+    thumb: "speeddating",
+    setupMins: 2,
+    demoSlug: "speeddating",
+    category: "Events",
+    defaultDraft: { title: "Speed Dating", slugSuggestion: "speeddating" },
+  },
+  {
+    key: "weight_loss_journey",
+    title: "Weight Loss Journey",
+    description: "Track progress, milestones, updates, and encouragement.",
+    thumb: "weightlossjourney",
+    setupMins: 3,
+    demoSlug: "weightlossjourney",
+    category: "Personal",
+    defaultDraft: { title: "Weight Loss Journey", slugSuggestion: "weightlossjourney" },
+  },
 ];
 
 export const TEMPLATE_DEFS: TemplateDef[] = RAW_TEMPLATE_DEFS.map(applyRegistryDefaults);
@@ -1552,33 +1651,22 @@ assertUniqueKeys(TEMPLATE_DEFS);
 
 export function normalizeTemplateKey(input: string) {
   let s = (input || "").trim().toLowerCase();
+
   try {
     s = decodeURIComponent(s);
   } catch {
     // ignore invalid encodings
   }
+
   return s.replace(/\s+/g, "_").replace(/-/g, "_").replace(/__+/g, "_");
 }
 
-// Backwards-compatible aliases
-const TEMPLATE_KEY_ALIASES: Record<string, TemplateKey> = {
-  party_birthday: "birthday_party",
-  birthday: "birthday_party",
-  resume_profile_temp: "resume_profile",
-
-  // convenience
-  portfolio: "resume_profile",
-  resume: "resume_profile",
-};
-
 export function getTemplateDef(key: string) {
-  const nk = normalizeTemplateKey(key);
-  const aliased = (TEMPLATE_KEY_ALIASES[nk] || nk) as string;
-  return TEMPLATE_DEFS.find((t) => t.key === aliased);
+  const normalized = normalizeTemplateKey(key);
+  return TEMPLATE_DEFS.find((t) => t.key === normalized);
 }
 
 export function isValidTemplateKey(key: string): key is TemplateKey {
-  const nk = normalizeTemplateKey(key);
-  const aliased = (TEMPLATE_KEY_ALIASES[nk] || nk) as string;
-  return TEMPLATE_DEFS.some((t) => t.key === aliased);
+  const normalized = normalizeTemplateKey(key);
+  return TEMPLATE_DEFS.some((t) => t.key === normalized);
 }
