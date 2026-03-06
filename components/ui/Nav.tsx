@@ -3,12 +3,18 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { UserButton, useAuth } from "@clerk/nextjs";
 import { Container } from "@/components/ui/Container";
+import { ButtonLink } from "@/components/ui/ButtonLink";
+import InstallButton from "@/components/pwa/InstallButton";
 
 export function Nav() {
   const pathname = usePathname() || "";
+  const { isSignedIn } = useAuth();
 
   if (pathname === "/s" || pathname.startsWith("/s/")) return null;
+
+  const isTemplatesPage = pathname.startsWith("/templates");
 
   return (
     <header className="border-b border-neutral-200 bg-white">
@@ -39,27 +45,36 @@ export function Nav() {
         </div>
 
         <nav className="relative z-10 flex shrink-0 items-center gap-2">
-          <button
-            type="button"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-neutral-200 bg-white text-sm font-medium text-neutral-900"
-            title="Install"
-          >
-            ↓
-          </button>
+          {!isSignedIn ? (
+            <>
+              {!isTemplatesPage && (
+                <Link
+                  href="/templates"
+                  className="hidden text-sm text-neutral-700 hover:text-neutral-900 sm:inline-flex"
+                >
+                  Templates
+                </Link>
+              )}
 
-          <Link
-            href="/dashboard"
-            className="inline-flex h-9 items-center justify-center rounded-xl border border-neutral-200 bg-white px-3 text-sm font-medium text-neutral-900"
-          >
-            Dashboard
-          </Link>
+              <ButtonLink href="/sign-in" variant="secondary">
+                Sign in
+              </ButtonLink>
 
-          <button
-            type="button"
-            className="inline-flex h-9 items-center justify-center rounded-xl border border-neutral-200 bg-white px-3 text-sm font-medium text-neutral-900"
-          >
-            Profile
-          </button>
+              <ButtonLink href="/templates">Get started</ButtonLink>
+            </>
+          ) : (
+            <>
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-neutral-200 bg-white hover:bg-neutral-50">
+                <InstallButton label="↓" />
+              </div>
+
+              <ButtonLink href="/dashboard" variant="secondary">
+                Dashboard
+              </ButtonLink>
+
+              <UserButton afterSignOutUrl="/" />
+            </>
+          )}
         </nav>
       </Container>
     </header>
