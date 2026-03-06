@@ -3,7 +3,7 @@ import type { TemplateDef } from "@/lib/templates/registry";
 import DemoStickyCta from "./DemoStickyCta";
 
 function thumbToImageUrl(thumb: string) {
-  return `/templates/${thumb}.png`;
+  return `/templates/${thumb}.webp`;
 }
 
 export default function DemoTemplatePage({
@@ -13,14 +13,12 @@ export default function DemoTemplatePage({
   template: TemplateDef;
   originHost: string; // e.g. reunion.ko-host.com
 }) {
-  const demoUrl = `https://${originHost}/demo`;
+  const normalizedHost = (originHost || "").toLowerCase().split(":")[0];
+  const demoUrl = `https://${normalizedHost}/s/demo`;
   const thumbUrl = thumbToImageUrl(template.thumb);
 
-  const tags = (template.tags && template.tags.length ? template.tags : [template.category]).slice(
-    0,
-    4
-  );
-  const features = template.features && template.features.length ? template.features : [];
+  const tags = (template.tags?.length ? template.tags : [template.category]).slice(0, 4);
+  const features = template.features?.length ? template.features : [];
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-10">
@@ -157,7 +155,8 @@ export default function DemoTemplatePage({
             <div>
               <div className="text-sm font-semibold text-neutral-900">Make it yours</div>
               <div className="mt-1 text-sm text-neutral-700">
-                Create your {template.title.toLowerCase()} page, customize it, and publish when ready.
+                Create your {template.title.toLowerCase()} page, customize it, and publish when
+                ready.
               </div>
             </div>
 
