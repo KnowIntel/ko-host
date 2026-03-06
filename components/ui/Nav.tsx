@@ -3,17 +3,12 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import { Container } from "@/components/ui/Container";
-import { ButtonLink } from "@/components/ui/ButtonLink";
-import InstallButton from "@/components/pwa/InstallButton";
 
 export function Nav() {
   const pathname = usePathname() || "";
 
   if (pathname === "/s" || pathname.startsWith("/s/")) return null;
-
-  const isTemplatesPage = pathname.startsWith("/templates");
 
   return (
     <header className="border-b border-neutral-200 bg-white">
@@ -44,38 +39,27 @@ export function Nav() {
         </div>
 
         <nav className="relative z-10 flex shrink-0 items-center gap-2">
-          <SignedOut>
-            {!isTemplatesPage && (
-              <Link
-                href="/templates"
-                className="hidden text-sm text-neutral-700 hover:text-neutral-900 sm:inline-flex"
-              >
-                Templates
-              </Link>
-            )}
+          <button
+            type="button"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-neutral-200 bg-white text-sm font-medium text-neutral-900"
+            title="Install"
+          >
+            ↓
+          </button>
 
-            <ButtonLink href="/sign-in" variant="secondary">
-              Sign in
-            </ButtonLink>
+          <Link
+            href="/dashboard"
+            className="inline-flex h-9 items-center justify-center rounded-xl border border-neutral-200 bg-white px-3 text-sm font-medium text-neutral-900"
+          >
+            Dashboard
+          </Link>
 
-            <ButtonLink href="/templates">Get started</ButtonLink>
-          </SignedOut>
-
-          <SignedIn>
-            <div className="flex items-center gap-2">
-              <div className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-neutral-200 bg-white hover:bg-neutral-50">
-                <InstallButton label="↓" />
-              </div>
-
-              <ButtonLink href="/dashboard" variant="secondary">
-                Dashboard
-              </ButtonLink>
-
-              <div className="flex items-center justify-center">
-                <UserButton />
-              </div>
-            </div>
-          </SignedIn>
+          <button
+            type="button"
+            className="inline-flex h-9 items-center justify-center rounded-xl border border-neutral-200 bg-white px-3 text-sm font-medium text-neutral-900"
+          >
+            Profile
+          </button>
         </nav>
       </Container>
     </header>
