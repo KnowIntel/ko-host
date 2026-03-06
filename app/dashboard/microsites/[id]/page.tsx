@@ -82,7 +82,7 @@ export default async function MicrositeDetailPage({
               {microsite.title || "(Untitled)"}
             </h1>
             <p className="mt-2 text-sm text-neutral-700">
-              Manage this microsite’s access, preview, and submissions.
+              Manage this microsite’s access, preview, submissions, and settings.
             </p>
           </div>
 
@@ -203,6 +203,13 @@ export default async function MicrositeDetailPage({
             className="inline-flex items-center justify-center rounded-xl border border-neutral-200 bg-white px-4 py-2 text-sm font-medium hover:bg-neutral-50"
           >
             View RSVP Submissions
+          </Link>
+
+          <Link
+            href={`/dashboard/microsites/${microsite.id}/settings`}
+            className="inline-flex items-center justify-center rounded-xl border border-neutral-200 bg-white px-4 py-2 text-sm font-medium hover:bg-neutral-50"
+          >
+            Settings
           </Link>
 
           <form action="/api/stripe/checkout" method="POST" className="inline-flex">

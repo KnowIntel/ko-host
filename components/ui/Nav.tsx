@@ -19,7 +19,6 @@ export function Nav() {
   return (
     <header className="border-b border-neutral-200 bg-white">
       <Container className="relative flex h-16 items-center justify-between gap-4">
-        {/* Logo */}
         <Link
           href="/"
           className="relative z-10 flex shrink-0 items-center gap-2 font-semibold tracking-tight"
@@ -34,7 +33,6 @@ export function Nav() {
           />
         </Link>
 
-        {/* Desktop centered slogan */}
         <div className="pointer-events-none absolute inset-0 hidden items-center justify-center md:flex">
           <Image
             src="/SLOGAN BANNER.png"
@@ -46,7 +44,6 @@ export function Nav() {
           />
         </div>
 
-        {/* Right nav */}
         <nav className="relative z-10 flex shrink-0 items-center gap-2">
           {!isSignedIn ? (
             <>
@@ -67,16 +64,12 @@ export function Nav() {
             </>
           ) : (
             <>
-              {/* Mobile only install button */}
               <div className="sm:hidden">
                 <InstallButton label="Install" />
               </div>
 
               <ButtonLink href="/dashboard" variant="secondary">
                 Dashboard
-              </ButtonLink>
-              <ButtonLink href="/dashboard/settings" variant="secondary">
-                Settings
               </ButtonLink>
 
               <UserButton afterSignOutUrl="/" />
