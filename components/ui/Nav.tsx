@@ -16,9 +16,12 @@ export function Nav() {
   const isTemplatesPage = pathname.startsWith("/templates");
 
   return (
-    <header className="border-b border-neutral-200">
-      <Container className="relative flex h-16 items-center justify-between">
-        <Link href="/" className="relative z-10 flex items-center gap-2 font-semibold tracking-tight">
+    <header className="border-b border-neutral-200 bg-white">
+      <Container className="relative flex h-16 items-center justify-between gap-4">
+        <Link
+          href="/"
+          className="relative z-10 flex shrink-0 items-center gap-2 font-semibold tracking-tight"
+        >
           <img
             src="/KH_LOGO.png"
             alt="Ko-Host"
@@ -40,27 +43,38 @@ export function Nav() {
           />
         </div>
 
-        <nav className="relative z-10 flex items-center gap-3">
-          <InstallButton label="Install" />
-
-          {!isTemplatesPage && (
-            <Link href="/templates" className="text-sm text-neutral-700 hover:text-neutral-900">
-              Templates
-            </Link>
-          )}
-
+        <nav className="relative z-10 flex shrink-0 items-center gap-2">
           <SignedOut>
+            {!isTemplatesPage && (
+              <Link
+                href="/templates"
+                className="hidden text-sm text-neutral-700 hover:text-neutral-900 sm:inline-flex"
+              >
+                Templates
+              </Link>
+            )}
+
             <ButtonLink href="/sign-in" variant="secondary">
               Sign in
             </ButtonLink>
+
             <ButtonLink href="/templates">Get started</ButtonLink>
           </SignedOut>
 
           <SignedIn>
-            <ButtonLink href="/dashboard" variant="secondary">
-              Dashboard
-            </ButtonLink>
-            <UserButton />
+            <div className="flex items-center gap-2">
+              <div className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-neutral-200 bg-white hover:bg-neutral-50">
+                <InstallButton label="↓" />
+              </div>
+
+              <ButtonLink href="/dashboard" variant="secondary">
+                Dashboard
+              </ButtonLink>
+
+              <div className="flex items-center justify-center">
+                <UserButton />
+              </div>
+            </div>
           </SignedIn>
         </nav>
       </Container>
