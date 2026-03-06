@@ -20,7 +20,23 @@ function isValidSlug(slug: string) {
   return /^[a-z0-9-]{2,40}$/.test(slug);
 }
 
-function getDemoTemplateKeyFromSubdomain(subdomain: string): TemplateKey | null {
+function getSubdomainFromHost(host: string) {
+  const normalized = (host || "").toLowerCase().split(":")[0];
+
+  // Examples:
+  // reunion.ko-host.com -> reunion
+  // www.ko-host.com -> null
+  // ko-host.com -> null
+  const parts = normalized.split(".");
+  if (parts.length < 3) return null;
+
+  const subdomain = parts[0];
+  if (!subdomain || subdomain === "www") return null;
+
+  return subdomain;
+}
+
+function getDemoTemplateKeyFromSubdomain(subdomain: string | null): TemplateKey | null {
   const s = (subdomain || "").trim().toLowerCase();
   if (!s) return null;
 
@@ -41,11 +57,11 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
 
-  // Demo pages: "<Template> Demo"
+  // Demo pages: /s/demo on any subdomain
   if (slug === "demo") {
     const h = await headers();
     const host = (h.get("host") || "").toLowerCase();
-    const subdomain = host.split(".")[0];
+    const subdomain = getSubdomainFromHost(host);
     const demoKey = getDemoTemplateKeyFromSubdomain(subdomain);
     const def = demoKey ? getTemplateDef(demoKey) : null;
 
@@ -83,11 +99,11 @@ export default async function PublicMicrositePage({
 }) {
   const { slug } = await params;
 
-  // /demo on any subdomain (e.g. reunion.ko-host.com/demo)
+  // /s/demo on any subdomain (e.g. reunion.ko-host.com/s/demo)
   if (slug === "demo") {
     const h = await headers();
-    const host = (h.get("host") || "").toLowerCase(); // e.g. reunion.ko-host.com
-    const subdomain = host.split(".")[0]; // reunion
+    const host = (h.get("host") || "").toLowerCase();
+    const subdomain = getSubdomainFromHost(host);
 
     const demoKey = getDemoTemplateKeyFromSubdomain(subdomain);
     if (!demoKey) return notFound();
@@ -140,10 +156,6 @@ export default async function PublicMicrositePage({
     );
   }
 
-  // -----------------------
-  // Fetch modules content (for rendering + accurate fallback)
-  // -----------------------
-
   // Polls
   const { data: pollRows } = await sb
     .from("polls")
@@ -188,7 +200,7 @@ export default async function PublicMicrositePage({
 
   const hasLinks = !!linkRows?.length;
 
-  // Contact existence (any field filled)
+  // Contact existence
   const { data: contactRow } = await sb
     .from("microsite_contact")
     .select("email, phone, website")
@@ -202,7 +214,6 @@ export default async function PublicMicrositePage({
 
   const isWedding = site.template_key === "wedding_rsvp";
 
-  // ✅ Accurate fallback: show only if EVERYTHING is empty
   const shouldShowEmptyFallback =
     !isWedding && polls.length === 0 && !hasAnnouncement && !hasLinks && !hasContact;
 
@@ -219,18 +230,14 @@ export default async function PublicMicrositePage({
       </div>
 
       <div className="mt-6 grid gap-6">
-        {/* Wedding-only module */}
         {isWedding ? <RsvpForm micrositeSlug={site.slug} /> : null}
 
-        {/* Universal usable microsite modules */}
         <AnnouncementBlock micrositeId={site.id} />
         <LinksBlock micrositeId={site.id} />
         <ContactBlock micrositeId={site.id} />
 
-        {/* Gallery for all templates */}
         <GalleryBlock micrositeSlug={site.slug} />
 
-        {/* Polls */}
         {polls.map((p) => (
           <PollBlock
             key={p.id}
@@ -246,7 +253,6 @@ export default async function PublicMicrositePage({
           />
         ))}
 
-        {/* Accurate fallback */}
         {shouldShowEmptyFallback ? (
           <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
             <div className="text-sm text-neutral-600">Modules</div>

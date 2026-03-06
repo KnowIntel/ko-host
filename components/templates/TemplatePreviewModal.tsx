@@ -11,30 +11,13 @@ export type PreviewMeta = {
 };
 
 function demoUrlForTemplate(template: TemplateDef) {
-  // Primary: always use registry-driven demoSlug
   const demoSlug = (template.demoSlug || "").trim().toLowerCase();
   if (!demoSlug) return "";
 
-  // If we're on production/root domain, point at the wildcard subdomain demo
-  // (Works with: *.ko-host.com)
-  if (typeof window !== "undefined") {
-    const host = window.location.hostname.toLowerCase();
-
-    // If you're already on ko-host.com (or www.ko-host.com), build the real demo URL
-    if (host === "ko-host.com" || host.endsWith(".ko-host.com")) {
-      return `https://${demoSlug}.ko-host.com/demo`;
-    }
-
-    // If you're on a vercel preview domain, wildcard subdomains won't work there.
-    // Still return the intended production demo URL so the behavior is consistent.
-    // (This avoids generating broken URLs like demoSlug.<random>.vercel.app)
-    if (host.endsWith(".vercel.app")) {
-      return `https://${demoSlug}.ko-host.com/demo`;
-    }
-  }
-
-  // Fallback
-  return `https://${demoSlug}.ko-host.com/demo`;
+  // IMPORTANT:
+  // Your demo renderer lives at app/s/[slug]/page.tsx,
+  // so the correct demo path is /s/demo (not /demo).
+  return `https://${demoSlug}.ko-host.com/s/demo`;
 }
 
 export default function TemplatePreviewModal(props: {
