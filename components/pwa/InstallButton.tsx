@@ -16,15 +16,18 @@ export default function InstallButton(props: {
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
   const [installed, setInstalled] = useState(false);
 
-  const canInstall = useMemo(() => !!deferred && !installed, [deferred, installed]);
+  const canInstall = useMemo(() => {
+    return !!deferred && !installed;
+  }, [deferred, installed]);
 
   useEffect(() => {
-    // Detect already-installed (some browsers)
     const isStandalone =
       window.matchMedia?.("(display-mode: standalone)")?.matches ||
-      (window.navigator as any).standalone === true;
+      (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
 
-    if (isStandalone) setInstalled(true);
+    if (isStandalone) {
+      setInstalled(true);
+    }
 
     function onAppInstalled() {
       setInstalled(true);
@@ -32,7 +35,6 @@ export default function InstallButton(props: {
     }
 
     function onBeforeInstallPrompt(e: Event) {
-      // Chrome/Edge/Android
       e.preventDefault();
       setDeferred(e as BeforeInstallPromptEvent);
     }
@@ -48,11 +50,16 @@ export default function InstallButton(props: {
 
   async function doInstall() {
     if (!deferred) return;
+
     await deferred.prompt();
+
     try {
-      await deferred.userChoice;
+      const choice = await deferred.userChoice;
+
+      if (choice.outcome === "accepted") {
+        setInstalled(true);
+      }
     } finally {
-      // Regardless of accepted/dismissed, clear it — browser controls when it returns again
       setDeferred(null);
     }
   }

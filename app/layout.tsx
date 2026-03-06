@@ -6,18 +6,22 @@ import { Nav } from "@/components/ui/Nav";
 
 export const metadata: Metadata = {
   title: "Ko-Host",
-  description: "Temporary microsites powered by structured templates."
+  description: "Temporary microsites powered by structured templates.",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <ClerkProvider>
-      <html lang="en">
-        <body>
+    <html lang="en">
+      <body>
+        <ClerkProvider>
           <Nav />
           {children}
-        </body>
-      </html>
-    </ClerkProvider>
+        </ClerkProvider>
+      </body>
+    </html>
   );
 }
