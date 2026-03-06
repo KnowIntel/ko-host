@@ -6,7 +6,7 @@ import TemplatePreviewModal, { type PreviewMeta } from "./TemplatePreviewModal";
 import { TEMPLATE_DEFS, type TemplateDef } from "@/lib/templates/registry";
 
 function thumbToImageUrl(thumb: string) {
-  return `/templates/${thumb}.png`;
+  return `/templates/${thumb}.webp`;
 }
 
 const CARD = 140;
