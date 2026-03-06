@@ -94,7 +94,7 @@ export default function TemplateCard(props: {
     setupMins,
   } = props;
 
-  const src = thumbnailUrl || "/templates/placeholder.png";
+  const src = thumbnailUrl || "/templates/placeholder.webp";
 
   function trackCreate() {
     markRecentlyViewed(templateKey);
@@ -130,7 +130,13 @@ export default function TemplateCard(props: {
   return (
     <div
       className="group block cursor-pointer select-none"
-      style={{ width: W, maxWidth: W, minWidth: W }}
+      style={{
+        width: W,
+        maxWidth: W,
+        minWidth: W,
+        contentVisibility: "auto",
+        containIntrinsicSize: "180px 220px",
+      }}
       onClick={() => goCreate()}
       role="button"
       tabIndex={0}
@@ -150,7 +156,6 @@ export default function TemplateCard(props: {
         ].join(" ")}
         style={{ width: W, maxWidth: W, minWidth: W }}
       >
-        {/* Media */}
         <div className="relative bg-neutral-100" style={{ width: W, height: H, overflow: "hidden" }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -158,6 +163,7 @@ export default function TemplateCard(props: {
             alt={title}
             draggable={false}
             loading="lazy"
+            decoding="async"
             style={{
               pointerEvents: "none",
               width: W,
@@ -170,16 +176,14 @@ export default function TemplateCard(props: {
 
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-black/0 to-black/0 opacity-70" />
 
-          {/* Price */}
           <div className="pointer-events-none absolute left-2 top-2 z-10">
             <div className="rounded-full bg-white/90 px-2 py-1 text-[10px] font-semibold text-neutral-900 backdrop-blur">
               $12
             </div>
           </div>
 
-          {/* Badge TOP-RIGHT */}
-          {badge ? (
-            <div className="pointer-events-none absolute right-2 top-2 z-20">
+          <div className="absolute right-2 top-2 z-20">
+            {badge ? (
               <div
                 className={[
                   "rounded-full px-2 py-1 text-[10px] font-semibold text-white backdrop-blur",
@@ -188,25 +192,25 @@ export default function TemplateCard(props: {
               >
                 {badge}
               </div>
-            </div>
-          ) : null}
+            ) : null}
+          </div>
 
-          {/* Favorite STAR BOTTOM-RIGHT (image area) */}
-          <button
-            type="button"
-            onClick={toggleFavorite}
-            className="absolute bottom-2 right-2 z-20 inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/90 backdrop-blur shadow-sm hover:bg-white"
-            aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
-            title={isFavorite ? "Favorited" : "Favorite"}
-          >
-            <span className={isFavorite ? "text-amber-500" : "text-neutral-400"}>★</span>
-          </button>
+          <div className="absolute bottom-2 right-2 z-20">
+            <button
+              type="button"
+              onClick={toggleFavorite}
+              className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/90 backdrop-blur shadow-sm hover:bg-white"
+              aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+              title={isFavorite ? "Favorited" : "Favorite"}
+            >
+              <span className={isFavorite ? "text-amber-500" : "text-neutral-400"}>★</span>
+            </button>
+          </div>
         </div>
 
-        {/* Actions row: duration + Preview */}
         <div className="px-2 pt-2" onClick={(e) => e.stopPropagation()}>
           <div className="flex items-center justify-between">
-            <div className="text-[10px] font-semibold text-neutral-600 whitespace-nowrap">
+            <div className="whitespace-nowrap text-[10px] font-semibold text-neutral-600">
               ⚡ {setupMins ?? 3} min
             </div>
 
@@ -220,7 +224,6 @@ export default function TemplateCard(props: {
           </div>
         </div>
 
-        {/* Footer */}
         <div className="px-3 py-2">
           <div
             className="text-[12px] font-semibold tracking-tight text-neutral-900"

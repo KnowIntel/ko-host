@@ -3,7 +3,11 @@
 import { useEffect, useMemo, useState } from "react";
 import TemplateCard from "./TemplateCard";
 import TemplatePreviewModal, { type PreviewMeta } from "./TemplatePreviewModal";
-import { TEMPLATE_DEFS, type TemplateDef } from "@/lib/templates/registry";
+import {
+  TEMPLATE_DEFS,
+  type TemplateDef,
+  type TemplateCategory,
+} from "@/lib/templates/registry";
 
 function thumbToImageUrl(thumb: string) {
   return `/templates/${thumb}.webp`;
@@ -43,20 +47,15 @@ function writeStringArray(key: string, arr: string[]) {
   } catch {}
 }
 
-function safeBadge(badge: any): Badge {
-  if (badge === "Popular" || badge === "New") return badge;
-  return null;
+function getCategoryForTemplate(t: TemplateDef): Exclude<Category, "All" | "Favorites" | "Recently viewed"> {
+  return t.category as TemplateCategory;
 }
 
-function safeMeta(t: TemplateDef): PreviewMeta {
-  const tags = Array.isArray((t as any).tags) ? ((t as any).tags as string[]) : [];
-  const setupMins = typeof (t as any).setupMins === "number" ? (t as any).setupMins : 3;
-  const features = Array.isArray((t as any).features) ? ((t as any).features as string[]) : [];
-
+function metaForTemplate(t: TemplateDef): PreviewMeta {
   return {
-    tags: tags.slice(0, 4),
-    setupMins,
-    features: features.length ? features : ["Gallery", "Links", "Contact"],
+    tags: t.tags ?? [t.category],
+    setupMins: t.setupMins ?? 3,
+    features: t.features ?? ["Announcement", "Links", "Contact"],
   };
 }
 
@@ -72,27 +71,18 @@ export default function TemplateGrid(props: {
     return Array.isArray(TEMPLATE_DEFS) ? TEMPLATE_DEFS : [];
   }, []);
 
-useEffect(() => {
-  const keys = allTemplates.map(t => t.key);
-  const dupes = keys.filter((k, i) => keys.indexOf(k) !== i);
-  if (dupes.length) console.warn("DUPLICATE TEMPLATE KEYS:", dupes);
-}, [allTemplates]);
-  
   const [favorites, setFavorites] = useState<string[]>([]);
   const [recent, setRecent] = useState<string[]>([]);
 
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewTemplate, setPreviewTemplate] = useState<TemplateDef | null>(null);
+  const [previewDescription, setPreviewDescription] = useState("");
   const [previewThumb, setPreviewThumb] = useState("");
   const [previewMeta, setPreviewMeta] = useState<PreviewMeta>({
     tags: [],
     setupMins: 3,
     features: [],
   });
-
-  // layout state
-  const [isDesktop, setIsDesktop] = useState(false);
-  const [isPortrait, setIsPortrait] = useState(true);
 
   useEffect(() => {
     setFavorites(readStringArray("kht:favorites"));
@@ -112,29 +102,6 @@ useEffect(() => {
     };
   }, []);
 
-  useEffect(() => {
-    function compute() {
-      const w = window.innerWidth || 0;
-      setIsDesktop(w >= 1024);
-
-      const mq = window.matchMedia?.("(orientation: portrait)");
-      setIsPortrait(mq ? mq.matches : true);
-    }
-
-    compute();
-
-    const mq = window.matchMedia?.("(orientation: portrait)");
-    const onOrient = () => compute();
-
-    window.addEventListener("resize", compute);
-    mq?.addEventListener?.("change", onOrient);
-
-    return () => {
-      window.removeEventListener("resize", compute);
-      mq?.removeEventListener?.("change", onOrient);
-    };
-  }, []);
-
   function toggleFavorite(key: string) {
     setFavorites((prev) => {
       const next = prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key];
@@ -148,8 +115,9 @@ useEffect(() => {
     if (!t) return;
 
     setPreviewTemplate(t);
+    setPreviewDescription(t.description);
     setPreviewThumb(thumbToImageUrl(t.thumb));
-    setPreviewMeta(safeMeta(t));
+    setPreviewMeta(metaForTemplate(t));
     setPreviewOpen(true);
   }
 
@@ -160,16 +128,14 @@ useEffect(() => {
     recent.forEach((k, idx) => recentOrder.set(k, idx));
 
     const filtered = allTemplates.filter((t) => {
-      // Category filtering (registry-driven)
-      const tCategory = (t as any).category as string | undefined;
-
       if (category === "Favorites") return favorites.includes(t.key);
       if (category === "Recently viewed") return recent.includes(t.key);
-      if (category !== "All") return (tCategory || "Personal") === category;
+      if (category !== "All") return getCategoryForTemplate(t) === category;
 
       if (!q) return true;
 
-      const hay = [t.title || "", t.description || "", t.key || "", tCategory || ""]
+      const catForSearch = getCategoryForTemplate(t);
+      const hay = [t.title || "", t.description || "", t.key || "", catForSearch]
         .join(" ")
         .toLowerCase();
 
@@ -178,8 +144,6 @@ useEffect(() => {
 
     const byTitle = (a: TemplateDef, b: TemplateDef) =>
       (a.title || "").localeCompare(b.title || "", undefined, { sensitivity: "base" });
-
-    const badgeOf = (t: TemplateDef) => safeBadge((t as any).badge);
 
     const badgeRank = (b: Badge, target: "New" | "Popular") =>
       b === target ? 0 : b === null ? 2 : 1;
@@ -199,8 +163,8 @@ useEffect(() => {
 
     if (sort === "New") {
       sorted.sort((a, b) => {
-        const ra = badgeRank(badgeOf(a), "New");
-        const rb = badgeRank(badgeOf(b), "New");
+        const ra = badgeRank(a.badge ?? null, "New");
+        const rb = badgeRank(b.badge ?? null, "New");
         if (ra !== rb) return ra - rb;
         return byTitle(a, b);
       });
@@ -208,8 +172,8 @@ useEffect(() => {
 
     if (sort === "Popular") {
       sorted.sort((a, b) => {
-        const ra = badgeRank(badgeOf(a), "Popular");
-        const rb = badgeRank(badgeOf(b), "Popular");
+        const ra = badgeRank(a.badge ?? null, "Popular");
+        const rb = badgeRank(b.badge ?? null, "Popular");
         if (ra !== rb) return ra - rb;
         return byTitle(a, b);
       });
@@ -222,16 +186,22 @@ useEffect(() => {
     onCountChange?.(filteredTemplates.length);
   }, [filteredTemplates.length, onCountChange]);
 
+  const [isDesktop, setIsDesktop] = useState(false);
+  const [isLandscapeMobile, setIsLandscapeMobile] = useState(false);
+
+  useEffect(() => {
+    function compute() {
+      const w = window.innerWidth || 0;
+      const h = window.innerHeight || 0;
+      setIsDesktop(w >= 1024);
+      setIsLandscapeMobile(w < 1024 && w > h);
+    }
+    compute();
+    window.addEventListener("resize", compute);
+    return () => window.removeEventListener("resize", compute);
+  }, []);
+
   const gridStyle = useMemo(() => {
-    // ✅ Portrait phones: 2 columns fixed
-    const mobilePortraitCols = `repeat(2, ${CARD}px)`;
-
-    // ✅ Landscape phones/tablets: flow dynamically
-    const mobileLandscapeCols = `repeat(auto-fit, ${CARD}px)`;
-
-    // ✅ Desktop: dynamic
-    const desktopCols = `repeat(auto-fit, ${CARD}px)`;
-
     return {
       display: "grid" as const,
       gap: `${GAP}px`,
@@ -239,12 +209,12 @@ useEffect(() => {
       paddingLeft: "12px",
       paddingRight: "12px",
       gridTemplateColumns: isDesktop
-        ? desktopCols
-        : isPortrait
-        ? mobilePortraitCols
-        : mobileLandscapeCols,
+        ? `repeat(auto-fit, ${CARD}px)`
+        : isLandscapeMobile
+        ? `repeat(auto-fit, ${CARD}px)`
+        : `repeat(2, ${CARD}px)`,
     };
-  }, [isDesktop, isPortrait]);
+  }, [isDesktop, isLandscapeMobile]);
 
   return (
     <div className="mt-6 w-full">
@@ -256,11 +226,11 @@ useEffect(() => {
             title={t.title}
             description={t.description}
             thumbnailUrl={thumbToImageUrl(t.thumb)}
-            badge={safeBadge((t as any).badge)}
+            badge={t.badge ?? null}
             isFavorite={favorites.includes(t.key)}
             onToggleFavorite={toggleFavorite}
             onPreview={openPreview}
-            setupMins={typeof (t as any).setupMins === "number" ? (t as any).setupMins : 3}
+            setupMins={t.setupMins ?? 3}
           />
         ))}
       </div>
@@ -269,7 +239,7 @@ useEffect(() => {
         open={previewOpen}
         onClose={() => setPreviewOpen(false)}
         template={previewTemplate}
-        description={previewTemplate?.description || ""}
+        description={previewDescription}
         thumbnailUrl={previewThumb}
         meta={previewMeta}
       />

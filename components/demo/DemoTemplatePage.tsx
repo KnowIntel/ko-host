@@ -11,7 +11,7 @@ export default function DemoTemplatePage({
   originHost,
 }: {
   template: TemplateDef;
-  originHost: string; // e.g. reunion.ko-host.com
+  originHost: string;
 }) {
   const normalizedHost = (originHost || "").toLowerCase().split(":")[0];
   const demoUrl = `https://${normalizedHost}/s/demo`;
@@ -22,7 +22,6 @@ export default function DemoTemplatePage({
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-10">
-      {/* Hero */}
       <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
         <div className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
           <div className="text-sm font-semibold text-neutral-500">Ko-Host Demo</div>
@@ -73,14 +72,21 @@ export default function DemoTemplatePage({
           </div>
         </div>
 
-        {/* Screenshot / Preview */}
-        <div className="overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm">
+        <div
+          className="overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm"
+          style={{
+            contentVisibility: "auto",
+            containIntrinsicSize: "360px 420px",
+          }}
+        >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={thumbUrl}
             alt={`${template.title} preview`}
             className="h-[260px] w-full object-cover"
             draggable={false}
+            loading="lazy"
+            decoding="async"
           />
           <div className="p-5">
             <div className="text-sm font-semibold text-neutral-900">What you’ll get</div>
@@ -103,7 +109,6 @@ export default function DemoTemplatePage({
         </div>
       </div>
 
-      {/* “Looks real” sections */}
       <div className="mt-8 grid gap-6 lg:grid-cols-3">
         <div className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
           <div className="text-sm font-semibold text-neutral-900">Announcement</div>
@@ -148,7 +153,6 @@ export default function DemoTemplatePage({
         </div>
       </div>
 
-      {/* Desktop CTA */}
       <div className="mt-8 hidden md:block">
         <div className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
           <div className="flex items-center justify-between gap-4">
@@ -170,7 +174,6 @@ export default function DemoTemplatePage({
         </div>
       </div>
 
-      {/* Mobile sticky CTA */}
       <DemoStickyCta templateKey={template.key} />
     </main>
   );
