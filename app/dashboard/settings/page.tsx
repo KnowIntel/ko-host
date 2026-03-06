@@ -9,6 +9,8 @@ type MicrositeRow = {
   id: string;
   slug: string;
   title: string | null;
+  is_published: boolean;
+  paid_until: string | null;
 };
 
 export default async function SettingsPage() {
@@ -22,7 +24,7 @@ export default async function SettingsPage() {
 
   const { data, error } = await sb
     .from("microsites")
-    .select("id, slug, title")
+    .select("id, slug, title, is_published, paid_until")
     .eq("owner_clerk_user_id", userId)
     .order("created_at", { ascending: false });
 

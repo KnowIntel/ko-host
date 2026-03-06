@@ -7,23 +7,42 @@ type Microsite = {
   id: string;
   slug: string;
   title: string | null;
+  is_published?: boolean;
+  paid_until?: string | null;
 };
 
 type CardStyle = "qr_only" | "share_card" | "flyer_card";
+
+function isPaidActive(paidUntil?: string | null) {
+  if (!paidUntil) return false;
+  return new Date(paidUntil).getTime() > Date.now();
+}
 
 export default function QRGeneratorClient({
   microsites,
 }: {
   microsites: Microsite[];
 }) {
-  const [selected, setSelected] = useState<string>(microsites[0]?.slug ?? "");
+  const defaultSlug = useMemo(() => {
+    const preferred =
+      microsites.find((m) => m.is_published && isPaidActive(m.paid_until)) ??
+      microsites.find((m) => m.is_published) ??
+      microsites[0];
+
+    return preferred?.slug ?? "";
+  }, [microsites]);
+
+  const [selected, setSelected] = useState<string>(defaultSlug);
   const [cardStyle, setCardStyle] = useState<CardStyle>("share_card");
 
   const selectedMicrosite = useMemo(() => {
     return microsites.find((m) => m.slug === selected) ?? null;
   }, [microsites, selected]);
 
-  const url = selected ? `https://${selected}.ko-host.com` : "";
+  const url =
+    selected && typeof window !== "undefined"
+      ? `${window.location.origin}/s/${selected}`
+      : "";
 
   const title = selectedMicrosite?.title?.trim() || selected || "Microsite";
 
@@ -80,11 +99,20 @@ export default function QRGeneratorClient({
             onChange={(e) => setSelected(e.target.value)}
             className="mt-2 w-full rounded-xl border border-neutral-200 px-3 py-2 text-sm"
           >
-            {microsites.map((m) => (
-              <option key={m.id} value={m.slug}>
-                {m.title || m.slug}
-              </option>
-            ))}
+            {microsites.map((m) => {
+              const active = isPaidActive(m.paid_until);
+              const status = m.is_published
+                ? active
+                  ? "Published"
+                  : "Published / Unpaid"
+                : "Draft";
+
+              return (
+                <option key={m.id} value={m.slug}>
+                  {(m.title || m.slug) + " — " + status}
+                </option>
+              );
+            })}
           </select>
         </div>
 
@@ -187,15 +215,15 @@ export default function QRGeneratorClient({
                   </text>
                   <foreignObject x="330" y="46" width="150" height="150">
                     <div>
-                        <QRCodeSVG
+                      <QRCodeSVG
                         value={url}
                         size={150}
                         bgColor="#ffffff"
                         fgColor="#000000"
                         includeMargin
-                        />
+                      />
                     </div>
-                    </foreignObject>
+                  </foreignObject>
                 </svg>
               </div>
             ) : null}
@@ -246,15 +274,15 @@ export default function QRGeneratorClient({
                   </text>
                   <foreignObject x="170" y="250" width="260" height="260">
                     <div>
-                        <QRCodeSVG
+                      <QRCodeSVG
                         value={url}
                         size={260}
                         bgColor="#ffffff"
                         fgColor="#000000"
                         includeMargin
-                        />
+                      />
                     </div>
-                    </foreignObject>
+                  </foreignObject>
                   <text
                     x="300"
                     y="575"
