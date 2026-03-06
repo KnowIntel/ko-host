@@ -1324,7 +1324,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     key: "temporary_work_portfolio",
     title: "Temporary Work Portfolio",
     description: "Short-term portfolio link for a project or role.",
-    thumb: "temporaryworkportfolio",
+    thumb: "temporaryproject",
     setupMins: 2,
     demoSlug: "tempwork",
     defaultDraft: { title: "Work Portfolio", slugSuggestion: "temporarywork" },
