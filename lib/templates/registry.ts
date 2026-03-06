@@ -19,7 +19,7 @@ export type TemplateKey =
   | "beta_testing"
   | "business_card"
   | "church_event"
-  | "commercial_leasing"
+  | "commercial_leasing" // keep key; thumb now commercialleasingpage
   | "community_alert"
   | "companion_service"
   | "conference"
@@ -27,13 +27,13 @@ export type TemplateKey =
   | "creator_portfolio"
   | "divorce_announcement"
   | "election_campaign"
-  | "engagement_announcement"
+  | "engagement_announcement" // ✅ single “engagement” template
   | "exploration_guide"
   | "for_sale_by_owner"
   | "nft_drop"
   | "gender_reveal"
   | "graduation"
-  | "group_trip"
+  | "group_trip" // ✅ keep key for DB stability, title/thumb updated to “Group Travel”
   | "hoa_announcement"
   | "investor_pitch"
   | "job_fair"
@@ -43,12 +43,11 @@ export type TemplateKey =
   | "relocation"
   | "service_promo"
 
-  // ✅ Added from your newest PNG list (23)
+  // Added from your newest PNG list (23)
   | "corporate_event"
   | "deal_room"
   | "dedication"
   | "disaster_relief"
-  | "engagement" // (separate from engagement_announcement)
   | "hackathon"
   | "landlord_property"
   | "legal_defense"
@@ -66,7 +65,79 @@ export type TemplateKey =
   | "stock_trade_thesis"
   | "vip_access"
   | "webinar"
-  | "workshop";
+  | "workshop"
+
+  // ✅ Newly requested templates (big batch)
+  | "photo_gallery"
+  | "block_party"
+  | "surprise_party"
+  | "celebration_of_life"
+  | "retirement_party"
+  | "holiday_party_invite"
+  | "friendsgiving_event"
+  | "housewarming_party"
+  | "bachelor_party"
+  | "bachelorette_party"
+  | "charity_gala_event"
+  | "alumni_meetup"
+  | "neighborhood_bbq"
+  | "yard_sale"
+  | "sports_team_party"
+  | "bridal_shower"
+  | "baptism_event"
+  | "christening_event"
+  | "cultural_festival_invite"
+  | "music_recital_invite"
+  | "limited_time_offer"
+  | "flash_sale"
+  | "black_friday_promotion"
+  | "new_service_announcement"
+  | "startup_demo_day"
+  | "brand_collaboration"
+  | "influencer_campaign"
+  | "garage_sale"
+  | "marketing_campaign_landing"
+  | "new_store_opening_announcement"
+  | "seasonal_promotion"
+  | "brand_giveaway"
+  | "contest_entry"
+  | "affiliate_campaign"
+  | "referral_program"
+  | "airbnb_vacation_rental"
+  | "land_sale_listing"
+  | "property_auction"
+  | "new_development_preview"
+  | "freelancer_portfolio"
+  | "designer_portfolio"
+  | "developer_portfolio"
+  | "speaker_profile"
+  | "job_candidate_showcase"
+  | "consultant_service"
+  | "temporary_work_portfolio"
+  | "community_announcement"
+  | "neighborhood_alert"
+  | "local_volunteer_signup"
+  | "nonprofit_campaign"
+  | "school_event"
+  | "local_sports_league_signup"
+  | "community_poll"
+  | "public_feedback"
+  | "town_hall_discussion"
+  | "podcast_episode"
+  | "youtube_video_launch"
+  | "creator_link_hub"
+  | "patreon_campaign"
+  | "digital_product_launch"
+  | "course_enrollment"
+  | "live_stream_event"
+  | "book_launch"
+  | "newsletter_signup"
+  | "moving_sale"
+  | "estate_sale_listing"
+  | "lost_found_notice"
+  | "pet_missing_alert"
+  | "local_classified_ad"
+  | "temporary_project";
 
 export const TEMPLATE_CATEGORIES = ["Events", "Business", "Real Estate", "Personal", "Career"] as const;
 export type TemplateCategory = (typeof TEMPLATE_CATEGORIES)[number];
@@ -76,12 +147,12 @@ export type TemplateBadge = "Popular" | "New" | null;
 export type TemplateDef = {
   key: TemplateKey; // MUST match public.templates.template_key
   title: string;
-  description: string; // marketplace description (TemplateGrid uses this directly)
+  description: string;
   thumb: string; // filename (without extension) in /public/templates/
   setupMins: number;
   demoSlug: string; // used for /demo links (subdomain/demo)
 
-  // ✅ registry-driven display fields (required)
+  // required (no undefined issues)
   category: TemplateCategory;
   badge: TemplateBadge;
   features: string[];
@@ -94,7 +165,7 @@ export type TemplateDef = {
 };
 
 // -------------------------
-// Centralized defaults (ONLY HERE; TemplateGrid stays dumb)
+// Defaults & inference (only here; TemplateGrid stays dumb)
 // -------------------------
 
 const POPULAR_KEYS = new Set<TemplateKey>([
@@ -108,6 +179,7 @@ const POPULAR_KEYS = new Set<TemplateKey>([
   "deal_room",
   "secure_document",
   "corporate_event",
+  "photo_gallery",
 ]);
 
 const NEW_KEYS = new Set<TemplateKey>([
@@ -120,6 +192,9 @@ const NEW_KEYS = new Set<TemplateKey>([
   "software_trial",
   "stock_trade_thesis",
   "masterclass",
+  "startup_demo_day",
+  "brand_collaboration",
+  "creator_link_hub",
 ]);
 
 function inferBadge(key: TemplateKey): TemplateBadge {
@@ -129,154 +204,111 @@ function inferBadge(key: TemplateKey): TemplateBadge {
 }
 
 function inferCategory(key: TemplateKey): TemplateCategory {
-  // Events
+  // Career heuristics
   if (
-    key === "wedding_rsvp" ||
-    key === "baby_shower" ||
-    key === "birthday_party" ||
-    key === "family_reunion" ||
-    key === "memorial_tribute" ||
-    key === "open_house" ||
-    key === "church_event" ||
-    key === "conference" ||
-    key === "gender_reveal" ||
-    key === "graduation" ||
-    key === "group_trip" ||
-    key === "engagement_announcement" ||
-    key === "corporate_event" ||
-    key === "dedication" ||
-    key === "engagement" ||
-    key === "hackathon" ||
-    key === "live_entertainment" ||
-    key === "meet_and_greet" ||
-    key === "webinar" ||
-    key === "workshop" ||
-    key === "masterclass"
-  )
-    return "Events";
-
-  // Business
-  if (
-    key === "product_launch" ||
-    key === "product_launch_waitlist" ||
-    key === "crowdfunding_campaign" ||
-    key === "beta_testing" ||
-    key === "business_card" ||
-    key === "community_alert" ||
-    key === "investor_pitch" ||
-    key === "merchant_drop" ||
-    key === "nft_drop" ||
-    key === "private_discord" ||
-    key === "service_promo" ||
-    key === "election_campaign" ||
-    key === "job_fair" ||
-    key === "companion_service" ||
-    key === "deal_room" ||
-    key === "secure_document" ||
-    key === "members_only" ||
-    key === "online_course" ||
-    key === "software_trial" ||
-    key === "stock_trade_thesis" ||
-    key === "vip_access" ||
-    key === "service_ad"
-  )
-    return "Business";
-
-  // Real Estate
-  if (
-    key === "property_listing" ||
-    key === "property_listing_rental" ||
-    key === "commercial_leasing" ||
-    key === "for_sale_by_owner" ||
-    key === "relocation" ||
-    key === "hoa_announcement" ||
-    key === "landlord_property"
-  )
-    return "Real Estate";
-
-  // Career
-  if (
-    key === "resume_profile" ||
-    key === "contractor_portfolio" ||
-    key === "creator_portfolio"
-  )
+    key.includes("portfolio") ||
+    key.includes("resume") ||
+    key.includes("candidate") ||
+    key.includes("speaker_profile")
+  ) {
     return "Career";
+  }
 
-  // Personal
+  // Real estate heuristics
+  if (
+    key.includes("property") ||
+    key.includes("leasing") ||
+    key.includes("rental") ||
+    key.includes("airbnb") ||
+    key.includes("land_sale") ||
+    key.includes("auction") ||
+    key.includes("estate_sale")
+  ) {
+    return "Real Estate";
+  }
+
+  // Events heuristics
+  const eventish = [
+    "wedding",
+    "shower",
+    "party",
+    "reunion",
+    "memorial",
+    "open_house",
+    "church",
+    "conference",
+    "graduation",
+    "group_trip",
+    "hackathon",
+    "webinar",
+    "workshop",
+    "gala",
+    "meetup",
+    "bbq",
+    "festival",
+    "recital",
+    "baptism",
+    "christening",
+    "friendsgiving",
+    "housewarming",
+    "masterclass",
+    "live_stream",
+    "live_entertainment",
+    "corporate_event",
+    "meet_and_greet",
+    "alumni",
+    "block_party",
+  ];
+  if (eventish.some((s) => key.includes(s))) return "Events";
+
+  // Business heuristics
+  const businessish = [
+    "campaign",
+    "promotion",
+    "offer",
+    "sale",
+    "launch",
+    "newsletter",
+    "referral",
+    "affiliate",
+    "giveaway",
+    "contest",
+    "demo_day",
+    "brand_",
+    "influencer",
+    "creator_link_hub",
+    "patreon",
+    "service_ad",
+    "service_promo",
+    "software_trial",
+    "online_course",
+    "course_enrollment",
+    "deal_room",
+    "secure_document",
+    "investor_pitch",
+    "business_card",
+  ];
+  if (businessish.some((s) => key.includes(s))) return "Business";
+
   return "Personal";
 }
 
 function inferFeatures(key: TemplateKey): string[] {
+  // A few “gold” templates get nicer defaults
   const map: Partial<Record<TemplateKey, string[]>> = {
-    // Existing
     wedding_rsvp: ["RSVP", "Gallery", "Polls", "Announcements"],
-    baby_shower: ["Details", "Gallery", "Polls"],
-    birthday_party: ["Details", "Gallery", "Polls"],
-    family_reunion: ["Schedule", "Gallery", "Polls"],
-    memorial_tribute: ["Details", "Gallery"],
-    open_house: ["Details", "Photos", "Contact"],
-    product_launch: ["Hero section", "Links", "Media"],
     product_launch_waitlist: ["Waitlist form", "Email capture"],
-    crowdfunding_campaign: ["Pitch", "Updates", "CTA links"],
+    deal_room: ["Documents", "Links", "Contact"],
+    secure_document: ["Secure links", "Instructions", "Contact"],
     property_listing: ["Photos", "Highlights", "Contact"],
     property_listing_rental: ["Availability", "Requirements", "Contact"],
-    resume_profile: ["Links", "Bio", "Work showcase"],
-
-    // Previous “new” batch
-    beta_testing: ["Signup", "Feedback link", "Updates"],
-    business_card: ["Links", "Contact", "Socials"],
-    church_event: ["Schedule", "Directions", "Updates"],
-    commercial_leasing: ["Photos", "Availability", "Inquiries"],
-    community_alert: ["Announcement", "Links", "Contact"],
-    companion_service: ["Services", "Availability", "Contact"],
-    conference: ["Agenda", "Speakers", "Venue info"],
-    contractor_portfolio: ["Projects", "Services", "Contact"],
-    creator_portfolio: ["Links", "Media", "Highlights"],
-    divorce_announcement: ["Announcement", "FAQ", "Contact"],
-    election_campaign: ["Platform", "Events", "Volunteer CTA"],
-    engagement_announcement: ["Announcement", "Photos", "Details"],
-    exploration_guide: ["Itinerary", "Maps", "Recommendations"],
-    for_sale_by_owner: ["Photos", "Details", "Contact"],
-    nft_drop: ["Mint link", "Roadmap", "Links"],
-    gender_reveal: ["Event details", "RSVP", "Updates"],
-    graduation: ["Event details", "Photos", "Updates"],
-    group_trip: ["Itinerary", "Packing list", "Updates"],
-    hoa_announcement: ["Notice", "Rules", "Updates"],
-    investor_pitch: ["Deck link", "Traction", "Contact"],
-    job_fair: ["Schedule", "Registration", "Location"],
-    merchant_drop: ["Drop details", "Links", "Promo"],
-    pet_adoption: ["Bio", "Photos", "Interest CTA"],
-    private_discord: ["Rules", "Invite link", "Updates"],
-    relocation: ["Timeline", "New info", "Updates"],
-    service_promo: ["Offer", "Pricing", "Contact"],
-
-    // ✅ New 23
-    corporate_event: ["Agenda", "Location", "RSVP"],
-    deal_room: ["Docs", "Links", "Contact"],
-    dedication: ["Details", "Gallery", "Announcements"],
-    disaster_relief: ["Donation links", "Updates", "Resources"],
-    engagement: ["Details", "Photos", "RSVP"],
-    hackathon: ["Schedule", "Rules", "Signup"],
-    landlord_property: ["Property info", "Requests", "Contact"],
-    legal_defense: ["Story", "Donation links", "Updates"],
-    live_entertainment: ["Lineup", "Tickets", "Venue info"],
-    masterclass: ["Overview", "Signup", "Schedule"],
-    meet_and_greet: ["Details", "RSVP", "Location"],
-    members_only: ["Access info", "Links", "Updates"],
-    missing_person: ["Details", "Photos", "Contact"],
-    online_course: ["Lessons", "Resources", "Signup"],
-    school_fundraiser: ["Goal", "Donation links", "Updates"],
-    secure_document: ["Secure links", "Instructions", "Contact"],
-    service_ad: ["Offer", "Pricing", "Contact"],
-    settlement_info: ["Details", "FAQs", "Contact"],
-    software_trial: ["Trial access", "Onboarding", "Support"],
+    photo_gallery: ["Gallery", "Highlights", "Share link"],
     stock_trade_thesis: ["Thesis", "Catalysts", "Risk notes"],
-    vip_access: ["Access details", "Rules", "Contact"],
-    webinar: ["Topic", "Register", "Replay link"],
-    workshop: ["Agenda", "Materials", "Signup"],
+    community_poll: ["Poll", "Results", "Updates"],
+    newsletter_signup: ["Signup", "Benefits", "Links"],
   };
 
-  return map[key] ?? ["Gallery", "Links", "Contact"];
+  return map[key] ?? ["Announcement", "Links", "Contact"];
 }
 
 function inferTags(input: { key: TemplateKey; category: TemplateCategory; badge: TemplateBadge }): string[] {
@@ -285,6 +317,8 @@ function inferTags(input: { key: TemplateKey; category: TemplateCategory; badge:
 
   if (input.key.includes("waitlist")) tags.add("Waitlist");
   if (input.key.includes("portfolio") || input.key.includes("resume")) tags.add("Portfolio");
+  if (input.key.includes("sale") || input.key.includes("promotion") || input.key.includes("offer"))
+    tags.add("Promotion");
   if (input.badge === "Popular") tags.add("Popular");
   if (input.badge === "New") tags.add("New");
 
@@ -299,9 +333,7 @@ function applyRegistryDefaults(input: TemplateInput): TemplateDef {
   const badge = (input.badge ?? inferBadge(input.key)) as TemplateBadge;
   const features = input.features ?? inferFeatures(input.key);
   const tags =
-    input.tags && input.tags.length
-      ? input.tags
-      : inferTags({ key: input.key, category, badge });
+    input.tags && input.tags.length ? input.tags : inferTags({ key: input.key, category, badge });
 
   return {
     ...input,
@@ -319,9 +351,7 @@ function assertUniqueKeys(defs: { key: string }[]) {
     if (seen.has(d.key)) dupes.push(d.key);
     seen.add(d.key);
   }
-  if (dupes.length) {
-    throw new Error(`Duplicate TemplateDef keys: ${dupes.join(", ")}`);
-  }
+  if (dupes.length) throw new Error(`Duplicate TemplateDef keys: ${dupes.join(", ")}`);
 }
 
 // -------------------------
@@ -329,7 +359,7 @@ function assertUniqueKeys(defs: { key: string }[]) {
 // -------------------------
 
 const RAW_TEMPLATE_DEFS: TemplateInput[] = [
-  // Existing templates
+  // Existing
   {
     key: "wedding_rsvp",
     title: "Wedding",
@@ -471,10 +501,10 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     key: "commercial_leasing",
     title: "Commercial Leasing",
     description: "Availability, highlights, inquiries.",
-    thumb: "commerciallease",
+    thumb: "commercialleasingpage", // ✅ updated file name
     setupMins: 4,
-    demoSlug: "lease",
-    defaultDraft: { title: "Commercial Space", slugSuggestion: "commerciallease" },
+    demoSlug: "leasing",
+    defaultDraft: { title: "Commercial Leasing", slugSuggestion: "commercialleasing" },
   },
   {
     key: "community_alert",
@@ -595,12 +625,12 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
   },
   {
     key: "group_trip",
-    title: "Group Trip",
+    title: "Group Travel",
     description: "Itinerary + group updates.",
-    thumb: "grouptrip",
+    thumb: "grouptravel", // ✅ updated file name
     setupMins: 4,
-    demoSlug: "trip",
-    defaultDraft: { title: "Group Trip", slugSuggestion: "grouptrip" },
+    demoSlug: "travel",
+    defaultDraft: { title: "Group Travel", slugSuggestion: "grouptravel" },
   },
   {
     key: "hoa_announcement",
@@ -675,7 +705,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     defaultDraft: { title: "Special Offer", slugSuggestion: "promo" },
   },
 
-  // ✅ New 23 (your PNG list)
+  // 23 list
   {
     key: "corporate_event",
     title: "Corporate Event",
@@ -697,7 +727,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
   {
     key: "dedication",
     title: "Dedication",
-    description: "Celebrate and share dedication details and photos.",
+    description: "Share dedication details and photos.",
     thumb: "dedication",
     setupMins: 3,
     demoSlug: "dedication",
@@ -713,18 +743,9 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     defaultDraft: { title: "Disaster Relief", slugSuggestion: "disasterrelief" },
   },
   {
-    key: "engagement",
-    title: "Engagement",
-    description: "Share the news, details, and photos.",
-    thumb: "engagement",
-    setupMins: 3,
-    demoSlug: "engaged",
-    defaultDraft: { title: "We’re Engaged!", slugSuggestion: "engagement" },
-  },
-  {
     key: "hackathon",
     title: "Hackathon",
-    description: "Schedule, rules, and registration for your hackathon.",
+    description: "Schedule, rules, and registration in one link.",
     thumb: "hackathon",
     setupMins: 4,
     demoSlug: "hackathon",
@@ -841,7 +862,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
   {
     key: "software_trial",
     title: "Software Trial",
-    description: "Give prospects trial access and onboarding steps.",
+    description: "Trial access + onboarding steps in one link.",
     thumb: "softwaretrial",
     setupMins: 3,
     demoSlug: "trial",
@@ -883,6 +904,84 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "workshop",
     defaultDraft: { title: "Workshop", slugSuggestion: "workshop" },
   },
+
+  // ✅ Big new batch (metadata kept consistent)
+  { key: "photo_gallery", title: "Photo Gallery", description: "A clean gallery link to share photos.", thumb: "photogallery", setupMins: 2, demoSlug: "gallery", defaultDraft: { title: "Photo Gallery", slugSuggestion: "photogallery" } },
+  { key: "block_party", title: "Block Party", description: "Invite neighbors, share details, and updates.", thumb: "blockparty", setupMins: 2, demoSlug: "block", defaultDraft: { title: "Block Party", slugSuggestion: "blockparty" } },
+  { key: "surprise_party", title: "Surprise Party", description: "Reveal details, RSVP, and coordination info.", thumb: "surprisepartyreveal", setupMins: 2, demoSlug: "surprise", defaultDraft: { title: "Surprise Party", slugSuggestion: "surpriseparty" } },
+  { key: "celebration_of_life", title: "Celebration of Life", description: "Share details, photos, and announcements respectfully.", thumb: "celebrationoflife", setupMins: 3, demoSlug: "celebration", defaultDraft: { title: "Celebration of Life", slugSuggestion: "celebrationoflife" } },
+  { key: "retirement_party", title: "Retirement Party", description: "Invite guests and share event info in one link.", thumb: "retirementparty", setupMins: 2, demoSlug: "retirement", defaultDraft: { title: "Retirement Party", slugSuggestion: "retirementparty" } },
+  { key: "holiday_party_invite", title: "Holiday Party Invite", description: "Invite, schedule, and RSVP in one page.", thumb: "holidaypartyinvite", setupMins: 2, demoSlug: "holiday", defaultDraft: { title: "Holiday Party", slugSuggestion: "holidayparty" } },
+  { key: "friendsgiving_event", title: "Friendsgiving Event", description: "Invite friends and coordinate details.", thumb: "friendsgivingevent", setupMins: 2, demoSlug: "friendsgiving", defaultDraft: { title: "Friendsgiving", slugSuggestion: "friendsgiving" } },
+  { key: "housewarming_party", title: "Housewarming Party", description: "Invite and share directions in one link.", thumb: "housewarmingparty", setupMins: 2, demoSlug: "housewarming", defaultDraft: { title: "Housewarming", slugSuggestion: "housewarming" } },
+  { key: "bachelor_party", title: "Bachelor Party", description: "Itinerary, location, and group updates.", thumb: "bachelorparty", setupMins: 2, demoSlug: "bachelor", defaultDraft: { title: "Bachelor Party", slugSuggestion: "bachelorparty" } },
+  { key: "bachelorette_party", title: "Bachelorette Party", description: "Itinerary, location, and group updates.", thumb: "bacheloretteparty", setupMins: 2, demoSlug: "bachelorette", defaultDraft: { title: "Bachelorette Party", slugSuggestion: "bacheloretteparty" } },
+  { key: "charity_gala_event", title: "Charity Gala Event", description: "Tickets, venue info, and schedule in one place.", thumb: "charitygalaevent", setupMins: 3, demoSlug: "gala", defaultDraft: { title: "Charity Gala", slugSuggestion: "charitygala" } },
+  { key: "alumni_meetup", title: "Alumni Meetup", description: "Time, location, and RSVP in one link.", thumb: "alumnimeetup", setupMins: 2, demoSlug: "alumni", defaultDraft: { title: "Alumni Meetup", slugSuggestion: "alumnimeetup" } },
+  { key: "neighborhood_bbq", title: "Neighborhood BBQ", description: "Invite neighbors and share details.", thumb: "neighborhoodbbq", setupMins: 2, demoSlug: "bbq", defaultDraft: { title: "Neighborhood BBQ", slugSuggestion: "neighborhoodbbq" } },
+  { key: "yard_sale", title: "Yard Sale", description: "Share date/time, location, and key items.", thumb: "yardsale", setupMins: 2, demoSlug: "yardsale", defaultDraft: { title: "Yard Sale", slugSuggestion: "yardsale" } },
+  { key: "sports_team_party", title: "Sports Team Party", description: "Event details, schedule, and RSVP.", thumb: "sportsteamparty", setupMins: 2, demoSlug: "team", defaultDraft: { title: "Team Party", slugSuggestion: "sportsteamparty" } },
+  { key: "bridal_shower", title: "Bridal Shower", description: "Invite guests, share details, collect RSVPs.", thumb: "bridalshower", setupMins: 2, demoSlug: "bridal", defaultDraft: { title: "Bridal Shower", slugSuggestion: "bridalshower" } },
+  { key: "baptism_event", title: "Baptism Event", description: "Event details, schedule, and updates.", thumb: "baptismevent", setupMins: 2, demoSlug: "baptism", defaultDraft: { title: "Baptism", slugSuggestion: "baptismevent" } },
+  { key: "christening_event", title: "Christening Event", description: "Event details, schedule, and updates.", thumb: "christeningevent", setupMins: 2, demoSlug: "christening", defaultDraft: { title: "Christening", slugSuggestion: "christeningevent" } },
+  { key: "cultural_festival_invite", title: "Cultural Festival Invite", description: "Schedule, location, and RSVP in one page.", thumb: "culturalfestivalinvite", setupMins: 3, demoSlug: "festival", defaultDraft: { title: "Cultural Festival", slugSuggestion: "culturalfestival" } },
+  { key: "music_recital_invite", title: "Music Recital Invite", description: "Time, location, and program details.", thumb: "musicrecitalinvite", setupMins: 2, demoSlug: "recital", defaultDraft: { title: "Music Recital", slugSuggestion: "musicrecital" } },
+
+  { key: "limited_time_offer", title: "Limited Time Offer", description: "Create urgency and drive action fast.", thumb: "limitedtimeofferpage", setupMins: 2, demoSlug: "offer", defaultDraft: { title: "Limited Time Offer", slugSuggestion: "limitedtimeoffer" } },
+  { key: "flash_sale", title: "Flash Sale", description: "A fast, focused sales page with links.", thumb: "flashsalepage", setupMins: 2, demoSlug: "flash", defaultDraft: { title: "Flash Sale", slugSuggestion: "flashsale" } },
+  { key: "black_friday_promotion", title: "Black Friday Promotion", description: "Promote deals with urgency and links.", thumb: "blackfridaypromotion", setupMins: 2, demoSlug: "blackfriday", defaultDraft: { title: "Black Friday", slugSuggestion: "blackfriday" } },
+  { key: "new_service_announcement", title: "New Service Announcement", description: "Announce a service with offer + contact.", thumb: "newserviceannouncement", setupMins: 2, demoSlug: "newservice", defaultDraft: { title: "New Service", slugSuggestion: "newservice" } },
+  { key: "startup_demo_day", title: "Startup Demo Day", description: "Schedule, startups, and registration links.", thumb: "startupdemodaypage", setupMins: 3, demoSlug: "demoday", defaultDraft: { title: "Demo Day", slugSuggestion: "startupdemoday" } },
+  { key: "brand_collaboration", title: "Brand Collaboration", description: "Pitch the collab, share links, and next steps.", thumb: "brandcollaborationpage", setupMins: 3, demoSlug: "collab", defaultDraft: { title: "Brand Collaboration", slugSuggestion: "brandcollaboration" } },
+  { key: "influencer_campaign", title: "Influencer Campaign", description: "Brief, deliverables, and links in one place.", thumb: "influencercampaignpage", setupMins: 3, demoSlug: "influencer", defaultDraft: { title: "Influencer Campaign", slugSuggestion: "influencercampaign" } },
+  { key: "garage_sale", title: "Garage Sale", description: "Share date/time, location, and key items.", thumb: "garagesale", setupMins: 2, demoSlug: "garagesale", defaultDraft: { title: "Garage Sale", slugSuggestion: "garagesale" } },
+  { key: "marketing_campaign_landing", title: "Marketing Campaign Landing", description: "Campaign message, CTA, and links.", thumb: "marketingcampaignlandingpage", setupMins: 3, demoSlug: "marketing", defaultDraft: { title: "Campaign Landing", slugSuggestion: "marketingcampaign" } },
+  { key: "new_store_opening_announcement", title: "New Store Opening", description: "Announce the opening with details and links.", thumb: "newstoreopeningannouncement", setupMins: 2, demoSlug: "opening", defaultDraft: { title: "New Store Opening", slugSuggestion: "newstoreopening" } },
+  { key: "seasonal_promotion", title: "Seasonal Promotion", description: "Seasonal offer page with links and contact.", thumb: "seasonalpromotionpage", setupMins: 2, demoSlug: "seasonal", defaultDraft: { title: "Seasonal Promotion", slugSuggestion: "seasonalpromotion" } },
+  { key: "brand_giveaway", title: "Brand Giveaway", description: "Giveaway details, rules, and entry link.", thumb: "brandgiveawaypage", setupMins: 2, demoSlug: "giveaway", defaultDraft: { title: "Giveaway", slugSuggestion: "brandgiveaway" } },
+  { key: "contest_entry", title: "Contest Entry", description: "Contest info, entry instructions, and links.", thumb: "contestentrypage", setupMins: 2, demoSlug: "contest", defaultDraft: { title: "Contest Entry", slugSuggestion: "contestentry" } },
+  { key: "affiliate_campaign", title: "Affiliate Campaign", description: "Program details, terms, and signup link.", thumb: "affiliatecampaignpage", setupMins: 3, demoSlug: "affiliate", defaultDraft: { title: "Affiliate Program", slugSuggestion: "affiliatecampaign" } },
+  { key: "referral_program", title: "Referral Program", description: "Referral details, rewards, and links.", thumb: "referralprogrampage", setupMins: 2, demoSlug: "referral", defaultDraft: { title: "Referral Program", slugSuggestion: "referralprogram" } },
+
+  { key: "airbnb_vacation_rental", title: "Airbnb Vacation Rental", description: "House rules, directions, and contact for guests.", thumb: "airbnbvacationrental", setupMins: 3, demoSlug: "airbnb", defaultDraft: { title: "Vacation Rental", slugSuggestion: "airbnbvacationrental" } },
+  { key: "land_sale_listing", title: "Land Sale Listing", description: "Listing details, photos, and inquiries.", thumb: "landsalelisting", setupMins: 3, demoSlug: "land", defaultDraft: { title: "Land For Sale", slugSuggestion: "landsale" } },
+  { key: "property_auction", title: "Property Auction", description: "Auction details, date/time, and contact.", thumb: "propertyauctionpage", setupMins: 3, demoSlug: "auction", defaultDraft: { title: "Property Auction", slugSuggestion: "propertyauction" } },
+  { key: "new_development_preview", title: "New Development Preview", description: "Preview highlights, availability, and inquiries.", thumb: "newdevelopmentpreview", setupMins: 4, demoSlug: "development", defaultDraft: { title: "New Development", slugSuggestion: "newdevelopment" } },
+
+  { key: "freelancer_portfolio", title: "Freelancer Portfolio", description: "Showcase work, services, and contact.", thumb: "freelancerportfolio", setupMins: 3, demoSlug: "freelance", defaultDraft: { title: "Freelancer Portfolio", slugSuggestion: "freelancerportfolio" } },
+  { key: "designer_portfolio", title: "Designer Portfolio", description: "A clean portfolio page for designers.", thumb: "designerportfolio", setupMins: 3, demoSlug: "designer", defaultDraft: { title: "Designer Portfolio", slugSuggestion: "designerportfolio" } },
+  { key: "developer_portfolio", title: "Developer Portfolio", description: "Projects, links, and contact in one page.", thumb: "developerportfolio", setupMins: 3, demoSlug: "dev", defaultDraft: { title: "Developer Portfolio", slugSuggestion: "developerportfolio" } },
+  { key: "speaker_profile", title: "Speaker Profile", description: "Bio, topics, and booking contact.", thumb: "speakerprofilepage", setupMins: 2, demoSlug: "speaker", defaultDraft: { title: "Speaker Profile", slugSuggestion: "speakerprofile" } },
+  { key: "job_candidate_showcase", title: "Job Candidate Showcase", description: "A clean, shareable professional profile.", thumb: "jobcandidateshowcase", setupMins: 2, demoSlug: "candidate", defaultDraft: { title: "Candidate Showcase", slugSuggestion: "jobcandidate" } },
+  { key: "consultant_service", title: "Consultant Service", description: "Service overview, pricing, and contact.", thumb: "consultantservicepage", setupMins: 2, demoSlug: "consult", defaultDraft: { title: "Consultant Service", slugSuggestion: "consultantservice" } },
+  { key: "temporary_work_portfolio", title: "Temporary Work Portfolio", description: "Short-term portfolio link for a project or role.", thumb: "temporaryworkportfolio", setupMins: 2, demoSlug: "tempwork", defaultDraft: { title: "Work Portfolio", slugSuggestion: "temporarywork" } },
+
+  { key: "community_announcement", title: "Community Announcement", description: "Post a community update in one place.", thumb: "communityannouncement", setupMins: 2, demoSlug: "community", defaultDraft: { title: "Community Announcement", slugSuggestion: "communityannouncement" } },
+  { key: "neighborhood_alert", title: "Neighborhood Alert", description: "Share urgent neighborhood updates fast.", thumb: "neighborhoodalert", setupMins: 2, demoSlug: "neighborhood", defaultDraft: { title: "Neighborhood Alert", slugSuggestion: "neighborhoodalert" } },
+  { key: "local_volunteer_signup", title: "Local Volunteer Signup", description: "Collect volunteer signups and share details.", thumb: "localvolunteersignup", setupMins: 2, demoSlug: "volunteer", defaultDraft: { title: "Volunteer Signup", slugSuggestion: "localvolunteers" } },
+  { key: "nonprofit_campaign", title: "Nonprofit Campaign", description: "Tell the story, drive action, share updates.", thumb: "nonprofitcampaignpage", setupMins: 3, demoSlug: "nonprofit", defaultDraft: { title: "Nonprofit Campaign", slugSuggestion: "nonprofitcampaign" } },
+  { key: "school_event", title: "School Event", description: "Schedule, details, and updates.", thumb: "schooleventpage", setupMins: 2, demoSlug: "schoolevent", defaultDraft: { title: "School Event", slugSuggestion: "schoolevent" } },
+  { key: "local_sports_league_signup", title: "Local Sports League Signup", description: "Collect signups and share schedule details.", thumb: "localsportsleaguesignup", setupMins: 2, demoSlug: "league", defaultDraft: { title: "League Signup", slugSuggestion: "localsportsleague" } },
+  { key: "community_poll", title: "Community Poll", description: "Collect votes and share results.", thumb: "communitypollpage", setupMins: 2, demoSlug: "poll", defaultDraft: { title: "Community Poll", slugSuggestion: "communitypoll" } },
+  { key: "public_feedback", title: "Public Feedback", description: "Collect feedback fast with links and contact.", thumb: "publicfeedbackpage", setupMins: 2, demoSlug: "feedback", defaultDraft: { title: "Public Feedback", slugSuggestion: "publicfeedback" } },
+  { key: "town_hall_discussion", title: "Town Hall Discussion", description: "Agenda, topics, and how to participate.", thumb: "townhalldiscussionpage", setupMins: 3, demoSlug: "townhall", defaultDraft: { title: "Town Hall", slugSuggestion: "townhall" } },
+
+  { key: "podcast_episode", title: "Podcast Episode", description: "Episode links, notes, and subscribe CTA.", thumb: "podcastepisodepage", setupMins: 2, demoSlug: "podcast", defaultDraft: { title: "Podcast Episode", slugSuggestion: "podcastepisode" } },
+  { key: "youtube_video_launch", title: "YouTube Video Launch", description: "Premiere link, notes, and CTA.", thumb: "youtubevideolaunchpage", setupMins: 2, demoSlug: "youtube", defaultDraft: { title: "Video Launch", slugSuggestion: "youtubevideolaunch" } },
+  { key: "creator_link_hub", title: "Creator Link Hub", description: "One clean page for all your creator links.", thumb: "creatorlinkhub", setupMins: 2, demoSlug: "links", defaultDraft: { title: "My Links", slugSuggestion: "creatorlinkhub" } },
+  { key: "patreon_campaign", title: "Patreon Campaign", description: "Pitch your Patreon and link tiers/content.", thumb: "patreoncampaignpage", setupMins: 2, demoSlug: "patreon", defaultDraft: { title: "Support on Patreon", slugSuggestion: "patreoncampaign" } },
+  { key: "digital_product_launch", title: "Digital Product Launch", description: "Launch page for a digital product with links.", thumb: "digitalproductlaunch", setupMins: 3, demoSlug: "digital", defaultDraft: { title: "Digital Product", slugSuggestion: "digitalproductlaunch" } },
+  { key: "course_enrollment", title: "Course Enrollment", description: "Enrollment info, schedule, and signup link.", thumb: "courseenrollmentpage", setupMins: 3, demoSlug: "enroll", defaultDraft: { title: "Course Enrollment", slugSuggestion: "courseenrollment" } },
+  { key: "live_stream_event", title: "Live Stream Event", description: "Stream link, schedule, and updates.", thumb: "livestreameventpage", setupMins: 2, demoSlug: "stream", defaultDraft: { title: "Live Stream", slugSuggestion: "livestream" } },
+  { key: "book_launch", title: "Book Launch", description: "Book info, links, and launch updates.", thumb: "booklaunchpage", setupMins: 3, demoSlug: "book", defaultDraft: { title: "Book Launch", slugSuggestion: "booklaunch" } },
+  { key: "newsletter_signup", title: "Newsletter Signup", description: "Collect subscribers and share benefits.", thumb: "newslettersignuppage", setupMins: 2, demoSlug: "newsletter", defaultDraft: { title: "Newsletter", slugSuggestion: "newslettersignup" } },
+
+  { key: "moving_sale", title: "Moving Sale", description: "Moving sale details, items, and location.", thumb: "movingsalepage", setupMins: 2, demoSlug: "movingsale", defaultDraft: { title: "Moving Sale", slugSuggestion: "movingsale" } },
+  { key: "estate_sale_listing", title: "Estate Sale Listing", description: "Estate sale details, items, and schedule.", thumb: "estatesalelisting", setupMins: 2, demoSlug: "estatesale", defaultDraft: { title: "Estate Sale", slugSuggestion: "estatesale" } },
+  { key: "lost_found_notice", title: "Lost & Found Notice", description: "Post a lost/found notice with contact info.", thumb: "lostfoundnotice", setupMins: 2, demoSlug: "lostfound", defaultDraft: { title: "Lost & Found", slugSuggestion: "lostfound" } },
+  { key: "pet_missing_alert", title: "Pet Missing Alert", description: "Share pet details, photo, and contact fast.", thumb: "petmissingalert", setupMins: 2, demoSlug: "petmissing", defaultDraft: { title: "Missing Pet", slugSuggestion: "petmissing" } },
+  { key: "local_classified_ad", title: "Local Classified Ad", description: "A clean classified ad with details and contact.", thumb: "localclassifiedad", setupMins: 2, demoSlug: "classified", defaultDraft: { title: "Classified Ad", slugSuggestion: "localclassified" } },
+  { key: "temporary_project", title: "Temporary Project", description: "A short-term project page with updates + links.", thumb: "temporaryprojectpage", setupMins: 2, demoSlug: "project", defaultDraft: { title: "Temporary Project", slugSuggestion: "temporaryproject" } },
 ];
 
 export const TEMPLATE_DEFS: TemplateDef[] = RAW_TEMPLATE_DEFS.map(applyRegistryDefaults);
@@ -898,7 +997,7 @@ export function normalizeTemplateKey(input: string) {
   return s.replace(/\s+/g, "_").replace(/-/g, "_").replace(/__+/g, "_");
 }
 
-// Backwards-compatible aliases for older keys (and any old routes you used)
+// Backwards-compatible aliases
 const TEMPLATE_KEY_ALIASES: Record<string, TemplateKey> = {
   party_birthday: "birthday_party",
   birthday: "birthday_party",
