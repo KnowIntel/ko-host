@@ -4,17 +4,27 @@ import { useMemo, useState } from "react";
 import { useAuth, SignInButton } from "@clerk/nextjs";
 import { usePathname, useSearchParams } from "next/navigation";
 
+type LinkItem = {
+  label: string;
+  url: string;
+};
+
+type Draft = {
+  title: string;
+  slugSuggestion: string;
+  announcement?: {
+    headline: string;
+    body: string;
+  };
+  links?: LinkItem[];
+  contactName?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+};
+
 export default function KoHostItButton(props: {
   templateKey: string;
-  draft: {
-    title: string;
-    slugSuggestion: string;
-    announcement?: string;
-    links?: Array<{ label: string; url: string }>;
-    contactName?: string;
-    contactEmail?: string;
-    contactPhone?: string;
-  };
+  draft: Draft;
 }) {
   const { isSignedIn } = useAuth();
   const [busy, setBusy] = useState(false);
