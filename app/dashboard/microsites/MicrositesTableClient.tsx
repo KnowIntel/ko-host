@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 
 type MicrositeRow = {
   id: string;
@@ -20,24 +20,31 @@ function isPaidActive(paidUntil: string | null) {
   return new Date(paidUntil).getTime() > Date.now();
 }
 
-export default function MicrositesTableClient({ microsites }: { microsites: MicrositeRow[] }) {
+export default function MicrositesTableClient({
+  microsites,
+}: {
+  microsites: MicrositeRow[];
+}) {
+  const router = useRouter();
   const [busyId, setBusyId] = useState<string | null>(null);
   const [favoriteBusyId, setFavoriteBusyId] = useState<string | null>(null);
-  const sp = useSearchParams();
+  const searchParams = useSearchParams();
 
-  const checkout = sp.get("checkout");
-  const checkoutMicrositeId = sp.get("micrositeId") || "";
-  const checkoutSlug = sp.get("slug") || "";
+  const checkout = searchParams.get("checkout");
+  const checkoutMicrositeId = searchParams.get("micrositeId") || "";
+  const checkoutSlug = searchParams.get("slug") || "";
 
   const focusRow = useMemo(() => {
     if (checkoutMicrositeId) {
       const byId = microsites.find((m) => m.id === checkoutMicrositeId);
       if (byId) return byId;
     }
+
     if (checkoutSlug) {
       const bySlug = microsites.find((m) => m.slug === checkoutSlug);
       if (bySlug) return bySlug;
     }
+
     return null;
   }, [checkoutMicrositeId, checkoutSlug, microsites]);
 
@@ -51,17 +58,19 @@ export default function MicrositesTableClient({ microsites }: { microsites: Micr
     let tries = 0;
     const max = 5;
 
-    const t = setInterval(() => {
+    const timer = setInterval(() => {
       tries += 1;
+
       if (tries > max) {
-        clearInterval(t);
+        clearInterval(timer);
         return;
       }
-      window.location.reload();
+
+      router.refresh();
     }, 2000);
 
-    return () => clearInterval(t);
-  }, [checkout, focusRow, focusPaidActive]);
+    return () => clearInterval(timer);
+  }, [checkout, focusRow, focusPaidActive, router]);
 
   useEffect(() => {
     if (checkout !== "success") return;
@@ -79,7 +88,10 @@ export default function MicrositesTableClient({ microsites }: { microsites: Micr
     try {
       setBusyId(m.id);
 
-      const next = typeof publishOverride === "boolean" ? publishOverride : !m.is_published;
+      const next =
+        typeof publishOverride === "boolean"
+          ? publishOverride
+          : !m.is_published;
 
       const res = await fetch(`/api/dashboard/microsites/${m.id}/publish`, {
         method: "POST",
@@ -98,7 +110,7 @@ export default function MicrositesTableClient({ microsites }: { microsites: Micr
         return;
       }
 
-      window.location.reload();
+      router.refresh();
     } finally {
       setBusyId(null);
     }
@@ -114,13 +126,14 @@ export default function MicrositesTableClient({ microsites }: { microsites: Micr
         body: JSON.stringify({ isFavorite: !m.is_favorite }),
       });
 
+      const data = await res.json().catch(() => ({}));
+
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
         alert(data?.error || "Failed to update favorite.");
         return;
       }
 
-      window.location.reload();
+      router.refresh();
     } finally {
       setFavoriteBusyId(null);
     }
@@ -132,7 +145,8 @@ export default function MicrositesTableClient({ microsites }: { microsites: Micr
         <div>
           <h1 className="text-xl font-semibold tracking-tight">Microsites</h1>
           <p className="mt-1 text-sm text-neutral-700">
-            Showing only favorited microsites with active paid access.
+            Showing only microsites that are favorited and have active paid access,
+            whether published or unpublished.
           </p>
         </div>
 
@@ -146,11 +160,13 @@ export default function MicrositesTableClient({ microsites }: { microsites: Micr
 
       {checkout === "success" ? (
         <div className="mt-6 rounded-2xl border border-green-200 bg-green-50 p-4">
-          <div className="text-sm font-semibold text-green-900">Payment successful</div>
+          <div className="text-sm font-semibold text-green-900">
+            Payment successful
+          </div>
 
           {!focusRow ? (
             <div className="mt-1 text-sm text-green-900/80">
-              Returning… If you don’t see your microsite highlighted, refresh once.
+              Refreshing your microsite access status.
             </div>
           ) : !focusPaidActive ? (
             <div className="mt-1 text-sm text-green-900/80">
@@ -185,7 +201,9 @@ export default function MicrositesTableClient({ microsites }: { microsites: Micr
         </div>
       ) : checkout === "cancel" ? (
         <div className="mt-6 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
-          <div className="text-sm font-semibold text-neutral-900">Checkout canceled</div>
+          <div className="text-sm font-semibold text-neutral-900">
+            Checkout canceled
+          </div>
           <div className="mt-1 text-sm text-neutral-700">
             No worries — you can try again anytime from the microsite row.
           </div>
@@ -210,7 +228,7 @@ export default function MicrositesTableClient({ microsites }: { microsites: Micr
             {microsites.length === 0 ? (
               <tr>
                 <td className="px-4 py-4 text-neutral-600" colSpan={7}>
-                  No favorited paid microsites yet.
+                  No microsites match this view yet. A microsite must be favorited and have active paid access to appear here.
                 </td>
               </tr>
             ) : (
@@ -267,10 +285,14 @@ export default function MicrositesTableClient({ microsites }: { microsites: Micr
 
                     <td className="px-4 py-3">
                       <div className="font-mono text-neutral-900">{m.slug}</div>
-                      <div className="mt-1 text-xs font-mono text-neutral-600">{publicUrl}</div>
+                      <div className="mt-1 text-xs font-mono text-neutral-600">
+                        {publicUrl}
+                      </div>
                     </td>
 
-                    <td className="px-4 py-3 font-mono text-neutral-800">{m.template_key}</td>
+                    <td className="px-4 py-3 font-mono text-neutral-800">
+                      {m.template_key}
+                    </td>
 
                     <td className="px-4 py-3">
                       {active ? (

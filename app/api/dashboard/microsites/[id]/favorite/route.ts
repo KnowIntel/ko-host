@@ -12,45 +12,78 @@ const BodySchema = z.object({
 
 export async function POST(
   req: Request,
-  ctx: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const { userId } = await auth();
+
   if (!userId) {
-    return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json(
+      { ok: false, error: "Unauthorized" },
+      { status: 401 }
+    );
   }
 
-  const { id } = await ctx.params;
+  const { id } = await params;
+
   const raw = await req.json().catch(() => null);
   const parsed = BodySchema.safeParse(raw);
 
   if (!parsed.success) {
-    return NextResponse.json({ ok: false, error: "Invalid request" }, { status: 400 });
+    return NextResponse.json(
+      { ok: false, error: "Invalid request body" },
+      { status: 400 }
+    );
   }
 
-  const sb = getSupabaseAdmin();
+  const supabase = getSupabaseAdmin();
 
-  const { data: site, error: siteErr } = await sb
+  const { data: microsite, error: micrositeError } = await supabase
     .from("microsites")
-    .select("id, owner_clerk_user_id")
+    .select("id, owner_clerk_user_id, is_favorite")
     .eq("id", id)
     .maybeSingle();
 
-  if (siteErr || !site) {
-    return NextResponse.json({ ok: false, error: "Microsite not found" }, { status: 404 });
+  if (micrositeError) {
+    return NextResponse.json(
+      { ok: false, error: micrositeError.message },
+      { status: 500 }
+    );
   }
 
-  if (site.owner_clerk_user_id !== userId) {
-    return NextResponse.json({ ok: false, error: "Forbidden" }, { status: 403 });
+  if (!microsite) {
+    return NextResponse.json(
+      { ok: false, error: "Microsite not found" },
+      { status: 404 }
+    );
   }
 
-  const { error: upErr } = await sb
+  if (microsite.owner_clerk_user_id !== userId) {
+    return NextResponse.json(
+      { ok: false, error: "Forbidden" },
+      { status: 403 }
+    );
+  }
+
+  const { data: updated, error: updateError } = await supabase
     .from("microsites")
-    .update({ is_favorite: parsed.data.isFavorite })
-    .eq("id", id);
+    .update({
+      is_favorite: parsed.data.isFavorite,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", id)
+    .eq("owner_clerk_user_id", userId)
+    .select("id, is_favorite")
+    .single();
 
-  if (upErr) {
-    return NextResponse.json({ ok: false, error: upErr.message }, { status: 500 });
+  if (updateError) {
+    return NextResponse.json(
+      { ok: false, error: updateError.message },
+      { status: 500 }
+    );
   }
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({
+    ok: true,
+    microsite: updated,
+  });
 }
