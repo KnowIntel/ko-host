@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import { Container } from "@/components/ui/Container";
@@ -10,16 +11,14 @@ import InstallButton from "@/components/pwa/InstallButton";
 export function Nav() {
   const pathname = usePathname() || "";
 
-  // Hide nav on published microsite pages
   if (pathname === "/s" || pathname.startsWith("/s/")) return null;
 
   const isTemplatesPage = pathname.startsWith("/templates");
 
   return (
     <header className="border-b border-neutral-200">
-      <Container className="flex h-16 items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
+      <Container className="relative flex h-16 items-center justify-between">
+        <Link href="/" className="relative z-10 flex items-center gap-2 font-semibold tracking-tight">
           <img
             src="/KH_LOGO.png"
             alt="Ko-Host"
@@ -30,8 +29,18 @@ export function Nav() {
           />
         </Link>
 
-        <nav className="flex items-center gap-3">
-          {/* Install button (only appears when browser allows it) */}
+        <div className="pointer-events-none absolute inset-0 hidden items-center justify-center md:flex">
+          <Image
+            src="/SLOGAN BANNER.png"
+            alt="Ko-Host slogan"
+            width={420}
+            height={40}
+            className="h-auto max-h-10 w-auto object-contain"
+            priority
+          />
+        </div>
+
+        <nav className="relative z-10 flex items-center gap-3">
           <InstallButton label="Install" />
 
           {!isTemplatesPage && (
