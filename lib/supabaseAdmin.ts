@@ -1,29 +1,29 @@
-// lib/supabaseAdmin.ts
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
-let _admin: SupabaseClient | null = null;
+let adminClient: SupabaseClient | null = null;
 
-function mustGetEnv(name: string): string {
-  const v = process.env[name];
-  if (!v) throw new Error(`Missing env var: ${name}`);
-  return v;
+function getRequiredEnv(name: string): string {
+  const value = process.env[name];
+
+  if (!value) {
+    throw new Error(`Missing env var: ${name}`);
+  }
+
+  return value;
 }
 
-/**
- * Service-role Supabase client. Use ONLY in server code (route handlers, server actions).
- */
 export function getSupabaseAdmin(): SupabaseClient {
-  if (_admin) return _admin;
+  if (adminClient) return adminClient;
 
-  const url = mustGetEnv("NEXT_PUBLIC_SUPABASE_URL");
-  const serviceRole = mustGetEnv("SUPABASE_SERVICE_ROLE_KEY");
+  const url = getRequiredEnv("NEXT_PUBLIC_SUPABASE_URL");
+  const serviceRoleKey = getRequiredEnv("SUPABASE_SERVICE_ROLE_KEY");
 
-  _admin = createClient(url, serviceRole, {
+  adminClient = createClient(url, serviceRoleKey, {
     auth: {
       persistSession: false,
-      autoRefreshToken: false
-    }
+      autoRefreshToken: false,
+    },
   });
 
-  return _admin;
+  return adminClient;
 }
