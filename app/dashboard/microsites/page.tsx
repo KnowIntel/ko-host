@@ -1,4 +1,5 @@
 // app/dashboard/microsites/page.tsx
+
 import { auth } from "@clerk/nextjs/server";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import MicrositesTableClient from "./MicrositesTableClient";
@@ -18,16 +19,29 @@ type MicrositeRow = {
 
 export default async function MicrositesListPage() {
   const { userId } = await auth();
-  if (!userId) return <div className="p-6">Unauthorized</div>;
 
-  const sb = getSupabaseAdmin();
+  if (!userId) {
+    return <div className="p-6">Unauthorized</div>;
+  }
+
+  const supabase = getSupabaseAdmin();
   const nowIso = new Date().toISOString();
 
-  const { data, error } = await sb
+  const { data, error } = await supabase
     .from("microsites")
-    .select("id, slug, title, template_key, is_published, paid_until, created_at, is_favorite")
+    .select(`
+      id,
+      slug,
+      title,
+      template_key,
+      is_published,
+      paid_until,
+      created_at,
+      is_favorite
+    `)
     .eq("owner_clerk_user_id", userId)
     .eq("is_favorite", true)
+    .not("paid_until", "is", null)
     .gt("paid_until", nowIso)
     .order("created_at", { ascending: false });
 
@@ -36,5 +50,7 @@ export default async function MicrositesListPage() {
     return <div className="p-6">Failed to load microsites.</div>;
   }
 
-  return <MicrositesTableClient microsites={(data ?? []) as MicrositeRow[]} />;
+  const microsites: MicrositeRow[] = (data ?? []) as MicrositeRow[];
+
+  return <MicrositesTableClient microsites={microsites} />;
 }
