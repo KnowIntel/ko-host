@@ -157,7 +157,6 @@ export default function TemplateCard(props: {
         style={{ width: W, maxWidth: W, minWidth: W }}
       >
         <div className="relative bg-neutral-100" style={{ width: W, height: H, overflow: "hidden" }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={src}
             alt={title}
@@ -228,7 +227,8 @@ export default function TemplateCard(props: {
           <div
             className="text-[12px] font-semibold tracking-tight text-neutral-900"
             style={{
-              lineHeight: "1.2",
+              lineHeight: "1.35",
+              minHeight: "17px",
               whiteSpace: "nowrap",
               overflow: "hidden",
               textOverflow: "ellipsis",
@@ -241,7 +241,8 @@ export default function TemplateCard(props: {
           <div
             className="mt-1 text-[10px] font-medium text-neutral-500"
             style={{
-              lineHeight: "1.2",
+              lineHeight: "1.3",
+              minHeight: "13px",
               whiteSpace: "nowrap",
               overflow: "hidden",
               textOverflow: "ellipsis",

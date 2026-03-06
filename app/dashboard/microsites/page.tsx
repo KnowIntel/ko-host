@@ -13,6 +13,7 @@ type MicrositeRow = {
   is_published: boolean;
   paid_until: string | null;
   created_at: string;
+  is_favorite: boolean;
 };
 
 export default async function MicrositesListPage() {
@@ -20,11 +21,14 @@ export default async function MicrositesListPage() {
   if (!userId) return <div className="p-6">Unauthorized</div>;
 
   const sb = getSupabaseAdmin();
+  const nowIso = new Date().toISOString();
 
   const { data, error } = await sb
     .from("microsites")
-    .select("id, slug, title, template_key, is_published, paid_until, created_at")
+    .select("id, slug, title, template_key, is_published, paid_until, created_at, is_favorite")
     .eq("owner_clerk_user_id", userId)
+    .eq("is_favorite", true)
+    .gt("paid_until", nowIso)
     .order("created_at", { ascending: false });
 
   if (error) {

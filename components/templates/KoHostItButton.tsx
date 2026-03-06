@@ -1,19 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useAuth, SignInButton } from "@clerk/nextjs";
+import { usePathname, useSearchParams } from "next/navigation";
 
-type Draft = {
-  title: string;
-  slugSuggestion: string;
-  announcement?: { headline: string; body: string };
-  links?: Array<{ id: string; label: string; url: string }>;
-  contact?: { name: string; email: string; phone: string };
-};
-
-export default function KoHostItButton(props: { templateKey: string; draft: Draft }) {
+export default function KoHostItButton(props: {
+  templateKey: string;
+  draft: {
+    title: string;
+    slugSuggestion: string;
+    announcement?: string;
+    links?: Array<{ label: string; url: string }>;
+    contactName?: string;
+    contactEmail?: string;
+    contactPhone?: string;
+  };
+}) {
   const { isSignedIn } = useAuth();
   const [busy, setBusy] = useState(false);
+
+  const pathname = usePathname() || "/templates";
+  const searchParams = useSearchParams();
+
+  const redirectPath = useMemo(() => {
+    const qs = searchParams?.toString();
+    return qs ? `${pathname}?${qs}` : pathname;
+  }, [pathname, searchParams]);
 
   async function startCheckout() {
     try {
@@ -45,7 +57,8 @@ export default function KoHostItButton(props: { templateKey: string; draft: Draf
     return (
       <SignInButton
         mode="modal"
-        forceRedirectUrl={typeof window !== "undefined" ? window.location.href : "/templates"}
+        fallbackRedirectUrl={redirectPath}
+        forceRedirectUrl={redirectPath}
       >
         <button
           type="button"

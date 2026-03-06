@@ -12,6 +12,7 @@ type MicrositeRow = {
   is_published: boolean;
   paid_until: string | null;
   created_at: string;
+  is_favorite: boolean;
 };
 
 function isPaidActive(paidUntil: string | null) {
@@ -21,9 +22,10 @@ function isPaidActive(paidUntil: string | null) {
 
 export default function MicrositesTableClient({ microsites }: { microsites: MicrositeRow[] }) {
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [favoriteBusyId, setFavoriteBusyId] = useState<string | null>(null);
   const sp = useSearchParams();
 
-  const checkout = sp.get("checkout"); // success | cancel | null
+  const checkout = sp.get("checkout");
   const checkoutMicrositeId = sp.get("micrositeId") || "";
   const checkoutSlug = sp.get("slug") || "";
 
@@ -102,17 +104,42 @@ export default function MicrositesTableClient({ microsites }: { microsites: Micr
     }
   }
 
+  async function toggleFavorite(m: MicrositeRow) {
+    try {
+      setFavoriteBusyId(m.id);
+
+      const res = await fetch(`/api/dashboard/microsites/${m.id}/favorite`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ isFavorite: !m.is_favorite }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data?.error || "Failed to update favorite.");
+        return;
+      }
+
+      window.location.reload();
+    } finally {
+      setFavoriteBusyId(null);
+    }
+  }
+
   return (
     <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
       <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-xl font-semibold tracking-tight">Microsites</h1>
           <p className="mt-1 text-sm text-neutral-700">
-            Manage your sites and view submissions. Pay per microsite for 90 days.
+            Showing only favorited microsites with active paid access.
           </p>
         </div>
 
-        <Link href="/dashboard" className="text-sm font-medium text-neutral-900 underline underline-offset-4">
+        <Link
+          href="/dashboard"
+          className="text-sm font-medium text-neutral-900 underline underline-offset-4"
+        >
           Back
         </Link>
       </div>
@@ -133,7 +160,10 @@ export default function MicrositesTableClient({ microsites }: { microsites: Micr
             <div className="mt-1 flex flex-wrap items-center gap-3 text-sm text-green-900/80">
               <div>
                 Access active until{" "}
-                <span className="font-medium">{new Date(focusRow.paid_until as string).toLocaleString()}</span>.
+                <span className="font-medium">
+                  {new Date(focusRow.paid_until as string).toLocaleString()}
+                </span>
+                .
               </div>
 
               {!focusRow.is_published ? (
@@ -166,6 +196,7 @@ export default function MicrositesTableClient({ microsites }: { microsites: Micr
         <table className="w-full text-left text-sm">
           <thead className="bg-neutral-50">
             <tr>
+              <th className="px-4 py-3 font-medium text-neutral-700">Favorite</th>
               <th className="px-4 py-3 font-medium text-neutral-700">Title</th>
               <th className="px-4 py-3 font-medium text-neutral-700">Site</th>
               <th className="px-4 py-3 font-medium text-neutral-700">Template</th>
@@ -178,8 +209,8 @@ export default function MicrositesTableClient({ microsites }: { microsites: Micr
           <tbody>
             {microsites.length === 0 ? (
               <tr>
-                <td className="px-4 py-4 text-neutral-600" colSpan={6}>
-                  No microsites yet.
+                <td className="px-4 py-4 text-neutral-600" colSpan={7}>
+                  No favorited paid microsites yet.
                 </td>
               </tr>
             ) : (
@@ -197,6 +228,21 @@ export default function MicrositesTableClient({ microsites }: { microsites: Micr
                     className="border-t border-neutral-200 align-top"
                     style={isFocused ? { backgroundColor: "#FEF9C3" } : undefined}
                   >
+                    <td className="px-4 py-3">
+                      <button
+                        type="button"
+                        disabled={favoriteBusyId === m.id}
+                        onClick={() => toggleFavorite(m)}
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-neutral-200 bg-white text-base hover:bg-neutral-50 disabled:opacity-50"
+                        aria-label={m.is_favorite ? "Remove favorite" : "Add favorite"}
+                        title={m.is_favorite ? "Favorited" : "Favorite"}
+                      >
+                        <span className={m.is_favorite ? "text-amber-500" : "text-neutral-400"}>
+                          ★
+                        </span>
+                      </button>
+                    </td>
+
                     <td className="px-4 py-3 font-medium text-neutral-900">
                       <Link
                         href={`/dashboard/microsites/${m.id}`}
@@ -206,7 +252,12 @@ export default function MicrositesTableClient({ microsites }: { microsites: Micr
                       </Link>
 
                       <div className="mt-1 text-xs text-neutral-600">
-                        <a className="underline underline-offset-4" href={`/s/${m.slug}`} target="_blank" rel="noreferrer">
+                        <a
+                          className="underline underline-offset-4"
+                          href={`/s/${m.slug}`}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
                           Preview (/s/{m.slug})
                         </a>
                         <span className="mx-2">·</span>
@@ -214,7 +265,6 @@ export default function MicrositesTableClient({ microsites }: { microsites: Micr
                       </div>
                     </td>
 
-                    {/* ✅ renamed column + clearer URL */}
                     <td className="px-4 py-3">
                       <div className="font-mono text-neutral-900">{m.slug}</div>
                       <div className="mt-1 text-xs font-mono text-neutral-600">{publicUrl}</div>
@@ -286,10 +336,6 @@ export default function MicrositesTableClient({ microsites }: { microsites: Micr
                           {busyId === m.id ? "Working..." : m.is_published ? "Unpublish" : "Publish"}
                         </button>
                       </div>
-
-                      {!active && !m.is_published ? (
-                        <div className="mt-2 text-xs text-neutral-600">Pay to unlock publishing.</div>
-                      ) : null}
                     </td>
                   </tr>
                 );
