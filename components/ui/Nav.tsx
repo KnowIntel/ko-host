@@ -75,6 +75,9 @@ export function Nav() {
               <ButtonLink href="/dashboard" variant="secondary">
                 Dashboard
               </ButtonLink>
+              <ButtonLink href="/dashboard/settings" variant="secondary">
+                Settings
+              </ButtonLink>
 
               <UserButton afterSignOutUrl="/" />
             </>
