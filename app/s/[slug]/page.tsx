@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { headers, cookies } from "next/headers";
+import { headers } from "next/headers";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import {
   TEMPLATE_DEFS,
@@ -28,8 +28,6 @@ type SiteRecord = {
   is_published: boolean;
   expires_at: string | null;
   paid_until: string | null;
-  site_visibility?: "public" | "private" | null;
-  private_mode?: "passcode" | "members_only" | null;
 };
 
 function isValidSlug(slug: string) {
@@ -61,15 +59,6 @@ function titleForSite(site: { title: string | null; slug: string }) {
   return `${site.slug}.ko-host.com | Ko-Host`;
 }
 
-function visibilityLabel(
-  visibility?: "public" | "private" | null,
-  privateMode?: "passcode" | "members_only" | null
-) {
-  if (visibility !== "private") return "Public";
-  if (privateMode === "members_only") return "Private · Members-only";
-  return "Private · Passcode";
-}
-
 export async function generateMetadata({
   params,
 }: {
@@ -93,9 +82,7 @@ export async function generateMetadata({
   const sb = getSupabaseAdmin();
   const { data: site } = await sb
     .from("microsites")
-    .select(
-      "slug, title, is_published, expires_at, paid_until, site_visibility, private_mode"
-    )
+    .select("slug, title, is_published, expires_at, paid_until")
     .eq("slug", slug)
     .maybeSingle();
 
@@ -108,13 +95,6 @@ export async function generateMetadata({
   if (!site.is_published) return { title: "Not Published | Ko-Host" };
   if (isExpired) return { title: "Expired | Ko-Host" };
   if (!paidActive) return { title: "Access Ended | Ko-Host" };
-
-  if (site.site_visibility === "private") {
-    if (site.private_mode === "members_only") {
-      return { title: `Private Members Site | ${titleForSite(site)}` };
-    }
-    return { title: `Private Site | ${titleForSite(site)}` };
-  }
 
   return { title: titleForSite(site) };
 }
@@ -146,13 +126,14 @@ export default async function PublicMicrositePage({
 
   const { data: site, error } = await sb
     .from("microsites")
-    .select(
-      "id, slug, title, template_key, is_published, expires_at, paid_until, site_visibility, private_mode"
-    )
+    .select("id, slug, title, template_key, is_published, expires_at, paid_until")
     .eq("slug", slug)
     .maybeSingle();
 
-  if (error || !site) return notFound();
+  if (error || !site) {
+    console.error("public microsite lookup failed", { slug, error });
+    return notFound();
+  }
 
   const typedSite = site as SiteRecord;
 
@@ -182,78 +163,6 @@ export default async function PublicMicrositePage({
         </div>
       </main>
     );
-  }
-
-  const cookieStore = await cookies();
-  const passcodeVerified =
-    cookieStore.get(`kohost_passcode_${typedSite.slug}`)?.value === "verified";
-
-  if (typedSite.site_visibility === "private") {
-    if (typedSite.private_mode === "members_only") {
-      return (
-        <main className="mx-auto max-w-3xl px-4 py-10">
-          <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-            <div className="text-sm text-neutral-600">Ko-Host</div>
-            <h1 className="mt-2 text-2xl font-semibold tracking-tight">
-              This microsite is private
-            </h1>
-            <p className="mt-3 text-sm text-neutral-700">
-              This page is currently set to members-only access.
-            </p>
-            <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-4 text-sm text-neutral-700">
-              Approved-device enforcement is the next backend step. For now, this
-              microsite remains blocked publicly.
-            </div>
-          </div>
-        </main>
-      );
-    }
-
-    if (!passcodeVerified) {
-      return (
-        <main className="mx-auto max-w-3xl px-4 py-10">
-          <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-            <div className="text-sm text-neutral-600">Ko-Host</div>
-            <h1 className="mt-2 text-2xl font-semibold tracking-tight">
-              This microsite is private
-            </h1>
-            <p className="mt-3 text-sm text-neutral-700">
-              This page requires a 6-digit passcode before access is allowed.
-            </p>
-
-            <form
-              action={`/api/public/microsites/${typedSite.slug}/verify-passcode`}
-              method="POST"
-              className="mt-5 space-y-3"
-            >
-              <label className="block">
-                <div className="text-sm font-medium text-neutral-900">Passcode</div>
-                <input
-                  type="password"
-                  name="passcode"
-                  inputMode="numeric"
-                  autoComplete="off"
-                  maxLength={6}
-                  className="mt-1 w-full rounded-xl border px-3 py-2 text-sm"
-                  placeholder="Enter 6-digit code"
-                />
-              </label>
-
-              <button
-                type="submit"
-                className="inline-flex items-center justify-center rounded-xl bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
-              >
-                Enter Site
-              </button>
-            </form>
-
-            <div className="mt-4 text-xs text-neutral-500">
-              Ask the owner for the passcode if you should have access.
-            </div>
-          </div>
-        </main>
-      );
-    }
   }
 
   const { data: pollRows } = await sb
@@ -320,13 +229,8 @@ export default async function PublicMicrositePage({
         <h1 className="mt-2 text-3xl font-semibold tracking-tight">
           {typedSite.title || `${typedSite.slug}.ko-host.com`}
         </h1>
-        <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-neutral-700">
-          <div>
-            Template: <span className="font-mono">{typedSite.template_key}</span>
-          </div>
-          <span className="rounded-full bg-neutral-100 px-2 py-1 text-xs font-medium text-neutral-800">
-            {visibilityLabel(typedSite.site_visibility, typedSite.private_mode)}
-          </span>
+        <div className="mt-2 text-sm text-neutral-700">
+          Template: <span className="font-mono">{typedSite.template_key}</span>
         </div>
       </div>
 
