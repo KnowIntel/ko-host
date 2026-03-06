@@ -17,24 +17,6 @@ function mustGetEnv(name: string) {
   return v;
 }
 
-function getPriceIdForTemplate(templateKey: string): string {
-  const key = (templateKey || "").trim().toLowerCase();
-
-  if (key === "wedding_rsvp" || key === "wedding") return mustGetEnv("STRIPE_PRICE_WEDDING");
-  if (key === "party_birthday" || key === "party" || key === "birthday") return mustGetEnv("STRIPE_PRICE_PARTY");
-  if (key === "baby" || key === "baby_shower") return mustGetEnv("STRIPE_PRICE_BABY");
-  if (key === "reunion" || key === "family_reunion") return mustGetEnv("STRIPE_PRICE_REUNION");
-  if (key === "memorial" || key === "tribute" || key === "memorial_tribute") return mustGetEnv("STRIPE_PRICE_MEMORIAL");
-  if (key === "property" || key === "property_listing") return mustGetEnv("STRIPE_PRICE_PROPERTY");
-  if (key === "open_house" || key === "openhouse") return mustGetEnv("STRIPE_PRICE_OPENHOUSE");
-  if (key === "launch" || key === "product_launch") return mustGetEnv("STRIPE_PRICE_LAUNCH");
-  if (key === "crowd" || key === "crowdfunding" || key === "crowdfunding_campaign") return mustGetEnv("STRIPE_PRICE_CROWD");
-  if (key === "resume" || key === "portfolio" || key === "resume_portfolio")
-    return mustGetEnv("STRIPE_PRICE_RESUME");
-
-  throw new Error(`No Stripe price env mapped for template_key: ${templateKey}`);
-}
-
 async function parseBody(req: Request): Promise<{ micrositeId?: string }> {
   const contentType = req.headers.get("content-type") || "";
 
@@ -51,7 +33,7 @@ async function parseBody(req: Request): Promise<{ micrositeId?: string }> {
   return { micrositeId: json?.micrositeId };
 }
 
-async function handleCheckout(micrositeId: string, req: Request) {
+async function handleCheckout(micrositeId: string) {
   let userId: string;
   try {
     const auth = await requireAuth();
@@ -68,17 +50,16 @@ async function handleCheckout(micrositeId: string, req: Request) {
     .eq("id", micrositeId)
     .maybeSingle();
 
-  if (error || !site) return NextResponse.json({ ok: false, error: "Not found" }, { status: 404 });
-  if (site.owner_clerk_user_id !== userId) return NextResponse.json({ ok: false, error: "Forbidden" }, { status: 403 });
+  if (error || !site) {
+    return NextResponse.json({ ok: false, error: "Not found" }, { status: 404 });
+  }
+
+  if (site.owner_clerk_user_id !== userId) {
+    return NextResponse.json({ ok: false, error: "Forbidden" }, { status: 403 });
+  }
 
   const baseUrl = mustGetEnv("NEXT_PUBLIC_APP_URL");
-
-  let priceId: string;
-  try {
-    priceId = getPriceIdForTemplate(site.template_key);
-  } catch (e: any) {
-    return NextResponse.json({ ok: false, error: e?.message ?? "Template not priced" }, { status: 400 });
-  }
+  const priceId = mustGetEnv("STRIPE_PRICE_ID_MICROSITE");
 
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
@@ -88,12 +69,13 @@ async function handleCheckout(micrositeId: string, req: Request) {
       microsite_id: site.id,
       template_key: site.template_key,
       clerk_user_id: userId,
+      slug: site.slug,
+      title: site.title ?? "",
     },
     success_url: `${baseUrl}/dashboard/microsites?checkout=success&micrositeId=${site.id}`,
     cancel_url: `${baseUrl}/dashboard/microsites?checkout=cancel&micrositeId=${site.id}`,
   });
 
-  // If browser hit this endpoint, redirect.
   if (session.url) {
     return NextResponse.redirect(session.url, { status: 303 });
   }
@@ -105,15 +87,21 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const micrositeId = searchParams.get("micrositeId") || "";
   const parsed = Schema.safeParse({ micrositeId });
-  if (!parsed.success) return NextResponse.json({ ok: false, error: "Invalid request" }, { status: 400 });
 
-  return handleCheckout(parsed.data.micrositeId, req);
+  if (!parsed.success) {
+    return NextResponse.json({ ok: false, error: "Invalid request" }, { status: 400 });
+  }
+
+  return handleCheckout(parsed.data.micrositeId);
 }
 
 export async function POST(req: Request) {
   const raw = await parseBody(req);
   const parsed = Schema.safeParse(raw);
-  if (!parsed.success) return NextResponse.json({ ok: false, error: "Invalid request" }, { status: 400 });
 
-  return handleCheckout(parsed.data.micrositeId, req);
+  if (!parsed.success) {
+    return NextResponse.json({ ok: false, error: "Invalid request" }, { status: 400 });
+  }
+
+  return handleCheckout(parsed.data.micrositeId);
 }
