@@ -17,11 +17,37 @@ type MicrositeRecord = {
   paid_until: string | null;
   created_at: string;
   updated_at?: string | null;
+  site_visibility?: "public" | "private" | null;
+  private_mode?: "passcode" | "members_only" | null;
 };
 
 function isPaidActive(paidUntil: string | null) {
   if (!paidUntil) return false;
   return new Date(paidUntil).getTime() > Date.now();
+}
+
+function formatVisibility(
+  visibility?: "public" | "private" | null,
+  privateMode?: "passcode" | "members_only" | null
+) {
+  if (visibility !== "private") {
+    return {
+      label: "Public",
+      detail: "Anyone with the link can access this microsite.",
+    };
+  }
+
+  if (privateMode === "members_only") {
+    return {
+      label: "Private · Members-only",
+      detail: "Only approved member devices should be allowed to access this microsite.",
+    };
+  }
+
+  return {
+    label: "Private · Passcode",
+    detail: "Visitors must enter the 6-digit passcode to access this microsite.",
+  };
 }
 
 export default async function MicrositeDetailPage({
@@ -49,7 +75,9 @@ export default async function MicrositeDetailPage({
       is_published,
       paid_until,
       created_at,
-      updated_at
+      updated_at,
+      site_visibility,
+      private_mode
     `)
     .eq("id", id)
     .maybeSingle();
@@ -71,6 +99,10 @@ export default async function MicrositeDetailPage({
 
   const active = isPaidActive(microsite.paid_until);
   const publicUrl = `https://${microsite.slug}.ko-host.com`;
+  const visibility = formatVisibility(
+    microsite.site_visibility,
+    microsite.private_mode
+  );
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-10">
@@ -82,7 +114,7 @@ export default async function MicrositeDetailPage({
               {microsite.title || "(Untitled)"}
             </h1>
             <p className="mt-2 text-sm text-neutral-700">
-              Manage this microsite’s access, preview, and submissions.
+              Manage this microsite’s access, privacy, preview, and submissions.
             </p>
           </div>
 
@@ -177,6 +209,20 @@ export default async function MicrositeDetailPage({
               )}
             </div>
           </div>
+
+          <div className="rounded-2xl border border-neutral-200 p-4 md:col-span-2">
+            <div className="text-xs font-medium uppercase tracking-wide text-neutral-500">
+              Site Visibility
+            </div>
+            <div className="mt-2">
+              <span className="rounded-full bg-neutral-100 px-2 py-1 text-xs font-medium text-neutral-800">
+                {visibility.label}
+              </span>
+              <div className="mt-2 text-sm text-neutral-700">
+                {visibility.detail}
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="mt-6 flex flex-wrap gap-3">
@@ -211,13 +257,14 @@ export default async function MicrositeDetailPage({
               type="submit"
               className="inline-flex items-center justify-center rounded-xl bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
             >
-              Pay $12 (90 days)
+              {active ? "Extend 90 days" : "Pay $12 (90 days)"}
             </button>
           </form>
         </div>
 
         <div className="mt-6 rounded-2xl border border-neutral-200 bg-neutral-50 p-4 text-sm text-neutral-700">
           Publish and unpublish are currently managed from the main microsites table.
+          Privacy settings are now stored during creation. Editing privacy from this manager is the next backend step.
         </div>
       </div>
     </main>

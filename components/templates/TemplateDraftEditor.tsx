@@ -3,9 +3,16 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import KoHostItButton from "./KoHostItButton";
 
+type SiteVisibility = "public" | "private";
+type PrivateMode = "passcode" | "members_only";
+
 type Draft = {
   title: string;
   slugSuggestion: string;
+
+  siteVisibility: SiteVisibility;
+  privateMode?: PrivateMode;
+  passcode?: string;
 
   announcement?: {
     headline: string;
@@ -35,6 +42,10 @@ function normalizeSlug(input: string) {
     .replace(/^-|-$/g, "");
 }
 
+function normalizePasscode(input: string) {
+  return input.replace(/\D/g, "").slice(0, 6);
+}
+
 type AvailabilityState =
   | { status: "idle" }
   | { status: "checking" }
@@ -61,6 +72,9 @@ export function TemplateDraftEditor({
   const [draft, setDraft] = useState<Draft>(() => ({
     title: defaultDraft.title,
     slugSuggestion: defaultDraft.slugSuggestion,
+    siteVisibility: "public",
+    privateMode: "passcode",
+    passcode: "",
     announcement: { headline: "", body: "" },
     links: [],
     contact: { name: "", email: "", phone: "" },
@@ -77,8 +91,18 @@ export function TemplateDraftEditor({
         setDraft((prev) => ({
           ...prev,
           ...parsed,
+          siteVisibility:
+            parsed?.siteVisibility === "private" ? "private" : "public",
+          privateMode:
+            parsed?.privateMode === "members_only"
+              ? "members_only"
+              : "passcode",
+          passcode: normalizePasscode(parsed?.passcode ?? ""),
           announcement: {
-            headline: parsed?.announcement?.headline ?? prev.announcement?.headline ?? "",
+            headline:
+              parsed?.announcement?.headline ??
+              prev.announcement?.headline ??
+              "",
             body: parsed?.announcement?.body ?? prev.announcement?.body ?? "",
           },
           links: Array.isArray(parsed?.links) ? parsed.links : prev.links ?? [],
@@ -106,7 +130,6 @@ export function TemplateDraftEditor({
     return `https://${slug}.ko-host.com`;
   }, [normalizedSlug]);
 
-  // live slug availability check (debounced)
   useEffect(() => {
     const slug = normalizedSlug;
 
@@ -117,6 +140,7 @@ export function TemplateDraftEditor({
       lastCheckedRef.current = "";
       return;
     }
+
     if (slug.length < 2 || slug.length > 40 || !/^[a-z0-9-]+$/.test(slug)) {
       setAvail({ status: "invalid" });
       lastCheckedRef.current = "";
@@ -127,14 +151,20 @@ export function TemplateDraftEditor({
 
     const t = window.setTimeout(async () => {
       try {
-        const res = await fetch(`/api/microsites/check-slug?slug=${encodeURIComponent(slug)}`, {
-          method: "GET",
-          cache: "no-store",
-        });
+        const res = await fetch(
+          `/api/microsites/check-slug?slug=${encodeURIComponent(slug)}`,
+          {
+            method: "GET",
+            cache: "no-store",
+          }
+        );
         const data = await res.json().catch(() => ({}));
 
         if (!res.ok) {
-          setAvail({ status: "error", message: data?.error || "Could not check availability." });
+          setAvail({
+            status: "error",
+            message: data?.error || "Could not check availability.",
+          });
           return;
         }
 
@@ -152,29 +182,49 @@ export function TemplateDraftEditor({
   }, [normalizedSlug]);
 
   const availabilityBadge = useMemo(() => {
-    const slug = normalizedSlug || "your-page";
-    const badgeBase = "inline-flex items-center rounded-full px-2 py-1 text-[11px] font-semibold";
+    const badgeBase =
+      "inline-flex items-center rounded-full px-2 py-1 text-[11px] font-semibold";
 
     if (avail.status === "idle") return null;
 
     if (avail.status === "checking") {
       return (
-        <span className={`${badgeBase} bg-neutral-100 text-neutral-700`}>Checking…</span>
+        <span className={`${badgeBase} bg-neutral-100 text-neutral-700`}>
+          Checking…
+        </span>
       );
     }
+
     if (avail.status === "available") {
-      return <span className={`${badgeBase} bg-green-50 text-green-700`}>✓ Available</span>;
+      return (
+        <span className={`${badgeBase} bg-green-50 text-green-700`}>
+          ✓ Available
+        </span>
+      );
     }
+
     if (avail.status === "taken") {
-      return <span className={`${badgeBase} bg-red-50 text-red-700`}>✗ Taken</span>;
+      return (
+        <span className={`${badgeBase} bg-red-50 text-red-700`}>
+          ✗ Taken
+        </span>
+      );
     }
+
     if (avail.status === "invalid") {
-      return <span className={`${badgeBase} bg-amber-50 text-amber-800`}>Invalid</span>;
+      return (
+        <span className={`${badgeBase} bg-amber-50 text-amber-800`}>
+          Invalid
+        </span>
+      );
     }
+
     return (
-      <span className={`${badgeBase} bg-neutral-100 text-neutral-700`}>Couldn’t check</span>
+      <span className={`${badgeBase} bg-neutral-100 text-neutral-700`}>
+        Couldn’t check
+      </span>
     );
-  }, [avail.status, normalizedSlug]);
+  }, [avail.status]);
 
   function addLink() {
     setDraft((d) => ({
@@ -208,6 +258,12 @@ export function TemplateDraftEditor({
     });
   }
 
+  const passcodeInvalid =
+    draft.siteVisibility === "private" &&
+    draft.privateMode === "passcode" &&
+    !!draft.passcode &&
+    draft.passcode.length !== 6;
+
   return (
     <div className="grid gap-4 lg:grid-cols-[1fr_340px]">
       <section className="rounded-2xl border bg-white p-5 shadow-sm">
@@ -219,7 +275,6 @@ export function TemplateDraftEditor({
         </div>
 
         <div className="space-y-6">
-          {/* Basics */}
           <div className="space-y-4">
             <div>
               <label className="text-sm font-medium">Page title</label>
@@ -234,15 +289,18 @@ export function TemplateDraftEditor({
             <div>
               <label className="text-sm font-medium">Site name</label>
 
-              {/* URL preview with badge to the right */}
               <div className="mt-1 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2">
-                <div className="text-[11px] font-semibold text-neutral-600">Your URL will be:</div>
+                <div className="text-[11px] font-semibold text-neutral-600">
+                  Your URL will be:
+                </div>
 
                 <div className="mt-0.5 flex items-center justify-between gap-2">
                   <div className="break-all font-mono text-[12px] font-semibold text-neutral-900">
                     {previewUrl}
                   </div>
-                  {availabilityBadge ? <div className="shrink-0">{availabilityBadge}</div> : null}
+                  {availabilityBadge ? (
+                    <div className="shrink-0">{availabilityBadge}</div>
+                  ) : null}
                 </div>
               </div>
 
@@ -268,22 +326,171 @@ export function TemplateDraftEditor({
             </div>
           </div>
 
-          {/* Owner editor */}
+          <div className="rounded-2xl border border-neutral-200 bg-white p-4">
+            <div className="text-sm font-semibold text-neutral-900">
+              Site visibility
+            </div>
+            <div className="mt-1 text-xs text-neutral-500">
+              Public sites open instantly. Private sites require controlled access.
+            </div>
+
+            <div className="mt-4 space-y-3">
+              <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-neutral-200 p-3">
+                <input
+                  type="radio"
+                  name="siteVisibility"
+                  checked={draft.siteVisibility === "public"}
+                  onChange={() =>
+                    setDraft((d) => ({
+                      ...d,
+                      siteVisibility: "public",
+                    }))
+                  }
+                  className="mt-0.5"
+                />
+                <div>
+                  <div className="text-sm font-semibold text-neutral-900">
+                    Public
+                  </div>
+                  <div className="text-xs text-neutral-500">
+                    Anyone with the link can access the microsite.
+                  </div>
+                </div>
+              </label>
+
+              <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-neutral-200 p-3">
+                <input
+                  type="radio"
+                  name="siteVisibility"
+                  checked={draft.siteVisibility === "private"}
+                  onChange={() =>
+                    setDraft((d) => ({
+                      ...d,
+                      siteVisibility: "private",
+                      privateMode: d.privateMode ?? "passcode",
+                    }))
+                  }
+                  className="mt-0.5"
+                />
+                <div>
+                  <div className="text-sm font-semibold text-neutral-900">
+                    Private
+                  </div>
+                  <div className="text-xs text-neutral-500">
+                    Restrict access by passcode or approved member device.
+                  </div>
+                </div>
+              </label>
+            </div>
+
+            {draft.siteVisibility === "private" ? (
+              <div className="mt-4 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+                <div className="text-sm font-semibold text-neutral-900">
+                  Private access mode
+                </div>
+
+                <div className="mt-3 space-y-3">
+                  <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-neutral-200 bg-white p-3">
+                    <input
+                      type="radio"
+                      name="privateMode"
+                      checked={draft.privateMode === "passcode"}
+                      onChange={() =>
+                        setDraft((d) => ({
+                          ...d,
+                          privateMode: "passcode",
+                        }))
+                      }
+                      className="mt-0.5"
+                    />
+                    <div>
+                      <div className="text-sm font-semibold text-neutral-900">
+                        Passcode
+                      </div>
+                      <div className="text-xs text-neutral-500">
+                        Visitors enter a 6-digit code to access the site.
+                      </div>
+                    </div>
+                  </label>
+
+                  <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-neutral-200 bg-white p-3">
+                    <input
+                      type="radio"
+                      name="privateMode"
+                      checked={draft.privateMode === "members_only"}
+                      onChange={() =>
+                        setDraft((d) => ({
+                          ...d,
+                          privateMode: "members_only",
+                        }))
+                      }
+                      className="mt-0.5"
+                    />
+                    <div>
+                      <div className="text-sm font-semibold text-neutral-900">
+                        Members-only
+                      </div>
+                      <div className="text-xs text-neutral-500">
+                        Allow access only for recognized approved devices.
+                      </div>
+                    </div>
+                  </label>
+                </div>
+
+                {draft.privateMode === "passcode" ? (
+                  <div className="mt-4">
+                    <label className="text-sm font-medium">6-digit passcode</label>
+                    <input
+                      value={draft.passcode ?? ""}
+                      onChange={(e) =>
+                        setDraft((d) => ({
+                          ...d,
+                          passcode: normalizePasscode(e.target.value),
+                        }))
+                      }
+                      className="mt-1 w-full rounded-xl border px-3 py-2 text-sm"
+                      placeholder="123456"
+                      inputMode="numeric"
+                      autoComplete="off"
+                      maxLength={6}
+                    />
+                    <div className="mt-1 text-[11px] text-neutral-500">
+                      Share this code with people allowed to enter.
+                    </div>
+                    {passcodeInvalid ? (
+                      <div className="mt-1 text-[11px] font-medium text-red-600">
+                        Passcode must be exactly 6 digits.
+                      </div>
+                    ) : null}
+                  </div>
+                ) : (
+                  <div className="mt-4 text-[11px] text-neutral-500">
+                    Members-only device approval will be enforced after the next backend step.
+                  </div>
+                )}
+              </div>
+            ) : null}
+          </div>
+
           <div className="rounded-2xl border border-neutral-200 bg-white p-4">
             <div className="text-sm font-semibold text-neutral-900">Owner editor</div>
             <div className="mt-1 text-xs text-neutral-500">
               These will appear on your microsite when published.
             </div>
 
-            {/* Announcement */}
             <div className="mt-4">
-              <div className="text-sm font-semibold text-neutral-900">Announcement</div>
+              <div className="text-sm font-semibold text-neutral-900">
+                Announcement
+              </div>
               <input
                 value={draft.announcement?.headline ?? ""}
                 onChange={(e) =>
                   setDraft((d) => ({
                     ...d,
-                    announcement: { headline: e.target.value, body: d.announcement?.body ?? "" },
+                    announcement: {
+                      headline: e.target.value,
+                      body: d.announcement?.body ?? "",
+                    },
                   }))
                 }
                 className="mt-2 w-full rounded-xl border px-3 py-2 text-sm"
@@ -294,7 +501,10 @@ export function TemplateDraftEditor({
                 onChange={(e) =>
                   setDraft((d) => ({
                     ...d,
-                    announcement: { headline: d.announcement?.headline ?? "", body: e.target.value },
+                    announcement: {
+                      headline: d.announcement?.headline ?? "",
+                      body: e.target.value,
+                    },
                   }))
                 }
                 className="mt-2 w-full resize-none rounded-xl border px-3 py-2 text-sm"
@@ -303,7 +513,6 @@ export function TemplateDraftEditor({
               />
             </div>
 
-            {/* Links */}
             <div className="mt-5">
               <div className="flex items-center justify-between">
                 <div className="text-sm font-semibold text-neutral-900">Links</div>
@@ -375,7 +584,6 @@ export function TemplateDraftEditor({
               </div>
             </div>
 
-            {/* Contact */}
             <div className="mt-5">
               <div className="text-sm font-semibold text-neutral-900">Contact</div>
               <div className="mt-2 grid gap-2">
@@ -384,7 +592,10 @@ export function TemplateDraftEditor({
                   onChange={(e) =>
                     setDraft((d) => ({
                       ...d,
-                      contact: { ...(d.contact ?? { name: "", email: "", phone: "" }), name: e.target.value },
+                      contact: {
+                        ...(d.contact ?? { name: "", email: "", phone: "" }),
+                        name: e.target.value,
+                      },
                     }))
                   }
                   className="w-full rounded-xl border px-3 py-2 text-sm"
@@ -395,7 +606,10 @@ export function TemplateDraftEditor({
                   onChange={(e) =>
                     setDraft((d) => ({
                       ...d,
-                      contact: { ...(d.contact ?? { name: "", email: "", phone: "" }), email: e.target.value },
+                      contact: {
+                        ...(d.contact ?? { name: "", email: "", phone: "" }),
+                        email: e.target.value,
+                      },
                     }))
                   }
                   className="w-full rounded-xl border px-3 py-2 text-sm"
@@ -407,7 +621,10 @@ export function TemplateDraftEditor({
                   onChange={(e) =>
                     setDraft((d) => ({
                       ...d,
-                      contact: { ...(d.contact ?? { name: "", email: "", phone: "" }), phone: e.target.value },
+                      contact: {
+                        ...(d.contact ?? { name: "", email: "", phone: "" }),
+                        phone: e.target.value,
+                      },
                     }))
                   }
                   className="w-full rounded-xl border px-3 py-2 text-sm"

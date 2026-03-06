@@ -1,8 +1,12 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { headers } from "next/headers";
+import { headers, cookies } from "next/headers";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
-import { TEMPLATE_DEFS, getTemplateDef, type TemplateKey } from "@/lib/templates/registry";
+import {
+  TEMPLATE_DEFS,
+  getTemplateDef,
+  type TemplateKey,
+} from "@/lib/templates/registry";
 
 import RsvpForm from "./RsvpForm";
 import PollBlock from "./PollBlock";
@@ -16,17 +20,24 @@ import DemoTemplatePage from "@/components/demo/DemoTemplatePage";
 
 export const dynamic = "force-dynamic";
 
+type SiteRecord = {
+  id: string;
+  slug: string;
+  title: string | null;
+  template_key: string;
+  is_published: boolean;
+  expires_at: string | null;
+  paid_until: string | null;
+  site_visibility?: "public" | "private" | null;
+  private_mode?: "passcode" | "members_only" | null;
+};
+
 function isValidSlug(slug: string) {
   return /^[a-z0-9-]{2,40}$/.test(slug);
 }
 
 function getSubdomainFromHost(host: string) {
   const normalized = (host || "").toLowerCase().split(":")[0];
-
-  // Examples:
-  // reunion.ko-host.com -> reunion
-  // www.ko-host.com -> null
-  // ko-host.com -> null
   const parts = normalized.split(".");
   if (parts.length < 3) return null;
 
@@ -50,6 +61,15 @@ function titleForSite(site: { title: string | null; slug: string }) {
   return `${site.slug}.ko-host.com | Ko-Host`;
 }
 
+function visibilityLabel(
+  visibility?: "public" | "private" | null,
+  privateMode?: "passcode" | "members_only" | null
+) {
+  if (visibility !== "private") return "Public";
+  if (privateMode === "members_only") return "Private · Members-only";
+  return "Private · Passcode";
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -57,7 +77,6 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
 
-  // Demo pages: /s/demo on any subdomain
   if (slug === "demo") {
     const h = await headers();
     const host = (h.get("host") || "").toLowerCase();
@@ -69,13 +88,14 @@ export async function generateMetadata({
     return { title: `${name} Demo` };
   }
 
-  // Normal microsite pages: use the site title for the browser tab
   if (!isValidSlug(slug)) return { title: "Ko-Host" };
 
   const sb = getSupabaseAdmin();
   const { data: site } = await sb
     .from("microsites")
-    .select("slug, title, is_published, expires_at, paid_until")
+    .select(
+      "slug, title, is_published, expires_at, paid_until, site_visibility, private_mode"
+    )
     .eq("slug", slug)
     .maybeSingle();
 
@@ -89,6 +109,13 @@ export async function generateMetadata({
   if (isExpired) return { title: "Expired | Ko-Host" };
   if (!paidActive) return { title: "Access Ended | Ko-Host" };
 
+  if (site.site_visibility === "private") {
+    if (site.private_mode === "members_only") {
+      return { title: `Private Members Site | ${titleForSite(site)}` };
+    }
+    return { title: `Private Site | ${titleForSite(site)}` };
+  }
+
   return { title: titleForSite(site) };
 }
 
@@ -99,7 +126,6 @@ export default async function PublicMicrositePage({
 }) {
   const { slug } = await params;
 
-  // /s/demo on any subdomain (e.g. reunion.ko-host.com/s/demo)
   if (slug === "demo") {
     const h = await headers();
     const host = (h.get("host") || "").toLowerCase();
@@ -114,36 +140,38 @@ export default async function PublicMicrositePage({
     return <DemoTemplatePage template={def} originHost={host} />;
   }
 
-  // Normal microsite render
   if (!isValidSlug(slug)) return notFound();
 
   const sb = getSupabaseAdmin();
 
   const { data: site, error } = await sb
     .from("microsites")
-    .select("id, slug, title, template_key, is_published, expires_at, paid_until")
+    .select(
+      "id, slug, title, template_key, is_published, expires_at, paid_until, site_visibility, private_mode"
+    )
     .eq("slug", slug)
     .maybeSingle();
 
   if (error || !site) return notFound();
 
-  const now = new Date();
-  const isExpired = site.expires_at ? new Date(site.expires_at) <= now : false;
-  const paidActive = site.paid_until ? new Date(site.paid_until) > now : false;
+  const typedSite = site as SiteRecord;
 
-  // Keep full-site gating (published + not expired + paid)
-  if (!site.is_published || isExpired || !paidActive) {
-    const headline = !site.is_published
+  const now = new Date();
+  const isExpired = typedSite.expires_at ? new Date(typedSite.expires_at) <= now : false;
+  const paidActive = typedSite.paid_until ? new Date(typedSite.paid_until) > now : false;
+
+  if (!typedSite.is_published || isExpired || !paidActive) {
+    const headline = !typedSite.is_published
       ? "This microsite isn’t published yet"
       : isExpired
-      ? "This microsite has expired"
-      : "This microsite’s moment has ended";
+        ? "This microsite has expired"
+        : "This microsite’s moment has ended";
 
-    const body = !site.is_published
+    const body = !typedSite.is_published
       ? "The owner hasn’t published this page yet."
       : isExpired
-      ? "This page reached its expiration date."
-      : "The 90-day access window ended. The owner can repurchase to bring it back.";
+        ? "This page reached its expiration date."
+        : "The 90-day access window ended. The owner can repurchase to bring it back.";
 
     return (
       <main className="mx-auto max-w-3xl px-4 py-10">
@@ -156,11 +184,82 @@ export default async function PublicMicrositePage({
     );
   }
 
-  // Polls
+  const cookieStore = await cookies();
+  const passcodeVerified =
+    cookieStore.get(`kohost_passcode_${typedSite.slug}`)?.value === "verified";
+
+  if (typedSite.site_visibility === "private") {
+    if (typedSite.private_mode === "members_only") {
+      return (
+        <main className="mx-auto max-w-3xl px-4 py-10">
+          <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+            <div className="text-sm text-neutral-600">Ko-Host</div>
+            <h1 className="mt-2 text-2xl font-semibold tracking-tight">
+              This microsite is private
+            </h1>
+            <p className="mt-3 text-sm text-neutral-700">
+              This page is currently set to members-only access.
+            </p>
+            <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-4 text-sm text-neutral-700">
+              Approved-device enforcement is the next backend step. For now, this
+              microsite remains blocked publicly.
+            </div>
+          </div>
+        </main>
+      );
+    }
+
+    if (!passcodeVerified) {
+      return (
+        <main className="mx-auto max-w-3xl px-4 py-10">
+          <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+            <div className="text-sm text-neutral-600">Ko-Host</div>
+            <h1 className="mt-2 text-2xl font-semibold tracking-tight">
+              This microsite is private
+            </h1>
+            <p className="mt-3 text-sm text-neutral-700">
+              This page requires a 6-digit passcode before access is allowed.
+            </p>
+
+            <form
+              action={`/api/public/microsites/${typedSite.slug}/verify-passcode`}
+              method="POST"
+              className="mt-5 space-y-3"
+            >
+              <label className="block">
+                <div className="text-sm font-medium text-neutral-900">Passcode</div>
+                <input
+                  type="password"
+                  name="passcode"
+                  inputMode="numeric"
+                  autoComplete="off"
+                  maxLength={6}
+                  className="mt-1 w-full rounded-xl border px-3 py-2 text-sm"
+                  placeholder="Enter 6-digit code"
+                />
+              </label>
+
+              <button
+                type="submit"
+                className="inline-flex items-center justify-center rounded-xl bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+              >
+                Enter Site
+              </button>
+            </form>
+
+            <div className="mt-4 text-xs text-neutral-500">
+              Ask the owner for the passcode if you should have access.
+            </div>
+          </div>
+        </main>
+      );
+    }
+  }
+
   const { data: pollRows } = await sb
     .from("polls")
     .select("id, title, description, is_multi_select, show_results_public, is_open")
-    .eq("microsite_id", site.id)
+    .eq("microsite_id", typedSite.id)
     .order("created_at", { ascending: true });
 
   const polls = pollRows ?? [];
@@ -181,30 +280,27 @@ export default async function PublicMicrositePage({
     optionsByPoll.set(o.poll_id, arr);
   }
 
-  // Announcement existence
   const { data: annRows } = await sb
     .from("microsite_announcements")
     .select("id")
-    .eq("microsite_id", site.id)
+    .eq("microsite_id", typedSite.id)
     .order("created_at", { ascending: false })
     .limit(1);
 
   const hasAnnouncement = !!annRows?.length;
 
-  // Links existence
   const { data: linkRows } = await sb
     .from("microsite_links")
     .select("id")
-    .eq("microsite_id", site.id)
+    .eq("microsite_id", typedSite.id)
     .limit(1);
 
   const hasLinks = !!linkRows?.length;
 
-  // Contact existence
   const { data: contactRow } = await sb
     .from("microsite_contact")
     .select("email, phone, website")
-    .eq("microsite_id", site.id)
+    .eq("microsite_id", typedSite.id)
     .maybeSingle();
 
   const hasContact =
@@ -212,7 +308,7 @@ export default async function PublicMicrositePage({
     !!(contactRow?.phone || "").trim() ||
     !!(contactRow?.website || "").trim();
 
-  const isWedding = site.template_key === "wedding_rsvp";
+  const isWedding = typedSite.template_key === "wedding_rsvp";
 
   const shouldShowEmptyFallback =
     !isWedding && polls.length === 0 && !hasAnnouncement && !hasLinks && !hasContact;
@@ -222,26 +318,31 @@ export default async function PublicMicrositePage({
       <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
         <div className="text-sm text-neutral-600">Ko-Host</div>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight">
-          {site.title || `${site.slug}.ko-host.com`}
+          {typedSite.title || `${typedSite.slug}.ko-host.com`}
         </h1>
-        <div className="mt-2 text-sm text-neutral-700">
-          Template: <span className="font-mono">{site.template_key}</span>
+        <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-neutral-700">
+          <div>
+            Template: <span className="font-mono">{typedSite.template_key}</span>
+          </div>
+          <span className="rounded-full bg-neutral-100 px-2 py-1 text-xs font-medium text-neutral-800">
+            {visibilityLabel(typedSite.site_visibility, typedSite.private_mode)}
+          </span>
         </div>
       </div>
 
       <div className="mt-6 grid gap-6">
-        {isWedding ? <RsvpForm micrositeSlug={site.slug} /> : null}
+        {isWedding ? <RsvpForm micrositeSlug={typedSite.slug} /> : null}
 
-        <AnnouncementBlock micrositeId={site.id} />
-        <LinksBlock micrositeId={site.id} />
-        <ContactBlock micrositeId={site.id} />
+        <AnnouncementBlock micrositeId={typedSite.id} />
+        <LinksBlock micrositeId={typedSite.id} />
+        <ContactBlock micrositeId={typedSite.id} />
 
-        <GalleryBlock micrositeSlug={site.slug} />
+        <GalleryBlock micrositeSlug={typedSite.slug} />
 
         {polls.map((p) => (
           <PollBlock
             key={p.id}
-            micrositeSlug={site.slug}
+            micrositeSlug={typedSite.slug}
             poll={{
               id: p.id,
               title: p.title,

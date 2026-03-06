@@ -1,10 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useAuth, SignInButton } from "@clerk/nextjs";
+import { SignInButton, useAuth } from "@clerk/nextjs";
 import { usePathname, useSearchParams } from "next/navigation";
 
 type LinkItem = {
+  id?: string;
   label: string;
   url: string;
 };
@@ -12,14 +13,19 @@ type LinkItem = {
 type Draft = {
   title: string;
   slugSuggestion: string;
+  siteVisibility?: "public" | "private";
+  privateMode?: "passcode" | "members_only";
+  passcode?: string;
   announcement?: {
     headline: string;
     body: string;
   };
   links?: LinkItem[];
-  contactName?: string;
-  contactEmail?: string;
-  contactPhone?: string;
+  contact?: {
+    name: string;
+    email: string;
+    phone: string;
+  };
 };
 
 export default function KoHostItButton(props: {
@@ -40,6 +46,28 @@ export default function KoHostItButton(props: {
   async function startCheckout() {
     try {
       setBusy(true);
+
+      if (!props.draft.title?.trim()) {
+        alert("Please enter a page title.");
+        return;
+      }
+
+      if (!props.draft.slugSuggestion?.trim()) {
+        alert("Please enter a site name.");
+        return;
+      }
+
+      if (
+        props.draft.siteVisibility === "private" &&
+        props.draft.privateMode === "passcode"
+      ) {
+        const passcode = (props.draft.passcode || "").trim();
+
+        if (!/^\d{6}$/.test(passcode)) {
+          alert("Private passcode must be exactly 6 digits.");
+          return;
+        }
+      }
 
       const res = await fetch("/api/public/create-microsite", {
         method: "POST",

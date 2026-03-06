@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import crypto from "crypto";
 import { requireAuth } from "@/lib/clerk";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { isValidTemplateKey, normalizeTemplateKey } from "@/lib/templates/registry";
@@ -8,7 +9,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const LinkSchema = z.object({
-  id: z.string().min(1),
+  id: z.string().min(1).optional(),
   label: z.string().trim().min(1),
   url: z.string().trim().min(3),
 });
@@ -18,6 +19,10 @@ const BodySchema = z.object({
   draft: z.object({
     title: z.string().min(1),
     slugSuggestion: z.string().min(1),
+
+    siteVisibility: z.enum(["public", "private"]).optional().default("public"),
+    privateMode: z.enum(["passcode", "members_only"]).optional(),
+    passcode: z.string().optional().default(""),
 
     announcement: z
       .object({
@@ -48,8 +53,17 @@ function normalizeSlug(input: string) {
     .slice(0, 40);
 }
 
+function normalizePasscode(input: string) {
+  return (input || "").replace(/\D/g, "").slice(0, 6);
+}
+
+function hashPasscode(passcode: string) {
+  return crypto.createHash("sha256").update(passcode).digest("hex");
+}
+
 export async function POST(req: Request) {
   let userId: string;
+
   try {
     const auth = await requireAuth();
     userId = auth.userId;
@@ -59,6 +73,7 @@ export async function POST(req: Request) {
 
   const raw = await req.json().catch(() => null);
   const parsed = BodySchema.safeParse(raw);
+
   if (!parsed.success) {
     return NextResponse.json({ ok: false, error: "Invalid request" }, { status: 400 });
   }
@@ -77,8 +92,31 @@ export async function POST(req: Request) {
   const slug = normalizeSlug(parsed.data.draft.slugSuggestion);
 
   if (!slug || slug.length < 3) {
-    return NextResponse.json({ ok: false, error: "Slug must be at least 3 characters" }, { status: 400 });
+    return NextResponse.json(
+      { ok: false, error: "Slug must be at least 3 characters" },
+      { status: 400 }
+    );
   }
+
+  const siteVisibility = parsed.data.draft.siteVisibility ?? "public";
+  const privateMode =
+    siteVisibility === "private"
+      ? parsed.data.draft.privateMode ?? "passcode"
+      : null;
+
+  const rawPasscode = normalizePasscode(parsed.data.draft.passcode ?? "");
+
+  if (siteVisibility === "private" && privateMode === "passcode" && rawPasscode.length !== 6) {
+    return NextResponse.json(
+      { ok: false, error: "Private passcode must be exactly 6 digits." },
+      { status: 400 }
+    );
+  }
+
+  const passcodeHash =
+    siteVisibility === "private" && privateMode === "passcode"
+      ? hashPasscode(rawPasscode)
+      : null;
 
   const announcement = parsed.data.draft.announcement;
   const links = parsed.data.draft.links ?? [];
@@ -86,7 +124,6 @@ export async function POST(req: Request) {
 
   const sb = getSupabaseAdmin();
 
-  // 1) Create microsite
   const { data: site, error: siteErr } = await sb
     .from("microsites")
     .insert({
@@ -96,19 +133,26 @@ export async function POST(req: Request) {
       title,
       status: "draft",
       is_published: false,
+      site_visibility: siteVisibility,
+      private_mode: privateMode,
+      passcode_hash: passcodeHash,
     })
     .select("id")
     .single();
 
   if (siteErr || !site) {
     const msg = siteErr?.message || "Failed to create microsite";
+
     if (msg.toLowerCase().includes("duplicate") || msg.toLowerCase().includes("unique")) {
-      return NextResponse.json({ ok: false, error: "That slug is already taken. Try another." }, { status: 409 });
+      return NextResponse.json(
+        { ok: false, error: "That slug is already taken. Try another." },
+        { status: 409 }
+      );
     }
+
     return NextResponse.json({ ok: false, error: msg }, { status: 500 });
   }
 
-  // 2) Save announcement (optional)
   if ((announcement?.headline || "").trim() || (announcement?.body || "").trim()) {
     await sb.from("microsite_announcements").upsert({
       microsite_id: site.id,
@@ -118,7 +162,6 @@ export async function POST(req: Request) {
     });
   }
 
-  // 3) Save contact (optional)
   if ((contact?.name || "").trim() || (contact?.email || "").trim() || (contact?.phone || "").trim()) {
     await sb.from("microsite_contact").upsert({
       microsite_id: site.id,
@@ -129,7 +172,6 @@ export async function POST(req: Request) {
     });
   }
 
-  // 4) Save links (optional)
   if (links.length) {
     const rows = links
       .map((l, idx) => ({
@@ -145,7 +187,6 @@ export async function POST(req: Request) {
     }
   }
 
-  // Redirect browser to checkout endpoint
   return NextResponse.json(
     { ok: true, url: `/api/stripe/checkout?micrositeId=${site.id}` },
     { status: 200 }
