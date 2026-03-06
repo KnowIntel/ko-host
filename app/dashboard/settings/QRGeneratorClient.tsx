@@ -18,6 +18,27 @@ function isPaidActive(paidUntil?: string | null) {
   return new Date(paidUntil).getTime() > Date.now();
 }
 
+function buildMicrositeUrl(slug: string) {
+  if (!slug) return "";
+
+  if (typeof window === "undefined") {
+    return `https://${slug}.ko-host.com`;
+  }
+
+  const host = window.location.host.toLowerCase();
+  const protocol = window.location.protocol;
+
+  if (host.includes("localhost") || host.includes("127.0.0.1")) {
+    return `${protocol}//${slug}.ko-host.com`;
+  }
+
+  if (host === "ko-host.com" || host === "www.ko-host.com") {
+    return `${protocol}//${slug}.ko-host.com`;
+  }
+
+  return `${protocol}//${slug}.ko-host.com`;
+}
+
 export default function QRGeneratorClient({
   microsites,
 }: {
@@ -39,10 +60,7 @@ export default function QRGeneratorClient({
     return microsites.find((m) => m.slug === selected) ?? null;
   }, [microsites, selected]);
 
-  const url =
-    selected && typeof window !== "undefined"
-      ? `${window.location.origin}/s/${selected}`
-      : "";
+  const url = useMemo(() => buildMicrositeUrl(selected), [selected]);
 
   const title = selectedMicrosite?.title?.trim() || selected || "Microsite";
 
@@ -84,7 +102,8 @@ export default function QRGeneratorClient({
   if (microsites.length === 0) {
     return (
       <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4 text-sm text-neutral-700">
-        No microsites yet. Create one first, then come back here to generate a QR code.
+        No microsites yet. Create one first, then come back here to generate a QR
+        code.
       </div>
     );
   }
@@ -134,7 +153,9 @@ export default function QRGeneratorClient({
         <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
           <div className="space-y-4">
             <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
-              <div className="text-sm font-semibold text-neutral-900">Microsite URL</div>
+              <div className="text-sm font-semibold text-neutral-900">
+                Microsite URL
+              </div>
               <div className="mt-2 break-all font-mono text-xs text-neutral-600">
                 {url}
               </div>
@@ -174,7 +195,15 @@ export default function QRGeneratorClient({
                   className="h-auto w-full max-w-[520px]"
                 >
                   <rect x="0" y="0" width="520" height="320" rx="28" fill="#ffffff" />
-                  <rect x="0" y="0" width="520" height="320" rx="28" fill="none" stroke="#e5e5e5" />
+                  <rect
+                    x="0"
+                    y="0"
+                    width="520"
+                    height="320"
+                    rx="28"
+                    fill="none"
+                    stroke="#e5e5e5"
+                  />
                   <text
                     x="36"
                     y="52"
@@ -239,7 +268,15 @@ export default function QRGeneratorClient({
                   className="h-auto w-full max-w-[420px]"
                 >
                   <rect x="0" y="0" width="600" height="760" rx="28" fill="#ffffff" />
-                  <rect x="0" y="0" width="600" height="760" rx="28" fill="none" stroke="#e5e5e5" />
+                  <rect
+                    x="0"
+                    y="0"
+                    width="600"
+                    height="760"
+                    rx="28"
+                    fill="none"
+                    stroke="#e5e5e5"
+                  />
                   <text
                     x="300"
                     y="90"
