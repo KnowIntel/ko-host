@@ -145,8 +145,7 @@ export default function MicrositesTableClient({
         <div>
           <h1 className="text-xl font-semibold tracking-tight">Microsites</h1>
           <p className="mt-1 text-sm text-neutral-700">
-            Showing only microsites that are favorited and have active paid access,
-            whether published or unpublished.
+            Showing microsites with active paid access, whether published or unpublished.
           </p>
         </div>
 
@@ -228,7 +227,7 @@ export default function MicrositesTableClient({
             {microsites.length === 0 ? (
               <tr>
                 <td className="px-4 py-4 text-neutral-600" colSpan={7}>
-                  No microsites match this view yet. A microsite must be favorited and have active paid access to appear here.
+                  No paid microsites yet.
                 </td>
               </tr>
             ) : (
