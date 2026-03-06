@@ -29,7 +29,6 @@ export default async function MicrositeRsvpAdminPage({
 
   const sb = getSupabaseAdmin();
 
-  // Ownership check
   const { data: site, error: siteErr } = await sb
     .from("microsites")
     .select("id, owner_clerk_user_id, slug, title, template_key")
@@ -41,18 +40,39 @@ export default async function MicrositeRsvpAdminPage({
 
   if (site.template_key !== "wedding_rsvp") {
     return (
-      <div className="p-6">
+      <div className="space-y-6">
         <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-          <div className="text-sm text-neutral-600">Ko-Host</div>
-          <h1 className="mt-2 text-xl font-semibold tracking-tight">RSVP Admin</h1>
-          <p className="mt-2 text-sm text-neutral-700">
-            RSVP admin is currently implemented only for{" "}
-            <span className="font-mono">wedding_rsvp</span>.
-          </p>
-          <div className="mt-4">
-            <Link className="underline underline-offset-4" href="/dashboard/microsites">
-              Back to microsites
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <div className="text-sm text-neutral-600">Ko-Host</div>
+              <h1 className="mt-2 text-xl font-semibold tracking-tight">
+                RSVP Submissions
+              </h1>
+              <div className="mt-2 text-sm text-neutral-700">
+                <div>
+                  <span className="font-medium">Microsite:</span>{" "}
+                  {site.title || "(Untitled)"}
+                </div>
+                <div>
+                  <span className="font-medium">Slug:</span>{" "}
+                  <span className="font-mono">{site.slug}</span>
+                </div>
+              </div>
+            </div>
+
+            <Link
+              href={`/dashboard/microsites/${site.id}`}
+              className="text-sm font-medium text-neutral-900 underline underline-offset-4"
+            >
+              Back
             </Link>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+          <div className="text-sm text-neutral-600">Submissions</div>
+          <div className="mt-2 text-sm text-neutral-700">
+            No RSVP submissions.
           </div>
         </div>
       </div>
@@ -104,7 +124,7 @@ export default async function MicrositeRsvpAdminPage({
             </a>
 
             <Link
-              href="/dashboard/microsites"
+              href={`/dashboard/microsites/${site.id}`}
               className="text-sm font-medium text-neutral-900 underline underline-offset-4"
             >
               Back

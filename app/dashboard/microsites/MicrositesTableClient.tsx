@@ -15,9 +15,20 @@ type MicrositeRow = {
   is_favorite: boolean;
 };
 
+function getMsUntilExpiration(paidUntil: string | null) {
+  if (!paidUntil) return null;
+  return new Date(paidUntil).getTime() - Date.now();
+}
+
 function isPaidActive(paidUntil: string | null) {
-  if (!paidUntil) return false;
-  return new Date(paidUntil).getTime() > Date.now();
+  const ms = getMsUntilExpiration(paidUntil);
+  return ms !== null && ms > 0;
+}
+
+function getDaysUntilExpiration(paidUntil: string | null) {
+  const ms = getMsUntilExpiration(paidUntil);
+  if (ms === null) return null;
+  return Math.ceil(ms / (1000 * 60 * 60 * 24));
 }
 
 export default function MicrositesTableClient({
@@ -211,6 +222,7 @@ export default function MicrositesTableClient({
               microsites.map((m) => {
                 const active = isPaidActive(m.paid_until);
                 const publicUrl = `https://${m.slug}.ko-host.com`;
+                const daysUntilExpiration = getDaysUntilExpiration(m.paid_until);
 
                 const isFocused =
                   (checkoutMicrositeId && m.id === checkoutMicrositeId) ||
@@ -262,6 +274,12 @@ export default function MicrositesTableClient({
                           <div className="mt-1 text-neutral-600">
                             Until {new Date(m.paid_until as string).toLocaleString()}
                           </div>
+                          {daysUntilExpiration !== null ? (
+                            <div className="mt-1 text-neutral-600">
+                              This page will expire in {daysUntilExpiration} day
+                              {daysUntilExpiration === 1 ? "" : "s"}.
+                            </div>
+                          ) : null}
                         </div>
                       ) : (
                         <span className="rounded-full bg-neutral-100 px-2 py-1 text-xs font-medium text-neutral-700">
@@ -283,7 +301,7 @@ export default function MicrositesTableClient({
                     </td>
 
                     <td className="px-4 py-3">
-                      <div className="flex flex-wrap items-center gap-3">
+                      <div className="flex items-center gap-2 whitespace-nowrap">
                         <Link
                           href={`/dashboard/microsites/${m.id}`}
                           className="text-sm font-medium text-neutral-900 underline underline-offset-4"
@@ -291,29 +309,11 @@ export default function MicrositesTableClient({
                           Manage
                         </Link>
 
-                        <Link
-                          href={`/dashboard/microsites/${m.id}/rsvp`}
-                          className="text-sm font-medium text-neutral-900 underline underline-offset-4"
-                        >
-                          RSVP submissions
-                        </Link>
-
-                        <form action="/api/stripe/checkout" method="POST" className="inline-flex">
-  <input type="hidden" name="micrositeId" value={m.id} />
-
-  <button
-    type="submit"
-    className="inline-flex items-center justify-center rounded-xl bg-neutral-900 px-3 py-2 text-xs font-medium text-white hover:bg-neutral-800"
-  >
-    {active ? "Extend 90 days" : "Pay $12 (90 days)"}
-  </button>
-</form>
-
                         <button
                           type="button"
                           disabled={busyId === m.id}
                           onClick={() => togglePublish(m)}
-                          className="inline-flex items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs font-medium text-neutral-900 hover:border-neutral-900 disabled:opacity-50"
+                          className="inline-flex shrink-0 items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs font-medium text-neutral-900 hover:border-neutral-900 disabled:opacity-50 whitespace-nowrap"
                         >
                           {busyId === m.id
                             ? "Working..."
@@ -321,6 +321,16 @@ export default function MicrositesTableClient({
                               ? "Unpublish"
                               : "Publish"}
                         </button>
+
+                        <form action="/api/stripe/checkout" method="POST" className="inline-flex shrink-0">
+                          <input type="hidden" name="micrositeId" value={m.id} />
+                          <button
+                            type="submit"
+                            className="inline-flex shrink-0 items-center justify-center rounded-xl bg-neutral-900 px-3 py-2 text-xs font-medium text-white hover:bg-neutral-800 whitespace-nowrap"
+                          >
+                            {active ? "Extend 90 days" : "Pay $12 (90 days)"}
+                          </button>
+                        </form>
                       </div>
                     </td>
                   </tr>

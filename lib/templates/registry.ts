@@ -139,7 +139,8 @@ export type TemplateKey =
   | "bible_study"
   | "chat_room"
   | "speed_dating"
-  | "weight_loss_journey";
+  | "weight_loss_journey"
+  | "guided_tutorial";
 
 export const TEMPLATE_CATEGORIES = [
   "Events",
@@ -200,6 +201,7 @@ const NEW_KEYS = new Set<TemplateKey>([
   "memory_timeline",
   "chat_room",
   "speed_dating",
+  "guided_tutorial",
 ]);
 
 function inferBadge(key: TemplateKey): TemplateBadge {
@@ -293,6 +295,7 @@ function inferCategory(key: TemplateKey): TemplateCategory {
     "investor_pitch",
     "business_card",
     "focus_group",
+    "guided_tutorial",
   ];
 
   if (businessish.some((s) => key.includes(s))) return "Business";
@@ -317,6 +320,7 @@ function inferFeatures(key: TemplateKey): string[] {
     memory_timeline: ["Milestones", "Gallery", "Notes"],
     cancer_journey: ["Updates", "Resources", "Support links"],
     weight_loss_journey: ["Milestones", "Progress", "Updates"],
+    guided_tutorial: ["Steps", "Resources", "Links"],
   };
 
   return map[key] ?? ["Announcement", "Links", "Contact"];
@@ -1553,7 +1557,6 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "project",
     defaultDraft: { title: "Temporary Project", slugSuggestion: "temporaryproject" },
   },
-
   {
     key: "focus_group",
     title: "Focus Group",
@@ -1643,6 +1646,16 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "weightlossjourney",
     category: "Personal",
     defaultDraft: { title: "Weight Loss Journey", slugSuggestion: "weightlossjourney" },
+  },
+  {
+    key: "guided_tutorial",
+    title: "Guided Tutorial",
+    description: "Walk visitors through a process with steps, tips, and resources.",
+    thumb: "guidedtutorial",
+    setupMins: 3,
+    demoSlug: "guidedtutorial",
+    category: "Business",
+    defaultDraft: { title: "Guide Tutorial", slugSuggestion: "guidedtutorial" },
   },
 ];
 
