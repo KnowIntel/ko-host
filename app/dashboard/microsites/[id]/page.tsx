@@ -1,232 +1,184 @@
-// app/dashboard/microsites/[id]/page.tsx
+"use client";
 
-import Link from "next/link";
-import { auth } from "@clerk/nextjs/server";
-import { notFound, redirect } from "next/navigation";
-import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
-
-export const dynamic = "force-dynamic";
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import TemplateDraftEditor from "@/components/templates/TemplateDraftEditor";
+import type { MicrositeBlock } from "@/lib/templates/builder";
 
 type MicrositeRecord = {
   id: string;
-  owner_clerk_user_id: string;
-  template_key: string;
   slug: string;
-  title: string | null;
+  title: string;
+  template_key: string;
   is_published: boolean;
   paid_until: string | null;
-  created_at: string;
-  updated_at?: string | null;
+  draft: {
+    title?: string;
+    slugSuggestion?: string;
+    blocks?: MicrositeBlock[];
+  } | null;
 };
 
-function isPaidActive(paidUntil: string | null) {
-  if (!paidUntil) return false;
-  return new Date(paidUntil).getTime() > Date.now();
-}
+export default function DashboardMicrositeManagePage() {
+  const params = useParams();
+  const router = useRouter();
+  const id = String(params?.id || "");
 
-export default async function MicrositeDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { userId } = await auth();
+  const [site, setSite] = useState<MicrositeRecord | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
-  if (!userId) {
-    redirect("/sign-in");
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      try {
+        setLoading(true);
+
+        const res = await fetch(
+          `/api/dashboard/microsites/${encodeURIComponent(id)}`,
+          {
+            method: "GET",
+            cache: "no-store",
+          },
+        );
+
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok) {
+          alert(data?.error || "Failed to load microsite.");
+          return;
+        }
+
+        if (!cancelled) {
+          setSite(data.microsite || null);
+        }
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Unexpected error.";
+        alert(message);
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+
+    if (id) {
+      load();
+    }
+
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
+
+  async function saveBuilderDraft(draft: {
+    title: string;
+    slugSuggestion: string;
+    blocks: MicrositeBlock[];
+  }) {
+    try {
+      setSaving(true);
+
+      const res = await fetch(`/api/dashboard/microsites/${id}/builder`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ draft }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        alert(data?.error || "Failed to save builder draft.");
+        return;
+      }
+
+      setSite((prev) =>
+        prev
+          ? {
+              ...prev,
+              title: data?.draft?.title || prev.title,
+              slug: data?.microsite?.slug || prev.slug,
+              draft: data?.draft || prev.draft,
+            }
+          : prev,
+      );
+
+      router.push("/dashboard/microsites");
+      router.refresh();
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Unexpected error.";
+      alert(message);
+    } finally {
+      setSaving(false);
+    }
   }
 
-  const { id } = await params;
-  const supabase = getSupabaseAdmin();
-
-  const { data, error } = await supabase
-    .from("microsites")
-    .select(`
-      id,
-      owner_clerk_user_id,
-      template_key,
-      slug,
-      title,
-      is_published,
-      paid_until,
-      created_at,
-      updated_at
-    `)
-    .eq("id", id)
-    .maybeSingle();
-
-  if (error) {
-    console.error("microsite detail failed", error);
-    return <div className="p-6">Failed to load microsite.</div>;
+  if (loading) {
+    return (
+      <main className="mx-auto w-full max-w-5xl px-4 py-10">
+        <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+          Loading microsite...
+        </div>
+      </main>
+    );
   }
 
-  const microsite = data as MicrositeRecord | null;
-
-  if (!microsite) {
-    notFound();
+  if (!site) {
+    return (
+      <main className="mx-auto w-full max-w-5xl px-4 py-10">
+        <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+          Microsite not found.
+        </div>
+      </main>
+    );
   }
-
-  if (microsite.owner_clerk_user_id !== userId) {
-    return <div className="p-6">Forbidden</div>;
-  }
-
-  const active = isPaidActive(microsite.paid_until);
-  const publicUrl = `https://${microsite.slug}.ko-host.com`;
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-10">
-      <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-        <div className="flex items-start justify-between gap-4">
+    <main className="mx-auto w-full max-w-5xl px-4 py-10">
+      <div className="mb-6 rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+        <h1 className="text-2xl font-semibold tracking-tight text-neutral-900">
+          Manage {site.title || "Microsite"}
+        </h1>
+
+        <div className="mt-3 space-y-1 text-sm text-neutral-600">
+          <div>Site Name: {site.slug}</div>
+          <div>Template: {site.template_key}</div>
+          <div>Published: {site.is_published ? "Yes" : "No"}</div>
           <div>
-            <div className="text-sm text-neutral-600">Microsite Manager</div>
-            <h1 className="mt-2 text-2xl font-semibold tracking-tight">
-              {microsite.title || "(Untitled)"}
-            </h1>
-            <p className="mt-2 text-sm text-neutral-700">
-              Manage this microsite’s access, preview, submissions, and settings.
-            </p>
-          </div>
-
-          <Link
-            href="/dashboard/microsites"
-            className="text-sm font-medium text-neutral-900 underline underline-offset-4"
-          >
-            Back to Microsites
-          </Link>
-        </div>
-
-        <div className="mt-6 grid gap-4 md:grid-cols-2">
-          <div className="rounded-2xl border border-neutral-200 p-4">
-            <div className="text-xs font-medium uppercase tracking-wide text-neutral-500">
-              Title
-            </div>
-            <div className="mt-2 text-base font-medium text-neutral-900">
-              {microsite.title || "(Untitled)"}
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-neutral-200 p-4">
-            <div className="text-xs font-medium uppercase tracking-wide text-neutral-500">
-              Template
-            </div>
-            <div className="mt-2 font-mono text-sm text-neutral-900">
-              {microsite.template_key}
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-neutral-200 p-4">
-            <div className="text-xs font-medium uppercase tracking-wide text-neutral-500">
-              Slug
-            </div>
-            <div className="mt-2 font-mono text-sm text-neutral-900">
-              {microsite.slug}
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-neutral-200 p-4">
-            <div className="text-xs font-medium uppercase tracking-wide text-neutral-500">
-              Public URL
-            </div>
-            <div className="mt-2 break-all font-mono text-sm text-neutral-900">
-              {publicUrl}
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-neutral-200 p-4">
-            <div className="text-xs font-medium uppercase tracking-wide text-neutral-500">
-              Access
-            </div>
-            <div className="mt-2">
-              {active ? (
-                <>
-                  <span className="rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700">
-                    Active
-                  </span>
-                  <div className="mt-2 text-sm text-neutral-700">
-                    Paid until{" "}
-                    <span className="font-medium">
-                      {new Date(microsite.paid_until as string).toLocaleString()}
-                    </span>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <span className="rounded-full bg-neutral-100 px-2 py-1 text-xs font-medium text-neutral-700">
-                    Not paid
-                  </span>
-                  <div className="mt-2 text-sm text-neutral-700">
-                    Purchase 90 days of access to activate this microsite.
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-neutral-200 p-4">
-            <div className="text-xs font-medium uppercase tracking-wide text-neutral-500">
-              Published
-            </div>
-            <div className="mt-2">
-              {microsite.is_published ? (
-                <span className="rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700">
-                  Yes
-                </span>
-              ) : (
-                <span className="rounded-full bg-neutral-100 px-2 py-1 text-xs font-medium text-neutral-700">
-                  No
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-6 flex flex-wrap gap-3">
-          <a
-            href={`/s/${microsite.slug}`}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center justify-center rounded-xl border border-neutral-200 bg-white px-4 py-2 text-sm font-medium hover:bg-neutral-50"
-          >
-            Preview Microsite
-          </a>
-
-          <a
-            href={publicUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center justify-center rounded-xl border border-neutral-200 bg-white px-4 py-2 text-sm font-medium hover:bg-neutral-50"
-          >
-            Open Public URL
-          </a>
-
-          <Link
-            href={`/dashboard/microsites/${microsite.id}/rsvp`}
-            className="inline-flex items-center justify-center rounded-xl border border-neutral-200 bg-white px-4 py-2 text-sm font-medium hover:bg-neutral-50"
-          >
-            View RSVP Submissions
-          </Link>
-
-          <Link
-            href={`/dashboard/microsites/${microsite.id}/settings`}
-            className="inline-flex items-center justify-center rounded-xl border border-neutral-200 bg-white px-4 py-2 text-sm font-medium hover:bg-neutral-50"
-          >
-            Settings
-          </Link>
-
-          <form action="/api/stripe/checkout" method="POST" className="inline-flex">
-            <input type="hidden" name="micrositeId" value={microsite.id} />
-            <button
-              type="submit"
-              className="inline-flex items-center justify-center rounded-xl bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+            Preview:{" "}
+            <a
+              href={`/s/${site.slug}`}
+              target="_blank"
+              rel="noreferrer"
+              className="underline underline-offset-4"
             >
-              {active ? "Extend 90 days" : "Pay $12 (90 days)"}
-            </button>
-          </form>
-        </div>
-
-        <div className="mt-6 rounded-2xl border border-neutral-200 bg-neutral-50 p-4 text-sm text-neutral-700">
-          Publish and unpublish are currently managed from the main microsites table.
+              /s/{site.slug}
+            </a>
+          </div>
         </div>
       </div>
+
+      <div className="mb-4 flex items-center justify-end">
+        <div className="text-sm text-neutral-600">
+          {saving ? "Saving..." : "Edit your microsite content below"}
+        </div>
+      </div>
+
+      <TemplateDraftEditor
+        templateKey={site.template_key}
+        initialDraft={{
+          title: site.draft?.title || site.title || "",
+          slugSuggestion: site.slug || "",
+          blocks: Array.isArray(site.draft?.blocks) ? site.draft.blocks : [],
+        }}
+        submitLabel={saving ? "Saving..." : "Save Changes"}
+        onSubmit={saveBuilderDraft}
+      />
     </main>
   );
 }

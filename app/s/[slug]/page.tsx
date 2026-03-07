@@ -1,102 +1,41 @@
-import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { headers } from "next/headers";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
-import {
-  TEMPLATE_DEFS,
-  getTemplateDef,
-  type TemplateKey,
-} from "@/lib/templates/registry";
-
-import RsvpForm from "./RsvpForm";
-import PollBlock from "./PollBlock";
-import GalleryBlock from "./GalleryBlock";
-
-import AnnouncementBlock from "./AnnouncementBlock";
-import LinksBlock from "./LinksBlock";
-import ContactBlock from "./ContactBlock";
-
-import DemoTemplatePage from "@/components/demo/DemoTemplatePage";
+import type { MicrositeBlock } from "@/lib/templates/builder";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
-type SiteRecord = {
+type MicrositeRow = {
   id: string;
   slug: string;
-  title: string | null;
-  template_key: string;
+  title: string;
   is_published: boolean;
-  expires_at: string | null;
   paid_until: string | null;
+  draft?: {
+    title?: string;
+    slugSuggestion?: string;
+    blocks?: MicrositeBlock[];
+  } | null;
 };
 
-function isValidSlug(slug: string) {
-  return /^[a-z0-9-]{2,40}$/.test(slug);
+function isPaidActive(paidUntil: string | null) {
+  if (!paidUntil) return false;
+  return new Date(paidUntil).getTime() > Date.now();
 }
 
-function getSubdomainFromHost(host: string) {
-  const normalized = (host || "").toLowerCase().split(":")[0];
-  const parts = normalized.split(".");
-  if (parts.length < 3) return null;
-
-  const subdomain = parts[0];
-  if (!subdomain || subdomain === "www") return null;
-
-  return subdomain;
-}
-
-function getDemoTemplateKeyFromSubdomain(subdomain: string | null): TemplateKey | null {
-  const s = (subdomain || "").trim().toLowerCase();
-  if (!s) return null;
-
-  const match = TEMPLATE_DEFS.find((t) => t.demoSlug === s);
-  return match?.key ?? null;
-}
-
-function titleForSite(site: { title: string | null; slug: string }) {
-  const t = (site.title || "").trim();
-  if (t) return `${t} | Ko-Host`;
-  return `${site.slug}.ko-host.com | Ko-Host`;
-}
-
-export async function generateMetadata({
-  params,
+function SectionCard({
+  title,
+  children,
 }: {
-  params: Promise<{ slug: string }>;
-}): Promise<Metadata> {
-  const { slug } = await params;
-
-  if (slug === "demo") {
-    const h = await headers();
-    const host = (h.get("host") || "").toLowerCase();
-    const subdomain = getSubdomainFromHost(host);
-    const demoKey = getDemoTemplateKeyFromSubdomain(subdomain);
-    const def = demoKey ? getTemplateDef(demoKey) : null;
-
-    const name = def?.title ?? "Demo";
-    return { title: `${name} Demo` };
-  }
-
-  if (!isValidSlug(slug)) return { title: "Ko-Host" };
-
-  const sb = getSupabaseAdmin();
-  const { data: site } = await sb
-    .from("microsites")
-    .select("slug, title, is_published, expires_at, paid_until")
-    .eq("slug", slug)
-    .maybeSingle();
-
-  if (!site) return { title: "Ko-Host" };
-
-  const now = new Date();
-  const isExpired = site.expires_at ? new Date(site.expires_at) <= now : false;
-  const paidActive = site.paid_until ? new Date(site.paid_until) > now : false;
-
-  if (!site.is_published) return { title: "Not Published | Ko-Host" };
-  if (isExpired) return { title: "Expired | Ko-Host" };
-  if (!paidActive) return { title: "Access Ended | Ko-Host" };
-
-  return { title: titleForSite(site) };
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+      <h2 className="text-lg font-semibold text-neutral-900">{title}</h2>
+      <div className="mt-3">{children}</div>
+    </section>
+  );
 }
 
 export default async function PublicMicrositePage({
@@ -105,167 +44,196 @@ export default async function PublicMicrositePage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
+  const supabaseAdmin = getSupabaseAdmin();
 
-  if (slug === "demo") {
-    const h = await headers();
-    const host = (h.get("host") || "").toLowerCase();
-    const subdomain = getSubdomainFromHost(host);
-
-    const demoKey = getDemoTemplateKeyFromSubdomain(subdomain);
-    if (!demoKey) return notFound();
-
-    const def = getTemplateDef(demoKey);
-    if (!def) return notFound();
-
-    return <DemoTemplatePage template={def} originHost={host} />;
-  }
-
-  if (!isValidSlug(slug)) return notFound();
-
-  const sb = getSupabaseAdmin();
-
-  const { data: site, error } = await sb
+  const { data, error } = await supabaseAdmin
     .from("microsites")
-    .select("id, slug, title, template_key, is_published, expires_at, paid_until")
+    .select("id, slug, title, is_published, paid_until, draft")
     .eq("slug", slug)
-    .maybeSingle();
+    .single();
 
-  if (error || !site) {
-    console.error("public microsite lookup failed", { slug, error });
-    return notFound();
+  if (error || !data) {
+    notFound();
   }
 
-  const typedSite = site as SiteRecord;
+  const site = data as MicrositeRow;
 
-  const now = new Date();
-  const isExpired = typedSite.expires_at ? new Date(typedSite.expires_at) <= now : false;
-  const paidActive = typedSite.paid_until ? new Date(typedSite.paid_until) > now : false;
-
-  if (!typedSite.is_published || isExpired || !paidActive) {
-    const headline = !typedSite.is_published
-      ? "This microsite isn’t published yet"
-      : isExpired
-        ? "This microsite has expired"
-        : "This microsite’s moment has ended";
-
-    const body = !typedSite.is_published
-      ? "The owner hasn’t published this page yet."
-      : isExpired
-        ? "This page reached its expiration date."
-        : "The 90-day access window ended. The owner can repurchase to bring it back.";
-
-    return (
-      <main className="mx-auto max-w-3xl px-4 py-10">
-        <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-          <div className="text-sm text-neutral-600">Ko-Host</div>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight">{headline}</h1>
-          <p className="mt-3 text-sm text-neutral-700">{body}</p>
-        </div>
-      </main>
-    );
+  if (!isPaidActive(site.paid_until)) {
+    notFound();
   }
 
-  const { data: pollRows } = await sb
-    .from("polls")
-    .select("id, title, description, is_multi_select, show_results_public, is_open")
-    .eq("microsite_id", typedSite.id)
-    .order("created_at", { ascending: true });
-
-  const polls = pollRows ?? [];
-
-  const pollIds = polls.map((p) => p.id);
-  const { data: optionRows } = pollIds.length
-    ? await sb
-        .from("poll_options")
-        .select("id, poll_id, label, sort_order")
-        .in("poll_id", pollIds)
-        .order("sort_order", { ascending: true })
-    : { data: [] as any[] };
-
-  const optionsByPoll = new Map<string, { id: string; label: string }[]>();
-  for (const o of optionRows ?? []) {
-    const arr = optionsByPoll.get(o.poll_id) ?? [];
-    arr.push({ id: o.id, label: o.label });
-    optionsByPoll.set(o.poll_id, arr);
-  }
-
-  const { data: annRows } = await sb
-    .from("microsite_announcements")
-    .select("id")
-    .eq("microsite_id", typedSite.id)
-    .order("created_at", { ascending: false })
-    .limit(1);
-
-  const hasAnnouncement = !!annRows?.length;
-
-  const { data: linkRows } = await sb
-    .from("microsite_links")
-    .select("id")
-    .eq("microsite_id", typedSite.id)
-    .limit(1);
-
-  const hasLinks = !!linkRows?.length;
-
-  const { data: contactRow } = await sb
-    .from("microsite_contact")
-    .select("email, phone, website")
-    .eq("microsite_id", typedSite.id)
-    .maybeSingle();
-
-  const hasContact =
-    !!(contactRow?.email || "").trim() ||
-    !!(contactRow?.phone || "").trim() ||
-    !!(contactRow?.website || "").trim();
-
-  const isWedding = typedSite.template_key === "wedding_rsvp";
-
-  const shouldShowEmptyFallback =
-    !isWedding && polls.length === 0 && !hasAnnouncement && !hasLinks && !hasContact;
+  const blocks = Array.isArray(site.draft?.blocks) ? site.draft.blocks : [];
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-10">
-      <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-        <div className="text-sm text-neutral-600">Ko-Host</div>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight">
-          {typedSite.title || `${typedSite.slug}.ko-host.com`}
-        </h1>
-        <div className="mt-2 text-sm text-neutral-700">
-          Template: <span className="font-mono">{typedSite.template_key}</span>
-        </div>
-      </div>
-
-      <div className="mt-6 grid gap-6">
-        {isWedding ? <RsvpForm micrositeSlug={typedSite.slug} /> : null}
-
-        <AnnouncementBlock micrositeId={typedSite.id} />
-        <LinksBlock micrositeId={typedSite.id} />
-        <ContactBlock micrositeId={typedSite.id} />
-
-        <GalleryBlock micrositeSlug={typedSite.slug} />
-
-        {polls.map((p) => (
-          <PollBlock
-            key={p.id}
-            micrositeSlug={typedSite.slug}
-            poll={{
-              id: p.id,
-              title: p.title,
-              description: p.description,
-              isMultiSelect: p.is_multi_select,
-              showResultsPublic: p.show_results_public,
-              options: optionsByPoll.get(p.id) ?? [],
-            }}
-          />
-        ))}
-
-        {shouldShowEmptyFallback ? (
-          <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-            <div className="text-sm text-neutral-600">Modules</div>
-            <div className="mt-2 text-sm text-neutral-700">
-              Add an announcement, links, or contact info to make this microsite useful.
-            </div>
+    <main className="min-h-screen bg-neutral-50">
+      <div className="mx-auto w-full max-w-4xl px-4 py-10">
+        <div className="mb-8 rounded-3xl border border-neutral-200 bg-white p-8 shadow-sm">
+          <div className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">
+            Ko-Host Preview
           </div>
-        ) : null}
+          <h1 className="mt-3 text-3xl font-semibold tracking-tight text-neutral-900">
+            {site.title || "Untitled Microsite"}
+          </h1>
+          <div className="mt-3 text-sm text-neutral-600">/s/{site.slug}</div>
+        </div>
+
+        <div className="space-y-6">
+          {blocks.map((block) => {
+            if (block.type === "announcement") {
+              return (
+                <SectionCard key={block.id} title={block.data.headline || "Announcement"}>
+                  <div className="whitespace-pre-wrap text-neutral-700">
+                    {block.data.body || ""}
+                  </div>
+                </SectionCard>
+              );
+            }
+
+            if (block.type === "links") {
+              return (
+                <SectionCard key={block.id} title={block.data.heading || "Links"}>
+                  <div className="flex flex-col gap-3">
+                    {block.data.items.map((item) => (
+                      <div
+                        key={item.id}
+                        className="rounded-xl border border-neutral-200 px-4 py-3 text-sm text-neutral-800"
+                      >
+                        {item.label || "Untitled link"}
+                        {item.url ? (
+                          <div className="mt-1 text-xs text-neutral-500">{item.url}</div>
+                        ) : null}
+                      </div>
+                    ))}
+                  </div>
+                </SectionCard>
+              );
+            }
+
+            if (block.type === "countdown") {
+              return (
+                <SectionCard key={block.id} title={block.data.heading || "Countdown"}>
+                  <div className="text-sm text-neutral-700">
+                    Target: {block.data.targetIso || "Not set"}
+                  </div>
+                  <div className="mt-1 text-sm text-neutral-500">
+                    {block.data.completedMessage || ""}
+                  </div>
+                </SectionCard>
+              );
+            }
+
+            if (block.type === "contact") {
+              return (
+                <SectionCard key={block.id} title={block.data.heading || "Contact"}>
+                  <div className="space-y-2 text-sm text-neutral-700">
+                    {block.data.name ? <div>Name: {block.data.name}</div> : null}
+                    {block.data.email ? <div>Email: {block.data.email}</div> : null}
+                    {block.data.phone ? <div>Phone: {block.data.phone}</div> : null}
+                  </div>
+                </SectionCard>
+              );
+            }
+
+            if (block.type === "rsvp") {
+              return (
+                <SectionCard key={block.id} title={block.data.heading || "RSVP"}>
+                  <div className="space-y-2 text-sm text-neutral-700">
+                    {block.data.eventDate ? (
+                      <div>Event date: {block.data.eventDate}</div>
+                    ) : null}
+                    <div>
+                      Collect guest count: {block.data.collectGuestCount ? "Yes" : "No"}
+                    </div>
+                    <div>
+                      Collect meal choice: {block.data.collectMealChoice ? "Yes" : "No"}
+                    </div>
+                  </div>
+                </SectionCard>
+              );
+            }
+
+            if (block.type === "richText") {
+              return (
+                <SectionCard key={block.id} title={block.data.heading || "Details"}>
+                  <div className="whitespace-pre-wrap text-neutral-700">
+                    {block.data.body || ""}
+                  </div>
+                </SectionCard>
+              );
+            }
+
+            if (block.type === "faq") {
+              return (
+                <SectionCard key={block.id} title={block.data.heading || "FAQ"}>
+                  <div className="space-y-3">
+                    {block.data.items.map((item) => (
+                      <div key={item.id} className="rounded-xl border border-neutral-200 p-4">
+                        <div className="font-medium text-neutral-900">
+                          {item.question || "Untitled question"}
+                        </div>
+                        <div className="mt-2 whitespace-pre-wrap text-sm text-neutral-700">
+                          {item.answer || ""}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </SectionCard>
+              );
+            }
+
+            if (block.type === "gallery") {
+              return (
+                <SectionCard key={block.id} title={block.data.heading || "Gallery"}>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    {block.data.items.map((item) => (
+                      <div
+                        key={item.id}
+                        className="rounded-xl border border-neutral-200 p-4 text-sm text-neutral-700"
+                      >
+                        <div>{item.url || "No image URL"}</div>
+                        {item.caption ? (
+                          <div className="mt-2 text-neutral-500">{item.caption}</div>
+                        ) : null}
+                      </div>
+                    ))}
+                  </div>
+                </SectionCard>
+              );
+            }
+
+            if (block.type === "poll") {
+              return (
+                <SectionCard key={block.id} title={block.data.question || "Poll"}>
+                  <div className="space-y-3">
+                    {block.data.options.map((option) => (
+                      <div
+                        key={option.id}
+                        className="rounded-xl border border-neutral-200 px-4 py-3 text-sm text-neutral-800"
+                      >
+                        {option.text || "Untitled option"}
+                      </div>
+                    ))}
+                  </div>
+                </SectionCard>
+              );
+            }
+
+            if (block.type === "cta") {
+              return (
+                <SectionCard key={block.id} title={block.data.heading || "Call To Action"}>
+                  <div className="whitespace-pre-wrap text-neutral-700">
+                    {block.data.body || ""}
+                  </div>
+                  <div className="mt-4 rounded-xl bg-neutral-900 px-4 py-2 text-center text-sm font-medium text-white">
+                    {block.data.buttonText || "Learn more"}
+                  </div>
+                </SectionCard>
+              );
+            }
+
+            return null;
+          })}
+        </div>
       </div>
     </main>
   );

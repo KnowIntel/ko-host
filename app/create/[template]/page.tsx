@@ -2,57 +2,54 @@
 
 import { useMemo } from "react";
 import { useParams } from "next/navigation";
-import { getTemplateDef, normalizeTemplateKey, TEMPLATE_DEFS } from "@/lib/templates/registry";
-import { TemplateDraftEditor } from "@/components/templates/TemplateDraftEditor";
+import {
+  getTemplateDef,
+  normalizeTemplateKey,
+  TEMPLATE_DEFS,
+} from "@/lib/templates/registry";
+import TemplateDraftEditor from "@/components/templates/TemplateDraftEditor";
 
-type Draft = {
-  title: string;
-  slugSuggestion: string;
+type LegacyDraft = {
+  title?: string;
+  slugSuggestion?: string;
+  announcement?: string | { headline?: string; body?: string };
+  links?: Array<{ label?: string; url?: string }>;
+  contactName?: string;
+  contactEmail?: string;
+  contactPhone?: string;
 };
 
 export default function CreateTemplatePage() {
   const params = useParams();
+  const rawTemplate = String(params?.template || "");
+  const templateKey = normalizeTemplateKey(rawTemplate);
 
-  const raw = useMemo(() => {
-    const v = (params as any)?.template;
-    if (Array.isArray(v)) return v[0] ?? "";
-    return typeof v === "string" ? v : "";
-  }, [params]);
+  const templateDef = useMemo(() => {
+    return getTemplateDef(templateKey) ?? TEMPLATE_DEFS[0];
+  }, [templateKey]);
 
-  const normalized = useMemo(() => normalizeTemplateKey(raw), [raw]);
-  const t = useMemo(() => getTemplateDef(raw), [raw]);
-
-  if (!t) {
-    return (
-      <main className="mx-auto max-w-3xl px-4 py-10">
-        <h1 className="text-xl font-semibold">Template not found</h1>
-
-        <div className="mt-4 rounded-xl border bg-white p-4 text-sm">
-          <div>
-            <span className="font-medium">raw param:</span> {raw || "(empty)"}
-          </div>
-          <div>
-            <span className="font-medium">normalized:</span> {normalized || "(empty)"}
-          </div>
-          <div className="mt-2 text-xs text-neutral-600">
-            known keys: {TEMPLATE_DEFS.map((x) => x.key).join(", ")}
-          </div>
-        </div>
-      </main>
-    );
-  }
-
-  const defaultDraft: Draft = {
-    title: (t as any)?.defaultDraft?.title ?? "",
-    slugSuggestion: (t as any)?.defaultDraft?.slugSuggestion ?? "",
-  };
+  const initialDraft = useMemo<LegacyDraft>(() => {
+    return {
+      title: templateDef?.title ?? "",
+      slugSuggestion: "",
+    };
+  }, [templateDef]);
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-8">
+    <main className="mx-auto w-full max-w-5xl px-4 py-10">
+      <div className="mb-6">
+        <h1 className="text-2xl font-semibold tracking-tight text-neutral-900">
+          Create {templateDef?.title ?? "Microsite"}
+        </h1>
+        <p className="mt-2 text-sm text-neutral-600">
+          Build your microsite, then continue to checkout.
+        </p>
+      </div>
+
       <TemplateDraftEditor
-        templateKey={t.key}
-        templateTitle={t.title}
-        defaultDraft={defaultDraft}
+        templateKey={templateKey}
+        initialDraft={initialDraft}
+        submitLabel="Continue"
       />
     </main>
   );

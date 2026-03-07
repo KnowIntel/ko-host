@@ -1,107 +1,249 @@
+import Stripe from "stripe";
 import { NextResponse } from "next/server";
-import { z } from "zod";
-import { stripe } from "@/lib/stripe";
-import { requireAuth } from "@/lib/clerk";
+import { auth } from "@clerk/nextjs/server";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+const priceId = process.env.STRIPE_PRICE_ID_MICROSITE;
 
-const Schema = z.object({
-  micrositeId: z.string().uuid(),
+if (!stripeSecretKey) {
+  throw new Error("Missing STRIPE_SECRET_KEY");
+}
+
+if (!appUrl) {
+  throw new Error("Missing NEXT_PUBLIC_APP_URL");
+}
+
+if (!priceId) {
+  throw new Error("Missing STRIPE_PRICE_ID_MICROSITE");
+}
+
+const stripe = new Stripe(stripeSecretKey, {
+  apiVersion: "2026-02-25.clover",
 });
 
-function mustGetEnv(name: string) {
-  const v = process.env[name];
-  if (!v) throw new Error(`Missing env var: ${name}`);
-  return v;
-}
-
-async function parseBody(req: Request): Promise<{ micrositeId?: string }> {
-  const contentType = req.headers.get("content-type") || "";
-
-  if (
-    contentType.includes("application/x-www-form-urlencoded") ||
-    contentType.includes("multipart/form-data")
-  ) {
-    const fd = await req.formData();
-    const micrositeId = fd.get("micrositeId");
-    return { micrositeId: typeof micrositeId === "string" ? micrositeId : undefined };
-  }
-
-  const json = await req.json().catch(() => ({}));
-  return { micrositeId: json?.micrositeId };
-}
-
-async function handleCheckout(micrositeId: string) {
-  let userId: string;
-  try {
-    const auth = await requireAuth();
-    userId = auth.userId;
-  } catch {
-    return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
-  }
-
-  const sb = getSupabaseAdmin();
-
-  const { data: site, error } = await sb
-    .from("microsites")
-    .select("id, owner_clerk_user_id, slug, template_key, title")
-    .eq("id", micrositeId)
-    .maybeSingle();
-
-  if (error || !site) {
-    return NextResponse.json({ ok: false, error: "Not found" }, { status: 404 });
-  }
-
-  if (site.owner_clerk_user_id !== userId) {
-    return NextResponse.json({ ok: false, error: "Forbidden" }, { status: 403 });
-  }
-
-  const baseUrl = mustGetEnv("NEXT_PUBLIC_APP_URL");
-  const priceId = mustGetEnv("STRIPE_PRICE_ID_MICROSITE");
-
-  const session = await stripe.checkout.sessions.create({
-    mode: "payment",
-    payment_method_types: ["card"],
-    line_items: [{ price: priceId, quantity: 1 }],
-    metadata: {
-      microsite_id: site.id,
-      template_key: site.template_key,
-      clerk_user_id: userId,
-      slug: site.slug,
-      title: site.title ?? "",
-    },
-    success_url: `${baseUrl}/dashboard/microsites?checkout=success&micrositeId=${site.id}`,
-    cancel_url: `${baseUrl}/dashboard/microsites?checkout=cancel&micrositeId=${site.id}`,
-  });
-
-  if (session.url) {
-    return NextResponse.redirect(session.url, { status: 303 });
-  }
-
-  return NextResponse.json({ ok: true, url: session.url }, { status: 200 });
-}
-
-export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const micrositeId = searchParams.get("micrositeId") || "";
-  const parsed = Schema.safeParse({ micrositeId });
-
-  if (!parsed.success) {
-    return NextResponse.json({ ok: false, error: "Invalid request" }, { status: 400 });
-  }
-
-  return handleCheckout(parsed.data.micrositeId);
-}
-
 export async function POST(req: Request) {
-  const raw = await parseBody(req);
-  const parsed = Schema.safeParse(raw);
+  try {
+    const { userId } = await auth();
 
-  if (!parsed.success) {
-    return NextResponse.json({ ok: false, error: "Invalid request" }, { status: 400 });
+    if (!userId) {
+      return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+    }
+
+    const contentType = req.headers.get("content-type") || "";
+
+    let pendingCheckoutId = "";
+    let micrositeId = "";
+    let slug = "";
+    let templateKey = "";
+
+    if (contentType.includes("application/json")) {
+      const body = await req.json().catch(() => ({}));
+
+      pendingCheckoutId = String(body?.pendingCheckoutId || "");
+      micrositeId = String(body?.micrositeId || "");
+      slug = String(body?.slug || "");
+      templateKey = String(body?.templateKey || "");
+    } else {
+      const formData = await req.formData();
+
+      pendingCheckoutId = String(formData.get("pendingCheckoutId") || "");
+      micrositeId = String(formData.get("micrositeId") || "");
+      slug = String(formData.get("slug") || "");
+      templateKey = String(formData.get("templateKey") || "");
+    }
+
+    const supabaseAdmin = getSupabaseAdmin();
+
+    if (pendingCheckoutId) {
+      const { data: pendingRow, error: pendingError } = await supabaseAdmin
+        .from("pending_microsite_checkouts")
+        .select("id, owner_clerk_user_id, slug, title, template_key")
+        .eq("id", pendingCheckoutId)
+        .eq("owner_clerk_user_id", userId)
+        .single();
+
+      if (pendingError || !pendingRow) {
+        return NextResponse.json(
+          { ok: false, error: "Invalid request" },
+          { status: 400 },
+        );
+      }
+
+      const session = await stripe.checkout.sessions.create({
+        mode: "payment",
+        line_items: [
+          {
+            price: priceId,
+            quantity: 1,
+          },
+        ],
+        success_url: `${appUrl}/dashboard/microsites?checkout=success&slug=${encodeURIComponent(
+          pendingRow.slug,
+        )}`,
+        cancel_url: `${appUrl}/dashboard/microsites?checkout=cancel&slug=${encodeURIComponent(
+          pendingRow.slug,
+        )}`,
+        metadata: {
+          owner_clerk_user_id: userId,
+          pending_checkout_id: pendingRow.id,
+          slug: pendingRow.slug,
+          title: pendingRow.title || "",
+          template_key: pendingRow.template_key || "",
+        },
+      });
+
+      if (!session.url) {
+        return NextResponse.json(
+          { ok: false, error: "Failed to create checkout session" },
+          { status: 500 },
+        );
+      }
+
+      return NextResponse.redirect(session.url, 303);
+    }
+
+    if (micrositeId) {
+      const { data: micrositeRow, error: micrositeError } = await supabaseAdmin
+        .from("microsites")
+        .select("id, owner_clerk_user_id, slug, title, template_key")
+        .eq("id", micrositeId)
+        .eq("owner_clerk_user_id", userId)
+        .single();
+
+      if (micrositeError || !micrositeRow) {
+        return NextResponse.json(
+          { ok: false, error: "Invalid request" },
+          { status: 400 },
+        );
+      }
+
+      const session = await stripe.checkout.sessions.create({
+        mode: "payment",
+        line_items: [
+          {
+            price: priceId,
+            quantity: 1,
+          },
+        ],
+        success_url: `${appUrl}/dashboard/microsites?checkout=success&micrositeId=${encodeURIComponent(
+          micrositeRow.id,
+        )}`,
+        cancel_url: `${appUrl}/dashboard/microsites?checkout=cancel&micrositeId=${encodeURIComponent(
+          micrositeRow.id,
+        )}`,
+        metadata: {
+          owner_clerk_user_id: userId,
+          microsite_id: micrositeRow.id,
+          slug: micrositeRow.slug,
+          title: micrositeRow.title || "",
+          template_key: micrositeRow.template_key || "",
+        },
+      });
+
+      if (!session.url) {
+        return NextResponse.json(
+          { ok: false, error: "Failed to create checkout session" },
+          { status: 500 },
+        );
+      }
+
+      return NextResponse.redirect(session.url, 303);
+    }
+
+    if (slug) {
+      const { data: pendingBySlug, error: pendingBySlugError } = await supabaseAdmin
+        .from("pending_microsite_checkouts")
+        .select("id, owner_clerk_user_id, slug, title, template_key")
+        .eq("slug", slug)
+        .eq("owner_clerk_user_id", userId)
+        .maybeSingle();
+
+      if (!pendingBySlugError && pendingBySlug) {
+        const session = await stripe.checkout.sessions.create({
+          mode: "payment",
+          line_items: [
+            {
+              price: priceId,
+              quantity: 1,
+            },
+          ],
+          success_url: `${appUrl}/dashboard/microsites?checkout=success&slug=${encodeURIComponent(
+            pendingBySlug.slug,
+          )}`,
+          cancel_url: `${appUrl}/dashboard/microsites?checkout=cancel&slug=${encodeURIComponent(
+            pendingBySlug.slug,
+          )}`,
+          metadata: {
+            owner_clerk_user_id: userId,
+            pending_checkout_id: pendingBySlug.id,
+            slug: pendingBySlug.slug,
+            title: pendingBySlug.title || "",
+            template_key: pendingBySlug.template_key || templateKey || "",
+          },
+        });
+
+        if (!session.url) {
+          return NextResponse.json(
+            { ok: false, error: "Failed to create checkout session" },
+            { status: 500 },
+          );
+        }
+
+        return NextResponse.redirect(session.url, 303);
+      }
+
+      const { data: micrositeBySlug, error: micrositeBySlugError } = await supabaseAdmin
+        .from("microsites")
+        .select("id, owner_clerk_user_id, slug, title, template_key")
+        .eq("slug", slug)
+        .eq("owner_clerk_user_id", userId)
+        .maybeSingle();
+
+      if (!micrositeBySlugError && micrositeBySlug) {
+        const session = await stripe.checkout.sessions.create({
+          mode: "payment",
+          line_items: [
+            {
+              price: priceId,
+              quantity: 1,
+            },
+          ],
+          success_url: `${appUrl}/dashboard/microsites?checkout=success&micrositeId=${encodeURIComponent(
+            micrositeBySlug.id,
+          )}`,
+          cancel_url: `${appUrl}/dashboard/microsites?checkout=cancel&micrositeId=${encodeURIComponent(
+            micrositeBySlug.id,
+          )}`,
+          metadata: {
+            owner_clerk_user_id: userId,
+            microsite_id: micrositeBySlug.id,
+            slug: micrositeBySlug.slug,
+            title: micrositeBySlug.title || "",
+            template_key: micrositeBySlug.template_key || templateKey || "",
+          },
+        });
+
+        if (!session.url) {
+          return NextResponse.json(
+            { ok: false, error: "Failed to create checkout session" },
+            { status: 500 },
+          );
+        }
+
+        return NextResponse.redirect(session.url, 303);
+      }
+    }
+
+    return NextResponse.json(
+      { ok: false, error: "Invalid request" },
+      { status: 400 },
+    );
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Unexpected server error";
+
+    return NextResponse.json({ ok: false, error: message }, { status: 500 });
   }
-
-  return handleCheckout(parsed.data.micrositeId);
 }

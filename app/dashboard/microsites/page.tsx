@@ -25,7 +25,6 @@ export default async function MicrositesListPage() {
   }
 
   const supabase = getSupabaseAdmin();
-  const nowIso = new Date().toISOString();
 
   const { data, error } = await supabase
     .from("microsites")
@@ -41,7 +40,6 @@ export default async function MicrositesListPage() {
     `)
     .eq("owner_clerk_user_id", userId)
     .not("paid_until", "is", null)
-    .gt("paid_until", nowIso)
     .order("created_at", { ascending: false });
 
   if (error) {

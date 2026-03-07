@@ -4,6 +4,7 @@ import { z } from "zod";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 const QuerySchema = z.object({
   slug: z.string().min(2).max(40).regex(/^[a-z0-9-]+$/),
@@ -27,6 +28,7 @@ export async function GET(req: Request) {
     .from("microsites")
     .select("id")
     .eq("slug", parsed.data.slug)
+    .not("paid_until", "is", null)
     .maybeSingle();
 
   if (error) {

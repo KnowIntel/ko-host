@@ -1,647 +1,1550 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import KoHostItButton from "./KoHostItButton";
+import { useRouter } from "next/navigation";
+import {
+  addBlock,
+  createStarterDraft,
+  moveBlock,
+  normalizeLegacyDraft,
+  removeBlock,
+  sanitizeBuilderDraft,
+  updateBlock,
+  type BuilderBlockType,
+  type BuilderDraft,
+  type MicrositeBlock,
+} from "@/lib/templates/builder";
 
-type SiteVisibility = "public" | "private";
-type PrivateMode = "passcode" | "members_only";
-
-type Draft = {
-  title: string;
-  slugSuggestion: string;
-
-  siteVisibility: SiteVisibility;
-  privateMode?: PrivateMode;
-  passcode?: string;
-
-  announcement?: {
-    headline: string;
-    body: string;
-  };
-
-  links?: Array<{ id: string; label: string; url: string }>;
-
-  contact?: {
-    name: string;
-    email: string;
-    phone: string;
-  };
+type DraftInput = {
+  title?: string;
+  slugSuggestion?: string;
+  announcement?: string | { headline?: string; body?: string };
+  links?: Array<{ label?: string; url?: string }>;
+  contactName?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  blocks?: MicrositeBlock[];
 };
 
-function storageKey(templateKey: string) {
-  return `kohost:draft:${templateKey}`;
+type Props = {
+  templateKey: string;
+  initialDraft?: DraftInput;
+  submitLabel?: string;
+  onSubmit?: (draft: BuilderDraft) => void | Promise<void>;
+};
+
+const BLOCK_OPTIONS: Array<{ type: BuilderBlockType; label: string }> = [
+  { type: "announcement", label: "Announcement" },
+  { type: "links", label: "Links" },
+  { type: "contact", label: "Contact" },
+  { type: "gallery", label: "Gallery" },
+  { type: "poll", label: "Poll" },
+  { type: "rsvp", label: "RSVP" },
+  { type: "richText", label: "Rich Text" },
+  { type: "faq", label: "FAQ" },
+  { type: "countdown", label: "Countdown" },
+  { type: "cta", label: "Call To Action" },
+];
+
+type SlugStatus = "idle" | "checking" | "available" | "taken" | "invalid" | "error";
+
+function textInputClass() {
+  return "mt-1 w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-900";
 }
 
-function normalizeSlug(input: string) {
+function textareaClass() {
+  return "mt-1 w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-900 min-h-[110px]";
+}
+
+function sectionCardClass() {
+  return "rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm";
+}
+
+function slugify(input: string) {
   return input
     .toLowerCase()
     .trim()
-    .replace(/\s+/g, "-")
-    .replace(/[^a-z0-9-]/g, "")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
+    .replace(/[^a-z0-9-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .replace(/--+/g, "-")
+    .slice(0, 63);
 }
 
-function normalizePasscode(input: string) {
-  return input.replace(/\D/g, "").slice(0, 6);
+function uniqueStrings(values: string[]) {
+  return [...new Set(values.filter(Boolean))];
 }
 
-type AvailabilityState =
-  | { status: "idle" }
-  | { status: "checking" }
-  | { status: "available" }
-  | { status: "taken" }
-  | { status: "invalid" }
-  | { status: "error"; message?: string };
+function buildSmartSlugCandidates(title: string, templateKey: string) {
+  const cleanTitle = slugify(title);
+  const cleanTemplate = slugify(templateKey.replace(/_/g, "-"));
+  const words = cleanTitle.split("-").filter(Boolean);
+  const compact = words.slice(0, 2).join("-");
+  const first = words[0] || cleanTemplate || "site";
+  const second = words[1] || "";
+  const year = new Date().getFullYear().toString().slice(-2);
 
-function newId() {
-  return Math.random().toString(16).slice(2) + Date.now().toString(16);
+  return uniqueStrings([
+    cleanTitle,
+    compact,
+    `${cleanTitle}-page`,
+    `${cleanTitle}-hub`,
+    `${cleanTitle}-site`,
+    `${compact || first}-${year}`,
+    `${first}${second ? `-${second}` : ""}-${cleanTemplate}`,
+    `${cleanTemplate}-${first}`,
+    `${first}-online`,
+    `${first}-now`,
+    `${first}-info`,
+    `${first}-home`,
+  ]).map(slugify);
 }
 
-export function TemplateDraftEditor({
-  templateKey,
-  templateTitle,
-  defaultDraft,
-}: {
-  templateKey: string;
-  templateTitle: string;
-  defaultDraft: { title: string; slugSuggestion: string };
-}) {
-  const key = useMemo(() => storageKey(templateKey), [templateKey]);
-
-  const [draft, setDraft] = useState<Draft>(() => ({
-    title: defaultDraft.title,
-    slugSuggestion: defaultDraft.slugSuggestion,
-    siteVisibility: "public",
-    privateMode: "passcode",
-    passcode: "",
-    announcement: { headline: "", body: "" },
-    links: [],
-    contact: { name: "", email: "", phone: "" },
-  }));
-
-  const [avail, setAvail] = useState<AvailabilityState>({ status: "idle" });
-  const lastCheckedRef = useRef<string>("");
-
-  useEffect(() => {
-    const raw = window.localStorage.getItem(key);
-    if (raw) {
-      try {
-        const parsed = JSON.parse(raw);
-        setDraft((prev) => ({
-          ...prev,
-          ...parsed,
-          siteVisibility:
-            parsed?.siteVisibility === "private" ? "private" : "public",
-          privateMode:
-            parsed?.privateMode === "members_only"
-              ? "members_only"
-              : "passcode",
-          passcode: normalizePasscode(parsed?.passcode ?? ""),
-          announcement: {
-            headline:
-              parsed?.announcement?.headline ??
-              prev.announcement?.headline ??
-              "",
-            body: parsed?.announcement?.body ?? prev.announcement?.body ?? "",
-          },
-          links: Array.isArray(parsed?.links) ? parsed.links : prev.links ?? [],
-          contact: {
-            name: parsed?.contact?.name ?? prev.contact?.name ?? "",
-            email: parsed?.contact?.email ?? prev.contact?.email ?? "",
-            phone: parsed?.contact?.phone ?? prev.contact?.phone ?? "",
-          },
-        }));
-      } catch {}
-    }
-  }, [key]);
-
-  useEffect(() => {
-    window.localStorage.setItem(key, JSON.stringify(draft));
-  }, [key, draft]);
-
-  const normalizedSlug = useMemo(
-    () => normalizeSlug(draft.slugSuggestion || ""),
-    [draft.slugSuggestion]
+async function checkSlugAvailability(slug: string) {
+  const res = await fetch(
+    `/api/microsites/check-slug?slug=${encodeURIComponent(slug)}`,
+    {
+      method: "GET",
+      cache: "no-store",
+    },
   );
 
-  const previewUrl = useMemo(() => {
-    const slug = normalizedSlug || "your-page";
-    return `https://${slug}.ko-host.com`;
-  }, [normalizedSlug]);
+  const data = await res.json().catch(() => ({}));
 
-  useEffect(() => {
-    const slug = normalizedSlug;
+  if (!res.ok) {
+    throw new Error(data?.error || "Failed to check site name.");
+  }
 
-    if (slug && slug === lastCheckedRef.current) return;
+  const available =
+    typeof data?.available === "boolean"
+      ? data.available
+      : typeof data?.isAvailable === "boolean"
+        ? data.isAvailable
+        : false;
 
-    if (!slug) {
-      setAvail({ status: "idle" });
-      lastCheckedRef.current = "";
-      return;
+  return available;
+}
+
+export default function TemplateDraftEditor({
+  templateKey,
+  initialDraft,
+  submitLabel = "Continue",
+  onSubmit,
+}: Props) {
+  const router = useRouter();
+
+  const initial = useMemo(() => {
+    if (initialDraft?.blocks?.length) {
+      return sanitizeBuilderDraft({
+        title: initialDraft.title ?? "",
+        slugSuggestion: initialDraft.slugSuggestion ?? "",
+        blocks: initialDraft.blocks,
+      });
     }
 
-    if (slug.length < 2 || slug.length > 40 || !/^[a-z0-9-]+$/.test(slug)) {
-      setAvail({ status: "invalid" });
-      lastCheckedRef.current = "";
-      return;
+    if (initialDraft) {
+      return sanitizeBuilderDraft(normalizeLegacyDraft(initialDraft));
     }
 
-    setAvail({ status: "checking" });
+    return createStarterDraft("");
+  }, [initialDraft]);
 
-    const t = window.setTimeout(async () => {
+  const [draft, setDraft] = useState<BuilderDraft>(initial);
+  const [newBlockType, setNewBlockType] = useState<BuilderBlockType>("announcement");
+  const [siteVisibility, setSiteVisibility] = useState<"public" | "private" | "members_only">("public");
+  const [passcode, setPasscode] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const [slugStatus, setSlugStatus] = useState<SlugStatus>("idle");
+  const [slugMessage, setSlugMessage] = useState("");
+  const [isAutoGeneratingSlug, setIsAutoGeneratingSlug] = useState(false);
+
+  const slugRequestIdRef = useRef(0);
+  const hasManuallyEditedSlugRef = useRef(false);
+  const lastGeneratedTitleRef = useRef("");
+
+  function setTitle(value: string) {
+    setDraft((prev) => ({ ...prev, title: value }));
+  }
+
+  function setSlugSuggestion(value: string) {
+    setDraft((prev) => ({ ...prev, slugSuggestion: slugify(value) }));
+  }
+
+  function handleAddBlock() {
+    setDraft((prev) => addBlock(prev, newBlockType));
+  }
+
+  function handleRemoveBlock(blockId: string) {
+    setDraft((prev) => removeBlock(prev, blockId));
+  }
+
+  function handleMoveUp(index: number) {
+    if (index === 0) return;
+    setDraft((prev) => moveBlock(prev, index, index - 1));
+  }
+
+  function handleMoveDown(index: number) {
+    if (index === draft.blocks.length - 1) return;
+    setDraft((prev) => moveBlock(prev, index, index + 1));
+  }
+
+  async function validateSlug(slugValue: string) {
+    const normalized = slugify(slugValue);
+
+    if (!normalized) {
+      setSlugStatus("invalid");
+      setSlugMessage("Enter a site name.");
+      return false;
+    }
+
+    if (normalized.length < 3) {
+      setSlugStatus("invalid");
+      setSlugMessage("Must be at least 3 characters.");
+      return false;
+    }
+
+    const requestId = ++slugRequestIdRef.current;
+    setSlugStatus("checking");
+    setSlugMessage("Checking...");
+
+    try {
+      const available = await checkSlugAvailability(normalized);
+
+      if (requestId !== slugRequestIdRef.current) {
+        return false;
+      }
+
+      if (available) {
+        setSlugStatus("available");
+        setSlugMessage("Available");
+        return true;
+      }
+
+      setSlugStatus("taken");
+      setSlugMessage("Taken");
+      return false;
+    } catch {
+      if (requestId !== slugRequestIdRef.current) {
+        return false;
+      }
+
+      setSlugStatus("error");
+      setSlugMessage("Could not verify.");
+      return false;
+    }
+  }
+
+async function generateAvailableSlug(force = false) {
+  const baseTitle = (draft.title || initialDraft?.title || "site").trim();
+  if (!baseTitle) return;
+
+  if (!force && hasManuallyEditedSlugRef.current) return;
+
+  const titleKey = `${baseTitle}::${templateKey}`;
+  if (!force && lastGeneratedTitleRef.current === titleKey) return;
+
+  const currentSlug = slugify(draft.slugSuggestion);
+  const baseSlug = slugify(baseTitle || templateKey || "site") || "site";
+
+  const candidates = force
+    ? uniqueStrings([
+        `${currentSlug || baseSlug}-2`,
+        `${currentSlug || baseSlug}-3`,
+        `${currentSlug || baseSlug}-4`,
+        `${baseSlug}-2`,
+        `${baseSlug}-3`,
+        `${baseSlug}-4`,
+        ...buildSmartSlugCandidates(baseTitle, templateKey)
+          .filter((candidate) => candidate !== currentSlug)
+          .map((candidate) => `${candidate}-2`),
+        ...buildSmartSlugCandidates(baseTitle, templateKey)
+          .filter((candidate) => candidate !== currentSlug),
+      ]).map(slugify)
+    : buildSmartSlugCandidates(baseTitle, templateKey);
+
+  if (!candidates.length) return;
+
+  setIsAutoGeneratingSlug(true);
+  setSlugStatus("checking");
+  setSlugMessage("Generating...");
+
+  try {
+    for (const candidate of candidates) {
+      if (!candidate) continue;
+      if (force && candidate === currentSlug) continue;
+
       try {
-        const res = await fetch(
-          `/api/microsites/check-slug?slug=${encodeURIComponent(slug)}`,
-          {
-            method: "GET",
-            cache: "no-store",
-          }
-        );
-        const data = await res.json().catch(() => ({}));
+        const available = await checkSlugAvailability(candidate);
 
-        if (!res.ok) {
-          setAvail({
-            status: "error",
-            message: data?.error || "Could not check availability.",
-          });
+        if (available) {
+          setDraft((prev) => ({
+            ...prev,
+            slugSuggestion: candidate,
+          }));
+          setSlugStatus("available");
+          setSlugMessage("Available");
+          lastGeneratedTitleRef.current = titleKey;
           return;
         }
-
-        lastCheckedRef.current = slug;
-
-        if (data?.available === true) setAvail({ status: "available" });
-        else if (data?.available === false) setAvail({ status: "taken" });
-        else setAvail({ status: "error", message: "Unexpected response." });
       } catch {
-        setAvail({ status: "error", message: "Network error." });
+        // continue
       }
+    }
+
+    setSlugStatus("taken");
+    setSlugMessage("Taken");
+  } finally {
+    setIsAutoGeneratingSlug(false);
+  }
+}
+
+  useEffect(() => {
+    if (!draft.title?.trim()) return;
+    void generateAvailableSlug(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draft.title, templateKey]);
+
+  useEffect(() => {
+    const normalized = slugify(draft.slugSuggestion);
+
+    if (!normalized) {
+      setSlugStatus("idle");
+      setSlugMessage("");
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      void validateSlug(normalized);
     }, 350);
 
-    return () => window.clearTimeout(t);
-  }, [normalizedSlug]);
+    return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draft.slugSuggestion]);
 
-  const availabilityBadge = useMemo(() => {
-    const badgeBase =
-      "inline-flex items-center rounded-full px-2 py-1 text-[11px] font-semibold";
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
 
-    if (avail.status === "idle") return null;
+    try {
+      setSubmitting(true);
 
-    if (avail.status === "checking") {
-      return (
-        <span className={`${badgeBase} bg-neutral-100 text-neutral-700`}>
-          Checking…
-        </span>
-      );
+      const cleaned = sanitizeBuilderDraft(draft);
+      const normalizedSlug = slugify(cleaned.slugSuggestion);
+
+      setDraft({
+        ...cleaned,
+        slugSuggestion: normalizedSlug,
+      });
+
+      const slugOk = await validateSlug(normalizedSlug);
+
+      if (!slugOk) {
+        return;
+      }
+
+      if (!onSubmit && siteVisibility === "private") {
+        if (!/^\d{6}$/.test(passcode.trim())) {
+          alert("Private sites require a 6-digit numeric passcode.");
+          return;
+        }
+      }
+
+      if (onSubmit) {
+        await onSubmit({
+          ...cleaned,
+          slugSuggestion: normalizedSlug,
+        });
+        return;
+      }
+
+      const createRes = await fetch("/api/public/create-microsite", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          templateKey,
+          title: cleaned.title,
+          slugSuggestion: normalizedSlug,
+          siteVisibility,
+          privateMode: siteVisibility !== "public",
+          passcode: siteVisibility === "private" ? passcode.trim() : "",
+          draftJson: {
+            ...cleaned,
+            slugSuggestion: normalizedSlug,
+          },
+        }),
+      });
+
+      const createData = await createRes.json().catch(() => ({}));
+
+      if (!createRes.ok) {
+        alert(createData?.error || "Failed to save microsite draft.");
+        return;
+      }
+
+      const checkoutForm = document.createElement("form");
+      checkoutForm.method = "POST";
+      checkoutForm.action = "/api/stripe/checkout";
+
+      const micrositeIdInput = document.createElement("input");
+      micrositeIdInput.type = "hidden";
+      micrositeIdInput.name = "pendingCheckoutId";
+      micrositeIdInput.value = String(createData.pendingCheckoutId || "");
+      checkoutForm.appendChild(micrositeIdInput);
+
+      const slugInput = document.createElement("input");
+      slugInput.type = "hidden";
+      slugInput.name = "slug";
+      slugInput.value = String(createData.slug || "");
+      checkoutForm.appendChild(slugInput);
+
+      const templateKeyInput = document.createElement("input");
+      templateKeyInput.type = "hidden";
+      templateKeyInput.name = "templateKey";
+      templateKeyInput.value = String(templateKey);
+      checkoutForm.appendChild(templateKeyInput);
+
+      document.body.appendChild(checkoutForm);
+      checkoutForm.submit();
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Unexpected error.";
+      alert(message);
+    } finally {
+      setSubmitting(false);
+      router.refresh();
     }
+  }
 
-    if (avail.status === "available") {
-      return (
-        <span className={`${badgeBase} bg-green-50 text-green-700`}>
-          ✓ Available
-        </span>
-      );
-    }
-
-    if (avail.status === "taken") {
-      return (
-        <span className={`${badgeBase} bg-red-50 text-red-700`}>
-          ✗ Taken
-        </span>
-      );
-    }
-
-    if (avail.status === "invalid") {
-      return (
-        <span className={`${badgeBase} bg-amber-50 text-amber-800`}>
-          Invalid
-        </span>
-      );
-    }
-
-    return (
-      <span className={`${badgeBase} bg-neutral-100 text-neutral-700`}>
-        Couldn’t check
-      </span>
+  function updateAnnouncement(blockId: string, field: "headline" | "body", value: string) {
+    setDraft((prev) =>
+      updateBlock(prev, blockId, (block) =>
+        block.type === "announcement"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                [field]: value,
+              },
+            }
+          : block,
+      ),
     );
-  }, [avail.status]);
-
-  function addLink() {
-    setDraft((d) => ({
-      ...d,
-      links: [...(d.links ?? []), { id: newId(), label: "", url: "" }],
-    }));
   }
 
-  function updateLink(id: string, patch: Partial<{ label: string; url: string }>) {
-    setDraft((d) => ({
-      ...d,
-      links: (d.links ?? []).map((x) => (x.id === id ? { ...x, ...patch } : x)),
-    }));
+  function updateLinksHeading(blockId: string, value: string) {
+    setDraft((prev) =>
+      updateBlock(prev, blockId, (block) =>
+        block.type === "links"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                heading: value,
+              },
+            }
+          : block,
+      ),
+    );
   }
 
-  function removeLink(id: string) {
-    setDraft((d) => ({ ...d, links: (d.links ?? []).filter((x) => x.id !== id) }));
+  function updateLinkItem(
+    blockId: string,
+    itemId: string,
+    field: "label" | "url",
+    value: string,
+  ) {
+    setDraft((prev) =>
+      updateBlock(prev, blockId, (block) =>
+        block.type === "links"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                items: block.data.items.map((item) =>
+                  item.id === itemId ? { ...item, [field]: value } : item,
+                ),
+              },
+            }
+          : block,
+      ),
+    );
   }
 
-  function moveLink(id: string, dir: -1 | 1) {
-    setDraft((d) => {
-      const list = [...(d.links ?? [])];
-      const idx = list.findIndex((x) => x.id === id);
-      if (idx < 0) return d;
-      const j = idx + dir;
-      if (j < 0 || j >= list.length) return d;
-      const tmp = list[idx];
-      list[idx] = list[j];
-      list[j] = tmp;
-      return { ...d, links: list };
-    });
+  function addLinkItem(blockId: string) {
+    setDraft((prev) =>
+      updateBlock(prev, blockId, (block) =>
+        block.type === "links"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                items: [
+                  ...block.data.items,
+                  {
+                    id: `link_${Math.random().toString(36).slice(2, 10)}`,
+                    label: "",
+                    url: "",
+                  },
+                ],
+              },
+            }
+          : block,
+      ),
+    );
   }
 
-  const passcodeInvalid =
-    draft.siteVisibility === "private" &&
-    draft.privateMode === "passcode" &&
-    !!draft.passcode &&
-    draft.passcode.length !== 6;
+  function removeLinkItem(blockId: string, itemId: string) {
+    setDraft((prev) =>
+      updateBlock(prev, blockId, (block) =>
+        block.type === "links"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                items: block.data.items.filter((item) => item.id !== itemId),
+              },
+            }
+          : block,
+      ),
+    );
+  }
+
+  function updateContact(
+    blockId: string,
+    field: "heading" | "name" | "email" | "phone",
+    value: string,
+  ) {
+    setDraft((prev) =>
+      updateBlock(prev, blockId, (block) =>
+        block.type === "contact"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                [field]: value,
+              },
+            }
+          : block,
+      ),
+    );
+  }
+
+  function updateGalleryHeading(blockId: string, value: string) {
+    setDraft((prev) =>
+      updateBlock(prev, blockId, (block) =>
+        block.type === "gallery"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                heading: value,
+              },
+            }
+          : block,
+      ),
+    );
+  }
+
+  function addGalleryItem(blockId: string) {
+    setDraft((prev) =>
+      updateBlock(prev, blockId, (block) =>
+        block.type === "gallery"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                items: [
+                  ...block.data.items,
+                  {
+                    id: `gallery_${Math.random().toString(36).slice(2, 10)}`,
+                    url: "",
+                    caption: "",
+                  },
+                ],
+              },
+            }
+          : block,
+      ),
+    );
+  }
+
+  function updateGalleryItem(
+    blockId: string,
+    itemId: string,
+    field: "url" | "caption",
+    value: string,
+  ) {
+    setDraft((prev) =>
+      updateBlock(prev, blockId, (block) =>
+        block.type === "gallery"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                items: block.data.items.map((item) =>
+                  item.id === itemId ? { ...item, [field]: value } : item,
+                ),
+              },
+            }
+          : block,
+      ),
+    );
+  }
+
+  function removeGalleryItem(blockId: string, itemId: string) {
+    setDraft((prev) =>
+      updateBlock(prev, blockId, (block) =>
+        block.type === "gallery"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                items: block.data.items.filter((item) => item.id !== itemId),
+              },
+            }
+          : block,
+      ),
+    );
+  }
+
+  function updatePoll(
+    blockId: string,
+    field: "question" | "allowMultiple",
+    value: string | boolean,
+  ) {
+    setDraft((prev) =>
+      updateBlock(prev, blockId, (block) =>
+        block.type === "poll"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                [field]: value,
+              },
+            }
+          : block,
+      ),
+    );
+  }
+
+  function addPollOption(blockId: string) {
+    setDraft((prev) =>
+      updateBlock(prev, blockId, (block) =>
+        block.type === "poll"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                options: [
+                  ...block.data.options,
+                  {
+                    id: `poll_option_${Math.random().toString(36).slice(2, 10)}`,
+                    text: "",
+                  },
+                ],
+              },
+            }
+          : block,
+      ),
+    );
+  }
+
+  function updatePollOption(blockId: string, optionId: string, value: string) {
+    setDraft((prev) =>
+      updateBlock(prev, blockId, (block) =>
+        block.type === "poll"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                options: block.data.options.map((option) =>
+                  option.id === optionId ? { ...option, text: value } : option,
+                ),
+              },
+            }
+          : block,
+      ),
+    );
+  }
+
+  function removePollOption(blockId: string, optionId: string) {
+    setDraft((prev) =>
+      updateBlock(prev, blockId, (block) =>
+        block.type === "poll"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                options: block.data.options.filter((option) => option.id !== optionId),
+              },
+            }
+          : block,
+      ),
+    );
+  }
+
+  function updateRsvp(
+    blockId: string,
+    field:
+      | "heading"
+      | "eventDate"
+      | "collectGuestCount"
+      | "collectMealChoice"
+      | "notesPlaceholder",
+    value: string | boolean,
+  ) {
+    setDraft((prev) =>
+      updateBlock(prev, blockId, (block) =>
+        block.type === "rsvp"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                [field]: value,
+              },
+            }
+          : block,
+      ),
+    );
+  }
+
+  function updateRichText(blockId: string, field: "heading" | "body", value: string) {
+    setDraft((prev) =>
+      updateBlock(prev, blockId, (block) =>
+        block.type === "richText"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                [field]: value,
+              },
+            }
+          : block,
+      ),
+    );
+  }
+
+  function updateFaqHeading(blockId: string, value: string) {
+    setDraft((prev) =>
+      updateBlock(prev, blockId, (block) =>
+        block.type === "faq"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                heading: value,
+              },
+            }
+          : block,
+      ),
+    );
+  }
+
+  function addFaqItem(blockId: string) {
+    setDraft((prev) =>
+      updateBlock(prev, blockId, (block) =>
+        block.type === "faq"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                items: [
+                  ...block.data.items,
+                  {
+                    id: `faq_${Math.random().toString(36).slice(2, 10)}`,
+                    question: "",
+                    answer: "",
+                  },
+                ],
+              },
+            }
+          : block,
+      ),
+    );
+  }
+
+  function updateFaqItem(
+    blockId: string,
+    itemId: string,
+    field: "question" | "answer",
+    value: string,
+  ) {
+    setDraft((prev) =>
+      updateBlock(prev, blockId, (block) =>
+        block.type === "faq"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                items: block.data.items.map((item) =>
+                  item.id === itemId ? { ...item, [field]: value } : item,
+                ),
+              },
+            }
+          : block,
+      ),
+    );
+  }
+
+  function removeFaqItem(blockId: string, itemId: string) {
+    setDraft((prev) =>
+      updateBlock(prev, blockId, (block) =>
+        block.type === "faq"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                items: block.data.items.filter((item) => item.id !== itemId),
+              },
+            }
+          : block,
+      ),
+    );
+  }
+
+  function updateCountdown(
+    blockId: string,
+    field: "heading" | "targetIso" | "completedMessage",
+    value: string,
+  ) {
+    setDraft((prev) =>
+      updateBlock(prev, blockId, (block) =>
+        block.type === "countdown"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                [field]: value,
+              },
+            }
+          : block,
+      ),
+    );
+  }
+
+  function updateCta(
+    blockId: string,
+    field: "heading" | "body" | "buttonText" | "buttonUrl",
+    value: string,
+  ) {
+    setDraft((prev) =>
+      updateBlock(prev, blockId, (block) =>
+        block.type === "cta"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                [field]: value,
+              },
+            }
+          : block,
+      ),
+    );
+  }
+
+  function slugToneClass() {
+    if (slugStatus === "available") return "text-blue-600";
+    if (
+      slugStatus === "taken" ||
+      slugStatus === "invalid" ||
+      slugStatus === "error"
+    ) {
+      return "text-red-600";
+    }
+    return "text-neutral-500";
+  }
+
+  const siteNamePreview = draft.slugSuggestion
+    ? `${draft.slugSuggestion}.ko-host.com`
+    : "your-site-name.ko-host.com";
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[1fr_340px]">
-      <section className="rounded-2xl border bg-white p-5 shadow-sm">
-        <div className="mb-4">
-          <h1 className="text-2xl font-semibold">{templateTitle}</h1>
-          <p className="mt-1 text-sm text-neutral-600">
-            Customize for free. Publish when you’re ready.
-          </p>
-        </div>
-
-        <div className="space-y-6">
-          <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium">Page title</label>
-              <input
-                value={draft.title}
-                onChange={(e) => setDraft((d) => ({ ...d, title: e.target.value }))}
-                className="mt-1 w-full rounded-xl border px-3 py-2 text-sm"
-                placeholder="e.g., Our Wedding"
-              />
-            </div>
-
-            <div>
-              <label className="text-sm font-medium">Site name</label>
-
-              <div className="mt-1 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2">
-                <div className="text-[11px] font-semibold text-neutral-600">
-                  Your URL will be:
-                </div>
-
-                <div className="mt-0.5 flex items-center justify-between gap-2">
-                  <div className="break-all font-mono text-[12px] font-semibold text-neutral-900">
-                    {previewUrl}
-                  </div>
-                  {availabilityBadge ? (
-                    <div className="shrink-0">{availabilityBadge}</div>
-                  ) : null}
-                </div>
-              </div>
-
-              <input
-                value={draft.slugSuggestion}
-                onChange={(e) => {
-                  const cleaned = normalizeSlug(e.target.value);
-                  setDraft((d) => ({ ...d, slugSuggestion: cleaned }));
-                  setAvail(cleaned ? { status: "checking" } : { status: "idle" });
-                  lastCheckedRef.current = "";
-                }}
-                className="mt-2 w-full rounded-xl border px-3 py-2 text-sm"
-                placeholder="e.g., ourwedding"
-                inputMode="url"
-                autoCapitalize="none"
-                autoCorrect="off"
-                spellCheck={false}
-              />
-
-              <div className="mt-1 text-[11px] text-neutral-500">
-                Letters, numbers, and dashes only. No spaces.
-              </div>
-            </div>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className={sectionCardClass()}>
+        <div className="grid gap-4 md:grid-cols-2">
+          <div>
+            <label className="text-sm font-medium text-neutral-900">Title</label>
+            <input
+              value={draft.title}
+              onChange={(e) => setTitle(e.target.value)}
+              className={textInputClass()}
+              placeholder="Dedication"
+            />
           </div>
 
-          <div className="rounded-2xl border border-neutral-200 bg-white p-4">
-            <div className="text-sm font-semibold text-neutral-900">
-              Site visibility
-            </div>
-            <div className="mt-1 text-xs text-neutral-500">
-              Public sites open instantly. Private sites require controlled access.
-            </div>
-
-            <div className="mt-4 space-y-3">
-              <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-neutral-200 p-3">
-                <input
-                  type="radio"
-                  name="siteVisibility"
-                  checked={draft.siteVisibility === "public"}
-                  onChange={() =>
-                    setDraft((d) => ({
-                      ...d,
-                      siteVisibility: "public",
-                    }))
-                  }
-                  className="mt-0.5"
-                />
-                <div>
-                  <div className="text-sm font-semibold text-neutral-900">
-                    Public
-                  </div>
-                  <div className="text-xs text-neutral-500">
-                    Anyone with the link can access the microsite.
-                  </div>
-                </div>
+          <div>
+            <div className="flex items-center justify-between gap-3">
+              <label className="text-sm font-medium text-neutral-900">
+                Site Name
               </label>
 
-              <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-neutral-200 p-3">
-                <input
-                  type="radio"
-                  name="siteVisibility"
-                  checked={draft.siteVisibility === "private"}
-                  onChange={() =>
-                    setDraft((d) => ({
-                      ...d,
-                      siteVisibility: "private",
-                      privateMode: d.privateMode ?? "passcode",
-                    }))
-                  }
-                  className="mt-0.5"
-                />
-                <div>
-                  <div className="text-sm font-semibold text-neutral-900">
-                    Private
-                  </div>
-                  <div className="text-xs text-neutral-500">
-                    Restrict access by passcode or approved member device.
-                  </div>
-                </div>
-              </label>
-            </div>
-
-            {draft.siteVisibility === "private" ? (
-              <div className="mt-4 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
-                <div className="text-sm font-semibold text-neutral-900">
-                  Private access mode
-                </div>
-
-                <div className="mt-3 space-y-3">
-                  <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-neutral-200 bg-white p-3">
-                    <input
-                      type="radio"
-                      name="privateMode"
-                      checked={draft.privateMode === "passcode"}
-                      onChange={() =>
-                        setDraft((d) => ({
-                          ...d,
-                          privateMode: "passcode",
-                        }))
-                      }
-                      className="mt-0.5"
-                    />
-                    <div>
-                      <div className="text-sm font-semibold text-neutral-900">
-                        Passcode
-                      </div>
-                      <div className="text-xs text-neutral-500">
-                        Visitors enter a 6-digit code to access the site.
-                      </div>
-                    </div>
-                  </label>
-
-                  <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-neutral-200 bg-white p-3">
-                    <input
-                      type="radio"
-                      name="privateMode"
-                      checked={draft.privateMode === "members_only"}
-                      onChange={() =>
-                        setDraft((d) => ({
-                          ...d,
-                          privateMode: "members_only",
-                        }))
-                      }
-                      className="mt-0.5"
-                    />
-                    <div>
-                      <div className="text-sm font-semibold text-neutral-900">
-                        Members-only
-                      </div>
-                      <div className="text-xs text-neutral-500">
-                        Allow access only for recognized approved devices.
-                      </div>
-                    </div>
-                  </label>
-                </div>
-
-                {draft.privateMode === "passcode" ? (
-                  <div className="mt-4">
-                    <label className="text-sm font-medium">6-digit passcode</label>
-                    <input
-                      value={draft.passcode ?? ""}
-                      onChange={(e) =>
-                        setDraft((d) => ({
-                          ...d,
-                          passcode: normalizePasscode(e.target.value),
-                        }))
-                      }
-                      className="mt-1 w-full rounded-xl border px-3 py-2 text-sm"
-                      placeholder="123456"
-                      inputMode="numeric"
-                      autoComplete="off"
-                      maxLength={6}
-                    />
-                    <div className="mt-1 text-[11px] text-neutral-500">
-                      Share this code with people allowed to enter.
-                    </div>
-                    {passcodeInvalid ? (
-                      <div className="mt-1 text-[11px] font-medium text-red-600">
-                        Passcode must be exactly 6 digits.
-                      </div>
-                    ) : null}
-                  </div>
-                ) : (
-                  <div className="mt-4 text-[11px] text-neutral-500">
-                    Members-only device approval will be enforced after the next backend step.
-                  </div>
-                )}
-              </div>
-            ) : null}
-          </div>
-
-          <div className="rounded-2xl border border-neutral-200 bg-white p-4">
-            <div className="text-sm font-semibold text-neutral-900">Owner editor</div>
-            <div className="mt-1 text-xs text-neutral-500">
-              These will appear on your microsite when published.
-            </div>
-
-            <div className="mt-4">
-              <div className="text-sm font-semibold text-neutral-900">
-                Announcement
-              </div>
-              <input
-                value={draft.announcement?.headline ?? ""}
-                onChange={(e) =>
-                  setDraft((d) => ({
-                    ...d,
-                    announcement: {
-                      headline: e.target.value,
-                      body: d.announcement?.body ?? "",
-                    },
-                  }))
-                }
-                className="mt-2 w-full rounded-xl border px-3 py-2 text-sm"
-                placeholder="Headline (optional)"
-              />
-              <textarea
-                value={draft.announcement?.body ?? ""}
-                onChange={(e) =>
-                  setDraft((d) => ({
-                    ...d,
-                    announcement: {
-                      headline: d.announcement?.headline ?? "",
-                      body: e.target.value,
-                    },
-                  }))
-                }
-                className="mt-2 w-full resize-none rounded-xl border px-3 py-2 text-sm"
-                placeholder="Message (optional)"
-                rows={3}
-              />
-            </div>
-
-            <div className="mt-5">
-              <div className="flex items-center justify-between">
-                <div className="text-sm font-semibold text-neutral-900">Links</div>
+              {!onSubmit && (
                 <button
                   type="button"
-                  onClick={addLink}
-                  className="rounded-xl border border-neutral-200 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-900 hover:bg-neutral-50"
+                  onClick={() => {
+                    hasManuallyEditedSlugRef.current = false;
+                    void generateAvailableSlug(true);
+                  }}
+                  disabled={isAutoGeneratingSlug}
+                  className="text-xs font-medium text-neutral-700 underline underline-offset-4 disabled:opacity-50"
                 >
-                  + Add link
+                  {isAutoGeneratingSlug ? "Generating..." : "Generate suggestion"}
                 </button>
-              </div>
-
-              <div className="mt-2 space-y-3">
-                {(draft.links ?? []).length === 0 ? (
-                  <div className="text-xs text-neutral-500">No links yet.</div>
-                ) : null}
-
-                {(draft.links ?? []).map((l, idx) => (
-                  <div key={l.id} className="rounded-2xl border border-neutral-200 p-3">
-                    <div className="flex items-center justify-between">
-                      <div className="text-xs font-semibold text-neutral-600">
-                        Link {idx + 1}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => moveLink(l.id, -1)}
-                          className="rounded-lg border border-neutral-200 bg-white px-2 py-1 text-[11px] font-semibold hover:bg-neutral-50"
-                          title="Move up"
-                        >
-                          ↑
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => moveLink(l.id, 1)}
-                          className="rounded-lg border border-neutral-200 bg-white px-2 py-1 text-[11px] font-semibold hover:bg-neutral-50"
-                          title="Move down"
-                        >
-                          ↓
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => removeLink(l.id)}
-                          className="rounded-lg border border-neutral-200 bg-white px-2 py-1 text-[11px] font-semibold text-red-600 hover:bg-neutral-50"
-                        >
-                          Remove
-                        </button>
-                      </div>
-                    </div>
-
-                    <input
-                      value={l.label}
-                      onChange={(e) => updateLink(l.id, { label: e.target.value })}
-                      className="mt-2 w-full rounded-xl border px-3 py-2 text-sm"
-                      placeholder="Label (e.g., RSVP, Menu, Deck, Apply)"
-                    />
-                    <input
-                      value={l.url}
-                      onChange={(e) => updateLink(l.id, { url: e.target.value })}
-                      className="mt-2 w-full rounded-xl border px-3 py-2 text-sm"
-                      placeholder="URL (https://...)"
-                      inputMode="url"
-                      autoCapitalize="none"
-                      autoCorrect="off"
-                      spellCheck={false}
-                    />
-                  </div>
-                ))}
-              </div>
+              )}
             </div>
 
-            <div className="mt-5">
-              <div className="text-sm font-semibold text-neutral-900">Contact</div>
-              <div className="mt-2 grid gap-2">
-                <input
-                  value={draft.contact?.name ?? ""}
-                  onChange={(e) =>
-                    setDraft((d) => ({
-                      ...d,
-                      contact: {
-                        ...(d.contact ?? { name: "", email: "", phone: "" }),
-                        name: e.target.value,
-                      },
-                    }))
-                  }
-                  className="w-full rounded-xl border px-3 py-2 text-sm"
-                  placeholder="Name (optional)"
-                />
-                <input
-                  value={draft.contact?.email ?? ""}
-                  onChange={(e) =>
-                    setDraft((d) => ({
-                      ...d,
-                      contact: {
-                        ...(d.contact ?? { name: "", email: "", phone: "" }),
-                        email: e.target.value,
-                      },
-                    }))
-                  }
-                  className="w-full rounded-xl border px-3 py-2 text-sm"
-                  placeholder="Email (optional)"
-                  inputMode="email"
-                />
-                <input
-                  value={draft.contact?.phone ?? ""}
-                  onChange={(e) =>
-                    setDraft((d) => ({
-                      ...d,
-                      contact: {
-                        ...(d.contact ?? { name: "", email: "", phone: "" }),
-                        phone: e.target.value,
-                      },
-                    }))
-                  }
-                  className="w-full rounded-xl border px-3 py-2 text-sm"
-                  placeholder="Phone (optional)"
-                  inputMode="tel"
-                />
+            <input
+              value={draft.slugSuggestion}
+              onChange={(e) => {
+                hasManuallyEditedSlugRef.current = true;
+                setSlugSuggestion(e.target.value);
+              }}
+              className={textInputClass()}
+              placeholder="your-site-name"
+            />
+
+            <div className="mt-2 flex items-center justify-between gap-3 text-xs">
+              <div className="truncate text-neutral-500">
+                {siteNamePreview}
+              </div>
+              <div className={`shrink-0 text-right font-medium ${slugToneClass()}`}>
+                {slugMessage || ""}
               </div>
             </div>
           </div>
-        </div>
-      </section>
 
-      <aside className="rounded-2xl border bg-white p-5 shadow-sm">
-        <div className="space-y-3">
-          <KoHostItButton templateKey={templateKey} draft={draft} />
+          {!onSubmit && (
+            <>
+              <div>
+                <label className="text-sm font-medium text-neutral-900">
+                  Site Visibility
+                </label>
+                <select
+                  value={siteVisibility}
+                  onChange={(e) =>
+                    setSiteVisibility(
+                      e.target.value as "public" | "private" | "members_only",
+                    )
+                  }
+                  className={textInputClass()}
+                >
+                  <option value="public">Public</option>
+                  <option value="private">Private</option>
+                  <option value="members_only">Members Only</option>
+                </select>
+              </div>
+
+              {siteVisibility === "private" && (
+                <div>
+                  <label className="text-sm font-medium text-neutral-900">
+                    Passcode
+                  </label>
+                  <input
+                    value={passcode}
+                    onChange={(e) =>
+                      setPasscode(e.target.value.replace(/\D/g, "").slice(0, 6))
+                    }
+                    inputMode="numeric"
+                    maxLength={6}
+                    className={textInputClass()}
+                    placeholder="123456"
+                  />
+                  <div className="mt-2 text-xs text-neutral-500">
+                    Enter a 6-digit numeric passcode.
+                  </div>
+                </div>
+              )}
+            </>
+          )}
         </div>
-      </aside>
-    </div>
+      </div>
+
+      <div className={sectionCardClass()}>
+        <div className="flex flex-col gap-3 md:flex-row md:items-end">
+          <div className="min-w-0 flex-1">
+            <label className="text-sm font-medium text-neutral-900">Add Section</label>
+            <select
+              value={newBlockType}
+              onChange={(e) => setNewBlockType(e.target.value as BuilderBlockType)}
+              className={textInputClass()}
+            >
+              {BLOCK_OPTIONS.map((option) => (
+                <option key={option.type} value={option.type}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleAddBlock}
+            className="inline-flex items-center justify-center rounded-xl bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+          >
+            Add Block
+          </button>
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        {draft.blocks.map((block, index) => (
+          <div key={block.id} className={sectionCardClass()}>
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <div className="text-sm font-semibold text-neutral-900">
+                  {index + 1}. {block.label}
+                </div>
+                <div className="text-xs text-neutral-500">{block.type}</div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleMoveUp(index)}
+                  disabled={index === 0}
+                  className="rounded-xl border border-neutral-300 px-3 py-2 text-xs font-medium text-neutral-900 disabled:opacity-40"
+                >
+                  Move Up
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleMoveDown(index)}
+                  disabled={index === draft.blocks.length - 1}
+                  className="rounded-xl border border-neutral-300 px-3 py-2 text-xs font-medium text-neutral-900 disabled:opacity-40"
+                >
+                  Move Down
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleRemoveBlock(block.id)}
+                  className="rounded-xl border border-red-300 px-3 py-2 text-xs font-medium text-red-700"
+                >
+                  Remove
+                </button>
+              </div>
+            </div>
+
+            {block.type === "announcement" && (
+              <div className="grid gap-4">
+                <div>
+                  <label className="text-sm font-medium text-neutral-900">Headline</label>
+                  <input
+                    value={block.data.headline}
+                    onChange={(e) =>
+                      updateAnnouncement(block.id, "headline", e.target.value)
+                    }
+                    className={textInputClass()}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-neutral-900">Body</label>
+                  <textarea
+                    value={block.data.body}
+                    onChange={(e) =>
+                      updateAnnouncement(block.id, "body", e.target.value)
+                    }
+                    className={textareaClass()}
+                  />
+                </div>
+              </div>
+            )}
+
+            {block.type === "links" && (
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium text-neutral-900">Heading</label>
+                  <input
+                    value={block.data.heading}
+                    onChange={(e) => updateLinksHeading(block.id, e.target.value)}
+                    className={textInputClass()}
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  {block.data.items.map((item) => (
+                    <div
+                      key={item.id}
+                      className="rounded-xl border border-neutral-200 p-3"
+                    >
+                      <div className="grid gap-3 md:grid-cols-2">
+                        <div>
+                          <label className="text-sm font-medium text-neutral-900">
+                            Label
+                          </label>
+                          <input
+                            value={item.label}
+                            onChange={(e) =>
+                              updateLinkItem(block.id, item.id, "label", e.target.value)
+                            }
+                            className={textInputClass()}
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-sm font-medium text-neutral-900">
+                            URL
+                          </label>
+                          <input
+                            value={item.url}
+                            onChange={(e) =>
+                              updateLinkItem(block.id, item.id, "url", e.target.value)
+                            }
+                            className={textInputClass()}
+                            placeholder="https://"
+                          />
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => removeLinkItem(block.id, item.id)}
+                        className="mt-3 rounded-xl border border-red-300 px-3 py-2 text-xs font-medium text-red-700"
+                      >
+                        Remove Link
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => addLinkItem(block.id)}
+                  className="rounded-xl border border-neutral-300 px-3 py-2 text-xs font-medium text-neutral-900"
+                >
+                  Add Link
+                </button>
+              </div>
+            )}
+
+            {block.type === "contact" && (
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="md:col-span-2">
+                  <label className="text-sm font-medium text-neutral-900">Heading</label>
+                  <input
+                    value={block.data.heading}
+                    onChange={(e) => updateContact(block.id, "heading", e.target.value)}
+                    className={textInputClass()}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-neutral-900">Name</label>
+                  <input
+                    value={block.data.name}
+                    onChange={(e) => updateContact(block.id, "name", e.target.value)}
+                    className={textInputClass()}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-neutral-900">Email</label>
+                  <input
+                    value={block.data.email}
+                    onChange={(e) => updateContact(block.id, "email", e.target.value)}
+                    className={textInputClass()}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-neutral-900">Phone</label>
+                  <input
+                    value={block.data.phone}
+                    onChange={(e) => updateContact(block.id, "phone", e.target.value)}
+                    className={textInputClass()}
+                  />
+                </div>
+              </div>
+            )}
+
+            {block.type === "gallery" && (
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium text-neutral-900">Heading</label>
+                  <input
+                    value={block.data.heading}
+                    onChange={(e) => updateGalleryHeading(block.id, e.target.value)}
+                    className={textInputClass()}
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  {block.data.items.map((item) => (
+                    <div
+                      key={item.id}
+                      className="rounded-xl border border-neutral-200 p-3"
+                    >
+                      <div className="grid gap-3">
+                        <div>
+                          <label className="text-sm font-medium text-neutral-900">
+                            Image URL
+                          </label>
+                          <input
+                            value={item.url}
+                            onChange={(e) =>
+                              updateGalleryItem(block.id, item.id, "url", e.target.value)
+                            }
+                            className={textInputClass()}
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-sm font-medium text-neutral-900">
+                            Caption
+                          </label>
+                          <input
+                            value={item.caption ?? ""}
+                            onChange={(e) =>
+                              updateGalleryItem(
+                                block.id,
+                                item.id,
+                                "caption",
+                                e.target.value,
+                              )
+                            }
+                            className={textInputClass()}
+                          />
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => removeGalleryItem(block.id, item.id)}
+                        className="mt-3 rounded-xl border border-red-300 px-3 py-2 text-xs font-medium text-red-700"
+                      >
+                        Remove Image
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => addGalleryItem(block.id)}
+                  className="rounded-xl border border-neutral-300 px-3 py-2 text-xs font-medium text-neutral-900"
+                >
+                  Add Image
+                </button>
+              </div>
+            )}
+
+            {block.type === "poll" && (
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium text-neutral-900">Question</label>
+                  <input
+                    value={block.data.question}
+                    onChange={(e) => updatePoll(block.id, "question", e.target.value)}
+                    className={textInputClass()}
+                  />
+                </div>
+
+                <label className="flex items-center gap-2 text-sm text-neutral-900">
+                  <input
+                    type="checkbox"
+                    checked={block.data.allowMultiple}
+                    onChange={(e) =>
+                      updatePoll(block.id, "allowMultiple", e.target.checked)
+                    }
+                  />
+                  Allow multiple selections
+                </label>
+
+                <div className="space-y-3">
+                  {block.data.options.map((option) => (
+                    <div
+                      key={option.id}
+                      className="rounded-xl border border-neutral-200 p-3"
+                    >
+                      <label className="text-sm font-medium text-neutral-900">
+                        Option
+                      </label>
+                      <input
+                        value={option.text}
+                        onChange={(e) =>
+                          updatePollOption(block.id, option.id, e.target.value)
+                        }
+                        className={textInputClass()}
+                      />
+
+                      <button
+                        type="button"
+                        onClick={() => removePollOption(block.id, option.id)}
+                        className="mt-3 rounded-xl border border-red-300 px-3 py-2 text-xs font-medium text-red-700"
+                      >
+                        Remove Option
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => addPollOption(block.id)}
+                  className="rounded-xl border border-neutral-300 px-3 py-2 text-xs font-medium text-neutral-900"
+                >
+                  Add Option
+                </button>
+              </div>
+            )}
+
+            {block.type === "rsvp" && (
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="md:col-span-2">
+                  <label className="text-sm font-medium text-neutral-900">Heading</label>
+                  <input
+                    value={block.data.heading}
+                    onChange={(e) => updateRsvp(block.id, "heading", e.target.value)}
+                    className={textInputClass()}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-neutral-900">
+                    Event Date
+                  </label>
+                  <input
+                    value={block.data.eventDate}
+                    onChange={(e) => updateRsvp(block.id, "eventDate", e.target.value)}
+                    className={textInputClass()}
+                    placeholder="2026-06-20"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-neutral-900">
+                    Notes Placeholder
+                  </label>
+                  <input
+                    value={block.data.notesPlaceholder}
+                    onChange={(e) =>
+                      updateRsvp(block.id, "notesPlaceholder", e.target.value)
+                    }
+                    className={textInputClass()}
+                  />
+                </div>
+
+                <label className="flex items-center gap-2 text-sm text-neutral-900">
+                  <input
+                    type="checkbox"
+                    checked={block.data.collectGuestCount}
+                    onChange={(e) =>
+                      updateRsvp(block.id, "collectGuestCount", e.target.checked)
+                    }
+                  />
+                  Collect guest count
+                </label>
+
+                <label className="flex items-center gap-2 text-sm text-neutral-900">
+                  <input
+                    type="checkbox"
+                    checked={block.data.collectMealChoice}
+                    onChange={(e) =>
+                      updateRsvp(block.id, "collectMealChoice", e.target.checked)
+                    }
+                  />
+                  Collect meal choice
+                </label>
+              </div>
+            )}
+
+            {block.type === "richText" && (
+              <div className="grid gap-4">
+                <div>
+                  <label className="text-sm font-medium text-neutral-900">Heading</label>
+                  <input
+                    value={block.data.heading}
+                    onChange={(e) => updateRichText(block.id, "heading", e.target.value)}
+                    className={textInputClass()}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-neutral-900">Body</label>
+                  <textarea
+                    value={block.data.body}
+                    onChange={(e) => updateRichText(block.id, "body", e.target.value)}
+                    className={textareaClass()}
+                  />
+                </div>
+              </div>
+            )}
+
+            {block.type === "faq" && (
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium text-neutral-900">Heading</label>
+                  <input
+                    value={block.data.heading}
+                    onChange={(e) => updateFaqHeading(block.id, e.target.value)}
+                    className={textInputClass()}
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  {block.data.items.map((item) => (
+                    <div
+                      key={item.id}
+                      className="rounded-xl border border-neutral-200 p-3"
+                    >
+                      <div className="grid gap-3">
+                        <div>
+                          <label className="text-sm font-medium text-neutral-900">
+                            Question
+                          </label>
+                          <input
+                            value={item.question}
+                            onChange={(e) =>
+                              updateFaqItem(
+                                block.id,
+                                item.id,
+                                "question",
+                                e.target.value,
+                              )
+                            }
+                            className={textInputClass()}
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-sm font-medium text-neutral-900">
+                            Answer
+                          </label>
+                          <textarea
+                            value={item.answer}
+                            onChange={(e) =>
+                              updateFaqItem(block.id, item.id, "answer", e.target.value)
+                            }
+                            className={textareaClass()}
+                          />
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => removeFaqItem(block.id, item.id)}
+                        className="mt-3 rounded-xl border border-red-300 px-3 py-2 text-xs font-medium text-red-700"
+                      >
+                        Remove FAQ
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => addFaqItem(block.id)}
+                  className="rounded-xl border border-neutral-300 px-3 py-2 text-xs font-medium text-neutral-900"
+                >
+                  Add FAQ
+                </button>
+              </div>
+            )}
+
+            {block.type === "countdown" && (
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="md:col-span-2">
+                  <label className="text-sm font-medium text-neutral-900">Heading</label>
+                  <input
+                    value={block.data.heading}
+                    onChange={(e) => updateCountdown(block.id, "heading", e.target.value)}
+                    className={textInputClass()}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-neutral-900">
+                    Target ISO Date
+                  </label>
+                  <input
+                    value={block.data.targetIso}
+                    onChange={(e) => updateCountdown(block.id, "targetIso", e.target.value)}
+                    className={textInputClass()}
+                    placeholder="2026-12-31T23:59:59"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-neutral-900">
+                    Completed Message
+                  </label>
+                  <input
+                    value={block.data.completedMessage}
+                    onChange={(e) =>
+                      updateCountdown(block.id, "completedMessage", e.target.value)
+                    }
+                    className={textInputClass()}
+                  />
+                </div>
+              </div>
+            )}
+
+            {block.type === "cta" && (
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="md:col-span-2">
+                  <label className="text-sm font-medium text-neutral-900">Heading</label>
+                  <input
+                    value={block.data.heading}
+                    onChange={(e) => updateCta(block.id, "heading", e.target.value)}
+                    className={textInputClass()}
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="text-sm font-medium text-neutral-900">Body</label>
+                  <textarea
+                    value={block.data.body}
+                    onChange={(e) => updateCta(block.id, "body", e.target.value)}
+                    className={textareaClass()}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-neutral-900">
+                    Button Text
+                  </label>
+                  <input
+                    value={block.data.buttonText}
+                    onChange={(e) => updateCta(block.id, "buttonText", e.target.value)}
+                    className={textInputClass()}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-neutral-900">
+                    Button URL
+                  </label>
+                  <input
+                    value={block.data.buttonUrl}
+                    onChange={(e) => updateCta(block.id, "buttonUrl", e.target.value)}
+                    className={textInputClass()}
+                    placeholder="https://"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <div className="flex items-center justify-end">
+        <button
+          type="submit"
+          disabled={
+            submitting ||
+            slugStatus === "checking" ||
+            slugStatus === "taken" ||
+            slugStatus === "invalid" ||
+            slugStatus === "error"
+          }
+          className="inline-flex items-center justify-center rounded-xl bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
+        >
+          {submitting ? "Working..." : submitLabel}
+        </button>
+      </div>
+    </form>
   );
 }

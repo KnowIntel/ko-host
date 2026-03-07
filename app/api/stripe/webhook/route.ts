@@ -1,182 +1,245 @@
-// app/api/stripe/webhook/route.ts
-import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { headers } from "next/headers";
-import { stripe } from "@/lib/stripe";
+import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
-function mustGetEnv(name: string) {
-  const v = process.env[name];
-  if (!v) throw new Error(`Missing env var: ${name}`);
-  return v;
+if (!stripeSecretKey) {
+  throw new Error("Missing STRIPE_SECRET_KEY");
 }
 
-function addDays(date: Date, days: number) {
-  const ms = days * 24 * 60 * 60 * 1000;
-  return new Date(date.getTime() + ms);
+if (!webhookSecret) {
+  throw new Error("Missing STRIPE_WEBHOOK_SECRET");
 }
 
-async function extendMicrositePaidUntil(opts: {
-  micrositeId: string;
-  daysToAdd: number; // 90
-}) {
-  const sb = getSupabaseAdmin();
+const stripe = new Stripe(stripeSecretKey, {
+  apiVersion: "2026-02-25.clover",
+});
 
-  const { data: site, error: siteErr } = await sb
-    .from("microsites")
-    .select("id, paid_until")
-    .eq("id", opts.micrositeId)
-    .maybeSingle();
-
-  if (siteErr || !site) {
-    throw new Error(`Microsite not found for paid extension: ${opts.micrositeId}`);
-  }
-
-  const now = new Date();
-  const currentPaidUntil = site.paid_until ? new Date(site.paid_until) : null;
-
-  // Extend from whichever is later: now OR current paid_until
-  const base = currentPaidUntil && currentPaidUntil > now ? currentPaidUntil : now;
-  const nextPaidUntil = addDays(base, opts.daysToAdd);
-
-  const { error: upErr } = await sb
-    .from("microsites")
-    .update({ paid_until: nextPaidUntil.toISOString() })
-    .eq("id", opts.micrositeId);
-
-  if (upErr) {
-    console.error("microsites paid_until update failed", { upErr, micrositeId: opts.micrositeId });
-    throw new Error("microsites paid_until update failed");
-  }
-
-  return { nextPaidUntil: nextPaidUntil.toISOString() };
-}
-
-async function upsertEntitlementFromSubscription(sub: Stripe.Subscription) {
-  // Keep existing logic in place (so current subscription flow still works while we migrate)
-  const clerkUserId = (sub.metadata?.clerk_user_id as string) || null;
-  const templateKey = (sub.metadata?.template_key as string) || null;
-  const stripePriceId =
-    (sub.items?.data?.[0]?.price?.id as string | undefined) ?? null;
-
-  if (!clerkUserId || !templateKey) {
-    console.warn("subscription missing metadata (clerk_user_id/template_key)", {
-      subId: sub.id,
-      metadata: sub.metadata,
-    });
-    return;
-  }
-
-  const status =
-    sub.status === "active" || sub.status === "trialing" ? "active" : "canceled";
-
-  // Stripe "clover" objects often store period end on the item
-  const item = sub.items?.data?.[0];
-  const currentPeriodEndUnix =
-    (item as any)?.current_period_end ??
-    (sub as any)?.current_period_end ??
-    null;
-
-  const currentPeriodEnd =
-    typeof currentPeriodEndUnix === "number"
-      ? new Date(currentPeriodEndUnix * 1000).toISOString()
-      : null;
-
-  const sb = getSupabaseAdmin();
-  const { error } = await sb.from("entitlements").upsert(
-    {
-      clerk_user_id: clerkUserId,
-      template_key: templateKey,
-      status,
-      stripe_subscription_id: sub.id,
-      stripe_price_id: stripePriceId,
-      current_period_end: currentPeriodEnd,
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: "clerk_user_id,template_key" }
-  );
-
-  if (error) {
-    console.error("entitlements upsert failed", {
-      error,
-      clerkUserId,
-      templateKey,
-      status,
-      stripeSubscriptionId: sub.id,
-      stripePriceId,
-      currentPeriodEnd,
-    });
-    throw new Error("entitlements upsert failed");
-  }
+function addDaysIsoFrom(baseIso: string | null, days: number) {
+  const base = baseIso ? new Date(baseIso) : new Date();
+  const next = new Date(base);
+  next.setDate(next.getDate() + days);
+  return next.toISOString();
 }
 
 export async function POST(req: Request) {
-  const sig = (await headers()).get("stripe-signature");
-  if (!sig) return NextResponse.json({ ok: false, error: "Missing signature" }, { status: 400 });
-
-  const secret = mustGetEnv("STRIPE_WEBHOOK_SECRET");
   const body = await req.text();
+  const headersList = await headers();
+  const signature = headersList.get("stripe-signature");
 
-  let event: Stripe.Event;
-  try {
-    event = stripe.webhooks.constructEvent(body, sig, secret);
-  } catch (err) {
-    console.error("Stripe webhook signature verification failed", err);
-    return NextResponse.json({ ok: false, error: "Bad signature" }, { status: 400 });
+  if (!signature) {
+    console.error("WEBHOOK ERROR: missing stripe-signature header");
+    return NextResponse.json({ ok: false, error: "Missing signature" }, { status: 400 });
   }
 
+  let event: Stripe.Event;
+
   try {
-    switch (event.type) {
-      // ✅ NEW: handle one-time payment checkout completion for "90 days per microsite"
-      case "checkout.session.completed": {
-        const session = event.data.object as Stripe.Checkout.Session;
+    event = stripe.webhooks.constructEvent(body, signature, webhookSecret as string);
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Webhook signature verification failed";
+    console.error("WEBHOOK ERROR: constructEvent failed", message);
+    return NextResponse.json({ ok: false, error: message }, { status: 400 });
+  }
 
-        // We only extend paid_until for one-time payments (mode=payment)
-        if (session.mode !== "payment") break;
+  console.log("WEBHOOK RECEIVED EVENT:", event.type, event.id);
 
-        const micrositeId = (session.metadata?.microsite_id as string) || null;
-        if (!micrositeId) {
-          console.warn("checkout.session.completed missing microsite_id metadata", {
-            sessionId: session.id,
-            mode: session.mode,
-            metadata: session.metadata,
-          });
-          break;
-        }
-
-        const result = await extendMicrositePaidUntil({
-          micrositeId,
-          daysToAdd: 90,
-        });
-
-        console.log("Microsite paid_until extended", {
-          micrositeId,
-          nextPaidUntil: result.nextPaidUntil,
-          sessionId: session.id,
-        });
-
-        break;
-      }
-
-      // Existing subscription syncing (kept while we migrate UI)
-      case "customer.subscription.created":
-      case "customer.subscription.updated":
-      case "customer.subscription.deleted": {
-        const sub = event.data.object as Stripe.Subscription;
-        await upsertEntitlementFromSubscription(sub);
-        break;
-      }
-
-      default:
-        break;
+  try {
+    if (event.type !== "checkout.session.completed") {
+      return NextResponse.json({ ok: true });
     }
 
-    return NextResponse.json({ ok: true, route: "/api/stripe/webhook" }, { status: 200 });
-  } catch (err) {
-    console.error("Stripe webhook handler failed", err);
-    return NextResponse.json({ ok: false, error: "Webhook handler failed" }, { status: 500 });
+    const session = event.data.object as Stripe.Checkout.Session;
+    const metadata = session.metadata || {};
+
+    console.log("WEBHOOK checkout.session.completed metadata:", metadata);
+
+    const ownerClerkUserId = String(metadata.owner_clerk_user_id || "");
+    const pendingCheckoutId = String(metadata.pending_checkout_id || "");
+    const micrositeId = String(metadata.microsite_id || "");
+    const slug = String(metadata.slug || "");
+    const title = String(metadata.title || "");
+    const templateKey = String(metadata.template_key || "");
+
+    const supabaseAdmin = getSupabaseAdmin();
+
+    if (pendingCheckoutId) {
+      console.log("WEBHOOK pending flow start:", {
+        pendingCheckoutId,
+        ownerClerkUserId,
+        slug,
+        title,
+        templateKey,
+      });
+
+      const { data: pendingRow, error: pendingError } = await supabaseAdmin
+        .from("pending_microsite_checkouts")
+        .select("*")
+        .eq("id", pendingCheckoutId)
+        .single();
+
+      console.log("WEBHOOK pending row lookup result:", {
+        pendingRow,
+        pendingError,
+      });
+
+      if (pendingError || !pendingRow) {
+        console.error("WEBHOOK ERROR: pending row not found", {
+          pendingCheckoutId,
+          pendingError,
+        });
+        return NextResponse.json({ ok: false, error: "Pending row not found" }, { status: 404 });
+      }
+
+      const { data: existingMicrosite, error: existingMicrositeError } = await supabaseAdmin
+        .from("microsites")
+        .select("id, slug, paid_until")
+        .eq("slug", pendingRow.slug)
+        .maybeSingle();
+
+      console.log("WEBHOOK existing microsite lookup:", {
+        existingMicrosite,
+        existingMicrositeError,
+      });
+
+      if (existingMicrosite) {
+        const nextPaidUntil = addDaysIsoFrom(existingMicrosite.paid_until, 90);
+
+        const { data: updatedRows, error: updateError } = await supabaseAdmin
+          .from("microsites")
+          .update({
+            paid_until: nextPaidUntil,
+            draft: pendingRow.draft ?? null,
+            title: pendingRow.title || title,
+            template_key: pendingRow.template_key || templateKey,
+            site_visibility: pendingRow.site_visibility || "public",
+            private_mode: Boolean(pendingRow.private_mode),
+            passcode_hash: pendingRow.passcode_hash || null,
+          })
+          .eq("id", existingMicrosite.id)
+          .select();
+
+        console.log("WEBHOOK existing microsite update result:", {
+          updatedRows,
+          updateError,
+        });
+
+        if (updateError) {
+          console.error("WEBHOOK ERROR: failed to extend microsite", updateError);
+          return NextResponse.json({ ok: false, error: "Failed to extend microsite" }, { status: 500 });
+        }
+      } else {
+        const insertRow = {
+          owner_clerk_user_id: pendingRow.owner_clerk_user_id || ownerClerkUserId,
+          template_key: pendingRow.template_key || templateKey,
+          slug: pendingRow.slug || slug,
+          title: pendingRow.title || title,
+          is_published: false,
+          paid_until: addDaysIsoFrom(null, 90),
+          site_visibility: pendingRow.site_visibility || "public",
+          private_mode: Boolean(pendingRow.private_mode),
+          passcode_hash: pendingRow.passcode_hash || null,
+          draft: pendingRow.draft ?? null,
+        };
+
+        console.log("WEBHOOK inserting microsite row:", insertRow);
+
+        const { data: insertedRows, error: insertError } = await supabaseAdmin
+          .from("microsites")
+          .insert(insertRow)
+          .select();
+
+        console.log("WEBHOOK insert result:", {
+          insertedRows,
+          insertError,
+        });
+
+        if (insertError) {
+          console.error("WEBHOOK ERROR: failed to create microsite", insertError);
+          return NextResponse.json({ ok: false, error: "Failed to create microsite" }, { status: 500 });
+        }
+      }
+
+      const { data: deletedRows, error: deleteError } = await supabaseAdmin
+        .from("pending_microsite_checkouts")
+        .delete()
+        .eq("id", pendingCheckoutId)
+        .select();
+
+      console.log("WEBHOOK pending delete result:", {
+        deletedRows,
+        deleteError,
+      });
+
+      if (deleteError) {
+        console.error("WEBHOOK ERROR: failed to delete pending row", deleteError);
+      }
+
+      console.log("WEBHOOK pending flow completed successfully");
+      return NextResponse.json({ ok: true });
+    }
+
+    if (micrositeId) {
+      console.log("WEBHOOK existing microsite extend flow start:", {
+        micrositeId,
+        ownerClerkUserId,
+      });
+
+      const { data: existingMicrosite, error: micrositeError } = await supabaseAdmin
+        .from("microsites")
+        .select("id, paid_until")
+        .eq("id", micrositeId)
+        .single();
+
+      console.log("WEBHOOK existing microsite lookup:", {
+        existingMicrosite,
+        micrositeError,
+      });
+
+      if (micrositeError || !existingMicrosite) {
+        console.error("WEBHOOK ERROR: microsite not found", {
+          micrositeId,
+          micrositeError,
+        });
+        return NextResponse.json({ ok: false, error: "Microsite not found" }, { status: 404 });
+      }
+
+      const nextPaidUntil = addDaysIsoFrom(existingMicrosite.paid_until, 90);
+
+      const { data: updatedRows, error: updateError } = await supabaseAdmin
+        .from("microsites")
+        .update({
+          paid_until: nextPaidUntil,
+        })
+        .eq("id", micrositeId)
+        .select();
+
+      console.log("WEBHOOK microsite extend result:", {
+        updatedRows,
+        updateError,
+      });
+
+      if (updateError) {
+        console.error("WEBHOOK ERROR: failed to extend microsite", updateError);
+        return NextResponse.json({ ok: false, error: "Failed to extend microsite" }, { status: 500 });
+      }
+
+      console.log("WEBHOOK existing microsite extend completed successfully");
+      return NextResponse.json({ ok: true });
+    }
+
+    console.error("WEBHOOK ERROR: missing metadata", metadata);
+    return NextResponse.json({ ok: false, error: "Missing checkout metadata" }, { status: 400 });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Unexpected webhook error";
+
+    console.error("WEBHOOK FATAL ERROR:", message);
+
+    return NextResponse.json({ ok: false, error: message }, { status: 500 });
   }
 }

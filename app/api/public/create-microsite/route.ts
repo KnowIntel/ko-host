@@ -1,194 +1,179 @@
+import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import { z } from "zod";
-import crypto from "crypto";
-import { requireAuth } from "@/lib/clerk";
+import { sanitizeBuilderDraft } from "@/lib/templates/builder";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
-import { isValidTemplateKey, normalizeTemplateKey } from "@/lib/templates/registry";
 
-export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
-
-const LinkSchema = z.object({
-  id: z.string().min(1).optional(),
-  label: z.string().trim().min(1),
-  url: z.string().trim().min(3),
-});
-
-const BodySchema = z.object({
-  templateKey: z.string().min(1),
-  draft: z.object({
-    title: z.string().min(1),
-    slugSuggestion: z.string().min(1),
-
-    siteVisibility: z.enum(["public", "private"]).optional().default("public"),
-    privateMode: z.enum(["passcode", "members_only"]).optional(),
-    passcode: z.string().optional().default(""),
-
-    announcement: z
-      .object({
-        headline: z.string().optional().default(""),
-        body: z.string().optional().default(""),
-      })
-      .optional(),
-
-    links: z.array(LinkSchema).optional().default([]),
-
-    contact: z
-      .object({
-        name: z.string().optional().default(""),
-        email: z.string().optional().default(""),
-        phone: z.string().optional().default(""),
-      })
-      .optional(),
-  }),
-});
-
-function normalizeSlug(input: string) {
+function slugify(input: string) {
   return input
-    .trim()
     .toLowerCase()
-    .replace(/[^a-z0-9-]/g, "-")
-    .replace(/-+/g, "-")
+    .trim()
+    .replace(/[^a-z0-9-]+/g, "-")
     .replace(/^-+|-+$/g, "")
-    .slice(0, 40);
+    .replace(/--+/g, "-")
+    .slice(0, 63);
 }
 
-function normalizePasscode(input: string) {
-  return (input || "").replace(/\D/g, "").slice(0, 6);
-}
-
-function hashPasscode(passcode: string) {
-  return crypto.createHash("sha256").update(passcode).digest("hex");
+function normalizeVisibility(value: string | null) {
+  if (value === "private") return "private";
+  if (value === "members_only") return "members_only";
+  return "public";
 }
 
 export async function POST(req: Request) {
-  let userId: string;
-
   try {
-    const auth = await requireAuth();
-    userId = auth.userId;
-  } catch {
-    return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
-  }
+    const { userId } = await auth();
 
-  const raw = await req.json().catch(() => null);
-  const parsed = BodySchema.safeParse(raw);
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+    }
 
-  if (!parsed.success) {
-    return NextResponse.json({ ok: false, error: "Invalid request" }, { status: 400 });
-  }
+    const contentType = req.headers.get("content-type") || "";
+    let payload: Record<string, unknown> = {};
 
-  const templateKeyRaw = parsed.data.templateKey;
-  const templateKey = normalizeTemplateKey(templateKeyRaw);
+    if (contentType.includes("application/json")) {
+      payload = await req.json().catch(() => ({}));
+    } else {
+      const formData = await req.formData();
 
-  if (!isValidTemplateKey(templateKey)) {
-    return NextResponse.json(
-      { ok: false, error: `Invalid template key: ${templateKeyRaw}` },
-      { status: 400 }
+      payload = {
+        templateKey: String(formData.get("templateKey") || ""),
+        title: String(formData.get("title") || ""),
+        slug: String(formData.get("slug") || ""),
+        slugSuggestion: String(formData.get("slugSuggestion") || ""),
+        siteVisibility: String(formData.get("siteVisibility") || "public"),
+        privateMode:
+          String(formData.get("privateMode") || "").toLowerCase() === "true",
+        passcode: String(formData.get("passcode") || ""),
+        draftJson: String(formData.get("draftJson") || "{}"),
+      };
+    }
+
+    const templateKey = String(payload.templateKey || "").trim();
+    const rawTitle = String(payload.title || "").trim();
+    const rawSlug =
+      String(payload.slug || "").trim() ||
+      String(payload.slugSuggestion || "").trim();
+
+    const siteVisibility = normalizeVisibility(
+      String(payload.siteVisibility || "public"),
     );
-  }
 
-  const title = parsed.data.draft.title.trim();
-  const slug = normalizeSlug(parsed.data.draft.slugSuggestion);
+    const privateMode =
+      Boolean(payload.privateMode) || siteVisibility !== "public";
 
-  if (!slug || slug.length < 3) {
-    return NextResponse.json(
-      { ok: false, error: "Slug must be at least 3 characters" },
-      { status: 400 }
-    );
-  }
+    const passcode = String(payload.passcode || "").trim();
 
-  const siteVisibility = parsed.data.draft.siteVisibility ?? "public";
-  const privateMode =
-    siteVisibility === "private"
-      ? parsed.data.draft.privateMode ?? "passcode"
-      : null;
+    if (!templateKey) {
+      return NextResponse.json(
+        { error: "Template key is required." },
+        { status: 400 },
+      );
+    }
 
-  const rawPasscode = normalizePasscode(parsed.data.draft.passcode ?? "");
+    let parsedDraft: unknown = {};
 
-  if (siteVisibility === "private" && privateMode === "passcode" && rawPasscode.length !== 6) {
-    return NextResponse.json(
-      { ok: false, error: "Private passcode must be exactly 6 digits." },
-      { status: 400 }
-    );
-  }
+    if (typeof payload.draftJson === "string") {
+      parsedDraft = JSON.parse(payload.draftJson || "{}");
+    } else if (payload.draftJson && typeof payload.draftJson === "object") {
+      parsedDraft = payload.draftJson;
+    }
 
-  const passcodeHash =
-    siteVisibility === "private" && privateMode === "passcode"
-      ? hashPasscode(rawPasscode)
-      : null;
+    const parsedDraftRecord =
+      parsedDraft && typeof parsedDraft === "object"
+        ? (parsedDraft as Record<string, unknown>)
+        : {};
 
-  const announcement = parsed.data.draft.announcement;
-  const links = parsed.data.draft.links ?? [];
-  const contact = parsed.data.draft.contact;
+    const sanitizedDraft = sanitizeBuilderDraft({
+      title: String(parsedDraftRecord.title || rawTitle || ""),
+      slugSuggestion: String(parsedDraftRecord.slugSuggestion || rawSlug || ""),
+      blocks: Array.isArray(parsedDraftRecord.blocks)
+        ? (parsedDraftRecord.blocks as never[])
+        : [],
+    });
 
-  const sb = getSupabaseAdmin();
+    const title = sanitizedDraft.title || rawTitle;
+    const slug = slugify(rawSlug || sanitizedDraft.slugSuggestion || title);
 
-  const { data: site, error: siteErr } = await sb
-    .from("microsites")
-    .insert({
+    if (!title) {
+      return NextResponse.json(
+        { error: "Title is required." },
+        { status: 400 },
+      );
+    }
+
+    if (!slug) {
+      return NextResponse.json(
+        { error: "Slug is required." },
+        { status: 400 },
+      );
+    }
+
+    const supabaseAdmin = getSupabaseAdmin();
+
+    const { data: existingPaidSlug, error: paidSlugError } = await supabaseAdmin
+      .from("microsites")
+      .select("id")
+      .eq("slug", slug)
+      .limit(1)
+      .maybeSingle();
+
+    if (paidSlugError) {
+      return NextResponse.json(
+        { error: "Failed to validate slug." },
+        { status: 500 },
+      );
+    }
+
+    if (existingPaidSlug) {
+      return NextResponse.json(
+        { error: "That subdomain is already taken." },
+        { status: 409 },
+      );
+    }
+
+    const draftToStore = {
+      ...sanitizedDraft,
+      title,
+      slugSuggestion: slug,
+    };
+
+    const row = {
       owner_clerk_user_id: userId,
       template_key: templateKey,
       slug,
       title,
-      status: "draft",
-      is_published: false,
       site_visibility: siteVisibility,
       private_mode: privateMode,
-      passcode_hash: passcodeHash,
-    })
-    .select("id")
-    .single();
+      passcode_hash: passcode ? passcode : null,
+      draft: draftToStore,
+    };
 
-  if (siteErr || !site) {
-    const msg = siteErr?.message || "Failed to create microsite";
+    const { data, error } = await supabaseAdmin
+      .from("pending_microsite_checkouts")
+      .upsert(row, {
+        onConflict: "owner_clerk_user_id,slug",
+      })
+      .select("id, slug, title, template_key, owner_clerk_user_id")
+      .single();
 
-    if (msg.toLowerCase().includes("duplicate") || msg.toLowerCase().includes("unique")) {
+    if (error) {
       return NextResponse.json(
-        { ok: false, error: "That slug is already taken. Try another." },
-        { status: 409 }
+        { error: error.message || "Failed to save draft." },
+        { status: 500 },
       );
     }
 
-    return NextResponse.json({ ok: false, error: msg }, { status: 500 });
-  }
-
-  if ((announcement?.headline || "").trim() || (announcement?.body || "").trim()) {
-    await sb.from("microsite_announcements").upsert({
-      microsite_id: site.id,
-      headline: (announcement?.headline || "").trim(),
-      body: (announcement?.body || "").trim(),
-      updated_at: new Date().toISOString(),
+    return NextResponse.json({
+      ok: true,
+      pendingCheckoutId: data.id,
+      slug: data.slug,
+      title: data.title,
+      templateKey: data.template_key,
     });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Unexpected server error.";
+
+    return NextResponse.json({ error: message }, { status: 500 });
   }
-
-  if ((contact?.name || "").trim() || (contact?.email || "").trim() || (contact?.phone || "").trim()) {
-    await sb.from("microsite_contact").upsert({
-      microsite_id: site.id,
-      name: (contact?.name || "").trim(),
-      email: (contact?.email || "").trim(),
-      phone: (contact?.phone || "").trim(),
-      updated_at: new Date().toISOString(),
-    });
-  }
-
-  if (links.length) {
-    const rows = links
-      .map((l, idx) => ({
-        microsite_id: site.id,
-        label: l.label.trim(),
-        url: l.url.trim(),
-        sort_order: idx,
-      }))
-      .filter((x) => x.label && x.url);
-
-    if (rows.length) {
-      await sb.from("microsite_links").insert(rows);
-    }
-  }
-
-  return NextResponse.json(
-    { ok: true, url: `/api/stripe/checkout?micrositeId=${site.id}` },
-    { status: 200 }
-  );
 }

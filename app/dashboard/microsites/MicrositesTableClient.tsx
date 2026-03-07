@@ -133,8 +133,7 @@ export default function MicrositesTableClient({
         <div>
           <h1 className="text-xl font-semibold tracking-tight">Microsites</h1>
           <p className="mt-1 text-sm text-neutral-700">
-            Showing microsites with active paid access, whether published or
-            unpublished.
+            Showing paid microsites only.
           </p>
         </div>
 
@@ -146,59 +145,7 @@ export default function MicrositesTableClient({
         </Link>
       </div>
 
-      {checkout === "success" ? (
-        <div className="mt-6 rounded-2xl border border-green-200 bg-green-50 p-4">
-          <div className="text-sm font-semibold text-green-900">
-            Payment successful
-          </div>
-
-          {!focusRow ? (
-            <div className="mt-1 text-sm text-green-900/80">
-              Refreshing your microsite access status.
-            </div>
-          ) : !focusPaidActive ? (
-            <div className="mt-1 text-sm text-green-900/80">
-              Processing payment… this page will refresh automatically.
-            </div>
-          ) : (
-            <div className="mt-1 flex flex-wrap items-center gap-3 text-sm text-green-900/80">
-              <div>
-                Access active until{" "}
-                <span className="font-medium">
-                  {new Date(focusRow.paid_until as string).toLocaleString()}
-                </span>
-                .
-              </div>
-
-              {!focusRow.is_published ? (
-                <button
-                  type="button"
-                  disabled={busyId === focusRow.id}
-                  onClick={() => togglePublish(focusRow, true)}
-                  className="inline-flex items-center justify-center rounded-xl bg-green-700 px-3 py-2 text-xs font-semibold text-white hover:bg-green-800 disabled:opacity-50"
-                >
-                  {busyId === focusRow.id ? "Publishing…" : "Publish now"}
-                </button>
-              ) : (
-                <span className="rounded-full bg-white px-2 py-1 text-xs font-semibold text-green-800">
-                  Already published
-                </span>
-              )}
-            </div>
-          )}
-        </div>
-      ) : checkout === "cancel" ? (
-        <div className="mt-6 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
-          <div className="text-sm font-semibold text-neutral-900">
-            Checkout canceled
-          </div>
-          <div className="mt-1 text-sm text-neutral-700">
-            No worries — you can try again anytime from the microsite row.
-          </div>
-        </div>
-      ) : null}
-
-      <div className="mt-6 overflow-hidden rounded-2xl border border-neutral-200">
+      <div className="mt-6 overflow-x-auto rounded-2xl border border-neutral-200">
         <table className="w-full text-left text-sm">
           <thead className="bg-neutral-50">
             <tr>
@@ -215,7 +162,7 @@ export default function MicrositesTableClient({
             {microsites.length === 0 ? (
               <tr>
                 <td className="px-4 py-4 text-neutral-600" colSpan={6}>
-                  No paid microsites yet.
+                  No microsites yet.
                 </td>
               </tr>
             ) : (
@@ -224,34 +171,13 @@ export default function MicrositesTableClient({
                 const publicUrl = `https://${m.slug}.ko-host.com`;
                 const daysUntilExpiration = getDaysUntilExpiration(m.paid_until);
 
-                const isFocused =
-                  (checkoutMicrositeId && m.id === checkoutMicrositeId) ||
-                  (checkoutSlug && m.slug === checkoutSlug);
-
                 return (
                   <tr
                     key={m.id}
                     className="border-t border-neutral-200 align-top"
-                    style={isFocused ? { backgroundColor: "#FEF9C3" } : undefined}
                   >
                     <td className="px-4 py-3 font-medium text-neutral-900">
-                      <Link
-                        href={`/dashboard/microsites/${m.id}`}
-                        className="underline underline-offset-4"
-                      >
-                        {m.title || "(Untitled)"}
-                      </Link>
-
-                      <div className="mt-1 text-xs text-neutral-600">
-                        <a
-                          className="underline underline-offset-4"
-                          href={`/s/${m.slug}`}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          Preview (/s/{m.slug})
-                        </a>
-                      </div>
+                      {m.title || "(Untitled)"}
                     </td>
 
                     <td className="px-4 py-3">
@@ -283,7 +209,7 @@ export default function MicrositesTableClient({
                         </div>
                       ) : (
                         <span className="rounded-full bg-neutral-100 px-2 py-1 text-xs font-medium text-neutral-700">
-                          Not paid
+                          Access ended
                         </span>
                       )}
                     </td>
@@ -301,19 +227,39 @@ export default function MicrositesTableClient({
                     </td>
 
                     <td className="px-4 py-3">
-                      <div className="flex items-center gap-2 whitespace-nowrap">
+                      <div className="grid min-w-[260px] grid-cols-2 gap-2">
                         <Link
                           href={`/dashboard/microsites/${m.id}`}
-                          className="text-sm font-medium text-neutral-900 underline underline-offset-4"
+                          className="inline-flex w-full items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs font-medium text-neutral-900 hover:border-neutral-900"
                         >
                           Manage
                         </Link>
+
+                        {m.is_published ? (
+                          <a
+                            href={`https://${m.slug}.ko-host.com`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex w-full items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs font-medium text-neutral-900 hover:border-neutral-900"
+                          >
+                            Open Public URL
+                          </a>
+                        ) : (
+                          <a
+                            href={`/s/${m.slug}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex w-full items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs font-medium text-neutral-900 hover:border-neutral-900"
+                          >
+                            Preview Microsite
+                          </a>
+                        )}
 
                         <button
                           type="button"
                           disabled={busyId === m.id}
                           onClick={() => togglePublish(m)}
-                          className="inline-flex shrink-0 items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs font-medium text-neutral-900 hover:border-neutral-900 disabled:opacity-50 whitespace-nowrap"
+                          className="inline-flex w-full items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs font-medium text-neutral-900 hover:border-neutral-900 disabled:opacity-50"
                         >
                           {busyId === m.id
                             ? "Working..."
@@ -322,13 +268,17 @@ export default function MicrositesTableClient({
                               : "Publish"}
                         </button>
 
-                        <form action="/api/stripe/checkout" method="POST" className="inline-flex shrink-0">
+                        <form
+                          action="/api/stripe/checkout"
+                          method="POST"
+                          className="w-full"
+                        >
                           <input type="hidden" name="micrositeId" value={m.id} />
                           <button
                             type="submit"
-                            className="inline-flex shrink-0 items-center justify-center rounded-xl bg-neutral-900 px-3 py-2 text-xs font-medium text-white hover:bg-neutral-800 whitespace-nowrap"
+                            className="inline-flex w-full items-center justify-center rounded-xl bg-neutral-900 px-3 py-2 text-xs font-medium text-white hover:bg-neutral-800"
                           >
-                            {active ? "Extend 90 days" : "Pay $12 (90 days)"}
+                            Extend 90 days
                           </button>
                         </form>
                       </div>
