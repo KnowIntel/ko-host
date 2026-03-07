@@ -106,10 +106,12 @@ export default function TemplateCard(props: {
     bumpStat(templateKey, "views");
   }
 
-  function goCreate() {
-    trackCreate();
-    router.push(`/create/${templateKey}`);
-  }
+ function goCreate() {
+  trackCreate();
+
+  // Step 1: choose design preset
+  router.push(`/create/${templateKey}/design`);
+}
 
   function stopAll(e: any) {
     e.preventDefault?.();
@@ -121,11 +123,18 @@ export default function TemplateCard(props: {
     onToggleFavorite?.(templateKey);
   }
 
-  function handlePreview(e: MouseEvent) {
-    stopAll(e);
-    trackPreview();
-    onPreview?.(templateKey);
+function handlePreview(e: MouseEvent) {
+  stopAll(e);
+
+  trackPreview();
+
+  if (onPreview) {
+    onPreview(templateKey);
+  } else {
+    // fallback preview route
+    router.push(`/preview/${templateKey}`);
   }
+}
 
   return (
     <div

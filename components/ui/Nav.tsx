@@ -68,6 +68,12 @@ export function Nav() {
                 <InstallButton label="Install" />
               </div>
 
+              {!isTemplatesPage && (
+                <ButtonLink href="/templates" variant="secondary">
+                  Templates
+                </ButtonLink>
+              )}
+
               <ButtonLink href="/dashboard" variant="secondary">
                 Dashboard
               </ButtonLink>

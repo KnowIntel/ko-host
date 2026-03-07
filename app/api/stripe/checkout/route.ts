@@ -37,6 +37,7 @@ export async function POST(req: Request) {
     let micrositeId = "";
     let slug = "";
     let templateKey = "";
+    let designKey = "";
 
     if (contentType.includes("application/json")) {
       const body = await req.json().catch(() => ({}));
@@ -45,6 +46,7 @@ export async function POST(req: Request) {
       micrositeId = String(body?.micrositeId || "");
       slug = String(body?.slug || "");
       templateKey = String(body?.templateKey || "");
+      designKey = String(body?.designKey || "");
     } else {
       const formData = await req.formData();
 
@@ -52,6 +54,7 @@ export async function POST(req: Request) {
       micrositeId = String(formData.get("micrositeId") || "");
       slug = String(formData.get("slug") || "");
       templateKey = String(formData.get("templateKey") || "");
+      designKey = String(formData.get("designKey") || "");
     }
 
     const supabaseAdmin = getSupabaseAdmin();
@@ -59,7 +62,7 @@ export async function POST(req: Request) {
     if (pendingCheckoutId) {
       const { data: pendingRow, error: pendingError } = await supabaseAdmin
         .from("pending_microsite_checkouts")
-        .select("id, owner_clerk_user_id, slug, title, template_key")
+        .select("*")
         .eq("id", pendingCheckoutId)
         .eq("owner_clerk_user_id", userId)
         .single();
@@ -91,6 +94,7 @@ export async function POST(req: Request) {
           slug: pendingRow.slug,
           title: pendingRow.title || "",
           template_key: pendingRow.template_key || "",
+          design_key: pendingRow.selected_design_key || designKey || "",
         },
       });
 
@@ -150,90 +154,6 @@ export async function POST(req: Request) {
       }
 
       return NextResponse.redirect(session.url, 303);
-    }
-
-    if (slug) {
-      const { data: pendingBySlug, error: pendingBySlugError } = await supabaseAdmin
-        .from("pending_microsite_checkouts")
-        .select("id, owner_clerk_user_id, slug, title, template_key")
-        .eq("slug", slug)
-        .eq("owner_clerk_user_id", userId)
-        .maybeSingle();
-
-      if (!pendingBySlugError && pendingBySlug) {
-        const session = await stripe.checkout.sessions.create({
-          mode: "payment",
-          line_items: [
-            {
-              price: priceId,
-              quantity: 1,
-            },
-          ],
-          success_url: `${appUrl}/dashboard/microsites?checkout=success&slug=${encodeURIComponent(
-            pendingBySlug.slug,
-          )}`,
-          cancel_url: `${appUrl}/dashboard/microsites?checkout=cancel&slug=${encodeURIComponent(
-            pendingBySlug.slug,
-          )}`,
-          metadata: {
-            owner_clerk_user_id: userId,
-            pending_checkout_id: pendingBySlug.id,
-            slug: pendingBySlug.slug,
-            title: pendingBySlug.title || "",
-            template_key: pendingBySlug.template_key || templateKey || "",
-          },
-        });
-
-        if (!session.url) {
-          return NextResponse.json(
-            { ok: false, error: "Failed to create checkout session" },
-            { status: 500 },
-          );
-        }
-
-        return NextResponse.redirect(session.url, 303);
-      }
-
-      const { data: micrositeBySlug, error: micrositeBySlugError } = await supabaseAdmin
-        .from("microsites")
-        .select("id, owner_clerk_user_id, slug, title, template_key")
-        .eq("slug", slug)
-        .eq("owner_clerk_user_id", userId)
-        .maybeSingle();
-
-      if (!micrositeBySlugError && micrositeBySlug) {
-        const session = await stripe.checkout.sessions.create({
-          mode: "payment",
-          line_items: [
-            {
-              price: priceId,
-              quantity: 1,
-            },
-          ],
-          success_url: `${appUrl}/dashboard/microsites?checkout=success&micrositeId=${encodeURIComponent(
-            micrositeBySlug.id,
-          )}`,
-          cancel_url: `${appUrl}/dashboard/microsites?checkout=cancel&micrositeId=${encodeURIComponent(
-            micrositeBySlug.id,
-          )}`,
-          metadata: {
-            owner_clerk_user_id: userId,
-            microsite_id: micrositeBySlug.id,
-            slug: micrositeBySlug.slug,
-            title: micrositeBySlug.title || "",
-            template_key: micrositeBySlug.template_key || templateKey || "",
-          },
-        });
-
-        if (!session.url) {
-          return NextResponse.json(
-            { ok: false, error: "Failed to create checkout session" },
-            { status: 500 },
-          );
-        }
-
-        return NextResponse.redirect(session.url, 303);
-      }
     }
 
     return NextResponse.json(

@@ -1,53 +1,65 @@
-"use client";
-
-import { useMemo } from "react";
-import { useParams } from "next/navigation";
+import { createLayoutDraft } from "@/lib/layout-presets/createLayoutDraft";
 import {
+  TEMPLATE_DEFS,
   getTemplateDef,
   normalizeTemplateKey,
-  TEMPLATE_DEFS,
 } from "@/lib/templates/registry";
 import TemplateDraftEditor from "@/components/templates/TemplateDraftEditor";
 
-type LegacyDraft = {
-  title?: string;
-  slugSuggestion?: string;
-  announcement?: string | { headline?: string; body?: string };
-  links?: Array<{ label?: string; url?: string }>;
-  contactName?: string;
-  contactEmail?: string;
-  contactPhone?: string;
-};
-
-export default function CreateTemplatePage() {
-  const params = useParams();
-  const rawTemplate = String(params?.template || "");
-  const templateKey = normalizeTemplateKey(rawTemplate);
-
-  const templateDef = useMemo(() => {
-    return getTemplateDef(templateKey) ?? TEMPLATE_DEFS[0];
-  }, [templateKey]);
-
-  const initialDraft = useMemo<LegacyDraft>(() => {
-    return {
-      title: templateDef?.title ?? "",
-      slugSuggestion: "",
-    };
-  }, [templateDef]);
+function resolveTemplateFromRoute(rawTemplate: string) {
+  const normalized = normalizeTemplateKey(rawTemplate);
 
   return (
-    <main className="mx-auto w-full max-w-5xl px-4 py-10">
+    getTemplateDef(normalized) ||
+    TEMPLATE_DEFS.find((t) => normalizeTemplateKey(t.demoSlug) === normalized) ||
+    TEMPLATE_DEFS.find((t) => normalizeTemplateKey(t.thumb) === normalized) ||
+    TEMPLATE_DEFS.find(
+      (t) => normalizeTemplateKey(t.title.replace(/\s+/g, "_")) === normalized,
+    ) ||
+    TEMPLATE_DEFS[0]
+  );
+}
+
+export default async function CreateTemplatePage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ template: string }>;
+  searchParams: Promise<{ design?: string }>;
+}) {
+  const { template } = await params;
+  const { design } = await searchParams;
+
+  const templateDef = resolveTemplateFromRoute(template);
+  const templateKey = templateDef.key;
+  const designKey = design || "blank";
+
+  const preset = createLayoutDraft(templateKey, designKey);
+
+  const initialDraft = {
+    ...preset,
+    title: templateDef.defaultDraft?.title || templateDef.title || "",
+    slugSuggestion:
+      preset.slugSuggestion ||
+      templateDef.defaultDraft?.slugSuggestion ||
+      "",
+  };
+
+  return (
+    <main className="mx-auto w-full max-w-7xl px-4 py-10">
       <div className="mb-6">
         <h1 className="text-2xl font-semibold tracking-tight text-neutral-900">
-          Create {templateDef?.title ?? "Microsite"}
+          Create {templateDef.title || "Microsite"}
         </h1>
+
         <p className="mt-2 text-sm text-neutral-600">
-          Build your microsite, then continue to checkout.
+          Design preset: {designKey}
         </p>
       </div>
 
       <TemplateDraftEditor
         templateKey={templateKey}
+        designKey={designKey}
         initialDraft={initialDraft}
         submitLabel="Continue"
       />
