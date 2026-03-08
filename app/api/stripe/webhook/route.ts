@@ -14,6 +14,8 @@ if (!webhookSecret) {
   throw new Error("Missing STRIPE_WEBHOOK_SECRET");
 }
 
+const verifiedWebhookSecret: string = webhookSecret;
+
 const stripe = new Stripe(stripeSecretKey, {
   apiVersion: "2026-02-25.clover",
 });
@@ -37,7 +39,11 @@ export async function POST(req: Request) {
   let event: Stripe.Event;
 
   try {
-    event = stripe.webhooks.constructEvent(body, signature, webhookSecret as string);
+    event = stripe.webhooks.constructEvent(
+      body,
+      signature,
+      verifiedWebhookSecret,
+    );
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Webhook verification failed";

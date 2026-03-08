@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
-import BuilderBlocksRenderer from "@/app/s/[slug]/BuilderBlocksRenderer";
+import BlockRenderer from "@/components/preview/BlockRenderer";
+import { getDesignPreset } from "@/lib/design-presets/designRegistry";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import type { MicrositeBlock } from "@/lib/templates/builder";
 
@@ -14,9 +15,11 @@ type MicrositeRow = {
   is_published: boolean;
   paid_until: string | null;
   site_visibility?: string | null;
+  selected_design_key?: string | null;
   draft?: {
     title?: string;
     slugSuggestion?: string;
+    pageBackground?: string;
     blocks?: MicrositeBlock[];
   } | null;
 };
@@ -48,6 +51,29 @@ function extractSlugFromHost(host: string) {
   return null;
 }
 
+function resolvePageBackground(
+  pageBackground: string | undefined,
+  fallbackClassName: string,
+) {
+  switch (pageBackground) {
+    case "soft-blue":
+      return "bg-[linear-gradient(135deg,#eff6ff_0%,#ffffff_55%,#dbeafe_100%)]";
+    case "sunset":
+      return "bg-[linear-gradient(135deg,#fff7ed_0%,#ffffff_45%,#fde68a_100%)]";
+    case "mint":
+      return "bg-[linear-gradient(135deg,#ecfdf5_0%,#ffffff_50%,#d1fae5_100%)]";
+    case "lavender":
+      return "bg-[linear-gradient(135deg,#f5f3ff_0%,#ffffff_50%,#e9d5ff_100%)]";
+    case "rose":
+      return "bg-[linear-gradient(135deg,#fff1f2_0%,#ffffff_50%,#fecdd3_100%)]";
+    case "dark-glow":
+      return "bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.18),_transparent_30%),linear-gradient(180deg,#0f172a_0%,#111827_100%)]";
+    case "none":
+    default:
+      return fallbackClassName;
+  }
+}
+
 export default async function PublicSubdomainPage() {
   const headersList = await headers();
   const host = headersList.get("host") || "";
@@ -61,7 +87,9 @@ export default async function PublicSubdomainPage() {
 
   const { data, error } = await supabaseAdmin
     .from("microsites")
-    .select("id, slug, title, is_published, paid_until, site_visibility, draft")
+    .select(
+      "id, slug, title, is_published, paid_until, site_visibility, selected_design_key, draft",
+    )
     .eq("slug", slug)
     .maybeSingle();
 
@@ -83,29 +111,40 @@ export default async function PublicSubdomainPage() {
     notFound();
   }
 
+  const designKey = site.selected_design_key || "blank";
+  const design = getDesignPreset(designKey);
+  const theme = design.theme;
+
   const blocks = Array.isArray(site.draft?.blocks) ? site.draft.blocks : [];
+  const pageTitle = site.title || site.draft?.title || "Untitled Microsite";
+  const pageBackgroundClassName = resolvePageBackground(
+    site.draft?.pageBackground,
+    theme.pageClassName,
+  );
 
   return (
-    <main className="min-h-screen bg-neutral-50">
-      <div className="mx-auto w-full max-w-4xl px-4 py-10">
-        <div className="mb-8 rounded-3xl border border-neutral-200 bg-white p-8 shadow-sm">
-          <h1 className="text-3xl font-semibold tracking-tight text-neutral-900">
-            {site.title || "Untitled Microsite"}
-          </h1>
-        </div>
-
-        {blocks.length > 0 ? (
-          <BuilderBlocksRenderer blocks={blocks} />
-        ) : (
-          <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-neutral-900">
-              No content yet
-            </h2>
-            <p className="mt-2 text-sm text-neutral-600">
-              This microsite has no saved builder blocks yet.
-            </p>
+    <main className={`min-h-screen ${pageBackgroundClassName}`}>
+      <div className={`w-full px-4 py-10 ${theme.containerClassName}`}>
+        <div className={theme.blockGapClassName}>
+          <div className={theme.titleWrapClassName}>
+            <h1 className={theme.headingClassName}>{pageTitle}</h1>
           </div>
-        )}
+
+          {blocks.length > 0 ? (
+            blocks.map((block) => (
+              <div key={block.id} className={theme.sectionClassName}>
+                <BlockRenderer block={block} designKey={designKey} />
+              </div>
+            ))
+          ) : (
+            <div className={theme.sectionClassName}>
+              <h2 className={theme.subheadingClassName}>No content yet</h2>
+              <p className={`mt-2 ${theme.bodyClassName}`}>
+                This microsite has no saved builder blocks yet.
+              </p>
+            </div>
+          )}
+        </div>
       </div>
     </main>
   );

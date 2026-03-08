@@ -62,8 +62,16 @@ function writeStats(stats: StatsMap) {
 
 function bumpStat(templateKey: string, field: "views" | "creates") {
   const stats = readStats();
-  const cur = stats[templateKey] || { views: 0, creates: 0, updatedAt: Date.now() };
-  const next = { ...cur, [field]: (cur[field] || 0) + 1, updatedAt: Date.now() };
+  const cur = stats[templateKey] || {
+    views: 0,
+    creates: 0,
+    updatedAt: Date.now(),
+  };
+  const next = {
+    ...cur,
+    [field]: (cur[field] || 0) + 1,
+    updatedAt: Date.now(),
+  };
   stats[templateKey] = next;
   writeStats(stats);
   notify("kht:stats");
@@ -106,14 +114,12 @@ export default function TemplateCard(props: {
     bumpStat(templateKey, "views");
   }
 
- function goCreate() {
-  trackCreate();
+  function goCreate() {
+    trackCreate();
+    router.push(`/create/${encodeURIComponent(templateKey)}/design`);
+  }
 
-  // Step 1: choose design preset
-  router.push(`/create/${templateKey}/design`);
-}
-
-  function stopAll(e: any) {
+  function stopAll(e: MouseEvent | React.KeyboardEvent | any) {
     e.preventDefault?.();
     e.stopPropagation?.();
   }
@@ -123,18 +129,11 @@ export default function TemplateCard(props: {
     onToggleFavorite?.(templateKey);
   }
 
-function handlePreview(e: MouseEvent) {
-  stopAll(e);
-
-  trackPreview();
-
-  if (onPreview) {
-    onPreview(templateKey);
-  } else {
-    // fallback preview route
-    router.push(`/preview/${templateKey}`);
+  function handlePreview(e: MouseEvent) {
+    stopAll(e);
+    trackPreview();
+    onPreview?.(templateKey);
   }
-}
 
   return (
     <div
@@ -155,7 +154,7 @@ function handlePreview(e: MouseEvent) {
           goCreate();
         }
       }}
-      aria-label={`Create ${title}`}
+      aria-label={`Choose ${title}`}
     >
       <div
         className={[
@@ -165,7 +164,10 @@ function handlePreview(e: MouseEvent) {
         ].join(" ")}
         style={{ width: W, maxWidth: W, minWidth: W }}
       >
-        <div className="relative bg-neutral-100" style={{ width: W, height: H, overflow: "hidden" }}>
+        <div
+          className="relative bg-neutral-100"
+          style={{ width: W, height: H, overflow: "hidden" }}
+        >
           <img
             src={src}
             alt={title}

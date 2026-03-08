@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
+import { getDesignPreset } from "@/lib/design-presets/designRegistry";
+import BlockRenderer from "@/components/preview/BlockRenderer";
 import type { MicrositeBlock } from "@/lib/templates/builder";
 
 export const dynamic = "force-dynamic";
@@ -11,9 +13,11 @@ type MicrositeRow = {
   title: string;
   is_published: boolean;
   paid_until: string | null;
+  selected_design_key?: string | null;
   draft?: {
     title?: string;
     slugSuggestion?: string;
+    pageBackground?: string;
     blocks?: MicrositeBlock[];
   } | null;
 };
@@ -23,19 +27,27 @@ function isPaidActive(paidUntil: string | null) {
   return new Date(paidUntil).getTime() > Date.now();
 }
 
-function SectionCard({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-      <h2 className="text-lg font-semibold text-neutral-900">{title}</h2>
-      <div className="mt-3">{children}</div>
-    </section>
-  );
+function resolvePageBackground(
+  pageBackground: string | undefined,
+  fallbackClassName: string,
+) {
+  switch (pageBackground) {
+    case "soft-blue":
+      return "bg-[linear-gradient(135deg,#eff6ff_0%,#ffffff_55%,#dbeafe_100%)]";
+    case "sunset":
+      return "bg-[linear-gradient(135deg,#fff7ed_0%,#ffffff_45%,#fde68a_100%)]";
+    case "mint":
+      return "bg-[linear-gradient(135deg,#ecfdf5_0%,#ffffff_50%,#d1fae5_100%)]";
+    case "lavender":
+      return "bg-[linear-gradient(135deg,#f5f3ff_0%,#ffffff_50%,#e9d5ff_100%)]";
+    case "rose":
+      return "bg-[linear-gradient(135deg,#fff1f2_0%,#ffffff_50%,#fecdd3_100%)]";
+    case "dark-glow":
+      return "bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.18),_transparent_30%),linear-gradient(180deg,#0f172a_0%,#111827_100%)]";
+    case "none":
+    default:
+      return fallbackClassName;
+  }
 }
 
 export default async function PublicMicrositePage({
@@ -48,7 +60,7 @@ export default async function PublicMicrositePage({
 
   const { data, error } = await supabaseAdmin
     .from("microsites")
-    .select("id, slug, title, is_published, paid_until, draft")
+    .select("id, slug, title, is_published, paid_until, selected_design_key, draft")
     .eq("slug", slug)
     .single();
 
@@ -62,177 +74,32 @@ export default async function PublicMicrositePage({
     notFound();
   }
 
+  const designKey = site.selected_design_key || "blank";
+  const design = getDesignPreset(designKey);
+  const theme = design.theme;
+
   const blocks = Array.isArray(site.draft?.blocks) ? site.draft.blocks : [];
+  const pageTitle = site.title || site.draft?.title || "Untitled Microsite";
+  const pageBackgroundClassName = resolvePageBackground(
+    site.draft?.pageBackground,
+    theme.pageClassName,
+  );
 
   return (
-    <main className="min-h-screen bg-neutral-50">
-      <div className="mx-auto w-full max-w-4xl px-4 py-10">
-        <div className="mb-8 rounded-3xl border border-neutral-200 bg-white p-8 shadow-sm">
-          <div className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">
-            Ko-Host Preview
+    <main className={`min-h-screen ${pageBackgroundClassName}`}>
+      <div className={`w-full px-4 py-10 ${theme.containerClassName}`}>
+        <div className={theme.blockGapClassName}>
+          <div className={theme.titleWrapClassName}>
+            <div className={theme.mutedTextClassName}>Ko-Host Site</div>
+            <h1 className={`mt-3 ${theme.headingClassName}`}>{pageTitle}</h1>
+            <div className={`mt-3 ${theme.bodyClassName}`}>/s/{site.slug}</div>
           </div>
-          <h1 className="mt-3 text-3xl font-semibold tracking-tight text-neutral-900">
-            {site.title || "Untitled Microsite"}
-          </h1>
-          <div className="mt-3 text-sm text-neutral-600">/s/{site.slug}</div>
-        </div>
 
-        <div className="space-y-6">
-          {blocks.map((block) => {
-            if (block.type === "announcement") {
-              return (
-                <SectionCard key={block.id} title={block.data.headline || "Announcement"}>
-                  <div className="whitespace-pre-wrap text-neutral-700">
-                    {block.data.body || ""}
-                  </div>
-                </SectionCard>
-              );
-            }
-
-            if (block.type === "links") {
-              return (
-                <SectionCard key={block.id} title={block.data.heading || "Links"}>
-                  <div className="flex flex-col gap-3">
-                    {block.data.items.map((item) => (
-                      <div
-                        key={item.id}
-                        className="rounded-xl border border-neutral-200 px-4 py-3 text-sm text-neutral-800"
-                      >
-                        {item.label || "Untitled link"}
-                        {item.url ? (
-                          <div className="mt-1 text-xs text-neutral-500">{item.url}</div>
-                        ) : null}
-                      </div>
-                    ))}
-                  </div>
-                </SectionCard>
-              );
-            }
-
-            if (block.type === "countdown") {
-              return (
-                <SectionCard key={block.id} title={block.data.heading || "Countdown"}>
-                  <div className="text-sm text-neutral-700">
-                    Target: {block.data.targetIso || "Not set"}
-                  </div>
-                  <div className="mt-1 text-sm text-neutral-500">
-                    {block.data.completedMessage || ""}
-                  </div>
-                </SectionCard>
-              );
-            }
-
-            if (block.type === "contact") {
-              return (
-                <SectionCard key={block.id} title={block.data.heading || "Contact"}>
-                  <div className="space-y-2 text-sm text-neutral-700">
-                    {block.data.name ? <div>Name: {block.data.name}</div> : null}
-                    {block.data.email ? <div>Email: {block.data.email}</div> : null}
-                    {block.data.phone ? <div>Phone: {block.data.phone}</div> : null}
-                  </div>
-                </SectionCard>
-              );
-            }
-
-            if (block.type === "rsvp") {
-              return (
-                <SectionCard key={block.id} title={block.data.heading || "RSVP"}>
-                  <div className="space-y-2 text-sm text-neutral-700">
-                    {block.data.eventDate ? (
-                      <div>Event date: {block.data.eventDate}</div>
-                    ) : null}
-                    <div>
-                      Collect guest count: {block.data.collectGuestCount ? "Yes" : "No"}
-                    </div>
-                    <div>
-                      Collect meal choice: {block.data.collectMealChoice ? "Yes" : "No"}
-                    </div>
-                  </div>
-                </SectionCard>
-              );
-            }
-
-            if (block.type === "richText") {
-              return (
-                <SectionCard key={block.id} title={block.data.heading || "Details"}>
-                  <div className="whitespace-pre-wrap text-neutral-700">
-                    {block.data.body || ""}
-                  </div>
-                </SectionCard>
-              );
-            }
-
-            if (block.type === "faq") {
-              return (
-                <SectionCard key={block.id} title={block.data.heading || "FAQ"}>
-                  <div className="space-y-3">
-                    {block.data.items.map((item) => (
-                      <div key={item.id} className="rounded-xl border border-neutral-200 p-4">
-                        <div className="font-medium text-neutral-900">
-                          {item.question || "Untitled question"}
-                        </div>
-                        <div className="mt-2 whitespace-pre-wrap text-sm text-neutral-700">
-                          {item.answer || ""}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </SectionCard>
-              );
-            }
-
-            if (block.type === "gallery") {
-              return (
-                <SectionCard key={block.id} title={block.data.heading || "Gallery"}>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    {block.data.items.map((item) => (
-                      <div
-                        key={item.id}
-                        className="rounded-xl border border-neutral-200 p-4 text-sm text-neutral-700"
-                      >
-                        <div>{item.url || "No image URL"}</div>
-                        {item.caption ? (
-                          <div className="mt-2 text-neutral-500">{item.caption}</div>
-                        ) : null}
-                      </div>
-                    ))}
-                  </div>
-                </SectionCard>
-              );
-            }
-
-            if (block.type === "poll") {
-              return (
-                <SectionCard key={block.id} title={block.data.question || "Poll"}>
-                  <div className="space-y-3">
-                    {block.data.options.map((option) => (
-                      <div
-                        key={option.id}
-                        className="rounded-xl border border-neutral-200 px-4 py-3 text-sm text-neutral-800"
-                      >
-                        {option.text || "Untitled option"}
-                      </div>
-                    ))}
-                  </div>
-                </SectionCard>
-              );
-            }
-
-            if (block.type === "cta") {
-              return (
-                <SectionCard key={block.id} title={block.data.heading || "Call To Action"}>
-                  <div className="whitespace-pre-wrap text-neutral-700">
-                    {block.data.body || ""}
-                  </div>
-                  <div className="mt-4 rounded-xl bg-neutral-900 px-4 py-2 text-center text-sm font-medium text-white">
-                    {block.data.buttonText || "Learn more"}
-                  </div>
-                </SectionCard>
-              );
-            }
-
-            return null;
-          })}
+          {blocks.map((block) => (
+            <div key={block.id} className={theme.sectionClassName}>
+              <BlockRenderer block={block} designKey={designKey} />
+            </div>
+          ))}
         </div>
       </div>
     </main>

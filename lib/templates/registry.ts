@@ -8,9 +8,9 @@ export type TemplateKey =
   | "open_house"
   | "birthday_party"
   | "product_launch"
-  | "product_launch_waitlist"
+  | "waitlist"
   | "property_listing"
-  | "property_listing_rental"
+  | "rental_listing"
   | "resume_profile"
   | "wedding_rsvp"
   | "beta_testing"
@@ -172,8 +172,8 @@ export type TemplateDef = {
 
 const POPULAR_KEYS = new Set<TemplateKey>([
   "wedding_rsvp",
-  "property_listing_rental",
-  "product_launch_waitlist",
+  "rental_listing",
+  "waitlist",
   "investor_pitch",
   "business_card",
   "service_promo",
@@ -224,6 +224,7 @@ function inferCategory(key: TemplateKey): TemplateCategory {
     key.includes("property") ||
     key.includes("leasing") ||
     key.includes("rental") ||
+    key.includes("listing") ||
     key.includes("airbnb") ||
     key.includes("land_sale") ||
     key.includes("auction") ||
@@ -306,11 +307,11 @@ function inferCategory(key: TemplateKey): TemplateCategory {
 function inferFeatures(key: TemplateKey): string[] {
   const map: Partial<Record<TemplateKey, string[]>> = {
     wedding_rsvp: ["RSVP", "Gallery", "Polls", "Announcements"],
-    product_launch_waitlist: ["Waitlist form", "Email capture"],
+    waitlist: ["Waitlist form", "Email capture"],
     deal_room: ["Documents", "Links", "Contact"],
     secure_document: ["Secure links", "Instructions", "Contact"],
     property_listing: ["Photos", "Highlights", "Contact"],
-    property_listing_rental: ["Availability", "Requirements", "Contact"],
+    rental_listing: ["Availability", "Requirements", "Contact"],
     photo_gallery: ["Gallery", "Highlights", "Share link"],
     stock_trade_thesis: ["Thesis", "Catalysts", "Risk notes"],
     community_poll: ["Poll", "Results", "Updates"],
@@ -451,14 +452,14 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     defaultDraft: { title: "Product Launch", slugSuggestion: "productlaunch" },
   },
   {
-    key: "product_launch_waitlist",
-    title: "Waitlist",
-    description: "Collect waitlist signups fast.",
-    thumb: "waitlist",
-    setupMins: 2,
-    demoSlug: "waitlist",
-    defaultDraft: { title: "Join the Waitlist", slugSuggestion: "waitlist" },
-  },
+  key: "waitlist",
+  title: "Waitlist",
+  description: "Collect waitlist signups fast.",
+  thumb: "waitlist",
+  setupMins: 2,
+  demoSlug: "waitlist",
+  defaultDraft: { title: "Join the Waitlist", slugSuggestion: "waitlist" },
+},
   {
     key: "crowdfunding_campaign",
     title: "Crowdfunding",
@@ -478,14 +479,14 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     defaultDraft: { title: "Property Listing", slugSuggestion: "listing" },
   },
   {
-    key: "property_listing_rental",
-    title: "Rental Listing",
-    description: "Availability, pricing, and apply.",
-    thumb: "rentallisting",
-    setupMins: 4,
-    demoSlug: "rental",
-    defaultDraft: { title: "Rental Listing", slugSuggestion: "rental" },
-  },
+  key: "rental_listing",
+  title: "Rental Listing",
+  description: "Availability, pricing, and apply.",
+  thumb: "rentallisting",
+  setupMins: 4,
+  demoSlug: "rental",
+  defaultDraft: { title: "Rental Listing", slugSuggestion: "rental" },
+},
   {
     key: "resume_profile",
     title: "Resume Profile",

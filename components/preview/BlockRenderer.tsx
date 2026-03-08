@@ -1,105 +1,81 @@
 "use client";
 
-import { getDesignPreset, type DesignPresetKey } from "@/lib/design-presets/designRegistry";
+import { getDesignPreset } from "@/lib/design-presets/designRegistry";
 import type { MicrositeBlock } from "@/lib/templates/builder";
 
 function getBlockStyles(designKey?: string) {
   const design = getDesignPreset(designKey);
+  const theme = design.theme;
 
   const isElegant = design.key === "elegant";
   const isGallery = design.key === "gallery";
-  const isStartup = design.key === "startup";
-  const isPortfolio = design.key === "portfolio";
-  const isEvent = design.key === "event";
-  const isFundraiser = design.key === "fundraiser";
-  const isCommunity = design.key === "community";
-  const isProduct = design.key === "product";
   const isMinimal = design.key === "minimal";
+  const isModern = design.key === "modern";
+  const isClassic = design.key === "classic";
 
   return {
     title: [
-      "tracking-tight text-neutral-900",
-      isElegant
-        ? "text-2xl font-semibold text-stone-900 text-center"
-        : isStartup || isProduct
-          ? "text-2xl font-bold text-neutral-950"
-          : isPortfolio
-            ? "text-xl font-bold text-neutral-950"
-            : isEvent
-              ? "text-xl font-semibold text-neutral-950"
-              : "text-lg font-semibold text-neutral-900",
-    ].join(" "),
-    body: [
-      "text-sm leading-7",
-      isElegant
-        ? "text-stone-600"
-        : isFundraiser
-          ? "text-amber-900/75"
-          : isCommunity
-            ? "text-sky-900/75"
-            : "text-neutral-600",
-    ].join(" "),
-    link: [
-      "text-sm font-medium underline underline-offset-2",
-      isElegant
-        ? "text-stone-700"
-        : isFundraiser
-          ? "text-amber-700"
-          : isCommunity
-            ? "text-sky-700"
-            : isProduct
-              ? "text-rose-700"
-              : isPortfolio
-                ? "text-violet-700"
-                : isStartup
-                  ? "text-blue-700"
-                  : "text-blue-600",
-    ].join(" "),
-    input:
-      "rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-700",
-    softCard: [
-      "rounded-2xl border px-4 py-4",
-      isElegant
-        ? "border-stone-200 bg-stone-50/70"
-        : isFundraiser
-          ? "border-amber-200 bg-amber-50/60"
-          : isCommunity
-            ? "border-sky-200 bg-sky-50/60"
-            : "border-neutral-200 bg-neutral-50",
-    ].join(" "),
-    ctaButton: [
-      "rounded-xl px-4 py-2 text-sm font-medium text-white",
-      isElegant
-        ? "bg-stone-800"
-        : isFundraiser
-          ? "bg-amber-700"
-          : isCommunity
-            ? "bg-sky-700"
-            : isProduct
-              ? "bg-rose-700"
-              : isPortfolio
-                ? "bg-violet-700"
-                : isStartup
-                  ? "bg-blue-700"
-                  : "bg-neutral-900",
-    ].join(" "),
+      theme.subheadingClassName,
+      isModern ? "text-2xl" : "",
+      isElegant || isClassic ? "text-center" : "",
+    ]
+      .filter(Boolean)
+      .join(" "),
+    announcementTitle: [
+      theme.headingClassName,
+      isMinimal ? "text-3xl" : "",
+      isElegant || isClassic ? "text-center" : "",
+    ]
+      .filter(Boolean)
+      .join(" "),
+    body: theme.bodyClassName,
+    muted: theme.mutedTextClassName,
+    link: theme.linkClassName,
+    input: theme.inputClassName,
+    softCard: [theme.softSurfaceClassName, "px-4 py-4", isModern ? "shadow-sm" : ""]
+      .filter(Boolean)
+      .join(" "),
+    ctaButton: theme.buttonClassName,
     galleryGrid:
-      isGallery || isProduct
+      isGallery || isModern
         ? "grid grid-cols-1 gap-3 sm:grid-cols-2"
         : "grid grid-cols-2 gap-3 sm:grid-cols-3",
-    galleryImageHeight:
-      isGallery || isProduct ? "h-44" : "h-28",
-    centeredHero: isElegant || isEvent || isStartup || isProduct,
+    galleryImageHeight: isGallery || isModern ? "h-44" : "h-28",
+    centeredHero: isElegant || isModern || isClassic,
     announcementWrap:
-      isElegant || isEvent || isStartup || isProduct
-        ? "space-y-3 text-center"
-        : "space-y-3",
+      isElegant || isModern || isClassic ? "space-y-3 text-center" : "space-y-3",
     richTextWrap:
       isMinimal
         ? "space-y-2"
-        : isElegant
+        : isElegant || isClassic
           ? "space-y-3 text-center"
           : "space-y-3",
+    faqItemClassName: [
+      "rounded-xl border p-3",
+      isElegant || isClassic
+        ? "border-stone-200 bg-white/80"
+        : isModern
+          ? "border-slate-200 bg-slate-50/60"
+          : "border-neutral-200 bg-white",
+    ].join(" "),
+    pollItemClassName: [
+      "flex items-center gap-2 rounded-xl border px-3 py-2 text-sm",
+      isElegant || isClassic
+        ? "border-stone-200 text-stone-800"
+        : isModern
+          ? "border-slate-200 text-slate-900"
+          : "border-neutral-200 text-neutral-700",
+    ].join(" "),
+    galleryCardClassName: [
+      "overflow-hidden border bg-neutral-100",
+      theme.cardRadiusClassName,
+      isElegant || isClassic
+        ? "border-stone-200"
+        : isModern
+          ? "border-slate-200"
+          : "border-neutral-200",
+    ].join(" "),
+    textareaClassName: ["min-h-[90px]", theme.inputClassName].join(" "),
   };
 }
 
@@ -114,7 +90,7 @@ function AnnouncementBlock({
 
   return (
     <section className={s.announcementWrap}>
-      <h2 className={s.title}>{data?.headline || "Announcement"}</h2>
+      <h2 className={s.announcementTitle}>{data?.headline || "Announcement"}</h2>
       <p className={s.body}>{data?.body || ""}</p>
     </section>
   );
@@ -165,10 +141,10 @@ function ContactBlock({
     <section className="space-y-3">
       <h3 className={s.title}>{data?.heading || "Contact"}</h3>
       <div className={s.softCard}>
-        <div className="space-y-1 text-sm text-neutral-700">
-          {data?.name ? <div>{data.name}</div> : <div className="text-neutral-400">Name</div>}
-          {data?.email ? <div>{data.email}</div> : <div className="text-neutral-400">Email</div>}
-          {data?.phone ? <div>{data.phone}</div> : <div className="text-neutral-400">Phone</div>}
+        <div className={`space-y-1 text-sm ${s.body}`}>
+          {data?.name ? <div>{data.name}</div> : <div className={s.muted}>Name</div>}
+          {data?.email ? <div>{data.email}</div> : <div className={s.muted}>Email</div>}
+          {data?.phone ? <div>{data.phone}</div> : <div className={s.muted}>Phone</div>}
         </div>
       </div>
     </section>
@@ -192,10 +168,7 @@ function GalleryBlock({
       {items.length ? (
         <div className={s.galleryGrid}>
           {items.map((item: any) => (
-            <div
-              key={item.id || item.url}
-              className="overflow-hidden rounded-xl border border-neutral-200 bg-neutral-100"
-            >
+            <div key={item.id || item.url} className={s.galleryCardClassName}>
               {item.url ? (
                 <img
                   src={item.url}
@@ -203,14 +176,14 @@ function GalleryBlock({
                   className={`${s.galleryImageHeight} w-full object-cover`}
                 />
               ) : (
-                <div className={`flex ${s.galleryImageHeight} items-center justify-center text-xs text-neutral-400`}>
+                <div
+                  className={`flex ${s.galleryImageHeight} items-center justify-center text-xs ${s.muted}`}
+                >
                   No image URL
                 </div>
               )}
               {item.caption ? (
-                <div className="px-3 py-2 text-xs text-neutral-600">
-                  {item.caption}
-                </div>
+                <div className={`px-3 py-2 text-xs ${s.body}`}>{item.caption}</div>
               ) : null}
             </div>
           ))}
@@ -240,10 +213,7 @@ function PollBlock({
       <div className="space-y-2">
         {(data?.options || []).length ? (
           (data?.options || []).map((option: any) => (
-            <label
-              key={option.id || option.text}
-              className="flex items-center gap-2 rounded-xl border border-neutral-200 px-3 py-2 text-sm text-neutral-700"
-            >
+            <label key={option.id || option.text} className={s.pollItemClassName}>
               <input type="checkbox" disabled />
               <span>{option.text || "Option"}</span>
             </label>
@@ -283,7 +253,7 @@ function RsvpBlock({
         <textarea
           disabled
           placeholder={data?.notesPlaceholder || "Notes"}
-          className="min-h-[90px] rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-700"
+          className={s.textareaClassName}
         />
         <button type="button" disabled className={`${s.ctaButton} opacity-85`}>
           Submit RSVP
@@ -326,16 +296,11 @@ function FaqBlock({
       <div className="space-y-2">
         {(data?.items || []).length ? (
           (data?.items || []).map((item: any) => (
-            <div
-              key={item.id || item.question}
-              className="rounded-xl border border-neutral-200 p-3"
-            >
+            <div key={item.id || item.question} className={s.faqItemClassName}>
               <div className="text-sm font-semibold text-neutral-900">
                 {item.question || "Question"}
               </div>
-              <div className="mt-1 text-sm text-neutral-600">
-                {item.answer || ""}
-              </div>
+              <div className={`mt-1 text-sm ${s.body}`}>{item.answer || ""}</div>
             </div>
           ))
         ) : (
@@ -364,7 +329,7 @@ function CountdownBlock({
         <div className="text-2xl font-bold tracking-tight text-neutral-900">
           00 : 00 : 00
         </div>
-        <div className="mt-2 text-xs text-neutral-500">
+        <div className={`mt-2 text-xs ${s.muted}`}>
           {data?.targetIso || "No target date set"}
         </div>
       </div>

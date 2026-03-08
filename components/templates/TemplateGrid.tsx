@@ -47,7 +47,9 @@ function writeStringArray(key: string, arr: string[]) {
   } catch {}
 }
 
-function getCategoryForTemplate(t: TemplateDef): Exclude<Category, "All" | "Favorites" | "Recently viewed"> {
+function getCategoryForTemplate(
+  t: TemplateDef,
+): Exclude<Category, "All" | "Favorites" | "Recently viewed"> {
   return t.category as TemplateCategory;
 }
 
@@ -91,20 +93,31 @@ export default function TemplateGrid(props: {
 
   useEffect(() => {
     const refresh = () => setRecent(readStringArray("kht:recent"));
+
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        refresh();
+      }
+    };
+
     refresh();
     window.addEventListener("focus", refresh);
     window.addEventListener("pageshow", refresh);
-    window.addEventListener("visibilitychange", refresh);
+    document.addEventListener("visibilitychange", handleVisibility);
+
     return () => {
       window.removeEventListener("focus", refresh);
       window.removeEventListener("pageshow", refresh);
-      window.removeEventListener("visibilitychange", refresh);
+      document.removeEventListener("visibilitychange", handleVisibility);
     };
   }, []);
 
   function toggleFavorite(key: string) {
     setFavorites((prev) => {
-      const next = prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key];
+      const next = prev.includes(key)
+        ? prev.filter((k) => k !== key)
+        : [...prev, key];
+
       writeStringArray("kht:favorites", next);
       return next;
     });
@@ -128,14 +141,37 @@ export default function TemplateGrid(props: {
     recent.forEach((k, idx) => recentOrder.set(k, idx));
 
     const filtered = allTemplates.filter((t) => {
-      if (category === "Favorites") return favorites.includes(t.key);
-      if (category === "Recently viewed") return recent.includes(t.key);
-      if (category !== "All") return getCategoryForTemplate(t) === category;
+      const catForTemplate = getCategoryForTemplate(t);
+
+      if (category === "Favorites" && !favorites.includes(t.key)) {
+        return false;
+      }
+
+      if (category === "Recently viewed" && !recent.includes(t.key)) {
+        return false;
+      }
+
+      if (
+        category !== "All" &&
+        category !== "Favorites" &&
+        category !== "Recently viewed" &&
+        catForTemplate !== category
+      ) {
+        return false;
+      }
 
       if (!q) return true;
 
-      const catForSearch = getCategoryForTemplate(t);
-      const hay = [t.title || "", t.description || "", t.key || "", catForSearch]
+      const hay = [
+        t.title || "",
+        t.description || "",
+        t.key || "",
+        t.demoSlug || "",
+        t.thumb || "",
+        catForTemplate,
+        ...(t.tags || []),
+        ...(t.features || []),
+      ]
         .join(" ")
         .toLowerCase();
 
@@ -143,7 +179,9 @@ export default function TemplateGrid(props: {
     });
 
     const byTitle = (a: TemplateDef, b: TemplateDef) =>
-      (a.title || "").localeCompare(b.title || "", undefined, { sensitivity: "base" });
+      (a.title || "").localeCompare(b.title || "", undefined, {
+        sensitivity: "base",
+      });
 
     const badgeRank = (b: Badge, target: "New" | "Popular") =>
       b === target ? 0 : b === null ? 2 : 1;
@@ -159,7 +197,10 @@ export default function TemplateGrid(props: {
       return sorted;
     }
 
-    if (sort === "A–Z") sorted.sort(byTitle);
+    if (sort === "A–Z") {
+      sorted.sort(byTitle);
+      return sorted;
+    }
 
     if (sort === "New") {
       sorted.sort((a, b) => {
@@ -168,6 +209,7 @@ export default function TemplateGrid(props: {
         if (ra !== rb) return ra - rb;
         return byTitle(a, b);
       });
+      return sorted;
     }
 
     if (sort === "Popular") {
@@ -177,6 +219,7 @@ export default function TemplateGrid(props: {
         if (ra !== rb) return ra - rb;
         return byTitle(a, b);
       });
+      return sorted;
     }
 
     return sorted;
@@ -196,6 +239,7 @@ export default function TemplateGrid(props: {
       setIsDesktop(w >= 1024);
       setIsLandscapeMobile(w < 1024 && w > h);
     }
+
     compute();
     window.addEventListener("resize", compute);
     return () => window.removeEventListener("resize", compute);
@@ -208,11 +252,10 @@ export default function TemplateGrid(props: {
       justifyContent: "center" as const,
       paddingLeft: "12px",
       paddingRight: "12px",
-      gridTemplateColumns: isDesktop
-        ? `repeat(auto-fit, ${CARD}px)`
-        : isLandscapeMobile
-        ? `repeat(auto-fit, ${CARD}px)`
-        : `repeat(2, ${CARD}px)`,
+      gridTemplateColumns:
+        isDesktop || isLandscapeMobile
+          ? `repeat(auto-fit, ${CARD}px)`
+          : `repeat(2, ${CARD}px)`,
     };
   }, [isDesktop, isLandscapeMobile]);
 

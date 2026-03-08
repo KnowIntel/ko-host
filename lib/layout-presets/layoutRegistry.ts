@@ -1,11 +1,7 @@
 import type { MicrositeBlock } from "@/lib/templates/builder";
-import type { DesignPresetKey } from "@/lib/design-presets/designRegistry";
-
-export type LayoutTemplateKey = string;
 
 export type LayoutPreset = {
-  template: LayoutTemplateKey;
-  design: DesignPresetKey;
+  key: string;
   blocks: MicrositeBlock[];
 };
 
@@ -14,8 +10,8 @@ function id(prefix: string) {
 }
 
 function announcement(
-  headline: string,
-  body: string,
+  headline = "Welcome",
+  body = "",
   label = "Announcement",
 ): MicrositeBlock {
   return {
@@ -30,7 +26,7 @@ function announcement(
 }
 
 function links(
-  heading: string,
+  heading = "Helpful Links",
   items: Array<{ label: string; url: string }> = [],
   label = "Links",
 ): MicrositeBlock {
@@ -49,7 +45,7 @@ function links(
   };
 }
 
-function contact(heading: string, label = "Contact"): MicrositeBlock {
+function contact(heading = "Contact", label = "Contact"): MicrositeBlock {
   return {
     id: id("contact"),
     type: "contact",
@@ -63,7 +59,7 @@ function contact(heading: string, label = "Contact"): MicrositeBlock {
   };
 }
 
-function gallery(heading: string, label = "Gallery"): MicrositeBlock {
+function gallery(heading = "Gallery", label = "Gallery"): MicrositeBlock {
   return {
     id: id("gallery"),
     type: "gallery",
@@ -76,7 +72,7 @@ function gallery(heading: string, label = "Gallery"): MicrositeBlock {
 }
 
 function poll(
-  question: string,
+  question = "What do you think?",
   allowMultiple = false,
   label = "Poll",
 ): MicrositeBlock {
@@ -96,7 +92,7 @@ function poll(
 }
 
 function rsvp(
-  heading: string,
+  heading = "RSVP",
   notesPlaceholder = "Add a note",
   label = "RSVP",
 ): MicrositeBlock {
@@ -115,8 +111,8 @@ function rsvp(
 }
 
 function richText(
-  heading: string,
-  body: string,
+  heading = "Details",
+  body = "",
   label = "Rich Text",
 ): MicrositeBlock {
   return {
@@ -130,7 +126,7 @@ function richText(
   };
 }
 
-function faq(heading: string, label = "FAQ"): MicrositeBlock {
+function faq(heading = "FAQ", label = "FAQ"): MicrositeBlock {
   return {
     id: id("faq"),
     type: "faq",
@@ -146,7 +142,7 @@ function faq(heading: string, label = "FAQ"): MicrositeBlock {
 }
 
 function countdown(
-  heading: string,
+  heading = "Countdown",
   completedMessage = "The event has started.",
   label = "Countdown",
 ): MicrositeBlock {
@@ -163,9 +159,9 @@ function countdown(
 }
 
 function cta(
-  heading: string,
-  body: string,
-  buttonText: string,
+  heading = "Take Action",
+  body = "",
+  buttonText = "Learn More",
   buttonUrl = "#",
   label = "Call To Action",
 ): MicrositeBlock {
@@ -182,413 +178,122 @@ function cta(
   };
 }
 
-export const LAYOUT_PRESETS: LayoutPreset[] = [
-  {
-    template: "wedding_rsvp",
-    design: "elegant",
-    blocks: [
-      announcement(
-        "We're Getting Married",
-        "We’d love for you to celebrate this special day with us.",
-      ),
-      richText(
-        "Our Story",
-        "Share your story, ceremony notes, attire guidance, or a warm welcome for guests.",
-      ),
-      links("Important Links"),
-      contact("Questions? Contact Us"),
-    ],
+export const LAYOUT_PRESETS: Record<string, LayoutPreset> = {
+  default: {
+    key: "default",
+    blocks: [announcement(), richText(), links(), contact()],
   },
 
-  {
-    template: "wedding_rsvp",
-    design: "minimal",
-    blocks: [
-      announcement("Wedding Celebration", "Join us for our special day."),
-      richText(
-        "Event Details",
-        "Share the date, location, attire, and any short welcome message here.",
-      ),
-      rsvp("RSVP", "Let us know if you can make it"),
-      contact("Contact"),
-    ],
+  event: {
+    key: "event",
+    blocks: [announcement(), countdown(), richText(), rsvp(), gallery(), links()],
   },
 
-  {
-    template: "church_event",
-    design: "event",
-    blocks: [
-      announcement(
-        "Church Event",
-        "Join us for worship, fellowship, and community.",
-      ),
-      countdown("Event Starts In", "The event is happening now."),
-      richText(
-        "Event Details",
-        "Add the time, location, speaker details, and what guests should expect.",
-      ),
-      links("Important Links"),
-      rsvp("Let Us Know You're Coming", "Share any notes or questions"),
-      contact("Church Contact"),
-    ],
+  gallery: {
+    key: "gallery",
+    blocks: [announcement(), gallery(), richText(), links()],
   },
 
-  {
-    template: "church_event",
-    design: "community",
-    blocks: [
-      announcement(
-        "Community Gathering",
-        "Come together for connection, encouragement, and updates.",
-      ),
-      richText(
-        "What to Expect",
-        "Use this section for announcements, community details, and next steps.",
-      ),
-      links("Helpful Links"),
-      poll("Will you be attending?", false),
-      contact("Get in Touch"),
-    ],
+  business: {
+    key: "business",
+    blocks: [announcement(), richText(), cta(), links(), contact()],
   },
 
-  {
-    template: "photo_gallery",
-    design: "gallery",
-    blocks: [
-      announcement(
-        "Photo Gallery",
-        "A shared place for your favorite memories and highlights.",
-      ),
-      gallery("Featured Photos"),
-      richText(
-        "About This Collection",
-        "Add a short introduction or context for the gallery.",
-      ),
-      links("Related Links"),
-    ],
+  property: {
+    key: "property",
+    blocks: [announcement(), gallery(), richText(), contact()],
   },
 
-  {
-    template: "product_launch",
-    design: "startup",
-    blocks: [
-      announcement(
-        "Introducing Something New",
-        "A focused launch page built to turn attention into action.",
-      ),
-      gallery("Product Preview"),
-      richText(
-        "Why It Matters",
-        "Describe the value, audience, and core benefits of the product.",
-      ),
-      cta(
-        "Be First to Know",
-        "Join the list and get updates when the product goes live.",
-        "Join Waitlist",
-      ),
-      faq("Launch Questions"),
-      links("Launch Links"),
-    ],
+  dealroom: {
+    key: "dealroom",
+    blocks: [announcement(), richText(), faq(), contact()],
   },
+};
 
-  {
-    template: "product_launch_waitlist",
-    design: "startup",
-    blocks: [
-      announcement(
-        "Join the Waitlist",
-        "Get early access and launch updates.",
-      ),
-      gallery("Product Preview"),
-      richText(
-        "What You’ll Get",
-        "Explain the offer, launch timing, and why people should sign up now.",
-      ),
-      cta(
-        "Reserve Your Spot",
-        "Secure your place before the public launch.",
-        "Join Waitlist",
-      ),
-      faq("Common Questions"),
-    ],
-  },
+export const TEMPLATE_LAYOUT_MAP: Record<string, keyof typeof LAYOUT_PRESETS> = {
+  wedding_rsvp: "event",
+  birthday_party: "event",
+  baby_shower: "event",
+  family_reunion: "event",
+  graduation: "event",
+  engagement_announcement: "event",
+  church_event: "event",
+  corporate_event: "event",
+  school_event: "event",
+  live_stream_event: "event",
+  holiday_party_invite: "event",
+  friendsgiving_event: "event",
+  housewarming_party: "event",
+  bachelor_party: "event",
+  bachelorette_party: "event",
+  charity_gala_event: "event",
+  block_party: "event",
+  surprise_party: "event",
+  retirement_party: "event",
+  bridal_shower: "event",
+  music_recital_invite: "event",
+  cultural_festival_invite: "event",
 
-  {
-    template: "product_launch",
-    design: "product",
-    blocks: [
-      announcement(
-        "Product Showcase",
-        "Highlight the product with a stronger visual-first presentation.",
-      ),
-      gallery("Product Highlights"),
-      richText(
-        "What Makes It Different",
-        "Use this area for features, differentiation, and outcomes.",
-      ),
-      cta(
-        "Take Action",
-        "Drive visitors to your launch link, checkout, or signup.",
-        "Learn More",
-      ),
-      faq("Product Questions"),
-    ],
-  },
+  memorial_tribute: "gallery",
+  celebration_of_life: "gallery",
+  photo_gallery: "gallery",
+  memory_timeline: "gallery",
+  creator_portfolio: "gallery",
+  freelancer_portfolio: "gallery",
+  designer_portfolio: "gallery",
+  developer_portfolio: "gallery",
+  contractor_portfolio: "gallery",
+  exploration_guide: "gallery",
+  group_trip: "gallery",
+  airbnb_vacation_rental: "gallery",
+  new_development_preview: "gallery",
+  weight_loss_journey: "gallery",
 
-  {
-    template: "property_listing",
-    design: "minimal",
-    blocks: [
-      announcement(
-        "Property Listing",
-        "A clean property page with key details and contact information.",
-      ),
-      gallery("Property Photos"),
-      richText(
-        "Overview",
-        "Add property highlights, neighborhood context, and key selling points.",
-      ),
-      links("Property Details"),
-      contact("Contact Agent"),
-    ],
-  },
+  product_launch: "business",
+  waitlist: "business",
+  beta_testing: "business",
+  investor_pitch: "business",
+  business_card: "business",
+  commercial_leasing: "business",
+  conference: "business",
+  consultant_service: "business",
+  guided_tutorial: "business",
+  newsletter_signup: "business",
+  public_feedback: "business",
+  service_ad: "business",
+  service_promo: "business",
+  software_trial: "business",
+  stock_trade_thesis: "business",
+  vip_access: "business",
+  webinar: "business",
+  workshop: "business",
+  focus_group: "business",
+  local_classified_ad: "business",
+  temporary_project: "business",
+  marketing_campaign_landing: "business",
+  affiliate_campaign: "business",
+  referral_program: "business",
+  job_candidate_showcase: "business",
+  speaker_profile: "business",
+  community_announcement: "business",
+  community_alert: "business",
+  hoa_announcement: "business",
+  settlement_info: "business",
 
-  {
-    template: "property_listing_rental",
-    design: "minimal",
-    blocks: [
-      announcement(
-        "Rental Listing",
-        "See availability, property details, and next steps.",
-      ),
-      gallery("Rental Photos"),
-      links("Rental Details"),
-      richText(
-        "Requirements",
-        "Use this area for lease terms, income requirements, deposits, and policies.",
-      ),
-      contact("Contact About This Rental"),
-    ],
-  },
+  deal_room: "dealroom",
+  secure_document: "dealroom",
 
-  {
-    template: "resume_profile",
-    design: "portfolio",
-    blocks: [
-      announcement(
-        "Professional Profile",
-        "A polished, shareable page for your work and experience.",
-      ),
-      richText(
-        "About Me",
-        "Add your summary, strengths, and career direction here.",
-      ),
-      gallery("Featured Work"),
-      links("Portfolio Links"),
-      contact("Contact"),
-    ],
-  },
+  property_listing: "property",
+  rental_listing: "property",
+  land_sale_listing: "property",
+  estate_sale_listing: "property",
+  landlord_property: "property",
+  for_sale_by_owner: "property",
+  property_auction: "property",
+  open_house: "property",
+};
 
-  {
-    template: "creator_portfolio",
-    design: "portfolio",
-    blocks: [
-      announcement(
-        "Creator Portfolio",
-        "Showcase your work, links, and creative identity.",
-      ),
-      gallery("Featured Content"),
-      richText(
-        "About This Work",
-        "Introduce your style, focus, or current projects.",
-      ),
-      links("Creator Links"),
-      cta(
-        "Work With Me",
-        "Invite viewers to connect, book, or collaborate.",
-        "Get In Touch",
-      ),
-    ],
-  },
-
-  {
-    template: "designer_portfolio",
-    design: "portfolio",
-    blocks: [
-      announcement(
-        "Design Portfolio",
-        "A clean place to present selected projects and design work.",
-      ),
-      gallery("Selected Projects"),
-      richText(
-        "Approach",
-        "Describe your process, specialties, or creative point of view.",
-      ),
-      links("Project Links"),
-      contact("Contact"),
-    ],
-  },
-
-  {
-    template: "developer_portfolio",
-    design: "portfolio",
-    blocks: [
-      announcement(
-        "Developer Portfolio",
-        "Projects, links, and contact in one technical showcase.",
-      ),
-      richText("About", "Share your stack, specialties, and current focus."),
-      links("Project Links"),
-      faq("Technical FAQ"),
-      contact("Contact"),
-    ],
-  },
-
-  {
-    template: "school_fundraiser",
-    design: "fundraiser",
-    blocks: [
-      announcement(
-        "Support Our Fundraiser",
-        "Help us reach our goal and share the mission with others.",
-      ),
-      richText(
-        "Why This Matters",
-        "Explain the goal, impact, and who benefits from the fundraiser.",
-      ),
-      cta(
-        "Support the Cause",
-        "Direct visitors to donate, sign up, or share the effort.",
-        "Donate Now",
-      ),
-      faq("Fundraiser FAQ"),
-      contact("Organizer Contact"),
-    ],
-  },
-
-  {
-    template: "disaster_relief",
-    design: "fundraiser",
-    blocks: [
-      announcement(
-        "Disaster Relief Support",
-        "Updates, resources, and ways to help in one place.",
-      ),
-      richText(
-        "Current Needs",
-        "Share the situation, priority needs, and where support is most needed.",
-      ),
-      links("Relief Resources"),
-      cta(
-        "Take Action",
-        "Help by donating, volunteering, or sharing this page.",
-        "Support Relief",
-      ),
-      contact("Relief Contact"),
-    ],
-  },
-
-  {
-    template: "community_announcement",
-    design: "community",
-    blocks: [
-      announcement(
-        "Community Announcement",
-        "Share important updates clearly with your group.",
-      ),
-      richText(
-        "Update Details",
-        "Add the main message, timing, and any context people need to know.",
-      ),
-      links("Helpful Links"),
-      contact("Community Contact"),
-    ],
-  },
-
-  {
-    template: "community_poll",
-    design: "community",
-    blocks: [
-      announcement(
-        "Community Poll",
-        "Collect quick feedback and keep everyone informed.",
-      ),
-      poll("What do you think?", false),
-      richText(
-        "Why We’re Asking",
-        "Explain the context of the poll and what happens next.",
-      ),
-      links("Related Info"),
-    ],
-  },
-
-  {
-    template: "public_feedback",
-    design: "community",
-    blocks: [
-      announcement(
-        "Public Feedback",
-        "Collect thoughts, suggestions, and community input.",
-      ),
-      richText(
-        "Feedback Topic",
-        "Explain the topic and the type of feedback you want.",
-      ),
-      links("Background Information"),
-      contact("Response Contact"),
-    ],
-  },
-
-  {
-    template: "deal_room",
-    design: "product",
-    blocks: [
-      announcement(
-        "Deal Room",
-        "A focused page for due diligence, materials, and next steps.",
-      ),
-      gallery("Key Materials"),
-      richText(
-        "Overview",
-        "Summarize the opportunity, timeline, and process.",
-      ),
-      links("Documents & Links"),
-      faq("Common Questions"),
-      contact("Deal Contact"),
-    ],
-  },
-
-  {
-    template: "investor_pitch",
-    design: "startup",
-    blocks: [
-      announcement(
-        "Investor Pitch",
-        "Present the opportunity clearly and drive the next conversation.",
-      ),
-      gallery("Pitch Highlights"),
-      richText(
-        "Opportunity",
-        "Summarize the problem, market, solution, and traction.",
-      ),
-      links("Pitch Materials"),
-      cta(
-        "Schedule a Conversation",
-        "Invite investors to review more and connect directly.",
-        "Contact Us",
-      ),
-      faq("Investor FAQ"),
-    ],
-  },
-
-  {
-    template: "photo_gallery",
-    design: "blank",
-    blocks: [
-      announcement(
-        "Photo Gallery",
-        "Start with a simple structure and customize from here.",
-      ),
-    ],
-  },
-];
+export function getLayoutPreset(templateKey: string): LayoutPreset {
+  const layoutKey = TEMPLATE_LAYOUT_MAP[templateKey] ?? "default";
+  return LAYOUT_PRESETS[layoutKey];
+}

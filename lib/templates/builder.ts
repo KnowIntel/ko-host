@@ -1,15 +1,3 @@
-export type BuilderBlockType =
-  | "announcement"
-  | "links"
-  | "contact"
-  | "gallery"
-  | "poll"
-  | "rsvp"
-  | "richText"
-  | "faq"
-  | "countdown"
-  | "cta";
-
 export type LinkItem = {
   id: string;
   label: string;
@@ -19,7 +7,7 @@ export type LinkItem = {
 export type GalleryItem = {
   id: string;
   url: string;
-  caption?: string;
+  caption: string;
 };
 
 export type PollOption = {
@@ -81,8 +69,8 @@ export type PollBlock = {
   label: string;
   data: {
     question: string;
-    options: PollOption[];
     allowMultiple: boolean;
+    options: PollOption[];
   };
 };
 
@@ -154,27 +142,75 @@ export type MicrositeBlock =
   | CountdownBlock
   | CtaBlock;
 
+export type BuilderBlockType = MicrositeBlock["type"];
+
 export type BuilderDraft = {
   title: string;
   slugSuggestion: string;
+  pageBackground?: string;
   blocks: MicrositeBlock[];
 };
 
-export type LegacyDraftInput = {
+type LegacyDraft = {
   title?: string;
   slugSuggestion?: string;
+  pageBackground?: string;
   announcement?: string | { headline?: string; body?: string };
   links?: Array<{ label?: string; url?: string }>;
   contactName?: string;
   contactEmail?: string;
   contactPhone?: string;
+  blocks?: unknown[];
 };
 
 function makeId(prefix: string) {
   return `${prefix}_${Math.random().toString(36).slice(2, 10)}`;
 }
 
-export function createBlock(type: BuilderBlockType): MicrositeBlock {
+function cleanString(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function ensureArray<T>(value: unknown): T[] {
+  return Array.isArray(value) ? (value as T[]) : [];
+}
+
+function sanitizeLinkItem(value: unknown): LinkItem {
+  const item = value as Partial<LinkItem> | undefined;
+  return {
+    id: cleanString(item?.id) || makeId("link"),
+    label: cleanString(item?.label),
+    url: cleanString(item?.url),
+  };
+}
+
+function sanitizeGalleryItem(value: unknown): GalleryItem {
+  const item = value as Partial<GalleryItem> | undefined;
+  return {
+    id: cleanString(item?.id) || makeId("gallery"),
+    url: cleanString(item?.url),
+    caption: cleanString(item?.caption),
+  };
+}
+
+function sanitizePollOption(value: unknown): PollOption {
+  const option = value as Partial<PollOption> | undefined;
+  return {
+    id: cleanString(option?.id) || makeId("poll_option"),
+    text: cleanString(option?.text),
+  };
+}
+
+function sanitizeFaqItem(value: unknown): FaqItem {
+  const item = value as Partial<FaqItem> | undefined;
+  return {
+    id: cleanString(item?.id) || makeId("faq"),
+    question: cleanString(item?.question),
+    answer: cleanString(item?.answer),
+  };
+}
+
+function createBlock(type: BuilderBlockType): MicrositeBlock {
   switch (type) {
     case "announcement":
       return {
@@ -235,11 +271,11 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
         label: "Poll",
         data: {
           question: "What do you think?",
-          options: [
-            { id: makeId("poll_option"), text: "Option 1" },
-            { id: makeId("poll_option"), text: "Option 2" },
-          ],
           allowMultiple: false,
+          options: [
+            { id: makeId("poll_option"), text: "" },
+            { id: makeId("poll_option"), text: "" },
+          ],
         },
       };
 
@@ -259,7 +295,7 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
 
     case "richText":
       return {
-        id: makeId("richtext"),
+        id: makeId("richText"),
         type: "richText",
         label: "Rich Text",
         data: {
@@ -276,11 +312,8 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
         data: {
           heading: "FAQ",
           items: [
-            {
-              id: makeId("faq_item"),
-              question: "",
-              answer: "",
-            },
+            { id: makeId("faq"), question: "", answer: "" },
+            { id: makeId("faq"), question: "", answer: "" },
           ],
         },
       };
@@ -293,7 +326,7 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
         data: {
           heading: "Countdown",
           targetIso: "",
-          completedMessage: "The wait is over.",
+          completedMessage: "The event has started.",
         },
       };
 
@@ -305,39 +338,194 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
         data: {
           heading: "Take Action",
           body: "",
-          buttonText: "Learn more",
-          buttonUrl: "",
+          buttonText: "Learn More",
+          buttonUrl: "#",
         },
       };
   }
 }
 
-export function createStarterDraft(title = ""): BuilderDraft {
+function sanitizeBlock(block: unknown): MicrositeBlock | null {
+  const raw = block as Partial<MicrositeBlock> | undefined;
+  const type = raw?.type;
+
+  if (!type) return null;
+
+  const baseId = cleanString(raw.id) || makeId(String(type));
+  const baseLabel = cleanString(raw.label) || "Section";
+
+  switch (type) {
+    case "announcement":
+      return {
+        id: baseId,
+        type: "announcement",
+        label: baseLabel || "Announcement",
+        data: {
+          headline: cleanString(raw.data?.headline) || "Welcome",
+          body: cleanString(raw.data?.body),
+        },
+      };
+
+    case "links":
+      return {
+        id: baseId,
+        type: "links",
+        label: baseLabel || "Links",
+        data: {
+          heading: cleanString(raw.data?.heading) || "Helpful Links",
+          items: ensureArray(raw.data?.items).map(sanitizeLinkItem),
+        },
+      };
+
+    case "contact":
+      return {
+        id: baseId,
+        type: "contact",
+        label: baseLabel || "Contact",
+        data: {
+          heading: cleanString(raw.data?.heading) || "Contact",
+          name: cleanString(raw.data?.name),
+          email: cleanString(raw.data?.email),
+          phone: cleanString(raw.data?.phone),
+        },
+      };
+
+    case "gallery":
+      return {
+        id: baseId,
+        type: "gallery",
+        label: baseLabel || "Gallery",
+        data: {
+          heading: cleanString(raw.data?.heading) || "Gallery",
+          items: ensureArray(raw.data?.items).map(sanitizeGalleryItem),
+        },
+      };
+
+    case "poll":
+      return {
+        id: baseId,
+        type: "poll",
+        label: baseLabel || "Poll",
+        data: {
+          question: cleanString(raw.data?.question) || "What do you think?",
+          allowMultiple: Boolean(raw.data?.allowMultiple),
+          options: ensureArray(raw.data?.options).map(sanitizePollOption),
+        },
+      };
+
+    case "rsvp":
+      return {
+        id: baseId,
+        type: "rsvp",
+        label: baseLabel || "RSVP",
+        data: {
+          heading: cleanString(raw.data?.heading) || "RSVP",
+          eventDate: cleanString(raw.data?.eventDate),
+          collectGuestCount:
+            typeof raw.data?.collectGuestCount === "boolean"
+              ? raw.data.collectGuestCount
+              : true,
+          collectMealChoice: Boolean(raw.data?.collectMealChoice),
+          notesPlaceholder:
+            cleanString(raw.data?.notesPlaceholder) || "Add a note",
+        },
+      };
+
+    case "richText":
+      return {
+        id: baseId,
+        type: "richText",
+        label: baseLabel || "Rich Text",
+        data: {
+          heading: cleanString(raw.data?.heading) || "Details",
+          body: cleanString(raw.data?.body),
+        },
+      };
+
+    case "faq":
+      return {
+        id: baseId,
+        type: "faq",
+        label: baseLabel || "FAQ",
+        data: {
+          heading: cleanString(raw.data?.heading) || "FAQ",
+          items: ensureArray(raw.data?.items).map(sanitizeFaqItem),
+        },
+      };
+
+    case "countdown":
+      return {
+        id: baseId,
+        type: "countdown",
+        label: baseLabel || "Countdown",
+        data: {
+          heading: cleanString(raw.data?.heading) || "Countdown",
+          targetIso: cleanString(raw.data?.targetIso),
+          completedMessage:
+            cleanString(raw.data?.completedMessage) ||
+            "The event has started.",
+        },
+      };
+
+    case "cta":
+      return {
+        id: baseId,
+        type: "cta",
+        label: baseLabel || "Call To Action",
+        data: {
+          heading: cleanString(raw.data?.heading) || "Take Action",
+          body: cleanString(raw.data?.body),
+          buttonText: cleanString(raw.data?.buttonText) || "Learn More",
+          buttonUrl: cleanString(raw.data?.buttonUrl) || "#",
+        },
+      };
+
+    default:
+      return null;
+  }
+}
+
+export function sanitizeBuilderDraft(input: BuilderDraft): BuilderDraft {
   return {
-    title,
-    slugSuggestion: "",
-    blocks: [
-      createBlock("announcement"),
-      createBlock("links"),
-      createBlock("contact"),
-    ],
+    title: cleanString(input.title),
+    slugSuggestion: cleanString(input.slugSuggestion),
+    pageBackground: cleanString(input.pageBackground) || "none",
+    blocks: ensureArray(input.blocks)
+      .map(sanitizeBlock)
+      .filter(Boolean) as MicrositeBlock[],
   };
 }
 
-export function normalizeLegacyDraft(input: LegacyDraftInput | null | undefined): BuilderDraft {
-  const safe = input ?? {};
+export function createStarterDraft(title = ""): BuilderDraft {
+  return {
+    title: cleanString(title),
+    slugSuggestion: "",
+    pageBackground: "none",
+    blocks: [],
+  };
+}
+
+export function normalizeLegacyDraft(input: LegacyDraft): BuilderDraft {
+  if (Array.isArray(input.blocks)) {
+    return sanitizeBuilderDraft({
+      title: cleanString(input.title),
+      slugSuggestion: cleanString(input.slugSuggestion),
+      pageBackground: cleanString(input.pageBackground) || "none",
+      blocks: input.blocks as MicrositeBlock[],
+    });
+  }
 
   const blocks: MicrositeBlock[] = [];
 
-  if (safe.announcement) {
-    if (typeof safe.announcement === "string") {
+  if (input.announcement) {
+    if (typeof input.announcement === "string") {
       blocks.push({
         id: makeId("announcement"),
         type: "announcement",
         label: "Announcement",
         data: {
           headline: "Welcome",
-          body: safe.announcement,
+          body: cleanString(input.announcement),
         },
       });
     } else {
@@ -346,71 +534,58 @@ export function normalizeLegacyDraft(input: LegacyDraftInput | null | undefined)
         type: "announcement",
         label: "Announcement",
         data: {
-          headline: safe.announcement.headline ?? "Welcome",
-          body: safe.announcement.body ?? "",
+          headline: cleanString(input.announcement.headline) || "Welcome",
+          body: cleanString(input.announcement.body),
         },
       });
     }
   }
 
-  if (safe.links?.length) {
+  if (Array.isArray(input.links) && input.links.length) {
     blocks.push({
       id: makeId("links"),
       type: "links",
       label: "Links",
       data: {
         heading: "Helpful Links",
-        items: safe.links.map((item) => ({
+        items: input.links.map((item) => ({
           id: makeId("link"),
-          label: item.label ?? "",
-          url: item.url ?? "",
+          label: cleanString(item.label),
+          url: cleanString(item.url),
         })),
       },
     });
   }
 
-  if (safe.contactName || safe.contactEmail || safe.contactPhone) {
+  if (input.contactName || input.contactEmail || input.contactPhone) {
     blocks.push({
       id: makeId("contact"),
       type: "contact",
       label: "Contact",
       data: {
         heading: "Contact",
-        name: safe.contactName ?? "",
-        email: safe.contactEmail ?? "",
-        phone: safe.contactPhone ?? "",
+        name: cleanString(input.contactName),
+        email: cleanString(input.contactEmail),
+        phone: cleanString(input.contactPhone),
       },
     });
   }
 
-  if (blocks.length === 0) {
-    blocks.push(...createStarterDraft(safe.title ?? "").blocks);
-  }
-
-  return {
-    title: safe.title ?? "",
-    slugSuggestion: safe.slugSuggestion ?? "",
+  return sanitizeBuilderDraft({
+    title: cleanString(input.title),
+    slugSuggestion: cleanString(input.slugSuggestion),
+    pageBackground: cleanString(input.pageBackground) || "none",
     blocks,
-  };
+  });
 }
 
 export function addBlock(
   draft: BuilderDraft,
   type: BuilderBlockType,
-  index?: number,
 ): BuilderDraft {
-  const nextBlock = createBlock(type);
-  const nextBlocks = [...draft.blocks];
-
-  if (typeof index === "number" && index >= 0 && index <= nextBlocks.length) {
-    nextBlocks.splice(index, 0, nextBlock);
-  } else {
-    nextBlocks.push(nextBlock);
-  }
-
   return {
     ...draft,
-    blocks: nextBlocks,
+    blocks: [...draft.blocks, createBlock(type)],
   };
 }
 
@@ -418,30 +593,6 @@ export function removeBlock(draft: BuilderDraft, blockId: string): BuilderDraft 
   return {
     ...draft,
     blocks: draft.blocks.filter((block) => block.id !== blockId),
-  };
-}
-
-export function moveBlock(
-  draft: BuilderDraft,
-  fromIndex: number,
-  toIndex: number,
-): BuilderDraft {
-  const nextBlocks = [...draft.blocks];
-  if (
-    fromIndex < 0 ||
-    fromIndex >= nextBlocks.length ||
-    toIndex < 0 ||
-    toIndex >= nextBlocks.length
-  ) {
-    return draft;
-  }
-
-  const [moved] = nextBlocks.splice(fromIndex, 1);
-  nextBlocks.splice(toIndex, 0, moved);
-
-  return {
-    ...draft,
-    blocks: nextBlocks,
   };
 }
 
@@ -455,129 +606,5 @@ export function updateBlock(
     blocks: draft.blocks.map((block) =>
       block.id === blockId ? updater(block) : block,
     ),
-  };
-}
-
-export function sanitizeBuilderDraft(draft: BuilderDraft): BuilderDraft {
-  return {
-    title: draft.title?.trim() ?? "",
-    slugSuggestion: draft.slugSuggestion?.trim() ?? "",
-    blocks: draft.blocks.map((block) => {
-      switch (block.type) {
-        case "announcement":
-          return {
-            ...block,
-            data: {
-              headline: block.data.headline.trim(),
-              body: block.data.body.trim(),
-            },
-          };
-
-        case "links":
-          return {
-            ...block,
-            data: {
-              heading: block.data.heading.trim(),
-              items: block.data.items.map((item) => ({
-                ...item,
-                label: item.label.trim(),
-                url: item.url.trim(),
-              })),
-            },
-          };
-
-        case "contact":
-          return {
-            ...block,
-            data: {
-              heading: block.data.heading.trim(),
-              name: block.data.name.trim(),
-              email: block.data.email.trim(),
-              phone: block.data.phone.trim(),
-            },
-          };
-
-        case "gallery":
-          return {
-            ...block,
-            data: {
-              heading: block.data.heading.trim(),
-              items: block.data.items.map((item) => ({
-                ...item,
-                url: item.url.trim(),
-                caption: item.caption?.trim() ?? "",
-              })),
-            },
-          };
-
-        case "poll":
-          return {
-            ...block,
-            data: {
-              question: block.data.question.trim(),
-              options: block.data.options.map((option) => ({
-                ...option,
-                text: option.text.trim(),
-              })),
-              allowMultiple: block.data.allowMultiple,
-            },
-          };
-
-        case "rsvp":
-          return {
-            ...block,
-            data: {
-              heading: block.data.heading.trim(),
-              eventDate: block.data.eventDate.trim(),
-              collectGuestCount: block.data.collectGuestCount,
-              collectMealChoice: block.data.collectMealChoice,
-              notesPlaceholder: block.data.notesPlaceholder.trim(),
-            },
-          };
-
-        case "richText":
-          return {
-            ...block,
-            data: {
-              heading: block.data.heading.trim(),
-              body: block.data.body.trim(),
-            },
-          };
-
-        case "faq":
-          return {
-            ...block,
-            data: {
-              heading: block.data.heading.trim(),
-              items: block.data.items.map((item) => ({
-                ...item,
-                question: item.question.trim(),
-                answer: item.answer.trim(),
-              })),
-            },
-          };
-
-        case "countdown":
-          return {
-            ...block,
-            data: {
-              heading: block.data.heading.trim(),
-              targetIso: block.data.targetIso.trim(),
-              completedMessage: block.data.completedMessage.trim(),
-            },
-          };
-
-        case "cta":
-          return {
-            ...block,
-            data: {
-              heading: block.data.heading.trim(),
-              body: block.data.body.trim(),
-              buttonText: block.data.buttonText.trim(),
-              buttonUrl: block.data.buttonUrl.trim(),
-            },
-          };
-      }
-    }),
   };
 }

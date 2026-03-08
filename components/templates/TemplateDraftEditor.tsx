@@ -18,6 +18,7 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import LivePreview from "@/components/preview/LivePreview";
+import { getDesignPreset } from "@/lib/design-presets/designRegistry";
 import {
   addBlock,
   createStarterDraft,
@@ -33,6 +34,7 @@ import {
 type DraftInput = {
   title?: string;
   slugSuggestion?: string;
+  pageBackground?: string;
   announcement?: string | { headline?: string; body?: string };
   links?: Array<{ label?: string; url?: string }>;
   contactName?: string;
@@ -62,6 +64,16 @@ const BLOCK_OPTIONS: Array<{ type: BuilderBlockType; label: string }> = [
   { type: "cta", label: "Call To Action" },
 ];
 
+const PAGE_BACKGROUND_OPTIONS = [
+  { key: "none", label: "None" },
+  { key: "soft-blue", label: "Soft Blue" },
+  { key: "sunset", label: "Sunset" },
+  { key: "mint", label: "Mint" },
+  { key: "lavender", label: "Lavender" },
+  { key: "rose", label: "Rose" },
+  { key: "dark-glow", label: "Dark Glow" },
+] as const;
+
 type SlugStatus =
   | "idle"
   | "checking"
@@ -69,18 +81,6 @@ type SlugStatus =
   | "taken"
   | "invalid"
   | "error";
-
-function textInputClass() {
-  return "mt-1 w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-900";
-}
-
-function textareaClass() {
-  return "mt-1 min-h-[110px] w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-900";
-}
-
-function sectionCardClass() {
-  return "rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm";
-}
 
 function slugify(input: string) {
   return input
@@ -157,6 +157,66 @@ function readFileAsDataUrl(file: File) {
   });
 }
 
+type EditorTheme = {
+  inputClassName: string;
+  textareaClassName: string;
+  sectionCardClassName: string;
+  subtleCardClassName: string;
+  dragButtonClassName: string;
+  secondaryButtonClassName: string;
+  destructiveButtonClassName: string;
+  primaryButtonClassName: string;
+  selectClassName: string;
+  editorPanelClassName: string;
+  previewShellClassName: string;
+  previewHeaderClassName: string;
+  metaLabelClassName: string;
+};
+
+function getEditorTheme(designKey?: string): EditorTheme {
+  const design = getDesignPreset(designKey);
+  const theme = design.theme;
+
+  const inputBase = `${theme.inputClassName} mt-1 w-full`;
+  const textareaBase = `${theme.inputClassName} mt-1 min-h-[110px] w-full`;
+  const subtle =
+    design.key === "elegant" || design.key === "classic"
+      ? "rounded-2xl border border-stone-200 bg-stone-50/70 p-3"
+      : design.key === "modern"
+        ? "rounded-2xl border border-slate-200 bg-slate-50/70 p-3"
+        : "rounded-2xl border border-neutral-200 bg-neutral-50 p-3";
+
+  return {
+    inputClassName: inputBase,
+    textareaClassName: textareaBase,
+    sectionCardClassName:
+      "rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm",
+    subtleCardClassName: subtle,
+    dragButtonClassName:
+      "cursor-grab rounded-xl border border-neutral-300 bg-neutral-100 px-3 py-2 text-xs font-medium text-neutral-900 active:cursor-grabbing hover:bg-neutral-200",
+    secondaryButtonClassName: theme.buttonSecondaryClassName,
+    destructiveButtonClassName:
+      "rounded-xl border border-red-300 px-3 py-2 text-xs font-medium text-red-700 hover:bg-red-50",
+    primaryButtonClassName: theme.buttonClassName,
+    selectClassName: inputBase,
+    editorPanelClassName:
+      design.key === "modern"
+        ? "bg-slate-50"
+        : design.key === "elegant" || design.key === "classic"
+          ? "bg-stone-50/40"
+          : theme.pageClassName,
+    previewShellClassName:
+      "sticky top-24 overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm",
+    previewHeaderClassName:
+      design.key === "modern"
+        ? "border-b border-slate-200 bg-slate-50 px-4 py-3"
+        : design.key === "elegant" || design.key === "classic"
+          ? "border-b border-stone-200 bg-stone-50 px-4 py-3"
+          : "border-b border-neutral-200 bg-neutral-50 px-4 py-3",
+    metaLabelClassName: "text-sm font-medium text-neutral-900",
+  };
+}
+
 type SortableBlockShellProps = {
   block: MicrositeBlock;
   index: number;
@@ -165,6 +225,7 @@ type SortableBlockShellProps = {
   onMoveDown: () => void;
   onRemove: () => void;
   children: React.ReactNode;
+  theme: EditorTheme;
 };
 
 function SortableBlockShell({
@@ -175,6 +236,7 @@ function SortableBlockShell({
   onMoveDown,
   onRemove,
   children,
+  theme,
 }: SortableBlockShellProps) {
   const {
     attributes,
@@ -197,7 +259,7 @@ function SortableBlockShell({
       ref={setNodeRef}
       style={style}
       className={[
-        sectionCardClass(),
+        theme.sectionCardClassName,
         isDragging ? "opacity-70 ring-2 ring-neutral-300" : "",
       ].join(" ")}
     >
@@ -214,7 +276,7 @@ function SortableBlockShell({
             type="button"
             {...attributes}
             {...listeners}
-            className="cursor-grab rounded-xl border border-neutral-300 bg-neutral-100 px-3 py-2 text-xs font-medium text-neutral-900 active:cursor-grabbing hover:bg-neutral-200"
+            className={theme.dragButtonClassName}
             title="Drag to reorder"
             aria-label={`Drag ${block.label} to reorder`}
           >
@@ -242,7 +304,7 @@ function SortableBlockShell({
           <button
             type="button"
             onClick={onRemove}
-            className="rounded-xl border border-red-300 px-3 py-2 text-xs font-medium text-red-700"
+            className={theme.destructiveButtonClassName}
           >
             Remove
           </button>
@@ -262,6 +324,8 @@ export default function TemplateDraftEditor({
   onSubmit,
 }: Props) {
   const router = useRouter();
+  const design = getDesignPreset(designKey);
+  const editorTheme = getEditorTheme(designKey);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -272,10 +336,11 @@ export default function TemplateDraftEditor({
   );
 
   const initial = useMemo(() => {
-    if (initialDraft?.blocks?.length) {
+    if (initialDraft?.blocks) {
       return sanitizeBuilderDraft({
         title: initialDraft.title ?? "",
         slugSuggestion: initialDraft.slugSuggestion ?? "",
+        pageBackground: initialDraft.pageBackground ?? "none",
         blocks: initialDraft.blocks,
       });
     }
@@ -313,6 +378,10 @@ export default function TemplateDraftEditor({
 
   function setSlugSuggestion(value: string) {
     setDraft((prev) => ({ ...prev, slugSuggestion: slugify(value) }));
+  }
+
+  function setPageBackground(value: string) {
+    setDraft((prev) => ({ ...prev, pageBackground: value }));
   }
 
   function handleAddBlock() {
@@ -510,10 +579,13 @@ export default function TemplateDraftEditor({
       const cleaned = sanitizeBuilderDraft(draft);
       const normalizedSlug = slugify(cleaned.slugSuggestion);
 
-      setDraft({
+      const finalDraft: BuilderDraft = {
         ...cleaned,
         slugSuggestion: normalizedSlug,
-      });
+        pageBackground: draft.pageBackground || "none",
+      };
+
+      setDraft(finalDraft);
 
       const slugOk = await validateSlug(normalizedSlug);
 
@@ -529,10 +601,7 @@ export default function TemplateDraftEditor({
       }
 
       if (onSubmit) {
-        await onSubmit({
-          ...cleaned,
-          slugSuggestion: normalizedSlug,
-        });
+        await onSubmit(finalDraft);
         return;
       }
 
@@ -544,15 +613,12 @@ export default function TemplateDraftEditor({
         body: JSON.stringify({
           templateKey,
           designKey,
-          title: cleaned.title,
+          title: finalDraft.title,
           slugSuggestion: normalizedSlug,
           siteVisibility,
           privateMode: siteVisibility !== "public" ? "passcode" : null,
           passcode: siteVisibility === "private" ? passcode.trim() : "",
-          draftJson: {
-            ...cleaned,
-            slugSuggestion: normalizedSlug,
-          },
+          draftJson: finalDraft,
         }),
       });
 
@@ -654,7 +720,7 @@ export default function TemplateDraftEditor({
               ...block,
               data: {
                 ...block.data,
-                items: block.data.items.map((item: any) =>
+                items: block.data.items.map((item) =>
                   item.id === itemId ? { ...item, [field]: value } : item,
                 ),
               },
@@ -695,7 +761,7 @@ export default function TemplateDraftEditor({
               ...block,
               data: {
                 ...block.data,
-                items: block.data.items.filter((item: any) => item.id !== itemId),
+                items: block.data.items.filter((item) => item.id !== itemId),
               },
             }
           : block,
@@ -828,7 +894,7 @@ export default function TemplateDraftEditor({
               ...block,
               data: {
                 ...block.data,
-                items: block.data.items.map((item: any) =>
+                items: block.data.items.map((item) =>
                   item.id === itemId ? { ...item, [field]: value } : item,
                 ),
               },
@@ -846,7 +912,7 @@ export default function TemplateDraftEditor({
               ...block,
               data: {
                 ...block.data,
-                items: block.data.items.filter((item: any) => item.id !== itemId),
+                items: block.data.items.filter((item) => item.id !== itemId),
               },
             }
           : block,
@@ -904,7 +970,7 @@ export default function TemplateDraftEditor({
               ...block,
               data: {
                 ...block.data,
-                options: block.data.options.map((option: any) =>
+                options: block.data.options.map((option) =>
                   option.id === optionId ? { ...option, text: value } : option,
                 ),
               },
@@ -923,7 +989,7 @@ export default function TemplateDraftEditor({
               data: {
                 ...block.data,
                 options: block.data.options.filter(
-                  (option: any) => option.id !== optionId,
+                  (option) => option.id !== optionId,
                 ),
               },
             }
@@ -1029,7 +1095,7 @@ export default function TemplateDraftEditor({
               ...block,
               data: {
                 ...block.data,
-                items: block.data.items.map((item: any) =>
+                items: block.data.items.map((item) =>
                   item.id === itemId ? { ...item, [field]: value } : item,
                 ),
               },
@@ -1047,7 +1113,7 @@ export default function TemplateDraftEditor({
               ...block,
               data: {
                 ...block.data,
-                items: block.data.items.filter((item: any) => item.id !== itemId),
+                items: block.data.items.filter((item) => item.id !== itemId),
               },
             }
           : block,
@@ -1107,30 +1173,57 @@ export default function TemplateDraftEditor({
     return "text-neutral-500";
   }
 
+  function isoToLocalDateTimeValue(value?: string) {
+    if (!value) return "";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "";
+
+    const offset = date.getTimezoneOffset();
+    const local = new Date(date.getTime() - offset * 60 * 1000);
+    return local.toISOString().slice(0, 16);
+  }
+
   const siteNamePreview = draft.slugSuggestion
     ? `${draft.slugSuggestion}.ko-host.com`
     : "your-site-name.ko-host.com";
 
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(420px,560px)]">
+    <div
+      className={`grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(420px,560px)] ${editorTheme.editorPanelClassName}`}
+    >
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className={sectionCardClass()}>
+        <div className={editorTheme.sectionCardClassName}>
+          <div className="mb-3 flex items-start justify-between gap-4">
+            <div>
+              <div className="text-sm font-semibold text-neutral-900">
+                {design.label}
+              </div>
+              <div className="text-xs text-neutral-500">
+                {design.shortDescription}
+              </div>
+            </div>
+
+            <div className="rounded-full border border-neutral-200 bg-white px-2.5 py-1 text-[10px] font-medium text-neutral-600">
+              {design.tone}
+            </div>
+          </div>
+
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <label className="text-sm font-medium text-neutral-900">
-                Title
-              </label>
+              <label className={editorTheme.metaLabelClassName}>Title</label>
               <input
                 value={draft.title}
                 onChange={(e) => setTitle(e.target.value)}
-                className={textInputClass()}
+                className={editorTheme.inputClassName}
                 placeholder="Dedication"
               />
             </div>
 
             <div>
               <div className="mb-1 flex items-start justify-between gap-3">
-                <label className="whitespace-nowrap pt-1 text-sm font-medium text-neutral-900">
+                <label
+                  className={`whitespace-nowrap pt-1 ${editorTheme.metaLabelClassName}`}
+                >
                   Site Name
                 </label>
 
@@ -1144,7 +1237,9 @@ export default function TemplateDraftEditor({
                     disabled={isAutoGeneratingSlug}
                     className="shrink-0 text-[11px] font-medium text-neutral-700 underline underline-offset-4 disabled:opacity-50"
                   >
-                    {isAutoGeneratingSlug ? "Generating..." : "Generate suggestion"}
+                    {isAutoGeneratingSlug
+                      ? "Generating..."
+                      : "Generate suggestion"}
                   </button>
                 )}
               </div>
@@ -1155,7 +1250,7 @@ export default function TemplateDraftEditor({
                   hasManuallyEditedSlugRef.current = true;
                   setSlugSuggestion(e.target.value);
                 }}
-                className={textInputClass()}
+                className={editorTheme.inputClassName}
                 placeholder="your-site-name"
               />
 
@@ -1170,55 +1265,84 @@ export default function TemplateDraftEditor({
             </div>
 
             {!onSubmit && (
-              <>
-                <div>
-                  <label className="text-sm font-medium text-neutral-900">
-                    Site Visibility
-                  </label>
-                  <select
-                    value={siteVisibility}
-                    onChange={(e) =>
-                      setSiteVisibility(
-                        e.target.value as "public" | "private" | "members_only",
-                      )
-                    }
-                    className={textInputClass()}
-                  >
-                    <option value="public">Public</option>
-                    <option value="private">Private</option>
-                    <option value="members_only">Members Only</option>
-                  </select>
-                </div>
-
-                {siteVisibility === "private" && (
-                  <div>
-                    <label className="text-sm font-medium text-neutral-900">
-                      Passcode
-                    </label>
-                    <input
-                      value={passcode}
-                      onChange={(e) =>
-                        setPasscode(e.target.value.replace(/\D/g, "").slice(0, 6))
-                      }
-                      inputMode="numeric"
-                      maxLength={6}
-                      className={textInputClass()}
-                      placeholder="123456"
-                    />
-                    <div className="mt-2 text-xs text-neutral-500">
-                      Enter a 6-digit numeric passcode.
-                    </div>
-                  </div>
-                )}
-              </>
+              <div>
+                <label className={editorTheme.metaLabelClassName}>
+                  Site Visibility
+                </label>
+                <select
+                  value={siteVisibility}
+                  onChange={(e) =>
+                    setSiteVisibility(
+                      e.target.value as "public" | "private" | "members_only",
+                    )
+                  }
+                  className={editorTheme.selectClassName}
+                >
+                  <option value="public">Public</option>
+                  <option value="private">Private</option>
+                  <option value="members_only">Members Only</option>
+                </select>
+              </div>
             )}
+
+            {!onSubmit && siteVisibility === "private" ? (
+              <div>
+                <label className={editorTheme.metaLabelClassName}>Passcode</label>
+                <input
+                  value={passcode}
+                  onChange={(e) =>
+                    setPasscode(e.target.value.replace(/\D/g, "").slice(0, 6))
+                  }
+                  inputMode="numeric"
+                  maxLength={6}
+                  className={editorTheme.inputClassName}
+                  placeholder="123456"
+                />
+                <div className="mt-2 text-xs text-neutral-500">
+                  Enter a 6-digit numeric passcode.
+                </div>
+              </div>
+            ) : (
+              <div />
+            )}
+
+            <div className="md:col-span-2">
+              <label className={editorTheme.metaLabelClassName}>
+                Page Background
+              </label>
+              <select
+                value={draft.pageBackground || "none"}
+                onChange={(e) => setPageBackground(e.target.value)}
+                className={editorTheme.selectClassName}
+              >
+                {PAGE_BACKGROUND_OPTIONS.map((option) => (
+                  <option key={option.key} value={option.key}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <div className="mt-2 text-xs text-neutral-500">
+                Choose a published-page background style.
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className={sectionCardClass()}>
+        <div className={editorTheme.sectionCardClassName}>
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            {design.bestFor.slice(0, 4).map((item) => (
+              <span
+                key={item}
+                className="rounded-full border border-neutral-200 bg-white px-2.5 py-1 text-[10px] font-medium text-neutral-600"
+              >
+                {item}
+              </span>
+            ))}
+          </div>
+
           <div className="flex flex-col gap-3 md:flex-row md:items-end">
             <div className="min-w-0 flex-1">
-              <label className="text-sm font-medium text-neutral-900">
+              <label className={editorTheme.metaLabelClassName}>
                 Add Section
               </label>
               <select
@@ -1226,7 +1350,7 @@ export default function TemplateDraftEditor({
                 onChange={(e) =>
                   setNewBlockType(e.target.value as BuilderBlockType)
                 }
-                className={textInputClass()}
+                className={editorTheme.selectClassName}
               >
                 {BLOCK_OPTIONS.map((option) => (
                   <option key={option.type} value={option.type}>
@@ -1239,7 +1363,7 @@ export default function TemplateDraftEditor({
             <button
               type="button"
               onClick={handleAddBlock}
-              className="inline-flex items-center justify-center rounded-xl bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+              className={editorTheme.primaryButtonClassName}
             >
               Add Block
             </button>
@@ -1265,11 +1389,12 @@ export default function TemplateDraftEditor({
                   onMoveUp={() => handleMoveUp(index)}
                   onMoveDown={() => handleMoveDown(index)}
                   onRemove={() => handleRemoveBlock(block.id)}
+                  theme={editorTheme}
                 >
                   {block.type === "announcement" && (
                     <div className="grid gap-4">
                       <div>
-                        <label className="text-sm font-medium text-neutral-900">
+                        <label className={editorTheme.metaLabelClassName}>
                           Headline
                         </label>
                         <input
@@ -1277,12 +1402,12 @@ export default function TemplateDraftEditor({
                           onChange={(e) =>
                             updateAnnouncement(block.id, "headline", e.target.value)
                           }
-                          className={textInputClass()}
+                          className={editorTheme.inputClassName}
                         />
                       </div>
 
                       <div>
-                        <label className="text-sm font-medium text-neutral-900">
+                        <label className={editorTheme.metaLabelClassName}>
                           Body
                         </label>
                         <textarea
@@ -1290,7 +1415,7 @@ export default function TemplateDraftEditor({
                           onChange={(e) =>
                             updateAnnouncement(block.id, "body", e.target.value)
                           }
-                          className={textareaClass()}
+                          className={editorTheme.textareaClassName}
                         />
                       </div>
                     </div>
@@ -1299,7 +1424,7 @@ export default function TemplateDraftEditor({
                   {block.type === "links" && (
                     <div className="space-y-4">
                       <div>
-                        <label className="text-sm font-medium text-neutral-900">
+                        <label className={editorTheme.metaLabelClassName}>
                           Heading
                         </label>
                         <input
@@ -1307,19 +1432,19 @@ export default function TemplateDraftEditor({
                           onChange={(e) =>
                             updateLinksHeading(block.id, e.target.value)
                           }
-                          className={textInputClass()}
+                          className={editorTheme.inputClassName}
                         />
                       </div>
 
                       <div className="space-y-3">
-                        {block.data.items.map((item: any) => (
+                        {block.data.items.map((item) => (
                           <div
                             key={item.id}
-                            className="rounded-xl border border-neutral-200 p-3"
+                            className={editorTheme.subtleCardClassName}
                           >
                             <div className="grid gap-3 md:grid-cols-2">
                               <div>
-                                <label className="text-sm font-medium text-neutral-900">
+                                <label className={editorTheme.metaLabelClassName}>
                                   Label
                                 </label>
                                 <input
@@ -1332,12 +1457,12 @@ export default function TemplateDraftEditor({
                                       e.target.value,
                                     )
                                   }
-                                  className={textInputClass()}
+                                  className={editorTheme.inputClassName}
                                 />
                               </div>
 
                               <div>
-                                <label className="text-sm font-medium text-neutral-900">
+                                <label className={editorTheme.metaLabelClassName}>
                                   URL
                                 </label>
                                 <input
@@ -1350,7 +1475,7 @@ export default function TemplateDraftEditor({
                                       e.target.value,
                                     )
                                   }
-                                  className={textInputClass()}
+                                  className={editorTheme.inputClassName}
                                   placeholder="https://"
                                 />
                               </div>
@@ -1359,7 +1484,7 @@ export default function TemplateDraftEditor({
                             <button
                               type="button"
                               onClick={() => removeLinkItem(block.id, item.id)}
-                              className="mt-3 rounded-xl border border-red-300 px-3 py-2 text-xs font-medium text-red-700"
+                              className={`mt-3 ${editorTheme.destructiveButtonClassName}`}
                             >
                               Remove Link
                             </button>
@@ -1370,7 +1495,7 @@ export default function TemplateDraftEditor({
                       <button
                         type="button"
                         onClick={() => addLinkItem(block.id)}
-                        className="rounded-xl border border-neutral-300 px-3 py-2 text-xs font-medium text-neutral-900"
+                        className={editorTheme.secondaryButtonClassName}
                       >
                         Add Link
                       </button>
@@ -1380,7 +1505,7 @@ export default function TemplateDraftEditor({
                   {block.type === "contact" && (
                     <div className="grid gap-4 md:grid-cols-2">
                       <div className="md:col-span-2">
-                        <label className="text-sm font-medium text-neutral-900">
+                        <label className={editorTheme.metaLabelClassName}>
                           Heading
                         </label>
                         <input
@@ -1388,12 +1513,12 @@ export default function TemplateDraftEditor({
                           onChange={(e) =>
                             updateContact(block.id, "heading", e.target.value)
                           }
-                          className={textInputClass()}
+                          className={editorTheme.inputClassName}
                         />
                       </div>
 
                       <div>
-                        <label className="text-sm font-medium text-neutral-900">
+                        <label className={editorTheme.metaLabelClassName}>
                           Name
                         </label>
                         <input
@@ -1401,12 +1526,12 @@ export default function TemplateDraftEditor({
                           onChange={(e) =>
                             updateContact(block.id, "name", e.target.value)
                           }
-                          className={textInputClass()}
+                          className={editorTheme.inputClassName}
                         />
                       </div>
 
                       <div>
-                        <label className="text-sm font-medium text-neutral-900">
+                        <label className={editorTheme.metaLabelClassName}>
                           Email
                         </label>
                         <input
@@ -1414,12 +1539,12 @@ export default function TemplateDraftEditor({
                           onChange={(e) =>
                             updateContact(block.id, "email", e.target.value)
                           }
-                          className={textInputClass()}
+                          className={editorTheme.inputClassName}
                         />
                       </div>
 
                       <div>
-                        <label className="text-sm font-medium text-neutral-900">
+                        <label className={editorTheme.metaLabelClassName}>
                           Phone
                         </label>
                         <input
@@ -1427,7 +1552,7 @@ export default function TemplateDraftEditor({
                           onChange={(e) =>
                             updateContact(block.id, "phone", e.target.value)
                           }
-                          className={textInputClass()}
+                          className={editorTheme.inputClassName}
                         />
                       </div>
                     </div>
@@ -1436,7 +1561,7 @@ export default function TemplateDraftEditor({
                   {block.type === "gallery" && (
                     <div className="space-y-4">
                       <div>
-                        <label className="text-sm font-medium text-neutral-900">
+                        <label className={editorTheme.metaLabelClassName}>
                           Heading
                         </label>
                         <input
@@ -1444,7 +1569,7 @@ export default function TemplateDraftEditor({
                           onChange={(e) =>
                             updateGalleryHeading(block.id, e.target.value)
                           }
-                          className={textInputClass()}
+                          className={editorTheme.inputClassName}
                         />
                       </div>
 
@@ -1464,8 +1589,10 @@ export default function TemplateDraftEditor({
                       <div className="flex flex-wrap gap-2">
                         <button
                           type="button"
-                          onClick={() => galleryFileInputRefs.current[block.id]?.click()}
-                          className="rounded-xl border border-neutral-300 bg-neutral-100 px-3 py-2 text-xs font-medium text-neutral-900 hover:bg-neutral-200"
+                          onClick={() =>
+                            galleryFileInputRefs.current[block.id]?.click()
+                          }
+                          className={editorTheme.secondaryButtonClassName}
                         >
                           Browse Images
                         </button>
@@ -1473,7 +1600,7 @@ export default function TemplateDraftEditor({
                         <button
                           type="button"
                           onClick={() => addGalleryItem(block.id)}
-                          className="rounded-xl border border-neutral-300 px-3 py-2 text-xs font-medium text-neutral-900"
+                          className={editorTheme.secondaryButtonClassName}
                         >
                           Add Image URL
                         </button>
@@ -1484,14 +1611,14 @@ export default function TemplateDraftEditor({
                       </div>
 
                       <div className="space-y-3">
-                        {block.data.items.map((item: any) => (
+                        {block.data.items.map((item) => (
                           <div
                             key={item.id}
-                            className="rounded-xl border border-neutral-200 p-3"
+                            className={editorTheme.subtleCardClassName}
                           >
                             <div className="grid gap-3">
                               <div>
-                                <label className="text-sm font-medium text-neutral-900">
+                                <label className={editorTheme.metaLabelClassName}>
                                   Image URL / Data URL
                                 </label>
                                 <input
@@ -1504,12 +1631,12 @@ export default function TemplateDraftEditor({
                                       e.target.value,
                                     )
                                   }
-                                  className={textInputClass()}
+                                  className={editorTheme.inputClassName}
                                 />
                               </div>
 
                               <div>
-                                <label className="text-sm font-medium text-neutral-900">
+                                <label className={editorTheme.metaLabelClassName}>
                                   Caption
                                 </label>
                                 <input
@@ -1522,7 +1649,7 @@ export default function TemplateDraftEditor({
                                       e.target.value,
                                     )
                                   }
-                                  className={textInputClass()}
+                                  className={editorTheme.inputClassName}
                                 />
                               </div>
                             </div>
@@ -1530,7 +1657,7 @@ export default function TemplateDraftEditor({
                             <button
                               type="button"
                               onClick={() => removeGalleryItem(block.id, item.id)}
-                              className="mt-3 rounded-xl border border-red-300 px-3 py-2 text-xs font-medium text-red-700"
+                              className={`mt-3 ${editorTheme.destructiveButtonClassName}`}
                             >
                               Remove Image
                             </button>
@@ -1543,7 +1670,7 @@ export default function TemplateDraftEditor({
                   {block.type === "poll" && (
                     <div className="space-y-4">
                       <div>
-                        <label className="text-sm font-medium text-neutral-900">
+                        <label className={editorTheme.metaLabelClassName}>
                           Question
                         </label>
                         <input
@@ -1551,7 +1678,7 @@ export default function TemplateDraftEditor({
                           onChange={(e) =>
                             updatePoll(block.id, "question", e.target.value)
                           }
-                          className={textInputClass()}
+                          className={editorTheme.inputClassName}
                         />
                       </div>
 
@@ -1567,12 +1694,12 @@ export default function TemplateDraftEditor({
                       </label>
 
                       <div className="space-y-3">
-                        {block.data.options.map((option: any) => (
+                        {block.data.options.map((option) => (
                           <div
                             key={option.id}
-                            className="rounded-xl border border-neutral-200 p-3"
+                            className={editorTheme.subtleCardClassName}
                           >
-                            <label className="text-sm font-medium text-neutral-900">
+                            <label className={editorTheme.metaLabelClassName}>
                               Option
                             </label>
                             <input
@@ -1584,13 +1711,15 @@ export default function TemplateDraftEditor({
                                   e.target.value,
                                 )
                               }
-                              className={textInputClass()}
+                              className={editorTheme.inputClassName}
                             />
 
                             <button
                               type="button"
-                              onClick={() => removePollOption(block.id, option.id)}
-                              className="mt-3 rounded-xl border border-red-300 px-3 py-2 text-xs font-medium text-red-700"
+                              onClick={() =>
+                                removePollOption(block.id, option.id)
+                              }
+                              className={`mt-3 ${editorTheme.destructiveButtonClassName}`}
                             >
                               Remove Option
                             </button>
@@ -1601,7 +1730,7 @@ export default function TemplateDraftEditor({
                       <button
                         type="button"
                         onClick={() => addPollOption(block.id)}
-                        className="rounded-xl border border-neutral-300 px-3 py-2 text-xs font-medium text-neutral-900"
+                        className={editorTheme.secondaryButtonClassName}
                       >
                         Add Option
                       </button>
@@ -1611,7 +1740,7 @@ export default function TemplateDraftEditor({
                   {block.type === "rsvp" && (
                     <div className="grid gap-4 md:grid-cols-2">
                       <div className="md:col-span-2">
-                        <label className="text-sm font-medium text-neutral-900">
+                        <label className={editorTheme.metaLabelClassName}>
                           Heading
                         </label>
                         <input
@@ -1619,12 +1748,12 @@ export default function TemplateDraftEditor({
                           onChange={(e) =>
                             updateRsvp(block.id, "heading", e.target.value)
                           }
-                          className={textInputClass()}
+                          className={editorTheme.inputClassName}
                         />
                       </div>
 
                       <div>
-                        <label className="text-sm font-medium text-neutral-900">
+                        <label className={editorTheme.metaLabelClassName}>
                           Event Date
                         </label>
                         <input
@@ -1632,21 +1761,25 @@ export default function TemplateDraftEditor({
                           onChange={(e) =>
                             updateRsvp(block.id, "eventDate", e.target.value)
                           }
-                          className={textInputClass()}
+                          className={editorTheme.inputClassName}
                           placeholder="2026-06-20"
                         />
                       </div>
 
                       <div>
-                        <label className="text-sm font-medium text-neutral-900">
+                        <label className={editorTheme.metaLabelClassName}>
                           Notes Placeholder
                         </label>
                         <input
                           value={block.data.notesPlaceholder}
                           onChange={(e) =>
-                            updateRsvp(block.id, "notesPlaceholder", e.target.value)
+                            updateRsvp(
+                              block.id,
+                              "notesPlaceholder",
+                              e.target.value,
+                            )
                           }
-                          className={textInputClass()}
+                          className={editorTheme.inputClassName}
                         />
                       </div>
 
@@ -1685,7 +1818,7 @@ export default function TemplateDraftEditor({
                   {block.type === "richText" && (
                     <div className="grid gap-4">
                       <div>
-                        <label className="text-sm font-medium text-neutral-900">
+                        <label className={editorTheme.metaLabelClassName}>
                           Heading
                         </label>
                         <input
@@ -1693,12 +1826,12 @@ export default function TemplateDraftEditor({
                           onChange={(e) =>
                             updateRichText(block.id, "heading", e.target.value)
                           }
-                          className={textInputClass()}
+                          className={editorTheme.inputClassName}
                         />
                       </div>
 
                       <div>
-                        <label className="text-sm font-medium text-neutral-900">
+                        <label className={editorTheme.metaLabelClassName}>
                           Body
                         </label>
                         <textarea
@@ -1706,7 +1839,7 @@ export default function TemplateDraftEditor({
                           onChange={(e) =>
                             updateRichText(block.id, "body", e.target.value)
                           }
-                          className={textareaClass()}
+                          className={editorTheme.textareaClassName}
                         />
                       </div>
                     </div>
@@ -1715,7 +1848,7 @@ export default function TemplateDraftEditor({
                   {block.type === "faq" && (
                     <div className="space-y-4">
                       <div>
-                        <label className="text-sm font-medium text-neutral-900">
+                        <label className={editorTheme.metaLabelClassName}>
                           Heading
                         </label>
                         <input
@@ -1723,19 +1856,19 @@ export default function TemplateDraftEditor({
                           onChange={(e) =>
                             updateFaqHeading(block.id, e.target.value)
                           }
-                          className={textInputClass()}
+                          className={editorTheme.inputClassName}
                         />
                       </div>
 
                       <div className="space-y-3">
-                        {block.data.items.map((item: any) => (
+                        {block.data.items.map((item) => (
                           <div
                             key={item.id}
-                            className="rounded-xl border border-neutral-200 p-3"
+                            className={editorTheme.subtleCardClassName}
                           >
                             <div className="grid gap-3">
                               <div>
-                                <label className="text-sm font-medium text-neutral-900">
+                                <label className={editorTheme.metaLabelClassName}>
                                   Question
                                 </label>
                                 <input
@@ -1748,12 +1881,12 @@ export default function TemplateDraftEditor({
                                       e.target.value,
                                     )
                                   }
-                                  className={textInputClass()}
+                                  className={editorTheme.inputClassName}
                                 />
                               </div>
 
                               <div>
-                                <label className="text-sm font-medium text-neutral-900">
+                                <label className={editorTheme.metaLabelClassName}>
                                   Answer
                                 </label>
                                 <textarea
@@ -1766,7 +1899,7 @@ export default function TemplateDraftEditor({
                                       e.target.value,
                                     )
                                   }
-                                  className={textareaClass()}
+                                  className={editorTheme.textareaClassName}
                                 />
                               </div>
                             </div>
@@ -1774,7 +1907,7 @@ export default function TemplateDraftEditor({
                             <button
                               type="button"
                               onClick={() => removeFaqItem(block.id, item.id)}
-                              className="mt-3 rounded-xl border border-red-300 px-3 py-2 text-xs font-medium text-red-700"
+                              className={`mt-3 ${editorTheme.destructiveButtonClassName}`}
                             >
                               Remove FAQ
                             </button>
@@ -1785,7 +1918,7 @@ export default function TemplateDraftEditor({
                       <button
                         type="button"
                         onClick={() => addFaqItem(block.id)}
-                        className="rounded-xl border border-neutral-300 px-3 py-2 text-xs font-medium text-neutral-900"
+                        className={editorTheme.secondaryButtonClassName}
                       >
                         Add FAQ
                       </button>
@@ -1795,7 +1928,7 @@ export default function TemplateDraftEditor({
                   {block.type === "countdown" && (
                     <div className="grid gap-4 md:grid-cols-2">
                       <div className="md:col-span-2">
-                        <label className="text-sm font-medium text-neutral-900">
+                        <label className={editorTheme.metaLabelClassName}>
                           Heading
                         </label>
                         <input
@@ -1803,26 +1936,35 @@ export default function TemplateDraftEditor({
                           onChange={(e) =>
                             updateCountdown(block.id, "heading", e.target.value)
                           }
-                          className={textInputClass()}
+                          className={editorTheme.inputClassName}
                         />
                       </div>
 
                       <div>
-                        <label className="text-sm font-medium text-neutral-900">
+                        <label className={editorTheme.metaLabelClassName}>
                           Target ISO Date
                         </label>
                         <input
-                          value={block.data.targetIso}
-                          onChange={(e) =>
-                            updateCountdown(block.id, "targetIso", e.target.value)
-                          }
-                          className={textInputClass()}
-                          placeholder="2026-12-31T23:59:59"
+                          type="datetime-local"
+                          value={isoToLocalDateTimeValue(block.data.targetIso)}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            updateCountdown(
+                              block.id,
+                              "targetIso",
+                              value ? new Date(value).toISOString() : "",
+                            );
+                          }}
+                          className={editorTheme.inputClassName}
                         />
+                        <div className="mt-2 text-xs text-neutral-500">
+                          Pick a date and time. It will be saved as an ISO
+                          timestamp automatically.
+                        </div>
                       </div>
 
                       <div>
-                        <label className="text-sm font-medium text-neutral-900">
+                        <label className={editorTheme.metaLabelClassName}>
                           Completed Message
                         </label>
                         <input
@@ -1834,7 +1976,7 @@ export default function TemplateDraftEditor({
                               e.target.value,
                             )
                           }
-                          className={textInputClass()}
+                          className={editorTheme.inputClassName}
                         />
                       </div>
                     </div>
@@ -1843,7 +1985,7 @@ export default function TemplateDraftEditor({
                   {block.type === "cta" && (
                     <div className="grid gap-4 md:grid-cols-2">
                       <div className="md:col-span-2">
-                        <label className="text-sm font-medium text-neutral-900">
+                        <label className={editorTheme.metaLabelClassName}>
                           Heading
                         </label>
                         <input
@@ -1851,12 +1993,12 @@ export default function TemplateDraftEditor({
                           onChange={(e) =>
                             updateCta(block.id, "heading", e.target.value)
                           }
-                          className={textInputClass()}
+                          className={editorTheme.inputClassName}
                         />
                       </div>
 
                       <div className="md:col-span-2">
-                        <label className="text-sm font-medium text-neutral-900">
+                        <label className={editorTheme.metaLabelClassName}>
                           Body
                         </label>
                         <textarea
@@ -1864,12 +2006,12 @@ export default function TemplateDraftEditor({
                           onChange={(e) =>
                             updateCta(block.id, "body", e.target.value)
                           }
-                          className={textareaClass()}
+                          className={editorTheme.textareaClassName}
                         />
                       </div>
 
                       <div>
-                        <label className="text-sm font-medium text-neutral-900">
+                        <label className={editorTheme.metaLabelClassName}>
                           Button Text
                         </label>
                         <input
@@ -1877,12 +2019,12 @@ export default function TemplateDraftEditor({
                           onChange={(e) =>
                             updateCta(block.id, "buttonText", e.target.value)
                           }
-                          className={textInputClass()}
+                          className={editorTheme.inputClassName}
                         />
                       </div>
 
                       <div>
-                        <label className="text-sm font-medium text-neutral-900">
+                        <label className={editorTheme.metaLabelClassName}>
                           Button URL
                         </label>
                         <input
@@ -1890,7 +2032,7 @@ export default function TemplateDraftEditor({
                           onChange={(e) =>
                             updateCta(block.id, "buttonUrl", e.target.value)
                           }
-                          className={textInputClass()}
+                          className={editorTheme.inputClassName}
                           placeholder="https://"
                         />
                       </div>
@@ -1912,7 +2054,7 @@ export default function TemplateDraftEditor({
               slugStatus === "invalid" ||
               slugStatus === "error"
             }
-            className="inline-flex items-center justify-center rounded-xl bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
+            className={editorTheme.primaryButtonClassName}
           >
             {submitting ? "Working..." : submitLabel}
           </button>
@@ -1920,14 +2062,12 @@ export default function TemplateDraftEditor({
       </form>
 
       <div className="hidden lg:block">
-        <div className="sticky top-24 overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
-          <div className="border-b border-neutral-200 bg-neutral-50 px-4 py-3">
+        <div className={editorTheme.previewShellClassName}>
+          <div className={editorTheme.previewHeaderClassName}>
             <div className="text-sm font-semibold text-neutral-900">
               Live Preview
             </div>
-            <div className="text-xs text-neutral-500">
-              {designKey || "blank"} design
-            </div>
+            <div className="text-xs text-neutral-500">{design.label}</div>
           </div>
 
           <div className="max-h-[calc(100vh-8rem)] overflow-y-auto">

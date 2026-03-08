@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
-
 import TemplateGrid, {
   type Category,
   type Sort,
@@ -63,8 +62,7 @@ export default function TemplatesPage() {
   }
 
   return (
-    <div className="relative min-h-screen">
-      {/* Background */}
+    <div className="relative min-h-screen bg-white">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -top-24 left-1/2 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-blue-500/10 blur-3xl animate-kht-float" />
         <div className="absolute -bottom-24 left-10 h-[460px] w-[460px] rounded-full bg-emerald-500/10 blur-3xl animate-kht-float2" />
@@ -72,18 +70,13 @@ export default function TemplatesPage() {
       </div>
 
       <div className="relative mx-auto max-w-6xl px-4 pb-10">
-        {/* Sticky Header */}
-        <div className="sticky top-0 z-30 -mx-4 border-b border-neutral-200 bg-white/85 px-4 pt-6 pb-4 backdrop-blur">
+        <div className="sticky top-0 z-30 -mx-4 border-b border-neutral-200 bg-white/85 px-4 pb-4 pt-6 backdrop-blur">
           <div className="flex items-end justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-semibold tracking-tight">
-                Templates
-              </h1>
-
+              <h1 className="text-2xl font-semibold tracking-tight">Templates</h1>
               <p className="mt-1 text-sm text-neutral-700">
-                Pick a template → choose a design → customize → publish.
+                Pick a template, choose a design, customize it, then publish.
               </p>
-
               <div className="mt-1 text-[12px] font-medium text-neutral-500">
                 {count} template{count === 1 ? "" : "s"}
                 {category !== "All" ? ` • ${category}` : ""}
@@ -92,12 +85,8 @@ export default function TemplatesPage() {
               </div>
             </div>
 
-            {/* Desktop Sort */}
             <div className="hidden items-center gap-2 sm:flex">
-              <div className="text-[12px] font-semibold text-neutral-600">
-                Sort
-              </div>
-
+              <div className="text-[12px] font-semibold text-neutral-600">Sort</div>
               <select
                 value={sort}
                 onChange={(e) => setSort(e.target.value as Sort)}
@@ -112,41 +101,40 @@ export default function TemplatesPage() {
             </div>
           </div>
 
-          {/* Search */}
-          <div className="mt-4 relative">
+          <div className="relative mt-4">
             <input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search templates…"
+              placeholder="Search templates… (e.g., wedding, rental, launch)"
               className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 pr-10 text-sm text-neutral-900 shadow-sm outline-none focus:ring-2 focus:ring-blue-500/40"
             />
-
             {searchQuery.trim() ? (
               <button
                 type="button"
                 onClick={() => setSearchQuery("")}
                 className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full px-2 py-1 text-sm text-neutral-500 hover:bg-neutral-100"
+                aria-label="Clear search"
+                title="Clear"
               >
                 ×
               </button>
             ) : null}
           </div>
 
-          {/* Category Chips */}
           <div className="mt-3 flex flex-wrap gap-2">
             {categories.map((c) => {
               const active = c === category;
-
               const label =
                 c === "Favorites"
                   ? "★ Favorites"
                   : c === "Recently viewed"
-                  ? "⏱ Recently viewed"
-                  : c;
+                    ? "⏱ Recently viewed"
+                    : c;
 
               return (
                 <button
                   key={c}
+                  type="button"
                   onClick={() => setCategory(c)}
                   className={[
                     "rounded-full px-3 py-1.5 text-[12px] font-semibold transition",
@@ -161,7 +149,6 @@ export default function TemplatesPage() {
             })}
           </div>
 
-          {/* Mobile Sort */}
           <div className="mt-3 sm:hidden">
             <select
               value={sort}
@@ -176,31 +163,28 @@ export default function TemplatesPage() {
             </select>
           </div>
 
-          {/* Active Filters */}
           {hasFilters ? (
             <div className="mt-3 flex flex-wrap items-center gap-2">
-              {category !== "All" && (
-                <Chip
-                  label={`Category: ${category}`}
-                  onRemove={() => setCategory("All")}
-                />
-              )}
+              {category !== "All" ? (
+                <Chip label={`Category: ${category}`} onRemove={() => setCategory("All")} />
+              ) : null}
 
-              {sort !== "Recommended" && (
+              {sort !== "Recommended" ? (
                 <Chip
                   label={`Sort: ${sort}`}
                   onRemove={() => setSort("Recommended")}
                 />
-              )}
+              ) : null}
 
-              {searchQuery.trim() && (
+              {searchQuery.trim() ? (
                 <Chip
                   label={`Search: “${searchQuery.trim()}”`}
                   onRemove={() => setSearchQuery("")}
                 />
-              )}
+              ) : null}
 
               <button
+                type="button"
                 onClick={clearAll}
                 className="ml-auto rounded-full px-3 py-1.5 text-[12px] font-semibold text-neutral-700 hover:bg-neutral-100"
               >
@@ -210,7 +194,6 @@ export default function TemplatesPage() {
           ) : null}
         </div>
 
-        {/* Grid */}
         <TemplateGrid
           searchQuery={searchQuery}
           category={category}
@@ -218,7 +201,6 @@ export default function TemplatesPage() {
           onCountChange={setCount}
         />
 
-        {/* Footer */}
         <div className="mt-12 flex justify-end">
           <div className="inline-flex items-center gap-3 rounded-2xl border border-neutral-200 bg-white/85 px-4 py-3 shadow-sm backdrop-blur">
             <Image
