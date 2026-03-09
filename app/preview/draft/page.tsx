@@ -5,24 +5,44 @@ import BlockRenderer from "@/components/preview/BlockRenderer";
 import MicrositeFooterBrand from "@/components/microsite/MicrositeFooterBrand";
 import type { BuilderDraft } from "@/lib/templates/builder";
 
-type Payload = {
+type PreviewPayload = {
+  templateKey?: string;
+  designKey?: string;
   draft?: BuilderDraft;
 };
 
-export default function PublishedMicrositePage() {
-  const [payload, setPayload] = useState<Payload | null>(null);
+export default function DraftPreviewPage() {
+  const [payload, setPayload] = useState<PreviewPayload | null>(null);
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    const raw = window.localStorage.getItem("kht:preview-draft");
+    try {
+      const raw = window.localStorage.getItem("kht:preview-draft");
+      if (!raw) {
+        setIsReady(true);
+        return;
+      }
 
-    if (raw) {
-      setPayload(JSON.parse(raw));
+      const parsed = JSON.parse(raw) as PreviewPayload;
+      setPayload(parsed);
+    } catch {
+      setPayload(null);
+    } finally {
+      setIsReady(true);
     }
   }, []);
 
   const draft = useMemo(() => payload?.draft ?? null, [payload]);
 
-  if (!draft) return null;
+  if (!draft) {
+    return (
+      <main className="min-h-screen bg-white px-4 py-16">
+        <div className="mx-auto max-w-4xl text-center text-neutral-600">
+          Preview unavailable
+        </div>
+      </main>
+    );
+  }
 
   return (
     <>

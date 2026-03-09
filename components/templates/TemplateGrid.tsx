@@ -15,6 +15,7 @@ function thumbToImageUrl(thumb: string) {
 
 const CARD = 140;
 const GAP = 12;
+const CUSTOM_TEMPLATE_KEY = "custom_template";
 
 export type Category =
   | "All"
@@ -61,6 +62,13 @@ function metaForTemplate(t: TemplateDef): PreviewMeta {
   };
 }
 
+function moveCustomTemplateLast(list: TemplateDef[]) {
+  const custom = list.find((t) => t.key === CUSTOM_TEMPLATE_KEY);
+  if (!custom) return list;
+
+  return [...list.filter((t) => t.key !== CUSTOM_TEMPLATE_KEY), custom];
+}
+
 export default function TemplateGrid(props: {
   searchQuery: string;
   category: Category;
@@ -70,7 +78,8 @@ export default function TemplateGrid(props: {
   const { searchQuery, category, sort, onCountChange } = props;
 
   const allTemplates: TemplateDef[] = useMemo(() => {
-    return Array.isArray(TEMPLATE_DEFS) ? TEMPLATE_DEFS : [];
+    const defs = Array.isArray(TEMPLATE_DEFS) ? TEMPLATE_DEFS : [];
+    return moveCustomTemplateLast(defs);
   }, []);
 
   const [favorites, setFavorites] = useState<string[]>([]);
@@ -192,14 +201,20 @@ export default function TemplateGrid(props: {
       sorted.sort((a, b) => {
         const ra = recentOrder.get(a.key) ?? 9999;
         const rb = recentOrder.get(b.key) ?? 9999;
-        return ra - rb;
+        if (ra !== rb) return ra - rb;
+
+        if (a.key === CUSTOM_TEMPLATE_KEY) return 1;
+        if (b.key === CUSTOM_TEMPLATE_KEY) return -1;
+
+        return 0;
       });
-      return sorted;
+
+      return moveCustomTemplateLast(sorted);
     }
 
     if (sort === "A–Z") {
       sorted.sort(byTitle);
-      return sorted;
+      return moveCustomTemplateLast(sorted);
     }
 
     if (sort === "New") {
@@ -209,7 +224,7 @@ export default function TemplateGrid(props: {
         if (ra !== rb) return ra - rb;
         return byTitle(a, b);
       });
-      return sorted;
+      return moveCustomTemplateLast(sorted);
     }
 
     if (sort === "Popular") {
@@ -219,10 +234,10 @@ export default function TemplateGrid(props: {
         if (ra !== rb) return ra - rb;
         return byTitle(a, b);
       });
-      return sorted;
+      return moveCustomTemplateLast(sorted);
     }
 
-    return sorted;
+    return moveCustomTemplateLast(sorted);
   }, [allTemplates, searchQuery, category, sort, favorites, recent]);
 
   useEffect(() => {

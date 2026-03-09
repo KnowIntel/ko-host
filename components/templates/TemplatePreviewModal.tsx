@@ -14,9 +14,6 @@ function demoUrlForTemplate(template: TemplateDef) {
   const demoSlug = (template.demoSlug || "").trim().toLowerCase();
   if (!demoSlug) return "";
 
-  // IMPORTANT:
-  // Your demo renderer lives at app/s/[slug]/page.tsx,
-  // so the correct demo path is /s/demo (not /demo).
   return `https://${demoSlug}.ko-host.com/s/demo`;
 }
 
@@ -63,7 +60,9 @@ export default function TemplatePreviewModal(props: {
       <div className="relative w-full max-w-3xl overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl">
         <div className="flex items-start justify-between gap-4 border-b border-neutral-200 px-5 py-4">
           <div className="min-w-0">
-            <div className="text-sm font-semibold text-neutral-500">Preview template</div>
+            <div className="text-sm font-semibold text-neutral-500">
+              Preview template
+            </div>
             <div className="mt-1 truncate text-xl font-semibold tracking-tight text-neutral-900">
               {template.title}
             </div>
@@ -97,7 +96,6 @@ export default function TemplatePreviewModal(props: {
 
         <div className="grid grid-cols-1 gap-0 md:grid-cols-2">
           <div className="relative bg-neutral-100 p-4">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={thumbnailUrl}
               alt={template.title}
@@ -106,7 +104,9 @@ export default function TemplatePreviewModal(props: {
             />
 
             <div className="mt-3 rounded-xl border border-neutral-200 bg-white px-3 py-2">
-              <div className="text-[12px] font-semibold text-neutral-700">Demo link</div>
+              <div className="text-[12px] font-semibold text-neutral-700">
+                Demo link
+              </div>
               <div className="mt-1 flex items-center gap-2">
                 <div className="min-w-0 flex-1 truncate text-[12px] font-medium text-neutral-600">
                   {demoUrl || "—"}
@@ -150,7 +150,7 @@ export default function TemplatePreviewModal(props: {
               </a>
 
               <Link
-                href={`/create/${template.key}`}
+                href={`/create/${encodeURIComponent(template.key)}/design`}
                 className="inline-flex w-full items-center justify-center rounded-xl bg-neutral-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-neutral-800"
               >
                 Create this template
@@ -166,7 +166,7 @@ export default function TemplatePreviewModal(props: {
             </div>
 
             <div className="mt-4 text-[12px] text-neutral-500">
-              Tip: demos can be swapped later for real hosted previews.
+              Tip: choose a design preset before customizing your page.
             </div>
           </div>
         </div>

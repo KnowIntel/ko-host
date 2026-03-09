@@ -120,7 +120,6 @@ export type TemplateKey =
   | "youtube_video_launch"
   | "creator_link_hub"
   | "patreon_campaign"
-  | "digital_product_launch"
   | "course_enrollment"
   | "live_stream_event"
   | "book_club"
@@ -140,7 +139,8 @@ export type TemplateKey =
   | "chat_room"
   | "speed_dating"
   | "weight_loss_journey"
-  | "guided_tutorial";
+  | "guided_tutorial"
+  | "custom_template";
 
 export const TEMPLATE_CATEGORIES = [
   "Events",
@@ -202,6 +202,7 @@ const NEW_KEYS = new Set<TemplateKey>([
   "chat_room",
   "speed_dating",
   "guided_tutorial",
+  "custom_template",
 ]);
 
 function inferBadge(key: TemplateKey): TemplateBadge {
@@ -211,6 +212,8 @@ function inferBadge(key: TemplateKey): TemplateBadge {
 }
 
 function inferCategory(key: TemplateKey): TemplateCategory {
+  if (key === "custom_template") return "Personal";
+
   if (
     key.includes("portfolio") ||
     key.includes("resume") ||
@@ -322,6 +325,7 @@ function inferFeatures(key: TemplateKey): string[] {
     cancer_journey: ["Updates", "Resources", "Support links"],
     weight_loss_journey: ["Milestones", "Progress", "Updates"],
     guided_tutorial: ["Steps", "Resources", "Links"],
+    custom_template: ["Flexible layout", "Custom content", "Any use case"],
   };
 
   return map[key] ?? ["Announcement", "Links", "Contact"];
@@ -345,6 +349,8 @@ function inferTags(input: {
   ) {
     tags.add("Promotion");
   }
+
+  if (input.key === "custom_template") tags.add("Flexible");
 
   if (input.badge === "Popular") tags.add("Popular");
   if (input.badge === "New") tags.add("New");
@@ -452,14 +458,14 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     defaultDraft: { title: "Product Launch", slugSuggestion: "productlaunch" },
   },
   {
-  key: "waitlist",
-  title: "Waitlist",
-  description: "Collect waitlist signups fast.",
-  thumb: "waitlist",
-  setupMins: 2,
-  demoSlug: "waitlist",
-  defaultDraft: { title: "Join the Waitlist", slugSuggestion: "waitlist" },
-},
+    key: "waitlist",
+    title: "Waitlist",
+    description: "Collect waitlist signups fast.",
+    thumb: "waitlist",
+    setupMins: 2,
+    demoSlug: "waitlist",
+    defaultDraft: { title: "Join the Waitlist", slugSuggestion: "waitlist" },
+  },
   {
     key: "crowdfunding_campaign",
     title: "Crowdfunding",
@@ -479,14 +485,14 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     defaultDraft: { title: "Property Listing", slugSuggestion: "listing" },
   },
   {
-  key: "rental_listing",
-  title: "Rental Listing",
-  description: "Availability, pricing, and apply.",
-  thumb: "rentallisting",
-  setupMins: 4,
-  demoSlug: "rental",
-  defaultDraft: { title: "Rental Listing", slugSuggestion: "rental" },
-},
+    key: "rental_listing",
+    title: "Rental Listing",
+    description: "Availability, pricing, and apply.",
+    thumb: "rentallisting",
+    setupMins: 4,
+    demoSlug: "rental",
+    defaultDraft: { title: "Rental Listing", slugSuggestion: "rental" },
+  },
   {
     key: "resume_profile",
     title: "Resume Profile",
@@ -1460,15 +1466,6 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     defaultDraft: { title: "Support on Patreon", slugSuggestion: "patreoncampaign" },
   },
   {
-    key: "digital_product_launch",
-    title: "Digital Product Launch",
-    description: "Launch page for a digital product with links.",
-    thumb: "digitalproductlaunch",
-    setupMins: 3,
-    demoSlug: "digital",
-    defaultDraft: { title: "Digital Product", slugSuggestion: "digitalproductlaunch" },
-  },
-  {
     key: "course_enrollment",
     title: "Course Enrollment",
     description: "Enrollment info, schedule, and signup link.",
@@ -1657,6 +1654,16 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "guidedtutorial",
     category: "Business",
     defaultDraft: { title: "Guide Tutorial", slugSuggestion: "guidedtutorial" },
+  },
+  {
+    key: "custom_template",
+    title: "Custom Template",
+    description: "Start with a flexible template for ideas not already covered.",
+    thumb: "customtemplate",
+    setupMins: 2,
+    demoSlug: "custom",
+    category: "Personal",
+    defaultDraft: { title: "Custom Template", slugSuggestion: "customtemplate" },
   },
 ];
 

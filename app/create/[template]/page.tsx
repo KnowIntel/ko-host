@@ -23,18 +23,9 @@ function resolveTemplateFromRoute(rawTemplate: string) {
 }
 
 function badgeClassName(badge?: "Popular" | "New" | "Recommended" | null) {
-  if (badge === "Popular") {
-    return "bg-neutral-950 text-white";
-  }
-
-  if (badge === "New") {
-    return "bg-cyan-700 text-white";
-  }
-
-  if (badge === "Recommended") {
-    return "bg-emerald-700 text-white";
-  }
-
+  if (badge === "Popular") return "bg-neutral-950 text-white";
+  if (badge === "New") return "bg-cyan-700 text-white";
+  if (badge === "Recommended") return "bg-emerald-700 text-white";
   return "bg-neutral-200 text-neutral-800";
 }
 
@@ -50,26 +41,31 @@ export default async function CreateTemplatePage({
 
   const templateDef = resolveTemplateFromRoute(template);
   const templateKey = templateDef.key;
-  const designKey = design || "blank";
-  const designPreset = getDesignPreset(designKey);
+
+  const requestedDesignKey = normalizeTemplateKey(design || "blank");
+  const designPreset = getDesignPreset(requestedDesignKey);
+  const designKey = designPreset.key;
 
   const preset = createLayoutDraft(templateKey, designKey);
 
   const initialDraft = {
     ...preset,
-    title: templateDef.defaultDraft?.title || templateDef.title || "",
+    title: templateDef.defaultDraft?.title || templateDef.title || "Beautiful Art",
+    subtitle: preset.subtitle || "by a Freelancer",
     slugSuggestion:
       preset.slugSuggestion ||
       templateDef.defaultDraft?.slugSuggestion ||
       "",
+    pageBackground: preset.pageBackground || "none",
+    blocks: Array.isArray(preset.blocks) ? preset.blocks : [],
   };
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.06),_transparent_28%),linear-gradient(to_bottom,_#ffffff,_#f8fafc)]">
-      <div className="mx-auto w-full max-w-7xl px-4 py-10">
-        <div className="mb-8 overflow-hidden rounded-[30px] border border-neutral-200 bg-white shadow-sm">
-          <div className="relative px-6 py-8 sm:px-8 sm:py-9">
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-r from-violet-100/40 via-sky-100/30 to-emerald-100/40" />
+    <main className="min-h-screen bg-[#f6f4f2]">
+      <div className="mx-auto w-full max-w-[1600px] px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mb-6 overflow-hidden rounded-[28px] border border-neutral-200 bg-white shadow-sm">
+          <div className="relative px-6 py-7 sm:px-8">
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-r from-rose-100/35 via-stone-100/30 to-amber-100/35" />
 
             <div className="relative">
               <div className="mb-3 flex flex-wrap items-center gap-2">
@@ -96,8 +92,12 @@ export default async function CreateTemplatePage({
                   </h1>
 
                   <p className="mt-3 max-w-3xl text-sm leading-7 text-neutral-600 sm:text-[15px]">
-                    You selected <span className="font-semibold text-neutral-900">{designPreset.label}</span>.
-                    Now customize the content, blocks, and layout for your page.
+                    You selected{" "}
+                    <span className="font-semibold text-neutral-900">
+                      {designPreset.label}
+                    </span>
+                    . Customize the Showcase layout visually using the left toolbox
+                    and live page canvas.
                   </p>
 
                   <div className="mt-4 flex flex-wrap gap-2">
@@ -108,17 +108,26 @@ export default async function CreateTemplatePage({
                       Design: {designPreset.label}
                     </span>
                     <span className="rounded-full border border-neutral-200 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700">
-                      {designPreset.tone}
+                      Showcase Editor
                     </span>
                   </div>
                 </div>
 
-                <div className="shrink-0">
+                <div className="flex shrink-0 flex-wrap items-center gap-3">
+                  <Link
+                    href="/preview/draft"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-900 transition hover:bg-neutral-50"
+                  >
+                    Open Preview
+                  </Link>
+
                   <Link
                     href={`/create/${encodeURIComponent(templateKey)}/design`}
                     className="inline-flex items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-900 transition hover:bg-neutral-50"
                   >
-                    Change design
+                    Change Design
                   </Link>
                 </div>
               </div>

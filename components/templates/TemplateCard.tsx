@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import type { MouseEvent } from "react";
+import type { KeyboardEvent, MouseEvent } from "react";
 
 const W = 140;
 const H = 105;
@@ -67,12 +67,13 @@ function bumpStat(templateKey: string, field: "views" | "creates") {
     creates: 0,
     updatedAt: Date.now(),
   };
-  const next = {
+
+  stats[templateKey] = {
     ...cur,
     [field]: (cur[field] || 0) + 1,
     updatedAt: Date.now(),
   };
-  stats[templateKey] = next;
+
   writeStats(stats);
   notify("kht:stats");
 }
@@ -114,25 +115,34 @@ export default function TemplateCard(props: {
     bumpStat(templateKey, "views");
   }
 
-  function goCreate() {
+  function goToDesignSelection() {
     trackCreate();
     router.push(`/create/${encodeURIComponent(templateKey)}/design`);
   }
 
-  function stopAll(e: MouseEvent | React.KeyboardEvent | any) {
-    e.preventDefault?.();
-    e.stopPropagation?.();
+  function stopAll(
+    e: MouseEvent<HTMLElement> | KeyboardEvent<HTMLElement>,
+  ) {
+    e.preventDefault();
+    e.stopPropagation();
   }
 
-  function toggleFavorite(e: MouseEvent) {
+  function handleFavoriteClick(e: MouseEvent<HTMLButtonElement>) {
     stopAll(e);
     onToggleFavorite?.(templateKey);
   }
 
-  function handlePreview(e: MouseEvent) {
+  function handlePreviewClick(e: MouseEvent<HTMLButtonElement>) {
     stopAll(e);
     trackPreview();
     onPreview?.(templateKey);
+  }
+
+  function handleCardKeyDown(e: KeyboardEvent<HTMLDivElement>) {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      goToDesignSelection();
+    }
   }
 
   return (
@@ -145,15 +155,10 @@ export default function TemplateCard(props: {
         contentVisibility: "auto",
         containIntrinsicSize: "180px 220px",
       }}
-      onClick={() => goCreate()}
+      onClick={goToDesignSelection}
       role="button"
       tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          goCreate();
-        }
-      }}
+      onKeyDown={handleCardKeyDown}
       aria-label={`Choose ${title}`}
     >
       <div
@@ -208,12 +213,14 @@ export default function TemplateCard(props: {
           <div className="absolute bottom-2 right-2 z-20">
             <button
               type="button"
-              onClick={toggleFavorite}
+              onClick={handleFavoriteClick}
               className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/90 backdrop-blur shadow-sm hover:bg-white"
               aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
               title={isFavorite ? "Favorited" : "Favorite"}
             >
-              <span className={isFavorite ? "text-amber-500" : "text-neutral-400"}>★</span>
+              <span className={isFavorite ? "text-amber-500" : "text-neutral-400"}>
+                ★
+              </span>
             </button>
           </div>
         </div>
@@ -226,7 +233,7 @@ export default function TemplateCard(props: {
 
             <button
               type="button"
-              onClick={handlePreview}
+              onClick={handlePreviewClick}
               className="rounded-lg border border-neutral-200 bg-white px-2 py-1 text-[10px] font-semibold text-neutral-900 hover:bg-neutral-50"
             >
               Preview

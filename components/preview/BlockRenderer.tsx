@@ -1,358 +1,177 @@
 "use client";
 
-import { getDesignPreset } from "@/lib/design-presets/designRegistry";
-import type { MicrositeBlock } from "@/lib/templates/builder";
+import type { MicrositeBlock, ShowcaseBlock } from "@/lib/templates/builder";
 
-function getBlockStyles(designKey?: string) {
-  const design = getDesignPreset(designKey);
-  const theme = design.theme;
-
-  const isElegant = design.key === "elegant";
-  const isGallery = design.key === "gallery";
-  const isMinimal = design.key === "minimal";
-  const isModern = design.key === "modern";
-  const isClassic = design.key === "classic";
-
-  return {
-    title: [
-      theme.subheadingClassName,
-      isModern ? "text-2xl" : "",
-      isElegant || isClassic ? "text-center" : "",
-    ]
-      .filter(Boolean)
-      .join(" "),
-    announcementTitle: [
-      theme.headingClassName,
-      isMinimal ? "text-3xl" : "",
-      isElegant || isClassic ? "text-center" : "",
-    ]
-      .filter(Boolean)
-      .join(" "),
-    body: theme.bodyClassName,
-    muted: theme.mutedTextClassName,
-    link: theme.linkClassName,
-    input: theme.inputClassName,
-    softCard: [theme.softSurfaceClassName, "px-4 py-4", isModern ? "shadow-sm" : ""]
-      .filter(Boolean)
-      .join(" "),
-    ctaButton: theme.buttonClassName,
-    galleryGrid:
-      isGallery || isModern
-        ? "grid grid-cols-1 gap-3 sm:grid-cols-2"
-        : "grid grid-cols-2 gap-3 sm:grid-cols-3",
-    galleryImageHeight: isGallery || isModern ? "h-44" : "h-28",
-    centeredHero: isElegant || isModern || isClassic,
-    announcementWrap:
-      isElegant || isModern || isClassic ? "space-y-3 text-center" : "space-y-3",
-    richTextWrap:
-      isMinimal
-        ? "space-y-2"
-        : isElegant || isClassic
-          ? "space-y-3 text-center"
-          : "space-y-3",
-    faqItemClassName: [
-      "rounded-xl border p-3",
-      isElegant || isClassic
-        ? "border-stone-200 bg-white/80"
-        : isModern
-          ? "border-slate-200 bg-slate-50/60"
-          : "border-neutral-200 bg-white",
-    ].join(" "),
-    pollItemClassName: [
-      "flex items-center gap-2 rounded-xl border px-3 py-2 text-sm",
-      isElegant || isClassic
-        ? "border-stone-200 text-stone-800"
-        : isModern
-          ? "border-slate-200 text-slate-900"
-          : "border-neutral-200 text-neutral-700",
-    ].join(" "),
-    galleryCardClassName: [
-      "overflow-hidden border bg-neutral-100",
-      theme.cardRadiusClassName,
-      isElegant || isClassic
-        ? "border-stone-200"
-        : isModern
-          ? "border-slate-200"
-          : "border-neutral-200",
-    ].join(" "),
-    textareaClassName: ["min-h-[90px]", theme.inputClassName].join(" "),
-  };
-}
-
-function AnnouncementBlock({
-  data,
-  designKey,
+function EmptyImagePlaceholder({
+  title,
+  recommendedSize,
 }: {
-  data: any;
-  designKey?: string;
+  title: string;
+  recommendedSize: string;
 }) {
-  const s = getBlockStyles(designKey);
-
   return (
-    <section className={s.announcementWrap}>
-      <h2 className={s.announcementTitle}>{data?.headline || "Announcement"}</h2>
-      <p className={s.body}>{data?.body || ""}</p>
-    </section>
+    <div className="flex h-full w-full flex-col items-center justify-center bg-neutral-100 px-4 text-center">
+      <div className="text-sm font-medium text-neutral-600">{title}</div>
+      <div className="mt-1 text-xs text-neutral-500">
+        ({recommendedSize})
+      </div>
+    </div>
   );
 }
 
-function LinksBlock({
-  data,
-  designKey,
-}: {
-  data: any;
-  designKey?: string;
-}) {
-  const s = getBlockStyles(designKey);
+function ShowcaseBlockView({ block }: { block: ShowcaseBlock }) {
+  const images = block.data.images ?? [];
+  const featured = images.slice(0, 2);
+  const gridImages = images.slice(2);
 
   return (
-    <section className="space-y-3">
-      <h3 className={s.title}>{data?.heading || "Links"}</h3>
+    <section className="space-y-10">
+      <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+        <div className="space-y-5">
+          <div className="inline-flex rounded-full border border-neutral-200 px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] text-neutral-500">
+            Showcase
+          </div>
 
-      {(data?.items || []).length ? (
-        <ul className="space-y-2">
-          {(data?.items || []).map((item: any) => (
-            <li key={item.id || `${item.label}-${item.url}`}>
-              <a href={item.url || "#"} className={s.link}>
-                {item.label || item.url || "Untitled Link"}
-              </a>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <div className={s.softCard}>
-          <div className={s.body}>No links added yet.</div>
+          <div className="space-y-3">
+            <h2 className="text-3xl font-semibold tracking-tight text-neutral-900 sm:text-4xl md:text-5xl">
+              Portfolio Highlights
+            </h2>
+            <p className="max-w-xl text-sm leading-7 text-neutral-600 sm:text-base">
+              Present your best work in a refined gallery layout designed for
+              artists, photographers, illustrators, and creative freelancers.
+            </p>
+          </div>
+
+          <div>
+            <button
+              type="button"
+              className="inline-flex items-center justify-center rounded-full bg-neutral-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-neutral-800"
+            >
+              View Gallery
+            </button>
+          </div>
         </div>
-      )}
-    </section>
-  );
-}
 
-function ContactBlock({
-  data,
-  designKey,
-}: {
-  data: any;
-  designKey?: string;
-}) {
-  const s = getBlockStyles(designKey);
+        <div className="grid grid-cols-2 gap-4">
+          {featured.length > 0 ? (
+            featured.map((img, index) => (
+              <div
+                key={img.id}
+                className={[
+                  "relative overflow-hidden rounded-3xl border border-neutral-200 bg-neutral-100",
+                  index === 0 ? "aspect-[4/5]" : "mt-8 aspect-[4/5]",
+                ].join(" ")}
+              >
+                {img.url ? (
+                  <img
+                    src={img.url}
+                    alt={`Featured showcase ${index + 1}`}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <EmptyImagePlaceholder
+                    title="Featured image"
+                    recommendedSize="recommended: 800x1200"
+                  />
+                )}
 
-  return (
-    <section className="space-y-3">
-      <h3 className={s.title}>{data?.heading || "Contact"}</h3>
-      <div className={s.softCard}>
-        <div className={`space-y-1 text-sm ${s.body}`}>
-          {data?.name ? <div>{data.name}</div> : <div className={s.muted}>Name</div>}
-          {data?.email ? <div>{data.email}</div> : <div className={s.muted}>Email</div>}
-          {data?.phone ? <div>{data.phone}</div> : <div className={s.muted}>Phone</div>}
+                <img
+                  src="/icons/edit_icon.webp"
+                  alt="Edit"
+                  className="absolute bottom-3 left-3 h-7 w-7 rounded-full bg-white/90 p-1 shadow-sm"
+                />
+              </div>
+            ))
+          ) : (
+            <>
+              <div className="aspect-[4/5] rounded-3xl border border-neutral-200 bg-neutral-100">
+                <EmptyImagePlaceholder
+                  title="Featured image"
+                  recommendedSize="recommended: 800x1200"
+                />
+              </div>
+              <div className="mt-8 aspect-[4/5] rounded-3xl border border-neutral-200 bg-neutral-100">
+                <EmptyImagePlaceholder
+                  title="Featured image"
+                  recommendedSize="recommended: 800x1200"
+                />
+              </div>
+            </>
+          )}
         </div>
       </div>
-    </section>
-  );
-}
 
-function GalleryBlock({
-  data,
-  designKey,
-}: {
-  data: any;
-  designKey?: string;
-}) {
-  const s = getBlockStyles(designKey);
-  const items = data?.items || [];
+      <div className="space-y-4">
+        <div className="flex items-end justify-between gap-4">
+          <div>
+            <h3 className="text-xl font-semibold text-neutral-900 sm:text-2xl">
+              Gallery
+            </h3>
+            <p className="mt-1 text-sm text-neutral-600">
+              A clean visual grid for your work.
+            </p>
+          </div>
+        </div>
 
-  return (
-    <section className="space-y-3">
-      <h3 className={s.title}>{data?.heading || "Gallery"}</h3>
-
-      {items.length ? (
-        <div className={s.galleryGrid}>
-          {items.map((item: any) => (
-            <div key={item.id || item.url} className={s.galleryCardClassName}>
-              {item.url ? (
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
+          {gridImages.map((img, index) => (
+            <div
+              key={img.id}
+              className={[
+                "relative overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-100",
+                index % 5 === 0
+                  ? "aspect-[4/5]"
+                  : index % 5 === 1
+                    ? "aspect-square"
+                    : index % 5 === 2
+                      ? "aspect-[5/4]"
+                      : index % 5 === 3
+                        ? "aspect-[3/4]"
+                        : "aspect-square",
+              ].join(" ")}
+            >
+              {img.url ? (
                 <img
-                  src={item.url}
-                  alt={item.caption || "Gallery image"}
-                  className={`${s.galleryImageHeight} w-full object-cover`}
+                  src={img.url}
+                  alt={`Showcase image ${index + 3}`}
+                  className="h-full w-full object-cover"
                 />
               ) : (
-                <div
-                  className={`flex ${s.galleryImageHeight} items-center justify-center text-xs ${s.muted}`}
-                >
-                  No image URL
-                </div>
+                <EmptyImagePlaceholder
+                  title="Empty slot"
+                  recommendedSize="recommended: 800x1000"
+                />
               )}
-              {item.caption ? (
-                <div className={`px-3 py-2 text-xs ${s.body}`}>{item.caption}</div>
-              ) : null}
+
+              <img
+                src="/icons/edit_icon.webp"
+                alt="Edit"
+                className="absolute bottom-3 left-3 h-6 w-6 rounded-full bg-white/90 p-1 shadow-sm"
+              />
             </div>
           ))}
         </div>
-      ) : (
-        <div className={s.softCard}>
-          <div className={s.body}>No gallery images yet.</div>
-        </div>
-      )}
-    </section>
-  );
-}
+      </div>
 
-function PollBlock({
-  data,
-  designKey,
-}: {
-  data: any;
-  designKey?: string;
-}) {
-  const s = getBlockStyles(designKey);
-
-  return (
-    <section className="space-y-3">
-      <h3 className={s.title}>{data?.question || "Poll"}</h3>
-
-      <div className="space-y-2">
-        {(data?.options || []).length ? (
-          (data?.options || []).map((option: any) => (
-            <label key={option.id || option.text} className={s.pollItemClassName}>
-              <input type="checkbox" disabled />
-              <span>{option.text || "Option"}</span>
-            </label>
-          ))
-        ) : (
-          <div className={s.softCard}>
-            <div className={s.body}>No poll options yet.</div>
+      <div className="rounded-[2rem] border border-neutral-200 bg-neutral-50 px-6 py-10 text-center sm:px-10">
+        <div className="mx-auto max-w-2xl space-y-4">
+          <h3 className="text-2xl font-semibold tracking-tight text-neutral-900 sm:text-3xl">
+            Interested in a custom painting?
+          </h3>
+          <p className="text-sm leading-7 text-neutral-600 sm:text-base">
+            Use this section as a conversion point for inquiries, commissions,
+            bookings, or collaboration opportunities.
+          </p>
+          <div>
+            <button
+              type="button"
+              className="inline-flex items-center justify-center rounded-full border border-neutral-900 px-5 py-3 text-sm font-medium text-neutral-900 transition hover:bg-neutral-900 hover:text-white"
+            >
+              Get in Touch
+            </button>
           </div>
-        )}
-      </div>
-    </section>
-  );
-}
-
-function RsvpBlock({
-  data,
-  designKey,
-}: {
-  data: any;
-  designKey?: string;
-}) {
-  const s = getBlockStyles(designKey);
-
-  return (
-    <section className="space-y-3">
-      <h3 className={s.title}>{data?.heading || "RSVP"}</h3>
-
-      <div className="grid gap-3">
-        <input disabled placeholder="Your name" className={s.input} />
-        <input disabled placeholder="Email" className={s.input} />
-        {data?.collectGuestCount ? (
-          <input disabled placeholder="Guest count" className={s.input} />
-        ) : null}
-        {data?.collectMealChoice ? (
-          <input disabled placeholder="Meal choice" className={s.input} />
-        ) : null}
-        <textarea
-          disabled
-          placeholder={data?.notesPlaceholder || "Notes"}
-          className={s.textareaClassName}
-        />
-        <button type="button" disabled className={`${s.ctaButton} opacity-85`}>
-          Submit RSVP
-        </button>
-      </div>
-    </section>
-  );
-}
-
-function RichTextBlock({
-  data,
-  designKey,
-}: {
-  data: any;
-  designKey?: string;
-}) {
-  const s = getBlockStyles(designKey);
-
-  return (
-    <section className={s.richTextWrap}>
-      <h3 className={s.title}>{data?.heading || "Section"}</h3>
-      <p className={`whitespace-pre-wrap ${s.body}`}>{data?.body || ""}</p>
-    </section>
-  );
-}
-
-function FaqBlock({
-  data,
-  designKey,
-}: {
-  data: any;
-  designKey?: string;
-}) {
-  const s = getBlockStyles(designKey);
-
-  return (
-    <section className="space-y-3">
-      <h3 className={s.title}>{data?.heading || "FAQ"}</h3>
-
-      <div className="space-y-2">
-        {(data?.items || []).length ? (
-          (data?.items || []).map((item: any) => (
-            <div key={item.id || item.question} className={s.faqItemClassName}>
-              <div className="text-sm font-semibold text-neutral-900">
-                {item.question || "Question"}
-              </div>
-              <div className={`mt-1 text-sm ${s.body}`}>{item.answer || ""}</div>
-            </div>
-          ))
-        ) : (
-          <div className={s.softCard}>
-            <div className={s.body}>No FAQ items yet.</div>
-          </div>
-        )}
-      </div>
-    </section>
-  );
-}
-
-function CountdownBlock({
-  data,
-  designKey,
-}: {
-  data: any;
-  designKey?: string;
-}) {
-  const s = getBlockStyles(designKey);
-
-  return (
-    <section className="space-y-3 text-center">
-      <h3 className={s.title}>{data?.heading || "Countdown"}</h3>
-      <div className={s.softCard}>
-        <div className="text-2xl font-bold tracking-tight text-neutral-900">
-          00 : 00 : 00
-        </div>
-        <div className={`mt-2 text-xs ${s.muted}`}>
-          {data?.targetIso || "No target date set"}
         </div>
       </div>
-    </section>
-  );
-}
-
-function CtaBlock({
-  data,
-  designKey,
-}: {
-  data: any;
-  designKey?: string;
-}) {
-  const s = getBlockStyles(designKey);
-
-  return (
-    <section className={s.centeredHero ? "space-y-3 text-center" : "space-y-3"}>
-      <h3 className={s.title}>{data?.heading || "Call To Action"}</h3>
-      <p className={s.body}>{data?.body || ""}</p>
-      <button type="button" className={s.ctaButton}>
-        {data?.buttonText || "Learn More"}
-      </button>
     </section>
   );
 }
@@ -365,26 +184,9 @@ export default function BlockRenderer({
   designKey?: string;
 }) {
   switch (block.type) {
-    case "announcement":
-      return <AnnouncementBlock data={block.data} designKey={designKey} />;
-    case "links":
-      return <LinksBlock data={block.data} designKey={designKey} />;
-    case "contact":
-      return <ContactBlock data={block.data} designKey={designKey} />;
-    case "gallery":
-      return <GalleryBlock data={block.data} designKey={designKey} />;
-    case "poll":
-      return <PollBlock data={block.data} designKey={designKey} />;
-    case "rsvp":
-      return <RsvpBlock data={block.data} designKey={designKey} />;
-    case "richText":
-      return <RichTextBlock data={block.data} designKey={designKey} />;
-    case "faq":
-      return <FaqBlock data={block.data} designKey={designKey} />;
-    case "countdown":
-      return <CountdownBlock data={block.data} designKey={designKey} />;
-    case "cta":
-      return <CtaBlock data={block.data} designKey={designKey} />;
+    case "showcase":
+      return <ShowcaseBlockView block={block} />;
+
     default:
       return null;
   }

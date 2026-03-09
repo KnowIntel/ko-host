@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import BlockRenderer from "@/components/preview/BlockRenderer";
+import MicrositeBrand from "@/components/microsite/MicrositeBrand";
 import { getDesignPreset } from "@/lib/design-presets/designRegistry";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import type { MicrositeBlock } from "@/lib/templates/builder";
@@ -18,8 +19,13 @@ type MicrositeRow = {
   selected_design_key?: string | null;
   draft?: {
     title?: string;
+    subtitle?: string;
     slugSuggestion?: string;
     pageBackground?: string;
+    backgroundMode?: "preset" | "custom-color" | "custom-image";
+    customBackgroundColor?: string;
+    customBackgroundImageUrl?: string;
+    customBackgroundImageName?: string;
     blocks?: MicrositeBlock[];
   } | null;
 };
@@ -51,7 +57,13 @@ function extractSlugFromHost(host: string) {
   return null;
 }
 
-function resolvePageBackground(
+function sanitizeHexColor(value: string | undefined, fallback = "#7c3aed") {
+  const raw = (value || "").trim();
+  const normalized = raw.startsWith("#") ? raw : `#${raw}`;
+  return /^#([0-9a-fA-F]{6})$/.test(normalized) ? normalized : fallback;
+}
+
+function resolvePresetBackgroundClassName(
   pageBackground: string | undefined,
   fallbackClassName: string,
 ) {
@@ -72,6 +84,46 @@ function resolvePageBackground(
     default:
       return fallbackClassName;
   }
+}
+
+function resolveBackgroundStyles(
+  draft: MicrositeRow["draft"],
+  fallbackClassName: string,
+) {
+  const backgroundMode = draft?.backgroundMode || "preset";
+
+  if (backgroundMode === "custom-color") {
+    return {
+      className: "",
+      style: {
+        background: sanitizeHexColor(draft?.customBackgroundColor),
+      } as React.CSSProperties,
+    };
+  }
+
+  if (
+    backgroundMode === "custom-image" &&
+    draft?.customBackgroundImageUrl?.trim()
+  ) {
+    return {
+      className: "",
+      style: {
+        backgroundImage: `url("${draft.customBackgroundImageUrl}")`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+        backgroundAttachment: "fixed",
+      } as React.CSSProperties,
+    };
+  }
+
+  return {
+    className: resolvePresetBackgroundClassName(
+      draft?.pageBackground,
+      fallbackClassName,
+    ),
+    style: undefined,
+  };
 }
 
 export default async function PublicSubdomainPage() {
@@ -117,17 +169,32 @@ export default async function PublicSubdomainPage() {
 
   const blocks = Array.isArray(site.draft?.blocks) ? site.draft.blocks : [];
   const pageTitle = site.title || site.draft?.title || "Untitled Microsite";
-  const pageBackgroundClassName = resolvePageBackground(
-    site.draft?.pageBackground,
-    theme.pageClassName,
-  );
+  const pageSubtitle = site.draft?.subtitle || "";
+  const background = resolveBackgroundStyles(site.draft, theme.pageClassName);
 
   return (
-    <main className={`min-h-screen ${pageBackgroundClassName}`}>
+    <main
+      className={`min-h-screen ${background.className}`}
+      style={background.style}
+    >
       <div className={`w-full px-4 py-10 ${theme.containerClassName}`}>
         <div className={theme.blockGapClassName}>
           <div className={theme.titleWrapClassName}>
-            <h1 className={theme.headingClassName}>{pageTitle}</h1>
+            <h1
+              className={theme.headingClassName}
+              style={{ fontFamily: "var(--font-great-vibes)" }}
+            >
+              {pageTitle}
+            </h1>
+
+            {pageSubtitle ? (
+              <p
+                className={`mt-3 ${theme.bodyClassName}`}
+                style={{ fontFamily: "var(--font-cormorant)" }}
+              >
+                {pageSubtitle}
+              </p>
+            ) : null}
           </div>
 
           {blocks.length > 0 ? (
@@ -146,6 +213,8 @@ export default async function PublicSubdomainPage() {
           )}
         </div>
       </div>
+
+      <MicrositeBrand />
     </main>
   );
 }

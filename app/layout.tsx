@@ -2,7 +2,20 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
-import { Nav } from "@/components/ui/Nav";
+import { Great_Vibes, Cormorant_Garamond } from "next/font/google";
+import { LayoutNavVisibility } from "@/components/ui/LayoutNavVisibility";
+
+const greatVibes = Great_Vibes({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-great-vibes",
+});
+
+const cormorant = Cormorant_Garamond({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-cormorant",
+});
 
 export const metadata: Metadata = {
   title: "Ko-Host",
@@ -15,13 +28,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body>
-        <ClerkProvider>
-          <Nav />
+    <ClerkProvider>
+      <html lang="en">
+        <body className={`${greatVibes.variable} ${cormorant.variable}`}>
+          <LayoutNavVisibility />
           {children}
-        </ClerkProvider>
-      </body>
-    </html>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }
