@@ -47,7 +47,8 @@ const baseTheme: DesignTheme = {
     "inline-flex items-center justify-center rounded-xl bg-black px-4 py-2 text-sm font-semibold text-white transition hover:bg-neutral-800",
   buttonSecondaryClassName:
     "inline-flex items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 py-2 text-sm font-semibold text-neutral-900 transition hover:bg-neutral-50",
-  linkClassName: "text-sm font-medium text-neutral-900 underline underline-offset-4",
+  linkClassName:
+    "text-sm font-medium text-neutral-900 underline underline-offset-4",
   softSurfaceClassName: "rounded-2xl border border-neutral-200 bg-neutral-50",
 };
 
@@ -67,7 +68,7 @@ const DESIGN_PRESETS: DesignPreset[] = [
     },
   },
   {
-    key: "minimal",
+    key: "showcase",
     label: "Showcase Design",
     shortDescription:
       "An elegant portfolio-style layout with featured artwork and gallery canvases.",
@@ -84,7 +85,7 @@ const DESIGN_PRESETS: DesignPreset[] = [
     },
   },
   {
-    key: "gallery",
+    key: "festive",
     label: "Festive Design",
     shortDescription:
       "A seasonal promotional layout built for sales, countdowns, and holiday events.",
@@ -115,7 +116,8 @@ const DESIGN_PRESETS: DesignPreset[] = [
         "rounded-3xl border border-slate-200 bg-white p-6 shadow-sm",
       bodyClassName: "text-sm leading-7 text-slate-700",
       mutedTextClassName: "text-xs uppercase tracking-[0.18em] text-slate-500",
-      linkClassName: "text-sm font-medium text-slate-900 underline underline-offset-4",
+      linkClassName:
+        "text-sm font-medium text-slate-900 underline underline-offset-4",
     },
   },
   {
@@ -135,11 +137,12 @@ const DESIGN_PRESETS: DesignPreset[] = [
         "rounded-3xl border border-stone-200 bg-white p-6 shadow-sm",
       bodyClassName: "text-sm leading-7 text-stone-700",
       mutedTextClassName: "text-xs uppercase tracking-[0.18em] text-stone-500",
-      linkClassName: "text-sm font-medium text-stone-900 underline underline-offset-4",
+      linkClassName:
+        "text-sm font-medium text-stone-900 underline underline-offset-4",
     },
   },
   {
-    key: "classic",
+    key: "business",
     label: "Business Design",
     shortDescription:
       "A structured professional layout for services, agencies, and informational microsites.",

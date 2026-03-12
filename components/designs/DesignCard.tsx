@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { getDesignPreset } from "@/lib/design-presets/designRegistry";
+import DesignPreviewRenderer from "@/components/designs/DesignPreviewRenderer";
 
 export default function DesignCard({
   templateKey,
@@ -41,7 +42,14 @@ export default function DesignCard({
           draggable={false}
         />
 
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/30 via-black/0 to-black/0 opacity-70" />
+        <div className="absolute inset-0">
+          <DesignPreviewRenderer
+            templateKey={templateKey}
+            designKey={designKey}
+          />
+        </div>
+
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/20 via-black/0 to-black/0 opacity-70" />
 
         {isRecommended ? (
           <div className="absolute right-3 top-3 rounded-full bg-emerald-600 px-2.5 py-1 text-[10px] font-semibold text-white shadow-sm">

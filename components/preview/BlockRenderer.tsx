@@ -1,179 +1,100 @@
 "use client";
 
-import type { MicrositeBlock, ShowcaseBlock } from "@/lib/templates/builder";
+import type {
+  MicrositeBlock,
+  LinkItem,
+  PollOption,
+  FaqItem,
+  TextStyle,
+} from "@/lib/templates/builder";
 
-function EmptyImagePlaceholder({
-  title,
-  recommendedSize,
-}: {
-  title: string;
-  recommendedSize: string;
-}) {
+function getLabelText(block: Extract<MicrositeBlock, { type: "label" }>) {
+  return block.data.text || "Label";
+}
+
+function getTextStyle(style?: TextStyle): React.CSSProperties {
+  return {
+    fontFamily:
+      style?.fontFamily && style.fontFamily !== "inherit"
+        ? style.fontFamily
+        : "inherit",
+    fontSize: style?.fontSize ? `${style.fontSize}px` : undefined,
+    fontWeight: style?.bold ? 700 : 400,
+    fontStyle: style?.italic ? "italic" : "normal",
+    textDecoration: style?.underline ? "underline" : "none",
+    textAlign: style?.align ?? "left",
+    color: style?.color || undefined,
+    whiteSpace: "pre-wrap",
+    wordBreak: "break-word",
+    overflowWrap: "anywhere",
+    lineHeight: 1.2,
+  };
+}
+
+function isLightDesign(designKey?: string) {
   return (
-    <div className="flex h-full w-full flex-col items-center justify-center bg-neutral-100 px-4 text-center">
-      <div className="text-sm font-medium text-neutral-600">{title}</div>
-      <div className="mt-1 text-xs text-neutral-500">
-        ({recommendedSize})
-      </div>
-    </div>
+    designKey === "showcase" ||
+    designKey === "festive" ||
+    designKey === "elegant" ||
+    designKey === "business" ||
+    designKey === "blank"
   );
 }
 
-function ShowcaseBlockView({ block }: { block: ShowcaseBlock }) {
-  const images = block.data.images ?? [];
-  const featured = images.slice(0, 2);
-  const gridImages = images.slice(2);
+function getSoftSurfaceClass(designKey?: string) {
+  if (isLightDesign(designKey)) {
+    return "border-neutral-200 bg-neutral-50 text-neutral-900";
+  }
 
-  return (
-    <section className="space-y-10">
-      <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
-        <div className="space-y-5">
-          <div className="inline-flex rounded-full border border-neutral-200 px-3 py-1 text-xs font-medium uppercase tracking-[0.2em] text-neutral-500">
-            Showcase
-          </div>
+  return "border-white/10 bg-white/5 text-white";
+}
 
-          <div className="space-y-3">
-            <h2 className="text-3xl font-semibold tracking-tight text-neutral-900 sm:text-4xl md:text-5xl">
-              Portfolio Highlights
-            </h2>
-            <p className="max-w-xl text-sm leading-7 text-neutral-600 sm:text-base">
-              Present your best work in a refined gallery layout designed for
-              artists, photographers, illustrators, and creative freelancers.
-            </p>
-          </div>
+function getPlaceholderClass(designKey?: string) {
+  if (isLightDesign(designKey)) {
+    return "border-neutral-300 text-neutral-400";
+  }
 
-          <div>
-            <button
-              type="button"
-              className="inline-flex items-center justify-center rounded-full bg-neutral-900 px-5 py-3 text-sm font-medium text-white transition hover:bg-neutral-800"
-            >
-              View Gallery
-            </button>
-          </div>
-        </div>
+  return "border-white/15 text-white/50";
+}
 
-        <div className="grid grid-cols-2 gap-4">
-          {featured.length > 0 ? (
-            featured.map((img, index) => (
-              <div
-                key={img.id}
-                className={[
-                  "relative overflow-hidden rounded-3xl border border-neutral-200 bg-neutral-100",
-                  index === 0 ? "aspect-[4/5]" : "mt-8 aspect-[4/5]",
-                ].join(" ")}
-              >
-                {img.url ? (
-                  <img
-                    src={img.url}
-                    alt={`Featured showcase ${index + 1}`}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <EmptyImagePlaceholder
-                    title="Featured image"
-                    recommendedSize="recommended: 800x1200"
-                  />
-                )}
+function getMutedTextClass(designKey?: string) {
+  if (isLightDesign(designKey)) {
+    return "text-neutral-500";
+  }
 
-                <img
-                  src="/icons/edit_icon.webp"
-                  alt="Edit"
-                  className="absolute bottom-3 left-3 h-7 w-7 rounded-full bg-white/90 p-1 shadow-sm"
-                />
-              </div>
-            ))
-          ) : (
-            <>
-              <div className="aspect-[4/5] rounded-3xl border border-neutral-200 bg-neutral-100">
-                <EmptyImagePlaceholder
-                  title="Featured image"
-                  recommendedSize="recommended: 800x1200"
-                />
-              </div>
-              <div className="mt-8 aspect-[4/5] rounded-3xl border border-neutral-200 bg-neutral-100">
-                <EmptyImagePlaceholder
-                  title="Featured image"
-                  recommendedSize="recommended: 800x1200"
-                />
-              </div>
-            </>
-          )}
-        </div>
-      </div>
+  return "text-white/60";
+}
 
-      <div className="space-y-4">
-        <div className="flex items-end justify-between gap-4">
-          <div>
-            <h3 className="text-xl font-semibold text-neutral-900 sm:text-2xl">
-              Gallery
-            </h3>
-            <p className="mt-1 text-sm text-neutral-600">
-              A clean visual grid for your work.
-            </p>
-          </div>
-        </div>
+function getLinkItemClass(designKey?: string) {
+  if (isLightDesign(designKey)) {
+    return "rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-800";
+  }
 
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
-          {gridImages.map((img, index) => (
-            <div
-              key={img.id}
-              className={[
-                "relative overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-100",
-                index % 5 === 0
-                  ? "aspect-[4/5]"
-                  : index % 5 === 1
-                    ? "aspect-square"
-                    : index % 5 === 2
-                      ? "aspect-[5/4]"
-                      : index % 5 === 3
-                        ? "aspect-[3/4]"
-                        : "aspect-square",
-              ].join(" ")}
-            >
-              {img.url ? (
-                <img
-                  src={img.url}
-                  alt={`Showcase image ${index + 3}`}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <EmptyImagePlaceholder
-                  title="Empty slot"
-                  recommendedSize="recommended: 800x1000"
-                />
-              )}
+  return "rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white";
+}
 
-              <img
-                src="/icons/edit_icon.webp"
-                alt="Edit"
-                className="absolute bottom-3 left-3 h-6 w-6 rounded-full bg-white/90 p-1 shadow-sm"
-              />
-            </div>
-          ))}
-        </div>
-      </div>
+function getButtonClass(designKey?: string) {
+  if (designKey === "showcase") {
+    return "inline-flex rounded-full bg-neutral-900 px-4 py-2 text-sm font-semibold text-white";
+  }
 
-      <div className="rounded-[2rem] border border-neutral-200 bg-neutral-50 px-6 py-10 text-center sm:px-10">
-        <div className="mx-auto max-w-2xl space-y-4">
-          <h3 className="text-2xl font-semibold tracking-tight text-neutral-900 sm:text-3xl">
-            Interested in a custom painting?
-          </h3>
-          <p className="text-sm leading-7 text-neutral-600 sm:text-base">
-            Use this section as a conversion point for inquiries, commissions,
-            bookings, or collaboration opportunities.
-          </p>
-          <div>
-            <button
-              type="button"
-              className="inline-flex items-center justify-center rounded-full border border-neutral-900 px-5 py-3 text-sm font-medium text-neutral-900 transition hover:bg-neutral-900 hover:text-white"
-            >
-              Get in Touch
-            </button>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
+  if (designKey === "festive") {
+    return "inline-flex rounded-full bg-red-700 px-4 py-2 text-sm font-semibold text-white";
+  }
+
+  if (designKey === "elegant") {
+    return "inline-flex rounded-full border border-stone-400 bg-white/70 px-4 py-2 text-sm font-medium text-stone-800";
+  }
+
+  if (designKey === "business") {
+    return "inline-flex rounded-xl bg-neutral-900 px-5 py-3 text-sm font-semibold text-white";
+  }
+
+  if (designKey === "blank") {
+    return "inline-flex rounded-xl bg-neutral-900 px-4 py-2 text-sm font-semibold text-white";
+  }
+
+  return "inline-flex rounded-md bg-gradient-to-r from-violet-500 to-fuchsia-500 px-4 py-2 text-sm font-semibold text-white shadow-lg";
 }
 
 export default function BlockRenderer({
@@ -184,10 +105,297 @@ export default function BlockRenderer({
   designKey?: string;
 }) {
   switch (block.type) {
-    case "showcase":
-      return <ShowcaseBlockView block={block} />;
+    case "label":
+      return (
+        <div className="h-full w-full" style={getTextStyle(block.data.style)}>
+          {getLabelText(block)}
+        </div>
+      );
 
-    default:
-      return null;
+    case "image":
+      return block.data.image.url ? (
+        <img
+          src={block.data.image.url}
+          alt={block.data.image.alt || ""}
+          className="h-full w-full rounded-xl object-cover"
+        />
+      ) : (
+        <div
+          className={[
+            "flex h-full min-h-[120px] items-center justify-center rounded-xl border border-dashed text-sm",
+            getPlaceholderClass(designKey),
+          ].join(" ")}
+        >
+          Image
+        </div>
+      );
+
+    case "cta":
+      return (
+        <div className="flex h-full items-center">
+          <a
+            href={block.data.buttonUrl || "#"}
+            className={getButtonClass(designKey)}
+          >
+            {block.data.buttonText || "Button"}
+          </a>
+        </div>
+      );
+
+    case "countdown":
+      return (
+        <div
+          className={[
+            "rounded-xl border p-4",
+            getSoftSurfaceClass(designKey),
+          ].join(" ")}
+        >
+          {block.data.heading ? (
+            <div
+              className={[
+                "text-xs uppercase tracking-[0.14em]",
+                getMutedTextClass(designKey),
+              ].join(" ")}
+            >
+              {block.data.heading}
+            </div>
+          ) : null}
+          <div className="mt-2 text-lg font-semibold">00 : 00 : 00</div>
+        </div>
+      );
+
+    case "links":
+      return (
+        <div className="space-y-3">
+          {block.data.heading ? (
+            <div className="text-sm font-semibold">{block.data.heading}</div>
+          ) : null}
+
+          <div
+            className={
+              designKey === "business"
+                ? "grid h-full grid-cols-2 gap-2"
+                : designKey === "showcase"
+                  ? "space-y-2"
+                  : "grid gap-2"
+            }
+          >
+            {block.data.items.map((item: LinkItem) => (
+              <a
+                key={item.id}
+                href={item.url || "#"}
+                className={
+                  designKey === "showcase"
+                    ? "block text-sm font-medium text-neutral-700"
+                    : getLinkItemClass(designKey)
+                }
+              >
+                {item.label || "Link"}
+              </a>
+            ))}
+          </div>
+        </div>
+      );
+
+    case "gallery":
+      return (
+        <div
+          className="grid h-full gap-2"
+          style={{
+            gridTemplateColumns: `repeat(${Math.max(
+              1,
+              Number(block.data.grid) || 3,
+            )}, minmax(0, 1fr))`,
+          }}
+        >
+          {(block.data.images.length
+            ? block.data.images
+            : Array.from({ length: Math.max(1, Number(block.data.grid) || 3) })
+          )
+            .slice(0, 12)
+            .map((image: any, index) => (
+              <div
+                key={image?.id || index}
+                className={[
+                  "min-h-[72px] rounded-lg border",
+                  isLightDesign(designKey)
+                    ? "border-neutral-200 bg-white"
+                    : "border-white/10 bg-white/5",
+                ].join(" ")}
+                style={
+                  image?.url
+                    ? {
+                        backgroundImage: `url(${image.url})`,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                      }
+                    : undefined
+                }
+              />
+            ))}
+        </div>
+      );
+
+    case "poll":
+      return (
+        <div
+          className={[
+            "rounded-xl border p-4",
+            getSoftSurfaceClass(designKey),
+          ].join(" ")}
+        >
+          <div className="text-sm font-semibold">
+            {block.data.question || "Poll"}
+          </div>
+          <div className="mt-3 space-y-2">
+            {block.data.options.map((option: PollOption) => (
+              <div
+                key={option.id}
+                className={[
+                  "rounded-lg border px-3 py-2 text-sm",
+                  isLightDesign(designKey)
+                    ? "border-neutral-200"
+                    : "border-white/10",
+                ].join(" ")}
+              >
+                {option.text || "Option"}
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+
+    case "rsvp":
+      return (
+        <div
+          className={[
+            "rounded-xl border p-4",
+            getSoftSurfaceClass(designKey),
+          ].join(" ")}
+        >
+          <div className="text-sm font-semibold">
+            {block.data.heading || "RSVP"}
+          </div>
+          <div
+            className={[
+              "mt-3 grid gap-2 text-sm",
+              getMutedTextClass(designKey),
+            ].join(" ")}
+          >
+            {block.data.collectName ? <div>Name</div> : null}
+            {block.data.collectEmail ? <div>Email</div> : null}
+            {block.data.collectPhone ? <div>Phone</div> : null}
+            {block.data.collectGuestCount ? <div>Guest Count</div> : null}
+            {block.data.collectNotes ? <div>Notes</div> : null}
+          </div>
+        </div>
+      );
+
+    case "faq":
+      return (
+        <div
+          className={[
+            "rounded-xl border p-4",
+            getSoftSurfaceClass(designKey),
+          ].join(" ")}
+        >
+          <div className="text-sm font-semibold">FAQs</div>
+          <div className="mt-3 space-y-2">
+            {block.data.items.map((item: FaqItem) => (
+              <div
+                key={item.id}
+                className={[
+                  "rounded-lg border p-3",
+                  isLightDesign(designKey)
+                    ? "border-neutral-200 bg-white"
+                    : "border-white/10 bg-white/5",
+                ].join(" ")}
+              >
+                <div className="text-sm font-medium">{item.question}</div>
+                <div
+                  className={[
+                    "mt-1 text-sm",
+                    getMutedTextClass(designKey),
+                  ].join(" ")}
+                >
+                  {item.answer}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+
+    case "thread":
+      return (
+        <div
+          className={[
+            "rounded-xl border p-4",
+            getSoftSurfaceClass(designKey),
+          ].join(" ")}
+        >
+          <div className="text-sm font-semibold">
+            {block.data.subject || "Message Thread"}
+          </div>
+          <div className={["mt-3 text-sm", getMutedTextClass(designKey)].join(" ")}>
+            Anonymous: {block.data.allowAnonymous ? "On" : "Off"}
+          </div>
+          <div className={["text-sm", getMutedTextClass(designKey)].join(" ")}>
+            Approval: {block.data.requireApproval ? "Required" : "Not required"}
+          </div>
+        </div>
+      );
+
+    case "padding":
+      return <div className="h-full w-full" />;
+
+    case "showcase":
+      return (
+        <div className="grid h-full grid-cols-3 gap-2">
+          {(block.data.images.length
+            ? block.data.images
+            : Array.from({ length: 9 })
+          )
+            .slice(0, 9)
+            .map((image: any, index) => (
+              <div
+                key={image?.id || index}
+                className={[
+                  "aspect-square rounded-lg border",
+                  isLightDesign(designKey)
+                    ? "border-neutral-200 bg-neutral-100"
+                    : "border-white/10 bg-white/5",
+                ].join(" ")}
+                style={
+                  image?.url
+                    ? {
+                        backgroundImage: `url(${image.url})`,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                      }
+                    : undefined
+                }
+              />
+            ))}
+        </div>
+      );
+
+    case "festiveBackground":
+      return block.data.image.url ? (
+        <img
+          src={block.data.image.url}
+          alt=""
+          className="h-full w-full rounded-xl object-cover"
+        />
+      ) : (
+        <div
+          className={[
+            "flex h-full min-h-[120px] items-center justify-center rounded-xl border border-dashed text-sm",
+            getPlaceholderClass(designKey),
+          ].join(" ")}
+        >
+          Background image
+        </div>
+      );
   }
 }

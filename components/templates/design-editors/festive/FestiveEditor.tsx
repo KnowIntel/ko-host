@@ -1,632 +1,936 @@
 "use client";
 
-import { useMemo, useRef } from "react";
-import type { BuilderDraft } from "@/lib/templates/builder";
-import SidebarToolButton from "@/components/templates/design-editors/shared/SidebarToolButton";
-import EmptyImagePlaceholder from "@/components/templates/design-editors/shared/EmptyImagePlaceholder";
-import CountdownPreview from "@/components/templates/design-editors/shared/CountdownPreview";
+import { useEffect, useMemo, useRef } from "react";
+import ToolboxPanel from "@/components/templates/design-editors/shared/ToolboxPanel";
+import type {
+  BuilderBlockType,
+  BuilderDraft,
+  CountdownBlock,
+  CtaBlock,
+  FestiveBackgroundBlock,
+  ImageBlock,
+  LabelBlock,
+  LinksBlock,
+  TextStyle,
+} from "@/lib/templates/builder";
 import {
+  addBlockToDraft,
+  addNavigationLink,
   createDefaultCountdownBlock,
   createDefaultHeroButtonBlock,
+  createDefaultImageBlock,
+  createDefaultLabelBlock,
   createDefaultLinksBlock,
   getCountdownBlock,
   getFestiveBackgroundBlock,
   getHeroButtonBlock,
+  getImageBlocks,
   getLinksBlock,
-  isoToLocalDateTimeValue,
   readFileAsDataUrl,
+  removeBlockFromDraft,
+  removeNavigationLink,
+  updateCountdownField,
+  updateCtaBlockField,
+  updateImageBlockAlt,
+  updateImageBlockUrl,
+  updateLabelBlockStyle,
+  updateLabelBlockText,
+  updateLinkItem,
+  updateLinksHeading,
 } from "@/components/templates/design-editors/shared/editorUtils";
+
+const CANVAS_WIDTH = 1400;
 
 type Props = {
   templateKey: string;
-  designKey: string;
+  designKey?: string;
   draft: BuilderDraft;
   setDraft: React.Dispatch<React.SetStateAction<BuilderDraft>>;
   submitLabel?: string;
 };
 
-export default function FestiveEditor({
-  draft,
-  setDraft,
-  submitLabel = "Continue",
-}: Props) {
-  const festiveBgInputRef = useRef<HTMLInputElement | null>(null);
+type DraftWithVisuals = BuilderDraft & {
+  backgroundImageUrl?: string | null;
+  pageBackground?: string | null;
+  pageColor?: string | null;
+};
 
-  const festiveBackgroundBlock = useMemo(
-    () => getFestiveBackgroundBlock(draft.blocks),
+function coerceDraft(draft: BuilderDraft): DraftWithVisuals {
+  return draft as DraftWithVisuals;
+}
+
+function getBackgroundImageUrl(draft: BuilderDraft) {
+  return coerceDraft(draft).pageBackground || coerceDraft(draft).backgroundImageUrl || "";
+}
+
+function getPageColor(draft: BuilderDraft) {
+  return coerceDraft(draft).pageColor || "#f8f1ea";
+}
+
+function getLabelStyle(style?: TextStyle): React.CSSProperties {
+  return {
+    fontFamily:
+      style?.fontFamily && style.fontFamily !== "inherit"
+        ? style.fontFamily
+        : undefined,
+    fontSize: style?.fontSize ? `${style.fontSize}px` : undefined,
+    fontWeight: style?.bold ? 700 : 400,
+    fontStyle: style?.italic ? "italic" : "normal",
+    textDecoration: style?.underline ? "underline" : "none",
+    textAlign: style?.align ?? "left",
+    whiteSpace: "pre-wrap",
+    wordBreak: "break-word",
+    overflowWrap: "anywhere",
+  };
+}
+
+function panelShellClass() {
+  return "space-y-4 rounded-[24px] border border-white/10 bg-[#111317] p-5 shadow-sm";
+}
+
+function panelCardClass() {
+  return "rounded-xl border border-white/10 bg-black/20 p-4";
+}
+
+function panelTitleClass() {
+  return "text-xs font-semibold uppercase tracking-[0.16em] text-white/60";
+}
+
+function panelFieldClass() {
+  return "w-full rounded-xl border border-white/15 bg-black/20 px-3 py-2 text-white";
+}
+
+function panelButtonClass() {
+  return "rounded-lg border border-white/10 px-2.5 py-1 text-[11px] text-white/70 hover:bg-white/10";
+}
+
+export default function FestiveEditor({ draft, setDraft }: Props) {
+  const mainScrollRef = useRef<HTMLDivElement | null>(null);
+  const stickyScrollRef = useRef<HTMLDivElement | null>(null);
+  const isSyncingRef = useRef<"main" | "sticky" | null>(null);
+
+  useEffect(() => {
+    const main = mainScrollRef.current;
+    const sticky = stickyScrollRef.current;
+
+    if (!main || !sticky) return;
+
+    const syncFromMain = () => {
+      if (isSyncingRef.current === "sticky") return;
+      isSyncingRef.current = "main";
+      sticky.scrollLeft = main.scrollLeft;
+      requestAnimationFrame(() => {
+        isSyncingRef.current = null;
+      });
+    };
+
+    const syncFromSticky = () => {
+      if (isSyncingRef.current === "main") return;
+      isSyncingRef.current = "sticky";
+      main.scrollLeft = sticky.scrollLeft;
+      requestAnimationFrame(() => {
+        isSyncingRef.current = null;
+      });
+    };
+
+    main.addEventListener("scroll", syncFromMain, { passive: true });
+    sticky.addEventListener("scroll", syncFromSticky, { passive: true });
+
+    sticky.scrollLeft = main.scrollLeft;
+
+    return () => {
+      main.removeEventListener("scroll", syncFromMain);
+      sticky.removeEventListener("scroll", syncFromSticky);
+    };
+  }, []);
+
+  const festiveBackground = useMemo(
+    () =>
+      getFestiveBackgroundBlock(draft.blocks) as FestiveBackgroundBlock | null,
     [draft.blocks],
   );
-  const linksBlock = useMemo(() => getLinksBlock(draft.blocks), [draft.blocks]);
-  const heroButtonBlock = useMemo(
-    () => getHeroButtonBlock(draft.blocks),
+
+  const ctaBlock = useMemo(
+    () => getHeroButtonBlock(draft.blocks) as CtaBlock | null,
     [draft.blocks],
   );
+
   const countdownBlock = useMemo(
-    () => getCountdownBlock(draft.blocks),
+    () => getCountdownBlock(draft.blocks) as CountdownBlock | null,
     [draft.blocks],
   );
 
-  function ensureLinksBlock() {
+  const linksBlock = useMemo(
+    () => getLinksBlock(draft.blocks) as LinksBlock | null,
+    [draft.blocks],
+  );
+
+  const labelBlocks = useMemo(
+    () =>
+      draft.blocks.filter(
+        (block): block is LabelBlock => block.type === "label",
+      ),
+    [draft.blocks],
+  );
+
+  const imageBlocks = useMemo(
+    () => getImageBlocks(draft.blocks) as ImageBlock[],
+    [draft.blocks],
+  );
+
+  const selectedLabel = labelBlocks[0];
+
+  const selectedStyle: TextStyle = {
+    fontFamily: selectedLabel?.data.style?.fontFamily ?? "inherit",
+    fontSize: selectedLabel?.data.style?.fontSize ?? 16,
+    bold: selectedLabel?.data.style?.bold ?? false,
+    italic: selectedLabel?.data.style?.italic ?? false,
+    underline: selectedLabel?.data.style?.underline ?? false,
+    align: selectedLabel?.data.style?.align ?? "left",
+  };
+
+  const backgroundImageUrl = getBackgroundImageUrl(draft);
+  const pageColor = getPageColor(draft);
+
+  function applyStylePatch(stylePatch: Partial<TextStyle>) {
+    if (!selectedLabel) return;
+
+    setDraft((prev) => ({
+      ...prev,
+      blocks: updateLabelBlockStyle(prev.blocks, selectedLabel.id, stylePatch),
+    }));
+  }
+
+  function addBlock(type: BuilderBlockType) {
+    let block;
+
+    if (type === "cta") block = createDefaultHeroButtonBlock("Shop Now");
+    else if (type === "countdown") block = createDefaultCountdownBlock();
+    else if (type === "links") block = createDefaultLinksBlock();
+    else if (type === "label") block = createDefaultLabelBlock("New Label");
+    else if (type === "image") block = createDefaultImageBlock();
+    else return;
+
+    setDraft((prev) => ({
+      ...prev,
+      blocks: addBlockToDraft(prev.blocks, block),
+    }));
+  }
+
+  function bringBlockToFront(blockId: string) {
     setDraft((prev) => {
-      if (getLinksBlock(prev.blocks)) return prev;
+      const target = prev.blocks.find((block) => block.id === blockId);
+      if (!target) return prev;
+
       return {
         ...prev,
-        blocks: [...prev.blocks, createDefaultLinksBlock()],
+        blocks: [...prev.blocks.filter((block) => block.id !== blockId), target],
       };
     });
   }
 
-  function ensureHeroButtonBlock() {
-    setDraft((prev) => {
-      if (getHeroButtonBlock(prev.blocks)) return prev;
-      return {
-        ...prev,
-        blocks: [...prev.blocks, createDefaultHeroButtonBlock("Shop Now")],
-      };
-    });
-  }
+  async function handleImageUpload(blockId: string, file: File | null) {
+    if (!file) return;
 
-  function ensureCountdownBlock() {
-    setDraft((prev) => {
-      if (getCountdownBlock(prev.blocks)) return prev;
-      return {
-        ...prev,
-        blocks: [...prev.blocks, createDefaultCountdownBlock()],
-      };
-    });
-  }
+    const url = await readFileAsDataUrl(file);
 
-  async function handleBrowseFestiveBackground(fileList: FileList | null) {
-    if (!fileList?.length || !festiveBackgroundBlock) return;
-
-    const file = fileList[0];
-    if (!file.type.startsWith("image/")) {
-      alert("Please choose an image file.");
-      return;
-    }
-
-    try {
-      const url = await readFileAsDataUrl(file);
-
-      setDraft((prev) => ({
-        ...prev,
-        blocks: prev.blocks.map((block) => {
-          if (
-            block.id !== festiveBackgroundBlock.id ||
-            block.type !== "festiveBackground"
-          ) {
-            return block;
-          }
-
-          return {
-            ...block,
-            data: {
-              ...block.data,
-              image: {
-                ...block.data.image,
-                url,
-              },
-            },
-          };
-        }),
-      }));
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Failed to read image.";
-      alert(message);
-    } finally {
-      if (festiveBgInputRef.current) {
-        festiveBgInputRef.current.value = "";
-      }
-    }
-  }
-
-  function updateLinksItem(
-    itemId: string,
-    field: "label" | "url",
-    value: string,
-  ) {
     setDraft((prev) => ({
       ...prev,
-      blocks: prev.blocks.map((block) => {
-        if (block.type !== "links") return block;
-
-        return {
-          ...block,
-          data: {
-            ...block.data,
-            items: block.data.items.map((item) =>
-              item.id === itemId ? { ...item, [field]: value } : item,
-            ),
-          },
-        };
-      }),
+      blocks: updateImageBlockUrl(prev.blocks, blockId, url),
     }));
   }
 
-  function addLinkItem() {
-    setDraft((prev) => ({
-      ...prev,
-      blocks: prev.blocks.map((block) => {
-        if (block.type !== "links") return block;
+  async function handleBackgroundImageUpload(file: File | null) {
+    if (!file) return;
 
-        return {
-          ...block,
-          data: {
-            ...block.data,
-            items: [
-              ...block.data.items,
-              {
-                id: `link_${Math.random().toString(36).slice(2, 10)}`,
-                label: "New Link",
-                url: "#",
-              },
-            ],
-          },
-        };
-      }),
+    const url = await readFileAsDataUrl(file);
+
+    setDraft((prev) => ({
+      ...(prev as DraftWithVisuals),
+      pageBackground: url,
+      backgroundImageUrl: url,
     }));
   }
-
-  function removeLinkItem(itemId: string) {
-    setDraft((prev) => ({
-      ...prev,
-      blocks: prev.blocks.map((block) => {
-        if (block.type !== "links") return block;
-
-        return {
-          ...block,
-          data: {
-            ...block.data,
-            items: block.data.items.filter((item) => item.id !== itemId),
-          },
-        };
-      }),
-    }));
-  }
-
-  function updateHeroButtonField(
-    field: "buttonText" | "buttonUrl",
-    value: string,
-  ) {
-    setDraft((prev) => ({
-      ...prev,
-      blocks: prev.blocks.map((block) => {
-        if (block.type !== "cta") return block;
-
-        return {
-          ...block,
-          data: {
-            ...block.data,
-            [field]: value,
-          },
-        };
-      }),
-    }));
-  }
-
-  function updateCountdownField(
-    field: "targetIso" | "completedMessage",
-    value: string,
-  ) {
-    setDraft((prev) => ({
-      ...prev,
-      blocks: prev.blocks.map((block) => {
-        if (block.type !== "countdown") return block;
-
-        return {
-          ...block,
-          data: {
-            ...block.data,
-            [field]: value,
-          },
-        };
-      }),
-    }));
-  }
-
-  const festiveBgUrl = festiveBackgroundBlock?.data.image.url || "";
-  const navItems = linksBlock?.data.items ?? [];
-  const heroButtonText = heroButtonBlock?.data.buttonText || "Shop Now";
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[280px_minmax(0,1fr)]">
-      <aside className="rounded-[28px] border border-neutral-200 bg-white p-4 shadow-sm xl:sticky xl:top-6 xl:h-[fit-content]">
-        <div className="mb-4">
-          <div className="text-xs font-semibold uppercase tracking-[0.18em] text-neutral-500">
-            Left Toolbox
-          </div>
-          <h2 className="mt-2 text-lg font-semibold text-neutral-950">
-            Festive Controls
-          </h2>
-          <p className="mt-2 text-sm leading-6 text-neutral-600">
-            Edit the holiday layout content and festive background visually.
-          </p>
-        </div>
+    <div className="grid gap-6 lg:grid-cols-[220px_minmax(0,1fr)_360px]">
+      <ToolboxPanel
+        selectedFontFamily={selectedStyle.fontFamily ?? "inherit"}
+        selectedFontSize={selectedStyle.fontSize ?? 16}
+        selectedBold={selectedStyle.bold ?? false}
+        selectedItalic={selectedStyle.italic ?? false}
+        selectedUnderline={selectedStyle.underline ?? false}
+        onFontFamilyChange={(value) => applyStylePatch({ fontFamily: value })}
+        onFontSizeChange={(value) => applyStylePatch({ fontSize: value })}
+        onBoldChange={(value) => applyStylePatch({ bold: value })}
+        onItalicChange={(value) => applyStylePatch({ italic: value })}
+        onUnderlineChange={(value) => applyStylePatch({ underline: value })}
+        onAlignChange={(value) => applyStylePatch({ align: value })}
+        onAddBlock={addBlock}
+      />
 
-        <div className="space-y-3">
-          <SidebarToolButton
-            label="Background Image"
-            icon="🖼️"
-            onClick={() => festiveBgInputRef.current?.click()}
-          />
-          <SidebarToolButton
-            label="Navigation Links"
-            icon="🔗"
-            onClick={() => {
-              ensureLinksBlock();
-              document
-                .getElementById("festive-links-panel")
-                ?.scrollIntoView({ behavior: "smooth", block: "start" });
-            }}
-          />
-          <SidebarToolButton
-            label="Hero Button"
-            icon="▣"
-            onClick={() => {
-              ensureHeroButtonBlock();
-              document
-                .getElementById("festive-button-panel")
-                ?.scrollIntoView({ behavior: "smooth", block: "start" });
-            }}
-          />
-          <SidebarToolButton
-            label="Countdown"
-            icon="⏳"
-            onClick={() => {
-              ensureCountdownBlock();
-              document
-                .getElementById("festive-countdown-panel")
-                ?.scrollIntoView({ behavior: "smooth", block: "start" });
-            }}
-          />
-        </div>
-
-        <input
-          ref={festiveBgInputRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={(e) => void handleBrowseFestiveBackground(e.target.files)}
-        />
-      </aside>
-
-      <div className="space-y-6">
-        <section className="rounded-[28px] border border-neutral-200 bg-white p-5 shadow-sm sm:p-6">
-          <div className="grid gap-4 lg:grid-cols-2">
-            <div>
-              <label className="text-sm font-medium text-neutral-900">Title</label>
-              <input
-                value={draft.title}
-                onChange={(e) =>
-                  setDraft((prev) => ({ ...prev, title: e.target.value }))
-                }
-                className="mt-2 w-full rounded-xl border border-neutral-300 bg-white px-3 py-2.5 text-sm text-neutral-900 outline-none transition focus:border-neutral-500"
-                placeholder="Celebrate the Season"
-              />
-            </div>
-
-            <div>
-              <label className="text-sm font-medium text-neutral-900">
-                Subtitle
-              </label>
-              <input
-                value={draft.subtitle ?? ""}
-                onChange={(e) =>
-                  setDraft((prev) => ({ ...prev, subtitle: e.target.value }))
-                }
-                className="mt-2 w-full rounded-xl border border-neutral-300 bg-white px-3 py-2.5 text-sm text-neutral-900 outline-none transition focus:border-neutral-500"
-                placeholder="Holiday Sale"
-              />
-            </div>
-
-            <div className="lg:col-span-2">
-              <label className="text-sm font-medium text-neutral-900">
-                Subtext
-              </label>
-              <input
-                value={draft.subtext ?? ""}
-                onChange={(e) =>
-                  setDraft((prev) => ({ ...prev, subtext: e.target.value }))
-                }
-                className="mt-2 w-full rounded-xl border border-neutral-300 bg-white px-3 py-2.5 text-sm text-neutral-900 outline-none transition focus:border-neutral-500"
-                placeholder="Huge discounts on gifts for the whole family!"
-              />
-            </div>
-
-            <div>
-              <label className="text-sm font-medium text-neutral-900">
-                Countdown Label
-              </label>
-              <input
-                value={draft.countdownLabel ?? ""}
-                onChange={(e) =>
-                  setDraft((prev) => ({
-                    ...prev,
-                    countdownLabel: e.target.value,
-                  }))
-                }
-                className="mt-2 w-full rounded-xl border border-neutral-300 bg-white px-3 py-2.5 text-sm text-neutral-900 outline-none transition focus:border-neutral-500"
-                placeholder="Sale Ends In:"
-              />
-            </div>
-          </div>
-        </section>
-
-        <section className="rounded-[28px] border border-neutral-200 bg-[#f5f1ee] p-4 shadow-sm sm:p-6">
-          <div className="overflow-hidden rounded-[30px] bg-white">
+      <div className="min-w-0">
+        <div className="rounded-[32px] border border-neutral-800 bg-[linear-gradient(180deg,#0f1115_0%,#171a21_100%)] p-6 shadow-sm">
+          <div
+            ref={mainScrollRef}
+            className="w-full overflow-x-hidden overflow-y-visible pb-5"
+          >
             <div
-              className="relative min-h-[1400px] bg-cover bg-center bg-no-repeat"
               style={{
-                backgroundImage: festiveBgUrl ? `url("${festiveBgUrl}")` : undefined,
-                backgroundColor: festiveBgUrl ? undefined : "#f8f4ef",
+                width: `${CANVAS_WIDTH}px`,
+                minWidth: `${CANVAS_WIDTH}px`,
               }}
             >
-              {!festiveBgUrl ? (
-                <div className="absolute inset-0">
-                  <EmptyImagePlaceholder
-                    title="Festive background image"
-                    recommendedSize="recommended: 1600x2400"
-                  />
-                </div>
-              ) : null}
+              <div className="relative overflow-hidden rounded-[28px] border border-neutral-200">
+                <div
+                  className="relative h-[640px] w-full"
+                  style={{
+                    backgroundColor: pageColor,
+                    backgroundImage: backgroundImageUrl
+                      ? `url(${backgroundImageUrl})`
+                      : festiveBackground?.data.image.url
+                        ? `url(${festiveBackground.data.image.url})`
+                        : undefined,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                    backgroundRepeat: "no-repeat",
+                  }}
+                >
+                  {!backgroundImageUrl && !festiveBackground?.data.image.url ? (
+                    <div className="absolute inset-0 bg-[linear-gradient(180deg,#f8f1ea_0%,#f3e5d8_100%)]" />
+                  ) : null}
 
-              <button
-                type="button"
-                onClick={() => festiveBgInputRef.current?.click()}
-                className="absolute bottom-4 left-4 z-20"
-                aria-label="Edit festive background image"
-              >
-                <img
-                  src="/icons/edit_icon.webp"
-                  alt="Edit"
-                  className="h-10 w-10 rounded-full bg-white/90 p-1.5 shadow-sm"
-                />
-              </button>
+                  <div className="absolute inset-0 bg-black/10" />
 
-              <div className="relative z-10 px-6 py-8 sm:px-10 sm:py-10">
-                <div className="text-[22px] font-medium text-[#c76152]">
-                  Your Logo
-                </div>
+                  <div className="absolute inset-0 flex items-center justify-center px-8">
+                    <div className="max-w-[720px] text-center">
+                      {draft.title ? (
+                        <div
+                          className="text-[52px] leading-[0.95] text-black"
+                          style={{ fontFamily: '"Great Vibes", serif' }}
+                        >
+                          {draft.title}
+                        </div>
+                      ) : null}
 
-                <div className="mx-auto mt-20 max-w-[900px] text-center">
-                  <h1
-                    className="text-[62px] leading-[0.95] text-[#2f6b53] sm:text-[84px] md:text-[96px]"
-                    style={{ fontFamily: "var(--font-great-vibes)" }}
-                  >
-                    {draft.title || "Celebrate the Season"}
-                  </h1>
+                      {draft.subtitle ? (
+                        <div
+                          className="mt-4 text-[24px] text-red-700"
+                          style={{ fontFamily: '"Cormorant Garamond", serif' }}
+                        >
+                          {draft.subtitle}
+                        </div>
+                      ) : null}
 
-                  <div className="mt-6 text-[48px] font-bold uppercase leading-none tracking-tight text-[#da2421] sm:text-[76px] md:text-[92px]">
-                    {draft.subtitle || "Holiday Sale"}
-                  </div>
+                      {draft.description ? (
+                        <div className="mx-auto mt-5 max-w-[520px] text-[16px] leading-7 text-black">
+                          {draft.description}
+                        </div>
+                      ) : null}
 
-                  <p className="mx-auto mt-8 max-w-[820px] text-[22px] leading-[1.35] text-[#6a6a6a] sm:text-[28px]">
-                    {draft.subtext ||
-                      "Huge discounts on gifts for the whole family!"}
-                  </p>
+                      {ctaBlock ? (
+                        <div className="mt-6">
+                          <button
+                            type="button"
+                            className="rounded-full bg-red-700 px-6 py-3 text-sm font-semibold text-white"
+                          >
+                            {ctaBlock.data.buttonText || "Button"}
+                          </button>
+                        </div>
+                      ) : null}
 
-                  <div className="mt-10">
-                    <a
-                      href={heroButtonBlock?.data.buttonUrl || "#"}
-                      className="inline-flex items-center justify-center rounded-2xl bg-[#d8221f] px-10 py-4 text-[18px] font-medium text-white shadow-sm transition hover:opacity-90 sm:text-[22px]"
-                    >
-                      {heroButtonText}
-                    </a>
-                  </div>
+                      {countdownBlock ? (
+                        <div className="mt-8 space-y-3">
+                          <div className="text-sm font-semibold uppercase tracking-[0.18em] text-black">
+                            {countdownBlock.data.heading || "Countdown"}
+                          </div>
+                          <div className="text-3xl font-bold tracking-[0.2em] text-black">
+                            00 : 00 : 00
+                          </div>
+                        </div>
+                      ) : null}
 
-                  <div className="mx-auto mt-12 flex max-w-[620px] items-center justify-center gap-5 text-center">
-                    <div className="h-px flex-1 bg-[#bfe2e5]" />
-                    <div className="text-[26px] font-medium text-black sm:text-[34px]">
-                      {draft.countdownLabel || "Sale Ends In:"}
+                      {labelBlocks.length > 0 ? (
+                        <div className="mx-auto mt-8 max-w-[520px] space-y-3">
+                          {labelBlocks.map((block) => (
+                            <div
+                              key={block.id}
+                              className="rounded-xl bg-white/75 px-4 py-3"
+                            >
+                              <div style={getLabelStyle(block.data.style)}>
+                                {block.data.text || "Label"}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : null}
+
+                      {linksBlock && linksBlock.data.items.length > 0 ? (
+                        <div className="mx-auto mt-8 max-w-[520px] rounded-2xl bg-white/75 px-5 py-4">
+                          {linksBlock.data.heading ? (
+                            <div className="mb-3 text-sm font-semibold uppercase tracking-[0.12em] text-neutral-700">
+                              {linksBlock.data.heading}
+                            </div>
+                          ) : null}
+
+                          <div className="space-y-2">
+                            {linksBlock.data.items.slice(0, 4).map((item) => (
+                              <div
+                                key={item.id}
+                                className="text-sm font-medium text-neutral-800"
+                              >
+                                {item.label || "Link"}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null}
                     </div>
-                    <div className="h-px flex-1 bg-[#bfe2e5]" />
-                  </div>
-
-                  <div className="mx-auto mt-8 max-w-[560px]">
-                    <CountdownPreview targetIso={countdownBlock?.data.targetIso} />
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </section>
 
-        <section className="grid gap-6 lg:grid-cols-2">
-          <div
-            id="festive-links-panel"
-            className="rounded-[28px] border border-neutral-200 bg-white p-5 shadow-sm"
-          >
-            <div className="mb-4">
-              <div className="text-sm font-semibold text-neutral-900">
-                Navigation Links
+          <div className="sticky bottom-3 z-10 mt-2">
+            <div className="rounded-full border border-white/10 bg-black/60 px-3 py-2 backdrop-blur-md">
+              <div
+                ref={stickyScrollRef}
+                className="overflow-x-auto overflow-y-hidden"
+              >
+                <div
+                  style={{
+                    width: `${CANVAS_WIDTH}px`,
+                    height: "1px",
+                  }}
+                />
               </div>
-              <div className="mt-1 text-sm text-neutral-600">
-                These links are available for festive layout navigation.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className={panelShellClass()}>
+        <div className="text-sm font-semibold text-white">Festive Content</div>
+
+        <div className={panelCardClass()}>
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <div className={panelTitleClass()}>Background Image</div>
+
+            {backgroundImageUrl ? (
+              <button
+                type="button"
+                onClick={() =>
+                  setDraft((prev) => ({
+                    ...(prev as DraftWithVisuals),
+                    pageBackground: "",
+                    backgroundImageUrl: "",
+                  }))
+                }
+                className={panelButtonClass()}
+              >
+                Remove
+              </button>
+            ) : null}
+          </div>
+
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) =>
+              void handleBackgroundImageUpload(e.target.files?.[0] || null)
+            }
+            className="block w-full text-sm text-white/70"
+          />
+
+          {backgroundImageUrl ? (
+            <div className="mt-3 overflow-hidden rounded-xl border border-white/10">
+              <img
+                src={backgroundImageUrl}
+                alt="Background preview"
+                className="h-32 w-full object-cover"
+              />
+            </div>
+          ) : (
+            <div className="mt-3 flex h-32 items-center justify-center rounded-xl border border-dashed border-white/10 text-sm text-white/45">
+              No background image selected
+            </div>
+          )}
+        </div>
+
+        <div className={panelCardClass()}>
+          <div className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-white/60">
+            Page Color
+          </div>
+
+          <div className="flex items-center gap-3">
+            <input
+              type="color"
+              value={pageColor}
+              onChange={(e) =>
+                setDraft((prev) => ({
+                  ...(prev as DraftWithVisuals),
+                  pageColor: e.target.value,
+                }))
+              }
+              className="h-11 w-16 cursor-pointer rounded border border-white/10 bg-transparent"
+            />
+
+            <input
+              value={pageColor}
+              onChange={(e) =>
+                setDraft((prev) => ({
+                  ...(prev as DraftWithVisuals),
+                  pageColor: e.target.value,
+                }))
+              }
+              className={panelFieldClass()}
+              placeholder="#f8f1ea"
+            />
+          </div>
+        </div>
+
+        <div className={panelCardClass()}>
+          <div className={panelTitleClass()}>Title</div>
+          <input
+            value={draft.title || ""}
+            onChange={(e) =>
+              setDraft((prev) => ({ ...prev, title: e.target.value }))
+            }
+            className={`mt-3 ${panelFieldClass()}`}
+          />
+        </div>
+
+        <div className={panelCardClass()}>
+          <div className={panelTitleClass()}>Subtitle</div>
+          <input
+            value={draft.subtitle || ""}
+            onChange={(e) =>
+              setDraft((prev) => ({ ...prev, subtitle: e.target.value }))
+            }
+            className={`mt-3 ${panelFieldClass()}`}
+          />
+        </div>
+
+        <div className={panelCardClass()}>
+          <div className={panelTitleClass()}>Description</div>
+          <textarea
+            rows={4}
+            value={draft.description || ""}
+            onChange={(e) =>
+              setDraft((prev) => ({
+                ...prev,
+                description: e.target.value,
+              }))
+            }
+            className={`mt-3 ${panelFieldClass()}`}
+          />
+        </div>
+
+        {ctaBlock ? (
+          <div className={panelCardClass()}>
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div className={panelTitleClass()}>Button</div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => bringBlockToFront(ctaBlock.id)}
+                  className={panelButtonClass()}
+                >
+                  Bring to front
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setDraft((prev) => ({
+                      ...prev,
+                      blocks: removeBlockFromDraft(prev.blocks, ctaBlock.id),
+                    }))
+                  }
+                  className={panelButtonClass()}
+                >
+                  Remove
+                </button>
               </div>
             </div>
 
-            {linksBlock ? (
-              <div className="space-y-3">
-                {linksBlock.data.items.map((item, index) => (
-                  <div
-                    key={item.id}
-                    className="rounded-2xl border border-neutral-200 bg-neutral-50 p-3"
-                  >
-                    <div className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-neutral-500">
-                      Link {index + 1}
-                    </div>
+            <input
+              value={ctaBlock.data.buttonText || ""}
+              onChange={(e) =>
+                setDraft((prev) => ({
+                  ...prev,
+                  blocks: updateCtaBlockField(
+                    prev.blocks,
+                    ctaBlock.id,
+                    "buttonText",
+                    e.target.value,
+                  ),
+                }))
+              }
+              className={panelFieldClass()}
+            />
 
-                    <div className="grid gap-3 md:grid-cols-2">
-                      <input
-                        value={item.label}
-                        onChange={(e) =>
-                          updateLinksItem(item.id, "label", e.target.value)
-                        }
-                        className="w-full rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 outline-none transition focus:border-neutral-500"
-                        placeholder="Label"
-                      />
+            <input
+              value={ctaBlock.data.buttonUrl || ""}
+              onChange={(e) =>
+                setDraft((prev) => ({
+                  ...prev,
+                  blocks: updateCtaBlockField(
+                    prev.blocks,
+                    ctaBlock.id,
+                    "buttonUrl",
+                    e.target.value,
+                  ),
+                }))
+              }
+              className={`mt-3 ${panelFieldClass()}`}
+            />
+          </div>
+        ) : null}
 
-                      <input
-                        value={item.url}
-                        onChange={(e) =>
-                          updateLinksItem(item.id, "url", e.target.value)
-                        }
-                        className="w-full rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 outline-none transition focus:border-neutral-500"
-                        placeholder="https://"
-                      />
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => removeLinkItem(item.id)}
-                      className="mt-3 rounded-xl border border-red-300 px-3 py-2 text-xs font-medium text-red-700 hover:bg-red-50"
-                    >
-                      Remove Link
-                    </button>
-                  </div>
-                ))}
-
+        {countdownBlock ? (
+          <div className={panelCardClass()}>
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div className={panelTitleClass()}>Countdown</div>
+              <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={addLinkItem}
-                  className="rounded-xl border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-900 transition hover:bg-neutral-50"
+                  onClick={() => bringBlockToFront(countdownBlock.id)}
+                  className={panelButtonClass()}
+                >
+                  Bring to front
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setDraft((prev) => ({
+                      ...prev,
+                      blocks: removeBlockFromDraft(prev.blocks, countdownBlock.id),
+                    }))
+                  }
+                  className={panelButtonClass()}
+                >
+                  Remove
+                </button>
+              </div>
+            </div>
+
+            <input
+              value={countdownBlock.data.heading || ""}
+              onChange={(e) =>
+                setDraft((prev) => ({
+                  ...prev,
+                  blocks: updateCountdownField(
+                    prev.blocks,
+                    countdownBlock.id,
+                    "heading",
+                    e.target.value,
+                  ),
+                }))
+              }
+              className={panelFieldClass()}
+            />
+
+            <input
+              type="datetime-local"
+              value={countdownBlock.data.targetIso || ""}
+              onChange={(e) =>
+                setDraft((prev) => ({
+                  ...prev,
+                  blocks: updateCountdownField(
+                    prev.blocks,
+                    countdownBlock.id,
+                    "targetIso",
+                    e.target.value,
+                  ),
+                }))
+              }
+              className={`mt-3 ${panelFieldClass()}`}
+            />
+          </div>
+        ) : null}
+
+        {festiveBackground ? (
+          <div className={panelCardClass()}>
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div className={panelTitleClass()}>Preset Background Block</div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => bringBlockToFront(festiveBackground.id)}
+                  className={panelButtonClass()}
+                >
+                  Bring to front
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setDraft((prev) => ({
+                      ...prev,
+                      blocks: removeBlockFromDraft(
+                        prev.blocks,
+                        festiveBackground.id,
+                      ),
+                    }))
+                  }
+                  className={panelButtonClass()}
+                >
+                  Remove
+                </button>
+              </div>
+            </div>
+
+            {festiveBackground.data.image.url ? (
+              <img
+                src={festiveBackground.data.image.url}
+                alt=""
+                className="h-40 w-full rounded-xl object-cover"
+              />
+            ) : (
+              <div className="flex h-40 items-center justify-center rounded-xl border border-dashed border-white/10 text-sm text-white/45">
+                Background placeholder
+              </div>
+            )}
+
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) =>
+                void handleImageUpload(
+                  festiveBackground.id,
+                  e.target.files?.[0] || null,
+                )
+              }
+              className="mt-3 w-full text-sm text-white/70"
+            />
+          </div>
+        ) : null}
+
+        {imageBlocks.map((block, index) => (
+          <div key={block.id} className={panelCardClass()}>
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div className={panelTitleClass()}>Image Block {index + 1}</div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => bringBlockToFront(block.id)}
+                  className={panelButtonClass()}
+                >
+                  Bring to front
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setDraft((prev) => ({
+                      ...prev,
+                      blocks: removeBlockFromDraft(prev.blocks, block.id),
+                    }))
+                  }
+                  className={panelButtonClass()}
+                >
+                  Remove
+                </button>
+              </div>
+            </div>
+
+            {block.data.image.url ? (
+              <img
+                src={block.data.image.url}
+                alt={block.data.image.alt || ""}
+                className="h-40 w-full rounded-xl object-cover"
+              />
+            ) : (
+              <div className="flex h-40 items-center justify-center rounded-xl border border-dashed border-white/10 text-sm text-white/45">
+                Image placeholder
+              </div>
+            )}
+
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) =>
+                void handleImageUpload(block.id, e.target.files?.[0] || null)
+              }
+              className="mt-3 w-full text-sm text-white/70"
+            />
+
+            <input
+              value={block.data.image.alt || ""}
+              onChange={(e) =>
+                setDraft((prev) => ({
+                  ...prev,
+                  blocks: updateImageBlockAlt(
+                    prev.blocks,
+                    block.id,
+                    e.target.value,
+                  ),
+                }))
+              }
+              placeholder="Alt text"
+              className={`mt-3 ${panelFieldClass()}`}
+            />
+          </div>
+        ))}
+
+        {labelBlocks.map((block, index) => (
+          <div key={block.id} className={panelCardClass()}>
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div className={panelTitleClass()}>Label {index + 1}</div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => bringBlockToFront(block.id)}
+                  className={panelButtonClass()}
+                >
+                  Bring to front
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setDraft((prev) => ({
+                      ...prev,
+                      blocks: removeBlockFromDraft(prev.blocks, block.id),
+                    }))
+                  }
+                  className={panelButtonClass()}
+                >
+                  Remove
+                </button>
+              </div>
+            </div>
+
+            <textarea
+              rows={3}
+              value={block.data.text}
+              onChange={(e) =>
+                setDraft((prev) => ({
+                  ...prev,
+                  blocks: updateLabelBlockText(
+                    prev.blocks,
+                    block.id,
+                    e.target.value,
+                  ),
+                }))
+              }
+              className={panelFieldClass()}
+            />
+          </div>
+        ))}
+
+        {linksBlock ? (
+          <div className={panelCardClass()}>
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div className={panelTitleClass()}>Navigation Links</div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => bringBlockToFront(linksBlock.id)}
+                  className={panelButtonClass()}
+                >
+                  Bring to front
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setDraft((prev) => ({
+                      ...prev,
+                      blocks: removeBlockFromDraft(prev.blocks, linksBlock.id),
+                    }))
+                  }
+                  className={panelButtonClass()}
+                >
+                  Remove
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setDraft((prev) => ({
+                      ...prev,
+                      blocks: addNavigationLink(prev.blocks),
+                    }))
+                  }
+                  className={panelButtonClass()}
                 >
                   Add Link
                 </button>
               </div>
-            ) : (
-              <button
-                type="button"
-                onClick={ensureLinksBlock}
-                className="rounded-xl border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-900 transition hover:bg-neutral-50"
-              >
-                Add Links Block
-              </button>
-            )}
-          </div>
-
-          <div
-            id="festive-button-panel"
-            className="rounded-[28px] border border-neutral-200 bg-white p-5 shadow-sm"
-          >
-            <div className="mb-4">
-              <div className="text-sm font-semibold text-neutral-900">
-                Hero Button
-              </div>
-              <div className="mt-1 text-sm text-neutral-600">
-                Controls the main festive button.
-              </div>
             </div>
 
-            {heroButtonBlock ? (
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium text-neutral-900">
-                    Button Text
-                  </label>
+            <div className="mb-3">
+              <input
+                value={linksBlock.data.heading || ""}
+                onChange={(e) =>
+                  setDraft((prev) => ({
+                    ...prev,
+                    blocks: updateLinksHeading(
+                      prev.blocks,
+                      linksBlock.id,
+                      e.target.value,
+                    ),
+                  }))
+                }
+                className={panelFieldClass()}
+              />
+            </div>
+
+            <div className="space-y-3">
+              {linksBlock.data.items.map((item) => (
+                <div
+                  key={item.id}
+                  className="rounded-xl border border-white/10 p-3"
+                >
                   <input
-                    value={heroButtonBlock.data.buttonText}
+                    value={item.label}
                     onChange={(e) =>
-                      updateHeroButtonField("buttonText", e.target.value)
+                      setDraft((prev) => ({
+                        ...prev,
+                        blocks: updateLinkItem(
+                          prev.blocks,
+                          item.id,
+                          "label",
+                          e.target.value,
+                        ),
+                      }))
                     }
-                    className="mt-2 w-full rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 outline-none transition focus:border-neutral-500"
-                    placeholder="Shop Now"
+                    placeholder="Label"
+                    className={panelFieldClass()}
                   />
-                </div>
 
-                <div>
-                  <label className="text-sm font-medium text-neutral-900">
-                    Button URL
-                  </label>
                   <input
-                    value={heroButtonBlock.data.buttonUrl}
+                    value={item.url}
                     onChange={(e) =>
-                      updateHeroButtonField("buttonUrl", e.target.value)
+                      setDraft((prev) => ({
+                        ...prev,
+                        blocks: updateLinkItem(
+                          prev.blocks,
+                          item.id,
+                          "url",
+                          e.target.value,
+                        ),
+                      }))
                     }
-                    className="mt-2 w-full rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 outline-none transition focus:border-neutral-500"
-                    placeholder="https://"
+                    placeholder="URL"
+                    className={`mt-3 ${panelFieldClass()}`}
                   />
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setDraft((prev) => ({
+                        ...prev,
+                        blocks: removeNavigationLink(prev.blocks, item.id),
+                      }))
+                    }
+                    className={`mt-3 ${panelButtonClass()}`}
+                  >
+                    Remove Link
+                  </button>
                 </div>
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={ensureHeroButtonBlock}
-                className="rounded-xl border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-900 transition hover:bg-neutral-50"
-              >
-                Add Hero Button Block
-              </button>
-            )}
-          </div>
-        </section>
-
-        <section
-          id="festive-countdown-panel"
-          className="rounded-[28px] border border-neutral-200 bg-white p-5 shadow-sm"
-        >
-          <div className="mb-4">
-            <div className="text-sm font-semibold text-neutral-900">
-              Countdown
-            </div>
-            <div className="mt-1 text-sm text-neutral-600">
-              Set when the holiday sale ends.
+              ))}
             </div>
           </div>
-
-          {countdownBlock ? (
-            <div className="grid gap-4 lg:grid-cols-2">
-              <div>
-                <label className="text-sm font-medium text-neutral-900">
-                  Target Date & Time
-                </label>
-                <input
-                  type="datetime-local"
-                  value={isoToLocalDateTimeValue(countdownBlock.data.targetIso)}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    updateCountdownField(
-                      "targetIso",
-                      value ? new Date(value).toISOString() : "",
-                    );
-                  }}
-                  className="mt-2 w-full rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 outline-none transition focus:border-neutral-500"
-                />
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-neutral-900">
-                  Completed Message
-                </label>
-                <input
-                  value={countdownBlock.data.completedMessage}
-                  onChange={(e) =>
-                    updateCountdownField("completedMessage", e.target.value)
-                  }
-                  className="mt-2 w-full rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 outline-none transition focus:border-neutral-500"
-                  placeholder="Sale ended"
-                />
-              </div>
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={ensureCountdownBlock}
-              className="rounded-xl border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-900 transition hover:bg-neutral-50"
-            >
-              Add Countdown Block
-            </button>
-          )}
-        </section>
-
-        <div className="flex justify-end">
-          <button
-            type="button"
-            className="inline-flex items-center justify-center rounded-xl bg-black px-5 py-3 text-sm font-semibold text-white transition hover:bg-neutral-800"
-          >
-            {submitLabel}
-          </button>
-        </div>
+        ) : null}
       </div>
     </div>
   );

@@ -1,75 +1,133 @@
-import { BuilderDraft } from "@/lib/templates/builder";
+import type { MicrositeBlock } from "@/lib/templates/builder";
+import {
+  createFestiveBackgroundBlock,
+  createShowcaseBlock,
+} from "@/lib/templates/builder";
 
-export function createHolidayShopDraft(): BuilderDraft {
+function makeId(prefix: string) {
+  return `${prefix}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function createLinksBlock(items?: Array<{ label: string; url: string }>): MicrositeBlock {
   return {
-    title: "Holiday Storefront",
-    slugSuggestion: "",
-    pageBackground: "none",
-    blocks: [
-      {
-        id: "hero_sale",
-        type: "announcement",
-        label: "Hero Banner",
-        data: {
-          headline: "20% Off",
-          body: "Any single clothing item. Shop now.",
-        },
-      },
-
-      {
-        id: "nav_links",
-        type: "links",
-        label: "Category Nav",
-        data: {
-          heading: "",
-          items: [
-            { id: "1", label: "Holiday gifts", url: "#" },
-            { id: "2", label: "Wrapping gifts", url: "#" },
-            { id: "3", label: "Decorating gifts", url: "#" },
-            { id: "4", label: "Costume gifts", url: "#" },
-            { id: "5", label: "Impression gifts", url: "#" },
-          ],
-        },
-      },
-
-      {
-        id: "products",
-        type: "gallery",
-        label: "Products",
-        data: {
-          heading: "New products",
-          items: Array.from({ length: 8 }).map((_, i) => ({
-            id: `p${i}`,
-            url: "/templates/placeholder.webp",
-            caption: "Holiday item",
-          })),
-        },
-      },
-
-      {
-        id: "footer",
-        type: "richText",
-        label: "Footer",
-        data: {
-          heading: "",
-          body: `
-Information
-Specials
-Site map
-Advanced search
-
-Customer Service
-Contact us
-Returns
-Privacy
-
-My Account
-Orders
-Addresses
-Wish list
-`,
-        },
-      },
-    ],
+    id: makeId("links"),
+    type: "links",
+    label: "Links",
+    data: {
+      heading: "Navigation",
+      items:
+        items?.map((item) => ({
+          id: makeId("link"),
+          label: item.label,
+          url: item.url,
+        })) ?? [
+          { id: makeId("link"), label: "Home", url: "#" },
+          { id: makeId("link"), label: "Gallery", url: "#" },
+          { id: makeId("link"), label: "About", url: "#" },
+          { id: makeId("link"), label: "Contact", url: "#" },
+        ],
+    },
   };
+}
+
+function createCtaBlock(
+  buttonText = "Learn More",
+  buttonUrl = "#",
+  heading = "",
+  body = "",
+): MicrositeBlock {
+  return {
+    id: makeId("cta"),
+    type: "cta",
+    label: "Call To Action",
+    data: {
+      heading,
+      body,
+      buttonText,
+      buttonUrl,
+    },
+  };
+}
+
+function createCountdownBlock(
+  heading = "",
+  targetIso = "",
+  completedMessage = "Sale ended",
+): MicrositeBlock {
+  return {
+    id: makeId("countdown"),
+    type: "countdown",
+    label: "Countdown",
+    data: {
+      heading,
+      targetIso,
+      completedMessage,
+    },
+  };
+}
+
+export const DESIGN_STARTER_BLOCKS: Record<string, MicrositeBlock[]> = {
+  blank: [],
+
+  minimal: [
+    createShowcaseBlock(),
+    createLinksBlock([
+      { label: "Home", url: "#" },
+      { label: "Gallery", url: "#" },
+      { label: "About", url: "#" },
+      { label: "Contact", url: "#" },
+    ]),
+    createCtaBlock(
+      "View Gallery",
+      "#",
+      "Explore a collection of unique paintings created with passion.",
+      "",
+    ),
+  ],
+
+  gallery: [
+    createFestiveBackgroundBlock(),
+    createLinksBlock([
+      { label: "Home", url: "#" },
+      { label: "Shop", url: "#" },
+      { label: "Deals", url: "#" },
+      { label: "Contact", url: "#" },
+    ]),
+    createCtaBlock("Shop Now", "#", "", ""),
+    createCountdownBlock("", "", "Sale ended"),
+  ],
+
+  modern: [
+    createLinksBlock([
+      { label: "Home", url: "#" },
+      { label: "Features", url: "#" },
+      { label: "Pricing", url: "#" },
+      { label: "Contact", url: "#" },
+    ]),
+    createCtaBlock("Get Started", "#", "", ""),
+  ],
+
+  elegant: [
+    createLinksBlock([
+      { label: "Home", url: "#" },
+      { label: "Story", url: "#" },
+      { label: "Gallery", url: "#" },
+      { label: "Contact", url: "#" },
+    ]),
+    createCtaBlock("Learn More", "#", "", ""),
+  ],
+
+  classic: [
+    createLinksBlock([
+      { label: "Home", url: "#" },
+      { label: "Services", url: "#" },
+      { label: "About", url: "#" },
+      { label: "Contact", url: "#" },
+    ]),
+    createCtaBlock("Contact Us", "#", "", ""),
+  ],
+};
+
+export function getDesignStarterBlocks(designKey: string): MicrositeBlock[] {
+  return DESIGN_STARTER_BLOCKS[designKey] ?? [];
 }

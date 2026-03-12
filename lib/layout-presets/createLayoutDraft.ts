@@ -1,67 +1,30 @@
-import type { BuilderDraft } from "@/lib/templates/builder"
-import {
-  createShowcaseBlock,
-  createFestiveBackgroundBlock,
-} from "@/lib/templates/builder"
+import type { BuilderDraft } from "@/lib/templates/builder";
+import type { DesignPresetLayout } from "@/lib/templates/designPresets";
+import { createTemplateDraft } from "@/lib/templates/createTemplateDraft";
 
-function makeId(prefix: string) {
-  return `${prefix}_${Math.random().toString(36).slice(2, 10)}`
+function normalizePresetId(
+  value: string | null | undefined,
+): DesignPresetLayout {
+  if (value === "blank") return "blank";
+  if (value === "modern") return "modern";
+  if (value === "elegant") return "elegant";
+  if (value === "business" || value === "classic") return "business";
+  if (value === "festive" || value === "gallery") return "festive";
+  if (value === "showcase") return "showcase";
+  return "showcase";
 }
 
-export function createLayoutDraft(
-  templateKey: string,
-  designKey: string,
-): BuilderDraft {
-  if (designKey === "minimal") {
-    return {
-      title: "Beautiful Art",
-      subtitle: "by a Freelancer",
-      slugSuggestion: "",
-      pageBackground: "none",
-      blocks: [createShowcaseBlock()],
-    }
-  }
+export function createLayoutDraft(params: {
+  presetId?: string | null;
+  templateName?: string | null;
+  existingDraft?: Partial<BuilderDraft> | null;
+}): BuilderDraft {
+  const presetId = normalizePresetId(params.presetId);
+  const templateName = params.templateName ?? "";
 
-  if (designKey === "gallery") {
-    return {
-      title: "Celebrate the Season",
-      subtitle: "Holiday Sale",
-      subtext: "Huge discounts on gifts for the whole family!",
-      countdownLabel: "Sale Ends In:",
-      slugSuggestion: "",
-      pageBackground: "none",
-      blocks: [
-        createFestiveBackgroundBlock(),
-        {
-          id: makeId("cta"),
-          type: "cta",
-          label: "Button",
-          data: {
-            heading: "",
-            body: "",
-            buttonText: "Shop Now",
-            buttonUrl: "#",
-          },
-        },
-        {
-          id: makeId("countdown"),
-          type: "countdown",
-          label: "Countdown",
-          data: {
-            heading: "",
-            targetIso: "",
-            completedMessage: "Sale ended",
-          },
-        },
-      ],
-    }
-  }
-
-  return {
-    title: "",
-    subtitle: "",
-    slugSuggestion: "",
-    pageBackground: "none",
-    blocks: [],
-  }
+  return createTemplateDraft({
+    presetId,
+    templateName,
+    existingDraft: params.existingDraft ?? null,
+  });
 }

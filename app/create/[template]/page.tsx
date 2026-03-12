@@ -7,6 +7,7 @@ import {
   normalizeTemplateKey,
 } from "@/lib/templates/registry";
 import TemplateDraftEditor from "@/components/templates/TemplateDraftEditor";
+import type { BuilderDraft } from "@/lib/templates/builder";
 
 function resolveTemplateFromRoute(rawTemplate: string) {
   const normalized = normalizeTemplateKey(rawTemplate);
@@ -41,24 +42,28 @@ export default async function CreateTemplatePage({
 
   const templateDef = resolveTemplateFromRoute(template);
   const templateKey = templateDef.key;
+  const templateName = templateDef.title || templateKey;
 
   const requestedDesignKey = normalizeTemplateKey(design || "blank");
   const designPreset = getDesignPreset(requestedDesignKey);
   const designKey = designPreset.key;
 
-  const preset = createLayoutDraft(templateKey, designKey);
+  const presetDraft = createLayoutDraft({
+    templateName,
+    presetId: designKey,
+    existingDraft: {
+      slugSuggestion: templateDef.defaultDraft?.slugSuggestion || "",
+    },
+  });
 
-  const initialDraft = {
-    ...preset,
-    title: templateDef.defaultDraft?.title || templateDef.title || "Beautiful Art",
-    subtitle: preset.subtitle || "by a Freelancer",
+  const initialDraft: BuilderDraft = {
+    ...presetDraft,
     slugSuggestion:
-      preset.slugSuggestion ||
+      presetDraft.slugSuggestion ||
       templateDef.defaultDraft?.slugSuggestion ||
       "",
-    pageBackground: preset.pageBackground || "none",
-    blocks: Array.isArray(preset.blocks) ? preset.blocks : [],
-  };
+    blocks: Array.isArray(presetDraft.blocks) ? presetDraft.blocks : [],
+  } as BuilderDraft;
 
   return (
     <main className="min-h-screen bg-[#f6f4f2]">
@@ -96,8 +101,8 @@ export default async function CreateTemplatePage({
                     <span className="font-semibold text-neutral-900">
                       {designPreset.label}
                     </span>
-                    . Customize the Showcase layout visually using the left toolbox
-                    and live page canvas.
+                    . Customize the layout visually using the left toolbox and
+                    live page canvas.
                   </p>
 
                   <div className="mt-4 flex flex-wrap gap-2">
@@ -108,21 +113,12 @@ export default async function CreateTemplatePage({
                       Design: {designPreset.label}
                     </span>
                     <span className="rounded-full border border-neutral-200 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700">
-                      Showcase Editor
+                      Editor
                     </span>
                   </div>
                 </div>
 
                 <div className="flex shrink-0 flex-wrap items-center gap-3">
-                  <Link
-                    href="/preview/draft"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-900 transition hover:bg-neutral-50"
-                  >
-                    Open Preview
-                  </Link>
-
                   <Link
                     href={`/create/${encodeURIComponent(templateKey)}/design`}
                     className="inline-flex items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-900 transition hover:bg-neutral-50"
@@ -136,10 +132,10 @@ export default async function CreateTemplatePage({
         </div>
 
         <TemplateDraftEditor
-          templateKey={templateKey}
-          designKey={designKey}
+          key={`${templateKey}:${designKey}`}
+          templateName={templateName}
+          designLayout={designKey}
           initialDraft={initialDraft}
-          submitLabel="Continue"
         />
       </div>
     </main>

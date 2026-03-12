@@ -28,6 +28,28 @@ function badgeClassName(badge?: "Popular" | "New" | "Recommended" | null) {
   return "bg-neutral-200 text-neutral-800";
 }
 
+function sortDesignPresets<
+  T extends { key: string; badge?: "Popular" | "New" | "Recommended" | null }
+>(presets: T[]) {
+  return [...presets].sort((a, b) => {
+    const aRecommended = a.badge === "Recommended" ? 1 : 0;
+    const bRecommended = b.badge === "Recommended" ? 1 : 0;
+
+    if (aRecommended !== bRecommended) {
+      return bRecommended - aRecommended;
+    }
+
+    const aBlank = a.key === "blank" ? 1 : 0;
+    const bBlank = b.key === "blank" ? 1 : 0;
+
+    if (aBlank !== bBlank) {
+      return aBlank - bBlank;
+    }
+
+    return 0;
+  });
+}
+
 export default async function CreateTemplateDesignPage({
   params,
 }: {
@@ -37,7 +59,7 @@ export default async function CreateTemplateDesignPage({
   const templateDef = resolveTemplateFromRoute(template);
   const templateKey = templateDef.key;
 
-  const designPresets = getDesignPresets();
+  const designPresets = sortDesignPresets(getDesignPresets());
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.06),_transparent_28%),linear-gradient(to_bottom,_#ffffff,_#f8fafc)]">
@@ -77,7 +99,7 @@ export default async function CreateTemplateDesignPage({
                       Template: {templateDef.title}
                     </span>
                     <span className="rounded-full border border-neutral-200 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700">
-                      6 Design Presets
+                      {designPresets.length} Design Presets
                     </span>
                   </div>
                 </div>

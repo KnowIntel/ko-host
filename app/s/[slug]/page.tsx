@@ -1,54 +1,73 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import BlockRenderer from "@/components/preview/BlockRenderer";
+import PlacedBlocksPreview from "@/components/preview/PlacedBlocksPreview";
 import MicrositeFooterBrand from "@/components/microsite/MicrositeFooterBrand";
 import type { BuilderDraft } from "@/lib/templates/builder";
 
-type Payload = {
+type PreviewPayload = {
+  templateKey?: string;
+  designKey?: string;
   draft?: BuilderDraft;
 };
 
 export default function PublishedMicrositePage() {
-  const [payload, setPayload] = useState<Payload | null>(null);
+  const [payload, setPayload] = useState<PreviewPayload | null>(null);
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    const raw = window.localStorage.getItem("kht:preview-draft");
+    try {
+      const raw = window.localStorage.getItem("kht:preview-draft");
 
-    if (raw) {
-      setPayload(JSON.parse(raw));
+      if (!raw) {
+        setIsReady(true);
+        return;
+      }
+
+      const parsed = JSON.parse(raw) as PreviewPayload;
+      setPayload(parsed);
+    } catch {
+      setPayload(null);
+    } finally {
+      setIsReady(true);
     }
   }, []);
 
   const draft = useMemo(() => payload?.draft ?? null, [payload]);
+  const designKey = payload?.designKey || "blank";
 
-  if (!draft) return null;
+  if (!isReady) {
+    return (
+      <main className="min-h-screen bg-[#fcfbf8] px-4 py-16">
+        <div className="mx-auto max-w-4xl rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
+          <div className="text-sm font-medium text-neutral-900">
+            Loading page...
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  if (!draft) {
+    return (
+      <main className="min-h-screen bg-[#fcfbf8] px-4 py-16">
+        <div className="mx-auto max-w-4xl rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
+          <div className="text-base font-semibold text-neutral-900">
+            Page unavailable
+          </div>
+          <div className="mt-2 text-sm text-neutral-600">
+            No published microsite content available.
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <>
       <main className="min-h-screen bg-[#fcfbf8] text-neutral-900">
         <div className="mx-auto max-w-7xl px-4 py-10">
-          <header className="mb-12">
-            <h1
-              className="text-5xl"
-              style={{ fontFamily: "var(--font-great-vibes)" }}
-            >
-              {draft.title}
-            </h1>
-
-            <p
-              className="text-xl text-neutral-600"
-              style={{ fontFamily: "var(--font-cormorant)" }}
-            >
-              {draft.subtitle}
-            </p>
-          </header>
-
-          <div className="space-y-10">
-            {draft.blocks.map((block) => (
-              <BlockRenderer key={block.id} block={block} designKey="minimal" />
-            ))}
-          </div>
+          <PlacedBlocksPreview draft={draft} designKey={designKey} />
         </div>
       </main>
 
