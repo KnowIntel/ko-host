@@ -1,24 +1,25 @@
 import type {
+  BlockAppearance,
   BuilderBlockType,
   BuilderDraft,
   CountdownBlock,
   CtaBlock,
-  FaqBlock,
   FestiveBackgroundBlock,
-  GalleryBlock,
   ImageBlock,
   LabelBlock,
   LinksBlock,
   MicrositeBlock,
-  PollBlock,
-  RsvpBlock,
+  ShapeBlock,
+  ShapeType,
   ShowcaseBlock,
   TextStyle,
 } from "@/lib/templates/builder";
 
 import {
   createBlock,
+  createDefaultBlockAppearance,
   createDefaultTextStyle,
+  updateBlockAppearance as mergeBlockAppearance,
   updateTextStyle,
 } from "@/lib/templates/builder";
 
@@ -53,6 +54,7 @@ export function createDefaultLinksBlock(): LinksBlock {
         { id: makeId("link"), label: "About", url: "#" },
         { id: makeId("link"), label: "Contact", url: "#" },
       ],
+      style: createDefaultTextStyle(),
     },
   } as LinksBlock;
 }
@@ -67,6 +69,7 @@ export function createDefaultHeroButtonBlock(
       body: "",
       buttonText,
       buttonUrl: "#",
+      style: createDefaultTextStyle(),
     },
   } as CtaBlock;
 }
@@ -78,6 +81,7 @@ export function createDefaultCountdownBlock(): CountdownBlock {
       heading: "",
       targetIso: "",
       completedMessage: "Sale ended",
+      style: createDefaultTextStyle(),
     },
   } as CountdownBlock;
 }
@@ -106,6 +110,18 @@ export function createDefaultImageBlock(url = "", alt = ""): ImageBlock {
       },
     },
   } as ImageBlock;
+}
+
+export function createDefaultShapeBlock(
+  shapeType: ShapeType = "rectangle",
+): ShapeBlock {
+  const block = createBlock("shape") as ShapeBlock;
+  return {
+    ...block,
+    data: {
+      shapeType,
+    },
+  };
 }
 
 export function createBlockFromType(
@@ -173,11 +189,103 @@ export function addBlockTypeToDraft(
   return block ? [...blocks, block] : blocks;
 }
 
+export function addShapeBlockToDraft(
+  blocks: MicrositeBlock[],
+  shapeType: ShapeType,
+) {
+  return [...blocks, createDefaultShapeBlock(shapeType)];
+}
+
 export function removeBlockFromDraft(
   blocks: MicrositeBlock[],
   blockId: string,
 ) {
   return blocks.filter((b) => b.id !== blockId);
+}
+
+/* -------------------------------------------------------------------------- */
+/* STYLE / APPEARANCE HELPERS */
+/* -------------------------------------------------------------------------- */
+
+function blockSupportsStyle(block: MicrositeBlock) {
+  return (
+    block.type === "label" ||
+    block.type === "cta" ||
+    block.type === "links" ||
+    block.type === "countdown" ||
+    block.type === "poll" ||
+    block.type === "rsvp" ||
+    block.type === "faq" ||
+    block.type === "thread"
+  );
+}
+
+function blockSupportsAppearance(block: MicrositeBlock) {
+  return block.type !== "padding";
+}
+
+export function updateBlockStyle(
+  blocks: MicrositeBlock[],
+  blockId: string,
+  patch: Partial<TextStyle>,
+) {
+  return blocks.map((block) => {
+    if (block.id !== blockId || !blockSupportsStyle(block)) {
+      return block;
+    }
+
+    return {
+      ...block,
+      data: {
+        ...block.data,
+        style: updateTextStyle(block.data.style, patch),
+      },
+    } as MicrositeBlock;
+  });
+}
+
+export function updateBlockAppearance(
+  blocks: MicrositeBlock[],
+  blockId: string,
+  patch: Partial<BlockAppearance>,
+) {
+  return blocks.map((block) => {
+    if (block.id !== blockId || !blockSupportsAppearance(block)) {
+      return block;
+    }
+
+    return {
+      ...block,
+      appearance: mergeBlockAppearance(block.appearance, patch),
+    };
+  });
+}
+
+export function getSelectionBlockAppearance(
+  draft: BuilderDraft,
+  selection: EditorSelection,
+): BlockAppearance {
+  if (selection.type !== "block") {
+    return createDefaultBlockAppearance();
+  }
+
+  const block = draft.blocks.find((b) => b.id === selection.blockId);
+  return mergeBlockAppearance(block?.appearance, {});
+}
+
+export function applyAppearancePatchToSelection(
+  draft: BuilderDraft,
+  selection: EditorSelection,
+  patch: Partial<BlockAppearance>,
+): BuilderDraft {
+  if (selection.type !== "block") {
+    return draft;
+  }
+
+  return {
+    ...draft,
+    blocks: updateBlockAppearance(draft.blocks, selection.blockId, patch),
+  };
 }
 
 /* -------------------------------------------------------------------------- */
@@ -201,17 +309,7 @@ export function updateLabelBlockStyle(
   blockId: string,
   patch: Partial<TextStyle>,
 ) {
-  return blocks.map((block) =>
-    block.type === "label" && block.id === blockId
-      ? {
-          ...block,
-          data: {
-            ...block.data,
-            style: updateTextStyle(block.data.style, patch),
-          },
-        }
-      : block,
-  );
+  return updateBlockStyle(blocks, blockId, patch);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -255,6 +353,28 @@ export function updateImageBlockAlt(
 }
 
 /* -------------------------------------------------------------------------- */
+/* SHAPE */
+/* -------------------------------------------------------------------------- */
+
+export function updateShapeType(
+  blocks: MicrositeBlock[],
+  blockId: string,
+  shapeType: ShapeType,
+) {
+  return blocks.map((block) =>
+    block.type === "shape" && block.id === blockId
+      ? {
+          ...block,
+          data: {
+            ...block.data,
+            shapeType,
+          },
+        }
+      : block,
+  );
+}
+
+/* -------------------------------------------------------------------------- */
 /* CTA */
 /* -------------------------------------------------------------------------- */
 
@@ -288,7 +408,6 @@ export function updateCountdownField(
   );
 }
 
-/* backward compatibility for older editors */
 export function updateCountdownTarget(
   blocks: MicrositeBlock[],
   value: string,
@@ -665,7 +784,7 @@ export function getSelectionTextStyle(
 
     case "block": {
       const block = draft.blocks.find((b) => b.id === selection.blockId);
-      if (block?.type === "label") {
+      if (block && blockSupportsStyle(block)) {
         return block.data.style ?? createDefaultTextStyle();
       }
       return createDefaultTextStyle();
@@ -718,7 +837,7 @@ export function applyStylePatchToSelection(
     case "block":
       return {
         ...draft,
-        blocks: updateLabelBlockStyle(draft.blocks, selection.blockId, patch),
+        blocks: updateBlockStyle(draft.blocks, selection.blockId, patch),
       };
 
     default:

@@ -14,6 +14,13 @@ export type TextStyle = {
   color?: string;
 };
 
+export type BlockAppearance = {
+  backgroundColor?: string;
+  borderColor?: string;
+  borderWidth?: number;
+  borderRadius?: number;
+};
+
 /* =========================================
    Grid Placement
    ========================================= */
@@ -57,7 +64,8 @@ export type BuilderBlockType =
   | "gallery"
   | "thread"
   | "showcase"
-  | "festiveBackground";
+  | "festiveBackground"
+  | "shape";
 
 /* =========================================
    Shared Primitive Types
@@ -96,6 +104,8 @@ export type ThreadMessage = {
   message: string;
 };
 
+export type ShapeType = "rectangle" | "circle" | "line";
+
 /* =========================================
    Base Block
    ========================================= */
@@ -104,6 +114,7 @@ export type BaseBlock = {
   id: string;
   label: string;
   grid?: GridPlacement;
+  appearance?: BlockAppearance;
 };
 
 /* =========================================
@@ -134,6 +145,7 @@ export type LinksBlock = BaseBlock & {
   data: {
     heading?: string;
     items: LinkItem[];
+    style?: TextStyle;
   };
 };
 
@@ -144,6 +156,7 @@ export type CtaBlock = BaseBlock & {
     body?: string;
     buttonText: string;
     buttonUrl: string;
+    style?: TextStyle;
   };
 };
 
@@ -153,6 +166,7 @@ export type CountdownBlock = BaseBlock & {
     heading?: string;
     targetIso: string;
     completedMessage: string;
+    style?: TextStyle;
   };
 };
 
@@ -168,6 +182,7 @@ export type PollBlock = BaseBlock & {
   data: {
     question: string;
     options: PollOption[];
+    style?: TextStyle;
   };
 };
 
@@ -180,6 +195,7 @@ export type RsvpBlock = BaseBlock & {
     collectPhone?: boolean;
     collectGuestCount?: boolean;
     collectNotes?: boolean;
+    style?: TextStyle;
   };
 };
 
@@ -187,6 +203,7 @@ export type FaqBlock = BaseBlock & {
   type: "faq";
   data: {
     items: FaqItem[];
+    style?: TextStyle;
   };
 };
 
@@ -205,6 +222,7 @@ export type MessageThreadBlock = BaseBlock & {
     subject?: string;
     allowAnonymous?: boolean;
     requireApproval?: boolean;
+    style?: TextStyle;
   };
 };
 
@@ -225,6 +243,13 @@ export type FestiveBackgroundBlock = BaseBlock & {
   };
 };
 
+export type ShapeBlock = BaseBlock & {
+  type: "shape";
+  data: {
+    shapeType: ShapeType;
+  };
+};
+
 export type MicrositeBlock =
   | LabelBlock
   | ImageBlock
@@ -238,7 +263,8 @@ export type MicrositeBlock =
   | GalleryBlock
   | MessageThreadBlock
   | ShowcaseBlock
-  | FestiveBackgroundBlock;
+  | FestiveBackgroundBlock
+  | ShapeBlock;
 
 /* =========================================
    Draft Model
@@ -286,6 +312,15 @@ export function createDefaultTextStyle(): TextStyle {
   };
 }
 
+export function createDefaultBlockAppearance(): BlockAppearance {
+  return {
+    backgroundColor: "transparent",
+    borderColor: "#D1D5DB",
+    borderWidth: 0,
+    borderRadius: 16,
+  };
+}
+
 export function updateTextStyle(
   style: TextStyle | undefined,
   patch: Partial<TextStyle>,
@@ -293,6 +328,17 @@ export function updateTextStyle(
   return {
     ...createDefaultTextStyle(),
     ...style,
+    ...patch,
+  };
+}
+
+export function updateBlockAppearance(
+  appearance: BlockAppearance | undefined,
+  patch: Partial<BlockAppearance>,
+): BlockAppearance {
+  return {
+    ...createDefaultBlockAppearance(),
+    ...appearance,
     ...patch,
   };
 }
@@ -321,6 +367,7 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
         type: "label",
         label: "Label",
         grid,
+        appearance: createDefaultBlockAppearance(),
         data: {
           text: "New Label",
           style: createDefaultTextStyle(),
@@ -333,6 +380,7 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
         type: "image",
         label: "Image",
         grid,
+        appearance: createDefaultBlockAppearance(),
         data: {
           image: {
             id: makeId("img"),
@@ -347,9 +395,11 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
         type: "links",
         label: "Navigation Link",
         grid,
+        appearance: createDefaultBlockAppearance(),
         data: {
           heading: "",
           items: [{ id: makeId("link"), label: "Home", url: "#" }],
+          style: createDefaultTextStyle(),
         },
       };
 
@@ -359,11 +409,13 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
         type: "cta",
         label: "Button",
         grid,
+        appearance: createDefaultBlockAppearance(),
         data: {
           heading: "",
           body: "",
           buttonText: "Learn More",
           buttonUrl: "#",
+          style: createDefaultTextStyle(),
         },
       };
 
@@ -373,10 +425,12 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
         type: "countdown",
         label: "Countdown",
         grid,
+        appearance: createDefaultBlockAppearance(),
         data: {
           heading: "",
           targetIso: "",
           completedMessage: "Countdown finished",
+          style: createDefaultTextStyle(),
         },
       };
 
@@ -386,6 +440,7 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
         type: "padding",
         label: "Spacing",
         grid,
+        appearance: createDefaultBlockAppearance(),
         data: {
           height: 40,
         },
@@ -397,12 +452,14 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
         type: "poll",
         label: "Poll",
         grid,
+        appearance: createDefaultBlockAppearance(),
         data: {
           question: "Your question here",
           options: [
             { id: makeId("opt"), text: "Option 1" },
             { id: makeId("opt"), text: "Option 2" },
           ],
+          style: createDefaultTextStyle(),
         },
       };
 
@@ -412,6 +469,7 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
         type: "rsvp",
         label: "RSVP",
         grid,
+        appearance: createDefaultBlockAppearance(),
         data: {
           heading: "RSVP",
           collectName: true,
@@ -419,6 +477,7 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
           collectPhone: false,
           collectGuestCount: false,
           collectNotes: false,
+          style: createDefaultTextStyle(),
         },
       };
 
@@ -428,6 +487,7 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
         type: "faq",
         label: "FAQ",
         grid,
+        appearance: createDefaultBlockAppearance(),
         data: {
           items: [
             {
@@ -436,6 +496,7 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
               answer: "Answer",
             },
           ],
+          style: createDefaultTextStyle(),
         },
       };
 
@@ -445,6 +506,7 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
         type: "gallery",
         label: "Gallery",
         grid,
+        appearance: createDefaultBlockAppearance(),
         data: {
           grid: 3,
           images: [],
@@ -457,11 +519,13 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
         type: "thread",
         label: "Message Thread",
         grid,
+        appearance: createDefaultBlockAppearance(),
         data: {
           messages: [],
           subject: "",
           allowAnonymous: false,
           requireApproval: false,
+          style: createDefaultTextStyle(),
         },
       };
 
@@ -471,6 +535,7 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
         type: "showcase",
         label: "Showcase",
         grid,
+        appearance: createDefaultBlockAppearance(),
         data: {
           images: [],
         },
@@ -482,11 +547,34 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
         type: "festiveBackground",
         label: "Background Image",
         grid,
+        appearance: createDefaultBlockAppearance(),
         data: {
           image: {
             id: makeId("img"),
             url: "",
           },
+        },
+      };
+
+    case "shape":
+      return {
+        id: makeId("shape"),
+        type: "shape",
+        label: "Shape",
+        grid: {
+          ...grid,
+          colSpan: 3,
+          rowSpan: 2,
+        },
+        appearance: {
+          ...createDefaultBlockAppearance(),
+          backgroundColor: "#E5E7EB",
+          borderColor: "#9CA3AF",
+          borderWidth: 1,
+          borderRadius: 16,
+        },
+        data: {
+          shapeType: "rectangle",
         },
       };
 

@@ -10,10 +10,12 @@ function baseTextStyle(style?: TextStyle): React.CSSProperties {
       style?.fontFamily && style.fontFamily !== "inherit"
         ? style.fontFamily
         : undefined,
+    fontSize: style?.fontSize ? `${style.fontSize}px` : undefined,
     fontWeight: style?.bold ? 700 : undefined,
     fontStyle: style?.italic ? "italic" : undefined,
     textDecoration: style?.underline ? "underline" : undefined,
     textAlign: style?.align ?? "left",
+    color: style?.color || undefined,
     whiteSpace: "pre-wrap",
     wordBreak: "break-word",
     overflowWrap: "anywhere",
@@ -22,7 +24,11 @@ function baseTextStyle(style?: TextStyle): React.CSSProperties {
 }
 
 function splitTitle(value: string) {
-  const words = String(value || "").trim().split(/\s+/).filter(Boolean);
+  const words = String(value || "")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+
   if (words.length <= 1) {
     return {
       firstPart: value,
@@ -40,6 +46,16 @@ function splitTitle(value: string) {
   };
 }
 
+function mergeStyle(
+  defaults: React.CSSProperties,
+  style?: TextStyle,
+): React.CSSProperties {
+  return {
+    ...defaults,
+    ...baseTextStyle(style),
+  };
+}
+
 export function renderDesignAwarePageText(params: {
   designKey: string;
   kind: PageTextKind;
@@ -53,52 +69,66 @@ export function renderDesignAwarePageText(params: {
 
   if (designKey === "modern") {
     if (kind === "title") {
-      return (
-        <div className="space-y-1">
-          <div
-            className={forCanvas ? "text-[30px] leading-[1.02] text-white" : "text-[22px] leading-[1.02] text-white"}
-            style={{
-              ...baseTextStyle(style),
-              fontFamily:
-                style?.fontFamily && style.fontFamily !== "inherit"
-                  ? style.fontFamily
-                  : '"Poppins", "Inter", "Avenir Next", "Segoe UI", sans-serif',
-              fontWeight: style?.bold ? 700 : 600,
-            }}
-          >
-            {split.firstPart || safeValue}
-          </div>
+  return (
+    <div className="space-y-1">
+      <div
+        style={mergeStyle(
+          {
+            fontSize: forCanvas ? "30px" : "22px",
+            lineHeight: 1.02,
+            color: "#ffffff",
+            fontFamily:
+              '"Poppins", "Inter", "Avenir Next", "Segoe UI", sans-serif',
+            fontWeight: 600,
+            whiteSpace: "nowrap",
+            wordBreak: "normal",
+            overflowWrap: "normal",
+          },
+          style,
+        )}
+      >
+        {split.firstPart || safeValue}
+      </div>
 
-          {split.accentWord ? (
-            <div
-              className={forCanvas ? "text-[30px] leading-[1.02] text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-sky-400 to-fuchsia-400" : "text-[22px] leading-[1.52] text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-sky-400 to-fuchsia-400"}
-              style={{
-                ...baseTextStyle(style),
-                fontFamily:
-                  style?.fontFamily && style.fontFamily !== "inherit"
-                    ? style.fontFamily
-                    : '"Poppins", "Inter", "Avenir Next", "Segoe UI", sans-serif',
-                fontWeight: style?.bold ? 700 : 600,
-              }}
-            >
-              {split.accentWord}
-            </div>
-          ) : null}
+      {split.accentWord ? (
+        <div
+          className="bg-gradient-to-r from-cyan-300 via-sky-400 to-fuchsia-400 bg-clip-text text-transparent"
+          style={mergeStyle(
+            {
+              fontSize: forCanvas ? "30px" : "22px",
+              lineHeight: forCanvas ? 1.02 : 1.52,
+              fontFamily:
+                '"Poppins", "Inter", "Avenir Next", "Segoe UI", sans-serif',
+              fontWeight: 600,
+              whiteSpace: "nowrap",
+              wordBreak: "normal",
+              overflowWrap: "normal",
+            },
+            {
+              ...style,
+              color: undefined,
+            },
+          )}
+        >
+          {split.accentWord}
         </div>
-      );
-    }
+      ) : null}
+    </div>
+  );
+}
 
     if (kind === "subtitle") {
       return (
         <div
-          className={forCanvas ? "text-[16px] text-gray-200" : "text-[9px] text-gray-200"}
-          style={{
-            ...baseTextStyle(style),
-            fontFamily:
-              style?.fontFamily && style.fontFamily !== "inherit"
-                ? style.fontFamily
-                : '"DM Sans", "Inter", "Avenir Next", "Segoe UI", sans-serif',
-          }}
+          style={mergeStyle(
+            {
+              fontSize: forCanvas ? "16px" : "9px",
+              color: "#e5e7eb",
+              fontFamily:
+                '"DM Sans", "Inter", "Avenir Next", "Segoe UI", sans-serif',
+            },
+            style,
+          )}
         >
           {safeValue}
         </div>
@@ -108,14 +138,16 @@ export function renderDesignAwarePageText(params: {
     if (kind === "description") {
       return (
         <div
-          className={forCanvas ? "text-[14px] leading-6 text-gray-200" : "text-[10px] leading-4 text-gray-200"}
-          style={{
-            ...baseTextStyle(style),
-            fontFamily:
-              style?.fontFamily && style.fontFamily !== "inherit"
-                ? style.fontFamily
-                : '"DM Sans", "Inter", "Avenir Next", "Segoe UI", sans-serif',
-          }}
+          style={mergeStyle(
+            {
+              fontSize: forCanvas ? "14px" : "10px",
+              lineHeight: forCanvas ? 1.5 : 1.4,
+              color: "#e5e7eb",
+              fontFamily:
+                '"DM Sans", "Inter", "Avenir Next", "Segoe UI", sans-serif',
+            },
+            style,
+          )}
         >
           {safeValue}
         </div>
@@ -124,8 +156,15 @@ export function renderDesignAwarePageText(params: {
 
     return (
       <div
-        className={forCanvas ? "text-[13px] text-white/60" : "text-[9px] text-white/60"}
-        style={baseTextStyle(style)}
+        style={mergeStyle(
+          {
+            fontSize: forCanvas ? "13px" : "9px",
+            color: "rgba(255,255,255,0.6)",
+            fontFamily:
+              '"DM Sans", "Inter", "Avenir Next", "Segoe UI", sans-serif',
+          },
+          style,
+        )}
       >
         {safeValue}
       </div>
@@ -137,28 +176,34 @@ export function renderDesignAwarePageText(params: {
       return (
         <div className="space-y-0">
           <div
-            className={forCanvas ? "text-[12px] uppercase tracking-[0.42em] text-neutral-500" : "text-[10px] uppercase tracking-[0.42em] text-neutral-500"}
-            style={{
-              ...baseTextStyle(style),
-              fontFamily:
-                style?.fontFamily && style.fontFamily !== "inherit"
-                  ? style.fontFamily
-                  : '"Cormorant Garamond", "Times New Roman", serif',
-            }}
+            style={mergeStyle(
+              {
+                fontSize: forCanvas ? "12px" : "10px",
+                textTransform: "uppercase",
+                letterSpacing: "0.32em",
+                color: "#737373",
+                fontFamily:
+                  '"Cormorant Garamond", "Times New Roman", serif',
+              },
+              style,
+            )}
           >
             {split.head || safeValue}
           </div>
 
           {split.tail ? (
             <div
-              className={forCanvas ? "-mt-1 text-[46px] leading-[0.9] text-neutral-800" : "-mt-1 text-[52px] leading-[0.9] text-neutral-800"}
-              style={{
-                ...baseTextStyle(style),
-                fontFamily:
-                  style?.fontFamily && style.fontFamily !== "inherit"
-                    ? style.fontFamily
-                    : '"Cormorant Garamond", "Times New Roman", serif',
-              }}
+              style={mergeStyle(
+                {
+                  marginTop: "-0.05rem",
+                  fontSize: forCanvas ? "46px" : "52px",
+                  lineHeight: 0.9,
+                  color: "#262626",
+                  fontFamily:
+                    '"Cormorant Garamond", "Times New Roman", serif',
+                },
+                style,
+              )}
             >
               {split.tail}
             </div>
@@ -170,14 +215,16 @@ export function renderDesignAwarePageText(params: {
     if (kind === "subtitle") {
       return (
         <div
-          className={forCanvas ? "-mt-1 text-[24px] leading-none text-[#b48a68]" : "-mt-1 text-[32px] leading-none text-[#b48a68]"}
-          style={{
-            ...baseTextStyle(style),
-            fontFamily:
-              style?.fontFamily && style.fontFamily !== "inherit"
-                ? style.fontFamily
-                : '"Great Vibes", "Brush Script MT", cursive',
-          }}
+          style={mergeStyle(
+            {
+              marginTop: "-0.35rem",
+              fontSize: forCanvas ? "24px" : "32px",
+              lineHeight: 1,
+              color: "#b48a68",
+              fontFamily: '"Great Vibes", "Brush Script MT", cursive',
+            },
+            style,
+          )}
         >
           {safeValue}
         </div>
@@ -187,14 +234,19 @@ export function renderDesignAwarePageText(params: {
     if (kind === "description") {
       return (
         <div
-          className={forCanvas ? "text-[13px] font-bold uppercase tracking-[0.18em] leading-6 text-neutral-600" : "text-[10px] font-bold uppercase tracking-[0.28em] leading-4 text-neutral-600"}
-          style={{
-            ...baseTextStyle(style),
-            fontFamily:
-              style?.fontFamily && style.fontFamily !== "inherit"
-                ? style.fontFamily
-                : '"Cormorant Garamond", "Times New Roman", serif',
-          }}
+          style={mergeStyle(
+            {
+              fontSize: forCanvas ? "13px" : "10px",
+              lineHeight: forCanvas ? 1.5 : 1.4,
+              color: "#525252",
+              fontFamily:
+                '"Cormorant Garamond", "Times New Roman", serif',
+              fontWeight: 700,
+              textTransform: "uppercase",
+              letterSpacing: forCanvas ? "0.12em" : "0.22em",
+            },
+            style,
+          )}
         >
           {safeValue}
         </div>
@@ -203,8 +255,15 @@ export function renderDesignAwarePageText(params: {
 
     return (
       <div
-        className={forCanvas ? "text-[13px] text-stone-700" : "text-[9px] text-stone-700"}
-        style={baseTextStyle(style)}
+        style={mergeStyle(
+          {
+            fontSize: forCanvas ? "13px" : "9px",
+            color: "#44403c",
+            fontFamily:
+              '"Cormorant Garamond", "Times New Roman", serif',
+          },
+          style,
+        )}
       >
         {safeValue}
       </div>
@@ -215,14 +274,15 @@ export function renderDesignAwarePageText(params: {
     if (kind === "title") {
       return (
         <div
-          className={forCanvas ? "text-[28px] leading-tight text-black" : "text-[22px] leading-tight text-black"}
-          style={{
-            ...baseTextStyle(style),
-            fontFamily:
-              style?.fontFamily && style.fontFamily !== "inherit"
-                ? style.fontFamily
-                : '"Great Vibes", "Brush Script MT", cursive',
-          }}
+          style={mergeStyle(
+            {
+              fontSize: forCanvas ? "28px" : "22px",
+              lineHeight: 1.2,
+              color: "#000000",
+              fontFamily: '"Great Vibes", "Brush Script MT", cursive',
+            },
+            style,
+          )}
         >
           {safeValue}
         </div>
@@ -232,14 +292,17 @@ export function renderDesignAwarePageText(params: {
     if (kind === "subtitle") {
       return (
         <div
-          className={forCanvas ? "text-[16px] uppercase tracking-wide text-red-700" : "text-[12px] uppercase tracking-wide text-red-700"}
-          style={{
-            ...baseTextStyle(style),
-            fontFamily:
-              style?.fontFamily && style.fontFamily !== "inherit"
-                ? style.fontFamily
-                : '"Cormorant Garamond", "Times New Roman", serif',
-          }}
+          style={mergeStyle(
+            {
+              fontSize: forCanvas ? "16px" : "12px",
+              color: "#b91c1c",
+              fontFamily:
+                '"Cormorant Garamond", "Times New Roman", serif',
+              textTransform: "uppercase",
+              letterSpacing: "0.06em",
+            },
+            style,
+          )}
         >
           {safeValue}
         </div>
@@ -249,14 +312,16 @@ export function renderDesignAwarePageText(params: {
     if (kind === "description") {
       return (
         <div
-          className={forCanvas ? "text-[13px] leading-6 text-black" : "text-[10px] leading-4 text-black"}
-          style={{
-            ...baseTextStyle(style),
-            fontFamily:
-              style?.fontFamily && style.fontFamily !== "inherit"
-                ? style.fontFamily
-                : '"Cormorant Garamond", "Times New Roman", serif',
-          }}
+          style={mergeStyle(
+            {
+              fontSize: forCanvas ? "13px" : "10px",
+              lineHeight: forCanvas ? 1.5 : 1.4,
+              color: "#000000",
+              fontFamily:
+                '"Cormorant Garamond", "Times New Roman", serif',
+            },
+            style,
+          )}
         >
           {safeValue}
         </div>
@@ -265,8 +330,16 @@ export function renderDesignAwarePageText(params: {
 
     return (
       <div
-        className={forCanvas ? "text-[12px] font-medium text-black" : "text-[9px] font-medium text-black"}
-        style={baseTextStyle(style)}
+        style={mergeStyle(
+          {
+            fontSize: forCanvas ? "12px" : "9px",
+            color: "#000000",
+            fontFamily:
+              '"Cormorant Garamond", "Times New Roman", serif',
+            fontWeight: 500,
+          },
+          style,
+        )}
       >
         {safeValue}
       </div>
@@ -277,14 +350,17 @@ export function renderDesignAwarePageText(params: {
     if (kind === "title") {
       return (
         <div
-          className={forCanvas ? "text-[28px] font-semibold leading-[1.2] text-[#1f2e5a]" : "text-[20px] font-semibold leading-[1.25] text-[#1f2e5a]"}
-          style={{
-            ...baseTextStyle(style),
-            fontFamily:
-              style?.fontFamily && style.fontFamily !== "inherit"
-                ? style.fontFamily
-                : '"DM Sans", "Avenir Next", "Segoe UI", "Helvetica Neue", sans-serif',
-          }}
+          style={mergeStyle(
+            {
+              fontSize: forCanvas ? "28px" : "20px",
+              lineHeight: forCanvas ? 1.2 : 1.25,
+              color: "#1f2e5a",
+              fontFamily:
+                '"DM Sans", "Avenir Next", "Segoe UI", "Helvetica Neue", sans-serif',
+              fontWeight: 600,
+            },
+            style,
+          )}
         >
           {safeValue}
         </div>
@@ -294,14 +370,16 @@ export function renderDesignAwarePageText(params: {
     if (kind === "description") {
       return (
         <div
-          className={forCanvas ? "text-[14px] leading-6 text-[#445174]" : "text-[11px] leading-5 text-[#445174]"}
-          style={{
-            ...baseTextStyle(style),
-            fontFamily:
-              style?.fontFamily && style.fontFamily !== "inherit"
-                ? style.fontFamily
-                : '"Poppins", "Avenir Next", "Segoe UI", "Helvetica Neue", sans-serif',
-          }}
+          style={mergeStyle(
+            {
+              fontSize: forCanvas ? "14px" : "11px",
+              lineHeight: forCanvas ? 1.5 : 1.45,
+              color: "#445174",
+              fontFamily:
+                '"Poppins", "Avenir Next", "Segoe UI", "Helvetica Neue", sans-serif',
+            },
+            style,
+          )}
         >
           {safeValue}
         </div>
@@ -310,8 +388,15 @@ export function renderDesignAwarePageText(params: {
 
     return (
       <div
-        className={forCanvas ? "text-[13px] text-[#445174]" : "text-[10px] text-[#445174]"}
-        style={baseTextStyle(style)}
+        style={mergeStyle(
+          {
+            fontSize: forCanvas ? "13px" : "10px",
+            color: "#445174",
+            fontFamily:
+              '"DM Sans", "Avenir Next", "Segoe UI", "Helvetica Neue", sans-serif',
+          },
+          style,
+        )}
       >
         {safeValue}
       </div>
@@ -319,22 +404,49 @@ export function renderDesignAwarePageText(params: {
   }
 
   if (designKey === "showcase") {
-    if (kind === "title") {
-      return (
-        <div
-          className={forCanvas ? "text-[28px] font-semibold leading-tight text-neutral-900" : "text-[28px] font-semibold leading-tight text-neutral-900"}
-          style={baseTextStyle(style)}
-        >
-          {safeValue}
-        </div>
-      );
-    }
+  if (kind === "title") {
+    return (
+      <div
+        className={forCanvas ? "text-[28px] font-semibold leading-tight text-neutral-900" : "text-[28px] font-semibold leading-tight text-neutral-900"}
+        style={{
+          ...baseTextStyle(style),
+          whiteSpace: "nowrap",
+          wordBreak: "normal",
+          overflowWrap: "normal",
+        }}
+      >
+        {safeValue}
+      </div>
+    );
+  }
+  if (kind === "subtitle") {
+    return (
+      <div
+        className={forCanvas ? "text-[28px] font-bold leading-tight text-neutral-900" : "text-[28px] font-semibold leading-tight text-neutral-900"}
+        style={{
+          ...baseTextStyle(style),
+          whiteSpace: "nowrap",
+          wordBreak: "normal",
+          overflowWrap: "normal",
+        }}
+      >
+        {safeValue}
+      </div>
+    );
+  }
 
     if (kind === "description") {
       return (
         <div
-          className={forCanvas ? "text-[13px] leading-6 text-neutral-600" : "text-[10px] leading-4 text-neutral-600"}
-          style={baseTextStyle(style)}
+          style={mergeStyle(
+            {
+              fontSize: forCanvas ? "13px" : "10px",
+              lineHeight: forCanvas ? 1.5 : 1.4,
+              color: "#525252",
+              fontFamily: '"Inter", "Segoe UI", sans-serif',
+            },
+            style,
+          )}
         >
           {safeValue}
         </div>
@@ -343,8 +455,14 @@ export function renderDesignAwarePageText(params: {
 
     return (
       <div
-        className={forCanvas ? "text-[13px] text-neutral-700" : "text-[9px] text-neutral-700"}
-        style={baseTextStyle(style)}
+        style={mergeStyle(
+          {
+            fontSize: forCanvas ? "13px" : "9px",
+            color: "#404040",
+            fontFamily: '"Inter", "Segoe UI", sans-serif',
+          },
+          style,
+        )}
       >
         {safeValue}
       </div>
@@ -353,8 +471,14 @@ export function renderDesignAwarePageText(params: {
 
   return (
     <div
-      className={forCanvas ? "text-[14px] text-neutral-900" : "text-[10px] text-neutral-900"}
-      style={baseTextStyle(style)}
+      style={mergeStyle(
+        {
+          fontSize: forCanvas ? "14px" : "10px",
+          color: "#111827",
+          fontFamily: '"Inter", "Segoe UI", sans-serif',
+        },
+        style,
+      )}
     >
       {safeValue}
     </div>

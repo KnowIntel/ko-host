@@ -57,10 +57,12 @@ function getGrid(block: CanvasGridItem, index: number) {
     GRID_STEP,
     GRID_COLUMNS,
   );
+
   const rowSpan = Math.max(
     GRID_STEP,
     snapToHalf(Number(raw.rowSpan ?? 1)),
   );
+
   const maxColStart = Math.max(1, GRID_COLUMNS - colSpan + 1);
 
   return {
@@ -75,6 +77,7 @@ function getGrid(block: CanvasGridItem, index: number) {
     ),
     colSpan,
     rowSpan,
+    zIndex: Math.max(1, Number(raw.zIndex ?? index + 1)),
   };
 }
 
@@ -114,6 +117,21 @@ function formatBlockLabel(block: CanvasGridItem) {
     .replace(/^./, (m) => m.toUpperCase());
 }
 
+function overlaps(
+  a: ReturnType<typeof getGrid>,
+  b: ReturnType<typeof getGrid>,
+) {
+  const aColEnd = a.colStart + a.colSpan;
+  const bColEnd = b.colStart + b.colSpan;
+  const aRowEnd = a.rowStart + a.rowSpan;
+  const bRowEnd = b.rowStart + b.rowSpan;
+
+  const colOverlap = a.colStart < bColEnd && aColEnd > b.colStart;
+  const rowOverlap = a.rowStart < bRowEnd && aRowEnd > b.rowStart;
+
+  return colOverlap && rowOverlap;
+}
+
 export default function GridCanvas({
   blocks,
   selection,
@@ -144,6 +162,36 @@ export default function GridCanvas({
     }, 6);
 
     return maxRowEnd * (GRID_ROW_HEIGHT + GRID_GAP) - GRID_GAP + 80;
+  }, [blocks]);
+
+  const frontStateMap = useMemo(() => {
+    const entries = blocks.map((block, index) => ({
+      id: block.id,
+      grid: getGrid(block, index),
+    }));
+
+    const result = new Map<string, boolean>();
+
+    for (const current of entries) {
+      const overlapping = entries.filter(
+        (other) =>
+          other.id !== current.id && overlaps(current.grid, other.grid),
+      );
+
+      if (overlapping.length === 0) {
+        result.set(current.id, true);
+        continue;
+      }
+
+      const highestZ = Math.max(
+        current.grid.zIndex,
+        ...overlapping.map((item) => item.grid.zIndex),
+      );
+
+      result.set(current.id, current.grid.zIndex >= highestZ);
+    }
+
+    return result;
   }, [blocks]);
 
   useEffect(() => {
@@ -249,12 +297,14 @@ export default function GridCanvas({
               isItemSelected?.(block.id, selection) ??
               (selection.type === "block" && selection.blockId === block.id);
 
+            const isFront = frontStateMap.get(block.id) ?? true;
+
             return (
               <div
                 key={block.id}
                 style={{
                   ...getItemStyle(grid),
-                  zIndex: selected ? 9999 : index + 1,
+                  zIndex: selected ? grid.zIndex + 10000 : grid.zIndex,
                 }}
                 onClick={() => onSelect(selectBlock(block.id))}
                 onDragOver={(e) => e.preventDefault()}
@@ -265,7 +315,7 @@ export default function GridCanvas({
                   selected ? "ring-2 ring-blue-500 border-blue-400" : "",
                 ].join(" ")}
               >
-                <div className="absolute inset-0 bg-white/10 pointer-events-none" />
+                <div className="pointer-events-none absolute inset-0 bg-white/10" />
 
                 <button
                   type="button"
@@ -294,7 +344,7 @@ export default function GridCanvas({
                     }}
                     className="absolute right-10 top-2 z-20 h-6 rounded border border-white/25 bg-black/45 px-2 text-[10px] text-white hover:bg-white/10"
                   >
-                    Front
+                    {isFront ? "Front" : "Back"}
                   </button>
                 ) : null}
 
@@ -312,7 +362,7 @@ export default function GridCanvas({
                   </button>
                 ) : null}
 
-                <div className="mt-10 h-full relative z-10">
+                <div className="relative z-10 mt-10 h-full">
                   {renderBlockPreview ? (
                     renderBlockPreview(block)
                   ) : (
@@ -376,14 +426,20 @@ export default function GridCanvas({
                     e.stopPropagation();
 
                     const startX = e.clientX;
+                    const startY = e.clientY;
+
                     const startColStart = grid.colStart;
                     const startColSpan = grid.colSpan;
+                    const startRowSpan = grid.rowSpan;
 
                     const columnWidth = getColumnWidth();
                     const stepX = (columnWidth + GRID_GAP) * GRID_STEP;
+                    const stepY = (GRID_ROW_HEIGHT + GRID_GAP) * GRID_STEP;
 
                     const move = (ev: PointerEvent) => {
                       const dx = ev.clientX - startX;
+                      const dy = ev.clientY - startY;
+
                       const deltaCols = snapToHalf(dx / stepX);
 
                       const proposedColStart = clamp(
@@ -393,14 +449,22 @@ export default function GridCanvas({
                       );
 
                       const proposedColSpan = clamp(
-                        snapToHalf(startColSpan - (proposedColStart - startColStart)),
+                        snapToHalf(
+                          startColSpan - (proposedColStart - startColStart),
+                        ),
                         GRID_STEP,
                         GRID_COLUMNS - proposedColStart + 1,
+                      );
+
+                      const proposedRowSpan = Math.max(
+                        GRID_STEP,
+                        snapToHalf(startRowSpan + dy / stepY),
                       );
 
                       onResizeBlock(block.id, {
                         colStart: proposedColStart,
                         colSpan: proposedColSpan,
+                        rowSpan: proposedRowSpan,
                       });
                     };
 
@@ -412,7 +476,7 @@ export default function GridCanvas({
                     window.addEventListener("pointermove", move);
                     window.addEventListener("pointerup", up);
                   }}
-                  className="absolute bottom-2 left-2 z-20 h-4 w-4 cursor-sw-resize border border-white/40 bg-white/25"
+                  className="absolute bottom-2 left-2 z-20 h-4 w-4 cursor-nwse-resize border border-white/40 bg-white/25"
                   aria-label="Resize from left"
                 />
               </div>

@@ -7,6 +7,9 @@ export type ShowcaseOverlayContent = {
   buttonLabel: string;
   callout: string;
   linkLabel: string;
+  image1?: string;
+  image2?: string;
+  image3?: string;
 };
 
 export type FestiveOverlayContent = {
@@ -350,13 +353,16 @@ export const TEMPLATE_DESIGN_OVERLAY_CONTENT: Record<
 [normalizeTemplateName("Birthday")]: {
   template: "Birthday",
   showcase: {
-    title: "Ava Turns 10!",
+    title: "Ava Turns 10 Years Old!",
     subtitle: "Saturday at 2:00 PM",
     description:
       "Join us for cupcakes, games, a backyard movie, and one very excited birthday girl.",
     buttonLabel: "View Party Details",
     callout: "Can you make it to the party?",
     linkLabel: "RSVP Now",
+    image1: "/designs/design_image_placeholder.webp",
+    image2: "/designs/design_image_placeholder_1536.webp",
+    image3: "/designs/design_image_placeholder_1536.webp",
   },
   festive: {
     title: "You're Invited!",
@@ -367,7 +373,7 @@ export const TEMPLATE_DESIGN_OVERLAY_CONTENT: Record<
     callout: "Party Starts In:",
   },
   modern: {
-    title: "Let's Celebrate Ava",
+    title: "Let's Celebrate Ava on this Special Day",
     description:
       "See the party time, address, gift ideas, and RSVP details for Ava's big day.",
     buttonLabel: "See the Invitation",
@@ -7861,6 +7867,7 @@ export const TEMPLATE_DESIGN_OVERLAY_CONTENT: Record<
     buttonLabel: "View Invitation",
     callout: "Will you be there?",
     linkLabel: "RSVP Now",
+    
   },
   festive: {
     title: "You're Invited",
@@ -7977,17 +7984,26 @@ export function getTemplatePresetOverlayContent(
 
   switch (designKey) {
     case "minimal":
+    case "showcase":
       return entry.showcase;
+
     case "gallery":
+    case "festive":
       return entry.festive;
+
+    case "classic":
+    case "business":
+      return entry.business;
+
     case "modern":
       return entry.modern;
+
     case "elegant":
       return entry.elegant;
-    case "classic":
-      return entry.business;
+
     case "blank":
       return entry.blank ?? null;
+
     default:
       return null;
   }

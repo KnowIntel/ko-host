@@ -1,8 +1,6 @@
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import BlockRenderer from "@/components/preview/BlockRenderer";
-import ShowcasePreview from "@/components/preview/ShowcasePreview";
-import FestivePreview from "@/components/preview/FestivePreview";
 import MicrositeFooterBrand from "@/components/microsite/MicrositeFooterBrand";
 import { getDesignPreset } from "@/lib/design-presets/designRegistry";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
@@ -177,38 +175,32 @@ export default async function PublicSubdomainPage() {
   };
 
   return (
-    <>
-      <main
-        className={`min-h-screen ${background.className}`}
-        style={background.style}
-      >
-        <div className={`w-full px-4 py-10 ${theme.containerClassName}`}>
-          {designKey === "minimal" ? (
-            <ShowcasePreview draft={draft} />
-          ) : designKey === "gallery" ? (
-            <FestivePreview draft={draft} />
+  <>
+    <main
+      className={`min-h-screen ${background.className}`}
+      style={background.style}
+    >
+      <div className={`w-full px-4 py-10 ${theme.containerClassName}`}>
+        <div className={theme.blockGapClassName}>
+          {blocks.length > 0 ? (
+            blocks.map((block) => (
+              <div key={block.id} className={theme.sectionClassName}>
+                <BlockRenderer block={block} designKey={designKey} />
+              </div>
+            ))
           ) : (
-            <div className={theme.blockGapClassName}>
-              {blocks.length > 0 ? (
-                blocks.map((block) => (
-                  <div key={block.id} className={theme.sectionClassName}>
-                    <BlockRenderer block={block} designKey={designKey} />
-                  </div>
-                ))
-              ) : (
-                <div className={theme.sectionClassName}>
-                  <h2 className={theme.subheadingClassName}>No content yet</h2>
-                  <p className={`mt-2 ${theme.bodyClassName}`}>
-                    This microsite has no saved builder blocks yet.
-                  </p>
-                </div>
-              )}
+            <div className={theme.sectionClassName}>
+              <h2 className={theme.subheadingClassName}>No content yet</h2>
+              <p className={`mt-2 ${theme.bodyClassName}`}>
+                This microsite has no saved builder blocks yet.
+              </p>
             </div>
           )}
         </div>
-      </main>
+      </div>
+    </main>
 
-      <MicrositeFooterBrand />
-    </>
-  );
+    <MicrositeFooterBrand />
+  </>
+);
 }

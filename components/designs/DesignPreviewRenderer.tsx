@@ -1,9 +1,9 @@
 "use client";
 
 import {
-  getTemplateDesignOverlayMetadata,
+  getTemplateDesignCardMetadata,
   type OverlayDesignMetadata,
-} from "@/lib/templates/templateDesignOverlayMetadata";
+} from "@/lib/templates/templateDesignCardMetadata";
 import type { DesignPresetLayout } from "@/lib/templates/designPresets";
 import { getTemplateDef } from "@/lib/templates/registry";
 import { getTemplatePresetOverlayContent } from "@/lib/templates/templateDesignOverlayContent";
@@ -14,10 +14,15 @@ type Props = {
   designKey: string;
 };
 
+/* ---------------------------------------- */
+/* Design key normalization                  */
+/* ---------------------------------------- */
+
 function normalizeDesignKey(designKey: string): DesignPresetLayout | "blank" {
   if (designKey === "minimal") return "showcase";
   if (designKey === "gallery") return "festive";
   if (designKey === "classic") return "business";
+
   if (
     designKey === "blank" ||
     designKey === "modern" ||
@@ -32,23 +37,27 @@ function normalizeDesignKey(designKey: string): DesignPresetLayout | "blank" {
   return "blank";
 }
 
+/* ---------------------------------------- */
+/* Metadata resolver                         */
+/* ---------------------------------------- */
+
 function resolveMetadata(
   templateKey: string,
   designKey: DesignPresetLayout,
 ): OverlayDesignMetadata | null {
-  const direct = getTemplateDesignOverlayMetadata(templateKey, designKey);
+  const direct = getTemplateDesignCardMetadata(templateKey, designKey);
   if (direct) return direct;
 
   const templateDef = getTemplateDef(templateKey);
   if (!templateDef) return null;
 
-  const byKey = getTemplateDesignOverlayMetadata(templateDef.key, designKey);
+  const byKey = getTemplateDesignCardMetadata(templateDef.key, designKey);
   if (byKey) return byKey;
 
-  const byTitle = getTemplateDesignOverlayMetadata(templateDef.title, designKey);
+  const byTitle = getTemplateDesignCardMetadata(templateDef.title, designKey);
   if (byTitle) return byTitle;
 
-  const byDemoSlug = getTemplateDesignOverlayMetadata(
+  const byDemoSlug = getTemplateDesignCardMetadata(
     templateDef.demoSlug,
     designKey,
   );
@@ -57,7 +66,11 @@ function resolveMetadata(
   return null;
 }
 
-function resolveLegacyContent(templateKey: string, designKey: DesignPresetLayout) {
+/* ---------------------------------------- */
+/* Content resolver                          */
+/* ---------------------------------------- */
+
+function resolveContent(templateKey: string, designKey: DesignPresetLayout) {
   const byKey = getTemplatePresetOverlayContent(templateKey, designKey);
   if (byKey) return byKey;
 
@@ -76,94 +89,119 @@ function resolveLegacyContent(templateKey: string, designKey: DesignPresetLayout
   return null;
 }
 
-function getFirstBlockByType(
-  metadata: OverlayDesignMetadata | null,
-  type: string,
-) {
-  return (
-    metadata?.blocks.find((block) => block.enabled && block.type === type) ??
-    null
-  );
-}
+/* ---------------------------------------- */
+/* Metadata + content card preview           */
+/* ---------------------------------------- */
 
 function MetadataPreview({
   metadata,
+  content,
   designKey,
 }: {
   metadata: OverlayDesignMetadata;
+  content: any;
   designKey: DesignPresetLayout;
 }) {
-  const title = metadata.page.title;
-  const subtitle = metadata.page.subtitle;
-  const tagline = metadata.page.tagline;
-  const description = metadata.page.description;
-  const cta = getFirstBlockByType(metadata, "cta");
-  const links = getFirstBlockByType(metadata, "links");
-  const labels = metadata.blocks
-    .filter((block) => block.enabled && block.type === "label")
-    .slice(0, 3);
+  const titleStyle = metadata.page.title.style;
+  const subtitleStyle = metadata.page.subtitle.style;
+  const taglineStyle = metadata.page.tagline.style;
+  const descriptionStyle = metadata.page.description.style;
+
+  const title = String(content?.title || "");
+  const subtitle = String(content?.subtitle || "");
+  const description = String(content?.description || "");
+  const tagline = String(content?.callout || content?.subtext || "");
+  const buttonLabel = String(content?.buttonLabel || "View Details");
 
   if (designKey === "showcase") {
-    return (
-      <div className="absolute inset-0 grid grid-cols-[1.1fr_0.9fr] px-5 py-4">
-        <div className="flex flex-col justify-center pr-3 text-neutral-900">
-          <div className="max-w-[80%]">
-            {renderDesignAwarePageText({
-              designKey,
-              kind: "title",
-              value: title.value,
-              style: title.style,
-            })}
-          </div>
-
-          <div className="mt-1">
-            {renderDesignAwarePageText({
-              designKey,
-              kind: "subtitle",
-              value: subtitle.value,
-              style: subtitle.style,
-            })}
-          </div>
-
-          <div className="mt-2 max-w-[82%] line-clamp-3">
-            {renderDesignAwarePageText({
-              designKey,
-              kind: "description",
-              value: description.value,
-              style: description.style,
-            })}
-          </div>
-
-          <div className="mt-3 inline-flex w-fit rounded-full bg-neutral-900 px-3 py-1 text-[10px] font-semibold text-white">
-            {String(
-              (cta?.data as { buttonText?: string })?.buttonText || "View Details",
-            )}
-          </div>
-
-          <div className="mt-3">
-            {renderDesignAwarePageText({
-              designKey,
-              kind: "tagline",
-              value: tagline.value,
-              style: tagline.style,
-            })}
-          </div>
-
-          <div className="mt-1 text-[9px] font-medium text-neutral-900">
-            {String(
-              (
-                links?.data as {
-                  items?: Array<{ label?: string }>;
-                }
-              )?.items?.[0]?.label || "Learn More",
-            )}
-          </div>
+  return (
+    <div className="absolute inset-2 grid grid-cols-[0.9fr_1.1fr] gap-4 px-5 py-0">
+      <div className="flex flex-col justify-start pr-3 text-neutral-900 min-w-0">
+        <div className={`mt-3 ${titleStyle?.bold ? "font-bold" : ""}`}>
+          {renderDesignAwarePageText({
+            designKey,
+            kind: "title",
+            value: title,
+            style: titleStyle,
+          })}
         </div>
 
-        <div />
+        <div className={`mt-4 ${subtitleStyle?.bold ? "font-bold" : ""}`}>
+          {renderDesignAwarePageText({
+            designKey,
+            kind: "subtitle",
+            value: subtitle,
+            style: subtitleStyle,
+          })}
+        </div>
+
+        <div className={`mt-4 max-w-[100%] line-clamp-4 ${descriptionStyle?.bold ? "font-bold" : ""}`}>
+          {renderDesignAwarePageText({
+            designKey,
+            kind: "description",
+            value: description,
+            style: descriptionStyle,
+          })}
+        </div>
+
+        <div
+          className={`mt-5 inline-flex w-fit rounded-full bg-[#1F46DD] px-3 py-1 text-[10px] text-white ${
+            content?.style?.bold ? "font-bold" : "font-semibold"
+          }`}
+        >
+          {buttonLabel}
+        </div>
+
+        <div className={`mt-5 ${taglineStyle?.bold ? "font-bold" : ""}`}>
+          {renderDesignAwarePageText({
+            designKey,
+            kind: "tagline",
+            value: tagline,
+            style: taglineStyle,
+          })}
+        </div>
+
+        <div className={`mt-5 text-[9px] text-neutral-900 ${content?.style?.bold ? "font-bold" : "font-medium"}`}>
+          {String(content?.linkLabel || "Learn More")}
+        </div>
       </div>
-    );
-  }
+
+      <div className="grid h-full grid-cols-4 grid-rows-8 gap-2">
+
+        {/* BIG IMAGE */}
+        <div className="col-start-1 col-span-4 row-start-2 row-span-3 overflow-hidden rounded-xl border border-neutral-200 bg-neutral-100">
+          <img
+            src={String(content?.image1 || "/designs/design_image_placeholder.webp")}
+            alt="Preview image 1"
+            className="h-full w-full object-cover"
+            draggable={false}
+          />
+        </div>
+
+        {/* SMALL IMAGE LEFT */}
+        <div className="col-start-1 col-span-2 row-start-5 row-span-2 overflow-hidden rounded-xl border border-neutral-200 bg-neutral-100">
+          <img
+            src={String(content?.image2 || "/designs/design_image_placeholder_1536.webp")}
+            alt="Preview image 2"
+            className="h-full w-full object-cover"
+            draggable={false}
+          />
+        </div>
+
+        {/* SMALL IMAGE RIGHT */}
+        <div className="col-start-3 col-span-2 row-start-5 row-span-2 overflow-hidden rounded-xl border border-neutral-200 bg-neutral-100">
+          <img
+            src={String(content?.image3 || "/designs/design_image_placeholder_1536.webp")}
+            alt="Preview image 3"
+            className="h-full w-full object-cover"
+            draggable={false}
+          />
+        </div>
+
+      </div>
+    </div>
+  );
+}
 
   if (designKey === "festive") {
     return (
@@ -172,8 +210,8 @@ function MetadataPreview({
           {renderDesignAwarePageText({
             designKey,
             kind: "title",
-            value: title.value,
-            style: title.style,
+            value: title,
+            style: titleStyle,
           })}
         </div>
 
@@ -181,8 +219,8 @@ function MetadataPreview({
           {renderDesignAwarePageText({
             designKey,
             kind: "subtitle",
-            value: subtitle.value,
-            style: subtitle.style,
+            value: subtitle,
+            style: subtitleStyle,
           })}
         </div>
 
@@ -190,23 +228,21 @@ function MetadataPreview({
           {renderDesignAwarePageText({
             designKey,
             kind: "description",
-            value: description.value,
-            style: description.style,
+            value: description,
+            style: descriptionStyle,
           })}
         </div>
 
         <div className="mt-3 inline-flex w-fit rounded-full bg-white px-3 py-1 text-[10px] font-semibold text-red-700 shadow">
-          {String(
-            (cta?.data as { buttonText?: string })?.buttonText || "View Details",
-          )}
+          {buttonLabel}
         </div>
 
         <div className="mt-3">
           {renderDesignAwarePageText({
             designKey,
             kind: "tagline",
-            value: tagline.value,
-            style: tagline.style,
+            value: tagline,
+            style: taglineStyle,
           })}
         </div>
 
@@ -222,371 +258,190 @@ function MetadataPreview({
   }
 
   if (designKey === "modern") {
-    return (
-      <div className="absolute inset-0 flex flex-col justify-between px-5 py-5 text-white">
+  const labels = [content?.label1, content?.label2, content?.label3].filter(Boolean);
+
+  return (
+    <div className="absolute inset-0 px-6 py-5 text-white">
+      <div className="relative h-full">
         <div>
-          <div className="max-w-[88%]">
+          <div className="relative z-20 flex flex-col justify-start text-left">
             {renderDesignAwarePageText({
               designKey,
               kind: "title",
-              value: title.value,
-              style: title.style,
+              value: title,
+              style: titleStyle,
             })}
           </div>
 
-          <div className="mt-3 max-w-[100%] line-clamp-3">
+          <div className="mt-3 max-w-[44%] line-clamp-3">
             {renderDesignAwarePageText({
               designKey,
               kind: "description",
-              value: description.value,
-              style: description.style,
+              value: description,
+              style: descriptionStyle,
             })}
           </div>
 
           <div className="mt-4 inline-flex rounded-md bg-gradient-to-r from-violet-500 to-fuchsia-500 px-4 py-2 text-[10px] font-semibold text-white shadow-lg">
-            {String(
-              (cta?.data as { buttonText?: string })?.buttonText || "Learn More",
-            )}
+            {buttonLabel}
           </div>
         </div>
 
-        <div className="mt-4 grid grid-cols-3 gap-2">
-          {labels.map((label) => (
-            <div
-              key={label.key}
-              className="rounded-lg border border-white/10 bg-white/5 px-2 py-3 text-center backdrop-blur-sm"
-            >
-              <div className="mx-auto mb-2 h-7 w-10 rounded-md border border-cyan-300/20 bg-gradient-to-br from-cyan-400/15 to-fuchsia-400/15" />
-
-              <div
-                className="text-[9px] font-medium text-white"
-                style={{
-                  fontFamily:
-                    (
-                      label.data as {
-                        style?: { fontFamily?: string };
-                      }
-                    )?.style?.fontFamily || "Poppins",
-                }}
-              >
-                {String((label.data as { text?: string })?.text || "Label")}
-              </div>
-            </div>
-          ))}
+        {/* 3x5 portrait image */}
+        <div className="absolute right-[42px] top-[38px] z-10 h-[175px] w-[128px] overflow-hidden rounded-xl border border-white/10">
+          <img
+            src={String(content?.image1 || "/designs/design_image_modern_p.webp")}
+            alt="Preview"
+            className="h-full w-full object-cover"
+            draggable={false}
+          />
         </div>
       </div>
-    );
-  }
 
-  if (designKey === "elegant") {
-    return (
-      <div className="absolute inset-0 flex flex-col justify-start px-6 py-5 text-neutral-900">
-        <div className="flex flex-col justify-start text-left">
-          <div className="max-w-[96%]">
-            {renderDesignAwarePageText({
-              designKey,
-              kind: "title",
-              value: title.value,
-              style: title.style,
-            })}
-          </div>
+      <div className="mt-4 grid grid-cols-3 gap-2">
+        {labels.map((label) => (
+          <div
+            key={String(label)}
+            className="rounded-lg border border-white/10 bg-white/5 px-2 py-3 text-center backdrop-blur-sm"
+          >
+            <div className="mx-auto mb-2 h-7 w-10 rounded-md border border-cyan-300/20 bg-gradient-to-br from-cyan-400/15 to-fuchsia-400/15" />
 
-          <div className="-mt-1 max-w-[90%]">
-            {renderDesignAwarePageText({
-              designKey,
-              kind: "subtitle",
-              value: subtitle.value,
-              style: subtitle.style,
-            })}
-          </div>
-
-          <div className="mt-2 max-w-[66%] line-clamp-3">
-            {renderDesignAwarePageText({
-              designKey,
-              kind: "description",
-              value: description.value,
-              style: description.style,
-            })}
-          </div>
-
-          <div className="mt-4 inline-flex w-fit items-center gap-3 border border-[#d7c8bb] bg-transparent px-4 py-2 text-[10px] uppercase tracking-[0.22em] text-[#9f7c61]">
-            <span
+            <div
+              className="text-[9px] font-medium text-white"
               style={{
                 fontFamily:
-                  title.style?.fontFamily && title.style.fontFamily !== "inherit"
-                    ? title.style.fontFamily
-                    : '"Cormorant Garamond", "Times New Roman", serif',
+                  titleStyle?.fontFamily && titleStyle.fontFamily !== "inherit"
+                    ? titleStyle.fontFamily
+                    : "Poppins",
               }}
             >
-              {String(
-                (cta?.data as { buttonText?: string })?.buttonText ||
-                  "View Details",
-              )}
-            </span>
-            <span className="text-[14px] leading-none">→</span>
+              {String(label)}
+            </div>
           </div>
-        </div>
+        ))}
       </div>
-    );
-  }
-
-  if (designKey === "business") {
-    return (
-      <div className="absolute inset-2 flex flex-col justify-start px-5 py-5 text-[#1c2d5a]">
-        <div className="flex flex-col justify-start text-left">
-          <div className="max-w-[100%]">
-            {renderDesignAwarePageText({
-              designKey,
-              kind: "title",
-              value: title.value,
-              style: title.style,
-            })}
-          </div>
-
-          <div className="mt-3 max-w-[42%] line-clamp-3">
-            {renderDesignAwarePageText({
-              designKey,
-              kind: "description",
-              value: description.value,
-              style: description.style,
-            })}
-          </div>
-
-          <div className="mt-5 inline-flex w-fit rounded-md bg-[#2463c5] px-4 py-2 text-[10px] font-semibold text-white shadow-sm">
-            {String(
-              (cta?.data as { buttonText?: string })?.buttonText || "Learn More",
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return null;
+    </div>
+  );
 }
 
-function LegacyContentPreview({
-  content,
-  designKey,
-}: {
-  content: any;
-  designKey: DesignPresetLayout;
-}) {
-  if (designKey === "showcase") {
-    return (
-      <div className="absolute inset-0 grid grid-cols-[1.1fr_0.9fr] px-5 py-4">
-        <div className="flex flex-col justify-center pr-3 text-neutral-900">
-          <div className="max-w-[80%] text-[28px] font-semibold leading-tight">
-            {content.title}
-          </div>
-          <div className="mt-1 text-[9px] text-neutral-700">
-            {content.subtitle}
-          </div>
-          <div className="mt-2 max-w-[82%] text-[10px] leading-4 text-neutral-600 line-clamp-3">
-            {content.description}
-          </div>
-          <div className="mt-3 inline-flex w-fit rounded-full bg-neutral-900 px-3 py-1 text-[10px] font-semibold text-white">
-            {content.buttonLabel}
-          </div>
-          <div className="mt-3 text-[9px] text-neutral-600">
-            {content.callout}
-          </div>
-          <div className="mt-1 text-[9px] font-medium text-neutral-900">
-            {content.linkLabel}
-          </div>
-        </div>
-        <div />
-      </div>
-    );
-  }
-
-  if (designKey === "festive") {
-    return (
-      <div className="absolute inset-0 flex flex-col items-center justify-center px-6 py-5 text-center">
-        <div className="max-w-[82%] text-[22px] font-semibold leading-tight text-black drop-shadow-sm">
-          {content.title}
-        </div>
-        <div className="mt-1 text-[12px] font-medium uppercase tracking-wide text-red-700 drop-shadow-sm">
-          {content.subtitle}
-        </div>
-        <div className="mt-2 max-w-[78%] text-[10px] leading-4 text-black line-clamp-3 drop-shadow-sm">
-          {content.description}
-        </div>
-        <div className="mt-3 inline-flex w-fit rounded-full bg-white px-3 py-1 text-[10px] font-semibold text-red-700 shadow">
-          {content.buttonLabel}
-        </div>
-        <div className="mt-3 text-[9px] font-medium text-black">
-          {content.callout}
-        </div>
-        <div className="mt-1 inline-flex items-center gap-1 rounded-md bg-black/10 px-2 py-1 text-[9px] font-semibold text-black backdrop-blur-sm">
-          <span>12</span>
-          <span>:</span>
-          <span>34</span>
-          <span>:</span>
-          <span>56</span>
-        </div>
-      </div>
-    );
-  }
-
-  if (designKey === "modern") {
-    const words = String(content.title || "").split(" ");
-    const firstPart = words.slice(0, -1).join(" ") || content.title;
-    const accentWord = words.slice(-1).join(" ");
-
-    return (
-      <div className="absolute inset-0 flex flex-col justify-between px-5 py-5 text-white">
-        <div>
-          <div
-            className="max-w-[88%] text-[22px] font-semibold leading-[1.02] text-white"
-            style={{
-              fontFamily:
-                '"Poppins", "Inter", "Avenir Next", "Segoe UI", sans-serif',
-            }}
-          >
-            {firstPart}
-          </div>
-
-          <div
-            className="max-w-[88%] text-[22px] font-semibold leading-[1.52] text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-sky-400 to-fuchsia-400"
-            style={{
-              fontFamily:
-                '"Poppins", "Inter", "Avenir Next", "Segoe UI", sans-serif',
-            }}
-          >
-            {accentWord}
-          </div>
-
-          <div
-            className="mt-3 max-w-[100%] text-[10px] leading-4 text-gray-200 line-clamp-3"
-            style={{
-              fontFamily:
-                '"DM Sans", "Inter", "Avenir Next", "Segoe UI", sans-serif',
-            }}
-          >
-            {content.description}
-          </div>
-
-          <div
-            className="mt-4 inline-flex rounded-md bg-gradient-to-r from-violet-500 to-fuchsia-500 px-4 py-2 text-[10px] font-semibold text-white shadow-lg"
-            style={{
-              fontFamily:
-                '"Poppins", "Inter", "Avenir Next", "Segoe UI", sans-serif',
-            }}
-          >
-            {content.buttonLabel}
-          </div>
-        </div>
-
-        <div className="mt-4 grid grid-cols-3 gap-2">
-          {[content.label1, content.label2, content.label3]
-            .filter(Boolean)
-            .map((label) => (
-              <div
-                key={label}
-                className="rounded-lg border border-white/10 bg-white/5 px-2 py-3 text-center backdrop-blur-sm"
-              >
-                <div className="mx-auto mb-2 h-7 w-10 rounded-md border border-cyan-300/20 bg-gradient-to-br from-cyan-400/15 to-fuchsia-400/15" />
-                <div
-                  className="text-[9px] font-medium text-white"
-                  style={{
-                    fontFamily:
-                      '"Poppins", "Inter", "Avenir Next", "Segoe UI", sans-serif',
-                  }}
-                >
-                  {label}
-                </div>
-              </div>
-            ))}
-        </div>
-      </div>
-    );
-  }
-
   if (designKey === "elegant") {
-    return (
-      <div className="absolute inset-0 flex flex-col justify-start px-6 py-5 text-neutral-900">
-        <div className="flex flex-col justify-start text-left">
-          <div
-            className="max-w-[72%] text-[10px] uppercase tracking-[0.42em] text-neutral-500"
-            style={{
-              fontFamily: '"Cormorant Garamond", "Times New Roman", serif',
-            }}
-          >
-            {content.title?.split(" ").slice(0, -1).join(" ") || content.title}
-          </div>
-
-          <div
-            className="-mt-1 max-w-[96%] text-[52px] leading-[0.9] text-neutral-800"
-            style={{
-              fontFamily: '"Cormorant Garamond", "Times New Roman", serif',
-            }}
-          >
-            {content.title?.split(" ").slice(-1).join(" ") || ""}
-          </div>
-
-          <div
-            className="-mt-1 max-w-[90%] text-[32px] leading-none text-[#b48a68]"
-            style={{ fontFamily: '"Great Vibes", "Brush Script MT", cursive' }}
-          >
-            {content.subtitle}
-          </div>
-
-          <div
-            className="mt-2 max-w-[66%] text-[10px] font-bold uppercase tracking-[0.28em] leading-4 text-neutral-600 line-clamp-3"
-            style={{
-              fontFamily: '"Cormorant Garamond", "Times New Roman", serif',
-            }}
-          >
-            {content.description}
-          </div>
-
-          <div className="mt-4 inline-flex w-fit items-center gap-3 border border-[#d7c8bb] bg-transparent px-4 py-2 text-[10px] uppercase tracking-[0.22em] text-[#9f7c61]">
-            <span
-              style={{
-                fontFamily: '"Cormorant Garamond", "Times New Roman", serif',
-              }}
-            >
-              {content.buttonLabel}
-            </span>
-            <span className="text-[14px] leading-none">→</span>
-          </div>
-        </div>
+  return (
+    <div className="absolute inset-0 px-6 py-5 text-neutral-900">
+  <div className="relative h-full">
+    <div className="relative z-20 flex flex-col justify-start text-left">
+      <div className="whitespace-nowrap">
+        {renderDesignAwarePageText({
+          designKey,
+          kind: "title",
+          value: title,
+          style: titleStyle,
+        })}
       </div>
-    );
-  }
+
+      <div className="-mt-0 max-w-[90%]">
+        {renderDesignAwarePageText({
+          designKey,
+          kind: "subtitle",
+          value: subtitle,
+          style: subtitleStyle,
+        })}
+      </div>
+
+      <div className="mt-2 max-w-[60%] line-clamp-6">
+        {renderDesignAwarePageText({
+          designKey,
+          kind: "description",
+          value: description,
+          style: descriptionStyle,
+        })}
+      </div>
+
+      <div className="mt-4 inline-flex w-fit items-center gap-3 border border-[#d7c8bb] bg-transparent px-4 py-2 text-[10px] uppercase tracking-[0.22em] text-[#9f7c61]">
+        <span
+          style={{
+            fontFamily:
+              titleStyle?.fontFamily && titleStyle.fontFamily !== "inherit"
+                ? titleStyle.fontFamily
+                : '"Cormorant Garamond", "Times New Roman", serif',
+          }}
+        >
+          {buttonLabel}
+        </span>
+        <span className="text-[14px] leading-none">→</span>
+      </div>
+    </div>
+
+    <div className="absolute right-[22px] top-[38px] z-10 h-[175px] w-[98px] overflow-hidden border-4 border-black bg-neutral-100">
+      <img
+        src={String(content?.image1 || "/designs/design_image_elegant_p916.webp")}
+        alt="Preview"
+        className="h-full w-full object-cover"
+        draggable={false}
+      />
+    </div>
+  </div>
+</div>
+  );
+}
 
   if (designKey === "business") {
-    return (
-      <div className="absolute inset-2 flex flex-col justify-start px-5 py-5 text-[#1c2d5a]">
-        <div className="flex flex-col justify-start text-left">
-          <div
-            className="max-w-[100%] text-[20px] font-semibold leading-[1.25] text-[#1f2e5a]"
-            style={{
-              fontFamily:
-                '"DM Sans", "Avenir Next", "Segoe UI", "Helvetica Neue", sans-serif',
-            }}
-          >
-            {content.title}
+  return (
+    <div className="absolute inset-2 flex flex-col justify-start px-5 py-5 text-[#1c2d5a]">
+      <div className="flex flex-col justify-start text-left">
+        <div className="max-w-[100%]">
+          {renderDesignAwarePageText({
+            designKey,
+            kind: "title",
+            value: title,
+            style: titleStyle,
+          })}
+        </div>
+
+        <div className="mt-2 max-w-[70%] line-clamp-4">
+          {renderDesignAwarePageText({
+            designKey,
+            kind: "description",
+            value: description,
+            style: descriptionStyle,
+          })}
+        </div>
+
+        <div className="mt-5 inline-flex w-fit rounded-md bg-[#2463c5] px-4 py-2 text-[10px] font-semibold text-white shadow-sm">
+          {buttonLabel}
+        </div>
+
+        <div className="mt-5 flex gap-6">
+          <div className="h-[66px] w-[82px]  bg-neutral-100">
+            <img
+              src={String(content?.image1 || "/designs/design_image_placeholder.webp")}
+              alt="Preview image 1"
+              className="h-full w-full object-cover"
+              draggable={false}
+            />
           </div>
 
-          <div
-            className="mt-3 max-w-[42%] text-[11px] leading-5 text-[#445174] line-clamp-3"
-            style={{
-              fontFamily:
-                '"Poppins", "Avenir Next", "Segoe UI", "Helvetica Neue", sans-serif',
-            }}
-          >
-            {content.description}
+          <div className="h-[86px] w-[102px]  bg-neutral-100">
+            <img
+              src={String(content?.image2 || "/designs/design_image_placeholder.webp")}
+              alt="Preview image 2"
+              className="h-full w-full object-cover"
+              draggable={false}
+            />
           </div>
 
-          <div className="mt-5 inline-flex w-fit rounded-md bg-[#2463c5] px-4 py-2 text-[10px] font-semibold text-white shadow-sm">
-            {content.buttonLabel}
+          <div className="h-[66px] w-[82px]  bg-neutral-100">
+            <img
+              src={String(content?.image3 || "/designs/design_image_placeholder.webp")}
+              alt="Preview image 3"
+              className="h-full w-full object-cover"
+              draggable={false}
+            />
           </div>
         </div>
       </div>
-    );
-  }
+    </div>
+  );
+}
 
   return null;
 }
@@ -602,19 +457,17 @@ export default function DesignPreviewRenderer({
   }
 
   const metadata = resolveMetadata(templateKey, normalizedDesignKey);
-  if (metadata) {
-    return <MetadataPreview metadata={metadata} designKey={normalizedDesignKey} />;
+  const content = resolveContent(templateKey, normalizedDesignKey);
+
+  if (!metadata || !content) {
+    return null;
   }
 
-  const legacyContent = resolveLegacyContent(templateKey, normalizedDesignKey);
-  if (legacyContent) {
-    return (
-      <LegacyContentPreview
-        content={legacyContent}
-        designKey={normalizedDesignKey}
-      />
-    );
-  }
-
-  return null;
+  return (
+    <MetadataPreview
+      metadata={metadata}
+      content={content}
+      designKey={normalizedDesignKey}
+    />
+  );
 }

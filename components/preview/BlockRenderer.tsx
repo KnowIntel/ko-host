@@ -43,10 +43,10 @@ function isLightDesign(designKey?: string) {
 
 function getSoftSurfaceClass(designKey?: string) {
   if (isLightDesign(designKey)) {
-    return "border-neutral-200 bg-neutral-50 text-neutral-900";
+    return "border-neutral-200 bg-neutral-50";
   }
 
-  return "border-white/10 bg-white/5 text-white";
+  return "border-white/10 bg-white/5";
 }
 
 function getPlaceholderClass(designKey?: string) {
@@ -67,34 +67,118 @@ function getMutedTextClass(designKey?: string) {
 
 function getLinkItemClass(designKey?: string) {
   if (isLightDesign(designKey)) {
-    return "rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-800";
+    return "rounded-lg border border-neutral-200 bg-white px-3 py-2";
   }
 
-  return "rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white";
+  return "rounded-lg border border-white/10 bg-white/5 px-3 py-2";
 }
 
 function getButtonClass(designKey?: string) {
   if (designKey === "showcase") {
-    return "inline-flex rounded-full bg-neutral-900 px-4 py-2 text-sm font-semibold text-white";
+    return "inline-flex rounded-full bg-neutral-900 px-4 py-2";
   }
 
   if (designKey === "festive") {
-    return "inline-flex rounded-full bg-red-700 px-4 py-2 text-sm font-semibold text-white";
+    return "inline-flex rounded-full bg-red-700 px-4 py-2";
   }
 
   if (designKey === "elegant") {
-    return "inline-flex rounded-full border border-stone-400 bg-white/70 px-4 py-2 text-sm font-medium text-stone-800";
+    return "inline-flex rounded-full border border-stone-400 bg-white/70 px-4 py-2 backdrop-blur-sm";
   }
 
   if (designKey === "business") {
-    return "inline-flex rounded-xl bg-neutral-900 px-5 py-3 text-sm font-semibold text-white";
+    return "inline-flex rounded-xl bg-neutral-900 px-5 py-3";
   }
 
   if (designKey === "blank") {
-    return "inline-flex rounded-xl bg-neutral-900 px-4 py-2 text-sm font-semibold text-white";
+    return "inline-flex rounded-xl bg-neutral-900 px-4 py-2";
   }
 
-  return "inline-flex rounded-md bg-gradient-to-r from-violet-500 to-fuchsia-500 px-4 py-2 text-sm font-semibold text-white shadow-lg";
+  return "inline-flex rounded-md bg-gradient-to-r from-violet-500 to-fuchsia-500 px-4 py-2 shadow-lg";
+}
+
+function getDefaultTextColor(designKey?: string) {
+  return isLightDesign(designKey) ? "#111827" : "#ffffff";
+}
+
+function getButtonTextStyle(
+  style?: TextStyle,
+  designKey?: string,
+): React.CSSProperties {
+  const base = getTextStyle(style);
+  return {
+    ...base,
+    color: style?.color || (designKey === "elegant" ? "#44403c" : "#ffffff"),
+  };
+}
+
+function getContainerTextStyle(
+  style?: TextStyle,
+  designKey?: string,
+): React.CSSProperties {
+  const base = getTextStyle(style);
+  return {
+    ...base,
+    color: style?.color || getDefaultTextColor(designKey),
+  };
+}
+
+function getAppearanceStyle(block: MicrositeBlock): React.CSSProperties {
+  return {
+    backgroundColor:
+      block.appearance?.backgroundColor &&
+      block.appearance.backgroundColor !== "transparent"
+        ? block.appearance.backgroundColor
+        : undefined,
+    borderColor: block.appearance?.borderColor || undefined,
+    borderWidth:
+      typeof block.appearance?.borderWidth === "number"
+        ? `${block.appearance.borderWidth}px`
+        : undefined,
+    borderStyle:
+      typeof block.appearance?.borderWidth === "number" &&
+      block.appearance.borderWidth > 0
+        ? "solid"
+        : undefined,
+    borderRadius:
+      typeof block.appearance?.borderRadius === "number"
+        ? `${block.appearance.borderRadius}px`
+        : undefined,
+  };
+}
+
+function renderShape(block: Extract<MicrositeBlock, { type: "shape" }>) {
+  const style = getAppearanceStyle(block);
+
+  if (block.data.shapeType === "line") {
+    return (
+      <div className="flex h-full w-full items-center">
+        <div
+          className="w-full"
+          style={{
+            height: `${Math.max(2, block.appearance?.borderWidth || 4)}px`,
+            backgroundColor:
+              block.appearance?.borderColor || block.appearance?.backgroundColor || "#111827",
+            borderRadius: "999px",
+          }}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="h-full w-full"
+      style={{
+        ...style,
+        borderRadius:
+          block.data.shapeType === "circle"
+            ? "9999px"
+            : style.borderRadius || "16px",
+        minHeight: "100%",
+      }}
+    />
+  );
 }
 
 export default function BlockRenderer({
@@ -104,27 +188,34 @@ export default function BlockRenderer({
   block: MicrositeBlock;
   designKey?: string;
 }) {
+  const wrapperStyle = getAppearanceStyle(block);
+
   switch (block.type) {
     case "label":
       return (
-        <div className="h-full w-full" style={getTextStyle(block.data.style)}>
-          {getLabelText(block)}
+        <div className="h-full w-full p-2" style={wrapperStyle}>
+          <div style={getContainerTextStyle(block.data.style, designKey)}>
+            {getLabelText(block)}
+          </div>
         </div>
       );
 
     case "image":
       return block.data.image.url ? (
-        <img
-          src={block.data.image.url}
-          alt={block.data.image.alt || ""}
-          className="h-full w-full rounded-xl object-cover"
-        />
+        <div className="h-full w-full overflow-hidden" style={wrapperStyle}>
+          <img
+            src={block.data.image.url}
+            alt={block.data.image.alt || ""}
+            className="h-full w-full object-cover"
+          />
+        </div>
       ) : (
         <div
           className={[
-            "flex h-full min-h-[120px] items-center justify-center rounded-xl border border-dashed text-sm",
+            "flex h-full min-h-[120px] items-center justify-center border border-dashed text-sm",
             getPlaceholderClass(designKey),
           ].join(" ")}
+          style={wrapperStyle}
         >
           Image
         </div>
@@ -132,10 +223,11 @@ export default function BlockRenderer({
 
     case "cta":
       return (
-        <div className="flex h-full items-center">
+        <div className="flex h-full items-center p-2" style={wrapperStyle}>
           <a
             href={block.data.buttonUrl || "#"}
             className={getButtonClass(designKey)}
+            style={getButtonTextStyle(block.data.style, designKey)}
           >
             {block.data.buttonText || "Button"}
           </a>
@@ -146,29 +238,36 @@ export default function BlockRenderer({
       return (
         <div
           className={[
-            "rounded-xl border p-4",
+            "p-4",
             getSoftSurfaceClass(designKey),
           ].join(" ")}
+          style={wrapperStyle}
         >
           {block.data.heading ? (
             <div
-              className={[
-                "text-xs uppercase tracking-[0.14em]",
-                getMutedTextClass(designKey),
-              ].join(" ")}
+              className={["uppercase tracking-[0.14em]", getMutedTextClass(designKey)].join(" ")}
+              style={getContainerTextStyle(block.data.style, designKey)}
             >
               {block.data.heading}
             </div>
           ) : null}
-          <div className="mt-2 text-lg font-semibold">00 : 00 : 00</div>
+
+          <div
+            className="mt-2"
+            style={getContainerTextStyle(block.data.style, designKey)}
+          >
+            00 : 00 : 00
+          </div>
         </div>
       );
 
     case "links":
       return (
-        <div className="space-y-3">
+        <div className="space-y-3 p-2" style={wrapperStyle}>
           {block.data.heading ? (
-            <div className="text-sm font-semibold">{block.data.heading}</div>
+            <div style={getContainerTextStyle(block.data.style, designKey)}>
+              {block.data.heading}
+            </div>
           ) : null}
 
           <div
@@ -186,9 +285,10 @@ export default function BlockRenderer({
                 href={item.url || "#"}
                 className={
                   designKey === "showcase"
-                    ? "block text-sm font-medium text-neutral-700"
+                    ? "block"
                     : getLinkItemClass(designKey)
                 }
+                style={getContainerTextStyle(block.data.style, designKey)}
               >
                 {item.label || "Link"}
               </a>
@@ -200,8 +300,9 @@ export default function BlockRenderer({
     case "gallery":
       return (
         <div
-          className="grid h-full gap-2"
+          className="grid h-full gap-2 p-2"
           style={{
+            ...wrapperStyle,
             gridTemplateColumns: `repeat(${Math.max(
               1,
               Number(block.data.grid) || 3,
@@ -240,23 +341,26 @@ export default function BlockRenderer({
       return (
         <div
           className={[
-            "rounded-xl border p-4",
+            "p-4",
             getSoftSurfaceClass(designKey),
           ].join(" ")}
+          style={wrapperStyle}
         >
-          <div className="text-sm font-semibold">
+          <div style={getContainerTextStyle(block.data.style, designKey)}>
             {block.data.question || "Poll"}
           </div>
+
           <div className="mt-3 space-y-2">
             {block.data.options.map((option: PollOption) => (
               <div
                 key={option.id}
                 className={[
-                  "rounded-lg border px-3 py-2 text-sm",
+                  "rounded-lg border px-3 py-2",
                   isLightDesign(designKey)
                     ? "border-neutral-200"
                     : "border-white/10",
                 ].join(" ")}
+                style={getContainerTextStyle(block.data.style, designKey)}
               >
                 {option.text || "Option"}
               </div>
@@ -269,19 +373,16 @@ export default function BlockRenderer({
       return (
         <div
           className={[
-            "rounded-xl border p-4",
+            "p-4",
             getSoftSurfaceClass(designKey),
           ].join(" ")}
+          style={wrapperStyle}
         >
-          <div className="text-sm font-semibold">
+          <div style={getContainerTextStyle(block.data.style, designKey)}>
             {block.data.heading || "RSVP"}
           </div>
-          <div
-            className={[
-              "mt-3 grid gap-2 text-sm",
-              getMutedTextClass(designKey),
-            ].join(" ")}
-          >
+
+          <div className="mt-3 grid gap-2" style={getContainerTextStyle(block.data.style, designKey)}>
             {block.data.collectName ? <div>Name</div> : null}
             {block.data.collectEmail ? <div>Email</div> : null}
             {block.data.collectPhone ? <div>Phone</div> : null}
@@ -295,11 +396,15 @@ export default function BlockRenderer({
       return (
         <div
           className={[
-            "rounded-xl border p-4",
+            "p-4",
             getSoftSurfaceClass(designKey),
           ].join(" ")}
+          style={wrapperStyle}
         >
-          <div className="text-sm font-semibold">FAQs</div>
+          <div style={getContainerTextStyle(block.data.style, designKey)}>
+            FAQs
+          </div>
+
           <div className="mt-3 space-y-2">
             {block.data.items.map((item: FaqItem) => (
               <div
@@ -311,13 +416,10 @@ export default function BlockRenderer({
                     : "border-white/10 bg-white/5",
                 ].join(" ")}
               >
-                <div className="text-sm font-medium">{item.question}</div>
-                <div
-                  className={[
-                    "mt-1 text-sm",
-                    getMutedTextClass(designKey),
-                  ].join(" ")}
-                >
+                <div style={getContainerTextStyle(block.data.style, designKey)}>
+                  {item.question}
+                </div>
+                <div className="mt-1" style={getContainerTextStyle(block.data.style, designKey)}>
                   {item.answer}
                 </div>
               </div>
@@ -330,17 +432,20 @@ export default function BlockRenderer({
       return (
         <div
           className={[
-            "rounded-xl border p-4",
+            "p-4",
             getSoftSurfaceClass(designKey),
           ].join(" ")}
+          style={wrapperStyle}
         >
-          <div className="text-sm font-semibold">
+          <div style={getContainerTextStyle(block.data.style, designKey)}>
             {block.data.subject || "Message Thread"}
           </div>
-          <div className={["mt-3 text-sm", getMutedTextClass(designKey)].join(" ")}>
+
+          <div className="mt-3" style={getContainerTextStyle(block.data.style, designKey)}>
             Anonymous: {block.data.allowAnonymous ? "On" : "Off"}
           </div>
-          <div className={["text-sm", getMutedTextClass(designKey)].join(" ")}>
+
+          <div style={getContainerTextStyle(block.data.style, designKey)}>
             Approval: {block.data.requireApproval ? "Required" : "Not required"}
           </div>
         </div>
@@ -351,7 +456,7 @@ export default function BlockRenderer({
 
     case "showcase":
       return (
-        <div className="grid h-full grid-cols-3 gap-2">
+        <div className="grid h-full grid-cols-3 gap-2 p-2" style={wrapperStyle}>
           {(block.data.images.length
             ? block.data.images
             : Array.from({ length: 9 })
@@ -382,20 +487,26 @@ export default function BlockRenderer({
 
     case "festiveBackground":
       return block.data.image.url ? (
-        <img
-          src={block.data.image.url}
-          alt=""
-          className="h-full w-full rounded-xl object-cover"
-        />
+        <div className="h-full w-full overflow-hidden" style={wrapperStyle}>
+          <img
+            src={block.data.image.url}
+            alt=""
+            className="h-full w-full object-cover"
+          />
+        </div>
       ) : (
         <div
           className={[
-            "flex h-full min-h-[120px] items-center justify-center rounded-xl border border-dashed text-sm",
+            "flex h-full min-h-[120px] items-center justify-center border border-dashed text-sm",
             getPlaceholderClass(designKey),
           ].join(" ")}
+          style={wrapperStyle}
         >
           Background image
         </div>
       );
+
+    case "shape":
+      return renderShape(block);
   }
 }

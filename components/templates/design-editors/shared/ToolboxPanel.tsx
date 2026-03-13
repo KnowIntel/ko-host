@@ -1,6 +1,10 @@
 "use client";
 
-import type { BuilderBlockType, TextAlign } from "@/lib/templates/builder";
+import type {
+  BuilderBlockType,
+  ShapeType,
+  TextAlign,
+} from "@/lib/templates/builder";
 
 export type PageBlockType = "title" | "subtitle" | "tagline" | "description";
 
@@ -11,6 +15,10 @@ type Props = {
   selectedItalic: boolean;
   selectedUnderline: boolean;
   selectedColor: string;
+  selectedBackgroundColor: string;
+  selectedBorderColor: string;
+  selectedBorderWidth: number;
+  selectedBorderRadius: number;
   onFontFamilyChange: (value: string) => void;
   onFontSizeChange: (value: number) => void;
   onBoldChange: (value: boolean) => void;
@@ -18,7 +26,12 @@ type Props = {
   onUnderlineChange: (value: boolean) => void;
   onAlignChange: (value: TextAlign) => void;
   onColorChange: (value: string) => void;
+  onBackgroundColorChange: (value: string) => void;
+  onBorderColorChange: (value: string) => void;
+  onBorderWidthChange: (value: number) => void;
+  onBorderRadiusChange: (value: number) => void;
   onAddBlock: (type: BuilderBlockType) => void;
+  onAddShape: (type: ShapeType) => void;
   onAddPageBlock?: (type: PageBlockType) => void;
 };
 
@@ -53,6 +66,12 @@ const BLOCKS: Array<{ type: BuilderBlockType; label: string }> = [
   { type: "thread", label: "Message Thread" },
 ];
 
+const SHAPES: Array<{ type: ShapeType; label: string }> = [
+  { type: "rectangle", label: "Rectangle" },
+  { type: "circle", label: "Circle" },
+  { type: "line", label: "Line" },
+];
+
 export default function ToolboxPanel({
   selectedFontFamily,
   selectedFontSize,
@@ -60,6 +79,10 @@ export default function ToolboxPanel({
   selectedItalic,
   selectedUnderline,
   selectedColor,
+  selectedBackgroundColor,
+  selectedBorderColor,
+  selectedBorderWidth,
+  selectedBorderRadius,
   onFontFamilyChange,
   onFontSizeChange,
   onBoldChange,
@@ -67,12 +90,34 @@ export default function ToolboxPanel({
   onUnderlineChange,
   onAlignChange,
   onColorChange,
+  onBackgroundColorChange,
+  onBorderColorChange,
+  onBorderWidthChange,
+  onBorderRadiusChange,
   onAddBlock,
+  onAddShape,
   onAddPageBlock,
 }: Props) {
+  const safeBackgroundColor = selectedBackgroundColor.startsWith("#")
+    ? selectedBackgroundColor
+    : "#ffffff";
+
+  const safeBorderColor = selectedBorderColor.startsWith("#")
+    ? selectedBorderColor
+    : "#d1d5db";
+
+  const shellClass =
+    "rounded-[24px] border border-neutral-800 bg-[linear-gradient(180deg,#0f1115_0%,#171a21_100%)] p-4 text-white shadow-sm";
+
+  const fieldClass =
+    "mt-2 w-full rounded-xl border border-white/15 bg-black/20 px-3 py-2 text-sm text-white";
+
+  const buttonClass =
+    "rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-left text-sm text-white/85 transition hover:bg-white/10";
+
   return (
     <div className="space-y-4">
-      <div className="rounded-[24px] border border-neutral-800 bg-[linear-gradient(180deg,#0f1115_0%,#171a21_100%)] p-4 text-white shadow-sm">
+      <div className={shellClass}>
         <div className="text-sm font-semibold">Typography</div>
 
         <div className="mt-4 space-y-3">
@@ -83,7 +128,7 @@ export default function ToolboxPanel({
             <select
               value={selectedFontFamily}
               onChange={(e) => onFontFamilyChange(e.target.value)}
-              className="mt-2 w-full rounded-xl border border-white/15 bg-black/20 px-3 py-2 text-sm text-white"
+              className={fieldClass}
             >
               {FONT_OPTIONS.map((font) => (
                 <option key={font} value={font}>
@@ -103,7 +148,7 @@ export default function ToolboxPanel({
               max={120}
               value={selectedFontSize}
               onChange={(e) => onFontSizeChange(Number(e.target.value) || 16)}
-              className="mt-2 w-full rounded-xl border border-white/15 bg-black/20 px-3 py-2 text-sm text-white"
+              className={fieldClass}
             />
           </div>
 
@@ -194,7 +239,104 @@ export default function ToolboxPanel({
         </div>
       </div>
 
-      <div className="rounded-[24px] border border-neutral-800 bg-[linear-gradient(180deg,#0f1115_0%,#171a21_100%)] p-4 text-white shadow-sm">
+      <div className={shellClass}>
+        <div className="text-sm font-semibold">Block Background</div>
+
+        <div className="mt-4 space-y-3">
+          <div>
+            <label className="text-xs uppercase tracking-[0.16em] text-white/55">
+              Fill Color
+            </label>
+            <div className="mt-2 flex items-center gap-3">
+              <input
+                type="color"
+                value={safeBackgroundColor}
+                onChange={(e) => onBackgroundColorChange(e.target.value)}
+                className="h-11 w-14 cursor-pointer rounded border border-white/15 bg-transparent"
+              />
+              <input
+                type="text"
+                value={selectedBackgroundColor}
+                onChange={(e) => onBackgroundColorChange(e.target.value)}
+                className="w-full rounded-xl border border-white/15 bg-black/20 px-3 py-2 text-sm text-white"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className={shellClass}>
+        <div className="text-sm font-semibold">Borders</div>
+
+        <div className="mt-4 space-y-3">
+          <div>
+            <label className="text-xs uppercase tracking-[0.16em] text-white/55">
+              Border Color
+            </label>
+            <div className="mt-2 flex items-center gap-3">
+              <input
+                type="color"
+                value={safeBorderColor}
+                onChange={(e) => onBorderColorChange(e.target.value)}
+                className="h-11 w-14 cursor-pointer rounded border border-white/15 bg-transparent"
+              />
+              <input
+                type="text"
+                value={selectedBorderColor}
+                onChange={(e) => onBorderColorChange(e.target.value)}
+                className="w-full rounded-xl border border-white/15 bg-black/20 px-3 py-2 text-sm text-white"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="text-xs uppercase tracking-[0.16em] text-white/55">
+              Border Width
+            </label>
+            <input
+              type="number"
+              min={0}
+              max={24}
+              value={selectedBorderWidth}
+              onChange={(e) => onBorderWidthChange(Number(e.target.value) || 0)}
+              className={fieldClass}
+            />
+          </div>
+
+          <div>
+            <label className="text-xs uppercase tracking-[0.16em] text-white/55">
+              Corner Radius
+            </label>
+            <input
+              type="number"
+              min={0}
+              max={80}
+              value={selectedBorderRadius}
+              onChange={(e) => onBorderRadiusChange(Number(e.target.value) || 0)}
+              className={fieldClass}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className={shellClass}>
+        <div className="text-sm font-semibold">Shapes</div>
+
+        <div className="mt-4 grid gap-2">
+          {SHAPES.map((shape) => (
+            <button
+              key={shape.type}
+              type="button"
+              onClick={() => onAddShape(shape.type)}
+              className={buttonClass}
+            >
+              {shape.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className={shellClass}>
         <div className="text-sm font-semibold">Page Text</div>
 
         <div className="mt-4 grid gap-2">
@@ -203,7 +345,7 @@ export default function ToolboxPanel({
               key={block.type}
               type="button"
               onClick={() => onAddPageBlock?.(block.type)}
-              className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-left text-sm text-white/85 transition hover:bg-white/10"
+              className={buttonClass}
             >
               {block.label}
             </button>
@@ -211,7 +353,7 @@ export default function ToolboxPanel({
         </div>
       </div>
 
-      <div className="rounded-[24px] border border-neutral-800 bg-[linear-gradient(180deg,#0f1115_0%,#171a21_100%)] p-4 text-white shadow-sm">
+      <div className={shellClass}>
         <div className="text-sm font-semibold">Toolbox</div>
 
         <div className="mt-4 grid gap-2">
@@ -224,7 +366,7 @@ export default function ToolboxPanel({
               onDragStart={(e) => {
                 e.dataTransfer.setData("application/kht-block-type", block.type);
               }}
-              className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-left text-sm text-white/85 transition hover:bg-white/10"
+              className={buttonClass}
             >
               {block.label}
             </button>

@@ -9,6 +9,9 @@ import {
 import TemplateDraftEditor from "@/components/templates/TemplateDraftEditor";
 import type { BuilderDraft } from "@/lib/templates/builder";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 function resolveTemplateFromRoute(rawTemplate: string) {
   const normalized = normalizeTemplateKey(rawTemplate);
 
@@ -65,6 +68,16 @@ export default async function CreateTemplatePage({
     blocks: Array.isArray(presetDraft.blocks) ? presetDraft.blocks : [],
   } as BuilderDraft;
 
+  const editorInstanceKey = [
+    templateKey,
+    designKey,
+    initialDraft.title || "",
+    initialDraft.subtitle || "",
+    initialDraft.description || "",
+    initialDraft.blocks.length,
+    initialDraft.blocks.map((block) => `${block.type}:${block.id}`).join("|"),
+  ].join("::");
+
   return (
     <main className="min-h-screen bg-[#f6f4f2]">
       <div className="mx-auto w-full max-w-[1600px] px-4 py-8 sm:px-6 lg:px-8">
@@ -120,6 +133,15 @@ export default async function CreateTemplatePage({
 
                 <div className="flex shrink-0 flex-wrap items-center gap-3">
                   <Link
+                    href="/preview/draft"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-900 transition hover:bg-neutral-50"
+                  >
+                    Open Preview
+                  </Link>
+
+                  <Link
                     href={`/create/${encodeURIComponent(templateKey)}/design`}
                     className="inline-flex items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-900 transition hover:bg-neutral-50"
                   >
@@ -132,7 +154,7 @@ export default async function CreateTemplatePage({
         </div>
 
         <TemplateDraftEditor
-          key={`${templateKey}:${designKey}`}
+          key={editorInstanceKey}
           templateName={templateName}
           designLayout={designKey}
           initialDraft={initialDraft}

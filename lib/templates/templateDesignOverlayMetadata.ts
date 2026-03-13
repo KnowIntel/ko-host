@@ -1,3 +1,5 @@
+// lib\templates\templateDesignOverlayMetadata.ts
+// 
 import type {
   BuilderBlockType,
   GridPlacement,
@@ -331,13 +333,13 @@ function buildShowcaseMetadata(params: {
     page: {
       title: pageTitle(
         params.title,
-        { colStart: 1, rowStart: 1, colSpan: 12, rowSpan: 2, zIndex: 1 },
+        { colStart: 1, rowStart: 1, colSpan: 4, rowSpan: 2, zIndex: 1 },
         { fontFamily: "Inter", fontSize: 40, bold: true, align: "left" },
         true,
       ),
       subtitle: pageSubtitle(
         params.subtitle,
-        { colStart: 1, rowStart: 3, colSpan: 10, rowSpan: 1, zIndex: 2 },
+        { colStart: 1, rowStart: 3, colSpan: 4, rowSpan: 1, zIndex: 2 },
         { fontFamily: "Inter", fontSize: 18, align: "left" },
         true,
       ),
@@ -349,48 +351,106 @@ function buildShowcaseMetadata(params: {
       ),
       description: pageDescription(
         params.description,
-        { colStart: 1, rowStart: 5, colSpan: 8, rowSpan: 2, zIndex: 4 },
-        { fontFamily: "Inter", fontSize: 16, align: "left" },
+        { colStart: 1, rowStart: 5, colSpan: 4, rowSpan: 2, zIndex: 4 },
+        { fontFamily: "Inter", fontSize: 12, align: "left" },
         true,
       ),
     },
     blocks: [
-      seedBlock("cta1", "cta", {
-        colStart: 1,
-        rowStart: 8,
-        colSpan: 4,
-        rowSpan: 1,
-        zIndex: 10,
-      }, {
-        heading: "",
-        body: "",
-        buttonText: params.ctaLabel,
-        buttonUrl: "#",
-      }),
-      seedBlock("gallery1", "gallery", {
-        colStart: 1,
-        rowStart: 10,
-        colSpan: 12,
-        rowSpan: 4,
-        zIndex: 11,
-      }, {
-        grid: 3,
-        images: [],
-      }),
-      seedBlock("links1", "links", {
-        colStart: 1,
-        rowStart: 15,
-        colSpan: 12,
-        rowSpan: 2,
-        zIndex: 12,
-      }, {
-        heading: "Quick Links",
-        items: [
-          { id: "seed_link_1", label: params.linkLabel, url: "#" },
-          { id: "seed_link_2", label: "Details", url: "#" },
-        ],
-      }),
+  seedBlock("cta1", "cta", {
+    colStart: 1,
+    rowStart: 8,
+    colSpan: 4,
+    rowSpan: 1,
+    zIndex: 10,
+  }, {
+    heading: "",
+    body: "",
+    buttonText: params.ctaLabel,
+    buttonUrl: "#",
+  }),
+
+  seedBlock(
+    "image1",
+    "image",
+    {
+      colStart: 6,
+      rowStart: 1,
+      colSpan: 3,
+      rowSpan: 3,
+      zIndex: 9,
+    },
+    {
+      image: {
+        id: "seed_img_1",
+        url: "/designs/design_image_placeholder.webp",
+        alt: "Showcase image",
+      },
+    },
+  ),
+
+  seedBlock(
+    "image2",
+    "image",
+    {
+      colStart: 9,
+      rowStart: 1,
+      colSpan: 3,
+      rowSpan: 3,
+      zIndex: 9,
+    },
+    {
+      image: {
+        id: "seed_img_2",
+        url: "/designs/design_image_placeholder_1536.webp",
+        alt: "Showcase image",
+      },
+    },
+  ),
+  seedBlock(
+    "image3",
+    "image",
+    {
+      colStart: 6,
+      rowStart: 4,
+      colSpan: 3,
+      rowSpan: 3,
+      zIndex: 9,
+    },
+    {
+      image: {
+        id: "seed_img_3",
+        url: "/designs/design_image_placeholder_1536.webp",
+        alt: "Showcase image",
+      },
+    },
+  ),
+
+  seedBlock("gallery1", "gallery", {
+    colStart: 1,
+    rowStart: 10,
+    colSpan: 12,
+    rowSpan: 4,
+    zIndex: 11,
+  }, {
+    grid: 3,
+    images: [],
+  }),
+
+  seedBlock("links1", "links", {
+    colStart: 1,
+    rowStart: 15,
+    colSpan: 12,
+    rowSpan: 2,
+    zIndex: 12,
+  }, {
+    heading: "Quick Links",
+    items: [
+      { id: "seed_link_1", label: params.linkLabel, url: "#" },
+      { id: "seed_link_2", label: "Details", url: "#" },
     ],
+  }),
+],
   };
 }
 
