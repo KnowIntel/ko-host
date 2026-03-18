@@ -186,4 +186,22 @@ export interface DesignBlockMetadata {
   config?: Record<string, any>;
 }
 
-export type DesignLayoutMetadata = DesignLayoutDefinition;
+export interface DesignLayoutMetadata {
+  /* legacy top-level fields */
+  id?: string;
+  label?: string;
+  description?: string;
+  cardLabel?: string;
+  thumbnail?: string;
+  recommended?: boolean;
+
+  /* current fields */
+  designKey?: DesignLayoutKey;
+  card?: LayoutCardMetadata;
+  page?: PageDefaults;
+  pageTextBlocks?: PageTextBlockConfig[];
+  optionalBlocks?: OptionalBlockConfig[];
+
+  /* legacy block collections */
+  blocks?: DesignBlockMetadata[];
+}
