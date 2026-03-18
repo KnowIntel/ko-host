@@ -128,6 +128,14 @@ export interface DesignBlockMetadata {
   required?: boolean;
   locked?: boolean;
   text?: string;
+
+  /* legacy flat coordinates */
+  x?: number;
+  y?: number;
+  w?: number;
+  h?: number;
+  zIndex?: number;
+
   placement?: BlockPlacement;
   grid?: {
     colStart?: number;
@@ -136,6 +144,7 @@ export interface DesignBlockMetadata {
     rowSpan?: number;
     zIndex?: number;
   };
+
   style?: TextStyle | Record<string, any>;
   frame?: BlockFrame;
   appearance?: BlockFrame | Record<string, any>;
