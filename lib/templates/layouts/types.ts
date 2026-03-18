@@ -136,6 +136,14 @@ export interface DesignBlockMetadata {
   h?: number;
   zIndex?: number;
 
+  /* legacy visual fields */
+  rotation?: number;
+  opacity?: number;
+  borderRadius?: number;
+  backgroundColor?: string;
+  borderColor?: string;
+  borderWidth?: number;
+
   placement?: BlockPlacement;
   grid?: {
     colStart?: number;
