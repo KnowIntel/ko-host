@@ -1,8 +1,20 @@
 /* -------------------------------------------------------------------------- */
 /* COMPATIBILITY LAYER */
 /* -------------------------------------------------------------------------- */
-/* This file now simply re-exports the new builder mutation modules.
-   The editor can keep importing from editorUtils without breaking. */
+
+import {
+  createBlock,
+  type BuilderBlockType,
+  type BuilderDraft,
+  type CountdownBlock,
+  type CtaBlock,
+  type ImageBlock,
+  type LabelBlock,
+  type LinksBlock,
+  type MicrositeBlock,
+  type ShowcaseBlock,
+  type TextStyle,
+} from "@/lib/templates/builder";
 
 export * from "@/components/builder/mutations/blockMutations";
 export * from "@/components/builder/mutations/appearanceMutations";
@@ -30,4 +42,114 @@ export function readFileAsDataUrl(file: File) {
 
     reader.readAsDataURL(file);
   });
+}
+
+/* -------------------------------------------------------------------------- */
+/* LEGACY / COMPAT HELPERS
+/* -------------------------------------------------------------------------- */
+
+export function addBlockToDraft(
+  blocks: MicrositeBlock[],
+  blockOrType: MicrositeBlock | BuilderBlockType,
+) {
+  const block =
+    typeof blockOrType === "string" ? createBlock(blockOrType) : blockOrType;
+
+  return [...blocks, block];
+}
+
+export function createDefaultCountdownBlock(): CountdownBlock {
+  return createBlock("countdown") as CountdownBlock;
+}
+
+export function createDefaultHeroButtonBlock(
+  buttonText = "Button",
+): CtaBlock {
+  const block = createBlock("cta") as CtaBlock;
+  return {
+    ...block,
+    data: {
+      ...block.data,
+      buttonText,
+    },
+  };
+}
+
+export function createDefaultImageBlock(): ImageBlock {
+  return createBlock("image") as ImageBlock;
+}
+
+export function createDefaultLabelBlock(text = "New Label"): LabelBlock {
+  const block = createBlock("label") as LabelBlock;
+  return {
+    ...block,
+    data: {
+      ...block.data,
+      text,
+    },
+  };
+}
+
+export function createDefaultLinksBlock(): LinksBlock {
+  return createBlock("links") as LinksBlock;
+}
+
+export function getCountdownBlock(
+  blocks: MicrositeBlock[],
+): CountdownBlock | null {
+  return (
+    blocks.find(
+      (block): block is CountdownBlock => block.type === "countdown",
+    ) ?? null
+  );
+}
+
+export function getHeroButtonBlock(blocks: MicrositeBlock[]): CtaBlock | null {
+  return (
+    blocks.find((block): block is CtaBlock => block.type === "cta") ?? null
+  );
+}
+
+export function getLinksBlock(blocks: MicrositeBlock[]): LinksBlock | null {
+  return (
+    blocks.find((block): block is LinksBlock => block.type === "links") ?? null
+  );
+}
+
+export function getShowcaseBlock(
+  blocks: MicrositeBlock[],
+): ShowcaseBlock | null {
+  return (
+    blocks.find(
+      (block): block is ShowcaseBlock => block.type === "showcase",
+    ) ?? null
+  );
+}
+
+export function updateLabelBlockStyle(
+  blocks: MicrositeBlock[],
+  blockId: string,
+  stylePatch: Partial<TextStyle>,
+) {
+  return blocks.map((block) =>
+    block.type === "label" && block.id === blockId
+      ? {
+          ...block,
+          data: {
+            ...block.data,
+            style: {
+              ...(block.data.style ?? {}),
+              ...stylePatch,
+            },
+          },
+        }
+      : block,
+  );
+}
+
+export function sanitizeDraftForEditor(draft: BuilderDraft): BuilderDraft {
+  return {
+    ...draft,
+    blocks: Array.isArray(draft.blocks) ? draft.blocks : [],
+  };
 }

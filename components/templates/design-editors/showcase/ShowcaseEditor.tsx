@@ -11,22 +11,14 @@ import type {
   ImageBlock,
   LabelBlock,
   LinksBlock,
+  ShapeType,
   ShowcaseBlock,
   TextStyle,
 } from "@/lib/templates/builder";
+import { createBlock } from "@/lib/templates/builder";
 
 import {
-  addBlockToDraft,
   addNavigationLink,
-  createDefaultCountdownBlock,
-  createDefaultHeroButtonBlock,
-  createDefaultImageBlock,
-  createDefaultLabelBlock,
-  createDefaultLinksBlock,
-  getCountdownBlock,
-  getHeroButtonBlock,
-  getLinksBlock,
-  getShowcaseBlock,
   readFileAsDataUrl,
   removeBlockFromDraft,
   removeNavigationLink,
@@ -61,6 +53,7 @@ function getLabelStyle(style?: TextStyle): React.CSSProperties {
     fontStyle: style?.italic ? "italic" : "normal",
     textDecoration: style?.underline ? "underline" : "none",
     textAlign: style?.align ?? "left",
+    color: style?.color ?? undefined,
     whiteSpace: "pre-wrap",
     wordBreak: "break-word",
     overflowWrap: "anywhere",
@@ -124,22 +117,32 @@ export default function ShowcaseEditor({ draft, setDraft }: Props) {
   }, []);
 
   const showcaseBlock = useMemo(
-    () => getShowcaseBlock(draft.blocks) as ShowcaseBlock | null,
+    () =>
+      draft.blocks.find(
+        (block): block is ShowcaseBlock => block.type === "showcase",
+      ) ?? null,
     [draft.blocks],
   );
 
   const ctaBlock = useMemo(
-    () => getHeroButtonBlock(draft.blocks) as CtaBlock | null,
+    () =>
+      draft.blocks.find((block): block is CtaBlock => block.type === "cta") ??
+      null,
     [draft.blocks],
   );
 
   const countdownBlock = useMemo(
-    () => getCountdownBlock(draft.blocks) as CountdownBlock | null,
+    () =>
+      draft.blocks.find(
+        (block): block is CountdownBlock => block.type === "countdown",
+      ) ?? null,
     [draft.blocks],
   );
 
   const linksBlock = useMemo(
-    () => getLinksBlock(draft.blocks) as LinksBlock | null,
+    () =>
+      draft.blocks.find((block): block is LinksBlock => block.type === "links") ??
+      null,
     [draft.blocks],
   );
 
@@ -167,8 +170,17 @@ export default function ShowcaseEditor({ draft, setDraft }: Props) {
     bold: selectedLabel?.data.style?.bold ?? false,
     italic: selectedLabel?.data.style?.italic ?? false,
     underline: selectedLabel?.data.style?.underline ?? false,
+    strike: selectedLabel?.data.style?.strike ?? false,
     align: selectedLabel?.data.style?.align ?? "left",
+    color: selectedLabel?.data.style?.color ?? "#111827",
   };
+
+  const selectedBackgroundColor =
+    selectedLabel?.appearance?.backgroundColor ?? "#ffffff";
+  const selectedBorderColor =
+    selectedLabel?.appearance?.borderColor ?? "#d1d5db";
+  const selectedBorderWidth = selectedLabel?.appearance?.borderWidth ?? 0;
+  const selectedBorderRadius = selectedLabel?.appearance?.borderRadius ?? 16;
 
   function applyStylePatch(stylePatch: Partial<TextStyle>) {
     if (!selectedLabel) return;
@@ -179,19 +191,63 @@ export default function ShowcaseEditor({ draft, setDraft }: Props) {
     }));
   }
 
-  function addBlock(type: BuilderBlockType) {
-    let block;
-
-    if (type === "cta") block = createDefaultHeroButtonBlock("View Gallery");
-    else if (type === "countdown") block = createDefaultCountdownBlock();
-    else if (type === "links") block = createDefaultLinksBlock();
-    else if (type === "label") block = createDefaultLabelBlock("New Label");
-    else if (type === "image") block = createDefaultImageBlock();
-    else return;
+  function applyAppearancePatch(
+    patch: Partial<{
+      backgroundColor: string;
+      borderColor: string;
+      borderWidth: number;
+      borderRadius: number;
+    }>,
+  ) {
+    if (!selectedLabel) return;
 
     setDraft((prev) => ({
       ...prev,
-      blocks: addBlockToDraft(prev.blocks, block),
+      blocks: prev.blocks.map((block) =>
+        block.id !== selectedLabel.id || block.type !== "label"
+          ? block
+          : {
+              ...block,
+              appearance: {
+                ...(block.appearance ?? {}),
+                ...patch,
+              },
+            },
+      ),
+    }));
+  }
+
+  function addBlock(type: BuilderBlockType) {
+    const block = createBlock(type);
+
+    setDraft((prev) => ({
+      ...prev,
+      blocks: [...prev.blocks, block],
+    }));
+  }
+
+  function addShape(type: ShapeType) {
+    const shapeBlock = createBlock("shape");
+
+    if (shapeBlock.type !== "shape") return;
+
+    const nextShape = {
+      ...shapeBlock,
+      data: {
+        ...shapeBlock.data,
+        shapeType: type,
+      },
+      label:
+        type === "rectangle"
+          ? "Rectangle"
+          : type === "circle"
+            ? "Circle"
+            : "Line",
+    };
+
+    setDraft((prev) => ({
+      ...prev,
+      blocks: [...prev.blocks, nextShape],
     }));
   }
 
@@ -226,13 +282,32 @@ export default function ShowcaseEditor({ draft, setDraft }: Props) {
         selectedBold={selectedStyle.bold ?? false}
         selectedItalic={selectedStyle.italic ?? false}
         selectedUnderline={selectedStyle.underline ?? false}
+        selectedColor={selectedStyle.color ?? "#111827"}
+        selectedBackgroundColor={selectedBackgroundColor}
+        selectedBorderColor={selectedBorderColor}
+        selectedBorderWidth={selectedBorderWidth}
+        selectedBorderRadius={selectedBorderRadius}
         onFontFamilyChange={(value) => applyStylePatch({ fontFamily: value })}
         onFontSizeChange={(value) => applyStylePatch({ fontSize: value })}
         onBoldChange={(value) => applyStylePatch({ bold: value })}
         onItalicChange={(value) => applyStylePatch({ italic: value })}
         onUnderlineChange={(value) => applyStylePatch({ underline: value })}
         onAlignChange={(value) => applyStylePatch({ align: value })}
+        onColorChange={(value) => applyStylePatch({ color: value })}
+        onBackgroundColorChange={(value) =>
+          applyAppearancePatch({ backgroundColor: value })
+        }
+        onBorderColorChange={(value) =>
+          applyAppearancePatch({ borderColor: value })
+        }
+        onBorderWidthChange={(value) =>
+          applyAppearancePatch({ borderWidth: value })
+        }
+        onBorderRadiusChange={(value) =>
+          applyAppearancePatch({ borderRadius: value })
+        }
         onAddBlock={addBlock}
+        onAddShape={addShape}
       />
 
       <div className="rounded-[32px] border border-neutral-200 bg-white p-6 shadow-sm">
@@ -686,7 +761,7 @@ export default function ShowcaseEditor({ draft, setDraft }: Props) {
                   onClick={() =>
                     setDraft((prev) => ({
                       ...prev,
-                      blocks: addNavigationLink(prev.blocks),
+                      blocks: addNavigationLink(prev.blocks, linksBlock.id),
                     }))
                   }
                   className={panelButtonClass()}
@@ -772,10 +847,7 @@ export default function ShowcaseEditor({ draft, setDraft }: Props) {
         {imageBlocks.length > 0 ? (
           <div className="space-y-4">
             {imageBlocks.map((block, index) => (
-              <div
-                key={block.id}
-                className={panelCardClass()}
-              >
+              <div key={block.id} className={panelCardClass()}>
                 <div className="mb-3 flex items-center justify-between gap-3">
                   <div className={panelTitleClass()}>
                     Image Block {index + 1}
