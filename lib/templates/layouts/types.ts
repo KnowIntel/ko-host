@@ -37,8 +37,15 @@ export interface PageDefaults {
   backgroundColor?: string;
   pageWidth?: number;
   pageHeight?: number;
-}
 
+  /* legacy compatibility */
+  maxWidth?: number;
+  contentAlign?: "left" | "center" | "right" | string;
+  paddingTop?: number;
+  paddingRight?: number;
+  paddingBottom?: number;
+  paddingLeft?: number;
+}
 export interface BlockPlacement {
   x: number;
   y: number;
