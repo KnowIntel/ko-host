@@ -797,6 +797,15 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
       throw new Error(`Unsupported block type: ${type}`);
   }
 }
+
+export function createFestiveBackgroundBlock(): FestiveBackgroundBlock {
+  return createBlock("festiveBackground") as FestiveBackgroundBlock;
+}
+
+export function createShowcaseBlock(): ShowcaseBlock {
+  return createBlock("showcase") as ShowcaseBlock;
+}
+
 export function sanitizeBuilderDraft(input: unknown): BuilderDraft {
   const draft =
     input && typeof input === "object" ? (input as Partial<BuilderDraft>) : {};
