@@ -1,3 +1,5 @@
+// lib\templates\layouts\types.ts
+
 export type TemplateKey = string;
 export type DesignLayoutKey = string;
 
@@ -113,3 +115,31 @@ export interface LayoutCardPreviewData {
   descriptionSecondary?: LayoutPreviewTextItem;
   image?: LayoutPreviewImageItem;
 }
+
+/* -------------------------------------------------------------------------- */
+/* COMPATIBILITY TYPES */
+/* -------------------------------------------------------------------------- */
+
+export interface DesignBlockMetadata {
+  id?: string;
+  type?: string;
+  label?: string;
+  visible?: boolean;
+  required?: boolean;
+  locked?: boolean;
+  placement?: BlockPlacement;
+  grid?: {
+    colStart?: number;
+    rowStart?: number;
+    colSpan?: number;
+    rowSpan?: number;
+    zIndex?: number;
+  };
+  style?: TextStyle | Record<string, any>;
+  frame?: BlockFrame;
+  appearance?: BlockFrame | Record<string, any>;
+  data?: Record<string, any>;
+  config?: Record<string, any>;
+}
+
+export type DesignLayoutMetadata = DesignLayoutDefinition;
