@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { createHash } from "crypto";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 
@@ -18,12 +18,20 @@ export async function POST(req: Request) {
       );
     }
 
+    const user = await currentUser();
+    const ownerEmail =
+      user?.primaryEmailAddress?.emailAddress ||
+      user?.emailAddresses?.[0]?.emailAddress ||
+      null;
+
     const body = await req.json().catch(() => ({}));
 
     const templateKey = String(body?.templateKey || "");
     const designKey = String(body?.designKey || "blank");
     const title = String(body?.title || body?.draftJson?.title || "").trim();
-    const slugSuggestion = String(body?.slugSuggestion || "").trim().toLowerCase();
+    const slugSuggestion = String(body?.slugSuggestion || "")
+      .trim()
+      .toLowerCase();
     const siteVisibility =
       body?.siteVisibility === "private" || body?.siteVisibility === "members_only"
         ? body.siteVisibility
@@ -99,6 +107,7 @@ export async function POST(req: Request) {
 
     const insertRow = {
       owner_clerk_user_id: userId,
+      owner_email: ownerEmail,
       template_key: templateKey,
       slug: slugSuggestion,
       title,

@@ -1,12 +1,25 @@
 import type { CanvasGridItem } from "@/components/templates/design-editors/shared/GridCanvas";
+
 import {
   GRID_COLUMNS,
-  GRID_STEP,
   clamp,
-  snapToHalf,
   normalizeGrid,
   type GridPlacementWithLayer,
 } from "./canvasGridUtils";
+
+/* ------------------------------------------------ */
+/* NEW SNAP SYSTEM */
+/* ------------------------------------------------ */
+
+const SNAP_STEP = 0.25; // quarter column snapping
+
+function snap(value: number) {
+  return Math.round(value / SNAP_STEP) * SNAP_STEP;
+}
+
+/* ------------------------------------------------ */
+/* NORMALIZE */
+/* ------------------------------------------------ */
 
 export function normalizeCanvasItems(items: CanvasGridItem[]) {
   return items.map((item, index) => ({
@@ -18,13 +31,19 @@ export function normalizeCanvasItems(items: CanvasGridItem[]) {
   }));
 }
 
+/* ------------------------------------------------ */
+/* MOVE BLOCK */
+/* ------------------------------------------------ */
+
 export function moveCanvasItemToCell(
   items: CanvasGridItem[],
   blockId: string,
   patch: { colStart: number; rowStart: number },
 ) {
+
   return normalizeCanvasItems(
     items.map((item) => {
+
       if (item.id !== blockId) return item;
 
       const grid = normalizeGrid(
@@ -32,29 +51,39 @@ export function moveCanvasItemToCell(
         1,
       );
 
+      const nextColStart = clamp(
+        snap(patch.colStart),
+        1,
+        Math.max(1, GRID_COLUMNS - grid.colSpan + 1),
+      );
+
+      const nextRowStart = Math.max(1, snap(patch.rowStart));
+
       return {
         ...item,
         grid: {
           ...grid,
-          colStart: clamp(
-            snapToHalf(patch.colStart),
-            1,
-            Math.max(1, GRID_COLUMNS - grid.colSpan + 1),
-          ),
-          rowStart: Math.max(1, snapToHalf(patch.rowStart)),
+          colStart: nextColStart,
+          rowStart: nextRowStart,
         },
       };
     }),
   );
 }
 
+/* ------------------------------------------------ */
+/* RESIZE BLOCK */
+/* ------------------------------------------------ */
+
 export function resizeCanvasItem(
   items: CanvasGridItem[],
   blockId: string,
   patch: { colSpan?: number; rowSpan?: number; colStart?: number },
 ) {
+
   return normalizeCanvasItems(
     items.map((item) => {
+
       if (item.id !== blockId) return item;
 
       const grid = normalizeGrid(
@@ -65,21 +94,21 @@ export function resizeCanvasItem(
       const nextColStart =
         patch.colStart !== undefined
           ? clamp(
-              snapToHalf(patch.colStart),
+              snap(patch.colStart),
               1,
-              Math.max(1, grid.colStart + grid.colSpan - GRID_STEP),
+              Math.max(1, grid.colStart + grid.colSpan - SNAP_STEP),
             )
           : grid.colStart;
 
       const nextColSpan = clamp(
-        snapToHalf(patch.colSpan ?? grid.colSpan),
-        GRID_STEP,
+        snap(patch.colSpan ?? grid.colSpan),
+        SNAP_STEP,
         GRID_COLUMNS - nextColStart + 1,
       );
 
       const nextRowSpan = Math.max(
-        GRID_STEP,
-        snapToHalf(patch.rowSpan ?? grid.rowSpan),
+        SNAP_STEP,
+        snap(patch.rowSpan ?? grid.rowSpan),
       );
 
       return {
@@ -95,20 +124,29 @@ export function resizeCanvasItem(
   );
 }
 
+/* ------------------------------------------------ */
+/* BRING TO FRONT */
+/* ------------------------------------------------ */
+
 export function bringCanvasItemToFront(
   items: CanvasGridItem[],
   blockId: string,
 ) {
+
   const highest = items.reduce((max, item, index) => {
+
     const normalized = normalizeGrid(
       item.grid as Partial<GridPlacementWithLayer> | undefined,
       index + 1,
     );
+
     return Math.max(max, normalized.zIndex ?? 1);
+
   }, 1);
 
   return normalizeCanvasItems(
     items.map((item, index) => {
+
       if (item.id !== blockId) return item;
 
       const normalized = normalizeGrid(
@@ -124,5 +162,24 @@ export function bringCanvasItemToFront(
         },
       };
     }),
+  );
+}
+export function sendCanvasItemToBack<
+  T extends { id: string; grid?: { zIndex?: number } }
+>(items: T[], itemId: string): T[] {
+  const zValues = items.map((item) => item.grid?.zIndex ?? 1);
+  const minZ = zValues.length ? Math.min(...zValues) : 1;
+  const backZ = minZ - 1;
+
+  return items.map((item) =>
+    item.id === itemId
+      ? {
+          ...item,
+          grid: {
+            ...item.grid,
+            zIndex: backZ,
+          },
+        }
+      : item,
   );
 }

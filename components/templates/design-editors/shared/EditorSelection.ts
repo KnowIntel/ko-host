@@ -57,21 +57,34 @@ export function isBlockSelection(
 }
 
 export function selectionFromCanvasBlockId(blockId: string): EditorSelection {
-  if (blockId === PAGE_TITLE_BLOCK_ID) return { type: "page:title" };
-  if (blockId === PAGE_SUBTITLE_BLOCK_ID) return { type: "page:subtitle" };
-  if (blockId === PAGE_SUBTEXT_BLOCK_ID) return { type: "page:subtext" };
-  if (blockId === PAGE_DESCRIPTION_BLOCK_ID) return { type: "page:description" };
-  return { type: "block", blockId };
+  switch (blockId) {
+    case PAGE_TITLE_BLOCK_ID:
+      return { type: "page:title" };
+    case PAGE_SUBTITLE_BLOCK_ID:
+      return { type: "page:subtitle" };
+    case PAGE_SUBTEXT_BLOCK_ID:
+      return { type: "page:subtext" };
+    case PAGE_DESCRIPTION_BLOCK_ID:
+      return { type: "page:description" };
+    default:
+      return { type: "block", blockId };
+  }
 }
 
 export function isCanvasBlockSelected(
   selection: EditorSelection,
   blockId: string,
 ): boolean {
-  if (blockId === PAGE_TITLE_BLOCK_ID) return selection.type === "page:title";
-  if (blockId === PAGE_SUBTITLE_BLOCK_ID) return selection.type === "page:subtitle";
-  if (blockId === PAGE_SUBTEXT_BLOCK_ID) return selection.type === "page:subtext";
-  if (blockId === PAGE_DESCRIPTION_BLOCK_ID) return selection.type === "page:description";
-
-  return selection.type === "block" && selection.blockId === blockId;
+  switch (blockId) {
+    case PAGE_TITLE_BLOCK_ID:
+      return selection.type === "page:title";
+    case PAGE_SUBTITLE_BLOCK_ID:
+      return selection.type === "page:subtitle";
+    case PAGE_SUBTEXT_BLOCK_ID:
+      return selection.type === "page:subtext";
+    case PAGE_DESCRIPTION_BLOCK_ID:
+      return selection.type === "page:description";
+    default:
+      return selection.type === "block" && selection.blockId === blockId;
+  }
 }

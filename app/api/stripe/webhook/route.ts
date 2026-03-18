@@ -1,3 +1,4 @@
+// \app\api\stripe\webhook\route.ts
 import Stripe from "stripe";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
@@ -79,6 +80,7 @@ export async function POST(req: Request) {
 
   const insertRow = {
     owner_clerk_user_id: pendingRow.owner_clerk_user_id,
+    owner_email: pendingRow.owner_email ?? null,
     template_key: pendingRow.template_key,
     slug: pendingRow.slug,
     title: pendingRow.title,

@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { getDesignPresets } from "@/lib/design-presets/designRegistry";
+import { getTemplateLayoutRegistry } from "@/lib/templates/layout-presets/layoutRegistry";
+import { createDraftFromLayoutDefinition } from "@/lib/templates/layout-presets/layoutToDraft";
 import {
   TEMPLATE_DEFS,
   getTemplateDef,
@@ -28,38 +29,31 @@ function badgeClassName(badge?: "Popular" | "New" | "Recommended" | null) {
   return "bg-neutral-200 text-neutral-800";
 }
 
-function sortDesignPresets<
-  T extends { key: string; badge?: "Popular" | "New" | "Recommended" | null }
->(presets: T[]) {
-  return [...presets].sort((a, b) => {
-    const aRecommended = a.badge === "Recommended" ? 1 : 0;
-    const bRecommended = b.badge === "Recommended" ? 1 : 0;
-
-    if (aRecommended !== bRecommended) {
-      return bRecommended - aRecommended;
-    }
-
-    const aBlank = a.key === "blank" ? 1 : 0;
-    const bBlank = b.key === "blank" ? 1 : 0;
-
-    if (aBlank !== bBlank) {
-      return aBlank - bBlank;
-    }
-
-    return 0;
-  });
-}
-
 export default async function CreateTemplateDesignPage({
   params,
 }: {
   params: Promise<{ template: string }>;
 }) {
   const { template } = await params;
+
   const templateDef = resolveTemplateFromRoute(template);
   const templateKey = templateDef.key;
 
-  const designPresets = sortDesignPresets(getDesignPresets());
+  const layoutRegistry = getTemplateLayoutRegistry(templateKey);
+
+  const designPresets =
+    layoutRegistry?.layouts.map((layout) => ({
+      key: layout.designKey,
+      label: layout.card.label,
+      description: layout.card.description || "",
+      backgroundImage: layout.card.thumbnail || "",
+      badge: layout.recommended ? ("Recommended" as const) : null,
+      previewDraft: createDraftFromLayoutDefinition({
+        templateKey,
+        layout,
+        slugSuggestion: templateDef.defaultDraft?.slugSuggestion || "",
+      }),
+    })) ?? [];
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.06),_transparent_28%),linear-gradient(to_bottom,_#ffffff,_#f8fafc)]">
@@ -90,8 +84,7 @@ export default async function CreateTemplateDesignPage({
                     <span className="font-semibold text-neutral-900">
                       {templateDef.title}
                     </span>
-                    . The content structure comes from the template, while the design
-                    preset controls the overall look and layout.
+                    .
                   </p>
 
                   <div className="mt-4 flex flex-wrap gap-2">
@@ -111,45 +104,54 @@ export default async function CreateTemplateDesignPage({
                   >
                     Back to Templates
                   </Link>
-
-                  <Link
-                    href={`/create/${encodeURIComponent(templateKey)}?design=blank`}
-                    className="inline-flex items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-900 transition hover:bg-neutral-50"
-                  >
-                    Skip to Blank
-                  </Link>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="mb-5 flex flex-wrap gap-2">
-          {designPresets.map((preset) => (
-            <span
-              key={preset.key}
-              className={[
-                "inline-flex items-center rounded-full px-3 py-1 text-xs font-medium",
-                badgeClassName(preset.badge),
-              ].join(" ")}
-            >
-              {preset.label}
-            </span>
-          ))}
-        </div>
+        {designPresets.length > 0 ? (
+          <>
+            <div className="mb-5 flex flex-wrap gap-2">
+              {designPresets.map((preset) => (
+                <span
+                  key={preset.key}
+                  className={[
+                    "inline-flex items-center rounded-full px-3 py-1 text-xs font-medium",
+                    badgeClassName(preset.badge),
+                  ].join(" ")}
+                >
+                  {preset.label}
+                </span>
+              ))}
+            </div>
 
-        <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-          {designPresets.map((preset) => (
-            <DesignCard
-              key={preset.key}
-              templateKey={templateKey}
-              designKey={preset.key}
-              label={preset.label}
-              image={preset.previewImagePath}
-              isRecommended={preset.badge === "Recommended"}
-            />
-          ))}
-        </div>
+            <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+              {designPresets.map((preset) => (
+                <DesignCard
+                  key={preset.key}
+                  templateKey={templateKey}
+                  designKey={preset.key}
+                  label={preset.label}
+                  description={preset.description}
+                  backgroundImage={preset.backgroundImage}
+                  previewDraft={preset.previewDraft}
+                  isRecommended={preset.badge === "Recommended"}
+                />
+              ))}
+            </div>
+          </>
+        ) : (
+          <div className="rounded-[24px] border border-dashed border-neutral-300 bg-white p-10 text-center shadow-sm">
+            <h2 className="text-xl font-semibold text-neutral-900">
+              No new design presets available yet
+            </h2>
+            <p className="mt-3 text-sm text-neutral-600">
+              This template has not been migrated into the new metadata-driven
+              layout preset system yet.
+            </p>
+          </div>
+        )}
       </div>
     </main>
   );

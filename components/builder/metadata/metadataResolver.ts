@@ -7,6 +7,7 @@ import type {
 import type { DesignPresetLayout } from "@/lib/templates/designPresets";
 
 import { getTemplateDesignOverlayMetadata } from "@/lib/templates/templateDesignOverlayMetadata";
+import { resolveLayoutOverlayMetadata } from "@/lib/templates/layout-presets/layoutMetadataAdapter";
 
 type PageVisibility = {
   title: boolean;
@@ -38,6 +39,14 @@ export function getMetadata(
   templateKey: string,
   designKey: string,
 ): OverlayDesignMetadata | null {
+  // FIRST: try the new layout preset metadata system
+  const layoutMetadata = resolveLayoutOverlayMetadata(templateKey, designKey);
+
+  if (layoutMetadata) {
+    return layoutMetadata;
+  }
+
+  // FALLBACK: existing overlay metadata system
   return getTemplateDesignOverlayMetadata(
     templateKey,
     designKey as DesignPresetLayout,
@@ -110,9 +119,13 @@ export function getResolvedPageColor(
 ) {
   const explicit = coerceDraft(draft).pageColor;
 
-  if (explicit) return explicit;
+  if (typeof explicit === "string" && explicit.trim()) {
+    return explicit;
+  }
 
-  if (metadata?.pageColor) return metadata.pageColor;
+  if (typeof metadata?.pageColor === "string" && metadata.pageColor.trim()) {
+    return metadata.pageColor;
+  }
 
   if (designKey === "modern") return "#0f1115";
   if (designKey === "elegant") return "#f7f2eb";
@@ -126,29 +139,9 @@ export function getCanvasInnerBackgroundStyle(
   designKey: string,
   metadata: OverlayDesignMetadata | null,
 ): React.CSSProperties {
-
   const pageColor = getResolvedPageColor(draft, designKey, metadata);
-  const backgroundImage = draft.pageBackground || metadata?.pageBackground || "";
-
-  if (designKey === "modern") {
-    return {
-      backgroundColor: pageColor,
-      backgroundImage: backgroundImage
-        ? `linear-gradient(rgba(15,17,21,0.18), rgba(23,26,33,0.18)), url(${backgroundImage})`
-        : undefined,
-      backgroundSize: "cover",
-      backgroundPosition: "center",
-      backgroundRepeat: "no-repeat",
-    };
-  }
 
   return {
     backgroundColor: pageColor,
-    backgroundImage: backgroundImage
-      ? `linear-gradient(rgba(255,255,255,0.18), rgba(255,255,255,0.18)), url(${backgroundImage})`
-      : undefined,
-    backgroundSize: "cover",
-    backgroundPosition: "center",
-    backgroundRepeat: "no-repeat",
   };
 }

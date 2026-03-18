@@ -1,3 +1,4 @@
+// lib\templates\builder.ts
 /* =========================================
    Ko-Host Builder Core Types
    ========================================= */
@@ -10,9 +11,29 @@ export type TextStyle = {
   bold?: boolean;
   italic?: boolean;
   underline?: boolean;
+  strike?: boolean;
   align?: TextAlign;
   color?: string;
 };
+
+/* =========================================
+   TextFX Types
+   ========================================= */
+
+export type TextFxType = "straight" | "arch" | "dip" | "circle";
+
+export type TextFxStyle = {
+  effectType?: TextFxType;
+  bendAmount?: number;
+  radius?: number;
+  letterSpacing?: number;
+  rotation?: number;
+  opacity?: number;
+};
+
+/* =========================================
+   Block Appearance
+   ========================================= */
 
 export type BlockAppearance = {
   backgroundColor?: string;
@@ -53,7 +74,9 @@ export type PageElements = {
 
 export type BuilderBlockType =
   | "label"
+  | "text_fx"
   | "image"
+  | "image_carousel"
   | "links"
   | "cta"
   | "countdown"
@@ -65,6 +88,7 @@ export type BuilderBlockType =
   | "thread"
   | "showcase"
   | "festiveBackground"
+  | "form_field"
   | "shape";
 
 /* =========================================
@@ -104,7 +128,18 @@ export type ThreadMessage = {
   message: string;
 };
 
+export type CarouselImageItem = {
+  id: string;
+  imageUrl: string;
+  title?: string;
+  subtitle?: string;
+  href?: string;
+  openInNewTab?: boolean;
+};
+
 export type ShapeType = "rectangle" | "circle" | "line";
+export type ImageFitMode = "clip" | "stretch" | "zoom";
+export type ImageFrameType = "square" | "circle" | "diamond" | "heart";
 
 /* =========================================
    Base Block
@@ -129,6 +164,20 @@ export type LabelBlock = BaseBlock & {
   };
 };
 
+export type TextFxBlock = BaseBlock & {
+  type: "text_fx";
+  data: {
+    text: string;
+    style?: TextStyle;
+    fx?: {
+      mode?: "straight" | "arch" | "dip" | "circle";
+      intensity?: number;
+      rotation?: number;
+      opacity?: number;
+    };
+  };
+};
+
 export type ImageBlock = BaseBlock & {
   type: "image";
   data: {
@@ -136,7 +185,30 @@ export type ImageBlock = BaseBlock & {
       id: string;
       url: string;
       alt?: string;
+      fitMode?: ImageFitMode;
+      frame?: ImageFrameType;
+      positionX?: number;
+      positionY?: number;
+      zoom?: number;
+      rotation?: number;
     };
+  };
+};
+
+export type ImageCarouselBlock = BaseBlock & {
+  type: "image_carousel";
+  data: {
+    heading?: string;
+    items: CarouselImageItem[];
+    autoRotate?: boolean;
+    intervalMs?: number;
+    visibleCount?: 1 | 2 | 3 | 4 | 5 | 6;
+    scrollDirection?: "left" | "right" | "up" | "down";
+    pauseOnHover?: boolean;
+    showOverlay?: boolean;
+    showTitles?: boolean;
+    openLinksInNewTab?: boolean;
+    style?: TextStyle;
   };
 };
 
@@ -222,6 +294,10 @@ export type MessageThreadBlock = BaseBlock & {
     subject?: string;
     allowAnonymous?: boolean;
     requireApproval?: boolean;
+    composerPlaceholder?: string;
+    postButtonText?: string;
+    postButtonStyle?: "solid" | "outline" | "soft";
+    maxVisibleMessages?: number;
     style?: TextStyle;
   };
 };
@@ -250,9 +326,25 @@ export type ShapeBlock = BaseBlock & {
   };
 };
 
+export type FormFieldType = "text" | "email" | "phone" | "textarea";
+
+export type FormFieldBlock = BaseBlock & {
+  type: "form_field";
+    data: {
+    label: string;
+    placeholder: string;
+    required: boolean;
+    fieldType: FormFieldType;
+    value?: string;
+    submitButtonText?: string;
+  };
+};
+
 export type MicrositeBlock =
   | LabelBlock
+  | TextFxBlock
   | ImageBlock
+  | ImageCarouselBlock
   | LinksBlock
   | CtaBlock
   | CountdownBlock
@@ -264,6 +356,7 @@ export type MicrositeBlock =
   | MessageThreadBlock
   | ShowcaseBlock
   | FestiveBackgroundBlock
+  | FormFieldBlock
   | ShapeBlock;
 
 /* =========================================
@@ -307,8 +400,20 @@ export function createDefaultTextStyle(): TextStyle {
     bold: false,
     italic: false,
     underline: false,
+    strike: false,
     align: "left",
     color: "#111827",
+  };
+}
+
+export function createDefaultTextFxStyle(): TextFxStyle {
+  return {
+    effectType: "straight",
+    bendAmount: 0,
+    radius: 120,
+    letterSpacing: 0,
+    rotation: 0,
+    opacity: 1,
   };
 }
 
@@ -374,6 +479,39 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
         },
       };
 
+    case "text_fx":
+      return {
+        id: makeId("textfx"),
+        type: "text_fx",
+        label: "TextFX",
+        grid,
+        data: {
+          text: "TextFX",
+          style: {
+            fontFamily: "Inter",
+            fontSize: 32,
+            bold: false,
+            italic: false,
+            underline: false,
+            strike: false,
+            align: "center",
+            color: "#000000",
+          },
+          fx: {
+            mode: "straight",
+            intensity: 50,
+            rotation: 0,
+            opacity: 1,
+          },
+        },
+        appearance: {
+          backgroundColor: "transparent",
+          borderColor: "#000000",
+          borderWidth: 0,
+          borderRadius: 0,
+        },
+      };
+
     case "image":
       return {
         id: makeId("image"),
@@ -385,7 +523,80 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
           image: {
             id: makeId("img"),
             url: "",
+            fitMode: "zoom",
+            frame: "square",
+            positionX: 50,
+            positionY: 50,
+            zoom: 1,
+            rotation: 0,
           },
+        },
+      };
+
+    case "image_carousel":
+      return {
+        id: makeId("carousel"),
+        type: "image_carousel",
+        label: "Image Carousel",
+        grid: {
+          ...grid,
+          rowSpan: 3,
+        },
+        appearance: createDefaultBlockAppearance(),
+        data: {
+          heading: "",
+          items: [
+            {
+              id: makeId("carouselitem"),
+              imageUrl: "",
+              title: "Feature 1",
+              subtitle: "",
+              href: "#",
+              openInNewTab: false,
+            },
+            {
+              id: makeId("carouselitem"),
+              imageUrl: "",
+              title: "Feature 2",
+              subtitle: "",
+              href: "#",
+              openInNewTab: false,
+            },
+            {
+              id: makeId("carouselitem"),
+              imageUrl: "",
+              title: "Feature 3",
+              subtitle: "",
+              href: "#",
+              openInNewTab: false,
+            },
+          ],
+          autoRotate: true,
+          intervalMs: 3000,
+          visibleCount: 1,
+          scrollDirection: "right",
+          showOverlay: true,
+          showTitles: true,
+          openLinksInNewTab: false,
+          pauseOnHover: true,
+          style: createDefaultTextStyle(),
+        },
+      };
+
+    case "form_field":
+      return {
+        id: makeId("form"),
+        type: "form_field",
+        label: "Input Field",
+        grid,
+        appearance: createDefaultBlockAppearance(),
+        data: {
+          label: "Input Label",
+          placeholder: "Enter value...",
+          required: false,
+          fieldType: "text",
+          value: "",
+          submitButtonText: "Submit",
         },
       };
 
@@ -508,7 +719,7 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
         grid,
         appearance: createDefaultBlockAppearance(),
         data: {
-          grid: 3,
+          grid: 2,
           images: [],
         },
       };
@@ -525,6 +736,10 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
           subject: "",
           allowAnonymous: false,
           requireApproval: false,
+          composerPlaceholder: "Write something…",
+          postButtonText: "Post",
+          postButtonStyle: "solid",
+          maxVisibleMessages: 4,
           style: createDefaultTextStyle(),
         },
       };

@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { getDesignPreset } from "@/lib/design-presets/designRegistry";
-import { createLayoutDraft } from "@/lib/layout-presets/createLayoutDraft";
+import { getTemplateLayoutRegistry } from "@/lib/templates/layout-presets/layoutRegistry";
+import { createDraftFromLayoutDefinition } from "@/lib/templates/layout-presets/layoutToDraft";
+import { createTemplateDraft } from "@/lib/templates/createTemplateDraft";
 import {
   TEMPLATE_DEFS,
   getTemplateDef,
@@ -48,16 +50,36 @@ export default async function CreateTemplatePage({
   const templateName = templateDef.title || templateKey;
 
   const requestedDesignKey = normalizeTemplateKey(design || "blank");
-  const designPreset = getDesignPreset(requestedDesignKey);
-  const designKey = designPreset.key;
+  const layoutRegistry = getTemplateLayoutRegistry(templateKey);
 
-  const presetDraft = createLayoutDraft({
-    templateName,
-    presetId: designKey,
-    existingDraft: {
-      slugSuggestion: templateDef.defaultDraft?.slugSuggestion || "",
-    },
-  });
+  const migratedLayout =
+    layoutRegistry?.layouts.find(
+      (layout) => normalizeTemplateKey(layout.designKey) === requestedDesignKey,
+    ) ?? null;
+
+  const resolvedLegacyPreset = getDesignPreset(requestedDesignKey);
+
+  const designKey = migratedLayout
+    ? migratedLayout.designKey
+    : resolvedLegacyPreset.key;
+
+  const designLabel = migratedLayout
+    ? migratedLayout.card.label
+    : resolvedLegacyPreset.label;
+
+  const designBadge: "Popular" | "New" | "Recommended" | null = migratedLayout
+    ? migratedLayout.recommended
+      ? "Recommended"
+      : null
+    : resolvedLegacyPreset.badge ?? null;
+
+  const presetDraft: BuilderDraft = migratedLayout
+    ? createDraftFromLayoutDefinition({
+        templateKey,
+        layout: migratedLayout,
+        slugSuggestion: templateDef.defaultDraft?.slugSuggestion || "",
+      })
+    : createTemplateDraft(templateName, designKey);
 
   const initialDraft: BuilderDraft = {
     ...presetDraft,
@@ -66,7 +88,7 @@ export default async function CreateTemplatePage({
       templateDef.defaultDraft?.slugSuggestion ||
       "",
     blocks: Array.isArray(presetDraft.blocks) ? presetDraft.blocks : [],
-  } as BuilderDraft;
+  };
 
   const editorInstanceKey = [
     templateKey,
@@ -91,14 +113,14 @@ export default async function CreateTemplatePage({
                   Step 2 of 2
                 </span>
 
-                {designPreset.badge ? (
+                {designBadge ? (
                   <span
                     className={[
                       "inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-semibold",
-                      badgeClassName(designPreset.badge),
+                      badgeClassName(designBadge),
                     ].join(" ")}
                   >
-                    {designPreset.badge}
+                    {designBadge}
                   </span>
                 ) : null}
               </div>
@@ -112,10 +134,10 @@ export default async function CreateTemplatePage({
                   <p className="mt-3 max-w-3xl text-sm leading-7 text-neutral-600 sm:text-[15px]">
                     You selected{" "}
                     <span className="font-semibold text-neutral-900">
-                      {designPreset.label}
+                      {designLabel}
                     </span>
-                    . Customize the layout visually using the left toolbox and
-                    live page canvas.
+                    . Customize the layout visually using the live page canvas
+                    and bottom tool tray.
                   </p>
 
                   <div className="mt-4 flex flex-wrap gap-2">
@@ -123,7 +145,7 @@ export default async function CreateTemplatePage({
                       Template: {templateDef.title}
                     </span>
                     <span className="rounded-full border border-neutral-200 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700">
-                      Design: {designPreset.label}
+                      Design: {designLabel}
                     </span>
                     <span className="rounded-full border border-neutral-200 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700">
                       Editor
@@ -155,7 +177,7 @@ export default async function CreateTemplatePage({
 
         <TemplateDraftEditor
           key={editorInstanceKey}
-          templateName={templateName}
+          templateName={templateKey}
           designLayout={designKey}
           initialDraft={initialDraft}
         />
