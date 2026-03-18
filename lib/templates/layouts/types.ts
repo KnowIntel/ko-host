@@ -69,7 +69,21 @@ export interface PageTextBlockConfig {
   type: PageTextBlockType;
   visible: boolean;
   placement: BlockPlacement;
-  text?: string;
+    text?:
+    | string
+    | {
+        value?: string;
+        fontFamily?: string;
+        fontSize?: number;
+        fontWeight?: number;
+        fontStyle?: string;
+        textAlign?: string;
+        lineHeight?: number;
+        letterSpacing?: number;
+        color?: string;
+        backgroundColor?: string;
+        underline?: boolean;
+      };
   style?: TextStyle;
   frame?: BlockFrame;
 }
@@ -127,7 +141,21 @@ export interface DesignBlockMetadata {
   visible?: boolean;
   required?: boolean;
   locked?: boolean;
-  text?: string;
+    text?:
+    | string
+    | {
+        value?: string;
+        fontFamily?: string;
+        fontSize?: number;
+        fontWeight?: number;
+        fontStyle?: string;
+        textAlign?: string;
+        lineHeight?: number;
+        letterSpacing?: number;
+        color?: string;
+        backgroundColor?: string;
+        underline?: boolean;
+      };
 
   /* legacy flat coordinates */
   x?: number;
