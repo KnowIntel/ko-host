@@ -797,3 +797,41 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
       throw new Error(`Unsupported block type: ${type}`);
   }
 }
+export function sanitizeBuilderDraft(input: unknown): BuilderDraft {
+  const draft =
+    input && typeof input === "object" ? (input as Partial<BuilderDraft>) : {};
+
+  return {
+    title: typeof draft.title === "string" ? draft.title : "",
+    subtitle: typeof draft.subtitle === "string" ? draft.subtitle : "",
+    subtext: typeof draft.subtext === "string" ? draft.subtext : "",
+    description: typeof draft.description === "string" ? draft.description : "",
+    countdownLabel:
+      typeof draft.countdownLabel === "string" ? draft.countdownLabel : "",
+
+    titleStyle: draft.titleStyle ?? createDefaultTextStyle(),
+    subtitleStyle: draft.subtitleStyle ?? createDefaultTextStyle(),
+    subtextStyle: draft.subtextStyle ?? createDefaultTextStyle(),
+    descriptionStyle: draft.descriptionStyle ?? createDefaultTextStyle(),
+    countdownLabelStyle:
+      draft.countdownLabelStyle ?? createDefaultTextStyle(),
+
+    slugSuggestion:
+      typeof draft.slugSuggestion === "string" ? draft.slugSuggestion : "",
+
+    pageBackground:
+      typeof draft.pageBackground === "string" ? draft.pageBackground : "",
+
+    pageVisibility:
+      draft.pageVisibility && typeof draft.pageVisibility === "object"
+        ? draft.pageVisibility
+        : {},
+
+    pageElements:
+      draft.pageElements && typeof draft.pageElements === "object"
+        ? draft.pageElements
+        : {},
+
+    blocks: Array.isArray(draft.blocks) ? (draft.blocks as MicrositeBlock[]) : [],
+  };
+}
