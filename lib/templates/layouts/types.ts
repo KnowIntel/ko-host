@@ -127,6 +127,7 @@ export interface DesignBlockMetadata {
   visible?: boolean;
   required?: boolean;
   locked?: boolean;
+  text?: string;
   placement?: BlockPlacement;
   grid?: {
     colStart?: number;
