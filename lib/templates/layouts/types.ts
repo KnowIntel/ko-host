@@ -187,7 +187,6 @@ export interface DesignBlockMetadata {
 }
 
 export interface DesignLayoutMetadata {
-  /* legacy top-level fields */
   id?: string;
   label?: string;
   description?: string;
@@ -195,13 +194,18 @@ export interface DesignLayoutMetadata {
   thumbnail?: string;
   recommended?: boolean;
 
-  /* current fields */
   designKey?: DesignLayoutKey;
   card?: LayoutCardMetadata;
   page?: PageDefaults;
   pageTextBlocks?: PageTextBlockConfig[];
   optionalBlocks?: OptionalBlockConfig[];
 
-  /* legacy block collections */
   blocks?: DesignBlockMetadata[];
+
+  canvas?: {
+    width?: number;
+    minHeight?: number;
+    backgroundColor?: string;
+    [key: string]: any;
+  };
 }
