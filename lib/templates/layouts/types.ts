@@ -165,13 +165,11 @@ export interface DesignBlockMetadata {
     [key: string]: any;
   };
 
-  placement?: BlockPlacement;
-  grid?: {
-    colStart?: number;
-    rowStart?: number;
-    colSpan?: number;
-    rowSpan?: number;
-    zIndex?: number;
+  gallery?: {
+    columns?: number;
+    gap?: number;
+    imageAspectRatio?: string;
+    [key: string]: any;
   };
 
   style?: TextStyle | Record<string, any>;
