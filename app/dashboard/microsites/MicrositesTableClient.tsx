@@ -586,7 +586,7 @@ export default function MicrositesTableClient({
                                 href={`https://${m.slug}.ko-host.com`}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="inline-flex w-full items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs font-medium text-neutral-900 hover:border-neutral-900"
+                                className="inline-flex w-full items-center justify-center rounded-xl border border-blue-600 bg-blue-600 px-3 py-2 text-xs font-medium text-white hover:bg-blue-700"
                               >
                                 Open Public URL
                               </a>

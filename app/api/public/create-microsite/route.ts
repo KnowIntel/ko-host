@@ -139,21 +139,21 @@ export async function POST(req: Request) {
     }
 
     const rowPayload = {
-      owner_clerk_user_id: userId,
-      template_key: templateKey,
-      slug: slugSuggestion,
-      title,
-      site_visibility: siteVisibility,
-      private_mode: siteVisibility === "private",
-      passcode_hash:
-        siteVisibility === "private" && passcode ? hashPasscode(passcode) : null,
-      draft: {
-        ...draftJson,
-        title,
-        slugSuggestion,
-      },
-      selected_design_key: designKey,
-    };
+  owner_clerk_user_id: userId,
+  template_key: templateKey,
+  slug: slugSuggestion,
+  title,
+  site_visibility: siteVisibility,
+  private_mode: siteVisibility === "private",
+  passcode_hash:
+    siteVisibility === "private" && passcode ? hashPasscode(passcode) : null,
+  draft: {
+    ...draftJson,
+    title,
+    slugSuggestion,
+  },
+  selected_design_key: designKey,
+};
 
     if (existingPendingBySlug && existingPendingBySlug.owner_clerk_user_id === userId) {
       const { data, error } = await supabaseAdmin
