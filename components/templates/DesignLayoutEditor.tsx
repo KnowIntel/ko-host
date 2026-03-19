@@ -535,7 +535,7 @@ function bottomCategoryClass(active: boolean) {
 
 function actionButtonClass(primary = false) {
   return [
-    "inline-flex h-12 items-center justify-center rounded-md border px-4 text-sm font-medium transition",
+    "inline-flex h-12 items-center justify-center rounded-md border px-4 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-60",
     primary
       ? "border-blue-600 bg-blue-600 text-white hover:bg-blue-700"
       : "border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-100",
@@ -721,18 +721,22 @@ export default function DesignLayoutEditor({
   publishLabel = "Publish",
   onPublishClick,
 }: Props) {
-  const [selection, setSelection] = useState(createEmptySelection());
-  const [activeCategory, setActiveCategory] = useState<BottomCategory>("Text");
-  const [openToolMenu, setOpenToolMenu] = useState<BottomCategory | null>(null);
-  const [inspectorCollapsed, setInspectorCollapsed] = useState(false);
-  const [aiLoading, setAiLoading] = useState(false);
-  const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
-  const [showAiSuggestions, setShowAiSuggestions] = useState(false);
-  const [inspectorFocusTarget, setInspectorFocusTarget] =
-    useState<InspectorFocusTarget>(null);
-  const [canvasZoom, setCanvasZoom] = useState(100);
-  const [undoStack, setUndoStack] = useState<BuilderDraft[]>([]);
-  const [redoStack, setRedoStack] = useState<BuilderDraft[]>([]);
+const [selection, setSelection] = useState(createEmptySelection());
+const [activeCategory, setActiveCategory] = useState<BottomCategory>("Text");
+const [openToolMenu, setOpenToolMenu] = useState<BottomCategory | null>(null);
+const [inspectorCollapsed, setInspectorCollapsed] = useState(false);
+const [aiLoading, setAiLoading] = useState(false);
+const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
+const [showAiSuggestions, setShowAiSuggestions] = useState(false);
+const [inspectorFocusTarget, setInspectorFocusTarget] =
+  useState<InspectorFocusTarget>(null);
+const [canvasZoom, setCanvasZoom] = useState(100);
+const [undoStack, setUndoStack] = useState<BuilderDraft[]>([]);
+const [redoStack, setRedoStack] = useState<BuilderDraft[]>([]);
+
+const [isSavingDraft, setIsSavingDraft] = useState(false);
+const [isPublishing, setIsPublishing] = useState(false);
+const [saveFeedback, setSaveFeedback] = useState<string | null>(null);
   const isHistoryActionRef = useRef(false);
   const lastDraftRef = useRef<BuilderDraft>(cloneDraft(draft));
 
@@ -1167,22 +1171,57 @@ if (
   };
 }, [openToolMenu]);
 
-  useEffect(() => {
-    if (isHistoryActionRef.current) {
-      isHistoryActionRef.current = false;
-      lastDraftRef.current = cloneDraft(draft);
-      return;
-    }
+    useEffect(() => {
+    if (!saveFeedback) return;
 
-    const previous = JSON.stringify(lastDraftRef.current);
-    const current = JSON.stringify(draft);
+    const timeout = window.setTimeout(() => {
+      setSaveFeedback(null);
+    }, 2500);
 
-    if (previous !== current) {
-      setUndoStack((prev) => [...prev, cloneDraft(lastDraftRef.current)]);
-      setRedoStack([]);
-      lastDraftRef.current = cloneDraft(draft);
+    return () => window.clearTimeout(timeout);
+  }, [saveFeedback]);
+
+  async function handleSaveDraftClick() {
+    if (!onSaveDraft || isSavingDraft) return;
+
+    try {
+      setIsSavingDraft(true);
+      setSaveFeedback("Saving draft...");
+
+      await onSaveDraft(cloneDraft(draft));
+
+      setSaveFeedback("Draft saved");
+    } catch (error) {
+      console.error("Save draft failed:", error);
+      setSaveFeedback("Failed to save draft");
+    } finally {
+      setIsSavingDraft(false);
     }
-  }, [draft]);
+  }
+
+  async function handlePublishButtonClick() {
+    if (isPublishing) return;
+
+    try {
+      setIsPublishing(true);
+
+      if (onPublishClick) {
+        await Promise.resolve(onPublishClick());
+        return;
+      }
+
+      if (publishHref) {
+        window.location.href = publishHref;
+        return;
+      }
+
+      console.warn("Publish action missing: no onPublishClick or publishHref provided.");
+    } catch (error) {
+      console.error("Publish action failed:", error);
+    } finally {
+      setIsPublishing(false);
+    }
+  }
 
 function applyStylePatch(patch: Partial<TextStyle>) {
   if (selectedBlock?.type === "text_fx") {
@@ -3282,6 +3321,10 @@ return (
 </div>
 
 <div className="flex shrink-0 items-center gap-2">
+  {saveFeedback ? (
+    <div className={infoPillClass()}>{saveFeedback}</div>
+  ) : null}
+
   <button
     type="button"
     className={topBarButtonClass(false, false, true)}
@@ -5458,22 +5501,26 @@ return (
       </button>
 
       <button
-        type="button"
-        className={actionButtonClass(true)}
-        onClick={() => void onSaveDraft?.(draft)}
-      >
-        Save Draft
-      </button>
+  type="button"
+  className={actionButtonClass(true)}
+  onClick={() => void handleSaveDraftClick()}
+  disabled={isSavingDraft}
+  title={isSavingDraft ? "Saving draft..." : "Save draft"}
+>
+  {isSavingDraft ? "Saving..." : "Save Draft"}
+</button>
 
-      {publishHref ? (
-        <button
-          type="button"
-          onClick={onPublishClick}
-          className="inline-flex h-12 items-center justify-center rounded-md border border-neutral-950 bg-neutral-950 px-4 text-sm font-medium text-white transition hover:bg-black"
-        >
-          {publishLabel}
-        </button>
-      ) : null}
+{(publishHref || onPublishClick) ? (
+  <button
+    type="button"
+    onClick={() => void handlePublishButtonClick()}
+    disabled={isPublishing}
+    className="inline-flex h-12 items-center justify-center rounded-md border border-neutral-950 bg-neutral-950 px-4 text-sm font-medium text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-60"
+    title={isPublishing ? "Opening publish flow..." : publishLabel}
+  >
+    {isPublishing ? "Opening..." : publishLabel}
+  </button>
+) : null}
     </div>
   </div>
 </div>

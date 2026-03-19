@@ -1,10 +1,21 @@
+// app/api/public/create-microsite/route.ts
 import { NextResponse } from "next/server";
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import { createHash } from "crypto";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 
 function hashPasscode(passcode: string) {
   return createHash("sha256").update(passcode).digest("hex");
+}
+
+function normalizeSlug(value: string) {
+  return String(value || "")
+    .toLowerCase()
+    .trim()
+    .replace(/['"]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60);
 }
 
 export async function POST(req: Request) {
@@ -18,26 +29,13 @@ export async function POST(req: Request) {
       );
     }
 
-    const user = await currentUser();
-    const ownerEmail =
-      user?.primaryEmailAddress?.emailAddress ||
-      user?.emailAddresses?.[0]?.emailAddress ||
-      null;
-
     const body = await req.json().catch(() => ({}));
 
-    const templateKey = String(body?.templateKey || "");
-    const designKey = String(body?.designKey || "blank");
+    const templateKey = String(body?.templateKey || "").trim();
+    const designKey = String(body?.designKey || "blank").trim();
     const title = String(body?.title || body?.draftJson?.title || "").trim();
-    const slugSuggestion = String(body?.slugSuggestion || "")
-      .trim()
-      .toLowerCase();
-    const siteVisibility =
-      body?.siteVisibility === "private" || body?.siteVisibility === "members_only"
-        ? body.siteVisibility
-        : "public";
-    const privateMode =
-      body?.privateMode === "members_only" ? "members_only" : "passcode";
+    const slugSuggestion = normalizeSlug(body?.slugSuggestion || "");
+    const siteVisibility = body?.siteVisibility === "private" ? "private" : "public";
     const passcode = String(body?.passcode || "").trim();
     const draftJson =
       body?.draftJson && typeof body.draftJson === "object" ? body.draftJson : null;
@@ -63,6 +61,13 @@ export async function POST(req: Request) {
       );
     }
 
+    if (slugSuggestion.length < 3) {
+      return NextResponse.json(
+        { ok: false, error: "Site name must be at least 3 characters." },
+        { status: 400 },
+      );
+    }
+
     if (!draftJson) {
       return NextResponse.json(
         { ok: false, error: "Missing draft payload." },
@@ -79,40 +84,67 @@ export async function POST(req: Request) {
 
     const supabaseAdmin = getSupabaseAdmin();
 
-    const { data: existingPending } = await supabaseAdmin
-      .from("pending_microsite_checkouts")
-      .select("id")
-      .eq("slug", slugSuggestion)
-      .maybeSingle();
+    const { data: existingPendingBySlug, error: existingPendingBySlugError } =
+      await supabaseAdmin
+        .from("pending_microsite_checkouts")
+        .select("id, owner_clerk_user_id, slug")
+        .eq("slug", slugSuggestion)
+        .maybeSingle();
 
-    if (existingPending) {
+    if (existingPendingBySlugError) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: existingPendingBySlugError.message || "Failed to check reserved site names.",
+        },
+        { status: 500 },
+      );
+    }
+
+    if (
+      existingPendingBySlug &&
+      existingPendingBySlug.owner_clerk_user_id !== userId
+    ) {
       return NextResponse.json(
         { ok: false, error: "That site name is already reserved." },
         { status: 409 },
       );
     }
 
-    const { data: existingMicrosite } = await supabaseAdmin
-      .from("microsites")
-      .select("id")
-      .eq("slug", slugSuggestion)
-      .maybeSingle();
+    const { data: existingMicrosite, error: existingMicrositeError } =
+      await supabaseAdmin
+        .from("microsites")
+        .select("id, owner_clerk_user_id, slug")
+        .eq("slug", slugSuggestion)
+        .maybeSingle();
 
-    if (existingMicrosite) {
+    if (existingMicrositeError) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error: existingMicrositeError.message || "Failed to check live site names.",
+        },
+        { status: 500 },
+      );
+    }
+
+    if (
+      existingMicrosite &&
+      existingMicrosite.owner_clerk_user_id !== userId
+    ) {
       return NextResponse.json(
         { ok: false, error: "That site name is already taken." },
         { status: 409 },
       );
     }
 
-    const insertRow = {
+    const rowPayload = {
       owner_clerk_user_id: userId,
-      owner_email: ownerEmail,
       template_key: templateKey,
       slug: slugSuggestion,
       title,
       site_visibility: siteVisibility,
-      private_mode: siteVisibility === "public" ? false : privateMode === "passcode",
+      private_mode: siteVisibility === "private",
       passcode_hash:
         siteVisibility === "private" && passcode ? hashPasscode(passcode) : null,
       draft: {
@@ -123,16 +155,51 @@ export async function POST(req: Request) {
       selected_design_key: designKey,
     };
 
+    if (existingPendingBySlug && existingPendingBySlug.owner_clerk_user_id === userId) {
+      const { data, error } = await supabaseAdmin
+        .from("pending_microsite_checkouts")
+        .update(rowPayload)
+        .eq("id", existingPendingBySlug.id)
+        .select("id, slug")
+        .single();
+
+      if (error || !data) {
+        console.error("UPDATE MICROSITE DRAFT ERROR:", error);
+        return NextResponse.json(
+          {
+            ok: false,
+            error: error?.message || "Failed to update microsite draft",
+            details: error?.details || null,
+            hint: error?.hint || null,
+            code: error?.code || null,
+          },
+          { status: 500 },
+        );
+      }
+
+      return NextResponse.json({
+        ok: true,
+        pendingCheckoutId: data.id,
+        slug: data.slug,
+      });
+    }
+
     const { data, error } = await supabaseAdmin
       .from("pending_microsite_checkouts")
-      .insert(insertRow)
+      .insert(rowPayload)
       .select("id, slug")
       .single();
 
     if (error || !data) {
       console.error("CREATE MICROSITE DRAFT ERROR:", error);
       return NextResponse.json(
-        { ok: false, error: "Failed to create microsite draft" },
+        {
+          ok: false,
+          error: error?.message || "Failed to create microsite draft",
+          details: error?.details || null,
+          hint: error?.hint || null,
+          code: error?.code || null,
+        },
         { status: 500 },
       );
     }

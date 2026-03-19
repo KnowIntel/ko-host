@@ -1,5 +1,3 @@
-// components\ui\Nav.tsx
-
 "use client";
 
 import Link from "next/link";
@@ -19,6 +17,8 @@ export function Nav() {
   }
 
   const isTemplatesPage = pathname.startsWith("/templates");
+  const isCreatePage =
+    pathname.startsWith("/create/") && !pathname.includes("/publish");
 
   return (
     <header className="border-b border-neutral-200 bg-white">
@@ -75,6 +75,12 @@ export function Nav() {
               {!isTemplatesPage ? (
                 <ButtonLink href="/templates" variant="secondary">
                   Templates
+                </ButtonLink>
+              ) : null}
+
+              {isCreatePage ? (
+                <ButtonLink href="/templates" variant="secondary">
+                  Designs
                 </ButtonLink>
               ) : null}
 
