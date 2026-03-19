@@ -9,6 +9,12 @@ import type { BuilderDraft, MicrositeBlock } from "@/lib/templates/builder";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+type Props = {
+  params: Promise<{
+    catchall?: string[];
+  }>;
+};
+
 type MicrositeRow = {
   id: string;
   slug: string;
@@ -32,6 +38,21 @@ type MicrositeRow = {
   } | null;
 };
 
+const RESERVED_ROOT_ROUTES = new Set([
+  "",
+  "sign-in",
+  "sign-up",
+  "dashboard",
+  "templates",
+  "after-login-test",
+  "api",
+  "_next",
+  "favicon.ico",
+  "manifest.webmanifest",
+  "robots.txt",
+  "sitemap.xml",
+]);
+
 function isPaidActive(paidUntil: string | null) {
   if (!paidUntil) return false;
   return new Date(paidUntil).getTime() > Date.now();
@@ -44,6 +65,7 @@ function extractSlugFromHost(host: string) {
     cleanHost === "ko-host.com" ||
     cleanHost === "www.ko-host.com" ||
     cleanHost === "localhost" ||
+    cleanHost === "127.0.0.1" ||
     cleanHost.endsWith(".vercel.app")
   ) {
     return null;
@@ -128,10 +150,24 @@ function resolveBackgroundStyles(
   };
 }
 
-export default async function PublicSubdomainPage() {
+function getPathSlug(segments: string[] | undefined) {
+  if (!segments || segments.length !== 1) return null;
+
+  const first = (segments[0] || "").trim().toLowerCase();
+  if (!first || RESERVED_ROOT_ROUTES.has(first)) return null;
+
+  return first;
+}
+
+export default async function PublicSubdomainPage({ params }: Props) {
+  const { catchall } = await params;
+
   const headersList = await headers();
   const host = headersList.get("host") || "";
-  const slug = extractSlugFromHost(host);
+
+  const hostSlug = extractSlugFromHost(host);
+  const pathSlug = getPathSlug(catchall);
+  const slug = hostSlug || pathSlug;
 
   if (!slug) {
     notFound();
@@ -162,6 +198,7 @@ export default async function PublicSubdomainPage() {
   const theme = design.theme;
 
   const blocks = Array.isArray(site.draft?.blocks) ? site.draft.blocks : [];
+
   const background = resolveBackgroundStyles(site.draft, theme.pageClassName);
 
   const draft: BuilderDraft = {
@@ -175,32 +212,32 @@ export default async function PublicSubdomainPage() {
   };
 
   return (
-  <>
-    <main
-      className={`min-h-screen ${background.className}`}
-      style={background.style}
-    >
-      <div className={`w-full px-4 py-10 ${theme.containerClassName}`}>
-        <div className={theme.blockGapClassName}>
-          {blocks.length > 0 ? (
-            blocks.map((block) => (
-              <div key={block.id} className={theme.sectionClassName}>
-                <BlockRenderer block={block} designKey={designKey} />
+    <>
+      <main
+        className={`min-h-screen ${background.className}`}
+        style={background.style}
+      >
+        <div className={`w-full px-4 py-10 ${theme.containerClassName}`}>
+          <div className={theme.blockGapClassName}>
+            {blocks.length > 0 ? (
+              blocks.map((block) => (
+                <div key={block.id} className={theme.sectionClassName}>
+                  <BlockRenderer block={block} designKey={designKey} />
+                </div>
+              ))
+            ) : (
+              <div className={theme.sectionClassName}>
+                <h2 className={theme.subheadingClassName}>No content yet</h2>
+                <p className={`mt-2 ${theme.bodyClassName}`}>
+                  This microsite has no saved builder blocks yet.
+                </p>
               </div>
-            ))
-          ) : (
-            <div className={theme.sectionClassName}>
-              <h2 className={theme.subheadingClassName}>No content yet</h2>
-              <p className={`mt-2 ${theme.bodyClassName}`}>
-                This microsite has no saved builder blocks yet.
-              </p>
-            </div>
-          )}
+            )}
+          </div>
         </div>
-      </div>
-    </main>
+      </main>
 
-    <MicrositeFooterBrand />
-  </>
-);
+      <MicrositeFooterBrand />
+    </>
+  );
 }

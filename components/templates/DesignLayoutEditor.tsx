@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import {
   useEffect,
   useMemo,
@@ -109,6 +110,10 @@ type Props = {
   designKey: string;
   draft: BuilderDraft;
   setDraft: React.Dispatch<React.SetStateAction<BuilderDraft>>;
+  onSaveDraft?: (draft: BuilderDraft) => void | Promise<void>;
+  publishHref?: string;
+  publishLabel?: string;
+  onPublishClick?: () => void;
 };
 
 type DraftWithPageExtras = BuilderDraft & {
@@ -711,6 +716,10 @@ export default function DesignLayoutEditor({
   designKey,
   draft,
   setDraft,
+  onSaveDraft,
+  publishHref,
+  publishLabel = "Publish",
+  onPublishClick,
 }: Props) {
   const [selection, setSelection] = useState(createEmptySelection());
   const [activeCategory, setActiveCategory] = useState<BottomCategory>("Text");
@@ -5439,7 +5448,7 @@ return (
       ))}
     </div>
 
-    <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2">
       <button
         type="button"
         className={actionButtonClass(false)}
@@ -5447,9 +5456,24 @@ return (
       >
         Open Preview
       </button>
-      <button type="button" className={actionButtonClass(true)}>
+
+      <button
+        type="button"
+        className={actionButtonClass(true)}
+        onClick={() => void onSaveDraft?.(draft)}
+      >
         Save Draft
       </button>
+
+      {publishHref ? (
+        <button
+          type="button"
+          onClick={onPublishClick}
+          className="inline-flex h-12 items-center justify-center rounded-md border border-neutral-950 bg-neutral-950 px-4 text-sm font-medium text-white transition hover:bg-black"
+        >
+          {publishLabel}
+        </button>
+      ) : null}
     </div>
   </div>
 </div>

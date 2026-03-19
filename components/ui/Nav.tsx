@@ -1,3 +1,5 @@
+// components\ui\Nav.tsx
+
 "use client";
 
 import Link from "next/link";
@@ -12,7 +14,9 @@ export function Nav() {
   const pathname = usePathname() || "";
   const { isSignedIn } = useAuth();
 
-  if (pathname === "/s" || pathname.startsWith("/s/")) return null;
+  if (pathname === "/s" || pathname.startsWith("/s/")) {
+    return null;
+  }
 
   const isTemplatesPage = pathname.startsWith("/templates");
 
@@ -47,14 +51,14 @@ export function Nav() {
         <nav className="relative z-10 flex shrink-0 items-center gap-2">
           {!isSignedIn ? (
             <>
-              {!isTemplatesPage && (
+              {!isTemplatesPage ? (
                 <Link
                   href="/templates"
                   className="hidden text-sm text-neutral-700 hover:text-neutral-900 sm:inline-flex"
                 >
                   Templates
                 </Link>
-              )}
+              ) : null}
 
               <ButtonLink href="/sign-in" variant="secondary">
                 Sign in
@@ -68,17 +72,17 @@ export function Nav() {
                 <InstallButton label="Install" />
               </div>
 
-              {!isTemplatesPage && (
+              {!isTemplatesPage ? (
                 <ButtonLink href="/templates" variant="secondary">
                   Templates
                 </ButtonLink>
-              )}
+              ) : null}
 
               <ButtonLink href="/dashboard" variant="secondary">
                 Dashboard
               </ButtonLink>
 
-              <UserButton afterSignOutUrl="/" />
+              <UserButton />
             </>
           )}
         </nav>

@@ -18,29 +18,62 @@ export async function GET(req: Request) {
   if (!parsed.success) {
     return NextResponse.json(
       { ok: false, available: false, error: "Invalid slug" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
   const sb = getSupabaseAdmin();
+  const safeSlug = parsed.data.slug;
 
-  const { data, error } = await sb
-    .from("microsites")
+  const { data: pendingData, error: pendingError } = await sb
+    .from("pending_microsite_checkouts")
     .select("id")
-    .eq("slug", parsed.data.slug)
-    .not("paid_until", "is", null)
+    .eq("slug", safeSlug)
     .maybeSingle();
 
-  if (error) {
-    console.error("check-slug failed", { error, slug: parsed.data.slug });
+  if (pendingError) {
+    console.error("check-slug pending lookup failed", {
+      error: pendingError,
+      slug: safeSlug,
+    });
+
     return NextResponse.json(
       { ok: false, available: false, error: "Server error" },
-      { status: 500 }
+      { status: 500 },
+    );
+  }
+
+  if (pendingData) {
+    return NextResponse.json(
+      { ok: true, available: false, reason: "reserved" },
+      { status: 200 },
+    );
+  }
+
+  const { data: micrositeData, error: micrositeError } = await sb
+    .from("microsites")
+    .select("id")
+    .eq("slug", safeSlug)
+    .maybeSingle();
+
+  if (micrositeError) {
+    console.error("check-slug microsite lookup failed", {
+      error: micrositeError,
+      slug: safeSlug,
+    });
+
+    return NextResponse.json(
+      { ok: false, available: false, error: "Server error" },
+      { status: 500 },
     );
   }
 
   return NextResponse.json(
-    { ok: true, available: !data },
-    { status: 200 }
+    {
+      ok: true,
+      available: !micrositeData,
+      reason: micrositeData ? "taken" : null,
+    },
+    { status: 200 },
   );
 }

@@ -1,3 +1,4 @@
+// app\layout.tsx
 import "./globals.css";
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
@@ -8,10 +9,6 @@ import {
   DM_Sans,
   Poppins,
   Playfair_Display,
-} from "next/font/google";
-import { LayoutNavVisibility } from "@/components/ui/LayoutNavVisibility";
-
-import {
   Dancing_Script,
   Pacifico,
   Allura,
@@ -24,6 +21,7 @@ import {
   Marcellus,
   Bodoni_Moda,
 } from "next/font/google";
+import { LayoutNavVisibility } from "@/components/ui/LayoutNavVisibility";
 
 const greatVibes = Great_Vibes({
   subsets: ["latin"],
@@ -135,7 +133,6 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-  <ClerkProvider>
     <html lang="en">
       <body
         className={[
@@ -145,8 +142,6 @@ export default function RootLayout({
           dmSans.variable,
           poppins.variable,
           playfairDisplay.variable,
-
-          // newly added script fonts
           dancingScript.variable,
           pacifico.variable,
           allura.variable,
@@ -155,17 +150,23 @@ export default function RootLayout({
           playball.variable,
           satisfy.variable,
           tangerine.variable,
-
-          // newly added elegant serif fonts
           prata.variable,
           marcellus.variable,
           bodoniModa.variable,
         ].join(" ")}
       >
-        <LayoutNavVisibility />
-        {children}
+        <ClerkProvider
+          signInUrl="/sign-in"
+          signUpUrl="/sign-up"
+          signInFallbackRedirectUrl="/templates"
+          signUpFallbackRedirectUrl="/templates"
+          afterSignOutUrl="/templates"
+          afterMultiSessionSingleSignOutUrl="/templates"
+        >
+          <LayoutNavVisibility />
+          {children}
+        </ClerkProvider>
       </body>
     </html>
-  </ClerkProvider>
-);
+  );
 }

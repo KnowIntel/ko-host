@@ -1,19 +1,24 @@
+// app\dashboard\microsites\[id]\page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import TemplateDraftEditor from "@/components/templates/TemplateDraftEditor";
-import type { MicrositeBlock } from "@/lib/templates/builder";
+import type { BuilderDraft, MicrositeBlock } from "@/lib/templates/builder";
 
 type MicrositeRecord = {
   id: string;
   slug: string;
   title: string;
   template_key: string;
+  selected_design_key?: string | null;
   is_published: boolean;
   paid_until: string | null;
   draft: {
     title?: string;
+    subtitle?: string;
+    subtext?: string;
+    description?: string;
     slugSuggestion?: string;
     blocks?: MicrositeBlock[];
   } | null;
@@ -21,12 +26,12 @@ type MicrositeRecord = {
 
 export default function DashboardMicrositeManagePage() {
   const params = useParams();
-  const router = useRouter();
   const id = String(params?.id || "");
 
   const [site, setSite] = useState<MicrositeRecord | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState("Edit your microsite content below.");
 
   useEffect(() => {
     let cancelled = false;
@@ -73,13 +78,10 @@ export default function DashboardMicrositeManagePage() {
     };
   }, [id]);
 
-  async function saveBuilderDraft(draft: {
-    title: string;
-    slugSuggestion: string;
-    blocks: MicrositeBlock[];
-  }) {
+  async function saveBuilderDraft(draft: BuilderDraft) {
     try {
       setSaving(true);
+      setSaveMessage("Saving draft...");
 
       const res = await fetch(`/api/dashboard/microsites/${id}/builder`, {
         method: "POST",
@@ -93,6 +95,7 @@ export default function DashboardMicrositeManagePage() {
 
       if (!res.ok) {
         alert(data?.error || "Failed to save builder draft.");
+        setSaveMessage("Save failed.");
         return;
       }
 
@@ -107,12 +110,12 @@ export default function DashboardMicrositeManagePage() {
           : prev,
       );
 
-      router.push("/dashboard/microsites");
-      router.refresh();
+      setSaveMessage("Draft saved.");
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Unexpected error.";
       alert(message);
+      setSaveMessage("Save failed.");
     } finally {
       setSaving(false);
     }
@@ -165,19 +168,23 @@ export default function DashboardMicrositeManagePage() {
 
       <div className="mb-4 flex items-center justify-end">
         <div className="text-sm text-neutral-600">
-          {saving ? "Saving..." : "Edit your microsite content below"}
+          {saving ? "Saving..." : saveMessage}
         </div>
       </div>
 
       <TemplateDraftEditor
         templateKey={site.template_key}
+        designLayout={site.selected_design_key || "blank"}
         initialDraft={{
           title: site.draft?.title || site.title || "",
+          subtitle: site.draft?.subtitle || "",
+          subtext: site.draft?.subtext || "",
+          description: site.draft?.description || "",
           slugSuggestion: site.slug || "",
           blocks: Array.isArray(site.draft?.blocks) ? site.draft.blocks : [],
         }}
         submitLabel={saving ? "Saving..." : "Save Changes"}
-        onSubmit={saveBuilderDraft}
+        onSave={saveBuilderDraft}
       />
     </main>
   );

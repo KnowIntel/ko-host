@@ -11,8 +11,12 @@ type Props = {
   templateKey?: string;
   submitLabel?: string;
   initialDraft: BuilderDraft;
-  onSave?: (draft: BuilderDraft) => void;
+  onSave?: (draft: BuilderDraft) => void | Promise<void>;
   onSubmit?: (draft: BuilderDraft) => Promise<void> | void;
+  publishHref?: string;
+  publishLabel?: string;
+  onPublishClick?: () => void;
+  onDraftChange?: (draft: BuilderDraft) => void;
 };
 
 function cloneDraft<T>(value: T): T {
@@ -27,6 +31,10 @@ export default function TemplateDraftEditor({
   initialDraft,
   onSave,
   onSubmit,
+  publishHref,
+  publishLabel,
+  onPublishClick,
+  onDraftChange,
 }: Props) {
   const resolvedTemplateName = templateName ?? templateKey ?? "";
   const resolvedDesignLayout = designLayout ?? "blank";
@@ -43,10 +51,8 @@ export default function TemplateDraftEditor({
   }, [routeKey, initialDraft]);
 
   useEffect(() => {
-    if (onSave) {
-      onSave(draft);
-    }
-  }, [draft, onSave]);
+    onDraftChange?.(draft);
+  }, [draft, onDraftChange]);
 
   useEffect(() => {
     void onSubmit;
@@ -60,6 +66,10 @@ export default function TemplateDraftEditor({
         designKey={resolvedDesignLayout}
         draft={draft}
         setDraft={setDraft}
+        onSaveDraft={onSave}
+        publishHref={publishHref}
+        publishLabel={publishLabel}
+        onPublishClick={onPublishClick}
       />
     </div>
   );
