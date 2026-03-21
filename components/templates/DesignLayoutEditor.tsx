@@ -228,11 +228,10 @@ const CATEGORY_BUTTONS: Record<
   >
 > = {
   Text: [
-  { kind: "page", label: "Title", type: "title" },
-  { kind: "page", label: "Subtitle", type: "subtitle" },
-  { kind: "page", label: "Tagline", type: "tagline" },
-  { kind: "page", label: "Description", type: "description" },
-  { kind: "block", label: "Label", type: "label" },
+{ kind: "page", label: "Title", type: "title" },
+{ kind: "block", label: "Subtitle", type: "label" },
+{ kind: "block", label: "Tagline", type: "label" },
+{ kind: "block", label: "Description", type: "label" },
 
   // ✅ ADD THIS
   { kind: "block", label: "TextFX", type: "text_fx" },
