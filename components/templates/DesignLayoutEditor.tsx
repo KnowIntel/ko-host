@@ -120,45 +120,31 @@ type Props = {
   saveMessage?: string;
 };
 
+type DraftPageVisibility = Partial<{
+  title: boolean;
+  subtitle: boolean;
+  subtext: boolean;
+  description: boolean;
+}>;
+
+type DraftPageElementLayout = {
+  colStart: number;
+  rowStart: number;
+  colSpan: number;
+  rowSpan: number;
+  zIndex?: number;
+};
+
 type DraftWithPageExtras = BuilderDraft & {
   pageColor?: string;
   pageBackgroundImage?: string;
   pageBackgroundImageFit?: "clip" | "zoom" | "stretch";
-  pageVisibility?: Partial<{
-    title: boolean;
-    subtitle: boolean;
-    subtext: boolean;
-    description: boolean;
-  }>;
+  pageVisibility?: DraftPageVisibility;
   pageElements?: Partial<{
-    title: {
-      colStart: number;
-      rowStart: number;
-      colSpan: number;
-      rowSpan: number;
-      zIndex?: number;
-    };
-    subtitle: {
-      colStart: number;
-      rowStart: number;
-      colSpan: number;
-      rowSpan: number;
-      zIndex?: number;
-    };
-    subtext: {
-      colStart: number;
-      rowStart: number;
-      colSpan: number;
-      rowSpan: number;
-      zIndex?: number;
-    };
-    description: {
-      colStart: number;
-      rowStart: number;
-      colSpan: number;
-      rowSpan: number;
-      zIndex?: number;
-    };
+    title: DraftPageElementLayout;
+    subtitle: DraftPageElementLayout;
+    subtext: DraftPageElementLayout;
+    description: DraftPageElementLayout;
   }>;
   pageBlockAppearance?: Partial<
     Record<
@@ -935,6 +921,7 @@ export default function DesignLayoutEditor({
     pageBackgroundImage,
     pageBackgroundImageFit,
   ]);
+  
   useEffect(() => {
   try {
     window.localStorage.setItem(
@@ -5664,48 +5651,47 @@ return (
         </div>
       ))}
     </div>
-
-    <div className="flex items-center gap-3">
-      <button
-        type="button"
-        className={actionButtonClass(false)}
-        onClick={openPreviewWindow}
-      >
-        Open Preview
-      </button>
-
-      <button
-        type="button"
-        className={actionButtonClass(true)}
-        onClick={() => void onSaveDraft?.(draft)}
-      >
-        {saveState === "saving"
-          ? "Saving..."
-          : saveState === "saved"
-            ? "Saved"
-            : saveState === "error"
-              ? "Save Failed"
-              : saveState === "signin-required"
-                ? "Sign In to Save"
-                : "Save Draft"}
-      </button>
-
-      {publishHref ? (
+    <div className="flex flex-col items-end gap-1">
+      <div className="flex items-center gap-3">
         <button
           type="button"
-          onClick={() => onPublishClick?.(draft)}
-          className="inline-flex h-12 items-center justify-center rounded-md border border-neutral-950 bg-neutral-950 px-4 text-sm font-medium text-white transition hover:bg-black"
+          className={actionButtonClass(false)}
+          onClick={openPreviewWindow}
         >
-          {publishLabel}
+          Open Preview
         </button>
+
+        <button
+          type="button"
+          className={actionButtonClass(true)}
+          onClick={() => void onSaveDraft?.(draft)}
+        >
+          {saveState === "saving"
+            ? "Saving..."
+            : saveState === "saved"
+              ? "Saved"
+              : saveState === "error"
+                ? "Save Failed"
+                : saveState === "signin-required"
+                  ? "Sign In to Save"
+                  : "Save Draft"}
+        </button>
+
+        {publishHref ? (
+          <button
+            type="button"
+            onClick={() => onPublishClick?.(draft)}
+            className="inline-flex h-12 items-center justify-center rounded-md border border-neutral-950 bg-neutral-950 px-4 text-sm font-medium text-white transition hover:bg-black"
+          >
+            {publishLabel}
+          </button>
+        ) : null}
+      </div>
+
+      {saveMessage ? (
+        <div className="text-xs text-neutral-500">{saveMessage}</div>
       ) : null}
     </div>
-  </div>
-
-  <div className="border-t border-black/10 px-6 py-2 text-right">
-    {saveMessage ? (
-      <div className="text-xs text-neutral-500">{saveMessage}</div>
-    ) : null}
   </div>
 </div>
 

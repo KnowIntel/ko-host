@@ -523,20 +523,37 @@ if (slugStatus === "invalid" || slugStatus === "error") {
                   return acc;
                 }, {} as Record<string, number>);
 
+                const pageVisibility = (draft as {
+                  pageVisibility?: Partial<{
+                    title: boolean;
+                    subtitle: boolean;
+                    subtext: boolean;
+                    description: boolean;
+                  }>;
+                }).pageVisibility ?? {};
+
                 const pageElementBreakdown: Record<string, number> = {};
                 let pageElementCount = 0;
 
-                function ensureCount(type: string, value?: string) {
-                  if ((value ?? "").trim() && !customBlockBreakdown[type]) {
-                    pageElementBreakdown[type] = 1;
-                    pageElementCount += 1;
-                  }
+                if (pageVisibility.title) {
+                  pageElementBreakdown.title = 1;
+                  pageElementCount += 1;
                 }
 
-                ensureCount("title", draft?.title);
-                ensureCount("subtitle", draft?.subtitle);
-                ensureCount("tagline", draft?.subtext);
-                ensureCount("description", draft?.description);
+                if (pageVisibility.subtitle) {
+                  pageElementBreakdown.subtitle = 1;
+                  pageElementCount += 1;
+                }
+
+                if (pageVisibility.subtext) {
+                  pageElementBreakdown.tagline = 1;
+                  pageElementCount += 1;
+                }
+
+                if (pageVisibility.description) {
+                  pageElementBreakdown.description = 1;
+                  pageElementCount += 1;
+                }
 
                 const totalCount =
                   Object.values(customBlockBreakdown).reduce((a, b) => a + b, 0) +
