@@ -513,8 +513,11 @@ if (slugStatus === "invalid" || slugStatus === "error") {
               </div>
 
               {(() => {
-                const blocks = Array.isArray(draft?.blocks) ? draft.blocks.filter(Boolean) : [];
-                const blockCount = blocks.length;
+                const blocks = Array.isArray(draft?.blocks)
+                  ? draft.blocks.filter(Boolean)
+                  : [];
+
+                const customBlockCount = blocks.length;
 
                 const blockBreakdown = blocks.reduce((acc, block) => {
                   const type = block?.type || "unknown";
@@ -522,7 +525,37 @@ if (slugStatus === "invalid" || slugStatus === "error") {
                   return acc;
                 }, {} as Record<string, number>);
 
-                const breakdownText = Object.entries(blockBreakdown)
+                const pageElementBreakdown: Record<string, number> = {};
+                let pageElementCount = 0;
+
+                if ((draft?.title ?? "").trim()) {
+                  pageElementBreakdown.title = 1;
+                  pageElementCount += 1;
+                }
+
+                if ((draft?.subtitle ?? "").trim()) {
+                  pageElementBreakdown.subtitle = 1;
+                  pageElementCount += 1;
+                }
+
+                if ((draft?.subtext ?? "").trim()) {
+                  pageElementBreakdown.tagline = 1;
+                  pageElementCount += 1;
+                }
+
+                if ((draft?.description ?? "").trim()) {
+                  pageElementBreakdown.description = 1;
+                  pageElementCount += 1;
+                }
+
+                const totalCount = customBlockCount + pageElementCount;
+
+                const combinedBreakdown = {
+                  ...pageElementBreakdown,
+                  ...blockBreakdown,
+                };
+
+                const breakdownText = Object.entries(combinedBreakdown)
                   .map(([type, count]) => `${type}: ${count}`)
                   .join(", ");
 
@@ -534,8 +567,8 @@ if (slugStatus === "invalid" || slugStatus === "error") {
                     <div>Site Name: {slugSuggestion || "—"}</div>
                     <div>Visibility: {siteVisibility}</div>
                     <div>
-                      Blocks: {blockCount}
-                      {blockCount > 0 ? (
+                      Blocks: {totalCount}
+                      {totalCount > 0 ? (
                         <span className="ml-1 text-neutral-500">
                           ({breakdownText})
                         </span>
