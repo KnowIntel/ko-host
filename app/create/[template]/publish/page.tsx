@@ -523,14 +523,17 @@ if (slugStatus === "invalid" || slugStatus === "error") {
                   return acc;
                 }, {} as Record<string, number>);
 
-                const pageVisibility = (draft as {
-                  pageVisibility?: Partial<{
-                    title: boolean;
-                    subtitle: boolean;
-                    subtext: boolean;
-                    description: boolean;
-                  }>;
-                }).pageVisibility ?? {};
+            const pageVisibility =
+              (draft as
+                | {
+                    pageVisibility?: Partial<{
+                      title: boolean;
+                      subtitle: boolean;
+                      subtext: boolean;
+                      description: boolean;
+                    }>;
+                  }
+                | undefined)?.pageVisibility ?? {};
 
                 const pageElementBreakdown: Record<string, number> = {};
                 let pageElementCount = 0;
