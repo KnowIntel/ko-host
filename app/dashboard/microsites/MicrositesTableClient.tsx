@@ -573,72 +573,102 @@ export default function MicrositesTableClient({
                             </button>
                           </div>
                         ) : (
-                          <div className="grid min-w-[260px] grid-cols-2 gap-2">
-                            <Link
-                              href={`/dashboard/microsites/${m.id}`}
-                              className="inline-flex w-full items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs font-medium text-neutral-900 hover:border-neutral-900"
-                            >
-                              Manage
-                            </Link>
+<div className="grid min-w-[260px] grid-cols-2 gap-2">
+  <Link
+    href={`/dashboard/microsites/${m.id}`}
+    className="inline-flex w-full items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs font-medium text-neutral-900 hover:border-neutral-900"
+  >
+    Manage
+  </Link>
 
-                            {m.is_published && !isDeactivated ? (
-                              <a
-                                href={`https://${m.slug}.ko-host.com`}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="inline-flex w-full items-center justify-center rounded-xl border border-blue-600 bg-blue-600 px-3 py-2 text-xs font-medium text-white hover:bg-blue-700"
-                              >
-                                Open Public URL
-                              </a>
-                            ) : (
-                              <a
-                                href={`/s/${m.slug}`}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="inline-flex w-full items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs font-medium text-neutral-900 hover:border-neutral-900"
-                              >
-                                Preview Microsite
-                              </a>
-                            )}
+  {m.is_published && !isDeactivated ? (
+    <a
+      href={`https://${m.slug}.ko-host.com`}
+      target="_blank"
+      rel="noreferrer"
+      className="inline-flex w-full items-center justify-center rounded-xl border border-blue-600 bg-blue-600 px-3 py-2 text-xs font-medium text-white hover:bg-blue-700"
+    >
+      Open Public URL
+    </a>
+  ) : (
+    <a
+      href={`/s/${m.slug}`}
+      target="_blank"
+      rel="noreferrer"
+      className="inline-flex w-full items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs font-medium text-neutral-900 hover:border-neutral-900"
+    >
+      Preview Microsite
+    </a>
+  )}
 
-                            {isDeactivated ? (
-                              <button
-                                type="button"
-                                disabled={busyId === m.id}
-                                onClick={() =>
-                                  openActionModal("reactivateMicrosite", m.id, m.title)
-                                }
-                                className="inline-flex w-full items-center justify-center rounded-xl border border-emerald-300 bg-white px-3 py-2 text-xs font-medium text-emerald-700 hover:border-emerald-500 disabled:opacity-50"
-                              >
-                                {busyId === m.id ? "Working..." : "Reactivate"}
-                              </button>
-                            ) : (
-                              <button
-                                type="button"
-                                disabled={busyId === m.id}
-                                onClick={() =>
-                                  openActionModal("deactivateMicrosite", m.id, m.title)
-                                }
-                                className="inline-flex w-full items-center justify-center rounded-xl border border-red-300 bg-white px-3 py-2 text-xs font-medium text-red-700 hover:border-red-500 disabled:opacity-50"
-                              >
-                                {busyId === m.id ? "Working..." : deactivateLabel}
-                              </button>
-                            )}
+  {isDeactivated ? (
+    <button
+      type="button"
+      disabled={busyId === m.id}
+      onClick={() =>
+        openActionModal("reactivateMicrosite", m.id, m.title)
+      }
+      className="inline-flex w-full items-center justify-center rounded-xl border border-emerald-300 bg-white px-3 py-2 text-xs font-medium text-emerald-700 hover:border-emerald-500 disabled:opacity-50"
+    >
+      {busyId === m.id ? "Working..." : "Reactivate"}
+    </button>
+  ) : (
+    <button
+      type="button"
+      disabled={busyId === m.id}
+      onClick={() => void togglePublish(m, !m.is_published)}
+      className={`inline-flex w-full items-center justify-center rounded-xl px-3 py-2 text-xs font-medium disabled:opacity-50 ${
+        m.is_published
+          ? "border border-amber-300 bg-white text-amber-700 hover:border-amber-500"
+          : "border border-emerald-600 bg-emerald-600 text-white hover:bg-emerald-700"
+      }`}
+    >
+      {busyId === m.id
+        ? "Working..."
+        : m.is_published
+          ? "Unpublish"
+          : "Publish"}
+    </button>
+  )}
 
-                            <form
-                              action="/api/stripe/checkout"
-                              method="POST"
-                              className="w-full"
-                            >
-                              <input type="hidden" name="micrositeId" value={m.id} />
-                              <button
-                                type="submit"
-                                className="inline-flex w-full items-center justify-center rounded-xl bg-neutral-900 px-3 py-2 text-xs font-medium text-white hover:bg-neutral-800"
-                              >
-                                Extend 90 days
-                              </button>
-                            </form>
-                          </div>
+  {isDeactivated ? (
+    <button
+      type="button"
+      disabled={busyId === m.id}
+      onClick={() =>
+        openActionModal("deactivateMicrosite", m.id, m.title)
+      }
+      className="inline-flex w-full items-center justify-center rounded-xl border border-red-300 bg-white px-3 py-2 text-xs font-medium text-red-700 hover:border-red-500 disabled:opacity-50"
+    >
+      {busyId === m.id ? "Working..." : deactivateLabel}
+    </button>
+  ) : (
+    <button
+      type="button"
+      disabled={busyId === m.id}
+      onClick={() =>
+        openActionModal("deactivateMicrosite", m.id, m.title)
+      }
+      className="inline-flex w-full items-center justify-center rounded-xl border border-red-300 bg-white px-3 py-2 text-xs font-medium text-red-700 hover:border-red-500 disabled:opacity-50"
+    >
+      {busyId === m.id ? "Working..." : deactivateLabel}
+    </button>
+  )}
+
+  <form
+    action="/api/stripe/checkout"
+    method="POST"
+    className="w-full"
+  >
+    <input type="hidden" name="micrositeId" value={m.id} />
+    <button
+      type="submit"
+      className="inline-flex w-full items-center justify-center rounded-xl bg-neutral-900 px-3 py-2 text-xs font-medium text-white hover:bg-neutral-800"
+    >
+      Extend 90 days
+    </button>
+  </form>
+</div>
                         )}
                       </td>
                     </tr>

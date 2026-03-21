@@ -305,8 +305,11 @@ if (slugStatus === "invalid" || slugStatus === "error") {
     }
   }
 
-  return (
-    <main className="min-h-screen bg-[#f6f4f2]">
+return (
+  <main className="min-h-screen bg-[#f6f4f2]">
+    <div className="px-4 py-2 text-sm text-red-600">
+      Publish page mounted
+    </div>
       <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-6 overflow-hidden rounded-[28px] border border-neutral-200 bg-white shadow-sm">
           <div className="relative px-6 py-7 sm:px-8">
