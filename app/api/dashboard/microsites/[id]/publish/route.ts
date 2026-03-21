@@ -73,14 +73,17 @@ export async function POST(
   const nowIso = new Date().toISOString();
 
   const updatePayload: Record<string, unknown> = {
-    is_published: publish,
-    status: publish ? "published" : "draft",
-    updated_at: nowIso,
-  };
+  is_published: publish,
+  status: publish ? "published" : "draft",
+  updated_at: nowIso,
+};
 
-  if (publish) {
-    updatePayload.published_at = nowIso;
-  }
+if (publish) {
+  updatePayload.published_at = nowIso;
+  updatePayload.is_active = true;
+} else {
+  updatePayload.published_at = null;
+}
 
   const { data: updated, error: upErr } = await sb
     .from("microsites")

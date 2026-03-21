@@ -179,54 +179,73 @@ export default function MicrositesTableClient({
     });
   }
 
-  async function togglePublish(m: DashboardRow, publishOverride?: boolean) {
-    if (m.rowType !== "microsite") return;
+async function togglePublish(m: DashboardRow, publishOverride?: boolean) {
+  if (m.rowType !== "microsite") return;
 
-    try {
-      setBusyId(m.id);
+  try {
+    setBusyId(m.id);
+
+    const next =
+      typeof publishOverride === "boolean"
+        ? publishOverride
+        : !m.is_published;
+
+    setFeedback({
+      type: "info",
+      message: `${next ? "Publishing" : "Unpublishing"} ${m.title || "microsite"}...`,
+    });
+
+    const res = await fetch(`/api/dashboard/microsites/${m.id}/publish`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ publish: next }),
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (res.status === 402) {
       setFeedback({
-        type: "info",
-        message: `${m.is_published ? "Unpublishing" : "Publishing"} ${m.title || "microsite"}...`,
+        type: "error",
+        message: data?.error || "Payment required to publish.",
       });
+      return;
+    }
 
-      const next =
-        typeof publishOverride === "boolean"
-          ? publishOverride
-          : !m.is_published;
-
-      const res = await fetch(`/api/dashboard/microsites/${m.id}/publish`, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ publish: next }),
+    if (!res.ok) {
+      setFeedback({
+        type: "error",
+        message: data?.error || "Failed to update publish status.",
       });
+      return;
+    }
 
-      if (res.status === 402) {
-        setFeedback({
-          type: "error",
-          message: "Payment required to publish.",
-        });
-        return;
-      }
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        setFeedback({
-          type: "error",
-          message: data?.error || "Failed to update publish status.",
-        });
-        return;
-      }
-
+    if (next) {
       setFeedback({
         type: "success",
-        message: next ? "Microsite published." : "Microsite unpublished.",
+        message: "Microsite published. Redirecting...",
       });
 
-      router.refresh();
-    } finally {
-      setBusyId(null);
+      const nextSlug =
+        data?.microsite?.slug && typeof data.microsite.slug === "string"
+          ? data.microsite.slug
+          : m.slug;
+
+      const publicUrl = `https://${nextSlug}.ko-host.com`;
+
+      window.location.href = publicUrl;
+      return;
     }
+
+    setFeedback({
+      type: "success",
+      message: "Microsite unpublished.",
+    });
+
+    router.refresh();
+  } finally {
+    setBusyId(null);
   }
+}
 
   async function cancelDraft(id: string, title?: string) {
     try {
@@ -552,27 +571,36 @@ export default function MicrositesTableClient({
                       </td>
 
                       <td className="px-4 py-3">
-                        {m.rowType === "draft" ? (
-                          <div className="grid min-w-[260px] grid-cols-2 gap-2">
-                            <Link
-                              href={`/create/${encodeURIComponent(
-                                m.template_key,
-                              )}?design=${encodeURIComponent(designKey)}`}
-                              className="inline-flex w-full items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs font-medium text-neutral-900 hover:border-neutral-900"
-                            >
-                              Open Builder
-                            </Link>
+{m.rowType === "draft" ? (
+  <div className="grid min-w-[260px] grid-cols-2 gap-2">
+    <Link
+      href={`/create/${encodeURIComponent(
+        m.template_key,
+      )}?design=${encodeURIComponent(designKey)}`}
+      className="inline-flex w-full items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs font-medium text-neutral-900 hover:border-neutral-900"
+    >
+      Open Builder
+    </Link>
 
-                            <button
-                              type="button"
-                              disabled={busyId === m.id}
-                              onClick={() => openActionModal("cancelDraft", m.id, m.title)}
-                              className="inline-flex w-full items-center justify-center rounded-xl border border-red-300 bg-white px-3 py-2 text-xs font-medium text-red-700 hover:border-red-500 disabled:opacity-50"
-                            >
-                              {busyId === m.id ? "Working..." : "Cancel"}
-                            </button>
-                          </div>
-                        ) : (
+    <Link
+      href={`/create/${encodeURIComponent(
+        m.template_key,
+      )}/publish?design=${encodeURIComponent(designKey)}`}
+      className="inline-flex w-full items-center justify-center rounded-xl border border-emerald-600 bg-emerald-600 px-3 py-2 text-xs font-medium text-white hover:bg-emerald-700"
+    >
+      Publish
+    </Link>
+
+    <button
+      type="button"
+      disabled={busyId === m.id}
+      onClick={() => openActionModal("cancelDraft", m.id, m.title)}
+      className="inline-flex w-full items-center justify-center rounded-xl border border-red-300 bg-white px-3 py-2 text-xs font-medium text-red-700 hover:border-red-500 disabled:opacity-50"
+    >
+      {busyId === m.id ? "Working..." : "Cancel"}
+    </button>
+  </div>
+) : (
 <div className="grid min-w-[260px] grid-cols-2 gap-2">
   <Link
     href={`/dashboard/microsites/${m.id}`}
