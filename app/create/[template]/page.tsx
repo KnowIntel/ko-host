@@ -1,4 +1,3 @@
-// app/create/[template]/page.tsx
 "use client";
 
 import Link from "next/link";
@@ -16,6 +15,7 @@ import {
 } from "@/lib/templates/registry";
 import TemplateDraftEditor from "@/components/templates/TemplateDraftEditor";
 import type { BuilderDraft } from "@/lib/templates/builder";
+import AppModal from "@/components/ui/AppModal";
 
 function resolveTemplateFromRoute(rawTemplate: string) {
   const normalized = normalizeTemplateKey(rawTemplate);
@@ -29,13 +29,6 @@ function resolveTemplateFromRoute(rawTemplate: string) {
     ) ||
     TEMPLATE_DEFS[0]
   );
-}
-
-function badgeClassName(badge?: "Popular" | "New" | "Recommended" | null) {
-  if (badge === "Popular") return "bg-neutral-950 text-white";
-  if (badge === "New") return "bg-cyan-700 text-white";
-  if (badge === "Recommended") return "bg-emerald-700 text-white";
-  return "bg-neutral-200 text-neutral-800";
 }
 
 function buildCreateDraftStorageKey(templateKey: string, designKey: string) {
@@ -110,16 +103,6 @@ export default function CreateTemplatePage() {
     ? migratedLayout.designKey
     : resolvedLegacyPreset.key;
 
-  const designLabel = migratedLayout
-    ? migratedLayout.card.label
-    : resolvedLegacyPreset.label;
-
-  const designBadge: "Popular" | "New" | "Recommended" | null = migratedLayout
-    ? migratedLayout.recommended
-      ? "Recommended"
-      : null
-    : resolvedLegacyPreset.badge ?? null;
-
   const presetDraft: BuilderDraft = useMemo(() => {
     return migratedLayout
       ? createDraftFromLayoutDefinition({
@@ -160,9 +143,9 @@ export default function CreateTemplatePage() {
   const [saveState, setSaveState] = useState<
     "idle" | "saving" | "saved" | "error" | "signin-required"
   >("idle");
-
   const [saveMessage, setSaveMessage] = useState("Draft not saved yet.");
   const [showPublishWarning, setShowPublishWarning] = useState(false);
+  const [showSignInPrompt, setShowSignInPrompt] = useState(false);
 
   const saveResetTimerRef = useRef<number | null>(null);
 
@@ -240,7 +223,9 @@ export default function CreateTemplatePage() {
         setLiveDraft(merged);
         lastSavedDraftRef.current = JSON.stringify(merged);
         setSaveMessage("Loaded your saved dashboard draft.");
-      } catch {}
+      } catch {
+        // ignore draft preload errors
+      }
     }
 
     void loadServerDraft();
@@ -252,13 +237,14 @@ export default function CreateTemplatePage() {
 
     try {
       window.localStorage.setItem(storageKey, JSON.stringify(draft));
-    } catch {}
+    } catch {
+      // ignore localStorage errors
+    }
 
     if (!isSignedIn) {
       setSaveState("signin-required");
-      setSaveMessage("In order to save, you must be signed in.");
-      window.open("/sign-in", "_blank", "noopener,noreferrer");
-      queueSaveStateReset();
+      setSaveMessage("You must be signed in to save a draft.");
+      setShowSignInPrompt(true);
       return;
     }
 
@@ -293,6 +279,14 @@ export default function CreateTemplatePage() {
       setSaveMessage(message);
       queueSaveStateReset();
     }
+  }
+
+  function continueToSignIn() {
+    setShowSignInPrompt(false);
+
+    const returnUrl = window.location.href;
+    const signInUrl = `/sign-in?redirect_url=${encodeURIComponent(returnUrl)}`;
+    window.open(signInUrl, "_blank", "noopener,noreferrer");
   }
 
   const editorInstanceKey = [
@@ -340,52 +334,39 @@ export default function CreateTemplatePage() {
           </div>
         </div>
 
-<TemplateDraftEditor
-  key={editorInstanceKey}
-  templateName={templateKey}
-  designLayout={designKey}
-  initialDraft={hydratedDraft}
-  onSave={handleSaveDraft}
-  publishHref={publishHref}
-  publishLabel="Publish"
-  onPublishClick={handlePublishClick}
-  onDraftChange={setLiveDraft}
-  saveState={saveState}
-  saveMessage={saveMessage}
-/>
+        <TemplateDraftEditor
+          key={editorInstanceKey}
+          templateName={templateKey}
+          designLayout={designKey}
+          initialDraft={hydratedDraft}
+          onSave={handleSaveDraft}
+          publishHref={publishHref}
+          publishLabel="Publish"
+          onPublishClick={handlePublishClick}
+          onDraftChange={setLiveDraft}
+          saveState={saveState}
+          saveMessage={saveMessage}
+        />
 
-        {showPublishWarning ? (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/45 px-4">
-            <div className="w-full max-w-none px-0 py-8">
-              <div className="text-lg font-semibold text-neutral-950">
-                Publish draft?
-              </div>
+        <AppModal
+          open={showSignInPrompt}
+          title="You must be signed in to save a draft."
+          description="You won't lose your progress here."
+          confirmText="Continue"
+          cancelText="Cancel"
+          onConfirm={continueToSignIn}
+          onCancel={() => setShowSignInPrompt(false)}
+        />
 
-              <p className="mt-3 text-sm leading-6 text-neutral-600">
-                Any unsaved changes to this draft will be lost. Save Draft first,
-                then Publish.
-              </p>
-
-              <div className="mt-6 flex items-center justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={cancelPublishWarning}
-                  className="inline-flex h-10 items-center justify-center rounded-lg border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-700 transition hover:bg-neutral-50"
-                >
-                  Cancel
-                </button>
-
-                <button
-                  type="button"
-                  onClick={continueToPublish}
-                  className="inline-flex h-10 items-center justify-center rounded-lg bg-black px-4 text-sm font-medium text-white transition hover:bg-neutral-800"
-                >
-                  Continue to Publish
-                </button>
-              </div>
-            </div>
-          </div>
-        ) : null}
+        <AppModal
+          open={showPublishWarning}
+          title="Publish draft?"
+          description="Any unsaved changes to this draft will be lost. Save Draft first, then Publish."
+          confirmText="Continue to Publish"
+          cancelText="Cancel"
+          onConfirm={continueToPublish}
+          onCancel={cancelPublishWarning}
+        />
       </div>
     </main>
   );
