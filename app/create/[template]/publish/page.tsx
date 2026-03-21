@@ -512,16 +512,38 @@ if (slugStatus === "invalid" || slugStatus === "error") {
                 Publish Summary
               </div>
 
-              <div className="mt-4 space-y-2 text-sm text-neutral-700">
-                <div>Template: {templateDef.title || templateKey}</div>
-                <div>Design: {designKey}</div>
-                <div>Draft Title: {title || "—"}</div>
-                <div>Site Name: {slugSuggestion || "—"}</div>
-                <div>Visibility: {siteVisibility}</div>
-                <div>
-                  Blocks: {Array.isArray(draft?.blocks) ? draft.blocks.length : 0}
-                </div>
-              </div>
+              {(() => {
+                const blocks = Array.isArray(draft?.blocks) ? draft.blocks.filter(Boolean) : [];
+                const blockCount = blocks.length;
+
+                const blockBreakdown = blocks.reduce((acc, block) => {
+                  const type = block?.type || "unknown";
+                  acc[type] = (acc[type] || 0) + 1;
+                  return acc;
+                }, {} as Record<string, number>);
+
+                const breakdownText = Object.entries(blockBreakdown)
+                  .map(([type, count]) => `${type}: ${count}`)
+                  .join(", ");
+
+                return (
+                  <div className="mt-4 space-y-2 text-sm text-neutral-700">
+                    <div>Template: {templateDef.title || templateKey}</div>
+                    <div>Design: {designKey}</div>
+                    <div>Draft Title: {title || "—"}</div>
+                    <div>Site Name: {slugSuggestion || "—"}</div>
+                    <div>Visibility: {siteVisibility}</div>
+                    <div>
+                      Blocks: {blockCount}
+                      {blockCount > 0 ? (
+                        <span className="ml-1 text-neutral-500">
+                          ({breakdownText})
+                        </span>
+                      ) : null}
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
 
             {publishState === "success" ? (
