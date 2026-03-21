@@ -1,5 +1,7 @@
 "use client";
 
+import AppModal from "@/components/ui/AppModal";
+
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -113,7 +115,9 @@ type Props = {
   onSaveDraft?: (draft: BuilderDraft) => void | Promise<void>;
   publishHref?: string;
   publishLabel?: string;
-  onPublishClick?: () => void;
+  onPublishClick?: (draft: BuilderDraft) => void;
+  saveState?: "idle" | "saving" | "saved" | "error" | "signin-required";
+  saveMessage?: string;
 };
 
 type DraftWithPageExtras = BuilderDraft & {
@@ -409,7 +413,7 @@ function isPageBlockId(blockId: string) {
 }
 
 function topBarSliderWrapClass() {
-  return "inline-flex h-11 items-center gap-2 rounded-md border border-white/10 bg-white/5 px-3 text-xs text-white";
+  return "inline-flex h-12 items-center gap-2 rounded-md border border-white/10 bg-white/5 px-3 text-xs text-white";
 }
 
 function topBarSliderClass() {
@@ -506,14 +510,14 @@ function topBarButtonClass(active = false, disabled = false, danger = false) {
 
 function topBarFieldClass(widthClass = "") {
   return [
-    "h-11 rounded-md border border-white/10 bg-white px-3 text-sm text-black outline-none transition",
+    "h-10 rounded-md border border-white/10 bg-white px-3 text-sm text-black outline-none transition",
     widthClass,
   ].join(" ");
 }
 
 function topBarColorClass(disabled = false) {
   return [
-    "h-11 w-16 shrink-0 rounded-md border p-1 transition",
+    "h-10 w-10 shrink-0 rounded-md border p-1 transition",
     disabled
       ? "cursor-not-allowed border-white/5 bg-white/[0.03] opacity-40"
       : "border-white/10 bg-white/5",
@@ -535,7 +539,7 @@ function bottomCategoryClass(active: boolean) {
 
 function actionButtonClass(primary = false) {
   return [
-    "inline-flex h-12 items-center justify-center rounded-md border px-4 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-60",
+    "inline-flex h-12 items-center justify-center rounded-md border px-4 text-sm font-medium transition",
     primary
       ? "border-blue-600 bg-blue-600 text-white hover:bg-blue-700"
       : "border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-100",
@@ -720,26 +724,25 @@ export default function DesignLayoutEditor({
   publishHref,
   publishLabel = "Publish",
   onPublishClick,
+  saveState,
+  saveMessage,
 }: Props) {
-const [selection, setSelection] = useState(createEmptySelection());
-const [activeCategory, setActiveCategory] = useState<BottomCategory>("Text");
-const [openToolMenu, setOpenToolMenu] = useState<BottomCategory | null>(null);
-const [inspectorCollapsed, setInspectorCollapsed] = useState(false);
-const [aiLoading, setAiLoading] = useState(false);
-const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
-const [showAiSuggestions, setShowAiSuggestions] = useState(false);
-const [inspectorFocusTarget, setInspectorFocusTarget] =
-  useState<InspectorFocusTarget>(null);
-const [canvasZoom, setCanvasZoom] = useState(100);
-const [undoStack, setUndoStack] = useState<BuilderDraft[]>([]);
-const [redoStack, setRedoStack] = useState<BuilderDraft[]>([]);
-
-const [isSavingDraft, setIsSavingDraft] = useState(false);
-const [isPublishing, setIsPublishing] = useState(false);
-const [saveFeedback, setSaveFeedback] = useState<string | null>(null);
+  const [selection, setSelection] = useState(createEmptySelection());
+  const [activeCategory, setActiveCategory] = useState<BottomCategory>("Text");
+  const [openToolMenu, setOpenToolMenu] = useState<BottomCategory | null>(null);
+  const [inspectorCollapsed, setInspectorCollapsed] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
+  const [showAiSuggestions, setShowAiSuggestions] = useState(false);
+  const [removeAllModalOpen, setRemoveAllModalOpen] = useState(false);
+  const [inspectorFocusTarget, setInspectorFocusTarget] =
+    useState<InspectorFocusTarget>(null);
+  const [canvasZoom, setCanvasZoom] = useState(100);
+  const [undoStack, setUndoStack] = useState<BuilderDraft[]>([]);
+  const [redoStack, setRedoStack] = useState<BuilderDraft[]>([]);
   const isHistoryActionRef = useRef(false);
   const lastDraftRef = useRef<BuilderDraft>(cloneDraft(draft));
-
+  const topBarScrollRef = useRef<HTMLDivElement | null>(null);
   const dockedScrollRef = useRef<HTMLDivElement | null>(null);
   const bottomBarRef = useRef<HTMLDivElement | null>(null);
   const toolMenuRef = useRef<HTMLDivElement | null>(null);
@@ -753,7 +756,16 @@ const [saveFeedback, setSaveFeedback] = useState<string | null>(null);
   const countdownHeadingInputRef = useRef<HTMLInputElement | null>(null);
   const countdownTargetInputRef = useRef<HTMLInputElement | null>(null);
   const countdownCompletedInputRef = useRef<HTMLInputElement | null>(null);
-
+  const [recentColors, setRecentColors] = useState<string[]>(() => {
+    if (typeof window === "undefined") return [];
+    try {
+      const raw = window.localStorage.getItem("kht:recent-colors");
+      const parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed.slice(0, 10) : [];
+    } catch {
+      return [];
+    }
+  });
   const faqQuestionInputRefs = useRef<Record<string, HTMLInputElement | null>>(
     {},
   );
@@ -900,6 +912,17 @@ const showBorderWidthRadiusControls =
     pageBackgroundImage,
     pageBackgroundImageFit,
   ]);
+
+  useEffect(() => {
+  try {
+    window.localStorage.setItem(
+      "kht:recent-colors",
+      JSON.stringify(recentColors.slice(0, 10)),
+    );
+  } catch {
+    // ignore storage errors
+  }
+}, [recentColors]);
 
   useEffect(() => {
     if (!inspectorFocusTarget || !selectedBlock) return;
@@ -1080,149 +1103,178 @@ const showBorderWidthRadiusControls =
         el.setSelectionRange(el.value.length, el.value.length);
       }
       setInspectorFocusTarget(null);
+      return;
     }
+
     if (
-  inspectorFocusTarget.type === "carousel-heading" &&
-  selectedBlock.type === "image_carousel" &&
-  inspectorFocusTarget.blockId === selectedBlock.id
-) {
-  const el = carouselHeadingInputRef.current;
-  if (el) {
-    el.focus();
-    el.setSelectionRange(el.value.length, el.value.length);
-  }
-  setInspectorFocusTarget(null);
-  return;
-}
+      inspectorFocusTarget.type === "carousel-heading" &&
+      selectedBlock.type === "image_carousel" &&
+      inspectorFocusTarget.blockId === selectedBlock.id
+    ) {
+      const el = carouselHeadingInputRef.current;
+      if (el) {
+        el.focus();
+        el.setSelectionRange(el.value.length, el.value.length);
+      }
+      setInspectorFocusTarget(null);
+      return;
+    }
 
-if (
-  inspectorFocusTarget.type === "carousel-item-title" &&
-  selectedBlock.type === "image_carousel" &&
-  inspectorFocusTarget.blockId === selectedBlock.id
-) {
-  const el =
-    carouselItemTitleInputRefs.current[inspectorFocusTarget.itemId];
-  if (el) {
-    el.focus();
-    el.setSelectionRange(el.value.length, el.value.length);
-  }
-  setInspectorFocusTarget(null);
-  return;
-}
+    if (
+      inspectorFocusTarget.type === "carousel-item-title" &&
+      selectedBlock.type === "image_carousel" &&
+      inspectorFocusTarget.blockId === selectedBlock.id
+    ) {
+      const el =
+        carouselItemTitleInputRefs.current[inspectorFocusTarget.itemId];
+      if (el) {
+        el.focus();
+        el.setSelectionRange(el.value.length, el.value.length);
+      }
+      setInspectorFocusTarget(null);
+      return;
+    }
 
-if (
-  inspectorFocusTarget.type === "carousel-item-subtitle" &&
-  selectedBlock.type === "image_carousel" &&
-  inspectorFocusTarget.blockId === selectedBlock.id
-) {
-  const el =
-    carouselItemSubtitleInputRefs.current[inspectorFocusTarget.itemId];
-  if (el) {
-    el.focus();
-    el.setSelectionRange(el.value.length, el.value.length);
-  }
-  setInspectorFocusTarget(null);
-  return;
-}
+    if (
+      inspectorFocusTarget.type === "carousel-item-subtitle" &&
+      selectedBlock.type === "image_carousel" &&
+      inspectorFocusTarget.blockId === selectedBlock.id
+    ) {
+      const el =
+        carouselItemSubtitleInputRefs.current[inspectorFocusTarget.itemId];
+      if (el) {
+        el.focus();
+        el.setSelectionRange(el.value.length, el.value.length);
+      }
+      setInspectorFocusTarget(null);
+      return;
+    }
 
-if (
-  inspectorFocusTarget.type === "carousel-item-href" &&
-  selectedBlock.type === "image_carousel" &&
-  inspectorFocusTarget.blockId === selectedBlock.id
-) {
-  const el =
-    carouselItemHrefInputRefs.current[inspectorFocusTarget.itemId];
-  if (el) {
-    el.focus();
-    el.setSelectionRange(el.value.length, el.value.length);
-  }
-  setInspectorFocusTarget(null);
-  return;
-}
+    if (
+      inspectorFocusTarget.type === "carousel-item-href" &&
+      selectedBlock.type === "image_carousel" &&
+      inspectorFocusTarget.blockId === selectedBlock.id
+    ) {
+      const el =
+        carouselItemHrefInputRefs.current[inspectorFocusTarget.itemId];
+      if (el) {
+        el.focus();
+        el.setSelectionRange(el.value.length, el.value.length);
+      }
+      setInspectorFocusTarget(null);
+      return;
+    }
   }, [inspectorFocusTarget, selectedBlock]);
 
   useEffect(() => {
-  function handlePointerDown(event: MouseEvent) {
-    if (!openToolMenu) return;
+    function handlePointerDown(event: MouseEvent) {
+      if (!openToolMenu) return;
 
-    const target = event.target as Node | null;
-    if (!target) return;
+      const target = event.target as Node | null;
+      if (!target) return;
 
-    const clickedInsideMenu = toolMenuRef.current?.contains(target);
-    const clickedInsideBottomBar = bottomBarRef.current?.contains(target);
+      const clickedInsideMenu = toolMenuRef.current?.contains(target);
+      const clickedInsideBottomBar = bottomBarRef.current?.contains(target);
 
-    if (clickedInsideMenu || clickedInsideBottomBar) return;
+      if (clickedInsideMenu || clickedInsideBottomBar) return;
 
-    setOpenToolMenu(null);
-  }
-
-  function handleEscape(event: KeyboardEvent) {
-    if (event.key === "Escape") {
       setOpenToolMenu(null);
     }
-  }
 
-  window.addEventListener("mousedown", handlePointerDown);
-  window.addEventListener("keydown", handleEscape);
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setOpenToolMenu(null);
+      }
+    }
 
-  return () => {
-    window.removeEventListener("mousedown", handlePointerDown);
-    window.removeEventListener("keydown", handleEscape);
-  };
-}, [openToolMenu]);
+    window.addEventListener("mousedown", handlePointerDown);
+    window.addEventListener("keydown", handleEscape);
+
+    return () => {
+      window.removeEventListener("mousedown", handlePointerDown);
+      window.removeEventListener("keydown", handleEscape);
+    };
+  }, [openToolMenu]);
 
     useEffect(() => {
-    if (!saveFeedback) return;
-
-    const timeout = window.setTimeout(() => {
-      setSaveFeedback(null);
-    }, 2500);
-
-    return () => window.clearTimeout(timeout);
-  }, [saveFeedback]);
-
-  async function handleSaveDraftClick() {
-    if (!onSaveDraft || isSavingDraft) return;
-
-    try {
-      setIsSavingDraft(true);
-      setSaveFeedback("Saving draft...");
-
-      await onSaveDraft(cloneDraft(draft));
-
-      setSaveFeedback("Draft saved");
-    } catch (error) {
-      console.error("Save draft failed:", error);
-      setSaveFeedback("Failed to save draft");
-    } finally {
-      setIsSavingDraft(false);
+    if (isHistoryActionRef.current) {
+      isHistoryActionRef.current = false;
+      lastDraftRef.current = cloneDraft(draft);
+      return;
     }
-  }
 
-  async function handlePublishButtonClick() {
-    if (isPublishing) return;
+    const previous = JSON.stringify(lastDraftRef.current);
+    const current = JSON.stringify(draft);
 
-    try {
-      setIsPublishing(true);
-
-      if (onPublishClick) {
-        await Promise.resolve(onPublishClick());
-        return;
-      }
-
-      if (publishHref) {
-        window.location.href = publishHref;
-        return;
-      }
-
-      console.warn("Publish action missing: no onPublishClick or publishHref provided.");
-    } catch (error) {
-      console.error("Publish action failed:", error);
-    } finally {
-      setIsPublishing(false);
+    if (previous !== current) {
+      setUndoStack((prev) => [...prev, cloneDraft(lastDraftRef.current)]);
+      setRedoStack([]);
+      lastDraftRef.current = cloneDraft(draft);
     }
-  }
+  }, [draft]);
 
+  function pushRecentColor(color: string) {
+  if (!color) return;
+
+  setRecentColors((prev) => {
+    const normalized = color.toLowerCase();
+    const next = [normalized, ...prev.filter((item) => item.toLowerCase() !== normalized)];
+    return next.slice(0, 10);
+  });
+}
+
+async function pickColorWithEyeDropper(
+  onPick: (color: string) => void,
+) {
+  try {
+    const EyeDropperCtor = (window as Window & {
+      EyeDropper?: new () => { open: () => Promise<{ sRGBHex: string }> };
+    }).EyeDropper;
+
+    if (!EyeDropperCtor) {
+      alert("Eyedropper is not available in this browser.");
+      return;
+    }
+
+    const eyeDropper = new EyeDropperCtor();
+    const result = await eyeDropper.open();
+
+    if (result?.sRGBHex) {
+      onPick(result.sRGBHex);
+      pushRecentColor(result.sRGBHex);
+    }
+  } catch {
+    // user cancelled or browser blocked it
+  }
+}
+
+function applyTextColor(value: string) {
+  applyStylePatch({ color: value });
+  pushRecentColor(value);
+}
+
+function applyPageTextBoxBackground(value: string) {
+  applyPageTextBackgroundColor(value);
+  pushRecentColor(value);
+}
+
+function applyFillColor(value: string) {
+  applyAppearancePatch({ backgroundColor: value });
+  pushRecentColor(value);
+}
+
+function recentColorButtonClass() {
+  return "h-7 w-7 shrink-0 rounded-md border border-white/15 transition hover:scale-105";
+}
+
+function eyedropperButtonClass() {
+  return "inline-flex h-9 min-w-9 items-center justify-center rounded-md border border-white/10 bg-white/5 px-2 text-xs text-white transition hover:bg-white/10";
+}
+
+function applyBorderColor(value: string) {
+  applyAppearancePatch({ borderColor: value });
+  pushRecentColor(value);
+}
 function applyStylePatch(patch: Partial<TextStyle>) {
   if (selectedBlock?.type === "text_fx") {
     setDraft((prev) => ({
@@ -1816,27 +1868,31 @@ async function uploadMultipleImagesToCarousel(blockId: string) {
     }));
   }
 
-  function removeAllBlocks() {
-    const confirmed = window.confirm(
-      "Remove all blocks from the canvas? This will clear all page text blocks and custom blocks.",
-    );
+function removeAllBlocks() {
+  setRemoveAllModalOpen(true);
+}
 
-    if (!confirmed) return;
+function confirmRemoveAllBlocks() {
+  setSelection(createEmptySelection());
 
-    setSelection(createEmptySelection());
+  setDraft((prev) => ({
+    ...(prev as DraftWithPageExtras),
+    blocks: [],
+    pageVisibility: {
+      ...((prev as DraftWithPageExtras).pageVisibility ?? {}),
+      title: false,
+      subtitle: false,
+      subtext: false,
+      description: false,
+    },
+  }));
 
-    setDraft((prev) => ({
-      ...(prev as DraftWithPageExtras),
-      blocks: [],
-      pageVisibility: {
-        ...((prev as DraftWithPageExtras).pageVisibility ?? {}),
-        title: false,
-        subtitle: false,
-        subtext: false,
-        description: false,
-      },
-    }));
-  }
+  setRemoveAllModalOpen(false);
+}
+
+function cancelRemoveAllBlocks() {
+  setRemoveAllModalOpen(false);
+}
 
   function handleMoveBlock(
     blockId: string,
@@ -2622,87 +2678,94 @@ function toggleToolMenu(category: BottomCategory) {
 
 return (
   <div className="flex min-h-screen flex-col bg-[#f3f3f3]">
-    <div className="sticky top-0 z-50 border-b border-black/10 bg-[#2f3541] px-6 py-3 text-white shadow-sm">
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex min-w-0 items-center gap-2 overflow-x-auto pb-2">
-          <button
-            type="button"
-            className={topBarButtonClass(false, undoStack.length === 0)}
-            title="Undo"
-            onClick={handleUndo}
-            disabled={undoStack.length === 0}
-          >
-            ↶
-          </button>
+<div className="relative w-full bg-[#2f3541]">
 
-          <button
-            type="button"
-            className={topBarButtonClass(false, redoStack.length === 0)}
-            title="Redo"
-            onClick={handleRedo}
-            disabled={redoStack.length === 0}
-          >
-            ↷
-          </button>
+<div
+  ref={topBarScrollRef}
+  className="flex w-full items-center justify-between gap-4 overflow-x-auto overflow-y-hidden bg-[#2f3541] pb-2"
+>
+  <div className="flex items-center justify-between gap-4">
+    <div className="sticky left-0 z-20 flex min-w-max items-center gap-2 bg-[#2f3541] pr-4 py-1">
+      {/* <div className="flex shrink-0 items-center gap-2"></div> */}
+      <button
+        type="button"
+        className={topBarButtonClass(false, undoStack.length === 0)}
+        title="Undo"
+        onClick={handleUndo}
+        disabled={undoStack.length === 0}
+      >
+        ↶
+      </button>
 
+      <button
+        type="button"
+        className={topBarButtonClass(false, redoStack.length === 0)}
+        title="Redo"
+        onClick={handleRedo}
+        disabled={redoStack.length === 0}
+      >
+        ↷
+      </button>
+
+      <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
+
+      <div className={infoPillClass()}>{selectedContext.label}</div>
+
+      <button
+        type="button"
+        className={topBarButtonClass(false, !showTextControls)}
+        onClick={handleAioClick}
+        disabled={!showTextControls}
+        title="Artificial Intelligent Output"
+      >
+        <Image
+          src="/icons/icon_wand_aio.png"
+          alt="AIO"
+          width={36}
+          height={36}
+          className="h-[36px] w-[36px] object-contain"
+        />
+      </button>
+
+      {isTextFxSelected ? (
+        <>
           <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
 
-          <div className={infoPillClass()}>{selectedContext.label}</div>
-
+          {/* Straight */}
           <button
             type="button"
-            className={topBarButtonClass(false, !showTextControls)}
-            onClick={handleAioClick}
-            disabled={!showTextControls}
-            title="Artificial Intelligent Output"
+            className={topBarButtonClass(
+              selectedTextFxBlock?.data.fx?.mode === "straight",
+            )}
+            onClick={() => updateTextFx({ mode: "straight" })}
+            title="Straight"
           >
             <Image
-              src="/icons/icon_wand_aio.png"
-              alt="AIO"
-              width={36}
-              height={36}
-              className="h-[36px] w-[36px] object-contain"
+              src="/icons/fx_straight_icon.png"
+              alt="Straight"
+              width={20}
+              height={20}
+              className="object-contain"
             />
           </button>
-          {isTextFxSelected ? (
-            <>
-              <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
 
-              {/* Straight */}
-<button
-  type="button"
-  className={topBarButtonClass(
-    selectedTextFxBlock?.data.fx?.mode === "straight",
-  )}
-  onClick={() => updateTextFx({ mode: "straight" })}
-  title="Straight"
->
-  <Image
-    src="/icons/fx_straight_icon.png"
-    alt="Straight"
-    width={20}
-    height={20}
-    className="object-contain"
-  />
-</button>
-
-{/* Arch */}
-<button
-  type="button"
-  className={topBarButtonClass(
-    selectedTextFxBlock?.data.fx?.mode === "arch",
-  )}
-  onClick={() => updateTextFx({ mode: "arch" })}
-  title="Arch"
->
-  <Image
-    src="/icons/fx_arch_icon.png"
-    alt="Arch"
-    width={20}
-    height={20}
-    className="object-contain"
-  />
-</button>
+          {/* Arch */}
+          <button
+            type="button"
+            className={topBarButtonClass(
+              selectedTextFxBlock?.data.fx?.mode === "arch",
+            )}
+            onClick={() => updateTextFx({ mode: "arch" })}
+            title="Arch"
+          >
+            <Image
+              src="/icons/fx_arch_icon.png"
+              alt="Arch"
+              width={20}
+              height={20}
+              className="object-contain"
+            />
+          </button>
 
 {/* Dip */}
 <button
@@ -2815,7 +2878,7 @@ return (
 
           {showTextControls ? (
   <>
-    <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
+    <div className="mx-1 h-8 w-px shrink-0 bg-white/15" />
 
     <button
       type="button"
@@ -2889,7 +2952,7 @@ return (
       onChange={(e) =>
         applyStylePatch({ fontFamily: e.target.value })
       }
-      className={topBarFieldClass("min-w-[190px]")}
+      className={topBarFieldClass("min-w-[160px]")}
       title="Font family"
       style={{
         fontFamily: resolveFontFamily(
@@ -2923,33 +2986,71 @@ return (
           ),
         })
       }
-      className={topBarFieldClass("w-24")}
+      className={topBarFieldClass("w-16")}
       title="Font size"
     />
 
-    <input
-      type="color"
-      value={selectedStyle.color ?? "#111827"}
-      onChange={(e) => applyStylePatch({ color: e.target.value })}
-      className={topBarColorClass(false)}
-      title="Text color"
-    />
+<input
+  type="color"
+  value={selectedStyle.color ?? "#111827"}
+  onChange={(e) => applyTextColor(e.target.value)}
+  className={topBarColorClass(false)}
+  title="Text color"
+/>
+
+  <button
+    type="button"
+    className={eyedropperButtonClass()}
+    onClick={() =>
+      void pickColorWithEyeDropper((color) => {
+        applyTextColor(color);
+      })
+    }
+    title="Pick text color from screen"
+
+    >
+      <Image
+        src="/icons/pick_color_icon.png"
+        alt="Pick Color"
+        width={20}
+        height={20}
+        className="pointer-events-none object-contain"
+      />
+    </button>
 
     {selectedContext.kind === "pageText" ? (
       <>
-        <input
-          type="color"
-          value={
-            selectedPageBackgroundColor === "transparent"
-              ? "#ffffff"
-              : selectedPageBackgroundColor
-          }
-          onChange={(e) =>
-            applyPageTextBackgroundColor(e.target.value)
-          }
-          className={topBarColorClass(false)}
-          title="Text box background color"
-        />
+<input
+  type="color"
+  value={
+    selectedPageBackgroundColor === "transparent"
+      ? "#ffffff"
+      : selectedPageBackgroundColor
+  }
+  onChange={(e) => applyPageTextBoxBackground(e.target.value)}
+  className={topBarColorClass(false)}
+  title="Text box background color"
+/>
+
+  <button
+    type="button"
+    className={eyedropperButtonClass()}
+    onClick={() =>
+      void pickColorWithEyeDropper((color) => {
+        applyPageTextBoxBackground(color);
+      })
+    }
+    title="Pick text box background color from screen"
+
+    >
+      <Image
+        src="/icons/pick_color_icon.png"
+        alt="Pick Color"
+        width={20}
+        height={20}
+        className="pointer-events-none object-contain"
+      />
+    </button>
 
         <button
           type="button"
@@ -3240,19 +3341,34 @@ return (
     <input
       type="color"
       value={selectedAppearance.backgroundColor ?? "#ffffff"}
-      onChange={(e) =>
-        applyAppearancePatch({ backgroundColor: e.target.value })
-      }
+      onChange={(e) => applyFillColor(e.target.value)}
       className={topBarColorClass(false)}
       title="Fill color"
     />
 
     <button
       type="button"
-      className={topBarButtonClass(
-        !selectedAppearance.backgroundColor ||
-          selectedAppearance.backgroundColor === "transparent",
-      )}
+      className={eyedropperButtonClass()}
+      onClick={() =>
+        void pickColorWithEyeDropper((color) => {
+          applyFillColor(color);
+        })
+      }
+      title="Pick fill color from screen"
+
+      >
+        <Image
+          src="/icons/pick_color_icon.png"
+          alt="Pick Color"
+          width={20}
+          height={20}
+          className="pointer-events-none object-contain"
+        />
+      </button>
+
+    <button
+      type="button"
+      className={topBarButtonClass(false)}
       onClick={() =>
         applyAppearancePatch({ backgroundColor: "transparent" })
       }
@@ -3261,21 +3377,39 @@ return (
       <Image
         src="/icons/transparent_fill_icon.png"
         alt="Transparent fill"
-        width={30}
-        height={30}
-        className="pointer-events-none"
+        width={20}
+        height={20}
+        className="pointer-events-none object-contain"
       />
     </button>
 
     <input
       type="color"
       value={selectedAppearance.borderColor ?? "#d1d5db"}
-      onChange={(e) =>
-        applyAppearancePatch({ borderColor: e.target.value })
-      }
+      onChange={(e) => applyBorderColor(e.target.value)}
       className={topBarColorClass(false)}
       title="Border color"
     />
+
+    <button
+      type="button"
+      className={eyedropperButtonClass()}
+      onClick={() =>
+        void pickColorWithEyeDropper((color) => {
+          applyBorderColor(color);
+        })
+      }
+      title="Pick border color from screen"
+
+      >
+        <Image
+          src="/icons/pick_color_icon.png"
+          alt="Pick Color"
+          width={20}
+          height={20}
+          className="pointer-events-none object-contain"
+        />
+      </button>
 
     {showBorderWidthRadiusControls ? (
       <>
@@ -3316,15 +3450,34 @@ return (
         </div>
       </>
     ) : null}
+
+    {recentColors.length ? (
+      <>
+        <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-white/70">Recent</span>
+          <div className="flex items-center gap-1">
+            {recentColors.map((color) => (
+              <button
+                key={color}
+                type="button"
+                className={recentColorButtonClass()}
+                style={{ backgroundColor: color }}
+                onClick={() => {
+                  applyFillColor(color);
+                }}
+                title={color}
+              />
+            ))}
+          </div>
+        </div>
+      </>
+    ) : null}
   </>
 ) : null}
 </div>
 
-<div className="flex shrink-0 items-center gap-2">
-  {saveFeedback ? (
-    <div className={infoPillClass()}>{saveFeedback}</div>
-  ) : null}
-
+<div className="flex shrink-0 items-center gap-2 bg-[#2f3541]">
   <button
     type="button"
     className={topBarButtonClass(false, false, true)}
@@ -3383,7 +3536,7 @@ return (
         e.target.value as "clip" | "zoom" | "stretch",
       )
     }
-    className={topBarFieldClass("w-[120px]")}
+    className={topBarFieldClass("w-[90px]")}
     title="Page background fit"
   >
     <option value="clip">Clip</option>
@@ -3413,7 +3566,13 @@ return (
     disabled={canvasZoom <= MIN_CANVAS_ZOOM}
     title="Zoom out canvas"
   >
-    −
+    <Image
+      src="/icons/zoom_out_icon.png"
+      alt="Remove All"
+      width={30}
+      height={30}
+      className="pointer-events-none h-[30px] w-[30px] object-contain"
+    />
   </button>
 
   <button
@@ -3423,7 +3582,13 @@ return (
     disabled={canvasZoom >= MAX_CANVAS_ZOOM}
     title="Zoom in canvas"
   >
-    +
+    <Image
+      src="/icons/zoom_in_icon.png"
+      alt="Remove All"
+      width={30}
+      height={30}
+      className="pointer-events-none h-[30px] w-[30px] object-contain"
+    />
   </button>
 
   <div className={infoPillClass()}>{canvasZoom}%</div>
@@ -3431,57 +3596,44 @@ return (
         </div>
       </div>
 
-      {showAiSuggestions ? (
-        <div className="fixed inset-0 z-[70] bg-black/40 p-6">
-          <div className="mx-auto mt-20 max-w-2xl rounded-2xl border border-neutral-200 bg-white p-5 shadow-2xl">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <div className="text-xs font-semibold uppercase tracking-[0.14em] text-neutral-500">
-                  Artificial Intelligent Output
-                </div>
-                <div className="mt-1 text-lg font-semibold text-neutral-900">
-                  Suggestions for {selectedContext.label}
-                </div>
-              </div>
+      <AppModal
+  open={showAiSuggestions}
+  title={`Suggestions for ${selectedContext.label}`}
+  description="Artificial Intelligent Output"
+  confirmText="Close"
+  cancelText="Cancel"
+  loading={aiLoading}
+  onConfirm={() => setShowAiSuggestions(false)}
+  onCancel={() => setShowAiSuggestions(false)}
+>
+  <div className="mt-4">
+    {aiLoading ? (
+      <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-6 text-sm text-neutral-600">
+        Generating suggestions...
+      </div>
+    ) : aiSuggestions.length ? (
+      <div className="space-y-3">
+        {aiSuggestions.map((suggestion, index) => (
+          <button
+            key={`${suggestion}-${index}`}
+            type="button"
+            onClick={() => applyAiSuggestion(suggestion)}
+            className="block w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 text-left text-sm text-neutral-900 hover:bg-neutral-50"
+          >
+            {suggestion}
+          </button>
+        ))}
+      </div>
+    ) : (
+      <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-6 text-sm text-neutral-600">
+        No suggestions available.
+      </div>
+    )}
+  </div>
+</AppModal>
+  </div>
 
-              <button
-                type="button"
-                onClick={() => setShowAiSuggestions(false)}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-50"
-              >
-                ×
-              </button>
-            </div>
-
-            <div className="mt-4">
-              {aiLoading ? (
-                <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-6 text-sm text-neutral-600">
-                  Generating suggestions...
-                </div>
-              ) : aiSuggestions.length ? (
-                <div className="space-y-3">
-                  {aiSuggestions.map((suggestion, index) => (
-                    <button
-                      key={`${suggestion}-${index}`}
-                      type="button"
-                      onClick={() => applyAiSuggestion(suggestion)}
-                      className="block w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 text-left text-sm text-neutral-900 hover:bg-neutral-50"
-                    >
-                      {suggestion}
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-6 text-sm text-neutral-600">
-                  No suggestions available.
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      ) : null}
-
-      <div className="flex-1 px-6 py-5">
+<div className="flex-1 px-6 py-5">
         <button
           type="button"
           className="fixed right-0 top-24 z-[65] flex h-16 w-7 items-center justify-center rounded-l-xl border border-r-0 border-neutral-300 bg-white text-neutral-600 shadow-sm transition hover:bg-neutral-50"
@@ -5491,7 +5643,7 @@ return (
       ))}
     </div>
 
-        <div className="flex items-center gap-2">
+    <div className="flex items-center gap-3">
       <button
         type="button"
         className={actionButtonClass(false)}
@@ -5501,29 +5653,50 @@ return (
       </button>
 
       <button
-  type="button"
-  className={actionButtonClass(true)}
-  onClick={() => void handleSaveDraftClick()}
-  disabled={isSavingDraft}
-  title={isSavingDraft ? "Saving draft..." : "Save draft"}
->
-  {isSavingDraft ? "Saving..." : "Save Draft"}
-</button>
+        type="button"
+        className={actionButtonClass(true)}
+        onClick={() => void onSaveDraft?.(draft)}
+      >
+        {saveState === "saving"
+          ? "Saving..."
+          : saveState === "saved"
+            ? "Saved"
+            : saveState === "error"
+              ? "Save Failed"
+              : saveState === "signin-required"
+                ? "Sign In to Save"
+                : "Save Draft"}
+      </button>
 
-{(publishHref || onPublishClick) ? (
-  <button
-    type="button"
-    onClick={() => void handlePublishButtonClick()}
-    disabled={isPublishing}
-    className="inline-flex h-12 items-center justify-center rounded-md border border-neutral-950 bg-neutral-950 px-4 text-sm font-medium text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-60"
-    title={isPublishing ? "Opening publish flow..." : publishLabel}
-  >
-    {isPublishing ? "Opening..." : publishLabel}
-  </button>
-) : null}
+      {publishHref ? (
+        <button
+          type="button"
+          onClick={() => onPublishClick?.(draft)}
+          className="inline-flex h-12 items-center justify-center rounded-md border border-neutral-950 bg-neutral-950 px-4 text-sm font-medium text-white transition hover:bg-black"
+        >
+          {publishLabel}
+        </button>
+      ) : null}
     </div>
   </div>
+
+  <div className="border-t border-black/10 px-6 py-2 text-right">
+    {saveMessage ? (
+      <div className="text-xs text-neutral-500">{saveMessage}</div>
+    ) : null}
+  </div>
 </div>
+
+<AppModal
+  open={removeAllModalOpen}
+  title="Remove all blocks?"
+  description="This will clear all page text blocks and custom blocks from the canvas."
+  confirmText="Remove All"
+  cancelText="Cancel"
+  danger
+  onConfirm={confirmRemoveAllBlocks}
+  onCancel={cancelRemoveAllBlocks}
+/>
     </div>
   );
 }

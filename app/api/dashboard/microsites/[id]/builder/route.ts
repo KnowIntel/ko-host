@@ -1,7 +1,10 @@
+// app/api/dashboard/microsites/[id]/builder/route.ts
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { sanitizeBuilderDraft } from "@/lib/templates/builder";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
+
+const VERSION_THROTTLE_MS = 60 * 1000;
 
 export async function POST(
   req: Request,
@@ -48,25 +51,86 @@ export async function POST(
       slugSuggestion: microsite.slug,
     };
 
+    // Ensure at least one microsite page exists for multi-page compatibility
+    const { data: existingPages, error: existingPagesError } = await supabaseAdmin
+      .from("microsite_pages")
+      .select("id")
+      .eq("microsite_id", id)
+      .limit(1);
+
+    if (!existingPagesError && (!existingPages || existingPages.length === 0)) {
+      const { error: createHomePageError } = await supabaseAdmin
+        .from("microsite_pages")
+        .insert({
+          microsite_id: id,
+          slug: "home",
+          title: microsite.title || "Home",
+          draft: nextDraft,
+          updated_at: new Date().toISOString(),
+        });
+
+      if (createHomePageError) {
+        console.error("microsite home page create failed", createHomePageError);
+      }
+    }
+
     const { data: updated, error: updateError } = await supabaseAdmin
       .from("microsites")
       .update({
         title: nextDraft.title,
         draft: nextDraft,
+        updated_at: new Date().toISOString(),
       })
       .eq("id", id)
       .eq("owner_clerk_user_id", userId)
       .select("id, slug, title, draft")
       .single();
 
-    if (updateError) {
+    if (updateError || !updated) {
       return NextResponse.json(
-        { error: updateError.message || "Failed to save builder draft." },
+        { error: updateError?.message || "Failed to save builder draft." },
         { status: 500 },
       );
     }
 
-    return NextResponse.json({ ok: true, microsite: updated, draft: nextDraft });
+    const { data: latestVersion, error: latestVersionError } = await supabaseAdmin
+      .from("microsite_versions")
+      .select("id, created_at")
+      .eq("microsite_id", id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    let shouldInsertVersion = true;
+
+    if (!latestVersionError && latestVersion?.created_at) {
+      const latestVersionTime = new Date(latestVersion.created_at).getTime();
+      const now = Date.now();
+
+      if (Number.isFinite(latestVersionTime)) {
+        shouldInsertVersion = now - latestVersionTime >= VERSION_THROTTLE_MS;
+      }
+    }
+
+    if (shouldInsertVersion) {
+      const { error: versionError } = await supabaseAdmin
+        .from("microsite_versions")
+        .insert({
+          microsite_id: id,
+          draft: nextDraft,
+        });
+
+      if (versionError) {
+        console.error("microsite version insert failed", versionError);
+      }
+    }
+
+    return NextResponse.json({
+      ok: true,
+      microsite: updated,
+      draft: nextDraft,
+      versionCreated: shouldInsertVersion,
+    });
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Unexpected server error.";

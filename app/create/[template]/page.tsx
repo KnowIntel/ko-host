@@ -324,7 +324,7 @@ export default function CreateTemplatePage() {
 
   return (
     <main className="min-h-screen bg-[#f6f4f2]">
-      <div className="mx-auto w-full max-w-[1600px] px-4 py-8 sm:px-6 lg:px-8">
+      <div className="w-full max-w-none px-0 py-8">
         <div className="mb-6 overflow-hidden rounded-[28px] border border-neutral-200 bg-white shadow-sm">
           {/* KEEPING YOUR FULL HEADER UI EXACTLY AS-IS HERE */}
           {/* This file should NOT add duplicate Templates / Designs / Dashboard buttons below the global header */}
@@ -340,21 +340,23 @@ export default function CreateTemplatePage() {
           </div>
         </div>
 
-        <TemplateDraftEditor
-          key={editorInstanceKey}
-          templateName={templateKey}
-          designLayout={designKey}
-          initialDraft={hydratedDraft}
-          onSave={handleSaveDraft}
-          publishHref={publishHref}
-          publishLabel="Publish"
-          onPublishClick={handlePublishClick}
-          onDraftChange={setLiveDraft}
-        />
+<TemplateDraftEditor
+  key={editorInstanceKey}
+  templateName={templateKey}
+  designLayout={designKey}
+  initialDraft={hydratedDraft}
+  onSave={handleSaveDraft}
+  publishHref={publishHref}
+  publishLabel="Publish"
+  onPublishClick={handlePublishClick}
+  onDraftChange={setLiveDraft}
+  saveState={saveState}
+  saveMessage={saveMessage}
+/>
 
         {showPublishWarning ? (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/45 px-4">
-            <div className="w-full max-w-md rounded-3xl border border-neutral-200 bg-white p-6 shadow-2xl">
+            <div className="w-full max-w-none px-0 py-8">
               <div className="text-lg font-semibold text-neutral-950">
                 Publish draft?
               </div>

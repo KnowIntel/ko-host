@@ -588,47 +588,6 @@ inputs.forEach((input) => {
               </div>
             </div>
           ))}
-          {/* ✅ ADDED SUBMIT BUTTON */}
-          <div
-            style={{
-              position: "absolute",
-              bottom: 24,
-              left: "50%",
-              transform: "translateX(-50%)",
-              zIndex: 999,
-            }}
-          >
-            <div className="flex flex-col items-center gap-2">
-              <button
-                onClick={handleSubmit}
-                disabled={submitState === "submitting"}
-                className="px-4 py-2 bg-black text-white rounded disabled:opacity-60"
-              >
-                {
-                  submitState === "submitting"
-                    ? "Submitting..."
-                    : (
-                        draft.blocks.find(
-                          (b): b is Extract<typeof b, { type: "form_field" }> =>
-                            b.type === "form_field" && Boolean(b.data.submitButtonText),
-                        )?.data.submitButtonText || "Submit"
-                      )
-                }
-              </button>
-
-              {submitState !== "idle" ? (
-                <div
-                  className={`text-sm ${
-                    submitState === "success"
-                      ? "text-green-600"
-                      : "text-red-600"
-                  }`}
-                >
-                  {submitMessage}
-                </div>
-              ) : null}
-            </div>
-          </div>
         </div>
       </div>
     </div>

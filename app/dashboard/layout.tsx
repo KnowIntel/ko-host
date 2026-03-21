@@ -1,7 +1,22 @@
-// app/dashboard/layout.tsx
+"use client";
+
+import { usePathname } from "next/navigation";
 import { Container } from "@/components/ui/Container";
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const pathname = usePathname();
+  const isBuilderRoute =
+    pathname?.includes("/dashboard/microsites/") &&
+    pathname?.endsWith("/builder");
+
+  if (isBuilderRoute) {
+    return <main className="w-full">{children}</main>;
+  }
+
   return (
     <main>
       <Container className="py-10">

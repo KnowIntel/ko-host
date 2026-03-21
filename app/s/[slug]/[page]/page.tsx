@@ -1,4 +1,4 @@
-// app/s/[slug]/page.tsx
+// app/s/[slug]/[page]/page.tsx
 import { cookies } from "next/headers";
 import crypto from "crypto";
 import PlacedBlocksPreview from "@/components/preview/PlacedBlocksPreview";
@@ -20,12 +20,12 @@ type MicrositeRow = {
   site_visibility: string | null;
   private_mode: string | boolean | null;
   passcode_hash: string | null;
-  draft: BuilderDraft | null;
 };
 
 type MicrositePageRow = {
   id: string;
   slug: string;
+  title: string | null;
   draft: BuilderDraft | null;
 };
 
@@ -65,34 +65,35 @@ function PageShell({
   );
 }
 
-export default async function PublishedMicrositePage({
+export default async function PublishedMicrositeSubPage({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ slug: string; page: string }>;
 }) {
-  const { slug } = await params;
+  const { slug, page } = await params;
   const safeSlug = decodeURIComponent(String(slug || "")).trim().toLowerCase();
+  const safePage = decodeURIComponent(String(page || "")).trim().toLowerCase();
 
-  if (!safeSlug) {
+  if (!safeSlug || !safePage) {
     return (
       <PageShell
         title="Page unavailable"
-        message="No published microsite content available."
+        message="This microsite page could not be found."
       />
     );
   }
 
   const supabaseAdmin = getSupabaseAdmin();
 
-  const { data, error } = await supabaseAdmin
+  const { data: microsite, error: micrositeError } = await supabaseAdmin
     .from("microsites")
     .select(
-      "id, slug, title, is_active, is_published, paid_until, selected_design_key, site_visibility, private_mode, passcode_hash, draft",
+      "id, slug, title, is_active, is_published, paid_until, selected_design_key, site_visibility, private_mode, passcode_hash",
     )
     .eq("slug", safeSlug)
     .maybeSingle();
 
-  if (error || !data) {
+  if (micrositeError || !microsite) {
     return (
       <PageShell
         title="Page unavailable"
@@ -101,9 +102,9 @@ export default async function PublishedMicrositePage({
     );
   }
 
-  const microsite = data as MicrositeRow;
+  const typedMicrosite = microsite as MicrositeRow;
 
-  if (microsite.is_active === false) {
+  if (typedMicrosite.is_active === false) {
     return (
       <PageShell
         title="Page unavailable"
@@ -112,7 +113,7 @@ export default async function PublishedMicrositePage({
     );
   }
 
-  if (!microsite.is_published) {
+  if (!typedMicrosite.is_published) {
     return (
       <PageShell
         title="Page unavailable"
@@ -121,7 +122,7 @@ export default async function PublishedMicrositePage({
     );
   }
 
-  if (!isActivePaidWindow(microsite.paid_until)) {
+  if (!isActivePaidWindow(typedMicrosite.paid_until)) {
     return (
       <PageShell
         title="Page unavailable"
@@ -130,19 +131,19 @@ export default async function PublishedMicrositePage({
     );
   }
 
-  const isPrivate = microsite.site_visibility === "private";
+  const isPrivate = typedMicrosite.site_visibility === "private";
 
   if (isPrivate) {
     const cookieStore = await cookies();
     const accessCookieName = buildMicrositeAccessCookieName(safeSlug);
     const accessCookieValue = cookieStore.get(accessCookieName)?.value || "";
 
-    const expectedCookieValue = microsite.passcode_hash
-      ? buildMicrositeAccessCookieValue(safeSlug, microsite.passcode_hash)
+    const expectedCookieValue = typedMicrosite.passcode_hash
+      ? buildMicrositeAccessCookieValue(safeSlug, typedMicrosite.passcode_hash)
       : "";
 
     const hasAccess =
-      Boolean(microsite.passcode_hash) &&
+      Boolean(typedMicrosite.passcode_hash) &&
       Boolean(accessCookieValue) &&
       accessCookieValue === expectedCookieValue;
 
@@ -169,24 +170,31 @@ export default async function PublishedMicrositePage({
     }
   }
 
-  const { data: pages } = await supabaseAdmin
+  const { data: micrositePage, error: micrositePageError } = await supabaseAdmin
     .from("microsite_pages")
-    .select("id, slug, draft, display_order")
-    .eq("microsite_id", microsite.id)
-    .order("display_order", { ascending: true })
-    .order("created_at", { ascending: true })
-    .limit(1);
+    .select("id, slug, title, draft")
+    .eq("microsite_id", typedMicrosite.id)
+    .eq("slug", safePage)
+    .maybeSingle();
 
-  const firstPage = (pages?.[0] || null) as MicrositePageRow | null;
-  const homeDraft = firstPage?.draft ?? null;
-  const draft = homeDraft ?? microsite.draft ?? null;
-  const designKey = microsite.selected_design_key || "blank";
+  if (micrositePageError || !micrositePage) {
+    return (
+      <PageShell
+        title="Page unavailable"
+        message="This microsite page could not be found."
+      />
+    );
+  }
+
+  const typedMicrositePage = micrositePage as MicrositePageRow;
+  const draft = typedMicrositePage.draft ?? null;
+  const designKey = typedMicrosite.selected_design_key || "blank";
 
   if (!draft) {
     return (
       <PageShell
         title="Page unavailable"
-        message="No published microsite content available."
+        message="No page content is available."
       />
     );
   }
@@ -198,7 +206,6 @@ export default async function PublishedMicrositePage({
           <PlacedBlocksPreview draft={draft} designKey={designKey} />
         </div>
       </main>
-
       <MicrositeFooterBrand />
     </>
   );

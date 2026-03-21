@@ -16,7 +16,7 @@ function hashPasscode(passcode: string) {
 }
 
 export async function GET(
-  req: Request,
+  _req: Request,
   ctx: { params: Promise<{ id: string }> },
 ) {
   const { id: micrositeId } = await ctx.params;

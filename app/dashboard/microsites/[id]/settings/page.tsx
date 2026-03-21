@@ -1,3 +1,4 @@
+// app/dashboard/microsites/[id]/settings/page.tsx
 import { auth } from "@clerk/nextjs/server";
 import { notFound, redirect } from "next/navigation";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
@@ -18,6 +19,15 @@ type MicrositeRow = {
   passcode_hash?: string | null;
 };
 
+type VersionRow = {
+  id: string;
+  created_at: string;
+  draft: {
+    title?: string;
+    blocks?: unknown[];
+  } | null;
+};
+
 export default async function MicrositeSettingsPage({
   params,
 }: {
@@ -32,13 +42,22 @@ export default async function MicrositeSettingsPage({
   const { id } = await params;
   const sb = getSupabaseAdmin();
 
-  const { data, error } = await sb
-    .from("microsites")
-    .select(
-      "id, slug, title, is_published, paid_until, owner_clerk_user_id, site_visibility, private_mode, passcode_hash"
-    )
-    .eq("id", id)
-    .maybeSingle();
+  const [{ data, error }, { data: versions, error: versionsError }] =
+    await Promise.all([
+      sb
+        .from("microsites")
+        .select(
+          "id, slug, title, is_published, paid_until, owner_clerk_user_id, site_visibility, private_mode, passcode_hash",
+        )
+        .eq("id", id)
+        .maybeSingle(),
+      sb
+        .from("microsite_versions")
+        .select("id, created_at, draft")
+        .eq("microsite_id", id)
+        .order("created_at", { ascending: false })
+        .limit(20),
+    ]);
 
   if (error) {
     return (
@@ -70,9 +89,13 @@ export default async function MicrositeSettingsPage({
     );
   }
 
-  const currentVisibility = microsite.site_visibility === "private" ? "private" : "public";
+  const currentVisibility =
+    microsite.site_visibility === "private" ? "private" : "public";
   const currentPrivateMode =
     microsite.private_mode === "members_only" ? "members_only" : "passcode";
+
+  const versionRows = Array.isArray(versions) ? (versions as VersionRow[]) : [];
+  const versionsLoadFailed = Boolean(versionsError);
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-10">
@@ -81,7 +104,7 @@ export default async function MicrositeSettingsPage({
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">Microsite Settings</h1>
             <p className="mt-2 text-sm text-neutral-700">
-              Manage visibility, then generate QR codes and share cards for this microsite.
+              Manage visibility, view version history, then generate QR codes and share cards for this microsite.
             </p>
           </div>
 
@@ -188,7 +211,9 @@ export default async function MicrositeSettingsPage({
                       autoComplete="off"
                       maxLength={6}
                       placeholder={
-                        microsite.passcode_hash ? "•••••• (leave blank to keep current)" : "123456"
+                        microsite.passcode_hash
+                          ? "•••••• (leave blank to keep current)"
+                          : "123456"
                       }
                       className="mt-1 w-full rounded-xl border px-3 py-2 text-sm"
                     />
@@ -228,6 +253,42 @@ export default async function MicrositeSettingsPage({
             </button>
           </div>
         </form>
+
+        <div className="mt-6 rounded-2xl border border-neutral-200 bg-white p-4">
+          <div className="text-sm font-semibold text-neutral-900">Version History</div>
+          <div className="mt-1 text-xs text-neutral-500">
+            Recent saved versions for this microsite.
+          </div>
+
+          {versionsLoadFailed ? (
+            <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              Failed to load version history.
+            </div>
+          ) : versionRows.length === 0 ? (
+            <div className="mt-4 rounded-xl border border-dashed border-neutral-300 bg-neutral-50 px-4 py-4 text-sm text-neutral-500">
+              No saved versions yet.
+            </div>
+          ) : (
+            <div className="mt-4 max-h-[320px] space-y-3 overflow-y-auto">
+              {versionRows.map((version) => (
+                <div
+                  key={version.id}
+                  className="rounded-xl border border-neutral-200 bg-neutral-50 p-3"
+                >
+                  <div className="text-sm font-medium text-neutral-900">
+                    {version.draft?.title || microsite.title || "Untitled"}
+                  </div>
+                  <div className="mt-1 text-xs text-neutral-500">
+                    {new Date(version.created_at).toLocaleString()}
+                  </div>
+                  <div className="mt-1 text-xs text-neutral-500">
+                    Blocks: {Array.isArray(version.draft?.blocks) ? version.draft.blocks.length : 0}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
         <div className="mt-6">
           <QRGeneratorClient microsites={[microsite]} />
