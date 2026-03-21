@@ -281,13 +281,13 @@ export default function CreateTemplatePage() {
     }
   }
 
-  function continueToSignIn() {
-    setShowSignInPrompt(false);
+function continueToSignIn() {
+  setShowSignInPrompt(false);
 
-    const returnUrl = window.location.href;
-    const signInUrl = `/sign-in?redirect_url=${encodeURIComponent(returnUrl)}`;
-    window.open(signInUrl, "_blank", "noopener,noreferrer");
-  }
+  const returnUrl = window.location.href;
+  const signInUrl = `/sign-in?redirect_url=${encodeURIComponent(returnUrl)}`;
+  window.location.assign(signInUrl);
+}
 
   const editorInstanceKey = [
     templateKey,
@@ -351,7 +351,7 @@ export default function CreateTemplatePage() {
         <AppModal
           open={showSignInPrompt}
           title="You must be signed in to save a draft."
-          description="You won't lose your progress here."
+          description="You won't lose your progress. Your current draft will remain saved in this browser."
           confirmText="Continue"
           cancelText="Cancel"
           onConfirm={continueToSignIn}
