@@ -1,8 +1,9 @@
+// components/ui/Nav.tsx
 "use client";
 
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 import { UserButton, useAuth } from "@clerk/nextjs";
 import { Container } from "@/components/ui/Container";
 import { ButtonLink } from "@/components/ui/ButtonLink";
@@ -10,6 +11,7 @@ import InstallButton from "@/components/pwa/InstallButton";
 
 export function Nav() {
   const pathname = usePathname() || "";
+  const params = useParams();
   const { isSignedIn } = useAuth();
 
   if (pathname === "/s" || pathname.startsWith("/s/")) {
@@ -19,6 +21,13 @@ export function Nav() {
   const isTemplatesPage = pathname.startsWith("/templates");
   const isCreatePage =
     pathname.startsWith("/create/") && !pathname.includes("/publish");
+
+  const currentTemplate =
+    typeof params?.template === "string" ? params.template : "";
+
+  const designsHref = currentTemplate
+    ? `/templates/${encodeURIComponent(currentTemplate)}/designs`
+    : "/templates";
 
   return (
     <header className="border-b border-neutral-200 bg-white">
@@ -79,7 +88,7 @@ export function Nav() {
               ) : null}
 
               {isCreatePage ? (
-                <ButtonLink href="/templates" variant="secondary">
+                <ButtonLink href={designsHref} variant="secondary">
                   Designs
                 </ButtonLink>
               ) : null}

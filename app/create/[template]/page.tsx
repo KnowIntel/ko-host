@@ -311,10 +311,15 @@ function continueToSignIn() {
     setShowPublishWarning(false);
   }
 
-  function continueToPublish() {
-    setShowPublishWarning(false);
-    router.push(publishHref);
-  }
+async function continueToPublish() {
+  setShowPublishWarning(false);
+
+  // IMPORTANT:
+  // Ensure latest draft is saved BEFORE navigating to publish step
+  await handleSaveDraft(liveDraft);
+
+  router.push(publishHref);
+}
 
   return (
     <main className="min-h-screen bg-[#f6f4f2]">

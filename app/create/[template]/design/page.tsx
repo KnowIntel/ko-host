@@ -76,7 +76,7 @@ export default async function CreateTemplateDesignPage({
               <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
                 <div className="min-w-0">
                   <h1 className="text-3xl font-semibold tracking-tight text-neutral-950 sm:text-4xl">
-                    Choose a Design Preset
+                    Choose a Design Layout
                   </h1>
 
                   <p className="mt-3 max-w-3xl text-sm leading-7 text-neutral-600 sm:text-[15px]">
@@ -144,7 +144,7 @@ export default async function CreateTemplateDesignPage({
         ) : (
           <div className="rounded-[24px] border border-dashed border-neutral-300 bg-white p-10 text-center shadow-sm">
             <h2 className="text-xl font-semibold text-neutral-900">
-              No new design presets available yet
+              No new design layouts available yet
             </h2>
             <p className="mt-3 text-sm text-neutral-600">
               This template has not been migrated into the new metadata-driven

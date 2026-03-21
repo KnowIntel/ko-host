@@ -35,7 +35,7 @@ export default function AppModal({
         </div>
 
         {description && (
-          <p className="mt-2 text-sm text-neutral-600">
+          <p className="mt-2 text-sm font-semibold text-neutral-600">
             {description}
           </p>
         )}
@@ -45,7 +45,7 @@ export default function AppModal({
         <div className="mt-6 flex justify-end gap-3">
           <button
             onClick={onCancel}
-            className="rounded-xl border px-4 py-2 text-sm"
+            className="rounded-xl border px-4 py-2 text-sm font-semibold"
             disabled={loading}
           >
             {cancelText}
@@ -54,7 +54,7 @@ export default function AppModal({
           <button
             onClick={onConfirm}
             disabled={loading}
-            className={`rounded-xl px-4 py-2 text-sm text-white ${
+            className={`rounded-xl px-4 py-2 text-sm font-semibold" text-white ${
               danger ? "bg-red-600" : "bg-black"
             }`}
           >

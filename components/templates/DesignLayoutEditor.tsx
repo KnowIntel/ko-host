@@ -115,7 +115,7 @@ type Props = {
   onSaveDraft?: (draft: BuilderDraft) => void | Promise<void>;
   publishHref?: string;
   publishLabel?: string;
-  onPublishClick?: (draft: BuilderDraft) => void;
+  onPublishClick?: () => void;
   saveState?: "idle" | "saving" | "saved" | "error" | "signin-required";
   saveMessage?: string;
 };
@@ -224,23 +224,21 @@ const CATEGORY_BUTTONS: Record<
     | { kind: "page"; label: string; type: PageBlockType }
     | { kind: "shape"; label: string; type: ShapeType }
     | { kind: "block"; label: string; type: BuilderBlockType }
-    | { kind: "block", label: "Input Field", type: "form_field" }
+    | { kind: "block"; label: "Input Field"; type: "form_field" }
   >
 > = {
   Text: [
-{ kind: "page", label: "Title", type: "title" },
-{ kind: "block", label: "Subtitle", type: "label" },
-{ kind: "block", label: "Tagline", type: "label" },
-{ kind: "block", label: "Description", type: "label" },
-
-  // ✅ ADD THIS
-  { kind: "block", label: "TextFX", type: "text_fx" },
-],
+    { kind: "page", label: "Title", type: "title" },
+    { kind: "block", label: "Subtitle", type: "label" },
+    { kind: "block", label: "Tagline", type: "label" },
+    { kind: "block", label: "Description", type: "label" },
+    { kind: "block", label: "TextFX", type: "text_fx" },
+  ],
   Media: [
-  { kind: "block", label: "Image", type: "image" },
-  { kind: "block", label: "Gallery", type: "gallery" },
-  { kind: "block", label: "Carousel", type: "image_carousel" },
-],
+    { kind: "block", label: "Image", type: "image" },
+    { kind: "block", label: "Gallery", type: "gallery" },
+    { kind: "block", label: "Carousel", type: "image_carousel" },
+  ],
   Layout: [
     { kind: "shape", label: "Rectangle", type: "rectangle" },
     { kind: "shape", label: "Circle", type: "circle" },
@@ -5677,13 +5675,18 @@ return (
         </button>
 
         {publishHref ? (
-          <button
-            type="button"
-            onClick={() => onPublishClick?.(draft)}
-            className="inline-flex h-12 items-center justify-center rounded-md border border-neutral-950 bg-neutral-950 px-4 text-sm font-medium text-white transition hover:bg-black"
-          >
-            {publishLabel}
-          </button>
+      <button
+        type="button"
+        onClick={() => {
+          // IMPORTANT:
+          // Publish is navigation only.
+          // No draft state or slug assumptions should be passed here.
+          onPublishClick?.();
+        }}
+        className="inline-flex h-12 items-center justify-center rounded-md border border-neutral-950 bg-neutral-950 px-4 text-sm font-medium text-white transition hover:bg-black"
+      >
+        {publishLabel}
+      </button>
         ) : null}
       </div>
 

@@ -1,3 +1,4 @@
+// app/api/stripe/checkout/route.ts
 import Stripe from "stripe";
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
@@ -28,7 +29,10 @@ export async function POST(req: Request) {
     const { userId } = await auth();
 
     if (!userId) {
-      return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(
+        { ok: false, error: "Unauthorized" },
+        { status: 401 },
+      );
     }
 
     const contentType = req.headers.get("content-type") || "";
@@ -59,6 +63,9 @@ export async function POST(req: Request) {
 
     const supabaseAdmin = getSupabaseAdmin();
 
+    // ============================================================
+    // PENDING CHECKOUT FLOW (PRE-CHECKOUT RESERVATION)
+    // ============================================================
     if (pendingCheckoutId) {
       const { data: pendingRow, error: pendingError } = await supabaseAdmin
         .from("pending_microsite_checkouts")
@@ -70,6 +77,39 @@ export async function POST(req: Request) {
       if (pendingError || !pendingRow) {
         return NextResponse.json(
           { ok: false, error: "Invalid request" },
+          { status: 400 },
+        );
+      }
+
+      // ----------------------------
+      // 🔒 EXPIRATION SAFETY
+      // ----------------------------
+      if (
+        pendingRow.expires_at &&
+        new Date(pendingRow.expires_at) < new Date()
+      ) {
+        return NextResponse.json(
+          { ok: false, error: "Reservation expired" },
+          { status: 400 },
+        );
+      }
+
+      // ----------------------------
+      // 🔒 SLUG INTEGRITY CHECK
+      // ----------------------------
+      if (slug && slug !== pendingRow.slug) {
+        return NextResponse.json(
+          { ok: false, error: "Slug mismatch" },
+          { status: 400 },
+        );
+      }
+
+      // ----------------------------
+      // 🔒 PREVENT DUPLICATE CHECKOUT
+      // ----------------------------
+      if (pendingRow.stripe_session_id) {
+        return NextResponse.json(
+          { ok: false, error: "Checkout already initiated" },
           { status: 400 },
         );
       }
@@ -94,7 +134,8 @@ export async function POST(req: Request) {
           slug: pendingRow.slug,
           title: pendingRow.title || "",
           template_key: pendingRow.template_key || "",
-          design_key: pendingRow.selected_design_key || designKey || "",
+          design_key:
+            pendingRow.selected_design_key || designKey || "",
         },
       });
 
@@ -105,16 +146,30 @@ export async function POST(req: Request) {
         );
       }
 
+      // ----------------------------
+      // 💾 STORE STRIPE SESSION ID
+      // ----------------------------
+      await supabaseAdmin
+        .from("pending_microsite_checkouts")
+        .update({
+          stripe_session_id: session.id,
+        })
+        .eq("id", pendingRow.id);
+
       return NextResponse.redirect(session.url, 303);
     }
 
+    // ============================================================
+    // EXISTING MICROSITE CHECKOUT FLOW
+    // ============================================================
     if (micrositeId) {
-      const { data: micrositeRow, error: micrositeError } = await supabaseAdmin
-        .from("microsites")
-        .select("id, owner_clerk_user_id, slug, title, template_key")
-        .eq("id", micrositeId)
-        .eq("owner_clerk_user_id", userId)
-        .single();
+      const { data: micrositeRow, error: micrositeError } =
+        await supabaseAdmin
+          .from("microsites")
+          .select("id, owner_clerk_user_id, slug, title, template_key")
+          .eq("id", micrositeId)
+          .eq("owner_clerk_user_id", userId)
+          .single();
 
       if (micrositeError || !micrositeRow) {
         return NextResponse.json(
@@ -164,6 +219,9 @@ export async function POST(req: Request) {
     const message =
       error instanceof Error ? error.message : "Unexpected server error";
 
-    return NextResponse.json({ ok: false, error: message }, { status: 500 });
+    return NextResponse.json(
+      { ok: false, error: message },
+      { status: 500 },
+    );
   }
 }

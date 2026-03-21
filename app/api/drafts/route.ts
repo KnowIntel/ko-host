@@ -8,7 +8,10 @@ export async function GET(req: NextRequest) {
     const { userId } = await auth();
 
     if (!userId) {
-      return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(
+        { ok: false, error: "Unauthorized" },
+        { status: 401 },
+      );
     }
 
     const templateKey = req.nextUrl.searchParams.get("templateKey") || "";
@@ -55,7 +58,10 @@ export async function POST(req: Request) {
     const { userId } = await auth();
 
     if (!userId) {
-      return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(
+        { ok: false, error: "Unauthorized" },
+        { status: 401 },
+      );
     }
 
     const body = await req.json().catch(() => ({}));
@@ -77,11 +83,15 @@ export async function POST(req: Request) {
       );
     }
 
-    const title =
-      typeof draft.title === "string" ? draft.title : null;
+    const title = typeof draft.title === "string" ? draft.title : null;
 
-    const slugSuggestion =
-      typeof draft.slugSuggestion === "string" ? draft.slugSuggestion : null;
+    // IMPORTANT:
+    // This value is saved as a user preference only.
+    // It does NOT reserve, hold, validate, or claim the slug.
+    const slugPreference =
+      typeof draft.slugSuggestion === "string" && draft.slugSuggestion.trim()
+        ? draft.slugSuggestion.trim()
+        : null;
 
     const supabaseAdmin = getSupabaseAdmin();
 
@@ -90,7 +100,7 @@ export async function POST(req: Request) {
       template_key: templateKey,
       design_key: designKey,
       title,
-      slug_suggestion: slugSuggestion,
+      slug_suggestion: slugPreference,
       draft,
       updated_at: new Date().toISOString(),
     };

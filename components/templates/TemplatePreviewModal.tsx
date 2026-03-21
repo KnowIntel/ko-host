@@ -166,7 +166,7 @@ export default function TemplatePreviewModal(props: {
             </div>
 
             <div className="mt-4 text-[12px] text-neutral-500">
-              Tip: choose a design preset before customizing your page.
+              Tip: choose a design layout before customizing your page.
             </div>
           </div>
         </div>

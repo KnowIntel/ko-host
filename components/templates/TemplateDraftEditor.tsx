@@ -72,6 +72,7 @@ export default function TemplateDraftEditor({
   useEffect(() => {
     void onSubmit;
   }, [onSubmit]);
+
   useEffect(() => {
     if (!onSave) return;
 
@@ -97,20 +98,20 @@ export default function TemplateDraftEditor({
 
   return (
     <div className="relative">
-<DesignLayoutEditor
-  templateKey={resolvedTemplateName}
-  designKey={resolvedDesignLayout}
-  draft={draft}
-  setDraft={setDraft}
-  onSaveDraft={onSave}
-  publishHref={publishHref}
-  publishLabel={publishLabel}
-  onPublishClick={(nextDraft) => {
-    onPublishClick?.();
-  }}
-  saveState={saveState}
-  saveMessage={saveMessage}
-/>
+      <DesignLayoutEditor
+        templateKey={resolvedTemplateName}
+        designKey={resolvedDesignLayout}
+        draft={draft}
+        setDraft={setDraft}
+        onSaveDraft={onSave}
+        publishHref={publishHref}
+        publishLabel={publishLabel}
+        onPublishClick={() => {
+          onPublishClick?.();
+        }}
+        saveState={saveState}
+        saveMessage={saveMessage}
+      />
     </div>
   );
 }
