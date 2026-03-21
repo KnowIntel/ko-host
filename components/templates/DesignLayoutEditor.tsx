@@ -402,7 +402,6 @@ function buildCanvasItems(
 
   return normalizeCanvasItems([...pageItems, ...blockItems]);
 }
-
 function isPageBlockId(blockId: string) {
   return (
     blockId === PAGE_TITLE_BLOCK_ID ||
@@ -410,6 +409,30 @@ function isPageBlockId(blockId: string) {
     blockId === PAGE_SUBTEXT_BLOCK_ID ||
     blockId === PAGE_DESCRIPTION_BLOCK_ID
   );
+}
+
+function isSingletonPageBlockId(blockId: string) {
+  return blockId === PAGE_TITLE_BLOCK_ID;
+}
+
+function isSingletonPageBlockType(type: PageBlockType) {
+  return type === "title";
+}
+
+function getPageBlockIdForType(type: PageBlockType) {
+  if (type === "title") return PAGE_TITLE_BLOCK_ID;
+  if (type === "subtitle") return PAGE_SUBTITLE_BLOCK_ID;
+  if (type === "tagline") return PAGE_SUBTEXT_BLOCK_ID;
+  if (type === "description") return PAGE_DESCRIPTION_BLOCK_ID;
+  return null;
+}
+
+function getPageBlockLabel(type: PageBlockType) {
+  if (type === "title") return "Title";
+  if (type === "subtitle") return "Subtitle";
+  if (type === "tagline") return "Tagline";
+  if (type === "description") return "Description";
+  return "Page Text";
 }
 
 function topBarSliderWrapClass() {
@@ -464,14 +487,14 @@ function getSelectedContext(
   }
 
   if (block.type === "label") {
-    return { kind: "label", blockId, label: "Label" };
+    return { kind: "label", blockId, label: block.label || "Label" };
   }
 
   if (block.type === "text_fx") {
     return { kind: "textFx", blockId, label: block.label || "TextFX" };
   }
 
-    if (block.type === "image") {
+  if (block.type === "image") {
     return { kind: "image", blockId, label: "Image" };
   }
 
@@ -783,15 +806,15 @@ export default function DesignLayoutEditor({
     {},
   );
   const carouselHeadingInputRef = useRef<HTMLInputElement | null>(null);
-const carouselItemTitleInputRefs = useRef<Record<string, HTMLInputElement | null>>(
-  {},
-);
-const carouselItemSubtitleInputRefs = useRef<Record<string, HTMLInputElement | null>>(
-  {},
-);
-const carouselItemHrefInputRefs = useRef<Record<string, HTMLInputElement | null>>(
-  {},
-);
+  const carouselItemTitleInputRefs = useRef<Record<string, HTMLInputElement | null>>(
+    {},
+  );
+  const carouselItemSubtitleInputRefs = useRef<Record<string, HTMLInputElement | null>>(
+    {},
+  );
+  const carouselItemHrefInputRefs = useRef<Record<string, HTMLInputElement | null>>(
+    {},
+  );
 
   const metadata = useMemo(
     () => getMetadata(templateKey, designKey),
@@ -804,14 +827,14 @@ const carouselItemHrefInputRefs = useRef<Record<string, HTMLInputElement | null>
   );
 
   const selectedBlockFromDraft =
-  selection.type === "block"
-    ? draft.blocks.find((item) => item.id === selection.blockId) ?? null
-    : null;
+    selection.type === "block"
+      ? draft.blocks.find((item) => item.id === selection.blockId) ?? null
+      : null;
 
-const selectedStyle =
-  selectedBlockFromDraft?.type === "text_fx"
-    ? (selectedBlockFromDraft.data.style ?? {})
-    : getSelectionTextStyle(draft, selection);
+  const selectedStyle =
+    selectedBlockFromDraft?.type === "text_fx"
+      ? (selectedBlockFromDraft.data.style ?? {})
+      : getSelectionTextStyle(draft, selection);
   const selectedAppearance = getSelectionBlockAppearance(draft, selection);
   const resolvedPageColor = getResolvedPageColor(draft, designKey, metadata);
   const selectedContext = getSelectedContext(selection, draft);
@@ -823,14 +846,14 @@ const selectedStyle =
       : null;
 
   const selectedBlock =
-  selectedContext.kind === "none" || selectedContext.kind === "pageText"
-    ? null
-    : draft.blocks.find((item) => item.id === selectedContext.blockId) ?? null;
+    selectedContext.kind === "none" || selectedContext.kind === "pageText"
+      ? null
+      : draft.blocks.find((item) => item.id === selectedContext.blockId) ?? null;
 
-const selectedTextFxBlock =
-  selectedBlock?.type === "text_fx" ? selectedBlock : null;
+  const selectedTextFxBlock =
+    selectedBlock?.type === "text_fx" ? selectedBlock : null;
 
-const isTextFxSelected = Boolean(selectedTextFxBlock);
+  const isTextFxSelected = Boolean(selectedTextFxBlock);
 
   const selectedBold = selectedStyle.bold ?? false;
   const selectedItalic = selectedStyle.italic ?? false;
@@ -838,25 +861,25 @@ const isTextFxSelected = Boolean(selectedTextFxBlock);
   const selectedStrike = selectedStyle.strike ?? false;
 
   const showTextControls =
-  selectedContext.kind === "pageText" ||
-  selectedContext.kind === "label" ||
-  selectedContext.kind === "textFx" ||
-  selectedContext.kind === "imageCarousel" ||
-  selectedBlock?.type === "thread";
+    selectedContext.kind === "pageText" ||
+    selectedContext.kind === "label" ||
+    selectedContext.kind === "textFx" ||
+    selectedContext.kind === "imageCarousel" ||
+    selectedBlock?.type === "thread";
 
   const showAppearanceControls =
-  selectedContext.kind === "label" ||
-  selectedContext.kind === "image" ||
-  selectedContext.kind === "imageCarousel" ||
-  selectedContext.kind === "shape" ||
-  selectedBlock?.type === "thread";
+    selectedContext.kind === "label" ||
+    selectedContext.kind === "image" ||
+    selectedContext.kind === "imageCarousel" ||
+    selectedContext.kind === "shape" ||
+    selectedBlock?.type === "thread";
 
-const showBorderWidthRadiusControls =
-  selectedContext.kind === "label" ||
-  selectedContext.kind === "image" ||
-  selectedContext.kind === "imageCarousel" ||
-  selectedContext.kind === "shape" ||
-  selectedBlock?.type === "thread";
+  const showBorderWidthRadiusControls =
+    selectedContext.kind === "label" ||
+    selectedContext.kind === "image" ||
+    selectedContext.kind === "imageCarousel" ||
+    selectedContext.kind === "shape" ||
+    selectedBlock?.type === "thread";
 
   const selectedTextValue = getSelectedTextValue(draft, selectedContext);
 
@@ -912,7 +935,6 @@ const showBorderWidthRadiusControls =
     pageBackgroundImage,
     pageBackgroundImageFit,
   ]);
-
   useEffect(() => {
   try {
     window.localStorage.setItem(

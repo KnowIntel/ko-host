@@ -517,9 +517,7 @@ if (slugStatus === "invalid" || slugStatus === "error") {
                   ? draft.blocks.filter(Boolean)
                   : [];
 
-                const customBlockCount = blocks.length;
-
-                const blockBreakdown = blocks.reduce((acc, block) => {
+                const customBlockBreakdown = blocks.reduce((acc, block) => {
                   const type = block?.type || "unknown";
                   acc[type] = (acc[type] || 0) + 1;
                   return acc;
@@ -528,31 +526,25 @@ if (slugStatus === "invalid" || slugStatus === "error") {
                 const pageElementBreakdown: Record<string, number> = {};
                 let pageElementCount = 0;
 
-                if ((draft?.title ?? "").trim()) {
-                  pageElementBreakdown.title = 1;
-                  pageElementCount += 1;
+                function ensureCount(type: string, value?: string) {
+                  if ((value ?? "").trim() && !customBlockBreakdown[type]) {
+                    pageElementBreakdown[type] = 1;
+                    pageElementCount += 1;
+                  }
                 }
 
-                if ((draft?.subtitle ?? "").trim()) {
-                  pageElementBreakdown.subtitle = 1;
-                  pageElementCount += 1;
-                }
+                ensureCount("title", draft?.title);
+                ensureCount("subtitle", draft?.subtitle);
+                ensureCount("tagline", draft?.subtext);
+                ensureCount("description", draft?.description);
 
-                if ((draft?.subtext ?? "").trim()) {
-                  pageElementBreakdown.tagline = 1;
-                  pageElementCount += 1;
-                }
-
-                if ((draft?.description ?? "").trim()) {
-                  pageElementBreakdown.description = 1;
-                  pageElementCount += 1;
-                }
-
-                const totalCount = customBlockCount + pageElementCount;
+                const totalCount =
+                  Object.values(customBlockBreakdown).reduce((a, b) => a + b, 0) +
+                  pageElementCount;
 
                 const combinedBreakdown = {
                   ...pageElementBreakdown,
-                  ...blockBreakdown,
+                  ...customBlockBreakdown,
                 };
 
                 const breakdownText = Object.entries(combinedBreakdown)
