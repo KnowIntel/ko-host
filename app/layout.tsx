@@ -1,6 +1,5 @@
 import "./globals.css";
 import type { Metadata } from "next";
-import Link from "next/link";
 import { ClerkProvider } from "@clerk/nextjs";
 import {
   Great_Vibes,
@@ -21,7 +20,7 @@ import {
   Marcellus,
   Bodoni_Moda,
 } from "next/font/google";
-import { LayoutNavVisibility } from "@/components/ui/LayoutNavVisibility";
+import { AppChrome } from "@/components/ui/AppChrome";
 
 const greatVibes = Great_Vibes({
   subsets: ["latin"],
@@ -164,28 +163,7 @@ export default function RootLayout({
           afterSignOutUrl="/templates"
           afterMultiSessionSingleSignOutUrl="/templates"
         >
-          <div className="flex min-h-screen flex-col">
-            <LayoutNavVisibility />
-            <div className="flex-1">{children}</div>
-
-            <footer className="border-t border-neutral-200 bg-white">
-              <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 px-4 py-6 text-sm text-neutral-600 sm:flex-row sm:items-center sm:justify-between">
-                <div>© {new Date().getFullYear()} Ko-Host. All rights reserved.</div>
-
-                <div className="flex flex-wrap items-center gap-4">
-                  <Link href="/terms" className="transition hover:text-neutral-950 hover:underline">
-                    Terms
-                  </Link>
-                  <Link href="/privacy" className="transition hover:text-neutral-950 hover:underline">
-                    Privacy
-                  </Link>
-                  <Link href="/support" className="transition hover:text-neutral-950 hover:underline">
-                    Support
-                  </Link>
-                </div>
-              </div>
-            </footer>
-          </div>
+          <AppChrome>{children}</AppChrome>
         </ClerkProvider>
       </body>
     </html>
