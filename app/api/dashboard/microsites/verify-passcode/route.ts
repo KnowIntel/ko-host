@@ -39,7 +39,7 @@ export async function POST(req: Request) {
 
     if (!/^\d{6}$/.test(passcode)) {
       return NextResponse.json(
-        { ok: false, error: "Enter a valid 6-digit passcode." },
+        { ok: false, error: "Enter a valid passcode." },
         { status: 400 },
       );
     }

@@ -241,7 +241,7 @@ if (slugStatus === "invalid" || slugStatus === "error") {
 
     if (siteVisibility === "private" && !/^\d{6}$/.test(passcode.trim())) {
       setPublishState("error");
-      setMessage("Private sites require a 6-digit numeric passcode.");
+      setMessage("Private sites require a passcode (min: 2 chars / max: 30 chars).");
       return;
     }
 
@@ -441,7 +441,7 @@ return (
                         checked={siteVisibility === "private"}
                         onChange={() => setSiteVisibility("private")}
                       />
-                      Private (6-digit passcode)
+                      Private (passcode required)
                     </label>
                   </div>
                 </div>
@@ -460,7 +460,7 @@ return (
                         setPasscode(e.target.value.replace(/\D/g, "").slice(0, 6))
                       }
                       className="mt-2 h-11 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-900 outline-none"
-                      placeholder="6-digit passcode"
+                      placeholder="Enter passcode"
                     />
                   </div>
                 ) : null}

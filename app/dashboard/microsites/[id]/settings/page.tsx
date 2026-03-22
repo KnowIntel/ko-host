@@ -195,14 +195,14 @@ export default async function MicrositeSettingsPage({
                     <div>
                       <div className="text-sm font-semibold text-neutral-900">Passcode</div>
                       <div className="text-xs text-neutral-500">
-                        Visitors enter a 6-digit code to access the site.
+                        Visitors enter a passcode to access the site.
                       </div>
                     </div>
                   </label>
 
                   <div>
                     <label className="text-xs font-medium text-neutral-700">
-                      6-digit passcode
+                      Enter passcode
                     </label>
                     <input
                       type="text"
@@ -218,7 +218,7 @@ export default async function MicrositeSettingsPage({
                       className="mt-1 w-full rounded-xl border px-3 py-2 text-sm"
                     />
                     <div className="mt-1 text-[11px] text-neutral-500">
-                      Enter a new 6-digit passcode, or leave blank to keep the current one.
+                      Enter a new passcode, or leave blank to keep the current one.
                     </div>
                   </div>
 

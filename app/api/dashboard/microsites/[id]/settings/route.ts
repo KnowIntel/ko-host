@@ -136,7 +136,7 @@ export async function POST(
   ) {
     if (isJson) {
       return NextResponse.json(
-        { ok: false, error: "Private microsites require a 6-digit numeric passcode." },
+        { ok: false, error: "Private microsites require a passcode (min: 2 chars / max: 30 chars)." },
         { status: 400 },
       );
     }

@@ -1,4 +1,5 @@
 import "./globals.css";
+import { AppChrome } from "@/components/ui/AppChrome";
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import {
@@ -20,7 +21,6 @@ import {
   Marcellus,
   Bodoni_Moda,
 } from "next/font/google";
-import { AppChrome } from "@/components/ui/AppChrome";
 
 const greatVibes = Great_Vibes({
   subsets: ["latin"],

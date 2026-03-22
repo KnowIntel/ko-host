@@ -1,4 +1,3 @@
-// app/api/public/create-microsite/route.ts
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { createHash } from "crypto";
@@ -75,41 +74,17 @@ export async function POST(req: Request) {
       );
     }
 
-    if (siteVisibility === "private" && !/^\d{6}$/.test(passcode)) {
+    if (siteVisibility === "private" && !/^[A-Za-z0-9]{2,30}$/.test(passcode)) {
       return NextResponse.json(
-        { ok: false, error: "Private sites require a 6-digit numeric passcode." },
+        {
+          ok: false,
+          error: "Private sites require a passcode using 2-30 letters and numbers.",
+        },
         { status: 400 },
       );
     }
 
     const supabaseAdmin = getSupabaseAdmin();
-
-    const { data: existingPendingBySlug, error: existingPendingBySlugError } =
-      await supabaseAdmin
-        .from("pending_microsite_checkouts")
-        .select("id, owner_clerk_user_id, slug")
-        .eq("slug", slugSuggestion)
-        .maybeSingle();
-
-    if (existingPendingBySlugError) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: existingPendingBySlugError.message || "Failed to check reserved site names.",
-        },
-        { status: 500 },
-      );
-    }
-
-    if (
-      existingPendingBySlug &&
-      existingPendingBySlug.owner_clerk_user_id !== userId
-    ) {
-      return NextResponse.json(
-        { ok: false, error: "That site name is already reserved." },
-        { status: 409 },
-      );
-    }
 
     const { data: existingMicrosite, error: existingMicrositeError } =
       await supabaseAdmin
@@ -138,28 +113,49 @@ export async function POST(req: Request) {
       );
     }
 
-    const rowPayload = {
-  owner_clerk_user_id: userId,
-  template_key: templateKey,
-  slug: slugSuggestion,
-  title,
-  site_visibility: siteVisibility,
-  private_mode: siteVisibility === "private",
-  passcode_hash:
-    siteVisibility === "private" && passcode ? hashPasscode(passcode) : null,
-  draft: {
-    ...draftJson,
-    title,
-    slugSuggestion,
-  },
-  selected_design_key: designKey,
-};
+    const { data: existingPendingForOwner, error: existingPendingForOwnerError } =
+      await supabaseAdmin
+        .from("pending_microsite_checkouts")
+        .select("id, owner_clerk_user_id")
+        .eq("owner_clerk_user_id", userId)
+        .eq("template_key", templateKey)
+        .eq("selected_design_key", designKey)
+        .maybeSingle();
 
-    if (existingPendingBySlug && existingPendingBySlug.owner_clerk_user_id === userId) {
+    if (existingPendingForOwnerError) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error:
+            existingPendingForOwnerError.message ||
+            "Failed to check pending microsite checkout.",
+        },
+        { status: 500 },
+      );
+    }
+
+    const rowPayload = {
+      owner_clerk_user_id: userId,
+      template_key: templateKey,
+      slug: slugSuggestion,
+      title,
+      site_visibility: siteVisibility,
+      private_mode: siteVisibility === "private" ? "passcode" : "none",
+      passcode_hash:
+        siteVisibility === "private" && passcode ? hashPasscode(passcode) : null,
+      draft: {
+        ...draftJson,
+        title,
+        slugSuggestion,
+      },
+      selected_design_key: designKey,
+    };
+
+    if (existingPendingForOwner && existingPendingForOwner.owner_clerk_user_id === userId) {
       const { data, error } = await supabaseAdmin
         .from("pending_microsite_checkouts")
         .update(rowPayload)
-        .eq("id", existingPendingBySlug.id)
+        .eq("id", existingPendingForOwner.id)
         .select("id, slug")
         .single();
 

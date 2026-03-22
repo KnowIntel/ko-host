@@ -1,4 +1,3 @@
-// components/microsite/PrivateMicrositeAccessForm.tsx
 "use client";
 
 import { useState } from "react";
@@ -9,6 +8,7 @@ export default function PrivateMicrositeAccessForm({
   slug: string;
 }) {
   const [passcode, setPasscode] = useState("");
+  const [showPasscode, setShowPasscode] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [status, setStatus] = useState<"idle" | "error" | "success">("idle");
@@ -18,9 +18,9 @@ export default function PrivateMicrositeAccessForm({
 
     const trimmed = passcode.trim();
 
-    if (!/^\d{6}$/.test(trimmed)) {
+    if (!/^[A-Za-z0-9]{2,30}$/.test(trimmed)) {
       setStatus("error");
-      setMessage("Enter a valid 6-digit passcode.");
+      setMessage("Enter a valid passcode using 2-30 letters and numbers.");
       return;
     }
 
@@ -29,7 +29,7 @@ export default function PrivateMicrositeAccessForm({
       setStatus("idle");
       setMessage("");
 
-      const res = await fetch("/api/microsites/verify-passcode", {
+      const res = await fetch("`/api/public/microsites/${encodeURIComponent(slug)}/verify-passcode`", {
         method: "POST",
         headers: {
           "content-type": "application/json",
@@ -61,15 +61,33 @@ export default function PrivateMicrositeAccessForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <input
-        type="text"
-        inputMode="numeric"
-        maxLength={6}
-        value={passcode}
-        onChange={(e) => setPasscode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-        className="h-11 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-900 outline-none"
-        placeholder="6-digit passcode"
-      />
+      <div className="space-y-2">
+        <div className="relative">
+          <input
+            type={showPasscode ? "text" : "password"}
+            autoComplete="off"
+            maxLength={30}
+            value={passcode}
+            onChange={(e) =>
+              setPasscode(e.target.value.replace(/[^A-Za-z0-9]/g, "").slice(0, 30))
+            }
+            className="h-11 w-full rounded-xl border border-neutral-300 bg-white px-3 pr-20 text-sm text-neutral-900 outline-none"
+            placeholder="Enter passcode"
+          />
+
+          <button
+            type="button"
+            onClick={() => setShowPasscode((prev) => !prev)}
+            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg px-2 py-1 text-xs font-medium text-neutral-600 transition hover:bg-neutral-100 hover:text-neutral-900"
+          >
+            {showPasscode ? "Hide" : "Show"}
+          </button>
+        </div>
+
+        <div className="text-xs text-neutral-500">
+          Passcode must be 2-30 characters and use letters and numbers only.
+        </div>
+      </div>
 
       <button
         type="submit"

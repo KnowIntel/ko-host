@@ -155,7 +155,7 @@ export default async function PublishedMicrositePage({
                 Passcode required
               </div>
               <div className="mt-2 text-sm text-neutral-600">
-                Enter the 6-digit passcode to access this microsite.
+                Enter the passcode to access this microsite.
               </div>
 
               <div className="mt-6">

@@ -228,7 +228,7 @@ export default function DashboardMicrositeManagePage() {
                 checked={siteVisibility === "private"}
                 onChange={() => setSiteVisibility("private")}
               />
-              Private (6-digit passcode)
+              Private (passcode required)
             </label>
           </div>
         </div>
@@ -247,7 +247,7 @@ export default function DashboardMicrositeManagePage() {
                 setPasscode(e.target.value.replace(/\D/g, "").slice(0, 6))
               }
               className="mt-2 h-11 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-900 outline-none"
-              placeholder="6-digit passcode"
+              placeholder="Enter passcode"
             />
             <div className="mt-2 text-xs text-neutral-500">
               Leave blank to keep the current passcode.
