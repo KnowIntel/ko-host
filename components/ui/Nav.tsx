@@ -10,13 +10,19 @@ import { ButtonLink } from "@/components/ui/ButtonLink";
 import InstallButton from "@/components/pwa/InstallButton";
 
 export function Nav() {
-  const pathname = usePathname() || "";
-  const params = useParams();
-  const { isSignedIn } = useAuth();
+const pathname = usePathname() || "";
+const params = useParams();
+const { isSignedIn } = useAuth();
 
-  if (pathname === "/s" || pathname.startsWith("/s/")) {
-    return null;
-  }
+const hostname =
+  typeof window !== "undefined" ? window.location.hostname.toLowerCase() : "";
+
+const isPublicMicrositeHost =
+  hostname.endsWith(".ko-host.com") && hostname !== "ko-host.com";
+
+if (isPublicMicrositeHost || pathname === "/s" || pathname.startsWith("/s/")) {
+  return null;
+}
 
   const isTemplatesPage = pathname.startsWith("/templates");
   const isCreatePage =
