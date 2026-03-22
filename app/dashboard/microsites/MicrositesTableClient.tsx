@@ -34,7 +34,7 @@ type ActionModalState =
     }
   | {
       open: true;
-      actionType: "cancelDraft" | "deactivateMicrosite" | "reactivateMicrosite";
+      actionType: "cancelDraft";
       targetId: string;
       targetTitle: string | null;
     };
@@ -156,7 +156,7 @@ export default function MicrositesTableClient({
   }, [checkout, focusRow, focusPaidActive]);
 
   function openActionModal(
-    actionType: "cancelDraft" | "deactivateMicrosite" | "reactivateMicrosite",
+    actionType: "cancelDraft",
     targetId: string,
     targetTitle?: string,
   ) {
@@ -179,73 +179,66 @@ export default function MicrositesTableClient({
     });
   }
 
-async function togglePublish(m: DashboardRow, publishOverride?: boolean) {
-  if (m.rowType !== "microsite") return;
+  async function togglePublish(m: DashboardRow, publishOverride?: boolean) {
+    if (m.rowType !== "microsite") return;
 
-  try {
-    setBusyId(m.id);
+    try {
+      setBusyId(m.id);
 
-    const next =
-      typeof publishOverride === "boolean"
-        ? publishOverride
-        : !m.is_published;
+      const next =
+        typeof publishOverride === "boolean"
+          ? publishOverride
+          : !m.is_published;
 
-    setFeedback({
-      type: "info",
-      message: `${next ? "Publishing" : "Unpublishing"} ${m.title || "microsite"}...`,
-    });
-
-    const res = await fetch(`/api/dashboard/microsites/${m.id}/publish`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ publish: next }),
-    });
-
-    const data = await res.json().catch(() => ({}));
-
-    if (res.status === 402) {
       setFeedback({
-        type: "error",
-        message: data?.error || "Payment required to publish.",
+        type: "info",
+        message: `${next ? "Publishing" : "Unpublishing"} ${m.title || "microsite"}...`,
       });
-      return;
-    }
 
-    if (!res.ok) {
-      setFeedback({
-        type: "error",
-        message: data?.error || "Failed to update publish status.",
+      const res = await fetch(`/api/dashboard/microsites/${m.id}/publish`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ publish: next }),
       });
-      return;
-    }
 
-    if (next) {
+      const data = await res.json().catch(() => ({}));
+
+      if (res.status === 402) {
+        setFeedback({
+          type: "error",
+          message: data?.error || "Payment required to publish.",
+        });
+        return;
+      }
+
+      if (!res.ok) {
+        setFeedback({
+          type: "error",
+          message: data?.error || "Failed to update publish status.",
+        });
+        return;
+      }
+
+      if (next) {
+        const nextSlug =
+          data?.microsite?.slug && typeof data.microsite.slug === "string"
+            ? data.microsite.slug
+            : m.slug;
+
+        window.location.assign(`https://${nextSlug}.ko-host.com`);
+        return;
+      }
+
       setFeedback({
         type: "success",
-        message: "Microsite published. Redirecting...",
+        message: "Microsite unpublished.",
       });
 
-      const nextSlug =
-        data?.microsite?.slug && typeof data.microsite.slug === "string"
-          ? data.microsite.slug
-          : m.slug;
-
-      const publicUrl = `https://${nextSlug}.ko-host.com`;
-
-      window.location.href = publicUrl;
-      return;
+      router.refresh();
+    } finally {
+      setBusyId(null);
     }
-
-    setFeedback({
-      type: "success",
-      message: "Microsite unpublished.",
-    });
-
-    router.refresh();
-  } finally {
-    setBusyId(null);
   }
-}
 
   async function cancelDraft(id: string, title?: string) {
     try {
@@ -281,125 +274,23 @@ async function togglePublish(m: DashboardRow, publishOverride?: boolean) {
     }
   }
 
-  async function deactivateMicrosite(id: string, title?: string) {
-    try {
-      setBusyId(id);
-      setFeedback({
-        type: "info",
-        message: `Deactivating ${title || "microsite"}...`,
-      });
-
-      const res = await fetch(`/api/dashboard/microsites/${id}`, {
-        method: "DELETE",
-      });
-
-      const data = await res.json().catch(() => ({}));
-
-      if (!res.ok) {
-        setFeedback({
-          type: "error",
-          message: data?.error || "Failed to deactivate microsite.",
-        });
-        return;
-      }
-
-      setFeedback({
-        type: "success",
-        message: "Microsite deactivated.",
-      });
-
-      closeActionModal();
-      router.refresh();
-    } finally {
-      setBusyId(null);
-    }
-  }
-
-  async function reactivateMicrosite(id: string, title?: string) {
-    try {
-      setBusyId(id);
-      setFeedback({
-        type: "info",
-        message: `Reactivating ${title || "microsite"}...`,
-      });
-
-      const res = await fetch(`/api/dashboard/microsites/${id}/reactivate`, {
-        method: "POST",
-      });
-
-      const data = await res.json().catch(() => ({}));
-
-      if (!res.ok) {
-        setFeedback({
-          type: "error",
-          message: data?.error || "Failed to reactivate microsite.",
-        });
-        return;
-      }
-
-      setFeedback({
-        type: "success",
-        message: "Microsite reactivated.",
-      });
-
-      closeActionModal();
-      router.refresh();
-    } finally {
-      setBusyId(null);
-    }
-  }
-
   async function handleConfirmAction() {
     if (!actionModal.open) return;
 
     if (actionModal.actionType === "cancelDraft") {
       await cancelDraft(actionModal.targetId, actionModal.targetTitle || undefined);
-      return;
-    }
-
-    if (actionModal.actionType === "deactivateMicrosite") {
-      await deactivateMicrosite(
-        actionModal.targetId,
-        actionModal.targetTitle || undefined,
-      );
-      return;
-    }
-
-    if (actionModal.actionType === "reactivateMicrosite") {
-      await reactivateMicrosite(
-        actionModal.targetId,
-        actionModal.targetTitle || undefined,
-      );
     }
   }
 
   const modalConfig = actionModal.open
-    ? actionModal.actionType === "cancelDraft"
-      ? {
-          title: "Cancel draft?",
-          message:
-            "This will remove the saved draft from your dashboard. This action cannot be undone.",
-          confirmLabel: "Cancel Draft",
-          confirmClass:
-            "inline-flex h-10 items-center justify-center rounded-xl bg-red-600 px-4 text-sm font-medium text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60",
-        }
-      : actionModal.actionType === "deactivateMicrosite"
-        ? {
-            title: "Deactivate microsite?",
-            message:
-              "This will disable public access and unpublish the microsite until you reactivate it.",
-            confirmLabel: "Deactivate",
-            confirmClass:
-              "inline-flex h-10 items-center justify-center rounded-xl bg-red-600 px-4 text-sm font-medium text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60",
-          }
-        : {
-            title: "Reactivate microsite?",
-            message:
-              "This will restore the microsite. If paid time is still active, it will become publicly available again.",
-            confirmLabel: "Reactivate",
-            confirmClass:
-              "inline-flex h-10 items-center justify-center rounded-xl bg-emerald-600 px-4 text-sm font-medium text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60",
-          }
+    ? {
+        title: "Cancel draft?",
+        message:
+          "This will remove the saved draft from your dashboard. This action cannot be undone.",
+        confirmLabel: "Cancel Draft",
+        confirmClass:
+          "inline-flex h-10 items-center justify-center rounded-xl bg-red-600 px-4 text-sm font-medium text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60",
+      }
     : null;
 
   return (
@@ -464,7 +355,16 @@ async function togglePublish(m: DashboardRow, publishOverride?: boolean) {
                     m.rowType === "microsite" && !isDeactivated
                       ? isPaidActive(m.paid_until)
                       : false;
-                  const publicUrl = m.slug ? `https://${m.slug}.ko-host.com` : "—";
+                  const displaySite =
+                    m.rowType === "draft"
+                      ? "[Unavailable]"
+                      : m.slug || "—";
+                  const displaySiteUrl =
+                    m.rowType === "draft"
+                      ? "[Unavailable]"
+                      : m.slug
+                        ? `https://${m.slug}.ko-host.com`
+                        : "No site name yet";
                   const daysUntilExpiration =
                     m.rowType === "microsite"
                       ? getDaysUntilExpiration(m.paid_until)
@@ -472,8 +372,6 @@ async function togglePublish(m: DashboardRow, publishOverride?: boolean) {
                   const designKey = m.design_key || "blank";
                   const rowKey = `${m.rowType}:${m.id}`;
                   const isHighlighted = highlightedRowId === rowKey;
-                  const deactivateLabel =
-                    m.is_published || m.paid_until ? "Deactivate" : "Remove";
 
                   return (
                     <tr
@@ -494,10 +392,10 @@ async function togglePublish(m: DashboardRow, publishOverride?: boolean) {
 
                       <td className="px-4 py-3">
                         <div className="font-mono text-neutral-900">
-                          {m.slug || "—"}
+                          {displaySite}
                         </div>
                         <div className="mt-1 text-xs font-mono text-neutral-600">
-                          {m.slug ? publicUrl : "No site name yet"}
+                          {displaySiteUrl}
                         </div>
                       </td>
 
@@ -571,132 +469,97 @@ async function togglePublish(m: DashboardRow, publishOverride?: boolean) {
                       </td>
 
                       <td className="px-4 py-3">
-{m.rowType === "draft" ? (
-  <div className="grid min-w-[260px] grid-cols-2 gap-2">
-    <Link
-      href={`/create/${encodeURIComponent(
-        m.template_key,
-      )}?design=${encodeURIComponent(designKey)}`}
-      className="inline-flex w-full items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs font-medium text-neutral-900 hover:border-neutral-900"
-    >
-      Open Builder
-    </Link>
+                        {m.rowType === "draft" ? (
+                          <div className="grid min-w-[260px] grid-cols-2 gap-2">
+                            <Link
+                              href={`/create/${encodeURIComponent(
+                                m.template_key,
+                              )}?design=${encodeURIComponent(designKey)}`}
+                              className="inline-flex w-full items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs font-medium text-neutral-900 hover:border-neutral-900"
+                            >
+                              Open Builder
+                            </Link>
 
-    <Link
-      href={`/create/${encodeURIComponent(
-        m.template_key,
-      )}/publish?design=${encodeURIComponent(designKey)}`}
-      className="inline-flex w-full items-center justify-center rounded-xl border border-emerald-600 bg-emerald-600 px-3 py-2 text-xs font-medium text-white hover:bg-emerald-700"
-    >
-      Publish
-    </Link>
+                            <Link
+                              href={`/create/${encodeURIComponent(
+                                m.template_key,
+                              )}/publish?design=${encodeURIComponent(designKey)}`}
+                              className="inline-flex w-full items-center justify-center rounded-xl border border-emerald-600 bg-emerald-600 px-3 py-2 text-xs font-medium text-white hover:bg-emerald-700"
+                            >
+                              Publish
+                            </Link>
 
-    <button
-      type="button"
-      disabled={busyId === m.id}
-      onClick={() => openActionModal("cancelDraft", m.id, m.title)}
-      className="inline-flex w-full items-center justify-center rounded-xl border border-red-300 bg-white px-3 py-2 text-xs font-medium text-red-700 hover:border-red-500 disabled:opacity-50"
-    >
-      {busyId === m.id ? "Working..." : "Cancel"}
-    </button>
-  </div>
-) : (
-<div className="grid min-w-[260px] grid-cols-2 gap-2">
-  <Link
-    href={`/dashboard/microsites/${m.id}`}
-    className="inline-flex w-full items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs font-medium text-neutral-900 hover:border-neutral-900"
-  >
-    Manage
-  </Link>
+                            <button
+                              type="button"
+                              disabled={busyId === m.id}
+                              onClick={() => openActionModal("cancelDraft", m.id, m.title)}
+                              className="inline-flex w-full items-center justify-center rounded-xl border border-red-300 bg-white px-3 py-2 text-xs font-medium text-red-700 hover:border-red-500 disabled:opacity-50"
+                            >
+                              {busyId === m.id ? "Working..." : "Cancel"}
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="grid min-w-[260px] grid-cols-2 gap-2">
+                            <Link
+                              href={`/dashboard/microsites/${m.id}`}
+                              className="inline-flex w-full items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs font-medium text-neutral-900 hover:border-neutral-900"
+                            >
+                              Manage
+                            </Link>
 
-  {m.is_published && !isDeactivated ? (
-    <a
-      href={`https://${m.slug}.ko-host.com`}
-      target="_blank"
-      rel="noreferrer"
-      className="inline-flex w-full items-center justify-center rounded-xl border border-blue-600 bg-blue-600 px-3 py-2 text-xs font-medium text-white hover:bg-blue-700"
-    >
-      Open Public URL
-    </a>
-  ) : (
-    <a
-      href={`/s/${m.slug}`}
-      target="_blank"
-      rel="noreferrer"
-      className="inline-flex w-full items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs font-medium text-neutral-900 hover:border-neutral-900"
-    >
-      Preview Microsite
-    </a>
-  )}
+                            {m.is_published && !isDeactivated ? (
+                              <a
+                                href={`https://${m.slug}.ko-host.com`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex w-full items-center justify-center rounded-xl border border-blue-600 bg-blue-600 px-3 py-2 text-xs font-medium text-white hover:bg-blue-700"
+                              >
+                                Open Public URL
+                              </a>
+                            ) : (
+                              <a
+                                href={`/s/${encodeURIComponent(m.slug)}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex w-full items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs font-medium text-neutral-900 hover:border-neutral-900"
+                              >
+                                Preview Microsite
+                              </a>
+                            )}
 
-  {isDeactivated ? (
-    <button
-      type="button"
-      disabled={busyId === m.id}
-      onClick={() =>
-        openActionModal("reactivateMicrosite", m.id, m.title)
-      }
-      className="inline-flex w-full items-center justify-center rounded-xl border border-emerald-300 bg-white px-3 py-2 text-xs font-medium text-emerald-700 hover:border-emerald-500 disabled:opacity-50"
-    >
-      {busyId === m.id ? "Working..." : "Reactivate"}
-    </button>
-  ) : (
-    <button
-      type="button"
-      disabled={busyId === m.id}
-      onClick={() => void togglePublish(m, !m.is_published)}
-      className={`inline-flex w-full items-center justify-center rounded-xl px-3 py-2 text-xs font-medium disabled:opacity-50 ${
-        m.is_published
-          ? "border border-amber-300 bg-white text-amber-700 hover:border-amber-500"
-          : "border border-emerald-600 bg-emerald-600 text-white hover:bg-emerald-700"
-      }`}
-    >
-      {busyId === m.id
-        ? "Working..."
-        : m.is_published
-          ? "Unpublish"
-          : "Publish"}
-    </button>
-  )}
+                            {isDeactivated ? null : (
+                              <button
+                                type="button"
+                                disabled={busyId === m.id}
+                                onClick={() => void togglePublish(m, !m.is_published)}
+                                className={`inline-flex w-full items-center justify-center rounded-xl px-3 py-2 text-xs font-medium disabled:opacity-50 ${
+                                  m.is_published
+                                    ? "border border-amber-300 bg-white text-amber-700 hover:border-amber-500"
+                                    : "border border-emerald-600 bg-emerald-600 text-white hover:bg-emerald-700"
+                                }`}
+                              >
+                                {busyId === m.id
+                                  ? "Working..."
+                                  : m.is_published
+                                    ? "Unpublish"
+                                    : "Publish"}
+                              </button>
+                            )}
 
-  {isDeactivated ? (
-    <button
-      type="button"
-      disabled={busyId === m.id}
-      onClick={() =>
-        openActionModal("deactivateMicrosite", m.id, m.title)
-      }
-      className="inline-flex w-full items-center justify-center rounded-xl border border-red-300 bg-white px-3 py-2 text-xs font-medium text-red-700 hover:border-red-500 disabled:opacity-50"
-    >
-      {busyId === m.id ? "Working..." : deactivateLabel}
-    </button>
-  ) : (
-    <button
-      type="button"
-      disabled={busyId === m.id}
-      onClick={() =>
-        openActionModal("deactivateMicrosite", m.id, m.title)
-      }
-      className="inline-flex w-full items-center justify-center rounded-xl border border-red-300 bg-white px-3 py-2 text-xs font-medium text-red-700 hover:border-red-500 disabled:opacity-50"
-    >
-      {busyId === m.id ? "Working..." : deactivateLabel}
-    </button>
-  )}
-
-  <form
-    action="/api/stripe/checkout"
-    method="POST"
-    className="w-full"
-  >
-    <input type="hidden" name="micrositeId" value={m.id} />
-    <button
-      type="submit"
-      className="inline-flex w-full items-center justify-center rounded-xl bg-neutral-900 px-3 py-2 text-xs font-medium text-white hover:bg-neutral-800"
-    >
-      Extend 90 days
-    </button>
-  </form>
-</div>
+                            <form
+                              action="/api/stripe/checkout"
+                              method="POST"
+                              className="w-full"
+                            >
+                              <input type="hidden" name="micrositeId" value={m.id} />
+                              <button
+                                type="submit"
+                                className="inline-flex w-full items-center justify-center rounded-xl bg-neutral-900 px-3 py-2 text-xs font-medium text-white hover:bg-neutral-800"
+                              >
+                                Extend 90 days
+                              </button>
+                            </form>
+                          </div>
                         )}
                       </td>
                     </tr>

@@ -15,9 +15,10 @@ if (!webhookSecret) {
   throw new Error("Missing STRIPE_WEBHOOK_SECRET");
 }
 
+const verifiedStripeSecretKey: string = stripeSecretKey;
 const verifiedWebhookSecret: string = webhookSecret;
 
-const stripe = new Stripe(stripeSecretKey, {
+const stripe = new Stripe(verifiedStripeSecretKey, {
   apiVersion: "2026-02-25.clover",
 });
 
@@ -30,7 +31,7 @@ function addDaysIsoFrom(baseIso: string | null, days: number) {
 
 export async function POST(req: Request) {
   try {
-    const body = await req.text();
+    const rawBody = await req.text();
     const headersList = await headers();
     const signature = headersList.get("stripe-signature");
 
@@ -43,7 +44,7 @@ export async function POST(req: Request) {
 
     try {
       event = stripe.webhooks.constructEvent(
-        body,
+        rawBody,
         signature,
         verifiedWebhookSecret,
       );
@@ -63,26 +64,18 @@ export async function POST(req: Request) {
     const metadata = session.metadata || {};
 
     const pendingCheckoutId = String(metadata.pending_checkout_id || "");
-    const designKey = String(metadata.design_key || "");
-
-    console.log("STRIPE WEBHOOK RECEIVED:", {
-      eventType: event.type,
-      pendingCheckoutId,
-      designKey,
-      metadata,
-      stripeSessionId: session.id,
-    });
+    const designKeyFromMetadata = String(metadata.design_key || "");
 
     if (!pendingCheckoutId) {
       console.error("STRIPE WEBHOOK ERROR: Missing pending_checkout_id");
-      return NextResponse.json({ ok: false }, { status: 400 });
+      return NextResponse.json(
+        { ok: false, error: "Missing pending checkout id" },
+        { status: 400 },
+      );
     }
 
     const supabaseAdmin = getSupabaseAdmin();
 
-    // ============================================================
-    // FETCH PENDING CHECKOUT
-    // ============================================================
     const { data: pendingRow, error: pendingError } = await supabaseAdmin
       .from("pending_microsite_checkouts")
       .select("*")
@@ -91,150 +84,219 @@ export async function POST(req: Request) {
 
     if (pendingError || !pendingRow) {
       console.error("STRIPE WEBHOOK ERROR: Pending row not found", pendingError);
-      return NextResponse.json({ ok: false }, { status: 404 });
+      return NextResponse.json(
+        { ok: false, error: "Pending checkout not found" },
+        { status: 404 },
+      );
     }
 
-    // ============================================================
-    // 🔒 IDEMPOTENCY CHECK (CRITICAL)
-    // Prevent duplicate processing of same Stripe session
-    // ============================================================
-    if (pendingRow.stripe_session_id && pendingRow.stripe_session_id !== session.id) {
-      console.error("STRIPE WEBHOOK ERROR: Session mismatch");
-      return NextResponse.json({ ok: false }, { status: 400 });
+    const ownerClerkUserId =
+      typeof pendingRow.owner_clerk_user_id === "string"
+        ? pendingRow.owner_clerk_user_id
+        : "";
+    const templateKey =
+      typeof pendingRow.template_key === "string" ? pendingRow.template_key : "";
+    const title = typeof pendingRow.title === "string" ? pendingRow.title : "";
+    const siteVisibility =
+      typeof pendingRow.site_visibility === "string"
+        ? pendingRow.site_visibility
+        : "public";
+    const privateMode =
+      typeof pendingRow.private_mode === "string"
+        ? pendingRow.private_mode
+        : "passcode";
+    const passcodeHash =
+      typeof pendingRow.passcode_hash === "string"
+        ? pendingRow.passcode_hash
+        : null;
+    const selectedDesignKey =
+      typeof pendingRow.selected_design_key === "string"
+        ? pendingRow.selected_design_key
+        : "";
+
+    if (!ownerClerkUserId) {
+      return NextResponse.json(
+        { ok: false, error: "Missing owner_clerk_user_id" },
+        { status: 400 },
+      );
+    }
+
+    if (!templateKey) {
+      return NextResponse.json(
+        { ok: false, error: "Missing template_key" },
+        { status: 400 },
+      );
+    }
+
+    if (!pendingRow.slug || typeof pendingRow.slug !== "string") {
+      console.error("STRIPE WEBHOOK ERROR: Missing slug");
+      return NextResponse.json(
+        { ok: false, error: "Missing slug" },
+        { status: 400 },
+      );
+    }
+
+    const slug: string = pendingRow.slug;
+
+    if (
+      pendingRow.stripe_session_id &&
+      pendingRow.stripe_session_id !== session.id
+    ) {
+      console.error("STRIPE WEBHOOK ERROR: Session mismatch", {
+        expected: pendingRow.stripe_session_id,
+        received: session.id,
+      });
+      return NextResponse.json(
+        { ok: false, error: "Session mismatch" },
+        { status: 400 },
+      );
     }
 
     if (pendingRow.processed_at) {
-      // Already handled → safe exit
       return NextResponse.json({ ok: true });
     }
 
     const resolvedDesignKey = String(
-      pendingRow.selected_design_key || designKey || "blank",
+      selectedDesignKey || designKeyFromMetadata || "blank",
     );
 
-    // ============================================================
-    // 🔒 FINAL SLUG OWNERSHIP CHECK (CRITICAL)
-    // Prevent duplicate slug across users
-    // ============================================================
-    const { data: conflictingMicrosite } = await supabaseAdmin
-      .from("microsites")
-      .select("id, owner_clerk_user_id")
-      .eq("slug", pendingRow.slug)
-      .maybeSingle();
+    const { data: conflictingMicrosite, error: conflictingMicrositeError } =
+      await supabaseAdmin
+        .from("microsites")
+        .select("id, owner_clerk_user_id")
+        .eq("slug", slug)
+        .maybeSingle();
+
+    if (conflictingMicrositeError) {
+      console.error(
+        "STRIPE WEBHOOK ERROR: slug conflict lookup failed",
+        conflictingMicrositeError,
+      );
+      return NextResponse.json(
+        { ok: false, error: conflictingMicrositeError.message },
+        { status: 500 },
+      );
+    }
 
     if (
       conflictingMicrosite &&
-      conflictingMicrosite.owner_clerk_user_id !==
-        pendingRow.owner_clerk_user_id
+      conflictingMicrosite.owner_clerk_user_id !== ownerClerkUserId
     ) {
-      console.error("STRIPE WEBHOOK ERROR: Slug conflict detected", {
-        slug: pendingRow.slug,
-      });
-
+      console.error("STRIPE WEBHOOK ERROR: Slug conflict detected", { slug });
       return NextResponse.json(
         { ok: false, error: "Slug already taken" },
         { status: 409 },
       );
     }
 
+    const nowIso = new Date().toISOString();
+
     const micrositePayload = {
-      owner_clerk_user_id: pendingRow.owner_clerk_user_id,
-      template_key: pendingRow.template_key,
-      slug: pendingRow.slug,
-      title: pendingRow.title,
+      owner_clerk_user_id: ownerClerkUserId,
+      template_key: templateKey,
+      slug,
+      title,
+      status: "published",
       is_active: true,
       is_published: true,
+      published_at: nowIso,
       paid_until: addDaysIsoFrom(null, 90),
-      site_visibility: pendingRow.site_visibility || "public",
-      private_mode: Boolean(pendingRow.private_mode),
-      passcode_hash: pendingRow.passcode_hash || null,
+      site_visibility: siteVisibility,
+      private_mode: privateMode,
+      passcode_hash: passcodeHash,
       draft: pendingRow.draft ?? null,
       selected_design_key: resolvedDesignKey,
+      updated_at: nowIso,
     };
 
-    // ============================================================
-    // UPSERT MICROSITE (SAFE)
-    // ============================================================
-    const { data: existingMicrosite, error: existingMicrositeError } =
-      await supabaseAdmin
-        .from("microsites")
-        .select("id")
-        .eq("owner_clerk_user_id", pendingRow.owner_clerk_user_id)
-        .eq("slug", pendingRow.slug)
-        .maybeSingle();
+    // ✅ DEBUG LOG (ADDED)
+    console.log("🧠 WEBHOOK DATA:", {
+      slug,
+      ownerClerkUserId,
+      templateKey,
+      resolvedDesignKey,
+    });
 
-    if (existingMicrositeError) {
-      console.error(
-        "STRIPE WEBHOOK ERROR: existing microsite lookup failed",
-        existingMicrositeError,
+    // ✅ FIX: UPSERT (REPLACES INSERT/UPDATE SPLIT)
+    const { error: upsertError } = await supabaseAdmin
+      .from("microsites")
+      .upsert(
+        {
+          ...micrositePayload,
+          created_at: nowIso,
+        },
+        {
+          onConflict: "slug",
+        },
       );
+
+    if (upsertError) {
+      console.error("STRIPE WEBHOOK ERROR: microsite upsert failed", {
+        error: upsertError,
+        payload: micrositePayload,
+      });
+
       return NextResponse.json(
-        { ok: false, error: existingMicrositeError.message },
+        { ok: false, error: upsertError.message },
         { status: 500 },
       );
     }
 
-    if (existingMicrosite?.id) {
-      const { error: updateError } = await supabaseAdmin
-        .from("microsites")
-        .update(micrositePayload)
-        .eq("id", existingMicrosite.id);
+    console.log("✅ Microsite upsert success:", slug);
 
-      if (updateError) {
-        console.error(
-          "STRIPE WEBHOOK ERROR: microsite update failed",
-          updateError,
-        );
-        return NextResponse.json(
-          { ok: false, error: updateError.message },
-          { status: 500 },
-        );
-      }
-    } else {
-      const { error: insertError } = await supabaseAdmin
-        .from("microsites")
-        .insert(micrositePayload);
-
-      if (insertError) {
-        console.error(
-          "STRIPE WEBHOOK ERROR: microsite insert failed",
-          insertError,
-        );
-        return NextResponse.json(
-          { ok: false, error: insertError.message },
-          { status: 500 },
-        );
-      }
-    }
-
-    // ============================================================
-    // MARK PENDING AS PROCESSED (IMPORTANT)
-    // ============================================================
-    await supabaseAdmin
+    const { error: processedError } = await supabaseAdmin
       .from("pending_microsite_checkouts")
       .update({
-        processed_at: new Date().toISOString(),
+        stripe_session_id: session.id,
+        processed_at: nowIso,
       })
       .eq("id", pendingCheckoutId);
 
-    // ============================================================
-    // CLEANUP
-    // ============================================================
-    await supabaseAdmin
+    if (processedError) {
+      console.error(
+        "STRIPE WEBHOOK ERROR: pending checkout processed mark failed",
+        processedError,
+      );
+      return NextResponse.json(
+        { ok: false, error: processedError.message },
+        { status: 500 },
+      );
+    }
+
+    // ✅ FIX: RELAXED DELETE (was too strict)
+    const { error: deleteDraftError } = await supabaseAdmin
+      .from("microsite_drafts")
+      .delete()
+      .eq("owner_clerk_user_id", ownerClerkUserId)
+      .eq("slug_suggestion", slug);
+
+    if (deleteDraftError) {
+      console.error("STRIPE WEBHOOK ERROR: draft delete failed", deleteDraftError);
+      return NextResponse.json(
+        { ok: false, error: deleteDraftError.message },
+        { status: 500 },
+      );
+    }
+
+    const { error: deletePendingError } = await supabaseAdmin
       .from("pending_microsite_checkouts")
       .delete()
       .eq("id", pendingCheckoutId);
 
-    await supabaseAdmin
-      .from("microsite_drafts")
-      .delete()
-      .eq("owner_clerk_user_id", pendingRow.owner_clerk_user_id)
-      .eq("template_key", pendingRow.template_key)
-      .eq("design_key", resolvedDesignKey);
+    if (deletePendingError) {
+      console.error(
+        "STRIPE WEBHOOK ERROR: pending checkout delete failed",
+        deletePendingError,
+      );
+      return NextResponse.json(
+        { ok: false, error: deletePendingError.message },
+        { status: 500 },
+      );
+    }
 
     console.log("STRIPE WEBHOOK SUCCESS:", {
-      slug: pendingRow.slug,
-      title: pendingRow.title,
+      slug,
+      title,
       stripeSessionId: session.id,
     });
 

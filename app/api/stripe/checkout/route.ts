@@ -64,6 +64,10 @@ export async function POST(req: Request) {
     const supabaseAdmin = getSupabaseAdmin();
 
     // ============================================================
+    // ❌ REMOVED BROKEN DRAFT + SLUG LOGIC
+    // ============================================================
+
+    // ============================================================
     // PENDING CHECKOUT FLOW (PRE-CHECKOUT RESERVATION)
     // ============================================================
     if (pendingCheckoutId) {
@@ -80,6 +84,37 @@ export async function POST(req: Request) {
           { status: 400 },
         );
       }
+
+      // ----------------------------
+      // 🔥 NEW: FETCH REAL DRAFT (CORRECT KEY)
+      // ----------------------------
+      const { data: draftRow, error: draftError } = await supabaseAdmin
+        .from("microsite_drafts")
+        .select("*")
+        .eq("owner_clerk_user_id", userId)
+        .eq("template_key", pendingRow.template_key)
+        .eq("design_key", pendingRow.selected_design_key)
+        .maybeSingle();
+
+      if (draftError || !draftRow) {
+        console.error("❌ Draft not found at checkout");
+        return NextResponse.json(
+          { ok: false, error: "Draft missing" },
+          { status: 400 },
+        );
+      }
+
+      // ----------------------------
+      // 🔥 NEW: COPY DRAFT → PENDING
+      // ----------------------------
+      await supabaseAdmin
+        .from("pending_microsite_checkouts")
+        .update({
+          draft: draftRow.draft,
+        })
+        .eq("id", pendingRow.id);
+
+      console.log("✅ Draft copied to pending checkout");
 
       // ----------------------------
       // 🔒 EXPIRATION SAFETY
@@ -146,9 +181,6 @@ export async function POST(req: Request) {
         );
       }
 
-      // ----------------------------
-      // 💾 STORE STRIPE SESSION ID
-      // ----------------------------
       await supabaseAdmin
         .from("pending_microsite_checkouts")
         .update({
@@ -160,7 +192,7 @@ export async function POST(req: Request) {
     }
 
     // ============================================================
-    // EXISTING MICROSITE CHECKOUT FLOW
+    // EXISTING MICROSITE CHECKOUT FLOW (UNCHANGED)
     // ============================================================
     if (micrositeId) {
       const { data: micrositeRow, error: micrositeError } =
