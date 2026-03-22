@@ -239,11 +239,11 @@ if (slugStatus === "invalid" || slugStatus === "error") {
   return;
 }
 
-    if (siteVisibility === "private" && !/^\d{6}$/.test(passcode.trim())) {
-      setPublishState("error");
-      setMessage("Private sites require a passcode (min: 2 chars / max: 30 chars).");
-      return;
-    }
+if (siteVisibility === "private" && !/^[A-Za-z0-9]{2,30}$/.test(passcode.trim())) {
+  setPublishState("error");
+  setMessage("Private sites require a passcode using 2-30 letters and numbers.");
+  return;
+}
 
     try {
       setPublishState("loading");
@@ -451,17 +451,16 @@ return (
                     <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
                       Passcode
                     </div>
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      maxLength={6}
-                      value={passcode}
-                      onChange={(e) =>
-                        setPasscode(e.target.value.replace(/\D/g, "").slice(0, 6))
-                      }
-                      className="mt-2 h-11 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-900 outline-none"
-                      placeholder="Enter passcode"
-                    />
+                <input
+                  type="text"
+                  maxLength={30}
+                  value={passcode}
+                  onChange={(e) =>
+                    setPasscode(e.target.value.replace(/[^A-Za-z0-9]/g, "").slice(0, 30))
+                  }
+                  className="mt-2 h-11 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-900 outline-none"
+                  placeholder="Enter passcode"
+                />
                   </div>
                 ) : null}
 
