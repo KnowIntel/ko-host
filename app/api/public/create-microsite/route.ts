@@ -113,43 +113,51 @@ export async function POST(req: Request) {
       );
     }
 
-    const { data: existingPendingForOwner, error: existingPendingForOwnerError } =
-      await supabaseAdmin
-        .from("pending_microsite_checkouts")
-        .select("id, owner_clerk_user_id")
-        .eq("owner_clerk_user_id", userId)
-        .eq("template_key", templateKey)
-        .eq("selected_design_key", designKey)
-        .maybeSingle();
+const { data: existingPendingRows, error: existingPendingForOwnerError } =
+  await supabaseAdmin
+    .from("pending_microsite_checkouts")
+    .select("id, owner_clerk_user_id")
+    .eq("owner_clerk_user_id", userId)
+    .eq("template_key", templateKey)
+    .eq("selected_design_key", designKey)
+    .order("id", { ascending: false })
+    .limit(1);
 
-    if (existingPendingForOwnerError) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error:
-            existingPendingForOwnerError.message ||
-            "Failed to check pending microsite checkout.",
-        },
-        { status: 500 },
-      );
-    }
+if (existingPendingForOwnerError) {
+  return NextResponse.json(
+    {
+      ok: false,
+      error:
+        existingPendingForOwnerError.message ||
+        "Failed to check pending microsite checkout.",
+    },
+    { status: 500 },
+  );
+}
 
-    const rowPayload = {
-      owner_clerk_user_id: userId,
-      template_key: templateKey,
-      slug: slugSuggestion,
-      title,
-      site_visibility: siteVisibility,
-      private_mode: siteVisibility === "private" ? "passcode" : "none",
-      passcode_hash:
-        siteVisibility === "private" && passcode ? hashPasscode(passcode) : null,
-      draft: {
-        ...draftJson,
-        title,
-        slugSuggestion,
-      },
-      selected_design_key: designKey,
-    };
+const existingPendingForOwner =
+  Array.isArray(existingPendingRows) && existingPendingRows.length > 0
+    ? existingPendingRows[0]
+    : null;
+
+const rowPayload = {
+  owner_clerk_user_id: userId,
+  template_key: templateKey,
+  slug: slugSuggestion,
+  title,
+  site_visibility: siteVisibility,
+  private_mode: siteVisibility === "private" ? "passcode" : "none",
+  passcode_hash:
+    siteVisibility === "private" && passcode ? hashPasscode(passcode) : null,
+  draft: {
+    ...draftJson,
+    title,
+    slugSuggestion,
+  },
+  selected_design_key: designKey,
+  stripe_session_id: null,
+  processed_at: null,
+};
 
     if (existingPendingForOwner && existingPendingForOwner.owner_clerk_user_id === userId) {
       const { data, error } = await supabaseAdmin

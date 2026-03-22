@@ -264,11 +264,20 @@ export async function POST(req: Request) {
     }
 
     // ✅ FIX: RELAXED DELETE (was too strict)
-    const { error: deleteDraftError } = await supabaseAdmin
-      .from("microsite_drafts")
-      .delete()
-      .eq("owner_clerk_user_id", ownerClerkUserId)
-      .eq("slug_suggestion", slug);
+const draftDesignKeys = Array.from(
+  new Set(
+    [selectedDesignKey, resolvedDesignKey, designKeyFromMetadata, "blank"].filter(
+      (value): value is string => typeof value === "string" && value.trim().length > 0,
+    ),
+  ),
+);
+
+const { error: deleteDraftError } = await supabaseAdmin
+  .from("microsite_drafts")
+  .delete()
+  .eq("owner_clerk_user_id", ownerClerkUserId)
+  .eq("template_key", templateKey)
+  .in("design_key", draftDesignKeys);
 
     if (deleteDraftError) {
       console.error("STRIPE WEBHOOK ERROR: draft delete failed", deleteDraftError);
