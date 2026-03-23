@@ -209,7 +209,7 @@ export default async function MicrositeSettingsPage({
                       name="passcode"
                       inputMode="numeric"
                       autoComplete="off"
-                      maxLength={6}
+                      maxLength={30}
                       placeholder={
                         microsite.passcode_hash
                           ? "•••••• (leave blank to keep current)"

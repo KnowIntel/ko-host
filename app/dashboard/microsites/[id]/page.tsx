@@ -241,10 +241,10 @@ export default function DashboardMicrositeManagePage() {
             <input
               type="text"
               inputMode="numeric"
-              maxLength={6}
+              maxLength={30}
               value={passcode}
               onChange={(e) =>
-                setPasscode(e.target.value.replace(/\D/g, "").slice(0, 6))
+                setPasscode(e.target.value.replace(/[^A-Za-z0-9]/g, "").slice(0, 30))
               }
               className="mt-2 h-11 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-900 outline-none"
               placeholder="Enter passcode"

@@ -40,6 +40,16 @@ function slugify(value: string) {
     .replace(/^-+|-+$/g, "")
     .slice(0, 60);
 }
+function getPublishExpirationDateLabel() {
+  const next = new Date();
+  next.setDate(next.getDate() + 90);
+
+  return next.toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
 
 export default function PublishMicrositePage() {
   const params = useParams();
@@ -48,6 +58,10 @@ export default function PublishMicrositePage() {
 
   const rawTemplate = String(params?.template || "");
   const rawDesign = searchParams.get("design") || "blank";
+  const publishExpirationLabel = useMemo(
+    () => getPublishExpirationDateLabel(),
+    [],
+  );
 
   const templateDef = useMemo(
     () => resolveTemplateFromRoute(rawTemplate),
@@ -572,7 +586,6 @@ return (
                 const breakdownText = Object.entries(combinedBreakdown)
                   .map(([type, count]) => `${type}: ${count}`)
                   .join(", ");
-
                 return (
                   <div className="mt-4 space-y-2 text-sm text-neutral-700">
                     <div>Template: {templateDef.title || templateKey}</div>
@@ -580,6 +593,11 @@ return (
                     <div>Draft Title: {title || "—"}</div>
                     <div>Site Name: {slugSuggestion || "—"}</div>
                     <div>Visibility: {siteVisibility}</div>
+
+                    <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-amber-800">
+                      If published today, your microsite will expire on {publishExpirationLabel}
+                    </div>
+
                     <div>
                       Blocks: {totalCount}
                       {totalCount > 0 ? (
@@ -590,8 +608,8 @@ return (
                     </div>
                   </div>
                 );
-              })()}
-            </div>
+                })()}
+                </div>
 
             {publishState === "success" ? (
               <div className="rounded-[28px] border border-emerald-200 bg-emerald-50 p-6 shadow-sm">

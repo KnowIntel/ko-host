@@ -3,8 +3,8 @@ import { createLayoutPreset } from "../../shared";
 export default createLayoutPreset({
   designKey: "elegant",
 
-  label: "Elegant",
-  description: "Soft floral elegant layout",
+  label: "Elegant Floral",
+  description: "Soft florals elegant styling",
   thumbnail: "/designs/design_baby_shower-elegant.webp",
 
   recommended: true,

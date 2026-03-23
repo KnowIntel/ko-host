@@ -21,9 +21,9 @@ export default function DesignCard({
   backgroundImage?: string;
   isRecommended?: boolean;
 }) {
-  const href = `/create/${encodeURIComponent(
-    templateKey,
-  )}?design=${encodeURIComponent(designKey)}`;
+const href = `/create/${encodeURIComponent(
+  templateKey,
+)}?design=${encodeURIComponent(designKey)}&mode=new`;
 
   return (
     <Link

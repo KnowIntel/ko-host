@@ -63,6 +63,8 @@ export default function CreateTemplatePage() {
 
   const rawTemplate = String(params?.template || "");
   const rawDesign = searchParams.get("design") || "blank";
+  const mode = searchParams.get("mode") || "new";
+  const shouldLoadExistingDraft = mode === "draft";
 
   const templateDef = useMemo(
     () => resolveTemplateFromRoute(rawTemplate),
@@ -168,68 +170,80 @@ export default function CreateTemplatePage() {
     }, 3000);
   }
 
-  useEffect(() => {
+useEffect(() => {
+  setHydratedDraft(initialDraft);
+  setLiveDraft(initialDraft);
+  lastSavedDraftRef.current = JSON.stringify(initialDraft);
+
+  if (!shouldLoadExistingDraft) {
+    try {
+      window.localStorage.removeItem(storageKey);
+    } catch {
+      // ignore localStorage errors
+    }
+
+    setSaveState("idle");
+    setSaveMessage("Started a fresh draft from this design preset.");
+    return;
+  }
+
+  try {
+    const raw = window.localStorage.getItem(storageKey);
+
+    if (!raw) {
+      setSaveState("idle");
+      setSaveMessage("Draft not saved yet.");
+      return;
+    }
+
+    const parsed = JSON.parse(raw) as Partial<BuilderDraft>;
+    const merged = mergeDrafts(initialDraft, parsed);
+
+    setHydratedDraft(merged);
+    setLiveDraft(merged);
+    lastSavedDraftRef.current = JSON.stringify(merged);
+    setSaveState("idle");
+    setSaveMessage("Loaded your local draft.");
+  } catch {
     setHydratedDraft(initialDraft);
     setLiveDraft(initialDraft);
     lastSavedDraftRef.current = JSON.stringify(initialDraft);
+    setSaveState("error");
+    setSaveMessage("Saved local draft could not be loaded.");
+    queueSaveStateReset();
+  }
+}, [initialDraft, storageKey, shouldLoadExistingDraft]);
+
+useEffect(() => {
+  async function loadServerDraft() {
+    if (!isSignedIn || !shouldLoadExistingDraft) return;
 
     try {
-      const raw = window.localStorage.getItem(storageKey);
+      const res = await fetch(
+        `/api/drafts?templateKey=${encodeURIComponent(
+          templateKey,
+        )}&designKey=${encodeURIComponent(designKey)}`,
+        { cache: "no-store" },
+      );
 
-      if (!raw) {
-        setSaveState("idle");
-        setSaveMessage("Draft not saved yet.");
-        return;
-      }
+      const data = await res.json().catch(() => ({}));
 
-      const parsed = JSON.parse(raw) as Partial<BuilderDraft>;
-      const merged = mergeDrafts(initialDraft, parsed);
+      if (!res.ok || !data?.draftRow?.draft) return;
+
+      const savedDraft = data.draftRow.draft as BuilderDraft;
+      const merged = mergeDrafts(initialDraft, savedDraft);
 
       setHydratedDraft(merged);
       setLiveDraft(merged);
       lastSavedDraftRef.current = JSON.stringify(merged);
-      setSaveState("idle");
-      setSaveMessage("Loaded your local draft.");
+      setSaveMessage("Loaded your saved dashboard draft.");
     } catch {
-      setHydratedDraft(initialDraft);
-      setLiveDraft(initialDraft);
-      lastSavedDraftRef.current = JSON.stringify(initialDraft);
-      setSaveState("error");
-      setSaveMessage("Saved local draft could not be loaded.");
-      queueSaveStateReset();
+      // ignore draft preload errors
     }
-  }, [initialDraft, storageKey]);
+  }
 
-  useEffect(() => {
-    async function loadServerDraft() {
-      if (!isSignedIn) return;
-
-      try {
-        const res = await fetch(
-          `/api/drafts?templateKey=${encodeURIComponent(
-            templateKey,
-          )}&designKey=${encodeURIComponent(designKey)}`,
-          { cache: "no-store" },
-        );
-
-        const data = await res.json().catch(() => ({}));
-
-        if (!res.ok || !data?.draftRow?.draft) return;
-
-        const savedDraft = data.draftRow.draft as BuilderDraft;
-        const merged = mergeDrafts(initialDraft, savedDraft);
-
-        setHydratedDraft(merged);
-        setLiveDraft(merged);
-        lastSavedDraftRef.current = JSON.stringify(merged);
-        setSaveMessage("Loaded your saved dashboard draft.");
-      } catch {
-        // ignore draft preload errors
-      }
-    }
-
-    void loadServerDraft();
-  }, [isSignedIn, templateKey, designKey, initialDraft]);
+  void loadServerDraft();
+}, [isSignedIn, templateKey, designKey, initialDraft, shouldLoadExistingDraft]);
 
   async function handleSaveDraft(draft: BuilderDraft) {
     setHydratedDraft(draft);

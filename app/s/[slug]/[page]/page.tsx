@@ -1,4 +1,3 @@
-// app/s/[slug]/[page]/page.tsx
 import { cookies } from "next/headers";
 import crypto from "crypto";
 import PlacedBlocksPreview from "@/components/preview/PlacedBlocksPreview";
@@ -45,6 +44,12 @@ function buildMicrositeAccessCookieValue(slug: string, passcodeHash: string) {
     .digest("hex");
 }
 
+function normalizePrivateMode(value: string | boolean | null) {
+  if (typeof value === "string") return value;
+  if (value === true) return "passcode";
+  return "none";
+}
+
 function PageShell({
   title,
   message,
@@ -67,10 +72,13 @@ function PageShell({
 
 export default async function PublishedMicrositeSubPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string; page: string }>;
+  searchParams: Promise<{ access?: string }>;
 }) {
   const { slug, page } = await params;
+  const { access } = await searchParams;
   const safeSlug = decodeURIComponent(String(slug || "")).trim().toLowerCase();
   const safePage = decodeURIComponent(String(page || "")).trim().toLowerCase();
 
@@ -131,7 +139,10 @@ export default async function PublishedMicrositeSubPage({
     );
   }
 
-  const isPrivate = typedMicrosite.site_visibility === "private";
+  const privateMode = normalizePrivateMode(typedMicrosite.private_mode);
+  const isPrivate =
+    typedMicrosite.site_visibility === "private" &&
+    privateMode === "passcode";
 
   if (isPrivate) {
     const cookieStore = await cookies();
@@ -159,8 +170,17 @@ export default async function PublishedMicrositeSubPage({
                 Enter the passcode to access this microsite.
               </div>
 
+              {access === "invalid" ? (
+                <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                  Invalid passcode. Please try again.
+                </div>
+              ) : null}
+
               <div className="mt-6">
-                <PrivateMicrositeAccessForm slug={safeSlug} />
+                <PrivateMicrositeAccessForm
+                  slug={safeSlug}
+                  returnTo={`/s/${safeSlug}/${safePage}`}
+                />
               </div>
             </div>
           </main>

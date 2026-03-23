@@ -37,7 +37,7 @@ export async function POST(req: Request) {
       );
     }
 
-    if (!/^\d{6}$/.test(passcode)) {
+    if (!/^[A-Za-z0-9]{2,30}$/.test(passcode)) {
       return NextResponse.json(
         { ok: false, error: "Enter a valid passcode." },
         { status: 400 },

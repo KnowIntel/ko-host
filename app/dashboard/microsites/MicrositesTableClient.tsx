@@ -471,14 +471,14 @@ export default function MicrositesTableClient({
                       <td className="px-4 py-3">
                         {m.rowType === "draft" ? (
                           <div className="grid min-w-[260px] grid-cols-2 gap-2">
-                            <Link
-                              href={`/create/${encodeURIComponent(
-                                m.template_key,
-                              )}?design=${encodeURIComponent(designKey)}`}
-                              className="inline-flex w-full items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs font-medium text-neutral-900 hover:border-neutral-900"
-                            >
-                              Open Builder
-                            </Link>
+                          <Link
+                            href={`/create/${encodeURIComponent(
+                              m.template_key,
+                            )}?design=${encodeURIComponent(designKey)}&mode=draft`}
+                            className="inline-flex w-full items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs font-medium text-neutral-900 hover:border-neutral-900"
+                          >
+                            Open Builder
+                          </Link>
 
                             <Link
                               href={`/create/${encodeURIComponent(

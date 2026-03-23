@@ -12,10 +12,6 @@ function normalizePasscode(input: string) {
     .slice(0, 30);
 }
 
-function hashPasscode(passcode: string) {
-  return crypto.createHash("sha256").update(passcode).digest("hex");
-}
-
 function buildMicrositeAccessCookieName(slug: string) {
   return `kht_access_${slug}`;
 }
@@ -27,6 +23,10 @@ function buildMicrositeAccessCookieValue(slug: string, passcodeHash: string) {
     .digest("hex");
 }
 
+function hashPasscode(passcode: string) {
+  return crypto.createHash("sha256").update(passcode).digest("hex");
+}
+
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ slug: string }> },
@@ -34,23 +34,22 @@ export async function POST(
   const { slug } = await params;
   const safeSlug = decodeURIComponent(String(slug || "")).trim().toLowerCase();
 
-  const body = await req.json().catch(() => null);
-  const rawPasscode = normalizePasscode(String(body?.passcode || ""));
+  const formData = await req.formData().catch(() => null);
+  const rawPasscode = normalizePasscode(String(formData?.get("passcode") || ""));
+  const returnToRaw = String(formData?.get("returnTo") || "").trim();
+
+  const fallbackReturnTo = `/s/${safeSlug}`;
+  const returnTo =
+    returnToRaw.startsWith("/s/") ? returnToRaw : fallbackReturnTo;
 
   if (!safeSlug) {
-    return NextResponse.json(
-      { ok: false, error: "Missing microsite slug." },
-      { status: 400 },
-    );
+    return NextResponse.redirect(new URL("/", req.url), 303);
   }
 
   if (!/^[A-Za-z0-9]{2,30}$/.test(rawPasscode)) {
-    return NextResponse.json(
-      {
-        ok: false,
-        error: "Enter a valid passcode using 2-30 letters and numbers.",
-      },
-      { status: 400 },
+    return NextResponse.redirect(
+      new URL(`${returnTo}?access=invalid`, req.url),
+      303,
     );
   }
 
@@ -63,9 +62,9 @@ export async function POST(
     .maybeSingle();
 
   if (error || !microsite) {
-    return NextResponse.json(
-      { ok: false, error: "Microsite not found." },
-      { status: 404 },
+    return NextResponse.redirect(
+      new URL(`${returnTo}?access=invalid`, req.url),
+      303,
     );
   }
 
@@ -81,22 +80,19 @@ export async function POST(
     privateModeValue !== "passcode" ||
     !microsite.passcode_hash
   ) {
-    return NextResponse.json(
-      { ok: false, error: "This microsite does not require a passcode." },
-      { status: 400 },
-    );
+    return NextResponse.redirect(new URL(returnTo, req.url), 303);
   }
 
   const incomingHash = hashPasscode(rawPasscode);
 
   if (incomingHash !== microsite.passcode_hash) {
-    return NextResponse.json(
-      { ok: false, error: "Invalid passcode." },
-      { status: 401 },
+    return NextResponse.redirect(
+      new URL(`${returnTo}?access=invalid`, req.url),
+      303,
     );
   }
 
-  const response = NextResponse.json({ ok: true });
+  const response = NextResponse.redirect(new URL(returnTo, req.url), 303);
 
   response.cookies.set(
     buildMicrositeAccessCookieName(safeSlug),

@@ -8,7 +8,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 function normalizePasscode(input: string) {
-  return (input || "").replace(/\D/g, "").slice(0, 6);
+  return (input || "").replace(/[^A-Za-z0-9]/g, "").slice(0, 30);
 }
 
 function hashPasscode(passcode: string) {
@@ -132,7 +132,7 @@ export async function POST(
     siteVisibility === "private" &&
     privateMode === "passcode" &&
     passcodeRaw &&
-    !/^\d{6}$/.test(passcodeRaw)
+    !/^[A-Za-z0-9]{2,30}$/.test(passcodeRaw)
   ) {
     if (isJson) {
       return NextResponse.json(
