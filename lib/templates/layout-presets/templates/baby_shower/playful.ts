@@ -3,8 +3,8 @@ import { createLayoutPreset } from "../../shared";
 export default createLayoutPreset({
   designKey: "playful",
 
-  label: "Playful",
-  description: "Whimsical baby celebration layout",
+  label: "Playful Pastel",
+  description: "Whimsical and colorful fun tone",
   thumbnail: "/designs/design_baby_shower-playful.webp",
 
   recommended: false,

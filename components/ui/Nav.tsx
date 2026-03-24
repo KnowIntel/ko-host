@@ -31,9 +31,9 @@ if (isPublicMicrositeHost || pathname === "/s" || pathname.startsWith("/s/")) {
   const currentTemplate =
     typeof params?.template === "string" ? params.template : "";
 
-  const designsHref = currentTemplate
-    ? `/templates/${encodeURIComponent(currentTemplate)}/designs`
-    : "/templates";
+const designsHref = currentTemplate
+  ? `/create/${encodeURIComponent(currentTemplate)}/design`
+  : "/templates";
 
   return (
     <header className="border-b border-neutral-200 bg-white">
@@ -90,12 +90,6 @@ if (isPublicMicrositeHost || pathname === "/s" || pathname.startsWith("/s/")) {
               {!isTemplatesPage ? (
                 <ButtonLink href="/templates" variant="secondary">
                   Templates
-                </ButtonLink>
-              ) : null}
-
-              {isCreatePage ? (
-                <ButtonLink href={designsHref} variant="secondary">
-                  Designs
                 </ButtonLink>
               ) : null}
 

@@ -1,3 +1,4 @@
+// components\templates\TemplateGrid.tsx
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -13,7 +14,7 @@ function thumbToImageUrl(thumb: string) {
   return `/templates/${thumb}.webp`;
 }
 
-const CARD = 140;
+const CARD = 152;
 const GAP = 12;
 const CUSTOM_TEMPLATE_KEY = "custom_template";
 

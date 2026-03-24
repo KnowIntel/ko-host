@@ -174,6 +174,11 @@ export type TextFxBlock = BaseBlock & {
       intensity?: number;
       rotation?: number;
       opacity?: number;
+      outline?: {
+        enabled?: boolean;
+        color?: string;
+        width?: number;
+      };
     };
   };
 };
@@ -229,6 +234,7 @@ export type CtaBlock = BaseBlock & {
     buttonText: string;
     buttonUrl: string;
     style?: TextStyle;
+    styleType?: "solid" | "outline" | "soft";
   };
 };
 

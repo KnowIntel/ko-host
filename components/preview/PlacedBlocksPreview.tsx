@@ -98,6 +98,7 @@ function getItemStyle(grid: ResolvedGrid): React.CSSProperties {
     width: grid.colSpan * strideX - GRID_GAP,
     height: grid.rowSpan * strideY - GRID_GAP,
     zIndex: grid.zIndex ?? 1,
+    boxSizing: "border-box",
   };
 }
 
@@ -421,7 +422,7 @@ inputs.forEach((input) => {
     ...blockEntries.map((entry) => entry.rowEnd),
   );
 
-  const pageHeight = maxRowEnd * getStrideY() - GRID_GAP + 1;
+  const pageHeight = maxRowEnd * getStrideY() - GRID_GAP;
 
   useEffect(() => {
     if (disableAutoScale) return;

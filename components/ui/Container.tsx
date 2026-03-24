@@ -1,12 +1,14 @@
 // components/ui/Container.tsx
+import type { HTMLAttributes } from "react";
 import { cn } from "@/lib/security";
 
-export function Container({
-  className,
-  children
-}: {
-  className?: string;
-  children: React.ReactNode;
-}) {
-  return <div className={cn("mx-auto w-full max-w-6xl px-4", className)}>{children}</div>;
+type ContainerProps = HTMLAttributes<HTMLDivElement>;
+
+export function Container({ className, ...props }: ContainerProps) {
+  return (
+    <div
+      className={cn("w-full px-4", className)}
+      {...props}
+    />
+  );
 }

@@ -1,13 +1,13 @@
 import { createLayoutPreset } from "../../shared";
 
 export default createLayoutPreset({
-  designKey: "classic",
+  designKey: "grown",
 
-  label: "Elegant Classic",
-  description: "Traditional refined visual style",
-  thumbnail: "/designs/design_wedding-classic.webp",
+  label: "Grown & Sexy",
+  description: "Clean event information layout",
+  thumbnail: "/designs/design_birthday-grown.png",
 
-  recommended: true,
+  recommended: false,
 
   /* =======================================================
      PAGE SETTINGS
@@ -22,60 +22,40 @@ export default createLayoutPreset({
   ======================================================= */
 
   title: {
-    text: "Lucy & Ricky",
-    placement: { x: 0, y: 2.6, width: 14, height: 2, zIndex: 10 },
+    text: "B I R T H D A Y",
+    placement: { x: 1, y: 3.5, width: 12, height: 2, zIndex: 10 },
     style: {
-      fontFamily: "Great Vibes",
-      fontSize: 200,
+      fontFamily: "Marcellus",
+      fontSize: 120,
       align: "center",
-      bold: false,
-      color: "#646462",
-    },
-  },
-
-  subtitle: {
-    text: "ARE GETTING MARRIED",
-    placement: { x: 0, y: 4.3, width: 14, height: 1, zIndex: 11 },
-    style: {
-      fontFamily: "Cormorant Garamond",
-      fontSize: 60,
-      align: "center",
-      color: "#374151",
-    },
-  },
-
-  subtitleSecondary: {
-    text: "November 30, 1940",
-    placement: { x: 0, y: 5, width: 14, height: 1, zIndex: 12 },
-    style: {
-      fontFamily: "Cormorant Garamond",
-      fontSize: 106,
-      italic: true,
       bold: true,
-      align: "center",
-      color: "#374151",
+      color: "#F2DFDF",
     },
   },
 
+  
+  subtitle: {
+    text: "C E L E B R A T I O N",
+    placement: { x: 3, y: 4.8, width: 8, height: 2, zIndex: 11 },
+    style: {
+      fontFamily: "Marcellus",
+      fontSize: 120,
+      align: "center",
+      bold: true,
+      color: "#F2DFDF",
+    },
+  },
+
+  
   tagline: {
-    text: "Kindly RSVP",
-    placement: { x: 0, y: 6.4, width: 14, height: 1, zIndex: 13 },
+    text: "Halo Edwards",
+    placement: { x: 0.9, y: 7.2, width: 12, height: 3, zIndex: 13 },
     style: {
       fontFamily: "Great Vibes",
-      fontSize: 110,
+      fontSize: 160,
+      bold: false,
       align: "center",
-      color: "#646462",
-    },
-  },
-
-  taglineSecondary: {
-    text: "We can't wait to celebrate with you!",
-    placement: { x: 0, y: 11.8, width: 14, height: 1, zIndex: 14 },
-    style: {
-      fontFamily: "Great Vibes",
-      fontSize: 94,
-      align: "center",
-      color: "#000000",
+      color: "#F2DFDF",
     },
   },
 
@@ -88,7 +68,7 @@ export default createLayoutPreset({
     /* -------------------------------------------------------
        DECORATIVE IMAGE / PLAQUE
     ------------------------------------------------------- */
-    {
+    /* {
       type: "image",
       placement: { x: 3, y: 7.6, width: 8, height: 1, zIndex: 1 },
       config: {
@@ -98,12 +78,12 @@ export default createLayoutPreset({
         zoom: 1,
         rotation: 0,
       },
-    },
+    }, */
 
     /* -------------------------------------------------------
        DECORATIVE LINES
     ------------------------------------------------------- */
-    {
+  /*   {
       type: "shape",
       placement: { x: 3, y: 4.2, width: 2, height: 1, zIndex: 2 },
       config: {
@@ -121,29 +101,48 @@ export default createLayoutPreset({
         borderColor: "#DDD8D2",
         borderWidth: 8,
       },
-    },
+    }, */
 
     /* -------------------------------------------------------
        EXTRA TEXT LINES
        Use label blocks whenever you need more text than the
        built-in page text fields allow.
     ------------------------------------------------------- */
-    {
+/* 
+   {
       type: "label",
-      placement: { x: 2.6, y: 7.8, width: 4, height: 1, zIndex: 15 },
+      placement: { x: 4, y: 2.3, width: 6, height: 1, zIndex: 15 },
       config: {
-        label: "Accepts Line",
-        text: "Accepts with Pleasure",
+        label: "Intro Line",
+        text: "JOIN US FOR A",
         style: {
           fontFamily: "Georgia",
-          fontSize: 40,
+          fontSize: 60,
           italic: true,
           align: "center",
-          color: "#61605F",
+          color: "#FFFFFF",
+        },
+      },
+    },
+ */
+
+   {
+      type: "label",
+      placement: { x: 4.1, y: 6.3, width: 6, height: 1, zIndex: 15 },
+      config: {
+        label: "Subject Line",
+        text: "DINNER FOR",
+        style: {
+          fontFamily: "Georgia",
+          fontSize: 50,
+          italic: false,
+          align: "center",
+          color: "#F2DFDF",
         },
       },
     },
 
+      /*
     {
       type: "label",
       placement: { x: 7.25, y: 7.8, width: 4, height: 1, zIndex: 16 },
@@ -158,12 +157,12 @@ export default createLayoutPreset({
           color: "#61605F",
         },
       },
-    },
+    }, */
 
-    
+/*     
     {
       type: "label",
-      placement: { x: 0, y: 8.8, width: 14, height: 1, zIndex: 16 },
+      placement: { x: 4, y: 8.8, width: 6, height: 1, zIndex: 16 },
       config: {
         label: "Logistics Info 1",
         text: "42 Lovebird Lane Heartwood Village, NY",
@@ -175,23 +174,170 @@ export default createLayoutPreset({
           color: "#61605F",
         },
       },
-    },
+    }, */
     
     {
       type: "label",
-      placement: { x: 0, y: 9.6, width: 14, height: 1, zIndex: 16 },
+      placement: { x: 0.9, y: 9.3, width: 12, height: 4, zIndex: 16 },
       config: {
         label: "Logistics Info 2",
-        text: "3:30 PM — Guest Arrival\n4:30 PM — Ceremony Begins\n5:15 PM — Cocktail Hour\n6:30 PM — Dinner Reception\n8:00 PM — Dancing",
+        text: "SATURDAY, DECEMBER 6, 2025 @ 10:00 PM\nDASHIKI 'N' DENIM PALACE",
         style: {
-          fontFamily: "Georgia",
-          fontSize: 34,
-          italic: true,
+          fontFamily: "Bodoni Moda",
+          fontSize: 50,
+          italic: false,
           align: "center",
-          color: "#61605F",
+          color: "#F2DFDF",
         },
       },
     },
+
+      /* -------------------------------------------------------
+       TEXTFX EXAMPLES
+       Includes straight, arch, dip, and circle modes plus
+       rotation, opacity, intensity, and outline support.
+    ------------------------------------------------------- */
+
+ {
+  type: "text_fx",
+  placement: { x: 1, y: 2.2, width: 12, height: 7.5, zIndex: 20 },
+  config: {
+    text: "JOIN US FOR A",
+    style: {
+      fontFamily: "Georgia",
+      fontSize: 40,
+      bold: false,
+      italic: false,
+      align: "center",
+      color: "#F2DFDF",
+    },
+    fx: {
+      mode: "arch",
+      intensity: 100,
+      rotation: 0,
+      opacity: 1,
+      outline: {
+        enabled: true,
+        color: "#FFFFFF",
+        width: 8,
+      },
+    },
+  },
+},
+
+    /*
+    {
+      type: "text_fx",
+      placement: { x: 2, y: 4, width: 8, height: 3, zIndex: 21 },
+      config: {
+        text: "Arch TextFX",
+        style: {
+          fontFamily: "Playfair Display",
+          fontSize: 64,
+          bold: true,
+          align: "center",
+          color: "#A9A4A0",
+        },
+        fx: {
+          mode: "arch",
+          intensity: 55,
+          rotation: 0,
+          opacity: 1,
+          outline: {
+            enabled: false,
+            color: "#000000",
+            width: 2,
+          },
+        },
+      },
+    },
+    */
+
+    /*
+    {
+      type: "text_fx",
+      placement: { x: 2, y: 7, width: 8, height: 3, zIndex: 22 },
+      config: {
+        text: "Dip TextFX",
+        style: {
+          fontFamily: "Bodoni Moda",
+          fontSize: 64,
+          bold: false,
+          italic: false,
+          align: "center",
+          color: "#646462",
+        },
+        fx: {
+          mode: "dip",
+          intensity: 55,
+          rotation: 0,
+          opacity: 1,
+          outline: {
+            enabled: false,
+            color: "#FFFFFF",
+            width: 2,
+          },
+        },
+      },
+    },
+    */
+
+    /*
+    {
+      type: "text_fx",
+      placement: { x: 3, y: 10, width: 6, height: 6, zIndex: 23 },
+      config: {
+        text: "Circle TextFX",
+        style: {
+          fontFamily: "Inter",
+          fontSize: 34,
+          bold: true,
+          align: "center",
+          color: "#8F8B85",
+        },
+        fx: {
+          mode: "circle",
+          intensity: 50,
+          rotation: 0,
+          opacity: 1,
+          outline: {
+            enabled: true,
+            color: "#F5F5F4",
+            width: 1,
+          },
+        },
+      },
+    },
+    */
+
+    /*
+    {
+      type: "text_fx",
+      placement: { x: 2, y: 16, width: 8, height: 2, zIndex: 24 },
+      config: {
+        text: "Rotated Outlined TextFX",
+        style: {
+          fontFamily: "Anton",
+          fontSize: 72,
+          bold: false,
+          italic: false,
+          align: "center",
+          color: "#A39F9A",
+        },
+        fx: {
+          mode: "straight",
+          intensity: 50,
+          rotation: -8,
+          opacity: 0.95,
+          outline: {
+            enabled: true,
+            color: "#FFFFFF",
+            width: 3,
+          },
+        },
+      },
+    },
+    */
 
     /* -------------------------------------------------------
        OTHER AVAILABLE TOOLS (COMMENTED OUT)
@@ -220,16 +366,31 @@ export default createLayoutPreset({
     },
     */
 
-    /*
-    {
-      type: "cta",
-      placement: { x: 5, y: 8, width: 3, height: 1, zIndex: 5 },
-      config: {
-        buttonText: "RSVP",
-        buttonUrl: "#",
-      },
+{
+  type: "cta",
+  placement: { x: 5.5, y: 10.9, width: 3, height: 1.25, zIndex: 5 },
+  config: {
+    heading: "",
+    body: "",
+    backgroundColor: "#000000",
+    borderColor: "#F2DFDF",
+    borderWidth: 8,
+    borderRadius: 100,
+    buttonText: "RSVP",
+    buttonUrl: "#",
+    styleType: "soft",
+    style: {
+      fontFamily: "Inter",
+      fontSize: 30,
+      bold: true,
+      italic: false,
+      underline: false,
+      strike: false,
+      align: "center",
+      color: "#F2DFDF",
     },
-    */
+  },
+}
 
     /*
     {

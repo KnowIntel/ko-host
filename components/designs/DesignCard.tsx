@@ -41,7 +41,7 @@ const href = `/create/${encodeURIComponent(
           <img
             src={backgroundImage}
             alt={label}
-            className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]"
+            className="absolute inset-0 h-full w-full object-cover object-top transition duration-500 group-hover:scale-[1.04]"
             draggable={false}
           />
         ) : null}

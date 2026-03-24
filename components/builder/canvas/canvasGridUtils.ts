@@ -31,27 +31,27 @@ export function normalizeGrid(
   const rawZIndex = Number(grid?.zIndex);
 
   const colSpan = clamp(
-    snapToGrid(Number.isFinite(rawColSpan) ? rawColSpan : GRID_COLUMNS),
+    Number.isFinite(rawColSpan) ? rawColSpan : GRID_COLUMNS,
     GRID_STEP,
     GRID_COLUMNS,
   );
 
   const rowSpan = Math.max(
     GRID_STEP,
-    snapToGrid(Number.isFinite(rawRowSpan) ? rawRowSpan : 1),
+    Number.isFinite(rawRowSpan) ? rawRowSpan : 1,
   );
 
   const maxColStart = Math.max(1, GRID_COLUMNS - colSpan + 1);
 
   return {
     colStart: clamp(
-      snapToGrid(Number.isFinite(rawColStart) ? rawColStart : 1),
+      Number.isFinite(rawColStart) ? rawColStart : 1,
       1,
       maxColStart,
     ),
     rowStart: Math.max(
       1,
-      snapToGrid(Number.isFinite(rawRowStart) ? rawRowStart : index + 1),
+      Number.isFinite(rawRowStart) ? rawRowStart : index + 1,
     ),
     colSpan,
     rowSpan,

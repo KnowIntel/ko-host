@@ -38,7 +38,7 @@ export function getDefaultPageElementGrid(
 ): GridPlacementWithLayer {
   if (key === "title") {
     return {
-      colStart: 1,
+      colStart: 2,
       rowStart: 1,
       colSpan: 8,
       rowSpan: 2,
@@ -48,7 +48,7 @@ export function getDefaultPageElementGrid(
 
   if (key === "subtitle") {
     return {
-      colStart: 1,
+      colStart: 2,
       rowStart: 3,
       colSpan: 7,
       rowSpan: 1,
@@ -58,7 +58,7 @@ export function getDefaultPageElementGrid(
 
   if (key === "subtext") {
     return {
-      colStart: 1,
+      colStart: 2,
       rowStart: 4,
       colSpan: 6,
       rowSpan: 1,
@@ -67,7 +67,7 @@ export function getDefaultPageElementGrid(
   }
 
   return {
-    colStart: 1,
+    colStart: 2,
     rowStart: 5,
     colSpan: 8,
     rowSpan: 2,

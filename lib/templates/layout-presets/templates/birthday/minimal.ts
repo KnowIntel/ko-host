@@ -1,13 +1,13 @@
 import { createLayoutPreset } from "../../shared";
 
 export default createLayoutPreset({
-  designKey: "modern",
+  designKey: "minimal",
 
-  label: "Modern Minimal",
-  description: "Clean simple distraction-free",
-  thumbnail: "/designs/design_wedding-modern.webp",
+  label: "Minimal Effort",
+  description: "Clean but lazy information layout",
+  thumbnail: "/designs/design_baby_shower-elegant.webp",
 
-  recommended: false,
+  recommended: true,
 
   /* =======================================================
      PAGE SETTINGS
@@ -20,19 +20,18 @@ export default createLayoutPreset({
      Use the built-in page text slots first.
      For any extra text beyond these, use optionalBlocks with type: "label".
   ======================================================= */
-/* 
+
   title: {
-    text: "Lucy & Ricky",
-    placement: { x: 3, y: 2.6, width: 8, height: 2, zIndex: 10 },
+    text: "B R E N D A ' S   H A V I N G   A",
+    placement: { x: 1, y: 2.1, width: 12, height: 2, zIndex: 10 },
     style: {
-      fontFamily: "Great Vibes",
-      fontSize: 200,
+      fontFamily: "Inter",
+      fontSize: 80,
       align: "center",
-      bold: false,
-      color: "#646462",
+      bold: true,
+      color: "#A9A4A0",
     },
   },
- */
 /* 
   subtitle: {
     text: "ARE GETTING MARRIED",
@@ -45,8 +44,7 @@ export default createLayoutPreset({
     },
   },
  */
-/* 
-  subtitleSecondary: {
+/*   subtitleSecondary: {
     text: "November 30, 1940",
     placement: { x: 3, y: 5, width: 8, height: 1, zIndex: 12 },
     style: {
@@ -58,29 +56,29 @@ export default createLayoutPreset({
       color: "#374151",
     },
   },
-
+ */
   tagline: {
-    text: "Kindly RSVP",
-    placement: { x: 4.4, y: 6.4, width: 5, height: 1, zIndex: 13 },
+    text: "Please join us in welcoming a beautiful baby boy:",
+    placement: { x: 1, y: 7.4, width: 12, height: 3, zIndex: 13 },
     style: {
-      fontFamily: "Great Vibes",
-      fontSize: 110,
+      fontFamily: "Bodoni Moda",
+      fontSize: 70,
       align: "center",
       color: "#646462",
     },
-  }, */
-/* 
+  },
+
   taglineSecondary: {
-    text: "We can't wait to celebrate with you!",
-    placement: { x: 2.9, y: 11.8, width: 8, height: 1, zIndex: 14 },
+    text: "Tavonn Hodges",
+    placement: { x: 2.9, y: 8.4, width: 8, height: 3, zIndex: 14 },
     style: {
       fontFamily: "Great Vibes",
-      fontSize: 94,
+      fontSize: 164,
       align: "center",
-      color: "#000000",
+      color: "#8F8B85",
     },
   },
- */
+
   /* =======================================================
      OPTIONAL BLOCKS
      Use these for extra text lines, shapes, images, etc.
@@ -90,26 +88,24 @@ export default createLayoutPreset({
     /* -------------------------------------------------------
        DECORATIVE IMAGE / PLAQUE
     ------------------------------------------------------- */
-    
-    {
+    /* {
       type: "image",
-      placement: { x: 4.5, y: 2.7, width: 5, height: 10, zIndex: 1 },
+      placement: { x: 3, y: 7.6, width: 8, height: 1, zIndex: 1 },
       config: {
-        src: "/designs/artifacts/bride_groom1.png",
+        src: "/designs/artifacts/champagne_plaques.png",
         fit: "cover",
         frame: "square",
         zoom: 1,
         rotation: 0,
       },
-    },
+    }, */
 
     /* -------------------------------------------------------
        DECORATIVE LINES
     ------------------------------------------------------- */
-    /* 
-    {
+  /*   {
       type: "shape",
-      placement: { x: 3, y: 4, width: 2, height: 1, zIndex: 2 },
+      placement: { x: 3, y: 4.2, width: 2, height: 1, zIndex: 2 },
       config: {
         shapeType: "line",
         borderColor: "#DDD8D2",
@@ -119,21 +115,20 @@ export default createLayoutPreset({
 
     {
       type: "shape",
-      placement: { x: 9, y: 4, width: 2, height: 1, zIndex: 2 },
+      placement: { x: 9, y: 4.2, width: 2, height: 1, zIndex: 2 },
       config: {
         shapeType: "line",
         borderColor: "#DDD8D2",
         borderWidth: 8,
       },
-    },
- */
+    }, */
+
     /* -------------------------------------------------------
        EXTRA TEXT LINES
        Use label blocks whenever you need more text than the
        built-in page text fields allow.
     ------------------------------------------------------- */
-    /* 
-    {
+    /* {
       type: "label",
       placement: { x: 2.6, y: 7.8, width: 4, height: 1, zIndex: 15 },
       config: {
@@ -163,54 +158,55 @@ export default createLayoutPreset({
           color: "#61605F",
         },
       },
-    },
- */
+    }, */
+
+/*     
+    {
+      type: "label",
+      placement: { x: 4, y: 8.8, width: 6, height: 1, zIndex: 16 },
+      config: {
+        label: "Logistics Info 1",
+        text: "42 Lovebird Lane Heartwood Village, NY",
+        style: {
+          fontFamily: "Georgia",
+          fontSize: 50,
+          italic: true,
+          align: "center",
+          color: "#61605F",
+        },
+      },
+    }, */
     
     {
       type: "label",
-      placement: { x: 0, y: 10.8, width: 14, height: 1, zIndex: 16 },
+      placement: { x: 0.9, y: 10, width: 12, height: 4, zIndex: 16 },
       config: {
-        label: "Tagline 1",
-        text: "JOIN US AS WE BEGIN\nOUR GREATEST ADVENTURE",
+        label: "Logistics Info 2",
+        text: "Saturday, June 1, 1991 from 2:00 PM – 5:00 PM\nCalifornia Love Community Garden Pavilion\n1996 West Coast Drive Oakland, CA 94612\nHosted By Sharon & Keisha",
         style: {
-          fontFamily: "Cormorant Garamond",
-          fontSize: 84,
+          fontFamily: "Playfair Display",
+          fontSize: 50,
           italic: true,
           align: "center",
-          color: "#525536",
+          color: "#A39F9A",
         },
       },
     },
-    
-    {
-      type: "label",
-      placement: { x: 0, y: 12.4, width: 14, height: 1, zIndex: 16 },
-      config: {
-        label: "Tagline 2",
-        text: "Two hearts, one day, a lifetime to follow",
-        style: {
-          fontFamily: "dancing script",
-          fontSize: 54,
-          italic: true,
-          align: "center",
-          color: "#000000",
-        },
-      },
-    },
-    
 
     /* -------------------------------------------------------
        OTHER AVAILABLE TOOLS (COMMENTED OUT)
     ------------------------------------------------------- */
 
+    /*
     {
       type: "shape",
-      placement: { x: -4.2, y: 10.5, width: 22.5, height: 30, zIndex: 3 },
+      placement: { x: 2, y: 2, width: 2, height: 2, zIndex: 3 },
       config: {
         shapeType: "circle",
-        backgroundColor: "#F1EAE2",
+        backgroundColor: "#FDE68A",
       },
     },
+    */
 
     /*
     {
@@ -224,53 +220,30 @@ export default createLayoutPreset({
     },
     */
 
+    /*
     {
       type: "cta",
-      placement: { x: 5.4, y: 9, width: 3, height: 1, zIndex: 5 },
+      placement: { x: 5, y: 8, width: 3, height: 1, zIndex: 5 },
       config: {
         buttonText: "RSVP",
         buttonUrl: "#",
-
-        appearance: {
-          backgroundColor: "#F1EAE2",
-          borderRadius: 9999,
-          borderColor: "#000000",
-          borderWidth: 2
-        },
-
-        style: {
-          fontFamily: "Inter",
-          fontSize: 60,
-          bold: true,
-          align: "center",
-          color: "#000000"
-        }
-      }
+      },
     },
+    */
 
+    /*
     {
-  type: "links",
-  placement: { x: 1, y: 1.4, width: 12, height: 2, zIndex: 6 },
-  config: {
-    layout: "horizontal",
-    heading: "",
-    items: [
-      { label: "        ABOUT        ", url: "#" },
-      { label: "        REGISTRY        ", url: "#" },
-      { label: "        SCHEDULE        ", url: "#" },
-      { label: "        CONTACT        ", url: "#" },
-    ],
-    style: {
-      fontFamily: "Playfair Display",
-      fontSize: 60,
-      bold: false,
-      italic: false,
-      underline: false,
-      align: "center",
-      color: "#111827",
+      type: "links",
+      placement: { x: 1, y: 10, width: 4, height: 2, zIndex: 6 },
+      config: {
+        heading: "Quick Links",
+        items: [
+          { label: "Registry", url: "#" },
+          { label: "Venue", url: "#" },
+        ],
+      },
     },
-  },
-},
+    */
 
     /*
     {

@@ -1,3 +1,4 @@
+// app/s/[slug]/[page]/page.tsx
 import { cookies } from "next/headers";
 import crypto from "crypto";
 import PlacedBlocksPreview from "@/components/preview/PlacedBlocksPreview";
@@ -223,7 +224,12 @@ export default async function PublishedMicrositeSubPage({
     <>
       <main className="min-h-screen bg-[#fcfbf8] text-neutral-900">
         <div className="mx-auto max-w-7xl px-4 py-10">
-          <PlacedBlocksPreview draft={draft} designKey={designKey} />
+          <PlacedBlocksPreview
+            draft={draft}
+            designKey={designKey}
+            disableAutoScale={true}
+            hideFrame={true}
+          />
         </div>
       </main>
       <MicrositeFooterBrand />

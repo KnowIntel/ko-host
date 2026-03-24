@@ -1,3 +1,4 @@
+// app/s/[slug]/page.tsx
 import { cookies } from "next/headers";
 import crypto from "crypto";
 import PlacedBlocksPreview from "@/components/preview/PlacedBlocksPreview";
@@ -60,7 +61,7 @@ function PageShell({
   return (
     <>
       <main className="min-h-screen bg-[#fcfbf8] px-4 py-16">
-        <div className="mx-auto max-w-4xl rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
+        <div className="w-full rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
           <div className="text-base font-semibold text-neutral-900">{title}</div>
           <div className="mt-2 text-sm text-neutral-600">{message}</div>
         </div>
@@ -160,7 +161,7 @@ export default async function PublishedMicrositePage({
       return (
         <>
           <main className="min-h-screen bg-[#fcfbf8] px-4 py-16">
-            <div className="mx-auto max-w-md rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
+            <div className="w-full rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
               <div className="text-base font-semibold text-neutral-900">
                 Passcode required
               </div>
@@ -213,8 +214,13 @@ export default async function PublishedMicrositePage({
   return (
     <>
       <main className="min-h-screen bg-[#fcfbf8] text-neutral-900">
-        <div className="mx-auto max-w-7xl px-4 py-10">
-          <PlacedBlocksPreview draft={draft} designKey={designKey} />
+        <div className="w-full px-4 py-10">
+          <PlacedBlocksPreview
+            draft={draft}
+            designKey={designKey}
+            disableAutoScale={true}
+            hideFrame={true}
+          />
         </div>
       </main>
 

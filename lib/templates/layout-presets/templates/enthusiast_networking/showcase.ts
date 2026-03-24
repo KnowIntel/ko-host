@@ -1,86 +1,66 @@
 import { createLayoutPreset } from "../../shared";
 
 export default createLayoutPreset({
-  designKey: "modern",
+  designKey: "showcase",
 
-  label: "Modern Minimal",
-  description: "Clean simple distraction-free",
-  thumbnail: "/designs/design_wedding-modern.webp",
+  label: "Interest Showcase",
+  description: "Highlight passions, projects, profiles",
+  thumbnail: "/designs/design_enthusiast_networking-showcase.png",
 
   recommended: false,
 
-  /* =======================================================
+   /* =======================================================
      PAGE SETTINGS
   ======================================================= */
 
   // pageColor: "#ffffff",
+
+
 
   /* =======================================================
      PRIMARY TEXT BLOCKS
      Use the built-in page text slots first.
      For any extra text beyond these, use optionalBlocks with type: "label".
   ======================================================= */
-/* 
+
   title: {
-    text: "Lucy & Ricky",
-    placement: { x: 3, y: 2.6, width: 8, height: 2, zIndex: 10 },
+    text: "Enthusiast Showcase",
+    placement: { x: 1.15, y: 2.3, width: 12, height: 2, zIndex: 15 },
     style: {
-      fontFamily: "Great Vibes",
-      fontSize: 200,
+      fontFamily: "Inter",
+      fontSize: 100,
       align: "center",
-      bold: false,
-      color: "#646462",
-    },
-  },
- */
-/* 
-  subtitle: {
-    text: "ARE GETTING MARRIED",
-    placement: { x: 3, y: 4.3, width: 8, height: 1, zIndex: 11 },
-    style: {
-      fontFamily: "Cormorant Garamond",
-      fontSize: 60,
-      align: "center",
-      color: "#374151",
-    },
-  },
- */
-/* 
-  subtitleSecondary: {
-    text: "November 30, 1940",
-    placement: { x: 3, y: 5, width: 8, height: 1, zIndex: 12 },
-    style: {
-      fontFamily: "Cormorant Garamond",
-      fontSize: 106,
-      italic: true,
       bold: true,
+      color: "#000000",
+    },
+  },
+
+  subtitle: {
+    text: "Showcasing epic builds and creativity",
+    placement: { x: 3, y: 3.3, width: 8, height: 1, zIndex: 11 },
+    style: {
+      fontFamily: "Arial",
+      bold: true,
+      fontSize: 40,
       align: "center",
       color: "#374151",
     },
   },
 
-  tagline: {
-    text: "Kindly RSVP",
-    placement: { x: 4.4, y: 6.4, width: 5, height: 1, zIndex: 13 },
+    tagline: {
+    text: "Join the Community",
+    placement: { x: 1, y: 4, width: 12, height: 3, zIndex: 13 },
     style: {
-      fontFamily: "Great Vibes",
-      fontSize: 110,
-      align: "center",
-      color: "#646462",
-    },
-  }, */
-/* 
-  taglineSecondary: {
-    text: "We can't wait to celebrate with you!",
-    placement: { x: 2.9, y: 11.8, width: 8, height: 1, zIndex: 14 },
-    style: {
-      fontFamily: "Great Vibes",
-      fontSize: 94,
+      fontFamily: "Arial",
+      bold: true,
+      fontSize: 50,
       align: "center",
       color: "#000000",
     },
   },
- */
+
+
+
   /* =======================================================
      OPTIONAL BLOCKS
      Use these for extra text lines, shapes, images, etc.
@@ -90,12 +70,12 @@ export default createLayoutPreset({
     /* -------------------------------------------------------
        DECORATIVE IMAGE / PLAQUE
     ------------------------------------------------------- */
-    
-    {
+
+    /* {
       type: "image",
-      placement: { x: 4.5, y: 2.7, width: 5, height: 10, zIndex: 1 },
+      placement: { x: 3, y: 7.6, width: 8, height: 1, zIndex: 1 },
       config: {
-        src: "/designs/artifacts/bride_groom1.png",
+        src: "/designs/artifacts/champagne_plaques.png",
         fit: "cover",
         frame: "square",
         zoom: 1,
@@ -103,114 +83,63 @@ export default createLayoutPreset({
       },
     },
 
+
+
     /* -------------------------------------------------------
-       DECORATIVE LINES
+       DECORATIVE SHAPES
     ------------------------------------------------------- */
-    /* 
-    {
+ 
+   {
       type: "shape",
-      placement: { x: 3, y: 4, width: 2, height: 1, zIndex: 2 },
+      placement: { x: 4.85, y: 3.6, width: 4.15, height: 1.6, zIndex: 2 },
       config: {
-        shapeType: "line",
-        borderColor: "#DDD8D2",
-        borderWidth: 8,
+        shapeType: "circle",
+        borderColor: "#FFFFFF",
+        borderWidth: 30,
+        backgroundColor: "#FEDD51",
       },
     },
 
-    {
-      type: "shape",
-      placement: { x: 9, y: 4, width: 2, height: 1, zIndex: 2 },
-      config: {
-        shapeType: "line",
-        borderColor: "#DDD8D2",
-        borderWidth: 8,
-      },
-    },
- */
+
+
     /* -------------------------------------------------------
        EXTRA TEXT LINES
        Use label blocks whenever you need more text than the
        built-in page text fields allow.
     ------------------------------------------------------- */
-    /* 
-    {
+/*      {
       type: "label",
-      placement: { x: 2.6, y: 7.8, width: 4, height: 1, zIndex: 15 },
+      placement: { x: 1.15, y: 1.8, width: 12, height: 2, zIndex: 15 },
       config: {
-        label: "Accepts Line",
-        text: "Accepts with Pleasure",
+        label: "Intro Line",
+        text: "",
         style: {
-          fontFamily: "Georgia",
-          fontSize: 40,
-          italic: true,
-          align: "center",
-          color: "#61605F",
-        },
-      },
-    },
-
-    {
-      type: "label",
-      placement: { x: 7.25, y: 7.8, width: 4, height: 1, zIndex: 16 },
-      config: {
-        label: "Declines Line",
-        text: "Declines with Regret",
-        style: {
-          fontFamily: "Georgia",
-          fontSize: 40,
-          italic: true,
-          align: "center",
-          color: "#61605F",
-        },
-      },
-    },
- */
-    
-    {
-      type: "label",
-      placement: { x: 0, y: 10.8, width: 14, height: 1, zIndex: 16 },
-      config: {
-        label: "Tagline 1",
-        text: "JOIN US AS WE BEGIN\nOUR GREATEST ADVENTURE",
-        style: {
-          fontFamily: "Cormorant Garamond",
-          fontSize: 84,
-          italic: true,
-          align: "center",
-          color: "#525536",
-        },
-      },
-    },
-    
-    {
-      type: "label",
-      placement: { x: 0, y: 12.4, width: 14, height: 1, zIndex: 16 },
-      config: {
-        label: "Tagline 2",
-        text: "Two hearts, one day, a lifetime to follow",
-        style: {
-          fontFamily: "dancing script",
-          fontSize: 54,
-          italic: true,
+          fontFamily: "Arial",
+          fontSize: 160,
+          bold: true,
           align: "center",
           color: "#000000",
         },
       },
-    },
-    
+    }, */
+
+
+
 
     /* -------------------------------------------------------
        OTHER AVAILABLE TOOLS (COMMENTED OUT)
     ------------------------------------------------------- */
 
+    /*
     {
       type: "shape",
-      placement: { x: -4.2, y: 10.5, width: 22.5, height: 30, zIndex: 3 },
+      placement: { x: 2, y: 2, width: 2, height: 2, zIndex: 3 },
       config: {
         shapeType: "circle",
-        backgroundColor: "#F1EAE2",
+        backgroundColor: "#FDE68A",
       },
     },
+    */
 
     /*
     {
@@ -224,53 +153,30 @@ export default createLayoutPreset({
     },
     */
 
+    /*
     {
       type: "cta",
-      placement: { x: 5.4, y: 9, width: 3, height: 1, zIndex: 5 },
+      placement: { x: 5, y: 8, width: 3, height: 1, zIndex: 5 },
       config: {
         buttonText: "RSVP",
         buttonUrl: "#",
-
-        appearance: {
-          backgroundColor: "#F1EAE2",
-          borderRadius: 9999,
-          borderColor: "#000000",
-          borderWidth: 2
-        },
-
-        style: {
-          fontFamily: "Inter",
-          fontSize: 60,
-          bold: true,
-          align: "center",
-          color: "#000000"
-        }
-      }
+      },
     },
+    */
 
+    /*
     {
-  type: "links",
-  placement: { x: 1, y: 1.4, width: 12, height: 2, zIndex: 6 },
-  config: {
-    layout: "horizontal",
-    heading: "",
-    items: [
-      { label: "        ABOUT        ", url: "#" },
-      { label: "        REGISTRY        ", url: "#" },
-      { label: "        SCHEDULE        ", url: "#" },
-      { label: "        CONTACT        ", url: "#" },
-    ],
-    style: {
-      fontFamily: "Playfair Display",
-      fontSize: 60,
-      bold: false,
-      italic: false,
-      underline: false,
-      align: "center",
-      color: "#111827",
+      type: "links",
+      placement: { x: 1, y: 10, width: 4, height: 2, zIndex: 6 },
+      config: {
+        heading: "Quick Links",
+        items: [
+          { label: "Registry", url: "#" },
+          { label: "Venue", url: "#" },
+        ],
+      },
     },
-  },
-},
+    */
 
     /*
     {

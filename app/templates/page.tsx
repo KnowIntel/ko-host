@@ -1,3 +1,4 @@
+// app\templates\page.tsx
 "use client";
 
 import Image from "next/image";
@@ -69,13 +70,13 @@ export default function TemplatesPage() {
         <div className="absolute top-40 right-10 h-[420px] w-[420px] rounded-full bg-purple-500/10 blur-3xl animate-kht-float3" />
       </div>
 
-      <div className="relative mx-auto max-w-6xl px-4 pb-10">
+      <div className="relative w-full px-4 pb-10">
         <div className="sticky top-0 z-30 -mx-4 border-b border-neutral-200 bg-white/85 px-4 pb-4 pt-6 backdrop-blur">
           <div className="flex items-end justify-between gap-4">
             <div>
               <h1 className="text-2xl font-semibold tracking-tight">Templates</h1>
               <p className="mt-1 text-sm text-neutral-700">
-                Pick a template, choose a design, customize it, then publish.
+                Pick a template, choose a design, customize it, then publish. For 90 days, you own your own microsite.
               </p>
               <div className="mt-1 text-[12px] font-medium text-neutral-500">
                 {count} template{count === 1 ? "" : "s"}

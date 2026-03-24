@@ -184,6 +184,7 @@ type SelectedContext =
   | { kind: "pageText"; blockId: string; label: string }
   | { kind: "label"; blockId: string; label: string }
   | { kind: "textFx"; blockId: string; label: string }
+  | { kind: "cta"; blockId: string; label: string }
   | { kind: "image"; blockId: string; label: string }
   | { kind: "imageCarousel"; blockId: string; label: string }
   | { kind: "shape"; blockId: string; label: string }
@@ -295,6 +296,19 @@ const FONT_FAMILY_OPTIONS = [
   "Merriweather",
   "Lora",
   "Crimson Text",
+
+  "Anton",
+  "Bangers",
+  "Orbitron",
+  "Righteous",
+  "Alfa Slab One",
+  "Permanent Marker",
+  "Caveat",
+  "Indie Flower",
+  "Exo 2",
+  "Rajdhani",
+  "Teko",
+  "Abril Fatface",
 
   // System fonts
   "Arial",
@@ -477,6 +491,10 @@ function getSelectedContext(
     return { kind: "textFx", blockId, label: block.label || "TextFX" };
   }
 
+  if (block.type === "cta") {
+    return { kind: "cta", blockId, label: block.label || "Button" };
+  }
+
   if (block.type === "image") {
     return { kind: "image", blockId, label: "Image" };
   }
@@ -529,7 +547,6 @@ function topBarColorClass(disabled = false) {
       : "border-white/10 bg-white/5",
   ].join(" ");
 }
-
 function infoPillClass() {
   return "inline-flex h-11 items-center rounded-md border border-white/10 bg-white/5 px-3 text-sm text-white/85";
 }
@@ -631,13 +648,21 @@ function getSelectedTextValue(
     return "";
   }
 
-  if (context.kind === "label" || context.kind === "textFx") {
-    const block = draft.blocks.find((item) => item.id === context.blockId);
+  if (
+  context.kind === "label" ||
+  context.kind === "textFx" ||
+  context.kind === "cta"
+) {
+  const block = draft.blocks.find((item) => item.id === context.blockId);
 
-    if (block?.type === "label" || block?.type === "text_fx") {
-      return block.data.text ?? "";
-    }
+  if (block?.type === "label" || block?.type === "text_fx") {
+    return block.data.text ?? "";
   }
+
+  if (block?.type === "cta") {
+    return block.data.buttonText ?? "";
+  }
+}
 
   return "";
 }
@@ -656,7 +681,10 @@ function getInlineTextStyle(style?: TextStyle) {
     textDecoration: decorations.length ? decorations.join(" ") : "none",
     textAlign: style?.align ?? "left",
     color: style?.color || undefined,
-    lineHeight: 1.25,
+    lineHeight: 1.2,
+    whiteSpace: "pre-wrap",
+    wordBreak: "break-word",
+    overflowWrap: "anywhere",
   } as const;
 }
 
@@ -843,26 +871,29 @@ export default function DesignLayoutEditor({
   const selectedUnderline = selectedStyle.underline ?? false;
   const selectedStrike = selectedStyle.strike ?? false;
 
-  const showTextControls =
-    selectedContext.kind === "pageText" ||
-    selectedContext.kind === "label" ||
-    selectedContext.kind === "textFx" ||
-    selectedContext.kind === "imageCarousel" ||
-    selectedBlock?.type === "thread";
+const showTextControls =
+  selectedContext.kind === "pageText" ||
+  selectedContext.kind === "label" ||
+  selectedContext.kind === "textFx" ||
+  selectedContext.kind === "cta" ||
+  selectedContext.kind === "imageCarousel" ||
+  selectedBlock?.type === "thread";
 
-  const showAppearanceControls =
-    selectedContext.kind === "label" ||
-    selectedContext.kind === "image" ||
-    selectedContext.kind === "imageCarousel" ||
-    selectedContext.kind === "shape" ||
-    selectedBlock?.type === "thread";
+const showAppearanceControls =
+  selectedContext.kind === "label" ||
+  selectedContext.kind === "cta" ||
+  selectedContext.kind === "image" ||
+  selectedContext.kind === "imageCarousel" ||
+  selectedContext.kind === "shape" ||
+  selectedBlock?.type === "thread";
 
-  const showBorderWidthRadiusControls =
-    selectedContext.kind === "label" ||
-    selectedContext.kind === "image" ||
-    selectedContext.kind === "imageCarousel" ||
-    selectedContext.kind === "shape" ||
-    selectedBlock?.type === "thread";
+const showBorderWidthRadiusControls =
+  selectedContext.kind === "label" ||
+  selectedContext.kind === "cta" ||
+  selectedContext.kind === "image" ||
+  selectedContext.kind === "imageCarousel" ||
+  selectedContext.kind === "shape" ||
+  selectedBlock?.type === "thread";
 
   const selectedTextValue = getSelectedTextValue(draft, selectedContext);
 
@@ -1303,6 +1334,27 @@ function applyStylePatch(patch: Partial<TextStyle>) {
     return;
   }
 
+  if (selectedBlock?.type === "cta") {
+    setDraft((prev) => ({
+      ...prev,
+      blocks: prev.blocks.map((block) =>
+        block.id === selectedBlock.id && block.type === "cta"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                style: {
+                  ...(block.data.style ?? {}),
+                  ...patch,
+                },
+              },
+            }
+          : block,
+      ),
+    }));
+    return;
+  }
+
   if (selectedBlock?.type === "thread") {
     setDraft((prev) => ({
       ...prev,
@@ -1522,6 +1574,16 @@ function updateTextByCanvasId(blockId: string, value: string) {
           },
         };
       }
+
+if (block.type === "cta") {
+  return {
+    ...block,
+    data: {
+      ...block.data,
+      buttonText: value,
+    },
+  };
+}
 
       return block;
     }),
@@ -2299,9 +2361,15 @@ function cancelRemoveAllBlocks() {
         value={textValue}
         onChange={(e) => updateTextByCanvasId(item.id, e.target.value)}
         onClick={(e) => e.stopPropagation()}
-        className="h-full w-full resize-none bg-transparent outline-none"
+        className="block h-full w-full resize-none bg-transparent outline-none"
         placeholder={item.label || item.type}
-        style={getInlineTextStyle(pageTextStyle)}
+        style={{
+          ...getInlineTextStyle(pageTextStyle),
+          padding: 0,
+          margin: 0,
+          border: "none",
+          boxSizing: "border-box",
+        }}
       />
     </div>
   );
@@ -2343,9 +2411,15 @@ function cancelRemoveAllBlocks() {
         value={block.data.text || ""}
         onChange={(e) => updateTextByCanvasId(block.id, e.target.value)}
         onClick={(e) => e.stopPropagation()}
-        className="h-full w-full resize-none bg-transparent outline-none"
+        className="block h-full w-full resize-none bg-transparent outline-none"
         placeholder="Label"
-        style={getInlineTextStyle(block.data.style)}
+        style={{
+          ...getInlineTextStyle(block.data.style),
+          padding: 0,
+          margin: 0,
+          border: "none",
+          boxSizing: "border-box",
+        }}
       />
     </div>
   );
@@ -2692,7 +2766,42 @@ return (
 >
   <div className="flex items-center justify-between gap-4">
     <div className="sticky left-0 z-20 flex min-w-max items-center gap-2 bg-[#2f3541] pr-4 py-1">
-      {/* <div className="flex shrink-0 items-center gap-2"></div> */}
+      <button
+        type="button"
+        className={topBarButtonClass(false, canvasZoom <= MIN_CANVAS_ZOOM)}
+        onClick={zoomOutCanvas}
+        disabled={canvasZoom <= MIN_CANVAS_ZOOM}
+        title="Zoom out canvas"
+      >
+        <Image
+          src="/icons/zoom_out_icon.png"
+          alt="Zoom Out"
+          width={30}
+          height={30}
+          className="pointer-events-none h-[30px] w-[30px] object-contain"
+        />
+      </button>
+
+      <button
+        type="button"
+        className={topBarButtonClass(false, canvasZoom >= MAX_CANVAS_ZOOM)}
+        onClick={zoomInCanvas}
+        disabled={canvasZoom >= MAX_CANVAS_ZOOM}
+        title="Zoom in canvas"
+      >
+        <Image
+          src="/icons/zoom_in_icon.png"
+          alt="Zoom In"
+          width={30}
+          height={30}
+          className="pointer-events-none h-[30px] w-[30px] object-contain"
+        />
+      </button>
+
+      <div className={infoPillClass()}>{canvasZoom}%</div>
+
+      <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
+
       <button
         type="button"
         className={topBarButtonClass(false, undoStack.length === 0)}
@@ -2715,28 +2824,135 @@ return (
 
       <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
 
-      <div className={infoPillClass()}>{selectedContext.label}</div>
+      <button
+        type="button"
+        className={topBarButtonClass(false, false, true)}
+        onClick={removeAllBlocks}
+        title="Remove all blocks"
+      >
+        <Image
+          src="/icons/remove_all_icon.png"
+          alt="Remove All"
+          width={30}
+          height={30}
+          className="pointer-events-none h-[30px] w-[30px] object-contain"
+        />
+      </button>
 
       <button
         type="button"
-        className={topBarButtonClass(false, !showTextControls)}
-        onClick={handleAioClick}
-        disabled={!showTextControls}
-        title="Artificial Intelligent Output"
+        className={topBarButtonClass(false)}
+        onClick={() => void uploadPageBackgroundImage()}
+        title="Set page background image"
       >
         <Image
-          src="/icons/icon_wand_aio.png"
-          alt="AIO"
-          width={36}
-          height={36}
-          className="h-[36px] w-[36px] object-contain"
+          src="/icons/add_background_image_icon.png"
+          alt="Background Image"
+          width={30}
+          height={30}
+          className="pointer-events-none h-[30px] w-[30px] object-contain"
         />
       </button>
+
+      <button
+        type="button"
+        className={topBarButtonClass(
+          !(draft as DraftWithPageExtras).pageBackgroundImage,
+          !(draft as DraftWithPageExtras).pageBackgroundImage,
+        )}
+        onClick={clearPageBackgroundImage}
+        disabled={!(draft as DraftWithPageExtras).pageBackgroundImage}
+        title="Clear page background image"
+      >
+        <Image
+          src="/icons/remove_background_image_icon.png"
+          alt="Clear Background Image"
+          width={30}
+          height={30}
+          className="pointer-events-none h-[30px] w-[30px] object-contain"
+        />
+      </button>
+
+      <select
+        value={(draft as DraftWithPageExtras).pageBackgroundImageFit ?? "zoom"}
+        onChange={(e) =>
+          updatePageBackgroundImageFit(
+            e.target.value as "clip" | "zoom" | "stretch",
+          )
+        }
+        className={topBarFieldClass("w-[90px]")}
+        title="Page background fit"
+      >
+        <option value="clip">Clip</option>
+        <option value="zoom">Zoom</option>
+        <option value="stretch">Stretch</option>
+      </select>
+
+      <input
+        type="color"
+        value={resolvedPageColor}
+        onChange={(e) =>
+          setDraft((prev) => ({
+            ...(prev as DraftWithPageExtras),
+            pageColor: e.target.value,
+          }))
+        }
+        className={topBarColorClass(false)}
+        title="Page color"
+      />
+
+      <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
+
+      <div className={infoPillClass()}>{selectedContext.label}</div>
+
+      {isTextSelection(selectedContext) ? (
+        <button
+          type="button"
+          className={topBarButtonClass(false)}
+          onClick={handleAioClick}
+          title="Artificial Intelligent Output"
+        >
+          <Image
+            src="/icons/icon_wand_aio.png"
+            alt="AIO"
+            width={36}
+            height={36}
+            className="h-[36px] w-[36px] object-contain"
+          />
+        </button>
+      ) : null}
 
       {isTextFxSelected ? (
         <>
           <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
+{selectedBlock?.type === "cta" ? (
+  <>
+    <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
 
+    <select
+      value={selectedBlock.data.styleType ?? "solid"}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "cta"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  styleType: e.target.value as "solid" | "outline" | "soft",
+                },
+              },
+        )
+      }
+      className={topBarFieldClass("w-[110px]")}
+      title="Button style"
+    >
+      <option value="solid">Solid</option>
+      <option value="outline">Outline</option>
+      <option value="soft">Soft</option>
+    </select>
+  </>
+) : null}
           {/* Straight */}
           <button
             type="button"
@@ -2773,920 +2989,827 @@ return (
             />
           </button>
 
-{/* Dip */}
-<button
-  type="button"
-  className={topBarButtonClass(
-    selectedTextFxBlock?.data.fx?.mode === "dip",
-  )}
-  onClick={() => updateTextFx({ mode: "dip" })}
-  title="Dip"
->
-  <Image
-    src="/icons/fx_dip_icon.png"
-    alt="Dip"
-    width={20}
-    height={20}
-    className="object-contain"
-  />
-</button>
+          {/* Dip */}
+          <button
+            type="button"
+            className={topBarButtonClass(
+              selectedTextFxBlock?.data.fx?.mode === "dip",
+            )}
+            onClick={() => updateTextFx({ mode: "dip" })}
+            title="Dip"
+          >
+            <Image
+              src="/icons/fx_dip_icon.png"
+              alt="Dip"
+              width={20}
+              height={20}
+              className="object-contain"
+            />
+          </button>
 
-{/* Circle */}
-<button
-  type="button"
-  className={topBarButtonClass(
-    selectedTextFxBlock?.data.fx?.mode === "circle",
-  )}
-  onClick={() => updateTextFx({ mode: "circle" })}
-  title="Circle"
->
-  <Image
-    src="/icons/fx_circle_icon.png"
-    alt="Circle"
-    width={20}
-    height={20}
-    className="object-contain"
-  />
-</button>
+          {/* Circle */}
+          <button
+            type="button"
+            className={topBarButtonClass(
+              selectedTextFxBlock?.data.fx?.mode === "circle",
+            )}
+            onClick={() => updateTextFx({ mode: "circle" })}
+            title="Circle"
+          >
+            <Image
+              src="/icons/fx_circle_icon.png"
+              alt="Circle"
+              width={20}
+              height={20}
+              className="object-contain"
+            />
+          </button>
 
-              <button
-  type="button"
-  className={topBarButtonClass(false)}
-  onClick={resetSelectedTextFx}
-  title="Reset TextFX"
->
-  <Image
-    src="/icons/fx_reset_icon.png"
-    alt="Reset"
-    width={20}
-    height={20}
-    className="object-contain"
-  />
-</button>
+          <button
+            type="button"
+            className={topBarButtonClass(false)}
+            onClick={resetSelectedTextFx}
+            title="Reset TextFX"
+          >
+            <Image
+              src="/icons/fx_reset_icon.png"
+              alt="Reset"
+              width={20}
+              height={20}
+              className="object-contain"
+            />
+          </button>
 
-              <div className={topBarSliderWrapClass()}>
-                <span>Curve</span>
-                <input
-                  type="range"
-                  min={0}
-                  max={100}
-                  value={selectedTextFxBlock?.data.fx?.intensity ?? 50}
-                  onChange={(e) =>
-                    updateTextFx({ intensity: Number(e.target.value) })
-                  }
-                  className={topBarSliderClass()}
-                  title="Curve intensity"
-                />
-                <span>{selectedTextFxBlock?.data.fx?.intensity ?? 50}</span>
-              </div>
+          <div className={topBarSliderWrapClass()}>
+            <span>Curve</span>
+            <input
+              type="range"
+              min={0}
+              max={100}
+              value={selectedTextFxBlock?.data.fx?.intensity ?? 50}
+              onChange={(e) =>
+                updateTextFx({ intensity: Number(e.target.value) })
+              }
+              className={topBarSliderClass()}
+              title="Curve intensity"
+            />
+            <span>{selectedTextFxBlock?.data.fx?.intensity ?? 50}</span>
+          </div>
 
-              <div className={topBarSliderWrapClass()}>
-                <span>Rotate</span>
-                <input
-                  type="range"
-                  min={-180}
-                  max={180}
-                  value={selectedTextFxBlock?.data.fx?.rotation ?? 0}
-                  onChange={(e) =>
-                    updateTextFx({ rotation: Number(e.target.value) })
-                  }
-                  className={topBarSliderClass()}
-                  title="Rotation"
-                />
-                <span>{selectedTextFxBlock?.data.fx?.rotation ?? 0}°</span>
-              </div>
+          <div className={topBarSliderWrapClass()}>
+            <span>Rotate</span>
+            <input
+              type="range"
+              min={-180}
+              max={180}
+              value={selectedTextFxBlock?.data.fx?.rotation ?? 0}
+              onChange={(e) =>
+                updateTextFx({ rotation: Number(e.target.value) })
+              }
+              className={topBarSliderClass()}
+              title="Rotation"
+            />
+            <span>{selectedTextFxBlock?.data.fx?.rotation ?? 0}°</span>
+          </div>
 
-              <div className={topBarSliderWrapClass()}>
-                <span>Opacity</span>
-                <input
-                  type="range"
-                  min={0}
-                  max={100}
-                  value={Math.round(
-                    (selectedTextFxBlock?.data.fx?.opacity ?? 1) * 100,
-                  )}
-                  onChange={(e) =>
-                    updateTextFx({ opacity: Number(e.target.value) / 100 })
-                  }
-                  className={topBarSliderClass()}
-                  title="Opacity"
-                />
-                <span>
-                  {Math.round(
-                    (selectedTextFxBlock?.data.fx?.opacity ?? 1) * 100,
-                  )}
-                  %
-                </span>
-              </div>
-            </>
-          ) : null}
+          <div className={topBarSliderWrapClass()}>
+            <span>Opacity</span>
+            <input
+              type="range"
+              min={0}
+              max={100}
+              value={Math.round(
+                (selectedTextFxBlock?.data.fx?.opacity ?? 1) * 100,
+              )}
+              onChange={(e) =>
+                updateTextFx({ opacity: Number(e.target.value) / 100 })
+              }
+              className={topBarSliderClass()}
+              title="Opacity"
+            />
+            <span>
+              {Math.round(
+                (selectedTextFxBlock?.data.fx?.opacity ?? 1) * 100,
+              )}
+              %
+            </span>
+          </div>
+        </>
+      ) : null}
 
+      {selectedBlock?.type === "cta" ? (
+        <>
+          <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
 
-          {showTextControls ? (
-  <>
-    <div className="mx-1 h-8 w-px shrink-0 bg-white/15" />
-
-    <button
-      type="button"
-      className={topBarButtonClass(selectedBold)}
-      onClick={() => applyStylePatch({ bold: !selectedBold })}
-      title="Bold"
-    >
-      B
-    </button>
-
-    <button
-      type="button"
-      className={topBarButtonClass(selectedItalic)}
-      onClick={() => applyStylePatch({ italic: !selectedItalic })}
-      title="Italic"
-    >
-      I
-    </button>
-
-    <button
-      type="button"
-      className={topBarButtonClass(selectedUnderline)}
-      onClick={() => applyStylePatch({ underline: !selectedUnderline })}
-      title="Underline"
-    >
-      U
-    </button>
-
-    <button
-      type="button"
-      className={topBarButtonClass(selectedStrike)}
-      onClick={() => applyStylePatch({ strike: !selectedStrike })}
-      title="Strikethrough"
-    >
-      S̶
-    </button>
-
-    <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
-
-    <button
-      type="button"
-      className={topBarButtonClass(false)}
-      onClick={() => applyStylePatch({ align: "left" })}
-      title="Align left"
-    >
-      ≡
-    </button>
-
-    <button
-      type="button"
-      className={topBarButtonClass(false)}
-      onClick={() => applyStylePatch({ align: "center" })}
-      title="Align center"
-    >
-      ≣
-    </button>
-
-    <button
-      type="button"
-      className={topBarButtonClass(false)}
-      onClick={() => applyStylePatch({ align: "right" })}
-      title="Align right"
-    >
-      ☰
-    </button>
-
-    <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
-
-    <select
-      value={selectedStyle.fontFamily ?? "inherit"}
-      onChange={(e) =>
-        applyStylePatch({ fontFamily: e.target.value })
-      }
-      className={topBarFieldClass("min-w-[160px]")}
-      title="Font family"
-      style={{
-        fontFamily: resolveFontFamily(
-          selectedStyle.fontFamily ?? "inherit",
-        ),
-      }}
-    >
-      {FONT_FAMILY_OPTIONS.map((font) => (
-        <option
-          key={font}
-          value={font}
-          style={{
-            fontFamily: resolveFontFamily(font),
-          }}
-        >
-          {font}
-        </option>
-      ))}
-    </select>
-
-    <input
-      type="number"
-      min={8}
-      max={480}
-      value={selectedStyle.fontSize ?? 16}
-      onChange={(e) =>
-        applyStylePatch({
-          fontSize: Math.max(
-            8,
-            Math.min(480, Number(e.target.value) || 16),
-          ),
-        })
-      }
-      className={topBarFieldClass("w-16")}
-      title="Font size"
-    />
-
-<input
-  type="color"
-  value={selectedStyle.color ?? "#111827"}
-  onChange={(e) => applyTextColor(e.target.value)}
-  className={topBarColorClass(false)}
-  title="Text color"
-/>
-
-  <button
-    type="button"
-    className={eyedropperButtonClass()}
-    onClick={() =>
-      void pickColorWithEyeDropper((color) => {
-        applyTextColor(color);
-      })
-    }
-    title="Pick text color from screen"
-
-    >
-      <Image
-        src="/icons/pick_color_icon.png"
-        alt="Pick Color"
-        width={20}
-        height={20}
-        className="pointer-events-none object-contain"
-      />
-    </button>
-
-    {selectedContext.kind === "pageText" ? (
-      <>
-<input
-  type="color"
-  value={
-    selectedPageBackgroundColor === "transparent"
-      ? "#ffffff"
-      : selectedPageBackgroundColor
-  }
-  onChange={(e) => applyPageTextBoxBackground(e.target.value)}
-  className={topBarColorClass(false)}
-  title="Text box background color"
-/>
-
-  <button
-    type="button"
-    className={eyedropperButtonClass()}
-    onClick={() =>
-      void pickColorWithEyeDropper((color) => {
-        applyPageTextBoxBackground(color);
-      })
-    }
-    title="Pick text box background color from screen"
-
-    >
-      <Image
-        src="/icons/pick_color_icon.png"
-        alt="Pick Color"
-        width={20}
-        height={20}
-        className="pointer-events-none object-contain"
-      />
-    </button>
-
-        <button
-          type="button"
-          className={topBarButtonClass(
-            selectedPageBackgroundColor === "transparent",
-          )}
-          onClick={clearPageTextBackgroundColor}
-          title="Transparent text box background"
-        >
-          ☐
-        </button>
-      </>
-    ) : null}
-
-    {selectedBlock?.type === "thread" ? (
-      <>
-        <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
-
-        <div className={topBarSliderWrapClass()}>
-          <span>Visible</span>
-          <input
-            type="range"
-            min={1}
-            max={8}
-            value={selectedBlock.data.maxVisibleMessages ?? 4}
+          <select
+            value={selectedBlock.data.styleType ?? "solid"}
             onChange={(e) =>
               updateSelectedBlock((block) =>
-                block.type !== "thread"
+                block.type !== "cta"
                   ? block
                   : {
                       ...block,
                       data: {
                         ...block.data,
-                        maxVisibleMessages: Math.max(
-                          1,
-                          Math.min(8, Number(e.target.value) || 4),
-                        ),
+                        styleType: e.target.value as "solid" | "outline" | "soft",
                       },
                     },
               )
             }
-            className={topBarSliderClass()}
-            title="Max visible messages"
-          />
-          <span>{selectedBlock.data.maxVisibleMessages ?? 4}</span>
-        </div>
-      </>
-    ) : null}
-  </>
-) : null}
-
-{selectedBlock?.type === "image" ? (
-  <>
-    <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
-
-    <select
-      value={selectedBlock.data.image.fitMode ?? "zoom"}
-      onChange={(e) =>
-        updateSelectedBlock((block) =>
-          block.type !== "image"
-            ? block
-            : {
-                ...block,
-                data: {
-                  ...block.data,
-                  image: {
-                    ...block.data.image,
-                    fitMode: e.target.value as "clip" | "stretch" | "zoom",
-                  },
-                },
-              },
-        )
-      }
-      className={topBarFieldClass("w-[120px]")}
-      title="Image fit mode"
-    >
-      <option value="clip">Clip</option>
-      <option value="zoom">Zoom</option>
-      <option value="stretch">Stretch</option>
-    </select>
-
-    <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
-
-    <button
-      type="button"
-      className={topBarButtonClass(
-        (selectedBlock.data.image.frame ?? "square") === "square",
-      )}
-      onClick={() =>
-        updateSelectedBlock((block) =>
-          block.type !== "image"
-            ? block
-            : {
-                ...block,
-                data: {
-                  ...block.data,
-                  image: {
-                    ...block.data.image,
-                    frame: "square",
-                  },
-                },
-              },
-        )
-      }
-      title="Square frame"
-    >
-      <Image
-        src="/icons/square_icon.png"
-        alt="Square"
-        width={18}
-        height={18}
-        className="pointer-events-none"
-      />
-    </button>
-
-    <button
-      type="button"
-      className={topBarButtonClass(
-        (selectedBlock.data.image.frame ?? "square") === "circle",
-      )}
-      onClick={() =>
-        updateSelectedBlock((block) =>
-          block.type !== "image"
-            ? block
-            : {
-                ...block,
-                data: {
-                  ...block.data,
-                  image: {
-                    ...block.data.image,
-                    frame: "circle",
-                  },
-                },
-              },
-        )
-      }
-      title="Circle / Oval frame"
-    >
-      <Image
-        src="/icons/circle_icon.png"
-        alt="Circle"
-        width={18}
-        height={18}
-        className="pointer-events-none"
-      />
-    </button>
-
-    <button
-      type="button"
-      className={topBarButtonClass(
-        (selectedBlock.data.image.frame ?? "square") === "diamond",
-      )}
-      onClick={() =>
-        updateSelectedBlock((block) =>
-          block.type !== "image"
-            ? block
-            : {
-                ...block,
-                data: {
-                  ...block.data,
-                  image: {
-                    ...block.data.image,
-                    frame: "diamond",
-                  },
-                },
-              },
-        )
-      }
-      title="Diamond frame"
-    >
-      <Image
-        src="/icons/diamond_icon.png"
-        alt="Diamond"
-        width={18}
-        height={18}
-        className="pointer-events-none"
-      />
-    </button>
-
-    <button
-      type="button"
-      className={topBarButtonClass(
-        (selectedBlock.data.image.frame ?? "square") === "heart",
-      )}
-      onClick={() =>
-        updateSelectedBlock((block) =>
-          block.type !== "image"
-            ? block
-            : {
-                ...block,
-                data: {
-                  ...block.data,
-                  image: {
-                    ...block.data.image,
-                    frame: "heart",
-                  },
-                },
-              },
-        )
-      }
-      title="Heart frame"
-    >
-      <Image
-        src="/icons/heart_icon.png"
-        alt="Heart"
-        width={18}
-        height={18}
-        className="pointer-events-none"
-      />
-    </button>
-
-    <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
-
-    <div className={topBarSliderWrapClass()}>
-      <span>X</span>
-      <input
-        type="range"
-        min={0}
-        max={100}
-        value={selectedBlock.data.image.positionX ?? 50}
-        onChange={(e) =>
-          updateSelectedImagePatch({
-            positionX: Number(e.target.value),
-          })
-        }
-        className={topBarSliderClass()}
-        title="Image horizontal position"
-      />
-    </div>
-
-    <div className={topBarSliderWrapClass()}>
-      <span>Y</span>
-      <input
-        type="range"
-        min={0}
-        max={100}
-        value={selectedBlock.data.image.positionY ?? 50}
-        onChange={(e) =>
-          updateSelectedImagePatch({
-            positionY: Number(e.target.value),
-          })
-        }
-        className={topBarSliderClass()}
-        title="Image vertical position"
-      />
-    </div>
-
-    <div className={topBarSliderWrapClass()}>
-      <span>Zoom</span>
-      <input
-        type="range"
-        min={50}
-        max={300}
-        value={Math.round((selectedBlock.data.image.zoom ?? 1) * 100)}
-        onChange={(e) =>
-          updateSelectedImagePatch({
-            zoom: Number(e.target.value) / 100,
-          })
-        }
-        className={topBarSliderClass()}
-        title="Image zoom"
-      />
-    </div>
-
-    <div className={topBarSliderWrapClass()}>
-      <span>Rotate</span>
-      <input
-        type="range"
-        min={-180}
-        max={180}
-        value={selectedBlock.data.image.rotation ?? 0}
-        onChange={(e) =>
-          updateSelectedImagePatch({
-            rotation: Number(e.target.value),
-          })
-        }
-        className={topBarSliderClass()}
-        title="Image rotation"
-      />
-    </div>
-  </>
-) : null}
-
-{showAppearanceControls ? (
-  <>
-    <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
-
-    <input
-      type="color"
-      value={selectedAppearance.backgroundColor ?? "#ffffff"}
-      onChange={(e) => applyFillColor(e.target.value)}
-      className={topBarColorClass(false)}
-      title="Fill color"
-    />
-
-    <button
-      type="button"
-      className={eyedropperButtonClass()}
-      onClick={() =>
-        void pickColorWithEyeDropper((color) => {
-          applyFillColor(color);
-        })
-      }
-      title="Pick fill color from screen"
-
-      >
-        <Image
-          src="/icons/pick_color_icon.png"
-          alt="Pick Color"
-          width={20}
-          height={20}
-          className="pointer-events-none object-contain"
-        />
-      </button>
-
-    <button
-      type="button"
-      className={topBarButtonClass(false)}
-      onClick={() =>
-        applyAppearancePatch({ backgroundColor: "transparent" })
-      }
-      title="Transparent fill"
-    >
-      <Image
-        src="/icons/transparent_fill_icon.png"
-        alt="Transparent fill"
-        width={20}
-        height={20}
-        className="pointer-events-none object-contain"
-      />
-    </button>
-
-    <input
-      type="color"
-      value={selectedAppearance.borderColor ?? "#d1d5db"}
-      onChange={(e) => applyBorderColor(e.target.value)}
-      className={topBarColorClass(false)}
-      title="Border color"
-    />
-
-    <button
-      type="button"
-      className={eyedropperButtonClass()}
-      onClick={() =>
-        void pickColorWithEyeDropper((color) => {
-          applyBorderColor(color);
-        })
-      }
-      title="Pick border color from screen"
-
-      >
-        <Image
-          src="/icons/pick_color_icon.png"
-          alt="Pick Color"
-          width={20}
-          height={20}
-          className="pointer-events-none object-contain"
-        />
-      </button>
-
-    {showBorderWidthRadiusControls ? (
-      <>
-        <div className={topBarSliderWrapClass()}>
-          <span>Border</span>
-          <input
-            type="range"
-            min={0}
-            max={30}
-            value={selectedAppearance.borderWidth ?? 0}
-            onChange={(e) =>
-              applyAppearancePatch({
-                borderWidth: Number(e.target.value) || 0,
-              })
-            }
-            className={topBarSliderClass()}
-            title="Border width"
-          />
-          <span>{selectedAppearance.borderWidth ?? 0}</span>
-        </div>
-
-        <div className={topBarSliderWrapClass()}>
-          <span>Radius</span>
-          <input
-            type="range"
-            min={0}
-            max={100}
-            value={selectedAppearance.borderRadius ?? 0}
-            onChange={(e) =>
-              applyAppearancePatch({
-                borderRadius: Number(e.target.value) || 0,
-              })
-            }
-            className={topBarSliderClass()}
-            title="Corner radius"
-          />
-          <span>{selectedAppearance.borderRadius ?? 0}</span>
-        </div>
-      </>
-    ) : null}
-
-    {recentColors.length ? (
-      <>
-        <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-white/70">Recent</span>
-          <div className="flex items-center gap-1">
-            {recentColors.map((color) => (
-              <button
-                key={color}
-                type="button"
-                className={recentColorButtonClass()}
-                style={{ backgroundColor: color }}
-                onClick={() => {
-                  applyFillColor(color);
-                }}
-                title={color}
-              />
-            ))}
-          </div>
-        </div>
-      </>
-    ) : null}
-  </>
-) : null}
-</div>
-
-<div className="flex shrink-0 items-center gap-2 bg-[#2f3541]">
-  <button
-    type="button"
-    className={topBarButtonClass(false, false, true)}
-    onClick={removeAllBlocks}
-    title="Remove all blocks"
-  >
-    <Image
-      src="/icons/remove_all_icon.png"
-      alt="Remove All"
-      width={30}
-      height={30}
-      className="pointer-events-none h-[30px] w-[30px] object-contain"
-    />
-  </button>
-
-  <div className="mx-1 h-8 w-px shrink-0 bg-white/15" />
-
-  <button
-    type="button"
-    className={topBarButtonClass(false)}
-    onClick={() => void uploadPageBackgroundImage()}
-    title="Set page background image"
-  >
-    <Image
-      src="/icons/add_background_image_icon.png"
-      alt="Background Image"
-      width={30}
-      height={30}
-      className="pointer-events-none h-[30px] w-[30px] object-contain"
-    />
-  </button>
-
-  <button
-    type="button"
-    className={topBarButtonClass(
-      !(draft as DraftWithPageExtras).pageBackgroundImage,
-      !(draft as DraftWithPageExtras).pageBackgroundImage,
-    )}
-    onClick={clearPageBackgroundImage}
-    disabled={!(draft as DraftWithPageExtras).pageBackgroundImage}
-    title="Clear page background image"
-  >
-    <Image
-      src="/icons/remove_background_image_icon.png"
-      alt="Clear Background Image"
-      width={30}
-      height={30}
-      className="pointer-events-none h-[30px] w-[30px] object-contain"
-    />
-  </button>
-
-  <select
-    value={(draft as DraftWithPageExtras).pageBackgroundImageFit ?? "zoom"}
-    onChange={(e) =>
-      updatePageBackgroundImageFit(
-        e.target.value as "clip" | "zoom" | "stretch",
-      )
-    }
-    className={topBarFieldClass("w-[90px]")}
-    title="Page background fit"
-  >
-    <option value="clip">Clip</option>
-    <option value="zoom">Zoom</option>
-    <option value="stretch">Stretch</option>
-  </select>
-
-  <div className="mx-1 h-8 w-px shrink-0 bg-white/15" />
-
-  <input
-    type="color"
-    value={resolvedPageColor}
-    onChange={(e) =>
-      setDraft((prev) => ({
-        ...(prev as DraftWithPageExtras),
-        pageColor: e.target.value,
-      }))
-    }
-    className={topBarColorClass(false)}
-    title="Page color"
-  />
-
-  <button
-    type="button"
-    className={topBarButtonClass(false, canvasZoom <= MIN_CANVAS_ZOOM)}
-    onClick={zoomOutCanvas}
-    disabled={canvasZoom <= MIN_CANVAS_ZOOM}
-    title="Zoom out canvas"
-  >
-    <Image
-      src="/icons/zoom_out_icon.png"
-      alt="Remove All"
-      width={30}
-      height={30}
-      className="pointer-events-none h-[30px] w-[30px] object-contain"
-    />
-  </button>
-
-  <button
-    type="button"
-    className={topBarButtonClass(false, canvasZoom >= MAX_CANVAS_ZOOM)}
-    onClick={zoomInCanvas}
-    disabled={canvasZoom >= MAX_CANVAS_ZOOM}
-    title="Zoom in canvas"
-  >
-    <Image
-      src="/icons/zoom_in_icon.png"
-      alt="Remove All"
-      width={30}
-      height={30}
-      className="pointer-events-none h-[30px] w-[30px] object-contain"
-    />
-  </button>
-
-  <div className={infoPillClass()}>{canvasZoom}%</div>
-</div>
-        </div>
-      </div>
-
-      <AppModal
-  open={showAiSuggestions}
-  title={`Suggestions for ${selectedContext.label}`}
-  description="Artificial Intelligent Output"
-  confirmText="Close"
-  cancelText="Cancel"
-  loading={aiLoading}
-  onConfirm={() => setShowAiSuggestions(false)}
-  onCancel={() => setShowAiSuggestions(false)}
->
-  <div className="mt-4">
-    {aiLoading ? (
-      <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-6 text-sm text-neutral-600">
-        Generating suggestions...
-      </div>
-    ) : aiSuggestions.length ? (
-      <div className="space-y-3">
-        {aiSuggestions.map((suggestion, index) => (
-          <button
-            key={`${suggestion}-${index}`}
-            type="button"
-            onClick={() => applyAiSuggestion(suggestion)}
-            className="block w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 text-left text-sm text-neutral-900 hover:bg-neutral-50"
+            className={topBarFieldClass("w-[110px]")}
+            title="Button style"
           >
-            {suggestion}
+            <option value="solid">Solid</option>
+            <option value="outline">Outline</option>
+            <option value="soft">Soft</option>
+          </select>
+        </>
+      ) : null}
+
+      {showTextControls ? (
+        <>
+          <div className="mx-1 h-8 w-px shrink-0 bg-white/15" />
+
+          <button
+            type="button"
+            className={topBarButtonClass(selectedBold)}
+            onClick={() => applyStylePatch({ bold: !selectedBold })}
+            title="Bold"
+          >
+            B
           </button>
-        ))}
-      </div>
-    ) : (
-      <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-6 text-sm text-neutral-600">
-        No suggestions available.
-      </div>
-    )}
+
+          <button
+            type="button"
+            className={topBarButtonClass(selectedItalic)}
+            onClick={() => applyStylePatch({ italic: !selectedItalic })}
+            title="Italic"
+          >
+            I
+          </button>
+
+          <button
+            type="button"
+            className={topBarButtonClass(selectedUnderline)}
+            onClick={() => applyStylePatch({ underline: !selectedUnderline })}
+            title="Underline"
+          >
+            U
+          </button>
+
+          <button
+            type="button"
+            className={topBarButtonClass(selectedStrike)}
+            onClick={() => applyStylePatch({ strike: !selectedStrike })}
+            title="Strikethrough"
+          >
+            S̶
+          </button>
+
+          <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
+
+          <button
+            type="button"
+            className={topBarButtonClass(false)}
+            onClick={() => applyStylePatch({ align: "left" })}
+            title="Align left"
+          >
+            ≡
+          </button>
+
+          <button
+            type="button"
+            className={topBarButtonClass(false)}
+            onClick={() => applyStylePatch({ align: "center" })}
+            title="Align center"
+          >
+            ≣
+          </button>
+
+          <button
+            type="button"
+            className={topBarButtonClass(false)}
+            onClick={() => applyStylePatch({ align: "right" })}
+            title="Align right"
+          >
+            ☰
+          </button>
+
+          <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
+
+          <select
+            value={selectedStyle.fontFamily ?? "inherit"}
+            onChange={(e) =>
+              applyStylePatch({ fontFamily: e.target.value })
+            }
+            className={topBarFieldClass("min-w-[160px]")}
+            title="Font family"
+            style={{
+              fontFamily: resolveFontFamily(
+                selectedStyle.fontFamily ?? "inherit",
+              ),
+            }}
+          >
+            {FONT_FAMILY_OPTIONS.map((font) => (
+              <option
+                key={font}
+                value={font}
+                style={{
+                  fontFamily: resolveFontFamily(font),
+                }}
+              >
+                {font}
+              </option>
+            ))}
+          </select>
+
+          <input
+            type="number"
+            min={8}
+            max={480}
+            value={selectedStyle.fontSize ?? 16}
+            onChange={(e) =>
+              applyStylePatch({
+                fontSize: Math.max(
+                  8,
+                  Math.min(480, Number(e.target.value) || 16),
+                ),
+              })
+            }
+            className={topBarFieldClass("w-16")}
+            title="Font size"
+          />
+
+          <input
+            type="color"
+            value={selectedStyle.color ?? "#111827"}
+            onChange={(e) => applyTextColor(e.target.value)}
+            className={topBarColorClass(false)}
+            title="Text color"
+          />
+
+          <button
+            type="button"
+            className={eyedropperButtonClass()}
+            onClick={() =>
+              void pickColorWithEyeDropper((color) => {
+                applyTextColor(color);
+              })
+            }
+            title="Pick text color from screen"
+          >
+            <Image
+              src="/icons/pick_color_icon.png"
+              alt="Pick Color"
+              width={20}
+              height={20}
+              className="pointer-events-none object-contain"
+            />
+          </button>
+
+          {selectedContext.kind === "pageText" ? (
+            <>
+              <input
+                type="color"
+                value={
+                  selectedPageBackgroundColor === "transparent"
+                    ? "#ffffff"
+                    : selectedPageBackgroundColor
+                }
+                onChange={(e) => applyPageTextBoxBackground(e.target.value)}
+                className={topBarColorClass(false)}
+                title="Text box background color"
+              />
+
+              <button
+                type="button"
+                className={eyedropperButtonClass()}
+                onClick={() =>
+                  void pickColorWithEyeDropper((color) => {
+                    applyPageTextBoxBackground(color);
+                  })
+                }
+                title="Pick text box background color from screen"
+              >
+                <Image
+                  src="/icons/pick_color_icon.png"
+                  alt="Pick Color"
+                  width={20}
+                  height={20}
+                  className="pointer-events-none object-contain"
+                />
+              </button>
+
+              <button
+                type="button"
+                className={topBarButtonClass(
+                  selectedPageBackgroundColor === "transparent",
+                )}
+                onClick={clearPageTextBackgroundColor}
+                title="Transparent text box background"
+              >
+                ☐
+              </button>
+            </>
+          ) : null}
+
+          {selectedBlock?.type === "thread" ? (
+            <>
+              <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
+
+              <div className={topBarSliderWrapClass()}>
+                <span>Visible</span>
+                <input
+                  type="range"
+                  min={1}
+                  max={8}
+                  value={selectedBlock.data.maxVisibleMessages ?? 4}
+                  onChange={(e) =>
+                    updateSelectedBlock((block) =>
+                      block.type !== "thread"
+                        ? block
+                        : {
+                            ...block,
+                            data: {
+                              ...block.data,
+                              maxVisibleMessages: Math.max(
+                                1,
+                                Math.min(8, Number(e.target.value) || 4),
+                              ),
+                            },
+                          },
+                    )
+                  }
+                  className={topBarSliderClass()}
+                  title="Max visible messages"
+                />
+                <span>{selectedBlock.data.maxVisibleMessages ?? 4}</span>
+              </div>
+            </>
+          ) : null}
+        </>
+      ) : null}
+
+      {selectedBlock?.type === "image" ? (
+        <>
+          <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
+
+          <select
+            value={selectedBlock.data.image.fitMode ?? "zoom"}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "image"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        image: {
+                          ...block.data.image,
+                          fitMode: e.target.value as "clip" | "stretch" | "zoom",
+                        },
+                      },
+                    },
+              )
+            }
+            className={topBarFieldClass("w-[120px]")}
+            title="Image fit mode"
+          >
+            <option value="clip">Clip</option>
+            <option value="zoom">Zoom</option>
+            <option value="stretch">Stretch</option>
+          </select>
+
+          <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
+
+          <button
+            type="button"
+            className={topBarButtonClass(
+              (selectedBlock.data.image.frame ?? "square") === "square",
+            )}
+            onClick={() =>
+              updateSelectedBlock((block) =>
+                block.type !== "image"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        image: {
+                          ...block.data.image,
+                          frame: "square",
+                        },
+                      },
+                    },
+              )
+            }
+            title="Square frame"
+          >
+            <Image
+              src="/icons/square_icon.png"
+              alt="Square"
+              width={18}
+              height={18}
+              className="pointer-events-none"
+            />
+          </button>
+
+          <button
+            type="button"
+            className={topBarButtonClass(
+              (selectedBlock.data.image.frame ?? "square") === "circle",
+            )}
+            onClick={() =>
+              updateSelectedBlock((block) =>
+                block.type !== "image"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        image: {
+                          ...block.data.image,
+                          frame: "circle",
+                        },
+                      },
+                    },
+              )
+            }
+            title="Circle / Oval frame"
+          >
+            <Image
+              src="/icons/circle_icon.png"
+              alt="Circle"
+              width={18}
+              height={18}
+              className="pointer-events-none"
+            />
+          </button>
+
+          <button
+            type="button"
+            className={topBarButtonClass(
+              (selectedBlock.data.image.frame ?? "square") === "diamond",
+            )}
+            onClick={() =>
+              updateSelectedBlock((block) =>
+                block.type !== "image"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        image: {
+                          ...block.data.image,
+                          frame: "diamond",
+                        },
+                      },
+                    },
+              )
+            }
+            title="Diamond frame"
+          >
+            <Image
+              src="/icons/diamond_icon.png"
+              alt="Diamond"
+              width={18}
+              height={18}
+              className="pointer-events-none"
+            />
+          </button>
+
+          <button
+            type="button"
+            className={topBarButtonClass(
+              (selectedBlock.data.image.frame ?? "square") === "heart",
+            )}
+            onClick={() =>
+              updateSelectedBlock((block) =>
+                block.type !== "image"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        image: {
+                          ...block.data.image,
+                          frame: "heart",
+                        },
+                      },
+                    },
+              )
+            }
+            title="Heart frame"
+          >
+            <Image
+              src="/icons/heart_icon.png"
+              alt="Heart"
+              width={18}
+              height={18}
+              className="pointer-events-none"
+            />
+          </button>
+
+          <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
+
+          <div className={topBarSliderWrapClass()}>
+            <span>X</span>
+            <input
+              type="range"
+              min={0}
+              max={100}
+              value={selectedBlock.data.image.positionX ?? 50}
+              onChange={(e) =>
+                updateSelectedImagePatch({
+                  positionX: Number(e.target.value),
+                })
+              }
+              className={topBarSliderClass()}
+              title="Image horizontal position"
+            />
+          </div>
+
+          <div className={topBarSliderWrapClass()}>
+            <span>Y</span>
+            <input
+              type="range"
+              min={0}
+              max={100}
+              value={selectedBlock.data.image.positionY ?? 50}
+              onChange={(e) =>
+                updateSelectedImagePatch({
+                  positionY: Number(e.target.value),
+                })
+              }
+              className={topBarSliderClass()}
+              title="Image vertical position"
+            />
+          </div>
+
+          <div className={topBarSliderWrapClass()}>
+            <span>Zoom</span>
+            <input
+              type="range"
+              min={50}
+              max={300}
+              value={Math.round((selectedBlock.data.image.zoom ?? 1) * 100)}
+              onChange={(e) =>
+                updateSelectedImagePatch({
+                  zoom: Number(e.target.value) / 100,
+                })
+              }
+              className={topBarSliderClass()}
+              title="Image zoom"
+            />
+          </div>
+
+          <div className={topBarSliderWrapClass()}>
+            <span>Rotate</span>
+            <input
+              type="range"
+              min={-180}
+              max={180}
+              value={selectedBlock.data.image.rotation ?? 0}
+              onChange={(e) =>
+                updateSelectedImagePatch({
+                  rotation: Number(e.target.value),
+                })
+              }
+              className={topBarSliderClass()}
+              title="Image rotation"
+            />
+          </div>
+        </>
+      ) : null}
+
+      {showAppearanceControls ? (
+        <>
+          <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
+
+          <input
+            type="color"
+            value={selectedAppearance.backgroundColor ?? "#ffffff"}
+            onChange={(e) => applyFillColor(e.target.value)}
+            className={topBarColorClass(false)}
+            title="Fill color"
+          />
+
+          <button
+            type="button"
+            className={eyedropperButtonClass()}
+            onClick={() =>
+              void pickColorWithEyeDropper((color) => {
+                applyFillColor(color);
+              })
+            }
+            title="Pick fill color from screen"
+          >
+            <Image
+              src="/icons/pick_color_icon.png"
+              alt="Pick Color"
+              width={20}
+              height={20}
+              className="pointer-events-none object-contain"
+            />
+          </button>
+
+          <button
+            type="button"
+            className={topBarButtonClass(false)}
+            onClick={() =>
+              applyAppearancePatch({ backgroundColor: "transparent" })
+            }
+            title="Transparent fill"
+          >
+            <Image
+              src="/icons/transparent_fill_icon.png"
+              alt="Transparent fill"
+              width={20}
+              height={20}
+              className="pointer-events-none object-contain"
+            />
+          </button>
+
+          <input
+            type="color"
+            value={selectedAppearance.borderColor ?? "#d1d5db"}
+            onChange={(e) => applyBorderColor(e.target.value)}
+            className={topBarColorClass(false)}
+            title="Border color"
+          />
+
+          <button
+            type="button"
+            className={eyedropperButtonClass()}
+            onClick={() =>
+              void pickColorWithEyeDropper((color) => {
+                applyBorderColor(color);
+              })
+            }
+            title="Pick border color from screen"
+          >
+            <Image
+              src="/icons/pick_color_icon.png"
+              alt="Pick Color"
+              width={20}
+              height={20}
+              className="pointer-events-none object-contain"
+            />
+          </button>
+
+          {showBorderWidthRadiusControls ? (
+            <>
+              <div className={topBarSliderWrapClass()}>
+                <span>Border</span>
+                <input
+                  type="range"
+                  min={0}
+                  max={30}
+                  value={selectedAppearance.borderWidth ?? 0}
+                  onChange={(e) =>
+                    applyAppearancePatch({
+                      borderWidth: Number(e.target.value) || 0,
+                    })
+                  }
+                  className={topBarSliderClass()}
+                  title="Border width"
+                />
+                <span>{selectedAppearance.borderWidth ?? 0}</span>
+              </div>
+
+              <div className={topBarSliderWrapClass()}>
+                <span>Radius</span>
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  value={selectedAppearance.borderRadius ?? 0}
+                  onChange={(e) =>
+                    applyAppearancePatch({
+                      borderRadius: Number(e.target.value) || 0,
+                    })
+                  }
+                  className={topBarSliderClass()}
+                  title="Corner radius"
+                />
+                <span>{selectedAppearance.borderRadius ?? 0}</span>
+              </div>
+            </>
+          ) : null}
+
+          {recentColors.length ? (
+            <>
+              <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-white/70">Recent</span>
+                <div className="flex items-center gap-1">
+                  {recentColors.map((color) => (
+                    <button
+                      key={color}
+                      type="button"
+                      className={recentColorButtonClass()}
+                      style={{ backgroundColor: color }}
+                      onClick={() => {
+                        applyFillColor(color);
+                      }}
+                      title={color}
+                    />
+                  ))}
+                </div>
+              </div>
+            </>
+          ) : null}
+        </>
+      ) : null}
+    </div>
   </div>
-</AppModal>
-  </div>
+</div>
+
+<AppModal
+  open={showAiSuggestions}
+    title={`Suggestions for ${selectedContext.label}`}
+    description="Artificial Intelligent Output"
+    confirmText="Close"
+    cancelText="Cancel"
+    loading={aiLoading}
+    onConfirm={() => setShowAiSuggestions(false)}
+    onCancel={() => setShowAiSuggestions(false)}
+  >
+    <div className="mt-4">
+      {aiLoading ? (
+        <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-6 text-sm text-neutral-600">
+          Generating suggestions...
+        </div>
+      ) : aiSuggestions.length ? (
+        <div className="space-y-3">
+          {aiSuggestions.map((suggestion, index) => (
+            <button
+              key={`${suggestion}-${index}`}
+              type="button"
+              onClick={() => applyAiSuggestion(suggestion)}
+              className="block w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 text-left text-sm text-neutral-900 hover:bg-neutral-50"
+            >
+              {suggestion}
+            </button>
+          ))}
+        </div>
+      ) : (
+        <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-6 text-sm text-neutral-600">
+          No suggestions available.
+        </div>
+      )}
+    </div>
+  </AppModal>
+</div>
 
 <div className="flex-1 px-6 py-5">
-        <button
-          type="button"
-          className="fixed right-0 top-24 z-[65] flex h-16 w-7 items-center justify-center rounded-l-xl border border-r-0 border-neutral-300 bg-white text-neutral-600 shadow-sm transition hover:bg-neutral-50"
-          onClick={() => setInspectorCollapsed((prev) => !prev)}
-          title={inspectorCollapsed ? "Expand inspector" : "Collapse inspector"}
-        >
-          {inspectorCollapsed ? "◀" : "▶"}
-        </button>
+  <button
+    type="button"
+    className="fixed right-0 top-24 z-[65] flex h-16 w-7 items-center justify-center rounded-l-xl border border-r-0 border-neutral-300 bg-white text-neutral-600 shadow-sm transition hover:bg-neutral-50"
+    onClick={() => setInspectorCollapsed((prev) => !prev)}
+    title={inspectorCollapsed ? "Expand inspector" : "Collapse inspector"}
+  >
+    {inspectorCollapsed ? "◀" : "▶"}
+  </button>
 
+  <div
+    className={`grid items-start gap-5 ${
+      inspectorCollapsed
+        ? "xl:grid-cols-[minmax(0,1fr)]"
+        : "xl:grid-cols-[minmax(0,1fr)_340px]"
+    }`}
+  >
+    <div
+      className={`${getCanvasShellClass(designKey)} h-[calc(100vh-185px)] overflow-y-auto`}
+    >
+      <div className="flex w-full justify-center px-4 py-4">
         <div
-          className={`grid items-start gap-5 ${
-            inspectorCollapsed
-              ? "xl:grid-cols-[minmax(0,1fr)]"
-              : "xl:grid-cols-[minmax(0,1fr)_340px]"
-          }`}
+          className="w-full rounded-[8px]"
+          style={
+            {
+              zoom: canvasZoomScale,
+            } as CSSProperties
+          }
         >
-          <div
-            className={`${getCanvasShellClass(designKey)} h-[calc(100vh-185px)] overflow-y-auto`}
-          >
-            <div className="flex w-full justify-center px-4 py-4">
-              <div
-                className="w-full rounded-[8px]"
-                style={
-                  {
-                    zoom: canvasZoomScale,
-                  } as CSSProperties
-                }
-              >
-                <GridCanvas
-                  blocks={canvasItems}
-                  selection={selection as any}
-                  onSelect={handleCanvasSelect as any}
-                  onMoveBlock={handleMoveBlock}
-                  onResizeBlock={handleResizeBlock}
-                  onBringToFront={handleBringToFront}
-                  onRemoveBlock={removeCanvasBlock}
-                  onCreateToolDrop={handleCreateToolDrop}
-                  renderBlockPreview={renderCanvasPreview}
-                  isItemSelected={(blockId, nextSelection) =>
-                    isCanvasBlockSelected(nextSelection as any, blockId)
-                  }
-                  dockedScrollRef={dockedScrollRef}
-                  pageSurfaceStyle={pageSurfaceStyle}
-                />
-              </div>
-            </div>
-          </div>
+        <GridCanvas
+          blocks={canvasItems}
+          selection={selection as any}
+          onSelect={handleCanvasSelect as any}
+          onMoveBlock={handleMoveBlock}
+          onResizeBlock={handleResizeBlock}
+          onBringToFront={handleBringToFront}
+          onRemoveBlock={removeCanvasBlock}
+          onCreateToolDrop={handleCreateToolDrop}
+          renderBlockPreview={renderCanvasPreview}
+          isItemSelected={(blockId, nextSelection) =>
+            isCanvasBlockSelected(nextSelection as any, blockId)
+          }
+          dockedScrollRef={dockedScrollRef}
+          pageSurfaceStyle={pageSurfaceStyle}
+        />
+        </div>
+      </div>
+    </div>
 
           {!inspectorCollapsed ? (
             <div className="h-[calc(100vh-185px)] overflow-y-auto pr-2">
@@ -5612,11 +5735,11 @@ return (
               </div>
 
               <div className="flex max-w-[400px] flex-wrap gap-2">
-                {CATEGORY_BUTTONS[category].map((tool) => (
-                  <button
-                    key={`${category}-${tool.kind}-${tool.type}`}
-                    type="button"
-                    className={toolButtonClass()}
+{CATEGORY_BUTTONS[category].map((tool, index) => (
+  <button
+    key={`${category}-${tool.kind}-${tool.type}-${index}`}
+    type="button"
+    className={toolButtonClass()}
                     onClick={() => {
                       if (tool.kind === "block") addBlock(tool.type);
                       if (tool.kind === "shape") addShape(tool.type);

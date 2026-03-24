@@ -1,11 +1,11 @@
 import { createLayoutPreset } from "../../shared";
 
 export default createLayoutPreset({
-  designKey: "modern",
+  designKey: "photo",
 
-  label: "Modern Minimal",
-  description: "Clean simple distraction-free",
-  thumbnail: "/designs/design_wedding-modern.webp",
+  label: "Photo Timeline",
+  description: "Chronological visual storytelling",
+  thumbnail: "/designs/design_baby_shower-playful.webp",
 
   recommended: false,
 
@@ -20,45 +20,45 @@ export default createLayoutPreset({
      Use the built-in page text slots first.
      For any extra text beyond these, use optionalBlocks with type: "label".
   ======================================================= */
-/* 
+
   title: {
-    text: "Lucy & Ricky",
-    placement: { x: 3, y: 2.6, width: 8, height: 2, zIndex: 10 },
+    text: "Baby Shower",
+    placement: { x: 3.1, y: 4.4, width: 8, height: 2, zIndex: 10 },
     style: {
-      fontFamily: "Great Vibes",
-      fontSize: 200,
+      fontFamily: "Pacifico",
+      fontSize: 160,
       align: "center",
-      bold: false,
-      color: "#646462",
-    },
-  },
- */
-/* 
-  subtitle: {
-    text: "ARE GETTING MARRIED",
-    placement: { x: 3, y: 4.3, width: 8, height: 1, zIndex: 11 },
-    style: {
-      fontFamily: "Cormorant Garamond",
-      fontSize: 60,
-      align: "center",
-      color: "#374151",
-    },
-  },
- */
-/* 
-  subtitleSecondary: {
-    text: "November 30, 1940",
-    placement: { x: 3, y: 5, width: 8, height: 1, zIndex: 12 },
-    style: {
-      fontFamily: "Cormorant Garamond",
-      fontSize: 106,
-      italic: true,
       bold: true,
+      color: "#5F8CCA",
+    },
+  },
+  
+  subtitle: {
+    text: "Astird",
+    placement: { x: 2.9, y: 6.5, width: 8, height: 3, zIndex: 11 },
+    style: {
+      fontFamily: "Pacifico",
+      fontSize: 190,
       align: "center",
-      color: "#374151",
+      bold: true,
+      color: "#FBA19F",
     },
   },
 
+  subtitleSecondary: {
+    text: "Thursday, October 16, 2008 @ 2pm\nScranton Business Park Conference Room\n1725 Slough Avenue Scranton, PA 18540",
+    placement: { x: 3, y: 10, width: 8, height: 3, zIndex: 12 },
+    style: {
+      fontFamily: "Inherit",
+      fontSize:40,
+      italic: true,
+      // bold: true,
+      align: "center",
+      color: "#70B3E4",
+    },
+  },
+
+/* 
   tagline: {
     text: "Kindly RSVP",
     placement: { x: 4.4, y: 6.4, width: 5, height: 1, zIndex: 13 },
@@ -91,9 +91,9 @@ export default createLayoutPreset({
        DECORATIVE IMAGE / PLAQUE
     ------------------------------------------------------- */
     
-    {
+    /* {
       type: "image",
-      placement: { x: 4.5, y: 2.7, width: 5, height: 10, zIndex: 1 },
+      placement: { x: 4.7, y: 2.7, width: 5, height: 10, zIndex: 1 },
       config: {
         src: "/designs/artifacts/bride_groom1.png",
         fit: "cover",
@@ -101,7 +101,7 @@ export default createLayoutPreset({
         zoom: 1,
         rotation: 0,
       },
-    },
+    }, */
 
     /* -------------------------------------------------------
        DECORATIVE LINES
@@ -148,33 +148,32 @@ export default createLayoutPreset({
         },
       },
     },
-
+*/
     {
       type: "label",
-      placement: { x: 7.25, y: 7.8, width: 4, height: 1, zIndex: 16 },
+      placement: { x: 5, y: 3.9, width: 4, height: 1, zIndex: 16 },
       config: {
-        label: "Declines Line",
-        text: "Declines with Regret",
+        label: "",
+        text: "Join us for a",
         style: {
           fontFamily: "Georgia",
-          fontSize: 40,
+          fontSize: 48,
           italic: true,
           align: "center",
           color: "#61605F",
         },
       },
     },
- */
     
     {
       type: "label",
-      placement: { x: 0, y: 10.8, width: 14, height: 1, zIndex: 16 },
+      placement: { x: 1.0, y: 6.0, width: 12, height: 1, zIndex: 16 },
       config: {
-        label: "Tagline 1",
-        text: "JOIN US AS WE BEGIN\nOUR GREATEST ADVENTURE",
+        label: "",
+        text: "honoring",
         style: {
           fontFamily: "Cormorant Garamond",
-          fontSize: 84,
+          fontSize: 44,
           italic: true,
           align: "center",
           color: "#525536",
@@ -182,9 +181,9 @@ export default createLayoutPreset({
       },
     },
     
-    {
+/*     {
       type: "label",
-      placement: { x: 0, y: 12.4, width: 14, height: 1, zIndex: 16 },
+      placement: { x: 3, y: 12.4, width: 8, height: 1, zIndex: 16 },
       config: {
         label: "Tagline 2",
         text: "Two hearts, one day, a lifetime to follow",
@@ -197,13 +196,13 @@ export default createLayoutPreset({
         },
       },
     },
-    
+     */
 
     /* -------------------------------------------------------
        OTHER AVAILABLE TOOLS (COMMENTED OUT)
     ------------------------------------------------------- */
 
-    {
+   /*  {
       type: "shape",
       placement: { x: -4.2, y: 10.5, width: 22.5, height: 30, zIndex: 3 },
       config: {
@@ -211,7 +210,7 @@ export default createLayoutPreset({
         backgroundColor: "#F1EAE2",
       },
     },
-
+ */
     /*
     {
       type: "shape",
@@ -226,28 +225,52 @@ export default createLayoutPreset({
 
     {
       type: "cta",
-      placement: { x: 5.4, y: 9, width: 3, height: 1, zIndex: 5 },
+      placement: { x: 3.8, y: 8.6, width: 3, height: 1, zIndex: 5 },
       config: {
-        buttonText: "RSVP",
+        buttonText: "I will be there",
         buttonUrl: "#",
 
         appearance: {
-          backgroundColor: "#F1EAE2",
+          backgroundColor: "#FDD487",
           borderRadius: 9999,
-          borderColor: "#000000",
+          // borderColor: "#000000",
           borderWidth: 2
         },
 
         style: {
           fontFamily: "Inter",
-          fontSize: 60,
+          fontSize: 44,
           bold: true,
           align: "center",
-          color: "#000000"
+          color: "#FFFFFF"
         }
       }
     },
+    
+    {
+      type: "cta",
+      placement: { x: 7.2, y: 8.6, width: 3, height: 1, zIndex: 5 },
+      config: {
+        buttonText: "Sorry, can't make it",
+        buttonUrl: "#",
 
+        appearance: {
+          backgroundColor: "#94CEF3",
+          borderRadius: 9999,
+          // borderColor: "#000000",
+          borderWidth: 2
+        },
+
+        style: {
+          fontFamily: "Inter",
+          fontSize: 44,
+          bold: true,
+          align: "center",
+          color: "#FFFFFF"
+        }
+      }
+    },
+/* 
     {
   type: "links",
   placement: { x: 1, y: 1.4, width: 12, height: 2, zIndex: 6 },
@@ -271,7 +294,7 @@ export default createLayoutPreset({
     },
   },
 },
-
+ */
     /*
     {
       type: "gallery",

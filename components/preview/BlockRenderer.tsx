@@ -33,10 +33,38 @@ import {
   Crimson_Text,
 } from "next/font/google";
 
+import {
+  Anton,
+  Bangers,
+  Orbitron,
+  Righteous,
+  Alfa_Slab_One,
+  Permanent_Marker,
+  Caveat,
+  Indie_Flower,
+  Exo_2,
+  Rajdhani,
+  Teko,
+  Abril_Fatface,
+} from "next/font/google";
+
 type Props = {
   block: MicrositeBlock;
   designKey?: string;
 };
+
+const anton = Anton({ subsets: ["latin"], weight: "400" });
+const bangers = Bangers({ subsets: ["latin"], weight: "400" });
+const orbitron = Orbitron({ subsets: ["latin"] });
+const righteous = Righteous({ subsets: ["latin"], weight: "400" });
+const alfa = Alfa_Slab_One({ subsets: ["latin"], weight: "400" });
+const marker = Permanent_Marker({ subsets: ["latin"], weight: "400" });
+const caveat = Caveat({ subsets: ["latin"] });
+const indie = Indie_Flower({ subsets: ["latin"], weight: "400" });
+const exo = Exo_2({ subsets: ["latin"] });
+const rajdhani = Rajdhani({ subsets: ["latin"], weight: ["400", "600"] });
+const teko = Teko({ subsets: ["latin"] });
+const abril = Abril_Fatface({ subsets: ["latin"], weight: "400" });
 
 const FONT_FAMILY_MAP: Record<string, string> = {
   Inter: 'var(--font-inter), Inter, ui-sans-serif, system-ui, sans-serif',
@@ -119,6 +147,18 @@ const FONT_FAMILY_MAP: Record<string, string> = {
     'var(--font-bodoni-moda), "Bodoni Moda", ui-serif, Georgia, serif',
   "IBM Plex Serif":
     'var(--font-ibm-plex-serif), "IBM Plex Serif", ui-serif, Georgia, serif',
+
+    Anton: `${anton.style.fontFamily}, sans-serif`,
+Bangers: `${bangers.style.fontFamily}, cursive`,
+Orbitron: `${orbitron.style.fontFamily}, sans-serif`,
+Righteous: `${righteous.style.fontFamily}, cursive`,
+"Alfa Slab One": `${alfa.style.fontFamily}, serif`,
+"Permanent Marker": `${marker.style.fontFamily}, cursive`,
+Caveat: `${caveat.style.fontFamily}, cursive`,
+"Indie Flower": `${indie.style.fontFamily}, cursive`,
+"Exo 2": `${exo.style.fontFamily}, sans-serif`,
+Rajdhani: `${rajdhani.style.fontFamily}, sans-serif`,
+Teko: `${teko.style.fontFamily}, sans-serif`,
 };
 
 function resolveFontFamily(fontFamily?: string) {
@@ -458,21 +498,79 @@ function renderCta(
   designKey?: string,
 ) {
   const appearance = getAppearanceStyle(block);
+  const style = getContainerTextStyle(block.data.style, designKey);
+  const buttonStyleType = (block.data as typeof block.data & {
+    styleType?: "solid" | "outline" | "soft";
+  }).styleType ?? "solid";
+
+  const justifyContent =
+    block.data.style?.align === "left"
+      ? "flex-start"
+      : block.data.style?.align === "right"
+        ? "flex-end"
+        : "center";
+
+  const solidStyle: React.CSSProperties = {
+    background:
+      appearance.backgroundColor && appearance.backgroundColor !== "transparent"
+        ? appearance.backgroundColor
+        : "#111827",
+    color: style.color || "#ffffff",
+    borderColor: appearance.borderColor || "transparent",
+    borderWidth: appearance.borderWidth,
+    borderStyle: appearance.borderStyle,
+    borderRadius: appearance.borderRadius,
+  };
+
+  const outlineStyle: React.CSSProperties = {
+    background: "transparent",
+    color: style.color || appearance.borderColor || "#111827",
+    borderColor: appearance.borderColor || "#111827",
+    borderWidth:
+      typeof appearance.borderWidth === "string"
+        ? appearance.borderWidth
+        : "1px",
+    borderStyle: "solid",
+    borderRadius: appearance.borderRadius,
+  };
+
+  const softStyle: React.CSSProperties = {
+    background:
+      appearance.backgroundColor && appearance.backgroundColor !== "transparent"
+        ? appearance.backgroundColor
+        : "rgba(17, 24, 39, 0.10)",
+    color: style.color || "#111827",
+    borderColor: appearance.borderColor || "transparent",
+    borderWidth: appearance.borderWidth,
+    borderStyle: appearance.borderStyle,
+    borderRadius: appearance.borderRadius,
+  };
+
+  const variantStyle =
+    buttonStyleType === "outline"
+      ? outlineStyle
+      : buttonStyleType === "soft"
+        ? softStyle
+        : solidStyle;
 
   return (
     <div className="h-full w-full">
       <div
-        className={getButtonClass(designKey)}
+        className="flex h-full w-full px-4 py-2"
         style={{
-          ...getButtonTextStyle(block.data.style, designKey),
-          background: appearance.backgroundColor || undefined,
-          borderRadius: appearance.borderRadius,
-          borderColor: appearance.borderColor,
-          borderWidth: appearance.borderWidth,
-          borderStyle: appearance.borderStyle,
+          justifyContent,
+          textAlign: block.data.style?.align ?? "center",
         }}
       >
-        {block.data.buttonText || "Button"}
+        <div
+          className="inline-flex items-center justify-center px-5 py-2"
+          style={{
+            ...style,
+            ...variantStyle,
+          }}
+        >
+          {block.data.buttonText || "Button"}
+        </div>
       </div>
     </div>
   );
@@ -1250,6 +1348,11 @@ function renderTextFx(
   const rotation = fx.rotation ?? 0;
   const opacity = fx.opacity ?? 1;
 
+  const outline = fx.outline || {};
+  const outlineEnabled = outline.enabled;
+  const outlineColor = outline.color || "#000000";
+  const outlineWidth = outline.width ?? 2;
+
   if (mode === "straight") {
     return (
       <div className="h-full w-full p-2" style={getAppearanceStyle(block)}>
@@ -1258,6 +1361,9 @@ function renderTextFx(
             ...style,
             transform: `rotate(${rotation}deg)`,
             opacity,
+            WebkitTextStroke: outlineEnabled
+              ? `${outlineWidth}px ${outlineColor}`
+              : undefined,
           }}
         >
           {text}
@@ -1265,68 +1371,97 @@ function renderTextFx(
       </div>
     );
   }
+const fontSize =
+  typeof block.data.style?.fontSize === "number"
+    ? block.data.style.fontSize
+    : 48;
 
-  const radius = 120 + intensity * 2;
-  const viewBoxSize = radius * 2 + 40;
-  const pathId = `textfx-path-${block.id}`;
+const radius = 120 + intensity * 2;
+const horizontalPadding = 20;
+const topPadding = Math.max(40, fontSize * 1.1);
+const bottomPadding = Math.max(32, fontSize * 0.65);
 
-  let path = "";
+const viewBoxWidth = radius * 2 + horizontalPadding * 2;
+const viewBoxHeight = radius * 2 + topPadding + bottomPadding;
+const centerX = viewBoxWidth / 2;
+const centerY = topPadding + radius;
 
-  if (mode === "arch") {
-    path = `
-      M 20 ${radius + 20}
-      A ${radius} ${radius} 0 0 1 ${viewBoxSize - 20} ${radius + 20}
-    `;
-  }
+const stableTextFxKey = [
+  block.type,
+  block.data.text || "",
+  mode,
+  intensity,
+  rotation,
+  opacity,
+  block.data.style?.fontFamily || "",
+  block.data.style?.fontSize || "",
+  block.data.style?.color || "",
+].join("|");
 
-  if (mode === "dip") {
-    path = `
-      M 20 ${radius + 20}
-      A ${radius} ${radius} 0 0 0 ${viewBoxSize - 20} ${radius + 20}
-    `;
-  }
+const pathId = `textfx-path-${stableTextFxKey
+  .toLowerCase()
+  .replace(/[^a-z0-9]+/g, "-")
+  .replace(/^-+|-+$/g, "")
+  .slice(0, 120)}`;
 
-  if (mode === "circle") {
-    path = `
-      M ${viewBoxSize / 2}, ${viewBoxSize / 2}
-      m -${radius}, 0
-      a ${radius},${radius} 0 1,1 ${radius * 2},0
-      a ${radius},${radius} 0 1,1 -${radius * 2},0
-    `;
-  }
+let path = "";
 
-  return (
-    <div
-      className="flex h-full w-full items-center justify-center"
-      style={getAppearanceStyle(block)}
-    >
-      <svg
-        width="100%"
-        height="100%"
-        viewBox={`0 0 ${viewBoxSize} ${viewBoxSize}`}
-        style={{
-          transform: `rotate(${rotation}deg)`,
-          opacity,
-        }}
+if (mode === "arch") {
+  path = `
+    M ${horizontalPadding} ${centerY}
+    A ${radius} ${radius} 0 0 1 ${viewBoxWidth - horizontalPadding} ${centerY}
+  `;
+}
+
+if (mode === "dip") {
+  path = `
+    M ${horizontalPadding} ${topPadding}
+    A ${radius} ${radius} 0 0 0 ${viewBoxWidth - horizontalPadding} ${topPadding}
+  `;
+}
+if (mode === "circle") {
+  path = `
+    M ${centerX}, ${centerY}
+    m -${radius}, 0
+    a ${radius},${radius} 0 1,1 ${radius * 2},0
+    a ${radius},${radius} 0 1,1 -${radius * 2},0
+  `;
+}
+
+return (
+<div
+  className="h-full w-full overflow-visible"
+  style={getAppearanceStyle(block)}
+>
+<svg
+  width="100%"
+  height="100%"
+  viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`}
+  preserveAspectRatio="xMidYMin meet"
+  style={{
+    transform: `rotate(${rotation}deg)`,
+    opacity,
+    overflow: "visible",
+  }}
+>
+      <defs>
+        <path id={pathId} d={path} fill="none" />
+      </defs>
+
+      <text
+        fill={style.color || "#000"}
+        fontFamily={style.fontFamily}
+        fontSize={style.fontSize}
+        fontWeight={style.fontWeight}
+        fontStyle={style.fontStyle}
       >
-        <defs>
-          <path id={pathId} d={path} fill="none" />
-        </defs>
-
-        <text
-          fill={style.color || "#000"}
-          fontFamily={style.fontFamily}
-          fontSize={style.fontSize}
-          fontWeight={style.fontWeight}
-          fontStyle={style.fontStyle}
-        >
-          <textPath href={`#${pathId}`} startOffset="50%" textAnchor="middle">
-            {text}
-          </textPath>
-        </text>
-      </svg>
-    </div>
-  );
+        <textPath href={`#${pathId}`} startOffset="50%" textAnchor="middle">
+          {text}
+        </textPath>
+      </text>
+    </svg>
+  </div>
+);
 }
 
 export default function BlockRenderer({

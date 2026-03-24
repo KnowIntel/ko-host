@@ -14,20 +14,19 @@ export type PageTextBlockType =
 
 export type OptionalBlockType =
   | "label"
+  | "text_fx"
   | "image"
-  | "links"
+  | "shape"
   | "cta"
+  | "links"
+  | "gallery"
+  | "showcase"
   | "countdown"
-  | "padding"
   | "poll"
   | "rsvp"
   | "faq"
-  | "gallery"
   | "thread"
-  | "showcase"
-  | "festiveBackground"
-  | "shape"
-  | "spacer";
+  | "padding";
 
 export interface LayoutCardMetadata {
   label: string;

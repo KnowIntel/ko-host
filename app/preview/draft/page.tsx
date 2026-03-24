@@ -1,3 +1,4 @@
+// app\preview\draft\page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -92,7 +93,7 @@ export default function PreviewDraftPage() {
   if (!isReady) {
     return (
       <main className="bg-[#fcfbf8] px-4 py-16">
-        <div className="mx-auto max-w-4xl rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
+        <div className="w-full rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
           <div className="text-sm font-medium text-neutral-900">
             Loading page...
           </div>
@@ -104,7 +105,7 @@ export default function PreviewDraftPage() {
   if (!payload?.draft) {
     return (
       <main className="bg-[#fcfbf8] px-4 py-16">
-        <div className="mx-auto max-w-4xl rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
+        <div className="w-full rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
           <div className="text-base font-semibold text-neutral-900">
             Waiting for preview...
           </div>
@@ -119,7 +120,7 @@ export default function PreviewDraftPage() {
   return (
     <>
       <main className="overflow-x-hidden bg-[#fcfbf8] text-neutral-900">
-        <div className="mx-auto max-w-7xl px-4 py-10">
+        <div className="w-full px-4 py-10">
           <PlacedBlocksPreview
             draft={payload.draft}
             designKey={payload.designLayout}

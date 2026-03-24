@@ -3,6 +3,7 @@ import type {
   MicrositeBlock,
   ImageBlock,
   LabelBlock,
+  TextFxBlock,
   ShapeBlock,
   GalleryBlock,
   CtaBlock,
@@ -109,6 +110,58 @@ function makeConfiguredLabelBlock(config: OptionalBlockConfig): LabelBlock {
       style: {
         ...createDefaultTextStyle(),
         ...(config.config?.style || {}),
+      },
+    },
+  };
+}
+
+function makeTextFxBlock(config: OptionalBlockConfig): TextFxBlock {
+  return {
+    id: makeId("textfx"),
+    type: "text_fx",
+    label: config.config?.label || "TextFX",
+    grid: toGrid(config.placement, { colSpan: 6, rowSpan: 2 }),
+    appearance: {
+      ...createDefaultBlockAppearance(),
+      backgroundColor: config.config?.backgroundColor ?? "transparent",
+      borderColor: config.config?.borderColor ?? "#D1D5DB",
+      borderWidth:
+        typeof config.config?.borderWidth === "number"
+          ? config.config.borderWidth
+          : 0,
+      borderRadius:
+        typeof config.config?.borderRadius === "number"
+          ? config.config.borderRadius
+          : 0,
+    },
+    data: {
+      text: config.config?.text || "TextFX",
+      style: {
+        ...createDefaultTextStyle(),
+        ...(config.config?.style || {}),
+      },
+      fx: {
+        mode: config.config?.fx?.mode || "straight",
+        intensity:
+          typeof config.config?.fx?.intensity === "number"
+            ? config.config.fx.intensity
+            : 50,
+        rotation:
+          typeof config.config?.fx?.rotation === "number"
+            ? config.config.fx.rotation
+            : 0,
+        opacity:
+          typeof config.config?.fx?.opacity === "number"
+            ? config.config.fx.opacity
+            : 1,
+        outline: {
+          enabled: config.config?.fx?.outline?.enabled ?? false,
+          color: config.config?.fx?.outline?.color || "#000000",
+          width:
+            typeof config.config?.fx?.outline?.width === "number"
+              ? config.config.fx.outline.width
+              : 2,
+        },
       },
     },
   };
@@ -222,13 +275,33 @@ function makeCtaBlock(config: OptionalBlockConfig): CtaBlock {
     grid: toGrid(config.placement, { colSpan: 3, rowSpan: 1 }),
     appearance: {
       ...createDefaultBlockAppearance(),
-      ...(config.config?.appearance || {}),
+      backgroundColor:
+        config.config?.backgroundColor ??
+        config.config?.appearance?.backgroundColor ??
+        createDefaultBlockAppearance().backgroundColor,
+      borderColor:
+        config.config?.borderColor ??
+        config.config?.appearance?.borderColor ??
+        createDefaultBlockAppearance().borderColor,
+      borderWidth:
+        typeof config.config?.borderWidth === "number"
+          ? config.config.borderWidth
+          : typeof config.config?.appearance?.borderWidth === "number"
+            ? config.config.appearance.borderWidth
+            : createDefaultBlockAppearance().borderWidth,
+      borderRadius:
+        typeof config.config?.borderRadius === "number"
+          ? config.config.borderRadius
+          : typeof config.config?.appearance?.borderRadius === "number"
+            ? config.config.appearance.borderRadius
+            : createDefaultBlockAppearance().borderRadius,
     },
     data: {
       heading: config.config?.heading || "",
       body: config.config?.body || "",
       buttonText: config.config?.buttonText || "Learn More",
       buttonUrl: config.config?.buttonUrl || "#",
+      styleType: config.config?.styleType || "solid",
       style: {
         ...createDefaultTextStyle(),
         ...(config.config?.style || {}),
@@ -437,6 +510,8 @@ function optionalConfigToBlock(config: OptionalBlockConfig): MicrositeBlock | nu
   switch (config.type) {
     case "label":
       return makeConfiguredLabelBlock(config);
+    case "text_fx":
+      return makeTextFxBlock(config);
     case "image":
       return makeImageBlock(config);
     case "shape":
@@ -459,16 +534,12 @@ function optionalConfigToBlock(config: OptionalBlockConfig): MicrositeBlock | nu
       return makeThreadBlock(config);
     case "showcase":
       return makeShowcaseBlock(config);
-    case "festiveBackground":
-      return makeFestiveBackgroundBlock(config);
     case "padding":
-    case "spacer":
       return makePaddingBlock(config);
     default:
       return null;
   }
 }
-
 export function createDraftFromLayoutDefinition(args: {
   templateKey: string;
   layout: DesignLayoutDefinition;
