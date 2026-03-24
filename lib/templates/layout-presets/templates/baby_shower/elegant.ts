@@ -5,7 +5,7 @@ export default createLayoutPreset({
 
   label: "Elegant Floral",
   description: "Soft florals elegant styling",
-  thumbnail: "/designs/design_baby_shower-elegant.webp",
+  thumbnail: "/designs/design_baby_shower-elegant.png",
 
   recommended: true,
 

@@ -214,7 +214,7 @@ export default async function PublishedMicrositePage({
   return (
     <>
       <main className="min-h-screen bg-[#fcfbf8] text-neutral-900">
-        <div className="w-full px-4 py-10">
+        <div className="w-full">
           <PlacedBlocksPreview
             draft={draft}
             designKey={designKey}
