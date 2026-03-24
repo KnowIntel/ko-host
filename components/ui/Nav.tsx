@@ -36,7 +36,7 @@ const designsHref = currentTemplate
   : "/templates";
 
   return (
-    <header className="border-b border-neutral-200 bg-white">
+    <header className="fixed inset-x-0 top-0 z-[100] border-b border-neutral-200 bg-white">
       <Container className="relative flex h-16 items-center justify-between gap-4">
         <Link
           href="/"
