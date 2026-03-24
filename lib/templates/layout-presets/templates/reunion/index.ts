@@ -1,10 +1,10 @@
 import type { TemplateLayoutRegistry } from "../../types";
 import elegant from "./elegant";
 
-const babyshowerLayouts: TemplateLayoutRegistry = {
-  templateKey: "baby_shower",
+const reunionLayouts: TemplateLayoutRegistry = {
+  templateKey: "family_reunion",
   layouts: [elegant],
 };
 
 
-export default babyshowerLayouts;
+export default reunionLayouts;

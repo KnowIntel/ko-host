@@ -5,6 +5,7 @@ import memorial_tributeLayouts from "./templates/memorial_tribute";
 import enthusiast_networking from "./templates/enthusiast_networking";
 import birthdayLayouts from "./templates/birthday";
 import blankLayout from "./layouts/blank";
+import reunionLayouts from "./templates/reunion";
 
 const registry: Record<string, TemplateLayoutRegistry> = {
   wedding_rsvp: weddingLayouts,
@@ -12,6 +13,7 @@ const registry: Record<string, TemplateLayoutRegistry> = {
   memorial_tribute: memorial_tributeLayouts,
   enthusiast_networking: enthusiast_networking,
   birthday_party: birthdayLayouts,
+  family_reunion: reunionLayouts,
 };
 
 function withStandardLayouts(
