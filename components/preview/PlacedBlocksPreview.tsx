@@ -581,7 +581,15 @@ const showDescription =
 
           {blockEntries.map(({ block, grid }) => (
             <div key={block.id} style={getItemStyle(grid)}>
-              <div className="h-full w-full">
+              <div
+                className="h-full w-full"
+                style={{
+                  transform: "scale(0.5)",
+                  transformOrigin: "top left",
+                  width: "200%",
+                  height: "200%",
+                }}
+              >
                 <BlockRenderer block={block} designKey={designKey} />
               </div>
             </div>
