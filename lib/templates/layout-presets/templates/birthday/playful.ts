@@ -118,7 +118,7 @@ export default createLayoutPreset({
         text: "Saturday, July 21st at 7:21pm\nThe Salty Seagull Rooftop Bar\n2101 Pacific Breeze Blvd\nSan Diego, CA 92121\nContact: Randy (Sandy's brother) at (858) 555-DRNK",
         style: {
           fontFamily: "Poppins",
-          fontSize: 60,
+          fontSize: 80,
           italic: false,
           align: "center",
           color: "#000000",

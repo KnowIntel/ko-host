@@ -5235,40 +5235,105 @@ return (
                   </div>
                 ) : null}
 
-                {selectedBlock?.type === "gallery" ? (
-                  <div className={inspectorCardClass()}>
-                    <div className={inspectorLabelClass()}>Gallery</div>
+{selectedBlock?.type === "gallery" ? (
+  <div className={inspectorCardClass()}>
+    <div className={inspectorLabelClass()}>Gallery</div>
 
-                    <button
-                      type="button"
-                      className="mt-3 inline-flex h-11 items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-sm text-neutral-700 hover:bg-neutral-50"
-                      onClick={() =>
-                        void uploadGalleryImagesToBlock(selectedBlock.id)
-                      }
-                    >
-                      Add Images
-                    </button>
+    <div className="mt-4 grid grid-cols-2 gap-3">
+      <div>
+        <div className={inspectorLabelClass()}>Columns</div>
+        <input
+          type="number"
+          min={1}
+          max={12}
+          value={(selectedBlock.data as any).columns ?? 2}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "gallery"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      columns: Math.max(
+                        1,
+                        Math.min(12, Number(e.target.value) || 1),
+                      ),
+                    },
+                  },
+            )
+          }
+          className={inspectorInputClass()}
+        />
+      </div>
 
-                    <div className="mt-4 space-y-3">
-                      {selectedBlock.data.images.map((image, index) => (
-                        <div
-                          key={image.id}
-                          className="rounded-xl border border-neutral-200 bg-neutral-50 p-3"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="h-14 w-14 overflow-hidden rounded-lg border border-neutral-200 bg-white">
-                              <img
-                                src={image.url}
-                                alt=""
-                                className="h-full w-full object-cover"
-                              />
-                            </div>
+      <div>
+        <div className={inspectorLabelClass()}>Rows</div>
+        <input
+          type="number"
+          min={1}
+          max={12}
+          value={
+            (selectedBlock.data as any).rows ??
+            Math.max(
+              1,
+              Math.ceil(
+                (selectedBlock.data.images?.length ?? 0) /
+                  ((selectedBlock.data as any).columns ?? 2),
+              ),
+            )
+          }
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "gallery"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      rows: Math.max(
+                        1,
+                        Math.min(12, Number(e.target.value) || 1),
+                      ),
+                    },
+                  },
+            )
+          }
+          className={inspectorInputClass()}
+        />
+      </div>
+    </div>
 
-                            <div className="min-w-0 flex-1">
-                              <div className="text-sm font-medium text-neutral-900">
-                                Image {index + 1}
-                              </div>
-                            </div>
+    <button
+      type="button"
+      className="mt-3 inline-flex h-11 items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-sm text-neutral-700 hover:bg-neutral-50"
+      onClick={() =>
+        void uploadGalleryImagesToBlock(selectedBlock.id)
+      }
+    >
+      Add Images
+    </button>
+
+    <div className="mt-4 space-y-3">
+      {selectedBlock.data.images.map((image, index) => (
+        <div
+          key={image.id}
+          className="rounded-xl border border-neutral-200 bg-neutral-50 p-3"
+        >
+          <div className="flex items-center gap-3">
+            <div className="h-14 w-14 overflow-hidden rounded-lg border border-neutral-200 bg-white">
+              <img
+                src={image.url}
+                alt=""
+                className="h-full w-full object-cover"
+              />
+            </div>
+
+            <div className="min-w-0 flex-1">
+              <div className="text-sm font-medium text-neutral-900">
+                Image {index + 1}
+              </div>
+            </div>
 
                             <div className="flex items-center gap-2">
                               <button

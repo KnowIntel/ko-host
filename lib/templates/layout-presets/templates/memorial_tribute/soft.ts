@@ -25,7 +25,7 @@ export default createLayoutPreset({
     placement: { x: 0.96, y: 3.9, width: 12, height: 2, zIndex: 10 },
     style: {
       fontFamily: "Great Vibes",
-      fontSize: 60,
+      fontSize: 70,
       align: "center",
       bold: true,
       color: "#665642",
@@ -37,7 +37,7 @@ export default createLayoutPreset({
     placement: { x: 0.96, y: 12.6, width: 12, height: 2, zIndex: 10 },
     style: {
       fontFamily: "Great Vibes",
-      fontSize: 70,
+      fontSize: 90,
       align: "center",
       bold: false,
       color: "#FFFFFF",
@@ -154,13 +154,13 @@ export default createLayoutPreset({
   
     {
       type: "label",
-    placement: { x: 0.96, y: 13.6, width: 12, height: 2, zIndex: 10 },
+    placement: { x: 0.96, y: 13.9, width: 12, height: 2, zIndex: 10 },
       config: {
         label: "ILM Line",
         text: "In Loving Memory of\nCraig Wilson\n1957-2025",
         style: {
           fontFamily: "Georgia",
-          fontSize: 40,
+          fontSize: 70,
           italic: true,
           align: "center",
           color: "#FFFFFF",

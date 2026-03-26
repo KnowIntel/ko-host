@@ -1,13 +1,14 @@
+import { Boldonse } from "next/font/google";
 import { createLayoutPreset } from "../../shared";
 
 export default createLayoutPreset({
-  designKey: "minimal",
+  designKey: "casual",
 
-  label: "Minimal Effort",
-  description: "Clean but lazy information layout",
-  thumbnail: "/designs/design_baby_shower-elegant.webp",
+  label: "Casual Modern",
+  description: "Simple modern layout",
+  thumbnail: "/designs/backgrounds/design_blank.webp",
 
-  recommended: true,
+  recommended: false,
 
   /* =======================================================
      PAGE SETTINGS
@@ -22,14 +23,14 @@ export default createLayoutPreset({
   ======================================================= */
 
   title: {
-    text: "B R E N D A ' S   H A V I N G   A",
-    placement: { x: 1, y: 2.1, width: 12, height: 2, zIndex: 10 },
+    text: "Save the date",
+    placement: { x: 1, y: 10.4, width: 12, height: 2, zIndex: 10 },
     style: {
-      fontFamily: "Inter",
-      fontSize: 80,
+      fontFamily: "Tangerine",
+      fontSize: 140,
       align: "center",
       bold: true,
-      color: "#A9A4A0",
+      color: "#000000",
     },
   },
 /* 
@@ -58,24 +59,13 @@ export default createLayoutPreset({
   },
  */
   tagline: {
-    text: "Please join us in welcoming a beautiful baby boy:",
-    placement: { x: 1, y: 7.4, width: 12, height: 3, zIndex: 13 },
+    text: "THE CARSON FAMILY REUNION",
+    placement: { x: 1, y: 12.3, width: 12, height: 3, zIndex: 13 },
     style: {
-      fontFamily: "Bodoni Moda",
-      fontSize: 70,
+      fontFamily: "Playfair Display",
+      fontSize: 120,
       align: "center",
       color: "#646462",
-    },
-  },
-
-  taglineSecondary: {
-    text: "Tavonn Hodges",
-    placement: { x: 2.9, y: 8.4, width: 8, height: 3, zIndex: 14 },
-    style: {
-      fontFamily: "Great Vibes",
-      fontSize: 164,
-      align: "center",
-      color: "#8F8B85",
     },
   },
 
@@ -88,31 +78,87 @@ export default createLayoutPreset({
     /* -------------------------------------------------------
        DECORATIVE IMAGE / PLAQUE
     ------------------------------------------------------- */
-    /* {
+/*    {
       type: "image",
-      placement: { x: 3, y: 7.6, width: 8, height: 1, zIndex: 1 },
+      placement: { x: 0.8, y: 0.45, width: 12.4, height: 12, zIndex: 1 },
       config: {
-        src: "/designs/artifacts/champagne_plaques.png",
-        fit: "cover",
+        src: "/designs/artifacts/reunion_black_fam.png",
+        // use "contain" for clip, "fill" for stretch, or "cover" for zoom
+        fit: "fill",
         frame: "square",
         zoom: 1,
         rotation: 0,
+        positionX: 50,
+        positionY: 60,
       },
     }, */
 
     /* -------------------------------------------------------
        DECORATIVE LINES
     ------------------------------------------------------- */
-  /*   {
-      type: "shape",
-      placement: { x: 3, y: 4.2, width: 2, height: 1, zIndex: 2 },
-      config: {
-        shapeType: "line",
-        borderColor: "#DDD8D2",
-        borderWidth: 8,
-      },
-    },
+/* {
+  type: "shape",
+  placement: { x: 1, y: 15.5, width: 4.5, height: 1, zIndex: 2 },
+  config: {
+    shapeType: "line",
+    borderColor: "#B49344",
+    borderWidth: 8,
+    // rotation: 180, // 👈 ADD THIS (degrees)
+  },
+}, */
+/* {
+  type: "shape",
+  placement: { x: 8.25, y: 15.5, width: 4.5, height: 1, zIndex: 2 },
+  config: {
+    shapeType: "line",
+    borderColor: "#B49344",
+    borderWidth: 8,
+    // rotation: 180, // 👈 ADD THIS (degrees)
+  },
+}, */
+/* {
+  type: "shape",
+  placement: { x: 11.24, y: 12.65, width: 2.9, height: 2, zIndex: 2 },
+  config: {
+    shapeType: "line",
+    borderColor: "#B49344",
+    borderWidth: 10,
+    rotation: 90, // 👈 ADD THIS (degrees)
+  },
+}, */
+/* {
+  type: "shape",
+  placement: { x: 11.25, y: 10.83, width: 1.5, height: 1, zIndex: 2 },
+  config: {
+    shapeType: "line",
+    borderColor: "#B49344",
+    borderWidth: 12,
+    // rotation: 180, // 👈 ADD THIS (degrees)
+  },
+}, */
+/* {
+  type: "shape",
+  placement: { x: -0.19, y: 13.05, width: 2.9, height: 1.2, zIndex: 2 },
+  config: {
+    shapeType: "line",
+    borderColor: "#B49344",
+    borderWidth: 12,
+    rotation: 90, // 👈 ADD THIS (degrees)
+  },
+}, */
+/* {
+  type: "shape",
+  placement: { x: 1.21, y: 10.83, width: 1.5, height: 1, zIndex: 2 },
+  config: {
+    shapeType: "line",
+    borderColor: "#B49344",
+    borderWidth: 12,
+    // rotation: 180, // 👈 ADD THIS (degrees)
+  },
+}, */
 
+
+ /*
     {
       type: "shape",
       placement: { x: 9, y: 4.2, width: 2, height: 1, zIndex: 2 },
@@ -128,37 +174,70 @@ export default createLayoutPreset({
        Use label blocks whenever you need more text than the
        built-in page text fields allow.
     ------------------------------------------------------- */
-    /* {
+   {
       type: "label",
-      placement: { x: 2.6, y: 7.8, width: 4, height: 1, zIndex: 15 },
+      placement: { x: 0.53, y: 4.4, width: 5, height: 1, zIndex: 15 },
       config: {
-        label: "Accepts Line",
-        text: "Accepts with Pleasure",
+        label: "Date Secion 1",
+        text: "10",
         style: {
           fontFamily: "Georgia",
-          fontSize: 40,
-          italic: true,
+          fontSize: 1140,
+          bold: true,
           align: "center",
-          color: "#61605F",
+          color: "#FFFFFF",
         },
       },
     },
 
-    {
+       {
       type: "label",
-      placement: { x: 7.25, y: 7.8, width: 4, height: 1, zIndex: 16 },
+      placement: { x: 4.47, y: 4.4, width: 5, height: 1, zIndex: 15 },
       config: {
-        label: "Declines Line",
-        text: "Declines with Regret",
+        label: "Date Secion 1",
+        text: "24",
         style: {
           fontFamily: "Georgia",
-          fontSize: 40,
-          italic: true,
+          fontSize: 1140,
+          bold: true,
           align: "center",
-          color: "#61605F",
+          color: "#FFFFFF",
         },
       },
-    }, */
+    },
+
+       {
+      type: "label",
+      placement: { x: 8.44, y: 4.4, width: 5, height: 1, zIndex: 15 },
+      config: {
+        label: "Date Secion 1",
+        text: "26",
+        style: {
+          fontFamily: "Georgia",
+          fontSize: 1140,
+          bold: true,
+          align: "center",
+          color: "#FFFFFF",
+        },
+      },
+    },
+
+  
+    {
+      type: "label",
+      placement: { x: 1, y: 14.8, width: 12, height: 1, zIndex: 16 },
+      config: {
+        label: "Location Line",
+        text: "12 Noon | MacArthur Park | Westlake, Downtown | Long Beach, CA",
+        style: {
+          fontFamily: "Marcellus",
+          fontSize: 120,
+          italic: false,
+          align: "center",
+          color: "#000000",
+        },
+      },
+    },
 
 /*     
     {
@@ -177,21 +256,24 @@ export default createLayoutPreset({
       },
     }, */
     
-    {
+
+    
+/*     {
       type: "label",
-      placement: { x: 0.9, y: 10, width: 12, height: 4, zIndex: 16 },
+      placement: { x: 0.9, y: 14.7, width: 12, height: 4, zIndex: 16 },
       config: {
         label: "Logistics Info 2",
-        text: "Saturday, June 1, 1991 from 2:00 PM – 5:00 PM\nCalifornia Love Community Garden Pavilion\n1996 West Coast Drive Oakland, CA 94612\nHosted By Sharon & Keisha",
+        text: "78th Annual Family Reunion",
         style: {
           fontFamily: "Playfair Display",
-          fontSize: 50,
-          italic: true,
+          fontSize: 110,
+          italic: false,
           align: "center",
-          color: "#A39F9A",
+          color: "#646462",
         },
       },
-    },
+    }, */
+    
 
     /* -------------------------------------------------------
        OTHER AVAILABLE TOOLS (COMMENTED OUT)
@@ -245,20 +327,20 @@ export default createLayoutPreset({
     },
     */
 
-    /*
+  
     {
       type: "gallery",
-      placement: { x: 6, y: 10, width: 6, height: 3, zIndex: 7 },
+      placement: { x: 1, y: 1.5, width: 12, height: 9, zIndex: 7 },
       config: {
         grid: 3,
         images: [
-          { url: "/photos/photo1.jpg" },
-          { url: "/photos/photo2.jpg" },
-          { url: "/photos/photo3.jpg" },
+          { url: "/designs/artifacts/reunion_white_fam_1.png" },
+          { url: "/designs/artifacts/reunion_white_fam_2.png" },
+          { url: "/designs/artifacts/reunion_white_fam_3.png" },
         ],
       },
     },
-    */
+
 
     /*
     {

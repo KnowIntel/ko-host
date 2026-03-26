@@ -50,7 +50,7 @@ export default createLayoutPreset({
     placement: { x: 3, y: 12.2, width: 8, height: 3, zIndex: 12 },
     style: {
       fontFamily: "Inherit",
-      fontSize:40,
+      fontSize:90,
       italic: true,
       // bold: true,
       align: "center",
@@ -157,7 +157,7 @@ export default createLayoutPreset({
         text: "Join us for a",
         style: {
           fontFamily: "Georgia",
-          fontSize: 48,
+          fontSize: 90,
           italic: true,
           align: "center",
           color: "#61605F",
@@ -173,7 +173,7 @@ export default createLayoutPreset({
         text: "honoring",
         style: {
           fontFamily: "Cormorant Garamond",
-          fontSize: 44,
+          fontSize: 86,
           italic: true,
           align: "center",
           color: "#525536",
@@ -227,7 +227,7 @@ export default createLayoutPreset({
       type: "cta",
       placement: { x: 3.8, y: 10.5, width: 3, height: 1, zIndex: 5 },
       config: {
-        buttonText: "I will be there",
+        buttonText: "  I will be there  ",
         buttonUrl: "#",
 
         appearance: {
@@ -239,7 +239,7 @@ export default createLayoutPreset({
 
         style: {
           fontFamily: "Inter",
-          fontSize: 44,
+          fontSize: 84,
           bold: true,
           align: "center",
           color: "#FFFFFF"
@@ -251,7 +251,7 @@ export default createLayoutPreset({
       type: "cta",
       placement: { x: 7.2, y: 10.5, width: 3, height: 1, zIndex: 5 },
       config: {
-        buttonText: "Sorry, can't make it",
+        buttonText: "  Sorry, can't make it  ",
         buttonUrl: "#",
 
         appearance: {
@@ -263,7 +263,7 @@ export default createLayoutPreset({
 
         style: {
           fontFamily: "Inter",
-          fontSize: 44,
+          fontSize: 84,
           bold: true,
           align: "center",
           color: "#FFFFFF"

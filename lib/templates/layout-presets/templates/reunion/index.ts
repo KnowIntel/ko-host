@@ -1,9 +1,10 @@
 import type { TemplateLayoutRegistry } from "../../types";
-import elegant from "./elegant";
+import casual from "./casual";
+import warm from "./warm";
 
 const reunionLayouts: TemplateLayoutRegistry = {
   templateKey: "family_reunion",
-  layouts: [elegant],
+  layouts: [warm, casual],
 };
 
 

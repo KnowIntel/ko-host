@@ -139,7 +139,7 @@ export default createLayoutPreset({
         text: "The Hell Cats and Kittens presents...",
         style: {
           fontFamily: "Playfair Display",
-          fontSize: 60,
+          fontSize: 140,
           italic: true,
           bold: true,
           align: "center",
@@ -173,7 +173,7 @@ export default createLayoutPreset({
         text: "Saturday, February 7, 2026 from 2:00 PM – 5:00 PM",
         style: {
           fontFamily: "Playfair Display",
-          fontSize: 50,
+          fontSize: 120,
           italic: true,
           bold: true,
           align: "center",

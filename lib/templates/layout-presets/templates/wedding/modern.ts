@@ -189,7 +189,7 @@ export default createLayoutPreset({
         text: "JOIN US AS WE BEGIN\nOUR GREATEST ADVENTURE",
         style: {
           fontFamily: "Cormorant Garamond",
-          fontSize: 84,
+          fontSize: 164,
           italic: true,
           bold: true,
           align: "center",
@@ -200,13 +200,13 @@ export default createLayoutPreset({
     
     {
       type: "label",
-      placement: { x: 0, y: 15.6, width: 14, height: 1, zIndex: 16 },
+      placement: { x: 0, y: 15.7, width: 14, height: 1, zIndex: 16 },
       config: {
         label: "Tagline 2",
         text: "Two hearts... One day... A lifetime to follow",
         style: {
           fontFamily: "dancing script",
-          fontSize: 54,
+          fontSize: 94,
           italic: true,
           align: "center",
           color: "#000000",
@@ -244,7 +244,7 @@ export default createLayoutPreset({
       type: "cta",
       placement: { x: 5.4, y: 12, width: 3, height: 1, zIndex: 5 },
       config: {
-        buttonText: "RSVP",
+        buttonText: " RSVP ",
         buttonUrl: "#",
 
         appearance: {
@@ -256,7 +256,7 @@ export default createLayoutPreset({
 
         style: {
           fontFamily: "Inter",
-          fontSize: 60,
+          fontSize: 100,
           bold: true,
           align: "center",
           color: "#000000"
@@ -271,14 +271,14 @@ export default createLayoutPreset({
     layout: "horizontal",
     heading: "",
     items: [
-      { label: "       ABOUT       ", url: "#" },
-      { label: "        REGISTRY       ", url: "#" },
-      { label: "        SCHEDULE       ", url: "#" },
-      { label: "        CONTACT      ", url: "#" },
+      { label: "          ABOUT                ", url: "#" },
+      { label: "                REGISTRY            ", url: "#" },
+      { label: "                SCHEDULE           ", url: "#" },
+      { label: "                CONTACT         ", url: "#" },
     ],
     style: {
       fontFamily: "Playfair Display",
-      fontSize: 60,
+      fontSize: 90,
       bold: false,
       italic: false,
       underline: false,

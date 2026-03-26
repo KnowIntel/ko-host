@@ -49,7 +49,7 @@ export default createLayoutPreset({
     placement: { x: 0, y: 6.6, width: 14, height: 1, zIndex: 12 },
     style: {
       fontFamily: "Cormorant Garamond",
-      fontSize: 66,
+      fontSize: 130,
       italic: true,
       bold: true,
       align: "center",
@@ -73,7 +73,7 @@ export default createLayoutPreset({
     placement: { x: 0, y: 14.8, width: 14, height: 2, zIndex: 14 },
     style: {
       fontFamily: "Great Vibes",
-      fontSize: 94,
+      fontSize: 170,
       align: "center",
       color: "#000000",
     },
@@ -169,7 +169,7 @@ export default createLayoutPreset({
         text: "42 Lovebird Lane Heartwood Village, NY",
         style: {
           fontFamily: "Georgia",
-          fontSize: 50,
+          fontSize: 90,
           italic: true,
           align: "center",
           color: "#61605F",
@@ -185,7 +185,7 @@ export default createLayoutPreset({
         text: "3:30 PM — Guest Arrival\n4:30 PM — Ceremony Begins\n5:15 PM — Cocktail Hour\n6:30 PM — Dinner Reception\n8:00 PM — Dancing",
         style: {
           fontFamily: "Georgia",
-          fontSize: 40,
+          fontSize: 80,
           italic: true,
           align: "center",
           color: "#61605F",

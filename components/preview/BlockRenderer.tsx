@@ -410,10 +410,17 @@ function Placeholder({
 
 function renderShape(block: Extract<MicrositeBlock, { type: "shape" }>) {
   const style = getAppearanceStyle(block);
+  const rotation = (block.data as any).rotation ?? 0;
 
   if (block.data.shapeType === "line") {
     return (
-      <div className="flex h-full w-full items-center">
+      <div
+        className="flex h-full w-full items-center"
+        style={{
+          transform: `rotate(${rotation}deg)`,
+          transformOrigin: "center",
+        }}
+      >
         <div
           className="w-full"
           style={{
@@ -434,6 +441,8 @@ function renderShape(block: Extract<MicrositeBlock, { type: "shape" }>) {
       className="h-full w-full"
       style={{
         ...style,
+        transform: `rotate(${rotation}deg)`,
+        transformOrigin: "center",
         borderRadius:
           block.data.shapeType === "circle"
             ? "9999px"
@@ -675,29 +684,49 @@ function renderLinks(
 }
 
 function renderGalleryTile(
-  image: GalleryImage | ShowcaseImage | undefined,
+  image: any,
   index: number,
   designKey?: string,
 ) {
-  const emptyClass = isLightDesign(designKey)
-    ? "border-neutral-200 bg-white"
-    : "border-white/10 bg-white/5";
-
   if (!image?.url) {
     return (
       <div
-        key={image?.id ?? `empty-${index}`}
-        className={`h-full w-full rounded-lg border ${emptyClass}`}
-      />
+        key={`gallery-empty-${index}`}
+        className="flex h-full w-full items-center justify-center overflow-hidden bg-neutral-100 text-[10px] text-neutral-400"
+        style={{
+          borderRadius: "16px",
+        }}
+      >
+        Empty
+      </div>
     );
   }
 
+  const shape = image.shape ?? "square";
+
+  const borderRadius =
+    shape === "circle"
+      ? "9999px"
+      : shape === "rounded"
+        ? "16px"
+        : "0px";
+
   return (
     <div
-      key={image.id ?? `img-${index}`}
-      className={`h-full w-full overflow-hidden rounded-lg border ${emptyClass}`}
+      key={image.id || image.url || `gallery-${index}`}
+      className="h-full w-full overflow-hidden"
+      style={{
+        borderRadius,
+      }}
     >
-      <img src={image.url} alt="" className="h-full w-full object-cover" />
+      <img
+        src={image.url}
+        alt={image.alt || ""}
+        className="h-full w-full object-cover"
+        style={{
+          borderRadius,
+        }}
+      />
     </div>
   );
 }
@@ -706,10 +735,19 @@ function renderGallery(
   block: Extract<MicrositeBlock, { type: "gallery" }>,
   designKey?: string,
 ) {
-  const gridCount = Math.max(1, Number(block.data.grid) || 2);
+  const columns = Math.max(1, Number(block.data.columns) || 2);
   const images = block.data.images ?? [];
-  const tileCount = Math.max(images.length, gridCount * 2, 4);
-  const rows = Math.max(1, Math.ceil(tileCount / gridCount));
+
+  const explicitRows =
+    typeof block.data.rows === "number" && block.data.rows > 0
+      ? Math.max(1, Math.floor(block.data.rows))
+      : null;
+
+  const tileCount = explicitRows
+    ? Math.max(images.length, columns * explicitRows)
+    : images.length;
+
+  const rows = explicitRows ?? Math.max(1, Math.ceil(images.length / columns));
 
   const positionX = block.data.positionX ?? 50;
   const positionY = block.data.positionY ?? 50;
@@ -725,7 +763,7 @@ function renderGallery(
       <div
         className="grid h-full w-full gap-2"
         style={{
-          gridTemplateColumns: `repeat(${gridCount}, minmax(0, 1fr))`,
+          gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
           gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,
           transform: `translate(${translateX}%, ${translateY}%)`,
           transformOrigin: "center center",

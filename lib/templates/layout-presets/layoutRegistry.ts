@@ -4,8 +4,8 @@ import babyShowerLayouts from "./templates/baby_shower";
 import memorial_tributeLayouts from "./templates/memorial_tribute";
 import enthusiast_networking from "./templates/enthusiast_networking";
 import birthdayLayouts from "./templates/birthday";
-import blankLayout from "./layouts/blank";
 import reunionLayouts from "./templates/reunion";
+import blankLayout from "./layouts/blank";
 
 const registry: Record<string, TemplateLayoutRegistry> = {
   wedding_rsvp: weddingLayouts,

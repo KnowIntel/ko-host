@@ -153,7 +153,7 @@ export default createLayoutPreset({
         text: "A beautiful angel whose warmth, wisdom,\n and gentle spirit touched everyone she met. Her kindness lives on in our hearts, guiding us with\ncherished memories and endless love.",
         style: {
           fontFamily: "Georgia",
-          fontSize: 54,
+          fontSize: 94,
           italic: true,
           align: "center",
           color: "#E0C051",
@@ -170,7 +170,7 @@ export default createLayoutPreset({
         text: "Memorial Service at St. Maria Chapel | Saturday, October 18 at 11:00 AM\n1420 Garden Way Riverside, CA 92501",
         style: {
           fontFamily: "Georgia",
-          fontSize: 40,
+          fontSize: 80,
           italic: true,
           align: "center",
           color: "#FFFFFF",

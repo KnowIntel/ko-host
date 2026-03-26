@@ -288,7 +288,8 @@ export type FaqBlock = BaseBlock & {
 export type GalleryBlock = BaseBlock & {
   type: "gallery";
   data: {
-    grid: number;
+    columns: number;
+    rows?: number;
     images: GalleryImage[];
     positionX?: number;
     positionY?: number;
@@ -728,7 +729,8 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
         grid,
         appearance: createDefaultBlockAppearance(),
         data: {
-          grid: 2,
+          columns: 2,
+          rows: undefined,
           images: [],
         },
       };

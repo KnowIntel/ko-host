@@ -247,7 +247,11 @@ function makeShapeBlock(config: OptionalBlockConfig): ShapeBlock {
     },
     data: {
       shapeType: config.config?.shapeType || "rectangle",
-    },
+      rotation:
+        typeof config.config?.rotation === "number"
+          ? config.config.rotation
+          : 0,
+    } as any,
   };
 }
 
@@ -258,24 +262,33 @@ function makeGalleryBlock(config: OptionalBlockConfig): GalleryBlock {
     label: "Gallery",
     grid: toGrid(config.placement, { colSpan: 6, rowSpan: 3 }),
     appearance: createDefaultBlockAppearance(),
-    data: {
-      grid:
-        typeof config.config?.grid === "number" ? config.config.grid : 2,
-      images: Array.isArray(config.config?.images)
-        ? config.config.images.map((image: any) => ({
-            id: image.id || makeId("gallery"),
-            url: image.url || "",
-          }))
-        : [],
-      positionX:
-        typeof config.config?.positionX === "number"
-          ? config.config.positionX
-          : 50,
-      positionY:
-        typeof config.config?.positionY === "number"
-          ? config.config.positionY
-          : 50,
-    },
+data: {
+  columns:
+    typeof config.config?.columns === "number"
+      ? config.config.columns
+      : typeof config.config?.grid === "number"
+        ? config.config.grid
+        : 2,
+  rows:
+    typeof config.config?.rows === "number"
+      ? config.config.rows
+      : undefined,
+  images: Array.isArray(config.config?.images)
+    ? config.config.images.map((image: any) => ({
+        id: image.id || makeId("gallery"),
+        url: image.url || "",
+        shape: image.shape || "square",
+      }))
+    : [],
+  positionX:
+    typeof config.config?.positionX === "number"
+      ? config.config.positionX
+      : 50,
+  positionY:
+    typeof config.config?.positionY === "number"
+      ? config.config.positionY
+      : 50,
+},
   };
 }
 

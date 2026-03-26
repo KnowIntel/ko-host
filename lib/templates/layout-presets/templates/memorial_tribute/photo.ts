@@ -156,7 +156,7 @@ export default createLayoutPreset({
         text: "In Loving Memory",
         style: {
           fontFamily: "Georgia",
-          fontSize: 48,
+          fontSize: 80,
           italic: true,
           align: "center",
           color: "#61605F",

@@ -178,13 +178,13 @@ export default createLayoutPreset({
     
     {
       type: "label",
-      placement: { x: 0.9, y: 12.8, width: 12, height: 4, zIndex: 16 },
+      placement: { x: 0.9, y: 13, width: 12, height: 4, zIndex: 16 },
       config: {
         label: "Logistics Info 2",
         text: "SATURDAY, DECEMBER 6, 2025 @ 10:00 PM\nDASHIKI 'N' DENIM PALACE",
         style: {
           fontFamily: "Bodoni Moda",
-          fontSize: 50,
+          fontSize: 90,
           italic: false,
           align: "center",
           color: "#F2DFDF",
@@ -200,12 +200,12 @@ export default createLayoutPreset({
 
  {
   type: "text_fx",
-  placement: { x: 1, y: 3.5, width: 12, height: 7.5, zIndex: 20 },
+  placement: { x: 1, y: 2.5, width: 12, height: 7.5, zIndex: 20 },
   config: {
     text: "JOIN US FOR A",
     style: {
       fontFamily: "Georgia",
-      fontSize: 40,
+      fontSize: 70,
       bold: false,
       italic: false,
       align: "center",
@@ -368,20 +368,20 @@ export default createLayoutPreset({
 
 {
   type: "cta",
-  placement: { x: 5.5, y: 10.9, width: 3, height: 1.55, zIndex: 5 },
+  placement: { x: 5.5, y: 10.9, width: 3, height: 1.6, zIndex: 5 },
   config: {
     heading: "",
     body: "",
     backgroundColor: "#000000",
     borderColor: "#F2DFDF",
-    borderWidth: 8,
+    borderWidth: 10,
     borderRadius: 100,
-    buttonText: "RSVP",
+    buttonText: " RSVP ",
     buttonUrl: "#",
     styleType: "soft",
     style: {
       fontFamily: "Inter",
-      fontSize: 30,
+      fontSize: 80,
       bold: true,
       italic: false,
       underline: false,

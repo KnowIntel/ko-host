@@ -1,11 +1,12 @@
+import { Boldonse } from "next/font/google";
 import { createLayoutPreset } from "../../shared";
 
 export default createLayoutPreset({
-  designKey: "elegant",
+  designKey: "warm",
 
-  label: "Elegant Tribute",
-  description: "Respectful polished memorial design",
-  thumbnail: "/designs/design_baby_shower-elegant.webp",
+  label: "Warm Classic",
+  description: "Traditional inviting layout",
+  thumbnail: "/designs/backgrounds/design_reunion-warm.png",
 
   recommended: true,
 
@@ -22,14 +23,14 @@ export default createLayoutPreset({
   ======================================================= */
 
   title: {
-    text: "B R E N D A ' S   H A V I N G   A",
-    placement: { x: 1, y: 2.1, width: 12, height: 2, zIndex: 10 },
+    text: "Bullock-Holmes Family",
+    placement: { x: 1, y: 10.4, width: 12, height: 2, zIndex: 10 },
     style: {
-      fontFamily: "Inter",
-      fontSize: 80,
+      fontFamily: "Parisienne",
+      fontSize: 140,
       align: "center",
-      bold: true,
-      color: "#A9A4A0",
+      bold: false,
+      color: "#B49344",
     },
   },
 /* 
@@ -58,24 +59,13 @@ export default createLayoutPreset({
   },
  */
   tagline: {
-    text: "Please join us in welcoming a beautiful baby boy:",
-    placement: { x: 1, y: 7.4, width: 12, height: 3, zIndex: 13 },
+    text: "R E U N I O N",
+    placement: { x: 1, y: 12.3, width: 12, height: 3, zIndex: 13 },
     style: {
       fontFamily: "Bodoni Moda",
-      fontSize: 70,
+      fontSize: 120,
       align: "center",
       color: "#646462",
-    },
-  },
-
-  taglineSecondary: {
-    text: "Tavonn Hodges",
-    placement: { x: 2.9, y: 8.4, width: 8, height: 3, zIndex: 14 },
-    style: {
-      fontFamily: "Great Vibes",
-      fontSize: 164,
-      align: "center",
-      color: "#8F8B85",
     },
   },
 
@@ -88,31 +78,87 @@ export default createLayoutPreset({
     /* -------------------------------------------------------
        DECORATIVE IMAGE / PLAQUE
     ------------------------------------------------------- */
-    /* {
+   {
       type: "image",
-      placement: { x: 3, y: 7.6, width: 8, height: 1, zIndex: 1 },
+      placement: { x: 1.2, y: 0.6, width: 11.56, height: 11.8, zIndex: 1 },
       config: {
-        src: "/designs/artifacts/champagne_plaques.png",
-        fit: "cover",
+        src: "/designs/artifacts/reunion_black_fam.png",
+        // use "contain" for clip, "fill" for stretch, or "cover" for zoom
+        fit: "fill",
         frame: "square",
         zoom: 1,
         rotation: 0,
+        positionX: 50,
+        positionY: 60,
       },
-    }, */
+    },
 
     /* -------------------------------------------------------
        DECORATIVE LINES
     ------------------------------------------------------- */
-  /*   {
-      type: "shape",
-      placement: { x: 3, y: 4.2, width: 2, height: 1, zIndex: 2 },
-      config: {
-        shapeType: "line",
-        borderColor: "#DDD8D2",
-        borderWidth: 8,
-      },
-    },
+{
+  type: "shape",
+  placement: { x: 1, y: 15.5, width: 4.5, height: 1, zIndex: 2 },
+  config: {
+    shapeType: "line",
+    borderColor: "#B49344",
+    borderWidth: 8,
+    // rotation: 180, // 👈 ADD THIS (degrees)
+  },
+},
+{
+  type: "shape",
+  placement: { x: 8.25, y: 15.5, width: 4.5, height: 1, zIndex: 2 },
+  config: {
+    shapeType: "line",
+    borderColor: "#B49344",
+    borderWidth: 8,
+    // rotation: 180, // 👈 ADD THIS (degrees)
+  },
+},
+{
+  type: "shape",
+  placement: { x: 11.24, y: 12.65, width: 2.9, height: 2, zIndex: 2 },
+  config: {
+    shapeType: "line",
+    borderColor: "#B49344",
+    borderWidth: 10,
+    rotation: 90, // 👈 ADD THIS (degrees)
+  },
+},
+{
+  type: "shape",
+  placement: { x: 11.25, y: 10.83, width: 1.5, height: 1, zIndex: 2 },
+  config: {
+    shapeType: "line",
+    borderColor: "#B49344",
+    borderWidth: 12,
+    // rotation: 180, // 👈 ADD THIS (degrees)
+  },
+},
+{
+  type: "shape",
+  placement: { x: -0.19, y: 13.05, width: 2.9, height: 1.2, zIndex: 2 },
+  config: {
+    shapeType: "line",
+    borderColor: "#B49344",
+    borderWidth: 12,
+    rotation: 90, // 👈 ADD THIS (degrees)
+  },
+},
+{
+  type: "shape",
+  placement: { x: 1.21, y: 10.83, width: 1.5, height: 1, zIndex: 2 },
+  config: {
+    shapeType: "line",
+    borderColor: "#B49344",
+    borderWidth: 12,
+    // rotation: 180, // 👈 ADD THIS (degrees)
+  },
+},
 
+
+ /*
     {
       type: "shape",
       placement: { x: 9, y: 4.2, width: 2, height: 1, zIndex: 2 },
@@ -179,16 +225,50 @@ export default createLayoutPreset({
     
     {
       type: "label",
-      placement: { x: 0.9, y: 10, width: 12, height: 4, zIndex: 16 },
+      placement: { x: 0.9, y: 14.7, width: 12, height: 4, zIndex: 16 },
       config: {
         label: "Logistics Info 2",
-        text: "Saturday, June 1, 1991 from 2:00 PM – 5:00 PM\nCalifornia Love Community Garden Pavilion\n1996 West Coast Drive Oakland, CA 94612\nHosted By Sharon & Keisha",
+        text: "The Place You Can Always Call Home\n67 E. Cornerview Drive,\nSpringfield, IL",
         style: {
           fontFamily: "Playfair Display",
-          fontSize: 50,
-          italic: true,
+          fontSize: 90,
+          italic: false,
           align: "center",
-          color: "#A39F9A",
+          color: "#646462",
+        },
+      },
+    },
+
+    
+/*     {
+      type: "label",
+      placement: { x: 0.9, y: 14.7, width: 12, height: 4, zIndex: 16 },
+      config: {
+        label: "Logistics Info 2",
+        text: "78th Annual Family Reunion",
+        style: {
+          fontFamily: "Playfair Display",
+          fontSize: 110,
+          italic: false,
+          align: "center",
+          color: "#646462",
+        },
+      },
+    }, */
+    
+    {
+      type: "label",
+      placement: { x: 0.9, y: 13.9, width: 12, height: 4, zIndex: 16 },
+      config: {
+        label: "Logistics Info 2",
+        text: "July 4th Weekend, 2025",
+        style: {
+          fontFamily: "Playfair Display",
+          fontSize: 90,
+          italic: false,
+          bold: false,
+          align: "center",
+          color: "#B49344",
         },
       },
     },
