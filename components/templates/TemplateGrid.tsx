@@ -23,6 +23,7 @@ export type Category =
   | "Favorites"
   | "Recently viewed"
   | "Events"
+  | "Entertainment"
   | "Business"
   | "Real Estate"
   | "Personal"

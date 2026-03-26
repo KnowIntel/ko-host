@@ -92,7 +92,7 @@ export default function PreviewDraftPage() {
 
   if (!isReady) {
     return (
-      <main className="bg-[#fcfbf8] px-4 py-16">
+      <main className="bg-[#fcfbf8] px-4">
         <div className="w-full rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
           <div className="text-sm font-medium text-neutral-900">
             Loading page...
@@ -104,7 +104,7 @@ export default function PreviewDraftPage() {
 
   if (!payload?.draft) {
     return (
-      <main className="bg-[#fcfbf8] px-4 py-16">
+      <main className="bg-[#fcfbf8] px-4">
         <div className="w-full rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
           <div className="text-base font-semibold text-neutral-900">
             Waiting for preview...
@@ -119,11 +119,19 @@ export default function PreviewDraftPage() {
 
   return (
     <>
-      <main className="overflow-x-hidden bg-[#fcfbf8] text-neutral-900">
-        <div className="w-full px-4 py-10">
+          <main className="overflow-x-hidden bg-[#fcfbf8] text-neutral-900">
+            <div className="w-full">
           <PlacedBlocksPreview
             draft={payload.draft}
             designKey={payload.designLayout}
+            fixedScale={Math.max(
+              0.1,
+              Math.min(
+                1,
+                (((payload.draft as { pageScale?: number }).pageScale ?? 85) / 100),
+              ),
+            )}
+            disableAutoScale={true}
           />
         </div>
       </main>

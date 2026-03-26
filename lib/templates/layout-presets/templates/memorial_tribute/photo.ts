@@ -5,7 +5,7 @@ export default createLayoutPreset({
 
   label: "Photo Timeline",
   description: "Chronological visual storytelling",
-  thumbnail: "/designs/design_baby_shower-playful.webp",
+  // thumbnail: "/designs/design_baby_shower-playful.webp",
 
   recommended: false,
 
@@ -22,65 +22,29 @@ export default createLayoutPreset({
   ======================================================= */
 
   title: {
-    text: "Baby Shower",
-    placement: { x: 3.1, y: 4.4, width: 8, height: 2, zIndex: 10 },
+    text: "Gretchen Morrison",
+    placement: { x: 1, y: 12.6, width: 12, height: 2, zIndex: 10 },
     style: {
-      fontFamily: "Pacifico",
+      fontFamily: "Parisienne",
       fontSize: 160,
       align: "center",
       bold: true,
-      color: "#5F8CCA",
+      color: "#9CA18D",
     },
   },
   
   subtitle: {
-    text: "Astird",
-    placement: { x: 2.9, y: 6.5, width: 8, height: 3, zIndex: 11 },
+    text: "July 10, 1942 - October 16, 2024",
+    placement: { x: 1, y: 14.8, width: 12, height: 3, zIndex: 11 },
     style: {
-      fontFamily: "Pacifico",
-      fontSize: 190,
+      fontFamily: "Marcellus",
+      fontSize: 50,
       align: "center",
       bold: true,
-      color: "#FBA19F",
+      color: "#9CA18D",
     },
   },
 
-  subtitleSecondary: {
-    text: "Thursday, October 16, 2008 @ 2pm\nScranton Business Park Conference Room\n1725 Slough Avenue Scranton, PA 18540",
-    placement: { x: 3, y: 10, width: 8, height: 3, zIndex: 12 },
-    style: {
-      fontFamily: "Inherit",
-      fontSize:40,
-      italic: true,
-      // bold: true,
-      align: "center",
-      color: "#70B3E4",
-    },
-  },
-
-/* 
-  tagline: {
-    text: "Kindly RSVP",
-    placement: { x: 4.4, y: 6.4, width: 5, height: 1, zIndex: 13 },
-    style: {
-      fontFamily: "Great Vibes",
-      fontSize: 110,
-      align: "center",
-      color: "#646462",
-    },
-  }, */
-/* 
-  taglineSecondary: {
-    text: "We can't wait to celebrate with you!",
-    placement: { x: 2.9, y: 11.8, width: 8, height: 1, zIndex: 14 },
-    style: {
-      fontFamily: "Great Vibes",
-      fontSize: 94,
-      align: "center",
-      color: "#000000",
-    },
-  },
- */
   /* =======================================================
      OPTIONAL BLOCKS
      Use these for extra text lines, shapes, images, etc.
@@ -91,32 +55,83 @@ export default createLayoutPreset({
        DECORATIVE IMAGE / PLAQUE
     ------------------------------------------------------- */
     
-    /* {
+{
+  type: "gallery",
+  placement: { x: 3.9, y: 1.9, width: 6.3, height: 9.5, zIndex: 9 },
+  config: {
+    grid: 3,
+    positionX: 50, // 👈 ADD
+    positionY: 50, // 👈 ADD
+    images: [
+      { url: "/designs/artifacts/memorial_gretchen_9.png" },
+      { url: "/designs/artifacts/memorial_gretchen_2.png" },
+      { url: "/designs/artifacts/memorial_gretchen_3.png" },
+      { url: "/designs/artifacts/memorial_gretchen_4.png" },
+      { url: "/designs/artifacts/memorial_gretchen_8.png" },
+      { url: "/designs/artifacts/memorial_gretchen_5.png" },
+      { url: "/designs/artifacts/memorial_gretchen_6.png" },
+      { url: "/designs/artifacts/memorial_gretchen_7.png" },
+      { url: "/designs/artifacts/memorial_gretchen_1.png" },
+    ],
+  },
+},
+
+{
+  type: "image",
+  placement: { x: 1, y: 1, width: 12, height: 12, zIndex: 10 },
+  config: {
+    src: "/designs/artifacts/memorial_photo_frame.png",
+    fit: "cover",
+    frame: "square",
+    zoom: 1,
+    rotation: 0,
+    positionX: 50, // 👈 ADD
+    positionY: 50, // 👈 ADD
+  },
+},
+
+     {
       type: "image",
-      placement: { x: 4.7, y: 2.7, width: 5, height: 10, zIndex: 1 },
+      placement: { x: 1, y: 1, width: 12, height: 12, zIndex: 10 },
       config: {
-        src: "/designs/artifacts/bride_groom1.png",
+        src: "/designs/artifacts/memorial_photo_frame.png",
         fit: "cover",
         frame: "square",
         zoom: 1,
         rotation: 0,
       },
-    }, */
-
+    }, 
+    
+/*      {
+      type: "image",
+      placement: { x: 1, y: 2.7, width: 12, height: 12, zIndex: 1 },
+      config: {
+        src: "/designs/artifacts/memorial_photo_frame.png",
+        // use "contain" for clip, "fill" for stretch, or "cover" for zoom
+        fit: "fill",
+        frame: "square",
+        zoom: 0.5,
+        rotation: 0,
+        positionX: 50,     // horizontal position
+        positionY: 50,     // vertical position
+      },
+    }, 
+ */
     /* -------------------------------------------------------
        DECORATIVE LINES
     ------------------------------------------------------- */
-    /* 
+
     {
       type: "shape",
-      placement: { x: 3, y: 4, width: 2, height: 1, zIndex: 2 },
+      placement: { x: 4.5, y: 14, width: 5, height: 1, zIndex: 2 },
       config: {
         shapeType: "line",
-        borderColor: "#DDD8D2",
+        borderColor: "#9CA18D",
         borderWidth: 8,
       },
     },
 
+    /* 
     {
       type: "shape",
       placement: { x: 9, y: 4, width: 2, height: 1, zIndex: 2 },
@@ -132,29 +147,13 @@ export default createLayoutPreset({
        Use label blocks whenever you need more text than the
        built-in page text fields allow.
     ------------------------------------------------------- */
-    /* 
+     
     {
       type: "label",
-      placement: { x: 2.6, y: 7.8, width: 4, height: 1, zIndex: 15 },
+      placement: { x: 1, y: 11.8, width: 12, height: 1, zIndex: 16 },
       config: {
-        label: "Accepts Line",
-        text: "Accepts with Pleasure",
-        style: {
-          fontFamily: "Georgia",
-          fontSize: 40,
-          italic: true,
-          align: "center",
-          color: "#61605F",
-        },
-      },
-    },
-*/
-    {
-      type: "label",
-      placement: { x: 5, y: 3.9, width: 4, height: 1, zIndex: 16 },
-      config: {
-        label: "",
-        text: "Join us for a",
+        label: "ILM Line",
+        text: "In Loving Memory",
         style: {
           fontFamily: "Georgia",
           fontSize: 48,
@@ -165,21 +164,6 @@ export default createLayoutPreset({
       },
     },
     
-    {
-      type: "label",
-      placement: { x: 1.0, y: 6.0, width: 12, height: 1, zIndex: 16 },
-      config: {
-        label: "",
-        text: "honoring",
-        style: {
-          fontFamily: "Cormorant Garamond",
-          fontSize: 44,
-          italic: true,
-          align: "center",
-          color: "#525536",
-        },
-      },
-    },
     
 /*     {
       type: "label",
@@ -221,56 +205,7 @@ export default createLayoutPreset({
         borderRadius: 16,
       },
     },
-    */
 
-    {
-      type: "cta",
-      placement: { x: 3.8, y: 8.6, width: 3, height: 1, zIndex: 5 },
-      config: {
-        buttonText: "I will be there",
-        buttonUrl: "#",
-
-        appearance: {
-          backgroundColor: "#FDD487",
-          borderRadius: 9999,
-          // borderColor: "#000000",
-          borderWidth: 2
-        },
-
-        style: {
-          fontFamily: "Inter",
-          fontSize: 44,
-          bold: true,
-          align: "center",
-          color: "#FFFFFF"
-        }
-      }
-    },
-    
-    {
-      type: "cta",
-      placement: { x: 7.2, y: 8.6, width: 3, height: 1, zIndex: 5 },
-      config: {
-        buttonText: "Sorry, can't make it",
-        buttonUrl: "#",
-
-        appearance: {
-          backgroundColor: "#94CEF3",
-          borderRadius: 9999,
-          // borderColor: "#000000",
-          borderWidth: 2
-        },
-
-        style: {
-          fontFamily: "Inter",
-          fontSize: 44,
-          bold: true,
-          align: "center",
-          color: "#FFFFFF"
-        }
-      }
-    },
-/* 
     {
   type: "links",
   placement: { x: 1, y: 1.4, width: 12, height: 2, zIndex: 6 },
@@ -295,20 +230,7 @@ export default createLayoutPreset({
   },
 },
  */
-    /*
-    {
-      type: "gallery",
-      placement: { x: 6, y: 10, width: 6, height: 3, zIndex: 7 },
-      config: {
-        grid: 3,
-        images: [
-          { url: "/photos/photo1.jpg" },
-          { url: "/photos/photo2.jpg" },
-          { url: "/photos/photo3.jpg" },
-        ],
-      },
-    },
-    */
+
 
     /*
     {
@@ -316,9 +238,9 @@ export default createLayoutPreset({
       placement: { x: 1, y: 12, width: 12, height: 4, zIndex: 8 },
       config: {
         images: [
-          { url: "/photos/photo1.jpg" },
-          { url: "/photos/photo2.jpg" },
-          { url: "/photos/photo3.jpg" },
+          { url: "/photos/photo1.png" },
+          { url: "/photos/photo2.png" },
+          { url: "/photos/photo3.png" },
         ],
       },
     },

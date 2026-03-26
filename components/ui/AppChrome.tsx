@@ -11,12 +11,18 @@ export function AppChrome({
 }) {
   const pathname = usePathname();
   const isPublicMicrosite = pathname.startsWith("/s/");
+  const isPreviewPage = pathname.startsWith("/preview/");
+  const shouldShowNav = !isPublicMicrosite;
+  const shouldOffsetForFixedNav =
+    shouldShowNav && !isPreviewPage;
 
   return (
     <div className="flex min-h-screen flex-col">
-      {!isPublicMicrosite ? <LayoutNavVisibility /> : null}
+      {shouldShowNav ? <LayoutNavVisibility /> : null}
 
-      <div className="flex-1">{children}</div>
+      <div className={shouldOffsetForFixedNav ? "flex-1 pt-16" : "flex-1"}>
+        {children}
+      </div>
 
       {!isPublicMicrosite ? (
         <footer className="border-t border-neutral-200 bg-white">

@@ -1,13 +1,13 @@
 // app\create\[template]\design\page.tsx
 import Link from "next/link";
 import { getTemplateLayoutRegistry } from "@/lib/templates/layout-presets/layoutRegistry";
-import { createDraftFromLayoutDefinition } from "@/lib/templates/layout-presets/layoutToDraft";
 import {
   TEMPLATE_DEFS,
   getTemplateDef,
   normalizeTemplateKey,
 } from "@/lib/templates/registry";
 import DesignCard from "@/components/designs/DesignCard";
+import { createDraftFromLayoutDefinition } from "@/lib/templates/layout-presets/layoutToDraft";
 
 function resolveTemplateFromRoute(rawTemplate: string) {
   const normalized = normalizeTemplateKey(rawTemplate);
@@ -43,18 +43,23 @@ export default async function CreateTemplateDesignPage({
   const layoutRegistry = getTemplateLayoutRegistry(templateKey);
 
   const designPresets =
-    layoutRegistry?.layouts.map((layout) => ({
-      key: layout.designKey,
-      label: layout.card.label,
-      description: layout.card.description || "",
-      backgroundImage: layout.card.thumbnail || "",
-      badge: layout.recommended ? ("Recommended" as const) : null,
-      previewDraft: createDraftFromLayoutDefinition({
+    layoutRegistry?.layouts.map((layout) => {
+      // ✅ USE LAYOUT ONLY (NO DRAFTS)
+      const previewDraft = createDraftFromLayoutDefinition({
         templateKey,
         layout,
         slugSuggestion: templateDef.defaultDraft?.slugSuggestion || "",
-      }),
-    })) ?? [];
+      });
+
+      return {
+        key: layout.designKey,
+        label: layout.card.label,
+        description: layout.card.description || "",
+        backgroundImage: layout.card.thumbnail || "",
+        badge: layout.recommended ? ("Recommended" as const) : null,
+        previewDraft,
+      };
+    }) ?? [];
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.06),_transparent_28%),linear-gradient(to_bottom,_#ffffff,_#f8fafc)]">

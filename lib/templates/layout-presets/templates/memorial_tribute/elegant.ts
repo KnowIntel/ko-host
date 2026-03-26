@@ -5,7 +5,7 @@ export default createLayoutPreset({
 
   label: "Elegant Tribute",
   description: "Respectful polished memorial design",
-  thumbnail: "/designs/design_memorial-elegant.png",
+  thumbnail: "/designs/backgrounds/design_memorial-elegant.png",
 
   recommended: true,
 
@@ -22,18 +22,18 @@ export default createLayoutPreset({
   ======================================================= */
 
   title: {
-    text: "Claudia Anderson",
-    placement: { x: 1, y: 4.1, width: 12, height: 2, zIndex: 10 },
+    text: "Christina Pascal",
+      placement: { x: 1, y: 5.7, width: 7, height: 2, zIndex: 15 },
     style: {
       fontFamily: "Great Vibes",
       fontSize: 180,
       align: "center",
-      bold: true,
-      color: "#A9A4A0",
+      bold: false,
+      color: "#E0C051",
     },
   },
   
-  tagline: {
+/*   tagline: {
     text: "Please join us in welcoming a beautiful baby boy:",
     placement: { x: 1, y: 7.4, width: 12, height: 3, zIndex: 13 },
     style: {
@@ -42,7 +42,7 @@ export default createLayoutPreset({
       align: "center",
       color: "#646462",
     },
-  },
+  }, */
   
 
   /* =======================================================
@@ -54,17 +54,52 @@ export default createLayoutPreset({
     /* -------------------------------------------------------
        DECORATIVE IMAGE / PLAQUE
     ------------------------------------------------------- */
-    /* {
+   {
       type: "image",
-      placement: { x: 3, y: 7.6, width: 8, height: 1, zIndex: 1 },
+      placement: { x: 7.8, y: 3.7, width: 4.8, height: 7.7, zIndex: 1 },
       config: {
-        src: "/designs/artifacts/champagne_plaques.png",
-        fit: "cover",
-        frame: "square",
-        zoom: 1,
+        src: "/designs/artifacts/memorial_grandma.png",
+        // use "contain" for clip, "fill" for stretch, or "cover" for zoom
+        fit: "contain",
+        frame: "circle",
+        zoom: 1.65,
         rotation: 0,
+        positionX: 47,     // horizontal position
+        positionY: 87,     // vertical position
       },
-    }, */
+    },
+
+       {
+      type: "image",
+      placement: { x: 5.4, y: 0.4, width: 9.5, height: 14, zIndex: 1 },
+      config: {
+        src: "/designs/artifacts/memorial_floral_frame.png",
+        // use "contain" for clip, "fill" for stretch, or "cover" for zoom
+        fit: "contain",
+        frame: "square",
+        zoom: 0.78,
+        rotation: 0,
+        positionX: 54,     // horizontal position
+        positionY: 53,     // vertical position
+      },
+    },
+
+    
+       {
+      type: "image",
+      placement: { x: 2.5, y: 7.25, width: 4.25, height: 1.5, zIndex: 1 },
+      config: {
+        src: "/designs/artifacts/memorial_divider_line.png",
+        // use "contain" for clip, "fill" for stretch, or "cover" for zoom
+        fit: "fill",
+        frame: "square",
+        zoom: 0.5,
+        rotation: 0,
+        positionX: 50,     // horizontal position
+        positionY: 50,     // vertical position
+      },
+    },
+    
 
     /* -------------------------------------------------------
        DECORATIVE LINES
@@ -96,7 +131,7 @@ export default createLayoutPreset({
     ------------------------------------------------------- */
  {
       type: "label",
-      placement: { x: 5.0, y: 3.0, width: 4, height: 1, zIndex: 15 },
+      placement: { x: 1, y: 4.7, width: 7, height: 1, zIndex: 15 },
       config: {
         label: "Intro Line",
         text: "Tribute to the life of",
@@ -105,50 +140,50 @@ export default createLayoutPreset({
           fontSize: 60,
           // italic: true,
           align: "center",
-          color: "#FFFFFF",
+          color: "#E0C051",
         },
       },
     },
 
-    {
+     {
       type: "label",
-      placement: { x: 7.25, y: 7.8, width: 4, height: 1, zIndex: 16 },
+      placement: { x: 1, y: 8.4, width: 7, height: 3, zIndex: 16 },
       config: {
         label: "Description",
-        text: "Declines with Regret",
+        text: "A beautiful angel whose warmth, wisdom,\n and gentle spirit touched everyone she met. Her kindness lives on in our hearts, guiding us with\ncherished memories and endless love.",
+        style: {
+          fontFamily: "Georgia",
+          fontSize: 54,
+          italic: true,
+          align: "center",
+          color: "#E0C051",
+        },
+      },
+    },
+
+   
+    {
+      type: "label",
+      placement: { x: 5, y: 13.4, width: 8, height: 2, zIndex: 16 },
+      config: {
+        label: "Logistics Info",
+        text: "Memorial Service at St. Maria Chapel | Saturday, October 18 at 11:00 AM\n1420 Garden Way Riverside, CA 92501",
         style: {
           fontFamily: "Georgia",
           fontSize: 40,
           italic: true,
           align: "center",
-          color: "#61605F",
+          color: "#FFFFFF",
         },
       },
-    },
-
-/*     
-    {
-      type: "label",
-      placement: { x: 4, y: 8.8, width: 6, height: 1, zIndex: 16 },
-      config: {
-        label: "Logistics Info 1",
-        text: "42 Lovebird Lane Heartwood Village, NY",
-        style: {
-          fontFamily: "Georgia",
-          fontSize: 50,
-          italic: true,
-          align: "center",
-          color: "#61605F",
-        },
-      },
-    }, */
+    }, 
     
-    {
+/*     {
       type: "label",
       placement: { x: 0.9, y: 10, width: 12, height: 4, zIndex: 16 },
       config: {
-        label: "Logistics Info 2",
-        text: "Saturday, June 1, 1991 from 2:00 PM – 5:00 PM\nCalifornia Love Community Garden Pavilion\n1996 West Coast Drive Oakland, CA 94612\nHosted By Sharon & Keisha",
+        label: "Description",
+        text: "",
         style: {
           fontFamily: "Playfair Display",
           fontSize: 50,
@@ -157,7 +192,7 @@ export default createLayoutPreset({
           color: "#A39F9A",
         },
       },
-    },
+    }, */
 
     /* -------------------------------------------------------
        OTHER AVAILABLE TOOLS (COMMENTED OUT)

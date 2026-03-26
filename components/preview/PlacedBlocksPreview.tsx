@@ -57,9 +57,9 @@ type ResolvedGrid = GridPlacement & {
 };
 
 const GRID_COLUMNS = 12;
-const GRID_ROW_HEIGHT = 120;
+const GRID_ROW_HEIGHT = 90;
 const GRID_GAP = 16;
-const PAGE_WIDTH = 2200;
+const PAGE_WIDTH = 2100;
 const VIEWPORT_VERTICAL_PADDING = 40;
 
 function getColumnWidth() {
@@ -368,22 +368,18 @@ inputs.forEach((input) => {
     metadata?.page.description?.value,
   );
 
-  const showTitle =
-    typedDraft.pageVisibility?.title !== false &&
-    (hasMeaningfulText(titleValue) || !!typedDraft.pageElements?.title);
+const showTitle =
+  (hasMeaningfulText(titleValue) || !!typedDraft.pageElements?.title);
 
-  const showSubtitle =
-    typedDraft.pageVisibility?.subtitle !== false &&
-    (hasMeaningfulText(subtitleValue) || !!typedDraft.pageElements?.subtitle);
+const showSubtitle =
+  (hasMeaningfulText(subtitleValue) || !!typedDraft.pageElements?.subtitle);
 
-  const showSubtext =
-    typedDraft.pageVisibility?.subtext !== false &&
-    (hasMeaningfulText(subtextValue) || !!typedDraft.pageElements?.subtext);
+const showSubtext =
+  (hasMeaningfulText(subtextValue) || !!typedDraft.pageElements?.subtext);
 
-  const showDescription =
-    typedDraft.pageVisibility?.description !== false &&
-    (hasMeaningfulText(descriptionValue) ||
-      !!typedDraft.pageElements?.description);
+const showDescription =
+  (hasMeaningfulText(descriptionValue) ||
+    !!typedDraft.pageElements?.description);
 
   const blockEntries = useMemo(
     () =>
@@ -458,7 +454,8 @@ inputs.forEach((input) => {
       );
       const heightScale = Math.min(1, availableHeight / pageHeight);
 
-      const nextScale = Math.min(widthScale, heightScale);
+      // const nextScale = Math.min(widthScale, heightScale);
+      const nextScale = Math.min(widthScale, heightScale) * 0.1;
 
       setScale((prev) => {
         if (Math.abs(prev - nextScale) < 0.001) {
@@ -486,6 +483,7 @@ inputs.forEach((input) => {
   }, [disableAutoScale, fixedScale, pageHeight, viewportHeight]);
 
   const resolvedScale = disableAutoScale ? (fixedScale ?? 1) : scale;
+  // const resolvedScale = 0.75; // 👈 test freely
   const scaledWidth = PAGE_WIDTH * resolvedScale;
   const scaledHeight = pageHeight * resolvedScale;
 

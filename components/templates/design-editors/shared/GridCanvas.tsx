@@ -17,7 +17,7 @@ import type { EditorSelection } from "./EditorSelection";
 import { selectBlock } from "./EditorSelection";
 
 const GRID_COLUMNS = 12;
-const GRID_ROW_HEIGHT = 120;
+const GRID_ROW_HEIGHT = 90;
 const GRID_GAP = 16;
 const GRID_STEP = 0.25;
 const WORKSPACE_WIDTH = 2200;
@@ -980,15 +980,15 @@ export default function GridCanvas({
                     linear-gradient(to right, rgba(0,0,0,0.035) 1px, transparent 1px),
                     linear-gradient(to bottom, rgba(0,0,0,0.035) 1px, transparent 1px)
                   `,
-                  backgroundSize: pageSurfaceStyle?.backgroundImage
-                    ? `${pageSurfaceStyle.backgroundSize || "cover"}, ${getStrideX() * GRID_STEP}px ${getStrideY() * GRID_STEP}px, ${getStrideX() * GRID_STEP}px ${getStrideY() * GRID_STEP}px`
-                    : `${getStrideX() * GRID_STEP}px ${getStrideY() * GRID_STEP}px`,
-                  backgroundPosition: pageSurfaceStyle?.backgroundImage
-                    ? `${pageSurfaceStyle.backgroundPosition || "center"}, 0 0, 0 0`
-                    : "0 0",
-                  backgroundRepeat: pageSurfaceStyle?.backgroundImage
-                    ? `${pageSurfaceStyle.backgroundRepeat || "no-repeat"}, repeat, repeat`
-                    : "repeat",
+                backgroundSize: pageSurfaceStyle?.backgroundImage
+                  ? `contain, ${getStrideX() * GRID_STEP}px ${getStrideY() * GRID_STEP}px, ${getStrideX() * GRID_STEP}px ${getStrideY() * GRID_STEP}px`
+                  : `${getStrideX() * GRID_STEP}px ${getStrideY() * GRID_STEP}px`,
+                backgroundPosition: pageSurfaceStyle?.backgroundImage
+                ? `center top, 0 0, 0 0`
+                : "0 0",
+                backgroundRepeat: pageSurfaceStyle?.backgroundImage
+                  ? `no-repeat, repeat, repeat`
+                  : "repeat",
                 }}
               >
                 {dragGuides.map((guide, index) => (

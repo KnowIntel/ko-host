@@ -1,3 +1,4 @@
+import { Boldonse } from "next/font/google";
 import { createLayoutPreset } from "../../shared";
 
 export default createLayoutPreset({
@@ -5,7 +6,7 @@ export default createLayoutPreset({
 
   label: "Modern Minimal",
   description: "Clean simple distraction-free",
-  thumbnail: "/designs/design_wedding-modern.webp",
+  thumbnail: "/designs/backgrounds/design_wedding-modern.png",
 
   recommended: false,
 
@@ -93,13 +94,27 @@ export default createLayoutPreset({
     
     {
       type: "image",
-      placement: { x: 4.5, y: 2.7, width: 5, height: 10, zIndex: 1 },
+      placement: { x: 4.5, y: 3, width: 5, height: 12, zIndex: 3 },
       config: {
         src: "/designs/artifacts/bride_groom1.png",
         fit: "cover",
         frame: "square",
         zoom: 1,
         rotation: 0,
+      },
+    },
+    
+     {
+      type: "image",
+      placement: { x: 0.07, y: 13, width: 14, height: 5.7, zIndex: 3 },
+      config: {
+        url: "/designs/artifacts/shape_semi_circle.png",
+        // use "contain" for clip, "fill" for stretch, or "cover" for zoom
+        fit: "fill",
+        frame: "square",
+        zoom: 1,
+        rotation: 0,
+        opacity: 1, // 👈 add this (0 = invisible, 1 = full)
       },
     },
 
@@ -168,7 +183,7 @@ export default createLayoutPreset({
     
     {
       type: "label",
-      placement: { x: 0, y: 10.8, width: 14, height: 1, zIndex: 16 },
+      placement: { x: 0, y: 13.5, width: 14, height: 1, zIndex: 16 },
       config: {
         label: "Tagline 1",
         text: "JOIN US AS WE BEGIN\nOUR GREATEST ADVENTURE",
@@ -176,6 +191,7 @@ export default createLayoutPreset({
           fontFamily: "Cormorant Garamond",
           fontSize: 84,
           italic: true,
+          bold: true,
           align: "center",
           color: "#525536",
         },
@@ -184,10 +200,10 @@ export default createLayoutPreset({
     
     {
       type: "label",
-      placement: { x: 0, y: 12.4, width: 14, height: 1, zIndex: 16 },
+      placement: { x: 0, y: 15.6, width: 14, height: 1, zIndex: 16 },
       config: {
         label: "Tagline 2",
-        text: "Two hearts, one day, a lifetime to follow",
+        text: "Two hearts... One day... A lifetime to follow",
         style: {
           fontFamily: "dancing script",
           fontSize: 54,
@@ -203,14 +219,14 @@ export default createLayoutPreset({
        OTHER AVAILABLE TOOLS (COMMENTED OUT)
     ------------------------------------------------------- */
 
-    {
+/*     {
       type: "shape",
       placement: { x: -4.2, y: 10.5, width: 22.5, height: 30, zIndex: 3 },
       config: {
         shapeType: "circle",
         backgroundColor: "#F1EAE2",
       },
-    },
+    }, */
 
     /*
     {
@@ -226,7 +242,7 @@ export default createLayoutPreset({
 
     {
       type: "cta",
-      placement: { x: 5.4, y: 9, width: 3, height: 1, zIndex: 5 },
+      placement: { x: 5.4, y: 12, width: 3, height: 1, zIndex: 5 },
       config: {
         buttonText: "RSVP",
         buttonUrl: "#",
@@ -255,10 +271,10 @@ export default createLayoutPreset({
     layout: "horizontal",
     heading: "",
     items: [
-      { label: "        ABOUT        ", url: "#" },
-      { label: "        REGISTRY        ", url: "#" },
-      { label: "        SCHEDULE        ", url: "#" },
-      { label: "        CONTACT        ", url: "#" },
+      { label: "       ABOUT       ", url: "#" },
+      { label: "        REGISTRY       ", url: "#" },
+      { label: "        SCHEDULE       ", url: "#" },
+      { label: "        CONTACT      ", url: "#" },
     ],
     style: {
       fontFamily: "Playfair Display",

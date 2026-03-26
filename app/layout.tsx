@@ -163,9 +163,7 @@ export default function RootLayout({
           afterSignOutUrl="/templates"
           afterMultiSessionSingleSignOutUrl="/templates"
         >
-          <div className="pt-16">
-            <AppChrome>{children}</AppChrome>
-          </div>
+          <AppChrome>{children}</AppChrome>
         </ClerkProvider>
       </body>
     </html>

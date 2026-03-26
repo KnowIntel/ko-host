@@ -5,7 +5,7 @@ export default createLayoutPreset({
 
   label: "Blank",
   description: "Start with an empty canvas",
-  thumbnail: "/designs/design_blank.webp",
+  thumbnail: "/designs/backgrounds/design_blank.webp",
 
   recommended: false,
 

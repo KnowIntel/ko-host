@@ -5,7 +5,7 @@ export default createLayoutPreset({
 
   label: "Playful Celebration",
   description: "Bright energetic party design",
-  thumbnail: "/designs/design_birthday-playful.png",
+  thumbnail: "/designs/backgrounds/design_birthday-playful.png",
 
   recommended: true,
 
@@ -23,7 +23,7 @@ export default createLayoutPreset({
 
   title: {
     text: "You're invited to",
-    placement: { x: 3.1, y: 3.7, width: 8, height: 2, zIndex: 10 },
+    placement: { x: 3.1, y: 4.4, width: 8, height: 2, zIndex: 10 },
     style: {
       fontFamily: "Playball",
       fontSize: 140,
@@ -35,7 +35,7 @@ export default createLayoutPreset({
   
   subtitle: {
     text: "Sandy Eggo's 21st Birthday Bash!",
-    placement: { x: 2.9, y: 5.2, width: 8, height: 3, zIndex: 11 },
+    placement: { x: 2.9, y: 6.2, width: 8, height: 3, zIndex: 11 },
     style: {
       fontFamily: "Playball",
       fontSize: 160,
@@ -48,7 +48,7 @@ export default createLayoutPreset({
 
   tagline: {
     text: "Must be 21+ (Sandy finally is)",
-    placement: { x: 1, y: 8.5, width: 12, height: 1, zIndex: 13 },
+    placement: { x: 1, y: 10.2, width: 12, height: 1, zIndex: 13 },
     style: {
       fontFamily: "Playball",
       fontSize: 70,
@@ -112,7 +112,7 @@ export default createLayoutPreset({
 
     {
       type: "label",
-      placement: { x: 4.1, y: 12.5, width: 6, height: 3, zIndex: 15 },
+      placement: { x: 4.1, y: 15.8, width: 6, height: 3, zIndex: 15 },
       config: {
         label: "Logistics Line 1",
         text: "Saturday, July 21st at 7:21pm\nThe Salty Seagull Rooftop Bar\n2101 Pacific Breeze Blvd\nSan Diego, CA 92121\nContact: Randy (Sandy's brother) at (858) 555-DRNK",

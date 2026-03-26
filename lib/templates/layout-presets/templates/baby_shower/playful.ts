@@ -5,7 +5,7 @@ export default createLayoutPreset({
 
   label: "Playful Pastel",
   description: "Whimsical and colorful fun tone",
-  thumbnail: "/designs/design_baby_shower-playful.webp",
+  thumbnail: "/designs/backgrounds/design_baby_shower-playful.png",
 
   recommended: false,
 
@@ -23,7 +23,7 @@ export default createLayoutPreset({
 
   title: {
     text: "Baby Shower",
-    placement: { x: 3.1, y: 4.4, width: 8, height: 2, zIndex: 10 },
+    placement: { x: 3.1, y: 5.2, width: 8, height: 2, zIndex: 10 },
     style: {
       fontFamily: "Pacifico",
       fontSize: 160,
@@ -35,7 +35,7 @@ export default createLayoutPreset({
   
   subtitle: {
     text: "Astird",
-    placement: { x: 2.9, y: 6.5, width: 8, height: 3, zIndex: 11 },
+    placement: { x: 2.9, y: 7.5, width: 8, height: 3, zIndex: 11 },
     style: {
       fontFamily: "Pacifico",
       fontSize: 190,
@@ -47,7 +47,7 @@ export default createLayoutPreset({
 
   subtitleSecondary: {
     text: "Thursday, October 16, 2008 @ 2pm\nScranton Business Park Conference Room\n1725 Slough Avenue Scranton, PA 18540",
-    placement: { x: 3, y: 10, width: 8, height: 3, zIndex: 12 },
+    placement: { x: 3, y: 12.2, width: 8, height: 3, zIndex: 12 },
     style: {
       fontFamily: "Inherit",
       fontSize:40,
@@ -151,7 +151,7 @@ export default createLayoutPreset({
 */
     {
       type: "label",
-      placement: { x: 5, y: 3.9, width: 4, height: 1, zIndex: 16 },
+      placement: { x: 5, y: 4.5, width: 4, height: 1, zIndex: 16 },
       config: {
         label: "",
         text: "Join us for a",
@@ -167,7 +167,7 @@ export default createLayoutPreset({
     
     {
       type: "label",
-      placement: { x: 1.0, y: 6.0, width: 12, height: 1, zIndex: 16 },
+      placement: { x: 1.0, y: 7.1, width: 12, height: 1, zIndex: 16 },
       config: {
         label: "",
         text: "honoring",
@@ -225,7 +225,7 @@ export default createLayoutPreset({
 
     {
       type: "cta",
-      placement: { x: 3.8, y: 8.6, width: 3, height: 1, zIndex: 5 },
+      placement: { x: 3.8, y: 10.5, width: 3, height: 1, zIndex: 5 },
       config: {
         buttonText: "I will be there",
         buttonUrl: "#",
@@ -249,7 +249,7 @@ export default createLayoutPreset({
     
     {
       type: "cta",
-      placement: { x: 7.2, y: 8.6, width: 3, height: 1, zIndex: 5 },
+      placement: { x: 7.2, y: 10.5, width: 3, height: 1, zIndex: 5 },
       config: {
         buttonText: "Sorry, can't make it",
         buttonUrl: "#",

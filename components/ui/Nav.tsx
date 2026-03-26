@@ -1,4 +1,3 @@
-// components/ui/Nav.tsx
 "use client";
 
 import Link from "next/link";
@@ -10,30 +9,32 @@ import { ButtonLink } from "@/components/ui/ButtonLink";
 import InstallButton from "@/components/pwa/InstallButton";
 
 export function Nav() {
-const pathname = usePathname() || "";
-const params = useParams();
-const { isSignedIn } = useAuth();
+  const pathname = usePathname() || "";
+  const params = useParams();
+  const { isSignedIn } = useAuth();
 
-const hostname =
-  typeof window !== "undefined" ? window.location.hostname.toLowerCase() : "";
+  const hostname =
+    typeof window !== "undefined" ? window.location.hostname.toLowerCase() : "";
 
-const isPublicMicrositeHost =
-  hostname.endsWith(".ko-host.com") && hostname !== "ko-host.com";
+  const isPublicMicrositeHost =
+    hostname.endsWith(".ko-host.com") && hostname !== "ko-host.com";
 
-if (isPublicMicrositeHost || pathname === "/s" || pathname.startsWith("/s/")) {
-  return null;
-}
+  if (isPublicMicrositeHost || pathname === "/s" || pathname.startsWith("/s/")) {
+    return null;
+  }
 
   const isTemplatesPage = pathname.startsWith("/templates");
-  const isCreatePage =
-    pathname.startsWith("/create/") && !pathname.includes("/publish");
+  const isCreateBuilderPage =
+    pathname.startsWith("/create/") &&
+    !pathname.includes("/publish") &&
+    !pathname.includes("/design");
 
   const currentTemplate =
     typeof params?.template === "string" ? params.template : "";
 
-const designsHref = currentTemplate
-  ? `/create/${encodeURIComponent(currentTemplate)}/design`
-  : "/templates";
+  const designsHref = currentTemplate
+    ? `/create/${encodeURIComponent(currentTemplate)}/design`
+    : "/templates";
 
   return (
     <header className="fixed inset-x-0 top-0 z-[100] border-b border-neutral-200 bg-white">
@@ -90,6 +91,12 @@ const designsHref = currentTemplate
               {!isTemplatesPage ? (
                 <ButtonLink href="/templates" variant="secondary">
                   Templates
+                </ButtonLink>
+              ) : null}
+
+              {isCreateBuilderPage ? (
+                <ButtonLink href={designsHref} variant="secondary">
+                  Designs
                 </ButtonLink>
               ) : null}
 

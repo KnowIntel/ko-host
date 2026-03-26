@@ -3,9 +3,8 @@ import { createLayoutPreset } from "../../shared";
 export default createLayoutPreset({
   designKey: "soft",
 
-  label: "Test",
-  description: "Grid Math Test",
-  thumbnail: "/designs/Test - Grid Math.png",
+  label: "Soft Dignified",
+  description: "Floral serene memorial setting",
 
   recommended: false,
 
@@ -22,42 +21,29 @@ export default createLayoutPreset({
   ======================================================= */
 
   title: {
-    text: "This title block is in the same position",
-    placement: { x: 1.1, y: 6.4, width: 12, height: 2, zIndex: 10 },
+    text: "Always Remembered",
+    placement: { x: 0.96, y: 3.9, width: 12, height: 2, zIndex: 10 },
     style: {
-      fontFamily: "Arial",
-      fontSize: 80,
+      fontFamily: "Great Vibes",
+      fontSize: 60,
       align: "center",
       bold: true,
-      color: "#5F8CCA",
+      color: "#665642",
     },
   },
   
    subtitle: {
-    text: "This subtitle block is in the same position",
-    placement: { x: 1.1, y: 12.4, width: 12, height: 2, zIndex: 10 },
+    text: "Forever Missed",
+    placement: { x: 0.96, y: 12.6, width: 12, height: 2, zIndex: 10 },
     style: {
-      fontFamily: "Arial",
-      fontSize: 80,
+      fontFamily: "Great Vibes",
+      fontSize: 70,
       align: "center",
-      bold: true,
-      color: "#5F8CCA",
+      bold: false,
+      color: "#FFFFFF",
     },
   },
-/* 
-  subtitleSecondary: {
-    text: "Thursday, October 16, 2008 @ 2pm\nScranton Business Park Conference Room\n1725 Slough Avenue Scranton, PA 18540",
-    placement: { x: 3, y: 10, width: 8, height: 3, zIndex: 12 },
-    style: {
-      fontFamily: "Inherit",
-      fontSize:40,
-      italic: true,
-      // bold: true,
-      align: "center",
-      color: "#70B3E4",
-    },
-  },
- */
+
 /* 
   tagline: {
     text: "Kindly RSVP",
@@ -69,18 +55,8 @@ export default createLayoutPreset({
       color: "#646462",
     },
   }, */
-/* 
-  taglineSecondary: {
-    text: "We can't wait to celebrate with you!",
-    placement: { x: 2.9, y: 11.8, width: 8, height: 1, zIndex: 14 },
-    style: {
-      fontFamily: "Great Vibes",
-      fontSize: 94,
-      align: "center",
-      color: "#000000",
-    },
-  },
- */
+  
+
   /* =======================================================
      OPTIONAL BLOCKS
      Use these for extra text lines, shapes, images, etc.
@@ -91,17 +67,60 @@ export default createLayoutPreset({
        DECORATIVE IMAGE / PLAQUE
     ------------------------------------------------------- */
     
-    /* {
+     {
       type: "image",
-      placement: { x: 4.7, y: 2.7, width: 5, height: 10, zIndex: 1 },
+      placement: { x: 0.8, y: 2.8, width: 4, height: 13.5, zIndex: 1 },
       config: {
-        src: "/designs/artifacts/bride_groom1.png",
+        src: "/designs/artifacts/memorial_craig_3.png",
+        fit: "cover",
+        frame: "square",
+        zoom: 1,
+        rotation: 0,
+        positionX: 70,     // horizontal position
+        positionY: 50,     // vertical position
+      },
+    },
+    
+     {
+      type: "image",
+      placement: { x: 5.4, y: 3.1, width: 3.2, height: 12.6, zIndex: 1 },
+      config: {
+        src: "/designs/artifacts/memorial_craig_1.png",
+        fit: "cover",
+        frame: "square",
+        zoom: 1,
+        rotation: 0,
+        positionX: 50,     // horizontal position
+        positionY: 50,     // vertical position
+      },
+    },
+    
+     {
+      type: "image",
+      placement: { x: 9.3, y: 2.8, width: 4, height: 13.5, zIndex: 1 },
+      config: {
+        src: "/designs/artifacts/memorial_craig_2.png",
+        fit: "cover",
+        frame: "square",
+        zoom: 1,
+        rotation: 0,
+        positionX: 30,     // horizontal position
+        positionY: 50,     // vertical position
+      },
+    },
+
+     {
+      type: "image",
+      placement: { x: 0, y: 1, width: 14, height: 16, zIndex: 1 },
+      config: {
+        src: "/designs/artifacts/memorial_triple_scenery.png",
         fit: "cover",
         frame: "square",
         zoom: 1,
         rotation: 0,
       },
-    }, */
+    }, 
+
 
     /* -------------------------------------------------------
        DECORATIVE LINES
@@ -132,23 +151,24 @@ export default createLayoutPreset({
        Use label blocks whenever you need more text than the
        built-in page text fields allow.
     ------------------------------------------------------- */
-    /* 
+  
     {
       type: "label",
-      placement: { x: 2.6, y: 7.8, width: 4, height: 1, zIndex: 15 },
+    placement: { x: 0.96, y: 13.6, width: 12, height: 2, zIndex: 10 },
       config: {
-        label: "Accepts Line",
-        text: "Accepts with Pleasure",
+        label: "ILM Line",
+        text: "In Loving Memory of\nCraig Wilson\n1957-2025",
         style: {
           fontFamily: "Georgia",
           fontSize: 40,
           italic: true,
           align: "center",
-          color: "#61605F",
+          color: "#FFFFFF",
         },
       },
     },
-*/
+
+
     /* {
       type: "label",
       placement: { x: 5, y: 3.9, width: 4, height: 1, zIndex: 16 },

@@ -5,7 +5,7 @@ export default createLayoutPreset({
 
   label: "Interest Showcase",
   description: "Highlight passions, projects, profiles",
-  thumbnail: "/designs/design_enthusiast_networking-showcase.png",
+  thumbnail: "/designs/backgrounds/design_enthusiast_networking-showcase.png",
 
   recommended: false,
 
@@ -25,7 +25,7 @@ export default createLayoutPreset({
 
   title: {
     text: "Enthusiast Showcase",
-    placement: { x: 1.15, y: 2.3, width: 12, height: 2, zIndex: 15 },
+    placement: { x: 1.15, y: 3, width: 12, height: 2, zIndex: 15 },
     style: {
       fontFamily: "Inter",
       fontSize: 100,
@@ -37,7 +37,7 @@ export default createLayoutPreset({
 
   subtitle: {
     text: "Showcasing epic builds and creativity",
-    placement: { x: 3, y: 3.3, width: 8, height: 1, zIndex: 11 },
+    placement: { x: 3, y: 4.3, width: 8, height: 1, zIndex: 11 },
     style: {
       fontFamily: "Arial",
       bold: true,
@@ -49,7 +49,7 @@ export default createLayoutPreset({
 
     tagline: {
     text: "Join the Community",
-    placement: { x: 1, y: 4, width: 12, height: 3, zIndex: 13 },
+    placement: { x: 1, y: 5.35, width: 12, height: 3, zIndex: 13 },
     style: {
       fontFamily: "Arial",
       bold: true,
@@ -91,7 +91,7 @@ export default createLayoutPreset({
  
    {
       type: "shape",
-      placement: { x: 4.85, y: 3.6, width: 4.15, height: 1.6, zIndex: 2 },
+      placement: { x: 4.85, y: 5.0, width: 4.15, height: 1.6, zIndex: 2 },
       config: {
         shapeType: "circle",
         borderColor: "#FFFFFF",

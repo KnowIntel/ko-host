@@ -21,9 +21,9 @@ export default function DesignCard({
   backgroundImage?: string;
   isRecommended?: boolean;
 }) {
-const href = `/create/${encodeURIComponent(
-  templateKey,
-)}?design=${encodeURIComponent(designKey)}&mode=new`;
+  const href = `/create/${encodeURIComponent(
+    templateKey,
+  )}?design=${encodeURIComponent(designKey)}&mode=new`;
 
   return (
     <Link
@@ -46,10 +46,14 @@ const href = `/create/${encodeURIComponent(
           />
         ) : null}
 
-        <DesignCardCanvasPreview
-          draft={previewDraft}
-          designKey={designKey}
-        />
+        <div className="absolute inset-0">
+          <div className="h-full w-full opacity-100 transition duration-300">
+            <DesignCardCanvasPreview
+              draft={previewDraft}
+              designKey={designKey}
+            />
+          </div>
+        </div>
 
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/12 via-black/0 to-black/0 opacity-70" />
 

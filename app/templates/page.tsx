@@ -22,14 +22,15 @@ export default function TemplatesPage() {
 
   const categories: Category[] = useMemo(
     () => [
-      "All",
-      "Favorites",
-      "Recently viewed",
-      "Events",
-      "Business",
-      "Real Estate",
-      "Personal",
-      "Career",
+    "All",
+    "Favorites",
+    "Recently viewed",
+    "Events",
+    "Entertainment",
+    "Business",
+    "Real Estate",
+    "Personal",
+    "Career",
     ],
     [],
   );
@@ -74,8 +75,11 @@ export default function TemplatesPage() {
         <div className="sticky top-0 z-30 -mx-4 border-b border-neutral-200 bg-white/85 px-4 pb-4 pt-6 backdrop-blur">
           <div className="flex items-end justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-semibold tracking-tight">Templates</h1>
-              <p className="mt-1 text-sm text-neutral-700">
+              <h1 className="text-3xl font-semibold tracking-tight text-neutral-950 sm:text-4xl">
+                Templates
+              </h1>
+
+              <p className="mt-3 max-w-3xl text-sm leading-7 text-neutral-600 sm:text-[15px]">
                 Pick a template, choose a design, customize it, then publish. For 90 days, you own your own microsite.
               </p>
               <div className="mt-1 text-[12px] font-medium text-neutral-500">

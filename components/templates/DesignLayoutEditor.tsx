@@ -634,6 +634,8 @@ function getSelectedCanvasBlockId(context: SelectedContext): string | null {
   return context.blockId;
 }
 
+
+
 function getSelectedTextValue(
   draft: BuilderDraft,
   context: SelectedContext,
@@ -919,6 +921,10 @@ const showBorderWidthRadiusControls =
   const pageBackgroundImageFit =
     (draft as DraftWithPageExtras).pageBackgroundImageFit ?? "zoom";
 
+    const pageScale = Math.max(
+      10,
+      Math.min(100, (draft as DraftWithPageExtras).pageScale ?? 85),
+    );
   const pageSurfaceStyle = useMemo(() => {
     const backgroundColor = getCanvasInnerBackgroundStyle(
       draft,
@@ -1233,7 +1239,50 @@ const showBorderWidthRadiusControls =
     };
   }, [openToolMenu]);
 
-    useEffect(() => {
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      const target = event.target as HTMLElement | null;
+      const tagName = target?.tagName?.toLowerCase();
+
+      const isTypingTarget =
+        tagName === "input" ||
+        tagName === "textarea" ||
+        target?.isContentEditable === true;
+
+      if (isTypingTarget) return;
+      if (!selectedCanvasBlockId) return;
+
+      const amount = event.shiftKey ? 1 : 0.25;
+
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        nudgeSelectedBlock("left", amount);
+      }
+
+      if (event.key === "ArrowRight") {
+        event.preventDefault();
+        nudgeSelectedBlock("right", amount);
+      }
+
+      if (event.key === "ArrowUp") {
+        event.preventDefault();
+        nudgeSelectedBlock("up", amount);
+      }
+
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        nudgeSelectedBlock("down", amount);
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [selectedCanvasBlockId, metadata]);
+
+  useEffect(() => {
     if (isHistoryActionRef.current) {
       isHistoryActionRef.current = false;
       lastDraftRef.current = cloneDraft(draft);
@@ -1440,6 +1489,15 @@ function clearPageTextBackgroundColor() {
       },
     };
   });
+}
+
+function updatePageScale(value: number) {
+  const nextValue = Math.max(10, Math.min(100, value));
+
+  setDraft((prev) => ({
+    ...(prev as DraftWithPageExtras),
+    pageScale: nextValue,
+  }));
 }
 
 function updateTextFx(
@@ -2756,9 +2814,47 @@ function toggleToolMenu(category: BottomCategory) {
   setOpenToolMenu((prev) => (prev === category ? null : category));
 }
 
+function nudgeSelectedBlock(
+  direction: "left" | "right" | "up" | "down",
+  amount: number = 0.25,
+) {
+  if (!selectedCanvasBlockId) return;
+
+  setDraft((prev) => {
+    const items = buildCanvasItems(prev, metadata);
+    const selectedItem = items.find((item) => item.id === selectedCanvasBlockId);
+
+    if (!selectedItem?.grid) return prev;
+
+    const currentColStart = selectedItem.grid.colStart ?? 1;
+    const currentRowStart = selectedItem.grid.rowStart ?? 1;
+
+    const nextColStart =
+      direction === "left"
+        ? currentColStart - amount
+        : direction === "right"
+          ? currentColStart + amount
+          : currentColStart;
+
+    const nextRowStart =
+      direction === "up"
+        ? currentRowStart - amount
+        : direction === "down"
+          ? currentRowStart + amount
+          : currentRowStart;
+
+    const moved = moveCanvasItemToCell(items, selectedCanvasBlockId, {
+      colStart: nextColStart,
+      rowStart: nextRowStart,
+    });
+
+    return applyCanvasItemsToDraft(prev, moved);
+  });
+}
+
 return (
   <div className="flex min-h-screen flex-col bg-[#f3f3f3]">
-<div className="relative w-full bg-[#2f3541]">
+<div className="relative w-full bg-[#809cd4]">
 
 <div
   ref={topBarScrollRef}
@@ -5069,6 +5165,9 @@ return (
                           }
                           className="mt-2 w-full"
                         />
+                        <div className="mt-1 text-xs text-neutral-500">
+                          {selectedBlock.data.image.positionX ?? 50}%
+                        </div>
                       </div>
 
                       <div>
@@ -5087,6 +5186,9 @@ return (
                           }
                           className="mt-2 w-full"
                         />
+                        <div className="mt-1 text-xs text-neutral-500">
+                          {selectedBlock.data.image.positionY ?? 50}%
+                        </div>
                       </div>
 
                       <div>
@@ -5626,56 +5728,70 @@ return (
 
                   <div className="mt-4 space-y-3">
                     {toolSetItems.map((tool) => (
-                      <div
-                        key={tool.id}
-                        className="rounded-xl border border-neutral-200 bg-neutral-50 p-3"
-                      >
-                        <div className="flex items-center justify-between gap-3">
-                          <div className="min-w-0">
-                            <div className="truncate text-sm font-semibold text-neutral-900">
-                              {tool.label}
-                            </div>
-                            <div className="mt-1 text-xs uppercase tracking-[0.12em] text-neutral-500">
-                              {tool.kind}
-                            </div>
-                          </div>
+<div
+  key={tool.id}
+  role="button"
+  tabIndex={0}
+  onClick={() => setSelection(selectionFromCanvasBlockId(tool.id))}
+  onKeyDown={(e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      setSelection(selectionFromCanvasBlockId(tool.id));
+    }
+  }}
+  className="rounded-xl border border-neutral-200 bg-neutral-50 p-3 cursor-pointer"
+>
+  <div className="flex items-center justify-between gap-3">
+    <div className="min-w-0">
+      <div className="truncate text-sm font-semibold text-neutral-900">
+        {tool.label}
+      </div>
+      <div className="mt-1 text-xs uppercase tracking-[0.12em] text-neutral-500">
+        {tool.kind}
+      </div>
+    </div>
 
-                          <div className="flex shrink-0 items-center gap-2">
-                            <button
-                              type="button"
-                              className={toolSetButtonClass("back")}
-                              onClick={() => {
-                                handleSendToBack(tool.id);
-                                setSelection(selectionFromCanvasBlockId(tool.id));
-                              }}
-                              title="Send to back"
-                            >
-                              Back
-                            </button>
+    <div className="flex shrink-0 items-center gap-2">
+      <button
+        type="button"
+        className={toolSetButtonClass("back")}
+        onClick={(e) => {
+          e.stopPropagation();
+          handleSendToBack(tool.id);
+          setSelection(selectionFromCanvasBlockId(tool.id));
+        }}
+        title="Send to back"
+      >
+        Back
+      </button>
 
-                            <button
-                              type="button"
-                              className={toolSetButtonClass("front")}
-                              onClick={() => {
-                                handleBringToFront(tool.id);
-                                setSelection(selectionFromCanvasBlockId(tool.id));
-                              }}
-                              title="Bring to front"
-                            >
-                              Front
-                            </button>
+      <button
+        type="button"
+        className={toolSetButtonClass("front")}
+        onClick={(e) => {
+          e.stopPropagation();
+          handleBringToFront(tool.id);
+          setSelection(selectionFromCanvasBlockId(tool.id));
+        }}
+        title="Bring to front"
+      >
+        Front
+      </button>
 
-                            <button
-                              type="button"
-                              className={toolSetButtonClass("remove")}
-                              onClick={() => removeCanvasBlock(tool.id)}
-                              title="Remove block"
-                            >
-                              ×
-                            </button>
-                          </div>
-                        </div>
-                      </div>
+      <button
+        type="button"
+        className={toolSetButtonClass("remove")}
+        onClick={(e) => {
+          e.stopPropagation();
+          removeCanvasBlock(tool.id);
+        }}
+        title="Remove block"
+      >
+        ×
+      </button>
+    </div>
+  </div>
+</div>
                     ))}
 
                     {!toolSetItems.length ? (
@@ -5771,8 +5887,26 @@ return (
         </div>
       ))}
     </div>
-    <div className="flex flex-col items-end gap-1">
-      <div className="flex items-center gap-3">
+<div className="flex flex-col items-end gap-1">
+  <div className="flex items-center gap-4">
+    <div className="flex items-center gap-3 rounded-md border border-black/10 bg-white px-3 py-2 shadow-sm">
+      <span className="text-xs font-medium text-neutral-700">Page Scale</span>
+
+      <input
+        type="range"
+        min={10}
+        max={100}
+        step={10}
+        value={pageScale}
+        onChange={(e) => updatePageScale(Number(e.target.value))}
+        className="w-28 accent-blue-600"
+        title="Page Scale"
+      />
+
+      <span className="w-10 text-right text-xs font-medium text-neutral-700">
+        {pageScale}%
+      </span>
+    </div>
         <button
           type="button"
           className={actionButtonClass(false)}

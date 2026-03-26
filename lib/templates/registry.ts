@@ -149,6 +149,7 @@ export type TemplateKey =
 
 export const TEMPLATE_CATEGORIES = [
   "Events",
+  "Entertainment",
   "Business",
   "Real Estate",
   "Personal",
@@ -223,6 +224,14 @@ function inferCategory(key: TemplateKey): TemplateCategory {
     key.includes("speaker_profile")
   ) {
     return "Career";
+  }
+
+    if (
+    key.includes("roast_session" ) ||
+    key.includes("funny_fridays") ||
+    key.includes("live_entertainment")
+  ) {
+    return "Entertainment";
   }
 
   if (
@@ -486,7 +495,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "property",
     defaultDraft: { title: "Property Listing", slugSuggestion: "listing" },
   },
-  {
+/*   {
     key: "rental_listing",
     title: "Rental Listing",
     description: "Availability, pricing, and apply.",
@@ -494,7 +503,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 4,
     demoSlug: "rental",
     defaultDraft: { title: "Rental Listing", slugSuggestion: "rental" },
-  },
+  }, */
   {
     key: "resume_profile",
     title: "Resume Profile",
@@ -729,7 +738,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "move",
     defaultDraft: { title: "We’re Moving", slugSuggestion: "relocation" },
   }, */
-  {
+/*   {
     key: "service_promo",
     title: "Service Promo",
     description: "Offer, pricing, contact.",
@@ -737,7 +746,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 3,
     demoSlug: "promo",
     defaultDraft: { title: "Special Offer", slugSuggestion: "promo" },
-  },
+  }, */
   {
     key: "corporate_event",
     title: "Corporate Event",
@@ -774,7 +783,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "relief",
     defaultDraft: { title: "Disaster Relief", slugSuggestion: "disasterrelief" },
   },
-  {
+/*   {
     key: "hackathon",
     title: "Hackathon",
     description: "Schedule, rules, and registration in one link.",
@@ -782,7 +791,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 4,
     demoSlug: "hackathon",
     defaultDraft: { title: "Hackathon", slugSuggestion: "hackathon" },
-  },
+  }, */
 /*   {
     key: "landlord_property",
     title: "Landlord Property",
@@ -792,7 +801,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "landlord",
     defaultDraft: { title: "Property Info", slugSuggestion: "landlordproperty" },
   }, */
-  {
+/*   {
     key: "legal_defense",
     title: "Legal Defense",
     description: "Tell the story, share updates, accept support.",
@@ -800,12 +809,13 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 3,
     demoSlug: "legaldefense",
     defaultDraft: { title: "Legal Defense Fund", slugSuggestion: "legaldefense" },
-  },
+  }, */
   {
     key: "live_entertainment",
     title: "Live Entertainment",
     description: "Lineup, venue info, and ticket links.",
     thumb: "liveentertainment",
+    category: "Entertainment",
     setupMins: 3,
     demoSlug: "live",
     defaultDraft: { title: "Live Entertainment", slugSuggestion: "liveentertainment" },
@@ -891,7 +901,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "settlement",
     defaultDraft: { title: "Settlement Info", slugSuggestion: "settlementinfo" },
   }, */
-  {
+/*   {
     key: "software_trial",
     title: "Software Trial",
     description: "Trial access + onboarding steps in one link.",
@@ -899,7 +909,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 3,
     demoSlug: "trial",
     defaultDraft: { title: "Software Trial", slugSuggestion: "softwaretrial" },
-  },
+  }, */
 /*   {
     key: "stock_trade_thesis",
     title: "Stock Trade Thesis",
@@ -1035,7 +1045,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "gala",
     defaultDraft: { title: "Charity Gala", slugSuggestion: "charitygala" },
   },
-  {
+/*   {
     key: "alumni_meetup",
     title: "Alumni Meetup",
     description: "Time, location, and RSVP in one link.",
@@ -1043,7 +1053,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 2,
     demoSlug: "alumni",
     defaultDraft: { title: "Alumni Meetup", slugSuggestion: "alumnimeetup" },
-  },
+  }, */
   {
     key: "neighborhood_bbq",
     title: "Neighborhood BBQ",
@@ -1099,7 +1109,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     defaultDraft: { title: "Christening", slugSuggestion: "christeningevent" },
   }, */
 
-  {
+  /* {
     key: "cultural_festival_invite",
     title: "Cultural Festival Invite",
     description: "Schedule, location, and RSVP in one page.",
@@ -1107,7 +1117,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 3,
     demoSlug: "festival",
     defaultDraft: { title: "Cultural Festival", slugSuggestion: "culturalfestival" },
-  },
+  }, */
 /*   {
     key: "music_recital_invite",
     title: "Music Recital Invite",
@@ -1117,7 +1127,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "recital",
     defaultDraft: { title: "Music Recital", slugSuggestion: "musicrecital" },
   }, */
-  {
+/*   {
     key: "limited_time_offer",
     title: "Limited Time Offer",
     description: "Create urgency and drive action fast.",
@@ -1125,7 +1135,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 2,
     demoSlug: "offer",
     defaultDraft: { title: "Limited Time Offer", slugSuggestion: "limitedtimeoffer" },
-  },
+  }, */
  /*  {
     key: "flash_sale",
     title: "Flash Sale",
@@ -1135,8 +1145,8 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "flash",
     defaultDraft: { title: "Flash Sale", slugSuggestion: "flashsale" },
   }, */
-  {
-/*     key: "black_friday_promotion",
+  /*{
+     key: "black_friday_promotion",
     title: "Black Friday Promotion",
     description: "Promote deals with urgency and links.",
     thumb: "blackfridaypromotion",
@@ -1144,7 +1154,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "blackfriday",
     defaultDraft: { title: "Black Friday", slugSuggestion: "blackfriday" },
   },
-  { */
+  { 
     key: "new_service_announcement",
     title: "New Service Announcement",
     description: "Announce a service with offer + contact.",
@@ -1189,7 +1199,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "garagesale",
     defaultDraft: { title: "Garage Sale", slugSuggestion: "garagesale" },
   },
-  {
+/*   {
     key: "marketing_campaign_landing",
     title: "Marketing Campaign",
     description: "Campaign message, CTA, and links.",
@@ -1197,7 +1207,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 3,
     demoSlug: "marketing",
     defaultDraft: { title: "Campaign Landing", slugSuggestion: "marketingcampaign" },
-  },
+  }, */
   {
     key: "new_store_opening_announcement",
     title: "New Store Opening",
@@ -1243,7 +1253,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "affiliate",
     defaultDraft: { title: "Affiliate Program", slugSuggestion: "affiliatecampaign" },
   }, */
-  {
+/*   {
     key: "referral_program",
     title: "Referral Program",
     description: "Referral details, rewards, and links.",
@@ -1251,7 +1261,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 2,
     demoSlug: "referral",
     defaultDraft: { title: "Referral Program", slugSuggestion: "referralprogram" },
-  },
+  }, */
   {
     key: "airbnb_vacation_rental",
     title: "Airbnb Vacation Rental",
@@ -1675,7 +1685,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
   thumb: "funnyfridays",
   setupMins: 2,
   demoSlug: "funnyfridays",
-  category: "Events",
+  category: "Entertainment",
   defaultDraft: {
     title: "Funny Fridays",
     slugSuggestion: "funnyfridays",
@@ -1688,7 +1698,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
   thumb: "roastsession",
   setupMins: 2,
   demoSlug: "roastsession",
-  category: "Events",
+  category: "Entertainment",
   defaultDraft: {
     title: "Roast Session",
     slugSuggestion: "roastsession",

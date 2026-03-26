@@ -476,18 +476,22 @@ function renderImage(
   const zoom = block.data.image.zoom ?? 1;
   const rotation = block.data.image.rotation ?? 0;
 
+  const translateX = (positionX - 50) * 0.6;
+  const translateY = (positionY - 50) * 0.6;
+
   return (
-    <div className="h-full w-full" style={getImageFrameStyle(block)}>
+    <div className="h-full w-full overflow-hidden" style={getImageFrameStyle(block)}>
       <img
         src={block.data.image.url}
         alt={block.data.image.alt || ""}
         className="h-full w-full"
-        style={{
-          objectFit: getImageObjectFit(block),
-          objectPosition: `${positionX}% ${positionY}%`,
-          transform: `scale(${zoom}) rotate(${rotation}deg)`,
-          transformOrigin: "center center",
-        }}
+      style={{
+        objectFit: getImageObjectFit(block),
+        objectPosition: "center center",
+        transform: `translate(${translateX}%, ${translateY}%) scale(${zoom}) rotate(${rotation}deg)`,
+        transformOrigin: "center center",
+        opacity: block.data.image.opacity ?? 1, // ✅ ADD THIS
+      }}
       />
     </div>
   );
@@ -707,6 +711,12 @@ function renderGallery(
   const tileCount = Math.max(images.length, gridCount * 2, 4);
   const rows = Math.max(1, Math.ceil(tileCount / gridCount));
 
+  const positionX = block.data.positionX ?? 50;
+  const positionY = block.data.positionY ?? 50;
+
+  const translateX = (positionX - 50) * 2;
+  const translateY = (positionY - 50) * 2;
+
   return (
     <div
       className="h-full w-full overflow-hidden p-2"
@@ -717,6 +727,8 @@ function renderGallery(
         style={{
           gridTemplateColumns: `repeat(${gridCount}, minmax(0, 1fr))`,
           gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,
+          transform: `translate(${translateX}%, ${translateY}%)`,
+          transformOrigin: "center center",
         }}
       >
         {Array.from({ length: tileCount }).map((_, index) =>

@@ -218,6 +218,10 @@ export default async function PublishedMicrositePage({
           <PlacedBlocksPreview
             draft={draft}
             designKey={designKey}
+            fixedScale={Math.max(
+              0.1,
+              Math.min(1, (((draft as { pageScale?: number }).pageScale ?? 85) / 100)),
+            )}
             disableAutoScale={true}
             hideFrame={true}
           />

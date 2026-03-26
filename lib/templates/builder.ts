@@ -1,4 +1,3 @@
-// lib\templates\builder.ts
 /* =========================================
    Ko-Host Builder Core Types
    ========================================= */
@@ -196,6 +195,7 @@ export type ImageBlock = BaseBlock & {
       positionY?: number;
       zoom?: number;
       rotation?: number;
+      opacity?: number; // 👈 ADD THIS LINE
     };
   };
 };
@@ -290,6 +290,8 @@ export type GalleryBlock = BaseBlock & {
   data: {
     grid: number;
     images: GalleryImage[];
+    positionX?: number;
+    positionY?: number;
   };
 };
 
@@ -336,7 +338,7 @@ export type FormFieldType = "text" | "email" | "phone" | "textarea";
 
 export type FormFieldBlock = BaseBlock & {
   type: "form_field";
-    data: {
+  data: {
     label: string;
     placeholder: string;
     required: boolean;
@@ -384,6 +386,7 @@ export type BuilderDraft = {
 
   slugSuggestion: string;
   pageBackground?: string;
+  pageScale?: number;
 
   pageVisibility?: PageVisibility;
   pageElements?: PageElements;
@@ -836,6 +839,11 @@ export function sanitizeBuilderDraft(input: unknown): BuilderDraft {
 
     pageBackground:
       typeof draft.pageBackground === "string" ? draft.pageBackground : "",
+
+    pageScale:
+      typeof draft.pageScale === "number" && Number.isFinite(draft.pageScale)
+        ? Math.max(10, Math.min(100, draft.pageScale))
+        : 85,
 
     pageVisibility:
       draft.pageVisibility && typeof draft.pageVisibility === "object"

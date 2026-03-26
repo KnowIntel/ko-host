@@ -186,39 +186,43 @@ function makeImageBlock(config: OptionalBlockConfig): ImageBlock {
           ? config.config.borderRadius
           : 16,
     },
-    data: {
-      image: {
-        id: makeId("img"),
-        url:
-          config.config?.src ||
-          config.config?.imageSrc ||
-          config.config?.url ||
-          config.config?.image ||
-          "",
-        alt: config.config?.alt || "",
-        fitMode:
-          config.config?.fit === "contain"
-            ? "clip"
-            : config.config?.fit === "fill"
-              ? "stretch"
-              : "zoom",
-        frame: config.config?.frame || "square",
-        positionX:
-          typeof config.config?.positionX === "number"
-            ? config.config.positionX
-            : 50,
-        positionY:
-          typeof config.config?.positionY === "number"
-            ? config.config.positionY
-            : 50,
-        zoom:
-          typeof config.config?.zoom === "number" ? config.config.zoom : 1,
-        rotation:
-          typeof config.config?.rotation === "number"
-            ? config.config.rotation
-            : 0,
-      },
-    },
+data: {
+  image: {
+    id: makeId("img"),
+    url:
+      config.config?.src ||
+      config.config?.imageSrc ||
+      config.config?.url ||
+      config.config?.image ||
+      "",
+    alt: config.config?.alt || "",
+    fitMode:
+      config.config?.fit === "contain"
+        ? "clip"
+        : config.config?.fit === "fill"
+          ? "stretch"
+          : "zoom",
+    frame: config.config?.frame || "square",
+    positionX:
+      typeof config.config?.positionX === "number"
+        ? config.config.positionX
+        : 50,
+    positionY:
+      typeof config.config?.positionY === "number"
+        ? config.config.positionY
+        : 50,
+    zoom:
+      typeof config.config?.zoom === "number" ? config.config.zoom : 1,
+    rotation:
+      typeof config.config?.rotation === "number"
+        ? config.config.rotation
+        : 0,
+    opacity:
+      typeof config.config?.opacity === "number"
+        ? config.config.opacity
+        : 1,
+  },
+},
   };
 }
 
@@ -263,6 +267,14 @@ function makeGalleryBlock(config: OptionalBlockConfig): GalleryBlock {
             url: image.url || "",
           }))
         : [],
+      positionX:
+        typeof config.config?.positionX === "number"
+          ? config.config.positionX
+          : 50,
+      positionY:
+        typeof config.config?.positionY === "number"
+          ? config.config.positionY
+          : 50,
     },
   };
 }

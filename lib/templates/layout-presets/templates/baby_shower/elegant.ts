@@ -5,7 +5,7 @@ export default createLayoutPreset({
 
   label: "Elegant Floral",
   description: "Soft florals elegant styling",
-  thumbnail: "/designs/design_baby_shower-elegant.png",
+  thumbnail: "/designs/backgrounds/design_baby_shower-elegant.png",
 
   recommended: true,
 
@@ -59,7 +59,7 @@ export default createLayoutPreset({
  */
   tagline: {
     text: "Please join us in welcoming a beautiful baby boy:",
-    placement: { x: 1, y: 7.4, width: 12, height: 3, zIndex: 13 },
+    placement: { x: 1, y: 8.4, width: 12, height: 3, zIndex: 13 },
     style: {
       fontFamily: "Bodoni Moda",
       fontSize: 70,
@@ -70,7 +70,7 @@ export default createLayoutPreset({
 
   taglineSecondary: {
     text: "Tavonn Hodges",
-    placement: { x: 2.9, y: 8.4, width: 8, height: 3, zIndex: 14 },
+    placement: { x: 2.9, y: 10, width: 8, height: 3, zIndex: 14 },
     style: {
       fontFamily: "Great Vibes",
       fontSize: 164,
@@ -179,7 +179,7 @@ export default createLayoutPreset({
     
     {
       type: "label",
-      placement: { x: 0.9, y: 10, width: 12, height: 4, zIndex: 16 },
+      placement: { x: 0.9, y: 12, width: 12, height: 4, zIndex: 16 },
       config: {
         label: "Logistics Info 2",
         text: "Saturday, June 1, 1991 from 2:00 PM – 5:00 PM\nCalifornia Love Community Garden Pavilion\n1996 West Coast Drive Oakland, CA 94612\nHosted By Sharon & Keisha",

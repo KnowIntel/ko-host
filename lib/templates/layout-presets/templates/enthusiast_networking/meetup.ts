@@ -1,3 +1,4 @@
+import { Boldonse } from "next/font/google";
 import { createLayoutPreset } from "../../shared";
 
 export default createLayoutPreset({
@@ -5,7 +6,7 @@ export default createLayoutPreset({
 
   label: "Meetup Flow",
   description: "Structured interactions and event coordination",
-  thumbnail: "/designs/design_enthusiast_networking-meetup.png",
+  thumbnail: "/designs/backgrounds/design_enthusiast_networking-meetup.png",
 
   recommended: true,
 
@@ -140,6 +141,7 @@ export default createLayoutPreset({
           fontFamily: "Playfair Display",
           fontSize: 60,
           italic: true,
+          bold: true,
           align: "center",
           color: "#A39F9A",
         },
@@ -165,14 +167,15 @@ export default createLayoutPreset({
   
     {
       type: "label",
-      placement: { x: 1, y: 12.75, width: 12, height: 2.25, zIndex: 16 },
+      placement: { x: 1, y: 13.35, width: 12, height: 4.25, zIndex: 16 },
       config: {
         label: "Logistics Info",
-        text: "Saturday, June 1, 1991 from 2:00 PM – 5:00 PM\nCalifornia Love Community Garden Pavilion\n1996 West Coast Drive Oakland, CA 94612\nHosted By Sharon & Keisha",
+        text: "Saturday, February 7, 2026 from 2:00 PM – 5:00 PM",
         style: {
           fontFamily: "Playfair Display",
           fontSize: 50,
           italic: true,
+          bold: true,
           align: "center",
           color: "#A39F9A",
         },
@@ -206,16 +209,29 @@ export default createLayoutPreset({
     },
     */
 
-    /*
     {
       type: "cta",
-      placement: { x: 5, y: 8, width: 3, height: 1, zIndex: 5 },
+      placement: { x: 5.4, y: 14.8, width: 3, height: 1.5, zIndex: 5 },
       config: {
-        buttonText: "RSVP",
+        buttonText: "Sign Up",
         buttonUrl: "#",
-      },
+
+        appearance: {
+          backgroundColor: "#FEDC03",
+          borderRadius: 9999,
+          borderColor: "#FFFFFF",
+          borderWidth: 6
+        },
+
+        style: {
+          fontFamily: "Inter",
+          fontSize: 50,
+          bold: true,
+          align: "center",
+          color: "#000000"
+        }
+      }
     },
-    */
 
     /*
     {

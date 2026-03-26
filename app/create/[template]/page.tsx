@@ -1,12 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useAuth } from "@clerk/nextjs";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { getDesignPreset } from "@/lib/design-presets/designRegistry";
-import { getTemplateLayoutRegistry } from "@/lib/templates/layout-presets/layoutRegistry";
-import { createDraftFromLayoutDefinition } from "@/lib/templates/layout-presets/layoutToDraft";
 import { createTemplateDraft } from "@/lib/templates/createTemplateDraft";
 import {
   TEMPLATE_DEFS,
@@ -16,6 +13,7 @@ import {
 import TemplateDraftEditor from "@/components/templates/TemplateDraftEditor";
 import type { BuilderDraft } from "@/lib/templates/builder";
 import AppModal from "@/components/ui/AppModal";
+import { loadTemplateDraftPreset } from "@/lib/drafts";
 
 function resolveTemplateFromRoute(rawTemplate: string) {
   const normalized = normalizeTemplateKey(rawTemplate);
@@ -83,81 +81,82 @@ export default function CreateTemplatePage() {
     [rawDesign],
   );
 
-  const layoutRegistry = useMemo(
-    () => getTemplateLayoutRegistry(templateKey),
-    [templateKey],
-  );
-
-  const migratedLayout = useMemo(
-    () =>
-      layoutRegistry?.layouts.find(
-        (layout) => normalizeTemplateKey(layout.designKey) === requestedDesignKey,
-      ) ?? null,
-    [layoutRegistry, requestedDesignKey],
-  );
-
   const resolvedLegacyPreset = useMemo(
     () => getDesignPreset(requestedDesignKey),
     [requestedDesignKey],
   );
 
-  const designKey = migratedLayout
-    ? migratedLayout.designKey
-    : resolvedLegacyPreset.key;
+  const designKey = requestedDesignKey || resolvedLegacyPreset.key || "blank";
 
-  const presetDraft: BuilderDraft = useMemo(() => {
-    return migratedLayout
-      ? createDraftFromLayoutDefinition({
-          templateKey,
-          layout: migratedLayout,
-          slugSuggestion: templateDef.defaultDraft?.slugSuggestion || "",
-        })
-      : createTemplateDraft(templateName, designKey);
-  }, [
-    migratedLayout,
-    templateKey,
-    templateDef.defaultDraft?.slugSuggestion,
-    templateName,
-    designKey,
-  ]);
+const presetDraft: BuilderDraft = useMemo(() => {
+  console.log("DEBUG templateKey:", templateKey);
+  console.log("DEBUG requestedDesignKey:", requestedDesignKey);
+  console.log("DEBUG resolvedLegacyPreset.key:", resolvedLegacyPreset.key);
+  console.log("DEBUG final designKey:", designKey);
 
-  const initialDraft: BuilderDraft = useMemo(
-    () => ({
-      ...presetDraft,
+  const draftPreset = loadTemplateDraftPreset(templateKey, designKey);
+  console.log("DEBUG draftPreset found:", draftPreset);
+
+  if (draftPreset) {
+    return {
+      ...draftPreset,
       slugSuggestion:
-        presetDraft.slugSuggestion ||
+        draftPreset.slugSuggestion ||
         templateDef.defaultDraft?.slugSuggestion ||
         "",
-      blocks: Array.isArray(presetDraft.blocks) ? presetDraft.blocks : [],
-    }),
-    [presetDraft, templateDef.defaultDraft?.slugSuggestion],
-  );
-
-  const storageKey = useMemo(
-    () => buildCreateDraftStorageKey(templateKey, designKey),
-    [templateKey, designKey],
-  );
-
-  const [hydratedDraft, setHydratedDraft] = useState<BuilderDraft>(initialDraft);
-  const [liveDraft, setLiveDraft] = useState<BuilderDraft>(initialDraft);
-  const lastSavedDraftRef = useRef<string>(JSON.stringify(initialDraft));
-
-  const [saveState, setSaveState] = useState<
-    "idle" | "saving" | "saved" | "error" | "signin-required"
-  >("idle");
-  const [saveMessage, setSaveMessage] = useState("Draft not saved yet.");
-  const [showPublishWarning, setShowPublishWarning] = useState(false);
-  const [showSignInPrompt, setShowSignInPrompt] = useState(false);
-
-  const saveResetTimerRef = useRef<number | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (saveResetTimerRef.current) {
-        window.clearTimeout(saveResetTimerRef.current);
-      }
+      blocks: Array.isArray(draftPreset.blocks) ? draftPreset.blocks : [],
     };
-  }, []);
+  }
+
+  console.log("DEBUG fallback createTemplateDraft used");
+
+  return createTemplateDraft(templateName, designKey);
+}, [
+  templateKey,
+  requestedDesignKey,
+  resolvedLegacyPreset.key,
+  designKey,
+  templateDef.defaultDraft?.slugSuggestion,
+  templateName,
+]);
+
+const initialDraft: BuilderDraft = useMemo(
+  () => ({
+    ...presetDraft,
+    slugSuggestion:
+      presetDraft.slugSuggestion ||
+      templateDef.defaultDraft?.slugSuggestion ||
+      "",
+    blocks: Array.isArray(presetDraft.blocks) ? presetDraft.blocks : [],
+  }),
+  [presetDraft, templateDef.defaultDraft?.slugSuggestion],
+);
+
+const storageKey = useMemo(
+  () => buildCreateDraftStorageKey(templateKey, designKey),
+  [templateKey, designKey],
+);
+
+const [hydratedDraft, setHydratedDraft] = useState<BuilderDraft>(initialDraft);
+const [liveDraft, setLiveDraft] = useState<BuilderDraft>(initialDraft);
+const lastSavedDraftRef = useRef<string>(JSON.stringify(initialDraft));
+
+const [saveState, setSaveState] = useState<
+  "idle" | "saving" | "saved" | "error" | "signin-required"
+>("idle");
+const [saveMessage, setSaveMessage] = useState("Draft not saved yet.");
+const [showPublishWarning, setShowPublishWarning] = useState(false);
+const [showSignInPrompt, setShowSignInPrompt] = useState(false);
+
+const saveResetTimerRef = useRef<number | null>(null);
+
+useEffect(() => {
+  return () => {
+    if (saveResetTimerRef.current) {
+      window.clearTimeout(saveResetTimerRef.current);
+    }
+  };
+}, []);
 
   function queueSaveStateReset() {
     if (saveResetTimerRef.current) {
@@ -170,80 +169,80 @@ export default function CreateTemplatePage() {
     }, 3000);
   }
 
-useEffect(() => {
-  setHydratedDraft(initialDraft);
-  setLiveDraft(initialDraft);
-  lastSavedDraftRef.current = JSON.stringify(initialDraft);
-
-  if (!shouldLoadExistingDraft) {
-    try {
-      window.localStorage.removeItem(storageKey);
-    } catch {
-      // ignore localStorage errors
-    }
-
-    setSaveState("idle");
-    setSaveMessage("Started a fresh draft from this design preset.");
-    return;
-  }
-
-  try {
-    const raw = window.localStorage.getItem(storageKey);
-
-    if (!raw) {
-      setSaveState("idle");
-      setSaveMessage("Draft not saved yet.");
-      return;
-    }
-
-    const parsed = JSON.parse(raw) as Partial<BuilderDraft>;
-    const merged = mergeDrafts(initialDraft, parsed);
-
-    setHydratedDraft(merged);
-    setLiveDraft(merged);
-    lastSavedDraftRef.current = JSON.stringify(merged);
-    setSaveState("idle");
-    setSaveMessage("Loaded your local draft.");
-  } catch {
+  useEffect(() => {
     setHydratedDraft(initialDraft);
     setLiveDraft(initialDraft);
     lastSavedDraftRef.current = JSON.stringify(initialDraft);
-    setSaveState("error");
-    setSaveMessage("Saved local draft could not be loaded.");
-    queueSaveStateReset();
-  }
-}, [initialDraft, storageKey, shouldLoadExistingDraft]);
 
-useEffect(() => {
-  async function loadServerDraft() {
-    if (!isSignedIn || !shouldLoadExistingDraft) return;
+    if (!shouldLoadExistingDraft) {
+      try {
+        window.localStorage.removeItem(storageKey);
+      } catch {
+        // ignore localStorage errors
+      }
+
+      setSaveState("idle");
+      setSaveMessage("Started a fresh draft from this design preset.");
+      return;
+    }
 
     try {
-      const res = await fetch(
-        `/api/drafts?templateKey=${encodeURIComponent(
-          templateKey,
-        )}&designKey=${encodeURIComponent(designKey)}`,
-        { cache: "no-store" },
-      );
+      const raw = window.localStorage.getItem(storageKey);
 
-      const data = await res.json().catch(() => ({}));
+      if (!raw) {
+        setSaveState("idle");
+        setSaveMessage("Draft not saved yet.");
+        return;
+      }
 
-      if (!res.ok || !data?.draftRow?.draft) return;
-
-      const savedDraft = data.draftRow.draft as BuilderDraft;
-      const merged = mergeDrafts(initialDraft, savedDraft);
+      const parsed = JSON.parse(raw) as Partial<BuilderDraft>;
+      const merged = mergeDrafts(initialDraft, parsed);
 
       setHydratedDraft(merged);
       setLiveDraft(merged);
       lastSavedDraftRef.current = JSON.stringify(merged);
-      setSaveMessage("Loaded your saved dashboard draft.");
+      setSaveState("idle");
+      setSaveMessage("Loaded your local draft.");
     } catch {
-      // ignore draft preload errors
+      setHydratedDraft(initialDraft);
+      setLiveDraft(initialDraft);
+      lastSavedDraftRef.current = JSON.stringify(initialDraft);
+      setSaveState("error");
+      setSaveMessage("Saved local draft could not be loaded.");
+      queueSaveStateReset();
     }
-  }
+  }, [initialDraft, storageKey, shouldLoadExistingDraft]);
 
-  void loadServerDraft();
-}, [isSignedIn, templateKey, designKey, initialDraft, shouldLoadExistingDraft]);
+  useEffect(() => {
+    async function loadServerDraft() {
+      if (!isSignedIn || !shouldLoadExistingDraft) return;
+
+      try {
+        const res = await fetch(
+          `/api/drafts?templateKey=${encodeURIComponent(
+            templateKey,
+          )}&designKey=${encodeURIComponent(designKey)}`,
+          { cache: "no-store" },
+        );
+
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok || !data?.draftRow?.draft) return;
+
+        const savedDraft = data.draftRow.draft as BuilderDraft;
+        const merged = mergeDrafts(initialDraft, savedDraft);
+
+        setHydratedDraft(merged);
+        setLiveDraft(merged);
+        lastSavedDraftRef.current = JSON.stringify(merged);
+        setSaveMessage("Loaded your saved dashboard draft.");
+      } catch {
+        // ignore draft preload errors
+      }
+    }
+
+    void loadServerDraft();
+  }, [isSignedIn, templateKey, designKey, initialDraft, shouldLoadExistingDraft]);
 
   async function handleSaveDraft(draft: BuilderDraft) {
     setHydratedDraft(draft);
@@ -295,13 +294,13 @@ useEffect(() => {
     }
   }
 
-function continueToSignIn() {
-  setShowSignInPrompt(false);
+  function continueToSignIn() {
+    setShowSignInPrompt(false);
 
-  const returnUrl = window.location.href;
-  const signInUrl = `/sign-in?redirect_url=${encodeURIComponent(returnUrl)}`;
-  window.location.assign(signInUrl);
-}
+    const returnUrl = window.location.href;
+    const signInUrl = `/sign-in?redirect_url=${encodeURIComponent(returnUrl)}`;
+    window.location.assign(signInUrl);
+  }
 
   const editorInstanceKey = [
     templateKey,
@@ -325,15 +324,11 @@ function continueToSignIn() {
     setShowPublishWarning(false);
   }
 
-async function continueToPublish() {
-  setShowPublishWarning(false);
-
-  // IMPORTANT:
-  // Ensure latest draft is saved BEFORE navigating to publish step
-  await handleSaveDraft(liveDraft);
-
-  router.push(publishHref);
-}
+  async function continueToPublish() {
+    setShowPublishWarning(false);
+    await handleSaveDraft(liveDraft);
+    router.push(publishHref);
+  }
 
   return (
     <main className="min-h-screen bg-[#f6f4f2]">
