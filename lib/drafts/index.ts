@@ -1,12 +1,12 @@
 import type { BuilderDraft } from "@/lib/templates/builder";
 import weddingClassicDraft from "@/drafts/wedding/classic.draft";
 import weddingModernDraft from "@/drafts/wedding/modern.draft";
-// import reunionElegantDraft from "@/drafts/reunion/elegant.draft";
+import reunionElegantDraft from "@/drafts/reunion/elegant.draft";
 
 const DRAFT_PRESETS: Record<string, BuilderDraft> = {
   "wedding_rsvp:classic": weddingClassicDraft,
   "wedding_rsvp:modern": weddingModernDraft,
-  // "family_reunion:elegant": reunionElegantDraft,
+  "family_reunion:elegant": reunionElegantDraft,
 };
 
 function normalizeDraftKeyPart(value: string) {
