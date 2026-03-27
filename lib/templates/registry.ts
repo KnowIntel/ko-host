@@ -415,15 +415,6 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     defaultDraft: { title: "Our Wedding", slugSuggestion: "ourwedding" },
   },
   {
-    key: "baby_shower",
-    title: "Baby Shower",
-    description: "Share details. Collect RSVPs.",
-    thumb: "babyshower",
-    setupMins: 4,
-    demoSlug: "baby",
-    defaultDraft: { title: "Baby Shower", slugSuggestion: "babyshower" },
-  },
-  {
     key: "birthday_party",
     title: "Birthday",
     description: "Party info + RSVP in one link.",
@@ -431,6 +422,15 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 3,
     demoSlug: "birthday",
     defaultDraft: { title: "Party Time", slugSuggestion: "partytime" },
+  },
+  {
+    key: "baby_shower",
+    title: "Baby Shower",
+    description: "Share details. Collect RSVPs.",
+    thumb: "babyshower",
+    setupMins: 4,
+    demoSlug: "baby",
+    defaultDraft: { title: "Baby Shower", slugSuggestion: "babyshower" },
   },
   {
     key: "family_reunion",

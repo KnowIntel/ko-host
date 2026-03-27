@@ -878,8 +878,8 @@ const showTextControls =
   selectedContext.kind === "label" ||
   selectedContext.kind === "textFx" ||
   selectedContext.kind === "cta" ||
-  selectedContext.kind === "imageCarousel" ||
-  selectedBlock?.type === "thread";
+  selectedBlock?.type === "thread" ||
+  selectedBlock?.type === "form_field";
 
 const showAppearanceControls =
   selectedContext.kind === "label" ||
@@ -1446,6 +1446,27 @@ function applyStylePatch(patch: Partial<TextStyle>) {
     return;
   }
 
+  if (selectedBlock?.type === "form_field") {
+    setDraft((prev) => ({
+      ...prev,
+      blocks: prev.blocks.map((block) =>
+        block.id === selectedBlock.id && block.type === "form_field"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                style: {
+                  ...(block.data.style ?? {}),
+                  ...patch,
+                },
+              },
+            }
+          : block,
+      ),
+    }));
+    return;
+  }
+
   setDraft((prev) => applyStylePatchToSelection(prev, selection, patch));
 }
 
@@ -1891,6 +1912,10 @@ async function uploadMultipleImagesToCarousel(blockId: string) {
           subtitle: "",
           href: "",
           openInNewTab: false,
+          positionX: 50,
+          positionY: 50,
+          zoom: 1,
+          rotation: 0,
         })),
       );
 
@@ -4307,12 +4332,35 @@ return (
                   </div>
                 ) : null}
 
-                {selectedBlock?.type === "form_field" ? (
+{selectedBlock?.type === "form_field" ? (
   <div className={inspectorCardClass()}>
     <div className={inspectorLabelClass()}>Form Field</div>
 
     <div className="mt-4">
-      <div className={inspectorLabelClass()}>Label</div>
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <div className={inspectorLabelClass()}>Label</div>
+        <label className="flex items-center gap-2 text-xs text-neutral-600">
+          <input
+            type="checkbox"
+            checked={selectedBlock.data.showLabel !== false}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "form_field"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        showLabel: e.target.checked,
+                      },
+                    },
+              )
+            }
+          />
+          Show
+        </label>
+      </div>
+
       <input
         type="text"
         value={selectedBlock.data.label}
@@ -4332,7 +4380,30 @@ return (
     </div>
 
     <div className="mt-4">
-      <div className={inspectorLabelClass()}>Placeholder</div>
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <div className={inspectorLabelClass()}>Placeholder</div>
+        <label className="flex items-center gap-2 text-xs text-neutral-600">
+          <input
+            type="checkbox"
+            checked={selectedBlock.data.showPlaceholder !== false}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "form_field"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        showPlaceholder: e.target.checked,
+                      },
+                    },
+              )
+            }
+          />
+          Show
+        </label>
+      </div>
+
       <input
         type="text"
         value={selectedBlock.data.placeholder}
@@ -4351,25 +4422,48 @@ return (
       />
     </div>
 
-<div className="mt-4">
-  <div className={inspectorLabelClass()}>Submit Button Text</div>
-  <input
-    type="text"
-    value={selectedBlock.data.submitButtonText ?? "Submit"}
-    onChange={(e) =>
-      setDraft((prev) => ({
-        ...prev,
-        blocks: updateFormField(
-          prev.blocks,
-          selectedBlock.id,
-          "submitButtonText",
-          e.target.value,
-        ),
-      }))
-    }
-    className={inspectorInputClass()}
-  />
-</div>
+    <div className="mt-4">
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <div className={inspectorLabelClass()}>Submit Button Text</div>
+        <label className="flex items-center gap-2 text-xs text-neutral-600">
+          <input
+            type="checkbox"
+            checked={selectedBlock.data.showSubmitButtonText !== false}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "form_field"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        showSubmitButtonText: e.target.checked,
+                      },
+                    },
+              )
+            }
+          />
+          Show
+        </label>
+      </div>
+
+      <input
+        type="text"
+        value={selectedBlock.data.submitButtonText ?? "Submit"}
+        onChange={(e) =>
+          setDraft((prev) => ({
+            ...prev,
+            blocks: updateFormField(
+              prev.blocks,
+              selectedBlock.id,
+              "submitButtonText",
+              e.target.value,
+            ),
+          }))
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
 
     <div className="mt-4">
       <div className={inspectorLabelClass()}>Field Type</div>
@@ -4396,22 +4490,45 @@ return (
     </div>
 
     <div className="mt-4">
-      <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
-        <input
-          type="checkbox"
-          checked={Boolean(selectedBlock.data.required)}
-          onChange={(e) =>
-            setDraft((prev) => ({
-              ...prev,
-              blocks: updateFormFieldRequired(
-                prev.blocks,
-                selectedBlock.id,
-                e.target.checked,
-              ),
-            }))
-          }
-        />
-        Required field
+      <label className="flex items-center justify-between gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+        <span className="flex items-center gap-3">
+          <input
+            type="checkbox"
+            checked={Boolean(selectedBlock.data.required)}
+            onChange={(e) =>
+              setDraft((prev) => ({
+                ...prev,
+                blocks: updateFormFieldRequired(
+                  prev.blocks,
+                  selectedBlock.id,
+                  e.target.checked,
+                ),
+              }))
+            }
+          />
+          Required field
+        </span>
+
+        <span className="flex items-center gap-2 text-xs text-neutral-600">
+          <input
+            type="checkbox"
+            checked={selectedBlock.data.showRequired !== false}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "form_field"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        showRequired: e.target.checked,
+                      },
+                    },
+              )
+            }
+          />
+          Show
+        </span>
       </label>
     </div>
   </div>
@@ -4626,7 +4743,7 @@ return (
                   </div>
                 ) : null}
 
-                {selectedBlock?.type === "thread" ? (
+{selectedBlock?.type === "thread" ? (
   <div id="inspector-thread" className={inspectorCardClass()}>
     <div className={inspectorLabelClass()}>Thread / Social</div>
 
@@ -4697,114 +4814,229 @@ return (
       </label>
     </div>
 
-<div className="mt-5">
-  <div className={inspectorLabelClass()}>Display</div>
+    <div className="mt-5">
+      <div className={inspectorLabelClass()}>Display</div>
 
-  <div className="mt-4">
-    <div className={inspectorLabelClass()}>Max Visible Messages</div>
-    <input
-      type="number"
-      min={1}
-      max={8}
-      value={selectedBlock.data.maxVisibleMessages ?? 4}
-      onChange={(e) =>
-        updateSelectedBlock((block) =>
-          block.type !== "thread"
-            ? block
-            : {
-                ...block,
-                data: {
-                  ...block.data,
-                  maxVisibleMessages: Math.max(
-                    1,
-                    Math.min(8, Number(e.target.value) || 4),
-                  ),
-                },
-              },
-        )
-      }
-      className={inspectorInputClass()}
-    />
-  </div>
-</div>
+      <div className="mt-4">
+        <div className={inspectorLabelClass()}>Max Visible Messages</div>
+        <input
+          type="number"
+          min={1}
+          max={100}
+          value={selectedBlock.data.maxVisibleMessages ?? 4}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "thread"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      maxVisibleMessages: Math.max(
+                        1,
+                        Math.min(100, Number(e.target.value) || 4),
+                      ),
+                    },
+                  },
+            )
+          }
+          className={inspectorInputClass()}
+        />
+      </div>
+
+      <div className="mt-4">
+        <div className={inspectorLabelClass()}>Scroll Height</div>
+        <input
+          type="number"
+          min={120}
+          max={1000}
+          value={selectedBlock.data.scrollHeight ?? 280}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "thread"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      scrollHeight: Math.max(
+                        120,
+                        Math.min(1000, Number(e.target.value) || 280),
+                      ),
+                    },
+                  },
+            )
+          }
+          className={inspectorInputClass()}
+        />
+      </div>
+
+      <div className="mt-4 grid grid-cols-1 gap-3">
+        <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+          <input
+            type="checkbox"
+            checked={selectedBlock.data.showNameField !== false}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "thread"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        showNameField: e.target.checked,
+                      },
+                    },
+              )
+            }
+          />
+          Show name field
+        </label>
+
+        <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+          <input
+            type="checkbox"
+            checked={selectedBlock.data.showVoteControls !== false}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "thread"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        showVoteControls: e.target.checked,
+                      },
+                    },
+              )
+            }
+          />
+          Show vote controls
+        </label>
+
+        <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+          <input
+            type="checkbox"
+            checked={selectedBlock.data.showVoteCount !== false}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "thread"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        showVoteCount: e.target.checked,
+                      },
+                    },
+              )
+            }
+          />
+          Show vote count
+        </label>
+      </div>
+    </div>
 
     <div className="mt-5">
-  <div className={inspectorLabelClass()}>Composer</div>
+      <div className={inspectorLabelClass()}>Composer</div>
 
-  <div className="mt-4">
-    <div className={inspectorLabelClass()}>Composer Placeholder</div>
-    <input
-      type="text"
-      maxLength={120}
-      value={selectedBlock.data.composerPlaceholder ?? "Write something…"}
-      onChange={(e) =>
-        updateSelectedBlock((block) =>
-          block.type !== "thread"
-            ? block
-            : {
-                ...block,
-                data: {
-                  ...block.data,
-                  composerPlaceholder: e.target.value.slice(0, 120),
-                },
-              },
-        )
-      }
-      className={inspectorInputClass()}
-    />
-  </div>
+      <div className="mt-4">
+        <div className={inspectorLabelClass()}>Name Placeholder</div>
+        <input
+          type="text"
+          maxLength={60}
+          value={selectedBlock.data.namePlaceholder ?? "Your name"}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "thread"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      namePlaceholder: e.target.value.slice(0, 60),
+                    },
+                  },
+            )
+          }
+          className={inspectorInputClass()}
+        />
+      </div>
 
-  <div className="mt-4">
-    <div className={inspectorLabelClass()}>Post Button Text</div>
-    <input
-      type="text"
-      maxLength={30}
-      value={selectedBlock.data.postButtonText ?? "Post"}
-      onChange={(e) =>
-        updateSelectedBlock((block) =>
-          block.type !== "thread"
-            ? block
-            : {
-                ...block,
-                data: {
-                  ...block.data,
-                  postButtonText: e.target.value.slice(0, 30),
-                },
-              },
-        )
-      }
-      className={inspectorInputClass()}
-    />
-  </div>
+      <div className="mt-4">
+        <div className={inspectorLabelClass()}>Composer Placeholder</div>
+        <input
+          type="text"
+          maxLength={120}
+          value={selectedBlock.data.composerPlaceholder ?? "Write something…"}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "thread"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      composerPlaceholder: e.target.value.slice(0, 120),
+                    },
+                  },
+            )
+          }
+          className={inspectorInputClass()}
+        />
+      </div>
 
-  <div className="mt-4">
-    <div className={inspectorLabelClass()}>Post Button Style</div>
-    <select
-      value={selectedBlock.data.postButtonStyle ?? "solid"}
-      onChange={(e) =>
-        updateSelectedBlock((block) =>
-          block.type !== "thread"
-            ? block
-            : {
-                ...block,
-                data: {
-                  ...block.data,
-                  postButtonStyle: e.target.value as "solid" | "outline" | "soft",
-                },
-              },
-        )
-      }
-      className={inspectorInputClass()}
-    >
-      <option value="solid">Solid</option>
-      <option value="outline">Outline</option>
-      <option value="soft">Soft</option>
-    </select>
-  </div>
-</div>
+      <div className="mt-4">
+        <div className={inspectorLabelClass()}>Post Button Text</div>
+        <input
+          type="text"
+          maxLength={30}
+          value={selectedBlock.data.postButtonText ?? "Post"}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "thread"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      postButtonText: e.target.value.slice(0, 30),
+                    },
+                  },
+            )
+          }
+          className={inspectorInputClass()}
+        />
+      </div>
+
+      <div className="mt-4">
+        <div className={inspectorLabelClass()}>Post Button Style</div>
+        <select
+          value={selectedBlock.data.postButtonStyle ?? "solid"}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "thread"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      postButtonStyle: e.target.value as "solid" | "outline" | "soft",
+                    },
+                  },
+            )
+          }
+          className={inspectorInputClass()}
+        >
+          <option value="solid">Solid</option>
+          <option value="outline">Outline</option>
+          <option value="soft">Soft</option>
+        </select>
+      </div>
+    </div>
 
     <div className="mt-5">
-      <div className={inspectorLabelClass()}>Sample Messages</div>
+      <div className={inspectorLabelClass()}>Saved Messages</div>
 
       <div className="mt-3 space-y-3">
         {(selectedBlock.data.messages && selectedBlock.data.messages.length > 0
@@ -4814,11 +5046,13 @@ return (
                 id: makeClientId("threadmsg"),
                 name: selectedBlock.data.allowAnonymous ? "Anon" : "Jordan",
                 message: "Looking forward to this.",
+                votes: 0,
               },
               {
                 id: makeClientId("threadmsg"),
                 name: selectedBlock.data.allowAnonymous ? "Anon" : "Taylor",
                 message: "Can’t wait to join the conversation.",
+                votes: 0,
               },
             ]
         ).map((message: ThreadMessage, index: number) => (
@@ -4859,93 +5093,141 @@ return (
             </div>
 
             <div>
-  <div className={inspectorLabelClass()}>Name</div>
-  <input
-  type="text"
-  maxLength={60}
-  value={message.name}
-  onChange={(e) =>
-    updateSelectedBlock((block) => {
-      if (block.type !== "thread") return block;
+              <div className={inspectorLabelClass()}>Name</div>
+              <input
+                type="text"
+                maxLength={60}
+                value={message.name}
+                onChange={(e) =>
+                  updateSelectedBlock((block) => {
+                    if (block.type !== "thread") return block;
 
-      const currentMessages =
-        block.data.messages && block.data.messages.length > 0
-          ? block.data.messages
-          : [
-              {
-                id: message.id,
-                name: message.name,
-                message: message.message,
-              },
-            ];
+                    const currentMessages =
+                      block.data.messages && block.data.messages.length > 0
+                        ? block.data.messages
+                        : [
+                            {
+                              id: message.id,
+                              name: message.name,
+                              message: message.message,
+                              votes: message.votes ?? 0,
+                            },
+                          ];
 
-      const normalizedMessages =
-        currentMessages.some((entry) => entry.id === message.id)
-          ? currentMessages
-          : [...currentMessages, message];
+                    const normalizedMessages =
+                      currentMessages.some((entry) => entry.id === message.id)
+                        ? currentMessages
+                        : [...currentMessages, message];
 
-      return {
-        ...block,
-        data: {
-          ...block.data,
-          messages: normalizedMessages.map((entry) =>
-            entry.id === message.id
-              ? { ...entry, name: e.target.value.slice(0, 60) }
-              : entry,
-          ),
-        },
-      };
-    })
-  }
-  className={inspectorInputClass()}
-/>
-</div>
+                    return {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        messages: normalizedMessages.map((entry) =>
+                          entry.id === message.id
+                            ? { ...entry, name: e.target.value.slice(0, 60) }
+                            : entry,
+                        ),
+                      },
+                    };
+                  })
+                }
+                className={inspectorInputClass()}
+              />
+            </div>
 
-<div className="mt-4">
-  <div className={inspectorLabelClass()}>Message</div>
-  <textarea
-    value={message.message}
-    maxLength={200}
-    onChange={(e) =>
-      updateSelectedBlock((block) => {
-        if (block.type !== "thread") return block;
+            <div className="mt-4">
+              <div className={inspectorLabelClass()}>Message</div>
+              <textarea
+                value={message.message}
+                maxLength={200}
+                onChange={(e) =>
+                  updateSelectedBlock((block) => {
+                    if (block.type !== "thread") return block;
 
-        const currentMessages =
-          block.data.messages && block.data.messages.length > 0
-            ? block.data.messages
-            : [
-                {
-                  id: message.id,
-                  name: message.name,
-                  message: message.message,
-                },
-              ];
+                    const currentMessages =
+                      block.data.messages && block.data.messages.length > 0
+                        ? block.data.messages
+                        : [
+                            {
+                              id: message.id,
+                              name: message.name,
+                              message: message.message,
+                              votes: message.votes ?? 0,
+                            },
+                          ];
 
-        const normalizedMessages =
-          currentMessages.some((entry) => entry.id === message.id)
-            ? currentMessages
-            : [...currentMessages, message];
+                    const normalizedMessages =
+                      currentMessages.some((entry) => entry.id === message.id)
+                        ? currentMessages
+                        : [...currentMessages, message];
 
-        return {
-          ...block,
-          data: {
-            ...block.data,
-            messages: normalizedMessages.map((entry) =>
-              entry.id === message.id
-                ? { ...entry, message: e.target.value.slice(0, 200) }
-                : entry,
-            ),
-          },
-        };
-      })
-    }
-    className={inspectorTextareaClass()}
-  />
-  <div className="mt-1 text-right text-xs text-neutral-500">
-    {(message.message ?? "").length}/200
-  </div>
-</div>
-</div>
+                    return {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        messages: normalizedMessages.map((entry) =>
+                          entry.id === message.id
+                            ? { ...entry, message: e.target.value.slice(0, 200) }
+                            : entry,
+                        ),
+                      },
+                    };
+                  })
+                }
+                className={inspectorTextareaClass()}
+              />
+              <div className="mt-1 text-right text-xs text-neutral-500">
+                {(message.message ?? "").length}/200
+              </div>
+            </div>
+
+            <div className="mt-4">
+              <div className={inspectorLabelClass()}>Votes</div>
+              <input
+                type="number"
+                value={message.votes ?? 0}
+                onChange={(e) =>
+                  updateSelectedBlock((block) => {
+                    if (block.type !== "thread") return block;
+
+                    const currentMessages =
+                      block.data.messages && block.data.messages.length > 0
+                        ? block.data.messages
+                        : [
+                            {
+                              id: message.id,
+                              name: message.name,
+                              message: message.message,
+                              votes: message.votes ?? 0,
+                            },
+                          ];
+
+                    const normalizedMessages =
+                      currentMessages.some((entry) => entry.id === message.id)
+                        ? currentMessages
+                        : [...currentMessages, message];
+
+                    return {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        messages: normalizedMessages.map((entry) =>
+                          entry.id === message.id
+                            ? {
+                                ...entry,
+                                votes: Number(e.target.value) || 0,
+                              }
+                            : entry,
+                        ),
+                      },
+                    };
+                  })
+                }
+                className={inspectorInputClass()}
+              />
+            </div>
+          </div>
         ))}
 
         <button
@@ -4965,6 +5247,7 @@ return (
                           id: makeClientId("threadmsg"),
                           name: block.data.allowAnonymous ? "Anon" : "Guest",
                           message: "New message",
+                          votes: 0,
                         },
                       ],
                     },
@@ -5470,6 +5753,133 @@ return (
                           className={inspectorInputClass()}
                         />
                       </div>
+                    </div>
+
+                    <div className="mt-4 space-y-4">
+                      {selectedBlock.data.items.map((item, index) => (
+                        <div
+                          key={item.id}
+                          className="rounded-xl border border-neutral-200 bg-neutral-50 p-3"
+                        >
+                          <div className="mb-3 text-sm font-medium text-neutral-900">
+                            Slide {index + 1}
+                          </div>
+
+                          <div className="grid grid-cols-1 gap-3">
+                            <div>
+                              <div className={inspectorLabelClass()}>
+                                Image Horizontal Position
+                              </div>
+                              <input
+                                type="range"
+                                min={0}
+                                max={100}
+                                value={item.positionX ?? 50}
+                                onChange={(e) =>
+                                  setDraft((prev) => ({
+                                    ...prev,
+                                    blocks: updateImageCarouselItemField(
+                                      prev.blocks,
+                                      selectedBlock.id,
+                                      item.id,
+                                      "positionX",
+                                      Number(e.target.value),
+                                    ),
+                                  }))
+                                }
+                                className="mt-2 w-full"
+                              />
+                              <div className="mt-1 text-xs text-neutral-500">
+                                {item.positionX ?? 50}%
+                              </div>
+                            </div>
+
+                            <div>
+                              <div className={inspectorLabelClass()}>
+                                Image Vertical Position
+                              </div>
+                              <input
+                                type="range"
+                                min={0}
+                                max={100}
+                                value={item.positionY ?? 50}
+                                onChange={(e) =>
+                                  setDraft((prev) => ({
+                                    ...prev,
+                                    blocks: updateImageCarouselItemField(
+                                      prev.blocks,
+                                      selectedBlock.id,
+                                      item.id,
+                                      "positionY",
+                                      Number(e.target.value),
+                                    ),
+                                  }))
+                                }
+                                className="mt-2 w-full"
+                              />
+                              <div className="mt-1 text-xs text-neutral-500">
+                                {item.positionY ?? 50}%
+                              </div>
+                            </div>
+
+                            <div>
+                              <div className={inspectorLabelClass()}>
+                                Image Zoom
+                              </div>
+                              <input
+                                type="range"
+                                min={50}
+                                max={300}
+                                value={Math.round((item.zoom ?? 1) * 100)}
+                                onChange={(e) =>
+                                  setDraft((prev) => ({
+                                    ...prev,
+                                    blocks: updateImageCarouselItemField(
+                                      prev.blocks,
+                                      selectedBlock.id,
+                                      item.id,
+                                      "zoom",
+                                      Number(e.target.value) / 100,
+                                    ),
+                                  }))
+                                }
+                                className="mt-2 w-full"
+                              />
+                              <div className="mt-1 text-xs text-neutral-500">
+                                {Math.round((item.zoom ?? 1) * 100)}%
+                              </div>
+                            </div>
+
+                            <div>
+                              <div className={inspectorLabelClass()}>
+                                Image Rotate
+                              </div>
+                              <input
+                                type="range"
+                                min={-180}
+                                max={180}
+                                value={item.rotation ?? 0}
+                                onChange={(e) =>
+                                  setDraft((prev) => ({
+                                    ...prev,
+                                    blocks: updateImageCarouselItemField(
+                                      prev.blocks,
+                                      selectedBlock.id,
+                                      item.id,
+                                      "rotation",
+                                      Number(e.target.value),
+                                    ),
+                                  }))
+                                }
+                                className="mt-2 w-full"
+                              />
+                              <div className="mt-1 text-xs text-neutral-500">
+                                {item.rotation ?? 0}°
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
 
                     <div className="mt-4">

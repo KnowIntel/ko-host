@@ -599,6 +599,8 @@ export default function GridCanvas({
   const [resizeState, setResizeState] = useState<ResizeState | null>(null);
   const [dragGuides, setDragGuides] = useState<DragGuide[]>([]);
   const [dragAnchor, setDragAnchor] = useState<DragAnchor | null>(null);
+  
+  const lastDragGuidesRef = useRef<string>("");
 
   const pageHeight = useMemo(
     () => getPageHeight(blocks, dropPreview),
@@ -822,7 +824,13 @@ export default function GridCanvas({
       rowStart: cell.rowStart,
     };
 
-    setDragGuides(getGuideMatches(blockId, previewGrid, blocks));
+    const nextGuides = getGuideMatches(blockId, previewGrid, blocks);
+    const nextGuidesKey = JSON.stringify(nextGuides);
+
+    if (lastDragGuidesRef.current !== nextGuidesKey) {
+      lastDragGuidesRef.current = nextGuidesKey;
+      setDragGuides(nextGuides);
+    }
   }
 
   function handleDragStart(
@@ -847,7 +855,7 @@ export default function GridCanvas({
 
     setDraggingBlockId(blockId);
     setDropPreview(null);
-    setDragGuides([]);
+    lastDragGuidesRef.current = "";
     // do not auto change z-index on selection
   }
 

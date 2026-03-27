@@ -1,11 +1,13 @@
 import type { MicrositeBlock } from "@/lib/templates/builder";
 import BlockRenderer from "@/components/preview/BlockRenderer";
 
-export default function BuilderBlocksRenderer({
-  blocks,
-}: {
-  blocks: MicrositeBlock[];
-}) {
+  export default function BuilderBlocksRenderer({
+    blocks,
+    micrositeId,
+  }: {
+    blocks: MicrositeBlock[];
+    micrositeId: string;
+  }) {
   if (!blocks.length) return null;
 
   return (
@@ -194,7 +196,7 @@ export default function BuilderBlocksRenderer({
         // ✅ SAFE FALLBACK (handles ALL valid block types)
         return (
           <div key={block.id}>
-            <BlockRenderer block={block} />
+            <BlockRenderer block={block} micrositeId={micrositeId} />
           </div>
         );
       })}

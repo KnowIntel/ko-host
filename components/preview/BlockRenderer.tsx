@@ -51,6 +51,7 @@ import {
 type Props = {
   block: MicrositeBlock;
   designKey?: string;
+  micrositeId?: string | null;
 };
 
 const anton = Anton({ subsets: ["latin"], weight: "400" });
@@ -981,113 +982,429 @@ function getInitials(name?: string) {
 function renderThread(
   block: Extract<MicrositeBlock, { type: "thread" }>,
   designKey?: string,
+  micrositeId?: string | null,
 ) {
-  const messages = getThreadSampleMessages(block);
-  const showAnonymousBadge = Boolean(block.data.allowAnonymous);
-  const showApprovalBadge = Boolean(block.data.requireApproval);
-  const maxVisibleMessages = Math.max(
-    1,
-    Math.min(8, Number(block.data.maxVisibleMessages) || 4),
-  );
+  function ThreadInteractivePreview() {
+    const initialMessages = useMemo(
+      () =>
+        getThreadSampleMessages(block).map((message) => ({
+          ...message,
+          votes: typeof message.votes === "number" ? message.votes : 0,
+        })),
+      [block],
+    );
 
-  return (
-    <Surface
-      block={block}
-      designKey={designKey}
-      className={getSoftSurfaceClass(designKey)}
-    >
-      <div className="flex h-full w-full min-h-0 flex-col">
-        <div
-          className={`shrink-0 border-b pb-3 ${getThreadDividerClass(designKey)}`}
-        >
+    const [messages, setMessages] = useState<ThreadMessage[]>(initialMessages);
+    const [nameValue, setNameValue] = useState("");
+    const [messageValue, setMessageValue] = useState("");
+    const [isLoading, setIsLoading] = useState(Boolean(micrositeId));
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [voteLoadingId, setVoteLoadingId] = useState<string | null>(null);
+
+    useEffect(() => {
+      let isCancelled = false;
+
+      async function loadMessages() {
+        if (!micrositeId) {
+          setMessages(
+            getThreadSampleMessages(block).map((message) => ({
+              ...message,
+              votes: typeof message.votes === "number" ? message.votes : 0,
+            })),
+          );
+          setIsLoading(false);
+          return;
+        }
+
+        try {
+          setIsLoading(true);
+
+          const params = new URLSearchParams({
+            micrositeId,
+            threadBlockId: block.id,
+          });
+
+          const res = await fetch(`/api/thread/messages?${params.toString()}`, {
+            cache: "no-store",
+          });
+
+          const data = await res.json();
+
+          if (!res.ok) {
+            throw new Error(data?.error || "Failed to load thread messages.");
+          }
+
+          if (!isCancelled) {
+            const nextMessages = Array.isArray(data?.messages)
+              ? data.messages.map((message: any) => ({
+                  id: String(message.id),
+                  name: String(message.author_name ?? "Guest"),
+                  message: String(message.message_text ?? ""),
+                  votes:
+                    typeof message.votes === "number" ? message.votes : 0,
+                }))
+              : [];
+
+            setMessages(nextMessages);
+          }
+        } catch {
+          if (!isCancelled) {
+            setMessages(
+              getThreadSampleMessages(block).map((message) => ({
+                ...message,
+                votes: typeof message.votes === "number" ? message.votes : 0,
+              })),
+            );
+          }
+        } finally {
+          if (!isCancelled) {
+            setIsLoading(false);
+          }
+        }
+      }
+
+      void loadMessages();
+
+      return () => {
+        isCancelled = true;
+      };
+    }, [block, micrositeId]);
+
+    const showAnonymousBadge = Boolean(block.data.allowAnonymous);
+    const showApprovalBadge = Boolean(block.data.requireApproval);
+    const showNameField = block.data.showNameField !== false;
+    const showVoteControls = block.data.showVoteControls !== false;
+    const showVoteCount = block.data.showVoteCount !== false;
+    const maxVisibleMessages = Math.max(
+      1,
+      Math.min(100, Number(block.data.maxVisibleMessages) || 4),
+    );
+    const scrollHeight = Math.max(120, Number(block.data.scrollHeight) || 280);
+
+    async function handleSubmit() {
+      const nextMessage = messageValue.trim();
+      if (!nextMessage || isSubmitting) return;
+
+      const resolvedName = showNameField
+        ? nameValue.trim() || (block.data.allowAnonymous ? "Anon" : "Guest")
+        : block.data.allowAnonymous
+          ? "Anon"
+          : "Guest";
+
+      const optimisticMessage: ThreadMessage = {
+        id: `threadmsg_${Math.random().toString(36).slice(2, 10)}`,
+        name: resolvedName,
+        message: nextMessage,
+        votes: 0,
+      };
+
+      if (!micrositeId) {
+        setMessages((prev) => [optimisticMessage, ...prev]);
+        setMessageValue("");
+        return;
+      }
+
+      try {
+        setIsSubmitting(true);
+
+        const res = await fetch("/api/thread/messages", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            micrositeId,
+            threadBlockId: block.id,
+            authorName: resolvedName,
+            messageText: nextMessage,
+          }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data?.error || "Failed to post message.");
+        }
+
+        setMessages((prev) => [
+          {
+            id: String(data.message.id),
+            name: String(data.message.author_name ?? resolvedName),
+            message: String(data.message.message_text ?? nextMessage),
+            votes:
+              typeof data.message.votes === "number" ? data.message.votes : 0,
+          },
+          ...prev,
+        ]);
+
+        setMessageValue("");
+      } catch {
+        // keep current message text if submit fails
+      } finally {
+        setIsSubmitting(false);
+      }
+    }
+
+    async function updateVotes(messageId: string, delta: number) {
+      if (voteLoadingId) return;
+
+      if (!micrositeId) {
+        setMessages((prev) =>
+          prev.map((message) =>
+            message.id === messageId
+              ? {
+                  ...message,
+                  votes: (message.votes ?? 0) + delta,
+                }
+              : message,
+          ),
+        );
+        return;
+      }
+
+      const existing = messages.find((message) => message.id === messageId);
+      if (!existing) return;
+
+      const optimisticVotes = (existing.votes ?? 0) + delta;
+
+      setVoteLoadingId(messageId);
+      setMessages((prev) =>
+        prev.map((message) =>
+          message.id === messageId
+            ? {
+                ...message,
+                votes: optimisticVotes,
+              }
+            : message,
+        ),
+      );
+
+      try {
+        const res = await fetch("/api/thread/vote", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            messageId,
+            delta,
+          }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          throw new Error(data?.error || "Failed to update vote.");
+        }
+
+        setMessages((prev) =>
+          prev.map((message) =>
+            message.id === messageId
+              ? {
+                  ...message,
+                  votes:
+                    typeof data.message.votes === "number"
+                      ? data.message.votes
+                      : optimisticVotes,
+                }
+              : message,
+          ),
+        );
+      } catch {
+        setMessages((prev) =>
+          prev.map((message) =>
+            message.id === messageId
+              ? {
+                  ...message,
+                  votes: existing.votes ?? 0,
+                }
+              : message,
+          ),
+        );
+      } finally {
+        setVoteLoadingId(null);
+      }
+    }
+
+    return (
+      <Surface
+        block={block}
+        designKey={designKey}
+        className={getSoftSurfaceClass(designKey)}
+      >
+        <div className="flex h-full w-full min-h-0 flex-col">
           <div
-            className="text-base font-semibold"
-            style={getContainerTextStyle(block.data.style, designKey)}
+            className={`shrink-0 border-b pb-3 ${getThreadDividerClass(designKey)}`}
           >
-            {block.data.subject || "Message Thread"}
-          </div>
-
-          <div className="mt-2 flex flex-wrap gap-2">
-            {showAnonymousBadge ? (
-              <div className={getThreadBadgeClass(designKey)}>Anonymous</div>
-            ) : null}
-
-            {showApprovalBadge ? (
-              <div className={getThreadBadgeClass(designKey)}>
-                Approval Required
-              </div>
-            ) : null}
-
-            {!showAnonymousBadge && !showApprovalBadge ? (
-              <div className={getThreadBadgeClass(designKey)}>Open Thread</div>
-            ) : null}
-          </div>
-        </div>
-
-        <div className={getThreadScrollClass(designKey)}>
-          <div className="space-y-3">
-            {messages.slice(0, maxVisibleMessages).map((message) => (
-              <div key={message.id} className={getThreadCardClass(designKey)}>
-                <div className="flex items-start gap-3">
-                  <div className={getThreadAvatarClass(designKey)}>
-                    {getInitials(message.name)}
-                  </div>
-
-                  <div className="min-w-0 flex-1">
-                    <div
-                      className="text-sm font-semibold"
-                      style={getContainerTextStyle(block.data.style, designKey)}
-                    >
-                      {message.name || "Guest"}
-                    </div>
-
-                    <div
-                      className="mt-1 text-sm"
-                      style={getContainerTextStyle(block.data.style, designKey)}
-                    >
-                      {message.message || "Message preview"}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="mt-4 shrink-0">
-          <div className={getThreadComposerClass(designKey)}>
             <div
-              className="text-sm font-medium"
+              className="text-base font-semibold"
               style={getContainerTextStyle(block.data.style, designKey)}
             >
-              Post a message
+              {block.data.subject || "Message Thread"}
             </div>
 
-            <div className={getThreadComposerInputClass(designKey)}>
-              {block.data.composerPlaceholder || "Write something…"}
-            </div>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {showAnonymousBadge ? (
+                <div className={getThreadBadgeClass(designKey)}>Anonymous</div>
+              ) : null}
 
-            <div className="mt-3 flex items-center justify-between gap-3">
-              <div className="text-xs text-neutral-500">
-                {block.data.allowAnonymous
-                  ? "Anonymous posting allowed"
-                  : "Posting with name"}
+              {showApprovalBadge ? (
+                <div className={getThreadBadgeClass(designKey)}>
+                  Approval Required
+                </div>
+              ) : null}
+
+              {!showAnonymousBadge && !showApprovalBadge ? (
+                <div className={getThreadBadgeClass(designKey)}>Open Thread</div>
+              ) : null}
+            </div>
+          </div>
+
+          <div className="mt-4 shrink-0">
+            <div className={getThreadComposerClass(designKey)}>
+              <div
+                className="text-sm font-medium"
+                style={getContainerTextStyle(block.data.style, designKey)}
+              >
+                Post a message
               </div>
 
-              <div
-                className={getThreadPostButtonClass(
-                  designKey,
-                  block.data.postButtonStyle ?? "solid",
-                )}
-              >
-                {block.data.postButtonText || "Post"}
+              {showNameField ? (
+                <input
+                  type="text"
+                  value={nameValue}
+                  onChange={(e) => setNameValue(e.target.value)}
+                  placeholder={block.data.namePlaceholder || "Your name"}
+                  className={getThreadComposerInputClass(designKey)}
+                  style={getContainerTextStyle(block.data.style, designKey)}
+                />
+              ) : null}
+
+              <textarea
+                value={messageValue}
+                onChange={(e) => setMessageValue(e.target.value)}
+                placeholder={block.data.composerPlaceholder || "Write something…"}
+                className={`${getThreadComposerInputClass(designKey)} min-h-[96px] w-full resize-none`}
+                style={getContainerTextStyle(block.data.style, designKey)}
+              />
+
+              <div className="mt-3 flex items-center justify-between gap-3">
+                <div className="text-xs text-neutral-500">
+                  {block.data.allowAnonymous
+                    ? "Anonymous posting allowed"
+                    : "Posting with name"}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => void handleSubmit()}
+                  disabled={isSubmitting}
+                  className={getThreadPostButtonClass(
+                    designKey,
+                    block.data.postButtonStyle ?? "solid",
+                  )}
+                >
+                  {isSubmitting
+                    ? "Posting..."
+                    : block.data.postButtonText || "Post"}
+                </button>
               </div>
             </div>
           </div>
+
+          <div
+            className={getThreadScrollClass(designKey)}
+            style={{ maxHeight: `${scrollHeight}px` }}
+          >
+            {isLoading ? (
+              <div
+                className="rounded-xl border border-dashed border-neutral-300 px-3 py-4 text-sm text-neutral-500"
+              >
+                Loading messages...
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {messages.slice(0, maxVisibleMessages).map((message) => (
+                  <div key={message.id} className={getThreadCardClass(designKey)}>
+                    <div className="flex items-start gap-3">
+                      {showVoteControls ? (
+                        <div className="flex shrink-0 flex-col items-center justify-start gap-1">
+                          <button
+                            type="button"
+                            onClick={() => void updateVotes(message.id, 1)}
+                            disabled={voteLoadingId === message.id}
+                            className={
+                              isLightDesign(designKey)
+                                ? "text-neutral-700"
+                                : "text-white/80"
+                            }
+                          >
+                            👍
+                          </button>
+
+                          {showVoteCount ? (
+                            <div
+                              className="text-xs font-semibold"
+                              style={getContainerTextStyle(block.data.style, designKey)}
+                            >
+                              {message.votes ?? 0}
+                            </div>
+                          ) : null}
+
+                          <button
+                            type="button"
+                            onClick={() => void updateVotes(message.id, -1)}
+                            disabled={voteLoadingId === message.id}
+                            className={
+                              isLightDesign(designKey)
+                                ? "text-neutral-700"
+                                : "text-white/80"
+                            }
+                          >
+                            👎
+                          </button>
+                        </div>
+                      ) : null}
+
+                      <div className={getThreadAvatarClass(designKey)}>
+                        {getInitials(message.name)}
+                      </div>
+
+                      <div className="min-w-0 flex-1">
+                        <div
+                          className="text-sm font-semibold"
+                          style={getContainerTextStyle(block.data.style, designKey)}
+                        >
+                          {message.name || "Guest"}
+                        </div>
+
+                        <div
+                          className="mt-1 text-sm"
+                          style={getContainerTextStyle(block.data.style, designKey)}
+                        >
+                          {message.message || "Message preview"}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {!messages.length ? (
+                  <div
+                    className="rounded-xl border border-dashed border-neutral-300 px-3 py-4 text-sm text-neutral-500"
+                  >
+                    No messages yet.
+                  </div>
+                ) : null}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
-    </Surface>
-  );
+      </Surface>
+    );
+  }
+
+  return <ThreadInteractivePreview />;
 }
 
 function getImageCarouselItemLink(
@@ -1218,11 +1535,17 @@ function ImageCarouselPreview({
                     : "border-white/10 bg-white/5",
                 ].join(" ")}
               >
-                {item.imageUrl ? (
+              {item.imageUrl ? (
                   <img
                     src={item.imageUrl}
                     alt={item.title || ""}
                     className="h-full w-full object-cover"
+                    style={{
+                      objectFit: "cover",
+                      objectPosition: "center center",
+                      transform: `translate(${((item.positionX ?? 50) - 50) * 0.6}%, ${((item.positionY ?? 50) - 50) * 0.6}%) scale(${item.zoom ?? 1}) rotate(${item.rotation ?? 0}deg)`,
+                      transformOrigin: "center center",
+                    }}
                   />
                 ) : (
                   <div
@@ -1289,7 +1612,12 @@ function renderImageCarousel(
   block: Extract<MicrositeBlock, { type: "image_carousel" }>,
   designKey?: string,
 ) {
-  return <ImageCarouselPreview block={block} designKey={designKey} />;
+  return (
+    <ImageCarouselPreview
+      block={block}
+      designKey={designKey}
+    />
+  );
 }
 
 function renderFormField(
@@ -1300,31 +1628,39 @@ function renderFormField(
     ? "w-full rounded border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900"
     : "w-full rounded border border-white/15 bg-white/5 px-3 py-2 text-sm text-white";
 
+  const showLabel = block.data.showLabel !== false;
+  const showPlaceholder = block.data.showPlaceholder !== false;
+  const showRequired = block.data.showRequired !== false;
+
   return (
     <div className="h-full w-full p-2" style={getAppearanceStyle(block)}>
       <div className="flex h-full flex-col gap-1">
-        <label
-          className="text-sm"
-          style={getContainerTextStyle(undefined, designKey)}
-        >
-          {block.data.label}
-          {block.data.required ? " *" : ""}
-        </label>
+        {showLabel ? (
+          <label
+            className="text-sm"
+            style={getContainerTextStyle(block.data.style, designKey)}
+          >
+            {block.data.label}
+            {showRequired && block.data.required ? " *" : ""}
+          </label>
+        ) : null}
 
         {block.data.fieldType === "textarea" ? (
           <textarea
             className={`${inputClass} min-h-[96px] resize-none`}
-            placeholder={block.data.placeholder}
+            placeholder={showPlaceholder ? block.data.placeholder : ""}
             defaultValue={block.data.value || ""}
             data-form-field-id={block.id}
+            style={getContainerTextStyle(block.data.style, designKey)}
           />
         ) : (
           <input
             type={block.data.fieldType === "phone" ? "tel" : block.data.fieldType}
             className={inputClass}
-            placeholder={block.data.placeholder}
+            placeholder={showPlaceholder ? block.data.placeholder : ""}
             defaultValue={block.data.value || ""}
             data-form-field-id={block.id}
+            style={getContainerTextStyle(block.data.style, designKey)}
           />
         )}
       </div>
@@ -1517,6 +1853,7 @@ return (
 export default function BlockRenderer({
   block,
   designKey = "blank",
+  micrositeId = null,
 }: Props) {
   switch (block.type) {
     case "label":
@@ -1544,7 +1881,7 @@ export default function BlockRenderer({
     case "faq":
       return renderFaq(block, designKey);
     case "thread":
-      return renderThread(block, designKey);
+      return renderThread(block, designKey, micrositeId);
     case "padding":
       return <div className="h-full w-full" />;
     case "showcase":

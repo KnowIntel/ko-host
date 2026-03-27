@@ -103,6 +103,7 @@ export type LinkItem = {
 export type GalleryImage = {
   id: string;
   url: string;
+  shape?: "square" | "rounded" | "circle";
 };
 
 export type ShowcaseImage = {
@@ -125,6 +126,7 @@ export type ThreadMessage = {
   id: string;
   name: string;
   message: string;
+  votes?: number;
 };
 
 export type CarouselImageItem = {
@@ -134,6 +136,10 @@ export type CarouselImageItem = {
   subtitle?: string;
   href?: string;
   openInNewTab?: boolean;
+  positionX?: number;
+  positionY?: number;
+  zoom?: number;
+  rotation?: number;
 };
 
 export type ShapeType = "rectangle" | "circle" | "line";
@@ -308,6 +314,11 @@ export type MessageThreadBlock = BaseBlock & {
     postButtonStyle?: "solid" | "outline" | "soft";
     maxVisibleMessages?: number;
     style?: TextStyle;
+    namePlaceholder?: string;
+    showNameField?: boolean;
+    showVoteControls?: boolean;
+    showVoteCount?: boolean;
+    scrollHeight?: number;
   };
 };
 
@@ -332,6 +343,7 @@ export type ShapeBlock = BaseBlock & {
   type: "shape";
   data: {
     shapeType: ShapeType;
+    rotation?: number;
   };
 };
 
@@ -346,6 +358,11 @@ export type FormFieldBlock = BaseBlock & {
     fieldType: FormFieldType;
     value?: string;
     submitButtonText?: string;
+    showLabel?: boolean;
+    showPlaceholder?: boolean;
+    showRequired?: boolean;
+    showSubmitButtonText?: boolean;
+    style?: TextStyle;
   };
 };
 
@@ -563,6 +580,10 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
               subtitle: "",
               href: "#",
               openInNewTab: false,
+              positionX: 50,
+              positionY: 50,
+              zoom: 1,
+              rotation: 0,
             },
             {
               id: makeId("carouselitem"),
@@ -571,6 +592,10 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
               subtitle: "",
               href: "#",
               openInNewTab: false,
+              positionX: 50,
+              positionY: 50,
+              zoom: 1,
+              rotation: 0,
             },
             {
               id: makeId("carouselitem"),
@@ -579,6 +604,10 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
               subtitle: "",
               href: "#",
               openInNewTab: false,
+              positionX: 50,
+              positionY: 50,
+              zoom: 1,
+              rotation: 0,
             },
           ],
           autoRotate: true,
@@ -607,6 +636,11 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
           fieldType: "text",
           value: "",
           submitButtonText: "Submit",
+          showLabel: true,
+          showPlaceholder: true,
+          showRequired: true,
+          showSubmitButtonText: true,
+          style: createDefaultTextStyle(),
         },
       };
 
@@ -748,9 +782,14 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
           allowAnonymous: false,
           requireApproval: false,
           composerPlaceholder: "Write something…",
+          namePlaceholder: "Your name",
+          showNameField: true,
+          showVoteControls: true,
+          showVoteCount: true,
           postButtonText: "Post",
           postButtonStyle: "solid",
           maxVisibleMessages: 4,
+          scrollHeight: 280,
           style: createDefaultTextStyle(),
         },
       };

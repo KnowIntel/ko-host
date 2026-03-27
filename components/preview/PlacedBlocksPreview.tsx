@@ -20,6 +20,7 @@ import {
 type Props = {
   draft: BuilderDraft;
   designKey: string;
+  micrositeId?: string | null;
   fixedScale?: number;
   disableAutoScale?: boolean;
   transparentPageBackground?: boolean;
@@ -143,6 +144,7 @@ function hasMeaningfulText(value?: string) {
 export default function PlacedBlocksPreview({
   draft,
   designKey,
+  micrositeId = null,
   fixedScale,
   disableAutoScale = false,
   transparentPageBackground = false,
@@ -590,7 +592,11 @@ const showDescription =
                   height: "200%",
                 }}
               >
-                <BlockRenderer block={block} designKey={designKey} />
+                                <BlockRenderer
+                  block={block}
+                  designKey={designKey}
+                  micrositeId={micrositeId}
+                />
               </div>
             </div>
           ))}

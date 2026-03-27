@@ -147,6 +147,41 @@ export function updateLabelBlockStyle(
   );
 }
 
+export function updateImageCarouselItemField(
+  blocks: MicrositeBlock[],
+  blockId: string,
+  itemId: string,
+  field:
+    | "title"
+    | "subtitle"
+    | "imageUrl"
+    | "href"
+    | "positionX"
+    | "positionY"
+    | "zoom"
+    | "rotation",
+  value: string | number,
+) {
+  return blocks.map((block) =>
+    block.id === blockId && block.type === "image_carousel"
+      ? {
+          ...block,
+          data: {
+            ...block.data,
+            items: block.data.items.map((item) =>
+              item.id === itemId
+                ? {
+                    ...item,
+                    [field]: value,
+                  }
+                : item,
+            ),
+          },
+        }
+      : block,
+  );
+}
+
 export function sanitizeDraftForEditor(draft: BuilderDraft): BuilderDraft {
   return {
     ...draft,
