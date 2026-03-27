@@ -29,6 +29,7 @@ type Props = {
 
 type DraftWithExtras = BuilderDraft & {
   templateName?: string;
+  pageColor?: string;
   pageBackgroundImage?: string;
   pageBackgroundImageFit?: "clip" | "zoom" | "stretch";
   pageVisibility?: Partial<{
@@ -163,7 +164,9 @@ export default function PlacedBlocksPreview({
     >("idle");
     const [submitMessage, setSubmitMessage] = useState("");
 
-  const pageColor = getResolvedPageColor(draft, designKey, metadata);
+  const pageColor =
+  (typedDraft.pageColor && typedDraft.pageColor.trim()) ||
+  getResolvedPageColor(draft, designKey, metadata);
 
   const pageBackgroundImage = (typedDraft.pageBackgroundImage || "").trim();
   const pageBackgroundImageFit =
@@ -226,13 +229,6 @@ const handleSubmit = async () => {
     });
 
     const data = await res.json();
-
-    if (!res.ok) {
-      setSubmitState("error");
-      setSubmitMessage(data?.error || "Submission failed.");
-      return;
-    }
-
     if (!res.ok) {
   setSubmitState("error");
   setSubmitMessage(data?.error || "Submission failed.");
@@ -507,31 +503,31 @@ const showDescription =
       >
         <div
           className="relative"
-          style={{
-            width: PAGE_WIDTH,
-            height: pageHeight,
-            transform: `scale(${resolvedScale})`,
-            transformOrigin: "top left",
-            backgroundColor: transparentPageBackground ? "transparent" : pageColor,
-            ...(transparentPageBackground
-              ? {}
-              : getCanvasInnerBackgroundStyle(draft, designKey, metadata)),
-            ...(pageBackgroundImage && !transparentPageBackground
-              ? {
-                  backgroundImage: `url("${pageBackgroundImage}")`,
-                  backgroundSize: pageBackgroundSize,
-                  backgroundPosition: "center center",
-                  backgroundRepeat: "no-repeat",
-                }
-              : {}),
-            ...(hideFrame
-              ? {}
-              : {
-                  border: "1px solid rgba(0,0,0,0.10)",
-                  borderRadius: "8px",
-                  boxShadow: "0 1px 2px rgba(0,0,0,0.06)",
-                }),
-          }}
+        style={{
+          width: PAGE_WIDTH,
+          height: pageHeight,
+          transform: `scale(${resolvedScale})`,
+          transformOrigin: "top left",
+          ...(transparentPageBackground
+            ? {}
+            : getCanvasInnerBackgroundStyle(draft, designKey, metadata)),
+          backgroundColor: transparentPageBackground ? "transparent" : pageColor,
+          ...(pageBackgroundImage && !transparentPageBackground
+            ? {
+                backgroundImage: `url("${pageBackgroundImage}")`,
+                backgroundSize: pageBackgroundSize,
+                backgroundPosition: "center center",
+                backgroundRepeat: "no-repeat",
+              }
+            : {}),
+          ...(hideFrame
+            ? {}
+            : {
+                border: "1px solid rgba(0,0,0,0.10)",
+                borderRadius: "8px",
+                boxShadow: "0 1px 2px rgba(0,0,0,0.06)",
+              }),
+        }}
         >
           {showTitle ? (
             <div style={getItemStyle(titleGrid)}>

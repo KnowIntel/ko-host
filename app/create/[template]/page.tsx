@@ -294,13 +294,20 @@ useEffect(() => {
     }
   }
 
-  function continueToSignIn() {
-    setShowSignInPrompt(false);
+function continueToSignIn() {
+  setShowSignInPrompt(false);
 
-    const returnUrl = window.location.href;
-    const signInUrl = `/sign-in?redirect_url=${encodeURIComponent(returnUrl)}`;
-    window.location.assign(signInUrl);
+  try {
+    window.localStorage.setItem(storageKey, JSON.stringify(liveDraft));
+  } catch {
+    // ignore localStorage errors
   }
+
+  const returnUrl = window.location.href;
+  const signInUrl = `/sign-in?redirect_url=${encodeURIComponent(returnUrl)}`;
+
+  window.open(signInUrl, "_blank", "noopener,noreferrer");
+}
 
   const editorInstanceKey = [
     templateKey,

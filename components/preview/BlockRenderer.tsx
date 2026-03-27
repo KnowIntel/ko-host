@@ -1,3 +1,4 @@
+// components\preview\BlockRenderer.tsx
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -1005,16 +1006,16 @@ function renderThread(
       let isCancelled = false;
 
       async function loadMessages() {
-        if (!micrositeId) {
-          setMessages(
-            getThreadSampleMessages(block).map((message) => ({
-              ...message,
-              votes: typeof message.votes === "number" ? message.votes : 0,
-            })),
-          );
-          setIsLoading(false);
-          return;
-        }
+if (!micrositeId) {
+  setMessages(
+    getThreadSampleMessages(block).map((message) => ({
+      ...message,
+      votes: typeof message.votes === "number" ? message.votes : 0,
+    })),
+  );
+  setIsLoading(false);
+  return;
+}
 
         try {
           setIsLoading(true);
@@ -1049,12 +1050,7 @@ function renderThread(
           }
         } catch {
           if (!isCancelled) {
-            setMessages(
-              getThreadSampleMessages(block).map((message) => ({
-                ...message,
-                votes: typeof message.votes === "number" ? message.votes : 0,
-              })),
-            );
+          setMessages([]);
           }
         } finally {
           if (!isCancelled) {
