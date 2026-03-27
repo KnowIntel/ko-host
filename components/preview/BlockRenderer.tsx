@@ -1049,9 +1049,9 @@ if (!micrositeId) {
             setMessages(nextMessages);
           }
         } catch {
-          if (!isCancelled) {
+        if (!isCancelled) {
           setMessages([]);
-          }
+        }
         } finally {
           if (!isCancelled) {
             setIsLoading(false);

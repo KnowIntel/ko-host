@@ -149,6 +149,27 @@ const [showPublishWarning, setShowPublishWarning] = useState(false);
 const [showSignInPrompt, setShowSignInPrompt] = useState(false);
 
 const saveResetTimerRef = useRef<number | null>(null);
+useEffect(() => {
+  function handleAuthComplete(event: MessageEvent) {
+    if (event.origin !== window.location.origin) return;
+    if (event.data?.type !== "kht-auth-complete") return;
+
+    window.location.reload();
+  }
+
+  function handleStorage(event: StorageEvent) {
+    if (event.key !== "kht-auth-complete") return;
+    window.location.reload();
+  }
+
+  window.addEventListener("message", handleAuthComplete);
+  window.addEventListener("storage", handleStorage);
+
+  return () => {
+    window.removeEventListener("message", handleAuthComplete);
+    window.removeEventListener("storage", handleStorage);
+  };
+}, []);
 
 useEffect(() => {
   return () => {
@@ -303,10 +324,10 @@ function continueToSignIn() {
     // ignore localStorage errors
   }
 
-  const returnUrl = window.location.href;
-  const signInUrl = `/sign-in?redirect_url=${encodeURIComponent(returnUrl)}`;
+  const callbackUrl = `${window.location.origin}/auth-complete`;
+  const signInUrl = `/sign-in?redirect_url=${encodeURIComponent(callbackUrl)}`;
 
-  window.open(signInUrl, "_blank", "noopener,noreferrer");
+  window.open(signInUrl, "_blank");
 }
 
   const editorInstanceKey = [
