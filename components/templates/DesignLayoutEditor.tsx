@@ -1375,33 +1375,129 @@ function applyBorderColor(value: string) {
   pushRecentColor(value);
 }
 function applyStylePatch(patch: Partial<TextStyle>) {
-  if (
-    selectedBlock?.type === "text_fx" ||
-    selectedBlock?.type === "cta" ||
-    selectedBlock?.type === "thread" ||
-    selectedBlock?.type === "image_carousel" ||
-    selectedBlock?.type === "form_field" ||
-    selectedBlock?.type === "highlight"
-  ) {
+  if (selectedBlock?.type === "text_fx") {
     setDraft((prev) => ({
       ...prev,
-      blocks: prev.blocks.map((block) => {
-        if (block.id !== selectedBlock.id || block.type !== selectedBlock.type) {
-          return block;
-        }
+      blocks: prev.blocks.map((block) =>
+        block.id === selectedBlock.id && block.type === "text_fx"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                style: {
+                  ...(block.data.style ?? {}),
+                  ...patch,
+                },
+              },
+            }
+          : block,
+      ),
+    }));
+    return;
+  }
 
-        return {
-          ...block,
-          data: {
-            ...block.data,
-            style: {
-              ...(block.data.style ?? {}),
-              ...(block.type === "thread" ? { fontSize: 30 } : {}),
-              ...patch,
-            },
-          },
-        };
-      }),
+  if (selectedBlock?.type === "cta") {
+    setDraft((prev) => ({
+      ...prev,
+      blocks: prev.blocks.map((block) =>
+        block.id === selectedBlock.id && block.type === "cta"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                style: {
+                  ...(block.data.style ?? {}),
+                  ...patch,
+                },
+              },
+            }
+          : block,
+      ),
+    }));
+    return;
+  }
+
+  if (selectedBlock?.type === "thread") {
+    setDraft((prev) => ({
+      ...prev,
+      blocks: prev.blocks.map((block) =>
+        block.id === selectedBlock.id && block.type === "thread"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                style: {
+                  fontSize: 30,
+                  ...(block.data.style ?? {}),
+                  ...patch,
+                },
+              },
+            }
+          : block,
+      ),
+    }));
+    return;
+  }
+
+  if (selectedBlock?.type === "image_carousel") {
+    setDraft((prev) => ({
+      ...prev,
+      blocks: prev.blocks.map((block) =>
+        block.id === selectedBlock.id && block.type === "image_carousel"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                style: {
+                  ...(block.data.style ?? {}),
+                  ...patch,
+                },
+              },
+            }
+          : block,
+      ),
+    }));
+    return;
+  }
+
+  if (selectedBlock?.type === "form_field") {
+    setDraft((prev) => ({
+      ...prev,
+      blocks: prev.blocks.map((block) =>
+        block.id === selectedBlock.id && block.type === "form_field"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                style: {
+                  ...(block.data.style ?? {}),
+                  ...patch,
+                },
+              },
+            }
+          : block,
+      ),
+    }));
+    return;
+  }
+
+  if (selectedBlock?.type === "highlight") {
+    setDraft((prev) => ({
+      ...prev,
+      blocks: prev.blocks.map((block) =>
+        block.id === selectedBlock.id && block.type === "highlight"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                style: {
+                  ...(block.data.style ?? {}),
+                  ...patch,
+                },
+              },
+            }
+          : block,
+      ),
     }));
     return;
   }
