@@ -57,6 +57,7 @@ type Props = {
 
 const THREAD_MAX_NAME_LENGTH = 60;
 const THREAD_MAX_MESSAGE_LENGTH = 500;
+const THREAD_ACTIVITY_EVENT = "kht-thread-activity";
 
 const anton = Anton({ subsets: ["latin"], weight: "400" });
 const bangers = Bangers({ subsets: ["latin"], weight: "400" });
@@ -1102,10 +1103,6 @@ function renderThread(
     const showNameField = block.data.showNameField !== false;
     const showVoteControls = block.data.showVoteControls !== false;
     const showVoteCount = block.data.showVoteCount !== false;
-    const maxVisibleMessages = Math.max(
-      1,
-      Math.min(100, Number(block.data.maxVisibleMessages) || 4),
-    );
     const scrollHeight = Math.max(120, Number(block.data.scrollHeight) || 280);
 
     const trimmedMessageValue = messageValue.trim();
@@ -1161,7 +1158,6 @@ function renderThread(
         if (!res.ok) {
           throw new Error(data?.error || "Failed to post message.");
         }
-
         setMessages((prev) => [
           {
             id: String(data.message.id),
@@ -1176,6 +1172,16 @@ function renderThread(
         setMessageValue("");
         setNameValue("");
         setThreadError("");
+
+        window.dispatchEvent(
+          new CustomEvent(THREAD_ACTIVITY_EVENT, {
+            detail: {
+              micrositeId,
+              threadBlockId: block.id,
+              type: "message_posted",
+            },
+          }),
+        );
       } catch (error) {
         setThreadError(
           error instanceof Error ? error.message : "Failed to post message.",
@@ -1251,6 +1257,16 @@ function renderThread(
                 }
               : message,
           ),
+        );
+
+        window.dispatchEvent(
+          new CustomEvent(THREAD_ACTIVITY_EVENT, {
+            detail: {
+              micrositeId,
+              threadBlockId: block.id,
+              type: "vote_updated",
+            },
+          }),
         );
       } catch (error) {
         setMessages((prev) =>
@@ -1396,84 +1412,95 @@ function renderThread(
               </div>
             ) : (
               <div className="space-y-3">
-                {messages.slice(0, maxVisibleMessages).map((message) => (
-                  <div key={message.id} className={getThreadCardClass(designKey)}>
-                    <div className="flex items-start gap-3">
-                      {showVoteControls ? (
-                        <div className="flex shrink-0 flex-col items-center justify-start gap-1">
-                          <button
-                            type="button"
-                            onClick={() => void updateVotes(message.id, 1)}
-                            disabled={voteLoadingId === message.id}
-                            className={
-                              isLightDesign(designKey)
-                                ? "text-neutral-700"
-                                : "text-white/80"
-                            }
-                            style={{
-                              opacity: voteLoadingId === message.id ? 0.5 : 1,
-                              cursor:
-                                voteLoadingId === message.id
-                                  ? "not-allowed"
-                                  : "pointer",
-                            }}
-                          >
-                            👍
-                          </button>
+                {messages
+                  .slice(
+                    0,
+                    Math.max(
+                      1,
+                      Math.min(
+                        100,
+                        Number(block.data.maxVisibleMessages) || messages.length || 1,
+                      ),
+                    ),
+                  )
+                  .map((message) => (
+                    <div key={message.id} className={getThreadCardClass(designKey)}>
+                      <div className="flex items-start gap-3">
+                        {showVoteControls ? (
+                          <div className="flex shrink-0 flex-col items-center justify-start gap-1">
+                            <button
+                              type="button"
+                              onClick={() => void updateVotes(message.id, 1)}
+                              disabled={voteLoadingId === message.id}
+                              className={
+                                isLightDesign(designKey)
+                                  ? "text-neutral-700"
+                                  : "text-white/80"
+                              }
+                              style={{
+                                opacity: voteLoadingId === message.id ? 0.5 : 1,
+                                cursor:
+                                  voteLoadingId === message.id
+                                    ? "not-allowed"
+                                    : "pointer",
+                              }}
+                            >
+                              👍
+                            </button>
 
-                          {showVoteCount ? (
+                            {showVoteCount ? (
+                              <div
+                                className="text-xs font-semibold"
+                                style={getThreadTextStyle(block.data.style, designKey)}
+                              >
+                                {message.votes ?? 0}
+                              </div>
+                            ) : null}
+
+                            <button
+                              type="button"
+                              onClick={() => void updateVotes(message.id, -1)}
+                              disabled={voteLoadingId === message.id}
+                              className={
+                                isLightDesign(designKey)
+                                  ? "text-neutral-700"
+                                  : "text-white/80"
+                              }
+                              style={{
+                                opacity: voteLoadingId === message.id ? 0.5 : 1,
+                                cursor:
+                                  voteLoadingId === message.id
+                                    ? "not-allowed"
+                                    : "pointer",
+                              }}
+                            >
+                              👎
+                            </button>
+                          </div>
+                        ) : null}
+
+                        <div className={getThreadAvatarClass(designKey)}>
+                          {getInitials(message.name)}
+                        </div>
+
+                        <div className="min-w-0 flex-1">
                           <div
-                            className="text-xs font-semibold"
+                            className="text-sm font-semibold"
                             style={getThreadTextStyle(block.data.style, designKey)}
                           >
-                              {message.votes ?? 0}
-                            </div>
-                          ) : null}
+                            {message.name || "Guest"}
+                          </div>
 
-                          <button
-                            type="button"
-                            onClick={() => void updateVotes(message.id, -1)}
-                            disabled={voteLoadingId === message.id}
-                            className={
-                              isLightDesign(designKey)
-                                ? "text-neutral-700"
-                                : "text-white/80"
-                            }
-                            style={{
-                              opacity: voteLoadingId === message.id ? 0.5 : 1,
-                              cursor:
-                                voteLoadingId === message.id
-                                  ? "not-allowed"
-                                  : "pointer",
-                            }}
+                          <div
+                            className="mt-1 text-sm"
+                            style={getThreadTextStyle(block.data.style, designKey)}
                           >
-                            👎
-                          </button>
-                        </div>
-                      ) : null}
-
-                      <div className={getThreadAvatarClass(designKey)}>
-                        {getInitials(message.name)}
-                      </div>
-
-                      <div className="min-w-0 flex-1">
-                      <div
-                        className="text-sm font-semibold"
-                        style={getThreadTextStyle(block.data.style, designKey)}
-                      >
-                          {message.name || "Guest"}
-                        </div>
-
-                        <div
-                          className="mt-1 text-sm"
-                          style={getThreadTextStyle(block.data.style, designKey)}
-                        >
-                          {message.message || "Message preview"}
+                            {message.message || "Message preview"}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
 
                 {!messages.length ? (
                   <div className="rounded-xl border border-dashed border-neutral-300 px-3 py-4 text-sm text-neutral-500">
@@ -1943,6 +1970,7 @@ const [items, setItems] = useState<any[]>([]);
 const [countValue, setCountValue] = useState<number>(0);
 const [totalValue, setTotalValue] = useState<number>(0);
 const [isLoading, setIsLoading] = useState(Boolean(micrositeId));
+const [refreshKey, setRefreshKey] = useState(0);
 
 const mode = block.data?.mode || "top_messages";
 const limit = Math.max(1, Math.min(12, Number(block.data?.limit) || 4));
@@ -2066,18 +2094,29 @@ if (!cancelled) {
   setTotalValue(0);
 }
         } catch {
-          if (!cancelled) setItems([]);
+          if (!cancelled) {
+            setItems([]);
+            setCountValue(0);
+            setTotalValue(0);
+          }
         } finally {
           if (!cancelled) setIsLoading(false);
         }
       }
 
+      function handleThreadUpdated() {
+        setRefreshKey((prev) => prev + 1);
+      }
+
+      window.addEventListener("ko-host-thread-updated", handleThreadUpdated);
+
       void load();
 
       return () => {
         cancelled = true;
+        window.removeEventListener("ko-host-thread-updated", handleThreadUpdated);
       };
-    }, [micrositeId, mode, block.id, sourceBlockId, sourceFormBlockId, limit]);
+    }, [micrositeId, mode, block.id, sourceBlockId, sourceFormBlockId, limit, refreshKey]);
 
     return (
       <Surface
@@ -2201,7 +2240,7 @@ if (!cancelled) {
 
 {mode === "top_messages" ? (
 <div className="space-y-3">
-  {items.map((msg: any, index: number) => (
+  {items.slice(0, limit).map((msg: any, index: number) => (
     <div
       key={msg.id}
       className={getHighlightCardClass(designKey)}
