@@ -1174,6 +1174,7 @@ function renderThread(
         ]);
 
         setMessageValue("");
+        setNameValue("");
         setThreadError("");
       } catch (error) {
         setThreadError(
