@@ -2,16 +2,25 @@ import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 export async function sendSubmissionNotification({
   to,
-  pageId,
+  micrositeId,
   pageSlug,
   templateKey,
   designKey,
   fields,
 }: {
   to: string;
-  pageId: string;
+  micrositeId: string;
   pageSlug?: string | null;
   templateKey?: string | null;
   designKey?: string | null;
@@ -21,25 +30,31 @@ export async function sendSubmissionNotification({
     .map(
       ([key, value]) => `
         <tr>
-          <td style="padding:8px;border:1px solid #ddd;font-weight:600;">${key}</td>
-          <td style="padding:8px;border:1px solid #ddd;">${value || ""}</td>
+          <td style="padding:8px;border:1px solid #ddd;font-weight:600;">${escapeHtml(
+            key,
+          )}</td>
+          <td style="padding:8px;border:1px solid #ddd;">${escapeHtml(
+            value || "",
+          )}</td>
         </tr>
       `,
     )
     .join("");
 
   await resend.emails.send({
-    from: process.env.FORM_NOTIFICATIONS_FROM_EMAIL || "Ko-Host <onboarding@resend.dev>",
+    from:
+      process.env.FORM_NOTIFICATIONS_FROM_EMAIL ||
+      "Ko-Host <onboarding@resend.dev>",
     to,
     subject: `New Ko-Host form submission${pageSlug ? ` — ${pageSlug}` : ""}`,
     html: `
       <div style="font-family:Arial,sans-serif;padding:20px;">
         <h2 style="margin-bottom:16px;">New Form Submission</h2>
 
-        <p><strong>Page ID:</strong> ${pageId}</p>
-        <p><strong>Page Slug:</strong> ${pageSlug || "-"}</p>
-        <p><strong>Template:</strong> ${templateKey || "-"}</p>
-        <p><strong>Design:</strong> ${designKey || "-"}</p>
+        <p><strong>Microsite ID:</strong> ${escapeHtml(micrositeId)}</p>
+        <p><strong>Page Slug:</strong> ${escapeHtml(pageSlug || "-")}</p>
+        <p><strong>Template:</strong> ${escapeHtml(templateKey || "-")}</p>
+        <p><strong>Design:</strong> ${escapeHtml(designKey || "-")}</p>
 
         <table style="border-collapse:collapse;width:100%;margin-top:16px;">
           <tbody>${rows}</tbody>

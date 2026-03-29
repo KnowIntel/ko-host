@@ -1,3 +1,4 @@
+// app\create\[template]\page.tsx
 "use client";
 
 import { useAuth } from "@clerk/nextjs";
@@ -139,7 +140,12 @@ const storageKey = useMemo(
 
 const [hydratedDraft, setHydratedDraft] = useState<BuilderDraft>(initialDraft);
 const [liveDraft, setLiveDraft] = useState<BuilderDraft>(initialDraft);
+const liveDraftRef = useRef<BuilderDraft>(initialDraft);
 const lastSavedDraftRef = useRef<string>(JSON.stringify(initialDraft));
+
+useEffect(() => {
+  liveDraftRef.current = liveDraft;
+}, [liveDraft]);
 
 const [saveState, setSaveState] = useState<
   "idle" | "saving" | "saved" | "error" | "signin-required"
@@ -154,11 +160,30 @@ useEffect(() => {
     if (event.origin !== window.location.origin) return;
     if (event.data?.type !== "kht-auth-complete") return;
 
+    try {
+      window.localStorage.setItem(
+        storageKey,
+        JSON.stringify(liveDraftRef.current),
+      );
+    } catch {
+      // ignore localStorage errors
+    }
+
     window.location.reload();
   }
 
   function handleStorage(event: StorageEvent) {
     if (event.key !== "kht-auth-complete") return;
+
+    try {
+      window.localStorage.setItem(
+        storageKey,
+        JSON.stringify(liveDraftRef.current),
+      );
+    } catch {
+      // ignore localStorage errors
+    }
+
     window.location.reload();
   }
 
@@ -169,7 +194,7 @@ useEffect(() => {
     window.removeEventListener("message", handleAuthComplete);
     window.removeEventListener("storage", handleStorage);
   };
-}, []);
+}, [storageKey]);
 
 useEffect(() => {
   return () => {
@@ -197,7 +222,19 @@ useEffect(() => {
 
     if (!shouldLoadExistingDraft) {
       try {
-        window.localStorage.removeItem(storageKey);
+        const raw = window.localStorage.getItem(storageKey);
+
+        if (raw) {
+          const parsed = JSON.parse(raw) as Partial<BuilderDraft>;
+          const merged = mergeDrafts(initialDraft, parsed);
+
+          setHydratedDraft(merged);
+          setLiveDraft(merged);
+          lastSavedDraftRef.current = JSON.stringify(merged);
+          setSaveState("idle");
+          setSaveMessage("Recovered your local draft.");
+          return;
+        }
       } catch {
         // ignore localStorage errors
       }

@@ -29,31 +29,18 @@ export async function POST(request: Request) {
 
     const supabaseAdmin = getSupabaseAdmin();
 
-    const { data: existing, error: existingError } = await supabaseAdmin
-      .from("microsite_thread_messages")
-      .select("id, votes")
-      .eq("id", messageId)
-      .single();
+    // 🔒 Atomic increment (prevents race conditions)
+    const { data, error } = await supabaseAdmin.rpc(
+      "increment_thread_vote",
+      {
+        message_id_input: messageId,
+        delta_input: delta,
+      },
+    );
 
-    if (existingError || !existing) {
+    if (error || !data) {
       return NextResponse.json(
-        { error: existingError?.message || "Message not found." },
-        { status: 404 },
-      );
-    }
-
-    const nextVotes = (existing.votes ?? 0) + delta;
-
-    const { data, error } = await supabaseAdmin
-      .from("microsite_thread_messages")
-      .update({ votes: nextVotes })
-      .eq("id", messageId)
-      .select("id, microsite_id, thread_block_id, author_name, message_text, votes, created_at, updated_at")
-      .single();
-
-    if (error) {
-      return NextResponse.json(
-        { error: error.message || "Failed to update vote." },
+        { error: error?.message || "Failed to update vote." },
         { status: 500 },
       );
     }

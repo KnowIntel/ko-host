@@ -187,7 +187,14 @@ const handleSubmit = async () => {
     "[data-form-field-id]",
   ) as NodeListOf<HTMLInputElement | HTMLTextAreaElement>;
 
-  const fields: Record<string, string> = {};
+  const fields: Record<
+  string,
+  {
+    value: string;
+    formBlockId: string;
+    fieldType?: string;
+  }
+> = {};
   let hasRequiredError = false;
 
   inputs.forEach((input) => {
@@ -196,7 +203,11 @@ const handleSubmit = async () => {
 
     if (block?.type === "form_field") {
       const value = input.value ?? "";
-      fields[block.data.label] = value;
+      fields[block.data.label] = {
+      value,
+      formBlockId: block.id,
+      fieldType: block.data.fieldType,
+    };
 
       if (block.data.required && !value.trim()) {
         hasRequiredError = true;
@@ -210,6 +221,12 @@ const handleSubmit = async () => {
     return;
   }
 
+  if (!micrositeId) {
+    setSubmitState("error");
+    setSubmitMessage("Form submission is only available on published microsites.");
+    return;
+  }
+
   try {
     setSubmitState("submitting");
     setSubmitMessage("");
@@ -220,8 +237,8 @@ const handleSubmit = async () => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        pageId: draft.slugSuggestion,
-        pageSlug: draft.slugSuggestion,
+        micrositeId: micrositeId || "",
+        pageSlug: draft.slugSuggestion || "",
         templateKey: typedDraft.templateName || "",
         designKey,
         fields,

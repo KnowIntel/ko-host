@@ -55,6 +55,9 @@ type Props = {
   micrositeId?: string | null;
 };
 
+const THREAD_MAX_NAME_LENGTH = 60;
+const THREAD_MAX_MESSAGE_LENGTH = 500;
+
 const anton = Anton({ subsets: ["latin"], weight: "400" });
 const bangers = Bangers({ subsets: ["latin"], weight: "400" });
 const orbitron = Orbitron({ subsets: ["latin"] });
@@ -888,6 +891,12 @@ function getThreadBadgeClass(designKey?: string) {
     : "inline-flex items-center rounded-full border border-white/10 bg-white/10 px-2.5 py-1 text-[11px] font-medium text-white/80";
 }
 
+function getHighlightCardClass(designKey?: string) {
+  return isLightDesign(designKey)
+    ? "rounded-2xl border border-neutral-200 bg-white px-4 py-3 shadow-sm"
+    : "rounded-2xl border border-white/10 bg-white/5 px-4 py-3 backdrop-blur-sm";
+}
+
 function getThreadCardClass(designKey?: string) {
   return isLightDesign(designKey)
     ? "rounded-2xl border border-neutral-200 bg-white px-4 py-3 shadow-sm"
@@ -928,19 +937,19 @@ function getThreadPostButtonClass(
 ) {
   if (styleType === "outline") {
     return isLightDesign(designKey)
-      ? "inline-flex items-center rounded-xl border border-neutral-300 bg-white px-3 py-2 text-xs font-medium text-neutral-900"
-      : "inline-flex items-center rounded-xl border border-white/20 bg-transparent px-3 py-2 text-xs font-medium text-white";
+      ? "inline-flex min-h-[48px] items-center justify-center rounded-2xl border border-neutral-300 bg-white px-6 py-3 text-base font-semibold text-neutral-900"
+      : "inline-flex min-h-[48px] items-center justify-center rounded-2xl border border-white/20 bg-transparent px-6 py-3 text-base font-semibold text-white";
   }
 
   if (styleType === "soft") {
     return isLightDesign(designKey)
-      ? "inline-flex items-center rounded-xl bg-neutral-100 px-3 py-2 text-xs font-medium text-neutral-900"
-      : "inline-flex items-center rounded-xl bg-white/10 px-3 py-2 text-xs font-medium text-white";
+      ? "inline-flex min-h-[48px] items-center justify-center rounded-2xl bg-neutral-100 px-6 py-3 text-base font-semibold text-neutral-900"
+      : "inline-flex min-h-[48px] items-center justify-center rounded-2xl bg-white/10 px-6 py-3 text-base font-semibold text-white";
   }
 
   return isLightDesign(designKey)
-    ? "inline-flex items-center rounded-xl bg-neutral-900 px-3 py-2 text-xs font-medium text-white"
-    : "inline-flex items-center rounded-xl bg-white px-3 py-2 text-xs font-medium text-neutral-900";
+    ? "inline-flex min-h-[48px] items-center justify-center rounded-2xl bg-neutral-900 px-6 py-3 text-base font-semibold text-white"
+    : "inline-flex min-h-[48px] items-center justify-center rounded-2xl bg-white px-6 py-3 text-base font-semibold text-neutral-900";
 }
 
 function getThreadSampleMessages(
@@ -1001,24 +1010,26 @@ function renderThread(
     const [isLoading, setIsLoading] = useState(Boolean(micrositeId));
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [voteLoadingId, setVoteLoadingId] = useState<string | null>(null);
+    const [threadError, setThreadError] = useState("");
 
     useEffect(() => {
       let isCancelled = false;
 
       async function loadMessages() {
-if (!micrositeId) {
-  setMessages(
-    getThreadSampleMessages(block).map((message) => ({
-      ...message,
-      votes: typeof message.votes === "number" ? message.votes : 0,
-    })),
-  );
-  setIsLoading(false);
-  return;
-}
+        if (!micrositeId) {
+          setMessages(
+            getThreadSampleMessages(block).map((message) => ({
+              ...message,
+              votes: typeof message.votes === "number" ? message.votes : 0,
+            })),
+          );
+          setIsLoading(false);
+          return;
+        }
 
         try {
           setIsLoading(true);
+          setThreadError("");
 
           const params = new URLSearchParams({
             micrositeId,
@@ -1048,10 +1059,15 @@ if (!micrositeId) {
 
             setMessages(nextMessages);
           }
-        } catch {
-        if (!isCancelled) {
-          setMessages([]);
-        }
+        } catch (error) {
+          if (!isCancelled) {
+            setMessages([]);
+            setThreadError(
+              error instanceof Error
+                ? error.message
+                : "Failed to load thread messages.",
+            );
+          }
         } finally {
           if (!isCancelled) {
             setIsLoading(false);
@@ -1077,6 +1093,9 @@ if (!micrositeId) {
     );
     const scrollHeight = Math.max(120, Number(block.data.scrollHeight) || 280);
 
+    const trimmedMessageValue = messageValue.trim();
+    const isPostDisabled = isSubmitting || !trimmedMessageValue;
+
     async function handleSubmit() {
       const nextMessage = messageValue.trim();
       if (!nextMessage || isSubmitting) return;
@@ -1087,21 +1106,26 @@ if (!micrositeId) {
           ? "Anon"
           : "Guest";
 
+      const safeName = resolvedName.slice(0, THREAD_MAX_NAME_LENGTH);
+      const safeMessage = nextMessage.slice(0, THREAD_MAX_MESSAGE_LENGTH);
+
       const optimisticMessage: ThreadMessage = {
         id: `threadmsg_${Math.random().toString(36).slice(2, 10)}`,
-        name: resolvedName,
-        message: nextMessage,
+        name: safeName,
+        message: safeMessage,
         votes: 0,
       };
 
       if (!micrositeId) {
         setMessages((prev) => [optimisticMessage, ...prev]);
         setMessageValue("");
+        setThreadError("");
         return;
       }
 
       try {
         setIsSubmitting(true);
+        setThreadError("");
 
         const res = await fetch("/api/thread/messages", {
           method: "POST",
@@ -1111,8 +1135,8 @@ if (!micrositeId) {
           body: JSON.stringify({
             micrositeId,
             threadBlockId: block.id,
-            authorName: resolvedName,
-            messageText: nextMessage,
+            authorName: safeName,
+            messageText: safeMessage,
           }),
         });
 
@@ -1125,8 +1149,8 @@ if (!micrositeId) {
         setMessages((prev) => [
           {
             id: String(data.message.id),
-            name: String(data.message.author_name ?? resolvedName),
-            message: String(data.message.message_text ?? nextMessage),
+            name: String(data.message.author_name ?? safeName),
+            message: String(data.message.message_text ?? safeMessage),
             votes:
               typeof data.message.votes === "number" ? data.message.votes : 0,
           },
@@ -1134,8 +1158,11 @@ if (!micrositeId) {
         ]);
 
         setMessageValue("");
-      } catch {
-        // keep current message text if submit fails
+        setThreadError("");
+      } catch (error) {
+        setThreadError(
+          error instanceof Error ? error.message : "Failed to post message.",
+        );
       } finally {
         setIsSubmitting(false);
       }
@@ -1164,6 +1191,8 @@ if (!micrositeId) {
       const optimisticVotes = (existing.votes ?? 0) + delta;
 
       setVoteLoadingId(messageId);
+      setThreadError("");
+
       setMessages((prev) =>
         prev.map((message) =>
           message.id === messageId
@@ -1206,7 +1235,7 @@ if (!micrositeId) {
               : message,
           ),
         );
-      } catch {
+      } catch (error) {
         setMessages((prev) =>
           prev.map((message) =>
             message.id === messageId
@@ -1216,6 +1245,10 @@ if (!micrositeId) {
                 }
               : message,
           ),
+        );
+
+        setThreadError(
+          error instanceof Error ? error.message : "Failed to update vote.",
         );
       } finally {
         setVoteLoadingId(null);
@@ -1269,7 +1302,10 @@ if (!micrositeId) {
                 <input
                   type="text"
                   value={nameValue}
-                  onChange={(e) => setNameValue(e.target.value)}
+                  maxLength={THREAD_MAX_NAME_LENGTH}
+                  onChange={(e) =>
+                    setNameValue(e.target.value.slice(0, THREAD_MAX_NAME_LENGTH))
+                  }
                   placeholder={block.data.namePlaceholder || "Your name"}
                   className={getThreadComposerInputClass(designKey)}
                   style={getContainerTextStyle(block.data.style, designKey)}
@@ -1278,11 +1314,32 @@ if (!micrositeId) {
 
               <textarea
                 value={messageValue}
-                onChange={(e) => setMessageValue(e.target.value)}
+                maxLength={THREAD_MAX_MESSAGE_LENGTH}
+                onChange={(e) =>
+                  setMessageValue(
+                    e.target.value.slice(0, THREAD_MAX_MESSAGE_LENGTH),
+                  )
+                }
                 placeholder={block.data.composerPlaceholder || "Write something…"}
                 className={`${getThreadComposerInputClass(designKey)} min-h-[96px] w-full resize-none`}
                 style={getContainerTextStyle(block.data.style, designKey)}
               />
+
+              <div className="mt-2 flex items-center justify-between gap-3">
+                <div className="text-xs text-neutral-500">
+                  {messageValue.length}/{THREAD_MAX_MESSAGE_LENGTH}
+                </div>
+
+                {showNameField ? (
+                  <div className="text-xs text-neutral-500">
+                    {nameValue.length}/{THREAD_MAX_NAME_LENGTH}
+                  </div>
+                ) : null}
+              </div>
+
+              {threadError ? (
+                <div className="mt-3 text-xs text-red-500">{threadError}</div>
+              ) : null}
 
               <div className="mt-3 flex items-center justify-between gap-3">
                 <div className="text-xs text-neutral-500">
@@ -1294,11 +1351,15 @@ if (!micrositeId) {
                 <button
                   type="button"
                   onClick={() => void handleSubmit()}
-                  disabled={isSubmitting}
+                  disabled={isPostDisabled}
                   className={getThreadPostButtonClass(
                     designKey,
                     block.data.postButtonStyle ?? "solid",
                   )}
+                  style={{
+                    opacity: isPostDisabled ? 0.6 : 1,
+                    cursor: isPostDisabled ? "not-allowed" : "pointer",
+                  }}
                 >
                   {isSubmitting
                     ? "Posting..."
@@ -1313,9 +1374,7 @@ if (!micrositeId) {
             style={{ maxHeight: `${scrollHeight}px` }}
           >
             {isLoading ? (
-              <div
-                className="rounded-xl border border-dashed border-neutral-300 px-3 py-4 text-sm text-neutral-500"
-              >
+              <div className="rounded-xl border border-dashed border-neutral-300 px-3 py-4 text-sm text-neutral-500">
                 Loading messages...
               </div>
             ) : (
@@ -1334,6 +1393,13 @@ if (!micrositeId) {
                                 ? "text-neutral-700"
                                 : "text-white/80"
                             }
+                            style={{
+                              opacity: voteLoadingId === message.id ? 0.5 : 1,
+                              cursor:
+                                voteLoadingId === message.id
+                                  ? "not-allowed"
+                                  : "pointer",
+                            }}
                           >
                             👍
                           </button>
@@ -1356,6 +1422,13 @@ if (!micrositeId) {
                                 ? "text-neutral-700"
                                 : "text-white/80"
                             }
+                            style={{
+                              opacity: voteLoadingId === message.id ? 0.5 : 1,
+                              cursor:
+                                voteLoadingId === message.id
+                                  ? "not-allowed"
+                                  : "pointer",
+                            }}
                           >
                             👎
                           </button>
@@ -1386,9 +1459,7 @@ if (!micrositeId) {
                 ))}
 
                 {!messages.length ? (
-                  <div
-                    className="rounded-xl border border-dashed border-neutral-300 px-3 py-4 text-sm text-neutral-500"
-                  >
+                  <div className="rounded-xl border border-dashed border-neutral-300 px-3 py-4 text-sm text-neutral-500">
                     No messages yet.
                   </div>
                 ) : null}
@@ -1845,6 +1916,333 @@ return (
   </div>
 );
 }
+function renderHighlight(
+  block: Extract<MicrositeBlock, { type: "highlight" }>,
+  designKey?: string,
+  micrositeId?: string | null,
+) {
+  function HighlightPreview() {
+const [items, setItems] = useState<any[]>([]);
+const [countValue, setCountValue] = useState<number>(0);
+const [totalValue, setTotalValue] = useState<number>(0);
+const [isLoading, setIsLoading] = useState(Boolean(micrositeId));
+
+const mode = block.data?.mode || "top_messages";
+const limit = Math.max(1, Math.min(12, Number(block.data?.limit) || 4));
+const sourceBlockId = block.data?.sourceBlockId?.trim() || "";
+const sourceFormBlockId = block.data?.sourceFormBlockId?.trim() || "";
+const heading =
+  block.data?.heading?.trim() ||
+  (mode === "top_messages"
+    ? "Top Messages"
+    : mode === "rsvp_count"
+      ? "RSVP Count"
+      : "Total Funds");
+
+    useEffect(() => {
+      let cancelled = false;
+
+      async function load() {
+if (!micrositeId) {
+  setItems([]);
+  setCountValue(0);
+  setTotalValue(0);
+  setIsLoading(false);
+  return;
+}
+
+        try {
+          setIsLoading(true);
+
+if (mode === "top_messages") {
+  if (!sourceBlockId) {
+    if (!cancelled) {
+      setItems([]);
+      setCountValue(0);
+      setTotalValue(0);
+    }
+    return;
+  }
+
+  const params = new URLSearchParams({
+    micrositeId,
+    threadBlockId: sourceBlockId,
+    limit: String(limit),
+    sort: "votes_desc",
+  });
+
+  const res = await fetch(
+    `/api/thread/messages?${params.toString()}`,
+    { cache: "no-store" },
+  );
+
+  const data = await res.json();
+
+  if (!res.ok) throw new Error();
+
+  if (!cancelled) {
+    setItems(data?.messages || []);
+    setCountValue(0);
+    setTotalValue(0);
+  }
+
+  return;
+}
+
+if (mode === "rsvp_count") {
+  const params = new URLSearchParams({
+    micrositeId,
+    mode: "rsvp_count",
+    sourceFormBlockId,
+  });
+
+  const res = await fetch(
+    `/api/forms/stats?${params.toString()}`,
+    { cache: "no-store" },
+  );
+
+  const data = await res.json();
+
+  if (!res.ok) throw new Error();
+
+  if (!cancelled) {
+    setItems([]);
+    setCountValue(
+      typeof data?.count === "number" ? data.count : 0,
+    );
+    setTotalValue(0);
+  }
+
+  return;
+}
+
+if (mode === "total_funds") {
+  const params = new URLSearchParams({
+    micrositeId,
+    mode: "total_funds",
+    sourceFormBlockId,
+  });
+
+  const res = await fetch(
+    `/api/forms/stats?${params.toString()}`,
+    { cache: "no-store" },
+  );
+
+  const data = await res.json();
+
+  if (!res.ok) throw new Error();
+
+  if (!cancelled) {
+    setItems([]);
+    setCountValue(0);
+    setTotalValue(
+      typeof data?.total === "number" ? data.total : 0,
+    );
+  }
+
+  return;
+}
+
+if (!cancelled) {
+  setItems([]);
+  setCountValue(0);
+  setTotalValue(0);
+}
+        } catch {
+          if (!cancelled) setItems([]);
+        } finally {
+          if (!cancelled) setIsLoading(false);
+        }
+      }
+
+      void load();
+
+      return () => {
+        cancelled = true;
+      };
+    }, [micrositeId, mode, block.id, sourceBlockId, sourceFormBlockId, limit]);
+
+    return (
+      <Surface
+        block={block}
+        designKey={designKey}
+        className={getSoftSurfaceClass(designKey)}
+      >
+        <div className="flex h-full w-full flex-col gap-3">
+        <div
+          className="text-sm font-semibold"
+          style={getContainerTextStyle(block.data.style, designKey)}
+        >
+          {heading}
+        </div>
+
+{isLoading ? (
+  <div className="text-xs text-neutral-400">
+    Loading...
+  </div>
+) : null}
+
+{!isLoading && mode === "top_messages" && !sourceBlockId ? (
+<div
+  className="rounded-xl border border-dashed px-3 py-4 text-sm opacity-60"
+  style={getContainerTextStyle(block.data.style, designKey)}
+>
+  Select a source thread block.
+</div>
+) : null}
+
+{!isLoading && mode === "rsvp_count" && !sourceFormBlockId ? (
+  <div
+    className="rounded-xl border border-dashed px-3 py-4 text-sm opacity-60"
+    style={getContainerTextStyle(block.data.style, designKey)}
+  >
+    Select a source form block.
+  </div>
+) : null}
+
+{!isLoading && mode === "total_funds" && !sourceFormBlockId ? (
+  <div
+    className="rounded-xl border border-dashed px-3 py-4 text-sm opacity-60"
+    style={getContainerTextStyle(block.data.style, designKey)}
+  >
+    Select a source form block.
+  </div>
+) : null}
+
+{!isLoading && mode === "top_messages" && sourceBlockId && !items.length ? (
+<div
+  className="rounded-xl border border-dashed px-3 py-4 text-sm opacity-60"
+  style={getContainerTextStyle(block.data.style, designKey)}
+>
+  No data yet.
+</div>
+) : null}
+
+{!isLoading && mode === "rsvp_count" && !!sourceFormBlockId ? (
+  <div className={getHighlightCardClass(designKey)}>
+    <div className="flex items-start justify-between gap-3">
+      <div>
+        <div
+          className="text-[11px] font-semibold uppercase tracking-[0.14em] opacity-60"
+          style={getContainerTextStyle(block.data.style, designKey)}
+        >
+          Responses
+        </div>
+        <div
+          className="mt-2 text-4xl font-bold leading-none"
+          style={getContainerTextStyle(block.data.style, designKey)}
+        >
+          {countValue}
+        </div>
+      </div>
+
+      <div className="text-2xl">✉️</div>
+    </div>
+
+    <div
+      className="mt-3 text-xs opacity-60"
+      style={getContainerTextStyle(block.data.style, designKey)}
+    >
+      Live RSVP count from submitted forms.
+    </div>
+  </div>
+) : null}
+
+{!isLoading && mode === "total_funds" ? (
+  <div className={getHighlightCardClass(designKey)}>
+    <div className="flex items-start justify-between gap-3">
+      <div>
+        <div
+          className="text-[11px] font-semibold uppercase tracking-[0.14em] opacity-60"
+          style={getContainerTextStyle(block.data.style, designKey)}
+        >
+          Total Raised
+        </div>
+        <div
+          className="mt-2 text-4xl font-bold leading-none"
+          style={getContainerTextStyle(block.data.style, designKey)}
+        >
+          {new Intl.NumberFormat("en-US", {
+            style: "currency",
+            currency: "USD",
+            maximumFractionDigits: 2,
+          }).format(totalValue)}
+        </div>
+      </div>
+
+      <div className="text-2xl">💰</div>
+    </div>
+
+    <div
+      className="mt-3 text-xs opacity-60"
+      style={getContainerTextStyle(block.data.style, designKey)}
+    >
+      Live funding total from submitted forms.
+    </div>
+  </div>
+) : null}
+
+{mode === "top_messages" ? (
+<div className="space-y-3">
+  {items.map((msg: any, index: number) => (
+    <div
+      key={msg.id}
+      className={getHighlightCardClass(designKey)}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <div
+              className="inline-flex h-6 min-w-6 items-center justify-center rounded-full px-2 text-[10px] font-bold"
+              style={{
+                background: isLightDesign(designKey)
+                  ? "rgba(17,24,39,0.08)"
+                  : "rgba(255,255,255,0.12)",
+                color: getDefaultTextColor(designKey),
+              }}
+            >
+              #{index + 1}
+            </div>
+
+            <div
+              className="truncate text-xs font-semibold"
+              style={getContainerTextStyle(block.data.style, designKey)}
+            >
+              {msg.author_name || msg.name || "Guest"}
+            </div>
+          </div>
+
+          <div
+            className="mt-2 text-sm leading-5"
+            style={getContainerTextStyle(block.data.style, designKey)}
+          >
+            {msg.message_text || msg.message}
+          </div>
+        </div>
+
+        <div
+          className="shrink-0 rounded-full px-2 py-1 text-[11px] font-semibold"
+          style={{
+            background: isLightDesign(designKey)
+              ? "rgba(17,24,39,0.08)"
+              : "rgba(255,255,255,0.12)",
+            color: getDefaultTextColor(designKey),
+          }}
+        >
+          👍 {msg.votes ?? 0}
+        </div>
+      </div>
+    </div>
+  ))}
+</div>
+) : null}
+        </div>
+      </Surface>
+    );
+  }
+
+  return <HighlightPreview />;
+}
 
 export default function BlockRenderer({
   block,
@@ -1886,6 +2284,8 @@ export default function BlockRenderer({
       return renderFestiveBackground(block, designKey);
     case "shape":
       return renderShape(block);
+    case "highlight":
+      return renderHighlight(block, designKey, micrositeId);
     default:
       return <div className="h-full w-full" />;
   }

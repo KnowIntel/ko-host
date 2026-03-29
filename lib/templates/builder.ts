@@ -1,3 +1,4 @@
+// lib\templates\builder.ts
 /* =========================================
    Ko-Host Builder Core Types
    ========================================= */
@@ -85,6 +86,7 @@ export type BuilderBlockType =
   | "faq"
   | "gallery"
   | "thread"
+  | "highlight"
   | "showcase"
   | "festiveBackground"
   | "form_field"
@@ -322,6 +324,18 @@ export type MessageThreadBlock = BaseBlock & {
   };
 };
 
+export type HighlightBlock = BaseBlock & {
+  type: "highlight";
+  data: {
+    mode?: "top_messages" | "rsvp_count" | "total_funds";
+    heading?: string;
+    limit?: number;
+    sourceBlockId?: string;
+    sourceFormBlockId?: string;
+    style?: TextStyle;
+  };
+};
+
 export type ShowcaseBlock = BaseBlock & {
   type: "showcase";
   data: {
@@ -380,6 +394,7 @@ export type MicrositeBlock =
   | FaqBlock
   | GalleryBlock
   | MessageThreadBlock
+  | HighlightBlock
   | ShowcaseBlock
   | FestiveBackgroundBlock
   | FormFieldBlock
@@ -793,6 +808,23 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
           style: createDefaultTextStyle(),
         },
       };
+
+case "highlight":
+  return {
+    id: makeId("highlight"),
+    type: "highlight",
+    label: "Highlight",
+    grid,
+    appearance: createDefaultBlockAppearance(),
+    data: {
+      mode: "top_messages",
+      heading: "Top Messages",
+      limit: 4,
+      sourceBlockId: "",
+      sourceFormBlockId: "",
+      style: createDefaultTextStyle(),
+    },
+  };
 
     case "showcase":
       return {

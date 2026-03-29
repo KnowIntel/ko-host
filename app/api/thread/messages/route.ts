@@ -27,7 +27,9 @@ export async function GET(request: Request) {
 
     const { data, error } = await supabaseAdmin
       .from("microsite_thread_messages")
-      .select("id, microsite_id, thread_block_id, author_name, message_text, votes, created_at, updated_at")
+      .select(
+        "id, microsite_id, thread_block_id, author_name, message_text, votes, created_at, updated_at",
+      )
       .eq("microsite_id", micrositeId)
       .eq("thread_block_id", threadBlockId)
       .order("created_at", { ascending: false });
@@ -88,7 +90,9 @@ export async function POST(request: Request) {
         message_text: messageText,
         votes: 0,
       })
-      .select("id, microsite_id, thread_block_id, author_name, message_text, votes, created_at, updated_at")
+      .select(
+        "id, microsite_id, thread_block_id, author_name, message_text, votes, created_at, updated_at",
+      )
       .single();
 
     if (error) {

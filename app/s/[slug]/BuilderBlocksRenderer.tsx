@@ -1,3 +1,4 @@
+// app\s\[slug]\BuilderBlocksRenderer.tsx
 import type { MicrositeBlock } from "@/lib/templates/builder";
 import BlockRenderer from "@/components/preview/BlockRenderer";
 

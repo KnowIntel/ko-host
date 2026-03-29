@@ -86,12 +86,12 @@ export async function POST(req: Request) {
 
     const supabaseAdmin = getSupabaseAdmin();
 
-    const { data: existingMicrosite, error: existingMicrositeError } =
-      await supabaseAdmin
-        .from("microsites")
-        .select("id, owner_clerk_user_id, slug")
-        .eq("slug", slugSuggestion)
-        .maybeSingle();
+const { data: existingMicrosite, error: existingMicrositeError } =
+  await supabaseAdmin
+    .from("microsites")
+    .select("id, owner_clerk_user_id, slug, is_published, is_active")
+    .eq("slug", slugSuggestion)
+    .maybeSingle();
 
     if (existingMicrositeError) {
       return NextResponse.json(
@@ -116,10 +116,11 @@ export async function POST(req: Request) {
 const { data: existingPendingRows, error: existingPendingForOwnerError } =
   await supabaseAdmin
     .from("pending_microsite_checkouts")
-    .select("id, owner_clerk_user_id")
+    .select("id, owner_clerk_user_id, processed_at")
     .eq("owner_clerk_user_id", userId)
     .eq("template_key", templateKey)
     .eq("selected_design_key", designKey)
+    .is("processed_at", null)
     .order("id", { ascending: false })
     .limit(1);
 
@@ -157,9 +158,10 @@ const rowPayload = {
   selected_design_key: designKey,
   stripe_session_id: null,
   processed_at: null,
+  updated_at: new Date().toISOString(),
 };
 
-    if (existingPendingForOwner && existingPendingForOwner.owner_clerk_user_id === userId) {
+if (existingPendingForOwner) {
       const { data, error } = await supabaseAdmin
         .from("pending_microsite_checkouts")
         .update(rowPayload)
@@ -181,11 +183,12 @@ const rowPayload = {
         );
       }
 
-      return NextResponse.json({
-        ok: true,
-        pendingCheckoutId: data.id,
-        slug: data.slug,
-      });
+return NextResponse.json({
+  ok: true,
+  pendingCheckoutId: data.id,
+  slug: data.slug,
+  requestedSlug: data.slug,
+});
     }
 
     const { data, error } = await supabaseAdmin
@@ -208,11 +211,12 @@ const rowPayload = {
       );
     }
 
-    return NextResponse.json({
-      ok: true,
-      pendingCheckoutId: data.id,
-      slug: data.slug,
-    });
+return NextResponse.json({
+  ok: true,
+  pendingCheckoutId: data.id,
+  slug: data.slug,
+  requestedSlug: data.slug,
+});
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Unexpected server error";

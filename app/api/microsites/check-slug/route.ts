@@ -7,7 +7,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const QuerySchema = z.object({
-  slug: z.string().min(2).max(60).regex(/^[a-z0-9-]+$/),
+  slug: z.string().min(3).max(60).regex(/^[a-z0-9-]+$/),
 });
 
 export async function GET(req: Request) {
@@ -17,7 +17,12 @@ export async function GET(req: Request) {
   const parsed = QuerySchema.safeParse({ slug });
   if (!parsed.success) {
     return NextResponse.json(
-      { ok: false, available: false, error: "Invalid slug" },
+      {
+        ok: false,
+        available: false,
+        reason: "invalid",
+        error: "Invalid slug",
+      },
       { status: 400 },
     );
   }
@@ -27,7 +32,7 @@ export async function GET(req: Request) {
 
   const { data: micrositeData, error: micrositeError } = await sb
     .from("microsites")
-    .select("id")
+    .select("id, slug, is_published, is_active")
     .eq("slug", safeSlug)
     .limit(1);
 
@@ -38,7 +43,7 @@ export async function GET(req: Request) {
     });
 
     return NextResponse.json(
-      { ok: false, available: false, error: "Server error" },
+      { ok: false, available: false, reason: "error", error: "Server error" },
       { status: 500 },
     );
   }

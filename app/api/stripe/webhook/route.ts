@@ -76,19 +76,24 @@ export async function POST(req: Request) {
 
     const supabaseAdmin = getSupabaseAdmin();
 
-    const { data: pendingRow, error: pendingError } = await supabaseAdmin
-      .from("pending_microsite_checkouts")
-      .select("*")
-      .eq("id", pendingCheckoutId)
-      .single();
+const { data: pendingRow, error: pendingError } = await supabaseAdmin
+  .from("pending_microsite_checkouts")
+  .select("*")
+  .eq("id", pendingCheckoutId)
+  .is("processed_at", null)
+  .maybeSingle();
 
-    if (pendingError || !pendingRow) {
-      console.error("STRIPE WEBHOOK ERROR: Pending row not found", pendingError);
-      return NextResponse.json(
-        { ok: false, error: "Pending checkout not found" },
-        { status: 404 },
-      );
-    }
+if (pendingError) {
+  console.error("STRIPE WEBHOOK ERROR: Pending row lookup failed", pendingError);
+  return NextResponse.json(
+    { ok: false, error: "Pending checkout lookup failed" },
+    { status: 500 },
+  );
+}
+
+if (!pendingRow) {
+  return NextResponse.json({ ok: true });
+}
 
     const ownerClerkUserId =
       typeof pendingRow.owner_clerk_user_id === "string"
@@ -152,9 +157,7 @@ export async function POST(req: Request) {
       );
     }
 
-    if (pendingRow.processed_at) {
-      return NextResponse.json({ ok: true });
-    }
+// already filtered above with .is("processed_at", null)
 
     const resolvedDesignKey = String(
       selectedDesignKey || designKeyFromMetadata || "blank",
@@ -218,39 +221,156 @@ export async function POST(req: Request) {
     });
 
     // ✅ FIX: UPSERT (REPLACES INSERT/UPDATE SPLIT)
-    const { error: upsertError } = await supabaseAdmin
+let publishedMicrositeId = "";
+
+if (!conflictingMicrosite) {
+  const { data: insertedMicrosite, error: insertMicrositeError } =
+    await supabaseAdmin
       .from("microsites")
-      .upsert(
-        {
-          ...micrositePayload,
-          created_at: nowIso,
-        },
-        {
-          onConflict: "slug",
-        },
-      );
-
-    if (upsertError) {
-      console.error("STRIPE WEBHOOK ERROR: microsite upsert failed", {
-        error: upsertError,
-        payload: micrositePayload,
-      });
-
-      return NextResponse.json(
-        { ok: false, error: upsertError.message },
-        { status: 500 },
-      );
-    }
-
-    console.log("✅ Microsite upsert success:", slug);
-
-    const { error: processedError } = await supabaseAdmin
-      .from("pending_microsite_checkouts")
-      .update({
-        stripe_session_id: session.id,
-        processed_at: nowIso,
+      .insert({
+        ...micrositePayload,
+        created_at: nowIso,
       })
-      .eq("id", pendingCheckoutId);
+      .select("id, slug, owner_clerk_user_id")
+      .single();
+
+  if (insertMicrositeError || !insertedMicrosite) {
+    console.error("STRIPE WEBHOOK ERROR: microsite insert failed", {
+      error: insertMicrositeError,
+      payload: micrositePayload,
+    });
+
+    return NextResponse.json(
+      { ok: false, error: insertMicrositeError?.message || "Failed to create microsite" },
+      { status: 500 },
+    );
+  }
+
+  publishedMicrositeId = insertedMicrosite.id;
+} else {
+  const { data: updatedMicrosite, error: updateMicrositeError } =
+    await supabaseAdmin
+      .from("microsites")
+      .update({
+        ...micrositePayload,
+      })
+      .eq("id", conflictingMicrosite.id)
+      .eq("owner_clerk_user_id", ownerClerkUserId)
+      .select("id, slug, owner_clerk_user_id")
+      .single();
+
+  if (updateMicrositeError || !updatedMicrosite) {
+    console.error("STRIPE WEBHOOK ERROR: microsite update failed", {
+      error: updateMicrositeError,
+      micrositeId: conflictingMicrosite.id,
+      payload: micrositePayload,
+    });
+
+    return NextResponse.json(
+      { ok: false, error: updateMicrositeError?.message || "Failed to update microsite" },
+      { status: 500 },
+    );
+  }
+
+  publishedMicrositeId = updatedMicrosite.id;
+}
+
+console.log("✅ Microsite publish success:", {
+  micrositeId: publishedMicrositeId,
+  slug,
+});
+
+const publishedDraft =
+  pendingRow.draft && typeof pendingRow.draft === "object"
+    ? pendingRow.draft
+    : null;
+
+if (!publishedDraft) {
+  return NextResponse.json(
+    { ok: false, error: "Pending checkout is missing published draft data." },
+    { status: 500 },
+  );
+}
+
+const { data: existingHomePage, error: existingHomePageError } =
+  await supabaseAdmin
+    .from("microsite_pages")
+    .select("id")
+    .eq("microsite_id", publishedMicrositeId)
+    .order("display_order", { ascending: true })
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+if (existingHomePageError) {
+  console.error(
+    "STRIPE WEBHOOK ERROR: microsite page lookup failed",
+    existingHomePageError,
+  );
+
+  return NextResponse.json(
+    { ok: false, error: existingHomePageError.message },
+    { status: 500 },
+  );
+}
+
+if (!existingHomePage) {
+  const { error: insertHomePageError } = await supabaseAdmin
+    .from("microsite_pages")
+    .insert({
+      microsite_id: publishedMicrositeId,
+      slug: "home",
+      title: title || "Home",
+      draft: publishedDraft,
+      display_order: 0,
+      is_homepage: true,
+      created_at: nowIso,
+      updated_at: nowIso,
+    });
+
+  if (insertHomePageError) {
+    console.error(
+      "STRIPE WEBHOOK ERROR: microsite page insert failed",
+      insertHomePageError,
+    );
+
+    return NextResponse.json(
+      { ok: false, error: insertHomePageError.message },
+      { status: 500 },
+    );
+  }
+} else {
+  const { error: updateHomePageError } = await supabaseAdmin
+    .from("microsite_pages")
+    .update({
+      title: title || "Home",
+      draft: publishedDraft,
+      is_homepage: true,
+      updated_at: nowIso,
+    })
+    .eq("id", existingHomePage.id);
+
+  if (updateHomePageError) {
+    console.error(
+      "STRIPE WEBHOOK ERROR: microsite page update failed",
+      updateHomePageError,
+    );
+
+    return NextResponse.json(
+      { ok: false, error: updateHomePageError.message },
+      { status: 500 },
+    );
+  }
+}
+
+const { error: processedError } = await supabaseAdmin
+  .from("pending_microsite_checkouts")
+  .update({
+    stripe_session_id: session.id,
+    processed_at: nowIso,
+  })
+  .eq("id", pendingCheckoutId)
+  .is("processed_at", null);
 
     if (processedError) {
       console.error(
@@ -264,20 +384,17 @@ export async function POST(req: Request) {
     }
 
     // ✅ FIX: RELAXED DELETE (was too strict)
-const draftDesignKeys = Array.from(
-  new Set(
-    [selectedDesignKey, resolvedDesignKey, designKeyFromMetadata, "blank"].filter(
-      (value): value is string => typeof value === "string" && value.trim().length > 0,
-    ),
-  ),
-);
+const exactDraftDesignKey =
+  resolvedDesignKey && resolvedDesignKey.trim().length > 0
+    ? resolvedDesignKey
+    : "blank";
 
 const { error: deleteDraftError } = await supabaseAdmin
   .from("microsite_drafts")
   .delete()
   .eq("owner_clerk_user_id", ownerClerkUserId)
   .eq("template_key", templateKey)
-  .in("design_key", draftDesignKeys);
+  .eq("design_key", exactDraftDesignKey);
 
     if (deleteDraftError) {
       console.error("STRIPE WEBHOOK ERROR: draft delete failed", deleteDraftError);
@@ -287,27 +404,13 @@ const { error: deleteDraftError } = await supabaseAdmin
       );
     }
 
-    const { error: deletePendingError } = await supabaseAdmin
-      .from("pending_microsite_checkouts")
-      .delete()
-      .eq("id", pendingCheckoutId);
-
-    if (deletePendingError) {
-      console.error(
-        "STRIPE WEBHOOK ERROR: pending checkout delete failed",
-        deletePendingError,
-      );
-      return NextResponse.json(
-        { ok: false, error: deletePendingError.message },
-        { status: 500 },
-      );
-    }
-
-    console.log("STRIPE WEBHOOK SUCCESS:", {
-      slug,
-      title,
-      stripeSessionId: session.id,
-    });
+console.log("STRIPE WEBHOOK SUCCESS:", {
+  micrositeId: publishedMicrositeId,
+  slug,
+  title,
+  stripeSessionId: session.id,
+  pendingCheckoutId,
+});
 
     return NextResponse.json({ ok: true });
   } catch (error) {

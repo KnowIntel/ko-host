@@ -1,65 +1,84 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { sendSubmissionNotification } from "@/lib/forms/sendSubmissionNotification";
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const {
-      pageId,
-      pageSlug,
-      templateKey,
-      designKey,
-      fields,
-    } = body ?? {};
+    const body = await req.json().catch(() => ({}));
 
-    if (!pageId || typeof pageId !== "string") {
-      return NextResponse.json({ error: "Missing pageId" }, { status: 400 });
+    const micrositeId =
+      typeof body?.micrositeId === "string" ? body.micrositeId.trim() : "";
+    const pageSlug =
+      typeof body?.pageSlug === "string" ? body.pageSlug.trim() : "";
+    const templateKey =
+      typeof body?.templateKey === "string" ? body.templateKey.trim() : "";
+    const designKey =
+      typeof body?.designKey === "string" ? body.designKey.trim() : "";
+    const fields =
+      body?.fields && typeof body.fields === "object" && !Array.isArray(body.fields)
+        ? body.fields
+        : null;
+
+    if (!micrositeId) {
+      return NextResponse.json({ error: "Missing micrositeId" }, { status: 400 });
     }
 
-    if (!fields || typeof fields !== "object" || Array.isArray(fields)) {
-      return NextResponse.json({ error: "Invalid fields payload" }, { status: 400 });
-    }
-
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-    if (!supabaseUrl || !serviceRoleKey) {
+    if (!fields) {
       return NextResponse.json(
-        { error: "Missing Supabase environment variables" },
+        { error: "Invalid fields payload" },
+        { status: 400 },
+      );
+    }
+
+    const supabase = getSupabaseAdmin();
+
+    const { data: microsite, error: micrositeError } = await supabase
+      .from("microsites")
+      .select("id, slug, owner_email")
+      .eq("id", micrositeId)
+      .maybeSingle();
+
+    if (micrositeError) {
+      return NextResponse.json(
+        { error: micrositeError.message || "Failed to load microsite" },
         { status: 500 },
       );
     }
 
-    const supabase = createClient(supabaseUrl, serviceRoleKey);
-
-    const { error } = await supabase.from("form_submissions").insert({
-      page_id: pageId,
-      page_slug: typeof pageSlug === "string" ? pageSlug : null,
-      template_key: typeof templateKey === "string" ? templateKey : null,
-      design_key: typeof designKey === "string" ? designKey : null,
-      data: fields,
-    });
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    if (!microsite) {
+      return NextResponse.json(
+        { error: "Microsite not found" },
+        { status: 404 },
+      );
     }
 
-            const microsite =
-      typeof pageSlug === "string" && pageSlug
-        ? await supabase
-            .from("microsites")
-            .select("owner_email")
-            .eq("slug", pageSlug)
-            .maybeSingle()
-        : { data: null };
+    const resolvedPageSlug =
+      pageSlug || (typeof microsite.slug === "string" ? microsite.slug : null);
 
-    const ownerEmail = microsite?.data?.owner_email;
+    const { error: insertError } = await supabase
+      .from("form_submissions")
+      .insert({
+        page_id: microsite.id,
+        page_slug: resolvedPageSlug,
+        template_key: templateKey || null,
+        design_key: designKey || null,
+        data: fields,
+      });
+
+    if (insertError) {
+      return NextResponse.json(
+        { error: insertError.message || "Failed to save submission" },
+        { status: 500 },
+      );
+    }
+
+    const ownerEmail =
+      typeof microsite.owner_email === "string" ? microsite.owner_email : "";
 
     if (ownerEmail) {
       await sendSubmissionNotification({
         to: ownerEmail,
-        pageId,
+        micrositeId,
         pageSlug: typeof pageSlug === "string" ? pageSlug : null,
         templateKey: typeof templateKey === "string" ? templateKey : null,
         designKey: typeof designKey === "string" ? designKey : null,

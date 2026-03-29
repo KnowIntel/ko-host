@@ -60,7 +60,6 @@ import type {
   PollOption,
   ShapeType,
   TextStyle,
-  ThreadMessage,
 } from "@/lib/templates/builder";
 
 import {
@@ -257,7 +256,10 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "FAQ", type: "faq" },
   ],
   Social: [{ kind: "block", label: "Thread", type: "thread" }],
-  Utilities: [{ kind: "block", label: "Links", type: "links" }],
+  Utilities: [
+  { kind: "block", label: "Links", type: "links" },
+  { kind: "block", label: "Highlight", type: "highlight" },
+],
 };
 
 const MIN_CANVAS_ZOOM = 50;
@@ -511,6 +513,10 @@ function getSelectedContext(
     return { kind: "shape", blockId, label: block.label || "Shape" };
   }
 
+  if (block.type === "highlight") {
+    return { kind: "otherBlock", blockId, blockType: block.type, label: block.label || "Highlight" };
+  }
+
   return {
     kind: "otherBlock",
     blockId,
@@ -624,6 +630,7 @@ function getToolGlyph(label: string) {
   if (label === "FAQ") return "?";
   if (label === "Thread") return "☰";
   if (label === "Links") return "🔗";
+  if (label === "Highlight") return "★";
   if (label === "Carousel") return "⇄";
   if (label === "Input Field") return "⌨";
   return "•";
@@ -849,7 +856,9 @@ export default function DesignLayoutEditor({
       ? (selectedBlockFromDraft.data.style ?? {})
       : getSelectionTextStyle(draft, selection);
   const selectedAppearance = getSelectionBlockAppearance(draft, selection);
-  const resolvedPageColor = getResolvedPageColor(draft, designKey, metadata);
+  const resolvedPageColor =
+    (draft as DraftWithPageExtras).pageColor ||
+    getResolvedPageColor(draft, designKey, metadata);
   const selectedContext = getSelectedContext(selection, draft);
   const selectedCanvasBlockId = getSelectedCanvasBlockId(selectedContext);
 
@@ -878,8 +887,8 @@ const showTextControls =
   selectedContext.kind === "label" ||
   selectedContext.kind === "textFx" ||
   selectedContext.kind === "cta" ||
-  selectedBlock?.type === "thread" ||
-  selectedBlock?.type === "form_field";
+  selectedBlock?.type === "form_field" ||
+  selectedBlock?.type === "highlight";
 
 const showAppearanceControls =
   selectedContext.kind === "label" ||
@@ -926,11 +935,9 @@ const showBorderWidthRadiusControls =
       Math.min(100, (draft as DraftWithPageExtras).pageScale ?? 85),
     );
   const pageSurfaceStyle = useMemo(() => {
-    const backgroundColor = getCanvasInnerBackgroundStyle(
-      draft,
-      designKey,
-      metadata,
-    ).backgroundColor;
+  const backgroundColor =
+    (draft as DraftWithPageExtras).pageColor ||
+    getCanvasInnerBackgroundStyle(draft, designKey, metadata).backgroundColor;
 
     const backgroundSize =
       pageBackgroundImageFit === "clip"
@@ -1404,26 +1411,27 @@ function applyStylePatch(patch: Partial<TextStyle>) {
     return;
   }
 
-  if (selectedBlock?.type === "thread") {
-    setDraft((prev) => ({
-      ...prev,
-      blocks: prev.blocks.map((block) =>
-        block.id === selectedBlock.id && block.type === "thread"
-          ? {
-              ...block,
-              data: {
-                ...block.data,
-                style: {
-                  ...(block.data.style ?? {}),
-                  ...patch,
-                },
+if (selectedBlock?.type === "thread") {
+  setDraft((prev) => ({
+    ...prev,
+    blocks: prev.blocks.map((block) =>
+      block.id === selectedBlock.id && block.type === "thread"
+        ? {
+            ...block,
+            data: {
+              ...block.data,
+              style: {
+                fontSize: 30,
+                ...(block.data.style ?? {}),
+                ...patch,
               },
-            }
-          : block,
-      ),
-    }));
-    return;
-  }
+            },
+          }
+        : block,
+    ),
+  }));
+  return;
+}
 
   if (selectedBlock?.type === "image_carousel") {
     setDraft((prev) => ({
@@ -1466,6 +1474,27 @@ function applyStylePatch(patch: Partial<TextStyle>) {
     }));
     return;
   }
+
+  if (selectedBlock?.type === "highlight") {
+  setDraft((prev) => ({
+    ...prev,
+    blocks: prev.blocks.map((block) =>
+      block.id === selectedBlock.id && block.type === "highlight"
+        ? {
+            ...block,
+            data: {
+              ...block.data,
+              style: {
+                ...(block.data.style ?? {}),
+                ...patch,
+              },
+            },
+          }
+        : block,
+    ),
+  }));
+  return;
+}
 
   setDraft((prev) => applyStylePatchToSelection(prev, selection, patch));
 }
@@ -2313,7 +2342,9 @@ function cancelRemoveAllBlocks() {
     isHistoryActionRef.current = true;
     setRedoStack((prevRedo) => [...prevRedo, cloneDraft(draft)]);
     setUndoStack((prevUndo) => prevUndo.slice(0, -1));
-    setDraft(cloneDraft(previousDraft));
+    setDraft((prev) => ({
+      ...prev,
+    }));
   }
 
   function handleRedo() {
@@ -2879,14 +2910,14 @@ function nudgeSelectedBlock(
 
 return (
   <div className="flex min-h-screen flex-col bg-[#f3f3f3]">
-<div className="relative w-full bg-[#809cd4]">
+<div className="sticky top-0 z-[70] w-full bg-[#809cd4]">
 
 <div
   ref={topBarScrollRef}
-  className="flex w-full items-center justify-between gap-4 overflow-x-auto overflow-y-hidden bg-[#2f3541] pb-2"
+  className="flex w-full items-center justify-between gap-4 overflow-x-auto overflow-y-hidden bg-[#2f3541] px-2 py-2 shadow-md"
 >
   <div className="flex items-center justify-between gap-4">
-    <div className="sticky left-0 z-20 flex min-w-max items-center gap-2 bg-[#2f3541] pr-4 py-1">
+    <div className="sticky left-0 z-20 flex min-w-max items-center gap-2 bg-[#2f3541] py-1 pr-4">
       <button
         type="button"
         className={topBarButtonClass(false, canvasZoom <= MIN_CANVAS_ZOOM)}
@@ -3009,18 +3040,22 @@ return (
         <option value="stretch">Stretch</option>
       </select>
 
-      <input
-        type="color"
-        value={resolvedPageColor}
-        onChange={(e) =>
-          setDraft((prev) => ({
-            ...(prev as DraftWithPageExtras),
-            pageColor: e.target.value,
-          }))
-        }
-        className={topBarColorClass(false)}
-        title="Page color"
-      />
+<input
+  type="color"
+  value={
+    (draft as DraftWithPageExtras).pageColor ||
+    resolvedPageColor ||
+    "#ffffff"
+  }
+  onChange={(e) =>
+    setDraft((prev) => ({
+      ...(prev as DraftWithPageExtras),
+      pageColor: e.target.value,
+    }))
+  }
+  className={topBarColorClass(false)}
+  title="Page color"
+/>
 
       <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
 
@@ -4015,95 +4050,77 @@ return (
                   </div>
                 ) : null}
 
-                {showTextControls ? (
-                  <>
-                    <div className={inspectorCardClass()}>
-                      <div className={inspectorLabelClass()}>Text Value</div>
+{showTextControls ? (
+  <>
+    {selectedTextFxBlock ? (
+      <div className={inspectorCardClass()}>
+        <div className={inspectorLabelClass()}>TextFX Controls</div>
 
-                      <div className="mt-4">
-                        <textarea
-                          value={selectedTextValue}
-                          onChange={(e) =>
-                            updateTextByCanvasId(
-                              selectedCanvasBlockId || "",
-                              e.target.value,
-                            )
-                          }
-                          className={inspectorTextareaClass()}
-                          placeholder="Enter text..."
-                        />
-                      </div>
-                    </div>
+        <div className="mt-4 grid grid-cols-1 gap-4">
+          <div>
+            <div className={inspectorLabelClass()}>Curve</div>
+            <input
+              type="number"
+              min={0}
+              max={100}
+              value={selectedTextFxBlock.data.fx?.intensity ?? 50}
+              onChange={(e) =>
+                updateTextFx({
+                  intensity: Math.max(
+                    0,
+                    Math.min(100, Number(e.target.value) || 0),
+                  ),
+                })
+              }
+              className={inspectorInputClass()}
+            />
+          </div>
 
-                    {selectedTextFxBlock ? (
-                      <div className={inspectorCardClass()}>
-                        <div className={inspectorLabelClass()}>TextFX Controls</div>
+          <div>
+            <div className={inspectorLabelClass()}>Rotate</div>
+            <input
+              type="number"
+              min={-180}
+              max={180}
+              value={selectedTextFxBlock.data.fx?.rotation ?? 0}
+              onChange={(e) =>
+                updateTextFx({
+                  rotation: Math.max(
+                    -180,
+                    Math.min(180, Number(e.target.value) || 0),
+                  ),
+                })
+              }
+              className={inspectorInputClass()}
+            />
+          </div>
 
-                        <div className="mt-4 grid grid-cols-1 gap-4">
-                          <div>
-                            <div className={inspectorLabelClass()}>Curve</div>
-                            <input
-                              type="number"
-                              min={0}
-                              max={100}
-                              value={selectedTextFxBlock.data.fx?.intensity ?? 50}
-                              onChange={(e) =>
-                                updateTextFx({
-                                  intensity: Math.max(
-                                    0,
-                                    Math.min(100, Number(e.target.value) || 0),
-                                  ),
-                                })
-                              }
-                              className={inspectorInputClass()}
-                            />
-                          </div>
-
-                          <div>
-                            <div className={inspectorLabelClass()}>Rotate</div>
-                            <input
-                              type="number"
-                              min={-180}
-                              max={180}
-                              value={selectedTextFxBlock.data.fx?.rotation ?? 0}
-                              onChange={(e) =>
-                                updateTextFx({
-                                  rotation: Math.max(
-                                    -180,
-                                    Math.min(180, Number(e.target.value) || 0),
-                                  ),
-                                })
-                              }
-                              className={inspectorInputClass()}
-                            />
-                          </div>
-
-                          <div>
-                            <div className={inspectorLabelClass()}>Opacity (%)</div>
-                            <input
-                              type="number"
-                              min={0}
-                              max={100}
-                              value={Math.round(
-                                (selectedTextFxBlock.data.fx?.opacity ?? 1) * 100,
-                              )}
-                              onChange={(e) =>
-                                updateTextFx({
-                                  opacity:
-                                    Math.max(
-                                      0,
-                                      Math.min(100, Number(e.target.value) || 0),
-                                    ) / 100,
-                                })
-                              }
-                              className={inspectorInputClass()}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    ) : null}
-                  </>
-                ) : null}
+          <div>
+            <div className={inspectorLabelClass()}>Opacity (%)</div>
+            <input
+              type="number"
+              min={0}
+              max={100}
+              value={Math.round(
+                (selectedTextFxBlock.data.fx?.opacity ?? 1) * 100,
+              )}
+              onChange={(e) =>
+                updateTextFx({
+                  opacity:
+                    Math.max(
+                      0,
+                      Math.min(100, Number(e.target.value) || 0),
+                    ) / 100,
+                })
+              }
+              className={inspectorInputClass()}
+            />
+          </div>
+        </div>
+      </div>
+    ) : null}
+  </>
+) : null}
 
                 {selectedBlock?.type === "poll" ? (
                   <div id="inspector-poll" className={inspectorCardClass()}>
@@ -5035,232 +5052,179 @@ return (
       </div>
     </div>
 
-    <div className="mt-5">
-      <div className={inspectorLabelClass()}>Saved Messages</div>
+<div className="mt-5">
+  <div className={inspectorLabelClass()}>Messages</div>
 
-      <div className="mt-3 space-y-3">
-        {(selectedBlock.data.messages && selectedBlock.data.messages.length > 0
-          ? selectedBlock.data.messages
-          : [
-              {
-                id: makeClientId("threadmsg"),
-                name: selectedBlock.data.allowAnonymous ? "Anon" : "Jordan",
-                message: "Looking forward to this.",
-                votes: 0,
-              },
-              {
-                id: makeClientId("threadmsg"),
-                name: selectedBlock.data.allowAnonymous ? "Anon" : "Taylor",
-                message: "Can’t wait to join the conversation.",
-                votes: 0,
-              },
-            ]
-        ).map((message: ThreadMessage, index: number) => (
-          <div
-            key={message.id}
-            className="rounded-xl border border-neutral-200 bg-neutral-50 p-3"
-          >
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <div className="text-sm font-medium text-neutral-900">
-                Message {index + 1}
-              </div>
+  <div className="mt-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-4 text-sm text-neutral-500">
+    Messages are now read-only in the inspector and come from live microsite data.
+  </div>
+</div>
+  </div>
+) : null}
 
-              <button
-                type="button"
-                className={toolSetButtonClass("remove")}
-                onClick={() =>
-                  updateSelectedBlock((block) =>
-                    block.type !== "thread"
-                      ? block
-                      : {
-                          ...block,
-                          data: {
-                            ...block.data,
-                            messages:
-                              (block.data.messages ?? []).length > 1
-                                ? (block.data.messages ?? []).filter(
-                                    (entry) => entry.id !== message.id,
-                                  )
-                                : [],
-                          },
-                        },
-                  )
-                }
-                title="Remove message"
-              >
-                ×
-              </button>
-            </div>
+{selectedBlock?.type === "highlight" ? (
+  <div className={inspectorCardClass()}>
+    <div className={inspectorLabelClass()}>Highlight</div>
 
-            <div>
-              <div className={inspectorLabelClass()}>Name</div>
-              <input
-                type="text"
-                maxLength={60}
-                value={message.name}
-                onChange={(e) =>
-                  updateSelectedBlock((block) => {
-                    if (block.type !== "thread") return block;
-
-                    const currentMessages =
-                      block.data.messages && block.data.messages.length > 0
-                        ? block.data.messages
-                        : [
-                            {
-                              id: message.id,
-                              name: message.name,
-                              message: message.message,
-                              votes: message.votes ?? 0,
-                            },
-                          ];
-
-                    const normalizedMessages =
-                      currentMessages.some((entry) => entry.id === message.id)
-                        ? currentMessages
-                        : [...currentMessages, message];
-
-                    return {
-                      ...block,
-                      data: {
-                        ...block.data,
-                        messages: normalizedMessages.map((entry) =>
-                          entry.id === message.id
-                            ? { ...entry, name: e.target.value.slice(0, 60) }
-                            : entry,
-                        ),
-                      },
-                    };
-                  })
-                }
-                className={inspectorInputClass()}
-              />
-            </div>
-
-            <div className="mt-4">
-              <div className={inspectorLabelClass()}>Message</div>
-              <textarea
-                value={message.message}
-                maxLength={200}
-                onChange={(e) =>
-                  updateSelectedBlock((block) => {
-                    if (block.type !== "thread") return block;
-
-                    const currentMessages =
-                      block.data.messages && block.data.messages.length > 0
-                        ? block.data.messages
-                        : [
-                            {
-                              id: message.id,
-                              name: message.name,
-                              message: message.message,
-                              votes: message.votes ?? 0,
-                            },
-                          ];
-
-                    const normalizedMessages =
-                      currentMessages.some((entry) => entry.id === message.id)
-                        ? currentMessages
-                        : [...currentMessages, message];
-
-                    return {
-                      ...block,
-                      data: {
-                        ...block.data,
-                        messages: normalizedMessages.map((entry) =>
-                          entry.id === message.id
-                            ? { ...entry, message: e.target.value.slice(0, 200) }
-                            : entry,
-                        ),
-                      },
-                    };
-                  })
-                }
-                className={inspectorTextareaClass()}
-              />
-              <div className="mt-1 text-right text-xs text-neutral-500">
-                {(message.message ?? "").length}/200
-              </div>
-            </div>
-
-            <div className="mt-4">
-              <div className={inspectorLabelClass()}>Votes</div>
-              <input
-                type="number"
-                value={message.votes ?? 0}
-                onChange={(e) =>
-                  updateSelectedBlock((block) => {
-                    if (block.type !== "thread") return block;
-
-                    const currentMessages =
-                      block.data.messages && block.data.messages.length > 0
-                        ? block.data.messages
-                        : [
-                            {
-                              id: message.id,
-                              name: message.name,
-                              message: message.message,
-                              votes: message.votes ?? 0,
-                            },
-                          ];
-
-                    const normalizedMessages =
-                      currentMessages.some((entry) => entry.id === message.id)
-                        ? currentMessages
-                        : [...currentMessages, message];
-
-                    return {
-                      ...block,
-                      data: {
-                        ...block.data,
-                        messages: normalizedMessages.map((entry) =>
-                          entry.id === message.id
-                            ? {
-                                ...entry,
-                                votes: Number(e.target.value) || 0,
-                              }
-                            : entry,
-                        ),
-                      },
-                    };
-                  })
-                }
-                className={inspectorInputClass()}
-              />
-            </div>
-          </div>
-        ))}
-
-        <button
-          type="button"
-          className={toolSetButtonClass("front")}
-          onClick={() =>
-            updateSelectedBlock((block) =>
-              block.type !== "thread"
-                ? block
-                : {
-                    ...block,
-                    data: {
-                      ...block.data,
-                      messages: [
-                        ...(block.data.messages ?? []),
-                        {
-                          id: makeClientId("threadmsg"),
-                          name: block.data.allowAnonymous ? "Anon" : "Guest",
-                          message: "New message",
-                          votes: 0,
-                        },
-                      ],
-                    },
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Highlight Type</div>
+      <select
+        value={selectedBlock.data.mode ?? "top_messages"}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "highlight"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    mode: e.target.value as
+                      | "top_messages"
+                      | "rsvp_count"
+                      | "total_funds",
+                    heading:
+                      e.target.value === "top_messages"
+                        ? "Top Messages"
+                        : e.target.value === "rsvp_count"
+                          ? "RSVP Count"
+                          : "Total Funds",
                   },
-            )
-          }
-        >
-          Add Message
-        </button>
-      </div>
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      >
+        <option value="top_messages">Top Messages</option>
+        <option value="rsvp_count">RSVP Count</option>
+        <option value="total_funds">Total Funds</option>
+      </select>
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Source Thread</div>
+      <select
+        value={
+          selectedBlock.data.sourceBlockId ||
+          draft.blocks.find((b) => b.type === "thread")?.id ||
+          ""
+        }
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "highlight"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    sourceBlockId: e.target.value,
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+        disabled={selectedBlock.data.mode !== "top_messages"}
+      >
+        <option value="">Select thread block</option>
+        {draft.blocks
+          .filter((block) => block.type === "thread")
+          .map((threadBlock) => (
+            <option key={threadBlock.id} value={threadBlock.id}>
+              {threadBlock.label || threadBlock.data.subject || "Message Thread"}
+            </option>
+          ))}
+      </select>
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Source Form</div>
+      <select
+        value={
+          selectedBlock.data.sourceFormBlockId ||
+          draft.blocks.find((b) => b.type === "form_field")?.id ||
+          ""
+        }
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "highlight"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    sourceFormBlockId: e.target.value,
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+        disabled={
+          selectedBlock.data.mode !== "rsvp_count" &&
+          selectedBlock.data.mode !== "total_funds"
+        }
+      >
+        <option value="">Select form block</option>
+        {draft.blocks
+          .filter((block) => block.type === "form_field")
+          .map((formBlock) => (
+            <option key={formBlock.id} value={formBlock.id}>
+              {formBlock.label || formBlock.data.label || "Form Field"}
+            </option>
+          ))}
+      </select>
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Heading</div>
+      <input
+        type="text"
+        value={selectedBlock.data.heading ?? ""}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "highlight"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    heading: e.target.value,
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Item Limit</div>
+      <input
+        type="number"
+        min={1}
+        max={12}
+        value={selectedBlock.data.limit ?? 4}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "highlight"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    limit: Math.max(1, Math.min(12, Number(e.target.value) || 4)),
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
+
+    <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-4 text-sm text-neutral-500">
+      This block is read-only and should display live DB-backed summary data.
     </div>
   </div>
 ) : null}
+
                 {selectedBlock?.type === "links" ? (
                   <div id="inspector-links" className={inspectorCardClass()}>
                     <div className={inspectorLabelClass()}>Links</div>
