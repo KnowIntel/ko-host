@@ -111,6 +111,9 @@ export default async function PublishedMicrositePage({
   }
 
   const microsite = data as MicrositeRow;
+if (!microsite.draft) {
+  console.warn("No draft found for microsite:", microsite.id);
+}
 
   if (microsite.is_active === false) {
     return (
@@ -199,7 +202,10 @@ export default async function PublishedMicrositePage({
 
   const firstPage = (pages?.[0] || null) as MicrositePageRow | null;
   const homeDraft = firstPage?.draft ?? null;
-  const draft = homeDraft ?? microsite.draft ?? null;
+  const draft =
+  (homeDraft && homeDraft.blocks?.length ? homeDraft : null) ??
+  microsite.draft ??
+  null;
   const designKey = microsite.selected_design_key || "blank";
 
   if (!draft) {
@@ -213,7 +219,15 @@ export default async function PublishedMicrositePage({
 
   return (
     <>
-      <main className="min-h-screen bg-[#fcfbf8] text-neutral-900">
+      <main
+        className="min-h-screen text-neutral-900"
+        style={{
+          background:
+            (draft as any)?.pageBackground && (draft as any).pageBackground !== ""
+              ? (draft as any).pageBackground
+              : "#fcfbf8",
+        }}
+      >
         <div className="w-full">
           <PlacedBlocksPreview
             draft={draft}
