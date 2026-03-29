@@ -23,11 +23,7 @@ export async function POST(
     const rawDraft =
       body?.draft && typeof body.draft === "object" ? body.draft : {};
 
-    const sanitizedDraft = sanitizeBuilderDraft({
-      title: String(rawDraft.title || ""),
-      slugSuggestion: String(rawDraft.slugSuggestion || ""),
-      blocks: Array.isArray(rawDraft.blocks) ? rawDraft.blocks : [],
-    });
+    const sanitizedDraft = sanitizeBuilderDraft(rawDraft);
 
     const supabaseAdmin = getSupabaseAdmin();
 
@@ -48,29 +44,68 @@ export async function POST(
     const nextDraft = {
       ...sanitizedDraft,
       title: sanitizedDraft.title || microsite.title || "",
-      slugSuggestion: microsite.slug,
+      slugSuggestion:
+        typeof microsite.slug === "string" ? microsite.slug : "",
     };
 
-    // Ensure at least one microsite page exists for multi-page compatibility
+    const nowIso = new Date().toISOString();
+
     const { data: existingPages, error: existingPagesError } = await supabaseAdmin
       .from("microsite_pages")
-      .select("id")
+      .select("id, slug")
       .eq("microsite_id", id)
+      .order("display_order", { ascending: true })
+      .order("created_at", { ascending: true })
       .limit(1);
 
-    if (!existingPagesError && (!existingPages || existingPages.length === 0)) {
+    if (existingPagesError) {
+      return NextResponse.json(
+        { error: existingPagesError.message || "Failed to load microsite pages." },
+        { status: 500 },
+      );
+    }
+
+    const existingHomePage = existingPages?.[0] ?? null;
+
+    if (!existingHomePage) {
       const { error: createHomePageError } = await supabaseAdmin
         .from("microsite_pages")
         .insert({
           microsite_id: id,
           slug: "home",
-          title: microsite.title || "Home",
+          title: nextDraft.title || microsite.title || "Home",
           draft: nextDraft,
-          updated_at: new Date().toISOString(),
+          updated_at: nowIso,
         });
 
       if (createHomePageError) {
-        console.error("microsite home page create failed", createHomePageError);
+        return NextResponse.json(
+          {
+            error:
+              createHomePageError.message || "Failed to create microsite home page.",
+          },
+          { status: 500 },
+        );
+      }
+    } else {
+      const { error: updateHomePageError } = await supabaseAdmin
+        .from("microsite_pages")
+        .update({
+          title: nextDraft.title || microsite.title || "Home",
+          draft: nextDraft,
+          updated_at: nowIso,
+        })
+        .eq("id", existingHomePage.id)
+        .eq("microsite_id", id);
+
+      if (updateHomePageError) {
+        return NextResponse.json(
+          {
+            error:
+              updateHomePageError.message || "Failed to update microsite home page.",
+          },
+          { status: 500 },
+        );
       }
     }
 
@@ -79,7 +114,7 @@ export async function POST(
       .update({
         title: nextDraft.title,
         draft: nextDraft,
-        updated_at: new Date().toISOString(),
+        updated_at: nowIso,
       })
       .eq("id", id)
       .eq("owner_clerk_user_id", userId)
