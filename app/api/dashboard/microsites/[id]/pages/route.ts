@@ -159,14 +159,17 @@ export async function POST(
   const nextDisplayOrder =
     typeof lastPage?.display_order === "number" ? lastPage.display_order + 1 : 0;
 
-  const blankDraft = {
+  const blankDraft = sanitizeBuilderDraft({
     title: "",
     subtitle: "",
     subtext: "",
     description: "",
-    slugSuggestion: "",
+    slugSuggestion: micrositeResult.microsite.slug || "",
     blocks: [],
-  };
+    pageScale: 85,
+    pageVisibility: {},
+    pageElements: {},
+  });
 
   const { data, error } = await sb
     .from("microsite_pages")
@@ -423,15 +426,19 @@ export async function PATCH(
 
   const pageId = String(body?.pageId || "").trim();
   const rawDraft =
-    body?.draft && typeof body.draft === "object" ? body.draft : {};
+    body?.draft && typeof body.draft === "object" ? body.draft : null;
 
   if (!pageId) {
     return NextResponse.json({ error: "pageId required" }, { status: 400 });
   }
 
+  if (!rawDraft) {
+    return NextResponse.json({ error: "draft required" }, { status: 400 });
+  }
+
   const { data: existingPage, error: existingPageError } = await sb
     .from("microsite_pages")
-    .select("id, slug, title")
+    .select("id, slug, title, display_order, draft")
     .eq("microsite_id", id)
     .eq("id", pageId)
     .maybeSingle();
@@ -440,24 +447,25 @@ export async function PATCH(
     return NextResponse.json({ error: "Page not found" }, { status: 404 });
   }
 
-  const sanitizedDraft = sanitizeBuilderDraft({
-    title: String(rawDraft.title || existingPage.title || ""),
-    slugSuggestion: String(rawDraft.slugSuggestion || microsite.slug || ""),
-    blocks: Array.isArray(rawDraft.blocks) ? rawDraft.blocks : [],
-  });
+  const sanitizedDraft = sanitizeBuilderDraft(rawDraft);
 
   const nextDraft = {
     ...sanitizedDraft,
-    title: sanitizedDraft.title || existingPage.title || "",
-    slugSuggestion: microsite.slug,
+    title:
+      typeof sanitizedDraft.title === "string" && sanitizedDraft.title.trim()
+        ? sanitizedDraft.title
+        : existingPage.title || "",
+    slugSuggestion: microsite.slug || "",
   };
+
+  const nowIso = new Date().toISOString();
 
   const { data: updatedPage, error: updateError } = await sb
     .from("microsite_pages")
     .update({
       title: nextDraft.title || existingPage.title || existingPage.slug,
       draft: nextDraft,
-      updated_at: new Date().toISOString(),
+      updated_at: nowIso,
     })
     .eq("microsite_id", id)
     .eq("id", pageId)
@@ -469,6 +477,33 @@ export async function PATCH(
       { error: updateError?.message || "Failed to save page draft." },
       { status: 500 },
     );
+  }
+
+  const isHomePage =
+    existingPage.slug === "home" ||
+    existingPage.display_order === 0;
+
+  if (isHomePage) {
+    const { error: micrositeUpdateError } = await sb
+      .from("microsites")
+      .update({
+        title: nextDraft.title || microsite.title || existingPage.slug,
+        draft: nextDraft,
+        updated_at: nowIso,
+      })
+      .eq("id", id)
+      .eq("owner_clerk_user_id", userId);
+
+    if (micrositeUpdateError) {
+      return NextResponse.json(
+        {
+          error:
+            micrositeUpdateError.message ||
+            "Failed to sync microsite draft.",
+        },
+        { status: 500 },
+      );
+    }
   }
 
   return NextResponse.json({
