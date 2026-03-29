@@ -852,7 +852,12 @@ export default function DesignLayoutEditor({
       : null;
 
   const selectedStyle =
-    selectedBlockFromDraft?.type === "text_fx"
+    selectedBlockFromDraft?.type === "text_fx" ||
+    selectedBlockFromDraft?.type === "cta" ||
+    selectedBlockFromDraft?.type === "thread" ||
+    selectedBlockFromDraft?.type === "form_field" ||
+    selectedBlockFromDraft?.type === "image_carousel" ||
+    selectedBlockFromDraft?.type === "highlight"
       ? (selectedBlockFromDraft.data.style ?? {})
       : getSelectionTextStyle(draft, selection);
   const selectedAppearance = getSelectionBlockAppearance(draft, selection);
@@ -887,6 +892,7 @@ const showTextControls =
   selectedContext.kind === "label" ||
   selectedContext.kind === "textFx" ||
   selectedContext.kind === "cta" ||
+  selectedBlock?.type === "thread" ||
   selectedBlock?.type === "form_field" ||
   selectedBlock?.type === "highlight";
 
@@ -1369,132 +1375,36 @@ function applyBorderColor(value: string) {
   pushRecentColor(value);
 }
 function applyStylePatch(patch: Partial<TextStyle>) {
-  if (selectedBlock?.type === "text_fx") {
+  if (
+    selectedBlock?.type === "text_fx" ||
+    selectedBlock?.type === "cta" ||
+    selectedBlock?.type === "thread" ||
+    selectedBlock?.type === "image_carousel" ||
+    selectedBlock?.type === "form_field" ||
+    selectedBlock?.type === "highlight"
+  ) {
     setDraft((prev) => ({
       ...prev,
-      blocks: prev.blocks.map((block) =>
-        block.id === selectedBlock.id && block.type === "text_fx"
-          ? {
-              ...block,
-              data: {
-                ...block.data,
-                style: {
-                  ...(block.data.style ?? {}),
-                  ...patch,
-                },
-              },
-            }
-          : block,
-      ),
-    }));
-    return;
-  }
+      blocks: prev.blocks.map((block) => {
+        if (block.id !== selectedBlock.id || block.type !== selectedBlock.type) {
+          return block;
+        }
 
-  if (selectedBlock?.type === "cta") {
-    setDraft((prev) => ({
-      ...prev,
-      blocks: prev.blocks.map((block) =>
-        block.id === selectedBlock.id && block.type === "cta"
-          ? {
-              ...block,
-              data: {
-                ...block.data,
-                style: {
-                  ...(block.data.style ?? {}),
-                  ...patch,
-                },
-              },
-            }
-          : block,
-      ),
-    }));
-    return;
-  }
-
-if (selectedBlock?.type === "thread") {
-  setDraft((prev) => ({
-    ...prev,
-    blocks: prev.blocks.map((block) =>
-      block.id === selectedBlock.id && block.type === "thread"
-        ? {
-            ...block,
-            data: {
-              ...block.data,
-              style: {
-                fontSize: 30,
-                ...(block.data.style ?? {}),
-                ...patch,
-              },
+        return {
+          ...block,
+          data: {
+            ...block.data,
+            style: {
+              ...(block.data.style ?? {}),
+              ...(block.type === "thread" ? { fontSize: 30 } : {}),
+              ...patch,
             },
-          }
-        : block,
-    ),
-  }));
-  return;
-}
-
-  if (selectedBlock?.type === "image_carousel") {
-    setDraft((prev) => ({
-      ...prev,
-      blocks: prev.blocks.map((block) =>
-        block.id === selectedBlock.id && block.type === "image_carousel"
-          ? {
-              ...block,
-              data: {
-                ...block.data,
-                style: {
-                  ...(block.data.style ?? {}),
-                  ...patch,
-                },
-              },
-            }
-          : block,
-      ),
+          },
+        };
+      }),
     }));
     return;
   }
-
-  if (selectedBlock?.type === "form_field") {
-    setDraft((prev) => ({
-      ...prev,
-      blocks: prev.blocks.map((block) =>
-        block.id === selectedBlock.id && block.type === "form_field"
-          ? {
-              ...block,
-              data: {
-                ...block.data,
-                style: {
-                  ...(block.data.style ?? {}),
-                  ...patch,
-                },
-              },
-            }
-          : block,
-      ),
-    }));
-    return;
-  }
-
-  if (selectedBlock?.type === "highlight") {
-  setDraft((prev) => ({
-    ...prev,
-    blocks: prev.blocks.map((block) =>
-      block.id === selectedBlock.id && block.type === "highlight"
-        ? {
-            ...block,
-            data: {
-              ...block.data,
-              style: {
-                ...(block.data.style ?? {}),
-                ...patch,
-              },
-            },
-          }
-        : block,
-    ),
-  }));
-  return;
-}
 
   setDraft((prev) => applyStylePatchToSelection(prev, selection, patch));
 }
@@ -2342,9 +2252,7 @@ function cancelRemoveAllBlocks() {
     isHistoryActionRef.current = true;
     setRedoStack((prevRedo) => [...prevRedo, cloneDraft(draft)]);
     setUndoStack((prevUndo) => prevUndo.slice(0, -1));
-    setDraft((prev) => ({
-      ...prev,
-    }));
+    setDraft(cloneDraft(previousDraft));
   }
 
   function handleRedo() {
@@ -2910,11 +2818,11 @@ function nudgeSelectedBlock(
 
 return (
   <div className="flex min-h-screen flex-col bg-[#f3f3f3]">
-<div className="sticky top-0 z-[70] w-full bg-[#809cd4]">
+<div className="sticky top-0 z-[100] w-full bg-[#809cd4] shadow-md">
 
 <div
   ref={topBarScrollRef}
-  className="flex w-full items-center justify-between gap-4 overflow-x-auto overflow-y-hidden bg-[#2f3541] px-2 py-2 shadow-md"
+    className="sticky top-0 z-[101] flex w-full items-center justify-between gap-4 overflow-x-auto overflow-y-hidden bg-[#2f3541] px-2 py-2 shadow-md"
 >
   <div className="flex items-center justify-between gap-4">
     <div className="sticky left-0 z-20 flex min-w-max items-center gap-2 bg-[#2f3541] py-1 pr-4">
@@ -5076,19 +4984,31 @@ return (
               ? block
               : {
                   ...block,
-                  data: {
-                    ...block.data,
-                    mode: e.target.value as
-                      | "top_messages"
-                      | "rsvp_count"
-                      | "total_funds",
-                    heading:
-                      e.target.value === "top_messages"
-                        ? "Top Messages"
-                        : e.target.value === "rsvp_count"
-                          ? "RSVP Count"
-                          : "Total Funds",
-                  },
+data: {
+  ...block.data,
+  mode: e.target.value as
+    | "top_messages"
+    | "rsvp_count"
+    | "total_funds",
+  heading:
+    e.target.value === "top_messages"
+      ? "Top Messages"
+      : e.target.value === "rsvp_count"
+        ? "RSVP Count"
+        : "Total Funds",
+  sourceBlockId:
+    e.target.value === "top_messages"
+      ? block.data.sourceBlockId ||
+        draft.blocks.find((b) => b.type === "thread")?.id ||
+        ""
+      : "",
+  sourceFormBlockId:
+    e.target.value === "rsvp_count" || e.target.value === "total_funds"
+      ? block.data.sourceFormBlockId ||
+        draft.blocks.find((b) => b.type === "form_field")?.id ||
+        ""
+      : "",
+},
                 },
           )
         }
@@ -5103,11 +5023,7 @@ return (
     <div className="mt-4">
       <div className={inspectorLabelClass()}>Source Thread</div>
       <select
-        value={
-          selectedBlock.data.sourceBlockId ||
-          draft.blocks.find((b) => b.type === "thread")?.id ||
-          ""
-        }
+        value={selectedBlock.data.sourceBlockId ?? ""}
         onChange={(e) =>
           updateSelectedBlock((block) =>
             block.type !== "highlight"
@@ -5138,11 +5054,7 @@ return (
     <div className="mt-4">
       <div className={inspectorLabelClass()}>Source Form</div>
       <select
-        value={
-          selectedBlock.data.sourceFormBlockId ||
-          draft.blocks.find((b) => b.type === "form_field")?.id ||
-          ""
-        }
+        value={selectedBlock.data.sourceFormBlockId ?? ""}
         onChange={(e) =>
           updateSelectedBlock((block) =>
             block.type !== "highlight"

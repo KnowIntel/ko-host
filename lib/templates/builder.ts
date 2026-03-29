@@ -805,7 +805,10 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
           postButtonStyle: "solid",
           maxVisibleMessages: 4,
           scrollHeight: 280,
-          style: createDefaultTextStyle(),
+          style: {
+            ...createDefaultTextStyle(),
+            fontSize: 30,
+          },
         },
       };
 

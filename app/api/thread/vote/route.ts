@@ -29,7 +29,6 @@ export async function POST(request: Request) {
 
     const supabaseAdmin = getSupabaseAdmin();
 
-    // 🔒 Atomic increment (prevents race conditions)
     const { data, error } = await supabaseAdmin.rpc(
       "increment_thread_vote",
       {
@@ -38,15 +37,35 @@ export async function POST(request: Request) {
       },
     );
 
-    if (error || !data) {
+    if (error) {
       return NextResponse.json(
-        { error: error?.message || "Failed to update vote." },
+        { error: error.message || "Failed to update vote." },
+        { status: 500 },
+      );
+    }
+
+    const resolvedMessage = Array.isArray(data) ? data[0] : data;
+
+    if (!resolvedMessage) {
+      return NextResponse.json(
+        { error: "Vote update returned no message." },
         { status: 500 },
       );
     }
 
     return NextResponse.json({
-      message: data,
+      message: {
+        id: String(
+          (resolvedMessage as any).id ??
+            (resolvedMessage as any).message_id ??
+            messageId,
+        ),
+        votes: Number(
+          (resolvedMessage as any).votes ??
+            (resolvedMessage as any).vote_count ??
+            0,
+        ),
+      },
     });
   } catch {
     return NextResponse.json(

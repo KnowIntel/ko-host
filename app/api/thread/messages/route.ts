@@ -8,12 +8,20 @@ function badRequest(message: string) {
   return NextResponse.json({ error: message }, { status: 400 });
 }
 
+function parsePositiveInt(value: string | null, fallback: number) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.max(1, Math.floor(parsed));
+}
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
 
-    const micrositeId = searchParams.get("micrositeId")?.trim();
-    const threadBlockId = searchParams.get("threadBlockId")?.trim();
+    const micrositeId = searchParams.get("micrositeId")?.trim() || "";
+    const threadBlockId = searchParams.get("threadBlockId")?.trim() || "";
+    const sort = searchParams.get("sort")?.trim() || "created_desc";
+    const limit = parsePositiveInt(searchParams.get("limit"), 100);
 
     if (!micrositeId) {
       return badRequest("Missing micrositeId.");
@@ -25,14 +33,23 @@ export async function GET(request: Request) {
 
     const supabaseAdmin = getSupabaseAdmin();
 
-    const { data, error } = await supabaseAdmin
+    let query = supabaseAdmin
       .from("microsite_thread_messages")
       .select(
         "id, microsite_id, thread_block_id, author_name, message_text, votes, created_at, updated_at",
       )
       .eq("microsite_id", micrositeId)
-      .eq("thread_block_id", threadBlockId)
-      .order("created_at", { ascending: false });
+      .eq("thread_block_id", threadBlockId);
+
+    if (sort === "votes_desc") {
+      query = query
+        .order("votes", { ascending: false })
+        .order("created_at", { ascending: false });
+    } else {
+      query = query.order("created_at", { ascending: false });
+    }
+
+    const { data, error } = await query.limit(limit);
 
     if (error) {
       return NextResponse.json(

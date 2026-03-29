@@ -278,6 +278,21 @@ function getContainerTextStyle(
   };
 }
 
+function getThreadTextStyle(
+  style?: TextStyle,
+  designKey?: string,
+): React.CSSProperties {
+  return {
+    ...getContainerTextStyle(
+      {
+        fontSize: 30,
+        ...style,
+      },
+      designKey,
+    ),
+  };
+}
+
 function getAppearanceStyle(block: MicrositeBlock): React.CSSProperties {
   return {
     backgroundColor:
@@ -1119,6 +1134,7 @@ function renderThread(
       if (!micrositeId) {
         setMessages((prev) => [optimisticMessage, ...prev]);
         setMessageValue("");
+        setNameValue("");
         setThreadError("");
         return;
       }
@@ -1267,7 +1283,7 @@ function renderThread(
           >
             <div
               className="text-base font-semibold"
-              style={getContainerTextStyle(block.data.style, designKey)}
+              style={getThreadTextStyle(block.data.style, designKey)}
             >
               {block.data.subject || "Message Thread"}
             </div>
@@ -1308,7 +1324,7 @@ function renderThread(
                   }
                   placeholder={block.data.namePlaceholder || "Your name"}
                   className={getThreadComposerInputClass(designKey)}
-                  style={getContainerTextStyle(block.data.style, designKey)}
+                  style={getThreadTextStyle(block.data.style, designKey)}
                 />
               ) : null}
 
@@ -1322,7 +1338,7 @@ function renderThread(
                 }
                 placeholder={block.data.composerPlaceholder || "Write something…"}
                 className={`${getThreadComposerInputClass(designKey)} min-h-[96px] w-full resize-none`}
-                style={getContainerTextStyle(block.data.style, designKey)}
+                style={getThreadTextStyle(block.data.style, designKey)}
               />
 
               <div className="mt-2 flex items-center justify-between gap-3">
@@ -1405,10 +1421,10 @@ function renderThread(
                           </button>
 
                           {showVoteCount ? (
-                            <div
-                              className="text-xs font-semibold"
-                              style={getContainerTextStyle(block.data.style, designKey)}
-                            >
+                          <div
+                            className="text-xs font-semibold"
+                            style={getThreadTextStyle(block.data.style, designKey)}
+                          >
                               {message.votes ?? 0}
                             </div>
                           ) : null}
@@ -1440,16 +1456,16 @@ function renderThread(
                       </div>
 
                       <div className="min-w-0 flex-1">
-                        <div
-                          className="text-sm font-semibold"
-                          style={getContainerTextStyle(block.data.style, designKey)}
-                        >
+                      <div
+                        className="text-sm font-semibold"
+                        style={getThreadTextStyle(block.data.style, designKey)}
+                      >
                           {message.name || "Guest"}
                         </div>
 
                         <div
                           className="mt-1 text-sm"
-                          style={getContainerTextStyle(block.data.style, designKey)}
+                          style={getThreadTextStyle(block.data.style, designKey)}
                         >
                           {message.message || "Message preview"}
                         </div>
@@ -2148,7 +2164,7 @@ if (!cancelled) {
   </div>
 ) : null}
 
-{!isLoading && mode === "total_funds" ? (
+{!isLoading && mode === "total_funds" && !!sourceFormBlockId ? (
   <div className={getHighlightCardClass(designKey)}>
     <div className="flex items-start justify-between gap-3">
       <div>
