@@ -1,4 +1,4 @@
-// lib\templates\builder.ts
+// lib/templates/builder.ts
 /* =========================================
    Ko-Host Builder Core Types
    ========================================= */
@@ -67,6 +67,15 @@ export type PageElements = {
   subtext?: Partial<GridPlacement>;
   description?: Partial<GridPlacement>;
 };
+
+export type PageBlockAppearance = Partial<
+  Record<
+    "title" | "subtitle" | "subtext" | "description",
+    {
+      backgroundColor?: string;
+    }
+  >
+>;
 
 /* =========================================
    Block Types
@@ -203,7 +212,7 @@ export type ImageBlock = BaseBlock & {
       positionY?: number;
       zoom?: number;
       rotation?: number;
-      opacity?: number; // 👈 ADD THIS LINE
+      opacity?: number;
     };
   };
 };
@@ -421,8 +430,12 @@ export type BuilderDraft = {
   pageBackground?: string;
   pageScale?: number;
 
+  pageColor?: string;
+  pageBackgroundImage?: string;
+  pageBackgroundImageFit?: "clip" | "zoom" | "stretch";
   pageVisibility?: PageVisibility;
   pageElements?: PageElements;
+  pageBlockAppearance?: PageBlockAppearance;
 
   blocks: MicrositeBlock[];
 };
@@ -812,22 +825,22 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
         },
       };
 
-case "highlight":
-  return {
-    id: makeId("highlight"),
-    type: "highlight",
-    label: "Highlight",
-    grid,
-    appearance: createDefaultBlockAppearance(),
-    data: {
-      mode: "top_messages",
-      heading: "Top Messages",
-      limit: 4,
-      sourceBlockId: "",
-      sourceFormBlockId: "",
-      style: createDefaultTextStyle(),
-    },
-  };
+    case "highlight":
+      return {
+        id: makeId("highlight"),
+        type: "highlight",
+        label: "Highlight",
+        grid,
+        appearance: createDefaultBlockAppearance(),
+        data: {
+          mode: "top_messages",
+          heading: "Top Messages",
+          limit: 4,
+          sourceBlockId: "",
+          sourceFormBlockId: "",
+          style: createDefaultTextStyle(),
+        },
+      };
 
     case "showcase":
       return {
@@ -921,6 +934,21 @@ export function sanitizeBuilderDraft(input: unknown): BuilderDraft {
         ? Math.max(10, Math.min(100, draft.pageScale))
         : 85,
 
+    pageColor:
+      typeof draft.pageColor === "string" ? draft.pageColor : "",
+
+    pageBackgroundImage:
+      typeof draft.pageBackgroundImage === "string"
+        ? draft.pageBackgroundImage
+        : "",
+
+    pageBackgroundImageFit:
+      draft.pageBackgroundImageFit === "clip" ||
+      draft.pageBackgroundImageFit === "zoom" ||
+      draft.pageBackgroundImageFit === "stretch"
+        ? draft.pageBackgroundImageFit
+        : "zoom",
+
     pageVisibility:
       draft.pageVisibility && typeof draft.pageVisibility === "object"
         ? draft.pageVisibility
@@ -929,6 +957,11 @@ export function sanitizeBuilderDraft(input: unknown): BuilderDraft {
     pageElements:
       draft.pageElements && typeof draft.pageElements === "object"
         ? draft.pageElements
+        : {},
+
+    pageBlockAppearance:
+      draft.pageBlockAppearance && typeof draft.pageBlockAppearance === "object"
+        ? draft.pageBlockAppearance
         : {},
 
     blocks: Array.isArray(draft.blocks) ? (draft.blocks as MicrositeBlock[]) : [],
