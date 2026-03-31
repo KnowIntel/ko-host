@@ -1103,7 +1103,6 @@ function renderThread(
     const showNameField = block.data.showNameField !== false;
     const showVoteControls = block.data.showVoteControls !== false;
     const showVoteCount = block.data.showVoteCount !== false;
-    const scrollHeight = Math.max(120, Number(block.data.scrollHeight) || 280);
 
     const trimmedMessageValue = messageValue.trim();
     const isPostDisabled = isSubmitting || !trimmedMessageValue;
@@ -1425,18 +1424,7 @@ function renderThread(
               </div>
             ) : (
               <div className="space-y-3">
-                {messages
-                  .slice(
-                    0,
-                    Math.max(
-                      1,
-                      Math.min(
-                        100,
-                        Number(block.data.maxVisibleMessages) || messages.length || 1,
-                      ),
-                    ),
-                  )
-                  .map((message) => (
+                {messages.map((message) => (
                     <div key={message.id} className={getThreadCardClass(designKey)}>
                       <div className="flex items-start gap-3">
                         {showVoteControls ? (
@@ -2117,17 +2105,36 @@ if (!cancelled) {
         }
       }
 
-      function handleThreadUpdated() {
+      function handleThreadUpdated(event: Event) {
+        const customEvent = event as CustomEvent<{
+          micrositeId?: string;
+          threadBlockId?: string;
+          type?: string;
+        }>;
+
+        const detail = customEvent.detail;
+
+        if (!detail) return;
+        if (detail.micrositeId !== micrositeId) return;
+
+        if (mode === "top_messages") {
+          if (!sourceBlockId) return;
+          if (detail.threadBlockId !== sourceBlockId) return;
+        }
+
         setRefreshKey((prev) => prev + 1);
       }
 
-      window.addEventListener("ko-host-thread-updated", handleThreadUpdated);
+      window.addEventListener(THREAD_ACTIVITY_EVENT, handleThreadUpdated as EventListener);
 
       void load();
 
       return () => {
         cancelled = true;
-        window.removeEventListener("ko-host-thread-updated", handleThreadUpdated);
+        window.removeEventListener(
+          THREAD_ACTIVITY_EVENT,
+          handleThreadUpdated as EventListener,
+        );
       };
     }, [micrositeId, mode, block.id, sourceBlockId, sourceFormBlockId, limit, refreshKey]);
 

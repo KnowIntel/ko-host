@@ -469,8 +469,8 @@ const showDescription =
       );
       const heightScale = Math.min(1, availableHeight / pageHeight);
 
-      // const nextScale = Math.min(widthScale, heightScale);
-      const nextScale = Math.min(widthScale, heightScale) * 0.1;
+      const nextScale = Math.min(widthScale, heightScale);
+      // const nextScale = Math.min(widthScale, heightScale) * 0.1;
 
       setScale((prev) => {
         if (Math.abs(prev - nextScale) < 0.001) {
