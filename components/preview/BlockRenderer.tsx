@@ -1294,7 +1294,10 @@ function renderThread(
         designKey={designKey}
         className={getSoftSurfaceClass(designKey)}
       >
-        <div className="flex h-full w-full min-h-0 flex-col">
+                <div
+          className="flex h-full w-full min-h-0 flex-col overflow-hidden"
+          style={{ height: "100%" }}
+        >
           <div
             className={`shrink-0 border-b pb-3 ${getThreadDividerClass(designKey)}`}
           >
@@ -1317,7 +1320,12 @@ function renderThread(
               ) : null}
 
               {!showAnonymousBadge && !showApprovalBadge ? (
-                <div className={getThreadBadgeClass(designKey)}>Open Thread</div>
+                                <div
+                  className={getThreadBadgeClass(designKey)}
+                  style={{ fontSize: "22px", lineHeight: 1.1 }}
+                >
+                  Open Thread
+                </div>
               ) : null}
             </div>
           </div>
@@ -1359,12 +1367,12 @@ function renderThread(
               />
 
               <div className="mt-2 flex items-center justify-between gap-3">
-                <div className="text-xs text-neutral-500">
+                <div className="text-sm text-neutral-500">
                   {messageValue.length}/{THREAD_MAX_MESSAGE_LENGTH}
                 </div>
 
                 {showNameField ? (
-                  <div className="text-xs text-neutral-500">
+                  <div className="text-sm text-neutral-500">
                     {nameValue.length}/{THREAD_MAX_NAME_LENGTH}
                   </div>
                 ) : null}
@@ -1375,7 +1383,7 @@ function renderThread(
               ) : null}
 
               <div className="mt-3 flex items-center justify-between gap-3">
-                <div className="text-xs text-neutral-500">
+                <div className="text-sm text-neutral-500">
                   {block.data.allowAnonymous
                     ? "Anonymous posting allowed"
                     : "Posting with name"}
@@ -1404,7 +1412,12 @@ function renderThread(
 
           <div
             className={getThreadScrollClass(designKey)}
-            style={{ maxHeight: `${scrollHeight}px` }}
+            style={{
+              flex: "1 1 auto",
+              minHeight: 0,
+              maxHeight: "100%",
+              overflowY: "auto",
+            }}
           >
             {isLoading ? (
               <div className="rounded-xl border border-dashed border-neutral-300 px-3 py-4 text-sm text-neutral-500">
