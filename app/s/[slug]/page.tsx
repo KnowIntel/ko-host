@@ -225,10 +225,7 @@ if (!microsite.draft) {
             draft={draft}
             designKey={designKey}
             micrositeId={microsite.id}
-            fixedScale={Math.max(
-              0.1,
-              Math.min(1, (((draft as { pageScale?: number }).pageScale ?? 85) / 100)),
-            )}
+            fixedScale={1}
             disableAutoScale={true}
             hideFrame={true}
           />

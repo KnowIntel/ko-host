@@ -497,22 +497,23 @@ const showDescription =
   }, [disableAutoScale, fixedScale, pageHeight, viewportHeight]);
 
   const resolvedScale = disableAutoScale ? (fixedScale ?? 1) : scale;
-  // const resolvedScale = 0.75; // 👈 test freely
+  const blockRenderScale = hideFrame ? 1 : 0.5;
   const scaledWidth = PAGE_WIDTH * resolvedScale;
   const scaledHeight = pageHeight * resolvedScale;
 
   return (
     <div
       ref={containerRef}
-      className="w-full overflow-hidden"
+      className={hideFrame ? "w-full overflow-visible" : "mx-auto w-full overflow-hidden"}
       style={{
-        height: scaledHeight,
+        height: hideFrame ? "auto" : scaledHeight,
       }}
     >
       <div
+        className={hideFrame ? "w-full" : "mx-auto"}
         style={{
-          width: scaledWidth,
-          height: scaledHeight,
+          width: hideFrame ? PAGE_WIDTH * resolvedScale : scaledWidth,
+          height: hideFrame ? pageHeight * resolvedScale : scaledHeight,
           position: "relative",
         }}
       >
@@ -597,10 +598,10 @@ const showDescription =
               <div
                 className="h-full w-full"
                 style={{
-                  transform: "scale(0.5)",
+                  transform: `scale(${blockRenderScale})`,
                   transformOrigin: "top left",
-                  width: "200%",
-                  height: "200%",
+                  width: `${100 / blockRenderScale}%`,
+                  height: `${100 / blockRenderScale}%`,
                 }}
               >
                 <BlockRenderer
