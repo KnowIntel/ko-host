@@ -594,25 +594,42 @@ const showDescription =
             </div>
           ) : null}
 
-          {blockEntries.map(({ block, grid }) => (
-            <div key={block.id} style={getItemStyle(grid)}>
-              <div
-                className="h-full w-full"
-                style={{
-                  transform: "scale(0.5)",
-                  transformOrigin: "top left",
-                  width: "200%",
-                  height: "200%",
-                }}
-              >
-                                <BlockRenderer
-                  block={block}
-                  designKey={designKey}
-                  micrositeId={micrositeId}
-                />
+          {blockEntries.map(({ block, grid }) => {
+            const shouldBypassScaledWrapper =
+              block.type === "thread" ||
+              block.type === "highlight" ||
+              block.type === "form_field";
+
+            return (
+              <div key={block.id} style={getItemStyle(grid)}>
+                {shouldBypassScaledWrapper ? (
+                  <div className="h-full w-full overflow-hidden">
+                    <BlockRenderer
+                      block={block}
+                      designKey={designKey}
+                      micrositeId={micrositeId}
+                    />
+                  </div>
+                ) : (
+                  <div
+                    className="h-full w-full"
+                    style={{
+                      transform: "scale(0.5)",
+                      transformOrigin: "top left",
+                      width: "200%",
+                      height: "200%",
+                    }}
+                  >
+                    <BlockRenderer
+                      block={block}
+                      designKey={designKey}
+                      micrositeId={micrositeId}
+                    />
+                  </div>
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>
