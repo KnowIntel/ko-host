@@ -1407,108 +1407,108 @@ function renderThread(
             </div>
           </div>
 
-<div
-  className={getThreadScrollClass(designKey)}
-  style={{
-    height: `${scrollHeight}px`,
-    minHeight: `${scrollHeight}px`,
-    overflowY: "auto",
-    overflowX: "hidden",
-  }}
->
-  {isLoading ? (
-    <div className="rounded-xl border border-dashed border-neutral-300 px-3 py-4 text-sm text-neutral-500">
-      Loading messages...
-    </div>
-  ) : (
-    <div className="space-y-3 pr-1">
-      {messages.map((message) => (
-        <div key={message.id} className={getThreadCardClass(designKey)}>
-          <div className="flex items-start gap-3">
-            {showVoteControls ? (
-              <div className="flex shrink-0 flex-col items-center justify-start gap-1">
-                <button
-                  type="button"
-                  onClick={() => void updateVotes(message.id, 1)}
-                  disabled={voteLoadingId === message.id}
-                  className={
-                    isLightDesign(designKey)
-                      ? "text-neutral-700"
-                      : "text-white/80"
-                  }
-                  style={{
-                    opacity: voteLoadingId === message.id ? 0.5 : 1,
-                    cursor:
-                      voteLoadingId === message.id
-                        ? "not-allowed"
-                        : "pointer",
-                  }}
-                >
-                  👍
-                </button>
+          <div
+            className={getThreadScrollClass(designKey)}
+            style={{
+              height: `${scrollHeight}px`,
+              minHeight: `${scrollHeight}px`,
+              overflowY: "auto",
+              overflowX: "hidden",
+            }}
+          >
+            {isLoading ? (
+              <div className="rounded-xl border border-dashed border-neutral-300 px-3 py-4 text-sm text-neutral-500">
+                Loading messages...
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {messages.map((message) => (
+                  <div key={message.id} className={getThreadCardClass(designKey)}>
+                    <div className="flex items-start gap-3">
+                      {showVoteControls ? (
+                        <div className="flex shrink-0 flex-col items-center justify-start gap-1">
+                          <button
+                            type="button"
+                            onClick={() => void updateVotes(message.id, 1)}
+                            disabled={voteLoadingId === message.id}
+                            className={
+                              isLightDesign(designKey)
+                                ? "text-neutral-700"
+                                : "text-white/80"
+                            }
+                            style={{
+                              opacity: voteLoadingId === message.id ? 0.5 : 1,
+                              cursor:
+                                voteLoadingId === message.id
+                                  ? "not-allowed"
+                                  : "pointer",
+                            }}
+                          >
+                            👍
+                          </button>
 
-                {showVoteCount ? (
-                  <div
-                    className="text-xs font-semibold"
-                    style={getThreadTextStyle(block.data.style, designKey)}
-                  >
-                    {message.votes ?? 0}
+                          {showVoteCount ? (
+                            <div
+                              className="text-xs font-semibold"
+                              style={getThreadTextStyle(block.data.style, designKey)}
+                            >
+                              {message.votes ?? 0}
+                            </div>
+                          ) : null}
+
+                          <button
+                            type="button"
+                            onClick={() => void updateVotes(message.id, -1)}
+                            disabled={voteLoadingId === message.id}
+                            className={
+                              isLightDesign(designKey)
+                                ? "text-neutral-700"
+                                : "text-white/80"
+                            }
+                            style={{
+                              opacity: voteLoadingId === message.id ? 0.5 : 1,
+                              cursor:
+                                voteLoadingId === message.id
+                                  ? "not-allowed"
+                                  : "pointer",
+                            }}
+                          >
+                            👎
+                          </button>
+                        </div>
+                      ) : null}
+
+                      <div className={getThreadAvatarClass(designKey)}>
+                        {getInitials(message.name)}
+                      </div>
+
+                      <div className="min-w-0 flex-1">
+                        <div
+                          className="text-sm font-semibold"
+                          style={getThreadTextStyle(block.data.style, designKey)}
+                        >
+                          {message.name || "Guest"}
+                        </div>
+
+                        <div
+                          className="mt-1 text-sm"
+                          style={getThreadTextStyle(block.data.style, designKey)}
+                        >
+                          {message.message || "Message preview"}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {!messages.length ? (
+                  <div className="rounded-xl border border-dashed border-neutral-300 px-3 py-4 text-sm text-neutral-500">
+                    No messages yet.
                   </div>
                 ) : null}
-
-                <button
-                  type="button"
-                  onClick={() => void updateVotes(message.id, -1)}
-                  disabled={voteLoadingId === message.id}
-                  className={
-                    isLightDesign(designKey)
-                      ? "text-neutral-700"
-                      : "text-white/80"
-                  }
-                  style={{
-                    opacity: voteLoadingId === message.id ? 0.5 : 1,
-                    cursor:
-                      voteLoadingId === message.id
-                        ? "not-allowed"
-                        : "pointer",
-                  }}
-                >
-                  👎
-                </button>
               </div>
-            ) : null}
-
-            <div className={getThreadAvatarClass(designKey)}>
-              {getInitials(message.name)}
-            </div>
-
-            <div className="min-w-0 flex-1">
-              <div
-                className="text-sm font-semibold"
-                style={getThreadTextStyle(block.data.style, designKey)}
-              >
-                {message.name || "Guest"}
-              </div>
-
-              <div
-                className="mt-1 text-sm"
-                style={getThreadTextStyle(block.data.style, designKey)}
-              >
-                {message.message || "Message preview"}
-              </div>
-            </div>
+            )}
           </div>
-        </div>
-      ))}
-
-      {!messages.length ? (
-        <div className="rounded-xl border border-dashed border-neutral-300 px-3 py-4 text-sm text-neutral-500">
-          No messages yet.
-        </div>
-      ) : null}
-    </div>
-  )}
-</div>
         </div>
       </Surface>
     );
