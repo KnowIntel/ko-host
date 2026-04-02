@@ -219,15 +219,7 @@ if (!microsite.draft) {
 
   return (
     <>
-      <main
-        className="min-h-screen text-neutral-900"
-        style={{
-          background:
-            (draft as any)?.pageBackground && (draft as any).pageBackground !== ""
-              ? (draft as any).pageBackground
-              : "#fcfbf8",
-        }}
-      >
+      <main className="min-h-screen w-full bg-transparent text-neutral-900">
         <div className="w-full">
           <PlacedBlocksPreview
             draft={draft}

@@ -469,8 +469,7 @@ const showDescription =
       );
       const heightScale = Math.min(1, availableHeight / pageHeight);
 
-      const nextScale = Math.min(widthScale, heightScale);
-      // const nextScale = Math.min(widthScale, heightScale) * 0.1;
+        const nextScale = Math.min(widthScale, heightScale);
 
       setScale((prev) => {
         if (Math.abs(prev - nextScale) < 0.001) {
@@ -505,13 +504,12 @@ const showDescription =
   return (
     <div
       ref={containerRef}
-      className="mx-auto w-full overflow-hidden"
+      className="w-full overflow-hidden"
       style={{
         height: scaledHeight,
       }}
     >
       <div
-        className="mx-auto"
         style={{
           width: scaledWidth,
           height: scaledHeight,
@@ -594,42 +592,25 @@ const showDescription =
             </div>
           ) : null}
 
-          {blockEntries.map(({ block, grid }) => {
-            const shouldBypassScaledWrapper =
-              block.type === "thread" ||
-              block.type === "highlight" ||
-              block.type === "form_field";
-
-            return (
-              <div key={block.id} style={getItemStyle(grid)}>
-                {shouldBypassScaledWrapper ? (
-                  <div className="h-full w-full overflow-hidden">
-                    <BlockRenderer
-                      block={block}
-                      designKey={designKey}
-                      micrositeId={micrositeId}
-                    />
-                  </div>
-                ) : (
-                  <div
-                    className="h-full w-full"
-                    style={{
-                      transform: "scale(0.5)",
-                      transformOrigin: "top left",
-                      width: "200%",
-                      height: "200%",
-                    }}
-                  >
-                    <BlockRenderer
-                      block={block}
-                      designKey={designKey}
-                      micrositeId={micrositeId}
-                    />
-                  </div>
-                )}
+          {blockEntries.map(({ block, grid }) => (
+            <div key={block.id} style={getItemStyle(grid)}>
+              <div
+                className="h-full w-full"
+                style={{
+                  transform: "scale(0.5)",
+                  transformOrigin: "top left",
+                  width: "200%",
+                  height: "200%",
+                }}
+              >
+                <BlockRenderer
+                  block={block}
+                  designKey={designKey}
+                  micrositeId={micrositeId}
+                />
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
       </div>
     </div>
