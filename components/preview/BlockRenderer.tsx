@@ -1003,39 +1003,15 @@ function getInitials(name?: string) {
 function normalizeThreadMessages(rawMessages: any[]): ThreadMessage[] {
   if (!Array.isArray(rawMessages)) return [];
 
-  return rawMessages
-    .map((message, index) => {
-      const createdAtValue =
-        typeof message.created_at === "string" ? message.created_at : "";
-
-      const createdAtTimestamp = createdAtValue
-        ? Date.parse(createdAtValue)
-        : Number.NaN;
-
-      return {
-        id: String(message.id ?? `threadmsg_${index}`),
-        name: String(message.author_name ?? message.name ?? "Guest"),
-        message: String(message.message_text ?? message.message ?? ""),
-        votes:
-          typeof message.votes === "number"
-            ? message.votes
-            : Number(message.votes ?? 0) || 0,
-        created_at: createdAtValue || undefined,
-        _sortTimestamp: Number.isNaN(createdAtTimestamp)
-          ? Number.MAX_SAFE_INTEGER - index
-          : createdAtTimestamp,
-      } as ThreadMessage & { _sortTimestamp?: number };
-    })
-    .sort((a, b) => {
-      const aTime = (a as any)._sortTimestamp ?? 0;
-      const bTime = (b as any)._sortTimestamp ?? 0;
-      return aTime - bTime;
-    })
-    .map((message) => {
-      const clone = { ...message } as any;
-      delete clone._sortTimestamp;
-      return clone as ThreadMessage;
-    });
+  return rawMessages.map((message, index) => ({
+    id: String(message.id ?? `threadmsg_${index}`),
+    name: String(message.author_name ?? message.name ?? "Guest"),
+    message: String(message.message_text ?? message.message ?? ""),
+    votes:
+      typeof message.votes === "number"
+        ? message.votes
+        : Number(message.votes ?? 0) || 0,
+  }));
 }
 
 function renderThread(
@@ -1069,7 +1045,7 @@ function renderThread(
     const showNameField = block.data.showNameField !== false;
     const showVoteControls = block.data.showVoteControls !== false;
     const showVoteCount = block.data.showVoteCount !== false;
-    const scrollHeight = Math.max(120, Number(block.data.scrollHeight) || 280);
+    const scrollHeight = Math.max(220, Number(block.data.scrollHeight) || 420);
 
     useEffect(() => {
       if (!micrositeId) {
@@ -1201,7 +1177,7 @@ function renderThread(
       };
 
       if (!micrositeId) {
-        setMessages((prev) => [...prev, optimisticMessage]);
+        setMessages((prev) => [optimisticMessage, ...prev]);
         setMessageValue("");
         setNameValue("");
         setThreadError("");
@@ -1241,29 +1217,18 @@ const createdMessage: ThreadMessage = {
       : Number(data.message.votes ?? 0) || 0,
 };
 
-setMessages((prev) =>
-  normalizeThreadMessages([
-    ...prev.map((message) => ({
-      id: message.id,
-      author_name: message.name,
-      message_text: message.message,
-      votes: message.votes,
-    })),
-    {
-      id: String(data.message.id),
-      author_name: String(data.message.author_name ?? safeName),
-      message_text: String(data.message.message_text ?? safeMessage),
-      votes:
-        typeof data.message.votes === "number"
-          ? data.message.votes
-          : Number(data.message.votes ?? 0) || 0,
-      created_at:
-        typeof data.message.created_at === "string"
-          ? data.message.created_at
-          : undefined,
-    },
-  ]),
-);
+setMessages((prev) => [
+  {
+    id: String(data.message.id),
+    name: String(data.message.author_name ?? safeName),
+    message: String(data.message.message_text ?? safeMessage),
+    votes:
+      typeof data.message.votes === "number"
+        ? data.message.votes
+        : Number(data.message.votes ?? 0) || 0,
+  },
+  ...prev,
+]);
 
         setMessageValue("");
         setNameValue("");
@@ -1527,7 +1492,8 @@ setMessages((prev) =>
             className={getThreadScrollClass(designKey)}
             style={{
               minHeight: 0,
-              maxHeight: `${scrollHeight}px`,
+              flex: "1 1 0%",
+              height: "100%",
               paddingRight: hasOverflow ? "0.25rem" : 0,
             }}
           >
@@ -1602,16 +1568,23 @@ setMessages((prev) =>
                       </div>
 
                       <div className="min-w-0 flex-1">
-                        <div
-                          className="font-semibold"
-                          style={getThreadMetaStyle(block.data.style, designKey)}
-                        >
-                          {message.name || "Guest"}
-                        </div>
+                      <div
+                        className="font-semibold"
+                        style={{
+                          ...getThreadMetaStyle(block.data.style, designKey),
+                          fontSize: "13px",
+                        }}
+                      >
+                        {message.name || "Guest"}
+                      </div>
 
                         <div
                           className="mt-1"
-                          style={getThreadBodyStyle(block.data.style, designKey)}
+                          style={{
+                            ...getThreadBodyStyle(block.data.style, designKey),
+                            fontSize: "16px",
+                            lineHeight: 1.35,
+                          }}
                         >
                           {message.message || "Message preview"}
                         </div>
