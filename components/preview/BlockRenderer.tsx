@@ -1,7 +1,7 @@
-//  components\preview\BlockRenderer.tsx
+// components\preview\BlockRenderer.tsx
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import type {
   CarouselImageItem,
@@ -260,22 +260,15 @@ function getContainerTextStyle(
   };
 }
 
-function getThreadBaseFontSize(style?: TextStyle) {
-  return typeof style?.fontSize === "number" && style.fontSize > 0
-    ? style.fontSize
-    : 30;
-}
-
 function getThreadHeadingStyle(
   style?: TextStyle,
   designKey?: string,
 ): React.CSSProperties {
-  const base = getThreadBaseFontSize(style);
   return {
     ...getContainerTextStyle(
       {
         ...style,
-        fontSize: Math.max(18, base),
+        fontSize: 18,
       },
       designKey,
     ),
@@ -287,16 +280,15 @@ function getThreadBodyStyle(
   style?: TextStyle,
   designKey?: string,
 ): React.CSSProperties {
-  const base = getThreadBaseFontSize(style);
   return {
     ...getContainerTextStyle(
       {
         ...style,
-        fontSize: Math.max(14, Math.min(base, 30)),
+        fontSize: 15,
       },
       designKey,
     ),
-    lineHeight: 1.25,
+    lineHeight: 1.3,
   };
 }
 
@@ -304,12 +296,11 @@ function getThreadMetaStyle(
   style?: TextStyle,
   designKey?: string,
 ): React.CSSProperties {
-  const base = getThreadBaseFontSize(style);
   return {
     ...getContainerTextStyle(
       {
         ...style,
-        fontSize: Math.max(11, Math.min(Math.round(base * 0.52), 16)),
+        fontSize: 12,
       },
       designKey,
     ),
@@ -406,9 +397,11 @@ function Surface({
 }) {
   return (
     <div
-      className={["h-full w-full min-h-0", padded ? "p-4" : "", className].join(
-        " ",
-      )}
+      className={[
+        "h-full w-full min-h-0 overflow-visible",
+        padded ? "p-4" : "",
+        className,
+      ].join(" ")}
       style={getAppearanceStyle(block)}
     >
       {children}
@@ -519,7 +512,10 @@ function renderImage(
   const translateY = (positionY - 50) * 0.6;
 
   return (
-    <div className="h-full w-full overflow-hidden" style={getImageFrameStyle(block)}>
+    <div
+      className="h-full w-full overflow-hidden"
+      style={getImageFrameStyle(block)}
+    >
       <img
         src={block.data.image.url}
         alt={block.data.image.alt || ""}
@@ -864,7 +860,9 @@ function renderFaq(
       designKey={designKey}
       className={getSoftSurfaceClass(designKey)}
     >
-      <div style={getContainerTextStyle(block.data.style, designKey)}>FAQs</div>
+      <div style={getContainerTextStyle(block.data.style, designKey)}>
+        FAQs
+      </div>
 
       <div className="mt-3 space-y-2">
         {block.data.items.map((item: FaqItem) => (
@@ -931,12 +929,6 @@ function getThreadComposerInputClass(designKey?: string) {
   return isLightDesign(designKey)
     ? "mt-3 block w-full rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-neutral-900 outline-none focus:border-neutral-400"
     : "mt-3 block w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-white outline-none focus:border-white/30";
-}
-
-function getThreadScrollClass(designKey?: string) {
-  return isLightDesign(designKey)
-    ? "mt-4 min-h-0 flex-1 overflow-y-auto overflow-x-hidden pr-1 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-neutral-300 hover:scrollbar-thumb-neutral-400"
-    : "mt-4 min-h-0 flex-1 overflow-y-auto overflow-x-hidden pr-1 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/15 hover:scrollbar-thumb-white/25";
 }
 
 function getThreadPostButtonClass(
@@ -1036,16 +1028,12 @@ function renderThread(
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [voteLoadingId, setVoteLoadingId] = useState<string | null>(null);
     const [threadError, setThreadError] = useState("");
-    const [hasOverflow, setHasOverflow] = useState(false);
-
-    const scrollAreaRef = useRef<HTMLDivElement | null>(null);
 
     const showAnonymousBadge = Boolean(block.data.allowAnonymous);
     const showApprovalBadge = Boolean(block.data.requireApproval);
     const showNameField = block.data.showNameField !== false;
     const showVoteControls = block.data.showVoteControls !== false;
     const showVoteCount = block.data.showVoteCount !== false;
-    const scrollHeight = Math.max(220, Number(block.data.scrollHeight) || 420);
 
     useEffect(() => {
       if (!micrositeId) {
@@ -1061,10 +1049,10 @@ function renderThread(
           setIsLoading(true);
           setThreadError("");
 
-        const params = new URLSearchParams({
-          micrositeId: micrositeId ?? "",
-          threadBlockId: block.id,
-        });
+          const params = new URLSearchParams({
+            micrositeId: micrositeId ?? "",
+            threadBlockId: block.id,
+          });
 
           const res = await fetch(`/api/thread/messages?${params.toString()}`, {
             cache: "no-store",
@@ -1129,30 +1117,6 @@ function renderThread(
       block.data.requireApproval,
     ]);
 
-    useEffect(() => {
-      const node = scrollAreaRef.current;
-      if (!node) {
-        setHasOverflow(false);
-        return;
-      }
-
-      const checkOverflow = () => {
-        setHasOverflow(node.scrollHeight > node.clientHeight + 2);
-      };
-
-      checkOverflow();
-
-      const resizeObserver = new ResizeObserver(() => {
-        checkOverflow();
-      });
-
-      resizeObserver.observe(node);
-
-      return () => {
-        resizeObserver.disconnect();
-      };
-    }, [messages, isLoading, scrollHeight]);
-
     const trimmedMessageValue = messageValue.trim();
     const isPostDisabled = isSubmitting || !trimmedMessageValue;
 
@@ -1207,28 +1171,18 @@ function renderThread(
           throw new Error(data?.error || "Failed to post message.");
         }
 
-const createdMessage: ThreadMessage = {
-  id: String(data.message.id),
-  name: String(data.message.author_name ?? safeName),
-  message: String(data.message.message_text ?? safeMessage),
-  votes:
-    typeof data.message.votes === "number"
-      ? data.message.votes
-      : Number(data.message.votes ?? 0) || 0,
-};
-
-setMessages((prev) => [
-  {
-    id: String(data.message.id),
-    name: String(data.message.author_name ?? safeName),
-    message: String(data.message.message_text ?? safeMessage),
-    votes:
-      typeof data.message.votes === "number"
-        ? data.message.votes
-        : Number(data.message.votes ?? 0) || 0,
-  },
-  ...prev,
-]);
+        setMessages((prev) => [
+          {
+            id: String(data.message.id),
+            name: String(data.message.author_name ?? safeName),
+            message: String(data.message.message_text ?? safeMessage),
+            votes:
+              typeof data.message.votes === "number"
+                ? data.message.votes
+                : Number(data.message.votes ?? 0) || 0,
+          },
+          ...prev,
+        ]);
 
         setMessageValue("");
         setNameValue("");
@@ -1355,7 +1309,7 @@ setMessages((prev) => [
         designKey={designKey}
         className={getSoftSurfaceClass(designKey)}
       >
-        <div className="flex h-full w-full min-h-0 flex-col overflow-hidden">
+        <div className="flex h-auto min-h-full w-full flex-col overflow-visible">
           <div
             className={`shrink-0 border-b pb-3 ${getThreadDividerClass(
               designKey,
@@ -1385,7 +1339,7 @@ setMessages((prev) => [
             </div>
           </div>
 
-          <div className="mt-4 shrink-0 relative z-10 pointer-events-auto">
+          <div className="relative z-10 mt-4 shrink-0 pointer-events-auto">
             <div className={getThreadComposerClass(designKey)}>
               <div
                 className="font-medium"
@@ -1422,9 +1376,7 @@ setMessages((prev) => [
                   )
                 }
                 placeholder={block.data.composerPlaceholder || "Write something…"}
-                className={`${getThreadComposerInputClass(
-                  designKey,
-                )} min-h-[96px] resize-none`}
+                className={`${getThreadComposerInputClass(designKey)} min-h-[96px] resize-none`}
                 style={{
                   ...getThreadBodyStyle(block.data.style, designKey),
                   pointerEvents: "auto",
@@ -1436,7 +1388,9 @@ setMessages((prev) => [
               <div className="mt-2 flex items-center justify-between gap-3">
                 <div
                   style={getThreadMetaStyle(block.data.style, designKey)}
-                  className={isLightDesign(designKey) ? "text-neutral-500" : "text-white/55"}
+                  className={
+                    isLightDesign(designKey) ? "text-neutral-500" : "text-white/55"
+                  }
                 >
                   {messageValue.length}/{THREAD_MAX_MESSAGE_LENGTH}
                 </div>
@@ -1444,7 +1398,9 @@ setMessages((prev) => [
                 {showNameField ? (
                   <div
                     style={getThreadMetaStyle(block.data.style, designKey)}
-                    className={isLightDesign(designKey) ? "text-neutral-500" : "text-white/55"}
+                    className={
+                      isLightDesign(designKey) ? "text-neutral-500" : "text-white/55"
+                    }
                   >
                     {nameValue.length}/{THREAD_MAX_NAME_LENGTH}
                   </div>
@@ -1458,7 +1414,9 @@ setMessages((prev) => [
               <div className="mt-3 flex items-center justify-between gap-3">
                 <div
                   style={getThreadMetaStyle(block.data.style, designKey)}
-                  className={isLightDesign(designKey) ? "text-neutral-500" : "text-white/55"}
+                  className={
+                    isLightDesign(designKey) ? "text-neutral-500" : "text-white/55"
+                  }
                 >
                   {block.data.allowAnonymous
                     ? "Anonymous posting allowed"
@@ -1487,16 +1445,7 @@ setMessages((prev) => [
             </div>
           </div>
 
-          <div
-            ref={scrollAreaRef}
-            className={getThreadScrollClass(designKey)}
-            style={{
-              minHeight: 0,
-              flex: "1 1 0%",
-              height: "100%",
-              paddingRight: hasOverflow ? "0.25rem" : 0,
-            }}
-          >
+          <div className="mt-4 space-y-3">
             {isLoading ? (
               <div className="rounded-xl border border-dashed border-neutral-300 px-3 py-4 text-sm text-neutral-500">
                 Loading messages...
@@ -1506,68 +1455,70 @@ setMessages((prev) => [
                 No messages yet.
               </div>
             ) : (
-              <div className="space-y-3">
-                {messages.map((message) => (
-                  <div key={message.id} className={getThreadCardClass(designKey)}>
-                    <div className="flex items-start gap-3">
-                      {showVoteControls ? (
-                        <div className="flex shrink-0 flex-col items-center justify-start gap-1">
-                          <button
-                            type="button"
-                            onClick={() => void updateVotes(message.id, 1)}
-                            disabled={voteLoadingId === message.id}
-                            className={
-                              isLightDesign(designKey)
-                                ? "text-neutral-700"
-                                : "text-white/80"
-                            }
+              messages.map((message) => (
+                <div key={message.id} className={getThreadCardClass(designKey)}>
+                  <div className="flex items-start gap-3">
+                    {showVoteControls ? (
+                      <div className="flex shrink-0 flex-col items-center justify-start gap-1">
+                        <button
+                          type="button"
+                          onClick={() => void updateVotes(message.id, 1)}
+                          disabled={voteLoadingId === message.id}
+                          className={
+                            isLightDesign(designKey)
+                              ? "text-neutral-700"
+                              : "text-white/80"
+                          }
+                          style={{
+                            opacity: voteLoadingId === message.id ? 0.5 : 1,
+                            cursor:
+                              voteLoadingId === message.id
+                                ? "not-allowed"
+                                : "pointer",
+                          }}
+                        >
+                          👍
+                        </button>
+
+                        {showVoteCount ? (
+                          <div
+                            className="font-semibold"
                             style={{
-                              opacity: voteLoadingId === message.id ? 0.5 : 1,
-                              cursor:
-                                voteLoadingId === message.id
-                                  ? "not-allowed"
-                                  : "pointer",
+                              ...getThreadMetaStyle(block.data.style, designKey),
+                              fontSize: "12px",
                             }}
                           >
-                            👍
-                          </button>
+                            {message.votes ?? 0}
+                          </div>
+                        ) : null}
 
-                          {showVoteCount ? (
-                            <div
-                              className="font-semibold"
-                              style={getThreadMetaStyle(block.data.style, designKey)}
-                            >
-                              {message.votes ?? 0}
-                            </div>
-                          ) : null}
-
-                          <button
-                            type="button"
-                            onClick={() => void updateVotes(message.id, -1)}
-                            disabled={voteLoadingId === message.id}
-                            className={
-                              isLightDesign(designKey)
-                                ? "text-neutral-700"
-                                : "text-white/80"
-                            }
-                            style={{
-                              opacity: voteLoadingId === message.id ? 0.5 : 1,
-                              cursor:
-                                voteLoadingId === message.id
-                                  ? "not-allowed"
-                                  : "pointer",
-                            }}
-                          >
-                            👎
-                          </button>
-                        </div>
-                      ) : null}
-
-                      <div className={getThreadAvatarClass(designKey)}>
-                        {getInitials(message.name)}
+                        <button
+                          type="button"
+                          onClick={() => void updateVotes(message.id, -1)}
+                          disabled={voteLoadingId === message.id}
+                          className={
+                            isLightDesign(designKey)
+                              ? "text-neutral-700"
+                              : "text-white/80"
+                          }
+                          style={{
+                            opacity: voteLoadingId === message.id ? 0.5 : 1,
+                            cursor:
+                              voteLoadingId === message.id
+                                ? "not-allowed"
+                                : "pointer",
+                          }}
+                        >
+                          👎
+                        </button>
                       </div>
+                    ) : null}
 
-                      <div className="min-w-0 flex-1">
+                    <div className={getThreadAvatarClass(designKey)}>
+                      {getInitials(message.name)}
+                    </div>
+
+                    <div className="min-w-0 flex-1">
                       <div
                         className="font-semibold"
                         style={{
@@ -1578,21 +1529,20 @@ setMessages((prev) => [
                         {message.name || "Guest"}
                       </div>
 
-                        <div
-                          className="mt-1"
-                          style={{
-                            ...getThreadBodyStyle(block.data.style, designKey),
-                            fontSize: "16px",
-                            lineHeight: 1.35,
-                          }}
-                        >
-                          {message.message || "Message preview"}
-                        </div>
+                      <div
+                        className="mt-1"
+                        style={{
+                          ...getThreadBodyStyle(block.data.style, designKey),
+                          fontSize: "15px",
+                          lineHeight: 1.35,
+                        }}
+                      >
+                        {message.message || "Message preview"}
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))
             )}
           </div>
         </div>
@@ -2088,15 +2038,18 @@ function renderHighlight(
             }
 
             const params = new URLSearchParams({
-              micrositeId,
+              micrositeId: micrositeId ?? "",
               threadBlockId: sourceBlockId,
               limit: String(limit),
               sort: "votes_desc",
             });
 
-            const res = await fetch(`/api/thread/messages?${params.toString()}`, {
-              cache: "no-store",
-            });
+            const res = await fetch(
+              `/api/thread/messages?${params.toString()}`,
+              {
+                cache: "no-store",
+              },
+            );
 
             const data = await res.json();
 
@@ -2113,7 +2066,7 @@ function renderHighlight(
 
           if (mode === "rsvp_count") {
             const params = new URLSearchParams({
-              micrositeId,
+              micrositeId: micrositeId ?? "",
               mode: "rsvp_count",
               sourceFormBlockId,
             });
@@ -2137,7 +2090,7 @@ function renderHighlight(
 
           if (mode === "total_funds") {
             const params = new URLSearchParams({
-              micrositeId,
+              micrositeId: micrositeId ?? "",
               mode: "total_funds",
               sourceFormBlockId,
             });
@@ -2340,7 +2293,10 @@ function renderHighlight(
           {mode === "top_messages" ? (
             <div className="space-y-3">
               {items.slice(0, limit).map((msg: any, index: number) => (
-                <div key={msg.id} className={getHighlightCardClass(designKey)}>
+                <div
+                  key={msg.id}
+                  className={getHighlightCardClass(designKey)}
+                >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
