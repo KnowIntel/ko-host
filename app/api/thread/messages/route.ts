@@ -4,6 +4,9 @@ import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 
 export const dynamic = "force-dynamic";
 
+const DEFAULT_LIMIT = 500;
+const MAX_LIMIT = 2000;
+
 function badRequest(message: string) {
   return NextResponse.json({ error: message }, { status: 400 });
 }
@@ -14,6 +17,10 @@ function parsePositiveInt(value: string | null, fallback: number) {
   return Math.max(1, Math.floor(parsed));
 }
 
+function clampLimit(limit: number) {
+  return Math.min(MAX_LIMIT, Math.max(1, limit));
+}
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -21,7 +28,9 @@ export async function GET(request: Request) {
     const micrositeId = searchParams.get("micrositeId")?.trim() || "";
     const threadBlockId = searchParams.get("threadBlockId")?.trim() || "";
     const sort = searchParams.get("sort")?.trim() || "created_desc";
-    const limit = parsePositiveInt(searchParams.get("limit"), 100);
+    const limit = clampLimit(
+      parsePositiveInt(searchParams.get("limit"), DEFAULT_LIMIT),
+    );
 
     if (!micrositeId) {
       return badRequest("Missing micrositeId.");
@@ -33,7 +42,7 @@ export async function GET(request: Request) {
 
     const supabaseAdmin = getSupabaseAdmin();
 
-    let query = supabaseAdmin
+    const baseQuery = supabaseAdmin
       .from("microsite_thread_messages")
       .select(
         "id, microsite_id, thread_block_id, author_name, message_text, votes, created_at, updated_at",
@@ -41,15 +50,24 @@ export async function GET(request: Request) {
       .eq("microsite_id", micrositeId)
       .eq("thread_block_id", threadBlockId);
 
+    let orderedQuery;
+
     if (sort === "votes_desc") {
-      query = query
-        .order("votes", { ascending: false })
-        .order("created_at", { ascending: false });
+      orderedQuery = baseQuery
+        .order("votes", { ascending: false, nullsFirst: false })
+        .order("created_at", { ascending: false, nullsFirst: false })
+        .order("id", { ascending: false });
+    } else if (sort === "created_asc") {
+      orderedQuery = baseQuery
+        .order("created_at", { ascending: true, nullsFirst: true })
+        .order("id", { ascending: true });
     } else {
-      query = query.order("created_at", { ascending: false });
+      orderedQuery = baseQuery
+        .order("created_at", { ascending: false, nullsFirst: false })
+        .order("id", { ascending: false });
     }
 
-    const { data, error } = await query.limit(limit);
+    const { data, error } = await orderedQuery.limit(limit);
 
     if (error) {
       return NextResponse.json(
@@ -58,9 +76,23 @@ export async function GET(request: Request) {
       );
     }
 
-    return NextResponse.json({
-      messages: data ?? [],
-    });
+    const messages = Array.isArray(data) ? data : [];
+
+    return NextResponse.json(
+      {
+        messages,
+        count: messages.length,
+        micrositeId,
+        threadBlockId,
+        sort,
+        limit,
+      },
+      {
+        headers: {
+          "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+        },
+      },
+    );
   } catch {
     return NextResponse.json(
       { error: "Failed to load thread messages." },
@@ -119,9 +151,16 @@ export async function POST(request: Request) {
       );
     }
 
-    return NextResponse.json({
-      message: data,
-    });
+    return NextResponse.json(
+      {
+        message: data,
+      },
+      {
+        headers: {
+          "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+        },
+      },
+    );
   } catch {
     return NextResponse.json(
       { error: "Failed to create thread message." },
