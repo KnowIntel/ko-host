@@ -111,9 +111,10 @@ export default async function PublishedMicrositePage({
   }
 
   const microsite = data as MicrositeRow;
-if (!microsite.draft) {
-  console.warn("No draft found for microsite:", microsite.id);
-}
+
+  if (!microsite.draft) {
+    console.warn("No draft found for microsite:", microsite.id);
+  }
 
   if (microsite.is_active === false) {
     return (
@@ -202,21 +203,27 @@ if (!microsite.draft) {
 
   const firstPage = (pages?.[0] || null) as MicrositePageRow | null;
   const homeDraft = firstPage?.draft ?? null;
+
   const draft =
-  (homeDraft && homeDraft.blocks?.length ? homeDraft : null) ??
-  microsite.draft ??
-  null;
+    (homeDraft && homeDraft.blocks?.length ? homeDraft : null) ??
+    microsite.draft ??
+    null;
+
   const designKey = microsite.selected_design_key || "blank";
-    const pageColor =
-    ((draft as any)?.pageColor && String((draft as any).pageColor).trim()) ||
-    "#fcfbf8";
+
+  const pageColor =
+    (((draft as any)?.pageColor && String((draft as any).pageColor).trim()) ||
+      "#fcfbf8") as string;
 
   const pageBackgroundImage = String(
     (draft as any)?.pageBackgroundImage || "",
   ).trim();
 
   const pageBackgroundImageFit =
-    (draft as any)?.pageBackgroundImageFit || "zoom";
+    ((draft as any)?.pageBackgroundImageFit || "zoom") as
+      | "clip"
+      | "zoom"
+      | "stretch";
 
   const pageBackgroundSize =
     pageBackgroundImageFit === "clip"
@@ -237,10 +244,14 @@ if (!microsite.draft) {
   return (
     <>
       <main
-        className="min-h-screen w-full overflow-hidden text-neutral-900"
+        className="w-full text-neutral-900"
         style={{
+          minHeight: "100vh",
+          width: "100%",
           margin: 0,
           padding: 0,
+          overflowX: "visible",
+          overflowY: "visible",
           backgroundColor: pageColor,
           ...(pageBackgroundImage
             ? {
@@ -252,14 +263,23 @@ if (!microsite.draft) {
             : {}),
         }}
       >
-        <PlacedBlocksPreview
-          draft={draft}
-          designKey={designKey}
-          micrositeId={microsite.id}
-          fixedScale={1}
-          disableAutoScale={true}
-          hideFrame={true}
-        />
+        <div
+          style={{
+            width: "100%",
+            margin: 0,
+            padding: 0,
+            overflow: "visible",
+          }}
+        >
+          <PlacedBlocksPreview
+            draft={draft}
+            designKey={designKey}
+            micrositeId={microsite.id}
+            fixedScale={1}
+            disableAutoScale={true}
+            hideFrame={true}
+          />
+        </div>
       </main>
 
       <MicrositeFooterBrand />
