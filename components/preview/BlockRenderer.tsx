@@ -1295,7 +1295,7 @@ function renderThread(
         designKey={designKey}
         className={getSoftSurfaceClass(designKey)}
       >
-        <div className="flex h-full w-full flex-col overflow-hidden">
+                <div className="flex h-full w-full min-h-0 flex-col overflow-hidden">
           <div
             className={`shrink-0 border-b pb-3 ${getThreadDividerClass(designKey)}`}
           >
@@ -1347,7 +1347,14 @@ function renderThread(
                   }
                   placeholder={block.data.namePlaceholder || "Your name"}
                   className={getThreadComposerInputClass(designKey)}
-                  style={getThreadTextStyle(block.data.style, designKey)}
+                  style={{
+                    ...getThreadTextStyle(block.data.style, designKey),
+                    width: "100%",
+                    boxSizing: "border-box",
+                    position: "relative",
+                    zIndex: 2,
+                    pointerEvents: "auto",
+                  }}
                 />
               ) : null}
 
@@ -1361,7 +1368,14 @@ function renderThread(
                 }
                 placeholder={block.data.composerPlaceholder || "Write something…"}
                 className={`${getThreadComposerInputClass(designKey)} min-h-[96px] w-full resize-none`}
-                style={getThreadTextStyle(block.data.style, designKey)}
+                style={{
+                  ...getThreadTextStyle(block.data.style, designKey),
+                  width: "100%",
+                  boxSizing: "border-box",
+                  position: "relative",
+                  zIndex: 2,
+                  pointerEvents: "auto",
+                }}
               />
 
               <div className="mt-2 flex items-center justify-between gap-3">
@@ -1411,8 +1425,9 @@ function renderThread(
           <div
             className={getThreadScrollClass(designKey)}
             style={{
-              height: `${scrollHeight}px`,
-              minHeight: `${scrollHeight}px`,
+              flex: "1 1 auto",
+              minHeight: 0,
+              maxHeight: `${scrollHeight}px`,
               overflowY: "auto",
               overflowX: "hidden",
             }}
@@ -1421,9 +1436,9 @@ function renderThread(
               <div className="rounded-xl border border-dashed border-neutral-300 px-3 py-4 text-sm text-neutral-500">
                 Loading messages...
               </div>
-            ) : (
-              <div className="space-y-3">
-                {messages.map((message) => (
+              ) : (
+                <div className="space-y-3 pr-1">
+                  {messages.map((message) => (
                   <div key={message.id} className={getThreadCardClass(designKey)}>
                     <div className="flex items-start gap-3">
                       {showVoteControls ? (

@@ -504,46 +504,52 @@ const showDescription =
   return (
     <div
       ref={containerRef}
-      className={hideFrame ? "w-full overflow-visible" : "mx-auto w-full overflow-hidden"}
+      className="w-full overflow-visible"
       style={{
         height: hideFrame ? "auto" : scaledHeight,
+        margin: 0,
+        padding: 0,
       }}
     >
       <div
-        className={hideFrame ? "w-full" : "mx-auto"}
+        className="w-full"
         style={{
           width: hideFrame ? PAGE_WIDTH * resolvedScale : scaledWidth,
           height: hideFrame ? pageHeight * resolvedScale : scaledHeight,
           position: "relative",
+          margin: 0,
+          padding: 0,
         }}
       >
         <div
           className="relative"
-        style={{
-          width: PAGE_WIDTH,
-          height: pageHeight,
-          transform: `scale(${resolvedScale})`,
-          transformOrigin: "top left",
-          ...(transparentPageBackground
-            ? {}
-            : getCanvasInnerBackgroundStyle(draft, designKey, metadata)),
-          backgroundColor: transparentPageBackground ? "transparent" : pageColor,
-          ...(pageBackgroundImage && !transparentPageBackground
-            ? {
-                backgroundImage: `url("${pageBackgroundImage}")`,
-                backgroundSize: pageBackgroundSize,
-                backgroundPosition: "center center",
-                backgroundRepeat: "no-repeat",
-              }
-            : {}),
-          ...(hideFrame
-            ? {}
-            : {
-                border: "1px solid rgba(0,0,0,0.10)",
-                borderRadius: "8px",
-                boxShadow: "0 1px 2px rgba(0,0,0,0.06)",
-              }),
-        }}
+          style={{
+            width: PAGE_WIDTH,
+            height: pageHeight,
+            transform: `scale(${resolvedScale})`,
+            transformOrigin: "top left",
+            margin: 0,
+            padding: 0,
+            ...(transparentPageBackground
+              ? {}
+              : getCanvasInnerBackgroundStyle(draft, designKey, metadata)),
+            backgroundColor: transparentPageBackground ? "transparent" : pageColor,
+            ...(pageBackgroundImage && !transparentPageBackground
+              ? {
+                  backgroundImage: `url("${pageBackgroundImage}")`,
+                  backgroundSize: pageBackgroundSize,
+                  backgroundPosition: "center center",
+                  backgroundRepeat: "no-repeat",
+                }
+              : {}),
+            ...(hideFrame
+              ? {}
+              : {
+                  border: "1px solid rgba(0,0,0,0.10)",
+                  borderRadius: "8px",
+                  boxShadow: "0 1px 2px rgba(0,0,0,0.06)",
+                }),
+          }}
         >
           {showTitle ? (
             <div style={getItemStyle(titleGrid)}>
@@ -593,25 +599,30 @@ const showDescription =
             </div>
           ) : null}
 
-          {blockEntries.map(({ block, grid }) => (
-            <div key={block.id} style={getItemStyle(grid)}>
-              <div
-                className="h-full w-full"
-                style={{
-                  transform: `scale(${blockRenderScale})`,
-                  transformOrigin: "top left",
-                  width: `${100 / blockRenderScale}%`,
-                  height: `${100 / blockRenderScale}%`,
-                }}
-              >
-                <BlockRenderer
-                  block={block}
-                  designKey={designKey}
-                  micrositeId={micrositeId}
-                />
-              </div>
-            </div>
-          ))}
+{blockEntries.map(({ block, grid }) => (
+  <div
+    key={block.id}
+    style={{
+      ...getItemStyle(grid),
+      overflow: "visible",
+      pointerEvents: "auto",
+    }}
+  >
+    <div
+      className="h-full w-full"
+      style={{
+        overflow: "visible",
+        pointerEvents: "auto",
+      }}
+    >
+      <BlockRenderer
+        block={block}
+        designKey={designKey}
+        micrositeId={micrositeId}
+      />
+    </div>
+  </div>
+))}
         </div>
       </div>
     </div>

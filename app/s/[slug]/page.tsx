@@ -207,6 +207,23 @@ if (!microsite.draft) {
   microsite.draft ??
   null;
   const designKey = microsite.selected_design_key || "blank";
+    const pageColor =
+    ((draft as any)?.pageColor && String((draft as any).pageColor).trim()) ||
+    "#fcfbf8";
+
+  const pageBackgroundImage = String(
+    (draft as any)?.pageBackgroundImage || "",
+  ).trim();
+
+  const pageBackgroundImageFit =
+    (draft as any)?.pageBackgroundImageFit || "zoom";
+
+  const pageBackgroundSize =
+    pageBackgroundImageFit === "clip"
+      ? "contain"
+      : pageBackgroundImageFit === "stretch"
+        ? "100% 100%"
+        : "cover";
 
   if (!draft) {
     return (
@@ -219,17 +236,30 @@ if (!microsite.draft) {
 
   return (
     <>
-      <main className="min-h-screen w-full bg-transparent text-neutral-900">
-        <div className="w-full">
-          <PlacedBlocksPreview
-            draft={draft}
-            designKey={designKey}
-            micrositeId={microsite.id}
-            fixedScale={1}
-            disableAutoScale={true}
-            hideFrame={true}
-          />
-        </div>
+      <main
+        className="min-h-screen w-full overflow-hidden text-neutral-900"
+        style={{
+          margin: 0,
+          padding: 0,
+          backgroundColor: pageColor,
+          ...(pageBackgroundImage
+            ? {
+                backgroundImage: `url("${pageBackgroundImage}")`,
+                backgroundSize: pageBackgroundSize,
+                backgroundPosition: "center center",
+                backgroundRepeat: "no-repeat",
+              }
+            : {}),
+        }}
+      >
+        <PlacedBlocksPreview
+          draft={draft}
+          designKey={designKey}
+          micrositeId={microsite.id}
+          fixedScale={1}
+          disableAutoScale={true}
+          hideFrame={true}
+        />
       </main>
 
       <MicrositeFooterBrand />
