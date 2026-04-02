@@ -513,6 +513,121 @@ function createDefaultGrid(): GridPlacement {
   };
 }
 
+function createDefaultThreadGrid(): GridPlacement {
+  return {
+    colStart: 1,
+    rowStart: 1,
+    colSpan: 8,
+    rowSpan: 8,
+    zIndex: 1,
+  };
+}
+
+function normalizeGridValue(
+  grid: GridPlacement | undefined,
+  fallback: GridPlacement,
+): GridPlacement {
+  const colStart =
+    typeof grid?.colStart === "number" && Number.isFinite(grid.colStart)
+      ? grid.colStart
+      : fallback.colStart;
+
+  const rowStart =
+    typeof grid?.rowStart === "number" && Number.isFinite(grid.rowStart)
+      ? grid.rowStart
+      : fallback.rowStart;
+
+  const colSpan =
+    typeof grid?.colSpan === "number" && Number.isFinite(grid.colSpan)
+      ? grid.colSpan
+      : fallback.colSpan;
+
+  const rowSpan =
+    typeof grid?.rowSpan === "number" && Number.isFinite(grid.rowSpan)
+      ? grid.rowSpan
+      : fallback.rowSpan;
+
+  const zIndex =
+    typeof grid?.zIndex === "number" && Number.isFinite(grid.zIndex)
+      ? grid.zIndex
+      : fallback.zIndex;
+
+  return {
+    colStart,
+    rowStart,
+    colSpan,
+    rowSpan,
+    zIndex,
+  };
+}
+
+function normalizeThreadBlock(
+  block: MessageThreadBlock,
+): MessageThreadBlock {
+  const fallbackGrid = createDefaultThreadGrid();
+  const normalizedGrid = normalizeGridValue(block.grid, fallbackGrid);
+
+  const nextColSpan =
+    normalizedGrid.colSpan < 6 ? fallbackGrid.colSpan : normalizedGrid.colSpan;
+
+  const nextRowSpan =
+    normalizedGrid.rowSpan < 6 ? fallbackGrid.rowSpan : normalizedGrid.rowSpan;
+
+  return {
+    ...block,
+    grid: {
+      ...normalizedGrid,
+      colSpan: nextColSpan,
+      rowSpan: nextRowSpan,
+    },
+    data: {
+      ...block.data,
+      messages: Array.isArray(block.data.messages) ? block.data.messages : [],
+      subject:
+        typeof block.data.subject === "string" ? block.data.subject : "",
+      allowAnonymous: Boolean(block.data.allowAnonymous),
+      requireApproval: Boolean(block.data.requireApproval),
+      composerPlaceholder:
+        typeof block.data.composerPlaceholder === "string"
+          ? block.data.composerPlaceholder
+          : "Write something…",
+      namePlaceholder:
+        typeof block.data.namePlaceholder === "string"
+          ? block.data.namePlaceholder
+          : "Your name",
+      showNameField: block.data.showNameField !== false,
+      showVoteControls: block.data.showVoteControls !== false,
+      showVoteCount: block.data.showVoteCount !== false,
+      postButtonText:
+        typeof block.data.postButtonText === "string" &&
+        block.data.postButtonText.trim()
+          ? block.data.postButtonText
+          : "Post",
+      postButtonStyle:
+        block.data.postButtonStyle === "outline" ||
+        block.data.postButtonStyle === "soft" ||
+        block.data.postButtonStyle === "solid"
+          ? block.data.postButtonStyle
+          : "solid",
+      maxVisibleMessages:
+        typeof block.data.maxVisibleMessages === "number" &&
+        Number.isFinite(block.data.maxVisibleMessages)
+          ? Math.max(1, Math.min(100, Math.floor(block.data.maxVisibleMessages)))
+          : 4,
+      scrollHeight:
+        typeof block.data.scrollHeight === "number" &&
+        Number.isFinite(block.data.scrollHeight)
+          ? Math.max(120, Math.min(1000, Math.floor(block.data.scrollHeight)))
+          : 280,
+      style: {
+        ...createDefaultTextStyle(),
+        fontSize: 30,
+        ...(block.data.style ?? {}),
+      },
+    },
+  };
+}
+
 /* =========================================
    Block Factory
    ========================================= */
@@ -802,7 +917,7 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
         id: makeId("thread"),
         type: "thread",
         label: "Message Thread",
-        grid,
+        grid: createDefaultThreadGrid(),
         appearance: createDefaultBlockAppearance(),
         data: {
           messages: [],
@@ -908,6 +1023,31 @@ export function sanitizeBuilderDraft(input: unknown): BuilderDraft {
   const draft =
     input && typeof input === "object" ? (input as Partial<BuilderDraft>) : {};
 
+  const rawBlocks = Array.isArray(draft.blocks)
+    ? (draft.blocks as MicrositeBlock[])
+    : [];
+
+  const normalizedBlocks = rawBlocks.map((block, index) => {
+    if (!block || typeof block !== "object") {
+      return block;
+    }
+
+    if (block.type === "thread") {
+      return normalizeThreadBlock(block as MessageThreadBlock);
+    }
+
+    const fallbackGrid = {
+      ...createDefaultGrid(),
+      rowStart: index + 1,
+      zIndex: index + 1,
+    };
+
+    return {
+      ...block,
+      grid: normalizeGridValue(block.grid, fallbackGrid),
+    };
+  }) as MicrositeBlock[];
+
   return {
     title: typeof draft.title === "string" ? draft.title : "",
     subtitle: typeof draft.subtitle === "string" ? draft.subtitle : "",
@@ -934,8 +1074,7 @@ export function sanitizeBuilderDraft(input: unknown): BuilderDraft {
         ? Math.max(10, Math.min(100, draft.pageScale))
         : 85,
 
-    pageColor:
-      typeof draft.pageColor === "string" ? draft.pageColor : "",
+    pageColor: typeof draft.pageColor === "string" ? draft.pageColor : "",
 
     pageBackgroundImage:
       typeof draft.pageBackgroundImage === "string"
@@ -964,6 +1103,6 @@ export function sanitizeBuilderDraft(input: unknown): BuilderDraft {
         ? draft.pageBlockAppearance
         : {},
 
-    blocks: Array.isArray(draft.blocks) ? (draft.blocks as MicrositeBlock[]) : [],
+    blocks: normalizedBlocks,
   };
 }
