@@ -1,7 +1,7 @@
-// components\preview\BlockRenderer.tsx
+//  components\preview\BlockRenderer.tsx
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import type {
   CarouselImageItem,
@@ -10,8 +10,6 @@ import type {
   PollOption,
   FaqItem,
   TextStyle,
-  GalleryImage,
-  ShowcaseImage,
   ThreadMessage,
 } from "@/lib/templates/builder";
 
@@ -72,6 +70,29 @@ const rajdhani = Rajdhani({ subsets: ["latin"], weight: ["400", "600"] });
 const teko = Teko({ subsets: ["latin"] });
 const abril = Abril_Fatface({ subsets: ["latin"], weight: "400" });
 
+const dancingScript = Dancing_Script({ subsets: ["latin"] });
+const pacifico = Pacifico({ subsets: ["latin"], weight: "400" });
+const allura = Allura({ subsets: ["latin"], weight: "400" });
+const parisienne = Parisienne({ subsets: ["latin"], weight: "400" });
+const sacramento = Sacramento({ subsets: ["latin"], weight: "400" });
+const playball = Playball({ subsets: ["latin"], weight: "400" });
+const satisfy = Satisfy({ subsets: ["latin"], weight: "400" });
+const tangerine = Tangerine({ subsets: ["latin"], weight: ["400", "700"] });
+const prata = Prata({ subsets: ["latin"], weight: "400" });
+const marcellus = Marcellus({ subsets: ["latin"], weight: "400" });
+const bodoniModa = Bodoni_Moda({ subsets: ["latin"] });
+const cinzel = Cinzel({ subsets: ["latin"] });
+const libreBaskerville = Libre_Baskerville({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+});
+const merriweather = Merriweather({ subsets: ["latin"] });
+const lora = Lora({ subsets: ["latin"] });
+const crimsonText = Crimson_Text({
+  subsets: ["latin"],
+  weight: ["400", "600", "700"],
+});
+
 const FONT_FAMILY_MAP: Record<string, string> = {
   Inter: 'var(--font-inter), Inter, ui-sans-serif, system-ui, sans-serif',
   "DM Sans":
@@ -84,15 +105,14 @@ const FONT_FAMILY_MAP: Record<string, string> = {
     'var(--font-cormorant), "Cormorant Garamond", ui-serif, Georgia, serif',
   "Great Vibes": 'var(--font-great-vibes), "Great Vibes", cursive',
 
-  "Dancing Script":
-    'var(--font-dancing-script), "Dancing Script", cursive',
-  Pacifico: 'var(--font-pacifico), Pacifico, cursive',
-  Allura: 'var(--font-allura), Allura, cursive',
-  Parisienne: 'var(--font-parisienne), Parisienne, cursive',
-  Sacramento: 'var(--font-sacramento), Sacramento, cursive',
-  Playball: 'var(--font-playball), Playball, cursive',
-  Satisfy: 'var(--font-satisfy), Satisfy, cursive',
-  Tangerine: 'var(--font-tangerine), Tangerine, cursive',
+  "Dancing Script": `${dancingScript.style.fontFamily}, cursive`,
+  Pacifico: `${pacifico.style.fontFamily}, cursive`,
+  Allura: `${allura.style.fontFamily}, cursive`,
+  Parisienne: `${parisienne.style.fontFamily}, cursive`,
+  Sacramento: `${sacramento.style.fontFamily}, cursive`,
+  Playball: `${playball.style.fontFamily}, cursive`,
+  Satisfy: `${satisfy.style.fontFamily}, cursive`,
+  Tangerine: `${tangerine.style.fontFamily}, cursive`,
 
   Montserrat:
     'var(--font-montserrat), Montserrat, ui-sans-serif, system-ui, sans-serif',
@@ -137,20 +157,15 @@ const FONT_FAMILY_MAP: Record<string, string> = {
   "IBM Plex Sans":
     'var(--font-ibm-plex-sans), "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif',
 
-  Merriweather:
-    'var(--font-merriweather), Merriweather, ui-serif, Georgia, serif',
-  "Libre Baskerville":
-    'var(--font-libre-baskerville), "Libre Baskerville", ui-serif, Georgia, serif',
-  "Abril Fatface":
-    'var(--font-abril-fatface), "Abril Fatface", ui-serif, Georgia, serif',
-  Cinzel: 'var(--font-cinzel), Cinzel, ui-serif, Georgia, serif',
-  "Crimson Text":
-    'var(--font-crimson-text), "Crimson Text", ui-serif, Georgia, serif',
-  Lora: 'var(--font-lora), Lora, ui-serif, Georgia, serif',
-  Prata: 'var(--font-prata), Prata, ui-serif, Georgia, serif',
-  Marcellus: 'var(--font-marcellus), Marcellus, ui-serif, Georgia, serif',
-  "Bodoni Moda":
-    'var(--font-bodoni-moda), "Bodoni Moda", ui-serif, Georgia, serif',
+  Merriweather: `${merriweather.style.fontFamily}, ui-serif, Georgia, serif`,
+  "Libre Baskerville": `${libreBaskerville.style.fontFamily}, ui-serif, Georgia, serif`,
+  "Abril Fatface": `${abril.style.fontFamily}, ui-serif, Georgia, serif`,
+  Cinzel: `${cinzel.style.fontFamily}, ui-serif, Georgia, serif`,
+  "Crimson Text": `${crimsonText.style.fontFamily}, ui-serif, Georgia, serif`,
+  Lora: `${lora.style.fontFamily}, ui-serif, Georgia, serif`,
+  Prata: `${prata.style.fontFamily}, ui-serif, Georgia, serif`,
+  Marcellus: `${marcellus.style.fontFamily}, ui-serif, Georgia, serif`,
+  "Bodoni Moda": `${bodoniModa.style.fontFamily}, ui-serif, Georgia, serif`,
   "IBM Plex Serif":
     'var(--font-ibm-plex-serif), "IBM Plex Serif", ui-serif, Georgia, serif',
 
@@ -231,42 +246,8 @@ function getLinkItemClass(designKey?: string) {
     : "rounded-lg border border-white/10 bg-white/5 px-3 py-2";
 }
 
-function getButtonClass(designKey?: string) {
-  if (designKey === "showcase") {
-    return "flex h-full w-full items-center justify-center rounded-full bg-neutral-900 px-4 py-2";
-  }
-
-  if (designKey === "festive") {
-    return "flex h-full w-full items-center justify-center rounded-full bg-red-700 px-4 py-2";
-  }
-
-  if (designKey === "elegant") {
-    return "flex h-full w-full items-center justify-center rounded-full border border-stone-400 bg-white/70 px-4 py-2 backdrop-blur-sm";
-  }
-
-  if (designKey === "business") {
-    return "flex h-full w-full items-center justify-center rounded-xl bg-neutral-900 px-5 py-3";
-  }
-
-  if (designKey === "blank") {
-    return "flex h-full w-full items-center justify-center rounded-xl bg-neutral-900 px-4 py-2";
-  }
-
-  return "flex h-full w-full items-center justify-center rounded-md bg-gradient-to-r from-violet-500 to-fuchsia-500 px-4 py-2 shadow-lg";
-}
-
 function getDefaultTextColor(designKey?: string) {
   return isLightDesign(designKey) ? "#111827" : "#ffffff";
-}
-
-function getButtonTextStyle(
-  style?: TextStyle,
-  designKey?: string,
-): React.CSSProperties {
-  return {
-    ...getTextStyle(style),
-    color: style?.color || (designKey === "elegant" ? "#44403c" : "#ffffff"),
-  };
 }
 
 function getContainerTextStyle(
@@ -279,18 +260,60 @@ function getContainerTextStyle(
   };
 }
 
-function getThreadTextStyle(
+function getThreadBaseFontSize(style?: TextStyle) {
+  return typeof style?.fontSize === "number" && style.fontSize > 0
+    ? style.fontSize
+    : 30;
+}
+
+function getThreadHeadingStyle(
   style?: TextStyle,
   designKey?: string,
 ): React.CSSProperties {
+  const base = getThreadBaseFontSize(style);
   return {
     ...getContainerTextStyle(
       {
-        fontSize: 30,
         ...style,
+        fontSize: Math.max(18, base),
       },
       designKey,
     ),
+    lineHeight: 1.1,
+  };
+}
+
+function getThreadBodyStyle(
+  style?: TextStyle,
+  designKey?: string,
+): React.CSSProperties {
+  const base = getThreadBaseFontSize(style);
+  return {
+    ...getContainerTextStyle(
+      {
+        ...style,
+        fontSize: Math.max(14, Math.min(base, 30)),
+      },
+      designKey,
+    ),
+    lineHeight: 1.25,
+  };
+}
+
+function getThreadMetaStyle(
+  style?: TextStyle,
+  designKey?: string,
+): React.CSSProperties {
+  const base = getThreadBaseFontSize(style);
+  return {
+    ...getContainerTextStyle(
+      {
+        ...style,
+        fontSize: Math.max(11, Math.min(Math.round(base * 0.52), 16)),
+      },
+      designKey,
+    ),
+    lineHeight: 1.2,
   };
 }
 
@@ -369,24 +392,8 @@ function getImageObjectFit(
   return "cover";
 }
 
-function getImageTransformStyle(
-  block: Extract<MicrositeBlock, { type: "image" }>,
-): React.CSSProperties {
-  const rotation = Number(block.data.image.rotation ?? 0);
-  const positionX = Number(block.data.image.positionX ?? 50);
-  const positionY = Number(block.data.image.positionY ?? 50);
-
-  return {
-    objectFit: getImageObjectFit(block),
-    objectPosition: `${positionX}% ${positionY}%`,
-    transform: rotation ? `rotate(${rotation}deg)` : undefined,
-    transformOrigin: "center center",
-  };
-}
-
 function Surface({
   block,
-  designKey,
   children,
   className = "",
   padded = true,
@@ -399,7 +406,9 @@ function Surface({
 }) {
   return (
     <div
-      className={["h-full w-full", padded ? "p-4" : "", className].join(" ")}
+      className={["h-full w-full min-h-0", padded ? "p-4" : "", className].join(
+        " ",
+      )}
       style={getAppearanceStyle(block)}
     >
       {children}
@@ -704,19 +713,13 @@ function renderLinks(
   );
 }
 
-function renderGalleryTile(
-  image: any,
-  index: number,
-  designKey?: string,
-) {
+function renderGalleryTile(image: any, index: number) {
   if (!image?.url) {
     return (
       <div
         key={`gallery-empty-${index}`}
         className="flex h-full w-full items-center justify-center overflow-hidden bg-neutral-100 text-[10px] text-neutral-400"
-        style={{
-          borderRadius: "16px",
-        }}
+        style={{ borderRadius: "16px" }}
       >
         Empty
       </div>
@@ -724,29 +727,20 @@ function renderGalleryTile(
   }
 
   const shape = image.shape ?? "square";
-
   const borderRadius =
-    shape === "circle"
-      ? "9999px"
-      : shape === "rounded"
-        ? "16px"
-        : "0px";
+    shape === "circle" ? "9999px" : shape === "rounded" ? "16px" : "0px";
 
   return (
     <div
       key={image.id || image.url || `gallery-${index}`}
       className="h-full w-full overflow-hidden"
-      style={{
-        borderRadius,
-      }}
+      style={{ borderRadius }}
     >
       <img
         src={image.url}
         alt={image.alt || ""}
         className="h-full w-full object-cover"
-        style={{
-          borderRadius,
-        }}
+        style={{ borderRadius }}
       />
     </div>
   );
@@ -791,7 +785,7 @@ function renderGallery(
         }}
       >
         {Array.from({ length: tileCount }).map((_, index) =>
-          renderGalleryTile(images[index], index, designKey),
+          renderGalleryTile(images[index], index),
         )}
       </div>
     </div>
@@ -870,9 +864,7 @@ function renderFaq(
       designKey={designKey}
       className={getSoftSurfaceClass(designKey)}
     >
-      <div style={getContainerTextStyle(block.data.style, designKey)}>
-        FAQs
-      </div>
+      <div style={getContainerTextStyle(block.data.style, designKey)}>FAQs</div>
 
       <div className="mt-3 space-y-2">
         {block.data.items.map((item: FaqItem) => (
@@ -922,7 +914,7 @@ function getThreadCardClass(designKey?: string) {
 function getThreadComposerClass(designKey?: string) {
   return isLightDesign(designKey)
     ? "rounded-2xl border border-neutral-200 bg-white px-4 py-3 shadow-sm"
-    : "rounded-2xl border border-white/10 bg-white/5 px-4 py-3";
+    : "rounded-2xl border border-white/10 bg-white/5 px-4 py-3 shadow-sm";
 }
 
 function getThreadAvatarClass(designKey?: string) {
@@ -937,14 +929,14 @@ function getThreadDividerClass(designKey?: string) {
 
 function getThreadComposerInputClass(designKey?: string) {
   return isLightDesign(designKey)
-    ? "mt-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm text-neutral-500"
-    : "mt-3 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/55";
+    ? "mt-3 block w-full rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-neutral-900 outline-none focus:border-neutral-400"
+    : "mt-3 block w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-white outline-none focus:border-white/30";
 }
 
 function getThreadScrollClass(designKey?: string) {
   return isLightDesign(designKey)
-    ? "mt-4 min-h-0 flex-1 overflow-y-auto pr-1 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-neutral-300 hover:scrollbar-thumb-neutral-400"
-    : "mt-4 min-h-0 flex-1 overflow-y-auto pr-1 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/15 hover:scrollbar-thumb-white/25";
+    ? "mt-4 min-h-0 flex-1 overflow-y-auto overflow-x-hidden pr-1 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-neutral-300 hover:scrollbar-thumb-neutral-400"
+    : "mt-4 min-h-0 flex-1 overflow-y-auto overflow-x-hidden pr-1 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/15 hover:scrollbar-thumb-white/25";
 }
 
 function getThreadPostButtonClass(
@@ -984,16 +976,19 @@ function getThreadSampleMessages(
       id: "sample-1",
       name: block.data.allowAnonymous ? "Anon" : "Jordan",
       message: "Looking forward to this.",
+      votes: 3,
     },
     {
       id: "sample-2",
       name: block.data.allowAnonymous ? "Anon" : "Taylor",
       message: "Can’t wait to join the conversation.",
+      votes: 2,
     },
     {
       id: "sample-3",
       name: block.data.allowAnonymous ? "Anon" : "Morgan",
       message: "Following for updates.",
+      votes: 1,
     },
   ];
 }
@@ -1003,6 +998,44 @@ function getInitials(name?: string) {
   if (!safe) return "G";
   const parts = safe.split(/\s+/).slice(0, 2);
   return parts.map((part) => part[0]?.toUpperCase() || "").join("") || "G";
+}
+
+function normalizeThreadMessages(rawMessages: any[]): ThreadMessage[] {
+  if (!Array.isArray(rawMessages)) return [];
+
+  return rawMessages
+    .map((message, index) => {
+      const createdAtValue =
+        typeof message.created_at === "string" ? message.created_at : "";
+
+      const createdAtTimestamp = createdAtValue
+        ? Date.parse(createdAtValue)
+        : Number.NaN;
+
+      return {
+        id: String(message.id ?? `threadmsg_${index}`),
+        name: String(message.author_name ?? message.name ?? "Guest"),
+        message: String(message.message_text ?? message.message ?? ""),
+        votes:
+          typeof message.votes === "number"
+            ? message.votes
+            : Number(message.votes ?? 0) || 0,
+        created_at: createdAtValue || undefined,
+        _sortTimestamp: Number.isNaN(createdAtTimestamp)
+          ? Number.MAX_SAFE_INTEGER - index
+          : createdAtTimestamp,
+      } as ThreadMessage & { _sortTimestamp?: number };
+    })
+    .sort((a, b) => {
+      const aTime = (a as any)._sortTimestamp ?? 0;
+      const bTime = (b as any)._sortTimestamp ?? 0;
+      return aTime - bTime;
+    })
+    .map((message) => {
+      const clone = { ...message } as any;
+      delete clone._sortTimestamp;
+      return clone as ThreadMessage;
+    });
 }
 
 function renderThread(
@@ -1017,7 +1050,7 @@ function renderThread(
           ...message,
           votes: typeof message.votes === "number" ? message.votes : 0,
         })),
-      [block],
+      [block.id, block.data.messages, block.data.allowAnonymous],
     );
 
     const [messages, setMessages] = useState<ThreadMessage[]>(initialMessages);
@@ -1027,22 +1060,27 @@ function renderThread(
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [voteLoadingId, setVoteLoadingId] = useState<string | null>(null);
     const [threadError, setThreadError] = useState("");
+    const [hasOverflow, setHasOverflow] = useState(false);
+
+    const scrollAreaRef = useRef<HTMLDivElement | null>(null);
+
+    const showAnonymousBadge = Boolean(block.data.allowAnonymous);
+    const showApprovalBadge = Boolean(block.data.requireApproval);
+    const showNameField = block.data.showNameField !== false;
+    const showVoteControls = block.data.showVoteControls !== false;
+    const showVoteCount = block.data.showVoteCount !== false;
+    const scrollHeight = Math.max(120, Number(block.data.scrollHeight) || 280);
 
     useEffect(() => {
+      if (!micrositeId) {
+        setMessages(initialMessages);
+        setIsLoading(false);
+        return;
+      }
+
       let isCancelled = false;
 
       async function loadMessages() {
-        if (!micrositeId) {
-          setMessages(
-            getThreadSampleMessages(block).map((message) => ({
-              ...message,
-              votes: typeof message.votes === "number" ? message.votes : 0,
-            })),
-          );
-          setIsLoading(false);
-          return;
-        }
-
         try {
           setIsLoading(true);
           setThreadError("");
@@ -1063,16 +1101,7 @@ function renderThread(
           }
 
           if (!isCancelled) {
-            const nextMessages = Array.isArray(data?.messages)
-              ? data.messages.map((message: any) => ({
-                  id: String(message.id),
-                  name: String(message.author_name ?? "Guest"),
-                  message: String(message.message_text ?? ""),
-                  votes:
-                    typeof message.votes === "number" ? message.votes : 0,
-                }))
-              : [];
-
+            const nextMessages = normalizeThreadMessages(data?.messages ?? []);
             setMessages(nextMessages);
           }
         } catch (error) {
@@ -1091,19 +1120,62 @@ function renderThread(
         }
       }
 
+      function handleThreadUpdated(event: Event) {
+        const customEvent = event as CustomEvent<{
+          micrositeId?: string;
+          threadBlockId?: string;
+          type?: string;
+        }>;
+
+        if (customEvent.detail?.micrositeId !== micrositeId) return;
+        if (customEvent.detail?.threadBlockId !== block.id) return;
+        void loadMessages();
+      }
+
       void loadMessages();
+      window.addEventListener(
+        THREAD_ACTIVITY_EVENT,
+        handleThreadUpdated as EventListener,
+      );
 
       return () => {
         isCancelled = true;
+        window.removeEventListener(
+          THREAD_ACTIVITY_EVENT,
+          handleThreadUpdated as EventListener,
+        );
       };
-    }, [block, micrositeId]);
+    }, [
+      micrositeId,
+      block.id,
+      initialMessages,
+      block.data.allowAnonymous,
+      block.data.requireApproval,
+    ]);
 
-    const showAnonymousBadge = Boolean(block.data.allowAnonymous);
-    const showApprovalBadge = Boolean(block.data.requireApproval);
-    const showNameField = block.data.showNameField !== false;
-    const showVoteControls = block.data.showVoteControls !== false;
-    const showVoteCount = block.data.showVoteCount !== false;
-    const scrollHeight = Math.max(120, Number(block.data.scrollHeight) || 280);
+    useEffect(() => {
+      const node = scrollAreaRef.current;
+      if (!node) {
+        setHasOverflow(false);
+        return;
+      }
+
+      const checkOverflow = () => {
+        setHasOverflow(node.scrollHeight > node.clientHeight + 2);
+      };
+
+      checkOverflow();
+
+      const resizeObserver = new ResizeObserver(() => {
+        checkOverflow();
+      });
+
+      resizeObserver.observe(node);
+
+      return () => {
+        resizeObserver.disconnect();
+      };
+    }, [messages, isLoading, scrollHeight]);
 
     const trimmedMessageValue = messageValue.trim();
     const isPostDisabled = isSubmitting || !trimmedMessageValue;
@@ -1129,7 +1201,7 @@ function renderThread(
       };
 
       if (!micrositeId) {
-        setMessages((prev) => [optimisticMessage, ...prev]);
+        setMessages((prev) => [...prev, optimisticMessage]);
         setMessageValue("");
         setNameValue("");
         setThreadError("");
@@ -1159,16 +1231,38 @@ function renderThread(
           throw new Error(data?.error || "Failed to post message.");
         }
 
-        setMessages((prev) => [
-          {
-            id: String(data.message.id),
-            name: String(data.message.author_name ?? safeName),
-            message: String(data.message.message_text ?? safeMessage),
-            votes:
-              typeof data.message.votes === "number" ? data.message.votes : 0,
-          },
-          ...prev,
-        ]);
+        const createdMessage: ThreadMessage = {
+          id: String(data.message.id),
+          name: String(data.message.author_name ?? safeName),
+          message: String(data.message.message_text ?? safeMessage),
+          votes:
+            typeof data.message.votes === "number"
+              ? data.message.votes
+              : Number(data.message.votes ?? 0) || 0,
+          created_at:
+            typeof data.message.created_at === "string"
+              ? data.message.created_at
+              : undefined,
+        };
+
+        setMessages((prev) =>
+          normalizeThreadMessages([
+            ...prev.map((message) => ({
+              id: message.id,
+              author_name: message.name,
+              message_text: message.message,
+              votes: message.votes,
+              created_at: (message as any).created_at,
+            })),
+            {
+              id: createdMessage.id,
+              author_name: createdMessage.name,
+              message_text: createdMessage.message,
+              votes: createdMessage.votes,
+              created_at: createdMessage.created_at,
+            },
+          ]),
+        );
 
         setMessageValue("");
         setNameValue("");
@@ -1201,7 +1295,7 @@ function renderThread(
             message.id === messageId
               ? {
                   ...message,
-                  votes: (message.votes ?? 0) + delta,
+                  votes: Math.max(0, (message.votes ?? 0) + delta),
                 }
               : message,
           ),
@@ -1212,7 +1306,7 @@ function renderThread(
       const existing = messages.find((message) => message.id === messageId);
       if (!existing) return;
 
-      const optimisticVotes = (existing.votes ?? 0) + delta;
+      const optimisticVotes = Math.max(0, (existing.votes ?? 0) + delta);
 
       setVoteLoadingId(messageId);
       setThreadError("");
@@ -1295,13 +1389,15 @@ function renderThread(
         designKey={designKey}
         className={getSoftSurfaceClass(designKey)}
       >
-                <div className="flex h-full w-full min-h-0 flex-col overflow-hidden">
+        <div className="flex h-full w-full min-h-0 flex-col overflow-hidden">
           <div
-            className={`shrink-0 border-b pb-3 ${getThreadDividerClass(designKey)}`}
+            className={`shrink-0 border-b pb-3 ${getThreadDividerClass(
+              designKey,
+            )}`}
           >
             <div
-              className="text-base font-semibold"
-              style={getThreadTextStyle(block.data.style, designKey)}
+              className="font-semibold"
+              style={getThreadHeadingStyle(block.data.style, designKey)}
             >
               {block.data.subject || "Message Thread"}
             </div>
@@ -1318,21 +1414,16 @@ function renderThread(
               ) : null}
 
               {!showAnonymousBadge && !showApprovalBadge ? (
-                <div
-                  className={getThreadBadgeClass(designKey)}
-                  style={{ fontSize: "22px", lineHeight: 1.1 }}
-                >
-                  Open Thread
-                </div>
+                <div className={getThreadBadgeClass(designKey)}>Open Thread</div>
               ) : null}
             </div>
           </div>
 
-          <div className="mt-4 shrink-0">
+          <div className="mt-4 shrink-0 relative z-10 pointer-events-auto">
             <div className={getThreadComposerClass(designKey)}>
               <div
-                className="text-sm font-medium"
-                style={getContainerTextStyle(block.data.style, designKey)}
+                className="font-medium"
+                style={getThreadMetaStyle(block.data.style, designKey)}
               >
                 Post a message
               </div>
@@ -1348,12 +1439,10 @@ function renderThread(
                   placeholder={block.data.namePlaceholder || "Your name"}
                   className={getThreadComposerInputClass(designKey)}
                   style={{
-                    ...getThreadTextStyle(block.data.style, designKey),
-                    width: "100%",
-                    boxSizing: "border-box",
+                    ...getThreadBodyStyle(block.data.style, designKey),
+                    pointerEvents: "auto",
                     position: "relative",
                     zIndex: 2,
-                    pointerEvents: "auto",
                   }}
                 />
               ) : null}
@@ -1367,24 +1456,30 @@ function renderThread(
                   )
                 }
                 placeholder={block.data.composerPlaceholder || "Write something…"}
-                className={`${getThreadComposerInputClass(designKey)} min-h-[96px] w-full resize-none`}
+                className={`${getThreadComposerInputClass(
+                  designKey,
+                )} min-h-[96px] resize-none`}
                 style={{
-                  ...getThreadTextStyle(block.data.style, designKey),
-                  width: "100%",
-                  boxSizing: "border-box",
+                  ...getThreadBodyStyle(block.data.style, designKey),
+                  pointerEvents: "auto",
                   position: "relative",
                   zIndex: 2,
-                  pointerEvents: "auto",
                 }}
               />
 
               <div className="mt-2 flex items-center justify-between gap-3">
-                <div className="text-sm text-neutral-500">
+                <div
+                  style={getThreadMetaStyle(block.data.style, designKey)}
+                  className={isLightDesign(designKey) ? "text-neutral-500" : "text-white/55"}
+                >
                   {messageValue.length}/{THREAD_MAX_MESSAGE_LENGTH}
                 </div>
 
                 {showNameField ? (
-                  <div className="text-sm text-neutral-500">
+                  <div
+                    style={getThreadMetaStyle(block.data.style, designKey)}
+                    className={isLightDesign(designKey) ? "text-neutral-500" : "text-white/55"}
+                  >
                     {nameValue.length}/{THREAD_MAX_NAME_LENGTH}
                   </div>
                 ) : null}
@@ -1395,7 +1490,10 @@ function renderThread(
               ) : null}
 
               <div className="mt-3 flex items-center justify-between gap-3">
-                <div className="text-sm text-neutral-500">
+                <div
+                  style={getThreadMetaStyle(block.data.style, designKey)}
+                  className={isLightDesign(designKey) ? "text-neutral-500" : "text-white/55"}
+                >
                   {block.data.allowAnonymous
                     ? "Anonymous posting allowed"
                     : "Posting with name"}
@@ -1412,6 +1510,7 @@ function renderThread(
                   style={{
                     opacity: isPostDisabled ? 0.6 : 1,
                     cursor: isPostDisabled ? "not-allowed" : "pointer",
+                    pointerEvents: "auto",
                   }}
                 >
                   {isSubmitting
@@ -1423,22 +1522,25 @@ function renderThread(
           </div>
 
           <div
+            ref={scrollAreaRef}
             className={getThreadScrollClass(designKey)}
             style={{
-              flex: "1 1 auto",
               minHeight: 0,
               maxHeight: `${scrollHeight}px`,
-              overflowY: "auto",
-              overflowX: "hidden",
+              paddingRight: hasOverflow ? "0.25rem" : 0,
             }}
           >
             {isLoading ? (
               <div className="rounded-xl border border-dashed border-neutral-300 px-3 py-4 text-sm text-neutral-500">
                 Loading messages...
               </div>
-              ) : (
-                <div className="space-y-3 pr-1">
-                  {messages.map((message) => (
+            ) : !messages.length ? (
+              <div className="rounded-xl border border-dashed border-neutral-300 px-3 py-4 text-sm text-neutral-500">
+                No messages yet.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {messages.map((message) => (
                   <div key={message.id} className={getThreadCardClass(designKey)}>
                     <div className="flex items-start gap-3">
                       {showVoteControls ? (
@@ -1465,8 +1567,8 @@ function renderThread(
 
                           {showVoteCount ? (
                             <div
-                              className="text-xs font-semibold"
-                              style={getThreadTextStyle(block.data.style, designKey)}
+                              className="font-semibold"
+                              style={getThreadMetaStyle(block.data.style, designKey)}
                             >
                               {message.votes ?? 0}
                             </div>
@@ -1500,15 +1602,15 @@ function renderThread(
 
                       <div className="min-w-0 flex-1">
                         <div
-                          className="text-sm font-semibold"
-                          style={getThreadTextStyle(block.data.style, designKey)}
+                          className="font-semibold"
+                          style={getThreadMetaStyle(block.data.style, designKey)}
                         >
                           {message.name || "Guest"}
                         </div>
 
                         <div
-                          className="mt-1 text-sm"
-                          style={getThreadTextStyle(block.data.style, designKey)}
+                          className="mt-1"
+                          style={getThreadBodyStyle(block.data.style, designKey)}
                         >
                           {message.message || "Message preview"}
                         </div>
@@ -1516,12 +1618,6 @@ function renderThread(
                     </div>
                   </div>
                 ))}
-
-                {!messages.length ? (
-                  <div className="rounded-xl border border-dashed border-neutral-300 px-3 py-4 text-sm text-neutral-500">
-                    No messages yet.
-                  </div>
-                ) : null}
               </div>
             )}
           </div>
@@ -1738,12 +1834,7 @@ function renderImageCarousel(
   block: Extract<MicrositeBlock, { type: "image_carousel" }>,
   designKey?: string,
 ) {
-  return (
-    <ImageCarouselPreview
-      block={block}
-      designKey={designKey}
-    />
-  );
+  return <ImageCarouselPreview block={block} designKey={designKey} />;
 }
 
 function renderFormField(
@@ -1796,7 +1887,6 @@ function renderFormField(
 
 function renderShowcase(
   block: Extract<MicrositeBlock, { type: "showcase" }>,
-  designKey?: string,
 ) {
   const images = block.data.images ?? [];
   const tileCount = Math.max(images.length, 9);
@@ -1808,7 +1898,7 @@ function renderShowcase(
     >
       <div className="grid h-full w-full grid-cols-3 gap-2">
         {Array.from({ length: tileCount }).map((_, index) =>
-          renderGalleryTile(images[index], index, designKey),
+          renderGalleryTile(images[index], index),
         )}
       </div>
     </div>
@@ -1842,10 +1932,6 @@ function renderFestiveBackground(
     </div>
   );
 }
-
-/* =========================================
-   TEXT FX RENDERER
-   ========================================= */
 
 function renderTextFx(
   block: Extract<MicrositeBlock, { type: "text_fx" }>,
@@ -2034,10 +2120,9 @@ function renderHighlight(
               sort: "votes_desc",
             });
 
-            const res = await fetch(
-              `/api/thread/messages?${params.toString()}`,
-              { cache: "no-store" },
-            );
+            const res = await fetch(`/api/thread/messages?${params.toString()}`, {
+              cache: "no-store",
+            });
 
             const data = await res.json();
 
@@ -2059,10 +2144,9 @@ function renderHighlight(
               sourceFormBlockId,
             });
 
-            const res = await fetch(
-              `/api/forms/stats?${params.toString()}`,
-              { cache: "no-store" },
-            );
+            const res = await fetch(`/api/forms/stats?${params.toString()}`, {
+              cache: "no-store",
+            });
 
             const data = await res.json();
 
@@ -2070,9 +2154,7 @@ function renderHighlight(
 
             if (!cancelled) {
               setItems([]);
-              setCountValue(
-                typeof data?.count === "number" ? data.count : 0,
-              );
+              setCountValue(typeof data?.count === "number" ? data.count : 0);
               setTotalValue(0);
             }
 
@@ -2086,10 +2168,9 @@ function renderHighlight(
               sourceFormBlockId,
             });
 
-            const res = await fetch(
-              `/api/forms/stats?${params.toString()}`,
-              { cache: "no-store" },
-            );
+            const res = await fetch(`/api/forms/stats?${params.toString()}`, {
+              cache: "no-store",
+            });
 
             const data = await res.json();
 
@@ -2098,9 +2179,7 @@ function renderHighlight(
             if (!cancelled) {
               setItems([]);
               setCountValue(0);
-              setTotalValue(
-                typeof data?.total === "number" ? data.total : 0,
-              );
+              setTotalValue(typeof data?.total === "number" ? data.total : 0);
             }
 
             return;
@@ -2156,7 +2235,15 @@ function renderHighlight(
           handleThreadUpdated as EventListener,
         );
       };
-    }, [micrositeId, mode, block.id, sourceBlockId, sourceFormBlockId, limit, refreshKey]);
+    }, [
+      micrositeId,
+      mode,
+      block.id,
+      sourceBlockId,
+      sourceFormBlockId,
+      limit,
+      refreshKey,
+    ]);
 
     return (
       <Surface
@@ -2173,9 +2260,7 @@ function renderHighlight(
           </div>
 
           {isLoading ? (
-            <div className="text-xs text-neutral-400">
-              Loading...
-            </div>
+            <div className="text-xs text-neutral-400">Loading...</div>
           ) : null}
 
           {!isLoading && mode === "top_messages" && !sourceBlockId ? (
@@ -2281,10 +2366,7 @@ function renderHighlight(
           {mode === "top_messages" ? (
             <div className="space-y-3">
               {items.slice(0, limit).map((msg: any, index: number) => (
-                <div
-                  key={msg.id}
-                  className={getHighlightCardClass(designKey)}
-                >
+                <div key={msg.id} className={getHighlightCardClass(designKey)}>
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
@@ -2375,7 +2457,7 @@ export default function BlockRenderer({
     case "padding":
       return <div className="h-full w-full" />;
     case "showcase":
-      return renderShowcase(block, designKey);
+      return renderShowcase(block);
     case "festiveBackground":
       return renderFestiveBackground(block, designKey);
     case "shape":

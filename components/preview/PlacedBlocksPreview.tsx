@@ -160,17 +160,16 @@ export default function PlacedBlocksPreview({
   const [viewportHeight, setViewportHeight] = useState(0);
 
   const [submitState, setSubmitState] = useState<
-      "idle" | "submitting" | "success" | "error"
-    >("idle");
-    const [submitMessage, setSubmitMessage] = useState("");
+    "idle" | "submitting" | "success" | "error"
+  >("idle");
+  const [submitMessage, setSubmitMessage] = useState("");
 
   const pageColor =
-  (typedDraft.pageColor && typedDraft.pageColor.trim()) ||
-  getResolvedPageColor(draft, designKey, metadata);
+    (typedDraft.pageColor && typedDraft.pageColor.trim()) ||
+    getResolvedPageColor(draft, designKey, metadata);
 
   const pageBackgroundImage = (typedDraft.pageBackgroundImage || "").trim();
-  const pageBackgroundImageFit =
-    typedDraft.pageBackgroundImageFit ?? "zoom";
+  const pageBackgroundImageFit = typedDraft.pageBackgroundImageFit ?? "zoom";
 
   const pageBackgroundSize =
     pageBackgroundImageFit === "clip"
@@ -179,91 +178,96 @@ export default function PlacedBlocksPreview({
         ? "100% 100%"
         : "cover";
 
-  /* =========================
-     ✅ ADDED: SUBMIT HANDLER
-     ========================= */
-const handleSubmit = async () => {
-  const inputs = document.querySelectorAll(
-    "[data-form-field-id]",
-  ) as NodeListOf<HTMLInputElement | HTMLTextAreaElement>;
+  const handleSubmit = async () => {
+    const inputs = document.querySelectorAll(
+      "[data-form-field-id]",
+    ) as NodeListOf<HTMLInputElement | HTMLTextAreaElement>;
 
-  const fields: Record<
-  string,
-  {
-    value: string;
-    formBlockId: string;
-    fieldType?: string;
-  }
-> = {};
-  let hasRequiredError = false;
-
-  inputs.forEach((input) => {
-    const id = input.getAttribute("data-form-field-id");
-    const block = draft.blocks.find((b) => b.id === id);
-
-    if (block?.type === "form_field") {
-      const value = input.value ?? "";
-      fields[block.data.label] = {
-      value,
-      formBlockId: block.id,
-      fieldType: block.data.fieldType,
-    };
-
-      if (block.data.required && !value.trim()) {
-        hasRequiredError = true;
+    const fields: Record<
+      string,
+      {
+        value: string;
+        formBlockId: string;
+        fieldType?: string;
       }
-    }
-  });
+    > = {};
 
-  if (hasRequiredError) {
-    setSubmitState("error");
-    setSubmitMessage("Please complete all required fields.");
-    return;
-  }
+    let hasRequiredError = false;
 
-  if (!micrositeId) {
-    setSubmitState("error");
-    setSubmitMessage("Form submission is only available on published microsites.");
-    return;
-  }
+    inputs.forEach((input) => {
+      const id = input.getAttribute("data-form-field-id");
+      const block = draft.blocks.find((b) => b.id === id);
 
-  try {
-    setSubmitState("submitting");
-    setSubmitMessage("");
+      if (block?.type === "form_field") {
+        const value = input.value ?? "";
 
-    const res = await fetch("/api/forms/submit", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        micrositeId: micrositeId || "",
-        pageSlug: draft.slugSuggestion || "",
-        templateKey: typedDraft.templateName || "",
-        designKey,
-        fields,
-      }),
+        fields[block.data.label] = {
+          value,
+          formBlockId: block.id,
+          fieldType: block.data.fieldType,
+        };
+
+        if (block.data.required && !value.trim()) {
+          hasRequiredError = true;
+        }
+      }
     });
 
-    const data = await res.json();
-    if (!res.ok) {
-  setSubmitState("error");
-  setSubmitMessage(data?.error || "Submission failed.");
-  return;
-}
+    if (hasRequiredError) {
+      setSubmitState("error");
+      setSubmitMessage("Please complete all required fields.");
+      return;
+    }
 
-setSubmitState("success");
-setSubmitMessage("Submitted successfully.");
+    if (!micrositeId) {
+      setSubmitState("error");
+      setSubmitMessage(
+        "Form submission is only available on published microsites.",
+      );
+      return;
+    }
 
-inputs.forEach((input) => {
-  input.value = "";
-});
-  } catch {
-    setSubmitState("error");
-    setSubmitMessage("Submission failed.");
-  }
-};
-  /* ========================= */
+    try {
+      setSubmitState("submitting");
+      setSubmitMessage("");
+
+      const res = await fetch("/api/forms/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          micrositeId: micrositeId || "",
+          pageSlug: draft.slugSuggestion || "",
+          templateKey: typedDraft.templateName || "",
+          designKey,
+          fields,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setSubmitState("error");
+        setSubmitMessage(data?.error || "Submission failed.");
+        return;
+      }
+
+      setSubmitState("success");
+      setSubmitMessage("Submitted successfully.");
+
+      inputs.forEach((input) => {
+        input.value = "";
+      });
+    } catch {
+      setSubmitState("error");
+      setSubmitMessage("Submission failed.");
+    }
+  };
+
+  void handleSubmit;
+  void submitState;
+  void submitMessage;
 
   const titleGrid = normalizeResolvedGrid(
     getResolvedPageGrid(
@@ -383,18 +387,15 @@ inputs.forEach((input) => {
     metadata?.page.description?.value,
   );
 
-const showTitle =
-  (hasMeaningfulText(titleValue) || !!typedDraft.pageElements?.title);
-
-const showSubtitle =
-  (hasMeaningfulText(subtitleValue) || !!typedDraft.pageElements?.subtitle);
-
-const showSubtext =
-  (hasMeaningfulText(subtextValue) || !!typedDraft.pageElements?.subtext);
-
-const showDescription =
-  (hasMeaningfulText(descriptionValue) ||
-    !!typedDraft.pageElements?.description);
+  const showTitle =
+    hasMeaningfulText(titleValue) || !!typedDraft.pageElements?.title;
+  const showSubtitle =
+    hasMeaningfulText(subtitleValue) || !!typedDraft.pageElements?.subtitle;
+  const showSubtext =
+    hasMeaningfulText(subtextValue) || !!typedDraft.pageElements?.subtext;
+  const showDescription =
+    hasMeaningfulText(descriptionValue) ||
+    !!typedDraft.pageElements?.description;
 
   const blockEntries = useMemo(
     () =>
@@ -469,7 +470,7 @@ const showDescription =
       );
       const heightScale = Math.min(1, availableHeight / pageHeight);
 
-        const nextScale = Math.min(widthScale, heightScale);
+      const nextScale = Math.min(widthScale, heightScale);
 
       setScale((prev) => {
         if (Math.abs(prev - nextScale) < 0.001) {
@@ -497,43 +498,47 @@ const showDescription =
   }, [disableAutoScale, fixedScale, pageHeight, viewportHeight]);
 
   const resolvedScale = disableAutoScale ? (fixedScale ?? 1) : scale;
-  const blockRenderScale = hideFrame ? 1 : 0.5;
   const scaledWidth = PAGE_WIDTH * resolvedScale;
   const scaledHeight = pageHeight * resolvedScale;
 
   return (
     <div
       ref={containerRef}
-      className="w-full overflow-visible"
+      className="w-full"
       style={{
-        height: hideFrame ? "auto" : scaledHeight,
+        position: "relative",
+        overflow: "visible",
         margin: 0,
         padding: 0,
+        minHeight: hideFrame ? scaledHeight : undefined,
+        height: hideFrame ? "auto" : scaledHeight,
       }}
     >
       <div
-        className="w-full"
         style={{
-          width: hideFrame ? PAGE_WIDTH * resolvedScale : scaledWidth,
-          height: hideFrame ? pageHeight * resolvedScale : scaledHeight,
           position: "relative",
+          width: scaledWidth,
+          height: scaledHeight,
           margin: 0,
           padding: 0,
+          overflow: "visible",
         }}
       >
         <div
-          className="relative"
           style={{
+            position: "absolute",
+            inset: 0,
             width: PAGE_WIDTH,
             height: pageHeight,
-            transform: `scale(${resolvedScale})`,
-            transformOrigin: "top left",
             margin: 0,
             padding: 0,
+            transform: `scale(${resolvedScale})`,
+            transformOrigin: "top left",
+            overflow: "visible",
+            backgroundColor: transparentPageBackground ? "transparent" : pageColor,
             ...(transparentPageBackground
               ? {}
               : getCanvasInnerBackgroundStyle(draft, designKey, metadata)),
-            backgroundColor: transparentPageBackground ? "transparent" : pageColor,
             ...(pageBackgroundImage && !transparentPageBackground
               ? {
                   backgroundImage: `url("${pageBackgroundImage}")`,
@@ -599,30 +604,31 @@ const showDescription =
             </div>
           ) : null}
 
-{blockEntries.map(({ block, grid }) => (
-  <div
-    key={block.id}
-    style={{
-      ...getItemStyle(grid),
-      overflow: "visible",
-      pointerEvents: "auto",
-    }}
-  >
-    <div
-      className="h-full w-full"
-      style={{
-        overflow: "visible",
-        pointerEvents: "auto",
-      }}
-    >
-      <BlockRenderer
-        block={block}
-        designKey={designKey}
-        micrositeId={micrositeId}
-      />
-    </div>
-  </div>
-))}
+          {blockEntries.map(({ block, grid }) => (
+            <div
+              key={block.id}
+              style={{
+                ...getItemStyle(grid),
+                overflow: "visible",
+                pointerEvents: "auto",
+                isolation: "isolate",
+              }}
+            >
+              <div
+                className="h-full w-full"
+                style={{
+                  overflow: "visible",
+                  pointerEvents: "auto",
+                }}
+              >
+                <BlockRenderer
+                  block={block}
+                  designKey={designKey}
+                  micrositeId={micrositeId}
+                />
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>
