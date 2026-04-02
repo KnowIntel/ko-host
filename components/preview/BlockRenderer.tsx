@@ -154,17 +154,17 @@ const FONT_FAMILY_MAP: Record<string, string> = {
   "IBM Plex Serif":
     'var(--font-ibm-plex-serif), "IBM Plex Serif", ui-serif, Georgia, serif',
 
-  Anton: `${anton.style.fontFamily}, sans-serif`,
-  Bangers: `${bangers.style.fontFamily}, cursive`,
-  Orbitron: `${orbitron.style.fontFamily}, sans-serif`,
-  Righteous: `${righteous.style.fontFamily}, cursive`,
-  "Alfa Slab One": `${alfa.style.fontFamily}, serif`,
-  "Permanent Marker": `${marker.style.fontFamily}, cursive`,
-  Caveat: `${caveat.style.fontFamily}, cursive`,
-  "Indie Flower": `${indie.style.fontFamily}, cursive`,
-  "Exo 2": `${exo.style.fontFamily}, sans-serif`,
-  Rajdhani: `${rajdhani.style.fontFamily}, sans-serif`,
-  Teko: `${teko.style.fontFamily}, sans-serif`,
+    Anton: `${anton.style.fontFamily}, sans-serif`,
+Bangers: `${bangers.style.fontFamily}, cursive`,
+Orbitron: `${orbitron.style.fontFamily}, sans-serif`,
+Righteous: `${righteous.style.fontFamily}, cursive`,
+"Alfa Slab One": `${alfa.style.fontFamily}, serif`,
+"Permanent Marker": `${marker.style.fontFamily}, cursive`,
+Caveat: `${caveat.style.fontFamily}, cursive`,
+"Indie Flower": `${indie.style.fontFamily}, cursive`,
+"Exo 2": `${exo.style.fontFamily}, sans-serif`,
+Rajdhani: `${rajdhani.style.fontFamily}, sans-serif`,
+Teko: `${teko.style.fontFamily}, sans-serif`,
 };
 
 function resolveFontFamily(fontFamily?: string) {
@@ -515,13 +515,13 @@ function renderImage(
         src={block.data.image.url}
         alt={block.data.image.alt || ""}
         className="h-full w-full"
-        style={{
-          objectFit: getImageObjectFit(block),
-          objectPosition: "center center",
-          transform: `translate(${translateX}%, ${translateY}%) scale(${zoom}) rotate(${rotation}deg)`,
-          transformOrigin: "center center",
-          opacity: block.data.image.opacity ?? 1,
-        }}
+      style={{
+        objectFit: getImageObjectFit(block),
+        objectPosition: "center center",
+        transform: `translate(${translateX}%, ${translateY}%) scale(${zoom}) rotate(${rotation}deg)`,
+        transformOrigin: "center center",
+        opacity: block.data.image.opacity ?? 1, // ✅ ADD THIS
+      }}
       />
     </div>
   );
@@ -1158,7 +1158,6 @@ function renderThread(
         if (!res.ok) {
           throw new Error(data?.error || "Failed to post message.");
         }
-
         setMessages((prev) => [
           {
             id: String(data.message.id),
@@ -1295,7 +1294,7 @@ function renderThread(
         designKey={designKey}
         className={getSoftSurfaceClass(designKey)}
       >
-        <div className="flex h-full w-full flex-col overflow-hidden">
+                <div className="flex h-full w-full flex-col overflow-hidden">
           <div
             className={`shrink-0 border-b pb-3 ${getThreadDividerClass(designKey)}`}
           >
@@ -1318,7 +1317,7 @@ function renderThread(
               ) : null}
 
               {!showAnonymousBadge && !showApprovalBadge ? (
-                <div
+                                <div
                   className={getThreadBadgeClass(designKey)}
                   style={{ fontSize: "22px", lineHeight: 1.1 }}
                 >
@@ -1646,7 +1645,7 @@ function ImageCarouselPreview({
                     : "border-white/10 bg-white/5",
                 ].join(" ")}
               >
-                {item.imageUrl ? (
+              {item.imageUrl ? (
                   <img
                     src={item.imageUrl}
                     alt={item.title || ""}
@@ -1868,234 +1867,231 @@ function renderTextFx(
       </div>
     );
   }
+const fontSize =
+  typeof block.data.style?.fontSize === "number"
+    ? block.data.style.fontSize
+    : 48;
 
-  const fontSize =
-    typeof block.data.style?.fontSize === "number"
-      ? block.data.style.fontSize
-      : 48;
+const radius = 120 + intensity * 2;
+const horizontalPadding = 20;
+const topPadding = Math.max(40, fontSize * 1.1);
+const bottomPadding = Math.max(32, fontSize * 0.65);
 
-  const radius = 120 + intensity * 2;
-  const horizontalPadding = 20;
-  const topPadding = Math.max(40, fontSize * 1.1);
-  const bottomPadding = Math.max(32, fontSize * 0.65);
+const viewBoxWidth = radius * 2 + horizontalPadding * 2;
+const viewBoxHeight = radius * 2 + topPadding + bottomPadding;
+const centerX = viewBoxWidth / 2;
+const centerY = topPadding + radius;
 
-  const viewBoxWidth = radius * 2 + horizontalPadding * 2;
-  const viewBoxHeight = radius * 2 + topPadding + bottomPadding;
-  const centerX = viewBoxWidth / 2;
-  const centerY = topPadding + radius;
+const stableTextFxKey = [
+  block.type,
+  block.data.text || "",
+  mode,
+  intensity,
+  rotation,
+  opacity,
+  block.data.style?.fontFamily || "",
+  block.data.style?.fontSize || "",
+  block.data.style?.color || "",
+].join("|");
 
-  const stableTextFxKey = [
-    block.type,
-    block.data.text || "",
-    mode,
-    intensity,
-    rotation,
-    opacity,
-    block.data.style?.fontFamily || "",
-    block.data.style?.fontSize || "",
-    block.data.style?.color || "",
-  ].join("|");
+const pathId = `textfx-path-${stableTextFxKey
+  .toLowerCase()
+  .replace(/[^a-z0-9]+/g, "-")
+  .replace(/^-+|-+$/g, "")
+  .slice(0, 120)}`;
 
-  const pathId = `textfx-path-${stableTextFxKey
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 120)}`;
+let path = "";
 
-  let path = "";
-
-  if (mode === "arch") {
-    path = `
-      M ${horizontalPadding} ${centerY}
-      A ${radius} ${radius} 0 0 1 ${viewBoxWidth - horizontalPadding} ${centerY}
-    `;
-  }
-
-  if (mode === "dip") {
-    path = `
-      M ${horizontalPadding} ${topPadding}
-      A ${radius} ${radius} 0 0 0 ${viewBoxWidth - horizontalPadding} ${topPadding}
-    `;
-  }
-
-  if (mode === "circle") {
-    path = `
-      M ${centerX}, ${centerY}
-      m -${radius}, 0
-      a ${radius},${radius} 0 1,1 ${radius * 2},0
-      a ${radius},${radius} 0 1,1 -${radius * 2},0
-    `;
-  }
-
-  return (
-    <div
-      className="h-full w-full overflow-visible"
-      style={getAppearanceStyle(block)}
-    >
-      <svg
-        width="100%"
-        height="100%"
-        viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`}
-        preserveAspectRatio="xMidYMin meet"
-        style={{
-          transform: `rotate(${rotation}deg)`,
-          opacity,
-          overflow: "visible",
-        }}
-      >
-        <defs>
-          <path id={pathId} d={path} fill="none" />
-        </defs>
-
-        <text
-          fill={style.color || "#000"}
-          fontFamily={style.fontFamily}
-          fontSize={style.fontSize}
-          fontWeight={style.fontWeight}
-          fontStyle={style.fontStyle}
-        >
-          <textPath href={`#${pathId}`} startOffset="50%" textAnchor="middle">
-            {text}
-          </textPath>
-        </text>
-      </svg>
-    </div>
-  );
+if (mode === "arch") {
+  path = `
+    M ${horizontalPadding} ${centerY}
+    A ${radius} ${radius} 0 0 1 ${viewBoxWidth - horizontalPadding} ${centerY}
+  `;
 }
 
+if (mode === "dip") {
+  path = `
+    M ${horizontalPadding} ${topPadding}
+    A ${radius} ${radius} 0 0 0 ${viewBoxWidth - horizontalPadding} ${topPadding}
+  `;
+}
+if (mode === "circle") {
+  path = `
+    M ${centerX}, ${centerY}
+    m -${radius}, 0
+    a ${radius},${radius} 0 1,1 ${radius * 2},0
+    a ${radius},${radius} 0 1,1 -${radius * 2},0
+  `;
+}
+
+return (
+<div
+  className="h-full w-full overflow-visible"
+  style={getAppearanceStyle(block)}
+>
+<svg
+  width="100%"
+  height="100%"
+  viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`}
+  preserveAspectRatio="xMidYMin meet"
+  style={{
+    transform: `rotate(${rotation}deg)`,
+    opacity,
+    overflow: "visible",
+  }}
+>
+      <defs>
+        <path id={pathId} d={path} fill="none" />
+      </defs>
+
+      <text
+        fill={style.color || "#000"}
+        fontFamily={style.fontFamily}
+        fontSize={style.fontSize}
+        fontWeight={style.fontWeight}
+        fontStyle={style.fontStyle}
+      >
+        <textPath href={`#${pathId}`} startOffset="50%" textAnchor="middle">
+          {text}
+        </textPath>
+      </text>
+    </svg>
+  </div>
+);
+}
 function renderHighlight(
   block: Extract<MicrositeBlock, { type: "highlight" }>,
   designKey?: string,
   micrositeId?: string | null,
 ) {
   function HighlightPreview() {
-    const [items, setItems] = useState<any[]>([]);
-    const [countValue, setCountValue] = useState<number>(0);
-    const [totalValue, setTotalValue] = useState<number>(0);
-    const [isLoading, setIsLoading] = useState(Boolean(micrositeId));
-    const [refreshKey, setRefreshKey] = useState(0);
+const [items, setItems] = useState<any[]>([]);
+const [countValue, setCountValue] = useState<number>(0);
+const [totalValue, setTotalValue] = useState<number>(0);
+const [isLoading, setIsLoading] = useState(Boolean(micrositeId));
+const [refreshKey, setRefreshKey] = useState(0);
 
-    const mode = block.data?.mode || "top_messages";
-    const limit = Math.max(1, Math.min(12, Number(block.data?.limit) || 4));
-    const sourceBlockId = block.data?.sourceBlockId?.trim() || "";
-    const sourceFormBlockId = block.data?.sourceFormBlockId?.trim() || "";
-    const heading =
-      block.data?.heading?.trim() ||
-      (mode === "top_messages"
-        ? "Top Messages"
-        : mode === "rsvp_count"
-          ? "RSVP Count"
-          : "Total Funds");
+const mode = block.data?.mode || "top_messages";
+const limit = Math.max(1, Math.min(12, Number(block.data?.limit) || 4));
+const sourceBlockId = block.data?.sourceBlockId?.trim() || "";
+const sourceFormBlockId = block.data?.sourceFormBlockId?.trim() || "";
+const heading =
+  block.data?.heading?.trim() ||
+  (mode === "top_messages"
+    ? "Top Messages"
+    : mode === "rsvp_count"
+      ? "RSVP Count"
+      : "Total Funds");
 
     useEffect(() => {
       let cancelled = false;
 
       async function load() {
-        if (!micrositeId) {
-          setItems([]);
-          setCountValue(0);
-          setTotalValue(0);
-          setIsLoading(false);
-          return;
-        }
+if (!micrositeId) {
+  setItems([]);
+  setCountValue(0);
+  setTotalValue(0);
+  setIsLoading(false);
+  return;
+}
 
         try {
           setIsLoading(true);
 
-          if (mode === "top_messages") {
-            if (!sourceBlockId) {
-              if (!cancelled) {
-                setItems([]);
-                setCountValue(0);
-                setTotalValue(0);
-              }
-              return;
-            }
+if (mode === "top_messages") {
+  if (!sourceBlockId) {
+    if (!cancelled) {
+      setItems([]);
+      setCountValue(0);
+      setTotalValue(0);
+    }
+    return;
+  }
 
-            const params = new URLSearchParams({
-              micrositeId,
-              threadBlockId: sourceBlockId,
-              limit: String(limit),
-              sort: "votes_desc",
-            });
+  const params = new URLSearchParams({
+    micrositeId,
+    threadBlockId: sourceBlockId,
+    limit: String(limit),
+    sort: "votes_desc",
+  });
 
-            const res = await fetch(
-              `/api/thread/messages?${params.toString()}`,
-              { cache: "no-store" },
-            );
+  const res = await fetch(
+    `/api/thread/messages?${params.toString()}`,
+    { cache: "no-store" },
+  );
 
-            const data = await res.json();
+  const data = await res.json();
 
-            if (!res.ok) throw new Error();
+  if (!res.ok) throw new Error();
 
-            if (!cancelled) {
-              setItems(data?.messages || []);
-              setCountValue(0);
-              setTotalValue(0);
-            }
+  if (!cancelled) {
+    setItems(data?.messages || []);
+    setCountValue(0);
+    setTotalValue(0);
+  }
 
-            return;
-          }
+  return;
+}
 
-          if (mode === "rsvp_count") {
-            const params = new URLSearchParams({
-              micrositeId,
-              mode: "rsvp_count",
-              sourceFormBlockId,
-            });
+if (mode === "rsvp_count") {
+  const params = new URLSearchParams({
+    micrositeId,
+    mode: "rsvp_count",
+    sourceFormBlockId,
+  });
 
-            const res = await fetch(
-              `/api/forms/stats?${params.toString()}`,
-              { cache: "no-store" },
-            );
+  const res = await fetch(
+    `/api/forms/stats?${params.toString()}`,
+    { cache: "no-store" },
+  );
 
-            const data = await res.json();
+  const data = await res.json();
 
-            if (!res.ok) throw new Error();
+  if (!res.ok) throw new Error();
 
-            if (!cancelled) {
-              setItems([]);
-              setCountValue(
-                typeof data?.count === "number" ? data.count : 0,
-              );
-              setTotalValue(0);
-            }
+  if (!cancelled) {
+    setItems([]);
+    setCountValue(
+      typeof data?.count === "number" ? data.count : 0,
+    );
+    setTotalValue(0);
+  }
 
-            return;
-          }
+  return;
+}
 
-          if (mode === "total_funds") {
-            const params = new URLSearchParams({
-              micrositeId,
-              mode: "total_funds",
-              sourceFormBlockId,
-            });
+if (mode === "total_funds") {
+  const params = new URLSearchParams({
+    micrositeId,
+    mode: "total_funds",
+    sourceFormBlockId,
+  });
 
-            const res = await fetch(
-              `/api/forms/stats?${params.toString()}`,
-              { cache: "no-store" },
-            );
+  const res = await fetch(
+    `/api/forms/stats?${params.toString()}`,
+    { cache: "no-store" },
+  );
 
-            const data = await res.json();
+  const data = await res.json();
 
-            if (!res.ok) throw new Error();
+  if (!res.ok) throw new Error();
 
-            if (!cancelled) {
-              setItems([]);
-              setCountValue(0);
-              setTotalValue(
-                typeof data?.total === "number" ? data.total : 0,
-              );
-            }
+  if (!cancelled) {
+    setItems([]);
+    setCountValue(0);
+    setTotalValue(
+      typeof data?.total === "number" ? data.total : 0,
+    );
+  }
 
-            return;
-          }
+  return;
+}
 
-          if (!cancelled) {
-            setItems([]);
-            setCountValue(0);
-            setTotalValue(0);
-          }
+if (!cancelled) {
+  setItems([]);
+  setCountValue(0);
+  setTotalValue(0);
+}
         } catch {
           if (!cancelled) {
             setItems([]);
@@ -2127,10 +2123,7 @@ function renderHighlight(
         setRefreshKey((prev) => prev + 1);
       }
 
-      window.addEventListener(
-        THREAD_ACTIVITY_EVENT,
-        handleThreadUpdated as EventListener,
-      );
+      window.addEventListener(THREAD_ACTIVITY_EVENT, handleThreadUpdated as EventListener);
 
       void load();
 
@@ -2150,173 +2143,173 @@ function renderHighlight(
         className={getSoftSurfaceClass(designKey)}
       >
         <div className="flex h-full w-full flex-col gap-3">
-          <div
-            className="text-sm font-semibold"
-            style={getContainerTextStyle(block.data.style, designKey)}
-          >
-            {heading}
+        <div
+          className="text-sm font-semibold"
+          style={getContainerTextStyle(block.data.style, designKey)}
+        >
+          {heading}
+        </div>
+
+{isLoading ? (
+  <div className="text-xs text-neutral-400">
+    Loading...
+  </div>
+) : null}
+
+{!isLoading && mode === "top_messages" && !sourceBlockId ? (
+<div
+  className="rounded-xl border border-dashed px-3 py-4 text-sm opacity-60"
+  style={getContainerTextStyle(block.data.style, designKey)}
+>
+  Select a source thread block.
+</div>
+) : null}
+
+{!isLoading && mode === "rsvp_count" && !sourceFormBlockId ? (
+  <div
+    className="rounded-xl border border-dashed px-3 py-4 text-sm opacity-60"
+    style={getContainerTextStyle(block.data.style, designKey)}
+  >
+    Select a source form block.
+  </div>
+) : null}
+
+{!isLoading && mode === "total_funds" && !sourceFormBlockId ? (
+  <div
+    className="rounded-xl border border-dashed px-3 py-4 text-sm opacity-60"
+    style={getContainerTextStyle(block.data.style, designKey)}
+  >
+    Select a source form block.
+  </div>
+) : null}
+
+{!isLoading && mode === "top_messages" && sourceBlockId && !items.length ? (
+<div
+  className="rounded-xl border border-dashed px-3 py-4 text-sm opacity-60"
+  style={getContainerTextStyle(block.data.style, designKey)}
+>
+  No data yet.
+</div>
+) : null}
+
+{!isLoading && mode === "rsvp_count" && !!sourceFormBlockId ? (
+  <div className={getHighlightCardClass(designKey)}>
+    <div className="flex items-start justify-between gap-3">
+      <div>
+        <div
+          className="text-[11px] font-semibold uppercase tracking-[0.14em] opacity-60"
+          style={getContainerTextStyle(block.data.style, designKey)}
+        >
+          Responses
+        </div>
+        <div
+          className="mt-2 text-4xl font-bold leading-none"
+          style={getContainerTextStyle(block.data.style, designKey)}
+        >
+          {countValue}
+        </div>
+      </div>
+
+      <div className="text-2xl">✉️</div>
+    </div>
+
+    <div
+      className="mt-3 text-xs opacity-60"
+      style={getContainerTextStyle(block.data.style, designKey)}
+    >
+      Live RSVP count from submitted forms.
+    </div>
+  </div>
+) : null}
+
+{!isLoading && mode === "total_funds" && !!sourceFormBlockId ? (
+  <div className={getHighlightCardClass(designKey)}>
+    <div className="flex items-start justify-between gap-3">
+      <div>
+        <div
+          className="text-[11px] font-semibold uppercase tracking-[0.14em] opacity-60"
+          style={getContainerTextStyle(block.data.style, designKey)}
+        >
+          Total Raised
+        </div>
+        <div
+          className="mt-2 text-4xl font-bold leading-none"
+          style={getContainerTextStyle(block.data.style, designKey)}
+        >
+          {new Intl.NumberFormat("en-US", {
+            style: "currency",
+            currency: "USD",
+            maximumFractionDigits: 2,
+          }).format(totalValue)}
+        </div>
+      </div>
+
+      <div className="text-2xl">💰</div>
+    </div>
+
+    <div
+      className="mt-3 text-xs opacity-60"
+      style={getContainerTextStyle(block.data.style, designKey)}
+    >
+      Live funding total from submitted forms.
+    </div>
+  </div>
+) : null}
+
+{mode === "top_messages" ? (
+<div className="space-y-3">
+  {items.slice(0, limit).map((msg: any, index: number) => (
+    <div
+      key={msg.id}
+      className={getHighlightCardClass(designKey)}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <div
+              className="inline-flex h-6 min-w-6 items-center justify-center rounded-full px-2 text-[10px] font-bold"
+              style={{
+                background: isLightDesign(designKey)
+                  ? "rgba(17,24,39,0.08)"
+                  : "rgba(255,255,255,0.12)",
+                color: getDefaultTextColor(designKey),
+              }}
+            >
+              #{index + 1}
+            </div>
+
+            <div
+              className="truncate text-xs font-semibold"
+              style={getContainerTextStyle(block.data.style, designKey)}
+            >
+              {msg.author_name || msg.name || "Guest"}
+            </div>
           </div>
 
-          {isLoading ? (
-            <div className="text-xs text-neutral-400">
-              Loading...
-            </div>
-          ) : null}
+          <div
+            className="mt-2 text-sm leading-5"
+            style={getContainerTextStyle(block.data.style, designKey)}
+          >
+            {msg.message_text || msg.message}
+          </div>
+        </div>
 
-          {!isLoading && mode === "top_messages" && !sourceBlockId ? (
-            <div
-              className="rounded-xl border border-dashed px-3 py-4 text-sm opacity-60"
-              style={getContainerTextStyle(block.data.style, designKey)}
-            >
-              Select a source thread block.
-            </div>
-          ) : null}
-
-          {!isLoading && mode === "rsvp_count" && !sourceFormBlockId ? (
-            <div
-              className="rounded-xl border border-dashed px-3 py-4 text-sm opacity-60"
-              style={getContainerTextStyle(block.data.style, designKey)}
-            >
-              Select a source form block.
-            </div>
-          ) : null}
-
-          {!isLoading && mode === "total_funds" && !sourceFormBlockId ? (
-            <div
-              className="rounded-xl border border-dashed px-3 py-4 text-sm opacity-60"
-              style={getContainerTextStyle(block.data.style, designKey)}
-            >
-              Select a source form block.
-            </div>
-          ) : null}
-
-          {!isLoading && mode === "top_messages" && sourceBlockId && !items.length ? (
-            <div
-              className="rounded-xl border border-dashed px-3 py-4 text-sm opacity-60"
-              style={getContainerTextStyle(block.data.style, designKey)}
-            >
-              No data yet.
-            </div>
-          ) : null}
-
-          {!isLoading && mode === "rsvp_count" && !!sourceFormBlockId ? (
-            <div className={getHighlightCardClass(designKey)}>
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <div
-                    className="text-[11px] font-semibold uppercase tracking-[0.14em] opacity-60"
-                    style={getContainerTextStyle(block.data.style, designKey)}
-                  >
-                    Responses
-                  </div>
-                  <div
-                    className="mt-2 text-4xl font-bold leading-none"
-                    style={getContainerTextStyle(block.data.style, designKey)}
-                  >
-                    {countValue}
-                  </div>
-                </div>
-
-                <div className="text-2xl">✉️</div>
-              </div>
-
-              <div
-                className="mt-3 text-xs opacity-60"
-                style={getContainerTextStyle(block.data.style, designKey)}
-              >
-                Live RSVP count from submitted forms.
-              </div>
-            </div>
-          ) : null}
-
-          {!isLoading && mode === "total_funds" && !!sourceFormBlockId ? (
-            <div className={getHighlightCardClass(designKey)}>
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <div
-                    className="text-[11px] font-semibold uppercase tracking-[0.14em] opacity-60"
-                    style={getContainerTextStyle(block.data.style, designKey)}
-                  >
-                    Total Raised
-                  </div>
-                  <div
-                    className="mt-2 text-4xl font-bold leading-none"
-                    style={getContainerTextStyle(block.data.style, designKey)}
-                  >
-                    {new Intl.NumberFormat("en-US", {
-                      style: "currency",
-                      currency: "USD",
-                      maximumFractionDigits: 2,
-                    }).format(totalValue)}
-                  </div>
-                </div>
-
-                <div className="text-2xl">💰</div>
-              </div>
-
-              <div
-                className="mt-3 text-xs opacity-60"
-                style={getContainerTextStyle(block.data.style, designKey)}
-              >
-                Live funding total from submitted forms.
-              </div>
-            </div>
-          ) : null}
-
-          {mode === "top_messages" ? (
-            <div className="space-y-3">
-              {items.slice(0, limit).map((msg: any, index: number) => (
-                <div
-                  key={msg.id}
-                  className={getHighlightCardClass(designKey)}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <div
-                          className="inline-flex h-6 min-w-6 items-center justify-center rounded-full px-2 text-[10px] font-bold"
-                          style={{
-                            background: isLightDesign(designKey)
-                              ? "rgba(17,24,39,0.08)"
-                              : "rgba(255,255,255,0.12)",
-                            color: getDefaultTextColor(designKey),
-                          }}
-                        >
-                          #{index + 1}
-                        </div>
-
-                        <div
-                          className="truncate text-xs font-semibold"
-                          style={getContainerTextStyle(block.data.style, designKey)}
-                        >
-                          {msg.author_name || msg.name || "Guest"}
-                        </div>
-                      </div>
-
-                      <div
-                        className="mt-2 text-sm leading-5"
-                        style={getContainerTextStyle(block.data.style, designKey)}
-                      >
-                        {msg.message_text || msg.message}
-                      </div>
-                    </div>
-
-                    <div
-                      className="shrink-0 rounded-full px-2 py-1 text-[11px] font-semibold"
-                      style={{
-                        background: isLightDesign(designKey)
-                          ? "rgba(17,24,39,0.08)"
-                          : "rgba(255,255,255,0.12)",
-                        color: getDefaultTextColor(designKey),
-                      }}
-                    >
-                      👍 {msg.votes ?? 0}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : null}
+        <div
+          className="shrink-0 rounded-full px-2 py-1 text-[11px] font-semibold"
+          style={{
+            background: isLightDesign(designKey)
+              ? "rgba(17,24,39,0.08)"
+              : "rgba(255,255,255,0.12)",
+            color: getDefaultTextColor(designKey),
+          }}
+        >
+          👍 {msg.votes ?? 0}
+        </div>
+      </div>
+    </div>
+  ))}
+</div>
+) : null}
         </div>
       </Surface>
     );
