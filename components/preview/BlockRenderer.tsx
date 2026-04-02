@@ -1085,10 +1085,10 @@ function renderThread(
           setIsLoading(true);
           setThreadError("");
 
-          const params = new URLSearchParams({
-            micrositeId,
-            threadBlockId: block.id,
-          });
+        const params = new URLSearchParams({
+          micrositeId: micrositeId ?? "",
+          threadBlockId: block.id,
+        });
 
           const res = await fetch(`/api/thread/messages?${params.toString()}`, {
             cache: "no-store",
@@ -1231,38 +1231,39 @@ function renderThread(
           throw new Error(data?.error || "Failed to post message.");
         }
 
-        const createdMessage: ThreadMessage = {
-          id: String(data.message.id),
-          name: String(data.message.author_name ?? safeName),
-          message: String(data.message.message_text ?? safeMessage),
-          votes:
-            typeof data.message.votes === "number"
-              ? data.message.votes
-              : Number(data.message.votes ?? 0) || 0,
-          created_at:
-            typeof data.message.created_at === "string"
-              ? data.message.created_at
-              : undefined,
-        };
+const createdMessage: ThreadMessage = {
+  id: String(data.message.id),
+  name: String(data.message.author_name ?? safeName),
+  message: String(data.message.message_text ?? safeMessage),
+  votes:
+    typeof data.message.votes === "number"
+      ? data.message.votes
+      : Number(data.message.votes ?? 0) || 0,
+};
 
-        setMessages((prev) =>
-          normalizeThreadMessages([
-            ...prev.map((message) => ({
-              id: message.id,
-              author_name: message.name,
-              message_text: message.message,
-              votes: message.votes,
-              created_at: (message as any).created_at,
-            })),
-            {
-              id: createdMessage.id,
-              author_name: createdMessage.name,
-              message_text: createdMessage.message,
-              votes: createdMessage.votes,
-              created_at: createdMessage.created_at,
-            },
-          ]),
-        );
+setMessages((prev) =>
+  normalizeThreadMessages([
+    ...prev.map((message) => ({
+      id: message.id,
+      author_name: message.name,
+      message_text: message.message,
+      votes: message.votes,
+    })),
+    {
+      id: String(data.message.id),
+      author_name: String(data.message.author_name ?? safeName),
+      message_text: String(data.message.message_text ?? safeMessage),
+      votes:
+        typeof data.message.votes === "number"
+          ? data.message.votes
+          : Number(data.message.votes ?? 0) || 0,
+      created_at:
+        typeof data.message.created_at === "string"
+          ? data.message.created_at
+          : undefined,
+    },
+  ]),
+);
 
         setMessageValue("");
         setNameValue("");
