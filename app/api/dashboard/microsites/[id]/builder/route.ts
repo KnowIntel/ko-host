@@ -56,7 +56,7 @@ export async function POST(
       .eq("microsite_id", id)
       .order("display_order", { ascending: true })
       .order("created_at", { ascending: true })
-      .limit(100);
+      .limit(1);
 
     if (existingPagesError) {
       return NextResponse.json(
