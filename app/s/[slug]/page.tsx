@@ -199,7 +199,7 @@ export default async function PublishedMicrositePage({
     .eq("microsite_id", microsite.id)
     .order("display_order", { ascending: true })
     .order("created_at", { ascending: true })
-    .limit(1);
+    .limit(100);
 
   const firstPage = (pages?.[0] || null) as MicrositePageRow | null;
   const homeDraft = firstPage?.draft ?? null;

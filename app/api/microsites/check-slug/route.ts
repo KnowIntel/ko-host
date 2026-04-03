@@ -34,7 +34,7 @@ export async function GET(req: Request) {
     .from("microsites")
     .select("id, slug, is_published, is_active")
     .eq("slug", safeSlug)
-    .limit(1);
+    .limit(100);
 
   if (micrositeError) {
     console.error("check-slug microsite lookup failed", {

@@ -122,7 +122,7 @@ const { data: existingPendingRows, error: existingPendingForOwnerError } =
     .eq("selected_design_key", designKey)
     .is("processed_at", null)
     .order("id", { ascending: false })
-    .limit(1);
+    .limit(100);
 
 if (existingPendingForOwnerError) {
   return NextResponse.json(

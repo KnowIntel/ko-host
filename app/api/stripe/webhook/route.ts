@@ -299,7 +299,7 @@ const { data: existingHomePage, error: existingHomePageError } =
     .eq("microsite_id", publishedMicrositeId)
     .order("display_order", { ascending: true })
     .order("created_at", { ascending: true })
-    .limit(1)
+    .limit(100)
     .maybeSingle();
 
 if (existingHomePageError) {
