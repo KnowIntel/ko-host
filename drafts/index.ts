@@ -1,3 +1,5 @@
+// drafts\index.ts
+
 import type { BuilderDraft } from "@/lib/templates/builder";
 import weddingClassicDraft from "@/drafts/wedding/classic.draft";
 import weddingModernDraft from "@/drafts/wedding/modern.draft";
