@@ -153,7 +153,7 @@ export async function POST(
     .select("display_order")
     .eq("microsite_id", id)
     .order("display_order", { ascending: false })
-    .limit(100)
+    .limit(1)
     .maybeSingle();
 
   const nextDisplayOrder =

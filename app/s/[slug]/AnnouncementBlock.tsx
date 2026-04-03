@@ -12,7 +12,7 @@ export default async function AnnouncementBlock({
     .select("id, title, body, created_at")
     .eq("microsite_id", micrositeId)
     .order("created_at", { ascending: false })
-    .limit(100);
+    .limit(1);
 
   if (error) return null;
 

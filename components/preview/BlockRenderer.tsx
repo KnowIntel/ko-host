@@ -2037,12 +2037,12 @@ function renderHighlight(
               return;
             }
 
-            const params = new URLSearchParams({
-              micrositeId: micrositeId ?? "",
-              threadBlockId: sourceBlockId,
-              limit: String(limit),
-              sort: "votes_desc",
-            });
+const params = new URLSearchParams({
+  micrositeId,
+  threadBlockId: sourceBlockId,
+  limit: "100",
+  sort: "votes_desc",
+});
 
             const res = await fetch(
               `/api/thread/messages?${params.toString()}`,
