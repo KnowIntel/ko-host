@@ -3018,6 +3018,8 @@ return (
   <img
     src="/icons/reset_draft_icon.png"
     alt="Reset Draft"
+    width={30}
+    height={30}
     className="h-5 w-5 object-contain"
   />
 </button>
