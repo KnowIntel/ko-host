@@ -1049,10 +1049,14 @@ function renderThread(
           setIsLoading(true);
           setThreadError("");
 
-          const params = new URLSearchParams({
-            micrositeId: micrositeId ?? "",
-            threadBlockId: block.id,
-          });
+const params = new URLSearchParams({
+  micrositeId: micrositeId ?? "",
+  threadBlockId: block.id,
+  sort: "created_desc",
+  limit: String(
+    Math.max(1, Math.min(100, block.data.maxVisibleMessages ?? 100)),
+  ),
+});
 
           const res = await fetch(`/api/thread/messages?${params.toString()}`, {
             cache: "no-store",
