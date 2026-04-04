@@ -770,6 +770,7 @@ export default function DesignLayoutEditor({
   saveState,
   saveMessage,
 }: Props) {
+  const [resetDraftModalOpen, setResetDraftModalOpen] = useState(false);
   const [selection, setSelection] = useState(createEmptySelection());
   const [activeCategory, setActiveCategory] = useState<BottomCategory>("Text");
   const [openToolMenu, setOpenToolMenu] = useState<BottomCategory | null>(null);
@@ -784,6 +785,7 @@ export default function DesignLayoutEditor({
   const [undoStack, setUndoStack] = useState<BuilderDraft[]>([]);
   const [redoStack, setRedoStack] = useState<BuilderDraft[]>([]);
   const isHistoryActionRef = useRef(false);
+  const initialDraftRef = useRef<BuilderDraft>(cloneDraft(draft));
   const lastDraftRef = useRef<BuilderDraft>(cloneDraft(draft));
   const topBarScrollRef = useRef<HTMLDivElement | null>(null);
   const dockedScrollRef = useRef<HTMLDivElement | null>(null);
@@ -795,7 +797,12 @@ export default function DesignLayoutEditor({
   );
 
   const rsvpHeadingInputRef = useRef<HTMLInputElement | null>(null);
-
+  const currentSiteName = draft.title?.trim() || "Untitled Site";
+  const currentSiteSlug =
+    (draft as DraftWithPageExtras).slugSuggestion?.trim() || "";
+  const currentSiteDisplay = currentSiteSlug
+    ? `${currentSiteSlug}.ko-host.com`
+    : "[Unavailable]";
   const countdownHeadingInputRef = useRef<HTMLInputElement | null>(null);
   const countdownTargetInputRef = useRef<HTMLInputElement | null>(null);
   const countdownCompletedInputRef = useRef<HTMLInputElement | null>(null);
@@ -1374,6 +1381,28 @@ function applyBorderColor(value: string) {
   applyAppearancePatch({ borderColor: value });
   pushRecentColor(value);
 }
+
+function openResetDraftModal() {
+  setResetDraftModalOpen(true);
+}
+
+function confirmResetDraft() {
+  const resetDraft = cloneDraft(initialDraftRef.current);
+
+  isHistoryActionRef.current = true;
+  setSelection(createEmptySelection());
+  setOpenToolMenu(null);
+  setRedoStack([]);
+  setUndoStack([]);
+  lastDraftRef.current = cloneDraft(resetDraft);
+  setDraft(resetDraft);
+  setResetDraftModalOpen(false);
+}
+
+function cancelResetDraft() {
+  setResetDraftModalOpen(false);
+}
+
 function applyStylePatch(patch: Partial<TextStyle>) {
   if (selectedBlock?.type === "text_fx") {
     setDraft((prev) => ({
@@ -2982,6 +3011,15 @@ return (
 
       <button
         type="button"
+        className={topBarButtonClass(false)}
+        onClick={openResetDraftModal}
+        title="Reset draft to original design layout"
+      >
+        Reset Draft
+      </button>
+
+      <button
+        type="button"
         className={topBarButtonClass(false, false, true)}
         onClick={removeAllBlocks}
         title="Remove all blocks"
@@ -3062,6 +3100,14 @@ return (
 />
 
       <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
+
+            <div className={infoPillClass()}>
+        Site: {currentSiteName}
+      </div>
+
+      <div className={infoPillClass()}>
+        {currentSiteDisplay}
+      </div>
 
       <div className={infoPillClass()}>{selectedContext.label}</div>
 
@@ -6335,25 +6381,26 @@ data: {
       ))}
     </div>
 <div className="flex flex-col items-end gap-1">
-  <div className="flex items-center gap-4">
-    <div className="flex items-center gap-3 rounded-md border border-black/10 bg-white px-3 py-2 shadow-sm">
-      <span className="text-xs font-medium text-neutral-700">Page Scale</span>
+      <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 rounded-md border border-black/10 bg-white px-3 py-2 shadow-sm">
+          <span className="text-xs font-medium text-neutral-700">Page Scale</span>
 
-      <input
-        type="range"
-        min={10}
-        max={100}
-        step={10}
-        value={pageScale}
-        onChange={(e) => updatePageScale(Number(e.target.value))}
-        className="w-28 accent-blue-600"
-        title="Page Scale"
-      />
+          <input
+            type="range"
+            min={10}
+            max={100}
+            step={10}
+            value={pageScale}
+            onChange={(e) => updatePageScale(Number(e.target.value))}
+            className="w-28 accent-blue-600"
+            title="Page Scale"
+          />
 
-      <span className="w-10 text-right text-xs font-medium text-neutral-700">
-        {pageScale}%
-      </span>
-    </div>
+          <span className="w-10 text-right text-xs font-medium text-neutral-700">
+            {pageScale}%
+          </span>
+        </div>
+
         <button
           type="button"
           className={actionButtonClass(false)}
@@ -6364,13 +6411,25 @@ data: {
 
         <button
           type="button"
-          className={actionButtonClass(true)}
+          className={[
+            "inline-flex h-12 items-center justify-center rounded-md border px-4 text-sm font-medium transition",
+            saveState === "saving"
+              ? "border-blue-600 bg-blue-600 text-white animate-pulse"
+              : saveState === "saved"
+                ? "border-emerald-600 bg-emerald-600 text-white"
+                : saveState === "error"
+                  ? "border-red-600 bg-red-600 text-white"
+                  : saveState === "signin-required"
+                    ? "border-amber-500 bg-amber-500 text-white"
+                    : "border-blue-600 bg-blue-600 text-white hover:bg-blue-700",
+          ].join(" ")}
           onClick={() => void onSaveDraft?.(draft)}
+          disabled={saveState === "saving"}
         >
           {saveState === "saving"
             ? "Saving..."
             : saveState === "saved"
-              ? "Saved"
+              ? "Saved ✓"
               : saveState === "error"
                 ? "Save Failed"
                 : saveState === "signin-required"
@@ -6379,18 +6438,15 @@ data: {
         </button>
 
         {publishHref ? (
-      <button
-        type="button"
-        onClick={() => {
-          // IMPORTANT:
-          // Publish is navigation only.
-          // No draft state or slug assumptions should be passed here.
-          onPublishClick?.();
-        }}
-        className="inline-flex h-12 items-center justify-center rounded-md border border-neutral-950 bg-neutral-950 px-4 text-sm font-medium text-white transition hover:bg-black"
-      >
-        {publishLabel}
-      </button>
+          <button
+            type="button"
+            onClick={() => {
+              onPublishClick?.();
+            }}
+            className="inline-flex h-12 items-center justify-center rounded-md border border-neutral-950 bg-neutral-950 px-4 text-sm font-medium text-white transition hover:bg-black"
+          >
+            {publishLabel}
+          </button>
         ) : null}
       </div>
 
@@ -6410,6 +6466,16 @@ data: {
   danger
   onConfirm={confirmRemoveAllBlocks}
   onCancel={cancelRemoveAllBlocks}
+/>
+<AppModal
+  open={resetDraftModalOpen}
+  title="Reset draft?"
+  description="This will restore the draft to the original design layout state that was loaded when this editor opened."
+  confirmText="Reset Draft"
+  cancelText="Cancel"
+  danger
+  onConfirm={confirmResetDraft}
+  onCancel={cancelResetDraft}
 />
     </div>
   );

@@ -1,4 +1,3 @@
-// app/api/dashboard/microsites/[id]/builder/route.ts
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { sanitizeBuilderDraft } from "@/lib/templates/builder";
@@ -24,7 +23,6 @@ export async function POST(
       body?.draft && typeof body.draft === "object" ? body.draft : {};
 
     const sanitizedDraft = sanitizeBuilderDraft(rawDraft);
-
     const supabaseAdmin = getSupabaseAdmin();
 
     const { data: microsite, error: micrositeError } = await supabaseAdmin
@@ -44,23 +42,26 @@ export async function POST(
     const nextDraft = {
       ...sanitizedDraft,
       title: sanitizedDraft.title || microsite.title || "",
-      slugSuggestion:
-        typeof microsite.slug === "string" ? microsite.slug : "",
+      slugSuggestion: typeof microsite.slug === "string" ? microsite.slug : "",
     };
 
     const nowIso = new Date().toISOString();
 
-    const { data: existingPages, error: existingPagesError } = await supabaseAdmin
-      .from("microsite_pages")
-      .select("id, slug")
-      .eq("microsite_id", id)
-      .order("display_order", { ascending: true })
-      .order("created_at", { ascending: true })
-      .limit(1);
+    const { data: existingPages, error: existingPagesError } =
+      await supabaseAdmin
+        .from("microsite_pages")
+        .select("id, slug")
+        .eq("microsite_id", id)
+        .order("display_order", { ascending: true })
+        .order("created_at", { ascending: true })
+        .limit(1);
 
     if (existingPagesError) {
       return NextResponse.json(
-        { error: existingPagesError.message || "Failed to load microsite pages." },
+        {
+          error:
+            existingPagesError.message || "Failed to load microsite pages.",
+        },
         { status: 500 },
       );
     }
@@ -82,7 +83,8 @@ export async function POST(
         return NextResponse.json(
           {
             error:
-              createHomePageError.message || "Failed to create microsite home page.",
+              createHomePageError.message ||
+              "Failed to create microsite home page.",
           },
           { status: 500 },
         );
@@ -102,7 +104,8 @@ export async function POST(
         return NextResponse.json(
           {
             error:
-              updateHomePageError.message || "Failed to update microsite home page.",
+              updateHomePageError.message ||
+              "Failed to update microsite home page.",
           },
           { status: 500 },
         );
@@ -118,7 +121,7 @@ export async function POST(
       })
       .eq("id", id)
       .eq("owner_clerk_user_id", userId)
-      .select("id, slug, title, draft")
+      .select("id, slug, title, draft, updated_at")
       .single();
 
     if (updateError || !updated) {
@@ -128,13 +131,14 @@ export async function POST(
       );
     }
 
-    const { data: latestVersion, error: latestVersionError } = await supabaseAdmin
-      .from("microsite_versions")
-      .select("id, created_at")
-      .eq("microsite_id", id)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+    const { data: latestVersion, error: latestVersionError } =
+      await supabaseAdmin
+        .from("microsite_versions")
+        .select("id, created_at")
+        .eq("microsite_id", id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
     let shouldInsertVersion = true;
 
@@ -165,6 +169,12 @@ export async function POST(
       microsite: updated,
       draft: nextDraft,
       versionCreated: shouldInsertVersion,
+      savedAt: nowIso,
+      builderTitle: nextDraft.title || "Untitled Site",
+      builderSlug:
+        typeof microsite.slug === "string" && microsite.slug.trim()
+          ? microsite.slug.trim()
+          : "",
     });
   } catch (error) {
     const message =

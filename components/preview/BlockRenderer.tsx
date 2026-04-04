@@ -1,4 +1,3 @@
-// components\preview\BlockRenderer.tsx
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -53,9 +52,14 @@ type Props = {
   micrositeId?: string | null;
 };
 
+type ThreadUiMessage = ThreadMessage & {
+  userVote?: -1 | 0 | 1;
+};
+
 const THREAD_MAX_NAME_LENGTH = 60;
 const THREAD_MAX_MESSAGE_LENGTH = 500;
 const THREAD_ACTIVITY_EVENT = "kht-thread-activity";
+const THREAD_VOTE_STORAGE_KEY = "kht-thread-votes";
 
 const anton = Anton({ subsets: ["latin"], weight: "400" });
 const bangers = Bangers({ subsets: ["latin"], weight: "400" });
@@ -903,10 +907,17 @@ function getHighlightCardClass(designKey?: string) {
     : "rounded-2xl border border-white/10 bg-white/5 px-4 py-3 backdrop-blur-sm";
 }
 
-function getThreadCardClass(designKey?: string) {
-  return isLightDesign(designKey)
-    ? "rounded-2xl border border-neutral-200 bg-white px-4 py-3 shadow-sm"
-    : "rounded-2xl border border-white/10 bg-white/5 px-4 py-3";
+function getThreadCardClass(designKey?: string, active = false) {
+  return [
+    isLightDesign(designKey)
+      ? "rounded-2xl border border-neutral-200 bg-white px-4 py-3 shadow-sm"
+      : "rounded-2xl border border-white/10 bg-white/5 px-4 py-3",
+    active
+      ? isLightDesign(designKey)
+        ? "ring-2 ring-neutral-900/10"
+        : "ring-2 ring-white/20"
+      : "",
+  ].join(" ");
 }
 
 function getThreadComposerClass(designKey?: string) {
@@ -954,13 +965,17 @@ function getThreadPostButtonClass(
 
 function getThreadSampleMessages(
   block: Extract<MicrositeBlock, { type: "thread" }>,
-): ThreadMessage[] {
+): ThreadUiMessage[] {
   const existing = block.data.messages?.filter(
     (message) => message.name?.trim() || message.message?.trim(),
   );
 
   if (existing && existing.length > 0) {
-    return existing;
+    return existing.map((message) => ({
+      ...message,
+      votes: typeof message.votes === "number" ? message.votes : 0,
+      userVote: 0,
+    }));
   }
 
   return [
@@ -969,18 +984,21 @@ function getThreadSampleMessages(
       name: block.data.allowAnonymous ? "Anon" : "Jordan",
       message: "Looking forward to this.",
       votes: 3,
+      userVote: 0,
     },
     {
       id: "sample-2",
       name: block.data.allowAnonymous ? "Anon" : "Taylor",
       message: "Can’t wait to join the conversation.",
       votes: 2,
+      userVote: 0,
     },
     {
       id: "sample-3",
       name: block.data.allowAnonymous ? "Anon" : "Morgan",
       message: "Following for updates.",
       votes: 1,
+      userVote: 0,
     },
   ];
 }
@@ -992,18 +1010,68 @@ function getInitials(name?: string) {
   return parts.map((part) => part[0]?.toUpperCase() || "").join("") || "G";
 }
 
-function normalizeThreadMessages(rawMessages: any[]): ThreadMessage[] {
+function readVoteMap(): Record<string, -1 | 1> {
+  if (typeof window === "undefined") return {};
+
+  try {
+    const raw = window.localStorage.getItem(THREAD_VOTE_STORAGE_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw) as Record<string, unknown>;
+    const next: Record<string, -1 | 1> = {};
+
+    for (const [key, value] of Object.entries(parsed)) {
+      if (value === 1 || value === -1) next[key] = value;
+    }
+
+    return next;
+  } catch {
+    return {};
+  }
+}
+
+function writeVoteMap(map: Record<string, -1 | 1>) {
+  if (typeof window === "undefined") return;
+
+  try {
+    window.localStorage.setItem(THREAD_VOTE_STORAGE_KEY, JSON.stringify(map));
+  } catch {
+    // ignore
+  }
+}
+
+function getStoredVote(messageId: string): -1 | 0 | 1 {
+  const map = readVoteMap();
+  return map[messageId] ?? 0;
+}
+
+function setStoredVote(messageId: string, vote: -1 | 1) {
+  const map = readVoteMap();
+  map[messageId] = vote;
+  writeVoteMap(map);
+}
+
+function normalizeThreadMessages(rawMessages: any[]): ThreadUiMessage[] {
   if (!Array.isArray(rawMessages)) return [];
 
-  return rawMessages.map((message, index) => ({
-    id: String(message.id ?? `threadmsg_${index}`),
-    name: String(message.author_name ?? message.name ?? "Guest"),
-    message: String(message.message_text ?? message.message ?? ""),
-    votes:
-      typeof message.votes === "number"
-        ? message.votes
-        : Number(message.votes ?? 0) || 0,
-  }));
+  return rawMessages.map((message, index) => {
+    const id = String(message.id ?? `threadmsg_${index}`);
+
+    return {
+      id,
+      name: String(message.author_name ?? message.name ?? "Guest"),
+      message: String(message.message_text ?? message.message ?? ""),
+      votes:
+        typeof message.votes === "number"
+          ? message.votes
+          : Number(message.votes ?? 0) || 0,
+      userVote:
+        message.userVote === 1 || message.user_vote === 1
+          ? 1
+          : message.userVote === -1 || message.user_vote === -1
+            ? -1
+            : getStoredVote(id),
+    };
+  });
 }
 
 function renderThread(
@@ -1013,15 +1081,11 @@ function renderThread(
 ) {
   function ThreadInteractivePreview() {
     const initialMessages = useMemo(
-      () =>
-        getThreadSampleMessages(block).map((message) => ({
-          ...message,
-          votes: typeof message.votes === "number" ? message.votes : 0,
-        })),
+      () => getThreadSampleMessages(block),
       [block.id, block.data.messages, block.data.allowAnonymous],
     );
 
-    const [messages, setMessages] = useState<ThreadMessage[]>(initialMessages);
+    const [messages, setMessages] = useState<ThreadUiMessage[]>(initialMessages);
     const [nameValue, setNameValue] = useState("");
     const [messageValue, setMessageValue] = useState("");
     const [isLoading, setIsLoading] = useState(Boolean(micrositeId));
@@ -1034,6 +1098,10 @@ function renderThread(
     const showNameField = block.data.showNameField !== false;
     const showVoteControls = block.data.showVoteControls !== false;
     const showVoteCount = block.data.showVoteCount !== false;
+    const scrollHeight = Math.max(
+      120,
+      Math.min(1000, Number(block.data.scrollHeight) || 280),
+    );
 
     useEffect(() => {
       if (!micrositeId) {
@@ -1049,14 +1117,14 @@ function renderThread(
           setIsLoading(true);
           setThreadError("");
 
-const params = new URLSearchParams({
-  micrositeId: micrositeId ?? "",
-  threadBlockId: block.id,
-  sort: "created_desc",
-  limit: String(
-    Math.max(1, Math.min(100, block.data.maxVisibleMessages ?? 100)),
-  ),
-});
+          const params = new URLSearchParams({
+            micrositeId: micrositeId ?? "",
+            threadBlockId: block.id,
+            sort: "created_desc",
+            limit: String(
+              Math.max(1, Math.min(100, block.data.maxVisibleMessages ?? 100)),
+            ),
+          });
 
           const res = await fetch(`/api/thread/messages?${params.toString()}`, {
             cache: "no-store",
@@ -1119,6 +1187,7 @@ const params = new URLSearchParams({
       initialMessages,
       block.data.allowAnonymous,
       block.data.requireApproval,
+      block.data.maxVisibleMessages,
     ]);
 
     const trimmedMessageValue = messageValue.trim();
@@ -1137,11 +1206,12 @@ const params = new URLSearchParams({
       const safeName = resolvedName.slice(0, THREAD_MAX_NAME_LENGTH);
       const safeMessage = nextMessage.slice(0, THREAD_MAX_MESSAGE_LENGTH);
 
-      const optimisticMessage: ThreadMessage = {
+      const optimisticMessage: ThreadUiMessage = {
         id: `threadmsg_${Math.random().toString(36).slice(2, 10)}`,
         name: safeName,
         message: safeMessage,
         votes: 0,
+        userVote: 0,
       };
 
       if (!micrositeId) {
@@ -1184,6 +1254,7 @@ const params = new URLSearchParams({
               typeof data.message.votes === "number"
                 ? data.message.votes
                 : Number(data.message.votes ?? 0) || 0,
+            userVote: 0,
           },
           ...prev,
         ]);
@@ -1210,8 +1281,18 @@ const params = new URLSearchParams({
       }
     }
 
-    async function updateVotes(messageId: string, delta: number) {
+    async function updateVotes(messageId: string, targetVote: 1 | -1) {
       if (voteLoadingId) return;
+
+      const existing = messages.find((message) => message.id === messageId);
+      if (!existing) return;
+
+      const previousVote = existing.userVote ?? 0;
+      if (previousVote === targetVote) return;
+
+      const optimisticDelta =
+        previousVote === 0 ? targetVote : targetVote - previousVote;
+      const optimisticVotes = Math.max(0, (existing.votes ?? 0) + optimisticDelta);
 
       if (!micrositeId) {
         setMessages((prev) =>
@@ -1219,18 +1300,15 @@ const params = new URLSearchParams({
             message.id === messageId
               ? {
                   ...message,
-                  votes: Math.max(0, (message.votes ?? 0) + delta),
+                  votes: optimisticVotes,
+                  userVote: targetVote,
                 }
               : message,
           ),
         );
+        setStoredVote(messageId, targetVote);
         return;
       }
-
-      const existing = messages.find((message) => message.id === messageId);
-      if (!existing) return;
-
-      const optimisticVotes = Math.max(0, (existing.votes ?? 0) + delta);
 
       setVoteLoadingId(messageId);
       setThreadError("");
@@ -1241,6 +1319,7 @@ const params = new URLSearchParams({
             ? {
                 ...message,
                 votes: optimisticVotes,
+                userVote: targetVote,
               }
             : message,
         ),
@@ -1254,7 +1333,7 @@ const params = new URLSearchParams({
           },
           body: JSON.stringify({
             messageId,
-            delta,
+            targetVote,
           }),
         });
 
@@ -1263,6 +1342,11 @@ const params = new URLSearchParams({
         if (!res.ok) {
           throw new Error(data?.error || "Failed to update vote.");
         }
+
+        const resolvedUserVote =
+          data?.message?.userVote === 1 || data?.message?.userVote === -1
+            ? data.message.userVote
+            : targetVote;
 
         setMessages((prev) =>
           prev.map((message) =>
@@ -1273,10 +1357,13 @@ const params = new URLSearchParams({
                     typeof data.message.votes === "number"
                       ? data.message.votes
                       : optimisticVotes,
+                  userVote: resolvedUserVote,
                 }
               : message,
           ),
         );
+
+        setStoredVote(messageId, resolvedUserVote);
 
         window.dispatchEvent(
           new CustomEvent(THREAD_ACTIVITY_EVENT, {
@@ -1294,6 +1381,7 @@ const params = new URLSearchParams({
               ? {
                   ...message,
                   votes: existing.votes ?? 0,
+                  userVote: previousVote,
                 }
               : message,
           ),
@@ -1360,6 +1448,8 @@ const params = new URLSearchParams({
                   onChange={(e) =>
                     setNameValue(e.target.value.slice(0, THREAD_MAX_NAME_LENGTH))
                   }
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onClick={(e) => e.stopPropagation()}
                   placeholder={block.data.namePlaceholder || "Your name"}
                   className={getThreadComposerInputClass(designKey)}
                   style={{
@@ -1379,6 +1469,8 @@ const params = new URLSearchParams({
                     e.target.value.slice(0, THREAD_MAX_MESSAGE_LENGTH),
                   )
                 }
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()}
                 placeholder={block.data.composerPlaceholder || "Write something…"}
                 className={`${getThreadComposerInputClass(designKey)} min-h-[96px] resize-none`}
                 style={{
@@ -1449,7 +1541,10 @@ const params = new URLSearchParams({
             </div>
           </div>
 
-          <div className="mt-4 space-y-3">
+          <div
+            className="mt-4 min-h-0 flex-1 overflow-y-auto pr-1"
+            style={{ maxHeight: `${scrollHeight}px` }}
+          >
             {isLoading ? (
               <div className="rounded-xl border border-dashed border-neutral-300 px-3 py-4 text-sm text-neutral-500">
                 Loading messages...
@@ -1459,102 +1554,131 @@ const params = new URLSearchParams({
                 No messages yet.
               </div>
             ) : (
-              messages.map((message) => (
-                <div key={message.id} className={getThreadCardClass(designKey)}>
-                  <div className="flex items-start gap-3">
-                    {showVoteControls ? (
-                      <div className="flex shrink-0 flex-col items-center justify-start gap-1">
-                        <button
-                          type="button"
-                          onClick={() => void updateVotes(message.id, 1)}
-                          disabled={voteLoadingId === message.id}
-                          className={
-                            isLightDesign(designKey)
-                              ? "text-neutral-700"
-                              : "text-white/80"
-                          }
-                          style={{
-                            opacity: voteLoadingId === message.id ? 0.5 : 1,
-                            cursor:
-                              voteLoadingId === message.id
-                                ? "not-allowed"
-                                : "pointer",
-                          }}
-                        >
-                          <img
-                            src="/icons/upvote_icon.png"
-                            alt="Upvote"
-                            className="w-4 h-4"
-                          />
-                        </button>
+              <div className="space-y-3">
+                {messages.map((message) => {
+                  const currentUserVote = message.userVote ?? 0;
 
-                        {showVoteCount ? (
+                  return (
+                    <div
+                      key={message.id}
+                      className={getThreadCardClass(
+                        designKey,
+                        currentUserVote !== 0,
+                      )}
+                    >
+                      <div className="flex items-start gap-3">
+                        {showVoteControls ? (
+                          <div className="flex shrink-0 flex-col items-center justify-start gap-1">
+                            <button
+                              type="button"
+                              onClick={() => void updateVotes(message.id, 1)}
+                              disabled={voteLoadingId === message.id}
+                              className={
+                                isLightDesign(designKey)
+                                  ? "text-neutral-700"
+                                  : "text-white/80"
+                              }
+                              style={{
+                                opacity: voteLoadingId === message.id ? 0.5 : 1,
+                                cursor:
+                                  voteLoadingId === message.id
+                                    ? "not-allowed"
+                                    : "pointer",
+                                transform:
+                                  currentUserVote === 1 ? "scale(1.08)" : undefined,
+                              }}
+                              title={
+                                currentUserVote === 1
+                                  ? "You upvoted this"
+                                  : "Upvote"
+                              }
+                            >
+                              <img
+                                src="/icons/upvote_icon.png"
+                                alt="Upvote"
+                                className="h-4 w-4"
+                              />
+                            </button>
+
+                            {showVoteCount ? (
+                              <div
+                                className="font-semibold"
+                                style={{
+                                  ...getThreadMetaStyle(
+                                    block.data.style,
+                                    designKey,
+                                  ),
+                                  fontSize: "12px",
+                                }}
+                              >
+                                {message.votes ?? 0}
+                              </div>
+                            ) : null}
+
+                            <button
+                              type="button"
+                              onClick={() => void updateVotes(message.id, -1)}
+                              disabled={voteLoadingId === message.id}
+                              className={
+                                isLightDesign(designKey)
+                                  ? "text-neutral-700"
+                                  : "text-white/80"
+                              }
+                              style={{
+                                opacity: voteLoadingId === message.id ? 0.5 : 1,
+                                cursor:
+                                  voteLoadingId === message.id
+                                    ? "not-allowed"
+                                    : "pointer",
+                                transform:
+                                  currentUserVote === -1 ? "scale(1.08)" : undefined,
+                              }}
+                              title={
+                                currentUserVote === -1
+                                  ? "You downvoted this"
+                                  : "Downvote"
+                              }
+                            >
+                              <img
+                                src="/icons/downvote_icon.png"
+                                alt="Downvote"
+                                className="h-4 w-4"
+                              />
+                            </button>
+                          </div>
+                        ) : null}
+
+                        <div className={getThreadAvatarClass(designKey)}>
+                          {getInitials(message.name)}
+                        </div>
+
+                        <div className="min-w-0 flex-1">
                           <div
                             className="font-semibold"
                             style={{
                               ...getThreadMetaStyle(block.data.style, designKey),
-                              fontSize: "12px",
+                              fontSize: "13px",
                             }}
                           >
-                            {message.votes ?? 0}
+                            {message.name || "Guest"}
                           </div>
-                        ) : null}
 
-                        <button
-                          type="button"
-                          onClick={() => void updateVotes(message.id, -1)}
-                          disabled={voteLoadingId === message.id}
-                          className={
-                            isLightDesign(designKey)
-                              ? "text-neutral-700"
-                              : "text-white/80"
-                          }
-                          style={{
-                            opacity: voteLoadingId === message.id ? 0.5 : 1,
-                            cursor:
-                              voteLoadingId === message.id
-                                ? "not-allowed"
-                                : "pointer",
-                          }}
-                        >
-                          <img
-                            src="/icons/downvote_icon.png"
-                            alt="Downvote"
-                            className="w-4 h-4"
-                          />
-                        </button>
-                      </div>
-                    ) : null}
-
-                    <div className={getThreadAvatarClass(designKey)}>
-                      {getInitials(message.name)}
-                    </div>
-
-                    <div className="min-w-0 flex-1">
-                      <div
-                        className="font-semibold"
-                        style={{
-                          ...getThreadMetaStyle(block.data.style, designKey),
-                          fontSize: "13px",
-                        }}
-                      >
-                        {message.name || "Guest"}
-                      </div>
-
-                      <div
-                        className="mt-1"
-                        style={{
-                          ...getThreadBodyStyle(block.data.style, designKey),
-                          fontSize: "15px",
-                          lineHeight: 1.35,
-                        }}
-                      >
-                        {message.message || "Message preview"}
+                          <div
+                            className="mt-1"
+                            style={{
+                              ...getThreadBodyStyle(block.data.style, designKey),
+                              fontSize: "15px",
+                              lineHeight: 1.35,
+                            }}
+                          >
+                            {message.message || "Message preview"}
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </div>
-              ))
+                  );
+                })}
+              </div>
             )}
           </div>
         </div>
@@ -2049,12 +2173,12 @@ function renderHighlight(
               return;
             }
 
-const params = new URLSearchParams({
-  micrositeId,
-  threadBlockId: sourceBlockId,
-  limit: "100",
-  sort: "votes_desc",
-});
+            const params = new URLSearchParams({
+              micrositeId,
+              threadBlockId: sourceBlockId,
+              limit: "100",
+              sort: "votes_desc",
+            });
 
             const res = await fetch(
               `/api/thread/messages?${params.toString()}`,
@@ -2303,7 +2427,12 @@ const params = new URLSearchParams({
           ) : null}
 
           {mode === "top_messages" ? (
-            <div className="space-y-3">
+            <div
+              className="grid gap-3"
+              style={{
+                gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+              }}
+            >
               {items.slice(0, limit).map((msg: any, index: number) => (
                 <div
                   key={msg.id}
