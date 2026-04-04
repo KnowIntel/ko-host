@@ -1,4 +1,3 @@
-// components/templates/TemplateDraftEditor.tsx
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -22,6 +21,7 @@ type Props = {
 };
 
 const AUTOSAVE_DELAY_MS = 10 * 60 * 1000;
+const SAVED_STATE_RESET_MS = 2500;
 
 function cloneDraft<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
@@ -51,17 +51,29 @@ export default function TemplateDraftEditor({
   );
 
   const [draft, setDraft] = useState<BuilderDraft>(() => cloneDraft(initialDraft));
+  const [localSaveState, setLocalSaveState] = useState<
+    "idle" | "saving" | "saved" | "error" | "signin-required"
+  >("idle");
+  const [localSaveMessage, setLocalSaveMessage] = useState<string>("");
 
   const autosaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const saveResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasMountedAutosaveRef = useRef(false);
 
   useEffect(() => {
     setDraft(cloneDraft(initialDraft));
+    setLocalSaveState("idle");
+    setLocalSaveMessage("");
     hasMountedAutosaveRef.current = false;
 
     if (autosaveTimerRef.current) {
       clearTimeout(autosaveTimerRef.current);
       autosaveTimerRef.current = null;
+    }
+
+    if (saveResetTimerRef.current) {
+      clearTimeout(saveResetTimerRef.current);
+      saveResetTimerRef.current = null;
     }
   }, [routeKey, initialDraft]);
 
@@ -72,6 +84,52 @@ export default function TemplateDraftEditor({
   useEffect(() => {
     void onSubmit;
   }, [onSubmit]);
+
+  useEffect(() => {
+    return () => {
+      if (autosaveTimerRef.current) {
+        clearTimeout(autosaveTimerRef.current);
+      }
+      if (saveResetTimerRef.current) {
+        clearTimeout(saveResetTimerRef.current);
+      }
+    };
+  }, []);
+
+  async function runSave(nextDraft: BuilderDraft, source: "manual" | "autosave") {
+    if (!onSave) return;
+
+    if (saveResetTimerRef.current) {
+      clearTimeout(saveResetTimerRef.current);
+      saveResetTimerRef.current = null;
+    }
+
+    try {
+      setLocalSaveState("saving");
+      setLocalSaveMessage(source === "autosave" ? "Auto-saving draft..." : "Saving draft...");
+
+      await onSave(nextDraft);
+
+      setLocalSaveState("saved");
+      setLocalSaveMessage(source === "autosave" ? "Draft auto-saved." : "Draft saved.");
+
+      saveResetTimerRef.current = setTimeout(() => {
+        setLocalSaveState("idle");
+        setLocalSaveMessage("");
+      }, SAVED_STATE_RESET_MS);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to save draft.";
+
+      if (/unauthorized|sign in|signin|login|logged in/i.test(message)) {
+        setLocalSaveState("signin-required");
+        setLocalSaveMessage("Sign in to save your draft.");
+      } else {
+        setLocalSaveState("error");
+        setLocalSaveMessage(message || "Failed to save draft.");
+      }
+    }
+  }
 
   useEffect(() => {
     if (!onSave) return;
@@ -86,7 +144,7 @@ export default function TemplateDraftEditor({
     }
 
     autosaveTimerRef.current = setTimeout(() => {
-      void onSave(draft);
+      void runSave(draft, "autosave");
     }, AUTOSAVE_DELAY_MS);
 
     return () => {
@@ -96,6 +154,18 @@ export default function TemplateDraftEditor({
     };
   }, [draft, onSave]);
 
+  const effectiveSaveState =
+    saveState && saveState !== "idle" ? saveState : localSaveState;
+
+  const effectiveSaveMessage =
+    saveMessage && saveMessage.trim().length > 0
+      ? saveMessage
+      : localSaveMessage;
+
+  async function handleSaveDraft(nextDraft: BuilderDraft) {
+    await runSave(nextDraft, "manual");
+  }
+
   return (
     <div className="relative">
       <DesignLayoutEditor
@@ -103,14 +173,14 @@ export default function TemplateDraftEditor({
         designKey={resolvedDesignLayout}
         draft={draft}
         setDraft={setDraft}
-        onSaveDraft={onSave}
+        onSaveDraft={handleSaveDraft}
         publishHref={publishHref}
         publishLabel={publishLabel}
         onPublishClick={() => {
           onPublishClick?.();
         }}
-        saveState={saveState}
-        saveMessage={saveMessage}
+        saveState={effectiveSaveState}
+        saveMessage={effectiveSaveMessage}
       />
     </div>
   );

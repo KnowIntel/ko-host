@@ -2140,6 +2140,14 @@ function renderHighlight(
     const limit = Math.max(1, Math.min(12, Number(block.data?.limit) || 4));
     const sourceBlockId = block.data?.sourceBlockId?.trim() || "";
     const sourceFormBlockId = block.data?.sourceFormBlockId?.trim() || "";
+    const widthUnits = Number(block.grid?.colSpan ?? 1);
+
+    let highlightColumns = 1;
+    if (widthUnits >= 16.25) {
+      highlightColumns = 3;
+    } else if (widthUnits >= 8.25) {
+      highlightColumns = 2;
+    }
     const heading =
       block.data?.heading?.trim() ||
       (mode === "top_messages"
@@ -2426,13 +2434,13 @@ function renderHighlight(
             </div>
           ) : null}
 
-          {mode === "top_messages" ? (
-            <div
-              className="grid gap-3"
-              style={{
-                gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-              }}
-            >
+{mode === "top_messages" ? (
+  <div
+    className="grid gap-3"
+    style={{
+      gridTemplateColumns: `repeat(${highlightColumns}, minmax(0, 1fr))`,
+    }}
+  >
               {items.slice(0, limit).map((msg: any, index: number) => (
                 <div
                   key={msg.id}

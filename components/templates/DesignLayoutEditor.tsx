@@ -3011,8 +3011,8 @@ return (
 
 <button
   type="button"
-  onClick={handleResetDraft}
-  className="inline-flex items-center justify-center rounded-xl border border-neutral-300 bg-white hover:bg-neutral-50 transition p-2"
+  onClick={openResetDraftModal}
+  className={topBarButtonClass(false)}
   title="Reset Draft"
 >
   <img
