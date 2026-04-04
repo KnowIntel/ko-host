@@ -106,7 +106,7 @@ export default function TemplateDraftEditor({
 
     try {
       setLocalSaveState("saving");
-      setLocalSaveMessage(source === "autosave" ? "Auto-saving draft..." : "Saving draft...");
+      // setLocalSaveMessage(source === "autosave" ? "Auto-saving draft..." : "Saving draft...");
 
       await onSave(nextDraft);
 
