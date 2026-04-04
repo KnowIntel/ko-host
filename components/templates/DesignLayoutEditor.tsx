@@ -3009,14 +3009,18 @@ return (
 
       <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
 
-      <button
-        type="button"
-        className={topBarButtonClass(false)}
-        onClick={openResetDraftModal}
-        title="Reset draft to original design layout"
-      >
-        Reset Draft
-      </button>
+<button
+  type="button"
+  onClick={handleResetDraft}
+  className="inline-flex items-center justify-center rounded-xl border border-neutral-300 bg-white hover:bg-neutral-50 transition p-2"
+  title="Reset Draft"
+>
+  <img
+    src="/icons/reset_draft_icon.png"
+    alt="Reset Draft"
+    className="h-5 w-5 object-contain"
+  />
+</button>
 
       <button
         type="button"
