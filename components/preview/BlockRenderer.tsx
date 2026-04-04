@@ -1481,7 +1481,11 @@ const params = new URLSearchParams({
                                 : "pointer",
                           }}
                         >
-                          👍
+                          <img
+                            src="/icons/upvote_icon.png"
+                            alt="Upvote"
+                            className="w-4 h-4"
+                          />
                         </button>
 
                         {showVoteCount ? (
@@ -1513,7 +1517,11 @@ const params = new URLSearchParams({
                                 : "pointer",
                           }}
                         >
-                          👎
+                          <img
+                            src="/icons/downvote_icon.png"
+                            alt="Downvote"
+                            className="w-4 h-4"
+                          />
                         </button>
                       </div>
                     ) : null}
