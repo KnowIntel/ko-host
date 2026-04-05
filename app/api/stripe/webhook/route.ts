@@ -3,6 +3,7 @@ import Stripe from "stripe";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
+import { generateMicrositeThumbnail } from "@/lib/screenshotMicrosite";
 
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -214,6 +215,7 @@ if (!pendingRow) {
       selected_design_key: resolvedDesignKey,
       updated_at: nowIso,
     };
+    
 
     // ✅ DEBUG LOG (ADDED)
     console.log("🧠 WEBHOOK DATA:", {
@@ -378,18 +380,17 @@ const { error: processedError } = await supabaseAdmin
   .eq("id", pendingCheckoutId)
   .is("processed_at", null);
 
-    if (processedError) {
-      console.error(
-        "STRIPE WEBHOOK ERROR: pending checkout processed mark failed",
-        processedError,
-      );
-      return NextResponse.json(
-        { ok: false, error: processedError.message },
-        { status: 500 },
-      );
-    }
+if (processedError) {
+  console.error(
+    "STRIPE WEBHOOK ERROR: pending checkout processed mark failed",
+    processedError,
+  );
+  return NextResponse.json(
+    { ok: false, error: processedError.message },
+    { status: 500 },
+  );
+}
 
-    // ✅ FIX: RELAXED DELETE (was too strict)
 const exactDraftDesignKey =
   resolvedDesignKey && resolvedDesignKey.trim().length > 0
     ? resolvedDesignKey
@@ -402,21 +403,63 @@ const { error: deleteDraftError } = await supabaseAdmin
   .eq("template_key", templateKey)
   .eq("design_key", exactDraftDesignKey);
 
-    if (deleteDraftError) {
-      console.error("STRIPE WEBHOOK ERROR: draft delete failed", deleteDraftError);
-      return NextResponse.json(
-        { ok: false, error: deleteDraftError.message },
-        { status: 500 },
+if (deleteDraftError) {
+  console.error(
+    "STRIPE WEBHOOK WARNING: draft delete failed",
+    deleteDraftError,
+  );
+}
+
+// 🔥 GENERATE THUMBNAIL (NON-BLOCKING)
+try {
+  const snapshotUrl = `https://${slug}.ko-host.com`;
+
+  const buffer = await generateMicrositeThumbnail(snapshotUrl);
+
+  const filePath = `${slug}.jpg`;
+
+  const { error: uploadError } = await supabaseAdmin.storage
+    .from("microsite-thumbnails")
+    .upload(filePath, buffer, {
+      contentType: "image/jpeg",
+      upsert: true,
+    });
+
+  if (uploadError) {
+    console.error("Thumbnail upload failed:", uploadError);
+  } else {
+    const { data } = supabaseAdmin.storage
+      .from("microsite-thumbnails")
+      .getPublicUrl(filePath);
+
+    const { error: thumbnailUpdateError } = await supabaseAdmin
+      .from("microsites")
+      .update({
+        homepage_thumbnail_url: data.publicUrl,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", publishedMicrositeId);
+
+    if (thumbnailUpdateError) {
+      console.error(
+        "Homepage thumbnail db update failed:",
+        thumbnailUpdateError,
       );
+    } else {
+      console.log("✅ Homepage thumbnail saved:", data.publicUrl);
     }
+  }
+} catch (err) {
+  console.error("Thumbnail generation failed:", err);
+}
 
 console.log("STRIPE WEBHOOK SUCCESS:", {
   micrositeId: publishedMicrositeId,
   slug,
   title,
-  broadcastOnHomepage,
   stripeSessionId: session.id,
   pendingCheckoutId,
+  broadcastOnHomepage,
 });
 
     return NextResponse.json({ ok: true });

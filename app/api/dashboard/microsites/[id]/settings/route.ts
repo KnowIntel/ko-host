@@ -34,7 +34,7 @@ export async function GET(
   const { data: site, error: siteErr } = await sb
     .from("microsites")
     .select(
-      "id, slug, title, template_key, selected_design_key, site_visibility, private_mode, is_active, is_published, paid_until, owner_clerk_user_id",
+      "id, slug, title, template_key, selected_design_key, site_visibility, private_mode, is_active, is_published, paid_until, broadcast_on_homepage, owner_clerk_user_id",
     )
     .eq("id", micrositeId)
     .maybeSingle();
@@ -66,6 +66,7 @@ export async function GET(
       is_active: site.is_active,
       is_published: site.is_published,
       paid_until: site.paid_until,
+      broadcast_on_homepage: Boolean(site.broadcast_on_homepage),
     },
   });
 }
@@ -96,6 +97,7 @@ export async function POST(
   let siteVisibilityRaw = "public";
   let privateModeRaw = "passcode";
   let passcodeRaw = "";
+  let broadcastOnHomepageRaw = false;
 
   if (isJson) {
     const body = await req.json().catch(() => ({}));
@@ -103,17 +105,22 @@ export async function POST(
     siteVisibilityRaw = String(body?.siteVisibility || "public");
     privateModeRaw = String(body?.privateMode || "passcode");
     passcodeRaw = normalizePasscode(String(body?.passcode || ""));
+    broadcastOnHomepageRaw = body?.broadcastOnHomepage === true;
   } else {
     const formData = await req.formData();
     title = String(formData.get("title") || "").trim();
     siteVisibilityRaw = String(formData.get("siteVisibility") || "public");
     privateModeRaw = String(formData.get("privateMode") || "passcode");
     passcodeRaw = normalizePasscode(String(formData.get("passcode") || ""));
+    broadcastOnHomepageRaw =
+      String(formData.get("broadcastOnHomepage") || "") === "true";
   }
 
   const siteVisibility = siteVisibilityRaw === "private" ? "private" : "public";
   const privateMode =
     privateModeRaw === "members_only" ? "members_only" : "passcode";
+  const broadcastOnHomepage =
+    siteVisibility === "public" ? broadcastOnHomepageRaw : false;
 
   if (!title) {
     if (isJson) {
@@ -136,7 +143,11 @@ export async function POST(
   ) {
     if (isJson) {
       return NextResponse.json(
-        { ok: false, error: "Private microsites require a passcode (min: 2 chars / max: 30 chars)." },
+        {
+          ok: false,
+          error:
+            "Private microsites require a passcode (min: 2 chars / max: 30 chars).",
+        },
         { status: 400 },
       );
     }
@@ -151,7 +162,7 @@ export async function POST(
   const { data: site, error: siteErr } = await sb
     .from("microsites")
     .select(
-      "id, slug, title, template_key, selected_design_key, site_visibility, private_mode, is_active, is_published, paid_until, owner_clerk_user_id, passcode_hash",
+      "id, slug, title, template_key, selected_design_key, site_visibility, private_mode, is_active, is_published, paid_until, broadcast_on_homepage, owner_clerk_user_id, passcode_hash",
     )
     .eq("id", micrositeId)
     .maybeSingle();
@@ -184,6 +195,7 @@ export async function POST(
     title,
     site_visibility: siteVisibility,
     private_mode: siteVisibility === "private" ? privateMode : false,
+    broadcast_on_homepage: broadcastOnHomepage,
     updated_at: new Date().toISOString(),
   };
 
@@ -203,7 +215,7 @@ export async function POST(
     .eq("id", micrositeId)
     .eq("owner_clerk_user_id", userId)
     .select(
-      "id, slug, title, template_key, selected_design_key, site_visibility, private_mode, is_active, is_published, paid_until",
+      "id, slug, title, template_key, selected_design_key, site_visibility, private_mode, is_active, is_published, paid_until, broadcast_on_homepage",
     )
     .single();
 
@@ -223,7 +235,10 @@ export async function POST(
   if (isJson) {
     return NextResponse.json({
       ok: true,
-      microsite: updatedSite,
+      microsite: {
+        ...updatedSite,
+        broadcast_on_homepage: Boolean(updatedSite.broadcast_on_homepage),
+      },
     });
   }
 

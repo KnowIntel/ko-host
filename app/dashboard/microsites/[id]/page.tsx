@@ -1,4 +1,4 @@
-// \app\dashboard\microsites\[id]\page.tsx
+// app\dashboard\microsites\[id]\page.tsx
 
 "use client";
 
@@ -17,6 +17,7 @@ type MicrositeSettings = {
   is_active?: boolean | null;
   is_published: boolean;
   paid_until: string | null;
+  broadcast_on_homepage?: boolean | null;
 };
 
 export default function DashboardMicrositeManagePage() {
@@ -31,6 +32,7 @@ export default function DashboardMicrositeManagePage() {
   const [title, setTitle] = useState("");
   const [siteVisibility, setSiteVisibility] = useState<"public" | "private">("public");
   const [passcode, setPasscode] = useState("");
+  const [broadcastOnHomepage, setBroadcastOnHomepage] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -61,6 +63,7 @@ export default function DashboardMicrositeManagePage() {
               : "public",
           );
           setPasscode("");
+          setBroadcastOnHomepage(Boolean(microsite?.broadcast_on_homepage));
         }
       } catch (error) {
         const nextMessage =
@@ -96,6 +99,8 @@ export default function DashboardMicrositeManagePage() {
           title,
           siteVisibility,
           passcode: siteVisibility === "private" ? passcode.trim() : "",
+          broadcastOnHomepage:
+            siteVisibility === "public" ? broadcastOnHomepage : false,
         }),
       });
 
@@ -108,6 +113,7 @@ export default function DashboardMicrositeManagePage() {
 
       setSite(data?.microsite || null);
       setPasscode("");
+      setBroadcastOnHomepage(Boolean(data?.microsite?.broadcast_on_homepage));
       setMessage("Settings saved.");
     } catch (error) {
       const nextMessage =
@@ -226,11 +232,47 @@ export default function DashboardMicrositeManagePage() {
                 type="radio"
                 name="siteVisibility"
                 checked={siteVisibility === "private"}
-                onChange={() => setSiteVisibility("private")}
+                onChange={() => {
+                  setSiteVisibility("private");
+                  setBroadcastOnHomepage(false);
+                }}
               />
               Private (passcode required)
             </label>
           </div>
+        </div>
+
+        <div className="mt-5">
+          <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
+            Home Page Broadcast
+          </div>
+
+          <label
+            className={[
+              "mt-2 flex items-start gap-3 rounded-xl border px-3 py-3 text-sm",
+              siteVisibility === "private"
+                ? "border-neutral-200 bg-neutral-100 text-neutral-400"
+                : "border-neutral-200 bg-neutral-50 text-neutral-800",
+            ].join(" ")}
+          >
+            <input
+              type="checkbox"
+              checked={siteVisibility === "public" ? broadcastOnHomepage : false}
+              disabled={siteVisibility !== "public"}
+              onChange={(e) => setBroadcastOnHomepage(e.target.checked)}
+              className="mt-0.5"
+            />
+
+            <div>
+              <div className="font-medium text-neutral-900">
+                Broadcast this site on the Ko-Host home page
+              </div>
+              <div className="mt-1 text-xs text-neutral-500">
+                Let more people discover your microsite in the Recent Sites section.
+                Only public microsites can be featured there.
+              </div>
+            </div>
+          </label>
         </div>
 
         {siteVisibility === "private" ? (

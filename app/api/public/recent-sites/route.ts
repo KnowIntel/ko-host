@@ -2,67 +2,101 @@
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 
+function extractPreviewImageUrlFromDraft(draft: any): string | null {
+  if (!draft || typeof draft !== "object") return null;
+
+  const blocks = Array.isArray(draft.blocks) ? draft.blocks : [];
+
+  for (const block of blocks) {
+    if (!block || typeof block !== "object") continue;
+
+    if (block.type === "image" && block.data?.image?.url) {
+      return block.data.image.url;
+    }
+
+    if (block.type === "listing" && block.data?.image?.url) {
+      return block.data.image.url;
+    }
+
+    if (block.type === "gallery" && Array.isArray(block.data?.images)) {
+      const firstGalleryImage = block.data.images.find((img: any) => img?.url);
+      if (firstGalleryImage?.url) return firstGalleryImage.url;
+    }
+
+    if (
+      block.type === "image_carousel" &&
+      Array.isArray(block.data?.items)
+    ) {
+      const firstCarouselImage = block.data.items.find(
+        (item: any) => item?.imageUrl,
+      );
+      if (firstCarouselImage?.imageUrl) return firstCarouselImage.imageUrl;
+    }
+
+    if (block.type === "festiveBackground" && block.data?.image?.url) {
+      return block.data.image.url;
+    }
+  }
+
+  if (
+    typeof draft.pageBackgroundImage === "string" &&
+    draft.pageBackgroundImage.trim()
+  ) {
+    return draft.pageBackgroundImage;
+  }
+
+  return null;
+}
+
 export async function GET() {
   try {
     const supabaseAdmin = getSupabaseAdmin();
 
-    const { data, error } = await supabaseAdmin
+    const { data: microsites, error: micrositesError } = await supabaseAdmin
       .from("microsites")
       .select(`
         id,
         slug,
         title,
         template_key,
-        created_at,
+        selected_design_key,
         published_at,
-        broadcast_on_homepage,
-        microsite_pages (
-          id,
-          is_homepage,
-          draft
-        )
+        created_at,
+        draft,
+        homepage_thumbnail_url
       `)
+      .eq("broadcast_on_homepage", true)
       .eq("is_published", true)
       .eq("is_active", true)
       .eq("site_visibility", "public")
-      .eq("broadcast_on_homepage", true)
-      .order("published_at", { ascending: false })
-      .limit(24);
+      .order("created_at", { ascending: false })
+      .limit(12);
 
-    if (error) {
+    if (micrositesError) {
+      console.error(
+        "RECENT SITES API ERROR: microsites lookup failed",
+        micrositesError,
+      );
+
       return NextResponse.json(
-        { ok: false, error: error.message || "Failed to load recent sites." },
+        { ok: false, error: micrositesError.message, sites: [] },
         { status: 500 },
       );
     }
 
-    const sites = (data || []).map((site: any) => {
-      const homepage =
-        Array.isArray(site.microsite_pages)
-          ? site.microsite_pages.find((page: any) => page?.is_homepage) ||
-            site.microsite_pages[0]
-          : null;
+    if (!microsites?.length) {
+      return NextResponse.json({ ok: true, sites: [] });
+    }
 
-      const draft = homepage?.draft && typeof homepage.draft === "object"
-        ? homepage.draft
-        : null;
-
-      const previewImageUrl =
-        draft?.pageBackgroundImage ||
-        draft?.blocks?.find?.((block: any) => block?.type === "image")?.data?.image?.url ||
-        draft?.blocks?.find?.((block: any) => block?.type === "listing")?.data?.image?.url ||
-        draft?.blocks?.find?.((block: any) => block?.type === "gallery")?.data?.images?.[0]?.url ||
-        draft?.blocks?.find?.((block: any) => block?.type === "image_carousel")?.data?.items?.[0]?.imageUrl ||
-        null;
-
-      return {
-        id: String(site.id),
-        slug: String(site.slug || ""),
-        title: String(site.title || ""),
-        templateKey: site.template_key ? String(site.template_key) : null,
-        previewImageUrl,
-      };
-    });
+    const sites = microsites.map((site) => ({
+      id: site.id,
+      slug: site.slug,
+      title: site.title || site.slug,
+      previewImageUrl:
+        site.homepage_thumbnail_url ||
+        extractPreviewImageUrlFromDraft(site.draft ?? null),
+      templateKey: site.template_key ?? null,
+    }));
 
     return NextResponse.json({
       ok: true,
@@ -72,8 +106,10 @@ export async function GET() {
     const message =
       error instanceof Error ? error.message : "Unexpected server error";
 
+    console.error("RECENT SITES API FATAL:", message);
+
     return NextResponse.json(
-      { ok: false, error: message },
+      { ok: false, error: message, sites: [] },
       { status: 500 },
     );
   }
