@@ -1,11 +1,11 @@
 import { createLayoutPreset } from "../../shared";
 
 export default createLayoutPreset({
-  designKey: "playful",
+  designKey: "simplistic",
 
-  label: "Playful Celebration",
-  description: "Bright energetic party design",
-  thumbnail: "/designs/backgrounds/design_birthday-playful.png",
+  label: "Simplistic Design",
+  description: "Clean professional property listing layout",
+  // thumbnail: "/designs/design_baby_shower-playful.webp",
 
   recommended: true,
 
@@ -21,42 +21,29 @@ export default createLayoutPreset({
      For any extra text beyond these, use optionalBlocks with type: "label".
   ======================================================= */
 
-  title: {
-    text: "Sandy Eggo's\n21st Birthday Bash!",
-    placement: { x: 0, y: 3.6, width: 15, height: 2, zIndex: 10 },
+/*   title: {
+    text: "Gretchen Morrison",
+    placement: { x: 0, y: 1.1, width: 14.5, height: 2, zIndex: 16 },
     style: {
-      fontFamily: "Playball",
+      fontFamily: "Parisienne",
       fontSize: 160,
       align: "center",
       bold: true,
-      color: "#000000",
+      color: "#9CA18D",
     },
-  },
+  }, */
   
-  subtitle: {
-    text: "You're invited to",
-    placement: { x: 0, y: 2.6, width: 15, height: 3, zIndex: 11 },
+/*   subtitle: {
+    text: "July 10, 1942 - October 16, 2024",
+    placement: { x: 0, y: 2.0, width: 14.5, height: 3, zIndex: 11 },
     style: {
-      fontFamily: "Playball",
-      fontSize: 140,
+      fontFamily: "Marcellus",
+      fontSize: 50,
       align: "center",
-      bold: false,
-      color: "#D42A39",
-    },
-  },
-
-
-  tagline: {
-    text: "Must be 21+ (Sandy finally is)",
-    placement: { x: 0, y: 5.8, width: 15, height: 1, zIndex: 13 },
-    style: {
-      fontFamily: "Playball",
-      fontSize: 90,
       bold: true,
-      align: "center",
-      color: "#D42A39",
+      color: "#9CA18D",
     },
-  }, 
+  }, */
 
   /* =======================================================
      OPTIONAL BLOCKS
@@ -68,32 +55,83 @@ export default createLayoutPreset({
        DECORATIVE IMAGE / PLAQUE
     ------------------------------------------------------- */
     
-    /* {
+/* {
+  type: "gallery",
+  placement: { x: 1.3,y: 2.52, width: 11.8, height: 7.5, zIndex: 9 },
+  config: {
+    grid: 3,
+    positionX: 50, // 👈 ADD
+    positionY: 50, // 👈 ADD
+    images: [
+      { url: "/designs/artifacts/memorial_gretchen_9.png" },
+      { url: "/designs/artifacts/memorial_gretchen_2.png" },
+      { url: "/designs/artifacts/memorial_gretchen_3.png" },
+      { url: "/designs/artifacts/memorial_gretchen_4.png" },
+      { url: "/designs/artifacts/memorial_gretchen_8.png" },
+      { url: "/designs/artifacts/memorial_gretchen_5.png" },
+      { url: "/designs/artifacts/memorial_gretchen_6.png" },
+      { url: "/designs/artifacts/memorial_gretchen_7.png" },
+      { url: "/designs/artifacts/memorial_gretchen_1.png" },
+    ],
+  },
+}, */
+
+/* {
+  type: "image",
+  placement: { x: 0.8, y: 1.0, width: 12.75, height: 12.75, zIndex: 10 },
+  config: {
+    src: "/designs/artifacts/memorial_photo_frame.png",
+    fit: "cover",
+    frame: "square",
+    zoom: 1,
+    rotation: 0,
+    positionX: 50, // 👈 ADD
+    positionY: 50, // 👈 ADD
+  },
+}, */
+
+/*      {
       type: "image",
-      placement: { x: 4.7, y: 2.7, width: 5, height: 10, zIndex: 1 },
+      placement: { x: 1, y: 1, width: 12, height: 12, zIndex: 10 },
       config: {
-        src: "/designs/artifacts/bride_groom1.png",
+        src: "/designs/artifacts/memorial_photo_frame.png",
         fit: "cover",
         frame: "square",
         zoom: 1,
         rotation: 0,
       },
-    }, */
-
+    },  */
+    
+/*      {
+      type: "image",
+      placement: { x: 1, y: 2.7, width: 12, height: 12, zIndex: 1 },
+      config: {
+        src: "/designs/artifacts/memorial_photo_frame.png",
+        // use "contain" for clip, "fill" for stretch, or "cover" for zoom
+        fit: "fill",
+        frame: "square",
+        zoom: 0.5,
+        rotation: 0,
+        positionX: 50,     // horizontal position
+        positionY: 50,     // vertical position
+      },
+    }, 
+ */
     /* -------------------------------------------------------
        DECORATIVE LINES
     ------------------------------------------------------- */
-    /* 
+
     {
       type: "shape",
-      placement: { x: 3, y: 4, width: 2, height: 1, zIndex: 2 },
+      placement: { x: 4.5, y: 14, width: 5, height: 1, zIndex: 2 },
       config: {
         shapeType: "line",
-        borderColor: "#DDD8D2",
+        borderColor: "#9CA18D",
         borderWidth: 8,
       },
     },
 
+    /* 
     {
       type: "shape",
       placement: { x: 9, y: 4, width: 2, height: 1, zIndex: 2 },
@@ -109,71 +147,40 @@ export default createLayoutPreset({
        Use label blocks whenever you need more text than the
        built-in page text fields allow.
     ------------------------------------------------------- */
-
+     
     {
       type: "label",
-      placement: { x: 0, y: 8.6, width: 14.5, height: 3, zIndex: 15 },
+      placement: { x: 1, y: 11.8, width: 12, height: 1, zIndex: 16 },
       config: {
-        label: "Logistics Line 1",
-        text: "Saturday, July 21st at 7:21pm\nThe Salty Seagull Rooftop Bar\n2101 Pacific Breeze Blvd\nSan Diego, CA 92121\nContact: Randy (Sandy's brother) at (858) 555-DRNK",
+        label: "ILM Line",
+        text: "In Loving Memory",
         style: {
-          fontFamily: "Poppins",
-          fontSize: 40,
-          italic: false,
-          align: "center",
-          color: "#000000",
-        },
-      },
-    },
-
-   /*  
-    {
-      type: "label",
-      placement: { x: 5, y: 13, width: 4, height: 1, zIndex: 15 },
-      config: {
-        label: "Logistics Line 2",
-        text: "The Salty Seagull Rooftop Bar",
-        style: {
-          fontFamily: "Poppins",
-          fontSize: 40,
+          fontFamily: "Georgia",
+          fontSize: 80,
           italic: true,
           align: "center",
-          color: "#000000",
-        },
-      },
-    },
- 
-    {
-      type: "label",
-      placement: { x: 5, y: 13.5, width: 4, height: 1, zIndex: 15 },
-      config: {
-        label: "Logistics Line 3",
-        text: "2101 Pacific Breeze Blvd\nSan Diego, CA 92121",
-        style: {
-          fontFamily: "Poppins",
-          fontSize: 40,
-          italic: true,
-          align: "center",
-          color: "#000000",
+          color: "#61605F",
         },
       },
     },
     
-    {
+    
+/*     {
       type: "label",
-      placement: { x: 5, y: 14, width: 4, height: 1, zIndex: 15 },
+      placement: { x: 3, y: 12.4, width: 8, height: 1, zIndex: 16 },
       config: {
-        label: "RSVP Line",
-        text: "Contact: Randy (Sandy's brother) at (858) 555-DRNK",
+        label: "Tagline 2",
+        text: "Two hearts, one day, a lifetime to follow",
         style: {
-          fontFamily: "Poppins",
-          fontSize: 40,
+          fontFamily: "dancing script",
+          fontSize: 54,
           italic: true,
           align: "center",
           color: "#000000",
         },
       },
-    }, */
+    },
+     */
 
     /* -------------------------------------------------------
        OTHER AVAILABLE TOOLS (COMMENTED OUT)
@@ -198,56 +205,7 @@ export default createLayoutPreset({
         borderRadius: 16,
       },
     },
-    */
 
-    /* {
-      type: "cta",
-      placement: { x: 3.8, y: 8.6, width: 3, height: 1, zIndex: 5 },
-      config: {
-        buttonText: "I will be there",
-        buttonUrl: "#",
-
-        appearance: {
-          backgroundColor: "#FDD487",
-          borderRadius: 9999,
-          // borderColor: "#000000",
-          borderWidth: 2
-        },
-
-        style: {
-          fontFamily: "Inter",
-          fontSize: 44,
-          bold: true,
-          align: "center",
-          color: "#FFFFFF"
-        }
-      }
-    }, */
-    /* 
-    {
-      type: "cta",
-      placement: { x: 7.2, y: 8.6, width: 3, height: 1, zIndex: 5 },
-      config: {
-        buttonText: "Sorry, can't make it",
-        buttonUrl: "#",
-
-        appearance: {
-          backgroundColor: "#94CEF3",
-          borderRadius: 9999,
-          // borderColor: "#000000",
-          borderWidth: 2
-        },
-
-        style: {
-          fontFamily: "Inter",
-          fontSize: 44,
-          bold: true,
-          align: "center",
-          color: "#FFFFFF"
-        }
-      }
-    }, */
-/* 
     {
   type: "links",
   placement: { x: 1, y: 1.4, width: 12, height: 2, zIndex: 6 },
@@ -272,20 +230,7 @@ export default createLayoutPreset({
   },
 },
  */
-    /*
-    {
-      type: "gallery",
-      placement: { x: 6, y: 10, width: 6, height: 3, zIndex: 7 },
-      config: {
-        grid: 3,
-        images: [
-          { url: "/photos/photo1.jpg" },
-          { url: "/photos/photo2.jpg" },
-          { url: "/photos/photo3.jpg" },
-        ],
-      },
-    },
-    */
+
 
     /*
     {
@@ -293,9 +238,9 @@ export default createLayoutPreset({
       placement: { x: 1, y: 12, width: 12, height: 4, zIndex: 8 },
       config: {
         images: [
-          { url: "/photos/photo1.jpg" },
-          { url: "/photos/photo2.jpg" },
-          { url: "/photos/photo3.jpg" },
+          { url: "/photos/photo1.png" },
+          { url: "/photos/photo2.png" },
+          { url: "/photos/photo3.png" },
         ],
       },
     },

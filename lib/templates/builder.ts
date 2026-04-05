@@ -99,7 +99,8 @@ export type BuilderBlockType =
   | "showcase"
   | "festiveBackground"
   | "form_field"
-  | "shape";
+  | "shape"
+  | "listing";
 
 /* =========================================
    Shared Primitive Types
@@ -153,9 +154,24 @@ export type CarouselImageItem = {
   rotation?: number;
 };
 
+export type ListingMetadataItem = {
+  id: string;
+  label: string;
+  value: string;
+};
+
 export type ShapeType = "rectangle" | "circle" | "line";
 export type ImageFitMode = "clip" | "stretch" | "zoom";
 export type ImageFrameType = "square" | "circle" | "diamond" | "heart";
+export type ListingCardVariant = "stacked" | "compact";
+
+export type ImageFade = {
+  top?: boolean;
+  bottom?: boolean;
+  left?: boolean;
+  right?: boolean;
+  size?: number;
+};
 
 /* =========================================
    Base Block
@@ -213,6 +229,13 @@ export type ImageBlock = BaseBlock & {
       zoom?: number;
       rotation?: number;
       opacity?: number;
+      fade?: {
+        top?: boolean;
+        right?: boolean;
+        bottom?: boolean;
+        left?: boolean;
+        size?: number; // percent, 0-50
+      };
     };
   };
 };
@@ -389,6 +412,32 @@ export type FormFieldBlock = BaseBlock & {
   };
 };
 
+export type ListingBlock = BaseBlock & {
+  type: "listing";
+  data: {
+    image: {
+      id: string;
+      url: string;
+      alt?: string;
+      fitMode?: ImageFitMode;
+      frame?: ImageFrameType;
+      positionX?: number;
+      positionY?: number;
+      zoom?: number;
+      rotation?: number;
+      opacity?: number;
+    };
+    title: string;
+    description: string;
+    metadata: ListingMetadataItem[];
+    titleStyle?: TextStyle;
+    descriptionStyle?: TextStyle;
+    metadataStyle?: TextStyle;
+    cardVariant?: ListingCardVariant;
+    imageHeightPercent?: number;
+  };
+};
+
 export type MicrositeBlock =
   | LabelBlock
   | TextFxBlock
@@ -407,7 +456,8 @@ export type MicrositeBlock =
   | ShowcaseBlock
   | FestiveBackgroundBlock
   | FormFieldBlock
-  | ShapeBlock;
+  | ShapeBlock
+  | ListingBlock;
 
 /* =========================================
    Draft Model
@@ -523,6 +573,16 @@ function createDefaultThreadGrid(): GridPlacement {
   };
 }
 
+function createDefaultListingGrid(): GridPlacement {
+  return {
+    colStart: 1,
+    rowStart: 1,
+    colSpan: 5,
+    rowSpan: 6,
+    zIndex: 1,
+  };
+}
+
 function normalizeGridValue(
   grid: GridPlacement | undefined,
   fallback: GridPlacement,
@@ -561,9 +621,7 @@ function normalizeGridValue(
   };
 }
 
-function normalizeThreadBlock(
-  block: MessageThreadBlock,
-): MessageThreadBlock {
+function normalizeThreadBlock(block: MessageThreadBlock): MessageThreadBlock {
   const fallbackGrid = createDefaultThreadGrid();
   const normalizedGrid = normalizeGridValue(block.grid, fallbackGrid);
 
@@ -624,6 +682,111 @@ function normalizeThreadBlock(
         fontSize: 30,
         ...(block.data.style ?? {}),
       },
+    },
+  };
+}
+
+function normalizeListingBlock(block: ListingBlock): ListingBlock {
+  const fallbackGrid = createDefaultListingGrid();
+  const normalizedGrid = normalizeGridValue(block.grid, fallbackGrid);
+
+  const nextColSpan =
+    normalizedGrid.colSpan < 4 ? fallbackGrid.colSpan : normalizedGrid.colSpan;
+
+  const nextRowSpan =
+    normalizedGrid.rowSpan < 4 ? fallbackGrid.rowSpan : normalizedGrid.rowSpan;
+
+  return {
+    ...block,
+    grid: {
+      ...normalizedGrid,
+      colSpan: nextColSpan,
+      rowSpan: nextRowSpan,
+    },
+    data: {
+      image: {
+        id:
+          typeof block.data.image?.id === "string" && block.data.image.id.trim()
+            ? block.data.image.id
+            : makeId("img"),
+        url:
+          typeof block.data.image?.url === "string" ? block.data.image.url : "",
+        alt:
+          typeof block.data.image?.alt === "string" ? block.data.image.alt : "",
+        fitMode:
+          block.data.image?.fitMode === "clip" ||
+          block.data.image?.fitMode === "stretch" ||
+          block.data.image?.fitMode === "zoom"
+            ? block.data.image.fitMode
+            : "zoom",
+        frame:
+          block.data.image?.frame === "square" ||
+          block.data.image?.frame === "circle" ||
+          block.data.image?.frame === "diamond" ||
+          block.data.image?.frame === "heart"
+            ? block.data.image.frame
+            : "square",
+        positionX:
+          typeof block.data.image?.positionX === "number" &&
+          Number.isFinite(block.data.image.positionX)
+            ? block.data.image.positionX
+            : 50,
+        positionY:
+          typeof block.data.image?.positionY === "number" &&
+          Number.isFinite(block.data.image.positionY)
+            ? block.data.image.positionY
+            : 50,
+        zoom:
+          typeof block.data.image?.zoom === "number" &&
+          Number.isFinite(block.data.image.zoom)
+            ? block.data.image.zoom
+            : 1,
+        rotation:
+          typeof block.data.image?.rotation === "number" &&
+          Number.isFinite(block.data.image.rotation)
+            ? block.data.image.rotation
+            : 0,
+        opacity:
+          typeof block.data.image?.opacity === "number" &&
+          Number.isFinite(block.data.image.opacity)
+            ? block.data.image.opacity
+            : 1,
+      },
+      title: typeof block.data.title === "string" ? block.data.title : "",
+      description:
+        typeof block.data.description === "string" ? block.data.description : "",
+      metadata: Array.isArray(block.data.metadata)
+        ? block.data.metadata.map((item) => ({
+            id:
+              typeof item?.id === "string" && item.id.trim()
+                ? item.id
+                : makeId("meta"),
+            label: typeof item?.label === "string" ? item.label : "",
+            value: typeof item?.value === "string" ? item.value : "",
+          }))
+        : [],
+      titleStyle: {
+        ...createDefaultTextStyle(),
+        ...(block.data.titleStyle ?? {}),
+      },
+      descriptionStyle: {
+        ...createDefaultTextStyle(),
+        ...(block.data.descriptionStyle ?? {}),
+      },
+      metadataStyle: {
+        ...createDefaultTextStyle(),
+        ...(block.data.metadataStyle ?? {}),
+      },
+      cardVariant:
+        block.data.cardVariant === "compact" ||
+        block.data.cardVariant === "stacked"
+          ? block.data.cardVariant
+          : "stacked",
+      imageHeightPercent:
+        typeof block.data.imageHeightPercent === "number" &&
+        Number.isFinite(block.data.imageHeightPercent)
+          ? Math.max(20, Math.min(80, Math.floor(block.data.imageHeightPercent)))
+          : 50,
     },
   };
 }
@@ -699,6 +862,14 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
             positionY: 50,
             zoom: 1,
             rotation: 0,
+            opacity: 1,
+            fade: {
+              top: false,
+              bottom: false,
+              left: false,
+              right: false,
+              size: 15,
+            },
           },
         },
       };
@@ -1006,6 +1177,56 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
         },
       };
 
+    case "listing":
+      return {
+        id: makeId("listing"),
+        type: "listing",
+        label: "Listing",
+        grid: createDefaultListingGrid(),
+        appearance: {
+          ...createDefaultBlockAppearance(),
+          backgroundColor: "#FFFFFF",
+          borderColor: "#D1D5DB",
+          borderWidth: 1,
+          borderRadius: 20,
+        },
+        data: {
+          image: {
+            id: makeId("img"),
+            url: "",
+            alt: "",
+            fitMode: "zoom",
+            frame: "square",
+            positionX: 50,
+            positionY: 50,
+            zoom: 1,
+            rotation: 0,
+            opacity: 1,
+          },
+          title: "Listing Title",
+          description: "Add a short description here.",
+          metadata: [
+            { id: makeId("meta"), label: "Price", value: "$0" },
+            { id: makeId("meta"), label: "Location", value: "City, State" },
+          ],
+          titleStyle: {
+            ...createDefaultTextStyle(),
+            fontSize: 24,
+            bold: true,
+          },
+          descriptionStyle: {
+            ...createDefaultTextStyle(),
+            fontSize: 16,
+          },
+          metadataStyle: {
+            ...createDefaultTextStyle(),
+            fontSize: 14,
+          },
+          cardVariant: "stacked",
+          imageHeightPercent: 50,
+        },
+      };
+
     default:
       throw new Error(`Unsupported block type: ${type}`);
   }
@@ -1036,11 +1257,44 @@ export function sanitizeBuilderDraft(input: unknown): BuilderDraft {
       return normalizeThreadBlock(block as MessageThreadBlock);
     }
 
+    if (block.type === "listing") {
+      return normalizeListingBlock(block as ListingBlock);
+    }
+
     const fallbackGrid = {
       ...createDefaultGrid(),
       rowStart: index + 1,
       zIndex: index + 1,
     };
+
+    if (block.type === "image") {
+      return {
+        ...block,
+        grid: normalizeGridValue(block.grid, fallbackGrid),
+        data: {
+          ...block.data,
+          image: {
+            ...block.data.image,
+            opacity:
+              typeof block.data.image?.opacity === "number" &&
+              Number.isFinite(block.data.image.opacity)
+                ? block.data.image.opacity
+                : 1,
+            fade: {
+              top: Boolean(block.data.image?.fade?.top),
+              bottom: Boolean(block.data.image?.fade?.bottom),
+              left: Boolean(block.data.image?.fade?.left),
+              right: Boolean(block.data.image?.fade?.right),
+              size:
+                typeof block.data.image?.fade?.size === "number" &&
+                Number.isFinite(block.data.image.fade.size)
+                  ? Math.max(0, Math.min(50, Math.floor(block.data.image.fade.size)))
+                  : 15,
+            },
+          },
+        },
+      };
+    }
 
     return {
       ...block,

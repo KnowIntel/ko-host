@@ -1,9 +1,7 @@
-// app\preview\draft\page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
 import PlacedBlocksPreview from "@/components/preview/PlacedBlocksPreview";
-import MicrositeFooterBrand from "@/components/microsite/MicrositeFooterBrand";
 import type { PreviewDraftPayload } from "@/lib/previewDraftStorage";
 
 const PREVIEW_MESSAGE_TYPE = "ko-host-preview-draft";
@@ -70,8 +68,6 @@ export default function PreviewDraftPage() {
 
     setIsReady(true);
 
-    // Notify immediately, then a few extra pings in case the opener listener
-    // is still mounting.
     notifyOpenerReady();
 
     let readyAttempts = 0;
@@ -92,7 +88,7 @@ export default function PreviewDraftPage() {
 
   if (!isReady) {
     return (
-      <main className="bg-[#fcfbf8] px-4">
+      <main className="min-h-screen bg-[#fcfbf8] px-4 py-4">
         <div className="w-full rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
           <div className="text-sm font-medium text-neutral-900">
             Loading page...
@@ -104,7 +100,7 @@ export default function PreviewDraftPage() {
 
   if (!payload?.draft) {
     return (
-      <main className="bg-[#fcfbf8] px-4">
+      <main className="min-h-screen bg-[#fcfbf8] px-4 py-4">
         <div className="w-full rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
           <div className="text-base font-semibold text-neutral-900">
             Waiting for preview...
@@ -118,25 +114,20 @@ export default function PreviewDraftPage() {
   }
 
   return (
-    <>
-          <main className="overflow-x-hidden bg-[#fcfbf8] text-neutral-900">
-            <div className="w-full">
-          <PlacedBlocksPreview
-            draft={payload.draft}
-            designKey={payload.designLayout}
-            fixedScale={Math.max(
-              0.1,
-              Math.min(
-                1,
-                (((payload.draft as { pageScale?: number }).pageScale ?? 85) / 100),
-              ),
-            )}
-            disableAutoScale={true}
-          />
-        </div>
-      </main>
-
-      <MicrositeFooterBrand />
-    </>
+    <main className="min-h-screen w-full overflow-x-hidden overflow-y-auto">
+<PlacedBlocksPreview
+  draft={payload.draft}
+  designKey={payload.designLayout}
+  fixedScale={Math.max(
+    0.25,
+    Math.min(
+      1.5,
+      (((payload.draft as { pageScale?: number }).pageScale ?? 100) / 100),
+    ),
+  )}
+  disableAutoScale={true}
+  hideFrame={true}
+/>
+    </main>
   );
 }

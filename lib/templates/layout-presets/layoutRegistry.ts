@@ -6,6 +6,7 @@ import enthusiast_networking from "./templates/enthusiast_networking";
 import birthdayLayouts from "./templates/birthday";
 import reunionLayouts from "./templates/reunion";
 import roastLayouts from "./templates/roast_session";
+import open_houseLayouts from "./templates/open_house";
 import blankLayout from "./layouts/blank";
 
 const registry: Record<string, TemplateLayoutRegistry> = {
@@ -15,6 +16,7 @@ const registry: Record<string, TemplateLayoutRegistry> = {
   enthusiast_networking: enthusiast_networking,
   birthday_party: birthdayLayouts,
   family_reunion: reunionLayouts,
+  open_house: open_houseLayouts,
   roast_session: roastLayouts,
 };
 

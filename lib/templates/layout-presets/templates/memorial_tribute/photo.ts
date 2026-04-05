@@ -23,7 +23,7 @@ export default createLayoutPreset({
 
   title: {
     text: "Gretchen Morrison",
-    placement: { x: 1, y: 12.6, width: 12, height: 2, zIndex: 10 },
+    placement: { x: 0, y: 1.1, width: 14.5, height: 2, zIndex: 16 },
     style: {
       fontFamily: "Parisienne",
       fontSize: 160,
@@ -35,7 +35,7 @@ export default createLayoutPreset({
   
   subtitle: {
     text: "July 10, 1942 - October 16, 2024",
-    placement: { x: 1, y: 14.8, width: 12, height: 3, zIndex: 11 },
+    placement: { x: 0, y: 2.0, width: 14.5, height: 3, zIndex: 11 },
     style: {
       fontFamily: "Marcellus",
       fontSize: 50,
@@ -57,7 +57,7 @@ export default createLayoutPreset({
     
 {
   type: "gallery",
-  placement: { x: 3.9, y: 1.9, width: 6.3, height: 9.5, zIndex: 9 },
+  placement: { x: 1.3,y: 2.52, width: 11.8, height: 7.5, zIndex: 9 },
   config: {
     grid: 3,
     positionX: 50, // 👈 ADD
@@ -78,7 +78,7 @@ export default createLayoutPreset({
 
 {
   type: "image",
-  placement: { x: 1, y: 1, width: 12, height: 12, zIndex: 10 },
+  placement: { x: 0.8, y: 1.0, width: 12.75, height: 12.75, zIndex: 10 },
   config: {
     src: "/designs/artifacts/memorial_photo_frame.png",
     fit: "cover",
@@ -90,7 +90,7 @@ export default createLayoutPreset({
   },
 },
 
-     {
+/*      {
       type: "image",
       placement: { x: 1, y: 1, width: 12, height: 12, zIndex: 10 },
       config: {
@@ -100,7 +100,7 @@ export default createLayoutPreset({
         zoom: 1,
         rotation: 0,
       },
-    }, 
+    },  */
     
 /*      {
       type: "image",

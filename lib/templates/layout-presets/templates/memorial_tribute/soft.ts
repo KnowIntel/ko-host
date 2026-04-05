@@ -22,10 +22,10 @@ export default createLayoutPreset({
 
   title: {
     text: "Always Remembered",
-    placement: { x: 0.96, y: 3.9, width: 12, height: 2, zIndex: 10 },
+    placement: { x: -0.05, y: 3.0, width: 14.5, height: 2, zIndex: 10 },
     style: {
       fontFamily: "Great Vibes",
-      fontSize: 70,
+      fontSize: 60,
       align: "center",
       bold: true,
       color: "#665642",
@@ -34,10 +34,10 @@ export default createLayoutPreset({
   
    subtitle: {
     text: "Forever Missed",
-    placement: { x: 0.96, y: 12.6, width: 12, height: 2, zIndex: 10 },
+    placement: { x: -0.05, y: 7.0, width: 14.5, height: 2, zIndex: 10 },
     style: {
       fontFamily: "Great Vibes",
-      fontSize: 90,
+      fontSize: 70,
       align: "center",
       bold: false,
       color: "#FFFFFF",
@@ -69,7 +69,7 @@ export default createLayoutPreset({
     
      {
       type: "image",
-      placement: { x: 0.8, y: 2.8, width: 4, height: 13.5, zIndex: 1 },
+      placement: { x: 1.4, y: 2.1, width: 4, height: 7.2, zIndex: 1 },
       config: {
         src: "/designs/artifacts/memorial_craig_3.png",
         fit: "cover",
@@ -83,7 +83,7 @@ export default createLayoutPreset({
     
      {
       type: "image",
-      placement: { x: 5.4, y: 3.1, width: 3.2, height: 12.6, zIndex: 1 },
+      placement: { x: 5.6, y: 2.7, width: 3.5, height: 5.9, zIndex: 1 },
       config: {
         src: "/designs/artifacts/memorial_craig_1.png",
         fit: "cover",
@@ -97,7 +97,7 @@ export default createLayoutPreset({
     
      {
       type: "image",
-      placement: { x: 9.3, y: 2.8, width: 4, height: 13.5, zIndex: 1 },
+      placement: { x: 9.1, y: 2.1, width: 4, height: 7.2, zIndex: 1 },
       config: {
         src: "/designs/artifacts/memorial_craig_2.png",
         fit: "cover",
@@ -111,10 +111,10 @@ export default createLayoutPreset({
 
      {
       type: "image",
-      placement: { x: 0, y: 1, width: 14, height: 16, zIndex: 1 },
+      placement: { x: 0, y: 0, width: 14.5, height: 11, zIndex: 1 },
       config: {
         src: "/designs/artifacts/memorial_triple_scenery.png",
-        fit: "cover",
+        fit: "contain",
         frame: "square",
         zoom: 1,
         rotation: 0,
@@ -154,13 +154,13 @@ export default createLayoutPreset({
   
     {
       type: "label",
-    placement: { x: 0.96, y: 13.9, width: 12, height: 2, zIndex: 10 },
+    placement: { x: -0.05, y: 7.6, width: 14.5, height: 2, zIndex: 10 },
       config: {
         label: "ILM Line",
         text: "In Loving Memory of\nCraig Wilson\n1957-2025",
         style: {
           fontFamily: "Georgia",
-          fontSize: 70,
+          fontSize: 40,
           italic: true,
           align: "center",
           color: "#FFFFFF",

@@ -133,13 +133,13 @@ export default createLayoutPreset({
     ------------------------------------------------------- */
      {
       type: "label",
-      placement: { x: 3.15, y: 1.8, width: 8, height: 1, zIndex: 15 },
+      placement: { x: 0, y: 1.5, width: 15.5, height: 1, zIndex: 15 },
       config: {
         label: "Intro Line",
         text: "The Hell Cats and Kittens presents...",
         style: {
           fontFamily: "Playfair Display",
-          fontSize: 140,
+          fontSize: 70,
           italic: true,
           bold: true,
           align: "center",
@@ -167,13 +167,13 @@ export default createLayoutPreset({
   
     {
       type: "label",
-      placement: { x: 1, y: 13.35, width: 12, height: 4.25, zIndex: 16 },
+      placement: { x: 0, y: 7.35, width: 14.5, height: 4.25, zIndex: 16 },
       config: {
         label: "Logistics Info",
         text: "Saturday, February 7, 2026 from 2:00 PM – 5:00 PM",
         style: {
           fontFamily: "Playfair Display",
-          fontSize: 120,
+          fontSize: 80,
           italic: true,
           bold: true,
           align: "center",

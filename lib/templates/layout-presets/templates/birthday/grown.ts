@@ -23,7 +23,7 @@ export default createLayoutPreset({
 
   title: {
     text: "B I R T H D A Y",
-    placement: { x: 1, y: 4.5, width: 12, height: 2, zIndex: 10 },
+    placement: { x: 0, y: 3, width: 15, height: 2, zIndex: 10 },
     style: {
       fontFamily: "Marcellus",
       fontSize: 120,
@@ -36,7 +36,7 @@ export default createLayoutPreset({
   
   subtitle: {
     text: "C E L E B R A T I O N",
-    placement: { x: 3, y: 5.8, width: 8, height: 2, zIndex: 11 },
+    placement: { x: 0, y: 3.8, width: 15, height: 2, zIndex: 11 },
     style: {
       fontFamily: "Marcellus",
       fontSize: 120,
@@ -49,7 +49,7 @@ export default createLayoutPreset({
   
   tagline: {
     text: "Halo Edwards",
-    placement: { x: 0.9, y: 8.6, width: 12, height: 3, zIndex: 13 },
+    placement: { x: 0.0, y: 5.2, width: 15, height: 3, zIndex: 13 },
     style: {
       fontFamily: "Great Vibes",
       fontSize: 160,
@@ -128,7 +128,7 @@ export default createLayoutPreset({
 
    {
       type: "label",
-      placement: { x: 4.1, y: 7.7, width: 6, height: 1, zIndex: 15 },
+      placement: { x: 0, y: 4.8, width: 15, height: 1, zIndex: 15 },
       config: {
         label: "Subject Line",
         text: "DINNER FOR",
@@ -178,13 +178,13 @@ export default createLayoutPreset({
     
     {
       type: "label",
-      placement: { x: 0.9, y: 13, width: 12, height: 4, zIndex: 16 },
+      placement: { x: 0.0, y: 7.4, width: 15, height: 4, zIndex: 16 },
       config: {
         label: "Logistics Info 2",
         text: "SATURDAY, DECEMBER 6, 2025 @ 10:00 PM\nDASHIKI 'N' DENIM PALACE",
         style: {
           fontFamily: "Bodoni Moda",
-          fontSize: 90,
+          fontSize: 50,
           italic: false,
           align: "center",
           color: "#F2DFDF",
@@ -200,12 +200,12 @@ export default createLayoutPreset({
 
  {
   type: "text_fx",
-  placement: { x: 1, y: 2.5, width: 12, height: 7.5, zIndex: 20 },
+  placement: { x: 0, y: 2.0, width: 15, height: 7.5, zIndex: 20 },
   config: {
     text: "JOIN US FOR A",
     style: {
       fontFamily: "Georgia",
-      fontSize: 70,
+      fontSize: 40,
       bold: false,
       italic: false,
       align: "center",
@@ -368,7 +368,7 @@ export default createLayoutPreset({
 
 {
   type: "cta",
-  placement: { x: 5.5, y: 10.9, width: 3, height: 1.6, zIndex: 5 },
+  placement: { x: 0, y: 6.2, width: 15, height: 1.1, zIndex: 5 },
   config: {
     heading: "",
     body: "",
@@ -381,7 +381,7 @@ export default createLayoutPreset({
     styleType: "soft",
     style: {
       fontFamily: "Inter",
-      fontSize: 80,
+      fontSize: 40,
       bold: true,
       italic: false,
       underline: false,

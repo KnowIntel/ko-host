@@ -4,6 +4,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { getTemplateLayoutRegistry } from "@/lib/templates/layout-presets/layoutRegistry";
 
 type DashboardRow = {
   rowType: "microsite" | "draft";
@@ -58,6 +59,26 @@ function getDaysUntilExpiration(paidUntil: string | null) {
 function formatDate(value: string | null) {
   if (!value) return "—";
   return new Date(value).toLocaleString();
+}
+
+function getDesignLabel(templateKey: string, designKey: string | null) {
+  if (!designKey) return "—";
+
+  try {
+    const registry = getTemplateLayoutRegistry(templateKey);
+
+    if (!registry?.layouts?.length) {
+      return designKey;
+    }
+
+    const matchedLayout = registry.layouts.find(
+      (layout) => layout.designKey === designKey,
+    );
+
+    return matchedLayout?.card?.label?.trim() || designKey;
+  } catch {
+    return designKey;
+  }
 }
 
 export default function MicrositesTableClient({
@@ -406,8 +427,8 @@ export default function MicrositesTableClient({
 
                       <td className="px-4 py-3 font-mono text-neutral-800">
                         <div>{m.template_key}</div>
-                        <div className="mt-1 text-xs text-neutral-500">
-                          Design: {designKey}
+                        <div className="text-xs text-neutral-500">
+                          Design: {getDesignLabel(m.template_key, m.design_key)}
                         </div>
                       </td>
 

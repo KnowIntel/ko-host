@@ -387,6 +387,101 @@ function getImageObjectFit(
   return "cover";
 }
 
+function clampFadeSize(value?: number) {
+  if (typeof value !== "number" || !Number.isFinite(value)) return 15;
+  return Math.max(0, Math.min(50, value));
+}
+
+function getImageFadeMaskStyle(
+  image: {
+    fade?: {
+      top?: boolean;
+      bottom?: boolean;
+      left?: boolean;
+      right?: boolean;
+      size?: number;
+    };
+  },
+): React.CSSProperties {
+  const fade = image.fade;
+  if (!fade) return {};
+
+  const size = clampFadeSize(fade.size);
+  const top = Boolean(fade.top);
+  const bottom = Boolean(fade.bottom);
+  const left = Boolean(fade.left);
+  const right = Boolean(fade.right);
+
+  if (!top && !bottom && !left && !right) {
+    return {};
+  }
+
+  const transparentTop = top ? `${size}%` : "0%";
+  const opaqueTopStart = top ? `${size}%` : "0%";
+  const opaqueTopEnd = bottom ? `${100 - size}%` : "100%";
+  const transparentBottom = bottom ? `${100 - size}%` : "100%";
+
+  const transparentLeft = left ? `${size}%` : "0%";
+  const opaqueLeftStart = left ? `${size}%` : "0%";
+  const opaqueLeftEnd = right ? `${100 - size}%` : "100%";
+  const transparentRight = right ? `${100 - size}%` : "100%";
+
+  const verticalMask = `linear-gradient(to bottom,
+    ${top ? "transparent" : "black"} 0%,
+    black ${opaqueTopStart},
+    black ${opaqueTopEnd},
+    ${bottom ? "transparent" : "black"} 100%
+  )`;
+
+  const horizontalMask = `linear-gradient(to right,
+    ${left ? "transparent" : "black"} 0%,
+    black ${opaqueLeftStart},
+    black ${opaqueLeftEnd},
+    ${right ? "transparent" : "black"} 100%
+  )`;
+
+  if ((top || bottom) && (left || right)) {
+    return {
+      WebkitMaskImage: `${verticalMask}, ${horizontalMask}`,
+      WebkitMaskComposite: "source-in",
+      maskImage: `${verticalMask}, ${horizontalMask}`,
+      maskComposite: "intersect",
+    };
+  }
+
+  if (top || bottom) {
+    return {
+      WebkitMaskImage: `linear-gradient(to bottom,
+        ${top ? "transparent" : "black"} 0%,
+        black ${transparentTop},
+        black ${transparentBottom},
+        ${bottom ? "transparent" : "black"} 100%
+      )`,
+      maskImage: `linear-gradient(to bottom,
+        ${top ? "transparent" : "black"} 0%,
+        black ${transparentTop},
+        black ${transparentBottom},
+        ${bottom ? "transparent" : "black"} 100%
+      )`,
+    };
+  }
+
+  return {
+    WebkitMaskImage: `linear-gradient(to right,
+      ${left ? "transparent" : "black"} 0%,
+      black ${transparentLeft},
+      black ${transparentRight},
+      ${right ? "transparent" : "black"} 100%
+    )`,
+    maskImage: `linear-gradient(to right,
+      ${left ? "transparent" : "black"} 0%,
+      black ${transparentLeft},
+      black ${transparentRight},
+      ${right ? "transparent" : "black"} 100%
+    )`,
+  };
+}
+
 function Surface({
   block,
   children,
@@ -515,6 +610,8 @@ function renderImage(
   const translateX = (positionX - 50) * 0.6;
   const translateY = (positionY - 50) * 0.6;
 
+  const fadeMaskStyle = getImageFadeMaskStyle(block.data.image);
+
   return (
     <div
       className="h-full w-full overflow-hidden"
@@ -530,8 +627,214 @@ function renderImage(
           transform: `translate(${translateX}%, ${translateY}%) scale(${zoom}) rotate(${rotation}deg)`,
           transformOrigin: "center center",
           opacity: block.data.image.opacity ?? 1,
+          ...fadeMaskStyle,
         }}
       />
+    </div>
+  );
+}
+
+function renderListing(
+  block: Extract<MicrositeBlock, { type: "listing" }>,
+  designKey?: string,
+) {
+  const image = block.data.image;
+  const metadata = Array.isArray(block.data.metadata) ? block.data.metadata : [];
+  const cardVariant = block.data.cardVariant ?? "stacked";
+  const imageHeightPercent = Math.max(
+    20,
+    Math.min(80, Number(block.data.imageHeightPercent) || 50),
+  );
+
+  const positionX = image.positionX ?? 50;
+  const positionY = image.positionY ?? 50;
+  const zoom = image.zoom ?? 1;
+  const rotation = image.rotation ?? 0;
+
+  const translateX = (positionX - 50) * 0.6;
+  const translateY = (positionY - 50) * 0.6;
+
+  const imageObjectFit: React.CSSProperties["objectFit"] =
+    image.fitMode === "clip"
+      ? "contain"
+      : image.fitMode === "stretch"
+        ? "fill"
+        : "cover";
+
+  if (cardVariant === "compact") {
+    return (
+      <div
+        className="h-full w-full overflow-hidden"
+        style={{
+          ...getAppearanceStyle(block),
+          display: "flex",
+          flexDirection: "row",
+        }}
+      >
+        <div
+          className="relative h-full overflow-hidden"
+          style={{
+            width: "42%",
+            minWidth: "42%",
+          }}
+        >
+          {image.url ? (
+            <img
+              src={image.url}
+              alt={image.alt || ""}
+              className="h-full w-full"
+              style={{
+                objectFit: imageObjectFit,
+                objectPosition: "center center",
+                transform: `translate(${translateX}%, ${translateY}%) scale(${zoom}) rotate(${rotation}deg)`,
+                transformOrigin: "center center",
+                opacity: image.opacity ?? 1,
+              }}
+            />
+          ) : (
+            <div
+              className={[
+                "flex h-full w-full items-center justify-center border-r border-dashed text-sm",
+                getPlaceholderClass(designKey),
+              ].join(" ")}
+            >
+              Add image
+            </div>
+          )}
+        </div>
+
+        <div className="flex min-w-0 flex-1 flex-col gap-2 p-3">
+          <div
+            className="font-semibold"
+            style={getContainerTextStyle(block.data.titleStyle, designKey)}
+          >
+            {block.data.title || "Listing Title"}
+          </div>
+
+          {block.data.description ? (
+            <div
+              className="text-sm"
+              style={getContainerTextStyle(
+                block.data.descriptionStyle,
+                designKey,
+              )}
+            >
+              {block.data.description}
+            </div>
+          ) : null}
+
+          {metadata.length ? (
+            <div className="mt-auto flex flex-wrap gap-x-3 gap-y-1">
+              {metadata.map((item) => (
+                <div key={item.id} className="min-w-0">
+                  <span
+                    className="mr-1 opacity-60"
+                    style={getContainerTextStyle(
+                      block.data.metadataStyle,
+                      designKey,
+                    )}
+                  >
+                    {item.label}:
+                  </span>
+                  <span
+                    style={getContainerTextStyle(
+                      block.data.metadataStyle,
+                      designKey,
+                    )}
+                  >
+                    {item.value}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="h-full w-full overflow-hidden"
+      style={getAppearanceStyle(block)}
+    >
+      <div className="flex h-full w-full flex-col">
+        <div
+          className="relative w-full overflow-hidden"
+          style={{ height: `${imageHeightPercent}%` }}
+        >
+          {image.url ? (
+            <img
+              src={image.url}
+              alt={image.alt || ""}
+              className="h-full w-full"
+              style={{
+                objectFit: imageObjectFit,
+                objectPosition: "center center",
+                transform: `translate(${translateX}%, ${translateY}%) scale(${zoom}) rotate(${rotation}deg)`,
+                transformOrigin: "center center",
+                opacity: image.opacity ?? 1,
+              }}
+            />
+          ) : (
+            <div
+              className={[
+                "flex h-full w-full items-center justify-center border-b border-dashed text-sm",
+                getPlaceholderClass(designKey),
+              ].join(" ")}
+            >
+              Add image
+            </div>
+          )}
+        </div>
+
+        <div className="flex min-h-0 flex-1 flex-col gap-2 p-3">
+          <div
+            className="font-semibold"
+            style={getContainerTextStyle(block.data.titleStyle, designKey)}
+          >
+            {block.data.title || "Listing Title"}
+          </div>
+
+          {block.data.description ? (
+            <div
+              className="text-sm"
+              style={getContainerTextStyle(
+                block.data.descriptionStyle,
+                designKey,
+              )}
+            >
+              {block.data.description}
+            </div>
+          ) : null}
+
+          {metadata.length ? (
+            <div className="mt-auto flex flex-wrap gap-x-3 gap-y-1">
+              {metadata.map((item) => (
+                <div key={item.id} className="min-w-0">
+                  <span
+                    className="mr-1 opacity-60"
+                    style={getContainerTextStyle(
+                      block.data.metadataStyle,
+                      designKey,
+                    )}
+                  >
+                    {item.label}:
+                  </span>
+                  <span
+                    style={getContainerTextStyle(
+                      block.data.metadataStyle,
+                      designKey,
+                    )}
+                  >
+                    {item.value}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      </div>
     </div>
   );
 }
@@ -2434,13 +2737,13 @@ function renderHighlight(
             </div>
           ) : null}
 
-{mode === "top_messages" ? (
-  <div
-    className="grid gap-3"
-    style={{
-      gridTemplateColumns: `repeat(${highlightColumns}, minmax(0, 1fr))`,
-    }}
-  >
+          {mode === "top_messages" ? (
+            <div
+              className="grid gap-3"
+              style={{
+                gridTemplateColumns: `repeat(${highlightColumns}, minmax(0, 1fr))`,
+              }}
+            >
               {items.slice(0, limit).map((msg: any, index: number) => (
                 <div
                   key={msg.id}
@@ -2513,6 +2816,8 @@ export default function BlockRenderer({
       return renderTextFx(block, designKey);
     case "image":
       return renderImage(block, designKey);
+    case "listing":
+      return renderListing(block, designKey);
     case "image_carousel":
       return renderImageCarousel(block, designKey);
     case "form_field":

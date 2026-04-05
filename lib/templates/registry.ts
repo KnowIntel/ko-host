@@ -622,15 +622,6 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     defaultDraft: { title: "We’re Engaged!", slugSuggestion: "engaged" },
   },
   {
-    key: "exploration_guide",
-    title: "Exploration Guide",
-    description: "Itinerary, maps, and tips.",
-    thumb: "exploration",
-    setupMins: 4,
-    demoSlug: "explore",
-    defaultDraft: { title: "Exploration Guide", slugSuggestion: "explore" },
-  },
-  {
     key: "for_sale_by_owner",
     title: "For Sale By Owner",
     description: "Photos, details, direct inquiries.",
@@ -773,6 +764,15 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 3,
     demoSlug: "dedication",
     defaultDraft: { title: "Dedication", slugSuggestion: "dedication" },
+  },
+  {
+    key: "exploration_guide",
+    title: "Exploration Guide",
+    description: "Itinerary, maps, and tips.",
+    thumb: "exploration",
+    setupMins: 4,
+    demoSlug: "explore",
+    defaultDraft: { title: "Exploration Guide", slugSuggestion: "explore" },
   },
   {
     key: "disaster_relief",

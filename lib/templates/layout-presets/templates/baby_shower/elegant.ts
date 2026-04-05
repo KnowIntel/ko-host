@@ -22,8 +22,8 @@ export default createLayoutPreset({
   ======================================================= */
 
   title: {
-    text: "B R E N D A ' S   H A V I N G   A",
-    placement: { x: 1, y: 2.1, width: 12, height: 2, zIndex: 10 },
+    text: "B   R   E   N   D   A  '  S      H   A   V   I   N   G     A",
+    placement: { x: -0.1, y: 1.7, width: 15, height: 2, zIndex: 10 },
     style: {
       fontFamily: "Inter",
       fontSize: 90,
@@ -59,7 +59,7 @@ export default createLayoutPreset({
  */
   tagline: {
     text: "Please join us in welcoming a beautiful baby boy:",
-    placement: { x: 1, y: 8.6, width: 12, height: 3, zIndex: 13 },
+    placement: { x: 0, y: 5, width: 15, height: 3, zIndex: 13 },
     style: {
       fontFamily: "Bodoni Moda",
       fontSize: 70,
@@ -70,10 +70,10 @@ export default createLayoutPreset({
 
   taglineSecondary: {
     text: "Tavonn Hodges",
-    placement: { x: 2.9, y: 10.5, width: 8, height: 3, zIndex: 14 },
+    placement: { x: 0, y: 5.8, width: 15, height: 3, zIndex: 14 },
     style: {
       fontFamily: "Great Vibes",
-      fontSize: 244,
+      fontSize: 184,
       align: "center",
       color: "#8F8B85",
     },
@@ -179,13 +179,13 @@ export default createLayoutPreset({
     
     {
       type: "label",
-      placement: { x: 0.9, y: 12.8, width: 12, height: 4, zIndex: 16 },
+      placement: { x: 0, y: 7.0, width: 15, height: 4, zIndex: 16 },
       config: {
         label: "Logistics Info 2",
         text: "Saturday, June 1, 1991 from 2:00 PM – 5:00 PM\nCalifornia Love Community Garden Pavilion\n1996 West Coast Drive Oakland, CA 94612\nHosted By Sharon & Keisha",
         style: {
           fontFamily: "Playfair Display",
-          fontSize: 90,
+          fontSize: 60,
           italic: true,
           align: "center",
           color: "#A39F9A",

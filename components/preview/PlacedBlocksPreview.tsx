@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo } from "react";
 
 import type {
   BuilderDraft,
@@ -32,6 +32,7 @@ type DraftWithExtras = BuilderDraft & {
   pageColor?: string;
   pageBackgroundImage?: string;
   pageBackgroundImageFit?: "clip" | "zoom" | "stretch";
+  pageSize?: "full" | "letter" | "square" | "story" | "wide";
   pageVisibility?: Partial<{
     title: boolean;
     subtitle: boolean;
@@ -59,21 +60,39 @@ type ResolvedGrid = GridPlacement & {
 };
 
 const GRID_COLUMNS = 12;
-const GRID_ROW_HEIGHT = 90;
 const GRID_GAP = 16;
-const PAGE_WIDTH = 2100;
-const VIEWPORT_VERTICAL_PADDING = 40;
+const BASE_PAGE_WIDTH = 2100;
 
-function getColumnWidth() {
-  return (PAGE_WIDTH - GRID_GAP * (GRID_COLUMNS - 1)) / GRID_COLUMNS;
+function getPageSizeConfig(size?: DraftWithExtras["pageSize"]) {
+  if (size === "letter") {
+    return { widthRatio: 1, rowHeight: 111.1111111111, minRows: 16 };
+  }
+
+  if (size === "square") {
+    return { widthRatio: 1, rowHeight: 145.75, minRows: 12 };
+  }
+
+  if (size === "story") {
+    return { widthRatio: 1, rowHeight: 410, minRows: 16 };
+  }
+
+  if (size === "wide") {
+    return { widthRatio: 1, rowHeight: 100, minRows: 9 };
+  }
+
+  return { widthRatio: 1, rowHeight: 190, minRows: 8 };
 }
 
-function getStrideX() {
-  return getColumnWidth() + GRID_GAP;
+function getColumnWidth(pageWidth: number) {
+  return (pageWidth - GRID_GAP * (GRID_COLUMNS - 1)) / GRID_COLUMNS;
 }
 
-function getStrideY() {
-  return GRID_ROW_HEIGHT + GRID_GAP;
+function getStrideX(pageWidth: number) {
+  return getColumnWidth(pageWidth) + GRID_GAP;
+}
+
+function getStrideY(rowHeight: number) {
+  return rowHeight + GRID_GAP;
 }
 
 function normalizeResolvedGrid(
@@ -89,9 +108,13 @@ function normalizeResolvedGrid(
   };
 }
 
-function getItemStyle(grid: ResolvedGrid): React.CSSProperties {
-  const strideX = getStrideX();
-  const strideY = getStrideY();
+function getItemStyle(
+  grid: ResolvedGrid,
+  pageWidth: number,
+  rowHeight: number,
+): React.CSSProperties {
+  const strideX = getStrideX(pageWidth);
+  const strideY = getStrideY(rowHeight);
 
   return {
     position: "absolute",
@@ -146,7 +169,7 @@ export default function PlacedBlocksPreview({
   draft,
   designKey,
   micrositeId = null,
-  fixedScale,
+  fixedScale = 1,
   disableAutoScale = false,
   transparentPageBackground = false,
   hideFrame = false,
@@ -155,14 +178,13 @@ export default function PlacedBlocksPreview({
   const templateKey = typedDraft.templateName || "";
   const metadata = getMetadata(templateKey, designKey);
 
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const [scale, setScale] = useState(fixedScale ?? 1);
-  const [viewportHeight, setViewportHeight] = useState(0);
+  const pageSizeConfig = useMemo(
+    () => getPageSizeConfig(typedDraft.pageSize),
+    [typedDraft.pageSize],
+  );
 
-  const [submitState, setSubmitState] = useState<
-    "idle" | "submitting" | "success" | "error"
-  >("idle");
-  const [submitMessage, setSubmitMessage] = useState("");
+  const logicalPageWidth = BASE_PAGE_WIDTH * pageSizeConfig.widthRatio;
+  const logicalRowHeight = pageSizeConfig.rowHeight;
 
   const pageColor =
     (typedDraft.pageColor && typedDraft.pageColor.trim()) ||
@@ -177,97 +199,6 @@ export default function PlacedBlocksPreview({
       : pageBackgroundImageFit === "stretch"
         ? "100% 100%"
         : "cover";
-
-  const handleSubmit = async () => {
-    const inputs = document.querySelectorAll(
-      "[data-form-field-id]",
-    ) as NodeListOf<HTMLInputElement | HTMLTextAreaElement>;
-
-    const fields: Record<
-      string,
-      {
-        value: string;
-        formBlockId: string;
-        fieldType?: string;
-      }
-    > = {};
-
-    let hasRequiredError = false;
-
-    inputs.forEach((input) => {
-      const id = input.getAttribute("data-form-field-id");
-      const block = draft.blocks.find((b) => b.id === id);
-
-      if (block?.type === "form_field") {
-        const value = input.value ?? "";
-
-        fields[block.data.label] = {
-          value,
-          formBlockId: block.id,
-          fieldType: block.data.fieldType,
-        };
-
-        if (block.data.required && !value.trim()) {
-          hasRequiredError = true;
-        }
-      }
-    });
-
-    if (hasRequiredError) {
-      setSubmitState("error");
-      setSubmitMessage("Please complete all required fields.");
-      return;
-    }
-
-    if (!micrositeId) {
-      setSubmitState("error");
-      setSubmitMessage(
-        "Form submission is only available on published microsites.",
-      );
-      return;
-    }
-
-    try {
-      setSubmitState("submitting");
-      setSubmitMessage("");
-
-      const res = await fetch("/api/forms/submit", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          micrositeId: micrositeId || "",
-          pageSlug: draft.slugSuggestion || "",
-          templateKey: typedDraft.templateName || "",
-          designKey,
-          fields,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setSubmitState("error");
-        setSubmitMessage(data?.error || "Submission failed.");
-        return;
-      }
-
-      setSubmitState("success");
-      setSubmitMessage("Submitted successfully.");
-
-      inputs.forEach((input) => {
-        input.value = "";
-      });
-    } catch {
-      setSubmitState("error");
-      setSubmitMessage("Submission failed.");
-    }
-  };
-
-  void handleSubmit;
-  void submitState;
-  void submitMessage;
 
   const titleGrid = normalizeResolvedGrid(
     getResolvedPageGrid(
@@ -388,14 +319,21 @@ export default function PlacedBlocksPreview({
   );
 
   const showTitle =
-    hasMeaningfulText(titleValue) || !!typedDraft.pageElements?.title;
+    typedDraft.pageVisibility?.title !== false &&
+    (hasMeaningfulText(titleValue) || !!typedDraft.pageElements?.title);
+
   const showSubtitle =
-    hasMeaningfulText(subtitleValue) || !!typedDraft.pageElements?.subtitle;
+    typedDraft.pageVisibility?.subtitle !== false &&
+    (hasMeaningfulText(subtitleValue) || !!typedDraft.pageElements?.subtitle);
+
   const showSubtext =
-    hasMeaningfulText(subtextValue) || !!typedDraft.pageElements?.subtext;
+    typedDraft.pageVisibility?.subtext !== false &&
+    (hasMeaningfulText(subtextValue) || !!typedDraft.pageElements?.subtext);
+
   const showDescription =
-    hasMeaningfulText(descriptionValue) ||
-    !!typedDraft.pageElements?.description;
+    typedDraft.pageVisibility?.description !== false &&
+    (hasMeaningfulText(descriptionValue) ||
+      !!typedDraft.pageElements?.description);
 
   const blockEntries = useMemo(
     () =>
@@ -428,209 +366,168 @@ export default function PlacedBlocksPreview({
   ];
 
   const maxRowEnd = Math.max(
-    8,
+    pageSizeConfig.minRows,
     ...textRowEnds,
     ...blockEntries.map((entry) => entry.rowEnd),
   );
 
-  const pageHeight = maxRowEnd * getStrideY() - GRID_GAP + 1;
+  const pageHeight = maxRowEnd * getStrideY(logicalRowHeight) - GRID_GAP + 1;
 
-  useEffect(() => {
-    if (disableAutoScale) return;
-
-    const updateViewportHeight = () => {
-      setViewportHeight(window.innerHeight);
-    };
-
-    updateViewportHeight();
-    window.addEventListener("resize", updateViewportHeight);
-
-    return () => {
-      window.removeEventListener("resize", updateViewportHeight);
-    };
-  }, [disableAutoScale]);
-
-  useEffect(() => {
-    if (disableAutoScale) {
-      setScale(fixedScale ?? 1);
-      return;
-    }
-
-    if (!containerRef.current) return;
-
-    let frame = 0;
-
-    const updateScale = () => {
-      const containerWidth = containerRef.current?.clientWidth ?? PAGE_WIDTH;
-      const widthScale = Math.min(1, containerWidth / PAGE_WIDTH);
-
-      const availableHeight = Math.max(
-        320,
-        viewportHeight - VIEWPORT_VERTICAL_PADDING,
-      );
-      const heightScale = Math.min(1, availableHeight / pageHeight);
-
-      const nextScale = Math.min(widthScale, heightScale);
-
-      setScale((prev) => {
-        if (Math.abs(prev - nextScale) < 0.001) {
-          return prev;
-        }
-        return nextScale;
-      });
-    };
-
-    updateScale();
-
-    const observer = new ResizeObserver(() => {
-      cancelAnimationFrame(frame);
-      frame = window.requestAnimationFrame(updateScale);
-    });
-
-    observer.observe(containerRef.current);
-    window.addEventListener("resize", updateScale);
-
-    return () => {
-      cancelAnimationFrame(frame);
-      observer.disconnect();
-      window.removeEventListener("resize", updateScale);
-    };
-  }, [disableAutoScale, fixedScale, pageHeight, viewportHeight]);
-
-  const resolvedScale = disableAutoScale ? (fixedScale ?? 1) : scale;
-  const scaledWidth = PAGE_WIDTH * resolvedScale;
-  const scaledHeight = pageHeight * resolvedScale;
-
-  return (
+return (
+  <div
+    className="w-full"
+    style={{
+      position: "relative",
+      margin: 0,
+      padding: 0,
+      overflow: "visible",
+      backgroundColor: transparentPageBackground ? "transparent" : pageColor,
+      ...(pageBackgroundImage && !transparentPageBackground
+        ? {
+            backgroundImage: `url("${pageBackgroundImage}")`,
+            backgroundSize: pageBackgroundSize,
+            backgroundPosition: "center center",
+            backgroundRepeat: "no-repeat",
+          }
+        : {}),
+    }}
+  >
     <div
-      ref={containerRef}
-      className="w-full"
       style={{
         position: "relative",
-        overflow: "visible",
+        width: "100%",
+        minHeight: pageHeight * (disableAutoScale ? (fixedScale ?? 1) : 1),
         margin: 0,
         padding: 0,
-        minHeight: hideFrame ? scaledHeight : undefined,
-        height: hideFrame ? "auto" : scaledHeight,
+        overflow: "hidden",
+        backgroundColor: transparentPageBackground ? "transparent" : pageColor,
+        ...(transparentPageBackground
+          ? {}
+          : getCanvasInnerBackgroundStyle(draft, designKey, metadata)),
+        ...(pageBackgroundImage && !transparentPageBackground
+          ? {
+              backgroundImage: `url("${pageBackgroundImage}")`,
+              backgroundSize: pageBackgroundSize,
+              backgroundPosition: "center center",
+              backgroundRepeat: "no-repeat",
+            }
+          : {}),
+        ...(hideFrame
+          ? {}
+          : {
+              border: "1px solid rgba(0,0,0,0.10)",
+              borderRadius: "8px",
+              boxShadow: "0 1px 2px rgba(0,0,0,0.06)",
+            }),
       }}
     >
       <div
         style={{
           position: "relative",
-          width: scaledWidth,
-          height: scaledHeight,
+          width: logicalPageWidth,
+          minHeight: pageHeight,
           margin: 0,
           padding: 0,
           overflow: "visible",
+          transform: `scale(${disableAutoScale ? (fixedScale ?? 1) : 1})`,
+          transformOrigin:
+            transparentPageBackground && hideFrame ? "top left" : "top center",
+          left: transparentPageBackground && hideFrame ? 0 : undefined,
         }}
       >
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            width: PAGE_WIDTH,
-            height: pageHeight,
-            margin: 0,
-            padding: 0,
-            transform: `scale(${resolvedScale})`,
-            transformOrigin: "top left",
-            overflow: "visible",
-            backgroundColor: transparentPageBackground ? "transparent" : pageColor,
-            ...(transparentPageBackground
-              ? {}
-              : getCanvasInnerBackgroundStyle(draft, designKey, metadata)),
-            ...(pageBackgroundImage && !transparentPageBackground
-              ? {
-                  backgroundImage: `url("${pageBackgroundImage}")`,
-                  backgroundSize: pageBackgroundSize,
-                  backgroundPosition: "center center",
-                  backgroundRepeat: "no-repeat",
-                }
-              : {}),
-            ...(hideFrame
-              ? {}
-              : {
-                  border: "1px solid rgba(0,0,0,0.10)",
-                  borderRadius: "8px",
-                  boxShadow: "0 1px 2px rgba(0,0,0,0.06)",
-                }),
-          }}
-        >
-          {showTitle ? (
-            <div style={getItemStyle(titleGrid)}>
-              <div
-                className="h-full w-full p-3"
-                style={getPageTextBoxStyle(typedDraft, "title")}
-              >
-                <div style={getInlineTextStyle(titleStyle)}>{titleValue}</div>
-              </div>
-            </div>
-          ) : null}
-
-          {showSubtitle ? (
-            <div style={getItemStyle(subtitleGrid)}>
-              <div
-                className="h-full w-full p-3"
-                style={getPageTextBoxStyle(typedDraft, "subtitle")}
-              >
-                <div style={getInlineTextStyle(subtitleStyle)}>
-                  {subtitleValue}
-                </div>
-              </div>
-            </div>
-          ) : null}
-
-          {showSubtext ? (
-            <div style={getItemStyle(subtextGrid)}>
-              <div
-                className="h-full w-full p-3"
-                style={getPageTextBoxStyle(typedDraft, "subtext")}
-              >
-                <div style={getInlineTextStyle(subtextStyle)}>{subtextValue}</div>
-              </div>
-            </div>
-          ) : null}
-
-          {showDescription ? (
-            <div style={getItemStyle(descriptionGrid)}>
-              <div
-                className="h-full w-full p-3"
-                style={getPageTextBoxStyle(typedDraft, "description")}
-              >
-                <div style={getInlineTextStyle(descriptionStyle)}>
-                  {descriptionValue}
-                </div>
-              </div>
-            </div>
-          ) : null}
-
-          {blockEntries.map(({ block, grid }) => (
+        {showTitle ? (
+          <div style={getItemStyle(titleGrid, logicalPageWidth, logicalRowHeight)}>
             <div
-              key={block.id}
+              className="h-full w-full p-3"
+              style={getPageTextBoxStyle(typedDraft, "title")}
+            >
+              <div style={getInlineTextStyle(titleStyle)}>{titleValue}</div>
+            </div>
+          </div>
+        ) : null}
+
+        {showSubtitle ? (
+          <div
+            style={getItemStyle(
+              subtitleGrid,
+              logicalPageWidth,
+              logicalRowHeight,
+            )}
+          >
+            <div
+              className="h-full w-full p-3"
+              style={getPageTextBoxStyle(typedDraft, "subtitle")}
+            >
+              <div style={getInlineTextStyle(subtitleStyle)}>
+                {subtitleValue}
+              </div>
+            </div>
+          </div>
+        ) : null}
+
+        {showSubtext ? (
+          <div
+            style={getItemStyle(
+              subtextGrid,
+              logicalPageWidth,
+              logicalRowHeight,
+            )}
+          >
+            <div
+              className="h-full w-full p-3"
+              style={getPageTextBoxStyle(typedDraft, "subtext")}
+            >
+              <div style={getInlineTextStyle(subtextStyle)}>{subtextValue}</div>
+            </div>
+          </div>
+        ) : null}
+
+        {showDescription ? (
+          <div
+            style={getItemStyle(
+              descriptionGrid,
+              logicalPageWidth,
+              logicalRowHeight,
+            )}
+          >
+            <div
+              className="h-full w-full p-3"
+              style={getPageTextBoxStyle(typedDraft, "description")}
+            >
+              <div style={getInlineTextStyle(descriptionStyle)}>
+                {descriptionValue}
+              </div>
+            </div>
+          </div>
+        ) : null}
+
+        {blockEntries.map(({ block, grid }) => (
+          <div
+            key={block.id}
+            style={{
+              ...getItemStyle(grid, logicalPageWidth, logicalRowHeight),
+              overflow: "visible",
+              pointerEvents: "auto",
+              isolation: "isolate",
+            }}
+          >
+            <div
+              className="h-full w-full"
               style={{
-                ...getItemStyle(grid),
                 overflow: "visible",
                 pointerEvents: "auto",
-                isolation: "isolate",
               }}
             >
-              <div
-                className="h-full w-full"
-                style={{
-                  overflow: "visible",
-                  pointerEvents: "auto",
-                }}
-              >
-                <BlockRenderer
-                  block={block}
-                  designKey={designKey}
-                  micrositeId={micrositeId}
-                />
-              </div>
+              <BlockRenderer
+                block={block}
+                designKey={designKey}
+                micrositeId={micrositeId}
+              />
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
     </div>
-  );
+  </div>
+);
 }

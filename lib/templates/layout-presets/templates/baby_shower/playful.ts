@@ -23,7 +23,7 @@ export default createLayoutPreset({
 
   title: {
     text: "Baby Shower",
-    placement: { x: 3.1, y: 5.2, width: 8, height: 2, zIndex: 10 },
+    placement: { x: 0, y: 3.2, width: 15, height: 2, zIndex: 10 },
     style: {
       fontFamily: "Pacifico",
       fontSize: 160,
@@ -35,7 +35,7 @@ export default createLayoutPreset({
   
   subtitle: {
     text: "Astird",
-    placement: { x: 2.9, y: 7.5, width: 8, height: 3, zIndex: 11 },
+    placement: { x: -0.15, y: 4.5, width: 15, height: 3, zIndex: 11 },
     style: {
       fontFamily: "Pacifico",
       fontSize: 190,
@@ -58,29 +58,6 @@ export default createLayoutPreset({
     },
   },
 
-/* 
-  tagline: {
-    text: "Kindly RSVP",
-    placement: { x: 4.4, y: 6.4, width: 5, height: 1, zIndex: 13 },
-    style: {
-      fontFamily: "Great Vibes",
-      fontSize: 110,
-      align: "center",
-      color: "#646462",
-    },
-  }, */
-/* 
-  taglineSecondary: {
-    text: "We can't wait to celebrate with you!",
-    placement: { x: 2.9, y: 11.8, width: 8, height: 1, zIndex: 14 },
-    style: {
-      fontFamily: "Great Vibes",
-      fontSize: 94,
-      align: "center",
-      color: "#000000",
-    },
-  },
- */
   /* =======================================================
      OPTIONAL BLOCKS
      Use these for extra text lines, shapes, images, etc.
@@ -151,13 +128,13 @@ export default createLayoutPreset({
 */
     {
       type: "label",
-      placement: { x: 5, y: 4.5, width: 4, height: 1, zIndex: 16 },
+      placement: { x: -0.15, y: 2.7, width: 15, height: 1, zIndex: 16 },
       config: {
         label: "",
         text: "Join us for a",
         style: {
           fontFamily: "Georgia",
-          fontSize: 90,
+          fontSize: 60,
           italic: true,
           align: "center",
           color: "#61605F",
@@ -167,13 +144,29 @@ export default createLayoutPreset({
     
     {
       type: "label",
-      placement: { x: 1.0, y: 7.1, width: 12, height: 1, zIndex: 16 },
+      placement: { x: -0.15, y: 4.2, width: 15, height: 1, zIndex: 16 },
       config: {
         label: "",
         text: "honoring",
         style: {
           fontFamily: "Cormorant Garamond",
-          fontSize: 86,
+          fontSize: 60,
+          italic: true,
+          align: "center",
+          color: "#525536",
+        },
+      },
+    },
+    
+    {
+      type: "label",
+      placement: { x: -0.15, y: 6.8, width: 15, height: 1, zIndex: 16 },
+      config: {
+        label: "Logistics Line 1",
+        text: "Thursday, October 16, 2008 @ 2pm\nScranton Business Park Conference Room\n1725 Slough Avenue Scranton, PA 18540",
+        style: {
+          fontFamily: "Cormorant Garamond",
+          fontSize: 50,
           italic: true,
           align: "center",
           color: "#525536",
@@ -225,7 +218,7 @@ export default createLayoutPreset({
 
     {
       type: "cta",
-      placement: { x: 3.8, y: 10.5, width: 3, height: 1, zIndex: 5 },
+      placement: { x: 3.8, y: 6, width: 3, height: 0.6, zIndex: 5 },
       config: {
         buttonText: "  I will be there  ",
         buttonUrl: "#",
@@ -239,7 +232,7 @@ export default createLayoutPreset({
 
         style: {
           fontFamily: "Inter",
-          fontSize: 84,
+          fontSize: 44,
           bold: true,
           align: "center",
           color: "#FFFFFF"
@@ -249,7 +242,7 @@ export default createLayoutPreset({
     
     {
       type: "cta",
-      placement: { x: 7.2, y: 10.5, width: 3, height: 1, zIndex: 5 },
+      placement: { x: 8.2, y: 6, width: 3, height: .6, zIndex: 5 },
       config: {
         buttonText: "  Sorry, can't make it  ",
         buttonUrl: "#",
@@ -263,7 +256,7 @@ export default createLayoutPreset({
 
         style: {
           fontFamily: "Inter",
-          fontSize: 84,
+          fontSize: 40,
           bold: true,
           align: "center",
           color: "#FFFFFF"

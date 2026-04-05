@@ -1,4 +1,3 @@
-// app/s/[slug]/page.tsx
 import { cookies } from "next/headers";
 import crypto from "crypto";
 import PlacedBlocksPreview from "@/components/preview/PlacedBlocksPreview";
@@ -211,6 +210,15 @@ export default async function PublishedMicrositePage({
 
   const designKey = microsite.selected_design_key || "blank";
 
+  if (!draft) {
+    return (
+      <PageShell
+        title="Page unavailable"
+        message="No published microsite content available."
+      />
+    );
+  }
+
   const pageColor =
     (((draft as any)?.pageColor && String((draft as any).pageColor).trim()) ||
       "#fcfbf8") as string;
@@ -232,26 +240,15 @@ export default async function PublishedMicrositePage({
         ? "100% 100%"
         : "cover";
 
-  if (!draft) {
-    return (
-      <PageShell
-        title="Page unavailable"
-        message="No published microsite content available."
-      />
-    );
-  }
-
   return (
     <>
       <main
-        className="w-full text-neutral-900"
+        className="w-full overflow-x-hidden overflow-y-auto text-neutral-900"
         style={{
           minHeight: "100vh",
           width: "100%",
           margin: 0,
           padding: 0,
-          overflowX: "visible",
-          overflowY: "visible",
           backgroundColor: pageColor,
           ...(pageBackgroundImage
             ? {
@@ -263,23 +260,17 @@ export default async function PublishedMicrositePage({
             : {}),
         }}
       >
-        <div
-          style={{
-            width: "100%",
-            margin: 0,
-            padding: 0,
-            overflow: "visible",
-          }}
-        >
-          <PlacedBlocksPreview
-            draft={draft}
-            designKey={designKey}
-            micrositeId={microsite.id}
-            fixedScale={1}
-            disableAutoScale={true}
-            hideFrame={true}
-          />
-        </div>
+        <PlacedBlocksPreview
+          draft={draft}
+          designKey={designKey}
+          micrositeId={microsite.id}
+          fixedScale={Math.max(
+            0.25,
+            Math.min(1.5, ((((draft as any)?.pageScale ?? 100) as number) / 100)),
+          )}
+          disableAutoScale={true}
+          hideFrame={true}
+        />
       </main>
 
       <MicrositeFooterBrand />

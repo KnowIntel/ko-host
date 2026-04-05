@@ -92,31 +92,30 @@ export default createLayoutPreset({
        DECORATIVE IMAGE / PLAQUE
     ------------------------------------------------------- */
     
-    {
-      type: "image",
-      placement: { x: 4.5, y: 3, width: 5, height: 12, zIndex: 3 },
-      config: {
-        src: "/designs/artifacts/bride_groom1.png",
-        fit: "cover",
-        frame: "square",
-        zoom: 1,
-        rotation: 0,
-      },
-    },
-    
-     {
-      type: "image",
-      placement: { x: 0.07, y: 13, width: 14, height: 5.7, zIndex: 3 },
-      config: {
-        url: "/designs/artifacts/shape_semi_circle.png",
-        // use "contain" for clip, "fill" for stretch, or "cover" for zoom
-        fit: "fill",
-        frame: "square",
-        zoom: 1,
-        rotation: 0,
-        opacity: 1, // 👈 add this (0 = invisible, 1 = full)
-      },
-    },
+{
+  type: "image",
+  placement: { x: 1.2, y: -1.6, width: 12, height: 14, zIndex: 5 },
+  config: {
+    src: "/designs/artifacts/bride_groom1.png",
+    fit: "cover",
+    frame: "square",
+    zoom: 0.4,
+    rotation: 0,
+  },
+},
+
+{
+  type: "image",
+  placement: { x: 0.8, y: 7.5, width: 13, height: 1.8, zIndex: 6 },
+  config: {
+    url: "/designs/artifacts/shape_semi_circle.png",
+    fit: "fill",
+    frame: "square",
+    zoom: 1,
+    rotation: 0,
+    opacity: 1,
+  },
+},
 
     /* -------------------------------------------------------
        DECORATIVE LINES
@@ -183,13 +182,13 @@ export default createLayoutPreset({
     
     {
       type: "label",
-      placement: { x: 0, y: 13.5, width: 14, height: 1, zIndex: 16 },
+      placement: { x: 0, y: 7.5, width: 14.45, height: 0.8, zIndex: 16 },
       config: {
         label: "Tagline 1",
         text: "JOIN US AS WE BEGIN\nOUR GREATEST ADVENTURE",
         style: {
           fontFamily: "Cormorant Garamond",
-          fontSize: 164,
+          fontSize: 84,
           italic: true,
           bold: true,
           align: "center",
@@ -200,13 +199,13 @@ export default createLayoutPreset({
     
     {
       type: "label",
-      placement: { x: 0, y: 15.7, width: 14, height: 1, zIndex: 16 },
+      placement: { x: 0.0, y: 8.5, width: 14.5, height: 1, zIndex: 16 },
       config: {
         label: "Tagline 2",
         text: "Two hearts... One day... A lifetime to follow",
         style: {
           fontFamily: "dancing script",
-          fontSize: 94,
+          fontSize: 64,
           italic: true,
           align: "center",
           color: "#000000",
@@ -242,7 +241,7 @@ export default createLayoutPreset({
 
     {
       type: "cta",
-      placement: { x: 5.4, y: 12, width: 3, height: 1, zIndex: 5 },
+      placement: { x: 0, y: 6.6, width: 14.5, height: 0.7, zIndex: 9 },
       config: {
         buttonText: " RSVP ",
         buttonUrl: "#",
@@ -256,7 +255,7 @@ export default createLayoutPreset({
 
         style: {
           fontFamily: "Inter",
-          fontSize: 100,
+          fontSize: 60,
           bold: true,
           align: "center",
           color: "#000000"
@@ -266,19 +265,19 @@ export default createLayoutPreset({
 
     {
   type: "links",
-  placement: { x: 1, y: 1.4, width: 12, height: 2, zIndex: 6 },
+  placement: { x: 1, y: 1.4, width: 14, height: 1, zIndex: 11 },
   config: {
     layout: "horizontal",
     heading: "",
     items: [
-      { label: "          ABOUT                ", url: "#" },
-      { label: "                REGISTRY            ", url: "#" },
-      { label: "                SCHEDULE           ", url: "#" },
-      { label: "                CONTACT         ", url: "#" },
+      { label: "              ABOUT                 ", url: "#" },
+      { label: "              REGISTRY              ", url: "#" },
+      { label: "              SCHEDULE            ", url: "#" },
+      { label: "              CONTACT            ", url: "#" },
     ],
     style: {
       fontFamily: "Playfair Display",
-      fontSize: 90,
+      fontSize: 45,
       bold: false,
       italic: false,
       underline: false,

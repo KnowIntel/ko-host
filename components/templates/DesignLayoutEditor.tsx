@@ -119,6 +119,8 @@ type Props = {
   saveMessage?: string;
 };
 
+type PageSizeOption = "full" | "letter" | "square" | "story" | "wide";
+
 type DraftPageVisibility = Partial<{
   title: boolean;
   subtitle: boolean;
@@ -145,6 +147,7 @@ type DraftWithPageExtras = BuilderDraft & {
     subtext: DraftPageElementLayout;
     description: DraftPageElementLayout;
   }>;
+  pageSize?: PageSizeOption;
   pageBlockAppearance?: Partial<
     Record<
       "title" | "subtitle" | "subtext" | "description",
@@ -257,9 +260,10 @@ const CATEGORY_BUTTONS: Record<
   ],
   Social: [{ kind: "block", label: "Thread", type: "thread" }],
   Utilities: [
-  { kind: "block", label: "Links", type: "links" },
-  { kind: "block", label: "Highlight", type: "highlight" },
-],
+    { kind: "block", label: "Links", type: "links" },
+    { kind: "block", label: "Highlight", type: "highlight" },
+    { kind: "block", label: "Listing", type: "listing" },
+  ],
 };
 
 const MIN_CANVAS_ZOOM = 50;
@@ -373,6 +377,25 @@ const FONT_FAMILY_MAP: Record<string, string> = {
 };
 
 
+function getPageSizeDimensions(size: PageSizeOption) {
+  if (size === "letter") {
+    return { width: 12, height: 16 };
+  }
+
+  if (size === "square") {
+    return { width: 12, height: 12 };
+  }
+
+  if (size === "story") {
+    return { width: 12, height: 16 };
+  }
+
+  if (size === "wide") {
+    return { width: 12, height: 9 };
+  }
+
+  return { width: 12, height: 20 };
+}
 
 function cloneDraft<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
@@ -517,6 +540,10 @@ function getSelectedContext(
     return { kind: "otherBlock", blockId, blockType: block.type, label: block.label || "Highlight" };
   }
 
+  if (block.type === "listing") {
+    return { kind: "otherBlock", blockId, blockType: block.type, label: block.label || "Listing" };
+  }
+
   return {
     kind: "otherBlock",
     blockId,
@@ -631,6 +658,7 @@ function getToolGlyph(label: string) {
   if (label === "Thread") return "☰";
   if (label === "Links") return "🔗";
   if (label === "Highlight") return "★";
+  if (label === "Listing") return "🏷";
   if (label === "Carousel") return "⇄";
   if (label === "Input Field") return "⌨";
   return "•";
@@ -771,6 +799,10 @@ export default function DesignLayoutEditor({
   saveMessage,
 }: Props) {
   const [resetDraftModalOpen, setResetDraftModalOpen] = useState(false);
+  const selectedPageSize =
+  ((draft as DraftWithPageExtras).pageSize ?? "full") as PageSizeOption;
+
+const selectedPageDimensions = getPageSizeDimensions(selectedPageSize);
   const [selection, setSelection] = useState(createEmptySelection());
   const [activeCategory, setActiveCategory] = useState<BottomCategory>("Text");
   const [openToolMenu, setOpenToolMenu] = useState<BottomCategory | null>(null);
@@ -909,7 +941,8 @@ const showAppearanceControls =
   selectedContext.kind === "image" ||
   selectedContext.kind === "imageCarousel" ||
   selectedContext.kind === "shape" ||
-  selectedBlock?.type === "thread";
+  selectedBlock?.type === "thread" ||
+  selectedBlock?.type === "listing";
 
 const showBorderWidthRadiusControls =
   selectedContext.kind === "label" ||
@@ -917,7 +950,8 @@ const showBorderWidthRadiusControls =
   selectedContext.kind === "image" ||
   selectedContext.kind === "imageCarousel" ||
   selectedContext.kind === "shape" ||
-  selectedBlock?.type === "thread";
+  selectedBlock?.type === "thread" ||
+  selectedBlock?.type === "listing";
 
   const selectedTextValue = getSelectedTextValue(draft, selectedContext);
 
@@ -1399,6 +1433,13 @@ function confirmResetDraft() {
   setResetDraftModalOpen(false);
 }
 
+function updatePageSize(value: PageSizeOption) {
+  setDraft((prev) => ({
+    ...(prev as DraftWithPageExtras),
+    pageSize: value,
+  }));
+}
+
 function cancelResetDraft() {
   setResetDraftModalOpen(false);
 }
@@ -1577,7 +1618,7 @@ function clearPageTextBackgroundColor() {
 }
 
 function updatePageScale(value: number) {
-  const nextValue = Math.max(10, Math.min(100, value));
+  const nextValue = Math.max(25, Math.min(150, value));
 
   setDraft((prev) => ({
     ...(prev as DraftWithPageExtras),
@@ -1780,29 +1821,62 @@ function moveGalleryImage(
     }));
   }
 
-  function updateSelectedImagePatch(
-    patch: Partial<{
-      positionX: number;
-      positionY: number;
-      zoom: number;
-      rotation: number;
-    }>,
-  ) {
-    updateSelectedBlock((block) =>
-      block.type !== "image"
-        ? block
-        : {
-            ...block,
-            data: {
-              ...block.data,
-              image: {
-                ...block.data.image,
+function updateSelectedImagePatch(
+  patch: Partial<{
+    positionX: number;
+    positionY: number;
+    zoom: number;
+    rotation: number;
+    opacity: number;
+  }>,
+) {
+  updateSelectedBlock((block) =>
+    block.type !== "image"
+      ? block
+      : {
+          ...block,
+          data: {
+            ...block.data,
+            image: {
+              ...block.data.image,
+              ...patch,
+            },
+          },
+        },
+  );
+}
+
+function updateSelectedImageFadePatch(
+  patch: Partial<{
+    top: boolean;
+    bottom: boolean;
+    left: boolean;
+    right: boolean;
+    size: number;
+  }>,
+) {
+  updateSelectedBlock((block) =>
+    block.type !== "image"
+      ? block
+      : {
+          ...block,
+          data: {
+            ...block.data,
+            image: {
+              ...block.data.image,
+              fade: {
+                top: block.data.image.fade?.top ?? false,
+                bottom: block.data.image.fade?.bottom ?? false,
+                left: block.data.image.fade?.left ?? false,
+                right: block.data.image.fade?.right ?? false,
+                size: block.data.image.fade?.size ?? 15,
                 ...patch,
               },
             },
           },
-    );
-  }
+        },
+  );
+}
 
   async function uploadPageBackgroundImage() {
   await openImagePicker({
@@ -1895,18 +1969,36 @@ function updatePageBackgroundImageFit(value: "clip" | "zoom" | "stretch") {
         setDraft((prev) => ({
           ...prev,
           blocks: prev.blocks.map((block) => {
-            if (block.id !== blockId || block.type !== "image") return block;
+            if (block.id !== blockId) return block;
 
-            return {
-              ...block,
-              data: {
-                image: {
-                  ...block.data.image,
-                  url: dataUrl,
-                  alt: file.name,
+            if (block.type === "image") {
+              return {
+                ...block,
+                data: {
+                  image: {
+                    ...block.data.image,
+                    url: dataUrl,
+                    alt: file.name,
+                  },
                 },
-              },
-            };
+              };
+            }
+
+            if (block.type === "listing") {
+              return {
+                ...block,
+                data: {
+                  ...block.data,
+                  image: {
+                    ...block.data.image,
+                    url: dataUrl,
+                    alt: file.name,
+                  },
+                },
+              };
+            }
+
+            return block;
           }),
         }));
       },
@@ -2880,13 +2972,50 @@ if (block.type === "text_fx") {
     </div>
   );
 }
-if (block.type === "form_field") {
-  return (
-    <div className="h-full w-full">
-      <BlockRenderer block={block} designKey={designKey} />
-    </div>
-  );
-}
+    if (block.type === "form_field") {
+      return (
+        <div className="h-full w-full">
+          <BlockRenderer block={block} designKey={designKey} />
+        </div>
+      );
+    }
+
+    if (block.type === "listing") {
+      return block.data.image.url ? (
+        <div
+          className="h-full w-full"
+          onDoubleClick={() => void uploadImageToSelectedBlock(block.id)}
+          title="Double-click to replace listing image"
+        >
+          <BlockRenderer block={block} designKey={designKey} />
+        </div>
+      ) : (
+        <ImageUploadDropzone
+          label="Drag listing image here or click to browse"
+          className="h-full w-full"
+          onUploaded={(url) => {
+            setDraft((prev) => ({
+              ...prev,
+              blocks: prev.blocks.map((item) =>
+                item.id === block.id && item.type === "listing"
+                  ? {
+                      ...item,
+                      data: {
+                        ...item.data,
+                        image: {
+                          ...item.data.image,
+                          url,
+                        },
+                      },
+                    }
+                  : item,
+              ),
+            }));
+          }}
+        />
+      );
+    }
+
     return <BlockRenderer block={block} designKey={designKey} />;
   }
 
@@ -2943,6 +3072,18 @@ function nudgeSelectedBlock(
 
 return (
   <div className="flex min-h-screen flex-col bg-[#f3f3f3]">
+    <div className="border-b border-black/10 bg-white px-6 py-3">
+      <div className="text-xs font-semibold uppercase tracking-[0.14em] text-neutral-500">
+        Editing
+      </div>
+      <div className="mt-1 text-2xl font-semibold text-neutral-900">
+        {currentSiteName}
+      </div>
+      <div className="mt-1 text-sm text-neutral-500">
+        {currentSiteDisplay}
+      </div>
+    </div>
+
 <div className="sticky top-0 z-[100] w-full bg-[#809cd4] shadow-md">
 
 <div
@@ -3012,15 +3153,15 @@ return (
 <button
   type="button"
   onClick={openResetDraftModal}
-  className={topBarButtonClass(false)}
+  className={topBarButtonClass(false, false, true)}
   title="Reset Draft"
 >
-  <img
+  <Image
     src="/icons/reset_draft_icon.png"
     alt="Reset Draft"
     width={30}
     height={30}
-    className="h-5 w-5 object-contain"
+    className="pointer-events-none h-[30px] w-[30px] object-contain"
   />
 </button>
 
@@ -3106,14 +3247,6 @@ return (
 />
 
       <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
-
-            <div className={infoPillClass()}>
-        Site: {currentSiteName}
-      </div>
-
-      <div className={infoPillClass()}>
-        {currentSiteDisplay}
-      </div>
 
       <div className={infoPillClass()}>{selectedContext.label}</div>
 
@@ -3791,6 +3924,96 @@ return (
               title="Image rotation"
             />
           </div>
+
+          <div className={topBarSliderWrapClass()}>
+            <span>Opacity</span>
+            <input
+              type="range"
+              min={0}
+              max={100}
+              value={Math.round((selectedBlock.data.image.opacity ?? 1) * 100)}
+              onChange={(e) =>
+                updateSelectedImagePatch({
+                  opacity: Number(e.target.value) / 100,
+                })
+              }
+              className={topBarSliderClass()}
+              title="Image opacity"
+            />
+            <span>{Math.round((selectedBlock.data.image.opacity ?? 1) * 100)}%</span>
+          </div>
+
+          <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
+
+          <button
+            type="button"
+            className={topBarButtonClass(Boolean(selectedBlock.data.image.fade?.top))}
+            onClick={() =>
+              updateSelectedImageFadePatch({
+                top: !(selectedBlock.data.image.fade?.top ?? false),
+              })
+            }
+            title="Fade top edge"
+          >
+            Top
+          </button>
+
+          <button
+            type="button"
+            className={topBarButtonClass(Boolean(selectedBlock.data.image.fade?.bottom))}
+            onClick={() =>
+              updateSelectedImageFadePatch({
+                bottom: !(selectedBlock.data.image.fade?.bottom ?? false),
+              })
+            }
+            title="Fade bottom edge"
+          >
+            Bottom
+          </button>
+
+          <button
+            type="button"
+            className={topBarButtonClass(Boolean(selectedBlock.data.image.fade?.left))}
+            onClick={() =>
+              updateSelectedImageFadePatch({
+                left: !(selectedBlock.data.image.fade?.left ?? false),
+              })
+            }
+            title="Fade left edge"
+          >
+            Left
+          </button>
+
+          <button
+            type="button"
+            className={topBarButtonClass(Boolean(selectedBlock.data.image.fade?.right))}
+            onClick={() =>
+              updateSelectedImageFadePatch({
+                right: !(selectedBlock.data.image.fade?.right ?? false),
+              })
+            }
+            title="Fade right edge"
+          >
+            Right
+          </button>
+
+          <div className={topBarSliderWrapClass()}>
+            <span>Fade</span>
+            <input
+              type="range"
+              min={0}
+              max={50}
+              value={selectedBlock.data.image.fade?.size ?? 15}
+              onChange={(e) =>
+                updateSelectedImageFadePatch({
+                  size: Number(e.target.value),
+                })
+              }
+              className={topBarSliderClass()}
+              title="Fade size"
+            />
+            <span>{selectedBlock.data.image.fade?.size ?? 15}%</span>
+          </div>
         </>
       ) : null}
 
@@ -3994,31 +4217,42 @@ return (
     <div
       className={`${getCanvasShellClass(designKey)} h-[calc(100vh-185px)] overflow-y-auto`}
     >
-      <div className="flex w-full justify-center px-4 py-4">
+<div className="flex w-full justify-center overflow-auto px-4 py-4">
+  <div
+    className="origin-top w-full rounded-[8px]"
+    style={{
+      transform: `scale(${pageScale / 100})`,
+      transformOrigin: "top center",
+      width: `${100 / (pageScale / 100)}%`,
+    }}
+  >
         <div
-          className="w-full rounded-[8px]"
-          style={
-            {
-              zoom: canvasZoomScale,
-            } as CSSProperties
-          }
+          style={{
+            width: "100%",
+            minWidth: 0,
+          }}
         >
-        <GridCanvas
-          blocks={canvasItems}
-          selection={selection as any}
-          onSelect={handleCanvasSelect as any}
-          onMoveBlock={handleMoveBlock}
-          onResizeBlock={handleResizeBlock}
-          onBringToFront={handleBringToFront}
-          onRemoveBlock={removeCanvasBlock}
-          onCreateToolDrop={handleCreateToolDrop}
-          renderBlockPreview={renderCanvasPreview}
-          isItemSelected={(blockId, nextSelection) =>
-            isCanvasBlockSelected(nextSelection as any, blockId)
-          }
-          dockedScrollRef={dockedScrollRef}
-          pageSurfaceStyle={pageSurfaceStyle}
-        />
+          <GridCanvas
+            blocks={canvasItems}
+            selection={selection as any}
+            onSelect={handleCanvasSelect as any}
+            onMoveBlock={handleMoveBlock}
+            onResizeBlock={handleResizeBlock}
+            onBringToFront={handleBringToFront}
+            onRemoveBlock={removeCanvasBlock}
+            onCreateToolDrop={handleCreateToolDrop}
+            renderBlockPreview={renderCanvasPreview}
+            isItemSelected={(blockId, nextSelection) =>
+              isCanvasBlockSelected(nextSelection as any, blockId)
+            }
+            dockedScrollRef={dockedScrollRef}
+            pageSurfaceStyle={{
+              ...pageSurfaceStyle,
+              minHeight: `${selectedPageDimensions.height * 96}px`,
+              width: "100%",
+            }}
+          />
+        </div>
         </div>
       </div>
     </div>
@@ -5441,6 +5675,350 @@ data: {
                   </div>
                 ) : null}
 
+                {selectedBlock?.type === "listing" ? (
+                  <div className={inspectorCardClass()}>
+                    <div className={inspectorLabelClass()}>Listing</div>
+
+                    <button
+                      type="button"
+                      className="mt-3 inline-flex h-11 items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-sm text-neutral-700 hover:bg-neutral-50"
+                      onClick={() =>
+                        void uploadImageToSelectedBlock(selectedBlock.id)
+                      }
+                    >
+                      Browse Listing Image
+                    </button>
+
+                    <div className="mt-4">
+                      <div className={inspectorLabelClass()}>Title</div>
+                      <input
+                        type="text"
+                        value={selectedBlock.data.title}
+                        onChange={(e) =>
+                          updateSelectedBlock((block) =>
+                            block.type !== "listing"
+                              ? block
+                              : {
+                                  ...block,
+                                  data: {
+                                    ...block.data,
+                                    title: e.target.value,
+                                  },
+                                },
+                          )
+                        }
+                        className={inspectorInputClass()}
+                      />
+                    </div>
+
+                    <div className="mt-4">
+                      <div className={inspectorLabelClass()}>Description</div>
+                      <textarea
+                        value={selectedBlock.data.description}
+                        onChange={(e) =>
+                          updateSelectedBlock((block) =>
+                            block.type !== "listing"
+                              ? block
+                              : {
+                                  ...block,
+                                  data: {
+                                    ...block.data,
+                                    description: e.target.value,
+                                  },
+                                },
+                          )
+                        }
+                        className={inspectorTextareaClass()}
+                      />
+                    </div>
+
+                    <div className="mt-4">
+                      <div className={inspectorLabelClass()}>Card Variant</div>
+                      <select
+                        value={selectedBlock.data.cardVariant ?? "stacked"}
+                        onChange={(e) =>
+                          updateSelectedBlock((block) =>
+                            block.type !== "listing"
+                              ? block
+                              : {
+                                  ...block,
+                                  data: {
+                                    ...block.data,
+                                    cardVariant: e.target.value as "stacked" | "compact",
+                                  },
+                                },
+                          )
+                        }
+                        className={inspectorInputClass()}
+                      >
+                        <option value="stacked">Stacked</option>
+                        <option value="compact">Compact</option>
+                      </select>
+                    </div>
+
+                    <div className="mt-4">
+                      <div className={inspectorLabelClass()}>Image Height %</div>
+                      <input
+                        type="number"
+                        min={20}
+                        max={80}
+                        value={selectedBlock.data.imageHeightPercent ?? 50}
+                        onChange={(e) =>
+                          updateSelectedBlock((block) =>
+                            block.type !== "listing"
+                              ? block
+                              : {
+                                  ...block,
+                                  data: {
+                                    ...block.data,
+                                    imageHeightPercent: Math.max(
+                                      20,
+                                      Math.min(80, Number(e.target.value) || 50),
+                                    ),
+                                  },
+                                },
+                          )
+                        }
+                        className={inspectorInputClass()}
+                      />
+                    </div>
+
+                    <div className="mt-4 grid grid-cols-1 gap-3">
+                      <div>
+                        <div className={inspectorLabelClass()}>
+                          Image Horizontal Position
+                        </div>
+                        <input
+                          type="range"
+                          min={0}
+                          max={100}
+                          value={selectedBlock.data.image.positionX ?? 50}
+                          onChange={(e) =>
+                            updateSelectedBlock((block) =>
+                              block.type !== "listing"
+                                ? block
+                                : {
+                                    ...block,
+                                    data: {
+                                      ...block.data,
+                                      image: {
+                                        ...block.data.image,
+                                        positionX: Number(e.target.value),
+                                      },
+                                    },
+                                  },
+                            )
+                          }
+                          className="mt-2 w-full"
+                        />
+                      </div>
+
+                      <div>
+                        <div className={inspectorLabelClass()}>
+                          Image Vertical Position
+                        </div>
+                        <input
+                          type="range"
+                          min={0}
+                          max={100}
+                          value={selectedBlock.data.image.positionY ?? 50}
+                          onChange={(e) =>
+                            updateSelectedBlock((block) =>
+                              block.type !== "listing"
+                                ? block
+                                : {
+                                    ...block,
+                                    data: {
+                                      ...block.data,
+                                      image: {
+                                        ...block.data.image,
+                                        positionY: Number(e.target.value),
+                                      },
+                                    },
+                                  },
+                            )
+                          }
+                          className="mt-2 w-full"
+                        />
+                      </div>
+
+                      <div>
+                        <div className={inspectorLabelClass()}>Image Zoom</div>
+                        <input
+                          type="range"
+                          min={50}
+                          max={300}
+                          value={Math.round(
+                            (selectedBlock.data.image.zoom ?? 1) * 100,
+                          )}
+                          onChange={(e) =>
+                            updateSelectedBlock((block) =>
+                              block.type !== "listing"
+                                ? block
+                                : {
+                                    ...block,
+                                    data: {
+                                      ...block.data,
+                                      image: {
+                                        ...block.data.image,
+                                        zoom: Number(e.target.value) / 100,
+                                      },
+                                    },
+                                  },
+                            )
+                          }
+                          className="mt-2 w-full"
+                        />
+                      </div>
+
+                      <div>
+                        <div className={inspectorLabelClass()}>Image Rotation</div>
+                        <input
+                          type="range"
+                          min={-180}
+                          max={180}
+                          value={selectedBlock.data.image.rotation ?? 0}
+                          onChange={(e) =>
+                            updateSelectedBlock((block) =>
+                              block.type !== "listing"
+                                ? block
+                                : {
+                                    ...block,
+                                    data: {
+                                      ...block.data,
+                                      image: {
+                                        ...block.data.image,
+                                        rotation: Number(e.target.value),
+                                      },
+                                    },
+                                  },
+                            )
+                          }
+                          className="mt-2 w-full"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="mt-5">
+                      <div className={inspectorLabelClass()}>Metadata</div>
+
+                      <div className="mt-3 space-y-3">
+                        {selectedBlock.data.metadata.map((item) => (
+                          <div
+                            key={item.id}
+                            className="rounded-xl border border-neutral-200 bg-neutral-50 p-3"
+                          >
+                            <div className={inspectorLabelClass()}>Label</div>
+                            <input
+                              type="text"
+                              value={item.label}
+                              onChange={(e) =>
+                                updateSelectedBlock((block) =>
+                                  block.type !== "listing"
+                                    ? block
+                                    : {
+                                        ...block,
+                                        data: {
+                                          ...block.data,
+                                          metadata: block.data.metadata.map((entry) =>
+                                            entry.id === item.id
+                                              ? { ...entry, label: e.target.value }
+                                              : entry,
+                                          ),
+                                        },
+                                      },
+                                )
+                              }
+                              className={inspectorInputClass()}
+                            />
+
+                            <div className="mt-4">
+                              <div className={inspectorLabelClass()}>Value</div>
+                              <input
+                                type="text"
+                                value={item.value}
+                                onChange={(e) =>
+                                  updateSelectedBlock((block) =>
+                                    block.type !== "listing"
+                                      ? block
+                                      : {
+                                          ...block,
+                                          data: {
+                                            ...block.data,
+                                            metadata: block.data.metadata.map((entry) =>
+                                              entry.id === item.id
+                                                ? { ...entry, value: e.target.value }
+                                                : entry,
+                                            ),
+                                          },
+                                        },
+                                  )
+                                }
+                                className={inspectorInputClass()}
+                              />
+                            </div>
+
+                            <div className="mt-3 flex justify-end">
+                              <button
+                                type="button"
+                                className={toolSetButtonClass("remove")}
+                                onClick={() =>
+                                  updateSelectedBlock((block) =>
+                                    block.type !== "listing"
+                                      ? block
+                                      : {
+                                          ...block,
+                                          data: {
+                                            ...block.data,
+                                            metadata:
+                                              block.data.metadata.length > 1
+                                                ? block.data.metadata.filter(
+                                                    (entry) => entry.id !== item.id,
+                                                  )
+                                                : block.data.metadata,
+                                          },
+                                        },
+                                  )
+                                }
+                                title="Remove metadata item"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+
+                        <button
+                          type="button"
+                          className={toolSetButtonClass("front")}
+                          onClick={() =>
+                            updateSelectedBlock((block) =>
+                              block.type !== "listing"
+                                ? block
+                                : {
+                                    ...block,
+                                    data: {
+                                      ...block.data,
+                                      metadata: [
+                                        ...block.data.metadata,
+                                        {
+                                          id: makeClientId("meta"),
+                                          label: "Label",
+                                          value: "Value",
+                                        },
+                                      ],
+                                    },
+                                  },
+                            )
+                          }
+                        >
+                          Add Metadata Item
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+
                 {selectedBlock?.type === "image" ? (
                   <div className={inspectorCardClass()}>
                     <div className={inspectorLabelClass()}>Image</div>
@@ -5515,8 +6093,7 @@ data: {
                           className="mt-2 w-full"
                         />
                         <div className="mt-1 text-xs text-neutral-500">
-                          {Math.round((selectedBlock.data.image.zoom ?? 1) * 100)}
-                          %
+                          {Math.round((selectedBlock.data.image.zoom ?? 1) * 100)}%
                         </div>
                       </div>
 
@@ -5536,6 +6113,104 @@ data: {
                         />
                         <div className="mt-1 text-xs text-neutral-500">
                           {selectedBlock.data.image.rotation ?? 0}°
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className={inspectorLabelClass()}>Opacity</div>
+                        <input
+                          type="range"
+                          min={0}
+                          max={100}
+                          value={Math.round(
+                            (selectedBlock.data.image.opacity ?? 1) * 100,
+                          )}
+                          onChange={(e) =>
+                            updateSelectedImagePatch({
+                              opacity: Number(e.target.value) / 100,
+                            })
+                          }
+                          className="mt-2 w-full"
+                        />
+                        <div className="mt-1 text-xs text-neutral-500">
+                          {Math.round((selectedBlock.data.image.opacity ?? 1) * 100)}%
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-5">
+                      <div className={inspectorLabelClass()}>Fade Edges</div>
+
+                      <div className="mt-3 grid grid-cols-2 gap-3">
+                        <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+                          <input
+                            type="checkbox"
+                            checked={Boolean(selectedBlock.data.image.fade?.top)}
+                            onChange={(e) =>
+                              updateSelectedImageFadePatch({
+                                top: e.target.checked,
+                              })
+                            }
+                          />
+                          Top
+                        </label>
+
+                        <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+                          <input
+                            type="checkbox"
+                            checked={Boolean(selectedBlock.data.image.fade?.bottom)}
+                            onChange={(e) =>
+                              updateSelectedImageFadePatch({
+                                bottom: e.target.checked,
+                              })
+                            }
+                          />
+                          Bottom
+                        </label>
+
+                        <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+                          <input
+                            type="checkbox"
+                            checked={Boolean(selectedBlock.data.image.fade?.left)}
+                            onChange={(e) =>
+                              updateSelectedImageFadePatch({
+                                left: e.target.checked,
+                              })
+                            }
+                          />
+                          Left
+                        </label>
+
+                        <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+                          <input
+                            type="checkbox"
+                            checked={Boolean(selectedBlock.data.image.fade?.right)}
+                            onChange={(e) =>
+                              updateSelectedImageFadePatch({
+                                right: e.target.checked,
+                              })
+                            }
+                          />
+                          Right
+                        </label>
+                      </div>
+
+                      <div className="mt-4">
+                        <div className={inspectorLabelClass()}>Fade Size</div>
+                        <input
+                          type="range"
+                          min={0}
+                          max={50}
+                          value={selectedBlock.data.image.fade?.size ?? 15}
+                          onChange={(e) =>
+                            updateSelectedImageFadePatch({
+                              size: Number(e.target.value),
+                            })
+                          }
+                          className="mt-2 w-full"
+                        />
+                        <div className="mt-1 text-xs text-neutral-500">
+                          {selectedBlock.data.image.fade?.size ?? 15}%
                         </div>
                       </div>
                     </div>
@@ -6388,24 +7063,42 @@ data: {
     </div>
 <div className="flex flex-col items-end gap-1">
       <div className="flex items-center gap-4">
-        <div className="flex items-center gap-3 rounded-md border border-black/10 bg-white px-3 py-2 shadow-sm">
-          <span className="text-xs font-medium text-neutral-700">Page Scale</span>
 
-          <input
-            type="range"
-            min={10}
-            max={100}
-            step={10}
-            value={pageScale}
-            onChange={(e) => updatePageScale(Number(e.target.value))}
-            className="w-28 accent-blue-600"
-            title="Page Scale"
-          />
+<div className="flex items-center gap-3 rounded-md border border-neutral-300 bg-white px-3 py-3 shadow-sm">
+  <span className="text-xs font-medium text-neutral-700">Zoom</span>
 
-          <span className="w-10 text-right text-xs font-medium text-neutral-700">
-            {pageScale}%
-          </span>
-        </div>
+  <input
+    type="range"
+    min={25}
+    max={150}
+    step={5}
+    value={pageScale}
+    onChange={(e) => updatePageScale(Number(e.target.value))}
+    className="w-28 accent-blue-600"
+    title="Zoom"
+  />
+
+  <span className="w-10 text-right text-xs font-medium text-neutral-700">
+    {pageScale}%
+  </span>
+</div>
+    
+    <div className="flex items-center gap-3 rounded-md border border-neutral-300 bg-white px-3 py-1 shadow-sm">
+      <span className="text-xs font-medium text-neutral-700">Page Scale</span>
+
+      <select
+        value={selectedPageSize}
+        onChange={(e) => updatePageSize(e.target.value as PageSizeOption)}
+        className="h-8 rounded-md border border-neutral-300 bg-white px-3 text-sm text-neutral-700"
+        title="Page Size"
+      >
+        <option value="full">Full Page</option>
+        <option value="letter">Letter</option>
+        <option value="square">Square</option>
+        <option value="story">Story</option>
+        <option value="wide">Wide</option>
+      </select>
+    </div>
 
         <button
           type="button"

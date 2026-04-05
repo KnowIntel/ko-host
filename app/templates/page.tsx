@@ -8,17 +8,83 @@ import TemplateGrid, {
   type Sort,
 } from "@/components/templates/TemplateGrid";
 
+type RecentSiteCard = {
+  id: string;
+  slug: string;
+  title: string;
+  previewImageUrl?: string | null;
+  templateKey?: string | null;
+};
+
 export default function TemplatesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [category, setCategory] = useState<Category>("All");
   const [sort, setSort] = useState<Sort>("Recommended");
   const [count, setCount] = useState<number>(0);
+  const [recentSites, setRecentSites] = useState<RecentSiteCard[]>([]);
+  const [recentSitesLoading, setRecentSitesLoading] = useState(true);
+  const [recentSitesTrack, setRecentSitesTrack] = useState(0);
 
   useEffect(() => {
     setSearchQuery("");
     setCategory("All");
     setSort("Recommended");
   }, []);
+
+  useEffect(() => {
+  let cancelled = false;
+
+  async function loadRecentSites() {
+    try {
+      setRecentSitesLoading(true);
+
+      const res = await fetch("/api/public/recent-sites", {
+        method: "GET",
+        cache: "no-store",
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        if (!cancelled) {
+          setRecentSites([]);
+        }
+        return;
+      }
+
+      if (!cancelled) {
+        setRecentSites(Array.isArray(data?.sites) ? data.sites : []);
+      }
+    } catch {
+      if (!cancelled) {
+        setRecentSites([]);
+      }
+    } finally {
+      if (!cancelled) {
+        setRecentSitesLoading(false);
+      }
+    }
+  }
+
+  void loadRecentSites();
+
+  return () => {
+    cancelled = true;
+  };
+}, []);
+
+useEffect(() => {
+  if (recentSites.length <= 1) return;
+
+  const timer = window.setInterval(() => {
+    setRecentSitesTrack((prev) => {
+      const next = prev + 1;
+      return next >= recentSites.length ? 0 : next;
+    });
+  }, 2800);
+
+  return () => window.clearInterval(timer);
+}, [recentSites]);
 
   const categories: Category[] = useMemo(
     () => [
@@ -42,6 +108,16 @@ export default function TemplatesPage() {
 
   const hasFilters =
     category !== "All" || sort !== "Recommended" || !!searchQuery.trim();
+
+    const visibleRecentSites = useMemo(() => {
+  if (!recentSites.length) return [];
+
+  const maxVisible = Math.min(4, recentSites.length);
+
+  return Array.from({ length: maxVisible }).map((_, index) => {
+    return recentSites[(recentSitesTrack + index) % recentSites.length];
+  });
+}, [recentSites, recentSitesTrack]);
 
   function clearAll() {
     setSearchQuery("");
@@ -72,39 +148,101 @@ export default function TemplatesPage() {
       </div>
 
       <div className="relative w-full px-4 pb-10">
-        <div className="sticky top-0 z-30 -mx-4 border-b border-neutral-200 bg-white/85 px-4 pb-4 pt-6 backdrop-blur">
-          <div className="flex items-end justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-semibold tracking-tight text-neutral-950 sm:text-4xl">
-                Templates
-              </h1>
+        <div className="sticky top-[56px] z-40 -mx-4 border-b border-neutral-200 bg-white/95 px-4 pb-4 pt-6 shadow-sm backdrop-blur">
+<div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+  <div className="min-w-0 flex-1">
+    <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+      <div className="min-w-0">
+        <h1 className="text-3xl font-semibold tracking-tight text-neutral-950 sm:text-4xl">
+          Templates
+        </h1>
 
-              <p className="mt-3 max-w-3xl text-sm leading-7 text-neutral-600 sm:text-[15px]">
-                Pick a template, choose a design, customize it, then publish. For 90 days, you own your own microsite.
-              </p>
-              <div className="mt-1 text-[12px] font-medium text-neutral-500">
-                {count} template{count === 1 ? "" : "s"}
-                {category !== "All" ? ` • ${category}` : ""}
-                {searchQuery.trim() ? ` • “${searchQuery.trim()}”` : ""}
-                {sort !== "Recommended" ? ` • ${sort}` : ""}
+        <p className="mt-3 max-w-3xl text-sm leading-7 text-neutral-600 sm:text-[15px]">
+          Pick a template, choose a design, customize it, then publish. For 90 days, you own your own microsite.
+        </p>
+
+        <div className="mt-1 text-[12px] font-medium text-neutral-500">
+          {count} template{count === 1 ? "" : "s"}
+          {category !== "All" ? ` • ${category}` : ""}
+          {searchQuery.trim() ? ` • “${searchQuery.trim()}”` : ""}
+          {sort !== "Recommended" ? ` • ${sort}` : ""}
+        </div>
+      </div>
+
+      <div className="min-w-0 xl:ml-6 xl:w-[460px]">
+        <div className="rounded-2xl border border-neutral-200 bg-white/90 p-3 shadow-sm">
+          <div className="mb-2 flex items-center justify-between gap-3">
+            <div>
+              <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
+                Recent Sites
+              </div>
+              <div className="text-sm font-medium text-neutral-900">
+                New and popular pages people can view or join
               </div>
             </div>
-
-            <div className="hidden items-center gap-2 sm:flex">
-              <div className="text-[12px] font-semibold text-neutral-600">Sort</div>
-              <select
-                value={sort}
-                onChange={(e) => setSort(e.target.value as Sort)}
-                className="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm outline-none focus:ring-2 focus:ring-blue-500/40"
-              >
-                {sorts.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
-            </div>
           </div>
+
+          {recentSitesLoading ? (
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {Array.from({ length: 4 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50"
+                >
+                  <div className="aspect-[4/3] animate-pulse bg-neutral-200" />
+                  <div className="space-y-2 p-2">
+                    <div className="h-3 rounded bg-neutral-200" />
+                    <div className="h-3 w-2/3 rounded bg-neutral-100" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : visibleRecentSites.length ? (
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {visibleRecentSites.map((site) => (
+                <a
+                  key={site.id}
+                  href={`https://${site.slug}.ko-host.com`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="group overflow-hidden rounded-xl border border-neutral-200 bg-white transition hover:-translate-y-0.5 hover:shadow-md"
+                  title={site.title || site.slug}
+                >
+                  <div className="relative aspect-[4/3] overflow-hidden bg-neutral-100">
+                    {site.previewImageUrl ? (
+                      <img
+                        src={site.previewImageUrl}
+                        alt={site.title || site.slug}
+                        className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-blue-50 via-white to-emerald-50 px-3 text-center text-xs font-semibold text-neutral-500">
+                        {site.title || site.slug}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="p-2">
+                    <div className="truncate text-xs font-semibold text-neutral-900">
+                      {site.title || "Untitled Site"}
+                    </div>
+                    <div className="truncate text-[11px] text-neutral-500">
+                      {site.slug}.ko-host.com
+                    </div>
+                  </div>
+                </a>
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-xl border border-dashed border-neutral-200 bg-neutral-50 px-3 py-6 text-sm text-neutral-500">
+              No recent broadcasted microsites yet.
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
           <div className="relative mt-4">
             <input
@@ -126,47 +264,50 @@ export default function TemplatesPage() {
             ) : null}
           </div>
 
-          <div className="mt-3 flex flex-wrap gap-2">
-            {categories.map((c) => {
-              const active = c === category;
-              const label =
-                c === "Favorites"
-                  ? "★ Favorites"
-                  : c === "Recently viewed"
-                    ? "⏱ Recently viewed"
-                    : c;
+<div className="mt-3 flex flex-wrap items-center gap-2">
+  {categories.map((c) => {
+    const active = c === category;
+    const label =
+      c === "Favorites"
+        ? "★ Favorites"
+        : c === "Recently viewed"
+          ? "⏱ Recently viewed"
+          : c;
 
-              return (
-                <button
-                  key={c}
-                  type="button"
-                  onClick={() => setCategory(c)}
-                  className={[
-                    "rounded-full px-3 py-1.5 text-[12px] font-semibold transition",
-                    active
-                      ? "bg-neutral-900 text-white"
-                      : "border border-neutral-200 bg-white text-neutral-800 hover:bg-neutral-50",
-                  ].join(" ")}
-                >
-                  {label}
-                </button>
-              );
-            })}
-          </div>
+    return (
+      <button
+        key={c}
+        type="button"
+        onClick={() => setCategory(c)}
+        className={[
+          "rounded-full px-3 py-1.5 text-[12px] font-semibold transition",
+          active
+            ? "bg-neutral-900 text-white"
+            : "border border-neutral-200 bg-white text-neutral-800 hover:bg-neutral-50",
+        ].join(" ")}
+      >
+        {label}
+      </button>
+    );
+  })}
 
-          <div className="mt-3 sm:hidden">
-            <select
-              value={sort}
-              onChange={(e) => setSort(e.target.value as Sort)}
-              className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 shadow-sm outline-none focus:ring-2 focus:ring-blue-500/40"
-            >
-              {sorts.map((s) => (
-                <option key={s} value={s}>
-                  Sort: {s}
-                </option>
-              ))}
-            </select>
-          </div>
+  {/* Sort inline */}
+  <div className="ml-auto flex items-center gap-2">
+    <div className="text-[12px] font-semibold text-neutral-600">Sort</div>
+    <select
+      value={sort}
+      onChange={(e) => setSort(e.target.value as Sort)}
+      className="rounded-xl border border-neutral-200 bg-white px-3 py-1.5 text-sm text-neutral-900 shadow-sm outline-none focus:ring-2 focus:ring-blue-500/40"
+    >
+      {sorts.map((s) => (
+        <option key={s} value={s}>
+          {s}
+        </option>
+      ))}
+    </select>
+  </div>
+</div>
+
 
           {hasFilters ? (
             <div className="mt-3 flex flex-wrap items-center gap-2">

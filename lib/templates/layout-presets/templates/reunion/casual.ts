@@ -22,15 +22,15 @@ export default createLayoutPreset({
      For any extra text beyond these, use optionalBlocks with type: "label".
   ======================================================= */
 
+
   title: {
-    text: "Save the date",
-    placement: { x: 1, y: 10.4, width: 12, height: 2, zIndex: 10 },
+    text: "THE CARSON FAMILY REUNION",
+    placement: { x: 0, y: 7, width: 14.5, height: 3, zIndex: 13 },
     style: {
-      fontFamily: "Tangerine",
-      fontSize: 140,
+      fontFamily: "Playfair Display",
+      fontSize: 120,
       align: "center",
-      bold: true,
-      color: "#000000",
+      color: "#646462",
     },
   },
 /* 
@@ -59,13 +59,14 @@ export default createLayoutPreset({
   },
  */
   tagline: {
-    text: "THE CARSON FAMILY REUNION",
-    placement: { x: 1, y: 12.3, width: 12, height: 3, zIndex: 13 },
+    text: "Save the date",
+    placement: { x: 1, y: 6.1, width: 12, height: 2, zIndex: 10 },
     style: {
-      fontFamily: "Playfair Display",
-      fontSize: 120,
+      fontFamily: "Tangerine",
+      fontSize: 140,
       align: "center",
-      color: "#646462",
+      bold: true,
+      color: "#000000",
     },
   },
 
@@ -176,13 +177,13 @@ export default createLayoutPreset({
     ------------------------------------------------------- */
    {
       type: "label",
-      placement: { x: 0.53, y: 4.4, width: 5, height: 1, zIndex: 15 },
+      placement: { x: 0.53, y: 3.2, width: 5, height: 1, zIndex: 15 },
       config: {
         label: "Date Secion 1",
         text: "10",
         style: {
           fontFamily: "Georgia",
-          fontSize: 1140,
+          fontSize: 540,
           bold: true,
           align: "center",
           color: "#FFFFFF",
@@ -192,13 +193,13 @@ export default createLayoutPreset({
 
        {
       type: "label",
-      placement: { x: 4.47, y: 4.4, width: 5, height: 1, zIndex: 15 },
+      placement: { x: 4.8, y: 3.2, width: 5, height: 1, zIndex: 15 },
       config: {
         label: "Date Secion 1",
         text: "24",
         style: {
           fontFamily: "Georgia",
-          fontSize: 1140,
+          fontSize: 540,
           bold: true,
           align: "center",
           color: "#FFFFFF",
@@ -208,13 +209,13 @@ export default createLayoutPreset({
 
        {
       type: "label",
-      placement: { x: 8.44, y: 4.4, width: 5, height: 1, zIndex: 15 },
+      placement: { x: 9.05, y: 3.2, width: 5, height: 1, zIndex: 15 },
       config: {
         label: "Date Secion 1",
         text: "26",
         style: {
           fontFamily: "Georgia",
-          fontSize: 1140,
+          fontSize: 540,
           bold: true,
           align: "center",
           color: "#FFFFFF",
@@ -225,13 +226,13 @@ export default createLayoutPreset({
   
     {
       type: "label",
-      placement: { x: 1, y: 14.8, width: 12, height: 1, zIndex: 16 },
+      placement: { x: 0, y: 8, width: 14.5, height: 1, zIndex: 16 },
       config: {
         label: "Location Line",
         text: "12 Noon | MacArthur Park | Westlake, Downtown | Long Beach, CA",
         style: {
           fontFamily: "Marcellus",
-          fontSize: 120,
+          fontSize: 56,
           italic: false,
           align: "center",
           color: "#000000",
@@ -330,12 +331,12 @@ export default createLayoutPreset({
   
     {
       type: "gallery",
-      placement: { x: 1, y: 1.5, width: 12, height: 9, zIndex: 7 },
+      placement: { x: 0.35, y: 0, width: 14, height: 6, zIndex: 7 },
       config: {
         grid: 3,
         images: [
-          { url: "/designs/artifacts/reunion_white_fam_1.png" },
           { url: "/designs/artifacts/reunion_white_fam_2.png" },
+          { url: "/designs/artifacts/reunion_white_fam_1.png" },
           { url: "/designs/artifacts/reunion_white_fam_3.png" },
         ],
       },

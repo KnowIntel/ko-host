@@ -82,11 +82,12 @@ export default function PublishMicrositePage() {
   const [draft, setDraft] = useState<BuilderDraft | null>(null);
   const [loadingDraft, setLoadingDraft] = useState(true);
 
-  const [title, setTitle] = useState("");
+const [title, setTitle] = useState("");
 const [slugSuggestion, setSlugSuggestion] = useState("");
 const [siteVisibility, setSiteVisibility] = useState<"public" | "private">(
   "public",
 );
+const [broadcastOnHomepage, setBroadcastOnHomepage] = useState(true);
 const [passcode, setPasscode] = useState("");
 const [publishState, setPublishState] = useState<PublishState>("idle");
 const [message, setMessage] = useState("");
@@ -152,9 +153,22 @@ const [slugStatusMessage, setSlugStatusMessage] = useState("");
     }
   }
 
-  function handleSlugChange(value: string) {
-    setSlugSuggestion(slugify(value));
+function handleSlugChange(value: string) {
+  setSlugSuggestion(slugify(value));
+}
+
+useEffect(() => {
+  if (siteVisibility === "private") {
+    setBroadcastOnHomepage(false);
   }
+}, [siteVisibility]);
+
+  useEffect(() => {
+  if (siteVisibility === "private" && broadcastOnHomepage) {
+    setBroadcastOnHomepage(false);
+  }
+}, [siteVisibility, broadcastOnHomepage]);
+
   useEffect(() => {
   const safeSlug = slugify(slugSuggestion);
 
@@ -253,9 +267,18 @@ if (slugStatus === "invalid" || slugStatus === "error") {
   return;
 }
 
-if (siteVisibility === "private" && !/^[A-Za-z0-9]{2,30}$/.test(passcode.trim())) {
+if (
+  siteVisibility === "private" &&
+  !/^[A-Za-z0-9]{2,30}$/.test(passcode.trim())
+) {
   setPublishState("error");
   setMessage("Private sites require a passcode using 2-30 letters and numbers.");
+  return;
+}
+
+if (siteVisibility === "private" && broadcastOnHomepage) {
+  setPublishState("error");
+  setMessage("Private microsites cannot be broadcast on the home page.");
   return;
 }
 
@@ -269,22 +292,23 @@ if (siteVisibility === "private" && !/^[A-Za-z0-9]{2,30}$/.test(passcode.trim())
         slugSuggestion: safeSlug,
       };
 
-      const res = await fetch("/api/public/create-microsite", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          templateKey,
-          designKey,
-          title: safeTitle,
-          slugSuggestion: safeSlug,
-          siteVisibility,
-          privateMode: "passcode",
-          passcode: siteVisibility === "private" ? passcode.trim() : "",
-          draftJson: draftPayload,
-        }),
-      });
+const res = await fetch("/api/public/create-microsite", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+body: JSON.stringify({
+  templateKey,
+  designKey,
+  title: safeTitle,
+  slugSuggestion: safeSlug,
+  siteVisibility,
+  privateMode: "passcode",
+  passcode: siteVisibility === "private" ? passcode.trim() : "",
+  broadcastOnHomepage,
+  draftJson: draftPayload,
+}),
+});
 
       const data = await res.json().catch(() => ({}));
 
@@ -432,51 +456,86 @@ return (
 </div>
                 </div>
 
-                <div>
-                  <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
-                    Visibility
-                  </div>
+<div>
+  <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
+    Visibility
+  </div>
 
-                  <div className="mt-2 grid gap-3">
-                    <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
-                      <input
-                        type="radio"
-                        name="siteVisibility"
-                        checked={siteVisibility === "public"}
-                        onChange={() => setSiteVisibility("public")}
-                      />
-                      Public
-                    </label>
+  <div className="mt-2 grid gap-3">
+    <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+      <input
+        type="radio"
+        name="siteVisibility"
+        checked={siteVisibility === "public"}
+        onChange={() => setSiteVisibility("public")}
+      />
+      Public
+    </label>
 
-                    <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
-                      <input
-                        type="radio"
-                        name="siteVisibility"
-                        checked={siteVisibility === "private"}
-                        onChange={() => setSiteVisibility("private")}
-                      />
-                      Private (passcode required)
-                    </label>
-                  </div>
-                </div>
+    <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+      <input
+        type="radio"
+        name="siteVisibility"
+        checked={siteVisibility === "private"}
+        onChange={() => setSiteVisibility("private")}
+      />
+      Private (passcode required)
+    </label>
+  </div>
+</div>
 
-                {siteVisibility === "private" ? (
-                  <div>
-                    <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
-                      Passcode
-                    </div>
-                <input
-                  type="text"
-                  maxLength={30}
-                  value={passcode}
-                  onChange={(e) =>
-                    setPasscode(e.target.value.replace(/[^A-Za-z0-9]/g, "").slice(0, 30))
-                  }
-                  className="mt-2 h-11 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-900 outline-none"
-                  placeholder="Enter passcode"
-                />
-                  </div>
-                ) : null}
+<div>
+  <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
+    Home Page Broadcast
+  </div>
+
+<div className="mt-2 grid gap-3">
+  <label
+    className={[
+      "flex items-start gap-3 rounded-xl border px-3 py-3 text-sm",
+      siteVisibility === "private"
+        ? "cursor-not-allowed border-neutral-200 bg-neutral-100 text-neutral-400"
+        : "border-neutral-200 bg-neutral-50 text-neutral-800",
+    ].join(" ")}
+  >
+    <input
+      type="checkbox"
+      checked={siteVisibility === "public" ? broadcastOnHomepage : false}
+      disabled={siteVisibility !== "public"}
+      onChange={(e) => setBroadcastOnHomepage(e.target.checked)}
+    />
+    <div>
+      <div className="font-medium text-inherit">
+        Broadcast this site on the Ko-Host home page
+      </div>
+      <div className="mt-1 text-xs text-neutral-500">
+        Let more people discover your microsite in the Recent Sites section. Only public microsites can be featured.
+      </div>
+    </div>
+  </label>
+</div>
+</div>
+
+{siteVisibility === "private" ? (
+  <div>
+    <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
+      Passcode
+    </div>
+    <input
+      type="text"
+      maxLength={30}
+      value={passcode}
+      onChange={(e) =>
+        setPasscode(e.target.value.replace(/[^A-Za-z0-9]/g, "").slice(0, 30))
+      }
+      className="mt-2 h-11 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-900 outline-none"
+      placeholder="Enter passcode"
+    />
+  </div>
+) : null}
+
+<div>
+</div>
 
                 <div className="flex flex-wrap items-center gap-3 pt-2">
                   <Link
@@ -583,28 +642,38 @@ return (
                   ...customBlockBreakdown,
                 };
 
-                const breakdownText = Object.entries(combinedBreakdown)
-                  .map(([type, count]) => `${type}: ${count}`)
-                  .join(", ");
-                return (
-                  <div className="mt-4 space-y-2 text-sm text-neutral-700">
-                    <div>Template: {templateDef.title || templateKey}</div>
-                    <div>Design: {designKey}</div>
-                    <div>Draft Title: {title || "—"}</div>
-                    <div>Site Name: {slugSuggestion || "—"}</div>
-                    <div>Visibility: {siteVisibility}</div>
+const breakdownText = Object.entries(combinedBreakdown)
+  .map(([type, count]) => `${type}: ${count}`)
+  .join(", ");
 
-                    <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-amber-800">
-                      If published today, your microsite will expire on {publishExpirationLabel}
-                    </div>
+return (
+  <div className="mt-4 space-y-2 text-sm text-neutral-700">
+    <div>Template: {templateDef.title || templateKey}</div>
+    <div>Design: {designKey}</div>
+    <div>Draft Title: {title || "—"}</div>
+    <div>Site Name: {slugSuggestion || "—"}</div>
+    <div>Visibility: {siteVisibility}</div>
 
-                    <div>
-                      Blocks: {totalCount}
-                      {totalCount > 0 ? (
-                        <span className="ml-1 text-neutral-500">
-                          ({breakdownText})
-                        </span>
-                      ) : null}
+    <div>
+      Home Page Broadcast:{" "}
+      {siteVisibility === "public"
+        ? broadcastOnHomepage
+          ? "Yes"
+          : "No"
+        : "Not available for private microsites"}
+    </div>
+
+    <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-amber-800">
+      If published today, your microsite will expire on {publishExpirationLabel}
+    </div>
+
+    <div>
+      Blocks: {totalCount}
+      {totalCount > 0 ? (
+        <span className="ml-1 text-neutral-500">
+          ({breakdownText})
+        </span>
+      ) : null}
                     </div>
                   </div>
                 );

@@ -23,7 +23,7 @@ export default createLayoutPreset({
 
   title: {
     text: "Christina Pascal",
-      placement: { x: 1, y: 5.7, width: 7, height: 2, zIndex: 15 },
+      placement: { x: 0, y: 3.3, width: 8.5, height: 2, zIndex: 15 },
     style: {
       fontFamily: "Great Vibes",
       fontSize: 180,
@@ -56,28 +56,28 @@ export default createLayoutPreset({
     ------------------------------------------------------- */
    {
       type: "image",
-      placement: { x: 7.8, y: 3.7, width: 4.8, height: 7.7, zIndex: 1 },
+      placement: { x: 7.8, y: 2.2, width: 4.8, height: 4.3, zIndex: 1 },
       config: {
         src: "/designs/artifacts/memorial_grandma.png",
         // use "contain" for clip, "fill" for stretch, or "cover" for zoom
-        fit: "contain",
+        fit: "fill",
         frame: "circle",
-        zoom: 1.65,
+        zoom: 1.2,
         rotation: 0,
         positionX: 47,     // horizontal position
-        positionY: 87,     // vertical position
+        positionY: 70,     // vertical position
       },
     },
 
        {
       type: "image",
-      placement: { x: 5.4, y: 0.4, width: 9.5, height: 14, zIndex: 1 },
+      placement: { x: 5.4, y: 0.0, width: 9.5, height: 8.5, zIndex: 1 },
       config: {
         src: "/designs/artifacts/memorial_floral_frame.png",
         // use "contain" for clip, "fill" for stretch, or "cover" for zoom
         fit: "contain",
         frame: "square",
-        zoom: 0.78,
+        zoom: 0.72,
         rotation: 0,
         positionX: 54,     // horizontal position
         positionY: 53,     // vertical position
@@ -87,7 +87,7 @@ export default createLayoutPreset({
     
        {
       type: "image",
-      placement: { x: 2.5, y: 7.25, width: 4.25, height: 1.5, zIndex: 1 },
+      placement: { x: 0, y: 3.85, width: 8.5, height: 1.5, zIndex: 1 },
       config: {
         src: "/designs/artifacts/memorial_divider_line.png",
         // use "contain" for clip, "fill" for stretch, or "cover" for zoom
@@ -131,7 +131,7 @@ export default createLayoutPreset({
     ------------------------------------------------------- */
  {
       type: "label",
-      placement: { x: 1, y: 4.7, width: 7, height: 1, zIndex: 15 },
+      placement: { x: 0, y: 2.8, width: 8.5, height: 1, zIndex: 15 },
       config: {
         label: "Intro Line",
         text: "Tribute to the life of",
@@ -147,13 +147,13 @@ export default createLayoutPreset({
 
      {
       type: "label",
-      placement: { x: 1, y: 8.4, width: 7, height: 3, zIndex: 16 },
+      placement: { x: 1, y: 4.9, width: 7, height: 3, zIndex: 16 },
       config: {
         label: "Description",
         text: "A beautiful angel whose warmth, wisdom,\n and gentle spirit touched everyone she met. Her kindness lives on in our hearts, guiding us with\ncherished memories and endless love.",
         style: {
           fontFamily: "Georgia",
-          fontSize: 94,
+          fontSize: 50,
           italic: true,
           align: "center",
           color: "#E0C051",
@@ -164,13 +164,13 @@ export default createLayoutPreset({
    
     {
       type: "label",
-      placement: { x: 5, y: 13.4, width: 8, height: 2, zIndex: 16 },
+      placement: { x: 5, y: 7.4, width: 9, height: 2, zIndex: 16 },
       config: {
         label: "Logistics Info",
-        text: "Memorial Service at St. Maria Chapel | Saturday, October 18 at 11:00 AM\n1420 Garden Way Riverside, CA 92501",
+        text: "Memorial Service at St. Maria Chapel\nSaturday, October 18 at 11:00 AM\n1420 Garden Way Riverside, CA 92501",
         style: {
           fontFamily: "Georgia",
-          fontSize: 80,
+          fontSize: 70,
           italic: true,
           align: "center",
           color: "#FFFFFF",

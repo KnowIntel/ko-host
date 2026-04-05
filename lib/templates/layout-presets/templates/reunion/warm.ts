@@ -24,12 +24,12 @@ export default createLayoutPreset({
 
   title: {
     text: "Bullock-Holmes Family",
-    placement: { x: 1, y: 10.4, width: 12, height: 2, zIndex: 10 },
+    placement: { x: 0, y: 6.4, width: 14.6, height: 2, zIndex: 10 },
     style: {
       fontFamily: "Parisienne",
       fontSize: 140,
       align: "center",
-      bold: false,
+      bold: true,
       color: "#B49344",
     },
   },
@@ -60,7 +60,7 @@ export default createLayoutPreset({
  */
   tagline: {
     text: "R E U N I O N",
-    placement: { x: 1, y: 12.3, width: 12, height: 3, zIndex: 13 },
+    placement: { x: 0, y: 7.3, width: 14.6, height: 3, zIndex: 13 },
     style: {
       fontFamily: "Bodoni Moda",
       fontSize: 120,
@@ -80,7 +80,7 @@ export default createLayoutPreset({
     ------------------------------------------------------- */
    {
       type: "image",
-      placement: { x: 1.2, y: 0.6, width: 11.56, height: 11.8, zIndex: 1 },
+      placement: { x: 0.3, y: 0.6, width: 15.5, height: 6.8, zIndex: 1 },
       config: {
         src: "/designs/artifacts/reunion_black_fam.png",
         // use "contain" for clip, "fill" for stretch, or "cover" for zoom
@@ -97,8 +97,8 @@ export default createLayoutPreset({
        DECORATIVE LINES
     ------------------------------------------------------- */
 {
-  type: "shape",
-  placement: { x: 1, y: 15.5, width: 4.5, height: 1, zIndex: 2 },
+  type: "shape", // horizontal; bottom; left
+  placement: { x: 1.2, y: 10.5, width: 4.5, height: 1, zIndex: 2 },
   config: {
     shapeType: "line",
     borderColor: "#B49344",
@@ -107,8 +107,8 @@ export default createLayoutPreset({
   },
 },
 {
-  type: "shape",
-  placement: { x: 8.25, y: 15.5, width: 4.5, height: 1, zIndex: 2 },
+  type: "shape", // horizontal; bottom; right
+  placement: { x: 8.25, y: 10.5, width: 4.5, height: 1, zIndex: 2 },
   config: {
     shapeType: "line",
     borderColor: "#B49344",
@@ -117,8 +117,18 @@ export default createLayoutPreset({
   },
 },
 {
-  type: "shape",
-  placement: { x: 11.24, y: 12.65, width: 2.9, height: 2, zIndex: 2 },
+  type: "shape", // vertical; left
+  placement: { x: 0.00, y: 7.4, width: 2.9, height: 1.5, zIndex: 2 },
+  config: {
+    shapeType: "line",
+    borderColor: "#B49344",
+    borderWidth: 12,
+    rotation: 90, // 👈 ADD THIS (degrees)
+  },
+},
+{
+  type: "shape", // vertical; right
+  placement: { x: 11.67, y: 7.4, width: 2.9, height: 1.5, zIndex: 2 },
   config: {
     shapeType: "line",
     borderColor: "#B49344",
@@ -127,8 +137,8 @@ export default createLayoutPreset({
   },
 },
 {
-  type: "shape",
-  placement: { x: 11.25, y: 10.83, width: 1.5, height: 1, zIndex: 2 },
+  type: "shape", // horizontal; top; left
+  placement: { x: 1.37, y: 6.45, width: 1.5, height: 1, zIndex: 2 },
   config: {
     shapeType: "line",
     borderColor: "#B49344",
@@ -137,18 +147,8 @@ export default createLayoutPreset({
   },
 },
 {
-  type: "shape",
-  placement: { x: -0.19, y: 13.05, width: 2.9, height: 1.2, zIndex: 2 },
-  config: {
-    shapeType: "line",
-    borderColor: "#B49344",
-    borderWidth: 12,
-    rotation: 90, // 👈 ADD THIS (degrees)
-  },
-},
-{
-  type: "shape",
-  placement: { x: 1.21, y: 10.83, width: 1.5, height: 1, zIndex: 2 },
+  type: "shape", // horizontal; top; right
+  placement: { x: 11.7, y: 6.45, width: 1.5, height: 1, zIndex: 2 },
   config: {
     shapeType: "line",
     borderColor: "#B49344",
@@ -225,7 +225,7 @@ export default createLayoutPreset({
     
     {
       type: "label",
-      placement: { x: 0.9, y: 14.7, width: 12, height: 4, zIndex: 16 },
+      placement: { x: 0.9, y: 9.2, width: 12, height: 4, zIndex: 16 },
       config: {
         label: "Logistics Info 2",
         text: "The Place You Can Always Call Home\n67 E. Cornerview Drive,\nSpringfield, IL",
@@ -258,7 +258,7 @@ export default createLayoutPreset({
     
     {
       type: "label",
-      placement: { x: 0.9, y: 13.9, width: 12, height: 4, zIndex: 16 },
+      placement: { x: 0, y: 8.1, width: 14.6, height: 4, zIndex: 16 },
       config: {
         label: "Logistics Info 2",
         text: "July 4th Weekend, 2025",

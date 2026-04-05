@@ -114,10 +114,12 @@ if (!pendingRow) {
       typeof pendingRow.passcode_hash === "string"
         ? pendingRow.passcode_hash
         : null;
+    const broadcastOnHomepage = Boolean(pendingRow.broadcast_on_homepage);
     const selectedDesignKey =
       typeof pendingRow.selected_design_key === "string"
         ? pendingRow.selected_design_key
         : "";
+
 
     if (!ownerClerkUserId) {
       return NextResponse.json(
@@ -205,6 +207,7 @@ if (!pendingRow) {
       published_at: nowIso,
       paid_until: addDaysIsoFrom(null, 90),
       site_visibility: siteVisibility,
+      broadcast_on_homepage: broadcastOnHomepage,
       private_mode: privateMode,
       passcode_hash: passcodeHash,
       draft: pendingRow.draft ?? null,
@@ -282,7 +285,10 @@ console.log("✅ Microsite publish success:", {
 
 const publishedDraft =
   pendingRow.draft && typeof pendingRow.draft === "object"
-    ? pendingRow.draft
+    ? {
+        ...pendingRow.draft,
+        broadcastOnHomepage,
+      }
     : null;
 
 if (!publishedDraft) {
@@ -408,6 +414,7 @@ console.log("STRIPE WEBHOOK SUCCESS:", {
   micrositeId: publishedMicrositeId,
   slug,
   title,
+  broadcastOnHomepage,
   stripeSessionId: session.id,
   pendingCheckoutId,
 });

@@ -30,35 +30,37 @@ export async function POST(req: Request) {
 
     const body = await req.json().catch(() => ({}));
 
-    const templateKey = String(body?.templateKey || "").trim();
-    const designKey = String(body?.designKey || "blank").trim();
-    const title = String(body?.title || body?.draftJson?.title || "").trim();
-    const slugSuggestion = normalizeSlug(body?.slugSuggestion || "");
-    const siteVisibility = body?.siteVisibility === "private" ? "private" : "public";
-    const passcode = String(body?.passcode || "").trim();
-    const draftJson =
-      body?.draftJson && typeof body.draftJson === "object" ? body.draftJson : null;
+    
+const templateKey = String(body?.templateKey || "").trim();
+const designKey = String(body?.designKey || "blank").trim();
+const title = String(body?.title || body?.draftJson?.title || "").trim();
+const slugSuggestion = normalizeSlug(body?.slugSuggestion || "");
+const siteVisibility = body?.siteVisibility === "private" ? "private" : "public";
+const passcode = String(body?.passcode || "").trim();
+const broadcastOnHomepage = Boolean(body?.broadcastOnHomepage);
+const draftJson =
+  body?.draftJson && typeof body.draftJson === "object" ? body.draftJson : null;
 
-    if (!templateKey) {
-      return NextResponse.json(
-        { ok: false, error: "Missing template key." },
-        { status: 400 },
-      );
-    }
+if (!templateKey) {
+  return NextResponse.json(
+    { ok: false, error: "Missing template key." },
+    { status: 400 },
+  );
+}
 
-    if (!title) {
-      return NextResponse.json(
-        { ok: false, error: "Missing title." },
-        { status: 400 },
-      );
-    }
+if (!title) {
+  return NextResponse.json(
+    { ok: false, error: "Missing title." },
+    { status: 400 },
+  );
+}
 
-    if (!slugSuggestion) {
-      return NextResponse.json(
-        { ok: false, error: "Missing site name." },
-        { status: 400 },
-      );
-    }
+if (!slugSuggestion) {
+  return NextResponse.json(
+    { ok: false, error: "Missing site name." },
+    { status: 400 },
+  );
+}
 
     if (slugSuggestion.length < 3) {
       return NextResponse.json(
@@ -74,15 +76,25 @@ export async function POST(req: Request) {
       );
     }
 
-    if (siteVisibility === "private" && !/^[A-Za-z0-9]{2,30}$/.test(passcode)) {
-      return NextResponse.json(
-        {
-          ok: false,
-          error: "Private sites require a passcode using 2-30 letters and numbers.",
-        },
-        { status: 400 },
-      );
-    }
+if (siteVisibility === "private" && !/^[A-Za-z0-9]{2,30}$/.test(passcode)) {
+  return NextResponse.json(
+    {
+      ok: false,
+      error: "Private sites require a passcode using 2-30 letters and numbers.",
+    },
+    { status: 400 },
+  );
+}
+
+if (siteVisibility === "private" && broadcastOnHomepage) {
+  return NextResponse.json(
+    {
+      ok: false,
+      error: "Private microsites cannot be broadcast on the home page.",
+    },
+    { status: 400 },
+  );
+}
 
     const supabaseAdmin = getSupabaseAdmin();
 
@@ -147,6 +159,7 @@ const rowPayload = {
   slug: slugSuggestion,
   title,
   site_visibility: siteVisibility,
+  broadcast_on_homepage: broadcastOnHomepage,
   private_mode: siteVisibility === "private" ? "passcode" : "none",
   passcode_hash:
     siteVisibility === "private" && passcode ? hashPasscode(passcode) : null,
@@ -154,6 +167,7 @@ const rowPayload = {
     ...draftJson,
     title,
     slugSuggestion,
+    broadcastOnHomepage,
   },
   selected_design_key: designKey,
   stripe_session_id: null,
@@ -188,6 +202,7 @@ return NextResponse.json({
   pendingCheckoutId: data.id,
   slug: data.slug,
   requestedSlug: data.slug,
+  broadcastOnHomepage,
 });
     }
 

@@ -1,3 +1,4 @@
+// app\layout.tsx
 import "./globals.css";
 import { AppChrome } from "@/components/ui/AppChrome";
 import type { Metadata } from "next";
