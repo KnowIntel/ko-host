@@ -21,6 +21,7 @@ type Participant = {
   name: string;
   title: string;
   bio: string;
+  image_url?: string | null;
   side: "left" | "right";
   waiting: boolean;
 };
@@ -47,6 +48,7 @@ type JoinFormState = {
   bio: string;
   iam: "man" | "woman" | "";
   seeking: "men" | "women" | "";
+  image: File | null;
 };
 
 function getInitials(name: string) {
@@ -90,9 +92,17 @@ function ParticipantCard({
   return (
     <div className={`rounded-2xl border p-3 shadow-sm ${toneClass}`}>
       <div className="flex items-start gap-3">
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-neutral-200 bg-white text-xs font-semibold text-neutral-700">
-          {getInitials(participant.name)}
-        </div>
+        {participant.image_url ? (
+          <img
+            src={participant.image_url}
+            alt={participant.name || "Participant"}
+            className="h-11 w-11 shrink-0 rounded-2xl object-cover"
+          />
+        ) : (
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-neutral-200 bg-white text-xs font-semibold text-neutral-700">
+            {getInitials(participant.name)}
+          </div>
+        )}
 
         <div className="min-w-0 flex-1">
           <div className="truncate text-sm font-semibold text-neutral-900">
@@ -146,13 +156,14 @@ export default function SpeedDatingLive({
 
   const [round, setRound] = useState(0);
   const [timeLeft, setTimeLeft] = useState(duration);
-  const [joinForm, setJoinForm] = useState<JoinFormState>({
-    name: "",
-    title: "",
-    bio: "",
-    iam: "",
-    seeking: "",
-  });
+const [joinForm, setJoinForm] = useState<JoinFormState>({
+  name: "",
+  title: "",
+  bio: "",
+  iam: "",
+  seeking: "",
+  image: null,
+});
   const [joinAttempted, setJoinAttempted] = useState(false);
   const [apiState, setApiState] = useState<ApiState | null>(null);
   const [loading, setLoading] = useState(false);
@@ -266,20 +277,23 @@ export default function SpeedDatingLive({
     setLoading(true);
 
     try {
-      const res = await fetch("/api/speed-dating", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          browserKey: getBrowserKey(),
-          name: joinForm.name.trim(),
-          title: joinForm.title.trim(),
-          bio: joinForm.bio.trim(),
-          iam: joinForm.iam,
-          seeking: joinForm.seeking,
-        }),
-      });
+const formData = new FormData();
+
+formData.append("browserKey", getBrowserKey());
+formData.append("name", joinForm.name.trim());
+formData.append("title", joinForm.title.trim());
+formData.append("bio", joinForm.bio.trim());
+formData.append("iam", joinForm.iam);
+formData.append("seeking", joinForm.seeking);
+
+if (joinForm.image) {
+  formData.append("image", joinForm.image);
+}
+
+const res = await fetch("/api/speed-dating", {
+  method: "POST",
+  body: formData,
+});
 
       const data = await res.json().catch(() => null);
 
@@ -380,6 +394,19 @@ export default function SpeedDatingLive({
               <FieldError show={joinErrors.bio} message="Bio is required." />
             </div>
 
+<div>
+  <div className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-neutral-500">
+    Profile Image (optional)
+  </div>
+
+  <input
+    type="file"
+    accept="image/*"
+    onChange={(e) => updateJoinForm("image", e.target.files?.[0] || null)}
+    className="w-full rounded-xl border border-neutral-300 bg-white px-3 py-3 text-sm outline-none"
+  />
+</div>
+
             <div>
               <div className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-neutral-500">
                 I am
@@ -455,7 +482,7 @@ export default function SpeedDatingLive({
               onClick={() => void handleJoinPreview()}
               className="h-11 w-full rounded-xl bg-neutral-900 text-white disabled:opacity-60"
             >
-              {loading ? "Joining..." : "Join Queue"}
+              {loading ? "Joining..." : "Join Rotation"}
             </button>
           </div>
         </div>

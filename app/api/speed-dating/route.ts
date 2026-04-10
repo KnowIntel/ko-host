@@ -1,3 +1,4 @@
+import { Buffer } from "node:buffer";
 import { NextResponse } from "next/server";
 
 /* ================= TYPES ================= */
@@ -12,6 +13,7 @@ type Participant = {
   name: string;
   title: string;
   bio: string;
+  image_url?: string | null;
   iam: IAm;
   seeking: Seeking;
   side: Side;
@@ -26,6 +28,7 @@ type PublicParticipant = {
   name: string;
   title: string;
   bio: string;
+  image_url?: string | null;
   side: Side;
   waiting: boolean;
 };
@@ -42,6 +45,7 @@ type JoinBody = {
   name?: string;
   title?: string;
   bio?: string;
+  image_url?: string | null;
   iam?: IAm;
   seeking?: Seeking;
 };
@@ -136,6 +140,7 @@ function toPublic(p: Participant, waiting: boolean): PublicParticipant {
     name: p.name,
     title: p.title,
     bio: p.bio,
+    image_url: p.image_url ?? null,
     side: p.side,
     waiting,
   };
@@ -238,6 +243,68 @@ function validateJoin(body: JoinBody) {
   return null;
 }
 
+async function parseActionBody(req: Request): Promise<ActionBody> {
+  const contentType = req.headers.get("content-type") || "";
+
+  if (contentType.includes("multipart/form-data")) {
+    const formData = await req.formData();
+
+    const actionValue = formData.get("action");
+    const action =
+      typeof actionValue === "string" && actionValue.length
+        ? actionValue
+        : "join";
+
+    if (action === "skip") {
+      return {
+        action: "skip",
+        browserKey: String(formData.get("browserKey") || ""),
+      };
+    }
+
+    if (action === "leave") {
+      return {
+        action: "leave",
+        browserKey: String(formData.get("browserKey") || ""),
+      };
+    }
+
+    const browserKeyValue = formData.get("browserKey");
+    const nameValue = formData.get("name");
+    const titleValue = formData.get("title");
+    const bioValue = formData.get("bio");
+    const iamValue = formData.get("iam");
+    const seekingValue = formData.get("seeking");
+    const imageValue = formData.get("image");
+
+    let image_url: string | null = null;
+
+    if (imageValue instanceof File && imageValue.size > 0) {
+      const bytes = await imageValue.arrayBuffer();
+      const base64 = Buffer.from(bytes).toString("base64");
+      const mimeType = imageValue.type || "application/octet-stream";
+      image_url = `data:${mimeType};base64,${base64}`;
+    }
+
+    return {
+      action: "join",
+      browserKey:
+        typeof browserKeyValue === "string" ? browserKeyValue : undefined,
+      name: typeof nameValue === "string" ? nameValue : undefined,
+      title: typeof titleValue === "string" ? titleValue : undefined,
+      bio: typeof bioValue === "string" ? bioValue : undefined,
+      iam: typeof iamValue === "string" ? (iamValue as IAm) : undefined,
+      seeking:
+        typeof seekingValue === "string"
+          ? (seekingValue as Seeking)
+          : undefined,
+      image_url,
+    };
+  }
+
+  return (await req.json()) as ActionBody;
+}
+
 /* ================= ROUTES ================= */
 
 export async function GET() {
@@ -245,7 +312,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const body: ActionBody = await req.json();
+  const body = await parseActionBody(req);
   const store = getStore();
   const now = Date.now();
 
@@ -258,16 +325,22 @@ export async function POST(req: Request) {
       (p) => p.browserKey === body.browserKey,
     );
 
+    const existing = idx >= 0 ? store.participants[idx] : null;
+
     const base: Participant = {
-      id: idx >= 0 ? store.participants[idx].id : makeId("p"),
+      id: existing ? existing.id : makeId("p"),
       browserKey: body.browserKey!,
       name: body.name!,
       title: body.title!,
       bio: body.bio!,
+      image_url:
+        "image_url" in body && body.image_url
+          ? body.image_url
+          : existing?.image_url ?? null,
       iam: body.iam!,
       seeking: body.seeking!,
       side: getSide(body.iam!),
-      joinedAt: idx >= 0 ? store.participants[idx].joinedAt : now,
+      joinedAt: existing ? existing.joinedAt : now,
       updatedAt: now,
       isActive: true,
     };
