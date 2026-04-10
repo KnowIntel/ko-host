@@ -1,4 +1,4 @@
-// app\create\[template]\page.tsx
+// app/create/[template]/page.tsx
 "use client";
 
 import { useAuth } from "@clerk/nextjs";
@@ -54,6 +54,11 @@ function formatTemplateLabel(value: string) {
     .replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
+function safeString(value: unknown, fallback = "") {
+  const next = String(value ?? fallback).trim();
+  return next || fallback;
+}
+
 export default function CreateTemplatePage() {
   const { isSignedIn } = useAuth();
   const params = useParams();
@@ -89,120 +94,113 @@ export default function CreateTemplatePage() {
 
   const designKey = requestedDesignKey || resolvedLegacyPreset.key || "blank";
 
-const presetDraft: BuilderDraft = useMemo(() => {
-  console.log("DEBUG templateKey:", templateKey);
-  console.log("DEBUG requestedDesignKey:", requestedDesignKey);
-  console.log("DEBUG resolvedLegacyPreset.key:", resolvedLegacyPreset.key);
-  console.log("DEBUG final designKey:", designKey);
+  const presetDraft: BuilderDraft = useMemo(() => {
+    const draftPreset = loadTemplateDraftPreset(templateKey, designKey);
 
-  const draftPreset = loadTemplateDraftPreset(templateKey, designKey);
-  console.log("DEBUG draftPreset found:", draftPreset);
+    if (draftPreset) {
+      return {
+        ...draftPreset,
+        slugSuggestion:
+          draftPreset.slugSuggestion ||
+          templateDef.defaultDraft?.slugSuggestion ||
+          "",
+        blocks: Array.isArray(draftPreset.blocks) ? draftPreset.blocks : [],
+      };
+    }
 
-  if (draftPreset) {
-    return {
-      ...draftPreset,
+    return createTemplateDraft(templateName, designKey);
+  }, [
+    templateKey,
+    requestedDesignKey,
+    resolvedLegacyPreset.key,
+    designKey,
+    templateDef.defaultDraft?.slugSuggestion,
+    templateName,
+  ]);
+
+  const initialDraft: BuilderDraft = useMemo(
+    () => ({
+      ...presetDraft,
       slugSuggestion:
-        draftPreset.slugSuggestion ||
+        presetDraft.slugSuggestion ||
         templateDef.defaultDraft?.slugSuggestion ||
         "",
-      blocks: Array.isArray(draftPreset.blocks) ? draftPreset.blocks : [],
+      blocks: Array.isArray(presetDraft.blocks) ? presetDraft.blocks : [],
+    }),
+    [presetDraft, templateDef.defaultDraft?.slugSuggestion],
+  );
+
+  const storageKey = useMemo(
+    () => buildCreateDraftStorageKey(templateKey, designKey),
+    [templateKey, designKey],
+  );
+
+  const [hydratedDraft, setHydratedDraft] = useState<BuilderDraft>(initialDraft);
+  const [liveDraft, setLiveDraft] = useState<BuilderDraft>(initialDraft);
+  const liveDraftRef = useRef<BuilderDraft>(initialDraft);
+  const lastSavedDraftRef = useRef<string>(JSON.stringify(initialDraft));
+
+  useEffect(() => {
+    liveDraftRef.current = liveDraft;
+  }, [liveDraft]);
+
+  const [saveState, setSaveState] = useState<
+    "idle" | "saving" | "saved" | "error" | "signin-required"
+  >("idle");
+  const [saveMessage, setSaveMessage] = useState("Draft not saved yet.");
+  const [showPublishWarning, setShowPublishWarning] = useState(false);
+  const [showSignInPrompt, setShowSignInPrompt] = useState(false);
+
+  const saveResetTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    function handleAuthComplete(event: MessageEvent) {
+      if (event.origin !== window.location.origin) return;
+      if (event.data?.type !== "kht-auth-complete") return;
+
+      try {
+        window.localStorage.setItem(
+          storageKey,
+          JSON.stringify(liveDraftRef.current),
+        );
+      } catch {
+        // ignore localStorage errors
+      }
+
+      window.location.reload();
+    }
+
+    function handleStorage(event: StorageEvent) {
+      if (event.key !== "kht-auth-complete") return;
+
+      try {
+        window.localStorage.setItem(
+          storageKey,
+          JSON.stringify(liveDraftRef.current),
+        );
+      } catch {
+        // ignore localStorage errors
+      }
+
+      window.location.reload();
+    }
+
+    window.addEventListener("message", handleAuthComplete);
+    window.addEventListener("storage", handleStorage);
+
+    return () => {
+      window.removeEventListener("message", handleAuthComplete);
+      window.removeEventListener("storage", handleStorage);
     };
-  }
+  }, [storageKey]);
 
-  console.log("DEBUG fallback createTemplateDraft used");
-
-  return createTemplateDraft(templateName, designKey);
-}, [
-  templateKey,
-  requestedDesignKey,
-  resolvedLegacyPreset.key,
-  designKey,
-  templateDef.defaultDraft?.slugSuggestion,
-  templateName,
-]);
-
-const initialDraft: BuilderDraft = useMemo(
-  () => ({
-    ...presetDraft,
-    slugSuggestion:
-      presetDraft.slugSuggestion ||
-      templateDef.defaultDraft?.slugSuggestion ||
-      "",
-    blocks: Array.isArray(presetDraft.blocks) ? presetDraft.blocks : [],
-  }),
-  [presetDraft, templateDef.defaultDraft?.slugSuggestion],
-);
-
-const storageKey = useMemo(
-  () => buildCreateDraftStorageKey(templateKey, designKey),
-  [templateKey, designKey],
-);
-
-const [hydratedDraft, setHydratedDraft] = useState<BuilderDraft>(initialDraft);
-const [liveDraft, setLiveDraft] = useState<BuilderDraft>(initialDraft);
-const liveDraftRef = useRef<BuilderDraft>(initialDraft);
-const lastSavedDraftRef = useRef<string>(JSON.stringify(initialDraft));
-
-useEffect(() => {
-  liveDraftRef.current = liveDraft;
-}, [liveDraft]);
-
-const [saveState, setSaveState] = useState<
-  "idle" | "saving" | "saved" | "error" | "signin-required"
->("idle");
-const [saveMessage, setSaveMessage] = useState("Draft not saved yet.");
-const [showPublishWarning, setShowPublishWarning] = useState(false);
-const [showSignInPrompt, setShowSignInPrompt] = useState(false);
-
-const saveResetTimerRef = useRef<number | null>(null);
-useEffect(() => {
-  function handleAuthComplete(event: MessageEvent) {
-    if (event.origin !== window.location.origin) return;
-    if (event.data?.type !== "kht-auth-complete") return;
-
-    try {
-      window.localStorage.setItem(
-        storageKey,
-        JSON.stringify(liveDraftRef.current),
-      );
-    } catch {
-      // ignore localStorage errors
-    }
-
-    window.location.reload();
-  }
-
-  function handleStorage(event: StorageEvent) {
-    if (event.key !== "kht-auth-complete") return;
-
-    try {
-      window.localStorage.setItem(
-        storageKey,
-        JSON.stringify(liveDraftRef.current),
-      );
-    } catch {
-      // ignore localStorage errors
-    }
-
-    window.location.reload();
-  }
-
-  window.addEventListener("message", handleAuthComplete);
-  window.addEventListener("storage", handleStorage);
-
-  return () => {
-    window.removeEventListener("message", handleAuthComplete);
-    window.removeEventListener("storage", handleStorage);
-  };
-}, [storageKey]);
-
-useEffect(() => {
-  return () => {
-    if (saveResetTimerRef.current) {
-      window.clearTimeout(saveResetTimerRef.current);
-    }
-  };
-}, []);
+  useEffect(() => {
+    return () => {
+      if (saveResetTimerRef.current) {
+        window.clearTimeout(saveResetTimerRef.current);
+      }
+    };
+  }, []);
 
   function queueSaveStateReset() {
     if (saveResetTimerRef.current) {
@@ -213,6 +211,58 @@ useEffect(() => {
       setSaveState("idle");
       setSaveMessage("Editor ready.");
     }, 3000);
+  }
+
+function resolveSafeTemplateKey(draft?: BuilderDraft) {
+  const draftWithExtras = draft as BuilderDraft & {
+    template_key?: string;
+    templateName?: string;
+  };
+
+  return safeString(
+    templateKey ||
+      rawTemplate ||
+      params?.template ||
+      draftWithExtras?.template_key ||
+      draftWithExtras?.templateName ||
+      "",
+  );
+}
+
+  function resolveSafeDesignKey(draft?: BuilderDraft) {
+    return safeString(
+      designKey ||
+        requestedDesignKey ||
+        rawDesign ||
+        searchParams.get("design") ||
+        (draft as BuilderDraft & { designKey?: string })?.designKey ||
+        (draft as BuilderDraft & { design_key?: string })?.design_key ||
+        (draft as BuilderDraft & { selectedDesignKey?: string })?.selectedDesignKey ||
+        (draft as BuilderDraft & { selected_design_key?: string })?.selected_design_key ||
+        "blank",
+      "blank",
+    );
+  }
+
+  function buildFallbackStorageKeyForDraft(draft?: BuilderDraft) {
+    return buildCreateDraftStorageKey(
+      resolveSafeTemplateKey(draft) || "unknown",
+      resolveSafeDesignKey(draft) || "blank",
+    );
+  }
+
+  function persistDraftLocally(nextDraft: BuilderDraft) {
+    const keys = Array.from(
+      new Set([storageKey, buildFallbackStorageKeyForDraft(nextDraft)]),
+    );
+
+    for (const key of keys) {
+      try {
+        window.localStorage.setItem(key, JSON.stringify(nextDraft));
+      } catch {
+        // ignore localStorage errors
+      }
+    }
   }
 
   useEffect(() => {
@@ -275,17 +325,23 @@ useEffect(() => {
     async function loadServerDraft() {
       if (!isSignedIn || !shouldLoadExistingDraft) return;
 
+      const safeTemplateKey = resolveSafeTemplateKey(initialDraft);
+      const safeDesignKey = resolveSafeDesignKey(initialDraft);
+
+      if (!safeTemplateKey) return;
+
       try {
         const res = await fetch(
           `/api/drafts?templateKey=${encodeURIComponent(
-            templateKey,
-          )}&designKey=${encodeURIComponent(designKey)}`,
+            safeTemplateKey,
+          )}&designKey=${encodeURIComponent(safeDesignKey)}`,
           { cache: "no-store" },
         );
 
         const data = await res.json().catch(() => ({}));
 
-        if (!res.ok || !data?.draftRow?.draft) return;
+        if (!res.ok) return;
+        if (data?.skipped || !data?.draftRow?.draft) return;
 
         const savedDraft = data.draftRow.draft as BuilderDraft;
         const merged = mergeDrafts(initialDraft, savedDraft);
@@ -302,70 +358,100 @@ useEffect(() => {
     void loadServerDraft();
   }, [isSignedIn, templateKey, designKey, initialDraft, shouldLoadExistingDraft]);
 
-  async function handleSaveDraft(draft: BuilderDraft) {
-    setHydratedDraft(draft);
-    setLiveDraft(draft);
+async function handleSaveDraft(draft: BuilderDraft): Promise<void> {
+  setHydratedDraft(draft);
+  setLiveDraft(draft);
 
-    try {
-      window.localStorage.setItem(storageKey, JSON.stringify(draft));
-    } catch {
-      // ignore localStorage errors
-    }
+  // Always preserve work locally first.
+  persistDraftLocally(draft);
 
-    if (!isSignedIn) {
-      setSaveState("signin-required");
-      setSaveMessage("You must be signed in to save a draft.");
-      setShowSignInPrompt(true);
+  if (!isSignedIn) {
+    setSaveState("signin-required");
+    setSaveMessage("Draft saved in this browser. Sign in to save it to your dashboard.");
+    setShowSignInPrompt(true);
+    return;
+  }
+
+  const safeTemplateKey = resolveSafeTemplateKey(draft);
+  const safeDesignKey = resolveSafeDesignKey(draft);
+
+  if (!safeTemplateKey) {
+    setSaveState("saved");
+    setSaveMessage("Draft saved in this browser. Cloud save was skipped.");
+    queueSaveStateReset();
+    return;
+  }
+
+  try {
+    setSaveState("saving");
+    setSaveMessage("Saving draft...");
+
+    console.log("SAVE DEBUG", {
+  hasDraft: !!draft,
+  draftType: typeof draft,
+  hasBlocks: Array.isArray(draft?.blocks),
+  templateKey: safeTemplateKey,
+  designKey: safeDesignKey,
+  draft,
+});
+
+    const res = await fetch("/api/drafts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        templateKey: safeTemplateKey,
+        designKey: safeDesignKey,
+        draft,
+      }),
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      const recoverable = Boolean(data?.recoverable || data?.skipped);
+
+      if (recoverable) {
+        setSaveState("saved");
+        setSaveMessage("Draft saved in this browser. Cloud save was skipped.");
+      } else {
+        setSaveState("error");
+        setSaveMessage(
+          data?.error
+            ? `Draft saved in this browser, but dashboard save failed: ${data.error}`
+            : "Draft saved in this browser, but dashboard save failed.",
+        );
+      }
+
+      queueSaveStateReset();
       return;
     }
 
-    try {
-      setSaveState("saving");
-      setSaveMessage("Saving draft...");
+    lastSavedDraftRef.current = JSON.stringify(draft);
+    setSaveState("saved");
+    setSaveMessage("Draft was saved to your dashboard.");
+    queueSaveStateReset();
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Failed to save draft.";
 
-      const res = await fetch("/api/drafts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ templateKey, designKey, draft }),
-      });
-
-      const data = await res.json().catch(() => ({}));
-
-      if (!res.ok) {
-        setSaveState("error");
-        setSaveMessage(data?.error || "Failed to save draft.");
-        queueSaveStateReset();
-        return;
-      }
-
-      lastSavedDraftRef.current = JSON.stringify(draft);
-      setSaveState("saved");
-      setSaveMessage("Draft was saved to your dashboard.");
-      queueSaveStateReset();
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Failed to save draft.";
-
-      setSaveState("error");
-      setSaveMessage(message);
-      queueSaveStateReset();
-    }
+    setSaveState("error");
+    setSaveMessage(
+      `Draft saved in this browser, but dashboard save failed: ${message}`,
+    );
+    queueSaveStateReset();
   }
-
-function continueToSignIn() {
-  setShowSignInPrompt(false);
-
-  try {
-    window.localStorage.setItem(storageKey, JSON.stringify(liveDraft));
-  } catch {
-    // ignore localStorage errors
-  }
-
-  const callbackUrl = `${window.location.origin}/auth-complete`;
-  const signInUrl = `/sign-in?redirect_url=${encodeURIComponent(callbackUrl)}`;
-
-  window.open(signInUrl, "_blank");
 }
+
+  function continueToSignIn() {
+    setShowSignInPrompt(false);
+
+    persistDraftLocally(liveDraft);
+
+    const callbackUrl = `${window.location.origin}/auth-complete`;
+    const signInUrl = `/sign-in?redirect_url=${encodeURIComponent(callbackUrl)}`;
+
+    window.open(signInUrl, "_blank");
+  }
 
   const editorInstanceKey = [
     templateKey,

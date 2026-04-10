@@ -100,7 +100,18 @@ export type BuilderBlockType =
   | "festiveBackground"
   | "form_field"
   | "shape"
-  | "listing";
+  | "listing"
+  | "rich_text"
+  | "video"
+  | "progress_bar"
+  | "donation"
+  | "link_hub"
+  | "checklist"
+  | "schedule_agenda"
+  | "map_location"
+  | "file_share"
+  | "speed_dating"
+  | "registry";
 
 /* =========================================
    Shared Primitive Types
@@ -158,6 +169,21 @@ export type ListingMetadataItem = {
   id: string;
   label: string;
   value: string;
+};
+
+export type RegistryItem = {
+  id: string;
+  label: string;
+  url: string;
+  store?: string;
+  price?: string;
+  note?: string;
+  imageUrl?: string;
+
+  // NEW
+  quantity?: number;
+  purchased?: number;
+  contributors?: { name: string; amount?: number }[];
 };
 
 export type ShapeType = "rectangle" | "circle" | "line";
@@ -285,6 +311,8 @@ export type CountdownBlock = BaseBlock & {
     targetIso: string;
     completedMessage: string;
     style?: TextStyle;
+    styleVariant?: "default" | "cards" | "hero";
+    showRings?: boolean;
   };
 };
 
@@ -438,6 +466,139 @@ export type ListingBlock = BaseBlock & {
   };
 };
 
+export type RichTextBlock = BaseBlock & {
+  type: "rich_text";
+  data: {
+    title?: string;
+    content: string;
+    style?: TextStyle;
+    listType?: "none" | "bullet" | "number";
+    linkUrl?: string;
+  };
+};
+
+export type VideoBlock = BaseBlock & {
+  type: "video";
+  data: {
+    title?: string;
+    videoUrl: string;
+    autoplay?: boolean;
+    muted?: boolean;
+    loop?: boolean;
+    showControls?: boolean;
+    style?: TextStyle;
+  };
+};
+
+export type ProgressBarBlock = BaseBlock & {
+  type: "progress_bar";
+  data: {
+    heading?: string;
+    value: number;
+    max: number;
+    showPercentage?: boolean;
+    style?: TextStyle;
+  };
+};
+
+export type DonationBlock = BaseBlock & {
+  type: "donation";
+  data: {
+    heading?: string;
+    description?: string;
+    goalAmount?: number;
+    currentAmount?: number;
+    buttonText?: string;
+    buttonUrl?: string;
+    style?: TextStyle;
+  };
+};
+
+export type LinkHubBlock = BaseBlock & {
+  type: "link_hub";
+  data: {
+    heading?: string;
+    items: LinkItem[];
+    style?: TextStyle;
+  };
+};
+
+export type ChecklistBlock = BaseBlock & {
+  type: "checklist";
+  data: {
+    heading?: string;
+    items: Array<{
+      id: string;
+      label: string;
+      checked?: boolean;
+    }>;
+    style?: TextStyle;
+  };
+};
+
+export type ScheduleAgendaBlock = BaseBlock & {
+  type: "schedule_agenda";
+  data: {
+    heading?: string;
+    items: Array<{
+      id: string;
+      time: string;
+      title: string;
+      description?: string;
+    }>;
+    style?: TextStyle;
+  };
+};
+
+export type MapLocationBlock = BaseBlock & {
+  type: "map_location";
+  data: {
+    heading?: string;
+    locationName?: string;
+    address?: string;
+    mapUrl?: string;
+    style?: TextStyle;
+  };
+};
+
+export type FileShareBlock = BaseBlock & {
+  type: "file_share";
+  data: {
+    heading?: string;
+    description?: string;
+    allowPublicUpload?: boolean;
+    requireAccessCode?: boolean;
+    style?: TextStyle;
+  };
+};
+
+
+export type SpeedDatingBlock = BaseBlock & {
+  type: "speed_dating";
+  data: {
+    heading?: string;
+    roundDurationSeconds: number;
+
+    showTimer?: boolean;
+
+    // optional future-safe labels
+    leftLabel?: string;
+    rightLabel?: string;
+
+    style?: TextStyle;
+  };
+};
+
+export type RegistryBlock = BaseBlock & {
+  type: "registry";
+  data: {
+    heading?: string;
+    description?: string;
+    items: RegistryItem[];
+    style?: TextStyle;
+  };
+};
+
 export type MicrositeBlock =
   | LabelBlock
   | TextFxBlock
@@ -457,7 +618,18 @@ export type MicrositeBlock =
   | FestiveBackgroundBlock
   | FormFieldBlock
   | ShapeBlock
-  | ListingBlock;
+  | ListingBlock
+  | RichTextBlock
+  | VideoBlock
+  | ProgressBarBlock
+  | DonationBlock
+  | LinkHubBlock
+  | ChecklistBlock
+  | ScheduleAgendaBlock
+  | MapLocationBlock
+  | FileShareBlock
+  | SpeedDatingBlock
+  | RegistryBlock;
 
 /* =========================================
    Draft Model
@@ -1000,6 +1172,8 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
           targetIso: "",
           completedMessage: "Countdown finished",
           style: createDefaultTextStyle(),
+          styleVariant: "default",
+          showRings: true,
         },
       };
 
@@ -1226,6 +1400,257 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
           imageHeightPercent: 50,
         },
       };
+    case "rich_text":
+      return {
+        id: makeId("richtext"),
+        type: "rich_text",
+        label: "Rich Text",
+        grid: {
+          ...grid,
+          rowSpan: 5,
+        },
+        appearance: createDefaultBlockAppearance(),
+        data: {
+          title: "",
+          content: "",
+          style: {
+            ...createDefaultTextStyle(),
+            fontSize: 16,
+            align: "left",
+          },
+          listType: "none",
+          linkUrl: "",
+        },
+      };
+
+    case "video":
+      return {
+        id: makeId("video"),
+        type: "video",
+        label: "Video",
+        grid: {
+          ...grid,
+          rowSpan: 4,
+        },
+        appearance: createDefaultBlockAppearance(),
+        data: {
+          title: "",
+          videoUrl: "",
+          autoplay: false,
+          muted: false,
+          loop: false,
+          showControls: true,
+          style: createDefaultTextStyle(),
+        },
+      };
+
+    case "progress_bar":
+      return {
+        id: makeId("progress"),
+        type: "progress_bar",
+        label: "Progress Bar",
+        grid,
+        appearance: createDefaultBlockAppearance(),
+        data: {
+          heading: "Progress",
+          value: 25,
+          max: 100,
+          showPercentage: true,
+          style: createDefaultTextStyle(),
+        },
+      };
+
+    case "donation":
+      return {
+        id: makeId("donation"),
+        type: "donation",
+        label: "Donation",
+        grid: {
+          ...grid,
+          rowSpan: 3,
+        },
+        appearance: createDefaultBlockAppearance(),
+        data: {
+          heading: "Support This Cause",
+          description: "",
+          goalAmount: 1000,
+          currentAmount: 0,
+          buttonText: "Donate",
+          buttonUrl: "#",
+          style: createDefaultTextStyle(),
+        },
+      };
+
+    case "link_hub":
+      return {
+        id: makeId("linkhub"),
+        type: "link_hub",
+        label: "Link Hub",
+        grid: {
+          ...grid,
+          rowSpan: 4,
+        },
+        appearance: createDefaultBlockAppearance(),
+        data: {
+          heading: "My Links",
+          items: [
+            { id: makeId("link"), label: "Link 1", url: "#" },
+            { id: makeId("link"), label: "Link 2", url: "#" },
+          ],
+          style: createDefaultTextStyle(),
+        },
+      };
+
+    case "registry":
+      return {
+        id: makeId("registry"),
+        type: "registry",
+        label: "Registry",
+        grid: {
+          ...grid,
+          rowSpan: 4,
+        },
+        appearance: createDefaultBlockAppearance(),
+        data: {
+          heading: "Gift Registry",
+          description: "Share gift ideas and registry links.",
+          items: [
+{
+  id: makeId("registryitem"),
+  label: "Coffee Maker",
+  url: "#",
+  store: "Target",
+  price: "",
+  note: "",
+  imageUrl: "",
+  quantity: 1,
+  purchased: 0,
+  contributors: [],
+},
+{
+  id: makeId("registryitem"),
+  label: "Dinner Set",
+  url: "#",
+  store: "Amazon",
+  price: "",
+  note: "",
+  imageUrl: "",
+  quantity: 1,
+  purchased: 0,
+  contributors: [],
+}
+          ],
+          style: createDefaultTextStyle(),
+        },
+      };
+
+    case "checklist":
+      return {
+        id: makeId("checklist"),
+        type: "checklist",
+        label: "Checklist",
+        grid: {
+          ...grid,
+          rowSpan: 4,
+        },
+        appearance: createDefaultBlockAppearance(),
+        data: {
+          heading: "Checklist",
+          items: [
+            { id: makeId("check"), label: "Item 1", checked: false },
+            { id: makeId("check"), label: "Item 2", checked: false },
+          ],
+          style: createDefaultTextStyle(),
+        },
+      };
+
+    case "schedule_agenda":
+      return {
+        id: makeId("agenda"),
+        type: "schedule_agenda",
+        label: "Schedule / Agenda",
+        grid: {
+          ...grid,
+          rowSpan: 4,
+        },
+        appearance: createDefaultBlockAppearance(),
+        data: {
+          heading: "Schedule",
+          items: [
+            {
+              id: makeId("agendaitem"),
+              time: "10:00 AM",
+              title: "Opening",
+              description: "",
+            },
+            {
+              id: makeId("agendaitem"),
+              time: "11:00 AM",
+              title: "Session",
+              description: "",
+            },
+          ],
+          style: createDefaultTextStyle(),
+        },
+      };
+
+    case "map_location":
+      return {
+        id: makeId("map"),
+        type: "map_location",
+        label: "Map / Location",
+        grid: {
+          ...grid,
+          rowSpan: 4,
+        },
+        appearance: createDefaultBlockAppearance(),
+        data: {
+          heading: "Location",
+          locationName: "",
+          address: "",
+          mapUrl: "",
+          style: createDefaultTextStyle(),
+        },
+      };
+
+    case "file_share":
+      return {
+        id: makeId("fileshare"),
+        type: "file_share",
+        label: "File Share",
+        grid: {
+          ...grid,
+          rowSpan: 3,
+        },
+        appearance: createDefaultBlockAppearance(),
+        data: {
+          heading: "File Share",
+          description: "",
+          allowPublicUpload: false,
+          requireAccessCode: false,
+          style: createDefaultTextStyle(),
+        },
+      };
+
+case "speed_dating":
+  return {
+    id: makeId("speeddating"),
+    type: "speed_dating",
+    label: "Speed Dating",
+    grid: {
+      ...grid,
+      rowSpan: 4,
+    },
+    appearance: createDefaultBlockAppearance(),
+    data: {
+      heading: "Speed Dating",
+      roundDurationSeconds: 120,
+      showTimer: true,
+      leftLabel: "Men",
+      rightLabel: "Women",
+      style: createDefaultTextStyle(),
+    },
+  };
 
     default:
       throw new Error(`Unsupported block type: ${type}`);
@@ -1292,6 +1717,156 @@ export function sanitizeBuilderDraft(input: unknown): BuilderDraft {
                   : 15,
             },
           },
+        },
+      };
+    }
+
+    if (block.type === "rich_text") {
+      return {
+        ...block,
+        grid: normalizeGridValue(block.grid, fallbackGrid),
+        data: {
+          ...block.data,
+          title:
+            typeof block.data.title === "string" ? block.data.title : "Document Title",
+          content:
+            typeof block.data.content === "string" ? block.data.content : "",
+          style: {
+            ...createDefaultTextStyle(),
+            ...(block.data.style ?? {}),
+          },
+          listType:
+            block.data.listType === "bullet" ||
+            block.data.listType === "number" ||
+            block.data.listType === "none"
+              ? block.data.listType
+              : "none",
+          linkUrl:
+            typeof block.data.linkUrl === "string" ? block.data.linkUrl : "",
+        },
+      };
+    }
+
+    if (block.type === "countdown") {
+      return {
+        ...block,
+        grid: normalizeGridValue(block.grid, fallbackGrid),
+        data: {
+          ...block.data,
+          heading:
+            typeof block.data.heading === "string" ? block.data.heading : "",
+          targetIso:
+            typeof block.data.targetIso === "string" ? block.data.targetIso : "",
+          completedMessage:
+            typeof block.data.completedMessage === "string"
+              ? block.data.completedMessage
+              : "Countdown finished",
+          style: {
+            ...createDefaultTextStyle(),
+            ...(block.data.style ?? {}),
+          },
+          styleVariant:
+            block.data.styleVariant === "cards" ||
+            block.data.styleVariant === "hero" ||
+            block.data.styleVariant === "default"
+              ? block.data.styleVariant
+              : "default",
+          showRings: block.data.showRings !== false,
+        },
+      };
+    }
+
+if (block.type === "speed_dating") {
+  return {
+    ...block,
+    grid: normalizeGridValue(block.grid, fallbackGrid),
+    data: {
+      heading:
+        typeof block.data.heading === "string"
+          ? block.data.heading
+          : "Speed Dating",
+
+      roundDurationSeconds:
+        typeof block.data.roundDurationSeconds === "number" &&
+        Number.isFinite(block.data.roundDurationSeconds)
+          ? Math.max(30, Math.floor(block.data.roundDurationSeconds))
+          : 120,
+
+      showTimer: block.data.showTimer !== false,
+
+      leftLabel:
+        typeof block.data.leftLabel === "string"
+          ? block.data.leftLabel
+          : "Men",
+
+      rightLabel:
+        typeof block.data.rightLabel === "string"
+          ? block.data.rightLabel
+          : "Women",
+
+      style: {
+        ...createDefaultTextStyle(),
+        ...(block.data.style ?? {}),
+      },
+    },
+  };
+}
+
+    if (block.type === "registry") {
+      return {
+        ...block,
+        grid: normalizeGridValue(block.grid, fallbackGrid),
+        data: {
+          ...block.data,
+          heading:
+            typeof block.data.heading === "string"
+              ? block.data.heading
+              : "Gift Registry",
+          description:
+            typeof block.data.description === "string"
+              ? block.data.description
+              : "",
+          style: {
+            ...createDefaultTextStyle(),
+            ...(block.data.style ?? {}),
+          },
+          items: Array.isArray(block.data.items)
+            ? block.data.items.map((item) => ({
+                id:
+                  typeof item?.id === "string" && item.id.trim()
+                    ? item.id
+                    : makeId("registryitem"),
+                label: typeof item?.label === "string" ? item.label : "",
+                url: typeof item?.url === "string" ? item.url : "",
+                store: typeof item?.store === "string" ? item.store : "",
+                price: typeof item?.price === "string" ? item.price : "",
+                note: typeof item?.note === "string" ? item.note : "",
+                imageUrl:
+                  typeof item?.imageUrl === "string" ? item.imageUrl : "",
+                quantity:
+                  typeof item?.quantity === "number" &&
+                  Number.isFinite(item.quantity)
+                    ? Math.max(1, Math.floor(item.quantity))
+                    : 1,
+                purchased:
+                  typeof item?.purchased === "number" &&
+                  Number.isFinite(item.purchased)
+                    ? Math.max(0, Math.floor(item.purchased))
+                    : 0,
+                contributors: Array.isArray(item?.contributors)
+                  ? item.contributors
+                      .map((c) => ({
+                        name: typeof c?.name === "string" ? c.name : "",
+                        amount:
+                          typeof c?.amount === "number" &&
+                          Number.isFinite(c.amount)
+                            ? c.amount
+                            : undefined,
+                      }))
+                      .filter((c) => c.name.trim())
+                  : [],
+              }))
+            : [],
         },
       };
     }

@@ -69,8 +69,9 @@ export async function GET() {
       .eq("is_published", true)
       .eq("is_active", true)
       .eq("site_visibility", "public")
+      .order("published_at", { ascending: false })
       .order("created_at", { ascending: false })
-      .limit(12);
+      .limit(24);
 
     if (micrositesError) {
       console.error(
@@ -88,20 +89,32 @@ export async function GET() {
       return NextResponse.json({ ok: true, sites: [] });
     }
 
-    const sites = microsites.map((site) => ({
-      id: site.id,
-      slug: site.slug,
-      title: site.title || site.slug,
-      previewImageUrl:
-        site.homepage_thumbnail_url ||
-        extractPreviewImageUrlFromDraft(site.draft ?? null),
-      templateKey: site.template_key ?? null,
-    }));
+const dedupedSites = [];
+const seenSiteKeys = new Set<string>();
 
-    return NextResponse.json({
-      ok: true,
-      sites,
-    });
+for (const site of microsites) {
+  const uniqueKey = site.slug;
+
+  if (seenSiteKeys.has(uniqueKey)) continue;
+  seenSiteKeys.add(uniqueKey);
+
+  dedupedSites.push({
+    id: site.id,
+    slug: site.slug,
+    title: site.title || site.slug,
+    previewImageUrl:
+      site.homepage_thumbnail_url ||
+      extractPreviewImageUrlFromDraft(site.draft ?? null),
+    templateKey: site.template_key ?? null,
+  });
+
+  if (dedupedSites.length >= 24) break;
+}
+
+return NextResponse.json({
+  ok: true,
+  sites: dedupedSites,
+});
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Unexpected server error";

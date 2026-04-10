@@ -1,6 +1,33 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import SpeedDatingLive from "@/components/blocks/SpeedDatingLive";
+
+type SpeedDatingParticipant = {
+  id: string;
+  name: string;
+  title: string;
+  bio: string;
+  image_url?: string | null;
+  side: "left" | "right";
+  waiting: boolean;
+};
+
+type SpeedDatingPair = {
+  id: string;
+  leftParticipant: SpeedDatingParticipant | null;
+  rightParticipant: SpeedDatingParticipant | null;
+  status: "active" | "open";
+};
+
+type SpeedDatingApiState = {
+  round: number;
+  roundDurationSeconds: number;
+  timeLeftSeconds: number;
+  leftQueue: SpeedDatingParticipant[];
+  rightQueue: SpeedDatingParticipant[];
+  activePairs: SpeedDatingPair[];
+};
 
 import type {
   CarouselImageItem,
@@ -50,6 +77,7 @@ type Props = {
   block: MicrositeBlock;
   designKey?: string;
   micrositeId?: string | null;
+  serverNow?: number;
 };
 
 type ThreadUiMessage = ThreadMessage & {
@@ -189,6 +217,25 @@ const FONT_FAMILY_MAP: Record<string, string> = {
 function resolveFontFamily(fontFamily?: string) {
   if (!fontFamily || fontFamily === "inherit") return "inherit";
   return FONT_FAMILY_MAP[fontFamily] ?? fontFamily;
+}
+
+function normalizePreviewHref(url?: string) {
+  const raw = (url ?? "").trim();
+
+  if (!raw) return "#";
+
+  if (
+    raw.startsWith("/") ||
+    raw.startsWith("#") ||
+    /^https?:\/\//i.test(raw) ||
+    /^mailto:/i.test(raw) ||
+    /^tel:/i.test(raw) ||
+    raw.startsWith("//")
+  ) {
+    return raw;
+  }
+
+  return `//${raw}`;
 }
 
 function getLabelText(block: Extract<MicrositeBlock, { type: "label" }>) {
@@ -925,35 +972,401 @@ function renderCta(
 function renderCountdown(
   block: Extract<MicrositeBlock, { type: "countdown" }>,
   designKey?: string,
+  serverNow?: number,
 ) {
-  return (
-    <Surface
-      block={block}
-      designKey={designKey}
-      className={getSoftSurfaceClass(designKey)}
-    >
-      {block.data.heading ? (
+  function CountdownPreview() {
+    const initialNow = serverNow ?? Date.now();
+    const [tickNow, setTickNow] = useState(initialNow);
+    const [isTicking, setIsTicking] = useState(false);
+
+    useEffect(() => {
+      const startedAt = Date.now();
+      const baseNow = serverNow ?? startedAt;
+
+      const timer = window.setInterval(() => {
+        setIsTicking(true);
+        setTickNow(baseNow + (Date.now() - startedAt));
+
+        window.setTimeout(() => {
+          setIsTicking(false);
+        }, 220);
+      }, 1000);
+
+      return () => window.clearInterval(timer);
+    }, [serverNow]);
+
+    const target = block.data.targetIso
+      ? new Date(block.data.targetIso).getTime()
+      : NaN;
+
+    const style = getContainerTextStyle(block.data.style, designKey);
+    const variant = block.data.styleVariant ?? "default";
+    const showRings = block.data.showRings !== false;
+    const appearanceStyle = getAppearanceStyle(block);
+
+    if (!target || Number.isNaN(target)) {
+      return (
+        <Surface
+          block={block}
+          designKey={designKey}
+          className={getSoftSurfaceClass(designKey)}
+        >
+          {block.data.heading ? (
+            <div
+              className={[
+                "uppercase tracking-[0.14em]",
+                getMutedTextClass(designKey),
+              ].join(" ")}
+              style={style}
+            >
+              {block.data.heading}
+            </div>
+          ) : null}
+
+          <div className="mt-2" style={style}>
+            Set target date
+          </div>
+        </Surface>
+      );
+    }
+
+       const diff = target - tickNow;
+
+    if (diff <= 0) {
+      return (
+        <Surface
+          block={block}
+          designKey={designKey}
+          className={getSoftSurfaceClass(designKey)}
+        >
+          <div className="flex h-full w-full items-center justify-center text-center">
+            <div style={style}>
+              {block.data.completedMessage || "Countdown finished"}
+            </div>
+          </div>
+        </Surface>
+      );
+    }
+
+    const totalSeconds = Math.floor(diff / 1000);
+    const days = Math.floor(totalSeconds / 86400);
+    const hours = Math.floor((totalSeconds % 86400) / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+const format = (n: number) => String(n).padStart(2, "0");
+
+const partsRaw = [
+  { label: "D", value: format(days), raw: days },
+  { label: "H", value: format(hours), raw: hours },
+  { label: "M", value: format(minutes), raw: minutes },
+  { label: "S", value: format(seconds), raw: seconds },
+];
+
+// Hide days if zero
+const parts =
+  days > 0
+    ? partsRaw
+    : partsRaw.filter((p) => p.label !== "D");
+
+    if (variant === "cards") {
+      return (
         <div
-          className={[
-            "uppercase tracking-[0.14em]",
-            getMutedTextClass(designKey),
-          ].join(" ")}
+          className="flex h-full w-full flex-col items-center justify-center gap-4 p-4"
+          style={appearanceStyle}
+        >
+          {block.data.heading ? (
+            <div
+              className={[
+                "text-center uppercase tracking-[0.14em]",
+                getMutedTextClass(designKey),
+              ].join(" ")}
+              style={style}
+            >
+              {block.data.heading}
+            </div>
+          ) : null}
+
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            {parts.map((part, index) => (
+              <div key={part.label} className="flex items-center gap-2">
+<div
+  className={[
+    "relative flex min-w-[64px] flex-col items-center justify-center rounded-xl border px-4 py-3 shadow-sm",
+    isLightDesign(designKey)
+      ? "border-neutral-200 bg-white"
+      : "border-white/10 bg-white/5",
+  ].join(" ")}
+>
+  {showRings ? (
+    <svg className="absolute inset-0 h-full w-full pointer-events-none">
+      <circle
+        cx="50%"
+        cy="50%"
+        r="28"
+        stroke="currentColor"
+        strokeWidth="2"
+        fill="none"
+        opacity="0.1"
+      />
+      <circle
+        cx="50%"
+        cy="50%"
+        r="28"
+        stroke={
+  seconds < 10
+    ? "#EF4444"
+    : seconds < 30
+    ? "#F59E0B"
+    : isLightDesign(designKey)
+    ? "#6366F1"
+    : "#A5B4FC"
+}
+        strokeWidth="2"
+        fill="none"
+        strokeDasharray={175}
+        strokeDashoffset={
+          175 -
+          (175 *
+            (part.label === "S"
+              ? seconds / 60
+              : part.label === "M"
+              ? minutes / 60
+              : part.label === "H"
+              ? hours / 24
+              : days / 365))
+        }
+        className="transition-all duration-500"
+      />
+    </svg>
+  ) : null}
+                   <div
+                    className={[
+                      "text-xl font-semibold transition-all duration-200",
+                      seconds < 10 ? "animate-pulse" : "",
+                    ].join(" ")}
+                    style={{
+                      ...getContainerTextStyle(
+                        {
+                          ...block.data.style,
+                          fontSize: Math.max(
+                            20,
+                            Number(block.data.style?.fontSize) || 20,
+                          ),
+                        },
+                        designKey,
+                      ),
+                      transform:
+                        seconds < 10
+                          ? isTicking
+                            ? "scale(1.15)"
+                            : "scale(1.05)"
+                          : isTicking
+                            ? "scale(1.08)"
+                            : "scale(1)",
+                    }}
+                  >
+                    {part.value}
+                  </div>
+                  <div
+                    className={[
+                      "mt-1 text-[10px]",
+                      getMutedTextClass(designKey),
+                    ].join(" ")}
+                  >
+                    {part.label}
+                  </div>
+                </div>
+
+                {index < parts.length - 1 ? (
+                  <span
+                    className={[
+                      "text-lg font-semibold",
+                      getMutedTextClass(designKey),
+                    ].join(" ")}
+                  >
+                    :
+                  </span>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    if (variant === "hero") {
+      return (
+        <div
+          className="flex h-full w-full flex-col items-center justify-center gap-4 p-4 text-center"
+          style={appearanceStyle}
+        >
+          {block.data.heading ? (
+            <div
+              className={[
+                "uppercase tracking-[0.14em]",
+                getMutedTextClass(designKey),
+              ].join(" ")}
+              style={style}
+            >
+              {block.data.heading}
+            </div>
+          ) : null}
+
+          <div className="flex flex-wrap items-center justify-center gap-4">
+            {parts.map((part, index) => (
+              <div key={part.label} className="flex items-center gap-4">
+                                <div className="relative flex flex-col items-center">
+  {showRings ? (
+    <svg
+      className="pointer-events-none absolute -top-2 left-1/2 -translate-x-1/2"
+      width="80"
+      height="80"
+      viewBox="0 0 80 80"
+    >
+      <circle
+        cx="40"
+        cy="40"
+        r="34"
+        stroke="currentColor"
+        strokeWidth="3"
+        fill="none"
+        opacity="0.1"
+      />
+      <circle
+        cx="40"
+        cy="40"
+        r="34"
+        stroke={
+          seconds < 10
+            ? "#EF4444"
+            : seconds < 30
+              ? "#F59E0B"
+              : isLightDesign(designKey)
+                ? "#6366F1"
+                : "#A5B4FC"
+        }
+        strokeWidth="3"
+        fill="none"
+        strokeDasharray={214}
+        strokeDashoffset={
+          214 -
+          (214 *
+            (part.label === "S"
+              ? seconds / 60
+              : part.label === "M"
+                ? minutes / 60
+                : part.label === "H"
+                  ? hours / 24
+                  : days / 365))
+        }
+        className="transition-all duration-500"
+      />
+    </svg>
+  ) : null}
+                  <div
+                    className={[
+                      "text-4xl font-bold leading-none transition-all duration-200",
+                      seconds < 10 ? "animate-pulse" : "",
+                    ].join(" ")}
+                    style={{
+                      ...getContainerTextStyle(
+                        {
+                          ...block.data.style,
+                          fontSize: Math.max(
+                            36,
+                            Number(block.data.style?.fontSize) || 36,
+                          ),
+                        },
+                        designKey,
+                      ),
+                      transform:
+                        seconds < 10
+                          ? isTicking
+                            ? "scale(1.15)"
+                            : "scale(1.05)"
+                          : isTicking
+                            ? "scale(1.08)"
+                            : "scale(1)",
+                    }}
+                  >
+                    {part.value}
+                  </div>
+                  <div
+                    className={[
+                      "mt-1 text-xs",
+                      getMutedTextClass(designKey),
+                    ].join(" ")}
+                  >
+                    {part.label}
+                  </div>
+                </div>
+
+                {index < parts.length - 1 ? (
+                  <span
+                    className={[
+                      "text-3xl font-bold",
+                      getMutedTextClass(designKey),
+                    ].join(" ")}
+                  >
+                    :
+                  </span>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <Surface
+        block={block}
+        designKey={designKey}
+        className={getSoftSurfaceClass(designKey)}
+      >
+        {block.data.heading ? (
+          <div
+            className={[
+              "uppercase tracking-[0.14em]",
+              getMutedTextClass(designKey),
+            ].join(" ")}
+            style={style}
+          >
+            {block.data.heading}
+          </div>
+        ) : null}
+
+        <div
+          className="mt-3 flex flex-wrap items-center gap-2"
           style={getContainerTextStyle(block.data.style, designKey)}
         >
-          {block.data.heading}
-        </div>
-      ) : null}
+          {parts.map((part, index) => (
+            <div key={part.label} className="flex items-center gap-2">
+              <div className="flex items-baseline gap-1">
+              <span
+                className="font-semibold transition-transform duration-200"
+                style={{
+                  display: "inline-block",
+                  transform: isTicking ? "scale(1.05)" : "scale(1)",
+                }}
+              >
+                {part.value}
+              </span>
+                <span className={getMutedTextClass(designKey)}>{part.label}</span>
+              </div>
 
-      <div
-        className="mt-2"
-        style={getContainerTextStyle(block.data.style, designKey)}
-      >
-        {block.data.targetIso
-          ? new Date(block.data.targetIso).toLocaleString()
-          : "Set target date"}
-      </div>
-    </Surface>
-  );
+              {index < parts.length - 1 ? (
+                <span className={getMutedTextClass(designKey)}>:</span>
+              ) : null}
+            </div>
+          ))}
+        </div>
+      </Surface>
+    );
+  }
+
+  return <CountdownPreview />;
 }
 
 function renderLinks(
@@ -2804,10 +3217,1415 @@ function renderHighlight(
   return <HighlightPreview />;
 }
 
+function renderRichText(
+  block: Extract<MicrositeBlock, { type: "rich_text" }>,
+  designKey?: string,
+) {
+  const style = getContainerTextStyle(block.data.style, designKey);
+
+  const html =
+    typeof block.data.content === "string" ? block.data.content : "";
+
+  return (
+    <div className="h-full w-full p-3" style={getAppearanceStyle(block)}>
+      {block.data.title ? (
+        <div
+          className="mb-2 font-semibold"
+          style={{
+            ...style,
+            fontSize: Math.max(
+              18,
+              Number(block.data.style?.fontSize || 16) + 2,
+            ),
+          }}
+        >
+          {block.data.title}
+        </div>
+      ) : null}
+
+      <div
+        className="[&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:ml-1 [&_p]:my-0 [&_a]:underline"
+        style={style}
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
+    </div>
+  );
+}
+
+function renderProgressBar(
+  block: Extract<MicrositeBlock, { type: "progress_bar" }>,
+  designKey?: string,
+) {
+  const rawMax = Number(block.data.max);
+  const rawValue = Number(block.data.value);
+
+  const hasValidMax = Number.isFinite(rawMax) && rawMax > 0;
+  const hasValidValue = Number.isFinite(rawValue) && rawValue >= 0;
+
+  if (!hasValidMax || !hasValidValue) {
+    return (
+      <Surface
+        block={block}
+        designKey={designKey}
+        className={getSoftSurfaceClass(designKey)}
+      >
+        <div
+          className="text-base font-semibold"
+          style={getContainerTextStyle(block.data.style, designKey)}
+        >
+          {block.data.heading || "Progress"}
+        </div>
+
+        <div
+          className={[
+            "mt-4 rounded-xl border border-dashed px-4 py-6 text-sm",
+            isLightDesign(designKey)
+              ? "border-neutral-300 bg-neutral-50 text-neutral-500"
+              : "border-white/15 bg-white/5 text-white/60",
+          ].join(" ")}
+        >
+          Set valid progress values.
+        </div>
+      </Surface>
+    );
+  }
+
+  const max = Math.max(1, rawMax);
+  const value = Math.max(0, Math.min(rawValue, max));
+  const percent = Math.round((value / max) * 100);
+
+  const statCardClass = isLightDesign(designKey)
+    ? "rounded-xl border border-neutral-200 bg-white px-4 py-3"
+    : "rounded-xl border border-white/10 bg-white/5 px-4 py-3";
+
+  return (
+    <Surface
+      block={block}
+      designKey={designKey}
+      className={getSoftSurfaceClass(designKey)}
+    >
+      <div
+        className="text-base font-semibold"
+        style={getContainerTextStyle(block.data.style, designKey)}
+      >
+        {block.data.heading || "Progress"}
+      </div>
+
+      <div className="mt-4 grid grid-cols-2 gap-3">
+        <div className={statCardClass}>
+          <div className={`text-[11px] font-semibold uppercase tracking-[0.14em] ${getMutedTextClass(designKey)}`}>
+            Current
+          </div>
+          <div
+            className="mt-2 text-2xl font-bold leading-none"
+            style={getContainerTextStyle(block.data.style, designKey)}
+          >
+            {value}
+          </div>
+        </div>
+
+        <div className={statCardClass}>
+          <div className={`text-[11px] font-semibold uppercase tracking-[0.14em] ${getMutedTextClass(designKey)}`}>
+            Goal
+          </div>
+          <div
+            className="mt-2 text-2xl font-bold leading-none"
+            style={getContainerTextStyle(block.data.style, designKey)}
+          >
+            {max}
+          </div>
+        </div>
+      </div>
+
+      <div
+        className={[
+          "mt-4 h-4 w-full overflow-hidden rounded-full",
+          isLightDesign(designKey) ? "bg-neutral-200" : "bg-white/10",
+        ].join(" ")}
+      >
+        <div
+          className={isLightDesign(designKey) ? "h-full bg-neutral-900" : "h-full bg-white"}
+          style={{ width: `${percent}%` }}
+        />
+      </div>
+
+      <div className="mt-2 flex items-center justify-between gap-3">
+        <div
+          className="text-xs"
+          style={getContainerTextStyle(block.data.style, designKey)}
+        >
+          {block.data.showPercentage === false
+            ? `${value} / ${max}`
+            : `${percent}% complete`}
+        </div>
+
+        <div className={`text-xs ${getMutedTextClass(designKey)}`}>
+          {value} of {max}
+        </div>
+      </div>
+    </Surface>
+  );
+}
+
+function renderDonation(
+  block: Extract<MicrositeBlock, { type: "donation" }>,
+  designKey?: string,
+) {
+  const rawGoal = Number(block.data.goalAmount);
+  const rawCurrent = Number(block.data.currentAmount);
+
+  const hasValidGoal = Number.isFinite(rawGoal) && rawGoal > 0;
+  const hasValidCurrent = Number.isFinite(rawCurrent) && rawCurrent >= 0;
+
+  if (!hasValidGoal || !hasValidCurrent) {
+    return (
+      <Surface
+        block={block}
+        designKey={designKey}
+        className={getSoftSurfaceClass(designKey)}
+      >
+        <div
+          className="text-base font-semibold"
+          style={getContainerTextStyle(block.data.style, designKey)}
+        >
+          {block.data.heading || "Support This Cause"}
+        </div>
+
+        {block.data.description ? (
+          <div
+            className="mt-2 text-sm"
+            style={getContainerTextStyle(block.data.style, designKey)}
+          >
+            {block.data.description}
+          </div>
+        ) : null}
+
+        <div
+          className={[
+            "mt-4 rounded-xl border border-dashed px-4 py-6 text-sm",
+            isLightDesign(designKey)
+              ? "border-neutral-300 bg-neutral-50 text-neutral-500"
+              : "border-white/15 bg-white/5 text-white/60",
+          ].join(" ")}
+        >
+          Set valid donation amounts.
+        </div>
+      </Surface>
+    );
+  }
+
+  const goal = Math.max(1, rawGoal);
+  const current = Math.max(0, Math.min(rawCurrent, goal));
+  const percent = Math.round((current / goal) * 100);
+
+  const raisedText = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(current);
+
+  const goalText = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(goal);
+
+  const statCardClass = isLightDesign(designKey)
+    ? "rounded-xl border border-neutral-200 bg-white px-4 py-3"
+    : "rounded-xl border border-white/10 bg-white/5 px-4 py-3";
+
+  const ctaClass = isLightDesign(designKey)
+    ? "inline-flex h-11 items-center justify-center rounded-xl bg-neutral-900 px-5 text-sm font-semibold text-white"
+    : "inline-flex h-11 items-center justify-center rounded-xl bg-white px-5 text-sm font-semibold text-neutral-900";
+
+  return (
+    <Surface
+      block={block}
+      designKey={designKey}
+      className={getSoftSurfaceClass(designKey)}
+    >
+      <div
+        className="text-base font-semibold"
+        style={getContainerTextStyle(block.data.style, designKey)}
+      >
+        {block.data.heading || "Support This Cause"}
+      </div>
+
+      {block.data.description ? (
+        <div
+          className="mt-2 text-sm"
+          style={getContainerTextStyle(block.data.style, designKey)}
+        >
+          {block.data.description}
+        </div>
+      ) : null}
+
+      <div className="mt-4 grid grid-cols-2 gap-3">
+        <div className={statCardClass}>
+          <div className={`text-[11px] font-semibold uppercase tracking-[0.14em] ${getMutedTextClass(designKey)}`}>
+            Raised
+          </div>
+          <div
+            className="mt-2 text-2xl font-bold leading-none"
+            style={getContainerTextStyle(block.data.style, designKey)}
+          >
+            {raisedText}
+          </div>
+        </div>
+
+        <div className={statCardClass}>
+          <div className={`text-[11px] font-semibold uppercase tracking-[0.14em] ${getMutedTextClass(designKey)}`}>
+            Goal
+          </div>
+          <div
+            className="mt-2 text-2xl font-bold leading-none"
+            style={getContainerTextStyle(block.data.style, designKey)}
+          >
+            {goalText}
+          </div>
+        </div>
+      </div>
+
+      <div
+        className={[
+          "mt-4 h-4 w-full overflow-hidden rounded-full",
+          isLightDesign(designKey) ? "bg-neutral-200" : "bg-white/10",
+        ].join(" ")}
+      >
+        <div
+          className={isLightDesign(designKey) ? "h-full bg-neutral-900" : "h-full bg-white"}
+          style={{ width: `${percent}%` }}
+        />
+      </div>
+
+      <div className="mt-2 flex items-center justify-between gap-3">
+        <div
+          className="text-xs"
+          style={getContainerTextStyle(block.data.style, designKey)}
+        >
+          {percent}% funded
+        </div>
+
+        <div className={`text-xs ${getMutedTextClass(designKey)}`}>
+          {raisedText} of {goalText}
+        </div>
+      </div>
+
+      <div className="mt-4">
+        <a
+          href={block.data.buttonUrl || "#"}
+          target="_blank"
+          rel="noreferrer noopener"
+          className={ctaClass}
+        >
+          {block.data.buttonText || "Donate"}
+        </a>
+      </div>
+    </Surface>
+  );
+}
+
+function renderLinkHub(
+  block: Extract<MicrositeBlock, { type: "link_hub" }>,
+  designKey?: string,
+) {
+  const items = Array.isArray(block.data.items) ? block.data.items : [];
+
+  return (
+    <Surface
+      block={block}
+      designKey={designKey}
+      className={getSoftSurfaceClass(designKey)}
+    >
+      <div
+        className="mb-3 text-base font-semibold"
+        style={getContainerTextStyle(block.data.style, designKey)}
+      >
+        {block.data.heading || "My Links"}
+      </div>
+
+      {items.length ? (
+        <div className="space-y-3">
+          {items.map((item, index) => (
+            <a
+              key={item.id}
+              href={normalizePreviewHref(item.url)}
+              target="_blank"
+              rel="noreferrer noopener"
+              className={[
+                "group flex items-center justify-between gap-3 rounded-xl border px-4 py-3 transition",
+                isLightDesign(designKey)
+                  ? "border-neutral-200 bg-white hover:bg-neutral-50"
+                  : "border-white/10 bg-white/5 hover:bg-white/10",
+              ].join(" ")}
+            >
+              <div className="min-w-0 flex-1">
+                <div
+                  className="truncate text-sm font-medium"
+                  style={getContainerTextStyle(block.data.style, designKey)}
+                >
+                  {item.label || `Link ${index + 1}`}
+                </div>
+
+                {item.url ? (
+                  <div
+                    className={`mt-1 truncate text-xs ${getMutedTextClass(
+                      designKey,
+                    )}`}
+                  >
+                    {item.url.replace(/^https?:\/\//i, "").replace(/^\/\//, "")}
+                  </div>
+                ) : null}
+              </div>
+
+              <div
+                className={[
+                  "shrink-0 text-sm font-semibold transition",
+                  isLightDesign(designKey)
+                    ? "text-neutral-400 group-hover:text-neutral-700"
+                    : "text-white/45 group-hover:text-white/80",
+                ].join(" ")}
+              >
+                →
+              </div>
+            </a>
+          ))}
+        </div>
+      ) : (
+        <div
+          className={[
+            "rounded-xl border border-dashed px-4 py-6 text-sm",
+            isLightDesign(designKey)
+              ? "border-neutral-300 bg-neutral-50 text-neutral-500"
+              : "border-white/15 bg-white/5 text-white/60",
+          ].join(" ")}
+        >
+          No links yet.
+        </div>
+      )}
+    </Surface>
+  );
+}
+
+function renderRegistry(
+  block: Extract<MicrositeBlock, { type: "registry" }>,
+  designKey?: string,
+) {
+  const items = Array.isArray(block.data.items) ? block.data.items : [];
+  const isLight = isLightDesign(designKey);
+
+  return (
+    <Surface
+      block={block}
+      designKey={designKey}
+      className={getSoftSurfaceClass(designKey)}
+    >
+      <div
+        className="mb-3 text-base font-semibold"
+        style={getContainerTextStyle(block.data.style, designKey)}
+      >
+        {block.data.heading || "Gift Registry"}
+      </div>
+
+      {block.data.description ? (
+        <div
+          className={`mb-4 text-sm ${getMutedTextClass(designKey)}`}
+          style={getContainerTextStyle(block.data.style, designKey)}
+        >
+          {block.data.description}
+        </div>
+      ) : null}
+
+      {items.length ? (
+        <div className="space-y-4">
+          {items.map((item, index) => {
+            const href = normalizePreviewHref(item.url);
+            const hasImage =
+              typeof item.imageUrl === "string" &&
+              item.imageUrl.trim().length > 0;
+            const hasMeta = Boolean(item.store || item.price);
+            const hasNote = Boolean(item.note && item.note.trim());
+
+            const quantity =
+              typeof item.quantity === "number" && Number.isFinite(item.quantity)
+                ? Math.max(1, Math.floor(item.quantity))
+                : 1;
+
+            const purchased =
+              typeof item.purchased === "number" && Number.isFinite(item.purchased)
+                ? Math.max(0, Math.floor(item.purchased))
+                : 0;
+
+            const remaining = Math.max(0, quantity - purchased);
+
+            const contributors = Array.isArray(item.contributors)
+              ? item.contributors.filter(
+                  (entry) =>
+                    entry &&
+                    typeof entry === "object" &&
+                    typeof entry.name === "string" &&
+                    entry.name.trim(),
+                )
+              : [];
+
+            return (
+              <div
+                key={item.id}
+                className={[
+                  "group overflow-hidden rounded-2xl border transition",
+                  isLight
+                    ? "border-neutral-200 bg-white hover:bg-neutral-50 hover:shadow-md"
+                    : "border-white/10 bg-white/5 hover:bg-white/10",
+                ].join(" ")}
+              >
+                <a
+                  href={href}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="block"
+                >
+                  {hasImage ? (
+                    <div
+                      className={[
+                        "relative w-full overflow-hidden border-b",
+                        isLight
+                          ? "border-neutral-200 bg-neutral-100"
+                          : "border-white/10 bg-white/5",
+                      ].join(" ")}
+                    >
+                      <img
+                        src={item.imageUrl}
+                        alt={item.label || `Registry Item ${index + 1}`}
+                        className="h-40 w-full object-cover transition duration-300 group-hover:scale-[1.02]"
+                      />
+                    </div>
+                  ) : (
+                    <div
+                      className={[
+                        "flex h-24 w-full items-center justify-center border-b text-xs font-medium",
+                        isLight
+                          ? "border-neutral-200 bg-neutral-100 text-neutral-400"
+                          : "border-white/10 bg-white/5 text-white/40",
+                      ].join(" ")}
+                    >
+                      Gift Preview
+                    </div>
+                  )}
+                </a>
+
+                <div className="p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <a
+                        href={href}
+                        target="_blank"
+                        rel="noreferrer noopener"
+                        className="block"
+                      >
+                        <div
+                          className="truncate text-sm font-semibold"
+                          style={getContainerTextStyle(block.data.style, designKey)}
+                        >
+                          {item.label || `Registry Item ${index + 1}`}
+                        </div>
+                      </a>
+
+                      {hasMeta ? (
+                        <div
+                          className={`mt-1 truncate text-xs ${getMutedTextClass(
+                            designKey,
+                          )}`}
+                        >
+                          {[item.store, item.price].filter(Boolean).join(" • ")}
+                        </div>
+                      ) : null}
+
+                      <div
+                        className={`mt-2 text-xs ${getMutedTextClass(designKey)}`}
+                      >
+                        {remaining > 0
+                          ? `${remaining} of ${quantity} remaining`
+                          : "Fully claimed"}
+                      </div>
+
+                      {contributors.length ? (
+                        <div
+                          className={`mt-1 text-xs ${getMutedTextClass(designKey)}`}
+                        >
+                          Claimed by:{" "}
+                          {contributors
+                            .map((entry: any) => entry.name)
+                            .filter(Boolean)
+                            .join(", ")}
+                        </div>
+                      ) : null}
+
+                      {hasNote ? (
+                        <div
+                          className={`mt-2 text-xs ${getMutedTextClass(
+                            designKey,
+                          )}`}
+                        >
+                          {item.note}
+                        </div>
+                      ) : null}
+
+                      {item.url ? (
+                        <div
+                          className={`mt-2 truncate text-[11px] ${getMutedTextClass(
+                            designKey,
+                          )}`}
+                        >
+                          {item.url
+                            .replace(/^https?:\/\//i, "")
+                            .replace(/^\/\//, "")}
+                        </div>
+                      ) : null}
+                    </div>
+
+                    <a
+                      href={href}
+                      target="_blank"
+                      rel="noreferrer noopener"
+                      className={[
+                        "shrink-0 rounded-full px-3 py-1 text-xs font-semibold transition",
+                        isLight
+                          ? "bg-neutral-100 text-neutral-500 hover:bg-neutral-900 hover:text-white"
+                          : "bg-white/10 text-white/70 hover:bg-white hover:text-neutral-900",
+                      ].join(" ")}
+                    >
+                      Open
+                    </a>
+                  </div>
+
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <div
+                      className={[
+                        "rounded-full px-3 py-1 text-[11px] font-semibold",
+                        remaining > 0
+                          ? isLight
+                            ? "bg-neutral-100 text-neutral-600"
+                            : "bg-white/10 text-white/70"
+                          : isLight
+                            ? "bg-neutral-900 text-white"
+                            : "bg-white text-neutral-900",
+                      ].join(" ")}
+                    >
+                      {remaining > 0 ? "Available" : "Claimed"}
+                    </div>
+
+                    <button
+                      type="button"
+                      disabled
+                      className={[
+                        "rounded-full px-3 py-1 text-[11px] font-semibold opacity-60",
+                        isLight
+                          ? "bg-neutral-100 text-neutral-500"
+                          : "bg-white/10 text-white/70",
+                      ].join(" ")}
+                      title="Claim flow UI added. Live claiming logic comes next."
+                    >
+                      Claim Item
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div
+          className={[
+            "rounded-xl border border-dashed px-4 py-6 text-sm",
+            isLightDesign(designKey)
+              ? "border-neutral-300 bg-neutral-50 text-neutral-500"
+              : "border-white/15 bg-white/5 text-white/60",
+          ].join(" ")}
+        >
+          No registry items yet.
+        </div>
+      )}
+    </Surface>
+  );
+}
+
+function renderChecklist(
+  block: Extract<MicrositeBlock, { type: "checklist" }>,
+  designKey?: string,
+) {
+  const items = Array.isArray(block.data.items) ? block.data.items : [];
+
+  return (
+    <Surface
+      block={block}
+      designKey={designKey}
+      className={getSoftSurfaceClass(designKey)}
+    >
+      <div
+        className="mb-3 text-base font-semibold"
+        style={getContainerTextStyle(block.data.style, designKey)}
+      >
+        {block.data.heading || "Checklist"}
+      </div>
+
+      {items.length ? (
+        <div className="space-y-3">
+          {items.map((item, index) => (
+            <div
+              key={item.id}
+              className={[
+                "flex items-center gap-3 rounded-xl border px-3 py-3",
+                isLightDesign(designKey)
+                  ? "border-neutral-200 bg-white"
+                  : "border-white/10 bg-white/5",
+              ].join(" ")}
+            >
+              <div
+                className={[
+                  "flex h-6 w-6 shrink-0 items-center justify-center rounded-md border text-xs font-bold",
+                  Boolean(item.checked)
+                    ? isLightDesign(designKey)
+                      ? "border-neutral-900 bg-neutral-900 text-white"
+                      : "border-white bg-white text-neutral-900"
+                    : isLightDesign(designKey)
+                      ? "border-neutral-300 bg-white text-neutral-400"
+                      : "border-white/20 bg-transparent text-white/40",
+                ].join(" ")}
+              >
+                {item.checked ? "✓" : index + 1}
+              </div>
+
+              <div
+                className={Boolean(item.checked) ? "opacity-70" : ""}
+                style={{
+                  ...getContainerTextStyle(block.data.style, designKey),
+                  textDecoration: item.checked ? "line-through" : "none",
+                }}
+              >
+                {item.label || "Checklist item"}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div
+          className={[
+            "rounded-xl border border-dashed px-4 py-6 text-sm",
+            isLightDesign(designKey)
+              ? "border-neutral-300 bg-neutral-50 text-neutral-500"
+              : "border-white/15 bg-white/5 text-white/60",
+          ].join(" ")}
+        >
+          No checklist items yet.
+        </div>
+      )}
+    </Surface>
+  );
+}
+
+function renderScheduleAgenda(
+  block: Extract<MicrositeBlock, { type: "schedule_agenda" }>,
+  designKey?: string,
+) {
+  const items = Array.isArray(block.data.items) ? block.data.items : [];
+
+  return (
+    <Surface
+      block={block}
+      designKey={designKey}
+      className={getSoftSurfaceClass(designKey)}
+    >
+      <div
+        className="mb-3 text-base font-semibold"
+        style={getContainerTextStyle(block.data.style, designKey)}
+      >
+        {block.data.heading || "Schedule"}
+      </div>
+
+      {items.length ? (
+        <div className="space-y-3">
+          {items.map((item, index) => (
+            <div
+              key={item.id}
+              className={[
+                "rounded-xl border px-3 py-3",
+                isLightDesign(designKey)
+                  ? "border-neutral-200 bg-white"
+                  : "border-white/10 bg-white/5",
+              ].join(" ")}
+            >
+              <div className="flex items-start gap-3">
+                <div
+                  className={[
+                    "flex min-h-[48px] min-w-[72px] shrink-0 flex-col items-center justify-center rounded-lg px-2 py-2 text-center",
+                    isLightDesign(designKey)
+                      ? "bg-neutral-100"
+                      : "bg-white/10",
+                  ].join(" ")}
+                >
+                  <div className={`text-[10px] font-semibold uppercase tracking-[0.12em] ${getMutedTextClass(designKey)}`}>
+                    Item
+                  </div>
+                  <div
+                    className="mt-1 text-sm font-semibold"
+                    style={getContainerTextStyle(block.data.style, designKey)}
+                  >
+                    {item.time || `${index + 1}`}
+                  </div>
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  <div
+                    className="font-medium"
+                    style={getContainerTextStyle(block.data.style, designKey)}
+                  >
+                    {item.title || "Event"}
+                  </div>
+
+                  {item.description ? (
+                    <div
+                      className="mt-1 text-sm"
+                      style={getContainerTextStyle(block.data.style, designKey)}
+                    >
+                      {item.description}
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div
+          className={[
+            "rounded-xl border border-dashed px-4 py-6 text-sm",
+            isLightDesign(designKey)
+              ? "border-neutral-300 bg-neutral-50 text-neutral-500"
+              : "border-white/15 bg-white/5 text-white/60",
+          ].join(" ")}
+        >
+          No schedule items yet.
+        </div>
+      )}
+    </Surface>
+  );
+}
+
+function renderMapLocation(
+  block: Extract<MicrositeBlock, { type: "map_location" }>,
+  designKey?: string,
+) {
+  const heading = block.data.heading?.trim() || "Location";
+  const locationName = block.data.locationName?.trim() || "";
+  const address = block.data.address?.trim() || "";
+  const mapUrl = block.data.mapUrl?.trim() || "";
+
+  const hasUsefulLocation = Boolean(locationName || address || mapUrl);
+
+  if (!hasUsefulLocation) {
+    return (
+      <Surface
+        block={block}
+        designKey={designKey}
+        className={getSoftSurfaceClass(designKey)}
+      >
+        <div
+          className="mb-3 text-base font-semibold"
+          style={getContainerTextStyle(block.data.style, designKey)}
+        >
+          {heading}
+        </div>
+
+        <div
+          className={[
+            "rounded-xl border border-dashed px-4 py-6 text-sm",
+            isLightDesign(designKey)
+              ? "border-neutral-300 bg-neutral-50 text-neutral-500"
+              : "border-white/15 bg-white/5 text-white/60",
+          ].join(" ")}
+        >
+          Add a location name, address, or map link to show this section.
+        </div>
+      </Surface>
+    );
+  }
+
+  const mapHref =
+    mapUrl ||
+    (address
+      ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+          address,
+        )}`
+      : "");
+
+  const embedSrc = address
+    ? `https://www.google.com/maps?q=${encodeURIComponent(address)}&z=15&output=embed`
+    : "";
+
+  const detailCardClass = isLightDesign(designKey)
+    ? "mt-3 rounded-xl border border-neutral-200 bg-white p-4"
+    : "mt-3 rounded-xl border border-white/10 bg-white/5 p-4";
+
+  const buttonClass = isLightDesign(designKey)
+    ? "mt-3 inline-flex h-10 items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-800"
+    : "mt-3 inline-flex h-10 items-center justify-center rounded-xl border border-white/15 bg-white/10 px-4 text-sm font-medium text-white";
+
+  return (
+    <Surface
+      block={block}
+      designKey={designKey}
+      className={getSoftSurfaceClass(designKey)}
+    >
+      <div
+        className="mb-3 text-base font-semibold"
+        style={getContainerTextStyle(block.data.style, designKey)}
+      >
+        {heading}
+      </div>
+
+      {embedSrc ? (
+        <div
+          className={[
+            "overflow-hidden rounded-xl border",
+            isLightDesign(designKey)
+              ? "border-neutral-200"
+              : "border-white/10",
+          ].join(" ")}
+        >
+          <iframe
+            src={embedSrc}
+            title={locationName || heading || "Map"}
+            className="h-48 w-full border-0"
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+          />
+        </div>
+      ) : (
+        <div
+          className={[
+            "flex h-40 w-full items-center justify-center rounded-xl border text-sm",
+            isLightDesign(designKey)
+              ? "border-neutral-200 bg-neutral-100 text-neutral-500"
+              : "border-white/10 bg-white/5 text-white/60",
+          ].join(" ")}
+        >
+          Add an address to show the embedded map
+        </div>
+      )}
+
+      <div className={detailCardClass}>
+        {locationName ? (
+          <div
+            className="text-sm font-semibold"
+            style={getContainerTextStyle(block.data.style, designKey)}
+          >
+            {locationName}
+          </div>
+        ) : null}
+
+        {address ? (
+          <div
+            className="mt-1 text-sm"
+            style={getContainerTextStyle(block.data.style, designKey)}
+          >
+            {address}
+          </div>
+        ) : null}
+
+        {mapHref ? (
+          <a
+            href={mapHref}
+            target="_blank"
+            rel="noreferrer noopener"
+            className={buttonClass}
+          >
+            Open Map
+          </a>
+        ) : null}
+      </div>
+    </Surface>
+  );
+}
+
+function renderFileShare(
+  block: Extract<MicrositeBlock, { type: "file_share" }>,
+  designKey?: string,
+) {
+  const panelClass = isLightDesign(designKey)
+    ? "rounded-xl border border-neutral-200 bg-white"
+    : "rounded-xl border border-white/10 bg-white/5";
+
+  const mutedClass = getMutedTextClass(designKey);
+
+  const primaryButtonClass = isLightDesign(designKey)
+    ? "inline-flex h-10 items-center justify-center rounded-xl bg-neutral-900 px-4 text-sm font-medium text-white"
+    : "inline-flex h-10 items-center justify-center rounded-xl bg-white px-4 text-sm font-medium text-neutral-900";
+
+  const secondaryButtonClass = isLightDesign(designKey)
+    ? "inline-flex h-9 items-center justify-center rounded-lg border border-neutral-300 bg-white px-3 text-xs font-medium text-neutral-800"
+    : "inline-flex h-9 items-center justify-center rounded-lg border border-white/15 bg-white/10 px-3 text-xs font-medium text-white";
+
+  return (
+    <Surface
+      block={block}
+      designKey={designKey}
+      className={getSoftSurfaceClass(designKey)}
+    >
+      <div
+        className="mb-3 text-base font-semibold"
+        style={getContainerTextStyle(block.data.style, designKey)}
+      >
+        {block.data.heading || "File Share"}
+      </div>
+
+      {block.data.description ? (
+        <div
+          className="mb-3 text-sm"
+          style={getContainerTextStyle(block.data.style, designKey)}
+        >
+          {block.data.description}
+        </div>
+      ) : null}
+
+      <div className="space-y-3">
+        <div
+          className={[
+            "rounded-xl border border-dashed px-4 py-8 text-center",
+            isLightDesign(designKey)
+              ? "border-neutral-300 bg-neutral-50"
+              : "border-white/15 bg-white/5",
+          ].join(" ")}
+        >
+          <div
+            className="text-sm font-medium"
+            style={getContainerTextStyle(block.data.style, designKey)}
+          >
+            Drag files here
+          </div>
+          <div className={`mt-1 text-xs ${mutedClass}`}>
+            or browse to upload
+          </div>
+
+          <div className="mt-4 flex items-center justify-center gap-2">
+            <button type="button" className={primaryButtonClass}>
+              Choose Files
+            </button>
+
+            {block.data.allowPublicUpload ? (
+              <div
+                className={[
+                  "inline-flex h-10 items-center justify-center rounded-xl px-3 text-xs font-semibold",
+                  isLightDesign(designKey)
+                    ? "bg-emerald-50 text-emerald-700"
+                    : "bg-emerald-500/15 text-emerald-300",
+                ].join(" ")}
+              >
+                Public Upload On
+              </div>
+            ) : null}
+          </div>
+        </div>
+
+        <div className={panelClass}>
+          <div className="border-b border-inherit px-4 py-3">
+            <div
+              className="text-sm font-medium"
+              style={getContainerTextStyle(block.data.style, designKey)}
+            >
+              Shared Files
+            </div>
+          </div>
+
+          <div className="space-y-2 px-4 py-3">
+            {[1, 2, 3].map((index) => (
+              <div
+                key={index}
+                className={[
+                  "flex items-center justify-between gap-3 rounded-lg px-3 py-2",
+                  isLightDesign(designKey)
+                    ? "bg-neutral-50"
+                    : "bg-white/5",
+                ].join(" ")}
+              >
+                <div className="flex min-w-0 items-center gap-3">
+                  <div
+                    className={[
+                      "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-sm font-semibold",
+                      isLightDesign(designKey)
+                        ? "bg-white text-neutral-600"
+                        : "bg-white/10 text-white/75",
+                    ].join(" ")}
+                  >
+                    PDF
+                  </div>
+
+                  <div className="min-w-0">
+                    <div
+                      className="truncate text-sm font-medium"
+                      style={getContainerTextStyle(block.data.style, designKey)}
+                    >
+                      sample-file-{index}.pdf
+                    </div>
+                    <div className={`mt-0.5 text-xs ${mutedClass}`}>
+                      2.4 MB
+                    </div>
+                  </div>
+                </div>
+
+                <button type="button" className={secondaryButtonClass}>
+                  Download
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-3 flex flex-wrap gap-2 text-xs">
+        <div
+          className={[
+            "inline-flex items-center rounded-full px-3 py-1.5",
+            isLightDesign(designKey)
+              ? "bg-neutral-100 text-neutral-700"
+              : "bg-white/10 text-white/75",
+          ].join(" ")}
+        >
+          Public upload: {block.data.allowPublicUpload ? "On" : "Off"}
+        </div>
+
+        <div
+          className={[
+            "inline-flex items-center rounded-full px-3 py-1.5",
+            isLightDesign(designKey)
+              ? "bg-neutral-100 text-neutral-700"
+              : "bg-white/10 text-white/75",
+          ].join(" ")}
+        >
+          Access code: {block.data.requireAccessCode ? "Required" : "Not required"}
+        </div>
+      </div>
+    </Surface>
+  );
+}
+
+function renderSpeedDating(
+  block: Extract<MicrositeBlock, { type: "speed_dating" }>,
+  designKey?: string,
+  micrositeId?: string | null,
+  serverNow?: number,
+) {
+  function ParticipantCard({
+    participant,
+    tone = "default",
+  }: {
+    participant: SpeedDatingParticipant;
+    tone?: "default" | "active" | "waiting";
+  }) {
+    const toneClass =
+      tone === "active"
+        ? isLightDesign(designKey)
+          ? "border-blue-200 bg-blue-50"
+          : "border-blue-400/20 bg-blue-500/10"
+        : tone === "waiting"
+          ? isLightDesign(designKey)
+            ? "border-amber-200 bg-amber-50"
+            : "border-amber-400/20 bg-amber-500/10"
+          : isLightDesign(designKey)
+            ? "border-neutral-200 bg-white"
+            : "border-white/10 bg-white/5";
+
+    return (
+      <div className={`rounded-2xl border p-3 shadow-sm ${toneClass}`}>
+        <div className="flex items-start gap-3">
+          {participant.image_url ? (
+            <img
+              src={participant.image_url}
+              alt={participant.name || "Participant"}
+              className="h-11 w-11 shrink-0 rounded-2xl object-cover"
+            />
+          ) : (
+            <div
+              className={[
+                "flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border text-xs font-semibold",
+                isLightDesign(designKey)
+                  ? "border-neutral-200 bg-white text-neutral-700"
+                  : "border-white/10 bg-white/10 text-white/80",
+              ].join(" ")}
+            >
+              {(participant.name || "?")
+                .split(" ")
+                .map((n) => n[0])
+                .join("")
+                .slice(0, 2)
+                .toUpperCase()}
+            </div>
+          )}
+
+          <div className="min-w-0 flex-1">
+            <div
+              className="truncate text-sm font-semibold"
+              style={getContainerTextStyle(block.data.style, designKey)}
+            >
+              {participant.name}
+            </div>
+
+            <div className={`mt-0.5 truncate text-xs ${getMutedTextClass(designKey)}`}>
+              {participant.title}
+            </div>
+
+            <div className={`mt-2 line-clamp-2 text-xs leading-5 ${getMutedTextClass(designKey)}`}>
+              {participant.bio}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  function EmptySlot({ label }: { label: string }) {
+    return (
+      <div
+        className={[
+          "rounded-2xl border border-dashed p-4 text-sm",
+          isLightDesign(designKey)
+            ? "border-neutral-300 bg-neutral-50 text-neutral-500"
+            : "border-white/15 bg-white/5 text-white/60",
+        ].join(" ")}
+      >
+        {label}
+      </div>
+    );
+  }
+
+  function SpeedDatingPreview() {
+    const duration = Math.max(
+      30,
+      Number.isFinite(block.data.roundDurationSeconds)
+        ? Math.floor(block.data.roundDurationSeconds)
+        : 120,
+    );
+
+    const [round, setRound] = useState(0);
+    const [timeLeft, setTimeLeft] = useState(duration);
+    const [apiState, setApiState] = useState<SpeedDatingApiState | null>(null);
+
+    useEffect(() => {
+      setRound(0);
+      setTimeLeft(duration);
+    }, [duration]);
+
+    useEffect(() => {
+      async function fetchState() {
+        try {
+          const url = micrositeId
+            ? `/api/speed-dating?micrositeId=${micrositeId}`
+            : "/api/speed-dating";
+
+          const res = await fetch(url, { cache: "no-store" });
+          const data = await res.json();
+
+          if (data?.ok) {
+            setApiState(data);
+            setRound(data.round ?? 0);
+            setTimeLeft(data.timeLeftSeconds ?? duration);
+          }
+        } catch {
+          // ignore
+        }
+      }
+
+      void fetchState();
+      const interval = window.setInterval(fetchState, 2000);
+
+      return () => window.clearInterval(interval);
+    }, [duration, micrositeId]);
+
+    useEffect(() => {
+      if (apiState) return;
+
+      const baseTime = serverNow ? Date.now() - serverNow : 0;
+
+      const timer = window.setInterval(() => {
+        setTimeLeft((current) => {
+          if (current <= 1) {
+            setRound((prev) => prev + 1);
+            return duration;
+          }
+          return current - 1;
+        });
+      }, 1000);
+
+      return () => window.clearInterval(timer);
+    }, [apiState, duration, serverNow]);
+
+    const minutes = Math.floor(timeLeft / 60);
+    const seconds = timeLeft % 60;
+    const progressPercent =
+      duration > 0
+        ? Math.max(0, Math.min(100, ((duration - timeLeft) / duration) * 100))
+        : 0;
+
+    const leftParticipants = apiState?.leftQueue ?? [];
+    const rightParticipants = apiState?.rightQueue ?? [];
+    const activePairs = apiState?.activePairs ?? [];
+
+    return (
+      <Surface
+        block={block}
+        designKey={designKey}
+        className={getSoftSurfaceClass(designKey)}
+      >
+        <div className="h-full w-full overflow-auto p-1">
+          <div className="mb-4 flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div
+                className="truncate text-base font-semibold"
+                style={getContainerTextStyle(block.data.style, designKey)}
+              >
+                {block.data.heading || "Speed Dating"}
+              </div>
+              <div className={`mt-1 text-xs ${getMutedTextClass(designKey)}`}>
+                Live matchmaking board
+              </div>
+            </div>
+
+            <div
+              className={[
+                "rounded-full border px-3 py-1 text-xs font-medium",
+                isLightDesign(designKey)
+                  ? "border-neutral-200 bg-white text-neutral-600"
+                  : "border-white/10 bg-white/10 text-white/75",
+              ].join(" ")}
+            >
+              Round {round + 1}
+            </div>
+          </div>
+
+          {block.data.showTimer !== false ? (
+            <div
+              className={[
+                "rounded-2xl border p-4 shadow-sm",
+                isLightDesign(designKey)
+                  ? "border-neutral-200 bg-white"
+                  : "border-white/10 bg-white/5",
+              ].join(" ")}
+            >
+              <div className={`text-xs font-semibold uppercase tracking-[0.14em] ${getMutedTextClass(designKey)}`}>
+                Time Remaining
+              </div>
+
+              <div
+                className="mt-1 text-3xl font-semibold"
+                style={getContainerTextStyle(block.data.style, designKey)}
+              >
+                {minutes}:{seconds.toString().padStart(2, "0")}
+              </div>
+
+              <div
+                className={[
+                  "mt-4 h-2 overflow-hidden rounded-full",
+                  isLightDesign(designKey) ? "bg-neutral-200" : "bg-white/10",
+                ].join(" ")}
+              >
+                <div
+                  className={isLightDesign(designKey) ? "h-full rounded-full bg-blue-600" : "h-full rounded-full bg-white"}
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
+            </div>
+          ) : null}
+
+          <div className="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-2">
+            <div className={[
+              "rounded-2xl border p-4",
+              isLightDesign(designKey)
+                ? "border-neutral-200 bg-white"
+                : "border-white/10 bg-white/5",
+            ].join(" ")}>
+              <div className="mb-3 font-semibold" style={getContainerTextStyle(block.data.style, designKey)}>
+                {block.data.leftLabel ?? "Men"}
+              </div>
+
+              <div className="space-y-2">
+                {leftParticipants.length ? (
+                  leftParticipants.map((p) => (
+                    <ParticipantCard key={p.id} participant={p} tone={p.waiting ? "waiting" : "active"} />
+                  ))
+                ) : (
+                  <EmptySlot label="No participants yet" />
+                )}
+              </div>
+            </div>
+
+            <div className={[
+              "rounded-2xl border p-4",
+              isLightDesign(designKey)
+                ? "border-neutral-200 bg-white"
+                : "border-white/10 bg-white/5",
+            ].join(" ")}>
+              <div className="mb-3 font-semibold" style={getContainerTextStyle(block.data.style, designKey)}>
+                {block.data.rightLabel ?? "Women"}
+              </div>
+
+              <div className="space-y-2">
+                {rightParticipants.length ? (
+                  rightParticipants.map((p) => (
+                    <ParticipantCard key={p.id} participant={p} tone={p.waiting ? "waiting" : "active"} />
+                  ))
+                ) : (
+                  <EmptySlot label="No participants yet" />
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className={[
+            "mt-4 rounded-2xl border p-4",
+            isLightDesign(designKey)
+              ? "border-neutral-200 bg-white"
+              : "border-white/10 bg-white/5",
+          ].join(" ")}>
+            <div className="mb-3 font-semibold" style={getContainerTextStyle(block.data.style, designKey)}>
+              Active Pairs
+            </div>
+
+            {activePairs.length ? (
+              <div className="space-y-3">
+                {activePairs.map((pair) => (
+                  <div key={pair.id} className="grid grid-cols-3 gap-2">
+                    {pair.leftParticipant ? (
+                      <ParticipantCard participant={pair.leftParticipant} />
+                    ) : (
+                      <EmptySlot label="Open slot" />
+                    )}
+
+                    <div className="flex items-center justify-center text-xl">↔</div>
+
+                    {pair.rightParticipant ? (
+                      <ParticipantCard participant={pair.rightParticipant} />
+                    ) : (
+                      <EmptySlot label="Open slot" />
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <EmptySlot label="No active pairs yet" />
+            )}
+          </div>
+        </div>
+      </Surface>
+    );
+  }
+
+  return <SpeedDatingPreview />;
+}
+
 export default function BlockRenderer({
   block,
   designKey = "blank",
   micrositeId = null,
+  serverNow,
 }: Props) {
   switch (block.type) {
     case "label":
@@ -2825,7 +4643,7 @@ export default function BlockRenderer({
     case "cta":
       return renderCta(block, designKey);
     case "countdown":
-      return renderCountdown(block, designKey);
+      return renderCountdown(block, designKey, serverNow);
     case "links":
       return renderLinks(block, designKey);
     case "gallery":
@@ -2848,6 +4666,36 @@ export default function BlockRenderer({
       return renderShape(block);
     case "highlight":
       return renderHighlight(block, designKey, micrositeId);
+    case "rich_text":
+      return renderRichText(block, designKey);
+    case "progress_bar":
+      return renderProgressBar(block, designKey);
+    case "donation":
+      return renderDonation(block, designKey);
+    case "link_hub":
+      return renderLinkHub(block, designKey);
+    case "checklist":
+      return renderChecklist(block, designKey);
+    case "registry":
+      return renderRegistry(block, designKey);
+    case "schedule_agenda":
+      return renderScheduleAgenda(block, designKey);
+    case "map_location":
+      return renderMapLocation(block, designKey);
+    case "file_share":
+      return renderFileShare(block, designKey);
+      
+case "speed_dating":
+  return (
+    <SpeedDatingLive
+      heading={block.data.heading}
+      roundDurationSeconds={block.data.roundDurationSeconds ?? 120}
+      showTimer={block.data.showTimer !== false}
+      leftLabel={block.data.leftLabel}
+      rightLabel={block.data.rightLabel}
+    />
+  );
+
     default:
       return <div className="h-full w-full" />;
   }

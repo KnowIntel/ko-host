@@ -7,6 +7,7 @@ import type { BuilderDraft } from "@/lib/templates/builder";
 import PrivateMicrositeAccessForm from "@/components/microsite/PrivateMicrositeAccessForm";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 type MicrositeRow = {
   id: string;
@@ -240,6 +241,14 @@ export default async function PublishedMicrositePage({
         ? "100% 100%"
         : "cover";
 
+        console.log(
+  "[Microsite Render] BLOCK TYPES:",
+  (draft?.blocks || []).map((b: any) => b?.type),
+);
+
+console.log("[Microsite Render] DRAFT EXISTS:", !!draft);
+console.log("[Microsite Render] BLOCK COUNT:", Array.isArray(draft?.blocks) ? draft.blocks.length : 0);
+
   return (
     <>
       <main
@@ -260,10 +269,24 @@ export default async function PublishedMicrositePage({
             : {}),
         }}
       >
+
+        <pre className="text-xs text-red-500 whitespace-pre-wrap">
+  {JSON.stringify(
+    {
+      hasDraft: !!draft,
+      blockCount: Array.isArray(draft?.blocks) ? draft.blocks.length : 0,
+      blockTypes: (draft?.blocks || []).map((b: any) => b?.type),
+    },
+    null,
+    2
+  )}
+</pre>
+
         <PlacedBlocksPreview
           draft={draft}
           designKey={designKey}
           micrositeId={microsite.id}
+          serverNow={Date.now()}
           fixedScale={Math.max(
             0.25,
             Math.min(1.5, ((((draft as any)?.pageScale ?? 100) as number) / 100)),

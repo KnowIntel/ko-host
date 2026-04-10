@@ -1,3 +1,4 @@
+// components\ui\Nav.tsx
 "use client";
 
 import Link from "next/link";
@@ -13,13 +14,7 @@ export function Nav() {
   const params = useParams();
   const { isSignedIn } = useAuth();
 
-  const hostname =
-    typeof window !== "undefined" ? window.location.hostname.toLowerCase() : "";
-
-  const isPublicMicrositeHost =
-    hostname.endsWith(".ko-host.com") && hostname !== "ko-host.com";
-
-  if (isPublicMicrositeHost || pathname === "/s" || pathname.startsWith("/s/")) {
+  if (pathname === "/s" || pathname.startsWith("/s/")) {
     return null;
   }
 

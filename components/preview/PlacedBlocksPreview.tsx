@@ -21,6 +21,7 @@ type Props = {
   draft: BuilderDraft;
   designKey: string;
   micrositeId?: string | null;
+  serverNow?: number;
   fixedScale?: number;
   disableAutoScale?: boolean;
   transparentPageBackground?: boolean;
@@ -169,6 +170,7 @@ export default function PlacedBlocksPreview({
   draft,
   designKey,
   micrositeId = null,
+  serverNow,
   fixedScale = 1,
   disableAutoScale = false,
   transparentPageBackground = false,
@@ -522,6 +524,7 @@ return (
                 block={block}
                 designKey={designKey}
                 micrositeId={micrositeId}
+                serverNow={serverNow}
               />
             </div>
           </div>

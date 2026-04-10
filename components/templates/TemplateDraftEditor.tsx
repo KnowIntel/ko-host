@@ -27,6 +27,14 @@ function cloneDraft<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
 }
 
+function isBuilderDraft(value: unknown): value is BuilderDraft {
+  return Boolean(
+    value &&
+      typeof value === "object" &&
+      Array.isArray((value as BuilderDraft).blocks),
+  );
+}
+
 export default function TemplateDraftEditor({
   templateName,
   designLayout,
@@ -51,6 +59,8 @@ export default function TemplateDraftEditor({
   );
 
   const [draft, setDraft] = useState<BuilderDraft>(() => cloneDraft(initialDraft));
+  const draftRef = useRef<BuilderDraft>(cloneDraft(initialDraft));
+
   const [localSaveState, setLocalSaveState] = useState<
     "idle" | "saving" | "saved" | "error" | "signin-required"
   >("idle");
@@ -61,7 +71,9 @@ export default function TemplateDraftEditor({
   const hasMountedAutosaveRef = useRef(false);
 
   useEffect(() => {
-    setDraft(cloneDraft(initialDraft));
+    const nextDraft = cloneDraft(initialDraft);
+    setDraft(nextDraft);
+    draftRef.current = nextDraft;
     setLocalSaveState("idle");
     setLocalSaveMessage("");
     hasMountedAutosaveRef.current = false;
@@ -78,6 +90,7 @@ export default function TemplateDraftEditor({
   }, [routeKey, initialDraft]);
 
   useEffect(() => {
+    draftRef.current = draft;
     onDraftChange?.(draft);
   }, [draft, onDraftChange]);
 
@@ -96,7 +109,18 @@ export default function TemplateDraftEditor({
     };
   }, []);
 
-  async function runSave(nextDraft: BuilderDraft, source: "manual" | "autosave") {
+  function resolveDraftForSave(nextDraft?: BuilderDraft) {
+    if (isBuilderDraft(nextDraft)) {
+      return cloneDraft(nextDraft);
+    }
+
+    return cloneDraft(draftRef.current);
+  }
+
+  async function runSave(
+    nextDraft?: BuilderDraft,
+    source: "manual" | "autosave" = "manual",
+  ) {
     if (!onSave) return;
 
     if (saveResetTimerRef.current) {
@@ -104,11 +128,12 @@ export default function TemplateDraftEditor({
       saveResetTimerRef.current = null;
     }
 
+    const draftToSave = resolveDraftForSave(nextDraft);
+
     try {
       setLocalSaveState("saving");
-      // setLocalSaveMessage(source === "autosave" ? "Auto-saving draft..." : "Saving draft...");
 
-      await onSave(nextDraft);
+      await onSave(draftToSave);
 
       setLocalSaveState("saved");
       setLocalSaveMessage(source === "autosave" ? "Draft auto-saved." : "Draft saved.");
@@ -144,7 +169,7 @@ export default function TemplateDraftEditor({
     }
 
     autosaveTimerRef.current = setTimeout(() => {
-      void runSave(draft, "autosave");
+      void runSave(draftRef.current, "autosave");
     }, AUTOSAVE_DELAY_MS);
 
     return () => {
@@ -162,8 +187,15 @@ export default function TemplateDraftEditor({
       ? saveMessage
       : localSaveMessage;
 
-  async function handleSaveDraft(nextDraft: BuilderDraft) {
-    await runSave(nextDraft, "manual");
+  async function handleSaveDraft(nextDraft?: BuilderDraft) {
+    const draftToSave = resolveDraftForSave(nextDraft);
+
+    if (isBuilderDraft(nextDraft)) {
+      setDraft(draftToSave);
+      draftRef.current = draftToSave;
+    }
+
+    await runSave(draftToSave, "manual");
   }
 
   return (

@@ -1,7 +1,7 @@
 "use client";
 
 import AppModal from "@/components/ui/AppModal";
-
+import { getStoreMeta } from "@/lib/utils/getStoreMeta";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -170,9 +170,10 @@ type BottomCategory =
   | "Media"
   | "Layout"
   | "Forms"
-  | "Marketing"
-  | "Social"
-  | "Utilities";
+  | "Interactive"
+  | "Utilities"
+  | "Data & Metrics"
+  | "Scheduling";
 
 type PageBlockType = "title" | "subtitle" | "tagline" | "description";
 
@@ -216,9 +217,10 @@ const CATEGORY_ORDER: BottomCategory[] = [
   "Media",
   "Layout",
   "Forms",
-  "Marketing",
-  "Social",
+  "Interactive",
   "Utilities",
+  "Data & Metrics",
+  "Scheduling",
 ];
 
 const CATEGORY_BUTTONS: Record<
@@ -236,9 +238,11 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Tagline", type: "label" },
     { kind: "block", label: "Description", type: "label" },
     { kind: "block", label: "TextFX", type: "text_fx" },
+    { kind: "block", label: "Rich Text", type: "rich_text" },
   ],
   Media: [
     { kind: "block", label: "Image", type: "image" },
+    { kind: "block", label: "Video", type: "video" },
     { kind: "block", label: "Gallery", type: "gallery" },
     { kind: "block", label: "Carousel", type: "image_carousel" },
   ],
@@ -253,17 +257,31 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Poll", type: "poll" },
     { kind: "block", label: "RSVP", type: "rsvp" },
   ],
-  Marketing: [
+  Interactive: [
+    { kind: "block", label: "Thread", type: "thread" },
+    { kind: "block", label: "File Share", type: "file_share" },
+    { kind: "block", label: "Speed Dating", type: "speed_dating" },
+  ],
+  Utilities: [
     { kind: "block", label: "Button", type: "cta" },
     { kind: "block", label: "Countdown", type: "countdown" },
     { kind: "block", label: "FAQ", type: "faq" },
-  ],
-  Social: [{ kind: "block", label: "Thread", type: "thread" }],
-  Utilities: [
     { kind: "block", label: "Links", type: "links" },
-    { kind: "block", label: "Highlight", type: "highlight" },
+    { kind: "block", label: "Link Hub", type: "link_hub" },
     { kind: "block", label: "Listing", type: "listing" },
+    { kind: "block", label: "Registry", type: "registry" },
   ],
+  "Data & Metrics": [
+    { kind: "block", label: "Highlight", type: "highlight" },
+    { kind: "block", label: "Progress Bar", type: "progress_bar" },
+    { kind: "block", label: "Donation", type: "donation" },
+  ],
+Scheduling: [
+  { kind: "block", label: "Countdown", type: "countdown" },
+  { kind: "block", label: "Checklist", type: "checklist" },
+  { kind: "block", label: "Schedule / Agenda", type: "schedule_agenda" },
+  { kind: "block", label: "Map / Location", type: "map_location" },
+],
 };
 
 const MIN_CANVAS_ZOOM = 50;
@@ -540,8 +558,107 @@ function getSelectedContext(
     return { kind: "otherBlock", blockId, blockType: block.type, label: block.label || "Highlight" };
   }
 
+    if (block.type === "progress_bar") {
+    return {
+      kind: "otherBlock",
+      blockId,
+      blockType: block.type,
+      label: block.label || "Progress Bar",
+    };
+  }
+
   if (block.type === "listing") {
     return { kind: "otherBlock", blockId, blockType: block.type, label: block.label || "Listing" };
+  }
+
+  if (block.type === "donation") {
+    return {
+      kind: "otherBlock",
+      blockId,
+      blockType: block.type,
+      label: block.label || "Donation",
+    };
+  }
+
+  if (block.type === "link_hub") {
+    return {
+      kind: "otherBlock",
+      blockId,
+      blockType: block.type,
+      label: block.label || "Link Hub",
+    };
+  }
+
+  if (block.type === "checklist") {
+    return {
+      kind: "otherBlock",
+      blockId,
+      blockType: block.type,
+      label: block.label || "Checklist",
+    };
+  }
+
+  if (block.type === "schedule_agenda") {
+    return {
+      kind: "otherBlock",
+      blockId,
+      blockType: block.type,
+      label: block.label || "Schedule",
+    };
+  }
+
+  if (block.type === "map_location") {
+    return {
+      kind: "otherBlock",
+      blockId,
+      blockType: block.type,
+      label: block.label || "Map",
+    };
+  }
+
+  if (block.type === "file_share") {
+    return {
+      kind: "otherBlock",
+      blockId,
+      blockType: block.type,
+      label: block.label || "File Share",
+    };
+  }
+
+  if (block.type === "speed_dating") {
+    return {
+      kind: "otherBlock",
+      blockId,
+      blockType: block.type,
+      label: block.label || "Speed Dating",
+    };
+  }
+
+  if (block.type === "registry") {
+    return {
+      kind: "otherBlock",
+      blockId,
+      blockType: block.type,
+      label: block.label || "Registry",
+    };
+  }
+
+  if (block.type === "video") {
+    return {
+      kind: "otherBlock",
+      blockId,
+      blockType: block.type,
+      label: block.label || "Video",
+    };
+  }
+
+  if (block.type === "rich_text") {
+    return {
+      kind: "otherBlock",
+      blockId,
+      blockType: block.type,
+      label: block.label || "Rich Text",
+    };
   }
 
   return {
@@ -635,9 +752,10 @@ function getToolGlyph(label: string) {
   if (label === "Media") return "🖼";
   if (label === "Layout") return "▦";
   if (label === "Forms") return "☰";
-  if (label === "Marketing") return "📣";
-  if (label === "Social") return "💬";
+  if (label === "Interactive") return "💬";
   if (label === "Utilities") return "⚙";
+  if (label === "Data & Metrics") return "📊";
+  if (label === "Scheduling") return "🗓";
   if (label === "Title") return "T";
   if (label === "Subtitle") return "T";
   if (label === "Tagline") return "T";
@@ -661,6 +779,17 @@ function getToolGlyph(label: string) {
   if (label === "Listing") return "🏷";
   if (label === "Carousel") return "⇄";
   if (label === "Input Field") return "⌨";
+  if (label === "Rich Text") return "📝";
+  if (label === "Video") return "▶";
+  if (label === "Progress Bar") return "▰";
+  if (label === "Donation") return "💝";
+  if (label === "Link Hub") return "🌐";
+  if (label === "Checklist") return "☑";
+  if (label === "Schedule / Agenda") return "🗓";
+  if (label === "Map / Location") return "📍";
+  if (label === "File Share") return "📁";
+  if (label === "Speed Dating") return "❤";
+  if (label === "Registry") return "🎁";
   return "•";
 }
 
@@ -802,7 +931,8 @@ export default function DesignLayoutEditor({
   const selectedPageSize =
   ((draft as DraftWithPageExtras).pageSize ?? "full") as PageSizeOption;
 
-const selectedPageDimensions = getPageSizeDimensions(selectedPageSize);
+  const [registryLoadingMap, setRegistryLoadingMap] = useState<Record<string, boolean>>({});
+  const selectedPageDimensions = getPageSizeDimensions(selectedPageSize);
   const [selection, setSelection] = useState(createEmptySelection());
   const [activeCategory, setActiveCategory] = useState<BottomCategory>("Text");
   const [openToolMenu, setOpenToolMenu] = useState<BottomCategory | null>(null);
@@ -838,6 +968,10 @@ const selectedPageDimensions = getPageSizeDimensions(selectedPageSize);
   const countdownHeadingInputRef = useRef<HTMLInputElement | null>(null);
   const countdownTargetInputRef = useRef<HTMLInputElement | null>(null);
   const countdownCompletedInputRef = useRef<HTMLInputElement | null>(null);
+  const richTextEditorRef = useRef<HTMLDivElement | null>(null);
+  const [isRichTextEditorEmpty, setIsRichTextEditorEmpty] = useState(true);
+  const [richTextLinkModalOpen, setRichTextLinkModalOpen] = useState(false);
+const [richTextLinkValue, setRichTextLinkValue] = useState("https://");
   const [recentColors, setRecentColors] = useState<string[]>(() => {
     if (typeof window === "undefined") return [];
     try {
@@ -890,15 +1024,26 @@ const selectedPageDimensions = getPageSizeDimensions(selectedPageSize);
       ? draft.blocks.find((item) => item.id === selection.blockId) ?? null
       : null;
 
-  const selectedStyle =
-    selectedBlockFromDraft?.type === "text_fx" ||
-    selectedBlockFromDraft?.type === "cta" ||
-    selectedBlockFromDraft?.type === "thread" ||
-    selectedBlockFromDraft?.type === "form_field" ||
-    selectedBlockFromDraft?.type === "image_carousel" ||
-    selectedBlockFromDraft?.type === "highlight"
-      ? (selectedBlockFromDraft.data.style ?? {})
-      : getSelectionTextStyle(draft, selection);
+const selectedStyle =
+  selectedBlockFromDraft?.type === "text_fx" ||
+  selectedBlockFromDraft?.type === "cta" ||
+  selectedBlockFromDraft?.type === "thread" ||
+  selectedBlockFromDraft?.type === "form_field" ||
+  selectedBlockFromDraft?.type === "image_carousel" ||
+  selectedBlockFromDraft?.type === "highlight" ||
+  selectedBlockFromDraft?.type === "progress_bar" ||
+  selectedBlockFromDraft?.type === "donation" ||
+  selectedBlockFromDraft?.type === "link_hub" ||
+  selectedBlockFromDraft?.type === "checklist" ||
+  selectedBlockFromDraft?.type === "schedule_agenda" ||
+  selectedBlockFromDraft?.type === "map_location" ||
+  selectedBlockFromDraft?.type === "file_share" ||
+  selectedBlockFromDraft?.type === "speed_dating" ||
+  selectedBlockFromDraft?.type === "video" ||
+  selectedBlockFromDraft?.type === "rich_text" ||
+  selectedBlockFromDraft?.type === "countdown"
+    ? (selectedBlockFromDraft.data.style ?? {})
+    : getSelectionTextStyle(draft, selection);
   const selectedAppearance = getSelectionBlockAppearance(draft, selection);
   const resolvedPageColor =
     (draft as DraftWithPageExtras).pageColor ||
@@ -933,7 +1078,19 @@ const showTextControls =
   selectedContext.kind === "cta" ||
   selectedBlock?.type === "thread" ||
   selectedBlock?.type === "form_field" ||
-  selectedBlock?.type === "highlight";
+  selectedBlock?.type === "highlight" ||
+  selectedBlock?.type === "progress_bar" ||
+  selectedBlock?.type === "donation" ||
+  selectedBlock?.type === "link_hub" ||
+  selectedBlock?.type === "checklist" ||
+  selectedBlock?.type === "schedule_agenda" ||
+  selectedBlock?.type === "map_location" ||
+  selectedBlock?.type === "file_share" ||
+  selectedBlock?.type === "speed_dating" ||
+  selectedBlock?.type === "registry" ||
+  selectedBlock?.type === "video" ||
+  selectedBlock?.type === "rich_text" ||
+  selectedBlock?.type === "countdown";
 
 const showAppearanceControls =
   selectedContext.kind === "label" ||
@@ -942,7 +1099,19 @@ const showAppearanceControls =
   selectedContext.kind === "imageCarousel" ||
   selectedContext.kind === "shape" ||
   selectedBlock?.type === "thread" ||
-  selectedBlock?.type === "listing";
+  selectedBlock?.type === "listing" ||
+  selectedBlock?.type === "progress_bar" ||
+  selectedBlock?.type === "donation" ||
+  selectedBlock?.type === "link_hub" ||
+  selectedBlock?.type === "checklist" ||
+  selectedBlock?.type === "schedule_agenda" ||
+  selectedBlock?.type === "map_location" ||
+  selectedBlock?.type === "file_share" ||
+  selectedBlock?.type === "speed_dating" ||
+  selectedBlock?.type === "registry" ||
+  selectedBlock?.type === "video" ||
+  selectedBlock?.type === "rich_text" ||
+  selectedBlock?.type === "countdown";
 
 const showBorderWidthRadiusControls =
   selectedContext.kind === "label" ||
@@ -951,7 +1120,19 @@ const showBorderWidthRadiusControls =
   selectedContext.kind === "imageCarousel" ||
   selectedContext.kind === "shape" ||
   selectedBlock?.type === "thread" ||
-  selectedBlock?.type === "listing";
+  selectedBlock?.type === "listing" ||
+  selectedBlock?.type === "progress_bar" ||
+  selectedBlock?.type === "donation" ||
+  selectedBlock?.type === "link_hub" ||
+  selectedBlock?.type === "checklist" ||
+  selectedBlock?.type === "schedule_agenda" ||
+  selectedBlock?.type === "map_location" ||
+  selectedBlock?.type === "file_share" ||
+  selectedBlock?.type === "speed_dating" ||
+  selectedBlock?.type === "registry" ||
+  selectedBlock?.type === "video" ||
+  selectedBlock?.type === "rich_text" ||
+  selectedBlock?.type === "countdown";
 
   const selectedTextValue = getSelectedTextValue(draft, selectedContext);
 
@@ -1353,6 +1534,44 @@ const showBorderWidthRadiusControls =
     }
   }, [draft]);
 
+function normalizeRichTextHtml(html?: string) {
+  const value = String(html ?? "").trim();
+
+  if (
+    value === "" ||
+    value === "<br>" ||
+    value === "<p><br></p>" ||
+    value === "<div><br></div>" ||
+    value === "<ul><li><br></li></ul>" ||
+    value === "<ol><li><br></li></ol>"
+  ) {
+    return "";
+  }
+
+  return html ?? "";
+}
+
+function isRichTextHtmlEmpty(html?: string) {
+  return normalizeRichTextHtml(html) === "";
+}
+
+useEffect(() => {
+  if (selectedBlock?.type !== "rich_text") return;
+
+  const normalized = normalizeRichTextHtml(selectedBlock.data.content ?? "");
+  setIsRichTextEditorEmpty(isRichTextHtmlEmpty(normalized));
+
+  if (!richTextEditorRef.current) return;
+
+  if (richTextEditorRef.current.innerHTML !== normalized) {
+    richTextEditorRef.current.innerHTML = normalized;
+  }
+}, [
+  selectedBlock?.id,
+  selectedBlock?.type,
+  selectedBlock?.type === "rich_text" ? selectedBlock.data.content : null,
+]);
+
   function pushRecentColor(color: string) {
   if (!color) return;
 
@@ -1391,6 +1610,109 @@ async function pickColorWithEyeDropper(
 function applyTextColor(value: string) {
   applyStylePatch({ color: value });
   pushRecentColor(value);
+}
+
+function withRichTextEditor(action: (editor: HTMLDivElement) => void) {
+  const editor = richTextEditorRef.current;
+  if (!editor || selectedBlock?.type !== "rich_text") return;
+
+  editor.focus();
+  action(editor);
+
+  const normalized = normalizeRichTextHtml(editor.innerHTML);
+  setIsRichTextEditorEmpty(isRichTextHtmlEmpty(normalized));
+
+  updateSelectedBlock((block) =>
+    block.type !== "rich_text"
+      ? block
+      : {
+          ...block,
+          data: {
+            ...block.data,
+            content: normalized,
+          },
+        },
+  );
+}
+
+function normalizeRichTextLinkHref(value: string) {
+  const raw = value.trim();
+
+  if (!raw) return "";
+
+  if (
+    raw.startsWith("/") ||
+    raw.startsWith("#") ||
+    /^https?:\/\//i.test(raw) ||
+    /^mailto:/i.test(raw) ||
+    /^tel:/i.test(raw) ||
+    raw.startsWith("//")
+  ) {
+    return raw;
+  }
+
+  return `//${raw}`;
+}
+
+function openRichTextLinkModal() {
+  setRichTextLinkValue("https://");
+  setRichTextLinkModalOpen(true);
+}
+
+function applyRichTextLinkFromModal() {
+  const raw = richTextLinkValue.trim();
+  if (!raw) {
+    setRichTextLinkModalOpen(false);
+    return;
+  }
+
+  const href = normalizeRichTextLinkHref(raw);
+
+  withRichTextEditor((editor) => {
+    document.execCommand("createLink", false, href);
+
+    const anchors = editor.querySelectorAll("a");
+    const lastAnchor = anchors[anchors.length - 1];
+
+    if (lastAnchor) {
+      lastAnchor.setAttribute("href", href);
+      lastAnchor.setAttribute("target", "_blank");
+      lastAnchor.setAttribute("rel", "noopener noreferrer");
+      lastAnchor.setAttribute("data-raw-href", raw);
+    }
+  });
+
+  setRichTextLinkModalOpen(false);
+}
+
+function clearRichTextEditor() {
+  if (selectedBlock?.type !== "rich_text") return;
+
+  if (richTextEditorRef.current) {
+    richTextEditorRef.current.innerHTML = "";
+  }
+
+  setIsRichTextEditorEmpty(true);
+
+  updateSelectedBlock((block) =>
+    block.type !== "rich_text"
+      ? block
+      : {
+          ...block,
+          data: {
+            ...block.data,
+            content: "",
+            listType: "none",
+            linkUrl: "",
+            style: {
+              ...(block.data.style ?? {}),
+              bold: false,
+              italic: false,
+              underline: false,
+            },
+          },
+        },
+  );
 }
 
 function applyPageTextBoxBackground(value: string) {
@@ -1571,6 +1893,258 @@ function applyStylePatch(patch: Partial<TextStyle>) {
     }));
     return;
   }
+
+  if (selectedBlock?.type === "progress_bar") {
+    setDraft((prev) => ({
+      ...prev,
+      blocks: prev.blocks.map((block) =>
+        block.id === selectedBlock.id && block.type === "progress_bar"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                style: {
+                  ...(block.data.style ?? {}),
+                  ...patch,
+                },
+              },
+            }
+          : block,
+      ),
+    }));
+    return;
+  }
+
+  if (selectedBlock?.type === "donation") {
+    setDraft((prev) => ({
+      ...prev,
+      blocks: prev.blocks.map((block) =>
+        block.id === selectedBlock.id && block.type === "donation"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                style: {
+                  ...(block.data.style ?? {}),
+                  ...patch,
+                },
+              },
+            }
+          : block,
+      ),
+    }));
+    return;
+  }
+
+  if (selectedBlock?.type === "link_hub") {
+    setDraft((prev) => ({
+      ...prev,
+      blocks: prev.blocks.map((block) =>
+        block.id === selectedBlock.id && block.type === "link_hub"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                style: {
+                  ...(block.data.style ?? {}),
+                  ...patch,
+                },
+              },
+            }
+          : block,
+      ),
+    }));
+    return;
+  }
+
+  if (selectedBlock?.type === "checklist") {
+    setDraft((prev) => ({
+      ...prev,
+      blocks: prev.blocks.map((block) =>
+        block.id === selectedBlock.id && block.type === "checklist"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                style: {
+                  ...(block.data.style ?? {}),
+                  ...patch,
+                },
+              },
+            }
+          : block,
+      ),
+    }));
+    return;
+  }
+
+  if (selectedBlock?.type === "schedule_agenda") {
+    setDraft((prev) => ({
+      ...prev,
+      blocks: prev.blocks.map((block) =>
+        block.id === selectedBlock.id && block.type === "schedule_agenda"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                style: {
+                  ...(block.data.style ?? {}),
+                  ...patch,
+                },
+              },
+            }
+          : block,
+      ),
+    }));
+    return;
+  }
+
+  if (selectedBlock?.type === "map_location") {
+    setDraft((prev) => ({
+      ...prev,
+      blocks: prev.blocks.map((block) =>
+        block.id === selectedBlock.id && block.type === "map_location"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                style: {
+                  ...(block.data.style ?? {}),
+                  ...patch,
+                },
+              },
+            }
+          : block,
+      ),
+    }));
+    return;
+  }
+
+  if (selectedBlock?.type === "file_share") {
+    setDraft((prev) => ({
+      ...prev,
+      blocks: prev.blocks.map((block) =>
+        block.id === selectedBlock.id && block.type === "file_share"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                style: {
+                  ...(block.data.style ?? {}),
+                  ...patch,
+                },
+              },
+            }
+          : block,
+      ),
+    }));
+    return;
+  }
+
+  if (selectedBlock?.type === "speed_dating") {
+    setDraft((prev) => ({
+      ...prev,
+      blocks: prev.blocks.map((block) =>
+        block.id === selectedBlock.id && block.type === "speed_dating"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                style: {
+                  ...(block.data.style ?? {}),
+                  ...patch,
+                },
+              },
+            }
+          : block,
+      ),
+    }));
+    return;
+  }
+
+  if (selectedBlock?.type === "registry") {
+    setDraft((prev) => ({
+      ...prev,
+      blocks: prev.blocks.map((block) =>
+        block.id === selectedBlock.id && block.type === "registry"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                style: {
+                  ...(block.data.style ?? {}),
+                  ...patch,
+                },
+              },
+            }
+          : block,
+      ),
+    }));
+    return;
+  }
+
+  if (selectedBlock?.type === "video") {
+    setDraft((prev) => ({
+      ...prev,
+      blocks: prev.blocks.map((block) =>
+        block.id === selectedBlock.id && block.type === "video"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                style: {
+                  ...(block.data.style ?? {}),
+                  ...patch,
+                },
+              },
+            }
+          : block,
+      ),
+    }));
+    return;
+  }
+
+if (selectedBlock?.type === "rich_text") {
+  setDraft((prev) => ({
+    ...prev,
+    blocks: prev.blocks.map((block) =>
+      block.id === selectedBlock.id && block.type === "rich_text"
+        ? {
+            ...block,
+            data: {
+              ...block.data,
+              style: {
+                ...(block.data.style ?? {}),
+                ...patch,
+              },
+            },
+          }
+        : block,
+    ),
+  }));
+  return;
+}
+
+if (selectedBlock?.type === "countdown") {
+  setDraft((prev) => ({
+    ...prev,
+    blocks: prev.blocks.map((block) =>
+      block.id === selectedBlock.id && block.type === "countdown"
+        ? {
+            ...block,
+            data: {
+              ...block.data,
+              style: {
+                ...(block.data.style ?? {}),
+                ...patch,
+              },
+            },
+          }
+        : block,
+    ),
+  }));
+  return;
+}
 
   setDraft((prev) => applyStylePatchToSelection(prev, selection, patch));
 }
@@ -1896,6 +2470,72 @@ function updateSelectedImageFadePatch(
   });
 }
 
+async function readFileAsCompressedDataUrl(
+  file: File,
+  options?: {
+    maxWidth?: number;
+    maxHeight?: number;
+    quality?: number;
+    outputType?: "image/jpeg" | "image/webp";
+  },
+) {
+  const {
+    maxWidth = 1600,
+    maxHeight = 1600,
+    quality = 0.78,
+    outputType = "image/jpeg",
+  } = options || {};
+
+  const originalDataUrl = await readFileAsDataUrl(file);
+
+  const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+    const img = new window.Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error("Failed to load image."));
+    img.src = originalDataUrl;
+  });
+
+  let targetWidth = image.width;
+  let targetHeight = image.height;
+
+  const widthRatio = maxWidth / targetWidth;
+  const heightRatio = maxHeight / targetHeight;
+  const ratio = Math.min(widthRatio, heightRatio, 1);
+
+  targetWidth = Math.max(1, Math.round(targetWidth * ratio));
+  targetHeight = Math.max(1, Math.round(targetHeight * ratio));
+
+  const canvas = document.createElement("canvas");
+  canvas.width = targetWidth;
+  canvas.height = targetHeight;
+
+  const ctx = canvas.getContext("2d");
+  if (!ctx) {
+    throw new Error("Failed to create image canvas.");
+  }
+
+  ctx.drawImage(image, 0, 0, targetWidth, targetHeight);
+
+  return canvas.toDataURL(outputType, quality);
+}
+
+function estimateDataUrlBytes(dataUrl: string) {
+  const base64 = dataUrl.split(",")[1] || "";
+  return Math.ceil((base64.length * 3) / 4);
+}
+
+function formatBytes(bytes: number) {
+  if (bytes >= 1024 * 1024) {
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
+  if (bytes >= 1024) {
+    return `${Math.round(bytes / 1024)} KB`;
+  }
+
+  return `${bytes} B`;
+}
+
 function clearPageBackgroundImage() {
   setDraft((prev) => ({
     ...(prev as DraftWithPageExtras),
@@ -1925,39 +2565,72 @@ function updatePageBackgroundImageFit(value: "clip" | "zoom" | "stretch") {
       await options.onSelect(files);
     };
   }
+async function uploadDroppedGalleryFiles(
+  blockId: string,
+  files: FileList | File[],
+) {
+  const MAX_FILES_PER_ADD = 8;
+  const MAX_TOTAL_EMBED_BYTES = 8_500_000;
 
-  async function uploadDroppedGalleryFiles(
-    blockId: string,
-    files: FileList | File[],
-  ) {
-    const imageFiles = Array.from(files).filter((file) =>
-      file.type.startsWith("image/"),
+  const allImageFiles = Array.from(files).filter((file) =>
+    file.type.startsWith("image/"),
+  );
+
+  const imageFiles = allImageFiles.slice(0, MAX_FILES_PER_ADD);
+
+  if (!imageFiles.length) return;
+
+  if (allImageFiles.length > MAX_FILES_PER_ADD) {
+    window.alert(
+      `Only the first ${MAX_FILES_PER_ADD} dropped images were added to keep the draft saveable.`,
     );
-
-    if (!imageFiles.length) return;
-
-    const images: GalleryImage[] = await Promise.all(
-      imageFiles.map(async (file) => ({
-        id: makeClientId("gallery"),
-        url: await readFileAsDataUrl(file),
-      })),
-    );
-
-    setDraft((prev) => ({
-      ...prev,
-      blocks: prev.blocks.map((block) => {
-        if (block.id !== blockId || block.type !== "gallery") return block;
-
-        return {
-          ...block,
-          data: {
-            ...block.data,
-            images: [...block.data.images, ...images],
-          },
-        };
-      }),
-    }));
   }
+
+  const images: GalleryImage[] = [];
+  let totalBytes = 0;
+
+  for (const file of imageFiles) {
+    const compressedUrl = await readFileAsCompressedDataUrl(file, {
+      maxWidth: 1600,
+      maxHeight: 1600,
+      quality: 0.78,
+      outputType: "image/jpeg",
+    });
+
+    const nextBytes = estimateDataUrlBytes(compressedUrl);
+
+    if (totalBytes + nextBytes > MAX_TOTAL_EMBED_BYTES) {
+      window.alert(
+        `Some dropped gallery images were not added because they would make the draft too large to save.\n\nAdded so far: ${formatBytes(totalBytes)}\nNext image: ${formatBytes(nextBytes)}`,
+      );
+      break;
+    }
+
+    totalBytes += nextBytes;
+
+    images.push({
+      id: makeClientId("gallery"),
+      url: compressedUrl,
+    });
+  }
+
+  if (!images.length) return;
+
+  setDraft((prev) => ({
+    ...prev,
+    blocks: prev.blocks.map((block) => {
+      if (block.id !== blockId || block.type !== "gallery") return block;
+
+      return {
+        ...block,
+        data: {
+          ...block.data,
+          images: [...block.data.images, ...images],
+        },
+      };
+    }),
+  }));
+}
 
   async function uploadImageToSelectedBlock(blockId: string) {
     await openImagePicker({
@@ -2005,34 +2678,68 @@ function updatePageBackgroundImageFit(value: "clip" | "zoom" | "stretch") {
     });
   }
 
-  async function uploadGalleryImagesToBlock(blockId: string) {
-    await openImagePicker({
-      multiple: true,
-      onSelect: async (files) => {
-        const images: GalleryImage[] = await Promise.all(
-          files.map(async (file) => ({
-            id: makeClientId("gallery"),
-            url: await readFileAsDataUrl(file),
-          })),
+async function uploadGalleryImagesToBlock(blockId: string) {
+  await openImagePicker({
+    multiple: true,
+    onSelect: async (files) => {
+      const MAX_FILES_PER_ADD = 8;
+      const MAX_TOTAL_EMBED_BYTES = 8_500_000;
+
+      const selectedFiles = files.slice(0, MAX_FILES_PER_ADD);
+
+      if (files.length > MAX_FILES_PER_ADD) {
+        window.alert(
+          `You selected ${files.length} images. Only the first ${MAX_FILES_PER_ADD} were added to keep the draft saveable.`,
         );
+      }
 
-        setDraft((prev) => ({
-          ...prev,
-          blocks: prev.blocks.map((block) => {
-            if (block.id !== blockId || block.type !== "gallery") return block;
+      const images: GalleryImage[] = [];
+      let totalBytes = 0;
 
-            return {
-              ...block,
-              data: {
-                ...block.data,
-                images: [...block.data.images, ...images],
-              },
-            };
-          }),
-        }));
-      },
-    });
-  }
+      for (const file of selectedFiles) {
+        const compressedUrl = await readFileAsCompressedDataUrl(file, {
+          maxWidth: 1600,
+          maxHeight: 1600,
+          quality: 0.78,
+          outputType: "image/jpeg",
+        });
+
+        const nextBytes = estimateDataUrlBytes(compressedUrl);
+
+        if (totalBytes + nextBytes > MAX_TOTAL_EMBED_BYTES) {
+          window.alert(
+            `Some gallery images were not added because they would make the draft too large to save.\n\nAdded so far: ${formatBytes(totalBytes)}\nNext image: ${formatBytes(nextBytes)}`,
+          );
+          break;
+        }
+
+        totalBytes += nextBytes;
+
+        images.push({
+          id: makeClientId("gallery"),
+          url: compressedUrl,
+        });
+      }
+
+      if (!images.length) return;
+
+      setDraft((prev) => ({
+        ...prev,
+        blocks: prev.blocks.map((block) => {
+          if (block.id !== blockId || block.type !== "gallery") return block;
+
+          return {
+            ...block,
+            data: {
+              ...block.data,
+              images: [...block.data.images, ...images],
+            },
+          };
+        }),
+      }));
+    },
+  });
+}
 
   async function uploadImageToCarouselItem(blockId: string, itemId: string) {
   await openImagePicker({
@@ -2558,6 +3265,108 @@ function cancelRemoveAllBlocks() {
     setInspectorFocusTarget(target);
   }
 
+  function SpeedDatingCanvasPreview({
+  block,
+}: {
+  block: Extract<MicrositeBlock, { type: "speed_dating" }>;
+}) {
+  const [round, setRound] = useState(0);
+
+  const duration = Math.max(
+    60,
+    Math.min(1800, Number(block.data.roundDurationSeconds) || 120),
+  );
+
+  const [timeLeft, setTimeLeft] = useState(duration);
+
+  useEffect(() => {
+    setRound(0);
+    setTimeLeft(duration);
+  }, [block.id, duration]);
+
+  useEffect(() => {
+    if (duration <= 0) return;
+
+    const timer = window.setInterval(() => {
+      setTimeLeft((t) => {
+        if (t <= 1) {
+          setRound((r) => r + 1);
+          return duration;
+        }
+        return t - 1;
+      });
+    }, 1000);
+
+    return () => window.clearInterval(timer);
+  }, [duration]);
+
+  const minutes = Math.floor(timeLeft / 60);
+  const seconds = timeLeft % 60;
+
+return (
+  <div
+    className="h-full w-full overflow-auto rounded-xl p-4"
+    style={{
+      backgroundColor:
+        block.appearance?.backgroundColor &&
+        block.appearance.backgroundColor !== "transparent"
+          ? block.appearance.backgroundColor
+          : "transparent",
+      borderColor: block.appearance?.borderColor || undefined,
+      borderWidth:
+        typeof block.appearance?.borderWidth === "number"
+          ? `${block.appearance.borderWidth}px`
+          : undefined,
+      borderStyle:
+        typeof block.appearance?.borderWidth === "number" &&
+        block.appearance.borderWidth > 0
+          ? "solid"
+          : undefined,
+      borderRadius:
+        typeof block.appearance?.borderRadius === "number"
+          ? `${block.appearance.borderRadius}px`
+          : undefined,
+    }}
+  >
+    <div className="mb-4 flex items-start justify-between gap-3">
+      <div className="min-w-0">
+        <div className="truncate text-base font-semibold text-neutral-900">
+          {block.data.heading || "Speed Dating"}
+        </div>
+        <div className="mt-1 text-xs text-neutral-500">
+          Live matchmaking board
+        </div>
+      </div>
+
+      <div className="rounded-full border border-neutral-200 bg-white px-3 py-1 text-xs font-medium text-neutral-600">
+        Round {round + 1}
+      </div>
+    </div>
+
+    {block.data.showTimer !== false && (
+      <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
+        <div>
+          <div className="text-xs font-semibold uppercase tracking-[0.14em] text-neutral-500">
+            Time Remaining
+          </div>
+          <div className="mt-1 text-3xl font-semibold text-neutral-900">
+            {minutes}:{seconds.toString().padStart(2, "0")}
+          </div>
+        </div>
+
+        <div className="mt-4 h-2 overflow-hidden rounded-full bg-neutral-200">
+          <div
+            className="h-full rounded-full bg-blue-600 transition-all"
+            style={{
+              width: `${((duration - timeLeft) / duration) * 100}%`,
+            }}
+          />
+        </div>
+      </div>
+    )}
+  </div>
+);}
+
   function renderCanvasPreview(item: CanvasGridItem) {
     if (isPageBlockId(item.id)) {
   const textValue =
@@ -2707,26 +3516,26 @@ if (block.type === "text_fx") {
       );
     }
 
-    if (block.type === "gallery") {
-      return (
-        <div
-          className="h-full w-full"
-          onDoubleClick={() => void uploadGalleryImagesToBlock(block.id)}
-          onDragOver={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-          }}
-          onDrop={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            void uploadDroppedGalleryFiles(block.id, e.dataTransfer.files);
-          }}
-          title="Double-click or drag images here"
-        >
-          <BlockRenderer block={block} designKey={designKey} />
-        </div>
-      );
-    }
+if (block.type === "gallery") {
+  return (
+    <div
+      className="h-full w-full"
+      onDoubleClick={() => void uploadGalleryImagesToBlock(block.id)}
+      onDragOver={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      }}
+      onDrop={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        void uploadDroppedGalleryFiles(block.id, e.dataTransfer.files);
+      }}
+      title="Double-click or drag images here. Large gallery uploads are compressed to keep drafts saveable."
+    >
+      <BlockRenderer block={block} designKey={designKey} />
+    </div>
+  );
+}
 
     if (block.type === "poll") {
       return (
@@ -3016,6 +3825,658 @@ if (block.type === "text_fx") {
       );
     }
 
+    
+
+    if (block.type === "progress_bar") {
+      const max = Math.max(1, block.data.max ?? 100);
+      const value = Math.max(0, Math.min(block.data.value ?? 0, max));
+      const percent = Math.round((value / max) * 100);
+
+      return (
+        <div
+          className="h-full w-full rounded-xl p-4"
+          style={{
+            backgroundColor:
+              block.appearance?.backgroundColor &&
+              block.appearance.backgroundColor !== "transparent"
+                ? block.appearance.backgroundColor
+                : "transparent",
+            borderColor: block.appearance?.borderColor || undefined,
+            borderWidth:
+              typeof block.appearance?.borderWidth === "number"
+                ? `${block.appearance.borderWidth}px`
+                : undefined,
+            borderStyle:
+              typeof block.appearance?.borderWidth === "number" &&
+              block.appearance.borderWidth > 0
+                ? "solid"
+                : undefined,
+            borderRadius:
+              typeof block.appearance?.borderRadius === "number"
+                ? `${block.appearance.borderRadius}px`
+                : undefined,
+          }}
+        >
+          <div
+            className="mb-3 text-sm font-medium text-neutral-900"
+            style={getInlineTextStyle(block.data.style)}
+          >
+            {block.data.heading || "Progress"}
+          </div>
+
+          <div className="h-4 w-full overflow-hidden rounded-full bg-neutral-200">
+            <div
+              className="h-full rounded-full bg-neutral-900"
+              style={{ width: `${percent}%` }}
+            />
+          </div>
+
+          <div
+            className="mt-2 text-xs text-neutral-600"
+            style={getInlineTextStyle(block.data.style)}
+          >
+            {block.data.showPercentage === false
+              ? `${value} / ${max}`
+              : `${percent}%`}
+          </div>
+        </div>
+      );
+    }
+
+    if (block.type === "donation") {
+      const goal = Math.max(1, block.data.goalAmount ?? 1);
+      const current = Math.max(0, Math.min(block.data.currentAmount ?? 0, goal));
+      const percent = Math.round((current / goal) * 100);
+
+      return (
+        <div
+          className="h-full w-full rounded-xl p-4"
+          style={{
+            backgroundColor:
+              block.appearance?.backgroundColor &&
+              block.appearance.backgroundColor !== "transparent"
+                ? block.appearance.backgroundColor
+                : "transparent",
+            borderColor: block.appearance?.borderColor || undefined,
+            borderWidth:
+              typeof block.appearance?.borderWidth === "number"
+                ? `${block.appearance.borderWidth}px`
+                : undefined,
+            borderStyle:
+              typeof block.appearance?.borderWidth === "number" &&
+              block.appearance.borderWidth > 0
+                ? "solid"
+                : undefined,
+            borderRadius:
+              typeof block.appearance?.borderRadius === "number"
+                ? `${block.appearance.borderRadius}px`
+                : undefined,
+          }}
+        >
+          <div
+            className="text-base font-semibold text-neutral-900"
+            style={getInlineTextStyle(block.data.style)}
+          >
+            {block.data.heading || "Support This Cause"}
+          </div>
+
+          {block.data.description ? (
+            <div
+              className="mt-2 text-sm text-neutral-600"
+              style={getInlineTextStyle(block.data.style)}
+            >
+              {block.data.description}
+            </div>
+          ) : null}
+
+          <div className="mt-4 h-4 w-full overflow-hidden rounded-full bg-neutral-200">
+            <div
+              className="h-full rounded-full bg-neutral-900"
+              style={{ width: `${percent}%` }}
+            />
+          </div>
+
+          <div
+            className="mt-2 text-xs text-neutral-600"
+            style={getInlineTextStyle(block.data.style)}
+          >
+            ${current} raised of ${goal}
+          </div>
+
+          <div className="mt-4">
+            <button
+              type="button"
+              className="inline-flex h-10 items-center justify-center rounded-xl border border-neutral-900 bg-neutral-900 px-4 text-sm font-medium text-white"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {block.data.buttonText || "Donate"}
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    if (block.type === "link_hub") {
+      return (
+        <div
+          className="h-full w-full rounded-xl p-4"
+          style={{
+            backgroundColor:
+              block.appearance?.backgroundColor &&
+              block.appearance.backgroundColor !== "transparent"
+                ? block.appearance.backgroundColor
+                : "transparent",
+            borderColor: block.appearance?.borderColor || undefined,
+            borderWidth:
+              typeof block.appearance?.borderWidth === "number"
+                ? `${block.appearance.borderWidth}px`
+                : undefined,
+            borderStyle:
+              typeof block.appearance?.borderWidth === "number" &&
+              block.appearance.borderWidth > 0
+                ? "solid"
+                : undefined,
+            borderRadius:
+              typeof block.appearance?.borderRadius === "number"
+                ? `${block.appearance.borderRadius}px`
+                : undefined,
+          }}
+        >
+          <div
+            className="mb-3 text-base font-semibold text-neutral-900"
+            style={getInlineTextStyle(block.data.style)}
+          >
+            {block.data.heading || "My Links"}
+          </div>
+
+          <div className="space-y-2">
+            {block.data.items.slice(0, 4).map((item) => (
+              <div
+                key={item.id}
+                className="rounded-lg border border-neutral-200 bg-white px-3 py-2"
+              >
+                <div
+                  className="text-sm font-medium text-neutral-900"
+                  style={getInlineTextStyle(block.data.style)}
+                >
+                  {item.label || "Link"}
+                </div>
+                <div className="mt-1 text-xs text-neutral-500">
+                  {item.url || "#"}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    if (block.type === "checklist") {
+      return (
+        <div
+          className="h-full w-full rounded-xl p-4"
+          style={{
+            backgroundColor:
+              block.appearance?.backgroundColor &&
+              block.appearance.backgroundColor !== "transparent"
+                ? block.appearance.backgroundColor
+                : "transparent",
+            borderColor: block.appearance?.borderColor || undefined,
+            borderWidth:
+              typeof block.appearance?.borderWidth === "number"
+                ? `${block.appearance.borderWidth}px`
+                : undefined,
+            borderStyle:
+              typeof block.appearance?.borderWidth === "number" &&
+              block.appearance.borderWidth > 0
+                ? "solid"
+                : undefined,
+            borderRadius:
+              typeof block.appearance?.borderRadius === "number"
+                ? `${block.appearance.borderRadius}px`
+                : undefined,
+          }}
+        >
+          <div
+            className="mb-3 text-base font-semibold text-neutral-900"
+            style={getInlineTextStyle(block.data.style)}
+          >
+            {block.data.heading || "Checklist"}
+          </div>
+
+          <div className="space-y-2">
+            {block.data.items.slice(0, 5).map((item) => (
+              <label
+                key={item.id}
+                className="flex items-center gap-3 rounded-lg border border-neutral-200 bg-white px-3 py-2"
+              >
+                <input
+                  type="checkbox"
+                  checked={Boolean(item.checked)}
+                  readOnly
+                />
+                <span
+                  className="text-sm text-neutral-900"
+                  style={getInlineTextStyle(block.data.style)}
+                >
+                  {item.label || "Checklist item"}
+                </span>
+              </label>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    if (block.type === "schedule_agenda") {
+      return (
+        <div
+          className="h-full w-full rounded-xl p-4"
+          style={{
+            backgroundColor:
+              block.appearance?.backgroundColor &&
+              block.appearance.backgroundColor !== "transparent"
+                ? block.appearance.backgroundColor
+                : "transparent",
+            borderColor: block.appearance?.borderColor || undefined,
+            borderWidth:
+              typeof block.appearance?.borderWidth === "number"
+                ? `${block.appearance.borderWidth}px`
+                : undefined,
+            borderStyle:
+              typeof block.appearance?.borderWidth === "number" &&
+              block.appearance.borderWidth > 0
+                ? "solid"
+                : undefined,
+            borderRadius:
+              typeof block.appearance?.borderRadius === "number"
+                ? `${block.appearance.borderRadius}px`
+                : undefined,
+          }}
+        >
+          <div
+            className="mb-3 text-base font-semibold text-neutral-900"
+            style={getInlineTextStyle(block.data.style)}
+          >
+            {block.data.heading || "Schedule"}
+          </div>
+
+          <div className="space-y-2">
+            {block.data.items.slice(0, 5).map((item) => (
+              <div
+                key={item.id}
+                className="rounded-lg border border-neutral-200 bg-white px-3 py-2"
+              >
+                <div className="text-xs text-neutral-500">
+                  {item.time || "Time"}
+                </div>
+                <div
+                  className="text-sm font-medium text-neutral-900"
+                  style={getInlineTextStyle(block.data.style)}
+                >
+                  {item.title || "Event"}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    if (block.type === "map_location") {
+      return (
+        <div
+          className="h-full w-full rounded-xl p-4"
+          style={{
+            backgroundColor:
+              block.appearance?.backgroundColor &&
+              block.appearance.backgroundColor !== "transparent"
+                ? block.appearance.backgroundColor
+                : "transparent",
+            borderColor: block.appearance?.borderColor || undefined,
+            borderWidth:
+              typeof block.appearance?.borderWidth === "number"
+                ? `${block.appearance.borderWidth}px`
+                : undefined,
+            borderStyle:
+              typeof block.appearance?.borderWidth === "number" &&
+              block.appearance.borderWidth > 0
+                ? "solid"
+                : undefined,
+            borderRadius:
+              typeof block.appearance?.borderRadius === "number"
+                ? `${block.appearance.borderRadius}px`
+                : undefined,
+          }}
+        >
+          <div
+            className="mb-3 text-base font-semibold text-neutral-900"
+            style={getInlineTextStyle(block.data.style)}
+          >
+            {block.data.heading || "Location"}
+          </div>
+
+          <div className="flex h-40 w-full items-center justify-center rounded-lg border border-neutral-200 bg-neutral-100 text-sm text-neutral-500">
+            Map Preview
+          </div>
+
+          <div className="mt-2 text-xs text-neutral-500">
+            {block.data.address || "Enter address"}
+          </div>
+        </div>
+      );
+    }
+
+    if (block.type === "file_share") {
+      return (
+        <div
+          className="h-full w-full rounded-xl p-4"
+          style={{
+            backgroundColor:
+              block.appearance?.backgroundColor &&
+              block.appearance.backgroundColor !== "transparent"
+                ? block.appearance.backgroundColor
+                : "transparent",
+            borderColor: block.appearance?.borderColor || undefined,
+            borderWidth:
+              typeof block.appearance?.borderWidth === "number"
+                ? `${block.appearance.borderWidth}px`
+                : undefined,
+            borderStyle:
+              typeof block.appearance?.borderWidth === "number" &&
+              block.appearance.borderWidth > 0
+                ? "solid"
+                : undefined,
+            borderRadius:
+              typeof block.appearance?.borderRadius === "number"
+                ? `${block.appearance.borderRadius}px`
+                : undefined,
+          }}
+        >
+          <div
+            className="mb-3 text-base font-semibold text-neutral-900"
+            style={getInlineTextStyle(block.data.style)}
+          >
+            {block.data.heading || "File Share"}
+          </div>
+
+          {block.data.description ? (
+            <div
+              className="mb-3 text-sm text-neutral-600"
+              style={getInlineTextStyle(block.data.style)}
+            >
+              {block.data.description}
+            </div>
+          ) : null}
+
+          <div className="rounded-lg border border-dashed border-neutral-300 bg-neutral-50 px-4 py-8 text-center text-sm text-neutral-500">
+            Upload / download area
+          </div>
+
+          <div className="mt-3 space-y-1 text-xs text-neutral-500">
+            <div>
+              Public upload: {block.data.allowPublicUpload ? "On" : "Off"}
+            </div>
+            <div>
+              Access code: {block.data.requireAccessCode ? "Required" : "Not required"}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+if (block.type === "speed_dating") {
+  return <SpeedDatingCanvasPreview block={block} />;
+}
+
+if (block.type === "registry") {
+  return (
+    <div
+      className="h-full w-full rounded-xl p-4 overflow-auto"
+      style={{
+        backgroundColor:
+          block.appearance?.backgroundColor &&
+          block.appearance.backgroundColor !== "transparent"
+            ? block.appearance.backgroundColor
+            : "transparent",
+        borderColor: block.appearance?.borderColor || undefined,
+        borderWidth:
+          typeof block.appearance?.borderWidth === "number"
+            ? `${block.appearance.borderWidth}px`
+            : undefined,
+        borderStyle:
+          typeof block.appearance?.borderWidth === "number" &&
+          block.appearance.borderWidth > 0
+            ? "solid"
+            : undefined,
+        borderRadius:
+          typeof block.appearance?.borderRadius === "number"
+            ? `${block.appearance.borderRadius}px`
+            : undefined,
+      }}
+    >
+      <div
+        className="mb-3 text-base font-semibold text-neutral-900"
+        style={getInlineTextStyle(block.data.style)}
+      >
+        {block.data.heading || "Gift Registry"}
+      </div>
+
+      {block.data.description ? (
+        <div
+          className="mb-3 text-sm text-neutral-600"
+          style={getInlineTextStyle(block.data.style)}
+        >
+          {block.data.description}
+        </div>
+      ) : null}
+
+      <div className="space-y-2">
+        {(block.data.items ?? []).length ? (
+          (block.data.items ?? []).slice(0, 4).map((item) => (
+            <div
+              key={item.id}
+              className="rounded-lg border border-neutral-200 bg-white px-3 py-3"
+            >
+              <div
+                className="text-sm font-medium text-neutral-900"
+                style={getInlineTextStyle(block.data.style)}
+              >
+                {item.label || "Registry Item"}
+              </div>
+
+              {(item.store || item.price) ? (
+                <div className="mt-1 text-xs text-neutral-500">
+                  {[item.store, item.price].filter(Boolean).join(" • ")}
+                </div>
+              ) : null}
+
+              {item.note ? (
+                <div className="mt-2 text-xs text-neutral-600 line-clamp-3">
+                  {item.note}
+                </div>
+              ) : null}
+            </div>
+          ))
+        ) : (
+          <div className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50 px-4 py-6 text-sm text-neutral-500">
+            Add registry items in the inspector.
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+if (block.type === "video") {
+      return (
+        <div
+          className="h-full w-full rounded-xl overflow-hidden"
+          style={{
+            backgroundColor:
+              block.appearance?.backgroundColor &&
+              block.appearance.backgroundColor !== "transparent"
+                ? block.appearance.backgroundColor
+                : "#000",
+            borderColor: block.appearance?.borderColor || undefined,
+            borderWidth:
+              typeof block.appearance?.borderWidth === "number"
+                ? `${block.appearance.borderWidth}px`
+                : undefined,
+            borderStyle:
+              typeof block.appearance?.borderWidth === "number" &&
+              block.appearance.borderWidth > 0
+                ? "solid"
+                : undefined,
+            borderRadius:
+              typeof block.appearance?.borderRadius === "number"
+                ? `${block.appearance.borderRadius}px`
+                : undefined,
+          }}
+        >
+          {block.data.title ? (
+            <div
+              className="px-3 py-2 text-sm font-semibold text-white"
+              style={getInlineTextStyle(block.data.style)}
+            >
+              {block.data.title}
+            </div>
+          ) : null}
+
+          {block.data.videoUrl ? (
+            <iframe
+              src={`${block.data.videoUrl}${
+                block.data.videoUrl.includes("?") ? "&" : "?"
+              }autoplay=${block.data.autoplay ? 1 : 0}&mute=${
+                block.data.muted ? 1 : 0
+              }&loop=${block.data.loop ? 1 : 0}&controls=${
+                block.data.showControls ? 1 : 0
+              }`}
+              className="h-full w-full"
+              allow="autoplay; encrypted-media"
+              allowFullScreen
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center text-sm text-neutral-400">
+              Add video URL
+            </div>
+          )}
+        </div>
+      );
+    }
+
+if (block.type === "rich_text") {
+  const richTextStyle = getInlineTextStyle(block.data.style);
+
+  return (
+    <div
+      className="h-full w-full rounded-xl overflow-auto"
+      onClick={(e) => {
+        e.stopPropagation();
+
+        const container = e.currentTarget;
+        const editor = container.querySelector(
+          `[data-canvas-rich-text="${block.id}"]`,
+        ) as HTMLDivElement | null;
+
+        if (!editor) return;
+
+        editor.focus();
+
+        const clickedInsideEditor = editor.contains(e.target as Node);
+
+        if (!clickedInsideEditor) {
+          const selection = window.getSelection();
+          const range = document.createRange();
+          range.selectNodeContents(editor);
+          range.collapse(false);
+          selection?.removeAllRanges();
+          selection?.addRange(range);
+        }
+      }}
+      onMouseDown={(e) => {
+        if ((e.target as HTMLElement).isContentEditable) {
+          e.stopPropagation();
+        }
+      }}
+      style={{
+        backgroundColor:
+          block.appearance?.backgroundColor &&
+          block.appearance.backgroundColor !== "transparent"
+            ? block.appearance.backgroundColor
+            : "transparent",
+        borderColor: block.appearance?.borderColor || undefined,
+        borderWidth:
+          typeof block.appearance?.borderWidth === "number"
+            ? `${block.appearance.borderWidth}px`
+            : undefined,
+        borderStyle:
+          typeof block.appearance?.borderWidth === "number" &&
+          block.appearance.borderWidth > 0
+            ? "solid"
+            : undefined,
+        borderRadius:
+          typeof block.appearance?.borderRadius === "number"
+            ? `${block.appearance.borderRadius}px`
+            : undefined,
+      }}
+    >
+      <div className="h-full w-full p-4">
+        {block.data.title ? (
+          <div
+            className="mb-2 text-lg font-semibold text-neutral-900"
+            style={richTextStyle}
+          >
+            {block.data.title}
+          </div>
+        ) : null}
+
+        <div
+          data-canvas-rich-text={block.id}
+          contentEditable
+          suppressContentEditableWarning
+          className="min-h-full text-sm text-neutral-800 whitespace-pre-wrap outline-none"
+          style={richTextStyle}
+          onClick={(e) => e.stopPropagation()}
+          onInput={(e) => {
+            const html = e.currentTarget.innerHTML;
+
+            updateSelectedBlock((currentBlock) =>
+              currentBlock.type !== "rich_text"
+                ? currentBlock
+                : {
+                    ...currentBlock,
+                    data: {
+                      ...currentBlock.data,
+                      content: html,
+                    },
+                  },
+            );
+          }}
+          onBlur={(e) => {
+            const html = e.currentTarget.innerHTML;
+
+            updateSelectedBlock((currentBlock) =>
+              currentBlock.type !== "rich_text"
+                ? currentBlock
+                : {
+                    ...currentBlock,
+                    data: {
+                      ...currentBlock.data,
+                      content: html,
+                    },
+                  },
+            );
+          }}
+          dangerouslySetInnerHTML={{
+            __html: block.data.content || "",
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
     return <BlockRenderer block={block} designKey={designKey} />;
   }
 
@@ -3134,9 +4595,16 @@ return (
         title="Undo"
         onClick={handleUndo}
         disabled={undoStack.length === 0}
-      >
-        ↶
-      </button>
+
+          >
+            <Image
+              src="/icons/icon_main_undo.png"
+              alt="Undo"
+              width={16}
+              height={16}
+              className="pointer-events-none h-5 w-5 object-contain"
+            />
+          </button>
 
       <button
         type="button"
@@ -3144,9 +4612,15 @@ return (
         title="Redo"
         onClick={handleRedo}
         disabled={redoStack.length === 0}
-      >
-        ↷
-      </button>
+          >
+            <Image
+              src="/icons/icon_main_redo.png"
+              alt="Redo"
+              width={16}
+              height={16}
+              className="pointer-events-none h-5 w-5 object-contain"
+            />
+          </button>
 
       <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
 
@@ -3480,8 +4954,15 @@ return (
             className={topBarButtonClass(selectedBold)}
             onClick={() => applyStylePatch({ bold: !selectedBold })}
             title="Bold"
+
           >
-            B
+            <Image
+              src="/icons/icon_main_bold.png"
+              alt="Bold"
+              width={24}
+              height={24}
+              className="pointer-events-none h-5 w-5 object-contain"
+            />
           </button>
 
           <button
@@ -3489,8 +4970,15 @@ return (
             className={topBarButtonClass(selectedItalic)}
             onClick={() => applyStylePatch({ italic: !selectedItalic })}
             title="Italic"
+
           >
-            I
+            <Image
+              src="/icons/icon_main_italic.png"
+              alt="Italic"
+              width={24}
+              height={24}
+              className="pointer-events-none h-5 w-5 object-contain"
+            />
           </button>
 
           <button
@@ -3498,8 +4986,15 @@ return (
             className={topBarButtonClass(selectedUnderline)}
             onClick={() => applyStylePatch({ underline: !selectedUnderline })}
             title="Underline"
+
           >
-            U
+            <Image
+              src="/icons/icon_main_underline.png"
+              alt="Underline"
+              width={24}
+              height={24}
+              className="pointer-events-none h-5 w-5 object-contain"
+            />
           </button>
 
           <button
@@ -3507,8 +5002,15 @@ return (
             className={topBarButtonClass(selectedStrike)}
             onClick={() => applyStylePatch({ strike: !selectedStrike })}
             title="Strikethrough"
+
           >
-            S̶
+            <Image
+              src="/icons/icon_main_strikethrough.png"
+              alt="Strikethrough"
+              width={24}
+              height={24}
+              className="pointer-events-none h-5 w-5 object-contain"
+            />
           </button>
 
           <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
@@ -3518,8 +5020,15 @@ return (
             className={topBarButtonClass(false)}
             onClick={() => applyStylePatch({ align: "left" })}
             title="Align left"
+            
           >
-            ≡
+            <Image
+              src="/icons/icon_main_left_align.png"
+              alt="Align left"
+              width={16}
+              height={16}
+              className="pointer-events-none h-5 w-5 object-contain"
+            />
           </button>
 
           <button
@@ -3527,8 +5036,15 @@ return (
             className={topBarButtonClass(false)}
             onClick={() => applyStylePatch({ align: "center" })}
             title="Align center"
+            
           >
-            ≣
+            <Image
+              src="/icons/icon_main_center_align.png"
+              alt="Align center"
+              width={16}
+              height={16}
+              className="pointer-events-none h-5 w-5 object-contain"
+            />
           </button>
 
           <button
@@ -3536,8 +5052,15 @@ return (
             className={topBarButtonClass(false)}
             onClick={() => applyStylePatch({ align: "right" })}
             title="Align right"
+            
           >
-            ☰
+            <Image
+              src="/icons/icon_main_right_align.png"
+              alt="Align right"
+              width={16}
+              height={16}
+              className="pointer-events-none h-5 w-5 object-contain"
+            />
           </button>
 
           <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
@@ -4846,7 +6369,60 @@ return (
                     <div className={inspectorLabelClass()}>Countdown</div>
 
                     <div className="mt-4">
-                      <div className={inspectorLabelClass()}>Heading</div>
+                      <div className={inspectorLabelClass()}>Style Variant</div>
+                      <select
+                        value={selectedBlock.data.styleVariant ?? "default"}
+                        onChange={(e) =>
+                          updateSelectedBlock((block) =>
+                            block.type !== "countdown"
+                              ? block
+                              : {
+                                  ...block,
+                                  data: {
+                                    ...block.data,
+                                    styleVariant: e.target.value as
+                                      | "default"
+                                      | "cards"
+                                      | "hero",
+                                  },
+                                },
+                          )
+                        }
+                        className={inspectorInputClass()}
+                      >
+                        <option value="default">Default</option>
+                        <option value="cards">Cards</option>
+                        <option value="hero">Hero</option>
+                      </select>
+                    </div>
+
+                    <div className="mt-4">
+                      <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+                        <input
+                          type="checkbox"
+                          checked={selectedBlock.data.showRings !== false}
+                          onChange={(e) =>
+                            updateSelectedBlock((block) =>
+                              block.type !== "countdown"
+                                ? block
+                                : {
+                                    ...block,
+                                    data: {
+                                      ...block.data,
+                                      showRings: e.target.checked,
+                                    },
+                                  },
+                            )
+                          }
+                        />
+                        Show Rings
+                      </label>
+                    </div>
+
+                    <div className="mt-4">
+                      <div className={inspectorLabelClass()}>
+                        Heading (optional)
+                      </div>
                       <input
                         ref={countdownHeadingInputRef}
                         type="text"
@@ -5052,7 +6628,7 @@ return (
 
 {selectedBlock?.type === "thread" ? (
   <div id="inspector-thread" className={inspectorCardClass()}>
-    <div className={inspectorLabelClass()}>Thread / Social</div>
+    <div className={inspectorLabelClass()}>Thread / Interactive</div>
 
     <div className="mt-4">
       <div className={inspectorLabelClass()}>Subject</div>
@@ -5515,6 +7091,1937 @@ data: {
 
     <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-4 text-sm text-neutral-500">
       This block is read-only and should display live DB-backed summary data.
+    </div>
+  </div>
+) : null}
+
+{selectedBlock?.type === "progress_bar" ? (
+  <div className={inspectorCardClass()}>
+    <div className={inspectorLabelClass()}>Progress Bar</div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Heading</div>
+      <input
+        type="text"
+        value={selectedBlock.data.heading ?? ""}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "progress_bar"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    heading: e.target.value,
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
+
+    <div className="mt-4 grid grid-cols-2 gap-3">
+      <div>
+        <div className={inspectorLabelClass()}>Current Value</div>
+        <input
+          type="number"
+          min={0}
+          value={selectedBlock.data.value ?? 0}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "progress_bar"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      value: Math.max(0, Number(e.target.value) || 0),
+                    },
+                  },
+            )
+          }
+          className={inspectorInputClass()}
+        />
+      </div>
+
+      <div>
+        <div className={inspectorLabelClass()}>Max Value</div>
+        <input
+          type="number"
+          min={1}
+          value={selectedBlock.data.max ?? 100}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "progress_bar"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      max: Math.max(1, Number(e.target.value) || 1),
+                    },
+                  },
+            )
+          }
+          className={inspectorInputClass()}
+        />
+      </div>
+    </div>
+
+    <div className="mt-4">
+      <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+        <input
+          type="checkbox"
+          checked={selectedBlock.data.showPercentage !== false}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "progress_bar"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      showPercentage: e.target.checked,
+                    },
+                  },
+            )
+          }
+        />
+        Show Percentage
+      </label>
+    </div>
+  </div>
+) : null}
+
+{selectedBlock?.type === "donation" ? (
+  <div className={inspectorCardClass()}>
+    <div className={inspectorLabelClass()}>Donation</div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Heading</div>
+      <input
+        type="text"
+        value={selectedBlock.data.heading ?? ""}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "donation"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    heading: e.target.value,
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Description</div>
+      <textarea
+        value={selectedBlock.data.description ?? ""}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "donation"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    description: e.target.value,
+                  },
+                },
+          )
+        }
+        className={inspectorTextareaClass()}
+      />
+    </div>
+
+    <div className="mt-4 grid grid-cols-2 gap-3">
+      <div>
+        <div className={inspectorLabelClass()}>Current Amount</div>
+        <input
+          type="number"
+          min={0}
+          value={selectedBlock.data.currentAmount ?? 0}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "donation"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      currentAmount: Math.max(0, Number(e.target.value) || 0),
+                    },
+                  },
+            )
+          }
+          className={inspectorInputClass()}
+        />
+      </div>
+
+      <div>
+        <div className={inspectorLabelClass()}>Goal Amount</div>
+        <input
+          type="number"
+          min={1}
+          value={selectedBlock.data.goalAmount ?? 1000}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "donation"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      goalAmount: Math.max(1, Number(e.target.value) || 1),
+                    },
+                  },
+            )
+          }
+          className={inspectorInputClass()}
+        />
+      </div>
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Button Text</div>
+      <input
+        type="text"
+        value={selectedBlock.data.buttonText ?? ""}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "donation"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    buttonText: e.target.value,
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Button URL</div>
+      <input
+        type="text"
+        value={selectedBlock.data.buttonUrl ?? ""}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "donation"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    buttonUrl: e.target.value,
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
+  </div>
+) : null}
+
+{selectedBlock?.type === "link_hub" ? (
+  <div className={inspectorCardClass()}>
+    <div className={inspectorLabelClass()}>Link Hub</div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Heading</div>
+      <input
+        type="text"
+        value={selectedBlock.data.heading ?? ""}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "link_hub"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    heading: e.target.value,
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
+
+    <div className="mt-4 space-y-3">
+      {selectedBlock.data.items.map((item: LinkItem) => (
+        <div
+          key={item.id}
+          className="rounded-xl border border-neutral-200 bg-neutral-50 p-3"
+        >
+          <div className={inspectorLabelClass()}>Label</div>
+          <input
+            type="text"
+            value={item.label}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "link_hub"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        items: block.data.items.map((entry) =>
+                          entry.id === item.id
+                            ? { ...entry, label: e.target.value }
+                            : entry,
+                        ),
+                      },
+                    },
+              )
+            }
+            className={inspectorInputClass()}
+          />
+
+          <div className="mt-4">
+            <div className={inspectorLabelClass()}>URL</div>
+            <input
+              type="text"
+              value={item.url}
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "link_hub"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          items: block.data.items.map((entry) =>
+                            entry.id === item.id
+                              ? { ...entry, url: e.target.value }
+                              : entry,
+                          ),
+                        },
+                      },
+                )
+              }
+              className={inspectorInputClass()}
+            />
+          </div>
+
+          <div className="mt-3 flex justify-end">
+            <button
+              type="button"
+              className={toolSetButtonClass("remove")}
+              onClick={() =>
+                updateSelectedBlock((block) =>
+                  block.type !== "link_hub"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          items:
+                            block.data.items.length > 1
+                              ? block.data.items.filter(
+                                  (entry) => entry.id !== item.id,
+                                )
+                              : block.data.items,
+                        },
+                      },
+                )
+              }
+              title="Remove link"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      ))}
+
+      <button
+        type="button"
+        className={toolSetButtonClass("front")}
+        onClick={() =>
+          updateSelectedBlock((block) =>
+            block.type !== "link_hub"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    items: [
+                      ...block.data.items,
+                      {
+                        id: makeClientId("link"),
+                        label: "New Link",
+                        url: "#",
+                      },
+                    ],
+                  },
+                },
+          )
+        }
+      >
+        Add Link
+      </button>
+    </div>
+  </div>
+) : null}
+
+{selectedBlock?.type === "checklist" ? (
+  <div className={inspectorCardClass()}>
+    <div className={inspectorLabelClass()}>Checklist</div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Heading</div>
+      <input
+        type="text"
+        value={selectedBlock.data.heading ?? ""}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "checklist"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    heading: e.target.value,
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
+
+    <div className="mt-4 space-y-3">
+      {selectedBlock.data.items.map((item) => (
+        <div
+          key={item.id}
+          className="rounded-xl border border-neutral-200 bg-neutral-50 p-3"
+        >
+          <div className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              checked={Boolean(item.checked)}
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "checklist"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          items: block.data.items.map((entry) =>
+                            entry.id === item.id
+                              ? { ...entry, checked: e.target.checked }
+                              : entry,
+                          ),
+                        },
+                      },
+                )
+              }
+            />
+
+            <input
+              type="text"
+              value={item.label}
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "checklist"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          items: block.data.items.map((entry) =>
+                            entry.id === item.id
+                              ? { ...entry, label: e.target.value }
+                              : entry,
+                          ),
+                        },
+                      },
+                )
+              }
+              className={inspectorInputClass()}
+            />
+          </div>
+
+          <div className="mt-3 flex justify-end">
+            <button
+              type="button"
+              className={toolSetButtonClass("remove")}
+              onClick={() =>
+                updateSelectedBlock((block) =>
+                  block.type !== "checklist"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          items:
+                            block.data.items.length > 1
+                              ? block.data.items.filter(
+                                  (entry) => entry.id !== item.id,
+                                )
+                              : block.data.items,
+                        },
+                      },
+                )
+              }
+              title="Remove checklist item"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      ))}
+
+      <button
+        type="button"
+        className={toolSetButtonClass("front")}
+        onClick={() =>
+          updateSelectedBlock((block) =>
+            block.type !== "checklist"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    items: [
+                      ...block.data.items,
+                      {
+                        id: makeClientId("check"),
+                        label: "New item",
+                        checked: false,
+                      },
+                    ],
+                  },
+                },
+          )
+        }
+      >
+        Add Item
+      </button>
+    </div>
+  </div>
+) : null}
+
+{selectedBlock?.type === "schedule_agenda" ? (
+  <div className={inspectorCardClass()}>
+    <div className={inspectorLabelClass()}>Schedule</div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Heading</div>
+      <input
+        type="text"
+        value={selectedBlock.data.heading ?? ""}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "schedule_agenda"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    heading: e.target.value,
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
+
+    <div className="mt-4 space-y-3">
+      {selectedBlock.data.items.map((item) => (
+        <div
+          key={item.id}
+          className="rounded-xl border border-neutral-200 bg-neutral-50 p-3"
+        >
+          <div className={inspectorLabelClass()}>Time</div>
+          <input
+            type="text"
+            value={item.time}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "schedule_agenda"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        items: block.data.items.map((entry) =>
+                          entry.id === item.id
+                            ? { ...entry, time: e.target.value }
+                            : entry,
+                        ),
+                      },
+                    },
+              )
+            }
+            className={inspectorInputClass()}
+          />
+
+          <div className="mt-4">
+            <div className={inspectorLabelClass()}>Title</div>
+            <input
+              type="text"
+              value={item.title}
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "schedule_agenda"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          items: block.data.items.map((entry) =>
+                            entry.id === item.id
+                              ? { ...entry, title: e.target.value }
+                              : entry,
+                          ),
+                        },
+                      },
+                )
+              }
+              className={inspectorInputClass()}
+            />
+          </div>
+
+          <div className="mt-4">
+            <div className={inspectorLabelClass()}>Description</div>
+            <textarea
+              value={item.description ?? ""}
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "schedule_agenda"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          items: block.data.items.map((entry) =>
+                            entry.id === item.id
+                              ? { ...entry, description: e.target.value }
+                              : entry,
+                          ),
+                        },
+                      },
+                )
+              }
+              className={inspectorTextareaClass()}
+            />
+          </div>
+
+          <div className="mt-3 flex justify-end">
+            <button
+              type="button"
+              className={toolSetButtonClass("remove")}
+              onClick={() =>
+                updateSelectedBlock((block) =>
+                  block.type !== "schedule_agenda"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          items:
+                            block.data.items.length > 1
+                              ? block.data.items.filter(
+                                  (entry) => entry.id !== item.id,
+                                )
+                              : block.data.items,
+                        },
+                      },
+                )
+              }
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      ))}
+
+      <button
+        type="button"
+        className={toolSetButtonClass("front")}
+        onClick={() =>
+          updateSelectedBlock((block) =>
+            block.type !== "schedule_agenda"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    items: [
+                      ...block.data.items,
+                      {
+                        id: makeClientId("schedule"),
+                        time: "12:00 PM",
+                        title: "New Event",
+                        description: "",
+                      },
+                    ],
+                  },
+                },
+          )
+        }
+      >
+        Add Event
+      </button>
+    </div>
+  </div>
+) : null}
+
+{selectedBlock?.type === "map_location" ? (
+  <div className={inspectorCardClass()}>
+    <div className={inspectorLabelClass()}>Map</div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Heading</div>
+      <input
+        type="text"
+        value={selectedBlock.data.heading ?? ""}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "map_location"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    heading: e.target.value,
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Location Name</div>
+      <input
+        type="text"
+        value={selectedBlock.data.locationName ?? ""}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "map_location"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    locationName: e.target.value,
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Address</div>
+      <input
+        type="text"
+        value={selectedBlock.data.address ?? ""}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "map_location"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    address: e.target.value,
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Map URL (optional)</div>
+      <input
+        type="text"
+        value={selectedBlock.data.mapUrl ?? ""}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "map_location"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    mapUrl: e.target.value,
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
+  </div>
+) : null}
+
+{selectedBlock?.type === "file_share" ? (
+  <div className={inspectorCardClass()}>
+    <div className={inspectorLabelClass()}>File Share</div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Heading</div>
+      <input
+        type="text"
+        value={selectedBlock.data.heading ?? ""}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "file_share"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    heading: e.target.value,
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Description</div>
+      <textarea
+        value={selectedBlock.data.description ?? ""}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "file_share"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    description: e.target.value,
+                  },
+                },
+          )
+        }
+        className={inspectorTextareaClass()}
+      />
+    </div>
+
+    <div className="mt-4 grid grid-cols-1 gap-3">
+      <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+        <input
+          type="checkbox"
+          checked={Boolean(selectedBlock.data.allowPublicUpload)}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "file_share"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      allowPublicUpload: e.target.checked,
+                    },
+                  },
+            )
+          }
+        />
+        Allow public upload
+      </label>
+
+      <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+        <input
+          type="checkbox"
+          checked={Boolean(selectedBlock.data.requireAccessCode)}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "file_share"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      requireAccessCode: e.target.checked,
+                    },
+                  },
+            )
+          }
+        />
+        Require access code
+      </label>
+    </div>
+  </div>
+) : null}
+
+{selectedBlock?.type === "speed_dating" ? (
+  <div className={inspectorCardClass()}>
+    <div className={inspectorLabelClass()}>Speed Dating</div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Heading</div>
+      <input
+        type="text"
+        value={selectedBlock.data.heading ?? ""}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "speed_dating"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    heading: e.target.value,
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>
+        Round Duration (minutes)
+      </div>
+      <input
+        type="number"
+        min={1}
+        max={30}
+        value={Math.max(
+          1,
+          Math.min(
+            30,
+            Math.floor(Number(selectedBlock.data.roundDurationSeconds ?? 120) / 60) || 2,
+          ),
+        )}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "speed_dating"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    roundDurationSeconds:
+                      Math.max(1, Math.min(30, Number(e.target.value) || 2)) * 60,
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
+  </div>
+) : null}
+
+{selectedBlock?.type === "registry" ? (
+  <div className={inspectorCardClass()}>
+    <div className={inspectorLabelClass()}>Registry</div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Heading</div>
+      <input
+        type="text"
+        value={selectedBlock.data.heading ?? ""}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "registry"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    heading: e.target.value,
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Description</div>
+      <textarea
+        value={selectedBlock.data.description ?? ""}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "registry"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    description: e.target.value,
+                  },
+                },
+          )
+        }
+        className={inspectorTextareaClass()}
+      />
+    </div>
+
+    <div className="mt-4 space-y-3">
+      {(selectedBlock.data.items ?? []).map((item, index) => {
+        const normalizedUrl =
+          typeof item.url === "string" ? item.url.trim() : "";
+        const storeMeta = getStoreMeta(normalizedUrl);
+
+        return (
+          <div
+            key={item.id}
+            className="rounded-xl border border-neutral-200 bg-neutral-50 p-3"
+          >
+            <div className="text-xs font-semibold uppercase tracking-[0.12em] text-neutral-500">
+              Item {index + 1}
+            </div>
+
+            <div className="mt-3">
+              <div className={inspectorLabelClass()}>Item Name</div>
+              <input
+                type="text"
+                value={item.label ?? ""}
+                onChange={(e) =>
+                  updateSelectedBlock((block) =>
+                    block.type !== "registry"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            items: (block.data.items ?? []).map((entry) =>
+                              entry.id === item.id
+                                ? { ...entry, label: e.target.value }
+                                : entry,
+                            ),
+                          },
+                        },
+                  )
+                }
+                className={inspectorInputClass()}
+              />
+            </div>
+
+            {storeMeta?.logo ? (
+              <div className="mt-4 flex items-center gap-2">
+                <img
+                  src={storeMeta.logo}
+                  alt={storeMeta.name || "Store"}
+                  className="h-5 w-5 rounded-sm object-contain"
+                />
+                <span className="text-xs text-neutral-500">
+                  {storeMeta.name || item.store?.trim() || "Store detected"}
+                </span>
+              </div>
+            ) : null}
+
+            {item.imageUrl ? (
+              <div className="mt-4 overflow-hidden rounded-xl border border-neutral-200 bg-white">
+                <img
+                  src={item.imageUrl}
+                  alt={item.label || `Item ${index + 1}`}
+                  className="h-32 w-full object-cover"
+                />
+              </div>
+            ) : null}
+            <div className="mt-4">
+              <div className={inspectorLabelClass()}>URL</div>
+              <input
+                type="text"
+                value={item.url ?? ""}
+                onChange={(e) => {
+                  const url = e.target.value;
+
+                  updateSelectedBlock((block) =>
+                    block.type !== "registry"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            items: (block.data.items ?? []).map((entry) =>
+                              entry.id === item.id
+                                ? {
+                                    ...entry,
+                                    url,
+                                    store: "",
+                                    price: "",
+                                    imageUrl: "",
+                                  }
+                                : entry,
+                            ),
+                          },
+                        },
+                  );
+
+                  if (!(window as any).__registryTimers) {
+                    (window as any).__registryTimers = {};
+                  }
+
+                  if ((window as any).__registryTimers[item.id]) {
+                    clearTimeout((window as any).__registryTimers[item.id]);
+                  }
+
+                  (window as any).__registryTimers[item.id] = window.setTimeout(
+                    async () => {
+                      const trimmedUrl = url.trim();
+                      if (!/^https?:\/\//i.test(trimmedUrl)) return;
+
+                      try {
+                        setRegistryLoadingMap((prev) => ({
+                          ...prev,
+                          [item.id]: true,
+                        }));
+
+                        const { fetchRegistryMetadata } = await import(
+                          "@/lib/utils/fetchRegistryMetadata"
+                        );
+
+                        const meta = await fetchRegistryMetadata(trimmedUrl);
+
+                        updateSelectedBlock((block) => {
+                          if (block.type !== "registry") return block;
+
+                          return {
+                            ...block,
+                            data: {
+                              ...block.data,
+                              items: (block.data.items ?? []).map((entry) => {
+                                if (entry.id !== item.id) return entry;
+
+                                const currentLabel =
+                                  typeof entry.label === "string"
+                                    ? entry.label.trim()
+                                    : "";
+                                const currentStore =
+                                  typeof entry.store === "string"
+                                    ? entry.store.trim()
+                                    : "";
+                                const currentPrice =
+                                  typeof entry.price === "string"
+                                    ? entry.price.trim()
+                                    : "";
+
+                                return {
+                                  ...entry,
+                                  label: currentLabel || meta.title || "",
+                                  store: meta.store || "",
+                                  price: meta.price || "",
+                                  imageUrl: meta.imageUrl || "",
+                                };
+                              }),
+                            },
+                          };
+                        });
+                      } catch {
+                        // silent fail
+                      } finally {
+                        setRegistryLoadingMap((prev) => ({
+                          ...prev,
+                          [item.id]: false,
+                        }));
+                      }
+                    },
+                    600,
+                  );
+                }}
+                className={inspectorInputClass()}
+              />
+
+              {registryLoadingMap[item.id] ? (
+                <div className="mt-1 text-xs text-neutral-500">
+                  Fetching item details...
+                </div>
+              ) : null}
+            </div>
+
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              <div>
+                <div className={inspectorLabelClass()}>Store</div>
+                <input
+                  type="text"
+                  value={item.store ?? ""}
+                  onChange={(e) =>
+                    updateSelectedBlock((block) =>
+                      block.type !== "registry"
+                        ? block
+                        : {
+                            ...block,
+                            data: {
+                              ...block.data,
+                              items: (block.data.items ?? []).map((entry) =>
+                                entry.id === item.id
+                                  ? { ...entry, store: e.target.value }
+                                  : entry,
+                              ),
+                            },
+                          },
+                    )
+                  }
+                  className={inspectorInputClass()}
+                />
+              </div>
+
+              <div>
+                <div className={inspectorLabelClass()}>Price</div>
+                <input
+                  type="text"
+                  value={item.price ?? ""}
+                  onChange={(e) =>
+                    updateSelectedBlock((block) =>
+                      block.type !== "registry"
+                        ? block
+                        : {
+                            ...block,
+                            data: {
+                              ...block.data,
+                              items: (block.data.items ?? []).map((entry) =>
+                                entry.id === item.id
+                                  ? { ...entry, price: e.target.value }
+                                  : entry,
+                              ),
+                            },
+                          },
+                    )
+                  }
+                  className={inspectorInputClass()}
+                />
+              </div>
+            </div>
+
+            <div className="mt-4">
+              <div className={inspectorLabelClass()}>Note</div>
+              <textarea
+                value={item.note ?? ""}
+                onChange={(e) =>
+                  updateSelectedBlock((block) =>
+                    block.type !== "registry"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            items: (block.data.items ?? []).map((entry) =>
+                              entry.id === item.id
+                                ? { ...entry, note: e.target.value }
+                                : entry,
+                            ),
+                          },
+                        },
+                  )
+                }
+                className={inspectorTextareaClass()}
+              />
+            </div>
+
+            <div className="mt-3 flex justify-end">
+              <button
+                type="button"
+                className={toolSetButtonClass("remove")}
+                onClick={() =>
+                  updateSelectedBlock((block) =>
+                    block.type !== "registry"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            items:
+                              (block.data.items ?? []).length > 1
+                                ? (block.data.items ?? []).filter(
+                                    (entry) => entry.id !== item.id,
+                                  )
+                                : block.data.items ?? [],
+                          },
+                        },
+                  )
+                }
+                title="Remove registry item"
+              >
+                ×
+              </button>
+            </div>
+          </div>
+        );
+      })}
+
+      <button
+        type="button"
+        className={toolSetButtonClass("front")}
+        onClick={() =>
+          updateSelectedBlock((block) =>
+            block.type !== "registry"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    items: [
+                      ...(block.data.items ?? []),
+                      {
+                        id: makeClientId("registryitem"),
+                        label: "New Gift",
+                        url: "#",
+                        store: "",
+                        price: "",
+                        note: "",
+                      },
+                    ],
+                  },
+                },
+          )
+        }
+      >
+        Add Registry Item
+      </button>
+    </div>
+</div>
+) : null}
+
+{selectedBlock?.type === "video" ? (
+  <div className={inspectorCardClass()}>
+    <div className={inspectorLabelClass()}>Video</div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Title</div>
+      <input
+        type="text"
+        value={selectedBlock.data.title ?? ""}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "video"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    title: e.target.value,
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>
+        Video URL (YouTube, Vimeo, etc.)
+      </div>
+      <input
+        type="text"
+        value={selectedBlock.data.videoUrl ?? ""}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "video"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    videoUrl: e.target.value,
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+        placeholder="https://..."
+      />
+    </div>
+
+    <div className="mt-4 grid grid-cols-1 gap-3">
+      <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm">
+        <input
+          type="checkbox"
+          checked={Boolean(selectedBlock.data.autoplay)}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "video"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      autoplay: e.target.checked,
+                    },
+                  },
+            )
+          }
+        />
+        Autoplay
+      </label>
+
+      <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm">
+        <input
+          type="checkbox"
+          checked={Boolean(selectedBlock.data.muted)}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "video"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      muted: e.target.checked,
+                    },
+                  },
+            )
+          }
+        />
+        Muted
+      </label>
+
+      <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm">
+        <input
+          type="checkbox"
+          checked={Boolean(selectedBlock.data.loop)}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "video"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      loop: e.target.checked,
+                    },
+                  },
+            )
+          }
+        />
+        Loop
+      </label>
+
+      <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm">
+        <input
+          type="checkbox"
+          checked={Boolean(selectedBlock.data.showControls)}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "video"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      showControls: e.target.checked,
+                    },
+                  },
+            )
+          }
+        />
+        Show Controls
+      </label>
+    </div>
+  </div>
+) : null}
+
+{selectedBlock?.type === "rich_text" ? (
+  <div className={inspectorCardClass()}>
+    <div className={inspectorLabelClass()}>Rich Text</div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Title</div>
+      <input
+        type="text"
+        value={selectedBlock.data.title ?? ""}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "rich_text"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    title: e.target.value,
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Content</div>
+
+      <div
+        className="mb-2 space-y-2"
+        onMouseDownCapture={(e) => {
+          const target = e.target as HTMLElement;
+          if (target.closest("button")) {
+            e.preventDefault();
+          }
+        }}
+      >
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            className={`px-2 py-1 text-xs rounded border ${
+              selectedBlock.data.style?.bold
+  ? "bg-white text-black border-2 border-black"
+  : "bg-white text-black border border-neutral-300 hover:bg-neutral-100"
+            }`}
+            onClick={() =>
+              withRichTextEditor((editor) => {
+                document.execCommand("bold");
+                updateSelectedBlock((block) =>
+                  block.type !== "rich_text"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          content: editor.innerHTML,
+                          style: {
+                            ...(block.data.style ?? {}),
+                            bold: !block.data.style?.bold,
+                          },
+                        },
+                      },
+                );
+              })
+            }
+          >
+            B
+          </button>
+
+          <button
+            type="button"
+            className={`px-2 py-1 text-xs rounded border ${
+              selectedBlock.data.style?.italic
+  ? "bg-white text-black border-2 border-black"
+  : "bg-white text-black border border-neutral-300 hover:bg-neutral-100"
+            }`}
+            onClick={() =>
+              withRichTextEditor((editor) => {
+                document.execCommand("italic");
+                updateSelectedBlock((block) =>
+                  block.type !== "rich_text"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          content: editor.innerHTML,
+                          style: {
+                            ...(block.data.style ?? {}),
+                            italic: !block.data.style?.italic,
+                          },
+                        },
+                      },
+                );
+              })
+            }
+          >
+            I
+          </button>
+
+          <button
+            type="button"
+            className={`px-2 py-1 text-xs rounded border ${
+              selectedBlock.data.style?.underline
+  ? "bg-white text-black border-2 border-black"
+  : "bg-white text-black border border-neutral-300 hover:bg-neutral-100"
+            }`}
+            onClick={() =>
+              withRichTextEditor((editor) => {
+                document.execCommand("underline");
+                updateSelectedBlock((block) =>
+                  block.type !== "rich_text"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          content: editor.innerHTML,
+                          style: {
+                            ...(block.data.style ?? {}),
+                            underline: !block.data.style?.underline,
+                          },
+                        },
+                      },
+                );
+              })
+            }
+          >
+            U
+          </button>
+
+          <button
+            type="button"
+            className={`px-2 py-1 text-xs rounded border ${
+              (selectedBlock.data.style?.align ?? "left") === "left"
+  ? "bg-white text-black border-2 border-black"
+  : "bg-white text-black border border-neutral-300 hover:bg-neutral-100"
+            }`}
+            onClick={() =>
+              withRichTextEditor((editor) => {
+                document.execCommand("justifyLeft");
+                updateSelectedBlock((block) =>
+                  block.type !== "rich_text"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          content: editor.innerHTML,
+                          style: {
+                            ...(block.data.style ?? {}),
+                            align: "left",
+                          },
+                        },
+                      },
+                );
+              })
+            }
+            title="Align left"
+          >
+            <Image
+              src="/icons/icon_left_align.png"
+              alt="Align left"
+              width={16}
+              height={16}
+              className="pointer-events-none h-4 w-4 object-contain"
+            />
+          </button>
+
+          <button
+            type="button"
+            className={`px-2 py-1 text-xs rounded border ${
+              selectedBlock.data.style?.align === "center"
+  ? "bg-white text-black border-2 border-black"
+  : "bg-white text-black border border-neutral-300 hover:bg-neutral-100"
+            }`}
+            onClick={() =>
+              withRichTextEditor((editor) => {
+                document.execCommand("justifyCenter");
+                updateSelectedBlock((block) =>
+                  block.type !== "rich_text"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          content: editor.innerHTML,
+                          style: {
+                            ...(block.data.style ?? {}),
+                            align: "center",
+                          },
+                        },
+                      },
+                );
+              })
+            }
+            title="Align center"
+          >
+            <Image
+              src="/icons/icon_center_align.png"
+              alt="Align center"
+              width={16}
+              height={16}
+              className="pointer-events-none h-4 w-4 object-contain"
+            />
+          </button>
+
+<button
+  type="button"
+  className={`px-2 py-1 text-xs rounded border ${
+    selectedBlock.data.style?.align === "right"
+      ? "bg-white text-black border-2 border-black"
+      : "bg-white text-black border border-neutral-300 hover:bg-neutral-100"
+  }`}
+  onClick={() =>
+    withRichTextEditor((editor) => {
+      document.execCommand("justifyRight");
+      updateSelectedBlock((block) =>
+        block.type !== "rich_text"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                content: editor.innerHTML,
+                style: {
+                  ...(block.data.style ?? {}),
+                  align: "right",
+                },
+              },
+            },
+      );
+    })
+  }
+  title="Align right"
+>
+  <Image
+    src="/icons/icon_right_align.png"
+    alt="Align right"
+    width={16}
+    height={16}
+    className="pointer-events-none h-4 w-4 object-contain"
+  />
+</button>
+
+</div>
+
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            className={`px-2 py-1 text-xs rounded border ${
+              selectedBlock.data.listType === "bullet"
+                ? "bg-black text-white border-black"
+                : "bg-white text-black border-neutral-300 hover:bg-neutral-100"
+            }`}
+            onClick={() =>
+              withRichTextEditor((editor) => {
+                document.execCommand("insertUnorderedList");
+                updateSelectedBlock((block) =>
+                  block.type !== "rich_text"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          content: editor.innerHTML,
+                          listType:
+                            block.data.listType === "bullet" ? "none" : "bullet",
+                        },
+                      },
+                );
+              })
+            }
+          >
+            Bulleted List
+          </button>
+
+          <button
+            type="button"
+            className={`px-2 py-1 text-xs rounded border ${
+              selectedBlock.data.listType === "number"
+                ? "bg-black text-white border-black"
+                : "bg-white text-black border-neutral-300 hover:bg-neutral-100"
+            }`}
+            onClick={() =>
+              withRichTextEditor((editor) => {
+                document.execCommand("insertOrderedList");
+                updateSelectedBlock((block) =>
+                  block.type !== "rich_text"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          content: editor.innerHTML,
+                          listType:
+                            block.data.listType === "number" ? "none" : "number",
+                        },
+                      },
+                );
+              })
+            }
+          >
+            Numbered List
+          </button>
+
+                    <button
+            type="button"
+            className="px-2 py-1 text-xs rounded border bg-white text-black border-neutral-300 hover:bg-neutral-100"
+            onClick={openRichTextLinkModal}
+          >
+            Link
+          </button>
+        </div>
+      </div>
+
+<div
+  className="relative"
+  onMouseDown={(e) => {
+    const target = e.target as HTMLElement;
+    const editor = richTextEditorRef.current;
+
+    if (!editor) return;
+
+    const clickedInsideEditor = target === editor || editor.contains(target);
+    if (clickedInsideEditor) return;
+
+    e.preventDefault();
+
+    window.setTimeout(() => {
+      editor.focus();
+
+      const selection = window.getSelection();
+      const range = document.createRange();
+      range.selectNodeContents(editor);
+      range.collapse(false);
+      selection?.removeAllRanges();
+      selection?.addRange(range);
+    }, 0);
+  }}
+>
+        {isRichTextEditorEmpty ? (
+          <div
+            className="pointer-events-none absolute left-3 top-3 z-30 text-sm text-neutral-400"
+            style={{
+              textAlign: selectedBlock.data.style?.align ?? "left",
+            }}
+          >
+            Start writing here...
+          </div>
+        ) : null}
+
+        <div
+          ref={richTextEditorRef}
+          data-rich-text-editor={selectedBlock.id}
+          contentEditable
+          suppressContentEditableWarning
+          onKeyDown={(e) => {
+            const isCmd = e.metaKey || e.ctrlKey;
+
+            if (!isCmd) return;
+
+            if (e.key.toLowerCase() === "b") {
+              e.preventDefault();
+              withRichTextEditor(() => {
+                document.execCommand("bold");
+              });
+            }
+
+            if (e.key.toLowerCase() === "i") {
+              e.preventDefault();
+              withRichTextEditor(() => {
+                document.execCommand("italic");
+              });
+            }
+
+            if (e.key.toLowerCase() === "u") {
+              e.preventDefault();
+              withRichTextEditor(() => {
+                document.execCommand("underline");
+              });
+            }
+
+            if (e.key.toLowerCase() === "k") {
+              e.preventDefault();
+              openRichTextLinkModal();
+            }
+          }}
+          onPaste={(e) => {
+            const text = e.clipboardData.getData("text/plain");
+            const html = e.clipboardData.getData("text/html");
+
+            e.preventDefault();
+
+            withRichTextEditor(() => {
+              const safeText = text || "";
+              const urlMatch = safeText.trim().match(/^https?:\/\/\S+$/i);
+
+              if (urlMatch) {
+                document.execCommand(
+                  "insertHTML",
+                  false,
+                  `<a href="${urlMatch[0]}" target="_blank" rel="noopener noreferrer">${urlMatch[0]}</a>`,
+                );
+                return;
+              }
+
+              if (html && html.trim()) {
+                document.execCommand("insertHTML", false, html);
+                return;
+              }
+
+              document.execCommand("insertText", false, safeText);
+            });
+          }}
+          onInput={(e) => {
+            const html = (e.currentTarget as HTMLDivElement).innerHTML;
+            setIsRichTextEditorEmpty(isRichTextHtmlEmpty(html));
+          }}
+          onBlur={(e) => {
+            const normalized = normalizeRichTextHtml(
+              (e.currentTarget as HTMLDivElement).innerHTML,
+            );
+
+            setIsRichTextEditorEmpty(isRichTextHtmlEmpty(normalized));
+
+            updateSelectedBlock((block) =>
+              block.type !== "rich_text"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      content: normalized,
+                    },
+                  },
+            );
+          }}
+          className={`${inspectorTextareaClass()} min-h-[220px] relative z-20 cursor-text [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:ml-1`}
+          style={{
+            textAlign: selectedBlock.data.style?.align ?? "left",
+          }}
+        />
+      </div>
+
+<div className="mt-2">
+  <div className="text-xs text-neutral-500">
+    Use the toolbar above to format selected text, create lists, and add inline links.
+  </div>
+
+  <div className="mt-3 flex justify-end">
+    <button
+      type="button"
+      className="px-2 py-1 text-xs rounded border bg-white text-black border-neutral-300 hover:bg-neutral-100"
+      onClick={() => {
+        if (richTextEditorRef.current) {
+          richTextEditorRef.current.innerHTML = "";
+          richTextEditorRef.current.focus();
+        }
+
+        setIsRichTextEditorEmpty(true);
+
+        updateSelectedBlock((block) =>
+          block.type !== "rich_text"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  content: "",
+                  listType: "none",
+                  linkUrl: "",
+                  style: {
+                    ...(block.data.style ?? {}),
+                    bold: false,
+                    italic: false,
+                    underline: false,
+                  },
+                },
+              },
+        );
+      }}
+    >
+      Clear
+    </button>
+  </div>
+</div>
     </div>
   </div>
 ) : null}
@@ -7155,6 +10662,28 @@ data: {
     </div>
   </div>
 </div>
+
+
+<AppModal
+  open={richTextLinkModalOpen}
+  title="Add Link"
+  description="Enter the link URL for the selected text."
+  confirmText="Apply Link"
+  cancelText="Cancel"
+  onConfirm={applyRichTextLinkFromModal}
+  onCancel={() => setRichTextLinkModalOpen(false)}
+>
+  <div className="mt-4">
+    <div className={inspectorLabelClass()}>URL</div>
+    <input
+      type="text"
+      value={richTextLinkValue}
+      onChange={(e) => setRichTextLinkValue(e.target.value)}
+      className={inspectorInputClass()}
+      placeholder="https://example.com"
+    />
+  </div>
+</AppModal>
 
 <AppModal
   open={removeAllModalOpen}
