@@ -585,6 +585,8 @@ export type SpeedDatingBlock = BaseBlock & {
     leftLabel?: string;
     rightLabel?: string;
 
+    roundStartSound?: "none" | "arrival" | "spark" | "commence" | "cloak" | "vanish"
+
     style?: TextStyle;
   };
 };
@@ -1648,13 +1650,14 @@ case "speed_dating":
       showTimer: true,
       leftLabel: "Men",
       rightLabel: "Women",
+      roundStartSound: "spark",
       style: createDefaultTextStyle(),
     },
   };
 
-    default:
-      throw new Error(`Unsupported block type: ${type}`);
-  }
+default:
+  throw new Error(`Unsupported block type: ${type}`);
+}
 }
 
 export function createFestiveBackgroundBlock(): FestiveBackgroundBlock {
@@ -1803,6 +1806,16 @@ if (block.type === "speed_dating") {
         typeof block.data.rightLabel === "string"
           ? block.data.rightLabel
           : "Women",
+
+roundStartSound:
+  block.data.roundStartSound === "none" ||
+  block.data.roundStartSound === "arrival" ||
+  block.data.roundStartSound === "spark" ||
+  block.data.roundStartSound === "commence" ||
+  block.data.roundStartSound === "cloak" ||
+  block.data.roundStartSound === "vanish"
+    ? block.data.roundStartSound
+    : "spark",
 
       style: {
         ...createDefaultTextStyle(),

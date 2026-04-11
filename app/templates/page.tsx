@@ -56,6 +56,7 @@ const RECENT_SITES_VISIBLE_COUNT = 8;
 
       if (!cancelled) {
         setRecentSites(Array.isArray(data?.sites) ? data.sites : []);
+        setRecentSitesTrack(0);
       }
     } catch {
       if (!cancelled) {
@@ -75,18 +76,18 @@ const RECENT_SITES_VISIBLE_COUNT = 8;
   };
 }, []);
 
-// useEffect(() => {
-//   if (recentSites.length <= 1) return;
+useEffect(() => {
+  if (recentSites.length <= RECENT_SITES_VISIBLE_COUNT) return;
 
-//   const timer = window.setInterval(() => {
-//     setRecentSitesTrack((prev) => {
-//       const next = prev + 1;
-//       return next >= recentSites.length ? 0 : next;
-//     });
-//   }, 2800);
+  const timer = window.setInterval(() => {
+    setRecentSitesTrack((prev) => {
+      const next = prev + 1;
+      return next >= recentSites.length ? 0 : next;
+    });
+  }, 2800);
 
-//   return () => window.clearInterval(timer);
-// }, [recentSites]);
+  return () => window.clearInterval(timer);
+}, [recentSites]);
 
   const categories: Category[] = useMemo(
     () => [
@@ -114,8 +115,16 @@ const RECENT_SITES_VISIBLE_COUNT = 8;
 const visibleRecentSites = useMemo(() => {
   if (!recentSites.length) return [];
 
-  return recentSites.slice(0, RECENT_SITES_VISIBLE_COUNT);
-}, [recentSites]);
+  if (recentSites.length <= RECENT_SITES_VISIBLE_COUNT) {
+    return recentSites;
+  }
+
+  const doubled = [...recentSites, ...recentSites];
+  return doubled.slice(
+    recentSitesTrack,
+    recentSitesTrack + RECENT_SITES_VISIBLE_COUNT,
+  );
+}, [recentSites, recentSitesTrack]);
 
   function clearAll() {
     setSearchQuery("");
@@ -232,77 +241,88 @@ const visibleRecentSites = useMemo(() => {
       </div>
     </div>
 
-    <div className="min-w-0">
-      <div className="rounded-2xl border border-neutral-200 bg-white/90 p-3 shadow-sm min-h-[201px]">
-        <div className="mb-2 flex items-center justify-between gap-3">
-          <div>
-            <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
-              Recent Sites
-            </div>
-            <div className="text-sm font-medium text-neutral-900">
-              New and popular pages people can view or join
-            </div>
-          </div>
+<div className="min-w-0">
+  <div className="rounded-2xl border border-neutral-200 bg-white/90 pt-3 pb-1 px-3 shadow-sm min-h-[201px]">
+    <div className="mb-2 flex items-center justify-between gap-3">
+      <div>
+        <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
+          Recent Sites
         </div>
-
-        {recentSitesLoading ? (
-          <div className="grid w-full grid-cols-8 gap-3">
-            {Array.from({ length: 8 }).map((_, index) => (
-              <div
-                key={index}
-                className="overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50"
-              >
-                <div className="aspect-[4/3] animate-pulse bg-neutral-200" />
-                <div className="space-y-2 p-2">
-                  <div className="h-3 rounded bg-neutral-200" />
-                  <div className="h-3 w-2/3 rounded bg-neutral-100" />
-                </div>
-              </div>
-            ))}
-          </div>
-) : recentSites.length ? (
-  <div className="mt-4 grid w-full grid-cols-8 gap-3">
-{visibleRecentSites.map((site, index) => (
-  <a
-    key={`${site.id}-${index}`}
-    href={`https://${site.slug}.ko-host.com`}
-    target="_blank"
-    rel="noreferrer"
-    className="min-w-0 overflow-hidden rounded-xl border border-neutral-200 bg-white transition hover:-translate-y-0.5 hover:shadow-md"
-    title={site.title || site.slug}
-  >
-    <div className="relative aspect-[4/3] overflow-hidden bg-neutral-100">
-      {site.previewImageUrl ? (
-        <img
-          src={site.previewImageUrl}
-          alt={site.title || site.slug}
-          className="h-full w-full object-cover transition duration-300 hover:scale-[1.03]"
-        />
-      ) : (
-        <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-blue-50 via-white to-emerald-50 px-3 text-center text-xs font-semibold text-neutral-500">
-          {site.title || site.slug}
+        <div className="text-sm font-medium text-neutral-900">
+          New and popular pages people can view or join
         </div>
-      )}
-    </div>
-
-    <div className="p-2">
-      <div className="truncate text-xs font-semibold text-neutral-900">
-        {site.title || "Untitled Site"}
-      </div>
-      <div className="truncate text-[11px] text-neutral-500">
-        {site.slug}.ko-host.com
       </div>
     </div>
-  </a>
-))}
+
+    {recentSitesLoading ? (
+      <div className="grid w-full grid-cols-8 gap-3">
+        {Array.from({ length: 8 }).map((_, index) => (
+          <div
+            key={index}
+            className="overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50"
+          >
+            <div className="aspect-[4/3] animate-pulse bg-neutral-200" />
+            <div className="space-y-2 p-2">
+              <div className="h-3 rounded bg-neutral-200" />
+              <div className="h-3 w-2/3 rounded bg-neutral-100" />
+            </div>
+          </div>
+        ))}
+      </div>
+    ) : recentSites.length ? (
+      <>
+<div className="mt-4 grid w-full grid-cols-8 gap-3">
+  {visibleRecentSites.map((site, index) => (
+    <a
+      key={`${site.id}-${index}`}
+      href={`https://${site.slug}.ko-host.com`}
+      target="_blank"
+      rel="noreferrer"
+      className="min-w-0 overflow-hidden rounded-xl border border-neutral-200 bg-white transition hover:-translate-y-0.5 hover:shadow-md"
+      title={site.title || site.slug}
+    >
+      <div className="relative aspect-[4/3] overflow-hidden bg-neutral-100">
+<img
+  src={
+    typeof site.previewImageUrl === "string" &&
+    site.previewImageUrl.trim().length > 0
+      ? site.previewImageUrl
+      : "/icons/icon_recent_site_placeholder.webp"
+  }
+  alt={site.title || site.slug}
+  className="h-full w-full object-cover transition duration-300 hover:scale-[1.03]"
+  onError={(e) => {
+    const target = e.currentTarget;
+    if (!target.src.includes("icon_recent_site_placeholder.webp")) {
+      target.src = "/icons/icon_recent_site_placeholder.webp";
+    }
+  }}
+/>
+      </div>
+
+      <div className="p-2">
+        <div className="truncate text-xs font-semibold text-neutral-900">
+          {site.title || "Untitled Site"}
+        </div>
+        <div className="truncate text-[11px] text-neutral-500">
+          {site.slug}.ko-host.com
+        </div>
+      </div>
+    </a>
+  ))}
+</div>
+
+        <div className="mt-1 text-[11px] text-neutral-400 text-left">
+          Broadcasted sites are shared with permission from their owners.
+        </div>
+      </>
+    ) : (
+      <div className="rounded-xl border border-dashed border-neutral-200 bg-neutral-50 px-3 py-6 text-sm text-neutral-500">
+        No recent broadcasted microsites yet.
+      </div>
+    )}
   </div>
-        ) : (
-          <div className="rounded-xl border border-dashed border-neutral-200 bg-neutral-50 px-3 py-6 text-sm text-neutral-500">
-            No recent broadcasted microsites yet.
-          </div>
-        )}
-      </div>
-    </div>
+</div>
   </div>
 
 

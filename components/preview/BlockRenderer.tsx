@@ -4693,6 +4693,7 @@ case "speed_dating":
       showTimer={block.data.showTimer !== false}
       leftLabel={block.data.leftLabel}
       rightLabel={block.data.rightLabel}
+      roundStartSound={block.data.roundStartSound}
     />
   );
 

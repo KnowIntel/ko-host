@@ -1,7 +1,7 @@
 // components\blocks\SpeedDatingLive.tsx
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 
 const SpeedDatingChat = dynamic(() => import("./SpeedDatingChat"), {
@@ -14,6 +14,7 @@ type Props = {
   showTimer: boolean;
   leftLabel?: string;
   rightLabel?: string;
+  roundStartSound?: "none" | "arrival" | "spark" | "commence" | "cloak" | "vanish"
 };
 
 type Participant = {
@@ -136,12 +137,21 @@ function FieldError({ show, message }: { show: boolean; message: string }) {
   return <div className="mt-1 text-xs text-red-600">{message}</div>;
 }
 
+const ROUND_START_SOUND_MAP = {
+  arrival: "/sounds/sfx_checkin.mp3",
+  spark: "/sounds/sfx_chime.mp3",
+  commence: "/sounds/sfx_gong.mp3",
+  cloak: "/sounds/sfx_summon.mp3",
+  vanish: "/sounds/sfx_vanish.mp3",
+} as const;
+
 export default function SpeedDatingLive({
   heading,
   roundDurationSeconds,
   showTimer,
   leftLabel = "Men",
   rightLabel = "Women",
+  roundStartSound = "spark",
 }: Props) {
   const duration = useMemo(
     () =>
@@ -168,6 +178,7 @@ const [joinForm, setJoinForm] = useState<JoinFormState>({
   const [apiState, setApiState] = useState<ApiState | null>(null);
   const [loading, setLoading] = useState(false);
   const [joinError, setJoinError] = useState("");
+  const lastPlayedRoundRef = useRef(0);
 
   useEffect(() => {
     setRound(0);
@@ -245,6 +256,27 @@ const [joinForm, setJoinForm] = useState<JoinFormState>({
 
     return () => window.clearInterval(interval);
   }, [duration]);
+
+useEffect(() => {
+  if (round <= 0) {
+    lastPlayedRoundRef.current = round;
+    return;
+  }
+
+  // ✅ ADD THIS LINE
+  if (roundStartSound === "none") {
+    lastPlayedRoundRef.current = round;
+    return;
+  }
+
+  if (round > lastPlayedRoundRef.current) {
+    const soundSrc = ROUND_START_SOUND_MAP[roundStartSound];
+    const audio = new Audio(soundSrc);
+    void audio.play().catch(() => {});
+  }
+
+  lastPlayedRoundRef.current = round;
+}, [round, roundStartSound]);
 
   function updateJoinForm<K extends keyof JoinFormState>(
     key: K,

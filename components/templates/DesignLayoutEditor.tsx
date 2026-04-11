@@ -173,7 +173,8 @@ type BottomCategory =
   | "Interactive"
   | "Utilities"
   | "Data & Metrics"
-  | "Scheduling";
+  | "Scheduling"
+  | "Premium";
 
 type PageBlockType = "title" | "subtitle" | "tagline" | "description";
 
@@ -221,6 +222,7 @@ const CATEGORY_ORDER: BottomCategory[] = [
   "Utilities",
   "Data & Metrics",
   "Scheduling",
+  "Premium",
 ];
 
 const CATEGORY_BUTTONS: Record<
@@ -260,7 +262,6 @@ const CATEGORY_BUTTONS: Record<
   Interactive: [
     { kind: "block", label: "Thread", type: "thread" },
     { kind: "block", label: "File Share", type: "file_share" },
-    { kind: "block", label: "Speed Dating", type: "speed_dating" },
   ],
   Utilities: [
     { kind: "block", label: "Button", type: "cta" },
@@ -269,7 +270,6 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Links", type: "links" },
     { kind: "block", label: "Link Hub", type: "link_hub" },
     { kind: "block", label: "Listing", type: "listing" },
-    { kind: "block", label: "Registry", type: "registry" },
   ],
   "Data & Metrics": [
     { kind: "block", label: "Highlight", type: "highlight" },
@@ -281,6 +281,10 @@ Scheduling: [
   { kind: "block", label: "Checklist", type: "checklist" },
   { kind: "block", label: "Schedule / Agenda", type: "schedule_agenda" },
   { kind: "block", label: "Map / Location", type: "map_location" },
+],
+Premium: [
+    { kind: "block", label: "Registry", type: "registry" },
+    { kind: "block", label: "Speed Dating", type: "speed_dating" },
 ],
 };
 
@@ -701,12 +705,14 @@ function infoPillClass() {
   return "inline-flex h-11 items-center rounded-md border border-white/10 bg-white/5 px-3 text-sm text-white/85";
 }
 
-function bottomCategoryClass(active: boolean) {
+function bottomCategoryClass(active: boolean, category?: BottomCategory) {
   return [
     "inline-flex h-12 items-center gap-2 rounded-md border px-4 text-sm font-medium transition",
     active
       ? "border-blue-500 bg-blue-600 text-white"
-      : "border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-100",
+      : category === "Premium"
+        ? "border-neutral-300 bg-white text-blue-700 hover:bg-neutral-100"
+        : "border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-100",
   ].join(" ");
 }
 
@@ -790,6 +796,7 @@ function getToolGlyph(label: string) {
   if (label === "File Share") return "📁";
   if (label === "Speed Dating") return "❤";
   if (label === "Registry") return "🎁";
+  if (label === "Premium") return "💎";
   return "•";
 }
 
@@ -7996,38 +8003,82 @@ data: {
       />
     </div>
 
-    <div className="mt-4">
-      <div className={inspectorLabelClass()}>
-        Round Duration (minutes)
-      </div>
-      <input
-        type="number"
-        min={1}
-        max={30}
-        value={Math.max(
-          1,
-          Math.min(
-            30,
-            Math.floor(Number(selectedBlock.data.roundDurationSeconds ?? 120) / 60) || 2,
-          ),
-        )}
-        onChange={(e) =>
-          updateSelectedBlock((block) =>
-            block.type !== "speed_dating"
-              ? block
-              : {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    roundDurationSeconds:
-                      Math.max(1, Math.min(30, Number(e.target.value) || 2)) * 60,
-                  },
+<div className="mt-4">
+  <div className={inspectorLabelClass()}>
+    Round Start Sound
+  </div>
+
+  <div className="mt-2 flex items-center gap-2">
+    <select
+      value={selectedBlock.data.roundStartSound ?? "spark"}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "speed_dating"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  roundStartSound: e.target.value as
+                    | "none"
+                    | "arrival"
+                    | "spark"
+                    | "commence"
+                    | "cloak"
+                    | "vanish",
                 },
-          )
-        }
-        className={inspectorInputClass()}
+              },
+        )
+      }
+      className={`${inspectorInputClass()} mt-0 flex-1`}
+    >
+      <option value="none">[no sound]</option>
+      <option value="arrival">arrival</option>
+      <option value="spark">spark</option>
+      <option value="commence">commence</option>
+      <option value="cloak">cloak</option>
+      <option value="vanish">vanish</option>
+    </select>
+
+    <button
+      type="button"
+      onClick={() => {
+        const selectedSound = selectedBlock.data.roundStartSound ?? "spark";
+
+        const soundMap = {
+          arrival: "/icons/../sounds/sfx_checkin.mp3",
+          spark: "/icons/../sounds/sfx_chime.mp3",
+          commence: "/icons/../sounds/sfx_gong.mp3",
+          cloak: "/icons/../sounds/sfx_summon.mp3",
+          vanish: "/icons/../sounds/sfx_vanish.mp3",
+        } as const;
+
+        if (selectedSound === "none") return;
+
+        const src =
+          selectedSound === "arrival" ||
+          selectedSound === "spark" ||
+          selectedSound === "commence" ||
+          selectedSound === "cloak" ||
+          selectedSound === "vanish"
+            ? soundMap[selectedSound]
+            : soundMap.spark;
+
+        const audio = new Audio(src);
+        void audio.play().catch(() => {});
+      }}
+      className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-neutral-300 bg-white hover:bg-neutral-50"
+      title="Test sound"
+      aria-label="Test sound"
+    >
+      <img
+        src="/icons/icon_play_sound.webp"
+        alt="Play sound"
+        className="h-5 w-5 object-contain"
       />
-    </div>
+    </button>
+  </div>
+</div>
   </div>
 ) : null}
 
@@ -10516,7 +10567,7 @@ data: {
           <button
             type="button"
             onClick={() => toggleToolMenu(category)}
-            className={bottomCategoryClass(activeCategory === category)}
+            className={bottomCategoryClass(activeCategory === category, category)}
           >
             <span>{getToolGlyph(category)}</span>
             <span>{category}</span>
