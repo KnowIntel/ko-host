@@ -233,11 +233,17 @@ const res = await fetch(`/api/speed-dating?sessionId=${sessionId}`, {
 setApiState((prev) => {
   if (!prev) return data;
 
-if (JSON.stringify(prev) === JSON.stringify(data)) {
-  return prev;
-}
+  const isSame = JSON.stringify(prev) === JSON.stringify(data);
 
-  return data;
+  if (isSame) return prev;
+
+  return {
+    ...data,
+    activePairs:
+      data.activePairs && data.activePairs.length > 0
+        ? data.activePairs
+        : prev.activePairs,
+  };
 });
 
 if (typeof data.round === "number") {

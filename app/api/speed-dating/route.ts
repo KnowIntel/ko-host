@@ -86,10 +86,6 @@ function getStore() {
 
 /* ================= HELPERS ================= */
 
-function makeId(prefix: string) {
-  return `${prefix}_${Math.random().toString(36).slice(2, 10)}`;
-}
-
 function getSide(iam: IAm): Side {
   return iam === "man" ? "left" : "right";
 }
@@ -191,7 +187,7 @@ function buildPairs(store: ReturnType<typeof getStore>) {
     } else {
       if (l) {
         pairs.push({
-          id: makeId("open"),
+          id: `open_left_${l.id}_r${round}`,
           leftParticipant: toPublic(l, true),
           rightParticipant: null,
           status: "open",
@@ -200,7 +196,7 @@ function buildPairs(store: ReturnType<typeof getStore>) {
 
       if (r) {
         pairs.push({
-          id: makeId("open"),
+          id: `open_right_${r.id}_r${round}`,
           leftParticipant: null,
           rightParticipant: toPublic(r, true),
           status: "open",
@@ -325,25 +321,27 @@ export async function POST(req: Request) {
       (p) => p.browserKey === body.browserKey,
     );
 
-    const existing = idx >= 0 ? store.participants[idx] : null;
+const existing = idx >= 0 ? store.participants[idx] : null;
 
-    const base: Participant = {
-      id: existing ? existing.id : makeId("p"),
-      browserKey: body.browserKey!,
-      name: body.name!,
-      title: body.title!,
-      bio: body.bio!,
-      image_url:
-        "image_url" in body && body.image_url
-          ? body.image_url
-          : existing?.image_url ?? null,
-      iam: body.iam!,
-      seeking: body.seeking!,
-      side: getSide(body.iam!),
-      joinedAt: existing ? existing.joinedAt : now,
-      updatedAt: now,
-      isActive: true,
-    };
+const base: Participant = {
+  id: body.browserKey!,
+  browserKey: body.browserKey!,
+  name: body.name!,
+  title: body.title!,
+  bio: body.bio!,
+  image_url:
+    "image_url" in body && body.image_url
+      ? body.image_url
+      : existing?.image_url ?? null,
+  iam: body.iam!,
+  seeking: body.seeking!,
+  side: getSide(body.iam!),
+  joinedAt: existing ? existing.joinedAt : now,
+  updatedAt: now,
+  isActive: true,
+  skippedRound:
+    existing?.skippedRound === store.round ? existing.skippedRound : undefined,
+};
 
     if (idx >= 0) store.participants[idx] = base;
     else store.participants.push(base);
