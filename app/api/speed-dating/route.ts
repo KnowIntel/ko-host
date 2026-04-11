@@ -63,25 +63,33 @@ const ROUND_DURATION_SECONDS = 120;
 
 declare global {
   var __KOHOST_SPEED_DATING_STORE__:
-    | {
-        participants: Participant[];
-        round: number;
-        roundStartedAt: number;
-        sessions: Record<string, Pair>; // stable per round
-      }
+    | Record<
+        string,
+        {
+          participants: Participant[];
+          round: number;
+          roundStartedAt: number;
+          sessions: Record<string, Pair>;
+        }
+      >
     | undefined;
 }
 
-function getStore() {
+function getStore(sessionId: string) {
   if (!globalThis.__KOHOST_SPEED_DATING_STORE__) {
-    globalThis.__KOHOST_SPEED_DATING_STORE__ = {
+    globalThis.__KOHOST_SPEED_DATING_STORE__ = {};
+  }
+
+  if (!globalThis.__KOHOST_SPEED_DATING_STORE__[sessionId]) {
+    globalThis.__KOHOST_SPEED_DATING_STORE__[sessionId] = {
       participants: [],
       round: 0,
       roundStartedAt: Date.now(),
       sessions: {},
     };
   }
-  return globalThis.__KOHOST_SPEED_DATING_STORE__;
+
+  return globalThis.__KOHOST_SPEED_DATING_STORE__[sessionId];
 }
 
 /* ================= HELPERS ================= */
@@ -210,8 +218,8 @@ function buildPairs(store: ReturnType<typeof getStore>) {
 
 /* ================= STATE ================= */
 
-function buildState() {
-  const store = getStore();
+function buildState(sessionId: string) {
+  const store = getStore(sessionId);
   normalizeRound(store);
 
   const { pairs, left, right, activeIds } = buildPairs(store);
@@ -303,13 +311,19 @@ async function parseActionBody(req: Request): Promise<ActionBody> {
 
 /* ================= ROUTES ================= */
 
-export async function GET() {
-  return NextResponse.json(buildState());
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const sessionId = searchParams.get("sessionId") || "default";
+
+  return NextResponse.json(buildState(sessionId));
 }
 
 export async function POST(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const sessionId = searchParams.get("sessionId") || "default";
+
   const body = await parseActionBody(req);
-  const store = getStore();
+  const store = getStore(sessionId);
   const now = Date.now();
 
   /* ===== JOIN ===== */
@@ -346,7 +360,7 @@ const base: Participant = {
     if (idx >= 0) store.participants[idx] = base;
     else store.participants.push(base);
 
-    return NextResponse.json({ ok: true, state: buildState() });
+    return NextResponse.json({ ok: true, state: buildState(sessionId) });
   }
 
   /* ===== SKIP ===== */
@@ -356,7 +370,7 @@ const base: Participant = {
     );
     if (p) p.skippedRound = store.round;
 
-    return NextResponse.json({ ok: true, state: buildState() });
+    return NextResponse.json({ ok: true, state: buildState(sessionId) });
   }
 
   /* ===== LEAVE ===== */
@@ -366,7 +380,7 @@ const base: Participant = {
     );
     if (p) p.isActive = false;
 
-    return NextResponse.json({ ok: true, state: buildState() });
+    return NextResponse.json({ ok: true, state: buildState(sessionId) });
   }
 
   return NextResponse.json({ ok: false }, { status: 400 });

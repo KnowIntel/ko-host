@@ -178,6 +178,27 @@ const [joinForm, setJoinForm] = useState<JoinFormState>({
   const [apiState, setApiState] = useState<ApiState | null>(null);
   const [loading, setLoading] = useState(false);
   const [joinError, setJoinError] = useState("");
+  async function handleSkip() {
+  try {
+    const sessionId = window.location.hostname;
+
+    await fetch(`/api/speed-dating?sessionId=${sessionId}`, {
+      method: "POST",
+      body: JSON.stringify({
+        action: "skip",
+        browserKey,
+      }),
+    });
+
+    await fetchState();
+  } catch (e) {
+    console.error("Skip failed", e);
+  }
+}
+
+async function handleAccept() {
+  // no backend needed yet (UI-only state)
+}
   const lastPlayedRoundRef = useRef(0);
 
   useEffect(() => {
@@ -201,6 +222,15 @@ const [joinForm, setJoinForm] = useState<JoinFormState>({
   const activePairs = apiState?.activePairs ?? [];
 
   const browserKey = getBrowserKey();
+
+const isJoined =
+  leftParticipants.some((participant) => participant.id === browserKey) ||
+  rightParticipants.some((participant) => participant.id === browserKey) ||
+  activePairs.some(
+    (pair) =>
+      pair.leftParticipant?.id === browserKey ||
+      pair.rightParticipant?.id === browserKey,
+  );
 
 const myPair = activePairs.find((pair) => {
   return (
@@ -294,6 +324,12 @@ useEffect(() => {
     audio.currentTime = 0;
     void audio.play().catch(() => {});
   }
+
+  console.log("sound check", {
+  round,
+  lastPlayed: lastPlayedRoundRef.current,
+  roundStartSound,
+});
 
   lastPlayedRoundRef.current = round;
 }, [round, roundStartSound]);
@@ -616,10 +652,77 @@ if (typeof nextState?.timeLeftSeconds === "number") {
         </div>
       </div>
 
-<div className="mt-4">
- {myPair ? (
-  <SpeedDatingChat sessionId={myPair.id} />
-) : null}
+<div className="mt-4 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
+  <div className="mb-3 flex items-center justify-between gap-3">
+    <div>
+      <div className="text-sm font-semibold text-neutral-900">
+        Private Date Room
+      </div>
+      <div className="mt-1 text-xs text-neutral-500">
+        {myPair
+          ? "You are matched for this round."
+          : "Join the rotation to unlock your private date room."}
+      </div>
+    </div>
+
+    <div className="flex items-center gap-2">
+      <button
+        type="button"
+        disabled={!myPair}
+        onClick={() => void handleAccept()}
+        className="inline-flex h-10 items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-700 disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        {myPair ? "Accept" : "Accept"}
+      </button>
+
+      <button
+        type="button"
+        disabled={!myPair}
+        onClick={() => void handleSkip()}
+        className="inline-flex h-10 items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-700 disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        {myPair ? "Skip" : "Skip"}
+      </button>
+    </div>
+  </div>
+
+  <div className="mb-4 grid grid-cols-1 gap-3 md:grid-cols-2">
+    <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
+      <div className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-neutral-500">
+        You
+      </div>
+
+      {myPair?.leftParticipant?.id === browserKey ? (
+        <ParticipantCard participant={myPair.leftParticipant} tone="active" />
+      ) : myPair?.rightParticipant?.id === browserKey ? (
+        <ParticipantCard participant={myPair.rightParticipant} tone="active" />
+      ) : (
+        <EmptySlot label="No active profile yet" />
+      )}
+    </div>
+
+    <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
+      <div className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-neutral-500">
+        Current Match
+      </div>
+
+      {myPair?.leftParticipant?.id === browserKey && myPair?.rightParticipant ? (
+        <ParticipantCard participant={myPair.rightParticipant} tone="active" />
+      ) : myPair?.rightParticipant?.id === browserKey && myPair?.leftParticipant ? (
+        <ParticipantCard participant={myPair.leftParticipant} tone="active" />
+      ) : (
+        <EmptySlot label="No match for this round" />
+      )}
+    </div>
+  </div>
+
+  {myPair ? (
+    <SpeedDatingChat key={myPair.id} sessionId={myPair.id} />
+  ) : (
+    <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-6 text-sm text-neutral-500">
+      Your private message thread will appear here when you are matched.
+    </div>
+  )}
 </div>
     </div>
   );
