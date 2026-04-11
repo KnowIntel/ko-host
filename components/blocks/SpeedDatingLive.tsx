@@ -14,7 +14,7 @@ type Props = {
   showTimer: boolean;
   leftLabel?: string;
   rightLabel?: string;
-  roundStartSound?: "none" | "arrival" | "spark" | "commence" | "cloak" | "vanish"
+roundStartSound?: "none" | "arrival" | "spark" | "commence" | "cloak" | "vanish";
 };
 
 type Participant = {
@@ -180,28 +180,6 @@ const [joinForm, setJoinForm] = useState<JoinFormState>({
   const [joinError, setJoinError] = useState("");
   const lastPlayedRoundRef = useRef(0);
 
-  useEffect(() => {
-    setRound(0);
-    setTimeLeft(duration);
-  }, [duration]);
-
-  useEffect(() => {
-    if (duration <= 0) return;
-
-    const timer = window.setInterval(() => {
-      setTimeLeft((current) => {
-        if (current <= 1) {
-          setRound((prev) => prev + 1);
-          return duration;
-        }
-
-        return current - 1;
-      });
-    }, 1000);
-
-    return () => window.clearInterval(timer);
-  }, [duration]);
-
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
 
@@ -231,26 +209,36 @@ const myPair = activePairs.find((pair) => {
     seeking: joinAttempted && !joinForm.seeking,
   };
 
-  const hasJoinErrors = Object.values(joinErrors).some(Boolean);
-
   async function fetchState() {
     try {
-      const res = await fetch("/api/speed-dating", {
-        method: "GET",
-        cache: "no-store",
-      });
+const sessionId = window.location.hostname;
+
+const res = await fetch(`/api/speed-dating?sessionId=${sessionId}`, {
+  method: "GET",
+  cache: "no-store",
+});
 
       const data = await res.json().catch(() => null);
 
       if (!res.ok || !data?.ok) return;
 
-      setApiState(data);
-      setRound(typeof data.round === "number" ? data.round : 0);
-      setTimeLeft(
-        typeof data.timeLeftSeconds === "number"
-          ? data.timeLeftSeconds
-          : duration,
-      );
+setApiState((prev) => {
+  if (!prev) return data;
+
+if (JSON.stringify(prev) === JSON.stringify(data)) {
+  return prev;
+}
+
+  return data;
+});
+
+if (typeof data.round === "number") {
+  setRound(data.round);
+}
+
+if (typeof data.timeLeftSeconds === "number") {
+  setTimeLeft(data.timeLeftSeconds);
+}
     } catch (error) {
       console.error("Speed dating state fetch failed:", error);
     }
@@ -267,20 +255,22 @@ const myPair = activePairs.find((pair) => {
   }, [duration]);
 
 useEffect(() => {
-  if (round <= 0) {
+  if (roundStartSound === "none") {
     lastPlayedRoundRef.current = round;
     return;
   }
 
-  // ✅ ADD THIS LINE
-  if (roundStartSound === "none") {
+  if (round <= 0) {
     lastPlayedRoundRef.current = round;
     return;
   }
 
   if (round > lastPlayedRoundRef.current) {
     const soundSrc = ROUND_START_SOUND_MAP[roundStartSound];
+    if (!soundSrc) return;
+
     const audio = new Audio(soundSrc);
+    audio.currentTime = 0;
     void audio.play().catch(() => {});
   }
 
@@ -320,7 +310,7 @@ useEffect(() => {
     try {
 const formData = new FormData();
 
-formData.append("browserKey", getBrowserKey());
+formData.append("browserKey", browserKey);
 formData.append("name", joinForm.name.trim());
 formData.append("title", joinForm.title.trim());
 formData.append("bio", joinForm.bio.trim());
@@ -331,7 +321,9 @@ if (joinForm.image) {
   formData.append("image", joinForm.image);
 }
 
-const res = await fetch("/api/speed-dating", {
+const sessionId = window.location.hostname;
+
+const res = await fetch(`/api/speed-dating?sessionId=${sessionId}`, {
   method: "POST",
   body: formData,
 });
@@ -343,13 +335,17 @@ const res = await fetch("/api/speed-dating", {
         return;
       }
 
-      setApiState(data.state ?? null);
-      setRound(typeof data.state?.round === "number" ? data.state.round : 0);
-      setTimeLeft(
-        typeof data.state?.timeLeftSeconds === "number"
-          ? data.state.timeLeftSeconds
-          : duration,
-      );
+const nextState = data.state ?? null;
+
+setApiState((prev) => nextState ?? prev);
+
+if (typeof nextState?.round === "number") {
+  setRound(nextState.round);
+}
+
+if (typeof nextState?.timeLeftSeconds === "number") {
+  setTimeLeft(nextState.timeLeftSeconds);
+}
     } catch (error) {
       console.error("Speed dating join failed:", error);
       setJoinError("Could not join the queue.");
