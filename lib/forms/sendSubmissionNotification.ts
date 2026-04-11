@@ -1,7 +1,5 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 function escapeHtml(value: string) {
   return value
     .replace(/&/g, "&amp;")
@@ -26,6 +24,14 @@ export async function sendSubmissionNotification({
   designKey?: string | null;
   fields: Record<string, string>;
 }) {
+  const resendApiKey = process.env.RESEND_API_KEY;
+
+  if (!resendApiKey) {
+    throw new Error("Missing RESEND_API_KEY");
+  }
+
+  const resend = new Resend(resendApiKey);
+
   const rows = Object.entries(fields)
     .map(
       ([key, value]) => `
