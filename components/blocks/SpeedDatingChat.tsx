@@ -30,7 +30,11 @@ type Session = {
 
 /* ================= COMPONENT ================= */
 
-export default function SpeedDatingChat() {
+type Props = {
+  sessionId: string;
+};
+
+export default function SpeedDatingChat({ sessionId }: Props) {
   const [session, setSession] = useState<Session | null>(null);
   const [participantId, setParticipantId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -68,7 +72,7 @@ export default function SpeedDatingChat() {
   async function sendMessage() {
     if (!input.trim() || !session || !participantId) return;
 
-    await fetch("/api/speed-dating/messages", {
+    await fetch(`/api/speed-dating/messages?sessionId=${sessionId}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
