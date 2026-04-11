@@ -214,6 +214,15 @@ const [joinForm, setJoinForm] = useState<JoinFormState>({
   const rightParticipants = apiState?.rightQueue ?? [];
   const activePairs = apiState?.activePairs ?? [];
 
+  const browserKey = getBrowserKey();
+
+const myPair = activePairs.find((pair) => {
+  return (
+    pair.leftParticipant?.id === browserKey ||
+    pair.rightParticipant?.id === browserKey
+  );
+});
+
   const joinErrors = {
     name: joinAttempted && !joinForm.name.trim(),
     title: joinAttempted && !joinForm.title.trim(),
@@ -591,7 +600,9 @@ const res = await fetch("/api/speed-dating", {
       </div>
 
 <div className="mt-4">
-  <SpeedDatingChat />
+ {myPair ? (
+  <SpeedDatingChat sessionId={myPair.id} />
+) : null}
 </div>
     </div>
   );
