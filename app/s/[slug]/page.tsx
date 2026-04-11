@@ -246,9 +246,6 @@ export default async function PublishedMicrositePage({
   (draft?.blocks || []).map((b: any) => b?.type),
 );
 
-console.log("[Microsite Render] DRAFT EXISTS:", !!draft);
-console.log("[Microsite Render] BLOCK COUNT:", Array.isArray(draft?.blocks) ? draft.blocks.length : 0);
-
   return (
     <>
       <main
@@ -269,18 +266,6 @@ console.log("[Microsite Render] BLOCK COUNT:", Array.isArray(draft?.blocks) ? dr
             : {}),
         }}
       >
-
-        <pre className="text-xs text-red-500 whitespace-pre-wrap">
-  {JSON.stringify(
-    {
-      hasDraft: !!draft,
-      blockCount: Array.isArray(draft?.blocks) ? draft.blocks.length : 0,
-      blockTypes: (draft?.blocks || []).map((b: any) => b?.type),
-    },
-    null,
-    2
-  )}
-</pre>
 
         <PlacedBlocksPreview
           draft={draft}
