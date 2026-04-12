@@ -1,3 +1,4 @@
+// app\api\speed-dating\session\message\route.ts
 import { NextResponse } from "next/server";
 
 /* ========= TYPES ========= */
@@ -41,13 +42,16 @@ export async function GET(req: Request) {
   const sessionId = searchParams.get("sessionId");
 
   if (!sessionId) {
-    return NextResponse.json({ ok: false, error: "sessionId required" }, { status: 400 });
+    return NextResponse.json(
+      { ok: false, error: "sessionId required" },
+      { status: 400 },
+    );
   }
 
   const store = getChatStore();
 
   const messages = store.messages
-    .filter((m) => m.sessionId === sessionId)
+    .filter((m) => String(m.sessionId) === String(sessionId))
     .sort((a, b) => a.createdAt - b.createdAt);
 
   return NextResponse.json({
@@ -59,9 +63,16 @@ export async function GET(req: Request) {
 /* ========= POST (send message) ========= */
 
 export async function POST(req: Request) {
-  const body = await req.json();
+  const body = await req.json().catch(() => null);
 
-  const { sessionId, senderId, text, attachmentUrl } = body;
+  const sessionId =
+    typeof body?.sessionId === "string" ? body.sessionId : "";
+  const senderId =
+    typeof body?.senderId === "string" ? body.senderId : "";
+  const text =
+    typeof body?.text === "string" ? body.text : "";
+  const attachmentUrl =
+    typeof body?.attachmentUrl === "string" ? body.attachmentUrl : "";
 
   if (!sessionId || !senderId) {
     return NextResponse.json({ ok: false }, { status: 400 });

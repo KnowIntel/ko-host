@@ -64,24 +64,24 @@ async function fetchSession() {
   );
   const data = await res.json().catch(() => null);
 
-  if (!res.ok || !data?.ok || !data.session) {
-    setSession(null);
-    setParticipantId(null);
-    return;
-  }
+if (!res.ok || !data?.ok || !data.session) {
+  setSession(null);
+  setParticipantId(null);
+  return;
+}
 
-  const nextSession = data.session as Session;
+const nextSession = data.session as Session;
 
-  setSession(nextSession);
+setSession(nextSession);
 
-  const nextParticipantId =
-    nextSession.leftParticipant?.id === browserKey
-      ? nextSession.leftParticipant.id
-      : nextSession.rightParticipant?.id === browserKey
-        ? nextSession.rightParticipant.id
-        : null;
+const nextParticipantId =
+  nextSession.leftParticipant?.id === browserKey
+    ? nextSession.leftParticipant.id
+    : nextSession.rightParticipant?.id === browserKey
+      ? nextSession.rightParticipant.id
+      : null;
 
-  setParticipantId(nextParticipantId);
+setParticipantId(nextParticipantId);
 }
 
   /* ================= FETCH MESSAGES ================= */
@@ -122,10 +122,6 @@ async function sendMessage() {
 
 useEffect(() => {
   void fetchSession();
-  const interval = setInterval(() => {
-    void fetchSession();
-  }, 1500);
-  return () => clearInterval(interval);
 }, [sessionId]);
 
 useEffect(() => {
