@@ -24,8 +24,20 @@ type Message = {
 
 type Session = {
   id: string;
-  leftParticipant: any;
-  rightParticipant: any;
+  leftParticipant: {
+    id: string;
+    name: string;
+    title?: string;
+    bio?: string;
+    image_url?: string | null;
+  } | null;
+  rightParticipant: {
+    id: string;
+    name: string;
+    title?: string;
+    bio?: string;
+    image_url?: string | null;
+  } | null;
 };
 
 /* ================= COMPONENT ================= */
@@ -35,24 +47,42 @@ type Props = {
 };
 
 export default function SpeedDatingChat({ sessionId }: Props) {
-  const [session, setSession] = useState<Session | null>(null);
-  const [participantId, setParticipantId] = useState<string | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState("");
+const [session, setSession] = useState<Session | null>(null);
+const [participantId, setParticipantId] = useState<string | null>(null);
+const [messages, setMessages] = useState<Message[]>([]);
+const [input, setInput] = useState("");
+const browserKey = getBrowserKey();
 
   /* ================= FETCH SESSION ================= */
 
-  async function fetchSession() {
-    const res = await fetch(
-      `/api/speed-dating/session?browserKey=${getBrowserKey()}`,
-    );
-    const data = await res.json();
+async function fetchSession() {
+  const res = await fetch(
+    `/api/speed-dating/session?sessionId=${sessionId}`,
+    {
+      cache: "no-store",
+    },
+  );
+  const data = await res.json().catch(() => null);
 
-    if (data?.ok) {
-      setSession(data.session);
-      setParticipantId(data.participantId);
-    }
+  if (!res.ok || !data?.ok || !data.session) {
+    setSession(null);
+    setParticipantId(null);
+    return;
   }
+
+  const nextSession = data.session as Session;
+
+  setSession(nextSession);
+
+  const nextParticipantId =
+    nextSession.leftParticipant?.id === browserKey
+      ? nextSession.leftParticipant.id
+      : nextSession.rightParticipant?.id === browserKey
+        ? nextSession.rightParticipant.id
+        : null;
+
+  setParticipantId(nextParticipantId);
+}
 
   /* ================= FETCH MESSAGES ================= */
 
@@ -69,53 +99,55 @@ export default function SpeedDatingChat({ sessionId }: Props) {
 
   /* ================= SEND ================= */
 
-  async function sendMessage() {
-    if (!input.trim() || !session || !participantId) return;
+async function sendMessage() {
+  if (!input.trim() || !session || !participantId) return;
 
-    await fetch(`/api/speed-dating/messages?sessionId=${sessionId}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        sessionId: session.id,
-        senderId: participantId,
-        text: input,
-      }),
-    });
+  await fetch(`/api/speed-dating/messages?sessionId=${sessionId}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      sessionId,
+      senderId: participantId,
+      text: input.trim(),
+    }),
+  });
 
-    setInput("");
-    fetchMessages(session.id);
-  }
+  setInput("");
+  void fetchMessages(sessionId);
+}
 
   /* ================= EFFECTS ================= */
 
-  useEffect(() => {
-    fetchSession();
-    const interval = setInterval(fetchSession, 2000);
-    return () => clearInterval(interval);
-  }, []);
+useEffect(() => {
+  void fetchSession();
+  const interval = setInterval(() => {
+    void fetchSession();
+  }, 1500);
+  return () => clearInterval(interval);
+}, [sessionId]);
 
-  useEffect(() => {
-    if (!session) return;
+useEffect(() => {
+  if (!sessionId) return;
 
-    fetchMessages(session.id);
-    const interval = setInterval(() => {
-      fetchMessages(session.id);
-    }, 1500);
+  void fetchMessages(sessionId);
+  const interval = setInterval(() => {
+    void fetchMessages(sessionId);
+  }, 1500);
 
-    return () => clearInterval(interval);
-  }, [session?.id]);
+  return () => clearInterval(interval);
+}, [sessionId]);
 
   /* ================= UI ================= */
 
-  if (!session) {
-    return (
-      <div className="rounded-xl border border-dashed border-neutral-300 p-4 text-sm text-neutral-500">
-        Join a match to start chatting.
-      </div>
-    );
-  }
+if (!session || !participantId) {
+  return (
+    <div className="rounded-xl border border-dashed border-neutral-300 p-4 text-sm text-neutral-500">
+      Waiting for active private room...
+    </div>
+  );
+}
 
   const other =
     session.leftParticipant?.id === participantId
