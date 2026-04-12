@@ -178,6 +178,8 @@ const [joinForm, setJoinForm] = useState<JoinFormState>({
   const [apiState, setApiState] = useState<ApiState | null>(null);
   const [loading, setLoading] = useState(false);
   const [joinError, setJoinError] = useState("");
+const [activeChatPair, setActiveChatPair] = useState<Pair | null>(null);
+const lastRoundSeenRef = useRef<number | null>(null);
 
   const lastPlayedRoundRef = useRef(0);
 useEffect(() => {
@@ -209,6 +211,22 @@ const myPair = activePairs.find((pair) => {
     pair.rightParticipant?.id === browserKey
   );
 });
+
+useEffect(() => {
+  const currentRound = apiState?.round ?? null;
+
+  if (currentRound == null) return;
+
+  if (lastRoundSeenRef.current !== currentRound) {
+    lastRoundSeenRef.current = currentRound;
+    setActiveChatPair(myPair ?? null);
+    return;
+  }
+
+  if (myPair) {
+    setActiveChatPair(myPair);
+  }
+}, [myPair, apiState?.round]);
 
 const matchedPair = activePairs.find((pair) => {
   return (
@@ -286,7 +304,7 @@ if (
     return () => window.clearInterval(interval);
   }, [duration]);
 
-  useEffect(() => {
+useEffect(() => {
   const currentRound = apiState?.round ?? 0;
 
   if (roundStartSound === "none") {
@@ -299,6 +317,11 @@ if (
     return;
   }
 
+  if (lastPlayedRoundRef.current === 0) {
+    lastPlayedRoundRef.current = currentRound;
+    return;
+  }
+
   if (currentRound > lastPlayedRoundRef.current) {
     const soundSrc = ROUND_START_SOUND_MAP[roundStartSound];
     if (!soundSrc) return;
@@ -306,9 +329,8 @@ if (
     const audio = new Audio(soundSrc);
     audio.currentTime = 0;
     void audio.play().catch(() => {});
+    lastPlayedRoundRef.current = currentRound;
   }
-
-  lastPlayedRoundRef.current = currentRound;
 }, [apiState?.round, roundStartSound]);
 
 async function handleSkip() {
@@ -716,11 +738,11 @@ if (typeof nextState?.timeLeftSeconds === "number") {
         Private Date Room
       </div>
 <div className="mt-1 text-xs text-neutral-500">
-  {matchedPair
-    ? "You are matched for this round."
-    : isInRotation
-      ? "You are in the rotation and waiting for a match."
-      : "Join the rotation to enter the queue and wait for a match."}
+{activeChatPair
+  ? "You are matched for this round."
+  : isInRotation
+    ? "You are in the rotation and waiting for a match."
+    : "Join the rotation to enter the queue and wait for a match."}
 </div>
     </div>
 
@@ -786,8 +808,8 @@ if (typeof nextState?.timeLeftSeconds === "number") {
     </div>
   </div>
 
-{matchedPair ? (
-  <SpeedDatingChat key={matchedPair.id} sessionId={matchedPair.id} />
+{activeChatPair ? (
+  <SpeedDatingChat key={activeChatPair.id} sessionId={activeChatPair.id} />
 ) : (
   <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-6 text-sm text-neutral-500">
     Your private message thread will appear here when you are matched.
