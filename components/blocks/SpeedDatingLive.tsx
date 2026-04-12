@@ -178,7 +178,6 @@ const [joinForm, setJoinForm] = useState<JoinFormState>({
   const [apiState, setApiState] = useState<ApiState | null>(null);
   const [loading, setLoading] = useState(false);
   const [joinError, setJoinError] = useState("");
-  const [acceptedSessionId, setAcceptedSessionId] = useState<string | null>(null);
 
   const lastPlayedRoundRef = useRef(0);
 
@@ -264,43 +263,30 @@ if (typeof data.timeLeftSeconds === "number") {
     return () => window.clearInterval(interval);
   }, [duration]);
 
-useEffect(() => {
+  useEffect(() => {
+  const currentRound = apiState?.round ?? 0;
+
   if (roundStartSound === "none") {
-    lastPlayedRoundRef.current = round;
+    lastPlayedRoundRef.current = currentRound;
     return;
   }
 
-  if (round <= 0) {
-    lastPlayedRoundRef.current = round;
+  if (currentRound <= 0) {
+    lastPlayedRoundRef.current = currentRound;
     return;
   }
 
-  if (round > lastPlayedRoundRef.current) {
+  if (currentRound > lastPlayedRoundRef.current) {
     const soundSrc = ROUND_START_SOUND_MAP[roundStartSound];
     if (!soundSrc) return;
 
     const audio = new Audio(soundSrc);
     audio.currentTime = 0;
     void audio.play().catch(() => {});
-    lastPlayedRoundRef.current = round;
-  }
-}, [round, roundStartSound]);
-
-useEffect(() => {
-  if (!myPair) {
-    setAcceptedSessionId(null);
-    return;
   }
 
-  if (acceptedSessionId && acceptedSessionId !== myPair.id) {
-    setAcceptedSessionId(null);
-  }
-}, [myPair?.id, round]);
-
-async function handleAccept() {
-  if (!myPair) return;
-  setAcceptedSessionId(myPair.id);
-}
+  lastPlayedRoundRef.current = currentRound;
+}, [apiState?.round, roundStartSound]);
 
 async function handleSkip() {
   if (!myPair) return;
@@ -331,7 +317,6 @@ async function handleSkip() {
 
     const nextState = data.state ?? null;
 
-    setAcceptedSessionId(null);
     setApiState((prev) => nextState ?? prev);
 
     if (typeof nextState?.round === "number") {
@@ -670,22 +655,14 @@ if (typeof nextState?.timeLeftSeconds === "number") {
       <div className="text-sm font-semibold text-neutral-900">
         Private Date Room
       </div>
-      <div className="mt-1 text-xs text-neutral-500">
-        {myPair
-          ? "You are matched for this round."
-          : "Join the rotation to unlock your private date room."}
-      </div>
+<div className="mt-1 text-xs text-neutral-500">
+  {myPair
+    ? "You are matched for this round."
+    : "Join the rotation to enter the queue and wait for a match."}
+</div>
     </div>
 
     <div className="flex items-center gap-2">
-<button
-  type="button"
-  disabled={!myPair}
-  onClick={() => void handleAccept()}
-  className="inline-flex h-10 items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-700 disabled:cursor-not-allowed disabled:opacity-50"
->
-  {acceptedSessionId === myPair?.id ? "Accepted" : "Accept"}
-</button>
 
 <button
   type="button"
@@ -704,13 +681,23 @@ if (typeof nextState?.timeLeftSeconds === "number") {
         You
       </div>
 
-      {myPair?.leftParticipant?.id === browserKey ? (
-        <ParticipantCard participant={myPair.leftParticipant} tone="active" />
-      ) : myPair?.rightParticipant?.id === browserKey ? (
-        <ParticipantCard participant={myPair.rightParticipant} tone="active" />
-      ) : (
-        <EmptySlot label="No active profile yet" />
-      )}
+{leftParticipants.find((participant) => participant.id === browserKey) ? (
+  <ParticipantCard
+    participant={leftParticipants.find((participant) => participant.id === browserKey)!}
+    tone="active"
+  />
+) : rightParticipants.find((participant) => participant.id === browserKey) ? (
+  <ParticipantCard
+    participant={rightParticipants.find((participant) => participant.id === browserKey)!}
+    tone="active"
+  />
+) : myPair?.leftParticipant?.id === browserKey ? (
+  <ParticipantCard participant={myPair.leftParticipant} tone="active" />
+) : myPair?.rightParticipant?.id === browserKey ? (
+  <ParticipantCard participant={myPair.rightParticipant} tone="active" />
+) : (
+  <EmptySlot label="Join the rotation to appear here" />
+)}
     </div>
 
     <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
@@ -728,13 +715,11 @@ if (typeof nextState?.timeLeftSeconds === "number") {
     </div>
   </div>
 
-{myPair && acceptedSessionId === myPair.id ? (
+{myPair ? (
   <SpeedDatingChat key={myPair.id} sessionId={myPair.id} />
 ) : (
   <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-6 text-sm text-neutral-500">
-    {myPair
-      ? 'Press "Accept" to open your private chat thread for this round.'
-      : "Your private message thread will appear here when you are matched."}
+    Your private message thread will appear here when you are matched.
   </div>
 )}
 </div>
