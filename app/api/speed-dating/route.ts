@@ -21,6 +21,8 @@ type Participant = {
   updatedAt: number;
   isActive: boolean;
   skippedRound?: number;
+  acceptedSessionId?: string;
+  acceptedRound?: number;
 };
 
 type PublicParticipant = {
@@ -53,7 +55,8 @@ type JoinBody = {
 type ActionBody =
   | (JoinBody & { action?: "join" })
   | { action: "skip"; browserKey: string }
-  | { action: "leave"; browserKey: string };
+  | { action: "leave"; browserKey: string }
+  | { action: "accept"; browserKey: string; sessionId: string };
 
 /* ================= CONFIG ================= */
 
@@ -273,6 +276,14 @@ async function parseActionBody(req: Request): Promise<ActionBody> {
       };
     }
 
+    if (action === "accept") {
+      return {
+        action: "accept",
+        browserKey: String(formData.get("browserKey") || ""),
+        sessionId: String(formData.get("sessionId") || ""),
+      };
+    }
+
     const browserKeyValue = formData.get("browserKey");
     const nameValue = formData.get("name");
     const titleValue = formData.get("title");
@@ -355,6 +366,10 @@ const base: Participant = {
   isActive: true,
   skippedRound:
     existing?.skippedRound === store.round ? existing.skippedRound : undefined,
+  acceptedSessionId:
+    existing?.acceptedRound === store.round ? existing.acceptedSessionId : undefined,
+  acceptedRound:
+    existing?.acceptedRound === store.round ? existing.acceptedRound : undefined,
 };
 
     if (idx >= 0) store.participants[idx] = base;
@@ -373,6 +388,21 @@ const base: Participant = {
     return NextResponse.json({ ok: true, state: buildState(sessionId) });
   }
 
+    /* ===== ACCEPT ===== */
+  if (body.action === "accept") {
+    const p = store.participants.find(
+      (x) => x.browserKey === body.browserKey,
+    );
+
+    if (p) {
+      p.acceptedSessionId = body.sessionId;
+      p.acceptedRound = store.round;
+      p.updatedAt = now;
+    }
+
+    return NextResponse.json({ ok: true, state: buildState(sessionId) });
+  }
+  
   /* ===== LEAVE ===== */
   if (body.action === "leave") {
     const p = store.participants.find(

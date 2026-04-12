@@ -178,27 +178,7 @@ const [joinForm, setJoinForm] = useState<JoinFormState>({
   const [apiState, setApiState] = useState<ApiState | null>(null);
   const [loading, setLoading] = useState(false);
   const [joinError, setJoinError] = useState("");
-  async function handleSkip() {
-  try {
-    const sessionId = window.location.hostname;
 
-    await fetch(`/api/speed-dating?sessionId=${sessionId}`, {
-      method: "POST",
-      body: JSON.stringify({
-        action: "skip",
-        browserKey,
-      }),
-    });
-
-    await fetchState();
-  } catch (e) {
-    console.error("Skip failed", e);
-  }
-}
-
-async function handleAccept() {
-  // no backend needed yet (UI-only state)
-}
   const lastPlayedRoundRef = useRef(0);
 
   useEffect(() => {
@@ -238,6 +218,23 @@ const myPair = activePairs.find((pair) => {
     pair.rightParticipant?.id === browserKey
   );
 });
+
+const myParticipant =
+  leftParticipants.find((participant) => participant.id === browserKey) ||
+  rightParticipants.find((participant) => participant.id === browserKey) ||
+  myPair?.leftParticipant?.id === browserKey
+    ? myPair?.leftParticipant
+    : myPair?.rightParticipant?.id === browserKey
+      ? myPair?.rightParticipant
+      : null;
+
+const isAccepted =
+  apiState != null &&
+  myPair != null &&
+  (
+    (apiState.leftQueue.find((p) => p.id === browserKey) as any)?.acceptedSessionId === myPair.id ||
+    (apiState.rightQueue.find((p) => p.id === browserKey) as any)?.acceptedSessionId === myPair.id
+  );
 
   const joinErrors = {
     name: joinAttempted && !joinForm.name.trim(),
@@ -333,6 +330,80 @@ useEffect(() => {
 
   lastPlayedRoundRef.current = round;
 }, [round, roundStartSound]);
+
+
+async function handleAccept() {
+  if (!myPair) return;
+
+  try {
+    const sessionId = window.location.hostname;
+
+    const res = await fetch(`/api/speed-dating?sessionId=${sessionId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        action: "accept",
+        browserKey,
+        sessionId: myPair.id,
+      }),
+    });
+
+    const data = await res.json().catch(() => null);
+
+    if (!res.ok || !data?.ok) return;
+
+    const nextState = data.state ?? null;
+    setApiState((prev) => nextState ?? prev);
+
+    if (typeof nextState?.round === "number") {
+      setRound(nextState.round);
+    }
+
+    if (typeof nextState?.timeLeftSeconds === "number") {
+      setTimeLeft(nextState.timeLeftSeconds);
+    }
+  } catch (error) {
+    console.error("Accept failed", error);
+  }
+}
+
+async function handleSkip() {
+  if (!myPair) return;
+
+  try {
+    const sessionId = window.location.hostname;
+
+    const res = await fetch(`/api/speed-dating?sessionId=${sessionId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        action: "skip",
+        browserKey,
+      }),
+    });
+
+    const data = await res.json().catch(() => null);
+
+    if (!res.ok || !data?.ok) return;
+
+    const nextState = data.state ?? null;
+    setApiState((prev) => nextState ?? prev);
+
+    if (typeof nextState?.round === "number") {
+      setRound(nextState.round);
+    }
+
+    if (typeof nextState?.timeLeftSeconds === "number") {
+      setTimeLeft(nextState.timeLeftSeconds);
+    }
+  } catch (error) {
+    console.error("Skip failed", error);
+  }
+}
 
   function updateJoinForm<K extends keyof JoinFormState>(
     key: K,
@@ -666,23 +737,23 @@ if (typeof nextState?.timeLeftSeconds === "number") {
     </div>
 
     <div className="flex items-center gap-2">
-      <button
-        type="button"
-        disabled={!myPair}
-        onClick={() => void handleAccept()}
-        className="inline-flex h-10 items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-700 disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        {myPair ? "Accept" : "Accept"}
-      </button>
+<button
+  type="button"
+  disabled={!myPair || isAccepted}
+  onClick={() => void handleAccept()}
+  className="inline-flex h-10 items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-700 disabled:cursor-not-allowed disabled:opacity-50"
+>
+  {isAccepted ? "Accepted" : "Accept"}
+</button>
 
-      <button
-        type="button"
-        disabled={!myPair}
-        onClick={() => void handleSkip()}
-        className="inline-flex h-10 items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-700 disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        {myPair ? "Skip" : "Skip"}
-      </button>
+<button
+  type="button"
+  disabled={!myPair}
+  onClick={() => void handleSkip()}
+  className="inline-flex h-10 items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-700 disabled:cursor-not-allowed disabled:opacity-50"
+>
+  Skip
+</button>
     </div>
   </div>
 
