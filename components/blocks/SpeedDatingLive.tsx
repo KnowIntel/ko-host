@@ -295,6 +295,44 @@ async function fetchState() {
     console.error("Speed dating state fetch failed:", error);
   }
 }
+useEffect(() => {
+  void fetchState();
+
+  const interval = window.setInterval(() => {
+    void fetchState();
+  }, 2000);
+
+  return () => window.clearInterval(interval);
+}, [duration]);
+
+useEffect(() => {
+  const currentRound = apiState?.round ?? 0;
+
+  if (roundStartSound === "none") {
+    lastPlayedRoundRef.current = currentRound;
+    return;
+  }
+
+  if (currentRound <= 0) {
+    lastPlayedRoundRef.current = currentRound;
+    return;
+  }
+
+  if (lastPlayedRoundRef.current === 0) {
+    lastPlayedRoundRef.current = currentRound;
+    return;
+  }
+
+  if (currentRound > lastPlayedRoundRef.current) {
+    const soundSrc = ROUND_START_SOUND_MAP[roundStartSound];
+    if (!soundSrc) return;
+
+    const audio = new Audio(soundSrc);
+    audio.currentTime = 0;
+    void audio.play().catch(() => {});
+    lastPlayedRoundRef.current = currentRound;
+  }
+}, [apiState?.round, roundStartSound]);
 
 async function handleSkip() {
   if (!matchedPair) return;
