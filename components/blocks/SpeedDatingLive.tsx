@@ -178,6 +178,7 @@ const [joinForm, setJoinForm] = useState<JoinFormState>({
   const [apiState, setApiState] = useState<ApiState | null>(null);
   const [loading, setLoading] = useState(false);
   const [joinError, setJoinError] = useState("");
+  const [acceptedSessionId, setAcceptedSessionId] = useState<string | null>(null);
 
   const lastPlayedRoundRef = useRef(0);
 
@@ -331,42 +332,20 @@ useEffect(() => {
   lastPlayedRoundRef.current = round;
 }, [round, roundStartSound]);
 
+useEffect(() => {
+  if (!myPair) {
+    setAcceptedSessionId(null);
+    return;
+  }
+
+  if (acceptedSessionId && acceptedSessionId !== myPair.id) {
+    setAcceptedSessionId(null);
+  }
+}, [myPair?.id, round]);
 
 async function handleAccept() {
   if (!myPair) return;
-
-  try {
-    const sessionId = window.location.hostname;
-
-    const res = await fetch(`/api/speed-dating?sessionId=${sessionId}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        action: "accept",
-        browserKey,
-        sessionId: myPair.id,
-      }),
-    });
-
-    const data = await res.json().catch(() => null);
-
-    if (!res.ok || !data?.ok) return;
-
-    const nextState = data.state ?? null;
-    setApiState((prev) => nextState ?? prev);
-
-    if (typeof nextState?.round === "number") {
-      setRound(nextState.round);
-    }
-
-    if (typeof nextState?.timeLeftSeconds === "number") {
-      setTimeLeft(nextState.timeLeftSeconds);
-    }
-  } catch (error) {
-    console.error("Accept failed", error);
-  }
+  setAcceptedSessionId(myPair.id);
 }
 
 async function handleSkip() {
@@ -374,6 +353,11 @@ async function handleSkip() {
 
   try {
     const sessionId = window.location.hostname;
+
+    const skippedPartnerId =
+      myPair.leftParticipant?.id === browserKey
+        ? myPair.rightParticipant?.id
+        : myPair.leftParticipant?.id;
 
     const res = await fetch(`/api/speed-dating?sessionId=${sessionId}`, {
       method: "POST",
@@ -383,6 +367,7 @@ async function handleSkip() {
       body: JSON.stringify({
         action: "skip",
         browserKey,
+        skippedPartnerId,
       }),
     });
 
@@ -391,6 +376,8 @@ async function handleSkip() {
     if (!res.ok || !data?.ok) return;
 
     const nextState = data.state ?? null;
+
+    setAcceptedSessionId(null);
     setApiState((prev) => nextState ?? prev);
 
     if (typeof nextState?.round === "number") {
@@ -739,11 +726,11 @@ if (typeof nextState?.timeLeftSeconds === "number") {
     <div className="flex items-center gap-2">
 <button
   type="button"
-  disabled={!myPair || isAccepted}
+  disabled={!myPair}
   onClick={() => void handleAccept()}
   className="inline-flex h-10 items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-700 disabled:cursor-not-allowed disabled:opacity-50"
 >
-  {isAccepted ? "Accepted" : "Accept"}
+  {acceptedSessionId === myPair?.id ? "Accepted" : "Accept"}
 </button>
 
 <button
@@ -787,13 +774,15 @@ if (typeof nextState?.timeLeftSeconds === "number") {
     </div>
   </div>
 
-  {myPair ? (
-    <SpeedDatingChat key={myPair.id} sessionId={myPair.id} />
-  ) : (
-    <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-6 text-sm text-neutral-500">
-      Your private message thread will appear here when you are matched.
-    </div>
-  )}
+{myPair && acceptedSessionId === myPair.id ? (
+  <SpeedDatingChat key={myPair.id} sessionId={myPair.id} />
+) : (
+  <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-6 text-sm text-neutral-500">
+    {myPair
+      ? 'Press "Accept" to open your private chat thread for this round.'
+      : "Your private message thread will appear here when you are matched."}
+  </div>
+)}
 </div>
     </div>
   );

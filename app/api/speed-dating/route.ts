@@ -20,7 +20,8 @@ type Participant = {
   joinedAt: number;
   updatedAt: number;
   isActive: boolean;
-  skippedRound?: number;
+  skippedPartnerId?: string;
+  skippedPartnerRound?: number;
   acceptedSessionId?: string;
   acceptedRound?: number;
 };
@@ -54,7 +55,7 @@ type JoinBody = {
 
 type ActionBody =
   | (JoinBody & { action?: "join" })
-  | { action: "skip"; browserKey: string }
+  | { action: "skip"; browserKey: string; skippedPartnerId: string }
   | { action: "leave"; browserKey: string }
   | { action: "accept"; browserKey: string; sessionId: string };
 
@@ -168,52 +169,62 @@ function buildPairs(store: ReturnType<typeof getStore>) {
     round,
   );
 
-  const max = Math.max(left.length, right.length);
   const pairs: Pair[] = [];
   const activeIds = new Set<string>();
+  const usedRightIds = new Set<string>();
 
-  for (let i = 0; i < max; i++) {
-    const l = left[i] ?? null;
-    const r = right[i] ?? null;
+  for (const l of left) {
+    let matchedRight: Participant | null = null;
 
-    // skip logic
-    if (l && l.skippedRound === round) continue;
-    if (r && r.skippedRound === round) continue;
+    for (const r of right) {
+      if (usedRightIds.has(r.id)) continue;
+      if (!isCompatible(l, r)) continue;
 
-    if (l && r && isCompatible(l, r)) {
-      const sessionId = `${l.id}_${r.id}_r${round}`;
+      const leftSkippedThisPair =
+        l.skippedPartnerRound === round && l.skippedPartnerId === r.id;
 
+      const rightSkippedThisPair =
+        r.skippedPartnerRound === round && r.skippedPartnerId === l.id;
+
+      if (leftSkippedThisPair || rightSkippedThisPair) continue;
+
+      matchedRight = r;
+      break;
+    }
+
+    if (matchedRight) {
+      usedRightIds.add(matchedRight.id);
       activeIds.add(l.id);
-      activeIds.add(r.id);
+      activeIds.add(matchedRight.id);
 
       const pair: Pair = {
-        id: sessionId,
+        id: `${l.id}_${matchedRight.id}_r${round}`,
         leftParticipant: toPublic(l, false),
-        rightParticipant: toPublic(r, false),
+        rightParticipant: toPublic(matchedRight, false),
         status: "active",
       };
 
-      store.sessions[sessionId] = pair;
+      store.sessions[pair.id] = pair;
       pairs.push(pair);
     } else {
-      if (l) {
-        pairs.push({
-          id: `open_left_${l.id}_r${round}`,
-          leftParticipant: toPublic(l, true),
-          rightParticipant: null,
-          status: "open",
-        });
-      }
-
-      if (r) {
-        pairs.push({
-          id: `open_right_${r.id}_r${round}`,
-          leftParticipant: null,
-          rightParticipant: toPublic(r, true),
-          status: "open",
-        });
-      }
+      pairs.push({
+        id: `open_left_${l.id}_r${round}`,
+        leftParticipant: toPublic(l, true),
+        rightParticipant: null,
+        status: "open",
+      });
     }
+  }
+
+  for (const r of right) {
+    if (usedRightIds.has(r.id)) continue;
+
+    pairs.push({
+      id: `open_right_${r.id}_r${round}`,
+      leftParticipant: null,
+      rightParticipant: toPublic(r, true),
+      status: "open",
+    });
   }
 
   return { pairs, left, right, activeIds };
@@ -262,12 +273,13 @@ async function parseActionBody(req: Request): Promise<ActionBody> {
         ? actionValue
         : "join";
 
-    if (action === "skip") {
-      return {
-        action: "skip",
-        browserKey: String(formData.get("browserKey") || ""),
-      };
-    }
+if (action === "skip") {
+  return {
+    action: "skip",
+    browserKey: String(formData.get("browserKey") || ""),
+    skippedPartnerId: String(formData.get("skippedPartnerId") || ""),
+  };
+}
 
     if (action === "leave") {
       return {
@@ -364,12 +376,14 @@ const base: Participant = {
   joinedAt: existing ? existing.joinedAt : now,
   updatedAt: now,
   isActive: true,
-  skippedRound:
-    existing?.skippedRound === store.round ? existing.skippedRound : undefined,
-  acceptedSessionId:
-    existing?.acceptedRound === store.round ? existing.acceptedSessionId : undefined,
-  acceptedRound:
-    existing?.acceptedRound === store.round ? existing.acceptedRound : undefined,
+skippedPartnerId:
+  existing?.skippedPartnerRound === store.round ? existing.skippedPartnerId : undefined,
+skippedPartnerRound:
+  existing?.skippedPartnerRound === store.round ? existing.skippedPartnerRound : undefined,
+acceptedSessionId:
+  existing?.acceptedRound === store.round ? existing.acceptedSessionId : undefined,
+acceptedRound:
+  existing?.acceptedRound === store.round ? existing.acceptedRound : undefined,
 };
 
     if (idx >= 0) store.participants[idx] = base;
@@ -378,15 +392,20 @@ const base: Participant = {
     return NextResponse.json({ ok: true, state: buildState(sessionId) });
   }
 
-  /* ===== SKIP ===== */
-  if (body.action === "skip") {
-    const p = store.participants.find(
-      (x) => x.browserKey === body.browserKey,
-    );
-    if (p) p.skippedRound = store.round;
+/* ===== SKIP ===== */
+if (body.action === "skip") {
+  const p = store.participants.find(
+    (x) => x.browserKey === body.browserKey,
+  );
 
-    return NextResponse.json({ ok: true, state: buildState(sessionId) });
+  if (p) {
+    p.skippedPartnerId = body.skippedPartnerId;
+    p.skippedPartnerRound = store.round;
+    p.updatedAt = now;
   }
+
+  return NextResponse.json({ ok: true, state: buildState(sessionId) });
+}
 
     /* ===== ACCEPT ===== */
   if (body.action === "accept") {
@@ -402,7 +421,7 @@ const base: Participant = {
 
     return NextResponse.json({ ok: true, state: buildState(sessionId) });
   }
-  
+
   /* ===== LEAVE ===== */
   if (body.action === "leave") {
     const p = store.participants.find(
