@@ -182,14 +182,6 @@ const [joinForm, setJoinForm] = useState<JoinFormState>({
 
   const lastPlayedRoundRef = useRef(0);
 
-  useEffect(() => {
-  const interval = window.setInterval(() => {
-    setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
-  }, 1000);
-
-  return () => window.clearInterval(interval);
-}, []);
-
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
 
@@ -204,14 +196,6 @@ const [joinForm, setJoinForm] = useState<JoinFormState>({
 
   const browserKey = getBrowserKey();
 
-const isJoined =
-  leftParticipants.some((participant) => participant.id === browserKey) ||
-  rightParticipants.some((participant) => participant.id === browserKey) ||
-  activePairs.some(
-    (pair) =>
-      pair.leftParticipant?.id === browserKey ||
-      pair.rightParticipant?.id === browserKey,
-  );
 
 const myPair = activePairs.find((pair) => {
   return (
@@ -220,30 +204,14 @@ const myPair = activePairs.find((pair) => {
   );
 });
 
-const myParticipant =
-  leftParticipants.find((participant) => participant.id === browserKey) ||
-  rightParticipants.find((participant) => participant.id === browserKey) ||
-  myPair?.leftParticipant?.id === browserKey
-    ? myPair?.leftParticipant
-    : myPair?.rightParticipant?.id === browserKey
-      ? myPair?.rightParticipant
-      : null;
+const joinErrors = {
+  name: joinAttempted && !joinForm.name.trim(),
+  title: joinAttempted && !joinForm.title.trim(),
+  bio: joinAttempted && !joinForm.bio.trim(),
+  iam: joinAttempted && !joinForm.iam,
+  seeking: joinAttempted && !joinForm.seeking,
+};
 
-const isAccepted =
-  apiState != null &&
-  myPair != null &&
-  (
-    (apiState.leftQueue.find((p) => p.id === browserKey) as any)?.acceptedSessionId === myPair.id ||
-    (apiState.rightQueue.find((p) => p.id === browserKey) as any)?.acceptedSessionId === myPair.id
-  );
-
-  const joinErrors = {
-    name: joinAttempted && !joinForm.name.trim(),
-    title: joinAttempted && !joinForm.title.trim(),
-    bio: joinAttempted && !joinForm.bio.trim(),
-    iam: joinAttempted && !joinForm.iam,
-    seeking: joinAttempted && !joinForm.seeking,
-  };
 
   async function fetchState() {
     try {
@@ -281,13 +249,6 @@ if (typeof data.round === "number") {
 if (typeof data.timeLeftSeconds === "number") {
   setTimeLeft(data.timeLeftSeconds);
 }
-
-if (
-  typeof data.timeLeftSeconds === "number" &&
-  Math.abs(data.timeLeftSeconds - timeLeft) > 2
-) {
-  setTimeLeft(data.timeLeftSeconds);
-}
     } catch (error) {
       console.error("Speed dating state fetch failed:", error);
     }
@@ -321,15 +282,8 @@ useEffect(() => {
     const audio = new Audio(soundSrc);
     audio.currentTime = 0;
     void audio.play().catch(() => {});
+    lastPlayedRoundRef.current = round;
   }
-
-  console.log("sound check", {
-  round,
-  lastPlayed: lastPlayedRoundRef.current,
-  roundStartSound,
-});
-
-  lastPlayedRoundRef.current = round;
 }, [round, roundStartSound]);
 
 useEffect(() => {

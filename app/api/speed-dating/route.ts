@@ -22,8 +22,6 @@ type Participant = {
   isActive: boolean;
   skippedPartnerId?: string;
   skippedPartnerRound?: number;
-  acceptedSessionId?: string;
-  acceptedRound?: number;
 };
 
 type PublicParticipant = {
@@ -56,8 +54,7 @@ type JoinBody = {
 type ActionBody =
   | (JoinBody & { action?: "join" })
   | { action: "skip"; browserKey: string; skippedPartnerId: string }
-  | { action: "leave"; browserKey: string }
-  | { action: "accept"; browserKey: string; sessionId: string };
+  | { action: "leave"; browserKey: string };
 
 /* ================= CONFIG ================= */
 
@@ -288,14 +285,6 @@ if (action === "skip") {
       };
     }
 
-    if (action === "accept") {
-      return {
-        action: "accept",
-        browserKey: String(formData.get("browserKey") || ""),
-        sessionId: String(formData.get("sessionId") || ""),
-      };
-    }
-
     const browserKeyValue = formData.get("browserKey");
     const nameValue = formData.get("name");
     const titleValue = formData.get("title");
@@ -376,15 +365,12 @@ const base: Participant = {
   joinedAt: existing ? existing.joinedAt : now,
   updatedAt: now,
   isActive: true,
-skippedPartnerId:
-  existing?.skippedPartnerRound === store.round ? existing.skippedPartnerId : undefined,
-skippedPartnerRound:
-  existing?.skippedPartnerRound === store.round ? existing.skippedPartnerRound : undefined,
-acceptedSessionId:
-  existing?.acceptedRound === store.round ? existing.acceptedSessionId : undefined,
-acceptedRound:
-  existing?.acceptedRound === store.round ? existing.acceptedRound : undefined,
+  skippedPartnerId:
+    existing?.skippedPartnerRound === store.round ? existing.skippedPartnerId : undefined,
+  skippedPartnerRound:
+    existing?.skippedPartnerRound === store.round ? existing.skippedPartnerRound : undefined,
 };
+
 
     if (idx >= 0) store.participants[idx] = base;
     else store.participants.push(base);
@@ -406,21 +392,6 @@ if (body.action === "skip") {
 
   return NextResponse.json({ ok: true, state: buildState(sessionId) });
 }
-
-    /* ===== ACCEPT ===== */
-  if (body.action === "accept") {
-    const p = store.participants.find(
-      (x) => x.browserKey === body.browserKey,
-    );
-
-    if (p) {
-      p.acceptedSessionId = body.sessionId;
-      p.acceptedRound = store.round;
-      p.updatedAt = now;
-    }
-
-    return NextResponse.json({ ok: true, state: buildState(sessionId) });
-  }
 
   /* ===== LEAVE ===== */
   if (body.action === "leave") {
