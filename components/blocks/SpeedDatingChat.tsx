@@ -65,9 +65,7 @@ async function fetchSession() {
   const data = await res.json().catch(() => null);
 
 if (!res.ok || !data?.ok || !data.session) {
-  setSession(null);
-  setParticipantId(null);
-  return;
+  return; // DO NOT reset session
 }
 
 const nextSession = data.session as Session;
@@ -129,7 +127,7 @@ async function sendMessage() {
 
 useEffect(() => {
   void fetchSession();
-}, [sessionId]);
+}, []); // ONLY ONCE
 
 useEffect(() => {
   if (!sessionId) return;

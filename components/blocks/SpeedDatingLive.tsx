@@ -182,13 +182,6 @@ const [activeChatPair, setActiveChatPair] = useState<Pair | null>(null);
 const lastRoundSeenRef = useRef<number | null>(null);
 
   const lastPlayedRoundRef = useRef(0);
-useEffect(() => {
-  const interval = window.setInterval(() => {
-    setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
-  }, 1000);
-
-  return () => window.clearInterval(interval);
-}, []);
 
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
