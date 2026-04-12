@@ -203,6 +203,19 @@ const myPair = activePairs.find((pair) => {
   );
 });
 
+const matchedPair = activePairs.find((pair) => {
+  return (
+    pair.status === "active" &&
+    (pair.leftParticipant?.id === browserKey ||
+      pair.rightParticipant?.id === browserKey)
+  );
+});
+
+const isInRotation =
+  leftParticipants.some((participant) => participant.id === browserKey) ||
+  rightParticipants.some((participant) => participant.id === browserKey) ||
+  !!myPair;
+
 const joinErrors = {
   name: joinAttempted && !joinForm.name.trim(),
   title: joinAttempted && !joinForm.title.trim(),
@@ -289,15 +302,15 @@ if (typeof data.timeLeftSeconds === "number") {
 }, [apiState?.round, roundStartSound]);
 
 async function handleSkip() {
-  if (!myPair) return;
+  if (!matchedPair) return;
 
   try {
     const sessionId = window.location.hostname;
 
-    const skippedPartnerId =
-      myPair.leftParticipant?.id === browserKey
-        ? myPair.rightParticipant?.id
-        : myPair.leftParticipant?.id;
+const skippedPartnerId =
+  matchedPair.leftParticipant?.id === browserKey
+    ? matchedPair.rightParticipant?.id
+    : matchedPair.leftParticipant?.id;
 
     const res = await fetch(`/api/speed-dating?sessionId=${sessionId}`, {
       method: "POST",
@@ -328,6 +341,43 @@ async function handleSkip() {
     }
   } catch (error) {
     console.error("Skip failed", error);
+  }
+}
+
+async function handleExit() {
+  if (!isInRotation) return;
+
+  try {
+    const sessionId = window.location.hostname;
+
+    const res = await fetch(`/api/speed-dating?sessionId=${sessionId}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        action: "leave",
+        browserKey,
+      }),
+    });
+
+    const data = await res.json().catch(() => null);
+
+    if (!res.ok || !data?.ok) return;
+
+    const nextState = data.state ?? null;
+
+    setApiState((prev) => nextState ?? prev);
+
+    if (typeof nextState?.round === "number") {
+      setRound(nextState.round);
+    }
+
+    if (typeof nextState?.timeLeftSeconds === "number") {
+      setTimeLeft(nextState.timeLeftSeconds);
+    }
+  } catch (error) {
+    console.error("Exit failed", error);
   }
 }
 
@@ -656,9 +706,11 @@ if (typeof nextState?.timeLeftSeconds === "number") {
         Private Date Room
       </div>
 <div className="mt-1 text-xs text-neutral-500">
-  {myPair
+  {matchedPair
     ? "You are matched for this round."
-    : "Join the rotation to enter the queue and wait for a match."}
+    : isInRotation
+      ? "You are in the rotation and waiting for a match."
+      : "Join the rotation to enter the queue and wait for a match."}
 </div>
     </div>
 
@@ -666,11 +718,20 @@ if (typeof nextState?.timeLeftSeconds === "number") {
 
 <button
   type="button"
-  disabled={!myPair}
+  disabled={!matchedPair}
   onClick={() => void handleSkip()}
   className="inline-flex h-10 items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-700 disabled:cursor-not-allowed disabled:opacity-50"
 >
   Skip
+</button>
+
+<button
+  type="button"
+  disabled={!isInRotation}
+  onClick={() => void handleExit()}
+  className="inline-flex h-10 items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-700 disabled:cursor-not-allowed disabled:opacity-50"
+>
+  Exit
 </button>
     </div>
   </div>
@@ -705,18 +766,18 @@ if (typeof nextState?.timeLeftSeconds === "number") {
         Current Match
       </div>
 
-      {myPair?.leftParticipant?.id === browserKey && myPair?.rightParticipant ? (
-        <ParticipantCard participant={myPair.rightParticipant} tone="active" />
-      ) : myPair?.rightParticipant?.id === browserKey && myPair?.leftParticipant ? (
-        <ParticipantCard participant={myPair.leftParticipant} tone="active" />
-      ) : (
-        <EmptySlot label="No match for this round" />
-      )}
+{matchedPair?.leftParticipant?.id === browserKey && matchedPair?.rightParticipant ? (
+  <ParticipantCard participant={matchedPair.rightParticipant} tone="active" />
+) : matchedPair?.rightParticipant?.id === browserKey && matchedPair?.leftParticipant ? (
+  <ParticipantCard participant={matchedPair.leftParticipant} tone="active" />
+) : (
+  <EmptySlot label="No match for this round" />
+)}
     </div>
   </div>
 
-{myPair ? (
-  <SpeedDatingChat key={myPair.id} sessionId={myPair.id} />
+{matchedPair ? (
+  <SpeedDatingChat key={matchedPair.id} sessionId={matchedPair.id} />
 ) : (
   <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-6 text-sm text-neutral-500">
     Your private message thread will appear here when you are matched.
