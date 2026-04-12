@@ -64,10 +64,13 @@ async function fetchSession() {
   );
   const data = await res.json().catch(() => null);
 
-if (!res.ok || !data?.ok || !data.session) {
-  return; // DO NOT reset session
+if (!res.ok || !data?.ok) {
+  return;
 }
 
+if (!data.session) {
+  return;
+}
 const nextSession = data.session as Session;
 
 setSession(nextSession);
@@ -77,7 +80,7 @@ const nextParticipantId =
     ? nextSession.leftParticipant.id
     : nextSession.rightParticipant?.id === browserKey
       ? nextSession.rightParticipant.id
-      : null;
+      : participantId;
 
 setParticipantId(nextParticipantId);
 }
@@ -127,7 +130,13 @@ async function sendMessage() {
 
 useEffect(() => {
   void fetchSession();
-}, []); // ONLY ONCE
+
+  const interval = setInterval(() => {
+    void fetchSession();
+  }, 1500);
+
+  return () => clearInterval(interval);
+}, [sessionId]);
 
 useEffect(() => {
   if (!sessionId) return;

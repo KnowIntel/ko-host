@@ -178,10 +178,18 @@ const [joinForm, setJoinForm] = useState<JoinFormState>({
   const [apiState, setApiState] = useState<ApiState | null>(null);
   const [loading, setLoading] = useState(false);
   const [joinError, setJoinError] = useState("");
+  const [serverTimeLeft, setServerTimeLeft] = useState(duration);
 const [activeChatPair, setActiveChatPair] = useState<Pair | null>(null);
 const lastRoundSeenRef = useRef<number | null>(null);
 
   const lastPlayedRoundRef = useRef(0);
+  useEffect(() => {
+  const interval = window.setInterval(() => {
+    setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
+  }, 1000);
+
+  return () => window.clearInterval(interval);
+}, []);
 
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
@@ -276,16 +284,13 @@ if (typeof data.round === "number") {
   setRound(data.round);
 }
 
-if (
-  typeof data.timeLeftSeconds === "number" &&
-  Math.abs(data.timeLeftSeconds - timeLeft) > 1
-) {
-  setTimeLeft(data.timeLeftSeconds);
-}
-    } catch (error) {
-      console.error("Speed dating state fetch failed:", error);
-    }
+if (typeof data.timeLeftSeconds === "number") {
+  setServerTimeLeft(data.timeLeftSeconds);
+
+  if (Math.abs(data.timeLeftSeconds - timeLeft) > 2) {
+    setTimeLeft(data.timeLeftSeconds);
   }
+}
 
   useEffect(() => {
     void fetchState();
@@ -361,9 +366,10 @@ const skippedPartnerId =
       setRound(nextState.round);
     }
 
-    if (typeof nextState?.timeLeftSeconds === "number") {
-      setTimeLeft(nextState.timeLeftSeconds);
-    }
+if (typeof nextState?.timeLeftSeconds === "number") {
+  setServerTimeLeft(nextState.timeLeftSeconds);
+  setTimeLeft(nextState.timeLeftSeconds);
+}
   } catch (error) {
     console.error("Skip failed", error);
   }
@@ -398,9 +404,10 @@ async function handleExit() {
       setRound(nextState.round);
     }
 
-    if (typeof nextState?.timeLeftSeconds === "number") {
-      setTimeLeft(nextState.timeLeftSeconds);
-    }
+if (typeof nextState?.timeLeftSeconds === "number") {
+  setServerTimeLeft(nextState.timeLeftSeconds);
+  setTimeLeft(nextState.timeLeftSeconds);
+}
   } catch (error) {
     console.error("Exit failed", error);
   }
@@ -473,6 +480,7 @@ if (typeof nextState?.round === "number") {
 }
 
 if (typeof nextState?.timeLeftSeconds === "number") {
+  setServerTimeLeft(nextState.timeLeftSeconds);
   setTimeLeft(nextState.timeLeftSeconds);
 }
     } catch (error) {

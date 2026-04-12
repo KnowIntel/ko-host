@@ -8,21 +8,33 @@ export async function GET(req: Request) {
     return NextResponse.json({ ok: false }, { status: 400 });
   }
 
-  const store =
+  const stores =
     globalThis.__KOHOST_SPEED_DATING_STORE__ as
-      | {
-          sessions: Record<string, any>;
-        }
+      | Record<
+          string,
+          {
+            participants: any[];
+            sessions: Record<string, any>;
+          }
+        >
       | undefined;
 
-  if (!store) {
+  if (!stores) {
     return NextResponse.json({ ok: true, session: null });
   }
 
-  const session = store.sessions?.[sessionId] ?? null;
+  for (const store of Object.values(stores)) {
+    const session = store.sessions?.[sessionId];
+    if (session) {
+      return NextResponse.json({
+        ok: true,
+        session,
+      });
+    }
+  }
 
   return NextResponse.json({
     ok: true,
-    session,
+    session: null,
   });
 }
