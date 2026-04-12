@@ -102,7 +102,7 @@ setParticipantId(nextParticipantId);
 async function sendMessage() {
   if (!input.trim() || !session || !participantId) return;
 
-  await fetch(`/api/speed-dating/messages?sessionId=${sessionId}`, {
+  const res = await fetch(`/api/speed-dating/messages?sessionId=${sessionId}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -113,6 +113,13 @@ async function sendMessage() {
       text: input.trim(),
     }),
   });
+
+  const data = await res.json().catch(() => null);
+
+  if (!res.ok || !data?.ok) {
+    console.error("Send message failed", data);
+    return;
+  }
 
   setInput("");
   void fetchMessages(sessionId);

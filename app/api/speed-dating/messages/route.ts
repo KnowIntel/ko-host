@@ -1,7 +1,4 @@
-// app\api\speed-dating\session\message\route.ts
 import { NextResponse } from "next/server";
-
-/* ========= TYPES ========= */
 
 type Message = {
   id: string;
@@ -11,8 +8,6 @@ type Message = {
   attachmentUrl?: string;
   createdAt: number;
 };
-
-/* ========= GLOBAL STORE ========= */
 
 declare global {
   var __KOHOST_SPEED_DATING_CHAT__:
@@ -34,8 +29,6 @@ function getChatStore() {
 function makeId() {
   return `msg_${Math.random().toString(36).slice(2, 10)}`;
 }
-
-/* ========= GET (fetch messages for session) ========= */
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -59,8 +52,6 @@ export async function GET(req: Request) {
     messages,
   });
 }
-
-/* ========= POST (send message) ========= */
 
 export async function POST(req: Request) {
   const body = await req.json().catch(() => null);
