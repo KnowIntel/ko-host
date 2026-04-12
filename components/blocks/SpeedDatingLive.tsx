@@ -180,6 +180,13 @@ const [joinForm, setJoinForm] = useState<JoinFormState>({
   const [joinError, setJoinError] = useState("");
 
   const lastPlayedRoundRef = useRef(0);
+useEffect(() => {
+  const interval = window.setInterval(() => {
+    setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
+  }, 1000);
+
+  return () => window.clearInterval(interval);
+}, []);
 
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
@@ -258,7 +265,10 @@ if (typeof data.round === "number") {
   setRound(data.round);
 }
 
-if (typeof data.timeLeftSeconds === "number") {
+if (
+  typeof data.timeLeftSeconds === "number" &&
+  Math.abs(data.timeLeftSeconds - timeLeft) > 1
+) {
   setTimeLeft(data.timeLeftSeconds);
 }
     } catch (error) {
