@@ -251,85 +251,50 @@ const joinErrors = {
 };
 
 
-  async function fetchState() {
-    try {
-const sessionId = window.location.hostname;
+async function fetchState() {
+  try {
+    const sessionId = window.location.hostname;
 
-const res = await fetch(`/api/speed-dating?sessionId=${sessionId}`, {
-  method: "GET",
-  cache: "no-store",
-});
+    const res = await fetch(`/api/speed-dating?sessionId=${sessionId}`, {
+      method: "GET",
+      cache: "no-store",
+    });
 
-      const data = await res.json().catch(() => null);
+    const data = await res.json().catch(() => null);
 
-      if (!res.ok || !data?.ok) return;
+    if (!res.ok || !data?.ok) return;
 
-setApiState((prev) => {
-  if (!prev) return data;
+    setApiState((prev) => {
+      if (!prev) return data;
 
-  const isSame = JSON.stringify(prev) === JSON.stringify(data);
+      const isSame = JSON.stringify(prev) === JSON.stringify(data);
 
-  if (isSame) return prev;
+      if (isSame) return prev;
 
-  return {
-    ...data,
-    activePairs:
-      data.activePairs && data.activePairs.length > 0
-        ? data.activePairs
-        : prev.activePairs,
-  };
-});
+      return {
+        ...data,
+        activePairs:
+          data.activePairs && data.activePairs.length > 0
+            ? data.activePairs
+            : prev.activePairs,
+      };
+    });
 
-if (typeof data.round === "number") {
-  setRound(data.round);
-}
+    if (typeof data.round === "number") {
+      setRound(data.round);
+    }
 
-if (typeof data.timeLeftSeconds === "number") {
-  setServerTimeLeft(data.timeLeftSeconds);
+    if (typeof data.timeLeftSeconds === "number") {
+      setServerTimeLeft(data.timeLeftSeconds);
 
-  if (Math.abs(data.timeLeftSeconds - timeLeft) > 2) {
-    setTimeLeft(data.timeLeftSeconds);
+      if (Math.abs(data.timeLeftSeconds - timeLeft) > 2) {
+        setTimeLeft(data.timeLeftSeconds);
+      }
+    }
+  } catch (error) {
+    console.error("Speed dating state fetch failed:", error);
   }
 }
-
-  useEffect(() => {
-    void fetchState();
-
-    const interval = window.setInterval(() => {
-      void fetchState();
-    }, 2000);
-
-    return () => window.clearInterval(interval);
-  }, [duration]);
-
-useEffect(() => {
-  const currentRound = apiState?.round ?? 0;
-
-  if (roundStartSound === "none") {
-    lastPlayedRoundRef.current = currentRound;
-    return;
-  }
-
-  if (currentRound <= 0) {
-    lastPlayedRoundRef.current = currentRound;
-    return;
-  }
-
-  if (lastPlayedRoundRef.current === 0) {
-    lastPlayedRoundRef.current = currentRound;
-    return;
-  }
-
-  if (currentRound > lastPlayedRoundRef.current) {
-    const soundSrc = ROUND_START_SOUND_MAP[roundStartSound];
-    if (!soundSrc) return;
-
-    const audio = new Audio(soundSrc);
-    audio.currentTime = 0;
-    void audio.play().catch(() => {});
-    lastPlayedRoundRef.current = currentRound;
-  }
-}, [apiState?.round, roundStartSound]);
 
 async function handleSkip() {
   if (!matchedPair) return;
