@@ -24,6 +24,7 @@ type RoomState = {
   partner: ParticipantCardData | null;
   round: number;
   phase: "active" | "transition";
+  phaseEndsAt?: number;
   timeLeftSeconds: number;
   oppositeLineup: ParticipantCardData[];
   waiting: boolean;
@@ -119,8 +120,9 @@ function EmptySlot({ label }: { label: string }) {
 }
 
 export default function SpeedDatingPrivateRoom({ slug }: Props) {
-  const [state, setState] = useState<RoomState | null>(null);
-  const [timeLeft, setTimeLeft] = useState(0);
+const [state, setState] = useState<RoomState | null>(null);
+const [phaseEndsAt, setPhaseEndsAt] = useState<number | null>(null);
+const [timeLeft, setTimeLeft] = useState(0);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
@@ -153,17 +155,16 @@ setState((prev) => {
     room:
       data.room ||
       (prev.room && prev.round === data.round ? prev.room : null),
+    oppositeLineup:
+      Array.isArray(data.oppositeLineup) && data.oppositeLineup.length > 0
+        ? data.oppositeLineup
+        : prev.oppositeLineup,
   };
 });
 
-    if (typeof data.timeLeftSeconds === "number") {
-      setTimeLeft((prev) => {
-        if (Math.abs(prev - data.timeLeftSeconds) > 3) {
-          return data.timeLeftSeconds;
-        }
-        return prev || data.timeLeftSeconds;
-      });
-    }
+if (typeof data.phaseEndsAt === "number") {
+  setPhaseEndsAt(data.phaseEndsAt);
+}
   }
 
   async function fetchMessages(roomId: string) {
@@ -177,16 +178,22 @@ setState((prev) => {
     const data = await res.json().catch(() => null);
     if (!res.ok || !data?.ok) return;
 
-    setMessages((prev) => {
-      const next = Array.isArray(data.messages) ? data.messages : [];
-      if (!prev.length) return next;
+setMessages((prev) => {
+  const next = Array.isArray(data.messages) ? data.messages : [];
+  if (!prev.length) return next;
 
-      const prevLast = prev[prev.length - 1]?.id;
-      const nextLast = next[next.length - 1]?.id;
+  const byId = new Map<string, ChatMessage>();
 
-      if (prevLast === nextLast && prev.length === next.length) return prev;
-      return next;
-    });
+  for (const msg of prev) {
+    byId.set(msg.id, msg);
+  }
+
+  for (const msg of next) {
+    byId.set(msg.id, msg);
+  }
+
+  return Array.from(byId.values()).sort((a, b) => a.createdAt - b.createdAt);
+});
   }
 
   async function sendMessage() {
@@ -263,13 +270,22 @@ if (!res.ok || !data?.ok) {
     return () => window.clearInterval(interval);
   }, [browserKey, sessionId]);
 
-  useEffect(() => {
-    const interval = window.setInterval(() => {
-      setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
-    }, 1000);
+useEffect(() => {
+  if (!phaseEndsAt) return;
 
-    return () => window.clearInterval(interval);
-  }, []);
+  const tick = () => {
+    const next = Math.max(
+      0,
+      Math.ceil((phaseEndsAt - Date.now()) / 1000),
+    );
+    setTimeLeft(next);
+  };
+
+  tick();
+  const interval = window.setInterval(tick, 1000);
+
+  return () => window.clearInterval(interval);
+}, [phaseEndsAt]);
 
   useEffect(() => {
     const roomId = state?.room?.roomId || "";

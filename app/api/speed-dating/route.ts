@@ -188,7 +188,7 @@ function buildPairsForRound(store: SessionStore) {
       activeIds.add(l.id);
       activeIds.add(matchedRight.id);
 
-      const roomId = `${sessionIdSafe(store)}__${round}__${l.id}__${matchedRight.id}`;
+const roomId = `room__${round}__${l.id}__${matchedRight.id}`;
 
       const pair: Pair = {
         id: `${l.id}_${matchedRight.id}_r${round}`,
@@ -228,10 +228,6 @@ function buildPairsForRound(store: SessionStore) {
   return { pairs, left, right, activeIds };
 }
 
-// helper only for room id generation
-function sessionIdSafe(_store: SessionStore) {
-  return "session";
-}
 
 function refreshRoundState(store: SessionStore) {
   const now = Date.now();

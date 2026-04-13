@@ -301,29 +301,30 @@ const oppositeLineup = store.participants
   }))
   .sort((a, b) => Number(b.waiting) - Number(a.waiting) || a.name.localeCompare(b.name));
 
-  return NextResponse.json({
-    ok: true,
-    participant: {
-      id: participant.id,
-      name: participant.name,
-      title: participant.title,
-      bio: participant.bio,
-      image_url: participant.image_url ?? null,
-      side: participant.side,
-    },
-    room: room
-      ? {
-          id: room.id,
-          roomId: room.roomId,
-          round: room.round,
-          status: room.status,
-        }
-      : null,
-    partner,
-    round: store.round,
-    phase: store.phase,
-    timeLeftSeconds: getTimeLeftSeconds(store.phaseEndsAt),
-    oppositeLineup,
-    waiting: !room,
-  });
+return NextResponse.json({
+  ok: true,
+  participant: {
+    id: participant.id,
+    name: participant.name,
+    title: participant.title,
+    bio: participant.bio,
+    image_url: participant.image_url ?? null,
+    side: participant.side,
+  },
+  room: room
+    ? {
+        id: room.id,
+        roomId: room.roomId,
+        round: room.round,
+        status: room.status,
+      }
+    : null,
+  partner,
+  round: store.round,
+  phase: store.phase,
+  phaseEndsAt: store.phaseEndsAt,
+  timeLeftSeconds: getTimeLeftSeconds(store.phaseEndsAt),
+  oppositeLineup,
+  waiting: !room,
+});
 }
