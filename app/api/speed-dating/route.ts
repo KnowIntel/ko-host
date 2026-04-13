@@ -229,7 +229,7 @@ const roomId = `room__${round}__${l.id}__${matchedRight.id}`;
 }
 
 
-function refreshRoundState(store: SessionStore) {
+function refreshRoundState(sessionId: string, store: SessionStore) {
   const now = Date.now();
 
   while (now >= store.phaseEndsAt) {
@@ -238,30 +238,26 @@ function refreshRoundState(store: SessionStore) {
       store.phaseStartedAt = store.phaseEndsAt;
       store.phaseEndsAt =
         store.phaseStartedAt + TRANSITION_DURATION_SECONDS * 1000;
-      break;
+      continue;
     }
 
-    if (store.phase === "transition") {
-      store.round += 1;
-      store.phase = "active";
-      store.phaseStartedAt = store.phaseEndsAt;
-      store.phaseEndsAt =
-        store.phaseStartedAt + ROUND_DURATION_SECONDS * 1000;
+    store.round += 1;
+    store.phase = "active";
+    store.phaseStartedAt = store.phaseEndsAt;
+    store.phaseEndsAt =
+      store.phaseStartedAt + ROUND_DURATION_SECONDS * 1000;
 
-      const { pairs } = buildPairsForRound(store);
+    const { pairs } = buildPairsForRound(store);
+    store.activePairs = pairs;
+    store.rooms = {};
 
-      store.activePairs = pairs;
-      store.rooms = {};
-
-      for (const pair of pairs) {
-        if (pair.status === "active" && pair.roomId) {
-          store.rooms[pair.roomId] = pair;
-        }
+    for (const pair of pairs) {
+      if (pair.status === "active" && pair.roomId) {
+        store.rooms[pair.roomId] = pair;
       }
     }
   }
 
-  // first load / empty activePairs
   if (!store.activePairs.length && store.phase === "active") {
     const { pairs } = buildPairsForRound(store);
     store.activePairs = pairs;
@@ -279,7 +275,7 @@ function refreshRoundState(store: SessionStore) {
 
 function buildState(sessionId: string) {
   const store = getStore(sessionId);
-  refreshRoundState(store);
+refreshRoundState(sessionId, store);
 
   const left = rotateLeftDown(
     store.participants.filter((p) => p.isActive && p.side === "left"),
@@ -443,7 +439,7 @@ export async function POST(req: Request) {
 if (idx >= 0) store.participants[idx] = base;
 else store.participants.push(base);
 
-refreshRoundState(store);
+refreshRoundState(sessionId, store);
 
 if (store.phase === "active") {
   const { pairs } = buildPairsForRound(store);
