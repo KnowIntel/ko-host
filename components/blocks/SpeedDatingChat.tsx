@@ -101,19 +101,18 @@ async function fetchMessages(sessionId: string) {
     );
     const data = await res.json();
 
-    if (data?.ok) {
-setMessages((prev) => {
-  if (!prev.length) return data.messages;
+if (data?.ok) {
+  setMessages((prev) => {
+    if (!prev.length) return data.messages;
 
-  const same =
-    prev.length === data.messages.length &&
-    prev[prev.length - 1]?.id === data.messages[data.messages.length - 1]?.id;
+    const prevLast = prev[prev.length - 1]?.id;
+    const nextLast = data.messages[data.messages.length - 1]?.id;
 
-  if (same) return prev;
+    if (prevLast === nextLast) return prev;
 
-  return data.messages;
-});
-    }
+    return [...prev, ...data.messages.slice(prev.length)];
+  });
+}
   }
 
   /* ================= SEND ================= */
@@ -147,13 +146,9 @@ async function sendMessage() {
   /* ================= EFFECTS ================= */
 
 useEffect(() => {
-  void fetchSession();
+  void fetchSession(); // ONLY ONCE
 
-const interval = window.setInterval(() => {
-  void fetchSession();
-}, 1500);
-
-  return () => clearInterval(interval);
+  // ❌ REMOVE polling — causes flicker + delay
 }, [sessionId]);
 
 useEffect(() => {
@@ -169,18 +164,18 @@ const interval = window.setInterval(() => {
 
   /* ================= UI ================= */
 
-if (!session || !participantId) {
+if (!participantId) {
   return (
     <div className="rounded-xl border border-dashed border-neutral-300 p-4 text-sm text-neutral-500">
-      Waiting for active private room...
+      Connecting...
     </div>
   );
 }
 
-  const other =
-    session.leftParticipant?.id === participantId
-      ? session.rightParticipant
-      : session.leftParticipant;
+const other =
+  session?.leftParticipant?.id === participantId
+    ? session?.rightParticipant
+    : session?.leftParticipant;
 
   return (
     <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">

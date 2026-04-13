@@ -277,9 +277,12 @@ setApiState((prev) => {
 if (typeof data.timeLeftSeconds === "number") {
   setServerTimeLeft(data.timeLeftSeconds);
 
-if (data.round !== round) {
-  setTimeLeft(data.timeLeftSeconds);
-}
+setTimeLeft((prev) => {
+  if (Math.abs(prev - data.timeLeftSeconds) > 3) {
+    return data.timeLeftSeconds;
+  }
+  return prev;
+});
 }
   } catch (error) {
     console.error("Speed dating state fetch failed:", error);
