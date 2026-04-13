@@ -149,20 +149,17 @@ setState((prev) => {
   if (!prev) return data as RoomState;
 
   const sameRound = prev.round === data.round;
-  const nextRoom =
-    data.room ||
-    (prev.room && sameRound && prev.phase === data.phase ? prev.room : null);
-
-  const nextPartner =
-    data.partner ||
-    (prev.partner && sameRound && prev.phase === data.phase ? prev.partner : null);
 
   return {
     ...prev,
     ...data,
     participant: data.participant || prev.participant,
-    partner: nextPartner,
-    room: nextRoom,
+    partner:
+      data.partner ||
+      (prev.partner && sameRound && data.phase === "transition" ? prev.partner : null),
+    room:
+      data.room ||
+      (prev.room && sameRound && data.phase === "transition" ? prev.room : null),
     oppositeLineup:
       Array.isArray(data.oppositeLineup) && data.oppositeLineup.length > 0
         ? data.oppositeLineup
@@ -174,16 +171,20 @@ if (typeof data.phaseEndsAt === "number") {
   setPhaseEndsAt(data.phaseEndsAt);
 }
 useEffect(() => {
-  if (!activeRoomId) return;
   setMessages([]);
 }, [activeRoomId]);
 
 setActiveRoomId((prev) => {
-  const next = typeof data.room?.roomId === "string" && data.room.roomId
-    ? data.room.roomId
-    : null;
+  const next =
+    typeof data.room?.roomId === "string" && data.room.roomId
+      ? data.room.roomId
+      : null;
 
-  if (!next) return prev;
+  if (data.phase === "transition") {
+    return prev;
+  }
+
+  if (!next) return null;
   if (prev === next) return prev;
 
   return next;
@@ -311,19 +312,19 @@ useEffect(() => {
 }, [phaseEndsAt]);
 
 useEffect(() => {
-  const roomId = activeRoomId || "";
-  if (!roomId) {
+  const nextRoomId = state?.room?.roomId || activeRoomId || "";
+  if (!nextRoomId) {
     return;
   }
 
-  void fetchMessages(roomId);
+  void fetchMessages(nextRoomId);
 
   const interval = window.setInterval(() => {
-    void fetchMessages(roomId);
+    void fetchMessages(nextRoomId);
   }, 2000);
 
   return () => window.clearInterval(interval);
-}, [activeRoomId]);
+}, [state?.room?.roomId, activeRoomId]);
 
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
@@ -332,7 +333,7 @@ useEffect(() => {
   const participant = state?.participant || null;
   const partner = state?.partner || null;
   const oppositeLineup = state?.oppositeLineup || [];
-  const roomId = activeRoomId || "";
+  const roomId = state?.room?.roomId || activeRoomId || "";
   const participantId = participant?.id || "";
 
   return (
