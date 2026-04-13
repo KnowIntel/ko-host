@@ -392,7 +392,12 @@ const res = await fetch(`/api/speed-dating?sessionId=${sessionId}`, {
 const data = await res.json().catch(() => null);
 
 if (!res.ok || !data?.ok) {
-  setJoinError(data?.error || "Could not join the queue.");
+  console.error("JOIN API ERROR:", data);
+  setJoinError(
+    data?.error ||
+      data?.message ||
+      `Could not join the queue. (${res.status})`
+  );
   return;
 }
 
@@ -413,10 +418,12 @@ if (typeof data.redirectUrl === "string" && data.redirectUrl.trim()) {
   window.location.href = data.redirectUrl;
   return;
 }
-    } catch (error) {
-      console.error("Speed dating join failed:", error);
-      setJoinError("Could not join the queue.");
-    } finally {
+} catch (error) {
+  console.error("Speed dating join failed:", error);
+  setJoinError(
+    error instanceof Error ? error.message : "Could not join the queue."
+  );
+} finally {
       setLoading(false);
     }
   }
