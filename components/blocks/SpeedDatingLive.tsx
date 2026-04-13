@@ -1,12 +1,7 @@
 // components\blocks\SpeedDatingLive.tsx
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import dynamic from "next/dynamic";
-
-const SpeedDatingChat = dynamic(() => import("./SpeedDatingChat"), {
-  ssr: false,
-});
+import { useEffect, useMemo, useState } from "react";
 
 type Props = {
   heading?: string;
@@ -36,7 +31,9 @@ type Pair = {
 
 type ApiState = {
   round: number;
+  phase?: "active" | "transition";
   roundDurationSeconds: number;
+  transitionDurationSeconds?: number;
   timeLeftSeconds: number;
   leftQueue: Participant[];
   rightQueue: Participant[];
@@ -178,9 +175,7 @@ const [joinForm, setJoinForm] = useState<JoinFormState>({
   const [apiState, setApiState] = useState<ApiState | null>(null);
   const [loading, setLoading] = useState(false);
   const [joinError, setJoinError] = useState("");
-  const [serverTimeLeft, setServerTimeLeft] = useState(duration);
-const [activeChatPair, setActiveChatPair] = useState<Pair | null>(null);
-const lastRoundSeenRef = useRef<number | null>(null);
+const [serverTimeLeft, setServerTimeLeft] = useState(duration);
 
   const lastPlayedRoundRef = useRef(0);
   useEffect(() => {
@@ -206,34 +201,9 @@ const lastRoundSeenRef = useRef<number | null>(null);
   const browserKey = getBrowserKey();
 
 
-const myPair = activePairs.find((pair) => {
-  return (
-    pair.leftParticipant?.id === browserKey ||
-    pair.rightParticipant?.id === browserKey
-  );
-}) ?? null;
-
-useEffect(() => {
-  const currentRound = apiState?.round ?? null;
-  if (currentRound == null) return;
-
-setActiveChatPair((prev) => {
-  if (!myPair) return null;
-
-  if (!prev) return myPair;
-
-  if (prev.id === myPair.id) return prev;
-
-  return myPair;
-});
-}, [myPair, apiState?.round]);
-
-const matchedPair = activeChatPair;
-
 const isInRotation =
   leftParticipants.some((participant) => participant.id === browserKey) ||
-  rightParticipants.some((participant) => participant.id === browserKey) ||
-  !!myPair;
+  rightParticipants.some((participant) => participant.id === browserKey);
 
 const joinErrors = {
   name: joinAttempted && !joinForm.name.trim(),
@@ -330,50 +300,6 @@ if (
   }
 }, [apiState?.round, roundStartSound]);
 
-async function handleSkip() {
-  if (!matchedPair) return;
-
-  try {
-    const sessionId = window.location.hostname;
-
-const skippedPartnerId =
-  matchedPair.leftParticipant?.id === browserKey
-    ? matchedPair.rightParticipant?.id
-    : matchedPair.leftParticipant?.id;
-
-    const res = await fetch(`/api/speed-dating?sessionId=${sessionId}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        action: "skip",
-        browserKey,
-        skippedPartnerId,
-      }),
-    });
-
-    const data = await res.json().catch(() => null);
-
-    if (!res.ok || !data?.ok) return;
-
-    const nextState = data.state ?? null;
-
-    setApiState((prev) => nextState ?? prev);
-
-    if (typeof nextState?.round === "number") {
-      setRound(nextState.round);
-    }
-
-if (typeof nextState?.timeLeftSeconds === "number") {
-  setServerTimeLeft(nextState.timeLeftSeconds);
-  setTimeLeft(nextState.timeLeftSeconds);
-}
-  } catch (error) {
-    console.error("Skip failed", error);
-  }
-}
-
 async function handleExit() {
   if (!isInRotation) return;
 
@@ -463,12 +389,12 @@ const res = await fetch(`/api/speed-dating?sessionId=${sessionId}`, {
   body: formData,
 });
 
-      const data = await res.json().catch(() => null);
+const data = await res.json().catch(() => null);
 
-      if (!res.ok || !data?.ok) {
-        setJoinError(data?.error || "Could not join the queue.");
-        return;
-      }
+if (!res.ok || !data?.ok) {
+  setJoinError(data?.error || "Could not join the queue.");
+  return;
+}
 
 const nextState = data.state ?? null;
 
@@ -481,6 +407,11 @@ if (typeof nextState?.round === "number") {
 if (typeof nextState?.timeLeftSeconds === "number") {
   setServerTimeLeft(nextState.timeLeftSeconds);
   setTimeLeft(nextState.timeLeftSeconds);
+}
+
+if (typeof data.redirectUrl === "string" && data.redirectUrl.trim()) {
+  window.location.href = data.redirectUrl;
+  return;
 }
     } catch (error) {
       console.error("Speed dating join failed:", error);
@@ -510,7 +441,7 @@ if (typeof nextState?.timeLeftSeconds === "number") {
       {showTimer ? (
         <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
           <div className="text-xs font-semibold uppercase tracking-[0.14em] text-neutral-500">
-            Time Remaining
+            {apiState?.phase === "transition" ? "Next Round Starts In" : "Time Remaining"}
           </div>
 
           <div className="mt-1 text-3xl font-semibold text-neutral-900">
@@ -731,94 +662,16 @@ if (typeof nextState?.timeLeftSeconds === "number") {
         </div>
       </div>
 
-<div className="mt-4 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
-  <div className="mb-3 flex items-center justify-between gap-3">
-    <div>
-      <div className="text-sm font-semibold text-neutral-900">
-        Private Date Room
-      </div>
-<div className="mt-1 text-xs text-neutral-500">
-{activeChatPair
-  ? "You are matched for this round."
-  : isInRotation
-    ? "You are in the rotation and waiting for a match."
-    : "Join the rotation to enter the queue and wait for a match."}
-</div>
+{isInRotation ? (
+  <div className="mt-4 rounded-2xl border border-blue-200 bg-blue-50 p-4 shadow-sm">
+    <div className="text-sm font-semibold text-blue-900">
+      You joined the rotation
     </div>
-
-    <div className="flex items-center gap-2">
-
-<button
-  type="button"
-  disabled={!matchedPair}
-  onClick={() => void handleSkip()}
-  className="inline-flex h-10 items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-700 disabled:cursor-not-allowed disabled:opacity-50"
->
-  Skip
-</button>
-
-<button
-  type="button"
-  disabled={!isInRotation}
-  onClick={() => void handleExit()}
-  className="inline-flex h-10 items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-700 disabled:cursor-not-allowed disabled:opacity-50"
->
-  Exit
-</button>
+    <div className="mt-1 text-sm text-blue-700">
+      Redirecting participants to the private dating room after join.
     </div>
   </div>
-
-  <div className="mb-4 grid grid-cols-1 gap-3 md:grid-cols-2">
-    <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
-      <div className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-neutral-500">
-        You
-      </div>
-
-{leftParticipants.find((participant) => participant.id === browserKey) ? (
-  <ParticipantCard
-    participant={leftParticipants.find((participant) => participant.id === browserKey)!}
-    tone="active"
-  />
-) : rightParticipants.find((participant) => participant.id === browserKey) ? (
-  <ParticipantCard
-    participant={rightParticipants.find((participant) => participant.id === browserKey)!}
-    tone="active"
-  />
-) : myPair?.leftParticipant?.id === browserKey ? (
-  <ParticipantCard participant={myPair.leftParticipant} tone="active" />
-) : myPair?.rightParticipant?.id === browserKey ? (
-  <ParticipantCard participant={myPair.rightParticipant} tone="active" />
-) : (
-  <EmptySlot label="Join the rotation to appear here" />
-)}
-    </div>
-
-    <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
-      <div className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-neutral-500">
-        Current Match
-      </div>
-
-{matchedPair?.leftParticipant?.id === browserKey && matchedPair?.rightParticipant ? (
-  <ParticipantCard participant={matchedPair.rightParticipant} tone="active" />
-) : matchedPair?.rightParticipant?.id === browserKey && matchedPair?.leftParticipant ? (
-  <ParticipantCard participant={matchedPair.leftParticipant} tone="active" />
-) : (
-  <EmptySlot label="No match for this round" />
-)}
-    </div>
-  </div>
-
-{activeChatPair ? (
-<SpeedDatingChat
-  key={`${activeChatPair.id}`}
-  sessionId={activeChatPair.id}
-/>
-) : (
-  <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-6 text-sm text-neutral-500">
-    Your private message thread will appear here when you are matched.
-  </div>
-)}
-</div>
+) : null}
     </div>
   );
 }

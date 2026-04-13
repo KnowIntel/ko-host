@@ -6,6 +6,7 @@ import { NextResponse } from "next/server";
 type IAm = "man" | "woman";
 type Seeking = "men" | "women";
 type Side = "left" | "right";
+type Phase = "active" | "transition";
 
 type Participant = {
   id: string;
@@ -35,7 +36,9 @@ type PublicParticipant = {
 };
 
 type Pair = {
-  id: string; // sessionId
+  id: string;
+  roomId: string;
+  round: number;
   leftParticipant: PublicParticipant | null;
   rightParticipant: PublicParticipant | null;
   status: "active" | "open";
@@ -59,20 +62,23 @@ type ActionBody =
 /* ================= CONFIG ================= */
 
 const ROUND_DURATION_SECONDS = 120;
+const TRANSITION_DURATION_SECONDS = 10;
 
 /* ================= GLOBAL STORE ================= */
 
+type SessionStore = {
+  participants: Participant[];
+  round: number;
+  phase: Phase;
+  phaseStartedAt: number;
+  phaseEndsAt: number;
+  activePairs: Pair[];
+  rooms: Record<string, Pair>;
+};
+
 declare global {
   var __KOHOST_SPEED_DATING_STORE__:
-    | Record<
-        string,
-        {
-          participants: Participant[];
-          round: number;
-          roundStartedAt: number;
-          sessions: Record<string, Pair>;
-        }
-      >
+    | Record<string, SessionStore>
     | undefined;
 }
 
@@ -82,11 +88,16 @@ function getStore(sessionId: string) {
   }
 
   if (!globalThis.__KOHOST_SPEED_DATING_STORE__[sessionId]) {
+    const now = Date.now();
+
     globalThis.__KOHOST_SPEED_DATING_STORE__[sessionId] = {
       participants: [],
       round: 0,
-      roundStartedAt: Date.now(),
-      sessions: {},
+      phase: "active",
+      phaseStartedAt: now,
+      phaseEndsAt: now + ROUND_DURATION_SECONDS * 1000,
+      activePairs: [],
+      rooms: {},
     };
   }
 
@@ -99,23 +110,8 @@ function getSide(iam: IAm): Side {
   return iam === "man" ? "left" : "right";
 }
 
-function normalizeRound(store: ReturnType<typeof getStore>) {
-  const now = Date.now();
-  const elapsed = Math.floor((now - store.roundStartedAt) / 1000);
-
-  if (elapsed >= ROUND_DURATION_SECONDS) {
-    const steps = Math.floor(elapsed / ROUND_DURATION_SECONDS);
-    store.round += steps;
-    store.roundStartedAt += steps * ROUND_DURATION_SECONDS * 1000;
-
-    // 🔥 CLEAR SESSIONS EACH ROUND
-    store.sessions = {};
-  }
-}
-
-function getTimeLeftSeconds(store: ReturnType<typeof getStore>) {
-  const elapsed = Math.floor((Date.now() - store.roundStartedAt) / 1000);
-  return Math.max(0, ROUND_DURATION_SECONDS - elapsed);
+function getPhaseTimeLeftSeconds(store: SessionStore) {
+  return Math.max(0, Math.ceil((store.phaseEndsAt - Date.now()) / 1000));
 }
 
 function isCompatible(a: Participant, b: Participant) {
@@ -151,9 +147,7 @@ function toPublic(p: Participant, waiting: boolean): PublicParticipant {
   };
 }
 
-/* ================= CORE ENGINE ================= */
-
-function buildPairs(store: ReturnType<typeof getStore>) {
+function buildPairsForRound(store: SessionStore) {
   const round = store.round;
 
   const left = rotateLeftDown(
@@ -194,18 +188,23 @@ function buildPairs(store: ReturnType<typeof getStore>) {
       activeIds.add(l.id);
       activeIds.add(matchedRight.id);
 
+      const roomId = `${sessionIdSafe(store)}__${round}__${l.id}__${matchedRight.id}`;
+
       const pair: Pair = {
         id: `${l.id}_${matchedRight.id}_r${round}`,
+        roomId,
+        round,
         leftParticipant: toPublic(l, false),
         rightParticipant: toPublic(matchedRight, false),
         status: "active",
       };
 
-      store.sessions[pair.id] = pair;
       pairs.push(pair);
     } else {
       pairs.push({
         id: `open_left_${l.id}_r${round}`,
+        roomId: "",
+        round,
         leftParticipant: toPublic(l, true),
         rightParticipant: null,
         status: "open",
@@ -218,6 +217,8 @@ function buildPairs(store: ReturnType<typeof getStore>) {
 
     pairs.push({
       id: `open_right_${r.id}_r${round}`,
+      roomId: "",
+      round,
       leftParticipant: null,
       rightParticipant: toPublic(r, true),
       status: "open",
@@ -227,22 +228,89 @@ function buildPairs(store: ReturnType<typeof getStore>) {
   return { pairs, left, right, activeIds };
 }
 
+// helper only for room id generation
+function sessionIdSafe(_store: SessionStore) {
+  return "session";
+}
+
+function refreshRoundState(store: SessionStore) {
+  const now = Date.now();
+
+  while (now >= store.phaseEndsAt) {
+    if (store.phase === "active") {
+      store.phase = "transition";
+      store.phaseStartedAt = store.phaseEndsAt;
+      store.phaseEndsAt =
+        store.phaseStartedAt + TRANSITION_DURATION_SECONDS * 1000;
+      break;
+    }
+
+    if (store.phase === "transition") {
+      store.round += 1;
+      store.phase = "active";
+      store.phaseStartedAt = store.phaseEndsAt;
+      store.phaseEndsAt =
+        store.phaseStartedAt + ROUND_DURATION_SECONDS * 1000;
+
+      const { pairs } = buildPairsForRound(store);
+
+      store.activePairs = pairs;
+      store.rooms = {};
+
+      for (const pair of pairs) {
+        if (pair.status === "active" && pair.roomId) {
+          store.rooms[pair.roomId] = pair;
+        }
+      }
+    }
+  }
+
+  // first load / empty activePairs
+  if (!store.activePairs.length && store.phase === "active") {
+    const { pairs } = buildPairsForRound(store);
+    store.activePairs = pairs;
+    store.rooms = {};
+
+    for (const pair of pairs) {
+      if (pair.status === "active" && pair.roomId) {
+        store.rooms[pair.roomId] = pair;
+      }
+    }
+  }
+}
+
 /* ================= STATE ================= */
 
 function buildState(sessionId: string) {
   const store = getStore(sessionId);
-  normalizeRound(store);
+  refreshRoundState(store);
 
-  const { pairs, left, right, activeIds } = buildPairs(store);
+  const left = rotateLeftDown(
+    store.participants.filter((p) => p.isActive && p.side === "left"),
+    store.round,
+  );
+
+  const right = rotateRightUp(
+    store.participants.filter((p) => p.isActive && p.side === "right"),
+    store.round,
+  );
+
+  const activeIds = new Set<string>();
+  for (const pair of store.activePairs) {
+    if (pair.leftParticipant?.id) activeIds.add(pair.leftParticipant.id);
+    if (pair.rightParticipant?.id) activeIds.add(pair.rightParticipant.id);
+  }
 
   return {
     ok: true,
     round: store.round,
+    phase: store.phase,
     roundDurationSeconds: ROUND_DURATION_SECONDS,
-    timeLeftSeconds: getTimeLeftSeconds(store),
+    transitionDurationSeconds: TRANSITION_DURATION_SECONDS,
+    timeLeftSeconds: getPhaseTimeLeftSeconds(store),
     leftQueue: left.map((p) => toPublic(p, !activeIds.has(p.id))),
     rightQueue: right.map((p) => toPublic(p, !activeIds.has(p.id))),
-    activePairs: pairs,
+    activePairs: store.activePairs,
   };
 }
 
@@ -270,13 +338,13 @@ async function parseActionBody(req: Request): Promise<ActionBody> {
         ? actionValue
         : "join";
 
-if (action === "skip") {
-  return {
-    action: "skip",
-    browserKey: String(formData.get("browserKey") || ""),
-    skippedPartnerId: String(formData.get("skippedPartnerId") || ""),
-  };
-}
+    if (action === "skip") {
+      return {
+        action: "skip",
+        browserKey: String(formData.get("browserKey") || ""),
+        skippedPartnerId: String(formData.get("skippedPartnerId") || ""),
+      };
+    }
 
     if (action === "leave") {
       return {
@@ -338,67 +406,99 @@ export async function POST(req: Request) {
   const store = getStore(sessionId);
   const now = Date.now();
 
-  /* ===== JOIN ===== */
   if (!("action" in body) || body.action === "join") {
     const err = validateJoin(body);
-    if (err) return NextResponse.json({ ok: false, error: err }, { status: 400 });
+    if (err) {
+      return NextResponse.json({ ok: false, error: err }, { status: 400 });
+    }
 
     const idx = store.participants.findIndex(
       (p) => p.browserKey === body.browserKey,
     );
 
-const existing = idx >= 0 ? store.participants[idx] : null;
+    const existing = idx >= 0 ? store.participants[idx] : null;
 
-const base: Participant = {
-  id: body.browserKey!,
-  browserKey: body.browserKey!,
-  name: body.name!,
-  title: body.title!,
-  bio: body.bio!,
-  image_url:
-    "image_url" in body && body.image_url
-      ? body.image_url
-      : existing?.image_url ?? null,
-  iam: body.iam!,
-  seeking: body.seeking!,
-  side: getSide(body.iam!),
-  joinedAt: existing ? existing.joinedAt : now,
-  updatedAt: now,
-  isActive: true,
-  skippedPartnerId:
-    existing?.skippedPartnerRound === store.round ? existing.skippedPartnerId : undefined,
-  skippedPartnerRound:
-    existing?.skippedPartnerRound === store.round ? existing.skippedPartnerRound : undefined,
-};
-
+    const base: Participant = {
+      id: body.browserKey!,
+      browserKey: body.browserKey!,
+      name: body.name!,
+      title: body.title!,
+      bio: body.bio!,
+      image_url:
+        "image_url" in body && body.image_url
+          ? body.image_url
+          : existing?.image_url ?? null,
+      iam: body.iam!,
+      seeking: body.seeking!,
+      side: getSide(body.iam!),
+      joinedAt: existing ? existing.joinedAt : now,
+      updatedAt: now,
+      isActive: true,
+      skippedPartnerId:
+        existing?.skippedPartnerRound === store.round
+          ? existing.skippedPartnerId
+          : undefined,
+      skippedPartnerRound:
+        existing?.skippedPartnerRound === store.round
+          ? existing.skippedPartnerRound
+          : undefined,
+    };
 
     if (idx >= 0) store.participants[idx] = base;
     else store.participants.push(base);
 
+    refreshRoundState(store);
+
+    return NextResponse.json({
+      ok: true,
+      state: buildState(sessionId),
+      redirectUrl: `/s/${encodeURIComponent(sessionId)}/dating`,
+    });
+  }
+
+  if (body.action === "skip") {
+    const p = store.participants.find(
+      (x) => x.browserKey === body.browserKey,
+    );
+
+    if (p) {
+      p.skippedPartnerId = body.skippedPartnerId;
+      p.skippedPartnerRound = store.round;
+      p.updatedAt = now;
+    }
+
+    const { pairs } = buildPairsForRound(store);
+    store.activePairs = pairs;
+    store.rooms = {};
+
+    for (const pair of pairs) {
+      if (pair.status === "active" && pair.roomId) {
+        store.rooms[pair.roomId] = pair;
+      }
+    }
+
     return NextResponse.json({ ok: true, state: buildState(sessionId) });
   }
 
-/* ===== SKIP ===== */
-if (body.action === "skip") {
-  const p = store.participants.find(
-    (x) => x.browserKey === body.browserKey,
-  );
-
-  if (p) {
-    p.skippedPartnerId = body.skippedPartnerId;
-    p.skippedPartnerRound = store.round;
-    p.updatedAt = now;
-  }
-
-  return NextResponse.json({ ok: true, state: buildState(sessionId) });
-}
-
-  /* ===== LEAVE ===== */
   if (body.action === "leave") {
     const p = store.participants.find(
       (x) => x.browserKey === body.browserKey,
     );
-    if (p) p.isActive = false;
+
+    if (p) {
+      p.isActive = false;
+      p.updatedAt = now;
+    }
+
+    const { pairs } = buildPairsForRound(store);
+    store.activePairs = pairs;
+    store.rooms = {};
+
+    for (const pair of pairs) {
+      if (pair.status === "active" && pair.roomId) {
+        store.rooms[pair.roomId] = pair;
+      }
+    }
 
     return NextResponse.json({ ok: true, state: buildState(sessionId) });
   }
