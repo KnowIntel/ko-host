@@ -1,3 +1,4 @@
+// components\blocks\SpeedDatingPrivateRoom.tsx
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -24,6 +25,7 @@ type RoomState = {
   partner: ParticipantCardData | null;
   round: number;
   phase: "active" | "transition";
+  phaseStartedAt?: number;
   phaseEndsAt?: number;
   timeLeftSeconds: number;
   oppositeLineup: ParticipantCardData[];
@@ -121,9 +123,10 @@ function EmptySlot({ label }: { label: string }) {
 
 export default function SpeedDatingPrivateRoom({ slug }: Props) {
 const [state, setState] = useState<RoomState | null>(null);
+const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
 const [phaseEndsAt, setPhaseEndsAt] = useState<number | null>(null);
 const [timeLeft, setTimeLeft] = useState(0);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
 
@@ -145,16 +148,21 @@ const [timeLeft, setTimeLeft] = useState(0);
 setState((prev) => {
   if (!prev) return data as RoomState;
 
+  const sameRound = prev.round === data.round;
+  const nextRoom =
+    data.room ||
+    (prev.room && sameRound && prev.phase === data.phase ? prev.room : null);
+
+  const nextPartner =
+    data.partner ||
+    (prev.partner && sameRound && prev.phase === data.phase ? prev.partner : null);
+
   return {
     ...prev,
     ...data,
     participant: data.participant || prev.participant,
-    partner:
-      data.partner ||
-      (prev.partner && prev.round === data.round ? prev.partner : null),
-    room:
-      data.room ||
-      (prev.room && prev.round === data.round ? prev.room : null),
+    partner: nextPartner,
+    room: nextRoom,
     oppositeLineup:
       Array.isArray(data.oppositeLineup) && data.oppositeLineup.length > 0
         ? data.oppositeLineup
@@ -165,6 +173,21 @@ setState((prev) => {
 if (typeof data.phaseEndsAt === "number") {
   setPhaseEndsAt(data.phaseEndsAt);
 }
+useEffect(() => {
+  if (!activeRoomId) return;
+  setMessages([]);
+}, [activeRoomId]);
+
+setActiveRoomId((prev) => {
+  const next = typeof data.room?.roomId === "string" && data.room.roomId
+    ? data.room.roomId
+    : null;
+
+  if (!next) return prev;
+  if (prev === next) return prev;
+
+  return next;
+});
   }
 
   async function fetchMessages(roomId: string) {
@@ -197,7 +220,7 @@ setMessages((prev) => {
   }
 
   async function sendMessage() {
-    const roomId = state?.room?.roomId || "";
+const roomId = activeRoomId || "";
     const senderId = state?.participant?.id || "";
     const text = input.trim();
 
@@ -287,20 +310,20 @@ useEffect(() => {
   return () => window.clearInterval(interval);
 }, [phaseEndsAt]);
 
-  useEffect(() => {
-    const roomId = state?.room?.roomId || "";
-if (!roomId) {
-  return;
-}
+useEffect(() => {
+  const roomId = activeRoomId || "";
+  if (!roomId) {
+    return;
+  }
 
+  void fetchMessages(roomId);
+
+  const interval = window.setInterval(() => {
     void fetchMessages(roomId);
+  }, 2000);
 
-    const interval = window.setInterval(() => {
-      void fetchMessages(roomId);
-    }, 2000);
-
-    return () => window.clearInterval(interval);
-  }, [state?.room?.roomId]);
+  return () => window.clearInterval(interval);
+}, [activeRoomId]);
 
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
@@ -309,7 +332,7 @@ if (!roomId) {
   const participant = state?.participant || null;
   const partner = state?.partner || null;
   const oppositeLineup = state?.oppositeLineup || [];
-  const roomId = state?.room?.roomId || "";
+  const roomId = activeRoomId || "";
   const participantId = participant?.id || "";
 
   return (

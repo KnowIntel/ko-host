@@ -1,3 +1,4 @@
+// app\api\speed-dating\route.ts
 import { Buffer } from "node:buffer";
 import { NextResponse } from "next/server";
 
@@ -228,6 +229,11 @@ const roomId = `room__${round}__${l.id}__${matchedRight.id}`;
   return { pairs, left, right, activeIds };
 }
 
+function rebuildActivePairs(store: SessionStore) {
+if (store.phase === "active") {
+  rebuildActivePairs(store);
+}
+}
 
 function refreshRoundState(sessionId: string, store: SessionStore) {
   const now = Date.now();
@@ -247,27 +253,11 @@ function refreshRoundState(sessionId: string, store: SessionStore) {
     store.phaseEndsAt =
       store.phaseStartedAt + ROUND_DURATION_SECONDS * 1000;
 
-    const { pairs } = buildPairsForRound(store);
-    store.activePairs = pairs;
-    store.rooms = {};
-
-    for (const pair of pairs) {
-      if (pair.status === "active" && pair.roomId) {
-        store.rooms[pair.roomId] = pair;
-      }
-    }
+    rebuildActivePairs(store);
   }
 
   if (!store.activePairs.length && store.phase === "active") {
-    const { pairs } = buildPairsForRound(store);
-    store.activePairs = pairs;
-    store.rooms = {};
-
-    for (const pair of pairs) {
-      if (pair.status === "active" && pair.roomId) {
-        store.rooms[pair.roomId] = pair;
-      }
-    }
+    rebuildActivePairs(store);
   }
 }
 
@@ -277,15 +267,19 @@ function buildState(sessionId: string) {
   const store = getStore(sessionId);
 refreshRoundState(sessionId, store);
 
-  const left = rotateLeftDown(
-    store.participants.filter((p) => p.isActive && p.side === "left"),
-    store.round,
-  );
+const left = rotateLeftDown(
+  [...store.participants]
+    .filter((p) => p.isActive && p.side === "left")
+    .sort((a, b) => a.joinedAt - b.joinedAt),
+  store.round,
+);
 
-  const right = rotateRightUp(
-    store.participants.filter((p) => p.isActive && p.side === "right"),
-    store.round,
-  );
+const right = rotateRightUp(
+  [...store.participants]
+    .filter((p) => p.isActive && p.side === "right")
+    .sort((a, b) => a.joinedAt - b.joinedAt),
+  store.round,
+);
 
   const activeIds = new Set<string>();
   for (const pair of store.activePairs) {
@@ -293,17 +287,19 @@ refreshRoundState(sessionId, store);
     if (pair.rightParticipant?.id) activeIds.add(pair.rightParticipant.id);
   }
 
-  return {
-    ok: true,
-    round: store.round,
-    phase: store.phase,
-    roundDurationSeconds: ROUND_DURATION_SECONDS,
-    transitionDurationSeconds: TRANSITION_DURATION_SECONDS,
-    timeLeftSeconds: getPhaseTimeLeftSeconds(store),
-    leftQueue: left.map((p) => toPublic(p, !activeIds.has(p.id))),
-    rightQueue: right.map((p) => toPublic(p, !activeIds.has(p.id))),
-    activePairs: store.activePairs,
-  };
+return {
+  ok: true,
+  round: store.round,
+  phase: store.phase,
+  phaseStartedAt: store.phaseStartedAt,
+  phaseEndsAt: store.phaseEndsAt,
+  roundDurationSeconds: ROUND_DURATION_SECONDS,
+  transitionDurationSeconds: TRANSITION_DURATION_SECONDS,
+  timeLeftSeconds: getPhaseTimeLeftSeconds(store),
+  leftQueue: left.map((p) => toPublic(p, !activeIds.has(p.id))),
+  rightQueue: right.map((p) => toPublic(p, !activeIds.has(p.id))),
+  activePairs: store.activePairs,
+};
 }
 
 /* ================= VALIDATION ================= */
@@ -394,9 +390,10 @@ export async function POST(req: Request) {
   const { searchParams } = new URL(req.url);
   const sessionId = searchParams.get("sessionId") || "default";
 
-  const body = await parseActionBody(req);
-  const store = getStore(sessionId);
-  const now = Date.now();
+const body = await parseActionBody(req);
+const store = getStore(sessionId);
+refreshRoundState(sessionId, store);
+const now = Date.now();
 
   if (!("action" in body) || body.action === "join") {
     const err = validateJoin(body);
@@ -426,31 +423,21 @@ export async function POST(req: Request) {
       joinedAt: existing ? existing.joinedAt : now,
       updatedAt: now,
       isActive: true,
-      skippedPartnerId:
-        existing?.skippedPartnerRound === store.round
-          ? existing.skippedPartnerId
-          : undefined,
-      skippedPartnerRound:
-        existing?.skippedPartnerRound === store.round
-          ? existing.skippedPartnerRound
-          : undefined,
+skippedPartnerId:
+  existing?.skippedPartnerRound === store.round
+    ? existing.skippedPartnerId
+    : undefined,
+skippedPartnerRound:
+  existing?.skippedPartnerRound === store.round
+    ? existing.skippedPartnerRound
+    : undefined,
     };
 
 if (idx >= 0) store.participants[idx] = base;
 else store.participants.push(base);
 
-refreshRoundState(sessionId, store);
-
 if (store.phase === "active") {
-  const { pairs } = buildPairsForRound(store);
-  store.activePairs = pairs;
-  store.rooms = {};
-
-  for (const pair of pairs) {
-    if (pair.status === "active" && pair.roomId) {
-      store.rooms[pair.roomId] = pair;
-    }
-  }
+  rebuildActivePairs(store);
 }
 
 return NextResponse.json({
@@ -471,15 +458,9 @@ return NextResponse.json({
       p.updatedAt = now;
     }
 
-    const { pairs } = buildPairsForRound(store);
-    store.activePairs = pairs;
-    store.rooms = {};
-
-    for (const pair of pairs) {
-      if (pair.status === "active" && pair.roomId) {
-        store.rooms[pair.roomId] = pair;
-      }
-    }
+if (store.phase === "active") {
+  rebuildActivePairs(store);
+}
 
     return NextResponse.json({ ok: true, state: buildState(sessionId) });
   }

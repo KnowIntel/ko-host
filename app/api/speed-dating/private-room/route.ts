@@ -1,3 +1,4 @@
+// app\api\speed-dating\private-room\route.ts
 import { NextResponse } from "next/server";
 
 type PublicParticipant = {
@@ -107,15 +108,19 @@ function toPublicParticipant(p: Participant, waiting: boolean): PublicParticipan
 function buildPairsForRound(sessionId: string, store: SessionStore) {
   const round = store.round;
 
-  const left = rotateLeftDown(
-    store.participants.filter((p) => p.isActive && p.side === "left"),
-    round,
-  );
+const left = rotateLeftDown(
+  [...store.participants]
+    .filter((p) => p.isActive && p.side === "left")
+    .sort((a, b) => a.joinedAt - b.joinedAt),
+  store.round,
+);
 
-  const right = rotateRightUp(
-    store.participants.filter((p) => p.isActive && p.side === "right"),
-    round,
-  );
+const right = rotateRightUp(
+  [...store.participants]
+    .filter((p) => p.isActive && p.side === "right")
+    .sort((a, b) => a.joinedAt - b.joinedAt),
+  store.round,
+);
 
   const pairs: Pair[] = [];
   const usedRightIds = new Set<string>();
@@ -180,6 +185,18 @@ function buildPairsForRound(sessionId: string, store: SessionStore) {
   return pairs;
 }
 
+function rebuildActivePairs(sessionId: string, store: SessionStore) {
+  const pairs = buildPairsForRound(sessionId, store);
+  store.activePairs = pairs;
+  store.rooms = {};
+
+  for (const pair of pairs) {
+    if (pair.status === "active" && pair.roomId) {
+      store.rooms[pair.roomId] = pair;
+    }
+  }
+}
+
 function refreshRoundState(sessionId: string, store: SessionStore) {
   const now = Date.now();
 
@@ -198,27 +215,11 @@ function refreshRoundState(sessionId: string, store: SessionStore) {
     store.phaseEndsAt =
       store.phaseStartedAt + ROUND_DURATION_SECONDS * 1000;
 
-    const pairs = buildPairsForRound(sessionId, store);
-    store.activePairs = pairs;
-    store.rooms = {};
-
-    for (const pair of pairs) {
-      if (pair.status === "active" && pair.roomId) {
-        store.rooms[pair.roomId] = pair;
-      }
-    }
+    rebuildActivePairs(sessionId, store);
   }
 
   if (!store.activePairs.length && store.phase === "active") {
-    const pairs = buildPairsForRound(sessionId, store);
-    store.activePairs = pairs;
-    store.rooms = {};
-
-    for (const pair of pairs) {
-      if (pair.status === "active" && pair.roomId) {
-        store.rooms[pair.roomId] = pair;
-      }
-    }
+    rebuildActivePairs(sessionId, store);
   }
 }
 
@@ -322,6 +323,7 @@ return NextResponse.json({
   partner,
   round: store.round,
   phase: store.phase,
+  phaseStartedAt: store.phaseStartedAt,
   phaseEndsAt: store.phaseEndsAt,
   timeLeftSeconds: getTimeLeftSeconds(store.phaseEndsAt),
   oppositeLineup,
