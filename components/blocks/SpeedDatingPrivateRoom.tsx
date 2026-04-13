@@ -170,9 +170,6 @@ setState((prev) => {
 if (typeof data.phaseEndsAt === "number") {
   setPhaseEndsAt(data.phaseEndsAt);
 }
-useEffect(() => {
-  setMessages([]);
-}, [activeRoomId]);
 
 setActiveRoomId((prev) => {
   const next =
@@ -220,37 +217,61 @@ setMessages((prev) => {
 });
   }
 
-  async function sendMessage() {
-const roomId = activeRoomId || "";
-    const senderId = state?.participant?.id || "";
-    const text = input.trim();
+async function sendMessage() {
+  const roomId = state?.room?.roomId || activeRoomId || "";
+  const senderId = state?.participant?.id || "";
+  const text = input.trim();
 
-    if (!roomId || !senderId || !text || sending) return;
+  if (sending) return;
 
-    setSending(true);
-
-    try {
-      const res = await fetch(`/api/speed-dating/room/messages`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          roomId,
-          senderId,
-          text,
-        }),
-      });
-
-      const data = await res.json().catch(() => null);
-      if (!res.ok || !data?.ok) return;
-
-      setInput("");
-      await fetchMessages(roomId);
-    } finally {
-      setSending(false);
-    }
+  if (!roomId) {
+    console.error("SEND BLOCKED: missing roomId");
+    return;
   }
+
+  if (!senderId) {
+    console.error("SEND BLOCKED: missing senderId");
+    return;
+  }
+
+  if (!text) return;
+
+  setSending(true);
+
+  try {
+    const res = await fetch(`/api/speed-dating/room/messages`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        roomId,
+        senderId,
+        text,
+      }),
+    });
+
+    const data = await res.json().catch(() => null);
+    if (!res.ok || !data?.ok) {
+      console.error("SEND FAILED:", data);
+      return;
+    }
+
+    setInput("");
+
+    if (data.message) {
+      setMessages((prev) => {
+        const exists = prev.some((m) => m.id === data.message.id);
+        if (exists) return prev;
+        return [...prev, data.message].sort((a, b) => a.createdAt - b.createdAt);
+      });
+    }
+
+    await fetchMessages(roomId);
+  } finally {
+    setSending(false);
+  }
+}
 
   async function handleExit() {
     try {
@@ -310,6 +331,10 @@ useEffect(() => {
 
   return () => window.clearInterval(interval);
 }, [phaseEndsAt]);
+
+useEffect(() => {
+  setMessages([]);
+}, [activeRoomId]);
 
 useEffect(() => {
   const nextRoomId = state?.room?.roomId || activeRoomId || "";
@@ -394,7 +419,7 @@ useEffect(() => {
               Private Chat
             </div>
 
-            {roomId && participantId && !isTransition ? (
+            {(state?.room?.roomId || activeRoomId) && participantId && !isTransition ? (
               <>
                 <div className="mb-3 h-56 overflow-auto space-y-2">
                   {messages.length ? (
@@ -435,7 +460,12 @@ useEffect(() => {
 
                   <button
                     type="button"
-                    disabled={sending || !input.trim()}
+                    disabled={
+                    sending ||
+                    !input.trim() ||
+                    !(state?.participant?.id) ||
+                    !(state?.room?.roomId || activeRoomId)
+                    }
                     onClick={() => void sendMessage()}
                     className="rounded-xl bg-neutral-900 px-4 text-sm font-semibold text-white disabled:opacity-60"
                   >
