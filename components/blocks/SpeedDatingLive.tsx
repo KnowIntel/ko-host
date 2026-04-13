@@ -1,7 +1,7 @@
 // components\blocks\SpeedDatingLive.tsx
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type Props = {
   heading?: string;
