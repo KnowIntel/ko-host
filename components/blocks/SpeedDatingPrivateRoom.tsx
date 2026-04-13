@@ -140,17 +140,21 @@ export default function SpeedDatingPrivateRoom({ slug }: Props) {
     const data = await res.json().catch(() => null);
     if (!res.ok || !data?.ok) return;
 
-    setState((prev) => {
-      if (!prev) return data as RoomState;
+setState((prev) => {
+  if (!prev) return data as RoomState;
 
-      return {
-        ...prev,
-        ...data,
-        room:
-          data.room ||
-          (prev.room && prev.round === data.round ? prev.room : null),
-      };
-    });
+  return {
+    ...prev,
+    ...data,
+    participant: data.participant || prev.participant,
+    partner:
+      data.partner ||
+      (prev.partner && prev.round === data.round ? prev.partner : null),
+    room:
+      data.room ||
+      (prev.room && prev.round === data.round ? prev.room : null),
+  };
+});
 
     if (typeof data.timeLeftSeconds === "number") {
       setTimeLeft((prev) => {
@@ -234,7 +238,12 @@ export default function SpeedDatingPrivateRoom({ slug }: Props) {
       );
 
       const data = await res.json().catch(() => null);
-      if (!res.ok || !data?.ok) return;
+if (!res.ok || !data?.ok) {
+  if (typeof window !== "undefined") {
+    window.location.href = `/s/${encodeURIComponent(slug)}`;
+  }
+  return;
+}
 
       if (typeof window !== "undefined") {
         window.location.href = `/s/${encodeURIComponent(slug)}`;
@@ -264,10 +273,9 @@ export default function SpeedDatingPrivateRoom({ slug }: Props) {
 
   useEffect(() => {
     const roomId = state?.room?.roomId || "";
-    if (!roomId) {
-      setMessages([]);
-      return;
-    }
+if (!roomId) {
+  return;
+}
 
     void fetchMessages(roomId);
 

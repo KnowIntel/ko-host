@@ -92,24 +92,22 @@ export async function GET(req: Request) {
     });
   }
 
-  const participant =
-    store.participants.find(
-      (p) => p.browserKey === browserKey && p.isActive,
-    ) ?? null;
+const participant =
+  store.participants.find((p) => p.browserKey === browserKey) ?? null;
 
-  if (!participant) {
-    return NextResponse.json({
-      ok: true,
-      participant: null,
-      room: null,
-      partner: null,
-      round: store.round,
-      phase: store.phase,
-      timeLeftSeconds: getTimeLeftSeconds(store.phaseEndsAt),
-      oppositeLineup: [],
-      waiting: false,
-    });
-  }
+if (!participant) {
+  return NextResponse.json({
+    ok: true,
+    participant: null,
+    room: null,
+    partner: null,
+    round: store.round,
+    phase: store.phase,
+    timeLeftSeconds: getTimeLeftSeconds(store.phaseEndsAt),
+    oppositeLineup: [],
+    waiting: false,
+  });
+}
 
   const room =
     Object.values(store.rooms).find(
@@ -128,24 +126,25 @@ export async function GET(req: Request) {
         ? room.rightParticipant
         : room.leftParticipant;
 
-  const oppositeLineup = store.participants
-    .filter((p) => p.isActive && p.side !== participant.side)
-    .map((p) => ({
-      id: p.id,
-      name: p.name,
-      title: p.title,
-      bio: p.bio,
-      image_url: p.image_url ?? null,
-      side: p.side,
-      waiting: !Object.values(store.rooms).some(
-        (pair) =>
-          pair.status === "active" &&
-          (
-            pair.leftParticipant?.id === p.id ||
-            pair.rightParticipant?.id === p.id
-          ),
-      ),
-    }));
+const oppositeLineup = store.participants
+  .filter((p) => p.isActive && p.side !== participant.side)
+  .map((p) => ({
+    id: p.id,
+    name: p.name,
+    title: p.title,
+    bio: p.bio,
+    image_url: p.image_url ?? null,
+    side: p.side,
+    waiting: !Object.values(store.rooms).some(
+      (pair) =>
+        pair.status === "active" &&
+        (
+          pair.leftParticipant?.id === p.id ||
+          pair.rightParticipant?.id === p.id
+        ),
+    ),
+  }))
+  .sort((a, b) => Number(b.waiting) - Number(a.waiting) || a.name.localeCompare(b.name));
 
   return NextResponse.json({
     ok: true,
