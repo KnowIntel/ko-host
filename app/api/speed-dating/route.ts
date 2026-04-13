@@ -444,16 +444,28 @@ export async function POST(req: Request) {
           : undefined,
     };
 
-    if (idx >= 0) store.participants[idx] = base;
-    else store.participants.push(base);
+if (idx >= 0) store.participants[idx] = base;
+else store.participants.push(base);
 
-    refreshRoundState(store);
+refreshRoundState(store);
 
-    return NextResponse.json({
-      ok: true,
-      state: buildState(sessionId),
-      redirectUrl: `/s/${encodeURIComponent(sessionId)}/dating`,
-    });
+if (store.phase === "active") {
+  const { pairs } = buildPairsForRound(store);
+  store.activePairs = pairs;
+  store.rooms = {};
+
+  for (const pair of pairs) {
+    if (pair.status === "active" && pair.roomId) {
+      store.rooms[pair.roomId] = pair;
+    }
+  }
+}
+
+return NextResponse.json({
+  ok: true,
+  state: buildState(sessionId),
+  redirectUrl: `/s/${encodeURIComponent(sessionId)}/dating`,
+});
   }
 
   if (body.action === "skip") {
