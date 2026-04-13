@@ -230,9 +230,15 @@ const roomId = `room__${round}__${l.id}__${matchedRight.id}`;
 }
 
 function rebuildActivePairs(store: SessionStore) {
-if (store.phase === "active") {
-  rebuildActivePairs(store);
-}
+  const { pairs } = buildPairsForRound(store);
+  store.activePairs = pairs;
+  store.rooms = {};
+
+  for (const pair of pairs) {
+    if (pair.status === "active" && pair.roomId) {
+      store.rooms[pair.roomId] = pair;
+    }
+  }
 }
 
 function refreshRoundState(sessionId: string, store: SessionStore) {
@@ -380,113 +386,137 @@ async function parseActionBody(req: Request): Promise<ActionBody> {
 /* ================= ROUTES ================= */
 
 export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const sessionId = searchParams.get("sessionId") || "default";
+  try {
+    const { searchParams } = new URL(req.url);
+    const sessionId = searchParams.get("sessionId") || "default";
 
-  return NextResponse.json(buildState(sessionId));
+    return NextResponse.json(buildState(sessionId));
+  } catch (error) {
+    console.error("SPEED_DATING_GET_ERROR:", error);
+
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unknown speed dating GET error",
+      },
+      { status: 500 },
+    );
+  }
 }
 
 export async function POST(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const sessionId = searchParams.get("sessionId") || "default";
+  try {
+    const { searchParams } = new URL(req.url);
+    const sessionId = searchParams.get("sessionId") || "default";
 
-const body = await parseActionBody(req);
-const store = getStore(sessionId);
-refreshRoundState(sessionId, store);
-const now = Date.now();
+    const body = await parseActionBody(req);
+    const store = getStore(sessionId);
+    refreshRoundState(sessionId, store);
+    const now = Date.now();
 
-  if (!("action" in body) || body.action === "join") {
-    const err = validateJoin(body);
-    if (err) {
-      return NextResponse.json({ ok: false, error: err }, { status: 400 });
-    }
-
-    const idx = store.participants.findIndex(
-      (p) => p.browserKey === body.browserKey,
-    );
-
-    const existing = idx >= 0 ? store.participants[idx] : null;
-
-    const base: Participant = {
-      id: body.browserKey!,
-      browserKey: body.browserKey!,
-      name: body.name!,
-      title: body.title!,
-      bio: body.bio!,
-      image_url:
-        "image_url" in body && body.image_url
-          ? body.image_url
-          : existing?.image_url ?? null,
-      iam: body.iam!,
-      seeking: body.seeking!,
-      side: getSide(body.iam!),
-      joinedAt: existing ? existing.joinedAt : now,
-      updatedAt: now,
-      isActive: true,
-skippedPartnerId:
-  existing?.skippedPartnerRound === store.round
-    ? existing.skippedPartnerId
-    : undefined,
-skippedPartnerRound:
-  existing?.skippedPartnerRound === store.round
-    ? existing.skippedPartnerRound
-    : undefined,
-    };
-
-if (idx >= 0) store.participants[idx] = base;
-else store.participants.push(base);
-
-if (store.phase === "active") {
-  rebuildActivePairs(store);
-}
-
-return NextResponse.json({
-  ok: true,
-  state: buildState(sessionId),
-  redirectUrl: `/s/${encodeURIComponent(sessionId)}/dating`,
-});
-  }
-
-  if (body.action === "skip") {
-    const p = store.participants.find(
-      (x) => x.browserKey === body.browserKey,
-    );
-
-    if (p) {
-      p.skippedPartnerId = body.skippedPartnerId;
-      p.skippedPartnerRound = store.round;
-      p.updatedAt = now;
-    }
-
-if (store.phase === "active") {
-  rebuildActivePairs(store);
-}
-
-    return NextResponse.json({ ok: true, state: buildState(sessionId) });
-  }
-
-  if (body.action === "leave") {
-    const p = store.participants.find(
-      (x) => x.browserKey === body.browserKey,
-    );
-
-    if (p) {
-      p.isActive = false;
-      p.updatedAt = now;
-    }
-
-    const { pairs } = buildPairsForRound(store);
-    store.activePairs = pairs;
-    store.rooms = {};
-
-    for (const pair of pairs) {
-      if (pair.status === "active" && pair.roomId) {
-        store.rooms[pair.roomId] = pair;
+    if (!("action" in body) || body.action === "join") {
+      const err = validateJoin(body);
+      if (err) {
+        return NextResponse.json({ ok: false, error: err }, { status: 400 });
       }
+
+      const idx = store.participants.findIndex(
+        (p) => p.browserKey === body.browserKey,
+      );
+
+      const existing = idx >= 0 ? store.participants[idx] : null;
+
+      const base: Participant = {
+        id: body.browserKey!,
+        browserKey: body.browserKey!,
+        name: body.name!,
+        title: body.title!,
+        bio: body.bio!,
+        image_url:
+          "image_url" in body && body.image_url
+            ? body.image_url
+            : existing?.image_url ?? null,
+        iam: body.iam!,
+        seeking: body.seeking!,
+        side: getSide(body.iam!),
+        joinedAt: existing ? existing.joinedAt : now,
+        updatedAt: now,
+        isActive: true,
+        skippedPartnerId:
+          existing?.skippedPartnerRound === store.round
+            ? existing.skippedPartnerId
+            : undefined,
+        skippedPartnerRound:
+          existing?.skippedPartnerRound === store.round
+            ? existing.skippedPartnerRound
+            : undefined,
+      };
+
+      if (idx >= 0) store.participants[idx] = base;
+      else store.participants.push(base);
+
+      if (store.phase === "active") {
+        rebuildActivePairs(store);
+      }
+
+      return NextResponse.json({
+        ok: true,
+        state: buildState(sessionId),
+        redirectUrl: `/s/${encodeURIComponent(sessionId)}/dating`,
+      });
     }
 
-    return NextResponse.json({ ok: true, state: buildState(sessionId) });
-  }
+    if (body.action === "skip") {
+      const p = store.participants.find(
+        (x) => x.browserKey === body.browserKey,
+      );
 
-  return NextResponse.json({ ok: false }, { status: 400 });
+      if (p) {
+        p.skippedPartnerId = body.skippedPartnerId;
+        p.skippedPartnerRound = store.round;
+        p.updatedAt = now;
+      }
+
+      if (store.phase === "active") {
+        rebuildActivePairs(store);
+      }
+
+      return NextResponse.json({ ok: true, state: buildState(sessionId) });
+    }
+
+    if (body.action === "leave") {
+      const p = store.participants.find(
+        (x) => x.browserKey === body.browserKey,
+      );
+
+      if (p) {
+        p.isActive = false;
+        p.updatedAt = now;
+      }
+
+      if (store.phase === "active") {
+        rebuildActivePairs(store);
+      }
+
+      return NextResponse.json({ ok: true, state: buildState(sessionId) });
+    }
+
+    return NextResponse.json({ ok: false }, { status: 400 });
+  } catch (error) {
+    console.error("SPEED_DATING_POST_ERROR:", error);
+
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unknown speed dating POST error",
+      },
+      { status: 500 },
+    );
+  }
 }
