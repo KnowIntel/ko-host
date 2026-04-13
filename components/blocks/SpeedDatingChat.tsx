@@ -69,11 +69,15 @@ if (!res.ok || !data?.ok) {
 }
 
 if (!data.session) {
-  return;
+  return; // DO NOT clear session
 }
 const nextSession = data.session as Session;
 
-setSession(nextSession);
+setSession((prev) => {
+  if (!prev) return nextSession;
+  if (prev.id === nextSession.id) return prev;
+  return nextSession;
+});
 
 const nextParticipantId =
   nextSession.leftParticipant?.id === browserKey
@@ -82,19 +86,33 @@ const nextParticipantId =
       ? nextSession.rightParticipant.id
       : participantId;
 
-setParticipantId(nextParticipantId);
+setParticipantId((prev) => {
+  if (prev) return prev;
+  return nextParticipantId;
+});
 }
 
   /* ================= FETCH MESSAGES ================= */
 
-  async function fetchMessages(sessionId: string) {
+async function fetchMessages(sessionId: string) {
+  if (!sessionId) return;
     const res = await fetch(
       `/api/speed-dating/messages?sessionId=${sessionId}`,
     );
     const data = await res.json();
 
     if (data?.ok) {
-      setMessages(data.messages);
+setMessages((prev) => {
+  if (!prev.length) return data.messages;
+
+  const same =
+    prev.length === data.messages.length &&
+    prev[prev.length - 1]?.id === data.messages[data.messages.length - 1]?.id;
+
+  if (same) return prev;
+
+  return data.messages;
+});
     }
   }
 
@@ -131,9 +149,9 @@ async function sendMessage() {
 useEffect(() => {
   void fetchSession();
 
-  const interval = setInterval(() => {
-    void fetchSession();
-  }, 1500);
+const interval = window.setInterval(() => {
+  void fetchSession();
+}, 1500);
 
   return () => clearInterval(interval);
 }, [sessionId]);
@@ -142,9 +160,9 @@ useEffect(() => {
   if (!sessionId) return;
 
   void fetchMessages(sessionId);
-  const interval = setInterval(() => {
-    void fetchMessages(sessionId);
-  }, 1500);
+const interval = window.setInterval(() => {
+  void fetchMessages(sessionId);
+}, 1500);
 
   return () => clearInterval(interval);
 }, [sessionId]);

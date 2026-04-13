@@ -43,9 +43,9 @@ export async function GET(req: Request) {
 
   const store = getChatStore();
 
-  const messages = store.messages
-    .filter((m) => String(m.sessionId) === String(sessionId))
-    .sort((a, b) => a.createdAt - b.createdAt);
+const messages = store.messages
+  .filter((m) => m.sessionId === sessionId)
+  .sort((a, b) => a.createdAt - b.createdAt);
 
   return NextResponse.json({
     ok: true,
@@ -56,10 +56,10 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const body = await req.json().catch(() => null);
 
-  const sessionId =
-    typeof body?.sessionId === "string" ? body.sessionId : "";
-  const senderId =
-    typeof body?.senderId === "string" ? body.senderId : "";
+const sessionId =
+  typeof body?.sessionId === "string" ? body.sessionId.trim() : "";
+const senderId =
+  typeof body?.senderId === "string" ? body.senderId.trim() : "";
   const text =
     typeof body?.text === "string" ? body.text : "";
   const attachmentUrl =
@@ -84,7 +84,19 @@ export async function POST(req: Request) {
     createdAt: Date.now(),
   };
 
+const exists = store.messages.some(
+  (m) =>
+    m.sessionId === message.sessionId &&
+    m.senderId === message.senderId &&
+    m.text === message.text &&
+    Math.abs(m.createdAt - message.createdAt) < 1000
+);
+
+if (!exists) {
   store.messages.push(message);
+}
+
+store.messages = store.messages.slice(-500);
 
   return NextResponse.json({
     ok: true,
