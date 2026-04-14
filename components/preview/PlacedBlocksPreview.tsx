@@ -382,26 +382,31 @@ const previewScale =
 
 const scaledPageWidth = logicalPageWidth * previewScale;
 const scaledPageHeight = pageHeight * previewScale;
+const shouldCenterScaledPage = scaledPageWidth <= window.innerWidth;
 
 return (
-  <div
-    className="w-full"
-    style={{
-      position: "relative",
-      margin: 0,
-      padding: 0,
-      overflow: "visible",
-      backgroundColor: transparentPageBackground ? "transparent" : pageColor,
-      ...(pageBackgroundImage && !transparentPageBackground
-        ? {
-            backgroundImage: `url("${pageBackgroundImage}")`,
-            backgroundSize: pageBackgroundSize,
-            backgroundPosition: "center center",
-            backgroundRepeat: "no-repeat",
-          }
-        : {}),
-    }}
-  >
+<div
+  className="w-full"
+  style={{
+    position: "relative",
+    width: "100%",
+    margin: 0,
+    padding: 0,
+    overflowX: "auto",
+    overflowY: "visible",
+    WebkitOverflowScrolling: "touch",
+    touchAction: "pan-x pan-y",
+    backgroundColor: transparentPageBackground ? "transparent" : pageColor,
+    ...(pageBackgroundImage && !transparentPageBackground
+      ? {
+          backgroundImage: `url("${pageBackgroundImage}")`,
+          backgroundSize: pageBackgroundSize,
+          backgroundPosition: "center center",
+          backgroundRepeat: "no-repeat",
+        }
+      : {}),
+  }}
+>
 <div
   style={{
     position: "relative",
@@ -409,7 +414,10 @@ return (
     minHeight: scaledPageHeight,
     margin: 0,
     padding: 0,
-    overflow: "hidden",
+    overflowX: "auto",
+    overflowY: "hidden",
+    WebkitOverflowScrolling: "touch",
+    touchAction: "pan-x pan-y",
     backgroundColor: transparentPageBackground ? "transparent" : pageColor,
     ...(transparentPageBackground
       ? {}
@@ -435,8 +443,9 @@ return (
     style={{
       position: "relative",
       width: scaledPageWidth,
+      minWidth: scaledPageWidth,
       minHeight: scaledPageHeight,
-      margin: "0 auto",
+      margin: shouldCenterScaledPage ? "0 auto" : 0,
       padding: 0,
       overflow: "visible",
     }}

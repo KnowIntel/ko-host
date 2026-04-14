@@ -576,8 +576,8 @@ function openDeleteModalFromContext() {
     return <div className="p-6">Loading builder...</div>;
   }
 
-  return (
-    <main className="w-full max-w-none px-0 py-0">
+return (
+  <main className="w-full max-w-none px-0 py-0 overflow-x-auto overflow-y-visible">
       <div className="mb-1 flex justify-end text-sm text-neutral-600">
         {saving
           ? "Saving..."
@@ -588,7 +588,7 @@ function openDeleteModalFromContext() {
               : saveMessage}
       </div>
 
-      <div className="mb-3 rounded-2xl border border-neutral-200 bg-white px-3 py-2 shadow-sm">
+      <div className="mb-3 rounded-2xl border border-neutral-200 bg-white px-3 py-2 shadow-sm overflow-x-auto">
         <div className="flex items-center gap-2">
           <div className="flex-1 overflow-x-auto">
             <div className="flex min-w-max items-center gap-2 pr-2">
@@ -657,13 +657,17 @@ function openDeleteModalFromContext() {
         ) : null}
       </div>
 
-      <TemplateDraftEditor
-        key={`${site.id}::${activePageId || "root"}::${site.selected_design_key || "blank"}::${editorDraft.title || ""}::${editorDraft.blocks.length}`}
-        templateKey={site.template_key}
-        designLayout={site.selected_design_key || "blank"}
-        initialDraft={editorDraft}
-        onSave={saveBuilderDraft}
-      />
+      <div className="w-full overflow-x-auto overflow-y-visible">
+        <div className="min-w-max">
+          <TemplateDraftEditor
+            key={`${site.id}::${activePageId || "root"}::${site.selected_design_key || "blank"}::${editorDraft.title || ""}::${editorDraft.blocks.length}`}
+            templateKey={site.template_key}
+            designLayout={site.selected_design_key || "blank"}
+            initialDraft={editorDraft}
+            onSave={saveBuilderDraft}
+          />
+        </div>
+      </div>
 
       {contextMenu ? (
         <div

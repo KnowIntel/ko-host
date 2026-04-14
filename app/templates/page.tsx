@@ -26,6 +26,8 @@ export default function TemplatesPage() {
   const [recentSitesLoading, setRecentSitesLoading] = useState(true);
   const [recentSitesTrack, setRecentSitesTrack] = useState(0);
 const RECENT_SITES_VISIBLE_COUNT = 8;
+const RECENT_SITES_MOBILE_COLUMNS = 4;
+const RECENT_SITES_TABLET_COLUMNS = 6;
 
   useEffect(() => {
     setSearchQuery("");
@@ -242,7 +244,7 @@ const visibleRecentSites = useMemo(() => {
     </div>
 
 <div className="min-w-0">
-  <div className="rounded-2xl border border-neutral-200 bg-white/90 pt-3 pb-1 px-3 shadow-sm min-h-[201px]">
+  <div className="rounded-2xl border border-neutral-200 bg-white/90 px-2 pb-1 pt-3 shadow-sm min-h-[201px] sm:px-3">
     <div className="mb-2 flex items-center justify-between gap-3">
       <div>
         <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
@@ -255,7 +257,7 @@ const visibleRecentSites = useMemo(() => {
     </div>
 
     {recentSitesLoading ? (
-      <div className="grid w-full grid-cols-8 gap-3">
+      <div className="grid w-full grid-cols-4 gap-2 sm:grid-cols-6 md:grid-cols-8 md:gap-3">
         {Array.from({ length: 8 }).map((_, index) => (
           <div
             key={index}
@@ -271,7 +273,7 @@ const visibleRecentSites = useMemo(() => {
       </div>
     ) : recentSites.length ? (
       <>
-<div className="mt-4 grid w-full grid-cols-8 gap-3">
+<div className="mt-4 grid w-full grid-cols-4 gap-2 sm:grid-cols-6 md:grid-cols-8 md:gap-3">
   {visibleRecentSites.map((site, index) => (
     <a
       key={`${site.id}-${index}`}
@@ -282,22 +284,22 @@ const visibleRecentSites = useMemo(() => {
       title={site.title || site.slug}
     >
       <div className="relative aspect-[4/3] overflow-hidden bg-neutral-100">
-<img
-  src={
-    typeof site.previewImageUrl === "string" &&
-    site.previewImageUrl.trim().length > 0
-      ? site.previewImageUrl
-      : "/icons/icon_recent_site_placeholder.webp"
-  }
-  alt={site.title || site.slug}
-  className="h-full w-full object-cover transition duration-300 hover:scale-[1.03]"
-  onError={(e) => {
-    const target = e.currentTarget;
-    if (!target.src.includes("icon_recent_site_placeholder.webp")) {
-      target.src = "/icons/icon_recent_site_placeholder.webp";
-    }
-  }}
-/>
+        <img
+          src={
+            typeof site.previewImageUrl === "string" &&
+            site.previewImageUrl.trim().length > 0
+              ? site.previewImageUrl
+              : "/icons/icon_recent_site_placeholder.webp"
+          }
+          alt={site.title || site.slug}
+          className="h-full w-full object-cover transition duration-300 hover:scale-[1.03]"
+          onError={(e) => {
+            const target = e.currentTarget;
+            if (!target.src.includes("icon_recent_site_placeholder.webp")) {
+              target.src = "/icons/icon_recent_site_placeholder.webp";
+            }
+          }}
+        />
       </div>
 
       <div className="p-2">
