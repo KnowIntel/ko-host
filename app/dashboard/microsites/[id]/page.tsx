@@ -13,7 +13,7 @@ type MicrositeSettings = {
   template_key: string;
   selected_design_key?: string | null;
   site_visibility?: string | null;
-  private_mode?: boolean | null;
+private_mode?: string | boolean | null;
   is_active?: boolean | null;
   is_published: boolean;
   paid_until: string | null;
@@ -57,11 +57,12 @@ export default function DashboardMicrositeManagePage() {
           const microsite = data?.microsite || null;
           setSite(microsite);
           setTitle(microsite?.title || "");
-          setSiteVisibility(
-            microsite?.site_visibility === "private" || microsite?.private_mode
-              ? "private"
-              : "public",
-          );
+setSiteVisibility(
+  microsite?.site_visibility === "private" &&
+    microsite?.private_mode === "passcode"
+    ? "private"
+    : "public",
+);
           setPasscode("");
           setBroadcastOnHomepage(Boolean(microsite?.broadcast_on_homepage));
         }

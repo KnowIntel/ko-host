@@ -1,7 +1,6 @@
 import { cookies } from "next/headers";
 import crypto from "crypto";
 import PlacedBlocksPreview from "@/components/preview/PlacedBlocksPreview";
-import MicrositeFooterBrand from "@/components/microsite/MicrositeFooterBrand";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import type { BuilderDraft } from "@/lib/templates/builder";
 import PrivateMicrositeAccessForm from "@/components/microsite/PrivateMicrositeAccessForm";
@@ -59,15 +58,12 @@ function PageShell({
   message: string;
 }) {
   return (
-    <>
-      <main className="min-h-screen bg-[#fcfbf8] px-4 py-16">
-        <div className="w-full rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
-          <div className="text-base font-semibold text-neutral-900">{title}</div>
-          <div className="mt-2 text-sm text-neutral-600">{message}</div>
-        </div>
-      </main>
-      <MicrositeFooterBrand />
-    </>
+    <main className="min-h-screen bg-[#fcfbf8] px-4 py-16">
+      <div className="w-full rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
+        <div className="text-base font-semibold text-neutral-900">{title}</div>
+        <div className="mt-2 text-sm text-neutral-600">{message}</div>
+      </div>
+    </main>
   );
 }
 
@@ -80,7 +76,9 @@ export default async function PublishedMicrositePage({
 }) {
   const { slug } = await params;
   const { access } = await searchParams;
-  const safeSlug = decodeURIComponent(String(slug || "")).trim().toLowerCase();
+  const safeSlug = decodeURIComponent(String(slug || ""))
+    .trim()
+    .toLowerCase();
 
   if (!safeSlug) {
     return (
@@ -111,10 +109,6 @@ export default async function PublishedMicrositePage({
   }
 
   const microsite = data as MicrositeRow;
-
-  if (!microsite.draft) {
-    console.warn("No draft found for microsite:", microsite.id);
-  }
 
   if (microsite.is_active === false) {
     return (
@@ -163,32 +157,29 @@ export default async function PublishedMicrositePage({
 
     if (!hasAccess) {
       return (
-        <>
-          <main className="min-h-screen bg-[#fcfbf8] px-4 py-16">
-            <div className="w-full rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
-              <div className="text-base font-semibold text-neutral-900">
-                Passcode required
-              </div>
-              <div className="mt-2 text-sm text-neutral-600">
-                Enter the passcode to access this microsite.
-              </div>
-
-              {access === "invalid" ? (
-                <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                  Invalid passcode. Please try again.
-                </div>
-              ) : null}
-
-              <div className="mt-6">
-                <PrivateMicrositeAccessForm
-                  slug={safeSlug}
-                  returnTo={`/s/${safeSlug}`}
-                />
-              </div>
+        <main className="min-h-screen bg-[#fcfbf8] px-4 py-16">
+          <div className="w-full rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
+            <div className="text-base font-semibold text-neutral-900">
+              Passcode required
             </div>
-          </main>
-          <MicrositeFooterBrand />
-        </>
+            <div className="mt-2 text-sm text-neutral-600">
+              Enter the passcode to access this microsite.
+            </div>
+
+            {access === "invalid" ? (
+              <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                Invalid passcode. Please try again.
+              </div>
+            ) : null}
+
+            <div className="mt-6">
+              <PrivateMicrositeAccessForm
+                slug={safeSlug}
+                returnTo={`/s/${safeSlug}`}
+              />
+            </div>
+          </div>
+        </main>
       );
     }
   }
@@ -228,11 +219,8 @@ export default async function PublishedMicrositePage({
     (draft as any)?.pageBackgroundImage || "",
   ).trim();
 
-  const pageBackgroundImageFit =
-    ((draft as any)?.pageBackgroundImageFit || "zoom") as
-      | "clip"
-      | "zoom"
-      | "stretch";
+  const pageBackgroundImageFit = ((draft as any)?.pageBackgroundImageFit ||
+    "zoom") as "clip" | "zoom" | "stretch";
 
   const pageBackgroundSize =
     pageBackgroundImageFit === "clip"
@@ -241,47 +229,37 @@ export default async function PublishedMicrositePage({
         ? "100% 100%"
         : "cover";
 
-        console.log(
-  "[Microsite Render] BLOCK TYPES:",
-  (draft?.blocks || []).map((b: any) => b?.type),
-);
-
   return (
-    <>
-      <main
-        className="w-full overflow-x-hidden overflow-y-auto text-neutral-900"
-        style={{
-          minHeight: "100vh",
-          width: "100%",
-          margin: 0,
-          padding: 0,
-          backgroundColor: pageColor,
-          ...(pageBackgroundImage
-            ? {
-                backgroundImage: `url("${pageBackgroundImage}")`,
-                backgroundSize: pageBackgroundSize,
-                backgroundPosition: "center center",
-                backgroundRepeat: "no-repeat",
-              }
-            : {}),
-        }}
-      >
-
-        <PlacedBlocksPreview
-          draft={draft}
-          designKey={designKey}
-          micrositeId={microsite.id}
-          serverNow={Date.now()}
-          fixedScale={Math.max(
-            0.25,
-            Math.min(1.5, ((((draft as any)?.pageScale ?? 100) as number) / 100)),
-          )}
-          disableAutoScale={true}
-          hideFrame={true}
-        />
-      </main>
-
-      <MicrositeFooterBrand />
-    </>
+    <main
+      className="w-full overflow-x-hidden overflow-y-auto text-neutral-900"
+      style={{
+        minHeight: "100vh",
+        width: "100%",
+        margin: 0,
+        padding: 0,
+        backgroundColor: pageColor,
+        ...(pageBackgroundImage
+          ? {
+              backgroundImage: `url("${pageBackgroundImage}")`,
+              backgroundSize: pageBackgroundSize,
+              backgroundPosition: "center center",
+              backgroundRepeat: "no-repeat",
+            }
+          : {}),
+      }}
+    >
+      <PlacedBlocksPreview
+        draft={draft}
+        designKey={designKey}
+        micrositeId={microsite.id}
+        serverNow={Date.now()}
+        fixedScale={Math.max(
+          0.25,
+          Math.min(1.5, ((((draft as any)?.pageScale ?? 100) as number) / 100)),
+        )}
+        disableAutoScale={true}
+        hideFrame={true}
+      />
+    </main>
   );
 }

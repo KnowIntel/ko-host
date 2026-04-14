@@ -278,22 +278,22 @@ const roomId = stableRoomId || state?.room?.roomId || "";
 
       const data = await res.json().catch(() => null);
 
-      if (!res.ok || !data?.ok) {
-        if (typeof window !== "undefined") {
-          window.location.href = `/s/${encodeURIComponent(slug)}`;
-        }
-        return;
-      }
+if (!res.ok || !data?.ok) {
+  if (typeof window !== "undefined") {
+    window.location.href = "/";
+  }
+  return;
+}
 
-      if (typeof window !== "undefined") {
-        window.location.href = `/s/${encodeURIComponent(slug)}`;
-      }
-    } catch (error) {
-      console.error("Exit failed", error);
-      if (typeof window !== "undefined") {
-        window.location.href = `/s/${encodeURIComponent(slug)}`;
-      }
-    }
+if (typeof window !== "undefined") {
+  window.location.href = "/";
+}
+} catch (error) {
+  console.error("Exit failed", error);
+  if (typeof window !== "undefined") {
+    window.location.href = "/";
+  }
+}
   }
 
   useEffect(() => {
