@@ -577,7 +577,7 @@ function openDeleteModalFromContext() {
   }
 
 return (
-  <main className="w-full max-w-none px-0 py-0 overflow-x-auto overflow-y-visible">
+  <main className="w-full max-w-none px-0 py-0 overflow-x-auto">
       <div className="mb-1 flex justify-end text-sm text-neutral-600">
         {saving
           ? "Saving..."

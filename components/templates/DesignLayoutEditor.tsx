@@ -4539,7 +4539,7 @@ function nudgeSelectedBlock(
 }
 
 return (
-  <div className="flex min-h-screen flex-col bg-[#f3f3f3]">
+  <div className="flex min-h-screen flex-col bg-[#f3f3f3] overflow-hidden">
     <div className="border-b border-black/10 bg-white px-6 py-3">
       <div className="text-xs font-semibold uppercase tracking-[0.14em] text-neutral-500">
         Editing
@@ -5779,7 +5779,8 @@ return (
             pageSurfaceStyle={{
               ...pageSurfaceStyle,
               minHeight: `${selectedPageDimensions.height * 96}px`,
-              width: "100%",
+              minWidth: `${getGridCanvasScrollableWidth()}px`,
+              width: `${getGridCanvasScrollableWidth()}px`,
             }}
           />
         </div>

@@ -1,3 +1,5 @@
+// components\ui\Nav.tsx
+
 "use client";
 
 import Link from "next/link";
@@ -71,7 +73,7 @@ export function Nav() {
 
   return (
     <header className="fixed inset-x-0 top-0 z-[100] border-b border-neutral-200 bg-white">
-      <Container className="relative flex h-16 items-center justify-between gap-4">
+      <Container fullWidth className="relative flex h-16 items-center justify-between gap-4 px-4">
         <Link
           href="/"
           className="relative z-10 flex shrink-0 items-center gap-2 font-semibold tracking-tight"
