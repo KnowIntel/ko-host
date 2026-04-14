@@ -121,10 +121,11 @@ function EmptySlot({ label }: { label: string }) {
 }
 
 export default function SpeedDatingPrivateRoom({ slug }: Props) {
-  const [state, setState] = useState<RoomState | null>(null);
-  const [profile, setProfile] = useState<ParticipantCardData | null>(null);
-  const [stableRoomId, setStableRoomId] = useState<string | null>(null);
-  const [stablePartner, setStablePartner] = useState<ParticipantCardData | null>(null);
+const [state, setState] = useState<RoomState | null>(null);
+const [profile, setProfile] = useState<ParticipantCardData | null>(null);
+const [stableRoomId, setStableRoomId] = useState<string | null>(null);
+const [stablePartner, setStablePartner] = useState<ParticipantCardData | null>(null);
+const activeRoundRef = useRef<number | null>(null);
   const [phaseEndsAt, setPhaseEndsAt] = useState<number | null>(null);
   const [timeLeft, setTimeLeft] = useState(0);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -151,20 +152,34 @@ export default function SpeedDatingPrivateRoom({ slug }: Props) {
     const nextState = data as RoomState;
     setState(nextState);
 
-    if (nextState.participant) {
-      setProfile(nextState.participant);
-    }
+if (nextState.participant) {
+  setProfile(nextState.participant);
+}
 
-    if (typeof nextState.phaseEndsAt === "number") {
-      setPhaseEndsAt(nextState.phaseEndsAt);
-    }
+if (typeof nextState.phaseEndsAt === "number") {
+  setPhaseEndsAt(nextState.phaseEndsAt);
+}
 
-    if (nextState.phase === "active") {
-      const nextRoomId = nextState.room?.roomId || null;
-      setStableRoomId(nextRoomId);
-      setStablePartner(nextState.partner || null);
-    }
-  }
+if (nextState.phase === "transition") {
+  activeRoundRef.current = nextState.round;
+  return;
+}
+
+const incomingRoomId = nextState.room?.roomId || null;
+const roundChanged =
+  activeRoundRef.current === null || activeRoundRef.current !== nextState.round;
+
+if (roundChanged) {
+  activeRoundRef.current = nextState.round;
+  setStableRoomId(incomingRoomId);
+  setStablePartner(nextState.partner || null);
+  return;
+}
+
+if (incomingRoomId) {
+  setStableRoomId((prev) => (prev === incomingRoomId ? prev : incomingRoomId));
+  setStablePartner(nextState.partner || null);
+}
 
   async function fetchMessages(roomId: string) {
     if (!roomId) return;
@@ -197,7 +212,7 @@ export default function SpeedDatingPrivateRoom({ slug }: Props) {
   }
 
   async function sendMessage() {
-    const roomId = stableRoomId || "";
+const roomId = stableRoomId || state?.room?.roomId || "";
     const senderId = profile?.id || "";
     const text = input.trim();
 
@@ -301,32 +316,34 @@ export default function SpeedDatingPrivateRoom({ slug }: Props) {
     return () => window.clearInterval(interval);
   }, [phaseEndsAt]);
 
-  useEffect(() => {
-    if (lastRoomIdRef.current !== stableRoomId) {
-      setMessages([]);
-      lastRoomIdRef.current = stableRoomId;
-    }
-  }, [stableRoomId]);
+useEffect(() => {
+  const nextRoomId = stableRoomId || state?.room?.roomId || null;
 
-  useEffect(() => {
-    const roomId = stableRoomId || "";
-    if (!roomId) return;
+  if (lastRoomIdRef.current !== nextRoomId) {
+    setMessages([]);
+    lastRoomIdRef.current = nextRoomId;
+  }
+}, [stableRoomId, state?.room?.roomId]);
 
+useEffect(() => {
+  const roomId = stableRoomId || state?.room?.roomId || "";
+  if (!roomId) return;
+
+  void fetchMessages(roomId);
+
+  const interval = window.setInterval(() => {
     void fetchMessages(roomId);
+  }, 1500);
 
-    const interval = window.setInterval(() => {
-      void fetchMessages(roomId);
-    }, 1500);
-
-    return () => window.clearInterval(interval);
-  }, [stableRoomId]);
+  return () => window.clearInterval(interval);
+}, [stableRoomId, state?.room?.roomId]);
 
   const isTransition = state?.phase === "transition";
   const participant = profile;
-  const partner = stablePartner;
-  const oppositeLineup = state?.oppositeLineup || [];
-  const participantId = participant?.id || "";
-  const roomId = stableRoomId || "";
+const partner = stablePartner || state?.partner || null;
+const oppositeLineup = state?.oppositeLineup || [];
+const participantId = participant?.id || "";
+const roomId = stableRoomId || state?.room?.roomId || "";
 
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
