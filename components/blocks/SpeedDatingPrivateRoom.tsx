@@ -140,48 +140,52 @@ const activeRoundRef = useRef<number | null>(null);
     return window.location.hostname;
   }, [slug]);
 
-  async function fetchPrivateRoom() {
-    const res = await fetch(
-      `/api/speed-dating/private-room?sessionId=${encodeURIComponent(sessionId)}&browserKey=${encodeURIComponent(browserKey)}`,
-      { cache: "no-store" },
+async function fetchPrivateRoom() {
+  const res = await fetch(
+    `/api/speed-dating/private-room?sessionId=${encodeURIComponent(sessionId)}&browserKey=${encodeURIComponent(browserKey)}`,
+    { cache: "no-store" },
+  );
+
+  const data = await res.json().catch(() => null);
+  if (!res.ok || !data?.ok) return;
+
+  const nextState = data as RoomState;
+  setState(nextState);
+
+  if (nextState.participant) {
+    setProfile(nextState.participant);
+  }
+
+  if (typeof nextState.phaseEndsAt === "number") {
+    setPhaseEndsAt(nextState.phaseEndsAt);
+  }
+
+  if (nextState.phase === "transition") {
+    activeRoundRef.current = nextState.round;
+  }
+
+  const incomingRoomId = nextState.room?.roomId || null;
+
+  const roundChanged =
+    activeRoundRef.current === null ||
+    activeRoundRef.current !== nextState.round;
+
+  if (roundChanged) {
+    activeRoundRef.current = nextState.round;
+
+    if (incomingRoomId) {
+      setStableRoomId(incomingRoomId);
+      setStablePartner(nextState.partner || null);
+    }
+  } else if (incomingRoomId) {
+    setStableRoomId((prev) =>
+      prev === incomingRoomId ? prev : incomingRoomId,
     );
-
-    const data = await res.json().catch(() => null);
-    if (!res.ok || !data?.ok) return;
-
-    const nextState = data as RoomState;
-    setState(nextState);
-
-if (nextState.participant) {
-  setProfile(nextState.participant);
+    setStablePartner(nextState.partner || null);
+  }
 }
 
-if (typeof nextState.phaseEndsAt === "number") {
-  setPhaseEndsAt(nextState.phaseEndsAt);
-}
-
-if (nextState.phase === "transition") {
-  activeRoundRef.current = nextState.round;
-  return;
-}
-
-const incomingRoomId = nextState.room?.roomId || null;
-const roundChanged =
-  activeRoundRef.current === null || activeRoundRef.current !== nextState.round;
-
-if (roundChanged) {
-  activeRoundRef.current = nextState.round;
-  setStableRoomId(incomingRoomId);
-  setStablePartner(nextState.partner || null);
-  return;
-}
-
-if (incomingRoomId) {
-  setStableRoomId((prev) => (prev === incomingRoomId ? prev : incomingRoomId));
-  setStablePartner(nextState.partner || null);
-}
-
-  async function fetchMessages(roomId: string) {
+async function fetchMessages(roomId: string) {
     if (!roomId) return;
 
     const res = await fetch(
@@ -339,7 +343,7 @@ useEffect(() => {
 }, [stableRoomId, state?.room?.roomId]);
 
   const isTransition = state?.phase === "transition";
-  const participant = profile;
+const participant = profile;
 const partner = stablePartner || state?.partner || null;
 const oppositeLineup = state?.oppositeLineup || [];
 const participantId = participant?.id || "";
