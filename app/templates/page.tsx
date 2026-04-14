@@ -191,7 +191,7 @@ const visibleRecentSites = useMemo(() => {
         </div>
 
         {recentSitesLoading ? (
-          <div className="grid w-full grid-cols-4 gap-2 sm:grid-cols-6 md:grid-cols-8 md:gap-3">
+          <div className="mt-6 grid w-full grid-cols-4 gap-2 sm:grid-cols-6 md:grid-cols-8 md:gap-3">
             {Array.from({ length: 8 }).map((_, index) => (
               <div
                 key={index}
@@ -426,7 +426,7 @@ const visibleRecentSites = useMemo(() => {
         </div>
 
         {recentSitesLoading ? (
-          <div className="grid w-full grid-cols-4 gap-2 sm:grid-cols-6 md:grid-cols-8 md:gap-3">
+          <div className="mt-6 grid w-full grid-cols-4 gap-2 sm:grid-cols-6 md:grid-cols-8 md:gap-3">
             {Array.from({ length: 8 }).map((_, index) => (
               <div
                 key={index}
@@ -499,12 +499,14 @@ const visibleRecentSites = useMemo(() => {
 
         </div>
 
-        <TemplateGrid
-          searchQuery={searchQuery}
-          category={category}
-          sort={sort}
-          onCountChange={setCount}
-        />
+        <div className="mt-16">
+          <TemplateGrid
+            searchQuery={searchQuery}
+            category={category}
+            sort={sort}
+            onCountChange={setCount}
+          />
+        </div>
 
         {hasFilters ? (
           <div className="mt-3 flex flex-wrap items-center gap-2">
