@@ -2,21 +2,57 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, usePathname } from "next/navigation";
 import { UserButton, useAuth } from "@clerk/nextjs";
 import { Container } from "@/components/ui/Container";
 import { ButtonLink } from "@/components/ui/ButtonLink";
 import InstallButton from "@/components/pwa/InstallButton";
 
+function isMicrositeHostname(hostname: string) {
+  if (!hostname) return false;
+
+  const normalized = hostname.toLowerCase();
+
+  if (normalized === "localhost" || normalized === "127.0.0.1") {
+    return false;
+  }
+
+  if (normalized.endsWith(".ko-host.com")) {
+    return true;
+  }
+
+  if (normalized.includes(".vercel.app")) {
+    const firstLabel = normalized.split(".")[0] || "";
+    if (firstLabel && firstLabel !== "www" && firstLabel !== "ko-host") {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 export function Nav() {
   const pathname = usePathname() || "";
   const params = useParams();
   const { isSignedIn } = useAuth();
+  const [hostname, setHostname] = useState("");
 
-  const isPublishedMicrosite =
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setHostname(window.location.hostname || "");
+    }
+  }, []);
+
+  const isPublishedMicrositePath =
     pathname === "/s" || pathname.startsWith("/s/");
 
-  if (isPublishedMicrosite) {
+  const isPublishedMicrositeSubdomain = useMemo(
+    () => isMicrositeHostname(hostname),
+    [hostname],
+  );
+
+  if (isPublishedMicrositePath || isPublishedMicrositeSubdomain) {
     return null;
   }
 
