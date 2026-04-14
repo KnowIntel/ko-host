@@ -1,5 +1,3 @@
-// components/ui/Container.tsx
-
 import React from "react";
 
 type Props = {
@@ -7,7 +5,7 @@ type Props = {
   className?: string;
 };
 
-export default function Container({ children, className = "" }: Props) {
+export function Container({ children, className = "" }: Props) {
   return (
     <div
       className={`
@@ -26,3 +24,5 @@ export default function Container({ children, className = "" }: Props) {
     </div>
   );
 }
+
+export default Container;
