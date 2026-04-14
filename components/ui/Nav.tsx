@@ -1,4 +1,3 @@
-// components\ui\Nav.tsx
 "use client";
 
 import Link from "next/link";
@@ -14,7 +13,10 @@ export function Nav() {
   const params = useParams();
   const { isSignedIn } = useAuth();
 
-  if (pathname === "/s" || pathname.startsWith("/s/")) {
+  const isPublishedMicrosite =
+    pathname === "/s" || pathname.startsWith("/s/");
+
+  if (isPublishedMicrosite) {
     return null;
   }
 
