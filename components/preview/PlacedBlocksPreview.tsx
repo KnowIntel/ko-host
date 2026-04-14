@@ -394,49 +394,63 @@ return (
         : {}),
     }}
   >
-    <div
-      style={{
-        position: "relative",
-        width: "100%",
-        minHeight: pageHeight * (disableAutoScale ? (fixedScale ?? 1) : 1),
-        margin: 0,
-        padding: 0,
-        overflow: "hidden",
-        backgroundColor: transparentPageBackground ? "transparent" : pageColor,
-        ...(transparentPageBackground
-          ? {}
-          : getCanvasInnerBackgroundStyle(draft, designKey, metadata)),
-        ...(pageBackgroundImage && !transparentPageBackground
-          ? {
-              backgroundImage: `url("${pageBackgroundImage}")`,
-              backgroundSize: pageBackgroundSize,
-              backgroundPosition: "center center",
-              backgroundRepeat: "no-repeat",
-            }
-          : {}),
-        ...(hideFrame
-          ? {}
-          : {
-              border: "1px solid rgba(0,0,0,0.10)",
-              borderRadius: "8px",
-              boxShadow: "0 1px 2px rgba(0,0,0,0.06)",
-            }),
-      }}
-    >
-      <div
-        style={{
-          position: "relative",
-          width: logicalPageWidth,
-          minHeight: pageHeight,
-          margin: 0,
-          padding: 0,
-          overflow: "visible",
-          transform: `scale(${disableAutoScale ? (fixedScale ?? 1) : 1})`,
-          transformOrigin:
-            transparentPageBackground && hideFrame ? "top left" : "top center",
-          left: transparentPageBackground && hideFrame ? 0 : undefined,
-        }}
-      >
+<div
+  style={{
+    position: "relative",
+    width: "100%",
+    minHeight:
+      pageHeight *
+      (disableAutoScale
+        ? fixedScale ?? 1
+        : Math.min(
+            1,
+            Math.max(0.5, window.innerWidth / logicalPageWidth),
+          )),
+    margin: 0,
+    padding: 0,
+    overflow: "hidden",
+    backgroundColor: transparentPageBackground ? "transparent" : pageColor,
+    ...(transparentPageBackground
+      ? {}
+      : getCanvasInnerBackgroundStyle(draft, designKey, metadata)),
+    ...(pageBackgroundImage && !transparentPageBackground
+      ? {
+          backgroundImage: `url("${pageBackgroundImage}")`,
+          backgroundSize: pageBackgroundSize,
+          backgroundPosition: "center center",
+          backgroundRepeat: "no-repeat",
+        }
+      : {}),
+    ...(hideFrame
+      ? {}
+      : {
+          border: "1px solid rgba(0,0,0,0.10)",
+          borderRadius: "8px",
+          boxShadow: "0 1px 2px rgba(0,0,0,0.06)",
+        }),
+  }}
+>
+  <div
+    style={{
+      position: "relative",
+      width: logicalPageWidth,
+      minHeight: pageHeight,
+      margin: "0 auto",
+      padding: 0,
+      overflow: "visible",
+
+      transform: `scale(${
+        disableAutoScale
+          ? fixedScale ?? 1
+          : Math.min(
+              1,
+              Math.max(0.5, window.innerWidth / logicalPageWidth),
+            )
+      })`,
+
+      transformOrigin: "top center",
+    }}
+  >
         {showTitle ? (
           <div style={getItemStyle(titleGrid, logicalPageWidth, logicalRowHeight)}>
             <div

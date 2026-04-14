@@ -19,9 +19,16 @@ export function AppChrome({
     <div className="flex min-h-screen flex-col">
       {shouldShowNav ? <LayoutNavVisibility /> : null}
 
-      <div className={shouldOffsetForFixedNav ? "flex-1 pt-16" : "flex-1"}>
-        {children}
-      </div>
+<div
+  className="
+    w-full
+    min-h-screen
+    overflow-x-hidden
+    bg-white
+  "
+>
+  {children}
+</div>
 
       {!isPublicMicrosite ? (
         <footer className="border-t border-neutral-200 bg-white">

@@ -1,14 +1,28 @@
 // components/ui/Container.tsx
-import type { HTMLAttributes } from "react";
-import { cn } from "@/lib/security";
 
-type ContainerProps = HTMLAttributes<HTMLDivElement>;
+import React from "react";
 
-export function Container({ className, ...props }: ContainerProps) {
+type Props = {
+  children: React.ReactNode;
+  className?: string;
+};
+
+export default function Container({ children, className = "" }: Props) {
   return (
     <div
-      className={cn("w-full px-4", className)}
-      {...props}
-    />
+      className={`
+        w-full
+        max-w-[1200px]
+        mx-auto
+        px-4
+        overflow-x-hidden
+        ${className}
+      `}
+      style={{
+        WebkitOverflowScrolling: "touch",
+      }}
+    >
+      {children}
+    </div>
   );
 }

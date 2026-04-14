@@ -40,6 +40,16 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+/* Prevent horizontal overflow everywhere */
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Prevent rogue elements from breaking layout */
+* {
+  box-sizing: border-box;
+}
 
 .animate-kht-float { animation: kht-float 10s ease-in-out infinite; }
 .animate-kht-float2 { animation: kht-float2 12s ease-in-out infinite; }

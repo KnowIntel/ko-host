@@ -229,25 +229,26 @@ export default async function PublishedMicrositePage({
         ? "100% 100%"
         : "cover";
 
-  return (
-    <main
-      className="w-full overflow-x-hidden overflow-y-auto text-neutral-900"
-      style={{
-        minHeight: "100vh",
-        width: "100%",
-        margin: 0,
-        padding: 0,
-        backgroundColor: pageColor,
-        ...(pageBackgroundImage
-          ? {
-              backgroundImage: `url("${pageBackgroundImage}")`,
-              backgroundSize: pageBackgroundSize,
-              backgroundPosition: "center center",
-              backgroundRepeat: "no-repeat",
-            }
-          : {}),
-      }}
-    >
+return (
+  <main
+    className="w-full overflow-x-hidden text-neutral-900"
+    style={{
+      minHeight: "100vh",
+      width: "100%",
+      margin: 0,
+      padding: 0,
+      backgroundColor: pageColor,
+      ...(pageBackgroundImage
+        ? {
+            backgroundImage: `url("${pageBackgroundImage}")`,
+            backgroundSize: pageBackgroundSize,
+            backgroundPosition: "center center",
+            backgroundRepeat: "no-repeat",
+          }
+        : {}),
+    }}
+  >
+    <div className="w-full overflow-x-hidden">
       <PlacedBlocksPreview
         draft={draft}
         designKey={designKey}
@@ -255,11 +256,15 @@ export default async function PublishedMicrositePage({
         serverNow={Date.now()}
         fixedScale={Math.max(
           0.25,
-          Math.min(1.5, ((((draft as any)?.pageScale ?? 100) as number) / 100)),
+          Math.min(
+            1.5,
+            ((((draft as any)?.pageScale ?? 100) as number) / 100),
+          ),
         )}
         disableAutoScale={true}
         hideFrame={true}
       />
-    </main>
-  );
+    </div>
+  </main>
+);
 }

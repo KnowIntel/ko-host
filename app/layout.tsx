@@ -135,26 +135,26 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={[
-          greatVibes.variable,
-          cormorant.variable,
-          inter.variable,
-          dmSans.variable,
-          poppins.variable,
-          playfairDisplay.variable,
-          dancingScript.variable,
-          pacifico.variable,
-          allura.variable,
-          parisienne.variable,
-          sacramento.variable,
-          playball.variable,
-          satisfy.variable,
-          tangerine.variable,
-          prata.variable,
-          marcellus.variable,
-          bodoniModa.variable,
-          "min-h-screen bg-white text-neutral-950",
-        ].join(" ")}
+className={[
+  greatVibes.variable,
+  cormorant.variable,
+  inter.variable,
+  dmSans.variable,
+  poppins.variable,
+  playfairDisplay.variable,
+  dancingScript.variable,
+  pacifico.variable,
+  allura.variable,
+  parisienne.variable,
+  sacramento.variable,
+  playball.variable,
+  satisfy.variable,
+  tangerine.variable,
+  prata.variable,
+  marcellus.variable,
+  bodoniModa.variable,
+  "min-h-screen bg-white text-neutral-950 overflow-x-hidden",
+].join(" ")}
       >
         <ClerkProvider
           signInUrl="/sign-in"
