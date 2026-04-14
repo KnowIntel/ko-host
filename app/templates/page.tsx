@@ -328,35 +328,6 @@ const visibleRecentSites = useMemo(() => {
   </div>
 
 
-          {hasFilters ? (
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              {category !== "All" ? (
-                <Chip label={`Category: ${category}`} onRemove={() => setCategory("All")} />
-              ) : null}
-
-              {sort !== "Recommended" ? (
-                <Chip
-                  label={`Sort: ${sort}`}
-                  onRemove={() => setSort("Recommended")}
-                />
-              ) : null}
-
-              {searchQuery.trim() ? (
-                <Chip
-                  label={`Search: “${searchQuery.trim()}”`}
-                  onRemove={() => setSearchQuery("")}
-                />
-              ) : null}
-
-              <button
-                type="button"
-                onClick={clearAll}
-                className="ml-auto rounded-full px-3 py-1.5 text-[12px] font-semibold text-neutral-700 hover:bg-neutral-100"
-              >
-                Clear all
-              </button>
-            </div>
-          ) : null}
         </div>
 
         <TemplateGrid
@@ -365,6 +336,39 @@ const visibleRecentSites = useMemo(() => {
           sort={sort}
           onCountChange={setCount}
         />
+
+        {hasFilters ? (
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            {category !== "All" ? (
+              <Chip
+                label={`Category: ${category}`}
+                onRemove={() => setCategory("All")}
+              />
+            ) : null}
+
+            {sort !== "Recommended" ? (
+              <Chip
+                label={`Sort: ${sort}`}
+                onRemove={() => setSort("Recommended")}
+              />
+            ) : null}
+
+            {searchQuery.trim() ? (
+              <Chip
+                label={`Search: “${searchQuery.trim()}”`}
+                onRemove={() => setSearchQuery("")}
+              />
+            ) : null}
+
+            <button
+              type="button"
+              onClick={clearAll}
+              className="ml-auto rounded-full px-3 py-1.5 text-[12px] font-semibold text-neutral-700 hover:bg-neutral-100"
+            >
+              Clear all
+            </button>
+          </div>
+        ) : null}
 
         <div className="mt-12 flex justify-end">
           <div className="inline-flex items-center gap-3 rounded-2xl border border-neutral-200 bg-white/85 px-4 py-3 shadow-sm backdrop-blur">

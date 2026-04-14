@@ -1,3 +1,5 @@
+// components\templates\design-editors\shared\GridCanvas.tsx
+
 "use client";
 
 import {
@@ -946,7 +948,7 @@ export default function GridCanvas({
     <div className="relative w-full bg-[#efefef]">
       <div
         ref={mainScrollRef}
-        className="w-full overflow-x-hidden overflow-y-visible pb-2"
+        className="w-full overflow-x-auto overflow-y-visible pb-2"
         onDragOver={handleCanvasDragOver}
         onDragLeave={clearPreviewIfNeeded}
         onDrop={handleCanvasDrop}
@@ -965,12 +967,15 @@ export default function GridCanvas({
             className="absolute inset-y-0"
             style={{
               left: WORKSPACE_SIDE_PADDING,
-              width: WORKSPACE_WIDTH,
+              width: totalScrollableWidth,
+              minWidth: totalScrollableWidth,
             }}
           >
             <div
               className="relative h-full rounded-[6px] border border-black/6 bg-[rgba(255,255,255,0.28)]"
               style={{
+                width: totalScrollableWidth,
+                minWidth: totalScrollableWidth,
                 boxShadow: "inset 0 1px 0 rgba(255,255,255,0.3)",
               }}
             >
@@ -978,6 +983,7 @@ export default function GridCanvas({
                 className="absolute left-1/2 top-[32px] -translate-x-1/2 rounded-[2px] border border-[rgba(0,0,0,0.09)]"
                 style={{
                   width: PAGE_WIDTH,
+                  minWidth: PAGE_WIDTH,
                   height: pageHeight,
                   ...pageSurfaceStyle,
                   backgroundImage: pageSurfaceStyle?.backgroundImage
