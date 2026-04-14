@@ -1,7 +1,6 @@
-// components\blocks\SpeedDatingPrivateRoom.tsx
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type ParticipantCardData = {
   id: string;
@@ -122,13 +121,17 @@ function EmptySlot({ label }: { label: string }) {
 }
 
 export default function SpeedDatingPrivateRoom({ slug }: Props) {
-const [state, setState] = useState<RoomState | null>(null);
-const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
-const [phaseEndsAt, setPhaseEndsAt] = useState<number | null>(null);
-const [timeLeft, setTimeLeft] = useState(0);
-const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [state, setState] = useState<RoomState | null>(null);
+  const [profile, setProfile] = useState<ParticipantCardData | null>(null);
+  const [stableRoomId, setStableRoomId] = useState<string | null>(null);
+  const [stablePartner, setStablePartner] = useState<ParticipantCardData | null>(null);
+  const [phaseEndsAt, setPhaseEndsAt] = useState<number | null>(null);
+  const [timeLeft, setTimeLeft] = useState(0);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
+
+  const lastRoomIdRef = useRef<string | null>(null);
 
   const browserKey = useMemo(() => getBrowserKey(), []);
   const sessionId = useMemo(() => {
@@ -145,47 +148,22 @@ const [messages, setMessages] = useState<ChatMessage[]>([]);
     const data = await res.json().catch(() => null);
     if (!res.ok || !data?.ok) return;
 
-setState((prev) => {
-  if (!prev) return data as RoomState;
+    const nextState = data as RoomState;
+    setState(nextState);
 
-  const sameRound = prev.round === data.round;
+    if (nextState.participant) {
+      setProfile(nextState.participant);
+    }
 
-  return {
-    ...prev,
-    ...data,
-    participant: data.participant || prev.participant,
-    partner:
-      data.partner ||
-      (prev.partner && sameRound && data.phase === "transition" ? prev.partner : null),
-    room:
-      data.room ||
-      (prev.room && sameRound && data.phase === "transition" ? prev.room : null),
-    oppositeLineup:
-      Array.isArray(data.oppositeLineup) && data.oppositeLineup.length > 0
-        ? data.oppositeLineup
-        : prev.oppositeLineup,
-  };
-});
+    if (typeof nextState.phaseEndsAt === "number") {
+      setPhaseEndsAt(nextState.phaseEndsAt);
+    }
 
-if (typeof data.phaseEndsAt === "number") {
-  setPhaseEndsAt(data.phaseEndsAt);
-}
-
-setActiveRoomId((prev) => {
-  const next =
-    typeof data.room?.roomId === "string" && data.room.roomId
-      ? data.room.roomId
-      : null;
-
-  if (data.phase === "transition") {
-    return prev;
-  }
-
-  if (!next) return null;
-  if (prev === next) return prev;
-
-  return next;
-});
+    if (nextState.phase === "active") {
+      const nextRoomId = nextState.room?.roomId || null;
+      setStableRoomId(nextRoomId);
+      setStablePartner(nextState.partner || null);
+    }
   }
 
   async function fetchMessages(roomId: string) {
@@ -199,79 +177,69 @@ setActiveRoomId((prev) => {
     const data = await res.json().catch(() => null);
     if (!res.ok || !data?.ok) return;
 
-setMessages((prev) => {
-  const next = Array.isArray(data.messages) ? data.messages : [];
-  if (!prev.length) return next;
+    const next = Array.isArray(data.messages) ? data.messages : [];
 
-  const byId = new Map<string, ChatMessage>();
+    setMessages((prev) => {
+      if (!prev.length) return next;
 
-  for (const msg of prev) {
-    byId.set(msg.id, msg);
-  }
+      const byId = new Map<string, ChatMessage>();
 
-  for (const msg of next) {
-    byId.set(msg.id, msg);
-  }
+      for (const msg of prev) {
+        byId.set(msg.id, msg);
+      }
 
-  return Array.from(byId.values()).sort((a, b) => a.createdAt - b.createdAt);
-});
-  }
+      for (const msg of next) {
+        byId.set(msg.id, msg);
+      }
 
-async function sendMessage() {
-  const roomId = state?.room?.roomId || activeRoomId || "";
-  const senderId = state?.participant?.id || "";
-  const text = input.trim();
-
-  if (sending) return;
-
-  if (!roomId) {
-    console.error("SEND BLOCKED: missing roomId");
-    return;
-  }
-
-  if (!senderId) {
-    console.error("SEND BLOCKED: missing senderId");
-    return;
-  }
-
-  if (!text) return;
-
-  setSending(true);
-
-  try {
-    const res = await fetch(`/api/speed-dating/room/messages`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        roomId,
-        senderId,
-        text,
-      }),
+      return Array.from(byId.values()).sort((a, b) => a.createdAt - b.createdAt);
     });
-
-    const data = await res.json().catch(() => null);
-    if (!res.ok || !data?.ok) {
-      console.error("SEND FAILED:", data);
-      return;
-    }
-
-    setInput("");
-
-    if (data.message) {
-      setMessages((prev) => {
-        const exists = prev.some((m) => m.id === data.message.id);
-        if (exists) return prev;
-        return [...prev, data.message].sort((a, b) => a.createdAt - b.createdAt);
-      });
-    }
-
-    await fetchMessages(roomId);
-  } finally {
-    setSending(false);
   }
-}
+
+  async function sendMessage() {
+    const roomId = stableRoomId || "";
+    const senderId = profile?.id || "";
+    const text = input.trim();
+
+    if (sending) return;
+    if (!roomId || !senderId || !text) return;
+
+    setSending(true);
+
+    try {
+      const res = await fetch(`/api/speed-dating/room/messages`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          roomId,
+          senderId,
+          text,
+        }),
+      });
+
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.ok) {
+        console.error("SEND FAILED:", data);
+        return;
+      }
+
+      setInput("");
+
+      if (data.message) {
+        setMessages((prev) => {
+          const exists = prev.some((m) => m.id === data.message.id);
+          if (exists) return prev;
+          return [...prev, data.message].sort((a, b) => a.createdAt - b.createdAt);
+        });
+      }
+
+      await fetchMessages(roomId);
+    } finally {
+      setSending(false);
+    }
+  }
 
   async function handleExit() {
     try {
@@ -290,18 +258,22 @@ async function sendMessage() {
       );
 
       const data = await res.json().catch(() => null);
-if (!res.ok || !data?.ok) {
-  if (typeof window !== "undefined") {
-    window.location.href = `/s/${encodeURIComponent(slug)}`;
-  }
-  return;
-}
+
+      if (!res.ok || !data?.ok) {
+        if (typeof window !== "undefined") {
+          window.location.href = `/s/${encodeURIComponent(slug)}`;
+        }
+        return;
+      }
 
       if (typeof window !== "undefined") {
         window.location.href = `/s/${encodeURIComponent(slug)}`;
       }
     } catch (error) {
       console.error("Exit failed", error);
+      if (typeof window !== "undefined") {
+        window.location.href = `/s/${encodeURIComponent(slug)}`;
+      }
     }
   }
 
@@ -310,56 +282,54 @@ if (!res.ok || !data?.ok) {
 
     const interval = window.setInterval(() => {
       void fetchPrivateRoom();
-    }, 2000);
+    }, 1000);
 
     return () => window.clearInterval(interval);
   }, [browserKey, sessionId]);
 
-useEffect(() => {
-  if (!phaseEndsAt) return;
+  useEffect(() => {
+    if (!phaseEndsAt) return;
 
-  const tick = () => {
-    const next = Math.max(
-      0,
-      Math.ceil((phaseEndsAt - Date.now()) / 1000),
-    );
-    setTimeLeft(next);
-  };
+    const tick = () => {
+      const next = Math.max(0, Math.ceil((phaseEndsAt - Date.now()) / 1000));
+      setTimeLeft(next);
+    };
 
-  tick();
-  const interval = window.setInterval(tick, 1000);
+    tick();
+    const interval = window.setInterval(tick, 1000);
 
-  return () => window.clearInterval(interval);
-}, [phaseEndsAt]);
+    return () => window.clearInterval(interval);
+  }, [phaseEndsAt]);
 
-useEffect(() => {
-  setMessages([]);
-}, [activeRoomId]);
+  useEffect(() => {
+    if (lastRoomIdRef.current !== stableRoomId) {
+      setMessages([]);
+      lastRoomIdRef.current = stableRoomId;
+    }
+  }, [stableRoomId]);
 
-useEffect(() => {
-  const nextRoomId = state?.room?.roomId || activeRoomId || "";
-  if (!nextRoomId) {
-    return;
-  }
+  useEffect(() => {
+    const roomId = stableRoomId || "";
+    if (!roomId) return;
 
-  void fetchMessages(nextRoomId);
+    void fetchMessages(roomId);
 
-  const interval = window.setInterval(() => {
-    void fetchMessages(nextRoomId);
-  }, 2000);
+    const interval = window.setInterval(() => {
+      void fetchMessages(roomId);
+    }, 1500);
 
-  return () => window.clearInterval(interval);
-}, [state?.room?.roomId, activeRoomId]);
+    return () => window.clearInterval(interval);
+  }, [stableRoomId]);
+
+  const isTransition = state?.phase === "transition";
+  const participant = profile;
+  const partner = stablePartner;
+  const oppositeLineup = state?.oppositeLineup || [];
+  const participantId = participant?.id || "";
+  const roomId = stableRoomId || "";
 
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
-
-  const isTransition = state?.phase === "transition";
-  const participant = state?.participant || null;
-  const partner = state?.partner || null;
-  const oppositeLineup = state?.oppositeLineup || [];
-  const roomId = state?.room?.roomId || activeRoomId || "";
-  const participantId = participant?.id || "";
 
   return (
     <div className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
@@ -419,7 +389,7 @@ useEffect(() => {
               Private Chat
             </div>
 
-            {(state?.room?.roomId || activeRoomId) && participantId && !isTransition ? (
+            {roomId && participantId && !isTransition ? (
               <>
                 <div className="mb-3 h-56 overflow-auto space-y-2">
                   {messages.length ? (
@@ -460,12 +430,7 @@ useEffect(() => {
 
                   <button
                     type="button"
-                    disabled={
-                    sending ||
-                    !input.trim() ||
-                    !(state?.participant?.id) ||
-                    !(state?.room?.roomId || activeRoomId)
-                    }
+                    disabled={sending || !input.trim() || !participantId || !roomId}
                     onClick={() => void sendMessage()}
                     className="rounded-xl bg-neutral-900 px-4 text-sm font-semibold text-white disabled:opacity-60"
                   >

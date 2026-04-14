@@ -1,4 +1,3 @@
-// app\api\speed-dating\private-room\route.ts
 import { NextResponse } from "next/server";
 
 type PublicParticipant = {
@@ -50,27 +49,23 @@ type SessionStore = {
 };
 
 declare global {
+  // eslint-disable-next-line no-var
   var __KOHOST_SPEED_DATING_STORE__:
     | Record<string, SessionStore>
     | undefined;
 }
 
+const ROUND_DURATION_SECONDS = 120;
+const TRANSITION_DURATION_SECONDS = 10;
+
 function getStore(sessionId: string) {
   const root = globalThis.__KOHOST_SPEED_DATING_STORE__ ?? {};
-  const store = root[sessionId];
-  return store ?? null;
+  return root[sessionId] ?? null;
 }
 
 function getTimeLeftSeconds(phaseEndsAt: number) {
   return Math.max(0, Math.ceil((phaseEndsAt - Date.now()) / 1000));
 }
-
-export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const sessionId = searchParams.get("sessionId") || "default";
-  const browserKey = searchParams.get("browserKey") || "";
-  const ROUND_DURATION_SECONDS = 120;
-const TRANSITION_DURATION_SECONDS = 10;
 
 function isCompatible(a: Participant, b: Participant) {
   return (
@@ -93,7 +88,10 @@ function rotateRightUp<T>(arr: T[], r: number) {
   return [...arr.slice(arr.length - o), ...arr.slice(0, arr.length - o)];
 }
 
-function toPublicParticipant(p: Participant, waiting: boolean): PublicParticipant {
+function toPublicParticipant(
+  p: Participant,
+  waiting: boolean,
+): PublicParticipant {
   return {
     id: p.id,
     name: p.name,
@@ -105,22 +103,24 @@ function toPublicParticipant(p: Participant, waiting: boolean): PublicParticipan
   };
 }
 
+function getSortedSides(store: SessionStore) {
+  const leftBase = [...store.participants]
+    .filter((p) => p.isActive && p.side === "left")
+    .sort((a, b) => a.joinedAt - b.joinedAt);
+
+  const rightBase = [...store.participants]
+    .filter((p) => p.isActive && p.side === "right")
+    .sort((a, b) => a.joinedAt - b.joinedAt);
+
+  const left = rotateLeftDown(leftBase, store.round);
+  const right = rotateRightUp(rightBase, store.round);
+
+  return { left, right };
+}
+
 function buildPairsForRound(sessionId: string, store: SessionStore) {
   const round = store.round;
-
-const left = rotateLeftDown(
-  [...store.participants]
-    .filter((p) => p.isActive && p.side === "left")
-    .sort((a, b) => a.joinedAt - b.joinedAt),
-  store.round,
-);
-
-const right = rotateRightUp(
-  [...store.participants]
-    .filter((p) => p.isActive && p.side === "right")
-    .sort((a, b) => a.joinedAt - b.joinedAt),
-  store.round,
-);
+  const { left, right } = getSortedSides(store);
 
   const pairs: Pair[] = [];
   const usedRightIds = new Set<string>();
@@ -147,7 +147,7 @@ const right = rotateRightUp(
     if (matchedRight) {
       usedRightIds.add(matchedRight.id);
 
-      const roomId = `${sessionId}__${round}__${l.id}__${matchedRight.id}`;
+      const roomId = `room__${round}__${l.id}__${matchedRight.id}`;
 
       pairs.push({
         id: `${l.id}_${matchedRight.id}_r${round}`,
@@ -223,110 +223,135 @@ function refreshRoundState(sessionId: string, store: SessionStore) {
   }
 }
 
-  if (!browserKey) {
+export async function GET(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const sessionId = searchParams.get("sessionId") || "default";
+    const browserKey = searchParams.get("browserKey") || "";
+
+    if (!browserKey) {
+      return NextResponse.json(
+        { ok: false, error: "browserKey required" },
+        { status: 400 },
+      );
+    }
+
+    const store = getStore(sessionId);
+
+    if (!store) {
+      return NextResponse.json({
+        ok: true,
+        participant: null,
+        room: null,
+        partner: null,
+        round: 0,
+        phase: "active",
+        phaseStartedAt: null,
+        phaseEndsAt: null,
+        timeLeftSeconds: 0,
+        oppositeLineup: [],
+        waiting: false,
+      });
+    }
+
+    refreshRoundState(sessionId, store);
+
+    const participant =
+      store.participants.find((p) => p.browserKey === browserKey) ?? null;
+
+    if (!participant) {
+      return NextResponse.json({
+        ok: true,
+        participant: null,
+        room: null,
+        partner: null,
+        round: store.round,
+        phase: store.phase,
+        phaseStartedAt: store.phaseStartedAt,
+        phaseEndsAt: store.phaseEndsAt,
+        timeLeftSeconds: getTimeLeftSeconds(store.phaseEndsAt),
+        oppositeLineup: [],
+        waiting: false,
+      });
+    }
+
+    const room =
+      Object.values(store.rooms).find(
+        (pair) =>
+          pair.status === "active" &&
+          (pair.leftParticipant?.id === participant.id ||
+            pair.rightParticipant?.id === participant.id),
+      ) ?? null;
+
+    const partner =
+      !room
+        ? null
+        : room.leftParticipant?.id === participant.id
+          ? room.rightParticipant
+          : room.leftParticipant;
+
+    const oppositeLineup = store.participants
+      .filter((p) => p.isActive && p.side !== participant.side)
+      .sort((a, b) => a.joinedAt - b.joinedAt)
+      .map((p) => ({
+        id: p.id,
+        name: p.name,
+        title: p.title,
+        bio: p.bio,
+        image_url: p.image_url ?? null,
+        side: p.side,
+        waiting: !Object.values(store.rooms).some(
+          (pair) =>
+            pair.status === "active" &&
+            (pair.leftParticipant?.id === p.id ||
+              pair.rightParticipant?.id === p.id),
+        ),
+      }))
+      .sort(
+        (a, b) =>
+          Number(b.waiting) - Number(a.waiting) ||
+          a.name.localeCompare(b.name),
+      );
+
+    return NextResponse.json({
+      ok: true,
+      participant: {
+        id: participant.id,
+        name: participant.name,
+        title: participant.title,
+        bio: participant.bio,
+        image_url: participant.image_url ?? null,
+        side: participant.side,
+      },
+      room: room
+        ? {
+            id: room.id,
+            roomId: room.roomId,
+            round: room.round,
+            status: room.status,
+          }
+        : null,
+      partner,
+      round: store.round,
+      phase: store.phase,
+      phaseStartedAt: store.phaseStartedAt,
+      phaseEndsAt: store.phaseEndsAt,
+      timeLeftSeconds: getTimeLeftSeconds(store.phaseEndsAt),
+      oppositeLineup,
+      waiting: !room,
+    });
+  } catch (error) {
+    console.error("SPEED_DATING_PRIVATE_ROOM_GET_ERROR:", error);
+
     return NextResponse.json(
-      { ok: false, error: "browserKey required" },
-      { status: 400 },
+      {
+        ok: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unknown private room GET error",
+      },
+      { status: 500 },
     );
   }
-
-const store = getStore(sessionId);
-
-if (!store) {
-  return NextResponse.json({
-    ok: true,
-    participant: null,
-    room: null,
-    partner: null,
-    round: 0,
-    phase: "active",
-    timeLeftSeconds: 0,
-    oppositeLineup: [],
-    waiting: false,
-  });
-}
-
-refreshRoundState(sessionId, store);
-
-const participant =
-  store.participants.find((p) => p.browserKey === browserKey) ?? null;
-
-if (!participant) {
-  return NextResponse.json({
-    ok: true,
-    participant: null,
-    room: null,
-    partner: null,
-    round: store.round,
-    phase: store.phase,
-    timeLeftSeconds: getTimeLeftSeconds(store.phaseEndsAt),
-    oppositeLineup: [],
-    waiting: false,
-  });
-}
-
-  const room =
-    Object.values(store.rooms).find(
-      (pair) =>
-        pair.status === "active" &&
-        (
-          pair.leftParticipant?.id === participant.id ||
-          pair.rightParticipant?.id === participant.id
-        ),
-    ) ?? null;
-
-  const partner =
-    !room
-      ? null
-      : room.leftParticipant?.id === participant.id
-        ? room.rightParticipant
-        : room.leftParticipant;
-
-const oppositeLineup = store.participants
-  .filter((p) => p.isActive && p.side !== participant.side)
-  .map((p) => ({
-    id: p.id,
-    name: p.name,
-    title: p.title,
-    bio: p.bio,
-    image_url: p.image_url ?? null,
-    side: p.side,
-    waiting: !Object.values(store.rooms).some(
-      (pair) =>
-        pair.status === "active" &&
-        (
-          pair.leftParticipant?.id === p.id ||
-          pair.rightParticipant?.id === p.id
-        ),
-    ),
-  }))
-  .sort((a, b) => Number(b.waiting) - Number(a.waiting) || a.name.localeCompare(b.name));
-
-return NextResponse.json({
-  ok: true,
-  participant: {
-    id: participant.id,
-    name: participant.name,
-    title: participant.title,
-    bio: participant.bio,
-    image_url: participant.image_url ?? null,
-    side: participant.side,
-  },
-  room: room
-    ? {
-        id: room.id,
-        roomId: room.roomId,
-        round: room.round,
-        status: room.status,
-      }
-    : null,
-  partner,
-  round: store.round,
-  phase: store.phase,
-  phaseStartedAt: store.phaseStartedAt,
-  phaseEndsAt: store.phaseEndsAt,
-  timeLeftSeconds: getTimeLeftSeconds(store.phaseEndsAt),
-  oppositeLineup,
-  waiting: !room,
-});
 }

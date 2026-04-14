@@ -1,4 +1,3 @@
-// app\api\speed-dating\route.ts
 import { Buffer } from "node:buffer";
 import { NextResponse } from "next/server";
 
@@ -78,6 +77,7 @@ type SessionStore = {
 };
 
 declare global {
+  // eslint-disable-next-line no-var
   var __KOHOST_SPEED_DATING_STORE__:
     | Record<string, SessionStore>
     | undefined;
@@ -148,18 +148,24 @@ function toPublic(p: Participant, waiting: boolean): PublicParticipant {
   };
 }
 
+function getSortedSides(store: SessionStore) {
+  const leftBase = [...store.participants]
+    .filter((p) => p.isActive && p.side === "left")
+    .sort((a, b) => a.joinedAt - b.joinedAt);
+
+  const rightBase = [...store.participants]
+    .filter((p) => p.isActive && p.side === "right")
+    .sort((a, b) => a.joinedAt - b.joinedAt);
+
+  const left = rotateLeftDown(leftBase, store.round);
+  const right = rotateRightUp(rightBase, store.round);
+
+  return { left, right };
+}
+
 function buildPairsForRound(store: SessionStore) {
   const round = store.round;
-
-  const left = rotateLeftDown(
-    store.participants.filter((p) => p.isActive && p.side === "left"),
-    round,
-  );
-
-  const right = rotateRightUp(
-    store.participants.filter((p) => p.isActive && p.side === "right"),
-    round,
-  );
+  const { left, right } = getSortedSides(store);
 
   const pairs: Pair[] = [];
   const activeIds = new Set<string>();
@@ -189,18 +195,16 @@ function buildPairsForRound(store: SessionStore) {
       activeIds.add(l.id);
       activeIds.add(matchedRight.id);
 
-const roomId = `room__${round}__${l.id}__${matchedRight.id}`;
+      const roomId = `room__${round}__${l.id}__${matchedRight.id}`;
 
-      const pair: Pair = {
+      pairs.push({
         id: `${l.id}_${matchedRight.id}_r${round}`,
         roomId,
         round,
         leftParticipant: toPublic(l, false),
         rightParticipant: toPublic(matchedRight, false),
         status: "active",
-      };
-
-      pairs.push(pair);
+      });
     } else {
       pairs.push({
         id: `open_left_${l.id}_r${round}`,
@@ -241,7 +245,7 @@ function rebuildActivePairs(store: SessionStore) {
   }
 }
 
-function refreshRoundState(sessionId: string, store: SessionStore) {
+function refreshRoundState(store: SessionStore) {
   const now = Date.now();
 
   while (now >= store.phaseEndsAt) {
@@ -271,21 +275,9 @@ function refreshRoundState(sessionId: string, store: SessionStore) {
 
 function buildState(sessionId: string) {
   const store = getStore(sessionId);
-refreshRoundState(sessionId, store);
+  refreshRoundState(store);
 
-const left = rotateLeftDown(
-  [...store.participants]
-    .filter((p) => p.isActive && p.side === "left")
-    .sort((a, b) => a.joinedAt - b.joinedAt),
-  store.round,
-);
-
-const right = rotateRightUp(
-  [...store.participants]
-    .filter((p) => p.isActive && p.side === "right")
-    .sort((a, b) => a.joinedAt - b.joinedAt),
-  store.round,
-);
+  const { left, right } = getSortedSides(store);
 
   const activeIds = new Set<string>();
   for (const pair of store.activePairs) {
@@ -293,19 +285,19 @@ const right = rotateRightUp(
     if (pair.rightParticipant?.id) activeIds.add(pair.rightParticipant.id);
   }
 
-return {
-  ok: true,
-  round: store.round,
-  phase: store.phase,
-  phaseStartedAt: store.phaseStartedAt,
-  phaseEndsAt: store.phaseEndsAt,
-  roundDurationSeconds: ROUND_DURATION_SECONDS,
-  transitionDurationSeconds: TRANSITION_DURATION_SECONDS,
-  timeLeftSeconds: getPhaseTimeLeftSeconds(store),
-  leftQueue: left.map((p) => toPublic(p, !activeIds.has(p.id))),
-  rightQueue: right.map((p) => toPublic(p, !activeIds.has(p.id))),
-  activePairs: store.activePairs,
-};
+  return {
+    ok: true,
+    round: store.round,
+    phase: store.phase,
+    phaseStartedAt: store.phaseStartedAt,
+    phaseEndsAt: store.phaseEndsAt,
+    roundDurationSeconds: ROUND_DURATION_SECONDS,
+    transitionDurationSeconds: TRANSITION_DURATION_SECONDS,
+    timeLeftSeconds: getPhaseTimeLeftSeconds(store),
+    leftQueue: left.map((p) => toPublic(p, !activeIds.has(p.id))),
+    rightQueue: right.map((p) => toPublic(p, !activeIds.has(p.id))),
+    activePairs: store.activePairs,
+  };
 }
 
 /* ================= VALIDATION ================= */
@@ -414,7 +406,7 @@ export async function POST(req: Request) {
 
     const body = await parseActionBody(req);
     const store = getStore(sessionId);
-    refreshRoundState(sessionId, store);
+    refreshRoundState(store);
     const now = Date.now();
 
     if (!("action" in body) || body.action === "join") {
