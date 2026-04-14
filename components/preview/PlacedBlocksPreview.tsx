@@ -375,6 +375,14 @@ export default function PlacedBlocksPreview({
 
   const pageHeight = maxRowEnd * getStrideY(logicalRowHeight) - GRID_GAP + 1;
 
+const previewScale =
+  disableAutoScale
+    ? fixedScale ?? 1
+    : Math.min(1, Math.max(0.5, window.innerWidth / logicalPageWidth));
+
+const scaledPageWidth = logicalPageWidth * previewScale;
+const scaledPageHeight = pageHeight * previewScale;
+
 return (
   <div
     className="w-full"
@@ -398,14 +406,7 @@ return (
   style={{
     position: "relative",
     width: "100%",
-    minHeight:
-      pageHeight *
-      (disableAutoScale
-        ? fixedScale ?? 1
-        : Math.min(
-            1,
-            Math.max(0.5, window.innerWidth / logicalPageWidth),
-          )),
+    minHeight: scaledPageHeight,
     margin: 0,
     padding: 0,
     overflow: "hidden",
@@ -433,24 +434,25 @@ return (
   <div
     style={{
       position: "relative",
-      width: logicalPageWidth,
-      minHeight: pageHeight,
+      width: scaledPageWidth,
+      minHeight: scaledPageHeight,
       margin: "0 auto",
       padding: 0,
       overflow: "visible",
-
-      transform: `scale(${
-        disableAutoScale
-          ? fixedScale ?? 1
-          : Math.min(
-              1,
-              Math.max(0.5, window.innerWidth / logicalPageWidth),
-            )
-      })`,
-
-      transformOrigin: "top center",
     }}
   >
+    <div
+      style={{
+        position: "relative",
+        width: logicalPageWidth,
+        minHeight: pageHeight,
+        margin: 0,
+        padding: 0,
+        overflow: "visible",
+        transform: `scale(${previewScale})`,
+        transformOrigin: "top left",
+      }}
+    >
         {showTitle ? (
           <div style={getItemStyle(titleGrid, logicalPageWidth, logicalRowHeight)}>
             <div
@@ -546,5 +548,6 @@ return (
       </div>
     </div>
   </div>
+</div>
 );
 }
