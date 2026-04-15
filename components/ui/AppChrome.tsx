@@ -20,12 +20,9 @@ export function AppChrome({
       {shouldShowNav ? <LayoutNavVisibility /> : null}
 
 <div
-  className="
-    w-full
-    min-h-screen
-    overflow-x-hidden
-    bg-white
-  "
+  className={`w-full min-h-screen bg-white ${
+    shouldOffsetForFixedNav ? "pt-6" : ""
+  }`}
 >
   {children}
 </div>

@@ -23,7 +23,7 @@ export default createLayoutPreset({
 
   title: {
     text: "Lucy & Ricky",
-    placement: { x: 0, y: 2.2, width: 14.35, height: 2, zIndex: 10 },
+    placement: { x: 0, y: 2.2, width: 13.8, height: 2, zIndex: 10 },
     style: {
       fontFamily: "Great Vibes",
       fontSize: 200,
@@ -35,7 +35,7 @@ export default createLayoutPreset({
 
   subtitle: {
     text: "ARE GETTING MARRIED",
-    placement: { x: 0, y: 3.4, width: 14.35, height: 1, zIndex: 11 },
+    placement: { x: 0, y: 3.4, width: 13.8, height: 1, zIndex: 11 },
     style: {
       fontFamily: "Cormorant Garamond",
       fontSize: 60,
@@ -46,7 +46,7 @@ export default createLayoutPreset({
 
   subtitleSecondary: {
     text: "November 30, 1940",
-    placement: { x: 0, y: 3.9, width: 14.35, height: 1, zIndex: 12 },
+    placement: { x: 0, y: 3.9, width: 13.8, height: 1, zIndex: 12 },
     style: {
       fontFamily: "Cormorant Garamond",
       fontSize: 130,
@@ -59,7 +59,7 @@ export default createLayoutPreset({
 
   tagline: {
     text: "Kindly RSVP",
-    placement: { x: 0, y: 4.9, width: 14, height: 1, zIndex: 13 },
+    placement: { x: 0, y: 4.9, width: 13.8, height: 1, zIndex: 13 },
     style: {
       fontFamily: "Great Vibes",
       fontSize: 110,
@@ -70,7 +70,7 @@ export default createLayoutPreset({
 
   taglineSecondary: {
     text: "We can't wait to celebrate with you!",
-    placement: { x: 0, y: 8.1, width: 14.35, height: 1, zIndex: 14 },
+    placement: { x: 0, y: 8.1, width: 13.8, height: 1, zIndex: 14 },
     style: {
       fontFamily: "Great Vibes",
       fontSize: 90,
@@ -90,7 +90,7 @@ export default createLayoutPreset({
     ------------------------------------------------------- */
     {
       type: "image",
-      placement: { x: 0, y: 5.6, width: 14.35, height: 1, zIndex: 1 },
+      placement: { x: 0, y: 5.6, width: 13.8, height: 1, zIndex: 1 },
       config: {
         src: "/designs/artifacts/champagne_plaques.png",
         fit: "cover",
@@ -105,7 +105,7 @@ export default createLayoutPreset({
     ------------------------------------------------------- */
     {
       type: "shape",
-      placement: { x: 3.1, y: 3.2, width: 2, height: 1, zIndex: 2 },
+      placement: { x: 2.7, y: 3.2, width: 2, height: 1, zIndex: 2 },
       config: {
         shapeType: "line",
         borderColor: "#DDD8D2",
@@ -130,7 +130,7 @@ export default createLayoutPreset({
     ------------------------------------------------------- */
     {
       type: "label",
-      placement: { x: 3.1, y: 5.9, width: 4, height: 1, zIndex: 15 },
+      placement: { x: 3.23, y: 5.9, width: 3.4, height: 1, zIndex: 15 },
       config: {
         label: "Accepts Line",
         text: "Accepts with Pleasure",
@@ -146,7 +146,7 @@ export default createLayoutPreset({
 
     {
       type: "label",
-      placement: { x: 7.15, y: 5.9, width: 4, height: 1, zIndex: 16 },
+      placement: { x: 7.15, y: 5.9, width: 3.4, height: 1, zIndex: 16 },
       config: {
         label: "Declines Line",
         text: "Declines with Regret",
@@ -163,7 +163,7 @@ export default createLayoutPreset({
     
     {
       type: "label",
-      placement: { x: 0, y: 6.6, width: 14, height: 1, zIndex: 16 },
+      placement: { x: 0, y: 6.6, width: 13.8, height: 1, zIndex: 16 },
       config: {
         label: "Logistics Info 1",
         text: "42 Lovebird Lane Heartwood Village, NY",
@@ -179,7 +179,7 @@ export default createLayoutPreset({
     
     {
       type: "label",
-      placement: { x: 0, y: 6.9, width: 14, height: 1, zIndex: 16 },
+      placement: { x: 0, y: 6.9, width: 13.8, height: 1, zIndex: 16 },
       config: {
         label: "Logistics Info 2",
         text: "3:30 PM — Guest Arrival\n4:30 PM — Ceremony Begins\n5:15 PM — Cocktail Hour\n6:30 PM — Dinner Reception\n8:00 PM — Dancing",

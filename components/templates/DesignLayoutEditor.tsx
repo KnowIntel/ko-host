@@ -1,3 +1,4 @@
+// components\templates\DesignLayoutEditor.tsx
 "use client";
 
 import AppModal from "@/components/ui/AppModal";
@@ -707,7 +708,7 @@ function infoPillClass() {
 
 function bottomCategoryClass(active: boolean, category?: BottomCategory) {
   return [
-    "inline-flex h-12 items-center gap-2 rounded-md border px-4 text-sm font-medium transition",
+    "inline-flex h-11 items-center gap-2 rounded-md border px-4 text-sm font-medium transition",
     active
       ? "border-blue-500 bg-blue-600 text-white"
       : category === "Premium"
@@ -4539,7 +4540,7 @@ function nudgeSelectedBlock(
 }
 
 return (
-  <div className="flex min-h-screen flex-col bg-[#f3f3f3] overflow-hidden">
+<div className="flex min-h-screen flex-col bg-[#f3f3f3]">
     <div className="border-b border-black/10 bg-white px-6 py-3">
       <div className="text-xs font-semibold uppercase tracking-[0.14em] text-neutral-500">
         Editing
@@ -10561,8 +10562,8 @@ data: {
     </div>
   </div>
 
-  <div className="relative flex items-center justify-between gap-6 border-b border-black/10 px-6 py-2">
-    <div className="flex flex-wrap items-center gap-2">
+<div className="relative flex items-start justify-between gap-6 border-b border-black/10 px-6 py-1">
+    <div className="flex flex-wrap items-start gap-2">
       {CATEGORY_ORDER.map((category) => (
         <div key={category} className="relative">
           <button
@@ -10621,34 +10622,16 @@ data: {
       ))}
     </div>
 <div className="flex flex-col items-end gap-1">
-      <div className="flex items-center gap-4">
+<div className="flex items-center gap-4 h-12">
 
-<div className="flex items-center gap-3 rounded-md border border-neutral-300 bg-white px-3 py-3 shadow-sm">
-  <span className="text-xs font-medium text-neutral-700">Zoom</span>
-
-  <input
-    type="range"
-    min={25}
-    max={150}
-    step={5}
-    value={pageScale}
-    onChange={(e) => updatePageScale(Number(e.target.value))}
-    className="w-28 accent-blue-600"
-    title="Zoom"
-  />
-
-  <span className="w-10 text-right text-xs font-medium text-neutral-700">
-    {pageScale}%
-  </span>
-</div>
     
-    <div className="flex items-center gap-3 rounded-md border border-neutral-300 bg-white px-3 py-1 shadow-sm">
+<div className="flex h-12 items-center gap-3 rounded-md border border-neutral-300 bg-white px-3 shadow-sm">
       <span className="text-xs font-medium text-neutral-700">Page Scale</span>
 
       <select
         value={selectedPageSize}
         onChange={(e) => updatePageSize(e.target.value as PageSizeOption)}
-        className="h-8 rounded-md border border-neutral-300 bg-white px-3 text-sm text-neutral-700"
+        className="h-10 rounded-md border border-neutral-300 bg-white px-3 text-sm text-neutral-700"
         title="Page Size"
       >
         <option value="full">Full Page</option>

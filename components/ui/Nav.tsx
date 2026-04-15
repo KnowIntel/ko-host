@@ -39,8 +39,10 @@ export function Nav() {
   const params = useParams();
   const { isSignedIn } = useAuth();
   const [hostname, setHostname] = useState("");
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     if (typeof window !== "undefined") {
       setHostname(window.location.hostname || "");
     }
@@ -100,7 +102,24 @@ export function Nav() {
         </div>
 
         <nav className="relative z-10 flex shrink-0 items-center gap-2">
-          {!isSignedIn ? (
+          {!mounted ? (
+            <>
+              {!isTemplatesPage ? (
+                <Link
+                  href="/templates"
+                  className="hidden text-sm text-neutral-700 hover:text-neutral-900 sm:inline-flex"
+                >
+                  Templates
+                </Link>
+              ) : null}
+
+              <ButtonLink href="/sign-in" variant="secondary">
+                Sign in
+              </ButtonLink>
+
+              <ButtonLink href="/templates">Get started</ButtonLink>
+            </>
+          ) : !isSignedIn ? (
             <>
               {!isTemplatesPage ? (
                 <Link
