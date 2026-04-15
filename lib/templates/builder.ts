@@ -565,9 +565,24 @@ export type FileShareBlock = BaseBlock & {
   type: "file_share";
   data: {
     heading?: string;
-    description?: string;
-    allowPublicUpload?: boolean;
-    requireAccessCode?: boolean;
+    subtext?: string;
+
+    allowPublicUpload: boolean;
+
+    requireAccessCode: boolean;
+    accessCode?: string;
+
+    acceptedFileTypes?: string[];
+    maxFileSizeMb?: number;
+
+    allowMultiple?: boolean;
+
+    collectName?: boolean;
+    collectEmail?: boolean;
+    collectMessage?: boolean;
+
+    ownerAlertOnUpload?: boolean;
+
     style?: TextStyle;
   };
 };
@@ -1626,10 +1641,18 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
         },
         appearance: createDefaultBlockAppearance(),
         data: {
-          heading: "File Share",
-          description: "",
-          allowPublicUpload: false,
+          heading: "Secure File Upload",
+          subtext: "Upload files privately for the site owner.",
+          allowPublicUpload: true,
           requireAccessCode: false,
+          accessCode: "",
+          acceptedFileTypes: ["pdf", "jpg", "jpeg", "png", "webp", "doc", "docx", "txt"],
+          maxFileSizeMb: 25,
+          allowMultiple: false,
+          collectName: true,
+          collectEmail: true,
+          collectMessage: true,
+          ownerAlertOnUpload: true,
           style: createDefaultTextStyle(),
         },
       };
@@ -1681,6 +1704,8 @@ export function sanitizeBuilderDraft(input: unknown): BuilderDraft {
       return block;
     }
 
+
+
     if (block.type === "thread") {
       return normalizeThreadBlock(block as MessageThreadBlock);
     }
@@ -1694,6 +1719,49 @@ export function sanitizeBuilderDraft(input: unknown): BuilderDraft {
       rowStart: index + 1,
       zIndex: index + 1,
     };
+
+            if (block.type === "file_share") {
+      return {
+        ...block,
+        grid: normalizeGridValue(block.grid, fallbackGrid),
+        data: {
+          heading:
+            typeof block.data.heading === "string"
+              ? block.data.heading
+              : "Secure File Upload",
+          subtext:
+            typeof block.data.subtext === "string"
+              ? block.data.subtext
+              : "",
+          allowPublicUpload: block.data.allowPublicUpload !== false,
+          requireAccessCode: Boolean(block.data.requireAccessCode),
+          accessCode:
+            typeof block.data.accessCode === "string"
+              ? block.data.accessCode
+              : "",
+          acceptedFileTypes: Array.isArray(block.data.acceptedFileTypes)
+            ? block.data.acceptedFileTypes.filter(
+                (item): item is string =>
+                  typeof item === "string" && item.trim().length > 0,
+              )
+            : ["pdf", "jpg", "jpeg", "png", "webp", "doc", "docx", "txt"],
+          maxFileSizeMb:
+            typeof block.data.maxFileSizeMb === "number" &&
+            Number.isFinite(block.data.maxFileSizeMb)
+              ? Math.max(1, Math.min(100, Math.floor(block.data.maxFileSizeMb)))
+              : 25,
+          allowMultiple: Boolean(block.data.allowMultiple),
+          collectName: block.data.collectName !== false,
+          collectEmail: block.data.collectEmail !== false,
+          collectMessage: Boolean(block.data.collectMessage),
+          ownerAlertOnUpload: block.data.ownerAlertOnUpload !== false,
+          style: {
+            ...createDefaultTextStyle(),
+            ...(block.data.style ?? {}),
+          },
+        },
+      };
+    }
 
     if (block.type === "image") {
       return {

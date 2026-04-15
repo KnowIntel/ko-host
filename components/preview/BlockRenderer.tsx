@@ -2681,6 +2681,50 @@ function renderShowcase(
   );
 }
 
+function renderFileShare(
+  block: Extract<MicrositeBlock, { type: "file_share" }>,
+  designKey?: string,
+) {
+  return (
+    <Surface
+      block={block}
+      designKey={designKey}
+      className={getSoftSurfaceClass(designKey)}
+    >
+      {block.data.heading ? (
+        <div style={getContainerTextStyle(block.data.style, designKey)}>
+          {block.data.heading}
+        </div>
+      ) : null}
+
+      {block.data.subtext ? (
+        <div
+          className="mt-1 text-sm opacity-70"
+          style={getContainerTextStyle(block.data.style, designKey)}
+        >
+          {block.data.subtext}
+        </div>
+      ) : null}
+
+      <div className="mt-4 flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed p-6 text-center">
+        <div className="text-sm opacity-70">Upload files here</div>
+
+        <div className="text-xs opacity-50">
+          {block.data.allowPublicUpload
+            ? "Public uploads enabled"
+            : "Uploads restricted"}
+        </div>
+
+        {block.data.requireAccessCode ? (
+          <div className="text-xs text-red-400">
+            Access code required
+          </div>
+        ) : null}
+      </div>
+    </Surface>
+  );
+}
+
 function renderFestiveBackground(
   block: Extract<MicrositeBlock, { type: "festiveBackground" }>,
   designKey?: string,
@@ -4147,166 +4191,6 @@ function renderMapLocation(
   );
 }
 
-function renderFileShare(
-  block: Extract<MicrositeBlock, { type: "file_share" }>,
-  designKey?: string,
-) {
-  const panelClass = isLightDesign(designKey)
-    ? "rounded-xl border border-neutral-200 bg-white"
-    : "rounded-xl border border-white/10 bg-white/5";
-
-  const mutedClass = getMutedTextClass(designKey);
-
-  const primaryButtonClass = isLightDesign(designKey)
-    ? "inline-flex h-10 items-center justify-center rounded-xl bg-neutral-900 px-4 text-sm font-medium text-white"
-    : "inline-flex h-10 items-center justify-center rounded-xl bg-white px-4 text-sm font-medium text-neutral-900";
-
-  const secondaryButtonClass = isLightDesign(designKey)
-    ? "inline-flex h-9 items-center justify-center rounded-lg border border-neutral-300 bg-white px-3 text-xs font-medium text-neutral-800"
-    : "inline-flex h-9 items-center justify-center rounded-lg border border-white/15 bg-white/10 px-3 text-xs font-medium text-white";
-
-  return (
-    <Surface
-      block={block}
-      designKey={designKey}
-      className={getSoftSurfaceClass(designKey)}
-    >
-      <div
-        className="mb-3 text-base font-semibold"
-        style={getContainerTextStyle(block.data.style, designKey)}
-      >
-        {block.data.heading || "File Share"}
-      </div>
-
-      {block.data.description ? (
-        <div
-          className="mb-3 text-sm"
-          style={getContainerTextStyle(block.data.style, designKey)}
-        >
-          {block.data.description}
-        </div>
-      ) : null}
-
-      <div className="space-y-3">
-        <div
-          className={[
-            "rounded-xl border border-dashed px-4 py-8 text-center",
-            isLightDesign(designKey)
-              ? "border-neutral-300 bg-neutral-50"
-              : "border-white/15 bg-white/5",
-          ].join(" ")}
-        >
-          <div
-            className="text-sm font-medium"
-            style={getContainerTextStyle(block.data.style, designKey)}
-          >
-            Drag files here
-          </div>
-          <div className={`mt-1 text-xs ${mutedClass}`}>
-            or browse to upload
-          </div>
-
-          <div className="mt-4 flex items-center justify-center gap-2">
-            <button type="button" className={primaryButtonClass}>
-              Choose Files
-            </button>
-
-            {block.data.allowPublicUpload ? (
-              <div
-                className={[
-                  "inline-flex h-10 items-center justify-center rounded-xl px-3 text-xs font-semibold",
-                  isLightDesign(designKey)
-                    ? "bg-emerald-50 text-emerald-700"
-                    : "bg-emerald-500/15 text-emerald-300",
-                ].join(" ")}
-              >
-                Public Upload On
-              </div>
-            ) : null}
-          </div>
-        </div>
-
-        <div className={panelClass}>
-          <div className="border-b border-inherit px-4 py-3">
-            <div
-              className="text-sm font-medium"
-              style={getContainerTextStyle(block.data.style, designKey)}
-            >
-              Shared Files
-            </div>
-          </div>
-
-          <div className="space-y-2 px-4 py-3">
-            {[1, 2, 3].map((index) => (
-              <div
-                key={index}
-                className={[
-                  "flex items-center justify-between gap-3 rounded-lg px-3 py-2",
-                  isLightDesign(designKey)
-                    ? "bg-neutral-50"
-                    : "bg-white/5",
-                ].join(" ")}
-              >
-                <div className="flex min-w-0 items-center gap-3">
-                  <div
-                    className={[
-                      "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-sm font-semibold",
-                      isLightDesign(designKey)
-                        ? "bg-white text-neutral-600"
-                        : "bg-white/10 text-white/75",
-                    ].join(" ")}
-                  >
-                    PDF
-                  </div>
-
-                  <div className="min-w-0">
-                    <div
-                      className="truncate text-sm font-medium"
-                      style={getContainerTextStyle(block.data.style, designKey)}
-                    >
-                      sample-file-{index}.pdf
-                    </div>
-                    <div className={`mt-0.5 text-xs ${mutedClass}`}>
-                      2.4 MB
-                    </div>
-                  </div>
-                </div>
-
-                <button type="button" className={secondaryButtonClass}>
-                  Download
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-3 flex flex-wrap gap-2 text-xs">
-        <div
-          className={[
-            "inline-flex items-center rounded-full px-3 py-1.5",
-            isLightDesign(designKey)
-              ? "bg-neutral-100 text-neutral-700"
-              : "bg-white/10 text-white/75",
-          ].join(" ")}
-        >
-          Public upload: {block.data.allowPublicUpload ? "On" : "Off"}
-        </div>
-
-        <div
-          className={[
-            "inline-flex items-center rounded-full px-3 py-1.5",
-            isLightDesign(designKey)
-              ? "bg-neutral-100 text-neutral-700"
-              : "bg-white/10 text-white/75",
-          ].join(" ")}
-        >
-          Access code: {block.data.requireAccessCode ? "Required" : "Not required"}
-        </div>
-      </div>
-    </Surface>
-  );
-}
 
 function renderSpeedDating(
   block: Extract<MicrositeBlock, { type: "speed_dating" }>,

@@ -265,15 +265,13 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Input Field", type: "form_field" },
     { kind: "block", label: "Poll", type: "poll" },
     { kind: "block", label: "RSVP", type: "rsvp" },
+    { kind: "block", label: "FAQ", type: "faq" },
   ],
   Interactive: [
     { kind: "block", label: "Thread", type: "thread" },
     { kind: "block", label: "File Share", type: "file_share" },
   ],
   Utilities: [
-    { kind: "block", label: "Button", type: "cta" },
-    { kind: "block", label: "Countdown", type: "countdown" },
-    { kind: "block", label: "FAQ", type: "faq" },
     { kind: "block", label: "Links", type: "links" },
     { kind: "block", label: "Link Hub", type: "link_hub" },
     { kind: "block", label: "Listing", type: "listing" },
@@ -281,7 +279,6 @@ const CATEGORY_BUTTONS: Record<
   "Data & Metrics": [
     { kind: "block", label: "Highlight", type: "highlight" },
     { kind: "block", label: "Progress Bar", type: "progress_bar" },
-    { kind: "block", label: "Donation", type: "donation" },
   ],
 Scheduling: [
   { kind: "block", label: "Countdown", type: "countdown" },
@@ -292,6 +289,7 @@ Scheduling: [
 Premium: [
     { kind: "block", label: "Registry", type: "registry" },
     { kind: "block", label: "Speed Dating", type: "speed_dating" },
+    { kind: "block", label: "Donation", type: "donation" },
 ],
 };
 
@@ -760,11 +758,11 @@ function getToolGlyph(label: string) {
   if (label === "Utilities") return "⚙";
   if (label === "Data & Metrics") return "📊";
   if (label === "Scheduling") return "🗓";
-  if (label === "Title") return "T";
-  if (label === "Subtitle") return "T";
-  if (label === "Tagline") return "T";
-  if (label === "Description") return "¶";
-  if (label === "Label") return "T";
+  if (label === "Title") return "TT";
+  if (label === "Subtitle") return "ST";
+  if (label === "Tagline") return "TL";
+  if (label === "Description") return "DE";
+  if (label === "Label") return "LB";
   if (label === "TextFX") return "✨";
   if (label === "Image") return "🖼";
   if (label === "Gallery") return "▥";
@@ -4220,12 +4218,12 @@ if (block.type === "gallery") {
             {block.data.heading || "File Share"}
           </div>
 
-          {block.data.description ? (
+          {block.data.subtext ? (
             <div
               className="mb-3 text-sm text-neutral-600"
               style={getInlineTextStyle(block.data.style)}
             >
-              {block.data.description}
+              {block.data.subtext}
             </div>
           ) : null}
 
@@ -7942,9 +7940,9 @@ data: {
     </div>
 
     <div className="mt-4">
-      <div className={inspectorLabelClass()}>Description</div>
+      <div className={inspectorLabelClass()}>Subtext</div>
       <textarea
-        value={selectedBlock.data.description ?? ""}
+        value={selectedBlock.data.subtext ?? ""}
         onChange={(e) =>
           updateSelectedBlock((block) =>
             block.type !== "file_share"
@@ -7953,7 +7951,7 @@ data: {
                   ...block,
                   data: {
                     ...block.data,
-                    description: e.target.value,
+                    subtext: e.target.value,
                   },
                 },
           )
@@ -8004,6 +8002,189 @@ data: {
         />
         Require access code
       </label>
+
+      <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+        <input
+          type="checkbox"
+          checked={Boolean(selectedBlock.data.allowMultiple)}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "file_share"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      allowMultiple: e.target.checked,
+                    },
+                  },
+            )
+          }
+        />
+        Allow multiple files
+      </label>
+
+      <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+        <input
+          type="checkbox"
+          checked={selectedBlock.data.collectName !== false}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "file_share"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      collectName: e.target.checked,
+                    },
+                  },
+            )
+          }
+        />
+        Collect name
+      </label>
+
+      <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+        <input
+          type="checkbox"
+          checked={selectedBlock.data.collectEmail !== false}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "file_share"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      collectEmail: e.target.checked,
+                    },
+                  },
+            )
+          }
+        />
+        Collect email
+      </label>
+
+      <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+        <input
+          type="checkbox"
+          checked={Boolean(selectedBlock.data.collectMessage)}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "file_share"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      collectMessage: e.target.checked,
+                    },
+                  },
+            )
+          }
+        />
+        Collect message
+      </label>
+
+      <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+        <input
+          type="checkbox"
+          checked={selectedBlock.data.ownerAlertOnUpload !== false}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "file_share"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      ownerAlertOnUpload: e.target.checked,
+                    },
+                  },
+            )
+          }
+        />
+        Owner alert on upload
+      </label>
+    </div>
+
+    {selectedBlock.data.requireAccessCode ? (
+      <div className="mt-4">
+        <div className={inspectorLabelClass()}>Access Code</div>
+        <input
+          type="text"
+          value={selectedBlock.data.accessCode ?? ""}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "file_share"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      accessCode: e.target.value,
+                    },
+                  },
+            )
+          }
+          className={inspectorInputClass()}
+          placeholder="Enter access code"
+        />
+      </div>
+    ) : null}
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Accepted File Types</div>
+      <input
+        type="text"
+        value={(selectedBlock.data.acceptedFileTypes ?? []).join(", ")}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "file_share"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    acceptedFileTypes: e.target.value
+                      .split(",")
+                      .map((entry: string) => entry.trim().toLowerCase())
+                      .filter((entry: string) => entry.length > 0),
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+        placeholder="pdf, jpg, jpeg, png, webp, doc, docx, txt"
+      />
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Max File Size (MB)</div>
+      <input
+        type="number"
+        min={1}
+        max={100}
+        value={selectedBlock.data.maxFileSizeMb ?? 25}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "file_share"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    maxFileSizeMb: Math.max(
+                      1,
+                      Math.min(100, Number(e.target.value) || 25),
+                    ),
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      />
     </div>
   </div>
 ) : null}

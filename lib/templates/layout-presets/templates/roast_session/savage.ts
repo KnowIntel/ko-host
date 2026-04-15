@@ -274,7 +274,7 @@ export default createLayoutPreset({
     
     {
       type: "thread",
-      placement: { x: 7, y: 10, width: 13, height: 3, zIndex: 13 },
+      placement: { x: 1, y: 10, width: 13, height: 3, zIndex: 13 },
       config: {
         subject: "Leave a message",
       },
