@@ -3,7 +3,7 @@ import { createLayoutPreset } from "../../shared";
 export default createLayoutPreset({
   designKey: "savage",
 
-  label: "Savage Garden",
+  label: "Savage Love",
   description: "Bold ruthless dark humor",
   thumbnail: "/designs/backgrounds/design_roast-savage.png",
 
@@ -111,13 +111,13 @@ export default createLayoutPreset({
     
     {
       type: "label",
-      placement: { x: 2, y: 9, width: 4, height: 1, zIndex: 16 },
+      placement: { x: 0.5, y: 6, width: 4, height: 1, zIndex: 16 },
       config: {
         label: "Headline 1",
         text: "Top Roasts",
         style: {
           fontFamily: "Helvetica",
-          fontSize: 70,
+          fontSize: 40,
           italic: false,
           align: "center",
           color: "#FFFFFF",
@@ -127,13 +127,13 @@ export default createLayoutPreset({
     
     {
       type: "label",
-      placement: { x: 2, y: 14, width: 4, height: 1, zIndex: 16 },
+      placement: { x: 0.5, y: 9, width: 4, height: 1, zIndex: 16 },
       config: {
         label: "Headline 2",
         text: "Recent Roasts",
         style: {
           fontFamily: "Helvetica",
-          fontSize: 70,
+          fontSize: 40,
           italic: false,
           align: "center",
           color: "#FFFFFF",
@@ -274,7 +274,7 @@ export default createLayoutPreset({
     
     {
       type: "thread",
-      placement: { x: 7, y: 20, width: 5, height: 3, zIndex: 13 },
+      placement: { x: 7, y: 10, width: 13, height: 3, zIndex: 13 },
       config: {
         subject: "Leave a message",
       },

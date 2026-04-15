@@ -6,6 +6,7 @@ import type { PreviewDraftPayload } from "@/lib/previewDraftStorage";
 
 const PREVIEW_MESSAGE_TYPE = "ko-host-preview-draft";
 const PREVIEW_READY_MESSAGE_TYPE = "ko-host-preview-ready";
+const PREVIEW_RECEIVED_MESSAGE_TYPE = "ko-host-preview-received";
 const PREVIEW_STORAGE_KEY = "ko-host-preview-last-payload";
 
 export default function PreviewDraftPage() {
@@ -39,6 +40,19 @@ export default function PreviewDraftPage() {
       }
     }
 
+    function notifyOpenerReceived() {
+      try {
+        if (window.opener && !window.opener.closed) {
+          window.opener.postMessage(
+            { type: PREVIEW_RECEIVED_MESSAGE_TYPE },
+            window.location.origin,
+          );
+        }
+      } catch {
+        // ignore cross-window messaging failures
+      }
+    }
+
     function handleMessage(event: MessageEvent) {
       if (event.origin !== window.location.origin) return;
 
@@ -50,6 +64,7 @@ export default function PreviewDraftPage() {
 
       safelySetPayload(data.payload);
       setIsReady(true);
+      notifyOpenerReceived();
     }
 
     window.addEventListener("message", handleMessage);
@@ -115,19 +130,19 @@ export default function PreviewDraftPage() {
 
   return (
     <main className="min-h-screen w-full overflow-x-hidden overflow-y-auto">
-<PlacedBlocksPreview
-  draft={payload.draft}
-  designKey={payload.designLayout}
-  fixedScale={Math.max(
-    0.25,
-    Math.min(
-      1.5,
-      (((payload.draft as { pageScale?: number }).pageScale ?? 100) / 100),
-    ),
-  )}
-  disableAutoScale={true}
-  hideFrame={true}
-/>
+      <PlacedBlocksPreview
+        draft={payload.draft}
+        designKey={payload.designLayout}
+fixedScale={Math.max(
+  0.25,
+  Math.min(
+    1.5,
+    (((payload.draft as { pageScale?: number }).pageScale ?? 100) / 100) * 0.755555,
+  ),
+)}
+        disableAutoScale={true}
+        hideFrame={true}
+      />
     </main>
   );
 }

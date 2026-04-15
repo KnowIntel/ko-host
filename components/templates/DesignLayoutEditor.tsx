@@ -120,7 +120,13 @@ type Props = {
   saveMessage?: string;
 };
 
-type PageSizeOption = "full" | "letter" | "square" | "story" | "wide";
+type PageLengthOption =
+  | "1200"
+  | "1800"
+  | "2400"
+  | "3200"
+  | "4000"
+  | "5600";
 
 type DraftPageVisibility = Partial<{
   title: boolean;
@@ -148,7 +154,7 @@ type DraftWithPageExtras = BuilderDraft & {
     subtext: DraftPageElementLayout;
     description: DraftPageElementLayout;
   }>;
-  pageSize?: PageSizeOption;
+  pageLength?: PageLengthOption;
   pageBlockAppearance?: Partial<
     Record<
       "title" | "subtitle" | "subtext" | "description",
@@ -294,6 +300,7 @@ const MAX_CANVAS_ZOOM = 200;
 const CANVAS_ZOOM_STEP = 10;
 const PREVIEW_MESSAGE_TYPE = "ko-host-preview-draft";
 const PREVIEW_READY_MESSAGE_TYPE = "ko-host-preview-ready";
+const PREVIEW_RECEIVED_MESSAGE_TYPE = "ko-host-preview-received";
 
 const FONT_FAMILY_OPTIONS = [
   "inherit",
@@ -400,25 +407,15 @@ const FONT_FAMILY_MAP: Record<string, string> = {
 };
 
 
-function getPageSizeDimensions(size: PageSizeOption) {
-  if (size === "letter") {
-    return { width: 12, height: 16 };
-  }
-
-  if (size === "square") {
-    return { width: 12, height: 12 };
-  }
-
-  if (size === "story") {
-    return { width: 12, height: 16 };
-  }
-
-  if (size === "wide") {
-    return { width: 12, height: 9 };
-  }
-
-  return { width: 12, height: 20 };
+function getPageLengthPx(length: PageLengthOption) {
+  if (length === "1200") return 1200;
+  if (length === "1800") return 1800;
+  if (length === "2400") return 2400;
+  if (length === "3200") return 3200;
+  if (length === "4000") return 4000;
+  return 5600;
 }
+
 
 function cloneDraft<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
@@ -936,11 +933,10 @@ export default function DesignLayoutEditor({
   saveMessage,
 }: Props) {
   const [resetDraftModalOpen, setResetDraftModalOpen] = useState(false);
-  const selectedPageSize =
-  ((draft as DraftWithPageExtras).pageSize ?? "full") as PageSizeOption;
+  const selectedPageLength =
+    ((draft as DraftWithPageExtras).pageLength ?? "1800") as PageLengthOption;
 
   const [registryLoadingMap, setRegistryLoadingMap] = useState<Record<string, boolean>>({});
-  const selectedPageDimensions = getPageSizeDimensions(selectedPageSize);
   const [selection, setSelection] = useState(createEmptySelection());
   const [activeCategory, setActiveCategory] = useState<BottomCategory>("Text");
   const [openToolMenu, setOpenToolMenu] = useState<BottomCategory | null>(null);
@@ -952,6 +948,7 @@ export default function DesignLayoutEditor({
   const [inspectorFocusTarget, setInspectorFocusTarget] =
     useState<InspectorFocusTarget>(null);
   const [canvasZoom, setCanvasZoom] = useState(100);
+  const [showGridLines, setShowGridLines] = useState(true);
   const [undoStack, setUndoStack] = useState<BuilderDraft[]>([]);
   const [redoStack, setRedoStack] = useState<BuilderDraft[]>([]);
   const isHistoryActionRef = useRef(false);
@@ -1763,10 +1760,10 @@ function confirmResetDraft() {
   setResetDraftModalOpen(false);
 }
 
-function updatePageSize(value: PageSizeOption) {
+function updatePageLength(value: PageLengthOption) {
   setDraft((prev) => ({
     ...(prev as DraftWithPageExtras),
-    pageSize: value,
+    pageLength: value,
   }));
 }
 
@@ -3198,7 +3195,7 @@ function cancelRemoveAllBlocks() {
     setDraft(cloneDraft(nextDraft));
   }
 
-  function openPreviewWindow() {
+function openPreviewWindow() {
   const previewWindow = window.open(
     `/preview/draft?ts=${Date.now()}`,
     "_blank",
@@ -3213,10 +3210,11 @@ function cancelRemoveAllBlocks() {
     updatedAt: new Date().toISOString(),
   };
 
-  let didSend = false;
+  let previewReady = false;
+  let previewConfirmed = false;
 
   const sendPayload = () => {
-    if (previewWindow.closed || didSend) return;
+    if (previewWindow.closed || !previewReady || previewConfirmed) return;
 
     previewWindow.postMessage(
       {
@@ -3226,8 +3224,6 @@ function cancelRemoveAllBlocks() {
       window.location.origin,
     );
 
-    didSend = true;
-
     try {
       previewWindow.focus();
     } catch {
@@ -3235,24 +3231,42 @@ function cancelRemoveAllBlocks() {
     }
   };
 
-  const handlePreviewReady = (event: MessageEvent) => {
+  const cleanup = () => {
+    window.removeEventListener("message", handlePreviewMessage);
+    window.clearInterval(closedCheckTimer);
+    window.clearInterval(retrySendTimer);
+    window.clearTimeout(safetyTimeout);
+  };
+
+  const handlePreviewMessage = (event: MessageEvent) => {
     if (event.origin !== window.location.origin) return;
     if (event.source !== previewWindow) return;
 
     const data = event.data as { type?: string } | undefined;
-    if (!data || data.type !== PREVIEW_READY_MESSAGE_TYPE) return;
+    if (!data?.type) return;
+
+    if (data.type === PREVIEW_READY_MESSAGE_TYPE) {
+      previewReady = true;
+      sendPayload();
+      return;
+    }
+
+    if (data.type === PREVIEW_RECEIVED_MESSAGE_TYPE) {
+      previewConfirmed = true;
+      cleanup();
+    }
+  };
+
+  window.addEventListener("message", handlePreviewMessage);
+
+  const retrySendTimer = window.setInterval(() => {
+    if (previewWindow.closed || previewConfirmed) {
+      cleanup();
+      return;
+    }
 
     sendPayload();
-    cleanup();
-  };
-
-  const cleanup = () => {
-    window.removeEventListener("message", handlePreviewReady);
-    window.clearInterval(closedCheckTimer);
-    window.clearTimeout(fallbackSendTimer);
-  };
-
-  window.addEventListener("message", handlePreviewReady);
+  }, 700);
 
   const closedCheckTimer = window.setInterval(() => {
     if (previewWindow.closed) {
@@ -3260,11 +3274,9 @@ function cancelRemoveAllBlocks() {
     }
   }, 500);
 
-  // Fallback in case the ready signal is missed for any reason.
-  const fallbackSendTimer = window.setTimeout(() => {
-    sendPayload();
+  const safetyTimeout = window.setTimeout(() => {
     cleanup();
-  }, 5000);
+  }, 15000);
 }
 
   function focusInspectorForBlock(target: InspectorFocusTarget) {
@@ -4663,6 +4675,21 @@ return (
       </button>
 
       <button
+  type="button"
+  className={topBarButtonClass(showGridLines)}
+  onClick={() => setShowGridLines((prev) => !prev)}
+  title={showGridLines ? "Hide gridlines" : "Show gridlines"}
+>
+  <Image
+    src="/icons/icon_gridlines.png"
+    alt="Gridlines"
+    width={24}
+    height={24}
+          className="pointer-events-none h-[30px] w-[30px] object-contain"
+  />
+</button>
+
+      <button
         type="button"
         className={topBarButtonClass(false)}
         onClick={() => void uploadPageBackgroundImage()}
@@ -4696,20 +4723,21 @@ return (
         />
       </button>
 
-      <select
-        value={(draft as DraftWithPageExtras).pageBackgroundImageFit ?? "zoom"}
-        onChange={(e) =>
-          updatePageBackgroundImageFit(
-            e.target.value as "clip" | "zoom" | "stretch",
-          )
-        }
-        className={topBarFieldClass("w-[90px]")}
-        title="Page background fit"
-      >
-        <option value="clip">Clip</option>
-        <option value="zoom">Zoom</option>
-        <option value="stretch">Stretch</option>
-      </select>
+<select
+  value={selectedPageLength}
+  onChange={(e) => updatePageLength(e.target.value as PageLengthOption)}
+  className={topBarFieldClass("w-[90px]")}
+  title="Page length"
+>
+  <option value="1200">1200px</option>
+  <option value="1800">1800px</option>
+  <option value="2400">2400px</option>
+  <option value="3200">3200px</option>
+  <option value="4000">4000px</option>
+  <option value="5600">5600px</option>
+</select>
+
+<div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
 
 <input
   type="color"
@@ -5749,14 +5777,14 @@ return (
       className={`${getCanvasShellClass(designKey)} h-[calc(100vh-185px)] overflow-y-auto`}
     >
 <div className="flex w-full justify-center overflow-auto px-4 py-4">
-  <div
-    className="origin-top w-full rounded-[8px]"
-    style={{
-      transform: `scale(${pageScale / 100})`,
-      transformOrigin: "top center",
-      width: `${100 / (pageScale / 100)}%`,
-    }}
-  >
+<div
+  className="origin-top w-full rounded-[8px]"
+  style={{
+    transform: `scale(${canvasZoom / 100})`,
+    transformOrigin: "top center",
+    width: `${100 / (canvasZoom / 100)}%`,
+  }}
+>
         <div
           style={{
             width: "100%",
@@ -5777,9 +5805,10 @@ return (
               isCanvasBlockSelected(nextSelection as any, blockId)
             }
             dockedScrollRef={dockedScrollRef}
+            showGridLines={showGridLines}
             pageSurfaceStyle={{
               ...pageSurfaceStyle,
-              minHeight: `${selectedPageDimensions.height * 96}px`,
+              height: `${getPageLengthPx(selectedPageLength)}px`,
               minWidth: `${getGridCanvasScrollableWidth()}px`,
               width: `${getGridCanvasScrollableWidth()}px`,
             }}
@@ -10624,23 +10653,7 @@ data: {
 <div className="flex flex-col items-end gap-1">
 <div className="flex items-center gap-4 h-12">
 
-    
-<div className="flex h-12 items-center gap-3 rounded-md border border-neutral-300 bg-white px-3 shadow-sm">
-      <span className="text-xs font-medium text-neutral-700">Page Scale</span>
 
-      <select
-        value={selectedPageSize}
-        onChange={(e) => updatePageSize(e.target.value as PageSizeOption)}
-        className="h-10 rounded-md border border-neutral-300 bg-white px-3 text-sm text-neutral-700"
-        title="Page Size"
-      >
-        <option value="full">Full Page</option>
-        <option value="letter">Letter</option>
-        <option value="square">Square</option>
-        <option value="story">Story</option>
-        <option value="wide">Wide</option>
-      </select>
-    </div>
 
         <button
           type="button"

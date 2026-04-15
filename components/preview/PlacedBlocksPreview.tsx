@@ -33,7 +33,7 @@ type DraftWithExtras = BuilderDraft & {
   pageColor?: string;
   pageBackgroundImage?: string;
   pageBackgroundImageFit?: "clip" | "zoom" | "stretch";
-  pageSize?: "full" | "letter" | "square" | "story" | "wide";
+  pageLength?: "1200" | "1800" | "2400" | "3200" | "4000" | "5600";
   pageVisibility?: Partial<{
     title: boolean;
     subtitle: boolean;
@@ -62,26 +62,15 @@ type ResolvedGrid = GridPlacement & {
 
 const GRID_COLUMNS = 12;
 const GRID_GAP = 16;
-const BASE_PAGE_WIDTH = 2100;
+const BASE_PAGE_WIDTH = 2000;
 
-function getPageSizeConfig(size?: DraftWithExtras["pageSize"]) {
-  if (size === "letter") {
-    return { widthRatio: 1, rowHeight: 111.1111111111, minRows: 16 };
-  }
-
-  if (size === "square") {
-    return { widthRatio: 1, rowHeight: 145.75, minRows: 12 };
-  }
-
-  if (size === "story") {
-    return { widthRatio: 1, rowHeight: 410, minRows: 16 };
-  }
-
-  if (size === "wide") {
-    return { widthRatio: 1, rowHeight: 100, minRows: 9 };
-  }
-
-  return { widthRatio: 1, rowHeight: 190, minRows: 8 };
+function getPageLengthConfig(length?: DraftWithExtras["pageLength"]) {
+  if (length === "1200") return { widthRatio: 1, pageHeight: 1200 };
+  if (length === "1800") return { widthRatio: 1, pageHeight: 1800 };
+  if (length === "2400") return { widthRatio: 1, pageHeight: 2400 };
+  if (length === "3200") return { widthRatio: 1, pageHeight: 3200 };
+  if (length === "4000") return { widthRatio: 1, pageHeight: 4000 };
+  return { widthRatio: 1, pageHeight: 5600 };
 }
 
 function getColumnWidth(pageWidth: number) {
@@ -180,13 +169,13 @@ export default function PlacedBlocksPreview({
   const templateKey = typedDraft.templateName || "";
   const metadata = getMetadata(templateKey, designKey);
 
-  const pageSizeConfig = useMemo(
-    () => getPageSizeConfig(typedDraft.pageSize),
-    [typedDraft.pageSize],
+  const pageLengthConfig = useMemo(
+    () => getPageLengthConfig(typedDraft.pageLength),
+    [typedDraft.pageLength],
   );
 
-  const logicalPageWidth = BASE_PAGE_WIDTH * pageSizeConfig.widthRatio;
-  const logicalRowHeight = pageSizeConfig.rowHeight;
+  const logicalPageWidth = BASE_PAGE_WIDTH * pageLengthConfig.widthRatio;
+  const logicalRowHeight = 100;
 
   const pageColor =
     (typedDraft.pageColor && typedDraft.pageColor.trim()) ||
@@ -367,22 +356,23 @@ export default function PlacedBlocksPreview({
     showDescription ? descriptionGrid.rowStart + descriptionGrid.rowSpan - 1 : 0,
   ];
 
-  const maxRowEnd = Math.max(
-    pageSizeConfig.minRows,
+  const contentRowEnd = Math.max(
     ...textRowEnds,
     ...blockEntries.map((entry) => entry.rowEnd),
+    1,
   );
 
-  const pageHeight = maxRowEnd * getStrideY(logicalRowHeight) - GRID_GAP + 1;
+const pageHeight = pageLengthConfig.pageHeight;
 
-const previewScale =
-  disableAutoScale
-    ? fixedScale ?? 1
-    : Math.min(1, Math.max(0.5, window.innerWidth / logicalPageWidth));
+const fitScale = Math.min(1, window.innerWidth / logicalPageWidth);
+
+const previewScale = disableAutoScale
+  ? fitScale * (fixedScale ?? 1)
+  : Math.max(0.5, fitScale);
 
 const scaledPageWidth = logicalPageWidth * previewScale;
 const scaledPageHeight = pageHeight * previewScale;
-const shouldCenterScaledPage = scaledPageWidth <= window.innerWidth;
+const shouldCenterScaledPage = true;
 
 return (
 <div
@@ -392,7 +382,7 @@ return (
     width: "100%",
     margin: 0,
     padding: 0,
-    overflowX: "auto",
+    overflowX: "hidden",
     overflowY: "visible",
     WebkitOverflowScrolling: "touch",
     touchAction: "pan-x pan-y",
@@ -414,7 +404,7 @@ return (
     minHeight: scaledPageHeight,
     margin: 0,
     padding: 0,
-    overflowX: "auto",
+    overflowX: "hidden",
     overflowY: "hidden",
     WebkitOverflowScrolling: "touch",
     touchAction: "pan-x pan-y",

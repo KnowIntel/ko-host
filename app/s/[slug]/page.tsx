@@ -254,13 +254,10 @@ return (
         designKey={designKey}
         micrositeId={microsite.id}
         serverNow={Date.now()}
-        fixedScale={Math.max(
-          0.25,
-          Math.min(
-            1.5,
-            ((((draft as any)?.pageScale ?? 100) as number) / 100),
-          ),
-        )}
+fixedScale={Math.max(
+  0.25,
+  Math.min(1.5, ((((draft as any)?.pageScale ?? 100) as number) / 100) * 0.755555),
+)}
         disableAutoScale={true}
         hideFrame={true}
       />

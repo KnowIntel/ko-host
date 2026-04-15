@@ -19,10 +19,10 @@ import type { EditorSelection } from "./EditorSelection";
 import { selectBlock } from "./EditorSelection";
 
 const GRID_COLUMNS = 12;
-const GRID_ROW_HEIGHT = 90;
+const GRID_ROW_HEIGHT = 100;
 const GRID_GAP = 16;
 const GRID_STEP = 0.25;
-const WORKSPACE_WIDTH = 2200;
+const WORKSPACE_WIDTH = 1926;
 const PAGE_WIDTH = 2200;
 const MIN_CANVAS_ROWS = 8;
 const BASE_CANVAS_HEIGHT = 1024;
@@ -117,6 +117,7 @@ type Props = {
   isItemSelected?: (blockId: string, selection: EditorSelection) => boolean;
   dockedScrollRef?: React.RefObject<HTMLDivElement | null>;
   pageSurfaceStyle?: CSSProperties;
+  showGridLines?: boolean;
 };
 
 type NormalizedGrid = {
@@ -327,16 +328,24 @@ function getCanvasCellFromPointer(
   scroller: HTMLDivElement,
   zoomScale: number,
 ) {
-  const rect = scroller.getBoundingClientRect();
+  const scrollerRect = scroller.getBoundingClientRect();
 
-  const pageLeft = WORKSPACE_SIDE_PADDING + (WORKSPACE_WIDTH - PAGE_WIDTH) / 2;
+  const pageEl = scroller.querySelector(
+    '[data-kht-page-surface="true"]',
+  ) as HTMLDivElement | null;
 
-  const pointerX =
-    (clientX - rect.left + scroller.scrollLeft) / zoomScale - pageLeft;
+  const pageRect = pageEl?.getBoundingClientRect();
 
-  const pointerY =
-    (clientY - rect.top + scroller.scrollTop) / zoomScale -
-    WORKSPACE_TOP_PADDING;
+  const pageLeft = pageRect
+    ? pageRect.left
+    : scrollerRect.left + WORKSPACE_SIDE_PADDING + (WORKSPACE_WIDTH - PAGE_WIDTH) / 2;
+
+  const pageTop = pageRect
+    ? pageRect.top
+    : scrollerRect.top + WORKSPACE_TOP_PADDING;
+
+  const pointerX = (clientX - pageLeft) / zoomScale;
+  const pointerY = (clientY - pageTop) / zoomScale;
 
   const strideX = getStrideX();
   const strideY = getStrideY();
@@ -592,6 +601,7 @@ export default function GridCanvas({
   isItemSelected,
   dockedScrollRef,
   pageSurfaceStyle,
+  showGridLines = true,
 }: Props) {
   const mainScrollRef = useRef<HTMLDivElement | null>(null);
   const syncingRef = useRef<"main" | "docked" | null>(null);
@@ -979,30 +989,44 @@ export default function GridCanvas({
                 boxShadow: "inset 0 1px 0 rgba(255,255,255,0.3)",
               }}
             >
-              <div
-                className="absolute left-1/2 top-[32px] -translate-x-1/2 rounded-[2px] border border-[rgba(0,0,0,0.09)]"
+<div
+  data-kht-page-surface="true"
+  className="absolute left-1/2 top-[32px] -translate-x-1/2 rounded-[2px] border border-[rgba(0,0,0,0.09)]"
                 style={{
                   width: PAGE_WIDTH,
-                  minWidth: PAGE_WIDTH,
                   height: pageHeight,
                   ...pageSurfaceStyle,
-                  backgroundImage: pageSurfaceStyle?.backgroundImage
-                    ? `${pageSurfaceStyle.backgroundImage},
-                    linear-gradient(to right, rgba(0,0,0,0.035) 1px, transparent 1px),
-                    linear-gradient(to bottom, rgba(0,0,0,0.035) 1px, transparent 1px)`
-                    : `
-                    linear-gradient(to right, rgba(0,0,0,0.035) 1px, transparent 1px),
-                    linear-gradient(to bottom, rgba(0,0,0,0.035) 1px, transparent 1px)
-                  `,
-                backgroundSize: pageSurfaceStyle?.backgroundImage
-                  ? `contain, ${getStrideX() * GRID_STEP}px ${getStrideY() * GRID_STEP}px, ${getStrideX() * GRID_STEP}px ${getStrideY() * GRID_STEP}px`
-                  : `${getStrideX() * GRID_STEP}px ${getStrideY() * GRID_STEP}px`,
-                backgroundPosition: pageSurfaceStyle?.backgroundImage
-                ? `center top, 0 0, 0 0`
-                : "0 0",
-                backgroundRepeat: pageSurfaceStyle?.backgroundImage
-                  ? `no-repeat, repeat, repeat`
-                  : "repeat",
+                      backgroundImage: showGridLines
+                        ? pageSurfaceStyle?.backgroundImage
+                          ? `${pageSurfaceStyle.backgroundImage},
+                      linear-gradient(to right, rgba(59,130,246,0.18) 1px, transparent 1px),
+                      linear-gradient(to bottom, rgba(59,130,246,0.18) 1px, transparent 1px)`
+                          : `linear-gradient(to right, rgba(59,130,246,0.18) 1px, transparent 1px),
+                      linear-gradient(to bottom, rgba(59,130,246,0.18) 1px, transparent 1px)`
+                        : pageSurfaceStyle?.backgroundImage
+                          ? `${pageSurfaceStyle.backgroundImage}`
+                          : undefined,
+                  backgroundSize: showGridLines
+                    ? pageSurfaceStyle?.backgroundImage
+                      ? `contain, ${getStrideX() * GRID_STEP}px ${getStrideY() * GRID_STEP}px, ${getStrideX() * GRID_STEP}px ${getStrideY() * GRID_STEP}px`
+                      : `${getStrideX() * GRID_STEP}px ${getStrideY() * GRID_STEP}px`
+                    : pageSurfaceStyle?.backgroundImage
+                      ? "contain"
+                      : undefined,
+                  backgroundPosition: showGridLines
+                    ? pageSurfaceStyle?.backgroundImage
+                      ? `center top, 0 0, 0 0`
+                      : "0 0"
+                    : pageSurfaceStyle?.backgroundImage
+                      ? "center top"
+                      : undefined,
+                  backgroundRepeat: showGridLines
+                    ? pageSurfaceStyle?.backgroundImage
+                      ? `no-repeat, repeat, repeat`
+                      : "repeat"
+                    : pageSurfaceStyle?.backgroundImage
+                      ? "no-repeat"
+                      : undefined,
                 }}
               >
                 {dragGuides.map((guide, index) => (

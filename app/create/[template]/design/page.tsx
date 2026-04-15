@@ -63,7 +63,7 @@ export default async function CreateTemplateDesignPage({
 
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(59,130,246,0.06),_transparent_28%),linear-gradient(to_bottom,_#ffffff,_#f8fafc)]">
-      <div className="w-full px-4 py-10">
+      <div className="w-full px-4 pb-10 pt-12">
         <div className="mb-8 overflow-hidden rounded-[30px] border border-neutral-200 bg-white shadow-sm">
           <div className="relative px-6 py-8 sm:px-8 sm:py-9">
             <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-r from-violet-100/40 via-sky-100/30 to-emerald-100/40" />

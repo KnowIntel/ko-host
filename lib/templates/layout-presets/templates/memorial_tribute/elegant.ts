@@ -56,13 +56,13 @@ export default createLayoutPreset({
     ------------------------------------------------------- */
    {
       type: "image",
-      placement: { x: 7.8, y: 2.2, width: 4.8, height: 4.3, zIndex: 1 },
+      placement: { x: 7.8, y: 2.15, width: 4.7, height: 4.3, zIndex: 1 },
       config: {
         src: "/designs/artifacts/memorial_grandma.png",
         // use "contain" for clip, "fill" for stretch, or "cover" for zoom
         fit: "fill",
         frame: "circle",
-        zoom: 1.2,
+        zoom: 1.15,
         rotation: 0,
         positionX: 47,     // horizontal position
         positionY: 70,     // vertical position

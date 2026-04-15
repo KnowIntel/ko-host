@@ -9,10 +9,18 @@ function extractStoreFromUrl(url: string) {
   try {
     const hostname = new URL(url).hostname.replace(/^www\./i, "").toLowerCase();
 
+    if (hostname.includes("aldi")) return "Aldi";
     if (hostname.includes("amazon")) return "Amazon";
-    if (hostname.includes("target")) return "Target";
-    if (hostname.includes("walmart")) return "Walmart";
+    if (hostname.includes("apple")) return "Apple";
+    if (hostname.includes("bestbuy")) return "Best Buy";
     if (hostname.includes("etsy")) return "Etsy";
+    if (hostname.includes("jcpenney") || hostname.includes("jcp")) return "JCPenney";
+    if (hostname.includes("lowes")) return "Lowe's";
+    if (hostname.includes("macys")) return "Macy's";
+    if (hostname.includes("oldnavy")) return "Old Navy";
+    if (hostname.includes("sephora")) return "Sephora";
+    if (hostname.includes("target")) return "Target";
+    if (hostname.includes("temu")) return "Temu";
     if (hostname.includes("wayfair")) return "Wayfair";
     if (hostname.includes("crateandbarrel")) return "Crate & Barrel";
     if (hostname.includes("potterybarn")) return "Pottery Barn";
@@ -52,11 +60,16 @@ function extractMetaContent(html: string, keys: string[]) {
   return "";
 }
 
-export async function fetchRegistryMetadata(url: string): Promise<RegistryMetadata> {
+export async function fetchRegistryMetadata(
+  url: string,
+): Promise<RegistryMetadata> {
   try {
-    const res = await fetch(`/api/registry/metadata?url=${encodeURIComponent(url)}`, {
-      cache: "no-store",
-    });
+    const res = await fetch(
+      `/api/registry/metadata?url=${encodeURIComponent(url)}`,
+      {
+        cache: "no-store",
+      },
+    );
 
     if (!res.ok) {
       return {
