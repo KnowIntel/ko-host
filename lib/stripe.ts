@@ -17,5 +17,13 @@ export function toCents(amount: number) {
 }
 
 export function calcPlatformFee(amount: number) {
-  return Math.round(amount * 0.03); // 3%
+  return Math.round(amount * 0.03);
+}
+
+export function getBaseUrl() {
+  return (
+    process.env.NEXT_PUBLIC_BASE_URL ||
+    process.env.NEXT_PUBLIC_APP_URL ||
+    "http://localhost:3000"
+  );
 }

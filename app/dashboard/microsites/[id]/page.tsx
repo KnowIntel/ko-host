@@ -62,6 +62,57 @@ export default function DashboardMicrositeManagePage() {
   >("");
   const [uploadSearch, setUploadSearch] = useState("");
 
+const handleConnectStripe = async () => {
+  try {
+    const res = await fetch("/api/stripe/connect/start", {
+      method: "POST",
+    });
+
+    const rawText = await res.text();
+
+    let payload: any = null;
+    try {
+      payload = rawText ? JSON.parse(rawText) : null;
+    } catch {
+      payload = rawText;
+    }
+
+    if (!res.ok) {
+      const debugMessage = JSON.stringify(
+        {
+          status: res.status,
+          statusText: res.statusText,
+          rawText,
+          payload,
+        },
+        null,
+        2,
+      );
+
+      console.error("Stripe connect start error:\n" + debugMessage);
+
+      alert(
+        typeof payload?.details === "string"
+          ? payload.details
+          : typeof payload?.error === "string"
+            ? payload.error
+            : `Failed to start Stripe onboarding (${res.status})`,
+      );
+      return;
+    }
+
+    if (payload?.url) {
+      window.location.href = payload.url;
+      return;
+    }
+
+    alert("No onboarding URL returned.");
+  } catch (error) {
+    console.error("Connect Stripe error:", error);
+    alert("Failed to start Stripe onboarding.");
+  }
+};
+
   useEffect(() => {
     let cancelled = false;
 
@@ -403,29 +454,41 @@ setSiteVisibility(
           </div>
         ) : null}
 
-        <div className="mt-5 rounded-xl border border-neutral-200 bg-neutral-50 p-4">
-          <div className="text-sm font-medium text-neutral-900">Other settings on this page</div>
-          <div className="mt-2 text-sm text-neutral-600">
-            This manage page now covers title, visibility, passcode, publish status,
-            active status, design reference, paid-until status, and direct draft editing.
-          </div>
-        </div>
+<div className="mt-5 rounded-xl border border-neutral-200 bg-neutral-50 p-4">
+  <div className="text-sm font-medium text-neutral-900">
+    Other settings on this page
+  </div>
+  <div className="mt-2 text-sm text-neutral-600">
+    This manage page now covers title, visibility, passcode, publish status,
+    active status, design reference, paid-until status, and direct draft editing.
+  </div>
 
-        <div className="mt-6 flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => void saveSettings()}
-            disabled={saving}
-            className="inline-flex items-center justify-center rounded-xl bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-60"
-          >
-            {saving ? "Saving..." : "Save Settings"}
-          </button>
+  <div className="mt-4">
+    <button
+      type="button"
+      onClick={handleConnectStripe}
+      className="inline-flex items-center justify-center rounded-xl bg-black px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+    >
+      Connect Stripe
+    </button>
+  </div>
+</div>
 
-          {message ? (
-            <div className="text-sm text-neutral-600">{message}</div>
-          ) : null}
-        </div>
-      </div>
+<div className="mt-6 flex items-center gap-3">
+  <button
+    type="button"
+    onClick={() => void saveSettings()}
+    disabled={saving}
+    className="inline-flex items-center justify-center rounded-xl bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-60"
+  >
+    {saving ? "Saving..." : "Save Settings"}
+  </button>
+
+  {message ? (
+    <div className="text-sm text-neutral-600">{message}</div>
+  ) : null}
+</div>
+</div>
 
       {/* ✅ INSERT UPLOADS BLOCK RIGHT HERE */}
       <div className="mt-6 rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
