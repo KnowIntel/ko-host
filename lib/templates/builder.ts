@@ -111,7 +111,8 @@ export type BuilderBlockType =
   | "map_location"
   | "file_share"
   | "speed_dating"
-  | "registry";
+  | "registry"
+  | "checkout";
 
 /* =========================================
    Shared Primitive Types
@@ -616,6 +617,26 @@ export type RegistryBlock = BaseBlock & {
   };
 };
 
+export type CheckoutBlock = BaseBlock & {
+  type: "checkout";
+  data: {
+    productName: string;
+    price: number;
+    currency: string;
+    allowQuantity: boolean;
+
+    description?: string;
+    imageUrl?: string;
+    buttonText?: string;
+    successMessage?: string;
+    redirectUrl?: string;
+
+    collectEmail?: boolean;
+    collectName?: boolean;
+    collectAddress?: boolean;
+  };
+};
+
 export type MicrositeBlock =
   | LabelBlock
   | TextFxBlock
@@ -646,7 +667,8 @@ export type MicrositeBlock =
   | MapLocationBlock
   | FileShareBlock
   | SpeedDatingBlock
-  | RegistryBlock;
+  | RegistryBlock
+  | CheckoutBlock;
 
 /* =========================================
    Draft Model
@@ -1678,6 +1700,40 @@ case "speed_dating":
     },
   };
 
+  case "checkout":
+  return {
+    id: makeId("checkout"),
+    type: "checkout",
+    label: "Checkout",
+    grid: {
+      ...grid,
+      rowSpan: 3,
+    },
+    appearance: {
+      ...createDefaultBlockAppearance(),
+      backgroundColor: "#FFFFFF",
+      borderColor: "#E5E7EB",
+      borderWidth: 1,
+      borderRadius: 16,
+    },
+    data: {
+      productName: "Product",
+      price: 10,
+      currency: "usd",
+      allowQuantity: false,
+
+      description: "",
+      imageUrl: "",
+      buttonText: "Checkout",
+      successMessage: "Payment successful!",
+      redirectUrl: "",
+
+      collectEmail: true,
+      collectName: false,
+      collectAddress: false,
+    },
+  };
+
 default:
   throw new Error(`Unsupported block type: ${type}`);
 }
@@ -1951,6 +2007,62 @@ roundStartSound:
         },
       };
     }
+
+    if (block.type === "checkout") {
+  return {
+    ...block,
+    grid: normalizeGridValue(block.grid, fallbackGrid),
+    data: {
+      productName:
+        typeof block.data.productName === "string"
+          ? block.data.productName
+          : "Product",
+
+      price:
+        typeof block.data.price === "number" &&
+        Number.isFinite(block.data.price)
+          ? Math.max(0, block.data.price)
+          : 0,
+
+      currency:
+        typeof block.data.currency === "string"
+          ? block.data.currency.toLowerCase()
+          : "usd",
+
+      allowQuantity: Boolean(block.data.allowQuantity),
+
+      description:
+        typeof block.data.description === "string"
+          ? block.data.description
+          : "",
+
+      imageUrl:
+        typeof block.data.imageUrl === "string"
+          ? block.data.imageUrl
+          : "",
+
+      buttonText:
+        typeof block.data.buttonText === "string" &&
+        block.data.buttonText.trim()
+          ? block.data.buttonText
+          : "Checkout",
+
+      successMessage:
+        typeof block.data.successMessage === "string"
+          ? block.data.successMessage
+          : "Payment successful!",
+
+      redirectUrl:
+        typeof block.data.redirectUrl === "string"
+          ? block.data.redirectUrl
+          : "",
+
+      collectEmail: block.data.collectEmail !== false,
+      collectName: Boolean(block.data.collectName),
+      collectAddress: Boolean(block.data.collectAddress),
+    },
+  };
+}
 
     return {
       ...block,

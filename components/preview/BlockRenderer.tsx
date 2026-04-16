@@ -2364,23 +2364,27 @@ function renderThread(
                           </div>
                         ) : null}
 
-                        <div className={getThreadAvatarClass(designKey)}>
-                          {getInitials(message.name)}
-                        </div>
+                        {showNameField ? (
+                          <div className={getThreadAvatarClass(designKey)}>
+                            {getInitials(message.name)}
+                          </div>
+                        ) : null}
 
                         <div className="min-w-0 flex-1">
-                          <div
-                            className="font-semibold"
-                            style={{
-                              ...getThreadMetaStyle(block.data.style, designKey),
-                              fontSize: "13px",
-                            }}
-                          >
-                            {message.name || "Guest"}
-                          </div>
+                          {showNameField ? (
+                            <div
+                              className="font-semibold"
+                              style={{
+                                ...getThreadMetaStyle(block.data.style, designKey),
+                                fontSize: "13px",
+                              }}
+                            >
+                              {message.name || "Guest"}
+                            </div>
+                          ) : null}
 
                           <div
-                            className="mt-1"
+                            className={showNameField ? "mt-1" : ""}
                             style={{
                               ...getThreadBodyStyle(block.data.style, designKey),
                               fontSize: "15px",

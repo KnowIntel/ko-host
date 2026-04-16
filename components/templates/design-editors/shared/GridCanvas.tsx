@@ -31,7 +31,7 @@ const WORKSPACE_SIDE_PADDING = 0;
 const WORKSPACE_TOP_PADDING = 32;
 const WORKSPACE_BOTTOM_PADDING = 48;
 
-type PageBlockType = "title" | "subtitle" | "tagline" | "description";
+type PageBlockType = "title" | "subtitle" | "description";
 
 const DEFAULT_BLOCK_SIZES: Partial<
   Record<BuilderBlockType, { colSpan: number; rowSpan: number }>
@@ -67,7 +67,6 @@ const DEFAULT_PAGE_SIZES: Record<
 > = {
   title: { colSpan: 8, rowSpan: 2 },
   subtitle: { colSpan: 7, rowSpan: 1 },
-  tagline: { colSpan: 6, rowSpan: 1 },
   description: { colSpan: 8, rowSpan: 2 },
 };
 
@@ -104,6 +103,7 @@ type Props = {
   ) => void;
   onBringToFront?: (blockId: string) => void;
   onRemoveBlock?: (blockId: string) => void;
+  onDuplicateBlock?: (blockId: string) => void;
   onCreateToolDrop?: (
     payload: ToolDropPayload,
     patch: {
@@ -226,7 +226,7 @@ function getGrid(block: CanvasGridItem, index: number): NormalizedGrid {
 
   return {
     colStart: clamp(snapToStep(Number(raw.colStart ?? 1)), 1, maxColStart),
-    rowStart: Math.max(1, snapToStep(Number(raw.rowStart ?? index + 1))),
+    rowStart: Math.max(1, Number(raw.rowStart ?? index + 1)),
     colSpan,
     rowSpan,
     zIndex: Math.max(1, Number(raw.zIndex ?? index + 1)),
@@ -596,6 +596,7 @@ export default function GridCanvas({
   onResizeBlock,
   onBringToFront,
   onRemoveBlock,
+  onDuplicateBlock,
   onCreateToolDrop,
   renderBlockPreview,
   isItemSelected,
@@ -1113,21 +1114,44 @@ export default function GridCanvas({
                         title="Drag block"
                       />
 
-                      {onRemoveBlock ? (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onRemoveBlock(block.id);
-                          }}
-                          className="absolute right-11 top-2 z-30 inline-flex h-7 w-7 items-center justify-center rounded-md border border-black/10 bg-white/95 text-sm text-slate-600 shadow-sm"
-                          title="Remove block"
-                        >
-                          ×
-                        </button>
-                      ) : null}
+{onDuplicateBlock && !String(block.type).startsWith("page:") ? (
+  <button
+    type="button"
+    onMouseDown={(e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    }}
+    onClick={(e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      onDuplicateBlock(block.id);
+    }}
+    className="absolute right-20 top-2 z-40 inline-flex h-7 items-center justify-center rounded-md border border-black/10 bg-white/95 px-2 text-[11px] font-medium text-slate-600 shadow-sm"
+    title="Duplicate block"
+  >
+    Duplicate
+  </button>
+) : null}
 
-                      
+{onRemoveBlock ? (
+  <button
+    type="button"
+    onMouseDown={(e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    }}
+    onClick={(e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      onRemoveBlock(block.id);
+    }}
+    className="absolute right-11 top-2 z-40 inline-flex h-7 w-7 items-center justify-center rounded-md border border-black/10 bg-white/95 text-sm text-slate-600 shadow-sm"
+    title="Remove block"
+  >
+    ×
+  </button>
+) : null}
+
                       {selected
                         ? resizeHandles.map((handle) => (
                             <button

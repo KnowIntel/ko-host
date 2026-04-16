@@ -242,12 +242,11 @@ const CATEGORY_BUTTONS: Record<
   >
 > = {
   Text: [
-    { kind: "page", label: "Title", type: "title" },
-    { kind: "block", label: "Subtitle", type: "label" },
-    { kind: "block", label: "Tagline", type: "label" },
-    { kind: "block", label: "Description", type: "label" },
-    { kind: "block", label: "TextFX", type: "text_fx" },
-    { kind: "block", label: "Rich Text", type: "rich_text" },
+{ kind: "page", label: "Title", type: "title" },
+{ kind: "page", label: "Subtitle", type: "subtitle" },
+{ kind: "block", label: "Label", type: "label" },
+{ kind: "block", label: "TextFX", type: "text_fx" },
+{ kind: "block", label: "Rich Text", type: "rich_text" },
   ],
   Media: [
     { kind: "block", label: "Image", type: "image" },
@@ -2283,6 +2282,31 @@ function updateSelectedGrid(patch: {
 
   setDraft((prev) => {
     const items = buildCanvasItems(prev, metadata);
+
+    const isMoveOnly =
+      (typeof patch.colStart === "number" ||
+        typeof patch.rowStart === "number") &&
+      typeof patch.colSpan !== "number" &&
+      typeof patch.rowSpan !== "number";
+
+    if (isMoveOnly) {
+      const current = items.find((item) => item.id === selectedCanvasBlockId);
+      if (!current?.grid) return prev;
+
+      const updated = moveCanvasItemToCell(items, selectedCanvasBlockId, {
+        colStart:
+          typeof patch.colStart === "number"
+            ? patch.colStart
+            : Number(current.grid.colStart ?? 1),
+        rowStart:
+          typeof patch.rowStart === "number"
+            ? patch.rowStart
+            : Number(current.grid.rowStart ?? 1),
+      });
+
+      return applyCanvasItemsToDraft(prev, updated);
+    }
+
     const updated = resizeCanvasItem(items, selectedCanvasBlockId, patch);
     return applyCanvasItemsToDraft(prev, updated);
   });
@@ -2833,6 +2857,48 @@ async function uploadMultipleImagesToCarousel(blockId: string) {
       };
     });
   }
+
+function handleDuplicateCanvasBlock(blockId: string) {
+  if (isPageBlockId(blockId)) return;
+
+  let duplicatedBlockId: string | null = null;
+
+  setDraft((prev) => {
+    const original = prev.blocks.find((b) => b.id === blockId);
+    if (!original) return prev;
+
+    const originalGrid = original.grid ?? {
+      colStart: 1,
+      rowStart: 1,
+      colSpan: 4,
+      rowSpan: 1,
+      zIndex: 1,
+    };
+
+    duplicatedBlockId = `${original.type}_${Math.random().toString(36).slice(2, 8)}`;
+
+    const newBlock: MicrositeBlock = {
+      ...original,
+      id: duplicatedBlockId,
+      grid: {
+        colStart: originalGrid.colStart,
+        rowStart: originalGrid.rowStart + 1,
+        colSpan: originalGrid.colSpan,
+        rowSpan: originalGrid.rowSpan,
+        zIndex: (originalGrid.zIndex ?? 1) + 1,
+      },
+    };
+
+    return {
+      ...prev,
+      blocks: [...prev.blocks, newBlock],
+    };
+  });
+
+  if (duplicatedBlockId) {
+    setSelection(selectionFromCanvasBlockId(duplicatedBlockId));
+  }
+}
 
   function removeCanvasBlock(blockId: string) {
     if (blockId === PAGE_TITLE_BLOCK_ID) {
@@ -5789,28 +5855,29 @@ return (
             minWidth: 0,
           }}
         >
-          <GridCanvas
-            blocks={canvasItems}
-            selection={selection as any}
-            onSelect={handleCanvasSelect as any}
-            onMoveBlock={handleMoveBlock}
-            onResizeBlock={handleResizeBlock}
-            onBringToFront={handleBringToFront}
-            onRemoveBlock={removeCanvasBlock}
-            onCreateToolDrop={handleCreateToolDrop}
-            renderBlockPreview={renderCanvasPreview}
-            isItemSelected={(blockId, nextSelection) =>
-              isCanvasBlockSelected(nextSelection as any, blockId)
-            }
-            dockedScrollRef={dockedScrollRef}
-            showGridLines={showGridLines}
-            pageSurfaceStyle={{
-              ...pageSurfaceStyle,
-              height: `${getPageLengthPx(selectedPageLength)}px`,
-              minWidth: `${getGridCanvasScrollableWidth()}px`,
-              width: `${getGridCanvasScrollableWidth()}px`,
-            }}
-          />
+<GridCanvas
+  blocks={canvasItems}
+  selection={selection as any}
+  onSelect={handleCanvasSelect as any}
+  onMoveBlock={handleMoveBlock}
+  onResizeBlock={handleResizeBlock}
+  onBringToFront={handleBringToFront}
+  onRemoveBlock={removeCanvasBlock}
+  onDuplicateBlock={handleDuplicateCanvasBlock}
+  onCreateToolDrop={handleCreateToolDrop}
+  renderBlockPreview={renderCanvasPreview}
+  isItemSelected={(blockId, nextSelection) =>
+    isCanvasBlockSelected(nextSelection as any, blockId)
+  }
+  dockedScrollRef={dockedScrollRef}
+  showGridLines={showGridLines}
+  pageSurfaceStyle={{
+    ...pageSurfaceStyle,
+    height: `${getPageLengthPx(selectedPageLength)}px`,
+    minWidth: `${getGridCanvasScrollableWidth()}px`,
+    width: `${getGridCanvasScrollableWidth()}px`,
+  }}
+/>
         </div>
         </div>
       </div>
@@ -5901,6 +5968,24 @@ return (
 
 {showTextControls ? (
   <>
+  {(
+  selectedContext.kind === "pageText" ||
+  selectedContext.kind === "label" ||
+  selectedContext.kind === "textFx"
+) ? (
+  <div className={inspectorCardClass()}>
+    <div className={inspectorLabelClass()}>Text</div>
+    <textarea
+      value={selectedTextValue}
+      onChange={(e) =>
+        updateTextByCanvasId(selectedContext.blockId, e.target.value)
+      }
+      className={inspectorTextareaClass()}
+      placeholder="Enter text..."
+    />
+  </div>
+) : null}
+
     {selectedTextFxBlock ? (
       <div className={inspectorCardClass()}>
         <div className={inspectorLabelClass()}>TextFX Controls</div>
@@ -6856,103 +6941,108 @@ return (
       </div>
     </div>
 
-    <div className="mt-5">
-      <div className={inspectorLabelClass()}>Composer</div>
+<div className="mt-5">
+  <div className={inspectorLabelClass()}>Composer</div>
 
-      <div className="mt-4">
-        <div className={inspectorLabelClass()}>Name Placeholder</div>
-        <input
-          type="text"
-          maxLength={60}
-          value={selectedBlock.data.namePlaceholder ?? "Your name"}
-          onChange={(e) =>
-            updateSelectedBlock((block) =>
-              block.type !== "thread"
-                ? block
-                : {
-                    ...block,
-                    data: {
-                      ...block.data,
-                      namePlaceholder: e.target.value.slice(0, 60),
-                    },
+  {selectedBlock.data.showNameField !== false ? (
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Name Placeholder</div>
+      <input
+        type="text"
+        maxLength={60}
+        value={selectedBlock.data.namePlaceholder ?? "Your name"}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "thread"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    namePlaceholder: e.target.value.slice(0, 60),
                   },
-            )
-          }
-          className={inspectorInputClass()}
-        />
-      </div>
-
-      <div className="mt-4">
-        <div className={inspectorLabelClass()}>Composer Placeholder</div>
-        <input
-          type="text"
-          maxLength={120}
-          value={selectedBlock.data.composerPlaceholder ?? "Write something…"}
-          onChange={(e) =>
-            updateSelectedBlock((block) =>
-              block.type !== "thread"
-                ? block
-                : {
-                    ...block,
-                    data: {
-                      ...block.data,
-                      composerPlaceholder: e.target.value.slice(0, 120),
-                    },
-                  },
-            )
-          }
-          className={inspectorInputClass()}
-        />
-      </div>
-
-      <div className="mt-4">
-        <div className={inspectorLabelClass()}>Post Button Text</div>
-        <input
-          type="text"
-          maxLength={30}
-          value={selectedBlock.data.postButtonText ?? "Post"}
-          onChange={(e) =>
-            updateSelectedBlock((block) =>
-              block.type !== "thread"
-                ? block
-                : {
-                    ...block,
-                    data: {
-                      ...block.data,
-                      postButtonText: e.target.value.slice(0, 30),
-                    },
-                  },
-            )
-          }
-          className={inspectorInputClass()}
-        />
-      </div>
-
-      <div className="mt-4">
-        <div className={inspectorLabelClass()}>Post Button Style</div>
-        <select
-          value={selectedBlock.data.postButtonStyle ?? "solid"}
-          onChange={(e) =>
-            updateSelectedBlock((block) =>
-              block.type !== "thread"
-                ? block
-                : {
-                    ...block,
-                    data: {
-                      ...block.data,
-                      postButtonStyle: e.target.value as "solid" | "outline" | "soft",
-                    },
-                  },
-            )
-          }
-          className={inspectorInputClass()}
-        >
-          <option value="solid">Solid</option>
-          <option value="outline">Outline</option>
-          <option value="soft">Soft</option>
-        </select>
-      </div>
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      />
     </div>
+  ) : null}
+
+  <div className="mt-4">
+    <div className={inspectorLabelClass()}>Composer Placeholder</div>
+    <input
+      type="text"
+      maxLength={120}
+      value={selectedBlock.data.composerPlaceholder ?? "Write something…"}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "thread"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  composerPlaceholder: e.target.value.slice(0, 120),
+                },
+              },
+        )
+      }
+      className={inspectorInputClass()}
+    />
+  </div>
+
+  <div className="mt-4">
+    <div className={inspectorLabelClass()}>Post Button Text</div>
+    <input
+      type="text"
+      maxLength={30}
+      value={selectedBlock.data.postButtonText ?? "Post"}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "thread"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  postButtonText: e.target.value.slice(0, 30),
+                },
+              },
+        )
+      }
+      className={inspectorInputClass()}
+    />
+  </div>
+
+  <div className="mt-4">
+    <div className={inspectorLabelClass()}>Post Button Style</div>
+    <select
+      value={selectedBlock.data.postButtonStyle ?? "solid"}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "thread"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  postButtonStyle: e.target.value as
+                    | "solid"
+                    | "outline"
+                    | "soft",
+                },
+              },
+        )
+      }
+      className={inspectorInputClass()}
+    >
+      <option value="solid">Solid</option>
+      <option value="outline">Outline</option>
+      <option value="soft">Soft</option>
+    </select>
+  </div>
+</div>
 
 <div className="mt-5">
   <div className={inspectorLabelClass()}>Messages</div>
@@ -7453,7 +7543,34 @@ data: {
             />
           </div>
 
-          <div className="mt-3 flex justify-end">
+          <div className="mt-3 flex justify-end gap-2">
+            <button
+              type="button"
+              className={toolSetButtonClass("front")}
+              onClick={() =>
+                updateSelectedBlock((block) =>
+                  block.type !== "link_hub"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          items: [
+                            ...block.data.items,
+                            {
+                              ...item,
+                              id: makeClientId("link"),
+                            },
+                          ],
+                        },
+                      },
+                )
+              }
+              title="Duplicate link"
+            >
+              Duplicate
+            </button>
+
             <button
               type="button"
               className={toolSetButtonClass("remove")}
