@@ -177,12 +177,15 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ url: session.url });
   } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Unknown error";
+
     console.error("Checkout session error:", error);
 
     return NextResponse.json(
       {
         error: "Failed to create checkout session",
-        details: error instanceof Error ? error.message : "Unknown error",
+        details: message,
       },
       { status: 500 },
     );
