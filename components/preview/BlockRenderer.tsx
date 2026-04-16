@@ -2862,20 +2862,57 @@ function renderFileShare(
               />
             ) : null}
 
-            <input
-              type="file"
-              multiple={Boolean(block.data.allowMultiple)}
-              accept={acceptAttr}
-              onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
-              className="block w-full text-sm"
-            />
+            <div className="space-y-2">
+              <label
+                className={[
+                  "flex min-h-[44px] cursor-pointer items-center justify-center rounded-xl border px-4 py-2 text-sm font-medium",
+                  isLightDesign(designKey)
+                    ? "border-neutral-300 bg-white text-neutral-900"
+                    : "border-white/15 bg-white/10 text-white",
+                ].join(" ")}
+                style={getContainerTextStyle(block.data.style, designKey)}
+              >
+                Choose file
+                <input
+                  type="file"
+                  multiple={Boolean(block.data.allowMultiple)}
+                  accept={acceptAttr}
+                  onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
+                  className="hidden"
+                />
+              </label>
 
-            <div className="text-xs opacity-60">
-              Accepted: {acceptedFileTypes.join(", ")}
-            </div>
+              <div
+                className="text-xs"
+                style={{
+                  ...getContainerTextStyle(block.data.style, designKey),
+                  opacity: 0.75,
+                }}
+              >
+                {files.length
+                  ? `${files.length} file${files.length === 1 ? "" : "s"} selected`
+                  : "No file selected"}
+              </div>
 
-            <div className="text-xs opacity-60">
-              Max size: {block.data.maxFileSizeMb ?? 25} MB
+              <div
+                className="text-xs"
+                style={{
+                  ...getContainerTextStyle(block.data.style, designKey),
+                  opacity: 0.75,
+                }}
+              >
+                Accepted: {acceptedFileTypes.join(", ")}
+              </div>
+
+              <div
+                className="text-xs"
+                style={{
+                  ...getContainerTextStyle(block.data.style, designKey),
+                  opacity: 0.75,
+                }}
+              >
+                Max size: {block.data.maxFileSizeMb ?? 25} MB
+              </div>
             </div>
 
             {files.length ? (
