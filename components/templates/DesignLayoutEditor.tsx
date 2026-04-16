@@ -285,10 +285,11 @@ Scheduling: [
   { kind: "block", label: "Schedule / Agenda", type: "schedule_agenda" },
   { kind: "block", label: "Map / Location", type: "map_location" },
 ],
-Premium: [
-    { kind: "block", label: "Registry", type: "registry" },
-    { kind: "block", label: "Speed Dating", type: "speed_dating" },
-    { kind: "block", label: "Donation", type: "donation" },
+Premium: [ 
+  { kind: "block", label: "Registry", type: "registry" },
+  { kind: "block", label: "Speed Dating", type: "speed_dating" },
+  { kind: "block", label: "Donation", type: "donation" },
+  { kind: "block", label: "Checkout", type: "checkout" },
 ],
 };
 
@@ -6485,137 +6486,224 @@ return (
   </div>
 ) : null}
 
-                {selectedBlock?.type === "countdown" ? (
-                  <div id="inspector-countdown" className={inspectorCardClass()}>
-                    <div className={inspectorLabelClass()}>Countdown</div>
+{selectedBlock?.type === "countdown" ? (
+  <div id="inspector-countdown" className={inspectorCardClass()}>
+    <div className={inspectorLabelClass()}>Countdown</div>
 
-                    <div className="mt-4">
-                      <div className={inspectorLabelClass()}>Style Variant</div>
-                      <select
-                        value={selectedBlock.data.styleVariant ?? "default"}
-                        onChange={(e) =>
-                          updateSelectedBlock((block) =>
-                            block.type !== "countdown"
-                              ? block
-                              : {
-                                  ...block,
-                                  data: {
-                                    ...block.data,
-                                    styleVariant: e.target.value as
-                                      | "default"
-                                      | "cards"
-                                      | "hero",
-                                  },
-                                },
-                          )
-                        }
-                        className={inspectorInputClass()}
-                      >
-                        <option value="default">Default</option>
-                        <option value="cards">Cards</option>
-                        <option value="hero">Hero</option>
-                      </select>
-                    </div>
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Style Variant</div>
+      <select
+        value={selectedBlock.data.styleVariant ?? "default"}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "countdown"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    styleVariant: e.target.value as
+                      | "default"
+                      | "cards"
+                      | "hero",
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      >
+        <option value="default">Default</option>
+        <option value="cards">Cards</option>
+        <option value="hero">Hero</option>
+      </select>
+    </div>
 
-                    <div className="mt-4">
-                      <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
-                        <input
-                          type="checkbox"
-                          checked={selectedBlock.data.showRings !== false}
-                          onChange={(e) =>
-                            updateSelectedBlock((block) =>
-                              block.type !== "countdown"
-                                ? block
-                                : {
-                                    ...block,
-                                    data: {
-                                      ...block.data,
-                                      showRings: e.target.checked,
-                                    },
-                                  },
-                            )
-                          }
-                        />
-                        Show Rings
-                      </label>
-                    </div>
+    <div className="mt-4">
+      <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+        <input
+          type="checkbox"
+          checked={selectedBlock.data.showRings !== false}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "countdown"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      showRings: e.target.checked,
+                    },
+                  },
+            )
+          }
+        />
+        Show Rings
+      </label>
+    </div>
 
-                    <div className="mt-4">
-                      <div className={inspectorLabelClass()}>
-                        Heading (optional)
-                      </div>
-                      <input
-                        ref={countdownHeadingInputRef}
-                        type="text"
-                        value={selectedBlock.data.heading ?? ""}
-                        onChange={(e) =>
-                          updateSelectedBlock((block) =>
-                            block.type !== "countdown"
-                              ? block
-                              : {
-                                  ...block,
-                                  data: {
-                                    ...block.data,
-                                    heading: e.target.value,
-                                  },
-                                },
-                          )
-                        }
-                        className={inspectorInputClass()}
-                      />
-                    </div>
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>
+        Heading (optional)
+      </div>
+      <input
+        ref={countdownHeadingInputRef}
+        type="text"
+        value={selectedBlock.data.heading ?? ""}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "countdown"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    heading: e.target.value,
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
 
-                    <div className="mt-4">
-                      <div className={inspectorLabelClass()}>Target Date</div>
-                      <input
-                        ref={countdownTargetInputRef}
-                        type="datetime-local"
-                        value={selectedBlock.data.targetIso || ""}
-                        onChange={(e) =>
-                          updateSelectedBlock((block) =>
-                            block.type !== "countdown"
-                              ? block
-                              : {
-                                  ...block,
-                                  data: {
-                                    ...block.data,
-                                    targetIso: e.target.value,
-                                  },
-                                },
-                          )
-                        }
-                        className={inspectorInputClass()}
-                      />
-                    </div>
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Target Date</div>
+      <input
+        ref={countdownTargetInputRef}
+        type="datetime-local"
+        value={selectedBlock.data.targetIso || ""}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "countdown"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    targetIso: e.target.value,
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
 
-                    <div className="mt-4">
-                      <div className={inspectorLabelClass()}>
-                        Completed Message
-                      </div>
-                      <input
-                        ref={countdownCompletedInputRef}
-                        type="text"
-                        value={selectedBlock.data.completedMessage}
-                        onChange={(e) =>
-                          updateSelectedBlock((block) =>
-                            block.type !== "countdown"
-                              ? block
-                              : {
-                                  ...block,
-                                  data: {
-                                    ...block.data,
-                                    completedMessage: e.target.value,
-                                  },
-                                },
-                          )
-                        }
-                        className={inspectorInputClass()}
-                      />
-                    </div>
-                  </div>
-                ) : null}
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>
+        Completed Message
+      </div>
+      <input
+        ref={countdownCompletedInputRef}
+        type="text"
+        value={selectedBlock.data.completedMessage}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "countdown"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    completedMessage: e.target.value,
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
+  </div>
+) : null}
 
-                {selectedBlock?.type === "faq" ? (
+{/* ✅ NEW CHECKOUT BLOCK */}
+{selectedBlock?.type === "checkout" ? (
+  <div id="inspector-checkout" className={inspectorCardClass()}>
+    <div className={inspectorLabelClass()}>Checkout</div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Product Name</div>
+      <input
+        type="text"
+        value={selectedBlock.data.productName}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "checkout"
+              ? block
+              : {
+                  ...block,
+                  data: { ...block.data, productName: e.target.value },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Price</div>
+      <input
+        type="number"
+        value={selectedBlock.data.price}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "checkout"
+              ? block
+              : {
+                  ...block,
+                  data: { ...block.data, price: Number(e.target.value) },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Currency</div>
+      <input
+        type="text"
+        value={selectedBlock.data.currency}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "checkout"
+              ? block
+              : {
+                  ...block,
+                  data: { ...block.data, currency: e.target.value },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
+
+    <div className="mt-4">
+      <label className="flex items-center gap-3">
+        <input
+          type="checkbox"
+          checked={selectedBlock.data.allowQuantity}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "checkout"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      allowQuantity: e.target.checked,
+                    },
+                  },
+            )
+          }
+        />
+        Allow Quantity
+      </label>
+    </div>
+  </div>
+) : null}
+
+{selectedBlock?.type === "faq" ? (
                   <div id="inspector-faq" className={inspectorCardClass()}>
                     <div className={inspectorLabelClass()}>FAQ</div>
 

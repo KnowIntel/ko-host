@@ -1,3 +1,4 @@
+// components\preview\BlockRenderer.tsx
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -4742,6 +4743,119 @@ function renderSpeedDating(
   return <SpeedDatingPreview />;
 }
 
+function renderCheckout(
+  block: Extract<MicrositeBlock, { type: "checkout" }>,
+  designKey?: string,
+  micrositeId?: string | null,
+) {
+  const data = block.data;
+
+  const handleCheckout = async () => {
+    try {
+      const res = await fetch("/api/checkout/create-session", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          blockId: block.id,
+          micrositeId,
+        }),
+      });
+
+      const rawText = await res.text();
+
+      let payload: any = null;
+      try {
+        payload = rawText ? JSON.parse(rawText) : null;
+      } catch {
+        payload = rawText;
+      }
+
+      if (!res.ok) {
+        const debugMessage = JSON.stringify(
+          {
+            status: res.status,
+            statusText: res.statusText,
+            rawText,
+            payload,
+            micrositeId: micrositeId ?? null,
+            blockId: block.id,
+          },
+          null,
+          2,
+        );
+
+        console.error("Checkout API error:\n" + debugMessage);
+
+        alert(
+          typeof payload?.error === "string"
+            ? payload.error
+            : typeof payload === "string" && payload.trim()
+              ? payload
+              : `Checkout failed (${res.status})`,
+        );
+
+        return;
+      }
+
+      if (payload?.url) {
+        window.location.href = payload.url;
+        return;
+      }
+
+      console.error("No checkout URL returned", { rawText, payload });
+      alert("No checkout URL returned.");
+    } catch (err) {
+      console.error("Checkout error:", err);
+      alert("Something went wrong starting checkout.");
+    }
+  };
+
+  return (
+<Surface block={block}>
+  <div className="flex h-full w-full flex-col gap-3">
+    {data.imageUrl ? (
+      <img
+        src={data.imageUrl}
+        alt={data.productName}
+        className="h-40 w-full rounded-lg object-cover"
+      />
+    ) : null}
+
+    <div className="text-base font-semibold">
+      {data.productName || "Product"}
+    </div>
+
+    {data.description ? (
+      <div className="text-sm opacity-70">
+        {data.description}
+      </div>
+    ) : null}
+
+    <div className="text-lg font-bold">
+      ${Number(data.price || 0).toFixed(2)}
+    </div>
+
+    <button
+      onClick={handleCheckout}
+      disabled={!micrositeId}
+      className="mt-auto w-full rounded-xl bg-black py-2 text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+      title={
+        !micrositeId
+          ? "Checkout only works on live microsites right now."
+          : undefined
+      }
+    >
+      {!micrositeId
+        ? "Live Microsite Required"
+        : data.buttonText || "Checkout"}
+    </button>
+  </div>
+</Surface>
+  );
+}
+
 export default function BlockRenderer({
   block,
   designKey = "blank",
@@ -4763,6 +4877,113 @@ export default function BlockRenderer({
       return renderFormField(block, designKey);
     case "cta":
       return renderCta(block, designKey);
+case "checkout": {
+  const data = block.data as any;
+
+  const handleCheckout = async () => {
+    try {
+      const res = await fetch("/api/checkout/create-session", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          blockId: block.id,
+          micrositeId,
+        }),
+      });
+
+      const rawText = await res.text();
+
+      let payload: any = null;
+      try {
+        payload = rawText ? JSON.parse(rawText) : null;
+      } catch {
+        payload = rawText;
+      }
+
+      if (!res.ok) {
+        const debugMessage = JSON.stringify(
+          {
+            status: res.status,
+            statusText: res.statusText,
+            rawText,
+            payload,
+            micrositeId: micrositeId ?? null,
+            blockId: block.id,
+          },
+          null,
+          2,
+        );
+
+        console.error("Checkout API error:\n" + debugMessage);
+
+        alert(
+          typeof payload?.error === "string"
+            ? payload.error
+            : typeof payload === "string" && payload.trim()
+              ? payload
+              : `Checkout failed (${res.status})`,
+        );
+
+        return;
+      }
+
+      if (payload?.url) {
+        window.location.href = payload.url;
+        return;
+      }
+
+      console.error("No checkout URL returned", {
+        rawText,
+        payload,
+      });
+      alert("No checkout URL returned.");
+    } catch (err) {
+      console.error("Checkout error:", err);
+      alert("Something went wrong starting checkout.");
+    }
+  };
+
+  return (
+    <Surface block={block}>
+      <div className="flex h-full w-full flex-col gap-3">
+        {data.imageUrl ? (
+          <img
+            src={data.imageUrl}
+            alt={data.productName}
+            className="w-full h-40 object-cover rounded-lg"
+          />
+        ) : null}
+
+        <div className="font-semibold text-base">
+          {data.productName || "Product"}
+        </div>
+
+        {data.description ? (
+          <div className="text-sm opacity-70">
+            {data.description}
+          </div>
+        ) : null}
+
+        <div className="text-lg font-bold">
+          ${Number(data.price || 0).toFixed(2)}
+        </div>
+
+        <button
+          onClick={handleCheckout}
+          disabled={!micrositeId}
+          className="mt-auto w-full rounded-xl bg-black py-2 text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+          title={!micrositeId ? "Checkout only works on live microsites right now." : undefined}
+        >
+          {!micrositeId
+            ? "Live Microsite Required"
+            : data.buttonText || "Checkout"}
+        </button>
+      </div>
+    </Surface>
+  );
+}
     case "countdown":
       return renderCountdown(block, designKey, serverNow);
     case "links":
@@ -4803,20 +5024,19 @@ export default function BlockRenderer({
       return renderScheduleAgenda(block, designKey);
     case "map_location":
       return renderMapLocation(block, designKey);
-case "file_share":
-  return renderFileShare(block, designKey, micrositeId);
-      
-case "speed_dating":
-  return (
-    <SpeedDatingLive
-      heading={block.data.heading}
-      roundDurationSeconds={block.data.roundDurationSeconds ?? 120}
-      showTimer={block.data.showTimer !== false}
-      leftLabel={block.data.leftLabel}
-      rightLabel={block.data.rightLabel}
-      roundStartSound={block.data.roundStartSound}
-    />
-  );
+    case "file_share":
+      return renderFileShare(block, designKey, micrositeId);
+    case "speed_dating":
+      return (
+        <SpeedDatingLive
+          heading={block.data.heading}
+          roundDurationSeconds={block.data.roundDurationSeconds ?? 120}
+          showTimer={block.data.showTimer !== false}
+          leftLabel={block.data.leftLabel}
+          rightLabel={block.data.rightLabel}
+          roundStartSound={block.data.roundStartSound}
+        />
+      );
 
     default:
       return <div className="h-full w-full" />;

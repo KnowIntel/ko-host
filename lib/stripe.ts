@@ -1,4 +1,3 @@
-// lib/stripe.ts
 import Stripe from "stripe";
 
 function mustGetEnv(name: string): string {
@@ -12,3 +11,11 @@ function mustGetEnv(name: string): string {
  * Do NOT set apiVersion manually to avoid TS mismatches across SDK versions.
  */
 export const stripe = new Stripe(mustGetEnv("STRIPE_SECRET_KEY"));
+
+export function toCents(amount: number) {
+  return Math.round(amount * 100);
+}
+
+export function calcPlatformFee(amount: number) {
+  return Math.round(amount * 0.03); // 3%
+}
