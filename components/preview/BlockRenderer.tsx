@@ -2684,45 +2684,241 @@ function renderShowcase(
 function renderFileShare(
   block: Extract<MicrositeBlock, { type: "file_share" }>,
   designKey?: string,
+  micrositeId?: string | null,
 ) {
-  return (
-    <Surface
-      block={block}
-      designKey={designKey}
-      className={getSoftSurfaceClass(designKey)}
-    >
-      {block.data.heading ? (
-        <div style={getContainerTextStyle(block.data.style, designKey)}>
-          {block.data.heading}
-        </div>
-      ) : null}
+  function FileSharePreview() {
+    const [files, setFiles] = useState<File[]>([]);
+    const [accessCode, setAccessCode] = useState("");
+    const [name, setName] = useState("");
+    const [email, setEmail] = useState("");
+    const [message, setMessage] = useState("");
+    const [isUploading, setIsUploading] = useState(false);
+    const [feedback, setFeedback] = useState<{
+      type: "idle" | "success" | "error";
+      message: string;
+    }>({
+      type: "idle",
+      message: "",
+    });
 
-      {block.data.subtext ? (
-        <div
-          className="mt-1 text-sm opacity-70"
-          style={getContainerTextStyle(block.data.style, designKey)}
-        >
-          {block.data.subtext}
-        </div>
-      ) : null}
+    const acceptedFileTypes =
+      Array.isArray(block.data.acceptedFileTypes) &&
+      block.data.acceptedFileTypes.length
+        ? block.data.acceptedFileTypes
+        : ["pdf", "jpg", "jpeg", "png", "webp", "doc", "docx", "txt"];
 
-      <div className="mt-4 flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed p-6 text-center">
-        <div className="text-sm opacity-70">Upload files here</div>
+    const acceptAttr = acceptedFileTypes.map((item) => `.${item}`).join(",");
 
-        <div className="text-xs opacity-50">
-          {block.data.allowPublicUpload
-            ? "Public uploads enabled"
-            : "Uploads restricted"}
-        </div>
+    async function handleUpload() {
+      if (!micrositeId) {
+        setFeedback({
+          type: "error",
+          message: "Uploads are only available on the live microsite.",
+        });
+        return;
+      }
 
-        {block.data.requireAccessCode ? (
-          <div className="text-xs text-red-400">
-            Access code required
+      if (!block.data.allowPublicUpload) {
+        setFeedback({
+          type: "error",
+          message: "Public uploads are disabled.",
+        });
+        return;
+      }
+
+      if (!files.length) {
+        setFeedback({
+          type: "error",
+          message: "Select at least one file.",
+        });
+        return;
+      }
+
+      try {
+        setIsUploading(true);
+        setFeedback({ type: "idle", message: "" });
+
+        const formData = new FormData();
+        formData.append("micrositeId", micrositeId);
+        formData.append("blockId", block.id);
+
+        if (block.data.requireAccessCode) {
+          formData.append("accessCode", accessCode);
+        }
+
+        if (block.data.collectName) {
+          formData.append("name", name);
+        }
+
+        if (block.data.collectEmail) {
+          formData.append("email", email);
+        }
+
+        if (block.data.collectMessage) {
+          formData.append("message", message);
+        }
+
+        for (const file of files) {
+          formData.append("files", file);
+        }
+
+        const response = await fetch("/api/file-share/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result?.error || "Upload failed.");
+        }
+
+        setFeedback({
+          type: "success",
+          message:
+            files.length === 1
+              ? "File uploaded successfully."
+              : "Files uploaded successfully.",
+        });
+
+        setFiles([]);
+        setAccessCode("");
+        setName("");
+        setEmail("");
+        setMessage("");
+      } catch (error) {
+        setFeedback({
+          type: "error",
+          message: error instanceof Error ? error.message : "Upload failed.",
+        });
+      } finally {
+        setIsUploading(false);
+      }
+    }
+
+    return (
+      <Surface
+        block={block}
+        designKey={designKey}
+        className={getSoftSurfaceClass(designKey)}
+      >
+        {block.data.heading ? (
+          <div style={getContainerTextStyle(block.data.style, designKey)}>
+            {block.data.heading}
           </div>
         ) : null}
-      </div>
-    </Surface>
-  );
+
+        {block.data.subtext ? (
+          <div
+            className="mt-1 text-sm opacity-70"
+            style={getContainerTextStyle(block.data.style, designKey)}
+          >
+            {block.data.subtext}
+          </div>
+        ) : null}
+
+        {!block.data.allowPublicUpload ? (
+          <div className="mt-4 rounded-xl border border-dashed px-4 py-6 text-sm opacity-70">
+            Uploads are currently disabled.
+          </div>
+        ) : (
+          <div className="mt-4 space-y-3">
+            {block.data.requireAccessCode ? (
+              <input
+                type="text"
+                value={accessCode}
+                onChange={(e) => setAccessCode(e.target.value)}
+                placeholder="Access code"
+                className="w-full rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 outline-none"
+              />
+            ) : null}
+
+            {block.data.collectName ? (
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Your name"
+                className="w-full rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 outline-none"
+              />
+            ) : null}
+
+            {block.data.collectEmail ? (
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Your email"
+                className="w-full rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 outline-none"
+              />
+            ) : null}
+
+            {block.data.collectMessage ? (
+              <textarea
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Message"
+                className="min-h-[100px] w-full rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 outline-none"
+              />
+            ) : null}
+
+            <input
+              type="file"
+              multiple={Boolean(block.data.allowMultiple)}
+              accept={acceptAttr}
+              onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
+              className="block w-full text-sm"
+            />
+
+            <div className="text-xs opacity-60">
+              Accepted: {acceptedFileTypes.join(", ")}
+            </div>
+
+            <div className="text-xs opacity-60">
+              Max size: {block.data.maxFileSizeMb ?? 25} MB
+            </div>
+
+            {files.length ? (
+              <div className="rounded-xl border border-dashed px-3 py-3 text-xs">
+                <div className="font-medium">Selected files</div>
+                <div className="mt-2 space-y-1">
+                  {files.map((file) => (
+                    <div key={`${file.name}_${file.size}`}>{file.name}</div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
+            {feedback.message ? (
+              <div
+                className={[
+                  "rounded-xl px-3 py-2 text-sm",
+                  feedback.type === "success"
+                    ? "border border-emerald-200 bg-emerald-50 text-emerald-700"
+                    : feedback.type === "error"
+                      ? "border border-red-200 bg-red-50 text-red-700"
+                      : "border border-neutral-200 bg-neutral-50 text-neutral-700",
+                ].join(" ")}
+              >
+                {feedback.message}
+              </div>
+            ) : null}
+
+            <button
+              type="button"
+              onClick={() => void handleUpload()}
+              disabled={isUploading}
+              className="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
+            >
+              {isUploading ? "Uploading..." : "Upload"}
+            </button>
+          </div>
+        )}
+      </Surface>
+    );
+  }
+
+  return <FileSharePreview />;
 }
 
 function renderFestiveBackground(
@@ -4566,8 +4762,8 @@ export default function BlockRenderer({
       return renderScheduleAgenda(block, designKey);
     case "map_location":
       return renderMapLocation(block, designKey);
-    case "file_share":
-      return renderFileShare(block, designKey);
+case "file_share":
+  return renderFileShare(block, designKey, micrositeId);
       
 case "speed_dating":
   return (
