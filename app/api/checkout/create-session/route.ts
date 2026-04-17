@@ -125,6 +125,34 @@ export async function POST(req: Request) {
 
     const allowQuantity = Boolean(data.allowQuantity);
 
+    [{
+	"resource": "/c:/Users/MD/ko-host/app/api/stripe/connect/start/route.ts",
+	"owner": "typescript",
+	"code": "18004",
+	"severity": 8,
+	"message": "No value exists in scope for the shorthand property 'micrositeId'. Either declare one or provide an initializer.",
+	"source": "ts",
+	"startLineNumber": 81,
+	"startColumn": 11,
+	"endLineNumber": 81,
+	"endColumn": 22,
+	"modelVersionId": 17,
+	"origin": "extHost1"
+},{
+	"resource": "/c:/Users/MD/ko-host/app/api/stripe/connect/start/route.ts",
+	"owner": "typescript",
+	"code": "2304",
+	"severity": 8,
+	"message": "Cannot find name 'microsite'.",
+	"source": "ts",
+	"startLineNumber": 82,
+	"startColumn": 17,
+	"endLineNumber": 82,
+	"endColumn": 26,
+	"modelVersionId": 17,
+	"origin": "extHost1"
+}]
+
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       line_items: [
