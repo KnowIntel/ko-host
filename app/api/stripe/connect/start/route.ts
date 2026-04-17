@@ -49,19 +49,15 @@ export async function POST() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    let stripeAccountId = await getExistingStripeAccountIdForUser(userId);
+    const account = await stripe.accounts.create({
+      type: "express",
+      metadata: {
+        clerkUserId: userId,
+      },
+    });
 
-    if (!stripeAccountId) {
-      const account = await stripe.accounts.create({
-        type: "express",
-        metadata: {
-          clerkUserId: userId,
-        },
-      });
-
-      stripeAccountId = account.id;
-      await saveStripeAccountIdForUser(userId, stripeAccountId);
-    }
+    const stripeAccountId = account.id;
+    await saveStripeAccountIdForUser(userId, stripeAccountId);
 
     const baseUrl = getBaseUrl();
 
