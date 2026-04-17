@@ -1,8 +1,14 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
+import { createClient } from "@supabase/supabase-js";
 import { stripe } from "@/lib/stripe";
 
 export const runtime = "nodejs";
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+);
 
 function getWebhookSecret() {
   const secret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -47,16 +53,104 @@ export async function POST(req: Request) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
 
+        const stripeSessionId = session.id;
+        const stripePaymentIntentId =
+          typeof session.payment_intent === "string"
+            ? session.payment_intent
+            : session.payment_intent?.id ?? null;
+
+        const micrositeId =
+          typeof session.metadata?.micrositeId === "string"
+            ? session.metadata.micrositeId
+            : null;
+
+        const blockId =
+          typeof session.metadata?.blockId === "string"
+            ? session.metadata.blockId
+            : null;
+
+        const stripeAccountId =
+          typeof session.metadata?.stripeAccountId === "string"
+            ? session.metadata.stripeAccountId
+            : null;
+
+        const productName =
+          typeof session.metadata?.productName === "string"
+            ? session.metadata.productName
+            : null;
+
+        const customerEmail =
+          typeof session.customer_details?.email === "string"
+            ? session.customer_details.email
+            : typeof session.customer_email === "string"
+              ? session.customer_email
+              : null;
+
+        const customerName =
+          typeof session.customer_details?.name === "string"
+            ? session.customer_details.name
+            : null;
+
+        const amountTotal =
+          typeof session.amount_total === "number"
+            ? session.amount_total
+            : null;
+
+        const currency =
+          typeof session.currency === "string"
+            ? session.currency
+            : null;
+
+        const paymentStatus =
+          typeof session.payment_status === "string"
+            ? session.payment_status
+            : null;
+
+        const { error: upsertError } = await supabase
+          .from("checkout_payments")
+          .upsert(
+            {
+              stripe_session_id: stripeSessionId,
+              stripe_payment_intent_id: stripePaymentIntentId,
+              microsite_id: micrositeId,
+              block_id: blockId,
+              stripe_account_id: stripeAccountId,
+              product_name: productName,
+              customer_email: customerEmail,
+              customer_name: customerName,
+              amount_total: amountTotal,
+              currency,
+              payment_status: paymentStatus,
+            },
+            {
+              onConflict: "stripe_session_id",
+            },
+          );
+
+        if (upsertError) {
+          console.error("Failed to save checkout payment", upsertError);
+
+          return NextResponse.json(
+            {
+              error: "Failed to save checkout payment",
+              details: upsertError.message,
+            },
+            { status: 500 },
+          );
+        }
+
         console.log("STRIPE CHECKOUT COMPLETED", {
-          sessionId: session.id,
-          paymentStatus: session.payment_status,
-          micrositeId: session.metadata?.micrositeId ?? null,
-          blockId: session.metadata?.blockId ?? null,
-          stripeAccountId: session.metadata?.stripeAccountId ?? null,
-          productName: session.metadata?.productName ?? null,
-          customerEmail:
-            session.customer_details?.email ?? session.customer_email ?? null,
-          amountTotal: session.amount_total ?? null,
+          stripeSessionId,
+          stripePaymentIntentId,
+          micrositeId,
+          blockId,
+          stripeAccountId,
+          productName,
+          customerEmail,
+          customerName,
+          amountTotal,
+          currency,
+          paymentStatus,
         });
 
         break;
