@@ -175,47 +175,27 @@ export async function POST(req: Request) {
       );
     }
 
-    const session = await stripe.checkout.sessions.create({
-      mode: "payment",
-      line_items: [
-        {
-          price_data: {
-            currency,
-            product_data: productData,
-            unit_amount: amount,
-          },
-          quantity: 1,
-          adjustable_quantity: allowQuantity
-            ? {
-                enabled: true,
-                minimum: 1,
-                maximum: 25,
-              }
-            : undefined,
-        },
-      ],
-      success_url: successTarget,
-      cancel_url: cancelTarget,
-      billing_address_collection: data.collectAddress ? "required" : "auto",
-      phone_number_collection: {
-        enabled: false,
-      },
-      customer_creation: "always",
-      payment_intent_data: {
-        application_fee_amount: fee,
-        transfer_data: {
-          destination: stripeAccountId,
-        },
-      },
-      metadata: {
-        micrositeId,
-        blockId,
-        stripeAccountId,
-        productName,
-      },
-    });
+    const platformAccount = await stripe.accounts.retrieve();
 
-    return NextResponse.json({ url: session.url });
+    return NextResponse.json(
+      {
+        debug: true,
+        platformAccountId: platformAccount.id,
+        destinationAccountId: stripeAccountId,
+        micrositeId,
+        slug: microsite.slug,
+        productName,
+        currency,
+        amount,
+        fee,
+        allowQuantity,
+        successTarget,
+        cancelTarget,
+        hasDescription: description !== undefined,
+        hasImageUrl: imageUrl !== undefined,
+      },
+      { status: 400 },
+    );
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Unknown error";

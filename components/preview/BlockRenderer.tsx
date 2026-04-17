@@ -4788,13 +4788,13 @@ function renderCheckout(
 
         console.error("Checkout API error:\n" + debugMessage);
 
-        alert(
-          typeof payload?.error === "string"
-            ? payload.error
-            : typeof payload === "string" && payload.trim()
-              ? payload
-              : `Checkout failed (${res.status})`,
-        );
+alert(
+  JSON.stringify(
+    payload,
+    null,
+    2,
+  ),
+);
 
         return;
       }
