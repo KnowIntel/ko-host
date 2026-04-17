@@ -4918,7 +4918,15 @@ case "checkout": {
 
         console.error("Checkout API error:\n" + debugMessage);
 
-alert(JSON.stringify(payload, null, 2));
+alert(
+  typeof payload?.details === "string"
+    ? payload.details
+    : typeof payload?.error === "string"
+      ? payload.error
+      : typeof payload === "string" && payload.trim()
+        ? payload
+        : `Checkout failed (${res.status})`,
+);
 
         return;
       }

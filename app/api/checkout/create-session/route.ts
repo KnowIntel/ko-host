@@ -49,7 +49,7 @@ export async function POST(req: Request) {
 
     const { data: microsite, error: micrositeError } = await supabase
       .from("microsites")
-      .select("id, draft, slug, stripe_account_id, site_visibility")
+      .select("id, draft, slug, stripe_account_id")
       .eq("id", micrositeId)
       .single();
 
@@ -129,16 +129,14 @@ export async function POST(req: Request) {
 
     const allowQuantity = Boolean(data.allowQuantity);
 
-    const rawDescription = data.description;
-    const description: string | undefined =
-      typeof rawDescription === "string" && rawDescription.trim().length > 0
-        ? rawDescription.trim()
+    const description =
+      typeof data.description === "string" && data.description.trim().length > 0
+        ? data.description.trim()
         : undefined;
 
-    const rawImageUrl = data.imageUrl;
-    const imageUrl: string | undefined =
-      typeof rawImageUrl === "string" && rawImageUrl.trim().length > 0
-        ? rawImageUrl.trim()
+    const imageUrl =
+      typeof data.imageUrl === "string" && data.imageUrl.trim().length > 0
+        ? data.imageUrl.trim()
         : undefined;
 
     const productData: {
@@ -157,45 +155,49 @@ export async function POST(req: Request) {
       productData.images = [imageUrl];
     }
 
-    try {
-      await stripe.accounts.retrieve(stripeAccountId);
-    } catch (accountError) {
-      return NextResponse.json(
+    await stripe.accounts.retrieve(stripeAccountId);
+
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      line_items: [
         {
-          error: "Destination account lookup failed",
-          details:
-            accountError instanceof Error
-              ? accountError.message
-              : "Unknown destination lookup error",
-          stripeAccountId,
-          micrositeId,
-          slug: microsite.slug,
+          price_data: {
+            currency,
+            product_data: productData,
+            unit_amount: amount,
+          },
+          quantity: 1,
+          adjustable_quantity: allowQuantity
+            ? {
+                enabled: true,
+                minimum: 1,
+                maximum: 25,
+              }
+            : undefined,
         },
-        { status: 500 },
-      );
-    }
-
-    const platformAccount = await stripe.accounts.retrieve();
-
-    return NextResponse.json(
-      {
-        debug: true,
-        platformAccountId: platformAccount.id,
-        destinationAccountId: stripeAccountId,
-        micrositeId,
-        slug: microsite.slug,
-        productName,
-        currency,
-        amount,
-        fee,
-        allowQuantity,
-        successTarget,
-        cancelTarget,
-        hasDescription: description !== undefined,
-        hasImageUrl: imageUrl !== undefined,
+      ],
+      success_url: successTarget,
+      cancel_url: cancelTarget,
+      billing_address_collection: data.collectAddress ? "required" : "auto",
+      phone_number_collection: {
+        enabled: false,
       },
-      { status: 400 },
-    );
+      customer_creation: "always",
+      payment_intent_data: {
+        application_fee_amount: fee,
+        transfer_data: {
+          destination: stripeAccountId,
+        },
+      },
+      metadata: {
+        micrositeId,
+        blockId,
+        stripeAccountId,
+        productName,
+      },
+    });
+
+    return NextResponse.json({ url: session.url });
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Unknown error";
