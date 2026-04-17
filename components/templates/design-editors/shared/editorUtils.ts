@@ -185,6 +185,36 @@ export function updateImageCarouselItemField(
 export function sanitizeDraftForEditor(draft: BuilderDraft): BuilderDraft {
   return {
     ...draft,
-    blocks: Array.isArray(draft.blocks) ? draft.blocks : [],
+    blocks: Array.isArray(draft.blocks)
+      ? draft.blocks.map((block) => {
+          // 🔥 CART SAFE GUARD
+          if (block.type === "cart") {
+            return {
+              ...block,
+              data: {
+                heading: block.data?.heading ?? "Cart",
+                taxRate: typeof block.data?.taxRate === "number" ? block.data.taxRate : 0,
+                discount: typeof block.data?.discount === "number" ? block.data.discount : 0,
+                buttonText: block.data?.buttonText ?? "Checkout",
+                style: block.data?.style ?? {},
+              },
+            };
+          }
+
+          // 🔥 LISTING SAFE GUARD (fix your earlier errors)
+          if (block.type === "listing") {
+            return {
+              ...block,
+              data: {
+                ...block.data,
+                price: typeof block.data?.price === "number" ? block.data.price : 0,
+                addToCart: Boolean(block.data?.addToCart),
+              },
+            };
+          }
+
+          return block;
+        })
+      : [],
   };
 }

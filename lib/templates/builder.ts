@@ -112,7 +112,8 @@ export type BuilderBlockType =
   | "file_share"
   | "speed_dating"
   | "registry"
-  | "checkout";
+  | "checkout"
+  | "cart";
 
 /* =========================================
    Shared Primitive Types
@@ -443,28 +444,38 @@ export type FormFieldBlock = BaseBlock & {
 
 export type ListingBlock = BaseBlock & {
   type: "listing";
-  data: {
-    image: {
-      id: string;
-      url: string;
-      alt?: string;
-      fitMode?: ImageFitMode;
-      frame?: ImageFrameType;
-      positionX?: number;
-      positionY?: number;
-      zoom?: number;
-      rotation?: number;
-      opacity?: number;
-    };
-    title: string;
-    description: string;
-    metadata: ListingMetadataItem[];
-    titleStyle?: TextStyle;
-    descriptionStyle?: TextStyle;
-    metadataStyle?: TextStyle;
-    cardVariant?: ListingCardVariant;
-    imageHeightPercent?: number;
+data: {
+  image: {
+    id: string;
+    url: string;
+    alt?: string;
+    fitMode?: ImageFitMode;
+    frame?: ImageFrameType;
+    positionX?: number;
+    positionY?: number;
+    zoom?: number;
+    rotation?: number;
+    opacity?: number;
   };
+
+  title: string;
+  description: string;
+
+  // ✅ NEW STATIC PRICE FIELD
+  price?: number;
+
+  // ✅ NEW CART LINKING FLAG
+  addToCart?: boolean;
+
+  metadata: ListingMetadataItem[];
+
+  titleStyle?: TextStyle;
+  descriptionStyle?: TextStyle;
+  metadataStyle?: TextStyle;
+
+  cardVariant?: ListingCardVariant;
+  imageHeightPercent?: number;
+};
 };
 
 export type RichTextBlock = BaseBlock & {
@@ -588,7 +599,6 @@ export type FileShareBlock = BaseBlock & {
   };
 };
 
-
 export type SpeedDatingBlock = BaseBlock & {
   type: "speed_dating";
   data: {
@@ -597,11 +607,10 @@ export type SpeedDatingBlock = BaseBlock & {
 
     showTimer?: boolean;
 
-    // optional future-safe labels
     leftLabel?: string;
     rightLabel?: string;
 
-    roundStartSound?: "none" | "arrival" | "spark" | "commence" | "cloak" | "vanish"
+    roundStartSound?: "none" | "arrival" | "spark" | "commence" | "cloak" | "vanish";
 
     style?: TextStyle;
   };
@@ -637,6 +646,18 @@ export type CheckoutBlock = BaseBlock & {
   };
 };
 
+/* ✅ ADD THIS (NEW — REQUIRED) */
+export type CartBlock = BaseBlock & {
+  type: "cart";
+  data: {
+    heading?: string;
+    taxRate?: number;
+    discount?: number;
+    buttonText?: string;
+    style?: TextStyle;
+  };
+};
+
 export type MicrositeBlock =
   | LabelBlock
   | TextFxBlock
@@ -668,7 +689,8 @@ export type MicrositeBlock =
   | FileShareBlock
   | SpeedDatingBlock
   | RegistryBlock
-  | CheckoutBlock;
+  | CheckoutBlock
+  | CartBlock;
 
 /* =========================================
    Draft Model
@@ -966,6 +988,13 @@ function normalizeListingBlock(block: ListingBlock): ListingBlock {
       title: typeof block.data.title === "string" ? block.data.title : "",
       description:
         typeof block.data.description === "string" ? block.data.description : "",
+        price:
+        typeof block.data.price === "number" &&
+        Number.isFinite(block.data.price)
+          ? Math.max(0, block.data.price)
+          : 0,
+
+      addToCart: Boolean(block.data.addToCart),
       metadata: Array.isArray(block.data.metadata)
         ? block.data.metadata.map((item) => ({
             id:
@@ -1418,6 +1447,8 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
           },
           title: "Listing Title",
           description: "Add a short description here.",
+          price: 0,
+          addToCart: false,
           metadata: [
             { id: makeId("meta"), label: "Price", value: "$0" },
             { id: makeId("meta"), label: "Location", value: "City, State" },
@@ -1696,6 +1727,31 @@ case "speed_dating":
       leftLabel: "Men",
       rightLabel: "Women",
       roundStartSound: "spark",
+      style: createDefaultTextStyle(),
+    },
+  };
+
+  case "cart":
+  return {
+    id: makeId("cart"),
+    type: "cart",
+    label: "Cart",
+    grid: {
+      ...grid,
+      rowSpan: 4,
+    },
+    appearance: {
+      ...createDefaultBlockAppearance(),
+      backgroundColor: "#FFFFFF",
+      borderColor: "#E5E7EB",
+      borderWidth: 1,
+      borderRadius: 16,
+    },
+    data: {
+      heading: "Cart",
+      taxRate: 0,
+      discount: 0,
+      buttonText: "Checkout",
       style: createDefaultTextStyle(),
     },
   };

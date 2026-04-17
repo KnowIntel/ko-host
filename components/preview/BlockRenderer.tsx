@@ -74,11 +74,29 @@ import {
   Abril_Fatface,
 } from "next/font/google";
 
+type CartItem = {
+  id: string;
+  title: string;
+  description: string;
+  price: number;
+  quantity: number;
+};
+
 type Props = {
   block: MicrositeBlock;
   designKey?: string;
   micrositeId?: string | null;
   serverNow?: number;
+
+  cartItems?: {
+    id: string;
+    title: string;
+    description: string;
+    price: number;
+    quantity: number;
+  }[];
+
+  cartSubtotal?: number;
 };
 
 type ThreadUiMessage = ThreadMessage & {
@@ -688,6 +706,8 @@ function renderListing(
 ) {
   const image = block.data.image;
   const metadata = Array.isArray(block.data.metadata) ? block.data.metadata : [];
+  const price = typeof block.data.price === "number" ? block.data.price : 0;
+  const addToCart = !!block.data.addToCart;
   const cardVariant = block.data.cardVariant ?? "stacked";
   const imageHeightPercent = Math.max(
     20,
@@ -758,6 +778,11 @@ function renderListing(
           >
             {block.data.title || "Listing Title"}
           </div>
+          {price > 0 ? (
+            <div className="text-sm font-semibold">
+              ${price.toFixed(2)}
+            </div>
+          ) : null}
 
           {block.data.description ? (
             <div
@@ -4884,61 +4909,217 @@ alert(
   );
 }
 
-export default function BlockRenderer({
-  block,
-  designKey = "blank",
-  micrositeId = null,
-  serverNow,
-}: Props) {
-  switch (block.type) {
-    case "label":
-      return renderLabel(block, designKey);
-    case "text_fx":
-      return renderTextFx(block, designKey);
-    case "image":
-      return renderImage(block, designKey);
-    case "listing":
-      return renderListing(block, designKey);
-    case "image_carousel":
-      return renderImageCarousel(block, designKey);
-    case "form_field":
-      return renderFormField(block, designKey);
-    case "cta":
-      return renderCta(block, designKey);
-case "checkout": {
-  const data = block.data as any;
+function renderCart(
+  block: Extract<MicrositeBlock, { type: "cart" }>,
+  designKey?: string,
+  micrositeId?: string | null,
+  cartItems: CartItem[] = [],
+  cartSubtotal: number = 0,
+) {
+  const taxRate = Number(block.data.taxRate || 0);
+  const discount = Number(block.data.discount || 0);
 
-  const handleCheckout = async () => {
+  // taxRate is decimal-based: 0.07 = 7%
+  const taxAmount = cartSubtotal * taxRate;
+  const total = Math.max(0, cartSubtotal + taxAmount - discount);
+
+  const handleCartCheckout = async () => {
     try {
-      const res = await fetch("/api/checkout/create-session", {
+      const res = await fetch("/api/checkout/create-cart-session", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          blockId: block.id,       // ✅ CRITICAL: clicked block
-          micrositeId,             // ✅ CRITICAL: current microsite
+          blockId: block.id,
+          micrositeId,
         }),
       });
 
       const json = await res.json();
 
       if (!res.ok) {
-        console.error("Checkout failed:", json);
-        alert(json.error || "Checkout failed");
+        console.error("Cart checkout failed:", json);
+        alert(json.error || "Cart checkout failed");
         return;
       }
 
       if (json.url) {
         window.location.href = json.url;
+        return;
       }
+
+      alert("No checkout URL returned.");
     } catch (err) {
-      console.error("Checkout error:", err);
+      console.error("Cart checkout error:", err);
       alert("Something went wrong");
     }
   };
 
   return (
+    <Surface
+      block={block}
+      designKey={designKey}
+      className={getSoftSurfaceClass(designKey)}
+    >
+      <div className="flex h-full w-full flex-col gap-3">
+        <div
+          className="text-base font-semibold"
+          style={getContainerTextStyle(block.data.style, designKey)}
+        >
+          {block.data.heading || "Cart"}
+        </div>
+
+        <div className="flex-1 overflow-y-auto space-y-2">
+          {cartItems.length ? (
+            cartItems.map((item) => (
+              <div
+                key={item.id}
+                className="flex items-center justify-between text-sm"
+              >
+                <div className="min-w-0">
+                  <div className="truncate font-medium">{item.title}</div>
+                  <div className="text-xs opacity-60">Qty: {item.quantity}</div>
+                </div>
+
+                <div className="font-semibold">
+                  ${(item.price * item.quantity).toFixed(2)}
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="text-sm opacity-60">Cart is empty</div>
+          )}
+        </div>
+
+        <div className="space-y-1 border-t pt-3 text-sm">
+          <div className="flex justify-between">
+            <span>Subtotal</span>
+            <span>${cartSubtotal.toFixed(2)}</span>
+          </div>
+
+          {taxRate > 0 && (
+            <div className="flex justify-between">
+              <span>Tax ({(taxRate * 100).toFixed(2)}%)</span>
+              <span>${taxAmount.toFixed(2)}</span>
+            </div>
+          )}
+
+          {discount > 0 && (
+            <div className="flex justify-between">
+              <span>Discount</span>
+              <span>- ${discount.toFixed(2)}</span>
+            </div>
+          )}
+
+          <div className="flex justify-between pt-1 font-semibold">
+            <span>Total</span>
+            <span>${total.toFixed(2)}</span>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => void handleCartCheckout()}
+          disabled={!micrositeId || cartItems.length === 0}
+          className="mt-2 h-11 rounded-xl bg-neutral-900 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+          title={
+            !micrositeId
+              ? "Checkout only works on live microsites right now."
+              : cartItems.length === 0
+                ? "No cart items available."
+                : undefined
+          }
+        >
+          {!micrositeId
+            ? "Live Microsite Required"
+            : cartItems.length === 0
+              ? "Cart Empty"
+              : block.data.buttonText || "Checkout"}
+        </button>
+      </div>
+    </Surface>
+  );
+}
+
+export default function BlockRenderer({
+  block,
+  designKey,
+  micrositeId,
+  serverNow,
+
+  // 🔥 CART (SAFE)
+  cartItems = [],
+  cartSubtotal = 0,
+}: Props) {
+  switch (block.type) {
+    case "label":
+      return renderLabel(block, designKey);
+
+    case "text_fx":
+      return renderTextFx(block, designKey);
+
+    case "image":
+      return renderImage(block, designKey);
+
+    case "listing":
+      return renderListing(block, designKey);
+
+    case "image_carousel":
+      return renderImageCarousel(block, designKey);
+
+    case "form_field":
+      return renderFormField(block, designKey);
+
+case "cart": {
+  const cartBlock = block as Extract<MicrositeBlock, { type: "cart" }>;
+
+return renderCart(
+  cartBlock,
+  designKey,
+  micrositeId,
+  cartItems ?? [],
+  cartSubtotal ?? 0,
+);
+}
+
+    case "cta":
+      return renderCta(block, designKey);
+
+    case "checkout": {
+      const data = block.data as any;
+
+      const handleCheckout = async () => {
+        try {
+          const res = await fetch("/api/checkout/create-session", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              blockId: block.id,
+              micrositeId,
+            }),
+          });
+
+          const json = await res.json();
+
+          if (!res.ok) {
+            console.error("Checkout failed:", json);
+            alert(json.error || "Checkout failed");
+            return;
+          }
+
+          if (json.url) {
+            window.location.href = json.url;
+          }
+        } catch (err) {
+          console.error("Checkout error:", err);
+          alert("Something went wrong");
+        }
+      };
+
+      return (
 <Surface block={block}>
   <div className="flex h-full w-full flex-col gap-3">
     {data.imageUrl ? (

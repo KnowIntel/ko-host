@@ -328,6 +328,64 @@ export default function PlacedBlocksPreview({
     (hasMeaningfulText(descriptionValue) ||
       !!typedDraft.pageElements?.description);
 
+      const cartItems = useMemo(() => {
+
+        // 🔥 BUILD CART DATA FROM LISTINGS
+const cartItems = blockEntries
+  .map(({ block }) => {
+    if (block.type !== "listing") return null;
+
+    const data = block.data as any;
+
+    if (!data?.addToCart) return null;
+
+    return {
+      id: block.id,
+      title: data.title || "Item",
+      description: data.description || "",
+      price: typeof data.price === "number" ? data.price : 0,
+      quantity: 1,
+    };
+  })
+.filter(
+  (
+    item,
+  ): item is {
+    id: string;
+    title: string;
+    description: string;
+    price: number;
+    quantity: number;
+  } => item !== null,
+);
+
+const cartSubtotal = cartItems.reduce(
+  (sum, item) => sum + item.price * item.quantity,
+  0,
+);
+
+  return (draft.blocks || [])
+.filter(
+  (b): b is Extract<typeof b, { type: "listing" }> & {
+    data: { price: number };
+  } =>
+    b.type === "listing" &&
+    !!b.data?.addToCart &&
+    typeof b.data?.price === "number" &&
+    Number.isFinite(b.data.price) &&
+    b.data.price > 0,
+)
+    .map((b) => ({
+      id: b.id,
+      title: b.data.title || "Item",
+      description:
+        b.data.description?.trim() ||
+        `ITEM-${b.id.slice(-6).toUpperCase()}`,
+      price: b.data.price ?? 0,
+      quantity: 1,
+    }));
+}, [draft.blocks]);
+
   const blockEntries = useMemo(
     () =>
       [...(draft.blocks || [])]
@@ -358,6 +416,14 @@ export default function PlacedBlocksPreview({
     showDescription ? descriptionGrid.rowStart + descriptionGrid.rowSpan - 1 : 0,
   ];
 
+  const cartSubtotal = useMemo(() => {
+  return cartItems.reduce(
+    (sum, item) => sum + (item.price ?? 0) * item.quantity,
+    0,
+  );
+}, [cartItems]);
+
+
   const contentRowEnd = Math.max(
     ...textRowEnds,
     ...blockEntries.map((entry) => entry.rowEnd),
@@ -375,6 +441,7 @@ const previewScale = disableAutoScale
 const scaledPageWidth = logicalPageWidth * previewScale;
 const scaledPageHeight = pageHeight * previewScale;
 const shouldCenterScaledPage = true;
+
 
 return (
 <div
@@ -537,12 +604,14 @@ return (
                 pointerEvents: "auto",
               }}
             >
-              <BlockRenderer
-                block={block}
-                designKey={designKey}
-                micrositeId={micrositeId}
-                serverNow={serverNow}
-              />
+<BlockRenderer
+  block={block}
+  designKey={designKey}
+  micrositeId={micrositeId}
+  serverNow={serverNow}
+  cartItems={cartItems}
+  cartSubtotal={cartSubtotal}
+/>
             </div>
           </div>
         ))}

@@ -290,6 +290,7 @@ Premium: [
   { kind: "block", label: "Speed Dating", type: "speed_dating" },
   { kind: "block", label: "Donation", type: "donation" },
   { kind: "block", label: "Checkout", type: "checkout" },
+  { kind: "block", label: "Cart", type: "cart" },
 ],
 };
 
@@ -3910,7 +3911,16 @@ if (block.type === "gallery") {
       );
     }
 
-    
+    if (block.type === "cart") {
+  return (
+    <div className="h-full w-full">
+      <BlockRenderer
+        block={block}
+        designKey={designKey}
+      />
+    </div>
+  );
+}
 
     if (block.type === "progress_bar") {
       const max = Math.max(1, block.data.max ?? 100);
@@ -9650,349 +9660,394 @@ data: {
                   </div>
                 ) : null}
 
-                {selectedBlock?.type === "listing" ? (
-                  <div className={inspectorCardClass()}>
-                    <div className={inspectorLabelClass()}>Listing</div>
+{selectedBlock?.type === "listing" ? (
+  <div className={inspectorCardClass()}>
+    <div className={inspectorLabelClass()}>Listing</div>
 
-                    <button
-                      type="button"
-                      className="mt-3 inline-flex h-11 items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-sm text-neutral-700 hover:bg-neutral-50"
-                      onClick={() =>
-                        void uploadImageToSelectedBlock(selectedBlock.id)
-                      }
-                    >
-                      Browse Listing Image
-                    </button>
+    <button
+      type="button"
+      className="mt-3 inline-flex h-11 items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-sm text-neutral-700 hover:bg-neutral-50"
+      onClick={() =>
+        void uploadImageToSelectedBlock(selectedBlock.id)
+      }
+    >
+      Browse Listing Image
+    </button>
 
-                    <div className="mt-4">
-                      <div className={inspectorLabelClass()}>Title</div>
-                      <input
-                        type="text"
-                        value={selectedBlock.data.title}
-                        onChange={(e) =>
-                          updateSelectedBlock((block) =>
-                            block.type !== "listing"
-                              ? block
-                              : {
-                                  ...block,
-                                  data: {
-                                    ...block.data,
-                                    title: e.target.value,
-                                  },
-                                },
-                          )
-                        }
-                        className={inspectorInputClass()}
-                      />
-                    </div>
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Title</div>
+      <input
+        type="text"
+        value={selectedBlock.data.title}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "listing"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    title: e.target.value,
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
 
-                    <div className="mt-4">
-                      <div className={inspectorLabelClass()}>Description</div>
-                      <textarea
-                        value={selectedBlock.data.description}
-                        onChange={(e) =>
-                          updateSelectedBlock((block) =>
-                            block.type !== "listing"
-                              ? block
-                              : {
-                                  ...block,
-                                  data: {
-                                    ...block.data,
-                                    description: e.target.value,
-                                  },
-                                },
-                          )
-                        }
-                        className={inspectorTextareaClass()}
-                      />
-                    </div>
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Description</div>
+      <textarea
+        value={selectedBlock.data.description}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "listing"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    description: e.target.value,
+                  },
+                },
+          )
+        }
+        className={inspectorTextareaClass()}
+      />
+    </div>
 
-                    <div className="mt-4">
-                      <div className={inspectorLabelClass()}>Card Variant</div>
-                      <select
-                        value={selectedBlock.data.cardVariant ?? "stacked"}
-                        onChange={(e) =>
-                          updateSelectedBlock((block) =>
-                            block.type !== "listing"
-                              ? block
-                              : {
-                                  ...block,
-                                  data: {
-                                    ...block.data,
-                                    cardVariant: e.target.value as "stacked" | "compact",
-                                  },
-                                },
-                          )
-                        }
-                        className={inspectorInputClass()}
-                      >
-                        <option value="stacked">Stacked</option>
-                        <option value="compact">Compact</option>
-                      </select>
-                    </div>
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Price</div>
+      <input
+        type="number"
+        step="0.01"
+        min="0"
+        value={selectedBlock.data.price ?? ""}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "listing"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    price:
+                      e.target.value === ""
+                        ? 0
+                        : Math.max(0, Number(e.target.value)),
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+        placeholder="Enter price"
+      />
+    </div>
 
-                    <div className="mt-4">
-                      <div className={inspectorLabelClass()}>Image Height %</div>
-                      <input
-                        type="number"
-                        min={20}
-                        max={80}
-                        value={selectedBlock.data.imageHeightPercent ?? 50}
-                        onChange={(e) =>
-                          updateSelectedBlock((block) =>
-                            block.type !== "listing"
-                              ? block
-                              : {
-                                  ...block,
-                                  data: {
-                                    ...block.data,
-                                    imageHeightPercent: Math.max(
-                                      20,
-                                      Math.min(80, Number(e.target.value) || 50),
-                                    ),
-                                  },
-                                },
-                          )
-                        }
-                        className={inspectorInputClass()}
-                      />
-                    </div>
+    <div className="mt-4 space-y-2">
+      <label className="text-sm font-medium">Add to cart</label>
+      <label className="flex items-center gap-3 rounded-md border border-neutral-200 px-3 py-2">
+        <input
+          type="checkbox"
+          checked={!!selectedBlock.data?.addToCart}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "listing"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      addToCart: e.target.checked,
+                    },
+                  },
+            )
+          }
+          className="h-4 w-4"
+        />
+        <span className="text-sm text-neutral-700">
+          Include in Cart
+        </span>
+      </label>
+    </div>
 
-                    <div className="mt-4 grid grid-cols-1 gap-3">
-                      <div>
-                        <div className={inspectorLabelClass()}>
-                          Image Horizontal Position
-                        </div>
-                        <input
-                          type="range"
-                          min={0}
-                          max={100}
-                          value={selectedBlock.data.image.positionX ?? 50}
-                          onChange={(e) =>
-                            updateSelectedBlock((block) =>
-                              block.type !== "listing"
-                                ? block
-                                : {
-                                    ...block,
-                                    data: {
-                                      ...block.data,
-                                      image: {
-                                        ...block.data.image,
-                                        positionX: Number(e.target.value),
-                                      },
-                                    },
-                                  },
-                            )
-                          }
-                          className="mt-2 w-full"
-                        />
-                      </div>
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Card Variant</div>
+      <select
+        value={selectedBlock.data.cardVariant ?? "stacked"}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "listing"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    cardVariant: e.target.value as "stacked" | "compact",
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      >
+        <option value="stacked">Stacked</option>
+        <option value="compact">Compact</option>
+      </select>
+    </div>
 
-                      <div>
-                        <div className={inspectorLabelClass()}>
-                          Image Vertical Position
-                        </div>
-                        <input
-                          type="range"
-                          min={0}
-                          max={100}
-                          value={selectedBlock.data.image.positionY ?? 50}
-                          onChange={(e) =>
-                            updateSelectedBlock((block) =>
-                              block.type !== "listing"
-                                ? block
-                                : {
-                                    ...block,
-                                    data: {
-                                      ...block.data,
-                                      image: {
-                                        ...block.data.image,
-                                        positionY: Number(e.target.value),
-                                      },
-                                    },
-                                  },
-                            )
-                          }
-                          className="mt-2 w-full"
-                        />
-                      </div>
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Image Height %</div>
+      <input
+        type="number"
+        min={20}
+        max={80}
+        value={selectedBlock.data.imageHeightPercent ?? 50}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "listing"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    imageHeightPercent: Math.max(
+                      20,
+                      Math.min(80, Number(e.target.value) || 50),
+                    ),
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
 
-                      <div>
-                        <div className={inspectorLabelClass()}>Image Zoom</div>
-                        <input
-                          type="range"
-                          min={50}
-                          max={300}
-                          value={Math.round(
-                            (selectedBlock.data.image.zoom ?? 1) * 100,
-                          )}
-                          onChange={(e) =>
-                            updateSelectedBlock((block) =>
-                              block.type !== "listing"
-                                ? block
-                                : {
-                                    ...block,
-                                    data: {
-                                      ...block.data,
-                                      image: {
-                                        ...block.data.image,
-                                        zoom: Number(e.target.value) / 100,
-                                      },
-                                    },
-                                  },
-                            )
-                          }
-                          className="mt-2 w-full"
-                        />
-                      </div>
+    <div className="mt-5">
+      <div className={inspectorLabelClass()}>Metadata</div>
 
-                      <div>
-                        <div className={inspectorLabelClass()}>Image Rotation</div>
-                        <input
-                          type="range"
-                          min={-180}
-                          max={180}
-                          value={selectedBlock.data.image.rotation ?? 0}
-                          onChange={(e) =>
-                            updateSelectedBlock((block) =>
-                              block.type !== "listing"
-                                ? block
-                                : {
-                                    ...block,
-                                    data: {
-                                      ...block.data,
-                                      image: {
-                                        ...block.data.image,
-                                        rotation: Number(e.target.value),
-                                      },
-                                    },
-                                  },
-                            )
-                          }
-                          className="mt-2 w-full"
-                        />
-                      </div>
-                    </div>
+      <div className="mt-3 space-y-3">
+        {selectedBlock.data.metadata.map((item) => (
+          <div
+            key={item.id}
+            className="rounded-xl border border-neutral-200 bg-neutral-50 p-3"
+          >
+            <div className={inspectorLabelClass()}>Label</div>
+            <input
+              type="text"
+              value={item.label}
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "listing"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          metadata: block.data.metadata.map((entry) =>
+                            entry.id === item.id
+                              ? { ...entry, label: e.target.value }
+                              : entry,
+                          ),
+                        },
+                      },
+                )
+              }
+              className={inspectorInputClass()}
+            />
 
-                    <div className="mt-5">
-                      <div className={inspectorLabelClass()}>Metadata</div>
+            <div className="mt-4">
+              <div className={inspectorLabelClass()}>Value</div>
+              <input
+                type="text"
+                value={item.value}
+                onChange={(e) =>
+                  updateSelectedBlock((block) =>
+                    block.type !== "listing"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            metadata: block.data.metadata.map((entry) =>
+                              entry.id === item.id
+                                ? { ...entry, value: e.target.value }
+                                : entry,
+                            ),
+                          },
+                        },
+                  )
+                }
+                className={inspectorInputClass()}
+              />
+            </div>
 
-                      <div className="mt-3 space-y-3">
-                        {selectedBlock.data.metadata.map((item) => (
-                          <div
-                            key={item.id}
-                            className="rounded-xl border border-neutral-200 bg-neutral-50 p-3"
-                          >
-                            <div className={inspectorLabelClass()}>Label</div>
-                            <input
-                              type="text"
-                              value={item.label}
-                              onChange={(e) =>
-                                updateSelectedBlock((block) =>
-                                  block.type !== "listing"
-                                    ? block
-                                    : {
-                                        ...block,
-                                        data: {
-                                          ...block.data,
-                                          metadata: block.data.metadata.map((entry) =>
-                                            entry.id === item.id
-                                              ? { ...entry, label: e.target.value }
-                                              : entry,
-                                          ),
-                                        },
-                                      },
-                                )
-                              }
-                              className={inspectorInputClass()}
-                            />
-
-                            <div className="mt-4">
-                              <div className={inspectorLabelClass()}>Value</div>
-                              <input
-                                type="text"
-                                value={item.value}
-                                onChange={(e) =>
-                                  updateSelectedBlock((block) =>
-                                    block.type !== "listing"
-                                      ? block
-                                      : {
-                                          ...block,
-                                          data: {
-                                            ...block.data,
-                                            metadata: block.data.metadata.map((entry) =>
-                                              entry.id === item.id
-                                                ? { ...entry, value: e.target.value }
-                                                : entry,
-                                            ),
-                                          },
-                                        },
+            <div className="mt-3 flex justify-end">
+              <button
+                type="button"
+                className={toolSetButtonClass("remove")}
+                onClick={() =>
+                  updateSelectedBlock((block) =>
+                    block.type !== "listing"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            metadata:
+                              block.data.metadata.length > 1
+                                ? block.data.metadata.filter(
+                                    (entry) => entry.id !== item.id,
                                   )
-                                }
-                                className={inspectorInputClass()}
-                              />
-                            </div>
+                                : block.data.metadata,
+                          },
+                        },
+                  )
+                }
+                title="Remove metadata item"
+              >
+                ×
+              </button>
+            </div>
+          </div>
+        ))}
 
-                            <div className="mt-3 flex justify-end">
-                              <button
-                                type="button"
-                                className={toolSetButtonClass("remove")}
-                                onClick={() =>
-                                  updateSelectedBlock((block) =>
-                                    block.type !== "listing"
-                                      ? block
-                                      : {
-                                          ...block,
-                                          data: {
-                                            ...block.data,
-                                            metadata:
-                                              block.data.metadata.length > 1
-                                                ? block.data.metadata.filter(
-                                                    (entry) => entry.id !== item.id,
-                                                  )
-                                                : block.data.metadata,
-                                          },
-                                        },
-                                  )
-                                }
-                                title="Remove metadata item"
-                              >
-                                ×
-                              </button>
-                            </div>
-                          </div>
-                        ))}
+        <button
+          type="button"
+          className={toolSetButtonClass("front")}
+          onClick={() =>
+            updateSelectedBlock((block) =>
+              block.type !== "listing"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      metadata: [
+                        ...block.data.metadata,
+                        {
+                          id: makeClientId("meta"),
+                          label: "Label",
+                          value: "Value",
+                        },
+                      ],
+                    },
+                  },
+            )
+          }
+        >
+          Add Metadata Item
+        </button>
+      </div>
+    </div>
+  </div>
+) : selectedBlock?.type === "cart" ? (
+  <div className={inspectorCardClass()}>
+    <div className={inspectorLabelClass()}>Cart</div>
 
-                        <button
-                          type="button"
-                          className={toolSetButtonClass("front")}
-                          onClick={() =>
-                            updateSelectedBlock((block) =>
-                              block.type !== "listing"
-                                ? block
-                                : {
-                                    ...block,
-                                    data: {
-                                      ...block.data,
-                                      metadata: [
-                                        ...block.data.metadata,
-                                        {
-                                          id: makeClientId("meta"),
-                                          label: "Label",
-                                          value: "Value",
-                                        },
-                                      ],
-                                    },
-                                  },
-                            )
-                          }
-                        >
-                          Add Metadata Item
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ) : null}
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Heading</div>
+      <input
+        type="text"
+        value={selectedBlock.data.heading ?? ""}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "cart"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    heading: e.target.value,
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+        placeholder="Cart"
+      />
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Tax Rate</div>
+      <input
+        type="number"
+        step="0.01"
+        min="0"
+        value={selectedBlock.data.taxRate ?? 0}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "cart"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    taxRate:
+                      e.target.value === ""
+                        ? 0
+                        : Math.max(0, Number(e.target.value)),
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+        placeholder="0"
+      />
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Discount</div>
+      <input
+        type="number"
+        step="0.01"
+        min="0"
+        value={selectedBlock.data.discount ?? 0}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "cart"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    discount:
+                      e.target.value === ""
+                        ? 0
+                        : Math.max(0, Number(e.target.value)),
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+        placeholder="0"
+      />
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Button Text</div>
+      <input
+        type="text"
+        value={selectedBlock.data.buttonText ?? ""}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "cart"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    buttonText: e.target.value,
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+        placeholder="Checkout"
+      />
+    </div>
+  </div>
+) : null}
 
                 {selectedBlock?.type === "image" ? (
                   <div className={inspectorCardClass()}>

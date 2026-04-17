@@ -531,8 +531,7 @@ setSiteVisibility(
     Other settings on this page
   </div>
   <div className="mt-2 text-sm text-neutral-600">
-    This manage page now covers title, visibility, passcode, publish status,
-    active status, design reference, paid-until status, and direct draft editing.
+    Control your site’s visibility, access settings, publish status, design, and billing.
   </div>
 
 <div className="mt-4 flex items-center gap-3">
