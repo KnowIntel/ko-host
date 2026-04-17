@@ -31,13 +31,13 @@ export async function GET(
 
   const sb = getSupabaseAdmin();
 
-  const { data: site, error: siteErr } = await sb
-    .from("microsites")
-    .select(
-      "id, slug, title, template_key, selected_design_key, site_visibility, private_mode, is_active, is_published, paid_until, broadcast_on_homepage, owner_clerk_user_id",
-    )
-    .eq("id", micrositeId)
-    .maybeSingle();
+const { data: site, error: siteErr } = await sb
+  .from("microsites")
+  .select(
+    "id, slug, title, template_key, selected_design_key, site_visibility, private_mode, is_active, is_published, paid_until, broadcast_on_homepage, owner_clerk_user_id, stripe_account_id, stripe_charges_enabled"
+  )
+  .eq("id", micrositeId)
+  .maybeSingle();
 
   if (siteErr || !site) {
     return NextResponse.json(
@@ -55,19 +55,23 @@ export async function GET(
 
   return NextResponse.json({
     ok: true,
-    microsite: {
-      id: site.id,
-      slug: site.slug,
-      title: site.title,
-      template_key: site.template_key,
-      selected_design_key: site.selected_design_key,
-      site_visibility: site.site_visibility,
-      private_mode: site.private_mode,
-      is_active: site.is_active,
-      is_published: site.is_published,
-      paid_until: site.paid_until,
-      broadcast_on_homepage: Boolean(site.broadcast_on_homepage),
-    },
+microsite: {
+  id: site.id,
+  slug: site.slug,
+  title: site.title,
+  template_key: site.template_key,
+  selected_design_key: site.selected_design_key,
+  site_visibility: site.site_visibility,
+  private_mode: site.private_mode,
+  is_active: site.is_active,
+  is_published: site.is_published,
+  paid_until: site.paid_until,
+  broadcast_on_homepage: Boolean(site.broadcast_on_homepage),
+
+  // ✅ ADD THESE TWO LINES
+  stripe_account_id: site.stripe_account_id ?? null,
+  stripe_charges_enabled: site.stripe_charges_enabled ?? false,
+},
   });
 }
 
@@ -159,13 +163,13 @@ export async function POST(
 
   const sb = getSupabaseAdmin();
 
-  const { data: site, error: siteErr } = await sb
-    .from("microsites")
-    .select(
-      "id, slug, title, template_key, selected_design_key, site_visibility, private_mode, is_active, is_published, paid_until, broadcast_on_homepage, owner_clerk_user_id, passcode_hash",
-    )
-    .eq("id", micrositeId)
-    .maybeSingle();
+const { data: site, error: siteErr } = await sb
+  .from("microsites")
+  .select(
+    "id, slug, title, template_key, selected_design_key, site_visibility, private_mode, is_active, is_published, paid_until, broadcast_on_homepage, owner_clerk_user_id, passcode_hash, stripe_account_id, stripe_charges_enabled"
+  )
+  .eq("id", micrositeId)
+  .maybeSingle();
 
   if (siteErr || !site) {
     if (isJson) {
@@ -209,15 +213,15 @@ export async function POST(
     updatePayload.passcode_hash = site.passcode_hash ?? null;
   }
 
-  const { data: updatedSite, error: updateErr } = await sb
-    .from("microsites")
-    .update(updatePayload)
-    .eq("id", micrositeId)
-    .eq("owner_clerk_user_id", userId)
-    .select(
-      "id, slug, title, template_key, selected_design_key, site_visibility, private_mode, is_active, is_published, paid_until, broadcast_on_homepage",
-    )
-    .single();
+const { data: updatedSite, error: updateErr } = await sb
+  .from("microsites")
+  .update(updatePayload)
+  .eq("id", micrositeId)
+  .eq("owner_clerk_user_id", userId)
+  .select(
+    "id, slug, title, template_key, selected_design_key, site_visibility, private_mode, is_active, is_published, paid_until, broadcast_on_homepage, stripe_account_id, stripe_charges_enabled"
+  )
+  .single();
 
   if (updateErr || !updatedSite) {
     if (isJson) {
@@ -233,13 +237,17 @@ export async function POST(
   }
 
   if (isJson) {
-    return NextResponse.json({
-      ok: true,
-      microsite: {
-        ...updatedSite,
-        broadcast_on_homepage: Boolean(updatedSite.broadcast_on_homepage),
-      },
-    });
+return NextResponse.json({
+  ok: true,
+  microsite: {
+    ...updatedSite,
+    broadcast_on_homepage: Boolean(updatedSite.broadcast_on_homepage),
+
+    // ✅ ADD THESE TWO LINES
+    stripe_account_id: updatedSite.stripe_account_id ?? null,
+    stripe_charges_enabled: updatedSite.stripe_charges_enabled ?? false,
+  },
+});
   }
 
   return NextResponse.redirect(

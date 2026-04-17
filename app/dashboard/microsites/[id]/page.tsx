@@ -18,6 +18,8 @@ type MicrositeSettings = {
   is_published: boolean;
   paid_until: string | null;
   broadcast_on_homepage?: boolean | null;
+  stripe_account_id?: string | null;
+  stripe_charges_enabled?: boolean | null;
 };
 
 type FileShareUploadRow = {
@@ -298,6 +300,29 @@ setSiteVisibility(
     }
   }
 
+  async function openStripeDashboard() {
+  try {
+    const res = await fetch("/api/stripe/connect/dashboard", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ micrositeId: id }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || !data?.url) {
+      alert(data?.error || "Failed to open Stripe dashboard");
+      return;
+    }
+
+    window.open(data.url, "_blank");
+  } catch {
+    alert("Failed to open Stripe dashboard");
+  }
+}
+
     async function deleteUpload(uploadId: string) {
     try {
       setDeletingUploadId(uploadId);
@@ -510,7 +535,8 @@ setSiteVisibility(
     active status, design reference, paid-until status, and direct draft editing.
   </div>
 
-  <div className="mt-4">
+<div className="mt-4 flex items-center gap-3">
+  {!site?.stripe_account_id ? (
     <button
       type="button"
       onClick={handleConnectStripe}
@@ -518,7 +544,46 @@ setSiteVisibility(
     >
       Connect Stripe
     </button>
-  </div>
+  ) : !site?.stripe_charges_enabled ? (
+    <>
+      <button
+        type="button"
+        onClick={handleConnectStripe}
+        className="inline-flex items-center justify-center rounded-xl bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+      >
+        Complete Stripe Setup
+      </button>
+
+      <div className="text-xs text-yellow-600 font-medium flex items-center gap-1">
+        <span className="h-2 w-2 rounded-full bg-yellow-500" />
+        Setup incomplete
+      </div>
+    </>
+  ) : (
+    <>
+      <button
+        type="button"
+        onClick={handleConnectStripe}
+        className="inline-flex items-center justify-center rounded-xl bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+      >
+        Reconnect Stripe
+      </button>
+
+      <button
+        type="button"
+        onClick={() => void openStripeDashboard()}
+        className="inline-flex items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-900 hover:border-neutral-900"
+      >
+        View in Stripe
+      </button>
+
+      <div className="text-xs text-green-600 font-medium flex items-center gap-1">
+        <span className="h-2 w-2 rounded-full bg-green-600" />
+        Ready to accept payments
+      </div>
+    </>
+  )}
+</div>
 </div>
 
 <div className="mt-6 flex items-center gap-3">

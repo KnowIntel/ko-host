@@ -7,7 +7,7 @@ export const runtime = "nodejs";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
 function getWebhookSecret() {
@@ -25,7 +25,7 @@ export async function POST(req: Request) {
     if (!signature) {
       return NextResponse.json(
         { error: "Missing stripe-signature header" },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -37,7 +37,7 @@ export async function POST(req: Request) {
       event = stripe.webhooks.constructEvent(
         body,
         signature,
-        getWebhookSecret(),
+        getWebhookSecret()
       );
     } catch (error) {
       return NextResponse.json(
@@ -45,15 +45,19 @@ export async function POST(req: Request) {
           error: "Webhook signature verification failed",
           details: error instanceof Error ? error.message : "Unknown error",
         },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
     switch (event.type) {
+      /**
+       * ✅ CHECKOUT COMPLETED
+       */
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
 
         const stripeSessionId = session.id;
+
         const stripePaymentIntentId =
           typeof session.payment_intent === "string"
             ? session.payment_intent
@@ -83,8 +87,8 @@ export async function POST(req: Request) {
           typeof session.customer_details?.email === "string"
             ? session.customer_details.email
             : typeof session.customer_email === "string"
-              ? session.customer_email
-              : null;
+            ? session.customer_email
+            : null;
 
         const customerName =
           typeof session.customer_details?.name === "string"
@@ -124,7 +128,7 @@ export async function POST(req: Request) {
             },
             {
               onConflict: "stripe_session_id",
-            },
+            }
           );
 
         if (upsertError) {
@@ -135,7 +139,7 @@ export async function POST(req: Request) {
               error: "Failed to save checkout payment",
               details: upsertError.message,
             },
-            { status: 500 },
+            { status: 500 }
           );
         }
 
@@ -156,6 +160,37 @@ export async function POST(req: Request) {
         break;
       }
 
+      /**
+       * ✅ NEW: STRIPE ACCOUNT UPDATED (SYNC STATUS)
+       */
+      case "account.updated": {
+        const account = event.data.object as Stripe.Account;
+
+        const stripeAccountId = account.id;
+        const chargesEnabled = account.charges_enabled === true;
+
+        console.log("STRIPE ACCOUNT UPDATED", {
+          stripeAccountId,
+          chargesEnabled,
+        });
+
+        const { error } = await supabase
+          .from("microsites")
+          .update({
+            stripe_charges_enabled: chargesEnabled,
+          })
+          .eq("stripe_account_id", stripeAccountId);
+
+        if (error) {
+          console.error(
+            "Failed to update stripe_charges_enabled",
+            error
+          );
+        }
+
+        break;
+      }
+
       default:
         break;
     }
@@ -167,7 +202,7 @@ export async function POST(req: Request) {
         error: "Webhook handler failed",
         details: error instanceof Error ? error.message : "Unknown error",
       },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
