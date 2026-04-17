@@ -1,28 +1,23 @@
-// app/api/stripe/checkout/route.ts
 import Stripe from "stripe";
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
-const appUrl = process.env.NEXT_PUBLIC_APP_URL;
-const priceId = process.env.STRIPE_PRICE_ID_MICROSITE;
+const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_BASE_URL;
 
 if (!stripeSecretKey) {
   throw new Error("Missing STRIPE_SECRET_KEY");
 }
 
 if (!appUrl) {
-  throw new Error("Missing NEXT_PUBLIC_APP_URL");
+  throw new Error("Missing NEXT_PUBLIC_APP_URL or NEXT_PUBLIC_BASE_URL");
 }
 
-if (!priceId) {
-  throw new Error("Missing STRIPE_PRICE_ID_MICROSITE");
-}
+const stripe = new Stripe(stripeSecretKey);
 
-const stripe = new Stripe(stripeSecretKey, {
-  apiVersion: "2026-02-25.clover",
-});
+const MICROSITE_PRICE_CENTS = 1000; // $10.00
+const MICROSITE_CURRENCY = "usd";
 
 export async function POST(req: Request) {
   try {
@@ -63,12 +58,20 @@ export async function POST(req: Request) {
 
     const supabaseAdmin = getSupabaseAdmin();
 
-    // ============================================================
-    // ❌ REMOVED BROKEN DRAFT + SLUG LOGIC
-    // ============================================================
+    const micrositeLineItem = {
+      price_data: {
+        currency: MICROSITE_CURRENCY,
+        product_data: {
+          name: "Ko-Host Microsite",
+          description: "Publish or extend your microsite for 90 days",
+        },
+        unit_amount: MICROSITE_PRICE_CENTS,
+      },
+      quantity: 1,
+    } as const;
 
     // ============================================================
-    // PENDING CHECKOUT FLOW (PRE-CHECKOUT RESERVATION)
+    // PENDING CHECKOUT FLOW (PUBLISH NEW MICROSITE)
     // ============================================================
     if (pendingCheckoutId) {
       const { data: pendingRow, error: pendingError } = await supabaseAdmin
@@ -85,40 +88,6 @@ export async function POST(req: Request) {
         );
       }
 
-      // ----------------------------
-      // 🔥 NEW: FETCH REAL DRAFT (CORRECT KEY)
-      // ----------------------------
-      const { data: draftRow, error: draftError } = await supabaseAdmin
-        .from("microsite_drafts")
-        .select("*")
-        .eq("owner_clerk_user_id", userId)
-        .eq("template_key", pendingRow.template_key)
-        .eq("design_key", pendingRow.selected_design_key)
-        .maybeSingle();
-
-      if (draftError || !draftRow) {
-        console.error("❌ Draft not found at checkout");
-        return NextResponse.json(
-          { ok: false, error: "Draft missing" },
-          { status: 400 },
-        );
-      }
-
-      // ----------------------------
-      // 🔥 NEW: COPY DRAFT → PENDING
-      // ----------------------------
-      await supabaseAdmin
-        .from("pending_microsite_checkouts")
-        .update({
-          draft: draftRow.draft,
-        })
-        .eq("id", pendingRow.id);
-
-      console.log("✅ Draft copied to pending checkout");
-
-      // ----------------------------
-      // 🔒 EXPIRATION SAFETY
-      // ----------------------------
       if (
         pendingRow.expires_at &&
         new Date(pendingRow.expires_at) < new Date()
@@ -129,9 +98,6 @@ export async function POST(req: Request) {
         );
       }
 
-      // ----------------------------
-      // 🔒 SLUG INTEGRITY CHECK
-      // ----------------------------
       if (slug && slug !== pendingRow.slug) {
         return NextResponse.json(
           { ok: false, error: "Slug mismatch" },
@@ -139,24 +105,9 @@ export async function POST(req: Request) {
         );
       }
 
-      // ----------------------------
-      // 🔒 PREVENT DUPLICATE CHECKOUT
-      // ----------------------------
-      if (pendingRow.stripe_session_id) {
-        return NextResponse.json(
-          { ok: false, error: "Checkout already initiated" },
-          { status: 400 },
-        );
-      }
-
       const session = await stripe.checkout.sessions.create({
         mode: "payment",
-        line_items: [
-          {
-            price: priceId,
-            quantity: 1,
-          },
-        ],
+        line_items: [micrositeLineItem],
         success_url: `${appUrl}/dashboard/microsites?checkout=success&slug=${encodeURIComponent(
           pendingRow.slug,
         )}`,
@@ -164,13 +115,13 @@ export async function POST(req: Request) {
           pendingRow.slug,
         )}`,
         metadata: {
+          checkout_kind: "pending_microsite_publish",
           owner_clerk_user_id: userId,
           pending_checkout_id: pendingRow.id,
           slug: pendingRow.slug,
           title: pendingRow.title || "",
           template_key: pendingRow.template_key || "",
-          design_key:
-            pendingRow.selected_design_key || designKey || "",
+          design_key: pendingRow.design_key || "",
         },
       });
 
@@ -181,55 +132,55 @@ export async function POST(req: Request) {
         );
       }
 
-      await supabaseAdmin
-        .from("pending_microsite_checkouts")
-        .update({
-          stripe_session_id: session.id,
-        })
-        .eq("id", pendingRow.id);
+      if (contentType.includes("application/json")) {
+        return NextResponse.json({
+          ok: true,
+          url: session.url,
+        });
+      }
 
-      return NextResponse.redirect(session.url, 303);
+      return NextResponse.redirect(session.url, { status: 303 });
     }
 
     // ============================================================
-    // EXISTING MICROSITE CHECKOUT FLOW (UNCHANGED)
+    // EXISTING MICROSITE FLOW (EXTEND 90 DAYS)
     // ============================================================
     if (micrositeId) {
-      const { data: micrositeRow, error: micrositeError } =
-        await supabaseAdmin
-          .from("microsites")
-          .select("id, owner_clerk_user_id, slug, title, template_key")
-          .eq("id", micrositeId)
-          .eq("owner_clerk_user_id", userId)
-          .single();
+      const { data: microsite, error: micrositeError } = await supabaseAdmin
+        .from("microsites")
+        .select("id, slug, title, owner_clerk_user_id")
+        .eq("id", micrositeId)
+        .single();
 
-      if (micrositeError || !micrositeRow) {
+      if (micrositeError || !microsite) {
         return NextResponse.json(
-          { ok: false, error: "Invalid request" },
-          { status: 400 },
+          { ok: false, error: "Microsite not found" },
+          { status: 404 },
+        );
+      }
+
+      if (microsite.owner_clerk_user_id !== userId) {
+        return NextResponse.json(
+          { ok: false, error: "Unauthorized" },
+          { status: 401 },
         );
       }
 
       const session = await stripe.checkout.sessions.create({
         mode: "payment",
-        line_items: [
-          {
-            price: priceId,
-            quantity: 1,
-          },
-        ],
+        line_items: [micrositeLineItem],
         success_url: `${appUrl}/dashboard/microsites?checkout=success&micrositeId=${encodeURIComponent(
-          micrositeRow.id,
+          microsite.id,
         )}`,
         cancel_url: `${appUrl}/dashboard/microsites?checkout=cancel&micrositeId=${encodeURIComponent(
-          micrositeRow.id,
+          microsite.id,
         )}`,
         metadata: {
+          checkout_kind: "microsite_extend",
           owner_clerk_user_id: userId,
-          microsite_id: micrositeRow.id,
-          slug: micrositeRow.slug,
-          title: micrositeRow.title || "",
-          template_key: micrositeRow.template_key || "",
+          microsite_id: microsite.id,
+          slug: microsite.slug,
+          title: microsite.title || "",
         },
       });
 
@@ -240,19 +191,26 @@ export async function POST(req: Request) {
         );
       }
 
-      return NextResponse.redirect(session.url, 303);
+      if (contentType.includes("application/json")) {
+        return NextResponse.json({
+          ok: true,
+          url: session.url,
+        });
+      }
+
+      return NextResponse.redirect(session.url, { status: 303 });
     }
 
     return NextResponse.json(
-      { ok: false, error: "Invalid request" },
+      { ok: false, error: "Missing checkout target" },
       { status: 400 },
     );
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Unexpected server error";
-
     return NextResponse.json(
-      { ok: false, error: message },
+      {
+        ok: false,
+        error: error instanceof Error ? error.message : "Unexpected error",
+      },
       { status: 500 },
     );
   }

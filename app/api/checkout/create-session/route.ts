@@ -49,7 +49,7 @@ export async function POST(req: Request) {
 
     const { data: microsite, error: micrositeError } = await supabase
       .from("microsites")
-      .select("id, draft, slug, stripe_account_id")
+      .select("id, draft, slug, stripe_account_id, stripe_charges_enabled")
       .eq("id", micrositeId)
       .single();
 
@@ -69,6 +69,13 @@ export async function POST(req: Request) {
     if (!stripeAccountId) {
       return NextResponse.json(
         { error: "Stripe not connected" },
+        { status: 400 },
+      );
+    }
+
+    if (microsite.stripe_charges_enabled !== true) {
+      return NextResponse.json(
+        { error: "Stripe onboarding not complete" },
         { status: 400 },
       );
     }

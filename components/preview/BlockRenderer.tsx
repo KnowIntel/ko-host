@@ -4838,7 +4838,35 @@ alert(
     </div>
 
     <button
-      onClick={handleCheckout}
+      onClick={async () => {
+        try {
+          const res = await fetch("/api/checkout/create-session", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              blockId: block.id,        // ✅ CRITICAL
+              micrositeId,              // ✅ CRITICAL
+            }),
+          });
+
+          const json = await res.json();
+
+          if (!res.ok) {
+            console.error(json);
+            alert(json.error || "Checkout failed");
+            return;
+          }
+
+          if (json.url) {
+            window.location.href = json.url;
+          }
+        } catch (err) {
+          console.error(err);
+          alert("Something went wrong");
+        }
+      }}
       disabled={!micrositeId}
       className="mt-auto w-full rounded-xl bg-black py-2 text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
       title={
@@ -4888,102 +4916,97 @@ case "checkout": {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          blockId: block.id,
-          micrositeId,
+          blockId: block.id,       // ✅ CRITICAL: clicked block
+          micrositeId,             // ✅ CRITICAL: current microsite
         }),
       });
 
-      const rawText = await res.text();
-
-      let payload: any = null;
-      try {
-        payload = rawText ? JSON.parse(rawText) : null;
-      } catch {
-        payload = rawText;
-      }
+      const json = await res.json();
 
       if (!res.ok) {
-        const debugMessage = JSON.stringify(
-          {
-            status: res.status,
-            statusText: res.statusText,
-            rawText,
-            payload,
-            micrositeId: micrositeId ?? null,
-            blockId: block.id,
-          },
-          null,
-          2,
-        );
-
-        console.error("Checkout API error:\n" + debugMessage);
-
-alert(
-  typeof payload?.details === "string"
-    ? payload.details
-    : typeof payload?.error === "string"
-      ? payload.error
-      : typeof payload === "string" && payload.trim()
-        ? payload
-        : `Checkout failed (${res.status})`,
-);
-
+        console.error("Checkout failed:", json);
+        alert(json.error || "Checkout failed");
         return;
       }
 
-      if (payload?.url) {
-        window.location.href = payload.url;
-        return;
+      if (json.url) {
+        window.location.href = json.url;
       }
-
-      console.error("No checkout URL returned", {
-        rawText,
-        payload,
-      });
-      alert("No checkout URL returned.");
     } catch (err) {
       console.error("Checkout error:", err);
-      alert("Something went wrong starting checkout.");
+      alert("Something went wrong");
     }
   };
 
   return (
-    <Surface block={block}>
-      <div className="flex h-full w-full flex-col gap-3">
-        {data.imageUrl ? (
-          <img
-            src={data.imageUrl}
-            alt={data.productName}
-            className="w-full h-40 object-cover rounded-lg"
-          />
-        ) : null}
+<Surface block={block}>
+  <div className="flex h-full w-full flex-col gap-3">
+    {data.imageUrl ? (
+      <img
+        src={data.imageUrl}
+        alt={data.productName}
+        className="w-full h-40 object-cover rounded-lg"
+      />
+    ) : null}
 
-        <div className="font-semibold text-base">
-          {data.productName || "Product"}
-        </div>
+    <div className="font-semibold text-base">
+      {data.productName || "Product"}
+    </div>
 
-        {data.description ? (
-          <div className="text-sm opacity-70">
-            {data.description}
-          </div>
-        ) : null}
-
-        <div className="text-lg font-bold">
-          ${Number(data.price || 0).toFixed(2)}
-        </div>
-
-        <button
-          onClick={handleCheckout}
-          disabled={!micrositeId}
-          className="mt-auto w-full rounded-xl bg-black py-2 text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-          title={!micrositeId ? "Checkout only works on live microsites right now." : undefined}
-        >
-          {!micrositeId
-            ? "Live Microsite Required"
-            : data.buttonText || "Checkout"}
-        </button>
+    {data.description ? (
+      <div className="text-sm opacity-70">
+        {data.description}
       </div>
-    </Surface>
+    ) : null}
+
+    <div className="text-lg font-bold">
+      ${Number(data.price || 0).toFixed(2)}
+    </div>
+
+    <button
+      onClick={async () => {
+        try {
+          const res = await fetch("/api/checkout/create-session", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              blockId: block.id,        // ✅ CRITICAL
+              micrositeId,              // ✅ CRITICAL
+            }),
+          });
+
+          const json = await res.json();
+
+          if (!res.ok) {
+            console.error(json);
+            alert(json.error || "Checkout failed");
+            return;
+          }
+
+          if (json.url) {
+            window.location.href = json.url;
+          }
+        } catch (err) {
+          console.error(err);
+          alert("Something went wrong");
+        }
+      }}
+      disabled={!micrositeId}
+      className="mt-auto w-full rounded-xl bg-black py-2 text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+      title={
+        !micrositeId
+          ? "Checkout only works on live microsites right now."
+          : undefined
+      }
+    >
+      {!micrositeId
+        ? "Live Microsite Required"
+        : data.buttonText || "Checkout"}
+    </button>
+  </div>
+</Surface>
   );
 }
     case "countdown":
