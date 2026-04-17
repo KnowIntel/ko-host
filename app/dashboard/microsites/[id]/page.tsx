@@ -62,6 +62,49 @@ export default function DashboardMicrositeManagePage() {
   >("");
   const [uploadSearch, setUploadSearch] = useState("");
 
+  const [paymentsLoading, setPaymentsLoading] = useState(false);
+const [paymentsMessage, setPaymentsMessage] = useState("");
+const [payments, setPayments] = useState<any[]>([]);
+const [paymentsSummary, setPaymentsSummary] = useState<{
+  totalPayments: number;
+  grossCents: number;
+}>({
+  totalPayments: 0,
+  grossCents: 0,
+});
+
+async function loadPayments() {
+  try {
+    setPaymentsLoading(true);
+    setPaymentsMessage("");
+
+    const res = await fetch(`/api/dashboard/microsites/${id}/payments`, {
+      method: "GET",
+      cache: "no-store",
+    });
+
+    const payload = await res.json();
+
+    if (!res.ok) {
+      setPayments([]);
+      setPaymentsSummary({ totalPayments: 0, grossCents: 0 });
+      setPaymentsMessage(payload?.error || "Failed to load payments.");
+      return;
+    }
+
+    setPayments(Array.isArray(payload?.payments) ? payload.payments : []);
+    setPaymentsSummary(
+      payload?.summary ?? { totalPayments: 0, grossCents: 0 },
+    );
+  } catch {
+    setPayments([]);
+    setPaymentsSummary({ totalPayments: 0, grossCents: 0 });
+    setPaymentsMessage("Failed to load payments.");
+  } finally {
+    setPaymentsLoading(false);
+  }
+}
+
 const handleConnectStripe = async () => {
   try {
     const res = await fetch("/api/stripe/connect/start", {
@@ -112,6 +155,10 @@ const handleConnectStripe = async () => {
     alert("Failed to start Stripe onboarding.");
   }
 };
+
+useEffect(() => {
+  void loadPayments();
+}, [id]);
 
   useEffect(() => {
     let cancelled = false;
@@ -683,6 +730,103 @@ setSiteVisibility(
           </table>
         </div>
       </div>
+
+      <div className="mt-6 rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+  <div className="flex items-center justify-between gap-3">
+    <div>
+      <div className="text-sm font-semibold text-neutral-900">Payments</div>
+      <div className="mt-1 text-sm text-neutral-600">
+        Completed checkout payments for this microsite.
+      </div>
+    </div>
+
+    <button
+      type="button"
+      onClick={() => void loadPayments()}
+      disabled={paymentsLoading}
+      className="inline-flex items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-900 hover:border-neutral-900 disabled:opacity-60"
+    >
+      {paymentsLoading ? "Refreshing..." : "Refresh"}
+    </button>
+  </div>
+
+  {paymentsMessage ? (
+    <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-600">
+      {paymentsMessage}
+    </div>
+  ) : null}
+
+  <div className="mt-4 grid gap-3 md:grid-cols-2">
+    <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-4">
+      <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
+        Total Paid Orders
+      </div>
+      <div className="mt-2 text-2xl font-semibold text-neutral-900">
+        {paymentsSummary.totalPayments}
+      </div>
+    </div>
+
+    <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-4">
+      <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
+        Gross Revenue
+      </div>
+      <div className="mt-2 text-2xl font-semibold text-neutral-900">
+        ${(paymentsSummary.grossCents / 100).toFixed(2)}
+      </div>
+    </div>
+  </div>
+
+  <div className="mt-4 overflow-x-auto">
+    <table className="min-w-full divide-y divide-neutral-200 text-sm">
+      <thead>
+        <tr className="text-left text-neutral-500">
+          <th className="py-2 pr-4">Date</th>
+          <th className="py-2 pr-4">Product</th>
+          <th className="py-2 pr-4">Customer</th>
+          <th className="py-2 pr-4">Email</th>
+          <th className="py-2 pr-4">Amount</th>
+          <th className="py-2 pr-4">Status</th>
+        </tr>
+      </thead>
+      <tbody className="divide-y divide-neutral-100">
+        {payments.length ? (
+          payments.map((payment) => (
+            <tr key={payment.id}>
+              <td className="py-3 pr-4 text-neutral-700">
+                {payment.created_at
+                  ? new Date(payment.created_at).toLocaleString()
+                  : "—"}
+              </td>
+              <td className="py-3 pr-4 text-neutral-900">
+                {payment.product_name || "—"}
+              </td>
+              <td className="py-3 pr-4 text-neutral-700">
+                {payment.customer_name || "—"}
+              </td>
+              <td className="py-3 pr-4 text-neutral-700">
+                {payment.customer_email || "—"}
+              </td>
+              <td className="py-3 pr-4 text-neutral-900">
+                {typeof payment.amount_total === "number"
+                  ? `$${(payment.amount_total / 100).toFixed(2)}`
+                  : "—"}
+              </td>
+              <td className="py-3 pr-4 text-neutral-700">
+                {payment.payment_status || "—"}
+              </td>
+            </tr>
+          ))
+        ) : (
+          <tr>
+            <td colSpan={6} className="py-6 text-center text-neutral-500">
+              No payments yet.
+            </td>
+          </tr>
+        )}
+      </tbody>
+    </table>
+  </div>
+</div>
 
     </main>
   );
