@@ -1,3 +1,5 @@
+// app\api\checkout\create-session\route.ts
+
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { stripe, toCents, calcPlatformFee, getBaseUrl } from "@/lib/stripe";
@@ -66,24 +68,26 @@ export async function POST(req: Request) {
         ? microsite.stripe_account_id.trim()
         : null;
 
-    if (!stripeAccountId) {
-      return NextResponse.json(
-        { error: "Stripe not connected" },
-        { status: 400 },
-      );
-    }
+if (!stripeAccountId) {
+  return NextResponse.json(
+    { error: "Stripe not connected" },
+    { status: 400 },
+  );
+}
 
-    if (microsite.stripe_charges_enabled !== true) {
-      return NextResponse.json(
-        { error: "Stripe onboarding not complete" },
-        { status: 400 },
-      );
-    }
+const account = await stripe.accounts.retrieve(stripeAccountId);
 
-    const draft =
-      microsite.draft && typeof microsite.draft === "object"
-        ? microsite.draft
-        : null;
+if (!account.charges_enabled) {
+  return NextResponse.json(
+    { error: "Stripe onboarding not complete" },
+    { status: 400 },
+  );
+}
+
+const draft =
+  microsite.draft && typeof microsite.draft === "object"
+    ? microsite.draft
+    : null;
 
     const blocks = Array.isArray((draft as { blocks?: unknown[] } | null)?.blocks)
       ? (((draft as { blocks?: unknown[] }).blocks ?? []) as Array<any>)
