@@ -60,7 +60,11 @@ export async function POST(req: Request) {
       );
     }
 
-    const stripeAccountId = microsite.stripe_account_id ?? null;
+    const stripeAccountId =
+      typeof microsite.stripe_account_id === "string" &&
+      microsite.stripe_account_id.trim().length > 0
+        ? microsite.stripe_account_id.trim()
+        : null;
 
     if (!stripeAccountId) {
       return NextResponse.json(
@@ -74,8 +78,8 @@ export async function POST(req: Request) {
         ? microsite.draft
         : null;
 
-    const blocks = Array.isArray((draft as any)?.blocks)
-      ? ((draft as any).blocks as Array<any>)
+    const blocks = Array.isArray((draft as { blocks?: unknown[] } | null)?.blocks)
+      ? (((draft as { blocks?: unknown[] }).blocks ?? []) as Array<any>)
       : [];
 
     const checkoutBlock = blocks.find(
@@ -92,12 +96,12 @@ export async function POST(req: Request) {
     const data = checkoutBlock.data as CheckoutBlockData;
 
     const productName =
-      typeof data.productName === "string" && data.productName.trim()
+      typeof data.productName === "string" && data.productName.trim().length > 0
         ? data.productName.trim()
         : "Product";
 
     const currency =
-      typeof data.currency === "string" && data.currency.trim()
+      typeof data.currency === "string" && data.currency.trim().length > 0
         ? data.currency.trim().toLowerCase()
         : "usd";
 
@@ -117,7 +121,7 @@ export async function POST(req: Request) {
     const fee = calcPlatformFee(amount);
 
     const successTarget =
-      typeof data.redirectUrl === "string" && data.redirectUrl.trim()
+      typeof data.redirectUrl === "string" && data.redirectUrl.trim().length > 0
         ? data.redirectUrl.trim()
         : `${getBaseUrl()}/s/${microsite.slug}?checkout=success`;
 
@@ -125,33 +129,51 @@ export async function POST(req: Request) {
 
     const allowQuantity = Boolean(data.allowQuantity);
 
-    [{
-	"resource": "/c:/Users/MD/ko-host/app/api/stripe/connect/start/route.ts",
-	"owner": "typescript",
-	"code": "18004",
-	"severity": 8,
-	"message": "No value exists in scope for the shorthand property 'micrositeId'. Either declare one or provide an initializer.",
-	"source": "ts",
-	"startLineNumber": 81,
-	"startColumn": 11,
-	"endLineNumber": 81,
-	"endColumn": 22,
-	"modelVersionId": 17,
-	"origin": "extHost1"
-},{
-	"resource": "/c:/Users/MD/ko-host/app/api/stripe/connect/start/route.ts",
-	"owner": "typescript",
-	"code": "2304",
-	"severity": 8,
-	"message": "Cannot find name 'microsite'.",
-	"source": "ts",
-	"startLineNumber": 82,
-	"startColumn": 17,
-	"endLineNumber": 82,
-	"endColumn": 26,
-	"modelVersionId": 17,
-	"origin": "extHost1"
-}]
+    const rawDescription = data.description;
+    const description: string | undefined =
+      typeof rawDescription === "string" && rawDescription.trim().length > 0
+        ? rawDescription.trim()
+        : undefined;
+
+    const rawImageUrl = data.imageUrl;
+    const imageUrl: string | undefined =
+      typeof rawImageUrl === "string" && rawImageUrl.trim().length > 0
+        ? rawImageUrl.trim()
+        : undefined;
+
+    const productData: {
+      name: string;
+      description?: string;
+      images?: string[];
+    } = {
+      name: productName,
+    };
+
+    if (description !== undefined) {
+      productData.description = description;
+    }
+
+    if (imageUrl !== undefined) {
+      productData.images = [imageUrl];
+    }
+
+    try {
+      await stripe.accounts.retrieve(stripeAccountId);
+    } catch (accountError) {
+      return NextResponse.json(
+        {
+          error: "Destination account lookup failed",
+          details:
+            accountError instanceof Error
+              ? accountError.message
+              : "Unknown destination lookup error",
+          stripeAccountId,
+          micrositeId,
+          slug: microsite.slug,
+        },
+        { status: 500 },
+      );
+    }
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
@@ -159,17 +181,7 @@ export async function POST(req: Request) {
         {
           price_data: {
             currency,
-            product_data: {
-              name: productName,
-              description:
-                typeof data.description === "string" && data.description.trim()
-                  ? data.description.trim()
-                  : undefined,
-              images:
-                typeof data.imageUrl === "string" && data.imageUrl.trim()
-                  ? [data.imageUrl.trim()]
-                  : undefined,
-            },
+            product_data: productData,
             unit_amount: amount,
           },
           quantity: 1,

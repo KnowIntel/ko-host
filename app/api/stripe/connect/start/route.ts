@@ -1,44 +1,25 @@
-// app\api\stripe\connect\start\route.ts
-
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { stripe, getBaseUrl } from "@/lib/stripe";
-
-/**
- * REPLACE THESE 2 FUNCTIONS WITH YOUR REAL DB LOGIC.
- * Goal:
- * - read current user's stripe_account_id
- * - save newly created stripe_account_id
- */
 import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
 );
-
-async function getExistingStripeAccountIdForUser(
-  clerkUserId: string,
-): Promise<string | null> {
-  const { data } = await supabase
-    .from("microsites")
-    .select("stripe_account_id")
-    .eq("owner_clerk_user_id", clerkUserId)
-    .not("stripe_account_id", "is", null)
-    .limit(1)
-    .maybeSingle();
-
-  return data?.stripe_account_id ?? null;
-}
 
 async function saveStripeAccountIdForUser(
   clerkUserId: string,
   stripeAccountId: string,
 ): Promise<void> {
-  await supabase
+  const { error } = await supabase
     .from("microsites")
     .update({ stripe_account_id: stripeAccountId })
     .eq("owner_clerk_user_id", clerkUserId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
 }
 
 export async function POST() {
