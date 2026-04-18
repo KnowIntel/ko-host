@@ -328,64 +328,6 @@ export default function PlacedBlocksPreview({
     (hasMeaningfulText(descriptionValue) ||
       !!typedDraft.pageElements?.description);
 
-      const cartItems = useMemo(() => {
-
-        // 🔥 BUILD CART DATA FROM LISTINGS
-const cartItems = blockEntries
-  .map(({ block }) => {
-    if (block.type !== "listing") return null;
-
-    const data = block.data as any;
-
-    if (!data?.addToCart) return null;
-
-    return {
-      id: block.id,
-      title: data.title || "Item",
-      description: data.description || "",
-      price: typeof data.price === "number" ? data.price : 0,
-      quantity: 1,
-    };
-  })
-.filter(
-  (
-    item,
-  ): item is {
-    id: string;
-    title: string;
-    description: string;
-    price: number;
-    quantity: number;
-  } => item !== null,
-);
-
-const cartSubtotal = cartItems.reduce(
-  (sum, item) => sum + item.price * item.quantity,
-  0,
-);
-
-  return (draft.blocks || [])
-.filter(
-  (b): b is Extract<typeof b, { type: "listing" }> & {
-    data: { price: number };
-  } =>
-    b.type === "listing" &&
-    !!b.data?.addToCart &&
-    typeof b.data?.price === "number" &&
-    Number.isFinite(b.data.price) &&
-    b.data.price > 0,
-)
-    .map((b) => ({
-      id: b.id,
-      title: b.data.title || "Item",
-      description:
-        b.data.description?.trim() ||
-        `ITEM-${b.id.slice(-6).toUpperCase()}`,
-      price: b.data.price ?? 0,
-      quantity: 1,
-    }));
-}, [draft.blocks]);
-
   const blockEntries = useMemo(
     () =>
       [...(draft.blocks || [])]
@@ -409,6 +351,45 @@ const cartSubtotal = cartItems.reduce(
     [draft.blocks],
   );
 
+  const cartItems = useMemo(() => {
+    return blockEntries
+      .map(({ block }) => {
+        if (block.type !== "listing") return null;
+
+        const data = block.data as any;
+
+        if (!data?.addToCart) return null;
+        if (
+          typeof data.price !== "number" ||
+          !Number.isFinite(data.price) ||
+          data.price <= 0
+        ) {
+          return null;
+        }
+
+        return {
+          id: block.id,
+          title: data.title || "Item",
+          description:
+            data.description?.trim() ||
+            `ITEM-${block.id.slice(-6).toUpperCase()}`,
+          price: data.price,
+          quantity: 1,
+        };
+      })
+      .filter(
+        (
+          item,
+        ): item is {
+          id: string;
+          title: string;
+          description: string;
+          price: number;
+          quantity: number;
+        } => item !== null,
+      );
+  }, [blockEntries]);
+
   const textRowEnds = [
     showTitle ? titleGrid.rowStart + titleGrid.rowSpan - 1 : 0,
     showSubtitle ? subtitleGrid.rowStart + subtitleGrid.rowSpan - 1 : 0,
@@ -417,11 +398,11 @@ const cartSubtotal = cartItems.reduce(
   ];
 
   const cartSubtotal = useMemo(() => {
-  return cartItems.reduce(
-    (sum, item) => sum + (item.price ?? 0) * item.quantity,
-    0,
-  );
-}, [cartItems]);
+    return cartItems.reduce(
+      (sum, item) => sum + (item.price ?? 0) * item.quantity,
+      0,
+    );
+  }, [cartItems]);
 
 
   const contentRowEnd = Math.max(
@@ -432,11 +413,14 @@ const cartSubtotal = cartItems.reduce(
 
 const pageHeight = pageLengthConfig.pageHeight;
 
-const fitScale = Math.min(1, window.innerWidth / logicalPageWidth);
+const viewportWidth =
+  typeof window !== "undefined" ? window.innerWidth : logicalPageWidth;
+
+const fitScale = Math.min(1, viewportWidth / logicalPageWidth);
 
 const previewScale = disableAutoScale
   ? fitScale * (fixedScale ?? 1)
-  : Math.max(0.5, fitScale);
+  : fitScale;
 
 const scaledPageWidth = logicalPageWidth * previewScale;
 const scaledPageHeight = pageHeight * previewScale;
