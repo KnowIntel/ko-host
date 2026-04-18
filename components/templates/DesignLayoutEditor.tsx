@@ -644,6 +644,15 @@ function getSelectedContext(
     };
   }
 
+    if (block.type === "cart") {
+    return {
+      kind: "otherBlock",
+      blockId,
+      blockType: block.type,
+      label: block.label || "Cart",
+    };
+  }
+
   if (block.type === "video") {
     return {
       kind: "otherBlock",
