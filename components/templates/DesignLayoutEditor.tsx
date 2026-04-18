@@ -1052,6 +1052,7 @@ const selectedStyle =
   selectedBlockFromDraft?.type === "map_location" ||
   selectedBlockFromDraft?.type === "file_share" ||
   selectedBlockFromDraft?.type === "speed_dating" ||
+  selectedBlockFromDraft?.type === "cart" ||
   selectedBlockFromDraft?.type === "video" ||
   selectedBlockFromDraft?.type === "rich_text" ||
   selectedBlockFromDraft?.type === "countdown"
@@ -1101,6 +1102,7 @@ const showTextControls =
   selectedBlock?.type === "file_share" ||
   selectedBlock?.type === "speed_dating" ||
   selectedBlock?.type === "registry" ||
+  selectedBlock?.type === "cart" ||
   selectedBlock?.type === "video" ||
   selectedBlock?.type === "rich_text" ||
   selectedBlock?.type === "countdown";
@@ -1122,6 +1124,7 @@ const showAppearanceControls =
   selectedBlock?.type === "file_share" ||
   selectedBlock?.type === "speed_dating" ||
   selectedBlock?.type === "registry" ||
+  selectedBlock?.type === "cart" ||
   selectedBlock?.type === "video" ||
   selectedBlock?.type === "rich_text" ||
   selectedBlock?.type === "countdown";
@@ -1143,6 +1146,7 @@ const showBorderWidthRadiusControls =
   selectedBlock?.type === "file_share" ||
   selectedBlock?.type === "speed_dating" ||
   selectedBlock?.type === "registry" ||
+  selectedBlock?.type === "cart" ||
   selectedBlock?.type === "video" ||
   selectedBlock?.type === "rich_text" ||
   selectedBlock?.type === "countdown";
