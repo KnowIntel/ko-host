@@ -150,13 +150,18 @@ export async function POST(req: Request) {
       }
 
       const session = await stripe.checkout.sessions.create({
-        mode: "payment",
-        line_items: [
-          {
-            price: priceId,
-            quantity: 1,
+      line_items: [
+        {
+          price_data: {
+            currency: "usd",
+            product_data: {
+              name: "Ko-Host Publish",
+            },
+            unit_amount: 1200,
           },
-        ],
+          quantity: 1,
+        },
+      ],
         success_url: `${appUrl}/dashboard/microsites?checkout=success&slug=${encodeURIComponent(
           pendingRow.slug,
         )}`,
