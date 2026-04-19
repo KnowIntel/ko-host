@@ -39,6 +39,10 @@ export default function DashboardMicrositeManagePage() {
   const params = useParams();
   const id = String(params?.id || "");
 
+  const [emailSubject, setEmailSubject] = useState("");
+  const [emailMessage, setEmailMessage] = useState("");
+  const [emailStatus, setEmailStatus] = useState("");
+
   const [site, setSite] = useState<MicrositeSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -259,6 +263,39 @@ setSiteVisibility(
       setSaving(false);
     }
   }
+
+  async function sendBulkEmail() {
+  try {
+    setEmailStatus("Sending...");
+
+    const res = await fetch(
+      `/api/dashboard/microsites/${id}/send-email`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          subject: emailSubject,
+          message: emailMessage,
+        }),
+      },
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      setEmailStatus(data?.error || "Failed to send email.");
+      return;
+    }
+
+    setEmailStatus("Email sent.");
+    setEmailSubject("");
+    setEmailMessage("");
+  } catch {
+    setEmailStatus("Failed to send email.");
+  }
+}
 
   async function loadUploads() {
     try {
@@ -880,6 +917,50 @@ setSiteVisibility(
         )}
       </tbody>
     </table>
+  </div>
+</div>
+
+<div className="mt-6 rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+  <div className="text-sm font-semibold text-neutral-900">Send Email</div>
+  <div className="mt-1 text-sm text-neutral-600">
+    Send an email to customers or users of this microsite.
+  </div>
+
+  <div className="mt-5 space-y-4">
+    <div>
+      <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
+        Subject
+      </div>
+      <input
+        type="text"
+        value={emailSubject}
+        onChange={(e) => setEmailSubject(e.target.value)}
+        className="mt-2 h-11 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-900 outline-none"
+      />
+    </div>
+
+    <div>
+      <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
+        Message
+      </div>
+      <textarea
+        value={emailMessage}
+        onChange={(e) => setEmailMessage(e.target.value)}
+        className="mt-2 min-h-[120px] w-full rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 outline-none"
+      />
+    </div>
+
+    <button
+      type="button"
+      onClick={() => void sendBulkEmail()}
+      className="inline-flex items-center justify-center rounded-xl bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+    >
+      Send Email
+    </button>
+
+    {emailStatus ? (
+      <div className="text-sm text-neutral-600">{emailStatus}</div>
+    ) : null}
   </div>
 </div>
 
