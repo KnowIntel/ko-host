@@ -300,6 +300,12 @@ const CANVAS_ZOOM_STEP = 10;
 const PREVIEW_MESSAGE_TYPE = "ko-host-preview-draft";
 const PREVIEW_READY_MESSAGE_TYPE = "ko-host-preview-ready";
 const PREVIEW_RECEIVED_MESSAGE_TYPE = "ko-host-preview-received";
+function formatCurrency(value: number) {
+  return value.toLocaleString(undefined, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  });
+}
 
 const FONT_FAMILY_OPTIONS = [
   "inherit",
@@ -3988,11 +3994,16 @@ if (block.type === "gallery") {
         </div>
       );
     }
-
     if (block.type === "donation") {
-      const goal = Math.max(1, block.data.goalAmount ?? 1);
-      const current = Math.max(0, Math.min(block.data.currentAmount ?? 0, goal));
-      const percent = Math.round((current / goal) * 100);
+      const donationOptions = Array.isArray(block.data.donationOptions)
+        ? block.data.donationOptions.filter(
+            (item) =>
+              item &&
+              typeof item.amount === "number" &&
+              Number.isFinite(item.amount) &&
+              item.amount > 0,
+          )
+        : [];
 
       return (
         <div
@@ -4035,29 +4046,35 @@ if (block.type === "gallery") {
             </div>
           ) : null}
 
-          <div className="mt-4 h-4 w-full overflow-hidden rounded-full bg-neutral-200">
+          {donationOptions.length ? (
+            <div className="mt-4 flex flex-wrap gap-2">
+              {donationOptions.map((option, index) => {
+                const amount = Number(option.amount || 0);
+                const label =
+                  typeof option.label === "string" && option.label.trim().length > 0
+                    ? option.label.trim()
+                    : `$${formatCurrency(amount)}`;
+
+                return (
+                  <button
+                    key={option.id || `donation-option-${index}`}
+                    type="button"
+                    className="inline-flex h-10 items-center justify-center rounded-xl border border-neutral-900 bg-neutral-900 px-4 text-sm font-medium text-white"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
             <div
-              className="h-full rounded-full bg-neutral-900"
-              style={{ width: `${percent}%` }}
-            />
-          </div>
-
-          <div
-            className="mt-2 text-xs text-neutral-600"
-            style={getInlineTextStyle(block.data.style)}
-          >
-            ${current} raised of ${goal}
-          </div>
-
-          <div className="mt-4">
-            <button
-              type="button"
-              className="inline-flex h-10 items-center justify-center rounded-xl border border-neutral-900 bg-neutral-900 px-4 text-sm font-medium text-white"
-              onClick={(e) => e.stopPropagation()}
+              className="mt-4 rounded-xl border border-dashed border-neutral-300 bg-neutral-50 px-4 py-6 text-sm text-neutral-500"
+              style={getInlineTextStyle(block.data.style)}
             >
-              {block.data.buttonText || "Donate"}
-            </button>
-          </div>
+              Add donation buttons.
+            </div>
+          )}
         </div>
       );
     }
@@ -7476,14 +7493,124 @@ data: {
       />
     </div>
 
-    <div className="mt-4 grid grid-cols-2 gap-3">
-      <div>
-        <div className={inspectorLabelClass()}>Current Amount</div>
-        <input
-          type="number"
-          min={0}
-          value={selectedBlock.data.currentAmount ?? 0}
-          onChange={(e) =>
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Donation Buttons</div>
+
+      <div className="mt-3 space-y-3">
+        {(Array.isArray(selectedBlock.data.donationOptions)
+          ? selectedBlock.data.donationOptions
+          : []
+        ).map((option, index) => (
+          <div
+            key={option.id || `donation-option-${index}`}
+            className="rounded-xl border border-neutral-200 bg-neutral-50 p-3"
+          >
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_140px_auto]">
+              <div>
+                <div className={inspectorLabelClass()}>Button Label</div>
+                <input
+                  type="text"
+                  value={option.label ?? ""}
+                  onChange={(e) =>
+                    updateSelectedBlock((block) =>
+                      block.type !== "donation"
+                        ? block
+                        : {
+                            ...block,
+                            data: {
+                              ...block.data,
+                              donationOptions: (
+                                Array.isArray(block.data.donationOptions)
+                                  ? block.data.donationOptions
+                                  : []
+                              ).map((item) =>
+                                item.id !== option.id
+                                  ? item
+                                  : {
+                                      ...item,
+                                      label: e.target.value,
+                                    },
+                              ),
+                            },
+                          },
+                    )
+                  }
+                  className={inspectorInputClass()}
+                />
+              </div>
+
+              <div>
+                <div className={inspectorLabelClass()}>Amount</div>
+                <input
+                  type="number"
+                  min={1}
+                  step="0.01"
+                  value={option.amount ?? 0}
+                  onChange={(e) =>
+                    updateSelectedBlock((block) =>
+                      block.type !== "donation"
+                        ? block
+                        : {
+                            ...block,
+                            data: {
+                              ...block.data,
+                              donationOptions: (
+                                Array.isArray(block.data.donationOptions)
+                                  ? block.data.donationOptions
+                                  : []
+                              ).map((item) =>
+                                item.id !== option.id
+                                  ? item
+                                  : {
+                                      ...item,
+                                      amount: Math.max(
+                                        1,
+                                        Number(e.target.value) || 1,
+                                      ),
+                                    },
+                              ),
+                            },
+                          },
+                    )
+                  }
+                  className={inspectorInputClass()}
+                />
+              </div>
+
+              <div className="flex items-end">
+                <button
+                  type="button"
+                  onClick={() =>
+                    updateSelectedBlock((block) =>
+                      block.type !== "donation"
+                        ? block
+                        : {
+                            ...block,
+                            data: {
+                              ...block.data,
+                              donationOptions: (
+                                Array.isArray(block.data.donationOptions)
+                                  ? block.data.donationOptions
+                                  : []
+                              ).filter((item) => item.id !== option.id),
+                            },
+                          },
+                    )
+                  }
+                  className="inline-flex h-11 items-center justify-center rounded-xl border border-red-300 bg-white px-4 text-sm font-medium text-red-600 hover:border-red-500"
+                >
+                  Remove
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-3">
+        <button
+          type="button"
+          onClick={() =>
             updateSelectedBlock((block) =>
               block.type !== "donation"
                 ? block
@@ -7491,81 +7618,25 @@ data: {
                     ...block,
                     data: {
                       ...block.data,
-                      currentAmount: Math.max(0, Number(e.target.value) || 0),
+                      donationOptions: [
+                        ...(Array.isArray(block.data.donationOptions)
+                          ? block.data.donationOptions
+                          : []),
+                        {
+                          id: makeClientId("donationopt"),
+                          label: "$10",
+                          amount: 10,
+                        },
+                      ],
                     },
                   },
             )
           }
-          className={inspectorInputClass()}
-        />
+          className="inline-flex h-11 items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-900 hover:border-neutral-900"
+        >
+          Add Donation Button
+        </button>
       </div>
-
-      <div>
-        <div className={inspectorLabelClass()}>Goal Amount</div>
-        <input
-          type="number"
-          min={1}
-          value={selectedBlock.data.goalAmount ?? 1000}
-          onChange={(e) =>
-            updateSelectedBlock((block) =>
-              block.type !== "donation"
-                ? block
-                : {
-                    ...block,
-                    data: {
-                      ...block.data,
-                      goalAmount: Math.max(1, Number(e.target.value) || 1),
-                    },
-                  },
-            )
-          }
-          className={inspectorInputClass()}
-        />
-      </div>
-    </div>
-
-    <div className="mt-4">
-      <div className={inspectorLabelClass()}>Button Text</div>
-      <input
-        type="text"
-        value={selectedBlock.data.buttonText ?? ""}
-        onChange={(e) =>
-          updateSelectedBlock((block) =>
-            block.type !== "donation"
-              ? block
-              : {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    buttonText: e.target.value,
-                  },
-                },
-          )
-        }
-        className={inspectorInputClass()}
-      />
-    </div>
-
-    <div className="mt-4">
-      <div className={inspectorLabelClass()}>Button URL</div>
-      <input
-        type="text"
-        value={selectedBlock.data.buttonUrl ?? ""}
-        onChange={(e) =>
-          updateSelectedBlock((block) =>
-            block.type !== "donation"
-              ? block
-              : {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    buttonUrl: e.target.value,
-                  },
-                },
-          )
-        }
-        className={inspectorInputClass()}
-      />
     </div>
   </div>
 ) : null}
@@ -9950,112 +10021,6 @@ data: {
           Add Metadata Item
         </button>
       </div>
-    </div>
-  </div>
-) : selectedBlock?.type === "cart" ? (
-  <div className={inspectorCardClass()}>
-    <div className={inspectorLabelClass()}>Cart</div>
-
-    <div className="mt-4">
-      <div className={inspectorLabelClass()}>Heading</div>
-      <input
-        type="text"
-        value={selectedBlock.data.heading ?? ""}
-        onChange={(e) =>
-          updateSelectedBlock((block) =>
-            block.type !== "cart"
-              ? block
-              : {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    heading: e.target.value,
-                  },
-                },
-          )
-        }
-        className={inspectorInputClass()}
-        placeholder="Cart"
-      />
-    </div>
-
-    <div className="mt-4">
-      <div className={inspectorLabelClass()}>Tax Rate</div>
-      <input
-        type="number"
-        step="0.01"
-        min="0"
-        value={selectedBlock.data.taxRate ?? 0}
-        onChange={(e) =>
-          updateSelectedBlock((block) =>
-            block.type !== "cart"
-              ? block
-              : {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    taxRate:
-                      e.target.value === ""
-                        ? 0
-                        : Math.max(0, Number(e.target.value)),
-                  },
-                },
-          )
-        }
-        className={inspectorInputClass()}
-        placeholder="0"
-      />
-    </div>
-
-    <div className="mt-4">
-      <div className={inspectorLabelClass()}>Discount</div>
-      <input
-        type="number"
-        step="0.01"
-        min="0"
-        value={selectedBlock.data.discount ?? 0}
-        onChange={(e) =>
-          updateSelectedBlock((block) =>
-            block.type !== "cart"
-              ? block
-              : {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    discount:
-                      e.target.value === ""
-                        ? 0
-                        : Math.max(0, Number(e.target.value)),
-                  },
-                },
-          )
-        }
-        className={inspectorInputClass()}
-        placeholder="0"
-      />
-    </div>
-
-    <div className="mt-4">
-      <div className={inspectorLabelClass()}>Button Text</div>
-      <input
-        type="text"
-        value={selectedBlock.data.buttonText ?? ""}
-        onChange={(e) =>
-          updateSelectedBlock((block) =>
-            block.type !== "cart"
-              ? block
-              : {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    buttonText: e.target.value,
-                  },
-                },
-          )
-        }
-        className={inspectorInputClass()}
-        placeholder="Checkout"
-      />
     </div>
   </div>
 ) : null}

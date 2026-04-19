@@ -518,10 +518,13 @@ export type DonationBlock = BaseBlock & {
   data: {
     heading?: string;
     description?: string;
-    goalAmount?: number;
-    currentAmount?: number;
-    buttonText?: string;
-    buttonUrl?: string;
+
+    donationOptions: Array<{
+      id: string;
+      label?: string;
+      amount: number;
+    }>;
+
     style?: TextStyle;
   };
 };
@@ -1530,26 +1533,27 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
         },
       };
 
-    case "donation":
-      return {
-        id: makeId("donation"),
-        type: "donation",
-        label: "Donation",
-        grid: {
-          ...grid,
-          rowSpan: 3,
-        },
-        appearance: createDefaultBlockAppearance(),
-        data: {
-          heading: "Support This Cause",
-          description: "",
-          goalAmount: 1000,
-          currentAmount: 0,
-          buttonText: "Donate",
-          buttonUrl: "#",
-          style: createDefaultTextStyle(),
-        },
-      };
+case "donation":
+  return {
+    id: makeId("donation"),
+    type: "donation",
+    label: "Donation",
+    grid: {
+      ...grid,
+      rowSpan: 3,
+    },
+    appearance: createDefaultBlockAppearance(),
+    data: {
+      heading: "Support This Cause",
+      description: "",
+      donationOptions: [
+        { id: makeId("donationopt"), label: "$10", amount: 10 },
+        { id: makeId("donationopt"), label: "$25", amount: 25 },
+        { id: makeId("donationopt"), label: "$50", amount: 50 },
+      ],
+      style: createDefaultTextStyle(),
+    },
+  };
 
     case "link_hub":
       return {
@@ -1996,6 +2000,49 @@ roundStartSound:
   block.data.roundStartSound === "vanish"
     ? block.data.roundStartSound
     : "spark",
+
+      style: {
+        ...createDefaultTextStyle(),
+        ...(block.data.style ?? {}),
+      },
+    },
+  };
+}
+
+if (block.type === "donation") {
+  return {
+    ...block,
+    grid: normalizeGridValue(block.grid, fallbackGrid),
+    data: {
+      heading:
+        typeof block.data.heading === "string"
+          ? block.data.heading
+          : "Support This Cause",
+
+      description:
+        typeof block.data.description === "string"
+          ? block.data.description
+          : "",
+
+      donationOptions: Array.isArray(block.data.donationOptions)
+        ? block.data.donationOptions
+            .map((opt) => ({
+              id:
+                typeof opt?.id === "string" && opt.id.trim()
+                  ? opt.id
+                  : makeId("donationopt"),
+              label:
+                typeof opt?.label === "string"
+                  ? opt.label
+                  : `$${Number(opt?.amount || 0)}`,
+              amount:
+                typeof opt?.amount === "number" &&
+                Number.isFinite(opt.amount)
+                  ? Math.max(1, opt.amount)
+                  : 0,
+            }))
+            .filter((opt) => opt.amount > 0)
+        : [],
 
       style: {
         ...createDefaultTextStyle(),

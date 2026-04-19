@@ -387,10 +387,12 @@ export async function POST(req: Request) {
         // ============================================================
     // DONATION FLOW
     // ============================================================
+
+    
     if (flow === "donation") {
       const micrositeId = String(metadata.micrositeId || metadata.microsite_id || "");
       const donationLabel = String(metadata.donationLabel || "Donation");
-      const donationAmount = Number(metadata.donationAmount || 0);
+      const donationAmount = Number(session.amount_total || 0) / 100;
       const buyerEmail = String(session.customer_details?.email || "");
       const buyerName = String(session.customer_details?.name || "");
       const nowIso = new Date().toISOString();
@@ -422,6 +424,16 @@ export async function POST(req: Request) {
           { status: 404 },
         );
       }
+
+      await supabaseAdmin.from("donation_checkouts").insert({
+        stripe_session_id: session.id,
+        microsite_id: micrositeId,
+        amount: donationAmount,
+        label: donationLabel,
+        buyer_email: buyerEmail || null,
+        buyer_name: buyerName || null,
+        created_at: nowIso,
+      });
 
       let ownerEmail: string | null = null;
 

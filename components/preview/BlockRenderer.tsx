@@ -3678,16 +3678,8 @@ function renderDonation(
   designKey?: string,
   micrositeId?: string | null,
 ) {
-  const typedData = block.data as typeof block.data & {
-    donationOptions?: Array<{
-      id?: string;
-      label?: string;
-      amount?: number;
-    }>;
-  };
-
-  const donationOptions = Array.isArray(typedData.donationOptions)
-    ? typedData.donationOptions.filter(
+  const donationOptions = Array.isArray(block.data.donationOptions)
+    ? block.data.donationOptions.filter(
         (item) =>
           item &&
           typeof item.amount === "number" &&
@@ -3695,38 +3687,6 @@ function renderDonation(
           item.amount > 0,
       )
     : [];
-
-  const rawGoal = Number(block.data.goalAmount);
-  const rawCurrent = Number(block.data.currentAmount);
-
-  const hasValidGoal = Number.isFinite(rawGoal) && rawGoal > 0;
-  const hasValidCurrent = Number.isFinite(rawCurrent) && rawCurrent >= 0;
-
-  const goal = hasValidGoal ? Math.max(1, rawGoal) : 0;
-  const current =
-    hasValidGoal && hasValidCurrent ? Math.max(0, Math.min(rawCurrent, goal)) : 0;
-  const percent =
-    hasValidGoal && hasValidCurrent ? Math.round((current / goal) * 100) : 0;
-
-  const raisedText = hasValidCurrent
-    ? new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD",
-        maximumFractionDigits: 0,
-      }).format(current)
-    : "$0";
-
-  const goalText = hasValidGoal
-    ? new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD",
-        maximumFractionDigits: 0,
-      }).format(goal)
-    : "$0";
-
-  const statCardClass = isLightDesign(designKey)
-    ? "rounded-xl border border-neutral-200 bg-white px-4 py-3"
-    : "rounded-xl border border-white/10 bg-white/5 px-4 py-3";
 
   const ctaClass = isLightDesign(designKey)
     ? "inline-flex h-11 items-center justify-center rounded-xl bg-neutral-900 px-5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
@@ -3750,7 +3710,7 @@ function renderDonation(
           micrositeId,
           blockId: block.id,
           amount,
-          label: optionLabel || block.data.buttonText || "Donation",
+          label: optionLabel || `Donation $${formatCurrency(amount)}`,
         }),
       });
 
@@ -3794,71 +3754,6 @@ function renderDonation(
         >
           {block.data.description}
         </div>
-      ) : null}
-
-      {hasValidGoal && hasValidCurrent ? (
-        <>
-          <div className="mt-4 grid grid-cols-2 gap-3">
-            <div className={statCardClass}>
-              <div
-                className={`text-[11px] font-semibold uppercase tracking-[0.14em] ${getMutedTextClass(
-                  designKey,
-                )}`}
-              >
-                Raised
-              </div>
-              <div
-                className="mt-2 text-2xl font-bold leading-none"
-                style={getContainerTextStyle(block.data.style, designKey)}
-              >
-                {raisedText}
-              </div>
-            </div>
-
-            <div className={statCardClass}>
-              <div
-                className={`text-[11px] font-semibold uppercase tracking-[0.14em] ${getMutedTextClass(
-                  designKey,
-                )}`}
-              >
-                Goal
-              </div>
-              <div
-                className="mt-2 text-2xl font-bold leading-none"
-                style={getContainerTextStyle(block.data.style, designKey)}
-              >
-                {goalText}
-              </div>
-            </div>
-          </div>
-
-          <div
-            className={[
-              "mt-4 h-4 w-full overflow-hidden rounded-full",
-              isLightDesign(designKey) ? "bg-neutral-200" : "bg-white/10",
-            ].join(" ")}
-          >
-            <div
-              className={
-                isLightDesign(designKey) ? "h-full bg-neutral-900" : "h-full bg-white"
-              }
-              style={{ width: `${percent}%` }}
-            />
-          </div>
-
-          <div className="mt-2 flex items-center justify-between gap-3">
-            <div
-              className="text-xs"
-              style={getContainerTextStyle(block.data.style, designKey)}
-            >
-              {percent}% funded
-            </div>
-
-            <div className={`text-xs ${getMutedTextClass(designKey)}`}>
-              {raisedText} of {goalText}
-            </div>
-          </div>
-        </>
       ) : null}
 
       {isConfigured ? (
@@ -5303,7 +5198,7 @@ return (
     case "progress_bar":
       return renderProgressBar(block, designKey);
     case "donation":
-      return renderDonation(block, designKey);
+      return renderDonation(block, designKey, micrositeId);
     case "link_hub":
       return renderLinkHub(block, designKey);
     case "checklist":
