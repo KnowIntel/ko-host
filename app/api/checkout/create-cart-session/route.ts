@@ -71,7 +71,27 @@ export async function POST(req: Request) {
       );
     }
 
-// 🚫 Stripe Connect REMOVED — using platform Stripe
+    const stripeAccountId =
+      typeof microsite.stripe_account_id === "string" &&
+      microsite.stripe_account_id.trim().length > 0
+        ? microsite.stripe_account_id.trim()
+        : null;
+
+    if (!stripeAccountId) {
+      return NextResponse.json(
+        { error: "Stripe not connected" },
+        { status: 400 },
+      );
+    }
+
+    const account = await stripe.accounts.retrieve(stripeAccountId);
+
+    if (!account.charges_enabled) {
+      return NextResponse.json(
+        { error: "Stripe onboarding not complete" },
+        { status: 400 },
+      );
+    }
 
     const draft =
       microsite.draft && typeof microsite.draft === "object"
@@ -162,7 +182,7 @@ export async function POST(req: Request) {
         ? Math.max(0, cartData.taxRate)
         : 0;
 
-    const taxCents = Math.round(subtotal * (taxRate / 100));
+   const taxCents = Math.round(subtotal * taxRate);
 
     const discount =
   typeof cartData.discount === "number" && Number.isFinite(cartData.discount)
@@ -202,12 +222,18 @@ const adjustedTotal = Math.max(0, subtotal + taxCents - discountCents);
         enabled: false,
       },
       customer_creation: "always",
-// no transfer — platform handles payment
-    metadata: {
-    flow: "cart",
-    micrositeId,
-    blockId,
-    },
+      payment_intent_data: {
+        application_fee_amount: fee,
+        transfer_data: {
+          destination: stripeAccountId,
+        },
+      },
+      metadata: {
+        flow: "cart",
+        micrositeId,
+        blockId,
+        stripeAccountId,
+      },
     });
 
     return NextResponse.json({ url: session.url });
