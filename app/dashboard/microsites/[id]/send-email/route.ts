@@ -48,6 +48,16 @@ export async function POST(
         ? body.message.trim()
         : "";
 
+    const requestedRecipients =
+      body &&
+      typeof body === "object" &&
+      Array.isArray(body.recipients)
+        ? body.recipients
+.filter((item: unknown): item is string => typeof item === "string")
+.map((item: string) => item.trim().toLowerCase())
+            .filter(Boolean)
+        : [];
+
     if (!subject) {
       return NextResponse.json(
         { error: "Subject is required." },
@@ -58,6 +68,13 @@ export async function POST(
     if (!message) {
       return NextResponse.json(
         { error: "Message is required." },
+        { status: 400 },
+      );
+    }
+
+    if (!requestedRecipients.length) {
+      return NextResponse.json(
+        { error: "Select at least one recipient." },
         { status: 400 },
       );
     }
@@ -116,11 +133,25 @@ export async function POST(
       if (email) emailSet.add(email.toLowerCase());
     }
 
-    const recipients = Array.from(emailSet);
+const allowedRecipients = Array.from(emailSet);
+
+
+if (!allowedRecipients.length) {
+  return NextResponse.json(
+    { error: "No recipient emails found for this microsite." },
+    { status: 400 },
+  );
+}
+
+const allowedRecipientSet = new Set(allowedRecipients);
+
+const recipients = requestedRecipients.filter((email: string) =>
+  allowedRecipientSet.has(email),
+);
 
     if (!recipients.length) {
       return NextResponse.json(
-        { error: "No recipient emails found for this microsite." },
+        { error: "None of the selected recipients are valid for this microsite." },
         { status: 400 },
       );
     }

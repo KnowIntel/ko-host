@@ -35,6 +35,12 @@ type FileShareUploadRow = {
   preview_url?: string | null;
 };
 
+type EmailRecipientRow = {
+  email: string;
+  source: "cart" | "donation";
+  label: string;
+};
+
 export default function DashboardMicrositeManagePage() {
   const params = useParams();
   const id = String(params?.id || "");
@@ -43,6 +49,11 @@ export default function DashboardMicrositeManagePage() {
   const [emailMessage, setEmailMessage] = useState("");
   const [emailStatus, setEmailStatus] = useState("");
 
+  const [emailRecipients, setEmailRecipients] = useState<EmailRecipientRow[]>([]);
+  const [emailRecipientsLoading, setEmailRecipientsLoading] = useState(false);
+  const [selectedEmailRecipients, setSelectedEmailRecipients] = useState<string[]>([]);
+
+  const [selectAllEmailRecipients, setSelectAllEmailRecipients] = useState(false);
   const [site, setSite] = useState<MicrositeSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -78,6 +89,37 @@ const [paymentsSummary, setPaymentsSummary] = useState<{
   totalPayments: 0,
   grossCents: 0,
 });
+
+async function loadEmailRecipients() {
+  try {
+    setEmailRecipientsLoading(true);
+
+    const res = await fetch(
+      `/api/dashboard/microsites/${id}/email-recipients`,
+      {
+        method: "GET",
+        cache: "no-store",
+      },
+    );
+
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      setEmailRecipients([]);
+      return;
+    }
+
+    const nextRecipients = Array.isArray(data?.recipients)
+      ? data.recipients
+      : [];
+
+    setEmailRecipients(nextRecipients);
+  } catch {
+    setEmailRecipients([]);
+  } finally {
+    setEmailRecipientsLoading(false);
+  }
+}
 
 async function loadPayments() {
   try {
@@ -167,6 +209,23 @@ const res = await fetch("/api/stripe/connect/start", {
     alert("Failed to start Stripe onboarding.");
   }
 };
+
+useEffect(() => {
+  if (id) {
+    void loadEmailRecipients();
+  }
+}, [id]);
+
+useEffect(() => {
+  if (selectAllEmailRecipients) {
+    setSelectedEmailRecipients(emailRecipients.map((item) => item.email));
+  } else if (
+    emailRecipients.length > 0 &&
+    selectedEmailRecipients.length === emailRecipients.length
+  ) {
+    setSelectedEmailRecipients([]);
+  }
+}, [selectAllEmailRecipients, emailRecipients]);
 
 useEffect(() => {
   void loadPayments();
@@ -264,7 +323,15 @@ setSiteVisibility(
     }
   }
 
-  async function sendBulkEmail() {
+  function toggleEmailRecipient(email: string) {
+  setSelectedEmailRecipients((prev) =>
+    prev.includes(email)
+      ? prev.filter((item) => item !== email)
+      : [...prev, email],
+  );
+}
+
+async function sendBulkEmail() {
   try {
     setEmailStatus("Sending...");
 
@@ -278,6 +345,7 @@ setSiteVisibility(
         body: JSON.stringify({
           subject: emailSubject,
           message: emailMessage,
+          recipients: selectedEmailRecipients,
         }),
       },
     );
@@ -923,45 +991,97 @@ setSiteVisibility(
 <div className="mt-6 rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
   <div className="text-sm font-semibold text-neutral-900">Send Email</div>
   <div className="mt-1 text-sm text-neutral-600">
-    Send an email to customers or users of this microsite.
+    Select recipients for this microsite, then send your message.
   </div>
 
-  <div className="mt-5 space-y-4">
-    <div>
-      <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
-        Subject
-      </div>
+  <div className="mt-5">
+    <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
+      Recipients
+    </div>
+
+    <label className="mt-2 flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
       <input
-        type="text"
-        value={emailSubject}
-        onChange={(e) => setEmailSubject(e.target.value)}
-        className="mt-2 h-11 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-900 outline-none"
+        type="checkbox"
+        checked={selectAllEmailRecipients}
+        onChange={(e) => setSelectAllEmailRecipients(e.target.checked)}
       />
-    </div>
+      Select All
+    </label>
 
-    <div>
-      <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
-        Message
-      </div>
-      <textarea
-        value={emailMessage}
-        onChange={(e) => setEmailMessage(e.target.value)}
-        className="mt-2 min-h-[120px] w-full rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 outline-none"
-      />
+    <div className="mt-3 max-h-60 overflow-y-auto rounded-xl border border-neutral-200 bg-white">
+      {emailRecipientsLoading ? (
+        <div className="px-4 py-4 text-sm text-neutral-500">
+          Loading recipients...
+        </div>
+      ) : emailRecipients.length === 0 ? (
+        <div className="px-4 py-4 text-sm text-neutral-500">
+          No recipient emails found yet.
+        </div>
+      ) : (
+        <div className="divide-y divide-neutral-100">
+          {emailRecipients.map((recipient) => (
+            <label
+              key={`${recipient.source}-${recipient.email}`}
+              className="flex items-start gap-3 px-4 py-3 text-sm text-neutral-800"
+            >
+              <input
+                type="checkbox"
+                checked={selectedEmailRecipients.includes(recipient.email)}
+                onChange={() => toggleEmailRecipient(recipient.email)}
+                className="mt-0.5"
+              />
+              <div className="min-w-0">
+                <div className="font-medium text-neutral-900">
+                  {recipient.email}
+                </div>
+                <div className="mt-1 text-xs text-neutral-500">
+                  {recipient.label}
+                </div>
+              </div>
+            </label>
+          ))}
+        </div>
+      )}
     </div>
+  </div>
 
+  <div className="mt-5">
+    <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
+      Subject
+    </div>
+    <input
+      type="text"
+      value={emailSubject}
+      onChange={(e) => setEmailSubject(e.target.value)}
+      className="mt-2 h-11 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-900 outline-none"
+    />
+  </div>
+
+  <div className="mt-5">
+    <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
+      Message
+    </div>
+    <textarea
+      value={emailMessage}
+      onChange={(e) => setEmailMessage(e.target.value)}
+      className="mt-2 min-h-[120px] w-full rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 outline-none"
+    />
+  </div>
+
+  <div className="mt-5">
     <button
       type="button"
       onClick={() => void sendBulkEmail()}
-      className="inline-flex items-center justify-center rounded-xl bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+      disabled={!selectedEmailRecipients.length}
+      className="inline-flex items-center justify-center rounded-xl bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-60"
     >
       Send Email
     </button>
-
-    {emailStatus ? (
-      <div className="text-sm text-neutral-600">{emailStatus}</div>
-    ) : null}
   </div>
+
+  {emailStatus ? (
+    <div className="mt-3 text-sm text-neutral-600">{emailStatus}</div>
+  ) : null}
 </div>
 
     </main>
