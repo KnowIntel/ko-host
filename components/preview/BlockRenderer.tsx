@@ -3676,73 +3676,103 @@ function renderProgressBar(
 function renderDonation(
   block: Extract<MicrositeBlock, { type: "donation" }>,
   designKey?: string,
+  micrositeId?: string | null,
 ) {
+  const typedData = block.data as typeof block.data & {
+    donationOptions?: Array<{
+      id?: string;
+      label?: string;
+      amount?: number;
+    }>;
+  };
+
+  const donationOptions = Array.isArray(typedData.donationOptions)
+    ? typedData.donationOptions.filter(
+        (item) =>
+          item &&
+          typeof item.amount === "number" &&
+          Number.isFinite(item.amount) &&
+          item.amount > 0,
+      )
+    : [];
+
   const rawGoal = Number(block.data.goalAmount);
   const rawCurrent = Number(block.data.currentAmount);
 
   const hasValidGoal = Number.isFinite(rawGoal) && rawGoal > 0;
   const hasValidCurrent = Number.isFinite(rawCurrent) && rawCurrent >= 0;
 
-  if (!hasValidGoal || !hasValidCurrent) {
-    return (
-      <Surface
-        block={block}
-        designKey={designKey}
-        className={getSoftSurfaceClass(designKey)}
-      >
-        <div
-          className="text-base font-semibold"
-          style={getContainerTextStyle(block.data.style, designKey)}
-        >
-          {block.data.heading || "Support This Cause"}
-        </div>
+  const goal = hasValidGoal ? Math.max(1, rawGoal) : 0;
+  const current =
+    hasValidGoal && hasValidCurrent ? Math.max(0, Math.min(rawCurrent, goal)) : 0;
+  const percent =
+    hasValidGoal && hasValidCurrent ? Math.round((current / goal) * 100) : 0;
 
-        {block.data.description ? (
-          <div
-            className="mt-2 text-sm"
-            style={getContainerTextStyle(block.data.style, designKey)}
-          >
-            {block.data.description}
-          </div>
-        ) : null}
+  const raisedText = hasValidCurrent
+    ? new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+        maximumFractionDigits: 0,
+      }).format(current)
+    : "$0";
 
-        <div
-          className={[
-            "mt-4 rounded-xl border border-dashed px-4 py-6 text-sm",
-            isLightDesign(designKey)
-              ? "border-neutral-300 bg-neutral-50 text-neutral-500"
-              : "border-white/15 bg-white/5 text-white/60",
-          ].join(" ")}
-        >
-          Set valid donation amounts.
-        </div>
-      </Surface>
-    );
-  }
-
-  const goal = Math.max(1, rawGoal);
-  const current = Math.max(0, Math.min(rawCurrent, goal));
-  const percent = Math.round((current / goal) * 100);
-
-  const raisedText = new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  }).format(current);
-
-  const goalText = new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  }).format(goal);
+  const goalText = hasValidGoal
+    ? new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+        maximumFractionDigits: 0,
+      }).format(goal)
+    : "$0";
 
   const statCardClass = isLightDesign(designKey)
     ? "rounded-xl border border-neutral-200 bg-white px-4 py-3"
     : "rounded-xl border border-white/10 bg-white/5 px-4 py-3";
 
   const ctaClass = isLightDesign(designKey)
-    ? "inline-flex h-11 items-center justify-center rounded-xl bg-neutral-900 px-5 text-sm font-semibold text-white"
-    : "inline-flex h-11 items-center justify-center rounded-xl bg-white px-5 text-sm font-semibold text-neutral-900";
+    ? "inline-flex h-11 items-center justify-center rounded-xl bg-neutral-900 px-5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+    : "inline-flex h-11 items-center justify-center rounded-xl bg-white px-5 text-sm font-semibold text-neutral-900 disabled:cursor-not-allowed disabled:opacity-60";
+
+  const isConfigured = donationOptions.length > 0;
+
+  async function handleDonationCheckout(amount: number, optionLabel?: string) {
+    if (!micrositeId) {
+      alert("Donation checkout only works on a live microsite right now.");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/checkout/create-donation-session", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          micrositeId,
+          blockId: block.id,
+          amount,
+          label: optionLabel || block.data.buttonText || "Donation",
+        }),
+      });
+
+      const json = await res.json();
+
+      if (!res.ok) {
+        console.error("Donation checkout failed:", json);
+        alert(json.error || "Donation checkout failed");
+        return;
+      }
+
+      if (json.url) {
+        window.location.href = json.url;
+        return;
+      }
+
+      alert("No checkout URL returned.");
+    } catch (err) {
+      console.error("Donation checkout error:", err);
+      alert("Something went wrong");
+    }
+  }
 
   return (
     <Surface
@@ -3766,67 +3796,110 @@ function renderDonation(
         </div>
       ) : null}
 
-      <div className="mt-4 grid grid-cols-2 gap-3">
-        <div className={statCardClass}>
-          <div className={`text-[11px] font-semibold uppercase tracking-[0.14em] ${getMutedTextClass(designKey)}`}>
-            Raised
+      {hasValidGoal && hasValidCurrent ? (
+        <>
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            <div className={statCardClass}>
+              <div
+                className={`text-[11px] font-semibold uppercase tracking-[0.14em] ${getMutedTextClass(
+                  designKey,
+                )}`}
+              >
+                Raised
+              </div>
+              <div
+                className="mt-2 text-2xl font-bold leading-none"
+                style={getContainerTextStyle(block.data.style, designKey)}
+              >
+                {raisedText}
+              </div>
+            </div>
+
+            <div className={statCardClass}>
+              <div
+                className={`text-[11px] font-semibold uppercase tracking-[0.14em] ${getMutedTextClass(
+                  designKey,
+                )}`}
+              >
+                Goal
+              </div>
+              <div
+                className="mt-2 text-2xl font-bold leading-none"
+                style={getContainerTextStyle(block.data.style, designKey)}
+              >
+                {goalText}
+              </div>
+            </div>
           </div>
+
           <div
-            className="mt-2 text-2xl font-bold leading-none"
-            style={getContainerTextStyle(block.data.style, designKey)}
+            className={[
+              "mt-4 h-4 w-full overflow-hidden rounded-full",
+              isLightDesign(designKey) ? "bg-neutral-200" : "bg-white/10",
+            ].join(" ")}
           >
-            {raisedText}
+            <div
+              className={
+                isLightDesign(designKey) ? "h-full bg-neutral-900" : "h-full bg-white"
+              }
+              style={{ width: `${percent}%` }}
+            />
           </div>
-        </div>
 
-        <div className={statCardClass}>
-          <div className={`text-[11px] font-semibold uppercase tracking-[0.14em] ${getMutedTextClass(designKey)}`}>
-            Goal
-          </div>
-          <div
-            className="mt-2 text-2xl font-bold leading-none"
-            style={getContainerTextStyle(block.data.style, designKey)}
-          >
-            {goalText}
-          </div>
-        </div>
-      </div>
+          <div className="mt-2 flex items-center justify-between gap-3">
+            <div
+              className="text-xs"
+              style={getContainerTextStyle(block.data.style, designKey)}
+            >
+              {percent}% funded
+            </div>
 
-      <div
-        className={[
-          "mt-4 h-4 w-full overflow-hidden rounded-full",
-          isLightDesign(designKey) ? "bg-neutral-200" : "bg-white/10",
-        ].join(" ")}
-      >
+            <div className={`text-xs ${getMutedTextClass(designKey)}`}>
+              {raisedText} of {goalText}
+            </div>
+          </div>
+        </>
+      ) : null}
+
+      {isConfigured ? (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {donationOptions.map((option, index) => {
+            const amount = Number(option.amount || 0);
+            const label =
+              typeof option.label === "string" && option.label.trim().length > 0
+                ? option.label.trim()
+                : `$${formatCurrency(amount)}`;
+
+            return (
+              <button
+                key={option.id || `donation-option-${index}`}
+                type="button"
+                onClick={() => void handleDonationCheckout(amount, label)}
+                disabled={!micrositeId}
+                className={ctaClass}
+                title={
+                  !micrositeId
+                    ? "Donation checkout only works on live microsites right now."
+                    : undefined
+                }
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+      ) : (
         <div
-          className={isLightDesign(designKey) ? "h-full bg-neutral-900" : "h-full bg-white"}
-          style={{ width: `${percent}%` }}
-        />
-      </div>
-
-      <div className="mt-2 flex items-center justify-between gap-3">
-        <div
-          className="text-xs"
-          style={getContainerTextStyle(block.data.style, designKey)}
+          className={[
+            "mt-4 rounded-xl border border-dashed px-4 py-6 text-sm",
+            isLightDesign(designKey)
+              ? "border-neutral-300 bg-neutral-50 text-neutral-500"
+              : "border-white/15 bg-white/5 text-white/60",
+          ].join(" ")}
         >
-          {percent}% funded
+          Add fixed donation options in the builder.
         </div>
-
-        <div className={`text-xs ${getMutedTextClass(designKey)}`}>
-          {raisedText} of {goalText}
-        </div>
-      </div>
-
-      <div className="mt-4">
-        <a
-          href={block.data.buttonUrl || "#"}
-          target="_blank"
-          rel="noreferrer noopener"
-          className={ctaClass}
-        >
-          {block.data.buttonText || "Donate"}
-        </a>
-      </div>
+      )}
     </Surface>
   );
 }
@@ -4993,31 +5066,31 @@ function renderCart(
           )}
         </div>
 
-        <div className="space-y-1 border-t pt-3 text-sm">
-          <div className="flex justify-between">
-            <span>Subtotal</span>
-            <span>${cartSubtotal.toFixed(2)}</span>
-          </div>
+<div className="space-y-1 border-t pt-3 text-sm">
+  <div className="flex justify-between">
+    <span>Subtotal&nbsp;</span>
+    <span>${formatCurrency(cartSubtotal)}</span>
+  </div>
 
-          {taxRate > 0 ? (
-            <div className="flex justify-between">
-              <span>Tax ({(taxRate * 100).toFixed(2)}%)</span>
-              <span>${formatCurrency(taxAmount)}</span>
-            </div>
-          ) : null}
+  {taxRate > 0 ? (
+    <div className="flex justify-between">
+      <span>Tax ({(taxRate * 100).toFixed(2)}%)&nbsp;</span>
+      <span>${formatCurrency(taxAmount)}</span>
+    </div>
+  ) : null}
 
-          {discount > 0 ? (
-            <div className="flex justify-between">
-              <span>Discount</span>
-              <span>- ${formatCurrency(discount)}</span>
-            </div>
-          ) : null}
+  {discount > 0 ? (
+    <div className="flex justify-between">
+      <span>Discount&nbsp;</span>
+      <span>- ${formatCurrency(discount)}</span>
+    </div>
+  ) : null}
 
-          <div className="flex justify-between pt-1 font-semibold">
-            <span>Total</span>
-            <span>${total.toFixed(2)}</span>
-          </div>
-        </div>
+  <div className="flex justify-between pt-1 font-semibold">
+    <span>Total&nbsp;</span>
+    <span>${formatCurrency(total)}</span>
+  </div>
+</div>
 
         <button
           type="button"

@@ -26,6 +26,13 @@ const verifiedStripeSecretKey: string = stripeSecretKey;
 const verifiedWebhookSecret: string = webhookSecret;
 const verifiedAppUrl: string = appUrl;
 
+function formatCurrency(n: number) {
+  return new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(n);
+}
+
 const stripe = new Stripe(verifiedStripeSecretKey, {
   apiVersion: "2026-02-25.clover",
 });
@@ -253,7 +260,7 @@ export async function POST(req: Request) {
           timeZone: "America/New_York",
         });
 
-        const emailHtml = `
+        const buildEmailHtml = (headingText: string) => `
 <div style="font-family:Arial,sans-serif;background:#f9f9f9;padding:20px;">
   <div style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:10px;overflow:hidden;">
     <div style="background:#000;color:#fff;padding:16px 20px;">
@@ -271,7 +278,7 @@ export async function POST(req: Request) {
 
     <div style="padding:20px;">
       <p style="margin:0 0 16px 0;font-size:14px;">
-        Thank you for your purchase!
+        ${headingText}
       </p>
 
       <div style="background:#f6f6f6;border-radius:8px;padding:12px;margin-bottom:16px;font-size:13px;">
@@ -290,31 +297,34 @@ export async function POST(req: Request) {
             return `
               <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:14px;">
                 <span>${name} × ${qty}</span>
-                <span>$${lineTotal.toFixed(2)}</span>
+                <span>$${formatCurrency(lineTotal)}</span>
               </div>
             `;
           })
           .join("")}
       </div>
 
-      <div style="border-top:1px solid #eee;padding-top:12px;font-size:14px;">
-        <div style="display:flex;justify-content:space-between;">
-          <span>Subtotal</span>
-          <span>$${Number(cartRow.subtotal || 0).toFixed(2)}</span>
-        </div>
-        <div style="display:flex;justify-content:space-between;">
-          <span>Tax</span>
-          <span>$${Number(cartRow.tax || 0).toFixed(2)}</span>
-        </div>
-        <div style="display:flex;justify-content:space-between;">
-          <span>Discount</span>
-          <span>-$${Number(cartRow.discount || 0).toFixed(2)}</span>
-        </div>
-        <div style="display:flex;justify-content:space-between;font-weight:bold;margin-top:8px;">
-          <span>Total</span>
-          <span>$${Number(cartRow.total || 0).toFixed(2)}</span>
-        </div>
-      </div>
+<div style="border-top:1px solid #eee;padding-top:12px;font-size:14px;">
+  <div style="display:flex;justify-content:space-between;">
+    <span>Subtotal&nbsp;</span>
+    <span>$${formatCurrency(Number(cartRow.subtotal || 0))}</span>
+  </div>
+
+  <div style="display:flex;justify-content:space-between;">
+    <span>Tax&nbsp;</span>
+    <span>$${formatCurrency(Number(cartRow.tax || 0))}</span>
+  </div>
+
+  <div style="display:flex;justify-content:space-between;">
+    <span>Discount&nbsp;</span>
+    <span>- $${formatCurrency(Number(cartRow.discount || 0))}</span>
+  </div>
+
+  <div style="display:flex;justify-content:space-between;font-weight:bold;margin-top:8px;">
+    <span>Total&nbsp;</span>
+    <span>$${formatCurrency(Number(cartRow.total || 0))}</span>
+  </div>
+</div>
 
       <div style="margin-top:20px;">
         <a
@@ -333,6 +343,9 @@ export async function POST(req: Request) {
 </div>
 `;
 
+        const buyerEmailHtml = buildEmailHtml("Thank you for your purchase!");
+        const ownerEmailHtml = buildEmailHtml("You’ve received a new order");
+
         if (process.env.RESEND_API_KEY && buyerEmail) {
           await fetch("https://api.resend.com/emails", {
             method: "POST",
@@ -344,7 +357,7 @@ export async function POST(req: Request) {
               from: `${siteTitle} <no-reply@ko-host.com>`,
               to: buyerEmail,
               subject: `${siteTitle} — Purchase Confirmation`,
-              html: emailHtml,
+              html: buyerEmailHtml,
             }),
           });
         }
@@ -360,12 +373,169 @@ export async function POST(req: Request) {
               from: "Ko-Host <no-reply@ko-host.com>",
               to: ownerEmail,
               subject: `New Purchase on ${siteTitle}`,
-              html: emailHtml,
+              html: ownerEmailHtml,
             }),
           });
         }
       } catch (err) {
         console.error("EMAIL SEND FAILED", err);
+      }
+
+      return NextResponse.json({ ok: true });
+    }
+
+        // ============================================================
+    // DONATION FLOW
+    // ============================================================
+    if (flow === "donation") {
+      const micrositeId = String(metadata.micrositeId || metadata.microsite_id || "");
+      const donationLabel = String(metadata.donationLabel || "Donation");
+      const donationAmount = Number(metadata.donationAmount || 0);
+      const buyerEmail = String(session.customer_details?.email || "");
+      const buyerName = String(session.customer_details?.name || "");
+      const nowIso = new Date().toISOString();
+
+      if (!micrositeId) {
+        console.error("STRIPE WEBHOOK ERROR: Missing donation micrositeId", {
+          sessionId: session.id,
+          metadata,
+        });
+        return NextResponse.json(
+          { ok: false, error: "Missing donation micrositeId" },
+          { status: 400 },
+        );
+      }
+
+      const { data: microsite, error: micrositeLookupError } = await supabaseAdmin
+        .from("microsites")
+        .select("id, slug, title, homepage_thumbnail_url, owner_clerk_user_id")
+        .eq("id", micrositeId)
+        .maybeSingle();
+
+      if (micrositeLookupError || !microsite) {
+        console.error(
+          "STRIPE WEBHOOK ERROR: Donation microsite lookup failed",
+          micrositeLookupError,
+        );
+        return NextResponse.json(
+          { ok: false, error: "Donation microsite not found" },
+          { status: 404 },
+        );
+      }
+
+      let ownerEmail: string | null = null;
+
+      try {
+        const ownerId = microsite.owner_clerk_user_id || "";
+
+        if (ownerId && process.env.CLERK_SECRET_KEY) {
+          const clerkRes = await fetch(
+            `https://api.clerk.com/v1/users/${ownerId}`,
+            {
+              headers: {
+                Authorization: `Bearer ${process.env.CLERK_SECRET_KEY}`,
+              },
+            },
+          );
+
+          if (clerkRes.ok) {
+            const clerkData = await clerkRes.json();
+            ownerEmail =
+              clerkData?.email_addresses?.[0]?.email_address || null;
+          } else {
+            console.error("OWNER EMAIL FETCH FAILED", {
+              status: clerkRes.status,
+              ownerId,
+            });
+          }
+        }
+      } catch (err) {
+        console.error("OWNER EMAIL FETCH FAILED", err);
+      }
+
+      try {
+        const siteTitle = microsite.title || microsite.slug || "Ko-Host Site";
+        const siteImage = microsite.homepage_thumbnail_url || "";
+        const donatedAt = new Date(nowIso).toLocaleString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+          timeZone: "America/New_York",
+        });
+
+        const buildDonationEmailHtml = (headingText: string) => `
+<div style="font-family:Arial,sans-serif;background:#f9f9f9;padding:20px;">
+  <div style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:10px;overflow:hidden;">
+    <div style="background:#000;color:#fff;padding:16px 20px;">
+      <div style="font-size:18px;font-weight:bold;">
+        ${siteTitle}
+      </div>
+      <div style="font-size:12px;opacity:0.7;">
+        Powered by Ko-Host
+      </div>
+    </div>
+
+    ${siteImage ? `
+    <img src="${siteImage}" style="width:100%;height:auto;display:block;" />
+    ` : ""}
+
+    <div style="padding:20px;">
+      <p style="margin:0 0 16px 0;font-size:14px;">
+        ${headingText}
+      </p>
+
+      <div style="background:#f6f6f6;border-radius:8px;padding:12px;margin-bottom:16px;font-size:13px;">
+        <div style="margin-bottom:6px;"><strong>Donation Type:</strong> ${donationLabel}</div>
+        <div style="margin-bottom:6px;"><strong>Amount:</strong> $${formatCurrency(donationAmount)}</div>
+        <div><strong>Date:</strong> ${donatedAt}</div>
+      </div>
+
+      <p style="margin-top:20px;font-size:12px;color:#666;">
+        Powered by Ko-Host
+      </p>
+    </div>
+  </div>
+</div>
+`;
+
+        const buyerEmailHtml = buildDonationEmailHtml("Thank you for your donation!");
+        const ownerEmailHtml = buildDonationEmailHtml("You’ve received a new donation");
+
+        if (process.env.RESEND_API_KEY && buyerEmail) {
+          await fetch("https://api.resend.com/emails", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              from: `${siteTitle} <no-reply@ko-host.com>`,
+              to: buyerEmail,
+              subject: `${siteTitle} — Donation Confirmation`,
+              html: buyerEmailHtml,
+            }),
+          });
+        }
+
+        if (process.env.RESEND_API_KEY && ownerEmail) {
+          await fetch("https://api.resend.com/emails", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              from: "Ko-Host <no-reply@ko-host.com>",
+              to: ownerEmail,
+              subject: `New Donation on ${siteTitle}`,
+              html: ownerEmailHtml,
+            }),
+          });
+        }
+      } catch (err) {
+        console.error("DONATION EMAIL SEND FAILED", err);
       }
 
       return NextResponse.json({ ok: true });
