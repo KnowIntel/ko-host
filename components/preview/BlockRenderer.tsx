@@ -775,38 +775,33 @@ function renderListing(
           )}
         </div>
 
-        <div className="flex min-w-0 flex-1 flex-col gap-2 p-3">
-          <div
-            className="font-semibold"
-            style={getContainerTextStyle(block.data.titleStyle, designKey)}
-          >
-            {block.data.title || "Listing Title"}
-          </div>
-          {price > 0 ? (
-            <div className="text-sm font-semibold">
-              ${formatCurrency(price)}
-            </div>
-          ) : null}
+<div className="flex min-w-0 flex-1 flex-col gap-2 p-3">
+  <div
+    className="font-semibold"
+    style={getContainerTextStyle(block.data.titleStyle, designKey)}
+  >
+    {block.data.title || "Listing Title"}
+  </div>
 
-          {isSelectable ? (
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={isSelected}
-                onChange={(e) => {
-                  e.stopPropagation();
-                  onToggleListingInCart?.(block.id, e.target.checked);
-                }}
-              />
-              Include in cart
-            </label>
-          ) : null}
+  {price > 0 ? (
+    <div className="text-sm font-semibold">
+      ${formatCurrency(price)}
+    </div>
+  ) : null}
 
-          {price > 0 ? (
-            <div className="text-sm font-semibold">
-              ${formatCurrency(price)}
-            </div>
-          ) : null}
+  {isSelectable ? (
+    <label className="flex items-center gap-2 text-sm">
+      <input
+        type="checkbox"
+        checked={isSelected}
+        onChange={(e) => {
+          e.stopPropagation();
+          onToggleListingInCart?.(block.id, e.target.checked);
+        }}
+      />
+      Include in cart
+    </label>
+  ) : null}
 
           {isSelectable ? (
             <label className="flex items-center gap-2 text-sm">
@@ -899,25 +894,45 @@ function renderListing(
           )}
         </div>
 
-        <div className="flex min-h-0 flex-1 flex-col gap-2 p-3">
-          <div
-            className="font-semibold"
-            style={getContainerTextStyle(block.data.titleStyle, designKey)}
-          >
-            {block.data.title || "Listing Title"}
-          </div>
+<div className="flex min-h-0 flex-1 flex-col gap-2 p-3">
+  <div
+    className="font-semibold"
+    style={getContainerTextStyle(block.data.titleStyle, designKey)}
+  >
+    {block.data.title || "Listing Title"}
+  </div>
 
-          {block.data.description ? (
-            <div
-              className="text-sm"
-              style={getContainerTextStyle(
-                block.data.descriptionStyle,
-                designKey,
-              )}
-            >
-              {block.data.description}
-            </div>
-          ) : null}
+  {price > 0 ? (
+    <div className="text-sm font-semibold">
+      ${formatCurrency(price)}
+    </div>
+  ) : null}
+
+  {isSelectable ? (
+    <label className="flex items-center gap-2 text-sm">
+      <input
+        type="checkbox"
+        checked={isSelected}
+        onChange={(e) => {
+          e.stopPropagation();
+          onToggleListingInCart?.(block.id, e.target.checked);
+        }}
+      />
+      Include in cart
+    </label>
+  ) : null}
+
+  {block.data.description ? (
+    <div
+      className="text-sm"
+      style={getContainerTextStyle(
+        block.data.descriptionStyle,
+        designKey,
+      )}
+    >
+      {block.data.description}
+    </div>
+  ) : null}
 
           {metadata.length ? (
             <div className="mt-auto flex flex-wrap gap-x-3 gap-y-1">
@@ -5090,13 +5105,13 @@ export default function BlockRenderer({
     case "image":
       return renderImage(block, designKey);
 
-    case "listing":
-      return renderListing(
-        block,
-        designKey,
-        safeSelectedListingIds,
-        onToggleListingInCart,
-      );
+case "listing":
+  return renderListing(
+    block,
+    designKey,
+    safeSelectedListingIds,
+    onToggleListingInCart,
+  );
 
     case "image_carousel":
       return renderImageCarousel(block, designKey);
