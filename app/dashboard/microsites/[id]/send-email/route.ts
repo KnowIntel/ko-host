@@ -191,6 +191,7 @@ ${message}
       },
       body: JSON.stringify({
         from: `${siteTitle} <no-reply@ko-host.com>`,
+        to: "no-reply@ko-host.com",
         bcc: recipients,
         subject,
         html,
@@ -200,6 +201,11 @@ ${message}
     const resendPayload = await resendRes.json().catch(() => null);
 
     if (!resendRes.ok) {
+      console.error("RESEND BULK EMAIL ERROR", {
+        status: resendRes.status,
+        resendPayload,
+      });
+
       return NextResponse.json(
         {
           error:
@@ -211,17 +217,22 @@ ${message}
       );
     }
 
-    return NextResponse.json({
-      ok: true,
-      recipientCount: recipients.length,
-    });
-  } catch (error) {
-    return NextResponse.json(
-      {
-        error:
-          error instanceof Error ? error.message : "Unexpected server error",
-      },
-      { status: 500 },
-    );
-  }
+return NextResponse.json({
+  ok: true,
+  recipientCount: recipients.length,
+});
+} catch (error) {
+  console.error("SEND EMAIL API ERROR", error);
+
+  return NextResponse.json(
+    {
+      error:
+        error instanceof Error
+          ? error.message
+          : "Unexpected server error",
+      details: error,
+    },
+    { status: 500 },
+  );
+}
 }

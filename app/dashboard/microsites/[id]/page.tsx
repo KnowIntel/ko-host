@@ -350,18 +350,41 @@ async function sendBulkEmail() {
       },
     );
 
-    const data = await res.json();
+    const rawText = await res.text();
+
+    let data: any = null;
+    try {
+      data = rawText ? JSON.parse(rawText) : null;
+    } catch {
+      data = rawText;
+    }
 
     if (!res.ok) {
-      setEmailStatus(data?.error || "Failed to send email.");
+      console.error("Send email failed:", {
+        status: res.status,
+        statusText: res.statusText,
+        rawText,
+        data,
+      });
+
+      setEmailStatus(
+        typeof data?.error === "string"
+          ? data.error
+          : typeof data === "string" && data
+            ? data
+            : "Failed to send email.",
+      );
       return;
     }
 
     setEmailStatus("Email sent.");
     setEmailSubject("");
     setEmailMessage("");
-  } catch {
-    setEmailStatus("Failed to send email.");
+  } catch (error) {
+    console.error("Send email request failed:", error);
+    setEmailStatus(
+      error instanceof Error ? error.message : "Failed to send email.",
+    );
   }
 }
 
