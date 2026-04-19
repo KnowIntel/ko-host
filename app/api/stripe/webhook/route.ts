@@ -2,11 +2,13 @@
 import Stripe from "stripe";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
+import { randomUUID } from "crypto";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { generateMicrositeThumbnail } from "@/lib/screenshotMicrosite";
 
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+const appUrl = process.env.NEXT_PUBLIC_APP_URL;
 
 if (!stripeSecretKey) {
   throw new Error("Missing STRIPE_SECRET_KEY");
@@ -16,8 +18,13 @@ if (!webhookSecret) {
   throw new Error("Missing STRIPE_WEBHOOK_SECRET");
 }
 
+if (!appUrl) {
+  throw new Error("Missing NEXT_PUBLIC_APP_URL");
+}
+
 const verifiedStripeSecretKey: string = stripeSecretKey;
 const verifiedWebhookSecret: string = webhookSecret;
+const verifiedAppUrl: string = appUrl;
 
 const stripe = new Stripe(verifiedStripeSecretKey, {
   apiVersion: "2026-02-25.clover",
@@ -28,6 +35,19 @@ function addDaysIsoFrom(baseIso: string | null, days: number) {
   const next = new Date(base);
   next.setDate(next.getDate() + days);
   return next.toISOString();
+}
+
+function makeReceiptNumber(nowIso: string, sessionId: string) {
+  const d = new Date(nowIso);
+  const yyyy = d.getUTCFullYear();
+  const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
+  const dd = String(d.getUTCDate()).padStart(2, "0");
+  const tail = sessionId.slice(-6).toUpperCase();
+  return `R-${yyyy}${mm}${dd}-${tail}`;
+}
+
+function makeOrderId(sessionId: string) {
+  return `ord_${sessionId.slice(-12)}`;
 }
 
 export async function POST(req: Request) {
@@ -44,6 +64,12 @@ export async function POST(req: Request) {
     }
 
     let event: Stripe.Event;
+
+    console.log("WEBHOOK SECRET DEBUG", {
+      hasSecret: !!verifiedWebhookSecret,
+      secretPrefix: verifiedWebhookSecret.slice(0, 12),
+      secretLength: verifiedWebhookSecret.length,
+    });
 
     try {
       event = stripe.webhooks.constructEvent(
@@ -95,6 +121,255 @@ export async function POST(req: Request) {
     });
 
     const supabaseAdmin = getSupabaseAdmin();
+
+    // ============================================================
+    // CART FLOW
+    // ============================================================
+    if (flow === "cart") {
+      const { data: cartRow, error: cartLookupError } = await supabaseAdmin
+        .from("cart_checkouts")
+        .select("*")
+        .eq("stripe_session_id", session.id)
+        .maybeSingle();
+
+      if (cartLookupError) {
+        console.error(
+          "STRIPE WEBHOOK ERROR: Cart checkout lookup failed",
+          cartLookupError,
+        );
+        return NextResponse.json(
+          { ok: false, error: "Cart checkout lookup failed" },
+          { status: 500 },
+        );
+      }
+
+      if (!cartRow) {
+        console.error("STRIPE WEBHOOK ERROR: Cart checkout not found", {
+          sessionId: session.id,
+        });
+        return NextResponse.json({ ok: true });
+      }
+
+      if (cartRow.payment_status === "paid") {
+        return NextResponse.json({ ok: true, alreadyProcessed: true });
+      }
+
+      const nowIso = new Date().toISOString();
+      const buyerEmail = String(session.customer_details?.email || "");
+      const buyerName = String(session.customer_details?.name || "");
+      const orderId =
+        typeof cartRow.order_id === "string" && cartRow.order_id
+          ? cartRow.order_id
+          : makeOrderId(session.id);
+      const receiptNumber =
+        typeof cartRow.receipt_number === "string" && cartRow.receipt_number
+          ? cartRow.receipt_number
+          : makeReceiptNumber(nowIso, session.id);
+      const receiptToken =
+        typeof cartRow.receipt_token === "string" && cartRow.receipt_token
+          ? cartRow.receipt_token
+          : randomUUID();
+
+      const { error: cartUpdateError } = await supabaseAdmin
+        .from("cart_checkouts")
+        .update({
+          payment_status: "paid",
+          completed_at: nowIso,
+          buyer_email: buyerEmail || null,
+          buyer_name: buyerName || null,
+          order_id: orderId,
+          receipt_number: receiptNumber,
+          receipt_token: receiptToken,
+        })
+        .eq("stripe_session_id", session.id);
+
+      if (cartUpdateError) {
+        console.error(
+          "STRIPE WEBHOOK ERROR: Cart checkout update failed",
+          cartUpdateError,
+        );
+        return NextResponse.json(
+          { ok: false, error: "Failed to mark cart checkout paid" },
+          { status: 500 },
+        );
+      }
+
+      try {
+        const items = Array.isArray(cartRow.cart_items) ? cartRow.cart_items : [];
+
+        const { data: microsite, error: micrositeLookupError } =
+          await supabaseAdmin
+            .from("microsites")
+            .select("title, homepage_thumbnail_url, owner_clerk_user_id")
+            .eq("slug", cartRow.slug)
+            .maybeSingle();
+
+        if (micrositeLookupError) {
+          console.error("EMAIL BRANDING LOOKUP FAILED", micrositeLookupError);
+        }
+
+        const siteTitle = microsite?.title || cartRow.slug || "Ko-Host Site";
+        const siteImage = microsite?.homepage_thumbnail_url || "";
+        const ownerId = microsite?.owner_clerk_user_id || "";
+
+        let ownerEmail: string | null = null;
+
+        try {
+          if (ownerId && process.env.CLERK_SECRET_KEY) {
+            const clerkRes = await fetch(
+              `https://api.clerk.com/v1/users/${ownerId}`,
+              {
+                headers: {
+                  Authorization: `Bearer ${process.env.CLERK_SECRET_KEY}`,
+                },
+              },
+            );
+
+            if (clerkRes.ok) {
+              const clerkData = await clerkRes.json();
+              ownerEmail =
+                clerkData?.email_addresses?.[0]?.email_address || null;
+            } else {
+              console.error("OWNER EMAIL FETCH FAILED", {
+                status: clerkRes.status,
+                ownerId,
+              });
+            }
+          }
+        } catch (err) {
+          console.error("OWNER EMAIL FETCH FAILED", err);
+        }
+
+        const receiptUrl = `${verifiedAppUrl}/api/receipts/${encodeURIComponent(
+          orderId,
+        )}?token=${encodeURIComponent(receiptToken)}`;
+
+        const purchasedAt = new Date(nowIso).toLocaleString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+          timeZone: "America/New_York",
+        });
+
+        const emailHtml = `
+<div style="font-family:Arial,sans-serif;background:#f9f9f9;padding:20px;">
+  <div style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:10px;overflow:hidden;">
+    <div style="background:#000;color:#fff;padding:16px 20px;">
+      <div style="font-size:18px;font-weight:bold;">
+        ${siteTitle}
+      </div>
+      <div style="font-size:12px;opacity:0.7;">
+        Powered by Ko-Host
+      </div>
+    </div>
+
+    ${siteImage ? `
+    <img src="${siteImage}" style="width:100%;height:auto;display:block;" />
+    ` : ""}
+
+    <div style="padding:20px;">
+      <p style="margin:0 0 16px 0;font-size:14px;">
+        Thank you for your purchase!
+      </p>
+
+      <div style="background:#f6f6f6;border-radius:8px;padding:12px;margin-bottom:16px;font-size:13px;">
+        <div style="margin-bottom:6px;"><strong>Order ID:</strong> ${orderId}</div>
+        <div style="margin-bottom:6px;"><strong>Receipt #:</strong> ${receiptNumber}</div>
+        <div><strong>Purchased:</strong> ${purchasedAt}</div>
+      </div>
+
+      <div style="margin-bottom:20px;">
+        ${items
+          .map((item: any) => {
+            const name = item?.name || "Item";
+            const qty = Number(item?.quantity || 1);
+            const lineTotal = Number(item?.price || 0) * qty;
+
+            return `
+              <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:14px;">
+                <span>${name} × ${qty}</span>
+                <span>$${lineTotal.toFixed(2)}</span>
+              </div>
+            `;
+          })
+          .join("")}
+      </div>
+
+      <div style="border-top:1px solid #eee;padding-top:12px;font-size:14px;">
+        <div style="display:flex;justify-content:space-between;">
+          <span>Subtotal</span>
+          <span>$${Number(cartRow.subtotal || 0).toFixed(2)}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;">
+          <span>Tax</span>
+          <span>$${Number(cartRow.tax || 0).toFixed(2)}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;">
+          <span>Discount</span>
+          <span>-$${Number(cartRow.discount || 0).toFixed(2)}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-weight:bold;margin-top:8px;">
+          <span>Total</span>
+          <span>$${Number(cartRow.total || 0).toFixed(2)}</span>
+        </div>
+      </div>
+
+      <div style="margin-top:20px;">
+        <a
+          href="${receiptUrl}"
+          style="display:inline-block;background:#000;color:#fff;text-decoration:none;padding:10px 14px;border-radius:8px;font-size:14px;"
+        >
+          Download Receipt PDF
+        </a>
+      </div>
+
+      <p style="margin-top:20px;font-size:12px;color:#666;">
+        Powered by Ko-Host
+      </p>
+    </div>
+  </div>
+</div>
+`;
+
+        if (process.env.RESEND_API_KEY && buyerEmail) {
+          await fetch("https://api.resend.com/emails", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              from: `${siteTitle} <no-reply@ko-host.com>`,
+              to: buyerEmail,
+              subject: `${siteTitle} — Purchase Confirmation`,
+              html: emailHtml,
+            }),
+          });
+        }
+
+        if (process.env.RESEND_API_KEY && ownerEmail) {
+          await fetch("https://api.resend.com/emails", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              from: "Ko-Host <no-reply@ko-host.com>",
+              to: ownerEmail,
+              subject: `New Purchase on ${siteTitle}`,
+              html: emailHtml,
+            }),
+          });
+        }
+      } catch (err) {
+        console.error("EMAIL SEND FAILED", err);
+      }
+
+      return NextResponse.json({ ok: true });
+    }
 
     // ============================================================
     // PENDING CHECKOUT FLOW (PUBLISH NEW MICROSITE)
