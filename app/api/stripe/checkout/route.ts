@@ -19,6 +19,20 @@ const stripe = new Stripe(stripeSecretKey, {
   apiVersion: "2026-02-25.clover",
 });
 
+const PUBLISH_PRICE_CENTS = 1200;
+
+function buildDashboardUrl(params: Record<string, string>) {
+  const url = new URL("/dashboard/microsites", appUrl);
+
+  for (const [key, value] of Object.entries(params)) {
+    if (value) {
+      url.searchParams.set(key, value);
+    }
+  }
+
+  return url.toString();
+}
+
 export async function POST(req: Request) {
   try {
     const { userId } = await auth();
@@ -59,11 +73,7 @@ export async function POST(req: Request) {
     const supabaseAdmin = getSupabaseAdmin();
 
     // ============================================================
-    // ❌ REMOVED BROKEN DRAFT + SLUG LOGIC
-    // ============================================================
-
-    // ============================================================
-    // PENDING CHECKOUT FLOW (PRE-CHECKOUT RESERVATION)
+    // PENDING CHECKOUT FLOW (PRE-PUBLISH)
     // ============================================================
     if (pendingCheckoutId) {
       const { data: pendingRow, error: pendingError } = await supabaseAdmin
@@ -80,43 +90,9 @@ export async function POST(req: Request) {
         );
       }
 
-      // ----------------------------
-      // 🔥 NEW: FETCH REAL DRAFT (CORRECT KEY)
-      // ----------------------------
-      const { data: draftRow, error: draftError } = await supabaseAdmin
-        .from("microsite_drafts")
-        .select("*")
-        .eq("owner_clerk_user_id", userId)
-        .eq("template_key", pendingRow.template_key)
-        .eq("design_key", pendingRow.selected_design_key)
-        .maybeSingle();
-
-      if (draftError || !draftRow) {
-        console.error("❌ Draft not found at checkout");
-        return NextResponse.json(
-          { ok: false, error: "Draft missing" },
-          { status: 400 },
-        );
-      }
-
-      // ----------------------------
-      // 🔥 NEW: COPY DRAFT → PENDING
-      // ----------------------------
-      await supabaseAdmin
-        .from("pending_microsite_checkouts")
-        .update({
-          draft: draftRow.draft,
-        })
-        .eq("id", pendingRow.id);
-
-      console.log("✅ Draft copied to pending checkout");
-
-      // ----------------------------
-      // 🔒 EXPIRATION SAFETY
-      // ----------------------------
       if (
         pendingRow.expires_at &&
-        new Date(pendingRow.expires_at) < new Date()
+        new Date(pendingRow.expires_at).getTime() < Date.now()
       ) {
         return NextResponse.json(
           { ok: false, error: "Reservation expired" },
@@ -124,9 +100,6 @@ export async function POST(req: Request) {
         );
       }
 
-      // ----------------------------
-      // 🔒 SLUG INTEGRITY CHECK
-      // ----------------------------
       if (slug && slug !== pendingRow.slug) {
         return NextResponse.json(
           { ok: false, error: "Slug mismatch" },
@@ -134,9 +107,6 @@ export async function POST(req: Request) {
         );
       }
 
-      // ----------------------------
-      // 🔒 PREVENT DUPLICATE CHECKOUT
-      // ----------------------------
       if (pendingRow.stripe_session_id) {
         return NextResponse.json(
           { ok: false, error: "Checkout already initiated" },
@@ -144,8 +114,55 @@ export async function POST(req: Request) {
         );
       }
 
+      const resolvedTemplateKey =
+        pendingRow.template_key || templateKey || "";
+      const resolvedDesignKey =
+        pendingRow.selected_design_key || designKey || "";
+
+      const { data: draftRow, error: draftError } = await supabaseAdmin
+        .from("microsite_drafts")
+        .select("*")
+        .eq("owner_clerk_user_id", userId)
+        .eq("template_key", resolvedTemplateKey)
+        .eq("design_key", resolvedDesignKey)
+        .maybeSingle();
+
+      if (draftError || !draftRow) {
+        console.error("Draft not found at publish checkout", {
+          userId,
+          templateKey: resolvedTemplateKey,
+          designKey: resolvedDesignKey,
+          draftError,
+        });
+
+        return NextResponse.json(
+          { ok: false, error: "Draft missing" },
+          { status: 400 },
+        );
+      }
+
+      const { error: updatePendingError } = await supabaseAdmin
+        .from("pending_microsite_checkouts")
+        .update({
+          draft: draftRow.draft,
+        })
+        .eq("id", pendingRow.id);
+
+      if (updatePendingError) {
+        console.error("Failed to copy draft into pending checkout", {
+          pendingCheckoutId: pendingRow.id,
+          updatePendingError,
+        });
+
+        return NextResponse.json(
+          { ok: false, error: "Failed to prepare checkout" },
+          { status: 500 },
+        );
+      }
+
       const session = await stripe.checkout.sessions.create({
         mode: "payment",
+        client_reference_id: pendingRow.id,
         line_items: [
           {
             price_data: {
@@ -153,25 +170,33 @@ export async function POST(req: Request) {
               product_data: {
                 name: "Ko-Host Publish",
               },
-              unit_amount: 1200, // ← change this to your price
+              unit_amount: PUBLISH_PRICE_CENTS,
             },
             quantity: 1,
           },
         ],
-        success_url: `${appUrl}/dashboard/microsites?checkout=success&slug=${encodeURIComponent(
-          pendingRow.slug,
-        )}`,
-        cancel_url: `${appUrl}/dashboard/microsites?checkout=cancel&slug=${encodeURIComponent(
-          pendingRow.slug,
-        )}`,
+        success_url: buildDashboardUrl({
+          checkout: "success",
+          session_id: "{CHECKOUT_SESSION_ID}",
+          slug: pendingRow.slug || "",
+        }),
+        cancel_url: buildDashboardUrl({
+          checkout: "cancel",
+          slug: pendingRow.slug || "",
+        }),
         metadata: {
+          flow: "publish",
           owner_clerk_user_id: userId,
           pending_checkout_id: pendingRow.id,
-          slug: pendingRow.slug,
+          pendingCheckoutId: pendingRow.id,
+          microsite_id: "",
+          micrositeId: "",
+          slug: pendingRow.slug || "",
           title: pendingRow.title || "",
-          template_key: pendingRow.template_key || "",
-          design_key:
-            pendingRow.selected_design_key || designKey || "",
+          template_key: resolvedTemplateKey,
+          templateKey: resolvedTemplateKey,
+          design_key: resolvedDesignKey,
+          designKey: resolvedDesignKey,
         },
       });
 
@@ -182,27 +207,39 @@ export async function POST(req: Request) {
         );
       }
 
-      await supabaseAdmin
+      const { error: storeSessionError } = await supabaseAdmin
         .from("pending_microsite_checkouts")
         .update({
           stripe_session_id: session.id,
         })
         .eq("id", pendingRow.id);
 
+      if (storeSessionError) {
+        console.error("Failed to store Stripe session ID", {
+          pendingCheckoutId: pendingRow.id,
+          sessionId: session.id,
+          storeSessionError,
+        });
+
+        return NextResponse.json(
+          { ok: false, error: "Failed to persist checkout session" },
+          { status: 500 },
+        );
+      }
+
       return NextResponse.redirect(session.url, 303);
     }
 
     // ============================================================
-    // EXISTING MICROSITE CHECKOUT FLOW (UNCHANGED)
+    // EXISTING MICROSITE CHECKOUT FLOW
     // ============================================================
     if (micrositeId) {
-      const { data: micrositeRow, error: micrositeError } =
-        await supabaseAdmin
-          .from("microsites")
-          .select("id, owner_clerk_user_id, slug, title, template_key")
-          .eq("id", micrositeId)
-          .eq("owner_clerk_user_id", userId)
-          .single();
+      const { data: micrositeRow, error: micrositeError } = await supabaseAdmin
+        .from("microsites")
+        .select("id, owner_clerk_user_id, slug, title, template_key")
+        .eq("id", micrositeId)
+        .eq("owner_clerk_user_id", userId)
+        .single();
 
       if (micrositeError || !micrositeRow) {
         return NextResponse.json(
@@ -211,8 +248,12 @@ export async function POST(req: Request) {
         );
       }
 
+      const resolvedTemplateKey =
+        micrositeRow.template_key || templateKey || "";
+
       const session = await stripe.checkout.sessions.create({
         mode: "payment",
+        client_reference_id: micrositeRow.id,
         line_items: [
           {
             price_data: {
@@ -220,23 +261,33 @@ export async function POST(req: Request) {
               product_data: {
                 name: "Ko-Host Publish",
               },
-              unit_amount: 1200, // ← change this to your price
+              unit_amount: PUBLISH_PRICE_CENTS,
             },
             quantity: 1,
           },
         ],
-        success_url: `${appUrl}/dashboard/microsites?checkout=success&micrositeId=${encodeURIComponent(
-          micrositeRow.id,
-        )}`,
-        cancel_url: `${appUrl}/dashboard/microsites?checkout=cancel&micrositeId=${encodeURIComponent(
-          micrositeRow.id,
-        )}`,
+        success_url: buildDashboardUrl({
+          checkout: "success",
+          session_id: "{CHECKOUT_SESSION_ID}",
+          micrositeId: micrositeRow.id,
+        }),
+        cancel_url: buildDashboardUrl({
+          checkout: "cancel",
+          micrositeId: micrositeRow.id,
+        }),
         metadata: {
+          flow: "publish",
           owner_clerk_user_id: userId,
+          pending_checkout_id: "",
+          pendingCheckoutId: "",
           microsite_id: micrositeRow.id,
-          slug: micrositeRow.slug,
+          micrositeId: micrositeRow.id,
+          slug: micrositeRow.slug || "",
           title: micrositeRow.title || "",
-          template_key: micrositeRow.template_key || "",
+          template_key: resolvedTemplateKey,
+          templateKey: resolvedTemplateKey,
+          design_key: designKey || "",
+          designKey: designKey || "",
         },
       });
 
@@ -255,6 +306,8 @@ export async function POST(req: Request) {
       { status: 400 },
     );
   } catch (error) {
+    console.error("Stripe publish checkout route error", error);
+
     const message =
       error instanceof Error ? error.message : "Unexpected server error";
 

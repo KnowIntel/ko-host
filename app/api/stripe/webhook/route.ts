@@ -32,6 +32,8 @@ function addDaysIsoFrom(baseIso: string | null, days: number) {
 
 export async function POST(req: Request) {
   try {
+    console.log("WEBHOOK ROUTE HIT");
+
     const rawBody = await req.text();
     const headersList = await headers();
     const signature = headersList.get("stripe-signature");
@@ -57,12 +59,21 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, error: message }, { status: 400 });
     }
 
+    console.log("=== WEBHOOK RECEIVED ===");
+    console.log("event.type:", event.type);
+
     if (event.type !== "checkout.session.completed") {
       return NextResponse.json({ ok: true });
     }
 
     const session = event.data.object as Stripe.Checkout.Session;
     const metadata = session.metadata || {};
+
+    console.log("=== SESSION DATA ===", {
+      sessionId: session.id,
+      metadata,
+      client_reference_id: session.client_reference_id,
+    });
 
     const flow = String(metadata.flow || "");
     const pendingCheckoutId = String(
@@ -94,6 +105,12 @@ export async function POST(req: Request) {
         .select("*")
         .eq("id", pendingCheckoutId)
         .maybeSingle();
+
+      console.log("=== PENDING LOOKUP RESULT ===", {
+        pendingCheckoutId,
+        found: !!pendingRow,
+        pendingError,
+      });
 
       if (pendingError) {
         console.error(
@@ -190,6 +207,14 @@ export async function POST(req: Request) {
       const resolvedDesignKey =
         selectedDesignKey || designKeyFromMetadata || "blank";
 
+      console.log("=== PENDING ROW CORE DATA ===", {
+        slug,
+        ownerClerkUserId,
+        templateKey,
+        resolvedDesignKey,
+        hasDraft: !!pendingRow.draft,
+      });
+
       const { data: conflictingMicrosite, error: conflictingMicrositeError } =
         await supabaseAdmin
           .from("microsites")
@@ -240,6 +265,8 @@ export async function POST(req: Request) {
         updated_at: nowIso,
       };
 
+      console.log("=== MICROSITE PAYLOAD ===", micrositePayload);
+
       let publishedMicrositeId = "";
 
       if (!conflictingMicrosite) {
@@ -252,6 +279,11 @@ export async function POST(req: Request) {
             })
             .select("id, slug, owner_clerk_user_id")
             .single();
+
+        console.log("=== INSERT RESULT ===", {
+          insertedMicrosite,
+          insertMicrositeError,
+        });
 
         if (insertMicrositeError || !insertedMicrosite) {
           console.error("STRIPE WEBHOOK ERROR: microsite insert failed", {
@@ -281,6 +313,11 @@ export async function POST(req: Request) {
             .eq("owner_clerk_user_id", ownerClerkUserId)
             .select("id, slug, owner_clerk_user_id")
             .single();
+
+        console.log("=== UPDATE RESULT ===", {
+          updatedMicrosite,
+          updateMicrositeError,
+        });
 
         if (updateMicrositeError || !updatedMicrosite) {
           console.error("STRIPE WEBHOOK ERROR: microsite update failed", {
