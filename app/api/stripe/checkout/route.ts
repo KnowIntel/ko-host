@@ -6,7 +6,6 @@ import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 const appUrl = process.env.NEXT_PUBLIC_APP_URL;
-const priceId = process.env.STRIPE_PRICE_ID_MICROSITE;
 
 if (!stripeSecretKey) {
   throw new Error("Missing STRIPE_SECRET_KEY");
@@ -14,10 +13,6 @@ if (!stripeSecretKey) {
 
 if (!appUrl) {
   throw new Error("Missing NEXT_PUBLIC_APP_URL");
-}
-
-if (!priceId) {
-  throw new Error("Missing STRIPE_PRICE_ID_MICROSITE");
 }
 
 const stripe = new Stripe(stripeSecretKey, {
@@ -150,18 +145,19 @@ export async function POST(req: Request) {
       }
 
       const session = await stripe.checkout.sessions.create({
-      line_items: [
-        {
-          price_data: {
-            currency: "usd",
-            product_data: {
-              name: "Ko-Host Publish",
+        mode: "payment",
+        line_items: [
+          {
+            price_data: {
+              currency: "usd",
+              product_data: {
+                name: "Ko-Host Publish",
+              },
+              unit_amount: 1200, // ← change this to your price
             },
-            unit_amount: 1200,
+            quantity: 1,
           },
-          quantity: 1,
-        },
-      ],
+        ],
         success_url: `${appUrl}/dashboard/microsites?checkout=success&slug=${encodeURIComponent(
           pendingRow.slug,
         )}`,
@@ -219,7 +215,13 @@ export async function POST(req: Request) {
         mode: "payment",
         line_items: [
           {
-            price: priceId,
+            price_data: {
+              currency: "usd",
+              product_data: {
+                name: "Ko-Host Publish",
+              },
+              unit_amount: 1200, // ← change this to your price
+            },
             quantity: 1,
           },
         ],
