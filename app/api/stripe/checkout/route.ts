@@ -15,23 +15,14 @@ if (!appUrl) {
   throw new Error("Missing NEXT_PUBLIC_APP_URL");
 }
 
-const stripe = new Stripe(stripeSecretKey, {
+const verifiedStripeSecretKey: string = stripeSecretKey;
+const verifiedAppUrl: string = appUrl;
+
+const stripe = new Stripe(verifiedStripeSecretKey, {
   apiVersion: "2026-02-25.clover",
 });
 
 const PUBLISH_PRICE_CENTS = 1200;
-
-function buildDashboardUrl(params: Record<string, string>) {
-  const url = new URL("/dashboard/microsites", appUrl);
-
-  for (const [key, value] of Object.entries(params)) {
-    if (value) {
-      url.searchParams.set(key, value);
-    }
-  }
-
-  return url.toString();
-}
 
 export async function POST(req: Request) {
   try {
@@ -114,8 +105,7 @@ export async function POST(req: Request) {
         );
       }
 
-      const resolvedTemplateKey =
-        pendingRow.template_key || templateKey || "";
+      const resolvedTemplateKey = pendingRow.template_key || templateKey || "";
       const resolvedDesignKey =
         pendingRow.selected_design_key || designKey || "";
 
@@ -160,6 +150,14 @@ export async function POST(req: Request) {
         );
       }
 
+      console.log("=== CREATING PUBLISH SESSION ===", {
+        pendingCheckoutId: pendingRow.id,
+        slug: pendingRow.slug,
+        templateKey: resolvedTemplateKey,
+        designKey: resolvedDesignKey,
+        hasDraft: !!draftRow?.draft,
+      });
+
       const session = await stripe.checkout.sessions.create({
         mode: "payment",
         client_reference_id: pendingRow.id,
@@ -175,15 +173,12 @@ export async function POST(req: Request) {
             quantity: 1,
           },
         ],
-        success_url: buildDashboardUrl({
-          checkout: "success",
-          session_id: "{CHECKOUT_SESSION_ID}",
-          slug: pendingRow.slug || "",
-        }),
-        cancel_url: buildDashboardUrl({
-          checkout: "cancel",
-          slug: pendingRow.slug || "",
-        }),
+        success_url: `${verifiedAppUrl}/dashboard/microsites?checkout=success&session_id={CHECKOUT_SESSION_ID}&slug=${encodeURIComponent(
+          pendingRow.slug || "",
+        )}`,
+        cancel_url: `${verifiedAppUrl}/dashboard/microsites?checkout=cancel&slug=${encodeURIComponent(
+          pendingRow.slug || "",
+        )}`,
         metadata: {
           flow: "publish",
           owner_clerk_user_id: userId,
@@ -198,6 +193,11 @@ export async function POST(req: Request) {
           design_key: resolvedDesignKey,
           designKey: resolvedDesignKey,
         },
+      });
+
+      console.log("=== STRIPE SESSION CREATED ===", {
+        sessionId: session.id,
+        url: session.url,
       });
 
       if (!session.url) {
@@ -266,15 +266,12 @@ export async function POST(req: Request) {
             quantity: 1,
           },
         ],
-        success_url: buildDashboardUrl({
-          checkout: "success",
-          session_id: "{CHECKOUT_SESSION_ID}",
-          micrositeId: micrositeRow.id,
-        }),
-        cancel_url: buildDashboardUrl({
-          checkout: "cancel",
-          micrositeId: micrositeRow.id,
-        }),
+        success_url: `${verifiedAppUrl}/dashboard/microsites?checkout=success&session_id={CHECKOUT_SESSION_ID}&micrositeId=${encodeURIComponent(
+          micrositeRow.id,
+        )}`,
+        cancel_url: `${verifiedAppUrl}/dashboard/microsites?checkout=cancel&micrositeId=${encodeURIComponent(
+          micrositeRow.id,
+        )}`,
         metadata: {
           flow: "publish",
           owner_clerk_user_id: userId,
@@ -289,6 +286,12 @@ export async function POST(req: Request) {
           design_key: designKey || "",
           designKey: designKey || "",
         },
+      });
+
+      console.log("=== STRIPE SESSION CREATED ===", {
+        sessionId: session.id,
+        url: session.url,
+        micrositeId: micrositeRow.id,
       });
 
       if (!session.url) {
