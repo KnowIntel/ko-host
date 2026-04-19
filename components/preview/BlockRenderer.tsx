@@ -88,14 +88,7 @@ type Props = {
   micrositeId?: string | null;
   serverNow?: number;
 
-  cartItems?: {
-    id: string;
-    title: string;
-    description: string;
-    price: number;
-    quantity: number;
-  }[];
-
+  cartItems?: CartItem[];
   cartSubtotal?: number;
 };
 
@@ -4919,11 +4912,11 @@ function renderCart(
   const taxRate = Number(block.data.taxRate || 0);
   const discount = Number(block.data.discount || 0);
 
-  // taxRate is decimal-based: 0.07 = 7%
+  // decimal tax: 0.07 = 7%
   const taxAmount = cartSubtotal * taxRate;
   const total = Math.max(0, cartSubtotal + taxAmount - discount);
 
-  const handleCartCheckout = async () => {
+  async function handleCartCheckout() {
     try {
       const res = await fetch("/api/checkout/create-cart-session", {
         method: "POST",
@@ -4944,7 +4937,7 @@ function renderCart(
         return;
       }
 
-      if (json.url) {
+      if (json?.url) {
         window.location.href = json.url;
         return;
       }
@@ -4954,7 +4947,7 @@ function renderCart(
       console.error("Cart checkout error:", err);
       alert("Something went wrong");
     }
-  };
+  }
 
   return (
     <Surface
@@ -4970,8 +4963,8 @@ function renderCart(
           {block.data.heading || "Cart"}
         </div>
 
-        <div className="flex-1 overflow-y-auto space-y-2">
-          {cartItems.length ? (
+        <div className="flex-1 space-y-2 overflow-y-auto">
+          {cartItems.length > 0 ? (
             cartItems.map((item) => (
               <div
                 key={item.id}
@@ -4979,7 +4972,9 @@ function renderCart(
               >
                 <div className="min-w-0">
                   <div className="truncate font-medium">{item.title}</div>
-                  <div className="text-xs opacity-60">Qty: {item.quantity}</div>
+                  <div className="text-xs opacity-60">
+                    Qty: {item.quantity}
+                  </div>
                 </div>
 
                 <div className="font-semibold">
@@ -4998,19 +4993,19 @@ function renderCart(
             <span>${cartSubtotal.toFixed(2)}</span>
           </div>
 
-          {taxRate > 0 && (
+          {taxRate > 0 ? (
             <div className="flex justify-between">
               <span>Tax ({(taxRate * 100).toFixed(2)}%)</span>
               <span>${taxAmount.toFixed(2)}</span>
             </div>
-          )}
+          ) : null}
 
-          {discount > 0 && (
+          {discount > 0 ? (
             <div className="flex justify-between">
               <span>Discount</span>
               <span>- ${discount.toFixed(2)}</span>
             </div>
-          )}
+          ) : null}
 
           <div className="flex justify-between pt-1 font-semibold">
             <span>Total</span>
@@ -5047,11 +5042,11 @@ export default function BlockRenderer({
   designKey,
   micrositeId,
   serverNow,
-
-  // 🔥 CART (SAFE)
-  cartItems = [],
-  cartSubtotal = 0,
+  cartItems,
+  cartSubtotal,
 }: Props) {
+  const safeCartItems = cartItems ?? [];
+  const safeCartSubtotal = cartSubtotal ?? 0;
   switch (block.type) {
     case "label":
       return renderLabel(block, designKey);
@@ -5081,6 +5076,16 @@ return renderCart(
   cartItems ?? [],
   cartSubtotal ?? 0,
 );
+
+if ((block as any).type === "cart") {
+  return renderCart(
+    block as unknown as Extract<MicrositeBlock, { type: "cart" }>,
+    designKey,
+    micrositeId,
+    cartItems ?? [],
+    cartSubtotal ?? 0,
+  );
+}
 }
 
     case "cta":
@@ -5119,16 +5124,16 @@ return renderCart(
         }
       };
 
-      return (
-<Surface block={block}>
-  <div className="flex h-full w-full flex-col gap-3">
-    {data.imageUrl ? (
-      <img
-        src={data.imageUrl}
-        alt={data.productName}
-        className="w-full h-40 object-cover rounded-lg"
-      />
-    ) : null}
+return (
+  <Surface block={block}>
+    <div className="flex h-full w-full flex-col gap-3">
+      {data.imageUrl ? (
+        <img
+          src={data.imageUrl}
+          alt={data.productName}
+          className="w-full h-40 object-cover rounded-lg"
+        />
+      ) : null}
 
     <div className="font-semibold text-base">
       {data.productName || "Product"}

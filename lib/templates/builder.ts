@@ -1731,14 +1731,14 @@ case "speed_dating":
     },
   };
 
-  case "cart":
+case "cart":
   return {
     id: makeId("cart"),
     type: "cart",
     label: "Cart",
     grid: {
       ...grid,
-      rowSpan: 4,
+      rowSpan: 3,
     },
     appearance: {
       ...createDefaultBlockAppearance(),

@@ -182,7 +182,7 @@ export async function POST(req: Request) {
         ? Math.max(0, cartData.taxRate)
         : 0;
 
-    const taxCents = Math.round(subtotal * taxRate);
+    const taxCents = Math.round(subtotal * (taxRate / 100));
 
     const adjustedTotal = Math.max(0, subtotal + taxCents);
     const fee = calcPlatformFee(adjustedTotal);
