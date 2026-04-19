@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import type {
   BuilderDraft,
@@ -328,6 +328,7 @@ export default function PlacedBlocksPreview({
     (hasMeaningfulText(descriptionValue) ||
       !!typedDraft.pageElements?.description);
 
+        const [selectedListingIds, setSelectedListingIds] = useState<string[]>([]);
   const blockEntries = useMemo(
     () =>
       [...(draft.blocks || [])]
@@ -351,7 +352,7 @@ export default function PlacedBlocksPreview({
     [draft.blocks],
   );
 
-  const cartItems = useMemo(() => {
+  const availableCartItems = useMemo(() => {
     return blockEntries
       .map(({ block }) => {
         if (block.type !== "listing") return null;
@@ -359,13 +360,13 @@ export default function PlacedBlocksPreview({
         const data = block.data as any;
 
         if (!data?.addToCart) return null;
-        if (
-          typeof data.price !== "number" ||
-          !Number.isFinite(data.price) ||
-          data.price <= 0
-        ) {
-          return null;
-        }
+
+        const safePrice =
+          typeof data.price === "number" && Number.isFinite(data.price)
+            ? Math.max(0, data.price)
+            : 0;
+
+        if (safePrice <= 0) return null;
 
         return {
           id: block.id,
@@ -373,7 +374,7 @@ export default function PlacedBlocksPreview({
           description:
             data.description?.trim() ||
             `ITEM-${block.id.slice(-6).toUpperCase()}`,
-          price: data.price,
+          price: safePrice,
           quantity: 1,
         };
       })
@@ -390,6 +391,35 @@ export default function PlacedBlocksPreview({
       );
   }, [blockEntries]);
 
+  useEffect(() => {
+    setSelectedListingIds((prev) => {
+      const validIds = new Set(availableCartItems.map((item) => item.id));
+      const cleaned = prev.filter((id) => validIds.has(id));
+
+      if (cleaned.length === 0 && availableCartItems.length > 0) {
+        return availableCartItems.map((item) => item.id);
+      }
+
+      return cleaned;
+    });
+  }, [availableCartItems]);
+
+  const cartItems = useMemo(() => {
+    const selectedSet = new Set(selectedListingIds);
+
+    return availableCartItems
+      .filter((item) => selectedSet.has(item.id))
+      .map((item) => ({
+        ...item,
+        quantity:
+          typeof item.quantity === "number" &&
+          Number.isFinite(item.quantity) &&
+          item.quantity > 0
+            ? item.quantity
+            : 1,
+      }));
+  }, [availableCartItems, selectedListingIds]);
+
   const textRowEnds = [
     showTitle ? titleGrid.rowStart + titleGrid.rowSpan - 1 : 0,
     showSubtitle ? subtitleGrid.rowStart + subtitleGrid.rowSpan - 1 : 0,
@@ -398,10 +428,21 @@ export default function PlacedBlocksPreview({
   ];
 
   const cartSubtotal = useMemo(() => {
-    return cartItems.reduce(
-      (sum, item) => sum + (item.price ?? 0) * item.quantity,
-      0,
-    );
+    return cartItems.reduce((sum, item) => {
+      const safePrice =
+        typeof item.price === "number" && Number.isFinite(item.price)
+          ? Math.max(0, item.price)
+          : 0;
+
+      const safeQuantity =
+        typeof item.quantity === "number" && Number.isFinite(item.quantity)
+          ? Math.max(0, item.quantity)
+          : 0;
+
+      if (safePrice <= 0 || safeQuantity <= 0) return sum;
+
+      return sum + safePrice * safeQuantity;
+    }, 0);
   }, [cartItems]);
 
 
@@ -595,6 +636,16 @@ return (
   serverNow={serverNow}
   cartItems={cartItems}
   cartSubtotal={cartSubtotal}
+  selectedListingIds={selectedListingIds}
+  onToggleListingInCart={(listingId: string, checked: boolean) => {
+    setSelectedListingIds((prev) => {
+      if (checked) {
+        return prev.includes(listingId) ? prev : [...prev, listingId];
+      }
+
+      return prev.filter((id) => id !== listingId);
+    });
+  }}
 />
             </div>
           </div>

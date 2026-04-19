@@ -273,7 +273,6 @@ const CATEGORY_BUTTONS: Record<
   Utilities: [
     { kind: "block", label: "Links", type: "links" },
     { kind: "block", label: "Link Hub", type: "link_hub" },
-    { kind: "block", label: "Listing", type: "listing" },
   ],
   "Data & Metrics": [
     { kind: "block", label: "Highlight", type: "highlight" },
@@ -285,10 +284,11 @@ Scheduling: [
   { kind: "block", label: "Schedule / Agenda", type: "schedule_agenda" },
   { kind: "block", label: "Map / Location", type: "map_location" },
 ],
-Premium: [ 
+Premium: [
   { kind: "block", label: "Registry", type: "registry" },
   { kind: "block", label: "Speed Dating", type: "speed_dating" },
   { kind: "block", label: "Donation", type: "donation" },
+  { kind: "block", label: "Listing", type: "listing" },
   { kind: "block", label: "Checkout", type: "checkout" },
   { kind: "block", label: "Cart", type: "cart" },
 ],
@@ -794,7 +794,9 @@ function getToolGlyph(label: string) {
   if (label === "Thread") return "☰";
   if (label === "Links") return "🔗";
   if (label === "Highlight") return "★";
-  if (label === "Listing") return "🏷";
+  if (label === "Listing") return "🧾";  
+  if (label === "Checkout") return "💳";  
+  if (label === "Cart") return "🛒";  
   if (label === "Carousel") return "⇄";
   if (label === "Input Field") return "⌨";
   if (label === "Rich Text") return "📝";

@@ -87,9 +87,10 @@ type Props = {
   designKey?: string;
   micrositeId?: string | null;
   serverNow?: number;
-
   cartItems?: CartItem[];
   cartSubtotal?: number;
+  selectedListingIds?: string[];
+  onToggleListingInCart?: (listingId: string, checked: boolean) => void;
 };
 
 type ThreadUiMessage = ThreadMessage & {
@@ -702,11 +703,15 @@ function renderImage(
 function renderListing(
   block: Extract<MicrositeBlock, { type: "listing" }>,
   designKey?: string,
+  selectedListingIds: string[] = [],
+  onToggleListingInCart?: (listingId: string, checked: boolean) => void,
 ) {
   const image = block.data.image;
   const metadata = Array.isArray(block.data.metadata) ? block.data.metadata : [];
   const price = typeof block.data.price === "number" ? block.data.price : 0;
   const addToCart = !!block.data.addToCart;
+  const isSelectable = addToCart && price > 0;
+  const isSelected = selectedListingIds.includes(block.id);
   const cardVariant = block.data.cardVariant ?? "stacked";
   const imageHeightPercent = Math.max(
     20,
@@ -781,6 +786,40 @@ function renderListing(
             <div className="text-sm font-semibold">
               ${formatCurrency(price)}
             </div>
+          ) : null}
+
+          {isSelectable ? (
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={isSelected}
+                onChange={(e) => {
+                  e.stopPropagation();
+                  onToggleListingInCart?.(block.id, e.target.checked);
+                }}
+              />
+              Include in cart
+            </label>
+          ) : null}
+
+          {price > 0 ? (
+            <div className="text-sm font-semibold">
+              ${formatCurrency(price)}
+            </div>
+          ) : null}
+
+          {isSelectable ? (
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={isSelected}
+                onChange={(e) => {
+                  e.stopPropagation();
+                  onToggleListingInCart?.(block.id, e.target.checked);
+                }}
+              />
+              Include in cart
+            </label>
           ) : null}
 
           {block.data.description ? (
@@ -4883,12 +4922,29 @@ function renderCart(
   cartItems: CartItem[] = [],
   cartSubtotal: number = 0,
 ) {
+  const safeCartItems = Array.isArray(cartItems)
+    ? cartItems.filter(
+        (item) =>
+          item &&
+          typeof item.price === "number" &&
+          Number.isFinite(item.price) &&
+          item.price > 0 &&
+          typeof item.quantity === "number" &&
+          Number.isFinite(item.quantity) &&
+          item.quantity > 0,
+      )
+    : [];
+
+  const safeCartSubtotal = safeCartItems.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0,
+  );
+
   const taxRate = Number(block.data.taxRate || 0);
   const discount = Number(block.data.discount || 0);
 
-  // decimal tax: 0.07 = 7%
-  const taxAmount = cartSubtotal * taxRate;
-  const total = Math.max(0, cartSubtotal + taxAmount);
+  const taxAmount = safeCartSubtotal * taxRate;
+  const total = Math.max(0, safeCartSubtotal + taxAmount - discount);
 
   async function handleCartCheckout() {
     try {
@@ -4938,8 +4994,8 @@ function renderCart(
         </div>
 
         <div className="flex-1 space-y-2 overflow-y-auto">
-          {cartItems.length > 0 ? (
-            cartItems.map((item) => (
+          {safeCartItems.length > 0 ? (
+            safeCartItems.map((item) => (
               <div
                 key={item.id}
                 className="flex items-center justify-between text-sm"
@@ -4957,14 +5013,14 @@ function renderCart(
               </div>
             ))
           ) : (
-            <div className="text-sm opacity-60">Cart is empty</div>
+            <div className="text-sm opacity-60">No items selected</div>
           )}
         </div>
 
 <div className="space-y-1 border-t pt-3 text-sm">
   <div className="flex justify-between">
     <span>Subtotal&nbsp;</span>
-    <span>${formatCurrency(cartSubtotal)}</span>
+    <span>${formatCurrency(safeCartSubtotal)}</span>
   </div>
 
   {taxRate > 0 ? (
@@ -4990,20 +5046,20 @@ function renderCart(
         <button
           type="button"
           onClick={() => void handleCartCheckout()}
-          disabled={!micrositeId || cartItems.length === 0}
+          disabled={!micrositeId || safeCartItems.length === 0}
           className="mt-2 h-11 rounded-xl bg-neutral-900 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
           title={
             !micrositeId
               ? "Checkout only works on live microsites right now."
-              : cartItems.length === 0
+                : safeCartItems.length === 0
                 ? "No cart items available."
                 : undefined
           }
         >
           {!micrositeId
             ? "Live Microsite Required"
-            : cartItems.length === 0
-              ? "Cart Empty"
+              : safeCartItems.length === 0
+              ? "No Items Selected"
               : block.data.buttonText || "Checkout"}
         </button>
       </div>
@@ -5018,9 +5074,12 @@ export default function BlockRenderer({
   serverNow,
   cartItems,
   cartSubtotal,
+  selectedListingIds,
+  onToggleListingInCart,
 }: Props) {
   const safeCartItems = cartItems ?? [];
   const safeCartSubtotal = cartSubtotal ?? 0;
+  const safeSelectedListingIds = selectedListingIds ?? [];
   switch (block.type) {
     case "label":
       return renderLabel(block, designKey);
@@ -5032,7 +5091,12 @@ export default function BlockRenderer({
       return renderImage(block, designKey);
 
     case "listing":
-      return renderListing(block, designKey);
+      return renderListing(
+        block,
+        designKey,
+        safeSelectedListingIds,
+        onToggleListingInCart,
+      );
 
     case "image_carousel":
       return renderImageCarousel(block, designKey);
@@ -5040,27 +5104,14 @@ export default function BlockRenderer({
     case "form_field":
       return renderFormField(block, designKey);
 
-case "cart": {
-  const cartBlock = block as Extract<MicrositeBlock, { type: "cart" }>;
-
-return renderCart(
-  cartBlock,
-  designKey,
-  micrositeId,
-  cartItems ?? [],
-  cartSubtotal ?? 0,
-);
-
-if ((block as any).type === "cart") {
+case "cart":
   return renderCart(
-    block as unknown as Extract<MicrositeBlock, { type: "cart" }>,
+    block,
     designKey,
     micrositeId,
-    cartItems ?? [],
-    cartSubtotal ?? 0,
+    safeCartItems,
+    safeCartSubtotal,
   );
-}
-}
 
     case "cta":
       return renderCta(block, designKey);
