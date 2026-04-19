@@ -1046,25 +1046,29 @@ const [richTextLinkValue, setRichTextLinkValue] = useState("https://");
       : null;
 
 const selectedStyle =
-  selectedBlockFromDraft?.type === "text_fx" ||
-  selectedBlockFromDraft?.type === "cta" ||
-  selectedBlockFromDraft?.type === "thread" ||
-  selectedBlockFromDraft?.type === "form_field" ||
-  selectedBlockFromDraft?.type === "image_carousel" ||
-  selectedBlockFromDraft?.type === "highlight" ||
-  selectedBlockFromDraft?.type === "progress_bar" ||
-  selectedBlockFromDraft?.type === "donation" ||
-  selectedBlockFromDraft?.type === "link_hub" ||
-  selectedBlockFromDraft?.type === "checklist" ||
-  selectedBlockFromDraft?.type === "schedule_agenda" ||
-  selectedBlockFromDraft?.type === "map_location" ||
-  selectedBlockFromDraft?.type === "file_share" ||
-  selectedBlockFromDraft?.type === "speed_dating" ||
-  selectedBlockFromDraft?.type === "video" ||
-  selectedBlockFromDraft?.type === "rich_text" ||
-  selectedBlockFromDraft?.type === "countdown"
+  selectedBlockFromDraft?.type === "listing"
+    ? (selectedBlockFromDraft.data.titleStyle ?? {})
+    : selectedBlockFromDraft?.type === "cart" ||
+      selectedBlockFromDraft?.type === "checkout" ||
+      selectedBlockFromDraft?.type === "text_fx" ||
+      selectedBlockFromDraft?.type === "cta" ||
+      selectedBlockFromDraft?.type === "thread" ||
+      selectedBlockFromDraft?.type === "form_field" ||
+      selectedBlockFromDraft?.type === "image_carousel" ||
+      selectedBlockFromDraft?.type === "highlight" ||
+      selectedBlockFromDraft?.type === "progress_bar" ||
+      selectedBlockFromDraft?.type === "donation" ||
+      selectedBlockFromDraft?.type === "link_hub" ||
+      selectedBlockFromDraft?.type === "checklist" ||
+      selectedBlockFromDraft?.type === "schedule_agenda" ||
+      selectedBlockFromDraft?.type === "map_location" ||
+      selectedBlockFromDraft?.type === "file_share" ||
+      selectedBlockFromDraft?.type === "speed_dating" ||
+      selectedBlockFromDraft?.type === "video" ||
+      selectedBlockFromDraft?.type === "rich_text" ||
+      selectedBlockFromDraft?.type === "countdown"
     ? (selectedBlockFromDraft.data.style ?? {})
-    : getSelectionTextStyle(draft, selection);
+    : getSelectionTextStyle(draft, selection); 
   const selectedAppearance = getSelectionBlockAppearance(draft, selection);
   const resolvedPageColor =
     (draft as DraftWithPageExtras).pageColor ||
@@ -1111,7 +1115,10 @@ const showTextControls =
   selectedBlock?.type === "registry" ||
   selectedBlock?.type === "video" ||
   selectedBlock?.type === "rich_text" ||
-  selectedBlock?.type === "countdown";
+  selectedBlock?.type === "countdown" ||
+  selectedBlock?.type === "cart" ||
+  selectedBlock?.type === "checkout" ||
+  selectedBlock?.type === "listing";
 
 const showAppearanceControls =
   selectedContext.kind === "label" ||
@@ -2168,6 +2175,69 @@ if (selectedBlock?.type === "countdown") {
   }));
   return;
 }
+
+  if (selectedBlock?.type === "listing") {
+    setDraft((prev) => ({
+      ...prev,
+      blocks: prev.blocks.map((block) =>
+        block.id === selectedBlock.id && block.type === "listing"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                titleStyle: {
+                  ...(block.data.titleStyle ?? {}),
+                  ...patch,
+                },
+              },
+            }
+          : block,
+      ),
+    }));
+    return;
+  }
+
+  if (selectedBlock?.type === "cart") {
+    setDraft((prev) => ({
+      ...prev,
+      blocks: prev.blocks.map((block) =>
+        block.id === selectedBlock.id && block.type === "cart"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                style: {
+                  ...(block.data.style ?? {}),
+                  ...patch,
+                },
+              },
+            }
+          : block,
+      ),
+    }));
+    return;
+  }
+
+  if (selectedBlock?.type === "checkout") {
+    setDraft((prev) => ({
+      ...prev,
+      blocks: prev.blocks.map((block) =>
+        block.id === selectedBlock.id && block.type === "checkout"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                style: {
+                  ...(block.data.style ?? {}),
+                  ...patch,
+                },
+              },
+            }
+          : block,
+      ),
+    }));
+    return;
+  }
 
   setDraft((prev) => applyStylePatchToSelection(prev, selection, patch));
 }
