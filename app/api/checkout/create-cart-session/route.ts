@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { stripe, toCents, calcPlatformFee, getBaseUrl } from "@/lib/stripe";
@@ -196,47 +197,111 @@ const adjustedTotal = Math.max(0, subtotal + taxCents - discountCents);
     const successTarget = `${getBaseUrl()}/s/${microsite.slug}?cart=success`;
     const cancelTarget = `${getBaseUrl()}/s/${microsite.slug}?cart=cancelled`;
 
-    const session = await stripe.checkout.sessions.create({
-      mode: "payment",
-      line_items: [
-        ...lineItems,
-        ...(taxCents > 0
-          ? [
-              {
-                price_data: {
-                  currency: "usd",
-                  product_data: {
-                    name: "Tax",
-                  },
-                  unit_amount: taxCents,
-                },
-                quantity: 1,
-              } as CartSessionLineItem,
-            ]
-          : []),
-      ],
-      success_url: successTarget,
-      cancel_url: cancelTarget,
-      billing_address_collection: "auto",
-      phone_number_collection: {
-        enabled: false,
-      },
-      customer_creation: "always",
-      payment_intent_data: {
-        application_fee_amount: fee,
-        transfer_data: {
-          destination: stripeAccountId,
-        },
-      },
-      metadata: {
-        flow: "cart",
-        micrositeId,
-        blockId,
-        stripeAccountId,
-      },
-    });
+const session = await stripe.checkout.sessions.create({
+  mode: "payment",
+  line_items: [
+    ...lineItems,
+    ...(taxCents > 0
+      ? [
+          {
+            price_data: {
+              currency: "usd",
+              product_data: {
+                name: "Tax",
+              },
+              unit_amount: taxCents,
+            },
+            quantity: 1,
+          } as CartSessionLineItem,
+        ]
+      : []),
+  ],
+  success_url: successTarget,
+  cancel_url: cancelTarget,
+  billing_address_collection: "auto",
+  phone_number_collection: {
+    enabled: false,
+  },
+  customer_creation: "always",
+  payment_intent_data: {
+    application_fee_amount: fee,
+    transfer_data: {
+      destination: stripeAccountId,
+    },
+  },
+  metadata: {
+    flow: "cart",
+    micrositeId,
+    blockId,
+    stripeAccountId,
+  },
+});
 
-    return NextResponse.json({ url: session.url });
+const cartItemsForDb = listingBlocks.reduce<
+  Array<{
+    id: string;
+    name: string;
+    description: string;
+    price: number;
+    quantity: number;
+  }>
+>((acc, block) => {
+  const data = block.data as ListingBlockData;
+
+  const title =
+    typeof data.title === "string" && data.title.trim().length > 0
+      ? data.title.trim()
+      : "Item";
+
+  const description =
+    typeof data.description === "string" && data.description.trim().length > 0
+      ? data.description.trim()
+      : "";
+
+  const price =
+    typeof data.price === "number" && Number.isFinite(data.price)
+      ? Math.max(0, data.price)
+      : 0;
+
+  if (price <= 0) return acc;
+
+  acc.push({
+    id: typeof block.id === "string" ? block.id : randomUUID(),
+    name: title,
+    description,
+    price,
+    quantity: 1,
+  });
+
+  return acc;
+}, []);
+
+const { error: cartInsertError } = await supabase
+  .from("cart_checkouts")
+  .insert({
+    stripe_session_id: session.id,
+    slug: microsite.slug,
+    cart_items: cartItemsForDb,
+    subtotal: subtotal / 100,
+    tax: taxCents / 100,
+    discount: discountCents / 100,
+    total: adjustedTotal / 100,
+    payment_status: "pending",
+  });
+
+if (cartInsertError) {
+  console.error("Failed to create cart checkout row:", cartInsertError);
+
+  return NextResponse.json(
+    {
+      error: "Failed to create cart checkout record",
+      details: cartInsertError.message,
+    },
+    { status: 500 },
+  );
+}
+
+return NextResponse.json({ url: session.url });
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Unknown error";
