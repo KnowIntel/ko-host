@@ -34,6 +34,13 @@ type CartSessionLineItem = {
   quantity: number;
 };
 
+function formatCurrency(n: number) {
+  return new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(n);
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => null);

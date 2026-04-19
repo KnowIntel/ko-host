@@ -137,6 +137,12 @@ const crimsonText = Crimson_Text({
   weight: ["400", "600", "700"],
 });
 
+const formatCurrency = (n: number) =>
+  new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(n);
+
 const FONT_FAMILY_MAP: Record<string, string> = {
   Inter: 'var(--font-inter), Inter, ui-sans-serif, system-ui, sans-serif',
   "DM Sans":
@@ -773,7 +779,7 @@ function renderListing(
           </div>
           {price > 0 ? (
             <div className="text-sm font-semibold">
-              ${price.toFixed(2)}
+              ${formatCurrency(price)}
             </div>
           ) : null}
 
@@ -4978,7 +4984,7 @@ function renderCart(
                 </div>
 
                 <div className="font-semibold">
-                  ${(item.price * item.quantity).toFixed(2)}
+                  ${formatCurrency(item.price * item.quantity)}
                 </div>
               </div>
             ))
@@ -4996,14 +5002,14 @@ function renderCart(
           {taxRate > 0 ? (
             <div className="flex justify-between">
               <span>Tax ({(taxRate * 100).toFixed(2)}%)</span>
-              <span>${taxAmount.toFixed(2)}</span>
+              <span>${formatCurrency(taxAmount)}</span>
             </div>
           ) : null}
 
           {discount > 0 ? (
             <div className="flex justify-between">
               <span>Discount</span>
-              <span>- ${discount.toFixed(2)}</span>
+              <span>- ${formatCurrency(discount)}</span>
             </div>
           ) : null}
 
