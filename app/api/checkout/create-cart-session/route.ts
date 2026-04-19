@@ -184,7 +184,13 @@ export async function POST(req: Request) {
 
     const taxCents = Math.round(subtotal * (taxRate / 100));
 
-    const adjustedTotal = Math.max(0, subtotal + taxCents);
+    const discount =
+  typeof cartData.discount === "number" && Number.isFinite(cartData.discount)
+    ? Math.max(0, cartData.discount)
+    : 0;
+
+const discountCents = toCents(discount);
+const adjustedTotal = Math.max(0, subtotal + taxCents - discountCents);
     const fee = calcPlatformFee(adjustedTotal);
 
     const successTarget = `${getBaseUrl()}/s/${microsite.slug}?cart=success`;

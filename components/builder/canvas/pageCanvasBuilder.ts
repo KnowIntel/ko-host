@@ -1,3 +1,5 @@
+// components\builder\canvas\pageCanvasBuilder.ts
+
 import type { BuilderDraft } from "@/lib/templates/builder";
 import type { CanvasGridItem } from "@/components/templates/design-editors/shared/GridCanvas";
 import type { OverlayDesignMetadata } from "@/lib/templates/templateDesignOverlayMetadata";

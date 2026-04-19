@@ -4914,7 +4914,7 @@ function renderCart(
 
   // decimal tax: 0.07 = 7%
   const taxAmount = cartSubtotal * taxRate;
-  const total = Math.max(0, cartSubtotal + taxAmount - discount);
+  const total = Math.max(0, cartSubtotal + taxAmount);
 
   async function handleCartCheckout() {
     try {
