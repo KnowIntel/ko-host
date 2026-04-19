@@ -951,6 +951,9 @@ export default function DesignLayoutEditor({
   const [resetDraftModalOpen, setResetDraftModalOpen] = useState(false);
   const selectedPageLength =
     ((draft as DraftWithPageExtras).pageLength ?? "1800") as PageLengthOption;
+const [listingStyleTarget, setListingStyleTarget] = useState<
+  "title" | "description" | "metadata"
+>("title");
 
   const [registryLoadingMap, setRegistryLoadingMap] = useState<Record<string, boolean>>({});
   const [selection, setSelection] = useState(createEmptySelection());
@@ -1046,8 +1049,12 @@ const [richTextLinkValue, setRichTextLinkValue] = useState("https://");
       : null;
 
 const selectedStyle =
-  selectedBlockFromDraft?.type === "listing"
-    ? (selectedBlockFromDraft.data.titleStyle ?? {})
+selectedBlockFromDraft?.type === "listing"
+  ? listingStyleTarget === "description"
+    ? (selectedBlockFromDraft.data.descriptionStyle ?? {})
+    : listingStyleTarget === "metadata"
+      ? (selectedBlockFromDraft.data.metadataStyle ?? {})
+      : (selectedBlockFromDraft.data.titleStyle ?? {})
     : selectedBlockFromDraft?.type === "cart" ||
       selectedBlockFromDraft?.type === "checkout" ||
       selectedBlockFromDraft?.type === "text_fx" ||
@@ -2176,26 +2183,42 @@ if (selectedBlock?.type === "countdown") {
   return;
 }
 
-  if (selectedBlock?.type === "listing") {
-    setDraft((prev) => ({
-      ...prev,
-      blocks: prev.blocks.map((block) =>
-        block.id === selectedBlock.id && block.type === "listing"
-          ? {
-              ...block,
-              data: {
-                ...block.data,
-                titleStyle: {
-                  ...(block.data.titleStyle ?? {}),
-                  ...patch,
-                },
-              },
-            }
-          : block,
-      ),
-    }));
-    return;
-  }
+if (selectedBlock?.type === "listing") {
+  setDraft((prev) => ({
+    ...prev,
+    blocks: prev.blocks.map((block) =>
+      block.id === selectedBlock.id && block.type === "listing"
+        ? {
+            ...block,
+            data: {
+              ...block.data,
+              ...(listingStyleTarget === "description"
+                ? {
+                    descriptionStyle: {
+                      ...(block.data.descriptionStyle ?? {}),
+                      ...patch,
+                    },
+                  }
+                : listingStyleTarget === "metadata"
+                  ? {
+                      metadataStyle: {
+                        ...(block.data.metadataStyle ?? {}),
+                        ...patch,
+                      },
+                    }
+                  : {
+                      titleStyle: {
+                        ...(block.data.titleStyle ?? {}),
+                        ...patch,
+                      },
+                    }),
+            },
+          }
+        : block,
+    ),
+  }));
+  return;
+}
 
   if (selectedBlock?.type === "cart") {
     setDraft((prev) => ({
@@ -5158,6 +5181,27 @@ return (
 
       {showTextControls ? (
         <>
+
+        {selectedBlock?.type === "listing" ? (
+  <>
+    <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
+
+    <select
+      value={listingStyleTarget}
+      onChange={(e) =>
+        setListingStyleTarget(
+          e.target.value as "title" | "description" | "metadata",
+        )
+      }
+      className={topBarFieldClass("w-[140px]")}
+      title="Listing text target"
+    >
+      <option value="title">Title</option>
+      <option value="description">Description</option>
+      <option value="metadata">Metadata</option>
+    </select>
+  </>
+) : null}
           <div className="mx-1 h-8 w-px shrink-0 bg-white/15" />
 
           <button
