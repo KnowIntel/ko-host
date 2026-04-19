@@ -646,6 +646,8 @@ export type CheckoutBlock = BaseBlock & {
     collectEmail?: boolean;
     collectName?: boolean;
     collectAddress?: boolean;
+
+    style?: TextStyle;
   };
 };
 
@@ -926,11 +928,8 @@ function normalizeListingBlock(block: ListingBlock): ListingBlock {
   const fallbackGrid = createDefaultListingGrid();
   const normalizedGrid = normalizeGridValue(block.grid, fallbackGrid);
 
-  const nextColSpan =
-    normalizedGrid.colSpan < 4 ? fallbackGrid.colSpan : normalizedGrid.colSpan;
-
-  const nextRowSpan =
-    normalizedGrid.rowSpan < 4 ? fallbackGrid.rowSpan : normalizedGrid.rowSpan;
+  const nextColSpan = Math.max(1, normalizedGrid.colSpan);
+  const nextRowSpan = Math.max(1, normalizedGrid.rowSpan);
 
   return {
     ...block,
@@ -1761,6 +1760,40 @@ case "cart":
   };
 
   case "checkout":
+  return {
+    id: makeId("checkout"),
+    type: "checkout",
+    label: "Checkout",
+    grid: {
+      ...grid,
+      rowSpan: 3,
+    },
+    appearance: {
+      ...createDefaultBlockAppearance(),
+      backgroundColor: "#FFFFFF",
+      borderColor: "#E5E7EB",
+      borderWidth: 1,
+      borderRadius: 16,
+    },
+    data: {
+      productName: "Product",
+      price: 10,
+      currency: "usd",
+      allowQuantity: false,
+
+      description: "",
+      imageUrl: "",
+      buttonText: "Checkout",
+      successMessage: "Payment successful!",
+      redirectUrl: "",
+
+      collectEmail: true,
+      collectName: false,
+      collectAddress: false,
+
+      style: createDefaultTextStyle(),
+    },
+  };
   return {
     id: makeId("checkout"),
     type: "checkout",
