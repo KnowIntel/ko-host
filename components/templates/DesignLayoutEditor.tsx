@@ -11757,7 +11757,7 @@ data: {
           </button>
         ) : null}
 
-        {isPublished && isActive && slug ? (
+        {isPublished && slug ? (
           <a
             href={`https://${slug}.ko-host.com`}
             target="_blank"
