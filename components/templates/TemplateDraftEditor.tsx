@@ -20,6 +20,11 @@ type Props = {
   onDraftChange?: (draft: BuilderDraft) => void;
   saveState?: "idle" | "saving" | "saved" | "error" | "signin-required";
   saveMessage?: string;
+  microsite?: {
+  is_published?: boolean;
+  is_active?: boolean;
+  slug?: string;
+};
 };
 
 const AUTOSAVE_DELAY_MS = 10 * 60 * 1000;
@@ -51,6 +56,7 @@ export default function TemplateDraftEditor({
   onDraftChange,
   saveState,
   saveMessage,
+  microsite,
 }: Props) {
   const resolvedTemplateName = templateName ?? templateKey ?? "";
   const resolvedDesignLayout = designLayout ?? "blank";
@@ -210,6 +216,7 @@ export default function TemplateDraftEditor({
         onSaveDraft={handleSaveDraft}
         publishHref={publishHref}
         publishLabel={publishLabel}
+        microsite={microsite}
         onPublishClick={() => {
           onPublishClick?.();
         }}

@@ -663,6 +663,7 @@ return (
         designLayout={site.selected_design_key || "blank"}
         initialDraft={editorDraft}
         onSave={saveBuilderDraft}
+        microsite={site}
       />
 
       {contextMenu ? (

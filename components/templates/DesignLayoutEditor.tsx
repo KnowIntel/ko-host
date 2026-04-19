@@ -118,6 +118,11 @@ type Props = {
   onPublishClick?: () => void;
   saveState?: "idle" | "saving" | "saved" | "error" | "signin-required";
   saveMessage?: string;
+  microsite?: {
+  is_published?: boolean;
+  is_active?: boolean;
+  slug?: string;
+};
 };
 
 type PageLengthOption =
@@ -947,6 +952,7 @@ export default function DesignLayoutEditor({
   onPublishClick,
   saveState,
   saveMessage,
+  microsite,
 }: Props) {
   const [resetDraftModalOpen, setResetDraftModalOpen] = useState(false);
   const selectedPageLength =
@@ -954,7 +960,9 @@ export default function DesignLayoutEditor({
 const [listingStyleTarget, setListingStyleTarget] = useState<
   "title" | "description" | "metadata"
 >("title");
-
+  const isPublished = microsite?.is_published;
+  const isActive = microsite?.is_active;
+  const slug = microsite?.slug;
   const [registryLoadingMap, setRegistryLoadingMap] = useState<Record<string, boolean>>({});
   const [selection, setSelection] = useState(createEmptySelection());
   const [activeCategory, setActiveCategory] = useState<BottomCategory>("Text");
@@ -11736,6 +11744,7 @@ data: {
                   : "Save Draft"}
         </button>
 
+
         {publishHref ? (
           <button
             type="button"
@@ -11746,6 +11755,17 @@ data: {
           >
             {publishLabel}
           </button>
+        ) : null}
+
+        {isPublished && isActive && slug ? (
+          <a
+            href={`https://${slug}.ko-host.com`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex h-12 items-center justify-center rounded-md border border-emerald-600 bg-emerald-600 px-4 text-sm font-medium text-white transition hover:bg-emerald-700"
+          >
+            Open Public Site
+          </a>
         ) : null}
       </div>
 
