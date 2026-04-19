@@ -89,8 +89,8 @@ type Props = {
   serverNow?: number;
   cartItems?: CartItem[];
   cartSubtotal?: number;
-  selectedListingIds?: string[];
-  onToggleListingInCart?: (listingId: string, checked: boolean) => void;
+  listingQuantities?: Record<string, number>;
+  onChangeListingQuantity?: (listingId: string, nextQuantity: number) => void;
 };
 
 type ThreadUiMessage = ThreadMessage & {
@@ -703,15 +703,19 @@ function renderImage(
 function renderListing(
   block: Extract<MicrositeBlock, { type: "listing" }>,
   designKey?: string,
-  selectedListingIds: string[] = [],
-  onToggleListingInCart?: (listingId: string, checked: boolean) => void,
+  listingQuantities: Record<string, number> = {},
+  onChangeListingQuantity?: (listingId: string, nextQuantity: number) => void,
 ) {
   const image = block.data.image;
   const metadata = Array.isArray(block.data.metadata) ? block.data.metadata : [];
   const price = typeof block.data.price === "number" ? block.data.price : 0;
   const addToCart = !!block.data.addToCart;
   const isSelectable = addToCart && price > 0;
-  const isSelected = selectedListingIds.includes(block.id);
+  const quantity =
+    typeof listingQuantities[block.id] === "number" &&
+    Number.isFinite(listingQuantities[block.id])
+      ? Math.max(0, Math.floor(listingQuantities[block.id]))
+      : 0;
   const cardVariant = block.data.cardVariant ?? "stacked";
   const imageHeightPercent = Math.max(
     20,
@@ -790,32 +794,36 @@ function renderListing(
   ) : null}
 
   {isSelectable ? (
-    <label className="flex items-center gap-2 text-sm">
-      <input
-        type="checkbox"
-        checked={isSelected}
-        onChange={(e) => {
-          e.stopPropagation();
-          onToggleListingInCart?.(block.id, e.target.checked);
-        }}
-      />
-      Include in cart
-    </label>
-  ) : null}
+    <div className="flex items-center gap-2 text-sm">
+      <span>Qty</span>
 
-          {isSelectable ? (
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={isSelected}
-                onChange={(e) => {
-                  e.stopPropagation();
-                  onToggleListingInCart?.(block.id, e.target.checked);
-                }}
-              />
-              Include in cart
-            </label>
-          ) : null}
+      <button
+        type="button"
+        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-neutral-300 bg-white text-sm font-medium"
+        onClick={(e) => {
+          e.stopPropagation();
+          onChangeListingQuantity?.(block.id, Math.max(0, quantity - 1));
+        }}
+      >
+        -
+      </button>
+
+      <div className="min-w-[28px] text-center font-semibold">
+        {quantity}
+      </div>
+
+      <button
+        type="button"
+        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-neutral-300 bg-white text-sm font-medium"
+        onClick={(e) => {
+          e.stopPropagation();
+          onChangeListingQuantity?.(block.id, quantity + 1);
+        }}
+      >
+        +
+      </button>
+    </div>
+  ) : null}
 
           {block.data.description ? (
             <div
@@ -909,17 +917,35 @@ function renderListing(
   ) : null}
 
   {isSelectable ? (
-    <label className="flex items-center gap-2 text-sm">
-      <input
-        type="checkbox"
-        checked={isSelected}
-        onChange={(e) => {
+    <div className="flex items-center gap-2 text-sm">
+      <span>Qty</span>
+
+      <button
+        type="button"
+        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-neutral-300 bg-white text-sm font-medium"
+        onClick={(e) => {
           e.stopPropagation();
-          onToggleListingInCart?.(block.id, e.target.checked);
+          onChangeListingQuantity?.(block.id, Math.max(0, quantity - 1));
         }}
-      />
-      Include in cart
-    </label>
+      >
+        -
+      </button>
+
+      <div className="min-w-[28px] text-center font-semibold">
+        {quantity}
+      </div>
+
+      <button
+        type="button"
+        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-neutral-300 bg-white text-sm font-medium"
+        onClick={(e) => {
+          e.stopPropagation();
+          onChangeListingQuantity?.(block.id, quantity + 1);
+        }}
+      >
+        +
+      </button>
+    </div>
   ) : null}
 
   {block.data.description ? (
@@ -5089,12 +5115,12 @@ export default function BlockRenderer({
   serverNow,
   cartItems,
   cartSubtotal,
-  selectedListingIds,
-  onToggleListingInCart,
+  listingQuantities,
+  onChangeListingQuantity,
 }: Props) {
   const safeCartItems = cartItems ?? [];
   const safeCartSubtotal = cartSubtotal ?? 0;
-  const safeSelectedListingIds = selectedListingIds ?? [];
+  const safeListingQuantities = listingQuantities ?? {};
   switch (block.type) {
     case "label":
       return renderLabel(block, designKey);
@@ -5109,8 +5135,8 @@ case "listing":
   return renderListing(
     block,
     designKey,
-    safeSelectedListingIds,
-    onToggleListingInCart,
+    safeListingQuantities,
+    onChangeListingQuantity,
   );
 
     case "image_carousel":

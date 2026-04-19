@@ -328,122 +328,138 @@ export default function PlacedBlocksPreview({
     (hasMeaningfulText(descriptionValue) ||
       !!typedDraft.pageElements?.description);
 
-        const [selectedListingIds, setSelectedListingIds] = useState<string[]>([]);
-  const blockEntries = useMemo(
-    () =>
-      [...(draft.blocks || [])]
-        .map((block, index) => {
-          const normalizedGrid = normalizeResolvedGrid(block.grid, {
-            colStart: 1,
-            rowStart: index + 1,
-            colSpan: 12,
-            rowSpan: 1,
-            zIndex: index + 1,
-          });
+const [listingQuantities, setListingQuantities] = useState<Record<string, number>>({});
 
-          return {
-            block,
-            grid: normalizedGrid,
-            zIndex: normalizedGrid.zIndex ?? index + 1,
-            rowEnd: normalizedGrid.rowStart + normalizedGrid.rowSpan - 1,
-          };
-        })
-        .sort((a, b) => a.zIndex - b.zIndex),
-    [draft.blocks],
-  );
-
-  const availableCartItems = useMemo(() => {
-    return blockEntries
-      .map(({ block }) => {
-        if (block.type !== "listing") return null;
-
-        const data = block.data as any;
-
-        if (!data?.addToCart) return null;
-
-        const safePrice =
-          typeof data.price === "number" && Number.isFinite(data.price)
-            ? Math.max(0, data.price)
-            : 0;
-
-        if (safePrice <= 0) return null;
+const blockEntries = useMemo(
+  () =>
+    [...(draft.blocks || [])]
+      .map((block, index) => {
+        const normalizedGrid = normalizeResolvedGrid(block.grid, {
+          colStart: 1,
+          rowStart: index + 1,
+          colSpan: 12,
+          rowSpan: 1,
+          zIndex: index + 1,
+        });
 
         return {
-          id: block.id,
-          title: data.title || "Item",
-          description:
-            data.description?.trim() ||
-            `ITEM-${block.id.slice(-6).toUpperCase()}`,
-          price: safePrice,
-          quantity: 1,
+          block,
+          grid: normalizedGrid,
+          zIndex: normalizedGrid.zIndex ?? index + 1,
+          rowEnd: normalizedGrid.rowStart + normalizedGrid.rowSpan - 1,
         };
       })
-      .filter(
-        (
-          item,
-        ): item is {
-          id: string;
-          title: string;
-          description: string;
-          price: number;
-          quantity: number;
-        } => item !== null,
-      );
-  }, [blockEntries]);
+      .sort((a, b) => a.zIndex - b.zIndex),
+  [draft.blocks],
+);
 
-  useEffect(() => {
-    setSelectedListingIds((prev) => {
-      const validIds = new Set(availableCartItems.map((item) => item.id));
-      const cleaned = prev.filter((id) => validIds.has(id));
+const availableCartItems = useMemo(() => {
+  return blockEntries
+    .map(({ block }) => {
+      if (block.type !== "listing") return null;
 
-      if (cleaned.length === 0 && availableCartItems.length > 0) {
-        return availableCartItems.map((item) => item.id);
-      }
+      const data = block.data as any;
 
-      return cleaned;
-    });
-  }, [availableCartItems]);
+      if (!data?.addToCart) return null;
 
-  const cartItems = useMemo(() => {
-    const selectedSet = new Set(selectedListingIds);
-
-    return availableCartItems
-      .filter((item) => selectedSet.has(item.id))
-      .map((item) => ({
-        ...item,
-        quantity:
-          typeof item.quantity === "number" &&
-          Number.isFinite(item.quantity) &&
-          item.quantity > 0
-            ? item.quantity
-            : 1,
-      }));
-  }, [availableCartItems, selectedListingIds]);
-
-  const textRowEnds = [
-    showTitle ? titleGrid.rowStart + titleGrid.rowSpan - 1 : 0,
-    showSubtitle ? subtitleGrid.rowStart + subtitleGrid.rowSpan - 1 : 0,
-    showSubtext ? subtextGrid.rowStart + subtextGrid.rowSpan - 1 : 0,
-    showDescription ? descriptionGrid.rowStart + descriptionGrid.rowSpan - 1 : 0,
-  ];
-
-  const cartSubtotal = useMemo(() => {
-    return cartItems.reduce((sum, item) => {
       const safePrice =
-        typeof item.price === "number" && Number.isFinite(item.price)
-          ? Math.max(0, item.price)
+        typeof data.price === "number" && Number.isFinite(data.price)
+          ? Math.max(0, data.price)
           : 0;
 
-      const safeQuantity =
-        typeof item.quantity === "number" && Number.isFinite(item.quantity)
-          ? Math.max(0, item.quantity)
+      if (safePrice <= 0) return null;
+
+      return {
+        id: block.id,
+        title: data.title || "Item",
+        description:
+          data.description?.trim() ||
+          `ITEM-${block.id.slice(-6).toUpperCase()}`,
+        price: safePrice,
+      };
+    })
+    .filter(
+      (
+        item,
+      ): item is {
+        id: string;
+        title: string;
+        description: string;
+        price: number;
+      } => item !== null,
+    );
+}, [blockEntries]);
+
+useEffect(() => {
+  setListingQuantities((prev) => {
+    const validIds = new Set(availableCartItems.map((item) => item.id));
+    const next: Record<string, number> = {};
+
+    for (const item of availableCartItems) {
+      const rawQty = prev[item.id];
+      next[item.id] =
+        typeof rawQty === "number" && Number.isFinite(rawQty)
+          ? Math.max(0, Math.floor(rawQty))
+          : 0;
+    }
+
+    return next;
+  });
+}, [availableCartItems]);
+
+const cartItems = useMemo(() => {
+  return availableCartItems
+    .map((item) => {
+      const rawQty = listingQuantities[item.id];
+      const quantity =
+        typeof rawQty === "number" && Number.isFinite(rawQty)
+          ? Math.max(0, Math.floor(rawQty))
           : 0;
 
-      if (safePrice <= 0 || safeQuantity <= 0) return sum;
+      if (quantity <= 0) return null;
 
-      return sum + safePrice * safeQuantity;
-    }, 0);
-  }, [cartItems]);
+      return {
+        ...item,
+        quantity,
+      };
+    })
+    .filter(
+      (
+        item,
+      ): item is {
+        id: string;
+        title: string;
+        description: string;
+        price: number;
+        quantity: number;
+      } => item !== null,
+    );
+}, [availableCartItems, listingQuantities]);
+
+const textRowEnds = [
+  showTitle ? titleGrid.rowStart + titleGrid.rowSpan - 1 : 0,
+  showSubtitle ? subtitleGrid.rowStart + subtitleGrid.rowSpan - 1 : 0,
+  showSubtext ? subtextGrid.rowStart + subtextGrid.rowSpan - 1 : 0,
+  showDescription ? descriptionGrid.rowStart + descriptionGrid.rowSpan - 1 : 0,
+];
+
+const cartSubtotal = useMemo(() => {
+  return cartItems.reduce((sum, item) => {
+    const safePrice =
+      typeof item.price === "number" && Number.isFinite(item.price)
+        ? Math.max(0, item.price)
+        : 0;
+
+    const safeQuantity =
+      typeof item.quantity === "number" && Number.isFinite(item.quantity)
+        ? Math.max(0, Math.floor(item.quantity))
+        : 0;
+
+    if (safePrice <= 0 || safeQuantity <= 0) return sum;
+
+    return sum + safePrice * safeQuantity;
+  }, 0);
+}, [cartItems]);
 
 
   const contentRowEnd = Math.max(
@@ -636,15 +652,12 @@ return (
   serverNow={serverNow}
   cartItems={cartItems}
   cartSubtotal={cartSubtotal}
-  selectedListingIds={selectedListingIds}
-  onToggleListingInCart={(listingId: string, checked: boolean) => {
-    setSelectedListingIds((prev) => {
-      if (checked) {
-        return prev.includes(listingId) ? prev : [...prev, listingId];
-      }
-
-      return prev.filter((id) => id !== listingId);
-    });
+  listingQuantities={listingQuantities}
+  onChangeListingQuantity={(listingId: string, nextQuantity: number) => {
+    setListingQuantities((prev) => ({
+      ...prev,
+      [listingId]: Math.max(0, Math.floor(nextQuantity || 0)),
+    }));
   }}
 />
             </div>
