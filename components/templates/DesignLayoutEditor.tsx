@@ -11671,7 +11671,7 @@ data: {
   </div>
 
 <div className="relative flex items-start justify-between gap-6 border-b border-black/10 px-6 py-1">
-    <div className="flex flex-wrap items-start gap-2">
+    <div className="flex w-full flex-row flex-wrap items-center justify-center gap-2 overflow-x-auto px-2 md:flex-nowrap md:justify-start md:overflow-visible">
       {CATEGORY_ORDER.map((category) => (
         <div key={category} className="relative">
           <button
