@@ -1,13 +1,15 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type Participant = {
-  participantId: string;
+  participantId?: string;
+  id?: string;
   name: string;
   title: string;
   bio: string;
   imageUrl?: string | null;
+  image_url?: string | null;
 };
 
 type Pair = {
@@ -20,9 +22,13 @@ type Pair = {
 
 type PublicState = {
   round: number;
+  phase: "active" | "transition";
   roundDurationSeconds: number;
+  transitionDurationSeconds: number;
   roundStartedAt: string;
   roundEndsAt: string;
+  phaseStartedAt: string;
+  phaseEndsAt: string;
   serverNow: string;
   queues: {
     leftQueue: Participant[];
@@ -31,12 +37,23 @@ type PublicState = {
   activePairs: Pair[];
 };
 
-type PrivateRoom = {
-  roomId: string | null;
+type PrivateRoomState = {
+  roomId: string;
   pairId: string | null;
+  sessionId: string;
+  slug: string;
   round: number;
-  participant: Participant | null;
-  partner: Participant | null;
+  phase: "active" | "transition";
+  roundDurationSeconds: number;
+  transitionDurationSeconds: number;
+  roundStartedAt: string;
+  roundEndsAt: string;
+  phaseStartedAt: string;
+  phaseEndsAt: string;
+  serverNow: string;
+  me: Participant | null;
+  otherParticipant: Participant | null;
+  upcomingQueue: Participant[];
   hasMatch: boolean;
 };
 
@@ -46,7 +63,6 @@ type Props = {
   showTimer: boolean;
   leftLabel?: string;
   rightLabel?: string;
-  roundStartSound?: "none" | "arrival" | "spark" | "commence" | "cloak" | "vanish";
 };
 
 function getBrowserKey() {
@@ -75,8 +91,9 @@ export default function SpeedDatingLive({
   leftLabel = "Men",
   rightLabel = "Women",
 }: Props) {
-  const [state, setState] = useState<PublicState | null>(null);
-  const [room, setRoom] = useState<PrivateRoom | null>(null);
+  const [publicState, setPublicState] = useState<PublicState | null>(null);
+  const [privateRoom, setPrivateRoom] = useState<PrivateRoomState | null>(null);
+  const [joined, setJoined] = useState(false);
 
   const [joinForm, setJoinForm] = useState({
     name: "",
@@ -88,52 +105,37 @@ export default function SpeedDatingLive({
 
   const [joining, setJoining] = useState(false);
   const [joinError, setJoinError] = useState("");
-  const [nowMs, setNowMs] = useState(() => Date.now());
-
-  const [viewMode, setViewMode] = useState<"public" | "private">("public");
-  const [lastStableRoom, setLastStableRoom] = useState<PrivateRoom | null>(null);
+  const [nowMs, setNowMs] = useState(Date.now());
 
   const sessionId =
     typeof window !== "undefined" ? window.location.hostname : "default";
-
   const browserKey =
     typeof window !== "undefined" ? getBrowserKey() : "";
 
-  async function fetchState() {
+  const hasBootedRef = useRef(false);
+
+  async function fetchPublicState() {
     const res = await fetch(
       `/api/speed-dating/state?sessionId=${encodeURIComponent(sessionId)}`,
-      { cache: "no-store" }
+      { cache: "no-store" },
     );
-
     const data = await res.json().catch(() => null);
     if (!res.ok || !data?.ok) return;
-
-    setState(data.data);
+    setPublicState(data.data);
   }
 
-async function fetchPrivateRoom() {
-  const res = await fetch(
-    `/api/speed-dating/private-room?sessionId=${encodeURIComponent(
-      sessionId
-    )}&browserKey=${encodeURIComponent(browserKey)}`,
-    { cache: "no-store" }
-  );
-
-  const data = await res.json().catch(() => null);
-  if (!res.ok || !data?.ok) return;
-
-  const nextRoom = data.data as PrivateRoom;
-
-setRoom(nextRoom);
-
-if (nextRoom?.participant) {
-  setLastStableRoom(nextRoom);
-}
-
-if (nextRoom?.hasMatch) {
-  setViewMode("private");
-}
-}
+  async function fetchPrivateRoom() {
+    const res = await fetch(
+      `/api/speed-dating/private-room?sessionId=${encodeURIComponent(
+        sessionId,
+      )}&browserKey=${encodeURIComponent(browserKey)}`,
+      { cache: "no-store" },
+    );
+    const data = await res.json().catch(() => null);
+    if (!res.ok || !data?.ok) return;
+    setPrivateRoom(data.data);
+    setJoined(true);
+  }
 
   async function handleJoin() {
     setJoinError("");
@@ -172,87 +174,178 @@ if (nextRoom?.hasMatch) {
         return;
       }
 
-setState(data.data.state);
-setViewMode("private");
-await fetchPrivateRoom();
-    } catch {
-      setJoinError("Join failed");
+      setJoined(true);
+      await fetchPublicState();
+      await fetchPrivateRoom();
     } finally {
       setJoining(false);
     }
   }
 
-  async function handleSkip() {
-    await fetch("/api/speed-dating/skip", {
+  async function handleExit() {
+    await fetch("/api/speed-dating/leave", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
         sessionId,
         browserKey,
       }),
     });
 
-    await fetchState();
+    setJoined(false);
+    setPrivateRoom(null);
+    await fetchPublicState();
+  }
+
+  async function handleSkip() {
+    await fetch("/api/speed-dating/skip", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        sessionId,
+        browserKey,
+      }),
+    });
+
+    await fetchPublicState();
     await fetchPrivateRoom();
   }
 
-async function handleExit() {
-  await fetch("/api/speed-dating/leave", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      sessionId,
-      browserKey,
-    }),
-  });
-
-  setRoom(null);
-  setLastStableRoom(null);
-  setViewMode("public");
-  await fetchState();
-}
-
-useEffect(() => {
-  void fetchState();
-
-  const interval = window.setInterval(() => {
-    void fetchState();
-    if (viewMode === "private") {
-      void fetchPrivateRoom();
-    }
-  }, 1000);
-
-  return () => window.clearInterval(interval);
-}, [viewMode]);
-
   useEffect(() => {
-    const interval = window.setInterval(() => {
-      setNowMs(Date.now());
+    if (hasBootedRef.current) return;
+    hasBootedRef.current = true;
+
+    void fetchPublicState();
+    void fetchPrivateRoom();
+
+    const stateInterval = window.setInterval(() => {
+      void fetchPublicState();
+      if (joined) {
+        void fetchPrivateRoom();
+      }
     }, 1000);
 
-    return () => window.clearInterval(interval);
-  }, []);
+    const clockInterval = window.setInterval(() => {
+      setNowMs(Date.now());
+    }, 250);
 
-const timeLeft = useMemo(() => {
-  if (!state) return 0;
+    return () => {
+      window.clearInterval(stateInterval);
+      window.clearInterval(clockInterval);
+    };
+  }, [joined]);
 
-  const roundEndsAtMs = new Date(state.roundEndsAt).getTime();
-  return Math.max(0, Math.ceil((roundEndsAtMs - nowMs) / 1000));
-}, [state?.roundEndsAt, nowMs]);
+  const timerSource = joined && privateRoom ? privateRoom : publicState;
+
+  const timeLeft = useMemo(() => {
+    if (!timerSource) return 0;
+
+    const phaseEndsAtMs = new Date(timerSource.phaseEndsAt).getTime();
+    return Math.max(0, Math.ceil((phaseEndsAtMs - nowMs) / 1000));
+  }, [timerSource?.phaseEndsAt, nowMs]);
 
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
 
-  const left = state?.queues.leftQueue ?? [];
-  const right = state?.queues.rightQueue ?? [];
-  const pairs = state?.activePairs ?? [];
+  if (joined && privateRoom?.me) {
+    return (
+      <div className="h-full w-full overflow-auto rounded-xl p-4">
+        <div className="mb-4 flex items-start justify-between gap-4">
+          <div>
+            <div className="text-base font-semibold">
+              {heading || "Speed Dating"}
+            </div>
+            <div className="text-xs text-neutral-500">
+              Round {privateRoom.round + 1}
+            </div>
+          </div>
 
-const activeRoom = room?.participant ? room : lastStableRoom;
-const inRoom = viewMode === "private" && Boolean(activeRoom?.hasMatch);
-const isWaitingForMatch =
-  viewMode === "private" &&
-  Boolean(activeRoom?.participant) &&
-  !activeRoom?.hasMatch;
+          {showTimer ? (
+            <div className="rounded-xl border px-4 py-3">
+              <div className="text-xs uppercase tracking-[0.14em] text-neutral-500">
+                {privateRoom.phase === "transition"
+                  ? "Next Round Starts In"
+                  : "Time Remaining"}
+              </div>
+              <div className="text-3xl font-semibold">
+                {minutes}:{seconds.toString().padStart(2, "0")}
+              </div>
+            </div>
+          ) : null}
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 xl:grid-cols-[1fr_1fr_1fr]">
+          <Panel title="Your Profile">
+            <Card p={privateRoom.me} />
+          </Panel>
+
+          <Panel title="Current Match">
+            {privateRoom.otherParticipant ? (
+              <Card p={privateRoom.otherParticipant} />
+            ) : (
+              <Empty label="Waiting for match" />
+            )}
+          </Panel>
+
+          <Panel title="Upcoming Queue">
+            <div className="space-y-2">
+              {privateRoom.upcomingQueue.length ? (
+                privateRoom.upcomingQueue.map((p) => (
+                  <Card key={p.id || p.participantId || p.name} p={p} />
+                ))
+              ) : (
+                <Empty label="No upcoming matches yet" />
+              )}
+            </div>
+          </Panel>
+        </div>
+
+        <div className="mt-4 flex gap-2">
+          {privateRoom.hasMatch && privateRoom.phase === "active" ? (
+            <button
+              type="button"
+              onClick={() => void handleSkip()}
+              className="h-10 rounded-xl border px-4 text-sm"
+            >
+              Skip
+            </button>
+          ) : null}
+
+          <button
+            type="button"
+            onClick={() => void handleExit()}
+            className="h-10 rounded-xl bg-black px-4 text-sm text-white"
+          >
+            Exit
+          </button>
+        </div>
+
+        <div className="mt-4">
+          {privateRoom.phase === "active" &&
+          privateRoom.hasMatch &&
+          privateRoom.roomId ? (
+            <Chat roomId={privateRoom.roomId} participantId={browserKey} />
+          ) : (
+            <Panel title="Chat">
+              <div className="text-sm text-neutral-500">
+                {privateRoom.phase === "transition"
+                  ? "Chat closed for round transition."
+                  : "Waiting for a compatible match."}
+              </div>
+            </Panel>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  const left = publicState?.queues.leftQueue ?? [];
+  const right = publicState?.queues.rightQueue ?? [];
+  const pairs = publicState?.activePairs ?? [];
 
   return (
     <div className="h-full w-full overflow-auto rounded-xl p-4">
@@ -260,193 +353,191 @@ const isWaitingForMatch =
         <div className="text-base font-semibold">
           {heading || "Speed Dating"}
         </div>
-        <div className="text-xs">Round {(state?.round ?? 0) + 1}</div>
+        <div className="text-xs">
+          Round {(publicState?.round ?? 0) + 1}
+        </div>
       </div>
 
-{inRoom ? (
-  <div className="border rounded p-4 space-y-4">
-    <div className="font-semibold">Private Room</div>
+      <div className="mb-4 border rounded p-3">
+        <div className="font-semibold mb-2">Join</div>
 
-    <div className="grid grid-cols-2 gap-4">
-      <Card p={activeRoom?.participant!} />
-      {activeRoom?.partner ? <Card p={activeRoom.partner} /> : <Empty />}
-    </div>
+        <input
+          placeholder="Name"
+          className="w-full border px-2 h-10 rounded mb-2"
+          value={joinForm.name}
+          onChange={(e) =>
+            setJoinForm((s) => ({ ...s, name: e.target.value }))
+          }
+        />
 
-    <div className="flex items-center justify-between">
-      <div className="text-sm text-neutral-500">Matched</div>
+        <input
+          placeholder="Title"
+          className="w-full border px-2 h-10 rounded mb-2"
+          value={joinForm.title}
+          onChange={(e) =>
+            setJoinForm((s) => ({ ...s, title: e.target.value }))
+          }
+        />
 
-      <div className="flex gap-2">
+        <textarea
+          placeholder="Bio"
+          className="w-full border px-2 py-2 rounded mb-2"
+          value={joinForm.bio}
+          onChange={(e) =>
+            setJoinForm((s) => ({ ...s, bio: e.target.value }))
+          }
+        />
+
+        <div className="flex gap-2 mb-2">
+          <button
+            type="button"
+            onClick={() => setJoinForm((s) => ({ ...s, iam: "man" }))}
+            className={`flex-1 border rounded h-10 ${
+              joinForm.iam === "man" ? "bg-black text-white" : ""
+            }`}
+          >
+            Man
+          </button>
+          <button
+            type="button"
+            onClick={() => setJoinForm((s) => ({ ...s, iam: "woman" }))}
+            className={`flex-1 border rounded h-10 ${
+              joinForm.iam === "woman" ? "bg-black text-white" : ""
+            }`}
+          >
+            Woman
+          </button>
+        </div>
+
+        <div className="flex gap-2 mb-2">
+          <button
+            type="button"
+            onClick={() => setJoinForm((s) => ({ ...s, seeking: "men" }))}
+            className={`flex-1 border rounded h-10 ${
+              joinForm.seeking === "men" ? "bg-black text-white" : ""
+            }`}
+          >
+            Seeking Men
+          </button>
+          <button
+            type="button"
+            onClick={() => setJoinForm((s) => ({ ...s, seeking: "women" }))}
+            className={`flex-1 border rounded h-10 ${
+              joinForm.seeking === "women" ? "bg-black text-white" : ""
+            }`}
+          >
+            Seeking Women
+          </button>
+        </div>
+
+        {joinError ? (
+          <div className="mb-2 text-sm text-red-500">{joinError}</div>
+        ) : null}
+
         <button
-          onClick={handleSkip}
-          className="px-3 h-9 rounded border text-sm"
+          type="button"
+          onClick={() => void handleJoin()}
+          disabled={joining}
+          className="w-full bg-black text-white h-10 rounded"
         >
-          Skip
-        </button>
-
-        <button
-          onClick={handleExit}
-          className="px-3 h-9 rounded bg-black text-white text-sm"
-        >
-          Exit
+          {joining ? "Joining..." : "Join"}
         </button>
       </div>
-    </div>
 
-    <Chat roomId={activeRoom!.roomId!} participantId={browserKey} />
-  </div>
-) : isWaitingForMatch ? (
-  <div className="border rounded p-4 space-y-4">
-    <div className="font-semibold">Waiting Room</div>
-
-    <Card p={activeRoom?.participant!} />
-
-    <div className="text-sm text-neutral-500">
-      You joined successfully. Waiting for a compatible match.
-    </div>
-
-    <div className="flex justify-end">
-      <button
-        onClick={handleExit}
-        className="px-3 h-9 rounded bg-black text-white text-sm"
-      >
-        Exit
-      </button>
-    </div>
-  </div>
-) : (
-        <>
-          <div className="mb-4 border rounded p-3">
-            <div className="font-semibold mb-2">Join</div>
-
-            <input
-              placeholder="Name"
-              className="w-full border px-2 h-10 rounded mb-2"
-              value={joinForm.name}
-              onChange={(e) =>
-                setJoinForm((s) => ({ ...s, name: e.target.value }))
-              }
-            />
-
-            <input
-              placeholder="Title"
-              className="w-full border px-2 h-10 rounded mb-2"
-              value={joinForm.title}
-              onChange={(e) =>
-                setJoinForm((s) => ({ ...s, title: e.target.value }))
-              }
-            />
-
-            <textarea
-              placeholder="Bio"
-              className="w-full border px-2 py-2 rounded mb-2"
-              value={joinForm.bio}
-              onChange={(e) =>
-                setJoinForm((s) => ({ ...s, bio: e.target.value }))
-              }
-            />
-
-            <div className="flex gap-2 mb-2">
-              <button
-                type="button"
-                onClick={() => setJoinForm((s) => ({ ...s, iam: "man" }))}
-                className={`flex-1 border rounded h-10 ${
-                  joinForm.iam === "man" ? "bg-black text-white" : ""
-                }`}
-              >
-                Man
-              </button>
-              <button
-                type="button"
-                onClick={() => setJoinForm((s) => ({ ...s, iam: "woman" }))}
-                className={`flex-1 border rounded h-10 ${
-                  joinForm.iam === "woman" ? "bg-black text-white" : ""
-                }`}
-              >
-                Woman
-              </button>
-            </div>
-
-            <div className="flex gap-2 mb-2">
-              <button
-                type="button"
-                onClick={() => setJoinForm((s) => ({ ...s, seeking: "men" }))}
-                className={`flex-1 border rounded h-10 ${
-                  joinForm.seeking === "men" ? "bg-black text-white" : ""
-                }`}
-              >
-                Seeking Men
-              </button>
-              <button
-                type="button"
-                onClick={() => setJoinForm((s) => ({ ...s, seeking: "women" }))}
-                className={`flex-1 border rounded h-10 ${
-                  joinForm.seeking === "women" ? "bg-black text-white" : ""
-                }`}
-              >
-                Seeking Women
-              </button>
-            </div>
-
-            {joinError && <div className="text-red-500 text-sm mb-2">{joinError}</div>}
-
-            <button
-              type="button"
-              onClick={handleJoin}
-              disabled={joining}
-              className="w-full bg-black text-white h-10 rounded"
-            >
-              {joining ? "Joining..." : "Join"}
-            </button>
+      {showTimer ? (
+        <div className="mb-4 rounded-xl border px-4 py-3">
+          <div className="text-xs uppercase tracking-[0.14em] text-neutral-500">
+            {publicState?.phase === "transition"
+              ? "Next Round Starts In"
+              : "Time Remaining"}
           </div>
-
-          {showTimer && (
-            <div className="mb-4 border p-3 rounded">
-              {minutes}:{seconds.toString().padStart(2, "0")}
-            </div>
-          )}
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <div>{leftLabel}</div>
-              <div className="space-y-2 mt-2">
-                {left.map((p) => (
-                  <Card key={p.participantId} p={p} />
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <div>{rightLabel}</div>
-              <div className="space-y-2 mt-2">
-                {right.map((p) => (
-                  <Card key={p.participantId} p={p} />
-                ))}
-              </div>
-            </div>
+          <div className="text-3xl font-semibold">
+            {minutes}:{seconds.toString().padStart(2, "0")}
           </div>
+        </div>
+      ) : null}
 
-          <div className="mt-4 space-y-2">
-            {pairs.map((pair) => (
-              <div key={pair.pairId} className="grid grid-cols-3 gap-2">
-                {pair.leftParticipant ? <Card p={pair.leftParticipant} /> : <Empty />}
-                <div className="flex items-center justify-center">↔</div>
-                {pair.rightParticipant ? <Card p={pair.rightParticipant} /> : <Empty />}
-              </div>
-            ))}
+      <div className="grid grid-cols-2 gap-4">
+        <Panel title={leftLabel}>
+          <div className="space-y-2">
+            {left.length ? (
+              left.map((p) => (
+                <Card key={p.id || p.participantId || p.name} p={p} />
+              ))
+            ) : (
+              <Empty label={`No ${leftLabel.toLowerCase()} yet`} />
+            )}
           </div>
-        </>
-      )}
+        </Panel>
+
+        <Panel title={rightLabel}>
+          <div className="space-y-2">
+            {right.length ? (
+              right.map((p) => (
+                <Card key={p.id || p.participantId || p.name} p={p} />
+              ))
+            ) : (
+              <Empty label={`No ${rightLabel.toLowerCase()} yet`} />
+            )}
+          </div>
+        </Panel>
+      </div>
+
+      <div className="mt-4">
+        <Panel title="Active Pairs">
+          <div className="space-y-2">
+            {pairs.length ? (
+              pairs.map((pair) => (
+                <div key={pair.pairId} className="grid grid-cols-3 gap-2">
+                  {pair.leftParticipant ? (
+                    <Card p={pair.leftParticipant} />
+                  ) : (
+                    <Empty label="Open slot" />
+                  )}
+
+                  <div className="flex items-center justify-center">↔</div>
+
+                  {pair.rightParticipant ? (
+                    <Card p={pair.rightParticipant} />
+                  ) : (
+                    <Empty label="Open slot" />
+                  )}
+                </div>
+              ))
+            ) : (
+              <Empty label="No active pairs yet" />
+            )}
+          </div>
+        </Panel>
+      </div>
+    </div>
+  );
+}
+
+function Panel({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
+      <div className="mb-3 text-sm font-semibold text-neutral-900">{title}</div>
+      {children}
     </div>
   );
 }
 
 function Card({ p }: { p: Participant }) {
+  const image = p.imageUrl || p.image_url || null;
+
   return (
     <div className="border rounded p-2">
       <div className="flex gap-2">
-        {p.imageUrl ? (
+        {image ? (
           <img
-            src={p.imageUrl}
+            src={image}
             alt={p.name}
             className="w-10 h-10 rounded object-cover"
           />
@@ -455,17 +546,22 @@ function Card({ p }: { p: Participant }) {
             {getInitials(p.name)}
           </div>
         )}
-        <div>
+        <div className="min-w-0">
           <div className="text-sm font-semibold">{p.name}</div>
           <div className="text-xs text-neutral-500">{p.title}</div>
+          <div className="text-xs text-neutral-500 line-clamp-2">{p.bio}</div>
         </div>
       </div>
     </div>
   );
 }
 
-function Empty() {
-  return <div className="border-dashed border p-2 text-xs">Open</div>;
+function Empty({ label }: { label: string }) {
+  return (
+    <div className="border-dashed border p-2 text-xs text-neutral-400">
+      {label}
+    </div>
+  );
 }
 
 function Chat({
@@ -481,7 +577,7 @@ function Chat({
   async function fetchMessages() {
     const res = await fetch(
       `/api/speed-dating/room/messages?roomId=${encodeURIComponent(roomId)}`,
-      { cache: "no-store" }
+      { cache: "no-store" },
     );
 
     const data = await res.json().catch(() => null);
@@ -499,7 +595,8 @@ function Chat({
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        sessionId: typeof window !== "undefined" ? window.location.hostname : "default",
+        sessionId:
+          typeof window !== "undefined" ? window.location.hostname : "default",
         roomId,
         browserKey: participantId,
         type: "text",
@@ -522,37 +619,44 @@ function Chat({
   }, [roomId]);
 
   return (
-    <div className="border rounded p-3">
-      <div className="h-40 overflow-auto space-y-2 mb-2">
-        {messages.map((m) => {
-          const isMe = m.senderId === participantId;
+    <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
+      <div className="mb-3 text-sm font-semibold text-neutral-900">Chat</div>
 
-          return (
-            <div
-              key={m.id}
-              className={`flex ${isMe ? "justify-end" : "justify-start"}`}
-            >
+      <div className="mb-3 h-48 overflow-auto space-y-2">
+        {messages.length ? (
+          messages.map((m) => {
+            const isMe = m.senderId === participantId;
+
+            return (
               <div
-                className={`px-3 py-1 rounded text-sm ${
-                  isMe ? "bg-black text-white" : "bg-neutral-200"
-                }`}
+                key={m.id}
+                className={`flex ${isMe ? "justify-end" : "justify-start"}`}
               >
-                {m.text}
+                <div
+                  className={`max-w-[70%] rounded-xl px-3 py-2 text-sm ${
+                    isMe ? "bg-black text-white" : "bg-neutral-100"
+                  }`}
+                >
+                  {m.text}
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })
+        ) : (
+          <div className="text-sm text-neutral-500">No messages yet.</div>
+        )}
       </div>
 
       <div className="flex gap-2">
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          className="flex-1 border px-2 h-9 rounded"
+          className="flex-1 border px-2 h-10 rounded"
           placeholder="Message..."
         />
         <button
-          onClick={sendMessage}
+          type="button"
+          onClick={() => void sendMessage()}
           className="bg-black text-white px-3 rounded"
         >
           Send

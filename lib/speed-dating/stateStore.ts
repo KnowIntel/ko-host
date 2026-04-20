@@ -2,6 +2,7 @@ import {
   SPEED_DATING_DEFAULT_ROUND_DURATION_SECONDS,
   SPEED_DATING_MAX_ROUND_DURATION_SECONDS,
   SPEED_DATING_MIN_ROUND_DURATION_SECONDS,
+  SPEED_DATING_TRANSITION_SECONDS,
 } from "./constants";
 import type {
   SpeedDatingPair,
@@ -44,7 +45,9 @@ function createRoomId(sessionId: string, round: number, index: number) {
 }
 
 function normalizeRoundDurationSeconds(value?: number) {
-  const raw = Number.isFinite(value) ? Math.floor(value as number) : SPEED_DATING_DEFAULT_ROUND_DURATION_SECONDS;
+  const raw = Number.isFinite(value)
+    ? Math.floor(value as number)
+    : SPEED_DATING_DEFAULT_ROUND_DURATION_SECONDS;
 
   return Math.max(
     SPEED_DATING_MIN_ROUND_DURATION_SECONDS,
@@ -61,15 +64,21 @@ function createInitialRoundState(params: {
   const roundDurationSeconds = normalizeRoundDurationSeconds(
     params.roundDurationSeconds,
   );
-  const endsAt = new Date(startedAt.getTime() + roundDurationSeconds * 1000);
+  const roundEndsAt = new Date(
+    startedAt.getTime() + roundDurationSeconds * 1000,
+  );
 
   return {
     sessionId: params.sessionId,
     slug: params.slug,
     round: 0,
+    phase: "active",
     roundDurationSeconds,
+    transitionDurationSeconds: SPEED_DATING_TRANSITION_SECONDS,
     roundStartedAt: startedAt.toISOString(),
-    roundEndsAt: endsAt.toISOString(),
+    roundEndsAt: roundEndsAt.toISOString(),
+    phaseStartedAt: startedAt.toISOString(),
+    phaseEndsAt: roundEndsAt.toISOString(),
     serverNow: startedAt.toISOString(),
   };
 }
@@ -121,7 +130,9 @@ function removeParticipantFromAllPairs(
     const nextLeft =
       pair.leftParticipantId === participantId ? null : pair.leftParticipantId;
     const nextRight =
-      pair.rightParticipantId === participantId ? null : pair.rightParticipantId;
+      pair.rightParticipantId === participantId
+        ? null
+        : pair.rightParticipantId;
 
     return {
       ...pair,
@@ -129,7 +140,6 @@ function removeParticipantFromAllPairs(
       rightParticipantId: nextRight,
       updatedAt: nowIso(),
       active: Boolean(nextLeft || nextRight),
-      status: undefined,
     };
   });
 }
@@ -140,32 +150,11 @@ function compactPairs(pairs: SpeedDatingPair[]) {
   );
 }
 
-function seekingMatchesIam(
-  seeking: "men" | "women",
-  iam: "man" | "woman",
-) {
-  return (
-    (seeking === "men" && iam === "man") ||
-    (seeking === "women" && iam === "woman")
-  );
-}
-
-function isCompatible(params: {
-  leftParticipant: SpeedDatingParticipantProfile;
-  rightParticipant: SpeedDatingParticipantProfile;
-}) {
-  const { leftParticipant, rightParticipant } = params;
-
-  return (
-    seekingMatchesIam(leftParticipant.seeking, rightParticipant.iam) &&
-    seekingMatchesIam(rightParticipant.seeking, leftParticipant.iam)
-  );
-}
-
 function rotateArrayDown<T>(items: T[], steps = 1) {
   if (!items.length) return items;
   const normalized = ((steps % items.length) + items.length) % items.length;
   if (normalized === 0) return [...items];
+
   return [
     ...items.slice(items.length - normalized),
     ...items.slice(0, items.length - normalized),
@@ -176,6 +165,7 @@ function rotateArrayUp<T>(items: T[], steps = 1) {
   if (!items.length) return items;
   const normalized = ((steps % items.length) + items.length) % items.length;
   if (normalized === 0) return [...items];
+
   return [...items.slice(normalized), ...items.slice(0, normalized)];
 }
 
@@ -241,9 +231,27 @@ function refreshRoundIfNeeded(session: SessionState) {
   syncServerNow(session);
 
   const now = Date.now();
-  const roundEndsAt = new Date(session.roundState.roundEndsAt).getTime();
+  const phaseEndsAt = new Date(session.roundState.phaseEndsAt).getTime();
 
-  if (now < roundEndsAt) return false;
+  if (now < phaseEndsAt) return false;
+
+  if (session.roundState.phase === "active") {
+    const transitionStartedAt = new Date();
+    const transitionEndsAt = new Date(
+      transitionStartedAt.getTime() +
+        session.roundState.transitionDurationSeconds * 1000,
+    );
+
+    session.roundState = {
+      ...session.roundState,
+      phase: "transition",
+      phaseStartedAt: transitionStartedAt.toISOString(),
+      phaseEndsAt: transitionEndsAt.toISOString(),
+      serverNow: transitionStartedAt.toISOString(),
+    };
+
+    return true;
+  }
 
   const nextRound = session.roundState.round + 1;
   const nextStartedAt = new Date();
@@ -254,8 +262,11 @@ function refreshRoundIfNeeded(session: SessionState) {
   session.roundState = {
     ...session.roundState,
     round: nextRound,
+    phase: "active",
     roundStartedAt: nextStartedAt.toISOString(),
     roundEndsAt: nextEndsAt.toISOString(),
+    phaseStartedAt: nextStartedAt.toISOString(),
+    phaseEndsAt: nextEndsAt.toISOString(),
     serverNow: nextStartedAt.toISOString(),
   };
 
@@ -351,13 +362,25 @@ export function joinParticipant(params: {
   session.rightQueue = removeQueueEntry(session.rightQueue, participantId);
 
   const side = getQueueSide(params.iam);
+
   if (side === "left") {
-    session.leftQueue = upsertQueueEntry(session.leftQueue, participantId, timestamp);
+    session.leftQueue = upsertQueueEntry(
+      session.leftQueue,
+      participantId,
+      timestamp,
+    );
   } else {
-    session.rightQueue = upsertQueueEntry(session.rightQueue, participantId, timestamp);
+    session.rightQueue = upsertQueueEntry(
+      session.rightQueue,
+      participantId,
+      timestamp,
+    );
   }
 
-  buildPairsForCurrentRound(session);
+  if (session.roundState.phase === "active") {
+    buildPairsForCurrentRound(session);
+  }
+
   syncServerNow(session);
 
   return {
@@ -391,7 +414,10 @@ export function leaveParticipant(params: {
     removeParticipantFromAllPairs(session.pairs, participantId),
   );
 
-  buildPairsForCurrentRound(session);
+  if (session.roundState.phase === "active") {
+    buildPairsForCurrentRound(session);
+  }
+
   syncServerNow(session);
 
   return session;
@@ -429,14 +455,25 @@ export function skipParticipant(params: {
   session.rightQueue = removeQueueEntry(session.rightQueue, participantId);
 
   const requeueTime = nowIso();
+
   if (participant.iam === "man") {
-    session.leftQueue = [...session.leftQueue, { participantId, joinedAt: requeueTime }];
+    session.leftQueue = [
+      ...session.leftQueue,
+      { participantId, joinedAt: requeueTime },
+    ];
   } else {
-    session.rightQueue = [...session.rightQueue, { participantId, joinedAt: requeueTime }];
+    session.rightQueue = [
+      ...session.rightQueue,
+      { participantId, joinedAt: requeueTime },
+    ];
   }
 
   session.pairs = compactPairs(session.pairs);
-  buildPairsForCurrentRound(session);
+
+  if (session.roundState.phase === "active") {
+    buildPairsForCurrentRound(session);
+  }
+
   syncServerNow(session);
 
   return session;

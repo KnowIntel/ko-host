@@ -1,5 +1,6 @@
 export type SpeedDatingIam = "man" | "woman";
 export type SpeedDatingSeeking = "men" | "women";
+export type SpeedDatingPhase = "active" | "transition";
 
 export type SpeedDatingParticipantId = string;
 export type SpeedDatingPairId = string;
@@ -49,9 +50,16 @@ export interface SpeedDatingRoundState {
   slug: string;
 
   round: number;
+  phase: SpeedDatingPhase;
+
   roundDurationSeconds: number;
+  transitionDurationSeconds: number;
+
   roundStartedAt: string;
   roundEndsAt: string;
+
+  phaseStartedAt: string;
+  phaseEndsAt: string;
 
   serverNow: string;
 }
@@ -85,9 +93,17 @@ export interface SpeedDatingPublicState {
   slug: string;
 
   round: number;
+  phase: SpeedDatingPhase;
+
   roundDurationSeconds: number;
+  transitionDurationSeconds: number;
+
   roundStartedAt: string;
   roundEndsAt: string;
+
+  phaseStartedAt: string;
+  phaseEndsAt: string;
+
   serverNow: string;
 
   queues: SpeedDatingPublicQueueState;
@@ -96,17 +112,29 @@ export interface SpeedDatingPublicState {
 
 export interface SpeedDatingPrivateRoomState {
   roomId: SpeedDatingRoomId;
-  pairId: SpeedDatingPairId;
+  pairId: SpeedDatingPairId | null;
   sessionId: string;
   slug: string;
+
   round: number;
+  phase: SpeedDatingPhase;
+
+  roundDurationSeconds: number;
+  transitionDurationSeconds: number;
+
+  roundStartedAt: string;
+  roundEndsAt: string;
+
+  phaseStartedAt: string;
+  phaseEndsAt: string;
+
+  serverNow: string;
 
   me: SpeedDatingParticipantProfile;
   otherParticipant: SpeedDatingParticipantProfile | null;
+  upcomingQueue: SpeedDatingParticipantProfile[];
 
-  roomOpen: boolean;
-  createdAt: string;
-  expiresAt: string;
+  hasMatch: boolean;
 }
 
 export interface SpeedDatingChatMessage {

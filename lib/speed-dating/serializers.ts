@@ -19,7 +19,7 @@ export function ok<T>(data: T): SpeedDatingApiSuccess<T> {
 
 export function fail(
   error: string,
-  code: SpeedDatingApiError["code"] = "BAD_REQUEST"
+  code: SpeedDatingApiError["code"] = "BAD_REQUEST",
 ): SpeedDatingApiError {
   return {
     ok: false,
@@ -29,7 +29,7 @@ export function fail(
 }
 
 export function toPublicParticipantCard(
-  participant: SpeedDatingParticipantProfile
+  participant: SpeedDatingParticipantProfile,
 ): SpeedDatingPublicParticipantCard {
   return {
     participantId: participant.id,
@@ -86,14 +86,14 @@ export function buildPublicState(params: {
     .map((entry) => participantsById.get(entry.participantId))
     .filter(Boolean)
     .map((participant) =>
-      toPublicParticipantCard(participant as SpeedDatingParticipantProfile)
+      toPublicParticipantCard(participant as SpeedDatingParticipantProfile),
     );
 
   const rightQueue = rightQueueEntries
     .map((entry) => participantsById.get(entry.participantId))
     .filter(Boolean)
     .map((participant) =>
-      toPublicParticipantCard(participant as SpeedDatingParticipantProfile)
+      toPublicParticipantCard(participant as SpeedDatingParticipantProfile),
     );
 
   const activePairs = pairs.map((pair) =>
@@ -105,16 +105,20 @@ export function buildPublicState(params: {
       rightParticipant: pair.rightParticipantId
         ? participantsById.get(pair.rightParticipantId) ?? null
         : null,
-    })
+    }),
   );
 
   return {
     sessionId,
     slug,
     round: roundState.round,
+    phase: roundState.phase,
     roundDurationSeconds: roundState.roundDurationSeconds,
+    transitionDurationSeconds: roundState.transitionDurationSeconds,
     roundStartedAt: roundState.roundStartedAt,
     roundEndsAt: roundState.roundEndsAt,
+    phaseStartedAt: roundState.phaseStartedAt,
+    phaseEndsAt: roundState.phaseEndsAt,
     serverNow: roundState.serverNow,
     queues: {
       leftQueue,
