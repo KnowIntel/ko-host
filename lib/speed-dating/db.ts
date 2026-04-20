@@ -430,10 +430,6 @@ export async function rebuildPairsForCurrentRound(sessionId: string) {
   const supabase = getAdminClient();
   const session = await getSessionOrThrow(supabase, sessionId);
 
-  if (session.phase !== "active") {
-    return;
-  }
-
   const participantsMap = await fetchParticipantsMap(supabase, sessionId);
   const leftQueue = await fetchQueue(supabase, sessionId, "left");
   const rightQueue = await fetchQueue(supabase, sessionId, "right");
@@ -766,7 +762,22 @@ export async function getPrivateRoom(params: {
 
   const me = toParticipantProfile(participant);
 
-  const { data: pairData, error: pairErr } = await supabase
+let { data: pairData, error: pairErr } = await supabase
+  .from("speed_dating_pairs")
+  .select("*")
+  .eq("session_id", params.sessionId)
+  .eq("round", session.round)
+  .or(`left_participant_id.eq.${participant.id},right_participant_id.eq.${participant.id}`)
+  .maybeSingle();
+
+if (pairErr) throw pairErr;
+
+let pair = (pairData as PairRow | null) ?? null;
+
+if (!pair) {
+  await rebuildPairsForCurrentRound(params.sessionId);
+
+  const retry = await supabase
     .from("speed_dating_pairs")
     .select("*")
     .eq("session_id", params.sessionId)
@@ -774,9 +785,9 @@ export async function getPrivateRoom(params: {
     .or(`left_participant_id.eq.${participant.id},right_participant_id.eq.${participant.id}`)
     .maybeSingle();
 
-  if (pairErr) throw pairErr;
-
-  const pair = (pairData as PairRow | null) ?? null;
+  if (retry.error) throw retry.error;
+  pair = (retry.data as PairRow | null) ?? null;
+}
   const otherParticipantId =
     pair?.left_participant_id === participant.id
       ? pair.right_participant_id
@@ -803,10 +814,11 @@ export async function getPrivateRoom(params: {
   const oppositeQueue = await fetchQueue(supabase, params.sessionId, oppositeSide);
 
   const participantsMap = await fetchParticipantsMap(supabase, params.sessionId);
-  const upcomingQueue = oppositeQueue
-    .map((entry) => participantsMap.get(entry.participant_id) ?? null)
-    .filter(Boolean)
-    .filter((p) => p!.id !== otherParticipantId) as SpeedDatingParticipantProfile[];
+const upcomingQueue = oppositeQueue
+  .map((entry) => participantsMap.get(entry.participant_id) ?? null)
+  .filter(Boolean)
+  .filter((p) => p!.id !== otherParticipantId)
+  .filter((p) => p!.id !== participant.id) as SpeedDatingParticipantProfile[];
 
   const timeRemainingSeconds = Math.max(
     0,

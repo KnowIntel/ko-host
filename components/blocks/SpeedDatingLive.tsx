@@ -239,7 +239,7 @@ useEffect(() => {
 const displayPhase = publicState?.phase ?? "active";
 const displayRound = publicState?.round ?? 0;
 
-const timeLeft = displayTimeLeft;
+const timeLeft = publicState?.timeRemainingSeconds ?? displayTimeLeft;
 
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
