@@ -1,46 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { leaveAndCleanup, getPublicState } from "@/lib/speed-dating/db";
 import { validateLeaveInput } from "@/lib/speed-dating/guards";
-import { leaveParticipant } from "@/lib/speed-dating/stateStore";
-import { buildPublicState, ok, fail } from "@/lib/speed-dating/serializers";
+import { ok, fail } from "@/lib/speed-dating/serializers";
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-
     const input = validateLeaveInput(body);
 
-    const session = leaveParticipant({
+    await leaveAndCleanup({
       sessionId: input.sessionId,
       browserKey: input.browserKey,
     });
 
-    if (!session) {
-      return NextResponse.json(fail("Session not found", "NOT_FOUND"), {
-        status: 404,
-      });
-    }
+    const state = await getPublicState(input.sessionId, "live");
 
-    const publicState = buildPublicState({
-      sessionId: session.sessionId,
-      slug: session.slug,
-      roundState: session.roundState,
-      leftQueueEntries: session.leftQueue,
-      rightQueueEntries: session.rightQueue,
-      participantsById: session.participantsById,
-      pairs: session.pairs,
-    });
-
-    return NextResponse.json(ok({ state: publicState }));
+    return NextResponse.json(ok({ state }));
   } catch (error) {
     console.error("LEAVE ERROR:", error);
 
     return NextResponse.json(
-      fail(
-        error instanceof Error ? error.message : "Leave failed",
-        "BAD_REQUEST",
-      ),
-      { status: 400 },
+      fail("Failed to leave session", "INTERNAL_ERROR"),
+      { status: 500 },
     );
   }
 }

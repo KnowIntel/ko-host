@@ -3,13 +3,12 @@
 import { useEffect, useMemo, useState } from "react";
 
 type Participant = {
-  participantId?: string;
   id?: string;
+  participantId?: string;
   name: string;
   title: string;
   bio: string;
   imageUrl?: string | null;
-  image_url?: string | null;
 };
 
 type Pair = {
@@ -20,42 +19,13 @@ type Pair = {
   openSlotRight: boolean;
 };
 
-type PublicState = {
-  round: number;
-  phase: "active" | "transition";
-  roundDurationSeconds: number;
-  transitionDurationSeconds: number;
-  roundStartedAt: string;
-  roundEndsAt: string;
-  phaseStartedAt: string;
-  phaseEndsAt: string;
-  serverNow: string;
-  queues: {
-    leftQueue: Participant[];
-    rightQueue: Participant[];
-  };
-  activePairs: Pair[];
-};
+import type {
+  SpeedDatingPublicState,
+  SpeedDatingPrivateRoomState,
+} from "@/lib/speed-dating/types";
 
-type PrivateRoomState = {
-  roomId: string;
-  pairId: string | null;
-  sessionId: string;
-  slug: string;
-  round: number;
-  phase: "active" | "transition";
-  roundDurationSeconds: number;
-  transitionDurationSeconds: number;
-  roundStartedAt: string;
-  roundEndsAt: string;
-  phaseStartedAt: string;
-  phaseEndsAt: string;
-  serverNow: string;
-  me: Participant | null;
-  otherParticipant: Participant | null;
-  upcomingQueue: Participant[];
-  hasMatch: boolean;
-};
+type PublicState = SpeedDatingPublicState;
+type PrivateRoomState = SpeedDatingPrivateRoomState;
 
 type Props = {
   heading?: string;
@@ -106,7 +76,6 @@ const [joinForm, setJoinForm] = useState({
 
   const [joining, setJoining] = useState(false);
   const [joinError, setJoinError] = useState("");
-  const [nowMs, setNowMs] = useState(Date.now());
 
   const sessionId =
     typeof window !== "undefined" ? window.location.hostname : "default";
@@ -256,37 +225,19 @@ useEffect(() => {
     }
   }, 1000);
 
-  const clockInterval = window.setInterval(() => {
-    setNowMs(Date.now());
-  }, 250);
-
-  return () => {
-    window.clearInterval(stateInterval);
-    window.clearInterval(clockInterval);
-  };
+return () => {
+  window.clearInterval(stateInterval);
+};
 }, [joined]);
 
 const timerSource = publicState;
 const displayPhase = publicState?.phase ?? "active";
 const displayRound = publicState?.round ?? 0;
 
-const [serverOffsetMs, setServerOffsetMs] = useState(0);
-
-useEffect(() => {
-  if (!publicState?.serverNow) return;
-
-  const serverNowMs = new Date(publicState.serverNow).getTime();
-  setServerOffsetMs(serverNowMs - Date.now());
-}, [publicState?.serverNow]);
-
-const timeLeft = useMemo(() => {
-  if (!timerSource?.phaseEndsAt) return 0;
-
-  const phaseEndsAtMs = new Date(timerSource.phaseEndsAt).getTime();
-  const syncedNowMs = Date.now() + serverOffsetMs;
-
-  return Math.max(0, Math.ceil((phaseEndsAtMs - syncedNowMs) / 1000));
-}, [timerSource?.phaseEndsAt, serverOffsetMs, nowMs]);
+const timeLeft =
+  privateRoom?.timeRemainingSeconds ??
+  publicState?.timeRemainingSeconds ??
+  0;
 
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
@@ -335,7 +286,7 @@ const timeLeft = useMemo(() => {
             <div className="space-y-2">
               {privateRoom.upcomingQueue.length ? (
                 privateRoom.upcomingQueue.map((p) => (
-                  <Card key={p.id || p.participantId || p.name} p={p} />
+                  <Card key={p.id || p.name} p={p} />
                 ))
               ) : (
                 <Empty label="No upcoming matches yet" />
@@ -514,7 +465,7 @@ privateRoom.roomId ? (
           <div className="space-y-2">
             {left.length ? (
               left.map((p) => (
-                <Card key={p.id || p.participantId || p.name} p={p} />
+                <Card key={p.participantId || p.name} p={p} />
               ))
             ) : (
               <Empty label={`No ${leftLabel.toLowerCase()} yet`} />
@@ -526,7 +477,7 @@ privateRoom.roomId ? (
           <div className="space-y-2">
             {right.length ? (
               right.map((p) => (
-                <Card key={p.id || p.participantId || p.name} p={p} />
+                <Card key={p.participantId || p.name} p={p} />
               ))
             ) : (
               <Empty label={`No ${rightLabel.toLowerCase()} yet`} />
@@ -582,7 +533,7 @@ function Panel({
 }
 
 function Card({ p }: { p: Participant }) {
-  const image = p.imageUrl || p.image_url || null;
+  const image = p.imageUrl || null;
 
   return (
     <div className="border rounded p-2">

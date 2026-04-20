@@ -1,36 +1,55 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { createClient } from "@supabase/supabase-js";
+
 import { validateSendMessageInput } from "@/lib/speed-dating/guards";
 import { ok, fail } from "@/lib/speed-dating/serializers";
 
-/* TEMP IN-MEMORY STORE */
-type Message = {
-  id: string;
-  roomId: string;
-  senderId: string;
-  text?: string;
-  imageUrl?: string;
-  createdAt: number;
-};
+function getAdminClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-const messagesStore = new Map<string, Message[]>();
+  if (!url || !key) {
+    throw new Error("Missing Supabase env vars");
+  }
 
-function createMessageId() {
-  return `msg_${Math.random().toString(36).slice(2, 10)}`;
+  return createClient(url, key, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
 }
-
-/* ================= GET ================= */
 
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const roomId = searchParams.get("roomId");
 
+    const roomId = searchParams.get("roomId");
     if (!roomId) {
       return NextResponse.json(fail("Missing roomId"), { status: 400 });
     }
 
-    const messages = messagesStore.get(roomId) ?? [];
+    const supabase = getAdminClient();
+
+    const { data, error } = await supabase
+      .from("speed_dating_messages")
+      .select("*")
+      .eq("room_id", roomId)
+      .order("created_at", { ascending: true });
+
+    if (error) {
+      throw error;
+    }
+
+    const messages = (data ?? []).map((row) => ({
+      id: row.id,
+      roomId: row.room_id,
+      senderId: row.sender_participant_id,
+      text: row.text,
+      imageUrl: row.image_url,
+      createdAt: row.created_at,
+    }));
 
     return NextResponse.json(ok({ messages }));
   } catch (error) {
@@ -43,25 +62,73 @@ export async function GET(req: NextRequest) {
   }
 }
 
-/* ================= POST ================= */
-
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-
     const input = validateSendMessageInput(body);
 
-    const message: Message = {
-      id: createMessageId(),
-      roomId: input.roomId,
-      senderId: input.browserKey,
-      text: input.text,
-      imageUrl: input.imageUrl,
-      createdAt: Date.now(),
-    };
+    const supabase = getAdminClient();
 
-    const existing = messagesStore.get(input.roomId) ?? [];
-    messagesStore.set(input.roomId, [...existing, message]);
+    const { data: participant, error: participantError } = await supabase
+      .from("speed_dating_participants")
+      .select("id")
+      .eq("session_id", input.sessionId)
+      .eq("browser_key", input.browserKey)
+      .maybeSingle();
+
+    if (participantError) {
+      throw participantError;
+    }
+
+    if (!participant) {
+      return NextResponse.json(fail("Participant not found", "NOT_FOUND"), {
+        status: 404,
+      });
+    }
+
+    const { data: session, error: sessionError } = await supabase
+      .from("speed_dating_sessions")
+      .select("round, phase")
+      .eq("session_id", input.sessionId)
+      .single();
+
+    if (sessionError) {
+      throw sessionError;
+    }
+
+    if (session.phase !== "active") {
+      return NextResponse.json(
+        fail("Chat is closed during transition", "CONFLICT"),
+        { status: 409 },
+      );
+    }
+
+    const { data: inserted, error: insertError } = await supabase
+      .from("speed_dating_messages")
+      .insert({
+        session_id: input.sessionId,
+        room_id: input.roomId,
+        round: session.round,
+        sender_participant_id: participant.id,
+        type: input.type,
+        text: input.text ?? null,
+        image_url: input.imageUrl ?? null,
+      })
+      .select("*")
+      .single();
+
+    if (insertError) {
+      throw insertError;
+    }
+
+    const message = {
+      id: inserted.id,
+      roomId: inserted.room_id,
+      senderId: inserted.sender_participant_id,
+      text: inserted.text,
+      imageUrl: inserted.image_url,
+      createdAt: inserted.created_at,
+    };
 
     return NextResponse.json(ok({ message }));
   } catch (error) {

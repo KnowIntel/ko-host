@@ -120,6 +120,14 @@ export function buildPublicState(params: {
     phaseStartedAt: roundState.phaseStartedAt,
     phaseEndsAt: roundState.phaseEndsAt,
     serverNow: roundState.serverNow,
+timeRemainingSeconds: Math.max(
+  0,
+  Math.ceil(
+    (new Date(roundState.phaseEndsAt).getTime() -
+      new Date(roundState.serverNow).getTime()) /
+      1000,
+  ),
+),
     queues: {
       leftQueue,
       rightQueue,

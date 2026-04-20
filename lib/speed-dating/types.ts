@@ -105,6 +105,7 @@ export interface SpeedDatingPublicState {
   phaseEndsAt: string;
 
   serverNow: string;
+  timeRemainingSeconds: number; // ✅ ADDED
 
   queues: SpeedDatingPublicQueueState;
   activePairs: SpeedDatingPublicPairState[];
@@ -129,6 +130,7 @@ export interface SpeedDatingPrivateRoomState {
   phaseEndsAt: string;
 
   serverNow: string;
+  timeRemainingSeconds: number; // ✅ ADDED
 
   me: SpeedDatingParticipantProfile;
   otherParticipant: SpeedDatingParticipantProfile | null;

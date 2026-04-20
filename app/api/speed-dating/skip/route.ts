@@ -1,37 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { validateSkipInput } from "@/lib/speed-dating/guards";
-import { skipParticipant } from "@/lib/speed-dating/stateStore";
-import { buildPublicState, ok, fail } from "@/lib/speed-dating/serializers";
+import { skipAndRebuild, getPublicState } from "@/lib/speed-dating/db";
+import { ok, fail } from "@/lib/speed-dating/serializers";
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-
     const input = validateSkipInput(body);
 
-    const session = skipParticipant({
+    // ✅ DB-based skip (NO stateStore)
+    await skipAndRebuild({
       sessionId: input.sessionId,
       browserKey: input.browserKey,
     });
 
-    if (!session) {
-      return NextResponse.json(fail("Session not found", "NOT_FOUND"), {
-        status: 404,
-      });
-    }
+    // ✅ Always rebuild fresh public state from DB
+    const state = await getPublicState(input.sessionId, "live");
 
-    const publicState = buildPublicState({
-      sessionId: session.sessionId,
-      slug: session.slug,
-      roundState: session.roundState,
-      leftQueueEntries: session.leftQueue,
-      rightQueueEntries: session.rightQueue,
-      participantsById: session.participantsById,
-      pairs: session.pairs,
-    });
-
-    return NextResponse.json(ok({ state: publicState }));
+    return NextResponse.json(ok({ state }));
   } catch (error) {
     console.error("SKIP ERROR:", error);
 
