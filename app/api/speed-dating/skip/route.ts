@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const input = validateSkipInput(body);
 
-    // ✅ DB-based skip (NO stateStore)
+    // ✅ DB-based skip (NO more stateStore)
     await skipAndRebuild({
       sessionId: input.sessionId,
       browserKey: input.browserKey,

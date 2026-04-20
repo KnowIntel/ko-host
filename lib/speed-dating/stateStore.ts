@@ -44,6 +44,13 @@ function createRoomId(sessionId: string, round: number, index: number) {
   return `room_${sessionId}_${round}_${index}`;
 }
 
+function getTimeRemainingSeconds(session: SessionState) {
+  const now = Date.now();
+  const phaseEndsAt = new Date(session.roundState.phaseEndsAt).getTime();
+
+  return Math.max(0, Math.ceil((phaseEndsAt - now) / 1000));
+}
+
 function normalizeRoundDurationSeconds(value?: number) {
   const raw = Number.isFinite(value)
     ? Math.floor(value as number)
