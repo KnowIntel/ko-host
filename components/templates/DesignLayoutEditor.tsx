@@ -11649,9 +11649,9 @@ data: {
         </div>
       </div>
 
-      <div
+<div
   ref={bottomBarRef}
-  className="sticky bottom-0 z-50 border-t border-black/10 bg-[#e9e9e9] shadow-[0_-2px_10px_rgba(0,0,0,0.06)]"
+  className="sticky bottom-0 z-[110] border-t border-black/10 bg-[#e9e9e9] shadow-[0_-2px_10px_rgba(0,0,0,0.06)]"
 >
   <div className="border-b border-black/10 px-6 py-2">
     <div className="rounded-md border border-black/10 bg-white/80 px-2 py-1 shadow-sm backdrop-blur-sm">
@@ -11686,7 +11686,7 @@ data: {
           {openToolMenu === category ? (
             <div
               ref={toolMenuRef}
-              className="absolute bottom-[calc(100%+10px)] left-0 z-[80] w-max max-w-[420px] rounded-2xl border border-neutral-300 bg-white p-3 shadow-2xl"
+              className="absolute left-0 top-[calc(100%+10px)] z-[120] w-max max-w-[calc(100vw-32px)] rounded-2xl border border-neutral-300 bg-white p-3 shadow-2xl md:bottom-[calc(100%+10px)] md:top-auto md:max-w-[420px]"
             >
               <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
                 {category} Tools
