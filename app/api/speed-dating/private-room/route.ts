@@ -63,11 +63,12 @@ export async function GET(req: NextRequest) {
     const oppositeQueue =
       me.iam === "man" ? session.rightQueue : session.leftQueue;
 
-    const upcomingQueue = oppositeQueue
-      .map((entry) => session.participantsById.get(entry.participantId) ?? null)
-      .filter(Boolean)
-      .filter((participant) => participant!.id !== otherParticipantId)
-      .filter((participant) => participant!.active) as typeof me[];
+const upcomingQueue = oppositeQueue
+  .map((entry) => session.participantsById.get(entry.participantId) ?? null)
+  .filter(Boolean)
+  .filter((participant) => participant!.active)
+  .filter((participant) => participant!.id !== otherParticipantId)
+  .filter((participant) => participant!.id !== me.id) as typeof me[];
 
     const roomId =
       pair?.roomId ?? `waiting_${session.sessionId}_${me.id}`;

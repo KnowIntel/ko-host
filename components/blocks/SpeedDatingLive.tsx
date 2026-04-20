@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type Participant = {
   participantId?: string;
@@ -95,13 +95,14 @@ export default function SpeedDatingLive({
   const [privateRoom, setPrivateRoom] = useState<PrivateRoomState | null>(null);
   const [joined, setJoined] = useState(false);
 
-  const [joinForm, setJoinForm] = useState({
-    name: "",
-    title: "",
-    bio: "",
-    iam: "" as "" | "man" | "woman",
-    seeking: "" as "" | "men" | "women",
-  });
+const [joinForm, setJoinForm] = useState({
+  name: "",
+  title: "",
+  bio: "",
+  iam: "" as "" | "man" | "woman",
+  seeking: "" as "" | "men" | "women",
+  image: null as File | null,
+});
 
   const [joining, setJoining] = useState(false);
   const [joinError, setJoinError] = useState("");
@@ -111,8 +112,6 @@ export default function SpeedDatingLive({
     typeof window !== "undefined" ? window.location.hostname : "default";
   const browserKey =
     typeof window !== "undefined" ? getBrowserKey() : "";
-
-  const hasBootedRef = useRef(false);
 
   async function fetchPublicState() {
     const res = await fetch(
@@ -154,18 +153,29 @@ export default function SpeedDatingLive({
     setJoining(true);
 
     try {
-      const res = await fetch("/api/speed-dating/join", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          sessionId,
-          slug: "live",
-          browserKey,
-          ...joinForm,
-        }),
-      });
+let imageUrl: string | null = null;
+
+if (joinForm.image) {
+  imageUrl = await uploadJoinImage(joinForm.image);
+}
+
+const res = await fetch("/api/speed-dating/join", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    sessionId,
+    slug: "live",
+    browserKey,
+    name: joinForm.name,
+    title: joinForm.title,
+    bio: joinForm.bio,
+    iam: joinForm.iam,
+    seeking: joinForm.seeking,
+    imageUrl,
+  }),
+});
 
       const data = await res.json().catch(() => null);
 
@@ -181,6 +191,24 @@ export default function SpeedDatingLive({
       setJoining(false);
     }
   }
+
+  async function uploadJoinImage(file: File) {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const res = await fetch("/api/speed-dating/upload", {
+    method: "POST",
+    body: formData,
+  });
+
+  const data = await res.json().catch(() => null);
+
+  if (!res.ok || !data?.ok) {
+    throw new Error(data?.error || "Upload failed");
+  }
+
+  return data.data.imageUrl as string;
+}
 
   async function handleExit() {
     await fetch("/api/speed-dating/leave", {
@@ -215,29 +243,28 @@ export default function SpeedDatingLive({
     await fetchPrivateRoom();
   }
 
-  useEffect(() => {
-    if (hasBootedRef.current) return;
-    hasBootedRef.current = true;
-
-    void fetchPublicState();
+useEffect(() => {
+  void fetchPublicState();
+  if (joined) {
     void fetchPrivateRoom();
+  }
 
-    const stateInterval = window.setInterval(() => {
-      void fetchPublicState();
-      if (joined) {
-        void fetchPrivateRoom();
-      }
-    }, 1000);
+  const stateInterval = window.setInterval(() => {
+    void fetchPublicState();
+    if (joined) {
+      void fetchPrivateRoom();
+    }
+  }, 1000);
 
-    const clockInterval = window.setInterval(() => {
-      setNowMs(Date.now());
-    }, 250);
+  const clockInterval = window.setInterval(() => {
+    setNowMs(Date.now());
+  }, 250);
 
-    return () => {
-      window.clearInterval(stateInterval);
-      window.clearInterval(clockInterval);
-    };
-  }, [joined]);
+  return () => {
+    window.clearInterval(stateInterval);
+    window.clearInterval(clockInterval);
+  };
+}, [joined]);
 
   const timerSource = joined && privateRoom ? privateRoom : publicState;
 
@@ -385,6 +412,18 @@ export default function SpeedDatingLive({
           value={joinForm.bio}
           onChange={(e) =>
             setJoinForm((s) => ({ ...s, bio: e.target.value }))
+          }
+        />
+
+        <input
+          type="file"
+          accept="image/*"
+          className="w-full border px-2 py-2 rounded mb-2"
+          onChange={(e) =>
+            setJoinForm((s) => ({
+              ...s,
+              image: e.target.files?.[0] || null,
+            }))
           }
         />
 
