@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 type Participant = {
   id?: string;
@@ -9,14 +9,6 @@ type Participant = {
   title: string;
   bio: string;
   imageUrl?: string | null;
-};
-
-type Pair = {
-  pairId: string;
-  leftParticipant: Participant | null;
-  rightParticipant: Participant | null;
-  openSlotLeft: boolean;
-  openSlotRight: boolean;
 };
 
 import type {
@@ -122,30 +114,30 @@ const [joinForm, setJoinForm] = useState({
 
     setJoining(true);
 
-    try {
-let imageUrl: string | null = null;
+try {
+  let imageUrl: string | null = null;
 
-if (joinForm.image) {
-  imageUrl = await uploadJoinImage(joinForm.image);
-}
+  if (joinForm.image) {
+    imageUrl = await uploadJoinImage(joinForm.image);
+  }
 
-const res = await fetch("/api/speed-dating/join", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    sessionId,
-    slug: "live",
-    browserKey,
-    name: joinForm.name,
-    title: joinForm.title,
-    bio: joinForm.bio,
-    iam: joinForm.iam,
-    seeking: joinForm.seeking,
-    imageUrl,
-  }),
-});
+  const res = await fetch("/api/speed-dating/join", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      sessionId,
+      slug: "live",
+      browserKey,
+      name: joinForm.name,
+      title: joinForm.title,
+      bio: joinForm.bio,
+      iam: joinForm.iam,
+      seeking: joinForm.seeking,
+      imageUrl,
+    }),
+  });
 
       const data = await res.json().catch(() => null);
 
@@ -162,7 +154,7 @@ const res = await fetch("/api/speed-dating/join", {
     }
   }
 
-  async function uploadJoinImage(file: File) {
+async function uploadJoinImage(file: File) {
   const formData = new FormData();
   formData.append("file", file);
 
@@ -219,10 +211,20 @@ useEffect(() => {
     void fetchPrivateRoom();
   }
 
-  useEffect(() => {
-  const next =
-    publicState?.timeRemainingSeconds ?? 0;
+  const stateInterval = window.setInterval(() => {
+    void fetchPublicState();
+    if (joined) {
+      void fetchPrivateRoom();
+    }
+  }, 5000);
 
+  return () => {
+    window.clearInterval(stateInterval);
+  };
+}, [joined]);
+
+useEffect(() => {
+  const next = publicState?.timeRemainingSeconds ?? 0;
   setDisplayTimeLeft(next);
 }, [publicState?.timeRemainingSeconds]);
 
@@ -234,19 +236,6 @@ useEffect(() => {
   return () => window.clearInterval(interval);
 }, []);
 
-  const stateInterval = window.setInterval(() => {
-    void fetchPublicState();
-    if (joined) {
-      void fetchPrivateRoom();
-    }
-  }, 5000);
-
-return () => {
-  window.clearInterval(stateInterval);
-};
-}, [joined]);
-
-const timerSource = publicState;
 const displayPhase = publicState?.phase ?? "active";
 const displayRound = publicState?.round ?? 0;
 
