@@ -76,6 +76,7 @@ const [joinForm, setJoinForm] = useState({
 
   const [joining, setJoining] = useState(false);
   const [joinError, setJoinError] = useState("");
+  const [displayTimeLeft, setDisplayTimeLeft] = useState(0);
 
   const sessionId =
     typeof window !== "undefined" ? window.location.hostname : "default";
@@ -218,12 +219,27 @@ useEffect(() => {
     void fetchPrivateRoom();
   }
 
+  useEffect(() => {
+  const next =
+    publicState?.timeRemainingSeconds ?? 0;
+
+  setDisplayTimeLeft(next);
+}, [publicState?.timeRemainingSeconds]);
+
+useEffect(() => {
+  const interval = window.setInterval(() => {
+    setDisplayTimeLeft((prev) => Math.max(0, prev - 1));
+  }, 1000);
+
+  return () => window.clearInterval(interval);
+}, []);
+
   const stateInterval = window.setInterval(() => {
     void fetchPublicState();
     if (joined) {
       void fetchPrivateRoom();
     }
-  }, 1000);
+  }, 5000);
 
 return () => {
   window.clearInterval(stateInterval);
@@ -234,10 +250,7 @@ const timerSource = publicState;
 const displayPhase = publicState?.phase ?? "active";
 const displayRound = publicState?.round ?? 0;
 
-const timeLeft =
-  privateRoom?.timeRemainingSeconds ??
-  publicState?.timeRemainingSeconds ??
-  0;
+const timeLeft = displayTimeLeft;
 
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
