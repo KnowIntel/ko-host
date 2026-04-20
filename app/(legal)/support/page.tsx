@@ -57,7 +57,7 @@ export default function SupportPage() {
   }
 
   return (
-    <main className="mx-auto max-w-xl px-4 py-12">
+    <main className="mx-auto max-w-xl px-4 pt-24 pb-12">
       <h1 className="text-3xl font-semibold">Support</h1>
 
       <p className="mt-4 text-sm text-neutral-600">

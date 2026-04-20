@@ -19,7 +19,7 @@ export default function DashboardLayout({
 
   return (
     <main>
-      <Container className="py-10">
+      <Container className="pt-20 pb-10">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
         </div>

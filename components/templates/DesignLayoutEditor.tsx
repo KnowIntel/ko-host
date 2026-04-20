@@ -4758,7 +4758,7 @@ function nudgeSelectedBlock(
 }
 
 return (
-<div className="flex min-h-screen flex-col bg-[#f3f3f3]">
+<div className="flex min-h-screen flex-col bg-[#f3f3f3] pt-4">
     <div className="border-b border-black/10 bg-white px-6 py-3">
       <div className="text-xs font-semibold uppercase tracking-[0.14em] text-neutral-500">
         Editing
@@ -4768,6 +4768,32 @@ return (
       </div>
       <div className="mt-1 text-sm text-neutral-500">
         {currentSiteDisplay}
+      </div>
+
+      <div className="mt-4 rounded-2xl border border-neutral-200 bg-white px-3 py-2 shadow-sm">
+        <div className="flex items-center gap-2">
+          <div className="flex-1 overflow-x-auto">
+            <div className="flex min-w-max items-center gap-2 pr-2">
+              <button
+                type="button"
+                className="shrink-0 rounded-xl bg-black px-3 py-1.5 text-xs font-medium whitespace-nowrap text-white"
+              >
+                <span className="rounded-full bg-white/20 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                  HOME
+                </span>
+              </button>
+            </div>
+          </div>
+
+          <div className="shrink-0">
+            <button
+              type="button"
+              className="rounded-xl bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
+            >
+              + Add Page
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 

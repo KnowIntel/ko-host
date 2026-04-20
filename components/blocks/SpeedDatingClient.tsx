@@ -1,5 +1,3 @@
-
-
 "use client";
 
 import SpeedDatingLive from "@/components/blocks/SpeedDatingLive";

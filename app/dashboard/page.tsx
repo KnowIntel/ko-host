@@ -1,3 +1,5 @@
+// app\dashboard\page.tsx
+
 import Link from "next/link";
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";

@@ -587,76 +587,7 @@ return (
               ? "Reordering pages..."
               : saveMessage}
       </div>
-
-      <div className="mb-3 rounded-2xl border border-neutral-200 bg-white px-3 py-2 shadow-sm">
-        <div className="flex items-center gap-2">
-          <div className="flex-1 overflow-x-auto">
-            <div className="flex min-w-max items-center gap-2 pr-2">
-          {orderedPages.map((page, index) => {
-  const isHomePage = index === 0;
-
-  return (
-    <button
-      key={page.id}
-      type="button"
-      draggable={!isHomePage}
-      onDragStart={() => {
-        if (!isHomePage) setDraggedPageId(page.id);
-      }}
-      onDragOver={(e) => {
-        if (!isHomePage || draggedPageId) {
-          e.preventDefault();
-        }
-      }}
-      onDrop={() => void handlePageDrop(page.id)}
-      onClick={() => setActivePageId(page.id)}
-      onContextMenu={(e) => {
-        if (isHomePage) return;
-        openPageContextMenu(e, page);
-      }}
-      className={`shrink-0 rounded-xl px-3 py-1.5 text-xs font-medium whitespace-nowrap ${
-        activePageId === page.id
-          ? "bg-black text-white"
-          : "bg-neutral-100 text-neutral-800 hover:bg-neutral-200"
-      }`}
-    >
-      {isHomePage ? (
-        <span
-          className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${
-            activePageId === page.id
-              ? "bg-white/20 text-white"
-              : "bg-blue-100 text-blue-700"
-          }`}
-        >
-          HOME
-        </span>
-      ) : (
-        <span>{page.slug}</span>
-      )}
-    </button>
-  );
-})}
-            </div>
-          </div>
-
-          <div className="shrink-0">
-            <button
-              type="button"
-              onClick={openAddPageModal}
-              className="rounded-xl bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
-            >
-              + Add Page
-            </button>
-          </div>
-        </div>
-
-        {pagesLoading ? (
-          <div className="mt-2 text-xs text-neutral-500">
-            Loading pages...
-          </div>
-        ) : null}
-      </div>
-
+      
       <TemplateDraftEditor
         key={`${site.id}::${activePageId || "root"}::${site.selected_design_key || "blank"}::${editorDraft.title || ""}::${editorDraft.blocks.length}`}
         templateKey={site.template_key}

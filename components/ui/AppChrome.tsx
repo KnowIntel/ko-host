@@ -49,6 +49,12 @@ export function AppChrome({
                   Privacy
                 </Link>
                 <Link
+                  href="/about"
+                  className="transition hover:text-neutral-950 hover:underline"
+                >
+                  About
+                </Link>
+                <Link
                   href="/support"
                   className="transition hover:text-neutral-950 hover:underline"
                 >
