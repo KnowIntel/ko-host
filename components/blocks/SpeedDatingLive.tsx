@@ -90,6 +90,9 @@ export default function SpeedDatingLive({
   const [joinError, setJoinError] = useState("");
   const [nowMs, setNowMs] = useState(() => Date.now());
 
+  const [viewMode, setViewMode] = useState<"public" | "private">("public");
+  const [lastStableRoom, setLastStableRoom] = useState<PrivateRoom | null>(null);
+
   const sessionId =
     typeof window !== "undefined" ? window.location.hostname : "default";
 
@@ -108,19 +111,26 @@ export default function SpeedDatingLive({
     setState(data.data);
   }
 
-  async function fetchPrivateRoom() {
-    const res = await fetch(
-      `/api/speed-dating/private-room?sessionId=${encodeURIComponent(
-        sessionId
-      )}&browserKey=${encodeURIComponent(browserKey)}`,
-      { cache: "no-store" }
-    );
+async function fetchPrivateRoom() {
+  const res = await fetch(
+    `/api/speed-dating/private-room?sessionId=${encodeURIComponent(
+      sessionId
+    )}&browserKey=${encodeURIComponent(browserKey)}`,
+    { cache: "no-store" }
+  );
 
-    const data = await res.json().catch(() => null);
-    if (!res.ok || !data?.ok) return;
+  const data = await res.json().catch(() => null);
+  if (!res.ok || !data?.ok) return;
 
-    setRoom(data.data);
+  const nextRoom = data.data as PrivateRoom;
+
+  if (nextRoom?.participant) {
+    setRoom(nextRoom);
+    setLastStableRoom(nextRoom);
+  } else {
+    setRoom(nextRoom);
   }
+}
 
   async function handleJoin() {
     setJoinError("");
@@ -161,6 +171,7 @@ export default function SpeedDatingLive({
 
       setState(data.data.state);
       await fetchPrivateRoom();
+      setViewMode("private");
     } catch {
       setJoinError("Join failed");
     } finally {
@@ -182,31 +193,34 @@ export default function SpeedDatingLive({
     await fetchPrivateRoom();
   }
 
-  async function handleExit() {
-    await fetch("/api/speed-dating/leave", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        sessionId,
-        browserKey,
-      }),
-    });
+async function handleExit() {
+  await fetch("/api/speed-dating/leave", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      sessionId,
+      browserKey,
+    }),
+  });
 
-    setRoom(null);
-    await fetchState();
-  }
+  setRoom(null);
+  setLastStableRoom(null);
+  setViewMode("public");
+  await fetchState();
+}
 
-  useEffect(() => {
+useEffect(() => {
+  void fetchState();
+
+  const interval = window.setInterval(() => {
     void fetchState();
-    void fetchPrivateRoom();
-
-    const interval = window.setInterval(() => {
-      void fetchState();
+    if (viewMode === "private") {
       void fetchPrivateRoom();
-    }, 1000);
+    }
+  }, 1000);
 
-    return () => window.clearInterval(interval);
-  }, []);
+  return () => window.clearInterval(interval);
+}, [viewMode]);
 
   useEffect(() => {
     const interval = window.setInterval(() => {
@@ -216,16 +230,12 @@ export default function SpeedDatingLive({
     return () => window.clearInterval(interval);
   }, []);
 
-  const timeLeft = useMemo(() => {
-    if (!state) return 0;
+const timeLeft = useMemo(() => {
+  if (!state) return 0;
 
-    const serverNowMs = new Date(state.serverNow).getTime();
-    const roundEndsAtMs = new Date(state.roundEndsAt).getTime();
-    const estimatedServerNowMs =
-      serverNowMs + Math.max(0, nowMs - serverNowMs);
-
-    return Math.max(0, Math.ceil((roundEndsAtMs - estimatedServerNowMs) / 1000));
-  }, [state, nowMs]);
+  const roundEndsAtMs = new Date(state.roundEndsAt).getTime();
+  return Math.max(0, Math.ceil((roundEndsAtMs - nowMs) / 1000));
+}, [state?.roundEndsAt, nowMs]);
 
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
@@ -234,7 +244,8 @@ export default function SpeedDatingLive({
   const right = state?.queues.rightQueue ?? [];
   const pairs = state?.activePairs ?? [];
 
-  const inRoom = Boolean(room?.participant);
+const activeRoom = room?.participant ? room : lastStableRoom;
+const inRoom = viewMode === "private";
 
   return (
     <div className="h-full w-full overflow-auto rounded-xl p-4">
@@ -250,17 +261,17 @@ export default function SpeedDatingLive({
           <div className="font-semibold">Private Room</div>
 
           <div className="grid grid-cols-2 gap-4">
-            <Card p={room?.participant!} />
-            {room?.partner ? <Card p={room.partner} /> : <Empty />}
+            <Card p={activeRoom?.participant!} />
+            {activeRoom?.partner ? <Card p={activeRoom.partner} /> : <Empty />}
           </div>
 
           <div className="flex items-center justify-between">
             <div className="text-sm text-neutral-500">
-              {room?.hasMatch ? "Matched" : "Waiting for match..."}
+              {activeRoom?.hasMatch ? "Matched" : "Waiting for match..."}
             </div>
 
             <div className="flex gap-2">
-              {room?.hasMatch && (
+              {activeRoom?.hasMatch && (
                 <button
                   onClick={handleSkip}
                   className="px-3 h-9 rounded border text-sm"
@@ -278,9 +289,9 @@ export default function SpeedDatingLive({
             </div>
           </div>
 
-          {room?.roomId && room?.hasMatch ? (
-            <Chat roomId={room.roomId} participantId={browserKey} />
-          ) : (
+            {activeRoom?.roomId && activeRoom?.hasMatch ? (
+              <Chat roomId={activeRoom.roomId} participantId={browserKey} />
+            ) : (
             <div className="text-sm text-neutral-400">
               Chat will appear when matched
             </div>
