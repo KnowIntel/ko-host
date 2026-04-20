@@ -124,12 +124,15 @@ async function fetchPrivateRoom() {
 
   const nextRoom = data.data as PrivateRoom;
 
-  if (nextRoom?.participant) {
-    setRoom(nextRoom);
-    setLastStableRoom(nextRoom);
-  } else {
-    setRoom(nextRoom);
-  }
+setRoom(nextRoom);
+
+if (nextRoom?.participant) {
+  setLastStableRoom(nextRoom);
+}
+
+if (nextRoom?.hasMatch) {
+  setViewMode("private");
+}
 }
 
   async function handleJoin() {
@@ -169,9 +172,9 @@ async function fetchPrivateRoom() {
         return;
       }
 
-      setState(data.data.state);
-      await fetchPrivateRoom();
-      setViewMode("private");
+setState(data.data.state);
+setViewMode("private");
+await fetchPrivateRoom();
     } catch {
       setJoinError("Join failed");
     } finally {
@@ -245,7 +248,11 @@ const timeLeft = useMemo(() => {
   const pairs = state?.activePairs ?? [];
 
 const activeRoom = room?.participant ? room : lastStableRoom;
-const inRoom = viewMode === "private";
+const inRoom = viewMode === "private" && Boolean(activeRoom?.hasMatch);
+const isWaitingForMatch =
+  viewMode === "private" &&
+  Boolean(activeRoom?.participant) &&
+  !activeRoom?.hasMatch;
 
   return (
     <div className="h-full w-full overflow-auto rounded-xl p-4">
@@ -256,48 +263,57 @@ const inRoom = viewMode === "private";
         <div className="text-xs">Round {(state?.round ?? 0) + 1}</div>
       </div>
 
-      {inRoom ? (
-        <div className="border rounded p-4 space-y-4">
-          <div className="font-semibold">Private Room</div>
+{inRoom ? (
+  <div className="border rounded p-4 space-y-4">
+    <div className="font-semibold">Private Room</div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <Card p={activeRoom?.participant!} />
-            {activeRoom?.partner ? <Card p={activeRoom.partner} /> : <Empty />}
-          </div>
+    <div className="grid grid-cols-2 gap-4">
+      <Card p={activeRoom?.participant!} />
+      {activeRoom?.partner ? <Card p={activeRoom.partner} /> : <Empty />}
+    </div>
 
-          <div className="flex items-center justify-between">
-            <div className="text-sm text-neutral-500">
-              {activeRoom?.hasMatch ? "Matched" : "Waiting for match..."}
-            </div>
+    <div className="flex items-center justify-between">
+      <div className="text-sm text-neutral-500">Matched</div>
 
-            <div className="flex gap-2">
-              {activeRoom?.hasMatch && (
-                <button
-                  onClick={handleSkip}
-                  className="px-3 h-9 rounded border text-sm"
-                >
-                  Skip
-                </button>
-              )}
+      <div className="flex gap-2">
+        <button
+          onClick={handleSkip}
+          className="px-3 h-9 rounded border text-sm"
+        >
+          Skip
+        </button>
 
-              <button
-                onClick={handleExit}
-                className="px-3 h-9 rounded bg-black text-white text-sm"
-              >
-                Exit
-              </button>
-            </div>
-          </div>
+        <button
+          onClick={handleExit}
+          className="px-3 h-9 rounded bg-black text-white text-sm"
+        >
+          Exit
+        </button>
+      </div>
+    </div>
 
-            {activeRoom?.roomId && activeRoom?.hasMatch ? (
-              <Chat roomId={activeRoom.roomId} participantId={browserKey} />
-            ) : (
-            <div className="text-sm text-neutral-400">
-              Chat will appear when matched
-            </div>
-          )}
-        </div>
-      ) : (
+    <Chat roomId={activeRoom!.roomId!} participantId={browserKey} />
+  </div>
+) : isWaitingForMatch ? (
+  <div className="border rounded p-4 space-y-4">
+    <div className="font-semibold">Waiting Room</div>
+
+    <Card p={activeRoom?.participant!} />
+
+    <div className="text-sm text-neutral-500">
+      You joined successfully. Waiting for a compatible match.
+    </div>
+
+    <div className="flex justify-end">
+      <button
+        onClick={handleExit}
+        className="px-3 h-9 rounded bg-black text-white text-sm"
+      >
+        Exit
+      </button>
+    </div>
+  </div>
+) : (
         <>
           <div className="mb-4 border rounded p-3">
             <div className="font-semibold mb-2">Join</div>
