@@ -1,92 +1,78 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
+import { validateSendMessageInput } from "@/lib/speed-dating/guards";
+import { ok, fail } from "@/lib/speed-dating/serializers";
+
+/* TEMP IN-MEMORY STORE */
 type Message = {
   id: string;
   roomId: string;
   senderId: string;
   text?: string;
+  imageUrl?: string;
   createdAt: number;
 };
 
-declare global {
-  var __KOHOST_SPEED_DATING_ROOM_MESSAGES__:
-    | {
-        messages: Message[];
-      }
-    | undefined;
-}
+const messagesStore = new Map<string, Message[]>();
 
-function getStore() {
-  if (!globalThis.__KOHOST_SPEED_DATING_ROOM_MESSAGES__) {
-    globalThis.__KOHOST_SPEED_DATING_ROOM_MESSAGES__ = {
-      messages: [],
-    };
-  }
-
-  return globalThis.__KOHOST_SPEED_DATING_ROOM_MESSAGES__;
-}
-
-function makeId() {
+function createMessageId() {
   return `msg_${Math.random().toString(36).slice(2, 10)}`;
 }
 
-export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const roomId = searchParams.get("roomId") || "";
+/* ================= GET ================= */
 
-  if (!roomId) {
+export async function GET(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const roomId = searchParams.get("roomId");
+
+    if (!roomId) {
+      return NextResponse.json(fail("Missing roomId"), { status: 400 });
+    }
+
+    const messages = messagesStore.get(roomId) ?? [];
+
+    return NextResponse.json(ok({ messages }));
+  } catch (error) {
+    console.error("GET MESSAGES ERROR:", error);
+
     return NextResponse.json(
-      { ok: false, error: "roomId required" },
-      { status: 400 },
+      fail("Failed to fetch messages", "INTERNAL_ERROR"),
+      { status: 500 },
     );
   }
-
-  const store = getStore();
-
-  const messages = store.messages
-    .filter((m) => m.roomId === roomId)
-    .sort((a, b) => a.createdAt - b.createdAt);
-
-  return NextResponse.json({ ok: true, messages });
 }
 
-export async function POST(req: Request) {
-  const body = await req.json().catch(() => null);
+/* ================= POST ================= */
 
-  const roomId = typeof body?.roomId === "string" ? body.roomId.trim() : "";
-  const senderId = typeof body?.senderId === "string" ? body.senderId.trim() : "";
-  const text = typeof body?.text === "string" ? body.text.trim() : "";
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json();
 
-  if (!roomId || !senderId || !text) {
+    const input = validateSendMessageInput(body);
+
+    const message: Message = {
+      id: createMessageId(),
+      roomId: input.roomId,
+      senderId: input.browserKey,
+      text: input.text,
+      imageUrl: input.imageUrl,
+      createdAt: Date.now(),
+    };
+
+    const existing = messagesStore.get(input.roomId) ?? [];
+    messagesStore.set(input.roomId, [...existing, message]);
+
+    return NextResponse.json(ok({ message }));
+  } catch (error) {
+    console.error("SEND MESSAGE ERROR:", error);
+
     return NextResponse.json(
-      { ok: false, error: "roomId, senderId, and text required" },
+      fail(
+        error instanceof Error ? error.message : "Send failed",
+        "BAD_REQUEST",
+      ),
       { status: 400 },
     );
   }
-
-  const store = getStore();
-
-  const message: Message = {
-    id: makeId(),
-    roomId,
-    senderId,
-    text,
-    createdAt: Date.now(),
-  };
-
-  const exists = store.messages.some(
-    (m) =>
-      m.roomId === message.roomId &&
-      m.senderId === message.senderId &&
-      m.text === message.text &&
-      Math.abs(m.createdAt - message.createdAt) < 1000,
-  );
-
-  if (!exists) {
-    store.messages.push(message);
-  }
-
-  store.messages = store.messages.slice(-500);
-
-  return NextResponse.json({ ok: true, message });
 }

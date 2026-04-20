@@ -1,7 +1,44 @@
-// components\blocks\SpeedDatingLive.tsx
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+
+type Participant = {
+  participantId: string;
+  name: string;
+  title: string;
+  bio: string;
+  imageUrl?: string | null;
+};
+
+type Pair = {
+  pairId: string;
+  leftParticipant: Participant | null;
+  rightParticipant: Participant | null;
+  openSlotLeft: boolean;
+  openSlotRight: boolean;
+};
+
+type PublicState = {
+  round: number;
+  roundDurationSeconds: number;
+  roundStartedAt: string;
+  roundEndsAt: string;
+  serverNow: string;
+  queues: {
+    leftQueue: Participant[];
+    rightQueue: Participant[];
+  };
+  activePairs: Pair[];
+};
+
+type PrivateRoom = {
+  roomId: string | null;
+  pairId: string | null;
+  round: number;
+  participant: Participant | null;
+  partner: Participant | null;
+  hasMatch: boolean;
+};
 
 type Props = {
   heading?: string;
@@ -9,45 +46,17 @@ type Props = {
   showTimer: boolean;
   leftLabel?: string;
   rightLabel?: string;
-roundStartSound?: "none" | "arrival" | "spark" | "commence" | "cloak" | "vanish";
+  roundStartSound?: "none" | "arrival" | "spark" | "commence" | "cloak" | "vanish";
 };
 
-type Participant = {
-  id: string;
-  name: string;
-  title: string;
-  bio: string;
-  image_url?: string | null;
-  side: "left" | "right";
-  waiting: boolean;
-};
-
-type Pair = {
-  id: string;
-  leftParticipant: Participant | null;
-  rightParticipant: Participant | null;
-  status: "active" | "open";
-};
-
-type ApiState = {
-  round: number;
-  phase?: "active" | "transition";
-  roundDurationSeconds: number;
-  transitionDurationSeconds?: number;
-  timeLeftSeconds: number;
-  leftQueue: Participant[];
-  rightQueue: Participant[];
-  activePairs: Pair[];
-};
-
-type JoinFormState = {
-  name: string;
-  title: string;
-  bio: string;
-  iam: "man" | "woman" | "";
-  seeking: "men" | "women" | "";
-  image: File | null;
-};
+function getBrowserKey() {
+  let key = localStorage.getItem("kohost_speed_dating_key");
+  if (!key) {
+    key = `bk_${Math.random().toString(36).slice(2, 10)}`;
+    localStorage.setItem("kohost_speed_dating_key", key);
+  }
+  return key;
+}
 
 function getInitials(name: string) {
   return (
@@ -55,630 +64,473 @@ function getInitials(name: string) {
       .trim()
       .split(/\s+/)
       .slice(0, 2)
-      .map((part) => part[0]?.toUpperCase() ?? "")
+      .map((p) => p[0]?.toUpperCase() ?? "")
       .join("") || "?"
   );
 }
 
-function getBrowserKey() {
-  if (typeof window === "undefined") return "";
+export default function SpeedDatingLive({
+  heading,
+  showTimer,
+  leftLabel = "Men",
+  rightLabel = "Women",
+}: Props) {
+  const [state, setState] = useState<PublicState | null>(null);
+  const [room, setRoom] = useState<PrivateRoom | null>(null);
 
-  let key = window.localStorage.getItem("kohost_speed_dating_key");
+  const [joinForm, setJoinForm] = useState({
+    name: "",
+    title: "",
+    bio: "",
+    iam: "" as "" | "man" | "woman",
+    seeking: "" as "" | "men" | "women",
+  });
 
-  if (!key) {
-    key = `bk_${Math.random().toString(36).slice(2, 10)}`;
-    window.localStorage.setItem("kohost_speed_dating_key", key);
+  const [joining, setJoining] = useState(false);
+  const [joinError, setJoinError] = useState("");
+  const [nowMs, setNowMs] = useState(() => Date.now());
+
+  const sessionId =
+    typeof window !== "undefined" ? window.location.hostname : "default";
+
+  const browserKey =
+    typeof window !== "undefined" ? getBrowserKey() : "";
+
+  async function fetchState() {
+    const res = await fetch(
+      `/api/speed-dating/state?sessionId=${encodeURIComponent(sessionId)}`,
+      { cache: "no-store" }
+    );
+
+    const data = await res.json().catch(() => null);
+    if (!res.ok || !data?.ok) return;
+
+    setState(data.data);
   }
 
-  return key;
-}
+  async function fetchPrivateRoom() {
+    const res = await fetch(
+      `/api/speed-dating/private-room?sessionId=${encodeURIComponent(
+        sessionId
+      )}&browserKey=${encodeURIComponent(browserKey)}`,
+      { cache: "no-store" }
+    );
 
-function ParticipantCard({
-  participant,
-  tone = "default",
-}: {
-  participant: Participant;
-  tone?: "default" | "active" | "waiting";
-}) {
-  const toneClass =
-    tone === "active"
-      ? "border-blue-200 bg-blue-50"
-      : tone === "waiting"
-        ? "border-amber-200 bg-amber-50"
-        : "border-neutral-200 bg-white";
+    const data = await res.json().catch(() => null);
+    if (!res.ok || !data?.ok) return;
+
+    setRoom(data.data);
+  }
+
+  async function handleJoin() {
+    setJoinError("");
+
+    if (
+      !joinForm.name.trim() ||
+      !joinForm.title.trim() ||
+      !joinForm.bio.trim() ||
+      !joinForm.iam ||
+      !joinForm.seeking
+    ) {
+      setJoinError("Fill all fields");
+      return;
+    }
+
+    setJoining(true);
+
+    try {
+      const res = await fetch("/api/speed-dating/join", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          sessionId,
+          slug: "live",
+          browserKey,
+          ...joinForm,
+        }),
+      });
+
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok || !data?.ok) {
+        setJoinError(data?.error || "Join failed");
+        return;
+      }
+
+      setState(data.data.state);
+      await fetchPrivateRoom();
+    } catch {
+      setJoinError("Join failed");
+    } finally {
+      setJoining(false);
+    }
+  }
+
+  async function handleSkip() {
+    await fetch("/api/speed-dating/skip", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sessionId,
+        browserKey,
+      }),
+    });
+
+    await fetchState();
+    await fetchPrivateRoom();
+  }
+
+  async function handleExit() {
+    await fetch("/api/speed-dating/leave", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sessionId,
+        browserKey,
+      }),
+    });
+
+    setRoom(null);
+    await fetchState();
+  }
+
+  useEffect(() => {
+    void fetchState();
+    void fetchPrivateRoom();
+
+    const interval = window.setInterval(() => {
+      void fetchState();
+      void fetchPrivateRoom();
+    }, 1000);
+
+    return () => window.clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      setNowMs(Date.now());
+    }, 1000);
+
+    return () => window.clearInterval(interval);
+  }, []);
+
+  const timeLeft = useMemo(() => {
+    if (!state) return 0;
+
+    const serverNowMs = new Date(state.serverNow).getTime();
+    const roundEndsAtMs = new Date(state.roundEndsAt).getTime();
+    const estimatedServerNowMs =
+      serverNowMs + Math.max(0, nowMs - serverNowMs);
+
+    return Math.max(0, Math.ceil((roundEndsAtMs - estimatedServerNowMs) / 1000));
+  }, [state, nowMs]);
+
+  const minutes = Math.floor(timeLeft / 60);
+  const seconds = timeLeft % 60;
+
+  const left = state?.queues.leftQueue ?? [];
+  const right = state?.queues.rightQueue ?? [];
+  const pairs = state?.activePairs ?? [];
+
+  const inRoom = Boolean(room?.participant);
 
   return (
-    <div className={`rounded-2xl border p-3 shadow-sm ${toneClass}`}>
-      <div className="flex items-start gap-3">
-        {participant.image_url ? (
+    <div className="h-full w-full overflow-auto rounded-xl p-4">
+      <div className="mb-4 flex justify-between">
+        <div className="text-base font-semibold">
+          {heading || "Speed Dating"}
+        </div>
+        <div className="text-xs">Round {(state?.round ?? 0) + 1}</div>
+      </div>
+
+      {inRoom ? (
+        <div className="border rounded p-4 space-y-4">
+          <div className="font-semibold">Private Room</div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <Card p={room?.participant!} />
+            {room?.partner ? <Card p={room.partner} /> : <Empty />}
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-neutral-500">
+              {room?.hasMatch ? "Matched" : "Waiting for match..."}
+            </div>
+
+            <div className="flex gap-2">
+              {room?.hasMatch && (
+                <button
+                  onClick={handleSkip}
+                  className="px-3 h-9 rounded border text-sm"
+                >
+                  Skip
+                </button>
+              )}
+
+              <button
+                onClick={handleExit}
+                className="px-3 h-9 rounded bg-black text-white text-sm"
+              >
+                Exit
+              </button>
+            </div>
+          </div>
+
+          {room?.roomId && room?.hasMatch ? (
+            <Chat roomId={room.roomId} participantId={browserKey} />
+          ) : (
+            <div className="text-sm text-neutral-400">
+              Chat will appear when matched
+            </div>
+          )}
+        </div>
+      ) : (
+        <>
+          <div className="mb-4 border rounded p-3">
+            <div className="font-semibold mb-2">Join</div>
+
+            <input
+              placeholder="Name"
+              className="w-full border px-2 h-10 rounded mb-2"
+              value={joinForm.name}
+              onChange={(e) =>
+                setJoinForm((s) => ({ ...s, name: e.target.value }))
+              }
+            />
+
+            <input
+              placeholder="Title"
+              className="w-full border px-2 h-10 rounded mb-2"
+              value={joinForm.title}
+              onChange={(e) =>
+                setJoinForm((s) => ({ ...s, title: e.target.value }))
+              }
+            />
+
+            <textarea
+              placeholder="Bio"
+              className="w-full border px-2 py-2 rounded mb-2"
+              value={joinForm.bio}
+              onChange={(e) =>
+                setJoinForm((s) => ({ ...s, bio: e.target.value }))
+              }
+            />
+
+            <div className="flex gap-2 mb-2">
+              <button
+                type="button"
+                onClick={() => setJoinForm((s) => ({ ...s, iam: "man" }))}
+                className={`flex-1 border rounded h-10 ${
+                  joinForm.iam === "man" ? "bg-black text-white" : ""
+                }`}
+              >
+                Man
+              </button>
+              <button
+                type="button"
+                onClick={() => setJoinForm((s) => ({ ...s, iam: "woman" }))}
+                className={`flex-1 border rounded h-10 ${
+                  joinForm.iam === "woman" ? "bg-black text-white" : ""
+                }`}
+              >
+                Woman
+              </button>
+            </div>
+
+            <div className="flex gap-2 mb-2">
+              <button
+                type="button"
+                onClick={() => setJoinForm((s) => ({ ...s, seeking: "men" }))}
+                className={`flex-1 border rounded h-10 ${
+                  joinForm.seeking === "men" ? "bg-black text-white" : ""
+                }`}
+              >
+                Seeking Men
+              </button>
+              <button
+                type="button"
+                onClick={() => setJoinForm((s) => ({ ...s, seeking: "women" }))}
+                className={`flex-1 border rounded h-10 ${
+                  joinForm.seeking === "women" ? "bg-black text-white" : ""
+                }`}
+              >
+                Seeking Women
+              </button>
+            </div>
+
+            {joinError && <div className="text-red-500 text-sm mb-2">{joinError}</div>}
+
+            <button
+              type="button"
+              onClick={handleJoin}
+              disabled={joining}
+              className="w-full bg-black text-white h-10 rounded"
+            >
+              {joining ? "Joining..." : "Join"}
+            </button>
+          </div>
+
+          {showTimer && (
+            <div className="mb-4 border p-3 rounded">
+              {minutes}:{seconds.toString().padStart(2, "0")}
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <div>{leftLabel}</div>
+              <div className="space-y-2 mt-2">
+                {left.map((p) => (
+                  <Card key={p.participantId} p={p} />
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <div>{rightLabel}</div>
+              <div className="space-y-2 mt-2">
+                {right.map((p) => (
+                  <Card key={p.participantId} p={p} />
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4 space-y-2">
+            {pairs.map((pair) => (
+              <div key={pair.pairId} className="grid grid-cols-3 gap-2">
+                {pair.leftParticipant ? <Card p={pair.leftParticipant} /> : <Empty />}
+                <div className="flex items-center justify-center">↔</div>
+                {pair.rightParticipant ? <Card p={pair.rightParticipant} /> : <Empty />}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function Card({ p }: { p: Participant }) {
+  return (
+    <div className="border rounded p-2">
+      <div className="flex gap-2">
+        {p.imageUrl ? (
           <img
-            src={participant.image_url}
-            alt={participant.name || "Participant"}
-            className="h-11 w-11 shrink-0 rounded-2xl object-cover"
+            src={p.imageUrl}
+            alt={p.name}
+            className="w-10 h-10 rounded object-cover"
           />
         ) : (
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-neutral-200 bg-white text-xs font-semibold text-neutral-700">
-            {getInitials(participant.name)}
+          <div className="w-10 h-10 border flex items-center justify-center text-xs">
+            {getInitials(p.name)}
           </div>
         )}
-
-        <div className="min-w-0 flex-1">
-          <div className="truncate text-sm font-semibold text-neutral-900">
-            {participant.name}
-          </div>
-
-          <div className="mt-0.5 truncate text-xs text-neutral-500">
-            {participant.title}
-          </div>
-
-          <div className="mt-2 line-clamp-2 text-xs leading-5 text-neutral-600">
-            {participant.bio}
-          </div>
+        <div>
+          <div className="text-sm font-semibold">{p.name}</div>
+          <div className="text-xs text-neutral-500">{p.title}</div>
         </div>
       </div>
     </div>
   );
 }
 
-function EmptySlot({ label }: { label: string }) {
-  return (
-    <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-4 text-sm text-neutral-500">
-      {label}
-    </div>
-  );
+function Empty() {
+  return <div className="border-dashed border p-2 text-xs">Open</div>;
 }
 
-function FieldError({ show, message }: { show: boolean; message: string }) {
-  if (!show) return null;
+function Chat({
+  roomId,
+  participantId,
+}: {
+  roomId: string;
+  participantId: string;
+}) {
+  const [messages, setMessages] = useState<any[]>([]);
+  const [input, setInput] = useState("");
 
-  return <div className="mt-1 text-xs text-red-600">{message}</div>;
-}
-
-const ROUND_START_SOUND_MAP = {
-  arrival: "/sounds/sfx_checkin.mp3",
-  spark: "/sounds/sfx_chime.mp3",
-  commence: "/sounds/sfx_gong.mp3",
-  cloak: "/sounds/sfx_summon.mp3",
-  vanish: "/sounds/sfx_vanish.mp3",
-} as const;
-
-export default function SpeedDatingLive({
-  heading,
-  roundDurationSeconds,
-  showTimer,
-  leftLabel = "Men",
-  rightLabel = "Women",
-  roundStartSound = "spark",
-}: Props) {
-  const duration = useMemo(
-    () =>
-      Math.max(
-        30,
-        Number.isFinite(roundDurationSeconds)
-          ? Math.floor(roundDurationSeconds)
-          : 120,
-      ),
-    [roundDurationSeconds],
-  );
-
-  const [round, setRound] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(duration);
-const [joinForm, setJoinForm] = useState<JoinFormState>({
-  name: "",
-  title: "",
-  bio: "",
-  iam: "",
-  seeking: "",
-  image: null,
-});
-  const [joinAttempted, setJoinAttempted] = useState(false);
-  const [apiState, setApiState] = useState<ApiState | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [joinError, setJoinError] = useState("");
-const [serverTimeLeft, setServerTimeLeft] = useState(duration);
-
-  const lastPlayedRoundRef = useRef(0);
-  useEffect(() => {
-  const interval = window.setInterval(() => {
-    setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
-  }, 1000);
-
-  return () => window.clearInterval(interval);
-}, []);
-
-  const minutes = Math.floor(timeLeft / 60);
-  const seconds = timeLeft % 60;
-
-  const progressPercent =
-    duration > 0
-      ? Math.max(0, Math.min(100, ((duration - timeLeft) / duration) * 100))
-      : 0;
-
-  const leftParticipants = apiState?.leftQueue ?? [];
-  const rightParticipants = apiState?.rightQueue ?? [];
-  const activePairs = apiState?.activePairs ?? [];
-
-  const browserKey = getBrowserKey();
-
-
-const isInRotation =
-  leftParticipants.some((participant) => participant.id === browserKey) ||
-  rightParticipants.some((participant) => participant.id === browserKey);
-
-const joinErrors = {
-  name: joinAttempted && !joinForm.name.trim(),
-  title: joinAttempted && !joinForm.title.trim(),
-  bio: joinAttempted && !joinForm.bio.trim(),
-  iam: joinAttempted && !joinForm.iam,
-  seeking: joinAttempted && !joinForm.seeking,
-};
-
-
-async function fetchState() {
-  try {
-    const sessionId = window.location.hostname;
-
-    const res = await fetch(`/api/speed-dating?sessionId=${sessionId}`, {
-      method: "GET",
-      cache: "no-store",
-    });
+  async function fetchMessages() {
+    const res = await fetch(
+      `/api/speed-dating/room/messages?roomId=${encodeURIComponent(roomId)}`,
+      { cache: "no-store" }
+    );
 
     const data = await res.json().catch(() => null);
-
     if (!res.ok || !data?.ok) return;
 
-setApiState((prev) => {
-  if (!prev) return data;
-
-  return {
-    ...prev,
-    ...data,
-    activePairs:
-      data.activePairs && data.activePairs.length > 0
-        ? data.activePairs
-        : prev.activePairs,
-  };
-});
-
-    if (typeof data.round === "number") {
-      setRound(data.round);
-    }
-
-if (typeof data.timeLeftSeconds === "number") {
-  setServerTimeLeft(data.timeLeftSeconds);
-
-setTimeLeft((prev) => {
-  if (Math.abs(prev - data.timeLeftSeconds) > 3) {
-    return data.timeLeftSeconds;
-  }
-  return prev;
-});
-}
-  } catch (error) {
-    console.error("Speed dating state fetch failed:", error);
-  }
-}
-useEffect(() => {
-  void fetchState();
-
-  const interval = window.setInterval(() => {
-    void fetchState();
-  }, 2000);
-
-  return () => window.clearInterval(interval);
-}, [duration]);
-
-useEffect(() => {
-  const currentRound = apiState?.round ?? 0;
-
-  if (roundStartSound === "none") {
-    lastPlayedRoundRef.current = currentRound;
-    return;
+    setMessages(data.data?.messages || []);
   }
 
-  if (currentRound <= 0) {
-    lastPlayedRoundRef.current = currentRound;
-    return;
-  }
+  async function sendMessage() {
+    if (!input.trim()) return;
 
-  if (lastPlayedRoundRef.current === 0) {
-    lastPlayedRoundRef.current = currentRound;
-    return;
-  }
-
-if (
-  currentRound > lastPlayedRoundRef.current &&
-  currentRound === round
-) {
-    const soundSrc = ROUND_START_SOUND_MAP[roundStartSound];
-    if (!soundSrc) return;
-
-    const audio = new Audio(soundSrc);
-    audio.currentTime = 0;
-    void audio.play().catch(() => {});
-    lastPlayedRoundRef.current = currentRound;
-  }
-}, [apiState?.round, roundStartSound]);
-
-async function handleExit() {
-  if (!isInRotation) return;
-
-  try {
-    const sessionId = window.location.hostname;
-
-    const res = await fetch(`/api/speed-dating?sessionId=${sessionId}`, {
+    await fetch(`/api/speed-dating/room/messages`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        action: "leave",
-        browserKey,
+        sessionId: typeof window !== "undefined" ? window.location.hostname : "default",
+        roomId,
+        browserKey: participantId,
+        type: "text",
+        text: input.trim(),
       }),
     });
 
-    const data = await res.json().catch(() => null);
-
-    if (!res.ok || !data?.ok) return;
-
-    const nextState = data.state ?? null;
-
-    setApiState((prev) => nextState ?? prev);
-
-    if (typeof nextState?.round === "number") {
-      setRound(nextState.round);
-    }
-
-if (typeof nextState?.timeLeftSeconds === "number") {
-  setServerTimeLeft(nextState.timeLeftSeconds);
-  setTimeLeft(nextState.timeLeftSeconds);
-}
-  } catch (error) {
-    console.error("Exit failed", error);
-  }
-}
-
-  function updateJoinForm<K extends keyof JoinFormState>(
-    key: K,
-    value: JoinFormState[K],
-  ) {
-    setJoinForm((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
-
-    if (joinError) {
-      setJoinError("");
-    }
+    setInput("");
+    await fetchMessages();
   }
 
-  async function handleJoinPreview() {
-    const nextJoinAttempted = true;
-    setJoinAttempted(nextJoinAttempted);
-    setJoinError("");
+  useEffect(() => {
+    void fetchMessages();
 
-    const nextHasErrors =
-      !joinForm.name.trim() ||
-      !joinForm.title.trim() ||
-      !joinForm.bio.trim() ||
-      !joinForm.iam ||
-      !joinForm.seeking;
+    const interval = window.setInterval(() => {
+      void fetchMessages();
+    }, 1500);
 
-    if (nextHasErrors) return;
-
-    setLoading(true);
-
-    try {
-const formData = new FormData();
-
-formData.append("browserKey", browserKey);
-formData.append("name", joinForm.name.trim());
-formData.append("title", joinForm.title.trim());
-formData.append("bio", joinForm.bio.trim());
-formData.append("iam", joinForm.iam);
-formData.append("seeking", joinForm.seeking);
-
-if (joinForm.image) {
-  formData.append("image", joinForm.image);
-}
-
-const sessionId = window.location.hostname;
-
-const res = await fetch(`/api/speed-dating?sessionId=${sessionId}`, {
-  method: "POST",
-  body: formData,
-});
-
-const data = await res.json().catch(() => null);
-
-if (!res.ok || !data?.ok) {
-  console.error("JOIN API ERROR:", data);
-  setJoinError(
-    data?.error ||
-      data?.message ||
-      `Could not join the queue. (${res.status})`
-  );
-  return;
-}
-
-const nextState = data.state ?? null;
-
-setApiState((prev) => nextState ?? prev);
-
-if (typeof nextState?.round === "number") {
-  setRound(nextState.round);
-}
-
-if (typeof nextState?.timeLeftSeconds === "number") {
-  setServerTimeLeft(nextState.timeLeftSeconds);
-  setTimeLeft(nextState.timeLeftSeconds);
-}
-
-if (typeof data.redirectUrl === "string" && data.redirectUrl.trim()) {
-  window.location.href = data.redirectUrl;
-  return;
-}
-} catch (error) {
-  console.error("Speed dating join failed:", error);
-  setJoinError(
-    error instanceof Error ? error.message : "Could not join the queue."
-  );
-} finally {
-      setLoading(false);
-    }
-  }
+    return () => window.clearInterval(interval);
+  }, [roomId]);
 
   return (
-    <div className="h-full w-full overflow-auto rounded-xl p-4">
-      <div className="mb-4 flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <div className="truncate text-base font-semibold text-neutral-900">
-            {heading || "Speed Dating"}
-          </div>
-          <div className="mt-1 text-xs text-neutral-500">
-            Live matchmaking board
-          </div>
-        </div>
+    <div className="border rounded p-3">
+      <div className="h-40 overflow-auto space-y-2 mb-2">
+        {messages.map((m) => {
+          const isMe = m.senderId === participantId;
 
-        <div className="rounded-full border border-neutral-200 bg-white px-3 py-1 text-xs font-medium text-neutral-600">
-          Round {round + 1}
-        </div>
-      </div>
-
-      {showTimer ? (
-        <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
-          <div className="text-xs font-semibold uppercase tracking-[0.14em] text-neutral-500">
-            {apiState?.phase === "transition" ? "Next Round Starts In" : "Time Remaining"}
-          </div>
-
-          <div className="mt-1 text-3xl font-semibold text-neutral-900">
-            {minutes}:{seconds.toString().padStart(2, "0")}
-          </div>
-
-          <div className="mt-4 h-2 overflow-hidden rounded-full bg-neutral-200">
+          return (
             <div
-              className="h-full rounded-full bg-blue-600 transition-all"
-              style={{ width: `${progressPercent}%` }}
-            />
-          </div>
-        </div>
-      ) : null}
-
-      <div className="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-[1.05fr_1.4fr]">
-        <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
-          <div className="mb-2 text-sm font-semibold text-neutral-900">
-            Join Event
-          </div>
-
-          <div className="space-y-3">
-            <div>
-              <input
-                value={joinForm.name}
-                onChange={(e) => updateJoinForm("name", e.target.value)}
-                placeholder="Name"
-                className="h-11 w-full rounded-xl border border-neutral-300 px-3 text-sm outline-none"
-              />
-              <FieldError show={joinErrors.name} message="Name is required." />
-            </div>
-
-            <div>
-              <input
-                value={joinForm.title}
-                onChange={(e) => updateJoinForm("title", e.target.value)}
-                placeholder="Title"
-                className="h-11 w-full rounded-xl border border-neutral-300 px-3 text-sm outline-none"
-              />
-              <FieldError
-                show={joinErrors.title}
-                message="Title is required."
-              />
-            </div>
-
-            <div>
-              <textarea
-                value={joinForm.bio}
-                onChange={(e) => updateJoinForm("bio", e.target.value)}
-                placeholder="Bio"
-                className="w-full rounded-xl border border-neutral-300 px-3 py-3 text-sm outline-none"
-                rows={4}
-              />
-              <FieldError show={joinErrors.bio} message="Bio is required." />
-            </div>
-
-<div>
-  <div className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-neutral-500">
-    Profile Image (optional)
-  </div>
-
-  <input
-    type="file"
-    accept="image/*"
-    onChange={(e) => updateJoinForm("image", e.target.files?.[0] || null)}
-    className="w-full rounded-xl border border-neutral-300 bg-white px-3 py-3 text-sm outline-none"
-  />
-</div>
-
-            <div>
-              <div className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-neutral-500">
-                I am
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
-                  <input
-                    type="radio"
-                    name="speed-dating-iam"
-                    checked={joinForm.iam === "man"}
-                    onChange={() => updateJoinForm("iam", "man")}
-                  />
-                  Man
-                </label>
-
-                <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
-                  <input
-                    type="radio"
-                    name="speed-dating-iam"
-                    checked={joinForm.iam === "woman"}
-                    onChange={() => updateJoinForm("iam", "woman")}
-                  />
-                  Woman
-                </label>
-              </div>
-
-              <FieldError show={joinErrors.iam} message='Select "I am".' />
-            </div>
-
-            <div>
-              <div className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-neutral-500">
-                Seeking
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
-                  <input
-                    type="radio"
-                    name="speed-dating-seeking"
-                    checked={joinForm.seeking === "men"}
-                    onChange={() => updateJoinForm("seeking", "men")}
-                  />
-                  Men
-                </label>
-
-                <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
-                  <input
-                    type="radio"
-                    name="speed-dating-seeking"
-                    checked={joinForm.seeking === "women"}
-                    onChange={() => updateJoinForm("seeking", "women")}
-                  />
-                  Women
-                </label>
-              </div>
-
-              <FieldError
-                show={joinErrors.seeking}
-                message='Select "Seeking".'
-              />
-            </div>
-
-            {joinError ? (
-              <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-3 text-sm text-red-700">
-                {joinError}
-              </div>
-            ) : null}
-
-            <button
-              type="button"
-              disabled={loading}
-              onClick={() => void handleJoinPreview()}
-              className="h-11 w-full rounded-xl bg-neutral-900 text-white disabled:opacity-60"
+              key={m.id}
+              className={`flex ${isMe ? "justify-end" : "justify-start"}`}
             >
-              {loading ? "Joining..." : "Join Rotation"}
-            </button>
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
-              <div className="font-semibold text-neutral-900">{leftLabel}</div>
-
-              <div className="mt-3 space-y-2">
-                {leftParticipants.length ? (
-                  leftParticipants.map((participant) => (
-                    <ParticipantCard
-                      key={participant.id}
-                      participant={participant}
-                      tone={participant.waiting ? "waiting" : "active"}
-                    />
-                  ))
-                ) : (
-                  <EmptySlot label={`No ${leftLabel.toLowerCase()} yet`} />
-                )}
+              <div
+                className={`px-3 py-1 rounded text-sm ${
+                  isMe ? "bg-black text-white" : "bg-neutral-200"
+                }`}
+              >
+                {m.text}
               </div>
             </div>
-
-            <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
-              <div className="font-semibold text-neutral-900">{rightLabel}</div>
-
-              <div className="mt-3 space-y-2">
-                {rightParticipants.length ? (
-                  rightParticipants.map((participant) => (
-                    <ParticipantCard
-                      key={participant.id}
-                      participant={participant}
-                      tone={participant.waiting ? "waiting" : "active"}
-                    />
-                  ))
-                ) : (
-                  <EmptySlot label={`No ${rightLabel.toLowerCase()} yet`} />
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
-            <div className="mb-3 font-semibold text-neutral-900">
-              Active Pairs
-            </div>
-
-            {activePairs.length ? (
-              activePairs.map((pair) => (
-                <div key={pair.id} className="mb-2 grid grid-cols-3 gap-2">
-                  {pair.leftParticipant ? (
-                    <ParticipantCard participant={pair.leftParticipant} />
-                  ) : (
-                    <EmptySlot label="Open slot" />
-                  )}
-
-                  <div className="flex items-center justify-center text-neutral-500">
-                    ↔
-                  </div>
-
-                  {pair.rightParticipant ? (
-                    <ParticipantCard participant={pair.rightParticipant} />
-                  ) : (
-                    <EmptySlot label="Open slot" />
-                  )}
-                </div>
-              ))
-            ) : (
-              <EmptySlot label="No active pairs yet" />
-            )}
-          </div>
-        </div>
+          );
+        })}
       </div>
 
-{isInRotation ? (
-  <div className="mt-4 rounded-2xl border border-blue-200 bg-blue-50 p-4 shadow-sm">
-    <div className="text-sm font-semibold text-blue-900">
-      You joined the rotation
-    </div>
-    <div className="mt-1 text-sm text-blue-700">
-      Redirecting participants to the private dating room after join.
-    </div>
-  </div>
-) : null}
+      <div className="flex gap-2">
+        <input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          className="flex-1 border px-2 h-9 rounded"
+          placeholder="Message..."
+        />
+        <button
+          onClick={sendMessage}
+          className="bg-black text-white px-3 rounded"
+        >
+          Send
+        </button>
+      </div>
     </div>
   );
 }

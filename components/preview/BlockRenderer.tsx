@@ -5303,17 +5303,16 @@ return (
       return renderMapLocation(block, designKey);
     case "file_share":
       return renderFileShare(block, designKey, micrositeId);
-    case "speed_dating":
-      return (
-        <SpeedDatingLive
-          heading={block.data.heading}
-          roundDurationSeconds={block.data.roundDurationSeconds ?? 120}
-          showTimer={block.data.showTimer !== false}
-          leftLabel={block.data.leftLabel}
-          rightLabel={block.data.rightLabel}
-          roundStartSound={block.data.roundStartSound}
-        />
-      );
+case "speed_dating":
+  return (
+    <SpeedDatingLive
+      heading={block.data.heading}
+      roundDurationSeconds={block.data.roundDurationSeconds ?? 120}
+      showTimer={block.data.showTimer !== false}
+      leftLabel={block.data.leftLabel}
+      rightLabel={block.data.rightLabel}
+    />
+  );
 
     default:
       return <div className="h-full w-full" />;

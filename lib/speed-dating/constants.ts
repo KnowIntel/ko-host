@@ -1,0 +1,14 @@
+export const SPEED_DATING_DEFAULT_ROUND_DURATION_SECONDS = 120;
+
+export const SPEED_DATING_MIN_ROUND_DURATION_SECONDS = 30;
+export const SPEED_DATING_MAX_ROUND_DURATION_SECONDS = 900;
+
+export const SPEED_DATING_MAX_NAME_LENGTH = 60;
+export const SPEED_DATING_MAX_TITLE_LENGTH = 100;
+export const SPEED_DATING_MAX_BIO_LENGTH = 500;
+
+export const SPEED_DATING_MAX_TEXT_MESSAGE_LENGTH = 1000;
+
+export const SPEED_DATING_ALLOWED_IAM = ["man", "woman"] as const;
+export const SPEED_DATING_ALLOWED_SEEKING = ["men", "women"] as const;
+export const SPEED_DATING_ALLOWED_MESSAGE_TYPES = ["text", "image"] as const;
