@@ -11670,8 +11670,8 @@ data: {
     </div>
   </div>
 
-<div className="relative flex items-start justify-between gap-6 border-b border-black/10 px-6 py-1">
-    <div className="flex w-full flex-row flex-wrap items-center justify-center gap-2 overflow-x-auto px-2 md:flex-nowrap md:justify-start md:overflow-visible">
+<div className="relative flex flex-col gap-3 border-b border-black/10 px-3 py-2 md:flex-row md:items-start md:justify-between md:gap-6 md:px-6 md:py-1">
+    <div className="flex w-full flex-nowrap items-center gap-2 overflow-x-auto pb-1 md:flex-wrap md:overflow-visible">
       {CATEGORY_ORDER.map((category) => (
         <div key={category} className="relative">
           <button
@@ -11729,8 +11729,8 @@ data: {
         </div>
       ))}
     </div>
-<div className="flex flex-col items-end gap-1">
-<div className="flex items-center gap-4 h-12">
+<div className="flex w-full flex-row items-center justify-center gap-2 overflow-x-auto pb-1 md:w-auto md:flex-col md:items-end md:justify-start md:overflow-visible">
+<div className="flex flex-nowrap items-center gap-2 md:gap-4 h-12">
 
 
 
