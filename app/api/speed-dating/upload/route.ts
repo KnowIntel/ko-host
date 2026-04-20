@@ -3,8 +3,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { ok, fail } from "@/lib/speed-dating/serializers";
 
 /*
-TEMP: stub upload
-Replace later with Supabase Storage
+TEMP:
+Return base64 data URL so image survives round-trip in local testing.
+Replace later with Supabase Storage.
 */
 
 export async function POST(req: NextRequest) {
@@ -16,12 +17,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(fail("Missing file"), { status: 400 });
     }
 
-    // TEMP fake URL
-    const fakeUrl = URL.createObjectURL(file);
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+    const mimeType = file.type || "image/png";
+    const base64 = buffer.toString("base64");
+    const imageUrl = `data:${mimeType};base64,${base64}`;
 
     return NextResponse.json(
       ok({
-        imageUrl: fakeUrl,
+        imageUrl,
       }),
     );
   } catch (error) {

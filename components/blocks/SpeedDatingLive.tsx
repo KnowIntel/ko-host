@@ -266,14 +266,27 @@ useEffect(() => {
   };
 }, [joined]);
 
-  const timerSource = joined && privateRoom ? privateRoom : publicState;
+const timerSource = publicState;
+const displayPhase = publicState?.phase ?? "active";
+const displayRound = publicState?.round ?? 0;
 
-  const timeLeft = useMemo(() => {
-    if (!timerSource) return 0;
+const [serverOffsetMs, setServerOffsetMs] = useState(0);
 
-    const phaseEndsAtMs = new Date(timerSource.phaseEndsAt).getTime();
-    return Math.max(0, Math.ceil((phaseEndsAtMs - nowMs) / 1000));
-  }, [timerSource?.phaseEndsAt, nowMs]);
+useEffect(() => {
+  if (!publicState?.serverNow) return;
+
+  const serverNowMs = new Date(publicState.serverNow).getTime();
+  setServerOffsetMs(serverNowMs - Date.now());
+}, [publicState?.serverNow]);
+
+const timeLeft = useMemo(() => {
+  if (!timerSource?.phaseEndsAt) return 0;
+
+  const phaseEndsAtMs = new Date(timerSource.phaseEndsAt).getTime();
+  const syncedNowMs = Date.now() + serverOffsetMs;
+
+  return Math.max(0, Math.ceil((phaseEndsAtMs - syncedNowMs) / 1000));
+}, [timerSource?.phaseEndsAt, serverOffsetMs, nowMs]);
 
   const minutes = Math.floor(timeLeft / 60);
   const seconds = timeLeft % 60;
@@ -287,14 +300,14 @@ useEffect(() => {
               {heading || "Speed Dating"}
             </div>
             <div className="text-xs text-neutral-500">
-              Round {privateRoom.round + 1}
+              Round {displayRound + 1}
             </div>
           </div>
 
           {showTimer ? (
             <div className="rounded-xl border px-4 py-3">
               <div className="text-xs uppercase tracking-[0.14em] text-neutral-500">
-                {privateRoom.phase === "transition"
+                {displayPhase === "transition"
                   ? "Next Round Starts In"
                   : "Time Remaining"}
               </div>
@@ -332,7 +345,7 @@ useEffect(() => {
         </div>
 
         <div className="mt-4 flex gap-2">
-          {privateRoom.hasMatch && privateRoom.phase === "active" ? (
+          {privateRoom.hasMatch && displayPhase === "active" ? (
             <button
               type="button"
               onClick={() => void handleSkip()}
@@ -352,16 +365,16 @@ useEffect(() => {
         </div>
 
         <div className="mt-4">
-          {privateRoom.phase === "active" &&
-          privateRoom.hasMatch &&
-          privateRoom.roomId ? (
+{displayPhase === "active" &&
+privateRoom.hasMatch &&
+privateRoom.roomId ? (
             <Chat roomId={privateRoom.roomId} participantId={browserKey} />
           ) : (
             <Panel title="Chat">
               <div className="text-sm text-neutral-500">
-                {privateRoom.phase === "transition"
-                  ? "Chat closed for round transition."
-                  : "Waiting for a compatible match."}
+{displayPhase === "transition"
+  ? "Chat closed for round transition."
+  : "Waiting for a compatible match."}
               </div>
             </Panel>
           )}
@@ -574,17 +587,25 @@ function Card({ p }: { p: Participant }) {
   return (
     <div className="border rounded p-2">
       <div className="flex gap-2">
-        {image ? (
-          <img
-            src={image}
-            alt={p.name}
-            className="w-10 h-10 rounded object-cover"
-          />
-        ) : (
-          <div className="w-10 h-10 border flex items-center justify-center text-xs">
-            {getInitials(p.name)}
-          </div>
-        )}
+{image ? (
+  <img
+    src={image}
+    alt={p.name}
+    className="w-10 h-10 rounded object-cover"
+    onError={(e) => {
+      e.currentTarget.style.display = "none";
+      const next = e.currentTarget.nextElementSibling as HTMLElement | null;
+      if (next) next.style.display = "flex";
+    }}
+  />
+) : null}
+
+<div
+  className="w-10 h-10 border items-center justify-center text-xs"
+  style={{ display: image ? "none" : "flex" }}
+>
+  {getInitials(p.name)}
+</div>
         <div className="min-w-0">
           <div className="text-sm font-semibold">{p.name}</div>
           <div className="text-xs text-neutral-500">{p.title}</div>
