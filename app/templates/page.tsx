@@ -157,7 +157,7 @@ const visibleRecentSites = useMemo(() => {
       </div>
 
       <div className="relative w-full px-4 pb-10">
-<div className="relative 2xl:sticky 2xl:top-[56px] 2xl:z-40 -mx-4 border-b border-neutral-200 bg-white/95 px-4 pb-4 pt-6 shadow-sm backdrop-blur">
+<div className="relative mt-16 2xl:mt-0 2xl:sticky 2xl:top-[56px] 2xl:z-40 -mx-4 border-b border-neutral-200 bg-white/95 px-4 pb-4 pt-6 shadow-sm backdrop-blur">
   {/* Mobile / tablet */}
   <div className="2xl:hidden">
     <div className="min-w-0">
