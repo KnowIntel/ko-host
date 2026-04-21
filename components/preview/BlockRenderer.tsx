@@ -348,6 +348,31 @@ function getThreadHeadingStyle(
   };
 }
 
+function isUuid(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    value,
+  );
+}
+
+function deterministicUuid(seed: string) {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i += 1) {
+    hash = (hash << 5) - hash + seed.charCodeAt(i);
+    hash |= 0;
+  }
+
+  const normalized = Math.abs(hash).toString(16).padStart(8, "0");
+  const tail = `${normalized}${normalized}${normalized}${normalized}`;
+
+  return [
+    tail.slice(0, 8),
+    tail.slice(0, 4),
+    `4${tail.slice(0, 3)}`,
+    `8${tail.slice(0, 3)}`,
+    tail.slice(0, 12),
+  ].join("-");
+}
+
 function getThreadBodyStyle(
   style?: TextStyle,
   designKey?: string,
@@ -1688,7 +1713,7 @@ function renderPoll(
     const [submitError, setSubmitError] = useState<string>("");
 
     async function handleVote(optionId: string) {
-      if (selectedOptionId || isSubmitting || !micrositeSlug) return;
+      if (isSubmitting || !micrositeSlug) return;
 
       try {
         setIsSubmitting(true);
@@ -1710,6 +1735,10 @@ function renderPoll(
         const data = await res.json().catch(() => null);
 
         if (!res.ok) {
+          if (data?.error === "Already voted") {
+            setSubmitError("Already voted");
+            return;
+          }
           throw new Error(data?.error || "Vote failed");
         }
 
@@ -1751,7 +1780,7 @@ function renderPoll(
                 key={option.id}
                 type="button"
                 onClick={() => void handleVote(option.id)}
-                disabled={Boolean(selectedOptionId) || isSubmitting || !micrositeSlug}
+                disabled={isSubmitting || !micrositeSlug}
                 className={[
                   "w-full rounded-lg border px-3 py-2 text-left transition",
                   isLightDesign(designKey)
@@ -3377,7 +3406,15 @@ function renderHighlight(
 
     const mode = block.data?.mode || "top_messages";
     const limit = Math.max(1, Math.min(12, Number(block.data?.limit) || 4));
-    const sourceBlockId = block.data?.sourceBlockId?.trim() || "";
+    const rawSourceBlockId = block.data?.sourceBlockId?.trim() || "";
+    const resolvedSourceBlockId =
+      mode === "poll_results" &&
+      micrositeId &&
+      rawSourceBlockId &&
+      !isUuid(rawSourceBlockId)
+        ? deterministicUuid(`poll:${micrositeId}:${rawSourceBlockId}`)
+        : rawSourceBlockId;
+
     const sourceFormBlockId = block.data?.sourceFormBlockId?.trim() || "";
     const widthUnits = Number(block.grid?.colSpan ?? 1);
 
@@ -3414,7 +3451,7 @@ function renderHighlight(
           setIsLoading(true);
 
           if (mode === "poll_results") {
-            if (!sourceBlockId || !micrositeSlug) {
+            if (!resolvedSourceBlockId || !micrositeSlug) {
               if (!cancelled) {
                 setItems([]);
                 setCountValue(0);
@@ -3425,7 +3462,7 @@ function renderHighlight(
 
             const params = new URLSearchParams({
               micrositeSlug,
-              pollId: sourceBlockId,
+              pollId: resolvedSourceBlockId,
             });
 
             const res = await fetch(
@@ -3447,7 +3484,7 @@ function renderHighlight(
           }
 
           if (mode === "top_messages") {
-            if (!sourceBlockId || !micrositeId) {
+            if (!resolvedSourceBlockId || !micrositeId) {
               if (!cancelled) {
                 setItems([]);
                 setCountValue(0);
@@ -3458,7 +3495,7 @@ function renderHighlight(
 
             const params = new URLSearchParams({
               micrositeId: micrositeId ?? "",
-              threadBlockId: sourceBlockId,
+              threadBlockId: resolvedSourceBlockId,
               limit: "100",
               sort: "votes_desc",
             });
@@ -3558,8 +3595,8 @@ function renderHighlight(
         if (detail.micrositeId !== micrositeId) return;
 
         if (mode === "top_messages") {
-          if (!sourceBlockId) return;
-          if (detail.threadBlockId !== sourceBlockId) return;
+          if (!resolvedSourceBlockId) return;
+          if (detail.threadBlockId !== resolvedSourceBlockId) return;
         }
 
         setRefreshKey((prev) => prev + 1);
@@ -3572,8 +3609,8 @@ function renderHighlight(
         }>;
 
         if (mode !== "poll_results") return;
-        if (!sourceBlockId) return;
-        if (customEvent.detail?.pollBlockId !== sourceBlockId) return;
+        if (!resolvedSourceBlockId) return;
+        if (customEvent.detail?.pollBlockId !== resolvedSourceBlockId) return;
 
         setRefreshKey((prev) => prev + 1);
       }
@@ -3605,7 +3642,7 @@ function renderHighlight(
       micrositeSlug,
       mode,
       block.id,
-      sourceBlockId,
+      resolvedSourceBlockId,
       sourceFormBlockId,
       limit,
       refreshKey,
@@ -3629,7 +3666,7 @@ function renderHighlight(
             <div className="text-xs text-neutral-400">Loading...</div>
           ) : null}
 
-          {!isLoading && mode === "top_messages" && !sourceBlockId ? (
+          {!isLoading && mode === "top_messages" && !resolvedSourceBlockId ? (
             <div
               className="rounded-xl border border-dashed px-3 py-4 text-sm opacity-60"
               style={getContainerTextStyle(block.data.style, designKey)}
@@ -3638,7 +3675,7 @@ function renderHighlight(
             </div>
           ) : null}
 
-          {!isLoading && mode === "poll_results" && !sourceBlockId ? (
+          {!isLoading && mode === "poll_results" && !resolvedSourceBlockId ? (
             <div
               className="rounded-xl border border-dashed px-3 py-4 text-sm opacity-60"
               style={getContainerTextStyle(block.data.style, designKey)}
@@ -3665,7 +3702,7 @@ function renderHighlight(
             </div>
           ) : null}
 
-          {!isLoading && mode === "top_messages" && sourceBlockId && !items.length ? (
+          {!isLoading && mode === "top_messages" && resolvedSourceBlockId && !items.length ? (
             <div
               className="rounded-xl border border-dashed px-3 py-4 text-sm opacity-60"
               style={getContainerTextStyle(block.data.style, designKey)}
@@ -3674,7 +3711,7 @@ function renderHighlight(
             </div>
           ) : null}
 
-          {!isLoading && mode === "poll_results" && sourceBlockId && !items.length ? (
+          {!isLoading && mode === "poll_results" && resolvedSourceBlockId && !items.length ? (
             <div
               className="rounded-xl border border-dashed px-3 py-4 text-sm opacity-60"
               style={getContainerTextStyle(block.data.style, designKey)}
