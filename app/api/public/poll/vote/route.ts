@@ -28,6 +28,25 @@ function sha256(input: string): string {
   return createHash("sha256").update(input).digest("hex");
 }
 
+function isUuid(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    value,
+  );
+}
+
+function deterministicUuid(seed: string) {
+  const hex = createHash("sha256").update(seed).digest("hex");
+  return [
+    hex.slice(0, 8),
+    hex.slice(8, 12),
+    `4${hex.slice(13, 16)}`,
+    `${((parseInt(hex.slice(16, 18), 16) & 0x3f) | 0x80)
+      .toString(16)
+      .padStart(2, "0")}${hex.slice(18, 20)}`,
+    hex.slice(20, 32),
+  ].join("-");
+}
+
 async function ensurePublishedPollExists(args: {
   micrositeId: string;
   pollId: string;
@@ -68,18 +87,30 @@ async function ensurePublishedPollExists(args: {
     null;
 
   const pollBlock = Array.isArray(draft?.blocks)
-    ? draft!.blocks.find(
-        (block: any) => block?.type === "poll" && block?.id === args.pollId,
-      )
+    ? draft!.blocks.find((block: any) => {
+        if (block?.type !== "poll") return false;
+
+        const originalPollId = String(block?.id || "");
+        const derivedPollId = isUuid(originalPollId)
+          ? originalPollId
+          : deterministicUuid(`poll:${args.micrositeId}:${originalPollId}`);
+
+        return derivedPollId === args.pollId;
+      })
     : null;
 
   if (!pollBlock) {
     return false;
   }
 
+  const originalPollId = String((pollBlock as any).id || "");
+  const finalPollId = isUuid(originalPollId)
+    ? originalPollId
+    : deterministicUuid(`poll:${args.micrositeId}:${originalPollId}`);
+
   const { error: insertPollError } = await sb.from("polls").upsert(
     {
-      id: pollBlock.id,
+      id: finalPollId,
       microsite_id: args.micrositeId,
       is_multi_select: false,
       is_open: true,
@@ -97,12 +128,21 @@ async function ensurePublishedPollExists(args: {
   const optionRows = (Array.isArray((pollBlock as any)?.data?.options)
     ? (pollBlock as any).data.options
     : []
-  ).map((option: any, index: number) => ({
-    id: option.id,
-    poll_id: pollBlock.id,
-    label: option.text || "Option",
-    sort_order: index,
-  }));
+  ).map((option: any, index: number) => {
+    const originalOptionId = String(option?.id || "");
+    const finalOptionId = isUuid(originalOptionId)
+      ? originalOptionId
+      : deterministicUuid(
+          `poll-option:${args.micrositeId}:${originalPollId}:${originalOptionId}`,
+        );
+
+    return {
+      id: finalOptionId,
+      poll_id: finalPollId,
+      label: option.text || "Option",
+      sort_order: index,
+    };
+  });
 
   if (optionRows.length > 0) {
     const { error: insertOptionsError } = await sb
