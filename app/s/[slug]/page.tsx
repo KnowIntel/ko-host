@@ -1,7 +1,7 @@
 // app\s\[slug]\page.tsx
 
 import { cookies } from "next/headers";
-import crypto from "crypto";
+import crypto, { randomUUID } from "crypto";
 import PlacedBlocksPreview from "@/components/preview/PlacedBlocksPreview";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import type { BuilderDraft } from "@/lib/templates/builder";
@@ -50,6 +50,72 @@ function normalizePrivateMode(value: string | boolean | null) {
   if (typeof value === "string") return value;
   if (value === true) return "passcode";
   return "none";
+}
+
+function isUuid(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    value,
+  );
+}
+
+function remapDraftPollIds(inputDraft: BuilderDraft) {
+  const nextDraft = JSON.parse(JSON.stringify(inputDraft)) as BuilderDraft;
+  const pollIdMap = new Map<string, string>();
+
+  if (!Array.isArray(nextDraft.blocks)) {
+    return { draft: nextDraft, changed: false };
+  }
+
+  let changed = false;
+
+  nextDraft.blocks = nextDraft.blocks.map((block: any) => {
+    if (block?.type !== "poll") return block;
+    if (typeof block?.id === "string" && isUuid(block.id)) return block;
+
+    const nextPollId = randomUUID();
+    pollIdMap.set(block.id, nextPollId);
+    changed = true;
+
+    return {
+      ...block,
+      id: nextPollId,
+      data: {
+        ...block.data,
+        options: Array.isArray(block.data?.options)
+          ? block.data.options.map((option: any) => ({
+              ...option,
+              id:
+                typeof option?.id === "string" && isUuid(option.id)
+                  ? option.id
+                  : randomUUID(),
+            }))
+          : [],
+      },
+    };
+  });
+
+  nextDraft.blocks = nextDraft.blocks.map((block: any) => {
+    if (
+      block?.type === "highlight" &&
+      block?.data?.mode === "poll_results" &&
+      typeof block?.data?.sourceBlockId === "string" &&
+      pollIdMap.has(block.data.sourceBlockId)
+    ) {
+      changed = true;
+      return {
+        ...block,
+        data: {
+          ...block.data,
+          sourceBlockId:
+            pollIdMap.get(block.data.sourceBlockId) || block.data.sourceBlockId,
+        },
+      };
+    }
+
+    return block;
+  });
+
+  return { draft: nextDraft, changed };
 }
 
 function PageShell({
@@ -197,10 +263,79 @@ export default async function PublishedMicrositePage({
   const firstPage = (pages?.[0] || null) as MicrositePageRow | null;
   const homeDraft = firstPage?.draft ?? null;
 
-  const draft =
+  const initialDraft =
     (homeDraft && homeDraft.blocks?.length ? homeDraft : null) ??
     microsite.draft ??
     null;
+
+  let draft = initialDraft;
+
+  if (draft) {
+    const remapped = remapDraftPollIds(draft);
+
+    if (remapped.changed) {
+      draft = remapped.draft;
+
+      if (firstPage?.id) {
+        await supabaseAdmin
+          .from("microsite_pages")
+          .update({
+            draft,
+          })
+          .eq("id", firstPage.id);
+      }
+
+      await supabaseAdmin
+        .from("microsites")
+        .update({
+          draft,
+        })
+        .eq("id", microsite.id);
+
+      const pollBlocks = Array.isArray((draft as any)?.blocks)
+        ? (draft as any).blocks.filter((block: any) => block?.type === "poll")
+        : [];
+
+      const { data: existingPolls } = await supabaseAdmin
+        .from("polls")
+        .select("id")
+        .eq("microsite_id", microsite.id);
+
+      const existingPollIds = (existingPolls ?? []).map((poll) => poll.id);
+
+      if (existingPollIds.length > 0) {
+        await supabaseAdmin.from("poll_options").delete().in("poll_id", existingPollIds);
+        await supabaseAdmin.from("polls").delete().eq("microsite_id", microsite.id);
+      }
+
+      if (pollBlocks.length > 0) {
+        await supabaseAdmin.from("polls").insert(
+          pollBlocks.map((block: any) => ({
+            id: block.id,
+            microsite_id: microsite.id,
+            is_multi_select: false,
+            is_open: true,
+            show_results_public: true,
+          })),
+        );
+
+        const optionRows = pollBlocks.flatMap((block: any) =>
+          (Array.isArray(block?.data?.options) ? block.data.options : []).map(
+            (option: any, index: number) => ({
+              id: option.id,
+              poll_id: block.id,
+              label: option.text || "Option",
+              sort_order: index,
+            }),
+          ),
+        );
+
+        if (optionRows.length > 0) {
+          await supabaseAdmin.from("poll_options").insert(optionRows);
+        }
+      }
+    }
+  }
 
   const designKey = microsite.selected_design_key || "blank";
 
