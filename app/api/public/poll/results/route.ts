@@ -186,7 +186,9 @@ export async function GET(req: Request) {
       pollErr = retry.error;
     } catch (syncErr) {
       selfHealError =
-        syncErr instanceof Error ? syncErr.message : "Unknown self-heal error";
+        syncErr instanceof Error
+          ? syncErr.message
+          : JSON.stringify(syncErr, null, 2);
       console.error("poll results self-heal failed", syncErr);
     }
   }
