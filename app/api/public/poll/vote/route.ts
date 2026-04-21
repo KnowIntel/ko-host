@@ -4,6 +4,7 @@ import { z } from "zod";
 import { cookies } from "next/headers";
 import { createHash, randomUUID } from "crypto";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
+import type { BuilderDraft } from "@/lib/templates/builder";
 import { rateLimitOrThrow } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
@@ -25,6 +26,97 @@ function getClientIp(req: Request): string {
 
 function sha256(input: string): string {
   return createHash("sha256").update(input).digest("hex");
+}
+
+async function ensurePublishedPollExists(args: {
+  micrositeId: string;
+  pollId: string;
+}) {
+  const sb = getSupabaseAdmin();
+
+  const { data: pageRows, error: pageErr } = await sb
+    .from("microsite_pages")
+    .select("id, draft, display_order, created_at")
+    .eq("microsite_id", args.micrositeId)
+    .order("display_order", { ascending: true })
+    .order("created_at", { ascending: true })
+    .limit(1);
+
+  if (pageErr) {
+    throw pageErr;
+  }
+
+  const homeDraft =
+    ((pageRows?.[0] as { draft?: BuilderDraft | null } | undefined)?.draft ??
+      null) as BuilderDraft | null;
+
+  const { data: micrositeRow, error: micrositeErr } = await sb
+    .from("microsites")
+    .select("draft")
+    .eq("id", args.micrositeId)
+    .maybeSingle();
+
+  if (micrositeErr) {
+    throw micrositeErr;
+  }
+
+  const fallbackDraft = (micrositeRow?.draft ?? null) as BuilderDraft | null;
+
+  const draft =
+    (homeDraft && Array.isArray(homeDraft.blocks) ? homeDraft : null) ??
+    fallbackDraft ??
+    null;
+
+  const pollBlock = Array.isArray(draft?.blocks)
+    ? draft!.blocks.find(
+        (block: any) => block?.type === "poll" && block?.id === args.pollId,
+      )
+    : null;
+
+  if (!pollBlock) {
+    return false;
+  }
+
+  const { error: insertPollError } = await sb.from("polls").upsert(
+    {
+      id: pollBlock.id,
+      microsite_id: args.micrositeId,
+      is_multi_select: false,
+      is_open: true,
+      show_results_public: true,
+    },
+    {
+      onConflict: "id",
+    },
+  );
+
+  if (insertPollError) {
+    throw insertPollError;
+  }
+
+  const optionRows = (Array.isArray((pollBlock as any)?.data?.options)
+    ? (pollBlock as any).data.options
+    : []
+  ).map((option: any, index: number) => ({
+    id: option.id,
+    poll_id: pollBlock.id,
+    label: option.text || "Option",
+    sort_order: index,
+  }));
+
+  if (optionRows.length > 0) {
+    const { error: insertOptionsError } = await sb
+      .from("poll_options")
+      .upsert(optionRows, {
+        onConflict: "id",
+      });
+
+    if (insertOptionsError) {
+      throw insertOptionsError;
+    }
+  }
+
+  return true;
 }
 
 async function getOrSetVisitorId(): Promise<string> {
@@ -89,11 +181,31 @@ export async function POST(req: Request) {
     }
 
     // Ensure poll belongs to site + is open
-    const { data: poll, error: pollErr } = await sb
+    let { data: poll, error: pollErr } = await sb
       .from("polls")
       .select("id, microsite_id, is_multi_select, is_open")
       .eq("id", parsed.data.pollId)
       .maybeSingle();
+
+    if (!poll && !pollErr) {
+      try {
+        await ensurePublishedPollExists({
+          micrositeId: site.id,
+          pollId: parsed.data.pollId,
+        });
+
+        const retry = await sb
+          .from("polls")
+          .select("id, microsite_id, is_multi_select, is_open")
+          .eq("id", parsed.data.pollId)
+          .maybeSingle();
+
+        poll = retry.data;
+        pollErr = retry.error;
+      } catch (syncErr) {
+        console.error("poll self-heal failed", syncErr);
+      }
+    }
 
     if (pollErr || !poll || poll.microsite_id !== site.id) {
       return NextResponse.json({ ok: false, error: "Poll not found" }, { status: 404 });
