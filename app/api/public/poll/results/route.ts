@@ -166,9 +166,12 @@ export async function GET(req: Request) {
     .eq("id", parsed.data.pollId)
     .maybeSingle();
 
+  let selfHealFound = false;
+  let selfHealError: string | null = null;
+
   if (!poll && !pollErr) {
     try {
-      await ensurePublishedPollExists({
+      selfHealFound = await ensurePublishedPollExists({
         micrositeId: site.id,
         pollId: parsed.data.pollId,
       });
@@ -182,12 +185,29 @@ export async function GET(req: Request) {
       poll = retry.data;
       pollErr = retry.error;
     } catch (syncErr) {
+      selfHealError =
+        syncErr instanceof Error ? syncErr.message : "Unknown self-heal error";
       console.error("poll results self-heal failed", syncErr);
     }
   }
 
   if (pollErr || !poll || poll.microsite_id !== site.id) {
-    return NextResponse.json({ ok: false, error: "Poll not found" }, { status: 404 });
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "Poll not found",
+        debug: {
+          micrositeId: site.id,
+          pollId: parsed.data.pollId,
+          selfHealFound,
+          selfHealError,
+          pollErr: pollErr?.message ?? null,
+          foundPollId: poll?.id ?? null,
+          foundPollMicrositeId: poll?.microsite_id ?? null,
+        },
+      },
+      { status: 404 }
+    );
   }
 
   if (!poll.show_results_public) {
