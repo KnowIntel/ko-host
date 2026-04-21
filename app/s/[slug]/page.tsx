@@ -296,28 +296,53 @@ export default async function PublishedMicrositePage({
         ? (draft as any).blocks.filter((block: any) => block?.type === "poll")
         : [];
 
-      const { data: existingPolls } = await supabaseAdmin
+      const { data: existingPolls, error: existingPollsError } = await supabaseAdmin
         .from("polls")
         .select("id")
         .eq("microsite_id", microsite.id);
 
+      if (existingPollsError) {
+        throw new Error(`existing polls lookup failed: ${existingPollsError.message}`);
+      }
+
       const existingPollIds = (existingPolls ?? []).map((poll) => poll.id);
 
       if (existingPollIds.length > 0) {
-        await supabaseAdmin.from("poll_options").delete().in("poll_id", existingPollIds);
-        await supabaseAdmin.from("polls").delete().eq("microsite_id", microsite.id);
+        const { error: deletePollOptionsError } = await supabaseAdmin
+          .from("poll_options")
+          .delete()
+          .in("poll_id", existingPollIds);
+
+        if (deletePollOptionsError) {
+          throw new Error(`poll_options delete failed: ${deletePollOptionsError.message}`);
+        }
+
+        const { error: deletePollsError } = await supabaseAdmin
+          .from("polls")
+          .delete()
+          .eq("microsite_id", microsite.id);
+
+        if (deletePollsError) {
+          throw new Error(`polls delete failed: ${deletePollsError.message}`);
+        }
       }
 
       if (pollBlocks.length > 0) {
-        await supabaseAdmin.from("polls").insert(
-          pollBlocks.map((block: any) => ({
-            id: block.id,
-            microsite_id: microsite.id,
-            is_multi_select: false,
-            is_open: true,
-            show_results_public: true,
-          })),
-        );
+        const { error: insertPollsError } = await supabaseAdmin
+          .from("polls")
+          .insert(
+            pollBlocks.map((block: any) => ({
+              id: block.id,
+              microsite_id: microsite.id,
+              is_multi_select: false,
+              is_open: true,
+              show_results_public: true,
+            })),
+          );
+
+        if (insertPollsError) {
+          throw new Error(`polls insert failed: ${insertPollsError.message}`);
+        }
 
         const optionRows = pollBlocks.flatMap((block: any) =>
           (Array.isArray(block?.data?.options) ? block.data.options : []).map(
@@ -331,7 +356,13 @@ export default async function PublishedMicrositePage({
         );
 
         if (optionRows.length > 0) {
-          await supabaseAdmin.from("poll_options").insert(optionRows);
+          const { error: insertPollOptionsError } = await supabaseAdmin
+            .from("poll_options")
+            .insert(optionRows);
+
+          if (insertPollOptionsError) {
+            throw new Error(`poll_options insert failed: ${insertPollOptionsError.message}`);
+          }
         }
       }
     }
