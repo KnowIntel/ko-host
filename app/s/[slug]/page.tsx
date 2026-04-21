@@ -1,7 +1,7 @@
 // app\s\[slug]\page.tsx
 
 import { cookies } from "next/headers";
-import crypto, { randomUUID } from "crypto";
+import crypto from "crypto";
 import PlacedBlocksPreview from "@/components/preview/PlacedBlocksPreview";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import type { BuilderDraft } from "@/lib/templates/builder";
@@ -58,7 +58,20 @@ function isUuid(value: string) {
   );
 }
 
-function remapDraftPollIds(inputDraft: BuilderDraft) {
+function deterministicUuid(seed: string) {
+  const hex = crypto.createHash("sha256").update(seed).digest("hex");
+  return [
+    hex.slice(0, 8),
+    hex.slice(8, 12),
+    `4${hex.slice(13, 16)}`,
+    `${((parseInt(hex.slice(16, 18), 16) & 0x3f) | 0x80)
+      .toString(16)
+      .padStart(2, "0")}${hex.slice(18, 20)}`,
+    hex.slice(20, 32),
+  ].join("-");
+}
+
+function remapDraftPollIds(inputDraft: BuilderDraft, micrositeId: string) {
   const nextDraft = JSON.parse(JSON.stringify(inputDraft)) as BuilderDraft;
   const pollIdMap = new Map<string, string>();
 
@@ -70,11 +83,17 @@ function remapDraftPollIds(inputDraft: BuilderDraft) {
 
   nextDraft.blocks = nextDraft.blocks.map((block: any) => {
     if (block?.type !== "poll") return block;
-    if (typeof block?.id === "string" && isUuid(block.id)) return block;
 
-    const nextPollId = randomUUID();
-    pollIdMap.set(block.id, nextPollId);
-    changed = true;
+    const originalPollId = String(block.id || "");
+    const nextPollId = isUuid(originalPollId)
+      ? originalPollId
+      : deterministicUuid(`poll:${micrositeId}:${originalPollId}`);
+
+    if (nextPollId !== originalPollId) {
+      changed = true;
+    }
+
+    pollIdMap.set(originalPollId, nextPollId);
 
     return {
       ...block,
@@ -82,13 +101,23 @@ function remapDraftPollIds(inputDraft: BuilderDraft) {
       data: {
         ...block.data,
         options: Array.isArray(block.data?.options)
-          ? block.data.options.map((option: any) => ({
-              ...option,
-              id:
-                typeof option?.id === "string" && isUuid(option.id)
-                  ? option.id
-                  : randomUUID(),
-            }))
+          ? block.data.options.map((option: any) => {
+              const originalOptionId = String(option?.id || "");
+              const nextOptionId = isUuid(originalOptionId)
+                ? originalOptionId
+                : deterministicUuid(
+                    `poll-option:${micrositeId}:${originalPollId}:${originalOptionId}`,
+                  );
+
+              if (nextOptionId !== originalOptionId) {
+                changed = true;
+              }
+
+              return {
+                ...option,
+                id: nextOptionId,
+              };
+            })
           : [],
       },
     };
@@ -271,7 +300,7 @@ export default async function PublishedMicrositePage({
   let draft = initialDraft;
 
   if (draft) {
-    const remapped = remapDraftPollIds(draft);
+        const remapped = remapDraftPollIds(draft, microsite.id);
 
     if (remapped.changed) {
       draft = remapped.draft;
