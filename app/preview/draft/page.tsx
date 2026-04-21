@@ -129,20 +129,13 @@ export default function PreviewDraftPage() {
   }
 
   return (
-    <main className="min-h-screen w-full overflow-x-hidden overflow-y-auto">
-      <PlacedBlocksPreview
-        draft={payload.draft}
-        designKey={payload.designLayout}
-fixedScale={Math.max(
-  0.25,
-  Math.min(
-    1.5,
-    (((payload.draft as { pageScale?: number }).pageScale ?? 100) / 100) * 0.755555,
-  ),
-)}
-        disableAutoScale={true}
-        hideFrame={true}
-      />
+    <main className="m-0 min-h-screen w-full max-w-none overflow-x-hidden overflow-y-auto bg-[#fcfbf8] p-0 scrollbar-hide">
+<PlacedBlocksPreview
+  draft={payload.draft}
+  designKey={payload.designLayout}
+  micrositeSlug={null}
+  hideFrame={true}
+/>
     </main>
   );
 }

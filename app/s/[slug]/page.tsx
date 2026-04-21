@@ -231,7 +231,7 @@ export default async function PublishedMicrositePage({
 
 return (
   <main
-    className="w-full overflow-x-hidden text-neutral-900"
+  className="w-screen max-w-none overflow-hidden text-neutral-900"
     style={{
       minHeight: "100vh",
       width: "100%",
@@ -248,19 +248,15 @@ return (
         : {}),
     }}
   >
-    <div className="w-full overflow-x-hidden">
-      <PlacedBlocksPreview
-        draft={draft}
-        designKey={designKey}
-        micrositeId={microsite.id}
-        serverNow={Date.now()}
-fixedScale={Math.max(
-  0.25,
-  Math.min(1.5, ((((draft as any)?.pageScale ?? 100) as number) / 100) * 0.755555),
-)}
-        disableAutoScale={true}
-        hideFrame={true}
-      />
+    <div className="w-screen max-w-none overflow-hidden">
+<PlacedBlocksPreview
+  draft={draft}
+  designKey={designKey}
+  micrositeId={microsite.id}
+  micrositeSlug={microsite.slug}
+  serverNow={Date.now()}
+  hideFrame={true}
+/>
     </div>
   </main>
 );

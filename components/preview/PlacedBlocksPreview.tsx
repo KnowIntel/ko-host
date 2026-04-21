@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import type {
   BuilderDraft,
@@ -23,6 +23,7 @@ type Props = {
   draft: BuilderDraft;
   designKey: string;
   micrositeId?: string | null;
+  micrositeSlug?: string | null;
   serverNow?: number;
   fixedScale?: number;
   disableAutoScale?: boolean;
@@ -62,9 +63,12 @@ type ResolvedGrid = GridPlacement & {
   zIndex?: number;
 };
 
+import { MICROSITE_PAGE_WIDTH } from "@/lib/constants/layout";
+
+const BASE_PAGE_WIDTH = MICROSITE_PAGE_WIDTH - 68;
+
 const GRID_COLUMNS = 12;
 const GRID_GAP = 16;
-const BASE_PAGE_WIDTH = 2000;
 
 function getPageLengthConfig(length?: DraftWithExtras["pageLength"]) {
   if (length === "1200") return { widthRatio: 1, pageHeight: 1200 };
@@ -161,6 +165,7 @@ export default function PlacedBlocksPreview({
   draft,
   designKey,
   micrositeId = null,
+  micrositeSlug = null,
   serverNow,
   fixedScale = 1,
   disableAutoScale = false,
@@ -170,13 +175,15 @@ export default function PlacedBlocksPreview({
   const typedDraft = draft as DraftWithExtras;
   const templateKey = typedDraft.templateName || "";
   const metadata = getMetadata(templateKey, designKey);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+const [containerWidth, setContainerWidth] = useState<number>(0);
 
   const pageLengthConfig = useMemo(
     () => getPageLengthConfig(typedDraft.pageLength),
     [typedDraft.pageLength],
   );
 
-  const logicalPageWidth = BASE_PAGE_WIDTH * pageLengthConfig.widthRatio;
+const logicalPageWidth = BASE_PAGE_WIDTH;
   const logicalRowHeight = 100;
 
   const pageColor =
@@ -391,6 +398,31 @@ const availableCartItems = useMemo(() => {
 }, [blockEntries]);
 
 useEffect(() => {
+  function updateWidth() {
+    const node = containerRef.current;
+    if (!node) return;
+    setContainerWidth(node.clientWidth || 0);
+  }
+
+  const node = containerRef.current;
+  if (!node) return;
+
+  updateWidth();
+
+  const observer = new ResizeObserver(() => {
+    updateWidth();
+  });
+
+  observer.observe(node);
+  window.addEventListener("resize", updateWidth);
+
+  return () => {
+    observer.disconnect();
+    window.removeEventListener("resize", updateWidth);
+  };
+}, []);
+
+useEffect(() => {
   setListingQuantities((prev) => {
     const validIds = new Set(availableCartItems.map((item) => item.id));
     const next: Record<string, number> = {};
@@ -470,30 +502,33 @@ const cartSubtotal = useMemo(() => {
 
 const pageHeight = pageLengthConfig.pageHeight;
 
-const viewportWidth =
-  typeof window !== "undefined" ? window.innerWidth : logicalPageWidth;
+const availableWidth = Math.round(
+  containerRef.current?.getBoundingClientRect().width || containerWidth || logicalPageWidth
+);
 
-const fitScale = Math.min(1, viewportWidth / logicalPageWidth);
+const fitScale = 1;
 
 const previewScale = disableAutoScale
-  ? fitScale * (fixedScale ?? 1)
-  : fitScale;
+  ? (fixedScale ?? 1)
+  : Math.max(0.01, fitScale);
 
-const scaledPageWidth = logicalPageWidth * previewScale;
 const scaledPageHeight = pageHeight * previewScale;
-const shouldCenterScaledPage = true;
-
+const scaledContentWidthPercent =
+  previewScale > 0
+    ? (containerWidth || logicalPageWidth) / (logicalPageWidth * previewScale) * 100
+    : 100;
 
 return (
 <div
-  className="w-full"
+  ref={containerRef}
+  className="m-0 block w-full max-w-none p-0"
   style={{
     position: "relative",
     width: "100%",
     margin: 0,
     padding: 0,
     overflowX: "hidden",
-    overflowY: "visible",
+    overflowY: "hidden",
     WebkitOverflowScrolling: "touch",
     touchAction: "pan-x pan-y",
     backgroundColor: transparentPageBackground ? "transparent" : pageColor,
@@ -514,11 +549,11 @@ return (
     minHeight: scaledPageHeight,
     margin: 0,
     padding: 0,
-    overflowX: "hidden",
-    overflowY: "hidden",
+    overflow: "hidden",
     WebkitOverflowScrolling: "touch",
     touchAction: "pan-x pan-y",
     backgroundColor: transparentPageBackground ? "transparent" : pageColor,
+    boxSizing: "border-box",
     ...(transparentPageBackground
       ? {}
       : getCanvasInnerBackgroundStyle(draft, designKey, metadata)),
@@ -539,29 +574,31 @@ return (
         }),
   }}
 >
-  <div
-    style={{
-      position: "relative",
-      width: scaledPageWidth,
-      minWidth: scaledPageWidth,
-      minHeight: scaledPageHeight,
-      margin: shouldCenterScaledPage ? "0 auto" : 0,
-      padding: 0,
-      overflow: "visible",
-    }}
-  >
-    <div
-      style={{
-        position: "relative",
-        width: logicalPageWidth,
-        minHeight: pageHeight,
-        margin: 0,
-        padding: 0,
-        overflow: "visible",
-        transform: `scale(${previewScale})`,
-        transformOrigin: "top left",
-      }}
-    >
+<div
+  style={{
+    position: "relative",
+    width: "100%",
+    minHeight: scaledPageHeight,
+    margin: 0,
+    padding: 0,
+    overflow: "hidden",
+  }}
+>
+<div
+  style={{
+    position: "absolute",
+    left: "50%",
+    top: 0,
+    width: logicalPageWidth,
+    minHeight: pageHeight,
+    margin: 0,
+    padding: 0,
+    overflow: "visible",
+    transform: `translateX(-50%) scale(${previewScale})`,
+    transformOrigin: "top center",
+    willChange: "transform",
+  }}
+>
         {showTitle ? (
           <div style={getItemStyle(titleGrid, logicalPageWidth, logicalRowHeight)}>
             <div
@@ -649,6 +686,7 @@ return (
   block={block}
   designKey={designKey}
   micrositeId={micrositeId}
+  micrositeSlug={micrositeSlug}
   serverNow={serverNow}
   cartItems={cartItems}
   cartSubtotal={cartSubtotal}

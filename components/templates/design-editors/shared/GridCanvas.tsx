@@ -17,13 +17,15 @@ import type {
 } from "@/lib/templates/builder";
 import type { EditorSelection } from "./EditorSelection";
 import { selectBlock } from "./EditorSelection";
+import { MICROSITE_PAGE_WIDTH } from "@/lib/constants/layout";
+
+const PAGE_WIDTH = MICROSITE_PAGE_WIDTH - 76;
 
 const GRID_COLUMNS = 12;
 const GRID_ROW_HEIGHT = 100;
 const GRID_GAP = 16;
 const GRID_STEP = 0.25;
 const WORKSPACE_WIDTH = 1926;
-const PAGE_WIDTH = 2200;
 const MIN_CANVAS_ROWS = 8;
 const BASE_CANVAS_HEIGHT = 1024;
 const CANVAS_PAGE_INCREMENT = 1024;
@@ -1131,7 +1133,7 @@ export default function GridCanvas({
   >
     Duplicate
   </button>
-) : null}
+) : null} 
 
 {onRemoveBlock ? (
   <button

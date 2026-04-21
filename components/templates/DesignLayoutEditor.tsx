@@ -106,6 +106,7 @@ import {
 
 import { getCanvasShellClass } from "@/components/builder/ui/editorPanelStyles";
 import ImageUploadDropzone from "@/components/builder/ImageUploadDropzone";
+import { deleteVideo, uploadVideo } from "@/lib/uploadVideo";
 
 type Props = {
   templateKey: string;
@@ -116,13 +117,25 @@ type Props = {
   publishHref?: string;
   publishLabel?: string;
   onPublishClick?: () => void;
+  onOpenAddPage?: () => void;
   saveState?: "idle" | "saving" | "saved" | "error" | "signin-required";
   saveMessage?: string;
   microsite?: {
-  is_published?: boolean;
-  is_active?: boolean;
-  slug?: string;
-};
+    is_published?: boolean;
+    is_active?: boolean;
+    slug?: string;
+  };
+onRemoveActivePage?: () => void;
+pages?: Array<{
+  id: string;
+  slug: string;
+  title: string | null;
+  display_order?: number | null;
+}>;
+activePageId?: string | null;
+activePageSlug?: string;
+micrositeSlug?: string;
+onSelectPage?: (pageId: string) => void;
 };
 
 type PageLengthOption =
@@ -950,6 +963,13 @@ export default function DesignLayoutEditor({
   publishHref,
   publishLabel = "Publish",
   onPublishClick,
+  onOpenAddPage,
+  onRemoveActivePage,
+  pages,
+  activePageId,
+  activePageSlug,
+  micrositeSlug,
+  onSelectPage,
   saveState,
   saveMessage,
   microsite,
@@ -990,12 +1010,21 @@ const [listingStyleTarget, setListingStyleTarget] = useState<
     {},
   );
 
+  const [copied, setCopied] = useState(false);
+
   const rsvpHeadingInputRef = useRef<HTMLInputElement | null>(null);
   const currentSiteName = draft.title?.trim() || "Untitled Site";
   const currentSiteSlug =
-    (draft as DraftWithPageExtras).slugSuggestion?.trim() || "";
+    micrositeSlug?.trim() ||
+    (draft as DraftWithPageExtras).slugSuggestion?.trim() ||
+    "";
+
+  const currentPageSlug = (activePageSlug || "home").trim().toLowerCase();
+  const [draftCopied, setDraftCopied] = useState(false);
   const currentSiteDisplay = currentSiteSlug
-    ? `${currentSiteSlug}.ko-host.com`
+    ? currentPageSlug && currentPageSlug !== "home"
+      ? `${currentSiteSlug}.ko-host.com/${currentPageSlug}`
+      : `${currentSiteSlug}.ko-host.com`
     : "[Unavailable]";
   const countdownHeadingInputRef = useRef<HTMLInputElement | null>(null);
   const countdownTargetInputRef = useRef<HTMLInputElement | null>(null);
@@ -1057,33 +1086,34 @@ const [richTextLinkValue, setRichTextLinkValue] = useState("https://");
       : null;
 
 const selectedStyle =
-selectedBlockFromDraft?.type === "listing"
-  ? listingStyleTarget === "description"
-    ? (selectedBlockFromDraft.data.descriptionStyle ?? {})
-    : listingStyleTarget === "metadata"
-      ? (selectedBlockFromDraft.data.metadataStyle ?? {})
-      : (selectedBlockFromDraft.data.titleStyle ?? {})
+  selectedBlockFromDraft?.type === "listing"
+    ? listingStyleTarget === "description"
+      ? (selectedBlockFromDraft.data.descriptionStyle ?? {})
+      : listingStyleTarget === "metadata"
+        ? (selectedBlockFromDraft.data.metadataStyle ?? {})
+        : (selectedBlockFromDraft.data.titleStyle ?? {})
     : selectedBlockFromDraft?.type === "cart" ||
-      selectedBlockFromDraft?.type === "checkout" ||
-      selectedBlockFromDraft?.type === "text_fx" ||
-      selectedBlockFromDraft?.type === "cta" ||
-      selectedBlockFromDraft?.type === "thread" ||
-      selectedBlockFromDraft?.type === "form_field" ||
-      selectedBlockFromDraft?.type === "image_carousel" ||
-      selectedBlockFromDraft?.type === "highlight" ||
-      selectedBlockFromDraft?.type === "progress_bar" ||
-      selectedBlockFromDraft?.type === "donation" ||
-      selectedBlockFromDraft?.type === "link_hub" ||
-      selectedBlockFromDraft?.type === "checklist" ||
-      selectedBlockFromDraft?.type === "schedule_agenda" ||
-      selectedBlockFromDraft?.type === "map_location" ||
-      selectedBlockFromDraft?.type === "file_share" ||
-      selectedBlockFromDraft?.type === "speed_dating" ||
-      selectedBlockFromDraft?.type === "video" ||
-      selectedBlockFromDraft?.type === "rich_text" ||
-      selectedBlockFromDraft?.type === "countdown"
-    ? (selectedBlockFromDraft.data.style ?? {})
-    : getSelectionTextStyle(draft, selection); 
+        selectedBlockFromDraft?.type === "checkout" ||
+        selectedBlockFromDraft?.type === "text_fx" ||
+        selectedBlockFromDraft?.type === "cta" ||
+        selectedBlockFromDraft?.type === "thread" ||
+        selectedBlockFromDraft?.type === "form_field" ||
+        selectedBlockFromDraft?.type === "image_carousel" ||
+        selectedBlockFromDraft?.type === "highlight" ||
+        selectedBlockFromDraft?.type === "progress_bar" ||
+        selectedBlockFromDraft?.type === "donation" ||
+        selectedBlockFromDraft?.type === "link_hub" ||
+        selectedBlockFromDraft?.type === "checklist" ||
+        selectedBlockFromDraft?.type === "schedule_agenda" ||
+        selectedBlockFromDraft?.type === "map_location" ||
+        selectedBlockFromDraft?.type === "file_share" ||
+        selectedBlockFromDraft?.type === "speed_dating" ||
+        selectedBlockFromDraft?.type === "video" ||
+        selectedBlockFromDraft?.type === "rich_text" ||
+        selectedBlockFromDraft?.type === "countdown" ||
+        selectedBlockFromDraft?.type === "links"
+      ? (selectedBlockFromDraft.data.style ?? {})
+      : getSelectionTextStyle(draft, selection);
   const selectedAppearance = getSelectionBlockAppearance(draft, selection);
   const resolvedPageColor =
     (draft as DraftWithPageExtras).pageColor ||
@@ -1133,7 +1163,8 @@ const showTextControls =
   selectedBlock?.type === "countdown" ||
   selectedBlock?.type === "cart" ||
   selectedBlock?.type === "checkout" ||
-  selectedBlock?.type === "listing";
+  selectedBlock?.type === "listing" ||
+  selectedBlock?.type === "links";
 
 const showAppearanceControls =
   selectedContext.kind === "label" ||
@@ -1142,6 +1173,8 @@ const showAppearanceControls =
   selectedContext.kind === "imageCarousel" ||
   selectedContext.kind === "shape" ||
   selectedBlock?.type === "thread" ||
+  selectedBlock?.type === "poll" ||
+  selectedBlock?.type === "highlight" ||
   selectedBlock?.type === "listing" ||
   selectedBlock?.type === "progress_bar" ||
   selectedBlock?.type === "donation" ||
@@ -1155,7 +1188,8 @@ const showAppearanceControls =
   selectedBlock?.type === "cart" ||
   selectedBlock?.type === "video" ||
   selectedBlock?.type === "rich_text" ||
-  selectedBlock?.type === "countdown";
+  selectedBlock?.type === "countdown" ||
+  selectedBlock?.type === "links";
 
 const showBorderWidthRadiusControls =
   selectedContext.kind === "label" ||
@@ -2149,84 +2183,84 @@ function applyStylePatch(patch: Partial<TextStyle>) {
     return;
   }
 
-if (selectedBlock?.type === "rich_text") {
-  setDraft((prev) => ({
-    ...prev,
-    blocks: prev.blocks.map((block) =>
-      block.id === selectedBlock.id && block.type === "rich_text"
-        ? {
-            ...block,
-            data: {
-              ...block.data,
-              style: {
-                ...(block.data.style ?? {}),
-                ...patch,
+  if (selectedBlock?.type === "rich_text") {
+    setDraft((prev) => ({
+      ...prev,
+      blocks: prev.blocks.map((block) =>
+        block.id === selectedBlock.id && block.type === "rich_text"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                style: {
+                  ...(block.data.style ?? {}),
+                  ...patch,
+                },
               },
-            },
-          }
-        : block,
-    ),
-  }));
-  return;
-}
+            }
+          : block,
+      ),
+    }));
+    return;
+  }
 
-if (selectedBlock?.type === "countdown") {
-  setDraft((prev) => ({
-    ...prev,
-    blocks: prev.blocks.map((block) =>
-      block.id === selectedBlock.id && block.type === "countdown"
-        ? {
-            ...block,
-            data: {
-              ...block.data,
-              style: {
-                ...(block.data.style ?? {}),
-                ...patch,
+  if (selectedBlock?.type === "countdown") {
+    setDraft((prev) => ({
+      ...prev,
+      blocks: prev.blocks.map((block) =>
+        block.id === selectedBlock.id && block.type === "countdown"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                style: {
+                  ...(block.data.style ?? {}),
+                  ...patch,
+                },
               },
-            },
-          }
-        : block,
-    ),
-  }));
-  return;
-}
+            }
+          : block,
+      ),
+    }));
+    return;
+  }
 
-if (selectedBlock?.type === "listing") {
-  setDraft((prev) => ({
-    ...prev,
-    blocks: prev.blocks.map((block) =>
-      block.id === selectedBlock.id && block.type === "listing"
-        ? {
-            ...block,
-            data: {
-              ...block.data,
-              ...(listingStyleTarget === "description"
-                ? {
-                    descriptionStyle: {
-                      ...(block.data.descriptionStyle ?? {}),
-                      ...patch,
-                    },
-                  }
-                : listingStyleTarget === "metadata"
+  if (selectedBlock?.type === "listing") {
+    setDraft((prev) => ({
+      ...prev,
+      blocks: prev.blocks.map((block) =>
+        block.id === selectedBlock.id && block.type === "listing"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                ...(listingStyleTarget === "description"
                   ? {
-                      metadataStyle: {
-                        ...(block.data.metadataStyle ?? {}),
+                      descriptionStyle: {
+                        ...(block.data.descriptionStyle ?? {}),
                         ...patch,
                       },
                     }
-                  : {
-                      titleStyle: {
-                        ...(block.data.titleStyle ?? {}),
-                        ...patch,
-                      },
-                    }),
-            },
-          }
-        : block,
-    ),
-  }));
-  return;
-}
+                  : listingStyleTarget === "metadata"
+                    ? {
+                        metadataStyle: {
+                          ...(block.data.metadataStyle ?? {}),
+                          ...patch,
+                        },
+                      }
+                    : {
+                        titleStyle: {
+                          ...(block.data.titleStyle ?? {}),
+                          ...patch,
+                        },
+                      }),
+              },
+            }
+          : block,
+      ),
+    }));
+    return;
+  }
 
   if (selectedBlock?.type === "cart") {
     setDraft((prev) => ({
@@ -2270,7 +2304,69 @@ if (selectedBlock?.type === "listing") {
     return;
   }
 
+  if (selectedBlock?.type === "links") {
+    setDraft((prev) => ({
+      ...prev,
+      blocks: prev.blocks.map((block) =>
+        block.id === selectedBlock.id && block.type === "links"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                style: {
+                  ...(block.data.style ?? {}),
+                  ...patch,
+                },
+              },
+            }
+          : block,
+      ),
+    }));
+    return;
+  }
+
   setDraft((prev) => applyStylePatchToSelection(prev, selection, patch));
+}
+
+function applyLinksBackgroundColor(value: string) {
+  if (selectedBlock?.type !== "links") return;
+
+  setDraft((prev) => ({
+    ...prev,
+    blocks: prev.blocks.map((block) =>
+      block.id === selectedBlock.id && block.type === "links"
+        ? {
+            ...block,
+            data: {
+              ...block.data,
+              backgroundColor: value,
+              transparentBackground: false,
+            },
+          }
+        : block,
+    ),
+  }));
+
+  pushRecentColor(value);
+}
+
+function clearLinksBackgroundColor() {
+  if (selectedBlock?.type !== "links") return;
+
+  setDraft((prev) => ({
+    ...prev,
+    blocks: prev.blocks.map((block) =>
+      block.id === selectedBlock.id && block.type === "links"
+        ? {
+            ...block,
+            data: {
+              ...block.data,
+              transparentBackground: true,
+            },
+          }
+        : block,
+    ),
+  }));
 }
 
   function applyAppearancePatch(patch: AppearancePatch) {
@@ -3315,6 +3411,45 @@ function cancelRemoveAllBlocks() {
     setSelection(nextSelection);
   }
 
+  async function handleCopyDraftJson() {
+  try {
+    await navigator.clipboard.writeText(JSON.stringify(draft, null, 2));
+    setDraftCopied(true);
+
+    window.setTimeout(() => {
+      setDraftCopied(false);
+    }, 1500);
+  } catch {
+    // ignore
+  }
+}
+
+async function handleCopyUrl() {
+  if (!currentSiteSlug) return;
+
+  const fullUrl =
+    currentPageSlug && currentPageSlug !== "home"
+      ? `https://${currentSiteSlug}.ko-host.com/${currentPageSlug}`
+      : `https://${currentSiteSlug}.ko-host.com`;
+
+  try {
+    await navigator.clipboard.writeText(fullUrl);
+    setCopied(true);
+
+    setTimeout(() => {
+      setCopied(false);
+    }, 1500);
+  } catch {
+    // ignore
+  }
+}
+
+  const canRemoveActivePage =
+    Array.isArray(pages) &&
+    pages.length > 1 &&
+    !!activePageId &&
+    pages.findIndex((page) => page.id === activePageId) > 0;
+
   async function handleAioClick() {
     if (!isTextSelection(selectedContext)) return;
 
@@ -3910,8 +4045,18 @@ if (block.type === "gallery") {
     }
 
     if (block.type === "links") {
+      const textStyle = getInlineTextStyle(block.data.style);
+      const textAlign = block.data.style?.align ?? "left";
+
       return (
-        <div className="h-full w-full overflow-auto rounded-xl p-2">
+        <div
+          className="h-full w-full overflow-auto rounded-xl p-2"
+          style={{
+            backgroundColor: block.data.transparentBackground
+              ? "transparent"
+              : (block.data.backgroundColor ?? "#ffffff"),
+          }}
+        >
           {block.data.heading ? (
             <button
               type="button"
@@ -3922,7 +4067,11 @@ if (block.type === "gallery") {
                   blockId: block.id,
                 });
               }}
-              className="mb-2 block w-full text-left text-sm font-medium text-neutral-900"
+              className="mb-2 block w-full"
+              style={{
+                ...textStyle,
+                textAlign,
+              }}
             >
               {block.data.heading}
             </button>
@@ -3944,7 +4093,11 @@ if (block.type === "gallery") {
                       itemId: linkItem.id,
                     });
                   }}
-                  className="block w-full text-left text-sm font-medium text-neutral-900"
+                  className="block w-full"
+                  style={{
+                    ...textStyle,
+                    textAlign,
+                  }}
                 >
                   {linkItem.label || "Link"}
                 </button>
@@ -3959,7 +4112,18 @@ if (block.type === "gallery") {
                       itemId: linkItem.id,
                     });
                   }}
-                  className="mt-1 block w-full text-left text-xs text-neutral-600"
+                  className="mt-1 block w-full"
+                  style={{
+                    color: block.data.style?.color ?? "#525252",
+                    textAlign,
+                    fontSize: textStyle.fontSize
+                      ? `calc(${textStyle.fontSize} * 0.85)`
+                      : undefined,
+                    fontFamily: textStyle.fontFamily,
+                    fontWeight: textStyle.fontWeight,
+                    fontStyle: textStyle.fontStyle,
+                    textDecoration: textStyle.textDecoration,
+                  }}
                 >
                   {linkItem.url || "#"}
                 </button>
@@ -4570,18 +4734,85 @@ if (block.type === "video") {
           ) : null}
 
           {block.data.videoUrl ? (
-            <iframe
-              src={`${block.data.videoUrl}${
-                block.data.videoUrl.includes("?") ? "&" : "?"
-              }autoplay=${block.data.autoplay ? 1 : 0}&mute=${
-                block.data.muted ? 1 : 0
-              }&loop=${block.data.loop ? 1 : 0}&controls=${
-                block.data.showControls ? 1 : 0
-              }`}
-              className="h-full w-full"
-              allow="autoplay; encrypted-media"
-              allowFullScreen
-            />
+            (() => {
+              const rawUrl = (block.data.videoUrl ?? "").trim();
+
+              const buildEmbedUrl = (url: string) => {
+                if (!url) return "";
+
+                if (url.startsWith("data:video/")) return url;
+                if (/\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(url)) return url;
+
+                try {
+                  const parsed = new URL(url);
+
+                  if (
+                    parsed.hostname.includes("youtube.com") &&
+                    parsed.pathname === "/watch"
+                  ) {
+                    const videoId = parsed.searchParams.get("v");
+                    if (videoId) {
+                      return `https://www.youtube.com/embed/${videoId}`;
+                    }
+                  }
+
+                  if (parsed.hostname.includes("youtu.be")) {
+                    const videoId = parsed.pathname.replace(/^\/+/, "");
+                    if (videoId) {
+                      return `https://www.youtube.com/embed/${videoId}`;
+                    }
+                  }
+
+                  if (
+                    parsed.hostname.includes("youtube.com") &&
+                    parsed.pathname.startsWith("/embed/")
+                  ) {
+                    return url;
+                  }
+
+                  if (parsed.hostname.includes("vimeo.com")) {
+                    const videoId = parsed.pathname.replace(/^\/+/, "");
+                    if (videoId) {
+                      return `https://player.vimeo.com/video/${videoId}`;
+                    }
+                  }
+
+                  return url;
+                } catch {
+                  return url;
+                }
+              };
+
+              const resolvedUrl = buildEmbedUrl(rawUrl);
+              const isDirectVideo =
+                resolvedUrl.startsWith("data:video/") ||
+                /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(resolvedUrl);
+
+              return isDirectVideo ? (
+                <video
+                  src={resolvedUrl}
+                  className="h-full w-full"
+                  autoPlay={Boolean(block.data.autoplay)}
+                  muted={Boolean(block.data.muted)}
+                  loop={Boolean(block.data.loop)}
+                  controls={Boolean(block.data.showControls)}
+                  playsInline
+                />
+              ) : (
+                <iframe
+                  src={`${resolvedUrl}${
+                    resolvedUrl.includes("?") ? "&" : "?"
+                  }autoplay=${block.data.autoplay ? 1 : 0}&mute=${
+                    block.data.muted ? 1 : 0
+                  }&loop=${block.data.loop ? 1 : 0}&controls=${
+                    block.data.showControls ? 1 : 0
+                  }`}
+                  className="h-full w-full"
+                  allow="autoplay; encrypted-media"
+                  allowFullScreen
+                />
+              );
+            })()
           ) : (
             <div className="flex h-full w-full items-center justify-center text-sm text-neutral-400">
               Add video URL
@@ -4766,32 +4997,82 @@ return (
       <div className="mt-1 text-2xl font-semibold text-neutral-900">
         {currentSiteName}
       </div>
-      <div className="mt-1 text-sm text-neutral-500">
-        {currentSiteDisplay}
+      <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-neutral-500">
+        <span>{currentSiteDisplay}</span>
+
+        <button
+          type="button"
+          onClick={handleCopyUrl}
+          className="rounded-xl border border-neutral-300 bg-white px-3 py-1 text-xs font-medium text-neutral-700 hover:bg-neutral-50"
+        > 
+          {copied ? "Copied!" : "Copy URL"}
+        </button>
+
+        <button
+          type="button"
+          onClick={handleCopyDraftJson}
+          className="rounded-xl border border-neutral-300 bg-white px-3 py-1 text-xs font-medium text-neutral-700 hover:bg-neutral-50"
+        >
+          {draftCopied ? "Draft Copied!" : "Copy Design Specs"}
+        </button>
       </div>
 
       <div className="mt-4 rounded-2xl border border-neutral-200 bg-white px-3 py-2 shadow-sm">
         <div className="flex items-center gap-2">
           <div className="flex-1 overflow-x-auto">
             <div className="flex min-w-max items-center gap-2 pr-2">
-              <button
-                type="button"
-                className="shrink-0 rounded-xl bg-black px-3 py-1.5 text-xs font-medium whitespace-nowrap text-white"
-              >
-                <span className="rounded-full bg-white/20 px-1.5 py-0.5 text-[10px] font-semibold text-white">
-                  HOME
-                </span>
-              </button>
+              {(pages ?? []).map((page, index) => {
+                const isHomePage = index === 0;
+                const isActive = activePageId === page.id;
+
+                return (
+                  <button
+                    key={page.id}
+                    type="button"
+                    onClick={() => onSelectPage?.(page.id)}
+                    className={`shrink-0 rounded-xl px-3 py-1.5 text-xs font-medium whitespace-nowrap ${
+                      isActive
+                        ? "bg-black text-white"
+                        : "bg-neutral-100 text-neutral-800 hover:bg-neutral-200"
+                    }`}
+                  >
+                    {isHomePage ? (
+                      <span
+                        className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${
+                          isActive
+                            ? "bg-white/20 text-white"
+                            : "bg-blue-100 text-blue-700"
+                        }`}
+                      >
+                        HOME
+                      </span>
+                    ) : (
+                      <span>{page.slug}</span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          <div className="shrink-0">
+          <div className="flex shrink-0 items-center gap-2">
             <button
               type="button"
+              onClick={onOpenAddPage}
               className="rounded-xl bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
             >
               + Add Page
             </button>
+
+            {canRemoveActivePage ? (
+              <button
+                type="button"
+                onClick={onRemoveActivePage}
+                className="rounded-xl bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-700"
+              >
+                Remove Page
+              </button>
+            ) : null}
           </div>
         </div>
       </div>
@@ -5423,6 +5704,116 @@ return (
               className="pointer-events-none object-contain"
             />
           </button>
+
+          {selectedBlock?.type === "links" ? (
+            <>
+              <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
+
+              <input
+                type="color"
+                value={
+                  selectedBlock.data.transparentBackground
+                    ? "#ffffff"
+                    : (selectedBlock.data.backgroundColor ?? "#ffffff")
+                }
+                onChange={(e) => applyLinksBackgroundColor(e.target.value)}
+                className={topBarColorClass(false)}
+                title="Link block background color"
+              />
+
+              <button
+                type="button"
+                className={eyedropperButtonClass()}
+                onClick={() =>
+                  void pickColorWithEyeDropper((color) => {
+                    applyLinksBackgroundColor(color);
+                  })
+                }
+                title="Pick link block background color from screen"
+              >
+                <Image
+                  src="/icons/pick_color_icon.png"
+                  alt="Pick Color"
+                  width={20}
+                  height={20}
+                  className="pointer-events-none object-contain"
+                />
+              </button>
+
+              <button
+                type="button"
+                className={topBarButtonClass(
+                  Boolean(selectedBlock.data.transparentBackground),
+                )}
+                onClick={clearLinksBackgroundColor}
+                title="Transparent link block background"
+              >
+                ☐
+              </button>
+            </>
+          ) : null}
+
+          {selectedBlock?.type === "poll" || selectedBlock?.type === "highlight" ? (
+            <>
+              <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
+
+              <input
+                type="color"
+                value={
+                  selectedAppearance.backgroundColor === "transparent"
+                    ? "#ffffff"
+                    : (selectedAppearance.backgroundColor ?? "#ffffff")
+                }
+                onChange={(e) => applyFillColor(e.target.value)}
+                className={topBarColorClass(false)}
+                title={
+                  selectedBlock.type === "poll"
+                    ? "Poll background color"
+                    : "Highlight background color"
+                }
+              />
+
+              <button
+                type="button"
+                className={eyedropperButtonClass()}
+                onClick={() =>
+                  void pickColorWithEyeDropper((color) => {
+                    applyFillColor(color);
+                  })
+                }
+                title={
+                  selectedBlock.type === "poll"
+                    ? "Pick poll background color from screen"
+                    : "Pick highlight background color from screen"
+                }
+              >
+                <Image
+                  src="/icons/pick_color_icon.png"
+                  alt="Pick Color"
+                  width={20}
+                  height={20}
+                  className="pointer-events-none object-contain"
+                />
+              </button>
+
+              <button
+                type="button"
+                className={topBarButtonClass(
+                  selectedAppearance.backgroundColor === "transparent",
+                )}
+                onClick={() =>
+                  applyAppearancePatch({ backgroundColor: "transparent" })
+                }
+                title={
+                  selectedBlock.type === "poll"
+                    ? "Transparent poll background"
+                    : "Transparent highlight background"
+                }
+              >
+                ☐
+              </button>
+            </>
+          ) : null}
 
           {selectedContext.kind === "pageText" ? (
             <>
@@ -6269,6 +6660,37 @@ return (
                         }
                         className={inspectorTextareaClass()}
                       />
+                    </div>
+
+                    <div className="mt-4">
+                      <div className={inspectorLabelClass()}>Linked Highlight</div>
+                      <select
+                        value={selectedBlock.data.sourceBlockId ?? ""}
+                        onChange={(e) =>
+                          updateSelectedBlock((block) =>
+                            block.type !== "poll"
+                              ? block
+                              : {
+                                  ...block,
+                                  data: {
+                                    ...block.data,
+                                    sourceBlockId: e.target.value,
+                                    sourceType: e.target.value ? "highlight" : undefined,
+                                  },
+                                },
+                          )
+                        }
+                        className={inspectorInputClass()}
+                      >
+                        <option value="">Select highlight block</option>
+                        {draft.blocks
+                          .filter((block) => block.type === "highlight")
+                          .map((highlightBlock) => (
+                            <option key={highlightBlock.id} value={highlightBlock.id}>
+                              {highlightBlock.label || highlightBlock.data.heading || "Highlight"}
+                            </option>
+                          ))}
+                      </select>
                     </div>
 
                     <div className="mt-4 space-y-3">
@@ -7596,31 +8018,38 @@ return (
               ? block
               : {
                   ...block,
-data: {
-  ...block.data,
-  mode: e.target.value as
-    | "top_messages"
-    | "rsvp_count"
-    | "total_funds",
-  heading:
-    e.target.value === "top_messages"
-      ? "Top Messages"
-      : e.target.value === "rsvp_count"
-        ? "RSVP Count"
-        : "Total Funds",
-  sourceBlockId:
-    e.target.value === "top_messages"
-      ? block.data.sourceBlockId ||
-        draft.blocks.find((b) => b.type === "thread")?.id ||
-        ""
-      : "",
-  sourceFormBlockId:
-    e.target.value === "rsvp_count" || e.target.value === "total_funds"
-      ? block.data.sourceFormBlockId ||
-        draft.blocks.find((b) => b.type === "form_field")?.id ||
-        ""
-      : "",
-},
+                  data: {
+                    ...block.data,
+                    mode: e.target.value as
+                      | "top_messages"
+                      | "rsvp_count"
+                      | "total_funds"
+                      | "poll_results",
+                    heading:
+                      e.target.value === "top_messages"
+                        ? "Top Messages"
+                        : e.target.value === "rsvp_count"
+                          ? "RSVP Count"
+                          : e.target.value === "total_funds"
+                            ? "Total Funds"
+                            : "Poll Results",
+                    sourceBlockId:
+                      e.target.value === "top_messages"
+                        ? block.data.sourceBlockId ||
+                          draft.blocks.find((b) => b.type === "thread")?.id ||
+                          ""
+                        : e.target.value === "poll_results"
+                          ? block.data.sourceBlockId ||
+                            draft.blocks.find((b) => b.type === "poll")?.id ||
+                            ""
+                          : "",
+                    sourceFormBlockId:
+                      e.target.value === "rsvp_count" || e.target.value === "total_funds"
+                        ? block.data.sourceFormBlockId ||
+                          draft.blocks.find((b) => b.type === "form_field")?.id ||
+                          ""
+                        : "",
+                  },
                 },
           )
         }
@@ -7629,11 +8058,16 @@ data: {
         <option value="top_messages">Top Messages</option>
         <option value="rsvp_count">RSVP Count</option>
         <option value="total_funds">Total Funds</option>
+        <option value="poll_results">Poll Results</option>
       </select>
     </div>
 
     <div className="mt-4">
-      <div className={inspectorLabelClass()}>Source Thread</div>
+      <div className={inspectorLabelClass()}>
+        {selectedBlock.data.mode === "poll_results"
+          ? "Source Poll"
+          : "Source Thread"}
+      </div>
       <select
         value={selectedBlock.data.sourceBlockId ?? ""}
         onChange={(e) =>
@@ -7650,14 +8084,29 @@ data: {
           )
         }
         className={inspectorInputClass()}
-        disabled={selectedBlock.data.mode !== "top_messages"}
+        disabled={
+          selectedBlock.data.mode !== "top_messages" &&
+          selectedBlock.data.mode !== "poll_results"
+        }
       >
-        <option value="">Select thread block</option>
+        <option value="">
+          {selectedBlock.data.mode === "poll_results"
+            ? "Select poll block"
+            : "Select thread block"}
+        </option>
         {draft.blocks
-          .filter((block) => block.type === "thread")
-          .map((threadBlock) => (
-            <option key={threadBlock.id} value={threadBlock.id}>
-              {threadBlock.label || threadBlock.data.subject || "Message Thread"}
+          .filter((block) =>
+            selectedBlock.data.mode === "poll_results"
+              ? block.type === "poll"
+              : block.type === "thread",
+          )
+          .map((sourceBlock) => (
+            <option key={sourceBlock.id} value={sourceBlock.id}>
+              {sourceBlock.type === "poll"
+                ? sourceBlock.data.question || sourceBlock.label || "Poll"
+                : sourceBlock.type === "thread"
+                  ? sourceBlock.data.subject || sourceBlock.label || "Message Thread"
+                  : sourceBlock.label || "Source Block"}
             </option>
           ))}
       </select>
@@ -9384,8 +9833,61 @@ data: {
     </div>
 
     <div className="mt-4">
+      <div className={inspectorLabelClass()}>Upload Video</div>
+      <input
+        type="file"
+        accept="video/mp4,video/webm,video/ogg,video/quicktime,video/*"
+        className={inspectorInputClass()}
+        onChange={async (e) => {
+          const file = e.target.files?.[0];
+          if (!file) return;
+
+          try {
+            const currentVideoPath =
+              selectedBlock.type === "video"
+                ? selectedBlock.data.videoPath
+                : undefined;
+
+            const uploaded = await uploadVideo(file);
+
+            if (currentVideoPath) {
+              try {
+                await deleteVideo(currentVideoPath);
+              } catch {
+                // keep new upload even if old delete fails
+              }
+            }
+
+            updateSelectedBlock((block) =>
+              block.type !== "video"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      videoUrl: uploaded.url,
+                      videoPath: uploaded.path,
+                    },
+                  },
+            );
+          } catch (error) {
+            alert(
+              error instanceof Error
+                ? error.message
+                : "Video upload failed",
+            );
+          }
+
+          if (e.target) {
+            (e.target as HTMLInputElement).value = "";
+          }
+        }}
+      />
+    </div>
+
+    <div className="mt-4">
       <div className={inspectorLabelClass()}>
-        Video URL (YouTube, Vimeo, etc.)
+        Video URL (YouTube, Vimeo, direct file, etc.)
       </div>
       <input
         type="text"

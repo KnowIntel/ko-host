@@ -262,6 +262,19 @@ export default function DashboardMicrositeBuilderPage() {
     };
   }, [contextMenu]);
 
+  function openDeleteActivePage() {
+  if (!activePageId) return;
+
+  const activePage = orderedPages.find((page) => page.id === activePageId);
+  const homePage = orderedPages[0];
+
+  if (!activePage || activePage.id === homePage?.id) return;
+
+  setDeletePageId(activePage.id);
+  setDeletePageError("");
+  setDeleteModalOpen(true);
+}
+
   async function saveBuilderDraft(draft: BuilderDraft) {
     try {
       setSaving(true);
@@ -587,15 +600,22 @@ return (
               ? "Reordering pages..."
               : saveMessage}
       </div>
-      
-      <TemplateDraftEditor
-        key={`${site.id}::${activePageId || "root"}::${site.selected_design_key || "blank"}::${editorDraft.title || ""}::${editorDraft.blocks.length}`}
-        templateKey={site.template_key}
-        designLayout={site.selected_design_key || "blank"}
-        initialDraft={editorDraft}
-        onSave={saveBuilderDraft}
-        microsite={site}
-      />
+
+<TemplateDraftEditor
+  key={`${site.id}::${activePageId || "root"}::${site.selected_design_key || "blank"}::${editorDraft.title || ""}::${editorDraft.blocks.length}`}
+  templateKey={site.template_key}
+  designLayout={site.selected_design_key || "blank"}
+  initialDraft={editorDraft}
+  onSave={saveBuilderDraft}
+  microsite={site}
+  onOpenAddPage={openAddPageModal}
+  onRemoveActivePage={openDeleteActivePage}
+  pages={orderedPages}
+  activePageId={activePageId}
+  activePageSlug={orderedPages.find((page) => page.id === activePageId)?.slug || "home"}
+  micrositeSlug={site.slug}
+  onSelectPage={setActivePageId}
+/>
 
       {contextMenu ? (
         <div

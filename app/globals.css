@@ -41,9 +41,14 @@ body {
   scrollbar-width: none;
 }
 /* Prevent horizontal overflow everywhere */
-html, body {
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
   max-width: 100%;
   overflow-x: hidden;
+  background: #fcfbf8;
 }
 
 /* Prevent rogue elements from breaking layout */

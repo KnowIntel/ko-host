@@ -17,14 +17,26 @@ type Props = {
   publishHref?: string;
   publishLabel?: string;
   onPublishClick?: () => void;
+  onOpenAddPage?: () => void;
   onDraftChange?: (draft: BuilderDraft) => void;
   saveState?: "idle" | "saving" | "saved" | "error" | "signin-required";
   saveMessage?: string;
   microsite?: {
-  is_published?: boolean;
-  is_active?: boolean;
-  slug?: string;
-};
+    is_published?: boolean;
+    is_active?: boolean;
+    slug?: string;
+  };
+onRemoveActivePage?: () => void;
+pages?: Array<{
+  id: string;
+  slug: string;
+  title: string | null;
+  display_order?: number | null;
+}>;
+activePageId?: string | null;
+activePageSlug?: string;
+micrositeSlug?: string;
+onSelectPage?: (pageId: string) => void;
 };
 
 const AUTOSAVE_DELAY_MS = 10 * 60 * 1000;
@@ -53,10 +65,17 @@ export default function TemplateDraftEditor({
   publishHref,
   publishLabel,
   onPublishClick,
+  onOpenAddPage,
+  onRemoveActivePage,
   onDraftChange,
   saveState,
   saveMessage,
   microsite,
+  pages,
+  activePageId,
+  activePageSlug,
+  micrositeSlug,
+  onSelectPage,
 }: Props) {
   const resolvedTemplateName = templateName ?? templateKey ?? "";
   const resolvedDesignLayout = designLayout ?? "blank";
@@ -208,21 +227,28 @@ export default function TemplateDraftEditor({
 
   return (
     <div className="relative">
-      <DesignLayoutEditor
-        templateKey={resolvedTemplateName}
-        designKey={resolvedDesignLayout}
-        draft={draft}
-        setDraft={setDraft}
-        onSaveDraft={handleSaveDraft}
-        publishHref={publishHref}
-        publishLabel={publishLabel}
-        microsite={microsite}
-        onPublishClick={() => {
-          onPublishClick?.();
-        }}
-        saveState={effectiveSaveState}
-        saveMessage={effectiveSaveMessage}
-      />
+<DesignLayoutEditor
+  templateKey={resolvedTemplateName}
+  designKey={resolvedDesignLayout}
+  draft={draft}
+  setDraft={setDraft}
+  onSaveDraft={handleSaveDraft}
+  publishHref={publishHref}
+  publishLabel={publishLabel}
+  microsite={microsite}
+  onPublishClick={() => {
+    onPublishClick?.();
+  }}
+  onOpenAddPage={onOpenAddPage}
+  onRemoveActivePage={onRemoveActivePage}
+  pages={pages}
+  activePageId={activePageId}
+  activePageSlug={activePageSlug}
+  micrositeSlug={micrositeSlug}
+  onSelectPage={onSelectPage}
+  saveState={effectiveSaveState}
+  saveMessage={effectiveSaveMessage}
+/>
     </div>
   );
 }

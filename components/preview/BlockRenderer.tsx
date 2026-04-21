@@ -4,6 +4,7 @@
 import { useEffect, useMemo, useState } from "react";
 import SpeedDatingLive from "@/components/blocks/SpeedDatingLive";
 
+
 type SpeedDatingParticipant = {
   id: string;
   name: string;
@@ -86,6 +87,7 @@ type Props = {
   block: MicrositeBlock;
   designKey?: string;
   micrositeId?: string | null;
+  micrositeSlug?: string | null;
   serverNow?: number;
   cartItems?: CartItem[];
   cartSubtotal?: number;
@@ -649,6 +651,58 @@ function renderLabel(
     <div className="h-full w-full p-2" style={getAppearanceStyle(block)}>
       <div style={getContainerTextStyle(block.data.style, designKey)}>
         {getLabelText(block)}
+      </div>
+    </div>
+  );
+}
+
+function renderVideo(
+  block: Extract<MicrositeBlock, { type: "video" }>,
+  designKey?: string,
+) {
+  const titleStyle = getContainerTextStyle(block.data.style, designKey);
+  const videoUrl = (block.data.videoUrl ?? "").trim();
+
+  if (!videoUrl) {
+    return (
+      <Placeholder
+        block={block}
+        designKey={designKey}
+        label="Add video URL or upload a video"
+      />
+    );
+  }
+
+    const isDirectVideoFile =
+    videoUrl.startsWith("data:video/") ||
+    /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(videoUrl);
+
+  return (
+    <div className="flex h-full w-full flex-col gap-2 overflow-hidden p-2">
+      {block.data.title ? (
+        <div style={titleStyle}>{block.data.title}</div>
+      ) : null}
+
+      <div className="min-h-0 flex-1 overflow-hidden rounded-xl border border-neutral-200 bg-black/5">
+        {isDirectVideoFile ? (
+          <video
+            src={videoUrl}
+            className="h-full w-full"
+            autoPlay={Boolean(block.data.autoplay)}
+            muted={Boolean(block.data.muted)}
+            loop={Boolean(block.data.loop)}
+            controls={Boolean(block.data.showControls)}
+            playsInline
+          />
+        ) : (
+          <iframe
+            src={videoUrl}
+            className="h-full w-full"
+            allow="autoplay; encrypted-media; picture-in-picture"
+            allowFullScreen
+            title={block.data.title || "Video"}
+          />
+        )}
       </div>
     </div>
   );
@@ -1481,6 +1535,8 @@ function renderLinks(
   const typedBlock = block as typeof block & {
     data: typeof block.data & {
       layout?: "vertical" | "horizontal" | "grid";
+      backgroundColor?: string;
+      transparentBackground?: boolean;
     };
   };
 
@@ -1499,7 +1555,15 @@ function renderLinks(
             : "grid gap-2";
 
   return (
-    <div className="h-full w-full space-y-3 p-2" style={containerAppearance}>
+    <div
+      className="h-full w-full space-y-3 p-2"
+      style={{
+        ...containerAppearance,
+        backgroundColor: typedBlock.data.transparentBackground
+          ? "transparent"
+          : (typedBlock.data.backgroundColor ?? containerAppearance.backgroundColor),
+      }}
+    >
       {block.data.heading ? (
         <div style={getContainerTextStyle(block.data.style, designKey)}>
           {block.data.heading}
@@ -1616,35 +1680,105 @@ function renderGallery(
 function renderPoll(
   block: Extract<MicrositeBlock, { type: "poll" }>,
   designKey?: string,
+  micrositeSlug?: string | null,
 ) {
-  return (
-    <Surface
-      block={block}
-      designKey={designKey}
-      className={getSoftSurfaceClass(designKey)}
-    >
-      <div style={getContainerTextStyle(block.data.style, designKey)}>
-        {block.data.question || "Poll"}
-      </div>
+  function PollPreview() {
+    const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitError, setSubmitError] = useState<string>("");
 
-      <div className="mt-3 space-y-2">
-        {block.data.options.map((option: PollOption) => (
-          <div
-            key={option.id}
-            className={[
-              "rounded-lg border px-3 py-2",
-              isLightDesign(designKey)
-                ? "border-neutral-200"
-                : "border-white/10",
-            ].join(" ")}
-            style={getContainerTextStyle(block.data.style, designKey)}
-          >
-            {option.text || "Option"}
-          </div>
-        ))}
-      </div>
-    </Surface>
-  );
+    async function handleVote(optionId: string) {
+      if (selectedOptionId || isSubmitting || !micrositeSlug) return;
+
+      try {
+        setIsSubmitting(true);
+        setSubmitError("");
+
+        const res = await fetch("/api/public/poll/vote", {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+          },
+          body: JSON.stringify({
+            micrositeSlug,
+            pollId: block.id,
+            optionIds: [optionId],
+            company: "",
+          }),
+        });
+
+        const data = await res.json().catch(() => null);
+
+        if (!res.ok) {
+          throw new Error(data?.error || "Vote failed");
+        }
+
+        setSelectedOptionId(optionId);
+
+        window.dispatchEvent(
+          new CustomEvent("ko-host-poll-vote", {
+            detail: {
+              pollBlockId: block.id,
+              optionId,
+            },
+          }),
+        );
+      } catch (error) {
+        setSubmitError(
+          error instanceof Error ? error.message : "Vote failed",
+        );
+      } finally {
+        setIsSubmitting(false);
+      }
+    }
+
+    return (
+      <Surface
+        block={block}
+        designKey={designKey}
+        className={getSoftSurfaceClass(designKey)}
+      >
+        <div style={getContainerTextStyle(block.data.style, designKey)}>
+          {block.data.question || "Poll"}
+        </div>
+
+        <div className="mt-3 space-y-2">
+          {block.data.options.map((option: PollOption) => {
+            const isSelected = selectedOptionId === option.id;
+
+            return (
+              <button
+                key={option.id}
+                type="button"
+                onClick={() => void handleVote(option.id)}
+                disabled={Boolean(selectedOptionId) || isSubmitting || !micrositeSlug}
+                className={[
+                  "w-full rounded-lg border px-3 py-2 text-left transition",
+                  isLightDesign(designKey)
+                    ? "border-neutral-200"
+                    : "border-white/10",
+                  selectedOptionId
+                    ? isSelected
+                      ? "bg-blue-500/10"
+                      : "opacity-70"
+                    : "hover:bg-black/5",
+                ].join(" ")}
+                style={getContainerTextStyle(block.data.style, designKey)}
+              >
+                {option.text || "Option"}
+              </button>
+            );
+          })}
+        </div>
+
+        {submitError ? (
+          <div className="mt-2 text-xs text-red-500">{submitError}</div>
+        ) : null}
+      </Surface>
+    );
+  }
+
+  return <PollPreview />;
 }
 
 function renderRsvp(
@@ -3230,12 +3364,15 @@ function renderHighlight(
   block: Extract<MicrositeBlock, { type: "highlight" }>,
   designKey?: string,
   micrositeId?: string | null,
+  micrositeSlug?: string | null,
 ) {
   function HighlightPreview() {
     const [items, setItems] = useState<any[]>([]);
     const [countValue, setCountValue] = useState<number>(0);
     const [totalValue, setTotalValue] = useState<number>(0);
-    const [isLoading, setIsLoading] = useState(Boolean(micrositeId));
+    const [isLoading, setIsLoading] = useState(
+      Boolean(micrositeId || micrositeSlug),
+    );
     const [refreshKey, setRefreshKey] = useState(0);
 
     const mode = block.data?.mode || "top_messages";
@@ -3250,19 +3387,22 @@ function renderHighlight(
     } else if (widthUnits >= 8.25) {
       highlightColumns = 2;
     }
+
     const heading =
       block.data?.heading?.trim() ||
       (mode === "top_messages"
         ? "Top Messages"
         : mode === "rsvp_count"
           ? "RSVP Count"
-          : "Total Funds");
+          : mode === "total_funds"
+            ? "Total Funds"
+            : "Poll Results");
 
     useEffect(() => {
       let cancelled = false;
 
       async function load() {
-        if (!micrositeId) {
+        if (!micrositeId && !micrositeSlug) {
           setItems([]);
           setCountValue(0);
           setTotalValue(0);
@@ -3273,8 +3413,8 @@ function renderHighlight(
         try {
           setIsLoading(true);
 
-          if (mode === "top_messages") {
-            if (!sourceBlockId) {
+          if (mode === "poll_results") {
+            if (!sourceBlockId || !micrositeSlug) {
               if (!cancelled) {
                 setItems([]);
                 setCountValue(0);
@@ -3284,7 +3424,40 @@ function renderHighlight(
             }
 
             const params = new URLSearchParams({
-              micrositeId,
+              micrositeSlug,
+              pollId: sourceBlockId,
+            });
+
+            const res = await fetch(
+              `/api/public/poll/results?${params.toString()}`,
+              { cache: "no-store" },
+            );
+
+            const data = await res.json();
+
+            if (!res.ok) throw new Error(data?.error || "Failed to load poll results");
+
+            if (!cancelled) {
+              setItems(data?.results || []);
+              setCountValue(typeof data?.total === "number" ? data.total : 0);
+              setTotalValue(0);
+            }
+
+            return;
+          }
+
+          if (mode === "top_messages") {
+            if (!sourceBlockId || !micrositeId) {
+              if (!cancelled) {
+                setItems([]);
+                setCountValue(0);
+                setTotalValue(0);
+              }
+              return;
+            }
+
+            const params = new URLSearchParams({
+              micrositeId: micrositeId ?? "",
               threadBlockId: sourceBlockId,
               limit: "100",
               sort: "votes_desc",
@@ -3292,9 +3465,7 @@ function renderHighlight(
 
             const res = await fetch(
               `/api/thread/messages?${params.toString()}`,
-              {
-                cache: "no-store",
-              },
+              { cache: "no-store" },
             );
 
             const data = await res.json();
@@ -3394,9 +3565,26 @@ function renderHighlight(
         setRefreshKey((prev) => prev + 1);
       }
 
+      function handlePollVote(event: Event) {
+        const customEvent = event as CustomEvent<{
+          pollBlockId?: string;
+          optionId?: string;
+        }>;
+
+        if (mode !== "poll_results") return;
+        if (!sourceBlockId) return;
+        if (customEvent.detail?.pollBlockId !== sourceBlockId) return;
+
+        setRefreshKey((prev) => prev + 1);
+      }
+
       window.addEventListener(
         THREAD_ACTIVITY_EVENT,
         handleThreadUpdated as EventListener,
+      );
+      window.addEventListener(
+        "ko-host-poll-vote",
+        handlePollVote as EventListener,
       );
 
       void load();
@@ -3407,9 +3595,14 @@ function renderHighlight(
           THREAD_ACTIVITY_EVENT,
           handleThreadUpdated as EventListener,
         );
+        window.removeEventListener(
+          "ko-host-poll-vote",
+          handlePollVote as EventListener,
+        );
       };
     }, [
       micrositeId,
+      micrositeSlug,
       mode,
       block.id,
       sourceBlockId,
@@ -3445,6 +3638,15 @@ function renderHighlight(
             </div>
           ) : null}
 
+          {!isLoading && mode === "poll_results" && !sourceBlockId ? (
+            <div
+              className="rounded-xl border border-dashed px-3 py-4 text-sm opacity-60"
+              style={getContainerTextStyle(block.data.style, designKey)}
+            >
+              Select a source poll block.
+            </div>
+          ) : null}
+
           {!isLoading && mode === "rsvp_count" && !sourceFormBlockId ? (
             <div
               className="rounded-xl border border-dashed px-3 py-4 text-sm opacity-60"
@@ -3469,6 +3671,15 @@ function renderHighlight(
               style={getContainerTextStyle(block.data.style, designKey)}
             >
               No data yet.
+            </div>
+          ) : null}
+
+          {!isLoading && mode === "poll_results" && sourceBlockId && !items.length ? (
+            <div
+              className="rounded-xl border border-dashed px-3 py-4 text-sm opacity-60"
+              style={getContainerTextStyle(block.data.style, designKey)}
+            >
+              No votes yet.
             </div>
           ) : null}
 
@@ -3593,6 +3804,66 @@ function renderHighlight(
                   </div>
                 </div>
               ))}
+            </div>
+          ) : null}
+
+          {mode === "poll_results" ? (
+            <div
+              className="grid gap-3"
+              style={{
+                gridTemplateColumns: `repeat(${highlightColumns}, minmax(0, 1fr))`,
+              }}
+            >
+              {items.slice(0, limit).map((item: any) => {
+                const percent =
+                  countValue > 0 ? Math.round((item.count / countValue) * 100) : 0;
+
+                return (
+                  <div key={item.optionId} className={getHighlightCardClass(designKey)}>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <div
+                          className="truncate text-sm font-semibold"
+                          style={getContainerTextStyle(block.data.style, designKey)}
+                        >
+                          {item.label || "Option"}
+                        </div>
+
+                        <div className="mt-3 h-2 overflow-hidden rounded-full bg-black/10">
+                          <div
+                            className="h-full rounded-full"
+                            style={{
+                              width: `${percent}%`,
+                              background: isLightDesign(designKey)
+                                ? "rgba(37,99,235,0.85)"
+                                : "rgba(96,165,250,0.95)",
+                            }}
+                          />
+                        </div>
+
+                        <div
+                          className="mt-2 text-xs opacity-70"
+                          style={getContainerTextStyle(block.data.style, designKey)}
+                        >
+                          {percent}% of votes
+                        </div>
+                      </div>
+
+                      <div
+                        className="shrink-0 rounded-full px-2 py-1 text-[11px] font-semibold"
+                        style={{
+                          background: isLightDesign(designKey)
+                            ? "rgba(17,24,39,0.08)"
+                            : "rgba(255,255,255,0.12)",
+                          color: getDefaultTextColor(designKey),
+                        }}
+                      >
+                        {item.count ?? 0}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           ) : null}
         </div>
@@ -5112,6 +5383,7 @@ export default function BlockRenderer({
   block,
   designKey,
   micrositeId,
+  micrositeSlug,
   serverNow,
   cartItems,
   cartSubtotal,
@@ -5138,6 +5410,84 @@ case "listing":
     safeListingQuantities,
     onChangeListingQuantity,
   );
+
+  case "video": {
+  const rawUrl = (block.data.videoUrl ?? "").trim();
+
+  const buildEmbedUrl = (url: string) => {
+    if (!url) return "";
+
+    if (url.startsWith("data:video/")) return url;
+    if (/\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(url)) return url;
+
+    try {
+      const parsed = new URL(url);
+
+      // YouTube watch → embed
+      if (parsed.hostname.includes("youtube.com") && parsed.pathname === "/watch") {
+        const videoId = parsed.searchParams.get("v");
+        if (videoId) return `https://www.youtube.com/embed/${videoId}`;
+      }
+
+      // youtu.be → embed
+      if (parsed.hostname.includes("youtu.be")) {
+        const videoId = parsed.pathname.replace(/^\/+/, "");
+        if (videoId) return `https://www.youtube.com/embed/${videoId}`;
+      }
+
+      // Vimeo
+      if (parsed.hostname.includes("vimeo.com")) {
+        const videoId = parsed.pathname.replace(/^\/+/, "");
+        if (videoId) return `https://player.vimeo.com/video/${videoId}`;
+      }
+
+      return url;
+    } catch {
+      return url;
+    }
+  };
+
+  const resolvedUrl = buildEmbedUrl(rawUrl);
+
+  const isDirectVideo =
+    resolvedUrl.startsWith("data:video/") ||
+    /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(resolvedUrl);
+
+  return (
+    <div className="h-full w-full overflow-hidden rounded-xl bg-black">
+      {block.data.title ? (
+        <div className="px-3 py-2 text-sm font-semibold text-white">
+          {block.data.title}
+        </div>
+      ) : null}
+
+      {resolvedUrl ? (
+        isDirectVideo ? (
+          <video
+            src={resolvedUrl}
+            className="h-full w-full"
+            autoPlay={Boolean(block.data.autoplay)}
+            muted={Boolean(block.data.muted)}
+            loop={Boolean(block.data.loop)}
+            controls={Boolean(block.data.showControls)}
+            playsInline
+          />
+        ) : (
+          <iframe
+            src={resolvedUrl}
+            className="h-full w-full"
+            allow="autoplay; encrypted-media"
+            allowFullScreen
+          />
+        )
+      ) : (
+        <div className="flex h-full w-full items-center justify-center text-sm text-neutral-400">
+          Add video URL
+        </div>
+      )}
+    </div>
+  );
+}
 
     case "image_carousel":
       return renderImageCarousel(block, designKey);
@@ -5265,10 +5615,12 @@ return (
       return renderCountdown(block, designKey, serverNow);
     case "links":
       return renderLinks(block, designKey);
+    case "video":
+      return renderVideo(block, designKey);
     case "gallery":
       return renderGallery(block, designKey);
     case "poll":
-      return renderPoll(block, designKey);
+      return renderPoll(block, designKey, micrositeSlug);
     case "rsvp":
       return renderRsvp(block, designKey);
     case "faq":
@@ -5284,7 +5636,7 @@ return (
     case "shape":
       return renderShape(block);
     case "highlight":
-      return renderHighlight(block, designKey, micrositeId);
+      return renderHighlight(block, designKey, micrositeId, micrositeSlug);
     case "rich_text":
       return renderRichText(block, designKey);
     case "progress_bar":
@@ -5313,7 +5665,7 @@ return (
           rightLabel={block.data.rightLabel}
           roundStartSound={block.data.roundStartSound}
         />
-      );
+      ); 
 
     default:
       return <div className="h-full w-full" />;

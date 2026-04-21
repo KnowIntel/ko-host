@@ -291,6 +291,8 @@ export type LinksBlock = BaseBlock & {
     heading?: string;
     items: LinkItem[];
     style?: TextStyle;
+    backgroundColor?: string;
+    transparentBackground?: boolean;
   };
 };
 
@@ -331,6 +333,8 @@ export type PollBlock = BaseBlock & {
     question: string;
     options: PollOption[];
     style?: TextStyle;
+    sourceBlockId?: string;
+    sourceType?: "highlight";
   };
 };
 
@@ -389,7 +393,7 @@ export type MessageThreadBlock = BaseBlock & {
 export type HighlightBlock = BaseBlock & {
   type: "highlight";
   data: {
-    mode?: "top_messages" | "rsvp_count" | "total_funds";
+    mode?: "top_messages" | "rsvp_count" | "total_funds" | "poll_results";
     heading?: string;
     limit?: number;
     sourceBlockId?: string;
@@ -494,6 +498,7 @@ export type VideoBlock = BaseBlock & {
   data: {
     title?: string;
     videoUrl: string;
+    videoPath?: string;
     autoplay?: boolean;
     muted?: boolean;
     loop?: boolean;
@@ -1211,6 +1216,8 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
           heading: "",
           items: [{ id: makeId("link"), label: "Home", url: "#" }],
           style: createDefaultTextStyle(),
+          backgroundColor: "#ffffff",
+          transparentBackground: true,
         },
       };
 
@@ -1273,6 +1280,8 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
             { id: makeId("opt"), text: "Option 2" },
           ],
           style: createDefaultTextStyle(),
+          sourceBlockId: "",
+          sourceType: "highlight",
         },
       };
 
@@ -1508,6 +1517,7 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
         data: {
           title: "",
           videoUrl: "",
+          videoPath: "",
           autoplay: false,
           muted: false,
           loop: false,
