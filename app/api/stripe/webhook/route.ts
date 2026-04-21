@@ -1147,12 +1147,12 @@ export async function POST(req: Request) {
     }
 
     // ============================================================
-    // EXISTING MICROSITE FLOW (RENEW / ACTIVATE EXISTING LIVE SITE)
+    // EXISTING MICROSITE FLOW (RENEW / RE-PUBLISH EXISTING LIVE SITE)
     // ============================================================
     if (micrositeIdFromMetadata) {
       const { data: micrositeRow, error: micrositeError } = await supabaseAdmin
         .from("microsites")
-        .select("id, owner_clerk_user_id, slug, title, paid_until")
+        .select("id, owner_clerk_user_id, slug, title, paid_until, draft, selected_design_key, template_key")
         .eq("id", micrositeIdFromMetadata)
         .single();
 
@@ -1174,6 +1174,63 @@ export async function POST(req: Request) {
         90,
       );
 
+      const nowIso = new Date().toISOString();
+
+      const pollIdMap = new Map<string, string>();
+
+      const publishedDraft =
+        micrositeRow.draft && typeof micrositeRow.draft === "object"
+          ? (() => {
+              const nextDraft = JSON.parse(JSON.stringify(micrositeRow.draft));
+
+              if (Array.isArray(nextDraft.blocks)) {
+                nextDraft.blocks = nextDraft.blocks.map((block: any) => {
+                  if (block?.type !== "poll") return block;
+
+                  const nextPollId = randomUUID();
+                  pollIdMap.set(block.id, nextPollId);
+
+                  return {
+                    ...block,
+                    id: nextPollId,
+                    data: {
+                      ...block.data,
+                      options: Array.isArray(block.data?.options)
+                        ? block.data.options.map((option: any) => ({
+                            ...option,
+                            id: randomUUID(),
+                          }))
+                        : [],
+                    },
+                  };
+                });
+
+                nextDraft.blocks = nextDraft.blocks.map((block: any) => {
+                  if (
+                    block?.type === "highlight" &&
+                    block?.data?.mode === "poll_results" &&
+                    typeof block?.data?.sourceBlockId === "string" &&
+                    pollIdMap.has(block.data.sourceBlockId)
+                  ) {
+                    return {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        sourceBlockId:
+                          pollIdMap.get(block.data.sourceBlockId) ||
+                          block.data.sourceBlockId,
+                      },
+                    };
+                  }
+
+                  return block;
+                });
+              }
+
+              return nextDraft;
+            })()
+          : null;
+
       const { error: updateExistingMicrositeError } = await supabaseAdmin
         .from("microsites")
         .update({
@@ -1181,7 +1238,8 @@ export async function POST(req: Request) {
           is_active: true,
           is_published: true,
           paid_until: nextPaidUntil,
-          updated_at: new Date().toISOString(),
+          draft: publishedDraft ?? micrositeRow.draft ?? null,
+          updated_at: nowIso,
         })
         .eq("id", micrositeRow.id);
 
@@ -1194,6 +1252,162 @@ export async function POST(req: Request) {
           { ok: false, error: updateExistingMicrositeError.message },
           { status: 500 },
         );
+      }
+
+      const { data: existingHomePage, error: existingHomePageError } =
+        await supabaseAdmin
+          .from("microsite_pages")
+          .select("id")
+          .eq("microsite_id", micrositeRow.id)
+          .order("display_order", { ascending: true })
+          .order("created_at", { ascending: true })
+          .limit(1)
+          .maybeSingle();
+
+      if (existingHomePageError) {
+        console.error(
+          "STRIPE WEBHOOK ERROR: existing microsite page lookup failed",
+          existingHomePageError,
+        );
+        return NextResponse.json(
+          { ok: false, error: existingHomePageError.message },
+          { status: 500 },
+        );
+      }
+
+      if (existingHomePage) {
+        const { error: updateHomePageError } = await supabaseAdmin
+          .from("microsite_pages")
+          .update({
+            title: micrositeRow.title || "Home",
+            draft: publishedDraft ?? micrositeRow.draft ?? null,
+            is_homepage: true,
+            updated_at: nowIso,
+          })
+          .eq("id", existingHomePage.id);
+
+        if (updateHomePageError) {
+          console.error(
+            "STRIPE WEBHOOK ERROR: existing microsite page update failed",
+            updateHomePageError,
+          );
+          return NextResponse.json(
+            { ok: false, error: updateHomePageError.message },
+            { status: 500 },
+          );
+        }
+      }
+
+      const { data: existingPolls, error: existingPollsError } =
+        await supabaseAdmin
+          .from("polls")
+          .select("id")
+          .eq("microsite_id", micrositeRow.id);
+
+      if (existingPollsError) {
+        console.error(
+          "STRIPE WEBHOOK ERROR: existing polls lookup failed",
+          existingPollsError,
+        );
+        return NextResponse.json(
+          { ok: false, error: existingPollsError.message },
+          { status: 500 },
+        );
+      }
+
+      const existingPollIds = (existingPolls ?? []).map((poll) => poll.id);
+
+      if (existingPollIds.length > 0) {
+        const { error: deletePollOptionsError } = await supabaseAdmin
+          .from("poll_options")
+          .delete()
+          .in("poll_id", existingPollIds);
+
+        if (deletePollOptionsError) {
+          console.error(
+            "STRIPE WEBHOOK ERROR: existing poll options delete failed",
+            deletePollOptionsError,
+          );
+          return NextResponse.json(
+            { ok: false, error: deletePollOptionsError.message },
+            { status: 500 },
+          );
+        }
+
+        const { error: deletePollsError } = await supabaseAdmin
+          .from("polls")
+          .delete()
+          .eq("microsite_id", micrositeRow.id);
+
+        if (deletePollsError) {
+          console.error(
+            "STRIPE WEBHOOK ERROR: existing polls delete failed",
+            deletePollsError,
+          );
+          return NextResponse.json(
+            { ok: false, error: deletePollsError.message },
+            { status: 500 },
+          );
+        }
+      }
+
+      const publishedPollBlocks = Array.isArray((publishedDraft as any)?.blocks)
+        ? (publishedDraft as any).blocks.filter(
+            (block: any) => block?.type === "poll",
+          )
+        : [];
+
+      if (publishedPollBlocks.length > 0) {
+        const pollRows = publishedPollBlocks.map((block: any) => ({
+          id: block.id,
+          microsite_id: micrositeRow.id,
+          is_multi_select: false,
+          is_open: true,
+          show_results_public: true,
+        }));
+
+        const { error: insertPollsError } = await supabaseAdmin
+          .from("polls")
+          .insert(pollRows);
+
+        if (insertPollsError) {
+          console.error(
+            "STRIPE WEBHOOK ERROR: polls insert failed",
+            insertPollsError,
+          );
+          return NextResponse.json(
+            { ok: false, error: insertPollsError.message },
+            { status: 500 },
+          );
+        }
+
+        const pollOptionRows = publishedPollBlocks.flatMap((block: any) =>
+          (Array.isArray(block?.data?.options) ? block.data.options : []).map(
+            (option: any, index: number) => ({
+              id: option.id,
+              poll_id: block.id,
+              label: option.text || "Option",
+              sort_order: index,
+            }),
+          ),
+        );
+
+        if (pollOptionRows.length > 0) {
+          const { error: insertPollOptionsError } = await supabaseAdmin
+            .from("poll_options")
+            .insert(pollOptionRows);
+
+          if (insertPollOptionsError) {
+            console.error(
+              "STRIPE WEBHOOK ERROR: poll options insert failed",
+              insertPollOptionsError,
+            );
+            return NextResponse.json(
+              { ok: false, error: insertPollOptionsError.message },
+              { status: 500 },
+            );
+          }
+        }
       }
 
       console.log("STRIPE WEBHOOK SUCCESS:", {

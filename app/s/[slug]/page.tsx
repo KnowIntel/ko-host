@@ -1,3 +1,5 @@
+// app\s\[slug]\page.tsx
+
 import { cookies } from "next/headers";
 import crypto from "crypto";
 import PlacedBlocksPreview from "@/components/preview/PlacedBlocksPreview";

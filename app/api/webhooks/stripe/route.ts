@@ -145,7 +145,34 @@ export async function POST(req: Request) {
           );
         }
 
-        console.log("STRIPE CHECKOUT COMPLETED", {
+        const publishWebhookUrl = new URL("/api/stripe/webhook", req.url).toString();
+
+        const forwardResponse = await fetch(publishWebhookUrl, {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            "stripe-signature": signature,
+          },
+          body,
+        });
+
+        if (!forwardResponse.ok) {
+          const forwardText = await forwardResponse.text().catch(() => "");
+          console.error("Forward to /api/stripe/webhook failed", {
+            status: forwardResponse.status,
+            body: forwardText,
+          });
+
+          return NextResponse.json(
+            {
+              error: "Publish webhook forwarding failed",
+              details: forwardText || `HTTP ${forwardResponse.status}`,
+            },
+            { status: forwardResponse.status }
+          );
+        }
+
+        console.log("STRIPE CHECKOUT COMPLETED + FORWARDED", {
           stripeSessionId,
           stripePaymentIntentId,
           micrositeId,
@@ -157,9 +184,10 @@ export async function POST(req: Request) {
           amountTotal,
           currency,
           paymentStatus,
+          publishWebhookUrl,
         });
 
-        break;
+        return NextResponse.json({ received: true });
       }
 
       /**
