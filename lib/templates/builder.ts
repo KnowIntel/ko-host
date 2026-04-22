@@ -655,6 +655,7 @@ export type CartBlock = BaseBlock & {
     heading?: string;
     taxRate?: number;
     discount?: number;
+    discountType?: "flat" | "percent";
     buttonText?: string;
     emptyMessage?: string;
     currency?: string;
@@ -1761,6 +1762,7 @@ case "speed_dating":
           heading: "Cart",
           taxRate: 0,
           discount: 0,
+          discountType: "flat",
           buttonText: "Checkout",
           emptyMessage: "No items selected",
           currency: "usd",

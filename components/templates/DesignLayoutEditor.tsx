@@ -7319,6 +7319,25 @@ return (
     </div>
 
     <div className="mt-4">
+      <div className={inspectorLabelClass()}>Description</div>
+      <textarea
+        value={selectedBlock.data.description ?? ""}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "checkout"
+              ? block
+              : {
+                  ...block,
+                  data: { ...block.data, description: e.target.value },
+                },
+          )
+        }
+        className={inspectorTextareaClass()}
+        placeholder="Add a short description here."
+      />
+    </div>
+
+    <div className="mt-4">
       <div className={inspectorLabelClass()}>Price</div>
       <input
         type="number"
@@ -7524,7 +7543,35 @@ return (
     </div>
 
     <div className="mt-4">
-      <div className={inspectorLabelClass()}>Discount</div>
+      <div className={inspectorLabelClass()}>Discount Type</div>
+      <select
+        value={selectedBlock.data.discountType ?? "flat"}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "cart"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    discountType: e.target.value as "flat" | "percent",
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      >
+        <option value="flat">Flat Amount</option>
+        <option value="percent">Percent</option>
+      </select>
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>
+        {selectedBlock.data.discountType === "percent"
+          ? "Discount Percent"
+          : "Discount Amount"}
+      </div>
       <input
         type="number"
         min="0"
@@ -7544,8 +7591,15 @@ return (
           )
         }
         className={inspectorInputClass()}
-        placeholder="0.00"
+        placeholder={
+          selectedBlock.data.discountType === "percent" ? "10" : "0.00"
+        }
       />
+      <div className="mt-1 text-xs text-neutral-500">
+        {selectedBlock.data.discountType === "percent"
+          ? "Example: 10 = 10% off"
+          : "Flat amount removed from subtotal after tax."}
+      </div>
     </div>
 
     <div className="mt-4">

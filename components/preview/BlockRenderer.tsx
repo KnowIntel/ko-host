@@ -5314,10 +5314,16 @@ function renderCart(
     );
 
     const taxRate = Number(block.data.taxRate || 0);
-    const discount = Number(block.data.discount || 0);
+    const discountValue = Number(block.data.discount || 0);
+    const discountType = block.data.discountType || "flat";
 
     const taxAmount = safeCartSubtotal * taxRate;
-    const total = Math.max(0, safeCartSubtotal + taxAmount - discount);
+    const discountAmount =
+      discountType === "percent"
+        ? (safeCartSubtotal + taxAmount) * (Math.max(0, discountValue) / 100)
+        : Math.max(0, discountValue);
+
+    const total = Math.max(0, safeCartSubtotal + taxAmount - discountAmount);
 
     async function handleCartCheckout() {
       try {
@@ -5454,15 +5460,20 @@ function renderCart(
                 </div>
               ) : null}
 
-              {discount > 0 ? (
-                <div
-                  className="flex justify-between"
-                  style={getContainerTextStyle(block.data.style, designKey)}
-                >
-                  <span>Discount</span>
-                  <span>- {currency} ${formatCurrency(discount)}</span>
-                </div>
-              ) : null}
+          {discountAmount > 0 ? (
+            <div
+              className="flex justify-between"
+              style={getContainerTextStyle(block.data.style, designKey)}
+            >
+              <span>
+                Discount
+                {discountType === "percent"
+                  ? ` (${Math.max(0, discountValue)}%)`
+                  : ""}
+              </span>
+              <span>- {currency} ${formatCurrency(discountAmount)}</span>
+            </div>
+          ) : null}
 
               <div
                 className="flex justify-between pt-1 font-semibold"

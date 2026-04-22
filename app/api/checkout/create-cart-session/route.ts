@@ -19,7 +19,10 @@ type CartBlockData = {
   heading?: string;
   taxRate?: number;
   discount?: number;
+  discountType?: "flat" | "percent";
   buttonText?: string;
+  emptyMessage?: string;
+  currency?: string;
 };
 
 type CartSessionLineItem = {
@@ -115,6 +118,10 @@ export async function POST(req: Request) {
     }
 
     const cartData = cartBlock.data as CartBlockData;
+    const currency =
+      typeof cartData.currency === "string" && cartData.currency.trim().length > 0
+        ? cartData.currency.trim().toLowerCase()
+        : "usd";
 
 const items =
   body &&
@@ -156,7 +163,7 @@ const lineItems: CartSessionLineItem[] = items
 
     return {
       price_data: {
-        currency: "usd",
+        currency,
         product_data: {
           name: title,
           ...(description ? { description } : {}),
@@ -187,12 +194,18 @@ const subtotal = lineItems.reduce(
 
    const taxCents = Math.round(subtotal * taxRate);
 
-    const discount =
+const discount =
   typeof cartData.discount === "number" && Number.isFinite(cartData.discount)
     ? Math.max(0, cartData.discount)
     : 0;
 
-const discountCents = toCents(discount);
+const discountType = cartData.discountType === "percent" ? "percent" : "flat";
+
+const discountCents =
+  discountType === "percent"
+    ? Math.round((subtotal + taxCents) * (discount / 100))
+    : toCents(discount);
+
 const adjustedTotal = Math.max(0, subtotal + taxCents - discountCents);
     const fee = calcPlatformFee(adjustedTotal);
 
@@ -207,7 +220,7 @@ const session = await stripe.checkout.sessions.create({
       ? [
           {
             price_data: {
-              currency: "usd",
+              currency,
               product_data: {
                 name: "Tax",
               },
@@ -270,6 +283,7 @@ const { error: cartInsertError } = await supabase
     tax: taxCents / 100,
     discount: discountCents / 100,
     total: adjustedTotal / 100,
+    currency,
     payment_status: "pending",
   });
 
