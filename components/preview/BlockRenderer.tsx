@@ -348,31 +348,6 @@ function getThreadHeadingStyle(
   };
 }
 
-function isUuid(value: string) {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
-    value,
-  );
-}
-
-function deterministicUuid(seed: string) {
-  let hash = 0;
-  for (let i = 0; i < seed.length; i += 1) {
-    hash = (hash << 5) - hash + seed.charCodeAt(i);
-    hash |= 0;
-  }
-
-  const normalized = Math.abs(hash).toString(16).padStart(8, "0");
-  const tail = `${normalized}${normalized}${normalized}${normalized}`;
-
-  return [
-    tail.slice(0, 8),
-    tail.slice(0, 4),
-    `4${tail.slice(0, 3)}`,
-    `8${tail.slice(0, 3)}`,
-    tail.slice(0, 12),
-  ].join("-");
-}
-
 function getThreadBodyStyle(
   style?: TextStyle,
   designKey?: string,
@@ -3407,13 +3382,7 @@ function renderHighlight(
     const mode = block.data?.mode || "top_messages";
     const limit = Math.max(1, Math.min(12, Number(block.data?.limit) || 4));
     const rawSourceBlockId = block.data?.sourceBlockId?.trim() || "";
-    const resolvedSourceBlockId =
-      mode === "poll_results" &&
-      micrositeId &&
-      rawSourceBlockId &&
-      !isUuid(rawSourceBlockId)
-        ? deterministicUuid(`poll:${micrositeId}:${rawSourceBlockId}`)
-        : rawSourceBlockId;
+    const resolvedSourceBlockId = rawSourceBlockId;
 
     const sourceFormBlockId = block.data?.sourceFormBlockId?.trim() || "";
     const widthUnits = Number(block.grid?.colSpan ?? 1);
