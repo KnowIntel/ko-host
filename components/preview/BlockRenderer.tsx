@@ -5137,140 +5137,145 @@ function renderCheckout(
   designKey?: string,
   micrositeId?: string | null,
 ) {
-  const data = block.data;
+  function CheckoutPreview() {
+    const data = block.data;
+    const [modalMessage, setModalMessage] = useState<string>("");
+    const [modalTitle, setModalTitle] = useState<string>("Notice");
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleCheckout = async () => {
-    try {
-      const res = await fetch("/api/checkout/create-session", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          blockId: block.id,
-          micrositeId,
-        }),
-      });
-
-      const rawText = await res.text();
-
-      let payload: any = null;
+    const handleCheckout = async () => {
       try {
-        payload = rawText ? JSON.parse(rawText) : null;
-      } catch {
-        payload = rawText;
-      }
+        setIsSubmitting(true);
 
-      if (!res.ok) {
-        const debugMessage = JSON.stringify(
-          {
-            status: res.status,
-            statusText: res.statusText,
-            rawText,
-            payload,
-            micrositeId: micrositeId ?? null,
-            blockId: block.id,
+        const res = await fetch("/api/checkout/create-session", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
           },
-          null,
-          2,
-        );
+          body: JSON.stringify({
+            blockId: block.id,
+            micrositeId,
+          }),
+        });
 
-        console.error("Checkout API error:\n" + debugMessage);
+        const json = await res.json().catch(() => null);
 
-alert(
-  JSON.stringify(
-    payload,
-    null,
-    2,
-  ),
-);
+        if (!res.ok) {
+          const apiError =
+            typeof json?.error === "string"
+              ? json.error
+              : "Checkout failed";
 
-        return;
-      }
-
-      if (payload?.url) {
-        window.location.href = payload.url;
-        return;
-      }
-
-      console.error("No checkout URL returned", { rawText, payload });
-      alert("No checkout URL returned.");
-    } catch (err) {
-      console.error("Checkout error:", err);
-      alert("Something went wrong starting checkout.");
-    }
-  };
-
-  return (
-<Surface block={block}>
-  <div className="flex h-full w-full flex-col gap-3">
-    {data.imageUrl ? (
-      <img
-        src={data.imageUrl}
-        alt={data.productName}
-        className="h-40 w-full rounded-lg object-cover"
-      />
-    ) : null}
-
-    <div className="text-base font-semibold">
-      {data.productName || "Product"}
-    </div>
-
-    {data.description ? (
-      <div className="text-sm opacity-70">
-        {data.description}
-      </div>
-    ) : null}
-
-    <div className="text-lg font-bold">
-      ${Number(data.price || 0).toFixed(2)}
-    </div>
-
-    <button
-      onClick={async () => {
-        try {
-          const res = await fetch("/api/checkout/create-session", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              blockId: block.id,        // ✅ CRITICAL
-              micrositeId,              // ✅ CRITICAL
-            }),
-          });
-
-          const json = await res.json();
-
-          if (!res.ok) {
-            console.error(json);
-            alert(json.error || "Checkout failed");
-            return;
-          }
-
-          if (json.url) {
-            window.location.href = json.url;
-          }
-        } catch (err) {
-          console.error(err);
-          alert("Something went wrong");
+          setModalTitle("Checkout unavailable");
+          setModalMessage(
+            apiError === "Stripe not connected"
+              ? "Checkout is not available for this microsite yet. Owner must first complete Stripe connection."
+              : apiError === "Stripe onboarding not complete"
+                ? "Checkout is not available for this microsite yet. Owner must first complete Stripe onboarding."
+                : apiError,
+          );
+          return;
         }
-      }}
-      disabled={!micrositeId}
-      className="mt-auto w-full rounded-xl bg-black py-2 text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-      title={
-        !micrositeId
-          ? "Checkout only works on live microsites right now."
-          : undefined
+
+        if (json?.url) {
+          window.location.href = json.url;
+          return;
+        }
+
+        setModalTitle("Checkout unavailable");
+        setModalMessage("No checkout URL returned.");
+      } catch (err) {
+        console.error("Checkout error:", err);
+        setModalTitle("Something went wrong");
+        setModalMessage("Unable to start checkout right now.");
+      } finally {
+        setIsSubmitting(false);
       }
-    >
-      {!micrositeId
-        ? "Live Microsite Required"
-        : data.buttonText || "Checkout"}
-    </button>
-  </div>
-</Surface>
-  );
+    };
+
+    return (
+      <>
+        <Surface block={block}>
+          <div className="flex h-full w-full flex-col gap-3">
+            {data.imageUrl ? (
+              <img
+                src={data.imageUrl}
+                alt={data.productName}
+                className="h-40 w-full rounded-lg object-cover"
+              />
+            ) : null}
+
+            <div
+              className="text-base font-semibold"
+              style={getContainerTextStyle(data.style, designKey)}
+            >
+              {data.productName || "Product"}
+            </div>
+
+            {data.description ? (
+              <div
+                className="text-sm opacity-70"
+                style={getContainerTextStyle(data.style, designKey)}
+              >
+                {data.description}
+              </div>
+            ) : null}
+
+            <div
+              className="text-lg font-bold"
+              style={getContainerTextStyle(data.style, designKey)}
+            >
+              ${Number(data.price || 0).toFixed(2)}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => void handleCheckout()}
+              disabled={!micrositeId || isSubmitting}
+              className="mt-auto w-full rounded-xl bg-black py-2 text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+              title={
+                !micrositeId
+                  ? "Checkout only works on live microsites right now."
+                  : undefined
+              }
+            >
+              {!micrositeId
+                ? "Live Microsite Required"
+                : isSubmitting
+                  ? "Starting Checkout..."
+                  : data.buttonText || "Checkout"}
+            </button>
+          </div>
+        </Surface>
+
+        {modalMessage ? (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
+            <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl">
+              <div className="text-base font-semibold text-neutral-900">
+                {modalTitle}
+              </div>
+
+              <div className="mt-2 text-sm text-neutral-600">
+                {modalMessage}
+              </div>
+
+              <div className="mt-5 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setModalMessage("")}
+                  className="inline-flex h-10 items-center justify-center rounded-xl bg-neutral-900 px-4 text-sm font-medium text-white hover:opacity-90"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : null}
+      </>
+    );
+  }
+
+  return <CheckoutPreview />;
 }
 
 function renderCart(
@@ -5280,194 +5285,244 @@ function renderCart(
   cartItems: CartItem[] = [],
   cartSubtotal: number = 0,
 ) {
-  const safeCartItems = Array.isArray(cartItems)
-    ? cartItems.filter(
-        (item) =>
-          item &&
-          typeof item.price === "number" &&
-          Number.isFinite(item.price) &&
-          item.price > 0 &&
-          typeof item.quantity === "number" &&
-          Number.isFinite(item.quantity) &&
-          item.quantity > 0,
-      )
-    : [];
+  function CartPreview() {
+    const [modalMessage, setModalMessage] = useState<string>("");
+    const [modalTitle, setModalTitle] = useState<string>("Notice");
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const currency = (block.data.currency || "usd").toUpperCase();
-  const safeCartSubtotal = safeCartItems.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0,
-  );
+    const safeCartItems = Array.isArray(cartItems)
+      ? cartItems.filter(
+          (item) =>
+            item &&
+            typeof item.price === "number" &&
+            Number.isFinite(item.price) &&
+            item.price > 0 &&
+            typeof item.quantity === "number" &&
+            Number.isFinite(item.quantity) &&
+            item.quantity > 0,
+        )
+      : [];
 
-  const taxRate = Number(block.data.taxRate || 0);
-  const discount = Number(block.data.discount || 0);
+    const currency = (block.data.currency || "usd").toUpperCase();
+    const safeCartSubtotal = safeCartItems.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0,
+    );
 
-  const taxAmount = safeCartSubtotal * taxRate;
-  const total = Math.max(0, safeCartSubtotal + taxAmount - discount);
+    const taxRate = Number(block.data.taxRate || 0);
+    const discount = Number(block.data.discount || 0);
 
+    const taxAmount = safeCartSubtotal * taxRate;
+    const total = Math.max(0, safeCartSubtotal + taxAmount - discount);
 
-  async function handleCartCheckout() {
-    try {
-      const res = await fetch("/api/checkout/create-cart-session", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-body: JSON.stringify({
-  blockId: block.id,
-  micrositeId,
-  items: safeCartItems,
-}),
-      });
+    async function handleCartCheckout() {
+      try {
+        setIsSubmitting(true);
 
-      const json = await res.json();
+        const res = await fetch("/api/checkout/create-cart-session", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            blockId: block.id,
+            micrositeId,
+            items: safeCartItems,
+          }),
+        });
 
-      if (!res.ok) {
-        console.error("Cart checkout failed:", json);
-        alert(json.error || "Cart checkout failed");
-        return;
+        const json = await res.json().catch(() => null);
+
+        if (!res.ok) {
+          const apiError =
+            typeof json?.error === "string" ? json.error : "Cart checkout failed";
+
+          setModalTitle("Checkout unavailable");
+          setModalMessage(
+            apiError === "Stripe not connected"
+              ? "Checkout is not available for this microsite yet. Owner must first complete Stripe connection."
+              : apiError === "Stripe onboarding not complete"
+                ? "Checkout is not available for this microsite yet. Owner must first complete Stripe onboarding."
+                : apiError,
+          );
+          return;
+        }
+
+        if (json?.url) {
+          window.location.href = json.url;
+          return;
+        }
+
+        setModalTitle("Checkout unavailable");
+        setModalMessage("No checkout URL returned.");
+      } catch (err) {
+        console.error("Cart checkout error:", err);
+        setModalTitle("Something went wrong");
+        setModalMessage("Unable to start checkout right now.");
+      } finally {
+        setIsSubmitting(false);
       }
-
-      if (json?.url) {
-        window.location.href = json.url;
-        return;
-      }
-
-      alert("No checkout URL returned.");
-    } catch (err) {
-      console.error("Cart checkout error:", err);
-      alert("Something went wrong");
     }
-  }
 
-  return (
-    <Surface
-      block={block}
-      designKey={designKey}
-      className={getSoftSurfaceClass(designKey)}
-    >
-      <div className="flex h-full w-full flex-col gap-3">
-        <div
-          className="text-base font-semibold"
-          style={getContainerTextStyle(block.data.style, designKey)}
+    return (
+      <>
+        <Surface
+          block={block}
+          designKey={designKey}
+          className={getSoftSurfaceClass(designKey)}
         >
-          {block.data.heading || "Cart"}
-        </div>
+          <div className="flex h-full w-full flex-col gap-3">
+            <div
+              className="text-base font-semibold"
+              style={getContainerTextStyle(block.data.style, designKey)}
+            >
+              {block.data.heading || "Cart"}
+            </div>
 
-        <div className="flex-1 space-y-2 overflow-y-auto">
-          {safeCartItems.length > 0 ? (
-            safeCartItems.map((item) => (
-              <div
-                key={item.id}
-                className="flex items-start justify-between gap-3 text-sm"
-              >
-                <div className="min-w-0">
+            <div className="flex-1 space-y-2 overflow-y-auto">
+              {safeCartItems.length > 0 ? (
+                safeCartItems.map((item) => (
                   <div
-                    className="truncate font-medium"
-                    style={getContainerTextStyle(block.data.style, designKey)}
+                    key={item.id}
+                    className="flex items-start justify-between gap-3 text-sm"
                   >
-                    {item.title}
-                  </div>
+                    <div className="min-w-0">
+                      <div
+                        className="truncate font-medium"
+                        style={getContainerTextStyle(block.data.style, designKey)}
+                      >
+                        {item.title}
+                      </div>
 
-                  <div
-                    className="truncate text-xs opacity-70"
-                    style={getContainerTextStyle(block.data.style, designKey)}
-                  >
-                    {item.description}
-                  </div>
+                      <div
+                        className="truncate text-xs opacity-70"
+                        style={getContainerTextStyle(block.data.style, designKey)}
+                      >
+                        {item.description}
+                      </div>
 
-                  <div
-                    className="text-xs opacity-60"
-                    style={getContainerTextStyle(block.data.style, designKey)}
-                  >
-                    Qty: {item.quantity}
-                  </div>
-                </div>
+                      <div
+                        className="text-xs opacity-60"
+                        style={getContainerTextStyle(block.data.style, designKey)}
+                      >
+                        Qty: {item.quantity}
+                      </div>
+                    </div>
 
+                    <div
+                      className="font-semibold"
+                      style={getContainerTextStyle(block.data.style, designKey)}
+                    >
+                      ${formatCurrency(item.price * item.quantity)}
+                    </div>
+                  </div>
+                ))
+              ) : (
                 <div
-                  className="font-semibold"
+                  className="text-sm opacity-60"
                   style={getContainerTextStyle(block.data.style, designKey)}
                 >
-                  ${formatCurrency(item.price * item.quantity)}
+                  {block.data.emptyMessage || "No items selected"}
                 </div>
+              )}
+            </div>
+
+            <div className="space-y-1 border-t pt-3 text-sm">
+              <div
+                className="flex justify-between"
+                style={getContainerTextStyle(block.data.style, designKey)}
+              >
+                <span>Subtotal</span>
+                <span>
+                  {currency} ${formatCurrency(safeCartSubtotal)}
+                </span>
               </div>
-            ))
-          ) : (
-            <div
-              className="text-sm opacity-60"
-              style={getContainerTextStyle(block.data.style, designKey)}
-            >
-              {block.data.emptyMessage || "No items selected"}
-            </div>
-          )}
-        </div>
 
-        <div className="space-y-1 border-t pt-3 text-sm">
-          <div
-            className="flex justify-between"
-            style={getContainerTextStyle(block.data.style, designKey)}
-          >
-            <span>Subtotal</span>
-            <span>
-              {currency} ${formatCurrency(safeCartSubtotal)}
-            </span>
+              {taxRate > 0 ? (
+                <div
+                  className="flex justify-between"
+                  style={getContainerTextStyle(block.data.style, designKey)}
+                >
+                  <span>Tax ({(taxRate * 100).toFixed(2)}%)</span>
+                  <span>
+                    {currency} ${formatCurrency(taxAmount)}
+                  </span>
+                </div>
+              ) : null}
+
+              {discount > 0 ? (
+                <div
+                  className="flex justify-between"
+                  style={getContainerTextStyle(block.data.style, designKey)}
+                >
+                  <span>Discount</span>
+                  <span>- {currency} ${formatCurrency(discount)}</span>
+                </div>
+              ) : null}
+
+              <div
+                className="flex justify-between pt-1 font-semibold"
+                style={getContainerTextStyle(block.data.style, designKey)}
+              >
+                <span>Total</span>
+                <span>
+                  {currency} ${formatCurrency(total)}
+                </span>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => void handleCartCheckout()}
+              disabled={!micrositeId || safeCartItems.length === 0 || isSubmitting}
+              className="mt-2 h-11 rounded-xl bg-neutral-900 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+              title={
+                !micrositeId
+                  ? "Checkout only works on live microsites right now."
+                  : safeCartItems.length === 0
+                    ? "No cart items available."
+                    : undefined
+              }
+            >
+              {!micrositeId
+                ? "Live Microsite Required"
+                : safeCartItems.length === 0
+                  ? block.data.emptyMessage || "No Items Selected"
+                  : isSubmitting
+                    ? "Starting Checkout..."
+                    : block.data.buttonText || "Checkout"}
+            </button>
           </div>
+        </Surface>
 
-          {taxRate > 0 ? (
-            <div
-              className="flex justify-between"
-              style={getContainerTextStyle(block.data.style, designKey)}
-            >
-              <span>Tax ({(taxRate * 100).toFixed(2)}%)</span>
-              <span>
-                {currency} ${formatCurrency(taxAmount)}
-              </span>
+        {modalMessage ? (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
+            <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl">
+              <div className="text-base font-semibold text-neutral-900">
+                {modalTitle}
+              </div>
+
+              <div className="mt-2 text-sm text-neutral-600">
+                {modalMessage}
+              </div>
+
+              <div className="mt-5 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setModalMessage("")}
+                  className="inline-flex h-10 items-center justify-center rounded-xl bg-neutral-900 px-4 text-sm font-medium text-white hover:opacity-90"
+                >
+                  Close
+                </button>
+              </div>
             </div>
-          ) : null}
-
-          {discount > 0 ? (
-            <div
-              className="flex justify-between"
-              style={getContainerTextStyle(block.data.style, designKey)}
-            >
-              <span>Discount</span>
-              <span>- {currency} ${formatCurrency(discount)}</span>
-            </div>
-          ) : null}
-
-          <div
-            className="flex justify-between pt-1 font-semibold"
-            style={getContainerTextStyle(block.data.style, designKey)}
-          >
-            <span>Total</span>
-            <span>
-              {currency} ${formatCurrency(total)}
-            </span>
           </div>
-        </div>
+        ) : null}
+      </>
+    );
+  }
 
-        <button
-          type="button"
-          onClick={() => void handleCartCheckout()}
-          disabled={!micrositeId || safeCartItems.length === 0}
-          className="mt-2 h-11 rounded-xl bg-neutral-900 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
-          title={
-            !micrositeId
-              ? "Checkout only works on live microsites right now."
-              : safeCartItems.length === 0
-                ? "No cart items available."
-                : undefined
-          }
-        >
-          {!micrositeId
-            ? "Live Microsite Required"
-            : safeCartItems.length === 0
-              ? block.data.emptyMessage || "No Items Selected"
-              : block.data.buttonText || "Checkout"}
-        </button>
-      </div>
-    </Surface>
-  );
+  return <CartPreview />;
 }
 
 export default function BlockRenderer({
