@@ -269,8 +269,9 @@ export async function GET(req: Request) {
     {
       status: 200,
       headers: {
-        // allow quick refreshes but avoid caching stale results too long
-        "cache-control": "public, max-age=5",
+        "cache-control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+        pragma: "no-cache",
+        expires: "0",
       },
     }
   );

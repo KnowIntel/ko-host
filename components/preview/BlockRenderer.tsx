@@ -3444,6 +3444,7 @@ function renderHighlight(
             const params = new URLSearchParams({
               micrositeSlug,
               pollId: resolvedSourceBlockId,
+              t: String(Date.now()),
             });
 
             const res = await fetch(
