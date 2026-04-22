@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 const QuerySchema = z.object({
   micrositeSlug: z.string().min(2).max(40).regex(/^[a-z0-9-]+$/),
-  pollId: z.string().uuid(),
+  pollId: z.string().min(1).max(120),
 });
 
 function isUuid(value: string) {
@@ -18,6 +18,7 @@ function isUuid(value: string) {
     value,
   );
 }
+
 
 function deterministicUuid(seed: string) {
   const hex = createHash("sha256").update(seed).digest("hex");
@@ -160,10 +161,14 @@ export async function GET(req: Request) {
   }
 
   // Validate poll belongs to microsite + results policy
+  const resolvedPollId = isUuid(parsed.data.pollId)
+    ? parsed.data.pollId
+    : deterministicUuid(`poll:${site.id}:${parsed.data.pollId}`);
+
   let { data: poll, error: pollErr } = await sb
     .from("polls")
     .select("id, microsite_id, show_results_public, is_open")
-    .eq("id", parsed.data.pollId)
+    .eq("id", resolvedPollId)
     .maybeSingle();
 
   let selfHealFound = false;
@@ -171,15 +176,15 @@ export async function GET(req: Request) {
 
   if (!poll && !pollErr) {
     try {
-      selfHealFound = await ensurePublishedPollExists({
+      selfHealFound =  await ensurePublishedPollExists({
         micrositeId: site.id,
-        pollId: parsed.data.pollId,
+        pollId: resolvedPollId,
       });
 
       const retry = await sb
         .from("polls")
         .select("id, microsite_id, show_results_public, is_open")
-        .eq("id", parsed.data.pollId)
+        .eq("id", resolvedPollId)
         .maybeSingle();
 
       poll = retry.data;
