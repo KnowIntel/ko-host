@@ -191,7 +191,6 @@ export async function POST(req: Request) {
 
     // honeypot: if filled, pretend success
     if (parsed.data.company && parsed.data.company.length > 0) {
-      return NextResponse.json({ ok: true }, { status: 200 });
     }
 
     const ip = getClientIp(req);
@@ -311,7 +310,18 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, error: "Server error" }, { status: 500 });
     }
 
-    return NextResponse.json({ ok: true }, { status: 200 });
+    return NextResponse.json(
+      {
+        ok: true,
+        debug: {
+          pollId: poll.id,
+          optionIds: uniqueOptionIds,
+          fingerprint,
+          insertedRows: payload.length,
+        },
+      },
+      { status: 200 },
+    );
   } catch (err: any) {
     const status = typeof err?.status === "number" ? err.status : 500;
     const retryAfter = err?.retryAfter;
