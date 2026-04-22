@@ -299,115 +299,41 @@ export default async function PublishedMicrositePage({
 
   let draft = initialDraft;
 
-  if (draft) {
-    const remapped = remapDraftPollIds(draft, microsite.id);
+if (draft) {
+  const remapped = remapDraftPollIds(draft, microsite.id);
 
-    if (remapped.changed) {
-      draft = remapped.draft;
+  if (remapped.changed) {
+    draft = remapped.draft;
 
-      try {
-        if (firstPage?.id) {
-          const { error: updatePageError } = await supabaseAdmin
-            .from("microsite_pages")
-            .update({
-              draft,
-            })
-            .eq("id", firstPage.id);
-
-          if (updatePageError) {
-            console.error("poll self-heal: microsite_pages update failed", updatePageError);
-          }
-        }
-
-        const { error: updateMicrositeError } = await supabaseAdmin
-          .from("microsites")
+    try {
+      if (firstPage?.id) {
+        const { error: updatePageError } = await supabaseAdmin
+          .from("microsite_pages")
           .update({
             draft,
           })
-          .eq("id", microsite.id);
+          .eq("id", firstPage.id);
 
-        if (updateMicrositeError) {
-          console.error("poll self-heal: microsites update failed", updateMicrositeError);
+        if (updatePageError) {
+          console.error("poll self-heal: microsite_pages update failed", updatePageError);
         }
-
-        const pollBlocks = Array.isArray((draft as any)?.blocks)
-          ? (draft as any).blocks.filter((block: any) => block?.type === "poll")
-          : [];
-
-        const { data: existingPolls, error: existingPollsError } = await supabaseAdmin
-          .from("polls")
-          .select("id")
-          .eq("microsite_id", microsite.id);
-
-        if (existingPollsError) {
-          console.error("poll self-heal: existing polls lookup failed", existingPollsError);
-        } else {
-          const existingPollIds = (existingPolls ?? []).map((poll) => poll.id);
-
-          if (existingPollIds.length > 0) {
-            const { error: deletePollOptionsError } = await supabaseAdmin
-              .from("poll_options")
-              .delete()
-              .in("poll_id", existingPollIds);
-
-            if (deletePollOptionsError) {
-              console.error("poll self-heal: poll_options delete failed", deletePollOptionsError);
-            }
-
-            const { error: deletePollsError } = await supabaseAdmin
-              .from("polls")
-              .delete()
-              .eq("microsite_id", microsite.id);
-
-            if (deletePollsError) {
-              console.error("poll self-heal: polls delete failed", deletePollsError);
-            }
-          }
-
-          if (pollBlocks.length > 0) {
-            const { error: insertPollsError } = await supabaseAdmin
-              .from("polls")
-              .insert(
-                pollBlocks.map((block: any) => ({
-                  id: block.id,
-                  microsite_id: microsite.id,
-                  is_multi_select: false,
-                  is_open: true,
-                  show_results_public: true,
-                })),
-              );
-
-            if (insertPollsError) {
-              console.error("poll self-heal: polls insert failed", insertPollsError);
-            }
-
-            const optionRows = pollBlocks.flatMap((block: any) =>
-              (Array.isArray(block?.data?.options) ? block.data.options : []).map(
-                (option: any, index: number) => ({
-                  id: option.id,
-                  poll_id: block.id,
-                  label: option.text || "Option",
-                  sort_order: index,
-                }),
-              ),
-            );
-
-            if (optionRows.length > 0) {
-              const { error: insertPollOptionsError } = await supabaseAdmin
-                .from("poll_options")
-                .insert(optionRows);
-
-              if (insertPollOptionsError) {
-                console.error("poll self-heal: poll_options insert failed", insertPollOptionsError);
-              }
-            }
-          }
-        }
-      } catch (error) {
-        console.error("poll self-heal failed", error);
       }
+
+      const { error: updateMicrositeError } = await supabaseAdmin
+        .from("microsites")
+        .update({
+          draft,
+        })
+        .eq("id", microsite.id);
+
+      if (updateMicrositeError) {
+        console.error("poll self-heal: microsites update failed", updateMicrositeError);
+      }
+    } catch (error) {
+      console.error("poll self-heal failed", error);
     }
   }
+}
 
   const designKey = microsite.selected_design_key || "blank";
 
