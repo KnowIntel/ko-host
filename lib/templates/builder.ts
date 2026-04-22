@@ -450,38 +450,31 @@ export type FormFieldBlock = BaseBlock & {
 
 export type ListingBlock = BaseBlock & {
   type: "listing";
-data: {
-  image: {
-    id: string;
-    url: string;
-    alt?: string;
-    fitMode?: ImageFitMode;
-    frame?: ImageFrameType;
-    positionX?: number;
-    positionY?: number;
-    zoom?: number;
-    rotation?: number;
-    opacity?: number;
+  data: {
+    image: {
+      id: string;
+      url: string;
+      alt?: string;
+      fitMode?: ImageFitMode;
+      frame?: ImageFrameType;
+      positionX?: number;
+      positionY?: number;
+      zoom?: number;
+      rotation?: number;
+      opacity?: number;
+    };
+    title: string;
+    description: string;
+    price?: number;
+    addToCart?: boolean;
+    sku?: string;
+    metadata: ListingMetadataItem[];
+    titleStyle?: TextStyle;
+    descriptionStyle?: TextStyle;
+    metadataStyle?: TextStyle;
+    cardVariant?: ListingCardVariant;
+    imageHeightPercent?: number;
   };
-
-  title: string;
-  description: string;
-
-  // ✅ NEW STATIC PRICE FIELD
-  price?: number;
-
-  // ✅ NEW CART LINKING FLAG
-  addToCart?: boolean;
-
-  metadata: ListingMetadataItem[];
-
-  titleStyle?: TextStyle;
-  descriptionStyle?: TextStyle;
-  metadataStyle?: TextStyle;
-
-  cardVariant?: ListingCardVariant;
-  imageHeightPercent?: number;
-};
 };
 
 export type RichTextBlock = BaseBlock & {
@@ -643,17 +636,14 @@ export type CheckoutBlock = BaseBlock & {
     price: number;
     currency: string;
     allowQuantity: boolean;
-
     description?: string;
     imageUrl?: string;
     buttonText?: string;
     successMessage?: string;
     redirectUrl?: string;
-
     collectEmail?: boolean;
     collectName?: boolean;
     collectAddress?: boolean;
-
     style?: TextStyle;
   };
 };
@@ -666,6 +656,8 @@ export type CartBlock = BaseBlock & {
     taxRate?: number;
     discount?: number;
     buttonText?: string;
+    emptyMessage?: string;
+    currency?: string;
     style?: TextStyle;
   };
 };
@@ -1464,6 +1456,7 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
           description: "Add a short description here.",
           price: 0,
           addToCart: false,
+          sku: "",
           metadata: [
             { id: makeId("meta"), label: "Price", value: "$0" },
             { id: makeId("meta"), label: "Location", value: "City, State" },
@@ -1748,7 +1741,32 @@ case "speed_dating":
     },
   };
 
-case "cart":
+    case "cart":
+      return {
+        id: makeId("cart"),
+        type: "cart",
+        label: "Cart",
+        grid: {
+          ...grid,
+          rowSpan: 4,
+        },
+        appearance: {
+          ...createDefaultBlockAppearance(),
+          backgroundColor: "#FFFFFF",
+          borderColor: "#E5E7EB",
+          borderWidth: 1,
+          borderRadius: 16,
+        },
+        data: {
+          heading: "Cart",
+          taxRate: 0,
+          discount: 0,
+          buttonText: "Checkout",
+          emptyMessage: "No items selected",
+          currency: "usd",
+          style: createDefaultTextStyle(),
+        },
+      };
   return {
     id: makeId("cart"),
     type: "cart",
@@ -1774,72 +1792,37 @@ case "cart":
   };
 
   case "checkout":
-  return {
-    id: makeId("checkout"),
-    type: "checkout",
-    label: "Checkout",
-    grid: {
-      ...grid,
-      rowSpan: 3,
-    },
-    appearance: {
-      ...createDefaultBlockAppearance(),
-      backgroundColor: "#FFFFFF",
-      borderColor: "#E5E7EB",
-      borderWidth: 1,
-      borderRadius: 16,
-    },
-    data: {
-      productName: "Product",
-      price: 10,
-      currency: "usd",
-      allowQuantity: false,
-
-      description: "",
-      imageUrl: "",
-      buttonText: "Checkout",
-      successMessage: "Payment successful!",
-      redirectUrl: "",
-
-      collectEmail: true,
-      collectName: false,
-      collectAddress: false,
-
-      style: createDefaultTextStyle(),
-    },
-  };
-  return {
-    id: makeId("checkout"),
-    type: "checkout",
-    label: "Checkout",
-    grid: {
-      ...grid,
-      rowSpan: 3,
-    },
-    appearance: {
-      ...createDefaultBlockAppearance(),
-      backgroundColor: "#FFFFFF",
-      borderColor: "#E5E7EB",
-      borderWidth: 1,
-      borderRadius: 16,
-    },
-    data: {
-      productName: "Product",
-      price: 10,
-      currency: "usd",
-      allowQuantity: false,
-
-      description: "",
-      imageUrl: "",
-      buttonText: "Checkout",
-      successMessage: "Payment successful!",
-      redirectUrl: "",
-
-      collectEmail: true,
-      collectName: false,
-      collectAddress: false,
-    },
-  };
+    return {
+      id: makeId("checkout"),
+      type: "checkout",
+      label: "Checkout",
+      grid: {
+        ...grid,
+        rowSpan: 3,
+      },
+      appearance: {
+        ...createDefaultBlockAppearance(),
+        backgroundColor: "#FFFFFF",
+        borderColor: "#E5E7EB",
+        borderWidth: 1,
+        borderRadius: 16,
+      },
+      data: {
+        productName: "Product",
+        price: 10,
+        currency: "usd",
+        allowQuantity: false,
+        description: "",
+        imageUrl: "",
+        buttonText: "Checkout",
+        successMessage: "Payment successful!",
+        redirectUrl: "",
+        collectEmail: true,
+        collectName: false,
+        collectAddress: false,
+        style: createDefaultTextStyle(),
+      },
+    };
 
 default:
   throw new Error(`Unsupported block type: ${type}`);

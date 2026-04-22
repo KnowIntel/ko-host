@@ -116,67 +116,69 @@ export async function POST(req: Request) {
 
     const cartData = cartBlock.data as CartBlockData;
 
-    const listingBlocks = blocks.filter(
-      (block) => block && block.type === "listing" && block.data?.addToCart,
-    );
+const items =
+  body &&
+  typeof body === "object" &&
+  Array.isArray(body.items)
+    ? body.items
+    : [];
 
-    if (!listingBlocks.length) {
-      return NextResponse.json(
-        { error: "No cart items found" },
-        { status: 400 },
-      );
-    }
+if (!items.length) {
+  return NextResponse.json(
+    { error: "No cart items provided" },
+    { status: 400 },
+  );
+}
 
-    const lineItems: CartSessionLineItem[] =
-      listingBlocks.reduce<CartSessionLineItem[]>((acc, block) => {
-        const data = block.data as ListingBlockData;
+const lineItems: CartSessionLineItem[] = items
+  .map((item: any) => {
+    const title =
+      typeof item.title === "string" && item.title.trim()
+        ? item.title.trim()
+        : "Item";
 
-        const title =
-          typeof data.title === "string" && data.title.trim().length > 0
-            ? data.title.trim()
-            : "Item";
+    const description =
+      typeof item.description === "string" && item.description.trim()
+        ? item.description.trim()
+        : undefined;
 
-        const description =
-          typeof data.description === "string" &&
-          data.description.trim().length > 0
-            ? data.description.trim()
-            : undefined;
+    const price =
+      typeof item.price === "number" && Number.isFinite(item.price)
+        ? Math.max(0, item.price)
+        : 0;
 
-        const price =
-          typeof data.price === "number" && Number.isFinite(data.price)
-            ? Math.max(0, data.price)
-            : 0;
+    const quantity =
+      typeof item.quantity === "number" && Number.isFinite(item.quantity)
+        ? Math.max(1, Math.floor(item.quantity))
+        : 1;
 
-        if (price <= 0) return acc;
+    if (price <= 0) return null;
 
-        const unitAmount = toCents(price);
+    return {
+      price_data: {
+        currency: "usd",
+        product_data: {
+          name: title,
+          ...(description ? { description } : {}),
+        },
+        unit_amount: toCents(price),
+      },
+      quantity,
+    };
+  })
+  .filter(Boolean) as CartSessionLineItem[];
 
-        acc.push({
-          price_data: {
-            currency: "usd",
-            product_data: {
-              name: title,
-              ...(description ? { description } : {}),
-            },
-            unit_amount: unitAmount,
-          },
-          quantity: 1,
-        });
+if (!lineItems.length) {
+  return NextResponse.json(
+    { error: "No valid cart items" },
+    { status: 400 },
+  );
+}
 
-        return acc;
-      }, []);
-
-    if (!lineItems.length) {
-      return NextResponse.json(
-        { error: "No valid cart items found" },
-        { status: 400 },
-      );
-    }
-
-    const subtotal = lineItems.reduce(
-      (sum, item) => sum + item.price_data.unit_amount * item.quantity,
-      0,
-    );
+const subtotal = lineItems.reduce(
+  (sum, item) => sum + item.price_data.unit_amount * item.quantity,
+  0,
+);
 
     const taxRate =
       typeof cartData.taxRate === "number" && Number.isFinite(cartData.taxRate)
@@ -237,44 +239,26 @@ const session = await stripe.checkout.sessions.create({
   },
 });
 
-const cartItemsForDb = listingBlocks.reduce<
-  Array<{
-    id: string;
-    name: string;
-    description: string;
-    price: number;
-    quantity: number;
-  }>
->((acc, block) => {
-  const data = block.data as ListingBlockData;
-
-  const title =
-    typeof data.title === "string" && data.title.trim().length > 0
-      ? data.title.trim()
-      : "Item";
-
-  const description =
-    typeof data.description === "string" && data.description.trim().length > 0
-      ? data.description.trim()
-      : "";
-
-  const price =
-    typeof data.price === "number" && Number.isFinite(data.price)
-      ? Math.max(0, data.price)
-      : 0;
-
-  if (price <= 0) return acc;
-
-  acc.push({
-    id: typeof block.id === "string" ? block.id : randomUUID(),
-    name: title,
-    description,
-    price,
-    quantity: 1,
-  });
-
-  return acc;
-}, []);
+const cartItemsForDb = items.map((item: any) => ({
+  id:
+    typeof item.id === "string" && item.id.trim().length > 0
+      ? item.id
+      : randomUUID(),
+  name:
+    typeof item.title === "string" && item.title.trim().length > 0
+      ? item.title.trim()
+      : "Item",
+  description:
+    typeof item.description === "string" ? item.description : "",
+  price:
+    typeof item.price === "number" && Number.isFinite(item.price)
+      ? Math.max(0, item.price)
+      : 0,
+  quantity:
+    typeof item.quantity === "number" && Number.isFinite(item.quantity)
+      ? Math.max(1, Math.floor(item.quantity))
+      : 1,
+}));
 
 const { error: cartInsertError } = await supabase
   .from("cart_checkouts")

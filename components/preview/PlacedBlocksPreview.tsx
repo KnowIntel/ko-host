@@ -376,12 +376,24 @@ const availableCartItems = useMemo(() => {
 
       if (safePrice <= 0) return null;
 
+      const safeTitle =
+        typeof data.title === "string" && data.title.trim()
+          ? data.title.trim()
+          : typeof data.sku === "string" && data.sku.trim()
+            ? data.sku.trim()
+            : "Item";
+
+      const safeDescription =
+        typeof data.description === "string" && data.description.trim()
+          ? data.description.trim()
+          : typeof data.sku === "string" && data.sku.trim()
+            ? data.sku.trim()
+            : `ITEM-${block.id.slice(-6).toUpperCase()}`;
+
       return {
         id: block.id,
-        title: data.title || "Item",
-        description:
-          data.description?.trim() ||
-          `ITEM-${block.id.slice(-6).toUpperCase()}`,
+        title: safeTitle,
+        description: safeDescription,
         price: safePrice,
       };
     })

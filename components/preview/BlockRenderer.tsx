@@ -3444,7 +3444,6 @@ function renderHighlight(
             const params = new URLSearchParams({
               micrositeSlug,
               pollId: resolvedSourceBlockId,
-              t: String(Date.now()),
             });
 
             const res = await fetch(
@@ -5294,6 +5293,7 @@ function renderCart(
       )
     : [];
 
+  const currency = (block.data.currency || "usd").toUpperCase();
   const safeCartSubtotal = safeCartItems.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0,
@@ -5305,6 +5305,7 @@ function renderCart(
   const taxAmount = safeCartSubtotal * taxRate;
   const total = Math.max(0, safeCartSubtotal + taxAmount - discount);
 
+
   async function handleCartCheckout() {
     try {
       const res = await fetch("/api/checkout/create-cart-session", {
@@ -5312,10 +5313,11 @@ function renderCart(
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          blockId: block.id,
-          micrositeId,
-        }),
+body: JSON.stringify({
+  blockId: block.id,
+  micrositeId,
+  items: safeCartItems,
+}),
       });
 
       const json = await res.json();
@@ -5357,50 +5359,92 @@ function renderCart(
             safeCartItems.map((item) => (
               <div
                 key={item.id}
-                className="flex items-center justify-between text-sm"
+                className="flex items-start justify-between gap-3 text-sm"
               >
                 <div className="min-w-0">
-                  <div className="truncate font-medium">{item.title}</div>
-                  <div className="text-xs opacity-60">
+                  <div
+                    className="truncate font-medium"
+                    style={getContainerTextStyle(block.data.style, designKey)}
+                  >
+                    {item.title}
+                  </div>
+
+                  <div
+                    className="truncate text-xs opacity-70"
+                    style={getContainerTextStyle(block.data.style, designKey)}
+                  >
+                    {item.description}
+                  </div>
+
+                  <div
+                    className="text-xs opacity-60"
+                    style={getContainerTextStyle(block.data.style, designKey)}
+                  >
                     Qty: {item.quantity}
                   </div>
                 </div>
 
-                <div className="font-semibold">
+                <div
+                  className="font-semibold"
+                  style={getContainerTextStyle(block.data.style, designKey)}
+                >
                   ${formatCurrency(item.price * item.quantity)}
                 </div>
               </div>
             ))
           ) : (
-            <div className="text-sm opacity-60">No items selected</div>
+            <div
+              className="text-sm opacity-60"
+              style={getContainerTextStyle(block.data.style, designKey)}
+            >
+              {block.data.emptyMessage || "No items selected"}
+            </div>
           )}
         </div>
 
-<div className="space-y-1 border-t pt-3 text-sm">
-  <div className="flex justify-between">
-    <span>Subtotal&nbsp;</span>
-    <span>${formatCurrency(safeCartSubtotal)}</span>
-  </div>
+        <div className="space-y-1 border-t pt-3 text-sm">
+          <div
+            className="flex justify-between"
+            style={getContainerTextStyle(block.data.style, designKey)}
+          >
+            <span>Subtotal</span>
+            <span>
+              {currency} ${formatCurrency(safeCartSubtotal)}
+            </span>
+          </div>
 
-  {taxRate > 0 ? (
-    <div className="flex justify-between">
-      <span>Tax ({(taxRate * 100).toFixed(2)}%)&nbsp;</span>
-      <span>${formatCurrency(taxAmount)}</span>
-    </div>
-  ) : null}
+          {taxRate > 0 ? (
+            <div
+              className="flex justify-between"
+              style={getContainerTextStyle(block.data.style, designKey)}
+            >
+              <span>Tax ({(taxRate * 100).toFixed(2)}%)</span>
+              <span>
+                {currency} ${formatCurrency(taxAmount)}
+              </span>
+            </div>
+          ) : null}
 
-  {discount > 0 ? (
-    <div className="flex justify-between">
-      <span>Discount&nbsp;</span>
-      <span>- ${formatCurrency(discount)}</span>
-    </div>
-  ) : null}
+          {discount > 0 ? (
+            <div
+              className="flex justify-between"
+              style={getContainerTextStyle(block.data.style, designKey)}
+            >
+              <span>Discount</span>
+              <span>- {currency} ${formatCurrency(discount)}</span>
+            </div>
+          ) : null}
 
-  <div className="flex justify-between pt-1 font-semibold">
-    <span>Total&nbsp;</span>
-    <span>${formatCurrency(total)}</span>
-  </div>
-</div>
+          <div
+            className="flex justify-between pt-1 font-semibold"
+            style={getContainerTextStyle(block.data.style, designKey)}
+          >
+            <span>Total</span>
+            <span>
+              {currency} ${formatCurrency(total)}
+            </span>
+          </div>
+        </div>
 
         <button
           type="button"
@@ -5410,15 +5454,15 @@ function renderCart(
           title={
             !micrositeId
               ? "Checkout only works on live microsites right now."
-                : safeCartItems.length === 0
+              : safeCartItems.length === 0
                 ? "No cart items available."
                 : undefined
           }
         >
           {!micrositeId
             ? "Live Microsite Required"
-              : safeCartItems.length === 0
-              ? "No Items Selected"
+            : safeCartItems.length === 0
+              ? block.data.emptyMessage || "No Items Selected"
               : block.data.buttonText || "Checkout"}
         </button>
       </div>
@@ -5554,110 +5598,8 @@ case "cart":
     case "cta":
       return renderCta(block, designKey);
 
-    case "checkout": {
-      const data = block.data as any;
-
-      const handleCheckout = async () => {
-        try {
-          const res = await fetch("/api/checkout/create-session", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              blockId: block.id,
-              micrositeId,
-            }),
-          });
-
-          const json = await res.json();
-
-          if (!res.ok) {
-            console.error("Checkout failed:", json);
-            alert(json.error || "Checkout failed");
-            return;
-          }
-
-          if (json.url) {
-            window.location.href = json.url;
-          }
-        } catch (err) {
-          console.error("Checkout error:", err);
-          alert("Something went wrong");
-        }
-      };
-
-return (
-  <Surface block={block}>
-    <div className="flex h-full w-full flex-col gap-3">
-      {data.imageUrl ? (
-        <img
-          src={data.imageUrl}
-          alt={data.productName}
-          className="w-full h-40 object-cover rounded-lg"
-        />
-      ) : null}
-
-    <div className="font-semibold text-base">
-      {data.productName || "Product"}
-    </div>
-
-    {data.description ? (
-      <div className="text-sm opacity-70">
-        {data.description}
-      </div>
-    ) : null}
-
-    <div className="text-lg font-bold">
-      ${Number(data.price || 0).toFixed(2)}
-    </div>
-
-    <button
-      onClick={async () => {
-        try {
-          const res = await fetch("/api/checkout/create-session", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              blockId: block.id,        // ✅ CRITICAL
-              micrositeId,              // ✅ CRITICAL
-            }),
-          });
-
-          const json = await res.json();
-
-          if (!res.ok) {
-            console.error(json);
-            alert(json.error || "Checkout failed");
-            return;
-          }
-
-          if (json.url) {
-            window.location.href = json.url;
-          }
-        } catch (err) {
-          console.error(err);
-          alert("Something went wrong");
-        }
-      }}
-      disabled={!micrositeId}
-      className="mt-auto w-full rounded-xl bg-black py-2 text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-      title={
-        !micrositeId
-          ? "Checkout only works on live microsites right now."
-          : undefined
-      }
-    >
-      {!micrositeId
-        ? "Live Microsite Required"
-        : data.buttonText || "Checkout"}
-    </button>
-  </div>
-</Surface>
-  );
-}
+    case "checkout":
+      return renderCheckout(block, designKey, micrositeId);
     case "countdown":
       return renderCountdown(block, designKey, serverNow);
     case "links":

@@ -7499,8 +7499,8 @@ return (
       <div className={inspectorLabelClass()}>Tax Rate</div>
       <input
         type="number"
-        step="0.01"
         min="0"
+        step="0.01"
         value={selectedBlock.data.taxRate ?? 0}
         onChange={(e) =>
           updateSelectedBlock((block) =>
@@ -7516,15 +7516,19 @@ return (
           )
         }
         className={inspectorInputClass()}
+        placeholder="0.00"
       />
+      <div className="mt-1 text-xs text-neutral-500">
+        Use decimal format. Example: 0.07 = 7%
+      </div>
     </div>
 
     <div className="mt-4">
       <div className={inspectorLabelClass()}>Discount</div>
       <input
         type="number"
-        step="0.01"
         min="0"
+        step="0.01"
         value={selectedBlock.data.discount ?? 0}
         onChange={(e) =>
           updateSelectedBlock((block) =>
@@ -7540,95 +7544,75 @@ return (
           )
         }
         className={inspectorInputClass()}
+        placeholder="0.00"
       />
     </div>
 
-    <div className="mt-5">
-      <div className={inspectorLabelClass()}>Text Style</div>
-
-      <div className="mt-3 grid grid-cols-2 gap-3">
-        <div>
-          <div className={inspectorLabelClass()}>Font Family</div>
-          <select
-            value={selectedBlock.data.style?.fontFamily ?? "inherit"}
-            onChange={(e) =>
-              updateSelectedBlock((block) =>
-                block.type !== "cart"
-                  ? block
-                  : {
-                      ...block,
-                      data: {
-                        ...block.data,
-                        style: {
-                          ...(block.data.style ?? {}),
-                          fontFamily: e.target.value,
-                        },
-                      },
-                    },
-              )
-            }
-            className={inspectorInputClass()}
-          >
-            {FONT_FAMILY_OPTIONS.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <div className={inspectorLabelClass()}>Font Size</div>
-          <input
-            type="number"
-            min={8}
-            max={120}
-            value={selectedBlock.data.style?.fontSize ?? 16}
-            onChange={(e) =>
-              updateSelectedBlock((block) =>
-                block.type !== "cart"
-                  ? block
-                  : {
-                      ...block,
-                      data: {
-                        ...block.data,
-                        style: {
-                          ...(block.data.style ?? {}),
-                          fontSize: Math.max(8, Number(e.target.value) || 16),
-                        },
-                      },
-                    },
-              )
-            }
-            className={inspectorInputClass()}
-          />
-        </div>
-      </div>
-
-      <div className="mt-3">
-        <div className={inspectorLabelClass()}>Color</div>
-        <input
-          type="color"
-          value={selectedBlock.data.style?.color ?? "#111111"}
-          onChange={(e) =>
-            updateSelectedBlock((block) =>
-              block.type !== "cart"
-                ? block
-                : {
-                    ...block,
-                    data: {
-                      ...block.data,
-                      style: {
-                        ...(block.data.style ?? {}),
-                        color: e.target.value,
-                      },
-                    },
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Currency</div>
+      <input
+        type="text"
+        value={selectedBlock.data.currency ?? "usd"}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "cart"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    currency: e.target.value.trim().toLowerCase() || "usd",
                   },
-            )
-          }
-          className="mt-2 h-11 w-full rounded-xl border border-neutral-300 bg-white px-2"
-        />
-      </div>
+                },
+          )
+        }
+        className={inspectorInputClass()}
+        placeholder="usd"
+      />
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Button Text</div>
+      <input
+        type="text"
+        value={selectedBlock.data.buttonText ?? ""}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "cart"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    buttonText: e.target.value,
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Empty Cart Message</div>
+      <input
+        type="text"
+        value={selectedBlock.data.emptyMessage ?? ""}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "cart"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    emptyMessage: e.target.value,
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      />
     </div>
   </div>
 ) : null}
@@ -10794,6 +10778,29 @@ return (
         }
         className={inspectorInputClass()}
         placeholder="Enter price"
+      />
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>SKU</div>
+      <input
+        type="text"
+        value={selectedBlock.data.sku ?? ""}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "listing"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    sku: e.target.value,
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+        placeholder="Optional item code"
       />
     </div>
 
