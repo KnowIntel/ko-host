@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import SpeedDatingLive from "@/components/blocks/SpeedDatingLive";
 
 
@@ -5248,29 +5249,32 @@ function renderCheckout(
           </div>
         </Surface>
 
-        {modalMessage ? (
-          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4">
-            <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl">
-              <div className="text-base font-semibold text-neutral-900">
-                {modalTitle}
-              </div>
+        {modalMessage && typeof document !== "undefined"
+          ? createPortal(
+              <div className="fixed inset-0 z-[9999] flex items-start justify-center bg-black/50 p-4 pt-24">
+                <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl">
+                  <div className="text-base font-semibold text-neutral-900">
+                    {modalTitle}
+                  </div>
 
-              <div className="mt-2 text-sm text-neutral-600">
-                {modalMessage}
-              </div>
+                  <div className="mt-2 text-sm text-neutral-600">
+                    {modalMessage}
+                  </div>
 
-              <div className="mt-5 flex justify-end">
-                <button
-                  type="button"
-                  onClick={() => setModalMessage("")}
-                  className="inline-flex h-10 items-center justify-center rounded-xl bg-neutral-900 px-4 text-sm font-medium text-white hover:opacity-90"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
-        ) : null}
+                  <div className="mt-5 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => setModalMessage("")}
+                      className="inline-flex h-10 items-center justify-center rounded-xl bg-neutral-900 px-4 text-sm font-medium text-white hover:opacity-90"
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+              </div>,
+              document.body,
+            )
+          : null}
       </>
     );
   }
@@ -5495,29 +5499,32 @@ function renderCart(
           </div>
         </Surface>
 
-        {modalMessage ? (
-          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4">
-            <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl">
-              <div className="text-base font-semibold text-neutral-900">
-                {modalTitle}
-              </div>
+        {modalMessage && typeof document !== "undefined"
+          ? createPortal(
+              <div className="fixed inset-0 z-[9999] flex items-start justify-center bg-black/50 p-4 pt-24">
+                <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl">
+                  <div className="text-base font-semibold text-neutral-900">
+                    {modalTitle}
+                  </div>
 
-              <div className="mt-2 text-sm text-neutral-600">
-                {modalMessage}
-              </div>
+                  <div className="mt-2 text-sm text-neutral-600">
+                    {modalMessage}
+                  </div>
 
-              <div className="mt-5 flex justify-end">
-                <button
-                  type="button"
-                  onClick={() => setModalMessage("")}
-                  className="inline-flex h-10 items-center justify-center rounded-xl bg-neutral-900 px-4 text-sm font-medium text-white hover:opacity-90"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
-        ) : null}
+                  <div className="mt-5 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => setModalMessage("")}
+                      className="inline-flex h-10 items-center justify-center rounded-xl bg-neutral-900 px-4 text-sm font-medium text-white hover:opacity-90"
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+              </div>,
+              document.body,
+            )
+          : null}
       </>
     );
   }
