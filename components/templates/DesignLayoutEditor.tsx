@@ -1171,6 +1171,8 @@ const showTextControls =
   selectedBlock?.type === "speed_dating" ||
   selectedBlock?.type === "registry" ||
   selectedBlock?.type === "rsvp" ||
+  selectedBlock?.type === "poll" ||
+  selectedBlock?.type === "faq" ||
   selectedBlock?.type === "video" ||
   selectedBlock?.type === "rich_text" ||
   selectedBlock?.type === "countdown" ||
@@ -1860,6 +1862,48 @@ function updatePageLength(value: PageLengthOption) {
 function cancelResetDraft() {
   setResetDraftModalOpen(false);
 }
+
+const handleVideoUpload = async (
+  e: React.ChangeEvent<HTMLInputElement>,
+) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await fetch("/api/video/upload", {
+      method: "POST",
+      body: formData,
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok || !data?.url) {
+      console.error(data);
+      alert("Failed to upload video");
+      return;
+    }
+
+    updateSelectedBlock((block) =>
+      block.type !== "video"
+        ? block
+        : {
+            ...block,
+            data: {
+              ...block.data,
+              videoUrl: data.url,
+            },
+          },
+    );
+  } catch (err) {
+    console.error(err);
+    alert("Upload failed");
+  } finally {
+    e.target.value = "";
+  }
+};
 
 function applyStylePatch(patch: Partial<TextStyle>) {
   if (selectedBlock?.type === "text_fx") {
@@ -9856,58 +9900,27 @@ return (
       />
     </div>
 
-    <div className="mt-4">
-      <div className={inspectorLabelClass()}>Upload Video</div>
+<div className="mt-4">
+  <div className={inspectorLabelClass()}>Upload Video</div>
+
+  <div className="mt-2 grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3">
+    <label className="flex h-11 cursor-pointer items-center justify-center rounded-xl bg-black px-4 text-sm font-semibold text-white hover:opacity-90">
+      <span className="leading-none">Choose File</span>
       <input
         type="file"
-        accept="video/mp4,video/webm,video/ogg,video/quicktime,video/*"
-        className={inspectorInputClass()}
-        onChange={async (e) => {
-          const file = e.target.files?.[0];
-          if (!file) return;
-
-          try {
-            const currentVideoPath =
-              selectedBlock.type === "video"
-                ? selectedBlock.data.videoPath
-                : undefined;
-
-            const uploaded = await uploadVideo(file);
-
-            if (currentVideoPath) {
-              try {
-                await deleteVideo(currentVideoPath);
-              } catch {
-                // keep new upload even if old delete fails
-              }
-            }
-
-            updateSelectedBlock((block) =>
-              block.type !== "video"
-                ? block
-                : {
-                    ...block,
-                    data: {
-                      ...block.data,
-                      videoUrl: uploaded.url,
-                      videoPath: uploaded.path,
-                    },
-                  },
-            );
-          } catch (error) {
-            alert(
-              error instanceof Error
-                ? error.message
-                : "Video upload failed",
-            );
-          }
-
-          if (e.target) {
-            (e.target as HTMLInputElement).value = "";
-          }
-        }}
+        accept="video/*"
+        className="hidden"
+        onChange={handleVideoUpload}
       />
+    </label>
+
+    <div className="flex h-11 min-w-0 items-center rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-500">
+      <span className="truncate">
+        {selectedBlock.data.videoUrl?.trim() || "No file chosen"}
+      </span>
     </div>
+  </div>
+</div>
 
     <div className="mt-4">
       <div className={inspectorLabelClass()}>
