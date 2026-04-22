@@ -92,6 +92,10 @@ async function ensurePublishedPollExists(args: {
     {
       id: finalPollId,
       microsite_id: args.micrositeId,
+      title:
+        (pollBlock as any)?.data?.question?.trim?.() ||
+        (pollBlock as any)?.label ||
+        "Poll",
       is_multi_select: false,
       is_open: true,
       show_results_public: true,
