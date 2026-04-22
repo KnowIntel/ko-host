@@ -1,7 +1,11 @@
-// proxy.ts
-import { clerkMiddleware } from "@clerk/nextjs/server";
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+
+const isDashboardRoute = createRouteMatcher([
+  "/dashboard(.*)",
+  "/api/dashboard(.*)",
+]);
 
 function getRootHost(hostname: string) {
   if (
@@ -47,16 +51,23 @@ function shouldBypassSubdomain(subdomain: string) {
   return blocked.has(subdomain.toLowerCase());
 }
 
-export default clerkMiddleware(async (_auth, req: NextRequest) => {
+export default clerkMiddleware(async (auth, req: NextRequest) => {
   const url = req.nextUrl;
   const pathname = url.pathname;
 
+  if (isDashboardRoute(req)) {
+    await auth.protect();
+  }
+
   if (
     pathname.startsWith("/_next") ||
-    pathname.startsWith("/api") ||
     pathname.startsWith("/trpc") ||
     pathname.includes(".")
   ) {
+    return NextResponse.next();
+  }
+
+  if (pathname.startsWith("/api")) {
     return NextResponse.next();
   }
 

@@ -1170,6 +1170,7 @@ const showTextControls =
   selectedBlock?.type === "file_share" ||
   selectedBlock?.type === "speed_dating" ||
   selectedBlock?.type === "registry" ||
+  selectedBlock?.type === "rsvp" ||
   selectedBlock?.type === "video" ||
   selectedBlock?.type === "rich_text" ||
   selectedBlock?.type === "countdown" ||
@@ -1185,8 +1186,6 @@ const showAppearanceControls =
   selectedContext.kind === "imageCarousel" ||
   selectedContext.kind === "shape" ||
   selectedBlock?.type === "thread" ||
-  selectedBlock?.type === "poll" ||
-  selectedBlock?.type === "highlight" ||
   selectedBlock?.type === "listing" ||
   selectedBlock?.type === "progress_bar" ||
   selectedBlock?.type === "donation" ||
@@ -1198,10 +1197,15 @@ const showAppearanceControls =
   selectedBlock?.type === "speed_dating" ||
   selectedBlock?.type === "registry" ||
   selectedBlock?.type === "cart" ||
+  selectedBlock?.type === "checkout" ||
+  selectedBlock?.type === "poll" ||
+  selectedBlock?.type === "form_field" ||
+  selectedBlock?.type === "faq" ||
+  selectedBlock?.type === "gallery" ||
+  selectedBlock?.type === "rsvp" ||
   selectedBlock?.type === "video" ||
   selectedBlock?.type === "rich_text" ||
-  selectedBlock?.type === "countdown" ||
-  selectedBlock?.type === "links";
+  selectedBlock?.type === "countdown";
 
 const showBorderWidthRadiusControls =
   selectedContext.kind === "label" ||
@@ -7397,94 +7401,6 @@ return (
         Allow Quantity
       </label>
     </div>
-
-    <div className="mt-5">
-      <div className={inspectorLabelClass()}>Text Style</div>
-
-      <div className="mt-3 grid grid-cols-2 gap-3">
-        <div>
-          <div className={inspectorLabelClass()}>Font Family</div>
-          <select
-            value={selectedBlock.data.style?.fontFamily ?? "inherit"}
-            onChange={(e) =>
-              updateSelectedBlock((block) =>
-                block.type !== "checkout"
-                  ? block
-                  : {
-                      ...block,
-                      data: {
-                        ...block.data,
-                        style: {
-                          ...(block.data.style ?? {}),
-                          fontFamily: e.target.value,
-                        },
-                      },
-                    },
-              )
-            }
-            className={inspectorInputClass()}
-          >
-            {FONT_FAMILY_OPTIONS.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <div className={inspectorLabelClass()}>Font Size</div>
-          <input
-            type="number"
-            min={8}
-            max={120}
-            value={selectedBlock.data.style?.fontSize ?? 16}
-            onChange={(e) =>
-              updateSelectedBlock((block) =>
-                block.type !== "checkout"
-                  ? block
-                  : {
-                      ...block,
-                      data: {
-                        ...block.data,
-                        style: {
-                          ...(block.data.style ?? {}),
-                          fontSize: Math.max(8, Number(e.target.value) || 16),
-                        },
-                      },
-                    },
-              )
-            }
-            className={inspectorInputClass()}
-          />
-        </div>
-      </div>
-
-      <div className="mt-3">
-        <div className={inspectorLabelClass()}>Color</div>
-        <input
-          type="color"
-          value={selectedBlock.data.style?.color ?? "#111111"}
-          onChange={(e) =>
-            updateSelectedBlock((block) =>
-              block.type !== "checkout"
-                ? block
-                : {
-                    ...block,
-                    data: {
-                      ...block.data,
-                      style: {
-                        ...(block.data.style ?? {}),
-                        color: e.target.value,
-                      },
-                    },
-                  },
-            )
-          }
-          className="mt-2 h-11 w-full rounded-xl border border-neutral-300 bg-white px-2"
-        />
-      </div>
-    </div>
   </div>
 ) : null}
 
@@ -8462,7 +8378,7 @@ return (
             key={option.id || `donation-option-${index}`}
             className="rounded-xl border border-neutral-200 bg-neutral-50 p-3"
           >
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_140px_auto]">
+            <div className="grid grid-cols-[1fr_140px_auto] items-end gap-3">
               <div>
                 <div className={inspectorLabelClass()}>Button Label</div>
                 <input
@@ -8554,9 +8470,11 @@ return (
                           },
                     )
                   }
-                  className="inline-flex h-11 items-center justify-center rounded-xl border border-red-300 bg-white px-4 text-sm font-medium text-red-600 hover:border-red-500"
+                  className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-red-300 bg-white text-lg font-medium text-red-600 hover:border-red-500"
+                  title="Remove donation button"
+                  aria-label="Remove donation button"
                 >
-                  Remove
+                  ×
                 </button>
               </div>
             </div>
@@ -10934,269 +10852,6 @@ return (
       />
     </div>
 
-    <div className="mt-5">
-      <div className={inspectorLabelClass()}>Title Style</div>
-
-      <div className="mt-3 grid grid-cols-2 gap-3">
-        <div>
-          <div className={inspectorLabelClass()}>Font Family</div>
-          <select
-            value={selectedBlock.data.titleStyle?.fontFamily ?? "inherit"}
-            onChange={(e) =>
-              updateSelectedBlock((block) =>
-                block.type !== "listing"
-                  ? block
-                  : {
-                      ...block,
-                      data: {
-                        ...block.data,
-                        titleStyle: {
-                          ...(block.data.titleStyle ?? {}),
-                          fontFamily: e.target.value,
-                        },
-                      },
-                    },
-              )
-            }
-            className={inspectorInputClass()}
-          >
-{FONT_FAMILY_OPTIONS.map((option) => (
-  <option key={option} value={option}>
-    {option}
-  </option>
-))}
-          </select>
-        </div>
-
-        <div>
-          <div className={inspectorLabelClass()}>Font Size</div>
-          <input
-            type="number"
-            min={8}
-            max={120}
-            value={selectedBlock.data.titleStyle?.fontSize ?? 16}
-            onChange={(e) =>
-              updateSelectedBlock((block) =>
-                block.type !== "listing"
-                  ? block
-                  : {
-                      ...block,
-                      data: {
-                        ...block.data,
-                        titleStyle: {
-                          ...(block.data.titleStyle ?? {}),
-                          fontSize: Math.max(8, Number(e.target.value) || 16),
-                        },
-                      },
-                    },
-              )
-            }
-            className={inspectorInputClass()}
-          />
-        </div>
-      </div>
-
-      <div className="mt-3">
-        <div className={inspectorLabelClass()}>Color</div>
-        <input
-          type="color"
-          value={selectedBlock.data.titleStyle?.color ?? "#111111"}
-          onChange={(e) =>
-            updateSelectedBlock((block) =>
-              block.type !== "listing"
-                ? block
-                : {
-                    ...block,
-                    data: {
-                      ...block.data,
-                      titleStyle: {
-                        ...(block.data.titleStyle ?? {}),
-                        color: e.target.value,
-                      },
-                    },
-                  },
-            )
-          }
-          className="mt-2 h-11 w-full rounded-xl border border-neutral-300 bg-white px-2"
-        />
-      </div>
-    </div>
-
-    <div className="mt-5">
-      <div className={inspectorLabelClass()}>Description Style</div>
-
-      <div className="mt-3 grid grid-cols-2 gap-3">
-        <div>
-          <div className={inspectorLabelClass()}>Font Family</div>
-          <select
-            value={selectedBlock.data.descriptionStyle?.fontFamily ?? "inherit"}
-            onChange={(e) =>
-              updateSelectedBlock((block) =>
-                block.type !== "listing"
-                  ? block
-                  : {
-                      ...block,
-                      data: {
-                        ...block.data,
-                        descriptionStyle: {
-                          ...(block.data.descriptionStyle ?? {}),
-                          fontFamily: e.target.value,
-                        },
-                      },
-                    },
-              )
-            }
-            className={inspectorInputClass()}
-          >
-{FONT_FAMILY_OPTIONS.map((option) => (
-  <option key={option} value={option}>
-    {option}
-  </option>
-))}
-          </select>
-        </div>
-
-        <div>
-          <div className={inspectorLabelClass()}>Font Size</div>
-          <input
-            type="number"
-            min={8}
-            max={120}
-            value={selectedBlock.data.descriptionStyle?.fontSize ?? 14}
-            onChange={(e) =>
-              updateSelectedBlock((block) =>
-                block.type !== "listing"
-                  ? block
-                  : {
-                      ...block,
-                      data: {
-                        ...block.data,
-                        descriptionStyle: {
-                          ...(block.data.descriptionStyle ?? {}),
-                          fontSize: Math.max(8, Number(e.target.value) || 14),
-                        },
-                      },
-                    },
-              )
-            }
-            className={inspectorInputClass()}
-          />
-        </div>
-      </div>
-
-      <div className="mt-3">
-        <div className={inspectorLabelClass()}>Color</div>
-        <input
-          type="color"
-          value={selectedBlock.data.descriptionStyle?.color ?? "#444444"}
-          onChange={(e) =>
-            updateSelectedBlock((block) =>
-              block.type !== "listing"
-                ? block
-                : {
-                    ...block,
-                    data: {
-                      ...block.data,
-                      descriptionStyle: {
-                        ...(block.data.descriptionStyle ?? {}),
-                        color: e.target.value,
-                      },
-                    },
-                  },
-            )
-          }
-          className="mt-2 h-11 w-full rounded-xl border border-neutral-300 bg-white px-2"
-        />
-      </div>
-    </div>
-
-    <div className="mt-5">
-      <div className={inspectorLabelClass()}>Metadata Style</div>
-
-      <div className="mt-3 grid grid-cols-2 gap-3">
-        <div>
-          <div className={inspectorLabelClass()}>Font Family</div>
-          <select
-            value={selectedBlock.data.metadataStyle?.fontFamily ?? "inherit"}
-            onChange={(e) =>
-              updateSelectedBlock((block) =>
-                block.type !== "listing"
-                  ? block
-                  : {
-                      ...block,
-                      data: {
-                        ...block.data,
-                        metadataStyle: {
-                          ...(block.data.metadataStyle ?? {}),
-                          fontFamily: e.target.value,
-                        },
-                      },
-                    },
-              )
-            }
-            className={inspectorInputClass()}
-          >
-{FONT_FAMILY_OPTIONS.map((option) => (
-  <option key={option} value={option}>
-    {option}
-  </option>
-))}
-          </select>
-        </div>
-
-        <div>
-          <div className={inspectorLabelClass()}>Font Size</div>
-          <input
-            type="number"
-            min={8}
-            max={120}
-            value={selectedBlock.data.metadataStyle?.fontSize ?? 12}
-            onChange={(e) =>
-              updateSelectedBlock((block) =>
-                block.type !== "listing"
-                  ? block
-                  : {
-                      ...block,
-                      data: {
-                        ...block.data,
-                        metadataStyle: {
-                          ...(block.data.metadataStyle ?? {}),
-                          fontSize: Math.max(8, Number(e.target.value) || 12),
-                        },
-                      },
-                    },
-              )
-            }
-            className={inspectorInputClass()}
-          />
-        </div>
-      </div>
-
-      <div className="mt-3">
-        <div className={inspectorLabelClass()}>Color</div>
-        <input
-          type="color"
-          value={selectedBlock.data.metadataStyle?.color ?? "#666666"}
-          onChange={(e) =>
-            updateSelectedBlock((block) =>
-              block.type !== "listing"
-                ? block
-                : {
-                    ...block,
-                    data: {
-                      ...block.data,
-                      metadataStyle: {
-                        ...(block.data.metadataStyle ?? {}),
-                        color: e.target.value,
-                      },
-                    },
-                  },
-            )
-          }
-          className="mt-2 h-11 w-full rounded-xl border border-neutral-300 bg-white px-2"
-        />
-      </div>
-    </div>
 
     <div className="mt-5">
       <div className={inspectorLabelClass()}>Metadata</div>
