@@ -3435,6 +3435,18 @@ function renderHighlight(
             ? "Total Funds"
             : "Poll Results");
 
+    const headingTextStyle =
+      getContainerTextStyle(
+        block.data.headingStyle ?? block.data.style,
+        designKey,
+      );
+
+    const bodyTextStyle =
+      getContainerTextStyle(
+        block.data.bodyStyle ?? block.data.style,
+        designKey,
+      );
+
     useEffect(() => {
       let cancelled = false;
 
@@ -3657,7 +3669,7 @@ function renderHighlight(
         <div className="flex h-full w-full flex-col gap-3">
           <div
             className="text-sm font-semibold"
-            style={getContainerTextStyle(block.data.style, designKey)}
+            style={headingTextStyle}
           >
             {heading}
           </div>
@@ -3669,7 +3681,7 @@ function renderHighlight(
           {!isLoading && mode === "top_messages" && !resolvedSourceBlockId ? (
             <div
               className="rounded-xl border border-dashed px-3 py-4 text-sm opacity-60"
-              style={getContainerTextStyle(block.data.style, designKey)}
+              style={bodyTextStyle}
             >
               Select a source thread block.
             </div>
@@ -3678,7 +3690,7 @@ function renderHighlight(
           {!isLoading && mode === "poll_results" && !resolvedSourceBlockId ? (
             <div
               className="rounded-xl border border-dashed px-3 py-4 text-sm opacity-60"
-              style={getContainerTextStyle(block.data.style, designKey)}
+              style={bodyTextStyle}
             >
               Select a source poll block.
             </div>
@@ -3687,7 +3699,7 @@ function renderHighlight(
           {!isLoading && mode === "rsvp_count" && !sourceFormBlockId ? (
             <div
               className="rounded-xl border border-dashed px-3 py-4 text-sm opacity-60"
-              style={getContainerTextStyle(block.data.style, designKey)}
+              style={bodyTextStyle}
             >
               Select a source form block.
             </div>
@@ -3705,7 +3717,7 @@ function renderHighlight(
           {!isLoading && mode === "top_messages" && resolvedSourceBlockId && !items.length ? (
             <div
               className="rounded-xl border border-dashed px-3 py-4 text-sm opacity-60"
-              style={getContainerTextStyle(block.data.style, designKey)}
+              style={bodyTextStyle}
             >
               No data yet.
             </div>
@@ -3714,7 +3726,7 @@ function renderHighlight(
           {!isLoading && mode === "poll_results" && resolvedSourceBlockId && !items.length ? (
             <div
               className="rounded-xl border border-dashed px-3 py-4 text-sm opacity-60"
-              style={getContainerTextStyle(block.data.style, designKey)}
+              style={bodyTextStyle}
             >
               No votes yet.
             </div>
@@ -3726,13 +3738,13 @@ function renderHighlight(
                 <div>
                   <div
                     className="text-[11px] font-semibold uppercase tracking-[0.14em] opacity-60"
-                    style={getContainerTextStyle(block.data.style, designKey)}
+                    style={bodyTextStyle}
                   >
                     Responses
                   </div>
                   <div
                     className="mt-2 text-4xl font-bold leading-none"
-                    style={getContainerTextStyle(block.data.style, designKey)}
+                    style={bodyTextStyle}
                   >
                     {countValue}
                   </div>
@@ -3743,7 +3755,7 @@ function renderHighlight(
 
               <div
                 className="mt-3 text-xs opacity-60"
-                style={getContainerTextStyle(block.data.style, designKey)}
+                style={bodyTextStyle}
               >
                 Live RSVP count from submitted forms.
               </div>
@@ -3756,13 +3768,13 @@ function renderHighlight(
                 <div>
                   <div
                     className="text-[11px] font-semibold uppercase tracking-[0.14em] opacity-60"
-                    style={getContainerTextStyle(block.data.style, designKey)}
+                    style={bodyTextStyle}
                   >
                     Total Raised
                   </div>
                   <div
                     className="mt-2 text-4xl font-bold leading-none"
-                    style={getContainerTextStyle(block.data.style, designKey)}
+                    style={bodyTextStyle}
                   >
                     {new Intl.NumberFormat("en-US", {
                       style: "currency",
@@ -3777,7 +3789,7 @@ function renderHighlight(
 
               <div
                 className="mt-3 text-xs opacity-60"
-                style={getContainerTextStyle(block.data.style, designKey)}
+                style={bodyTextStyle}
               >
                 Live funding total from submitted forms.
               </div>
@@ -3805,7 +3817,7 @@ function renderHighlight(
                             background: isLightDesign(designKey)
                               ? "rgba(17,24,39,0.08)"
                               : "rgba(255,255,255,0.12)",
-                            color: getDefaultTextColor(designKey),
+                            color: bodyTextStyle.color ?? getDefaultTextColor(designKey),
                           }}
                         >
                           #{index + 1}
@@ -3813,7 +3825,7 @@ function renderHighlight(
 
                         <div
                           className="truncate text-xs font-semibold"
-                          style={getContainerTextStyle(block.data.style, designKey)}
+                          style={bodyTextStyle}
                         >
                           {msg.author_name || msg.name || "Guest"}
                         </div>
@@ -3821,7 +3833,7 @@ function renderHighlight(
 
                       <div
                         className="mt-2 text-sm leading-5"
-                        style={getContainerTextStyle(block.data.style, designKey)}
+                        style={bodyTextStyle}
                       >
                         {msg.message_text || msg.message}
                       </div>
@@ -3833,7 +3845,7 @@ function renderHighlight(
                         background: isLightDesign(designKey)
                           ? "rgba(17,24,39,0.08)"
                           : "rgba(255,255,255,0.12)",
-                        color: getDefaultTextColor(designKey),
+                        color: bodyTextStyle.color ?? getDefaultTextColor(designKey),
                       }}
                     >
                       👍 {msg.votes ?? 0}
@@ -3855,32 +3867,62 @@ function renderHighlight(
                 const percent =
                   countValue > 0 ? Math.round((item.count / countValue) * 100) : 0;
 
+                const cardBackground = isLightDesign(designKey)
+                  ? "rgba(255,255,255,0.92)"
+                  : "rgba(255,255,255,0.08)";
+
+                const badgeBackground = isLightDesign(designKey)
+                  ? "rgba(17,24,39,0.08)"
+                  : "rgba(255,255,255,0.14)";
+
+                const trackBackground = isLightDesign(designKey)
+                  ? "rgba(17,24,39,0.10)"
+                  : "rgba(255,255,255,0.16)";
+
+                const fillBackground =
+                  bodyTextStyle.color ??
+                  (isLightDesign(designKey)
+                    ? "rgba(37,99,235,0.85)"
+                    : "rgba(255,255,255,0.92)");
+
                 return (
-                  <div key={item.optionId} className={getHighlightCardClass(designKey)}>
+                  <div
+                    key={item.optionId}
+                    className="rounded-3xl p-4"
+                    style={{
+                      background: cardBackground,
+                      border: isLightDesign(designKey)
+                        ? "1px solid rgba(17,24,39,0.08)"
+                        : "1px solid rgba(255,255,255,0.10)",
+                    }}
+                  >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0 flex-1">
                         <div
                           className="truncate text-sm font-semibold"
-                          style={getContainerTextStyle(block.data.style, designKey)}
+                          style={bodyTextStyle}
                         >
                           {item.label || "Option"}
                         </div>
 
-                        <div className="mt-3 h-2 overflow-hidden rounded-full bg-black/10">
+                        <div
+                          className="mt-3 h-2 overflow-hidden rounded-full"
+                          style={{
+                            background: trackBackground,
+                          }}
+                        >
                           <div
                             className="h-full rounded-full"
                             style={{
                               width: `${percent}%`,
-                              background: isLightDesign(designKey)
-                                ? "rgba(37,99,235,0.85)"
-                                : "rgba(96,165,250,0.95)",
+                              background: fillBackground,
                             }}
                           />
                         </div>
 
                         <div
                           className="mt-2 text-xs opacity-70"
-                          style={getContainerTextStyle(block.data.style, designKey)}
+                          style={bodyTextStyle}
                         >
                           {percent}% of votes
                         </div>
@@ -3889,10 +3931,8 @@ function renderHighlight(
                       <div
                         className="shrink-0 rounded-full px-2 py-1 text-[11px] font-semibold"
                         style={{
-                          background: isLightDesign(designKey)
-                            ? "rgba(17,24,39,0.08)"
-                            : "rgba(255,255,255,0.12)",
-                          color: getDefaultTextColor(designKey),
+                          background: badgeBackground,
+                          color: bodyTextStyle.color ?? getDefaultTextColor(designKey),
                         }}
                       >
                         {item.count ?? 0}

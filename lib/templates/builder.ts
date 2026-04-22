@@ -399,6 +399,8 @@ export type HighlightBlock = BaseBlock & {
     sourceBlockId?: string;
     sourceFormBlockId?: string;
     style?: TextStyle;
+    headingStyle?: TextStyle;
+    bodyStyle?: TextStyle;
   };
 };
 
@@ -1364,7 +1366,7 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
         },
       };
 
-    case "highlight":
+     case "highlight":
       return {
         id: makeId("highlight"),
         type: "highlight",
@@ -1378,6 +1380,8 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
           sourceBlockId: "",
           sourceFormBlockId: "",
           style: createDefaultTextStyle(),
+          headingStyle: createDefaultTextStyle(),
+          bodyStyle: createDefaultTextStyle(),
         },
       };
 

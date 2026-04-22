@@ -1085,6 +1085,11 @@ const [richTextLinkValue, setRichTextLinkValue] = useState("https://");
       ? draft.blocks.find((item) => item.id === selection.blockId) ?? null
       : null;
 
+      
+  const [highlightStyleTarget, setHighlightStyleTarget] = useState<
+  "heading" | "body"
+>("heading");
+
 const selectedStyle =
   selectedBlockFromDraft?.type === "listing"
     ? listingStyleTarget === "description"
@@ -1092,14 +1097,21 @@ const selectedStyle =
       : listingStyleTarget === "metadata"
         ? (selectedBlockFromDraft.data.metadataStyle ?? {})
         : (selectedBlockFromDraft.data.titleStyle ?? {})
-    : selectedBlockFromDraft?.type === "cart" ||
+    : selectedBlockFromDraft?.type === "highlight"
+      ? highlightStyleTarget === "body"
+        ? (selectedBlockFromDraft.data.bodyStyle ??
+            selectedBlockFromDraft.data.style ??
+            {})
+        : (selectedBlockFromDraft.data.headingStyle ??
+            selectedBlockFromDraft.data.style ??
+            {})
+      : selectedBlockFromDraft?.type === "cart" ||
         selectedBlockFromDraft?.type === "checkout" ||
         selectedBlockFromDraft?.type === "text_fx" ||
         selectedBlockFromDraft?.type === "cta" ||
         selectedBlockFromDraft?.type === "thread" ||
         selectedBlockFromDraft?.type === "form_field" ||
         selectedBlockFromDraft?.type === "image_carousel" ||
-        selectedBlockFromDraft?.type === "highlight" ||
         selectedBlockFromDraft?.type === "progress_bar" ||
         selectedBlockFromDraft?.type === "donation" ||
         selectedBlockFromDraft?.type === "link_hub" ||
@@ -1953,23 +1965,59 @@ function applyStylePatch(patch: Partial<TextStyle>) {
   }
 
   if (selectedBlock?.type === "highlight") {
-    setDraft((prev) => ({
-      ...prev,
-      blocks: prev.blocks.map((block) =>
-        block.id === selectedBlock.id && block.type === "highlight"
-          ? {
-              ...block,
-              data: {
-                ...block.data,
-                style: {
-                  ...(block.data.style ?? {}),
-                  ...patch,
-                },
-              },
-            }
-          : block,
-      ),
-    }));
+    const selectedHighlightId = selectedBlock.id;
+    const target = highlightStyleTarget;
+
+    requestAnimationFrame(() => {
+      setDraft((prev) => {
+        let changed = false;
+
+        const nextBlocks = prev.blocks.map((block) => {
+          if (block.id !== selectedHighlightId || block.type !== "highlight") {
+            return block;
+          }
+
+          const currentStyle =
+            target === "body"
+              ? (block.data.bodyStyle ?? block.data.style ?? {})
+              : (block.data.headingStyle ?? block.data.style ?? {});
+
+          const nextStyle = {
+            ...currentStyle,
+            ...patch,
+          };
+
+          const isSame =
+            (currentStyle.fontFamily ?? null) === (nextStyle.fontFamily ?? null) &&
+            (currentStyle.fontSize ?? null) === (nextStyle.fontSize ?? null) &&
+            (currentStyle.bold ?? false) === (nextStyle.bold ?? false) &&
+            (currentStyle.italic ?? false) === (nextStyle.italic ?? false) &&
+            (currentStyle.underline ?? false) === (nextStyle.underline ?? false) &&
+            (currentStyle.strike ?? false) === (nextStyle.strike ?? false) &&
+            (currentStyle.align ?? "left") === (nextStyle.align ?? "left") &&
+            (currentStyle.color ?? null) === (nextStyle.color ?? null);
+
+          if (isSame) {
+            return block;
+          }
+
+          changed = true;
+
+          return {
+            ...block,
+            data: {
+              ...block.data,
+              ...(target === "body"
+                ? { bodyStyle: nextStyle }
+                : { headingStyle: nextStyle }),
+            },
+          };
+        });
+
+        return changed ? { ...prev, blocks: nextBlocks } : prev;
+      });
+    });
+
     return;
   }
 
@@ -5498,25 +5546,45 @@ return (
         <>
 
         {selectedBlock?.type === "listing" ? (
-  <>
-    <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
+          <>
+            <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
 
-    <select
-      value={listingStyleTarget}
-      onChange={(e) =>
-        setListingStyleTarget(
-          e.target.value as "title" | "description" | "metadata",
-        )
-      }
-      className={topBarFieldClass("w-[140px]")}
-      title="Listing text target"
-    >
-      <option value="title">Title</option>
-      <option value="description">Description</option>
-      <option value="metadata">Metadata</option>
-    </select>
-  </>
-) : null}
+            <select
+              value={listingStyleTarget}
+              onChange={(e) =>
+                setListingStyleTarget(
+                  e.target.value as "title" | "description" | "metadata",
+                )
+              }
+              className={topBarFieldClass("w-[140px]")}
+              title="Listing text target"
+            >
+              <option value="title">Title</option>
+              <option value="description">Description</option>
+              <option value="metadata">Metadata</option>
+            </select>
+          </>
+        ) : null}
+
+        {selectedBlock?.type === "highlight" ? (
+          <>
+            <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
+
+            <select
+              value={highlightStyleTarget}
+              onChange={(e) =>
+                setHighlightStyleTarget(
+                  e.target.value as "heading" | "body",
+                )
+              }
+              className={topBarFieldClass("w-[140px]")}
+              title="Highlight text target"
+            >
+              <option value="heading">Heading</option>
+              <option value="body">Body</option>
+            </select>
+          </>
+        ) : null}
           <div className="mx-1 h-8 w-px shrink-0 bg-white/15" />
 
           <button
