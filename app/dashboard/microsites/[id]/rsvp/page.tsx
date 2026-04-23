@@ -159,6 +159,7 @@ export default async function MicrositeRsvpAdminPage({
               <th className="px-4 py-3 font-medium text-neutral-700">+1</th>
               <th className="px-4 py-3 font-medium text-neutral-700">Meal</th>
               <th className="px-4 py-3 font-medium text-neutral-700">Notes</th>
+              <th className="px-4 py-3 font-medium text-neutral-700">Comments</th>
             </tr>
           </thead>
           <tbody>

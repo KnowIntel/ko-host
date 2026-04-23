@@ -352,7 +352,8 @@ export type RsvpElementKey =
   | "meal"
   | "guestToggle"
   | "guestCount"
-  | "guestName";
+  | "guestName"
+  | "comments";
 
 export type RsvpElementStyleMap = Partial<
   Record<
@@ -386,6 +387,9 @@ export type RsvpBlock = BaseBlock & {
 
     guestLabel?: string;
     guestOptions?: [string, string];
+    commentsLabel?: string;
+    commentsPlaceholder?: string;
+    submitButtonText?: string;
 
     elementStyles?: RsvpElementStyleMap;
 
@@ -1333,20 +1337,21 @@ case "rsvp":
       heading: "Wedding Invitation RSVP Form",
       imageUrl: "",
       imageFrameShape: "circle",
-      elementOrder: [
-        "image",
-        "heading",
-        "nameLabel",
-        "firstName",
-        "lastName",
-        "email",
-        "address",
-        "attending",
-        "meal",
-        "guestToggle",
-        "guestCount",
-        "guestName",
-      ],
+elementOrder: [
+  "image",
+  "heading",
+  "nameLabel",
+  "firstName",
+  "lastName",
+  "email",
+  "address",
+  "attending",
+  "meal",
+  "guestToggle",
+  "guestCount",
+  "guestName",
+  "comments",
+],
       hiddenElements: [],
       guestMin: 0,
       guestMax: 1,
@@ -1359,6 +1364,10 @@ case "rsvp":
 
       guestLabel: "Are you bringing a guest?",
       guestOptions: ["Yes", "No"],
+
+      commentsLabel: "Additional comments",
+      commentsPlaceholder: "Additional comments",
+      submitButtonText: "Submit RSVP",
 
       elementStyles: {},
       style: createDefaultTextStyle(),

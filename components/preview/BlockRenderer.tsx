@@ -1850,7 +1850,27 @@ function RsvpFormBlock({
 }) {
   const styles = block.data.elementStyles ?? {};
   const hidden = new Set(block.data.hiddenElements ?? []);
-  const order = block.data.elementOrder ?? [];
+  const defaultRsvpOrder = [
+  "image",
+  "heading",
+  "nameLabel",
+  "firstName",
+  "lastName",
+  "email",
+  "address",
+  "attending",
+  "meal",
+  "guestToggle",
+  "guestCount",
+  "guestName",
+  "comments",
+] as const;
+
+const order = block.data.elementOrder?.length
+  ? block.data.elementOrder.includes("comments")
+    ? block.data.elementOrder
+    : [...block.data.elementOrder, "comments"]
+  : [...defaultRsvpOrder];
   const imageShape = block.data.imageFrameShape ?? "circle";
   const guestMin = Math.max(0, block.data.guestMin ?? 0);
   const guestMax = Math.max(guestMin, block.data.guestMax ?? 1);
@@ -1863,6 +1883,11 @@ const mealOptions = block.data.mealOptions ?? ["Chicken", "Salmon"];
 const guestLabel = block.data.guestLabel || "Are you bringing a guest?";
 const guestOptions = block.data.guestOptions ?? ["Yes", "No"];
 
+const commentsLabel = block.data.commentsLabel || "Additional comments";
+const commentsPlaceholder =
+  block.data.commentsPlaceholder || "Additional comments";
+const submitButtonText = block.data.submitButtonText || "Submit RSVP";
+
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -1872,6 +1897,7 @@ const guestOptions = block.data.guestOptions ?? ["Yes", "No"];
   const [bringingGuest, setBringingGuest] = useState(false);
   const [guestCount, setGuestCount] = useState(Math.max(guestMin, 1));
   const [guestName, setGuestName] = useState("");
+  const [comments, setComments] = useState("");
   const [company, setCompany] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitState, setSubmitState] = useState<"idle" | "success" | "error">("idle");
@@ -1896,16 +1922,23 @@ const guestOptions = block.data.guestOptions ?? ["Yes", "No"];
     return "";
   }
 
-  function getMicrositeSlugFromHost() {
-    if (typeof window === "undefined") return "";
-    const host = window.location.hostname.toLowerCase();
+function getMicrositeSlugFromHost() {
+  if (typeof window === "undefined") return "";
 
-    if (host.endsWith(".ko-host.com")) {
-      return host.replace(".ko-host.com", "").split(".")[0] || "";
-    }
+  const host = window.location.hostname.toLowerCase();
+  const pathname = window.location.pathname;
 
-    return "";
+  if (host.endsWith(".ko-host.com")) {
+    return host.replace(".ko-host.com", "").split(".")[0] || "";
   }
+
+  const match = pathname.match(/^\/s\/([^/]+)/);
+  if (match?.[1]) {
+    return decodeURIComponent(match[1]).toLowerCase();
+  }
+
+  return "";
+}
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -1951,6 +1984,7 @@ const guestOptions = block.data.guestOptions ?? ["Yes", "No"];
           bringingGuest,
           guestCount: isAttending ? Math.max(bringingGuest ? 2 : 1, guestCount) : 0,
           guestName: bringingGuest ? guestName.trim() : "",
+          comments: comments.trim(),
           company: company.trim(),
         }),
       });
@@ -1987,19 +2021,39 @@ const guestOptions = block.data.guestOptions ?? ["Yes", "No"];
     if (!block.data.imageUrl) return null;
 
 if (imageShape === "heart") {
+  const heartClipId = `rsvp-heart-clip-${block.id}`;
+
   return (
-    <div className="flex justify-center">
-      <div
-        className="relative h-28 w-28"
-        style={getStyle("image")}
-      >
-        <div className="rsvp-heart-clip h-full w-full overflow-hidden border border-neutral-200 bg-neutral-100">
-          <img
-            src={block.data.imageUrl}
-            alt=""
-            className="h-full w-full object-cover"
+    <div key="image" className="flex justify-center">
+      <div className="h-28 w-28" style={getStyle("image")}>
+        <svg
+          viewBox="0 0 100 100"
+          className="h-full w-full"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <defs>
+            <clipPath id={heartClipId} clipPathUnits="objectBoundingBox">
+              <path d="M 0.5 0.95 C 0.2 0.72, 0.02 0.5, 0.02 0.28 C 0.02 0.1, 0.16 0.0, 0.3 0.0 C 0.42 0.0, 0.5 0.1, 0.5 0.18 C 0.5 0.1, 0.58 0.0, 0.7 0.0 C 0.84 0.0, 0.98 0.1, 0.98 0.28 C 0.98 0.5, 0.8 0.72, 0.5 0.95 Z" />
+            </clipPath>
+          </defs>
+
+          <image
+            href={block.data.imageUrl}
+            x="0"
+            y="0"
+            width="100"
+            height="100"
+            preserveAspectRatio="xMidYMid slice"
+            clipPath={`url(#${heartClipId})`}
           />
-        </div>
+
+          <path
+            d="M 50 95 C 20 72, 2 50, 2 28 C 2 10, 16 0, 30 0 C 42 0, 50 10, 50 18 C 50 10, 58 0, 70 0 C 84 0, 98 10, 98 28 C 98 50, 80 72, 50 95 Z"
+            fill="none"
+            stroke="#e5e5e5"
+            strokeWidth="2"
+          />
+        </svg>
       </div>
     </div>
   );
@@ -2007,7 +2061,7 @@ if (imageShape === "heart") {
 
     if (imageShape === "diamond") {
       return (
-        <div className="flex justify-center py-2">
+        <div key="image" className="flex justify-center py-2">
           <div
             className={`relative h-28 w-28 overflow-hidden border border-neutral-200 bg-neutral-100 ${getFrameClass(
               imageShape,
@@ -2025,7 +2079,7 @@ if (imageShape === "heart") {
     }
 
     return (
-      <div className="flex justify-center">
+      <div key="image" className="flex justify-center">
         <img
           src={block.data.imageUrl}
           alt=""
@@ -2057,6 +2111,25 @@ if (imageShape === "heart") {
       />
     );
   }
+
+  function renderTextarea(
+  key: string,
+  placeholder: string,
+  value: string,
+  onChange: (value: string) => void,
+) {
+  return (
+    <textarea
+      key={key}
+      placeholder={placeholder}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="w-full rounded-xl border border-neutral-300 bg-white px-3 py-3 text-sm text-neutral-800 outline-none"
+      style={getStyle(key)}
+      rows={4}
+    />
+  );
+}
 
   function renderLabel(key: string, text: string) {
     return (
@@ -2204,6 +2277,24 @@ if (imageShape === "heart") {
         if (!isAttending || !bringingGuest) return null;
         return renderField("guestName", "Guest Name", guestName, setGuestName);
 
+      case "comments":
+        return (
+          <div key="comments" className="space-y-2">
+            <div
+              className="text-sm font-medium text-neutral-800"
+              style={getStyle("comments")}
+            >
+              {commentsLabel}
+            </div>
+            {renderTextarea(
+              "comments",
+              commentsPlaceholder,
+              comments,
+              setComments,
+            )}
+          </div>
+        );
+
       default:
         return null;
     }
@@ -2215,12 +2306,6 @@ if (imageShape === "heart") {
       designKey={designKey}
       className={getSoftSurfaceClass(designKey)}
     >
-<style jsx>{`
-  .rsvp-heart-clip {
-    clip-path: path("M50 90 L15 55 C-5 30 10 0 35 0 C50 0 50 15 50 15 C50 15 50 0 65 0 C90 0 105 30 85 55 Z");
-    -webkit-clip-path: path("M50 90 L15 55 C-5 30 10 0 35 0 C50 0 50 15 50 15 C50 15 50 0 65 0 C90 0 105 30 85 55 Z");
-  }
-`}</style>
 
       <form onSubmit={handleSubmit} className="mx-auto flex w-full max-w-xl flex-col gap-4">
         <input
@@ -2265,7 +2350,7 @@ if (imageShape === "heart") {
           disabled={submitting}
           className="inline-flex items-center justify-center rounded-xl bg-neutral-900 px-4 py-3 text-sm font-medium text-white hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {submitting ? "Submitting..." : "Submit RSVP"}
+          {submitting ? "Submitting..." : submitButtonText}
         </button>
 
         {submitState === "success" ? (

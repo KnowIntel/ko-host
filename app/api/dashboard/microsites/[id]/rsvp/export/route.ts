@@ -65,7 +65,7 @@ export async function GET(
     "attending_count",
     "has_plus_one",
     "meal_choice",
-    "notes",
+    "comments",
   ];
 
   const lines: string[] = [];

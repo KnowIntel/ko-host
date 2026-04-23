@@ -21,6 +21,8 @@ const BodySchema = z.object({
   guestCount: z.number().int().min(0).max(20),
   guestName: z.string().max(120).optional().or(z.literal("")),
 
+  comments: z.string().max(1000).optional().or(z.literal("")),
+
   company: z.string().max(0).optional().or(z.literal("")),
 });
 
@@ -86,6 +88,7 @@ export async function POST(req: Request) {
     const cleanAddress = parsed.data.address?.trim() || null;
     const cleanMeal = parsed.data.mealChoice?.trim() || null;
     const cleanGuestName = parsed.data.guestName?.trim() || null;
+    const cleanComments = parsed.data.comments?.trim() || null;
 
     const attendingCount = parsed.data.isAttending
       ? Math.max(1, parsed.data.guestCount || 1)
@@ -97,6 +100,7 @@ export async function POST(req: Request) {
       attendingCount > 1;
 
     const notesParts = [
+      cleanComments ? `Comments: ${cleanComments}` : null,
       cleanAddress ? `Address: ${cleanAddress}` : null,
       cleanGuestName ? `Guest Name: ${cleanGuestName}` : null,
       `Attending: ${parsed.data.isAttending ? "Yes" : "No"}`,

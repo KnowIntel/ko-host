@@ -993,6 +993,7 @@ const [listingStyleTarget, setListingStyleTarget] = useState<
   | "guestToggle"
   | "guestCount"
   | "guestName"
+  | "comments"
 >("heading");
 
   const isPublished = microsite?.is_published;
@@ -1186,6 +1187,7 @@ const selectedStyle =
         { value: "guestToggle", label: "Guest Toggle Section" },
         { value: "guestCount", label: "Guest Count Control" },
         { value: "guestName", label: "Guest Name Field" },
+        { value: "comments", label: "Comments Field" },
       ]
     : [];
 
@@ -5718,7 +5720,8 @@ return (
             | "meal"
             | "guestToggle"
             | "guestCount"
-            | "guestName",
+            | "guestName"
+            | "comments",
         )
       }
       className="h-9 rounded-xl border border-neutral-200 bg-white px-3 text-sm text-neutral-900"
@@ -7451,6 +7454,74 @@ return (
   </div>
 </div>
 
+<div className="mt-5 space-y-4">
+  <div>
+    <div className={inspectorLabelClass()}>Comments Label</div>
+    <input
+      type="text"
+      value={selectedBlock.data.commentsLabel ?? "Additional comments"}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "rsvp"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  commentsLabel: e.target.value,
+                },
+              },
+        )
+      }
+      className={inspectorInputClass()}
+    />
+  </div>
+
+  <div>
+    <div className={inspectorLabelClass()}>Comments Placeholder</div>
+    <input
+      type="text"
+      value={selectedBlock.data.commentsPlaceholder ?? "Additional comments"}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "rsvp"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  commentsPlaceholder: e.target.value,
+                },
+              },
+        )
+      }
+      className={inspectorInputClass()}
+    />
+  </div>
+
+  <div>
+    <div className={inspectorLabelClass()}>Submit Button Text</div>
+    <input
+      type="text"
+      value={selectedBlock.data.submitButtonText ?? "Submit RSVP"}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "rsvp"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  submitButtonText: e.target.value,
+                },
+              },
+        )
+      }
+      className={inspectorInputClass()}
+    />
+  </div>
+</div>
+
     <div className="mt-5">
       <div className={inspectorLabelClass()}>Elements</div>
 
@@ -7468,6 +7539,7 @@ return (
           { key: "guestToggle", label: "Bringing a Guest?" },
           { key: "guestCount", label: "Guest Count" },
           { key: "guestName", label: "Guest Name" },
+          { key: "comments", label: "Comments" },
         ].map((item, index, arr) => {
           const hidden = new Set(selectedBlock.data.hiddenElements ?? []);
           const order = selectedBlock.data.elementOrder ?? [];
