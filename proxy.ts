@@ -95,7 +95,8 @@ export default clerkMiddleware(async (auth, req: NextRequest) => {
     rootHost === "ko-host.local"
   ) {
     const rewriteUrl = url.clone();
-    rewriteUrl.pathname = `/s/${subdomain}`;
+    const cleanPath = pathname === "/" ? "" : pathname;
+    rewriteUrl.pathname = `/s/${subdomain}${cleanPath}`;
     return NextResponse.rewrite(rewriteUrl);
   }
 

@@ -81,7 +81,7 @@ function isVisible(
   draft: DraftWithExtras,
   key: "title" | "subtitle" | "subtext" | "description",
 ) {
-  return draft.pageVisibility?.[key] !== false;
+  return draft.pageVisibility?.[key] === true;
 }
 
 export function buildPageCanvasItems(

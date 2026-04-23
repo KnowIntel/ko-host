@@ -1572,28 +1572,76 @@ function renderLinks(
       ) : null}
 
       <div className={listClass}>
-        {block.data.items.map((item: LinkItem) => (
-          <div
-            key={item.id}
-            className={
-              layout === "horizontal"
-                ? [
-                    "inline-flex items-center justify-center rounded-full px-3 py-2",
-                    isLightDesign(designKey)
-                      ? "border border-neutral-200 bg-white"
-                      : "border border-white/10 bg-white/5",
-                  ].join(" ")
-                : layout === "grid"
-                  ? getLinkItemClass(designKey)
-                  : designKey === "showcase"
-                    ? "block"
-                    : getLinkItemClass(designKey)
-            }
-            style={getContainerTextStyle(block.data.style, designKey)}
-          >
-            {item.label || "Link"}
-          </div>
-        ))}
+        {block.data.items.map((item: LinkItem) => {
+          const rawUrl =
+            typeof item.url === "string" ? item.url.trim() : "";
+
+          const normalizedHref =
+            rawUrl &&
+            (
+              rawUrl.startsWith("http://") ||
+              rawUrl.startsWith("https://") ||
+              rawUrl.startsWith("mailto:") ||
+              rawUrl.startsWith("tel:")
+            )
+              ? rawUrl
+              : rawUrl
+                ? `https://${rawUrl}`
+                : "";
+
+          const content = item.label || "Link";
+
+          const className =
+            layout === "horizontal"
+              ? [
+                  "inline-flex items-center justify-center rounded-full px-3 py-2",
+                  isLightDesign(designKey)
+                    ? "border border-neutral-200 bg-white"
+                    : "border border-white/10 bg-white/5",
+                ].join(" ")
+              : layout === "grid"
+                ? getLinkItemClass(designKey)
+                : designKey === "showcase"
+                  ? "block"
+                  : getLinkItemClass(designKey);
+
+          const style = getContainerTextStyle(block.data.style, designKey);
+
+          if (!normalizedHref) {
+            return (
+              <div
+                key={item.id}
+                className={`${className} opacity-60 cursor-default`}
+                style={style}
+              >
+                {content}
+              </div>
+            );
+          }
+
+          return (
+            <a
+              key={item.id}
+              href={normalizedHref}
+              target={
+                normalizedHref.startsWith("http://") ||
+                normalizedHref.startsWith("https://")
+                  ? "_blank"
+                  : undefined
+              }
+              rel={
+                normalizedHref.startsWith("http://") ||
+                normalizedHref.startsWith("https://")
+                  ? "noreferrer noopener"
+                  : undefined
+              }
+              className={className}
+              style={style}
+            >
+              {content}
+            </a>
+          );
+        })}
       </div>
     </div>
   );

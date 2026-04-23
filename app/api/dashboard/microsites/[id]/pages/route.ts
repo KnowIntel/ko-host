@@ -102,6 +102,55 @@ export async function GET(
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  if (!data || data.length === 0) {
+    const { data: micrositeWithDraft, error: micrositeDraftError } = await sb
+      .from("microsites")
+      .select("id, slug, title, draft")
+      .eq("id", id)
+      .eq("owner_clerk_user_id", userId)
+      .maybeSingle();
+
+    if (micrositeDraftError || !micrositeWithDraft) {
+      return NextResponse.json({ pages: [] }, { status: 200 });
+    }
+
+    const homeDraft = sanitizeBuilderDraft(
+      micrositeWithDraft.draft && typeof micrositeWithDraft.draft === "object"
+        ? micrositeWithDraft.draft
+        : {
+            title: micrositeWithDraft.title || "",
+            subtitle: "",
+            subtext: "",
+            description: "",
+            slugSuggestion: micrositeWithDraft.slug || "",
+            blocks: [],
+            pageScale: 85,
+            pageVisibility: {},
+            pageElements: {},
+          },
+    );
+
+    const { data: insertedPage, error: insertError } = await sb
+      .from("microsite_pages")
+      .insert({
+        microsite_id: micrositeWithDraft.id,
+        slug: "home",
+        title: "Home",
+        display_order: 0,
+        draft: homeDraft,
+        updated_at: new Date().toISOString(),
+      })
+      .select("id, slug, title, display_order, created_at, updated_at")
+      .single();
+
+    if (insertError) {
+      console.error("Failed to auto-create home page", insertError);
+      return NextResponse.json({ pages: [] }, { status: 200 });
+    }
+
+    return NextResponse.json({ pages: [insertedPage] }, { status: 200 });
+  }
+
   return NextResponse.json({ pages: data || [] });
 }
 
