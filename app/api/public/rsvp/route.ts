@@ -20,7 +20,6 @@ const BodySchema = z.object({
   bringingGuest: z.boolean(),
   guestCount: z.number().int().min(0).max(20),
   guestName: z.string().max(120).optional().or(z.literal("")),
-
   comments: z.string().max(1000).optional().or(z.literal("")),
 
   company: z.string().max(0).optional().or(z.literal("")),
@@ -90,31 +89,32 @@ export async function POST(req: Request) {
     const cleanGuestName = parsed.data.guestName?.trim() || null;
     const cleanComments = parsed.data.comments?.trim() || null;
 
-    const attendingCount = parsed.data.isAttending
-      ? Math.max(1, parsed.data.guestCount || 1)
+    const guestCount = parsed.data.isAttending
+      ? parsed.data.bringingGuest
+        ? Math.max(1, parsed.data.guestCount || 1)
+        : 0
       : 0;
 
-    const hasPlusOne =
-      parsed.data.isAttending &&
-      parsed.data.bringingGuest &&
-      attendingCount > 1;
-
-    const notesParts = [
-      cleanComments ? `Comments: ${cleanComments}` : null,
-      cleanAddress ? `Address: ${cleanAddress}` : null,
-      cleanGuestName ? `Guest Name: ${cleanGuestName}` : null,
-      `Attending: ${parsed.data.isAttending ? "Yes" : "No"}`,
-      `Bringing Guest: ${parsed.data.bringingGuest ? "Yes" : "No"}`,
-    ].filter(Boolean);
+    const attendingCount = parsed.data.isAttending ? 1 + guestCount : 0;
+    const hasPlusOne = parsed.data.isAttending && parsed.data.bringingGuest && guestCount > 0;
 
     const { error: insErr } = await sb.from("rsvp_submissions").insert({
       microsite_id: site.id,
+
       name: `${cleanFirstName} ${cleanLastName}`.trim(),
       email: cleanEmail,
       attending_count: attendingCount,
       has_plus_one: hasPlusOne,
       meal_choice: parsed.data.isAttending ? cleanMeal : null,
-      notes: notesParts.join(" | ") || null,
+      notes: cleanComments,
+
+      first_name: cleanFirstName,
+      last_name: cleanLastName,
+      address: cleanAddress,
+      is_attending: parsed.data.isAttending,
+      guest_count: guestCount,
+      guest_name: cleanGuestName,
+      comments: cleanComments,
     });
 
     if (insErr) {

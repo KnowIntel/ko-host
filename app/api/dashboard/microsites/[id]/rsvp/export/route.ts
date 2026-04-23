@@ -1,4 +1,3 @@
-// app/api/dashboard/microsites/[id]/rsvp/export/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
@@ -27,7 +26,6 @@ export async function GET(
 
   const sb = getSupabaseAdmin();
 
-  // Ownership check
   const { data: site, error: siteErr } = await sb
     .from("microsites")
     .select("id, owner_clerk_user_id, slug, template_key")
@@ -48,7 +46,9 @@ export async function GET(
 
   const { data: rows, error: rowsErr } = await sb
     .from("rsvp_submissions")
-    .select("name,email,attending_count,has_plus_one,meal_choice,notes,created_at")
+    .select(
+      "created_at, first_name, last_name, name, email, address, is_attending, guest_count, guest_name, attending_count, has_plus_one, meal_choice, comments, notes",
+    )
     .eq("microsite_id", micrositeId)
     .order("created_at", { ascending: true })
     .limit(5000);
@@ -60,8 +60,13 @@ export async function GET(
 
   const header = [
     "created_at",
-    "name",
+    "first_name",
+    "last_name",
     "email",
+    "address",
+    "is_attending",
+    "guest_count",
+    "guest_name",
     "attending_count",
     "has_plus_one",
     "meal_choice",
@@ -72,15 +77,43 @@ export async function GET(
   lines.push(header.join(","));
 
   for (const r of rows ?? []) {
+    const row = r as {
+      created_at?: string | null;
+      first_name?: string | null;
+      last_name?: string | null;
+      name?: string | null;
+      email?: string | null;
+      address?: string | null;
+      is_attending?: boolean | null;
+      guest_count?: number | null;
+      guest_name?: string | null;
+      attending_count?: number | null;
+      has_plus_one?: boolean | null;
+      meal_choice?: string | null;
+      comments?: string | null;
+      notes?: string | null;
+    };
+
+    const fallbackFirst =
+      row.first_name ?? (row.name ? row.name.split(" ")[0] : null);
+    const fallbackLast =
+      row.last_name ??
+      (row.name ? row.name.split(" ").slice(1).join(" ") || null : null);
+
     lines.push(
       [
-        csvEscape((r as any).created_at),
-        csvEscape((r as any).name),
-        csvEscape((r as any).email),
-        csvEscape((r as any).attending_count),
-        csvEscape((r as any).has_plus_one),
-        csvEscape((r as any).meal_choice),
-        csvEscape((r as any).notes),
+        csvEscape(row.created_at),
+        csvEscape(fallbackFirst),
+        csvEscape(fallbackLast),
+        csvEscape(row.email),
+        csvEscape(row.address),
+        csvEscape(row.is_attending),
+        csvEscape(row.guest_count),
+        csvEscape(row.guest_name),
+        csvEscape(row.attending_count),
+        csvEscape(row.has_plus_one),
+        csvEscape(row.meal_choice),
+        csvEscape(row.comments ?? row.notes),
       ].join(",")
     );
   }
