@@ -2124,6 +2124,8 @@ function renderField(
   onChange: (v: string) => void,
   type: string = "text",
 ) {
+  const fieldStyle = getStyle(key);
+
   return (
     <input
       key={key}
@@ -2132,7 +2134,10 @@ function renderField(
       value={value}
       onChange={(e) => onChange(e.target.value)}
       className="w-full rounded-xl border border-neutral-300 bg-white px-3 py-3 text-sm text-neutral-800 outline-none"
-      style={getStyle(key)}
+      style={{
+        ...fieldStyle,
+        textAlign: "left",
+      }}
     />
   );
 }
