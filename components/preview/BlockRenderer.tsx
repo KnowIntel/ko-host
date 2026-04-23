@@ -1838,16 +1838,44 @@ function renderRsvp(
   block: Extract<MicrositeBlock, { type: "rsvp" }>,
   designKey?: string,
 ) {
+  return <RsvpFormBlock block={block} designKey={designKey} />;
+}
+
+function RsvpFormBlock({
+  block,
+  designKey,
+}: {
+  block: Extract<MicrositeBlock, { type: "rsvp" }>;
+  designKey?: string;
+}) {
   const styles = block.data.elementStyles ?? {};
   const hidden = new Set(block.data.hiddenElements ?? []);
   const order = block.data.elementOrder ?? [];
   const imageShape = block.data.imageFrameShape ?? "circle";
   const guestMin = Math.max(0, block.data.guestMin ?? 0);
   const guestMax = Math.max(guestMin, block.data.guestMax ?? 1);
-  const attendingOptions =
-    block.data.attendingOptions?.length ? block.data.attendingOptions : ["Yes", "No"];
-  const mealOptions =
-    block.data.mealOptions?.length ? block.data.mealOptions : ["Chicken", "Salmon"];
+const attendingLabel = block.data.attendingLabel || "Are you attending?";
+const attendingOptions = block.data.attendingOptions ?? ["Yes", "No"];
+
+const mealLabel = block.data.mealLabel || "Your meal selection:";
+const mealOptions = block.data.mealOptions ?? ["Chicken", "Salmon"];
+
+const guestLabel = block.data.guestLabel || "Are you bringing a guest?";
+const guestOptions = block.data.guestOptions ?? ["Yes", "No"];
+
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [address, setAddress] = useState("");
+  const [isAttending, setIsAttending] = useState(true);
+  const [mealChoice, setMealChoice] = useState(mealOptions[0] ?? "Chicken");
+  const [bringingGuest, setBringingGuest] = useState(false);
+  const [guestCount, setGuestCount] = useState(Math.max(guestMin, 1));
+  const [guestName, setGuestName] = useState("");
+  const [company, setCompany] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [submitState, setSubmitState] = useState<"idle" | "success" | "error">("idle");
+  const [submitMessage, setSubmitMessage] = useState("");
 
   function getStyle(key: string) {
     const entry = styles[key as keyof typeof styles];
@@ -1868,25 +1896,114 @@ function renderRsvp(
     return "";
   }
 
+  function getMicrositeSlugFromHost() {
+    if (typeof window === "undefined") return "";
+    const host = window.location.hostname.toLowerCase();
+
+    if (host.endsWith(".ko-host.com")) {
+      return host.replace(".ko-host.com", "").split(".")[0] || "";
+    }
+
+    return "";
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+
+    if (!firstName.trim() || !lastName.trim()) {
+      setSubmitState("error");
+      setSubmitMessage("First name and last name are required.");
+      return;
+    }
+
+    if (bringingGuest && guestCount > 1 && !guestName.trim()) {
+      setSubmitState("error");
+      setSubmitMessage("Guest name is required when bringing a guest.");
+      return;
+    }
+
+    const micrositeSlug = getMicrositeSlugFromHost();
+
+    if (!micrositeSlug) {
+      setSubmitState("error");
+      setSubmitMessage("Unable to determine microsite slug.");
+      return;
+    }
+
+    setSubmitting(true);
+    setSubmitState("idle");
+    setSubmitMessage("");
+
+    try {
+      const res = await fetch("/api/public/rsvp/route".replace("/route", ""), {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          micrositeSlug,
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          email: email.trim(),
+          address: address.trim(),
+          isAttending,
+          mealChoice: isAttending ? mealChoice : "",
+          bringingGuest,
+          guestCount: isAttending ? Math.max(bringingGuest ? 2 : 1, guestCount) : 0,
+          guestName: bringingGuest ? guestName.trim() : "",
+          company: company.trim(),
+        }),
+      });
+
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok || !data?.ok) {
+        setSubmitState("error");
+        setSubmitMessage(data?.error || "Failed to submit RSVP.");
+        return;
+      }
+
+      setSubmitState("success");
+      setSubmitMessage("RSVP submitted.");
+      setFirstName("");
+      setLastName("");
+      setEmail("");
+      setAddress("");
+      setIsAttending(true);
+      setMealChoice(mealOptions[0] ?? "Chicken");
+      setBringingGuest(false);
+      setGuestCount(Math.max(guestMin, 1));
+      setGuestName("");
+      setCompany("");
+    } catch {
+      setSubmitState("error");
+      setSubmitMessage("Failed to submit RSVP.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   function renderImage() {
     if (!block.data.imageUrl) return null;
 
-    if (imageShape === "heart") {
-      return (
-        <div className="flex justify-center">
-          <div
-            className="rsvp-heart-frame relative h-28 w-28 overflow-hidden border border-neutral-200 bg-neutral-100"
-            style={getStyle("image")}
-          >
-            <img
-              src={block.data.imageUrl}
-              alt=""
-              className="h-full w-full object-cover"
-            />
-          </div>
+if (imageShape === "heart") {
+  return (
+    <div className="flex justify-center">
+      <div
+        className="relative h-28 w-28"
+        style={getStyle("image")}
+      >
+        <div className="rsvp-heart-clip h-full w-full overflow-hidden border border-neutral-200 bg-neutral-100">
+          <img
+            src={block.data.imageUrl}
+            alt=""
+            className="h-full w-full object-cover"
+          />
         </div>
-      );
-    }
+      </div>
+    </div>
+  );
+}
 
     if (imageShape === "diamond") {
       return (
@@ -1924,6 +2041,8 @@ function renderRsvp(
   function renderField(
     key: string,
     placeholder: string,
+    value: string,
+    onChange: (value: string) => void,
     type: string = "text",
   ) {
     return (
@@ -1931,9 +2050,10 @@ function renderRsvp(
         key={key}
         type={type}
         placeholder={placeholder}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
         className="w-full rounded-xl border border-neutral-300 bg-white px-3 py-3 text-sm text-neutral-800 outline-none"
         style={getStyle(key)}
-        readOnly
       />
     );
   }
@@ -1954,6 +2074,8 @@ function renderRsvp(
     key: string,
     label: string,
     options: string[],
+    value: string,
+    onChange: (value: string) => void,
   ) {
     return (
       <div key={key} className="space-y-2" style={getStyle(key)}>
@@ -1964,7 +2086,12 @@ function renderRsvp(
               key={`${key}-${option}`}
               className="inline-flex items-center gap-2 text-sm text-neutral-800"
             >
-              <input type="radio" disabled />
+              <input
+                type="radio"
+                name={`${block.id}-${key}`}
+                checked={value === option}
+                onChange={() => onChange(option)}
+              />
               <span>{option}</span>
             </label>
           ))}
@@ -1980,17 +2107,21 @@ function renderRsvp(
         <div className="inline-flex items-center gap-3 rounded-xl border border-neutral-300 bg-white px-3 py-2">
           <button
             type="button"
-            disabled
+            onClick={() =>
+              setGuestCount((current) => Math.max(guestMin, current - 1))
+            }
             className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-neutral-300 text-base text-neutral-700"
           >
             -
           </button>
           <div className="min-w-[68px] text-center text-sm text-neutral-800">
-            {guestMin}–{guestMax}
+            {guestCount}
           </div>
           <button
             type="button"
-            disabled
+            onClick={() =>
+              setGuestCount((current) => Math.min(guestMax, current + 1))
+            }
             className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-neutral-300 text-base text-neutral-700"
           >
             +
@@ -2020,31 +2151,58 @@ function renderRsvp(
         return renderLabel("nameLabel", "Name");
 
       case "firstName":
-        return renderField("firstName", "First Name");
+        return renderField("firstName", "First Name", firstName, setFirstName);
 
       case "lastName":
-        return renderField("lastName", "Last Name");
+        return renderField("lastName", "Last Name", lastName, setLastName);
 
       case "email":
-        return renderField("email", "Email", "email");
+        return renderField("email", "Email", email, setEmail, "email");
 
       case "address":
-        return renderField("address", "Address");
+        return renderField("address", "Address", address, setAddress);
 
       case "attending":
-        return renderRadioSection("attending", "Are you attending?", attendingOptions);
+        return renderRadioSection(
+          "attending",
+          attendingLabel,
+          attendingOptions,
+          isAttending ? attendingOptions[0] : attendingOptions[1] ?? "No",
+          (next) => setIsAttending(next === attendingOptions[0]),
+        );
 
       case "meal":
-        return renderRadioSection("meal", "Your meal selection:", mealOptions);
+        if (!isAttending) return null;
+          return renderRadioSection(
+            "meal",
+            mealLabel,
+            mealOptions,
+            mealChoice,
+            setMealChoice,
+          );
 
       case "guestToggle":
-        return renderRadioSection("guestToggle", "Are you bringing a guest?", ["Yes", "No"]);
+        if (!isAttending) return null;
+          return renderRadioSection(
+            "guestToggle",
+            guestLabel,
+            guestOptions,
+            bringingGuest ? guestOptions[0] : guestOptions[1] ?? "No",
+            (next) => {
+              const yes = next === guestOptions[0];
+              setBringingGuest(yes);
+              setGuestCount(yes ? Math.max(2, guestMin) : Math.max(1, guestMin));
+              if (!yes) setGuestName("");
+            },
+          );
 
       case "guestCount":
+        if (!isAttending || !bringingGuest) return null;
         return renderGuestCount();
 
       case "guestName":
-        return renderField("guestName", "Guest Name");
+        if (!isAttending || !bringingGuest) return null;
+        return renderField("guestName", "Guest Name", guestName, setGuestName);
 
       default:
         return null;
@@ -2057,43 +2215,24 @@ function renderRsvp(
       designKey={designKey}
       className={getSoftSurfaceClass(designKey)}
     >
-      <style jsx>{`
-        .rsvp-heart-frame {
-          display: inline-block;
-          position: relative;
-          transform: rotate(-45deg);
-          border-radius: 18px 18px 0 0;
-        }
+<style jsx>{`
+  .rsvp-heart-clip {
+    clip-path: path("M50 90 L15 55 C-5 30 10 0 35 0 C50 0 50 15 50 15 C50 15 50 0 65 0 C90 0 105 30 85 55 Z");
+    -webkit-clip-path: path("M50 90 L15 55 C-5 30 10 0 35 0 C50 0 50 15 50 15 C50 15 50 0 65 0 C90 0 105 30 85 55 Z");
+  }
+`}</style>
 
-        .rsvp-heart-frame::before,
-        .rsvp-heart-frame::after {
-          content: "";
-          position: absolute;
-          width: 100%;
-          height: 100%;
-          background: inherit;
-          border: inherit;
-          border-radius: 9999px;
-        }
+      <form onSubmit={handleSubmit} className="mx-auto flex w-full max-w-xl flex-col gap-4">
+        <input
+          type="text"
+          tabIndex={-1}
+          autoComplete="off"
+          value={company}
+          onChange={(e) => setCompany(e.target.value)}
+          className="hidden"
+          aria-hidden="true"
+        />
 
-        .rsvp-heart-frame::before {
-          top: -50%;
-          left: 0;
-          border-bottom: none;
-        }
-
-        .rsvp-heart-frame::after {
-          top: 0;
-          left: 50%;
-          border-left: none;
-        }
-
-        .rsvp-heart-frame > * {
-          transform: rotate(45deg);
-        }
-      `}</style>
-
-      <div className="mx-auto flex w-full max-w-xl flex-col gap-4">
         {order.map((key, index) => {
           if (hidden.has(key as any)) return null;
 
@@ -2120,7 +2259,27 @@ function renderRsvp(
 
           return renderElement(key);
         })}
-      </div>
+
+        <button
+          type="submit"
+          disabled={submitting}
+          className="inline-flex items-center justify-center rounded-xl bg-neutral-900 px-4 py-3 text-sm font-medium text-white hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {submitting ? "Submitting..." : "Submit RSVP"}
+        </button>
+
+        {submitState === "success" ? (
+          <div className="text-sm text-green-700">{
+            submitMessage || "RSVP submitted."
+          }</div>
+        ) : null}
+
+        {submitState === "error" ? (
+          <div className="text-sm text-red-700">{
+            submitMessage || "Failed to submit RSVP."
+          }</div>
+        ) : null}
+      </form>
     </Surface>
   );
 }

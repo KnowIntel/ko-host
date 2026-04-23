@@ -1,4 +1,3 @@
-// app/api/public/rsvp/route.ts
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
@@ -9,18 +8,23 @@ export const dynamic = "force-dynamic";
 
 const BodySchema = z.object({
   micrositeSlug: z.string().min(2).max(40).regex(/^[a-z0-9-]+$/),
-  name: z.string().min(2).max(120),
+
+  firstName: z.string().min(1).max(80),
+  lastName: z.string().min(1).max(80),
   email: z.string().email().optional().or(z.literal("")),
-  attendingCount: z.number().int().min(0).max(20),
-  hasPlusOne: z.boolean(),
+  address: z.string().max(200).optional().or(z.literal("")),
+
+  isAttending: z.boolean(),
   mealChoice: z.string().max(80).optional().or(z.literal("")),
-  notes: z.string().max(500).optional().or(z.literal("")),
-  // honeypot: should be empty
+
+  bringingGuest: z.boolean(),
+  guestCount: z.number().int().min(0).max(20),
+  guestName: z.string().max(120).optional().or(z.literal("")),
+
   company: z.string().max(0).optional().or(z.literal("")),
 });
 
 function getClientIp(req: Request): string {
-  // Vercel commonly provides x-forwarded-for; first is client
   const xff = req.headers.get("x-forwarded-for");
   if (xff) return xff.split(",")[0].trim();
   return "unknown";
@@ -30,20 +34,20 @@ export async function POST(req: Request) {
   try {
     const json = await req.json().catch(() => null);
     const parsed = BodySchema.safeParse(json);
+
     if (!parsed.success) {
       return NextResponse.json(
         { ok: false, error: "Invalid request", issues: parsed.error.issues },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    // honeypot triggered => pretend success
     if (parsed.data.company && parsed.data.company.length > 0) {
       return NextResponse.json({ ok: true }, { status: 200 });
     }
 
     const ip = getClientIp(req);
-    // Rate limit: 10 submissions per 10 minutes per IP per slug
+
     await rateLimitOrThrow({
       key: `rsvp:${parsed.data.micrositeSlug}:${ip}`,
       limit: 10,
@@ -52,7 +56,6 @@ export async function POST(req: Request) {
 
     const sb = getSupabaseAdmin();
 
-    // Lookup microsite by slug
     const { data: site, error: siteErr } = await sb
       .from("microsites")
       .select("id, template_key, is_published, expires_at")
@@ -71,21 +74,43 @@ export async function POST(req: Request) {
     }
 
     if (site.template_key !== "wedding_rsvp") {
-      return NextResponse.json({ ok: false, error: "Template not supported" }, { status: 400 });
+      return NextResponse.json(
+        { ok: false, error: "Template not supported" },
+        { status: 400 },
+      );
     }
 
+    const cleanFirstName = parsed.data.firstName.trim();
+    const cleanLastName = parsed.data.lastName.trim();
     const cleanEmail = parsed.data.email?.trim() || null;
+    const cleanAddress = parsed.data.address?.trim() || null;
     const cleanMeal = parsed.data.mealChoice?.trim() || null;
-    const cleanNotes = parsed.data.notes?.trim() || null;
+    const cleanGuestName = parsed.data.guestName?.trim() || null;
+
+    const attendingCount = parsed.data.isAttending
+      ? Math.max(1, parsed.data.guestCount || 1)
+      : 0;
+
+    const hasPlusOne =
+      parsed.data.isAttending &&
+      parsed.data.bringingGuest &&
+      attendingCount > 1;
+
+    const notesParts = [
+      cleanAddress ? `Address: ${cleanAddress}` : null,
+      cleanGuestName ? `Guest Name: ${cleanGuestName}` : null,
+      `Attending: ${parsed.data.isAttending ? "Yes" : "No"}`,
+      `Bringing Guest: ${parsed.data.bringingGuest ? "Yes" : "No"}`,
+    ].filter(Boolean);
 
     const { error: insErr } = await sb.from("rsvp_submissions").insert({
       microsite_id: site.id,
-      name: parsed.data.name.trim(),
+      name: `${cleanFirstName} ${cleanLastName}`.trim(),
       email: cleanEmail,
-      attending_count: parsed.data.attendingCount,
-      has_plus_one: parsed.data.hasPlusOne,
-      meal_choice: cleanMeal,
-      notes: cleanNotes,
+      attending_count: attendingCount,
+      has_plus_one: hasPlusOne,
+      meal_choice: parsed.data.isAttending ? cleanMeal : null,
+      notes: notesParts.join(" | ") || null,
     });
 
     if (insErr) {

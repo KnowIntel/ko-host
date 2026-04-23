@@ -378,8 +378,14 @@ export type RsvpBlock = BaseBlock & {
     guestMin?: number;
     guestMax?: number;
 
-    attendingOptions?: string[];
-    mealOptions?: string[];
+    attendingLabel?: string;
+    attendingOptions?: [string, string];
+
+    mealLabel?: string;
+    mealOptions?: [string, string];
+
+    guestLabel?: string;
+    guestOptions?: [string, string];
 
     elementStyles?: RsvpElementStyleMap;
 
@@ -1344,45 +1350,20 @@ case "rsvp":
       hiddenElements: [],
       guestMin: 0,
       guestMax: 1,
+
+      attendingLabel: "Are you attending?",
       attendingOptions: ["Yes", "No"],
+
+      mealLabel: "Your meal selection:",
       mealOptions: ["Chicken", "Salmon"],
+
+      guestLabel: "Are you bringing a guest?",
+      guestOptions: ["Yes", "No"],
+
       elementStyles: {},
       style: createDefaultTextStyle(),
     },
   };
-return {
-  id: makeId("rsvp"),
-  type: "rsvp",
-  label: "RSVP",
-  grid,
-  appearance: createDefaultBlockAppearance(),
-  data: {
-    heading: "Wedding Invitation RSVP Form",
-    imageUrl: "",
-    imageFrameShape: "circle",
-    elementOrder: [
-      "image",
-      "heading",
-      "nameLabel",
-      "firstName",
-      "lastName",
-      "email",
-      "address",
-      "attending",
-      "meal",
-      "guestToggle",
-      "guestCount",
-      "guestName",
-    ],
-    hiddenElements: [],
-    guestMin: 0,
-    guestMax: 1,
-    attendingOptions: ["Yes", "No"],
-    mealOptions: ["Chicken", "Salmon"],
-    elementStyles: {},
-    style: createDefaultTextStyle(),
-  },
-};
 
     case "faq":
       return {

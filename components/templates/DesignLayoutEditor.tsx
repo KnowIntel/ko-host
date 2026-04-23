@@ -7227,6 +7227,230 @@ return (
       </div>
     </div>
 
+    <div className="mt-5 space-y-4">
+  <div>
+    <div className={inspectorLabelClass()}>Attending Label</div>
+    <input
+      type="text"
+      value={selectedBlock.data.attendingLabel ?? "Are you attending?"}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "rsvp"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  attendingLabel: e.target.value,
+                },
+              },
+        )
+      }
+      className={inspectorInputClass()}
+    />
+  </div>
+
+  <div className="grid grid-cols-2 gap-3">
+    <div>
+      <div className={inspectorLabelClass()}>Attending Opt: 1</div>
+      <input
+        type="text"
+        value={selectedBlock.data.attendingOptions?.[0] ?? "Yes"}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "rsvp"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    attendingOptions: [
+                      e.target.value,
+                      block.data.attendingOptions?.[1] ?? "No",
+                    ],
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
+
+    <div>
+      <div className={inspectorLabelClass()}>Attending Opt: 2</div>
+      <input
+        type="text"
+        value={selectedBlock.data.attendingOptions?.[1] ?? "No"}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "rsvp"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    attendingOptions: [
+                      block.data.attendingOptions?.[0] ?? "Yes",
+                      e.target.value,
+                    ],
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
+  </div>
+
+  <div>
+    <div className={inspectorLabelClass()}>Meal Label</div>
+    <input
+      type="text"
+      value={selectedBlock.data.mealLabel ?? "Your meal selection:"}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "rsvp"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  mealLabel: e.target.value,
+                },
+              },
+        )
+      }
+      className={inspectorInputClass()}
+    />
+  </div>
+
+  <div className="grid grid-cols-2 gap-3">
+    <div>
+      <div className={inspectorLabelClass()}>Meal Option 1</div>
+      <input
+        type="text"
+        value={selectedBlock.data.mealOptions?.[0] ?? "Chicken"}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "rsvp"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    mealOptions: [
+                      e.target.value,
+                      block.data.mealOptions?.[1] ?? "Salmon",
+                    ],
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
+
+    <div>
+      <div className={inspectorLabelClass()}>Meal Option 2</div>
+      <input
+        type="text"
+        value={selectedBlock.data.mealOptions?.[1] ?? "Salmon"}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "rsvp"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    mealOptions: [
+                      block.data.mealOptions?.[0] ?? "Chicken",
+                      e.target.value,
+                    ],
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
+  </div>
+
+  <div>
+    <div className={inspectorLabelClass()}>Guest Label</div>
+    <input
+      type="text"
+      value={selectedBlock.data.guestLabel ?? "Are you bringing a guest?"}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "rsvp"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  guestLabel: e.target.value,
+                },
+              },
+        )
+      }
+      className={inspectorInputClass()}
+    />
+  </div>
+
+  <div className="grid grid-cols-2 gap-3">
+    <div>
+      <div className={inspectorLabelClass()}>Guest Option 1</div>
+      <input
+        type="text"
+        value={selectedBlock.data.guestOptions?.[0] ?? "Yes"}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "rsvp"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    guestOptions: [
+                      e.target.value,
+                      block.data.guestOptions?.[1] ?? "No",
+                    ],
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
+
+    <div>
+      <div className={inspectorLabelClass()}>Guest Option 2</div>
+      <input
+        type="text"
+        value={selectedBlock.data.guestOptions?.[1] ?? "No"}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "rsvp"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    guestOptions: [
+                      block.data.guestOptions?.[0] ?? "Yes",
+                      e.target.value,
+                    ],
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
+  </div>
+</div>
+
     <div className="mt-5">
       <div className={inspectorLabelClass()}>Elements</div>
 
