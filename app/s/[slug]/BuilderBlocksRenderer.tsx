@@ -109,15 +109,15 @@ import BlockRenderer from "@/components/preview/BlockRenderer";
                 {block.data.heading}
               </h3>
 
-<div className="mt-3 space-y-2 text-sm text-neutral-700">
-  <div>Name</div>
-  <div>Email</div>
-  <div>Address</div>
-  <div>{block.data.attendingLabel ?? "Are you attending?"}</div>
-  <div>{block.data.mealLabel ?? "Your meal selection:"}</div>
-  <div>{block.data.guestLabel ?? "Are you bringing a guest?"}</div>
-  <div>{block.data.commentsLabel ?? "Additional comments"}</div>
-</div>
+              <div className="mt-3 space-y-2 text-sm text-neutral-700">
+                <div>Name</div>
+                <div>Email</div>
+                <div>Address</div>
+                <div>{block.data.attendingLabel ?? "Are you attending?"}</div>
+                <div>{block.data.mealLabel ?? "Your meal selection:"}</div>
+                <div>{block.data.guestLabel ?? "Are you bringing a guest?"}</div>
+                <div>{block.data.commentsLabel ?? "Additional comments"}</div>
+              </div>
             </section>
           );
         }

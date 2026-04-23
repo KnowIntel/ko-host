@@ -298,18 +298,6 @@ export default createLayoutPreset({
 
     /*
     {
-      type: "rsvp",
-      placement: { x: 6, y: 16, width: 5, height: 3, zIndex: 11 },
-      config: {
-        heading: "RSVP",
-        collectName: true,
-        collectEmail: true,
-      },
-    },
-    */
-
-    /*
-    {
       type: "faq",
       placement: { x: 1, y: 20, width: 6, height: 3, zIndex: 12 },
       config: {

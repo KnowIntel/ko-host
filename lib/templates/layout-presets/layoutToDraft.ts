@@ -413,12 +413,43 @@ function makeRsvpBlock(config: OptionalBlockConfig): RsvpBlock {
     grid: toGrid(config.placement, { colSpan: 4, rowSpan: 3 }),
     appearance: createDefaultBlockAppearance(),
     data: {
-      heading: config.config?.heading || "RSVP",
-      collectName: config.config?.collectName ?? true,
-      collectEmail: config.config?.collectEmail ?? true,
-      collectPhone: config.config?.collectPhone ?? false,
-      collectGuestCount: config.config?.collectGuestCount ?? false,
-      collectNotes: config.config?.collectNotes ?? false,
+      heading: config.config?.heading || "Wedding Invitation RSVP Form",
+      imageUrl: config.config?.imageUrl ?? "",
+      imageFrameShape: config.config?.imageFrameShape ?? "circle",
+      elementOrder: config.config?.elementOrder ?? [
+        "image",
+        "heading",
+        "nameLabel",
+        "firstName",
+        "lastName",
+        "email",
+        "address",
+        "attending",
+        "meal",
+        "guestToggle",
+        "guestCount",
+        "guestName",
+        "comments",
+      ],
+      hiddenElements: config.config?.hiddenElements ?? [],
+      guestMin: config.config?.guestMin ?? 0,
+      guestMax: config.config?.guestMax ?? 1,
+
+      attendingLabel: config.config?.attendingLabel ?? "Are you attending?",
+      attendingOptions: config.config?.attendingOptions ?? ["Yes", "No"],
+
+      mealLabel: config.config?.mealLabel ?? "Your meal selection:",
+      mealOptions: config.config?.mealOptions ?? ["Chicken", "Salmon"],
+
+      guestLabel: config.config?.guestLabel ?? "Are you bringing a guest?",
+      guestOptions: config.config?.guestOptions ?? ["Yes", "No"],
+
+      commentsLabel: config.config?.commentsLabel ?? "Additional comments",
+      commentsPlaceholder:
+        config.config?.commentsPlaceholder ?? "Additional comments",
+      submitButtonText: config.config?.submitButtonText ?? "Submit RSVP",
+
+      elementStyles: config.config?.elementStyles ?? {},
       style: {
         ...createDefaultTextStyle(),
         ...(config.config?.style || {}),
