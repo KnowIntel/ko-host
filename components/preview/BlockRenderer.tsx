@@ -2092,27 +2092,27 @@ if (imageShape === "heart") {
     );
   }
 
-  function renderField(
-    key: string,
-    placeholder: string,
-    value: string,
-    onChange: (value: string) => void,
-    type: string = "text",
-  ) {
-    return (
-      <input
-        key={key}
-        type={type}
-        placeholder={placeholder}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-xl border border-neutral-300 bg-white px-3 py-3 text-sm text-neutral-800 outline-none"
-        style={getStyle(key)}
-      />
-    );
-  }
+function renderField(
+  key: string,
+  placeholder: string,
+  value: string,
+  onChange: (value: string) => void,
+  type: string = "text",
+) {
+  return (
+    <input
+      key={key}
+      type={type}
+      placeholder={placeholder}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="relative z-10 w-full rounded-xl border border-neutral-300 bg-white px-3 py-3 text-sm text-neutral-800 outline-none"
+      style={getStyle(key)}
+    />
+  );
+}
 
-  function renderTextarea(
+function renderTextarea(
   key: string,
   placeholder: string,
   value: string,
@@ -2124,7 +2124,7 @@ if (imageShape === "heart") {
       placeholder={placeholder}
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="w-full rounded-xl border border-neutral-300 bg-white px-3 py-3 text-sm text-neutral-800 outline-none"
+      className="relative z-10 w-full rounded-xl border border-neutral-300 bg-white px-3 py-3 text-sm text-neutral-800 outline-none"
       style={getStyle(key)}
       rows={4}
     />
