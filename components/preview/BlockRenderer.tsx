@@ -1897,7 +1897,7 @@ const submitButtonText = block.data.submitButtonText || "Submit RSVP";
   const [mealChoice, setMealChoice] = useState(mealOptions[0] ?? "Chicken");
   const [bringingGuest, setBringingGuest] = useState(false);
   const [guestCount, setGuestCount] = useState(Math.max(guestMin, 1));
-  const [guestName, setGuestName] = useState("");
+  const [guestNames, setGuestNames] = useState<string[]>([]);
   const [comments, setComments] = useState("");
   const [company, setCompany] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -1959,11 +1959,17 @@ function getMicrositeSlugFromLocation() {
       return;
     }
 
-    if (bringingGuest && guestCount > 1 && !guestName.trim()) {
-      setSubmitState("error");
-      setSubmitMessage("Guest name is required when bringing a guest.");
-      return;
-    }
+if (bringingGuest && guestCount > 0) {
+  const missingGuestName = Array.from({ length: guestCount }).some(
+    (_, index) => !(guestNames[index] ?? "").trim(),
+  );
+
+  if (missingGuestName) {
+    setSubmitState("error");
+    setSubmitMessage("Guest name is required for each guest.");
+    return;
+  }
+}
 
     const micrositeSlug = getMicrositeSlugFromLocation();
 
@@ -1995,7 +2001,13 @@ if (!micrositeSlug) {
           mealChoice: isAttending ? mealChoice : "",
           bringingGuest,
           guestCount: isAttending ? Math.max(bringingGuest ? 2 : 1, guestCount) : 0,
-          guestName: bringingGuest ? guestName.trim() : "",
+          guestName: bringingGuest
+            ? guestNames
+                .slice(0, guestCount)
+                .map((name) => name.trim())
+                .filter(Boolean)
+                .join(", ")
+            : "",
           comments: comments.trim(),
           company: company.trim(),
         }),
@@ -2019,7 +2031,7 @@ if (!micrositeSlug) {
     setMealChoice(mealOptions[0] ?? "Chicken");
     setBringingGuest(false);
     setGuestCount(Math.max(guestMin, 1));
-    setGuestName("");
+    setGuestNames([]);
     setComments(""); // ✅ ADD THIS LINE
     setCompany("");
     } catch {
@@ -2198,9 +2210,10 @@ function renderTextarea(
                 setGuestCount((current) => {
                   const next = Math.max(0, current - 1);
 
+                  setGuestNames((prev) => prev.slice(0, next));
+
                   if (next === 0) {
                     setBringingGuest(false);
-                    setGuestName("");
                   }
 
                   return next;
@@ -2216,7 +2229,15 @@ function renderTextarea(
           <button
             type="button"
             onClick={() =>
-              setGuestCount((current) => Math.min(guestMax, current + 1))
+              setGuestCount((current) => {
+                const next = Math.min(guestMax, current + 1);
+                setGuestNames((prev) => {
+                  const copy = [...prev];
+                  while (copy.length < next) copy.push("");
+                  return copy.slice(0, next);
+                });
+                return next;
+              })
             }
             className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-neutral-300 text-base text-neutral-700"
           >
@@ -2310,18 +2331,38 @@ function renderTextarea(
             (next) => {
               const yes = next === guestOptions[0];
               setBringingGuest(yes);
-              setGuestCount(yes ? Math.max(1, guestMin) : 0);
-              if (!yes) setGuestName("");
-            },
+                const nextCount = yes ? Math.max(1, guestMin) : 0;
+                setGuestCount(nextCount);
+                setGuestNames(yes ? Array.from({ length: nextCount }, () => "") : []);
+                            },
           );
 
       case "guestCount":
         if (!isAttending || !bringingGuest) return null;
         return renderGuestCount();
 
-      case "guestName":
-        if (!isAttending || !bringingGuest) return null;
-        return renderField("guestName", "Guest Name(s)", guestName, setGuestName);
+case "guestName":
+  if (!isAttending || !bringingGuest || guestCount <= 0) return null;
+
+  return (
+    <div key="guestName" className="space-y-3">
+      {Array.from({ length: guestCount }).map((_, index) => (
+        <input
+          key={`guest-name-${index}`}
+          type="text"
+          placeholder={`Guest Name ${index + 1}`}
+          value={guestNames[index] ?? ""}
+          onChange={(e) => {
+            const next = [...guestNames];
+            next[index] = e.target.value;
+            setGuestNames(next);
+          }}
+          className="w-full rounded-xl border border-neutral-300 bg-white px-3 py-3 text-sm text-neutral-800 outline-none"
+          style={getStyle("guestName")}
+        />
+      ))}
+    </div>
+  );
 
       case "comments":
         return (

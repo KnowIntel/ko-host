@@ -66,7 +66,7 @@ export async function GET(
     "address",
     "is_attending",
     "guest_count",
-    "guest_name",
+    "guest_names",
     "attending_count",
     "has_plus_one",
     "meal_choice",
