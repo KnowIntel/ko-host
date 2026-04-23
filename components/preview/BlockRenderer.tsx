@@ -1892,7 +1892,7 @@ const submitButtonText = block.data.submitButtonText || "Submit RSVP";
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [address, setAddress] = useState("");
-  const addressInputRef = useRef<HTMLInputElement | null>(null);
+
   const [isAttending, setIsAttending] = useState(true);
   const [mealChoice, setMealChoice] = useState(mealOptions[0] ?? "Chicken");
   const [bringingGuest, setBringingGuest] = useState(false);
@@ -2121,18 +2121,17 @@ function renderField(
   key: string,
   placeholder: string,
   value: string,
-  onChange: (value: string) => void,
+  onChange: (v: string) => void,
   type: string = "text",
 ) {
   return (
     <input
       key={key}
-      ref={key === "address" ? addressInputRef : undefined}
       type={type}
       placeholder={placeholder}
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="relative z-20 block w-full pointer-events-auto rounded-xl border border-neutral-300 bg-white px-3 py-3 text-sm text-neutral-800 outline-none"
+      className="w-full rounded-xl border border-neutral-300 bg-white px-3 py-3 text-sm text-neutral-800 outline-none"
       style={getStyle(key)}
     />
   );
@@ -2277,31 +2276,9 @@ function renderTextarea(
         return renderField("email", "Email", email, setEmail, "email");
 
       case "address":
-        return (
-          <div key="address" className="relative z-50 isolate">
-            <input
-              ref={addressInputRef}
-              type="text"
-              placeholder="Address"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              onMouseDown={(e) => {
-                e.stopPropagation();
-              }}
-              onClick={(e) => {
-                e.stopPropagation();
-                addressInputRef.current?.focus();
-              }}
-              className="block w-full rounded-xl border border-neutral-300 bg-white px-3 py-3 text-sm text-neutral-800 outline-none"
-              style={{
-                ...getStyle("address"),
-                position: "relative",
-                zIndex: 50,
-                pointerEvents: "auto",
-              }}
-            />
-          </div>
-        );
+        return renderField("address", "Address", address, setAddress);
+
+
       case "attending":
         return renderRadioSection(
           "attending",
@@ -2331,10 +2308,10 @@ function renderTextarea(
             (next) => {
               const yes = next === guestOptions[0];
               setBringingGuest(yes);
-                const nextCount = yes ? Math.max(1, guestMin) : 0;
-                setGuestCount(nextCount);
-                setGuestNames(yes ? Array.from({ length: nextCount }, () => "") : []);
-                            },
+              const nextCount = yes ? Math.max(1, guestMin) : 0;
+              setGuestCount(nextCount);
+              setGuestNames(yes ? Array.from({ length: nextCount }, () => "") : []);
+                          },
           );
 
       case "guestCount":
