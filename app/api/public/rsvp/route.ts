@@ -106,7 +106,7 @@ export async function POST(req: Request) {
       attending_count: attendingCount,
       has_plus_one: hasPlusOne,
       meal_choice: parsed.data.isAttending ? cleanMeal : null,
-      notes: cleanComments,
+      notes: null,
 
       first_name: cleanFirstName,
       last_name: cleanLastName,

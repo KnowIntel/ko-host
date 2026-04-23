@@ -113,7 +113,7 @@ export async function GET(
         csvEscape(row.attending_count),
         csvEscape(row.has_plus_one),
         csvEscape(row.meal_choice),
-        csvEscape(row.comments ?? row.notes),
+        csvEscape(row.comments),
       ].join(",")
     );
   }

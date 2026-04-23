@@ -187,9 +187,9 @@ export default async function MicrositeRsvpAdminPage({
                   <td className="px-4 py-3 text-neutral-800">{r.guest_count ?? 0}</td>
                   <td className="px-4 py-3 text-neutral-800">{r.guest_name ?? "—"}</td>
                   <td className="px-4 py-3 text-neutral-800">{r.meal_choice ?? "—"}</td>
-                  <td className="max-w-[320px] px-4 py-3 text-neutral-800">
-                    {r.comments ?? r.notes ?? "—"}
-                  </td>
+<td className="max-w-[320px] px-4 py-3 text-neutral-800">
+  {r.comments ?? "—"}
+</td>
                 </tr>
               ))
             )}

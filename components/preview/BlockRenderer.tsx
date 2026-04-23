@@ -2009,18 +2009,19 @@ if (!micrositeSlug) {
         return;
       }
 
-      setSubmitState("success");
-      setSubmitMessage("RSVP submitted.");
-      setFirstName("");
-      setLastName("");
-      setEmail("");
-      setAddress("");
-      setIsAttending(true);
-      setMealChoice(mealOptions[0] ?? "Chicken");
-      setBringingGuest(false);
-      setGuestCount(Math.max(guestMin, 1));
-      setGuestName("");
-      setCompany("");
+    setSubmitState("success");
+    setSubmitMessage("RSVP submitted.");
+    setFirstName("");
+    setLastName("");
+    setEmail("");
+    setAddress("");
+    setIsAttending(true);
+    setMealChoice(mealOptions[0] ?? "Chicken");
+    setBringingGuest(false);
+    setGuestCount(Math.max(guestMin, 1));
+    setGuestName("");
+    setComments(""); // ✅ ADD THIS LINE
+    setCompany("");
     } catch {
       setSubmitState("error");
       setSubmitMessage("Failed to submit RSVP.");
@@ -2193,9 +2194,18 @@ function renderTextarea(
         <div className="inline-flex items-center gap-3 rounded-xl border border-neutral-300 bg-white px-3 py-2">
           <button
             type="button"
-            onClick={() =>
-              setGuestCount((current) => Math.max(guestMin, current - 1))
-            }
+              onClick={() =>
+                setGuestCount((current) => {
+                  const next = Math.max(0, current - 1);
+
+                  if (next === 0) {
+                    setBringingGuest(false);
+                    setGuestName("");
+                  }
+
+                  return next;
+                })
+              }
             className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-neutral-300 text-base text-neutral-700"
           >
             -
@@ -2300,7 +2310,7 @@ function renderTextarea(
             (next) => {
               const yes = next === guestOptions[0];
               setBringingGuest(yes);
-              setGuestCount(yes ? Math.max(2, guestMin) : Math.max(1, guestMin));
+              setGuestCount(yes ? Math.max(1, guestMin) : 0);
               if (!yes) setGuestName("");
             },
           );
@@ -2311,7 +2321,7 @@ function renderTextarea(
 
       case "guestName":
         if (!isAttending || !bringingGuest) return null;
-        return renderField("guestName", "Guest Name", guestName, setGuestName);
+        return renderField("guestName", "Guest Name(s)", guestName, setGuestName);
 
       case "comments":
         return (
