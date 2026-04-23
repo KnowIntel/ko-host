@@ -1,7 +1,7 @@
 // components\preview\BlockRenderer.tsx
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import SpeedDatingLive from "@/components/blocks/SpeedDatingLive";
 
@@ -1892,6 +1892,7 @@ const submitButtonText = block.data.submitButtonText || "Submit RSVP";
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [address, setAddress] = useState("");
+  const addressInputRef = useRef<HTMLInputElement | null>(null);
   const [isAttending, setIsAttending] = useState(true);
   const [mealChoice, setMealChoice] = useState(mealOptions[0] ?? "Chicken");
   const [bringingGuest, setBringingGuest] = useState(false);
@@ -1922,20 +1923,29 @@ const submitButtonText = block.data.submitButtonText || "Submit RSVP";
     return "";
   }
 
-function getMicrositeSlugFromHost() {
+function getMicrositeSlugFromLocation() {
   if (typeof window === "undefined") return "";
 
   const host = window.location.hostname.toLowerCase();
   const pathname = window.location.pathname;
+  const search = new URLSearchParams(window.location.search);
+
+  const qsSlug = search.get("slug");
+  if (qsSlug?.trim()) return qsSlug.trim().toLowerCase();
 
   if (host.endsWith(".ko-host.com")) {
-    return host.replace(".ko-host.com", "").split(".")[0] || "";
+    const sub = host.replace(".ko-host.com", "").split(".")[0] || "";
+    if (sub && sub !== "www") return sub;
   }
 
-  const match = pathname.match(/^\/s\/([^/]+)/);
-  if (match?.[1]) {
-    return decodeURIComponent(match[1]).toLowerCase();
+  const sRouteMatch = pathname.match(/^\/s\/([^/]+)/i);
+  if (sRouteMatch?.[1]) {
+    return decodeURIComponent(sRouteMatch[1]).toLowerCase();
   }
+
+  const metaSlug =
+    document.querySelector('meta[name="ko-host-slug"]')?.getAttribute("content") ?? "";
+  if (metaSlug.trim()) return metaSlug.trim().toLowerCase();
 
   return "";
 }
@@ -1955,13 +1965,15 @@ function getMicrositeSlugFromHost() {
       return;
     }
 
-    const micrositeSlug = getMicrositeSlugFromHost();
+    const micrositeSlug = getMicrositeSlugFromLocation();
 
-    if (!micrositeSlug) {
-      setSubmitState("error");
-      setSubmitMessage("Unable to determine microsite slug.");
-      return;
-    }
+if (!micrositeSlug) {
+  setSubmitState("error");
+  setSubmitMessage(
+    "Unable to determine microsite slug. RSVP submission works on public microsite pages, not builder/preview routes.",
+  );
+  return;
+}
 
     setSubmitting(true);
     setSubmitState("idle");
@@ -2102,11 +2114,12 @@ function renderField(
   return (
     <input
       key={key}
+      ref={key === "address" ? addressInputRef : undefined}
       type={type}
       placeholder={placeholder}
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="relative z-10 w-full rounded-xl border border-neutral-300 bg-white px-3 py-3 text-sm text-neutral-800 outline-none"
+      className="relative z-20 block w-full pointer-events-auto rounded-xl border border-neutral-300 bg-white px-3 py-3 text-sm text-neutral-800 outline-none"
       style={getStyle(key)}
     />
   );
@@ -2233,8 +2246,31 @@ function renderTextarea(
         return renderField("email", "Email", email, setEmail, "email");
 
       case "address":
-        return renderField("address", "Address", address, setAddress);
-
+        return (
+          <div key="address" className="relative z-50 isolate">
+            <input
+              ref={addressInputRef}
+              type="text"
+              placeholder="Address"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              onMouseDown={(e) => {
+                e.stopPropagation();
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                addressInputRef.current?.focus();
+              }}
+              className="block w-full rounded-xl border border-neutral-300 bg-white px-3 py-3 text-sm text-neutral-800 outline-none"
+              style={{
+                ...getStyle("address"),
+                position: "relative",
+                zIndex: 50,
+                pointerEvents: "auto",
+              }}
+            />
+          </div>
+        );
       case "attending":
         return renderRadioSection(
           "attending",
