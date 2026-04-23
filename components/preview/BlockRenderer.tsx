@@ -1838,25 +1838,288 @@ function renderRsvp(
   block: Extract<MicrositeBlock, { type: "rsvp" }>,
   designKey?: string,
 ) {
+  const styles = block.data.elementStyles ?? {};
+  const hidden = new Set(block.data.hiddenElements ?? []);
+  const order = block.data.elementOrder ?? [];
+  const imageShape = block.data.imageFrameShape ?? "circle";
+  const guestMin = Math.max(0, block.data.guestMin ?? 0);
+  const guestMax = Math.max(guestMin, block.data.guestMax ?? 1);
+  const attendingOptions =
+    block.data.attendingOptions?.length ? block.data.attendingOptions : ["Yes", "No"];
+  const mealOptions =
+    block.data.mealOptions?.length ? block.data.mealOptions : ["Chicken", "Salmon"];
+
+  function getStyle(key: string) {
+    const entry = styles[key as keyof typeof styles];
+    return {
+      ...(entry?.textStyle
+        ? getContainerTextStyle(entry.textStyle, designKey)
+        : {}),
+      ...(entry?.backgroundColor
+        ? { backgroundColor: entry.backgroundColor }
+        : {}),
+    };
+  }
+
+  function getFrameClass(shape: string) {
+    if (shape === "square") return "rounded-2xl";
+    if (shape === "circle") return "rounded-full";
+    if (shape === "diamond") return "rotate-45 rounded-2xl";
+    return "";
+  }
+
+  function renderImage() {
+    if (!block.data.imageUrl) return null;
+
+    if (imageShape === "heart") {
+      return (
+        <div className="flex justify-center">
+          <div
+            className="rsvp-heart-frame relative h-28 w-28 overflow-hidden border border-neutral-200 bg-neutral-100"
+            style={getStyle("image")}
+          >
+            <img
+              src={block.data.imageUrl}
+              alt=""
+              className="h-full w-full object-cover"
+            />
+          </div>
+        </div>
+      );
+    }
+
+    if (imageShape === "diamond") {
+      return (
+        <div className="flex justify-center py-2">
+          <div
+            className={`relative h-28 w-28 overflow-hidden border border-neutral-200 bg-neutral-100 ${getFrameClass(
+              imageShape,
+            )}`}
+            style={getStyle("image")}
+          >
+            <img
+              src={block.data.imageUrl}
+              alt=""
+              className="h-full w-full -rotate-45 scale-150 object-cover"
+            />
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex justify-center">
+        <img
+          src={block.data.imageUrl}
+          alt=""
+          className={`h-28 w-28 object-cover border border-neutral-200 ${getFrameClass(
+            imageShape,
+          )}`}
+          style={getStyle("image")}
+        />
+      </div>
+    );
+  }
+
+  function renderField(
+    key: string,
+    placeholder: string,
+    type: string = "text",
+  ) {
+    return (
+      <input
+        key={key}
+        type={type}
+        placeholder={placeholder}
+        className="w-full rounded-xl border border-neutral-300 bg-white px-3 py-3 text-sm text-neutral-800 outline-none"
+        style={getStyle(key)}
+        readOnly
+      />
+    );
+  }
+
+  function renderLabel(key: string, text: string) {
+    return (
+      <div
+        key={key}
+        className="text-sm font-medium text-neutral-800"
+        style={getStyle(key)}
+      >
+        {text}
+      </div>
+    );
+  }
+
+  function renderRadioSection(
+    key: string,
+    label: string,
+    options: string[],
+  ) {
+    return (
+      <div key={key} className="space-y-2" style={getStyle(key)}>
+        <div className="text-sm font-medium text-neutral-800">{label}</div>
+        <div className="flex flex-wrap gap-4">
+          {options.map((option) => (
+            <label
+              key={`${key}-${option}`}
+              className="inline-flex items-center gap-2 text-sm text-neutral-800"
+            >
+              <input type="radio" disabled />
+              <span>{option}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  function renderGuestCount() {
+    return (
+      <div key="guestCount" className="space-y-2" style={getStyle("guestCount")}>
+        <div className="text-sm font-medium text-neutral-800">Guest count</div>
+        <div className="inline-flex items-center gap-3 rounded-xl border border-neutral-300 bg-white px-3 py-2">
+          <button
+            type="button"
+            disabled
+            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-neutral-300 text-base text-neutral-700"
+          >
+            -
+          </button>
+          <div className="min-w-[68px] text-center text-sm text-neutral-800">
+            {guestMin}–{guestMax}
+          </div>
+          <button
+            type="button"
+            disabled
+            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-neutral-300 text-base text-neutral-700"
+          >
+            +
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  function renderElement(key: string) {
+    switch (key) {
+      case "image":
+        return renderImage();
+
+      case "heading":
+        return (
+          <div
+            key="heading"
+            className="text-center text-2xl font-semibold text-neutral-900"
+            style={getStyle("heading")}
+          >
+            {block.data.heading || "Wedding Invitation RSVP Form"}
+          </div>
+        );
+
+      case "nameLabel":
+        return renderLabel("nameLabel", "Name");
+
+      case "firstName":
+        return renderField("firstName", "First Name");
+
+      case "lastName":
+        return renderField("lastName", "Last Name");
+
+      case "email":
+        return renderField("email", "Email", "email");
+
+      case "address":
+        return renderField("address", "Address");
+
+      case "attending":
+        return renderRadioSection("attending", "Are you attending?", attendingOptions);
+
+      case "meal":
+        return renderRadioSection("meal", "Your meal selection:", mealOptions);
+
+      case "guestToggle":
+        return renderRadioSection("guestToggle", "Are you bringing a guest?", ["Yes", "No"]);
+
+      case "guestCount":
+        return renderGuestCount();
+
+      case "guestName":
+        return renderField("guestName", "Guest Name");
+
+      default:
+        return null;
+    }
+  }
+
   return (
     <Surface
       block={block}
       designKey={designKey}
       className={getSoftSurfaceClass(designKey)}
     >
-      <div style={getContainerTextStyle(block.data.style, designKey)}>
-        {block.data.heading || "RSVP"}
-      </div>
+      <style jsx>{`
+        .rsvp-heart-frame {
+          display: inline-block;
+          position: relative;
+          transform: rotate(-45deg);
+          border-radius: 18px 18px 0 0;
+        }
 
-      <div
-        className="mt-3 grid gap-2"
-        style={getContainerTextStyle(block.data.style, designKey)}
-      >
-        {block.data.collectName ? <div>Name</div> : null}
-        {block.data.collectEmail ? <div>Email</div> : null}
-        {block.data.collectPhone ? <div>Phone</div> : null}
-        {block.data.collectGuestCount ? <div>Guest Count</div> : null}
-        {block.data.collectNotes ? <div>Notes</div> : null}
+        .rsvp-heart-frame::before,
+        .rsvp-heart-frame::after {
+          content: "";
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          background: inherit;
+          border: inherit;
+          border-radius: 9999px;
+        }
+
+        .rsvp-heart-frame::before {
+          top: -50%;
+          left: 0;
+          border-bottom: none;
+        }
+
+        .rsvp-heart-frame::after {
+          top: 0;
+          left: 50%;
+          border-left: none;
+        }
+
+        .rsvp-heart-frame > * {
+          transform: rotate(45deg);
+        }
+      `}</style>
+
+      <div className="mx-auto flex w-full max-w-xl flex-col gap-4">
+        {order.map((key, index) => {
+          if (hidden.has(key as any)) return null;
+
+          if (key === "firstName") {
+            const showFirst = !hidden.has("firstName");
+            const showLast = !hidden.has("lastName");
+
+            if (!showFirst && !showLast) return null;
+
+            return (
+              <div
+                key={`name-row-${index}`}
+                className="grid grid-cols-1 gap-3 sm:grid-cols-2"
+              >
+                {showFirst ? renderElement("firstName") : <div />}
+                {showLast ? renderElement("lastName") : <div />}
+              </div>
+            );
+          }
+
+          if (key === "lastName") {
+            return null;
+          }
+
+          return renderElement(key);
+        })}
       </div>
     </Surface>
   );

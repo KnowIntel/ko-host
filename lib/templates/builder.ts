@@ -338,15 +338,51 @@ export type PollBlock = BaseBlock & {
   };
 };
 
+export type RsvpImageFrameShape = "square" | "circle" | "diamond" | "heart";
+
+export type RsvpElementKey =
+  | "image"
+  | "heading"
+  | "nameLabel"
+  | "firstName"
+  | "lastName"
+  | "email"
+  | "address"
+  | "attending"
+  | "meal"
+  | "guestToggle"
+  | "guestCount"
+  | "guestName";
+
+export type RsvpElementStyleMap = Partial<
+  Record<
+    RsvpElementKey,
+    {
+      textStyle?: TextStyle;
+      backgroundColor?: string;
+    }
+  >
+>;
+
 export type RsvpBlock = BaseBlock & {
   type: "rsvp";
   data: {
     heading: string;
-    collectName: boolean;
-    collectEmail: boolean;
-    collectPhone?: boolean;
-    collectGuestCount?: boolean;
-    collectNotes?: boolean;
+
+    imageUrl?: string;
+    imageFrameShape?: RsvpImageFrameShape;
+
+    elementOrder: RsvpElementKey[];
+    hiddenElements?: RsvpElementKey[];
+
+    guestMin?: number;
+    guestMax?: number;
+
+    attendingOptions?: string[];
+    mealOptions?: string[];
+
+    elementStyles?: RsvpElementStyleMap;
+
     style?: TextStyle;
   };
 };
@@ -1280,23 +1316,73 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
         },
       };
 
-    case "rsvp":
-      return {
-        id: makeId("rsvp"),
-        type: "rsvp",
-        label: "RSVP",
-        grid,
-        appearance: createDefaultBlockAppearance(),
-        data: {
-          heading: "RSVP",
-          collectName: true,
-          collectEmail: true,
-          collectPhone: false,
-          collectGuestCount: false,
-          collectNotes: false,
-          style: createDefaultTextStyle(),
-        },
-      };
+case "rsvp":
+  return {
+    id: makeId("rsvp"),
+    type: "rsvp",
+    label: "RSVP",
+    grid,
+    appearance: createDefaultBlockAppearance(),
+    data: {
+      heading: "Wedding Invitation RSVP Form",
+      imageUrl: "",
+      imageFrameShape: "circle",
+      elementOrder: [
+        "image",
+        "heading",
+        "nameLabel",
+        "firstName",
+        "lastName",
+        "email",
+        "address",
+        "attending",
+        "meal",
+        "guestToggle",
+        "guestCount",
+        "guestName",
+      ],
+      hiddenElements: [],
+      guestMin: 0,
+      guestMax: 1,
+      attendingOptions: ["Yes", "No"],
+      mealOptions: ["Chicken", "Salmon"],
+      elementStyles: {},
+      style: createDefaultTextStyle(),
+    },
+  };
+return {
+  id: makeId("rsvp"),
+  type: "rsvp",
+  label: "RSVP",
+  grid,
+  appearance: createDefaultBlockAppearance(),
+  data: {
+    heading: "Wedding Invitation RSVP Form",
+    imageUrl: "",
+    imageFrameShape: "circle",
+    elementOrder: [
+      "image",
+      "heading",
+      "nameLabel",
+      "firstName",
+      "lastName",
+      "email",
+      "address",
+      "attending",
+      "meal",
+      "guestToggle",
+      "guestCount",
+      "guestName",
+    ],
+    hiddenElements: [],
+    guestMin: 0,
+    guestMax: 1,
+    attendingOptions: ["Yes", "No"],
+    mealOptions: ["Chicken", "Salmon"],
+    elementStyles: {},
+    style: createDefaultTextStyle(),
+  },
+};
 
     case "faq":
       return {

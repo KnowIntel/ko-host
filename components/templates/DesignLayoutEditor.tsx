@@ -980,6 +980,21 @@ export default function DesignLayoutEditor({
 const [listingStyleTarget, setListingStyleTarget] = useState<
   "title" | "description" | "metadata"
 >("title");
+  const [selectedRsvpElementKey, setSelectedRsvpElementKey] = useState<
+  | "image"
+  | "heading"
+  | "nameLabel"
+  | "firstName"
+  | "lastName"
+  | "email"
+  | "address"
+  | "attending"
+  | "meal"
+  | "guestToggle"
+  | "guestCount"
+  | "guestName"
+>("heading");
+
   const isPublished = microsite?.is_published;
   const isActive = microsite?.is_active;
   const slug = microsite?.slug;
@@ -1084,49 +1099,62 @@ const [richTextLinkValue, setRichTextLinkValue] = useState("https://");
     selection.type === "block"
       ? draft.blocks.find((item) => item.id === selection.blockId) ?? null
       : null;
-
-      
+    
   const [highlightStyleTarget, setHighlightStyleTarget] = useState<
   "heading" | "body"
 >("heading");
 
 const selectedStyle =
-  selectedBlockFromDraft?.type === "listing"
-    ? listingStyleTarget === "description"
-      ? (selectedBlockFromDraft.data.descriptionStyle ?? {})
-      : listingStyleTarget === "metadata"
-        ? (selectedBlockFromDraft.data.metadataStyle ?? {})
-        : (selectedBlockFromDraft.data.titleStyle ?? {})
-    : selectedBlockFromDraft?.type === "highlight"
-      ? highlightStyleTarget === "body"
-        ? (selectedBlockFromDraft.data.bodyStyle ??
-            selectedBlockFromDraft.data.style ??
-            {})
-        : (selectedBlockFromDraft.data.headingStyle ??
-            selectedBlockFromDraft.data.style ??
-            {})
-      : selectedBlockFromDraft?.type === "cart" ||
-        selectedBlockFromDraft?.type === "checkout" ||
-        selectedBlockFromDraft?.type === "text_fx" ||
-        selectedBlockFromDraft?.type === "cta" ||
-        selectedBlockFromDraft?.type === "thread" ||
-        selectedBlockFromDraft?.type === "form_field" ||
-        selectedBlockFromDraft?.type === "image_carousel" ||
-        selectedBlockFromDraft?.type === "progress_bar" ||
-        selectedBlockFromDraft?.type === "donation" ||
-        selectedBlockFromDraft?.type === "link_hub" ||
-        selectedBlockFromDraft?.type === "checklist" ||
-        selectedBlockFromDraft?.type === "schedule_agenda" ||
-        selectedBlockFromDraft?.type === "map_location" ||
-        selectedBlockFromDraft?.type === "file_share" ||
-        selectedBlockFromDraft?.type === "speed_dating" ||
-        selectedBlockFromDraft?.type === "video" ||
-        selectedBlockFromDraft?.type === "rich_text" ||
-        selectedBlockFromDraft?.type === "countdown" ||
-        selectedBlockFromDraft?.type === "links"
-      ? (selectedBlockFromDraft.data.style ?? {})
-      : getSelectionTextStyle(draft, selection);
+  selectedBlockFromDraft?.type === "rsvp"
+    ? (
+        selectedBlockFromDraft.data.elementStyles?.[selectedRsvpElementKey]
+          ?.textStyle ??
+        selectedBlockFromDraft.data.style ??
+        {}
+      )
+    : selectedBlockFromDraft?.type === "listing"
+      ? listingStyleTarget === "description"
+        ? (selectedBlockFromDraft.data.descriptionStyle ?? {})
+        : listingStyleTarget === "metadata"
+          ? (selectedBlockFromDraft.data.metadataStyle ?? {})
+          : (selectedBlockFromDraft.data.titleStyle ?? {})
+      : selectedBlockFromDraft?.type === "highlight"
+        ? highlightStyleTarget === "body"
+          ? (selectedBlockFromDraft.data.bodyStyle ??
+              selectedBlockFromDraft.data.style ??
+              {})
+          : (selectedBlockFromDraft.data.headingStyle ??
+              selectedBlockFromDraft.data.style ??
+              {})
+        : selectedBlockFromDraft?.type === "cart" ||
+          selectedBlockFromDraft?.type === "checkout" ||
+          selectedBlockFromDraft?.type === "text_fx" ||
+          selectedBlockFromDraft?.type === "cta" ||
+          selectedBlockFromDraft?.type === "thread" ||
+          selectedBlockFromDraft?.type === "form_field" ||
+          selectedBlockFromDraft?.type === "image_carousel" ||
+          selectedBlockFromDraft?.type === "progress_bar" ||
+          selectedBlockFromDraft?.type === "donation" ||
+          selectedBlockFromDraft?.type === "link_hub" ||
+          selectedBlockFromDraft?.type === "checklist" ||
+          selectedBlockFromDraft?.type === "schedule_agenda" ||
+          selectedBlockFromDraft?.type === "map_location" ||
+          selectedBlockFromDraft?.type === "file_share" ||
+          selectedBlockFromDraft?.type === "speed_dating" ||
+          selectedBlockFromDraft?.type === "video" ||
+          selectedBlockFromDraft?.type === "rich_text" ||
+          selectedBlockFromDraft?.type === "countdown" ||
+          selectedBlockFromDraft?.type === "links"
+        ? (selectedBlockFromDraft.data.style ?? {})
+        : getSelectionTextStyle(draft, selection);
   const selectedAppearance = getSelectionBlockAppearance(draft, selection);
+  const selectedRsvpElementBackgroundColor =
+  selectedBlockFromDraft?.type === "rsvp"
+    ? (
+        selectedBlockFromDraft.data.elementStyles?.[selectedRsvpElementKey]
+          ?.backgroundColor ?? "transparent"
+      )
+    : "transparent";
   const resolvedPageColor =
     (draft as DraftWithPageExtras).pageColor ||
     getResolvedPageColor(draft, designKey, metadata);
@@ -1142,6 +1170,24 @@ const selectedStyle =
     selectedContext.kind === "none" || selectedContext.kind === "pageText"
       ? null
       : draft.blocks.find((item) => item.id === selectedContext.blockId) ?? null;
+
+        const rsvpElementOptions =
+  selectedBlock?.type === "rsvp"
+    ? [
+        { value: "image", label: "Top Image" },
+        { value: "heading", label: "Heading" },
+        { value: "nameLabel", label: "Name Label" },
+        { value: "firstName", label: "First Name Field" },
+        { value: "lastName", label: "Last Name Field" },
+        { value: "email", label: "Email Field" },
+        { value: "address", label: "Address Field" },
+        { value: "attending", label: "Attending Section" },
+        { value: "meal", label: "Meal Section" },
+        { value: "guestToggle", label: "Guest Toggle Section" },
+        { value: "guestCount", label: "Guest Count Control" },
+        { value: "guestName", label: "Guest Name Field" },
+      ]
+    : [];
 
   const selectedTextFxBlock =
     selectedBlock?.type === "text_fx" ? selectedBlock : null;
@@ -1652,6 +1698,14 @@ function isRichTextHtmlEmpty(html?: string) {
   return normalizeRichTextHtml(html) === "";
 }
 
+  useEffect(() => {
+  if (selectedBlock?.type !== "rsvp") return;
+  const order = selectedBlock.data.elementOrder ?? [];
+  if (!order.includes(selectedRsvpElementKey)) {
+    setSelectedRsvpElementKey("heading");
+  }
+}, [selectedBlock, selectedRsvpElementKey]);
+
 useEffect(() => {
   if (selectedBlock?.type !== "rich_text") return;
 
@@ -1818,6 +1872,15 @@ function applyPageTextBoxBackground(value: string) {
 }
 
 function applyFillColor(value: string) {
+  if (selectedBlock?.type === "rsvp") {
+    updateSelectedRsvpElementStyle((current) => ({
+      ...current,
+      backgroundColor: value,
+    }));
+    pushRecentColor(value);
+    return;
+  }
+
   applyAppearancePatch({ backgroundColor: value });
   pushRecentColor(value);
 }
@@ -1906,6 +1969,17 @@ const handleVideoUpload = async (
 };
 
 function applyStylePatch(patch: Partial<TextStyle>) {
+  if (selectedBlock?.type === "rsvp") {
+  updateSelectedRsvpElementStyle((current) => ({
+    ...current,
+    textStyle: {
+      ...(current?.textStyle ?? {}),
+      ...patch,
+    },
+  }));
+  return;
+}
+
   if (selectedBlock?.type === "text_fx") {
     setDraft((prev) => ({
       ...prev,
@@ -2735,6 +2809,40 @@ function moveGalleryImage(
       ),
     }));
   }
+
+function updateSelectedRsvpElementStyle(
+  updater: (
+    current:
+      | {
+          textStyle?: TextStyle;
+          backgroundColor?: string;
+        }
+      | undefined,
+  ) => {
+    textStyle?: TextStyle;
+    backgroundColor?: string;
+  },
+) {
+  updateSelectedBlock((block) => {
+    if (block.type !== "rsvp") return block;
+
+    const key = selectedRsvpElementKey;
+    const currentElementStyles = block.data.elementStyles ?? {};
+    const currentValue = currentElementStyles[key];
+    const nextValue = updater(currentValue);
+
+    return {
+      ...block,
+      data: {
+        ...block.data,
+        elementStyles: {
+          ...currentElementStyles,
+          [key]: nextValue,
+        },
+      },
+    };
+  });
+}
 
 function updateSelectedImagePatch(
   patch: Partial<{
@@ -5561,6 +5669,7 @@ return (
         </>
       ) : null}
 
+
       {selectedBlock?.type === "cta" ? (
         <>
           <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
@@ -5590,8 +5699,43 @@ return (
         </>
       ) : null}
 
+      {selectedBlock?.type === "rsvp" ? (
+  <div className="flex items-center gap-2">
+    <div className="text-xs font-medium text-neutral-600">RSVP Element</div>
+    <select
+      value={selectedRsvpElementKey}
+      onChange={(e) =>
+        setSelectedRsvpElementKey(
+          e.target.value as
+            | "image"
+            | "heading"
+            | "nameLabel"
+            | "firstName"
+            | "lastName"
+            | "email"
+            | "address"
+            | "attending"
+            | "meal"
+            | "guestToggle"
+            | "guestCount"
+            | "guestName",
+        )
+      }
+      className="h-9 rounded-xl border border-neutral-200 bg-white px-3 text-sm text-neutral-900"
+    >
+      {rsvpElementOptions.map((option) => (
+        <option key={option.value} value={option.value}>
+          {option.label}
+        </option>
+      ))}
+    </select>
+  </div>
+) : null}
+
+
       {showTextControls ? (
         <>
+
 
         {selectedBlock?.type === "listing" ? (
           <>
@@ -6340,13 +6484,25 @@ return (
         <>
           <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
 
-          <input
-            type="color"
-            value={selectedAppearance.backgroundColor ?? "#ffffff"}
-            onChange={(e) => applyFillColor(e.target.value)}
-            className={topBarColorClass(false)}
-            title="Fill color"
-          />
+<input
+  type="color"
+  value={
+    selectedBlock?.type === "rsvp"
+      ? selectedRsvpElementBackgroundColor === "transparent"
+        ? "#ffffff"
+        : selectedRsvpElementBackgroundColor
+      : selectedAppearance.backgroundColor === "transparent"
+        ? "#ffffff"
+        : (selectedAppearance.backgroundColor ?? "#ffffff")
+  }
+  onChange={(e) => applyFillColor(e.target.value)}
+  className={topBarColorClass(false)}
+  title={
+    selectedBlock?.type === "rsvp"
+      ? "RSVP element background color"
+      : "Fill color"
+  }
+/>
 
           <button
             type="button"
@@ -6367,22 +6523,38 @@ return (
             />
           </button>
 
-          <button
-            type="button"
-            className={topBarButtonClass(false)}
-            onClick={() =>
-              applyAppearancePatch({ backgroundColor: "transparent" })
-            }
-            title="Transparent fill"
-          >
-            <Image
-              src="/icons/transparent_fill_icon.png"
-              alt="Transparent fill"
-              width={20}
-              height={20}
-              className="pointer-events-none object-contain"
-            />
-          </button>
+<button
+  type="button"
+  className={topBarButtonClass(
+    selectedBlock?.type === "rsvp"
+      ? selectedRsvpElementBackgroundColor === "transparent"
+      : selectedAppearance.backgroundColor === "transparent",
+  )}
+  onClick={() => {
+    if (selectedBlock?.type === "rsvp") {
+      updateSelectedRsvpElementStyle((current) => ({
+        ...current,
+        backgroundColor: "transparent",
+      }));
+      return;
+    }
+
+    applyAppearancePatch({ backgroundColor: "transparent" });
+  }}
+  title={
+    selectedBlock?.type === "rsvp"
+      ? "Transparent RSVP element background"
+      : "Transparent fill"
+  }
+>
+  <Image
+    src="/icons/transparent_fill_icon.png"
+    alt="Transparent fill"
+    width={20}
+    height={20}
+    className="pointer-events-none object-contain"
+  />
+</button>
 
           <input
             type="color"
@@ -6872,143 +7044,309 @@ return (
                   </div>
                 ) : null}
 
-                {selectedBlock?.type === "rsvp" ? (
-                  <div id="inspector-rsvp" className={inspectorCardClass()}>
-                    <div className={inspectorLabelClass()}>RSVP</div>
+{selectedBlock?.type === "rsvp" ? (
+  <div id="inspector-rsvp" className={inspectorCardClass()}>
+    <div className={inspectorLabelClass()}>RSVP</div>
 
-                    <div className="mt-4">
-                      <div className={inspectorLabelClass()}>Heading</div>
-                      <input
-                        ref={rsvpHeadingInputRef}
-                        type="text"
-                        value={selectedBlock.data.heading}
-                        onChange={(e) =>
-                          updateSelectedBlock((block) =>
-                            block.type !== "rsvp"
-                              ? block
-                              : {
-                                  ...block,
-                                  data: {
-                                    ...block.data,
-                                    heading: e.target.value,
-                                  },
-                                },
-                          )
-                        }
-                        className={inspectorInputClass()}
-                      />
-                    </div>
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Heading</div>
+      <input
+        ref={rsvpHeadingInputRef}
+        type="text"
+        value={selectedBlock.data.heading}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "rsvp"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    heading: e.target.value,
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
 
-                    
+<div className="mt-4">
+  <div className={inspectorLabelClass()}>Choose Image</div>
 
-                    <div className="mt-4 grid grid-cols-1 gap-3">
-                      <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
-                        <input
-                          type="checkbox"
-                          checked={selectedBlock.data.collectName}
-                          onChange={(e) =>
-                            updateSelectedBlock((block) =>
-                              block.type !== "rsvp"
-                                ? block
-                                : {
-                                    ...block,
-                                    data: {
-                                      ...block.data,
-                                      collectName: e.target.checked,
-                                    },
-                                  },
-                            )
-                          }
-                        />
-                        Collect name
-                      </label>
+  <input
+    type="text"
+    value={selectedBlock.data.imageUrl ?? ""}
+    placeholder="Paste image URL"
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "rsvp"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                imageUrl: e.target.value,
+              },
+            },
+      )
+    }
+    className={inspectorInputClass()}
+  />
 
-                      <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
-                        <input
-                          type="checkbox"
-                          checked={selectedBlock.data.collectEmail}
-                          onChange={(e) =>
-                            updateSelectedBlock((block) =>
-                              block.type !== "rsvp"
-                                ? block
-                                : {
-                                    ...block,
-                                    data: {
-                                      ...block.data,
-                                      collectEmail: e.target.checked,
-                                    },
-                                  },
-                            )
-                          }
-                        />
-                        Collect email
-                      </label>
+  <label className="mt-3 inline-flex cursor-pointer items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-800 hover:bg-neutral-50">
+    Upload Image
+    <input
+      type="file"
+      accept="image/*"
+      className="hidden"
+      onChange={async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
 
-                      <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
-                        <input
-                          type="checkbox"
-                          checked={Boolean(selectedBlock.data.collectPhone)}
-                          onChange={(e) =>
-                            updateSelectedBlock((block) =>
-                              block.type !== "rsvp"
-                                ? block
-                                : {
-                                    ...block,
-                                    data: {
-                                      ...block.data,
-                                      collectPhone: e.target.checked,
-                                    },
-                                  },
-                            )
-                          }
-                        />
-                        Collect phone
-                      </label>
+        try {
+          const dataUrl = await readFileAsDataUrl(file);
 
-                      <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
-                        <input
-                          type="checkbox"
-                          checked={Boolean(selectedBlock.data.collectGuestCount)}
-                          onChange={(e) =>
-                            updateSelectedBlock((block) =>
-                              block.type !== "rsvp"
-                                ? block
-                                : {
-                                    ...block,
-                                    data: {
-                                      ...block.data,
-                                      collectGuestCount: e.target.checked,
-                                    },
-                                  },
-                            )
-                          }
-                        />
-                        Collect guest count
-                      </label>
+          updateSelectedBlock((block) =>
+            block.type !== "rsvp"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    imageUrl: dataUrl,
+                  },
+                },
+          );
+        } finally {
+          e.target.value = "";
+        }
+      }}
+    />
+  </label>
 
-                      <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
-                        <input
-                          type="checkbox"
-                          checked={Boolean(selectedBlock.data.collectNotes)}
-                          onChange={(e) =>
-                            updateSelectedBlock((block) =>
-                              block.type !== "rsvp"
-                                ? block
-                                : {
-                                    ...block,
-                                    data: {
-                                      ...block.data,
-                                      collectNotes: e.target.checked,
-                                    },
-                                  },
-                            )
-                          }
-                        />
-                        Collect notes
-                      </label>
-                    </div>
-                  </div>
-                ) : null}
+  {selectedBlock.data.imageUrl ? (
+    <button
+      type="button"
+      className="mt-3 inline-flex items-center justify-center rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-100"
+      onClick={() =>
+        updateSelectedBlock((block) =>
+          block.type !== "rsvp"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  imageUrl: "",
+                },
+              },
+        )
+      }
+    >
+      Remove Image
+    </button>
+  ) : null}
+</div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Image Frame Shape</div>
+      <select
+        value={selectedBlock.data.imageFrameShape ?? "circle"}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "rsvp"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    imageFrameShape: e.target.value as
+                      | "square"
+                      | "circle"
+                      | "diamond"
+                      | "heart",
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      >
+        <option value="square">Square</option>
+        <option value="circle">Circle</option>
+        <option value="diamond">Diamond</option>
+        <option value="heart">Heart</option>
+      </select>
+    </div>
+
+    <div className="mt-4 grid grid-cols-2 gap-3">
+      <div>
+        <div className={inspectorLabelClass()}>Guest Min</div>
+        <input
+          type="number"
+          min={0}
+          value={selectedBlock.data.guestMin ?? 0}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "rsvp"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      guestMin: Math.max(0, Number(e.target.value) || 0),
+                    },
+                  },
+            )
+          }
+          className={inspectorInputClass()}
+        />
+      </div>
+
+      <div>
+        <div className={inspectorLabelClass()}>Guest Max</div>
+        <input
+          type="number"
+          min={0}
+          value={selectedBlock.data.guestMax ?? 1}
+          onChange={(e) =>
+            updateSelectedBlock((block) => {
+              if (block.type !== "rsvp") return block;
+              const nextMax = Math.max(0, Number(e.target.value) || 0);
+              const nextMin = Math.max(0, block.data.guestMin ?? 0);
+              return {
+                ...block,
+                data: {
+                  ...block.data,
+                  guestMax: Math.max(nextMin, nextMax),
+                },
+              };
+            })
+          }
+          className={inspectorInputClass()}
+        />
+      </div>
+    </div>
+
+    <div className="mt-5">
+      <div className={inspectorLabelClass()}>Elements</div>
+
+      <div className="mt-3 space-y-2">
+        {[
+          { key: "image", label: "Top Image" },
+          { key: "heading", label: "Heading" },
+          { key: "nameLabel", label: "Name Label" },
+          { key: "firstName", label: "First Name" },
+          { key: "lastName", label: "Last Name" },
+          { key: "email", label: "Email" },
+          { key: "address", label: "Address" },
+          { key: "attending", label: "Are You Attending?" },
+          { key: "meal", label: "Meal Selection" },
+          { key: "guestToggle", label: "Bringing a Guest?" },
+          { key: "guestCount", label: "Guest Count" },
+          { key: "guestName", label: "Guest Name" },
+        ].map((item, index, arr) => {
+          const hidden = new Set(selectedBlock.data.hiddenElements ?? []);
+          const order = selectedBlock.data.elementOrder ?? [];
+          const isHidden = hidden.has(item.key as any);
+
+          return (
+            <div
+              key={item.key}
+              className="rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <div className="text-sm font-medium text-neutral-900">
+                  {item.label}
+                </div>
+
+                <label className="flex items-center gap-2 text-xs text-neutral-700">
+                  <input
+                    type="checkbox"
+                    checked={!isHidden}
+                    onChange={(e) =>
+                      updateSelectedBlock((block) => {
+                        if (block.type !== "rsvp") return block;
+                        const nextHidden = new Set(block.data.hiddenElements ?? []);
+                        if (e.target.checked) nextHidden.delete(item.key as any);
+                        else nextHidden.add(item.key as any);
+                        return {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            hiddenElements: Array.from(nextHidden),
+                          },
+                        };
+                      })
+                    }
+                  />
+                  Show
+                </label>
+              </div>
+
+              <div className="mt-3 flex items-center gap-2">
+                <button
+                  type="button"
+                  disabled={index === 0}
+                  onClick={() =>
+                    updateSelectedBlock((block) => {
+                      if (block.type !== "rsvp") return block;
+                      const nextOrder = [...(block.data.elementOrder ?? [])];
+                      const currentIndex = nextOrder.indexOf(item.key as any);
+                      if (currentIndex <= 0) return block;
+                      [nextOrder[currentIndex - 1], nextOrder[currentIndex]] = [
+                        nextOrder[currentIndex],
+                        nextOrder[currentIndex - 1],
+                      ];
+                      return {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          elementOrder: nextOrder,
+                        },
+                      };
+                    })
+                  }
+                  className="rounded-lg border border-neutral-300 px-2 py-1 text-xs text-neutral-800 disabled:opacity-40"
+                >
+                  ↑ Up
+                </button>
+
+                <button
+                  type="button"
+                  disabled={index === arr.length - 1}
+                  onClick={() =>
+                    updateSelectedBlock((block) => {
+                      if (block.type !== "rsvp") return block;
+                      const nextOrder = [...(block.data.elementOrder ?? [])];
+                      const currentIndex = nextOrder.indexOf(item.key as any);
+                      if (currentIndex < 0 || currentIndex >= nextOrder.length - 1) {
+                        return block;
+                      }
+                      [nextOrder[currentIndex], nextOrder[currentIndex + 1]] = [
+                        nextOrder[currentIndex + 1],
+                        nextOrder[currentIndex],
+                      ];
+                      return {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          elementOrder: nextOrder,
+                        },
+                      };
+                    })
+                  }
+                  className="rounded-lg border border-neutral-300 px-2 py-1 text-xs text-neutral-800 disabled:opacity-40"
+                >
+                  ↓ Down
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  </div>
+) : null}
 
 {selectedBlock?.type === "form_field" ? (
   <div className={inspectorCardClass()}>
