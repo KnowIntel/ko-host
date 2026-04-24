@@ -615,6 +615,7 @@ return (
   activePageSlug={orderedPages.find((page) => page.id === activePageId)?.slug || "home"}
   micrositeSlug={site.slug}
   onSelectPage={setActivePageId}
+  onReorderPages={reorderPages}
 />
 
       {contextMenu ? (

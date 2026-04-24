@@ -2,6 +2,7 @@
 "use client";
 
 import AppModal from "@/components/ui/AppModal";
+import { BUILDER_TOOL_GUIDES } from "@/components/templates/builderToolGuides";
 import { getStoreMeta } from "@/lib/utils/getStoreMeta";
 import Image from "next/image";
 import Link from "next/link";
@@ -136,6 +137,12 @@ activePageId?: string | null;
 activePageSlug?: string;
 micrositeSlug?: string;
 onSelectPage?: (pageId: string) => void;
+onReorderPages?: (nextPages: Array<{
+  id: string;
+  slug: string;
+  title: string | null;
+  display_order?: number | null;
+}>) => void | Promise<void>;
 };
 
 type PageLengthOption =
@@ -970,17 +977,20 @@ export default function DesignLayoutEditor({
   activePageSlug,
   micrositeSlug,
   onSelectPage,
+  onReorderPages,
   saveState,
   saveMessage,
   microsite,
 }: Props) {
   const [resetDraftModalOpen, setResetDraftModalOpen] = useState(false);
+  const [draggedPageId, setDraggedPageId] = useState<string | null>(null);
   const selectedPageLength =
     ((draft as DraftWithPageExtras).pageLength ?? "1800") as PageLengthOption;
 const [listingStyleTarget, setListingStyleTarget] = useState<
   "title" | "description" | "metadata"
 >("title");
-  const [selectedRsvpElementKey, setSelectedRsvpElementKey] = useState<
+const [selectedRsvpElementKey, setSelectedRsvpElementKey] = useState<
+  | "form"
   | "image"
   | "heading"
   | "nameLabel"
@@ -1003,6 +1013,7 @@ const [listingStyleTarget, setListingStyleTarget] = useState<
   const [selection, setSelection] = useState(createEmptySelection());
   const [activeCategory, setActiveCategory] = useState<BottomCategory>("Text");
   const [openToolMenu, setOpenToolMenu] = useState<BottomCategory | null>(null);
+  const [toolGuideModalOpen, setToolGuideModalOpen] = useState(false);
   const [inspectorCollapsed, setInspectorCollapsed] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
@@ -1107,12 +1118,14 @@ const [richTextLinkValue, setRichTextLinkValue] = useState("https://");
 
 const selectedStyle =
   selectedBlockFromDraft?.type === "rsvp"
-    ? (
-        selectedBlockFromDraft.data.elementStyles?.[selectedRsvpElementKey]
-          ?.textStyle ??
-        selectedBlockFromDraft.data.style ??
-        {}
-      )
+    ? selectedRsvpElementKey === "form"
+      ? selectedBlockFromDraft.data.style ?? {}
+      : (
+          selectedBlockFromDraft.data.elementStyles?.[selectedRsvpElementKey]
+            ?.textStyle ??
+          selectedBlockFromDraft.data.style ??
+          {}
+        )
     : selectedBlockFromDraft?.type === "listing"
       ? listingStyleTarget === "description"
         ? (selectedBlockFromDraft.data.descriptionStyle ?? {})
@@ -1149,12 +1162,12 @@ const selectedStyle =
         ? (selectedBlockFromDraft.data.style ?? {})
         : getSelectionTextStyle(draft, selection);
   const selectedAppearance = getSelectionBlockAppearance(draft, selection);
-  const selectedRsvpElementBackgroundColor =
+const selectedRsvpElementBackgroundColor =
   selectedBlockFromDraft?.type === "rsvp"
-    ? (
-        selectedBlockFromDraft.data.elementStyles?.[selectedRsvpElementKey]
+    ? selectedRsvpElementKey === "form"
+      ? selectedBlockFromDraft.appearance?.backgroundColor ?? "transparent"
+      : selectedBlockFromDraft.data.elementStyles?.[selectedRsvpElementKey]
           ?.backgroundColor ?? "transparent"
-      )
     : "transparent";
   const resolvedPageColor =
     (draft as DraftWithPageExtras).pageColor ||
@@ -1172,9 +1185,10 @@ const selectedStyle =
       ? null
       : draft.blocks.find((item) => item.id === selectedContext.blockId) ?? null;
 
-        const rsvpElementOptions =
+const rsvpElementOptions =
   selectedBlock?.type === "rsvp"
     ? [
+        { value: "form", label: "Form" }, // ✅ ADD THIS LINE
         { value: "image", label: "Top Image" },
         { value: "heading", label: "Heading" },
         { value: "nameLabel", label: "Name Label" },
@@ -1700,8 +1714,10 @@ function isRichTextHtmlEmpty(html?: string) {
   return normalizeRichTextHtml(html) === "";
 }
 
-  useEffect(() => {
+useEffect(() => {
   if (selectedBlock?.type !== "rsvp") return;
+  if (selectedRsvpElementKey === "form") return;
+
   const order = selectedBlock.data.elementOrder ?? [];
   if (!order.includes(selectedRsvpElementKey)) {
     setSelectedRsvpElementKey("heading");
@@ -2828,10 +2844,12 @@ function updateSelectedRsvpElementStyle(
   updateSelectedBlock((block) => {
     if (block.type !== "rsvp") return block;
 
-    const key = selectedRsvpElementKey;
-    const currentElementStyles = block.data.elementStyles ?? {};
-    const currentValue = currentElementStyles[key];
-    const nextValue = updater(currentValue);
+if (selectedRsvpElementKey === "form") return block;
+
+const key = selectedRsvpElementKey;
+const currentElementStyles = block.data.elementStyles ?? {};
+const currentValue = currentElementStyles[key];
+const nextValue = updater(currentValue);
 
     return {
       ...block,
@@ -5223,43 +5241,84 @@ return (
         </button>
       </div>
 
-      <div className="mt-4 rounded-2xl border border-neutral-200 bg-white px-3 py-2 shadow-sm">
-        <div className="flex items-center gap-2">
-          <div className="flex-1 overflow-x-auto">
-            <div className="flex min-w-max items-center gap-2 pr-2">
-              {(pages ?? []).map((page, index) => {
-                const isHomePage = index === 0;
-                const isActive = activePageId === page.id;
+<div className="mt-4 rounded-2xl border border-neutral-200 bg-white px-3 py-2 shadow-sm">
+  <div className="flex items-center gap-2">
+    <div className="flex-1 overflow-x-auto">
+      <div className="flex min-w-max items-center gap-2 pr-2">
+        {(pages ?? []).map((page, index) => {
+          const isHomePage = index === 0;
+          const isActive = activePageId === page.id;
 
-                return (
-                  <button
-                    key={page.id}
-                    type="button"
-                    onClick={() => onSelectPage?.(page.id)}
-                    className={`shrink-0 rounded-xl px-3 py-1.5 text-xs font-medium whitespace-nowrap ${
-                      isActive
-                        ? "bg-black text-white"
-                        : "bg-neutral-100 text-neutral-800 hover:bg-neutral-200"
-                    }`}
-                  >
-                    {isHomePage ? (
-                      <span
-                        className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${
-                          isActive
-                            ? "bg-white/20 text-white"
-                            : "bg-blue-100 text-blue-700"
-                        }`}
-                      >
-                        HOME
-                      </span>
-                    ) : (
-                      <span>{page.slug}</span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+return (
+  <div
+    key={page.id}
+    draggable={!isHomePage}
+    onDragStart={() => {
+      if (!isHomePage) setDraggedPageId(page.id);
+    }}
+    onDragEnd={() => setDraggedPageId(null)}
+    onDragOver={(e) => {
+      if (!isHomePage) e.preventDefault();
+    }}
+    onDrop={async (e) => {
+      e.preventDefault();
+
+      if (
+        isHomePage ||
+        !draggedPageId ||
+        draggedPageId === page.id ||
+        !onReorderPages
+      ) {
+        setDraggedPageId(null);
+        return;
+      }
+
+      const allPages = [...(pages ?? [])];
+      const homePage = allPages[0];
+      const movablePages = allPages.slice(1);
+
+      const fromIndex = movablePages.findIndex((item) => item.id === draggedPageId);
+      const toIndex = movablePages.findIndex((item) => item.id === page.id);
+
+      if (fromIndex < 0 || toIndex < 0) {
+        setDraggedPageId(null);
+        return;
+      }
+
+      const [movedPage] = movablePages.splice(fromIndex, 1);
+      movablePages.splice(toIndex, 0, movedPage);
+
+      await onReorderPages([homePage, ...movablePages]);
+      setDraggedPageId(null);
+    }}
+    className={!isHomePage ? "cursor-move" : ""}
+  >
+    <button
+      type="button"
+      onClick={() => onSelectPage?.(page.id)}
+      className={`shrink-0 rounded-xl px-3 py-1.5 text-xs font-medium whitespace-nowrap ${
+        isActive
+          ? "bg-black text-white"
+          : "bg-neutral-100 text-neutral-800 hover:bg-neutral-200"
+      }`}
+    >
+      {isHomePage ? (
+        <span
+          className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${
+            isActive ? "bg-white/20 text-white" : "bg-blue-100 text-blue-700"
+          }`}
+        >
+          HOME
+        </span>
+      ) : (
+        <span>{page.slug}</span>
+      )}
+    </button>
+  </div>
+);
+        })}
+      </div>
+    </div>
 
           <div className="flex shrink-0 items-center gap-2">
             <button
@@ -5709,6 +5768,7 @@ return (
       onChange={(e) =>
         setSelectedRsvpElementKey(
           e.target.value as
+            | "form"
             | "image"
             | "heading"
             | "nameLabel"
@@ -6498,7 +6558,14 @@ return (
         ? "#ffffff"
         : (selectedAppearance.backgroundColor ?? "#ffffff")
   }
-  onChange={(e) => applyFillColor(e.target.value)}
+  onChange={(e) => {
+  if (selectedBlock?.type === "rsvp" && selectedRsvpElementKey === "form") {
+    applyAppearancePatch({ backgroundColor: e.target.value });
+    return;
+  }
+
+  applyFillColor(e.target.value);
+}}
   className={topBarColorClass(false)}
   title={
     selectedBlock?.type === "rsvp"
@@ -6512,7 +6579,12 @@ return (
             className={eyedropperButtonClass()}
             onClick={() =>
               void pickColorWithEyeDropper((color) => {
-                applyFillColor(color);
+                if (selectedBlock?.type === "rsvp" && selectedRsvpElementKey === "form") {
+                    applyAppearancePatch({ backgroundColor: color });
+                    return;
+                  }
+
+                  applyFillColor(color);
               })
             }
             title="Pick fill color from screen"
@@ -6534,13 +6606,18 @@ return (
       : selectedAppearance.backgroundColor === "transparent",
   )}
   onClick={() => {
-    if (selectedBlock?.type === "rsvp") {
-      updateSelectedRsvpElementStyle((current) => ({
-        ...current,
-        backgroundColor: "transparent",
-      }));
-      return;
-    }
+if (selectedBlock?.type === "rsvp" && selectedRsvpElementKey === "form") {
+  applyAppearancePatch({ backgroundColor: "transparent" });
+  return;
+}
+
+if (selectedBlock?.type === "rsvp") {
+  updateSelectedRsvpElementStyle((current) => ({
+    ...current,
+    backgroundColor: "transparent",
+  }));
+  return;
+}
 
     applyAppearancePatch({ backgroundColor: "transparent" });
   }}
@@ -7097,19 +7174,43 @@ return (
     className={inspectorInputClass()}
   />
 
-  <label className="mt-3 inline-flex cursor-pointer items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-800 hover:bg-neutral-50">
-    Upload Image
-    <input
-      type="file"
-      accept="image/*"
-      className="hidden"
-      onChange={async (e) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
+  <div className="mt-3 flex items-center justify-between gap-3">
+    <label className="inline-flex cursor-pointer items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-800 hover:bg-neutral-50">
+      Upload Image
+      <input
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={async (e) => {
+          const file = e.target.files?.[0];
+          if (!file) return;
 
-        try {
-          const dataUrl = await readFileAsDataUrl(file);
+          try {
+            const dataUrl = await readFileAsDataUrl(file);
 
+            updateSelectedBlock((block) =>
+              block.type !== "rsvp"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      imageUrl: dataUrl,
+                    },
+                  },
+            );
+          } finally {
+            e.target.value = "";
+          }
+        }}
+      />
+    </label>
+
+    {selectedBlock.data.imageUrl ? (
+      <button
+        type="button"
+        className="inline-flex items-center justify-center rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-100"
+        onClick={() =>
           updateSelectedBlock((block) =>
             block.type !== "rsvp"
               ? block
@@ -7117,38 +7218,16 @@ return (
                   ...block,
                   data: {
                     ...block.data,
-                    imageUrl: dataUrl,
+                    imageUrl: "",
                   },
                 },
-          );
-        } finally {
-          e.target.value = "";
+          )
         }
-      }}
-    />
-  </label>
-
-  {selectedBlock.data.imageUrl ? (
-    <button
-      type="button"
-      className="mt-3 inline-flex items-center justify-center rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-100"
-      onClick={() =>
-        updateSelectedBlock((block) =>
-          block.type !== "rsvp"
-            ? block
-            : {
-                ...block,
-                data: {
-                  ...block.data,
-                  imageUrl: "",
-                },
-              },
-        )
-      }
-    >
-      Remove Image
-    </button>
-  ) : null}
+      >
+        Remove Image
+      </button>
+    ) : null}
+  </div>
 </div>
 
     <div className="mt-4">
@@ -7454,8 +7533,53 @@ return (
   </div>
 </div>
 
-<div className="mt-5 space-y-4">
-  <div>
+<div className="mt-5 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+  <div className={inspectorLabelClass()}>Comments Section</div>
+
+  <label className="mt-3 flex items-center gap-3 text-sm text-neutral-800">
+    <input
+      type="checkbox"
+      checked={selectedBlock.data.commentsDisplay !== false}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "rsvp"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  commentsDisplay: e.target.checked,
+                },
+              },
+        )
+      }
+    />
+    Display in public form
+  </label>
+
+  <div className="mt-4">
+    <div className={inspectorLabelClass()}>Default Table Value</div>
+    <textarea
+      value={selectedBlock.data.commentsDefaultValue ?? ""}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "rsvp"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  commentsDefaultValue: e.target.value,
+                },
+              },
+        )
+      }
+      className={`${inspectorInputClass()} min-h-[80px] py-2`}
+      placeholder="Optional default comments value"
+    />
+  </div>
+
+  <div className="mt-4">
     <div className={inspectorLabelClass()}>Comments Label</div>
     <input
       type="text"
@@ -7477,7 +7601,7 @@ return (
     />
   </div>
 
-  <div>
+  <div className="mt-4">
     <div className={inspectorLabelClass()}>Comments Placeholder</div>
     <input
       type="text"
@@ -7499,7 +7623,7 @@ return (
     />
   </div>
 
-  <div>
+  <div className="mt-4">
     <div className={inspectorLabelClass()}>Submit Button Text</div>
     <input
       type="text"
@@ -7642,7 +7766,7 @@ return (
       </div>
     </div>
   </div>
-) : null}
+) : null} 
 
 {selectedBlock?.type === "form_field" ? (
   <div className={inspectorCardClass()}>
@@ -12621,8 +12745,23 @@ return (
               ref={toolMenuRef}
               className="absolute left-0 top-[calc(100%+10px)] z-[120] w-max max-w-[calc(100vw-32px)] rounded-2xl border border-neutral-300 bg-white p-3 shadow-2xl md:bottom-[calc(100%+10px)] md:top-auto md:max-w-[420px]"
             >
-              <div className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
-                {category} Tools
+              <div className="mb-2 flex items-center justify-between gap-3">
+                <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
+                  {category} Tools
+                </div>
+
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setToolGuideModalOpen(true);
+                  }}
+                  className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-neutral-300 bg-white text-sm font-bold text-neutral-700 shadow-sm hover:border-neutral-900 hover:text-neutral-950"
+                  title="Open tool guide"
+                  aria-label="Open tool guide"
+                >
+                  ?
+                </button>
               </div>
 
               <div className="flex max-w-[400px] flex-wrap gap-2">
@@ -12735,6 +12874,46 @@ return (
   </div>
 </div>
 
+<AppModal
+  open={toolGuideModalOpen}
+  title="Builder Tool Guide"
+  description="Quick explanations for the tools you can add to your microsite."
+  cancelText="Close"
+  onCancel={() => setToolGuideModalOpen(false)}
+>
+  <div className="mt-4 max-h-[70vh] space-y-3 overflow-y-auto pr-2">
+    {CATEGORY_BUTTONS[activeCategory]
+  .map((tool) => ({
+    name: tool.label,
+    purpose:
+      BUILDER_TOOL_GUIDES.find((guide) => guide.name === tool.label)?.purpose ??
+      "Guide content coming soon.",
+    howToUse:
+      BUILDER_TOOL_GUIDES.find((guide) => guide.name === tool.label)?.howToUse ??
+      "Add this tool from the toolbar, then customize it from the inspector panel.",
+  }))
+  .map((guide) => (
+      <div
+        key={guide.name}
+        className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4"
+      >
+        <div className="text-sm font-semibold text-neutral-950">
+          {guide.name}
+        </div>
+
+        <div className="mt-2 text-xs font-semibold uppercase tracking-[0.12em] text-neutral-500">
+          Purpose
+        </div>
+        <p className="mt-1 text-sm text-neutral-700">{guide.purpose}</p>
+
+        <div className="mt-3 text-xs font-semibold uppercase tracking-[0.12em] text-neutral-500">
+          How to use
+        </div>
+        <p className="mt-1 text-sm text-neutral-700">{guide.howToUse}</p>
+      </div>
+    ))}
+  </div>
+</AppModal>
 
 <AppModal
   open={richTextLinkModalOpen}

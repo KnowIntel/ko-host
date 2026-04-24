@@ -1876,16 +1876,34 @@ const order = block.data.elementOrder?.length
   const guestMax = Math.max(guestMin, block.data.guestMax ?? 1);
 const attendingLabel = block.data.attendingLabel || "Are you attending?";
 const attendingOptions = block.data.attendingOptions ?? ["Yes", "No"];
+const attendingDisplay = block.data.attendingDisplay !== false;
+const attendingDefaultValue =
+  block.data.attendingDefaultValue || attendingOptions[0] || "Yes";
+const showAttendingInForm = attendingDisplay && !hidden.has("attending");
 
 const mealLabel = block.data.mealLabel || "Your meal selection:";
 const mealOptions = block.data.mealOptions ?? ["Chicken", "Salmon"];
+const mealDisplay = block.data.mealDisplay !== false;
+const mealDefaultValue = block.data.mealDefaultValue || mealOptions[0] || "Chicken";
+const showMealInForm = mealDisplay && !hidden.has("meal");
 
 const guestLabel = block.data.guestLabel || "Are you bringing a guest?";
 const guestOptions = block.data.guestOptions ?? ["Yes", "No"];
+const guestDisplay = block.data.guestDisplay !== false;
+const guestDefaultValue = block.data.guestDefaultValue || guestOptions[1] || "No";
+const showGuestInForm =
+  guestDisplay &&
+  !hidden.has("guestToggle") &&
+  !hidden.has("guestCount") &&
+  !hidden.has("guestName");
 
 const commentsLabel = block.data.commentsLabel || "Additional comments";
 const commentsPlaceholder =
   block.data.commentsPlaceholder || "Additional comments";
+const commentsDisplay = block.data.commentsDisplay !== false;
+const commentsDefaultValue = block.data.commentsDefaultValue || "";
+const showCommentsInForm = commentsDisplay && !hidden.has("comments");
+
 const submitButtonText = block.data.submitButtonText || "Submit RSVP";
 
   const [firstName, setFirstName] = useState("");
@@ -1893,10 +1911,18 @@ const submitButtonText = block.data.submitButtonText || "Submit RSVP";
   const [email, setEmail] = useState("");
   const [address, setAddress] = useState("");
 
-  const [isAttending, setIsAttending] = useState(true);
-  const [mealChoice, setMealChoice] = useState(mealOptions[0] ?? "Chicken");
-  const [bringingGuest, setBringingGuest] = useState(false);
-  const [guestCount, setGuestCount] = useState(Math.max(guestMin, 1));
+const [isAttending, setIsAttending] = useState(
+  attendingDisplay ? true : attendingDefaultValue === attendingOptions[0],
+);
+const [mealChoice, setMealChoice] = useState(
+  mealDisplay ? mealOptions[0] ?? "Chicken" : mealDefaultValue,
+);
+const [bringingGuest, setBringingGuest] = useState(
+  guestDisplay ? false : guestDefaultValue === guestOptions[0],
+);
+const [guestCount, setGuestCount] = useState(
+  guestDisplay ? Math.max(guestMin, 1) : 0,
+);
   const [guestNames, setGuestNames] = useState<string[]>([]);
   const [comments, setComments] = useState("");
   const [company, setCompany] = useState("");
@@ -1997,10 +2023,26 @@ if (!micrositeSlug) {
           lastName: lastName.trim(),
           email: email.trim(),
           address: address.trim(),
-          isAttending,
-          mealChoice: isAttending ? mealChoice : "",
-          bringingGuest,
-          guestCount: isAttending ? Math.max(bringingGuest ? 2 : 1, guestCount) : 0,
+isAttending: showAttendingInForm
+  ? isAttending
+  : attendingDefaultValue === attendingOptions[0],
+
+mealChoice:
+  (showAttendingInForm ? isAttending : attendingDefaultValue === attendingOptions[0])
+    ? showMealInForm
+  ? mealChoice
+  : mealDefaultValue
+    : "",
+
+bringingGuest: showGuestInForm
+  ? bringingGuest
+  : guestDefaultValue === guestOptions[0],
+
+guestCount:
+  (attendingDisplay ? isAttending : attendingDefaultValue === attendingOptions[0]) &&
+  (showGuestInForm ? bringingGuest : guestDefaultValue === guestOptions[0])
+    ? guestCount
+    : 0,
           guestName: bringingGuest
             ? guestNames
                 .slice(0, guestCount)
@@ -2008,7 +2050,7 @@ if (!micrositeSlug) {
                 .filter(Boolean)
                 .join(", ")
             : "",
-          comments: comments.trim(),
+          comments: showCommentsInForm ? comments.trim() : commentsDefaultValue.trim(),
           company: company.trim(),
         }),
       });
@@ -2301,16 +2343,30 @@ function renderRadioSection(
       case "address":
         return renderField("address", "Address", address, setAddress);
 
-      case "attending":
-        return renderRadioSection(
-          "attending",
-          attendingLabel,
-          attendingOptions,
-          isAttending ? attendingOptions[0] : attendingOptions[1] ?? "No",
-          (next) => setIsAttending(next === attendingOptions[0]),
-        );
+case "attending":
+  if (!showAttendingInForm) return null;
 
-      case "meal":
+  return renderRadioSection(
+    "attending",
+    attendingLabel,
+    attendingOptions,
+    isAttending ? attendingOptions[0] : attendingOptions[1] ?? "No",
+    (next) => setIsAttending(next === attendingOptions[0]),
+  );
+
+case "meal":
+  if (!showMealInForm) return null;
+  if (!(attendingDisplay ? isAttending : attendingDefaultValue === attendingOptions[0])) {
+    return null;
+  }
+
+  return renderRadioSection(
+    "meal",
+    mealLabel,
+    mealOptions,
+    mealChoice,
+    setMealChoice,
+  );
         if (!isAttending) return null;
           return renderRadioSection(
             "meal",
@@ -2320,7 +2376,25 @@ function renderRadioSection(
             setMealChoice,
           );
 
-      case "guestToggle":
+case "guestToggle":
+  if (!showGuestInForm) return null;
+  if (!(attendingDisplay ? isAttending : attendingDefaultValue === attendingOptions[0])) {
+    return null;
+  }
+
+  return renderRadioSection(
+    "guestToggle",
+    guestLabel,
+    guestOptions,
+    bringingGuest ? guestOptions[0] : guestOptions[1] ?? "No",
+    (next) => {
+      const yes = next === guestOptions[0];
+      setBringingGuest(yes);
+      const nextCount = yes ? Math.max(1, guestMin) : 0;
+      setGuestCount(nextCount);
+      setGuestNames(yes ? Array.from({ length: nextCount }, () => "") : []);
+    },
+  );
         if (!isAttending) return null;
           return renderRadioSection(
             "guestToggle",
@@ -2336,11 +2410,41 @@ function renderRadioSection(
                           },
           );
 
-      case "guestCount":
-        if (!isAttending || !bringingGuest) return null;
-        return renderGuestCount();
+case "guestCount":
+  if (!showGuestInForm) return null;
+  if (!(attendingDisplay ? isAttending : attendingDefaultValue === attendingOptions[0])) {
+    return null;
+  }
+  if (!bringingGuest) return null;
+
+  return renderGuestCount();
 
 case "guestName":
+  if (!showGuestInForm) return null;
+  if (!(attendingDisplay ? isAttending : attendingDefaultValue === attendingOptions[0])) {
+    return null;
+  }
+  if (!bringingGuest || guestCount <= 0) return null;
+
+  return (
+    <div key="guestName" className="space-y-3">
+      {Array.from({ length: guestCount }).map((_, index) => (
+        <input
+          key={`guest-name-${index}`}
+          type="text"
+          placeholder={`Guest Name ${index + 1}`}
+          value={guestNames[index] ?? ""}
+          onChange={(e) => {
+            const next = [...guestNames];
+            next[index] = e.target.value;
+            setGuestNames(next);
+          }}
+          className="w-full rounded-xl border border-neutral-300 bg-white px-3 py-3 text-sm text-neutral-800 outline-none"
+          style={getStyle("guestName")}
+        />
+      ))}
+    </div>
+  );
   if (!isAttending || !bringingGuest || guestCount <= 0) return null;
 
   return (
@@ -2363,7 +2467,25 @@ case "guestName":
     </div>
   );
 
-      case "comments":
+case "comments":
+  if (!showCommentsInForm) return null;
+
+  return (
+    <div key="comments" className="space-y-2">
+      <div
+        className="text-sm font-medium text-neutral-800"
+        style={getStyle("comments")}
+      >
+        {commentsLabel}
+      </div>
+      {renderTextarea(
+        "comments",
+        commentsPlaceholder,
+        comments,
+        setComments,
+      )}
+    </div>
+  );
         return (
           <div key="comments" className="space-y-2">
             <div
@@ -2453,7 +2575,7 @@ case "guestName":
       </form>
     </Surface>
   );
-}
+} 
 
 function renderFaq(
   block: Extract<MicrositeBlock, { type: "faq" }>,

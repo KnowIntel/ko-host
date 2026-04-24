@@ -37,6 +37,12 @@ activePageId?: string | null;
 activePageSlug?: string;
 micrositeSlug?: string;
 onSelectPage?: (pageId: string) => void;
+onReorderPages?: (nextPages: Array<{
+  id: string;
+  slug: string;
+  title: string | null;
+  display_order?: number | null;
+}>) => void | Promise<void>;
 };
 
 const AUTOSAVE_DELAY_MS = 10 * 60 * 1000;
@@ -75,7 +81,8 @@ export default function TemplateDraftEditor({
   activePageId,
   activePageSlug,
   micrositeSlug,
-  onSelectPage,
+onSelectPage,
+onReorderPages,
 }: Props) {
   const resolvedTemplateName = templateName ?? templateKey ?? "";
   const resolvedDesignLayout = designLayout ?? "blank";
@@ -246,6 +253,7 @@ export default function TemplateDraftEditor({
   activePageSlug={activePageSlug}
   micrositeSlug={micrositeSlug}
   onSelectPage={onSelectPage}
+  onReorderPages={onReorderPages}   // ✅ ADD THIS LINE
   saveState={effectiveSaveState}
   saveMessage={effectiveSaveMessage}
 />

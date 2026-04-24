@@ -224,12 +224,14 @@ export default async function PublishedMicrositeSubPage({
     <>
 <main className="min-h-screen w-screen max-w-none overflow-hidden bg-[#fcfbf8] text-neutral-900">
   <div className="w-screen max-w-none px-0 py-0 overflow-hidden">
-          <PlacedBlocksPreview
-            draft={draft}
-            designKey={designKey}
-            disableAutoScale={true}
-            hideFrame={true}
-          />
+        <PlacedBlocksPreview
+          draft={draft}
+          designKey={designKey}
+          micrositeId={typedMicrosite.id}
+          micrositeSlug={safeSlug}
+          disableAutoScale={true}
+          hideFrame={true}
+        />
         </div>
       </main>
       <MicrositeFooterBrand />

@@ -381,14 +381,24 @@ export type RsvpBlock = BaseBlock & {
 
     attendingLabel?: string;
     attendingOptions?: [string, string];
+    attendingDisplay?: boolean;
+    attendingDefaultValue?: string;
 
     mealLabel?: string;
     mealOptions?: [string, string];
+    mealDisplay?: boolean;
+    mealDefaultValue?: string;
 
     guestLabel?: string;
     guestOptions?: [string, string];
+    guestDisplay?: boolean;
+    guestDefaultValue?: string;
+
     commentsLabel?: string;
     commentsPlaceholder?: string;
+    commentsDisplay?: boolean;
+    commentsDefaultValue?: string;
+
     submitButtonText?: string;
 
     elementStyles?: RsvpElementStyleMap;
@@ -1327,6 +1337,61 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
       };
 
 case "rsvp":
+  return {
+    id: makeId("rsvp"),
+    type: "rsvp",
+    label: "RSVP",
+    grid,
+    appearance: createDefaultBlockAppearance(),
+    data: {
+      heading: "Wedding Invitation RSVP Form",
+      imageUrl: "",
+      imageFrameShape: "circle",
+      elementOrder: [
+        "image",
+        "heading",
+        "nameLabel",
+        "firstName",
+        "lastName",
+        "email",
+        "address",
+        "attending",
+        "meal",
+        "guestToggle",
+        "guestCount",
+        "guestName",
+        "comments",
+      ],
+      hiddenElements: [],
+      guestMin: 0,
+      guestMax: 1,
+
+      attendingLabel: "Are you attending?",
+      attendingOptions: ["Yes", "No"],
+      attendingDisplay: true,
+      attendingDefaultValue: "Yes",
+
+      mealLabel: "Your meal selection:",
+      mealOptions: ["Chicken", "Salmon"],
+      mealDisplay: true,
+      mealDefaultValue: "Chicken",
+
+      guestLabel: "Are you bringing a guest?",
+      guestOptions: ["Yes", "No"],
+      guestDisplay: true,
+      guestDefaultValue: "No",
+
+      commentsLabel: "Additional comments",
+      commentsPlaceholder: "Additional comments",
+      commentsDisplay: true,
+      commentsDefaultValue: "",
+
+      submitButtonText: "Submit RSVP",
+
+      elementStyles: {},
+      style: createDefaultTextStyle(),
+    },
+  };
   return {
     id: makeId("rsvp"),
     type: "rsvp",
