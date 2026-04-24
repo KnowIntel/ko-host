@@ -677,42 +677,47 @@ return (
           </div>
         ) : null}
 
-        {blockEntries.map(({ block, grid }) => (
-          <div
-            key={block.id}
-            style={{
-              ...getItemStyle(grid, logicalPageWidth, logicalRowHeight),
-              overflow: "visible",
-              pointerEvents: "auto",
-              isolation: "isolate",
-            }}
-          >
-            <div
-              className="h-full w-full"
-              style={{
-                overflow: "visible",
-                pointerEvents: "auto",
-              }}
-            >
-<BlockRenderer
-  block={block}
-  designKey={designKey}
-  micrositeId={micrositeId}
-  micrositeSlug={micrositeSlug}
-  serverNow={serverNow}
-  cartItems={cartItems}
-  cartSubtotal={cartSubtotal}
-  listingQuantities={listingQuantities}
-  onChangeListingQuantity={(listingId: string, nextQuantity: number) => {
-    setListingQuantities((prev) => ({
-      ...prev,
-      [listingId]: Math.max(0, Math.floor(nextQuantity || 0)),
-    }));
-  }}
-/>
-            </div>
-          </div>
-        ))}
+{blockEntries.map(({ block, grid }) => {
+  const itemStyle = getItemStyle(grid, logicalPageWidth, logicalRowHeight);
+
+  return (
+    <div
+      key={block.id}
+      style={{
+        ...itemStyle,
+        zIndex: block.type === "rsvp" ? 9999 : itemStyle.zIndex,
+        overflow: "visible",
+        pointerEvents: "none",
+        isolation: "isolate",
+      }}
+    >
+    <div
+      className="h-full w-full"
+      style={{
+        overflow: "visible",
+        pointerEvents: "auto",
+      }}
+    >
+      <BlockRenderer
+        block={block}
+        designKey={designKey}
+        micrositeId={micrositeId}
+        micrositeSlug={micrositeSlug}
+        serverNow={serverNow}
+        cartItems={cartItems}
+        cartSubtotal={cartSubtotal}
+        listingQuantities={listingQuantities}
+        onChangeListingQuantity={(listingId: string, nextQuantity: number) => {
+          setListingQuantities((prev) => ({
+            ...prev,
+            [listingId]: Math.max(0, Math.floor(nextQuantity || 0)),
+          }));
+        }}
+      />
+    </div>
+    </div>
+  );
+})}
       </div>
     </div>
   </div>

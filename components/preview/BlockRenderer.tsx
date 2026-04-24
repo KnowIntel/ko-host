@@ -2042,80 +2042,82 @@ if (!micrositeSlug) {
     }
   }
 
-  function renderImage() {
-    if (!block.data.imageUrl) return null;
+function renderImage() {
+  if (!block.data.imageUrl) return null;
 
-if (imageShape === "heart") {
-  const heartClipId = `rsvp-heart-clip-${block.id}`;
+  const imageStyle = getStyle("image");
 
-  return (
-    <div key="image" className="flex justify-center">
-      <div className="h-28 w-28" style={getStyle("image")}>
-        <svg
-          viewBox="0 0 100 100"
-          className="h-full w-full"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <defs>
-            <clipPath id={heartClipId} clipPathUnits="objectBoundingBox">
-              <path d="M 0.5 0.95 C 0.2 0.72, 0.02 0.5, 0.02 0.28 C 0.02 0.1, 0.16 0.0, 0.3 0.0 C 0.42 0.0, 0.5 0.1, 0.5 0.18 C 0.5 0.1, 0.58 0.0, 0.7 0.0 C 0.84 0.0, 0.98 0.1, 0.98 0.28 C 0.98 0.5, 0.8 0.72, 0.5 0.95 Z" />
-            </clipPath>
-          </defs>
-
-          <image
-            href={block.data.imageUrl}
-            x="0"
-            y="0"
-            width="100"
-            height="100"
-            preserveAspectRatio="xMidYMid slice"
-            clipPath={`url(#${heartClipId})`}
-          />
-
-          <path
-            d="M 50 95 C 20 72, 2 50, 2 28 C 2 10, 16 0, 30 0 C 42 0, 50 10, 50 18 C 50 10, 58 0, 70 0 C 84 0, 98 10, 98 28 C 98 50, 80 72, 50 95 Z"
-            fill="none"
-            stroke="#e5e5e5"
-            strokeWidth="2"
-          />
-        </svg>
-      </div>
-    </div>
-  );
-}
-
-    if (imageShape === "diamond") {
-      return (
-        <div key="image" className="flex justify-center py-2">
-          <div
-            className={`relative h-28 w-28 overflow-hidden border border-neutral-200 bg-neutral-100 ${getFrameClass(
-              imageShape,
-            )}`}
-            style={getStyle("image")}
-          >
-            <img
-              src={block.data.imageUrl}
-              alt=""
-              className="h-full w-full -rotate-45 scale-150 object-cover"
-            />
-          </div>
-        </div>
-      );
-    }
+  if (imageShape === "heart") {
+    const heartClipId = `rsvp-heart-clip-${block.id}`;
 
     return (
-      <div key="image" className="flex justify-center">
-        <img
-          src={block.data.imageUrl}
-          alt=""
-          className={`h-28 w-28 object-cover border border-neutral-200 ${getFrameClass(
-            imageShape,
-          )}`}
-          style={getStyle("image")}
-        />
+      <div key="image" className="relative z-0 flex justify-center overflow-hidden">
+        <div className="h-28 w-28" style={imageStyle}>
+          <svg
+            viewBox="0 0 100 100"
+            className="block h-full w-full"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <defs>
+              <clipPath id={heartClipId} clipPathUnits="objectBoundingBox">
+                <path d="M 0.5 0.95 C 0.2 0.72, 0.02 0.5, 0.02 0.28 C 0.02 0.1, 0.16 0.0, 0.3 0.0 C 0.42 0.0, 0.5 0.1, 0.5 0.18 C 0.5 0.1, 0.58 0.0, 0.7 0.0 C 0.84 0.0, 0.98 0.1, 0.98 0.28 C 0.98 0.5, 0.8 0.72, 0.5 0.95 Z" />
+              </clipPath>
+            </defs>
+
+            <image
+              href={block.data.imageUrl}
+              x="0"
+              y="0"
+              width="100"
+              height="100"
+              preserveAspectRatio="xMidYMid slice"
+              clipPath={`url(#${heartClipId})`}
+            />
+
+            <path
+              d="M 50 95 C 20 72, 2 50, 2 28 C 2 10, 16 0, 30 0 C 42 0, 50 10, 50 18 C 50 10, 58 0, 70 0 C 84 0, 98 10, 98 28 C 98 50, 80 72, 50 95 Z"
+              fill="none"
+              stroke="#e5e5e5"
+              strokeWidth="2"
+            />
+          </svg>
+        </div>
       </div>
     );
   }
+
+  if (imageShape === "diamond") {
+    return (
+      <div key="image" className="relative z-0 flex justify-center overflow-hidden py-2">
+        <div
+          className={`relative h-28 w-28 overflow-hidden border border-neutral-200 bg-neutral-100 ${getFrameClass(
+            imageShape,
+          )}`}
+          style={imageStyle}
+        >
+          <img
+            src={block.data.imageUrl}
+            alt=""
+            className="block h-full w-full -rotate-45 scale-150 object-cover"
+          />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div key="image" className="relative z-0 flex justify-center overflow-hidden">
+      <img
+        src={block.data.imageUrl}
+        alt=""
+        className={`block h-28 w-28 object-cover border border-neutral-200 ${getFrameClass(
+          imageShape,
+        )}`}
+        style={imageStyle}
+      />
+    </div>
+  );
+}
 
 function renderField(
   key: string,
@@ -2133,7 +2135,7 @@ function renderField(
       placeholder={placeholder}
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="w-full rounded-xl border border-neutral-300 bg-white px-3 py-3 text-sm text-neutral-800 outline-none"
+      className="relative z-10 block w-full rounded-xl border border-neutral-300 bg-white px-3 py-3 text-sm text-neutral-800 outline-none"
       style={{
         ...fieldStyle,
         textAlign: "left",
@@ -2148,14 +2150,19 @@ function renderTextarea(
   value: string,
   onChange: (value: string) => void,
 ) {
+  const fieldStyle = getStyle(key);
+
   return (
     <textarea
       key={key}
       placeholder={placeholder}
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="relative z-10 w-full rounded-xl border border-neutral-300 bg-white px-3 py-3 text-sm text-neutral-800 outline-none"
-      style={getStyle(key)}
+      className="relative z-10 block w-full rounded-xl border border-neutral-300 bg-white px-3 py-3 text-sm text-neutral-800 outline-none"
+      style={{
+        ...fieldStyle,
+        textAlign: "left",
+      }}
       rows={4}
     />
   );
@@ -2173,17 +2180,28 @@ function renderTextarea(
     );
   }
 
-  function renderRadioSection(
-    key: string,
-    label: string,
-    options: string[],
-    value: string,
-    onChange: (value: string) => void,
-  ) {
-    return (
-      <div key={key} className="space-y-2" style={getStyle(key)}>
+function renderRadioSection(
+  key: string,
+  label: string,
+  options: string[],
+  value: string,
+  onChange: (value: string) => void,
+) {
+  const sectionStyle = getStyle(key);
+
+  return (
+    <div
+      key={key}
+      className="space-y-2"
+      style={{
+        ...sectionStyle,
+        position: "relative",
+        zIndex: 0,
+        pointerEvents: "auto",
+      }}
+    >
         <div className="text-sm font-medium text-neutral-800">{label}</div>
-        <div className="flex flex-wrap gap-4">
+        <div className="relative z-10 flex flex-wrap gap-4">
           {options.map((option) => (
             <label
               key={`${key}-${option}`}
@@ -2282,7 +2300,6 @@ function renderTextarea(
 
       case "address":
         return renderField("address", "Address", address, setAddress);
-
 
       case "attending":
         return renderRadioSection(
