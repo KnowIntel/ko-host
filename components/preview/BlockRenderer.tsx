@@ -16,6 +16,7 @@ type SpeedDatingParticipant = {
   waiting: boolean;
 };
 
+
 type SpeedDatingPair = {
   id: string;
   leftParticipant: SpeedDatingParticipant | null;
