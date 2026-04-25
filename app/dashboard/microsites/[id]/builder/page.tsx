@@ -388,6 +388,7 @@ const orderedPages = useMemo(() => {
       });
 
       const data = await res.json().catch(() => ({}));
+      alert(JSON.stringify(data));
 
       if (!res.ok) {
         setCreatePageError(data?.error || "Failed to create page.");
@@ -396,11 +397,14 @@ const orderedPages = useMemo(() => {
 
       const nextPage = data?.page as PageRow | undefined;
 
-      await loadPages(id);
+      const refreshedPages = await loadPages(id);
+      console.log("REFRESHED PAGES", refreshedPages);
 
-      if (nextPage?.id) {
-        setActivePageId(nextPage.id);
-      }
+if (nextPage?.id) {
+  setActivePageId(nextPage.id);
+} else if (refreshedPages.length > 0) {
+  setActivePageId(refreshedPages[refreshedPages.length - 1].id);
+}
 
       setAddPageModalOpen(false);
       setNewPageName("");
@@ -410,6 +414,43 @@ const orderedPages = useMemo(() => {
       setCreatingPage(false);
     }
   }
+
+  async function createPageImmediately() {
+    alert("CREATE PAGE FUNCTION STARTED");
+  const nextNumber = Math.max(1, orderedPages.length);
+  const safeSlug = normalizeSlug(`page-${nextNumber + 1}`);
+
+  try {
+    setCreatingPage(true);
+    setCreatePageError("");
+
+    const res = await fetch(`/api/dashboard/microsites/${id}/pages`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ slug: safeSlug }),
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      setCreatePageError(data?.error || "Failed to create page.");
+      return;
+    }
+
+    const nextPage = data?.page as PageRow | undefined;
+    const refreshedPages = await loadPages(id);
+
+    if (nextPage?.id) {
+      setActivePageId(nextPage.id);
+    } else if (refreshedPages.length > 0) {
+      setActivePageId(refreshedPages[refreshedPages.length - 1].id);
+    }
+
+    setSaveMessage(`Created page: ${safeSlug}`);
+  } finally {
+    setCreatingPage(false);
+  }
+}
 
   function openPageContextMenu(
     event: React.MouseEvent<HTMLButtonElement>,
@@ -621,7 +662,10 @@ return (
   initialDraft={editorDraft}
   onSave={saveBuilderDraft}
   microsite={site}
-  onOpenAddPage={openAddPageModal}
+  onOpenAddPage={() => {
+  alert("REACHED BUILDER PAGE PROP");
+  void createPageImmediately();
+}}
   onRemoveActivePage={openDeleteActivePage}
   pages={orderedPages}
   activePageId={activePageId}

@@ -1960,6 +1960,11 @@ const handleVideoUpload = async (
     });
 
     const data = await res.json().catch(() => ({}));
+    console.log("CREATE PAGE RESULT", {
+  ok: res.ok,
+  status: res.status,
+  data,
+});
 
     if (!res.ok || !data?.url) {
       console.error(data);
@@ -5333,13 +5338,13 @@ return (
     </div>
 
           <div className="flex shrink-0 items-center gap-2">
-            <button
-              type="button"
-              onClick={onOpenAddPage}
-              className="rounded-xl bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
-            >
-              + Add Page
-            </button>
+<button
+  type="button"
+  onClick={onOpenAddPage}
+  className="rounded-xl bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
+>
+  + Add Page
+</button>
 
             {canRemoveActivePage ? (
               <button

@@ -246,14 +246,13 @@ onReorderPages,
   onPublishClick={() => {
     onPublishClick?.();
   }}
-  onOpenAddPage={onOpenAddPage}
-  onRemoveActivePage={onRemoveActivePage}
-  pages={pages}
+onOpenAddPage={onOpenAddPage}
+onRemoveActivePage={onRemoveActivePage}
+pages={pages}
   activePageId={activePageId}
   activePageSlug={activePageSlug}
   micrositeSlug={micrositeSlug}
   onSelectPage={onSelectPage}
-  onReorderPages={onReorderPages}   // ✅ ADD THIS LINE
   saveState={effectiveSaveState}
   saveMessage={effectiveSaveMessage}
 />
