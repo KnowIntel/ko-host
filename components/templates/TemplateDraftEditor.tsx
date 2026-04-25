@@ -27,6 +27,7 @@ type Props = {
     slug?: string;
   };
 onRemoveActivePage?: () => void;
+onRenameActivePage?: () => void;
 pages?: Array<{
   id: string;
   slug: string;
@@ -73,6 +74,7 @@ export default function TemplateDraftEditor({
   onPublishClick,
   onOpenAddPage,
   onRemoveActivePage,
+  onRenameActivePage,
   onDraftChange,
   saveState,
   saveMessage,
@@ -246,9 +248,11 @@ onReorderPages,
   onPublishClick={() => {
     onPublishClick?.();
   }}
-onOpenAddPage={onOpenAddPage}
-onRemoveActivePage={onRemoveActivePage}
-pages={pages}
+
+  onOpenAddPage={onOpenAddPage}
+  onRemoveActivePage={onRemoveActivePage}
+  onRenameActivePage={onRenameActivePage}
+  pages={pages}
   activePageId={activePageId}
   activePageSlug={activePageSlug}
   micrositeSlug={micrositeSlug}

@@ -127,6 +127,7 @@ type Props = {
     slug?: string;
   };
 onRemoveActivePage?: () => void;
+onRenameActivePage?: () => void;
 pages?: Array<{
   id: string;
   slug: string;
@@ -972,6 +973,7 @@ export default function DesignLayoutEditor({
   onPublishClick,
   onOpenAddPage,
   onRemoveActivePage,
+  onRenameActivePage,
   pages,
   activePageId,
   activePageSlug,
@@ -5218,14 +5220,16 @@ function nudgeSelectedBlock(
 }
 
 return (
-<div className="flex min-h-screen flex-col bg-[#f3f3f3] pt-4">
+  <div className="flex min-h-screen flex-col bg-[#f3f3f3] pt-4">
     <div className="border-b border-black/10 bg-white px-6 py-3">
       <div className="text-xs font-semibold uppercase tracking-[0.14em] text-neutral-500">
         Editing
       </div>
+
       <div className="mt-1 text-2xl font-semibold text-neutral-900">
         {currentSiteName}
       </div>
+
       <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-neutral-500">
         <span>{currentSiteDisplay}</span>
 
@@ -5233,7 +5237,7 @@ return (
           type="button"
           onClick={handleCopyUrl}
           className="rounded-xl border border-neutral-300 bg-white px-3 py-1 text-xs font-medium text-neutral-700 hover:bg-neutral-50"
-        > 
+        >
           {copied ? "Copied!" : "Copy URL"}
         </button>
 
@@ -5246,115 +5250,131 @@ return (
         </button>
       </div>
 
-<div className="mt-4 rounded-2xl border border-neutral-200 bg-white px-3 py-2 shadow-sm">
-  <div className="flex items-center gap-2">
-    <div className="flex-1 overflow-x-auto">
-      <div className="flex min-w-max items-center gap-2 pr-2">
-        {(
-  pages && pages.length > 0
-    ? pages
-    : [
-        {
-          id: "forced-home",
-          slug: "home",
-          title: "Home",
-          display_order: 0,
-        },
-      ]
-).map((page, index) => {
-          const isHomePage = index === 0;
-          const isActive =
-        activePageId === page.id || (!activePageId && page.slug === "home");
+      <div className="mt-4 rounded-2xl border border-neutral-200 bg-white px-3 py-2 shadow-sm">
+        <div className="flex items-center gap-2">
+          <div className="flex-1 overflow-x-auto">
+            <div className="flex min-w-max items-center gap-2 pr-2">
+              {(
+                pages && pages.length > 0
+                  ? pages
+                  : [
+                      {
+                        id: "home",
+                        slug: "home",
+                        title: "Home",
+                        display_order: 0,
+                      },
+                    ]
+              ).map((page, index) => {
+                const isHomePage = page.slug === "home" || index === 0;
+                const isActive =
+                  activePageId === page.id || (!activePageId && isHomePage);
 
-return (
-  <div
-    key={page.id}
-    draggable={!isHomePage}
-    onDragStart={() => {
-      if (!isHomePage) setDraggedPageId(page.id);
-    }}
-    onDragEnd={() => setDraggedPageId(null)}
-    onDragOver={(e) => {
-      if (!isHomePage) e.preventDefault();
-    }}
-    onDrop={async (e) => {
-      e.preventDefault();
+                return (
+                  <div
+                    key={page.id}
+                    draggable={!isHomePage}
+                    onDragStart={() => {
+                      if (!isHomePage) setDraggedPageId(page.id);
+                    }}
+                    onDragEnd={() => setDraggedPageId(null)}
+                    onDragOver={(e) => {
+                      if (!isHomePage) e.preventDefault();
+                    }}
+                    onDrop={async (e) => {
+                      e.preventDefault();
 
-      if (
-        isHomePage ||
-        !draggedPageId ||
-        draggedPageId === page.id ||
-        !onReorderPages
-      ) {
-        setDraggedPageId(null);
-        return;
-      }
+                      if (
+                        isHomePage ||
+                        !draggedPageId ||
+                        draggedPageId === page.id ||
+                        !onReorderPages
+                      ) {
+                        setDraggedPageId(null);
+                        return;
+                      }
 
-      const allPages = [...(pages ?? [])];
-      const homePage = allPages[0];
-      const movablePages = allPages.slice(1);
+                      const allPages = pages ?? [];
+                      const homePage = allPages[0];
+                      const movablePages = allPages.slice(1);
 
-      const fromIndex = movablePages.findIndex((item) => item.id === draggedPageId);
-      const toIndex = movablePages.findIndex((item) => item.id === page.id);
+                      const fromIndex = movablePages.findIndex(
+                        (item) => item.id === draggedPageId,
+                      );
+                      const toIndex = movablePages.findIndex(
+                        (item) => item.id === page.id,
+                      );
 
-      if (fromIndex < 0 || toIndex < 0) {
-        setDraggedPageId(null);
-        return;
-      }
+                      if (fromIndex < 0 || toIndex < 0 || !homePage) {
+                        setDraggedPageId(null);
+                        return;
+                      }
 
-      const [movedPage] = movablePages.splice(fromIndex, 1);
-      movablePages.splice(toIndex, 0, movedPage);
+                      const [movedPage] = movablePages.splice(fromIndex, 1);
+                      movablePages.splice(toIndex, 0, movedPage);
 
-      await onReorderPages([homePage, ...movablePages]);
-      setDraggedPageId(null);
-    }}
-    className={!isHomePage ? "cursor-move" : ""}
-  >
-    <button
-      type="button"
-      onClick={() => onSelectPage?.(page.id)}
-      className={`shrink-0 rounded-xl px-3 py-1.5 text-xs font-medium whitespace-nowrap ${
-        isActive
-          ? "bg-black text-white"
-          : "bg-neutral-100 text-neutral-800 hover:bg-neutral-200"
-      }`}
-    >
-      {isHomePage ? (
-        <span
-          className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${
-            isActive ? "bg-white/20 text-white" : "bg-blue-100 text-blue-700"
-          }`}
-        >
-          HOME
-        </span>
-      ) : (
-        <span>{page.slug}</span>
-      )}
-    </button>
-  </div>
-);
-        })}
-      </div>
-    </div>
+                      await onReorderPages([homePage, ...movablePages]);
+                      setDraggedPageId(null);
+                    }}
+                    className={!isHomePage ? "cursor-move" : ""}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => onSelectPage?.(page.id)}
+                      className={`shrink-0 rounded-xl px-3 py-1.5 text-xs font-medium whitespace-nowrap ${
+                        isActive
+                          ? "bg-black text-white"
+                          : "bg-neutral-100 text-neutral-800 hover:bg-neutral-200"
+                      }`}
+                    >
+                      {isHomePage ? (
+                        <span
+                          className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${
+                            isActive
+                              ? "bg-white/20 text-white"
+                              : "bg-blue-100 text-blue-700"
+                          }`}
+                        >
+                          HOME
+                        </span>
+                      ) : (
+                        <span>{page.slug}</span>
+                      )}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
 
           <div className="flex shrink-0 items-center gap-2">
-<button
-  type="button"
-  onClick={onOpenAddPage}
-  className="rounded-xl bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
->
-  + Add Page
-</button>
+            <button
+              type="button"
+              onClick={onOpenAddPage}
+              className="rounded-xl bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
+            >
+              + Add Page
+            </button>
 
-            {canRemoveActivePage ? (
-              <button
-                type="button"
-                onClick={onRemoveActivePage}
-                className="rounded-xl bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-700"
-              >
-                Remove Page
-              </button>
-            ) : null}
+{activePageSlug && activePageSlug !== "home" ? (
+  <>
+    <button
+      type="button"
+      onClick={onRenameActivePage}
+      className="rounded-xl bg-neutral-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-neutral-800"
+    >
+      Rename Page
+    </button>
+
+    <button
+      type="button"
+      onClick={onRemoveActivePage}
+      className="rounded-xl bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-700"
+    >
+      Remove Page
+    </button>
+  </>
+) : null}
           </div>
         </div>
       </div>

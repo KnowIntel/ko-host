@@ -16,6 +16,14 @@ import type { BuilderDraft } from "@/lib/templates/builder";
 import AppModal from "@/components/ui/AppModal";
 import { loadTemplateDraftPreset } from "@/lib/drafts";
 
+type LocalBuilderPage = {
+  id: string;
+  slug: string;
+  title: string;
+  display_order: number;
+  draft: BuilderDraft;
+};
+
 function resolveTemplateFromRoute(rawTemplate: string) {
   const normalized = normalizeTemplateKey(rawTemplate);
 
@@ -137,6 +145,24 @@ export default function CreateTemplatePage() {
 
   const [hydratedDraft, setHydratedDraft] = useState<BuilderDraft>(initialDraft);
   const [liveDraft, setLiveDraft] = useState<BuilderDraft>(initialDraft);
+  const [builderPages, setBuilderPages] = useState<LocalBuilderPage[]>([
+  {
+    id: "home",
+    slug: "home",
+    title: "Home",
+    display_order: 0,
+    draft: initialDraft,
+  },
+]);
+
+const [activeBuilderPageId, setActiveBuilderPageId] = useState("home");
+
+const [addPageModalOpen, setAddPageModalOpen] = useState(false);
+const [newPageName, setNewPageName] = useState("");
+const [createPageError, setCreatePageError] = useState("");
+
+const [renamePageModalOpen, setRenamePageModalOpen] = useState(false);
+const [renamePageName, setRenamePageName] = useState("");
   const liveDraftRef = useRef<BuilderDraft>(initialDraft);
   const lastSavedDraftRef = useRef<string>(JSON.stringify(initialDraft));
 
@@ -481,6 +507,134 @@ async function handleSaveDraft(draft: BuilderDraft): Promise<void> {
     router.push(publishHref);
   }
 
+  function normalizePageSlug(input: string) {
+  return input
+    .toLowerCase()
+    .trim()
+    .replace(/['"]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60);
+}
+
+function openAddPageModal() {
+  setNewPageName("");
+  setCreatePageError("");
+  setAddPageModalOpen(true);
+}
+
+function closeAddPageModal() {
+  setAddPageModalOpen(false);
+  setNewPageName("");
+  setCreatePageError("");
+}
+
+function createPageFromModal() {
+  const safeSlug = normalizePageSlug(newPageName);
+
+  if (!safeSlug) {
+    setCreatePageError("Enter a valid page name.");
+    return;
+  }
+
+  if (builderPages.some((page) => page.slug === safeSlug)) {
+    setCreatePageError("A page with this name already exists.");
+    return;
+  }
+
+  const nextPage: LocalBuilderPage = {
+    id: `page-${Date.now()}`,
+    slug: safeSlug,
+    title: newPageName.trim(),
+    display_order: builderPages.length,
+    draft: {
+      ...initialDraft,
+      title: newPageName.trim(),
+      blocks: [],
+    },
+  };
+
+  setBuilderPages((prev) => [
+    ...prev.map((page) =>
+      page.id === activeBuilderPageId ? { ...page, draft: liveDraft } : page,
+    ),
+    nextPage,
+  ]);
+
+  setActiveBuilderPageId(nextPage.id);
+  setHydratedDraft(nextPage.draft);
+  setLiveDraft(nextPage.draft);
+
+  setAddPageModalOpen(false);
+  setNewPageName("");
+  setCreatePageError("");
+}
+
+function selectBuilderPage(pageId: string) {
+  const currentDraft = liveDraft;
+
+  setBuilderPages((prev) =>
+    prev.map((page) =>
+      page.id === activeBuilderPageId ? { ...page, draft: currentDraft } : page,
+    ),
+  );
+
+  const nextPage = builderPages.find((page) => page.id === pageId);
+  if (!nextPage) return;
+
+  setActiveBuilderPageId(pageId);
+  setHydratedDraft(nextPage.draft);
+  setLiveDraft(nextPage.draft);
+}
+
+function removeActiveBuilderPage() {
+  if (activeBuilderPageId === "home") return;
+
+  const remainingPages = builderPages.filter(
+    (page) => page.id !== activeBuilderPageId,
+  );
+
+  setBuilderPages(remainingPages);
+  setActiveBuilderPageId("home");
+
+  const homeDraft = remainingPages.find((page) => page.id === "home")?.draft || initialDraft;
+  setHydratedDraft(homeDraft);
+  setLiveDraft(homeDraft);
+}
+
+function openRenameActivePageModal() {
+  if (activeBuilderPageId === "home") return;
+
+  const activePage = builderPages.find((page) => page.id === activeBuilderPageId);
+  if (!activePage) return;
+
+  setRenamePageName(activePage.title || activePage.slug);
+  setRenamePageModalOpen(true);
+}
+
+function renameActivePageFromModal() {
+  if (activeBuilderPageId === "home") return;
+
+  const safeSlug = normalizePageSlug(renamePageName);
+
+  if (!safeSlug) return;
+
+  setBuilderPages((prev) =>
+    prev.map((page) =>
+      page.id === activeBuilderPageId
+        ? {
+            ...page,
+            slug: safeSlug,
+            title: renamePageName.trim() || safeSlug,
+          }
+        : page,
+    ),
+  );
+
+  setRenamePageModalOpen(false);
+  setRenamePageName("");
+}
+
   return (
     <main className="min-h-screen bg-[#f6f4f2]">
       <div className="w-full max-w-none px-0 py-8">
@@ -499,19 +653,154 @@ async function handleSaveDraft(draft: BuilderDraft): Promise<void> {
           </div>
         </div>
 
-        <TemplateDraftEditor
-          key={editorInstanceKey}
-          templateName={templateKey}
-          designLayout={designKey}
-          initialDraft={hydratedDraft}
-          onSave={handleSaveDraft}
-          publishHref={publishHref}
-          publishLabel="Publish"
-          onPublishClick={handlePublishClick}
-          onDraftChange={setLiveDraft}
-          saveState={saveState}
-          saveMessage={saveMessage}
+<TemplateDraftEditor
+  key={`${editorInstanceKey}::${activeBuilderPageId}`}
+  templateName={templateKey}
+  designLayout={designKey}
+  initialDraft={hydratedDraft}
+  onSave={handleSaveDraft}
+  publishHref={publishHref}
+  publishLabel="Publish"
+  onPublishClick={handlePublishClick}
+  onDraftChange={(draft) => {
+    setLiveDraft(draft);
+    setBuilderPages((prev) =>
+      prev.map((page) =>
+        page.id === activeBuilderPageId ? { ...page, draft } : page,
+      ),
+    );
+  }}
+  saveState={saveState}
+  saveMessage={saveMessage}
+  pages={builderPages.map(({ id, slug, title, display_order }) => ({
+    id,
+    slug,
+    title,
+    display_order,
+  }))}
+  activePageId={activeBuilderPageId}
+  activePageSlug={
+    builderPages.find((page) => page.id === activeBuilderPageId)?.slug || "home"
+  }
+  onOpenAddPage={openAddPageModal}
+  onRemoveActivePage={removeActiveBuilderPage}
+  onRenameActivePage={openRenameActivePageModal}
+  onSelectPage={selectBuilderPage}
+/>
+
+{addPageModalOpen ? (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+    <div className="w-full max-w-md rounded-3xl border border-neutral-200 bg-white p-6 shadow-2xl">
+      <div className="text-lg font-semibold text-neutral-950">
+        Add New Page
+      </div>
+
+      <p className="mt-2 text-sm text-neutral-600">
+        Enter a page name. It will be converted into a clean page slug.
+      </p>
+
+      <div className="mt-5">
+        <label className="text-xs font-semibold uppercase tracking-[0.14em] text-neutral-500">
+          Page name
+        </label>
+
+        <input
+          type="text"
+          value={newPageName}
+          onChange={(e) => {
+            setNewPageName(e.target.value);
+            if (createPageError) setCreatePageError("");
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              createPageFromModal();
+            }
+          }}
+          placeholder="rsvp"
+          autoFocus
+          className="mt-2 h-11 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-900 outline-none"
         />
+
+        <div className="mt-2 text-xs text-neutral-500">
+          Page URL slug: {normalizePageSlug(newPageName) || "new-page"}
+        </div>
+      </div>
+
+      {createPageError ? (
+        <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {createPageError}
+        </div>
+      ) : null}
+
+      <div className="mt-6 flex items-center justify-end gap-3">
+        <button
+          type="button"
+          onClick={closeAddPageModal}
+          className="inline-flex items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-900 hover:bg-neutral-50"
+        >
+          Cancel
+        </button>
+
+        <button
+          type="button"
+          onClick={createPageFromModal}
+          className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+        >
+          Create Page
+        </button>
+      </div>
+    </div>
+  </div>
+) : null}
+
+{renamePageModalOpen ? (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+    <div className="w-full max-w-md rounded-3xl border border-neutral-200 bg-white p-6 shadow-2xl">
+      <div className="text-lg font-semibold text-neutral-950">
+        Rename Page
+      </div>
+
+      <div className="mt-5">
+        <label className="text-xs font-semibold uppercase tracking-[0.14em] text-neutral-500">
+          Page name
+        </label>
+
+        <input
+          type="text"
+          value={renamePageName}
+          onChange={(e) => setRenamePageName(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              renameActivePageFromModal();
+            }
+          }}
+          autoFocus
+          className="mt-2 h-11 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-900 outline-none"
+        />
+      </div>
+
+      <div className="mt-6 flex items-center justify-end gap-3">
+        <button
+          type="button"
+          onClick={() => setRenamePageModalOpen(false)}
+          className="inline-flex items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-900 hover:bg-neutral-50"
+        >
+          Cancel
+        </button>
+
+        <button
+          type="button"
+          onClick={renameActivePageFromModal}
+          className="inline-flex items-center justify-center rounded-xl bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+        >
+          Rename Page
+        </button>
+      </div>
+    </div>
+  </div>
+) : null}
 
         <AppModal
           open={showSignInPrompt}
