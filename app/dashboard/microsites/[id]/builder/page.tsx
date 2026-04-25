@@ -111,16 +111,29 @@ export default function DashboardMicrositeBuilderPage() {
   const [deletingPage, setDeletingPage] = useState(false);
   const [deletePageError, setDeletePageError] = useState("");
 
-  const orderedPages = useMemo(
-    () =>
-      [...pages].sort((a, b) => {
-        const aOrder = typeof a.display_order === "number" ? a.display_order : 0;
-        const bOrder = typeof b.display_order === "number" ? b.display_order : 0;
-        if (aOrder !== bOrder) return aOrder - bOrder;
-        return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
-      }),
-    [pages],
-  );
+const orderedPages = useMemo(() => {
+  const sorted = [...pages].sort((a, b) => {
+    const aOrder = typeof a.display_order === "number" ? a.display_order : 0;
+    const bOrder = typeof b.display_order === "number" ? b.display_order : 0;
+    if (aOrder !== bOrder) return aOrder - bOrder;
+    return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
+  });
+
+  const hasHome = sorted.some((page) => page.slug === "home");
+
+  if (hasHome) return sorted;
+
+  return [
+    {
+      id: "forced-home",
+      slug: "home",
+      title: "Home",
+      display_order: -1,
+      draft: site?.draft ?? editorDraft ?? null,
+    },
+    ...sorted,
+  ];
+}, [pages, site?.draft, editorDraft]);
 
   const firstPageId = orderedPages[0]?.id || null;
 
@@ -614,7 +627,15 @@ return (
   activePageId={activePageId}
   activePageSlug={orderedPages.find((page) => page.id === activePageId)?.slug || "home"}
   micrositeSlug={site.slug}
-  onSelectPage={setActivePageId}
+  onSelectPage={(pageId) => {
+  if (pageId === "forced-home") {
+    setEditorDraft(site ? buildDraftFromRecord(site) : editorDraft);
+    setActivePageId(null);
+    return;
+  }
+
+  setActivePageId(pageId);
+}}
   onReorderPages={reorderPages}
 />
 

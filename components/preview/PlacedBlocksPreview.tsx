@@ -22,6 +22,7 @@ import {
 type Props = {
   draft: BuilderDraft;
   designKey: string;
+  previewMode?: boolean;
   micrositeId?: string | null;
   micrositeSlug?: string | null;
   serverNow?: number;
@@ -164,6 +165,7 @@ function hasMeaningfulText(value?: string) {
 export default function PlacedBlocksPreview({
   draft,
   designKey,
+  previewMode = false,
   micrositeId = null,
   micrositeSlug = null,
   serverNow,
@@ -698,22 +700,23 @@ return (
         pointerEvents: "auto",
       }}
     >
-      <BlockRenderer
-        block={block}
-        designKey={designKey}
-        micrositeId={micrositeId}
-        micrositeSlug={micrositeSlug}
-        serverNow={serverNow}
-        cartItems={cartItems}
-        cartSubtotal={cartSubtotal}
-        listingQuantities={listingQuantities}
-        onChangeListingQuantity={(listingId: string, nextQuantity: number) => {
-          setListingQuantities((prev) => ({
-            ...prev,
-            [listingId]: Math.max(0, Math.floor(nextQuantity || 0)),
-          }));
-        }}
-      />
+<BlockRenderer
+  block={block}
+  designKey={designKey}
+  micrositeId={micrositeId}
+  micrositeSlug={micrositeSlug}
+  serverNow={serverNow}
+  previewMode={previewMode}
+  cartItems={cartItems}
+  cartSubtotal={cartSubtotal}
+  listingQuantities={listingQuantities}
+  onChangeListingQuantity={(listingId: string, nextQuantity: number) => {
+    setListingQuantities((prev) => ({
+      ...prev,
+      [listingId]: Math.max(0, Math.floor(nextQuantity || 0)),
+    }));
+  }}
+/>
     </div>
     </div>
   );

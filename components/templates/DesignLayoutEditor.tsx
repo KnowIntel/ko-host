@@ -5245,9 +5245,21 @@ return (
   <div className="flex items-center gap-2">
     <div className="flex-1 overflow-x-auto">
       <div className="flex min-w-max items-center gap-2 pr-2">
-        {(pages ?? []).map((page, index) => {
+        {(
+  pages && pages.length > 0
+    ? pages
+    : [
+        {
+          id: "forced-home",
+          slug: "home",
+          title: "Home",
+          display_order: 0,
+        },
+      ]
+).map((page, index) => {
           const isHomePage = index === 0;
-          const isActive = activePageId === page.id;
+          const isActive =
+        activePageId === page.id || (!activePageId && page.slug === "home");
 
 return (
   <div

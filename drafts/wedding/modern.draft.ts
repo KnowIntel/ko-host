@@ -86,7 +86,7 @@ const weddingModernDraft: DraftWithPageExtras = {
       data: {
         heading: "",
         items: [
-          { id: "modern-link-about", label: "        ABOUT        ", url: "#" },
+          { id: "modern-link-about", label: "        ABUUT        ", url: "#" },
           {
             id: "modern-link-registry",
             label: "        REGISTRY        ",

@@ -119,14 +119,15 @@ export default function DesignCardCanvasPreview({
   return (
     <div ref={containerRef} className="absolute inset-0 overflow-hidden">
       <div className="absolute inset-0 overflow-hidden">
-        <PlacedBlocksPreview
-          draft={draft}
-          designKey={designKey}
-          fixedScale={fixedScale}
-          disableAutoScale={true}
-          transparentPageBackground={true}
-          hideFrame={true}
-        />
+<PlacedBlocksPreview
+  draft={draft}
+  designKey={designKey}
+  previewMode={true}
+  fixedScale={fixedScale}
+  disableAutoScale={true}
+  transparentPageBackground={true}
+  hideFrame={true}
+/>
       </div>
     </div>
   );

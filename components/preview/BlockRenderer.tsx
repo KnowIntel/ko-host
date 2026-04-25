@@ -90,6 +90,7 @@ type Props = {
   micrositeId?: string | null;
   micrositeSlug?: string | null;
   serverNow?: number;
+  previewMode?: boolean;
   cartItems?: CartItem[];
   cartSubtotal?: number;
   listingQuantities?: Record<string, number>;
@@ -1532,6 +1533,7 @@ const parts =
 function renderLinks(
   block: Extract<MicrositeBlock, { type: "links" }>,
   designKey?: string,
+  previewMode = false,
 ) {
   const typedBlock = block as typeof block & {
     data: typeof block.data & {
@@ -1619,28 +1621,32 @@ function renderLinks(
             );
           }
 
-          return (
-            <a
-              key={item.id}
-              href={normalizedHref}
-              target={
-                normalizedHref.startsWith("http://") ||
-                normalizedHref.startsWith("https://")
-                  ? "_blank"
-                  : undefined
-              }
-              rel={
-                normalizedHref.startsWith("http://") ||
-                normalizedHref.startsWith("https://")
-                  ? "noreferrer noopener"
-                  : undefined
-              }
-              className={className}
-              style={style}
-            >
-              {content}
-            </a>
-          );
+const Tag = previewMode ? "span" : "a";
+
+return (
+  <Tag
+    key={item.id}
+    {...(!previewMode
+      ? {
+          href: normalizedHref,
+          target:
+            normalizedHref.startsWith("http://") ||
+            normalizedHref.startsWith("https://")
+              ? "_blank"
+              : undefined,
+          rel:
+            normalizedHref.startsWith("http://") ||
+            normalizedHref.startsWith("https://")
+              ? "noreferrer noopener"
+              : undefined,
+        }
+      : {})}
+    className={className}
+    style={style}
+  >
+    {content}
+  </Tag>
+);
         })}
       </div>
     </div>
@@ -6312,6 +6318,7 @@ export default function BlockRenderer({
   micrositeId,
   micrositeSlug,
   serverNow,
+  previewMode = false,
   cartItems,
   cartSubtotal,
   listingQuantities,
@@ -6439,7 +6446,7 @@ case "cart":
     case "countdown":
       return renderCountdown(block, designKey, serverNow);
     case "links":
-      return renderLinks(block, designKey);
+      return renderLinks(block, designKey, previewMode);
     case "video":
       return renderVideo(block, designKey);
     case "gallery":
