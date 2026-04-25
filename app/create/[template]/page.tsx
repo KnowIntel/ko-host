@@ -74,9 +74,10 @@ export default function CreateTemplatePage() {
   const searchParams = useSearchParams();
 
   const rawTemplate = String(params?.template || "");
-  const rawDesign = searchParams.get("design") || "blank";
-  const mode = searchParams.get("mode") || "new";
-  const shouldLoadExistingDraft = mode === "draft";
+const rawDesign = searchParams.get("design") || "blank";
+const resetPreset = searchParams.get("resetPreset") === "1";
+const mode = searchParams.get("mode") || "new";
+const shouldLoadExistingDraft = !resetPreset && mode === "draft";
 
   const templateDef = useMemo(
     () => resolveTemplateFromRoute(rawTemplate),
@@ -292,11 +293,17 @@ function resolveSafeTemplateKey(draft?: BuilderDraft) {
   }
 
   useEffect(() => {
-    setHydratedDraft(initialDraft);
-    setLiveDraft(initialDraft);
-    lastSavedDraftRef.current = JSON.stringify(initialDraft);
+setHydratedDraft(initialDraft);
+setLiveDraft(initialDraft);
+lastSavedDraftRef.current = JSON.stringify(initialDraft);
 
-    if (!shouldLoadExistingDraft) {
+if (resetPreset) {
+  setSaveState("idle");
+  setSaveMessage("Loaded code preset. Saved drafts ignored.");
+  return;
+}
+
+if (!shouldLoadExistingDraft) {
       try {
         const raw = window.localStorage.getItem(storageKey);
 
@@ -345,11 +352,11 @@ function resolveSafeTemplateKey(draft?: BuilderDraft) {
       setSaveMessage("Saved local draft could not be loaded.");
       queueSaveStateReset();
     }
-  }, [initialDraft, storageKey, shouldLoadExistingDraft]);
+  }, [initialDraft, storageKey, shouldLoadExistingDraft, resetPreset]);
 
   useEffect(() => {
     async function loadServerDraft() {
-      if (!isSignedIn || !shouldLoadExistingDraft) return;
+      if (resetPreset || !isSignedIn || !shouldLoadExistingDraft) return;
 
       const safeTemplateKey = resolveSafeTemplateKey(initialDraft);
       const safeDesignKey = resolveSafeDesignKey(initialDraft);
@@ -382,7 +389,7 @@ function resolveSafeTemplateKey(draft?: BuilderDraft) {
     }
 
     void loadServerDraft();
-  }, [isSignedIn, templateKey, designKey, initialDraft, shouldLoadExistingDraft]);
+  }, [isSignedIn, templateKey, designKey, initialDraft, shouldLoadExistingDraft, resetPreset]);
 
 async function handleSaveDraft(draft: BuilderDraft): Promise<void> {
   setHydratedDraft(draft);
@@ -530,6 +537,10 @@ function closeAddPageModal() {
 }
 
 function createPageFromModal() {
+  if (builderPages.length >= 5) {
+  setCreatePageError("You can only create up to 5 pages per microsite.");
+  return;
+}
   const safeSlug = normalizePageSlug(newPageName);
 
   if (!safeSlug) {
@@ -547,11 +558,35 @@ function createPageFromModal() {
     slug: safeSlug,
     title: newPageName.trim(),
     display_order: builderPages.length,
-    draft: {
-      ...initialDraft,
-      title: newPageName.trim(),
-      blocks: [],
+draft: {
+  title: newPageName.trim(),
+  subtitle: "",
+  subtext: "",
+  description: "",
+  slugSuggestion: initialDraft.slugSuggestion || "",
+  blocks: [],
+  pageColor: "#ffffff",
+  pageBackground: "#ffffff",
+  pageBackgroundImage: "",
+  pageBackgroundImageFit: "zoom",
+  pageScale: initialDraft.pageScale ?? 85,
+  pageVisibility: {
+    title: true,
+    subtitle: false,
+    subtext: false,
+    description: false,
+  },
+  pageElements: {
+    title: {
+      colStart: 1,
+      rowStart: 1,
+      colSpan: 12,
+      rowSpan: 1.5,
+      zIndex: 1,
     },
+  },
+  pageBlockAppearance: {},
+},
   };
 
   setBuilderPages((prev) => [
@@ -619,17 +654,33 @@ function renameActivePageFromModal() {
 
   if (!safeSlug) return;
 
-  setBuilderPages((prev) =>
-    prev.map((page) =>
-      page.id === activeBuilderPageId
-        ? {
-            ...page,
-            slug: safeSlug,
-            title: renamePageName.trim() || safeSlug,
-          }
-        : page,
-    ),
-  );
+const nextTitle = renamePageName.trim() || safeSlug;
+
+setBuilderPages((prev) =>
+  prev.map((page) =>
+    page.id === activeBuilderPageId
+      ? {
+          ...page,
+          slug: safeSlug,
+          title: nextTitle,
+          draft: {
+            ...page.draft,
+            title: nextTitle,
+          },
+        }
+      : page,
+  ),
+);
+
+setHydratedDraft((prev) => ({
+  ...prev,
+  title: nextTitle,
+}));
+
+setLiveDraft((prev) => ({
+  ...prev,
+  title: nextTitle,
+}));
 
   setRenamePageModalOpen(false);
   setRenamePageName("");
@@ -662,14 +713,6 @@ function renameActivePageFromModal() {
   publishHref={publishHref}
   publishLabel="Publish"
   onPublishClick={handlePublishClick}
-  onDraftChange={(draft) => {
-    setLiveDraft(draft);
-    setBuilderPages((prev) =>
-      prev.map((page) =>
-        page.id === activeBuilderPageId ? { ...page, draft } : page,
-      ),
-    );
-  }}
   saveState={saveState}
   saveMessage={saveMessage}
   pages={builderPages.map(({ id, slug, title, display_order }) => ({

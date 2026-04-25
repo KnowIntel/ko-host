@@ -5348,13 +5348,14 @@ return (
           </div>
 
           <div className="flex shrink-0 items-center gap-2">
-            <button
-              type="button"
-              onClick={onOpenAddPage}
-              className="rounded-xl bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
-            >
-              + Add Page
-            </button>
+<button
+  type="button"
+  onClick={onOpenAddPage}
+  disabled={(pages?.length ?? 1) >= 5}
+  className="rounded-xl bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+>
+  + Add Page
+</button>
 
 {activePageSlug && activePageSlug !== "home" ? (
   <>
@@ -5573,7 +5574,35 @@ return (
 
       <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
 
-      <div className={infoPillClass()}>{selectedContext.label}</div>
+      <div className="flex items-center gap-2">
+  <div className={infoPillClass()}>{selectedContext.label}</div>
+
+  {selectedBlock ? (
+    <button
+      type="button"
+      className={topBarButtonClass(false)}
+      onClick={() =>
+        updateSelectedBlock((block) => ({
+          ...block,
+          grid: {
+            ...block.grid,
+            colStart: 1,
+            colSpan: 12,
+          },
+        }))
+      }
+      title="Expand Horizon"
+    >
+      <Image
+        src="/icons/icon_expand_horizon.png"
+        alt="Expand Horizon"
+        width={30}
+        height={30}
+        className="pointer-events-none h-[30px] w-[30px] object-contain"
+      />
+    </button>
+  ) : null}
+</div>
 
       {isTextSelection(selectedContext) ? (
         <button
