@@ -1,928 +1,403 @@
+// drafts/wedding/classic.draft.ts
+
 import type { BuilderDraft } from "@/lib/templates/builder";
 
 type DraftWithPageExtras = BuilderDraft & {
+  pageColor?: string;
   pageBackgroundImage?: string;
   pageBackgroundImageFit?: "clip" | "zoom" | "stretch";
+  pageBlockAppearance?: Record<string, unknown>;
+  pages?: DraftPage[];
 };
 
-const weddingClassicHomeDraft = {
-  // Home
+type DraftPage = {
+  id: string;
+  slug: string;
+  title: string;
+  display_order: number;
+  draft: DraftWithPageExtras;
+};
 
-  "title": "Lucy & Ricky",
-  "blocks": [
+const weddingClassicHomeDraft: DraftWithPageExtras = {
+  title: "Lucy & Ricky",
+  blocks: [
     {
-      "id": "image_2kab2ol4",
-      "data": {
-        "image": {
-          "id": "img_u8l4cnev",
-          "alt": "design_wedding-classic.png",
-          "url": "/designs/backgrounds/design_wedding-classic.png",
-          "fade": {
-            "top": false,
-            "left": false,
-            "size": 4,
-            "right": false,
-            "bottom": true
+      id: "image_2kab2ol4",
+      type: "image",
+      label: "Image",
+      grid: {
+        zIndex: 9,
+        colSpan: 12,
+        rowSpan: 11.25,
+        colStart: 1,
+        rowStart: 1,
+      },
+      appearance: {
+        borderColor: "#D1D5DB",
+        borderWidth: 0,
+        borderRadius: 16,
+        backgroundColor: "transparent",
+      },
+      data: {
+        image: {
+          id: "img_u8l4cnev",
+          alt: "design_wedding-classic.png",
+          url: "/designs/backgrounds/design_wedding-classic.png",
+          fade: {
+            top: false,
+            left: false,
+            size: 4,
+            right: false,
+            bottom: true,
           },
-          "zoom": 1,
-          "frame": "square",
-          "fitMode": "zoom",
-          "opacity": 1,
-          "rotation": 0,
-          "positionX": 50,
-          "positionY": 50
-        }
+          zoom: 1,
+          frame: "square",
+          fitMode: "zoom",
+          opacity: 1,
+          rotation: 0,
+          positionX: 50,
+          positionY: 50,
+        },
       },
-      "grid": {
-        "zIndex": 9,
-        "colSpan": 12,
-        "rowSpan": 11.25,
-        "colStart": 1,
-        "rowStart": 1
-      },
-      "type": "image",
-      "label": "Image",
-      "appearance": {
-        "borderColor": "#D1D5DB",
-        "borderWidth": 0,
-        "borderRadius": 16,
-        "backgroundColor": "transparent"
-      }
     },
     {
-      "id": "image_g6xatk27",
-      "data": {
-        "image": {
-          "id": "img_ugnjiz8k",
-          "url": "https://koxykctwdpvmfwyzxgxt.supabase.co/storage/v1/object/public/uploads/1776727750100-fr9qgwxrd2n.webp",
-          "fade": {
-            "top": false,
-            "left": false,
-            "size": 15,
-            "right": false,
-            "bottom": false
+      id: "image_g6xatk27",
+      type: "image",
+      label: "Image",
+      grid: {
+        zIndex: 14,
+        colSpan: 10.5,
+        rowSpan: 1.5,
+        colStart: 1.75,
+        rowStart: 7.25,
+      },
+      appearance: {
+        borderColor: "#D1D5DB",
+        borderWidth: 0,
+        borderRadius: 16,
+        backgroundColor: "transparent",
+      },
+      data: {
+        image: {
+          id: "img_ugnjiz8k",
+          url: "https://koxykctwdpvmfwyzxgxt.supabase.co/storage/v1/object/public/uploads/1776727750100-fr9qgwxrd2n.webp",
+          fade: {
+            top: false,
+            left: false,
+            size: 15,
+            right: false,
+            bottom: false,
           },
-          "zoom": 1,
-          "frame": "square",
-          "fitMode": "stretch",
-          "opacity": 1,
-          "rotation": 0,
-          "positionX": 50,
-          "positionY": 50
-        }
-      },
-      "grid": {
-        "zIndex": 14,
-        "colSpan": 10.5,
-        "rowSpan": 1.5,
-        "colStart": 1.75,
-        "rowStart": 7.25
-      },
-      "type": "image",
-      "label": "Image",
-      "appearance": {
-        "borderColor": "#D1D5DB",
-        "borderWidth": 0,
-        "borderRadius": 16,
-        "backgroundColor": "transparent"
-      }
-    },
-    {
-      "id": "links_8894i5yd",
-      "data": {
-        "items": [
-          {
-            "id": "link_ungdcx2h",
-            "url": "https://ourwedding.ko-host.com/rsvp-accept",
-            "label": "Accepts with Pleasure"
-          }
-        ],
-        "style": {
-          "bold": false,
-          "align": "center",
-          "color": "#111827",
-          "italic": false,
-          "strike": false,
-          "fontSize": 45,
-          "underline": false,
-          "fontFamily": "Georgia"
+          zoom: 1,
+          frame: "square",
+          fitMode: "stretch",
+          opacity: 1,
+          rotation: 0,
+          positionX: 50,
+          positionY: 50,
         },
-        "heading": "",
-        "transparentBackground": true
       },
-      "grid": {
-        "zIndex": 15,
-        "colSpan": 4.5,
-        "rowSpan": 1,
-        "colStart": 1.75,
-        "rowStart": 7.5
-      },
-      "type": "links",
-      "label": "Navigation Link",
-      "appearance": {
-        "borderColor": "#D1D5DB",
-        "borderWidth": 0,
-        "borderRadius": 16,
-        "backgroundColor": "transparent"
-      }
     },
     {
-      "id": "label_x0cgbf3g",
-      "data": {
-        "text": "Kindly RSVP",
-        "style": {
-          "bold": false,
-          "align": "center",
-          "color": "#646462",
-          "italic": false,
-          "strike": false,
-          "fontSize": 60,
-          "underline": false,
-          "fontFamily": "Great Vibes"
-        }
+      id: "links_8894i5yd",
+      type: "links",
+      label: "Navigation Link",
+      grid: {
+        zIndex: 15,
+        colSpan: 4.5,
+        rowSpan: 1,
+        colStart: 1.75,
+        rowStart: 7.5,
       },
-      "grid": {
-        "zIndex": 17,
-        "colSpan": 12,
-        "rowSpan": 1.25,
-        "colStart": 1,
-        "rowStart": 6
+      appearance: {
+        borderColor: "#D1D5DB",
+        borderWidth: 0,
+        borderRadius: 16,
+        backgroundColor: "transparent",
       },
-      "type": "label",
-      "label": "Label",
-      "appearance": {
-        "borderColor": "#D1D5DB",
-        "borderWidth": 0,
-        "borderRadius": 16,
-        "backgroundColor": "transparent"
-      }
-    },
-    {
-      "id": "label_uw8le2",
-      "data": {
-        "text": "A R E   G U T T I N G   M A R R I E D",
-        "style": {
-          "bold": false,
-          "align": "center",
-          "color": "#646462",
-          "italic": false,
-          "strike": false,
-          "fontSize": 40,
-          "underline": false,
-          "fontFamily": "Cormorant Garamond"
-        }
-      },
-      "grid": {
-        "zIndex": 18,
-        "colSpan": 12,
-        "rowSpan": 1.25,
-        "colStart": 1,
-        "rowStart": 3.75
-      },
-      "type": "label",
-      "label": "Label",
-      "appearance": {
-        "borderColor": "#D1D5DB",
-        "borderWidth": 0,
-        "borderRadius": 16,
-        "backgroundColor": "transparent"
-      }
-    },
-    {
-      "id": "links_glfkzn",
-      "data": {
-        "items": [
+      data: {
+        items: [
           {
-            "id": "link_ungdcx2h",
-            "url": "https://ourwedding.ko-host.com/rsvp-decline",
-            "label": "Declines with Regret"
-          }
+            id: "link_accept",
+            url: "https://ourwedding.ko-host.com/rsvp-accept",
+            label: "Accepts with Pleasure",
+          },
         ],
-        "style": {
-          "bold": false,
-          "align": "center",
-          "color": "#111827",
-          "italic": false,
-          "strike": false,
-          "fontSize": 45,
-          "underline": false,
-          "fontFamily": "Georgia"
+        style: {
+          bold: false,
+          align: "center",
+          color: "#111827",
+          italic: false,
+          strike: false,
+          fontSize: 45,
+          underline: false,
+          fontFamily: "Georgia",
         },
-        "heading": "",
-        "transparentBackground": true
+        heading: "",
+        transparentBackground: true,
       },
-      "grid": {
-        "zIndex": 16,
-        "colSpan": 4.5,
-        "rowSpan": 1,
-        "colStart": 7.75,
-        "rowStart": 7.5
-      },
-      "type": "links",
-      "label": "Navigation Link",
-      "appearance": {
-        "borderColor": "#D1D5DB",
-        "borderWidth": 0,
-        "borderRadius": 16,
-        "backgroundColor": "transparent"
-      }
     },
     {
-      "id": "label_bh47da09",
-      "data": {
-        "text": "3:30 PM — Guest Arrival\n4:30 PM — Ceremony Begins\n5:15 PM — Cocktail Hour\n6:30 PM — Dinner Reception\n8:00 PM — Dancing",
-        "style": {
-          "bold": false,
-          "align": "center",
-          "color": "#111827",
-          "italic": false,
-          "strike": false,
-          "fontSize": 34,
-          "underline": false,
-          "fontFamily": "Georgia"
-        }
+      id: "label_x0cgbf3g",
+      type: "label",
+      label: "Label",
+      grid: {
+        zIndex: 17,
+        colSpan: 12,
+        rowSpan: 1.25,
+        colStart: 1,
+        rowStart: 6,
       },
-      "grid": {
-        "zIndex": 19,
-        "colSpan": 12,
-        "rowSpan": 2.25,
-        "colStart": 1,
-        "rowStart": 9.5
+      appearance: {
+        borderColor: "#D1D5DB",
+        borderWidth: 0,
+        borderRadius: 16,
+        backgroundColor: "transparent",
       },
-      "type": "label",
-      "label": "Label",
-      "appearance": {
-        "borderColor": "#D1D5DB",
-        "borderWidth": 0,
-        "borderRadius": 16,
-        "backgroundColor": "transparent"
-      }
-    }
+      data: {
+        text: "Kindly RSVP",
+        style: {
+          bold: false,
+          align: "center",
+          color: "#646462",
+          italic: false,
+          strike: false,
+          fontSize: 60,
+          underline: false,
+          fontFamily: "Great Vibes",
+        },
+      },
+    },
+    {
+      id: "label_uw8le2",
+      type: "label",
+      label: "Label",
+      grid: {
+        zIndex: 18,
+        colSpan: 12,
+        rowSpan: 1.25,
+        colStart: 1,
+        rowStart: 3.75,
+      },
+      appearance: {
+        borderColor: "#D1D5DB",
+        borderWidth: 0,
+        borderRadius: 16,
+        backgroundColor: "transparent",
+      },
+      data: {
+        text: "A R E   G E T T I N G   M A R R I E D",
+        style: {
+          bold: false,
+          align: "center",
+          color: "#646462",
+          italic: false,
+          strike: false,
+          fontSize: 40,
+          underline: false,
+          fontFamily: "Cormorant Garamond",
+        },
+      },
+    },
+    {
+      id: "links_glfkzn",
+      type: "links",
+      label: "Navigation Link",
+      grid: {
+        zIndex: 16,
+        colSpan: 4.5,
+        rowSpan: 1,
+        colStart: 7.75,
+        rowStart: 7.5,
+      },
+      appearance: {
+        borderColor: "#D1D5DB",
+        borderWidth: 0,
+        borderRadius: 16,
+        backgroundColor: "transparent",
+      },
+      data: {
+        items: [
+          {
+            id: "link_decline",
+            url: "https://ourwedding.ko-host.com/rsvp-decline",
+            label: "Declines with Regret",
+          },
+        ],
+        style: {
+          bold: false,
+          align: "center",
+          color: "#111827",
+          italic: false,
+          strike: false,
+          fontSize: 45,
+          underline: false,
+          fontFamily: "Georgia",
+        },
+        heading: "",
+        transparentBackground: true,
+      },
+    },
+    {
+      id: "label_bh47da09",
+      type: "label",
+      label: "Label",
+      grid: {
+        zIndex: 19,
+        colSpan: 12,
+        rowSpan: 2.25,
+        colStart: 1,
+        rowStart: 9.5,
+      },
+      appearance: {
+        borderColor: "#D1D5DB",
+        borderWidth: 0,
+        borderRadius: 16,
+        backgroundColor: "transparent",
+      },
+      data: {
+        text: "3:30 PM — Guest Arrival\n4:30 PM — Ceremony Begins\n5:15 PM — Cocktail Hour\n6:30 PM — Dinner Reception\n8:00 PM — Dancing",
+        style: {
+          bold: false,
+          align: "center",
+          color: "#111827",
+          italic: false,
+          strike: false,
+          fontSize: 34,
+          underline: false,
+          fontFamily: "Georgia",
+        },
+      },
+    },
   ],
-  "subtext": "November 30, 1940",
-  "subtitle": "ARE GETTING MARRIED",
-  "pageColor": "#ffffff",
-  "pageScale": 85,
-  "titleStyle": {
-    "bold": false,
-    "align": "center",
-    "color": "#646462",
-    "italic": false,
-    "strike": false,
-    "fontSize": 160,
-    "underline": false,
-    "fontFamily": "Great Vibes"
+  subtext: "November 30, 1940",
+  subtitle: "ARE GETTING MARRIED",
+  pageColor: "#ffffff",
+  pageScale: 85,
+  titleStyle: {
+    bold: false,
+    align: "center",
+    color: "#646462",
+    italic: false,
+    strike: false,
+    fontSize: 160,
+    underline: false,
+    fontFamily: "Great Vibes",
   },
-  "description": "Kindly RSVP",
-  "pageElements": {
-    "title": {
-      "zIndex": 10,
-      "colSpan": 12,
-      "rowSpan": 2.5,
-      "colStart": 1,
-      "rowStart": 2.25
+  description: "Kindly RSVP",
+  pageElements: {
+    title: {
+      zIndex: 10,
+      colSpan: 12,
+      rowSpan: 2.5,
+      colStart: 1,
+      rowStart: 2.25,
     },
-    "subtext": {
-      "zIndex": 16,
-      "colSpan": 12,
-      "rowSpan": 1.5,
-      "colStart": 1,
-      "rowStart": 4.25
+    subtext: {
+      zIndex: 16,
+      colSpan: 12,
+      rowSpan: 1.5,
+      colStart: 1,
+      rowStart: 4.25,
     },
-    "subtitle": {
-      "zIndex": 16,
-      "colSpan": 7,
-      "rowSpan": 1,
-      "colStart": 3.75,
-      "rowStart": 10.25
+    subtitle: {
+      zIndex: 16,
+      colSpan: 7,
+      rowSpan: 1,
+      colStart: 3.75,
+      rowStart: 10.25,
     },
-    "description": {
-      "zIndex": 13,
-      "colSpan": 12,
-      "rowSpan": 1.25,
-      "colStart": 1,
-      "rowStart": 6.75
-    }
+    description: {
+      zIndex: 13,
+      colSpan: 12,
+      rowSpan: 1.25,
+      colStart: 1,
+      rowStart: 6.75,
+    },
   },
-  "subtextStyle": {
-    "bold": true,
-    "align": "center",
-    "color": "#374151",
-    "italic": true,
-    "fontSize": 106,
-    "fontFamily": "Cormorant Garamond"
+  subtextStyle: {
+    bold: true,
+    align: "center",
+    color: "#374151",
+    italic: true,
+    fontSize: 106,
+    fontFamily: "Cormorant Garamond",
   },
-  "subtitleStyle": {
-    "align": "center",
-    "color": "#374151",
-    "fontSize": 60,
-    "fontFamily": "Cormorant Garamond"
+  subtitleStyle: {
+    align: "center",
+    color: "#374151",
+    fontSize: 60,
+    fontFamily: "Cormorant Garamond",
   },
-  "countdownLabel": "We can't wait to celebrate with you!",
-  "pageBackground": "#ffffff",
-  "pageVisibility": {
-    "title": true,
-    "subtext": true,
-    "subtitle": false,
-    "description": false
+  countdownLabel: "We can't wait to celebrate with you!",
+  pageBackground: "#ffffff",
+  pageVisibility: {
+    title: true,
+    subtext: true,
+    subtitle: false,
+    description: false,
   },
-  "slugSuggestion": "ourwedding",
-  "descriptionStyle": {
-    "bold": false,
-    "align": "center",
-    "color": "#646462",
-    "italic": false,
-    "strike": false,
-    "fontSize": 80,
-    "underline": false,
-    "fontFamily": "Great Vibes"
+  slugSuggestion: "ourwedding",
+  descriptionStyle: {
+    bold: false,
+    align: "center",
+    color: "#646462",
+    italic: false,
+    strike: false,
+    fontSize: 80,
+    underline: false,
+    fontFamily: "Great Vibes",
   },
-  "countdownLabelStyle": {
-    "align": "center",
-    "color": "#000000",
-    "fontSize": 94,
-    "fontFamily": "Great Vibes"
+  countdownLabelStyle: {
+    align: "center",
+    color: "#000000",
+    fontSize: 94,
+    fontFamily: "Great Vibes",
   },
-  "pageBackgroundImage": "",
-  "pageBlockAppearance": {},
-  "pageBackgroundImageFit": "zoom"
-} satisfies DraftWithPageExtras;
+  pageBackgroundImage: "",
+  pageBlockAppearance: {},
+  pageBackgroundImageFit: "zoom",
+};
 
-const weddingClassicRsvpAcceptDraft = {
-    // rsvp-accept
-
-    "title": "Lucy & Ricky",
-    "blocks": [
-      {
-        "id": "image_2kab2ol4",
-        "data": {
-          "image": {
-            "id": "img_u8l4cnev",
-            "alt": "design_wedding-classic.png",
-            "url": "/designs/backgrounds/design_wedding-classic.png",
-            "fade": {
-              "top": false,
-              "left": false,
-              "size": 4,
-              "right": false,
-              "bottom": true
-            },
-            "zoom": 1,
-            "frame": "square",
-            "fitMode": "zoom",
-            "opacity": 1,
-            "rotation": 0,
-            "positionX": 50,
-            "positionY": 50
-          }
-        },
-        "grid": {
-          "zIndex": 9,
-          "colSpan": 12,
-          "rowSpan": 11.25,
-          "colStart": 1,
-          "rowStart": 1
-        },
-        "type": "image",
-        "label": "Image",
-        "appearance": {
-          "borderColor": "#D1D5DB",
-          "borderWidth": 0,
-          "borderRadius": 16,
-          "backgroundColor": "transparent"
-        }
-      },
-      {
-        "id": "image_g6xatk27",
-        "data": {
-          "image": {
-            "id": "img_ugnjiz8k",
-            "url": "https://koxykctwdpvmfwyzxgxt.supabase.co/storage/v1/object/public/uploads/1776727750100-fr9qgwxrd2n.webp",
-            "fade": {
-              "top": false,
-              "left": false,
-              "size": 15,
-              "right": false,
-              "bottom": false
-            },
-            "zoom": 1,
-            "frame": "square",
-            "fitMode": "stretch",
-            "opacity": 1,
-            "rotation": 0,
-            "positionX": 50,
-            "positionY": 50
-          }
-        },
-        "grid": {
-          "zIndex": 14,
-          "colSpan": 10.5,
-          "rowSpan": 1.5,
-          "colStart": 1.75,
-          "rowStart": 7.25
-        },
-        "type": "image",
-        "label": "Image",
-        "appearance": {
-          "borderColor": "#D1D5DB",
-          "borderWidth": 0,
-          "borderRadius": 16,
-          "backgroundColor": "transparent"
-        }
-      },
-      {
-        "id": "links_8894i5yd",
-        "data": {
-          "items": [
-            {
-              "id": "link_ungdcx2h",
-              "url": "https://ourwedding.ko-host.com/rsvp-accept",
-              "label": "Accepts with Pleasure"
-            }
-          ],
-          "style": {
-            "bold": false,
-            "align": "center",
-            "color": "#111827",
-            "italic": false,
-            "strike": false,
-            "fontSize": 45,
-            "underline": false,
-            "fontFamily": "Georgia"
-          },
-          "heading": "",
-          "transparentBackground": true
-        },
-        "grid": {
-          "zIndex": 15,
-          "colSpan": 4.5,
-          "rowSpan": 1,
-          "colStart": 1.75,
-          "rowStart": 7.5
-        },
-        "type": "links",
-        "label": "Navigation Link",
-        "appearance": {
-          "borderColor": "#D1D5DB",
-          "borderWidth": 0,
-          "borderRadius": 16,
-          "backgroundColor": "transparent"
-        }
-      },
-      {
-        "id": "label_x0cgbf3g",
-        "data": {
-          "text": "Kindly RSVP",
-          "style": {
-            "bold": false,
-            "align": "center",
-            "color": "#646462",
-            "italic": false,
-            "strike": false,
-            "fontSize": 60,
-            "underline": false,
-            "fontFamily": "Great Vibes"
-          }
-        },
-        "grid": {
-          "zIndex": 17,
-          "colSpan": 12,
-          "rowSpan": 1.25,
-          "colStart": 1,
-          "rowStart": 6
-        },
-        "type": "label",
-        "label": "Label",
-        "appearance": {
-          "borderColor": "#D1D5DB",
-          "borderWidth": 0,
-          "borderRadius": 16,
-          "backgroundColor": "transparent"
-        }
-      },
-      {
-        "id": "label_uw8le2",
-        "data": {
-          "text": "A R E   G E T T I N G   M A R R I E D",
-          "style": {
-            "bold": false,
-            "align": "center",
-            "color": "#646462",
-            "italic": false,
-            "strike": false,
-            "fontSize": 40,
-            "underline": false,
-            "fontFamily": "Cormorant Garamond"
-          }
-        },
-        "grid": {
-          "zIndex": 18,
-          "colSpan": 12,
-          "rowSpan": 1.25,
-          "colStart": 1,
-          "rowStart": 3.75
-        },
-        "type": "label",
-        "label": "Label",
-        "appearance": {
-          "borderColor": "#D1D5DB",
-          "borderWidth": 0,
-          "borderRadius": 16,
-          "backgroundColor": "transparent"
-        }
-      },
-      {
-        "id": "links_glfkzn",
-        "data": {
-          "items": [
-            {
-              "id": "link_ungdcx2h",
-              "url": "https://ourwedding.ko-host.com/rsvp-decline",
-              "label": "Declines with Regret"
-            }
-          ],
-          "style": {
-            "bold": false,
-            "align": "center",
-            "color": "#111827",
-            "italic": false,
-            "strike": false,
-            "fontSize": 45,
-            "underline": false,
-            "fontFamily": "Georgia"
-          },
-          "heading": "",
-          "transparentBackground": true
-        },
-        "grid": {
-          "zIndex": 16,
-          "colSpan": 4.5,
-          "rowSpan": 1,
-          "colStart": 7.75,
-          "rowStart": 7.5
-        },
-        "type": "links",
-        "label": "Navigation Link",
-        "appearance": {
-          "borderColor": "#D1D5DB",
-          "borderWidth": 0,
-          "borderRadius": 16,
-          "backgroundColor": "transparent"
-        }
-      },
-      {
-        "id": "label_bh47da09",
-        "data": {
-          "text": "3:30 PM — Guest Arrival\n4:30 PM — Ceremony Begins\n5:15 PM — Cocktail Hour\n6:30 PM — Dinner Reception\n8:00 PM — Dancing",
-          "style": {
-            "bold": false,
-            "align": "center",
-            "color": "#111827",
-            "italic": false,
-            "strike": false,
-            "fontSize": 34,
-            "underline": false,
-            "fontFamily": "Georgia"
-          }
-        },
-        "grid": {
-          "zIndex": 19,
-          "colSpan": 12,
-          "rowSpan": 2.25,
-          "colStart": 1,
-          "rowStart": 9.5
-        },
-        "type": "label",
-        "label": "Label",
-        "appearance": {
-          "borderColor": "#D1D5DB",
-          "borderWidth": 0,
-          "borderRadius": 16,
-          "backgroundColor": "transparent"
-        }
-      }
-    ],
-    "subtext": "November 30, 1940",
-    "subtitle": "ARE GETTING MARRIED",
-    "pageColor": "#ffffff",
-    "pageScale": 85,
-    "titleStyle": {
-      "bold": false,
-      "align": "center",
-      "color": "#646462",
-      "italic": false,
-      "strike": false,
-      "fontSize": 160,
-      "underline": false,
-      "fontFamily": "Great Vibes"
-    },
-    "description": "Kindly RSVP",
-    "pageElements": {
-      "title": {
-        "zIndex": 10,
-        "colSpan": 12,
-        "rowSpan": 2.5,
-        "colStart": 1,
-        "rowStart": 2.25
-      },
-      "subtext": {
-        "zIndex": 16,
-        "colSpan": 12,
-        "rowSpan": 1.5,
-        "colStart": 1,
-        "rowStart": 4.25
-      },
-      "subtitle": {
-        "zIndex": 16,
-        "colSpan": 7,
-        "rowSpan": 1,
-        "colStart": 3.75,
-        "rowStart": 10.25
-      },
-      "description": {
-        "zIndex": 13,
-        "colSpan": 12,
-        "rowSpan": 1.25,
-        "colStart": 1,
-        "rowStart": 6.75
-      }
-    },
-    "subtextStyle": {
-      "bold": true,
-      "align": "center",
-      "color": "#374151",
-      "italic": true,
-      "fontSize": 106,
-      "fontFamily": "Cormorant Garamond"
-    },
-    "subtitleStyle": {
-      "align": "center",
-      "color": "#374151",
-      "fontSize": 60,
-      "fontFamily": "Cormorant Garamond"
-    },
-    "countdownLabel": "We can't wait to celebrate with you!",
-    "pageBackground": "#ffffff",
-    "pageVisibility": {
-      "title": true,
-      "subtext": true,
-      "subtitle": false,
-      "description": false
-    },
-    "slugSuggestion": "ourwedding",
-    "descriptionStyle": {
-      "bold": false,
-      "align": "center",
-      "color": "#646462",
-      "italic": false,
-      "strike": false,
-      "fontSize": 80,
-      "underline": false,
-      "fontFamily": "Great Vibes"
-    },
-    "countdownLabelStyle": {
-      "align": "center",
-      "color": "#000000",
-      "fontSize": 94,
-      "fontFamily": "Great Vibes"
-    },
-    "pageBackgroundImage": "",
-    "pageBlockAppearance": {},
-    "pageBackgroundImageFit": "zoom"
-
-} satisfies DraftWithPageExtras;
-
-const weddingClassicRsvpDeclineDraft = {
-  // rsvp-decline
-
-  "title": "We'll Miss You",
-  "blocks": [
+const weddingClassicRsvpAcceptDraft: DraftWithPageExtras = {
+  title: "rsvp-accept",
+  blocks: [
     {
-      "id": "image_lpfrvkoj",
-      "data": {
-        "image": {
-          "id": "img_q5bytfs1",
-          "url": "https://koxykctwdpvmfwyzxgxt.supabase.co/storage/v1/object/public/uploads/1777053958181-dia1ej9rbbp.webp",
-          "fade": {
-            "top": false,
-            "left": false,
-            "size": 8,
-            "right": false,
-            "bottom": true
-          },
-          "zoom": 1,
-          "frame": "square",
-          "fitMode": "zoom",
-          "opacity": 1,
-          "rotation": 0,
-          "positionX": 50,
-          "positionY": 50
-        }
+      id: "rsvp_9bj3lyoo",
+      type: "rsvp",
+      label: "RSVP",
+      grid: {
+        zIndex: 2,
+        colSpan: 5,
+        rowSpan: 10.25,
+        colStart: 4.25,
+        rowStart: 1.25,
       },
-      "grid": {
-        "zIndex": 1,
-        "colSpan": 12,
-        "rowSpan": 12.5,
-        "colStart": 1,
-        "rowStart": 1
+      appearance: {
+        borderColor: "#ffffff",
+        borderWidth: 0,
+        borderRadius: 16,
+        backgroundColor: "transparent",
       },
-      "type": "image",
-      "label": "Image",
-      "appearance": {
-        "borderColor": "#D1D5DB",
-        "borderWidth": 0,
-        "borderRadius": 16,
-        "backgroundColor": "transparent"
-      }
-    },
-    {
-      "id": "label_1djmgwsa",
-      "data": {
-        "text": "A message from",
-        "style": {
-          "bold": true,
-          "align": "center",
-          "color": "#111827",
-          "italic": false,
-          "strike": false,
-          "fontSize": 30,
-          "underline": false,
-          "fontFamily": "Inter"
-        }
-      },
-      "grid": {
-        "zIndex": 7,
-        "colSpan": 12,
-        "rowSpan": 1,
-        "colStart": 1,
-        "rowStart": 1.75
-      },
-      "type": "label",
-      "label": "Label",
-      "appearance": {
-        "borderColor": "#D1D5DB",
-        "borderWidth": 0,
-        "borderRadius": 16,
-        "backgroundColor": "transparent"
-      }
-    },
-    {
-      "id": "label_8bez6f",
-      "data": {
-        "text": "Lucy & Ricky",
-        "style": {
-          "bold": false,
-          "align": "center",
-          "color": "#111827",
-          "italic": false,
-          "strike": false,
-          "fontSize": 74,
-          "underline": false,
-          "fontFamily": "Great Vibes"
-        }
-      },
-      "grid": {
-        "zIndex": 8,
-        "colSpan": 12,
-        "rowSpan": 1.25,
-        "colStart": 1,
-        "rowStart": 2.25
-      },
-      "type": "label",
-      "label": "Label",
-      "appearance": {
-        "borderColor": "#D1D5DB",
-        "borderWidth": 0,
-        "borderRadius": 16,
-        "backgroundColor": "transparent"
-      }
-    },
-    {
-      "id": "label_mlcp4a",
-      "data": {
-        "text": "Thank you for letting us know.\nWe're so sorry you can't make it,\nbut we truly appreciate you thinking of us.",
-        "style": {
-          "bold": false,
-          "align": "center",
-          "color": "#111827",
-          "italic": false,
-          "strike": false,
-          "fontSize": 47,
-          "underline": false,
-          "fontFamily": "Dancing Script"
-        }
-      },
-      "grid": {
-        "zIndex": 8,
-        "colSpan": 12,
-        "rowSpan": 2,
-        "colStart": 1,
-        "rowStart": 5.25
-      },
-      "type": "label",
-      "label": "Label",
-      "appearance": {
-        "borderColor": "#D1D5DB",
-        "borderWidth": 0,
-        "borderRadius": 16,
-        "backgroundColor": "transparent"
-      }
-    },
-    {
-      "id": "label_ogi4zu",
-      "data": {
-        "text": "We'll be thinking of you on our special day.",
-        "style": {
-          "bold": false,
-          "align": "center",
-          "color": "#111827",
-          "italic": false,
-          "strike": false,
-          "fontSize": 47,
-          "underline": false,
-          "fontFamily": "Dancing Script"
-        }
-      },
-      "grid": {
-        "zIndex": 9,
-        "colSpan": 12,
-        "rowSpan": 1,
-        "colStart": 1,
-        "rowStart": 11.5
-      },
-      "type": "label",
-      "label": "Label",
-      "appearance": {
-        "borderColor": "#D1D5DB",
-        "borderWidth": 0,
-        "borderRadius": 16,
-        "backgroundColor": "transparent"
-      }
-    },
-    {
-      "id": "image_tgq1hbo4",
-      "data": {
-        "image": {
-          "id": "img_2p85hm4k",
-          "alt": "heart_savvy.png",
-          "url": "[public\designs\artifacts\heart_savvy.png]",
-          "fade": {
-            "top": false,
-            "left": false,
-            "size": 15,
-            "right": false,
-            "bottom": false
-          },
-          "zoom": 1,
-          "frame": "square",
-          "fitMode": "stretch",
-          "opacity": 1,
-          "rotation": 0,
-          "positionX": 50,
-          "positionY": 50
-        }
-      },
-      "grid": {
-        "zIndex": 10,
-        "colSpan": 1,
-        "rowSpan": 1.25,
-        "colStart": 6.5,
-        "rowStart": 12.25
-      },
-      "type": "image",
-      "label": "Image",
-      "appearance": {
-        "borderColor": "#D1D5DB",
-        "borderWidth": 0,
-        "borderRadius": 16,
-        "backgroundColor": "transparent"
-      }
-    },
-    {
-      "id": "rsvp_khwry2cm",
-      "data": {
-        "style": {
-          "bold": false,
-          "align": "left",
-          "color": "#111827",
-          "italic": false,
-          "strike": false,
-          "fontSize": 16,
-          "underline": false,
-          "fontFamily": "inherit"
+      data: {
+        style: {
+          bold: false,
+          align: "left",
+          color: "#111827",
+          italic: false,
+          strike: false,
+          fontSize: 16,
+          underline: false,
+          fontFamily: "inherit",
         },
-        "heading": "Send us a note...",
-        "guestMax": 1,
-        "guestMin": 0,
-        "imageUrl": "",
-        "mealLabel": "Your meal selection:",
-        "guestLabel": "Are you bringing a guest?",
-        "mealDisplay": false,
-        "mealOptions": [
-          "Chicken",
-          "Salmon"
-        ],
-        "elementOrder": [
+        heading: "Wedding Invitation RSVP Form",
+        guestMax: 1,
+        guestMin: 0,
+        imageUrl: "/designs/artifacts/wedding_ornament.png",
+        mealLabel: "Your meal selection:",
+        guestLabel: "Are you bringing a guest?",
+        mealOptions: ["Chicken", "Salmon"],
+        elementOrder: [
           "image",
           "heading",
           "nameLabel",
@@ -935,158 +410,523 @@ const weddingClassicRsvpDeclineDraft = {
           "guestToggle",
           "guestCount",
           "guestName",
-          "comments"
+          "comments",
         ],
-        "guestDisplay": false,
-        "guestOptions": [
-          "Yes",
-          "No"
-        ],
-        "commentsLabel": "Additional comments",
-        "elementStyles": {},
-        "attendingLabel": "Are you attending?",
-        "hiddenElements": [],
-        "commentsDisplay": true,
-        "imageFrameShape": "circle",
-        "attendingDisplay": false,
-        "attendingOptions": [
-          "Yes",
-          "No"
-        ],
-        "mealDefaultValue": "Chicken",
-        "submitButtonText": "Submit",
-        "guestDefaultValue": "No",
-        "commentsPlaceholder": "Additional comments",
-        "commentsDefaultValue": "",
-        "attendingDefaultValue": "No"
+        guestOptions: ["Yes", "No"],
+        commentsLabel: "Additional comments",
+        elementStyles: {
+          image: {
+            backgroundColor: "#ffffff",
+          },
+          heading: {
+            backgroundColor: "transparent",
+          },
+        },
+        attendingLabel: "Are you attending?",
+        hiddenElements: [],
+        imageFrameShape: "circle",
+        attendingOptions: ["Yes", "No"],
+        submitButtonText: "Submit RSVP",
+        commentsPlaceholder: "Additional comments",
       },
-      "grid": {
-        "zIndex": 11,
-        "colSpan": 5,
-        "rowSpan": 4.5,
-        "colStart": 4.5,
-        "rowStart": 7
+    },
+    {
+      id: "image_lide4788",
+      type: "image",
+      label: "Image",
+      grid: {
+        zIndex: 1,
+        colSpan: 12,
+        rowSpan: 12.5,
+        colStart: 1,
+        rowStart: 1,
       },
-      "type": "rsvp",
-      "label": "RSVP",
-      "appearance": {
-        "borderColor": "#D1D5DB",
-        "borderWidth": 0,
-        "borderRadius": 16,
-        "backgroundColor": "transparent"
-      }
-    }
+      appearance: {
+        borderColor: "#D1D5DB",
+        borderWidth: 0,
+        borderRadius: 16,
+        backgroundColor: "transparent",
+      },
+      data: {
+        image: {
+          id: "img_sg0ir6d1",
+          alt: "wedding_floral_background.png",
+          url: "/designs/backgrounds/design_wedding_floral_background.png",
+          fade: {
+            top: false,
+            left: false,
+            size: 8,
+            right: false,
+            bottom: true,
+          },
+          zoom: 1,
+          frame: "square",
+          fitMode: "zoom",
+          opacity: 1,
+          rotation: 0,
+          positionX: 50,
+          positionY: 50,
+        },
+      },
+    },
   ],
-  "subtext": "",
-  "subtitle": "",
-  "pageColor": "",
-  "pageScale": 85,
-  "titleStyle": {
-    "bold": false,
-    "align": "center",
-    "color": "#111827",
-    "italic": false,
-    "strike": false,
-    "fontSize": 140,
-    "underline": false,
-    "fontFamily": "Cormorant Garamond"
+  subtext: "",
+  subtitle: "",
+  pageColor: "#ffffff",
+  pageScale: 85,
+  titleStyle: {
+    bold: false,
+    align: "left",
+    color: "#111827",
+    italic: false,
+    strike: false,
+    fontSize: 16,
+    underline: false,
+    fontFamily: "inherit",
   },
-  "description": "",
-  "pageElements": {
-    "title": {
-      "zIndex": 4,
-      "colSpan": 12,
-      "rowSpan": 2,
-      "colStart": 1,
-      "rowStart": 3.25
-    },
-    "subtext": {
-      "zIndex": 3,
-      "colSpan": 6,
-      "rowSpan": 1,
-      "colStart": 2,
-      "rowStart": 4
-    },
-    "subtitle": {
-      "zIndex": 2,
-      "colSpan": 7,
-      "rowSpan": 1,
-      "colStart": 2,
-      "rowStart": 3
-    },
-    "description": {
-      "zIndex": 4,
-      "colSpan": 8,
-      "rowSpan": 2,
-      "colStart": 2,
-      "rowStart": 5
-    }
+  description: "",
+  pageElements: {
+    title: { zIndex: 1, colSpan: 8, rowSpan: 2, colStart: 2, rowStart: 1 },
+    subtext: { zIndex: 3, colSpan: 6, rowSpan: 1, colStart: 2, rowStart: 4 },
+    subtitle: { zIndex: 2, colSpan: 7, rowSpan: 1, colStart: 2, rowStart: 3 },
+    description: { zIndex: 4, colSpan: 8, rowSpan: 2, colStart: 2, rowStart: 5 },
   },
-  "subtextStyle": {
-    "bold": false,
-    "align": "left",
-    "color": "#111827",
-    "italic": false,
-    "strike": false,
-    "fontSize": 16,
-    "underline": false,
-    "fontFamily": "inherit"
+  subtextStyle: {
+    bold: false,
+    align: "left",
+    color: "#111827",
+    italic: false,
+    strike: false,
+    fontSize: 16,
+    underline: false,
+    fontFamily: "inherit",
   },
-  "subtitleStyle": {
-    "bold": false,
-    "align": "left",
-    "color": "#111827",
-    "italic": false,
-    "strike": false,
-    "fontSize": 16,
-    "underline": false,
-    "fontFamily": "inherit"
+  subtitleStyle: {
+    bold: false,
+    align: "left",
+    color: "#111827",
+    italic: false,
+    strike: false,
+    fontSize: 16,
+    underline: false,
+    fontFamily: "inherit",
   },
-  "countdownLabel": "",
-  "pageBackground": "",
-  "pageVisibility": {
-    "title": true
+  countdownLabel: "",
+  pageBackground: "",
+  pageVisibility: {},
+  slugSuggestion: "ourwedding",
+  descriptionStyle: {
+    bold: false,
+    align: "left",
+    color: "#111827",
+    italic: false,
+    strike: false,
+    fontSize: 16,
+    underline: false,
+    fontFamily: "inherit",
   },
-  "slugSuggestion": "ourwedding",
-  "descriptionStyle": {
-    "bold": false,
-    "align": "left",
-    "color": "#111827",
-    "italic": false,
-    "strike": false,
-    "fontSize": 16,
-    "underline": false,
-    "fontFamily": "inherit"
+  countdownLabelStyle: {
+    bold: false,
+    align: "left",
+    color: "#111827",
+    italic: false,
+    strike: false,
+    fontSize: 16,
+    underline: false,
+    fontFamily: "inherit",
   },
-  "countdownLabelStyle": {
-    "bold": false,
-    "align": "left",
-    "color": "#111827",
-    "italic": false,
-    "strike": false,
-    "fontSize": 16,
-    "underline": false,
-    "fontFamily": "inherit"
-  },
-  "pageBackgroundImage": "",
-  "pageBlockAppearance": {},
-  "pageBackgroundImageFit": "zoom"
-} satisfies DraftWithPageExtras;
+  pageBackgroundImage: "",
+  pageBlockAppearance: {},
+  pageBackgroundImageFit: "zoom",
+};
 
-export const weddingClassicPages = [
+const weddingClassicRsvpDeclineDraft: DraftWithPageExtras = {
+  title: "We'll Miss You",
+  blocks: [
+    {
+      id: "image_lpfrvkoj",
+      type: "image",
+      label: "Image",
+      grid: {
+        zIndex: 1,
+        colSpan: 12,
+        rowSpan: 12.5,
+        colStart: 1,
+        rowStart: 1,
+      },
+      appearance: {
+        borderColor: "#D1D5DB",
+        borderWidth: 0,
+        borderRadius: 16,
+        backgroundColor: "transparent",
+      },
+      data: {
+        image: {
+          id: "img_q5bytfs1",
+          url: "https://koxykctwdpvmfwyzxgxt.supabase.co/storage/v1/object/public/uploads/1777053958181-dia1ej9rbbp.webp",
+          fade: {
+            top: false,
+            left: false,
+            size: 8,
+            right: false,
+            bottom: true,
+          },
+          zoom: 1,
+          frame: "square",
+          fitMode: "zoom",
+          opacity: 1,
+          rotation: 0,
+          positionX: 50,
+          positionY: 50,
+        },
+      },
+    },
+    {
+      id: "label_1djmgwsa",
+      type: "label",
+      label: "Label",
+      grid: {
+        zIndex: 7,
+        colSpan: 12,
+        rowSpan: 1,
+        colStart: 1,
+        rowStart: 1.75,
+      },
+      appearance: {
+        borderColor: "#D1D5DB",
+        borderWidth: 0,
+        borderRadius: 16,
+        backgroundColor: "transparent",
+      },
+      data: {
+        text: "A message from",
+        style: {
+          bold: true,
+          align: "center",
+          color: "#111827",
+          italic: false,
+          strike: false,
+          fontSize: 30,
+          underline: false,
+          fontFamily: "Inter",
+        },
+      },
+    },
+    {
+      id: "label_8bez6f",
+      type: "label",
+      label: "Label",
+      grid: {
+        zIndex: 8,
+        colSpan: 12,
+        rowSpan: 1.25,
+        colStart: 1,
+        rowStart: 2.25,
+      },
+      appearance: {
+        borderColor: "#D1D5DB",
+        borderWidth: 0,
+        borderRadius: 16,
+        backgroundColor: "transparent",
+      },
+      data: {
+        text: "Lucy & Ricky",
+        style: {
+          bold: false,
+          align: "center",
+          color: "#111827",
+          italic: false,
+          strike: false,
+          fontSize: 74,
+          underline: false,
+          fontFamily: "Great Vibes",
+        },
+      },
+    },
+    {
+      id: "label_mlcp4a",
+      type: "label",
+      label: "Label",
+      grid: {
+        zIndex: 8,
+        colSpan: 12,
+        rowSpan: 2,
+        colStart: 1,
+        rowStart: 5.25,
+      },
+      appearance: {
+        borderColor: "#D1D5DB",
+        borderWidth: 0,
+        borderRadius: 16,
+        backgroundColor: "transparent",
+      },
+      data: {
+        text: "Thank you for letting us know.\nWe're so sorry you can't make it,\nbut we truly appreciate you thinking of us.",
+        style: {
+          bold: false,
+          align: "center",
+          color: "#111827",
+          italic: false,
+          strike: false,
+          fontSize: 47,
+          underline: false,
+          fontFamily: "Dancing Script",
+        },
+      },
+    },
+    {
+      id: "label_ogi4zu",
+      type: "label",
+      label: "Label",
+      grid: {
+        zIndex: 9,
+        colSpan: 12,
+        rowSpan: 1,
+        colStart: 1,
+        rowStart: 11.5,
+      },
+      appearance: {
+        borderColor: "#D1D5DB",
+        borderWidth: 0,
+        borderRadius: 16,
+        backgroundColor: "transparent",
+      },
+      data: {
+        text: "We'll be thinking of you on our special day.",
+        style: {
+          bold: false,
+          align: "center",
+          color: "#111827",
+          italic: false,
+          strike: false,
+          fontSize: 47,
+          underline: false,
+          fontFamily: "Dancing Script",
+        },
+      },
+    },
+    {
+      id: "image_tgq1hbo4",
+      type: "image",
+      label: "Image",
+      grid: {
+        zIndex: 10,
+        colSpan: 1,
+        rowSpan: 1.25,
+        colStart: 6.5,
+        rowStart: 12.25,
+      },
+      appearance: {
+        borderColor: "#D1D5DB",
+        borderWidth: 0,
+        borderRadius: 16,
+        backgroundColor: "transparent",
+      },
+      data: {
+        image: {
+          id: "img_2p85hm4k",
+          alt: "design_wedding_floral_background",
+          url: "/designs/backgrounds/design_wedding_floral_background.png",
+          fade: {
+            top: false,
+            left: false,
+            size: 15,
+            right: false,
+            bottom: false,
+          },
+          zoom: 1,
+          frame: "square",
+          fitMode: "stretch",
+          opacity: 1,
+          rotation: 0,
+          positionX: 50,
+          positionY: 50,
+        },
+      },
+    },
+    {
+      id: "rsvp_khwry2cm",
+      type: "rsvp",
+      label: "RSVP",
+      grid: {
+        zIndex: 11,
+        colSpan: 5,
+        rowSpan: 4.5,
+        colStart: 4.5,
+        rowStart: 7,
+      },
+      appearance: {
+        borderColor: "#D1D5DB",
+        borderWidth: 0,
+        borderRadius: 16,
+        backgroundColor: "transparent",
+      },
+      data: {
+        style: {
+          bold: false,
+          align: "left",
+          color: "#111827",
+          italic: false,
+          strike: false,
+          fontSize: 16,
+          underline: false,
+          fontFamily: "inherit",
+        },
+        heading: "Send us a note...",
+        guestMax: 1,
+        guestMin: 0,
+        imageUrl: "",
+        mealLabel: "Your meal selection:",
+        guestLabel: "Are you bringing a guest?",
+        mealDisplay: false,
+        mealOptions: ["Chicken", "Salmon"],
+        elementOrder: [
+          "image",
+          "heading",
+          "nameLabel",
+          "firstName",
+          "lastName",
+          "email",
+          "address",
+          "attending",
+          "meal",
+          "guestToggle",
+          "guestCount",
+          "guestName",
+          "comments",
+        ],
+        guestDisplay: false,
+        guestOptions: ["Yes", "No"],
+        commentsLabel: "Additional comments",
+        elementStyles: {},
+        attendingLabel: "Are you attending?",
+        hiddenElements: [],
+        commentsDisplay: true,
+        imageFrameShape: "circle",
+        attendingDisplay: false,
+        attendingOptions: ["Yes", "No"],
+        mealDefaultValue: "Chicken",
+        submitButtonText: "Submit",
+        guestDefaultValue: "No",
+        commentsPlaceholder: "Additional comments",
+        commentsDefaultValue: "",
+        attendingDefaultValue: "No",
+      },
+    },
+  ],
+  subtext: "",
+  subtitle: "",
+  pageColor: "",
+  pageScale: 85,
+  titleStyle: {
+    bold: false,
+    align: "center",
+    color: "#111827",
+    italic: false,
+    strike: false,
+    fontSize: 140,
+    underline: false,
+    fontFamily: "Cormorant Garamond",
+  },
+  description: "",
+  pageElements: {
+    title: {
+      zIndex: 4,
+      colSpan: 12,
+      rowSpan: 2,
+      colStart: 1,
+      rowStart: 3.25,
+    },
+    subtext: {
+      zIndex: 3,
+      colSpan: 6,
+      rowSpan: 1,
+      colStart: 2,
+      rowStart: 4,
+    },
+    subtitle: {
+      zIndex: 2,
+      colSpan: 7,
+      rowSpan: 1,
+      colStart: 2,
+      rowStart: 3,
+    },
+    description: {
+      zIndex: 4,
+      colSpan: 8,
+      rowSpan: 2,
+      colStart: 2,
+      rowStart: 5,
+    },
+  },
+  subtextStyle: {
+    bold: false,
+    align: "left",
+    color: "#111827",
+    italic: false,
+    strike: false,
+    fontSize: 16,
+    underline: false,
+    fontFamily: "inherit",
+  },
+  subtitleStyle: {
+    bold: false,
+    align: "left",
+    color: "#111827",
+    italic: false,
+    strike: false,
+    fontSize: 16,
+    underline: false,
+    fontFamily: "inherit",
+  },
+  countdownLabel: "",
+  pageBackground: "",
+  pageVisibility: {
+    title: true,
+  },
+  slugSuggestion: "ourwedding",
+  descriptionStyle: {
+    bold: false,
+    align: "left",
+    color: "#111827",
+    italic: false,
+    strike: false,
+    fontSize: 16,
+    underline: false,
+    fontFamily: "inherit",
+  },
+  countdownLabelStyle: {
+    bold: false,
+    align: "left",
+    color: "#111827",
+    italic: false,
+    strike: false,
+    fontSize: 16,
+    underline: false,
+    fontFamily: "inherit",
+  },
+  pageBackgroundImage: "",
+  pageBlockAppearance: {},
+  pageBackgroundImageFit: "zoom",
+};
+
+export const weddingClassicPages: DraftPage[] = [
   {
+    id: "home",
     slug: "home",
     title: "Home",
     display_order: 0,
     draft: weddingClassicHomeDraft,
   },
   {
+    id: "page-rsvp-accept",
     slug: "rsvp-accept",
     title: "RSVP Accept",
     display_order: 1,
     draft: weddingClassicRsvpAcceptDraft,
   },
   {
+    id: "page-rsvp-decline",
     slug: "rsvp-decline",
     title: "RSVP Decline",
     display_order: 2,
@@ -1094,4 +934,9 @@ export const weddingClassicPages = [
   },
 ];
 
-export default weddingClassicHomeDraft;
+const weddingClassicDraft: DraftWithPageExtras = {
+  ...weddingClassicHomeDraft,
+  pages: weddingClassicPages,
+};
+
+export default weddingClassicDraft;

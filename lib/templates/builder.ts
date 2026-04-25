@@ -481,7 +481,20 @@ export type ShapeBlock = BaseBlock & {
   type: "shape";
   data: {
     shapeType: ShapeType;
-    rotation?: number;
+
+    positionX?: number; // 0–100
+    positionY?: number; // 0–100
+    scale?: number;     // 0.5–3 (same as zoom)
+    rotation?: number;  // -180–180
+    opacity?: number;   // 0–1
+
+    fade?: {
+      top?: boolean;
+      bottom?: boolean;
+      left?: boolean;
+      right?: boolean;
+      size?: number; // 0–50
+    };
   };
 };
 
@@ -1563,9 +1576,23 @@ elementOrder: [
           borderWidth: 1,
           borderRadius: 16,
         },
-        data: {
-          shapeType: "rectangle",
-        },
+data: {
+  shapeType: "rectangle",
+
+  positionX: 50,
+  positionY: 50,
+  scale: 1,
+  rotation: 0,
+  opacity: 1,
+
+  fade: {
+    top: false,
+    bottom: false,
+    left: false,
+    right: false,
+    size: 15,
+  },
+},
       };
 
     case "listing":

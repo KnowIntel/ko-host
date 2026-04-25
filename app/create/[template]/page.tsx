@@ -146,15 +146,31 @@ const shouldLoadExistingDraft = !resetPreset && mode === "draft";
 
   const [hydratedDraft, setHydratedDraft] = useState<BuilderDraft>(initialDraft);
   const [liveDraft, setLiveDraft] = useState<BuilderDraft>(initialDraft);
-  const [builderPages, setBuilderPages] = useState<LocalBuilderPage[]>([
-  {
-    id: "home",
-    slug: "home",
-    title: "Home",
-    display_order: 0,
-    draft: initialDraft,
-  },
-]);
+const [builderPages, setBuilderPages] = useState<LocalBuilderPage[]>(() => {
+  const draftPages = (initialDraft as BuilderDraft & {
+    pages?: LocalBuilderPage[];
+  }).pages;
+
+  if (Array.isArray(draftPages) && draftPages.length > 0) {
+    return draftPages.map((page, index) => ({
+      id: page.id || (index === 0 ? "home" : `page-${index}`),
+      slug: page.slug || (index === 0 ? "home" : `page-${index}`),
+      title: page.title || (index === 0 ? "Home" : `Page ${index + 1}`),
+      display_order: page.display_order ?? index,
+      draft: page.draft || (page as unknown as BuilderDraft),
+    }));
+  }
+
+  return [
+    {
+      id: "home",
+      slug: "home",
+      title: "Home",
+      display_order: 0,
+      draft: initialDraft,
+    },
+  ];
+});
 
 const [activeBuilderPageId, setActiveBuilderPageId] = useState("home");
 
@@ -292,12 +308,42 @@ function resolveSafeTemplateKey(draft?: BuilderDraft) {
     }
   }
 
-  useEffect(() => {
-setHydratedDraft(initialDraft);
-setLiveDraft(initialDraft);
-lastSavedDraftRef.current = JSON.stringify(initialDraft);
+useEffect(() => {
+  setHydratedDraft(initialDraft);
+  setLiveDraft(initialDraft);
+  lastSavedDraftRef.current = JSON.stringify(initialDraft);
 
-if (resetPreset) {
+  if (resetPreset) {
+    try {
+      window.localStorage.removeItem(storageKey);
+    } catch {
+      // ignore localStorage errors
+    }
+
+    setSaveState("idle");
+    setSaveMessage("Loaded code preset. Saved local/dashboard drafts ignored.");
+    return;
+  }
+
+  if (!shouldLoadExistingDraft) {
+  const draftPages = (initialDraft as BuilderDraft & {
+    pages?: LocalBuilderPage[];
+  }).pages;
+
+  if (Array.isArray(draftPages) && draftPages.length > 0) {
+    setBuilderPages(
+      draftPages.map((page, index) => ({
+        id: page.id || (index === 0 ? "home" : `page-${index}`),
+        slug: page.slug || (index === 0 ? "home" : `page-${index}`),
+        title: page.title || (index === 0 ? "Home" : `Page ${index + 1}`),
+        display_order: page.display_order ?? index,
+        draft: page.draft || (page as unknown as BuilderDraft),
+      })),
+    );
+
+    setActiveBuilderPageId("home");
+  }
+
   setSaveState("idle");
   setSaveMessage("Loaded code preset. Saved drafts ignored.");
   return;

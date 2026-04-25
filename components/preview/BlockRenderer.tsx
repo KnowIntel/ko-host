@@ -603,15 +603,75 @@ function Placeholder({
 
 function renderShape(block: Extract<MicrositeBlock, { type: "shape" }>) {
   const style = getAppearanceStyle(block);
-  const rotation = (block.data as any).rotation ?? 0;
+
+  const positionX = block.data.positionX ?? 50;
+  const positionY = block.data.positionY ?? 50;
+  const scale = block.data.scale ?? 1;
+  const rotation = block.data.rotation ?? 0;
+  const opacity = block.data.opacity ?? 1;
+  const fade = block.data.fade;
+
+  const translateX = (positionX - 50) * 0.6;
+  const translateY = (positionY - 50) * 0.6;
+
+  const fadeSize =
+    typeof fade?.size === "number" && Number.isFinite(fade.size)
+      ? Math.max(0, Math.min(50, fade.size))
+      : 15;
+
+  const fadeStyle: React.CSSProperties =
+    fade?.top || fade?.bottom || fade?.left || fade?.right
+      ? {
+          WebkitMaskImage: [
+            fade?.top || fade?.bottom
+              ? `linear-gradient(to bottom, ${
+                  fade?.top ? "transparent" : "black"
+                } 0%, black ${fadeSize}%, black ${100 - fadeSize}%, ${
+                  fade?.bottom ? "transparent" : "black"
+                } 100%)`
+              : "",
+            fade?.left || fade?.right
+              ? `linear-gradient(to right, ${
+                  fade?.left ? "transparent" : "black"
+                } 0%, black ${fadeSize}%, black ${100 - fadeSize}%, ${
+                  fade?.right ? "transparent" : "black"
+                } 100%)`
+              : "",
+          ]
+            .filter(Boolean)
+            .join(", "),
+          maskImage: [
+            fade?.top || fade?.bottom
+              ? `linear-gradient(to bottom, ${
+                  fade?.top ? "transparent" : "black"
+                } 0%, black ${fadeSize}%, black ${100 - fadeSize}%, ${
+                  fade?.bottom ? "transparent" : "black"
+                } 100%)`
+              : "",
+            fade?.left || fade?.right
+              ? `linear-gradient(to right, ${
+                  fade?.left ? "transparent" : "black"
+                } 0%, black ${fadeSize}%, black ${100 - fadeSize}%, ${
+                  fade?.right ? "transparent" : "black"
+                } 100%)`
+              : "",
+          ]
+            .filter(Boolean)
+            .join(", "),
+        }
+      : {};
+
+  const transform = `translate(${translateX}%, ${translateY}%) scale(${scale}) rotate(${rotation}deg)`;
 
   if (block.data.shapeType === "line") {
     return (
       <div
         className="flex h-full w-full items-center"
         style={{
-          transform: `rotate(${rotation}deg)`,
+          opacity,
+          transform,
           transformOrigin: "center",
+          ...fadeStyle,
         }}
       >
         <div
@@ -634,13 +694,15 @@ function renderShape(block: Extract<MicrositeBlock, { type: "shape" }>) {
       className="h-full w-full"
       style={{
         ...style,
-        transform: `rotate(${rotation}deg)`,
+        opacity,
+        transform,
         transformOrigin: "center",
         borderRadius:
           block.data.shapeType === "circle"
             ? "9999px"
             : style.borderRadius || "16px",
         minHeight: "100%",
+        ...fadeStyle,
       }}
     />
   );
@@ -1579,18 +1641,17 @@ function renderLinks(
           const rawUrl =
             typeof item.url === "string" ? item.url.trim() : "";
 
-          const normalizedHref =
-            rawUrl &&
-            (
-              rawUrl.startsWith("http://") ||
-              rawUrl.startsWith("https://") ||
-              rawUrl.startsWith("mailto:") ||
-              rawUrl.startsWith("tel:")
-            )
-              ? rawUrl
-              : rawUrl
-                ? `https://${rawUrl}`
-                : "";
+const normalizedHref =
+  rawUrl.startsWith("#") ||
+  rawUrl.startsWith("/") ||
+  rawUrl.startsWith("http://") ||
+  rawUrl.startsWith("https://") ||
+  rawUrl.startsWith("mailto:") ||
+  rawUrl.startsWith("tel:")
+    ? rawUrl
+    : rawUrl
+      ? `https://${rawUrl}`
+      : "";
 
           const content = item.label || "Link";
 

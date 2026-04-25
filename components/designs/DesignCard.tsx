@@ -8,6 +8,7 @@ export default function DesignCard({
   templateKey,
   designKey,
   label,
+  pillLabel,
   description,
   previewDraft,
   backgroundImage,
@@ -16,6 +17,7 @@ export default function DesignCard({
   templateKey: string;
   designKey: string;
   label: string;
+  pillLabel?: string;
   description?: string;
   previewDraft: BuilderDraft;
   backgroundImage?: string;
@@ -65,7 +67,7 @@ export default function DesignCard({
 
         <div className="absolute bottom-3 left-3 right-3">
           <div className="inline-flex max-w-full items-center rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-medium text-neutral-800 backdrop-blur">
-            <span className="truncate">{label}</span>
+            <span className="truncate">{pillLabel || label}</span>
           </div>
         </div>
       </div>

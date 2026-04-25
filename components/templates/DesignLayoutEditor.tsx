@@ -5577,31 +5577,43 @@ return (
       <div className="flex items-center gap-2">
   <div className={infoPillClass()}>{selectedContext.label}</div>
 
-  {selectedBlock ? (
-    <button
-      type="button"
-      className={topBarButtonClass(false)}
-      onClick={() =>
-        updateSelectedBlock((block) => ({
+{selectedBlock ? (
+  <button
+    type="button"
+    className={topBarButtonClass(false)}
+    onClick={() =>
+      updateSelectedBlock((block) => {
+        const currentGrid = block.grid ?? {
+          colStart: 1,
+          rowStart: 1,
+          colSpan: 4,
+          rowSpan: 2,
+          zIndex: 1,
+        };
+
+        return {
           ...block,
           grid: {
-            ...block.grid,
             colStart: 1,
+            rowStart: currentGrid.rowStart,
             colSpan: 12,
+            rowSpan: currentGrid.rowSpan,
+            zIndex: currentGrid.zIndex,
           },
-        }))
-      }
-      title="Expand Horizon"
-    >
-      <Image
-        src="/icons/icon_expand_horizon.png"
-        alt="Expand Horizon"
-        width={30}
-        height={30}
-        className="pointer-events-none h-[30px] w-[30px] object-contain"
-      />
-    </button>
-  ) : null}
+        };
+      })
+    }
+    title="Expand Horizon"
+  >
+    <Image
+      src="/icons/icon_expand_horizon.png"
+      alt="Expand Horizon"
+      width={30}
+      height={30}
+      className="pointer-events-none h-[30px] w-[30px] object-contain"
+    />
+  </button>
+) : null}
 </div>
 
       {isTextSelection(selectedContext) ? (
@@ -6070,7 +6082,12 @@ return (
           <input
             type="color"
             value={selectedStyle.color ?? "#111827"}
-            onChange={(e) => applyTextColor(e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value;
+              requestAnimationFrame(() => {
+                applyTextColor(value);
+              });
+            }}
             className={topBarColorClass(false)}
             title="Text color"
           />
@@ -6080,7 +6097,9 @@ return (
             className={eyedropperButtonClass()}
             onClick={() =>
               void pickColorWithEyeDropper((color) => {
+                requestAnimationFrame(() => {
                 applyTextColor(color);
+              });
               })
             }
             title="Pick text color from screen"
@@ -11783,6 +11802,214 @@ if (selectedBlock?.type === "rsvp") {
                     </div>
                   </div>
                 ) : null}
+
+                {selectedBlock?.type === "shape" ? (
+  <div className={inspectorCardClass()}>
+    <div className={inspectorLabelClass()}>Shape</div>
+
+    <div className="mt-4 grid grid-cols-1 gap-3">
+      <div>
+        <div className={inspectorLabelClass()}>Horizontal Position</div>
+        <input
+          type="range"
+          min={0}
+          max={100}
+          value={selectedBlock.data.positionX ?? 50}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "shape"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      positionX: Number(e.target.value),
+                    },
+                  },
+            )
+          }
+          className="mt-2 w-full"
+        />
+        <div className="mt-1 text-xs text-neutral-500">
+          {selectedBlock.data.positionX ?? 50}%
+        </div>
+      </div>
+
+      <div>
+        <div className={inspectorLabelClass()}>Vertical Position</div>
+        <input
+          type="range"
+          min={0}
+          max={100}
+          value={selectedBlock.data.positionY ?? 50}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "shape"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      positionY: Number(e.target.value),
+                    },
+                  },
+            )
+          }
+          className="mt-2 w-full"
+        />
+        <div className="mt-1 text-xs text-neutral-500">
+          {selectedBlock.data.positionY ?? 50}%
+        </div>
+      </div>
+
+      <div>
+        <div className={inspectorLabelClass()}>Scale</div>
+        <input
+          type="range"
+          min={50}
+          max={300}
+          value={Math.round((selectedBlock.data.scale ?? 1) * 100)}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "shape"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      scale: Number(e.target.value) / 100,
+                    },
+                  },
+            )
+          }
+          className="mt-2 w-full"
+        />
+        <div className="mt-1 text-xs text-neutral-500">
+          {Math.round((selectedBlock.data.scale ?? 1) * 100)}%
+        </div>
+      </div>
+
+      <div>
+        <div className={inspectorLabelClass()}>Rotation</div>
+        <input
+          type="range"
+          min={-180}
+          max={180}
+          value={selectedBlock.data.rotation ?? 0}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "shape"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      rotation: Number(e.target.value) || 0,
+                    },
+                  },
+            )
+          }
+          className="mt-2 w-full"
+        />
+        <div className="mt-1 text-xs text-neutral-500">
+          {selectedBlock.data.rotation ?? 0}°
+        </div>
+      </div>
+
+      <div>
+        <div className={inspectorLabelClass()}>Opacity</div>
+        <input
+          type="range"
+          min={0}
+          max={100}
+          value={Math.round((selectedBlock.data.opacity ?? 1) * 100)}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "shape"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      opacity: Number(e.target.value) / 100,
+                    },
+                  },
+            )
+          }
+          className="mt-2 w-full"
+        />
+        <div className="mt-1 text-xs text-neutral-500">
+          {Math.round((selectedBlock.data.opacity ?? 1) * 100)}%
+        </div>
+      </div>
+    </div>
+
+    <div className="mt-5">
+      <div className={inspectorLabelClass()}>Fade Edges</div>
+
+      <div className="mt-3 grid grid-cols-2 gap-3">
+        {(["top", "bottom", "left", "right"] as const).map((dir) => (
+          <label
+            key={dir}
+            className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800"
+          >
+            <input
+              type="checkbox"
+              checked={Boolean(selectedBlock.data.fade?.[dir])}
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "shape"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          fade: {
+                            ...block.data.fade,
+                            [dir]: e.target.checked,
+                          },
+                        },
+                      },
+                )
+              }
+            />
+            {dir.charAt(0).toUpperCase() + dir.slice(1)}
+          </label>
+        ))}
+      </div>
+
+      <div className="mt-4">
+        <div className={inspectorLabelClass()}>Fade Size</div>
+        <input
+          type="range"
+          min={0}
+          max={50}
+          value={selectedBlock.data.fade?.size ?? 15}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "shape"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      fade: {
+                        ...block.data.fade,
+                        size: Number(e.target.value),
+                      },
+                    },
+                  },
+            )
+          }
+          className="mt-2 w-full"
+        />
+        <div className="mt-1 text-xs text-neutral-500">
+          {selectedBlock.data.fade?.size ?? 15}%
+        </div>
+      </div>
+    </div>
+  </div>
+) : null}
 
 {selectedBlock?.type === "gallery" ? (
   <div className={inspectorCardClass()}>

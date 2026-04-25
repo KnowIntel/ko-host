@@ -8,6 +8,7 @@ import {
 } from "@/lib/templates/registry";
 import DesignCard from "@/components/designs/DesignCard";
 import { createDraftFromLayoutDefinition } from "@/lib/templates/layout-presets/layoutToDraft";
+import weddingModernDraft from "@/drafts/wedding/modern.draft";
 
 function resolveTemplateFromRoute(rawTemplate: string) {
   const normalized = normalizeTemplateKey(rawTemplate);
@@ -51,14 +52,23 @@ export default async function CreateTemplateDesignPage({
         slugSuggestion: templateDef.defaultDraft?.slugSuggestion || "",
       });
 
-      return {
-        key: layout.designKey,
-        label: layout.card.label,
-        description: layout.card.description || "",
-        backgroundImage: layout.card.thumbnail || "",
-        badge: layout.recommended ? ("Recommended" as const) : null,
-        previewDraft,
-      };
+const draftPageCountByDesignKey: Record<string, number> = {
+  modern: Array.isArray((weddingModernDraft as any).pages)
+    ? (weddingModernDraft as any).pages.length
+    : 1,
+};
+
+const pageCount = draftPageCountByDesignKey[layout.designKey] ?? 1;
+
+return {
+  key: layout.designKey,
+  label: layout.card.label,
+  pillLabel: `${pageCount} page${pageCount === 1 ? "" : "s"}`,
+  description: layout.card.description || "",
+  backgroundImage: layout.card.thumbnail || "",
+  badge: layout.recommended ? ("Recommended" as const) : null,
+  previewDraft,
+};
     }) ?? [];
 
   return (
@@ -127,23 +137,24 @@ export default async function CreateTemplateDesignPage({
                     badgeClassName(preset.badge),
                   ].join(" ")}
                 >
-                  {preset.label}
+                  {preset.pillLabel}
                 </span>
               ))}
             </div>
 
             <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
               {designPresets.map((preset) => (
-                <DesignCard
-                  key={preset.key}
-                  templateKey={templateKey}
-                  designKey={preset.key}
-                  label={preset.label}
-                  description={preset.description}
-                  backgroundImage={preset.backgroundImage}
-                  previewDraft={preset.previewDraft}
-                  isRecommended={preset.badge === "Recommended"}
-                />
+<DesignCard
+  key={preset.key}
+  templateKey={templateKey}
+  designKey={preset.key}
+  label={preset.label}
+  pillLabel={preset.pillLabel}
+  description={preset.description}
+  backgroundImage={preset.backgroundImage}
+  previewDraft={preset.previewDraft}
+  isRecommended={preset.badge === "Recommended"}
+/>
               ))}
             </div>
           </>
