@@ -119,6 +119,7 @@ type Props = {
   publishLabel?: string;
   onPublishClick?: () => void;
   onOpenAddPage?: () => void;
+  onDuplicateActivePage?: () => void;
   saveState?: "idle" | "saving" | "saved" | "error" | "signin-required";
   saveMessage?: string;
   microsite?: {
@@ -296,10 +297,11 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Thread", type: "thread" },
     { kind: "block", label: "File Share", type: "file_share" },
   ],
-  Utilities: [
-    { kind: "block", label: "Links", type: "links" },
-    { kind: "block", label: "Link Hub", type: "link_hub" },
-  ],
+Utilities: [
+  { kind: "block", label: "Button", type: "cta" },
+  { kind: "block", label: "Links", type: "links" },
+  { kind: "block", label: "Link Hub", type: "link_hub" },
+],
   "Data & Metrics": [
     { kind: "block", label: "Highlight", type: "highlight" },
     { kind: "block", label: "Progress Bar", type: "progress_bar" },
@@ -815,6 +817,7 @@ function getToolGlyph(label: string) {
   if (label === "Poll") return "☑";
   if (label === "RSVP") return "✉";
   if (label === "Button") return "▣";
+  if (label === "CTA") return "👉";
   if (label === "Countdown") return "◔";
   if (label === "FAQ") return "?";
   if (label === "Thread") return "☰";
@@ -972,6 +975,7 @@ export default function DesignLayoutEditor({
   publishLabel = "Publish",
   onPublishClick,
   onOpenAddPage,
+  onDuplicateActivePage,
   onRemoveActivePage,
   onRenameActivePage,
   pages,
@@ -2851,12 +2855,35 @@ function updateSelectedRsvpElementStyle(
   updateSelectedBlock((block) => {
     if (block.type !== "rsvp") return block;
 
-if (selectedRsvpElementKey === "form") return block;
+    if (selectedRsvpElementKey === "form") {
+      const nextValue = updater({
+        textStyle: block.data.style ?? {},
+        backgroundColor: block.appearance?.backgroundColor,
+      });
 
-const key = selectedRsvpElementKey;
-const currentElementStyles = block.data.elementStyles ?? {};
-const currentValue = currentElementStyles[key];
-const nextValue = updater(currentValue);
+      return {
+        ...block,
+        appearance: {
+          ...block.appearance,
+          backgroundColor:
+            nextValue.backgroundColor ??
+            block.appearance?.backgroundColor ??
+            "transparent",
+        },
+        data: {
+          ...block.data,
+          style: {
+            ...(block.data.style ?? {}),
+            ...(nextValue.textStyle ?? {}),
+          },
+        },
+      };
+    }
+
+    const key = selectedRsvpElementKey;
+    const currentElementStyles = block.data.elementStyles ?? {};
+    const currentValue = currentElementStyles[key];
+    const nextValue = updater(currentValue);
 
     return {
       ...block,
@@ -5347,15 +5374,24 @@ return (
             </div>
           </div>
 
-          <div className="flex shrink-0 items-center gap-2">
-<button
-  type="button"
-  onClick={onOpenAddPage}
-  disabled={(pages?.length ?? 1) >= 5}
-  className="rounded-xl bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
->
-  + Add Page
-</button>
+<div className="flex items-center gap-2">
+  <button
+    type="button"
+    onClick={onOpenAddPage}
+    disabled={(pages?.length ?? 1) >= 5}
+    className="rounded-xl bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+  >
+    + Add Page
+  </button>
+
+  <button
+    type="button"
+    onClick={onDuplicateActivePage}
+    disabled={!onDuplicateActivePage || !activePageId || (pages?.length ?? 1) >= 5}
+    className="rounded-xl border border-neutral-300 bg-white px-3 py-1.5 text-xs font-medium text-neutral-900 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-50"
+  >
+    Duplicate
+  </button>
 
 {activePageSlug && activePageSlug !== "home" ? (
   <>
@@ -6062,22 +6098,26 @@ return (
             ))}
           </select>
 
-          <input
-            type="number"
-            min={8}
-            max={480}
-            value={selectedStyle.fontSize ?? 16}
-            onChange={(e) =>
-              applyStylePatch({
-                fontSize: Math.max(
-                  8,
-                  Math.min(480, Number(e.target.value) || 16),
-                ),
-              })
-            }
-            className={topBarFieldClass("w-16")}
-            title="Font size"
-          />
+<input
+  type="number"
+  min={8}
+  max={480}
+  value={selectedStyle.fontSize ?? 16}
+  onChange={(e) => {
+    const nextFontSize = Math.max(
+      8,
+      Math.min(480, Number(e.target.value) || 16),
+    );
+
+    if (nextFontSize === selectedStyle.fontSize) return;
+
+    applyStylePatch({
+      fontSize: nextFontSize,
+    });
+  }}
+  className={topBarFieldClass("w-16")}
+  title="Font size"
+/>
 
           <input
             type="color"
@@ -12159,6 +12199,64 @@ if (selectedBlock?.type === "rsvp") {
                     </div>
                   </div>
                 ) : null}
+                
+                {selectedBlock?.type === "cta" ? (
+  <div className="space-y-3 rounded-2xl border border-neutral-200 bg-white p-4">
+    <div className="text-xs font-semibold uppercase tracking-[0.14em] text-neutral-500">
+      Button Settings
+    </div>
+
+    <label className="block">
+      <span className="text-xs font-medium text-neutral-600">
+        Button Text
+      </span>
+      <input
+        type="text"
+        value={selectedBlock.data.buttonText || ""}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type === "cta"
+              ? {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    buttonText: e.target.value,
+                  },
+                }
+              : block,
+          )
+        }
+        placeholder="RSVP"
+        className="mt-1 h-10 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-900 outline-none"
+      />
+    </label>
+
+    <label className="block">
+      <span className="text-xs font-medium text-neutral-600">
+        Button Link
+      </span>
+      <input
+        type="text"
+        value={selectedBlock.data.buttonUrl || ""}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type === "cta"
+              ? {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    buttonUrl: e.target.value,
+                  },
+                }
+              : block,
+          )
+        }
+        placeholder="https://example.com or /schedule"
+        className="mt-1 h-10 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-900 outline-none"
+      />
+    </label>
+  </div>
+) : null}
 
                 {selectedBlock?.type === "image_carousel" ? (
                   <div id="inspector-image-carousel" className={inspectorCardClass()}>

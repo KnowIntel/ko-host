@@ -588,6 +588,45 @@ function openDeleteModalFromContext() {
     }
   }
 
+  async function duplicateActiveBuilderPage() {
+  const currentPage = orderedPages.find((page) => page.id === activePageId);
+
+  if (!currentPage || orderedPages.length >= 5) return;
+
+  const nextTitle = `${currentPage.title || currentPage.slug || "Page"} Copy`;
+  const nextSlugBase = normalizeSlug(nextTitle) || `${currentPage.slug || "page"}-copy`;
+
+  try {
+    setCreatingPage(true);
+    setCreatePageError("");
+
+    const res = await fetch(`/api/dashboard/microsites/${id}/pages`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        slug: nextSlugBase,
+        title: nextTitle,
+        draft: editorDraft,
+      }),
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      setCreatePageError(data?.error || "Failed to duplicate page.");
+      return;
+    }
+
+    if (data?.page) {
+      setPages((prev) => [...prev, data.page]);
+      setActivePageId(data.page.id);
+      setSaveMessage("Page duplicated.");
+    }
+  } finally {
+    setCreatingPage(false);
+  }
+}
+
   async function reorderPages(nextPages: PageRow[]) {
     try {
       setReorderingPages(true);
@@ -663,9 +702,11 @@ return (
   initialDraft={editorDraft}
   onSave={saveBuilderDraft}
   microsite={site}
-  onOpenAddPage={() => {
-  alert("REACHED BUILDER PAGE PROP");
+onOpenAddPage={() => {
   void createPageImmediately();
+}}
+onDuplicateActivePage={() => {
+  void duplicateActiveBuilderPage();
 }}
   onRemoveActivePage={openDeleteActivePage}
   pages={orderedPages}

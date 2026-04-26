@@ -2300,36 +2300,34 @@ function renderRadioSection(
   const sectionStyle = getStyle(key);
 
   return (
-    <div
-      key={key}
-      className="space-y-2"
-      style={{
-        ...sectionStyle,
-        position: "relative",
-        zIndex: 0,
-        pointerEvents: "auto",
-      }}
-    >
-        <div className="text-sm font-medium text-neutral-800">{label}</div>
-        <div className="relative z-10 flex flex-wrap gap-4">
-          {options.map((option) => (
-            <label
-              key={`${key}-${option}`}
-              className="inline-flex items-center gap-2 text-sm text-neutral-800"
-            >
-              <input
-                type="radio"
-                name={`${block.id}-${key}`}
-                checked={value === option}
-                onChange={() => onChange(option)}
-              />
-              <span>{option}</span>
-            </label>
-          ))}
-        </div>
+    <div key={key} className="space-y-2">
+      <div
+        className="font-medium"
+        style={sectionStyle}
+      >
+        {label}
       </div>
-    );
-  }
+
+      <div className="relative z-10 flex flex-wrap gap-4">
+        {options.map((option) => (
+          <label
+            key={`${key}-${option}`}
+            className="inline-flex items-center gap-2"
+            style={sectionStyle}
+          >
+            <input
+              type="radio"
+              name={`${block.id}-${key}`}
+              checked={value === option}
+              onChange={() => onChange(option)}
+            />
+            <span>{option}</span>
+          </label>
+        ))}
+      </div>
+    </div>
+  );
+}
 
   function renderGuestCount() {
     return (

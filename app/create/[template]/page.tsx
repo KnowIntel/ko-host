@@ -16,6 +16,12 @@ import type { BuilderDraft } from "@/lib/templates/builder";
 import AppModal from "@/components/ui/AppModal";
 import { loadTemplateDraftPreset } from "@/lib/drafts";
 
+      // AFTER CREATING DESIGN PRESETS, UPDATE THIS:
+      import playfulBirthdayDraft from "@/drafts/birthday/playful.draft";
+      import grownBirthdayDraft from "@/drafts/birthday/grown.draft";
+      import weddingModernDraft from "@/drafts/wedding/modern.draft";
+      import weddingClassicDraft from "@/drafts/wedding/classic.draft";
+
 type LocalBuilderPage = {
   id: string;
   slug: string;
@@ -103,29 +109,66 @@ const shouldLoadExistingDraft = !resetPreset && mode === "draft";
 
   const designKey = requestedDesignKey || resolvedLegacyPreset.key || "blank";
 
-  const presetDraft: BuilderDraft = useMemo(() => {
-    const draftPreset = loadTemplateDraftPreset(templateKey, designKey);
+  const draftRegistry: Record<string, BuilderDraft> = {
+  "birthday:grown": grownBirthdayDraft as BuilderDraft,
+  "wedding:modern": weddingModernDraft as BuilderDraft,
+  "wedding:classic": weddingClassicDraft as BuilderDraft,
+};
 
-    if (draftPreset) {
-      return {
-        ...draftPreset,
-        slugSuggestion:
-          draftPreset.slugSuggestion ||
-          templateDef.defaultDraft?.slugSuggestion ||
-          "",
-        blocks: Array.isArray(draftPreset.blocks) ? draftPreset.blocks : [],
-      };
-    }
+const presetDraft: BuilderDraft = useMemo(() => {
+  const draftRegistry: Record<string, BuilderDraft> = {
+    "birthday:grown": grownBirthdayDraft as BuilderDraft,
+    "birthday:playful": playfulBirthdayDraft as BuilderDraft,
+    "wedding:modern": weddingModernDraft as BuilderDraft,
+    "wedding:classic": weddingClassicDraft as BuilderDraft,
+  };
 
-    return createTemplateDraft(templateName, designKey);
-  }, [
-    templateKey,
-    requestedDesignKey,
-    resolvedLegacyPreset.key,
-    designKey,
-    templateDef.defaultDraft?.slugSuggestion,
-    templateName,
-  ]);
+  console.log("PRESET DEBUG", {
+  templateName,
+  templateKey,
+  designKey,
+  registryKeys: Object.keys(draftRegistry),
+});
+
+  const registryTemplateKey = String(templateName || "")
+  .trim()
+  .toLowerCase()
+  .replace(/\s+/g, "_");
+
+const registryKey = `${registryTemplateKey}:${designKey}`;
+  const registryDraft = draftRegistry[registryKey];
+
+  if (registryDraft) {
+    return {
+      ...registryDraft,
+      slugSuggestion:
+        registryDraft.slugSuggestion ||
+        templateDef.defaultDraft?.slugSuggestion ||
+        "",
+      blocks: Array.isArray(registryDraft.blocks) ? registryDraft.blocks : [],
+    };
+  }
+
+  const draftPreset = loadTemplateDraftPreset(templateKey, designKey);
+
+  if (draftPreset) {
+    return {
+      ...draftPreset,
+      slugSuggestion:
+        draftPreset.slugSuggestion ||
+        templateDef.defaultDraft?.slugSuggestion ||
+        "",
+      blocks: Array.isArray(draftPreset.blocks) ? draftPreset.blocks : [],
+    };
+  }
+
+  return createTemplateDraft(templateName, designKey);
+}, [
+  templateKey,
+  designKey,
+  templateDef.defaultDraft?.slugSuggestion,
+  templateName,
+]);
 
   const initialDraft: BuilderDraft = useMemo(
     () => ({
@@ -410,42 +453,58 @@ useEffect(() => {
   }
 }, [initialDraft, storageKey, shouldLoadExistingDraft, resetPreset]);
 
-  useEffect(() => {
-    async function loadServerDraft() {
-      if (resetPreset || !isSignedIn || !shouldLoadExistingDraft) return;
+useEffect(() => {
+  if (!resetPreset) return;
 
-      const safeTemplateKey = resolveSafeTemplateKey(initialDraft);
-      const safeDesignKey = resolveSafeDesignKey(initialDraft);
+  try {
+    window.localStorage.removeItem(storageKey);
+  } catch {
+    // ignore localStorage errors
+  }
 
-      if (!safeTemplateKey) return;
+  setHydratedDraft(initialDraft);
+  setLiveDraft(initialDraft);
+  liveDraftRef.current = initialDraft;
+  lastSavedDraftRef.current = JSON.stringify(initialDraft);
+  setSaveMessage("Preset reloaded from code.");
+}, [resetPreset, storageKey, initialDraft]);
 
-      try {
-        const res = await fetch(
-          `/api/drafts?templateKey=${encodeURIComponent(
-            safeTemplateKey,
-          )}&designKey=${encodeURIComponent(safeDesignKey)}`,
-          { cache: "no-store" },
-        );
+useEffect(() => {
+  async function loadServerDraft() {
+    if (resetPreset || !isSignedIn || !shouldLoadExistingDraft) return;
 
-        const data = await res.json().catch(() => ({}));
+    const safeTemplateKey = resolveSafeTemplateKey(initialDraft);
+    const safeDesignKey = resolveSafeDesignKey(initialDraft);
 
-        if (!res.ok) return;
-        if (data?.skipped || !data?.draftRow?.draft) return;
+    if (!safeTemplateKey) return;
 
-        const savedDraft = data.draftRow.draft as BuilderDraft;
-        const merged = mergeDrafts(initialDraft, savedDraft);
+    try {
+      const res = await fetch(
+        `/api/drafts?templateKey=${encodeURIComponent(
+          safeTemplateKey,
+        )}&designKey=${encodeURIComponent(safeDesignKey)}`,
+        { cache: "no-store" },
+      );
 
-        setHydratedDraft(merged);
-        setLiveDraft(merged);
-        lastSavedDraftRef.current = JSON.stringify(merged);
-        setSaveMessage("Loaded your saved dashboard draft.");
-      } catch {
-        // ignore draft preload errors
-      }
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) return;
+      if (data?.skipped || !data?.draftRow?.draft) return;
+
+      const savedDraft = data.draftRow.draft as BuilderDraft;
+      const merged = mergeDrafts(initialDraft, savedDraft);
+
+      setHydratedDraft(merged);
+      setLiveDraft(merged);
+      lastSavedDraftRef.current = JSON.stringify(merged);
+      setSaveMessage("Loaded your saved dashboard draft.");
+    } catch {
+      // ignore draft preload errors
     }
+  }
 
-    void loadServerDraft();
-  }, [isSignedIn, templateKey, designKey, initialDraft, shouldLoadExistingDraft, resetPreset]);
+  void loadServerDraft();
+}, [isSignedIn, templateKey, designKey, initialDraft, shouldLoadExistingDraft, resetPreset]);
 
   function buildDraftWithPages(currentDraft: BuilderDraft = liveDraft) {
   const syncedPages = builderPages.map((page) =>
@@ -707,6 +766,31 @@ function selectBuilderPage(pageId: string) {
   setLiveDraft(nextPage.draft);
 }
 
+function duplicateActiveBuilderPage() {
+  const currentPage = builderPages.find(
+    (page) => page.id === activeBuilderPageId,
+  );
+
+  if (!currentPage || builderPages.length >= 5) return;
+
+  const nextId = `page_${Date.now()}`;
+  const nextSlug = `${currentPage.slug || "page"}-copy`;
+
+  setBuilderPages((prev) => [
+    ...prev,
+    {
+      ...currentPage,
+      id: nextId,
+      slug: nextSlug,
+      title: `${currentPage.title || "Page"} Copy`,
+      display_order: prev.length,
+      draft: structuredClone(hydratedDraft),
+    },
+  ]);
+
+  setActiveBuilderPageId(nextId);
+}
+
 function removeActiveBuilderPage() {
   if (activeBuilderPageId === "home") return;
 
@@ -811,6 +895,7 @@ setLiveDraft((prev) => ({
     builderPages.find((page) => page.id === activeBuilderPageId)?.slug || "home"
   }
   onOpenAddPage={openAddPageModal}
+  onDuplicateActivePage={duplicateActiveBuilderPage}
   onRemoveActivePage={removeActiveBuilderPage}
   onRenameActivePage={openRenameActivePageModal}
   onSelectPage={selectBuilderPage}

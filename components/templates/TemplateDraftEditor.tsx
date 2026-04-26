@@ -18,6 +18,7 @@ type Props = {
   publishLabel?: string;
   onPublishClick?: () => void;
   onOpenAddPage?: () => void;
+  onDuplicateActivePage?: () => void;
   onDraftChange?: (draft: BuilderDraft) => void;
   saveState?: "idle" | "saving" | "saved" | "error" | "signin-required";
   saveMessage?: string;
@@ -73,6 +74,7 @@ export default function TemplateDraftEditor({
   publishLabel,
   onPublishClick,
   onOpenAddPage,
+  onDuplicateActivePage,
   onRemoveActivePage,
   onRenameActivePage,
   onDraftChange,
@@ -249,9 +251,10 @@ onReorderPages,
     onPublishClick?.();
   }}
 
-  onOpenAddPage={onOpenAddPage}
-  onRemoveActivePage={onRemoveActivePage}
-  onRenameActivePage={onRenameActivePage}
+onOpenAddPage={onOpenAddPage}
+onDuplicateActivePage={onDuplicateActivePage}
+onRemoveActivePage={onRemoveActivePage}
+onRenameActivePage={onRenameActivePage}
   pages={pages}
   activePageId={activePageId}
   activePageSlug={activePageSlug}

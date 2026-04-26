@@ -8,7 +8,12 @@ import {
 } from "@/lib/templates/registry";
 import DesignCard from "@/components/designs/DesignCard";
 import { createDraftFromLayoutDefinition } from "@/lib/templates/layout-presets/layoutToDraft";
+
+      // AFTER CREATING DESIGN PRESETS, UPDATE THIS:
 import weddingModernDraft from "@/drafts/wedding/modern.draft";
+import weddingClassicDraft from "@/drafts/wedding/classic.draft";
+import playfulBirthdayDraft from "@/drafts/birthday/playful.draft";
+import grownBirthdayDraft from "@/drafts/birthday/grown.draft";
 
 function resolveTemplateFromRoute(rawTemplate: string) {
   const normalized = normalizeTemplateKey(rawTemplate);
@@ -52,9 +57,19 @@ export default async function CreateTemplateDesignPage({
         slugSuggestion: templateDef.defaultDraft?.slugSuggestion || "",
       });
 
+      // AFTER CREATING DESIGN PRESETS, UPDATE THIS:
 const draftPageCountByDesignKey: Record<string, number> = {
   modern: Array.isArray((weddingModernDraft as any).pages)
     ? (weddingModernDraft as any).pages.length
+    : 1,
+  classic: Array.isArray((weddingClassicDraft as any).pages)
+    ? (weddingClassicDraft as any).pages.length
+    : 1,
+  grown: Array.isArray((grownBirthdayDraft as any).pages)
+    ? (grownBirthdayDraft as any).pages.length
+    : 1,
+  playful: Array.isArray((playfulBirthdayDraft as any).pages)
+    ? (playfulBirthdayDraft as any).pages.length
     : 1,
 };
 
