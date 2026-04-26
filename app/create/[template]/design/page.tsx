@@ -14,6 +14,8 @@ import weddingModernDraft from "@/drafts/wedding/modern.draft";
 import weddingClassicDraft from "@/drafts/wedding/classic.draft";
 import playfulBirthdayDraft from "@/drafts/birthday/playful.draft";
 import grownBirthdayDraft from "@/drafts/birthday/grown.draft";
+import elegantBabyShowerDraft from "@/drafts/baby_shower/elegant.draft";
+import babyShowerPlayfulDraft from "@/drafts/baby_shower/playful.draft";
 
 function resolveTemplateFromRoute(rawTemplate: string) {
   const normalized = normalizeTemplateKey(rawTemplate);
@@ -58,22 +60,34 @@ export default async function CreateTemplateDesignPage({
       });
 
       // AFTER CREATING DESIGN PRESETS, UPDATE THIS:
-const draftPageCountByDesignKey: Record<string, number> = {
-  modern: Array.isArray((weddingModernDraft as any).pages)
+const draftPageCountByTemplateDesignKey: Record<string, number> = {
+  "wedding_rsvp:modern": Array.isArray((weddingModernDraft as any).pages)
     ? (weddingModernDraft as any).pages.length
     : 1,
-  classic: Array.isArray((weddingClassicDraft as any).pages)
+
+  "wedding_rsvp:classic": Array.isArray((weddingClassicDraft as any).pages)
     ? (weddingClassicDraft as any).pages.length
     : 1,
-  grown: Array.isArray((grownBirthdayDraft as any).pages)
+
+  "birthday_party:grown": Array.isArray((grownBirthdayDraft as any).pages)
     ? (grownBirthdayDraft as any).pages.length
     : 1,
-  playful: Array.isArray((playfulBirthdayDraft as any).pages)
+
+  "birthday_party:playful": Array.isArray((playfulBirthdayDraft as any).pages)
     ? (playfulBirthdayDraft as any).pages.length
+    : 1,
+
+  "baby_shower:elegant": Array.isArray((elegantBabyShowerDraft as any).pages)
+    ? (elegantBabyShowerDraft as any).pages.length
+    : 1,
+
+  "baby_shower:playful": Array.isArray((babyShowerPlayfulDraft as any).pages)
+    ? (babyShowerPlayfulDraft as any).pages.length
     : 1,
 };
 
-const pageCount = draftPageCountByDesignKey[layout.designKey] ?? 1;
+const pageCount =
+  draftPageCountByTemplateDesignKey[`${templateKey}:${layout.designKey}`] ?? 1;
 
 return {
   key: layout.designKey,

@@ -19,6 +19,8 @@ import { loadTemplateDraftPreset } from "@/lib/drafts";
       // AFTER CREATING DESIGN PRESETS, UPDATE THIS:
       import playfulBirthdayDraft from "@/drafts/birthday/playful.draft";
       import grownBirthdayDraft from "@/drafts/birthday/grown.draft";
+      import elegantBabyShowerDraft from "@/drafts/baby_shower/elegant.draft";
+      import babyShowerPlayfulDraft from "@/drafts/baby_shower/playful.draft";
       import weddingModernDraft from "@/drafts/wedding/modern.draft";
       import weddingClassicDraft from "@/drafts/wedding/classic.draft";
 
