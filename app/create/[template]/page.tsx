@@ -46,22 +46,6 @@ function resolveTemplateFromRoute(rawTemplate: string) {
   );
 }
 
-function buildCreateDraftStorageKey(templateKey: string, designKey: string) {
-  return `kht:create-draft:${templateKey}:${designKey}`;
-}
-
-function mergeDrafts(baseDraft: BuilderDraft, savedDraft: Partial<BuilderDraft>) {
-  return {
-    ...baseDraft,
-    ...savedDraft,
-    blocks: Array.isArray(savedDraft.blocks)
-      ? savedDraft.blocks
-      : Array.isArray(baseDraft.blocks)
-        ? baseDraft.blocks
-        : [],
-  } satisfies BuilderDraft;
-}
-
 function formatTemplateLabel(value: string) {
   return value
     .replace(/[_-]+/g, " ")
@@ -111,34 +95,36 @@ const shouldLoadExistingDraft = !resetPreset && mode === "draft";
 
   const designKey = requestedDesignKey || resolvedLegacyPreset.key || "blank";
 
-  const draftRegistry: Record<string, BuilderDraft> = {
-  "birthday:grown": grownBirthdayDraft as BuilderDraft,
-  "wedding:modern": weddingModernDraft as BuilderDraft,
-  "wedding:classic": weddingClassicDraft as BuilderDraft,
-};
-
+  // AFTER CREATING DESIGN PRESETS, UPDATE THIS:
 const presetDraft: BuilderDraft = useMemo(() => {
   const draftRegistry: Record<string, BuilderDraft> = {
     "birthday:grown": grownBirthdayDraft as BuilderDraft,
     "birthday:playful": playfulBirthdayDraft as BuilderDraft,
+
     "wedding:modern": weddingModernDraft as BuilderDraft,
     "wedding:classic": weddingClassicDraft as BuilderDraft,
+
+    "baby_shower:elegant": elegantBabyShowerDraft as BuilderDraft,
+    "baby_shower:playful": babyShowerPlayfulDraft as BuilderDraft,
   };
 
-  console.log("PRESET DEBUG", {
-  templateName,
-  templateKey,
-  designKey,
-  registryKeys: Object.keys(draftRegistry),
-});
-
   const registryTemplateKey = String(templateName || "")
-  .trim()
-  .toLowerCase()
-  .replace(/\s+/g, "_");
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "_");
 
-const registryKey = `${registryTemplateKey}:${designKey}`;
+  const registryKey = `${registryTemplateKey}:${designKey}`;
   const registryDraft = draftRegistry[registryKey];
+
+  console.log("PRESET DEBUG", {
+    templateName,
+    templateKey,
+    designKey,
+    registryTemplateKey,
+    registryKey,
+    registryFound: Boolean(registryDraft),
+    registryKeys: Object.keys(draftRegistry),
+  });
 
   if (registryDraft) {
     return {
@@ -182,11 +168,6 @@ const registryKey = `${registryTemplateKey}:${designKey}`;
       blocks: Array.isArray(presetDraft.blocks) ? presetDraft.blocks : [],
     }),
     [presetDraft, templateDef.defaultDraft?.slugSuggestion],
-  );
-
-  const storageKey = useMemo(
-    () => buildCreateDraftStorageKey(templateKey, designKey),
-    [templateKey, designKey],
   );
 
   const [hydratedDraft, setHydratedDraft] = useState<BuilderDraft>(initialDraft);
@@ -242,47 +223,6 @@ const [renamePageName, setRenamePageName] = useState("");
   const saveResetTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
-    function handleAuthComplete(event: MessageEvent) {
-      if (event.origin !== window.location.origin) return;
-      if (event.data?.type !== "kht-auth-complete") return;
-
-      try {
-        window.localStorage.setItem(
-          storageKey,
-          JSON.stringify(liveDraftRef.current),
-        );
-      } catch {
-        // ignore localStorage errors
-      }
-
-      window.location.reload();
-    }
-
-    function handleStorage(event: StorageEvent) {
-      if (event.key !== "kht-auth-complete") return;
-
-      try {
-        window.localStorage.setItem(
-          storageKey,
-          JSON.stringify(liveDraftRef.current),
-        );
-      } catch {
-        // ignore localStorage errors
-      }
-
-      window.location.reload();
-    }
-
-    window.addEventListener("message", handleAuthComplete);
-    window.addEventListener("storage", handleStorage);
-
-    return () => {
-      window.removeEventListener("message", handleAuthComplete);
-      window.removeEventListener("storage", handleStorage);
-    };
-  }, [storageKey]);
-
-  useEffect(() => {
     return () => {
       if (saveResetTimerRef.current) {
         window.clearTimeout(saveResetTimerRef.current);
@@ -332,27 +272,6 @@ function resolveSafeTemplateKey(draft?: BuilderDraft) {
     );
   }
 
-  function buildFallbackStorageKeyForDraft(draft?: BuilderDraft) {
-    return buildCreateDraftStorageKey(
-      resolveSafeTemplateKey(draft) || "unknown",
-      resolveSafeDesignKey(draft) || "blank",
-    );
-  }
-
-  function persistDraftLocally(nextDraft: BuilderDraft) {
-    const keys = Array.from(
-      new Set([storageKey, buildFallbackStorageKeyForDraft(nextDraft)]),
-    );
-
-    for (const key of keys) {
-      try {
-        window.localStorage.setItem(key, JSON.stringify(nextDraft));
-      } catch {
-        // ignore localStorage errors
-      }
-    }
-  }
-
 useEffect(() => {
   const draftPages = (initialDraft as BuilderDraft & {
     pages?: LocalBuilderPage[];
@@ -380,96 +299,16 @@ useEffect(() => {
   const homePage =
     normalizedPages.find((page) => page.id === "home") || normalizedPages[0];
 
-  if (resetPreset) {
-    try {
-      window.localStorage.removeItem(storageKey);
-    } catch {
-      // ignore localStorage errors
-    }
+  setBuilderPages(normalizedPages);
+  setActiveBuilderPageId(homePage.id);
+  setHydratedDraft(homePage.draft);
+  setLiveDraft(homePage.draft);
+  liveDraftRef.current = homePage.draft;
+  lastSavedDraftRef.current = JSON.stringify(homePage.draft);
 
-    setBuilderPages(normalizedPages);
-    setActiveBuilderPageId(homePage.id);
-    setHydratedDraft(homePage.draft);
-    setLiveDraft(homePage.draft);
-    lastSavedDraftRef.current = JSON.stringify(homePage.draft);
-
-    setSaveState("idle");
-    setSaveMessage("Loaded code preset. Saved local/dashboard drafts ignored.");
-    return;
-  }
-
-  if (!shouldLoadExistingDraft) {
-    try {
-      const raw = window.localStorage.getItem(storageKey);
-
-      if (raw) {
-        const parsed = JSON.parse(raw) as Partial<BuilderDraft>;
-        const merged = mergeDrafts(initialDraft, parsed);
-
-        setHydratedDraft(merged);
-        setLiveDraft(merged);
-        lastSavedDraftRef.current = JSON.stringify(merged);
-        setSaveState("idle");
-        setSaveMessage("Recovered your local draft.");
-        return;
-      }
-    } catch {
-      // ignore localStorage errors
-    }
-
-    setBuilderPages(normalizedPages);
-    setActiveBuilderPageId(homePage.id);
-    setHydratedDraft(homePage.draft);
-    setLiveDraft(homePage.draft);
-    lastSavedDraftRef.current = JSON.stringify(homePage.draft);
-
-    setSaveState("idle");
-    setSaveMessage("Started a fresh draft from this design preset.");
-    return;
-  }
-
-  try {
-    const raw = window.localStorage.getItem(storageKey);
-
-    if (!raw) {
-      setSaveState("idle");
-      setSaveMessage("Draft not saved yet.");
-      return;
-    }
-
-    const parsed = JSON.parse(raw) as Partial<BuilderDraft>;
-    const merged = mergeDrafts(initialDraft, parsed);
-
-    setHydratedDraft(merged);
-    setLiveDraft(merged);
-    lastSavedDraftRef.current = JSON.stringify(merged);
-    setSaveState("idle");
-    setSaveMessage("Loaded your local draft.");
-  } catch {
-    setHydratedDraft(initialDraft);
-    setLiveDraft(initialDraft);
-    lastSavedDraftRef.current = JSON.stringify(initialDraft);
-    setSaveState("error");
-    setSaveMessage("Saved local draft could not be loaded.");
-    queueSaveStateReset();
-  }
-}, [initialDraft, storageKey, shouldLoadExistingDraft, resetPreset]);
-
-useEffect(() => {
-  if (!resetPreset) return;
-
-  try {
-    window.localStorage.removeItem(storageKey);
-  } catch {
-    // ignore localStorage errors
-  }
-
-  setHydratedDraft(initialDraft);
-  setLiveDraft(initialDraft);
-  liveDraftRef.current = initialDraft;
-  lastSavedDraftRef.current = JSON.stringify(initialDraft);
-  setSaveMessage("Preset reloaded from code.");
-}, [resetPreset, storageKey, initialDraft]);
+  setSaveState("idle");
+  setSaveMessage("Loaded design preset from code.");
+}, [initialDraft]);
 
 useEffect(() => {
   async function loadServerDraft() {
@@ -494,11 +333,11 @@ useEffect(() => {
       if (data?.skipped || !data?.draftRow?.draft) return;
 
       const savedDraft = data.draftRow.draft as BuilderDraft;
-      const merged = mergeDrafts(initialDraft, savedDraft);
 
-      setHydratedDraft(merged);
-      setLiveDraft(merged);
-      lastSavedDraftRef.current = JSON.stringify(merged);
+      setHydratedDraft(savedDraft);
+      setLiveDraft(savedDraft);
+      liveDraftRef.current = savedDraft;
+      lastSavedDraftRef.current = JSON.stringify(savedDraft);
       setSaveMessage("Loaded your saved dashboard draft.");
     } catch {
       // ignore draft preload errors
@@ -535,13 +374,10 @@ async function handleSaveDraft(draft: BuilderDraft): Promise<void> {
   setHydratedDraft(draft);
   setLiveDraft(draft);
 
-  // Always preserve full multi-page draft locally first.
-  persistDraftLocally(draftToSave);
-
   if (!isSignedIn) {
     setSaveState("signin-required");
     setSaveMessage(
-      "Draft saved in this browser. Sign in to save it to your dashboard.",
+      "Sign in to save this draft to your dashboard. Unsaved changes are temporary.",
     );
     setShowSignInPrompt(true);
     return;
@@ -551,8 +387,8 @@ async function handleSaveDraft(draft: BuilderDraft): Promise<void> {
   const safeDesignKey = resolveSafeDesignKey(draftToSave);
 
   if (!safeTemplateKey) {
-    setSaveState("saved");
-    setSaveMessage("Draft saved in this browser. Cloud save was skipped.");
+    setSaveState("error");
+    setSaveMessage("Draft could not be saved because the template key is missing.");
     queueSaveStateReset();
     return;
   }
@@ -590,14 +426,14 @@ async function handleSaveDraft(draft: BuilderDraft): Promise<void> {
       const recoverable = Boolean(data?.recoverable || data?.skipped);
 
       if (recoverable) {
-        setSaveState("saved");
-        setSaveMessage("Draft saved in this browser. Cloud save was skipped.");
+        setSaveState("error");
+        setSaveMessage("Dashboard save was skipped. No local draft was saved.");
       } else {
         setSaveState("error");
         setSaveMessage(
           data?.error
-            ? `Draft saved in this browser, but dashboard save failed: ${data.error}`
-            : "Draft saved in this browser, but dashboard save failed.",
+            ? `Dashboard save failed: ${data.error}`
+            : "Dashboard save failed.",
         );
       }
 
@@ -614,9 +450,7 @@ async function handleSaveDraft(draft: BuilderDraft): Promise<void> {
       error instanceof Error ? error.message : "Failed to save draft.";
 
     setSaveState("error");
-    setSaveMessage(
-      `Draft saved in this browser, but dashboard save failed: ${message}`,
-    );
+    setSaveMessage(`Dashboard save failed: ${message}`);
     queueSaveStateReset();
   }
 }
@@ -624,12 +458,10 @@ async function handleSaveDraft(draft: BuilderDraft): Promise<void> {
   function continueToSignIn() {
     setShowSignInPrompt(false);
 
-    persistDraftLocally(liveDraft);
-
-    const callbackUrl = `${window.location.origin}/auth-complete`;
+    const callbackUrl = window.location.href;
     const signInUrl = `/sign-in?redirect_url=${encodeURIComponent(callbackUrl)}`;
 
-    window.open(signInUrl, "_blank");
+    window.location.href = signInUrl;
   }
 
   const editorInstanceKey = [
@@ -1019,18 +851,17 @@ setLiveDraft((prev) => ({
 
         <AppModal
           open={showSignInPrompt}
-          title="You must be signed in to save a draft."
-          description="You won't lose your progress. Your current draft will remain saved in this browser."
-          confirmText="Continue"
+          title="Sign in required"
+          description="Drafts are not saved in the browser. Sign in to save drafts to your dashboard, or copy your Design Specs before leaving."
+          confirmText="Sign In"
           cancelText="Cancel"
           onConfirm={continueToSignIn}
           onCancel={() => setShowSignInPrompt(false)}
         />
-
         <AppModal
           open={showPublishWarning}
           title="Publish draft?"
-          description="Any unsaved changes to this draft will be lost. Save Draft first, then Publish."
+          description="Before publishing, your current draft will be saved to your dashboard."
           confirmText="Continue to Publish"
           cancelText="Cancel"
           onConfirm={continueToPublish}

@@ -1015,6 +1015,8 @@ const [selectedRsvpElementKey, setSelectedRsvpElementKey] = useState<
   const isPublished = microsite?.is_published;
   const isActive = microsite?.is_active;
   const slug = microsite?.slug;
+  const [buildPresetConfirmOpen, setBuildPresetConfirmOpen] = useState(false);
+  const [pendingPresetDraft, setPendingPresetDraft] = useState<BuilderDraft | null>(null);
   const [registryLoadingMap, setRegistryLoadingMap] = useState<Record<string, boolean>>({});
   const [selection, setSelection] = useState(createEmptySelection());
   const [activeCategory, setActiveCategory] = useState<BottomCategory>("Text");
@@ -1047,24 +1049,34 @@ const [selectedRsvpElementKey, setSelectedRsvpElementKey] = useState<
 
   const rsvpHeadingInputRef = useRef<HTMLInputElement | null>(null);
   const currentSiteName = draft.title?.trim() || "Untitled Site";
-  const currentSiteSlug =
-    micrositeSlug?.trim() ||
-    (draft as DraftWithPageExtras).slugSuggestion?.trim() ||
-    "";
+const fallbackSiteSlug = `${templateKey || "site"}-${designKey || "draft"}`
+  .toLowerCase()
+  .replace(/[^a-z0-9]+/g, "-")
+  .replace(/^-+|-+$/g, "");
+
+const currentSiteSlug =
+  micrositeSlug?.trim() ||
+  (draft as DraftWithPageExtras).slugSuggestion?.trim() ||
+  fallbackSiteSlug;
 
   const currentPageSlug = (activePageSlug || "home").trim().toLowerCase();
   const [draftCopied, setDraftCopied] = useState(false);
-  const currentSiteDisplay = currentSiteSlug
-    ? currentPageSlug && currentPageSlug !== "home"
-      ? `${currentSiteSlug}.ko-host.com/${currentPageSlug}`
-      : `${currentSiteSlug}.ko-host.com`
-    : "[Unavailable]";
+const isLiveMicrosite = Boolean(micrositeSlug?.trim());
+
+const currentSiteDisplay = isLiveMicrosite
+  ? currentPageSlug && currentPageSlug !== "home"
+    ? `${micrositeSlug}.ko-host.com/${currentPageSlug}`
+    : `${micrositeSlug}.ko-host.com`
+  : "Draft preview — URL assigned after publish";
   const countdownHeadingInputRef = useRef<HTMLInputElement | null>(null);
   const countdownTargetInputRef = useRef<HTMLInputElement | null>(null);
   const countdownCompletedInputRef = useRef<HTMLInputElement | null>(null);
   const richTextEditorRef = useRef<HTMLDivElement | null>(null);
   const [isRichTextEditorEmpty, setIsRichTextEditorEmpty] = useState(true);
   const [richTextLinkModalOpen, setRichTextLinkModalOpen] = useState(false);
+  const [buildPresetModalOpen, setBuildPresetModalOpen] = useState(false);
+const [buildPresetJson, setBuildPresetJson] = useState("");
+const [buildPresetError, setBuildPresetError] = useState("");
 const [richTextLinkValue, setRichTextLinkValue] = useState("https://");
   const [recentColors, setRecentColors] = useState<string[]>(() => {
     if (typeof window === "undefined") return [];
@@ -3669,9 +3681,15 @@ function cancelRemoveAllBlocks() {
     setSelection(nextSelection);
   }
 
-  async function handleCopyDraftJson() {
+async function handleCopyDraftJson() {
   try {
-    await navigator.clipboard.writeText(JSON.stringify(draft, null, 2));
+    const { slugSuggestion, ...draftWithoutSlugSuggestion } =
+      draft as BuilderDraft & { slugSuggestion?: string };
+
+    await navigator.clipboard.writeText(
+      JSON.stringify(draftWithoutSlugSuggestion, null, 2),
+    );
+
     setDraftCopied(true);
 
     window.setTimeout(() => {
@@ -3682,13 +3700,62 @@ function cancelRemoveAllBlocks() {
   }
 }
 
+function handleBuildPresetDesign() {
+  setBuildPresetError("");
+
+  let parsed: BuilderDraft;
+
+  try {
+    parsed = JSON.parse(buildPresetJson) as BuilderDraft;
+  } catch {
+    setBuildPresetError("Invalid JSON. Please paste valid Design Specs JSON.");
+    return;
+  }
+
+  if (!parsed || typeof parsed !== "object") {
+    setBuildPresetError("Design Specs must be a valid draft object.");
+    return;
+  }
+
+  if (!Array.isArray(parsed.blocks)) {
+    setBuildPresetError("Design Specs must include a blocks array.");
+    return;
+  }
+
+  const nextDraft: BuilderDraft = {
+    ...parsed,
+    blocks: parsed.blocks,
+  };
+
+  setPendingPresetDraft(nextDraft);
+  setBuildPresetConfirmOpen(true);
+}
+
+function confirmBuildPresetDesign() {
+  if (!pendingPresetDraft) return;
+
+  isHistoryActionRef.current = true;
+  setSelection(createEmptySelection());
+  setOpenToolMenu(null);
+  setRedoStack([]);
+  setUndoStack([]);
+  lastDraftRef.current = cloneDraft(pendingPresetDraft);
+
+  setDraft(pendingPresetDraft);
+  setPendingPresetDraft(null);
+  setBuildPresetJson("");
+  setBuildPresetError("");
+  setBuildPresetConfirmOpen(false);
+  setBuildPresetModalOpen(false);
+}
+
 async function handleCopyUrl() {
-  if (!currentSiteSlug) return;
+  if (!micrositeSlug?.trim()) return;
 
   const fullUrl =
     currentPageSlug && currentPageSlug !== "home"
-      ? `https://${currentSiteSlug}.ko-host.com/${currentPageSlug}`
-      : `https://${currentSiteSlug}.ko-host.com`;
+      ? `https://${micrositeSlug.trim()}.ko-host.com/${currentPageSlug}`
+      : `https://${micrositeSlug.trim()}.ko-host.com`;
 
   try {
     await navigator.clipboard.writeText(fullUrl);
@@ -5275,7 +5342,106 @@ return (
         >
           {draftCopied ? "Draft Copied!" : "Copy Design Specs"}
         </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setBuildPresetJson("");
+            setBuildPresetError("");
+            setBuildPresetModalOpen(true);
+          }}
+          className="rounded-xl border border-neutral-900 bg-neutral-900 px-3 py-1 text-xs font-medium text-white hover:bg-neutral-800"
+        >
+          Build Preset Design
+        </button>
       </div>
+
+{buildPresetConfirmOpen ? (
+  <div className="fixed inset-0 z-[10001] flex items-center justify-center bg-black/50 px-4">
+    <div className="relative z-[10002] w-full max-w-md rounded-3xl border border-neutral-200 bg-white p-6 shadow-2xl">
+      <div className="text-lg font-semibold text-neutral-950">
+        Replace current draft?
+      </div>
+
+      <p className="mt-2 text-sm leading-6 text-neutral-600">
+        This will replace the current draft with the pasted Design Specs. Current unsaved changes will be lost.
+      </p>
+
+      <div className="mt-6 flex items-center justify-end gap-3">
+        <button
+          type="button"
+          onClick={() => {
+            setPendingPresetDraft(null);
+            setBuildPresetConfirmOpen(false);
+          }}
+          className="inline-flex items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-900 hover:bg-neutral-50"
+        >
+          Cancel
+        </button>
+
+        <button
+          type="button"
+          onClick={confirmBuildPresetDesign}
+          className="inline-flex items-center justify-center rounded-xl bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+        >
+          Replace Draft
+        </button>
+      </div>
+    </div>
+  </div>
+) : null}
+
+      {buildPresetModalOpen ? (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 px-4">
+          <div className="relative z-[10000] w-full max-w-2xl rounded-3xl border border-neutral-200 bg-white p-6 shadow-2xl">
+            <div className="text-lg font-semibold text-neutral-950">
+              Build Preset Design
+            </div>
+
+            <p className="mt-2 text-sm text-neutral-600">
+              Paste Design Specs JSON below. Building will replace the current draft on this page.
+            </p>
+
+            <textarea
+              value={buildPresetJson}
+              onChange={(e) => {
+                setBuildPresetJson(e.target.value);
+                if (buildPresetError) setBuildPresetError("");
+              }}
+              placeholder='Paste JSON here, starting with { "title": ... }'
+              className="mt-4 min-h-[320px] w-full rounded-2xl border border-neutral-300 bg-white p-4 font-mono text-xs text-neutral-900 outline-none"
+            />
+
+            {buildPresetError ? (
+              <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {buildPresetError}
+              </div>
+            ) : null}
+
+            <div className="mt-5 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setBuildPresetModalOpen(false);
+                  setBuildPresetJson("");
+                  setBuildPresetError("");
+                }}
+                className="inline-flex items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-900 hover:bg-neutral-50"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                onClick={handleBuildPresetDesign}
+                className="inline-flex items-center justify-center rounded-xl bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
+              >
+                Build
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <div className="mt-4 rounded-2xl border border-neutral-200 bg-white px-3 py-2 shadow-sm">
         <div className="flex items-center gap-2">

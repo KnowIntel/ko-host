@@ -1179,15 +1179,41 @@ function renderCta(
           textAlign: block.data.style?.align ?? "center",
         }}
       >
-        <div
-          className="inline-flex items-center justify-center px-5 py-2"
-          style={{
-            ...style,
-            ...variantStyle,
-          }}
-        >
-          {block.data.buttonText || "Button"}
-        </div>
+        {block.data.buttonUrl?.trim() ? (
+          <a
+            href={normalizePreviewHref(block.data.buttonUrl)}
+            target={
+              normalizePreviewHref(block.data.buttonUrl).startsWith("http://") ||
+              normalizePreviewHref(block.data.buttonUrl).startsWith("https://")
+                ? "_blank"
+                : undefined
+            }
+            rel={
+              normalizePreviewHref(block.data.buttonUrl).startsWith("http://") ||
+              normalizePreviewHref(block.data.buttonUrl).startsWith("https://")
+                ? "noreferrer noopener"
+                : undefined
+            }
+            className="inline-flex items-center justify-center px-5 py-2"
+            style={{
+              ...style,
+              ...variantStyle,
+              textDecoration: "none",
+            }}
+          >
+            {block.data.buttonText || "Button"}
+          </a>
+        ) : (
+          <div
+            className="inline-flex items-center justify-center px-5 py-2"
+            style={{
+              ...style,
+              ...variantStyle,
+            }}
+          >
+            {block.data.buttonText || "Button"}
+          </div>
+        )}
       </div>
     </div>
   );
