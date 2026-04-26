@@ -17,13 +17,20 @@ const supabase = createClient(
 async function getExistingStripeAccountIdForUser(
   clerkUserId: string,
 ): Promise<string | null> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("microsites")
     .select("stripe_account_id")
     .eq("owner_clerk_user_id", clerkUserId)
+    .eq("is_preset", false)
     .not("stripe_account_id", "is", null)
+    .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
+
+  if (error) {
+    console.error("Stripe account fetch error:", error);
+    return null;
+  }
 
   return data?.stripe_account_id ?? null;
 }

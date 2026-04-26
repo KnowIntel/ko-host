@@ -15,7 +15,7 @@ function normalizeSlug(value: string) {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 60);
-}
+} 
 
 export async function POST(req: Request) {
   try {
@@ -101,7 +101,7 @@ if (siteVisibility === "private" && broadcastOnHomepage) {
 const { data: existingMicrosite, error: existingMicrositeError } =
   await supabaseAdmin
     .from("microsites")
-    .select("id, owner_clerk_user_id, slug, is_published, is_active")
+    .select("id, owner_clerk_user_id, slug, is_published, is_active, is_preset")
     .eq("slug", slugSuggestion)
     .maybeSingle();
 
@@ -115,15 +115,22 @@ const { data: existingMicrosite, error: existingMicrositeError } =
       );
     }
 
-    if (
-      existingMicrosite &&
-      existingMicrosite.owner_clerk_user_id !== userId
-    ) {
-      return NextResponse.json(
-        { ok: false, error: "That site name is already taken." },
-        { status: 409 },
-      );
-    }
+if (existingMicrosite?.is_preset) {
+  return NextResponse.json(
+    { ok: false, error: "That site name is reserved for a Ko-Host preset." },
+    { status: 409 },
+  );
+}
+
+if (
+  existingMicrosite &&
+  existingMicrosite.owner_clerk_user_id !== userId
+) {
+  return NextResponse.json(
+    { ok: false, error: "That site name is already taken." },
+    { status: 409 },
+  );
+}
 
 const { data: existingPendingRows, error: existingPendingForOwnerError } =
   await supabaseAdmin

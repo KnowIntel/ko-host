@@ -65,6 +65,7 @@ export default async function MicrositesListPage() {
           is_favorite
         `)
         .eq("owner_clerk_user_id", userId)
+        .eq("is_preset", false)
         .order("created_at", { ascending: false }),
 
       supabase

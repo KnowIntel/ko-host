@@ -14,15 +14,6 @@ import {
 import TemplateDraftEditor from "@/components/templates/TemplateDraftEditor";
 import type { BuilderDraft } from "@/lib/templates/builder";
 import AppModal from "@/components/ui/AppModal";
-import { loadTemplateDraftPreset } from "@/lib/drafts";
-
-      // AFTER CREATING DESIGN PRESETS, UPDATE THIS:
-      import playfulBirthdayDraft from "@/drafts/birthday/playful.draft";
-      import grownBirthdayDraft from "@/drafts/birthday/grown.draft";
-      import elegantBabyShowerDraft from "@/drafts/baby_shower/elegant.draft";
-      import babyShowerPlayfulDraft from "@/drafts/baby_shower/playful.draft";
-      import weddingModernDraft from "@/drafts/wedding/modern.draft";
-      import weddingClassicDraft from "@/drafts/wedding/classic.draft";
 
 type LocalBuilderPage = {
   id: string;
@@ -95,67 +86,71 @@ const shouldLoadExistingDraft = !resetPreset && mode === "draft";
 
   const designKey = requestedDesignKey || resolvedLegacyPreset.key || "blank";
 
-  // AFTER CREATING DESIGN PRESETS, UPDATE THIS:
-const presetDraft: BuilderDraft = useMemo(() => {
-  const draftRegistry: Record<string, BuilderDraft> = {
-    "birthday:grown": grownBirthdayDraft as BuilderDraft,
-    "birthday:playful": playfulBirthdayDraft as BuilderDraft,
+const fallbackPresetDraft: BuilderDraft = useMemo(
+  () => createTemplateDraft(templateName, designKey),
+  [templateName, designKey],
+);
 
-    "wedding:modern": weddingModernDraft as BuilderDraft,
-    "wedding:classic": weddingClassicDraft as BuilderDraft,
+const [presetDraft, setPresetDraft] =
+  useState<BuilderDraft>(fallbackPresetDraft);
 
-    "baby_shower:elegant": elegantBabyShowerDraft as BuilderDraft,
-    "baby_shower:playful": babyShowerPlayfulDraft as BuilderDraft,
+const [presetLoading, setPresetLoading] = useState(true);
+
+useEffect(() => {
+  let cancelled = false;
+
+  async function loadDbPreset() {
+    try {
+      setPresetLoading(true);
+
+      const res = await fetch(
+        `/api/presets?templateKey=${encodeURIComponent(
+          templateKey,
+        )}&designKey=${encodeURIComponent(designKey)}`,
+        { cache: "no-store" },
+      );
+
+      const data = await res.json().catch(() => ({}));
+
+      if (cancelled) return;
+
+      if (!res.ok || !data?.draft) {
+        setPresetDraft(fallbackPresetDraft);
+        return;
+      }
+
+      const nextDraft = data.draft as BuilderDraft;
+
+      setPresetDraft({
+        ...nextDraft,
+        slugSuggestion:
+          nextDraft.slugSuggestion ||
+          data.micrositeSlug ||
+          templateDef.defaultDraft?.slugSuggestion ||
+          "",
+        blocks: Array.isArray(nextDraft.blocks) ? nextDraft.blocks : [],
+      });
+    } catch {
+      if (!cancelled) {
+        setPresetDraft(fallbackPresetDraft);
+      }
+    } finally {
+      if (!cancelled) {
+        setPresetLoading(false);
+      }
+    }
+  }
+
+  void loadDbPreset();
+
+  return () => {
+    cancelled = true;
   };
-
-  const registryTemplateKey = String(templateName || "")
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, "_");
-
-  const registryKey = `${registryTemplateKey}:${designKey}`;
-  const registryDraft = draftRegistry[registryKey];
-
-  console.log("PRESET DEBUG", {
-    templateName,
-    templateKey,
-    designKey,
-    registryTemplateKey,
-    registryKey,
-    registryFound: Boolean(registryDraft),
-    registryKeys: Object.keys(draftRegistry),
-  });
-
-  if (registryDraft) {
-    return {
-      ...registryDraft,
-      slugSuggestion:
-        registryDraft.slugSuggestion ||
-        templateDef.defaultDraft?.slugSuggestion ||
-        "",
-      blocks: Array.isArray(registryDraft.blocks) ? registryDraft.blocks : [],
-    };
-  }
-
-  const draftPreset = loadTemplateDraftPreset(templateKey, designKey);
-
-  if (draftPreset) {
-    return {
-      ...draftPreset,
-      slugSuggestion:
-        draftPreset.slugSuggestion ||
-        templateDef.defaultDraft?.slugSuggestion ||
-        "",
-      blocks: Array.isArray(draftPreset.blocks) ? draftPreset.blocks : [],
-    };
-  }
-
-  return createTemplateDraft(templateName, designKey);
 }, [
   templateKey,
   designKey,
+  fallbackPresetDraft,
   templateDef.defaultDraft?.slugSuggestion,
-  templateName,
 ]);
 
   const initialDraft: BuilderDraft = useMemo(
@@ -307,7 +302,7 @@ useEffect(() => {
   lastSavedDraftRef.current = JSON.stringify(homePage.draft);
 
   setSaveState("idle");
-  setSaveMessage("Loaded design preset from code.");
+  setSaveMessage("Loaded design preset.");
 }, [initialDraft]);
 
 useEffect(() => {
@@ -688,6 +683,14 @@ setLiveDraft((prev) => ({
   setRenamePageModalOpen(false);
   setRenamePageName("");
 }
+
+  if (presetLoading) {
+    return (
+      <main className="min-h-screen bg-[#f6f4f2] p-6 text-sm text-neutral-600">
+        Loading design preset...
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-[#f6f4f2]">

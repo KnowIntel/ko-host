@@ -1,6 +1,9 @@
 import type { BuilderDraft } from "@/lib/templates/builder";
 
 type DraftWithPageExtras = BuilderDraft & {
+  id?: string;
+  slug?: string;
+  display_order?: number;
   pageBackgroundImage?: string;
   pageBackgroundImageFit?: "clip" | "zoom" | "stretch";
   pageBlockAppearance?: Record<string, unknown>;
@@ -33,7 +36,13 @@ const babyShowerPlayfulHomePage: DraftPage = {
       id: "image_ok0mb5ut",
       type: "image",
       label: "Image",
-      grid: { colStart: 1, rowStart: 1, colSpan: 12, rowSpan: 14, zIndex: 2 },
+      grid: {
+        colStart: 1,
+        rowStart: 1,
+        colSpan: 12,
+        rowSpan: 14,
+        zIndex: 2,
+      },
       appearance: {
         backgroundColor: "transparent",
         borderColor: "#D1D5DB",
@@ -51,7 +60,13 @@ const babyShowerPlayfulHomePage: DraftPage = {
           zoom: 1,
           rotation: 0,
           opacity: 1,
-          fade: { top: false, bottom: true, left: false, right: false, size: 2 },
+          fade: {
+            top: false,
+            bottom: true,
+            left: false,
+            right: false,
+            size: 2,
+          },
         },
       },
     },
@@ -59,7 +74,13 @@ const babyShowerPlayfulHomePage: DraftPage = {
       id: "label_6mun0523",
       type: "label",
       label: "Label",
-      grid: { colStart: 1, rowStart: 3.75, colSpan: 12, rowSpan: 1, zIndex: 4 },
+      grid: {
+        colStart: 1,
+        rowStart: 3.75,
+        colSpan: 12,
+        rowSpan: 1,
+        zIndex: 4,
+      },
       appearance: {
         backgroundColor: "transparent",
         borderColor: "#D1D5DB",
@@ -84,7 +105,13 @@ const babyShowerPlayfulHomePage: DraftPage = {
       id: "label_pccp1e",
       type: "label",
       label: "Label",
-      grid: { colStart: 1, rowStart: 5.75, colSpan: 12, rowSpan: 1, zIndex: 5 },
+      grid: {
+        colStart: 1,
+        rowStart: 5.75,
+        colSpan: 12,
+        rowSpan: 1,
+        zIndex: 5,
+      },
       appearance: {
         backgroundColor: "transparent",
         borderColor: "#D1D5DB",
@@ -109,7 +136,13 @@ const babyShowerPlayfulHomePage: DraftPage = {
       id: "cta_lieiuqv2",
       type: "cta",
       label: "Button",
-      grid: { colStart: 3, rowStart: 8.25, colSpan: 3.5, rowSpan: 1.25, zIndex: 7 },
+      grid: {
+        colStart: 3,
+        rowStart: 8.25,
+        colSpan: 3.5,
+        rowSpan: 1.25,
+        zIndex: 7,
+      },
       appearance: {
         backgroundColor: "#fdd487",
         borderColor: "#D1D5DB",
@@ -120,7 +153,7 @@ const babyShowerPlayfulHomePage: DraftPage = {
         heading: "",
         body: "",
         buttonText: "       I will be there       ",
-        buttonUrl: "/s/preset/baby_shower/playful/rsvp-accept",
+        buttonUrl: "http://ko-host.com/s/baby-shower-playful-preview/rsvp-accept",
         style: {
           fontFamily: "Inter",
           fontSize: 44,
@@ -138,7 +171,13 @@ const babyShowerPlayfulHomePage: DraftPage = {
       id: "cta_zzs1qv",
       type: "cta",
       label: "Button",
-      grid: { colStart: 7.5, rowStart: 8.25, colSpan: 3.5, rowSpan: 1.25, zIndex: 8 },
+      grid: {
+        colStart: 7.5,
+        rowStart: 8.25,
+        colSpan: 3.5,
+        rowSpan: 1.25,
+        zIndex: 8,
+      },
       appearance: {
         backgroundColor: "#94cef3",
         borderColor: "#D1D5DB",
@@ -149,7 +188,7 @@ const babyShowerPlayfulHomePage: DraftPage = {
         heading: "",
         body: "",
         buttonText: "  Sorry, can't make it  ",
-        buttonUrl: "/s/preset/baby_shower/playful/rsvp-decline",
+        buttonUrl: "http://ko-host.com/s/baby-shower-playful-preview/rsvp-decline",
         style: {
           fontFamily: "Inter",
           fontSize: 44,
@@ -167,7 +206,13 @@ const babyShowerPlayfulHomePage: DraftPage = {
       id: "label_ldp09ga1",
       type: "label",
       label: "Label",
-      grid: { colStart: 1, rowStart: 10, colSpan: 12, rowSpan: 1.75, zIndex: 9 },
+      grid: {
+        colStart: 1,
+        rowStart: 10,
+        colSpan: 12,
+        rowSpan: 1.75,
+        zIndex: 9,
+      },
       appearance: {
         backgroundColor: "transparent",
         borderColor: "#D1D5DB",
@@ -175,7 +220,7 @@ const babyShowerPlayfulHomePage: DraftPage = {
         borderRadius: 16,
       },
       data: {
-        text: "DATE • TIME\nVENUE NAME\nADDRESS",
+        text: "Thursday, October 16, 2008 @ 2pm\nScranton Business Park Conference Room\n1725 Slough Avenue Scranton, PA 18540",
         style: {
           fontFamily: "inherit",
           fontSize: 40,
@@ -190,10 +235,20 @@ const babyShowerPlayfulHomePage: DraftPage = {
     },
   ],
   pageElements: {
-    title: { colStart: 1, rowStart: 4.25, colSpan: 12, rowSpan: 2.5, zIndex: 3 },
-    subtitle: { colStart: 1, rowStart: 6, colSpan: 12, rowSpan: 2.25, zIndex: 6 },
-    subtext: { colStart: 2, rowStart: 4, colSpan: 6, rowSpan: 1, zIndex: 3 },
-    description: { colStart: 2, rowStart: 5, colSpan: 8, rowSpan: 2, zIndex: 4 },
+    title: {
+      colStart: 1,
+      rowStart: 4.25,
+      colSpan: 12,
+      rowSpan: 2.5,
+      zIndex: 3,
+    },
+    subtitle: {
+      colStart: 1,
+      rowStart: 6,
+      colSpan: 12,
+      rowSpan: 2.25,
+      zIndex: 6,
+    },
   },
   pageVisibility: {
     title: true,
@@ -236,7 +291,13 @@ const babyShowerPlayfulRsvpAcceptPage: DraftPage = {
       id: "image_ok0mb5ut_accept",
       type: "image",
       label: "Image",
-      grid: { colStart: 1, rowStart: 1, colSpan: 12, rowSpan: 14, zIndex: 2 },
+      grid: {
+        colStart: 1,
+        rowStart: 1,
+        colSpan: 12,
+        rowSpan: 14,
+        zIndex: 2,
+      },
       appearance: {
         backgroundColor: "transparent",
         borderColor: "#D1D5DB",
@@ -254,7 +315,13 @@ const babyShowerPlayfulRsvpAcceptPage: DraftPage = {
           zoom: 1,
           rotation: 0,
           opacity: 1,
-          fade: { top: false, bottom: true, left: false, right: false, size: 2 },
+          fade: {
+            top: false,
+            bottom: true,
+            left: false,
+            right: false,
+            size: 2,
+          },
           alt: "design_baby_shower_playful_scenery.png",
         },
       },
@@ -263,7 +330,13 @@ const babyShowerPlayfulRsvpAcceptPage: DraftPage = {
       id: "rsvp_qz5jv4l7_accept",
       type: "rsvp",
       label: "RSVP",
-      grid: { colStart: 1, rowStart: 2.25, colSpan: 12, rowSpan: 7.25, zIndex: 3 },
+      grid: {
+        colStart: 1,
+        rowStart: 2.25,
+        colSpan: 12,
+        rowSpan: 7.25,
+        zIndex: 3,
+      },
       appearance: {
         backgroundColor: "transparent",
         borderColor: "#D1D5DB",
@@ -333,10 +406,34 @@ const babyShowerPlayfulRsvpAcceptPage: DraftPage = {
     },
   ],
   pageElements: {
-    title: { colStart: 1, rowStart: 4.25, colSpan: 12, rowSpan: 2.5, zIndex: 3 },
-    subtitle: { colStart: 1, rowStart: 6, colSpan: 12, rowSpan: 2.25, zIndex: 6 },
-    subtext: { colStart: 2, rowStart: 4, colSpan: 6, rowSpan: 1, zIndex: 3 },
-    description: { colStart: 2, rowStart: 5, colSpan: 8, rowSpan: 2, zIndex: 4 },
+    title: {
+      colStart: 1,
+      rowStart: 4.25,
+      colSpan: 12,
+      rowSpan: 2.5,
+      zIndex: 3,
+    },
+    subtitle: {
+      colStart: 1,
+      rowStart: 6,
+      colSpan: 12,
+      rowSpan: 2.25,
+      zIndex: 6,
+    },
+    subtext: {
+      colStart: 2,
+      rowStart: 4,
+      colSpan: 6,
+      rowSpan: 1,
+      zIndex: 3,
+    },
+    description: {
+      colStart: 2,
+      rowStart: 5,
+      colSpan: 8,
+      rowSpan: 2,
+      zIndex: 4,
+    },
   },
   pageVisibility: {
     title: false,
@@ -359,7 +456,13 @@ const babyShowerPlayfulRsvpDeclinePage: DraftPage = {
       id: "image_ok0mb5ut_decline",
       type: "image",
       label: "Image",
-      grid: { colStart: 1, rowStart: 1, colSpan: 12, rowSpan: 14, zIndex: 2 },
+      grid: {
+        colStart: 1,
+        rowStart: 1,
+        colSpan: 12,
+        rowSpan: 14,
+        zIndex: 2,
+      },
       appearance: {
         backgroundColor: "transparent",
         borderColor: "#D1D5DB",
@@ -377,7 +480,13 @@ const babyShowerPlayfulRsvpDeclinePage: DraftPage = {
           zoom: 1,
           rotation: 0,
           opacity: 1,
-          fade: { top: false, bottom: true, left: false, right: false, size: 2 },
+          fade: {
+            top: false,
+            bottom: true,
+            left: false,
+            right: false,
+            size: 2,
+          },
           alt: "design_baby_shower_dark_scenery.png",
         },
       },
@@ -386,7 +495,13 @@ const babyShowerPlayfulRsvpDeclinePage: DraftPage = {
       id: "rsvp_qz5jv4l7_decline",
       type: "rsvp",
       label: "RSVP",
-      grid: { colStart: 1, rowStart: 2.25, colSpan: 12, rowSpan: 7.25, zIndex: 3 },
+      grid: {
+        colStart: 1,
+        rowStart: 2.25,
+        colSpan: 12,
+        rowSpan: 7.25,
+        zIndex: 3,
+      },
       appearance: {
         backgroundColor: "transparent",
         borderColor: "#D1D5DB",
@@ -394,7 +509,7 @@ const babyShowerPlayfulRsvpDeclinePage: DraftPage = {
         borderRadius: 16,
       },
       data: {
-        heading: "Sorry You Can't Make It",
+        heading: "You can't quit. YOU'RE FIRED",
         imageUrl: "",
         imageFrameShape: "circle",
         elementOrder: [
@@ -415,9 +530,9 @@ const babyShowerPlayfulRsvpDeclinePage: DraftPage = {
         hiddenElements: [],
         guestMin: 0,
         guestMax: 1,
-        attendingLabel: "Are you attending?",
+        attendingLabel: "Are you sure you're not not NOT not unattending?",
         attendingOptions: ["Yes", "No"],
-        attendingDisplay: false,
+        attendingDisplay: true,
         attendingDefaultValue: "No",
         mealLabel: "Your meal selection:",
         mealOptions: ["Option 1", "Option 2"],
@@ -428,22 +543,35 @@ const babyShowerPlayfulRsvpDeclinePage: DraftPage = {
         guestDisplay: false,
         guestDefaultValue: "No",
         commentsLabel: "Additional comments",
-        commentsPlaceholder: "Leave a note for the host",
+        commentsPlaceholder:
+          "I am incredibly honored to be invited to this baby shower. Unfortunately… I will not be attending. Not because I don’t care. I care a lot. Probably more than most people. Possibly too much. But I will absolutely be celebrating from afar.",
         commentsDisplay: true,
         commentsDefaultValue: "",
-        submitButtonText: "Submit RSVP",
+        submitButtonText: "Submit",
         elementStyles: {
           heading: {
             textStyle: {
               fontFamily: "Permanent Marker",
               color: "#ffffff",
               align: "center",
-              fontSize: 43,
+              fontSize: 40,
             },
           },
-          nameLabel: { textStyle: { color: "#ffffff" } },
-          attending: { textStyle: { color: "#ffffff" } },
-          comments: { textStyle: { color: "#ffffff" } },
+          nameLabel: {
+            textStyle: {
+              color: "#ffffff",
+            },
+          },
+          attending: {
+            textStyle: {
+              color: "#ffffff",
+            },
+          },
+          comments: {
+            textStyle: {
+              color: "#ffffff",
+            },
+          },
         },
         style: {
           fontFamily: "inherit",
@@ -459,10 +587,20 @@ const babyShowerPlayfulRsvpDeclinePage: DraftPage = {
     },
   ],
   pageElements: {
-    title: { colStart: 1, rowStart: 4.25, colSpan: 12, rowSpan: 2.5, zIndex: 3 },
-    subtitle: { colStart: 1, rowStart: 6, colSpan: 12, rowSpan: 2.25, zIndex: 6 },
-    subtext: { colStart: 2, rowStart: 4, colSpan: 6, rowSpan: 1, zIndex: 3 },
-    description: { colStart: 2, rowStart: 5, colSpan: 8, rowSpan: 2, zIndex: 4 },
+    title: {
+      colStart: 1,
+      rowStart: 4.25,
+      colSpan: 12,
+      rowSpan: 2.5,
+      zIndex: 3,
+    },
+    subtitle: {
+      colStart: 1,
+      rowStart: 6,
+      colSpan: 12,
+      rowSpan: 2.25,
+      zIndex: 6,
+    },
   },
   pageVisibility: {
     title: false,

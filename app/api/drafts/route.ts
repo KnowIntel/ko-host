@@ -63,7 +63,7 @@ export async function GET(req: NextRequest) {
 
     // Fail-safe behavior:
     // Missing template key should never hard-fail draft recovery.
-    // Return an empty result so the client can fall back to local storage.
+    // Return an empty result so the client can fall back to the code preset.
     if (!templateKey) {
       return NextResponse.json({
         ok: true,
@@ -136,7 +136,7 @@ export async function POST(req: Request) {
         skipped: true,
         recoverable: true,
         error: "Missing templateKey. Cloud save skipped.",
-        saveStrategy: "local-only",
+        saveStrategy: "dashboard-only",
       });
     }
 

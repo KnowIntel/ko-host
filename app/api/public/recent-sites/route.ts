@@ -69,6 +69,7 @@ export async function GET() {
       .eq("is_published", true)
       .eq("is_active", true)
       .eq("site_visibility", "public")
+      .eq("is_preset", false)
       .order("published_at", { ascending: false })
       .order("created_at", { ascending: false })
       .limit(24);
