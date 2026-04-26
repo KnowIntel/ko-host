@@ -119,7 +119,7 @@ const weddingClassicHomeDraft: DraftWithPageExtras = {
         items: [
           {
             id: "link_accept",
-            url: "https://ourwedding.ko-host.com/rsvp-accept",
+            url: "/s/preset/wedding_rsvp/classic/rsvp-accept",
             label: "Accepts with Pleasure",
           },
         ],
@@ -220,7 +220,7 @@ const weddingClassicHomeDraft: DraftWithPageExtras = {
         items: [
           {
             id: "link_decline",
-            url: "https://ourwedding.ko-host.com/rsvp-decline",
+            url: "/s/preset/wedding_rsvp/classic/rsvp-decline",
             label: "Declines with Regret",
           },
         ],

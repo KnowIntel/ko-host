@@ -309,9 +309,31 @@ function resolveSafeTemplateKey(draft?: BuilderDraft) {
   }
 
 useEffect(() => {
-  setHydratedDraft(initialDraft);
-  setLiveDraft(initialDraft);
-  lastSavedDraftRef.current = JSON.stringify(initialDraft);
+  const draftPages = (initialDraft as BuilderDraft & {
+    pages?: LocalBuilderPage[];
+  }).pages;
+
+  const normalizedPages =
+    Array.isArray(draftPages) && draftPages.length > 0
+      ? draftPages.map((page, index) => ({
+          id: page.id || (index === 0 ? "home" : `page-${index}`),
+          slug: page.slug || (index === 0 ? "home" : `page-${index}`),
+          title: page.title || (index === 0 ? "Home" : `Page ${index + 1}`),
+          display_order: page.display_order ?? index,
+          draft: page.draft || (page as unknown as BuilderDraft),
+        }))
+      : [
+          {
+            id: "home",
+            slug: "home",
+            title: "Home",
+            display_order: 0,
+            draft: initialDraft,
+          },
+        ];
+
+  const homePage =
+    normalizedPages.find((page) => page.id === "home") || normalizedPages[0];
 
   if (resetPreset) {
     try {
@@ -320,85 +342,73 @@ useEffect(() => {
       // ignore localStorage errors
     }
 
+    setBuilderPages(normalizedPages);
+    setActiveBuilderPageId(homePage.id);
+    setHydratedDraft(homePage.draft);
+    setLiveDraft(homePage.draft);
+    lastSavedDraftRef.current = JSON.stringify(homePage.draft);
+
     setSaveState("idle");
     setSaveMessage("Loaded code preset. Saved local/dashboard drafts ignored.");
     return;
   }
 
   if (!shouldLoadExistingDraft) {
-  const draftPages = (initialDraft as BuilderDraft & {
-    pages?: LocalBuilderPage[];
-  }).pages;
-
-  if (Array.isArray(draftPages) && draftPages.length > 0) {
-    setBuilderPages(
-      draftPages.map((page, index) => ({
-        id: page.id || (index === 0 ? "home" : `page-${index}`),
-        slug: page.slug || (index === 0 ? "home" : `page-${index}`),
-        title: page.title || (index === 0 ? "Home" : `Page ${index + 1}`),
-        display_order: page.display_order ?? index,
-        draft: page.draft || (page as unknown as BuilderDraft),
-      })),
-    );
-
-    setActiveBuilderPageId("home");
-  }
-
-  setSaveState("idle");
-  setSaveMessage("Loaded code preset. Saved drafts ignored.");
-  return;
-}
-
-if (!shouldLoadExistingDraft) {
-      try {
-        const raw = window.localStorage.getItem(storageKey);
-
-        if (raw) {
-          const parsed = JSON.parse(raw) as Partial<BuilderDraft>;
-          const merged = mergeDrafts(initialDraft, parsed);
-
-          setHydratedDraft(merged);
-          setLiveDraft(merged);
-          lastSavedDraftRef.current = JSON.stringify(merged);
-          setSaveState("idle");
-          setSaveMessage("Recovered your local draft.");
-          return;
-        }
-      } catch {
-        // ignore localStorage errors
-      }
-
-      setSaveState("idle");
-      setSaveMessage("Started a fresh draft from this design preset.");
-      return;
-    }
-
     try {
       const raw = window.localStorage.getItem(storageKey);
 
-      if (!raw) {
+      if (raw) {
+        const parsed = JSON.parse(raw) as Partial<BuilderDraft>;
+        const merged = mergeDrafts(initialDraft, parsed);
+
+        setHydratedDraft(merged);
+        setLiveDraft(merged);
+        lastSavedDraftRef.current = JSON.stringify(merged);
         setSaveState("idle");
-        setSaveMessage("Draft not saved yet.");
+        setSaveMessage("Recovered your local draft.");
         return;
       }
-
-      const parsed = JSON.parse(raw) as Partial<BuilderDraft>;
-      const merged = mergeDrafts(initialDraft, parsed);
-
-      setHydratedDraft(merged);
-      setLiveDraft(merged);
-      lastSavedDraftRef.current = JSON.stringify(merged);
-      setSaveState("idle");
-      setSaveMessage("Loaded your local draft.");
     } catch {
-      setHydratedDraft(initialDraft);
-      setLiveDraft(initialDraft);
-      lastSavedDraftRef.current = JSON.stringify(initialDraft);
-      setSaveState("error");
-      setSaveMessage("Saved local draft could not be loaded.");
-      queueSaveStateReset();
+      // ignore localStorage errors
     }
-  }, [initialDraft, storageKey, shouldLoadExistingDraft, resetPreset]);
+
+    setBuilderPages(normalizedPages);
+    setActiveBuilderPageId(homePage.id);
+    setHydratedDraft(homePage.draft);
+    setLiveDraft(homePage.draft);
+    lastSavedDraftRef.current = JSON.stringify(homePage.draft);
+
+    setSaveState("idle");
+    setSaveMessage("Started a fresh draft from this design preset.");
+    return;
+  }
+
+  try {
+    const raw = window.localStorage.getItem(storageKey);
+
+    if (!raw) {
+      setSaveState("idle");
+      setSaveMessage("Draft not saved yet.");
+      return;
+    }
+
+    const parsed = JSON.parse(raw) as Partial<BuilderDraft>;
+    const merged = mergeDrafts(initialDraft, parsed);
+
+    setHydratedDraft(merged);
+    setLiveDraft(merged);
+    lastSavedDraftRef.current = JSON.stringify(merged);
+    setSaveState("idle");
+    setSaveMessage("Loaded your local draft.");
+  } catch {
+    setHydratedDraft(initialDraft);
+    setLiveDraft(initialDraft);
+    lastSavedDraftRef.current = JSON.stringify(initialDraft);
+    setSaveState("error");
+    setSaveMessage("Saved local draft could not be loaded.");
+    queueSaveStateReset();
+  }
+}, [initialDraft, storageKey, shouldLoadExistingDraft, resetPreset]);
 
   useEffect(() => {
     async function loadServerDraft() {
@@ -437,22 +447,47 @@ if (!shouldLoadExistingDraft) {
     void loadServerDraft();
   }, [isSignedIn, templateKey, designKey, initialDraft, shouldLoadExistingDraft, resetPreset]);
 
+  function buildDraftWithPages(currentDraft: BuilderDraft = liveDraft) {
+  const syncedPages = builderPages.map((page) =>
+    page.id === activeBuilderPageId
+      ? { ...page, draft: currentDraft }
+      : page,
+  );
+
+  const homePage = syncedPages.find((page) => page.id === "home") || syncedPages[0];
+
+  return {
+    ...(homePage?.draft || currentDraft),
+    pages: syncedPages.map((page) => ({
+      id: page.id,
+      slug: page.slug,
+      title: page.title,
+      display_order: page.display_order,
+      draft: page.draft,
+    })),
+  } as BuilderDraft;
+}
+
 async function handleSaveDraft(draft: BuilderDraft): Promise<void> {
+  const draftToSave = buildDraftWithPages(draft);
+
   setHydratedDraft(draft);
   setLiveDraft(draft);
 
-  // Always preserve work locally first.
-  persistDraftLocally(draft);
+  // Always preserve full multi-page draft locally first.
+  persistDraftLocally(draftToSave);
 
   if (!isSignedIn) {
     setSaveState("signin-required");
-    setSaveMessage("Draft saved in this browser. Sign in to save it to your dashboard.");
+    setSaveMessage(
+      "Draft saved in this browser. Sign in to save it to your dashboard.",
+    );
     setShowSignInPrompt(true);
     return;
   }
 
-  const safeTemplateKey = resolveSafeTemplateKey(draft);
-  const safeDesignKey = resolveSafeDesignKey(draft);
+  const safeTemplateKey = resolveSafeTemplateKey(draftToSave);
+  const safeDesignKey = resolveSafeDesignKey(draftToSave);
 
   if (!safeTemplateKey) {
     setSaveState("saved");
@@ -466,13 +501,17 @@ async function handleSaveDraft(draft: BuilderDraft): Promise<void> {
     setSaveMessage("Saving draft...");
 
     console.log("SAVE DEBUG", {
-  hasDraft: !!draft,
-  draftType: typeof draft,
-  hasBlocks: Array.isArray(draft?.blocks),
-  templateKey: safeTemplateKey,
-  designKey: safeDesignKey,
-  draft,
-});
+      hasDraft: !!draftToSave,
+      draftType: typeof draftToSave,
+      hasBlocks: Array.isArray(draftToSave?.blocks),
+      hasPages: Array.isArray((draftToSave as BuilderDraft & { pages?: unknown[] }).pages),
+      pageCount: Array.isArray((draftToSave as BuilderDraft & { pages?: unknown[] }).pages)
+        ? (draftToSave as BuilderDraft & { pages?: unknown[] }).pages?.length
+        : 0,
+      templateKey: safeTemplateKey,
+      designKey: safeDesignKey,
+      draft: draftToSave,
+    });
 
     const res = await fetch("/api/drafts", {
       method: "POST",
@@ -480,7 +519,7 @@ async function handleSaveDraft(draft: BuilderDraft): Promise<void> {
       body: JSON.stringify({
         templateKey: safeTemplateKey,
         designKey: safeDesignKey,
-        draft,
+        draft: draftToSave,
       }),
     });
 
@@ -505,7 +544,7 @@ async function handleSaveDraft(draft: BuilderDraft): Promise<void> {
       return;
     }
 
-    lastSavedDraftRef.current = JSON.stringify(draft);
+    lastSavedDraftRef.current = JSON.stringify(draftToSave);
     setSaveState("saved");
     setSaveMessage("Draft was saved to your dashboard.");
     queueSaveStateReset();

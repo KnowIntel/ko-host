@@ -165,7 +165,7 @@ const homePage: DraftPage = {
       },
       data: {
         heading: "",
-        items: [{ id: "link-about", label: "ABOUT", url: "https://ourwedding.ko-host.com/about" }],
+        items: [{ id: "link-about", label: "ABOUT", url: "/s/preset/wedding_rsvp/modern/about"}],
         style: {
           fontFamily: "Playfair Display",
           fontSize: 60,
@@ -200,7 +200,7 @@ const homePage: DraftPage = {
       },
       data: {
         heading: "",
-        items: [{ id: "link-registry", label: "REGISTRY", url: "https://ourwedding.ko-host.com/registry" }],
+        items: [{ id: "link-registry", label: "REGISTRY", url: "/s/preset/wedding_rsvp/modern/registry"}],
         style: {
           fontFamily: "Playfair Display",
           fontSize: 60,
@@ -235,7 +235,7 @@ const homePage: DraftPage = {
       },
       data: {
         heading: "",
-        items: [{ id: "link-schedule", label: "SCHEDULE", url: "https://ourwedding.ko-host.com/schedule" }],
+        items: [{ id: "link-schedule", label: "SCHEDULE", url: "/s/preset/wedding_rsvp/modern/schedule"}],
         style: {
           fontFamily: "Playfair Display",
           fontSize: 60,
@@ -270,7 +270,7 @@ const homePage: DraftPage = {
       },
       data: {
         heading: "",
-        items: [{ id: "link-contact", label: "CONTACT", url: "https://ourwedding.ko-host.com/contact" }],
+        items: [{ id: "link-contact", label: "CONTACT", url: "/s/preset/wedding_rsvp/modern/contact"}],
         style: {
           fontFamily: "Playfair Display",
           fontSize: 60,
