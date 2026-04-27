@@ -12237,10 +12237,7 @@ if (selectedBlock?.type === "rsvp") {
                     ...block,
                     data: {
                       ...block.data,
-                      columns: Math.max(
-                        1,
-                        Math.min(12, Number(e.target.value) || 1),
-                      ),
+                      columns: Math.max(1, Math.min(12, Number(e.target.value) || 1)),
                     },
                   },
             )
@@ -12273,10 +12270,7 @@ if (selectedBlock?.type === "rsvp") {
                     ...block,
                     data: {
                       ...block.data,
-                      rows: Math.max(
-                        1,
-                        Math.min(12, Number(e.target.value) || 1),
-                      ),
+                      rows: Math.max(1, Math.min(12, Number(e.target.value) || 1)),
                     },
                   },
             )
@@ -12289,9 +12283,7 @@ if (selectedBlock?.type === "rsvp") {
     <button
       type="button"
       className="mt-3 inline-flex h-11 items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-sm text-neutral-700 hover:bg-neutral-50"
-      onClick={() =>
-        void uploadGalleryImagesToBlock(selectedBlock.id)
-      }
+      onClick={() => void uploadGalleryImagesToBlock(selectedBlock.id)}
     >
       Add Images
     </button>
@@ -12317,54 +12309,62 @@ if (selectedBlock?.type === "rsvp") {
               </div>
             </div>
 
-                            <div className="flex items-center gap-2">
-                              <button
-                                type="button"
-                                className={toolSetButtonClass("front")}
-                                onClick={() =>
-                                  moveGalleryImage(
-                                    selectedBlock.id,
-                                    image.id,
-                                    "up",
-                                  )
-                                }
-                                disabled={index === 0}
-                                title="Move up"
-                              >
-                                ↑
-                              </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                className={toolSetButtonClass("front")}
+                onClick={() => moveGalleryImage(selectedBlock.id, image.id, "up")}
+                disabled={index === 0}
+                title="Move up"
+              >
+                ↑
+              </button>
 
-                              <button
-                                type="button"
-                                className={toolSetButtonClass("front")}
-                                onClick={() =>
-                                  moveGalleryImage(
-                                    selectedBlock.id,
-                                    image.id,
-                                    "down",
-                                  )
-                                }
-                                disabled={
-                                  index ===
-                                  selectedBlock.data.images.length - 1
-                                }
-                                title="Move down"
-                              >
-                                ↓
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
+              <button
+                type="button"
+                className={toolSetButtonClass("front")}
+                onClick={() => moveGalleryImage(selectedBlock.id, image.id, "down")}
+                disabled={index === selectedBlock.data.images.length - 1}
+                title="Move down"
+              >
+                ↓
+              </button>
 
-                      {!selectedBlock.data.images.length ? (
-                        <div className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50 px-3 py-4 text-sm text-neutral-500">
-                          No gallery images yet.
-                        </div>
-                      ) : null}
-                    </div>
-                  </div>
-                ) : null}
+              <button
+                type="button"
+                className={toolSetButtonClass("front")}
+                onClick={() =>
+                  updateSelectedBlock((block) =>
+                    block.type !== "gallery"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            images: block.data.images.filter(
+                              (galleryImage) => galleryImage.id !== image.id,
+                            ),
+                          },
+                        },
+                  )
+                }
+                title="Remove image"
+              >
+                ×
+              </button>
+            </div>
+          </div>
+        </div>
+      ))}
+
+      {!selectedBlock.data.images.length ? (
+        <div className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50 px-3 py-4 text-sm text-neutral-500">
+          No gallery images yet.
+        </div>
+      ) : null}
+    </div>
+  </div>
+) : null}
                 
                 {selectedBlock?.type === "cta" ? (
   <div className="space-y-3 rounded-2xl border border-neutral-200 bg-white p-4">
