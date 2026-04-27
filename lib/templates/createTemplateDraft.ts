@@ -13,27 +13,14 @@ export function createTemplateDraft(
   designLayout: DesignPresetLayout | string,
 ): BuilderDraft {
   const normalized = normalizeTemplateName(templateName);
-  const resolvedDesignLayout = designLayout as DesignPresetLayout;
-
-  const templateContent =
-    TEMPLATE_DESIGN_OVERLAY_CONTENT[normalized]?.[resolvedDesignLayout];
-
-  const title = readStringField(templateContent?.title);
-  const subtitle = readStringField(
-    (templateContent as { subtitle?: unknown } | undefined)?.subtitle,
-  );
-  const subtext = readStringField(
-    (templateContent as { callout?: unknown } | undefined)?.callout,
-  );
-  const description = readStringField(templateContent?.description);
 
   const draft: BuilderDraft = {
     slugSuggestion: normalized,
 
-    title,
-    subtitle,
-    subtext,
-    description,
+    title: "",
+    subtitle: "",
+    subtext: "",
+    description: "",
 
     titleStyle: undefined,
     subtitleStyle: undefined,

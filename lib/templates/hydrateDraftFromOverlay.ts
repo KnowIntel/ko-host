@@ -315,16 +315,5 @@ export function hydrateDraftFromOverlay(
   templateName: string,
   designLayout: string,
 ): BuilderDraft {
-  const resolved = resolveOverlayDraft(templateName, designLayout);
-
-  if (!resolved) return draft;
-
-  return {
-    ...draft,
-    title: resolved.title ?? "",
-    subtitle: resolved.subtitle ?? "",
-    subtext: resolved.subtext ?? "",
-    description: resolved.description ?? "",
-    blocks: resolved.blocks,
-  } as BuilderDraft;
+  return draft;
 }

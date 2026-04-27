@@ -5340,7 +5340,7 @@ return (
           onClick={handleCopyDraftJson}
           className="rounded-xl border border-neutral-300 bg-white px-3 py-1 text-xs font-medium text-neutral-700 hover:bg-neutral-50"
         >
-          {draftCopied ? "Draft Copied!" : "Copy Design Specs"}
+          {draftCopied ? "Draft Copied!" : "Copy Blueprint"}
         </button>
 
         <button
@@ -5352,7 +5352,7 @@ return (
           }}
           className="rounded-xl border border-neutral-900 bg-neutral-900 px-3 py-1 text-xs font-medium text-white hover:bg-neutral-800"
         >
-          Build Preset Design
+          Build From Blueprint
         </button>
       </div>
 
@@ -5364,7 +5364,7 @@ return (
       </div>
 
       <p className="mt-2 text-sm leading-6 text-neutral-600">
-        This will replace the current draft with the pasted Design Specs. Current unsaved changes will be lost.
+        This will replace the current draft with the pasted Design Specs.\nCurrent unsaved changes will be lost.
       </p>
 
       <div className="mt-6 flex items-center justify-end gap-3">
