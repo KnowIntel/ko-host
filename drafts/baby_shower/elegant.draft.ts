@@ -7,8 +7,8 @@ type DraftWithPageExtras = BuilderDraft & {
 
 const babyShowerElegantHomeDraft = {
   slugSuggestion: "baby_shower",
-  title: "SPEED DATING EVENT LIVE",
-  subtitle: "Baby Harper",
+  title: "",
+  subtitle: "",
   subtext: "",
   description:
     "A soft, elegant invitation page for a meaningful gathering with family and close friends.",

@@ -1,10 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 
+function stripNestedPagesFromDraft(value: any) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
+
+  const { pages: _pages, ...draftWithoutNestedPages } = value;
+  return draftWithoutNestedPages;
+}
+
 export async function GET(req: NextRequest) {
   try {
-    const templateKey = String(req.nextUrl.searchParams.get("templateKey") || "").trim();
-    const designKey = String(req.nextUrl.searchParams.get("designKey") || "blank").trim();
+    const templateKey = String(
+      req.nextUrl.searchParams.get("templateKey") || "",
+    ).trim();
+
+    const designKey = String(
+      req.nextUrl.searchParams.get("designKey") || "blank",
+    ).trim();
 
     if (!templateKey || !designKey) {
       return NextResponse.json(
@@ -41,6 +53,7 @@ export async function GET(req: NextRequest) {
       .from("microsite_pages")
       .select("id, slug, title, display_order, draft")
       .eq("microsite_id", microsite.id)
+      .eq("is_preset", true)
       .order("display_order", { ascending: true })
       .order("created_at", { ascending: true });
 
@@ -56,14 +69,21 @@ export async function GET(req: NextRequest) {
       slug: page.slug,
       title: page.title || page.slug,
       display_order: page.display_order ?? index,
-      draft: page.draft || {},
+      draft: {
+        ...stripNestedPagesFromDraft(page.draft),
+        slugSuggestion: microsite.slug,
+      },
     }));
 
     const homePage =
       normalizedPages.find((page) => page.slug === "home") || normalizedPages[0];
 
+    const homeDraft = stripNestedPagesFromDraft(
+      homePage?.draft || microsite.draft || {},
+    );
+
     const draft = {
-      ...(homePage?.draft || microsite.draft || {}),
+      ...homeDraft,
       slugSuggestion: microsite.slug,
       pages: normalizedPages,
     };
