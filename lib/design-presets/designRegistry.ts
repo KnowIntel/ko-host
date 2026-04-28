@@ -28,6 +28,7 @@ export type DesignPreset = {
   previewImageAlt?: string;
   previewImagePath: string;
   theme: DesignTheme;
+  hidden?: boolean; // ← ADD THIS LINE
 };
 
 const baseTheme: DesignTheme = {

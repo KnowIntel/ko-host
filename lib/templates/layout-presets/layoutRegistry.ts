@@ -7,6 +7,7 @@ import birthdayLayouts from "./templates/birthday";
 import reunionLayouts from "./templates/reunion";
 import roastLayouts from "./templates/roast_session";
 import open_houseLayouts from "./templates/open_house";
+import productLaunchLayouts from "./templates/product_launch"; // ✅ ADD THIS
 import blankLayout from "./layouts/blank";
 
 const registry: Record<string, TemplateLayoutRegistry> = {
@@ -18,18 +19,22 @@ const registry: Record<string, TemplateLayoutRegistry> = {
   family_reunion: reunionLayouts,
   open_house: open_houseLayouts,
   roast_session: roastLayouts,
+  product_launch: productLaunchLayouts, // ✅ ADD THIS
 };
+
 
 function withStandardLayouts(
   template: TemplateLayoutRegistry,
 ): TemplateLayoutRegistry {
-  const withoutBlank = template.layouts.filter(
-    (layout) => layout.designKey !== "blank",
+  const filtered = template.layouts.filter(
+    (layout) =>
+      layout.designKey !== "blank" &&
+      layout.designKey !== "photo" // ← ADD THIS LINE
   );
 
   return {
     ...template,
-    layouts: [...withoutBlank, blankLayout],
+    layouts: [...filtered, blankLayout],
   };
 }
 

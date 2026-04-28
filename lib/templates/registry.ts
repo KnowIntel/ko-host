@@ -60,6 +60,7 @@ export type TemplateKey =
   | "stock_trade_thesis"
   | "vip_access"
   | "webinar"
+  | "public_auction"
   | "workshop"
   | "photo_gallery"
   | "block_party"
@@ -109,6 +110,7 @@ export type TemplateKey =
   | "temporary_work_portfolio"
   | "community_announcement"
   | "neighborhood_alert"
+  | "game_night"
   | "local_volunteer_signup"
   | "nonprofit_campaign"
   | "school_event"
@@ -928,7 +930,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "vip",
     defaultDraft: { title: "VIP Access", slugSuggestion: "vipaccess" },
   }, */
-  {
+/*   {
     key: "webinar",
     title: "Webinar",
     description: "Topic, registration, and replay link.",
@@ -936,7 +938,16 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 3,
     demoSlug: "webinar",
     defaultDraft: { title: "Webinar", slugSuggestion: "webinar" },
-  },
+  }, */
+{
+  key: "public_auction",
+  title: "Public Auction",
+  description: "Promote items, bidding details, and event logistics for a public auction.",
+  thumb: "publicauction",
+  setupMins: 3,
+  demoSlug: "publicauction",
+  defaultDraft: { title: "Public Auction", slugSuggestion: "publicauction" },
+},
   {
     key: "workshop",
     title: "Workshop",
@@ -1370,7 +1381,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "community",
     defaultDraft: { title: "Community Announcement", slugSuggestion: "communityannouncement" },
   }, */
-  {
+/*   {
     key: "neighborhood_alert",
     title: "Neighborhood Alert",
     description: "Share urgent neighborhood updates fast.",
@@ -1378,7 +1389,16 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 2,
     demoSlug: "neighborhood",
     defaultDraft: { title: "Neighborhood Alert", slugSuggestion: "neighborhoodalert" },
-  },
+  }, */
+{
+  key: "game_night",
+  title: "Game Night",
+  description: "Host and organize a fun game night with friends and family.",
+  thumb: "gamenight",
+  setupMins: 2,
+  demoSlug: "gamenight",
+  defaultDraft: { title: "Game Night", slugSuggestion: "gamenight" },
+},
  /*  {
     key: "local_volunteer_signup",
     title: "Local Volunteer Signup",

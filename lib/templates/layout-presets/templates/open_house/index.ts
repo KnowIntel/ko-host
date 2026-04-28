@@ -1,9 +1,9 @@
 import type { TemplateLayoutRegistry } from "../../types";
-import simplistic from "./simplistic";
+import signature from "./signature";
 
 const open_houseLayouts: TemplateLayoutRegistry = {
   templateKey: "open_house",
-  layouts: [simplistic],
+  layouts: [signature],
 };
 
 

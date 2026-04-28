@@ -164,35 +164,45 @@ import BlockRenderer from "@/components/preview/BlockRenderer";
           );
         }
 
-        if (block.type === "cta") {
-          return (
-            <section
-              key={block.id}
-              className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm"
-            >
-              <h3 className="text-lg font-semibold text-neutral-900">
-                {block.data.heading}
-              </h3>
+if (block.type === "cta") {
+  const appearance = block.appearance;
 
-              {block.data.body ? (
-                <div className="mt-3 whitespace-pre-wrap text-neutral-700">
-                  {block.data.body}
-                </div>
-              ) : null}
+  return (
+    <section
+      key={block.id}
+      className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm"
+    >
+      <h3 className="text-lg font-semibold text-neutral-900">
+        {block.data.heading}
+      </h3>
 
-              <div className="mt-4">
-                <a
-                  href={block.data.buttonUrl || "#"}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center justify-center rounded-xl bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800"
-                >
-                  {block.data.buttonText || "Learn more"}
-                </a>
-              </div>
-            </section>
-          );
-        }
+      {block.data.body ? (
+        <div className="mt-3 whitespace-pre-wrap text-neutral-700">
+          {block.data.body}
+        </div>
+      ) : null}
+
+      <div className="mt-4">
+        <a
+          href={block.data.buttonUrl || "#"}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium transition"
+        style={{
+          backgroundColor: appearance?.backgroundColor ?? "#111827",
+          borderColor: appearance?.borderColor ?? "transparent",
+          borderWidth: appearance?.borderWidth ?? 0,
+          borderRadius: appearance?.borderRadius ?? 12,
+          borderStyle: "solid",
+          color: block.data.style?.color ?? "#ffffff",
+        }}
+        >
+          {block.data.buttonText || "Learn more"}
+        </a>
+      </div>
+    </section>
+  );
+}
 
         // ✅ SAFE FALLBACK (handles ALL valid block types)
         return (

@@ -6,8 +6,8 @@ export default createLayoutPreset({
 
   label: "Warm Classic",
   description: "Traditional inviting layout",
-    thumbnail: "/designs/design-cards/design-card_memorial_tribute_warm.webp",
-  
-    recommended: true,
-  
-  });
+  thumbnail: "/designs/design-cards/design-card_family_reunion_warm.webp",
+
+  recommended: true,
+
+});
