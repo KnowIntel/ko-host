@@ -48,14 +48,16 @@ export default function DesignCard({
           />
         ) : null}
 
-        <div className="absolute inset-0">
-          <div className="h-full w-full opacity-100 transition duration-300">
-            <DesignCardCanvasPreview
-              draft={previewDraft}
-              designKey={designKey}
-            />
-          </div>
-        </div>
+{backgroundImage ? null : (
+  <div className="absolute inset-0">
+    <div className="h-full w-full opacity-100 transition duration-300">
+      <DesignCardCanvasPreview
+        draft={previewDraft}
+        designKey={designKey}
+      />
+    </div>
+  </div>
+)}
 
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/12 via-black/0 to-black/0 opacity-70" />
 

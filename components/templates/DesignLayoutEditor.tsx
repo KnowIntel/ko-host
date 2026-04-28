@@ -1034,6 +1034,7 @@ const [selectedRsvpElementKey, setSelectedRsvpElementKey] = useState<
   const [undoStack, setUndoStack] = useState<BuilderDraft[]>([]);
   const [redoStack, setRedoStack] = useState<BuilderDraft[]>([]);
   const isHistoryActionRef = useRef(false);
+  const [selectedBlockIds, setSelectedBlockIds] = useState<string[]>([]);
   const initialDraftRef = useRef<BuilderDraft>(cloneDraft(draft));
   const lastDraftRef = useRef<BuilderDraft>(cloneDraft(draft));
   const topBarScrollRef = useRef<HTMLDivElement | null>(null);
@@ -1374,6 +1375,37 @@ const showBorderWidthRadiusControls =
     pageBackgroundImage,
     pageBackgroundImageFit,
   ]);
+
+  useEffect(() => {
+  function handleKey(e: KeyboardEvent) {
+    if (!selectedBlock) return;
+
+    // prevent interfering with typing
+    const tag = (e.target as HTMLElement)?.tagName;
+    if (tag === "INPUT" || tag === "TEXTAREA") return;
+
+    // ALT + ← = left
+    if (e.altKey && e.key === "ArrowLeft") {
+      e.preventDefault();
+      alignSelectedBlockHorizontal("left");
+    }
+
+    // ALT + ↑ = center
+    if (e.altKey && e.key === "ArrowUp") {
+      e.preventDefault();
+      alignSelectedBlockHorizontal("center");
+    }
+
+    // ALT + → = right
+    if (e.altKey && e.key === "ArrowRight") {
+      e.preventDefault();
+      alignSelectedBlockHorizontal("right");
+    }
+  }
+
+  window.addEventListener("keydown", handleKey);
+  return () => window.removeEventListener("keydown", handleKey);
+}, [selectedBlock]);
   
   useEffect(() => {
   try {
@@ -2879,6 +2911,68 @@ if (block.type === "cta") {
   }));
 }
 
+function isBlockMultiSelected(blockId: string) {
+  return selectedBlockIds.includes(blockId);
+}
+
+function toggleBlockMultiSelect(blockId: string) {
+  setSelectedBlockIds((prev) =>
+    prev.includes(blockId)
+      ? prev.filter((id) => id !== blockId)
+      : [...prev, blockId],
+  );
+}
+
+function clearMultiSelect() {
+  setSelectedBlockIds([]);
+}
+
+function alignSelectedBlockHorizontal(mode: "left" | "center" | "right") {
+  const idsToAlign =
+    selectedBlockIds.length > 0
+      ? selectedBlockIds
+      : selectedBlock
+        ? [selectedBlock.id]
+        : [];
+
+  if (!idsToAlign.length) return;
+
+  setDraft((prev) => ({
+    ...prev,
+    blocks: prev.blocks.map((block) => {
+      if (!idsToAlign.includes(block.id)) return block;
+
+      const currentGrid = block.grid ?? {
+        colStart: 1,
+        rowStart: 1,
+        colSpan: 1,
+        rowSpan: 1,
+        zIndex: 1,
+      };
+
+      const colSpan = Number(currentGrid.colSpan ?? 1);
+
+      const nextColStart =
+        mode === "left"
+          ? 1
+          : mode === "right"
+            ? Math.max(1, 12 - colSpan + 1)
+            : Math.max(1, (12 - colSpan) / 2 + 1);
+
+      return {
+        ...block,
+        grid: {
+          colStart: nextColStart,
+          rowStart: currentGrid.rowStart ?? 1,
+          colSpan: currentGrid.colSpan ?? 1,
+          rowSpan: currentGrid.rowSpan ?? 1,
+          zIndex: currentGrid.zIndex ?? 1,
+        },
+      };
+    }),
+  }));
+}
+
 function moveGalleryImage(
   blockId: string,
   imageId: string,
@@ -3390,6 +3484,7 @@ async function uploadMultipleImagesToCarousel(blockId: string) {
   });
 }
 
+
   function addBlock(type: BuilderBlockType) {
     setDraft((prev) => ({
       ...prev,
@@ -3745,16 +3840,33 @@ function cancelRemoveAllBlocks() {
   }
 }
 
-  function handleCanvasSelect(
-    nextSelection: ReturnType<typeof createEmptySelection>,
-  ) {
-    if ((nextSelection as any).type === "block") {
-      setSelection(selectionFromCanvasBlockId((nextSelection as any).blockId));
+function handleCanvasSelect(
+  nextSelection: ReturnType<typeof createEmptySelection>,
+  event?: React.MouseEvent<HTMLDivElement>,
+) {
+  const isBlockSelection = (nextSelection as any).type === "block";
+  const blockId = (nextSelection as any).blockId as string | undefined;
+
+  if (isBlockSelection && blockId) {
+    if (event?.ctrlKey) {
+      setSelectedBlockIds((prev) =>
+        prev.includes(blockId)
+          ? prev.filter((id) => id !== blockId)
+          : [...prev, blockId],
+      );
+
+      setSelection(selectionFromCanvasBlockId(blockId));
       return;
     }
 
-    setSelection(nextSelection);
+    setSelectedBlockIds([blockId]);
+    setSelection(selectionFromCanvasBlockId(blockId));
+    return;
   }
+
+  setSelectedBlockIds([]);
+  setSelection(nextSelection);
+}
 
 async function handleCopyDraftJson() {
   try {
@@ -5870,60 +5982,107 @@ return (
   <div className={infoPillClass()}>{selectedContext.label}</div>
 
 {selectedBlock ? (
-  <button
-    type="button"
-    className={topBarButtonClass(false)}
-    onClick={() =>
-      updateSelectedBlock((block) => {
-        const currentGrid = block.grid ?? {
-          colStart: 1,
-          rowStart: 1,
-          colSpan: 4,
-          rowSpan: 2,
-          zIndex: 1,
-        };
-
-        return {
-          ...block,
-          grid: {
+  <>
+    <button
+      type="button"
+      className={topBarButtonClass(false)}
+      onClick={() =>
+        updateSelectedBlock((block) => {
+          const currentGrid = block.grid ?? {
             colStart: 1,
-            rowStart: currentGrid.rowStart,
-            colSpan: 12,
-            rowSpan: currentGrid.rowSpan,
-            zIndex: currentGrid.zIndex,
-          },
-        };
-      })
-    }
-    title="Expand Horizon"
-  >
-    <Image
-      src="/icons/icon_expand_horizon.png"
-      alt="Expand Horizon"
-      width={30}
-      height={30}
-      className="pointer-events-none h-[30px] w-[30px] object-contain"
-    />
-  </button>
+            rowStart: 1,
+            colSpan: 4,
+            rowSpan: 2,
+            zIndex: 1,
+          };
+
+          return {
+            ...block,
+            grid: {
+              colStart: 1,
+              rowStart: currentGrid.rowStart,
+              colSpan: 12,
+              rowSpan: currentGrid.rowSpan,
+              zIndex: currentGrid.zIndex,
+            },
+          };
+        })
+      }
+      title="Expand Horizon"
+    >
+      <Image
+        src="/icons/icon_expand_horizon.png"
+        alt="Expand Horizon"
+        width={30}
+        height={30}
+        className="pointer-events-none h-[30px] w-[30px] object-contain"
+      />
+    </button>
+
+    <button
+      type="button"
+      className={topBarButtonClass(false)}
+      onClick={() => alignSelectedBlockHorizontal("left")}
+      title="Edge Left"
+    >
+      <Image
+        src="/icons/icon_edge_left.png"
+        alt="Edge Left"
+        width={30}
+        height={30}
+        className="pointer-events-none h-[30px] w-[30px] object-contain"
+      />
+    </button>
+
+    <button
+      type="button"
+      className={topBarButtonClass(false)}
+      onClick={() => alignSelectedBlockHorizontal("center")}
+      title="Balance Center"
+    >
+      <Image
+        src="/icons/icon_balance_center.png"
+        alt="Balance Center"
+        width={30}
+        height={30}
+        className="pointer-events-none h-[30px] w-[30px] object-contain"
+      />
+    </button>
+
+    <button
+      type="button"
+      className={topBarButtonClass(false)}
+      onClick={() => alignSelectedBlockHorizontal("right")}
+      title="Edge Right"
+    >
+      <Image
+        src="/icons/icon_edge_right.png"
+        alt="Edge Right"
+        width={30}
+        height={30}
+        className="pointer-events-none h-[30px] w-[30px] object-contain"
+      />
+    </button>
+  </>
 ) : null}
 </div>
 
-      {isTextSelection(selectedContext) ? (
-        <button
-          type="button"
-          className={topBarButtonClass(false)}
-          onClick={handleAioClick}
-          title="Artificial Intelligent Output"
-        >
-          <Image
-            src="/icons/icon_wand_aio.png"
-            alt="AIO"
-            width={36}
-            height={36}
-            className="h-[36px] w-[36px] object-contain"
-          />
-        </button>
-      ) : null}
+{isTextSelection(selectedContext) ? (
+  <button
+    type="button"
+    className={topBarButtonClass(false)}
+    onClick={handleAioClick}
+    title="Artificial Intelligent Output"
+  >
+    <Image
+      src="/icons/icon_wand_aio.png"
+      alt="AIO"
+      width={36}
+      height={36}
+      className="h-[36px] w-[36px] object-contain"
+    />
+  </button>
+) : null}
 
       {isTextFxSelected ? (
         <>
@@ -7213,9 +7372,10 @@ if (selectedBlock?.type === "rsvp") {
   onDuplicateBlock={handleDuplicateCanvasBlock}
   onCreateToolDrop={handleCreateToolDrop}
   renderBlockPreview={renderCanvasPreview}
-  isItemSelected={(blockId, nextSelection) =>
-    isCanvasBlockSelected(nextSelection as any, blockId)
-  }
+isItemSelected={(blockId, nextSelection) =>
+  selectedBlockIds.includes(blockId) ||
+  isCanvasBlockSelected(nextSelection as any, blockId)
+}
   dockedScrollRef={dockedScrollRef}
   showGridLines={showGridLines}
   pageSurfaceStyle={{

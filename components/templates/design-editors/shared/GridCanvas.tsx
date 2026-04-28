@@ -89,7 +89,10 @@ type ToolDropPayload =
 type Props = {
   blocks: CanvasGridItem[];
   selection: EditorSelection;
-  onSelect: (s: EditorSelection) => void;
+  onSelect: (
+  s: EditorSelection,
+  event?: React.MouseEvent<HTMLDivElement>
+) => void;
   onMoveBlock: (
     blockId: string,
     patch: { colStart: number; rowStart: number },
@@ -1073,7 +1076,7 @@ export default function GridCanvas({
                         ...getItemStyle(grid),
                         zIndex: grid.zIndex,
                       }}
-                      onClick={() => onSelect(selectBlock(block.id))}
+                      onClick={(e) => onSelect(selectBlock(block.id), e)}
                       className={getToolSurfaceClass(selected, resizing)}
                     >
                       <div

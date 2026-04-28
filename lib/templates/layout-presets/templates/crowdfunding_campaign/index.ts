@@ -2,7 +2,7 @@ import type { TemplateLayoutRegistry } from "../../types";
 import elaborate from "./elaborate";
 
 const crowdfundingLayouts: TemplateLayoutRegistry = {
-  templateKey: "crowdfunding",
+  templateKey: "crowdfunding_campaign",
   layouts: [elaborate],
 };
 
