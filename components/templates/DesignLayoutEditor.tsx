@@ -5986,28 +5986,42 @@ return (
     <button
       type="button"
       className={topBarButtonClass(false)}
-      onClick={() =>
-        updateSelectedBlock((block) => {
-          const currentGrid = block.grid ?? {
-            colStart: 1,
-            rowStart: 1,
-            colSpan: 4,
-            rowSpan: 2,
-            zIndex: 1,
-          };
+      onClick={() => {
+        const idsToExpand =
+          selectedBlockIds.length > 0
+            ? selectedBlockIds
+            : selectedBlock
+              ? [selectedBlock.id]
+              : [];
 
-          return {
-            ...block,
-            grid: {
+        if (!idsToExpand.length) return;
+
+        setDraft((prev) => ({
+          ...prev,
+          blocks: prev.blocks.map((block) => {
+            if (!idsToExpand.includes(block.id)) return block;
+
+            const currentGrid = block.grid ?? {
               colStart: 1,
-              rowStart: currentGrid.rowStart,
-              colSpan: 12,
-              rowSpan: currentGrid.rowSpan,
-              zIndex: currentGrid.zIndex,
-            },
-          };
-        })
-      }
+              rowStart: 1,
+              colSpan: 4,
+              rowSpan: 2,
+              zIndex: 1,
+            };
+
+            return {
+              ...block,
+              grid: {
+                colStart: 1,
+                rowStart: currentGrid.rowStart ?? 1,
+                colSpan: 12,
+                rowSpan: currentGrid.rowSpan ?? 1,
+                zIndex: currentGrid.zIndex ?? 1,
+              },
+            };
+          }),
+        }));
+      }}
       title="Expand Horizon"
     >
       <Image
