@@ -1040,6 +1040,8 @@ const [selectedRsvpElementKey, setSelectedRsvpElementKey] = useState<
   const dockedScrollRef = useRef<HTMLDivElement | null>(null);
   const bottomBarRef = useRef<HTMLDivElement | null>(null);
   const toolMenuRef = useRef<HTMLDivElement | null>(null);
+  const [donationStyleTarget, setDonationStyleTarget] =
+  useState<"background" | "buttons">("background");
   const pollQuestionInputRef = useRef<HTMLTextAreaElement | null>(null);
   const pollOptionInputRefs = useRef<Record<string, HTMLInputElement | null>>(
     {},
@@ -1144,6 +1146,12 @@ const selectedStyle =
           selectedBlockFromDraft.data.style ??
           {}
         )
+    : selectedBlockFromDraft?.type === "donation"
+      ? donationStyleTarget === "buttons"
+        ? (((selectedBlockFromDraft.data as any).buttonStyle ??
+            selectedBlockFromDraft.data.style ??
+            {}) as TextStyle)
+        : (selectedBlockFromDraft.data.style ?? {})
     : selectedBlockFromDraft?.type === "listing"
       ? listingStyleTarget === "description"
         ? (selectedBlockFromDraft.data.descriptionStyle ?? {})
@@ -1166,7 +1174,6 @@ const selectedStyle =
           selectedBlockFromDraft?.type === "form_field" ||
           selectedBlockFromDraft?.type === "image_carousel" ||
           selectedBlockFromDraft?.type === "progress_bar" ||
-          selectedBlockFromDraft?.type === "donation" ||
           selectedBlockFromDraft?.type === "link_hub" ||
           selectedBlockFromDraft?.type === "checklist" ||
           selectedBlockFromDraft?.type === "schedule_agenda" ||
@@ -1795,6 +1802,29 @@ async function pickColorWithEyeDropper(
 }
 
 function applyTextColor(value: string) {
+  if (
+    selectedBlock?.type === "donation" &&
+    donationStyleTarget === "buttons"
+  ) {
+    updateSelectedBlock((block) =>
+      block.type !== "donation"
+        ? block
+        : {
+            ...block,
+            data: {
+              ...block.data,
+              buttonStyle: {
+                ...(((block.data as any).buttonStyle ?? {})),
+                color: value,
+              },
+            },
+          },
+    );
+
+    pushRecentColor(value);
+    return;
+  }
+
   applyStylePatch({ color: value });
   pushRecentColor(value);
 }
@@ -1916,6 +1946,36 @@ function applyFillColor(value: string) {
     pushRecentColor(value);
     return;
   }
+
+if (selectedBlock?.type === "donation") {
+  updateSelectedBlock((block) => {
+    if (block.type !== "donation") return block;
+
+    if (donationStyleTarget === "buttons") {
+      return {
+        ...block,
+        data: {
+          ...block.data,
+          buttonStyle: {
+            ...(((block.data as any).buttonStyle ?? {})),
+            backgroundColor: value,
+          },
+        },
+      };
+    }
+
+    return {
+      ...block,
+      appearance: {
+        ...block.appearance,
+        backgroundColor: value,
+      },
+    };
+  });
+
+  pushRecentColor(value);
+  return;
+}
 
   applyAppearancePatch({ backgroundColor: value });
   pushRecentColor(value);
@@ -2205,26 +2265,41 @@ function applyStylePatch(patch: Partial<TextStyle>) {
     return;
   }
 
-  if (selectedBlock?.type === "donation") {
-    setDraft((prev) => ({
-      ...prev,
-      blocks: prev.blocks.map((block) =>
-        block.id === selectedBlock.id && block.type === "donation"
-          ? {
-              ...block,
-              data: {
-                ...block.data,
-                style: {
-                  ...(block.data.style ?? {}),
-                  ...patch,
-                },
-              },
-            }
-          : block,
-      ),
-    }));
-    return;
-  }
+if (selectedBlock?.type === "donation") {
+  setDraft((prev) => ({
+    ...prev,
+    blocks: prev.blocks.map((block) => {
+      if (block.id !== selectedBlock.id || block.type !== "donation") {
+        return block;
+      }
+
+      if (donationStyleTarget === "buttons") {
+        return {
+          ...block,
+          data: {
+            ...block.data,
+            buttonStyle: {
+              ...(((block.data as any).buttonStyle ?? {})),
+              ...patch,
+            },
+          },
+        };
+      }
+
+      return {
+        ...block,
+        data: {
+          ...block.data,
+          style: {
+            ...(block.data.style ?? {}),
+            ...patch,
+          },
+        },
+      };
+    }),
+  }));
+  return;
+}
 
   if (selectedBlock?.type === "link_hub") {
     setDraft((prev) => ({
@@ -4640,24 +4715,37 @@ if (block.type === "gallery") {
 
           {donationOptions.length ? (
             <div className="mt-4 flex flex-wrap gap-2">
-              {donationOptions.map((option, index) => {
-                const amount = Number(option.amount || 0);
-                const label =
-                  typeof option.label === "string" && option.label.trim().length > 0
-                    ? option.label.trim()
-                    : `$${formatCurrency(amount)}`;
+{donationOptions.map((option, index) => {
+  const amount = Number(option.amount || 0);
+  const label =
+    typeof option.label === "string" && option.label.trim().length > 0
+      ? option.label.trim()
+      : `$${formatCurrency(amount)}`;
 
-                return (
-                  <button
-                    key={option.id || `donation-option-${index}`}
-                    type="button"
-                    className="inline-flex h-10 items-center justify-center rounded-xl border border-neutral-900 bg-neutral-900 px-4 text-sm font-medium text-white"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    {label}
-                  </button>
-                );
-              })}
+  const buttonStyle = ((selectedBlock as any)?.data?.buttonStyle ?? {}) as any;
+const donationTextStyle = ((selectedBlock as any)?.data?.style ?? {}) as any;
+
+  return (
+    <button
+      key={option.id || `donation-option-${index}`}
+      type="button"
+      className="inline-flex min-h-10 items-center justify-center rounded-xl px-4 py-2"
+      style={{
+        backgroundColor: buttonStyle.backgroundColor ?? "#171717",
+        color: buttonStyle.color ?? "#ffffff",
+        fontFamily: buttonStyle.fontFamily ?? donationTextStyle.fontFamily,
+        fontSize:
+          typeof buttonStyle.fontSize === "number"
+            ? `${buttonStyle.fontSize}px`
+            : undefined,
+        fontWeight: buttonStyle.bold ? 700 : 500,
+      }}
+      onClick={(e) => e.stopPropagation()}
+    >
+      {label}
+    </button>
+  );
+})}
             </div>
           ) : (
             <div
@@ -5759,17 +5847,19 @@ return (
 
 <input
   type="color"
-  value={
-    (draft as DraftWithPageExtras).pageColor ||
-    resolvedPageColor ||
-    "#ffffff"
-  }
-  onChange={(e) =>
-    setDraft((prev) => ({
-      ...(prev as DraftWithPageExtras),
-      pageColor: e.target.value,
-    }))
-  }
+  value={(draft as DraftWithPageExtras).pageColor ?? "#ffffff"}
+  onChange={(e) => {
+    const next = e.target.value;
+
+    setDraft((prev) => {
+      if ((prev as DraftWithPageExtras).pageColor === next) return prev; // ✅ prevents loop
+
+      return {
+        ...(prev as DraftWithPageExtras),
+        pageColor: next,
+      };
+    });
+  }}
   className={topBarColorClass(false)}
   title="Page color"
 />
@@ -6039,6 +6129,24 @@ return (
           </select>
         </>
       ) : null}
+
+{selectedBlock?.type === "donation" ? (
+  <>
+    <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
+
+    <select
+      value={donationStyleTarget}
+      onChange={(e) =>
+        setDonationStyleTarget(e.target.value as "background" | "buttons")
+      }
+      className={topBarFieldClass("w-[130px]")}
+      title="Donation styling target"
+    >
+      <option value="background">Background</option>
+      <option value="buttons">Buttons</option>
+    </select>
+  </>
+) : null}
 
       {selectedBlock?.type === "rsvp" ? (
   <div className="flex items-center gap-2">

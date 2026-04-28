@@ -1,12 +1,11 @@
 import { createLayoutPreset } from "../../shared";
 
 export default createLayoutPreset({
-  designKey: "signature",
+  designKey: "simplistic",
 
-  label: "Signature Tour",
-  description: "Clean professional property listing layout",
-  thumbnail: "/designs/design-cards/design-card_open_house_signature.webp",
+  label: "Simplistic Launch",
+  description: "Minimal layout focused on product clarity",
+  thumbnail: "/designs/design-cards/design-card_product_launch_simplistic.webp",
 
   recommended: true,
-
 });

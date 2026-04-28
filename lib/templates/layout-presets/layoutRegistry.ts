@@ -7,7 +7,8 @@ import birthdayLayouts from "./templates/birthday";
 import reunionLayouts from "./templates/reunion";
 import roastLayouts from "./templates/roast_session";
 import open_houseLayouts from "./templates/open_house";
-import productLaunchLayouts from "./templates/product_launch"; // ✅ ADD THIS
+import productLaunchLayouts from "./templates/product_launch";
+import crowdfundingLayouts from "./templates/crowdfunding";
 import blankLayout from "./layouts/blank";
 
 const registry: Record<string, TemplateLayoutRegistry> = {
@@ -19,7 +20,8 @@ const registry: Record<string, TemplateLayoutRegistry> = {
   family_reunion: reunionLayouts,
   open_house: open_houseLayouts,
   roast_session: roastLayouts,
-  product_launch: productLaunchLayouts, // ✅ ADD THIS
+  product_launch: productLaunchLayouts,
+  crowdfunding: crowdfundingLayouts,
 };
 
 
