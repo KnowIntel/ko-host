@@ -388,8 +388,7 @@ const orderedPages = useMemo(() => {
         body: JSON.stringify({ slug: safeSlug }),
       });
 
-      const data = await res.json().catch(() => ({}));
-      alert(JSON.stringify(data));
+const data = await res.json().catch(() => ({}));
 
       if (!res.ok) {
         setCreatePageError(data?.error || "Failed to create page.");

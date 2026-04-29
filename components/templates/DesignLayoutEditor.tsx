@@ -13749,31 +13749,39 @@ isItemSelected={(blockId, nextSelection) =>
     </div>
 
 <div className="flex shrink-0 items-center gap-2">
-  <button
-    type="button"
-    className={toolSetButtonClass("back")}
-    onClick={(e) => {
-      e.stopPropagation();
-      handleSendToBack(tool.id);
-      setSelection(selectionFromCanvasBlockId(tool.id));
-    }}
-    title="Send to back"
-  >
-    Back
-  </button>
+<button
+  type="button"
+  className={toolSetButtonClass("back")}
+  onClick={(e) => {
+    e.stopPropagation();
+    handleSendToBack(tool.id);
+    setSelection(selectionFromCanvasBlockId(tool.id));
+  }}
+  title="Send to back"
+>
+  <img
+    src="/icons/icon_block_back.png"
+    alt="Back"
+    className="h-4 w-4 object-contain pointer-events-none"
+  />
+</button>
 
-  <button
-    type="button"
-    className={toolSetButtonClass("front")}
-    onClick={(e) => {
-      e.stopPropagation();
-      handleBringToFront(tool.id);
-      setSelection(selectionFromCanvasBlockId(tool.id));
-    }}
-    title="Bring to front"
-  >
-    Front
-  </button>
+<button
+  type="button"
+  className={toolSetButtonClass("front")}
+  onClick={(e) => {
+    e.stopPropagation();
+    handleBringToFront(tool.id);
+    setSelection(selectionFromCanvasBlockId(tool.id));
+  }}
+  title="Bring to front"
+>
+  <img
+    src="/icons/icon_block_front.png"
+    alt="Front"
+    className="h-4 w-4 object-contain pointer-events-none"
+  />
+</button>
 
   <button
     type="button"
