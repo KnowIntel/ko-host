@@ -13714,45 +13714,45 @@ isItemSelected={(blockId, nextSelection) =>
       </div>
     </div>
 
-    <div className="flex shrink-0 items-center gap-2">
-      <button
-        type="button"
-        className={toolSetButtonClass("back")}
-        onClick={(e) => {
-          e.stopPropagation();
-          handleSendToBack(tool.id);
-          setSelection(selectionFromCanvasBlockId(tool.id));
-        }}
-        title="Send to back"
-      >
-        Back
-      </button>
+<div className="flex shrink-0 items-center gap-2">
+  <button
+    type="button"
+    className={toolSetButtonClass("back")}
+    onClick={(e) => {
+      e.stopPropagation();
+      handleSendToBack(tool.id);
+      setSelection(selectionFromCanvasBlockId(tool.id));
+    }}
+    title="Move down / send backward"
+  >
+    ↓
+  </button>
 
-      <button
-        type="button"
-        className={toolSetButtonClass("front")}
-        onClick={(e) => {
-          e.stopPropagation();
-          handleBringToFront(tool.id);
-          setSelection(selectionFromCanvasBlockId(tool.id));
-        }}
-        title="Bring to front"
-      >
-        Front
-      </button>
+  <button
+    type="button"
+    className={toolSetButtonClass("front")}
+    onClick={(e) => {
+      e.stopPropagation();
+      handleBringToFront(tool.id);
+      setSelection(selectionFromCanvasBlockId(tool.id));
+    }}
+    title="Move up / bring forward"
+  >
+    ↑
+  </button>
 
-      <button
-        type="button"
-        className={toolSetButtonClass("remove")}
-        onClick={(e) => {
-          e.stopPropagation();
-          removeCanvasBlock(tool.id);
-        }}
-        title="Remove block"
-      >
-        ×
-      </button>
-    </div>
+  <button
+    type="button"
+    className={toolSetButtonClass("remove")}
+    onClick={(e) => {
+      e.stopPropagation();
+      removeCanvasBlock(tool.id);
+    }}
+    title="Remove block"
+  >
+    ×
+  </button>
+</div>
   </div>
 </div>
                     ))}
