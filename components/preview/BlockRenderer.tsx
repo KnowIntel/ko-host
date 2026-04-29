@@ -1170,52 +1170,109 @@ function renderCta(
         ? softStyle
         : solidStyle;
 
+  const handleLinkedFieldSubmit = async () => {
+    const fields = Array.from(
+      document.querySelectorAll<
+        HTMLInputElement | HTMLTextAreaElement
+      >(`[data-linked-button-id="${block.id}"]`),
+    );
+
+    if (!fields.length) return;
+
+    const missingRequired = fields.find(
+      (field) =>
+        field.dataset.required === "true" && !field.value.trim(),
+    );
+
+    if (missingRequired) {
+      missingRequired.focus();
+      return;
+    }
+
+    const message = fields
+      .map((field) => {
+        const label = field.dataset.fieldLabel || "Field";
+        return `${label}: ${field.value.trim()}`;
+      })
+      .join("<|>");
+
+    console.log("General Submission:", message);
+
+    fields.forEach((field) => {
+      field.value = "";
+    });
+  };
+
+  const buttonNode = (
+    <button
+      type="button"
+      onClick={handleLinkedFieldSubmit}
+      className="inline-flex items-center justify-center px-5 py-2"
+      style={{
+        ...style,
+        ...variantStyle,
+      }}
+    >
+      {block.data.buttonText || "Button"}
+    </button>
+  );
+
   return (
-    <div className="h-full w-full">
-      <div
-        className="flex h-full w-full px-4 py-2"
-        style={{
-          justifyContent,
-          textAlign: block.data.style?.align ?? "center",
-        }}
-      >
-        {block.data.buttonUrl?.trim() ? (
-          <a
-            href={normalizePreviewHref(block.data.buttonUrl)}
-            target={
-              normalizePreviewHref(block.data.buttonUrl).startsWith("http://") ||
-              normalizePreviewHref(block.data.buttonUrl).startsWith("https://")
-                ? "_blank"
-                : undefined
+<div className="h-full w-full">
+  <div
+    className="flex h-full w-full px-4 py-2"
+    style={{
+      justifyContent,
+      textAlign: block.data.style?.align ?? "center",
+    }}
+  >
+    <button
+      type="button"
+      className="inline-flex items-center justify-center px-5 py-2"
+      style={{
+        ...style,
+        ...variantStyle,
+        cursor: "pointer",
+      }}
+      onClick={async () => {
+        const formFields = document.querySelectorAll(
+          `[data-linked-button="${block.id}"]`
+        );
+
+        const values: string[] = [];
+
+        formFields.forEach((el) => {
+          if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) {
+            if (el.value?.trim()) {
+              values.push(el.value.trim());
             }
-            rel={
-              normalizePreviewHref(block.data.buttonUrl).startsWith("http://") ||
-              normalizePreviewHref(block.data.buttonUrl).startsWith("https://")
-                ? "noreferrer noopener"
-                : undefined
-            }
-            className="inline-flex items-center justify-center px-5 py-2"
-            style={{
-              ...style,
-              ...variantStyle,
-              textDecoration: "none",
-            }}
-          >
-            {block.data.buttonText || "Button"}
-          </a>
-        ) : (
-          <div
-            className="inline-flex items-center justify-center px-5 py-2"
-            style={{
-              ...style,
-              ...variantStyle,
-            }}
-          >
-            {block.data.buttonText || "Button"}
-          </div>
-        )}
-      </div>
-    </div>
+          }
+        });
+
+        if (values.length === 0) return;
+
+        const message = values.join("<|>");
+
+        try {
+          await fetch("/api/public/submit-general", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              message,
+              hostname: window.location.hostname,
+            }),
+          });
+        } catch (err) {
+          console.error("Submission failed", err);
+        }
+      }}
+    >
+      {block.data.buttonText || "Submit"}
+    </button>
+  </div>
+</div>
   );
 }
 
@@ -1250,23 +1307,24 @@ function renderCountdown(
       : NaN;
 
     const style = getContainerTextStyle(block.data.style, designKey);
+    const tileStyle = getContainerTextStyle(
+      ((block.data as any).tileStyle ?? block.data.style ?? {}) as TextStyle,
+      designKey,
+    );
+    const tileBackgroundColor =
+      ((block.data as any).tileStyle?.backgroundColor as string | undefined) ??
+      undefined;
+
     const variant = block.data.styleVariant ?? "default";
     const showRings = block.data.showRings !== false;
     const appearanceStyle = getAppearanceStyle(block);
 
     if (!target || Number.isNaN(target)) {
       return (
-        <Surface
-          block={block}
-          designKey={designKey}
-          className={getSoftSurfaceClass(designKey)}
-        >
+        <Surface block={block} designKey={designKey} className={getSoftSurfaceClass(designKey)}>
           {block.data.heading ? (
             <div
-              className={[
-                "uppercase tracking-[0.14em]",
-                getMutedTextClass(designKey),
-              ].join(" ")}
+              className={["uppercase tracking-[0.14em]", getMutedTextClass(designKey)].join(" ")}
               style={style}
             >
               {block.data.heading}
@@ -1280,15 +1338,11 @@ function renderCountdown(
       );
     }
 
-       const diff = target - tickNow;
+    const diff = target - tickNow;
 
     if (diff <= 0) {
       return (
-        <Surface
-          block={block}
-          designKey={designKey}
-          className={getSoftSurfaceClass(designKey)}
-        >
+        <Surface block={block} designKey={designKey} className={getSoftSurfaceClass(designKey)}>
           <div className="flex h-full w-full items-center justify-center text-center">
             <div style={style}>
               {block.data.completedMessage || "Countdown finished"}
@@ -1304,20 +1358,16 @@ function renderCountdown(
     const minutes = Math.floor((totalSeconds % 3600) / 60);
     const seconds = totalSeconds % 60;
 
-const format = (n: number) => String(n).padStart(2, "0");
+    const format = (n: number) => String(n).padStart(2, "0");
 
-const partsRaw = [
-  { label: "D", value: format(days), raw: days },
-  { label: "H", value: format(hours), raw: hours },
-  { label: "M", value: format(minutes), raw: minutes },
-  { label: "S", value: format(seconds), raw: seconds },
-];
+    const partsRaw = [
+      { label: "D", value: format(days), raw: days },
+      { label: "H", value: format(hours), raw: hours },
+      { label: "M", value: format(minutes), raw: minutes },
+      { label: "S", value: format(seconds), raw: seconds },
+    ];
 
-// Hide days if zero
-const parts =
-  days > 0
-    ? partsRaw
-    : partsRaw.filter((p) => p.label !== "D");
+    const parts = days > 0 ? partsRaw : partsRaw.filter((p) => p.label !== "D");
 
     if (variant === "cards") {
       return (
@@ -1327,10 +1377,7 @@ const parts =
         >
           {block.data.heading ? (
             <div
-              className={[
-                "text-center uppercase tracking-[0.14em]",
-                getMutedTextClass(designKey),
-              ].join(" ")}
+              className={["text-center uppercase tracking-[0.14em]", getMutedTextClass(designKey)].join(" ")}
               style={style}
             >
               {block.data.heading}
@@ -1340,72 +1387,60 @@ const parts =
           <div className="flex flex-wrap items-center justify-center gap-2">
             {parts.map((part, index) => (
               <div key={part.label} className="flex items-center gap-2">
-<div
-  className={[
-    "relative flex min-w-[64px] flex-col items-center justify-center rounded-xl border px-4 py-3 shadow-sm",
-    isLightDesign(designKey)
-      ? "border-neutral-200 bg-white"
-      : "border-white/10 bg-white/5",
-  ].join(" ")}
->
-  {showRings ? (
-    <svg className="absolute inset-0 h-full w-full pointer-events-none">
-      <circle
-        cx="50%"
-        cy="50%"
-        r="28"
-        stroke="currentColor"
-        strokeWidth="2"
-        fill="none"
-        opacity="0.1"
-      />
-      <circle
-        cx="50%"
-        cy="50%"
-        r="28"
-        stroke={
-  seconds < 10
-    ? "#EF4444"
-    : seconds < 30
-    ? "#F59E0B"
-    : isLightDesign(designKey)
-    ? "#6366F1"
-    : "#A5B4FC"
-}
-        strokeWidth="2"
-        fill="none"
-        strokeDasharray={175}
-        strokeDashoffset={
-          175 -
-          (175 *
-            (part.label === "S"
-              ? seconds / 60
-              : part.label === "M"
-              ? minutes / 60
-              : part.label === "H"
-              ? hours / 24
-              : days / 365))
-        }
-        className="transition-all duration-500"
-      />
-    </svg>
-  ) : null}
-                   <div
+                <div
+                  className={[
+                    "relative flex min-w-[64px] flex-col items-center justify-center rounded-xl border px-4 py-3 shadow-sm",
+                    isLightDesign(designKey)
+                      ? "border-neutral-200 bg-white"
+                      : "border-white/10 bg-white/5",
+                  ].join(" ")}
+                  style={{
+                    backgroundColor: tileBackgroundColor,
+                  }}
+                >
+                  {showRings ? (
+                    <svg className="pointer-events-none absolute inset-0 h-full w-full">
+                      <circle cx="50%" cy="50%" r="28" stroke="currentColor" strokeWidth="2" fill="none" opacity="0.1" />
+                      <circle
+                        cx="50%"
+                        cy="50%"
+                        r="28"
+                        stroke={
+                          seconds < 10
+                            ? "#EF4444"
+                            : seconds < 30
+                              ? "#F59E0B"
+                              : isLightDesign(designKey)
+                                ? "#6366F1"
+                                : "#A5B4FC"
+                        }
+                        strokeWidth="2"
+                        fill="none"
+                        strokeDasharray={175}
+                        strokeDashoffset={
+                          175 -
+                          175 *
+                            (part.label === "S"
+                              ? seconds / 60
+                              : part.label === "M"
+                                ? minutes / 60
+                                : part.label === "H"
+                                  ? hours / 24
+                                  : days / 365)
+                        }
+                        className="transition-all duration-500"
+                      />
+                    </svg>
+                  ) : null}
+
+                  <div
                     className={[
                       "text-xl font-semibold transition-all duration-200",
                       seconds < 10 ? "animate-pulse" : "",
                     ].join(" ")}
                     style={{
-                      ...getContainerTextStyle(
-                        {
-                          ...block.data.style,
-                          fontSize: Math.max(
-                            20,
-                            Number(block.data.style?.fontSize) || 20,
-                          ),
-                        },
-                        designKey,
-                      ),
+                      ...tileStyle,
+                      fontSize: Math.max(20, Number(tileStyle.fontSize) || 20),
                       transform:
                         seconds < 10
                           ? isTicking
@@ -1418,25 +1453,14 @@ const parts =
                   >
                     {part.value}
                   </div>
-                  <div
-                    className={[
-                      "mt-1 text-[10px]",
-                      getMutedTextClass(designKey),
-                    ].join(" ")}
-                  >
+
+                  <div className={["mt-1 text-[10px]", getMutedTextClass(designKey)].join(" ")}>
                     {part.label}
                   </div>
                 </div>
 
                 {index < parts.length - 1 ? (
-                  <span
-                    className={[
-                      "text-lg font-semibold",
-                      getMutedTextClass(designKey),
-                    ].join(" ")}
-                  >
-                    :
-                  </span>
+                  <span className={["text-lg font-semibold", getMutedTextClass(designKey)].join(" ")}>:</span>
                 ) : null}
               </div>
             ))}
@@ -1453,10 +1477,7 @@ const parts =
         >
           {block.data.heading ? (
             <div
-              className={[
-                "uppercase tracking-[0.14em]",
-                getMutedTextClass(designKey),
-              ].join(" ")}
+              className={["uppercase tracking-[0.14em]", getMutedTextClass(designKey)].join(" ")}
               style={style}
             >
               {block.data.heading}
@@ -1466,70 +1487,60 @@ const parts =
           <div className="flex flex-wrap items-center justify-center gap-4">
             {parts.map((part, index) => (
               <div key={part.label} className="flex items-center gap-4">
-                                <div className="relative flex flex-col items-center">
-  {showRings ? (
-    <svg
-      className="pointer-events-none absolute -top-2 left-1/2 -translate-x-1/2"
-      width="80"
-      height="80"
-      viewBox="0 0 80 80"
-    >
-      <circle
-        cx="40"
-        cy="40"
-        r="34"
-        stroke="currentColor"
-        strokeWidth="3"
-        fill="none"
-        opacity="0.1"
-      />
-      <circle
-        cx="40"
-        cy="40"
-        r="34"
-        stroke={
-          seconds < 10
-            ? "#EF4444"
-            : seconds < 30
-              ? "#F59E0B"
-              : isLightDesign(designKey)
-                ? "#6366F1"
-                : "#A5B4FC"
-        }
-        strokeWidth="3"
-        fill="none"
-        strokeDasharray={214}
-        strokeDashoffset={
-          214 -
-          (214 *
-            (part.label === "S"
-              ? seconds / 60
-              : part.label === "M"
-                ? minutes / 60
-                : part.label === "H"
-                  ? hours / 24
-                  : days / 365))
-        }
-        className="transition-all duration-500"
-      />
-    </svg>
-  ) : null}
+                <div
+                  className="relative flex flex-col items-center rounded-xl px-3 py-2"
+                  style={{
+                    backgroundColor: tileBackgroundColor,
+                  }}
+                >
+                  {showRings ? (
+                    <svg
+                      className="pointer-events-none absolute -top-2 left-1/2 -translate-x-1/2"
+                      width="80"
+                      height="80"
+                      viewBox="0 0 80 80"
+                    >
+                      <circle cx="40" cy="40" r="34" stroke="currentColor" strokeWidth="3" fill="none" opacity="0.1" />
+                      <circle
+                        cx="40"
+                        cy="40"
+                        r="34"
+                        stroke={
+                          seconds < 10
+                            ? "#EF4444"
+                            : seconds < 30
+                              ? "#F59E0B"
+                              : isLightDesign(designKey)
+                                ? "#6366F1"
+                                : "#A5B4FC"
+                        }
+                        strokeWidth="3"
+                        fill="none"
+                        strokeDasharray={214}
+                        strokeDashoffset={
+                          214 -
+                          214 *
+                            (part.label === "S"
+                              ? seconds / 60
+                              : part.label === "M"
+                                ? minutes / 60
+                                : part.label === "H"
+                                  ? hours / 24
+                                  : days / 365)
+                        }
+                        className="transition-all duration-500"
+                      />
+                    </svg>
+                  ) : null}
+
                   <div
                     className={[
                       "text-4xl font-bold leading-none transition-all duration-200",
                       seconds < 10 ? "animate-pulse" : "",
                     ].join(" ")}
                     style={{
-                      ...getContainerTextStyle(
-                        {
-                          ...block.data.style,
-                          fontSize: Math.max(
-                            36,
-                            Number(block.data.style?.fontSize) || 36,
-                          ),
-                        },
-                        designKey,
-                      ),
+                      ...tileStyle,
+                      fontSize: Math.max(36, Number(tileStyle.fontSize) || 36),
                       transform:
                         seconds < 10
                           ? isTicking
@@ -1542,25 +1553,14 @@ const parts =
                   >
                     {part.value}
                   </div>
-                  <div
-                    className={[
-                      "mt-1 text-xs",
-                      getMutedTextClass(designKey),
-                    ].join(" ")}
-                  >
+
+                  <div className={["mt-1 text-xs", getMutedTextClass(designKey)].join(" ")}>
                     {part.label}
                   </div>
                 </div>
 
                 {index < parts.length - 1 ? (
-                  <span
-                    className={[
-                      "text-3xl font-bold",
-                      getMutedTextClass(designKey),
-                    ].join(" ")}
-                  >
-                    :
-                  </span>
+                  <span className={["text-3xl font-bold", getMutedTextClass(designKey)].join(" ")}>:</span>
                 ) : null}
               </div>
             ))}
@@ -1570,39 +1570,35 @@ const parts =
     }
 
     return (
-      <Surface
-        block={block}
-        designKey={designKey}
-        className={getSoftSurfaceClass(designKey)}
-      >
+      <Surface block={block} designKey={designKey} className={getSoftSurfaceClass(designKey)}>
         {block.data.heading ? (
           <div
-            className={[
-              "uppercase tracking-[0.14em]",
-              getMutedTextClass(designKey),
-            ].join(" ")}
+            className={["uppercase tracking-[0.14em]", getMutedTextClass(designKey)].join(" ")}
             style={style}
           >
             {block.data.heading}
           </div>
         ) : null}
 
-        <div
-          className="mt-3 flex flex-wrap items-center gap-2"
-          style={getContainerTextStyle(block.data.style, designKey)}
-        >
+        <div className="mt-3 flex flex-wrap items-center gap-2">
           {parts.map((part, index) => (
             <div key={part.label} className="flex items-center gap-2">
-              <div className="flex items-baseline gap-1">
-              <span
-                className="font-semibold transition-transform duration-200"
+              <div
+                className="flex items-baseline gap-1 rounded-lg px-2 py-1"
                 style={{
-                  display: "inline-block",
-                  transform: isTicking ? "scale(1.05)" : "scale(1)",
+                  backgroundColor: tileBackgroundColor,
                 }}
               >
-                {part.value}
-              </span>
+                <span
+                  className="font-semibold transition-transform duration-200"
+                  style={{
+                    ...tileStyle,
+                    display: "inline-block",
+                    transform: isTicking ? "scale(1.05)" : "scale(1)",
+                  }}
+                >
+                  {part.value}
+                </span>
                 <span className={getMutedTextClass(designKey)}>{part.label}</span>
               </div>
 
@@ -3727,6 +3723,7 @@ function renderFormField(
   const showLabel = block.data.showLabel !== false;
   const showPlaceholder = block.data.showPlaceholder !== false;
   const showRequired = block.data.showRequired !== false;
+  const linkedButtonId = (block.data as any).linkedButtonId ?? "";
 
   return (
     <div className="h-full w-full p-2" style={getAppearanceStyle(block)}>
@@ -3747,6 +3744,10 @@ function renderFormField(
             placeholder={showPlaceholder ? block.data.placeholder : ""}
             defaultValue={block.data.value || ""}
             data-form-field-id={block.id}
+            data-linked-button={(block.data as any).linkedButtonId || ""}
+            data-linked-button-id={linkedButtonId}
+            data-field-label={block.data.label || "Field"}
+            data-required={block.data.required ? "true" : "false"}
             style={getContainerTextStyle(block.data.style, designKey)}
           />
         ) : (
@@ -3756,6 +3757,9 @@ function renderFormField(
             placeholder={showPlaceholder ? block.data.placeholder : ""}
             defaultValue={block.data.value || ""}
             data-form-field-id={block.id}
+            data-linked-button={(block.data as any).linkedButtonId || ""}
+            data-field-label={block.data.label || "Field"}
+            data-required={block.data.required ? "true" : "false"}
             style={getContainerTextStyle(block.data.style, designKey)}
           />
         )}
@@ -4826,7 +4830,7 @@ function renderProgressBar(
       <Surface
         block={block}
         designKey={designKey}
-        className={getSoftSurfaceClass(designKey)}
+        className=""
       >
         <div
           className="text-base font-semibold"
@@ -4853,75 +4857,77 @@ function renderProgressBar(
   const value = Math.max(0, Math.min(rawValue, max));
   const percent = Math.round((value / max) * 100);
 
-  const statCardClass = isLightDesign(designKey)
-    ? "rounded-xl border border-neutral-200 bg-white px-4 py-3"
-    : "rounded-xl border border-white/10 bg-white/5 px-4 py-3";
+  const backgroundStyle = getContainerTextStyle(block.data.style, designKey);
+  const barStyle = ((block.data as any).barStyle ?? {}) as TextStyle;
+  const contextStyle = getContainerTextStyle(
+    ((block.data as any).contextStyle ?? block.data.style ?? {}) as TextStyle,
+    designKey,
+  );
+
+  const showContext = (block.data as any).showContext ?? true;
+  const contextType = (block.data as any).contextType ?? "percentage";
+  const contextLocation = (block.data as any).contextLocation ?? "bottom-left";
+
+  const contextText =
+    contextType === "fraction" ? `${value} / ${max}` : `${percent}%`;
+
+  const contextNode = showContext ? (
+    <div className="text-xs font-medium" style={contextStyle}>
+      {contextText}
+    </div>
+  ) : null;
 
   return (
-    <Surface
-      block={block}
-      designKey={designKey}
-      className={getSoftSurfaceClass(designKey)}
-    >
-      <div
-        className="text-base font-semibold"
-        style={getContainerTextStyle(block.data.style, designKey)}
+      <Surface
+        block={block}
+        designKey={designKey}
+        className=""
       >
-        {block.data.heading || "Progress"}
-      </div>
-
-      <div className="mt-4 grid grid-cols-2 gap-3">
-        <div className={statCardClass}>
-          <div className={`text-[11px] font-semibold uppercase tracking-[0.14em] ${getMutedTextClass(designKey)}`}>
-            Current
-          </div>
-          <div
-            className="mt-2 text-2xl font-bold leading-none"
-            style={getContainerTextStyle(block.data.style, designKey)}
-          >
-            {value}
-          </div>
+      <div className="flex items-start justify-between gap-3">
+        <div
+          className="text-base font-semibold"
+          style={backgroundStyle}
+        >
+          {block.data.heading || "Progress"}
         </div>
 
-        <div className={statCardClass}>
-          <div className={`text-[11px] font-semibold uppercase tracking-[0.14em] ${getMutedTextClass(designKey)}`}>
-            Goal
-          </div>
-          <div
-            className="mt-2 text-2xl font-bold leading-none"
-            style={getContainerTextStyle(block.data.style, designKey)}
-          >
-            {max}
-          </div>
-        </div>
+        {contextLocation === "top-right" ? contextNode : null}
       </div>
 
       <div
         className={[
-          "mt-4 h-4 w-full overflow-hidden rounded-full",
+          "mt-4 h-4 w-full overflow-hidden rounded-full border",
           isLightDesign(designKey) ? "bg-neutral-200" : "bg-white/10",
         ].join(" ")}
+        style={{
+          backgroundColor:
+            (barStyle as any).scopeBackgroundColor ??
+            (barStyle as any).backgroundColor ??
+            undefined,
+          borderColor: (barStyle as any).borderColor ?? undefined,
+        }}
       >
         <div
           className={isLightDesign(designKey) ? "h-full bg-neutral-900" : "h-full bg-white"}
-          style={{ width: `${percent}%` }}
+          style={{
+            width: `${percent}%`,
+            backgroundColor: (barStyle as any).color ?? undefined,
+          }}
         />
       </div>
 
-      <div className="mt-2 flex items-center justify-between gap-3">
+      {contextLocation !== "top-right" && contextNode ? (
         <div
-          className="text-xs"
-          style={getContainerTextStyle(block.data.style, designKey)}
+          className={[
+            "mt-2 flex",
+            contextLocation === "bottom-right"
+              ? "justify-end"
+              : "justify-start",
+          ].join(" ")}
         >
-          {block.data.showPercentage === false
-            ? `${value} / ${max}`
-            : `${percent}% complete`}
+          {contextNode}
         </div>
-
-        <div className={`text-xs ${getMutedTextClass(designKey)}`}>
-          {value} of {max}
-        </div>
-      </div>
+      ) : null}
     </Surface>
   );
 }
@@ -5080,10 +5086,7 @@ function renderLinkHub(
   const items = Array.isArray(block.data.items) ? block.data.items : [];
 
   return (
-<Surface
-  block={block}
-  className=""
->
+    <Surface block={block} className="">
       <div
         className="mb-3 text-base font-semibold"
         style={getContainerTextStyle(block.data.style, designKey)}
@@ -5093,50 +5096,78 @@ function renderLinkHub(
 
       {items.length ? (
         <div className="space-y-3">
-          {items.map((item, index) => (
-            <a
-              key={item.id}
-              href={normalizePreviewHref(item.url)}
-              target="_blank"
-              rel="noreferrer noopener"
-              className={[
-                "group flex items-center justify-between gap-3 rounded-xl border px-4 py-3 transition",
-                isLightDesign(designKey)
-                  ? "border-neutral-200 bg-white hover:bg-neutral-50"
-                  : "border-white/10 bg-white/5 hover:bg-white/10",
-              ].join(" ")}
-            >
-              <div className="min-w-0 flex-1">
-                <div
-                  className="truncate text-sm font-medium"
-                  style={getContainerTextStyle(block.data.style, designKey)}
-                >
-                  {item.label || `Link ${index + 1}`}
-                </div>
+          {items.map((item, index) => {
+            const linkItem = item as typeof item & {
+  logoUrl?: string;
+  autoGenerateLogo?: boolean;
+};
 
-                {item.url ? (
-                  <div
-                    className={`mt-1 truncate text-xs ${getMutedTextClass(
-                      designKey,
-                    )}`}
-                  >
-                    {item.url.replace(/^https?:\/\//i, "").replace(/^\/\//, "")}
-                  </div>
-                ) : null}
-              </div>
+const logoUrl = linkItem.logoUrl;
 
-              <div
+            return (
+              <a
+                key={item.id}
+                href={normalizePreviewHref(item.url)}
+                target="_blank"
+                rel="noreferrer noopener"
                 className={[
-                  "shrink-0 text-sm font-semibold transition",
+                  "group flex items-center justify-between gap-3 rounded-xl border px-4 py-3 transition",
                   isLightDesign(designKey)
-                    ? "text-neutral-400 group-hover:text-neutral-700"
-                    : "text-white/45 group-hover:text-white/80",
+                    ? "border-neutral-200 bg-white hover:bg-neutral-50"
+                    : "border-white/10 bg-white/5 hover:bg-white/10",
                 ].join(" ")}
               >
-                →
-              </div>
-            </a>
-          ))}
+                {logoUrl ? (
+                  <span
+                    className={[
+                      "flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border bg-white",
+                      isLightDesign(designKey)
+                        ? "border-neutral-200"
+                        : "border-white/15",
+                    ].join(" ")}
+                  >
+                    <img
+                      src={logoUrl}
+                      alt=""
+                      className="h-full w-full object-cover"
+                    />
+                  </span>
+                ) : null}
+
+                <div className="min-w-0 flex-1">
+                  <div
+                    className="truncate text-sm font-medium"
+                    style={getContainerTextStyle(block.data.style, designKey)}
+                  >
+                    {item.label || `Link ${index + 1}`}
+                  </div>
+
+                  {item.url ? (
+                    <div
+                      className={`mt-1 truncate text-xs ${getMutedTextClass(
+                        designKey,
+                      )}`}
+                    >
+                      {item.url
+                        .replace(/^https?:\/\//i, "")
+                        .replace(/^\/\//, "")}
+                    </div>
+                  ) : null}
+                </div>
+
+                <div
+                  className={[
+                    "shrink-0 text-sm font-semibold transition",
+                    isLightDesign(designKey)
+                      ? "text-neutral-400 group-hover:text-neutral-700"
+                      : "text-white/45 group-hover:text-white/80",
+                  ].join(" ")}
+                >
+                  →
+                </div>
+              </a>
+            );
+          })}
         </div>
       ) : (
         <div

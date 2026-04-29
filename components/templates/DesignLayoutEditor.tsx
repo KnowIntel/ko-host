@@ -557,6 +557,16 @@ function getSelectedContext(
   const blockId = selection.blockId;
   const block = draft.blocks.find((item) => item.id === blockId);
 
+  const ctaButtonOptions = draft.blocks
+  .filter((block) => block.type === "cta")
+  .map((block) => ({
+    id: block.id,
+    label:
+      block.type === "cta"
+        ? block.data.buttonText || block.label || "Button"
+        : "Button",
+  }));
+
   if (!block) {
     return { kind: "none", label: "Nothing selected" };
   }
@@ -1137,6 +1147,14 @@ const [richTextLinkValue, setRichTextLinkValue] = useState("https://");
   "heading" | "body"
 >("heading");
 
+const [countdownStyleTarget, setCountdownStyleTarget] = useState<
+  "background" | "tiles"
+>("background");
+
+const [progressBarStyleTarget, setProgressBarStyleTarget] = useState<
+  "background" | "bar" | "scope" | "context"
+>("background");
+
 const selectedStyle =
   selectedBlockFromDraft?.type === "rsvp"
     ? selectedRsvpElementKey === "form"
@@ -1167,26 +1185,31 @@ const selectedStyle =
           : (selectedBlockFromDraft.data.headingStyle ??
               selectedBlockFromDraft.data.style ??
               {})
-        : selectedBlockFromDraft?.type === "cart" ||
-          selectedBlockFromDraft?.type === "checkout" ||
-          selectedBlockFromDraft?.type === "text_fx" ||
-          selectedBlockFromDraft?.type === "cta" ||
-          selectedBlockFromDraft?.type === "thread" ||
-          selectedBlockFromDraft?.type === "form_field" ||
-          selectedBlockFromDraft?.type === "image_carousel" ||
-          selectedBlockFromDraft?.type === "progress_bar" ||
-          selectedBlockFromDraft?.type === "link_hub" ||
-          selectedBlockFromDraft?.type === "checklist" ||
-          selectedBlockFromDraft?.type === "schedule_agenda" ||
-          selectedBlockFromDraft?.type === "map_location" ||
-          selectedBlockFromDraft?.type === "file_share" ||
-          selectedBlockFromDraft?.type === "speed_dating" ||
-          selectedBlockFromDraft?.type === "video" ||
-          selectedBlockFromDraft?.type === "rich_text" ||
-          selectedBlockFromDraft?.type === "countdown" ||
-          selectedBlockFromDraft?.type === "links"
-        ? (selectedBlockFromDraft.data.style ?? {})
-        : getSelectionTextStyle(draft, selection);
+        : selectedBlockFromDraft?.type === "countdown"
+          ? countdownStyleTarget === "tiles"
+            ? (((selectedBlockFromDraft.data as any).tileStyle ??
+                selectedBlockFromDraft.data.style ??
+                {}) as TextStyle)
+            : (selectedBlockFromDraft.data.style ?? {})
+          : selectedBlockFromDraft?.type === "cart" ||
+            selectedBlockFromDraft?.type === "checkout" ||
+            selectedBlockFromDraft?.type === "text_fx" ||
+            selectedBlockFromDraft?.type === "cta" ||
+            selectedBlockFromDraft?.type === "thread" ||
+            selectedBlockFromDraft?.type === "form_field" ||
+            selectedBlockFromDraft?.type === "image_carousel" ||
+            selectedBlockFromDraft?.type === "progress_bar" ||
+            selectedBlockFromDraft?.type === "link_hub" ||
+            selectedBlockFromDraft?.type === "checklist" ||
+            selectedBlockFromDraft?.type === "schedule_agenda" ||
+            selectedBlockFromDraft?.type === "map_location" ||
+            selectedBlockFromDraft?.type === "file_share" ||
+            selectedBlockFromDraft?.type === "speed_dating" ||
+            selectedBlockFromDraft?.type === "video" ||
+            selectedBlockFromDraft?.type === "rich_text" ||
+            selectedBlockFromDraft?.type === "links"
+          ? (selectedBlockFromDraft.data.style ?? {})
+          : getSelectionTextStyle(draft, selection);
   const selectedAppearance = getSelectionBlockAppearance(draft, selection);
 const selectedRsvpElementBackgroundColor =
   selectedBlockFromDraft?.type === "rsvp"
@@ -1211,6 +1234,16 @@ const selectedRsvpElementBackgroundColor =
       ? null
       : draft.blocks.find((item) => item.id === selectedContext.blockId) ?? null;
 
+      const ctaButtonOptions: Array<{ id: string; label: string }> = draft.blocks
+      .filter((block) => block.type === "cta")
+      .map((block) => ({
+        id: block.id,
+        label:
+          block.type === "cta"
+            ? block.data.buttonText || block.label || "Button"
+            : "Button",
+      }));
+  
 const rsvpElementOptions =
   selectedBlock?.type === "rsvp"
     ? [
@@ -1833,6 +1866,34 @@ async function pickColorWithEyeDropper(
   }
 }
 
+function resolveMediaLogoFromUrl(url: string) {
+  const value = url.toLowerCase();
+
+  if (value.includes("discord")) return "/media-logos/discord.png";
+  if (value.includes("facebook")) return "/media-logos/facebook.png";
+  if (value.includes("fanvue")) return "/media-logos/fanvue.png";
+  if (value.includes("instagram")) return "/media-logos/instagram.png";
+  if (value.includes("linkedin")) return "/media-logos/linkedin.png";
+  if (value.includes("onlyfans")) return "/media-logos/onlyfans.png";
+  if (value.includes("patreon")) return "/media-logos/patreon.png";
+  if (value.includes("pinterest")) return "/media-logos/pinterest.png";
+  if (value.includes("reddit")) return "/media-logos/reddit.png";
+  if (value.includes("signal")) return "/media-logos/signal.png";
+  if (value.includes("slack")) return "/media-logos/slack.png";
+  if (value.includes("snapchat")) return "/media-logos/snapchat.png";
+  if (value.includes("telegram")) return "/media-logos/telegram.png";
+  if (value.includes("threads")) return "/media-logos/threads.png";
+  if (value.includes("tiktok")) return "/media-logos/tiktok.png";
+  if (value.includes("tumblr")) return "/media-logos/tumblr.png";
+  if (value.includes("twitch")) return "/media-logos/twitch.png";
+  if (value.includes("wechat")) return "/media-logos/wechat.png";
+  if (value.includes("whatsapp")) return "/media-logos/whatsapp.png";
+  if (value.includes("youtube") || value.includes("youtu.be")) return "/media-logos/youtube.png";
+  if (value.includes("twitter") || value.includes("x.com")) return "/media-logos/x.png";
+
+  return "/media-logos/website.png";
+}
+
 function applyTextColor(value: string) {
   if (
     selectedBlock?.type === "donation" &&
@@ -1979,35 +2040,111 @@ function applyFillColor(value: string) {
     return;
   }
 
-if (selectedBlock?.type === "donation") {
-  updateSelectedBlock((block) => {
-    if (block.type !== "donation") return block;
+  if (selectedBlock?.type === "donation") {
+    updateSelectedBlock((block) => {
+      if (block.type !== "donation") return block;
 
-    if (donationStyleTarget === "buttons") {
+      if (donationStyleTarget === "buttons") {
+        return {
+          ...block,
+          data: {
+            ...block.data,
+            buttonStyle: {
+              ...((block.data as any).buttonStyle ?? {}),
+              backgroundColor: value,
+            },
+          },
+        };
+      }
+
       return {
         ...block,
-        data: {
-          ...block.data,
-          buttonStyle: {
-            ...(((block.data as any).buttonStyle ?? {})),
-            backgroundColor: value,
-          },
+        appearance: {
+          ...block.appearance,
+          backgroundColor: value,
         },
       };
-    }
+    });
 
-    return {
-      ...block,
-      appearance: {
-        ...block.appearance,
-        backgroundColor: value,
-      },
-    };
-  });
+    pushRecentColor(value);
+    return;
+  }
 
-  pushRecentColor(value);
-  return;
-}
+  if (selectedBlock?.type === "countdown" && countdownStyleTarget === "tiles") {
+    updateSelectedBlock((block) =>
+      block.type !== "countdown"
+        ? block
+        : {
+            ...block,
+            data: {
+              ...block.data,
+              tileStyle: {
+                ...((block.data as any).tileStyle ?? {}),
+                backgroundColor: value,
+              },
+            },
+          },
+    );
+
+    pushRecentColor(value);
+    return;
+  }
+
+  if (selectedBlock?.type === "progress_bar") {
+    updateSelectedBlock((block) => {
+      if (block.type !== "progress_bar") return block;
+
+      if (progressBarStyleTarget === "bar") {
+        return {
+          ...block,
+          data: {
+            ...block.data,
+            barStyle: {
+              ...((block.data as any).barStyle ?? {}),
+              color: value,
+            },
+          },
+        };
+      }
+
+      if (progressBarStyleTarget === "scope") {
+        return {
+          ...block,
+          data: {
+            ...block.data,
+            barStyle: {
+              ...((block.data as any).barStyle ?? {}),
+              scopeBackgroundColor: value,
+            },
+          },
+        };
+      }
+
+      if (progressBarStyleTarget === "context") {
+        return {
+          ...block,
+          data: {
+            ...block.data,
+            contextStyle: {
+              ...((block.data as any).contextStyle ?? {}),
+              backgroundColor: value,
+            },
+          },
+        };
+      }
+
+      return {
+        ...block,
+        appearance: {
+          ...block.appearance,
+          backgroundColor: value,
+        },
+      };
+    });
+
+    pushRecentColor(value);
+    return;
+  }
 
   applyAppearancePatch({ backgroundColor: value });
   pushRecentColor(value);
@@ -2022,6 +2159,26 @@ function eyedropperButtonClass() {
 }
 
 function applyBorderColor(value: string) {
+  if (selectedBlock?.type === "progress_bar" && progressBarStyleTarget === "scope") {
+    updateSelectedBlock((block) =>
+      block.type !== "progress_bar"
+        ? block
+        : {
+            ...block,
+            data: {
+              ...block.data,
+              barStyle: {
+                ...((block.data as any).barStyle ?? {}),
+                borderColor: value,
+              },
+            },
+          },
+    );
+
+    pushRecentColor(value);
+    return;
+  }
+
   applyAppearancePatch({ borderColor: value });
   pushRecentColor(value);
 }
@@ -2276,26 +2433,43 @@ function applyStylePatch(patch: Partial<TextStyle>) {
     return;
   }
 
-  if (selectedBlock?.type === "progress_bar") {
-    setDraft((prev) => ({
-      ...prev,
-      blocks: prev.blocks.map((block) =>
-        block.id === selectedBlock.id && block.type === "progress_bar"
-          ? {
-              ...block,
-              data: {
-                ...block.data,
-                style: {
-                  ...(block.data.style ?? {}),
-                  ...patch,
-                },
-              },
-            }
-          : block,
-      ),
-    }));
-    return;
-  }
+if (selectedBlock?.type === "progress_bar") {
+  setDraft((prev) => ({
+    ...prev,
+    blocks: prev.blocks.map((block) =>
+      block.id === selectedBlock.id && block.type === "progress_bar"
+        ? {
+            ...block,
+            data: {
+              ...block.data,
+              ...(progressBarStyleTarget === "bar" ||
+              progressBarStyleTarget === "scope"
+                ? {
+                    barStyle: {
+                      ...((block.data as any).barStyle ?? {}),
+                      ...patch,
+                    },
+                  }
+                : progressBarStyleTarget === "context"
+                  ? {
+                      contextStyle: {
+                        ...((block.data as any).contextStyle ?? {}),
+                        ...patch,
+                      },
+                    }
+                  : {
+                      style: {
+                        ...(block.data.style ?? {}),
+                        ...patch,
+                      },
+                    }),
+            },
+          }
+        : block,
+    ),
+  }));
+  return;
+}
 
 if (selectedBlock?.type === "donation") {
   setDraft((prev) => ({
@@ -2522,26 +2696,35 @@ if (selectedBlock?.type === "donation") {
     return;
   }
 
-  if (selectedBlock?.type === "countdown") {
-    setDraft((prev) => ({
-      ...prev,
-      blocks: prev.blocks.map((block) =>
-        block.id === selectedBlock.id && block.type === "countdown"
-          ? {
-              ...block,
-              data: {
-                ...block.data,
-                style: {
-                  ...(block.data.style ?? {}),
-                  ...patch,
-                },
-              },
-            }
-          : block,
-      ),
-    }));
-    return;
-  }
+if (selectedBlock?.type === "countdown") {
+  setDraft((prev) => ({
+    ...prev,
+    blocks: prev.blocks.map((block) =>
+      block.id === selectedBlock.id && block.type === "countdown"
+        ? {
+            ...block,
+            data: {
+              ...block.data,
+              ...(countdownStyleTarget === "tiles"
+                ? {
+                    tileStyle: {
+                      ...((block.data as any).tileStyle ?? {}),
+                      ...patch,
+                    },
+                  }
+                : {
+                    style: {
+                      ...(block.data.style ?? {}),
+                      ...patch,
+                    },
+                  }),
+            },
+          }
+        : block,
+    ),
+  }));
+  return;
+}
 
   if (selectedBlock?.type === "listing") {
     setDraft((prev) => ({
@@ -4718,61 +4901,102 @@ if (block.type === "gallery") {
   );
 }
 
-    if (block.type === "progress_bar") {
-      const max = Math.max(1, block.data.max ?? 100);
-      const value = Math.max(0, Math.min(block.data.value ?? 0, max));
-      const percent = Math.round((value / max) * 100);
+if (block.type === "progress_bar") {
+  const max = Math.max(1, block.data.max ?? 100);
+  const value = Math.max(0, Math.min(block.data.value ?? 0, max));
+  const percent = Math.round((value / max) * 100);
 
-      return (
+  const backgroundStyle = getInlineTextStyle(block.data.style);
+  const barStyle = ((block.data as any).barStyle ?? {}) as TextStyle;
+  const contextStyle = getInlineTextStyle(
+    ((block.data as any).contextStyle ?? block.data.style ?? {}) as TextStyle,
+  );
+
+  const showContext = (block.data as any).showContext ?? true;
+  const contextType = (block.data as any).contextType ?? "percentage";
+  const contextLocation = (block.data as any).contextLocation ?? "bottom-left";
+
+  const contextText =
+    contextType === "fraction" ? `${value} / ${max}` : `${percent}%`;
+
+  const contextNode = showContext ? (
+    <div
+      className="text-xs font-medium text-neutral-600"
+      style={contextStyle}
+    >
+      {contextText}
+    </div>
+  ) : null;
+
+  return (
+    <div
+      className="flex h-full w-full flex-col rounded-xl p-4"
+      style={{
+        backgroundColor:
+          block.appearance?.backgroundColor &&
+          block.appearance.backgroundColor !== "transparent"
+            ? block.appearance.backgroundColor
+            : "transparent",
+        borderColor: block.appearance?.borderColor || undefined,
+        borderWidth:
+          typeof block.appearance?.borderWidth === "number"
+            ? `${block.appearance.borderWidth}px`
+            : undefined,
+        borderStyle:
+          typeof block.appearance?.borderWidth === "number" &&
+          block.appearance.borderWidth > 0
+            ? "solid"
+            : undefined,
+        borderRadius:
+          typeof block.appearance?.borderRadius === "number"
+            ? `${block.appearance.borderRadius}px`
+            : undefined,
+      }}
+    >
+      <div className="flex items-start justify-between gap-3">
         <div
-          className="h-full w-full rounded-xl p-4"
-          style={{
-            backgroundColor:
-              block.appearance?.backgroundColor &&
-              block.appearance.backgroundColor !== "transparent"
-                ? block.appearance.backgroundColor
-                : "transparent",
-            borderColor: block.appearance?.borderColor || undefined,
-            borderWidth:
-              typeof block.appearance?.borderWidth === "number"
-                ? `${block.appearance.borderWidth}px`
-                : undefined,
-            borderStyle:
-              typeof block.appearance?.borderWidth === "number" &&
-              block.appearance.borderWidth > 0
-                ? "solid"
-                : undefined,
-            borderRadius:
-              typeof block.appearance?.borderRadius === "number"
-                ? `${block.appearance.borderRadius}px`
-                : undefined,
-          }}
+          className="text-sm font-medium text-neutral-900"
+          style={backgroundStyle}
         >
-          <div
-            className="mb-3 text-sm font-medium text-neutral-900"
-            style={getInlineTextStyle(block.data.style)}
-          >
-            {block.data.heading || "Progress"}
-          </div>
-
-          <div className="h-4 w-full overflow-hidden rounded-full bg-neutral-200">
-            <div
-              className="h-full rounded-full bg-neutral-900"
-              style={{ width: `${percent}%` }}
-            />
-          </div>
-
-          <div
-            className="mt-2 text-xs text-neutral-600"
-            style={getInlineTextStyle(block.data.style)}
-          >
-            {block.data.showPercentage === false
-              ? `${value} / ${max}`
-              : `${percent}%`}
-          </div>
+          {block.data.heading || "Progress"}
         </div>
-      );
-    }
+
+        {contextLocation === "top-right" ? contextNode : null}
+      </div>
+
+      <div className="mt-3 h-4 w-full overflow-hidden rounded-full border bg-neutral-200"
+        style={{
+          backgroundColor:
+            (barStyle as any).scopeBackgroundColor ??
+            (barStyle as any).backgroundColor ??
+            undefined,
+          borderColor: (barStyle as any).borderColor ?? undefined,
+        }}
+      >
+        <div
+          className="h-full rounded-full bg-neutral-900"
+          style={{
+            width: `${percent}%`,
+            backgroundColor: (barStyle as any).color ?? undefined,
+          }}
+        />
+      </div>
+
+      {contextLocation !== "top-right" && contextNode ? (
+        <div
+          className={[
+            "mt-2 flex",
+            contextLocation === "bottom-right"
+              ? "justify-end"
+              : "justify-start",
+          ].join(" ")}
+        >
+          {contextNode}
+        </div>
+      ) : null}
+    </div>
+  );
+}
     if (block.type === "donation") {
       const donationOptions = Array.isArray(block.data.donationOptions)
         ? block.data.donationOptions.filter(
@@ -6360,6 +6584,46 @@ return (
       {showTextControls ? (
         <>
 
+{selectedBlock?.type === "countdown" ? (
+  <>
+    <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
+
+    <select
+      value={countdownStyleTarget}
+      onChange={(e) =>
+        setCountdownStyleTarget(
+          e.target.value as "background" | "tiles",
+        )
+      }
+      className={topBarFieldClass("w-[140px]")}
+      title="Countdown style target"
+    >
+      <option value="background">Background</option>
+      <option value="tiles">Tiles</option>
+    </select>
+  </>
+) : null}
+{selectedBlock?.type === "progress_bar" ? (
+  <>
+    <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
+
+    <select
+      value={progressBarStyleTarget}
+      onChange={(e) =>
+        setProgressBarStyleTarget(
+          e.target.value as "background" | "bar" | "scope" | "context",
+        )
+      }
+      className={topBarFieldClass("w-[145px]")}
+      title="Progress bar style target"
+    >
+      <option value="background">Background</option>
+      <option value="bar">Bar</option>
+      <option value="scope">Scope</option>
+      <option value="context">Context</option>
+    </select>
+  </>
+) : null}
 
         {selectedBlock?.type === "listing" ? (
           <>
@@ -8208,46 +8472,37 @@ isItemSelected={(blockId, nextSelection) =>
     </div>
 
     <div className="mt-4">
-      <div className="mb-2 flex items-center justify-between gap-3">
-        <div className={inspectorLabelClass()}>Submit Button Text</div>
-        <label className="flex items-center gap-2 text-xs text-neutral-600">
-          <input
-            type="checkbox"
-            checked={selectedBlock.data.showSubmitButtonText !== false}
-            onChange={(e) =>
-              updateSelectedBlock((block) =>
-                block.type !== "form_field"
-                  ? block
-                  : {
-                      ...block,
-                      data: {
-                        ...block.data,
-                        showSubmitButtonText: e.target.checked,
-                      },
-                    },
-              )
-            }
-          />
-          Show
-        </label>
-      </div>
+      <div className={inspectorLabelClass()}>Linked Submit Button</div>
 
-      <input
-        type="text"
-        value={selectedBlock.data.submitButtonText ?? "Submit"}
+      <select
+        value={(selectedBlock.data as any).linkedButtonId ?? ""}
         onChange={(e) =>
-          setDraft((prev) => ({
-            ...prev,
-            blocks: updateFormField(
-              prev.blocks,
-              selectedBlock.id,
-              "submitButtonText",
-              e.target.value,
-            ),
-          }))
+          updateSelectedBlock((block) =>
+            block.type !== "form_field"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    linkedButtonId: e.target.value || undefined,
+                  },
+                },
+          )
         }
         className={inspectorInputClass()}
-      />
+      >
+        <option value="">No linked button</option>
+
+        {ctaButtonOptions.map((button) => (
+          <option key={button.id} value={button.id}>
+            {button.label}
+          </option>
+        ))}
+      </select>
+
+      <p className="mt-2 text-xs leading-5 text-neutral-500">
+        When this button is pressed, this field will be included in the combined general submission.
+      </p>
     </div>
 
     <div className="mt-4">
@@ -9449,7 +9704,7 @@ isItemSelected={(blockId, nextSelection) =>
       <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
         <input
           type="checkbox"
-          checked={selectedBlock.data.showPercentage !== false}
+          checked={(selectedBlock.data as any).showContext ?? true}
           onChange={(e) =>
             updateSelectedBlock((block) =>
               block.type !== "progress_bar"
@@ -9458,15 +9713,73 @@ isItemSelected={(blockId, nextSelection) =>
                     ...block,
                     data: {
                       ...block.data,
-                      showPercentage: e.target.checked,
+                      showContext: e.target.checked,
                     },
                   },
             )
           }
         />
-        Show Percentage
+        Show Context
       </label>
     </div>
+
+    {((selectedBlock.data as any).showContext ?? true) ? (
+      <div className="mt-4 grid grid-cols-2 gap-3">
+        <div>
+          <div className={inspectorLabelClass()}>Context Type</div>
+          <select
+            value={(selectedBlock.data as any).contextType ?? "percentage"}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "progress_bar"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        contextType: e.target.value as
+                          | "percentage"
+                          | "fraction",
+                      },
+                    },
+              )
+            }
+            className={inspectorInputClass()}
+          >
+            <option value="percentage">Show Percent</option>
+            <option value="fraction">Show Fraction</option>
+          </select>
+        </div>
+
+        <div>
+          <div className={inspectorLabelClass()}>Context Location</div>
+          <select
+            value={(selectedBlock.data as any).contextLocation ?? "bottom-left"}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "progress_bar"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        contextLocation: e.target.value as
+                          | "top-right"
+                          | "bottom-left"
+                          | "bottom-right",
+                      },
+                    },
+              )
+            }
+            className={inspectorInputClass()}
+          >
+            <option value="top-right">Top Right</option>
+            <option value="bottom-left">Bottom Left</option>
+            <option value="bottom-right">Bottom Right</option>
+          </select>
+        </div>
+      </div>
+    ) : null}
   </div>
 ) : null}
 
@@ -9694,117 +10007,227 @@ isItemSelected={(blockId, nextSelection) =>
     </div>
 
     <div className="mt-4 space-y-3">
-      {selectedBlock.data.items.map((item: LinkItem) => (
-        <div
-          key={item.id}
-          className="rounded-xl border border-neutral-200 bg-neutral-50 p-3"
-        >
-          <div className={inspectorLabelClass()}>Label</div>
-          <input
-            type="text"
-            value={item.label}
-            onChange={(e) =>
-              updateSelectedBlock((block) =>
-                block.type !== "link_hub"
-                  ? block
-                  : {
-                      ...block,
-                      data: {
-                        ...block.data,
-                        items: block.data.items.map((entry) =>
-                          entry.id === item.id
-                            ? { ...entry, label: e.target.value }
-                            : entry,
-                        ),
-                      },
-                    },
-              )
-            }
-            className={inspectorInputClass()}
-          />
+      {selectedBlock.data.items.map((rawItem: LinkItem) => {
+  const item = rawItem as LinkItem & {
+    logoUrl?: string;
+    autoGenerateLogo?: boolean;
+  };
+        const autoGenerateLogo = item.autoGenerateLogo ?? true;
+        const logoPreviewUrl =
+          item.logoUrl ||
+          (autoGenerateLogo ? resolveMediaLogoFromUrl(item.url ?? "") : "");
 
-          <div className="mt-4">
-            <div className={inspectorLabelClass()}>URL</div>
-            <input
-              type="text"
-              value={item.url}
-              onChange={(e) =>
-                updateSelectedBlock((block) =>
-                  block.type !== "link_hub"
-                    ? block
-                    : {
-                        ...block,
-                        data: {
-                          ...block.data,
-                          items: block.data.items.map((entry) =>
-                            entry.id === item.id
-                              ? { ...entry, url: e.target.value }
-                              : entry,
-                          ),
-                        },
-                      },
-                )
-              }
-              className={inspectorInputClass()}
-            />
-          </div>
+        return (
+          <div
+            key={item.id}
+            className="rounded-xl border border-neutral-200 bg-neutral-50 p-3"
+          >
+            <div className="flex items-start gap-3">
+              <span className="mt-5 flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-neutral-300 bg-white text-[10px] text-neutral-400">
+                {logoPreviewUrl ? (
+                  <img
+                    src={logoPreviewUrl}
+                    alt=""
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  "Logo"
+                )}
+              </span>
 
-          <div className="mt-3 flex justify-end gap-2">
-            <button
-              type="button"
-              className={toolSetButtonClass("front")}
-              onClick={() =>
-                updateSelectedBlock((block) =>
-                  block.type !== "link_hub"
-                    ? block
-                    : {
-                        ...block,
-                        data: {
-                          ...block.data,
-                          items: [
-                            ...block.data.items,
-                            {
-                              ...item,
-                              id: makeClientId("link"),
+              <div className="min-w-0 flex-1">
+                <div className={inspectorLabelClass()}>Label</div>
+                <input
+                  type="text"
+                  value={item.label}
+                  onChange={(e) =>
+                    updateSelectedBlock((block) =>
+                      block.type !== "link_hub"
+                        ? block
+                        : {
+                            ...block,
+                            data: {
+                              ...block.data,
+                              items: block.data.items.map((entry) =>
+                                entry.id === item.id
+                                  ? { ...entry, label: e.target.value }
+                                  : entry,
+                              ),
                             },
-                          ],
-                        },
-                      },
-                )
-              }
-              title="Duplicate link"
-            >
-              Duplicate
-            </button>
+                          },
+                    )
+                  }
+                  className={inspectorInputClass()}
+                />
 
-            <button
-              type="button"
-              className={toolSetButtonClass("remove")}
-              onClick={() =>
-                updateSelectedBlock((block) =>
-                  block.type !== "link_hub"
-                    ? block
-                    : {
-                        ...block,
-                        data: {
-                          ...block.data,
-                          items:
-                            block.data.items.length > 1
-                              ? block.data.items.filter(
-                                  (entry) => entry.id !== item.id,
-                                )
-                              : block.data.items,
+                <div className="mt-4">
+                  <div className={inspectorLabelClass()}>URL</div>
+                  <input
+                    type="text"
+                    value={item.url}
+                    onChange={(e) => {
+                      const nextUrl = e.target.value;
+
+                      updateSelectedBlock((block) =>
+                        block.type !== "link_hub"
+                          ? block
+                          : {
+                              ...block,
+                              data: {
+                                ...block.data,
+                                items: block.data.items.map((entry) => {
+                                  if (entry.id !== item.id) return entry;
+
+                                  const shouldAutoGenerate =
+                                    (entry as LinkItem & { autoGenerateLogo?: boolean }).autoGenerateLogo ?? true;
+
+                                  return {
+                                    ...entry,
+                                    url: nextUrl,
+                                    logoUrl: shouldAutoGenerate
+                                      ? resolveMediaLogoFromUrl(nextUrl)
+                                      : (entry as LinkItem & { logoUrl?: string }).logoUrl,
+                                  };
+                                }),
+                              },
+                            },
+                      );
+                    }}
+                    className={inspectorInputClass()}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <label className="mt-3 flex items-center gap-2 text-xs font-medium text-neutral-700">
+              <input
+                type="checkbox"
+                checked={autoGenerateLogo}
+                onChange={(e) => {
+                  const checked = e.target.checked;
+
+                  updateSelectedBlock((block) =>
+                    block.type !== "link_hub"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            items: block.data.items.map((entry) =>
+                              entry.id === item.id
+                                ? {
+                                    ...entry,
+                                    autoGenerateLogo: checked,
+                                    logoUrl: checked
+                                      ? resolveMediaLogoFromUrl(entry.url)
+                                      : (entry as LinkItem & { logoUrl?: string }).logoUrl,
+                                  }
+                                : entry,
+                            ),
+                          },
                         },
-                      },
-                )
-              }
-              title="Remove link"
-            >
-              ×
-            </button>
+                  );
+                }}
+              />
+              Auto-Generate Logo
+            </label>
+
+            {!autoGenerateLogo ? (
+              <div className="mt-3">
+                <div className={inspectorLabelClass()}>Custom Logo</div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+
+                    const logoUrl = URL.createObjectURL(file);
+
+                    updateSelectedBlock((block) =>
+                      block.type !== "link_hub"
+                        ? block
+                        : {
+                            ...block,
+                            data: {
+                              ...block.data,
+                              items: block.data.items.map((entry) =>
+                                entry.id === item.id
+                                  ? {
+                                      ...entry,
+                                      logoUrl,
+                                      autoGenerateLogo: false,
+                                    }
+                                  : entry,
+                              ),
+                            },
+                          },
+                    );
+                  }}
+                  className={inspectorInputClass()}
+                />
+              </div>
+            ) : null}
+
+            <div className="mt-3 flex justify-end gap-2">
+              <button
+                type="button"
+                className={toolSetButtonClass("front")}
+                onClick={() =>
+                  updateSelectedBlock((block) =>
+                    block.type !== "link_hub"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            items: [
+                              ...block.data.items,
+                              {
+                                ...item,
+                                id: makeClientId("link"),
+                                logoUrl: logoPreviewUrl,
+                                autoGenerateLogo,
+                              },
+                            ],
+                          },
+                        },
+                  )
+                }
+                title="Duplicate link"
+              >
+                Duplicate
+              </button>
+
+              <button
+                type="button"
+                className={toolSetButtonClass("remove")}
+                onClick={() =>
+                  updateSelectedBlock((block) =>
+                    block.type !== "link_hub"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            items:
+                              block.data.items.length > 1
+                                ? block.data.items.filter(
+                                    (entry) => entry.id !== item.id,
+                                  )
+                                : block.data.items,
+                          },
+                        },
+                  )
+                }
+                title="Remove link"
+              >
+                ×
+              </button>
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
 
       <button
         type="button"
@@ -9823,6 +10246,8 @@ isItemSelected={(blockId, nextSelection) =>
                         id: makeClientId("link"),
                         label: "New Link",
                         url: "#",
+                        logoUrl: resolveMediaLogoFromUrl("#"),
+                        autoGenerateLogo: true,
                       },
                     ],
                   },
