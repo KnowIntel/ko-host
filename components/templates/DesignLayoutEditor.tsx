@@ -13724,22 +13724,21 @@ isItemSelected={(blockId, nextSelection) =>
                   <div className={inspectorLabelClass()}>Tool Set</div>
 
                   <div className="mt-4 space-y-3">
-                    {toolSetItems.map((tool) => (
-<div
-  key={tool.id}
-  role="button"
-  tabIndex={0}
-  onClick={() => setSelection(selectionFromCanvasBlockId(tool.id))}
-  onKeyDown={(e) => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      setSelection(selectionFromCanvasBlockId(tool.id));
-    }
-  }}
-  className="rounded-xl border border-neutral-200 bg-neutral-50 p-3 cursor-pointer"
->
-  <div className="flex items-center justify-between gap-3">
-    <div className="min-w-0">
+{toolSetItems.map((tool) => (
+  <div
+    key={tool.id}
+    role="button"
+    tabIndex={0}
+    onClick={() => setSelection(selectionFromCanvasBlockId(tool.id))}
+    onKeyDown={(e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        setSelection(selectionFromCanvasBlockId(tool.id));
+      }
+    }}
+    className="cursor-pointer rounded-xl border border-neutral-200 bg-neutral-50 p-3"
+  >
+    <div className="mb-3 min-w-0">
       <div className="truncate text-sm font-semibold text-neutral-900">
         {tool.label}
       </div>
@@ -13748,82 +13747,81 @@ isItemSelected={(blockId, nextSelection) =>
       </div>
     </div>
 
-<div className="flex shrink-0 items-center gap-2">
-<button
-  type="button"
-  className={toolSetButtonClass("back")}
-  onClick={(e) => {
-    e.stopPropagation();
-    handleSendToBack(tool.id);
-    setSelection(selectionFromCanvasBlockId(tool.id));
-  }}
-  title="Send to back"
->
-  <img
-    src="/icons/icon_block_back.png"
-    alt="Back"
-    className="h-4 w-4 object-contain pointer-events-none"
-  />
-</button>
+    <div className="flex flex-wrap items-center gap-2">
+      <button
+        type="button"
+        className={toolSetButtonClass("back")}
+        onClick={(e) => {
+          e.stopPropagation();
+          handleSendToBack(tool.id);
+          setSelection(selectionFromCanvasBlockId(tool.id));
+        }}
+        title="Send to back"
+      >
+        <img
+          src="/icons/icon_block_back.png"
+          alt="Back"
+          className="pointer-events-none h-4 w-4 object-contain"
+        />
+      </button>
 
-<button
-  type="button"
-  className={toolSetButtonClass("front")}
-  onClick={(e) => {
-    e.stopPropagation();
-    handleBringToFront(tool.id);
-    setSelection(selectionFromCanvasBlockId(tool.id));
-  }}
-  title="Bring to front"
->
-  <img
-    src="/icons/icon_block_front.png"
-    alt="Front"
-    className="h-4 w-4 object-contain pointer-events-none"
-  />
-</button>
+      <button
+        type="button"
+        className={toolSetButtonClass("front")}
+        onClick={(e) => {
+          e.stopPropagation();
+          handleBringToFront(tool.id);
+          setSelection(selectionFromCanvasBlockId(tool.id));
+        }}
+        title="Bring to front"
+      >
+        <img
+          src="/icons/icon_block_front.png"
+          alt="Front"
+          className="pointer-events-none h-4 w-4 object-contain"
+        />
+      </button>
 
-  <button
-    type="button"
-    className={toolSetButtonClass("back")}
-    onClick={(e) => {
-      e.stopPropagation();
-      handleSendBackward(tool.id);
-      setSelection(selectionFromCanvasBlockId(tool.id));
-    }}
-    title="Move down one layer"
-  >
-    ↓
-  </button>
+      <button
+        type="button"
+        className={toolSetButtonClass("back")}
+        onClick={(e) => {
+          e.stopPropagation();
+          handleSendBackward(tool.id);
+          setSelection(selectionFromCanvasBlockId(tool.id));
+        }}
+        title="Move down one layer"
+      >
+        ↓
+      </button>
 
-  <button
-    type="button"
-    className={toolSetButtonClass("front")}
-    onClick={(e) => {
-      e.stopPropagation();
-      handleBringForward(tool.id);
-      setSelection(selectionFromCanvasBlockId(tool.id));
-    }}
-    title="Move up one layer"
-  >
-    ↑
-  </button>
+      <button
+        type="button"
+        className={toolSetButtonClass("front")}
+        onClick={(e) => {
+          e.stopPropagation();
+          handleBringForward(tool.id);
+          setSelection(selectionFromCanvasBlockId(tool.id));
+        }}
+        title="Move up one layer"
+      >
+        ↑
+      </button>
 
-  <button
-    type="button"
-    className={toolSetButtonClass("remove")}
-    onClick={(e) => {
-      e.stopPropagation();
-      removeCanvasBlock(tool.id);
-    }}
-    title="Remove block"
-  >
-    ×
-  </button>
-</div>
+      <button
+        type="button"
+        className={toolSetButtonClass("remove")}
+        onClick={(e) => {
+          e.stopPropagation();
+          removeCanvasBlock(tool.id);
+        }}
+        title="Remove block"
+      >
+        ×
+      </button>
+    </div>
   </div>
-</div>
-                    ))}
+))}
 
                     {!toolSetItems.length ? (
                       <div className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50 px-3 py-4 text-sm text-neutral-500">
