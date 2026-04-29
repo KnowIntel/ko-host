@@ -168,6 +168,9 @@ export async function POST(
 
   const slugRaw = String(body?.slug || "");
   const slug = normalizeSlug(slugRaw);
+  const title = String(body?.title || slug || "").trim();
+  const rawDraft =
+    body?.draft && typeof body.draft === "object" ? body.draft : null;
 
   if (!slug) {
     return NextResponse.json({ error: "Slug required" }, { status: 400 });
@@ -208,26 +211,35 @@ export async function POST(
   const nextDisplayOrder =
     typeof lastPage?.display_order === "number" ? lastPage.display_order + 1 : 0;
 
-  const blankDraft = sanitizeBuilderDraft({
-    title: "",
-    subtitle: "",
-    subtext: "",
-    description: "",
-    slugSuggestion: micrositeResult.microsite.slug || "",
-    blocks: [],
-    pageScale: 85,
-    pageVisibility: {},
-    pageElements: {},
-  });
+  const draftToInsert = rawDraft
+    ? sanitizeBuilderDraft({
+        ...rawDraft,
+        title:
+          typeof rawDraft.title === "string" && rawDraft.title.trim()
+            ? rawDraft.title
+            : title || slug,
+        slugSuggestion: micrositeResult.microsite.slug || "",
+      })
+    : sanitizeBuilderDraft({
+        title: title || slug,
+        subtitle: "",
+        subtext: "",
+        description: "",
+        slugSuggestion: micrositeResult.microsite.slug || "",
+        blocks: [],
+        pageScale: 85,
+        pageVisibility: {},
+        pageElements: {},
+      });
 
   const { data, error } = await sb
     .from("microsite_pages")
     .insert({
       microsite_id: id,
       slug,
-      title: slug,
+      title: title || slug,
       display_order: nextDisplayOrder,
-      draft: blankDraft,
+      draft: draftToInsert,
       updated_at: new Date().toISOString(),
     })
     .select()
