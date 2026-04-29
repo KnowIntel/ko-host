@@ -3860,6 +3860,40 @@ function cancelRemoveAllBlocks() {
     });
   }
 
+  function handleSendBackward(blockId: string) {
+  setDraft((prev) => {
+    const blocks = [...prev.blocks];
+
+    const index = blocks.findIndex((b) => b.id === blockId);
+    if (index <= 0) return prev;
+
+    const newBlocks = [...blocks];
+    [newBlocks[index], newBlocks[index - 1]] = [
+      newBlocks[index - 1],
+      newBlocks[index],
+    ];
+
+    return { ...prev, blocks: newBlocks };
+  });
+}
+
+function handleBringForward(blockId: string) {
+  setDraft((prev) => {
+    const blocks = [...prev.blocks];
+
+    const index = blocks.findIndex((b) => b.id === blockId);
+    if (index === -1 || index >= blocks.length - 1) return prev;
+
+    const newBlocks = [...blocks];
+    [newBlocks[index], newBlocks[index + 1]] = [
+      newBlocks[index + 1],
+      newBlocks[index],
+    ];
+
+    return { ...prev, blocks: newBlocks };
+  });
+}
+
   function handleCreateToolDrop(
   payload: ToolDropPayload,
   patch: {
@@ -13723,9 +13757,9 @@ isItemSelected={(blockId, nextSelection) =>
       handleSendToBack(tool.id);
       setSelection(selectionFromCanvasBlockId(tool.id));
     }}
-    title="Move down / send backward"
+    title="Send to back"
   >
-    ↓
+    Back
   </button>
 
   <button
@@ -13736,7 +13770,33 @@ isItemSelected={(blockId, nextSelection) =>
       handleBringToFront(tool.id);
       setSelection(selectionFromCanvasBlockId(tool.id));
     }}
-    title="Move up / bring forward"
+    title="Bring to front"
+  >
+    Front
+  </button>
+
+  <button
+    type="button"
+    className={toolSetButtonClass("back")}
+    onClick={(e) => {
+      e.stopPropagation();
+      handleSendBackward(tool.id);
+      setSelection(selectionFromCanvasBlockId(tool.id));
+    }}
+    title="Move down one layer"
+  >
+    ↓
+  </button>
+
+  <button
+    type="button"
+    className={toolSetButtonClass("front")}
+    onClick={(e) => {
+      e.stopPropagation();
+      handleBringForward(tool.id);
+      setSelection(selectionFromCanvasBlockId(tool.id));
+    }}
+    title="Move up one layer"
   >
     ↑
   </button>
