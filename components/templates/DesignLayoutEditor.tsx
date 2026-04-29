@@ -13736,7 +13736,12 @@ isItemSelected={(blockId, nextSelection) =>
         setSelection(selectionFromCanvasBlockId(tool.id));
       }
     }}
-    className="cursor-pointer rounded-xl border border-neutral-200 bg-neutral-50 p-3"
+className={[
+  "cursor-pointer rounded-xl p-3 transition-all duration-150",
+  selectedBlock?.id === tool.id
+    ? "border-2 border-black bg-white shadow-md"
+    : "border border-neutral-200 bg-neutral-50 hover:bg-white",
+].join(" ")}
   >
     <div className="mb-3 min-w-0">
       <div className="truncate text-sm font-semibold text-neutral-900">
