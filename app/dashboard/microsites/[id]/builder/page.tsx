@@ -702,26 +702,44 @@ return (
   initialDraft={editorDraft}
   onSave={saveBuilderDraft}
   microsite={site}
-onOpenAddPage={() => {
-  void createPageImmediately();
-}}
-onDuplicateActivePage={() => {
-  void duplicateActiveBuilderPage();
-}}
+
+  onOpenAddPage={openAddPageModal}
+
+  onDuplicateActivePage={() => {
+    void duplicateActiveBuilderPage();
+  }}
+
   onRemoveActivePage={openDeleteActivePage}
+
+  onRenameActivePage={() => {
+    const activePage = orderedPages.find((page) => page.id === activePageId);
+    const homePage = orderedPages[0];
+
+    if (!activePage || activePage.id === homePage?.id) return;
+
+    setRenamePageId(activePage.id);
+    setRenamePageName(activePage.slug);
+    setRenamePageError("");
+    setRenameModalOpen(true);
+  }}
+
   pages={orderedPages}
   activePageId={activePageId}
-  activePageSlug={orderedPages.find((page) => page.id === activePageId)?.slug || "home"}
-  micrositeSlug={site.slug}
-  onSelectPage={(pageId) => {
-  if (pageId === "forced-home") {
-    setEditorDraft(site ? buildDraftFromRecord(site) : editorDraft);
-    setActivePageId(null);
-    return;
+  activePageSlug={
+    orderedPages.find((page) => page.id === activePageId)?.slug || "home"
   }
+  micrositeSlug={site.slug}
 
-  setActivePageId(pageId);
-}}
+  onSelectPage={(pageId) => {
+    if (pageId === "forced-home") {
+      setEditorDraft(site ? buildDraftFromRecord(site) : editorDraft);
+      setActivePageId(null);
+      return;
+    }
+
+    setActivePageId(pageId);
+  }}
+
   onReorderPages={reorderPages}
 />
 
