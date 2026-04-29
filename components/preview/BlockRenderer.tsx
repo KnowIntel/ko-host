@@ -2691,81 +2691,146 @@ function renderFaq(
   block: Extract<MicrositeBlock, { type: "faq" }>,
   designKey?: string,
 ) {
-  const formStyle = getContainerTextStyle(block.data.style, designKey);
-  const sectionStyle = ((block.data as any).sectionStyle ?? {}) as React.CSSProperties;
-  const questionStyle = getContainerTextStyle(
-    (block.data as any).questionStyle ?? block.data.style,
-    designKey,
-  );
-  const answerStyle = getContainerTextStyle(
-    (block.data as any).answerStyle ?? block.data.style,
-    designKey,
-  );
+  function FaqLive() {
+    const behavior =
+      ((block.data as any).behavior as
+        | "always-open"
+        | "accordion"
+        | "accordion-single"
+        | undefined) ?? "always-open";
 
-  const sectionBackgroundColor =
-    sectionStyle.backgroundColor && sectionStyle.backgroundColor !== "transparent"
-      ? sectionStyle.backgroundColor
-      : isLightDesign(designKey)
-        ? "#ffffff"
-        : "rgba(255,255,255,0.05)";
+    const showIcons = (block.data as any).showIcons !== false;
+    const [openIds, setOpenIds] = useState<string[]>(
+      behavior === "always-open"
+        ? block.data.items.map((item: FaqItem) => item.id)
+        : [],
+    );
 
-  return (
-<Surface
-  block={{
-    ...block,
-    appearance: {
-      ...block.appearance,
-      backgroundColor:
-        block.appearance?.backgroundColor === "transparent"
+    const formStyle = getContainerTextStyle(block.data.style, designKey);
+
+    const sectionStyle =
+      ((block.data as any).sectionStyle ?? {}) as React.CSSProperties;
+
+    const questionStyle = getContainerTextStyle(
+      (block.data as any).questionStyle ?? block.data.style,
+      designKey,
+    );
+
+    const answerStyle = getContainerTextStyle(
+      (block.data as any).answerStyle ?? block.data.style,
+      designKey,
+    );
+
+    const sectionBackgroundColor =
+      sectionStyle.backgroundColor && sectionStyle.backgroundColor !== "transparent"
+        ? sectionStyle.backgroundColor
+        : sectionStyle.backgroundColor === "transparent"
           ? "transparent"
-          : block.appearance?.backgroundColor,
-      borderColor: block.appearance?.borderColor,
-      borderWidth: block.appearance?.borderWidth,
-      borderRadius: block.appearance?.borderRadius,
-    },
-  }}
-  designKey={designKey}
-  className={
-    block.appearance?.backgroundColor === "transparent"
-      ? ""
-      : getSoftSurfaceClass(designKey)
+          : isLightDesign(designKey)
+            ? "#ffffff"
+            : "rgba(255,255,255,0.05)";
+
+    function toggleItem(itemId: string) {
+      if (behavior === "always-open") return;
+
+      setOpenIds((prev) => {
+        const isOpen = prev.includes(itemId);
+
+        if (behavior === "accordion-single") {
+          return isOpen ? [] : [itemId];
+        }
+
+        return isOpen
+          ? prev.filter((id) => id !== itemId)
+          : [...prev, itemId];
+      });
+    }
+
+    return (
+      <Surface
+        block={{
+          ...block,
+          appearance: {
+            ...block.appearance,
+            backgroundColor:
+              block.appearance?.backgroundColor === "transparent"
+                ? "transparent"
+                : block.appearance?.backgroundColor,
+            borderColor: block.appearance?.borderColor,
+            borderWidth: block.appearance?.borderWidth,
+            borderRadius: block.appearance?.borderRadius,
+          },
+        }}
+        designKey={designKey}
+        className={
+          block.appearance?.backgroundColor === "transparent"
+            ? ""
+            : getSoftSurfaceClass(designKey)
+        }
+      >
+        <div style={formStyle}>FAQs</div>
+
+        <div className="mt-3 space-y-2">
+          {block.data.items.map((item: FaqItem) => {
+            const isOpen =
+              behavior === "always-open" || openIds.includes(item.id);
+
+            return (
+              <div
+                key={item.id}
+                className="rounded-lg border p-3"
+                style={{
+                  backgroundColor: sectionBackgroundColor,
+                  borderColor:
+                    (sectionStyle as any).borderColor ||
+                    (isLightDesign(designKey)
+                      ? "#e5e7eb"
+                      : "rgba(255,255,255,0.10)"),
+                  borderWidth:
+                    typeof (sectionStyle as any).borderWidth === "number"
+                      ? `${(sectionStyle as any).borderWidth}px`
+                      : ((sectionStyle as any).borderWidth ?? "1px"),
+                  borderStyle: "solid",
+                  borderRadius:
+                    typeof (sectionStyle as any).borderRadius === "number"
+                      ? `${(sectionStyle as any).borderRadius}px`
+                      : ((sectionStyle as any).borderRadius ?? "0.5rem"),
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => toggleItem(item.id)}
+                  className="flex w-full items-center justify-between gap-3 text-left"
+                  style={questionStyle}
+                >
+                  <span>{item.question}</span>
+
+                  {showIcons && behavior !== "always-open" ? (
+                    <span
+                      className="shrink-0 transition-transform duration-200"
+                      style={{
+                        transform: isOpen ? "rotate(90deg)" : "rotate(0deg)",
+                      }}
+                    >
+                      ›
+                    </span>
+                  ) : null}
+                </button>
+
+                {isOpen ? (
+                  <div className="mt-2" style={answerStyle}>
+                    {item.answer}
+                  </div>
+                ) : null}
+              </div>
+            );
+          })}
+        </div>
+      </Surface>
+    );
   }
->
-      <div style={formStyle}>
-        FAQs
-      </div>
 
-      <div className="mt-3 space-y-2">
-        {block.data.items.map((item: FaqItem) => (
-          <div
-            key={item.id}
-            className="rounded-lg border p-3"
-            style={{
-              backgroundColor: sectionBackgroundColor,
-              borderColor:
-                (sectionStyle as any).borderColor ||
-                (isLightDesign(designKey) ? "#e5e7eb" : "rgba(255,255,255,0.10)"),
-              borderWidth:
-                typeof (sectionStyle as any).borderWidth === "number"
-                  ? `${(sectionStyle as any).borderWidth}px`
-                  : ((sectionStyle as any).borderWidth ?? "1px"),
-              borderStyle: "solid",
-              borderRadius:
-                typeof (sectionStyle as any).borderRadius === "number"
-                  ? `${(sectionStyle as any).borderRadius}px`
-                  : ((sectionStyle as any).borderRadius ?? "0.5rem"),
-            }}
-          >
-            <div style={questionStyle}>{item.question}</div>
-
-            <div className="mt-1" style={answerStyle}>
-              {item.answer}
-            </div>
-          </div>
-        ))}
-      </div>
-    </Surface>
-  );
+  return <FaqLive />;
 }
 
 function getThreadBadgeClass(designKey?: string) {

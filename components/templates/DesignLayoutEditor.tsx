@@ -4791,31 +4791,78 @@ if (block.type === "gallery") {
       );
     }
 
-    if (block.type === "faq") {
-      return (
-        <div className="h-full w-full overflow-auto rounded-xl">
-          <div className="space-y-2 p-2">
-            {block.data.items.length ? (
-              block.data.items.map((faqItem) => (
-                <div
-                  key={faqItem.id}
-                  className="rounded-xl border border-neutral-200 bg-white/60 p-2"
-                >
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      focusInspectorForBlock({
-                        type: "faq-question",
-                        blockId: block.id,
-                        itemId: faqItem.id,
-                      });
-                    }}
-                    className="block w-full text-left text-sm font-medium text-neutral-900"
-                  >
-                    {faqItem.question || "Question"}
-                  </button>
+if (block.type === "faq") {
+  const behavior =
+    ((block.data as any).behavior as
+      | "always-open"
+      | "accordion"
+      | "accordion-single"
+      | undefined) ?? "always-open";
 
+  const showIcons = (block.data as any).showIcons !== false;
+  const sectionStyle = ((block.data as any).sectionStyle ?? {}) as any;
+
+  const questionStyle = getInlineTextStyle(
+    ((block.data as any).questionStyle ?? block.data.style ?? {}) as TextStyle,
+  );
+
+  const answerStyle = getInlineTextStyle(
+    ((block.data as any).answerStyle ?? block.data.style ?? {}) as TextStyle,
+  );
+
+  const sectionBackgroundColor =
+    sectionStyle.backgroundColor === "transparent"
+      ? "transparent"
+      : sectionStyle.backgroundColor ?? "rgba(255,255,255,0.6)";
+
+  const openAll = behavior === "always-open";
+
+  return (
+    <div className="h-full w-full overflow-auto rounded-xl">
+      <div className="space-y-2 p-2">
+        {block.data.items.length ? (
+          block.data.items.map((faqItem) => {
+            const isOpen = openAll;
+
+            return (
+              <div
+                key={faqItem.id}
+                className="rounded-xl border p-2"
+                style={{
+                  backgroundColor: sectionBackgroundColor,
+                  borderColor: sectionStyle.borderColor ?? "#e5e7eb",
+                  borderWidth:
+                    typeof sectionStyle.borderWidth === "number"
+                      ? `${sectionStyle.borderWidth}px`
+                      : sectionStyle.borderWidth ?? "1px",
+                  borderStyle: "solid",
+                  borderRadius:
+                    typeof sectionStyle.borderRadius === "number"
+                      ? `${sectionStyle.borderRadius}px`
+                      : sectionStyle.borderRadius ?? "0.75rem",
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    focusInspectorForBlock({
+                      type: "faq-question",
+                      blockId: block.id,
+                      itemId: faqItem.id,
+                    });
+                  }}
+                  className="flex w-full items-center justify-between gap-3 text-left text-sm font-medium"
+                  style={questionStyle}
+                >
+                  <span>{faqItem.question || "Question"}</span>
+
+                  {showIcons && behavior !== "always-open" ? (
+                    <span className="shrink-0">›</span>
+                  ) : null}
+                </button>
+
+                {isOpen ? (
                   <button
                     type="button"
                     onClick={(e) => {
@@ -4826,26 +4873,29 @@ if (block.type === "gallery") {
                         itemId: faqItem.id,
                       });
                     }}
-                    className="mt-2 block w-full text-left text-sm text-neutral-700"
+                    className="mt-2 block w-full text-left text-sm"
+                    style={answerStyle}
                   >
                     {faqItem.answer || "Answer"}
                   </button>
-                </div>
-              ))
-            ) : (
-              <div
-                className="h-full w-full cursor-text"
-                onClick={(e) => {
-                  e.stopPropagation();
-                }}
-              >
-                <BlockRenderer block={block} designKey={designKey} />
+                ) : null}
               </div>
-            )}
+            );
+          })
+        ) : (
+          <div
+            className="h-full w-full cursor-text"
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+          >
+            <BlockRenderer block={block} designKey={designKey} />
           </div>
-        </div>
-      );
-    }
+        )}
+      </div>
+    </div>
+  );
+}
 
     if (block.type === "thread") {
       return (
@@ -6806,7 +6856,7 @@ return (
       title="FAQ style target"
     >
       <option value="form">Form</option>
-      <option value="section">Section</option>
+      <option value="section">Q&A Section</option>
       <option value="question">Section: Question</option>
       <option value="answer">Section: Answer</option>
     </select>
@@ -9145,6 +9195,58 @@ isItemSelected={(blockId, nextSelection) =>
 {selectedBlock?.type === "faq" ? (
                   <div id="inspector-faq" className={inspectorCardClass()}>
                     <div className={inspectorLabelClass()}>FAQ</div>
+
+                    <div className="mt-4">
+  <div className={inspectorLabelClass()}>FAQ Behavior</div>
+
+  <select
+    value={(selectedBlock.data as any).behavior ?? "always-open"}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "faq"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                behavior: e.target.value as
+                  | "always-open"
+                  | "accordion"
+                  | "accordion-single",
+              },
+            },
+      )
+    }
+    className={inspectorInputClass()}
+  >
+    <option value="always-open">Always Open</option>
+    <option value="accordion">Collapse / Expand</option>
+    <option value="accordion-single">Only One Open at a Time</option>
+  </select>
+</div>
+
+<div className="mt-4">
+  <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+    <input
+      type="checkbox"
+      checked={(selectedBlock.data as any).showIcons !== false}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "faq"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  showIcons: e.target.checked,
+                },
+              },
+        )
+      }
+    />
+    Show Chevron Icons
+  </label>
+</div>
 
                     <div className="mt-4 space-y-3">
                       {selectedBlock.data.items.map((faqItem: FaqItem) => (
