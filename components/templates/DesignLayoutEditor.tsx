@@ -1155,6 +1155,10 @@ const [progressBarStyleTarget, setProgressBarStyleTarget] = useState<
   "background" | "bar" | "scope" | "context"
 >("background");
 
+const [faqStyleTarget, setFaqStyleTarget] = useState<
+  "form" | "section" | "question" | "answer"
+>("form");
+
 const selectedStyle =
   selectedBlockFromDraft?.type === "rsvp"
     ? selectedRsvpElementKey === "form"
@@ -2070,6 +2074,36 @@ function applyFillColor(value: string) {
     return;
   }
 
+  if (selectedBlock?.type === "faq") {
+  updateSelectedBlock((block) => {
+    if (block.type !== "faq") return block;
+
+    if (faqStyleTarget === "section") {
+      return {
+        ...block,
+        data: {
+          ...block.data,
+          sectionStyle: {
+            ...((block.data as any).sectionStyle ?? {}),
+            backgroundColor: value,
+          },
+        },
+      };
+    }
+
+    return {
+      ...block,
+      appearance: {
+        ...block.appearance,
+        backgroundColor: value,
+      },
+    };
+  });
+
+  pushRecentColor(value);
+  return;
+}
+
   if (selectedBlock?.type === "countdown" && countdownStyleTarget === "tiles") {
     updateSelectedBlock((block) =>
       block.type !== "countdown"
@@ -2178,6 +2212,26 @@ function applyBorderColor(value: string) {
     pushRecentColor(value);
     return;
   }
+
+  if (selectedBlock?.type === "faq" && faqStyleTarget === "section") {
+  updateSelectedBlock((block) =>
+    block.type !== "faq"
+      ? block
+      : {
+          ...block,
+          data: {
+            ...block.data,
+            sectionStyle: {
+              ...((block.data as any).sectionStyle ?? {}),
+              borderColor: value,
+            },
+          },
+        },
+  );
+
+  pushRecentColor(value);
+  return;
+}
 
   applyAppearancePatch({ borderColor: value });
   pushRecentColor(value);
@@ -2290,6 +2344,43 @@ function applyStylePatch(patch: Partial<TextStyle>) {
     }));
     return;
   }
+
+  if (selectedBlock?.type === "faq") {
+  setDraft((prev) => ({
+    ...prev,
+    blocks: prev.blocks.map((block) =>
+      block.id === selectedBlock.id && block.type === "faq"
+        ? {
+            ...block,
+            data: {
+              ...block.data,
+              ...(faqStyleTarget === "question"
+                ? {
+                    questionStyle: {
+                      ...((block.data as any).questionStyle ?? block.data.style ?? {}),
+                      ...patch,
+                    },
+                  }
+                : faqStyleTarget === "answer"
+                  ? {
+                      answerStyle: {
+                        ...((block.data as any).answerStyle ?? block.data.style ?? {}),
+                        ...patch,
+                      },
+                    }
+                  : {
+                      style: {
+                        ...(block.data.style ?? {}),
+                        ...patch,
+                      },
+                    }),
+            },
+          }
+        : block,
+    ),
+  }));
+  return;
+}
 
   if (selectedBlock?.type === "cta") {
     setDraft((prev) => ({
@@ -6699,6 +6790,30 @@ return (
             </select>
           </>
         ) : null}
+
+        {selectedBlock?.type === "faq" ? (
+  <>
+    <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
+
+    <select
+      value={faqStyleTarget}
+      onChange={(e) =>
+        setFaqStyleTarget(
+          e.target.value as "form" | "section" | "question" | "answer",
+        )
+      }
+      className={topBarFieldClass("w-[150px]")}
+      title="FAQ style target"
+    >
+      <option value="form">Form</option>
+      <option value="section">Section</option>
+      <option value="question">Section: Question</option>
+      <option value="answer">Section: Answer</option>
+    </select>
+  </>
+) : null}
+
+
           <div className="mx-1 h-8 w-px shrink-0 bg-white/15" />
 
           <button

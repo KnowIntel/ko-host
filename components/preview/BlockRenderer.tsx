@@ -2691,13 +2691,47 @@ function renderFaq(
   block: Extract<MicrositeBlock, { type: "faq" }>,
   designKey?: string,
 ) {
+  const formStyle = getContainerTextStyle(block.data.style, designKey);
+  const sectionStyle = ((block.data as any).sectionStyle ?? {}) as React.CSSProperties;
+  const questionStyle = getContainerTextStyle(
+    (block.data as any).questionStyle ?? block.data.style,
+    designKey,
+  );
+  const answerStyle = getContainerTextStyle(
+    (block.data as any).answerStyle ?? block.data.style,
+    designKey,
+  );
+
+  const sectionBackgroundColor =
+    sectionStyle.backgroundColor && sectionStyle.backgroundColor !== "transparent"
+      ? sectionStyle.backgroundColor
+      : isLightDesign(designKey)
+        ? "#ffffff"
+        : "rgba(255,255,255,0.05)";
+
   return (
-    <Surface
-      block={block}
-      designKey={designKey}
-      className={getSoftSurfaceClass(designKey)}
-    >
-      <div style={getContainerTextStyle(block.data.style, designKey)}>
+<Surface
+  block={{
+    ...block,
+    appearance: {
+      ...block.appearance,
+      backgroundColor:
+        block.appearance?.backgroundColor === "transparent"
+          ? "transparent"
+          : block.appearance?.backgroundColor,
+      borderColor: block.appearance?.borderColor,
+      borderWidth: block.appearance?.borderWidth,
+      borderRadius: block.appearance?.borderRadius,
+    },
+  }}
+  designKey={designKey}
+  className={
+    block.appearance?.backgroundColor === "transparent"
+      ? ""
+      : getSoftSurfaceClass(designKey)
+  }
+>
+      <div style={formStyle}>
         FAQs
       </div>
 
@@ -2705,20 +2739,26 @@ function renderFaq(
         {block.data.items.map((item: FaqItem) => (
           <div
             key={item.id}
-            className={[
-              "rounded-lg border p-3",
-              isLightDesign(designKey)
-                ? "border-neutral-200 bg-white"
-                : "border-white/10 bg-white/5",
-            ].join(" ")}
+            className="rounded-lg border p-3"
+            style={{
+              backgroundColor: sectionBackgroundColor,
+              borderColor:
+                (sectionStyle as any).borderColor ||
+                (isLightDesign(designKey) ? "#e5e7eb" : "rgba(255,255,255,0.10)"),
+              borderWidth:
+                typeof (sectionStyle as any).borderWidth === "number"
+                  ? `${(sectionStyle as any).borderWidth}px`
+                  : ((sectionStyle as any).borderWidth ?? "1px"),
+              borderStyle: "solid",
+              borderRadius:
+                typeof (sectionStyle as any).borderRadius === "number"
+                  ? `${(sectionStyle as any).borderRadius}px`
+                  : ((sectionStyle as any).borderRadius ?? "0.5rem"),
+            }}
           >
-            <div style={getContainerTextStyle(block.data.style, designKey)}>
-              {item.question}
-            </div>
-            <div
-              className="mt-1"
-              style={getContainerTextStyle(block.data.style, designKey)}
-            >
+            <div style={questionStyle}>{item.question}</div>
+
+            <div className="mt-1" style={answerStyle}>
               {item.answer}
             </div>
           </div>
