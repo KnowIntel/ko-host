@@ -98,52 +98,69 @@ const [slugStatus, setSlugStatus] = useState<
 >("idle");
 const [slugStatusMessage, setSlugStatusMessage] = useState("");
 
-  useEffect(() => {
+useEffect(() => {
+  let cancelled = false;
+
+  async function loadDraft() {
     setLoadingDraft(true);
 
     try {
-      const raw = window.localStorage.getItem(storageKey);
+      const res = await fetch(
+      `/api/dashboard/drafts/latest?templateKey=${encodeURIComponent(
+        templateKey,
+      )}&designKey=${encodeURIComponent(designKey)}`,
+      {
+        method: "GET",
+        cache: "no-store",
+      });
 
-      if (!raw) {
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok || !data?.draft) {
         setDraft(null);
         setTitle(templateDef.defaultDraft?.title || templateDef.title || "");
         setSlugSuggestion(
           templateDef.defaultDraft?.slugSuggestion ||
             slugify(templateDef.title || templateKey),
         );
-        setMessage("No saved builder draft was found for this template/design.");
+        setMessage("No builder draft found. Save your draft first.");
         return;
       }
 
-      const parsed = JSON.parse(raw) as BuilderDraft;
-      setDraft(parsed);
+      const parsed = data.draft as BuilderDraft;
 
-      const resolvedTitle =
-        (parsed.title || "").trim() ||
-        templateDef.defaultDraft?.title ||
-        templateDef.title ||
-        "";
+      if (!cancelled) {
+        setDraft(parsed);
 
-      const resolvedSlug =
-        (parsed.slugSuggestion || "").trim() ||
-        templateDef.defaultDraft?.slugSuggestion ||
-        slugify(resolvedTitle || templateDef.title || templateKey);
+        const resolvedTitle =
+          (parsed.title || "").trim() ||
+          templateDef.defaultDraft?.title ||
+          templateDef.title ||
+          "";
 
-      setTitle(resolvedTitle);
-      setSlugSuggestion(resolvedSlug);
-      setMessage("");
+        const resolvedSlug =
+          (parsed.slugSuggestion || "").trim() ||
+          templateDef.defaultDraft?.slugSuggestion ||
+          slugify(resolvedTitle || templateDef.title || templateKey);
+
+        setTitle(resolvedTitle);
+        setSlugSuggestion(resolvedSlug);
+        setMessage("");
+      }
     } catch {
       setDraft(null);
-      setTitle(templateDef.defaultDraft?.title || templateDef.title || "");
-      setSlugSuggestion(
-        templateDef.defaultDraft?.slugSuggestion ||
-          slugify(templateDef.title || templateKey),
-      );
-      setMessage("Saved draft could not be loaded.");
+      setMessage("Failed to load draft.");
     } finally {
-      setLoadingDraft(false);
+      if (!cancelled) setLoadingDraft(false);
     }
-  }, [storageKey, templateDef, templateKey]);
+  }
+
+  loadDraft();
+
+  return () => {
+    cancelled = true;
+  };
+}, [templateDef, templateKey]);
 
   function handleTitleChange(value: string) {
     setTitle(value);
@@ -187,40 +204,40 @@ useEffect(() => {
   setSlugStatus("checking");
   setSlugStatusMessage("Checking availability...");
 
-  const timer = window.setTimeout(async () => {
-    try {
-        const res = await fetch(
-        `/api/microsites/check-slug?slug=${encodeURIComponent(safeSlug)}`,
-        {
-            method: "GET",
-            cache: "no-store",
-        },
-        );
+const timer = window.setTimeout(async () => {
+  try {
+    const res = await fetch(
+      `/api/microsites/check-slug?slug=${encodeURIComponent(safeSlug)}`,
+      {
+        method: "GET",
+        cache: "no-store",
+      },
+    );
 
-      const data = await res.json().catch(() => ({}));
+    const data = await res.json().catch(() => ({}));
 
-      if (!res.ok) {
-        setSlugStatus("error");
-        setSlugStatusMessage(data?.error || "Could not check availability.");
-        return;
-      }
-
-      if (data?.available) {
-        setSlugStatus("available");
-        setSlugStatusMessage("This microsite name is available.");
-        } else {
-        setSlugStatus("taken");
-        setSlugStatusMessage(
-            data?.reason === "reserved"
-            ? "That microsite name is currently reserved."
-            : "That microsite name is already taken.",
-        );
-        }
-    } catch {
+    if (!res.ok) {
       setSlugStatus("error");
-      setSlugStatusMessage("Could not check availability.");
+      setSlugStatusMessage(data?.error || "Could not check availability.");
+      return;
     }
-  }, 400);
+
+    if (data?.available) {
+      setSlugStatus("available");
+      setSlugStatusMessage("This microsite name is available.");
+    } else {
+      setSlugStatus("taken");
+      setSlugStatusMessage(
+        data?.reason === "reserved"
+          ? "That microsite name is currently reserved."
+          : "That microsite name is already taken.",
+      );
+    }
+  } catch {
+    setSlugStatus("error");
+    setSlugStatusMessage("Could not check availability.");
+  }
+}, 400);
 
   return () => {
     window.clearTimeout(timer);

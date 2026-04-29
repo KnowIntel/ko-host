@@ -1114,166 +1114,176 @@ function renderCta(
   block: Extract<MicrositeBlock, { type: "cta" }>,
   designKey?: string,
 ) {
-  const appearance = getAppearanceStyle(block);
-  const style = getContainerTextStyle(block.data.style, designKey);
-  const buttonStyleType = (block.data as typeof block.data & {
-    styleType?: "solid" | "outline" | "soft";
-  }).styleType ?? "solid";
+  function CtaButtonLive() {
+    const [submitted, setSubmitted] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
 
-  const justifyContent =
-    block.data.style?.align === "left"
-      ? "flex-start"
-      : block.data.style?.align === "right"
-        ? "flex-end"
-        : "center";
+    const appearance = getAppearanceStyle(block);
+    const style = getContainerTextStyle(block.data.style, designKey);
+    const buttonStyleType =
+      ((block.data as any).styleType as "solid" | "outline" | "soft" | undefined) ??
+      "solid";
 
-  const solidStyle: React.CSSProperties = {
-    background:
-      appearance.backgroundColor && appearance.backgroundColor !== "transparent"
-        ? appearance.backgroundColor
-        : "#111827",
-    color: style.color || "#ffffff",
-    borderColor: appearance.borderColor || "transparent",
-    borderWidth: appearance.borderWidth,
-    borderStyle: appearance.borderStyle,
-    borderRadius: appearance.borderRadius,
-  };
+    const submittedText =
+      ((block.data as any).submittedText as string | undefined) || "Submitted";
 
-  const outlineStyle: React.CSSProperties = {
-    background: "transparent",
-    color: style.color || appearance.borderColor || "#111827",
-    borderColor: appearance.borderColor || "#111827",
-    borderWidth:
-      typeof appearance.borderWidth === "string"
-        ? appearance.borderWidth
-        : "1px",
-    borderStyle: "solid",
-    borderRadius: appearance.borderRadius,
-  };
+    const justifyContent =
+      block.data.style?.align === "left"
+        ? "flex-start"
+        : block.data.style?.align === "right"
+          ? "flex-end"
+          : "center";
 
-  const softStyle: React.CSSProperties = {
-    background:
-      appearance.backgroundColor && appearance.backgroundColor !== "transparent"
-        ? appearance.backgroundColor
-        : "rgba(17, 24, 39, 0.10)",
-    color: style.color || "#111827",
-    borderColor: appearance.borderColor || "transparent",
-    borderWidth: appearance.borderWidth,
-    borderStyle: appearance.borderStyle,
-    borderRadius: appearance.borderRadius,
-  };
+    const solidStyle: React.CSSProperties = {
+      background:
+        submitted
+          ? "#16a34a"
+          : appearance.backgroundColor && appearance.backgroundColor !== "transparent"
+            ? appearance.backgroundColor
+            : "#111827",
+      color: style.color || "#ffffff",
+      borderColor: submitted ? "#16a34a" : appearance.borderColor || "transparent",
+      borderWidth: appearance.borderWidth,
+      borderStyle: appearance.borderStyle,
+      borderRadius: appearance.borderRadius,
+    };
 
-  const variantStyle =
-    buttonStyleType === "outline"
-      ? outlineStyle
-      : buttonStyleType === "soft"
-        ? softStyle
-        : solidStyle;
+    const outlineStyle: React.CSSProperties = {
+      background: submitted ? "#dcfce7" : "transparent",
+      color: submitted ? "#166534" : style.color || appearance.borderColor || "#111827",
+      borderColor: submitted ? "#16a34a" : appearance.borderColor || "#111827",
+      borderWidth:
+        typeof appearance.borderWidth === "string"
+          ? appearance.borderWidth
+          : "1px",
+      borderStyle: "solid",
+      borderRadius: appearance.borderRadius,
+    };
 
-  const handleLinkedFieldSubmit = async () => {
-    const fields = Array.from(
-      document.querySelectorAll<
-        HTMLInputElement | HTMLTextAreaElement
-      >(`[data-linked-button-id="${block.id}"]`),
-    );
+    const softStyle: React.CSSProperties = {
+      background:
+        submitted
+          ? "#dcfce7"
+          : appearance.backgroundColor && appearance.backgroundColor !== "transparent"
+            ? appearance.backgroundColor
+            : "rgba(17, 24, 39, 0.10)",
+      color: submitted ? "#166534" : style.color || "#111827",
+      borderColor: submitted ? "#16a34a" : appearance.borderColor || "transparent",
+      borderWidth: appearance.borderWidth,
+      borderStyle: appearance.borderStyle,
+      borderRadius: appearance.borderRadius,
+    };
 
-    if (!fields.length) return;
+    const variantStyle =
+      buttonStyleType === "outline"
+        ? outlineStyle
+        : buttonStyleType === "soft"
+          ? softStyle
+          : solidStyle;
 
-    const missingRequired = fields.find(
-      (field) =>
-        field.dataset.required === "true" && !field.value.trim(),
-    );
+    async function handleLinkedFieldSubmit() {
+      if (submitting) return;
 
-    if (missingRequired) {
-      missingRequired.focus();
-      return;
-    }
+      const fields = Array.from(
+        document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>(
+          `[data-linked-button="${block.id}"]`,
+        ),
+      );
 
-    const message = fields
-      .map((field) => {
+      if (!fields.length) {
+        if (block.data.buttonUrl?.trim()) {
+          window.open(normalizePreviewHref(block.data.buttonUrl), "_blank");
+        }
+        return;
+      }
+
+      const missingRequired = fields.find(
+        (field) => field.dataset.required === "true" && !field.value.trim(),
+      );
+
+      if (missingRequired) {
+        missingRequired.focus();
+        return;
+      }
+
+      const values = fields.map((field) => {
         const label = field.dataset.fieldLabel || "Field";
-        return `${label}: ${field.value.trim()}`;
-      })
-      .join("<|>");
+        return {
+          label,
+          value: field.value.trim(),
+        };
+      });
 
-    console.log("General Submission:", message);
+      const message = values
+        .map((field) => `${field.label}: ${field.value}`)
+        .join("<|>");
 
-    fields.forEach((field) => {
-      field.value = "";
-    });
-  };
+      try {
+        setSubmitting(true);
 
-  const buttonNode = (
-    <button
-      type="button"
-      onClick={handleLinkedFieldSubmit}
-      className="inline-flex items-center justify-center px-5 py-2"
-      style={{
-        ...style,
-        ...variantStyle,
-      }}
-    >
-      {block.data.buttonText || "Button"}
-    </button>
-  );
-
-  return (
-<div className="h-full w-full">
-  <div
-    className="flex h-full w-full px-4 py-2"
-    style={{
-      justifyContent,
-      textAlign: block.data.style?.align ?? "center",
-    }}
-  >
-    <button
-      type="button"
-      className="inline-flex items-center justify-center px-5 py-2"
-      style={{
-        ...style,
-        ...variantStyle,
-        cursor: "pointer",
-      }}
-      onClick={async () => {
-        const formFields = document.querySelectorAll(
-          `[data-linked-button="${block.id}"]`
-        );
-
-        const values: string[] = [];
-
-        formFields.forEach((el) => {
-          if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) {
-            if (el.value?.trim()) {
-              values.push(el.value.trim());
-            }
-          }
+        const res = await fetch("/api/public/general-submissions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            micrositeId: (block as any).micrositeId,
+            pageSlug: "home",
+            linkedButtonId: block.id,
+            message,
+            fields: values,
+          }),
         });
 
-        if (values.length === 0) return;
+        if (!res.ok) throw new Error("Submission failed");
 
-        const message = values.join("<|>");
+        setSubmitted(true);
 
-        try {
-          await fetch("/api/public/submit-general", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              message,
-              hostname: window.location.hostname,
-            }),
-          });
-        } catch (err) {
-          console.error("Submission failed", err);
-        }
-      }}
-    >
-      {block.data.buttonText || "Submit"}
-    </button>
-  </div>
-</div>
-  );
+        fields.forEach((field) => {
+          field.value = "";
+        });
+
+        window.setTimeout(() => {
+          setSubmitted(false);
+        }, 2500);
+      } catch {
+        setSubmitted(false);
+      } finally {
+        setSubmitting(false);
+      }
+    }
+
+    return (
+      <div className="h-full w-full">
+        <div
+          className="flex h-full w-full px-4 py-2"
+          style={{
+            justifyContent,
+            textAlign: block.data.style?.align ?? "center",
+          }}
+        >
+          <button
+            type="button"
+            onClick={handleLinkedFieldSubmit}
+            disabled={submitting}
+            className="inline-flex cursor-pointer items-center justify-center px-5 py-2 transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-70"
+            style={{
+              ...style,
+              ...variantStyle,
+            }}
+          >
+            {submitted
+              ? submittedText
+              : submitting
+                ? "Submitting..."
+                : block.data.buttonText || "Button"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return <CtaButtonLive />;
 }
 
 function renderCountdown(

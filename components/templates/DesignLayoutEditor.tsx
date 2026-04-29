@@ -13128,6 +13128,30 @@ isItemSelected={(blockId, nextSelection) =>
         className="mt-1 h-10 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-900 outline-none"
       />
     </label>
+    <label className="block">
+  <span className="text-xs font-medium text-neutral-600">
+    Submitted Text
+  </span>
+  <input
+    type="text"
+    value={(selectedBlock.data as any).submittedText || "Submitted"}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type === "cta"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                submittedText: e.target.value,
+              },
+            }
+          : block,
+      )
+    }
+    placeholder="Submitted"
+    className="mt-1 h-10 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-900 outline-none"
+  />
+</label>
   </div>
 ) : null}
 
