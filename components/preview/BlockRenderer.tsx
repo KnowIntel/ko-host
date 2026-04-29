@@ -1218,39 +1218,51 @@ function renderCta(
         .map((field) => `${field.label}: ${field.value}`)
         .join("<|>");
 
-      try {
-        setSubmitting(true);
+try {
+  setSubmitting(true);
 
-        const res = await fetch("/api/public/general-submissions", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            micrositeId: (block as any).micrositeId,
-            pageSlug: "home",
-            linkedButtonId: block.id,
-            message,
-            fields: values,
-          }),
-        });
+  const startedAt = Date.now();
 
-        if (!res.ok) throw new Error("Submission failed");
+  const res = await fetch("/api/public/general-submissions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      micrositeId: (block as any).micrositeId ?? "",
+      hostname:
+        typeof window !== "undefined" ? window.location.hostname : "",
+      pageSlug:
+        typeof window !== "undefined"
+          ? window.location.pathname.split("/").filter(Boolean)[1] || "home"
+          : "home",
+      linkedButtonId: block.id,
+      message,
+      fields: values,
+    }),
+  });
 
-        setSubmitted(true);
+  const elapsed = Date.now() - startedAt;
+  const remaining = Math.max(0, 2000 - elapsed);
 
-        fields.forEach((field) => {
-          field.value = "";
-        });
+  await new Promise((resolve) => window.setTimeout(resolve, remaining));
 
-        window.setTimeout(() => {
-          setSubmitted(false);
-        }, 2500);
-      } catch {
-        setSubmitted(false);
-      } finally {
-        setSubmitting(false);
-      }
+  if (!res.ok) throw new Error("Submission failed");
+
+  setSubmitted(true);
+
+  fields.forEach((field) => {
+    field.value = "";
+  });
+
+  window.setTimeout(() => {
+    setSubmitted(false);
+  }, 2500);
+} catch {
+  setSubmitted(false);
+} finally {
+  setSubmitting(false);
+}
     }
 
     return (
