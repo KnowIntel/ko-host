@@ -1189,12 +1189,23 @@ const selectedStyle =
           : (selectedBlockFromDraft.data.headingStyle ??
               selectedBlockFromDraft.data.style ??
               {})
+        : selectedBlockFromDraft?.type === "faq"
+          ? faqStyleTarget === "question"
+            ? (((selectedBlockFromDraft.data as any).questionStyle ??
+                selectedBlockFromDraft.data.style ??
+                {}) as TextStyle)
+            : faqStyleTarget === "answer"
+              ? (((selectedBlockFromDraft.data as any).answerStyle ??
+                  selectedBlockFromDraft.data.style ??
+                  {}) as TextStyle)
+              : (selectedBlockFromDraft.data.style ?? {})
         : selectedBlockFromDraft?.type === "countdown"
           ? countdownStyleTarget === "tiles"
             ? (((selectedBlockFromDraft.data as any).tileStyle ??
                 selectedBlockFromDraft.data.style ??
                 {}) as TextStyle)
             : (selectedBlockFromDraft.data.style ?? {})
+            
           : selectedBlockFromDraft?.type === "cart" ||
             selectedBlockFromDraft?.type === "checkout" ||
             selectedBlockFromDraft?.type === "text_fx" ||
@@ -2075,34 +2086,60 @@ function applyFillColor(value: string) {
   }
 
   if (selectedBlock?.type === "faq") {
-  updateSelectedBlock((block) => {
-    if (block.type !== "faq") return block;
+    updateSelectedBlock((block) => {
+      if (block.type !== "faq") return block;
 
-    if (faqStyleTarget === "section") {
+      if (faqStyleTarget === "section") {
+        return {
+          ...block,
+          data: {
+            ...block.data,
+            sectionStyle: {
+              ...((block.data as any).sectionStyle ?? {}),
+              backgroundColor: value,
+            },
+          },
+        };
+      }
+
+      if (faqStyleTarget === "question") {
+        return {
+          ...block,
+          data: {
+            ...block.data,
+            questionStyle: {
+              ...((block.data as any).questionStyle ?? block.data.style ?? {}),
+              backgroundColor: value,
+            },
+          },
+        };
+      }
+
+      if (faqStyleTarget === "answer") {
+        return {
+          ...block,
+          data: {
+            ...block.data,
+            answerStyle: {
+              ...((block.data as any).answerStyle ?? block.data.style ?? {}),
+              backgroundColor: value,
+            },
+          },
+        };
+      }
+
       return {
         ...block,
-        data: {
-          ...block.data,
-          sectionStyle: {
-            ...((block.data as any).sectionStyle ?? {}),
-            backgroundColor: value,
-          },
+        appearance: {
+          ...block.appearance,
+          backgroundColor: value,
         },
       };
-    }
+    });
 
-    return {
-      ...block,
-      appearance: {
-        ...block.appearance,
-        backgroundColor: value,
-      },
-    };
-  });
-
-  pushRecentColor(value);
-  return;
-}
+    pushRecentColor(value);
+    return;
+  }
 
   if (selectedBlock?.type === "countdown" && countdownStyleTarget === "tiles") {
     updateSelectedBlock((block) =>
@@ -2191,6 +2228,7 @@ function recentColorButtonClass() {
 function eyedropperButtonClass() {
   return "inline-flex h-9 min-w-9 items-center justify-center rounded-md border border-white/10 bg-white/5 px-2 text-xs text-white transition hover:bg-white/10";
 }
+
 
 function applyBorderColor(value: string) {
   if (selectedBlock?.type === "progress_bar" && progressBarStyleTarget === "scope") {
@@ -7635,11 +7673,13 @@ return (
 
 <button
   type="button"
-  className={topBarButtonClass(
-    selectedBlock?.type === "rsvp"
+className={topBarButtonClass(
+  selectedBlock?.type === "faq" && faqStyleTarget === "section"
+    ? ((selectedBlock.data as any).sectionStyle?.backgroundColor === "transparent")
+    : selectedBlock?.type === "rsvp"
       ? selectedRsvpElementBackgroundColor === "transparent"
       : selectedAppearance.backgroundColor === "transparent",
-  )}
+)}
   onClick={() => {
 if (selectedBlock?.type === "rsvp" && selectedRsvpElementKey === "form") {
   applyAppearancePatch({ backgroundColor: "transparent" });
