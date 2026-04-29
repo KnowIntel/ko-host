@@ -587,17 +587,24 @@ function openDeleteModalFromContext() {
     }
   }
 
-  async function duplicateActiveBuilderPage() {
+async function duplicateActiveBuilderPage() {
   const currentPage = orderedPages.find((page) => page.id === activePageId);
 
   if (!currentPage || orderedPages.length >= 5) return;
 
-  const nextTitle = `${currentPage.title || currentPage.slug || "Page"} Copy`;
-  const nextSlugBase = normalizeSlug(nextTitle) || `${currentPage.slug || "page"}-copy`;
+  const baseTitle = currentPage.title || currentPage.slug || "Page";
+  const nextTitle = `${baseTitle} Copy`;
+  const nextSlugBase =
+  normalizeSlug(nextTitle) || `${currentPage.slug || "page"}-copy`;
 
   try {
     setCreatingPage(true);
     setCreatePageError("");
+
+    // Save current page first so duplicate uses latest canvas state.
+    if (editorDraft && activePageId) {
+      await saveBuilderDraft(editorDraft);
+    }
 
     const res = await fetch(`/api/dashboard/microsites/${id}/pages`, {
       method: "POST",
@@ -613,14 +620,20 @@ function openDeleteModalFromContext() {
 
     if (!res.ok) {
       setCreatePageError(data?.error || "Failed to duplicate page.");
+      setSaveMessage(data?.error || "Failed to duplicate page.");
       return;
     }
 
-    if (data?.page) {
-      setPages((prev) => [...prev, data.page]);
-      setActivePageId(data.page.id);
-      setSaveMessage("Page duplicated.");
+    const refreshedPages = await loadPages(id);
+    const nextPage = data?.page as PageRow | undefined;
+
+    if (nextPage?.id) {
+      setActivePageId(nextPage.id);
+    } else if (refreshedPages.length > 0) {
+      setActivePageId(refreshedPages[refreshedPages.length - 1].id);
     }
+
+    setSaveMessage("Page duplicated.");
   } finally {
     setCreatingPage(false);
   }
