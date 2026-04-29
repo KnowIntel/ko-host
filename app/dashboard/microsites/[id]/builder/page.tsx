@@ -590,7 +590,15 @@ function openDeleteModalFromContext() {
 async function duplicateActiveBuilderPage() {
   const currentPage = orderedPages.find((page) => page.id === activePageId);
 
-  if (!currentPage || orderedPages.length >= 5) return;
+  if (!currentPage) {
+  setSaveMessage("Select a page to duplicate.");
+  return;
+}
+
+if (orderedPages.length >= 5) {
+  setSaveMessage("Page limit reached. You can only have up to 5 pages.");
+  return;
+}
 
   const baseTitle = currentPage.title || currentPage.slug || "Page";
   const nextTitle = `${baseTitle} Copy`;
@@ -716,11 +724,9 @@ return (
   microsite={site}
 
   onOpenAddPage={openAddPageModal}
-
   onDuplicateActivePage={() => {
-    void duplicateActiveBuilderPage();
-  }}
-
+  void duplicateActiveBuilderPage();
+}}
   onRemoveActivePage={openDeleteActivePage}
 
   onRenameActivePage={() => {
