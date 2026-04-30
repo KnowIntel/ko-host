@@ -1077,7 +1077,10 @@ const [selectedRsvpElementKey, setSelectedRsvpElementKey] = useState<
   const [copied, setCopied] = useState(false);
 
   const rsvpHeadingInputRef = useRef<HTMLInputElement | null>(null);
-  const currentSiteName = draft.title?.trim() || "Untitled Site";
+const currentSiteName =
+  activePageSlug && activePageSlug !== "home"
+    ? activePageSlug
+    : "Home";
 const fallbackSiteSlug = `${templateKey || "site"}-${designKey || "draft"}`
   .toLowerCase()
   .replace(/[^a-z0-9]+/g, "-")
