@@ -14108,9 +14108,9 @@ className={[
           handleSendBackward(tool.id);
           setSelection(selectionFromCanvasBlockId(tool.id));
         }}
-        title="Move down one layer"
+        title="Move up one layer"
       >
-        ↓
+        ↑
       </button>
 
       <button
@@ -14121,9 +14121,9 @@ className={[
           handleBringForward(tool.id);
           setSelection(selectionFromCanvasBlockId(tool.id));
         }}
-        title="Move up one layer"
+        title="Move down one layer"
       >
-        ↑
+        ↓
       </button>
 
       <button
