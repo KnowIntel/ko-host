@@ -5968,16 +5968,43 @@ function nudgeSelectedBlock(
     return applyCanvasItemsToDraft(prev, moved);
   });
 }
+const handleJumpToFullCanvasView = () => {
+  topBarScrollRef.current?.scrollIntoView({
+    behavior: "smooth",
+    block: "start",
+  });
+};
 
 return (
   <div className="flex min-h-screen flex-col bg-[#f3f3f3] pt-4">
     <div className="border-b border-black/10 bg-white px-6 py-3">
-      <div className="text-xs font-semibold uppercase tracking-[0.14em] text-neutral-500">
-        Editing
-      </div>
+      
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <div className="text-xs font-semibold uppercase tracking-[0.14em] text-neutral-500">
+            Editing
+          </div>
 
-      <div className="mt-1 text-2xl font-semibold text-neutral-900">
-        {currentSiteName}
+          <div className="mt-1 text-2xl font-semibold text-neutral-900">
+            {currentSiteName}
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleJumpToFullCanvasView}
+          className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-neutral-300 bg-white shadow-sm hover:bg-neutral-50"
+          title="Full canvas view"
+          aria-label="Full canvas view"
+        >
+          <Image
+            src="/icons/icon_full_page_canvas.png"
+            alt=""
+            width={24}
+            height={24}
+            className="pointer-events-none h-6 w-6 object-contain"
+          />
+        </button>
       </div>
 
       <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-neutral-500">

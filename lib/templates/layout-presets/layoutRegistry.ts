@@ -9,6 +9,7 @@ import roastLayouts from "./templates/roast_session";
 import open_houseLayouts from "./templates/open_house";
 import productLaunchLayouts from "./templates/product_launch";
 import crowdfundingLayouts from "./templates/crowdfunding_campaign";
+import resumeprofileLayouts from "./templates/resume_profile";
 import betaTestingLayouts from "./templates/beta_testing";
 import blankLayout from "./layouts/blank";
 
@@ -23,6 +24,7 @@ const registry: Record<string, TemplateLayoutRegistry> = {
   roast_session: roastLayouts,
   product_launch: productLaunchLayouts,
   crowdfunding_campaign: crowdfundingLayouts,
+  resume_profile: resumeprofileLayouts,
   beta_testing: betaTestingLayouts,
 };
 
