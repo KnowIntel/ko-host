@@ -14303,7 +14303,15 @@ className={[
                     ? "border-amber-500 bg-amber-500 text-white"
                     : "border-blue-600 bg-blue-600 text-white hover:bg-blue-700",
           ].join(" ")}
-          onClick={() => void onSaveDraft?.(draft)}
+          onClick={async () => {
+            const zoomBeforeSave = canvasZoom;
+
+            await onSaveDraft?.(draft);
+
+            window.requestAnimationFrame(() => {
+              setCanvasZoom(zoomBeforeSave);
+            });
+          }}
           disabled={saveState === "saving"}
         >
           {saveState === "saving"
