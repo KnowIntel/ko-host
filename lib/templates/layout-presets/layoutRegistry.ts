@@ -2,30 +2,26 @@ import type { TemplateLayoutRegistry } from "./types";
 import weddingLayouts from "./templates/wedding";
 import babyShowerLayouts from "./templates/baby_shower";
 import memorial_tributeLayouts from "./templates/memorial_tribute";
-import enthusiast_networking from "./templates/enthusiast_networking";
+import enthusiastNetworkingLayouts from "./templates/enthusiast_networking";
 import birthdayLayouts from "./templates/birthday";
 import reunionLayouts from "./templates/reunion";
 import roastLayouts from "./templates/roast_session";
 import open_houseLayouts from "./templates/open_house";
 import productLaunchLayouts from "./templates/product_launch";
 import crowdfundingLayouts from "./templates/crowdfunding_campaign";
-import resumeprofileLayouts from "./templates/resume_profile";
-import betaTestingLayouts from "./templates/beta_testing";
 import blankLayout from "./layouts/blank";
 
 const registry: Record<string, TemplateLayoutRegistry> = {
   wedding_rsvp: weddingLayouts,
   baby_shower: babyShowerLayouts,
   memorial_tribute: memorial_tributeLayouts,
-  enthusiast_networking: enthusiast_networking,
+  enthusiast_networking: enthusiastNetworkingLayouts,
   birthday_party: birthdayLayouts,
   family_reunion: reunionLayouts,
   open_house: open_houseLayouts,
   roast_session: roastLayouts,
   product_launch: productLaunchLayouts,
   crowdfunding_campaign: crowdfundingLayouts,
-  resume_profile: resumeprofileLayouts,
-  beta_testing: betaTestingLayouts,
 };
 
 

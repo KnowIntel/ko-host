@@ -1345,27 +1345,59 @@ function renderCountdown(
 
     const variant = block.data.styleVariant ?? "default";
     const showRings = block.data.showRings !== false;
-    const appearanceStyle = getAppearanceStyle(block);
+const animationStyle =
+  ((block.data as any).animationStyle as "pulse" | "flip" | "slide" | undefined) ?? "pulse";
 
-    if (!target || Number.isNaN(target)) {
-      return (
-        <Surface block={block} designKey={designKey} className={getSoftSurfaceClass(designKey)}>
-          {block.data.heading ? (
-            <div
-              className={["uppercase tracking-[0.14em]", getMutedTextClass(designKey)].join(" ")}
-              style={style}
-            >
-              {block.data.heading}
-            </div>
-          ) : null}
+const countdownAnimationTransform = (baseTransform: string) => {
+  if (!isTicking) return baseTransform;
 
-          <div className="mt-2" style={style}>
-            Set target date
-          </div>
-        </Surface>
-      );
-    }
+  if (animationStyle === "flip") {
+    return `${baseTransform} rotateX(-78deg)`;
+  }
 
+  if (animationStyle === "slide") {
+    return `${baseTransform} translateY(-14px)`;
+  }
+
+  return `${baseTransform} scale(1.08)`;
+};
+
+const countdownAnimationTransition =
+  animationStyle === "flip"
+    ? "transform 260ms cubic-bezier(0.34, 1.56, 0.64, 1), opacity 180ms ease"
+    : animationStyle === "slide"
+      ? "transform 180ms ease, opacity 180ms ease"
+      : "transform 200ms ease";
+
+const countdownAnimationExtraStyle =
+  animationStyle === "flip"
+    ? {
+        transformStyle: "preserve-3d" as const,
+        backfaceVisibility: "hidden" as const,
+        transformOrigin: "center center",
+      }
+    : {};
+
+const appearanceStyle = getAppearanceStyle(block);
+
+if (!target || Number.isNaN(target)) {
+  return (
+    <Surface block={block} designKey={designKey} className={getSoftSurfaceClass(designKey)}>
+      {block.data.heading ? (
+        <div
+          className={["uppercase tracking-[0.14em]", getMutedTextClass(designKey)].join(" ")}
+          style={style}
+        >
+          {block.data.heading}
+        </div>
+      ) : null}
+
+      <div className="mt-2" style={style}>
+        Set target date
+      </div>
+    </Surface>
+  );
+}
     const diff = target - tickNow;
 
     if (diff <= 0) {
@@ -1424,6 +1456,7 @@ function renderCountdown(
                   ].join(" ")}
                   style={{
                     backgroundColor: tileBackgroundColor,
+                    perspective: "700px",
                   }}
                 >
                   {showRings ? (
@@ -1468,8 +1501,10 @@ function renderCountdown(
                     ].join(" ")}
                     style={{
                       ...tileStyle,
+                      ...countdownAnimationExtraStyle,
                       fontSize: Math.max(20, Number(tileStyle.fontSize) || 20),
-                      transform:
+                      transition: countdownAnimationTransition,
+                      transform: countdownAnimationTransform(
                         seconds < 10
                           ? isTicking
                             ? "scale(1.15)"
@@ -1477,6 +1512,7 @@ function renderCountdown(
                           : isTicking
                             ? "scale(1.08)"
                             : "scale(1)",
+                      ),
                     }}
                   >
                     {part.value}
@@ -1519,6 +1555,7 @@ function renderCountdown(
                   className="relative flex flex-col items-center rounded-xl px-3 py-2"
                   style={{
                     backgroundColor: tileBackgroundColor,
+                    perspective: "700px",
                   }}
                 >
                   {showRings ? (
@@ -1568,8 +1605,11 @@ function renderCountdown(
                     ].join(" ")}
                     style={{
                       ...tileStyle,
+                      ...countdownAnimationExtraStyle,
+                      display: "inline-block",
                       fontSize: Math.max(36, Number(tileStyle.fontSize) || 36),
-                      transform:
+                      transition: countdownAnimationTransition,
+                      transform: countdownAnimationTransform(
                         seconds < 10
                           ? isTicking
                             ? "scale(1.15)"
@@ -1577,6 +1617,7 @@ function renderCountdown(
                           : isTicking
                             ? "scale(1.08)"
                             : "scale(1)",
+                      ),
                     }}
                   >
                     {part.value}
@@ -1615,14 +1656,17 @@ function renderCountdown(
                 className="flex items-baseline gap-1 rounded-lg px-2 py-1"
                 style={{
                   backgroundColor: tileBackgroundColor,
+                  perspective: "700px",
                 }}
               >
                 <span
                   className="font-semibold transition-transform duration-200"
                   style={{
                     ...tileStyle,
+                    ...countdownAnimationExtraStyle,
                     display: "inline-block",
-                    transform: isTicking ? "scale(1.05)" : "scale(1)",
+                    transition: countdownAnimationTransition,
+                    transform: countdownAnimationTransform(isTicking ? "scale(1.05)" : "scale(1)"),
                   }}
                 >
                   {part.value}
@@ -4237,35 +4281,65 @@ function renderTextFx(
   const text = block.data.text || "TextFX";
   const style = getContainerTextStyle(block.data.style, designKey);
 
-  const fx = block.data.fx || {};
+  const fx = (block.data.fx || {}) as any;
   const mode = fx.mode ?? "straight";
   const intensity = fx.intensity ?? 50;
   const rotation = fx.rotation ?? 0;
   const opacity = fx.opacity ?? 1;
+  const letterScaleX = Math.max(0.5, Math.min(2, Number(fx.letterScaleX ?? 1)));
 
-  const outline = fx.outline || {};
-  const outlineEnabled = outline.enabled;
-  const outlineColor = outline.color || "#000000";
-  const outlineWidth = outline.width ?? 2;
+  const shadowEnabled = fx.shadowEnabled === true;
+  const shadowColor = fx.shadowColor ?? "#000000";
+  const shadowOffsetX = fx.shadowOffsetX ?? 2;
+  const shadowOffsetY = fx.shadowOffsetY ?? 2;
+  const shadowBlur = fx.shadowBlur ?? 4;
 
-  if (mode === "straight") {
-    return (
-      <div className="h-full w-full p-2" style={getAppearanceStyle(block)}>
-        <div
-          style={{
-            ...style,
-            transform: `rotate(${rotation}deg)`,
-            opacity,
-            WebkitTextStroke: outlineEnabled
-              ? `${outlineWidth}px ${outlineColor}`
-              : undefined,
-          }}
-        >
-          {text}
-        </div>
+  const outlineEnabled = fx.outlineEnabled === true;
+  const outlineColor = fx.outlineColor ?? "#000000";
+  const outlineWidth = fx.outlineWidth ?? 2;
+
+  const textShadow = shadowEnabled
+    ? `${shadowOffsetX}px ${shadowOffsetY}px ${shadowBlur}px ${shadowColor}`
+    : undefined;
+
+if (mode === "straight") {
+  const textAlign = (block.data.style?.align ?? "center") as "left" | "center" | "right";
+
+  const justifyContent =
+    textAlign === "left"
+      ? "flex-start"
+      : textAlign === "right"
+        ? "flex-end"
+        : "center";
+
+  return (
+    <div
+      className="flex h-full w-full p-2"
+      style={{
+        ...getAppearanceStyle(block),
+        justifyContent,
+        alignItems: "center",
+        textAlign,
+      }}
+    >
+      <div
+        style={{
+          ...style,
+          display: "inline-block",
+          transform: `rotate(${rotation}deg) scaleX(${letterScaleX})`,
+          transformOrigin: "center center",
+          opacity,
+          textShadow,
+          WebkitTextStroke: outlineEnabled
+            ? `${outlineWidth}px ${outlineColor}`
+            : undefined,
+        }}
+      >
+        {text}
       </div>
-    );
-  }
+    </div>
+  );
+}
 
   const fontSize =
     typeof block.data.style?.fontSize === "number"
@@ -4282,6 +4356,11 @@ function renderTextFx(
   const centerX = viewBoxWidth / 2;
   const centerY = topPadding + radius;
 
+  const estimatedTextLength = Math.max(
+    fontSize * text.length * 0.62 * letterScaleX,
+    fontSize,
+  );
+
   const stableTextFxKey = [
     block.type,
     block.data.text || "",
@@ -4289,9 +4368,16 @@ function renderTextFx(
     intensity,
     rotation,
     opacity,
+    letterScaleX,
     block.data.style?.fontFamily || "",
     block.data.style?.fontSize || "",
     block.data.style?.color || "",
+    outlineEnabled ? outlineColor : "",
+    outlineEnabled ? outlineWidth : "",
+    shadowEnabled ? shadowColor : "",
+    shadowEnabled ? shadowOffsetX : "",
+    shadowEnabled ? shadowOffsetY : "",
+    shadowEnabled ? shadowBlur : "",
   ].join("|");
 
   const pathId = `textfx-path-${stableTextFxKey
@@ -4351,6 +4437,16 @@ function renderTextFx(
           fontSize={style.fontSize}
           fontWeight={style.fontWeight}
           fontStyle={style.fontStyle}
+          stroke={outlineEnabled ? outlineColor : undefined}
+          strokeWidth={outlineEnabled ? outlineWidth : undefined}
+          paintOrder={outlineEnabled ? "stroke fill" : undefined}
+          filter={
+            shadowEnabled
+              ? `drop-shadow(${shadowOffsetX}px ${shadowOffsetY}px ${shadowBlur}px ${shadowColor})`
+              : undefined
+          }
+          textLength={estimatedTextLength}
+          lengthAdjust="spacingAndGlyphs"
         >
           <textPath href={`#${pathId}`} startOffset="50%" textAnchor="middle">
             {text}

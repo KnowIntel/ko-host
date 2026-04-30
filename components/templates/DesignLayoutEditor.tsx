@@ -3075,6 +3075,15 @@ function updateTextFx(
     intensity: number;
     rotation: number;
     opacity: number;
+    letterScaleX: number;
+    shadowEnabled: boolean;
+    shadowColor: string;
+    shadowOffsetX: number;
+    shadowOffsetY: number;
+    shadowBlur: number;
+    outlineEnabled: boolean;
+    outlineColor: string;
+    outlineWidth: number;
   }>,
 ) {
   if (!selectedBlock || selectedBlock.type !== "text_fx") return;
@@ -5876,39 +5885,40 @@ if (block.type === "rich_text") {
           className="min-h-full text-sm text-neutral-800 whitespace-pre-wrap outline-none"
           style={richTextStyle}
           onClick={(e) => e.stopPropagation()}
-          onInput={(e) => {
-            const html = e.currentTarget.innerHTML;
+ref={(node) => {
+  if (!node) return;
+  if (document.activeElement === node) return;
 
-            updateSelectedBlock((currentBlock) =>
-              currentBlock.type !== "rich_text"
-                ? currentBlock
-                : {
-                    ...currentBlock,
-                    data: {
-                      ...currentBlock.data,
-                      content: html,
-                    },
-                  },
-            );
-          }}
-          onBlur={(e) => {
-            const html = e.currentTarget.innerHTML;
+  const nextHtml = block.data.content || "";
 
-            updateSelectedBlock((currentBlock) =>
-              currentBlock.type !== "rich_text"
-                ? currentBlock
-                : {
-                    ...currentBlock,
-                    data: {
-                      ...currentBlock.data,
-                      content: html,
-                    },
-                  },
-            );
-          }}
-          dangerouslySetInnerHTML={{
-            __html: block.data.content || "",
-          }}
+  if (node.innerHTML !== nextHtml) {
+    node.innerHTML = nextHtml;
+  }
+}}
+onInput={(e) => {
+  const html = normalizeRichTextHtml(
+    (e.currentTarget as HTMLDivElement).innerHTML,
+  );
+
+  setIsRichTextEditorEmpty(isRichTextHtmlEmpty(html));
+}}
+onBlur={(e) => {
+  const html = normalizeRichTextHtml(
+    (e.currentTarget as HTMLDivElement).innerHTML,
+  );
+
+  updateSelectedBlock((currentBlock) =>
+    currentBlock.type !== "rich_text"
+      ? currentBlock
+      : {
+          ...currentBlock,
+          data: {
+            ...currentBlock.data,
+            content: html,
+          },
+        },
+  );
+}}
         />
       </div>
     </div>
@@ -8070,73 +8080,184 @@ isItemSelected={(blockId, nextSelection) =>
   </div>
 ) : null}
 
-    {selectedTextFxBlock ? (
-      <div className={inspectorCardClass()}>
-        <div className={inspectorLabelClass()}>TextFX Controls</div>
+{selectedTextFxBlock ? (
+  <div className={inspectorCardClass()}>
+    <div className={inspectorLabelClass()}>TextFX Controls</div>
 
-        <div className="mt-4 grid grid-cols-1 gap-4">
+    <div className="mt-4 grid grid-cols-1 gap-4">
+      <div>
+        <div className={inspectorLabelClass()}>Curve</div>
+        <input
+          type="number"
+          min={0}
+          max={100}
+          value={(selectedTextFxBlock.data.fx as any)?.intensity ?? 50}
+          onChange={(e) =>
+            updateTextFx({
+              intensity: Math.max(0, Math.min(100, Number(e.target.value) || 0)),
+            })
+          }
+          className={inspectorInputClass()}
+        />
+      </div>
+
+      <div>
+        <div className={inspectorLabelClass()}>Rotate</div>
+        <input
+          type="number"
+          min={-180}
+          max={180}
+          value={(selectedTextFxBlock.data.fx as any)?.rotation ?? 0}
+          onChange={(e) =>
+            updateTextFx({
+              rotation: Math.max(-180, Math.min(180, Number(e.target.value) || 0)),
+            })
+          }
+          className={inspectorInputClass()}
+        />
+      </div>
+
+      <div>
+        <div className={inspectorLabelClass()}>Opacity (%)</div>
+        <input
+          type="number"
+          min={0}
+          max={100}
+          value={Math.round(((selectedTextFxBlock.data.fx as any)?.opacity ?? 1) * 100)}
+          onChange={(e) =>
+            updateTextFx({
+              opacity: Math.max(0, Math.min(100, Number(e.target.value) || 0)) / 100,
+            })
+          }
+          className={inspectorInputClass()}
+        />
+      </div>
+
+      <div>
+        <div className={inspectorLabelClass()}>Letter Width (%)</div>
+        <input
+          type="number"
+          min={50}
+          max={200}
+          value={Math.round(((selectedTextFxBlock.data.fx as any)?.letterScaleX ?? 1) * 100)}
+          onChange={(e) =>
+            updateTextFx({
+              letterScaleX:
+                Math.max(50, Math.min(200, Number(e.target.value) || 100)) / 100,
+            })
+          }
+          className={inspectorInputClass()}
+        />
+      </div>
+
+      <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
+        <label className="flex items-center gap-3 text-sm font-medium text-neutral-800">
+          <input
+            type="checkbox"
+            checked={(selectedTextFxBlock.data.fx as any)?.shadowEnabled === true}
+            onChange={(e) => updateTextFx({ shadowEnabled: e.target.checked })}
+          />
+          Text Shadow
+        </label>
+
+        <div className="mt-3 grid grid-cols-2 gap-3">
           <div>
-            <div className={inspectorLabelClass()}>Curve</div>
+            <div className={inspectorLabelClass()}>Shadow Color</div>
+            <input
+              type="color"
+              value={(selectedTextFxBlock.data.fx as any)?.shadowColor ?? "#000000"}
+              onChange={(e) => updateTextFx({ shadowColor: e.target.value })}
+              className={inspectorInputClass()}
+            />
+          </div>
+
+          <div>
+            <div className={inspectorLabelClass()}>Blur</div>
             <input
               type="number"
               min={0}
-              max={100}
-              value={selectedTextFxBlock.data.fx?.intensity ?? 50}
+              max={40}
+              value={(selectedTextFxBlock.data.fx as any)?.shadowBlur ?? 4}
               onChange={(e) =>
-                updateTextFx({
-                  intensity: Math.max(
-                    0,
-                    Math.min(100, Number(e.target.value) || 0),
-                  ),
-                })
+                updateTextFx({ shadowBlur: Math.max(0, Number(e.target.value) || 0) })
               }
               className={inspectorInputClass()}
             />
           </div>
 
           <div>
-            <div className={inspectorLabelClass()}>Rotate</div>
+            <div className={inspectorLabelClass()}>Offset X</div>
             <input
               type="number"
-              min={-180}
-              max={180}
-              value={selectedTextFxBlock.data.fx?.rotation ?? 0}
-              onChange={(e) =>
-                updateTextFx({
-                  rotation: Math.max(
-                    -180,
-                    Math.min(180, Number(e.target.value) || 0),
-                  ),
-                })
-              }
+              min={-50}
+              max={50}
+              value={(selectedTextFxBlock.data.fx as any)?.shadowOffsetX ?? 2}
+              onChange={(e) => updateTextFx({ shadowOffsetX: Number(e.target.value) || 0 })}
               className={inspectorInputClass()}
             />
           </div>
 
           <div>
-            <div className={inspectorLabelClass()}>Opacity (%)</div>
+            <div className={inspectorLabelClass()}>Offset Y</div>
             <input
               type="number"
-              min={0}
-              max={100}
-              value={Math.round(
-                (selectedTextFxBlock.data.fx?.opacity ?? 1) * 100,
-              )}
-              onChange={(e) =>
-                updateTextFx({
-                  opacity:
-                    Math.max(
-                      0,
-                      Math.min(100, Number(e.target.value) || 0),
-                    ) / 100,
-                })
-              }
+              min={-50}
+              max={50}
+              value={(selectedTextFxBlock.data.fx as any)?.shadowOffsetY ?? 2}
+              onChange={(e) => updateTextFx({ shadowOffsetY: Number(e.target.value) || 0 })}
               className={inspectorInputClass()}
             />
           </div>
         </div>
       </div>
-    ) : null}
+
+      <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
+        <label className="flex items-center gap-3 text-sm font-medium text-neutral-800">
+          <input
+            type="checkbox"
+            checked={(selectedTextFxBlock.data.fx as any)?.outlineEnabled === true}
+            onChange={(e) => updateTextFx({ outlineEnabled: e.target.checked })}
+          />
+          Text Outline
+        </label>
+
+        <div className="mt-3 grid grid-cols-2 gap-3">
+          <div>
+            <div className={inspectorLabelClass()}>Outline Color</div>
+            <input
+              type="color"
+              value={
+                (selectedTextFxBlock.data.fx as any)?.outlineColor
+                  ? String((selectedTextFxBlock.data.fx as any).outlineColor)
+                  : "#000000"
+              }
+              onChange={(e) => {
+                updateTextFx({ outlineColor: e.target.value });
+              }}
+              className={inspectorInputClass()}
+            />
+          </div>
+
+          <div>
+            <div className={inspectorLabelClass()}>Width</div>
+            <input
+              type="number"
+              min={0}
+              max={12}
+              value={Number((selectedTextFxBlock.data.fx as any)?.outlineWidth ?? 2)}
+              onChange={(e) => {
+                updateTextFx({
+                  outlineWidth: Math.max(0, Math.min(12, Number(e.target.value) || 0)),
+                });
+              }}
+              className={inspectorInputClass()}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+) : null}
   </>
 ) : null}
 
@@ -8889,10 +9010,7 @@ isItemSelected={(blockId, nextSelection) =>
                   ...block,
                   data: {
                     ...block.data,
-                    styleVariant: e.target.value as
-                      | "default"
-                      | "cards"
-                      | "hero",
+                    styleVariant: e.target.value as "default" | "cards" | "hero",
                   },
                 },
           )
@@ -8902,6 +9020,31 @@ isItemSelected={(blockId, nextSelection) =>
         <option value="default">Default</option>
         <option value="cards">Cards</option>
         <option value="hero">Hero</option>
+      </select>
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Animation Style</div>
+      <select
+        value={(selectedBlock.data as any).animationStyle ?? "pulse"}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "countdown"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    animationStyle: e.target.value as "pulse" | "flip" | "slide",
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      >
+        <option value="pulse">Pulse</option>
+        <option value="flip">Flip</option>
+        <option value="slide">Slide</option>
       </select>
     </div>
 
@@ -8929,9 +9072,7 @@ isItemSelected={(blockId, nextSelection) =>
     </div>
 
     <div className="mt-4">
-      <div className={inspectorLabelClass()}>
-        Heading (optional)
-      </div>
+      <div className={inspectorLabelClass()}>Heading (optional)</div>
       <input
         ref={countdownHeadingInputRef}
         type="text"
@@ -8977,9 +9118,7 @@ isItemSelected={(blockId, nextSelection) =>
     </div>
 
     <div className="mt-4">
-      <div className={inspectorLabelClass()}>
-        Completed Message
-      </div>
+      <div className={inspectorLabelClass()}>Completed Message</div>
       <input
         ref={countdownCompletedInputRef}
         type="text"
@@ -11980,98 +12119,74 @@ isItemSelected={(blockId, nextSelection) =>
         }}
       >
         <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            className={`px-2 py-1 text-xs rounded border ${
-              selectedBlock.data.style?.bold
-  ? "bg-white text-black border-2 border-black"
-  : "bg-white text-black border border-neutral-300 hover:bg-neutral-100"
-            }`}
-            onClick={() =>
-              withRichTextEditor((editor) => {
-                document.execCommand("bold");
-                updateSelectedBlock((block) =>
-                  block.type !== "rich_text"
-                    ? block
-                    : {
-                        ...block,
-                        data: {
-                          ...block.data,
-                          content: editor.innerHTML,
-                          style: {
-                            ...(block.data.style ?? {}),
-                            bold: !block.data.style?.bold,
-                          },
-                        },
-                      },
-                );
-              })
-            }
-          >
-            B
-          </button>
+<button
+  type="button"
+  className="px-2 py-1 text-xs rounded border bg-white text-black border-neutral-300 hover:bg-neutral-100"
+  onClick={() =>
+    withRichTextEditor((editor) => {
+      document.execCommand("bold");
+      updateSelectedBlock((block) =>
+        block.type !== "rich_text"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                content: normalizeRichTextHtml(editor.innerHTML),
+              },
+            },
+      );
+    })
+  }
+>
+  B
+</button>
 
-          <button
-            type="button"
-            className={`px-2 py-1 text-xs rounded border ${
-              selectedBlock.data.style?.italic
-  ? "bg-white text-black border-2 border-black"
-  : "bg-white text-black border border-neutral-300 hover:bg-neutral-100"
-            }`}
-            onClick={() =>
-              withRichTextEditor((editor) => {
-                document.execCommand("italic");
-                updateSelectedBlock((block) =>
-                  block.type !== "rich_text"
-                    ? block
-                    : {
-                        ...block,
-                        data: {
-                          ...block.data,
-                          content: editor.innerHTML,
-                          style: {
-                            ...(block.data.style ?? {}),
-                            italic: !block.data.style?.italic,
-                          },
-                        },
-                      },
-                );
-              })
-            }
-          >
-            I
-          </button>
+<button
+  type="button"
+  className="px-2 py-1 text-xs rounded border bg-white text-black border-neutral-300 hover:bg-neutral-100"
+  onClick={() =>
+    withRichTextEditor((editor) => {
+      document.execCommand("italic");
+      updateSelectedBlock((block) =>
+        block.type !== "rich_text"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                content: normalizeRichTextHtml(editor.innerHTML),
+              },
+            },
+      );
+    })
+  }
+>
+  I
+</button>
 
-          <button
-            type="button"
-            className={`px-2 py-1 text-xs rounded border ${
-              selectedBlock.data.style?.underline
-  ? "bg-white text-black border-2 border-black"
-  : "bg-white text-black border border-neutral-300 hover:bg-neutral-100"
-            }`}
-            onClick={() =>
-              withRichTextEditor((editor) => {
-                document.execCommand("underline");
-                updateSelectedBlock((block) =>
-                  block.type !== "rich_text"
-                    ? block
-                    : {
-                        ...block,
-                        data: {
-                          ...block.data,
-                          content: editor.innerHTML,
-                          style: {
-                            ...(block.data.style ?? {}),
-                            underline: !block.data.style?.underline,
-                          },
-                        },
-                      },
-                );
-              })
-            }
-          >
-            U
-          </button>
+<button
+  type="button"
+  className="px-2 py-1 text-xs rounded border bg-white text-black border-neutral-300 hover:bg-neutral-100"
+  onClick={() =>
+    withRichTextEditor((editor) => {
+      document.execCommand("underline");
+      updateSelectedBlock((block) =>
+        block.type !== "rich_text"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                content: normalizeRichTextHtml(editor.innerHTML),
+              },
+            },
+      );
+    })
+  }
+>
+  U
+</button>
 
           <button
             type="button"
@@ -12357,10 +12472,25 @@ isItemSelected={(blockId, nextSelection) =>
               document.execCommand("insertText", false, safeText);
             });
           }}
-          onInput={(e) => {
-            const html = (e.currentTarget as HTMLDivElement).innerHTML;
-            setIsRichTextEditorEmpty(isRichTextHtmlEmpty(html));
-          }}
+onInput={(e) => {
+  const html = normalizeRichTextHtml(
+    (e.currentTarget as HTMLDivElement).innerHTML,
+  );
+
+  setIsRichTextEditorEmpty(isRichTextHtmlEmpty(html));
+
+  updateSelectedBlock((block) =>
+    block.type !== "rich_text"
+      ? block
+      : {
+          ...block,
+          data: {
+            ...block.data,
+            content: html,
+          },
+        },
+  );
+}}
           onBlur={(e) => {
             const normalized = normalizeRichTextHtml(
               (e.currentTarget as HTMLDivElement).innerHTML,
@@ -12380,7 +12510,7 @@ isItemSelected={(blockId, nextSelection) =>
                   },
             );
           }}
-          className={`${inspectorTextareaClass()} min-h-[220px] relative z-20 cursor-text [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:ml-1`}
+          className={`${inspectorTextareaClass()} min-h-[220px] relative z-20 cursor-text [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:ml-1 [&_li]:text-[inherit] [&_li]:leading-[inherit] [&_span]:text-[inherit] [&_p]:text-[inherit]`}
           style={{
             textAlign: selectedBlock.data.style?.align ?? "left",
           }}
