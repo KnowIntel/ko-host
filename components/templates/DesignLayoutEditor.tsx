@@ -7689,18 +7689,32 @@ return (
 
 <button
   type="button"
-className={topBarButtonClass(
-  selectedBlock?.type === "faq" && faqStyleTarget === "section"
-    ? ((selectedBlock.data as any).sectionStyle?.backgroundColor === "transparent")
-    : selectedBlock?.type === "rsvp"
-      ? selectedRsvpElementBackgroundColor === "transparent"
-      : selectedAppearance.backgroundColor === "transparent",
-)}
+  className={topBarButtonClass(
+    selectedBlock?.type === "faq" && faqStyleTarget === "section"
+      ? ((selectedBlock.data as any).sectionStyle?.backgroundColor === "transparent")
+      : selectedBlock?.type === "rsvp"
+        ? selectedRsvpElementBackgroundColor === "transparent"
+        : selectedAppearance.backgroundColor === "transparent",
+  )}
   onClick={() => {
-if (selectedBlock?.type === "rsvp" && selectedRsvpElementKey === "form") {
-  applyAppearancePatch({ backgroundColor: "transparent" });
-  return;
-}
+    // ✅ FAQ SECTION (fix)
+    if (selectedBlock?.type === "faq" && faqStyleTarget === "section") {
+      updateSelectedBlock((block) =>
+        block.type !== "faq"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                sectionStyle: {
+                  ...((block.data as any).sectionStyle ?? {}),
+                  backgroundColor: "transparent",
+                },
+              },
+            },
+      );
+      return;
+    }
 
 if (selectedBlock?.type === "rsvp") {
   updateSelectedRsvpElementStyle((current) => ({
