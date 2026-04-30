@@ -150,17 +150,20 @@ const formatCurrency = (n: number) =>
   }).format(n);
 
 const FONT_FAMILY_MAP: Record<string, string> = {
+  // Core / system-mapped
   Inter: 'var(--font-inter), Inter, ui-sans-serif, system-ui, sans-serif',
   "DM Sans":
     'var(--font-dm-sans), "DM Sans", ui-sans-serif, system-ui, sans-serif',
   Poppins:
     'var(--font-poppins), Poppins, ui-sans-serif, system-ui, sans-serif',
+
   "Playfair Display":
     'var(--font-playfair-display), "Playfair Display", ui-serif, Georgia, serif',
   "Cormorant Garamond":
     'var(--font-cormorant), "Cormorant Garamond", ui-serif, Georgia, serif',
   "Great Vibes": 'var(--font-great-vibes), "Great Vibes", cursive',
 
+  // Script / invitation (use NEXT FONT INSTANCES)
   "Dancing Script": `${dancingScript.style.fontFamily}, cursive`,
   Pacifico: `${pacifico.style.fontFamily}, cursive`,
   Allura: `${allura.style.fontFamily}, cursive`,
@@ -170,6 +173,7 @@ const FONT_FAMILY_MAP: Record<string, string> = {
   Satisfy: `${satisfy.style.fontFamily}, cursive`,
   Tangerine: `${tangerine.style.fontFamily}, cursive`,
 
+  // Modern sans
   Montserrat:
     'var(--font-montserrat), Montserrat, ui-sans-serif, system-ui, sans-serif',
   Lato: 'var(--font-lato), Lato, ui-sans-serif, system-ui, sans-serif',
@@ -213,6 +217,7 @@ const FONT_FAMILY_MAP: Record<string, string> = {
   "IBM Plex Sans":
     'var(--font-ibm-plex-sans), "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif',
 
+  // Serif (use instances)
   Merriweather: `${merriweather.style.fontFamily}, ui-serif, Georgia, serif`,
   "Libre Baskerville": `${libreBaskerville.style.fontFamily}, ui-serif, Georgia, serif`,
   "Abril Fatface": `${abril.style.fontFamily}, ui-serif, Georgia, serif`,
@@ -225,6 +230,7 @@ const FONT_FAMILY_MAP: Record<string, string> = {
   "IBM Plex Serif":
     'var(--font-ibm-plex-serif), "IBM Plex Serif", ui-serif, Georgia, serif',
 
+  // Display / stylized (use instances ONLY — no duplicates)
   Anton: `${anton.style.fontFamily}, sans-serif`,
   Bangers: `${bangers.style.fontFamily}, cursive`,
   Orbitron: `${orbitron.style.fontFamily}, sans-serif`,

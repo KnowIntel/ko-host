@@ -60,15 +60,25 @@ export const PREVIEW_MESSAGE_TYPE = "ko-host-preview-draft";
 export const PREVIEW_READY_MESSAGE_TYPE = "ko-host-preview-ready";
 
 export const FONT_FAMILY_OPTIONS = [
+  "Anton",
+  "Bangers",
+  "Orbitron",
+  "Righteous",
+  "Alfa Slab One",
+  "Permanent Marker",
+  "Caveat",
+  "Indie Flower",
+  "Exo 2",
+  "Rajdhani",
+  "Teko",
+  "Abril Fatface",
   "inherit",
-
   "Inter",
   "DM Sans",
   "Poppins",
   "Playfair Display",
   "Cormorant Garamond",
   "Great Vibes",
-
   "Dancing Script",
   "Pacifico",
   "Allura",
@@ -77,7 +87,6 @@ export const FONT_FAMILY_OPTIONS = [
   "Playball",
   "Satisfy",
   "Tangerine",
-
   "Prata",
   "Marcellus",
   "Bodoni Moda",
@@ -86,7 +95,6 @@ export const FONT_FAMILY_OPTIONS = [
   "Merriweather",
   "Lora",
   "Crimson Text",
-
   "Arial",
   "Helvetica",
   "Georgia",
@@ -110,6 +118,7 @@ export const FONT_FAMILY_MAP: Record<string, string> = {
     'var(--font-cormorant), "Cormorant Garamond", ui-serif, Georgia, serif',
   "Great Vibes": 'var(--font-great-vibes), "Great Vibes", cursive',
 
+  // Script / invitation fonts
   "Dancing Script":
     'var(--font-dancing-script), "Dancing Script", cursive',
   Pacifico: 'var(--font-pacifico), Pacifico, cursive',
@@ -120,6 +129,7 @@ export const FONT_FAMILY_MAP: Record<string, string> = {
   Satisfy: 'var(--font-satisfy), Satisfy, cursive',
   Tangerine: 'var(--font-tangerine), Tangerine, cursive',
 
+  // Elegant serif fonts
   Prata: 'var(--font-prata), Prata, ui-serif, Georgia, serif',
   Marcellus: 'var(--font-marcellus), Marcellus, ui-serif, Georgia, serif',
   "Bodoni Moda":
@@ -133,6 +143,21 @@ export const FONT_FAMILY_MAP: Record<string, string> = {
   "Crimson Text":
     'var(--font-crimson-text), "Crimson Text", ui-serif, Georgia, serif',
 
+  // Display / stylized fonts (FIX)
+  Anton: "'Anton', sans-serif",
+  Bangers: "'Bangers', cursive",
+  Orbitron: "'Orbitron', sans-serif",
+  Righteous: "'Righteous', cursive",
+  "Alfa Slab One": "'Alfa Slab One', serif",
+  "Permanent Marker": "'Permanent Marker', cursive",
+  Caveat: "'Caveat', cursive",
+  "Indie Flower": "'Indie Flower', cursive",
+  "Exo 2": "'Exo 2', sans-serif",
+  Rajdhani: "'Rajdhani', sans-serif",
+  Teko: "'Teko', sans-serif",
+  "Abril Fatface": "'Abril Fatface', serif",
+
+  // System fonts
   Arial: "Arial, Helvetica, sans-serif",
   Helvetica: "Helvetica, Arial, sans-serif",
   Georgia: "Georgia, serif",

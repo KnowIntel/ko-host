@@ -338,7 +338,7 @@ function formatCurrency(value: number) {
 const FONT_FAMILY_OPTIONS = [
   "inherit",
 
-  // Existing
+  // Core
   "Inter",
   "DM Sans",
   "Poppins",
@@ -346,7 +346,7 @@ const FONT_FAMILY_OPTIONS = [
   "Cormorant Garamond",
   "Great Vibes",
 
-  // Added script / invitation fonts
+  // Script / invitation
   "Dancing Script",
   "Pacifico",
   "Allura",
@@ -356,7 +356,7 @@ const FONT_FAMILY_OPTIONS = [
   "Satisfy",
   "Tangerine",
 
-  // Elegant serif fonts
+  // Serif
   "Prata",
   "Marcellus",
   "Bodoni Moda",
@@ -366,6 +366,7 @@ const FONT_FAMILY_OPTIONS = [
   "Lora",
   "Crimson Text",
 
+  // Display
   "Anton",
   "Bangers",
   "Orbitron",
@@ -379,7 +380,7 @@ const FONT_FAMILY_OPTIONS = [
   "Teko",
   "Abril Fatface",
 
-  // System fonts
+  // System
   "Arial",
   "Helvetica",
   "Georgia",
@@ -391,6 +392,7 @@ const FONT_FAMILY_OPTIONS = [
 ] as const;
 
 const FONT_FAMILY_MAP: Record<string, string> = {
+  // Core
   Inter: 'var(--font-inter), Inter, ui-sans-serif, system-ui, sans-serif',
   "DM Sans":
     'var(--font-dm-sans), "DM Sans", ui-sans-serif, system-ui, sans-serif',
@@ -403,7 +405,7 @@ const FONT_FAMILY_MAP: Record<string, string> = {
     'var(--font-cormorant), "Cormorant Garamond", ui-serif, Georgia, serif',
   "Great Vibes": 'var(--font-great-vibes), "Great Vibes", cursive',
 
-  // Added script / invitation fonts
+  // Script
   "Dancing Script":
     'var(--font-dancing-script), "Dancing Script", cursive',
   Pacifico: 'var(--font-pacifico), Pacifico, cursive',
@@ -414,7 +416,7 @@ const FONT_FAMILY_MAP: Record<string, string> = {
   Satisfy: 'var(--font-satisfy), Satisfy, cursive',
   Tangerine: 'var(--font-tangerine), Tangerine, cursive',
 
-  // Added elegant serif fonts
+  // Serif
   Prata: 'var(--font-prata), Prata, ui-serif, Georgia, serif',
   Marcellus: 'var(--font-marcellus), Marcellus, ui-serif, Georgia, serif',
   "Bodoni Moda":
@@ -428,7 +430,21 @@ const FONT_FAMILY_MAP: Record<string, string> = {
   "Crimson Text":
     'var(--font-crimson-text), "Crimson Text", ui-serif, Georgia, serif',
 
-  // System fonts
+  // Display (IMPORTANT: match BlockRenderer names EXACTLY)
+  Anton: 'var(--font-anton), Anton, sans-serif',
+  Bangers: 'var(--font-bangers), Bangers, cursive',
+  Orbitron: 'var(--font-orbitron), Orbitron, sans-serif',
+  Righteous: 'var(--font-righteous), Righteous, cursive',
+  "Alfa Slab One": 'var(--font-alfa), "Alfa Slab One", serif',
+  "Permanent Marker": 'var(--font-marker), "Permanent Marker", cursive',
+  Caveat: 'var(--font-caveat), Caveat, cursive',
+  "Indie Flower": 'var(--font-indie), "Indie Flower", cursive',
+  "Exo 2": 'var(--font-exo), "Exo 2", sans-serif',
+  Rajdhani: 'var(--font-rajdhani), Rajdhani, sans-serif',
+  Teko: 'var(--font-teko), Teko, sans-serif',
+  "Abril Fatface": 'var(--font-abril), "Abril Fatface", serif',
+
+  // System
   Arial: "Arial, Helvetica, sans-serif",
   Helvetica: "Helvetica, Arial, sans-serif",
   Georgia: "Georgia, serif",
