@@ -9,14 +9,6 @@ import {
 import DesignCard from "@/components/designs/DesignCard";
 import { createDraftFromLayoutDefinition } from "@/lib/templates/layout-presets/layoutToDraft";
 
-      // AFTER CREATING DESIGN PRESETS, UPDATE THIS:
-import weddingModernDraft from "@/drafts/wedding/modern.draft";
-import weddingClassicDraft from "@/drafts/wedding/classic.draft";
-import playfulBirthdayDraft from "@/drafts/birthday/playful.draft";
-import grownBirthdayDraft from "@/drafts/birthday/grown.draft";
-import elegantBabyShowerDraft from "@/drafts/baby_shower/elegant.draft";
-import babyShowerPlayfulDraft from "@/drafts/baby_shower/playful.draft";
-
 function resolveTemplateFromRoute(rawTemplate: string) {
   const normalized = normalizeTemplateKey(rawTemplate);
 
@@ -61,29 +53,33 @@ export default async function CreateTemplateDesignPage({
 
       // AFTER CREATING DESIGN PRESETS, UPDATE THIS:
 const draftPageCountByTemplateDesignKey: Record<string, number> = {
-  "wedding_rsvp:modern": Array.isArray((weddingModernDraft as any).pages)
-    ? (weddingModernDraft as any).pages.length
-    : 1,
+  "wedding_rsvp:modern": 5,
+  "wedding_rsvp:classic": 3,
 
-  "wedding_rsvp:classic": Array.isArray((weddingClassicDraft as any).pages)
-    ? (weddingClassicDraft as any).pages.length
-    : 1,
+  "birthday_party:grown": 2,
+  "birthday_party:playful": 1,
 
-  "birthday_party:grown": Array.isArray((grownBirthdayDraft as any).pages)
-    ? (grownBirthdayDraft as any).pages.length
-    : 1,
+  "baby_shower:elegant": 1,
+  "baby_shower:playful": 3,
 
-  "birthday_party:playful": Array.isArray((playfulBirthdayDraft as any).pages)
-    ? (playfulBirthdayDraft as any).pages.length
-    : 1,
+  "family_reunion:warm": 1,
+  "family_reunion:casual": 1,
 
-  "baby_shower:elegant": Array.isArray((elegantBabyShowerDraft as any).pages)
-    ? (elegantBabyShowerDraft as any).pages.length
-    : 1,
+  "memorial_tribute:elegant": 1,
+  "memorial_tribute:soft": 1,
 
-  "baby_shower:playful": Array.isArray((babyShowerPlayfulDraft as any).pages)
-    ? (babyShowerPlayfulDraft as any).pages.length
-    : 1,
+  "open_house:signature": 1,
+
+  "product_launch:simplistic": 1,
+
+  "crowdfunding_campaign:elaborate": 1,
+
+  "resume_profile:prime": 1,
+
+  "beta_testing:professional": 4,
+
+  "enthusiast_networking:direct": 2,
+  "enthusiast_networking:showcase": 2,
 };
 
 const pageCount =
