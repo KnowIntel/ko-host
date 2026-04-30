@@ -9267,6 +9267,29 @@ isItemSelected={(blockId, nextSelection) =>
                     <div className={inspectorLabelClass()}>FAQ</div>
 
                     <div className="mt-4">
+  <div className={inspectorLabelClass()}>Heading</div>
+  <input
+    type="text"
+    value={(selectedBlock.data as any).heading ?? "FAQs"}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "faq"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                heading: e.target.value,
+              },
+            },
+      )
+    }
+    className={inspectorInputClass()}
+    placeholder="FAQs"
+  />
+</div>
+
+                    <div className="mt-4">
   <div className={inspectorLabelClass()}>FAQ Behavior</div>
 
   <select

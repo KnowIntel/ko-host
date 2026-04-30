@@ -2774,7 +2774,11 @@ function renderFaq(
             : getSoftSurfaceClass(designKey)
         }
       >
-        <div style={formStyle}>FAQs</div>
+        {((block.data as any).heading ?? "FAQs") ? (
+  <div style={formStyle}>
+    {(block.data as any).heading ?? "FAQs"}
+  </div>
+) : null}
 
         <div className="mt-3 space-y-2">
           {block.data.items.map((item: FaqItem) => {
