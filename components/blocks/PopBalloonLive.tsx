@@ -550,7 +550,7 @@ return (
         </span>
 
         <span className="pointer-events-none">
-          I understand this is a public interactive game and that my profile information may be visible to other participants and viewers.
+          I understand this is a test public interactive game and that my profile information may be visible to other participants and viewers.
         </span>
       </button>
 
