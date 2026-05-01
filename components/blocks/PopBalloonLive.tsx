@@ -463,29 +463,33 @@ return (
   <div className="mt-5 rounded-3xl border border-neutral-200 bg-neutral-50 p-4">
     <div className="text-sm font-bold">Host Login</div>
 
-    <div className="mt-2 flex gap-2">
-      <input
-        type="password"
-        value={hostCodeInput}
-        onChange={(e) => setHostCodeInput(e.target.value)}
-        placeholder="Enter host passcode"
-        className="flex-1 rounded-xl border border-neutral-300 px-3 py-2 text-sm"
-      />
+<form
+  className="mt-2 flex gap-2"
+  onSubmit={(e) => {
+    e.preventDefault();
 
-      <button
-        type="button"
-        onClick={() => {
-          if (hostCodeInput.trim() === (hostPasscode || "123456")) {
-setHostUnlocked(true);
-window.localStorage.setItem(hostSessionKey, "true");
-setHostCodeInput("");
-          }
-        }}
-        className="rounded-xl bg-neutral-950 px-4 py-2 text-sm font-semibold text-white"
-      >
-        Unlock
-      </button>
-    </div>
+    if (hostCodeInput.trim() === (hostPasscode || "123456")) {
+      setHostUnlocked(true);
+      window.localStorage.setItem(hostSessionKey, "true");
+      setHostCodeInput("");
+    }
+  }}
+>
+  <input
+    type="password"
+    value={hostCodeInput}
+    onChange={(e) => setHostCodeInput(e.target.value)}
+    placeholder="Enter host passcode"
+    className="flex-1 rounded-xl border border-neutral-300 px-3 py-2 text-sm"
+  />
+
+  <button
+    type="submit"
+    className="rounded-xl bg-neutral-950 px-4 py-2 text-sm font-semibold text-white"
+  >
+    Unlock
+  </button>
+</form>
   </div>
 ) : (
   <div className="mt-5 rounded-3xl border border-emerald-200 bg-emerald-50 p-4">
