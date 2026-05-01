@@ -246,7 +246,6 @@ useEffect(() => {
 }, [gameId]);
 
 async function joinLineup() {
-  if (!gameReady) return;
 
   const trimmedName = joinName.trim();
   const trimmedIntro = joinIntro.trim();
@@ -572,14 +571,15 @@ return (
 
         <button
           type="button"
-          onClick={async () => {
-            if (!joinConsent) return;
+onClick={async () => {
+  if (!joinConsent || !joinName.trim()) return;
 
-            await joinLineup();
-            setJoinModalOpen(false);
-            setJoinConsent(false);
-            setJoinSuccess(true);
-          }}
+  await joinLineup();
+
+  setJoinModalOpen(false);
+  setJoinConsent(false);
+  setJoinSuccess(true);
+}}
           disabled={!joinName.trim() || !joinConsent || lineupFull}
           className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
         >
