@@ -468,114 +468,118 @@ return (
     </div>
   ) : null}
 
-  {joinModalOpen ? (
-    <div className="fixed inset-0 z-[9999] flex items-start justify-center bg-black/40 px-4 pt-[10vh]">
-      <div className="w-full max-w-lg max-h-[80vh] overflow-y-auto rounded-3xl bg-white p-5 shadow-xl">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <div className="text-lg font-bold">Join the Lineup</div>
-            <div className="mt-1 text-sm text-neutral-500">
-              Add your info before entering the game.
-            </div>
+{joinModalOpen ? (
+  <div className="fixed inset-0 z-[9999] flex items-start justify-center bg-black/40 px-4 pt-[10vh]">
+    <div className="w-full max-w-lg max-h-[80vh] overflow-y-auto rounded-3xl bg-white p-5 shadow-xl">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <div className="text-lg font-bold">Join the Lineup</div>
+          <div className="mt-1 text-sm text-neutral-500">
+            Add your info before entering the game.
           </div>
-
-          <button
-            type="button"
-            onClick={() => setJoinModalOpen(false)}
-            className="rounded-full border border-neutral-300 bg-white px-3 py-1 text-sm font-semibold text-neutral-700"
-          >
-            ×
-          </button>
         </div>
 
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <input
-            type="text"
-            value={joinName}
-            onChange={(e) => setJoinName(e.target.value)}
-            placeholder="Your name"
-            className="rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-red-400"
-          />
+        <button
+          type="button"
+          onClick={() => setJoinModalOpen(false)}
+          className="rounded-full border border-neutral-300 bg-white px-3 py-1 text-sm font-semibold text-neutral-700"
+        >
+          ×
+        </button>
+      </div>
 
-          <input
-            type="text"
-            value={joinAge}
-            onChange={(e) => setJoinAge(e.target.value)}
-            placeholder="Age optional"
-            className="rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-red-400"
-          />
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <input
+          type="text"
+          value={joinName}
+          onChange={(e) => setJoinName(e.target.value)}
+          placeholder="Your name"
+          className="rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-red-400"
+        />
 
-          <input
-            type="text"
-            value={joinIntro}
-            onChange={(e) => setJoinIntro(e.target.value)}
-            placeholder="Short intro"
-            className="rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-red-400 sm:col-span-2"
-          />
+        <input
+          type="text"
+          value={joinAge}
+          onChange={(e) => setJoinAge(e.target.value)}
+          placeholder="Age optional"
+          className="rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-red-400"
+        />
 
-          <input
-            type="text"
-            value={joinLookingFor}
-            onChange={(e) => setJoinLookingFor(e.target.value)}
-            placeholder="Looking for"
-            className="rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-red-400"
-          />
+        <input
+          type="text"
+          value={joinIntro}
+          onChange={(e) => setJoinIntro(e.target.value)}
+          placeholder="Short intro"
+          className="rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-red-400 sm:col-span-2"
+        />
 
-          <input
-            type="text"
-            value={joinFunFact}
-            onChange={(e) => setJoinFunFact(e.target.value)}
-            placeholder="Fun fact"
-            className="rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-red-400"
-          />
-        </div>
+        <input
+          type="text"
+          value={joinLookingFor}
+          onChange={(e) => setJoinLookingFor(e.target.value)}
+          placeholder="Looking for"
+          className="rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-red-400"
+        />
 
-        <label className="mt-4 flex items-start gap-3 rounded-2xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm text-neutral-700">
-<button
-  type="button"
-  onClick={() => setJoinConsent((current) => !current)}
-  className={[
-    "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border text-xs font-bold",
-    joinConsent
-      ? "border-red-600 bg-red-600 text-white"
-      : "border-neutral-400 bg-white text-transparent",
-  ].join(" ")}
-  aria-pressed={joinConsent}
->
-  ✓
-</button>
-          <span>
-            I understand this is an entertainment/social game and my public
-            lineup info may be visible to other visitors.
-          </span>
-        </label>
+        <input
+          type="text"
+          value={joinFunFact}
+          onChange={(e) => setJoinFunFact(e.target.value)}
+          placeholder="Fun fact"
+          className="rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-red-400"
+        />
+      </div>
 
-        <div className="mt-5 flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={() => setJoinModalOpen(false)}
-            className="rounded-xl border border-neutral-300 bg-white px-4 py-2 text-sm font-semibold text-neutral-700"
-          >
-            Cancel
-          </button>
+      <div className="mt-4 flex items-start gap-3 rounded-2xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm text-neutral-700">
+        <button
+          type="button"
+          onClick={() => setJoinConsent((current) => !current)}
+          className={[
+            "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border text-xs font-bold",
+            joinConsent
+              ? "border-red-600 bg-red-600 text-white"
+              : "border-neutral-400 bg-white text-transparent",
+          ].join(" ")}
+          aria-pressed={joinConsent}
+        >
+          ✓
+        </button>
 
-          <button
-            type="button"
-            onClick={async () => {
-              await joinLineup();
-              setJoinModalOpen(false);
-              setJoinConsent(false);
-              setJoinSuccess(true);
-            }}
-            disabled={!gameReady || !joinName.trim() || !joinConsent || lineupFull}
-            className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            Join
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() => setJoinConsent((current) => !current)}
+          className="text-left"
+        >
+          I understand this is a public interactive game and that my profile information may be visible to other participants and viewers.
+        </button>
+      </div>
+
+      <div className="mt-5 flex justify-end gap-2">
+        <button
+          type="button"
+          onClick={() => setJoinModalOpen(false)}
+          className="rounded-xl border border-neutral-300 bg-white px-4 py-2 text-sm font-semibold text-neutral-700"
+        >
+          Cancel
+        </button>
+
+        <button
+          type="button"
+          onClick={async () => {
+            await joinLineup();
+            setJoinModalOpen(false);
+            setJoinConsent(false);
+            setJoinSuccess(true);
+          }}
+          disabled={!gameReady || !joinName.trim() || !joinConsent || lineupFull}
+          className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          Join
+        </button>
       </div>
     </div>
-  ) : null}
+  </div>
+) : null}
 </div>
 
 <div className="mt-5 rounded-3xl border border-neutral-200 bg-neutral-50 p-4">
