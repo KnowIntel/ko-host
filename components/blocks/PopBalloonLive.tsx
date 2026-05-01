@@ -94,6 +94,7 @@ isHost = false,
   const [currentRoundId, setCurrentRoundId] = useState<string | null>(null);
   const canUseLocalMode = !micrositeId;
   const gameReady = Boolean(gameId) || canUseLocalMode;
+  const hostSessionKey = `pop-balloon-host-${blockId ?? "local"}`;
   const [mounted, setMounted] = useState(false);
   const [hostCodeInput, setHostCodeInput] = useState("");
 const [hostUnlocked, setHostUnlocked] = useState(false);
@@ -433,6 +434,16 @@ useEffect(() => {
   setMounted(true);
 }, []);
 
+useEffect(() => {
+  if (!blockId) return;
+
+  const storedHostMode = window.localStorage.getItem(hostSessionKey);
+
+  if (storedHostMode === "true") {
+    setHostUnlocked(true);
+  }
+}, [blockId, hostSessionKey]);
+
 return (
   <div className="relative h-full w-full overflow-auto rounded-3xl bg-white p-4 text-neutral-950">
     <div className="flex flex-wrap items-start justify-between gap-3">
@@ -465,8 +476,9 @@ return (
         type="button"
         onClick={() => {
           if (hostCodeInput.trim() === (hostPasscode || "123456")) {
-            setHostUnlocked(true);
-            setHostCodeInput("");
+setHostUnlocked(true);
+window.localStorage.setItem(hostSessionKey, "true");
+setHostCodeInput("");
           }
         }}
         className="rounded-xl bg-neutral-950 px-4 py-2 text-sm font-semibold text-white"
@@ -484,7 +496,10 @@ return (
 
       <button
         type="button"
-        onClick={() => setHostUnlocked(false)}
+        onClick={() => {
+  setHostUnlocked(false);
+  window.localStorage.removeItem(hostSessionKey);
+}}
         className="rounded-xl border border-emerald-300 bg-white px-3 py-2 text-xs font-semibold text-emerald-700"
       >
         Exit
