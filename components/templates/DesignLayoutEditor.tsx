@@ -11701,6 +11701,32 @@ isItemSelected={(blockId, nextSelection) =>
     </div>
 
     <div className="mt-4">
+      <div className={inspectorLabelClass()}>Host Passcode</div>
+      <input
+        type="text"
+        value={selectedBlock.data.hostPasscode ?? ""}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "pop_balloon"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    hostPasscode: e.target.value,
+                  },
+                },
+          )
+        }
+        placeholder="123456"
+        className={inspectorInputClass()}
+      />
+      <div className="mt-1 text-xs text-neutral-500">
+        Used to unlock host controls on the public site.
+      </div>
+    </div>
+
+    <div className="mt-4">
       <div className={inspectorLabelClass()}>Lineup Slots</div>
       <input
         type="range"
