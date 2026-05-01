@@ -13577,7 +13577,7 @@ onInput={(e) => {
   </div>
 ) : null}
                 
-                {selectedBlock?.type === "cta" ? (
+{selectedBlock?.type === "cta" ? (
   <div className="space-y-3 rounded-2xl border border-neutral-200 bg-white p-4">
     <div className="text-xs font-semibold uppercase tracking-[0.14em] text-neutral-500">
       Button Settings
@@ -13632,30 +13632,85 @@ onInput={(e) => {
         className="mt-1 h-10 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-900 outline-none"
       />
     </label>
+
     <label className="block">
-  <span className="text-xs font-medium text-neutral-600">
-    Submitted Text
-  </span>
-  <input
-    type="text"
-    value={(selectedBlock.data as any).submittedText || "Submitted"}
-    onChange={(e) =>
-      updateSelectedBlock((block) =>
-        block.type === "cta"
-          ? {
-              ...block,
-              data: {
-                ...block.data,
-                submittedText: e.target.value,
-              },
-            }
-          : block,
-      )
-    }
-    placeholder="Submitted"
-    className="mt-1 h-10 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-900 outline-none"
-  />
-</label>
+      <span className="text-xs font-medium text-neutral-600">
+        Submitted Text
+      </span>
+      <input
+        type="text"
+        value={(selectedBlock.data as any).submittedText || "Submitted"}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type === "cta"
+              ? {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    submittedText: e.target.value,
+                  },
+                }
+              : block,
+          )
+        }
+        placeholder="Submitted"
+        className="mt-1 h-10 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-900 outline-none"
+      />
+    </label>
+
+    {/* HORIZONTAL POSITION */}
+    <div>
+      <div className="text-xs font-medium text-neutral-600">
+        Horizontal Position
+      </div>
+      <input
+        type="range"
+        min={0}
+        max={100}
+        value={(selectedBlock.data as any).posX ?? 50}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type === "cta"
+              ? {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    posX: Number(e.target.value),
+                  },
+                }
+              : block,
+          )
+        }
+        className="mt-1 w-full"
+      />
+    </div>
+
+    {/* VERTICAL POSITION */}
+    <div>
+      <div className="text-xs font-medium text-neutral-600">
+        Vertical Position
+      </div>
+      <input
+        type="range"
+        min={0}
+        max={100}
+        value={(selectedBlock.data as any).posY ?? 50}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type === "cta"
+              ? {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    posY: Number(e.target.value),
+                  },
+                }
+              : block,
+          )
+        }
+        className="mt-1 w-full"
+      />
+    </div>
   </div>
 ) : null}
 

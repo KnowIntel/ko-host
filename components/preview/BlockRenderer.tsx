@@ -1271,34 +1271,39 @@ try {
 }
     }
 
-    return (
-      <div className="h-full w-full">
-        <div
-          className="flex h-full w-full px-4 py-2"
-          style={{
-            justifyContent,
-            textAlign: block.data.style?.align ?? "center",
-          }}
-        >
-          <button
-            type="button"
-            onClick={handleLinkedFieldSubmit}
-            disabled={submitting}
-            className="inline-flex cursor-pointer items-center justify-center px-5 py-2 transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-70"
-            style={{
-              ...style,
-              ...variantStyle,
-            }}
-          >
-            {submitted
-              ? submittedText
-              : submitting
-                ? "Submitting..."
-                : block.data.buttonText || "Button"}
-          </button>
-        </div>
-      </div>
-    );
+const posX = Number((block.data as any).posX ?? 50);
+const posY = Number((block.data as any).posY ?? 50);
+
+return (
+  <div className="h-full w-full overflow-hidden">
+    <div
+      className="flex h-full w-full px-4 py-2"
+      style={{
+        justifyContent,
+        alignItems: "center",
+        textAlign: block.data.style?.align ?? "center",
+      }}
+    >
+      <button
+        type="button"
+        onClick={handleLinkedFieldSubmit}
+        disabled={submitting}
+        className="inline-flex cursor-pointer items-center justify-center px-5 py-2 transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-70"
+        style={{
+          ...style,
+          ...variantStyle,
+          transform: `translate(${posX - 50}%, ${posY - 50}%)`,
+        }}
+      >
+        {submitted
+          ? submittedText
+          : submitting
+            ? "Submitting..."
+            : block.data.buttonText || "Button"}
+      </button>
+    </div>
+  </div>
+);
   }
 
   return <CtaButtonLive />;
