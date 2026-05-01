@@ -589,7 +589,11 @@ return (
     </div>
     <div className="mt-2 text-xl font-bold">Contestant Card</div>
     <div className="mt-1 text-sm text-neutral-500">
-      Host starts the round, contestant introduces themselves, lineup decides.
+      {isHost
+  ? "Host starts the round, contestant introduces themselves, lineup decides."
+  : roundStatus === "live"
+    ? "Round is live. Keep your balloon or pop it."
+    : "Waiting for the host to start the round."}
     </div>
   </div>
 
@@ -728,7 +732,7 @@ onClick={async () => {
                 Pop
               </button>
 
-              {!isHost ? (
+{!isHost && player.status !== "popped" && player.status !== "selected" ? (
   <button
     type="button"
     onClick={() => removePlayer(player.id)}
@@ -774,17 +778,21 @@ onClick={async () => {
           Remaining balloons: {activePlayers.length}
         </div>
 
-        <div className="mt-1 text-sm text-neutral-600">
-          Match mode: {matchResultMode}
-        </div>
+        {isHost ? (
+        <>
+            <div className="mt-1 text-sm text-neutral-600">
+            Match mode: {matchResultMode}
+            </div>
 
-        <div className="mt-1 text-sm text-neutral-600">
-          Anonymous viewing: {anonymousViewingEnabled ? "On" : "Off"}
-        </div>
+            <div className="mt-1 text-sm text-neutral-600">
+            Anonymous viewing: {anonymousViewingEnabled ? "On" : "Off"}
+            </div>
 
-        <div className="mt-1 text-sm text-neutral-600">
-          Audience voting: {audienceVotingEnabled ? "On" : "Off"}
-        </div>
+            <div className="mt-1 text-sm text-neutral-600">
+            Audience voting: {audienceVotingEnabled ? "On" : "Off"}
+            </div>
+        </>
+        ) : null}
 
         {selectedPlayer ? (
           <div className="mt-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700">
@@ -798,8 +806,8 @@ onClick={async () => {
       </div>
 
       {popTarget ? (
-        <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-md rounded-3xl bg-white p-5 shadow-xl">
+        <div className="fixed inset-0 z-[9999] flex items-start justify-center bg-black/40 px-4 pt-[10vh]">
+          <div className="w-full max-w-md max-h-[80vh] overflow-y-auto rounded-3xl bg-white p-5 shadow-xl">
             <div className="text-lg font-bold">Why pop your balloon?</div>
             <div className="mt-1 text-sm text-neutral-500">
               Popping for: {popTarget.name}
