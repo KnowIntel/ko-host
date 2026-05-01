@@ -111,6 +111,7 @@ export type BuilderBlockType =
   | "map_location"
   | "file_share"
   | "speed_dating"
+  | "pop_balloon"
   | "registry"
   | "checkout"
   | "cart";
@@ -688,6 +689,22 @@ export type SpeedDatingBlock = BaseBlock & {
   };
 };
 
+export type PopBalloonBlock = BaseBlock & {
+  type: "pop_balloon";
+  data: {
+    title?: string;
+    hostName?: string;
+    lineupSlots: number;
+    requirePopReason?: boolean;
+    audienceVotingEnabled?: boolean;
+    anonymousViewingEnabled?: boolean;
+    matchResultMode?: "public" | "private" | "contact_form" | "private_chat_later";
+    theme?: "red_balloons" | "hearts" | "party" | "formal" | "custom";
+    prompt?: string;
+    style?: TextStyle;
+  };
+};
+
 export type RegistryBlock = BaseBlock & {
   type: "registry";
   data: {
@@ -762,6 +779,7 @@ export type MicrositeBlock =
   | MapLocationBlock
   | FileShareBlock
   | SpeedDatingBlock
+  | PopBalloonBlock
   | RegistryBlock
   | CheckoutBlock
   | CartBlock;
@@ -1910,6 +1928,36 @@ case "speed_dating":
     },
   };
 
+  case "pop_balloon":
+  return {
+    id: makeId("popballoon"),
+    type: "pop_balloon",
+    label: "Pop the Balloon",
+    grid: {
+      ...grid,
+      rowSpan: 5,
+    },
+    appearance: {
+      ...createDefaultBlockAppearance(),
+      backgroundColor: "#FFFFFF",
+      borderColor: "#FCA5A5",
+      borderWidth: 1,
+      borderRadius: 24,
+    },
+    data: {
+      title: "Pop the Balloon",
+      hostName: "Host",
+      lineupSlots: 6,
+      requirePopReason: true,
+      audienceVotingEnabled: false,
+      anonymousViewingEnabled: true,
+      matchResultMode: "public",
+      theme: "red_balloons",
+      prompt: "Introduce yourself and decide who keeps their balloon.",
+      style: createDefaultTextStyle(),
+    },
+  };
+
     case "cart":
       return {
         id: makeId("cart"),
@@ -2200,6 +2248,63 @@ roundStartSound:
   block.data.roundStartSound === "vanish"
     ? block.data.roundStartSound
     : "spark",
+
+      style: {
+        ...createDefaultTextStyle(),
+        ...(block.data.style ?? {}),
+      },
+    },
+  };
+}
+
+if (block.type === "pop_balloon") {
+  return {
+    ...block,
+    grid: normalizeGridValue(block.grid, fallbackGrid),
+    data: {
+      title:
+        typeof block.data.title === "string"
+          ? block.data.title
+          : "Pop the Balloon",
+
+      hostName:
+        typeof block.data.hostName === "string"
+          ? block.data.hostName
+          : "Host",
+
+      lineupSlots:
+        typeof block.data.lineupSlots === "number" &&
+        Number.isFinite(block.data.lineupSlots)
+          ? Math.max(2, Math.min(12, Math.floor(block.data.lineupSlots)))
+          : 6,
+
+      requirePopReason: block.data.requirePopReason !== false,
+
+      audienceVotingEnabled: Boolean(block.data.audienceVotingEnabled),
+
+      anonymousViewingEnabled: block.data.anonymousViewingEnabled !== false,
+
+      matchResultMode:
+        block.data.matchResultMode === "public" ||
+        block.data.matchResultMode === "private" ||
+        block.data.matchResultMode === "contact_form" ||
+        block.data.matchResultMode === "private_chat_later"
+          ? block.data.matchResultMode
+          : "public",
+
+      theme:
+        block.data.theme === "red_balloons" ||
+        block.data.theme === "hearts" ||
+        block.data.theme === "party" ||
+        block.data.theme === "formal" ||
+        block.data.theme === "custom"
+          ? block.data.theme
+          : "red_balloons",
+
+      prompt:
+        typeof block.data.prompt === "string"
+          ? block.data.prompt
+          : "Introduce yourself and decide who keeps their balloon.",
 
       style: {
         ...createDefaultTextStyle(),

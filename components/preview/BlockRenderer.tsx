@@ -4,7 +4,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import SpeedDatingLive from "@/components/blocks/SpeedDatingLive";
-
+import PopBalloonLive from "@/components/blocks/PopBalloonLive";
 
 type SpeedDatingParticipant = {
   id: string;
@@ -6277,6 +6277,36 @@ function renderSpeedDating(
   return <SpeedDatingPreview />;
 }
 
+
+function renderPopBalloon(
+  block: Extract<MicrositeBlock, { type: "pop_balloon" }>,
+  designKey?: string,
+  micrositeId?: string | null,
+) {
+  return (
+    <Surface
+      block={block}
+      designKey={designKey}
+      className={getSoftSurfaceClass(designKey)}
+    >
+<PopBalloonLive
+  micrositeId={micrositeId}
+  blockId={block.id}
+  isHost={!micrositeId}
+  title={block.data.title}
+  hostName={block.data.hostName}
+  lineupSlots={block.data.lineupSlots}
+  requirePopReason={block.data.requirePopReason !== false}
+  audienceVotingEnabled={Boolean(block.data.audienceVotingEnabled)}
+  anonymousViewingEnabled={block.data.anonymousViewingEnabled !== false}
+  matchResultMode={block.data.matchResultMode ?? "public"}
+  theme={block.data.theme ?? "red_balloons"}
+  prompt={block.data.prompt}
+/>
+    </Surface>
+  );
+}
+
 function renderCheckout(
   block: Extract<MicrositeBlock, { type: "checkout" }>,
   designKey?: string,
@@ -6872,7 +6902,10 @@ case "cart":
           rightLabel={block.data.rightLabel}
           roundStartSound={block.data.roundStartSound}
         />
-      ); 
+      );
+
+case "pop_balloon":
+  return renderPopBalloon(block, designKey, micrositeId);
 
     default:
       return <div className="h-full w-full" />;
