@@ -37,7 +37,8 @@ type Props = {
   matchResultMode?: MatchResultMode;
   theme?: Theme;
   prompt?: string;
-  isHost?: boolean;
+  hostPasscode?: string;
+isHost?: boolean;
 };
 
 const POP_REASONS = [
@@ -66,6 +67,7 @@ export default function PopBalloonLive({
   matchResultMode = "public",
   theme = "red_balloons",
 prompt = "Introduce yourself and decide who keeps their balloon.",
+hostPasscode = "123456",
 isHost = false,
 }: Props) {
   const safeSlots = Math.max(2, Math.min(12, Math.floor(lineupSlots || 6)));
@@ -86,12 +88,17 @@ isHost = false,
 
   const [players, setPlayers] = useState<Player[]>([]);
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
+  const [featuredPlayerId, setFeaturedPlayerId] = useState<string | null>(null);
   const [roundStatus, setRoundStatus] = useState<RoundStatus>("waiting");
   const [gameId, setGameId] = useState<string | null>(null);
   const [currentRoundId, setCurrentRoundId] = useState<string | null>(null);
   const canUseLocalMode = !micrositeId;
   const gameReady = Boolean(gameId) || canUseLocalMode;
   const [mounted, setMounted] = useState(false);
+  const [hostCodeInput, setHostCodeInput] = useState("");
+const [hostUnlocked, setHostUnlocked] = useState(false);
+
+const canHost = isHost || hostUnlocked;
 
   const [joinName, setJoinName] = useState("");
   const [joinAge, setJoinAge] = useState("");
@@ -107,6 +114,7 @@ isHost = false,
 
   const activePlayers = players.filter((player) => player.status !== "popped");
   const selectedPlayer = players.find((player) => player.id === selectedPlayerId);
+  const featuredPlayer = players.find((player) => player.id === featuredPlayerId);
   const popTarget = players.find((player) => player.id === popTargetId);
   const activeLineupCount = players.filter(
   (p) => p.status === "active"
@@ -169,6 +177,9 @@ async function loadStateFromGameId(nextGameId: string) {
 
     if (data?.ok) {
       if (data.game) {
+        if (data.game.featured_participant_id) {
+  setFeaturedPlayerId(data.game.featured_participant_id);
+}
         setRoundStatus(
           data.game.status === "live" ||
             data.game.status === "ended" ||
@@ -397,6 +408,7 @@ function removePlayer(playerId: string) {
 
   if (selectedPlayerId === playerId) {
     setSelectedPlayerId(null);
+    setFeaturedPlayerId(null);
   }
 
   if (popTargetId === playerId) {
@@ -436,6 +448,50 @@ return (
         {themeLabel}
       </div>
     </div>
+    {!canHost ? (
+  <div className="mt-5 rounded-3xl border border-neutral-200 bg-neutral-50 p-4">
+    <div className="text-sm font-bold">Host Login</div>
+
+    <div className="mt-2 flex gap-2">
+      <input
+        type="password"
+        value={hostCodeInput}
+        onChange={(e) => setHostCodeInput(e.target.value)}
+        placeholder="Enter host passcode"
+        className="flex-1 rounded-xl border border-neutral-300 px-3 py-2 text-sm"
+      />
+
+      <button
+        type="button"
+        onClick={() => {
+          if (hostCodeInput.trim() === (hostPasscode || "123456")) {
+            setHostUnlocked(true);
+            setHostCodeInput("");
+          }
+        }}
+        className="rounded-xl bg-neutral-950 px-4 py-2 text-sm font-semibold text-white"
+      >
+        Unlock
+      </button>
+    </div>
+  </div>
+) : (
+  <div className="mt-5 rounded-3xl border border-emerald-200 bg-emerald-50 p-4">
+    <div className="flex items-center justify-between">
+      <div className="text-sm font-bold text-emerald-700">
+        Host Mode Active
+      </div>
+
+      <button
+        type="button"
+        onClick={() => setHostUnlocked(false)}
+        className="rounded-xl border border-emerald-300 bg-white px-3 py-2 text-xs font-semibold text-emerald-700"
+      >
+        Exit
+      </button>
+    </div>
+  </div>
+)}
 
 <div className="mt-5 rounded-3xl border border-neutral-200 bg-neutral-50 p-4">
   <div className="flex flex-wrap items-center justify-between gap-3">
@@ -599,47 +655,119 @@ onClick={async () => {
     <div className="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500">
       Featured Contestant
     </div>
-    <div className="mt-2 text-xl font-bold">Contestant Card</div>
-    <div className="mt-1 text-sm text-neutral-500">
-      {isHost
-  ? "Host starts the round, contestant introduces themselves, lineup decides."
-  : roundStatus === "live"
-    ? "Round is live. Keep your balloon or pop it."
-    : "Waiting for the host to start the round."}
+
+{featuredPlayer ? (
+  <div className="relative mx-auto mt-4 w-full max-w-3xl overflow-hidden rounded-3xl border-2 border-red-300 bg-white p-6 text-left shadow-lg animate-[popBalloonSpotlightIn_450ms_ease-out]">
+    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(239,68,68,0.18),transparent_55%)]" />
+    <div className="pointer-events-none absolute -top-20 left-1/2 h-48 w-48 -translate-x-1/2 rounded-full bg-red-200/40 blur-3xl" />
+
+    <div className="relative flex items-start justify-between gap-4">
+      <div className="min-w-0">
+        <div className="text-xs font-semibold uppercase tracking-[0.22em] text-red-500">
+          Now Featured
+        </div>
+
+        <div className="mt-2 text-2xl font-bold">{featuredPlayer.name}</div>
+
+        {featuredPlayer.age ? (
+          <div className="mt-1 text-sm text-neutral-500">
+            Age: {featuredPlayer.age}
+          </div>
+        ) : null}
+
+        <div className="mt-3 text-base text-neutral-700">
+          {featuredPlayer.intro || "Ready to meet the lineup."}
+        </div>
+      </div>
+
+      <div className="animate-[popBalloonFloat_1800ms_ease-in-out_infinite] text-6xl leading-none">
+        🎈
+      </div>
     </div>
+
+    {featuredPlayer.lookingFor ? (
+      <div className="relative mt-4 rounded-2xl bg-neutral-50 px-4 py-3 text-sm text-neutral-700">
+        Looking for: {featuredPlayer.lookingFor}
+      </div>
+    ) : null}
+
+    {featuredPlayer.funFact ? (
+      <div className="relative mt-3 rounded-2xl bg-neutral-50 px-4 py-3 text-sm text-neutral-700">
+        Fun fact: {featuredPlayer.funFact}
+      </div>
+    ) : null}
+
+    <div className="relative mt-4 inline-block rounded-full bg-red-100 px-4 py-1 text-xs font-semibold text-red-700">
+      Featured Contestant
+    </div>
+
+    <style jsx>{`
+      @keyframes popBalloonSpotlightIn {
+        from {
+          opacity: 0;
+          transform: translateY(14px) scale(0.97);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+
+      @keyframes popBalloonFloat {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-8px);
+        }
+      }
+    `}</style>
+  </div>
+) : (
+      <>
+        <div className="mt-2 text-xl font-bold">No contestant featured yet</div>
+        <div className="mt-1 text-sm text-neutral-500">
+          {canHost
+            ? "Choose a participant below to feature them."
+            : "Waiting for the host to feature a contestant."}
+        </div>
+      </>
+    )}
   </div>
 
-  {isHost ? (
+  {canHost ? (
     <div className="mt-4 flex flex-wrap justify-center gap-2">
       <button
         type="button"
-onClick={async () => {
-  if (!gameReady) return;
+        onClick={async () => {
+          if (!gameReady) return;
 
-  setRoundStatus("live");
+          setRoundStatus("live");
 
-  if (!gameId) return;
+          if (!gameId) return;
 
-  try {
-    const res = await fetch("/api/public/pop-balloon/round", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        gameId,
-        prompt,
-      }),
-    });
+          try {
+            const res = await fetch("/api/public/pop-balloon/round", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                gameId,
+                featuredParticipantId: featuredPlayerId,
+                prompt,
+              }),
+            });
 
-    const data = await res.json();
+            const data = await res.json();
 
-    if (data?.ok && data.round?.id) {
-      setCurrentRoundId(data.round.id);
-    }
-  } catch {}
-}}
-        disabled={!gameId}
+            if (data?.ok && data.round?.id) {
+              setCurrentRoundId(data.round.id);
+            }
+          } catch {}
+        }}
+        disabled={!gameReady || !featuredPlayerId}
         className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
       >
         Start Round
@@ -694,9 +822,15 @@ onClick={async () => {
                 </div>
               </div>
 
-              <div className="text-4xl leading-none">
-                {player.status === "popped" ? "💥" : "🎈"}
-              </div>
+<div className="text-4xl leading-none">
+  {player.status === "popped" ? "💥" : "🎈"}
+</div>
+
+{player.id === featuredPlayerId ? (
+  <div className="mt-3 rounded-2xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700">
+    Featured Contestant
+  </div>
+) : null}
             </div>
 
             {player.lookingFor ? (
@@ -720,11 +854,12 @@ onClick={async () => {
             <div className="mt-4 flex flex-wrap gap-2">
               <button
                 type="button"
-                disabled={
-                  roundStatus !== "live" ||
-                  player.status === "popped" ||
-                  player.status === "selected"
-                }
+disabled={
+  roundStatus !== "live" ||
+  player.id === featuredPlayerId ||
+  player.status === "popped" ||
+  player.status === "selected"
+}
                 onClick={() => keepBalloon(player.id)}
                 className="rounded-xl border border-red-200 bg-white px-3 py-2 text-xs font-semibold text-red-700 disabled:cursor-not-allowed disabled:opacity-40"
               >
@@ -733,18 +868,19 @@ onClick={async () => {
 
               <button
                 type="button"
-                disabled={
-                  roundStatus !== "live" ||
-                  player.status === "popped" ||
-                  player.status === "selected"
-                }
+disabled={
+  roundStatus !== "live" ||
+  player.id === featuredPlayerId ||
+  player.status === "popped" ||
+  player.status === "selected"
+}
                 onClick={() => requestPop(player.id)}
                 className="rounded-xl bg-red-600 px-3 py-2 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
               >
                 Pop
               </button>
 
-{!isHost && player.status !== "popped" && player.status !== "selected" ? (
+{!canHost && player.status !== "popped" && player.status !== "selected" ? (
   <button
     type="button"
     onClick={() => removePlayer(player.id)}
@@ -754,8 +890,34 @@ onClick={async () => {
   </button>
 ) : null}
 
-{isHost ? (
+{canHost ? (
   <>
+<button
+  type="button"
+  disabled={player.status === "popped"}
+  onClick={async () => {
+    setFeaturedPlayerId(player.id);
+
+    if (!gameId) return;
+
+    try {
+      await fetch("/api/public/pop-balloon/feature", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          gameId,
+          participantId: player.id,
+        }),
+      });
+    } catch {}
+  }}
+  className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 disabled:cursor-not-allowed disabled:opacity-40"
+>
+  Feature Contestant
+</button>
+
     <button
       type="button"
       disabled={player.status === "popped"}
@@ -790,7 +952,7 @@ onClick={async () => {
           Remaining balloons: {activePlayers.length}
         </div>
 
-        {isHost ? (
+        {canHost ? (
         <>
             <div className="mt-1 text-sm text-neutral-600">
             Match mode: {matchResultMode}

@@ -702,6 +702,7 @@ export type PopBalloonBlock = BaseBlock & {
     theme?: "red_balloons" | "hearts" | "party" | "formal" | "custom";
     prompt?: string;
     style?: TextStyle;
+    hostPasscode?: string;
   };
 };
 

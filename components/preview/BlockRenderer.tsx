@@ -6292,7 +6292,6 @@ function renderPopBalloon(
 <PopBalloonLive
   micrositeId={micrositeId}
   blockId={block.id}
-  isHost={!micrositeId}
   title={block.data.title}
   hostName={block.data.hostName}
   lineupSlots={block.data.lineupSlots}
@@ -6302,6 +6301,7 @@ function renderPopBalloon(
   matchResultMode={block.data.matchResultMode ?? "public"}
   theme={block.data.theme ?? "red_balloons"}
   prompt={block.data.prompt}
+  hostPasscode={block.data.hostPasscode}
 />
     </Surface>
   );

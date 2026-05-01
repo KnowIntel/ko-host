@@ -18,7 +18,7 @@ export async function POST(req: Request) {
 
     const { data: game, error: gameError } = await supabaseAdmin
       .from("pop_balloon_games")
-      .select("id, status, current_round_id")
+      .select("id, status, current_round_id, featured_participant_id")
       .eq("id", gameId)
       .maybeSingle();
 
