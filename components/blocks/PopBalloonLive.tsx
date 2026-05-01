@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { createClient } from "@supabase/supabase-js";
 
 type MatchResultMode =
@@ -90,6 +91,7 @@ isHost = false,
   const [currentRoundId, setCurrentRoundId] = useState<string | null>(null);
   const canUseLocalMode = !micrositeId;
   const gameReady = Boolean(gameId) || canUseLocalMode;
+  const [mounted, setMounted] = useState(false);
 
   const [joinName, setJoinName] = useState("");
   const [joinAge, setJoinAge] = useState("");
@@ -416,6 +418,10 @@ function resetRound() {
   setRoundStatus("waiting");
 }
 
+useEffect(() => {
+  setMounted(true);
+}, []);
+
 return (
   <div className="relative h-full w-full overflow-auto rounded-3xl bg-white p-4 text-neutral-950">
     <div className="flex flex-wrap items-start justify-between gap-3">
@@ -468,7 +474,8 @@ return (
     </div>
   ) : null}
 
-{joinModalOpen ? (
+{mounted && joinModalOpen
+  ? createPortal(
   <div className="fixed inset-0 z-[9999] flex items-start justify-center bg-black/40 px-4 pt-[10vh]">
     <div className="w-full max-w-lg max-h-[80vh] overflow-y-auto rounded-3xl bg-white p-5 shadow-xl">
       <div className="flex items-start justify-between gap-3">
@@ -550,7 +557,7 @@ return (
         </span>
 
         <span className="pointer-events-none">
-          I understand this is a test public interactive game and that my profile information may be visible to other participants and viewers.
+          I understand this is a public interactive game and that my profile information may be visible to other participants and viewers.
         </span>
       </button>
 
@@ -581,7 +588,10 @@ return (
       </div>
     </div>
   </div>
-) : null}
+    ,
+    document.body,
+  )
+  : null}
 </div>
 
 <div className="mt-5 rounded-3xl border border-neutral-200 bg-neutral-50 p-4">
