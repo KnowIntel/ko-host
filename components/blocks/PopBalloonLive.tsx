@@ -530,29 +530,25 @@ return (
         />
       </div>
 
-      <div className="mt-4 flex items-start gap-3 rounded-2xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm text-neutral-700">
-        <button
-          type="button"
-          onClick={() => setJoinConsent((current) => !current)}
-          className={[
-            "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border text-xs font-bold",
-            joinConsent
-              ? "border-red-600 bg-red-600 text-white"
-              : "border-neutral-400 bg-white text-transparent",
-          ].join(" ")}
-          aria-pressed={joinConsent}
-        >
-          ✓
-        </button>
+<div
+  className="mt-4 flex cursor-pointer items-start gap-3 rounded-2xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm text-neutral-700"
+  onClick={() => setJoinConsent((current) => !current)}
+>
+  <div
+    className={[
+      "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border text-xs font-bold",
+      joinConsent
+        ? "border-red-600 bg-red-600 text-white"
+        : "border-neutral-400 bg-white text-transparent",
+    ].join(" ")}
+  >
+    ✓
+  </div>
 
-        <button
-          type="button"
-          onClick={() => setJoinConsent((current) => !current)}
-          className="text-left"
-        >
-          I understand this is a public interactive game and that my profile information may be visible to other participants and viewers.
-        </button>
-      </div>
+  <div>
+    I understand this is a public interactive game and that my profile information may be visible to other participants and viewers.
+  </div>
+</div>
 
       <div className="mt-5 flex justify-end gap-2">
         <button
@@ -571,7 +567,7 @@ return (
             setJoinConsent(false);
             setJoinSuccess(true);
           }}
-          disabled={!gameReady || !joinName.trim() || !joinConsent || lineupFull}
+          disabled={!joinName.trim() || lineupFull}
           className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-40"
         >
           Join
