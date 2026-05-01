@@ -1948,6 +1948,7 @@ case "speed_dating":
     data: {
       title: "Pop the Balloon",
       hostName: "Host",
+      hostPasscode: "123456",
       lineupSlots: 6,
       requirePopReason: true,
       audienceVotingEnabled: false,
@@ -2272,6 +2273,11 @@ if (block.type === "pop_balloon") {
         typeof block.data.hostName === "string"
           ? block.data.hostName
           : "Host",
+
+      hostPasscode:
+        typeof block.data.hostPasscode === "string"
+          ? block.data.hostPasscode
+          : "123456",
 
       lineupSlots:
         typeof block.data.lineupSlots === "number" &&
