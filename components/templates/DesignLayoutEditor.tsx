@@ -8096,15 +8096,15 @@ isItemSelected={(blockId, nextSelection) =>
       <button
         type="button"
         onClick={() => setBlockGuideOpen(true)}
-        className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-neutral-200 bg-white shadow-sm transition hover:bg-neutral-50"
+        className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-transparent shadow-none transition hover:bg-neutral-100"
         title={`Open ${selectedBlockGuide.title} guide`}
         aria-label={`Open ${selectedBlockGuide.title} guide`}
       >
         <Image
           src="/icons/icon_block_full_guide.png"
           alt=""
-          width={22}
-          height={22}
+          width={16}
+          height={16}
           className="pointer-events-none object-contain"
         />
       </button>

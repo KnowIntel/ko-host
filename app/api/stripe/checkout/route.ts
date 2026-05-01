@@ -4,11 +4,20 @@ import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 
-const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+// DEVELOPMENT: START
+/* const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 const appUrl = process.env.NEXT_PUBLIC_APP_URL;
 
 if (!stripeSecretKey) throw new Error("Missing STRIPE_SECRET_KEY");
-if (!appUrl) throw new Error("Missing NEXT_PUBLIC_APP_URL");
+if (!appUrl) throw new Error("Missing NEXT_PUBLIC_APP_URL"); */
+// DEVELOPMENT: END
+
+// PRODUCTION: START
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://ko-host.com";
+
+if (!stripeSecretKey) throw new Error("Missing STRIPE_SECRET_KEY");
+// PRODUCTION: END
 
 const stripe = new Stripe(stripeSecretKey, {
   apiVersion: "2026-02-25.clover",
@@ -104,6 +113,7 @@ export async function POST(req: Request) {
 
       const session = await stripe.checkout.sessions.create({
         mode: "payment",
+        allow_promotion_codes: true,
         line_items,
         success_url: `${appUrl}/s/${encodeURIComponent(
           slug,
@@ -215,34 +225,35 @@ export async function POST(req: Request) {
         .update({ draft: draftRow.draft })
         .eq("id", pendingRow.id);
 
-      const session = await stripe.checkout.sessions.create({
-        mode: "payment",
-        client_reference_id: pendingRow.id,
-        line_items: [
-          {
-            price_data: {
-              currency: "usd",
-              product_data: { name: "Ko-Host Publish" },
-              unit_amount: PUBLISH_PRICE_CENTS,
-            },
-            quantity: 1,
-          },
-        ],
-        success_url: `${appUrl}/dashboard/microsites?checkout=success&session_id={CHECKOUT_SESSION_ID}&slug=${encodeURIComponent(
-          pendingRow.slug || "",
-        )}`,
-        cancel_url: `${appUrl}/dashboard/microsites?checkout=cancel&slug=${encodeURIComponent(
-          pendingRow.slug || "",
-        )}`,
-        metadata: {
-          flow: "publish",
-          owner_clerk_user_id: userId,
-          pending_checkout_id: pendingRow.id,
-          slug: pendingRow.slug || "",
-          template_key: resolvedTemplateKey,
-          design_key: resolvedDesignKey,
-        },
-      });
+const session = await stripe.checkout.sessions.create({
+  mode: "payment",
+  allow_promotion_codes: true,
+  client_reference_id: pendingRow.id,
+  line_items: [
+    {
+      price_data: {
+        currency: "usd",
+        product_data: { name: "Ko-Host Publish" },
+        unit_amount: PUBLISH_PRICE_CENTS,
+      },
+      quantity: 1,
+    },
+  ],
+  success_url: `${appUrl}/dashboard/microsites?checkout=success&session_id={CHECKOUT_SESSION_ID}&slug=${encodeURIComponent(
+    pendingRow.slug || "",
+  )}`,
+  cancel_url: `${appUrl}/dashboard/microsites?checkout=cancel&slug=${encodeURIComponent(
+    pendingRow.slug || "",
+  )}`,
+  metadata: {
+    flow: "publish",
+    owner_clerk_user_id: userId,
+    pending_checkout_id: pendingRow.id,
+    slug: pendingRow.slug || "",
+    template_key: resolvedTemplateKey,
+    design_key: resolvedDesignKey,
+  },
+});
 
       await supabaseAdmin
         .from("pending_microsite_checkouts")
@@ -270,32 +281,33 @@ export async function POST(req: Request) {
         );
       }
 
-      const session = await stripe.checkout.sessions.create({
-        mode: "payment",
-        client_reference_id: micrositeRow.id,
-        line_items: [
-          {
-            price_data: {
-              currency: "usd",
-              product_data: { name: "Ko-Host Publish" },
-              unit_amount: PUBLISH_PRICE_CENTS,
-            },
-            quantity: 1,
-          },
-        ],
-        success_url: `${appUrl}/dashboard/microsites?checkout=success&session_id={CHECKOUT_SESSION_ID}&micrositeId=${encodeURIComponent(
-          micrositeRow.id,
-        )}`,
-        cancel_url: `${appUrl}/dashboard/microsites?checkout=cancel&micrositeId=${encodeURIComponent(
-          micrositeRow.id,
-        )}`,
-        metadata: {
-          flow: "publish",
-          owner_clerk_user_id: userId,
-          microsite_id: micrositeRow.id,
-          slug: micrositeRow.slug || "",
-        },
-      });
+const session = await stripe.checkout.sessions.create({
+  mode: "payment",
+  allow_promotion_codes: true,
+  client_reference_id: micrositeRow.id,
+  line_items: [
+    {
+      price_data: {
+        currency: "usd",
+        product_data: { name: "Ko-Host Publish" },
+        unit_amount: PUBLISH_PRICE_CENTS,
+      },
+      quantity: 1,
+    },
+  ],
+  success_url: `${appUrl}/dashboard/microsites?checkout=success&session_id={CHECKOUT_SESSION_ID}&micrositeId=${encodeURIComponent(
+    micrositeRow.id,
+  )}`,
+  cancel_url: `${appUrl}/dashboard/microsites?checkout=cancel&micrositeId=${encodeURIComponent(
+    micrositeRow.id,
+  )}`,
+  metadata: {
+    flow: "publish",
+    owner_clerk_user_id: userId,
+    microsite_id: micrositeRow.id,
+    slug: micrositeRow.slug || "",
+  },
+});
 
       return NextResponse.redirect(session.url!, 303);
     }

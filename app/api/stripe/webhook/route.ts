@@ -6,7 +6,9 @@ import { randomUUID } from "crypto";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import { generateMicrositeThumbnail } from "@/lib/screenshotMicrosite";
 
-const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+
+// DEVELOPMENT: START
+/* const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 const appUrl = process.env.NEXT_PUBLIC_APP_URL;
 
@@ -24,7 +26,26 @@ if (!appUrl) {
 
 const verifiedStripeSecretKey: string = stripeSecretKey;
 const verifiedWebhookSecret: string = webhookSecret;
-const verifiedAppUrl: string = appUrl;
+const verifiedAppUrl: string = appUrl; */
+// DEVELOPMENT: END
+
+// PRODUCTION: START
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+if (!stripeSecretKey) {
+  throw new Error("Missing STRIPE_SECRET_KEY");
+}
+
+if (!webhookSecret) {
+  throw new Error("Missing STRIPE_WEBHOOK_SECRET");
+}
+
+const verifiedStripeSecretKey: string = stripeSecretKey;
+const verifiedWebhookSecret: string = webhookSecret;
+const verifiedAppUrl: string =
+  process.env.NEXT_PUBLIC_APP_URL || "https://ko-host.com";
+// PRODUCTION: END
 
 function formatCurrency(n: number) {
   return new Intl.NumberFormat("en-US", {
