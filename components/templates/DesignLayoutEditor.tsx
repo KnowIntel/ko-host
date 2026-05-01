@@ -1454,19 +1454,46 @@ const showBorderWidthRadiusControls =
     // ALT + ← = left
     if (e.altKey && e.key === "ArrowLeft") {
       e.preventDefault();
-      alignSelectedBlockHorizontal("left");
+      const activeIds =
+  selectedBlockIds.length > 0
+    ? selectedBlockIds
+    : selection.type === "block"
+      ? [selection.blockId]
+      : selectedBlock?.id
+        ? [selectedBlock.id]
+        : [];
+
+alignSelectedBlockHorizontal("left", activeIds);
     }
 
     // ALT + ↑ = center
     if (e.altKey && e.key === "ArrowUp") {
       e.preventDefault();
-      alignSelectedBlockHorizontal("center");
+      const activeIds =
+  selectedBlockIds.length > 0
+    ? selectedBlockIds
+    : selection.type === "block"
+      ? [selection.blockId]
+      : selectedBlock?.id
+        ? [selectedBlock.id]
+        : [];
+
+alignSelectedBlockHorizontal("center", activeIds);
     }
 
     // ALT + → = right
     if (e.altKey && e.key === "ArrowRight") {
       e.preventDefault();
-      alignSelectedBlockHorizontal("right");
+      const activeIds =
+  selectedBlockIds.length > 0
+    ? selectedBlockIds
+    : selection.type === "block"
+      ? [selection.blockId]
+      : selectedBlock?.id
+        ? [selectedBlock.id]
+        : [];
+
+alignSelectedBlockHorizontal("right", activeIds);
     }
   }
 
@@ -3267,20 +3294,18 @@ function clearMultiSelect() {
   setSelectedBlockIds([]);
 }
 
-function alignSelectedBlockHorizontal(mode: "left" | "center" | "right") {
-  const idsToAlign =
-    selectedBlockIds.length > 0
-      ? selectedBlockIds
-      : selectedBlock
-        ? [selectedBlock.id]
-        : [];
+function alignSelectedBlockHorizontal(
+  mode: "left" | "center" | "right",
+  idsToAlign: string[],
+) {
+  const selectedIds = idsToAlign;
 
-  if (!idsToAlign.length) return;
+  if (!selectedIds.length) return;
 
   setDraft((prev) => ({
     ...prev,
     blocks: prev.blocks.map((block) => {
-      if (!idsToAlign.includes(block.id)) return block;
+      if (!selectedIds.includes(block.id)) return block;
 
       const currentGrid = block.grid ?? {
         colStart: 1,
@@ -3297,14 +3322,14 @@ function alignSelectedBlockHorizontal(mode: "left" | "center" | "right") {
           ? 1
           : mode === "right"
             ? Math.max(1, 12 - colSpan + 1)
-            : Math.max(1, (12 - colSpan) / 2 + 1);
+            : Math.max(1, Math.round((12 - colSpan) / 2 + 1));
 
       return {
         ...block,
         grid: {
           colStart: nextColStart,
           rowStart: currentGrid.rowStart ?? 1,
-          colSpan: currentGrid.colSpan ?? 1,
+          colSpan,
           rowSpan: currentGrid.rowSpan ?? 1,
           zIndex: currentGrid.zIndex ?? 1,
         },
@@ -6480,12 +6505,14 @@ return (
       type="button"
       className={topBarButtonClass(false)}
       onClick={() => {
-        const idsToExpand =
-          selectedBlockIds.length > 0
-            ? selectedBlockIds
-            : selectedBlock
-              ? [selectedBlock.id]
-              : [];
+const idsToExpand =
+  selectedBlockIds.length > 0
+    ? selectedBlockIds
+    : selection.type === "block"
+      ? [selection.blockId]
+      : selectedBlock?.id
+        ? [selectedBlock.id]
+        : [];
 
         if (!idsToExpand.length) return;
 
@@ -6526,51 +6553,90 @@ return (
       />
     </button>
 
-    <button
-      type="button"
-      className={topBarButtonClass(false)}
-      onClick={() => alignSelectedBlockHorizontal("left")}
-      title="Edge Left"
-    >
-      <Image
-        src="/icons/icon_edge_left.png"
-        alt="Edge Left"
-        width={30}
-        height={30}
-        className="pointer-events-none h-[30px] w-[30px] object-contain"
-      />
-    </button>
+<button
+  type="button"
+  className={topBarButtonClass(false)}
+  onClick={() => {
+    const activeIds =
+      selectedBlockIds.length > 0
+        ? selectedBlockIds
+        : selection.type === "block"
+          ? [selection.blockId]
+          : selectedBlock?.id
+            ? [selectedBlock.id]
+            : [];
 
-    <button
-      type="button"
-      className={topBarButtonClass(false)}
-      onClick={() => alignSelectedBlockHorizontal("center")}
-      title="Balance Center"
-    >
-      <Image
-        src="/icons/icon_balance_center.png"
-        alt="Balance Center"
-        width={30}
-        height={30}
-        className="pointer-events-none h-[30px] w-[30px] object-contain"
-      />
-    </button>
+    if (!activeIds.length) return;
 
-    <button
-      type="button"
-      className={topBarButtonClass(false)}
-      onClick={() => alignSelectedBlockHorizontal("right")}
-      title="Edge Right"
-    >
-      <Image
-        src="/icons/icon_edge_right.png"
-        alt="Edge Right"
-        width={30}
-        height={30}
-        className="pointer-events-none h-[30px] w-[30px] object-contain"
-      />
-    </button>
-  </>
+    alignSelectedBlockHorizontal("left", activeIds);
+  }}
+  title="Edge Left"
+>
+  <Image
+    src="/icons/icon_edge_left.png"
+    alt="Edge Left"
+    width={30}
+    height={30}
+    className="pointer-events-none h-[30px] w-[30px] object-contain"
+  />
+</button>
+
+<button
+  type="button"
+  className={topBarButtonClass(false)}
+  onClick={() => {
+    const activeIds =
+      selectedBlockIds.length > 0
+        ? selectedBlockIds
+        : selection.type === "block"
+          ? [selection.blockId]
+          : selectedBlock?.id
+            ? [selectedBlock.id]
+            : [];
+
+    if (!activeIds.length) return;
+
+    alignSelectedBlockHorizontal("center", activeIds);
+  }}
+  title="Balance Center"
+>
+  <Image
+    src="/icons/icon_balance_center.png"
+    alt="Balance Center"
+    width={30}
+    height={30}
+    className="pointer-events-none h-[30px] w-[30px] object-contain"
+  />
+</button>
+
+<button
+  type="button"
+  className={topBarButtonClass(false)}
+  onClick={() => {
+    const activeIds =
+      selectedBlockIds.length > 0
+        ? selectedBlockIds
+        : selection.type === "block"
+          ? [selection.blockId]
+          : selectedBlock?.id
+            ? [selectedBlock.id]
+            : [];
+
+    if (!activeIds.length) return;
+
+    alignSelectedBlockHorizontal("right", activeIds);
+  }}
+  title="Edge Right"
+>
+  <Image
+    src="/icons/icon_edge_right.png"
+    alt="Edge Right"
+    width={30}
+    height={30}
+    className="pointer-events-none h-[30px] w-[30px] object-contain"
+  />
+</button>
+</>
 ) : null}
 </div>
 
