@@ -3,6 +3,7 @@
 
 import AppModal from "@/components/ui/AppModal";
 import { BUILDER_TOOL_GUIDES } from "@/components/templates/builderToolGuides";
+import { BLOCK_GUIDES } from "@/components/templates/blockGuideContent";
 import PopBalloonCanvasPreview from "@/components/blocks/PopBalloonCanvasPreview";
 import { getStoreMeta } from "@/lib/utils/getStoreMeta";
 import Image from "next/image";
@@ -1072,6 +1073,7 @@ const [selectedRsvpElementKey, setSelectedRsvpElementKey] = useState<
   const topBarScrollRef = useRef<HTMLDivElement | null>(null);
   const dockedScrollRef = useRef<HTMLDivElement | null>(null);
   const bottomBarRef = useRef<HTMLDivElement | null>(null);
+  const [blockGuideOpen, setBlockGuideOpen] = useState(false);
   const toolMenuRef = useRef<HTMLDivElement | null>(null);
   const [donationStyleTarget, setDonationStyleTarget] =
   useState<"background" | "buttons">("background");
@@ -1171,6 +1173,7 @@ const [richTextLinkValue, setRichTextLinkValue] = useState("https://");
   const [highlightStyleTarget, setHighlightStyleTarget] = useState<
   "heading" | "body"
 >("heading");
+
 
 const [countdownStyleTarget, setCountdownStyleTarget] = useState<
   "background" | "tiles"
@@ -1283,6 +1286,10 @@ const selectedRsvpElementBackgroundColor =
             ? block.data.buttonText || block.label || "Button"
             : "Button",
       }));
+
+      const selectedBlockGuide = selectedBlock
+  ? BLOCK_GUIDES[selectedBlock.type]
+  : null;
   
 const rsvpElementOptions =
   selectedBlock?.type === "rsvp"
@@ -8077,17 +8084,39 @@ isItemSelected={(blockId, nextSelection) =>
           {!inspectorCollapsed ? (
             <div className="h-[calc(100vh-185px)] overflow-y-auto pr-2">
               <div className="space-y-4">
-                <div className={inspectorCardClass()}>
-                  <div className={inspectorLabelClass()}>Inspector</div>
-                  <div className="mt-3 text-lg font-semibold text-neutral-900">
-                    {selectedContext.label}
-                  </div>
-                  <div className="mt-1 text-sm text-neutral-500">
-                    {selectedContext.kind === "none"
-                      ? "Select a block to edit its settings."
-                      : "Live properties for the selected canvas item."}
-                  </div>
-                </div>
+<div className={inspectorCardClass()}>
+  <div className={inspectorLabelClass()}>Inspector</div>
+
+  <div className="mt-3 flex items-center justify-between gap-3">
+    <div className="min-w-0 text-lg font-semibold text-neutral-900">
+      {selectedContext.label}
+    </div>
+
+    {selectedBlock && selectedBlockGuide ? (
+      <button
+        type="button"
+        onClick={() => setBlockGuideOpen(true)}
+        className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-neutral-200 bg-white shadow-sm transition hover:bg-neutral-50"
+        title={`Open ${selectedBlockGuide.title} guide`}
+        aria-label={`Open ${selectedBlockGuide.title} guide`}
+      >
+        <Image
+          src="/icons/icon_block_full_guide.png"
+          alt=""
+          width={22}
+          height={22}
+          className="pointer-events-none object-contain"
+        />
+      </button>
+    ) : null}
+  </div>
+
+  <div className="mt-1 text-sm text-neutral-500">
+    {selectedContext.kind === "none"
+      ? "Select a block to edit its settings."
+      : "Live properties for the selected canvas item."}
+  </div>
+</div>
 
                 {selectedCanvasItem ? (
                   <div className={inspectorCardClass()}>
@@ -14972,6 +15001,55 @@ className={[
   onConfirm={confirmResetDraft}
   onCancel={cancelResetDraft}
 />
+
+<AppModal
+  open={blockGuideOpen}
+  title={selectedBlockGuide?.title ?? "Block Guide"}
+  cancelText="Close"
+  onCancel={() => setBlockGuideOpen(false)}
+>
+  {selectedBlockGuide ? (
+    <div className="mt-5 max-h-[72vh] overflow-y-auto pr-2">
+      <div className="mb-5">
+        <div className="text-xs font-semibold uppercase tracking-[0.18em] text-neutral-400">
+          Block Guide
+        </div>
+
+        <p className="mt-2 text-sm leading-6 text-neutral-600">
+          {selectedBlockGuide.subtitle}
+        </p>
+      </div>
+
+      <div className="space-y-5">
+        {selectedBlockGuide.sections.map((section) => (
+          <section
+            key={section.title}
+            className="rounded-2xl border border-neutral-200 bg-white p-4"
+          >
+            <h3 className="text-base font-semibold text-neutral-950">
+              {section.title}
+            </h3>
+
+            {section.body ? (
+              <p className="mt-2 text-sm leading-6 text-neutral-600">
+                {section.body}
+              </p>
+            ) : null}
+
+            {section.bullets?.length ? (
+              <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-6 text-neutral-600">
+                {section.bullets.map((bullet) => (
+                  <li key={bullet}>{bullet}</li>
+                ))}
+              </ul>
+            ) : null}
+          </section>
+        ))}
+      </div>
     </div>
+  ) : null}
+</AppModal>
+
+</div>
   );
 }
