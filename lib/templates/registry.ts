@@ -120,6 +120,7 @@ export type TemplateKey =
   | "town_hall_discussion"
   | "podcast_episode"
   | "youtube_video_launch"
+  | "restaurant_menu"  
   | "creator_link_hub"
   | "patreon_campaign"
   | "course_enrollment"
@@ -1471,7 +1472,16 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "podcast",
     defaultDraft: { title: "Podcast Episode", slugSuggestion: "podcastepisode" },
   },
-  {
+{
+  key: "restaurant_menu",
+  title: "Restaurant Menu",
+  description: "Advertise your food selections with menu items, descriptions, and pricing.",
+  thumb: "restaurantmenu",
+  setupMins: 3,
+  demoSlug: "restaurant",
+  defaultDraft: { title: "Restaurant Menu", slugSuggestion: "restaurantmenu" },
+},
+/*   {
     key: "youtube_video_launch",
     title: "YouTube Video Launch",
     description: "Premiere link, notes, and CTA.",
@@ -1479,7 +1489,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 2,
     demoSlug: "youtube",
     defaultDraft: { title: "Video Launch", slugSuggestion: "youtubevideolaunch" },
-  },
+  }, */
   {
     key: "creator_link_hub",
     title: "Creator Link Hub",
