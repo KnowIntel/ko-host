@@ -11,6 +11,7 @@ import productLaunchLayouts from "./templates/product_launch";
 import crowdfundingLayouts from "./templates/crowdfunding_campaign";
 import resumeprofileLayouts from "./templates/resume_profile";
 import betaTestingLayouts from "./templates/beta_testing";
+import restaurantLayouts from "./templates/restaurant_menu";
 import blankLayout from "./layouts/blank";
 
 const registry: Record<string, TemplateLayoutRegistry> = {
@@ -26,6 +27,8 @@ const registry: Record<string, TemplateLayoutRegistry> = {
   crowdfunding_campaign: crowdfundingLayouts,
   resume_profile: resumeprofileLayouts,
   beta_testing: betaTestingLayouts,
+  restaurant_menu: restaurantLayouts,
+
 };
 
 
