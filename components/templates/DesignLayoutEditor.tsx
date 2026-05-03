@@ -4044,21 +4044,33 @@ function cancelRemoveAllBlocks() {
       return applyCanvasItemsToDraft(prev, moved);
     });
   }
-  function handleResizeBlock(
-    blockId: string,
-    patch: {
-      colSpan?: number;
-      rowSpan?: number;
-      colStart?: number;
-      rowStart?: number;
-    },
-  ) {
-    setDraft((prev) => {
-      const items = buildCanvasItems(prev, metadata);
-      const resized = resizeCanvasItem(items, blockId, patch);
-      return applyCanvasItemsToDraft(prev, resized);
-    });
-  }
+function handleResizeBlock(
+  blockId: string,
+  patch: {
+    colSpan?: number;
+    rowSpan?: number;
+    colStart?: number;
+    rowStart?: number;
+  },
+) {
+  setDraft((prev) => {
+    const items = buildCanvasItems(prev, metadata);
+
+    const resized = items.map((item) =>
+      item.id === blockId
+        ? {
+            ...item,
+            grid: {
+              ...(item.grid ?? {}),
+              ...patch,
+            },
+          }
+        : item,
+    );
+
+    return applyCanvasItemsToDraft(prev, resized);
+  });
+}
 
   function handleBringToFront(blockId: string) {
     setDraft((prev) => {
