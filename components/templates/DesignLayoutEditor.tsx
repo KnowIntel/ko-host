@@ -1535,6 +1535,24 @@ alignSelectedBlockHorizontal("right", activeIds);
   }
 }, [recentColors]);
 
+useEffect(() => {
+  if (!fontMenuOpen) return;
+
+  function handleClickOutside(event: MouseEvent) {
+    const target = event.target as HTMLElement | null;
+
+    if (target?.closest("[data-font-family-menu='true']")) return;
+
+    setFontMenuOpen(false);
+  }
+
+  window.addEventListener("mousedown", handleClickOutside);
+
+  return () => {
+    window.removeEventListener("mousedown", handleClickOutside);
+  };
+}, [fontMenuOpen]);
+
   useEffect(() => {
     if (!inspectorFocusTarget || !selectedBlock) return;
 
@@ -7194,7 +7212,7 @@ const idsToExpand =
 
           <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
 
-<div className="relative">
+<div className="relative" data-font-family-menu="true">
   <button
     type="button"
     className={topBarFieldClass("min-w-[160px] text-left")}
@@ -7214,12 +7232,13 @@ const idsToExpand =
     {selectedStyle.fontFamily ?? "inherit"}
   </button>
 
-  {fontMenuOpen ? (
-    <div
-      className="fixed z-[9999999] max-h-80 min-w-[220px] overflow-y-auto rounded-xl border border-neutral-200 bg-white p-1 shadow-xl"
-      style={{
-        left: fontMenuPosition.left,
-        top: fontMenuPosition.top,
+{fontMenuOpen ? (
+  <div
+    data-font-family-menu="true"
+    className="fixed z-[9999999] max-h-80 min-w-[220px] overflow-y-auto rounded-xl border border-neutral-200 bg-white p-1 shadow-xl"
+    style={{
+      left: fontMenuPosition.left,
+      top: fontMenuPosition.top,
       }}
     >
       {FONT_FAMILY_OPTIONS.map((font) => (
