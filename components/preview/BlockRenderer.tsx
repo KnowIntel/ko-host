@@ -5941,7 +5941,7 @@ function ScheduleAgendaSubmitForm({
   const canSubmit = Boolean(time.trim() || title.trim() || description.trim());
 
   return (
-    <div className="relative z-50 grid grid-cols-1 gap-2 pointer-events-auto">
+    <div className="relative z-[10000] grid grid-cols-1 gap-2 pointer-events-auto">
       <select
         value={time}
         onChange={(e) => setTime(e.target.value)}
@@ -6102,7 +6102,7 @@ function renderScheduleAgenda(
 {Boolean((block.data as any)?.allowUserEngagement) ? (
   <div
     className={[
-      "mb-4 rounded-xl border p-3",
+      "relative z-[9999] mb-4 rounded-xl border p-3 pointer-events-auto",
       isLightDesign(designKey)
         ? "border-neutral-200 bg-neutral-50 text-neutral-800"
         : "border-white/10 bg-white/5 text-white/80",
