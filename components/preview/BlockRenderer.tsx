@@ -733,6 +733,8 @@ function renderVideo(
 ) {
   const titleStyle = getContainerTextStyle(block.data.style, designKey);
   const videoUrl = (block.data.videoUrl ?? "").trim();
+  const showCaption = Boolean((block.data as any).addCaption);
+  const caption = String((block.data as any).caption ?? "").trim();
 
   if (!videoUrl) {
     return (
@@ -744,7 +746,7 @@ function renderVideo(
     );
   }
 
-    const isDirectVideoFile =
+  const isDirectVideoFile =
     videoUrl.startsWith("data:video/") ||
     /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(videoUrl);
 
@@ -775,6 +777,12 @@ function renderVideo(
           />
         )}
       </div>
+
+      {showCaption && caption ? (
+        <div className="shrink-0 px-2 text-center text-xs text-neutral-700">
+          {caption}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -802,25 +810,32 @@ function renderImage(
   const translateY = (positionY - 50) * 0.6;
 
   const fadeMaskStyle = getImageFadeMaskStyle(block.data.image);
+  const showCaption = Boolean((block.data as any).addCaption);
+  const caption = String((block.data as any).caption ?? "").trim();
 
   return (
-    <div
-      className="h-full w-full overflow-hidden"
-      style={getImageFrameStyle(block)}
-    >
-      <img
-        src={block.data.image.url}
-        alt={block.data.image.alt || ""}
-        className="h-full w-full"
-        style={{
-          objectFit: getImageObjectFit(block),
-          objectPosition: "center center",
-          transform: `translate(${translateX}%, ${translateY}%) scale(${zoom}) rotate(${rotation}deg)`,
-          transformOrigin: "center center",
-          opacity: block.data.image.opacity ?? 1,
-          ...fadeMaskStyle,
-        }}
-      />
+    <div className="flex h-full w-full flex-col overflow-hidden">
+      <div className="min-h-0 flex-1 overflow-hidden" style={getImageFrameStyle(block)}>
+        <img
+          src={block.data.image.url}
+          alt={block.data.image.alt || ""}
+          className="h-full w-full"
+          style={{
+            objectFit: getImageObjectFit(block),
+            objectPosition: "center center",
+            transform: `translate(${translateX}%, ${translateY}%) scale(${zoom}) rotate(${rotation}deg)`,
+            transformOrigin: "center center",
+            opacity: block.data.image.opacity ?? 1,
+            ...fadeMaskStyle,
+          }}
+        />
+      </div>
+
+      {showCaption && caption ? (
+        <div className="shrink-0 px-2 py-1 text-center text-xs text-neutral-700">
+          {caption}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -1814,7 +1829,7 @@ return (
   );
 }
 
-function renderGalleryTile(image: any, index: number) {
+function renderGalleryTile(image: any, index: number, showCaption = false) {
   if (!image?.url) {
     return (
       <div
@@ -1830,19 +1845,28 @@ function renderGalleryTile(image: any, index: number) {
   const shape = image.shape ?? "square";
   const borderRadius =
     shape === "circle" ? "9999px" : shape === "rounded" ? "16px" : "0px";
+  const caption = String(image.caption ?? "").trim();
 
   return (
     <div
       key={image.id || image.url || `gallery-${index}`}
-      className="h-full w-full overflow-hidden"
+      className="flex h-full w-full flex-col overflow-hidden"
       style={{ borderRadius }}
     >
-      <img
-        src={image.url}
-        alt={image.alt || ""}
-        className="h-full w-full object-cover"
-        style={{ borderRadius }}
-      />
+      <div className="min-h-0 flex-1 overflow-hidden" style={{ borderRadius }}>
+        <img
+          src={image.url}
+          alt={image.alt || ""}
+          className="h-full w-full object-cover"
+          style={{ borderRadius }}
+        />
+      </div>
+
+      {showCaption && caption ? (
+        <div className="shrink-0 px-2 py-1 text-center text-xs text-neutral-700">
+          {caption}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -1886,7 +1910,11 @@ function renderGallery(
         }}
       >
         {Array.from({ length: tileCount }).map((_, index) =>
-          renderGalleryTile(images[index], index),
+          renderGalleryTile(
+            images[index],
+            index,
+            Boolean((block.data as any).addCaption),
+          ),
         )}
       </div>
     </div>
@@ -3734,6 +3762,7 @@ function ImageCarouselPreview({
   const showTitles = Boolean(block.data.showTitles);
   const openLinksInNewTab = Boolean(block.data.openLinksInNewTab);
   const direction = block.data.scrollDirection ?? "right";
+  const showCaptions = Boolean((block.data as any).addCaption);
 
   const [startIndex, setStartIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -3866,6 +3895,12 @@ function ImageCarouselPreview({
                     ) : null}
                   </div>
                 ) : null}
+
+                {showCaptions && String((item as any).caption ?? "").trim() ? (
+                  <div className="absolute inset-x-0 bottom-0 bg-black/60 px-3 py-1 text-center text-xs text-white">
+                    {String((item as any).caption ?? "").trim()}
+                  </div>
+                ) : null}
               </div>
             );
 
@@ -3890,6 +3925,8 @@ function ImageCarouselPreview({
     </div>
   );
 }
+
+
 
 function renderImageCarousel(
   block: Extract<MicrositeBlock, { type: "image_carousel" }>,
@@ -5739,12 +5776,230 @@ function renderChecklist(
   );
 }
 
+function ScheduleAgendaSubmissions({
+  block,
+  designKey,
+}: {
+  block: Extract<MicrositeBlock, { type: "schedule_agenda" }>;
+  designKey?: string;
+}) {
+  const [submissions, setSubmissions] = useState<any[]>([]);
+
+  async function loadSubmissions() {
+    try {
+      const params = new URLSearchParams({
+        hostname: window.location.hostname,
+        pageSlug: "home",
+        linkedButtonId: block.id,
+      });
+
+      const res = await fetch(`/api/public/general-submissions?${params}`);
+      const json = await res.json();
+
+      if (json.ok && Array.isArray(json.submissions)) {
+        setSubmissions(json.submissions);
+      }
+    } catch (err) {
+      console.error("Unable to load schedule submissions", err);
+    }
+  }
+
+  useEffect(() => {
+    void loadSubmissions();
+
+    const handler = () => void loadSubmissions();
+    window.addEventListener(`schedule-submitted-${block.id}`, handler);
+
+    return () => {
+      window.removeEventListener(`schedule-submitted-${block.id}`, handler);
+    };
+  }, [block.id]);
+
+  const items = submissions
+    .map((submission) => {
+      const fields = Array.isArray(submission.fields) ? submission.fields : [];
+
+      return {
+        id: submission.id,
+        time: fields.find((field: any) => field.label === "Time")?.value ?? "",
+        title:
+          fields.find((field: any) => field.label === "Title")?.value ??
+          submission.message ??
+          "",
+        description:
+          fields.find((field: any) => field.label === "Description")?.value ??
+          "",
+      };
+    })
+    .filter((item) => item.time || item.title || item.description)
+    .sort((a, b) => {
+      const timeCompare = String(a.time).localeCompare(String(b.time), undefined, {
+        numeric: true,
+        sensitivity: "base",
+      });
+
+      if (timeCompare !== 0) return timeCompare;
+
+      return String(a.title).localeCompare(String(b.title), undefined, {
+        numeric: true,
+        sensitivity: "base",
+      });
+    });
+
+  if (!items.length) return null;
+
+  return (
+    <div className="mt-3 space-y-3">
+      {items.map((item, index) => (
+        <div
+          key={item.id}
+          className={[
+            "rounded-xl border px-3 py-3",
+            isLightDesign(designKey)
+              ? "border-neutral-200 bg-white"
+              : "border-white/10 bg-white/5",
+          ].join(" ")}
+        >
+          <div className="flex items-start gap-3">
+            <div
+              className={[
+                "flex min-h-[48px] min-w-[72px] shrink-0 flex-col items-center justify-center rounded-lg px-2 py-2 text-center",
+                isLightDesign(designKey) ? "bg-neutral-100" : "bg-white/10",
+              ].join(" ")}
+            >
+              <div className={`text-[10px] font-semibold uppercase tracking-[0.12em] ${getMutedTextClass(designKey)}`}>
+                User
+              </div>
+              <div
+                className="mt-1 text-sm font-semibold"
+                style={getContainerTextStyle(block.data.style, designKey)}
+              >
+                {item.time || `${index + 1}`}
+              </div>
+            </div>
+
+            <div className="min-w-0 flex-1">
+              <div
+                className="font-medium"
+                style={getContainerTextStyle(block.data.style, designKey)}
+              >
+                {item.title || "Event"}
+              </div>
+
+              {item.description ? (
+                <div
+                  className="mt-1 text-sm"
+                  style={getContainerTextStyle(block.data.style, designKey)}
+                >
+                  {item.description}
+                </div>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ScheduleAgendaSubmitForm({
+  block,
+}: {
+  block: Extract<MicrositeBlock, { type: "schedule_agenda" }>;
+}) {
+  const [time, setTime] = useState("");
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [status, setStatus] = useState("");
+
+  const canSubmit = Boolean(time.trim() || title.trim() || description.trim());
+
+  return (
+    <div className="grid grid-cols-1 gap-2">
+      <input
+        type="text"
+        placeholder="Time"
+        value={time}
+        onChange={(e) => setTime(e.target.value)}
+        className="h-9 rounded-lg border border-neutral-300 bg-white px-3 text-xs text-neutral-900"
+      />
+
+      <input
+        type="text"
+        placeholder="Title"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        className="h-9 rounded-lg border border-neutral-300 bg-white px-3 text-xs text-neutral-900"
+      />
+
+      <textarea
+        placeholder="Description"
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        className="min-h-[64px] rounded-lg border border-neutral-300 bg-white px-3 py-2 text-xs text-neutral-900"
+      />
+
+      <button
+        type="button"
+        disabled={!canSubmit || isSubmitting}
+        className="h-9 rounded-lg bg-black px-3 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+        onClick={async () => {
+          if (!canSubmit || isSubmitting) return;
+
+          setIsSubmitting(true);
+          setStatus("");
+
+          try {
+            await fetch("/api/public/general-submissions", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                hostname: window.location.hostname,
+                pageSlug: "home",
+                linkedButtonId: block.id,
+                message: title.trim() || "Schedule submission",
+                fields: [
+                  { label: "Type", value: "schedule_agenda" },
+                  { label: "Block ID", value: block.id },
+                  { label: "Time", value: time.trim() },
+                  { label: "Title", value: title.trim() },
+                  { label: "Description", value: description.trim() },
+                ],
+              }),
+            });
+
+            setTime("");
+            setTitle("");
+            setDescription("");
+            setStatus("Added");
+
+            window.dispatchEvent(new Event(`schedule-submitted-${block.id}`));
+          } catch (err) {
+            console.error("Schedule submission failed", err);
+            setStatus("Could not add item");
+          } finally {
+            setIsSubmitting(false);
+          }
+        }}
+      >
+        {isSubmitting ? "Adding..." : "Submit"}
+      </button>
+
+      {status ? (
+        <div className="text-[11px] font-medium opacity-70">{status}</div>
+      ) : null}
+    </div>
+  );
+}
+
 function renderScheduleAgenda(
   block: Extract<MicrositeBlock, { type: "schedule_agenda" }>,
   designKey?: string,
 ) {
   const items = Array.isArray(block.data.items) ? block.data.items : [];
-
   return (
     <Surface
       block={block}
@@ -5758,9 +6013,113 @@ function renderScheduleAgenda(
         {block.data.heading || "Schedule"}
       </div>
 
-      {items.length ? (
-        <div className="space-y-3">
-          {items.map((item, index) => (
+      {Boolean((block.data as any)?.allowUserEngagement) ? (
+        <div
+          className={[
+            "mb-4 rounded-xl border p-3",
+            isLightDesign(designKey)
+              ? "border-neutral-200 bg-neutral-50 text-neutral-800"
+              : "border-white/10 bg-white/5 text-white/80",
+          ].join(" ")}
+        >
+          <div className="mb-2 text-xs font-semibold uppercase tracking-[0.12em]">
+            Add to schedule
+          </div>
+
+          <div className="grid grid-cols-1 gap-2">
+<input
+  id={`schedule-time-${block.id}`}
+  type="text"
+  placeholder="Time"
+  className="h-9 rounded-lg border border-neutral-300 bg-white px-3 text-xs text-neutral-900"
+/>
+
+<input
+  id={`schedule-title-${block.id}`}
+  type="text"
+  placeholder="Title"
+              className="h-9 rounded-lg border border-neutral-300 bg-white px-3 text-xs text-neutral-900"
+            />
+
+<textarea
+  id={`schedule-desc-${block.id}`}
+  placeholder="Description"
+              className="min-h-[64px] rounded-lg border border-neutral-300 bg-white px-3 py-2 text-xs text-neutral-900"
+            />
+
+<button
+  type="button"
+  className="h-9 rounded-lg bg-black px-3 text-xs font-semibold text-white"
+  onClick={async () => {
+    try {
+      const time = (
+        document.getElementById(`schedule-time-${block.id}`) as HTMLInputElement | null
+      )?.value ?? "";
+
+      const title = (
+        document.getElementById(`schedule-title-${block.id}`) as HTMLInputElement | null
+      )?.value ?? "";
+
+      const description = (
+        document.getElementById(`schedule-desc-${block.id}`) as HTMLTextAreaElement | null
+      )?.value ?? "";
+
+      await fetch("/api/public/general-submissions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          hostname: window.location.hostname,
+          pageSlug: "home",
+          linkedButtonId: block.id,
+          message: title || "Schedule submission",
+          fields: [
+            { label: "Type", value: "schedule_agenda" },
+            { label: "Block ID", value: block.id },
+            { label: "Time", value: time },
+            { label: "Title", value: title },
+            { label: "Description", value: description },
+          ],
+        }),
+      });
+
+      window.dispatchEvent(new Event(`schedule-submitted-${block.id}`));
+
+      // clear inputs
+      const timeInput = document.getElementById(
+        `schedule-time-${block.id}`,
+      ) as HTMLInputElement | null;
+
+      const titleInput = document.getElementById(
+        `schedule-title-${block.id}`,
+      ) as HTMLInputElement | null;
+
+      const descInput = document.getElementById(
+        `schedule-desc-${block.id}`,
+      ) as HTMLTextAreaElement | null;
+
+      if (timeInput) timeInput.value = "";
+      if (titleInput) titleInput.value = "";
+      if (descInput) descInput.value = "";
+    } catch (err) {
+      console.error("Schedule submission failed", err);
+    }
+  }}
+>
+  Submit
+</button>
+          </div>
+
+          <div className="mt-2 text-[11px] opacity-70">
+            Public schedule submissions UI enabled.
+          </div>
+        </div>
+      ) : null}
+
+{items.length ? (
+  <div className="space-y-3">
+    {items.map((item, index) => (
             <div
               key={item.id}
               className={[
@@ -5823,6 +6182,14 @@ function renderScheduleAgenda(
           No schedule items yet.
         </div>
       )}
+
+{Boolean((block.data as any)?.allowUserEngagement) ? (
+  <>
+    <ScheduleAgendaSubmitForm block={block} />
+    <ScheduleAgendaSubmissions block={block} designKey={designKey} />
+  </>
+) : null}
+
     </Surface>
   );
 }

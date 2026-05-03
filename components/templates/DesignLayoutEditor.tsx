@@ -206,7 +206,7 @@ type BottomCategory =
   | "Media"
   | "Layout"
   | "Forms"
-  | "Interactive"
+  | "Exchange"
   | "Utilities"
   | "Data & Metrics"
   | "Scheduling"
@@ -254,7 +254,7 @@ const CATEGORY_ORDER: BottomCategory[] = [
   "Media",
   "Layout",
   "Forms",
-  "Interactive",
+  "Exchange",
   "Utilities",
   "Data & Metrics",
   "Scheduling",
@@ -295,7 +295,7 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "RSVP", type: "rsvp" },
     { kind: "block", label: "FAQ", type: "faq" },
   ],
-  Interactive: [
+  Exchange: [
     { kind: "block", label: "Thread", type: "thread" },
     { kind: "block", label: "File Share", type: "file_share" },
   ],
@@ -5993,10 +5993,11 @@ onBlur={(e) => {
 
   const scrollbarWidth = getGridCanvasScrollableWidth();
 
-  const toolSetItems = canvasItems.map((item) => ({
+const toolSetItems = canvasItems.map((item) => ({
   id: item.id,
   label: item.label || item.type,
   kind: isPageBlockId(item.id) ? "page" : item.type,
+  canRename: !isPageBlockId(item.id),
 }));
 
 function toggleToolMenu(category: BottomCategory) {
@@ -7208,12 +7209,12 @@ const idsToExpand =
 
 <input
   type="number"
-  min={8}
+  min={1}
   max={480}
   value={selectedStyle.fontSize ?? 16}
   onChange={(e) => {
     const nextFontSize = Math.max(
-      8,
+      1,
       Math.min(480, Number(e.target.value) || 16),
     );
 
@@ -8055,18 +8056,26 @@ if (selectedBlock?.type === "rsvp") {
 <GridCanvas
   blocks={canvasItems}
   selection={selection as any}
-  onSelect={handleCanvasSelect as any}
+  onSelect={(next) => {
+    // if clicking empty canvas → deselect
+    if (!next || (next as any).type === "none") {
+      setSelection({ type: "none" });
+      return;
+    }
+
+    handleCanvasSelect(next as any);
+  }}
   onMoveBlock={handleMoveBlock}
   onResizeBlock={handleResizeBlock}
   onBringToFront={handleBringToFront}
   onRemoveBlock={removeCanvasBlock}
-  onDuplicateBlock={handleDuplicateCanvasBlock}
+    onDuplicateBlock={undefined}
   onCreateToolDrop={handleCreateToolDrop}
   renderBlockPreview={renderCanvasPreview}
-isItemSelected={(blockId, nextSelection) =>
-  selectedBlockIds.includes(blockId) ||
-  isCanvasBlockSelected(nextSelection as any, blockId)
-}
+  isItemSelected={(blockId, nextSelection) =>
+    selectedBlockIds.includes(blockId) ||
+    isCanvasBlockSelected(nextSelection as any, blockId)
+  }
   dockedScrollRef={dockedScrollRef}
   showGridLines={showGridLines}
   pageSurfaceStyle={{
@@ -11043,6 +11052,27 @@ isItemSelected={(blockId, nextSelection) =>
   <div className={inspectorCardClass()}>
     <div className={inspectorLabelClass()}>Schedule</div>
 
+    <label className="mt-4 flex items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm text-neutral-700">
+  <input
+    type="checkbox"
+    checked={Boolean((selectedBlock.data as any).allowUserEngagement)}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "schedule_agenda"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                allowUserEngagement: e.target.checked,
+              } as any,
+            },
+      )
+    }
+  />
+  Allow user engagement
+</label>
+
     <div className="mt-4">
       <div className={inspectorLabelClass()}>Heading</div>
       <input
@@ -12300,6 +12330,52 @@ isItemSelected={(blockId, nextSelection) =>
   <div className={inspectorCardClass()}>
     <div className={inspectorLabelClass()}>Video</div>
 
+    <label className="mt-4 flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+  <input
+    type="checkbox"
+    checked={Boolean((selectedBlock.data as any).addCaption)}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "video"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                addCaption: e.target.checked,
+              } as any,
+            },
+      )
+    }
+  />
+  Add caption
+</label>
+
+{(selectedBlock.data as any).addCaption ? (
+  <div className="mt-3">
+    <div className={inspectorLabelClass()}>Caption</div>
+    <input
+      type="text"
+      value={(selectedBlock.data as any).caption ?? ""}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "video"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  caption: e.target.value,
+                } as any,
+              },
+        )
+      }
+      className={inspectorInputClass()}
+      placeholder="Video caption..."
+    />
+  </div>
+) : null}
+
     <div className="mt-4">
       <div className={inspectorLabelClass()}>Title</div>
       <input
@@ -13403,6 +13479,52 @@ onInput={(e) => {
                   <div className={inspectorCardClass()}>
                     <div className={inspectorLabelClass()}>Image</div>
 
+<label className="mt-4 flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+  <input
+    type="checkbox"
+    checked={Boolean((selectedBlock.data as any).addCaption)}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "image"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                addCaption: e.target.checked,
+              } as any,
+            },
+      )
+    }
+  />
+  Add caption
+</label>
+
+{(selectedBlock.data as any).addCaption ? (
+  <div className="mt-3">
+    <div className={inspectorLabelClass()}>Caption</div>
+    <input
+      type="text"
+      value={(selectedBlock.data as any).caption ?? ""}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "image"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  caption: e.target.value,
+                } as any,
+              },
+        )
+      }
+      className={inspectorInputClass()}
+      placeholder="Image caption..."
+    />
+  </div>
+) : null}
+
                     <button
                       type="button"
                       className="mt-3 inline-flex h-11 items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-sm text-neutral-700 hover:bg-neutral-50"
@@ -13809,6 +13931,27 @@ onInput={(e) => {
   <div className={inspectorCardClass()}>
     <div className={inspectorLabelClass()}>Gallery</div>
 
+    <label className="mt-4 flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+  <input
+    type="checkbox"
+    checked={Boolean((selectedBlock.data as any).addCaption)}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "gallery"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                addCaption: e.target.checked,
+              } as any,
+            },
+      )
+    }
+  />
+  Add captions
+</label>
+
     <div className="mt-4 grid grid-cols-2 gap-3">
       <div>
         <div className={inspectorLabelClass()}>Columns</div>
@@ -13942,6 +14085,35 @@ onInput={(e) => {
               </button>
             </div>
           </div>
+
+          {(selectedBlock.data as any).addCaption ? (
+            <div className="mt-3">
+              <div className={inspectorLabelClass()}>Caption</div>
+              <input
+                type="text"
+                value={(image as any).caption ?? ""}
+                onChange={(e) =>
+                  updateSelectedBlock((block) =>
+                    block.type !== "gallery"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            images: block.data.images.map((galleryImage) =>
+                              galleryImage.id === image.id
+                                ? { ...galleryImage, caption: e.target.value }
+                                : galleryImage,
+                            ),
+                          } as any,
+                        },
+                  )
+                }
+                className={inspectorInputClass()}
+                placeholder={`Image ${index + 1} caption...`}
+              />
+            </div>
+          ) : null}
         </div>
       ))}
 
@@ -14094,6 +14266,27 @@ onInput={(e) => {
                 {selectedBlock?.type === "image_carousel" ? (
                   <div id="inspector-image-carousel" className={inspectorCardClass()}>
                     <div className={inspectorLabelClass()}>Image Carousel</div>
+
+<label className="mt-4 flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+  <input
+    type="checkbox"
+    checked={Boolean((selectedBlock.data as any).addCaption)}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "image_carousel"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                addCaption: e.target.checked,
+              } as any,
+            },
+      )
+    }
+  />
+  Add captions
+</label>
 
                     <button
                       type="button"
@@ -14537,6 +14730,30 @@ onInput={(e) => {
                               />
                             </div>
 
+                            {(selectedBlock.data as any).addCaption ? (
+                              <div className="mt-4">
+                                <div className={inspectorLabelClass()}>Caption</div>
+                                <input
+                                  type="text"
+                                  value={(item as any).caption ?? ""}
+                                  onChange={(e) =>
+                                    setDraft((prev) => ({
+                                      ...prev,
+                                      blocks: updateImageCarouselItemField(
+                                        prev.blocks,
+                                        selectedBlock.id,
+                                        item.id,
+                                        "caption" as any,
+                                        e.target.value,
+                                      ),
+                                    }))
+                                  }
+                                  className={inspectorInputClass()}
+                                  placeholder={`Slide ${index + 1} caption...`}
+                                />
+                              </div>
+                            ) : null}
+
                             <div className="mt-4">
                               <div className={inspectorLabelClass()}>
                                 Link URL
@@ -14638,23 +14855,57 @@ onInput={(e) => {
         setSelection(selectionFromCanvasBlockId(tool.id));
       }
     }}
-className={[
-  "cursor-pointer rounded-xl p-3 transition-all duration-150",
-  selectedBlock?.id === tool.id
-    ? "border-2 border-black bg-white shadow-md"
-    : "border border-neutral-200 bg-neutral-50 hover:bg-white",
-].join(" ")}
+    className={[
+      "cursor-pointer rounded-xl p-3 transition-all duration-150",
+      selectedBlock?.id === tool.id
+        ? "border-2 border-black bg-white shadow-md"
+        : "border border-neutral-200 bg-neutral-50 hover:bg-white",
+    ].join(" ")}
   >
     <div className="mb-3 min-w-0">
-      <div className="truncate text-sm font-semibold text-neutral-900">
-        {tool.label}
-      </div>
+{tool.canRename && selectedBlock?.id === tool.id ? (
+  <input
+    type="text"
+    value={tool.label}
+    onClick={(e) => e.stopPropagation()}
+    onKeyDown={(e) => e.stopPropagation()}
+    onChange={(e) => {
+      const nextLabel = e.target.value;
+
+      setDraft((prev) => ({
+        ...prev,
+        blocks: prev.blocks.map((block) =>
+          block.id === tool.id ? { ...block, label: nextLabel } : block,
+        ),
+      }));
+    }}
+    className="w-full rounded-lg border border-neutral-300 bg-white px-2 py-1 text-sm font-semibold text-neutral-900"
+    placeholder="Block name"
+  />
+) : (
+  <div className="truncate text-sm font-semibold text-neutral-900">
+    {tool.label}
+  </div>
+)}
       <div className="mt-1 text-xs uppercase tracking-[0.12em] text-neutral-500">
         {tool.kind}
       </div>
     </div>
 
     <div className="flex flex-wrap items-center gap-2">
+      {/* DUPLICATE (NEW POSITION) */}
+      <button
+        type="button"
+        className={toolSetButtonClass("front")}
+        onClick={(e) => {
+          e.stopPropagation();
+          handleDuplicateCanvasBlock(tool.id);
+        }}
+        title="Duplicate"
+      >
+        ⧉
+      </button>
+
       <button
         type="button"
         className={toolSetButtonClass("back")}
@@ -14715,6 +14966,7 @@ className={[
         ↓
       </button>
 
+      {/* REMOVE stays last */}
       <button
         type="button"
         className={toolSetButtonClass("remove")}

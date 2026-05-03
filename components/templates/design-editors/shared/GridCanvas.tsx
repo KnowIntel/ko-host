@@ -673,96 +673,97 @@ export default function GridCanvas({
       ? getMinSizeForItem(currentBlock)
       : { colSpan: 0.5, rowSpan: 0.5 };
 
-    function handleMouseMove(event: MouseEvent) {
-      const deltaCols = snapToStep(
-        (event.clientX - currentResize.startX) /
-          (getStrideX() * currentResize.zoomScale),
-      );
-      const deltaRows = snapToStep(
-        (event.clientY - currentResize.startY) /
-          (getStrideY() * currentResize.zoomScale),
-      );
+function handleMouseMove(event: MouseEvent) {
+  const deltaCols = snapToStep(
+    (event.clientX - currentResize.startX) /
+      (getStrideX() * currentResize.zoomScale),
+  );
 
-      let nextColStart = currentResize.startGrid.colStart;
-      let nextRowStart = currentResize.startGrid.rowStart;
-      let nextColSpan = currentResize.startGrid.colSpan;
-      let nextRowSpan = currentResize.startGrid.rowSpan;
+  const deltaRows = snapToStep(
+    (event.clientY - currentResize.startY) /
+      (getStrideY() * currentResize.zoomScale),
+  );
 
-      if (
-        currentResize.handle === "e" ||
-        currentResize.handle === "ne" ||
-        currentResize.handle === "se"
-      ) {
-        nextColSpan = clamp(
-          currentResize.startGrid.colSpan + deltaCols,
-          minSize.colSpan,
-          GRID_COLUMNS - currentResize.startGrid.colStart + 1,
-        );
-      }
+  const startLeft = currentResize.startGrid.colStart;
+  const startTop = currentResize.startGrid.rowStart;
+  const startRight = startLeft + currentResize.startGrid.colSpan;
+  const startBottom = startTop + currentResize.startGrid.rowSpan;
 
-      if (
-        currentResize.handle === "w" ||
-        currentResize.handle === "nw" ||
-        currentResize.handle === "sw"
-      ) {
-        nextColStart = clamp(
-          currentResize.startGrid.colStart + deltaCols,
-          1,
-          currentResize.startGrid.colStart +
-            currentResize.startGrid.colSpan -
-            minSize.colSpan,
-        );
+  let nextColStart = startLeft;
+  let nextRowStart = startTop;
+  let nextColSpan = currentResize.startGrid.colSpan;
+  let nextRowSpan = currentResize.startGrid.rowSpan;
 
-        nextColSpan = clamp(
-          currentResize.startGrid.colSpan - deltaCols,
-          minSize.colSpan,
-          GRID_COLUMNS - nextColStart + 1,
-        );
-      }
+  const resizesRight =
+    currentResize.handle === "e" ||
+    currentResize.handle === "ne" ||
+    currentResize.handle === "se";
 
-      if (
-        currentResize.handle === "s" ||
-        currentResize.handle === "se" ||
-        currentResize.handle === "sw"
-      ) {
-        nextRowSpan = Math.max(
-          minSize.rowSpan,
-          currentResize.startGrid.rowSpan + deltaRows,
-        );
-      }
+  const resizesLeft =
+    currentResize.handle === "w" ||
+    currentResize.handle === "nw" ||
+    currentResize.handle === "sw";
 
-      if (
-        currentResize.handle === "n" ||
-        currentResize.handle === "ne" ||
-        currentResize.handle === "nw"
-      ) {
-        nextRowStart = Math.max(
-          1,
-          currentResize.startGrid.rowStart + deltaRows,
-        );
+  const resizesBottom =
+    currentResize.handle === "s" ||
+    currentResize.handle === "se" ||
+    currentResize.handle === "sw";
 
-        const maxTopShift =
-          currentResize.startGrid.rowSpan - minSize.rowSpan;
+  const resizesTop =
+    currentResize.handle === "n" ||
+    currentResize.handle === "ne" ||
+    currentResize.handle === "nw";
 
-        nextRowStart = Math.min(
-          nextRowStart,
-          currentResize.startGrid.rowStart + maxTopShift,
-        );
+  if (resizesRight) {
+    const nextRight = clamp(
+      startRight + deltaCols,
+      startLeft + minSize.colSpan,
+      GRID_COLUMNS + 1,
+    );
 
-        nextRowSpan = Math.max(
-          minSize.rowSpan,
-          currentResize.startGrid.rowSpan -
-            (nextRowStart - currentResize.startGrid.rowStart),
-        );
-      }
+    nextColStart = startLeft;
+    nextColSpan = nextRight - startLeft;
+  }
 
-      onResizeBlock(currentResize.blockId, {
-        colStart: nextColStart,
-        rowStart: nextRowStart,
-        colSpan: nextColSpan,
-        rowSpan: nextRowSpan,
-      });
-    }
+  if (resizesLeft) {
+    const nextLeft = clamp(
+      startLeft + deltaCols,
+      1,
+      startRight - minSize.colSpan,
+    );
+
+    nextColStart = nextLeft;
+    nextColSpan = startRight - nextLeft;
+  }
+
+  if (resizesBottom) {
+    const nextBottom = Math.max(
+      startTop + minSize.rowSpan,
+      startBottom + deltaRows,
+    );
+
+    nextRowStart = startTop;
+    nextRowSpan = nextBottom - startTop;
+  }
+
+  if (resizesTop) {
+    const nextTop = clamp(
+      startTop + deltaRows,
+      1,
+      startBottom - minSize.rowSpan,
+    );
+
+    nextRowStart = nextTop;
+    nextRowSpan = startBottom - nextTop;
+  }
+
+  onResizeBlock(currentResize.blockId, {
+    colStart: nextColStart,
+    rowStart: nextRowStart,
+    colSpan: nextColSpan,
+    rowSpan: nextRowSpan,
+  });
+}
 
     function handleMouseUp() {
       setResizeState(null);
