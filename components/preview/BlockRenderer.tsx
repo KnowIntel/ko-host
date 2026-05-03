@@ -5942,57 +5942,59 @@ function ScheduleAgendaSubmitForm({
 
   return (
     <div className="grid grid-cols-1 gap-2">
-<select
-  value={time}
-  onChange={(e) => setTime(e.target.value)}
-  className="h-9 rounded-lg border border-neutral-300 bg-white px-3 text-xs text-neutral-900"
->
-  <option value="">Select time</option>
-  {[
-    "12:00 AM", "12:30 AM",
-    "1:00 AM", "1:30 AM",
-    "2:00 AM", "2:30 AM",
-    "3:00 AM", "3:30 AM",
-    "4:00 AM", "4:30 AM",
-    "5:00 AM", "5:30 AM",
-    "6:00 AM", "6:30 AM",
-    "7:00 AM", "7:30 AM",
-    "8:00 AM", "8:30 AM",
-    "9:00 AM", "9:30 AM",
-    "10:00 AM", "10:30 AM",
-    "11:00 AM", "11:30 AM",
-    "12:00 PM", "12:30 PM",
-    "1:00 PM", "1:30 PM",
-    "2:00 PM", "2:30 PM",
-    "3:00 PM", "3:30 PM",
-    "4:00 PM", "4:30 PM",
-    "5:00 PM", "5:30 PM",
-    "6:00 PM", "6:30 PM",
-    "7:00 PM", "7:30 PM",
-    "8:00 PM", "8:30 PM",
-    "9:00 PM", "9:30 PM",
-    "10:00 PM", "10:30 PM",
-    "11:00 PM", "11:30 PM",
-  ].map((option) => (
-    <option key={option} value={option}>
-      {option}
-    </option>
-  ))}
-</select>
+      <select
+        value={time}
+        onChange={(e) => setTime(e.target.value)}
+        className="h-9 rounded-lg border border-neutral-300 bg-white px-3 text-xs text-neutral-900 opacity-100"
+      >
+        <option value="">Select time</option>
+        {[
+          "12:00 AM", "12:30 AM",
+          "1:00 AM", "1:30 AM",
+          "2:00 AM", "2:30 AM",
+          "3:00 AM", "3:30 AM",
+          "4:00 AM", "4:30 AM",
+          "5:00 AM", "5:30 AM",
+          "6:00 AM", "6:30 AM",
+          "7:00 AM", "7:30 AM",
+          "8:00 AM", "8:30 AM",
+          "9:00 AM", "9:30 AM",
+          "10:00 AM", "10:30 AM",
+          "11:00 AM", "11:30 AM",
+          "12:00 PM", "12:30 PM",
+          "1:00 PM", "1:30 PM",
+          "2:00 PM", "2:30 PM",
+          "3:00 PM", "3:30 PM",
+          "4:00 PM", "4:30 PM",
+          "5:00 PM", "5:30 PM",
+          "6:00 PM", "6:30 PM",
+          "7:00 PM", "7:30 PM",
+          "8:00 PM", "8:30 PM",
+          "9:00 PM", "9:30 PM",
+          "10:00 PM", "10:30 PM",
+          "11:00 PM", "11:30 PM",
+        ].map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </select>
 
       <input
         type="text"
         placeholder="Title"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
-        className="h-9 rounded-lg border border-neutral-300 bg-white px-3 text-xs text-neutral-900"
+        className="h-9 rounded-lg border border-neutral-300 bg-white px-3 text-xs text-neutral-900 opacity-100"
       />
 
       <textarea
         placeholder="Description"
         value={description}
+        disabled={false}
+        readOnly={false}
         onChange={(e) => setDescription(e.target.value)}
-        className="min-h-[64px] rounded-lg border border-neutral-300 bg-white px-3 py-2 text-xs text-neutral-900"
+        className="min-h-[64px] resize-y rounded-lg border border-neutral-300 bg-white px-3 py-2 text-xs text-neutral-900 opacity-100"
       />
 
       <button
@@ -6006,7 +6008,7 @@ function ScheduleAgendaSubmitForm({
           setStatus("");
 
           try {
-            await fetch("/api/public/general-submissions", {
+            const res = await fetch("/api/public/general-submissions", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -6026,27 +6028,37 @@ function ScheduleAgendaSubmitForm({
               }),
             });
 
+            const json = await res.json().catch(() => null);
+
+            if (!res.ok || !json?.ok) {
+              throw new Error(json?.error || "Submission failed");
+            }
+
+            const submittedDetail = {
+              id: `local-${Date.now()}`,
+              message: title.trim() || "Schedule submission",
+              fields: [
+                { label: "Time", value: time.trim() },
+                { label: "Title", value: title.trim() },
+                { label: "Description", value: description.trim() },
+              ],
+            };
+
             setTime("");
             setTitle("");
             setDescription("");
             setStatus("Added");
 
             window.dispatchEvent(
-  new CustomEvent(`schedule-submitted-${block.id}`, {
-    detail: {
-      id: `local-${Date.now()}`,
-      message: title.trim() || "Schedule submission",
-      fields: [
-        { label: "Time", value: time.trim() },
-        { label: "Title", value: title.trim() },
-        { label: "Description", value: description.trim() },
-      ],
-    },
-  }),
-);
+              new CustomEvent(`schedule-submitted-${block.id}`, {
+                detail: submittedDetail,
+              }),
+            );
           } catch (err) {
             console.error("Schedule submission failed", err);
-            setStatus("Could not add item");
+            setStatus(
+              err instanceof Error ? err.message : "Could not add item",
+            );
           } finally {
             setIsSubmitting(false);
           }
