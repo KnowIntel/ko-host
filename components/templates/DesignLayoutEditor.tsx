@@ -1050,6 +1050,10 @@ const [selectedRsvpElementKey, setSelectedRsvpElementKey] = useState<
   const isActive = microsite?.is_active;
   const slug = microsite?.slug;
   const [fontMenuOpen, setFontMenuOpen] = useState(false);
+  const [fontMenuPosition, setFontMenuPosition] = useState({
+    left: 0,
+    top: 0,
+  });
   const [buildPresetConfirmOpen, setBuildPresetConfirmOpen] = useState(false);
   const [pendingPresetDraft, setPendingPresetDraft] = useState<BuilderDraft | null>(null);
   const [registryLoadingMap, setRegistryLoadingMap] = useState<Record<string, boolean>>({});
@@ -7190,21 +7194,34 @@ const idsToExpand =
 
           <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
 
-<div className="relative z-[999999]">
+<div className="relative">
   <button
     type="button"
     className={topBarFieldClass("min-w-[160px] text-left")}
     style={{
       fontFamily: resolveFontFamily(selectedStyle.fontFamily ?? "inherit"),
     }}
-    onClick={() => setFontMenuOpen((open) => !open)}
+    onClick={(e) => {
+      const rect = e.currentTarget.getBoundingClientRect();
+      setFontMenuPosition({
+        left: rect.left,
+        top: rect.bottom + 8,
+      });
+      setFontMenuOpen((open) => !open);
+    }}
     title="Font family"
   >
     {selectedStyle.fontFamily ?? "inherit"}
   </button>
 
   {fontMenuOpen ? (
-    <div className="absolute left-0 top-full z-[9999999] mt-2 max-h-80 min-w-[220px] overflow-y-auto rounded-xl border border-neutral-200 bg-white p-1 shadow-xl">
+    <div
+      className="fixed z-[9999999] max-h-80 min-w-[220px] overflow-y-auto rounded-xl border border-neutral-200 bg-white p-1 shadow-xl"
+      style={{
+        left: fontMenuPosition.left,
+        top: fontMenuPosition.top,
+      }}
+    >
       {FONT_FAMILY_OPTIONS.map((font) => (
         <button
           key={font}
