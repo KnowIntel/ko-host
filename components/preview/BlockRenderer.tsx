@@ -735,6 +735,7 @@ function renderVideo(
   const videoUrl = (block.data.videoUrl ?? "").trim();
   const showCaption = Boolean((block.data as any).addCaption);
   const caption = String((block.data as any).caption ?? "").trim();
+  const captionStyle = ((block.data as any).captionStyle ?? {}) as TextStyle;
 
   if (!videoUrl) {
     return (
@@ -779,9 +780,12 @@ function renderVideo(
       </div>
 
       {showCaption && caption ? (
-        <div className="shrink-0 px-2 text-center text-xs text-neutral-700">
-          {caption}
-        </div>
+<div
+  className="shrink-0 px-2 text-xs text-neutral-700"
+  style={getContainerTextStyle(captionStyle, designKey)}
+>
+  {caption}
+</div>
       ) : null}
     </div>
   );
@@ -812,6 +816,7 @@ function renderImage(
   const fadeMaskStyle = getImageFadeMaskStyle(block.data.image);
   const showCaption = Boolean((block.data as any).addCaption);
   const caption = String((block.data as any).caption ?? "").trim();
+  const captionStyle = ((block.data as any).captionStyle ?? {}) as TextStyle;
 
   return (
     <div className="flex h-full w-full flex-col overflow-hidden">
@@ -832,9 +837,12 @@ function renderImage(
       </div>
 
       {showCaption && caption ? (
-        <div className="shrink-0 px-2 py-1 text-center text-xs text-neutral-700">
-          {caption}
-        </div>
+<div
+  className="shrink-0 px-2 py-1 text-xs text-neutral-700"
+  style={getContainerTextStyle(captionStyle, designKey)}
+>
+  {caption}
+</div>
       ) : null}
     </div>
   );
@@ -1846,6 +1854,7 @@ function renderGalleryTile(image: any, index: number, showCaption = false) {
   const borderRadius =
     shape === "circle" ? "9999px" : shape === "rounded" ? "16px" : "0px";
   const caption = String(image.caption ?? "").trim();
+  const captionStyle = ((image.captionStyle ?? {}) as TextStyle);
 
   return (
     <div
@@ -1863,9 +1872,12 @@ function renderGalleryTile(image: any, index: number, showCaption = false) {
       </div>
 
       {showCaption && caption ? (
-        <div className="shrink-0 px-2 py-1 text-center text-xs text-neutral-700">
-          {caption}
-        </div>
+<div
+  className="shrink-0 px-2 py-1 text-xs text-neutral-700"
+  style={getContainerTextStyle(captionStyle)}
+>
+  {caption}
+</div>
       ) : null}
     </div>
   );
@@ -3763,6 +3775,7 @@ function ImageCarouselPreview({
   const openLinksInNewTab = Boolean(block.data.openLinksInNewTab);
   const direction = block.data.scrollDirection ?? "right";
   const showCaptions = Boolean((block.data as any).addCaption);
+  const captionStyle = ((block.data as any).captionStyle ?? {}) as TextStyle;
 
   const [startIndex, setStartIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -3897,9 +3910,12 @@ function ImageCarouselPreview({
                 ) : null}
 
                 {showCaptions && String((item as any).caption ?? "").trim() ? (
-                  <div className="absolute inset-x-0 bottom-0 bg-black/60 px-3 py-1 text-center text-xs text-white">
-                    {String((item as any).caption ?? "").trim()}
-                  </div>
+<div
+  className="absolute inset-x-0 bottom-0 bg-black/60 px-3 py-1 text-xs text-white"
+  style={getContainerTextStyle(captionStyle, designKey)}
+>
+  {String((item as any).caption ?? "").trim()}
+</div>
                 ) : null}
               </div>
             );
@@ -5807,12 +5823,21 @@ function ScheduleAgendaSubmissions({
   useEffect(() => {
     void loadSubmissions();
 
-    const handler = () => void loadSubmissions();
-    window.addEventListener(`schedule-submitted-${block.id}`, handler);
+const handler = (event: Event) => {
+  const customEvent = event as CustomEvent;
 
-    return () => {
-      window.removeEventListener(`schedule-submitted-${block.id}`, handler);
-    };
+  if (customEvent.detail) {
+    setSubmissions((prev) => [...prev, customEvent.detail]);
+  }
+
+  void loadSubmissions();
+};
+
+window.addEventListener(`schedule-submitted-${block.id}`, handler);
+
+return () => {
+  window.removeEventListener(`schedule-submitted-${block.id}`, handler);
+};
   }, [block.id]);
 
   const items = submissions
@@ -5917,13 +5942,43 @@ function ScheduleAgendaSubmitForm({
 
   return (
     <div className="grid grid-cols-1 gap-2">
-      <input
-        type="text"
-        placeholder="Time"
-        value={time}
-        onChange={(e) => setTime(e.target.value)}
-        className="h-9 rounded-lg border border-neutral-300 bg-white px-3 text-xs text-neutral-900"
-      />
+<select
+  value={time}
+  onChange={(e) => setTime(e.target.value)}
+  className="h-9 rounded-lg border border-neutral-300 bg-white px-3 text-xs text-neutral-900"
+>
+  <option value="">Select time</option>
+  {[
+    "12:00 AM", "12:30 AM",
+    "1:00 AM", "1:30 AM",
+    "2:00 AM", "2:30 AM",
+    "3:00 AM", "3:30 AM",
+    "4:00 AM", "4:30 AM",
+    "5:00 AM", "5:30 AM",
+    "6:00 AM", "6:30 AM",
+    "7:00 AM", "7:30 AM",
+    "8:00 AM", "8:30 AM",
+    "9:00 AM", "9:30 AM",
+    "10:00 AM", "10:30 AM",
+    "11:00 AM", "11:30 AM",
+    "12:00 PM", "12:30 PM",
+    "1:00 PM", "1:30 PM",
+    "2:00 PM", "2:30 PM",
+    "3:00 PM", "3:30 PM",
+    "4:00 PM", "4:30 PM",
+    "5:00 PM", "5:30 PM",
+    "6:00 PM", "6:30 PM",
+    "7:00 PM", "7:30 PM",
+    "8:00 PM", "8:30 PM",
+    "9:00 PM", "9:30 PM",
+    "10:00 PM", "10:30 PM",
+    "11:00 PM", "11:30 PM",
+  ].map((option) => (
+    <option key={option} value={option}>
+      {option}
+    </option>
+  ))}
+</select>
 
       <input
         type="text"
@@ -5976,7 +6031,19 @@ function ScheduleAgendaSubmitForm({
             setDescription("");
             setStatus("Added");
 
-            window.dispatchEvent(new Event(`schedule-submitted-${block.id}`));
+            window.dispatchEvent(
+  new CustomEvent(`schedule-submitted-${block.id}`, {
+    detail: {
+      id: `local-${Date.now()}`,
+      message: title.trim() || "Schedule submission",
+      fields: [
+        { label: "Time", value: time.trim() },
+        { label: "Title", value: title.trim() },
+        { label: "Description", value: description.trim() },
+      ],
+    },
+  }),
+);
           } catch (err) {
             console.error("Schedule submission failed", err);
             setStatus("Could not add item");
@@ -6024,91 +6091,6 @@ function renderScheduleAgenda(
         >
           <div className="mb-2 text-xs font-semibold uppercase tracking-[0.12em]">
             Add to schedule
-          </div>
-
-          <div className="grid grid-cols-1 gap-2">
-<input
-  id={`schedule-time-${block.id}`}
-  type="text"
-  placeholder="Time"
-  className="h-9 rounded-lg border border-neutral-300 bg-white px-3 text-xs text-neutral-900"
-/>
-
-<input
-  id={`schedule-title-${block.id}`}
-  type="text"
-  placeholder="Title"
-              className="h-9 rounded-lg border border-neutral-300 bg-white px-3 text-xs text-neutral-900"
-            />
-
-<textarea
-  id={`schedule-desc-${block.id}`}
-  placeholder="Description"
-              className="min-h-[64px] rounded-lg border border-neutral-300 bg-white px-3 py-2 text-xs text-neutral-900"
-            />
-
-<button
-  type="button"
-  className="h-9 rounded-lg bg-black px-3 text-xs font-semibold text-white"
-  onClick={async () => {
-    try {
-      const time = (
-        document.getElementById(`schedule-time-${block.id}`) as HTMLInputElement | null
-      )?.value ?? "";
-
-      const title = (
-        document.getElementById(`schedule-title-${block.id}`) as HTMLInputElement | null
-      )?.value ?? "";
-
-      const description = (
-        document.getElementById(`schedule-desc-${block.id}`) as HTMLTextAreaElement | null
-      )?.value ?? "";
-
-      await fetch("/api/public/general-submissions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          hostname: window.location.hostname,
-          pageSlug: "home",
-          linkedButtonId: block.id,
-          message: title || "Schedule submission",
-          fields: [
-            { label: "Type", value: "schedule_agenda" },
-            { label: "Block ID", value: block.id },
-            { label: "Time", value: time },
-            { label: "Title", value: title },
-            { label: "Description", value: description },
-          ],
-        }),
-      });
-
-      window.dispatchEvent(new Event(`schedule-submitted-${block.id}`));
-
-      // clear inputs
-      const timeInput = document.getElementById(
-        `schedule-time-${block.id}`,
-      ) as HTMLInputElement | null;
-
-      const titleInput = document.getElementById(
-        `schedule-title-${block.id}`,
-      ) as HTMLInputElement | null;
-
-      const descInput = document.getElementById(
-        `schedule-desc-${block.id}`,
-      ) as HTMLTextAreaElement | null;
-
-      if (timeInput) timeInput.value = "";
-      if (titleInput) titleInput.value = "";
-      if (descInput) descInput.value = "";
-    } catch (err) {
-      console.error("Schedule submission failed", err);
-    }
-  }}
->
-  Submit
-</button>
           </div>
 
           <div className="mt-2 text-[11px] opacity-70">

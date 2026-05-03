@@ -999,7 +999,12 @@ function handleMouseMove(event: MouseEvent) {
 <div
   data-kht-page-surface="true"
   className="absolute left-1/2 top-[32px] -translate-x-1/2 rounded-[2px] border border-[rgba(0,0,0,0.09)]"
-                style={{
+  onClick={(e) => {
+    if (e.target !== e.currentTarget) return;
+
+    onSelect({ type: "none" } as EditorSelection, e);
+  }}
+  style={{
                   width: PAGE_WIDTH,
                   height: pageHeight,
                   ...pageSurfaceStyle,

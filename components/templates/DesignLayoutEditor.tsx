@@ -1200,9 +1200,9 @@ const selectedStyle =
     : selectedBlockFromDraft?.type === "donation"
       ? donationStyleTarget === "buttons"
         ? (((selectedBlockFromDraft.data as any).buttonStyle ??
-            selectedBlockFromDraft.data.style ??
+            (selectedBlockFromDraft.data as any).style ??
             {}) as TextStyle)
-        : (selectedBlockFromDraft.data.style ?? {})
+        : (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
     : selectedBlockFromDraft?.type === "listing"
       ? listingStyleTarget === "description"
         ? (selectedBlockFromDraft.data.descriptionStyle ?? {})
@@ -1220,39 +1220,43 @@ const selectedStyle =
         : selectedBlockFromDraft?.type === "faq"
           ? faqStyleTarget === "question"
             ? (((selectedBlockFromDraft.data as any).questionStyle ??
-                selectedBlockFromDraft.data.style ??
+                (selectedBlockFromDraft.data as any).style ??
                 {}) as TextStyle)
             : faqStyleTarget === "answer"
               ? (((selectedBlockFromDraft.data as any).answerStyle ??
-                  selectedBlockFromDraft.data.style ??
+                  (selectedBlockFromDraft.data as any).style ??
                   {}) as TextStyle)
-              : (selectedBlockFromDraft.data.style ?? {})
+              : (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
         : selectedBlockFromDraft?.type === "countdown"
           ? countdownStyleTarget === "tiles"
             ? (((selectedBlockFromDraft.data as any).tileStyle ??
-                selectedBlockFromDraft.data.style ??
+                (selectedBlockFromDraft.data as any).style ??
                 {}) as TextStyle)
-            : (selectedBlockFromDraft.data.style ?? {})
-            
+            : (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
           : selectedBlockFromDraft?.type === "cart" ||
-            selectedBlockFromDraft?.type === "checkout" ||
-            selectedBlockFromDraft?.type === "text_fx" ||
-            selectedBlockFromDraft?.type === "cta" ||
-            selectedBlockFromDraft?.type === "thread" ||
-            selectedBlockFromDraft?.type === "form_field" ||
-            selectedBlockFromDraft?.type === "image_carousel" ||
-            selectedBlockFromDraft?.type === "progress_bar" ||
-            selectedBlockFromDraft?.type === "link_hub" ||
-            selectedBlockFromDraft?.type === "checklist" ||
-            selectedBlockFromDraft?.type === "schedule_agenda" ||
-            selectedBlockFromDraft?.type === "map_location" ||
-            selectedBlockFromDraft?.type === "file_share" ||
-            selectedBlockFromDraft?.type === "speed_dating" ||
-            selectedBlockFromDraft?.type === "video" ||
-            selectedBlockFromDraft?.type === "rich_text" ||
-            selectedBlockFromDraft?.type === "links"
-          ? (selectedBlockFromDraft.data.style ?? {})
-          : getSelectionTextStyle(draft, selection);
+              selectedBlockFromDraft?.type === "checkout" ||
+              selectedBlockFromDraft?.type === "text_fx" ||
+              selectedBlockFromDraft?.type === "cta" ||
+              selectedBlockFromDraft?.type === "thread" ||
+              selectedBlockFromDraft?.type === "form_field" ||
+              selectedBlockFromDraft?.type === "image" ||
+              selectedBlockFromDraft?.type === "gallery" ||
+              selectedBlockFromDraft?.type === "image_carousel" ||
+              selectedBlockFromDraft?.type === "progress_bar" ||
+              selectedBlockFromDraft?.type === "link_hub" ||
+              selectedBlockFromDraft?.type === "checklist" ||
+              selectedBlockFromDraft?.type === "schedule_agenda" ||
+              selectedBlockFromDraft?.type === "map_location" ||
+              selectedBlockFromDraft?.type === "file_share" ||
+              selectedBlockFromDraft?.type === "speed_dating" ||
+              selectedBlockFromDraft?.type === "video" ||
+              selectedBlockFromDraft?.type === "rich_text" ||
+              selectedBlockFromDraft?.type === "links"
+            ? (((selectedBlockFromDraft.data as any).captionStyle ??
+                (selectedBlockFromDraft.data as any).style ??
+                {}) as TextStyle)
+            : getSelectionTextStyle(draft, selection);
+
   const selectedAppearance = getSelectionBlockAppearance(draft, selection);
 const selectedRsvpElementBackgroundColor =
   selectedBlockFromDraft?.type === "rsvp"
@@ -2522,26 +2526,37 @@ function applyStylePatch(patch: Partial<TextStyle>) {
     return;
   }
 
-  if (selectedBlock?.type === "image_carousel") {
-    setDraft((prev) => ({
-      ...prev,
-      blocks: prev.blocks.map((block) =>
-        block.id === selectedBlock.id && block.type === "image_carousel"
-          ? {
-              ...block,
-              data: {
-                ...block.data,
-                style: {
-                  ...(block.data.style ?? {}),
-                  ...patch,
-                },
+if (
+  selectedBlock?.type === "image" ||
+  selectedBlock?.type === "gallery" ||
+  selectedBlock?.type === "image_carousel" ||
+  selectedBlock?.type === "video"
+) {
+  setDraft((prev) => ({
+    ...prev,
+    blocks: prev.blocks.map((block) =>
+      block.id === selectedBlock.id &&
+      (
+        block.type === "image" ||
+        block.type === "gallery" ||
+        block.type === "image_carousel" ||
+        block.type === "video"
+      )
+        ? {
+            ...block,
+            data: {
+              ...block.data,
+              captionStyle: {
+                ...((block.data as any).captionStyle ?? {}),
+                ...patch,
               },
-            }
-          : block,
-      ),
-    }));
-    return;
-  }
+            } as any,
+          }
+        : block,
+    ),
+  }));
+  return;
+}
 
   if (selectedBlock?.type === "form_field") {
     setDraft((prev) => ({
@@ -2847,27 +2862,6 @@ if (selectedBlock?.type === "donation") {
       ...prev,
       blocks: prev.blocks.map((block) =>
         block.id === selectedBlock.id && block.type === "registry"
-          ? {
-              ...block,
-              data: {
-                ...block.data,
-                style: {
-                  ...(block.data.style ?? {}),
-                  ...patch,
-                },
-              },
-            }
-          : block,
-      ),
-    }));
-    return;
-  }
-
-  if (selectedBlock?.type === "video") {
-    setDraft((prev) => ({
-      ...prev,
-      blocks: prev.blocks.map((block) =>
-        block.id === selectedBlock.id && block.type === "video"
           ? {
               ...block,
               data: {
@@ -3728,16 +3722,17 @@ async function uploadDroppedGalleryFiles(
             if (block.id !== blockId) return block;
 
             if (block.type === "image") {
-              return {
-                ...block,
-                data: {
-                  image: {
-                    ...block.data.image,
-                    url: dataUrl,
-                    alt: file.name,
-                  },
-                },
-              };
+return {
+  ...block,
+  data: {
+    ...block.data,
+    image: {
+      ...block.data.image,
+      url: dataUrl,
+      alt: file.name,
+    },
+  },
+};
             }
 
             if (block.type === "listing") {
@@ -7193,31 +7188,34 @@ const idsToExpand =
 
           <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
 
-          <select
-            value={selectedStyle.fontFamily ?? "inherit"}
-            onChange={(e) =>
-              applyStylePatch({ fontFamily: e.target.value })
-            }
-            className={topBarFieldClass("min-w-[160px]")}
-            title="Font family"
-            style={{
-              fontFamily: resolveFontFamily(
-                selectedStyle.fontFamily ?? "inherit",
-              ),
-            }}
-          >
-            {FONT_FAMILY_OPTIONS.map((font) => (
-              <option
-                key={font}
-                value={font}
-                style={{
-                  fontFamily: resolveFontFamily(font),
-                }}
-              >
-                {font}
-              </option>
-            ))}
-          </select>
+<select
+  value={selectedStyle.fontFamily ?? "inherit"}
+  onChange={(e) =>
+    applyStylePatch({ fontFamily: e.target.value })
+  }
+  onInput={(e) =>
+    applyStylePatch({ fontFamily: (e.target as HTMLSelectElement).value })
+  }
+  className={topBarFieldClass("min-w-[160px]")}
+  title="Font family"
+  style={{
+    fontFamily: resolveFontFamily(
+      selectedStyle.fontFamily ?? "inherit",
+    ),
+  }}
+>
+  {FONT_FAMILY_OPTIONS.map((font) => (
+    <option
+      key={font}
+      value={font}
+      style={{
+        fontFamily: resolveFontFamily(font),
+      }}
+    >
+      {font}
+    </option>
+  ))}
+</select>
 
 <input
   type="number"
@@ -14904,7 +14902,7 @@ onInput={(e) => {
       </div>
     </div>
 
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="flex items-center gap-2 overflow-x-auto">
       {/* DUPLICATE (NEW POSITION) */}
       <button
         type="button"

@@ -150,6 +150,7 @@ export function getToolGlyph(label: string) {
   if (label === "Media") return "🖼";
   if (label === "Layout") return "▦";
   if (label === "Forms") return "☰";
+  if (label === "Exchange") return "⇄";
   if (label === "Marketing") return "📣";
   if (label === "Social") return "💬";
   if (label === "Utilities") return "⚙";
