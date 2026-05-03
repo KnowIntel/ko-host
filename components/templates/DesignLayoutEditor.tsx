@@ -7190,7 +7190,7 @@ const idsToExpand =
 
           <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
 
-<div className="relative">
+<div className="relative z-[999999]">
   <button
     type="button"
     className={topBarFieldClass("min-w-[160px] text-left")}
@@ -7204,7 +7204,7 @@ const idsToExpand =
   </button>
 
   {fontMenuOpen ? (
-    <div className="absolute left-0 top-full z-[999999] mt-2 max-h-80 min-w-[220px] overflow-y-auto rounded-xl border border-neutral-200 bg-white p-1 shadow-xl">
+    <div className="absolute left-0 top-full z-[9999999] mt-2 max-h-80 min-w-[220px] overflow-y-auto rounded-xl border border-neutral-200 bg-white p-1 shadow-xl">
       {FONT_FAMILY_OPTIONS.map((font) => (
         <button
           key={font}
