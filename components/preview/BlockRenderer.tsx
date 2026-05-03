@@ -6080,24 +6080,26 @@ function renderScheduleAgenda(
         {block.data.heading || "Schedule"}
       </div>
 
-      {Boolean((block.data as any)?.allowUserEngagement) ? (
-        <div
-          className={[
-            "mb-4 rounded-xl border p-3",
-            isLightDesign(designKey)
-              ? "border-neutral-200 bg-neutral-50 text-neutral-800"
-              : "border-white/10 bg-white/5 text-white/80",
-          ].join(" ")}
-        >
-          <div className="mb-2 text-xs font-semibold uppercase tracking-[0.12em]">
-            Add to schedule
-          </div>
+{Boolean((block.data as any)?.allowUserEngagement) ? (
+  <div
+    className={[
+      "mb-4 rounded-xl border p-3",
+      isLightDesign(designKey)
+        ? "border-neutral-200 bg-neutral-50 text-neutral-800"
+        : "border-white/10 bg-white/5 text-white/80",
+    ].join(" ")}
+  >
+    <div className="mb-2 text-xs font-semibold uppercase tracking-[0.12em]">
+      Add to schedule
+    </div>
 
-          <div className="mt-2 text-[11px] opacity-70">
-            Public schedule submissions UI enabled.
-          </div>
-        </div>
-      ) : null}
+    <ScheduleAgendaSubmitForm block={block} />
+
+    <div className="mt-2 text-[11px] opacity-70">
+      Public schedule submissions UI enabled.
+    </div>
+  </div>
+) : null}
 
 {items.length ? (
   <div className="space-y-3">
@@ -6166,10 +6168,7 @@ function renderScheduleAgenda(
       )}
 
 {Boolean((block.data as any)?.allowUserEngagement) ? (
-  <>
-    <ScheduleAgendaSubmitForm block={block} />
-    <ScheduleAgendaSubmissions block={block} designKey={designKey} />
-  </>
+  <ScheduleAgendaSubmissions block={block} designKey={designKey} />
 ) : null}
 
     </Surface>
