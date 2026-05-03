@@ -872,6 +872,7 @@ function getToolGlyph(label: string) {
   if (label === "Speed Dating") return "❤";
   if (label === "Pop the Balloon") return "🎈";
   if (label === "Registry") return "🎁";
+  if (label === "Exchange") return "⇄";
   if (label === "Premium") return "💎";
   return "•";
 }
@@ -1048,6 +1049,7 @@ const [selectedRsvpElementKey, setSelectedRsvpElementKey] = useState<
   const isPublished = microsite?.is_published;
   const isActive = microsite?.is_active;
   const slug = microsite?.slug;
+  const [fontMenuOpen, setFontMenuOpen] = useState(false);
   const [buildPresetConfirmOpen, setBuildPresetConfirmOpen] = useState(false);
   const [pendingPresetDraft, setPendingPresetDraft] = useState<BuilderDraft | null>(null);
   const [registryLoadingMap, setRegistryLoadingMap] = useState<Record<string, boolean>>({});
@@ -7188,34 +7190,47 @@ const idsToExpand =
 
           <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
 
-<select
-  value={selectedStyle.fontFamily ?? "inherit"}
-  onChange={(e) =>
-    applyStylePatch({ fontFamily: e.target.value })
-  }
-  onInput={(e) =>
-    applyStylePatch({ fontFamily: (e.target as HTMLSelectElement).value })
-  }
-  className={topBarFieldClass("min-w-[160px]")}
-  title="Font family"
-  style={{
-    fontFamily: resolveFontFamily(
-      selectedStyle.fontFamily ?? "inherit",
-    ),
-  }}
->
-  {FONT_FAMILY_OPTIONS.map((font) => (
-    <option
-      key={font}
-      value={font}
-      style={{
-        fontFamily: resolveFontFamily(font),
-      }}
-    >
-      {font}
-    </option>
-  ))}
-</select>
+<div className="relative">
+  <button
+    type="button"
+    className={topBarFieldClass("min-w-[160px] text-left")}
+    style={{
+      fontFamily: resolveFontFamily(selectedStyle.fontFamily ?? "inherit"),
+    }}
+    onClick={() => setFontMenuOpen((open) => !open)}
+    title="Font family"
+  >
+    {selectedStyle.fontFamily ?? "inherit"}
+  </button>
+
+  {fontMenuOpen ? (
+    <div className="absolute left-0 top-full z-[999999] mt-2 max-h-80 min-w-[220px] overflow-y-auto rounded-xl border border-neutral-200 bg-white p-1 shadow-xl">
+      {FONT_FAMILY_OPTIONS.map((font) => (
+        <button
+          key={font}
+          type="button"
+          className={[
+            "block w-full rounded-lg px-3 py-2 text-left text-sm text-neutral-900 hover:bg-neutral-100",
+            (selectedStyle.fontFamily ?? "inherit") === font
+              ? "bg-neutral-100 font-semibold"
+              : "",
+          ].join(" ")}
+          style={{
+            fontFamily: resolveFontFamily(font),
+          }}
+          onMouseEnter={() => applyStylePatch({ fontFamily: font })}
+          onFocus={() => applyStylePatch({ fontFamily: font })}
+          onClick={() => {
+            applyStylePatch({ fontFamily: font });
+            setFontMenuOpen(false);
+          }}
+        >
+          {font}
+        </button>
+      ))}
+    </div>
+  ) : null}
+</div>
 
 <input
   type="number"
