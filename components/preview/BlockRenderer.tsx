@@ -7170,6 +7170,20 @@ function PuzzleRenderer({
   );
 
   useEffect(() => {
+  setPiecePositions(
+    Object.fromEntries(
+      pieces.map((piece: any) => [
+        piece.id,
+        {
+          x: piece.currentX ?? 0,
+          y: piece.currentY ?? 0,
+        },
+      ]),
+    ),
+  );
+}, [block.data.generatedAt, pieces]);
+
+  useEffect(() => {
     const updateBoardBounds = () => {
       const workspace = workspaceRef.current;
       const board = boardRef.current;
@@ -7206,6 +7220,43 @@ function PuzzleRenderer({
       height: (piece.heightPercent / 100) * boardBounds.height,
     };
   }
+
+function getPuzzlePieceClipPath(piece: any) {
+  if (block.data.cut === "straight_edge") return "inset(0)";
+
+  const hasTop = piece.row > 0;
+  const hasRight = piece.col < gridSize.cols - 1;
+  const hasBottom = piece.row < gridSize.rows - 1;
+  const hasLeft = piece.col > 0;
+
+  const horizontalSeed = piece.row + piece.col;
+  const verticalSeed = piece.row * gridSize.cols + piece.col;
+
+  const topTab = hasTop && horizontalSeed % 2 === 0;
+  const rightTab = hasRight && verticalSeed % 2 === 0;
+  const bottomTab = hasBottom && (horizontalSeed + 1) % 2 === 0;
+  const leftTab = hasLeft && (verticalSeed - 1) % 2 === 0;
+
+  const topY = topTab ? -14 : 14;
+  const rightX = rightTab ? 114 : 86;
+  const bottomY = bottomTab ? 114 : 86;
+  const leftX = leftTab ? -14 : 14;
+
+  return `path("M 0 0
+    L 35 0
+    C 35 ${topY}, 65 ${topY}, 65 0
+    L 100 0
+    L 100 35
+    C ${rightX} 35, ${rightX} 65, 100 65
+    L 100 100
+    L 65 100
+    C 65 ${bottomY}, 35 ${bottomY}, 35 100
+    L 0 100
+    L 0 65
+    C ${leftX} 65, ${leftX} 35, 0 35
+    L 0 0
+    Z")`;
+}
 
   const placedCount = pieces.filter((piece: any) => {
     const pos = piecePositions[piece.id];
@@ -7375,10 +7426,12 @@ function PuzzleRenderer({
                     window.addEventListener("pointerup", handlePointerUp);
                   }}
                   className={[
-                    "absolute touch-none overflow-hidden border bg-white shadow-md ring-1 transition-all active:shadow-xl",
-                    isCorrect
-                      ? "cursor-default border-emerald-400 ring-emerald-400/50"
-                      : "cursor-grab border-white ring-black/10 active:cursor-grabbing",
+                    "absolute touch-none overflow-visible border-2 bg-white shadow-lg ring-1 transition-all active:shadow-xl",
+isCorrect
+  ? "cursor-default border-emerald-400 ring-emerald-400/50"
+  : block.data.cut === "straight_edge"
+    ? "cursor-grab border-white ring-black/10 active:cursor-grabbing"
+    : "cursor-grab border-white/90 ring-black/20 active:cursor-grabbing",
                   ].join(" ")}
                   style={{
                     left: `${pos.x}%`,
@@ -7392,11 +7445,8 @@ function PuzzleRenderer({
                     backgroundPosition: `${piece.col * -100}% ${
                       piece.row * -100
                     }%`,
-                    borderRadius: block.data.cut === "straight_edge" ? 2 : 14,
-clipPath:
-  block.data.cut === "straight_edge"
-    ? "inset(0)"
-    : "polygon(0% 8%, 8% 8%, 8% 0%, 92% 0%, 92% 8%, 100% 8%, 100% 42%, 92% 42%, 92% 58%, 100% 58%, 100% 92%, 92% 92%, 92% 100%, 8% 100%, 8% 92%, 0% 92%, 0% 58%, 8% 58%, 8% 42%, 0% 42%)",
+                    borderRadius: block.data.cut === "straight_edge" ? 2 : 0,
+                    clipPath: getPuzzlePieceClipPath(piece),
                     zIndex: isCorrect ? 5 : piece.index + 10,
                     opacity: isCorrect ? 0.95 : 1,
                   }}

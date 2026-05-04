@@ -11651,10 +11651,10 @@ if (selectedBlock?.type === "rsvp") {
         <option value="ribbon_jigsaw">Ribbon-cut jigsaw</option>
         <option value="straight_edge">Straight-edge</option>
       </select>
-      <p className="mt-2 text-xs leading-5 text-neutral-500">
+<p className="mt-2 text-xs leading-5 text-neutral-500">
   {(selectedBlock.data as any).cut === "straight_edge"
     ? "Straight-edge creates clean rectangular puzzle pieces."
-    : "Ribbon-cut creates decorative interlocking-style piece edges."}
+    : "Ribbon-cut creates interlocking-style puzzle pieces with tabs and slots."}
 </p>
     </div>
 
@@ -11688,6 +11688,10 @@ if (selectedBlock?.type === "rsvp") {
         <option value="intermediate">Intermediate</option>
         <option value="advanced">Advanced</option>
       </select>
+      <p className="mt-2 text-xs leading-5 text-neutral-500">
+  Changing cut or sort level clears generated pieces. Press Reset Puzzle again
+  to rebuild the puzzle.
+</p>
     </div>
 
 <button
@@ -11702,23 +11706,27 @@ if (selectedBlock?.type === "rsvp") {
 
       const pieceCount = block.data.pieceCount || 100;
 
-// choose an exact factor grid when possible
-let rows = 1;
-let cols = pieceCount;
+      let rows = 1;
+      let cols = pieceCount;
 
-for (let possibleRows = 1; possibleRows <= Math.sqrt(pieceCount); possibleRows++) {
-  if (pieceCount % possibleRows === 0) {
-    rows = possibleRows;
-    cols = pieceCount / possibleRows;
-  }
-}
+      for (
+        let possibleRows = 1;
+        possibleRows <= Math.sqrt(pieceCount);
+        possibleRows++
+      ) {
+        if (pieceCount % possibleRows === 0) {
+          rows = possibleRows;
+          cols = pieceCount / possibleRows;
+        }
+      }
 
       const pieceWidth = 100 / cols;
       const pieceHeight = 100 / rows;
-
       const pieces: any[] = [];
+      const generatedAt = new Date().toISOString();
 
       let index = 0;
+
       for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
           if (index >= pieceCount) break;
@@ -11726,26 +11734,34 @@ for (let possibleRows = 1; possibleRows <= Math.sqrt(pieceCount); possibleRows++
           const isEdge =
             r === 0 || c === 0 || r === rows - 1 || c === cols - 1;
 
+          let currentX = 10 + Math.random() * 80;
+          let currentY = 10 + Math.random() * 80;
+
+          if (block.data.sortLevel === "beginner") {
+            currentX = Math.max(
+              0,
+              Math.min(100, c * pieceWidth + (Math.random() * 18 - 9)),
+            );
+            currentY = Math.max(
+              0,
+              Math.min(100, r * pieceHeight + (Math.random() * 18 - 9)),
+            );
+          }
+
+          if (block.data.sortLevel === "intermediate" && isEdge) {
+            currentX = Math.random() * 30;
+            currentY = 70 + Math.random() * 25;
+          }
+
           pieces.push({
-            id: `${block.id}_piece_${index}`,
+            id: `${block.id}_piece_${generatedAt}_${index}`,
             index,
             row: r,
             col: c,
             correctX: c * pieceWidth,
             correctY: r * pieceHeight,
-currentX:
-  block.data.sortLevel === "beginner"
-    ? Math.max(0, Math.min(100, c * pieceWidth + (Math.random() * 18 - 9)))
-    : block.data.sortLevel === "intermediate" && isEdge
-      ? Math.random() * 30
-      : 10 + Math.random() * 80,
-
-currentY:
-  block.data.sortLevel === "beginner"
-    ? Math.max(0, Math.min(100, r * pieceHeight + (Math.random() * 18 - 9)))
-    : block.data.sortLevel === "intermediate" && isEdge
-      ? 70 + Math.random() * 25
-      : 10 + Math.random() * 80,
+            currentX,
+            currentY,
             widthPercent: pieceWidth,
             heightPercent: pieceHeight,
             isEdge,
@@ -11760,7 +11776,7 @@ currentY:
         ...block,
         data: {
           ...block.data,
-          generatedAt: new Date().toISOString(),
+          generatedAt,
           pieces,
         },
       };
@@ -11774,6 +11790,20 @@ currentY:
     <p className="mt-2 text-xs leading-5 text-neutral-500">
       Reset will later deconstruct the image into draggable puzzle pieces.
     </p>
+
+    <div className="mt-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-xs leading-5 text-neutral-600">
+  {((selectedBlock.data as any).pieces ?? []).length > 0 ? (
+    <>
+      Generated{" "}
+      <span className="font-semibold text-neutral-900">
+        {((selectedBlock.data as any).pieces ?? []).length}
+      </span>{" "}
+      puzzle pieces.
+    </>
+  ) : (
+    <>No pieces generated yet.</>
+  )}
+</div>
   </div>
 ) : null}
 
