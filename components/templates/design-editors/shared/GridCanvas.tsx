@@ -1093,18 +1093,18 @@ const isPageTextOverlay =
   data-canvas-block-label={block.label ?? ""}
   style={{
     ...getItemStyle(grid),
-    zIndex:
-  selected || resizing
-    ? 1000
-    : grid.zIndex,
+zIndex:
+  block.type === "schedule_agenda"
+    ? 2000
+    : selected || resizing
+      ? 1000
+      : grid.zIndex,
   }}
   onClick={(e) => onSelect(selectBlock(block.id), e)}
 className={[
   getToolSurfaceClass(selected, resizing),
-  block.type === "schedule_agenda" ? "overflow-visible" : "",
-  !selected && !resizing && block.type !== "schedule_agenda"
-    ? "pointer-events-none"
-    : "pointer-events-auto",
+  block.type === "schedule_agenda" ? "overflow-visible pointer-events-auto" : "",
+  block.type !== "schedule_agenda" ? "pointer-events-none" : "",
 ].join(" ")}
                     >
                       <div
