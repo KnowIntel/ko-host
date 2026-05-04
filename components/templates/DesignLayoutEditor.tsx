@@ -11697,9 +11697,16 @@ if (selectedBlock?.type === "rsvp") {
 
       const pieceCount = block.data.pieceCount || 100;
 
-      // simple square-ish grid
-      const cols = Math.ceil(Math.sqrt(pieceCount));
-      const rows = Math.ceil(pieceCount / cols);
+// choose an exact factor grid when possible
+let rows = 1;
+let cols = pieceCount;
+
+for (let possibleRows = 1; possibleRows <= Math.sqrt(pieceCount); possibleRows++) {
+  if (pieceCount % possibleRows === 0) {
+    rows = possibleRows;
+    cols = pieceCount / possibleRows;
+  }
+}
 
       const pieceWidth = 100 / cols;
       const pieceHeight = 100 / rows;

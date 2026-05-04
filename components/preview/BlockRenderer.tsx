@@ -7101,12 +7101,14 @@ function renderCart(
   return <CartPreview />;
 }
 
+
 function PuzzleRenderer({
   block,
 }: {
   block: Extract<MicrositeBlock, { type: "puzzle" }>;
 }) {
   const imageUrl = block.data.imageUrl || "";
+  const [imageAspectRatio, setImageAspectRatio] = useState<number>(1);
   const pieces = block.data.pieces ?? [];
   const pieceCount = block.data.pieceCount || 100;
 
@@ -7150,8 +7152,19 @@ function PuzzleRenderer({
   const isComplete = completion === 100;
 
   const gridSize = useMemo(() => {
-    const cols = Math.ceil(Math.sqrt(pieceCount));
-    const rows = Math.ceil(pieceCount / cols);
+    let rows = 1;
+    let cols = pieceCount;
+
+    for (
+      let possibleRows = 1;
+      possibleRows <= Math.sqrt(pieceCount);
+      possibleRows++
+    ) {
+      if (pieceCount % possibleRows === 0) {
+        rows = possibleRows;
+        cols = pieceCount / possibleRows;
+      }
+    }
 
     return {
       cols,
@@ -7160,6 +7173,19 @@ function PuzzleRenderer({
       snapY: 100 / rows,
     };
   }, [pieceCount]);
+
+  const boardFrameStyle =
+    imageAspectRatio >= 1
+      ? {
+          width: "100%",
+          aspectRatio: imageAspectRatio,
+          maxHeight: "100%",
+        }
+      : {
+          height: "100%",
+          aspectRatio: imageAspectRatio,
+          maxWidth: "100%",
+        };
 
   function snapPiece(pieceId: string) {
     const piece = pieces.find((item: any) => item.id === pieceId);
@@ -7194,6 +7220,12 @@ function PuzzleRenderer({
             alt={block.data.imageAlt || "Puzzle image"}
             className="h-full w-full object-contain"
             draggable={false}
+            onLoad={(event) => {
+              const img = event.currentTarget;
+              if (img.naturalWidth && img.naturalHeight) {
+                setImageAspectRatio(img.naturalWidth / img.naturalHeight);
+              }
+            }}
           />
         ) : (
           <div className="px-4 text-center text-sm font-medium text-neutral-500">
@@ -7204,106 +7236,111 @@ function PuzzleRenderer({
 
       <div className="relative min-h-0 flex-1 overflow-hidden rounded-2xl border border-dashed border-neutral-300 bg-neutral-50">
         {pieces.length > 0 ? (
-          <div className="absolute left-3 top-3 z-20 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-neutral-700 shadow-sm">
+          <div className="absolute left-3 top-3 z-30 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-neutral-700 shadow-sm">
             {isComplete ? "Complete 🎉" : `${completion}% complete`}
           </div>
         ) : null}
 
         {pieces.length > 0 && imageUrl ? (
-          <>
-            <img
-              src={imageUrl}
-              alt=""
-              className="pointer-events-none absolute inset-0 h-full w-full object-contain opacity-15"
-              draggable={false}
-            />
+          <div className="flex h-full w-full items-center justify-center p-4">
+            <div
+              className="relative overflow-visible"
+              style={boardFrameStyle}
+            >
+              <img
+                src={imageUrl}
+                alt=""
+                className="pointer-events-none absolute inset-0 h-full w-full object-contain opacity-15"
+                draggable={false}
+              />
 
-            {pieces.map((piece: any) => {
-              const pos = piecePositions[piece.id] ?? {
-                x: piece.currentX ?? 0,
-                y: piece.currentY ?? 0,
-              };
+              {pieces.map((piece: any) => {
+                const pos = piecePositions[piece.id] ?? {
+                  x: piece.currentX ?? 0,
+                  y: piece.currentY ?? 0,
+                };
 
-              const isCorrect =
-                Math.abs(pos.x - piece.correctX) <= 0.5 &&
-                Math.abs(pos.y - piece.correctY) <= 0.5;
+                const isCorrect =
+                  Math.abs(pos.x - piece.correctX) <= 0.5 &&
+                  Math.abs(pos.y - piece.correctY) <= 0.5;
 
-              return (
-                <button
-                  key={piece.id}
-                  type="button"
-                  disabled={isCorrect}
-                  onPointerDown={(event) => {
-                    const target = event.currentTarget;
-                    const parent = target.parentElement;
-                    if (!parent) return;
+                return (
+                  <button
+                    key={piece.id}
+                    type="button"
+                    disabled={isCorrect}
+                    onPointerDown={(event) => {
+                      const target = event.currentTarget;
+                      const parent = target.parentElement;
+                      if (!parent) return;
 
-                    target.setPointerCapture(event.pointerId);
+                      target.setPointerCapture(event.pointerId);
 
-                    const parentRect = parent.getBoundingClientRect();
-                    const startX = event.clientX;
-                    const startY = event.clientY;
-                    const startPos = piecePositions[piece.id] ?? {
-                      x: piece.currentX ?? 0,
-                      y: piece.currentY ?? 0,
-                    };
+                      const parentRect = parent.getBoundingClientRect();
+                      const startX = event.clientX;
+                      const startY = event.clientY;
+                      const startPos = piecePositions[piece.id] ?? {
+                        x: piece.currentX ?? 0,
+                        y: piece.currentY ?? 0,
+                      };
 
-                    const handlePointerMove = (moveEvent: PointerEvent) => {
-                      const deltaX =
-                        ((moveEvent.clientX - startX) / parentRect.width) *
-                        100;
-                      const deltaY =
-                        ((moveEvent.clientY - startY) / parentRect.height) *
-                        100;
+                      const handlePointerMove = (moveEvent: PointerEvent) => {
+                        const deltaX =
+                          ((moveEvent.clientX - startX) / parentRect.width) *
+                          100;
+                        const deltaY =
+                          ((moveEvent.clientY - startY) / parentRect.height) *
+                          100;
 
-                      setPiecePositions((current) => ({
-                        ...current,
-                        [piece.id]: {
-                          x: Math.max(0, Math.min(100, startPos.x + deltaX)),
-                          y: Math.max(0, Math.min(100, startPos.y + deltaY)),
-                        },
-                      }));
-                    };
+                        setPiecePositions((current) => ({
+                          ...current,
+                          [piece.id]: {
+                            x: Math.max(0, Math.min(100, startPos.x + deltaX)),
+                            y: Math.max(0, Math.min(100, startPos.y + deltaY)),
+                          },
+                        }));
+                      };
 
-                    const handlePointerUp = () => {
-                      snapPiece(piece.id);
-                      window.removeEventListener(
-                        "pointermove",
-                        handlePointerMove,
-                      );
-                      window.removeEventListener("pointerup", handlePointerUp);
-                    };
+                      const handlePointerUp = () => {
+                        snapPiece(piece.id);
+                        window.removeEventListener(
+                          "pointermove",
+                          handlePointerMove,
+                        );
+                        window.removeEventListener("pointerup", handlePointerUp);
+                      };
 
-                    window.addEventListener("pointermove", handlePointerMove);
-                    window.addEventListener("pointerup", handlePointerUp);
-                  }}
-                  className={[
-                    "absolute touch-none overflow-hidden border bg-white shadow-md ring-1 transition-all active:shadow-xl",
-                    isCorrect
-                      ? "cursor-default border-emerald-400 ring-emerald-400/50"
-                      : "cursor-grab border-white ring-black/10 active:cursor-grabbing",
-                  ].join(" ")}
-                  style={{
-                    left: `${pos.x}%`,
-                    top: `${pos.y}%`,
-                    width: `${piece.widthPercent}%`,
-                    height: `${piece.heightPercent}%`,
-                    backgroundImage: `url(${imageUrl})`,
-                    backgroundSize: `${gridSize.cols * 100}% ${
-                      gridSize.rows * 100
-                    }%`,
-                    backgroundPosition: `${piece.col * -100}% ${
-                      piece.row * -100
-                    }%`,
-                    borderRadius: block.data.cut === "straight_edge" ? 2 : 10,
-                    zIndex: isCorrect ? 5 : piece.index + 10,
-                    opacity: isCorrect ? 0.95 : 1,
-                  }}
-                  title={`Piece ${piece.index + 1}`}
-                />
-              );
-            })}
-          </>
+                      window.addEventListener("pointermove", handlePointerMove);
+                      window.addEventListener("pointerup", handlePointerUp);
+                    }}
+                    className={[
+                      "absolute touch-none overflow-hidden border bg-white shadow-md ring-1 transition-all active:shadow-xl",
+                      isCorrect
+                        ? "cursor-default border-emerald-400 ring-emerald-400/50"
+                        : "cursor-grab border-white ring-black/10 active:cursor-grabbing",
+                    ].join(" ")}
+                    style={{
+                      left: `${pos.x}%`,
+                      top: `${pos.y}%`,
+                      width: `${piece.widthPercent}%`,
+                      height: `${piece.heightPercent}%`,
+                      backgroundImage: `url(${imageUrl})`,
+                      backgroundSize: `${gridSize.cols * 100}% ${
+                        gridSize.rows * 100
+                      }%`,
+                      backgroundPosition: `${piece.col * -100}% ${
+                        piece.row * -100
+                      }%`,
+                      borderRadius: block.data.cut === "straight_edge" ? 2 : 10,
+                      zIndex: isCorrect ? 5 : piece.index + 10,
+                      opacity: isCorrect ? 0.95 : 1,
+                    }}
+                    title={`Piece ${piece.index + 1}`}
+                  />
+                );
+              })}
+            </div>
+          </div>
         ) : (
           <div className="flex h-full w-full flex-col items-center justify-center p-4 text-center">
             <div className="text-sm font-semibold text-neutral-800">
