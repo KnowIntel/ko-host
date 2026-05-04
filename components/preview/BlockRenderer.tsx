@@ -7110,10 +7110,10 @@ function PuzzleRenderer({
   const imageUrl = block.data.imageUrl || "";
   const [imageAspectRatio, setImageAspectRatio] = useState<number>(1);
   const [boardBounds, setBoardBounds] = useState({
-    left: 0,
-    top: 0,
-    width: 100,
-    height: 100,
+    left: 32,
+    top: 8,
+    width: 64,
+    height: 84,
   });
 
   const workspaceRef = useRef<HTMLDivElement | null>(null);
@@ -7170,18 +7170,18 @@ function PuzzleRenderer({
   );
 
   useEffect(() => {
-  setPiecePositions(
-    Object.fromEntries(
-      pieces.map((piece: any) => [
-        piece.id,
-        {
-          x: piece.currentX ?? 0,
-          y: piece.currentY ?? 0,
-        },
-      ]),
-    ),
-  );
-}, [block.data.generatedAt, pieces]);
+    setPiecePositions(
+      Object.fromEntries(
+        pieces.map((piece: any) => [
+          piece.id,
+          {
+            x: piece.currentX ?? 0,
+            y: piece.currentY ?? 0,
+          },
+        ]),
+      ),
+    );
+  }, [block.data.generatedAt, pieces]);
 
   useEffect(() => {
     const updateBoardBounds = () => {
@@ -7221,42 +7221,38 @@ function PuzzleRenderer({
     };
   }
 
-function getPuzzlePieceClipPath(piece: any) {
-  if (block.data.cut === "straight_edge") return "inset(0)";
+  function getEdgeValue(piece: any, side: "top" | "right" | "bottom" | "left") {
+    return piece.edges?.[side] ?? "flat";
+  }
 
-  const hasTop = piece.row > 0;
-  const hasRight = piece.col < gridSize.cols - 1;
-  const hasBottom = piece.row < gridSize.rows - 1;
-  const hasLeft = piece.col > 0;
+  function getPuzzlePieceClipPath(piece: any) {
+    if (block.data.cut === "straight_edge") return "inset(0)";
 
-  const horizontalSeed = piece.row + piece.col;
-  const verticalSeed = piece.row * gridSize.cols + piece.col;
+    const top = getEdgeValue(piece, "top");
+    const right = getEdgeValue(piece, "right");
+    const bottom = getEdgeValue(piece, "bottom");
+    const left = getEdgeValue(piece, "left");
 
-  const topTab = hasTop && horizontalSeed % 2 === 0;
-  const rightTab = hasRight && verticalSeed % 2 === 0;
-  const bottomTab = hasBottom && (horizontalSeed + 1) % 2 === 0;
-  const leftTab = hasLeft && (verticalSeed - 1) % 2 === 0;
+    const topY = top === "male" ? -14 : top === "female" ? 14 : 0;
+    const rightX = right === "male" ? 114 : right === "female" ? 86 : 100;
+    const bottomY = bottom === "male" ? 114 : bottom === "female" ? 86 : 100;
+    const leftX = left === "male" ? -14 : left === "female" ? 14 : 0;
 
-  const topY = topTab ? -14 : 14;
-  const rightX = rightTab ? 114 : 86;
-  const bottomY = bottomTab ? 114 : 86;
-  const leftX = leftTab ? -14 : 14;
-
-  return `path("M 0 0
-    L 35 0
-    C 35 ${topY}, 65 ${topY}, 65 0
-    L 100 0
-    L 100 35
-    C ${rightX} 35, ${rightX} 65, 100 65
-    L 100 100
-    L 65 100
-    C 65 ${bottomY}, 35 ${bottomY}, 35 100
-    L 0 100
-    L 0 65
-    C ${leftX} 65, ${leftX} 35, 0 35
-    L 0 0
-    Z")`;
-}
+    return `path("M 0 0
+      L 35 0
+      C 35 ${topY}, 65 ${topY}, 65 0
+      L 100 0
+      L 100 35
+      C ${rightX} 35, ${rightX} 65, 100 65
+      L 100 100
+      L 65 100
+      C 65 ${bottomY}, 35 ${bottomY}, 35 100
+      L 0 100
+      L 0 65
+      C ${leftX} 65, ${leftX} 35, 0 35
+      L 0 0
+      Z")`;
+  }
 
   const placedCount = pieces.filter((piece: any) => {
     const pos = piecePositions[piece.id];
@@ -7356,7 +7352,16 @@ function getPuzzlePieceClipPath(piece: any) {
 
         {pieces.length > 0 && imageUrl ? (
           <>
-            <div className="absolute inset-0 flex items-center justify-center p-4">
+            <div className="absolute bottom-0 left-0 top-0 w-[30%] border-r border-neutral-200 bg-white/70 p-3">
+              <div className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-neutral-500">
+                Piece Tray
+              </div>
+              <div className="text-xs leading-5 text-neutral-500">
+                Corners and edges start here when auto-sort is enabled.
+              </div>
+            </div>
+
+            <div className="absolute inset-y-0 left-[32%] right-4 flex items-center justify-center p-4">
               <div ref={boardRef} className="relative" style={boardFrameStyle}>
                 <img
                   src={imageUrl}
@@ -7427,11 +7432,11 @@ function getPuzzlePieceClipPath(piece: any) {
                   }}
                   className={[
                     "absolute touch-none overflow-visible border-2 bg-white shadow-lg ring-1 transition-all active:shadow-xl",
-isCorrect
-  ? "cursor-default border-emerald-400 ring-emerald-400/50"
-  : block.data.cut === "straight_edge"
-    ? "cursor-grab border-white ring-black/10 active:cursor-grabbing"
-    : "cursor-grab border-white/90 ring-black/20 active:cursor-grabbing",
+                    isCorrect
+                      ? "cursor-default border-emerald-400 ring-emerald-400/50"
+                      : block.data.cut === "straight_edge"
+                        ? "cursor-grab border-white ring-black/10 active:cursor-grabbing"
+                        : "cursor-grab border-white/90 ring-black/20 active:cursor-grabbing",
                   ].join(" ")}
                   style={{
                     left: `${pos.x}%`,

@@ -11655,7 +11655,7 @@ if (selectedBlock?.type === "rsvp") {
       <p className="mt-2 text-xs leading-5 text-neutral-500">
         {(selectedBlock.data as any).cut === "straight_edge"
           ? "Straight-edge creates clean rectangular puzzle pieces."
-          : "Ribbon-cut creates interlocking-style puzzle pieces with tabs and slots."}
+          : "Ribbon-cut creates paired male/female tabs and slots."}
       </p>
     </div>
 
@@ -11689,11 +11689,54 @@ if (selectedBlock?.type === "rsvp") {
         <option value="intermediate">Intermediate</option>
         <option value="advanced">Advanced</option>
       </select>
+    </div>
 
-      <p className="mt-2 text-xs leading-5 text-neutral-500">
-        Changing cut or sort level clears generated pieces. Press Reset Puzzle
-        again to rebuild the puzzle.
-      </p>
+    <div className="mt-4 space-y-3">
+      <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+        <input
+          type="checkbox"
+          checked={Boolean((selectedBlock.data as any).autoSortEdges ?? true)}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "puzzle"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      autoSortEdges: e.target.checked,
+                      generatedAt: "",
+                      pieces: [],
+                    } as any,
+                  },
+            )
+          }
+        />
+        Auto-sort edge pieces into tray
+      </label>
+
+      <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+        <input
+          type="checkbox"
+          checked={Boolean((selectedBlock.data as any).autoSortCorners ?? true)}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "puzzle"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      autoSortCorners: e.target.checked,
+                      generatedAt: "",
+                      pieces: [],
+                    } as any,
+                  },
+            )
+          }
+        />
+        Auto-sort corner pieces first
+      </label>
     </div>
 
     <button
@@ -11727,6 +11770,27 @@ if (selectedBlock?.type === "rsvp") {
           const pieces: any[] = [];
           const generatedAt = new Date().toISOString();
 
+          const edgePairs = new Map<string, "male" | "female">();
+
+          const oppositeEdge = (edge: "male" | "female") =>
+            edge === "male" ? "female" : "male";
+
+          const getHorizontalPair = (r: number, c: number) => {
+            const key = `h-${r}-${c}`;
+            if (!edgePairs.has(key)) {
+              edgePairs.set(key, (r + c) % 2 === 0 ? "male" : "female");
+            }
+            return edgePairs.get(key)!;
+          };
+
+          const getVerticalPair = (r: number, c: number) => {
+            const key = `v-${r}-${c}`;
+            if (!edgePairs.has(key)) {
+              edgePairs.set(key, (r + c) % 2 === 0 ? "female" : "male");
+            }
+            return edgePairs.get(key)!;
+          };
+
           let index = 0;
 
           for (let r = 0; r < rows; r++) {
@@ -11736,23 +11800,57 @@ if (selectedBlock?.type === "rsvp") {
               const isEdge =
                 r === 0 || c === 0 || r === rows - 1 || c === cols - 1;
 
-              let currentX = 10 + Math.random() * 80;
-              let currentY = 10 + Math.random() * 80;
+              const isCorner =
+                (r === 0 || r === rows - 1) && (c === 0 || c === cols - 1);
+
+              const edges = {
+                top:
+                  r === 0
+                    ? "flat"
+                    : oppositeEdge(getHorizontalPair(r - 1, c)),
+                right:
+                  c === cols - 1
+                    ? "flat"
+                    : getVerticalPair(r, c),
+                bottom:
+                  r === rows - 1
+                    ? "flat"
+                    : getHorizontalPair(r, c),
+                left:
+                  c === 0
+                    ? "flat"
+                    : oppositeEdge(getVerticalPair(r, c - 1)),
+              };
+
+              let currentX = 66 + Math.random() * 28;
+              let currentY = 12 + Math.random() * 76;
 
               if (block.data.sortLevel === "beginner") {
                 currentX = Math.max(
                   0,
-                  Math.min(100, c * pieceWidth + (Math.random() * 18 - 9)),
+                  Math.min(100, 6 + c * 3 + Math.random() * 10),
                 );
                 currentY = Math.max(
                   0,
-                  Math.min(100, r * pieceHeight + (Math.random() * 18 - 9)),
+                  Math.min(100, 12 + r * 3 + Math.random() * 68),
                 );
               }
 
-              if (block.data.sortLevel === "intermediate" && isEdge) {
-                currentX = Math.random() * 30;
-                currentY = 70 + Math.random() * 25;
+              if (
+                block.data.sortLevel === "intermediate" &&
+                isEdge &&
+                (block.data as any).autoSortEdges !== false
+              ) {
+                currentX = 3 + Math.random() * 22;
+                currentY = 12 + Math.random() * 76;
+              }
+
+              if (
+                isCorner &&
+                (block.data as any).autoSortCorners !== false
+              ) {
+                currentX = 3 + Math.random() * 18;
+                currentY = 6 + Math.random() * 14;
               }
 
               pieces.push({
@@ -11767,7 +11865,9 @@ if (selectedBlock?.type === "rsvp") {
                 widthPercent: pieceWidth,
                 heightPercent: pieceHeight,
                 isEdge,
+                isCorner,
                 isPlaced: false,
+                edges,
               });
 
               index++;
@@ -11803,8 +11903,14 @@ if (selectedBlock?.type === "rsvp") {
               generatedAt: new Date().toISOString(),
               pieces: (block.data.pieces ?? []).map((piece: any) => ({
                 ...piece,
-                currentX: 10 + Math.random() * 80,
-                currentY: 10 + Math.random() * 80,
+                currentX: piece.isCorner
+                  ? 3 + Math.random() * 18
+                  : piece.isEdge && (block.data as any).autoSortEdges !== false
+                    ? 3 + Math.random() * 22
+                    : 66 + Math.random() * 28,
+                currentY: piece.isCorner
+                  ? 6 + Math.random() * 14
+                  : 12 + Math.random() * 76,
                 isPlaced: false,
               })),
             },
@@ -11817,8 +11923,7 @@ if (selectedBlock?.type === "rsvp") {
     </button>
 
     <p className="mt-2 text-xs leading-5 text-neutral-500">
-      Reset rebuilds the puzzle pieces. Shuffle only randomizes current piece
-      positions.
+      Reset rebuilds geometry. Shuffle only randomizes current piece positions.
     </p>
 
     <div className="mt-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-xs leading-5 text-neutral-600">

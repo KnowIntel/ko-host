@@ -222,6 +222,8 @@ export type BaseBlock = {
    export type PuzzleCut = "ribbon_jigsaw" | "straight_edge";
 export type PuzzleSortLevel = "beginner" | "intermediate" | "advanced";
 
+export type PuzzleEdge = "flat" | "male" | "female";
+
 export type PuzzlePiece = {
   id: string;
   index: number;
@@ -234,7 +236,14 @@ export type PuzzlePiece = {
   widthPercent: number;
   heightPercent: number;
   isEdge: boolean;
+  isCorner: boolean;
   isPlaced: boolean;
+  edges: {
+    top: PuzzleEdge;
+    right: PuzzleEdge;
+    bottom: PuzzleEdge;
+    left: PuzzleEdge;
+  };
 };
 
 export type PuzzleBlock = BaseBlock & {
@@ -246,6 +255,8 @@ export type PuzzleBlock = BaseBlock & {
     cut: PuzzleCut;
     sortLevel: PuzzleSortLevel;
     generatedAt?: string;
+        autoSortEdges: boolean;
+    autoSortCorners: boolean;
     pieces: PuzzlePiece[];
   };
 };
@@ -1220,6 +1231,8 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
           cut: "ribbon_jigsaw",
           sortLevel: "intermediate",
           generatedAt: "",
+          autoSortEdges: true,
+          autoSortCorners: true,
           pieces: [],
         },
       };
