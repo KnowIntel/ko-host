@@ -60,7 +60,8 @@ export type TemplateKey =
   | "stock_trade_thesis"
   | "vip_access"
   | "webinar"
-  | "public_auction"
+  // | "public_auction"
+  | "sweepstakes"
   | "workshop"
   | "photo_gallery"
   | "block_party"
@@ -940,7 +941,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "webinar",
     defaultDraft: { title: "Webinar", slugSuggestion: "webinar" },
   }, */
-{
+/* {
   key: "public_auction",
   title: "Public Auction",
   description: "Promote items, bidding details, and event logistics for a public auction.",
@@ -948,6 +949,15 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
   setupMins: 3,
   demoSlug: "publicauction",
   defaultDraft: { title: "Public Auction", slugSuggestion: "publicauction" },
+}, */
+{
+  key: "sweepstakes",
+  title: "Sweepstakes",
+  description: "Promote giveaways, entry details, prizes, and participation rules for a sweepstakes event.",
+  thumb: "sweepstakes",
+  setupMins: 3,
+  demoSlug: "sweepstakes",
+  defaultDraft: { title: "Sweepstakes", slugSuggestion: "sweepstakes" },
 },
   {
     key: "workshop",
