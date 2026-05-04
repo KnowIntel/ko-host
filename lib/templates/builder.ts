@@ -82,6 +82,7 @@ export type PageBlockAppearance = Partial<
    ========================================= */
 
 export type BuilderBlockType =
+  | "bookmark"
   | "label"
   | "text_fx"
   | "image"
@@ -216,6 +217,14 @@ export type BaseBlock = {
 /* =========================================
    Block Definitions
    ========================================= */
+
+   export type BookmarkBlock = BaseBlock & {
+  type: "bookmark";
+  data: {
+    name: string;
+    slug: string;
+  };
+};
 
 export type LabelBlock = BaseBlock & {
   type: "label";
@@ -751,6 +760,7 @@ export type CartBlock = BaseBlock & {
 };
 
 export type MicrositeBlock =
+  | BookmarkBlock
   | LabelBlock
   | TextFxBlock
   | ImageBlock
@@ -1129,6 +1139,29 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
   const grid = createDefaultGrid();
 
   switch (type) {
+        case "bookmark":
+      return {
+        id: makeId("bookmark"),
+        type: "bookmark",
+        label: "Bookmark",
+        grid: {
+          ...grid,
+          colSpan: 2,
+          rowSpan: 1,
+        },
+        appearance: {
+          ...createDefaultBlockAppearance(),
+          backgroundColor: "#DBEAFE",
+          borderColor: "#2563EB",
+          borderWidth: 1,
+          borderRadius: 12,
+        },
+        data: {
+          name: "New Bookmark",
+          slug: "new-bookmark",
+        },
+      };
+      
     case "label":
       return {
         id: makeId("label"),

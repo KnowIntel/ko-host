@@ -1221,7 +1221,16 @@ function renderCta(
 
       if (!fields.length) {
         if (block.data.buttonUrl?.trim()) {
-          window.open(normalizePreviewHref(block.data.buttonUrl), "_blank");
+          const href = normalizePreviewHref(block.data.buttonUrl);
+
+if (href.startsWith("#")) {
+  document.querySelector(href)?.scrollIntoView({
+    behavior: "smooth",
+    block: "start",
+  });
+} else {
+  window.open(href, "_blank");
+}
         }
         return;
       }
@@ -7217,6 +7226,9 @@ case "cart":
     safeCartItems,
     safeCartSubtotal,
   );
+  
+  case "bookmark":
+  return null;
 
     case "cta":
       return renderCta(block, designKey);

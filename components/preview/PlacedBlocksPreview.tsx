@@ -693,15 +693,20 @@ return (
     block.type === "donation";
 
   return (
-    <div
-      key={block.id}
-      style={{
-        ...itemStyle,
-        zIndex: isInteractiveBlock ? 9999 : itemStyle.zIndex,
-        overflow: "visible",
-        pointerEvents: isInteractiveBlock ? "auto" : "none",
-        isolation: "isolate",
-      }}
+<div
+  key={block.id}
+  id={
+    block.type === "bookmark"
+      ? String((block.data as any).slug || block.id)
+      : undefined
+  }
+  style={{
+    ...itemStyle,
+    zIndex: block.type === "bookmark" ? -1 : isInteractiveBlock ? 9999 : itemStyle.zIndex,
+    overflow: "visible",
+    pointerEvents: block.type === "bookmark" ? "none" : isInteractiveBlock ? "auto" : "none",
+    isolation: "isolate",
+  }}
     >
     <div
       className="h-full w-full"

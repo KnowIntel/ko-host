@@ -111,6 +111,12 @@ export const BUILDER_TOOL_GUIDES: BuilderToolGuide[] = [
     howToUse: "Use this for social links, ticket links, maps, registration pages, payment pages, documents, or websites. Add labels and URLs for each link.",
   },
   {
+  name: "Bookmark",
+  purpose: "Create scroll-to sections on your page",
+  howToUse:
+    "Place a bookmark where you want users to jump. Then use its #link in Buttons or Links to scroll to that section.",
+},
+  {
     name: "Link Hub",
     purpose: "Creates a structured collection of important links.",
     howToUse: "Use this like a link-in-bio section for socials, booking pages, registries, forms, product pages, downloads, or campaign links.",

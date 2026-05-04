@@ -303,6 +303,7 @@ Utilities: [
   { kind: "block", label: "Button", type: "cta" },
   { kind: "block", label: "Links", type: "links" },
   { kind: "block", label: "Link Hub", type: "link_hub" },
+  { kind: "block", label: "Bookmark", type: "bookmark" },
 ],
   "Data & Metrics": [
     { kind: "block", label: "Highlight", type: "highlight" },
@@ -350,6 +351,7 @@ const TOOL_DESCRIPTIONS: Record<string, string> = {
   Thread: "Public discussion message thread",
   "File Share": "Upload and share visitor files",
 
+  Bookmark: "Jump point anchor for page navigation",
   Button: "Clickable call-to-action button",
   Links: "Stack of important links",
   "Link Hub": "Social and web link collection",
@@ -822,6 +824,14 @@ function infoPillClass() {
   return "inline-flex h-11 items-center rounded-md border border-white/10 bg-white/5 px-3 text-sm text-white/85";
 }
 
+function toBookmarkSlug(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 function bottomCategoryClass(active: boolean, category?: BottomCategory) {
   return [
     "inline-flex h-11 items-center gap-2 rounded-md border px-4 text-sm font-medium transition",
@@ -898,6 +908,7 @@ function getToolGlyph(label: string) {
   if (label === "Countdown") return "◔";
   if (label === "FAQ") return "?";
   if (label === "Thread") return "☰";
+  if (label === "Bookmark") return "🔖";
   if (label === "Links") return "🔗";
   if (label === "Highlight") return "★";
   if (label === "Listing") return "🧾";  
@@ -11435,6 +11446,53 @@ if (selectedBlock?.type === "rsvp") {
         }
         className={inspectorInputClass()}
       />
+    </div>
+  </div>
+) : null}
+
+{selectedBlock?.type === "bookmark" ? (
+  <div className={inspectorCardClass()}>
+    <div className={inspectorLabelClass()}>Bookmark</div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Bookmark Name</div>
+      <input
+        type="text"
+        value={(selectedBlock.data as any).name ?? ""}
+        onChange={(e) => {
+          const nextName = e.target.value;
+          const nextSlug = toBookmarkSlug(nextName);
+
+          updateSelectedBlock((block) =>
+            block.type !== "bookmark"
+              ? block
+              : {
+                  ...block,
+                  label: nextName || "Bookmark",
+                  data: {
+                    ...block.data,
+                    name: nextName,
+                    slug: nextSlug || block.id,
+                  },
+                },
+          );
+        }}
+        className={inspectorInputClass()}
+        placeholder="Section name"
+      />
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Bookmark URL</div>
+      <input
+        type="text"
+        readOnly
+        value={`#${(selectedBlock.data as any).slug || selectedBlock.id}`}
+        className={inspectorInputClass()}
+      />
+      <p className="mt-2 text-xs leading-5 text-neutral-500">
+        Use this value in Button Link or Link URL.
+      </p>
     </div>
   </div>
 ) : null}
