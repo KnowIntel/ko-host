@@ -1074,6 +1074,11 @@ function handleMouseMove(event: MouseEvent) {
 
                   const isFront = frontStateMap.get(block.id) ?? true;
                   const resizing = resizeState?.blockId === block.id;
+                  const isEmptyTextOverlay =
+  (block.type === "label" ||
+    block.type === "rich_text" ||
+    String(block.type).startsWith("page:")) &&
+  !String(block.label ?? "").trim();
 
                   return (
                     <div
@@ -1083,7 +1088,11 @@ function handleMouseMove(event: MouseEvent) {
                         zIndex: grid.zIndex,
                       }}
                       onClick={(e) => onSelect(selectBlock(block.id), e)}
-                      className={getToolSurfaceClass(selected, resizing)}
+                      className={[
+  getToolSurfaceClass(selected, resizing),
+  block.type === "schedule_agenda" ? "overflow-visible" : "",
+  isEmptyTextOverlay ? "pointer-events-none" : "",
+].join(" ")}
                     >
                       <div
                         draggable
