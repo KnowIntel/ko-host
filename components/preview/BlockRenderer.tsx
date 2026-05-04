@@ -5941,7 +5941,7 @@ function ScheduleAgendaSubmitForm({
   const canSubmit = Boolean(time.trim() || title.trim() || description.trim());
 
   return (
-    <div className="grid grid-cols-1 gap-2">
+    <div className="relative z-[10000] grid grid-cols-1 gap-2 pointer-events-auto">
       <select
         value={time}
         onChange={(e) => setTime(e.target.value)}
@@ -5997,75 +5997,82 @@ function ScheduleAgendaSubmitForm({
         className="min-h-[64px] resize-y rounded-lg border border-neutral-300 bg-white px-3 py-2 text-xs text-neutral-900 opacity-100"
       />
 
-      <button
-        type="button"
-        disabled={!canSubmit || isSubmitting}
-        className="h-9 rounded-lg bg-black px-3 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
-        onClick={async () => {
-          if (!canSubmit || isSubmitting) return;
+<button
+  type="button"
+  disabled={!canSubmit || isSubmitting}
+  className="relative z-50 h-9 rounded-lg bg-black px-3 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
+  onClick={async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
 
-          setIsSubmitting(true);
-          setStatus("");
+    if (!canSubmit || isSubmitting) return;
 
-          try {
-            const res = await fetch("/api/public/general-submissions", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                hostname: window.location.hostname,
-                pageSlug: "home",
-                linkedButtonId: block.id,
-                message: title.trim() || "Schedule submission",
-                fields: [
-                  { label: "Type", value: "schedule_agenda" },
-                  { label: "Block ID", value: block.id },
-                  { label: "Time", value: time.trim() },
-                  { label: "Title", value: title.trim() },
-                  { label: "Description", value: description.trim() },
-                ],
-              }),
-            });
+    const submittedDetail = {
+      id: `local-${Date.now()}`,
+      message: title.trim() || "Schedule submission",
+      fields: [
+        { label: "Time", value: time.trim() },
+        { label: "Title", value: title.trim() },
+        { label: "Description", value: description.trim() },
+      ],
+    };
 
-            const json = await res.json().catch(() => null);
+    setIsSubmitting(true);
+    setStatus("");
 
-            if (!res.ok || !json?.ok) {
-              throw new Error(json?.error || "Submission failed");
-            }
+    // Add locally immediately, even in builder/localhost preview.
+    window.dispatchEvent(
+      new CustomEvent(`schedule-submitted-${block.id}`, {
+        detail: submittedDetail,
+      }),
+    );
 
-            const submittedDetail = {
-              id: `local-${Date.now()}`,
-              message: title.trim() || "Schedule submission",
-              fields: [
-                { label: "Time", value: time.trim() },
-                { label: "Title", value: title.trim() },
-                { label: "Description", value: description.trim() },
-              ],
-            };
+    try {
+      const res = await fetch("/api/public/general-submissions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          hostname: window.location.hostname,
+          pageSlug: "home",
+          linkedButtonId: block.id,
+          message: title.trim() || "Schedule submission",
+          fields: [
+            { label: "Type", value: "schedule_agenda" },
+            { label: "Block ID", value: block.id },
+            { label: "Time", value: time.trim() },
+            { label: "Title", value: title.trim() },
+            { label: "Description", value: description.trim() },
+          ],
+        }),
+      });
 
-            setTime("");
-            setTitle("");
-            setDescription("");
-            setStatus("Added");
+      const json = await res.json().catch(() => null);
 
-            window.dispatchEvent(
-              new CustomEvent(`schedule-submitted-${block.id}`, {
-                detail: submittedDetail,
-              }),
-            );
-          } catch (err) {
-            console.error("Schedule submission failed", err);
-            setStatus(
-              err instanceof Error ? err.message : "Could not add item",
-            );
-          } finally {
-            setIsSubmitting(false);
-          }
-        }}
-      >
-        {isSubmitting ? "Adding..." : "Submit"}
-      </button>
+      if (!res.ok || !json?.ok) {
+        console.warn("Schedule saved locally only:", json?.error);
+        setStatus("Added locally");
+      } else {
+        setStatus("Added");
+      }
+
+      setTime("");
+      setTitle("");
+      setDescription("");
+    } catch (err) {
+      console.error("Schedule submission failed", err);
+      setStatus("Added locally");
+      setTime("");
+      setTitle("");
+      setDescription("");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }}
+>
+  {isSubmitting ? "Adding..." : "Submit"}
+</button>
 
       {status ? (
         <div className="text-[11px] font-medium opacity-70">{status}</div>
@@ -6095,7 +6102,7 @@ function renderScheduleAgenda(
 {Boolean((block.data as any)?.allowUserEngagement) ? (
   <div
     className={[
-      "mb-4 rounded-xl border p-3",
+      "relative z-[9999] mb-4 rounded-xl border p-3 pointer-events-auto",
       isLightDesign(designKey)
         ? "border-neutral-200 bg-neutral-50 text-neutral-800"
         : "border-white/10 bg-white/5 text-white/80",
