@@ -15172,8 +15172,8 @@ onInput={(e) => {
 <img
   src={
     categoryMenuView === "compact"
-      ? "/designs/artifacts/icon_menu_detail_view.png"
-      : "/designs/artifacts/icon_menu_compact_view.png"
+      ? "/icons/icon_menu_detail_view.png"
+      : "/icons/icon_menu_compact_view.png"
   }
   alt=""
   className="h-4 w-4 object-contain"
