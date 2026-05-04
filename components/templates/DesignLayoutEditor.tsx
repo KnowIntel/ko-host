@@ -316,10 +316,10 @@ Scheduling: [
   { kind: "block", label: "Map / Location", type: "map_location" },
 ],
 Premium: [
-  { kind: "block", label: "Puzzle", type: "puzzle" },
   { kind: "block", label: "Registry", type: "registry" },
   // { kind: "block", label: "Speed Dating", type: "speed_dating" },
   { kind: "block", label: "Pop the Balloon", type: "pop_balloon" },
+  { kind: "block", label: "Puzzle", type: "puzzle" },
   { kind: "block", label: "Donation", type: "donation" },
   { kind: "block", label: "Listing", type: "listing" },
   { kind: "block", label: "Checkout", type: "checkout" },
