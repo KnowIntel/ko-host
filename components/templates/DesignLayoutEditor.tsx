@@ -316,7 +316,6 @@ Scheduling: [
   { kind: "block", label: "Map / Location", type: "map_location" },
 ],
 Premium: [
-  Premium: [
   { kind: "block", label: "Puzzle", type: "puzzle" },
   { kind: "block", label: "Registry", type: "registry" },
   // { kind: "block", label: "Speed Dating", type: "speed_dating" },
