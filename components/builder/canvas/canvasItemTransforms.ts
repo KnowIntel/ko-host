@@ -1,3 +1,4 @@
+// components\builder\canvas\canvasItemTransforms.ts
 import type { CanvasGridItem } from "@/components/templates/design-editors/shared/GridCanvas";
 
 import {
@@ -26,7 +27,7 @@ export function normalizeCanvasItems(items: CanvasGridItem[]) {
     ...item,
     grid: normalizeGrid(
       item.grid as Partial<GridPlacementWithLayer> | undefined,
-      index + 1,
+      item.grid?.zIndex ?? index + 1,
     ),
   }));
 }
@@ -125,74 +126,137 @@ export function resizeCanvasItem(
 }
 
 /* ------------------------------------------------ */
-/* BRING TO FRONT */
+/* LAYERING */
 /* ------------------------------------------------ */
+
+function getLayerValue(item: CanvasGridItem) {
+  return Number(item.grid?.zIndex ?? 1);
+}
 
 export function bringCanvasItemToFront(
   items: CanvasGridItem[],
   blockId: string,
 ) {
+  const normalizedItems = normalizeCanvasItems(items);
+  const highest = Math.max(
+    1,
+    ...normalizedItems.map((item) => getLayerValue(item)),
+  );
 
-  const highest = items.reduce((max, item, index) => {
-
-    const normalized = normalizeGrid(
-      item.grid as Partial<GridPlacementWithLayer> | undefined,
-      index + 1,
-    );
-
-    return Math.max(max, normalized.zIndex ?? 1);
-
-  }, 1);
-
-  return normalizeCanvasItems(
-    items.map((item, index) => {
-
-      if (item.id !== blockId) return item;
-
-      const normalized = normalizeGrid(
-        item.grid as Partial<GridPlacementWithLayer> | undefined,
-        index + 1,
-      );
-
-      return {
-        ...item,
-        grid: {
-          ...normalized,
-          zIndex: highest + 1,
-        },
-      };
-    }),
+  return normalizedItems.map((item) =>
+    item.id === blockId
+      ? {
+          ...item,
+          grid: {
+            ...item.grid,
+            zIndex: highest + 1,
+          },
+        }
+      : item,
   );
 }
+
 export function sendCanvasItemToBack(
   items: CanvasGridItem[],
   blockId: string,
 ) {
-  const lowest = items.reduce((min, item, index) => {
-    const normalized = normalizeGrid(
-      item.grid as Partial<GridPlacementWithLayer> | undefined,
-      index + 1,
-    );
+  const normalizedItems = normalizeCanvasItems(items);
+  const lowest = Math.min(
+    1,
+    ...normalizedItems.map((item) => getLayerValue(item)),
+  );
 
-    return Math.min(min, normalized.zIndex ?? 1);
-  }, Number.POSITIVE_INFINITY);
+  return normalizedItems.map((item) =>
+    item.id === blockId
+      ? {
+          ...item,
+          grid: {
+            ...item.grid,
+            zIndex: lowest - 1,
+          },
+        }
+      : item,
+  );
+}
 
-  return normalizeCanvasItems(
-    items.map((item, index) => {
-      if (item.id !== blockId) return item;
+export function moveCanvasItemForward(
+  items: CanvasGridItem[],
+  blockId: string,
+) {
+  const normalizedItems = normalizeCanvasItems(items);
 
-      const normalized = normalizeGrid(
-        item.grid as Partial<GridPlacementWithLayer> | undefined,
-        index + 1,
-      );
+  const sorted = [...normalizedItems].sort(
+    (a, b) => getLayerValue(a) - getLayerValue(b),
+  );
 
+  const index = sorted.findIndex((item) => item.id === blockId);
+  if (index === -1 || index === sorted.length - 1) return normalizedItems;
+
+  const current = sorted[index];
+  const next = sorted[index + 1];
+
+  return normalizedItems.map((item) => {
+    if (item.id === current.id) {
       return {
         ...item,
         grid: {
-          ...normalized,
-          zIndex: Number.isFinite(lowest) ? lowest - 1 : 1,
+          ...item.grid,
+          zIndex: getLayerValue(next),
         },
       };
-    }),
+    }
+
+    if (item.id === next.id) {
+      return {
+        ...item,
+        grid: {
+          ...item.grid,
+          zIndex: getLayerValue(current),
+        },
+      };
+    }
+
+    return item;
+  });
+}
+
+export function moveCanvasItemBackward(
+  items: CanvasGridItem[],
+  blockId: string,
+) {
+  const normalizedItems = normalizeCanvasItems(items);
+
+  const sorted = [...normalizedItems].sort(
+    (a, b) => getLayerValue(a) - getLayerValue(b),
   );
+
+  const index = sorted.findIndex((item) => item.id === blockId);
+  if (index <= 0) return normalizedItems;
+
+  const current = sorted[index];
+  const previous = sorted[index - 1];
+
+  return normalizedItems.map((item) => {
+    if (item.id === current.id) {
+      return {
+        ...item,
+        grid: {
+          ...item.grid,
+          zIndex: getLayerValue(previous),
+        },
+      };
+    }
+
+    if (item.id === previous.id) {
+      return {
+        ...item,
+        grid: {
+          ...item.grid,
+          zIndex: getLayerValue(current),
+        },
+      };
+    }
+
+    return item;
+  });
 }

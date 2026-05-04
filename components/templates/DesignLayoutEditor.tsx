@@ -17,6 +17,11 @@ import {
 } from "react";
 
 import {
+  moveCanvasItemBackward,
+  moveCanvasItemForward,
+} from "@/components/builder/canvas/canvasItemTransforms";
+
+import {
   Dancing_Script,
   Pacifico,
   Allura,
@@ -4198,37 +4203,19 @@ function handleResizeBlock(
     });
   }
 
-  function handleSendBackward(blockId: string) {
+function handleSendBackward(blockId: string) {
   setDraft((prev) => {
-    const blocks = [...prev.blocks];
-
-    const index = blocks.findIndex((b) => b.id === blockId);
-    if (index <= 0) return prev;
-
-    const newBlocks = [...blocks];
-    [newBlocks[index], newBlocks[index - 1]] = [
-      newBlocks[index - 1],
-      newBlocks[index],
-    ];
-
-    return { ...prev, blocks: newBlocks };
+    const items = buildCanvasItems(prev, metadata);
+    const updated = moveCanvasItemBackward(items, blockId);
+    return applyCanvasItemsToDraft(prev, updated);
   });
 }
 
 function handleBringForward(blockId: string) {
   setDraft((prev) => {
-    const blocks = [...prev.blocks];
-
-    const index = blocks.findIndex((b) => b.id === blockId);
-    if (index === -1 || index >= blocks.length - 1) return prev;
-
-    const newBlocks = [...blocks];
-    [newBlocks[index], newBlocks[index + 1]] = [
-      newBlocks[index + 1],
-      newBlocks[index],
-    ];
-
-    return { ...prev, blocks: newBlocks };
+    const items = buildCanvasItems(prev, metadata);
+    const updated = moveCanvasItemForward(items, blockId);
+    return applyCanvasItemsToDraft(prev, updated);
   });
 }
 
@@ -6136,12 +6123,18 @@ onBlur={(e) => {
 
   const scrollbarWidth = getGridCanvasScrollableWidth();
 
-const toolSetItems = canvasItems.map((item) => ({
-  id: item.id,
-  label: item.label || item.type,
-  kind: isPageBlockId(item.id) ? "page" : item.type,
-  canRename: !isPageBlockId(item.id),
-}));
+const toolSetItems = [...canvasItems]
+  .sort(
+    (a, b) =>
+      Number(b.grid?.zIndex ?? 1) - Number(a.grid?.zIndex ?? 1),
+  )
+  .map((item) => ({
+    id: item.id,
+    label: item.label || item.type,
+    kind: isPageBlockId(item.id) ? "page" : item.type,
+    canRename: !isPageBlockId(item.id),
+    zIndex: Number(item.grid?.zIndex ?? 1),
+  }));
 
 function toggleToolMenu(category: BottomCategory) {
   setActiveCategory(category);
@@ -15456,31 +15449,31 @@ onInput={(e) => {
         />
       </button>
 
-      <button
-        type="button"
-        className={toolSetButtonClass("back")}
-        onClick={(e) => {
-          e.stopPropagation();
-          handleSendBackward(tool.id);
-          setSelection(selectionFromCanvasBlockId(tool.id));
-        }}
-        title="Move up one layer"
-      >
-        ↑
-      </button>
+<button
+  type="button"
+  className={toolSetButtonClass("front")}
+  onClick={(e) => {
+    e.stopPropagation();
+    handleBringForward(tool.id);
+    setSelection(selectionFromCanvasBlockId(tool.id));
+  }}
+  title="Move forward one layer"
+>
+  ↑
+</button>
 
-      <button
-        type="button"
-        className={toolSetButtonClass("front")}
-        onClick={(e) => {
-          e.stopPropagation();
-          handleBringForward(tool.id);
-          setSelection(selectionFromCanvasBlockId(tool.id));
-        }}
-        title="Move down one layer"
-      >
-        ↓
-      </button>
+<button
+  type="button"
+  className={toolSetButtonClass("back")}
+  onClick={(e) => {
+    e.stopPropagation();
+    handleSendBackward(tool.id);
+    setSelection(selectionFromCanvasBlockId(tool.id));
+  }}
+  title="Move backward one layer"
+>
+  ↓
+</button>
 
       {/* REMOVE stays last */}
       <button
