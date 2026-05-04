@@ -5081,7 +5081,15 @@ function renderRichText(
     typeof block.data.content === "string" ? block.data.content : "";
 
   return (
-    <div className="h-full w-full p-3" style={getAppearanceStyle(block)}>
+    <div
+  className={[
+    "h-full w-full p-3",
+    !String((block as any)?.data?.text || "").trim()
+      ? "pointer-events-none"
+      : "",
+  ].join(" ")}
+  style={getAppearanceStyle(block)}
+>
       {block.data.title ? (
         <div
           className="mb-2 font-semibold"
