@@ -6378,7 +6378,7 @@ return (
     className="sticky top-0 z-[101] flex w-full items-center justify-between gap-4 overflow-x-auto overflow-y-hidden bg-[#2f3541] px-2 py-2 shadow-md"
 >
   <div className="flex items-center justify-between gap-4">
-    <div className="sticky left-0 z-20 flex min-w-max items-center gap-2 bg-[#2f3541] py-1 pr-4 pointer-events-auto">
+    <div className="sticky left-0 z-0 flex min-w-max items-center gap-2 bg-[#2f3541] py-1 pr-4 pointer-events-auto">
       <button
         type="button"
         className={topBarButtonClass(false, canvasZoom <= MIN_CANVAS_ZOOM)}
