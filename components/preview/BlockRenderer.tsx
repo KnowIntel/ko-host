@@ -7109,6 +7109,16 @@ function PuzzleRenderer({
 }) {
   const imageUrl = block.data.imageUrl || "";
   const [imageAspectRatio, setImageAspectRatio] = useState<number>(1);
+  const [boardBounds, setBoardBounds] = useState({
+    left: 0,
+    top: 0,
+    width: 100,
+    height: 100,
+  });
+
+  const workspaceRef = useRef<HTMLDivElement | null>(null);
+  const boardRef = useRef<HTMLDivElement | null>(null);
+
   const pieces = block.data.pieces ?? [];
   const pieceCount = block.data.pieceCount || 100;
 
@@ -7121,35 +7131,6 @@ function PuzzleRenderer({
       : block.data.sortLevel === "advanced"
         ? "Advanced"
         : "Intermediate";
-
-  const [piecePositions, setPiecePositions] = useState<
-    Record<string, { x: number; y: number }>
-  >(() =>
-    Object.fromEntries(
-      pieces.map((piece: any) => [
-        piece.id,
-        {
-          x: piece.currentX ?? 0,
-          y: piece.currentY ?? 0,
-        },
-      ]),
-    ),
-  );
-
-  const placedCount = pieces.filter((piece: any) => {
-    const pos = piecePositions[piece.id];
-    if (!pos) return false;
-
-    return (
-      Math.abs(pos.x - piece.correctX) <= 0.5 &&
-      Math.abs(pos.y - piece.correctY) <= 0.5
-    );
-  }).length;
-
-  const completion =
-    pieces.length > 0 ? Math.round((placedCount / pieces.length) * 100) : 0;
-
-  const isComplete = completion === 100;
 
   const gridSize = useMemo(() => {
     let rows = 1;
@@ -7174,6 +7155,75 @@ function PuzzleRenderer({
     };
   }, [pieceCount]);
 
+  const [piecePositions, setPiecePositions] = useState<
+    Record<string, { x: number; y: number }>
+  >(() =>
+    Object.fromEntries(
+      pieces.map((piece: any) => [
+        piece.id,
+        {
+          x: piece.currentX ?? 0,
+          y: piece.currentY ?? 0,
+        },
+      ]),
+    ),
+  );
+
+  useEffect(() => {
+    const updateBoardBounds = () => {
+      const workspace = workspaceRef.current;
+      const board = boardRef.current;
+      if (!workspace || !board) return;
+
+      const workspaceRect = workspace.getBoundingClientRect();
+      const boardRect = board.getBoundingClientRect();
+
+      if (!workspaceRect.width || !workspaceRect.height) return;
+
+      setBoardBounds({
+        left: ((boardRect.left - workspaceRect.left) / workspaceRect.width) * 100,
+        top: ((boardRect.top - workspaceRect.top) / workspaceRect.height) * 100,
+        width: (boardRect.width / workspaceRect.width) * 100,
+        height: (boardRect.height / workspaceRect.height) * 100,
+      });
+    };
+
+    updateBoardBounds();
+
+    const observer = new ResizeObserver(updateBoardBounds);
+
+    if (workspaceRef.current) observer.observe(workspaceRef.current);
+    if (boardRef.current) observer.observe(boardRef.current);
+
+    return () => observer.disconnect();
+  }, [imageAspectRatio, pieces.length]);
+
+  function getCorrectWorkspacePosition(piece: any) {
+    return {
+      x: boardBounds.left + (piece.correctX / 100) * boardBounds.width,
+      y: boardBounds.top + (piece.correctY / 100) * boardBounds.height,
+      width: (piece.widthPercent / 100) * boardBounds.width,
+      height: (piece.heightPercent / 100) * boardBounds.height,
+    };
+  }
+
+  const placedCount = pieces.filter((piece: any) => {
+    const pos = piecePositions[piece.id];
+    if (!pos) return false;
+
+    const correct = getCorrectWorkspacePosition(piece);
+
+    return (
+      Math.abs(pos.x - correct.x) <= 0.75 &&
+      Math.abs(pos.y - correct.y) <= 0.75
+    );
+  }).length;
+
+  const completion =
+    pieces.length > 0 ? Math.round((placedCount / pieces.length) * 100) : 0;
+
+  const isComplete = completion === 100;
+
   const boardFrameStyle =
     imageAspectRatio >= 1
       ? {
@@ -7189,23 +7239,32 @@ function PuzzleRenderer({
 
   function snapPiece(pieceId: string) {
     const piece = pieces.find((item: any) => item.id === pieceId);
+    if (!piece) return;
 
     setPiecePositions((current) => {
       const existing = current[pieceId] ?? { x: 0, y: 0 };
+      const correct = getCorrectWorkspacePosition(piece);
 
-      const snappedX = Math.round(existing.x / gridSize.snapX) * gridSize.snapX;
-      const snappedY = Math.round(existing.y / gridSize.snapY) * gridSize.snapY;
+      const snapX = (gridSize.snapX / 100) * boardBounds.width;
+      const snapY = (gridSize.snapY / 100) * boardBounds.height;
+
+      const snappedX =
+        boardBounds.left +
+        Math.round((existing.x - boardBounds.left) / snapX) * snapX;
+
+      const snappedY =
+        boardBounds.top +
+        Math.round((existing.y - boardBounds.top) / snapY) * snapY;
 
       const isCorrect =
-        piece &&
-        Math.abs(snappedX - piece.correctX) <= 0.5 &&
-        Math.abs(snappedY - piece.correctY) <= 0.5;
+        Math.abs(snappedX - correct.x) <= 0.75 &&
+        Math.abs(snappedY - correct.y) <= 0.75;
 
       return {
         ...current,
         [pieceId]: {
-          x: isCorrect ? piece.correctX : snappedX,
-          y: isCorrect ? piece.correctY : snappedY,
+          x: isCorrect ? correct.x : Math.max(0, Math.min(100, snappedX)),
+          y: isCorrect ? correct.y : Math.max(0, Math.min(100, snappedY)),
         },
       };
     });
@@ -7234,7 +7293,10 @@ function PuzzleRenderer({
         )}
       </div>
 
-      <div className="relative min-h-0 flex-1 overflow-hidden rounded-2xl border border-dashed border-neutral-300 bg-neutral-50">
+      <div
+        ref={workspaceRef}
+        className="relative min-h-0 flex-1 overflow-hidden rounded-2xl border border-dashed border-neutral-300 bg-neutral-50"
+      >
         {pieces.length > 0 ? (
           <div className="absolute left-3 top-3 z-30 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-neutral-700 shadow-sm">
             {isComplete ? "Complete 🎉" : `${completion}% complete`}
@@ -7242,105 +7304,103 @@ function PuzzleRenderer({
         ) : null}
 
         {pieces.length > 0 && imageUrl ? (
-          <div className="flex h-full w-full items-center justify-center p-4">
-            <div
-              className="relative overflow-visible"
-              style={boardFrameStyle}
-            >
-              <img
-                src={imageUrl}
-                alt=""
-                className="pointer-events-none absolute inset-0 h-full w-full object-contain opacity-15"
-                draggable={false}
-              />
-
-              {pieces.map((piece: any) => {
-                const pos = piecePositions[piece.id] ?? {
-                  x: piece.currentX ?? 0,
-                  y: piece.currentY ?? 0,
-                };
-
-                const isCorrect =
-                  Math.abs(pos.x - piece.correctX) <= 0.5 &&
-                  Math.abs(pos.y - piece.correctY) <= 0.5;
-
-                return (
-                  <button
-                    key={piece.id}
-                    type="button"
-                    disabled={isCorrect}
-                    onPointerDown={(event) => {
-                      const target = event.currentTarget;
-                      const parent = target.parentElement;
-                      if (!parent) return;
-
-                      target.setPointerCapture(event.pointerId);
-
-                      const parentRect = parent.getBoundingClientRect();
-                      const startX = event.clientX;
-                      const startY = event.clientY;
-                      const startPos = piecePositions[piece.id] ?? {
-                        x: piece.currentX ?? 0,
-                        y: piece.currentY ?? 0,
-                      };
-
-                      const handlePointerMove = (moveEvent: PointerEvent) => {
-                        const deltaX =
-                          ((moveEvent.clientX - startX) / parentRect.width) *
-                          100;
-                        const deltaY =
-                          ((moveEvent.clientY - startY) / parentRect.height) *
-                          100;
-
-                        setPiecePositions((current) => ({
-                          ...current,
-                          [piece.id]: {
-                            x: Math.max(0, Math.min(100, startPos.x + deltaX)),
-                            y: Math.max(0, Math.min(100, startPos.y + deltaY)),
-                          },
-                        }));
-                      };
-
-                      const handlePointerUp = () => {
-                        snapPiece(piece.id);
-                        window.removeEventListener(
-                          "pointermove",
-                          handlePointerMove,
-                        );
-                        window.removeEventListener("pointerup", handlePointerUp);
-                      };
-
-                      window.addEventListener("pointermove", handlePointerMove);
-                      window.addEventListener("pointerup", handlePointerUp);
-                    }}
-                    className={[
-                      "absolute touch-none overflow-hidden border bg-white shadow-md ring-1 transition-all active:shadow-xl",
-                      isCorrect
-                        ? "cursor-default border-emerald-400 ring-emerald-400/50"
-                        : "cursor-grab border-white ring-black/10 active:cursor-grabbing",
-                    ].join(" ")}
-                    style={{
-                      left: `${pos.x}%`,
-                      top: `${pos.y}%`,
-                      width: `${piece.widthPercent}%`,
-                      height: `${piece.heightPercent}%`,
-                      backgroundImage: `url(${imageUrl})`,
-                      backgroundSize: `${gridSize.cols * 100}% ${
-                        gridSize.rows * 100
-                      }%`,
-                      backgroundPosition: `${piece.col * -100}% ${
-                        piece.row * -100
-                      }%`,
-                      borderRadius: block.data.cut === "straight_edge" ? 2 : 10,
-                      zIndex: isCorrect ? 5 : piece.index + 10,
-                      opacity: isCorrect ? 0.95 : 1,
-                    }}
-                    title={`Piece ${piece.index + 1}`}
-                  />
-                );
-              })}
+          <>
+            <div className="absolute inset-0 flex items-center justify-center p-4">
+              <div ref={boardRef} className="relative" style={boardFrameStyle}>
+                <img
+                  src={imageUrl}
+                  alt=""
+                  className="pointer-events-none h-full w-full object-contain opacity-15"
+                  draggable={false}
+                />
+              </div>
             </div>
-          </div>
+
+            {pieces.map((piece: any) => {
+              const correct = getCorrectWorkspacePosition(piece);
+              const pos = piecePositions[piece.id] ?? {
+                x: piece.currentX ?? 0,
+                y: piece.currentY ?? 0,
+              };
+
+              const isCorrect =
+                Math.abs(pos.x - correct.x) <= 0.75 &&
+                Math.abs(pos.y - correct.y) <= 0.75;
+
+              return (
+                <button
+                  key={piece.id}
+                  type="button"
+                  disabled={isCorrect}
+                  onPointerDown={(event) => {
+                    const target = event.currentTarget;
+                    const parent = workspaceRef.current;
+                    if (!parent) return;
+
+                    target.setPointerCapture(event.pointerId);
+
+                    const parentRect = parent.getBoundingClientRect();
+                    const startX = event.clientX;
+                    const startY = event.clientY;
+                    const startPos = piecePositions[piece.id] ?? {
+                      x: piece.currentX ?? 0,
+                      y: piece.currentY ?? 0,
+                    };
+
+                    const handlePointerMove = (moveEvent: PointerEvent) => {
+                      const deltaX =
+                        ((moveEvent.clientX - startX) / parentRect.width) * 100;
+                      const deltaY =
+                        ((moveEvent.clientY - startY) / parentRect.height) * 100;
+
+                      setPiecePositions((current) => ({
+                        ...current,
+                        [piece.id]: {
+                          x: Math.max(0, Math.min(100, startPos.x + deltaX)),
+                          y: Math.max(0, Math.min(100, startPos.y + deltaY)),
+                        },
+                      }));
+                    };
+
+                    const handlePointerUp = () => {
+                      snapPiece(piece.id);
+                      window.removeEventListener(
+                        "pointermove",
+                        handlePointerMove,
+                      );
+                      window.removeEventListener("pointerup", handlePointerUp);
+                    };
+
+                    window.addEventListener("pointermove", handlePointerMove);
+                    window.addEventListener("pointerup", handlePointerUp);
+                  }}
+                  className={[
+                    "absolute touch-none overflow-hidden border bg-white shadow-md ring-1 transition-all active:shadow-xl",
+                    isCorrect
+                      ? "cursor-default border-emerald-400 ring-emerald-400/50"
+                      : "cursor-grab border-white ring-black/10 active:cursor-grabbing",
+                  ].join(" ")}
+                  style={{
+                    left: `${pos.x}%`,
+                    top: `${pos.y}%`,
+                    width: `${correct.width}%`,
+                    height: `${correct.height}%`,
+                    backgroundImage: `url(${imageUrl})`,
+                    backgroundSize: `${gridSize.cols * 100}% ${
+                      gridSize.rows * 100
+                    }%`,
+                    backgroundPosition: `${piece.col * -100}% ${
+                      piece.row * -100
+                    }%`,
+                    borderRadius: block.data.cut === "straight_edge" ? 2 : 10,
+                    zIndex: isCorrect ? 5 : piece.index + 10,
+                    opacity: isCorrect ? 0.95 : 1,
+                  }}
+                  title={`Piece ${piece.index + 1}`}
+                />
+              );
+            })}
+          </>
         ) : (
           <div className="flex h-full w-full flex-col items-center justify-center p-4 text-center">
             <div className="text-sm font-semibold text-neutral-800">
