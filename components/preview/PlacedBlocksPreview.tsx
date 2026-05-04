@@ -712,7 +712,14 @@ return (
       className="h-full w-full"
       style={{
         overflow: "visible",
-        pointerEvents: isInteractiveBlock ? "auto" : "none",
+        pointerEvents:
+  block.type === "bookmark"
+    ? "none"
+    : previewMode
+      ? "auto"
+      : isInteractiveBlock
+        ? "auto"
+        : "none",
       }}
     >
 <BlockRenderer
