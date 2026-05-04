@@ -6302,15 +6302,22 @@ return (
               Paste Design Specs JSON below. Building will replace the current draft on this page.
             </p>
 
-            <textarea
-              value={buildPresetJson}
-              onChange={(e) => {
-                setBuildPresetJson(e.target.value);
-                if (buildPresetError) setBuildPresetError("");
-              }}
-              placeholder='Paste JSON here, starting with { "title": ... }'
-              className="mt-4 min-h-[320px] w-full rounded-2xl border border-neutral-300 bg-white p-4 font-mono text-xs text-neutral-900 outline-none"
-            />
+<textarea
+  autoFocus
+  ref={(el) => {
+    if (el) {
+      el.focus();
+      el.setSelectionRange(el.value.length, el.value.length);
+    }
+  }}
+  value={buildPresetJson}
+  onChange={(e) => {
+    setBuildPresetJson(e.target.value);
+    if (buildPresetError) setBuildPresetError("");
+  }}
+  placeholder='Paste JSON here, starting with { "title": ... }'
+  className="mt-4 min-h-[320px] w-full rounded-2xl border border-neutral-300 bg-white p-4 font-mono text-xs text-neutral-900 outline-none"
+/>
 
             {buildPresetError ? (
               <div className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
