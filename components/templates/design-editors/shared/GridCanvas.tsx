@@ -1074,6 +1074,10 @@ function handleMouseMove(event: MouseEvent) {
 
                   const isFront = frontStateMap.get(block.id) ?? true;
                   const resizing = resizeState?.blockId === block.id;
+                  const isBlocking =
+  !selected &&
+  !resizing &&
+  block.type !== "schedule_agenda";
 const isPageTextOverlay =
   String(block.type).startsWith("page:") ||
   block.type === "title" ||
@@ -1089,13 +1093,18 @@ const isPageTextOverlay =
   data-canvas-block-label={block.label ?? ""}
   style={{
     ...getItemStyle(grid),
-    zIndex: grid.zIndex,
+    zIndex:
+  selected || resizing
+    ? 1000
+    : grid.zIndex,
   }}
   onClick={(e) => onSelect(selectBlock(block.id), e)}
-  className={[
+className={[
   getToolSurfaceClass(selected, resizing),
   block.type === "schedule_agenda" ? "overflow-visible" : "",
-  isPageTextOverlay && !selected ? "pointer-events-none" : "",
+  !selected && !resizing && block.type !== "schedule_agenda"
+    ? "pointer-events-none"
+    : "pointer-events-auto",
 ].join(" ")}
                     >
                       <div
