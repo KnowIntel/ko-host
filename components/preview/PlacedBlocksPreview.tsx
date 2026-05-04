@@ -690,7 +690,9 @@ return (
     block.type === "checkout" ||
     block.type === "cart" ||
     block.type === "listing" ||
-    block.type === "donation";
+    block.type === "donation" ||
+    block.type === "cta" ||
+    block.type === "links";
 
   return (
 <div
