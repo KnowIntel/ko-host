@@ -7101,6 +7101,52 @@ function renderCart(
   return <CartPreview />;
 }
 
+function renderPuzzle(block: Extract<MicrositeBlock, { type: "puzzle" }>) {
+  const imageUrl = block.data.imageUrl || "";
+  const pieceCount = block.data.pieceCount || 100;
+  const cut =
+    block.data.cut === "straight_edge" ? "Straight-edge" : "Ribbon-cut jigsaw";
+  const sortLevel =
+    block.data.sortLevel === "beginner"
+      ? "Beginner"
+      : block.data.sortLevel === "advanced"
+        ? "Advanced"
+        : "Intermediate";
+
+  return (
+    <div className="flex h-full w-full flex-col gap-3 rounded-[inherit] bg-white p-3 text-neutral-900">
+      <div className="flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-2xl border border-dashed border-neutral-300 bg-neutral-50">
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt={block.data.imageAlt || "Puzzle image"}
+            className="h-full w-full object-contain"
+            draggable={false}
+          />
+        ) : (
+          <div className="px-4 text-center text-sm font-medium text-neutral-500">
+            Click the Puzzle block in the builder, then add an image URL in the inspector.
+          </div>
+        )}
+      </div>
+
+      <div className="flex min-h-0 flex-1 flex-col items-center justify-center rounded-2xl border border-dashed border-neutral-300 bg-[linear-gradient(45deg,#f8fafc_25%,transparent_25%),linear-gradient(-45deg,#f8fafc_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#f8fafc_75%),linear-gradient(-45deg,transparent_75%,#f8fafc_75%)] bg-[length:20px_20px] bg-[position:0_0,0_10px,10px_-10px,-10px_0px] p-4 text-center">
+        <div className="text-sm font-semibold text-neutral-800">
+          Puzzle Pieces Area
+        </div>
+        <div className="mt-2 text-xs leading-5 text-neutral-500">
+          {pieceCount} pieces · {cut} · {sortLevel}
+        </div>
+        {block.data.generatedAt ? (
+          <div className="mt-2 text-[11px] text-neutral-400">
+            Reset saved: {block.data.generatedAt}
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 export default function BlockRenderer({
   block,
   designKey,
@@ -7226,6 +7272,10 @@ case "cart":
     safeCartItems,
     safeCartSubtotal,
   );
+
+      case "puzzle":
+      return renderPuzzle(block);
+      
   
   case "bookmark":
   return null;

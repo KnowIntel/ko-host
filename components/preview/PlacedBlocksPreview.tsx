@@ -692,7 +692,8 @@ return (
     block.type === "listing" ||
     block.type === "donation" ||
     block.type === "cta" ||
-    block.type === "links";
+    block.type === "links" ||
+    block.type === "puzzle";
 
   return (
 <div

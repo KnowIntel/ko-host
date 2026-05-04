@@ -83,6 +83,7 @@ export type PageBlockAppearance = Partial<
 
 export type BuilderBlockType =
   | "bookmark"
+  | "puzzle"
   | "label"
   | "text_fx"
   | "image"
@@ -217,6 +218,23 @@ export type BaseBlock = {
 /* =========================================
    Block Definitions
    ========================================= */
+
+   export type PuzzleCut = "ribbon_jigsaw" | "straight_edge";
+export type PuzzleSortLevel = "beginner" | "intermediate" | "advanced";
+
+export type PuzzleBlock = BaseBlock & {
+  type: "puzzle";
+  data: {
+    imageUrl: string;
+    imageAlt: string;
+    pieceCount: number;
+    cut: PuzzleCut;
+    sortLevel: PuzzleSortLevel;
+    generatedAt?: string;
+    pieces: unknown[];
+  };
+};
+
 
    export type BookmarkBlock = BaseBlock & {
   type: "bookmark";
@@ -761,6 +779,7 @@ export type CartBlock = BaseBlock & {
 
 export type MicrositeBlock =
   | BookmarkBlock
+  | PuzzleBlock
   | LabelBlock
   | TextFxBlock
   | ImageBlock
@@ -1161,7 +1180,36 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
           slug: "new-bookmark",
         },
       };
-      
+
+          case "puzzle":
+      return {
+        id: makeId("puzzle"),
+        type: "puzzle",
+        label: "Puzzle",
+        grid: {
+          ...grid,
+          colSpan: 6,
+          rowSpan: 6,
+        },
+        appearance: {
+          ...createDefaultBlockAppearance(),
+          backgroundColor: "#FFFFFF",
+          borderColor: "#CBD5E1",
+          borderWidth: 1,
+          borderRadius: 20,
+        },
+        data: {
+          imageUrl: "",
+          imageAlt: "",
+          pieceCount: 100,
+          cut: "ribbon_jigsaw",
+          sortLevel: "intermediate",
+          generatedAt: "",
+          pieces: [],
+        },
+      };
+
+
     case "label":
       return {
         id: makeId("label"),

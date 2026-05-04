@@ -316,6 +316,8 @@ Scheduling: [
   { kind: "block", label: "Map / Location", type: "map_location" },
 ],
 Premium: [
+  Premium: [
+  { kind: "block", label: "Puzzle", type: "puzzle" },
   { kind: "block", label: "Registry", type: "registry" },
   // { kind: "block", label: "Speed Dating", type: "speed_dating" },
   { kind: "block", label: "Pop the Balloon", type: "pop_balloon" },
@@ -364,6 +366,7 @@ const TOOL_DESCRIPTIONS: Record<string, string> = {
   "Schedule / Agenda": "Timed event schedule list",
   "Map / Location": "Location details with map info",
 
+    Puzzle: "Drag-and-drop image puzzle game",
   Registry: "Gift or item registry list",
   "Pop the Balloon": "Interactive elimination game experience",
   Donation: "Collect support or contributions",
@@ -927,6 +930,7 @@ function getToolGlyph(label: string) {
   if (label === "File Share") return "📁";
   if (label === "Speed Dating") return "❤";
   if (label === "Pop the Balloon") return "🎈";
+  if (label === "Puzzle") return "🧩";
   if (label === "Registry") return "🎁";
   if (label === "Exchange") return "⇄";
   if (label === "Premium") return "💎";
@@ -11494,6 +11498,152 @@ if (selectedBlock?.type === "rsvp") {
         Use this value in Button Link or Link URL.
       </p>
     </div>
+  </div>
+) : null}
+
+{selectedBlock?.type === "puzzle" ? (
+  <div className={inspectorCardClass()}>
+    <div className={inspectorLabelClass()}>Puzzle</div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Image URL</div>
+      <input
+        type="text"
+        value={(selectedBlock.data as any).imageUrl ?? ""}
+        onChange={(e) => {
+          const nextUrl = e.target.value;
+
+          updateSelectedBlock((block) =>
+            block.type !== "puzzle"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    imageUrl: nextUrl,
+                    imageAlt: block.data.imageAlt || "Puzzle image",
+                  },
+                },
+          );
+        }}
+        className={inspectorInputClass()}
+        placeholder="/designs/artifacts/example.png"
+      />
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Puzzle Piece Count</div>
+      <input
+        type="number"
+        min={10}
+        max={1000}
+        value={(selectedBlock.data as any).pieceCount ?? 100}
+        onChange={(e) => {
+          const nextCount = Math.max(
+            10,
+            Math.min(1000, Number(e.target.value) || 100),
+          );
+
+          updateSelectedBlock((block) =>
+            block.type !== "puzzle"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    pieceCount: nextCount,
+                  },
+                },
+          );
+        }}
+        className={inspectorInputClass()}
+      />
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Puzzle Piece Cut</div>
+      <select
+        value={(selectedBlock.data as any).cut ?? "ribbon_jigsaw"}
+        onChange={(e) => {
+          const nextCut = e.target.value as "ribbon_jigsaw" | "straight_edge";
+
+          updateSelectedBlock((block) =>
+            block.type !== "puzzle"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    cut: nextCut,
+                  },
+                },
+          );
+        }}
+        className={inspectorInputClass()}
+      >
+        <option value="ribbon_jigsaw">Ribbon-cut jigsaw</option>
+        <option value="straight_edge">Straight-edge</option>
+      </select>
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Sort Level</div>
+      <select
+        value={(selectedBlock.data as any).sortLevel ?? "intermediate"}
+        onChange={(e) => {
+          const nextSortLevel = e.target.value as
+            | "beginner"
+            | "intermediate"
+            | "advanced";
+
+          updateSelectedBlock((block) =>
+            block.type !== "puzzle"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    sortLevel: nextSortLevel,
+                  },
+                },
+          );
+        }}
+        className={inspectorInputClass()}
+      >
+        <option value="beginner">Beginner</option>
+        <option value="intermediate">Intermediate</option>
+        <option value="advanced">Advanced</option>
+      </select>
+    </div>
+
+    <button
+      type="button"
+      disabled={
+        !((selectedBlock.data as any).imageUrl ?? "") ||
+        !((selectedBlock.data as any).pieceCount ?? 0)
+      }
+      onClick={() => {
+        updateSelectedBlock((block) =>
+          block.type !== "puzzle"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  generatedAt: new Date().toISOString(),
+                  pieces: [],
+                },
+              },
+        );
+      }}
+      className="mt-4 h-11 w-full rounded-xl bg-neutral-900 px-4 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-neutral-300"
+    >
+      Reset Puzzle
+    </button>
+
+    <p className="mt-2 text-xs leading-5 text-neutral-500">
+      Reset will later deconstruct the image into draggable puzzle pieces.
+    </p>
   </div>
 ) : null}
 

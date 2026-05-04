@@ -111,6 +111,12 @@ export const BUILDER_TOOL_GUIDES: BuilderToolGuide[] = [
     howToUse: "Use this for social links, ticket links, maps, registration pages, payment pages, documents, or websites. Add labels and URLs for each link.",
   },
   {
+  name: "Puzzle",
+  purpose: "Create an interactive image puzzle experience.",
+  howToUse:
+    "Add the Puzzle block, insert an image, choose piece count, cut type, and difficulty. Press Reset to generate the puzzle layout.",
+},
+  {
   name: "Bookmark",
   purpose: "Create scroll-to sections on your page",
   howToUse:

@@ -275,6 +275,60 @@ export const BLOCK_GUIDES: Partial<Record<BuilderBlockType, BlockGuide>> = {
   ],
 },
 
+puzzle: {
+  title: "Puzzle",
+  subtitle:
+    "Turn any image into an interactive puzzle experience for your visitors.",
+  sections: [
+    {
+      title: "Overview",
+      body:
+        "The Puzzle block lets you upload an image and transform it into a playable puzzle. Visitors will eventually be able to drag and place pieces to reconstruct the image.",
+    },
+    {
+      title: "Objective",
+      bullets: [
+        "Create an engaging interactive experience.",
+        "Encourage user participation.",
+        "Add gamification to your microsite.",
+      ],
+    },
+    {
+      title: "Inspector Configuration",
+      bullets: [
+        "Image URL - the image used for the puzzle.",
+        "Puzzle Piece Count - total number of pieces (10–1000).",
+        "Puzzle Piece Cut - jigsaw or straight edges.",
+        "Sort Level - controls how pieces are arranged.",
+        "Reset - prepares puzzle data for generation.",
+      ],
+    },
+    {
+      title: "Difficulty Levels",
+      bullets: [
+        "Beginner - edge pieces grouped, easier layout.",
+        "Intermediate - edges grouped, others mixed.",
+        "Advanced - fully randomized placement.",
+      ],
+    },
+    {
+      title: "Future Interaction",
+      body:
+        "Puzzle pieces will support drag-and-drop, snapping, and completion tracking in future updates.",
+    },
+    {
+      title: "Best Use Cases",
+      bullets: [
+        "Event engagement",
+        "Games and competitions",
+        "Brand interaction",
+        "Photo reveals",
+        "Marketing experiences",
+      ],
+    },
+  ],
+},
+
 cart: {
   title: "Cart",
   subtitle:
