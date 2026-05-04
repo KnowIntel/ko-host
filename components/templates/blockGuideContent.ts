@@ -475,6 +475,68 @@ donation: {
   ],
 },
 
+bookmark: {
+  title: "Bookmark",
+  subtitle:
+    "Create invisible anchor points that allow buttons and links to scroll to specific sections of your page.",
+  sections: [
+    {
+      title: "Overview",
+      body:
+        "The Bookmark block acts as a scroll anchor on your page. It is invisible to visitors but allows navigation to precise sections.",
+    },
+    {
+      title: "Objective",
+      bullets: [
+        "Enable smooth navigation within a page.",
+        "Create section-based linking.",
+        "Improve user flow and usability.",
+      ],
+    },
+    {
+      title: "How It Works",
+      bullets: [
+        "Each bookmark generates a unique #slug.",
+        "Buttons and Links can target that slug.",
+        "Clicking the link scrolls the page to that location.",
+      ],
+    },
+    {
+      title: "Inspector Configuration",
+      bullets: [
+        "Bookmark Name (used for organization).",
+        "Auto-generated URL slug.",
+        "Copyable #link for navigation.",
+      ],
+    },
+    {
+      title: "User Experience",
+      bullets: [
+        "User clicks a button or link.",
+        "Page smoothly scrolls to the bookmarked section.",
+        "No visual element is shown for the bookmark itself.",
+      ],
+    },
+    {
+      title: "Best Use Cases",
+      bullets: [
+        "Menu sections (Breakfast / Lunch / Dinner).",
+        "Event agendas.",
+        "Landing page navigation.",
+        "Jump-to sections in long pages.",
+      ],
+    },
+    {
+      title: "Pro Tips",
+      bullets: [
+        "Place bookmarks slightly above the target content for better alignment.",
+        "Use clear names so slugs are easy to recognize.",
+        "Pair with Buttons for strong navigation UX.",
+      ],
+    },
+  ],
+},
+
 registry: {
   title: "Registry",
   subtitle:
