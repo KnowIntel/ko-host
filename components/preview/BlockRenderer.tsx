@@ -7120,33 +7120,34 @@ function PuzzleRenderer({
         ? "Advanced"
         : "Intermediate";
 
-  const [piecePositions, setPiecePositions] = useState<Record<string, { x: number; y: number }>>(
-    () =>
-      Object.fromEntries(
-        pieces.map((piece: any) => [
-          piece.id,
-          {
-            x: piece.currentX ?? 0,
-            y: piece.currentY ?? 0,
-          },
-        ]),
-      ),
+  const [piecePositions, setPiecePositions] = useState<
+    Record<string, { x: number; y: number }>
+  >(() =>
+    Object.fromEntries(
+      pieces.map((piece: any) => [
+        piece.id,
+        {
+          x: piece.currentX ?? 0,
+          y: piece.currentY ?? 0,
+        },
+      ]),
+    ),
   );
 
-    const placedCount = pieces.filter((piece: any) => {
-  const pos = piecePositions[piece.id];
-  if (!pos) return false;
+  const placedCount = pieces.filter((piece: any) => {
+    const pos = piecePositions[piece.id];
+    if (!pos) return false;
 
-  return (
-    Math.abs(pos.x - piece.correctX) <= 0.5 &&
-    Math.abs(pos.y - piece.correctY) <= 0.5
-  );
-}).length;
+    return (
+      Math.abs(pos.x - piece.correctX) <= 0.5 &&
+      Math.abs(pos.y - piece.correctY) <= 0.5
+    );
+  }).length;
 
-const completion =
-  pieces.length > 0 ? Math.round((placedCount / pieces.length) * 100) : 0;
+  const completion =
+    pieces.length > 0 ? Math.round((placedCount / pieces.length) * 100) : 0;
 
-const isComplete = completion === 100;
+  const isComplete = completion === 100;
 
   const gridSize = useMemo(() => {
     const cols = Math.ceil(Math.sqrt(pieceCount));
@@ -7160,43 +7161,29 @@ const isComplete = completion === 100;
     };
   }, [pieceCount]);
 
-  function movePiece(pieceId: string, deltaX: number, deltaY: number) {
+  function snapPiece(pieceId: string) {
+    const piece = pieces.find((item: any) => item.id === pieceId);
+
     setPiecePositions((current) => {
       const existing = current[pieceId] ?? { x: 0, y: 0 };
+
+      const snappedX = Math.round(existing.x / gridSize.snapX) * gridSize.snapX;
+      const snappedY = Math.round(existing.y / gridSize.snapY) * gridSize.snapY;
+
+      const isCorrect =
+        piece &&
+        Math.abs(snappedX - piece.correctX) <= 0.5 &&
+        Math.abs(snappedY - piece.correctY) <= 0.5;
 
       return {
         ...current,
         [pieceId]: {
-          x: Math.max(0, Math.min(100, existing.x + deltaX)),
-          y: Math.max(0, Math.min(100, existing.y + deltaY)),
+          x: isCorrect ? piece.correctX : snappedX,
+          y: isCorrect ? piece.correctY : snappedY,
         },
       };
     });
   }
-
-function snapPiece(pieceId: string) {
-  const piece = pieces.find((item: any) => item.id === pieceId);
-
-  setPiecePositions((current) => {
-    const existing = current[pieceId] ?? { x: 0, y: 0 };
-
-    const snappedX = Math.round(existing.x / gridSize.snapX) * gridSize.snapX;
-    const snappedY = Math.round(existing.y / gridSize.snapY) * gridSize.snapY;
-
-    const isCorrect =
-      piece &&
-      Math.abs(snappedX - piece.correctX) <= 0.5 &&
-      Math.abs(snappedY - piece.correctY) <= 0.5;
-
-    return {
-      ...current,
-      [pieceId]: {
-        x: isCorrect ? piece.correctX : snappedX,
-        y: isCorrect ? piece.correctY : snappedY,
-      },
-    };
-  });
-}
 
   return (
     <div className="flex h-full w-full flex-col gap-3 rounded-[inherit] bg-white p-3 text-neutral-900">
@@ -7216,112 +7203,117 @@ function snapPiece(pieceId: string) {
       </div>
 
       <div className="relative min-h-0 flex-1 overflow-hidden rounded-2xl border border-dashed border-neutral-300 bg-neutral-50">
-  {pieces.length > 0 ? (
-    <div className="absolute left-3 top-3 z-20 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-neutral-700 shadow-sm">
-      {isComplete ? "Complete 🎉" : `${completion}% complete`}
-    </div>
-  ) : null}
+        {pieces.length > 0 ? (
+          <div className="absolute left-3 top-3 z-20 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-neutral-700 shadow-sm">
+            {isComplete ? "Complete 🎉" : `${completion}% complete`}
+          </div>
+        ) : null}
+
         {pieces.length > 0 && imageUrl ? (
-          pieces.map((piece: any) => {
-            const pos = piecePositions[piece.id] ?? {
-              x: piece.currentX ?? 0,
-              y: piece.currentY ?? 0,
-            };
+          <>
+            <img
+              src={imageUrl}
+              alt=""
+              className="pointer-events-none absolute inset-0 h-full w-full object-contain opacity-15"
+              draggable={false}
+            />
 
-            const isCorrect =
-  Math.abs(pos.x - piece.correctX) <= 0.5 &&
-  Math.abs(pos.y - piece.correctY) <= 0.5;
+            {pieces.map((piece: any) => {
+              const pos = piecePositions[piece.id] ?? {
+                x: piece.currentX ?? 0,
+                y: piece.currentY ?? 0,
+              };
 
-            return (
-<button
-  key={piece.id}
-  type="button"
-  disabled={isCorrect}
-  onPointerDown={(event) => {
-    const target = event.currentTarget;
-    const parent = target.parentElement;
-    if (!parent) return;
+              const isCorrect =
+                Math.abs(pos.x - piece.correctX) <= 0.5 &&
+                Math.abs(pos.y - piece.correctY) <= 0.5;
 
-    target.setPointerCapture(event.pointerId);
+              return (
+                <button
+                  key={piece.id}
+                  type="button"
+                  disabled={isCorrect}
+                  onPointerDown={(event) => {
+                    const target = event.currentTarget;
+                    const parent = target.parentElement;
+                    if (!parent) return;
 
-    const parentRect = parent.getBoundingClientRect();
-    const startX = event.clientX;
-    const startY = event.clientY;
-    const startPos = piecePositions[piece.id] ?? {
-      x: piece.currentX ?? 0,
-      y: piece.currentY ?? 0,
-    };
+                    target.setPointerCapture(event.pointerId);
 
-    const handlePointerMove = (moveEvent: PointerEvent) => {
-      const deltaX = ((moveEvent.clientX - startX) / parentRect.width) * 100;
-      const deltaY = ((moveEvent.clientY - startY) / parentRect.height) * 100;
+                    const parentRect = parent.getBoundingClientRect();
+                    const startX = event.clientX;
+                    const startY = event.clientY;
+                    const startPos = piecePositions[piece.id] ?? {
+                      x: piece.currentX ?? 0,
+                      y: piece.currentY ?? 0,
+                    };
 
-      setPiecePositions((current) => ({
-        ...current,
-        [piece.id]: {
-          x: Math.max(0, Math.min(100, startPos.x + deltaX)),
-          y: Math.max(0, Math.min(100, startPos.y + deltaY)),
-        },
-      }));
-    };
+                    const handlePointerMove = (moveEvent: PointerEvent) => {
+                      const deltaX =
+                        ((moveEvent.clientX - startX) / parentRect.width) *
+                        100;
+                      const deltaY =
+                        ((moveEvent.clientY - startY) / parentRect.height) *
+                        100;
 
-    const handlePointerUp = () => {
-      snapPiece(piece.id);
-      window.removeEventListener("pointermove", handlePointerMove);
-      window.removeEventListener("pointerup", handlePointerUp);
-    };
+                      setPiecePositions((current) => ({
+                        ...current,
+                        [piece.id]: {
+                          x: Math.max(0, Math.min(100, startPos.x + deltaX)),
+                          y: Math.max(0, Math.min(100, startPos.y + deltaY)),
+                        },
+                      }));
+                    };
 
-    window.addEventListener("pointermove", handlePointerMove);
-    window.addEventListener("pointerup", handlePointerUp);
-  }}
-  className={[
-  "absolute touch-none overflow-hidden border bg-white shadow-md ring-1 transition-all active:shadow-xl",
-  isCorrect
-    ? "cursor-default border-emerald-400 ring-emerald-400/50"
-    : "cursor-grab border-white ring-black/10 active:cursor-grabbing",
-].join(" ")}
-  style={{
-    left: `${pos.x}%`,
-    top: `${pos.y}%`,
-    width: `${piece.widthPercent}%`,
-    height: `${piece.heightPercent}%`,
-    backgroundImage: `url(${imageUrl})`,
-    backgroundSize: `${gridSize.cols * 100}% ${gridSize.rows * 100}%`,
-    backgroundPosition: `${piece.col * -100}% ${piece.row * -100}%`,
-    borderRadius: block.data.cut === "straight_edge" ? 2 : 10,
-zIndex: isCorrect ? 5 : piece.index + 10,
-opacity: isCorrect ? 0.95 : 1,
-  }}
-  title={`Piece ${piece.index + 1}`}
-/>
-            );
-          })
+                    const handlePointerUp = () => {
+                      snapPiece(piece.id);
+                      window.removeEventListener(
+                        "pointermove",
+                        handlePointerMove,
+                      );
+                      window.removeEventListener("pointerup", handlePointerUp);
+                    };
+
+                    window.addEventListener("pointermove", handlePointerMove);
+                    window.addEventListener("pointerup", handlePointerUp);
+                  }}
+                  className={[
+                    "absolute touch-none overflow-hidden border bg-white shadow-md ring-1 transition-all active:shadow-xl",
+                    isCorrect
+                      ? "cursor-default border-emerald-400 ring-emerald-400/50"
+                      : "cursor-grab border-white ring-black/10 active:cursor-grabbing",
+                  ].join(" ")}
+                  style={{
+                    left: `${pos.x}%`,
+                    top: `${pos.y}%`,
+                    width: `${piece.widthPercent}%`,
+                    height: `${piece.heightPercent}%`,
+                    backgroundImage: `url(${imageUrl})`,
+                    backgroundSize: `${gridSize.cols * 100}% ${
+                      gridSize.rows * 100
+                    }%`,
+                    backgroundPosition: `${piece.col * -100}% ${
+                      piece.row * -100
+                    }%`,
+                    borderRadius: block.data.cut === "straight_edge" ? 2 : 10,
+                    zIndex: isCorrect ? 5 : piece.index + 10,
+                    opacity: isCorrect ? 0.95 : 1,
+                  }}
+                  title={`Piece ${piece.index + 1}`}
+                />
+              );
+            })}
+          </>
         ) : (
           <div className="flex h-full w-full flex-col items-center justify-center p-4 text-center">
-<div className="text-sm font-semibold text-neutral-800">
-  {isComplete ? "Puzzle Complete 🎉" : "Puzzle Pieces Area"}
-</div>
+            <div className="text-sm font-semibold text-neutral-800">
+              Puzzle Pieces Area
+            </div>
 
-<div className="mt-2 text-xs leading-5 text-neutral-500">
-  {pieceCount} pieces · {cut} · {sortLevel}
-</div>
-
-<div className="mt-2 text-xs font-medium text-neutral-600">
-  {completion}% complete
-</div>
-
-{isComplete ? (
-  <div className="mt-2 text-xs font-semibold text-emerald-600">
-    All pieces placed correctly
-  </div>
-) : null}
-
-<div className="mt-2 text-[11px] text-neutral-400">
-  Add an image, then press Reset Puzzle.
-</div>
             <div className="mt-2 text-xs leading-5 text-neutral-500">
               {pieceCount} pieces · {cut} · {sortLevel}
             </div>
+
             <div className="mt-2 text-[11px] text-neutral-400">
               Add an image, then press Reset Puzzle.
             </div>
