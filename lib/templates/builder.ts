@@ -221,8 +221,6 @@ export type BaseBlock = {
 
 export type PuzzleSortLevel = "beginner" | "intermediate" | "advanced";
 
-export type PuzzleEdge = "flat" | "male" | "female";
-
 export type PuzzlePiece = {
   id: string;
   index: number;
@@ -1221,7 +1219,6 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
           imageUrl: "",
           imageAlt: "",
           pieceCount: 100,
-          cut: "ribbon_jigsaw",
           sortLevel: "intermediate",
           generatedAt: "",
           autoSortEdges: true,
