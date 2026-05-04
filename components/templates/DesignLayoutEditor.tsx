@@ -11626,40 +11626,6 @@ if (selectedBlock?.type === "rsvp") {
     </div>
 
     <div className="mt-4">
-      <div className={inspectorLabelClass()}>Puzzle Piece Cut</div>
-      <select
-        value={(selectedBlock.data as any).cut ?? "ribbon_jigsaw"}
-        onChange={(e) => {
-          const nextCut = e.target.value as "ribbon_jigsaw" | "straight_edge";
-
-          updateSelectedBlock((block) =>
-            block.type !== "puzzle"
-              ? block
-              : {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    cut: nextCut,
-                    generatedAt: "",
-                    pieces: [],
-                  },
-                },
-          );
-        }}
-        className={inspectorInputClass()}
-      >
-        <option value="ribbon_jigsaw">Ribbon-cut jigsaw</option>
-        <option value="straight_edge">Straight-edge</option>
-      </select>
-
-      <p className="mt-2 text-xs leading-5 text-neutral-500">
-        {(selectedBlock.data as any).cut === "straight_edge"
-          ? "Straight-edge creates clean rectangular puzzle pieces."
-          : "Ribbon-cut creates paired male/female tabs and slots."}
-      </p>
-    </div>
-
-    <div className="mt-4">
       <div className={inspectorLabelClass()}>Sort Level</div>
       <select
         value={(selectedBlock.data as any).sortLevel ?? "intermediate"}
@@ -11689,54 +11655,11 @@ if (selectedBlock?.type === "rsvp") {
         <option value="intermediate">Intermediate</option>
         <option value="advanced">Advanced</option>
       </select>
-    </div>
 
-    <div className="mt-4 space-y-3">
-      <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
-        <input
-          type="checkbox"
-          checked={Boolean((selectedBlock.data as any).autoSortEdges ?? true)}
-          onChange={(e) =>
-            updateSelectedBlock((block) =>
-              block.type !== "puzzle"
-                ? block
-                : {
-                    ...block,
-                    data: {
-                      ...block.data,
-                      autoSortEdges: e.target.checked,
-                      generatedAt: "",
-                      pieces: [],
-                    } as any,
-                  },
-            )
-          }
-        />
-        Auto-sort edge pieces into tray
-      </label>
-
-      <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
-        <input
-          type="checkbox"
-          checked={Boolean((selectedBlock.data as any).autoSortCorners ?? true)}
-          onChange={(e) =>
-            updateSelectedBlock((block) =>
-              block.type !== "puzzle"
-                ? block
-                : {
-                    ...block,
-                    data: {
-                      ...block.data,
-                      autoSortCorners: e.target.checked,
-                      generatedAt: "",
-                      pieces: [],
-                    } as any,
-                  },
-            )
-          }
-        />
-        Auto-sort corner pieces first
-      </label>
+      <p className="mt-2 text-xs leading-5 text-neutral-500">
+        Changing sort level clears generated pieces. Press Reset Puzzle again to
+        rebuild the puzzle.
+      </p>
     </div>
 
     <button
@@ -11770,27 +11693,6 @@ if (selectedBlock?.type === "rsvp") {
           const pieces: any[] = [];
           const generatedAt = new Date().toISOString();
 
-          const edgePairs = new Map<string, "male" | "female">();
-
-          const oppositeEdge = (edge: "male" | "female") =>
-            edge === "male" ? "female" : "male";
-
-          const getHorizontalPair = (r: number, c: number) => {
-            const key = `h-${r}-${c}`;
-            if (!edgePairs.has(key)) {
-              edgePairs.set(key, (r + c) % 2 === 0 ? "male" : "female");
-            }
-            return edgePairs.get(key)!;
-          };
-
-          const getVerticalPair = (r: number, c: number) => {
-            const key = `v-${r}-${c}`;
-            if (!edgePairs.has(key)) {
-              edgePairs.set(key, (r + c) % 2 === 0 ? "female" : "male");
-            }
-            return edgePairs.get(key)!;
-          };
-
           let index = 0;
 
           for (let r = 0; r < rows; r++) {
@@ -11801,26 +11703,8 @@ if (selectedBlock?.type === "rsvp") {
                 r === 0 || c === 0 || r === rows - 1 || c === cols - 1;
 
               const isCorner =
-                (r === 0 || r === rows - 1) && (c === 0 || c === cols - 1);
-
-              const edges = {
-                top:
-                  r === 0
-                    ? "flat"
-                    : oppositeEdge(getHorizontalPair(r - 1, c)),
-                right:
-                  c === cols - 1
-                    ? "flat"
-                    : getVerticalPair(r, c),
-                bottom:
-                  r === rows - 1
-                    ? "flat"
-                    : getHorizontalPair(r, c),
-                left:
-                  c === 0
-                    ? "flat"
-                    : oppositeEdge(getVerticalPair(r, c - 1)),
-              };
+                (r === 0 || r === rows - 1) &&
+                (c === 0 || c === cols - 1);
 
               let currentX = 66 + Math.random() * 28;
               let currentY = 12 + Math.random() * 76;
@@ -11845,10 +11729,7 @@ if (selectedBlock?.type === "rsvp") {
                 currentY = 12 + Math.random() * 76;
               }
 
-              if (
-                isCorner &&
-                (block.data as any).autoSortCorners !== false
-              ) {
+              if (isCorner && (block.data as any).autoSortCorners !== false) {
                 currentX = 3 + Math.random() * 18;
                 currentY = 6 + Math.random() * 14;
               }
@@ -11867,7 +11748,6 @@ if (selectedBlock?.type === "rsvp") {
                 isEdge,
                 isCorner,
                 isPlaced: false,
-                edges,
               });
 
               index++;
@@ -11923,7 +11803,8 @@ if (selectedBlock?.type === "rsvp") {
     </button>
 
     <p className="mt-2 text-xs leading-5 text-neutral-500">
-      Reset rebuilds geometry. Shuffle only randomizes current piece positions.
+      Reset rebuilds the puzzle pieces. Shuffle only randomizes current piece
+      positions.
     </p>
 
     <div className="mt-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-xs leading-5 text-neutral-600">

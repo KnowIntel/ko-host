@@ -219,7 +219,6 @@ export type BaseBlock = {
    Block Definitions
    ========================================= */
 
-   export type PuzzleCut = "ribbon_jigsaw" | "straight_edge";
 export type PuzzleSortLevel = "beginner" | "intermediate" | "advanced";
 
 export type PuzzleEdge = "flat" | "male" | "female";
@@ -238,13 +237,8 @@ export type PuzzlePiece = {
   isEdge: boolean;
   isCorner: boolean;
   isPlaced: boolean;
-  edges: {
-    top: PuzzleEdge;
-    right: PuzzleEdge;
-    bottom: PuzzleEdge;
-    left: PuzzleEdge;
-  };
 };
+
 
 export type PuzzleBlock = BaseBlock & {
   type: "puzzle";
@@ -252,10 +246,9 @@ export type PuzzleBlock = BaseBlock & {
     imageUrl: string;
     imageAlt: string;
     pieceCount: number;
-    cut: PuzzleCut;
     sortLevel: PuzzleSortLevel;
     generatedAt?: string;
-        autoSortEdges: boolean;
+    autoSortEdges: boolean;
     autoSortCorners: boolean;
     pieces: PuzzlePiece[];
   };

@@ -7122,15 +7122,29 @@ function PuzzleRenderer({
   const pieces = block.data.pieces ?? [];
   const pieceCount = block.data.pieceCount || 100;
 
-  const cut =
-    block.data.cut === "straight_edge" ? "Straight-edge" : "Ribbon-cut jigsaw";
-
   const sortLevel =
     block.data.sortLevel === "beginner"
       ? "Beginner"
       : block.data.sortLevel === "advanced"
         ? "Advanced"
         : "Intermediate";
+
+  const roomId =
+    typeof window === "undefined"
+      ? "default"
+      : `${window.location.hostname}_${block.id}`;
+
+  const userId =
+    typeof window === "undefined"
+      ? "anonymous"
+      : (() => {
+          let key = window.localStorage.getItem("kohost_puzzle_user_key");
+          if (!key) {
+            key = `puzzle_${Math.random().toString(36).slice(2, 10)}`;
+            window.localStorage.setItem("kohost_puzzle_user_key", key);
+          }
+          return key;
+        })();
 
   const gridSize = useMemo(() => {
     let rows = 1;
@@ -7184,6 +7198,48 @@ function PuzzleRenderer({
   }, [block.data.generatedAt, pieces]);
 
   useEffect(() => {
+    async function fetchPuzzleState() {
+      if (!pieces.length) return;
+
+      try {
+        const res = await fetch(
+          `/api/puzzle/state?roomId=${encodeURIComponent(roomId)}`,
+          { cache: "no-store" },
+        );
+
+        const data = await res.json().catch(() => null);
+        if (!res.ok || !data?.ok) return;
+
+        const nextPositions = data.positions ?? {};
+
+        setPiecePositions((current) => {
+          const merged = { ...current };
+
+          for (const [pieceId, pos] of Object.entries(nextPositions)) {
+            const typedPos = pos as { x: number; y: number };
+            merged[pieceId] = {
+              x: typedPos.x,
+              y: typedPos.y,
+            };
+          }
+
+          return merged;
+        });
+      } catch (error) {
+        console.error("Puzzle state fetch failed:", error);
+      }
+    }
+
+    void fetchPuzzleState();
+
+    const interval = window.setInterval(() => {
+      void fetchPuzzleState();
+    }, 800);
+
+    return () => window.clearInterval(interval);
+  }, [roomId, pieces.length]);
+
+  useEffect(() => {
     const updateBoardBounds = () => {
       const workspace = workspaceRef.current;
       const board = boardRef.current;
@@ -7221,37 +7277,30 @@ function PuzzleRenderer({
     };
   }
 
-  function getEdgeValue(piece: any, side: "top" | "right" | "bottom" | "left") {
-    return piece.edges?.[side] ?? "flat";
-  }
-
-  function getPuzzlePieceClipPath(piece: any) {
-    if (block.data.cut === "straight_edge") return "inset(0)";
-
-    const top = getEdgeValue(piece, "top");
-    const right = getEdgeValue(piece, "right");
-    const bottom = getEdgeValue(piece, "bottom");
-    const left = getEdgeValue(piece, "left");
-
-    const topY = top === "male" ? -14 : top === "female" ? 14 : 0;
-    const rightX = right === "male" ? 114 : right === "female" ? 86 : 100;
-    const bottomY = bottom === "male" ? 114 : bottom === "female" ? 86 : 100;
-    const leftX = left === "male" ? -14 : left === "female" ? 14 : 0;
-
-    return `path("M 0 0
-      L 35 0
-      C 35 ${topY}, 65 ${topY}, 65 0
-      L 100 0
-      L 100 35
-      C ${rightX} 35, ${rightX} 65, 100 65
-      L 100 100
-      L 65 100
-      C 65 ${bottomY}, 35 ${bottomY}, 35 100
-      L 0 100
-      L 0 65
-      C ${leftX} 65, ${leftX} 35, 0 35
-      L 0 0
-      Z")`;
+  async function persistPiecePosition(
+    pieceId: string,
+    x: number,
+    y: number,
+    isPlaced: boolean,
+  ) {
+    try {
+      await fetch(`/api/puzzle/state?roomId=${encodeURIComponent(roomId)}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          action: "move",
+          pieceId,
+          x,
+          y,
+          isPlaced,
+          userId,
+        }),
+      });
+    } catch (error) {
+      console.error("Puzzle state save failed:", error);
+    }
   }
 
   const placedCount = pieces.filter((piece: any) => {
@@ -7303,15 +7352,25 @@ function PuzzleRenderer({
         boardBounds.top +
         Math.round((existing.y - boardBounds.top) / snapY) * snapY;
 
-      const isCorrect =
+      const snappedCorrect =
         Math.abs(snappedX - correct.x) <= 0.75 &&
         Math.abs(snappedY - correct.y) <= 0.75;
+
+      const nextX = snappedCorrect
+        ? correct.x
+        : Math.max(0, Math.min(100, snappedX));
+
+      const nextY = snappedCorrect
+        ? correct.y
+        : Math.max(0, Math.min(100, snappedY));
+
+      void persistPiecePosition(pieceId, nextX, nextY, snappedCorrect);
 
       return {
         ...current,
         [pieceId]: {
-          x: isCorrect ? correct.x : Math.max(0, Math.min(100, snappedX)),
-          y: isCorrect ? correct.y : Math.max(0, Math.min(100, snappedY)),
+          x: nextX,
+          y: nextY,
         },
       };
     });
@@ -7358,6 +7417,9 @@ function PuzzleRenderer({
               </div>
               <div className="text-xs leading-5 text-neutral-500">
                 Corners and edges start here when auto-sort is enabled.
+              </div>
+              <div className="mt-3 rounded-xl border border-blue-100 bg-blue-50 px-3 py-2 text-[11px] font-medium text-blue-700">
+                Live mode enabled
               </div>
             </div>
 
@@ -7431,12 +7493,10 @@ function PuzzleRenderer({
                     window.addEventListener("pointerup", handlePointerUp);
                   }}
                   className={[
-                    "absolute touch-none overflow-visible border-2 bg-white shadow-lg ring-1 transition-all active:shadow-xl",
+                    "absolute touch-none overflow-hidden border-2 bg-white shadow-lg ring-1 transition-all active:shadow-xl",
                     isCorrect
                       ? "cursor-default border-emerald-400 ring-emerald-400/50"
-                      : block.data.cut === "straight_edge"
-                        ? "cursor-grab border-white ring-black/10 active:cursor-grabbing"
-                        : "cursor-grab border-white/90 ring-black/20 active:cursor-grabbing",
+                      : "cursor-grab border-white ring-black/10 active:cursor-grabbing",
                   ].join(" ")}
                   style={{
                     left: `${pos.x}%`,
@@ -7450,8 +7510,7 @@ function PuzzleRenderer({
                     backgroundPosition: `${piece.col * -100}% ${
                       piece.row * -100
                     }%`,
-                    borderRadius: block.data.cut === "straight_edge" ? 2 : 0,
-                    clipPath: getPuzzlePieceClipPath(piece),
+                    borderRadius: 2,
                     zIndex: isCorrect ? 5 : piece.index + 10,
                     opacity: isCorrect ? 0.95 : 1,
                   }}
@@ -7467,7 +7526,7 @@ function PuzzleRenderer({
             </div>
 
             <div className="mt-2 text-xs leading-5 text-neutral-500">
-              {pieceCount} pieces · {cut} · {sortLevel}
+              {pieceCount} pieces · {sortLevel}
             </div>
 
             <div className="mt-2 text-[11px] text-neutral-400">
