@@ -325,6 +325,51 @@ Premium: [
 ],
 };
 
+const TOOL_DESCRIPTIONS: Record<string, string> = {
+  Title: "Large headline text for pages",
+  Subtitle: "Supporting text under main titles",
+  Label: "Small text label or note",
+  TextFX: "Stylized animated text effects",
+  "Rich Text": "Formatted paragraph text block",
+
+  Image: "Single image with optional caption",
+  Video: "Embedded video media block",
+  Gallery: "Multiple images in grid layout",
+  Carousel: "Swipeable image carousel display",
+
+  Rectangle: "Basic rectangular shape layer",
+  Circle: "Basic circular shape layer",
+  Line: "Straight divider or accent line",
+  Spacer: "Adds empty vertical spacing",
+
+  "Input Field": "Collect simple user text input",
+  Poll: "Let visitors vote on options",
+  RSVP: "Collect event attendance responses",
+  FAQ: "Expandable questions and answers",
+
+  Thread: "Public discussion message thread",
+  "File Share": "Upload and share visitor files",
+
+  Button: "Clickable call-to-action button",
+  Links: "Stack of important links",
+  "Link Hub": "Social and web link collection",
+
+  Highlight: "Feature stat or key callout",
+  "Progress Bar": "Visual progress toward a goal",
+
+  Countdown: "Timer counting to an event",
+  Checklist: "Trackable list of tasks",
+  "Schedule / Agenda": "Timed event schedule list",
+  "Map / Location": "Location details with map info",
+
+  Registry: "Gift or item registry list",
+  "Pop the Balloon": "Interactive elimination game experience",
+  Donation: "Collect support or contributions",
+  Listing: "Showcase item with details",
+  Checkout: "Sell single product or service",
+  Cart: "Shopping cart purchase flow",
+};
+
 const MIN_CANVAS_ZOOM = 50;
 const MAX_CANVAS_ZOOM = 200;
 const CANVAS_ZOOM_STEP = 10;
@@ -1057,8 +1102,11 @@ const [selectedRsvpElementKey, setSelectedRsvpElementKey] = useState<
   const [buildPresetConfirmOpen, setBuildPresetConfirmOpen] = useState(false);
   const [pendingPresetDraft, setPendingPresetDraft] = useState<BuilderDraft | null>(null);
   const [registryLoadingMap, setRegistryLoadingMap] = useState<Record<string, boolean>>({});
-  const [selection, setSelection] = useState(createEmptySelection());
   const [activeCategory, setActiveCategory] = useState<BottomCategory>("Text");
+  const [categoryMenuView, setCategoryMenuView] = useState<"compact" | "detail">(
+    "compact",
+  );
+  const [selection, setSelection] = useState(createEmptySelection());
   const [openToolMenu, setOpenToolMenu] = useState<BottomCategory | null>(null);
   const [toolGuideModalOpen, setToolGuideModalOpen] = useState(false);
   const [inspectorCollapsed, setInspectorCollapsed] = useState(false);
@@ -15095,57 +15143,132 @@ onInput={(e) => {
               ref={toolMenuRef}
               className="absolute left-0 top-[calc(100%+10px)] z-[120] w-max max-w-[calc(100vw-32px)] rounded-2xl border border-neutral-300 bg-white p-3 shadow-2xl md:bottom-[calc(100%+10px)] md:top-auto md:max-w-[420px]"
             >
-              <div className="mb-2 flex items-center justify-between gap-3">
-                <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
-                  {category} Tools
-                </div>
+<div className="mb-2 flex items-center justify-between gap-3">
+  <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
+    {category} Tools
+  </div>
 
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setToolGuideModalOpen(true);
-                  }}
-                  className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-neutral-300 bg-white text-sm font-bold text-neutral-700 shadow-sm hover:border-neutral-900 hover:text-neutral-950"
-                  title="Open tool guide"
-                  aria-label="Open tool guide"
-                >
-                  ?
-                </button>
-              </div>
+  <div className="flex items-center gap-2">
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation();
+        setCategoryMenuView((view) =>
+          view === "compact" ? "detail" : "compact",
+        );
+      }}
+      className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-neutral-300 bg-white p-1 shadow-sm hover:border-neutral-900"
+      title={
+        categoryMenuView === "compact"
+          ? "Switch to detail view"
+          : "Switch to compact view"
+      }
+      aria-label={
+        categoryMenuView === "compact"
+          ? "Switch to detail view"
+          : "Switch to compact view"
+      }
+    >
+      <img
+        src="/designs/artifacts/icon_menu_compact_view.png"
+        alt=""
+        className="h-4 w-4 object-contain"
+      />
+    </button>
 
-              <div className="flex max-w-[400px] flex-wrap gap-2">
-{CATEGORY_BUTTONS[category].map((tool, index) => (
-  <button
-    key={`${category}-${tool.kind}-${tool.type}-${index}`}
-    type="button"
-    className={toolButtonClass()}
-                    onClick={() => {
-                      if (tool.kind === "block") addBlock(tool.type);
-                      if (tool.kind === "shape") addShape(tool.type);
-                      if (tool.kind === "page") addPageBlock(tool.type);
-                      setOpenToolMenu(null);
-                    }}
-                    draggable
-                    onDragStart={(e) => {
-                      const payload: ToolDropPayload =
-                        tool.kind === "block"
-                          ? { kind: "block", type: tool.type }
-                          : tool.kind === "shape"
-                            ? { kind: "shape", type: tool.type }
-                            : { kind: "page", type: tool.type };
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation();
+        setToolGuideModalOpen(true);
+      }}
+      className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-neutral-300 bg-white text-sm font-bold text-neutral-700 shadow-sm hover:border-neutral-900 hover:text-neutral-950"
+      title="Open tool guide"
+      aria-label="Open tool guide"
+    >
+      ?
+    </button>
+  </div>
+</div>
 
-                      e.dataTransfer.setData(
-                        "application/kht-tool",
-                        JSON.stringify(payload),
-                      );
-                    }}
-                    title={tool.label}
-                  >
-                    {getToolGlyph(tool.label)}
-                  </button>
-                ))}
-              </div>
+{categoryMenuView === "compact" ? (
+  <div className="flex max-w-[400px] flex-wrap gap-2">
+    {CATEGORY_BUTTONS[category].map((tool, index) => (
+      <button
+        key={`${category}-${tool.kind}-${tool.type}-${index}`}
+        type="button"
+        className={toolButtonClass()}
+        onClick={() => {
+          if (tool.kind === "block") addBlock(tool.type);
+          if (tool.kind === "shape") addShape(tool.type);
+          if (tool.kind === "page") addPageBlock(tool.type);
+          setOpenToolMenu(null);
+        }}
+        draggable
+        onDragStart={(e) => {
+          const payload: ToolDropPayload =
+            tool.kind === "block"
+              ? { kind: "block", type: tool.type }
+              : tool.kind === "shape"
+                ? { kind: "shape", type: tool.type }
+                : { kind: "page", type: tool.type };
+
+          e.dataTransfer.setData(
+            "application/kht-tool",
+            JSON.stringify(payload),
+          );
+        }}
+        title={tool.label}
+      >
+        {getToolGlyph(tool.label)}
+      </button>
+    ))}
+  </div>
+) : (
+  <div className="flex max-h-[252px] w-[360px] max-w-[calc(100vw-56px)] flex-col gap-2 overflow-y-auto pr-1">
+    {CATEGORY_BUTTONS[category].map((tool, index) => (
+      <button
+        key={`${category}-${tool.kind}-${tool.type}-${index}`}
+        type="button"
+        className="flex w-full cursor-grab items-center gap-3 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-left transition hover:border-blue-500 hover:bg-blue-50 active:cursor-grabbing"
+        onClick={() => {
+          if (tool.kind === "block") addBlock(tool.type);
+          if (tool.kind === "shape") addShape(tool.type);
+          if (tool.kind === "page") addPageBlock(tool.type);
+          setOpenToolMenu(null);
+        }}
+        draggable
+        onDragStart={(e) => {
+          const payload: ToolDropPayload =
+            tool.kind === "block"
+              ? { kind: "block", type: tool.type }
+              : tool.kind === "shape"
+                ? { kind: "shape", type: tool.type }
+                : { kind: "page", type: tool.type };
+
+          e.dataTransfer.setData(
+            "application/kht-tool",
+            JSON.stringify(payload),
+          );
+        }}
+        title={tool.label}
+      >
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-neutral-200 bg-neutral-50 text-sm font-semibold text-neutral-800">
+          {getToolGlyph(tool.label)}
+        </span>
+
+        <span className="min-w-0">
+          <span className="block text-sm font-semibold text-neutral-900">
+            {tool.label}
+          </span>
+          <span className="block truncate text-xs text-neutral-500">
+            {TOOL_DESCRIPTIONS[tool.label] ?? "Drag onto canvas to add"}
+          </span>
+        </span>
+      </button>
+    ))}
+  </div>
+)}
             </div>
           ) : null}
         </div>
