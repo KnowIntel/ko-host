@@ -681,15 +681,25 @@ return (
 
 {blockEntries.map(({ block, grid }) => {
   const itemStyle = getItemStyle(grid, logicalPageWidth, logicalRowHeight);
+  const isInteractiveBlock =
+    block.type === "schedule_agenda" ||
+    block.type === "rsvp" ||
+    block.type === "form_field" ||
+    block.type === "poll" ||
+    block.type === "thread" ||
+    block.type === "checkout" ||
+    block.type === "cart" ||
+    block.type === "listing" ||
+    block.type === "donation";
 
   return (
     <div
       key={block.id}
       style={{
         ...itemStyle,
-        zIndex: block.type === "rsvp" ? 9999 : itemStyle.zIndex,
+        zIndex: isInteractiveBlock ? 9999 : itemStyle.zIndex,
         overflow: "visible",
-        pointerEvents: "none",
+        pointerEvents: isInteractiveBlock ? "auto" : "none",
         isolation: "isolate",
       }}
     >
@@ -697,7 +707,7 @@ return (
       className="h-full w-full"
       style={{
         overflow: "visible",
-        pointerEvents: "auto",
+        pointerEvents: isInteractiveBlock ? "auto" : "none",
       }}
     >
 <BlockRenderer
