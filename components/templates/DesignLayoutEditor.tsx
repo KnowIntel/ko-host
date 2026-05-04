@@ -2448,37 +2448,33 @@ function updatePageLength(value: PageLengthOption) {
   }));
 }
 
-function uploadPuzzleImageToSelectedBlock(blockId: string) {
-  const input = document.createElement("input");
-  input.type = "file";
-  input.accept = "image/*";
+async function uploadPuzzleImageToSelectedBlock(blockId: string) {
+  await openImagePicker({
+    onSelect: async (files) => {
+      const file = files[0];
+      if (!file) return;
 
-  input.onchange = () => {
-    const file = input.files?.[0];
-    if (!file) return;
+      const dataUrl = await readFileAsDataUrl(file);
 
-    const imageUrl = URL.createObjectURL(file);
-
-    setDraft((current) => ({
-      ...current,
-      blocks: current.blocks.map((block) =>
-        block.id !== blockId || block.type !== "puzzle"
-          ? block
-          : {
-              ...block,
-              data: {
-                ...block.data,
-                imageUrl,
-                imageAlt: file.name || "Puzzle image",
-                generatedAt: "",
-                pieces: [],
+      setDraft((current) => ({
+        ...current,
+        blocks: current.blocks.map((block) =>
+          block.id !== blockId || block.type !== "puzzle"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  imageUrl: dataUrl,
+                  imageAlt: file.name || "Puzzle image",
+                  generatedAt: "",
+                  pieces: [],
+                },
               },
-            },
-      ),
-    }));
-  };
-
-  input.click();
+        ),
+      }));
+    },
+  });
 }
 
 function cancelResetDraft() {
