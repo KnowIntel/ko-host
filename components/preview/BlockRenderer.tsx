@@ -7320,18 +7320,22 @@ function PuzzleRenderer({
 
   const isComplete = completion === 100;
 
-  const boardFrameStyle =
-    imageAspectRatio >= 1
-      ? {
-          width: "100%",
-          aspectRatio: imageAspectRatio,
-          maxHeight: "100%",
-        }
-      : {
-          height: "100%",
-          aspectRatio: imageAspectRatio,
-          maxWidth: "100%",
-        };
+const boardFrameStyle =
+  imageAspectRatio >= 1
+    ? {
+        height: "auto",
+        width: "100%",
+        aspectRatio: imageAspectRatio,
+        maxHeight: "100%",
+        maxWidth: "100%",
+      }
+    : {
+        height: "100%",
+        width: "auto",
+        aspectRatio: imageAspectRatio,
+        maxHeight: "100%",
+        maxWidth: "100%",
+      };
 
   function snapPiece(pieceId: string) {
     const piece = pieces.find((item: any) => item.id === pieceId);
@@ -7423,7 +7427,7 @@ function PuzzleRenderer({
               </div>
             </div>
 
-            <div className="absolute inset-y-0 left-[32%] right-4 flex items-center justify-center p-4">
+            <div className="absolute inset-y-0 left-[32%] right-4 flex items-center justify-center p-4 overflow-hidden">
               <div ref={boardRef} className="relative" style={boardFrameStyle}>
                 <img
                   src={imageUrl}
