@@ -164,22 +164,35 @@ export function bringCanvasItemToFront(
     }),
   );
 }
-export function sendCanvasItemToBack<
-  T extends { id: string; grid?: { zIndex?: number } }
->(items: T[], itemId: string): T[] {
-  const zValues = items.map((item) => item.grid?.zIndex ?? 1);
-  const minZ = zValues.length ? Math.min(...zValues) : 1;
-  const backZ = minZ - 1;
+export function sendCanvasItemToBack(
+  items: CanvasGridItem[],
+  blockId: string,
+) {
+  const lowest = items.reduce((min, item, index) => {
+    const normalized = normalizeGrid(
+      item.grid as Partial<GridPlacementWithLayer> | undefined,
+      index + 1,
+    );
 
-  return items.map((item) =>
-    item.id === itemId
-      ? {
-          ...item,
-          grid: {
-            ...item.grid,
-            zIndex: backZ,
-          },
-        }
-      : item,
+    return Math.min(min, normalized.zIndex ?? 1);
+  }, Number.POSITIVE_INFINITY);
+
+  return normalizeCanvasItems(
+    items.map((item, index) => {
+      if (item.id !== blockId) return item;
+
+      const normalized = normalizeGrid(
+        item.grid as Partial<GridPlacementWithLayer> | undefined,
+        index + 1,
+      );
+
+      return {
+        ...item,
+        grid: {
+          ...normalized,
+          zIndex: Number.isFinite(lowest) ? lowest - 1 : 1,
+        },
+      };
+    }),
   );
 }
