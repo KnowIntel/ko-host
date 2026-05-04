@@ -7392,7 +7392,11 @@ function PuzzleRenderer({
                     backgroundPosition: `${piece.col * -100}% ${
                       piece.row * -100
                     }%`,
-                    borderRadius: block.data.cut === "straight_edge" ? 2 : 10,
+                    borderRadius: block.data.cut === "straight_edge" ? 2 : 14,
+clipPath:
+  block.data.cut === "straight_edge"
+    ? "inset(0)"
+    : "polygon(0% 8%, 8% 8%, 8% 0%, 92% 0%, 92% 8%, 100% 8%, 100% 42%, 92% 42%, 92% 58%, 100% 58%, 100% 92%, 92% 92%, 92% 100%, 8% 100%, 8% 92%, 0% 92%, 0% 58%, 8% 58%, 8% 42%, 0% 42%)",
                     zIndex: isCorrect ? 5 : piece.index + 10,
                     opacity: isCorrect ? 0.95 : 1,
                   }}

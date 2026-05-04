@@ -11651,6 +11651,11 @@ if (selectedBlock?.type === "rsvp") {
         <option value="ribbon_jigsaw">Ribbon-cut jigsaw</option>
         <option value="straight_edge">Straight-edge</option>
       </select>
+      <p className="mt-2 text-xs leading-5 text-neutral-500">
+  {(selectedBlock.data as any).cut === "straight_edge"
+    ? "Straight-edge creates clean rectangular puzzle pieces."
+    : "Ribbon-cut creates decorative interlocking-style piece edges."}
+</p>
     </div>
 
     <div className="mt-4">
@@ -11730,17 +11735,17 @@ for (let possibleRows = 1; possibleRows <= Math.sqrt(pieceCount); possibleRows++
             correctY: r * pieceHeight,
 currentX:
   block.data.sortLevel === "beginner"
-    ? Math.max(0, Math.min(100, c * pieceWidth + (Math.random() * 12 - 6)))
+    ? Math.max(0, Math.min(100, c * pieceWidth + (Math.random() * 18 - 9)))
     : block.data.sortLevel === "intermediate" && isEdge
-      ? Math.random() * 35
-      : Math.random() * 100,
+      ? Math.random() * 30
+      : 10 + Math.random() * 80,
 
 currentY:
   block.data.sortLevel === "beginner"
-    ? Math.max(0, Math.min(100, r * pieceHeight + (Math.random() * 12 - 6)))
+    ? Math.max(0, Math.min(100, r * pieceHeight + (Math.random() * 18 - 9)))
     : block.data.sortLevel === "intermediate" && isEdge
-      ? Math.random() * 35
-      : Math.random() * 100,
+      ? 70 + Math.random() * 25
+      : 10 + Math.random() * 80,
             widthPercent: pieceWidth,
             heightPercent: pieceHeight,
             isEdge,
