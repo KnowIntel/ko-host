@@ -2448,6 +2448,39 @@ function updatePageLength(value: PageLengthOption) {
   }));
 }
 
+function uploadPuzzleImageToSelectedBlock(blockId: string) {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "image/*";
+
+  input.onchange = () => {
+    const file = input.files?.[0];
+    if (!file) return;
+
+    const imageUrl = URL.createObjectURL(file);
+
+    setDraft((current) => ({
+      ...current,
+      blocks: current.blocks.map((block) =>
+        block.id !== blockId || block.type !== "puzzle"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                imageUrl,
+                imageAlt: file.name || "Puzzle image",
+                generatedAt: "",
+                pieces: [],
+              },
+            },
+      ),
+    }));
+  };
+
+  input.click();
+}
+
 function cancelResetDraft() {
   setResetDraftModalOpen(false);
 }
@@ -4892,6 +4925,27 @@ if (block.type === "text_fx") {
             }));
           }}
         />
+      );
+    }
+
+    if (block.type === "puzzle") {
+      return block.data.imageUrl ? (
+        <div
+          className="h-full w-full"
+          onDoubleClick={() => uploadPuzzleImageToSelectedBlock(block.id)}
+          title="Double-click to replace puzzle image"
+        >
+          <BlockRenderer block={block} designKey={designKey} />
+        </div>
+      ) : (
+        <div
+          className="h-full w-full cursor-pointer"
+          onClick={() => uploadPuzzleImageToSelectedBlock(block.id)}
+          onDoubleClick={() => uploadPuzzleImageToSelectedBlock(block.id)}
+          title="Click to add puzzle image"
+        >
+          <BlockRenderer block={block} designKey={designKey} />
+        </div>
       );
     }
 
@@ -11521,6 +11575,8 @@ if (selectedBlock?.type === "rsvp") {
                     ...block.data,
                     imageUrl: nextUrl,
                     imageAlt: block.data.imageAlt || "Puzzle image",
+                    generatedAt: "",
+                    pieces: [],
                   },
                 },
           );
@@ -11528,6 +11584,14 @@ if (selectedBlock?.type === "rsvp") {
         className={inspectorInputClass()}
         placeholder="/designs/artifacts/example.png"
       />
+
+      <button
+        type="button"
+        className="mt-3 inline-flex h-11 w-full items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-sm text-neutral-700 hover:bg-neutral-50"
+        onClick={() => uploadPuzzleImageToSelectedBlock(selectedBlock.id)}
+      >
+        Browse Puzzle Image
+      </button>
     </div>
 
     <div className="mt-4">
@@ -11551,6 +11615,8 @@ if (selectedBlock?.type === "rsvp") {
                   data: {
                     ...block.data,
                     pieceCount: nextCount,
+                    generatedAt: "",
+                    pieces: [],
                   },
                 },
           );
@@ -11574,6 +11640,8 @@ if (selectedBlock?.type === "rsvp") {
                   data: {
                     ...block.data,
                     cut: nextCut,
+                    generatedAt: "",
+                    pieces: [],
                   },
                 },
           );
@@ -11603,6 +11671,8 @@ if (selectedBlock?.type === "rsvp") {
                   data: {
                     ...block.data,
                     sortLevel: nextSortLevel,
+                    generatedAt: "",
+                    pieces: [],
                   },
                 },
           );
@@ -11615,30 +11685,79 @@ if (selectedBlock?.type === "rsvp") {
       </select>
     </div>
 
-    <button
-      type="button"
-      disabled={
-        !((selectedBlock.data as any).imageUrl ?? "") ||
-        !((selectedBlock.data as any).pieceCount ?? 0)
+<button
+  type="button"
+  disabled={
+    !((selectedBlock.data as any).imageUrl ?? "") ||
+    !((selectedBlock.data as any).pieceCount ?? 0)
+  }
+  onClick={() => {
+    updateSelectedBlock((block) => {
+      if (block.type !== "puzzle") return block;
+
+      const pieceCount = block.data.pieceCount || 100;
+
+      // simple square-ish grid
+      const cols = Math.ceil(Math.sqrt(pieceCount));
+      const rows = Math.ceil(pieceCount / cols);
+
+      const pieceWidth = 100 / cols;
+      const pieceHeight = 100 / rows;
+
+      const pieces: any[] = [];
+
+      let index = 0;
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          if (index >= pieceCount) break;
+
+          const isEdge =
+            r === 0 || c === 0 || r === rows - 1 || c === cols - 1;
+
+          pieces.push({
+            id: `${block.id}_piece_${index}`,
+            index,
+            row: r,
+            col: c,
+            correctX: c * pieceWidth,
+            correctY: r * pieceHeight,
+currentX:
+  block.data.sortLevel === "beginner"
+    ? Math.max(0, Math.min(100, c * pieceWidth + (Math.random() * 12 - 6)))
+    : block.data.sortLevel === "intermediate" && isEdge
+      ? Math.random() * 35
+      : Math.random() * 100,
+
+currentY:
+  block.data.sortLevel === "beginner"
+    ? Math.max(0, Math.min(100, r * pieceHeight + (Math.random() * 12 - 6)))
+    : block.data.sortLevel === "intermediate" && isEdge
+      ? Math.random() * 35
+      : Math.random() * 100,
+            widthPercent: pieceWidth,
+            heightPercent: pieceHeight,
+            isEdge,
+            isPlaced: false,
+          });
+
+          index++;
+        }
       }
-      onClick={() => {
-        updateSelectedBlock((block) =>
-          block.type !== "puzzle"
-            ? block
-            : {
-                ...block,
-                data: {
-                  ...block.data,
-                  generatedAt: new Date().toISOString(),
-                  pieces: [],
-                },
-              },
-        );
-      }}
-      className="mt-4 h-11 w-full rounded-xl bg-neutral-900 px-4 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-neutral-300"
-    >
-      Reset Puzzle
-    </button>
+
+      return {
+        ...block,
+        data: {
+          ...block.data,
+          generatedAt: new Date().toISOString(),
+          pieces,
+        },
+      };
+    });
+  }}
+  className="mt-4 h-11 w-full rounded-xl bg-neutral-900 px-4 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-neutral-300"
+>
+  Reset Puzzle
+</button>
 
     <p className="mt-2 text-xs leading-5 text-neutral-500">
       Reset will later deconstruct the image into draggable puzzle pieces.

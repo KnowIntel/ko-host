@@ -222,6 +222,21 @@ export type BaseBlock = {
    export type PuzzleCut = "ribbon_jigsaw" | "straight_edge";
 export type PuzzleSortLevel = "beginner" | "intermediate" | "advanced";
 
+export type PuzzlePiece = {
+  id: string;
+  index: number;
+  row: number;
+  col: number;
+  correctX: number;
+  correctY: number;
+  currentX: number;
+  currentY: number;
+  widthPercent: number;
+  heightPercent: number;
+  isEdge: boolean;
+  isPlaced: boolean;
+};
+
 export type PuzzleBlock = BaseBlock & {
   type: "puzzle";
   data: {
@@ -231,7 +246,7 @@ export type PuzzleBlock = BaseBlock & {
     cut: PuzzleCut;
     sortLevel: PuzzleSortLevel;
     generatedAt?: string;
-    pieces: unknown[];
+    pieces: PuzzlePiece[];
   };
 };
 
