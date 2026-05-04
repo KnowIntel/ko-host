@@ -248,6 +248,7 @@ export type PuzzleBlock = BaseBlock & {
     generatedAt?: string;
     autoSortEdges: boolean;
     autoSortCorners: boolean;
+    displayPuzzleImage: boolean;
     pieces: PuzzlePiece[];
   };
 };
@@ -1223,6 +1224,7 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
           generatedAt: "",
           autoSortEdges: true,
           autoSortCorners: true,
+          displayPuzzleImage: true,
           pieces: [],
         },
       };

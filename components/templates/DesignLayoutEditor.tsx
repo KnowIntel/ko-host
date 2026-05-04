@@ -11588,6 +11588,26 @@ if (selectedBlock?.type === "rsvp") {
       >
         Browse Puzzle Image
       </button>
+      <label className="mt-3 flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+  <input
+    type="checkbox"
+    checked={(selectedBlock.data as any).displayPuzzleImage !== false}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "puzzle"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                displayPuzzleImage: e.target.checked,
+              },
+            },
+      )
+    }
+  />
+  Display Puzzle Image
+</label>
     </div>
 
     <div className="mt-4">

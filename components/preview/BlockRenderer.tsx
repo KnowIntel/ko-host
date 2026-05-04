@@ -7365,26 +7365,28 @@ useEffect(() => {
 
   return (
     <div className="flex h-full w-full flex-col gap-3 rounded-[inherit] bg-white p-3 text-neutral-900">
-      <div className="flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-2xl border border-dashed border-neutral-300 bg-neutral-50">
-        {imageUrl ? (
-          <img
-            src={imageUrl}
-            alt={block.data.imageAlt || "Puzzle image"}
-            className="h-full w-full object-contain"
-            draggable={false}
-            onLoad={(event) => {
-              const img = event.currentTarget;
-              if (img.naturalWidth && img.naturalHeight) {
-                setImageAspectRatio(img.naturalWidth / img.naturalHeight);
-              }
-            }}
-          />
-        ) : (
-          <div className="px-4 text-center text-sm font-medium text-neutral-500">
-            Click the Puzzle block in the builder, then add an image URL in the inspector.
-          </div>
-        )}
+{block.data.displayPuzzleImage !== false ? (
+  <div className="flex min-h-0 flex-1 items-center justify-center overflow-hidden rounded-2xl border border-dashed border-neutral-300 bg-neutral-50">
+    {imageUrl ? (
+      <img
+        src={imageUrl}
+        alt={block.data.imageAlt || "Puzzle image"}
+        className="h-full w-full object-contain"
+        draggable={false}
+        onLoad={(event) => {
+          const img = event.currentTarget;
+          if (img.naturalWidth && img.naturalHeight) {
+            setImageAspectRatio(img.naturalWidth / img.naturalHeight);
+          }
+        }}
+      />
+    ) : (
+      <div className="px-4 text-center text-sm font-medium text-neutral-500">
+        Click the Puzzle block in the builder, then add an image URL in the inspector.
       </div>
+    )}
+  </div>
+) : null}
 
       <div
         ref={workspaceRef}
