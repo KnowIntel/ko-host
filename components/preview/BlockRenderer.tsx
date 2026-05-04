@@ -7117,7 +7117,7 @@ function PuzzleRenderer({
   });
 
   const workspaceRef = useRef<HTMLDivElement | null>(null);
-  const boardRef = useRef<HTMLDivElement | null>(null);
+  const boardRef = useRef<HTMLImageElement | null>(null);
 
   const pieces = block.data.pieces ?? [];
   const pieceCount = block.data.pieceCount || 100;
@@ -7183,19 +7183,19 @@ function PuzzleRenderer({
     ),
   );
 
-  useEffect(() => {
-    setPiecePositions(
-      Object.fromEntries(
-        pieces.map((piece: any) => [
-          piece.id,
-          {
-            x: piece.currentX ?? 0,
-            y: piece.currentY ?? 0,
-          },
-        ]),
-      ),
-    );
-  }, [block.data.generatedAt, pieces]);
+useEffect(() => {
+  setPiecePositions(
+    Object.fromEntries(
+      pieces.map((piece: any) => [
+        piece.id,
+        {
+          x: piece.currentX ?? 0,
+          y: piece.currentY ?? 0,
+        },
+      ]),
+    ),
+  );
+}, [block.data.generatedAt]);
 
   useEffect(() => {
     async function fetchPuzzleState() {
@@ -7320,23 +7320,6 @@ function PuzzleRenderer({
 
   const isComplete = completion === 100;
 
-const boardFrameStyle =
-  imageAspectRatio >= 1
-    ? {
-        height: "auto",
-        width: "100%",
-        aspectRatio: imageAspectRatio,
-        maxHeight: "100%",
-        maxWidth: "100%",
-      }
-    : {
-        height: "100%",
-        width: "auto",
-        aspectRatio: imageAspectRatio,
-        maxHeight: "100%",
-        maxWidth: "100%",
-      };
-
   function snapPiece(pieceId: string) {
     const piece = pieces.find((item: any) => item.id === pieceId);
     if (!piece) return;
@@ -7427,16 +7410,15 @@ const boardFrameStyle =
               </div>
             </div>
 
-            <div className="absolute inset-y-0 left-[32%] right-4 flex items-center justify-center p-4 overflow-hidden">
-              <div ref={boardRef} className="relative" style={boardFrameStyle}>
-                <img
-                  src={imageUrl}
-                  alt=""
-                  className="pointer-events-none h-full w-full object-contain opacity-15"
-                  draggable={false}
-                />
-              </div>
-            </div>
+<div className="absolute inset-y-0 left-[32%] right-4 flex items-center justify-center overflow-hidden p-4">
+  <img
+    ref={boardRef}
+    src={imageUrl}
+    alt=""
+    className="pointer-events-none max-h-full max-w-full object-contain opacity-15"
+    draggable={false}
+  />
+</div>
 
             {pieces.map((piece: any) => {
               const correct = getCorrectWorkspacePosition(piece);
