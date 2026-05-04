@@ -1082,14 +1082,17 @@ const isPageTextOverlay =
   block.type === "tagline";
 
                   return (
-                    <div
-                      key={block.id}
-                      style={{
-                        ...getItemStyle(grid),
-                        zIndex: grid.zIndex,
-                      }}
-                      onClick={(e) => onSelect(selectBlock(block.id), e)}
-className={[
+<div
+  key={block.id}
+  data-canvas-block-id={block.id}
+  data-canvas-block-type={block.type}
+  data-canvas-block-label={block.label ?? ""}
+  style={{
+    ...getItemStyle(grid),
+    zIndex: grid.zIndex,
+  }}
+  onClick={(e) => onSelect(selectBlock(block.id), e)}
+  className={[
   getToolSurfaceClass(selected, resizing),
   block.type === "schedule_agenda" ? "overflow-visible" : "",
   isPageTextOverlay && !selected ? "pointer-events-none" : "",
