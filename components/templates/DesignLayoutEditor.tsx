@@ -11651,11 +11651,12 @@ if (selectedBlock?.type === "rsvp") {
         <option value="ribbon_jigsaw">Ribbon-cut jigsaw</option>
         <option value="straight_edge">Straight-edge</option>
       </select>
-<p className="mt-2 text-xs leading-5 text-neutral-500">
-  {(selectedBlock.data as any).cut === "straight_edge"
-    ? "Straight-edge creates clean rectangular puzzle pieces."
-    : "Ribbon-cut creates interlocking-style puzzle pieces with tabs and slots."}
-</p>
+
+      <p className="mt-2 text-xs leading-5 text-neutral-500">
+        {(selectedBlock.data as any).cut === "straight_edge"
+          ? "Straight-edge creates clean rectangular puzzle pieces."
+          : "Ribbon-cut creates interlocking-style puzzle pieces with tabs and slots."}
+      </p>
     </div>
 
     <div className="mt-4">
@@ -11688,122 +11689,151 @@ if (selectedBlock?.type === "rsvp") {
         <option value="intermediate">Intermediate</option>
         <option value="advanced">Advanced</option>
       </select>
+
       <p className="mt-2 text-xs leading-5 text-neutral-500">
-  Changing cut or sort level clears generated pieces. Press Reset Puzzle again
-  to rebuild the puzzle.
-</p>
+        Changing cut or sort level clears generated pieces. Press Reset Puzzle
+        again to rebuild the puzzle.
+      </p>
     </div>
 
-<button
-  type="button"
-  disabled={
-    !((selectedBlock.data as any).imageUrl ?? "") ||
-    !((selectedBlock.data as any).pieceCount ?? 0)
-  }
-  onClick={() => {
-    updateSelectedBlock((block) => {
-      if (block.type !== "puzzle") return block;
-
-      const pieceCount = block.data.pieceCount || 100;
-
-      let rows = 1;
-      let cols = pieceCount;
-
-      for (
-        let possibleRows = 1;
-        possibleRows <= Math.sqrt(pieceCount);
-        possibleRows++
-      ) {
-        if (pieceCount % possibleRows === 0) {
-          rows = possibleRows;
-          cols = pieceCount / possibleRows;
-        }
+    <button
+      type="button"
+      disabled={
+        !((selectedBlock.data as any).imageUrl ?? "") ||
+        !((selectedBlock.data as any).pieceCount ?? 0)
       }
+      onClick={() => {
+        updateSelectedBlock((block) => {
+          if (block.type !== "puzzle") return block;
 
-      const pieceWidth = 100 / cols;
-      const pieceHeight = 100 / rows;
-      const pieces: any[] = [];
-      const generatedAt = new Date().toISOString();
+          const pieceCount = block.data.pieceCount || 100;
 
-      let index = 0;
+          let rows = 1;
+          let cols = pieceCount;
 
-      for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
-          if (index >= pieceCount) break;
-
-          const isEdge =
-            r === 0 || c === 0 || r === rows - 1 || c === cols - 1;
-
-          let currentX = 10 + Math.random() * 80;
-          let currentY = 10 + Math.random() * 80;
-
-          if (block.data.sortLevel === "beginner") {
-            currentX = Math.max(
-              0,
-              Math.min(100, c * pieceWidth + (Math.random() * 18 - 9)),
-            );
-            currentY = Math.max(
-              0,
-              Math.min(100, r * pieceHeight + (Math.random() * 18 - 9)),
-            );
+          for (
+            let possibleRows = 1;
+            possibleRows <= Math.sqrt(pieceCount);
+            possibleRows++
+          ) {
+            if (pieceCount % possibleRows === 0) {
+              rows = possibleRows;
+              cols = pieceCount / possibleRows;
+            }
           }
 
-          if (block.data.sortLevel === "intermediate" && isEdge) {
-            currentX = Math.random() * 30;
-            currentY = 70 + Math.random() * 25;
+          const pieceWidth = 100 / cols;
+          const pieceHeight = 100 / rows;
+          const pieces: any[] = [];
+          const generatedAt = new Date().toISOString();
+
+          let index = 0;
+
+          for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+              if (index >= pieceCount) break;
+
+              const isEdge =
+                r === 0 || c === 0 || r === rows - 1 || c === cols - 1;
+
+              let currentX = 10 + Math.random() * 80;
+              let currentY = 10 + Math.random() * 80;
+
+              if (block.data.sortLevel === "beginner") {
+                currentX = Math.max(
+                  0,
+                  Math.min(100, c * pieceWidth + (Math.random() * 18 - 9)),
+                );
+                currentY = Math.max(
+                  0,
+                  Math.min(100, r * pieceHeight + (Math.random() * 18 - 9)),
+                );
+              }
+
+              if (block.data.sortLevel === "intermediate" && isEdge) {
+                currentX = Math.random() * 30;
+                currentY = 70 + Math.random() * 25;
+              }
+
+              pieces.push({
+                id: `${block.id}_piece_${generatedAt}_${index}`,
+                index,
+                row: r,
+                col: c,
+                correctX: c * pieceWidth,
+                correctY: r * pieceHeight,
+                currentX,
+                currentY,
+                widthPercent: pieceWidth,
+                heightPercent: pieceHeight,
+                isEdge,
+                isPlaced: false,
+              });
+
+              index++;
+            }
           }
 
-          pieces.push({
-            id: `${block.id}_piece_${generatedAt}_${index}`,
-            index,
-            row: r,
-            col: c,
-            correctX: c * pieceWidth,
-            correctY: r * pieceHeight,
-            currentX,
-            currentY,
-            widthPercent: pieceWidth,
-            heightPercent: pieceHeight,
-            isEdge,
-            isPlaced: false,
-          });
+          return {
+            ...block,
+            data: {
+              ...block.data,
+              generatedAt,
+              pieces,
+            },
+          };
+        });
+      }}
+      className="mt-4 h-11 w-full rounded-xl bg-neutral-900 px-4 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-neutral-300"
+    >
+      Reset Puzzle
+    </button>
 
-          index++;
-        }
-      }
+    <button
+      type="button"
+      disabled={((selectedBlock.data as any).pieces ?? []).length === 0}
+      onClick={() => {
+        updateSelectedBlock((block) => {
+          if (block.type !== "puzzle") return block;
 
-      return {
-        ...block,
-        data: {
-          ...block.data,
-          generatedAt,
-          pieces,
-        },
-      };
-    });
-  }}
-  className="mt-4 h-11 w-full rounded-xl bg-neutral-900 px-4 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-neutral-300"
->
-  Reset Puzzle
-</button>
+          return {
+            ...block,
+            data: {
+              ...block.data,
+              generatedAt: new Date().toISOString(),
+              pieces: (block.data.pieces ?? []).map((piece: any) => ({
+                ...piece,
+                currentX: 10 + Math.random() * 80,
+                currentY: 10 + Math.random() * 80,
+                isPlaced: false,
+              })),
+            },
+          };
+        });
+      }}
+      className="mt-3 h-11 w-full rounded-xl border border-neutral-300 bg-white px-4 text-sm font-semibold text-neutral-800 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:bg-neutral-100 disabled:text-neutral-400"
+    >
+      Shuffle Pieces
+    </button>
 
     <p className="mt-2 text-xs leading-5 text-neutral-500">
-      Reset will later deconstruct the image into draggable puzzle pieces.
+      Reset rebuilds the puzzle pieces. Shuffle only randomizes current piece
+      positions.
     </p>
 
     <div className="mt-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-xs leading-5 text-neutral-600">
-  {((selectedBlock.data as any).pieces ?? []).length > 0 ? (
-    <>
-      Generated{" "}
-      <span className="font-semibold text-neutral-900">
-        {((selectedBlock.data as any).pieces ?? []).length}
-      </span>{" "}
-      puzzle pieces.
-    </>
-  ) : (
-    <>No pieces generated yet.</>
-  )}
-</div>
+      {((selectedBlock.data as any).pieces ?? []).length > 0 ? (
+        <>
+          Generated{" "}
+          <span className="font-semibold text-neutral-900">
+            {((selectedBlock.data as any).pieces ?? []).length}
+          </span>{" "}
+          puzzle pieces.
+        </>
+      ) : (
+        <>No pieces generated yet.</>
+      )}
+    </div>
   </div>
 ) : null}
 
