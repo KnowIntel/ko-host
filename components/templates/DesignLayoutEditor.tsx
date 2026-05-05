@@ -1896,6 +1896,71 @@ useEffect(() => {
   }, [openToolMenu]);
 
   useEffect(() => {
+  function handleCanvasShortcuts(event: KeyboardEvent) {
+    const blockId =
+  "blockId" in selectedContext ? selectedContext.blockId : null;
+    if (!blockId) return;
+
+    const target = event.target as HTMLElement | null;
+    const isTyping =
+      target?.tagName === "INPUT" ||
+      target?.tagName === "TEXTAREA" ||
+      target?.tagName === "SELECT" ||
+      target?.isContentEditable;
+
+    if (isTyping) return;
+    if (!event.ctrlKey) return;
+
+    if (event.key.toLowerCase() === "v") {
+      event.preventDefault();
+      handleDuplicateCanvasBlock(blockId);
+      return;
+    }
+
+    if (event.key.toLowerCase() === "x") {
+      event.preventDefault();
+      removeCanvasBlock(blockId);
+      setSelection(createEmptySelection());
+      return;
+    }
+
+    if (event.shiftKey && event.key === "ArrowDown") {
+      event.preventDefault();
+      handleSendToBack(blockId);
+      setSelection(selectionFromCanvasBlockId(blockId));
+      return;
+    }
+
+    if (event.shiftKey && event.key === "ArrowUp") {
+      event.preventDefault();
+      handleBringToFront(blockId);
+      setSelection(selectionFromCanvasBlockId(blockId));
+      return;
+    }
+
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+      handleBringForward(blockId);
+      setSelection(selectionFromCanvasBlockId(blockId));
+      return;
+    }
+
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      handleSendBackward(blockId);
+      setSelection(selectionFromCanvasBlockId(blockId));
+    }
+  }
+
+  window.addEventListener("keydown", handleCanvasShortcuts);
+
+  return () => {
+    window.removeEventListener("keydown", handleCanvasShortcuts);
+  };
+}, [selectedContext, draft]);
+
+
+  useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
       const target = event.target as HTMLElement | null;
       const tagName = target?.tagName?.toLowerCase();
@@ -15413,7 +15478,7 @@ onInput={(e) => {
           e.stopPropagation();
           handleDuplicateCanvasBlock(tool.id);
         }}
-        title="Duplicate"
+        title={"Duplicate\n(CTRL+V)"}
       >
         ⧉
       </button>
@@ -15426,7 +15491,7 @@ onInput={(e) => {
           handleSendToBack(tool.id);
           setSelection(selectionFromCanvasBlockId(tool.id));
         }}
-        title="Send to back"
+        title={"Send to back\n(CTRL+SHIFT+↓)"}
       >
         <img
           src="/icons/icon_block_back.png"
@@ -15443,7 +15508,7 @@ onInput={(e) => {
           handleBringToFront(tool.id);
           setSelection(selectionFromCanvasBlockId(tool.id));
         }}
-        title="Bring to front"
+        title={"Bring to front\n(CTRL+SHIFT+↑)"}
       >
         <img
           src="/icons/icon_block_front.png"
@@ -15460,7 +15525,7 @@ onInput={(e) => {
     handleBringForward(tool.id);
     setSelection(selectionFromCanvasBlockId(tool.id));
   }}
-  title="Move forward one layer"
+  title={"Move forward one layer\n(CTRL+↑)"}
 >
   ↑
 </button>
@@ -15473,7 +15538,7 @@ onInput={(e) => {
     handleSendBackward(tool.id);
     setSelection(selectionFromCanvasBlockId(tool.id));
   }}
-  title="Move backward one layer"
+  title={"Move backward one layer\n(CTRL+↓)"}
 >
   ↓
 </button>
@@ -15486,7 +15551,7 @@ onInput={(e) => {
           e.stopPropagation();
           removeCanvasBlock(tool.id);
         }}
-        title="Remove block"
+        title={"Remove block\n(CTRL+X)"}
       >
         ×
       </button>
