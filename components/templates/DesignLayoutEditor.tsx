@@ -4178,10 +4178,10 @@ function addPageBlock(type: PageBlockType) {
 function handleDuplicateCanvasBlock(blockId: string) {
   if (isPageBlockId(blockId)) return;
 
-  const duplicatedBlockId = `${blockId}_copy_${Math.random().toString(36).slice(2, 8)}`;
+  const duplicatedBlockId = `block_${Math.random().toString(36).slice(2, 10)}`;
 
   setDraft((prev) => {
-    const original = prev.blocks.find((b) => b.id === blockId);
+    const original = prev.blocks.find((block) => block.id === blockId);
     if (!original) return prev;
 
     const originalGrid = original.grid ?? {
@@ -4192,25 +4192,32 @@ function handleDuplicateCanvasBlock(blockId: string) {
       zIndex: 1,
     };
 
-    const newBlock: MicrositeBlock = {
-      ...original,
+    const highestZIndex = Math.max(
+      1,
+      ...prev.blocks.map((block) => block.grid?.zIndex ?? 1),
+    );
+
+    const duplicatedBlock: MicrositeBlock = {
+      ...structuredClone(original),
       id: duplicatedBlockId,
       grid: {
         colStart: originalGrid.colStart,
         rowStart: originalGrid.rowStart + 1,
         colSpan: originalGrid.colSpan,
         rowSpan: originalGrid.rowSpan,
-        zIndex: (originalGrid.zIndex ?? 1) + 1,
+        zIndex: highestZIndex + 1,
       },
     };
 
     return {
       ...prev,
-      blocks: [...prev.blocks, newBlock],
+      blocks: [...prev.blocks, duplicatedBlock],
     };
   });
 
-  setSelection(selectionFromCanvasBlockId(duplicatedBlockId));
+  window.requestAnimationFrame(() => {
+    setSelection(selectionFromCanvasBlockId(duplicatedBlockId));
+  });
 }
 
   function removeCanvasBlock(blockId: string) {
@@ -15624,17 +15631,22 @@ onInput={(e) => {
     <div className="flex items-center gap-2 overflow-visible">
       {/* DUPLICATE (NEW POSITION) */}
 <div className="group relative inline-flex overflow-visible">
-  <button
-    type="button"
-    className={toolSetButtonClass("front")}
-    onClick={(e) => {
-      e.stopPropagation();
-      handleDuplicateCanvasBlock(tool.id);
-    }}
-    aria-label="Duplicate"
-  >
-    ⧉
-  </button>
+<button
+  type="button"
+  className={toolSetButtonClass("front")}
+  onMouseDown={(e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }}
+  onClick={(e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    handleDuplicateCanvasBlock(tool.id);
+  }}
+  aria-label="Duplicate"
+>
+  ⧉
+</button>
 
   <div className="pointer-events-none absolute left-1/2 top-full z-[9999] mt-2 w-max -translate-x-1/2 rounded-md bg-black px-3 py-2 text-center text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
     <div className="text-xs font-medium">Duplicate</div>
