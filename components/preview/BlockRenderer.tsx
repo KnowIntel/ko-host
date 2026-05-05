@@ -60,9 +60,6 @@ import {
   Merriweather,
   Lora,
   Crimson_Text,
-} from "next/font/google";
-
-import {
   Anton,
   Bangers,
   Orbitron,

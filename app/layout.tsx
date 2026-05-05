@@ -21,6 +21,18 @@ import {
   Prata,
   Marcellus,
   Bodoni_Moda,
+  Anton,
+  Bangers,
+  Orbitron,
+  Righteous,
+  Alfa_Slab_One,
+  Permanent_Marker,
+  Caveat,
+  Indie_Flower,
+  Exo_2,
+  Rajdhani,
+  Teko,
+  Abril_Fatface,
 } from "next/font/google";
 
 const greatVibes = Great_Vibes({
@@ -122,6 +134,74 @@ const bodoniModa = Bodoni_Moda({
   variable: "--font-bodoni-moda",
 });
 
+const anton = Anton({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-anton",
+});
+
+const bangers = Bangers({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-bangers",
+});
+
+const orbitron = Orbitron({
+  subsets: ["latin"],
+  variable: "--font-orbitron",
+});
+
+const righteous = Righteous({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-righteous",
+});
+
+const alfa = Alfa_Slab_One({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-alfa-slab-one",
+});
+
+const marker = Permanent_Marker({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-permanent-marker",
+});
+
+const caveat = Caveat({
+  subsets: ["latin"],
+  variable: "--font-caveat",
+});
+
+const indie = Indie_Flower({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-indie-flower",
+});
+
+const exo = Exo_2({
+  subsets: ["latin"],
+  variable: "--font-exo-2",
+});
+
+const rajdhani = Rajdhani({
+  subsets: ["latin"],
+  weight: ["400", "600"],
+  variable: "--font-rajdhani",
+});
+
+const teko = Teko({
+  subsets: ["latin"],
+  variable: "--font-teko",
+});
+
+const abril = Abril_Fatface({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-abril-fatface",
+});
+
 export const metadata: Metadata = {
   title: "Ko-Host",
   description: "Temporary microsites powered by structured templates.",
@@ -153,6 +233,18 @@ className={[
   prata.variable,
   marcellus.variable,
   bodoniModa.variable,
+  anton.variable,
+  bangers.variable,
+  orbitron.variable,
+  righteous.variable,
+  alfa.variable,
+  marker.variable,
+  caveat.variable,
+  indie.variable,
+  exo.variable,
+  rajdhani.variable,
+  teko.variable,
+  abril.variable,
   "min-h-screen bg-white text-neutral-950 overflow-x-hidden",
 ].join(" ")}
       >

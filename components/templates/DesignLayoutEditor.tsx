@@ -40,6 +40,8 @@ import {
   Crimson_Text,
 } from "next/font/google";
 
+
+
 import GridCanvas, {
   type CanvasGridItem,
   getGridCanvasScrollableWidth,
