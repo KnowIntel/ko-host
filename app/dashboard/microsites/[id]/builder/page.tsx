@@ -371,59 +371,73 @@ return;
     setCreatePageError("");
   }
 
-  async function createPageFromModal() {
-    const safeSlug = normalizeSlug(newPageName);
+async function createPageFromModal() {
+  const safeSlug = normalizeSlug(newPageName);
 
-    if (!safeSlug) {
-      setCreatePageError("Enter a valid page name.");
+  if (!safeSlug) {
+    setCreatePageError("Enter a valid page name.");
+    return;
+  }
+
+  try {
+    setCreatingPage(true);
+    setCreatePageError("");
+
+    if (editorDraft) {
+      await saveBuilderDraft(editorDraft);
+    }
+
+    const res = await fetch(`/api/dashboard/microsites/${id}/pages`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ slug: safeSlug }),
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      setCreatePageError(data?.error || "Failed to create page.");
+      setSaveMessage(data?.error || "Failed to create page.");
       return;
     }
 
-try {
-  setCreatingPage(true);
-  setCreatePageError("");
+    const nextPage = data?.page as PageRow | undefined;
 
-  // Save current page before creating/switching to a new page.
-  if (editorDraft) {
-    await saveBuilderDraft(editorDraft);
-  }
-
-      const res = await fetch(`/api/dashboard/microsites/${id}/pages`, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ slug: safeSlug }),
-      });
-
-const data = await res.json().catch(() => ({}));
-
-      if (!res.ok) {
-        setCreatePageError(data?.error || "Failed to create page.");
-        return;
-      }
-
-      const nextPage = data?.page as PageRow | undefined;
-
-const refreshedPages = await loadPages(id);
-
-const persistedNextPage =
-  nextPage?.id
-    ? refreshedPages.find((page) => page.id === nextPage.id)
-    : refreshedPages.find((page) => page.slug === safeSlug);
-
-if (persistedNextPage?.id) {
-  setActivePageId(persistedNextPage.id);
-} else if (refreshedPages.length > 0) {
-  setActivePageId(refreshedPages[refreshedPages.length - 1].id);
-}
-
-      setAddPageModalOpen(false);
-      setNewPageName("");
-      setCreatePageError("");
-      setSaveMessage(`Created page: ${safeSlug}`);
-    } finally {
-      setCreatingPage(false);
+    if (!nextPage?.id) {
+      setCreatePageError("Page was created but no page record was returned.");
+      setSaveMessage("Page create failed.");
+      return;
     }
+
+    setPages((prev) => {
+      const withoutDuplicate = prev.filter((page) => page.id !== nextPage.id);
+      return [...withoutDuplicate, nextPage].sort((a, b) => {
+        const aOrder = typeof a.display_order === "number" ? a.display_order : 0;
+        const bOrder = typeof b.display_order === "number" ? b.display_order : 0;
+        return aOrder - bOrder;
+      });
+    });
+
+    setActivePageId(nextPage.id);
+
+    const refreshedPages = await loadPages(id);
+
+    const persistedNextPage =
+      refreshedPages.find((page) => page.id === nextPage.id) ??
+      refreshedPages.find((page) => page.slug === safeSlug);
+
+    if (persistedNextPage?.id) {
+      setActivePageId(persistedNextPage.id);
+    }
+
+    setAddPageModalOpen(false);
+    setNewPageName("");
+    setCreatePageError("");
+    setSaveMessage(`Created page: ${safeSlug}`);
+  } finally {
+    setCreatingPage(false);
   }
+}
 
   async function createPageImmediately() {
     alert("CREATE PAGE FUNCTION STARTED");
