@@ -80,6 +80,9 @@ const draftPageCountByTemplateDesignKey: Record<string, number> = {
 
   "enthusiast_networking:direct": 2,
   "enthusiast_networking:showcase": 2,
+
+  "sweepstakes:inclusive": 4,
+
 };
 
 const pageCount =
