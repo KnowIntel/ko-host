@@ -25,7 +25,7 @@ export function cloneDraft<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
 }
 
-function resolveFontFamily(fontFamily?: string) {
+export function resolveFontFamily(fontFamily?: string) {
   if (!fontFamily || fontFamily === "inherit") return "inherit";
   return FONT_FAMILY_MAP[fontFamily] ?? fontFamily;
 }
