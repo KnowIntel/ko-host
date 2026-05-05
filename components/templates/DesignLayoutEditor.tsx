@@ -16001,7 +16001,7 @@ window.setTimeout(() => {
 }, 1300);
 }}
 placeholder="Tool search..."
-className="h-30 w-[180px] rounded-md border border-neutral-300 bg-white px-3 text-sm outline-none transition placeholder:text-neutral-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+className="h-[42px] w-[180px] rounded-md border border-neutral-300 bg-white px-3 text-sm outline-none transition placeholder:text-neutral-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
 />
 </div>
 </div>
