@@ -15987,58 +15987,25 @@ onChange={(e) => {
     toolMatchesSearch(normalizedQuery, category, tool),
   );
 
-  if (!firstMatch) return;
+if (!firstMatch) return;
 
-  const nextKey = getToolSearchKey(firstMatch.category, firstMatch.tool);
-  setActiveCategory(firstMatch.category);
-  setOpenToolMenu(firstMatch.category);
-  setFlashedToolKey(nextKey);
+const nextKey = getToolSearchKey(firstMatch.category, firstMatch.tool);
+setActiveCategory(firstMatch.category);
+setOpenToolMenu(firstMatch.category);
+setFlashedToolKey(nextKey);
 
-  window.setTimeout(() => {
-    setFlashedToolKey((current) => (current === nextKey ? null : current));
-  }, 1300);
+window.setTimeout(() => {
+  setFlashedToolKey((current) => (current === nextKey ? null : current));
+}, 1300);
 }}
-        placeholder="Tool search..."
-        className="h-[46px] w-[180px] rounded-md border border-neutral-300 bg-white px-3 text-sm outline-none transition placeholder:text-neutral-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-      />
-    </div>
-    </div>
+placeholder="Tool search..."
+className="h-[46px] w-[180px] rounded-md border border-neutral-300 bg-white px-3 text-sm outline-none transition placeholder:text-neutral-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+/>
+</div>
+</div>
 
-    <div className="shrink-0">
-      <input
-        type="search"
-        value={toolSearchQuery}
-        onChange={(e) => {
-          const nextQuery = e.target.value;
-          setToolSearchQuery(nextQuery);
-
-          const normalizedQuery = nextQuery.trim().toLowerCase();
-          if (!normalizedQuery) return;
-
-          const firstMatch = CATEGORY_ORDER.flatMap((category) =>
-            CATEGORY_BUTTONS[category].map((tool) => ({ category, tool })),
-          ).find(({ category, tool }) =>
-            toolMatchesSearch(normalizedQuery, category, tool),
-          );
-
-          if (!firstMatch) return;
-
-          const nextKey = getToolSearchKey(firstMatch.category, firstMatch.tool);
-          setActiveCategory(firstMatch.category);
-          setOpenToolMenu(firstMatch.category);
-          setFlashedToolKey(nextKey);
-
-          window.setTimeout(() => {
-            setFlashedToolKey((current) => (current === nextKey ? null : current));
-          }, 1300);
-        }}
-        placeholder="Tool search..."
-        className="h-12 w-[180px] rounded-md border border-neutral-300 bg-white px-3 text-sm outline-none transition placeholder:text-neutral-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-      />
-    </div>
 <div className="flex w-full flex-row items-center justify-center gap-2 overflow-x-auto pb-1 md:w-auto md:flex-col md:items-end md:justify-start md:overflow-visible">
-<div className="flex flex-nowrap items-center gap-2 md:gap-4 h-12">
-
+  <div className="flex flex-nowrap items-center gap-2 md:gap-4 h-12">
 
 
         <button
