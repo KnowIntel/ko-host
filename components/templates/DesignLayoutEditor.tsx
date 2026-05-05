@@ -489,19 +489,20 @@ const FONT_FAMILY_MAP: Record<string, string> = {
   "Crimson Text":
     'var(--font-crimson-text), "Crimson Text", ui-serif, Georgia, serif',
 
-  // Display (IMPORTANT: match BlockRenderer names EXACTLY)
+  // Display
   Anton: 'var(--font-anton), Anton, sans-serif',
   Bangers: 'var(--font-bangers), Bangers, cursive',
   Orbitron: 'var(--font-orbitron), Orbitron, sans-serif',
   Righteous: 'var(--font-righteous), Righteous, cursive',
-  "Alfa Slab One": 'var(--font-alfa), "Alfa Slab One", serif',
-  "Permanent Marker": 'var(--font-marker), "Permanent Marker", cursive',
+  "Alfa Slab One": 'var(--font-alfa-slab-one), "Alfa Slab One", serif',
+  "Permanent Marker":
+    'var(--font-permanent-marker), "Permanent Marker", cursive',
   Caveat: 'var(--font-caveat), Caveat, cursive',
-  "Indie Flower": 'var(--font-indie), "Indie Flower", cursive',
-  "Exo 2": 'var(--font-exo), "Exo 2", sans-serif',
+  "Indie Flower": 'var(--font-indie-flower), "Indie Flower", cursive',
+  "Exo 2": 'var(--font-exo-2), "Exo 2", sans-serif',
   Rajdhani: 'var(--font-rajdhani), Rajdhani, sans-serif',
   Teko: 'var(--font-teko), Teko, sans-serif',
-  "Abril Fatface": 'var(--font-abril), "Abril Fatface", serif',
+  "Abril Fatface": 'var(--font-abril-fatface), "Abril Fatface", serif',
 
   // System
   Arial: "Arial, Helvetica, sans-serif",
