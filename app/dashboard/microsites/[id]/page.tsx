@@ -544,9 +544,9 @@ async function sendBulkEmail() {
 </a>
 
 <a
-  href={`https://quickchart.io/qr?text=${encodeURIComponent(
-    `https://${site.slug}.ko-host.com`,
-  )}&size=512&format=png`}
+href={`/api/qr?text=${encodeURIComponent(
+  `https://${site.slug}.ko-host.com`,
+)}&filename=${encodeURIComponent(`${site.slug}-qr-code.png`)}`}
   download={`${site.slug}-qr-code.png`}
   target="_blank"
   rel="noreferrer"
