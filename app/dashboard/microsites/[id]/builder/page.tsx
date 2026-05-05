@@ -403,11 +403,15 @@ const data = await res.json().catch(() => ({}));
 
       const nextPage = data?.page as PageRow | undefined;
 
-      const refreshedPages = await loadPages(id);
-      console.log("REFRESHED PAGES", refreshedPages);
+const refreshedPages = await loadPages(id);
 
-if (nextPage?.id) {
-  setActivePageId(nextPage.id);
+const persistedNextPage =
+  nextPage?.id
+    ? refreshedPages.find((page) => page.id === nextPage.id)
+    : refreshedPages.find((page) => page.slug === safeSlug);
+
+if (persistedNextPage?.id) {
+  setActivePageId(persistedNextPage.id);
 } else if (refreshedPages.length > 0) {
   setActivePageId(refreshedPages[refreshedPages.length - 1].id);
 }
@@ -737,7 +741,7 @@ return (
       </div>
 
 <TemplateDraftEditor
-  key={`${site.id}::${activePageId || "root"}::${site.selected_design_key || "blank"}::${editorDraft.title || ""}::${editorDraft.blocks.length}`}
+  key={`${site.id}::${activePageId || "root"}::${site.selected_design_key || "blank"}`}
   templateKey={site.template_key}
   designLayout={site.selected_design_key || "blank"}
   initialDraft={editorDraft}
