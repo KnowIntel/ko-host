@@ -15490,78 +15490,113 @@ onInput={(e) => {
   </div>
 </div>
 
-      <button
-        type="button"
-        className={toolSetButtonClass("back")}
-        onClick={(e) => {
-          e.stopPropagation();
-          handleSendToBack(tool.id);
-          setSelection(selectionFromCanvasBlockId(tool.id));
-        }}
-        title={"Send to back\n(CTRL+SHIFT+↓)"}
-      >
-        <img
-          src="/icons/icon_block_back.png"
-          alt="Back"
-          className="pointer-events-none h-4 w-4 object-contain"
-        />
-      </button>
+<div className="group relative inline-flex overflow-visible">
+  <button
+    type="button"
+    className={toolSetButtonClass("back")}
+    onClick={(e) => {
+      e.stopPropagation();
+      handleSendToBack(tool.id);
+      setSelection(selectionFromCanvasBlockId(tool.id));
+    }}
+    aria-label="Send to back"
+  >
+    <img
+      src="/icons/icon_block_back.png"
+      alt=""
+      className="pointer-events-none h-4 w-4 object-contain"
+    />
+  </button>
 
-      <button
-        type="button"
-        className={toolSetButtonClass("front")}
-        onClick={(e) => {
-          e.stopPropagation();
-          handleBringToFront(tool.id);
-          setSelection(selectionFromCanvasBlockId(tool.id));
-        }}
-        title={"Bring to front\n(CTRL+SHIFT+↑)"}
-      >
-        <img
-          src="/icons/icon_block_front.png"
-          alt="Front"
-          className="pointer-events-none h-4 w-4 object-contain"
-        />
-      </button>
+  <div className="pointer-events-none absolute left-1/2 top-full z-[9999] mt-2 w-max -translate-x-1/2 rounded-md bg-black px-3 py-2 text-center text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+    <div className="text-xs font-medium">Send to back</div>
+    <div className="text-[10px] text-white/70">(CTRL+SHIFT+↓)</div>
+  </div>
+</div>
 
-<button
-  type="button"
-  className={toolSetButtonClass("front")}
-  onClick={(e) => {
-    e.stopPropagation();
-    handleBringForward(tool.id);
-    setSelection(selectionFromCanvasBlockId(tool.id));
-  }}
-  title={"Move forward one layer\n(CTRL+↑)"}
->
-  ↑
-</button>
+<div className="group relative inline-flex overflow-visible">
+  <button
+    type="button"
+    className={toolSetButtonClass("front")}
+    onClick={(e) => {
+      e.stopPropagation();
+      handleBringToFront(tool.id);
+      setSelection(selectionFromCanvasBlockId(tool.id));
+    }}
+    aria-label="Bring to front"
+  >
+    <img
+      src="/icons/icon_block_front.png"
+      alt=""
+      className="pointer-events-none h-4 w-4 object-contain"
+    />
+  </button>
 
-<button
-  type="button"
-  className={toolSetButtonClass("back")}
-  onClick={(e) => {
-    e.stopPropagation();
-    handleSendBackward(tool.id);
-    setSelection(selectionFromCanvasBlockId(tool.id));
-  }}
-  title={"Move backward one layer\n(CTRL+↓)"}
->
-  ↓
-</button>
+  <div className="pointer-events-none absolute left-1/2 top-full z-[9999] mt-2 w-max -translate-x-1/2 rounded-md bg-black px-3 py-2 text-center text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+    <div className="text-xs font-medium">Bring to front</div>
+    <div className="text-[10px] text-white/70">(CTRL+SHIFT+↑)</div>
+  </div>
+</div>
 
-      {/* REMOVE stays last */}
-      <button
-        type="button"
-        className={toolSetButtonClass("remove")}
-        onClick={(e) => {
-          e.stopPropagation();
-          removeCanvasBlock(tool.id);
-        }}
-        title={"Remove block\n(CTRL+X)"}
-      >
-        ×
-      </button>
+<div className="group relative inline-flex overflow-visible">
+  <button
+    type="button"
+    className={toolSetButtonClass("front")}
+    onClick={(e) => {
+      e.stopPropagation();
+      handleBringForward(tool.id);
+      setSelection(selectionFromCanvasBlockId(tool.id));
+    }}
+    aria-label="Move forward one layer"
+  >
+    ↑
+  </button>
+
+  <div className="pointer-events-none absolute left-1/2 top-full z-[9999] mt-2 w-max -translate-x-1/2 rounded-md bg-black px-3 py-2 text-center text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+    <div className="text-xs font-medium">Move forward one layer</div>
+    <div className="text-[10px] text-white/70">(CTRL+↑)</div>
+  </div>
+</div>
+
+<div className="group relative inline-flex overflow-visible">
+  <button
+    type="button"
+    className={toolSetButtonClass("back")}
+    onClick={(e) => {
+      e.stopPropagation();
+      handleSendBackward(tool.id);
+      setSelection(selectionFromCanvasBlockId(tool.id));
+    }}
+    aria-label="Move backward one layer"
+  >
+    ↓
+  </button>
+
+  <div className="pointer-events-none absolute left-1/2 top-full z-[9999] mt-2 w-max -translate-x-1/2 rounded-md bg-black px-3 py-2 text-center text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+    <div className="text-xs font-medium">Move backward one layer</div>
+    <div className="text-[10px] text-white/70">(CTRL+↓)</div>
+  </div>
+</div>
+
+{/* REMOVE stays last */}
+<div className="group relative inline-flex overflow-visible">
+  <button
+    type="button"
+    className={toolSetButtonClass("remove")}
+    onClick={(e) => {
+      e.stopPropagation();
+      removeCanvasBlock(tool.id);
+    }}
+    aria-label="Remove block"
+  >
+    ×
+  </button>
+
+  <div className="pointer-events-none absolute left-1/2 top-full z-[9999] mt-2 w-max -translate-x-1/2 rounded-md bg-black px-3 py-2 text-center text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+    <div className="text-xs font-medium">Remove block</div>
+    <div className="text-[10px] text-white/70">(CTRL+X)</div>
+  </div>
+</div>
     </div>
   </div>
 ))}
