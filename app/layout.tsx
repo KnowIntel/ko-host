@@ -21,6 +21,11 @@ import {
   Prata,
   Marcellus,
   Bodoni_Moda,
+  Cinzel,
+  Libre_Baskerville,
+  Merriweather,
+  Lora,
+  Crimson_Text,
   Anton,
   Bangers,
   Orbitron,
@@ -134,6 +139,34 @@ const bodoniModa = Bodoni_Moda({
   variable: "--font-bodoni-moda",
 });
 
+const cinzel = Cinzel({
+  subsets: ["latin"],
+  variable: "--font-cinzel",
+});
+
+const libreBaskerville = Libre_Baskerville({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  variable: "--font-libre-baskerville",
+});
+
+const merriweather = Merriweather({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  variable: "--font-merriweather",
+});
+
+const lora = Lora({
+  subsets: ["latin"],
+  variable: "--font-lora",
+});
+
+const crimsonText = Crimson_Text({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  variable: "--font-crimson-text",
+});
+
 const anton = Anton({
   subsets: ["latin"],
   weight: "400",
@@ -233,6 +266,11 @@ className={[
   prata.variable,
   marcellus.variable,
   bodoniModa.variable,
+  cinzel.variable,
+  libreBaskerville.variable,
+  merriweather.variable,
+  lora.variable,
+  crimsonText.variable,
   anton.variable,
   bangers.variable,
   orbitron.variable,

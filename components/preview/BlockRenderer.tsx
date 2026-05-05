@@ -1783,19 +1783,27 @@ const normalizedHref =
 
           const content = item.label || "Link";
 
-          const className =
-            layout === "horizontal"
-              ? [
-                  "inline-flex items-center justify-center rounded-full px-3 py-2",
-                  isLightDesign(designKey)
-                    ? "border border-neutral-200 bg-white"
-                    : "border border-white/10 bg-white/5",
-                ].join(" ")
-              : layout === "grid"
-                ? getLinkItemClass(designKey)
-                : designKey === "showcase"
-                  ? "block"
-                  : getLinkItemClass(designKey);
+const itemIsTransparent = typedBlock.data.transparentBackground === true;
+
+const className =
+  layout === "horizontal"
+    ? [
+        "inline-flex items-center justify-center rounded-full px-3 py-2",
+        itemIsTransparent
+          ? "border border-transparent bg-transparent"
+          : isLightDesign(designKey)
+            ? "border border-neutral-200 bg-white"
+            : "border border-white/10 bg-white/5",
+      ].join(" ")
+    : layout === "grid"
+      ? itemIsTransparent
+        ? "block rounded-xl border border-transparent bg-transparent px-3 py-2"
+        : getLinkItemClass(designKey)
+      : designKey === "showcase"
+        ? "block"
+        : itemIsTransparent
+          ? "block rounded-xl border border-transparent bg-transparent px-3 py-2"
+          : getLinkItemClass(designKey);
 
           const style = getContainerTextStyle(block.data.style, designKey);
 
