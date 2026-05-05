@@ -1091,6 +1091,7 @@ export default function DesignLayoutEditor({
 }: Props) {
   const [resetDraftModalOpen, setResetDraftModalOpen] = useState(false);
   const [draggedPageId, setDraggedPageId] = useState<string | null>(null);
+const [pageDragPreview, setPageDragPreview] = useState<typeof pages | null>(null);
   const selectedPageLength =
     ((draft as DraftWithPageExtras).pageLength ?? "1800") as PageLengthOption;
 const [listingStyleTarget, setListingStyleTarget] = useState<
@@ -1132,6 +1133,7 @@ const [flashedToolKey, setFlashedToolKey] = useState<string | null>(null);
   );
   const [selection, setSelection] = useState(createEmptySelection());
   const [openToolMenu, setOpenToolMenu] = useState<BottomCategory | null>(null);
+const [pageDragPreview, setPageDragPreview] = useState<typeof pages | null>(null);
   const [toolGuideModalOpen, setToolGuideModalOpen] = useState(false);
   const [inspectorCollapsed, setInspectorCollapsed] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
@@ -4177,7 +4179,7 @@ function addPageBlock(type: PageBlockType) {
 function handleDuplicateCanvasBlock(blockId: string) {
   if (isPageBlockId(blockId)) return;
 
-  let duplicatedBlockId: string | null = null;
+  const duplicatedBlockId = `${blockId}_copy_${Math.random().toString(36).slice(2, 8)}`;
 
   setDraft((prev) => {
     const original = prev.blocks.find((b) => b.id === blockId);
@@ -4190,8 +4192,6 @@ function handleDuplicateCanvasBlock(blockId: string) {
       rowSpan: 1,
       zIndex: 1,
     };
-
-    duplicatedBlockId = `${original.type}_${Math.random().toString(36).slice(2, 8)}`;
 
     const newBlock: MicrositeBlock = {
       ...original,
@@ -4211,9 +4211,7 @@ function handleDuplicateCanvasBlock(blockId: string) {
     };
   });
 
-  if (duplicatedBlockId) {
-    setSelection(selectionFromCanvasBlockId(duplicatedBlockId));
-  }
+  setSelection(selectionFromCanvasBlockId(duplicatedBlockId));
 }
 
   function removeCanvasBlock(blockId: string) {
@@ -6515,18 +6513,19 @@ return (
         <div className="flex items-center gap-2">
           <div className="flex-1 overflow-x-auto">
             <div className="flex min-w-max items-center gap-2 pr-2">
-              {(
-                pages && pages.length > 0
-                  ? pages
-                  : [
-                      {
-                        id: "home",
-                        slug: "home",
-                        title: "Home",
-                        display_order: 0,
-                      },
-                    ]
-              ).map((page) => {
+{(
+  pageDragPreview ??
+  (pages && pages.length > 0
+    ? pages
+    : [
+        {
+          id: "home",
+          slug: "home",
+          title: "Home",
+          display_order: 0,
+        },
+      ])
+).map((page) => {
                 const homePage =
                   pages?.find((item) => item.slug === "home") ??
                   pages?.[0] ??
@@ -6544,12 +6543,52 @@ return (
                   <div
                     key={page.id}
                     draggable={!isHomePage}
-                    onDragStart={() => {
-                      if (!isHomePage) setDraggedPageId(page.id);
+                    onDragStart={(e) => {
+                      if (isHomePage) return;
+                      e.dataTransfer.effectAllowed = "move";
+                      setDraggedPageId(page.id);
+                      setPageDragPreview(pages ?? null);
                     }}
-                    onDragEnd={() => setDraggedPageId(null)}
+                    onDragEnd={() => {
+                      setDraggedPageId(null);
+                      setPageDragPreview(null);
+                    }}
                     onDragOver={(e) => {
-                      if (!isHomePage) e.preventDefault();
+                      if (isHomePage || !draggedPageId || draggedPageId === page.id) return;
+
+                      e.preventDefault();
+                      e.dataTransfer.dropEffect = "move";
+
+                      setPageDragPreview((current) => {
+                        const allPages = current ?? pages ?? [];
+                        const fixedHomePage =
+                          allPages.find((item) => item.slug === "home") ?? allPages[0];
+
+                        if (!fixedHomePage || draggedPageId === fixedHomePage.id) {
+                          return allPages;
+                        }
+
+                        const movablePages = allPages.filter(
+                          (item) =>
+                            item.id !== fixedHomePage.id &&
+                            item.id !== "forced-home" &&
+                            item.slug !== "home",
+                        );
+
+                        const fromIndex = movablePages.findIndex(
+                          (item) => item.id === draggedPageId,
+                        );
+                        const toIndex = movablePages.findIndex(
+                          (item) => item.id === page.id,
+                        );
+
+                        if (fromIndex < 0 || toIndex < 0) return allPages;
+
+                        const [movedPage] = movablePages.splice(fromIndex, 1);
+                        movablePages.splice(toIndex, 0, movedPage);
+
+                        return [fixedHomePage, ...movablePages];
+                      });
                     }}
                     onDrop={async (e) => {
                       e.preventDefault();
@@ -6564,7 +6603,7 @@ return (
                         return;
                       }
 
-                      const allPages = pages ?? [];
+                      const allPages = pageDragPreview ?? pages ?? [];
                       const homePage = allPages[0];
                       const movablePages = allPages.slice(1);
 
@@ -6577,6 +6616,7 @@ return (
 
                       if (fromIndex < 0 || toIndex < 0 || !homePage) {
                         setDraggedPageId(null);
+                        setPageDragPreview(null);
                         return;
                       }
 
@@ -15910,6 +15950,38 @@ onInput={(e) => {
           ) : null}
         </div>
       ))}
+          <div className="shrink-0">
+      <input
+        type="search"
+        value={toolSearchQuery}
+        onChange={(e) => {
+          const nextQuery = e.target.value;
+          setToolSearchQuery(nextQuery);
+
+          const normalizedQuery = nextQuery.trim().toLowerCase();
+          if (!normalizedQuery) return;
+
+          const firstMatch = CATEGORY_ORDER.flatMap((category) =>
+            CATEGORY_BUTTONS[category].map((tool) => ({ category, tool })),
+          ).find(({ category, tool }) =>
+            toolMatchesSearch(normalizedQuery, category, tool),
+          );
+
+          if (!firstMatch) return;
+
+          const nextKey = getToolSearchKey(firstMatch.category, firstMatch.tool);
+          setActiveCategory(firstMatch.category);
+          setOpenToolMenu(firstMatch.category);
+          setFlashedToolKey(nextKey);
+
+          window.setTimeout(() => {
+            setFlashedToolKey((current) => (current === nextKey ? null : current));
+          }, 1300);
+        }}
+        placeholder="Tool search..."
+        className="h-12 w-[180px] rounded-md border border-neutral-300 bg-white px-3 text-sm outline-none transition placeholder:text-neutral-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+      />
+    </div>
     </div>
 
     <div className="shrink-0">
@@ -15941,7 +16013,7 @@ onInput={(e) => {
           }, 1300);
         }}
         placeholder="Tool search..."
-        className="h-10 w-[180px] rounded-md border border-neutral-300 bg-white px-3 text-sm outline-none transition placeholder:text-neutral-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+        className="h-12 w-[180px] rounded-md border border-neutral-300 bg-white px-3 text-sm outline-none transition placeholder:text-neutral-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
       />
     </div>
 <div className="flex w-full flex-row items-center justify-center gap-2 overflow-x-auto pb-1 md:w-auto md:flex-col md:items-end md:justify-start md:overflow-visible">
