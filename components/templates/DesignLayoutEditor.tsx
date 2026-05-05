@@ -6556,12 +6556,7 @@ return (
                       setPageDragPreview(pages ?? null);
                     }}
 onDragEnd={() => {
-  if (pageDragPreview && onReorderPages) {
-    void onReorderPages(pageDragPreview);
-  }
-
   setDraggedPageId(null);
-  setPageDragPreview(null);
 }}
                     onDragOver={(e) => {
                       if (isHomePage || !draggedPageId || draggedPageId === page.id) return;
@@ -6600,42 +6595,49 @@ onDragEnd={() => {
                         return [fixedHomePage, ...movablePages];
                       });
                     }}
-                    onDrop={async (e) => {
-                      e.preventDefault();
+onDrop={async (e) => {
+  e.preventDefault();
 
-                      if (
-                        isHomePage ||
-                        !draggedPageId ||
-                        draggedPageId === page.id ||
-                        !onReorderPages
-                      ) {
-                        setDraggedPageId(null);
-                        return;
-                      }
+  if (
+    isHomePage ||
+    !draggedPageId ||
+    draggedPageId === page.id ||
+    !onReorderPages
+  ) {
+    setDraggedPageId(null);
+    return;
+  }
 
-                      const allPages = pageDragPreview ?? pages ?? [];
-                      const homePage = allPages[0];
-                      const movablePages = allPages.slice(1);
+  const allPages = pageDragPreview ?? pages ?? [];
+  const homePage = allPages[0];
+  const movablePages = allPages.slice(1);
 
-                      const fromIndex = movablePages.findIndex(
-                        (item) => item.id === draggedPageId,
-                      );
-                      const toIndex = movablePages.findIndex(
-                        (item) => item.id === page.id,
-                      );
+  const fromIndex = movablePages.findIndex(
+    (item) => item.id === draggedPageId,
+  );
+  const toIndex = movablePages.findIndex(
+    (item) => item.id === page.id,
+  );
 
-                      if (fromIndex < 0 || toIndex < 0 || !homePage) {
-                        setDraggedPageId(null);
-                        setPageDragPreview(null);
-                        return;
-                      }
+  if (fromIndex < 0 || toIndex < 0 || !homePage) {
+    setDraggedPageId(null);
+    setPageDragPreview(null);
+    return;
+  }
 
-                      const [movedPage] = movablePages.splice(fromIndex, 1);
-                      movablePages.splice(toIndex, 0, movedPage);
+  const [movedPage] = movablePages.splice(fromIndex, 1);
+  movablePages.splice(toIndex, 0, movedPage);
 
-                      await onReorderPages([homePage, ...movablePages]);
-                      setDraggedPageId(null);
-                    }}
+  const nextPages = [homePage, ...movablePages];
+
+  setPageDragPreview(nextPages);
+  await onReorderPages(nextPages);
+
+  setDraggedPageId(null);
+  window.setTimeout(() => {
+    setPageDragPreview(null);
+  }, 0);
+}}
                     className={!isHomePage ? "cursor-move" : ""}
                   >
                     <button
