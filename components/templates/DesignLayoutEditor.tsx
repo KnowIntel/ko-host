@@ -15471,17 +15471,23 @@ onInput={(e) => {
 
     <div className="flex items-center gap-2 overflow-x-auto">
       {/* DUPLICATE (NEW POSITION) */}
-      <button
-        type="button"
-        className={toolSetButtonClass("front")}
-        onClick={(e) => {
-          e.stopPropagation();
-          handleDuplicateCanvasBlock(tool.id);
-        }}
-        title={"Duplicate\n(CTRL+V)"}
-      >
-        ⧉
-      </button>
+<div className="relative group">
+  <button
+    type="button"
+    className={toolSetButtonClass("front")}
+    onClick={(e) => {
+      e.stopPropagation();
+      handleDuplicateCanvasBlock(tool.id);
+    }}
+  >
+    ⧉
+  </button>
+
+  <div className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 w-max -translate-x-1/2 rounded-md bg-black px-3 py-2 text-center text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+    <div className="text-xs font-medium">Duplicate</div>
+    <div className="text-[10px] text-white/70">(CTRL+V)</div>
+  </div>
+</div>
 
       <button
         type="button"
