@@ -1091,7 +1091,6 @@ export default function DesignLayoutEditor({
 }: Props) {
   const [resetDraftModalOpen, setResetDraftModalOpen] = useState(false);
   const [draggedPageId, setDraggedPageId] = useState<string | null>(null);
-const [pageDragPreview, setPageDragPreview] = useState<typeof pages | null>(null);
   const selectedPageLength =
     ((draft as DraftWithPageExtras).pageLength ?? "1800") as PageLengthOption;
 const [listingStyleTarget, setListingStyleTarget] = useState<
