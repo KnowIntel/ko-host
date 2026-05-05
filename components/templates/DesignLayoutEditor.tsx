@@ -6548,10 +6548,14 @@ return (
                       setDraggedPageId(page.id);
                       setPageDragPreview(pages ?? null);
                     }}
-                    onDragEnd={() => {
-                      setDraggedPageId(null);
-                      setPageDragPreview(null);
-                    }}
+onDragEnd={() => {
+  if (pageDragPreview && onReorderPages) {
+    void onReorderPages(pageDragPreview);
+  }
+
+  setDraggedPageId(null);
+  setPageDragPreview(null);
+}}
                     onDragOver={(e) => {
                       if (isHomePage || !draggedPageId || draggedPageId === page.id) return;
 
@@ -15953,32 +15957,37 @@ onInput={(e) => {
       <input
         type="search"
         value={toolSearchQuery}
-        onChange={(e) => {
-          const nextQuery = e.target.value;
-          setToolSearchQuery(nextQuery);
+onChange={(e) => {
+  const nextQuery = e.target.value;
+  setToolSearchQuery(nextQuery);
 
-          const normalizedQuery = nextQuery.trim().toLowerCase();
-          if (!normalizedQuery) return;
+  const normalizedQuery = nextQuery.trim().toLowerCase();
 
-          const firstMatch = CATEGORY_ORDER.flatMap((category) =>
-            CATEGORY_BUTTONS[category].map((tool) => ({ category, tool })),
-          ).find(({ category, tool }) =>
-            toolMatchesSearch(normalizedQuery, category, tool),
-          );
+  if (!normalizedQuery) {
+    setOpenToolMenu(null);
+    setFlashedToolKey(null);
+    return;
+  }
 
-          if (!firstMatch) return;
+  const firstMatch = CATEGORY_ORDER.flatMap((category) =>
+    CATEGORY_BUTTONS[category].map((tool) => ({ category, tool })),
+  ).find(({ category, tool }) =>
+    toolMatchesSearch(normalizedQuery, category, tool),
+  );
 
-          const nextKey = getToolSearchKey(firstMatch.category, firstMatch.tool);
-          setActiveCategory(firstMatch.category);
-          setOpenToolMenu(firstMatch.category);
-          setFlashedToolKey(nextKey);
+  if (!firstMatch) return;
 
-          window.setTimeout(() => {
-            setFlashedToolKey((current) => (current === nextKey ? null : current));
-          }, 1300);
-        }}
+  const nextKey = getToolSearchKey(firstMatch.category, firstMatch.tool);
+  setActiveCategory(firstMatch.category);
+  setOpenToolMenu(firstMatch.category);
+  setFlashedToolKey(nextKey);
+
+  window.setTimeout(() => {
+    setFlashedToolKey((current) => (current === nextKey ? null : current));
+  }, 1300);
+}}
         placeholder="Tool search..."
-        className="h-12 w-[180px] rounded-md border border-neutral-300 bg-white px-3 text-sm outline-none transition placeholder:text-neutral-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+        className="h-[46px] w-[180px] rounded-md border border-neutral-300 bg-white px-3 text-sm outline-none transition placeholder:text-neutral-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
       />
     </div>
     </div>
