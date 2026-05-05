@@ -268,6 +268,8 @@ function resolveSafeTemplateKey(draft?: BuilderDraft) {
   }
 
 useEffect(() => {
+  if (shouldLoadExistingDraft && isSignedIn) return;
+
   const draftPages = (initialDraft as BuilderDraft & {
     pages?: LocalBuilderPage[];
   }).pages;
@@ -327,13 +329,38 @@ useEffect(() => {
       if (!res.ok) return;
       if (data?.skipped || !data?.draftRow?.draft) return;
 
-      const savedDraft = data.draftRow.draft as BuilderDraft;
+const savedDraft = data.draftRow.draft as BuilderDraft;
+const savedPages = (savedDraft as BuilderDraft & {
+  pages?: LocalBuilderPage[];
+}).pages;
 
-      setHydratedDraft(savedDraft);
-      setLiveDraft(savedDraft);
-      liveDraftRef.current = savedDraft;
-      lastSavedDraftRef.current = JSON.stringify(savedDraft);
-      setSaveMessage("Loaded your saved dashboard draft.");
+if (Array.isArray(savedPages) && savedPages.length > 0) {
+  const normalizedPages = savedPages.map((page, index) => ({
+    id: page.id || (index === 0 ? "home" : `page-${index}`),
+    slug: page.slug || (index === 0 ? "home" : `page-${index}`),
+    title: page.title || (index === 0 ? "Home" : `Page ${index + 1}`),
+    display_order: page.display_order ?? index,
+    draft: page.draft || (page as unknown as BuilderDraft),
+  }));
+
+  const homePage =
+    normalizedPages.find((page) => page.id === "home") || normalizedPages[0];
+
+  setBuilderPages(normalizedPages);
+  setActiveBuilderPageId(homePage.id);
+  setHydratedDraft(homePage.draft);
+  setLiveDraft(homePage.draft);
+  liveDraftRef.current = homePage.draft;
+  lastSavedDraftRef.current = JSON.stringify(savedDraft);
+  setSaveMessage("Loaded your saved dashboard draft.");
+  return;
+}
+
+setHydratedDraft(savedDraft);
+setLiveDraft(savedDraft);
+liveDraftRef.current = savedDraft;
+lastSavedDraftRef.current = JSON.stringify(savedDraft);
+setSaveMessage("Loaded your saved dashboard draft.");
     } catch {
       // ignore draft preload errors
     }
@@ -736,6 +763,30 @@ setLiveDraft((prev) => ({
   onRemoveActivePage={removeActiveBuilderPage}
   onRenameActivePage={openRenameActivePageModal}
   onSelectPage={selectBuilderPage}
+
+  onReorderPages={(nextPages) => {
+  setBuilderPages((prev) => {
+    const syncedPages = prev.map((page) =>
+      page.id === activeBuilderPageId ? { ...page, draft: liveDraft } : page,
+    );
+
+    return nextPages.map((nextPage, index) => {
+      const existingPage = syncedPages.find((page) => page.id === nextPage.id);
+
+      return {
+        ...(existingPage ?? {
+          id: nextPage.id,
+          slug: nextPage.slug,
+          title: nextPage.title || nextPage.slug,
+          draft: initialDraft,
+        }),
+        slug: nextPage.slug,
+        title: nextPage.title || nextPage.slug,
+        display_order: index,
+      };
+    });
+  });
+}}
 />
 
 {addPageModalOpen ? (
