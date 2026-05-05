@@ -260,6 +260,7 @@ onRenameActivePage={onRenameActivePage}
   activePageSlug={activePageSlug}
   micrositeSlug={micrositeSlug}
   onSelectPage={onSelectPage}
+  onReorderPages={onReorderPages}
   saveState={effectiveSaveState}
   saveMessage={effectiveSaveMessage}
 />
