@@ -324,8 +324,9 @@ const orderedPages = useMemo(() => {
           ),
         );
 
-        setSaveMessage("Page saved.");
-        return;
+setSaveMessage("Page saved.");
+await loadPages(id);
+return;
       }
 
       const res = await fetch(`/api/dashboard/microsites/${id}/builder`, {
@@ -378,9 +379,14 @@ const orderedPages = useMemo(() => {
       return;
     }
 
-    try {
-      setCreatingPage(true);
-      setCreatePageError("");
+try {
+  setCreatingPage(true);
+  setCreatePageError("");
+
+  // Save current page before creating/switching to a new page.
+  if (editorDraft) {
+    await saveBuilderDraft(editorDraft);
+  }
 
       const res = await fetch(`/api/dashboard/microsites/${id}/pages`, {
         method: "POST",
