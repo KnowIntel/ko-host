@@ -1093,10 +1093,8 @@ const isPageTextOverlay =
     ...getItemStyle(grid),
 zIndex:
   block.type === "schedule_agenda"
-    ? 2000
-    : selected || resizing
-      ? 1000
-      : grid.zIndex,
+    ? Math.max(2000, grid.zIndex)
+    : grid.zIndex,
   }}
   onClick={(e) => onSelect(selectBlock(block.id), e)}
 className={[

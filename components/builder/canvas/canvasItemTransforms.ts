@@ -133,130 +133,94 @@ function getLayerValue(item: CanvasGridItem) {
   return Number(item.grid?.zIndex ?? 1);
 }
 
+function compactLayerOrder(items: CanvasGridItem[]) {
+  return [...items]
+    .sort((a, b) => getLayerValue(a) - getLayerValue(b))
+    .map((item, index) => ({
+      ...item,
+      grid: {
+        ...item.grid,
+        zIndex: index + 1,
+      },
+    }));
+}
+
 export function bringCanvasItemToFront(
   items: CanvasGridItem[],
   blockId: string,
 ) {
-  const normalizedItems = normalizeCanvasItems(items);
-  const highest = Math.max(
-    1,
-    ...normalizedItems.map((item) => getLayerValue(item)),
-  );
+  const ordered = compactLayerOrder(normalizeCanvasItems(items));
+  const target = ordered.find((item) => item.id === blockId);
+  if (!target) return ordered;
 
-  return normalizedItems.map((item) =>
-    item.id === blockId
-      ? {
-          ...item,
-          grid: {
-            ...item.grid,
-            zIndex: highest + 1,
-          },
-        }
-      : item,
-  );
+  const others = ordered.filter((item) => item.id !== blockId);
+
+  return [...others, target].map((item, index) => ({
+    ...item,
+    grid: {
+      ...item.grid,
+      zIndex: index + 1,
+    },
+  }));
 }
 
 export function sendCanvasItemToBack(
   items: CanvasGridItem[],
   blockId: string,
 ) {
-  const normalizedItems = normalizeCanvasItems(items);
-  const lowest = Math.min(
-    1,
-    ...normalizedItems.map((item) => getLayerValue(item)),
-  );
+  const ordered = compactLayerOrder(normalizeCanvasItems(items));
+  const target = ordered.find((item) => item.id === blockId);
+  if (!target) return ordered;
 
-  return normalizedItems.map((item) =>
-    item.id === blockId
-      ? {
-          ...item,
-          grid: {
-            ...item.grid,
-            zIndex: lowest - 1,
-          },
-        }
-      : item,
-  );
+  const others = ordered.filter((item) => item.id !== blockId);
+
+  return [target, ...others].map((item, index) => ({
+    ...item,
+    grid: {
+      ...item.grid,
+      zIndex: index + 1,
+    },
+  }));
 }
 
 export function moveCanvasItemForward(
   items: CanvasGridItem[],
   blockId: string,
 ) {
-  const normalizedItems = normalizeCanvasItems(items);
+  const ordered = compactLayerOrder(normalizeCanvasItems(items));
+  const index = ordered.findIndex((item) => item.id === blockId);
 
-  const sorted = [...normalizedItems].sort(
-    (a, b) => getLayerValue(a) - getLayerValue(b),
-  );
+  if (index === -1 || index === ordered.length - 1) return ordered;
 
-  const index = sorted.findIndex((item) => item.id === blockId);
-  if (index === -1 || index === sorted.length - 1) return normalizedItems;
+  const next = [...ordered];
+  [next[index], next[index + 1]] = [next[index + 1], next[index]];
 
-  const current = sorted[index];
-  const next = sorted[index + 1];
-
-  return normalizedItems.map((item) => {
-    if (item.id === current.id) {
-      return {
-        ...item,
-        grid: {
-          ...item.grid,
-          zIndex: getLayerValue(next),
-        },
-      };
-    }
-
-    if (item.id === next.id) {
-      return {
-        ...item,
-        grid: {
-          ...item.grid,
-          zIndex: getLayerValue(current),
-        },
-      };
-    }
-
-    return item;
-  });
+  return next.map((item, nextIndex) => ({
+    ...item,
+    grid: {
+      ...item.grid,
+      zIndex: nextIndex + 1,
+    },
+  }));
 }
 
 export function moveCanvasItemBackward(
   items: CanvasGridItem[],
   blockId: string,
 ) {
-  const normalizedItems = normalizeCanvasItems(items);
+  const ordered = compactLayerOrder(normalizeCanvasItems(items));
+  const index = ordered.findIndex((item) => item.id === blockId);
 
-  const sorted = [...normalizedItems].sort(
-    (a, b) => getLayerValue(a) - getLayerValue(b),
-  );
+  if (index <= 0) return ordered;
 
-  const index = sorted.findIndex((item) => item.id === blockId);
-  if (index <= 0) return normalizedItems;
+  const next = [...ordered];
+  [next[index], next[index - 1]] = [next[index - 1], next[index]];
 
-  const current = sorted[index];
-  const previous = sorted[index - 1];
-
-  return normalizedItems.map((item) => {
-    if (item.id === current.id) {
-      return {
-        ...item,
-        grid: {
-          ...item.grid,
-          zIndex: getLayerValue(previous),
-        },
-      };
-    }
-
-    if (item.id === previous.id) {
-      return {
-        ...item,
-        grid: {
-          ...item.grid,
-          zIndex: getLayerValue(current),
-        },
-      };
-    }
-
-    return item;
-  });
+  return next.map((item, nextIndex) => ({
+    ...item,
+    grid: {
+      ...item.grid,
+      zIndex: nextIndex + 1,
+    },
+  }));
 }
