@@ -534,14 +534,26 @@ async function sendBulkEmail() {
             Edit Draft
           </Link>
 
-          <a
-            href={`/s/${site.slug}`}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center justify-center rounded-xl border border-blue-600 bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-          >
-            Open Public URL
-          </a>
+<a
+  href={`https://${site.slug}.ko-host.com`}
+  target="_blank"
+  rel="noreferrer"
+  className="inline-flex items-center justify-center rounded-xl border border-blue-600 bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+>
+  Open Public URL
+</a>
+
+<a
+  href={`https://quickchart.io/qr?text=${encodeURIComponent(
+    `https://${site.slug}.ko-host.com`,
+  )}&size=512&format=png`}
+  download={`${site.slug}-qr-code.png`}
+  target="_blank"
+  rel="noreferrer"
+  className="inline-flex items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-900 hover:border-neutral-900"
+>
+  Download QR Code
+</a>
         </div>
       </div>
 
