@@ -678,26 +678,41 @@ if (orderedPages.length >= 5) {
     }
   }
 
-  async function handlePageDrop(targetPageId: string) {
-    if (!draggedPageId || draggedPageId === targetPageId) {
-      setDraggedPageId(null);
-      return;
-    }
-
-    const currentPages = [...orderedPages];
-    const fromIndex = currentPages.findIndex((page) => page.id === draggedPageId);
-    const toIndex = currentPages.findIndex((page) => page.id === targetPageId);
-
-    if (fromIndex < 0 || toIndex < 0) {
-      setDraggedPageId(null);
-      return;
-    }
-
-    const [moved] = currentPages.splice(fromIndex, 1);
-    currentPages.splice(toIndex, 0, moved);
-
-    await reorderPages(currentPages);
+async function handlePageDrop(targetPageId: string) {
+  if (!draggedPageId || draggedPageId === targetPageId) {
+    setDraggedPageId(null);
+    return;
   }
+
+  const homePage = orderedPages.find((page) => page.slug === "home") ?? orderedPages[0];
+
+  if (
+    draggedPageId === homePage?.id ||
+    targetPageId === homePage?.id ||
+    draggedPageId === "forced-home" ||
+    targetPageId === "forced-home"
+  ) {
+    setDraggedPageId(null);
+    return;
+  }
+
+  const reorderablePages = orderedPages.filter(
+    (page) => page.id !== "forced-home" && page.id !== homePage?.id,
+  );
+
+  const fromIndex = reorderablePages.findIndex((page) => page.id === draggedPageId);
+  const toIndex = reorderablePages.findIndex((page) => page.id === targetPageId);
+
+  if (fromIndex < 0 || toIndex < 0) {
+    setDraggedPageId(null);
+    return;
+  }
+
+  const [moved] = reorderablePages.splice(fromIndex, 1);
+  reorderablePages.splice(toIndex, 0, moved);
+
+  await reorderPages(homePage ? [homePage, ...reorderablePages] : reorderablePages);
+}
 
   if (loading || !site || !editorDraft) {
     return <div className="p-6">Loading builder...</div>;
@@ -748,7 +763,12 @@ return (
   }
   micrositeSlug={site.slug}
 
-  onSelectPage={(pageId) => {
+onSelectPage={(pageId) => {
+  void (async () => {
+    if (editorDraft && activePageId) {
+      await saveBuilderDraft(editorDraft);
+    }
+
     if (pageId === "forced-home") {
       setEditorDraft(site ? buildDraftFromRecord(site) : editorDraft);
       setActivePageId(null);
@@ -756,9 +776,12 @@ return (
     }
 
     setActivePageId(pageId);
-  }}
+  })();
+}}
 
-  onReorderPages={reorderPages}
+  onReorderPages={(nextPages) => {
+  void reorderPages(nextPages as PageRow[]);
+}}
 />
 
       {contextMenu ? (

@@ -508,16 +508,21 @@ export async function PATCH(
     return NextResponse.json({ error: "Page not found" }, { status: 404 });
   }
 
-  const sanitizedDraft = sanitizeBuilderDraft(rawDraft);
+const sanitizedDraft = sanitizeBuilderDraft(rawDraft);
 
-  const nextDraft = {
-    ...sanitizedDraft,
-    title:
-      typeof sanitizedDraft.title === "string" && sanitizedDraft.title.trim()
-        ? sanitizedDraft.title
-        : existingPage.title || "",
-    slugSuggestion: microsite.slug || "",
-  };
+// IMPORTANT:
+// microsite_pages.draft must store ONLY the single active page draft.
+// Never persist a top-level pages array into a page row.
+const { pages: _discardPages, ...singlePageDraft } = sanitizedDraft as any;
+
+const nextDraft = {
+  ...singlePageDraft,
+  title:
+    typeof singlePageDraft.title === "string" && singlePageDraft.title.trim()
+      ? singlePageDraft.title
+      : existingPage.title || "",
+  slugSuggestion: microsite.slug || "",
+};
 
   const nowIso = new Date().toISOString();
 

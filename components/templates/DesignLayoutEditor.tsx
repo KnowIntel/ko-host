@@ -1125,6 +1125,8 @@ const [selectedRsvpElementKey, setSelectedRsvpElementKey] = useState<
   const [pendingPresetDraft, setPendingPresetDraft] = useState<BuilderDraft | null>(null);
   const [registryLoadingMap, setRegistryLoadingMap] = useState<Record<string, boolean>>({});
   const [activeCategory, setActiveCategory] = useState<BottomCategory>("Text");
+const [toolSearchQuery, setToolSearchQuery] = useState("");
+const [flashedToolKey, setFlashedToolKey] = useState<string | null>(null);
   const [categoryMenuView, setCategoryMenuView] = useState<"compact" | "detail">(
     "compact",
   );
@@ -1896,61 +1898,82 @@ useEffect(() => {
   }, [openToolMenu]);
 
   useEffect(() => {
-  function handleCanvasShortcuts(event: KeyboardEvent) {
-    const blockId =
-  "blockId" in selectedContext ? selectedContext.blockId : null;
-    if (!blockId) return;
+function handleCanvasShortcuts(event: KeyboardEvent) {
+  const blockId =
+    "blockId" in selectedContext ? selectedContext.blockId : null;
 
-    const target = event.target as HTMLElement | null;
-    const isTyping =
-      target?.tagName === "INPUT" ||
-      target?.tagName === "TEXTAREA" ||
-      target?.tagName === "SELECT" ||
-      target?.isContentEditable;
+  const target = event.target as HTMLElement | null;
+  const isTyping =
+    target?.tagName === "INPUT" ||
+    target?.tagName === "TEXTAREA" ||
+    target?.tagName === "SELECT" ||
+    target?.isContentEditable;
 
-    if (isTyping) return;
-    if (!event.ctrlKey) return;
+  if (isTyping) return;
 
-    if (event.key.toLowerCase() === "v") {
-      event.preventDefault();
-      handleDuplicateCanvasBlock(blockId);
-      return;
-    }
-
-    if (event.key.toLowerCase() === "x") {
-      event.preventDefault();
-      removeCanvasBlock(blockId);
-      setSelection(createEmptySelection());
-      return;
-    }
-
-    if (event.shiftKey && event.key === "ArrowDown") {
-      event.preventDefault();
-      handleSendToBack(blockId);
-      setSelection(selectionFromCanvasBlockId(blockId));
-      return;
-    }
-
-    if (event.shiftKey && event.key === "ArrowUp") {
-      event.preventDefault();
-      handleBringToFront(blockId);
-      setSelection(selectionFromCanvasBlockId(blockId));
-      return;
-    }
-
-    if (event.key === "ArrowUp") {
-      event.preventDefault();
-      handleBringForward(blockId);
-      setSelection(selectionFromCanvasBlockId(blockId));
-      return;
-    }
-
-    if (event.key === "ArrowDown") {
-      event.preventDefault();
-      handleSendBackward(blockId);
-      setSelection(selectionFromCanvasBlockId(blockId));
-    }
+  if (event.ctrlKey && event.key.toLowerCase() === "z") {
+    event.preventDefault();
+    handleUndo();
+    return;
   }
+
+  if (event.ctrlKey && event.key.toLowerCase() === "y") {
+    event.preventDefault();
+    handleRedo();
+    return;
+  }
+
+  if (!blockId) return;
+
+  if (event.key === "Delete") {
+    event.preventDefault();
+    removeCanvasBlock(blockId);
+    setSelection(createEmptySelection());
+    return;
+  }
+
+  if (!event.ctrlKey) return;
+
+  if (event.key.toLowerCase() === "v") {
+    event.preventDefault();
+    handleDuplicateCanvasBlock(blockId);
+    return;
+  }
+
+  if (event.key.toLowerCase() === "x") {
+    event.preventDefault();
+    removeCanvasBlock(blockId);
+    setSelection(createEmptySelection());
+    return;
+  }
+
+  if (event.shiftKey && event.key === "ArrowDown") {
+    event.preventDefault();
+    handleSendToBack(blockId);
+    setSelection(selectionFromCanvasBlockId(blockId));
+    return;
+  }
+
+  if (event.shiftKey && event.key === "ArrowUp") {
+    event.preventDefault();
+    handleBringToFront(blockId);
+    setSelection(selectionFromCanvasBlockId(blockId));
+    return;
+  }
+
+  if (event.key === "ArrowUp") {
+    event.preventDefault();
+    handleBringForward(blockId);
+    setSelection(selectionFromCanvasBlockId(blockId));
+    return;
+  }
+
+  if (event.key === "ArrowDown") {
+    event.preventDefault();
+    handleSendBackward(blockId);
+    setSelection(selectionFromCanvasBlockId(blockId));
+  }
+}
 
   window.addEventListener("keydown", handleCanvasShortcuts);
 
@@ -4067,36 +4090,89 @@ async function uploadMultipleImagesToCarousel(blockId: string) {
 }
 
 
-  function addBlock(type: BuilderBlockType) {
-    setDraft((prev) => ({
+function addBlock(type: BuilderBlockType) {
+  let createdBlockId = "";
+
+  setDraft((prev) => {
+    const nextBlocks = addBlockTypeToDraft(prev.blocks, type);
+
+    const created = nextBlocks.find(
+      (b) => !prev.blocks.some((p) => p.id === b.id),
+    );
+
+    if (created) createdBlockId = created.id;
+
+    return {
       ...prev,
-      blocks: addBlockTypeToDraft(prev.blocks, type),
-    }));
-  }
+      blocks: nextBlocks,
+    };
+  });
 
-  function addShape(type: ShapeType) {
-    setDraft((prev) => ({
+  if (createdBlockId) {
+    setSelection(selectionFromCanvasBlockId(createdBlockId));
+  }
+}
+
+function addShape(type: ShapeType) {
+  let createdShapeId = "";
+
+  setDraft((prev) => {
+    const nextBlocks = addShapeBlockToDraft(prev.blocks, type);
+
+    const created = nextBlocks.find(
+      (b) => !prev.blocks.some((p) => p.id === b.id),
+    );
+
+    if (created) createdShapeId = created.id;
+
+    return {
       ...prev,
-      blocks: addShapeBlockToDraft(prev.blocks, type),
-    }));
+      blocks: nextBlocks,
+    };
+  });
+
+  if (createdShapeId) {
+    setSelection(selectionFromCanvasBlockId(createdShapeId));
   }
+}
 
-  function addPageBlock(type: PageBlockType) {
-    setDraft((prev) => {
-      const next = prev as DraftWithPageExtras;
-      const pageVisibility = { ...(next.pageVisibility ?? {}) };
+function addPageBlock(type: PageBlockType) {
+  let createdPageId = "";
 
-      if (type === "title") pageVisibility.title = true;
-      if (type === "subtitle") pageVisibility.subtitle = true;
-      if (type === "tagline") pageVisibility.subtext = true;
-      if (type === "description") pageVisibility.description = true;
+  setDraft((prev) => {
+    const next = prev as DraftWithPageExtras;
+    const pageVisibility = { ...(next.pageVisibility ?? {}) };
 
-      return {
-        ...prev,
-        pageVisibility,
-      };
-    });
+    if (type === "title") {
+      pageVisibility.title = true;
+      createdPageId = PAGE_TITLE_BLOCK_ID;
+    }
+
+    if (type === "subtitle") {
+      pageVisibility.subtitle = true;
+      createdPageId = PAGE_SUBTITLE_BLOCK_ID;
+    }
+
+    if (type === "tagline") {
+      pageVisibility.subtext = true;
+      createdPageId = PAGE_SUBTEXT_BLOCK_ID;
+    }
+
+    if (type === "description") {
+      pageVisibility.description = true;
+      createdPageId = PAGE_DESCRIPTION_BLOCK_ID;
+    }
+
+    return {
+      ...prev,
+      pageVisibility,
+    };
+  });
+
+  if (createdPageId) {
+    setSelection(selectionFromCanvasBlockId(createdPageId));
   }
+}
 
 function handleDuplicateCanvasBlock(blockId: string) {
   if (isPageBlockId(blockId)) return;
@@ -6204,6 +6280,30 @@ const toolSetItems = [...canvasItems]
     zIndex: Number(item.grid?.zIndex ?? 1),
   }));
 
+function getToolSearchKey(category: BottomCategory, tool: { label: string; type: string }) {
+  return `${category}-${tool.type}-${tool.label}`;
+}
+
+function toolMatchesSearch(
+  query: string,
+  category: BottomCategory,
+  tool: { label: string; type: string },
+) {
+  const normalizedQuery = query.trim().toLowerCase();
+  if (!normalizedQuery) return false;
+
+  const haystack = [
+    tool.label,
+    tool.type,
+    category,
+    TOOL_DESCRIPTIONS[tool.label] ?? "",
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  return haystack.includes(normalizedQuery);
+}
+
 function toggleToolMenu(category: BottomCategory) {
   setActiveCategory(category);
   setOpenToolMenu((prev) => (prev === category ? null : category));
@@ -6426,8 +6526,17 @@ return (
                         display_order: 0,
                       },
                     ]
-              ).map((page, index) => {
-                const isHomePage = page.slug === "home" || index === 0;
+              ).map((page) => {
+                const homePage =
+                  pages?.find((item) => item.slug === "home") ??
+                  pages?.[0] ??
+                  null;
+
+                const isHomePage =
+                  page.id === "forced-home" ||
+                  page.slug === "home" ||
+                  page.id === homePage?.id;
+
                 const isActive =
                   activePageId === page.id || (!activePageId && isHomePage);
 
@@ -15636,8 +15745,8 @@ onInput={(e) => {
   </div>
 
 <div className="relative flex flex-col gap-3 border-b border-black/10 px-3 py-2 md:flex-row md:items-start md:justify-between md:gap-6 md:px-6 md:py-1">
-    <div className="flex w-full flex-nowrap items-center gap-2 overflow-x-auto pb-1 md:flex-wrap md:overflow-visible">
-      {CATEGORY_ORDER.map((category) => (
+<div className="flex w-full flex-nowrap items-center gap-2 overflow-x-auto pb-1 md:flex-wrap md:overflow-visible">
+  {CATEGORY_ORDER.map((category) => (
         <div key={category} className="relative">
           <button
             type="button"
@@ -15711,7 +15820,14 @@ onInput={(e) => {
       <button
         key={`${category}-${tool.kind}-${tool.type}-${index}`}
         type="button"
-        className={toolButtonClass()}
+        className={[
+  toolButtonClass(),
+  toolMatchesSearch(toolSearchQuery, category, tool)
+    ? flashedToolKey === getToolSearchKey(category, tool)
+      ? "border-blue-500 ring-2 ring-blue-300"
+      : "border-blue-300"
+    : "",
+].join(" ")}
         onClick={() => {
           if (tool.kind === "block") addBlock(tool.type);
           if (tool.kind === "shape") addShape(tool.type);
@@ -15744,7 +15860,14 @@ onInput={(e) => {
       <button
         key={`${category}-${tool.kind}-${tool.type}-${index}`}
         type="button"
-        className="flex w-full cursor-grab items-center gap-3 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-left transition hover:border-blue-500 hover:bg-blue-50 active:cursor-grabbing"
+        className={[
+  "flex w-full cursor-grab items-center gap-3 rounded-xl border bg-white px-3 py-2 text-left transition hover:border-blue-500 hover:bg-blue-50 active:cursor-grabbing",
+  toolMatchesSearch(toolSearchQuery, category, tool)
+    ? flashedToolKey === getToolSearchKey(category, tool)
+      ? "border-blue-500 ring-2 ring-blue-300"
+      : "border-blue-300"
+    : "border-neutral-200",
+].join(" ")}
         onClick={() => {
           if (tool.kind === "block") addBlock(tool.type);
           if (tool.kind === "shape") addShape(tool.type);
@@ -15787,6 +15910,39 @@ onInput={(e) => {
           ) : null}
         </div>
       ))}
+    </div>
+
+    <div className="shrink-0">
+      <input
+        type="search"
+        value={toolSearchQuery}
+        onChange={(e) => {
+          const nextQuery = e.target.value;
+          setToolSearchQuery(nextQuery);
+
+          const normalizedQuery = nextQuery.trim().toLowerCase();
+          if (!normalizedQuery) return;
+
+          const firstMatch = CATEGORY_ORDER.flatMap((category) =>
+            CATEGORY_BUTTONS[category].map((tool) => ({ category, tool })),
+          ).find(({ category, tool }) =>
+            toolMatchesSearch(normalizedQuery, category, tool),
+          );
+
+          if (!firstMatch) return;
+
+          const nextKey = getToolSearchKey(firstMatch.category, firstMatch.tool);
+          setActiveCategory(firstMatch.category);
+          setOpenToolMenu(firstMatch.category);
+          setFlashedToolKey(nextKey);
+
+          window.setTimeout(() => {
+            setFlashedToolKey((current) => (current === nextKey ? null : current));
+          }, 1300);
+        }}
+        placeholder="Tool search..."
+        className="h-10 w-[180px] rounded-md border border-neutral-300 bg-white px-3 text-sm outline-none transition placeholder:text-neutral-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+      />
     </div>
 <div className="flex w-full flex-row items-center justify-center gap-2 overflow-x-auto pb-1 md:w-auto md:flex-col md:items-end md:justify-start md:overflow-visible">
 <div className="flex flex-nowrap items-center gap-2 md:gap-4 h-12">

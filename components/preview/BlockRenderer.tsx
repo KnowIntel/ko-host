@@ -2877,8 +2877,11 @@ function renderFaq(
             : getSoftSurfaceClass(designKey)
         }
       >
-        {((block.data as any).heading ?? "FAQs") ? (
-  <div style={formStyle}>
+{((block.data as any).heading ?? "FAQs") ? (
+  <div
+    style={formStyle}
+    className="mb-2 font-semibold"
+  >
     {(block.data as any).heading ?? "FAQs"}
   </div>
 ) : null}

@@ -681,19 +681,20 @@ return (
 
 {blockEntries.map(({ block, grid }) => {
   const itemStyle = getItemStyle(grid, logicalPageWidth, logicalRowHeight);
-  const isInteractiveBlock =
-    block.type === "schedule_agenda" ||
-    block.type === "rsvp" ||
-    block.type === "form_field" ||
-    block.type === "poll" ||
-    block.type === "thread" ||
-    block.type === "checkout" ||
-    block.type === "cart" ||
-    block.type === "listing" ||
-    block.type === "donation" ||
-    block.type === "cta" ||
-    block.type === "links" ||
-    block.type === "puzzle";
+const isInteractiveBlock =
+  block.type === "schedule_agenda" ||
+  block.type === "rsvp" ||
+  block.type === "form_field" ||
+  block.type === "poll" ||
+  block.type === "thread" ||
+  block.type === "checkout" ||
+  block.type === "cart" ||
+  block.type === "listing" ||
+  block.type === "donation" ||
+  block.type === "cta" ||
+  block.type === "links" ||
+  block.type === "faq" ||
+  block.type === "puzzle";
 
   return (
 <div
