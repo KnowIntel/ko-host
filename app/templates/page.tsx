@@ -348,11 +348,13 @@ const visibleRecentSites = useMemo(() => {
   <button
     type="button"
     onClick={() => setShowWhyKoHost(true)}
-    className="mr-2 font-semibold text-neutral-950 underline decoration-neutral-300 underline-offset-4 hover:decoration-neutral-900"
+    className="mr-2 font-semibold text-blue-600 hover:text-blue-700"
   >
     Why Ko-Host...
   </button>
+  <span className="whitespace-nowrap">
   Pick a template, choose a design, customize it, then publish. For 90 days, you own your own microsite.
+</span>
 </p>
 
       <div className="mt-1 text-[12px] font-medium text-neutral-500">
