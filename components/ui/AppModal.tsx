@@ -1,7 +1,8 @@
 // components\ui\AppModal.tsx
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 type Props = {
   open: boolean;
@@ -39,10 +40,16 @@ export default function AppModal({
   return () => window.removeEventListener("keydown", handleKey);
 }, [onCancel]);
 
-  if (!open) return null;
+const [mounted, setMounted] = useState(false);
 
-  return (
-<div className="fixed inset-0 z-[99999] flex items-start justify-center overflow-y-auto bg-black/40 px-4 py-8">
+useEffect(() => {
+  setMounted(true);
+}, []);
+
+if (!open || !mounted) return null;
+
+return createPortal(
+  <div className="fixed inset-0 z-[99999] flex items-start justify-center overflow-y-auto bg-black/40 px-4 py-8">
   <div className="my-auto w-full max-w-md rounded-3xl border border-neutral-200 bg-white p-6 shadow-2xl">
         <div className="text-lg font-semibold text-neutral-950">{title}</div>
 
@@ -76,6 +83,7 @@ export default function AppModal({
           ) : null}
         </div>
       </div>
-    </div>
-  );
+  </div>,
+  document.body,
+);
 }
