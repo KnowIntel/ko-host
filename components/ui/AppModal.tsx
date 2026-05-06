@@ -42,8 +42,8 @@ export default function AppModal({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 px-4">
-      <div className="w-full max-w-md rounded-3xl border border-neutral-200 bg-white p-6 shadow-2xl">
+<div className="fixed inset-0 z-[200] flex items-start justify-center overflow-y-auto bg-black/40 px-4 py-8">
+  <div className="my-auto w-full max-w-md rounded-3xl border border-neutral-200 bg-white p-6 shadow-2xl">
         <div className="text-lg font-semibold text-neutral-950">{title}</div>
 
         {description && (
