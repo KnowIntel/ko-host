@@ -69,7 +69,8 @@ export type TemplateKey =
   | "celebration_of_life"
   | "retirement_party"
   | "holiday_party_invite"
-  | "friendsgiving_event"
+  //| "friendsgiving_event"
+  | "learning_lab"
   | "housewarming_party"
   | "bachelor_party"
   | "bachelorette_party"
@@ -1022,7 +1023,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "holiday",
     defaultDraft: { title: "Holiday Party", slugSuggestion: "holidayparty" },
   },
-  {
+/*   {
     key: "friendsgiving_event",
     title: "Friendsgiving Event",
     description: "Invite friends and coordinate details.",
@@ -1030,7 +1031,16 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 2,
     demoSlug: "friendsgiving",
     defaultDraft: { title: "Friendsgiving", slugSuggestion: "friendsgiving" },
-  },
+  }, */
+  {
+  key: "learning_lab",
+  title: "Learning Lab",
+  description: "Create interactive worksheets, lessons, and practice activities for math, science, reading, and more.",
+  thumb: "learninglab",
+  setupMins: 3,
+  demoSlug: "learninglab",
+  defaultDraft: { title: "Learning Lab", slugSuggestion: "learninglab" },
+},
   {
     key: "housewarming_party",
     title: "Housewarming Party",
