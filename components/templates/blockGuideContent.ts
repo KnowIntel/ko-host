@@ -329,6 +329,60 @@ puzzle: {
   ],
 },
 
+spin_wheel: {
+  title: "Spin Wheel",
+  subtitle:
+    "Create a fun, interactive prize wheel that visitors can spin for rewards, messages, or surprises.",
+  sections: [
+    {
+      title: "Overview",
+      body:
+        "The Spin Wheel block allows you to create a spinning prize wheel experience. Visitors can click to spin and land on a random result such as a reward, discount, or message.",
+    },
+    {
+      title: "Objective",
+      bullets: [
+        "Increase engagement with gamification.",
+        "Reward visitors with prizes or messages.",
+        "Encourage interaction and return visits.",
+      ],
+    },
+    {
+      title: "Inspector Configuration",
+      bullets: [
+        "Title - main heading shown above the wheel.",
+        "Subtitle - supporting message below the title.",
+        "Spin Wheel Items - each line becomes a wheel segment.",
+        "Button Text - label for the spin button.",
+        "Winner Message - shown when a winning item is selected.",
+        "Loser Message - shown for non-winning results.",
+        "Wheel Style - visual style of the wheel.",
+        "Allow Multiple Spins - allow users to spin more than once.",
+        "Show Confetti - celebratory effect on win.",
+        "Show Sound - play sound during spin (future support).",
+      ],
+    },
+    {
+      title: "How It Works",
+      bullets: [
+        "Each line entered becomes a segment on the wheel.",
+        "The wheel spins and randomly selects a result.",
+        "The result is displayed to the user after the spin.",
+      ],
+    },
+    {
+      title: "Best Use Cases",
+      bullets: [
+        "Giveaways and sweepstakes",
+        "Discount or coupon promotions",
+        "Event engagement games",
+        "Lead generation incentives",
+        "Interactive landing pages",
+      ],
+    },
+  ],
+},
+
 cart: {
   title: "Cart",
   subtitle:

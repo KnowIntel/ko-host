@@ -84,6 +84,7 @@ export type PageBlockAppearance = Partial<
 export type BuilderBlockType =
   | "bookmark"
   | "puzzle"
+  | "spin_wheel"
   | "label"
   | "text_fx"
   | "image"
@@ -253,6 +254,40 @@ export type PuzzleBlock = BaseBlock & {
   };
 };
 
+export type SpinWheelItem = {
+  id: string;
+  label: string;
+  description: string;
+  weight: number;
+  color: string;
+  textColor: string;
+  icon: string;
+  prizeType: "coupon" | "free_item" | "discount" | "cash" | "message" | "link" | "none" | "mystery";
+  prizeValue: string;
+  isWinningItem: boolean;
+};
+
+export type SpinWheelBlock = BaseBlock & {
+  type: "spin_wheel";
+  data: {
+    title: string;
+    subtitle: string;
+    items: SpinWheelItem[];
+    wheelStyle: "classic" | "premium" | "game_show" | "neon" | "minimal" | "luxury";
+    spinMode: "random" | "weighted";
+    allowMultipleSpins: boolean;
+    requireName: boolean;
+    requireEmail: boolean;
+    showConfetti: boolean;
+    showSound: boolean;
+    resultDisplay: "modal" | "card";
+    buttonText: string;
+    winnerMessage: string;
+    loserMessage: string;
+    cooldownSeconds: number;
+    style: TextStyle;
+  };
+};
 
    export type BookmarkBlock = BaseBlock & {
   type: "bookmark";
@@ -798,6 +833,7 @@ export type CartBlock = BaseBlock & {
 export type MicrositeBlock =
   | BookmarkBlock
   | PuzzleBlock
+  | SpinWheelBlock
   | LabelBlock
   | TextFxBlock
   | ImageBlock
@@ -1229,7 +1265,92 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
         },
       };
 
-
+    case "spin_wheel":
+      return {
+        id: makeId("spinwheel"),
+        type: "spin_wheel",
+        label: "Spin Wheel",
+        grid: {
+          ...grid,
+          colSpan: 5,
+          rowSpan: 5,
+        },
+        appearance: {
+          ...createDefaultBlockAppearance(),
+          backgroundColor: "#FFFFFF",
+          borderColor: "#F59E0B",
+          borderWidth: 1,
+          borderRadius: 24,
+        },
+        data: {
+          title: "Spin to Win",
+          subtitle: "Unlock a surprise reward",
+          items: [
+            {
+              id: makeId("spinitem"),
+              label: "10% Off",
+              description: "Use code SPIN10",
+              weight: 1,
+              color: "#F97316",
+              textColor: "#FFFFFF",
+              icon: "gift",
+              prizeType: "coupon",
+              prizeValue: "SPIN10",
+              isWinningItem: true,
+            },
+            {
+              id: makeId("spinitem"),
+              label: "Free Entry",
+              description: "",
+              weight: 1,
+              color: "#EC4899",
+              textColor: "#FFFFFF",
+              icon: "ticket",
+              prizeType: "free_item",
+              prizeValue: "",
+              isWinningItem: true,
+            },
+            {
+              id: makeId("spinitem"),
+              label: "Mystery Gift",
+              description: "",
+              weight: 1,
+              color: "#8B5CF6",
+              textColor: "#FFFFFF",
+              icon: "sparkles",
+              prizeType: "mystery",
+              prizeValue: "",
+              isWinningItem: true,
+            },
+            {
+              id: makeId("spinitem"),
+              label: "Try Again",
+              description: "",
+              weight: 1,
+              color: "#111827",
+              textColor: "#FFFFFF",
+              icon: "refresh",
+              prizeType: "none",
+              prizeValue: "",
+              isWinningItem: false,
+            },
+          ],
+          wheelStyle: "premium",
+          spinMode: "random",
+          allowMultipleSpins: false,
+          requireName: false,
+          requireEmail: false,
+          showConfetti: true,
+          showSound: true,
+          resultDisplay: "modal",
+          buttonText: "Spin Now",
+          winnerMessage: "You won!",
+          loserMessage: "Try again next time",
+          cooldownSeconds: 86400,
+          style: createDefaultTextStyle(),
+        },
+      };
+      
     case "label":
       return {
         id: makeId("label"),

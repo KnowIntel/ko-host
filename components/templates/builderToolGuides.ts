@@ -114,7 +114,13 @@ export const BUILDER_TOOL_GUIDES: BuilderToolGuide[] = [
   name: "Puzzle",
   purpose: "Create an interactive image puzzle experience.",
   howToUse:
-    "Add the Puzzle block, insert an image, choose piece count, cut type, and difficulty. Press Reset to generate the puzzle layout.",
+    "Add the Puzzle block, insert an image, choose piece count and difficulty. Press Reset to generate the puzzle layout.",
+},
+{
+  name: "Spin Wheel",
+  purpose: "Create an interactive prize wheel mini-game.",
+  howToUse:
+    "Add the Spin Wheel block, enter one prize or result per line, customize the messages, then publish so visitors can spin for a random result.",
 },
   {
   name: "Bookmark",

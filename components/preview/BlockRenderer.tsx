@@ -7539,6 +7539,118 @@ function renderPuzzle(block: Extract<MicrositeBlock, { type: "puzzle" }>) {
   return <PuzzleRenderer block={block} />;
 }
 
+function renderSpinWheel(block: any) {
+  const data = block.data ?? {};
+  const items = data.items ?? [];
+
+  const [rotation, setRotation] = useState(0);
+  const [isSpinning, setIsSpinning] = useState(false);
+  const [result, setResult] = useState<any>(null);
+
+  const spin = () => {
+    if (isSpinning || items.length === 0) return;
+
+    const selectedIndex = Math.floor(Math.random() * items.length);
+    const anglePerItem = 360 / items.length;
+
+    // Spin multiple full rotations + land on selected item
+    const spinTo =
+      360 * 5 + (360 - selectedIndex * anglePerItem - anglePerItem / 2);
+
+    setIsSpinning(true);
+    setResult(null);
+    setRotation((prev) => prev + spinTo);
+
+    setTimeout(() => {
+      const selectedItem = items[selectedIndex];
+      setResult(selectedItem);
+      setIsSpinning(false);
+    }, 3500);
+  };
+
+  return (
+    <div className="flex w-full flex-col items-center justify-center gap-4 p-6 text-center">
+      <div className="text-xl font-semibold text-neutral-900">
+        {data.title || "Spin to Win"}
+      </div>
+
+      <div className="text-sm text-neutral-500">
+        {data.subtitle || "Unlock a surprise reward"}
+      </div>
+
+      <div className="relative mt-4 flex h-[220px] w-[220px] items-center justify-center">
+        <div
+          className="absolute inset-0 rounded-full border-[10px] border-neutral-200 shadow-inner transition-transform duration-[3500ms] ease-out"
+          style={{
+            transform: `rotate(${rotation}deg)`,
+          }}
+        >
+          {items.map((item: any, index: number) => {
+            const angle = 360 / items.length;
+            const rotate = index * angle;
+
+            return (
+              <div
+                key={item.id}
+                className="absolute left-1/2 top-1/2 h-1/2 w-1/2 origin-bottom-left"
+                style={{
+                  transform: `rotate(${rotate}deg)`,
+                }}
+              >
+                <div
+                  className="flex h-full w-full items-end justify-center text-[10px] font-medium"
+                  style={{
+                    background: item.color || "#F97316",
+                    color: item.textColor || "#FFFFFF",
+                    clipPath: "polygon(0% 0%, 100% 0%, 0% 100%)",
+                  }}
+                >
+                  <span className="mb-2 ml-2 rotate-[-45deg]">
+                    {item.label}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Pointer */}
+        <div className="absolute top-[-10px] h-0 w-0 border-l-[10px] border-r-[10px] border-b-[16px] border-l-transparent border-r-transparent border-b-neutral-900" />
+      </div>
+
+      <button
+        onClick={spin}
+        disabled={isSpinning}
+        className="mt-4 rounded-xl bg-neutral-900 px-5 py-2 text-sm font-semibold text-white hover:bg-neutral-800 disabled:bg-neutral-400"
+      >
+        {isSpinning
+          ? "Spinning..."
+          : data.buttonText || "Spin Now"}
+      </button>
+
+      {result && (
+        <div className="mt-4 rounded-xl border border-neutral-200 bg-white px-4 py-3 shadow-sm">
+          <div className="text-sm text-neutral-500">
+            {result.isWinningItem
+              ? data.winnerMessage || "You won!"
+              : data.loserMessage || "Try again next time"}
+          </div>
+
+          <div className="mt-1 text-lg font-semibold text-neutral-900">
+            {result.label}
+          </div>
+
+          {result.prizeValue && (
+            <div className="mt-1 text-sm text-neutral-600">
+              {result.prizeValue}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function BlockRenderer({
   block,
   designKey,
@@ -7666,7 +7778,10 @@ case "cart":
   );
 
   case "puzzle":
-  return renderPuzzle(block);
+    return renderPuzzle(block);
+
+  case "spin_wheel":
+    return renderSpinWheel(block);
 
   
   case "bookmark":
