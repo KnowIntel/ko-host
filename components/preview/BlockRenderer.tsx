@@ -7626,6 +7626,27 @@ const spin = () => {
               const midAngle = index * anglePerItem + anglePerItem / 2;
               const textPoint = polarToCartesian(midAngle);
 
+              const wrapWheelLabel = (label: string) => {
+  const words = String(label || "").trim().split(/\s+/);
+  const lines: string[] = [];
+  let currentLine = "";
+
+  words.forEach((word) => {
+    const nextLine = currentLine ? `${currentLine} ${word}` : word;
+
+    if (nextLine.length > 10 && currentLine) {
+      lines.push(currentLine);
+      currentLine = word;
+    } else {
+      currentLine = nextLine;
+    }
+  });
+
+  if (currentLine) lines.push(currentLine);
+
+  return lines.slice(0, 3);
+};
+
               return (
                 <g key={item.id ?? index}>
                   <path
@@ -7634,18 +7655,26 @@ const spin = () => {
                     stroke="#FFFFFF"
                     strokeWidth="2"
                   />
-                  <text
-                    x={(center + textPoint.x) / 2}
-                    y={(center + textPoint.y) / 2}
-                    fill={item.textColor || "#FFFFFF"}
-                    fontSize="11"
-                    fontWeight="700"
-                    textAnchor="middle"
-                    dominantBaseline="middle"
-                    transform={`rotate(${midAngle}, ${(center + textPoint.x) / 2}, ${(center + textPoint.y) / 2})`}
-                  >
-                    {(item.label || "").slice(0, 14)}
-                  </text>
+<text
+  x={(center + textPoint.x) / 2}
+  y={(center + textPoint.y) / 2}
+  fill={item.textColor || "#FFFFFF"}
+  fontSize="10"
+  fontWeight="700"
+  textAnchor="middle"
+  dominantBaseline="middle"
+  transform={`rotate(${midAngle}, ${(center + textPoint.x) / 2}, ${(center + textPoint.y) / 2})`}
+>
+  {wrapWheelLabel(item.label).map((line, lineIndex, lines) => (
+    <tspan
+      key={`${item.id ?? index}_line_${lineIndex}`}
+      x={(center + textPoint.x) / 2}
+      dy={lineIndex === 0 ? `${-(lines.length - 1) * 5}` : "11"}
+    >
+      {line}
+    </tspan>
+  ))}
+</text>
                 </g>
               );
             })}
