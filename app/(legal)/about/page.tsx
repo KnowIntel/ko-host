@@ -12,7 +12,7 @@ export default function AboutPage() {
         <p>
           In a world where plans, announcements, and content are scattered
           across texts, emails, group chats, and social posts, Ko-Host brings
-          everything together into one clean, centralized experience — a single
+          everything together into one clean, centralized experience - a single
           link that does it all.
         </p>
 
@@ -20,11 +20,11 @@ export default function AboutPage() {
           <h2 className="text-lg font-semibold">What We Do</h2>
           <p className="mt-2">
             Ko-Host allows anyone to create a fully customized microsite in
-            minutes — no coding, no hosting setup, no complexity.
+            minutes - no coding, no hosting setup, no complexity.
           </p>
           <p className="mt-2">
             Each microsite lives on its own dedicated subdomain and is built to
-            clearly communicate everything your audience needs in one place —
+            clearly communicate everything your audience needs in one place -
             while also giving you the freedom to design something that reflects
             your style, your intent, and your voice.
           </p>
@@ -32,10 +32,10 @@ export default function AboutPage() {
 
         <div>
           <h2 className="text-lg font-semibold">
-            More Than Just Information — It’s Expression
+            More Than Just Information - It’s Expression
           </h2>
           <p className="mt-2">
-            Ko-Host isn’t just about sharing details — it’s about how you share
+            Ko-Host isn’t just about sharing details - it’s about how you share
             them.
           </p>
           <p className="mt-2">Every microsite can be shaped to express:</p>
@@ -55,7 +55,7 @@ export default function AboutPage() {
         <div>
           <h2 className="text-lg font-semibold">Built for Real Use Cases</h2>
           <p className="mt-2">
-            Ko-Host is designed for moments that matter — especially those that
+            Ko-Host is designed for moments that matter - especially those that
             are time-sensitive, dynamic, or temporary.
           </p>
           <p className="mt-2">Perfect for:</p>
@@ -90,7 +90,7 @@ export default function AboutPage() {
             </li>
           </ul>
           <p className="mt-3">
-            Everything is modular — so you can combine features to create the
+            Everything is modular - so you can combine features to create the
             exact experience you need.
           </p>
         </div>
@@ -99,7 +99,7 @@ export default function AboutPage() {
           <h2 className="text-lg font-semibold">Designed for Your Environment</h2>
           <p className="mt-2">
             Every microsite can be customized to match its intended environment
-            — whether that’s:
+            - whether that’s:
           </p>
           <ul className="mt-2 list-disc pl-5 space-y-1">
             <li>A formal event</li>
@@ -115,7 +115,7 @@ export default function AboutPage() {
         <div>
           <h2 className="text-lg font-semibold">Temporary by Design</h2>
           <p className="mt-2">
-            Ko-Host microsites are intentionally temporary — typically active
+            Ko-Host microsites are intentionally temporary - typically active
             for around 80 days.
           </p>
           <p className="mt-2">This keeps content:</p>
@@ -157,7 +157,7 @@ export default function AboutPage() {
             <li>Useful over flashy</li>
           </ul>
           <p className="mt-3">
-            Ko-Host is built to help you communicate better — without getting in
+            Ko-Host is built to help you communicate better - without getting in
             your way.
           </p>
         </div>
@@ -165,7 +165,7 @@ export default function AboutPage() {
         <div>
           <h2 className="text-lg font-semibold">The Bottom Line</h2>
           <p className="mt-2">
-            If you need to share something important — or create something worth
+            If you need to share something important - or create something worth
             experiencing…
           </p>
           <p className="mt-2">…why not just Ko-Host it?</p>

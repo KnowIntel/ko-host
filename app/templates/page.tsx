@@ -516,14 +516,14 @@ const visibleRecentSites = useMemo(() => {
   <div className="mt-4 space-y-5 text-sm leading-6 text-neutral-600">
     
     <p>
-      Ko-Host is built for speed, simplicity, and purpose — giving you everything you need to launch a fully functional microsite in minutes.
+      Ko-Host is built for speed, simplicity, and purpose - giving you everything you need to launch a fully functional microsite in minutes.
     </p>
 
     <div className="grid gap-3">
       <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
         <div className="text-sm font-semibold text-neutral-950">All-in-one platform</div>
         <div className="mt-1 text-sm text-neutral-600">
-          Templates, hosting, publishing, and subdomains — all included. No extra tools required.
+          Templates, hosting, publishing, and subdomains - all included. No extra tools required.
         </div>
       </div>
 
