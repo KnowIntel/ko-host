@@ -168,16 +168,14 @@ const visibleRecentSites = useMemo(() => {
       </h1>
 
 <p className="mt-3 max-w-3xl text-sm leading-7 text-neutral-600 sm:text-[15px]">
+  Pick a template, choose a design, customize it, then publish. For 90 days, you own your own microsite.
   <button
     type="button"
     onClick={() => setShowWhyKoHost(true)}
-    className="mr-2 font-semibold text-blue-600 hover:text-blue-700"
+    className="ml-2 font-semibold text-blue-600 hover:text-blue-700"
   >
-    Why Ko-Host...
+    Why Ko-Host?
   </button>
-  <span className="whitespace-nowrap">
-  Pick a template, choose a design, customize it, then publish. For 90 days, you own your own microsite.
-</span>
 </p>
 
       <div className="mt-1 text-[12px] font-medium text-neutral-500">
@@ -345,16 +343,14 @@ const visibleRecentSites = useMemo(() => {
       </h1>
 
 <p className="mt-3 max-w-3xl text-sm leading-7 text-neutral-600 sm:text-[15px]">
+  Pick a template, choose a design, customize it, then publish. For 90 days, you own your own microsite.
   <button
     type="button"
     onClick={() => setShowWhyKoHost(true)}
-    className="mr-2 font-semibold text-blue-600 hover:text-blue-700"
+    className="ml-2 font-semibold text-blue-600 hover:text-blue-700"
   >
-    Why Ko-Host...
+    Why Ko-Host?
   </button>
-  <span className="whitespace-nowrap">
-  Pick a template, choose a design, customize it, then publish. For 90 days, you own your own microsite.
-</span>
 </p>
 
       <div className="mt-1 text-[12px] font-medium text-neutral-500">
