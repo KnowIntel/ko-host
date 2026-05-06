@@ -12132,10 +12132,7 @@ if (selectedBlock?.type === "rsvp") {
           .map((item: any) => item.label)
           .join("\n")}
         onChange={(e) => {
-          const lines = e.target.value
-            .split("\n")
-            .map((line) => line.trim())
-            .filter(Boolean);
+const lines = e.target.value.split("\n");
 
           const colors = [
             "#F97316",
@@ -12158,7 +12155,7 @@ if (selectedBlock?.type === "rsvp") {
 
                   return {
                     id: existingItem?.id ?? `spinitem_${index}_${Date.now()}`,
-                    label,
+                    label: label,
                     description: existingItem?.description ?? "",
                     weight: existingItem?.weight ?? 1,
                     color: existingItem?.color ?? colors[index % colors.length],

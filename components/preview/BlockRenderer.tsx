@@ -7541,7 +7541,7 @@ function renderPuzzle(block: Extract<MicrositeBlock, { type: "puzzle" }>) {
 
 function renderSpinWheel(block: any) {
   const data = block.data ?? {};
-  const items = data.items?.length
+  const items = (data.items ?? []).filter((item: any) => String(item.label ?? "").trim()).length
     ? data.items
     : [
         { id: "default_1", label: "10% Off", color: "#F97316", textColor: "#FFFFFF", isWinningItem: true },
@@ -7583,21 +7583,25 @@ function renderSpinWheel(block: any) {
     ].join(" ");
   };
 
-  const spin = () => {
-    if (isSpinning || items.length === 0) return;
+const spin = () => {
+  if (isSpinning || items.length === 0) return;
 
-    const selectedIndex = Math.floor(Math.random() * items.length);
-    const spinTo = 360 * 6 + (360 - selectedIndex * anglePerItem - anglePerItem / 2);
+  const selectedIndex = Math.floor(Math.random() * items.length);
+  const segmentCenterAngle = selectedIndex * anglePerItem + anglePerItem / 2;
+  const targetRotation = (360 - segmentCenterAngle) % 360;
+  const currentRotation = ((rotation % 360) + 360) % 360;
+  const extraRotation = (targetRotation - currentRotation + 360) % 360;
+  const finalRotation = rotation + 360 * 6 + extraRotation;
 
-    setIsSpinning(true);
-    setResult(null);
-    setRotation((prev) => prev + spinTo);
+  setIsSpinning(true);
+  setResult(null);
+  setRotation(finalRotation);
 
-    window.setTimeout(() => {
-      setResult(items[selectedIndex]);
-      setIsSpinning(false);
-    }, 3500);
-  };
+  window.setTimeout(() => {
+    setResult(items[selectedIndex]);
+    setIsSpinning(false);
+  }, 3500);
+};
 
   return (
     <div className="flex w-full flex-col items-center justify-center gap-3 p-5 text-center">
