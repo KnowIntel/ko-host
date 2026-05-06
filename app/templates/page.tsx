@@ -8,6 +8,7 @@ import TemplateGrid, {
   type Category,
   type Sort,
 } from "@/components/templates/TemplateGrid";
+import AppModal from "@/components/ui/AppModal";
 
 type RecentSiteCard = {
   id: string;
@@ -25,6 +26,7 @@ export default function TemplatesPage() {
   const [recentSites, setRecentSites] = useState<RecentSiteCard[]>([]);
   const [recentSitesLoading, setRecentSitesLoading] = useState(true);
   const [recentSitesTrack, setRecentSitesTrack] = useState(0);
+  const [showWhyKoHost, setShowWhyKoHost] = useState(false);
 const RECENT_SITES_VISIBLE_COUNT = 8;
 const RECENT_SITES_MOBILE_COLUMNS = 4;
 const RECENT_SITES_TABLET_COLUMNS = 6;
@@ -165,9 +167,16 @@ const visibleRecentSites = useMemo(() => {
         Templates
       </h1>
 
-      <p className="mt-3 max-w-3xl text-sm leading-7 text-neutral-600 sm:text-[15px]">
-        Pick a template, choose a design, customize it, then publish. For 90 days, you own your own microsite.
-      </p>
+<p className="mt-3 max-w-3xl text-sm leading-7 text-neutral-600 sm:text-[15px]">
+  <button
+    type="button"
+    onClick={() => setShowWhyKoHost(true)}
+    className="mr-2 font-semibold text-neutral-950 underline decoration-neutral-300 underline-offset-4 hover:decoration-neutral-900"
+  >
+    Why Ko-Host...
+  </button>
+  Pick a template, choose a design, customize it, then publish. For 90 days, you own your own microsite.
+</p>
 
       <div className="mt-1 text-[12px] font-medium text-neutral-500">
         {count} template{count === 1 ? "" : "s"}
@@ -333,9 +342,16 @@ const visibleRecentSites = useMemo(() => {
         Templates
       </h1>
 
-      <p className="mt-3 max-w-3xl text-sm leading-7 text-neutral-600 sm:text-[15px]">
-        Pick a template, choose a design, customize it, then publish. For 90 days, you own your own microsite.
-      </p>
+<p className="mt-3 max-w-3xl text-sm leading-7 text-neutral-600 sm:text-[15px]">
+  <button
+    type="button"
+    onClick={() => setShowWhyKoHost(true)}
+    className="mr-2 font-semibold text-neutral-950 underline decoration-neutral-300 underline-offset-4 hover:decoration-neutral-900"
+  >
+    Why Ko-Host...
+  </button>
+  Pick a template, choose a design, customize it, then publish. For 90 days, you own your own microsite.
+</p>
 
       <div className="mt-1 text-[12px] font-medium text-neutral-500">
         {count} template{count === 1 ? "" : "s"}
@@ -486,6 +502,61 @@ const visibleRecentSites = useMemo(() => {
             <div className="mt-1 text-left text-[11px] text-neutral-400">
               Broadcasted sites are shared with permission from their owners.
             </div>
+
+            <AppModal
+  open={showWhyKoHost}
+  title="Why Ko-Host?"
+  cancelText="Close"
+  onCancel={() => setShowWhyKoHost(false)}
+>
+  <div className="mt-4 space-y-5 text-sm leading-6 text-neutral-600">
+    
+    <p>
+      Ko-Host is built for speed, simplicity, and purpose — giving you everything you need to launch a fully functional microsite in minutes.
+    </p>
+
+    <div className="grid gap-3">
+      <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+        <div className="text-sm font-semibold text-neutral-950">All-in-one platform</div>
+        <div className="mt-1 text-sm text-neutral-600">
+          Templates, hosting, publishing, and subdomains — all included. No extra tools required.
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+        <div className="text-sm font-semibold text-neutral-950">No setup friction</div>
+        <div className="mt-1 text-sm text-neutral-600">
+          No domains, no coding, no configuration. Just pick, customize, and publish.
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+        <div className="text-sm font-semibold text-neutral-950">Built for real moments</div>
+        <div className="mt-1 text-sm text-neutral-600">
+          Perfect for events, launches, announcements, promotions, and temporary experiences.
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+        <div className="text-sm font-semibold text-neutral-950">Interactive by default</div>
+        <div className="mt-1 text-sm text-neutral-600">
+          Add games, RSVP, listings, forms, and engagement tools without extra integrations.
+        </div>
+      </div>
+    </div>
+
+    <div className="rounded-2xl border border-neutral-300 bg-neutral-900 p-5 text-white">
+      <div className="text-base font-semibold">
+        Made for the moment. Temporary by design.
+      </div>
+
+      <p className="mt-2 text-sm text-neutral-200">
+        From quick announcements to dynamic, interactive experiences, Ko-Host offers a seamless way to build, personalize, and launch microsites tailored to any occasion.
+      </p>
+    </div>
+
+  </div>
+</AppModal>
           </>
         ) : (
           <div className="rounded-xl border border-dashed border-neutral-200 bg-neutral-50 px-3 py-6 text-sm text-neutral-500">

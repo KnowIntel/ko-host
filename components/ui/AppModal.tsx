@@ -1,3 +1,4 @@
+// components\ui\AppModal.tsx
 "use client";
 
 import { useEffect } from "react";
