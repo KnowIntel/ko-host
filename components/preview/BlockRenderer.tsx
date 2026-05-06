@@ -7541,110 +7541,136 @@ function renderPuzzle(block: Extract<MicrositeBlock, { type: "puzzle" }>) {
 
 function renderSpinWheel(block: any) {
   const data = block.data ?? {};
-  const items = data.items ?? [];
+  const items = data.items?.length
+    ? data.items
+    : [
+        { id: "default_1", label: "10% Off", color: "#F97316", textColor: "#FFFFFF", isWinningItem: true },
+        { id: "default_2", label: "Free Entry", color: "#EC4899", textColor: "#FFFFFF", isWinningItem: true },
+        { id: "default_3", label: "Mystery Gift", color: "#8B5CF6", textColor: "#FFFFFF", isWinningItem: true },
+        { id: "default_4", label: "Try Again", color: "#111827", textColor: "#FFFFFF", isWinningItem: false },
+      ];
 
   const [rotation, setRotation] = useState(0);
   const [isSpinning, setIsSpinning] = useState(false);
   const [result, setResult] = useState<any>(null);
 
+  const size = 240;
+  const center = size / 2;
+  const radius = 112;
+  const anglePerItem = 360 / items.length;
+
+  const polarToCartesian = (angle: number) => {
+    const radians = ((angle - 90) * Math.PI) / 180;
+
+    return {
+      x: center + radius * Math.cos(radians),
+      y: center + radius * Math.sin(radians),
+    };
+  };
+
+  const createSegmentPath = (index: number) => {
+    const startAngle = index * anglePerItem;
+    const endAngle = startAngle + anglePerItem;
+    const start = polarToCartesian(startAngle);
+    const end = polarToCartesian(endAngle);
+    const largeArcFlag = anglePerItem > 180 ? 1 : 0;
+
+    return [
+      `M ${center} ${center}`,
+      `L ${start.x} ${start.y}`,
+      `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${end.x} ${end.y}`,
+      "Z",
+    ].join(" ");
+  };
+
   const spin = () => {
     if (isSpinning || items.length === 0) return;
 
     const selectedIndex = Math.floor(Math.random() * items.length);
-    const anglePerItem = 360 / items.length;
-
-    // Spin multiple full rotations + land on selected item
-    const spinTo =
-      360 * 5 + (360 - selectedIndex * anglePerItem - anglePerItem / 2);
+    const spinTo = 360 * 6 + (360 - selectedIndex * anglePerItem - anglePerItem / 2);
 
     setIsSpinning(true);
     setResult(null);
     setRotation((prev) => prev + spinTo);
 
-    setTimeout(() => {
-      const selectedItem = items[selectedIndex];
-      setResult(selectedItem);
+    window.setTimeout(() => {
+      setResult(items[selectedIndex]);
       setIsSpinning(false);
     }, 3500);
   };
 
   return (
-    <div className="flex w-full flex-col items-center justify-center gap-4 p-6 text-center">
-      <div className="text-xl font-semibold text-neutral-900">
-        {data.title || "Spin to Win"}
-      </div>
-
-      <div className="text-sm text-neutral-500">
-        {data.subtitle || "Unlock a surprise reward"}
-      </div>
-
-      <div className="relative mt-4 flex h-[220px] w-[220px] items-center justify-center">
-        <div
-          className="absolute inset-0 rounded-full border-[10px] border-neutral-200 shadow-inner transition-transform duration-[3500ms] ease-out"
-          style={{
-            transform: `rotate(${rotation}deg)`,
-          }}
-        >
-          {items.map((item: any, index: number) => {
-            const angle = 360 / items.length;
-            const rotate = index * angle;
-
-            return (
-              <div
-                key={item.id}
-                className="absolute left-1/2 top-1/2 h-1/2 w-1/2 origin-bottom-left"
-                style={{
-                  transform: `rotate(${rotate}deg)`,
-                }}
-              >
-                <div
-                  className="flex h-full w-full items-end justify-center text-[10px] font-medium"
-                  style={{
-                    background: item.color || "#F97316",
-                    color: item.textColor || "#FFFFFF",
-                    clipPath: "polygon(0% 0%, 100% 0%, 0% 100%)",
-                  }}
-                >
-                  <span className="mb-2 ml-2 rotate-[-45deg]">
-                    {item.label}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
+    <div className="flex w-full flex-col items-center justify-center gap-3 p-5 text-center">
+      <div>
+        <div className="text-xl font-semibold text-neutral-900">
+          {data.title || "Spin to Win"}
         </div>
+        <div className="mt-1 text-sm text-neutral-500">
+          {data.subtitle || "Unlock a surprise reward"}
+        </div>
+      </div>
 
-        {/* Pointer */}
-        <div className="absolute top-[-10px] h-0 w-0 border-l-[10px] border-r-[10px] border-b-[16px] border-l-transparent border-r-transparent border-b-neutral-900" />
+      <div className="relative mt-2 h-[260px] w-[260px]">
+        <div className="absolute left-1/2 top-0 z-20 h-0 w-0 -translate-x-1/2 border-l-[12px] border-r-[12px] border-t-[20px] border-l-transparent border-r-transparent border-t-neutral-900" />
+
+        <div
+          className="absolute inset-[10px] rounded-full shadow-2xl transition-transform duration-[3500ms] ease-out"
+          style={{ transform: `rotate(${rotation}deg)` }}
+        >
+          <svg viewBox={`0 0 ${size} ${size}`} className="h-full w-full rounded-full">
+            {items.map((item: any, index: number) => {
+              const midAngle = index * anglePerItem + anglePerItem / 2;
+              const textPoint = polarToCartesian(midAngle);
+
+              return (
+                <g key={item.id ?? index}>
+                  <path
+                    d={createSegmentPath(index)}
+                    fill={item.color || "#F97316"}
+                    stroke="#FFFFFF"
+                    strokeWidth="2"
+                  />
+                  <text
+                    x={(center + textPoint.x) / 2}
+                    y={(center + textPoint.y) / 2}
+                    fill={item.textColor || "#FFFFFF"}
+                    fontSize="11"
+                    fontWeight="700"
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    transform={`rotate(${midAngle}, ${(center + textPoint.x) / 2}, ${(center + textPoint.y) / 2})`}
+                  >
+                    {(item.label || "").slice(0, 14)}
+                  </text>
+                </g>
+              );
+            })}
+
+            <circle cx={center} cy={center} r="28" fill="#FFFFFF" stroke="#111827" strokeWidth="4" />
+            <circle cx={center} cy={center} r="12" fill="#111827" />
+          </svg>
+        </div>
       </div>
 
       <button
+        type="button"
         onClick={spin}
         disabled={isSpinning}
-        className="mt-4 rounded-xl bg-neutral-900 px-5 py-2 text-sm font-semibold text-white hover:bg-neutral-800 disabled:bg-neutral-400"
+        className="rounded-xl bg-neutral-900 px-5 py-2 text-sm font-semibold text-white hover:bg-neutral-800 disabled:bg-neutral-400"
       >
-        {isSpinning
-          ? "Spinning..."
-          : data.buttonText || "Spin Now"}
+        {isSpinning ? "Spinning..." : data.buttonText || "Spin Now"}
       </button>
 
       {result && (
-        <div className="mt-4 rounded-xl border border-neutral-200 bg-white px-4 py-3 shadow-sm">
+        <div className="mt-2 rounded-xl border border-neutral-200 bg-white px-4 py-3 shadow-sm">
           <div className="text-sm text-neutral-500">
             {result.isWinningItem
               ? data.winnerMessage || "You won!"
               : data.loserMessage || "Try again next time"}
           </div>
-
           <div className="mt-1 text-lg font-semibold text-neutral-900">
             {result.label}
           </div>
-
-          {result.prizeValue && (
-            <div className="mt-1 text-sm text-neutral-600">
-              {result.prizeValue}
-            </div>
-          )}
         </div>
       )}
     </div>
