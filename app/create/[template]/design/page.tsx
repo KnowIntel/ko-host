@@ -83,6 +83,9 @@ const draftPageCountByTemplateDesignKey: Record<string, number> = {
 
   "sweepstakes:inclusive": 5,
 
+  "learning_lab:worksheet": 5,
+
+
 };
 
 const pageCount =

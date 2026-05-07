@@ -13,6 +13,7 @@ import resumeprofileLayouts from "./templates/resume_profile";
 import betaTestingLayouts from "./templates/beta_testing";
 import restaurantLayouts from "./templates/restaurant_menu";
 import sweepstakesLayouts from "./templates/sweepstakes";
+import learningLayouts from "./templates/learning_lab";
 import blankLayout from "./layouts/blank";
 
 const registry: Record<string, TemplateLayoutRegistry> = {
@@ -30,6 +31,7 @@ const registry: Record<string, TemplateLayoutRegistry> = {
   beta_testing: betaTestingLayouts,
   restaurant_menu: restaurantLayouts,
   sweepstakes: sweepstakesLayouts,
+  learning_lab: learningLayouts,
 
 };
 
