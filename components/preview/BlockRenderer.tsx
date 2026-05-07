@@ -7535,7 +7535,7 @@ useEffect(() => {
   );
 }
 
-function renderSpreadsheet(block: any) {
+function renderSpreadsheet(block: any, previewMode = false) {
   const data = block.data ?? {};
 
   const [cells, setCells] = useState<Record<string, any>>(data.cells ?? {});
@@ -7634,9 +7634,9 @@ useEffect(() => {
     };
   }, [block, resizing]);
 
-  const isOwnerEditMode = data.editMode === true;
-  const isPublicEditMode = data.allowUserEngagement === true;
-  const isEditable = isOwnerEditMode || isPublicEditMode;
+const isOwnerEditMode = data.editMode === true && previewMode !== true;
+const isPublicEditMode = data.allowUserEngagement === true && previewMode === true;
+const isEditable = isOwnerEditMode || isPublicEditMode;
 
   const updateCellValue = (cellKey: string, value: string) => {
     setCells((current) => {
@@ -7809,7 +7809,7 @@ const selectCell = (cellKey: string) => {
                         }}
                         onClick={() => selectCell(cellKey)}
                       >
-                        {isEditable && !(isPublicEditMode && format.locked === true) ? (
+                        {isEditable && format.locked !== true ? (
                           <input
                             value={cell?.value ?? ""}
                             onChange={(event) =>
@@ -8176,8 +8176,8 @@ case "cart":
   case "spin_wheel":
     return renderSpinWheel(block);
 
-  case "spreadsheet":
-    return renderSpreadsheet(block);
+case "spreadsheet":
+  return renderSpreadsheet(block, previewMode);
 
   case "puzzle":
     return renderPuzzle(block);
