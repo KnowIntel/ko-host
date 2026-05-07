@@ -2457,8 +2457,8 @@ function renderLabel(
       className="text-sm font-medium text-neutral-800"
       style={{
         ...getStyle(key),
-        transform: `translate(${((block?.data?.positionX ?? 50) - 50)}%, ${
-          ((block?.data?.positionY ?? 50) - 50
+        transform: `translate(${(block?.data?.positionX ?? 50) - 50}%, ${
+          (block?.data?.positionY ?? 50) - 50
         }%)`,
       }}
     >
