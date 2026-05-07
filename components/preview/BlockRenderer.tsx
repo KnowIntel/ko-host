@@ -7538,8 +7538,27 @@ useEffect(() => {
 function renderSpreadsheet(block: any) {
   const data = block.data ?? {};
 
-  const rowCount = data.rowCount ?? 0;
-  const columnCount = data.columnCount ?? 0;
+  const [cells, setCells] = useState<Record<string, any>>(data.cells ?? {});
+  const [activeCell, setActiveCell] = useState<string | null>(
+    data.selectedCell ?? "0:0",
+  );
+  const [columnWidths, setColumnWidths] = useState<Record<string, number>>(
+    data.columnWidths ?? {},
+  );
+  const [rowHeights, setRowHeights] = useState<Record<string, number>>(
+    data.rowHeights ?? {},
+  );
+  const [resizing, setResizing] = useState<null | {
+    type: "column" | "row";
+    index: number;
+    startClient: number;
+    startSize: number;
+  }>(null);
+
+  const rowCount = data.rowCount ?? 6;
+  const columnCount = data.columnCount ?? 5;
+
+  const getCellKey = (row: number, col: number) => `${row}:${col}`;
 
   const columnLabels = Array.from({ length: columnCount }, (_, index) => {
     let label = "";
@@ -7553,30 +7572,79 @@ function renderSpreadsheet(block: any) {
     return label;
   });
 
-  const getCellKey = (row: number, col: number) => `${row}:${col}`;
+  useEffect(() => {
+    if (!resizing) return;
 
-  const [activeCell, setActiveCell] = useState<string | null>(
-    data.selectedCell ?? null,
-  );
+    const handleMouseMove = (event: MouseEvent) => {
+      if (resizing.type === "column") {
+        const nextWidth = Math.max(
+          48,
+          resizing.startSize + event.clientX - resizing.startClient,
+        );
 
-  const isEditable =
-    data.editMode === true || data.allowUserEngagement === true;
+        setColumnWidths((current) => {
+          const next = {
+            ...current,
+            [String(resizing.index)]: nextWidth,
+          };
 
-  const updateCellValue = (cellKey: string, value: string) => {
-    const nextCells = {
-      ...(data.cells ?? {}),
-      [cellKey]: {
-        id:
-          data.cells?.[cellKey]?.id ??
-          `${cellKey}_${Date.now()}`,
-        value,
-        format:
-          data.cells?.[cellKey]?.format ??
-          data.defaultCellFormat,
-      },
+          block.data.columnWidths = next;
+          return next;
+        });
+      }
+
+      if (resizing.type === "row") {
+        const nextHeight = Math.max(
+          24,
+          resizing.startSize + event.clientY - resizing.startClient,
+        );
+
+        setRowHeights((current) => {
+          const next = {
+            ...current,
+            [String(resizing.index)]: nextHeight,
+          };
+
+          block.data.rowHeights = next;
+          return next;
+        });
+      }
     };
 
-    block.data.cells = nextCells;
+    const handleMouseUp = () => setResizing(null);
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [block, resizing]);
+
+  const isEditable = data.editMode === true || data.allowUserEngagement === true;
+
+  const updateCellValue = (cellKey: string, value: string) => {
+    setCells((current) => {
+      const next = {
+        ...current,
+        [cellKey]: {
+          id: current[cellKey]?.id ?? `${cellKey}_${Date.now()}`,
+          value,
+          format: current[cellKey]?.format ?? {},
+        },
+      };
+
+      block.data.cells = next;
+      block.data.selectedCell = cellKey;
+
+      return next;
+    });
+  };
+
+  const selectCell = (cellKey: string) => {
+    setActiveCell(cellKey);
+    block.data.selectedCell = cellKey;
   };
 
   return (
@@ -7588,149 +7656,154 @@ function renderSpreadsheet(block: any) {
           </div>
 
           {data.showCaption === true && data.caption ? (
-            <div className="mt-1 text-sm text-neutral-500">
-              {data.caption}
-            </div>
+            <div className="mt-1 text-sm text-neutral-500">{data.caption}</div>
           ) : null}
         </div>
       ) : null}
 
-      <div className="overflow-auto">
-        <table
-          className="min-w-full border-collapse"
-          style={{
-            tableLayout: "fixed",
-          }}
-        >
+      <div className="min-h-0 flex-1 overflow-auto">
+        <table className="border-collapse" style={{ tableLayout: "fixed" }}>
           <thead>
             <tr>
-              <th
-                className="sticky left-0 top-0 z-20 h-10 min-w-[50px] border border-neutral-200 bg-neutral-100"
-              />
+              <th className="sticky left-0 top-0 z-20 h-10 min-w-[50px] border border-neutral-200 bg-neutral-100" />
 
-              {columnLabels.map((label, columnIndex) => (
-                <th
-                  key={label}
-                  className="h-10 border border-neutral-200 bg-neutral-100 px-2 text-center text-xs font-semibold text-neutral-600"
-                  style={{
-                    width:
-                      data.columnWidths?.[String(columnIndex)] ?? 120,
-                    minWidth:
-                      data.columnWidths?.[String(columnIndex)] ?? 120,
-                  }}
-                >
-                  {label}
-                </th>
-              ))}
+              {columnLabels.map((label, columnIndex) => {
+                const width = columnWidths[String(columnIndex)] ?? 120;
+
+                return (
+                  <th
+                    key={label}
+                    className="relative h-10 border border-neutral-200 bg-neutral-100 px-2 text-center text-xs font-semibold text-neutral-600"
+                    style={{ width, minWidth: width }}
+                  >
+                    {label}
+
+                    <span
+                      className="absolute right-0 top-0 h-full w-2 cursor-col-resize"
+                      onMouseDown={(event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+
+                        setResizing({
+                          type: "column",
+                          index: columnIndex,
+                          startClient: event.clientX,
+                          startSize: width,
+                        });
+                      }}
+                    />
+                  </th>
+                );
+              })}
             </tr>
           </thead>
 
           <tbody>
-            {Array.from({ length: rowCount }).map((_, rowIndex) => (
-              <tr key={rowIndex}>
-                <td
-                  className="sticky left-0 z-10 border border-neutral-200 bg-neutral-100 px-2 text-center text-xs font-semibold text-neutral-600"
-                  style={{
-                    height:
-                      data.rowHeights?.[String(rowIndex)] ?? 36,
-                  }}
-                >
-                  {rowIndex + 1}
-                </td>
+            {Array.from({ length: rowCount }).map((_, rowIndex) => {
+              const height = rowHeights[String(rowIndex)] ?? 36;
 
-                {Array.from({ length: columnCount }).map((__, columnIndex) => {
-                  const cellKey = getCellKey(rowIndex, columnIndex);
+              return (
+                <tr key={rowIndex}>
+                  <td
+                    className="sticky left-0 z-10 border border-neutral-200 bg-neutral-100 px-2 text-center text-xs font-semibold text-neutral-600"
+                    style={{ height }}
+                  >
+                    {rowIndex + 1}
 
-                  const cell =
-                    data.cells?.[cellKey] ?? null;
+                    <span
+                      className="absolute bottom-0 left-0 h-2 w-full cursor-row-resize"
+                      onMouseDown={(event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
 
-                  const format = {
-                    ...(data.defaultCellFormat ?? {}),
-                    ...(cell?.format ?? {}),
-                  };
-
-                  const isSelected = activeCell === cellKey;
-
-                  return (
-                    <td
-                      key={cellKey}
-                      className={`relative px-2 text-sm outline-none ${
-                        data.showGridlines === false
-                          ? "border-transparent"
-                          : "border border-neutral-200"
-                      }`}
-                      style={{
-                        width:
-                          data.columnWidths?.[String(columnIndex)] ?? 120,
-                        minWidth:
-                          data.columnWidths?.[String(columnIndex)] ?? 120,
-                        height:
-                          data.rowHeights?.[String(rowIndex)] ?? 36,
-                        fontFamily:
-                          format.fontFamily ?? "Inter",
-                        fontSize:
-                          format.fontSize ?? 14,
-                        fontWeight:
-                          format.bold === true ? 700 : 400,
-                        fontStyle:
-                          format.italic === true
-                            ? "italic"
-                            : "normal",
-                        textDecoration:
-                          format.underline === true
-                            ? "underline"
-                            : "none",
-                        color:
-                          format.textColor ?? "#111827",
-                        backgroundColor:
-                          format.backgroundColor ?? "#FFFFFF",
-                        textAlign:
-                          format.horizontalAlign ?? "left",
-                        verticalAlign:
-                          format.verticalAlign ?? "middle",
-                        whiteSpace:
-                          format.wrapText === true
-                            ? "normal"
-                            : "nowrap",
+                        setResizing({
+                          type: "row",
+                          index: rowIndex,
+                          startClient: event.clientY,
+                          startSize: height,
+                        });
                       }}
-                      onClick={() => {
-                        setActiveCell(cellKey);
-                      }}
-                    >
-                      {isEditable ? (
-                        <input
-                          value={cell?.value ?? ""}
-                          onChange={(e) =>
-                            updateCellValue(
-                              cellKey,
-                              e.target.value,
-                            )
-                          }
-                          onFocus={() => {
-                            setActiveCell(cellKey);
-                          }}
-                          className={`h-full w-full bg-transparent outline-none ${
-                            isSelected
-                              ? "ring-2 ring-blue-500"
-                              : ""
-                          }`}
-                        />
-                      ) : (
-                        <div
-                          className={`flex h-full min-h-[24px] items-center ${
-                            isSelected
-                              ? "rounded ring-2 ring-blue-500"
-                              : ""
-                          }`}
-                        >
-                          {cell?.value ?? ""}
-                        </div>
-                      )}
-                    </td>
-                  );
-                })}
-              </tr>
-            ))}
+                    />
+                  </td>
+
+                  {Array.from({ length: columnCount }).map((__, columnIndex) => {
+                    const cellKey = getCellKey(rowIndex, columnIndex);
+                    const cell = cells[cellKey];
+                    const format = {
+                      ...(data.defaultCellFormat ?? {}),
+                      ...(cell?.format ?? {}),
+                    };
+                    const isSelected = activeCell === cellKey;
+
+                    return (
+                      <td
+                        key={cellKey}
+                        className={`relative p-0 text-sm ${
+                          data.showGridlines === false
+                            ? "border border-transparent"
+                            : "border border-neutral-200"
+                        }`}
+                        style={{
+                          width: columnWidths[String(columnIndex)] ?? 120,
+                          minWidth: columnWidths[String(columnIndex)] ?? 120,
+                          height,
+                          backgroundColor: format.backgroundColor ?? "#FFFFFF",
+                        }}
+                        onClick={() => selectCell(cellKey)}
+                      >
+                        {isEditable ? (
+                          <input
+                            value={cell?.value ?? ""}
+                            onChange={(event) =>
+                              updateCellValue(cellKey, event.target.value)
+                            }
+                            onFocus={() => selectCell(cellKey)}
+                            className={`h-full w-full bg-transparent px-2 outline-none ${
+                              isSelected ? "ring-2 ring-blue-500" : ""
+                            }`}
+                            style={{
+                              fontFamily: format.fontFamily ?? "Inter",
+                              fontSize: format.fontSize ?? 14,
+                              fontWeight: format.bold ? 700 : 400,
+                              fontStyle: format.italic ? "italic" : "normal",
+                              textDecoration: format.underline
+                                ? "underline"
+                                : "none",
+                              color: format.textColor ?? "#111827",
+                              textAlign: format.horizontalAlign ?? "left",
+                            }}
+                          />
+                        ) : (
+                          <div
+                            className={`flex h-full min-h-[24px] items-center px-2 ${
+                              isSelected ? "ring-2 ring-blue-500" : ""
+                            }`}
+                            style={{
+                              fontFamily: format.fontFamily ?? "Inter",
+                              fontSize: format.fontSize ?? 14,
+                              fontWeight: format.bold ? 700 : 400,
+                              fontStyle: format.italic ? "italic" : "normal",
+                              textDecoration: format.underline
+                                ? "underline"
+                                : "none",
+                              color: format.textColor ?? "#111827",
+                              justifyContent:
+                                format.horizontalAlign === "center"
+                                  ? "center"
+                                  : format.horizontalAlign === "right"
+                                    ? "flex-end"
+                                    : "flex-start",
+                            }}
+                          >
+                            {cell?.value ?? ""}
+                          </div>
+                        )}
+                      </td>
+                    );
+                  })}
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
