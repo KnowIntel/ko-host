@@ -1547,8 +1547,16 @@ const showBorderWidthRadiusControls =
 
   useEffect(() => {
   const handleTextShortcut = (event: KeyboardEvent) => {
-    const isCmd = event.ctrlKey || event.metaKey;
-    if (!isCmd || !selectedBlock) return;
+const isCmd = event.ctrlKey || event.metaKey;
+if (!isCmd) return;
+
+if (event.key.toLowerCase() === "s") {
+  event.preventDefault();
+  void onSaveDraft?.(draft);
+  return;
+}
+
+if (!selectedBlock) return;
 
     const key = event.key.toLowerCase();
     if (!["b", "i", "u"].includes(key)) return;
@@ -1602,7 +1610,7 @@ const showBorderWidthRadiusControls =
 
   window.addEventListener("keydown", handleTextShortcut);
   return () => window.removeEventListener("keydown", handleTextShortcut);
-}, [selectedBlock?.id, selectedBlock?.type, updateSelectedBlock]);
+}, [draft, onSaveDraft, selectedBlock?.id, selectedBlock?.type, updateSelectedBlock]);
   
   useEffect(() => {
   function handleKey(e: KeyboardEvent) {
