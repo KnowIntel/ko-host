@@ -12202,6 +12202,95 @@ if (selectedBlock?.type === "rsvp") {
             </div>
           </div>
 
+          <div className="mt-4 grid grid-cols-3 gap-2">
+  <button
+    type="button"
+    className="h-10 rounded-xl border border-neutral-300 bg-white px-3 text-sm font-bold text-neutral-800 hover:bg-neutral-50"
+    onClick={() => updateSelectedCellFormat({ bold: true })}
+  >
+    B
+  </button>
+
+  <button
+    type="button"
+    className="h-10 rounded-xl border border-neutral-300 bg-white px-3 text-sm italic text-neutral-800 hover:bg-neutral-50"
+    onClick={() => updateSelectedCellFormat({ italic: true })}
+  >
+    I
+  </button>
+
+  <button
+    type="button"
+    className="h-10 rounded-xl border border-neutral-300 bg-white px-3 text-sm underline text-neutral-800 hover:bg-neutral-50"
+    onClick={() => updateSelectedCellFormat({ underline: true })}
+  >
+    U
+  </button>
+</div>
+
+<div className="mt-4">
+  <div className={inspectorLabelClass()}>Horizontal Alignment</div>
+  <select
+    className={inspectorInputClass()}
+    onChange={(e) =>
+      updateSelectedCellFormat({
+        horizontalAlign: e.target.value as "left" | "center" | "right",
+      })
+    }
+    defaultValue=""
+  >
+    <option value="" disabled>
+      Choose alignment
+    </option>
+    <option value="left">Left</option>
+    <option value="center">Center</option>
+    <option value="right">Right</option>
+  </select>
+</div>
+
+<div className="mt-4">
+  <div className={inspectorLabelClass()}>Number Format</div>
+  <select
+    className={inspectorInputClass()}
+    onChange={(e) =>
+      updateSelectedCellFormat({
+        numberFormat: e.target.value as
+          | "plain"
+          | "number"
+          | "currency"
+          | "percent"
+          | "date",
+      })
+    }
+    defaultValue=""
+  >
+    <option value="" disabled>
+      Choose format
+    </option>
+    <option value="plain">Plain Text</option>
+    <option value="number">Number</option>
+    <option value="currency">Currency</option>
+    <option value="percent">Percent</option>
+    <option value="date">Date</option>
+  </select>
+</div>
+
+<label className="mt-4 flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+  <input
+    type="checkbox"
+    onChange={(e) => updateSelectedCellFormat({ wrapText: e.target.checked })}
+  />
+  Wrap Text
+</label>
+
+<label className="mt-3 flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+  <input
+    type="checkbox"
+    onChange={(e) => updateSelectedCellFormat({ locked: e.target.checked })}
+  />
+  Lock Selected Cell
+</label>
+
           <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-xs leading-5 text-neutral-600">
             Select a cell in Edit Spreadsheet Mode, then use these controls to style that active cell.
           </div>
