@@ -27,6 +27,8 @@ export default function TemplatesPage() {
   const [recentSitesLoading, setRecentSitesLoading] = useState(true);
   const [recentSitesTrack, setRecentSitesTrack] = useState(0);
   const [showWhyKoHost, setShowWhyKoHost] = useState(false);
+
+
 const RECENT_SITES_VISIBLE_COUNT = 8;
 const RECENT_SITES_MOBILE_COLUMNS = 4;
 const RECENT_SITES_TABLET_COLUMNS = 6;
@@ -508,10 +510,9 @@ const visibleRecentSites = useMemo(() => {
             </div>
 
 {showWhyKoHost ? (
-  <div className="fixed inset-0 z-[999999] overflow-y-auto bg-black/70 backdrop-blur-sm">
+  <div className="fixed inset-0 z-[2147483647] isolate overflow-y-auto bg-black/70 backdrop-blur-sm">
     <div className="min-h-full px-4 py-8 md:px-8">
       <div className="mx-auto w-full max-w-6xl overflow-hidden rounded-[32px] border border-neutral-200 bg-white shadow-2xl">
-
         {/* HERO */}
         <div className="relative overflow-hidden border-b border-neutral-200 bg-gradient-to-br from-neutral-950 via-neutral-900 to-neutral-800 px-6 py-10 text-white md:px-10 md:py-14">
           <button
@@ -564,10 +565,8 @@ const visibleRecentSites = useMemo(() => {
 
         {/* CONTENT */}
         <div className="grid gap-8 px-6 py-8 md:grid-cols-[1.2fr_0.8fr] md:px-10 md:py-10">
-
           {/* LEFT */}
           <div>
-
             <div className="rounded-3xl border border-neutral-200 bg-neutral-50 p-6">
               <div className="text-xl font-bold text-neutral-950">
                 Why people use Ko-Host
@@ -640,12 +639,9 @@ const visibleRecentSites = useMemo(() => {
 
           {/* RIGHT */}
           <div>
-
             <div className="overflow-hidden rounded-3xl border border-neutral-200">
               <div className="border-b border-neutral-200 bg-neutral-950 px-5 py-4 text-white">
-                <div className="text-lg font-bold">
-                  ⚡ Feature Comparison
-                </div>
+                <div className="text-lg font-bold">⚡ Feature Comparison</div>
                 <div className="mt-1 text-sm text-neutral-300">
                   Ko-Host vs traditional website builders
                 </div>
@@ -679,10 +675,7 @@ const visibleRecentSites = useMemo(() => {
                       ["No coding required", "✅", "✅"],
                       ["Long-term commitment needed", "❌", "Often yes"],
                     ].map(([feature, koHost, competitors]) => (
-                      <tr
-                        key={feature}
-                        className="border-b border-neutral-100"
-                      >
+                      <tr key={feature} className="border-b border-neutral-100">
                         <td className="px-4 py-3 font-medium text-neutral-700">
                           {feature}
                         </td>
@@ -725,7 +718,6 @@ const visibleRecentSites = useMemo(() => {
                 and Squarespace pricing/materials.
               </div>
             </div>
-
           </div>
         </div>
       </div>
