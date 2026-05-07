@@ -1498,7 +1498,7 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
           },
           selectedCell: "0:0",
           selectedRange: undefined,
-          editMode: false,
+          editMode: true,
         },
       };
 

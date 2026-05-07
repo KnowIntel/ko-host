@@ -12248,33 +12248,6 @@ if (selectedBlock?.type === "rsvp") {
   </select>
 </div>
 
-<div className="mt-4">
-  <div className={inspectorLabelClass()}>Number Format</div>
-  <select
-    className={inspectorInputClass()}
-    onChange={(e) =>
-      updateSelectedCellFormat({
-        numberFormat: e.target.value as
-          | "plain"
-          | "number"
-          | "currency"
-          | "percent"
-          | "date",
-      })
-    }
-    defaultValue=""
-  >
-    <option value="" disabled>
-      Choose format
-    </option>
-    <option value="plain">Plain Text</option>
-    <option value="number">Number</option>
-    <option value="currency">Currency</option>
-    <option value="percent">Percent</option>
-    <option value="date">Date</option>
-  </select>
-</div>
-
 <label className="mt-4 flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
   <input
     type="checkbox"
