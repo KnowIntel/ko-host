@@ -315,6 +315,7 @@ Utilities: [
   "Data & Metrics": [
     { kind: "block", label: "Highlight", type: "highlight" },
     { kind: "block", label: "Progress Bar", type: "progress_bar" },
+    { kind: "block", label: "Spreadsheet", type: "spreadsheet" },
   ],
 Scheduling: [
   { kind: "block", label: "Countdown", type: "countdown" },
@@ -367,6 +368,7 @@ const TOOL_DESCRIPTIONS: Record<string, string> = {
 
   Highlight: "Feature stat or key callout",
   "Progress Bar": "Visual progress toward a goal",
+  Spreadsheet: "Excel-like editable table block",
 
   Countdown: "Timer counting to an event",
   Checklist: "Trackable list of tasks",
@@ -931,6 +933,7 @@ function getToolGlyph(label: string) {
   if (label === "Rich Text") return "📝";
   if (label === "Video") return "▶";
   if (label === "Progress Bar") return "▰";
+  if (label === "Spreadsheet") return "▦";
   if (label === "Donation") return "💝";
   if (label === "Link Hub") return "🌐";
   if (label === "Checklist") return "☑";
@@ -11778,6 +11781,375 @@ if (selectedBlock?.type === "rsvp") {
       <p className="mt-2 text-xs leading-5 text-neutral-500">
         Use this value in Button Link or Link URL.
       </p>
+    </div>
+  </div>
+) : null}
+
+{selectedBlock?.type === "spreadsheet" ? (
+  <div className={inspectorCardClass()}>
+    <div className={inspectorLabelClass()}>Spreadsheet</div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Sheet Title</div>
+      <input
+        type="text"
+        value={(selectedBlock.data as any).title ?? ""}
+        onChange={(e) => {
+          const nextTitle = e.target.value;
+
+          updateSelectedBlock((block) =>
+            block.type !== "spreadsheet"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    title: nextTitle,
+                  },
+                },
+          );
+        }}
+        className={inspectorInputClass()}
+        placeholder="Spreadsheet"
+      />
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Caption</div>
+      <input
+        type="text"
+        value={(selectedBlock.data as any).caption ?? ""}
+        onChange={(e) => {
+          const nextCaption = e.target.value;
+
+          updateSelectedBlock((block) =>
+            block.type !== "spreadsheet"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    caption: nextCaption,
+                  },
+                },
+          );
+        }}
+        className={inspectorInputClass()}
+        placeholder="Optional note or description"
+      />
+    </div>
+
+    <label className="mt-4 flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+      <input
+        type="checkbox"
+        checked={(selectedBlock.data as any).showTitle !== false}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "spreadsheet"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    showTitle: e.target.checked,
+                  },
+                },
+          )
+        }
+      />
+      Show Title
+    </label>
+
+    <label className="mt-3 flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+      <input
+        type="checkbox"
+        checked={(selectedBlock.data as any).showCaption === true}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "spreadsheet"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    showCaption: e.target.checked,
+                  },
+                },
+          )
+        }
+      />
+      Show Caption
+    </label>
+
+    <label className="mt-3 flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+      <input
+        type="checkbox"
+        checked={(selectedBlock.data as any).showGridlines !== false}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "spreadsheet"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    showGridlines: e.target.checked,
+                  },
+                },
+          )
+        }
+      />
+      Show Gridlines
+    </label>
+
+    <label className="mt-3 flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+      <input
+        type="checkbox"
+        checked={(selectedBlock.data as any).editMode === true}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "spreadsheet"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    editMode: e.target.checked,
+                  },
+                },
+          )
+        }
+      />
+      Edit Spreadsheet Mode
+    </label>
+
+    <label className="mt-3 flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+      <input
+        type="checkbox"
+        checked={(selectedBlock.data as any).allowUserEngagement === true}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "spreadsheet"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    allowUserEngagement: e.target.checked,
+                  },
+                },
+          )
+        }
+      />
+      Allow User Engagement
+    </label>
+
+    <div className="mt-4 grid grid-cols-2 gap-2">
+      <button
+        type="button"
+        className="h-10 rounded-xl border border-neutral-300 bg-white px-3 text-sm font-semibold text-neutral-800 hover:bg-neutral-50"
+        onClick={() =>
+          updateSelectedBlock((block) => {
+            if (block.type !== "spreadsheet") return block;
+
+            const nextRowIndex = block.data.rowCount;
+            const nextRowHeights = {
+              ...block.data.rowHeights,
+              [String(nextRowIndex)]: 36,
+            };
+
+            return {
+              ...block,
+              data: {
+                ...block.data,
+                rowCount: block.data.rowCount + 1,
+                rowHeights: nextRowHeights,
+              },
+            };
+          })
+        }
+      >
+        Add Row
+      </button>
+
+      <button
+        type="button"
+        className="h-10 rounded-xl border border-neutral-300 bg-white px-3 text-sm font-semibold text-neutral-800 hover:bg-neutral-50"
+        onClick={() =>
+          updateSelectedBlock((block) => {
+            if (block.type !== "spreadsheet") return block;
+
+            const nextColumnIndex = block.data.columnCount;
+            const nextColumnWidths = {
+              ...block.data.columnWidths,
+              [String(nextColumnIndex)]: 120,
+            };
+
+            return {
+              ...block,
+              data: {
+                ...block.data,
+                columnCount: block.data.columnCount + 1,
+                columnWidths: nextColumnWidths,
+              },
+            };
+          })
+        }
+      >
+        Add Column
+      </button>
+    </div>
+
+    <div className="mt-4 grid grid-cols-2 gap-2">
+      <button
+        type="button"
+        disabled={(selectedBlock.data as any).rowCount <= 1}
+        className="h-10 rounded-xl border border-neutral-300 bg-white px-3 text-sm font-semibold text-neutral-800 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:bg-neutral-100 disabled:text-neutral-400"
+        onClick={() =>
+          updateSelectedBlock((block) => {
+            if (block.type !== "spreadsheet") return block;
+
+            const nextRowCount = Math.max(1, block.data.rowCount - 1);
+            const nextCells = Object.fromEntries(
+              Object.entries(block.data.cells ?? {}).filter(([key]) => {
+                const rowIndex = Number(key.split(":")[0]);
+                return rowIndex < nextRowCount;
+              }),
+            );
+
+            return {
+              ...block,
+              data: {
+                ...block.data,
+                rowCount: nextRowCount,
+                cells: nextCells,
+              },
+            };
+          })
+        }
+      >
+        Delete Row
+      </button>
+
+      <button
+        type="button"
+        disabled={(selectedBlock.data as any).columnCount <= 1}
+        className="h-10 rounded-xl border border-neutral-300 bg-white px-3 text-sm font-semibold text-neutral-800 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:bg-neutral-100 disabled:text-neutral-400"
+        onClick={() =>
+          updateSelectedBlock((block) => {
+            if (block.type !== "spreadsheet") return block;
+
+            const nextColumnCount = Math.max(1, block.data.columnCount - 1);
+            const nextCells = Object.fromEntries(
+              Object.entries(block.data.cells ?? {}).filter(([key]) => {
+                const columnIndex = Number(key.split(":")[1]);
+                return columnIndex < nextColumnCount;
+              }),
+            );
+
+            return {
+              ...block,
+              data: {
+                ...block.data,
+                columnCount: nextColumnCount,
+                cells: nextCells,
+              },
+            };
+          })
+        }
+      >
+        Delete Column
+      </button>
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Default Font Size</div>
+      <input
+        type="number"
+        min={8}
+        max={72}
+        value={(selectedBlock.data as any).defaultCellFormat?.fontSize ?? 14}
+        onChange={(e) => {
+          const nextFontSize = Math.max(8, Math.min(72, Number(e.target.value) || 14));
+
+          updateSelectedBlock((block) =>
+            block.type !== "spreadsheet"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    defaultCellFormat: {
+                      ...block.data.defaultCellFormat,
+                      fontSize: nextFontSize,
+                    },
+                  },
+                },
+          );
+        }}
+        className={inspectorInputClass()}
+      />
+    </div>
+
+    <div className="mt-4 grid grid-cols-2 gap-2">
+      <div>
+        <div className={inspectorLabelClass()}>Text Color</div>
+        <input
+          type="color"
+          value={(selectedBlock.data as any).defaultCellFormat?.textColor ?? "#111827"}
+          onChange={(e) => {
+            const nextTextColor = e.target.value;
+
+            updateSelectedBlock((block) =>
+              block.type !== "spreadsheet"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      defaultCellFormat: {
+                        ...block.data.defaultCellFormat,
+                        textColor: nextTextColor,
+                      },
+                    },
+                  },
+            );
+          }}
+          className="mt-2 h-10 w-full cursor-pointer rounded-xl border border-neutral-300 bg-white p-1"
+        />
+      </div>
+
+      <div>
+        <div className={inspectorLabelClass()}>Cell Background</div>
+        <input
+          type="color"
+          value={(selectedBlock.data as any).defaultCellFormat?.backgroundColor ?? "#FFFFFF"}
+          onChange={(e) => {
+            const nextBackgroundColor = e.target.value;
+
+            updateSelectedBlock((block) =>
+              block.type !== "spreadsheet"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      defaultCellFormat: {
+                        ...block.data.defaultCellFormat,
+                        backgroundColor: nextBackgroundColor,
+                      },
+                    },
+                  },
+            );
+          }}
+          className="mt-2 h-10 w-full cursor-pointer rounded-xl border border-neutral-300 bg-white p-1"
+        />
+      </div>
+    </div>
+
+    <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-xs leading-5 text-neutral-600">
+      Use “Edit Spreadsheet Mode” to click and type into cells without moving the whole block.
+      Export buttons will be added after the renderer is wired.
     </div>
   </div>
 ) : null}

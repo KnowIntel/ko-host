@@ -7535,6 +7535,209 @@ useEffect(() => {
   );
 }
 
+function renderSpreadsheet(block: any) {
+  const data = block.data ?? {};
+
+  const rowCount = data.rowCount ?? 0;
+  const columnCount = data.columnCount ?? 0;
+
+  const columnLabels = Array.from({ length: columnCount }, (_, index) => {
+    let label = "";
+    let current = index;
+
+    while (current >= 0) {
+      label = String.fromCharCode((current % 26) + 65) + label;
+      current = Math.floor(current / 26) - 1;
+    }
+
+    return label;
+  });
+
+  const getCellKey = (row: number, col: number) => `${row}:${col}`;
+
+  const [activeCell, setActiveCell] = useState<string | null>(
+    data.selectedCell ?? null,
+  );
+
+  const isEditable =
+    data.editMode === true || data.allowUserEngagement === true;
+
+  const updateCellValue = (cellKey: string, value: string) => {
+    const nextCells = {
+      ...(data.cells ?? {}),
+      [cellKey]: {
+        id:
+          data.cells?.[cellKey]?.id ??
+          `${cellKey}_${Date.now()}`,
+        value,
+        format:
+          data.cells?.[cellKey]?.format ??
+          data.defaultCellFormat,
+      },
+    };
+
+    block.data.cells = nextCells;
+  };
+
+  return (
+    <div className="flex h-full w-full flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white">
+      {data.showTitle !== false ? (
+        <div className="border-b border-neutral-200 px-4 py-3">
+          <div className="text-base font-semibold text-neutral-900">
+            {data.title || "Spreadsheet"}
+          </div>
+
+          {data.showCaption === true && data.caption ? (
+            <div className="mt-1 text-sm text-neutral-500">
+              {data.caption}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
+      <div className="overflow-auto">
+        <table
+          className="min-w-full border-collapse"
+          style={{
+            tableLayout: "fixed",
+          }}
+        >
+          <thead>
+            <tr>
+              <th
+                className="sticky left-0 top-0 z-20 h-10 min-w-[50px] border border-neutral-200 bg-neutral-100"
+              />
+
+              {columnLabels.map((label, columnIndex) => (
+                <th
+                  key={label}
+                  className="h-10 border border-neutral-200 bg-neutral-100 px-2 text-center text-xs font-semibold text-neutral-600"
+                  style={{
+                    width:
+                      data.columnWidths?.[String(columnIndex)] ?? 120,
+                    minWidth:
+                      data.columnWidths?.[String(columnIndex)] ?? 120,
+                  }}
+                >
+                  {label}
+                </th>
+              ))}
+            </tr>
+          </thead>
+
+          <tbody>
+            {Array.from({ length: rowCount }).map((_, rowIndex) => (
+              <tr key={rowIndex}>
+                <td
+                  className="sticky left-0 z-10 border border-neutral-200 bg-neutral-100 px-2 text-center text-xs font-semibold text-neutral-600"
+                  style={{
+                    height:
+                      data.rowHeights?.[String(rowIndex)] ?? 36,
+                  }}
+                >
+                  {rowIndex + 1}
+                </td>
+
+                {Array.from({ length: columnCount }).map((__, columnIndex) => {
+                  const cellKey = getCellKey(rowIndex, columnIndex);
+
+                  const cell =
+                    data.cells?.[cellKey] ?? null;
+
+                  const format = {
+                    ...(data.defaultCellFormat ?? {}),
+                    ...(cell?.format ?? {}),
+                  };
+
+                  const isSelected = activeCell === cellKey;
+
+                  return (
+                    <td
+                      key={cellKey}
+                      className={`relative px-2 text-sm outline-none ${
+                        data.showGridlines === false
+                          ? "border-transparent"
+                          : "border border-neutral-200"
+                      }`}
+                      style={{
+                        width:
+                          data.columnWidths?.[String(columnIndex)] ?? 120,
+                        minWidth:
+                          data.columnWidths?.[String(columnIndex)] ?? 120,
+                        height:
+                          data.rowHeights?.[String(rowIndex)] ?? 36,
+                        fontFamily:
+                          format.fontFamily ?? "Inter",
+                        fontSize:
+                          format.fontSize ?? 14,
+                        fontWeight:
+                          format.bold === true ? 700 : 400,
+                        fontStyle:
+                          format.italic === true
+                            ? "italic"
+                            : "normal",
+                        textDecoration:
+                          format.underline === true
+                            ? "underline"
+                            : "none",
+                        color:
+                          format.textColor ?? "#111827",
+                        backgroundColor:
+                          format.backgroundColor ?? "#FFFFFF",
+                        textAlign:
+                          format.horizontalAlign ?? "left",
+                        verticalAlign:
+                          format.verticalAlign ?? "middle",
+                        whiteSpace:
+                          format.wrapText === true
+                            ? "normal"
+                            : "nowrap",
+                      }}
+                      onClick={() => {
+                        setActiveCell(cellKey);
+                      }}
+                    >
+                      {isEditable ? (
+                        <input
+                          value={cell?.value ?? ""}
+                          onChange={(e) =>
+                            updateCellValue(
+                              cellKey,
+                              e.target.value,
+                            )
+                          }
+                          onFocus={() => {
+                            setActiveCell(cellKey);
+                          }}
+                          className={`h-full w-full bg-transparent outline-none ${
+                            isSelected
+                              ? "ring-2 ring-blue-500"
+                              : ""
+                          }`}
+                        />
+                      ) : (
+                        <div
+                          className={`flex h-full min-h-[24px] items-center ${
+                            isSelected
+                              ? "rounded ring-2 ring-blue-500"
+                              : ""
+                          }`}
+                        >
+                          {cell?.value ?? ""}
+                        </div>
+                      )}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 function renderPuzzle(block: Extract<MicrositeBlock, { type: "puzzle" }>) {
   return <PuzzleRenderer block={block} />;
 }
@@ -7836,12 +8039,14 @@ case "cart":
     safeCartSubtotal,
   );
 
-  case "puzzle":
-    return renderPuzzle(block);
-
   case "spin_wheel":
     return renderSpinWheel(block);
 
+  case "spreadsheet":
+    return renderSpreadsheet(block);
+
+  case "puzzle":
+    return renderPuzzle(block);
   
   case "bookmark":
   return null;

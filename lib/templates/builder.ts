@@ -85,6 +85,7 @@ export type BuilderBlockType =
   | "bookmark"
   | "puzzle"
   | "spin_wheel"
+  | "spreadsheet"
   | "label"
   | "text_fx"
   | "image"
@@ -286,6 +287,72 @@ export type SpinWheelBlock = BaseBlock & {
     loserMessage: string;
     cooldownSeconds: number;
     style: TextStyle;
+  };
+};
+
+export type SpreadsheetCellFormat = {
+  fontFamily?: string;
+  fontSize?: number;
+  bold?: boolean;
+  italic?: boolean;
+  underline?: boolean;
+  textColor?: string;
+  backgroundColor?: string;
+  horizontalAlign?: "left" | "center" | "right";
+  verticalAlign?: "top" | "middle" | "bottom";
+  borderColor?: string;
+  borderWidth?: number;
+  borderSides?: {
+    top?: boolean;
+    right?: boolean;
+    bottom?: boolean;
+    left?: boolean;
+  };
+  wrapText?: boolean;
+  numberFormat?: "plain" | "number" | "currency" | "percent" | "date";
+  locked?: boolean;
+};
+
+export type SpreadsheetCell = {
+  id: string;
+  value: string;
+  format?: SpreadsheetCellFormat;
+};
+
+export type SpreadsheetMergeRange = {
+  id: string;
+  startRow: number;
+  startCol: number;
+  endRow: number;
+  endCol: number;
+};
+
+export type SpreadsheetBlock = BaseBlock & {
+  type: "spreadsheet";
+  data: {
+    title: string;
+    caption: string;
+    showTitle: boolean;
+    showCaption: boolean;
+    showGridlines: boolean;
+    allowUserEngagement: boolean;
+    rowCount: number;
+    columnCount: number;
+    columnWidths: Record<string, number>;
+    rowHeights: Record<string, number>;
+    cells: Record<string, SpreadsheetCell>;
+    merges: SpreadsheetMergeRange[];
+    frozenRows: number;
+    frozenColumns: number;
+    defaultCellFormat: SpreadsheetCellFormat;
+    selectedCell?: string;
+    selectedRange?: {
+      startRow: number;
+      startCol: number;
+      endRow: number;
+      endCol: number;
+    };
+    editMode: boolean;
   };
 };
 
@@ -834,6 +901,7 @@ export type MicrositeBlock =
   | BookmarkBlock
   | PuzzleBlock
   | SpinWheelBlock
+  | SpreadsheetBlock
   | LabelBlock
   | TextFxBlock
   | ImageBlock
@@ -1348,6 +1416,89 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
           loserMessage: "Try again next time",
           cooldownSeconds: 86400,
           style: createDefaultTextStyle(),
+        },
+      };
+      
+          case "spreadsheet":
+      return {
+        id: makeId("spreadsheet"),
+        type: "spreadsheet",
+        label: "Spreadsheet",
+        grid: {
+          ...grid,
+          colSpan: 7,
+          rowSpan: 5,
+        },
+        appearance: {
+          ...createDefaultBlockAppearance(),
+          backgroundColor: "#FFFFFF",
+          borderColor: "#CBD5E1",
+          borderWidth: 1,
+          borderRadius: 16,
+        },
+        data: {
+          title: "Spreadsheet",
+          caption: "",
+          showTitle: true,
+          showCaption: false,
+          showGridlines: true,
+          allowUserEngagement: false,
+          rowCount: 6,
+          columnCount: 5,
+          columnWidths: {
+            "0": 120,
+            "1": 160,
+            "2": 120,
+            "3": 120,
+            "4": 160,
+          },
+          rowHeights: {
+            "0": 36,
+            "1": 36,
+            "2": 36,
+            "3": 36,
+            "4": 36,
+            "5": 36,
+          },
+          cells: {
+            "0:0": {
+              id: makeId("cell"),
+              value: "Item",
+            },
+            "0:1": {
+              id: makeId("cell"),
+              value: "Description",
+            },
+            "0:2": {
+              id: makeId("cell"),
+              value: "Amount",
+            },
+            "0:3": {
+              id: makeId("cell"),
+              value: "Status",
+            },
+            "0:4": {
+              id: makeId("cell"),
+              value: "Notes",
+            },
+          },
+          merges: [],
+          frozenRows: 0,
+          frozenColumns: 0,
+          defaultCellFormat: {
+            fontFamily: "Inter",
+            fontSize: 14,
+            textColor: "#111827",
+            backgroundColor: "#FFFFFF",
+            horizontalAlign: "left",
+            verticalAlign: "middle",
+            wrapText: false,
+            numberFormat: "plain",
+            locked: false,
+          },
+          selectedCell: "0:0",
+          selectedRange: undefined,
+          editMode: false,
         },
       };
       
