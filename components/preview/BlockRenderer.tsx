@@ -717,7 +717,14 @@ function renderLabel(
 ) {
   return (
     <div className="h-full w-full p-2" style={getAppearanceStyle(block)}>
-      <div style={getContainerTextStyle(block.data.style, designKey)}>
+      <div
+        style={{
+          ...getContainerTextStyle(block.data.style, designKey),
+          transform: `translate(${((block.data as any).positionX ?? 50) - 50}%, ${
+            ((block.data as any).positionY ?? 50) - 50
+          }%)`,
+        }}
+      >
         {getLabelText(block)}
       </div>
     </div>
@@ -2441,26 +2448,15 @@ function renderTextarea(
   );
 }
 
-function renderLabel(
+function renderFieldLabel(
   key: string,
   text: string,
-  block?: {
-    data?: {
-      positionX?: number;
-      positionY?: number;
-    };
-  },
 ) {
   return (
     <div
       key={key}
       className="text-sm font-medium text-neutral-800"
-      style={{
-        ...getStyle(key),
-        transform: `translate(${(block?.data?.positionX ?? 50) - 50}%, ${
-          (block?.data?.positionY ?? 50) - 50
-        }%)`,
-      }}
+      style={getStyle(key)}
     >
       {text}
     </div>
@@ -2572,7 +2568,7 @@ function renderRadioSection(
         );
 
       case "nameLabel":
-        return renderLabel("nameLabel", "Name");
+        renderFieldLabel("nameLabel", "Name")
 
       case "firstName":
         return renderField("firstName", "First Name", firstName, setFirstName);
