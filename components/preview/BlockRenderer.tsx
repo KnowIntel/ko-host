@@ -7634,7 +7634,9 @@ useEffect(() => {
     };
   }, [block, resizing]);
 
-  const isEditable = data.editMode === true || data.allowUserEngagement === true;
+  const isOwnerEditMode = data.editMode === true;
+  const isPublicEditMode = data.allowUserEngagement === true;
+  const isEditable = isOwnerEditMode || isPublicEditMode;
 
   const updateCellValue = (cellKey: string, value: string) => {
     setCells((current) => {
@@ -7758,6 +7760,39 @@ const selectCell = (cellKey: string) => {
                     };
                     const isSelected = activeCell === cellKey;
 
+                    const formatCellValue = (value: string, numberFormat: string) => {
+  if (!value) return "";
+
+  if (numberFormat === "number") {
+    const numericValue = Number(value);
+    return Number.isFinite(numericValue) ? numericValue.toLocaleString() : value;
+  }
+
+  if (numberFormat === "currency") {
+    const numericValue = Number(value);
+    return Number.isFinite(numericValue)
+      ? numericValue.toLocaleString(undefined, {
+          style: "currency",
+          currency: "USD",
+        })
+      : value;
+  }
+
+  if (numberFormat === "percent") {
+    const numericValue = Number(value);
+    return Number.isFinite(numericValue) ? `${numericValue}%` : value;
+  }
+
+  if (numberFormat === "date") {
+    const dateValue = new Date(value);
+    return Number.isNaN(dateValue.getTime())
+      ? value
+      : dateValue.toLocaleDateString();
+  }
+
+  return value;
+};
+
                     return (
                       <td
                         key={cellKey}
@@ -7774,7 +7809,7 @@ const selectCell = (cellKey: string) => {
                         }}
                         onClick={() => selectCell(cellKey)}
                       >
-                        {isEditable ? (
+                        {isEditable && !(isPublicEditMode && format.locked === true) ? (
                           <input
                             value={cell?.value ?? ""}
                             onChange={(event) =>
@@ -7794,11 +7829,12 @@ const selectCell = (cellKey: string) => {
                                 : "none",
                               color: format.textColor ?? "#111827",
                               textAlign: format.horizontalAlign ?? "left",
+                              whiteSpace: format.wrapText === true ? "normal" : "nowrap",
                             }}
                           />
                         ) : (
                           <div
-                            className={`flex h-full min-h-[24px] items-center px-2 ${
+                            className={`flex h-full min-h-[24px] items-center overflow-hidden px-2 ${
                               isSelected ? "ring-2 ring-blue-500" : ""
                             }`}
                             style={{
@@ -7816,9 +7852,11 @@ const selectCell = (cellKey: string) => {
                                   : format.horizontalAlign === "right"
                                     ? "flex-end"
                                     : "flex-start",
+                              whiteSpace: format.wrapText === true ? "normal" : "nowrap",
+                              overflowWrap: format.wrapText === true ? "anywhere" : "normal",
                             }}
                           >
-                            {cell?.value ?? ""}
+                            {formatCellValue(cell?.value ?? "", format.numberFormat ?? "plain")}
                           </div>
                         )}
                       </td>
