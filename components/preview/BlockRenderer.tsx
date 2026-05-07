@@ -2441,17 +2441,31 @@ function renderTextarea(
   );
 }
 
-  function renderLabel(key: string, text: string) {
-    return (
-      <div
-        key={key}
-        className="text-sm font-medium text-neutral-800"
-        style={getStyle(key)}
-      >
-        {text}
-      </div>
-    );
-  }
+function renderLabel(
+  key: string,
+  text: string,
+  block?: {
+    data?: {
+      positionX?: number;
+      positionY?: number;
+    };
+  },
+) {
+  return (
+    <div
+      key={key}
+      className="text-sm font-medium text-neutral-800"
+      style={{
+        ...getStyle(key),
+        transform: `translate(${((block?.data?.positionX ?? 50) - 50)}%, ${
+          ((block?.data?.positionY ?? 50) - 50
+        }%)`,
+      }}
+    >
+      {text}
+    </div>
+  );
+}
 
 function renderRadioSection(
   key: string,
