@@ -7584,39 +7584,6 @@ function renderSpreadsheet(block: any, previewMode = false) {
     return label;
   });
 
-  const formatCellValue = (value: string, numberFormat: string) => {
-    if (!value) return "";
-
-    if (numberFormat === "number") {
-      const numericValue = Number(value);
-      return Number.isFinite(numericValue) ? numericValue.toLocaleString() : value;
-    }
-
-    if (numberFormat === "currency") {
-      const numericValue = Number(value);
-      return Number.isFinite(numericValue)
-        ? numericValue.toLocaleString(undefined, {
-            style: "currency",
-            currency: "USD",
-          })
-        : value;
-    }
-
-    if (numberFormat === "percent") {
-      const numericValue = Number(value);
-      return Number.isFinite(numericValue) ? `${numericValue}%` : value;
-    }
-
-    if (numberFormat === "date") {
-      const dateValue = new Date(value);
-      return Number.isNaN(dateValue.getTime())
-        ? value
-        : dateValue.toLocaleDateString();
-    }
-
-    return value;
-  };
-
   useEffect(() => {
     if (!resizing) return;
 
@@ -7887,10 +7854,7 @@ function renderSpreadsheet(block: any, previewMode = false) {
                               overflowWrap: isWrapped ? "anywhere" : "normal",
                             }}
                           >
-                            {formatCellValue(
-                              cell?.value ?? "",
-                              format.numberFormat ?? "plain",
-                            )}
+                          {cell?.value ?? ""}
                           </div>
                         )}
                       </td>

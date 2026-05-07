@@ -309,7 +309,6 @@ export type SpreadsheetCellFormat = {
     left?: boolean;
   };
   wrapText?: boolean;
-  numberFormat?: "plain" | "number" | "currency" | "percent" | "date";
   locked?: boolean;
 };
 
