@@ -7556,16 +7556,16 @@ function renderSpreadsheet(block: any, previewMode = false) {
   }>(null);
 
   useEffect(() => {
-  setCells(data.cells ?? {});
-}, [data.cells]);
+    setCells(data.cells ?? {});
+  }, [data.cells]);
 
-useEffect(() => {
-  setColumnWidths(data.columnWidths ?? {});
-}, [data.columnWidths]);
+  useEffect(() => {
+    setColumnWidths(data.columnWidths ?? {});
+  }, [data.columnWidths]);
 
-useEffect(() => {
-  setRowHeights(data.rowHeights ?? {});
-}, [data.rowHeights]);
+  useEffect(() => {
+    setRowHeights(data.rowHeights ?? {});
+  }, [data.rowHeights]);
 
   const rowCount = data.rowCount ?? 6;
   const columnCount = data.columnCount ?? 5;
@@ -7583,6 +7583,39 @@ useEffect(() => {
 
     return label;
   });
+
+  const formatCellValue = (value: string, numberFormat: string) => {
+    if (!value) return "";
+
+    if (numberFormat === "number") {
+      const numericValue = Number(value);
+      return Number.isFinite(numericValue) ? numericValue.toLocaleString() : value;
+    }
+
+    if (numberFormat === "currency") {
+      const numericValue = Number(value);
+      return Number.isFinite(numericValue)
+        ? numericValue.toLocaleString(undefined, {
+            style: "currency",
+            currency: "USD",
+          })
+        : value;
+    }
+
+    if (numberFormat === "percent") {
+      const numericValue = Number(value);
+      return Number.isFinite(numericValue) ? `${numericValue}%` : value;
+    }
+
+    if (numberFormat === "date") {
+      const dateValue = new Date(value);
+      return Number.isNaN(dateValue.getTime())
+        ? value
+        : dateValue.toLocaleDateString();
+    }
+
+    return value;
+  };
 
   useEffect(() => {
     if (!resizing) return;
@@ -7634,9 +7667,9 @@ useEffect(() => {
     };
   }, [block, resizing]);
 
-const isOwnerEditMode = data.editMode === true && previewMode !== true;
-const isPublicEditMode = data.allowUserEngagement === true && previewMode === true;
-const isEditable = isOwnerEditMode || isPublicEditMode;
+  const isOwnerEditMode = data.editMode === true && previewMode !== true;
+  const isPublicEditMode = data.allowUserEngagement === true && previewMode === true;
+  const isEditable = isOwnerEditMode || isPublicEditMode;
 
   const updateCellValue = (cellKey: string, value: string) => {
     setCells((current) => {
@@ -7656,17 +7689,17 @@ const isEditable = isOwnerEditMode || isPublicEditMode;
     });
   };
 
-const selectCell = (cellKey: string) => {
-  setActiveCell(cellKey);
-  block.data.selectedCell = cellKey;
+  const selectCell = (cellKey: string) => {
+    setActiveCell(cellKey);
+    block.data.selectedCell = cellKey;
 
-  if (typeof window !== "undefined") {
-    (window as any).__koHostSpreadsheetActiveCell = {
-      ...((window as any).__koHostSpreadsheetActiveCell ?? {}),
-      [block.id]: cellKey,
-    };
-  }
-};
+    if (typeof window !== "undefined") {
+      (window as any).__koHostSpreadsheetActiveCell = {
+        ...((window as any).__koHostSpreadsheetActiveCell ?? {}),
+        [block.id]: cellKey,
+      };
+    }
+  };
 
   return (
     <div className="flex h-full w-full flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white">
@@ -7675,80 +7708,76 @@ const selectCell = (cellKey: string) => {
           <div className="text-base font-semibold text-neutral-900">
             {data.title || "Spreadsheet"}
           </div>
-
-          {data.showCaption === true && data.caption ? (
-            <div className="mt-1 text-sm text-neutral-500">{data.caption}</div>
-          ) : null}
         </div>
       ) : null}
 
       <div className="min-h-0 flex-1 overflow-auto">
         <table className="border-collapse" style={{ tableLayout: "fixed" }}>
-{data.showHeaders !== false ? (
-  <thead>
-    <tr>
-      <th className="sticky left-0 top-0 z-20 h-10 min-w-[50px] border border-neutral-200 bg-neutral-100" />
+          {data.showHeaders !== false ? (
+            <thead>
+              <tr>
+                <th className="sticky left-0 top-0 z-20 h-10 min-w-[50px] border border-neutral-200 bg-neutral-100" />
 
-      {columnLabels.map((label, columnIndex) => {
-                const width = columnWidths[String(columnIndex)] ?? 120;
+                {columnLabels.map((label, columnIndex) => {
+                  const width = columnWidths[String(columnIndex)] ?? 120;
 
-                return (
-                  <th
-                    key={label}
-                    className="relative h-10 border border-neutral-200 bg-neutral-100 px-2 text-center text-xs font-semibold text-neutral-600"
-                    style={{ width, minWidth: width }}
-                  >
-                    {label}
+                  return (
+                    <th
+                      key={label}
+                      className="relative h-10 border border-neutral-200 bg-neutral-100 px-2 text-center text-xs font-semibold text-neutral-600"
+                      style={{ width, minWidth: width }}
+                    >
+                      {label}
 
-                    <span
-                      className="absolute right-0 top-0 h-full w-2 cursor-col-resize"
-                      onMouseDown={(event) => {
-                        event.preventDefault();
-                        event.stopPropagation();
+                      <span
+                        className="absolute right-0 top-0 h-full w-2 cursor-col-resize"
+                        onMouseDown={(event) => {
+                          event.preventDefault();
+                          event.stopPropagation();
 
-                        setResizing({
-                          type: "column",
-                          index: columnIndex,
-                          startClient: event.clientX,
-                          startSize: width,
-                        });
-                      }}
-                    />
-                  </th>
-                );
-              })}
-            </tr>
-          </thead>
-) : null}
+                          setResizing({
+                            type: "column",
+                            index: columnIndex,
+                            startClient: event.clientX,
+                            startSize: width,
+                          });
+                        }}
+                      />
+                    </th>
+                  );
+                })}
+              </tr>
+            </thead>
+          ) : null}
 
-<tbody>
+          <tbody>
             {Array.from({ length: rowCount }).map((_, rowIndex) => {
               const height = rowHeights[String(rowIndex)] ?? 36;
 
               return (
                 <tr key={rowIndex}>
-{data.showHeaders !== false ? (
-<td
-  className="sticky left-0 z-10 border border-neutral-200 bg-neutral-100 px-2 text-center text-xs font-semibold text-neutral-600"
-  style={{ height }}
->
-  {rowIndex + 1}
+                  {data.showHeaders !== false ? (
+                    <td
+                      className="sticky left-0 z-10 border border-neutral-200 bg-neutral-100 px-2 text-center text-xs font-semibold text-neutral-600"
+                      style={{ height }}
+                    >
+                      <span>{rowIndex + 1}</span>
 
-                    <span
-                      className="absolute bottom-0 left-0 h-2 w-full cursor-row-resize"
-                      onMouseDown={(event) => {
-                        event.preventDefault();
-                        event.stopPropagation();
+                      <span
+                        className="absolute bottom-0 left-0 h-2 w-full cursor-row-resize"
+                        onMouseDown={(event) => {
+                          event.preventDefault();
+                          event.stopPropagation();
 
-                        setResizing({
-                          type: "row",
-                          index: rowIndex,
-                          startClient: event.clientY,
-                          startSize: height,
-                        });
-                      }}
-                    />
-                  </td>
+                          setResizing({
+                            type: "row",
+                            index: rowIndex,
+                            startClient: event.clientY,
+                            startSize: height,
+                          });
+                        }}
+                      />
+                    </td>
                   ) : null}
 
                   {Array.from({ length: columnCount }).map((__, columnIndex) => {
@@ -7759,39 +7788,7 @@ const selectCell = (cellKey: string) => {
                       ...(cell?.format ?? {}),
                     };
                     const isSelected = activeCell === cellKey;
-
-                    const formatCellValue = (value: string, numberFormat: string) => {
-  if (!value) return "";
-
-  if (numberFormat === "number") {
-    const numericValue = Number(value);
-    return Number.isFinite(numericValue) ? numericValue.toLocaleString() : value;
-  }
-
-  if (numberFormat === "currency") {
-    const numericValue = Number(value);
-    return Number.isFinite(numericValue)
-      ? numericValue.toLocaleString(undefined, {
-          style: "currency",
-          currency: "USD",
-        })
-      : value;
-  }
-
-  if (numberFormat === "percent") {
-    const numericValue = Number(value);
-    return Number.isFinite(numericValue) ? `${numericValue}%` : value;
-  }
-
-  if (numberFormat === "date") {
-    const dateValue = new Date(value);
-    return Number.isNaN(dateValue.getTime())
-      ? value
-      : dateValue.toLocaleDateString();
-  }
-
-  return value;
-};
+                    const isWrapped = format.wrapText === true;
 
                     return (
                       <td
@@ -7810,33 +7807,61 @@ const selectCell = (cellKey: string) => {
                         onClick={() => selectCell(cellKey)}
                       >
                         {isEditable && format.locked !== true ? (
-                          <input
-                            value={cell?.value ?? ""}
-                            onChange={(event) =>
-                              updateCellValue(cellKey, event.target.value)
-                            }
-                            onFocus={() => selectCell(cellKey)}
-                            className={`h-full w-full bg-transparent px-2 outline-none ${
-                              isSelected ? "ring-2 ring-blue-500" : ""
-                            }`}
-                            style={{
-                              fontFamily: format.fontFamily ?? "Inter",
-                              fontSize: format.fontSize ?? 14,
-                              fontWeight: format.bold ? 700 : 400,
-                              fontStyle: format.italic ? "italic" : "normal",
-                              textDecoration: format.underline
-                                ? "underline"
-                                : "none",
-                              color: format.textColor ?? "#111827",
-                              textAlign: format.horizontalAlign ?? "left",
-                              whiteSpace: format.wrapText === true ? "normal" : "nowrap",
-                            }}
-                          />
+                          isWrapped ? (
+                            <textarea
+                              value={cell?.value ?? ""}
+                              onChange={(event) =>
+                                updateCellValue(cellKey, event.target.value)
+                              }
+                              onFocus={() => selectCell(cellKey)}
+                              className={`h-full w-full resize-none bg-transparent px-2 py-1 outline-none ${
+                                isSelected ? "ring-2 ring-blue-500" : ""
+                              }`}
+                              style={{
+                                fontFamily: format.fontFamily ?? "Inter",
+                                fontSize: format.fontSize ?? 14,
+                                fontWeight: format.bold ? 700 : 400,
+                                fontStyle: format.italic ? "italic" : "normal",
+                                textDecoration: format.underline
+                                  ? "underline"
+                                  : "none",
+                                color: format.textColor ?? "#111827",
+                                textAlign: format.horizontalAlign ?? "left",
+                                whiteSpace: "normal",
+                                overflowWrap: "anywhere",
+                              }}
+                            />
+                          ) : (
+                            <input
+                              value={cell?.value ?? ""}
+                              onChange={(event) =>
+                                updateCellValue(cellKey, event.target.value)
+                              }
+                              onFocus={() => selectCell(cellKey)}
+                              className={`h-full w-full bg-transparent px-2 outline-none ${
+                                isSelected ? "ring-2 ring-blue-500" : ""
+                              }`}
+                              style={{
+                                fontFamily: format.fontFamily ?? "Inter",
+                                fontSize: format.fontSize ?? 14,
+                                fontWeight: format.bold ? 700 : 400,
+                                fontStyle: format.italic ? "italic" : "normal",
+                                textDecoration: format.underline
+                                  ? "underline"
+                                  : "none",
+                                color: format.textColor ?? "#111827",
+                                textAlign: format.horizontalAlign ?? "left",
+                                whiteSpace: "nowrap",
+                              }}
+                            />
+                          )
                         ) : (
                           <div
-                            className={`flex h-full min-h-[24px] items-center overflow-hidden px-2 ${
-                              isSelected ? "ring-2 ring-blue-500" : ""
-                            }`}
+                            className={`flex h-full min-h-[24px] px-2 ${
+                              isWrapped
+                                ? "whitespace-normal break-words py-1"
+                                : "items-center overflow-hidden whitespace-nowrap"
+                            } ${isSelected ? "ring-2 ring-blue-500" : ""}`}
                             style={{
                               fontFamily: format.fontFamily ?? "Inter",
                               fontSize: format.fontSize ?? 14,
@@ -7852,11 +7877,20 @@ const selectCell = (cellKey: string) => {
                                   : format.horizontalAlign === "right"
                                     ? "flex-end"
                                     : "flex-start",
-                              whiteSpace: format.wrapText === true ? "normal" : "nowrap",
-                              overflowWrap: format.wrapText === true ? "anywhere" : "normal",
+                              alignItems:
+                                format.verticalAlign === "top"
+                                  ? "flex-start"
+                                  : format.verticalAlign === "bottom"
+                                    ? "flex-end"
+                                    : "center",
+                              whiteSpace: isWrapped ? "normal" : "nowrap",
+                              overflowWrap: isWrapped ? "anywhere" : "normal",
                             }}
                           >
-                            {formatCellValue(cell?.value ?? "", format.numberFormat ?? "plain")}
+                            {formatCellValue(
+                              cell?.value ?? "",
+                              format.numberFormat ?? "plain",
+                            )}
                           </div>
                         )}
                       </td>
