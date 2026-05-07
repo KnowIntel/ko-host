@@ -11829,7 +11829,7 @@ if (selectedBlock?.type === "rsvp") {
       return (
         <>
           <div className="mt-3 rounded-xl border border-blue-100 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-800">
-            Active Cell: {selectedCellKey}
+            Active Cell: {selectedRowIndex + 1}:{selectedColumnIndex + 1}
           </div>
 
           <div className="mt-4">
