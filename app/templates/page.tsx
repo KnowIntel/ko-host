@@ -4,6 +4,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import TemplateGrid, {
   type Category,
   type Sort,
@@ -509,8 +510,9 @@ const visibleRecentSites = useMemo(() => {
               Broadcasted sites are shared with permission from their owners.
             </div>
 
-{showWhyKoHost ? (
-  <div className="fixed inset-0 z-[2147483647] isolate overflow-y-auto bg-black/70 backdrop-blur-sm">
+{showWhyKoHost && typeof document !== "undefined"
+  ? createPortal(
+      <div className="fixed inset-0 z-[2147483647] isolate overflow-y-auto bg-black/70 backdrop-blur-sm">
     <div className="min-h-full px-4 py-8 md:px-8">
       <div className="mx-auto w-full max-w-6xl overflow-hidden rounded-[32px] border border-neutral-200 bg-white shadow-2xl">
         {/* HERO */}
@@ -722,8 +724,10 @@ const visibleRecentSites = useMemo(() => {
         </div>
       </div>
     </div>
-  </div>
-) : null}
+      </div>,
+      document.body,
+    )
+  : null}
           </>
         ) : (
           <div className="rounded-xl border border-dashed border-neutral-200 bg-neutral-50 px-3 py-6 text-sm text-neutral-500">
