@@ -12278,6 +12278,10 @@ if (selectedBlock?.type === "rsvp") {
 <label className="mt-4 flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
   <input
     type="checkbox"
+    checked={
+      ((selectedBlock.data as any).cells?.[selectedCellKey]?.format?.wrapText ??
+        false) === true
+    }
     onChange={(e) => updateSelectedCellFormat({ wrapText: e.target.checked })}
   />
   Wrap Text
@@ -12286,6 +12290,10 @@ if (selectedBlock?.type === "rsvp") {
 <label className="mt-3 flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
   <input
     type="checkbox"
+    checked={
+      ((selectedBlock.data as any).cells?.[selectedCellKey]?.format?.locked ??
+        false) === true
+    }
     onChange={(e) => updateSelectedCellFormat({ locked: e.target.checked })}
   />
   Lock Selected Cell
