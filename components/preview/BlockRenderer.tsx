@@ -7555,6 +7555,18 @@ function renderSpreadsheet(block: any) {
     startSize: number;
   }>(null);
 
+  useEffect(() => {
+  setCells(data.cells ?? {});
+}, [data.cells]);
+
+useEffect(() => {
+  setColumnWidths(data.columnWidths ?? {});
+}, [data.columnWidths]);
+
+useEffect(() => {
+  setRowHeights(data.rowHeights ?? {});
+}, [data.rowHeights]);
+
   const rowCount = data.rowCount ?? 6;
   const columnCount = data.columnCount ?? 5;
 
@@ -7642,10 +7654,17 @@ function renderSpreadsheet(block: any) {
     });
   };
 
-  const selectCell = (cellKey: string) => {
-    setActiveCell(cellKey);
-    block.data.selectedCell = cellKey;
-  };
+const selectCell = (cellKey: string) => {
+  setActiveCell(cellKey);
+  block.data.selectedCell = cellKey;
+
+  if (typeof window !== "undefined") {
+    (window as any).__koHostSpreadsheetActiveCell = {
+      ...((window as any).__koHostSpreadsheetActiveCell ?? {}),
+      [block.id]: cellKey,
+    };
+  }
+};
 
   return (
     <div className="flex h-full w-full flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white">

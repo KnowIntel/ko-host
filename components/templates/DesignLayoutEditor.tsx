@@ -11790,7 +11790,12 @@ if (selectedBlock?.type === "rsvp") {
     <div className={inspectorLabelClass()}>Spreadsheet</div>
 
     {(() => {
-      const selectedCellKey = (selectedBlock.data as any).selectedCell ?? "0:0";
+      const selectedCellKey =
+  typeof window !== "undefined"
+    ? ((window as any).__koHostSpreadsheetActiveCell?.[selectedBlock.id] ??
+        (selectedBlock.data as any).selectedCell ??
+        "0:0")
+    : ((selectedBlock.data as any).selectedCell ?? "0:0");
       const selectedRowIndex = Number(String(selectedCellKey).split(":")[0] ?? 0);
       const selectedColumnIndex = Number(String(selectedCellKey).split(":")[1] ?? 0);
 
@@ -11961,117 +11966,145 @@ if (selectedBlock?.type === "rsvp") {
             Edit Spreadsheet Mode
           </label>
 
-          <div className="mt-4 grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              className="h-10 rounded-xl border border-neutral-300 bg-white px-3 text-sm font-semibold text-neutral-800 hover:bg-neutral-50"
-              onClick={() =>
-                updateSelectedBlock((block) => {
-                  if (block.type !== "spreadsheet") return block;
+<div className="mt-4 grid grid-cols-2 gap-2">
+  <button
+    type="button"
+    className="h-10 rounded-xl border border-neutral-300 bg-white px-3 text-sm font-semibold text-neutral-800 hover:bg-neutral-50"
+    onClick={() =>
+      updateSelectedBlock((block) => {
+        if (block.type !== "spreadsheet") return block;
 
-                  return {
-                    ...block,
-                    data: {
-                      ...block.data,
-                      rowCount: block.data.rowCount + 1,
-                      rowHeights: {
-                        ...block.data.rowHeights,
-                        [String(block.data.rowCount)]: 36,
-                      },
-                    },
-                  };
-                })
-              }
-            >
-              Add Row
-            </button>
+        const insertAfter = selectedRowIndex;
+        const nextCells: Record<string, any> = {};
 
-            <button
-              type="button"
-              className="h-10 rounded-xl border border-neutral-300 bg-white px-3 text-sm font-semibold text-neutral-800 hover:bg-neutral-50"
-              onClick={() =>
-                updateSelectedBlock((block) => {
-                  if (block.type !== "spreadsheet") return block;
+        Object.entries(block.data.cells ?? {}).forEach(([key, cell]) => {
+          const [row, col] = key.split(":").map(Number);
+          const nextRow = row > insertAfter ? row + 1 : row;
+          nextCells[`${nextRow}:${col}`] = cell;
+        });
 
-                  return {
-                    ...block,
-                    data: {
-                      ...block.data,
-                      columnCount: block.data.columnCount + 1,
-                      columnWidths: {
-                        ...block.data.columnWidths,
-                        [String(block.data.columnCount)]: 120,
-                      },
-                    },
-                  };
-                })
-              }
-            >
-              Add Column
-            </button>
-          </div>
+        return {
+          ...block,
+          data: {
+            ...block.data,
+            rowCount: block.data.rowCount + 1,
+            cells: nextCells,
+            rowHeights: {
+              ...block.data.rowHeights,
+              [String(insertAfter + 1)]: 36,
+            },
+            selectedCell: `${insertAfter + 1}:${selectedColumnIndex}`,
+          },
+        };
+      })
+    }
+  >
+    Add Row
+  </button>
 
-          <div className="mt-4 grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              disabled={(selectedBlock.data as any).rowCount <= 1}
-              className="h-10 rounded-xl border border-neutral-300 bg-white px-3 text-sm font-semibold text-neutral-800 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:bg-neutral-100 disabled:text-neutral-400"
-              onClick={() =>
-                updateSelectedBlock((block) => {
-                  if (block.type !== "spreadsheet") return block;
+  <button
+    type="button"
+    className="h-10 rounded-xl border border-neutral-300 bg-white px-3 text-sm font-semibold text-neutral-800 hover:bg-neutral-50"
+    onClick={() =>
+      updateSelectedBlock((block) => {
+        if (block.type !== "spreadsheet") return block;
 
-                  const nextCells = Object.fromEntries(
-                    Object.entries(block.data.cells ?? {}).filter(([key]) => {
-                      const rowIndex = Number(key.split(":")[0]);
-                      return rowIndex !== selectedRowIndex;
-                    }),
-                  );
+        const insertAfter = selectedColumnIndex;
+        const nextCells: Record<string, any> = {};
 
-                  return {
-                    ...block,
-                    data: {
-                      ...block.data,
-                      rowCount: Math.max(1, block.data.rowCount - 1),
-                      cells: nextCells,
-                      selectedCell: "0:0",
-                    },
-                  };
-                })
-              }
-            >
-              Delete Active Row
-            </button>
+        Object.entries(block.data.cells ?? {}).forEach(([key, cell]) => {
+          const [row, col] = key.split(":").map(Number);
+          const nextCol = col > insertAfter ? col + 1 : col;
+          nextCells[`${row}:${nextCol}`] = cell;
+        });
 
-            <button
-              type="button"
-              disabled={(selectedBlock.data as any).columnCount <= 1}
-              className="h-10 rounded-xl border border-neutral-300 bg-white px-3 text-sm font-semibold text-neutral-800 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:bg-neutral-100 disabled:text-neutral-400"
-              onClick={() =>
-                updateSelectedBlock((block) => {
-                  if (block.type !== "spreadsheet") return block;
+        return {
+          ...block,
+          data: {
+            ...block.data,
+            columnCount: block.data.columnCount + 1,
+            cells: nextCells,
+            columnWidths: {
+              ...block.data.columnWidths,
+              [String(insertAfter + 1)]: 120,
+            },
+            selectedCell: `${selectedRowIndex}:${insertAfter + 1}`,
+          },
+        };
+      })
+    }
+  >
+    Add Column
+  </button>
+</div>
 
-                  const nextCells = Object.fromEntries(
-                    Object.entries(block.data.cells ?? {}).filter(([key]) => {
-                      const columnIndex = Number(key.split(":")[1]);
-                      return columnIndex !== selectedColumnIndex;
-                    }),
-                  );
+<div className="mt-4 grid grid-cols-2 gap-2">
+  <button
+    type="button"
+    disabled={(selectedBlock.data as any).rowCount <= 1}
+    className="h-10 rounded-xl border border-neutral-300 bg-white px-3 text-sm font-semibold text-neutral-800 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:bg-neutral-100 disabled:text-neutral-400"
+    onClick={() =>
+      updateSelectedBlock((block) => {
+        if (block.type !== "spreadsheet") return block;
 
-                  return {
-                    ...block,
-                    data: {
-                      ...block.data,
-                      columnCount: Math.max(1, block.data.columnCount - 1),
-                      cells: nextCells,
-                      selectedCell: "0:0",
-                    },
-                  };
-                })
-              }
-            >
-              Delete Active Column
-            </button>
-          </div>
+        const nextCells: Record<string, any> = {};
+
+        Object.entries(block.data.cells ?? {}).forEach(([key, cell]) => {
+          const [row, col] = key.split(":").map(Number);
+          if (row === selectedRowIndex) return;
+
+          const nextRow = row > selectedRowIndex ? row - 1 : row;
+          nextCells[`${nextRow}:${col}`] = cell;
+        });
+
+        return {
+          ...block,
+          data: {
+            ...block.data,
+            rowCount: Math.max(1, block.data.rowCount - 1),
+            cells: nextCells,
+            selectedCell: `${Math.max(0, selectedRowIndex - 1)}:${selectedColumnIndex}`,
+          },
+        };
+      })
+    }
+  >
+    Delete Row
+  </button>
+
+  <button
+    type="button"
+    disabled={(selectedBlock.data as any).columnCount <= 1}
+    className="h-10 rounded-xl border border-neutral-300 bg-white px-3 text-sm font-semibold text-neutral-800 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:bg-neutral-100 disabled:text-neutral-400"
+    onClick={() =>
+      updateSelectedBlock((block) => {
+        if (block.type !== "spreadsheet") return block;
+
+        const nextCells: Record<string, any> = {};
+
+        Object.entries(block.data.cells ?? {}).forEach(([key, cell]) => {
+          const [row, col] = key.split(":").map(Number);
+          if (col === selectedColumnIndex) return;
+
+          const nextCol = col > selectedColumnIndex ? col - 1 : col;
+          nextCells[`${row}:${nextCol}`] = cell;
+        });
+
+        return {
+          ...block,
+          data: {
+            ...block.data,
+            columnCount: Math.max(1, block.data.columnCount - 1),
+            cells: nextCells,
+            selectedCell: `${selectedRowIndex}:${Math.max(0, selectedColumnIndex - 1)}`,
+          },
+        };
+      })
+    }
+  >
+    Delete Column
+  </button>
+</div>
 
           <div className="mt-4">
             <div className={inspectorLabelClass()}>Selected Cell Font Size</div>
@@ -12088,6 +12121,64 @@ if (selectedBlock?.type === "rsvp") {
               placeholder="14"
             />
           </div>
+
+          <div className="mt-4">
+  <div className={inspectorLabelClass()}>Selected Row Height</div>
+  <input
+    type="number"
+    min={24}
+    max={200}
+    value={(selectedBlock.data as any).rowHeights?.[String(selectedRowIndex)] ?? 36}
+    onChange={(e) => {
+      const nextHeight = Math.max(24, Math.min(200, Number(e.target.value) || 36));
+
+      updateSelectedBlock((block) =>
+        block.type !== "spreadsheet"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                rowHeights: {
+                  ...block.data.rowHeights,
+                  [String(selectedRowIndex)]: nextHeight,
+                },
+              },
+            },
+      );
+    }}
+    className={inspectorInputClass()}
+  />
+</div>
+
+<div className="mt-4">
+  <div className={inspectorLabelClass()}>Selected Column Width</div>
+  <input
+    type="number"
+    min={48}
+    max={400}
+    value={(selectedBlock.data as any).columnWidths?.[String(selectedColumnIndex)] ?? 120}
+    onChange={(e) => {
+      const nextWidth = Math.max(48, Math.min(400, Number(e.target.value) || 120));
+
+      updateSelectedBlock((block) =>
+        block.type !== "spreadsheet"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                columnWidths: {
+                  ...block.data.columnWidths,
+                  [String(selectedColumnIndex)]: nextWidth,
+                },
+              },
+            },
+      );
+    }}
+    className={inspectorInputClass()}
+  />
+</div>
 
           <div className="mt-4 grid grid-cols-2 gap-2">
             <div>
