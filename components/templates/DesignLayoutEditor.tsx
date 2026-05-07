@@ -5006,15 +5006,29 @@ return (
           ?.backgroundColor
       : "transparent";
 
-  return (
-    <div
-      className="h-full w-full p-3"
+return (
+  <div
+    className="h-full w-full p-3"
+    style={{
+      backgroundColor: pageBlockBg,
+    }}
+  >
+    <textarea
+      value={textValue}
+      onChange={(e) => updateTextByCanvasId(item.id, e.target.value)}
+      onClick={(e) => e.stopPropagation()}
+      className="block h-full w-full resize-none bg-transparent outline-none"
+      placeholder="Enter text..."
       style={{
-        backgroundColor: pageBlockBg,
+        ...getInlineTextStyle(pageTextStyle),
+        padding: 0,
+        margin: 0,
+        border: "none",
+        boxSizing: "border-box",
       }}
-    >
-    </div>
-  );
+    />
+  </div>
+);
 }
 
     const block = draft.blocks.find((b) => b.id === item.id);
