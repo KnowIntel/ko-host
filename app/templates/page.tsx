@@ -566,7 +566,7 @@ const visibleRecentSites = useMemo(() => {
         </div>
 
         {/* CONTENT */}
-        <div className="grid gap-8 px-6 py-8 md:grid-cols-[1.2fr_0.8fr] md:px-10 md:py-10">
+        <div className="grid gap-8 px-6 py-8 md:grid-cols-[0.95fr_1.05fr] md:px-10 md:py-10">
           {/* LEFT */}
           <div>
             <div className="rounded-3xl border border-neutral-200 bg-neutral-50 p-6">
@@ -656,9 +656,9 @@ const visibleRecentSites = useMemo(() => {
                       <th className="border-b border-neutral-200 px-4 py-3 font-semibold text-neutral-700">
                         Feature
                       </th>
-                      <th className="border-b border-neutral-200 px-4 py-3 font-semibold text-neutral-950">
-                        Ko-Host
-                      </th>
+                    <th className="whitespace-nowrap border-b border-neutral-200 px-5 py-3 font-semibold text-neutral-950">
+                      Ko-Host
+                    </th>
                       <th className="border-b border-neutral-200 px-4 py-3 font-semibold text-neutral-700">
                         Wix / Squarespace
                       </th>
@@ -682,7 +682,7 @@ const visibleRecentSites = useMemo(() => {
                           {feature}
                         </td>
 
-                        <td className="bg-green-50 px-4 py-3 font-semibold text-green-700">
+                        <td className="whitespace-nowrap bg-green-50 px-5 py-3 font-semibold text-green-700">
                           {koHost}
                         </td>
 
