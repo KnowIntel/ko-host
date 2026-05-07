@@ -811,35 +811,45 @@ function renderImage(
   const translateY = (positionY - 50) * 0.6;
 
   const fadeMaskStyle = getImageFadeMaskStyle(block.data.image);
+  const frameStyle = getImageFrameStyle(block);
   const showCaption = Boolean((block.data as any).addCaption);
   const caption = String((block.data as any).caption ?? "").trim();
   const captionStyle = ((block.data as any).captionStyle ?? {}) as TextStyle;
 
   return (
     <div className="flex h-full w-full flex-col overflow-hidden">
-      <div className="min-h-0 flex-1 overflow-hidden" style={getImageFrameStyle(block)}>
-        <img
-          src={block.data.image.url}
-          alt={block.data.image.alt || ""}
-          className="h-full w-full"
+      <div className="min-h-0 flex-1 overflow-hidden">
+        <div
+          className="h-full w-full overflow-hidden"
           style={{
-            objectFit: getImageObjectFit(block),
-            objectPosition: "center center",
+            ...frameStyle,
             transform: `translate(${translateX}%, ${translateY}%) scale(${zoom}) rotate(${rotation}deg)`,
             transformOrigin: "center center",
             opacity: block.data.image.opacity ?? 1,
-            ...fadeMaskStyle,
           }}
-        />
+        >
+          <img
+            src={block.data.image.url}
+            alt={block.data.image.alt || ""}
+            className="h-full w-full"
+            style={{
+              objectFit: getImageObjectFit(block),
+              objectPosition: "center center",
+              transform: "none",
+              opacity: 1,
+              ...fadeMaskStyle,
+            }}
+          />
+        </div>
       </div>
 
       {showCaption && caption ? (
-<div
-  className="shrink-0 px-2 py-1 text-xs text-neutral-700"
-  style={getContainerTextStyle(captionStyle, designKey)}
->
-  {caption}
-</div>
+        <div
+          className="shrink-0 px-2 py-1 text-xs text-neutral-700"
+          style={getContainerTextStyle(captionStyle, designKey)}
+        >
+          {caption}
+        </div>
       ) : null}
     </div>
   );

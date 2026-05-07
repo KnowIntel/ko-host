@@ -1546,6 +1546,65 @@ const showBorderWidthRadiusControls =
   ]);
 
   useEffect(() => {
+  const handleTextShortcut = (event: KeyboardEvent) => {
+    const isCmd = event.ctrlKey || event.metaKey;
+    if (!isCmd || !selectedBlock) return;
+
+    const key = event.key.toLowerCase();
+    if (!["b", "i", "u"].includes(key)) return;
+
+    if (
+      event.target instanceof HTMLInputElement ||
+      event.target instanceof HTMLTextAreaElement ||
+      (event.target instanceof HTMLElement && event.target.isContentEditable)
+    ) {
+      return;
+    }
+
+    if (
+      selectedBlock.type !== "label" &&
+      selectedBlock.type !== "text_fx" &&
+      selectedBlock.type !== "cta" &&
+      selectedBlock.type !== "rich_text"
+    ) {
+      return;
+    }
+
+    event.preventDefault();
+
+    updateSelectedBlock((currentBlock) => {
+      if (
+        currentBlock.type !== "label" &&
+        currentBlock.type !== "text_fx" &&
+        currentBlock.type !== "cta" &&
+        currentBlock.type !== "rich_text"
+      ) {
+        return currentBlock;
+      }
+
+      const currentStyle = ((currentBlock.data as any).style ?? {}) as TextStyle;
+
+      return {
+        ...currentBlock,
+        data: {
+          ...(currentBlock.data as any),
+          style: {
+            ...currentStyle,
+            bold: key === "b" ? !currentStyle.bold : currentStyle.bold,
+            italic: key === "i" ? !currentStyle.italic : currentStyle.italic,
+            underline:
+              key === "u" ? !currentStyle.underline : currentStyle.underline,
+          },
+        },
+      };
+    });
+  };
+
+  window.addEventListener("keydown", handleTextShortcut);
+  return () => window.removeEventListener("keydown", handleTextShortcut);
+}, [selectedBlock?.id, selectedBlock?.type, updateSelectedBlock]);
+  
+  useEffect(() => {
   function handleKey(e: KeyboardEvent) {
     if (!selectedBlock) return;
 
@@ -4954,20 +5013,6 @@ return (
         backgroundColor: pageBlockBg,
       }}
     >
-      <textarea
-        value={textValue}
-        onChange={(e) => updateTextByCanvasId(item.id, e.target.value)}
-        onClick={(e) => e.stopPropagation()}
-        className="block h-full w-full resize-none bg-transparent outline-none"
-        placeholder={item.label || item.type}
-        style={{
-          ...getInlineTextStyle(pageTextStyle),
-          padding: 0,
-          margin: 0,
-          border: "none",
-          boxSizing: "border-box",
-        }}
-      />
     </div>
   );
 }
@@ -5004,20 +5049,23 @@ return (
             : undefined,
       }}
     >
-      <textarea
-        value={block.data.text || ""}
-        onChange={(e) => updateTextByCanvasId(block.id, e.target.value)}
-        onClick={(e) => e.stopPropagation()}
-        className="block h-full w-full resize-none bg-transparent outline-none"
-        placeholder="Label"
-        style={{
-          ...getInlineTextStyle(block.data.style),
-          padding: 0,
-          margin: 0,
-          border: "none",
-          boxSizing: "border-box",
-        }}
-      />
+    <textarea
+      value={block.data.text || ""}
+      onChange={(e) => updateTextByCanvasId(block.id, e.target.value)}
+      onClick={(e) => e.stopPropagation()}
+      className="block h-full w-full resize-none bg-transparent outline-none"
+      placeholder="Label"
+      style={{
+        ...getInlineTextStyle(block.data.style),
+        padding: 0,
+        margin: 0,
+        border: "none",
+        boxSizing: "border-box",
+        transform: `translate(${((block.data as any).positionX ?? 50) - 50}%, ${
+          ((block.data as any).positionY ?? 50) - 50
+        }%)`,
+      }}
+    />
     </div>
   );
 }
@@ -14537,6 +14585,66 @@ onInput={(e) => {
     </button>
   </div>
 </div>
+    </div>
+  </div>
+) : null}
+
+{selectedBlock?.type === "label" ? (
+  <div className={inspectorCardClass()}>
+    <div className={inspectorLabelClass()}>Label Position</div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Horizontal Position</div>
+      <input
+        type="range"
+        min={0}
+        max={100}
+        value={(selectedBlock.data as any).positionX ?? 50}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "label"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...(block.data as any),
+                    positionX: Number(e.target.value),
+                  },
+                },
+          )
+        }
+        className="mt-2 w-full"
+      />
+      <div className="mt-1 text-xs text-neutral-500">
+        {(selectedBlock.data as any).positionX ?? 50}%
+      </div>
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Vertical Position</div>
+      <input
+        type="range"
+        min={0}
+        max={100}
+        value={(selectedBlock.data as any).positionY ?? 50}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "label"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...(block.data as any),
+                    positionY: Number(e.target.value),
+                  },
+                },
+          )
+        }
+        className="mt-2 w-full"
+      />
+      <div className="mt-1 text-xs text-neutral-500">
+        {(selectedBlock.data as any).positionY ?? 50}%
+      </div>
     </div>
   </div>
 ) : null}

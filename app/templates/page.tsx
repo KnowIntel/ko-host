@@ -540,7 +540,7 @@ const visibleRecentSites = useMemo(() => {
 
             <p className="mt-6 max-w-3xl text-base leading-8 text-neutral-300 md:text-lg">
               Create focused, purpose-built microsites for events, launches,
-              announcements, experiences, and communities — without the
+              announcements, experiences, and communities... without the
               complexity or long-term commitment of traditional website
               platforms.
             </p>
@@ -703,7 +703,7 @@ const visibleRecentSites = useMemo(() => {
 
               <p className="mt-3 text-sm leading-7 text-neutral-700">
                 Ko-Host gives you hosting, publishing, interactive features,
-                and custom microsites — without the complexity or long-term
+                and custom microsites... without the complexity or long-term
                 commitment of traditional website platforms.
               </p>
 
