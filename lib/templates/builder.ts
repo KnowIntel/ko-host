@@ -1492,7 +1492,6 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
             horizontalAlign: "left",
             verticalAlign: "middle",
             wrapText: false,
-            numberFormat: "plain",
             locked: false,
           },
           selectedCell: "0:0",

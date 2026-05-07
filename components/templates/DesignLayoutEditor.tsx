@@ -283,6 +283,7 @@ const CATEGORY_BUTTONS: Record<
 { kind: "block", label: "Label", type: "label" },
 { kind: "block", label: "TextFX", type: "text_fx" },
 { kind: "block", label: "Rich Text", type: "rich_text" },
+{ kind: "block", label: "Spreadsheet", type: "spreadsheet" },
   ],
   Media: [
     { kind: "block", label: "Image", type: "image" },
@@ -315,7 +316,6 @@ Utilities: [
   "Data & Metrics": [
     { kind: "block", label: "Highlight", type: "highlight" },
     { kind: "block", label: "Progress Bar", type: "progress_bar" },
-    { kind: "block", label: "Spreadsheet", type: "spreadsheet" },
   ],
 Scheduling: [
   { kind: "block", label: "Countdown", type: "countdown" },
