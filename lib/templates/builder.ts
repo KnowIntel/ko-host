@@ -333,8 +333,8 @@ export type SpreadsheetBlock = BaseBlock & {
     title: string;
     caption: string;
     showTitle: boolean;
-    showCaption: boolean;
     showGridlines: boolean;
+    showHeaders: boolean;
     allowUserEngagement: boolean;
     rowCount: number;
     columnCount: number;
@@ -1440,8 +1440,8 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
           title: "Spreadsheet",
           caption: "",
           showTitle: true,
-          showCaption: false,
           showGridlines: true,
+          showHeaders: true,
           allowUserEngagement: false,
           rowCount: 6,
           columnCount: 5,
@@ -1501,7 +1501,7 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
           editMode: false,
         },
       };
-      
+
     case "label":
       return {
         id: makeId("label"),

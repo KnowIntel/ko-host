@@ -7682,11 +7682,12 @@ const selectCell = (cellKey: string) => {
 
       <div className="min-h-0 flex-1 overflow-auto">
         <table className="border-collapse" style={{ tableLayout: "fixed" }}>
-          <thead>
-            <tr>
-              <th className="sticky left-0 top-0 z-20 h-10 min-w-[50px] border border-neutral-200 bg-neutral-100" />
+{data.showHeaders !== false ? (
+  <thead>
+    <tr>
+      <th className="sticky left-0 top-0 z-20 h-10 min-w-[50px] border border-neutral-200 bg-neutral-100" />
 
-              {columnLabels.map((label, columnIndex) => {
+      {columnLabels.map((label, columnIndex) => {
                 const width = columnWidths[String(columnIndex)] ?? 120;
 
                 return (
@@ -7716,18 +7717,20 @@ const selectCell = (cellKey: string) => {
               })}
             </tr>
           </thead>
+) : null}
 
-          <tbody>
+<tbody>
             {Array.from({ length: rowCount }).map((_, rowIndex) => {
               const height = rowHeights[String(rowIndex)] ?? 36;
 
               return (
                 <tr key={rowIndex}>
-                  <td
-                    className="sticky left-0 z-10 border border-neutral-200 bg-neutral-100 px-2 text-center text-xs font-semibold text-neutral-600"
-                    style={{ height }}
-                  >
-                    {rowIndex + 1}
+{data.showHeaders !== false ? (
+<td
+  className="sticky left-0 z-10 border border-neutral-200 bg-neutral-100 px-2 text-center text-xs font-semibold text-neutral-600"
+  style={{ height }}
+>
+  {rowIndex + 1}
 
                     <span
                       className="absolute bottom-0 left-0 h-2 w-full cursor-row-resize"
@@ -7744,6 +7747,7 @@ const selectCell = (cellKey: string) => {
                       }}
                     />
                   </td>
+                  ) : null}
 
                   {Array.from({ length: columnCount }).map((__, columnIndex) => {
                     const cellKey = getCellKey(rowIndex, columnIndex);

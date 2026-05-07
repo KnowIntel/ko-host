@@ -11903,26 +11903,26 @@ if (selectedBlock?.type === "rsvp") {
             Show Title
           </label>
 
-          <label className="mt-3 flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
-            <input
-              type="checkbox"
-              checked={(selectedBlock.data as any).showCaption === true}
-              onChange={(e) =>
-                updateSelectedBlock((block) =>
-                  block.type !== "spreadsheet"
-                    ? block
-                    : {
-                        ...block,
-                        data: {
-                          ...block.data,
-                          showCaption: e.target.checked,
-                        },
-                      },
-                )
-              }
-            />
-            Show Caption
-          </label>
+<label className="mt-3 flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+  <input
+    type="checkbox"
+    checked={(selectedBlock.data as any).showHeaders !== false}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "spreadsheet"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                showHeaders: e.target.checked,
+              },
+            },
+      )
+    }
+  />
+  Show Headers
+</label>
 
           <label className="mt-3 flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
             <input
