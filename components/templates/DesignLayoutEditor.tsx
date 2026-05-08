@@ -15120,6 +15120,35 @@ onInput={(e) => {
   </div>
 </div>
 
+<div className="mt-4">
+  <div className={inspectorLabelClass()}>Card Scale</div>
+  <input
+    type="range"
+    min={50}
+    max={100}
+    value={Math.round(((selectedBlock.data as any).scale ?? 1) * 100)}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "listing"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                scale: Math.max(
+                  0.5,
+                  Math.min(1, Number(e.target.value) / 100 || 1),
+                ),
+              },
+            },
+      )
+    }
+    className="mt-2 w-full"
+  />
+  <div className="mt-1 text-xs text-neutral-500">
+    {Math.round(((selectedBlock.data as any).scale ?? 1) * 100)}%
+  </div>
+</div>
 
     <div className="mt-5">
       <div className={inspectorLabelClass()}>Metadata</div>

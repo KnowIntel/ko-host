@@ -677,6 +677,7 @@ export type ListingBlock = BaseBlock & {
       positionY?: number;
       zoom?: number;
       rotation?: number;
+      scale?: number;
       opacity?: number;
     };
     title: string;
@@ -1220,6 +1221,11 @@ function normalizeListingBlock(block: ListingBlock): ListingBlock {
           Number.isFinite(block.data.image.rotation)
             ? block.data.image.rotation
             : 0,
+        scale:
+          typeof block.data.scale === "number" &&
+          Number.isFinite(block.data.scale)
+            ? Math.max(0.5, Math.min(1, block.data.scale))
+            : 1,
         opacity:
           typeof block.data.image?.opacity === "number" &&
           Number.isFinite(block.data.image.opacity)
@@ -2015,6 +2021,7 @@ data: {
             positionY: 50,
             zoom: 1,
             rotation: 0,
+            scale: 1,
             opacity: 1,
           },
           title: "Listing Title",

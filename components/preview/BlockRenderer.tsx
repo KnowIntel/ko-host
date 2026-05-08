@@ -887,6 +887,10 @@ function renderListing(
   -45,
   Math.min(45, Number((block.data as any).rotation) || 0),
 );
+const cardScale = Math.max(
+  0.5,
+  Math.min(1, Number((block.data as any).scale) || 1),
+);
 
   const positionX = image.positionX ?? 50;
   const positionY = image.positionY ?? 50;
@@ -908,7 +912,7 @@ if (cardVariant === "compact") {
     <div
       className="h-full w-full overflow-visible"
       style={{
-        transform: `rotate(${cardRotation}deg)`,
+        transform: `scale(${cardScale}) rotate(${cardRotation}deg)`,
         transformOrigin: "center center",
       }}
     >
@@ -1045,7 +1049,7 @@ return (
   <div
     className="h-full w-full overflow-visible"
     style={{
-      transform: `rotate(${cardRotation}deg)`,
+      transform: `scale(${cardScale}) rotate(${cardRotation}deg)`,
       transformOrigin: "center center",
     }}
   >
