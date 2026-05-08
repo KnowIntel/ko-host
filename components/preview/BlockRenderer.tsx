@@ -7809,7 +7809,9 @@ const selectCell = (cellKey: string, multiSelect = false) => {
                           height,
                           backgroundColor: format.backgroundColor ?? "#FFFFFF",
                         }}
-                        onClick={(event) => selectCell(cellKey, event.ctrlKey || event.metaKey)}
+                        onMouseDown={(event) => {
+                            selectCell(cellKey, event.ctrlKey || event.metaKey);
+                          }}
                       >
                         {isEditable && format.locked !== true ? (
                           isWrapped ? (
@@ -7818,7 +7820,11 @@ const selectCell = (cellKey: string, multiSelect = false) => {
                               onChange={(event) =>
                                 updateCellValue(cellKey, event.target.value)
                               }
-                              onFocus={() => selectCell(cellKey, false)}
+                              onFocus={() => {
+                              if (!selectedCells.includes(cellKey)) {
+                                selectCell(cellKey, false);
+                              }
+                            }}
                               className={`h-full w-full resize-none bg-transparent px-2 py-1 outline-none ${
                                 isSelected ? "ring-2 ring-blue-500" : ""
                               }`}
