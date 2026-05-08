@@ -6433,6 +6433,28 @@ const handleJumpToFullCanvasView = () => {
   });
 };
 
+const getSaveFailureHelp = (message?: string) => {
+  const lowerMessage = String(message ?? "").toLowerCase();
+
+  if (lowerMessage.includes("payload") || lowerMessage.includes("too large")) {
+    return "Your draft is likely too large. Remove oversized uploaded images, avoid base64/data URLs, or replace large Supabase-hosted images with /public/designs assets.";
+  }
+
+  if (lowerMessage.includes("network") || lowerMessage.includes("fetch")) {
+    return "Network request failed. Check your internet connection, then try saving again.";
+  }
+
+  if (lowerMessage.includes("unauthorized") || lowerMessage.includes("401")) {
+    return "Your session may have expired. Sign in again, then retry saving.";
+  }
+
+  if (lowerMessage.includes("supabase") || lowerMessage.includes("402")) {
+    return "Supabase may be blocking requests due to quota or billing limits. Check Supabase usage and reduce storage/egress.";
+  }
+
+  return "Try again. If it keeps failing, reduce large images/files in the draft and check the browser console/network tab for the exact error.";
+};
+
 return (
   <div className="flex min-h-screen flex-col bg-[#f3f3f3] pt-4">
     <div className="border-b border-black/10 bg-white px-6 py-3">
@@ -17136,9 +17158,24 @@ className="h-[44px] w-[180px] rounded-md border border-neutral-300 bg-white px-3
         ) : null}
       </div>
 
-      {saveMessage ? (
-        <div className="text-xs text-neutral-500">{saveMessage}</div>
-      ) : null}
+{saveMessage ? (
+  <div
+    className={[
+      "max-w-xl rounded-xl px-3 py-2 text-xs leading-5",
+      saveState === "error"
+        ? "border border-red-200 bg-red-50 text-red-700"
+        : "text-neutral-500",
+    ].join(" ")}
+  >
+    <div>{saveMessage}</div>
+
+    {saveState === "error" ? (
+      <div className="mt-1 font-medium">
+        How to correct it: {getSaveFailureHelp(saveMessage)}
+      </div>
+    ) : null}
+  </div>
+) : null}
     </div>
   </div>
 </div>
