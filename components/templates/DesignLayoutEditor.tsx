@@ -1545,35 +1545,20 @@ const showBorderWidthRadiusControls =
     pageBackgroundImageFit,
   ]);
 
-useEffect(() => {
+  useEffect(() => {
   const handleTextShortcut = (event: KeyboardEvent) => {
-    const isCmd = event.ctrlKey || event.metaKey;
-    if (!isCmd) return;
+const isCmd = event.ctrlKey || event.metaKey;
+if (!isCmd) return;
+
+if (event.key.toLowerCase() === "s") {
+  event.preventDefault();
+  void onSaveDraft?.(draft);
+  return;
+}
+
+if (!selectedBlock) return;
 
     const key = event.key.toLowerCase();
-
-    if (key === "s") {
-      event.preventDefault();
-      onSaveDraft?.();
-      return;
-    }
-
-    if (key === "=" || key === "+") {
-      event.preventDefault();
-
-      setCanvasZoom((current) => Math.min(2, current + 0.1));
-      return;
-    }
-
-    if (key === "-") {
-      event.preventDefault();
-
-      setCanvasZoom((current) => Math.max(0.3, current - 0.1));
-      return;
-    }
-
-    if (!selectedBlock) return;
-
     if (!["b", "i", "u"].includes(key)) return;
 
     if (
@@ -1624,16 +1609,8 @@ useEffect(() => {
   };
 
   window.addEventListener("keydown", handleTextShortcut);
-
-  return () =>
-    window.removeEventListener("keydown", handleTextShortcut);
-}, [
-  selectedBlock?.id,
-  selectedBlock?.type,
-  updateSelectedBlock,
-  onSaveDraft,
-  setCanvasZoom,
-]);
+  return () => window.removeEventListener("keydown", handleTextShortcut);
+}, [draft, onSaveDraft, selectedBlock?.id, selectedBlock?.type, updateSelectedBlock]);
   
   useEffect(() => {
   function handleKey(e: KeyboardEvent) {
