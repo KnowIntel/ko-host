@@ -11860,41 +11860,93 @@ if (selectedBlock?.type === "rsvp") {
     <div className={inspectorLabelClass()}>Spreadsheet</div>
 
     {(() => {
-      const selectedCellKey =
+const selectedCellKey =
   typeof window !== "undefined"
     ? ((window as any).__koHostSpreadsheetActiveCell?.[selectedBlock.id] ??
         (selectedBlock.data as any).selectedCell ??
         "0:0")
     : ((selectedBlock.data as any).selectedCell ?? "0:0");
-      const selectedRowIndex = Number(String(selectedCellKey).split(":")[0] ?? 0);
-      const selectedColumnIndex = Number(String(selectedCellKey).split(":")[1] ?? 0);
 
-      const updateSelectedCellFormat = (patch: Record<string, any>) => {
-        updateSelectedBlock((block) => {
-          if (block.type !== "spreadsheet") return block;
+const selectedCells =
+  Array.isArray((selectedBlock.data as any).selectedCells) &&
+  (selectedBlock.data as any).selectedCells.length > 0
+    ? ((selectedBlock.data as any).selectedCells as string[])
+    : [selectedCellKey];
 
-          const cellKey = (block.data as any).selectedCell ?? "0:0";
-          const existingCell = block.data.cells?.[cellKey];
+const selectedRowIndex = Number(String(selectedCellKey).split(":")[0] ?? 0);
+const selectedColumnIndex = Number(String(selectedCellKey).split(":")[1] ?? 0);
 
-          return {
-            ...block,
-            data: {
-              ...block.data,
-              cells: {
-                ...(block.data.cells ?? {}),
-                [cellKey]: {
-                  id: existingCell?.id ?? `cell_${cellKey}_${Date.now()}`,
-                  value: existingCell?.value ?? "",
-                  format: {
-                    ...(existingCell?.format ?? {}),
-                    ...patch,
-                  },
-                },
-              },
-            },
-          };
-        });
+const selectedCellData =
+  ((selectedBlock.data as any).cells ?? {})[selectedCellKey] ?? null;
+
+const selectedCellFormat = selectedCellData?.format ?? {};
+
+const updateSelectedCellFormat = (patch: Record<string, any>) => {
+  updateSelectedBlock((block) => {
+    if (block.type !== "spreadsheet") return block;
+
+    const activeCells =
+      Array.isArray((block.data as any).selectedCells) &&
+      (block.data as any).selectedCells.length > 0
+        ? ((block.data as any).selectedCells as string[])
+        : [((block.data as any).selectedCell ?? "0:0")];
+
+    const nextCells = { ...(block.data.cells ?? {}) };
+
+    activeCells.forEach((cellKey) => {
+      const existingCell = nextCells[cellKey];
+
+      nextCells[cellKey] = {
+        id: existingCell?.id ?? `cell_${cellKey}_${Date.now()}`,
+        value: existingCell?.value ?? "",
+        format: {
+          ...(existingCell?.format ?? {}),
+          ...patch,
+        },
       };
+    });
+
+    return {
+      ...block,
+      data: {
+        ...block.data,
+        cells: nextCells,
+      },
+    };
+  });
+};
+
+const clearSelectedCells = () => {
+  updateSelectedBlock((block) => {
+    if (block.type !== "spreadsheet") return block;
+
+    const activeCells =
+      Array.isArray((block.data as any).selectedCells) &&
+      (block.data as any).selectedCells.length > 0
+        ? ((block.data as any).selectedCells as string[])
+        : [((block.data as any).selectedCell ?? "0:0")];
+
+    const nextCells = { ...(block.data.cells ?? {}) };
+
+    activeCells.forEach((cellKey) => {
+      const existingCell = nextCells[cellKey];
+
+      nextCells[cellKey] = {
+        id: existingCell?.id ?? `cell_${cellKey}_${Date.now()}`,
+        value: "",
+        format: existingCell?.format ?? {},
+      };
+    });
+
+    return {
+      ...block,
+      data: {
+        ...block.data,
+        cells: nextCells,
+      },
+    };
+  });
+};
 
       return (
         <>
@@ -12040,34 +12092,35 @@ if (selectedBlock?.type === "rsvp") {
   <button
     type="button"
     className="h-10 rounded-xl border border-neutral-300 bg-white px-3 text-sm font-semibold text-neutral-800 hover:bg-neutral-50"
-    onClick={() =>
-      updateSelectedBlock((block) => {
-        if (block.type !== "spreadsheet") return block;
+onClick={() =>
+  updateSelectedBlock((block) => {
+    if (block.type !== "spreadsheet") return block;
 
-        const insertAfter = selectedRowIndex;
-        const nextCells: Record<string, any> = {};
+    const insertAt = selectedRowIndex;
+    const nextCells: Record<string, any> = {};
 
-        Object.entries(block.data.cells ?? {}).forEach(([key, cell]) => {
-          const [row, col] = key.split(":").map(Number);
-          const nextRow = row > insertAfter ? row + 1 : row;
-          nextCells[`${nextRow}:${col}`] = cell;
-        });
+    Object.entries(block.data.cells ?? {}).forEach(([key, cell]) => {
+      const [row, col] = key.split(":").map(Number);
+      const nextRow = row >= insertAt ? row + 1 : row;
+      nextCells[`${nextRow}:${col}`] = cell;
+    });
 
-        return {
-          ...block,
-          data: {
-            ...block.data,
-            rowCount: block.data.rowCount + 1,
-            cells: nextCells,
-            rowHeights: {
-              ...block.data.rowHeights,
-              [String(insertAfter + 1)]: 36,
-            },
-            selectedCell: `${insertAfter + 1}:${selectedColumnIndex}`,
-          },
-        };
-      })
-    }
+    return {
+      ...block,
+      data: {
+        ...block.data,
+        rowCount: block.data.rowCount + 1,
+        cells: nextCells,
+        rowHeights: {
+          ...block.data.rowHeights,
+          [String(insertAt)]: 36,
+        },
+        selectedCell: `${insertAt}:${selectedColumnIndex}`,
+        selectedCells: [`${insertAt}:${selectedColumnIndex}`],
+      },
+    };
+  })
+}
   >
     Add Row
   </button>
@@ -12075,34 +12128,35 @@ if (selectedBlock?.type === "rsvp") {
   <button
     type="button"
     className="h-10 rounded-xl border border-neutral-300 bg-white px-3 text-sm font-semibold text-neutral-800 hover:bg-neutral-50"
-    onClick={() =>
-      updateSelectedBlock((block) => {
-        if (block.type !== "spreadsheet") return block;
+onClick={() =>
+  updateSelectedBlock((block) => {
+    if (block.type !== "spreadsheet") return block;
 
-        const insertAfter = selectedColumnIndex;
-        const nextCells: Record<string, any> = {};
+    const insertAt = selectedColumnIndex;
+    const nextCells: Record<string, any> = {};
 
-        Object.entries(block.data.cells ?? {}).forEach(([key, cell]) => {
-          const [row, col] = key.split(":").map(Number);
-          const nextCol = col > insertAfter ? col + 1 : col;
-          nextCells[`${row}:${nextCol}`] = cell;
-        });
+    Object.entries(block.data.cells ?? {}).forEach(([key, cell]) => {
+      const [row, col] = key.split(":").map(Number);
+      const nextCol = col >= insertAt ? col + 1 : col;
+      nextCells[`${row}:${nextCol}`] = cell;
+    });
 
-        return {
-          ...block,
-          data: {
-            ...block.data,
-            columnCount: block.data.columnCount + 1,
-            cells: nextCells,
-            columnWidths: {
-              ...block.data.columnWidths,
-              [String(insertAfter + 1)]: 120,
-            },
-            selectedCell: `${selectedRowIndex}:${insertAfter + 1}`,
-          },
-        };
-      })
-    }
+    return {
+      ...block,
+      data: {
+        ...block.data,
+        columnCount: block.data.columnCount + 1,
+        cells: nextCells,
+        columnWidths: {
+          ...block.data.columnWidths,
+          [String(insertAt)]: 120,
+        },
+        selectedCell: `${selectedRowIndex}:${insertAt}`,
+        selectedCells: [`${selectedRowIndex}:${insertAt}`],
+      },
+    };
+  })
+}
   >
     Add Column
   </button>
@@ -12178,18 +12232,27 @@ if (selectedBlock?.type === "rsvp") {
 
           <div className="mt-4">
             <div className={inspectorLabelClass()}>Selected Cell Font Size</div>
-            <input
-              type="number"
-              min={8}
-              max={72}
-              onChange={(e) =>
-                updateSelectedCellFormat({
-                  fontSize: Math.max(8, Math.min(72, Number(e.target.value) || 14)),
-                })
-              }
-              className={inspectorInputClass()}
-              placeholder="14"
-            />
+<input
+  type="number"
+  min={8}
+  max={72}
+  value={selectedCellFormat.fontSize ?? 14}
+  onChange={(e) =>
+    updateSelectedCellFormat({
+      fontSize: Math.max(8, Math.min(72, Number(e.target.value) || 14)),
+    })
+  }
+  className={inspectorInputClass()}
+/>
+
+<button
+  type="button"
+  className="mt-3 h-10 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm font-semibold text-neutral-800 hover:bg-neutral-50"
+  onClick={clearSelectedCells}
+>
+  Clear Selected Cell Contents
+</button>
+
           </div>
 
           <div className="mt-4">
@@ -12272,27 +12335,45 @@ if (selectedBlock?.type === "rsvp") {
             </div>
           </div>
 
-          <div className="mt-4 grid grid-cols-3 gap-2">
+<div className="mt-4 grid grid-cols-3 gap-2">
   <button
     type="button"
-    className="h-10 rounded-xl border border-neutral-300 bg-white px-3 text-sm font-bold text-neutral-800 hover:bg-neutral-50"
-    onClick={() => updateSelectedCellFormat({ bold: true })}
+    className={`h-10 rounded-xl border px-3 text-sm font-bold hover:bg-neutral-50 ${
+      selectedCellFormat.bold === true
+        ? "border-neutral-900 bg-neutral-900 text-white"
+        : "border-neutral-300 bg-white text-neutral-800"
+    }`}
+    onClick={() => updateSelectedCellFormat({ bold: selectedCellFormat.bold !== true })}
   >
     B
   </button>
 
   <button
     type="button"
-    className="h-10 rounded-xl border border-neutral-300 bg-white px-3 text-sm italic text-neutral-800 hover:bg-neutral-50"
-    onClick={() => updateSelectedCellFormat({ italic: true })}
+    className={`h-10 rounded-xl border px-3 text-sm italic hover:bg-neutral-50 ${
+      selectedCellFormat.italic === true
+        ? "border-neutral-900 bg-neutral-900 text-white"
+        : "border-neutral-300 bg-white text-neutral-800"
+    }`}
+    onClick={() =>
+      updateSelectedCellFormat({ italic: selectedCellFormat.italic !== true })
+    }
   >
     I
   </button>
 
   <button
     type="button"
-    className="h-10 rounded-xl border border-neutral-300 bg-white px-3 text-sm underline text-neutral-800 hover:bg-neutral-50"
-    onClick={() => updateSelectedCellFormat({ underline: true })}
+    className={`h-10 rounded-xl border px-3 text-sm underline hover:bg-neutral-50 ${
+      selectedCellFormat.underline === true
+        ? "border-neutral-900 bg-neutral-900 text-white"
+        : "border-neutral-300 bg-white text-neutral-800"
+    }`}
+    onClick={() =>
+      updateSelectedCellFormat({
+        underline: selectedCellFormat.underline !== true,
+      })
+    }
   >
     U
   </button>

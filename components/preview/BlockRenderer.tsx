@@ -7559,9 +7559,15 @@ function renderSpreadsheet(block: any, previewMode = false) {
   const data = block.data ?? {};
 
   const [cells, setCells] = useState<Record<string, any>>(data.cells ?? {});
-  const [activeCell, setActiveCell] = useState<string | null>(
-    data.selectedCell ?? "0:0",
-  );
+const [activeCell, setActiveCell] = useState<string | null>(
+  data.selectedCell ?? "0:0",
+);
+
+const [selectedCells, setSelectedCells] = useState<string[]>(
+  Array.isArray(data.selectedCells) && data.selectedCells.length > 0
+    ? data.selectedCells
+    : [data.selectedCell ?? "0:0"],
+);
   const [columnWidths, setColumnWidths] = useState<Record<string, number>>(
     data.columnWidths ?? {},
   );
@@ -7676,17 +7682,29 @@ function renderSpreadsheet(block: any, previewMode = false) {
     });
   };
 
-  const selectCell = (cellKey: string) => {
-    setActiveCell(cellKey);
-    block.data.selectedCell = cellKey;
+const selectCell = (cellKey: string, multiSelect = false) => {
+  setActiveCell(cellKey);
 
-    if (typeof window !== "undefined") {
-      (window as any).__koHostSpreadsheetActiveCell = {
-        ...((window as any).__koHostSpreadsheetActiveCell ?? {}),
-        [block.id]: cellKey,
-      };
-    }
-  };
+  const nextSelectedCells = multiSelect
+    ? selectedCells.includes(cellKey)
+      ? selectedCells.filter((item) => item !== cellKey)
+      : [...selectedCells, cellKey]
+    : [cellKey];
+
+  const safeSelectedCells = nextSelectedCells.length ? nextSelectedCells : [cellKey];
+
+  setSelectedCells(safeSelectedCells);
+
+  block.data.selectedCell = cellKey;
+  block.data.selectedCells = safeSelectedCells;
+
+  if (typeof window !== "undefined") {
+    (window as any).__koHostSpreadsheetActiveCell = {
+      ...((window as any).__koHostSpreadsheetActiveCell ?? {}),
+      [block.id]: cellKey,
+    };
+  }
+};
 
   return (
     <div className="flex h-full w-full flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white">
@@ -7774,7 +7792,7 @@ function renderSpreadsheet(block: any, previewMode = false) {
                       ...(data.defaultCellFormat ?? {}),
                       ...(cell?.format ?? {}),
                     };
-                    const isSelected = activeCell === cellKey;
+                    const isSelected = selectedCells.includes(cellKey);
                     const isWrapped = format.wrapText === true;
 
                     return (
@@ -7791,7 +7809,7 @@ function renderSpreadsheet(block: any, previewMode = false) {
                           height,
                           backgroundColor: format.backgroundColor ?? "#FFFFFF",
                         }}
-                        onClick={() => selectCell(cellKey)}
+                        onClick={(event) => selectCell(cellKey, event.ctrlKey || event.metaKey)}
                       >
                         {isEditable && format.locked !== true ? (
                           isWrapped ? (
@@ -7800,7 +7818,7 @@ function renderSpreadsheet(block: any, previewMode = false) {
                               onChange={(event) =>
                                 updateCellValue(cellKey, event.target.value)
                               }
-                              onFocus={() => selectCell(cellKey)}
+                              onFocus={() => selectCell(cellKey, false)}
                               className={`h-full w-full resize-none bg-transparent px-2 py-1 outline-none ${
                                 isSelected ? "ring-2 ring-blue-500" : ""
                               }`}
@@ -7824,7 +7842,7 @@ function renderSpreadsheet(block: any, previewMode = false) {
                               onChange={(event) =>
                                 updateCellValue(cellKey, event.target.value)
                               }
-                              onFocus={() => selectCell(cellKey)}
+                              onFocus={() => selectCell(cellKey, false)}
                               className={`h-full w-full bg-transparent px-2 outline-none ${
                                 isSelected ? "ring-2 ring-blue-500" : ""
                               }`}
