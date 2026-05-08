@@ -706,13 +706,13 @@ const isInteractiveBlock =
       ? String((block.data as any).slug || block.id)
       : undefined
   }
-  style={{
-    ...itemStyle,
-    zIndex: block.type === "bookmark" ? -1 : isInteractiveBlock ? 9999 : itemStyle.zIndex,
-    overflow: "visible",
-    pointerEvents: block.type === "bookmark" ? "none" : isInteractiveBlock ? "auto" : "none",
-    isolation: "isolate",
-  }}
+style={{
+  ...itemStyle,
+  zIndex: block.type === "bookmark" ? -1 : itemStyle.zIndex,
+  overflow: "visible",
+  pointerEvents: block.type === "bookmark" ? "none" : isInteractiveBlock ? "auto" : "none",
+  isolation: "isolate",
+}}
     >
     <div
       className="h-full w-full"

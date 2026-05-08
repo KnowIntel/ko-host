@@ -7706,6 +7706,22 @@ const selectCell = (cellKey: string, multiSelect = false) => {
   }
 };
 
+  const moveToCell = (row: number, col: number) => {
+  const safeRow = Math.max(0, Math.min(rowCount - 1, row));
+  const safeCol = Math.max(0, Math.min(columnCount - 1, col));
+  const nextCellKey = getCellKey(safeRow, safeCol);
+
+  selectCell(nextCellKey, false);
+
+  window.setTimeout(() => {
+    const nextInput = document.querySelector(
+      `[data-spreadsheet-cell="${block.id}:${nextCellKey}"]`,
+    ) as HTMLInputElement | HTMLTextAreaElement | null;
+
+    nextInput?.focus();
+  }, 0);
+};
+
   return (
     <div className="flex h-full w-full flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white">
       {data.showTitle !== false ? (
@@ -7822,52 +7838,68 @@ const selectCell = (cellKey: string, multiSelect = false) => {
                       >
                         {isEditable && format.locked !== true ? (
                           isWrapped ? (
-                            <textarea
-                              value={cell?.value ?? ""}
-                              onChange={(event) =>
-                                updateCellValue(cellKey, event.target.value)
-                              }
+<textarea
+  data-spreadsheet-cell={`${block.id}:${cellKey}`}
+  value={cell?.value ?? ""}
+  onChange={(event) =>
+    updateCellValue(cellKey, event.target.value)
+  }
+  onKeyDown={(event) => {
+    if (event.key !== "Enter") return;
 
-                              className={`h-full w-full resize-none bg-transparent px-2 py-1 outline-none ${
-                                isSelected ? "ring-2 ring-blue-500" : ""
-                              }`}
-                              style={{
-                                fontFamily: format.fontFamily ?? "Inter",
-                                fontSize: format.fontSize ?? 14,
-                                fontWeight: format.bold ? 700 : 400,
-                                fontStyle: format.italic ? "italic" : "normal",
-                                textDecoration: format.underline
-                                  ? "underline"
-                                  : "none",
-                                color: format.textColor ?? "#111827",
-                                textAlign: format.horizontalAlign ?? "left",
-                                whiteSpace: "normal",
-                                overflowWrap: "anywhere",
-                              }}
-                            />
-                          ) : (
-                            <input
-                              value={cell?.value ?? ""}
-                              onChange={(event) =>
-                                updateCellValue(cellKey, event.target.value)
-                              }
-                              onFocus={() => selectCell(cellKey, false)}
-                              className={`h-full w-full bg-transparent px-2 outline-none ${
-                                isSelected ? "ring-2 ring-blue-500" : ""
-                              }`}
-                              style={{
-                                fontFamily: format.fontFamily ?? "Inter",
-                                fontSize: format.fontSize ?? 14,
-                                fontWeight: format.bold ? 700 : 400,
-                                fontStyle: format.italic ? "italic" : "normal",
-                                textDecoration: format.underline
-                                  ? "underline"
-                                  : "none",
-                                color: format.textColor ?? "#111827",
-                                textAlign: format.horizontalAlign ?? "left",
-                                whiteSpace: "nowrap",
-                              }}
-                            />
+    event.preventDefault();
+
+    const [row, col] = cellKey.split(":").map(Number);
+    moveToCell(row + 1, col);
+  }}
+  className={`h-full w-full resize-none bg-transparent px-2 py-1 outline-none ${
+    isSelected ? "ring-2 ring-blue-500" : ""
+  }`}
+  style={{
+    fontFamily: format.fontFamily ?? "Inter",
+    fontSize: format.fontSize ?? 14,
+    fontWeight: format.bold ? 700 : 400,
+    fontStyle: format.italic ? "italic" : "normal",
+    textDecoration: format.underline
+      ? "underline"
+      : "none",
+    color: format.textColor ?? "#111827",
+    textAlign: format.horizontalAlign ?? "left",
+    whiteSpace: "normal",
+    overflowWrap: "anywhere",
+  }}
+/>
+) : (
+<input
+  data-spreadsheet-cell={`${block.id}:${cellKey}`}
+  value={cell?.value ?? ""}
+  onChange={(event) =>
+    updateCellValue(cellKey, event.target.value)
+  }
+  onKeyDown={(event) => {
+    if (event.key !== "Enter") return;
+
+    event.preventDefault();
+
+    const [row, col] = cellKey.split(":").map(Number);
+    moveToCell(row + 1, col);
+  }}
+  className={`h-full w-full bg-transparent px-2 outline-none ${
+    isSelected ? "ring-2 ring-blue-500" : ""
+  }`}
+  style={{
+    fontFamily: format.fontFamily ?? "Inter",
+    fontSize: format.fontSize ?? 14,
+    fontWeight: format.bold ? 700 : 400,
+    fontStyle: format.italic ? "italic" : "normal",
+    textDecoration: format.underline
+      ? "underline"
+      : "none",
+    color: format.textColor ?? "#111827",
+    textAlign: format.horizontalAlign ?? "left",
+    whiteSpace: "nowrap",
+  }}
+/>
                           )
                         ) : (
                           <div
