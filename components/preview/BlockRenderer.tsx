@@ -7810,8 +7810,13 @@ const selectCell = (cellKey: string, multiSelect = false) => {
                           backgroundColor: format.backgroundColor ?? "#FFFFFF",
                         }}
                         onMouseDown={(event) => {
-                            selectCell(cellKey, event.ctrlKey || event.metaKey);
-                          }}
+                          const nativeEvent = event.nativeEvent as MouseEvent;
+
+                          selectCell(
+                            cellKey,
+                            nativeEvent.ctrlKey || nativeEvent.metaKey,
+                          );
+                        }}
                       >
                         {isEditable && format.locked !== true ? (
                           isWrapped ? (
