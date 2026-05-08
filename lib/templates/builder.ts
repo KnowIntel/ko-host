@@ -692,7 +692,8 @@ export type ListingBlock = BaseBlock & {
     cardVariant?: ListingCardVariant;
     imageHeightPercent?: number;
     rotation?: number;
-  };
+    scale?: number;
+      };
 };
 
 export type RichTextBlock = BaseBlock & {
