@@ -7682,6 +7682,7 @@ const [selectedCells, setSelectedCells] = useState<string[]>(
     });
   };
 
+
 const selectCell = (cellKey: string, multiSelect = false) => {
   setActiveCell(cellKey);
 
@@ -7706,20 +7707,26 @@ const selectCell = (cellKey: string, multiSelect = false) => {
   }
 };
 
-  const moveToCell = (row: number, col: number) => {
+const moveToCell = (row: number, col: number) => {
   const safeRow = Math.max(0, Math.min(rowCount - 1, row));
   const safeCol = Math.max(0, Math.min(columnCount - 1, col));
   const nextCellKey = getCellKey(safeRow, safeCol);
 
   selectCell(nextCellKey, false);
 
-  window.setTimeout(() => {
+  window.requestAnimationFrame(() => {
     const nextInput = document.querySelector(
       `[data-spreadsheet-cell="${block.id}:${nextCellKey}"]`,
     ) as HTMLInputElement | HTMLTextAreaElement | null;
 
-    nextInput?.focus();
-  }, 0);
+    if (!nextInput) return;
+
+    nextInput.focus();
+
+    if ("select" in nextInput) {
+      nextInput.select();
+    }
+  });
 };
 
   return (
@@ -7848,6 +7855,7 @@ const selectCell = (cellKey: string, multiSelect = false) => {
     if (event.key !== "Enter") return;
 
     event.preventDefault();
+    event.stopPropagation();
 
     const [row, col] = cellKey.split(":").map(Number);
     moveToCell(row + 1, col);
@@ -7880,6 +7888,7 @@ const selectCell = (cellKey: string, multiSelect = false) => {
     if (event.key !== "Enter") return;
 
     event.preventDefault();
+    event.stopPropagation();
 
     const [row, col] = cellKey.split(":").map(Number);
     moveToCell(row + 1, col);

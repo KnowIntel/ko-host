@@ -1,9 +1,9 @@
 import type { TemplateLayoutRegistry } from "../../types";
-import worksheet from "./worksheet";
+import auto from "./auto";
 
-const learningLabLayouts: TemplateLayoutRegistry = {
-  templateKey: "learning_lab",
-  layouts: [worksheet],
+const forSaleByOwnerLayouts: TemplateLayoutRegistry = {
+  templateKey: "for_sale_by_owner",
+  layouts: [auto],
 };
 
-export default learningLabLayouts;
+export default forSaleByOwnerLayouts;
