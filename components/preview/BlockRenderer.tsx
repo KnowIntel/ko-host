@@ -883,6 +883,10 @@ function renderListing(
     20,
     Math.min(80, Number(block.data.imageHeightPercent) || 50),
   );
+  const cardRotation = Math.max(
+  -45,
+  Math.min(45, Number((block.data as any).rotation) || 0),
+);
 
   const positionX = image.positionX ?? 50;
   const positionY = image.positionY ?? 50;
@@ -899,8 +903,15 @@ function renderListing(
         ? "fill"
         : "cover";
 
-  if (cardVariant === "compact") {
-    return (
+if (cardVariant === "compact") {
+  return (
+    <div
+      className="h-full w-full overflow-visible"
+      style={{
+        transform: `rotate(${cardRotation}deg)`,
+        transformOrigin: "center center",
+      }}
+    >
       <div
         className="h-full w-full overflow-hidden"
         style={{
@@ -941,51 +952,51 @@ function renderListing(
           )}
         </div>
 
-<div className="flex min-w-0 flex-1 flex-col gap-2 p-3">
-  <div
-    className="font-semibold"
-    style={getContainerTextStyle(block.data.titleStyle, designKey)}
-  >
-    {block.data.title || "Listing Title"}
-  </div>
+        <div className="flex min-w-0 flex-1 flex-col gap-2 p-3">
+          <div
+            className="font-semibold"
+            style={getContainerTextStyle(block.data.titleStyle, designKey)}
+          >
+            {block.data.title || "Listing Title"}
+          </div>
 
-  {price > 0 ? (
-    <div className="text-sm font-semibold">
-      ${formatCurrency(price)}
-    </div>
-  ) : null}
+          {price > 0 ? (
+            <div className="text-sm font-semibold">
+              ${formatCurrency(price)}
+            </div>
+          ) : null}
 
-  {isSelectable ? (
-    <div className="flex items-center gap-2 text-sm">
-      <span>Qty</span>
+          {isSelectable ? (
+            <div className="flex items-center gap-2 text-sm">
+              <span>Qty</span>
 
-      <button
-        type="button"
-        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-neutral-300 bg-white text-sm font-medium"
-        onClick={(e) => {
-          e.stopPropagation();
-          onChangeListingQuantity?.(block.id, Math.max(0, quantity - 1));
-        }}
-      >
-        -
-      </button>
+              <button
+                type="button"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-neutral-300 bg-white text-sm font-medium"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onChangeListingQuantity?.(block.id, Math.max(0, quantity - 1));
+                }}
+              >
+                -
+              </button>
 
-      <div className="min-w-[28px] text-center font-semibold">
-        {quantity}
-      </div>
+              <div className="min-w-[28px] text-center font-semibold">
+                {quantity}
+              </div>
 
-      <button
-        type="button"
-        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-neutral-300 bg-white text-sm font-medium"
-        onClick={(e) => {
-          e.stopPropagation();
-          onChangeListingQuantity?.(block.id, quantity + 1);
-        }}
-      >
-        +
-      </button>
-    </div>
-  ) : null}
+              <button
+                type="button"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-neutral-300 bg-white text-sm font-medium"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onChangeListingQuantity?.(block.id, quantity + 1);
+                }}
+              >
+                +
+              </button>
+            </div>
+          ) : null}
 
           {block.data.description ? (
             <div
@@ -1026,10 +1037,18 @@ function renderListing(
           ) : null}
         </div>
       </div>
-    );
-  }
+    </div>
+  );
+}
 
-  return (
+return (
+  <div
+    className="h-full w-full overflow-visible"
+    style={{
+      transform: `rotate(${cardRotation}deg)`,
+      transformOrigin: "center center",
+    }}
+  >
     <div
       className="h-full w-full overflow-hidden"
       style={getAppearanceStyle(block)}
@@ -1064,63 +1083,63 @@ function renderListing(
           )}
         </div>
 
-<div className="flex min-h-0 flex-1 flex-col gap-2 p-3">
-  <div
-    className="font-semibold"
-    style={getContainerTextStyle(block.data.titleStyle, designKey)}
-  >
-    {block.data.title || "Listing Title"}
-  </div>
+        <div className="flex min-h-0 flex-1 flex-col gap-2 p-3">
+          <div
+            className="font-semibold"
+            style={getContainerTextStyle(block.data.titleStyle, designKey)}
+          >
+            {block.data.title || "Listing Title"}
+          </div>
 
-  {price > 0 ? (
-    <div className="text-sm font-semibold">
-      ${formatCurrency(price)}
-    </div>
-  ) : null}
+          {price > 0 ? (
+            <div className="text-sm font-semibold">
+              ${formatCurrency(price)}
+            </div>
+          ) : null}
 
-  {isSelectable ? (
-    <div className="flex items-center gap-2 text-sm">
-      <span>Qty</span>
+          {isSelectable ? (
+            <div className="flex items-center gap-2 text-sm">
+              <span>Qty</span>
 
-      <button
-        type="button"
-        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-neutral-300 bg-white text-sm font-medium"
-        onClick={(e) => {
-          e.stopPropagation();
-          onChangeListingQuantity?.(block.id, Math.max(0, quantity - 1));
-        }}
-      >
-        -
-      </button>
+              <button
+                type="button"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-neutral-300 bg-white text-sm font-medium"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onChangeListingQuantity?.(block.id, Math.max(0, quantity - 1));
+                }}
+              >
+                -
+              </button>
 
-      <div className="min-w-[28px] text-center font-semibold">
-        {quantity}
-      </div>
+              <div className="min-w-[28px] text-center font-semibold">
+                {quantity}
+              </div>
 
-      <button
-        type="button"
-        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-neutral-300 bg-white text-sm font-medium"
-        onClick={(e) => {
-          e.stopPropagation();
-          onChangeListingQuantity?.(block.id, quantity + 1);
-        }}
-      >
-        +
-      </button>
-    </div>
-  ) : null}
+              <button
+                type="button"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-neutral-300 bg-white text-sm font-medium"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onChangeListingQuantity?.(block.id, quantity + 1);
+                }}
+              >
+                +
+              </button>
+            </div>
+          ) : null}
 
-  {block.data.description ? (
-    <div
-      className="text-sm"
-      style={getContainerTextStyle(
-        block.data.descriptionStyle,
-        designKey,
-      )}
-    >
-      {block.data.description}
-    </div>
-  ) : null}
+          {block.data.description ? (
+            <div
+              className="text-sm"
+              style={getContainerTextStyle(
+                block.data.descriptionStyle,
+                designKey,
+              )}
+            >
+              {block.data.description}
+            </div>
+          ) : null}
 
           {metadata.length ? (
             <div className="mt-auto flex flex-wrap gap-x-3 gap-y-1">
@@ -1150,7 +1169,8 @@ function renderListing(
         </div>
       </div>
     </div>
-  );
+  </div>
+);
 }
 
 function renderCta(

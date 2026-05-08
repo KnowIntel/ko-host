@@ -690,6 +690,7 @@ export type ListingBlock = BaseBlock & {
     metadataStyle?: TextStyle;
     cardVariant?: ListingCardVariant;
     imageHeightPercent?: number;
+    rotation?: number;
   };
 };
 
@@ -1262,11 +1263,16 @@ function normalizeListingBlock(block: ListingBlock): ListingBlock {
         block.data.cardVariant === "stacked"
           ? block.data.cardVariant
           : "stacked",
-      imageHeightPercent:
-        typeof block.data.imageHeightPercent === "number" &&
-        Number.isFinite(block.data.imageHeightPercent)
-          ? Math.max(20, Math.min(80, Math.floor(block.data.imageHeightPercent)))
-          : 50,
+imageHeightPercent:
+  typeof block.data.imageHeightPercent === "number" &&
+  Number.isFinite(block.data.imageHeightPercent)
+    ? Math.max(20, Math.min(80, Math.floor(block.data.imageHeightPercent)))
+    : 50,
+rotation:
+  typeof block.data.rotation === "number" &&
+  Number.isFinite(block.data.rotation)
+    ? Math.max(-45, Math.min(45, block.data.rotation))
+    : 0,
     },
   };
 }
@@ -2035,6 +2041,7 @@ data: {
           },
           cardVariant: "stacked",
           imageHeightPercent: 50,
+          rotation: 0,
         },
       };
     case "rich_text":

@@ -15090,6 +15090,36 @@ onInput={(e) => {
       />
     </div>
 
+<div className="mt-4">
+  <div className={inspectorLabelClass()}>Card Rotation</div>
+  <input
+    type="range"
+    min={-45}
+    max={45}
+    value={(selectedBlock.data as any).rotation ?? 0}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "listing"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                rotation: Math.max(
+                  -45,
+                  Math.min(45, Number(e.target.value) || 0),
+                ),
+              },
+            },
+      )
+    }
+    className="mt-2 w-full"
+  />
+  <div className="mt-1 text-xs text-neutral-500">
+    {(selectedBlock.data as any).rotation ?? 0}°
+  </div>
+</div>
+
 
     <div className="mt-5">
       <div className={inspectorLabelClass()}>Metadata</div>
