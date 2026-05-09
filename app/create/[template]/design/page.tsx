@@ -89,6 +89,7 @@ const draftPageCountByTemplateDesignKey: Record<string, number> = {
   
   "community_alert:newsletter": 1,
 
+  "church_event:easter": 1,
 
 };
 
