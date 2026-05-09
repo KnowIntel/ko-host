@@ -910,9 +910,9 @@ description={
   "Drafts are not saved in the browser. You must be signed in to save drafts to your dashboard.\n" +
   "\n" +
   "Option 1: Cancel and return to your draft without saving.\n" +
-  "Option 2: Sign in and start a new draft. (Download Blueprint first)\n" +
+  "Option 2: Sign in and start a new draft.\n" +
   "\n" +
-  "Prior to signing in: 'Download your Blueprint' and, after signing in, use 'Build From Blueprint' to paste your content to restore your work."
+  "Prior to signing in: Press 'Download Blueprint' and, after signing in, use 'Build From Blueprint' to paste your content and restore your work."
 }
 children={
   <button
