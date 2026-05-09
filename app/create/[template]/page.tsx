@@ -922,7 +922,7 @@ setLiveDraft((prev) => ({
       type="button"
       onClick={() => {
         try {
-          const blueprint = JSON.stringify(draft, null, 2);
+          const blueprint = JSON.stringify(initialDraft ?? {}, null, 2);
 
           const blob = new Blob([blueprint], {
             type: "text/plain;charset=utf-8",
