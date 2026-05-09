@@ -9,6 +9,7 @@ type Props = {
   title: string;
   description?: string;
   children?: React.ReactNode;
+  extraContent?: React.ReactNode;
   confirmText?: string;
   cancelText?: string;
   danger?: boolean;
@@ -22,6 +23,7 @@ export default function AppModal({
   title,
   description,
   children,
+  extraContent,
   confirmText = "Confirm",
   cancelText = "Cancel",
   danger = false,
@@ -59,10 +61,10 @@ return createPortal(
         </p>
         )}
 
-        {children}
+        {extraContent}
 
 <div className="mt-6 flex items-center justify-between gap-3">
-  <div>{children}</div>
+  <div className="flex items-center">{children}</div>
 
   <div className="flex items-center gap-3">
     <button

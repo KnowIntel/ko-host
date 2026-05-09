@@ -913,14 +913,35 @@ description={
   "Option 2: Sign in and start a new draft."
 }
 children={
-  <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-3 py-3 text-sm font-semibold text-red-700">
-    <span className="mr-2 rounded-md bg-red-600 px-2 py-1 text-xs font-bold uppercase tracking-wide text-white">
-      IMPORTANT
-    </span>
+  <button
+    type="button"
+    onClick={() => {
+      try {
+        const blueprint = JSON.stringify(initialDraft ?? {}, null, 2);
 
-    Prior to signing in, download your Blueprint and use Build From Blueprint
-    after signing in to restore your work.
-  </div>
+        const blob = new Blob([blueprint], {
+          type: "text/plain;charset=utf-8",
+        });
+
+        const url = URL.createObjectURL(blob);
+
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `ko-host-blueprint-${Date.now()}.txt`;
+
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        URL.revokeObjectURL(url);
+      } catch (error) {
+        console.error("Failed to download blueprint:", error);
+      }
+    }}
+    className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+  >
+    Download Blueprint
+  </button>
 }
   confirmText="Sign In"
   cancelText="Cancel"
@@ -938,6 +959,16 @@ children={
           onConfirm={continueToPublish}
           onCancel={cancelPublishWarning}
         />
+        extraContent={
+  <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-3 py-3 text-sm font-semibold text-red-700">
+    <span className="mr-2 rounded-md bg-red-600 px-2 py-1 text-xs font-bold uppercase tracking-wide text-white">
+      IMPORTANT
+    </span>
+
+    Prior to signing in, download your Blueprint and use Build From Blueprint
+    after signing in to restore your work.
+  </div>
+}
       </div>
     </main>
   );
