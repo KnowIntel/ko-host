@@ -200,7 +200,7 @@ const visibleRecentSites = useMemo(() => {
               Recent Sites
             </div>
             <div className="text-sm font-medium text-neutral-900">
-              New and popular pages people can view or join
+              New and popular pages people can view or join...
             </div>
           </div>
         </div>
@@ -445,7 +445,7 @@ const visibleRecentSites = useMemo(() => {
               Recent Sites
             </div>
             <div className="text-sm font-medium text-neutral-900">
-              New and popular pages people can view or join
+              New and popular pages people can view or join...
             </div>
           </div>
         </div>
