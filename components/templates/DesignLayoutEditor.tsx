@@ -6558,7 +6558,7 @@ return (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 px-4">
           <div className="relative z-[10000] w-full max-w-2xl rounded-3xl border border-neutral-200 bg-white p-6 shadow-2xl">
             <div className="text-lg font-semibold text-neutral-950">
-              Build Preset Design
+              Build Design From Blueprint
             </div>
 
             <p className="mt-2 text-sm text-neutral-600">
