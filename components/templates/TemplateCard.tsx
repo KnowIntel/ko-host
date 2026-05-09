@@ -191,11 +191,11 @@ export default function TemplateCard(props: {
 
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-black/0 to-black/0 opacity-70" />
 
-          <div className="pointer-events-none absolute left-2 top-2 z-10">
+{/*           <div className="pointer-events-none absolute left-2 top-2 z-10">
             <div className="rounded-full bg-white/90 px-2 py-1 text-[10px] font-semibold text-neutral-900 backdrop-blur">
               $12
             </div>
-          </div>
+          </div> */}
 
           <div className="absolute right-2 top-2 z-20">
             {badge ? (
