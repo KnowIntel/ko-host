@@ -6562,7 +6562,7 @@ return (
             </div>
 
             <p className="mt-2 text-sm text-neutral-600">
-              Paste Design Specs JSON below. Building will replace the current draft on this page.
+              Paste Blueprint Design Specs (JSON) below. Building will replace the current draft on this page.
             </p>
 
 <textarea

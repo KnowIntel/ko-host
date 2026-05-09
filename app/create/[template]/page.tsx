@@ -912,7 +912,7 @@ description={
   "Option 1: Cancel and return to your draft without saving.\n" +
   "Option 2: Sign in and start a new draft.\n" +
   "\n" +
-  "Prior to signing in: Press 'Download Blueprint' and, after signing in, use 'Build From Blueprint' to paste your content and restore your work."
+  "Prior to signing in: Press 'Download Blueprint' and, after signing in, use 'Build From Blueprint' to paste your content (JSON) and restore your work."
 }
 children={
   <button
