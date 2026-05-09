@@ -350,7 +350,8 @@ const visibleRecentSites = useMemo(() => {
 
 <p className="mt-3 text-sm leading-7 text-neutral-600 sm:text-[15px]">
   <span className="inline">
-    Pick a template, choose a design, customize it, then publish. For 90 days, you own your own microsite.
+    Start with a template, make it yours, then go live — all for just $12 for 90 days.
+    {/* Pick a template, choose a design, customize it, then publish. For 90 days, you own your own microsite. */}
   </span>
   <button
     type="button"
