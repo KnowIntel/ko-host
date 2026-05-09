@@ -903,15 +903,52 @@ setLiveDraft((prev) => ({
   </div>
 ) : null}
 
-        <AppModal
-          open={showSignInPrompt}
-          title="Sign in required"
-          description="Drafts are not saved in the browser. Sign in to save drafts to your dashboard, or copy your Design Specs before leaving."
-          confirmText="Sign In"
-          cancelText="Cancel"
-          onConfirm={continueToSignIn}
-          onCancel={() => setShowSignInPrompt(false)}
-        />
+<AppModal
+  open={showSignInPrompt}
+  title="Sign in required"
+  description={
+    "Drafts are not saved in the browser. You must be signed in to save drafts to your dashboard.\n\n" +
+    "Option 1: Cancel and return to your draft without saving.\n\n" +
+    "Option 2: Sign in and start a new draft.\n\n" +
+    "Prior to signing in, download your Blueprint and use Build From Blueprint after signing in to restore your work."
+  }
+  confirmText="Sign In"
+  cancelText="Cancel"
+  onConfirm={continueToSignIn}
+  onCancel={() => setShowSignInPrompt(false)}
+>
+  <div className="flex w-full justify-start">
+    <button
+      type="button"
+      onClick={() => {
+        try {
+          const blueprint = JSON.stringify(draft, null, 2);
+
+          const blob = new Blob([blueprint], {
+            type: "text/plain;charset=utf-8",
+          });
+
+          const url = URL.createObjectURL(blob);
+
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = `ko-host-blueprint-${Date.now()}.txt`;
+
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+
+          URL.revokeObjectURL(url);
+        } catch (error) {
+          console.error("Failed to download blueprint:", error);
+        }
+      }}
+      className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+    >
+      Download Blueprint
+    </button>
+  </div>
+</AppModal>
         <AppModal
           open={showPublishWarning}
           title="Publish draft?"
