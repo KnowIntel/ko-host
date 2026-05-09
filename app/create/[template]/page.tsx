@@ -906,12 +906,14 @@ setLiveDraft((prev) => ({
 <AppModal
   open={showSignInPrompt}
   title="Sign in required"
-  description={
-    "Drafts are not saved in the browser. You must be signed in to save drafts to your dashboard.\n\n" +
-    "Option 1: Cancel and return to your draft without saving.\n\n" +
-    "Option 2: Sign in and start a new draft.\n\n" +
-    "Prior to signing in, download your Blueprint and use Build From Blueprint after signing in to restore your work."
-  }
+description={
+  "Drafts are not saved in the browser. You must be signed in to save drafts to your dashboard.\n" +
+  "\n" +
+  "Option 1: Cancel and return to your draft without saving.\n" +
+  "Option 2: Sign in and start a new draft.\n" +
+  "\n" +
+  "Prior to signing in, download your Blueprint and use Build From Blueprint after signing in to restore your work."
+}
   confirmText="Sign In"
   cancelText="Cancel"
   onConfirm={continueToSignIn}

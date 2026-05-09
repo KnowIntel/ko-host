@@ -54,34 +54,38 @@ return createPortal(
         <div className="text-lg font-semibold text-neutral-950">{title}</div>
 
         {description && (
-          <p className="mt-2 text-sm font-semibold text-neutral-600">
-            {description}
-          </p>
+        <p className="mt-2 whitespace-pre-line text-sm font-semibold text-neutral-600">
+          {description}
+        </p>
         )}
 
         {children}
 
-        <div className="mt-6 flex justify-end gap-3">
-          <button
-            onClick={onCancel}
-            className="rounded-xl border border-black bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-900"
-            disabled={loading}
-          >
-            {cancelText}
-          </button>
+<div className="mt-6 flex items-center justify-between gap-3">
+  <div>{children}</div>
 
-          {onConfirm ? (
-            <button
-              onClick={onConfirm}
-              disabled={loading}
-              className={`rounded-xl px-4 py-2 text-sm font-semibold text-white ${
-                danger ? "bg-red-600" : "bg-black"
-              }`}
-            >
-              {loading ? "Processing..." : confirmText}
-            </button>
-          ) : null}
-        </div>
+  <div className="flex items-center gap-3">
+    <button
+      onClick={onCancel}
+      className="rounded-xl border border-black bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-900"
+      disabled={loading}
+    >
+      {cancelText}
+    </button>
+
+    {onConfirm ? (
+      <button
+        onClick={onConfirm}
+        disabled={loading}
+        className={`rounded-xl px-4 py-2 text-sm font-semibold text-white ${
+          danger ? "bg-red-600" : "bg-black"
+        }`}
+      >
+        {loading ? "Processing..." : confirmText}
+      </button>
+    ) : null}
+  </div>
+</div>
       </div>
   </div>,
   document.body,
