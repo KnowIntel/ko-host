@@ -547,7 +547,7 @@ return (
     overflowX: "auto",
     overflowY: "auto",
     WebkitOverflowScrolling: "touch",
-    touchAction: "pan-x pan-y",
+    touchAction: "auto",
     backgroundColor: transparentPageBackground ? "transparent" : pageColor,
     ...(pageBackgroundImage && !transparentPageBackground
       ? {
@@ -568,7 +568,7 @@ return (
     padding: 0,
     overflow: "visible",
     WebkitOverflowScrolling: "touch",
-    touchAction: "pan-x pan-y",
+    touchAction: "auto",
     backgroundColor: transparentPageBackground ? "transparent" : pageColor,
     boxSizing: "border-box",
     ...(transparentPageBackground
