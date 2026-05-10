@@ -222,16 +222,15 @@ export default async function PublishedMicrositeSubPage({
 
   return (
     <>
-<main className="min-h-screen w-screen max-w-none overflow-hidden bg-[#fcfbf8] text-neutral-900">
-  <div className="w-screen max-w-none px-0 py-0 overflow-hidden">
-        <PlacedBlocksPreview
-          draft={draft}
-          designKey={designKey}
-          micrositeId={typedMicrosite.id}
-          micrositeSlug={safeSlug}
-          disableAutoScale={true}
-          hideFrame={true}
-        />
+<main className="min-h-screen w-full max-w-none overflow-x-auto overflow-y-auto bg-[#fcfbf8] text-neutral-900">
+  <div className="w-full max-w-none overflow-visible px-0 py-0">
+<PlacedBlocksPreview
+  draft={draft}
+  designKey={designKey}
+  micrositeId={typedMicrosite.id}
+  micrositeSlug={safeSlug}
+  hideFrame={true}
+/>
         </div>
       </main>
       <MicrositeFooterBrand />

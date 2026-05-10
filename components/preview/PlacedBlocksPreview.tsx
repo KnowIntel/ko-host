@@ -520,7 +520,10 @@ const availableWidth = Math.round(
   containerRef.current?.getBoundingClientRect().width || containerWidth || logicalPageWidth
 );
 
-const fitScale = 1;
+const fitScale =
+  availableWidth > 0
+    ? Math.min(1, availableWidth / logicalPageWidth)
+    : 1;
 
 const previewScale = disableAutoScale
   ? (fixedScale ?? 1)
@@ -541,8 +544,8 @@ return (
     width: "100%",
     margin: 0,
     padding: 0,
-    overflowX: "hidden",
-    overflowY: "hidden",
+    overflowX: "auto",
+    overflowY: "auto",
     WebkitOverflowScrolling: "touch",
     touchAction: "pan-x pan-y",
     backgroundColor: transparentPageBackground ? "transparent" : pageColor,
@@ -563,7 +566,7 @@ return (
     minHeight: scaledPageHeight,
     margin: 0,
     padding: 0,
-    overflow: "hidden",
+    overflow: "visible",
     WebkitOverflowScrolling: "touch",
     touchAction: "pan-x pan-y",
     backgroundColor: transparentPageBackground ? "transparent" : pageColor,
@@ -754,4 +757,4 @@ style={{
   </div>
 </div>
 );
-}
+} 

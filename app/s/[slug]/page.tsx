@@ -365,8 +365,8 @@ if (draft) {
         : "cover";
 
 return (
-  <main
-  className="w-screen max-w-none overflow-hidden text-neutral-900"
+<main
+  className="w-full max-w-none overflow-x-auto overflow-y-auto text-neutral-900"
     style={{
       minHeight: "100vh",
       width: "100%",
@@ -383,7 +383,7 @@ return (
         : {}),
     }}
   >
-    <div className="w-screen max-w-none overflow-hidden">
+    <div className="w-full max-w-none overflow-visible">
 <PlacedBlocksPreview
   draft={draft}
   designKey={designKey}
