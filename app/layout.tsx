@@ -1,7 +1,7 @@
 // app\layout.tsx
 import "./globals.css";
 import { AppChrome } from "@/components/ui/AppChrome";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import {
   Great_Vibes,
@@ -238,6 +238,13 @@ const abril = Abril_Fatface({
 export const metadata: Metadata = {
   title: "Ko-Host",
   description: "Temporary microsites powered by structured templates.",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
 };
 
 export default function RootLayout({
