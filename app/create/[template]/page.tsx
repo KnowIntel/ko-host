@@ -919,7 +919,10 @@ children={
     type="button"
     onClick={() => {
       try {
-        const blueprint = JSON.stringify(initialDraft ?? {}, null, 2);
+        const { slugSuggestion, ...draftWithoutSlugSuggestion } =
+        liveDraft as BuilderDraft & { slugSuggestion?: string };
+
+        const blueprint = JSON.stringify(draftWithoutSlugSuggestion, null, 2);
 
         const blob = new Blob([blueprint], {
           type: "text/plain;charset=utf-8",
