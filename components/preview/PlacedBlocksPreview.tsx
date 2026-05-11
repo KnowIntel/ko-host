@@ -3,6 +3,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import * as htmlToImage from "html-to-image";
 
 import type {
   BuilderDraft,
@@ -146,6 +147,7 @@ function getInlineTextStyle(style?: TextStyle) {
     lineHeight: 1.2,
   };
 }
+
 
 function getPageTextBoxStyle(
   draft: DraftWithExtras,
@@ -703,9 +705,84 @@ const isInteractiveBlock =
   block.type === "audio" ||
   block.type === "frame";
 
+  async function handleDownloadFrame(
+  frameBlock: Extract<BuilderDraft["blocks"][number], { type: "frame" }>,
+) {
+  const root = containerRef.current;
+  if (!root) return;
+
+  const frameEl = root.querySelector<HTMLElement>(
+    `[data-preview-block-id="${frameBlock.id}"]`,
+  );
+
+  if (!frameEl) return;
+
+  const rootRect = root.getBoundingClientRect();
+  const frameRect = frameEl.getBoundingClientRect();
+
+  const dataUrl = await htmlToImage.toPng(root, {
+    cacheBust: true,
+    pixelRatio: 2,
+    filter: (node) => {
+      if (!(node instanceof HTMLElement)) return true;
+      return node.dataset.frameDownloadButton !== "true";
+    },
+  });
+
+  const image = new window.Image();
+  image.src = dataUrl;
+
+  await new Promise<void>((resolve, reject) => {
+    image.onload = () => resolve();
+    image.onerror = () =>
+      reject(new Error("Unable to load frame export image."));
+  });
+
+  const scaleX = image.width / rootRect.width;
+  const scaleY = image.height / rootRect.height;
+
+  const cropX = (frameRect.left - rootRect.left) * scaleX;
+  const cropY = (frameRect.top - rootRect.top) * scaleY;
+  const cropWidth = frameRect.width * scaleX;
+  const cropHeight = frameRect.height * scaleY;
+
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(cropWidth));
+  canvas.height = Math.max(1, Math.round(cropHeight));
+
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+
+  ctx.drawImage(
+    image,
+    cropX,
+    cropY,
+    cropWidth,
+    cropHeight,
+    0,
+    0,
+    canvas.width,
+    canvas.height,
+  );
+
+  const croppedUrl = canvas.toDataURL("image/png");
+
+  const link = document.createElement("a");
+  link.href = croppedUrl;
+  link.download = `${
+    frameBlock.data.frameName?.trim() || "frame-capture"
+  }.png`;
+
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
   return (
 <div
   key={block.id}
+  data-preview-block-id={block.id}
+  data-preview-block-type={block.type}
   id={
     block.type === "bookmark"
       ? String((block.data as any).slug || block.id)
@@ -743,6 +820,7 @@ style={{
   cartItems={cartItems}
   cartSubtotal={cartSubtotal}
   listingQuantities={listingQuantities}
+  onDownloadFrame={handleDownloadFrame as any}
   onChangeListingQuantity={(listingId: string, nextQuantity: number) => {
     setListingQuantities((prev) => ({
       ...prev,

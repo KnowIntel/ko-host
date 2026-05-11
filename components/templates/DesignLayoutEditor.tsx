@@ -16282,32 +16282,115 @@ onInput={(e) => {
       )}
     </div>
 
-    <div>
-      <div className="text-xs font-medium text-neutral-600">
-        Button Image Size
-      </div>
+<div>
+  <div className="text-xs font-medium text-neutral-600">
+    Button Image Size
+  </div>
 
-      <input
-        type="range"
-        min={10}
-        max={80}
-        value={(selectedBlock.data as any).buttonImageSize ?? 20}
-        onChange={(e) =>
-          updateSelectedBlock((block) =>
-            block.type === "cta"
-              ? {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    buttonImageSize: Number(e.target.value),
-                  },
-                }
-              : block,
-          )
-        }
-        className="mt-2 w-full"
-      />
-    </div>
+  <input
+    type="range"
+    min={10}
+    max={80}
+    value={(selectedBlock.data as any).buttonImageSize ?? 20}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type === "cta"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                buttonImageSize: Number(e.target.value),
+              },
+            }
+          : block,
+      )
+    }
+    className="mt-2 w-full"
+  />
+</div>
+
+<div>
+  <div className="text-xs font-medium text-neutral-600">
+    Image Placement
+  </div>
+
+  <div className="mt-2 grid grid-cols-3 gap-2">
+    <button
+      type="button"
+      onClick={() =>
+        updateSelectedBlock((block) =>
+          block.type === "cta"
+            ? {
+                ...block,
+                data: {
+                  ...block.data,
+                  buttonImagePlacement: "before",
+                },
+              }
+            : block,
+        )
+      }
+      className={`h-10 rounded-xl border text-xs font-medium transition ${
+        (((selectedBlock.data as any).buttonImagePlacement ??
+          "before") === "before")
+          ? "border-neutral-900 bg-neutral-900 text-white"
+          : "border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-50"
+      }`}
+    >
+      Before
+    </button>
+
+    <button
+      type="button"
+      onClick={() =>
+        updateSelectedBlock((block) =>
+          block.type === "cta"
+            ? {
+                ...block,
+                data: {
+                  ...block.data,
+                  buttonImagePlacement: "above",
+                },
+              }
+            : block,
+        )
+      }
+      className={`h-10 rounded-xl border text-xs font-medium transition ${
+        (((selectedBlock.data as any).buttonImagePlacement ??
+          "before") === "above")
+          ? "border-neutral-900 bg-neutral-900 text-white"
+          : "border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-50"
+      }`}
+    >
+      Above
+    </button>
+
+    <button
+      type="button"
+      onClick={() =>
+        updateSelectedBlock((block) =>
+          block.type === "cta"
+            ? {
+                ...block,
+                data: {
+                  ...block.data,
+                  buttonImagePlacement: "after",
+                },
+              }
+            : block,
+        )
+      }
+      className={`h-10 rounded-xl border text-xs font-medium transition ${
+        (((selectedBlock.data as any).buttonImagePlacement ??
+          "before") === "after")
+          ? "border-neutral-900 bg-neutral-900 text-white"
+          : "border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-50"
+      }`}
+    >
+      After
+    </button>
+  </div>
+</div>
 
     <label className="block">
       <span className="text-xs font-medium text-neutral-600">

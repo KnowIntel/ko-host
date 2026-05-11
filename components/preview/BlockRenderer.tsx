@@ -93,6 +93,7 @@ type Props = {
   cartSubtotal?: number;
   listingQuantities?: Record<string, number>;
   onChangeListingQuantity?: (listingId: string, nextQuantity: number) => void;
+  onDownloadFrame?: (block: Extract<MicrositeBlock, { type: "frame" }>) => void;
 };
 
 type ThreadUiMessage = ThreadMessage & {
@@ -1804,14 +1805,19 @@ if (!target || Number.isNaN(target)) {
   return <CountdownPreview />;
 }
 
-function renderFrame(block: Extract<MicrositeBlock, { type: "frame" }>) {
+function renderFrame(
+  block: Extract<MicrositeBlock, { type: "frame" }>,
+  onDownloadFrame?: (block: Extract<MicrositeBlock, { type: "frame" }>) => void,
+) {
   return (
     <div className="relative h-full w-full">
       <button
         type="button"
+        data-frame-download-button="true"
         className="absolute right-2 top-2 z-20 rounded-lg bg-neutral-900 px-3 py-1.5 text-xs font-semibold text-white shadow hover:bg-neutral-700"
-        onClick={() => {
-          window.alert("Frame download works from preview/public after capture target is wired.");
+        onClick={(e) => {
+          e.stopPropagation();
+          onDownloadFrame?.(block);
         }}
       >
         Download
@@ -8255,6 +8261,7 @@ export default function BlockRenderer({
   cartSubtotal,
   listingQuantities,
   onChangeListingQuantity,
+  onDownloadFrame,
 }: Props) {
   const safeCartItems = cartItems ?? [];
   const safeCartSubtotal = cartSubtotal ?? 0;
@@ -8394,7 +8401,7 @@ case "spreadsheet":
       return renderAudio(block);
 
     case "frame":
-      return renderFrame(block);
+      return renderFrame(block, onDownloadFrame);
     case "links":
       return renderLinks(block, designKey, previewMode);
     case "video":
