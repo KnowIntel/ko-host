@@ -814,7 +814,13 @@ style={{
   block={block}
   designKey={designKey}
   micrositeId={micrositeId}
-  micrositeSlug={micrositeSlug}
+    micrositeSlug={
+    micrositeSlug ||
+    (draft as any).slug ||
+    (draft as any).siteSlug ||
+    (draft as any).micrositeSlug ||
+    null
+  }
   serverNow={serverNow}
   previewMode={previewMode}
   cartItems={cartItems}

@@ -270,7 +270,7 @@ function normalizePreviewHref(url?: string, micrositeSlug?: string | null) {
 
     const parts = pathname.split("/").filter(Boolean);
     const isPathMicrosite = parts[0] === "s" && Boolean(parts[1]);
-    const pathSlug = isPathMicrosite ? parts[1] : micrositeSlug;
+    const pathSlug = isPathMicrosite ? parts[1] : micrositeSlug?.trim();
 
     if (pathSlug) {
       return pagePath
