@@ -1,3 +1,4 @@
+//app\preview\draft\page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -133,7 +134,13 @@ export default function PreviewDraftPage() {
 <PlacedBlocksPreview
   draft={payload.draft}
   designKey={payload.designLayout}
-  micrositeSlug={null}
+  micrositeSlug={
+    (payload as any).micrositeSlug ||
+    (payload.draft as any).slug ||
+    (payload.draft as any).siteSlug ||
+    (payload.draft as any).micrositeSlug ||
+    `${(payload.draft as any).templateName || "microsite"}-${payload.designLayout || "design"}-preset`
+  }
   hideFrame={true}
 />
     </main>
