@@ -253,7 +253,6 @@ function normalizePreviewHref(url?: string) {
   if (!raw) return "#";
 
   if (
-    raw.startsWith("/") ||
     raw.startsWith("#") ||
     /^https?:\/\//i.test(raw) ||
     /^mailto:/i.test(raw) ||
@@ -263,7 +262,28 @@ function normalizePreviewHref(url?: string) {
     return raw;
   }
 
-  return `//${raw}`;
+  if (typeof window === "undefined") return raw;
+
+  if (raw.startsWith("/")) {
+    const pagePath = raw.replace(/^\/+/, "");
+    const { origin, hostname, pathname } = window.location;
+
+    if (hostname.endsWith(".ko-host.com") && hostname !== "ko-host.com") {
+      return pagePath ? `${origin}/${pagePath}` : origin;
+    }
+
+    const parts = pathname.split("/").filter(Boolean);
+    const slugIndex = parts[0] === "s" ? 1 : -1;
+    const slug = slugIndex >= 0 ? parts[slugIndex] : "";
+
+    if (slug) {
+      return pagePath ? `${origin}/s/${slug}/${pagePath}` : `${origin}/s/${slug}`;
+    }
+
+    return raw;
+  }
+
+  return `https://${raw}`;
 }
 
 function getLabelText(block: Extract<MicrositeBlock, { type: "label" }>) {
@@ -1907,17 +1927,7 @@ function renderLinks(
           const rawUrl =
             typeof item.url === "string" ? item.url.trim() : "";
 
-const normalizedHref =
-  rawUrl.startsWith("#") ||
-  rawUrl.startsWith("/") ||
-  rawUrl.startsWith("http://") ||
-  rawUrl.startsWith("https://") ||
-  rawUrl.startsWith("mailto:") ||
-  rawUrl.startsWith("tel:")
-    ? rawUrl
-    : rawUrl
-      ? `https://${rawUrl}`
-      : "";
+const normalizedHref = rawUrl ? normalizePreviewHref(rawUrl) : "";
 
           const content = item.label || "Link";
 
