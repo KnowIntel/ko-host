@@ -247,7 +247,7 @@ function resolveFontFamily(fontFamily?: string) {
   return FONT_FAMILY_MAP[fontFamily] ?? fontFamily;
 }
 
-function normalizePreviewHref(url?: string) {
+function normalizePreviewHref(url?: string, micrositeSlug?: string | null) {
   const raw = (url ?? "").trim();
 
   if (!raw) return "#";
@@ -270,9 +270,9 @@ function normalizePreviewHref(url?: string) {
 
     const parts = pathname.split("/").filter(Boolean);
     const isPathMicrosite = parts[0] === "s" && Boolean(parts[1]);
-    const pathSlug = isPathMicrosite ? parts[1] : "";
+    const pathSlug = isPathMicrosite ? parts[1] : micrositeSlug;
 
-    if (isPathMicrosite) {
+    if (pathSlug) {
       return pagePath
         ? `${origin}/s/${pathSlug}/${pagePath}`
         : `${origin}/s/${pathSlug}`;
@@ -1206,6 +1206,7 @@ return (
 function renderCta(
   block: Extract<MicrositeBlock, { type: "cta" }>,
   designKey?: string,
+  micrositeSlug?: string | null,
 ) {
   function CtaButtonLive() {
     const [submitted, setSubmitted] = useState(false);
@@ -1285,7 +1286,7 @@ function renderCta(
 
       if (!fields.length) {
         if (block.data.buttonUrl?.trim()) {
-          const href = normalizePreviewHref(block.data.buttonUrl);
+          const href = normalizePreviewHref(block.data.buttonUrl, micrositeSlug);
 
 if (href.startsWith("#")) {
   document.querySelector(href)?.scrollIntoView({
@@ -1888,6 +1889,7 @@ function renderLinks(
   block: Extract<MicrositeBlock, { type: "links" }>,
   designKey?: string,
   previewMode = false,
+  micrositeSlug?: string | null,
 ) {
   const typedBlock = block as typeof block & {
     data: typeof block.data & {
@@ -1932,7 +1934,7 @@ function renderLinks(
           const rawUrl =
             typeof item.url === "string" ? item.url.trim() : "";
 
-const normalizedHref = rawUrl ? normalizePreviewHref(rawUrl) : "";
+const normalizedHref = rawUrl ? normalizePreviewHref(rawUrl, micrositeSlug) : "";
 
           const content = item.label || "Link";
 
@@ -8410,8 +8412,8 @@ case "spreadsheet":
 
     case "checkout":
       return renderCheckout(block, designKey, micrositeId);
-    case "cta":
-      return renderCta(block, designKey);
+case "cta":
+  return renderCta(block, designKey, micrositeSlug);
 
     case "countdown":
       return renderCountdown(block, designKey, serverNow);
@@ -8422,7 +8424,7 @@ case "spreadsheet":
     case "frame":
       return renderFrame(block, onDownloadFrame);
     case "links":
-      return renderLinks(block, designKey, previewMode);
+      return renderLinks(block, designKey, previewMode, micrositeSlug);
     case "video":
       return renderVideo(block, designKey);
     case "gallery":
