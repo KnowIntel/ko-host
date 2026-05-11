@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import TemplateDraftEditor from "@/components/templates/TemplateDraftEditor";
 import type { BuilderDraft, MicrositeBlock } from "@/lib/templates/builder";
+import AppModal from "@/components/ui/AppModal";
 
 type MicrositeRecord = {
   id: string;
@@ -111,6 +112,11 @@ export default function DashboardMicrositeBuilderPage() {
   const [deletePageId, setDeletePageId] = useState<string | null>(null);
   const [deletingPage, setDeletingPage] = useState(false);
   const [deletePageError, setDeletePageError] = useState("");
+
+  const [saveErrorModal, setSaveErrorModal] = useState<{
+  title: string;
+  message: string;
+} | null>(null);
 
 const orderedPages = useMemo(() => {
   const sorted = [...pages].sort((a, b) => {
@@ -294,35 +300,41 @@ const orderedPages = useMemo(() => {
       setSaving(true);
       setSaveMessage("Saving draft...");
 
-      if (activePageId) {
-        const res = await fetch(`/api/dashboard/microsites/${id}/pages`, {
-          method: "PATCH",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({
-            pageId: activePageId,
-            draft,
-          }),
-        });
+if (activePageId) {
+  const res = await fetch(`/api/dashboard/microsites/${id}/pages`, {
+    method: "PATCH",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      pageId: activePageId,
+      draft,
+    }),
+  });
 
-        const data = await res.json().catch(() => ({}));
+  const data = await res.json().catch(() => ({}));
 
-        if (!res.ok) {
-          alert(data?.error || "Failed to save page.");
-          setSaveMessage("Save failed.");
-          return;
-        }
+if (!res.ok) {
+  const errorMessage = data?.error || "Failed to save page.";
 
-        setEditorDraft(draft);
-        setPages((prev) =>
-          prev.map((page) =>
-            page.id === activePageId
-              ? {
-                  ...page,
-                  ...data.page,
-                }
-              : page,
-          ),
-        );
+  setSaveMessage(errorMessage);
+
+  setSaveErrorModal({
+    title: "Save Failed",
+    message: errorMessage,
+  });
+
+  return;
+}
+  setEditorDraft(draft);
+  setPages((prev) =>
+    prev.map((page) =>
+      page.id === activePageId
+        ? {
+            ...page,
+            ...data.page,
+          }
+        : page,
+    ),
+  );
 
 setSaveMessage("Page saved.");
 await loadPages(id);
@@ -753,6 +765,15 @@ return (
               ? "Reordering pages..."
               : saveMessage}
       </div>
+
+      <AppModal
+  open={!!saveErrorModal}
+  title={saveErrorModal?.title ?? "Save Failed"}
+  description={saveErrorModal?.message ?? "Failed to save page."}
+  confirmText="OK"
+  onConfirm={() => setSaveErrorModal(null)}
+  onCancel={() => setSaveErrorModal(null)}
+/>
 
 <TemplateDraftEditor
   key={`${site.id}::${activePageId || "root"}::${site.selected_design_key || "blank"}`}

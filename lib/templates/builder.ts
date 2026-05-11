@@ -93,6 +93,8 @@ export type BuilderBlockType =
   | "links"
   | "cta"
   | "countdown"
+  | "audio"
+  | "frame"
   | "padding"
   | "poll"
   | "rsvp"
@@ -450,6 +452,7 @@ export type CtaBlock = BaseBlock & {
     body?: string;
     buttonText: string;
     buttonUrl: string;
+    buttonImageUrl?: string;
     style?: TextStyle;
     styleType?: "solid" | "outline" | "soft";
   };
@@ -462,8 +465,25 @@ export type CountdownBlock = BaseBlock & {
     targetIso: string;
     completedMessage: string;
     style?: TextStyle;
-    styleVariant?: "default" | "cards" | "hero";
+    styleVariant?: "default" | "cards" | "hero" | "bounce" | "slide";
     showRings?: boolean;
+  };
+};
+
+export type AudioBlock = BaseBlock & {
+  type: "audio";
+  data: {
+    audioUrl?: string;
+    autoplay?: boolean;
+    loop?: boolean;
+    showPlayer?: boolean;
+  };
+};
+
+export type FrameBlock = BaseBlock & {
+  type: "frame";
+  data: {
+    frameName?: string;
   };
 };
 
@@ -911,6 +931,8 @@ export type MicrositeBlock =
   | LinksBlock
   | CtaBlock
   | CountdownBlock
+  | AudioBlock
+  | FrameBlock
   | PaddingBlock
   | PollBlock
   | RsvpBlock
@@ -1700,6 +1722,7 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
           body: "",
           buttonText: "Learn More",
           buttonUrl: "#",
+          buttonImageUrl: "",
           style: createDefaultTextStyle(),
         },
       };
@@ -1718,6 +1741,37 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
           style: createDefaultTextStyle(),
           styleVariant: "default",
           showRings: true,
+        },
+      };
+
+          case "audio":
+      return {
+        id: makeId("audio"),
+        type: "audio",
+        label: "Audio",
+        grid,
+        appearance: createDefaultBlockAppearance(),
+        data: {
+          audioUrl: "",
+          autoplay: false,
+          loop: false,
+          showPlayer: true,
+        },
+      };
+
+    case "frame":
+      return {
+        id: makeId("frame"),
+        type: "frame",
+        label: "Frame",
+        grid: {
+          ...grid,
+          colSpan: 8,
+          rowSpan: 8,
+        },
+        appearance: createDefaultBlockAppearance(),
+        data: {
+          frameName: "Frame",
         },
       };
 

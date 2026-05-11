@@ -117,6 +117,7 @@ import {
 import { getCanvasShellClass } from "@/components/builder/ui/editorPanelStyles";
 import ImageUploadDropzone from "@/components/builder/ImageUploadDropzone";
 import { deleteVideo, uploadVideo } from "@/lib/uploadVideo";
+import * as htmlToImage from "html-to-image";
 
 type Props = {
   templateKey: string;
@@ -288,6 +289,7 @@ const CATEGORY_BUTTONS: Record<
   Media: [
     { kind: "block", label: "Image", type: "image" },
     { kind: "block", label: "Video", type: "video" },
+    { kind: "block", label: "Audio", type: "audio" },
     { kind: "block", label: "Gallery", type: "gallery" },
     { kind: "block", label: "Carousel", type: "image_carousel" },
   ],
@@ -295,6 +297,7 @@ const CATEGORY_BUTTONS: Record<
     { kind: "shape", label: "Rectangle", type: "rectangle" },
     { kind: "shape", label: "Circle", type: "circle" },
     { kind: "shape", label: "Line", type: "line" },
+    { kind: "block", label: "Frame", type: "frame" },
     { kind: "block", label: "Spacer", type: "padding" },
   ],
   Forms: [
@@ -345,12 +348,14 @@ const TOOL_DESCRIPTIONS: Record<string, string> = {
 
   Image: "Single image with optional caption",
   Video: "Embedded video media block",
+  Audio: "Upload and play audio",
   Gallery: "Multiple images in grid layout",
   Carousel: "Swipeable image carousel display",
 
   Rectangle: "Basic rectangular shape layer",
   Circle: "Basic circular shape layer",
   Line: "Straight divider or accent line",
+  Frame: "Canvas-only capture boundary",
   Spacer: "Adds empty vertical spacing",
 
   "Input Field": "Collect simple user text input",
@@ -667,6 +672,14 @@ function getSelectedContext(
     return { kind: "image", blockId, label: "Image" };
   }
 
+  if (block.type === "audio") {
+    return { kind: "otherBlock", blockId, blockType: "audio", label: "Audio" };
+  }
+
+  if (block.type === "frame") {
+    return { kind: "otherBlock", blockId, blockType: "frame", label: "Frame" };
+  }
+
   if (block.type === "image_carousel") {
     return {
       kind: "imageCarousel",
@@ -914,6 +927,7 @@ function getToolGlyph(label: string) {
   if (label === "Rectangle") return "▭";
   if (label === "Circle") return "◯";
   if (label === "Line") return "—";
+  if (label === "Frame") return "▣";
   if (label === "Spacer") return "↕";
   if (label === "Poll") return "☑";
   if (label === "RSVP") return "✉";
@@ -932,6 +946,7 @@ function getToolGlyph(label: string) {
   if (label === "Input Field") return "⌨";
   if (label === "Rich Text") return "📝";
   if (label === "Video") return "▶";
+  if (label === "Audio") return "♫";
   if (label === "Progress Bar") return "▰";
   if (label === "Spreadsheet") return "▦";
   if (label === "Donation") return "💝";
@@ -2647,6 +2662,48 @@ async function uploadPuzzleImageToSelectedBlock(blockId: string) {
   });
 }
 
+  async function openAudioPicker(options: {
+    onSelect: (files: File[]) => Promise<void> | void;
+  }) {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "audio/*";
+    input.multiple = false;
+    input.click();
+
+    input.onchange = async () => {
+      const files = Array.from(input.files ?? []);
+      if (!files.length) return;
+      await options.onSelect(files);
+    };
+  }
+
+  async function uploadAudioToSelectedBlock(blockId: string) {
+    await openAudioPicker({
+      onSelect: async (files) => {
+        const file = files[0];
+        if (!file) return;
+
+        const dataUrl = await readFileAsDataUrl(file);
+
+        setDraft((prev) => ({
+          ...prev,
+          blocks: prev.blocks.map((block) =>
+            block.id === blockId && block.type === "audio"
+              ? {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    audioUrl: dataUrl,
+                  },
+                }
+              : block,
+          ),
+        }));
+      },
+    });
+  }
+
 function cancelResetDraft() {
   setResetDraftModalOpen(false);
 }
@@ -4007,17 +4064,27 @@ async function uploadDroppedGalleryFiles(
             if (block.id !== blockId) return block;
 
             if (block.type === "image") {
-return {
-  ...block,
-  data: {
-    ...block.data,
-    image: {
-      ...block.data.image,
-      url: dataUrl,
-      alt: file.name,
-    },
-  },
-};
+              return {
+                ...block,
+                data: {
+                  ...block.data,
+                  image: {
+                    ...block.data.image,
+                    url: dataUrl,
+                    alt: file.name,
+                  },
+                },
+              };
+            }
+
+            if (block.type === "cta") {
+              return {
+                ...block,
+                data: {
+                  ...block.data,
+                  buttonImageUrl: dataUrl,
+                },
+              };
             }
 
             if (block.type === "listing") {
@@ -5132,6 +5199,43 @@ if (block.type === "text_fx") {
             }));
           }}
         />
+      );
+    }
+
+    if (block.type === "audio") {
+      return block.data.audioUrl ? (
+        <div
+          className="h-full w-full"
+          onDoubleClick={() => void uploadAudioToSelectedBlock(block.id)}
+          title="Double-click to replace audio"
+        >
+          <BlockRenderer block={block} designKey={designKey} />
+        </div>
+      ) : (
+        <button
+          type="button"
+          className="flex h-full w-full items-center justify-center rounded-xl border border-dashed border-neutral-300 bg-neutral-50 px-4 text-center text-sm font-medium text-neutral-600 hover:bg-neutral-100"
+          onClick={() => void uploadAudioToSelectedBlock(block.id)}
+        >
+          Browse Audio
+        </button>
+      );
+    }
+
+    if (block.type === "frame") {
+      return (
+        <div className="relative h-full w-full rounded-xl border-2 border-dashed border-neutral-700 bg-transparent">
+          <button
+            type="button"
+            className="absolute right-2 top-2 z-20 rounded-lg bg-neutral-900 px-3 py-1.5 text-xs font-semibold text-white shadow hover:bg-neutral-700"
+            onClick={(e) => {
+              e.stopPropagation();
+              window.alert("Frame download will be added in the next step.");
+            }}
+          >
+            Download
+          </button>
+        </div>
       );
     }
 
@@ -7447,6 +7551,148 @@ const idsToExpand =
     </select>
   </>
 ) : null}
+
+{selectedBlock?.type === "audio" ? (
+  <div id="inspector-audio" className={inspectorCardClass()}>
+    <div className={inspectorLabelClass()}>Audio</div>
+
+    <div className="mt-4">
+      <button
+        type="button"
+        className="inline-flex h-10 items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-sm text-neutral-700 hover:bg-neutral-50"
+        onClick={() => void uploadAudioToSelectedBlock(selectedBlock.id)}
+      >
+        {selectedBlock.data.audioUrl ? "Replace Audio" : "Browse Audio"}
+      </button>
+
+      {selectedBlock.data.audioUrl ? (
+        <button
+          type="button"
+          className="ml-2 inline-flex h-10 items-center justify-center rounded-xl border border-red-200 bg-white px-4 text-sm text-red-600 hover:bg-red-50"
+          onClick={() =>
+            updateSelectedBlock((block) =>
+              block.type !== "audio"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      audioUrl: "",
+                    },
+                  },
+            )
+          }
+        >
+          Remove
+        </button>
+      ) : null}
+    </div>
+
+    <div className="mt-4 space-y-3">
+      <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+        <input
+          type="checkbox"
+          checked={selectedBlock.data.loop === true}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "audio"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      loop: e.target.checked,
+                    },
+                  },
+            )
+          }
+        />
+        Repeat
+      </label>
+
+      <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+        <input
+          type="checkbox"
+          checked={selectedBlock.data.autoplay === true}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "audio"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      autoplay: e.target.checked,
+                    },
+                  },
+            )
+          }
+        />
+        Autoplay
+      </label>
+
+      <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+        <input
+          type="checkbox"
+          checked={selectedBlock.data.showPlayer !== false}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "audio"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      showPlayer: e.target.checked,
+                    },
+                  },
+            )
+          }
+        />
+        Show Player Controls
+      </label>
+    </div>
+
+    <p className="mt-3 text-xs leading-relaxed text-neutral-500">
+      Autoplay may be blocked by browsers, especially on mobile, until the visitor taps the page.
+    </p>
+  </div>
+) : null}
+
+{selectedBlock?.type === "frame" ? (
+  <div id="inspector-frame" className={inspectorCardClass()}>
+    <div className={inspectorLabelClass()}>Frame</div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Frame Name</div>
+      <input
+        type="text"
+        value={selectedBlock.data.frameName ?? ""}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "frame"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    frameName: e.target.value,
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+        placeholder="Frame"
+      />
+    </div>
+
+    <p className="mt-3 text-xs leading-relaxed text-neutral-500">
+      Frame borders show only on the builder canvas. They are hidden on public and preview pages.
+    </p>
+  </div>
+) : null}
+
+
 {selectedBlock?.type === "progress_bar" ? (
   <>
     <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
@@ -9661,7 +9907,7 @@ if (selectedBlock?.type === "rsvp") {
     <div className="mt-4">
       <div className={inspectorLabelClass()}>Animation Style</div>
       <select
-        value={(selectedBlock.data as any).animationStyle ?? "pulse"}
+        value={((selectedBlock.data as any).animationStyle ?? "pulse") === "slide" ? "bounce" : ((selectedBlock.data as any).animationStyle ?? "pulse")}
         onChange={(e) =>
           updateSelectedBlock((block) =>
             block.type !== "countdown"
@@ -9670,7 +9916,7 @@ if (selectedBlock?.type === "rsvp") {
                   ...block,
                   data: {
                     ...block.data,
-                    animationStyle: e.target.value as "pulse" | "flip" | "slide",
+                    animationStyle: e.target.value as "pulse" | "flip" | "bounce",
                   },
                 },
           )
@@ -9679,7 +9925,7 @@ if (selectedBlock?.type === "rsvp") {
       >
         <option value="pulse">Pulse</option>
         <option value="flip">Flip</option>
-        <option value="slide">Slide</option>
+        <option value="bounce">Bounce</option>
       </select>
     </div>
 
@@ -15950,9 +16196,7 @@ onInput={(e) => {
     </div>
 
     <label className="block">
-      <span className="text-xs font-medium text-neutral-600">
-        Button Text
-      </span>
+      <span className="text-xs font-medium text-neutral-600">Button Text</span>
       <input
         type="text"
         value={selectedBlock.data.buttonText || ""}
@@ -15975,9 +16219,7 @@ onInput={(e) => {
     </label>
 
     <label className="block">
-      <span className="text-xs font-medium text-neutral-600">
-        Button Link
-      </span>
+      <span className="text-xs font-medium text-neutral-600">Button Link</span>
       <input
         type="text"
         value={selectedBlock.data.buttonUrl || ""}
@@ -15999,10 +16241,58 @@ onInput={(e) => {
       />
     </label>
 
+    <div>
+      <div className="text-xs font-medium text-neutral-600">Button Image</div>
+
+      {selectedBlock.data.buttonImageUrl ? (
+        <div className="mt-2 flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 p-2">
+          <img
+            src={selectedBlock.data.buttonImageUrl}
+            alt=""
+            className="h-10 w-10 rounded-lg object-cover"
+          />
+
+          <button
+            type="button"
+            className="h-9 rounded-lg border border-neutral-300 bg-white px-3 text-xs text-neutral-700 hover:bg-neutral-50"
+            onClick={() => void uploadImageToSelectedBlock(selectedBlock.id)}
+          >
+            Replace
+          </button>
+
+          <button
+            type="button"
+            className="h-9 rounded-lg border border-red-200 bg-white px-3 text-xs text-red-600 hover:bg-red-50"
+            onClick={() =>
+              updateSelectedBlock((block) =>
+                block.type === "cta"
+                  ? {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        buttonImageUrl: "",
+                      },
+                    }
+                  : block,
+              )
+            }
+          >
+            Remove
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          className="mt-2 inline-flex h-10 items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-sm text-neutral-700 hover:bg-neutral-50"
+          onClick={() => void uploadImageToSelectedBlock(selectedBlock.id)}
+        >
+          Browse Image
+        </button>
+      )}
+    </div>
+
     <label className="block">
-      <span className="text-xs font-medium text-neutral-600">
-        Submitted Text
-      </span>
+      <span className="text-xs font-medium text-neutral-600">Submitted Text</span>
       <input
         type="text"
         value={(selectedBlock.data as any).submittedText || "Submitted"}
@@ -16024,7 +16314,6 @@ onInput={(e) => {
       />
     </label>
 
-    {/* HORIZONTAL POSITION */}
     <div>
       <div className="text-xs font-medium text-neutral-600">
         Horizontal Position
@@ -16051,7 +16340,6 @@ onInput={(e) => {
       />
     </div>
 
-    {/* VERTICAL POSITION */}
     <div>
       <div className="text-xs font-medium text-neutral-600">
         Vertical Position

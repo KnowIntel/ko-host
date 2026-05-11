@@ -1365,11 +1365,21 @@ return (
           transform: `translate(${posX - 50}%, ${posY - 50}%)`,
         }}
       >
-        {submitted
-          ? submittedText
-          : submitting
-            ? "Submitting..."
-            : block.data.buttonText || "Button"}
+        {block.data.buttonImageUrl ? (
+          <img
+            src={block.data.buttonImageUrl}
+            alt=""
+            className="mr-2 h-5 w-5 shrink-0 object-cover"
+          />
+        ) : null}
+
+        <span>
+          {submitted
+            ? submittedText
+            : submitting
+              ? "Submitting..."
+              : block.data.buttonText || "Button"}
+        </span>
       </button>
     </div>
   </div>
@@ -1420,8 +1430,10 @@ function renderCountdown(
 
     const variant = block.data.styleVariant ?? "default";
     const showRings = block.data.showRings !== false;
-const animationStyle =
-  ((block.data as any).animationStyle as "pulse" | "flip" | "slide" | undefined) ?? "pulse";
+const rawAnimationStyle =
+  ((block.data as any).animationStyle as "pulse" | "flip" | "slide" | "bounce" | undefined) ?? "pulse";
+
+const animationStyle = rawAnimationStyle === "slide" ? "bounce" : rawAnimationStyle;
 
 const countdownAnimationTransform = (baseTransform: string) => {
   if (!isTicking) return baseTransform;
@@ -1430,7 +1442,7 @@ const countdownAnimationTransform = (baseTransform: string) => {
     return `${baseTransform} rotateX(-78deg)`;
   }
 
-  if (animationStyle === "slide") {
+  if (animationStyle === "bounce") {
     return `${baseTransform} translateY(-14px)`;
   }
 
@@ -1440,7 +1452,7 @@ const countdownAnimationTransform = (baseTransform: string) => {
 const countdownAnimationTransition =
   animationStyle === "flip"
     ? "transform 260ms cubic-bezier(0.34, 1.56, 0.64, 1), opacity 180ms ease"
-    : animationStyle === "slide"
+    : animationStyle === "bounce"
       ? "transform 180ms ease, opacity 180ms ease"
       : "transform 200ms ease";
 
@@ -1760,6 +1772,30 @@ if (!target || Number.isNaN(target)) {
   }
 
   return <CountdownPreview />;
+}
+
+function renderAudio(block: Extract<MicrositeBlock, { type: "audio" }>) {
+  const audioUrl = block.data.audioUrl?.trim();
+
+  if (!audioUrl) {
+    return (
+      <div className="flex h-full w-full items-center justify-center rounded-xl border border-dashed border-neutral-300 bg-neutral-50 px-4 py-3 text-center text-sm text-neutral-500">
+        Add audio
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-xl">
+      <audio
+        src={audioUrl}
+        controls={block.data.showPlayer !== false}
+        loop={block.data.loop === true}
+        autoPlay={block.data.autoplay === true}
+        className="w-full"
+      />
+    </div>
+  );
 }
 
 function renderLinks(
@@ -8295,13 +8331,19 @@ case "spreadsheet":
   case "bookmark":
   return null;
 
+    case "checkout":
+      return renderCheckout(block, designKey, micrositeId);
     case "cta":
       return renderCta(block, designKey);
 
-    case "checkout":
-      return renderCheckout(block, designKey, micrositeId);
     case "countdown":
       return renderCountdown(block, designKey, serverNow);
+
+    case "audio":
+      return renderAudio(block);
+
+    case "frame":
+      return null;
     case "links":
       return renderLinks(block, designKey, previewMode);
     case "video":
