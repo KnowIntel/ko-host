@@ -67,13 +67,15 @@ return createPortal(
   <div className="flex items-center">{children}</div>
 
   <div className="flex items-center gap-3">
-    <button
-      onClick={onCancel}
-      className="rounded-xl border border-black bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-900"
-      disabled={loading}
-    >
-      {cancelText}
-    </button>
+    {cancelText ? (
+      <button
+        onClick={onCancel}
+        className="rounded-xl border border-black bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-900"
+        disabled={loading}
+      >
+        {cancelText}
+      </button>
+    ) : null}
 
     {onConfirm ? (
       <button
