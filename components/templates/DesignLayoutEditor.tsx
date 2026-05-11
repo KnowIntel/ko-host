@@ -17657,6 +17657,7 @@ className="h-[44px] w-[180px] rounded-md border border-neutral-300 bg-white px-3
 <AppModal
   open={blockGuideOpen}
   title={selectedBlockGuide?.title ?? "Block Guide"}
+  cancelText=""
   onCancel={() => setBlockGuideOpen(false)}
 >
   {selectedBlockGuide ? (
