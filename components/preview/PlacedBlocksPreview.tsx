@@ -699,7 +699,9 @@ const isInteractiveBlock =
   block.type === "faq" ||
   block.type === "puzzle" ||
   block.type === "spin_wheel" ||
-  block.type === "spreadsheet";
+  block.type === "spreadsheet" ||
+  block.type === "audio" ||
+  block.type === "frame";
 
   return (
 <div

@@ -454,6 +454,7 @@ export type CtaBlock = BaseBlock & {
     buttonUrl: string;
     buttonImageUrl?: string;
     buttonImageSize?: number;
+    buttonImagePlacement?: "before" | "above" | "after";
     style?: TextStyle;
     styleType?: "solid" | "outline" | "soft";
   };
@@ -1725,6 +1726,7 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
           buttonUrl: "#",
           buttonImageUrl: "",
           buttonImageSize: 20,
+          buttonImagePlacement: "before",
           style: createDefaultTextStyle(),
         },
       };

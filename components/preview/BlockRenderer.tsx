@@ -1344,6 +1344,13 @@ try {
 const posX = Number((block.data as any).posX ?? 50);
 const posY = Number((block.data as any).posY ?? 50);
 
+const buttonImagePlacement =
+  ((block.data as any).buttonImagePlacement as
+    | "before"
+    | "above"
+    | "after"
+    | undefined) ?? "before";
+
 return (
   <div className="h-full w-full overflow-hidden">
     <div
@@ -1354,37 +1361,56 @@ return (
         textAlign: block.data.style?.align ?? "center",
       }}
     >
-      <button
-        type="button"
-        onClick={handleLinkedFieldSubmit}
-        disabled={submitting}
-        className="inline-flex cursor-pointer items-center justify-center px-5 py-2 transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-70"
-        style={{
-          ...style,
-          ...variantStyle,
-          transform: `translate(${posX - 50}%, ${posY - 50}%)`,
-        }}
-      >
-        {block.data.buttonImageUrl ? (
-          <img
-            src={block.data.buttonImageUrl}
-            alt=""
-            style={{
-              width: `${(block.data as any).buttonImageSize ?? 20}px`,
-              height: `${(block.data as any).buttonImageSize ?? 20}px`,
-            }}
-            className="mr-2 shrink-0 object-cover"
-          />
-        ) : null}
+<button
+  type="button"
+  onClick={handleLinkedFieldSubmit}
+  disabled={submitting}
+  className={[
+    "inline-flex cursor-pointer items-center justify-center px-5 py-2 transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-70",
+    buttonImagePlacement === "above"
+      ? "flex-col gap-2"
+      : "flex-row gap-2",
+  ].join(" ")}
+  style={{
+    ...style,
+    ...variantStyle,
+    transform: `translate(${posX - 50}%, ${posY - 50}%)`,
+  }}
+>
+  {block.data.buttonImageUrl &&
+  buttonImagePlacement !== "after" ? (
+    <img
+      src={block.data.buttonImageUrl}
+      alt=""
+      style={{
+        width: `${(block.data as any).buttonImageSize ?? 20}px`,
+        height: `${(block.data as any).buttonImageSize ?? 20}px`,
+      }}
+      className="shrink-0 object-cover"
+    />
+  ) : null}
 
-        <span>
-          {submitted
-            ? submittedText
-            : submitting
-              ? "Submitting..."
-              : block.data.buttonText || "Button"}
-        </span>
-      </button>
+  <span>
+    {submitted
+      ? submittedText
+      : submitting
+        ? "Submitting..."
+        : block.data.buttonText || "Button"}
+  </span>
+
+  {block.data.buttonImageUrl &&
+  buttonImagePlacement === "after" ? (
+    <img
+      src={block.data.buttonImageUrl}
+      alt=""
+      style={{
+        width: `${(block.data as any).buttonImageSize ?? 20}px`,
+        height: `${(block.data as any).buttonImageSize ?? 20}px`,
+      }}
+      className="shrink-0 object-cover"
+    />
+  ) : null}
+</button>
     </div>
   </div>
 );

@@ -275,6 +275,119 @@ export const BLOCK_GUIDES: Partial<Record<BuilderBlockType, BlockGuide>> = {
   ],
 },
 
+audio: {
+  title: "Audio",
+  subtitle:
+    "Upload and play audio directly on the microsite with optional autoplay, looping, and player controls.",
+  sections: [
+    {
+      title: "Overview",
+      body:
+        "The Audio block allows owners to upload audio content that visitors can listen to directly from the microsite. This can be used for music, podcasts, announcements, voice recordings, ambience, interviews, or any other audio experience.",
+    },
+    {
+      title: "Objective",
+      bullets: [
+        "Provide an audio listening experience directly on the microsite.",
+        "Support looping ambient or background audio.",
+        "Allow optional autoplay behavior.",
+        "Give visitors playback controls when enabled.",
+      ],
+    },
+    {
+      title: "Inspector Configuration",
+      bullets: [
+        "Browse Audio - upload or replace the audio file.",
+        "Remove - removes the current audio file.",
+        "Repeat - continuously loops the audio.",
+        "Autoplay - attempts to automatically play audio when the page loads.",
+        "Show Player Controls - toggles visibility of the playback controls.",
+      ],
+    },
+    {
+      title: "Playback Behavior",
+      body:
+        "Audio playback behavior depends partly on browser restrictions and visitor device settings.",
+      bullets: [
+        "Desktop browsers may allow autoplay depending on browser permissions.",
+        "Mobile browsers often block autoplay until the visitor interacts with the page.",
+        "Loop mode will continuously replay the audio when enabled.",
+        "Player controls allow pause, seek, and volume adjustment.",
+      ],
+    },
+    {
+      title: "Best Use Cases",
+      bullets: [
+        "Background music for event pages.",
+        "Podcast or interview embeds.",
+        "Voice greetings or announcements.",
+        "Meditation or ambience experiences.",
+        "Audio storytelling or guided experiences.",
+        "Music previews or artist showcases.",
+      ],
+    },
+  ],
+},
+
+frame: {
+  title: "Frame",
+  subtitle:
+    "Create a visual capture boundary that can export everything positioned inside the frame area as an image.",
+  sections: [
+    {
+      title: "Overview",
+      body:
+        "The Frame block acts as a capture zone or module boundary. Anything visually positioned inside the frame area can later be exported as a downloadable image snapshot.",
+    },
+    {
+      title: "Objective",
+      bullets: [
+        "Group visual content into a defined capture area.",
+        "Allow exporting portions of a microsite as an image.",
+        "Create reusable visual modules or downloadable scenes.",
+        "Provide clean layout boundaries during design.",
+      ],
+    },
+    {
+      title: "Canvas vs Public Behavior",
+      bullets: [
+        "On the builder canvas, the frame displays a visible dashed border to show capture bounds.",
+        "On public and preview pages, the border is hidden.",
+        "The public/preview version displays a Download button for exporting the framed content.",
+      ],
+    },
+    {
+      title: "Inspector Configuration",
+      bullets: [
+        "Frame Name - optional export filename label.",
+        "Frame dimensions are controlled by resizing the block on the canvas.",
+        "Position determines the capture region.",
+      ],
+    },
+    {
+      title: "Capture Behavior",
+      body:
+        "The Frame block is intended to export visual content positioned within its boundaries.",
+      bullets: [
+        "Exports as a downloadable PNG image.",
+        "Can be used to create downloadable posters, cards, summaries, or shareable snapshots.",
+        "Designed for modular microsite sections.",
+      ],
+    },
+    {
+      title: "Best Use Cases",
+      bullets: [
+        "Downloadable invitations.",
+        "Social share graphics.",
+        "Photo booth or event snapshots.",
+        "Achievement or certificate exports.",
+        "Downloadable menus or cards.",
+        "Visual section grouping during design.",
+      ],
+    },
+  ],
+},
+
 puzzle: {
   title: "Puzzle",
   subtitle:
