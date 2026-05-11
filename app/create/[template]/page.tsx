@@ -465,7 +465,7 @@ async function handleSaveDraft(draft: BuilderDraft): Promise<void> {
 
     lastSavedDraftRef.current = JSON.stringify(draftToSave);
     setSaveState("saved");
-    setSaveMessage("Draft was saved to your dashboard.");
+    setSaveMessage("Draft was saved to your dashboard and blueprint file saved to your local downloads folder.");
     queueSaveStateReset();
   } catch (error) {
     const message =
