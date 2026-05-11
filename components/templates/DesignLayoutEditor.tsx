@@ -17661,42 +17661,54 @@ className="h-[44px] w-[180px] rounded-md border border-neutral-300 bg-white px-3
   onCancel={() => setBlockGuideOpen(false)}
 >
   {selectedBlockGuide ? (
-    <div className="mt-5 max-h-[72vh] overflow-y-auto pr-2">
-      <div className="mb-5">
-        <div className="text-xs font-semibold uppercase tracking-[0.18em] text-neutral-400">
-          Block Guide
+    <div className="mt-5 flex max-h-[72vh] flex-col">
+      <div className="overflow-y-auto pr-2">
+        <div className="mb-5">
+          <div className="text-xs font-semibold uppercase tracking-[0.18em] text-neutral-400">
+            Block Guide
+          </div>
+
+          <p className="mt-2 text-sm leading-6 text-neutral-600">
+            {selectedBlockGuide.subtitle}
+          </p>
         </div>
 
-        <p className="mt-2 text-sm leading-6 text-neutral-600">
-          {selectedBlockGuide.subtitle}
-        </p>
+        <div className="space-y-5">
+          {selectedBlockGuide.sections.map((section) => (
+            <section
+              key={section.title}
+              className="rounded-2xl border border-neutral-200 bg-white p-4"
+            >
+              <h3 className="text-base font-semibold text-neutral-950">
+                {section.title}
+              </h3>
+
+              {section.body ? (
+                <p className="mt-2 text-sm leading-6 text-neutral-600">
+                  {section.body}
+                </p>
+              ) : null}
+
+              {section.bullets?.length ? (
+                <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-6 text-neutral-600">
+                  {section.bullets.map((bullet) => (
+                    <li key={bullet}>{bullet}</li>
+                  ))}
+                </ul>
+              ) : null}
+            </section>
+          ))}
+        </div>
       </div>
 
-      <div className="space-y-5">
-        {selectedBlockGuide.sections.map((section) => (
-          <section
-            key={section.title}
-            className="rounded-2xl border border-neutral-200 bg-white p-4"
-          >
-            <h3 className="text-base font-semibold text-neutral-950">
-              {section.title}
-            </h3>
-
-            {section.body ? (
-              <p className="mt-2 text-sm leading-6 text-neutral-600">
-                {section.body}
-              </p>
-            ) : null}
-
-            {section.bullets?.length ? (
-              <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-6 text-neutral-600">
-                {section.bullets.map((bullet) => (
-                  <li key={bullet}>{bullet}</li>
-                ))}
-              </ul>
-            ) : null}
-          </section>
-        ))}
+      <div className="flex justify-end pt-5">
+        <button
+          type="button"
+          onClick={() => setBlockGuideOpen(false)}
+          className="inline-flex h-11 items-center justify-center rounded-xl bg-black px-5 text-sm font-medium text-white transition hover:bg-neutral-800"
+        >
+          Close
+        </button>
       </div>
     </div>
   ) : null}
