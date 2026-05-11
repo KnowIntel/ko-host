@@ -1567,7 +1567,12 @@ if (!isCmd) return;
 
 if (event.key.toLowerCase() === "s") {
   event.preventDefault();
-  void onSaveDraft?.(draft);
+
+  void (async () => {
+    await onSaveDraft?.(draft);
+    downloadBlueprintSnapshot(draft);
+  })();
+
   return;
 }
 
@@ -3646,6 +3651,27 @@ if (block.type === "cta") {
       return block;
     }),
   }));
+}
+
+function downloadBlueprintSnapshot(nextDraft: BuilderDraft) {
+  const timestamp = Date.now();
+  const blueprintJson = JSON.stringify(nextDraft, null, 2);
+
+  const blob = new Blob([blueprintJson], {
+    type: "text/plain;charset=utf-8",
+  });
+
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = `ko-host-blueprint-${timestamp}.txt`;
+
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  URL.revokeObjectURL(url);
 }
 
 function isBlockMultiSelected(blockId: string) {
@@ -17558,6 +17584,8 @@ className="h-[44px] w-[180px] rounded-md border border-neutral-300 bg-white px-3
             const zoomBeforeSave = canvasZoom;
 
             await onSaveDraft?.(draft);
+
+            downloadBlueprintSnapshot(draft);
 
             window.requestAnimationFrame(() => {
               setCanvasZoom(zoomBeforeSave);
