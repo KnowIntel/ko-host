@@ -1369,7 +1369,11 @@ return (
           <img
             src={block.data.buttonImageUrl}
             alt=""
-            className="mr-2 h-5 w-5 shrink-0 object-cover"
+            style={{
+              width: `${(block.data as any).buttonImageSize ?? 20}px`,
+              height: `${(block.data as any).buttonImageSize ?? 20}px`,
+            }}
+            className="mr-2 shrink-0 object-cover"
           />
         ) : null}
 
@@ -1774,6 +1778,22 @@ if (!target || Number.isNaN(target)) {
   return <CountdownPreview />;
 }
 
+function renderFrame(block: Extract<MicrositeBlock, { type: "frame" }>) {
+  return (
+    <div className="relative h-full w-full">
+      <button
+        type="button"
+        className="absolute right-2 top-2 z-20 rounded-lg bg-neutral-900 px-3 py-1.5 text-xs font-semibold text-white shadow hover:bg-neutral-700"
+        onClick={() => {
+          window.alert("Frame download works from preview/public after capture target is wired.");
+        }}
+      >
+        Download
+      </button>
+    </div>
+  );
+}
+
 function renderAudio(block: Extract<MicrositeBlock, { type: "audio" }>) {
   const audioUrl = block.data.audioUrl?.trim();
 
@@ -1786,14 +1806,19 @@ function renderAudio(block: Extract<MicrositeBlock, { type: "audio" }>) {
   }
 
   return (
-    <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-xl">
+    <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-xl bg-neutral-100 p-3">
       <audio
+        key={audioUrl}
         src={audioUrl}
+        preload="auto"
         controls={block.data.showPlayer !== false}
         loop={block.data.loop === true}
         autoPlay={block.data.autoplay === true}
+        playsInline
         className="w-full"
-      />
+      >
+        Your browser does not support audio playback.
+      </audio>
     </div>
   );
 }
@@ -8343,7 +8368,7 @@ case "spreadsheet":
       return renderAudio(block);
 
     case "frame":
-      return null;
+      return renderFrame(block);
     case "links":
       return renderLinks(block, designKey, previewMode);
     case "video":

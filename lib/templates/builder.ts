@@ -453,6 +453,7 @@ export type CtaBlock = BaseBlock & {
     buttonText: string;
     buttonUrl: string;
     buttonImageUrl?: string;
+    buttonImageSize?: number;
     style?: TextStyle;
     styleType?: "solid" | "outline" | "soft";
   };
@@ -1723,6 +1724,7 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
           buttonText: "Learn More",
           buttonUrl: "#",
           buttonImageUrl: "",
+          buttonImageSize: 20,
           style: createDefaultTextStyle(),
         },
       };

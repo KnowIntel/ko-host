@@ -117,7 +117,6 @@ import {
 import { getCanvasShellClass } from "@/components/builder/ui/editorPanelStyles";
 import ImageUploadDropzone from "@/components/builder/ImageUploadDropzone";
 import { deleteVideo, uploadVideo } from "@/lib/uploadVideo";
-import * as htmlToImage from "html-to-image";
 
 type Props = {
   templateKey: string;
@@ -1168,6 +1167,7 @@ const [pageDragPreview, setPageDragPreview] = useState<typeof pages | null>(null
   const [redoStack, setRedoStack] = useState<BuilderDraft[]>([]);
   const isHistoryActionRef = useRef(false);
   const [selectedBlockIds, setSelectedBlockIds] = useState<string[]>([]);
+  const frameCaptureRootRef = useRef<HTMLDivElement | null>(null);
   const initialDraftRef = useRef<BuilderDraft>(cloneDraft(draft));
   const lastDraftRef = useRef<BuilderDraft>(cloneDraft(draft));
   const topBarScrollRef = useRef<HTMLDivElement | null>(null);
@@ -5222,22 +5222,11 @@ if (block.type === "text_fx") {
       );
     }
 
-    if (block.type === "frame") {
-      return (
-        <div className="relative h-full w-full rounded-xl border-2 border-dashed border-neutral-700 bg-transparent">
-          <button
-            type="button"
-            className="absolute right-2 top-2 z-20 rounded-lg bg-neutral-900 px-3 py-1.5 text-xs font-semibold text-white shadow hover:bg-neutral-700"
-            onClick={(e) => {
-              e.stopPropagation();
-              window.alert("Frame download will be added in the next step.");
-            }}
-          >
-            Download
-          </button>
-        </div>
-      );
-    }
+if (block.type === "frame") {
+  return (
+    <div className="h-full w-full rounded-xl border-2 border-dashed border-neutral-700 bg-transparent" />
+  );
+}
 
     if (block.type === "puzzle") {
       return block.data.imageUrl ? (
@@ -8786,6 +8775,7 @@ if (selectedBlock?.type === "rsvp") {
     >
 <div className="flex w-full justify-center overflow-auto px-4 py-4">
 <div
+  ref={frameCaptureRootRef}
   className="origin-top w-full rounded-[8px]"
   style={{
     transform: `scale(${canvasZoom / 100})`,
@@ -16291,8 +16281,37 @@ onInput={(e) => {
       )}
     </div>
 
+    <div>
+      <div className="text-xs font-medium text-neutral-600">
+        Button Image Size
+      </div>
+
+      <input
+        type="range"
+        min={10}
+        max={80}
+        value={(selectedBlock.data as any).buttonImageSize ?? 20}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type === "cta"
+              ? {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    buttonImageSize: Number(e.target.value),
+                  },
+                }
+              : block,
+          )
+        }
+        className="mt-2 w-full"
+      />
+    </div>
+
     <label className="block">
-      <span className="text-xs font-medium text-neutral-600">Submitted Text</span>
+      <span className="text-xs font-medium text-neutral-600">
+        Submitted Text
+      </span>
       <input
         type="text"
         value={(selectedBlock.data as any).submittedText || "Submitted"}
