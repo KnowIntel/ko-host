@@ -268,16 +268,21 @@ function normalizePreviewHref(url?: string) {
     const pagePath = raw.replace(/^\/+/, "");
     const { origin, hostname, pathname } = window.location;
 
-    if (hostname.endsWith(".ko-host.com") && hostname !== "ko-host.com") {
-      return pagePath ? `${origin}/${pagePath}` : origin;
+    const parts = pathname.split("/").filter(Boolean);
+    const isPathMicrosite = parts[0] === "s" && Boolean(parts[1]);
+    const pathSlug = isPathMicrosite ? parts[1] : "";
+
+    if (isPathMicrosite) {
+      return pagePath
+        ? `${origin}/s/${pathSlug}/${pagePath}`
+        : `${origin}/s/${pathSlug}`;
     }
 
-    const parts = pathname.split("/").filter(Boolean);
-    const slugIndex = parts[0] === "s" ? 1 : -1;
-    const slug = slugIndex >= 0 ? parts[slugIndex] : "";
+    const isSubdomainMicrosite =
+      hostname.endsWith(".ko-host.com") && hostname !== "ko-host.com";
 
-    if (slug) {
-      return pagePath ? `${origin}/s/${slug}/${pagePath}` : `${origin}/s/${slug}`;
+    if (isSubdomainMicrosite) {
+      return pagePath ? `${origin}/${pagePath}` : origin;
     }
 
     return raw;
