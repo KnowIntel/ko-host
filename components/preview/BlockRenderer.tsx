@@ -1367,7 +1367,7 @@ return (
   onClick={handleLinkedFieldSubmit}
   disabled={submitting}
   className={[
-    "inline-flex cursor-pointer items-center justify-center px-5 py-2 transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-70",
+    "inline-flex cursor-pointer items-center justify-center transition active:scale-95 disabled:cursor-not-allowed disabled:opacity-70",
     buttonImagePlacement === "above"
       ? "flex-col gap-2"
       : "flex-row gap-2",
@@ -1376,6 +1376,10 @@ return (
     ...style,
     ...variantStyle,
     transform: `translate(${posX - 50}%, ${posY - 50}%)`,
+    paddingTop: `${(block.data as any).buttonPaddingY ?? 8}px`,
+    paddingBottom: `${(block.data as any).buttonPaddingY ?? 8}px`,
+    paddingLeft: `${(block.data as any).buttonPaddingX ?? 20}px`,
+    paddingRight: `${(block.data as any).buttonPaddingX ?? 20}px`,
   }}
 >
   {block.data.buttonImageUrl &&
