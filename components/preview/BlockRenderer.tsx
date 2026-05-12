@@ -955,28 +955,23 @@ function renderImage(
           className="h-full w-full overflow-hidden"
 style={{
   ...frameStyle,
-  backgroundImage:
+  borderColor:
+    block.appearance?.textureEnabled && block.appearance?.textureImageUrl
+      ? "transparent"
+      : frameStyle.borderColor,
+  borderImageSource:
     block.appearance?.textureEnabled && block.appearance?.textureImageUrl
       ? `url("${block.appearance.textureImageUrl}")`
       : undefined,
-  backgroundSize:
+  borderImageSlice:
     block.appearance?.textureEnabled && block.appearance?.textureImageUrl
-      ? `${block.appearance?.textureScale ?? 100}%`
+      ? 30
       : undefined,
-  backgroundPosition:
+  borderImageRepeat:
     block.appearance?.textureEnabled && block.appearance?.textureImageUrl
-      ? `${block.appearance?.texturePositionX ?? 50}% ${
-          block.appearance?.texturePositionY ?? 50
-        }%`
+      ? "round"
       : undefined,
-  backgroundRepeat:
-    block.appearance?.textureEnabled && block.appearance?.textureImageUrl
-      ? "repeat"
-      : undefined,
-  padding:
-    block.appearance?.textureEnabled && block.appearance?.textureImageUrl
-      ? `${Math.max(2, block.appearance?.borderWidth ?? 10)}px`
-      : undefined,
+  padding: undefined,
   transform: `translate(${translateX}%, ${translateY}%) scale(${zoom}) rotate(${rotation}deg)`,
   transformOrigin: "center center",
   opacity: block.data.image.opacity ?? 1,
