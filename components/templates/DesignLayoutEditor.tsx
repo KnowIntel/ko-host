@@ -1161,8 +1161,14 @@ const [pageDragPreview, setPageDragPreview] = useState<typeof pages | null>(null
   const [removeAllModalOpen, setRemoveAllModalOpen] = useState(false);
   const [inspectorFocusTarget, setInspectorFocusTarget] =
     useState<InspectorFocusTarget>(null);
-    const [canvasZoom, setCanvasZoom] = useState(100);
-  const canvasZoomBeforeSaveRef = useRef(100);
+    const [canvasZoom, setCanvasZoom] = useState(() => {
+    if (typeof window === "undefined") return 100;
+
+    const saved = window.sessionStorage.getItem("ko-host-builder-canvas-zoom");
+    const parsed = saved ? Number(saved) : 100;
+
+    return Number.isFinite(parsed) ? clampCanvasZoom(parsed) : 100;
+  });
   const [showGridLines, setShowGridLines] = useState(true);
   const [undoStack, setUndoStack] = useState<BuilderDraft[]>([]);
   const [redoStack, setRedoStack] = useState<BuilderDraft[]>([]);
