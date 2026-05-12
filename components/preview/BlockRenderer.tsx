@@ -5489,7 +5489,8 @@ return (
 <div
   className="mt-4 flex flex-row flex-wrap items-center"
   style={{
-    gap: `${Math.max(0, Number(block.data.buttonSpacing ?? 8))}px`,
+    marginLeft: `-${Math.max(0, Number(block.data.buttonSpacing ?? 8)) / 2}px`,
+    marginRight: `-${Math.max(0, Number(block.data.buttonSpacing ?? 8)) / 2}px`,
   }}
 >
         {donationOptions.map((option, index) => {
@@ -5509,6 +5510,8 @@ return (
     disabled={!micrositeId}
     className="inline-flex min-h-11 items-center justify-center rounded-xl px-5 py-2 disabled:cursor-not-allowed disabled:opacity-60"
     style={{
+      marginLeft: `${Math.max(0, Number(block.data.buttonSpacing ?? 8)) / 2}px`,
+      marginRight: `${Math.max(0, Number(block.data.buttonSpacing ?? 8)) / 2}px`,
       backgroundColor:
         buttonStyle.backgroundColor ??
         (isLightDesign(designKey) ? "#171717" : "#ffffff"),
