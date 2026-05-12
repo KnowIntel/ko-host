@@ -17568,43 +17568,13 @@ className="h-[44px] w-[180px] rounded-md border border-neutral-300 bg-white px-3
   <div className="flex flex-nowrap items-center gap-2 md:gap-4 h-12">
 
 
-<button
-  type="button"
-  className={[
-    "inline-flex h-12 items-center justify-center rounded-md border px-4 text-sm font-medium transition",
-    saveState === "saving"
-      ? "border-blue-600 bg-blue-600 text-white animate-pulse"
-      : saveState === "saved"
-        ? "border-emerald-600 bg-emerald-600 text-white"
-        : saveState === "error"
-          ? "border-red-600 bg-red-600 text-white"
-          : saveState === "signin-required"
-            ? "border-amber-500 bg-amber-500 text-white"
-            : "border-blue-600 bg-blue-600 text-white hover:bg-blue-700",
-  ].join(" ")}
-  onClick={async () => {
-    canvasZoomBeforeSaveRef.current = canvasZoom;
-
-    await onSaveDraft?.(draft);
-
-    downloadBlueprintSnapshot(draft);
-
-    window.setTimeout(() => {
-      setCanvasZoom(canvasZoomBeforeSaveRef.current);
-    }, 50);
-  }}
-  disabled={saveState === "saving"}
->
-  {saveState === "saving"
-    ? "Saving..."
-    : saveState === "saved"
-      ? "Saved ✓"
-      : saveState === "error"
-        ? "Save Failed"
-        : saveState === "signin-required"
-          ? "Sign In to Save"
-          : "Save Draft"}
-</button>
+        <button
+          type="button"
+          className={actionButtonClass(false)}
+          onClick={openPreviewWindow}
+        >
+          Open Preview
+        </button>
 
         <button
           type="button"
