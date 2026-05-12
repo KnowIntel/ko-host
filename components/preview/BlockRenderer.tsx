@@ -3579,7 +3579,7 @@ function renderThread(
                   key={attachment.id}
                   src={src}
                   controls
-                  className="max-h-52 w-full rounded-xl border object-cover"
+                  className="h-auto max-h-none w-full rounded-xl border object-contain"
                 />
               );
             }
@@ -4022,7 +4022,7 @@ function renderThread(
           </div>
 
           <div
-            className="mt-4 min-h-0 flex-1 overflow-y-auto pr-1"
+            className="mt-4 min-h-[260px] flex-1 overflow-y-auto pr-1"
             style={{ maxHeight: `${scrollHeight}px` }}
           >
             {isLoading ? (
