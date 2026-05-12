@@ -5303,7 +5303,11 @@ return (
       return <div className="text-xs uppercase text-white/60">{item.type}</div>;
     }
 
-    if (block.type === "label") {
+if (block.type === "label") {
+  const hasTexture = Boolean(
+    block.data.style?.textureEnabled && block.data.style?.textureImageUrl,
+  );
+
   return (
     <div
       className="h-full w-full p-2"
@@ -5329,23 +5333,39 @@ return (
             : undefined,
       }}
     >
-    <textarea
-      value={block.data.text || ""}
-      onChange={(e) => updateTextByCanvasId(block.id, e.target.value)}
-      onClick={(e) => e.stopPropagation()}
-      className="block h-full w-full resize-none bg-transparent outline-none"
-      placeholder="Label"
-      style={{
-        ...getInlineTextStyle(block.data.style),
-        padding: 0,
-        margin: 0,
-        border: "none",
-        boxSizing: "border-box",
-        transform: `translate(${((block.data as any).positionX ?? 50) - 50}%, ${
-          ((block.data as any).positionY ?? 50) - 50
-        }%)`,
-      }}
-    />
+      <textarea
+        value={block.data.text || ""}
+        onChange={(e) => updateTextByCanvasId(block.id, e.target.value)}
+        onClick={(e) => e.stopPropagation()}
+        className="block h-full w-full resize-none bg-transparent outline-none"
+        placeholder="Label"
+        style={{
+          ...getInlineTextStyle(block.data.style),
+          padding: 0,
+          margin: 0,
+          border: "none",
+          boxSizing: "border-box",
+          backgroundImage: hasTexture
+            ? `url("${block.data.style?.textureImageUrl}")`
+            : undefined,
+          backgroundRepeat: hasTexture ? "repeat" : undefined,
+          backgroundSize: hasTexture
+            ? `${block.data.style?.textureScale ?? 100}%`
+            : undefined,
+          backgroundPosition: hasTexture
+            ? `${block.data.style?.texturePositionX ?? 50}% ${
+                block.data.style?.texturePositionY ?? 50
+              }%`
+            : undefined,
+          backgroundClip: hasTexture ? "text" : undefined,
+          WebkitBackgroundClip: hasTexture ? "text" : undefined,
+          color: hasTexture ? "transparent" : undefined,
+          WebkitTextFillColor: hasTexture ? "transparent" : undefined,
+          transform: `translate(${((block.data as any).positionX ?? 50) - 50}%, ${
+            ((block.data as any).positionY ?? 50) - 50
+          }%)`,
+        }}
+      />
     </div>
   );
 }
