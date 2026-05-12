@@ -463,6 +463,21 @@ function getAppearanceStyle(block: MicrositeBlock): React.CSSProperties {
   };
 }
 
+function getTextureBorderStyle(
+  appearance?: MicrositeBlock["appearance"],
+): React.CSSProperties {
+  if (!appearance?.textureEnabled || !appearance.textureImageUrl) {
+    return {};
+  }
+
+  return {
+    borderColor: "transparent",
+    borderImageSource: `url("${appearance.textureImageUrl}")`,
+    borderImageSlice: 30,
+    borderImageRepeat: "round",
+  };
+}
+
 function getTextureBackgroundStyle(
   appearance?: MicrositeBlock["appearance"],
 ): React.CSSProperties {
@@ -891,14 +906,7 @@ function renderVideo(
 
 <div
   className="min-h-0 flex-1 overflow-hidden rounded-xl border border-neutral-200 bg-black/5"
-  style={{
-    ...getTextureBackgroundStyle(block.appearance),
-    padding:
-      block.appearance?.textureEnabled &&
-      block.appearance?.textureImageUrl
-        ? `${Math.max(2, block.appearance?.borderWidth ?? 6)}px`
-        : undefined,
-  }}
+style={getTextureBorderStyle(block.appearance)}
 >
         {isDirectVideoFile ? (
           <video
@@ -2221,12 +2229,7 @@ function renderGallery(
       className="h-full w-full overflow-hidden p-2"
 style={{
   ...getAppearanceStyle(block),
-  ...getTextureBackgroundStyle(block.appearance),
-  padding:
-    block.appearance?.textureEnabled &&
-    block.appearance?.textureImageUrl
-      ? `${Math.max(2, block.appearance?.borderWidth ?? 6)}px`
-      : undefined,
+  ...getTextureBorderStyle(block.appearance),
 }}
     >
       <div
@@ -4438,7 +4441,10 @@ function ImageCarouselPreview({
   return (
     <div
       className="h-full w-full overflow-hidden p-2"
-      style={getAppearanceStyle(block)}
+      style={{
+  ...getAppearanceStyle(block),
+  ...getTextureBorderStyle(block.appearance),
+}}
     >
       <div
         className="flex h-full w-full min-h-0 flex-col"
