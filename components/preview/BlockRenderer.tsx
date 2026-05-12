@@ -821,11 +821,32 @@ function renderLabel(
   block: Extract<MicrositeBlock, { type: "label" }>,
   designKey?: string,
 ) {
+  const hasTexture = Boolean(
+    block.data.style?.textureEnabled && block.data.style?.textureImageUrl,
+  );
+
   return (
     <div className="h-full w-full p-2" style={getAppearanceStyle(block)}>
       <div
         style={{
           ...getContainerTextStyle(block.data.style, designKey),
+          display: "inline-block",
+          backgroundImage: hasTexture
+            ? `url("${block.data.style?.textureImageUrl}")`
+            : undefined,
+          backgroundRepeat: hasTexture ? "repeat" : undefined,
+          backgroundSize: hasTexture
+            ? `${block.data.style?.textureScale ?? 100}%`
+            : undefined,
+          backgroundPosition: hasTexture
+            ? `${block.data.style?.texturePositionX ?? 50}% ${
+                block.data.style?.texturePositionY ?? 50
+              }%`
+            : undefined,
+          backgroundClip: hasTexture ? "text" : undefined,
+          WebkitBackgroundClip: hasTexture ? "text" : undefined,
+          color: hasTexture ? "transparent" : undefined,
+          WebkitTextFillColor: hasTexture ? "transparent" : undefined,
           transform: `translate(${((block.data as any).positionX ?? 50) - 50}%, ${
             ((block.data as any).positionY ?? 50) - 50
           }%)`,
