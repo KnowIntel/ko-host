@@ -5786,103 +5786,120 @@ if (block.type === "progress_bar") {
     </div>
   );
 }
-    if (block.type === "donation") {
-      const donationOptions = Array.isArray(block.data.donationOptions)
-        ? block.data.donationOptions.filter(
-            (item) =>
-              item &&
-              typeof item.amount === "number" &&
-              Number.isFinite(item.amount) &&
-              item.amount > 0,
-          )
-        : [];
+// Donation render block
+if (block.type === "donation") {
+  const donationOptions = Array.isArray(block.data.donationOptions)
+    ? block.data.donationOptions.filter(
+        (item) =>
+          item &&
+          typeof item.amount === "number" &&
+          Number.isFinite(item.amount) &&
+          item.amount > 0,
+      )
+    : [];
 
-      return (
-        <div
-          className="h-full w-full rounded-xl p-4"
-          style={{
-            backgroundColor:
-              block.appearance?.backgroundColor &&
-              block.appearance.backgroundColor !== "transparent"
-                ? block.appearance.backgroundColor
-                : "transparent",
-            borderColor: block.appearance?.borderColor || undefined,
-            borderWidth:
-              typeof block.appearance?.borderWidth === "number"
-                ? `${block.appearance.borderWidth}px`
-                : undefined,
-            borderStyle:
-              typeof block.appearance?.borderWidth === "number" &&
-              block.appearance.borderWidth > 0
-                ? "solid"
-                : undefined,
-            borderRadius:
-              typeof block.appearance?.borderRadius === "number"
-                ? `${block.appearance.borderRadius}px`
-                : undefined,
-          }}
-        >
-          <div
-            className="text-base font-semibold text-neutral-900"
-            style={getInlineTextStyle(block.data.style)}
-          >
-            {block.data.heading || "Support This Cause"}
-          </div>
-
-          {block.data.description ? (
-            <div
-              className="mt-2 text-sm text-neutral-600"
-              style={getInlineTextStyle(block.data.style)}
-            >
-              {block.data.description}
-            </div>
-          ) : null}
-
-          {donationOptions.length ? (
-            <div className="mt-4 flex flex-wrap gap-2">
-{donationOptions.map((option, index) => {
-  const amount = Number(option.amount || 0);
-  const label =
-    typeof option.label === "string" && option.label.trim().length > 0
-      ? option.label.trim()
-      : `$${formatCurrency(amount)}`;
-
-  const buttonStyle = ((selectedBlock as any)?.data?.buttonStyle ?? {}) as any;
-const donationTextStyle = ((selectedBlock as any)?.data?.style ?? {}) as any;
+  const donationButtonSpacing = Math.max(
+    0,
+    Number(block.data.buttonSpacing ?? 8),
+  );
 
   return (
-    <button
-      key={option.id || `donation-option-${index}`}
-      type="button"
-      className="inline-flex min-h-10 items-center justify-center rounded-xl px-4 py-2"
+    <div
+      className="h-full w-full rounded-xl p-4"
       style={{
-        backgroundColor: buttonStyle.backgroundColor ?? "#171717",
-        color: buttonStyle.color ?? "#ffffff",
-        fontFamily: buttonStyle.fontFamily ?? donationTextStyle.fontFamily,
-        fontSize:
-          typeof buttonStyle.fontSize === "number"
-            ? `${buttonStyle.fontSize}px`
+        backgroundColor:
+          block.appearance?.backgroundColor &&
+          block.appearance.backgroundColor !== "transparent"
+            ? block.appearance.backgroundColor
+            : "transparent",
+        borderColor: block.appearance?.borderColor || undefined,
+        borderWidth:
+          typeof block.appearance?.borderWidth === "number"
+            ? `${block.appearance.borderWidth}px`
             : undefined,
-        fontWeight: buttonStyle.bold ? 700 : 500,
+        borderStyle:
+          typeof block.appearance?.borderWidth === "number" &&
+          block.appearance.borderWidth > 0
+            ? "solid"
+            : undefined,
+        borderRadius:
+          typeof block.appearance?.borderRadius === "number"
+            ? `${block.appearance.borderRadius}px`
+            : undefined,
       }}
-      onClick={(e) => e.stopPropagation()}
     >
-      {label}
-    </button>
-  );
-})}
-            </div>
-          ) : (
-            <div
-              className="mt-4 rounded-xl border border-dashed border-neutral-300 bg-neutral-50 px-4 py-6 text-sm text-neutral-500"
-              style={getInlineTextStyle(block.data.style)}
-            >
-              Add donation buttons.
-            </div>
-          )}
+      <div
+        className="text-base font-semibold text-neutral-900"
+        style={getInlineTextStyle(block.data.style)}
+      >
+        {block.data.heading || "Support This Cause"}
+      </div>
+
+      {block.data.description ? (
+        <div
+          className="mt-2 text-sm text-neutral-600"
+          style={getInlineTextStyle(block.data.style)}
+        >
+          {block.data.description}
         </div>
-      );
-    }
+      ) : null}
+
+      {donationOptions.length ? (
+        <div
+          className="mt-4 flex flex-wrap"
+          style={{
+            marginLeft: `-${donationButtonSpacing / 2}px`,
+            marginRight: `-${donationButtonSpacing / 2}px`,
+          }}
+        >
+          {donationOptions.map((option, index) => {
+            const amount = Number(option.amount || 0);
+            const label =
+              typeof option.label === "string" && option.label.trim().length > 0
+                ? option.label.trim()
+                : `$${formatCurrency(amount)}`;
+
+            const buttonStyle =
+              ((selectedBlock as any)?.data?.buttonStyle ?? {}) as any;
+            const donationTextStyle =
+              ((selectedBlock as any)?.data?.style ?? {}) as any;
+
+            return (
+              <button
+                key={option.id || `donation-option-${index}`}
+                type="button"
+                className="inline-flex min-h-10 items-center justify-center rounded-xl px-4 py-2"
+                style={{
+                  marginLeft: `${donationButtonSpacing / 2}px`,
+                  marginRight: `${donationButtonSpacing / 2}px`,
+                  backgroundColor: buttonStyle.backgroundColor ?? "#171717",
+                  color: buttonStyle.color ?? "#ffffff",
+                  fontFamily:
+                    buttonStyle.fontFamily ?? donationTextStyle.fontFamily,
+                  fontSize:
+                    typeof buttonStyle.fontSize === "number"
+                      ? `${buttonStyle.fontSize}px`
+                      : undefined,
+                  fontWeight: buttonStyle.bold ? 700 : 500,
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+      ) : (
+        <div
+          className="mt-4 rounded-xl border border-dashed border-neutral-300 bg-neutral-50 px-4 py-6 text-sm text-neutral-500"
+          style={getInlineTextStyle(block.data.style)}
+        >
+          Add donation buttons.
+        </div>
+      )}
+    </div>
+  );
+}
 
     if (block.type === "link_hub") {
       return (
