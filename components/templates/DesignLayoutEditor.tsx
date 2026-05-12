@@ -204,7 +204,15 @@ type DraftWithPageExtras = BuilderDraft & {
 type AppearancePatch = Partial<
   Pick<
     BlockAppearance,
-    "backgroundColor" | "borderColor" | "borderWidth" | "borderRadius"
+    | "backgroundColor"
+    | "borderColor"
+    | "borderWidth"
+    | "borderRadius"
+    | "textureEnabled"
+    | "textureImageUrl"
+    | "textureScale"
+    | "texturePositionX"
+    | "texturePositionY"
   >
 >;
 
@@ -1290,6 +1298,8 @@ const [progressBarStyleTarget, setProgressBarStyleTarget] = useState<
   "background" | "bar" | "scope" | "context"
 >("background");
 
+const textureInputRef = useRef<HTMLInputElement | null>(null);
+
 const [faqStyleTarget, setFaqStyleTarget] = useState<
   "form" | "section" | "question" | "answer"
 >("form");
@@ -1387,6 +1397,97 @@ const selectedRsvpElementBackgroundColor =
     selectedContext.kind === "none" || selectedContext.kind === "pageText"
       ? null
       : draft.blocks.find((item) => item.id === selectedContext.blockId) ?? null;
+
+const textureEligibleBlockTypes = [
+  "label",
+  "text_fx",
+  "image",
+  "video",
+  "gallery",
+  "image_carousel",
+] as const;
+
+const selectedBlockSupportsTexture = Boolean(
+  selectedBlock &&
+    textureEligibleBlockTypes.includes(selectedBlock.type as any),
+);
+
+const selectedBlockTextureEnabled =
+  selectedBlock?.type === "label" || selectedBlock?.type === "text_fx"
+    ? Boolean((selectedStyle as any).textureEnabled)
+    : Boolean(selectedAppearance.textureEnabled);
+
+function applyTextureToSelectedBlock(dataUrl: string) {
+  if (!selectedBlock) return;
+
+  if (selectedBlock.type === "label" || selectedBlock.type === "text_fx") {
+    applyStylePatch({
+      textureEnabled: true,
+      textureImageUrl: dataUrl,
+      textureScale: 100,
+      texturePositionX: 50,
+      texturePositionY: 50,
+    } as any);
+    return;
+  }
+
+  if (
+    selectedBlock.type === "image" ||
+    selectedBlock.type === "video" ||
+    selectedBlock.type === "gallery" ||
+    selectedBlock.type === "image_carousel"
+  ) {
+    applyAppearancePatch({
+      textureEnabled: true,
+      textureImageUrl: dataUrl,
+      textureScale: 100,
+      texturePositionX: 50,
+      texturePositionY: 50,
+    });
+  }
+}
+
+function handleTextureFileChange(fileList: FileList | null) {
+  const file = fileList?.[0];
+  if (!file) return;
+
+  if (!file.type.startsWith("image/")) {
+    alert("Please choose an image file for the texture.");
+    return;
+  }
+
+  if (file.size > 2 * 1024 * 1024) {
+    alert("Texture image must be 2MB or smaller.");
+    return;
+  }
+
+  const reader = new FileReader();
+
+  reader.onload = () => {
+    const dataUrl = typeof reader.result === "string" ? reader.result : "";
+    if (!dataUrl) return;
+    applyTextureToSelectedBlock(dataUrl);
+  };
+
+  reader.readAsDataURL(file);
+}
+
+function removeTextureFromSelectedBlock() {
+  if (!selectedBlock) return;
+
+  if (selectedBlock.type === "label" || selectedBlock.type === "text_fx") {
+    applyStylePatch({
+      textureEnabled: false,
+      textureImageUrl: "",
+    } as any);
+    return;
+  }
+
+  applyAppearancePatch({
+    textureEnabled: false,
+    textureImageUrl: "",
+  });
+}
 
       const ctaButtonOptions: Array<{ id: string; label: string }> = draft.blocks
       .filter((block) => block.type === "cta")
@@ -8597,6 +8698,45 @@ if (selectedBlock?.type === "rsvp") {
     className="pointer-events-none object-contain"
   />
 </button>
+
+{selectedBlockSupportsTexture ? (
+  <>
+    <input
+      ref={textureInputRef}
+      type="file"
+      accept="image/*"
+      className="hidden"
+      onChange={(e) => {
+        handleTextureFileChange(e.target.files);
+        e.target.value = "";
+      }}
+    />
+
+    <button
+      type="button"
+      className={topBarButtonClass()}
+      onClick={() => textureInputRef.current?.click()}
+      title={
+        selectedBlock?.type === "label" || selectedBlock?.type === "text_fx"
+          ? "Add texture to text"
+          : "Add texture to border/frame"
+      }
+    >
+      Add Texture
+    </button>
+
+    {selectedBlockTextureEnabled ? (
+      <button
+        type="button"
+        className={topBarButtonClass()}
+        onClick={removeTextureFromSelectedBlock}
+        title="Remove texture"
+      >
+        Remove Texture
+      </button>
+    ) : null}
+  </>
+) : null}
 
           <input
             type="color"

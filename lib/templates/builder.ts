@@ -5,6 +5,14 @@
 
 export type TextAlign = "left" | "center" | "right";
 
+export type TextureFill = {
+  textureEnabled?: boolean;
+  textureImageUrl?: string;
+  textureScale?: number;
+  texturePositionX?: number;
+  texturePositionY?: number;
+};
+
 export type TextStyle = {
   fontFamily?: string;
   fontSize?: number;
@@ -14,6 +22,12 @@ export type TextStyle = {
   strike?: boolean;
   align?: TextAlign;
   color?: string;
+
+  textureEnabled?: boolean;
+  textureImageUrl?: string;
+  textureScale?: number;
+  texturePositionX?: number;
+  texturePositionY?: number;
 };
 
 /* =========================================
@@ -40,6 +54,11 @@ export type BlockAppearance = {
   borderColor?: string;
   borderWidth?: number;
   borderRadius?: number;
+  textureEnabled?: boolean;
+  textureImageUrl?: string;
+  textureScale?: number;
+  texturePositionX?: number;
+  texturePositionY?: number;
 };
 
 /* =========================================

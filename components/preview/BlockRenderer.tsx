@@ -322,6 +322,7 @@ function getTextStyle(style?: TextStyle): React.CSSProperties {
     textDecoration: getTextDecoration(style),
     textAlign: style?.align ?? "left",
     color: style?.color || undefined,
+    ...getTextTextureStyle(style),    
     whiteSpace: "pre-wrap",
     wordBreak: "break-word",
     overflowWrap: "anywhere",
@@ -424,26 +425,107 @@ function getThreadMetaStyle(
 }
 
 function getAppearanceStyle(block: MicrositeBlock): React.CSSProperties {
+  const textureEnabled = Boolean(block.appearance?.textureEnabled);
+  const textureUrl = block.appearance?.textureImageUrl || "";
+  const textureScale = Number(block.appearance?.textureScale ?? 100);
+  const texturePositionX = Number(block.appearance?.texturePositionX ?? 50);
+  const texturePositionY = Number(block.appearance?.texturePositionY ?? 50);
+
   return {
     backgroundColor:
       block.appearance?.backgroundColor &&
       block.appearance.backgroundColor !== "transparent"
         ? block.appearance.backgroundColor
         : undefined,
+
     borderColor: block.appearance?.borderColor || undefined,
+
     borderWidth:
       typeof block.appearance?.borderWidth === "number"
         ? `${block.appearance.borderWidth}px`
         : undefined,
+
     borderStyle:
       typeof block.appearance?.borderWidth === "number" &&
       block.appearance.borderWidth > 0
         ? "solid"
         : undefined,
+
     borderRadius:
       typeof block.appearance?.borderRadius === "number"
         ? `${block.appearance.borderRadius}px`
         : undefined,
+
+    backgroundImage:
+      textureEnabled && textureUrl
+        ? `url("${textureUrl}")`
+        : undefined,
+
+    backgroundSize:
+      textureEnabled && textureUrl
+        ? `${textureScale}%`
+        : undefined,
+
+    backgroundPosition:
+      textureEnabled && textureUrl
+        ? `${texturePositionX}% ${texturePositionY}%`
+        : undefined,
+
+    backgroundRepeat:
+      textureEnabled && textureUrl ? "repeat" : undefined,
+  };
+}
+
+function getTextureBackgroundStyle(
+  appearance?: MicrositeBlock["appearance"],
+): React.CSSProperties {
+  if (
+    !appearance?.textureEnabled ||
+    !appearance.textureImageUrl
+  ) {
+    return {};
+  }
+
+  const scale = Math.max(
+    10,
+    Math.min(400, appearance.textureScale ?? 100),
+  );
+
+  const positionX = appearance.texturePositionX ?? 50;
+  const positionY = appearance.texturePositionY ?? 50;
+
+  return {
+    backgroundImage: `url(${appearance.textureImageUrl})`,
+    backgroundRepeat: "repeat",
+    backgroundSize: `${scale}%`,
+    backgroundPosition: `${positionX}% ${positionY}%`,
+  };
+}
+
+function getTextTextureStyle(
+  style?: TextStyle,
+): React.CSSProperties {
+  if (!style?.textureEnabled || !style.textureImageUrl) {
+    return {};
+  }
+
+  const scale = Math.max(
+    10,
+    Math.min(400, style.textureScale ?? 100),
+  );
+
+  const positionX = style.texturePositionX ?? 50;
+  const positionY = style.texturePositionY ?? 50;
+
+  return {
+    backgroundImage: `url(${style.textureImageUrl})`,
+    backgroundRepeat: "repeat",
+    backgroundSize: `${scale}%`,
+    backgroundPosition: `${positionX}% ${positionY}%`,
+    backgroundClip: "text",
+    WebkitBackgroundClip: "text",
+    color: "transparent",
+    WebkitTextFillColor: "transparent",
   };
 }
 
@@ -768,6 +850,7 @@ function renderLabel(
   );
 }
 
+
 function renderVideo(
   block: Extract<MicrositeBlock, { type: "video" }>,
   designKey?: string,
@@ -798,7 +881,17 @@ function renderVideo(
         <div style={titleStyle}>{block.data.title}</div>
       ) : null}
 
-      <div className="min-h-0 flex-1 overflow-hidden rounded-xl border border-neutral-200 bg-black/5">
+<div
+  className="min-h-0 flex-1 overflow-hidden rounded-xl border border-neutral-200 bg-black/5"
+  style={{
+    ...getTextureBackgroundStyle(block.appearance),
+    padding:
+      block.appearance?.textureEnabled &&
+      block.appearance?.textureImageUrl
+        ? `${Math.max(2, block.appearance?.borderWidth ?? 6)}px`
+        : undefined,
+  }}
+>
         {isDirectVideoFile ? (
           <video
             src={videoUrl}
@@ -808,6 +901,10 @@ function renderVideo(
             loop={Boolean(block.data.loop)}
             controls={Boolean(block.data.showControls)}
             playsInline
+            style={{
+              borderRadius: "inherit",
+              backgroundColor: "transparent",
+            }}
           />
         ) : (
           <iframe
@@ -816,6 +913,10 @@ function renderVideo(
             allow="autoplay; encrypted-media; picture-in-picture"
             allowFullScreen
             title={block.data.title || "Video"}
+            style={{
+              borderRadius: "inherit",
+              backgroundColor: "transparent",
+            }}
           />
         )}
       </div>
@@ -865,8 +966,14 @@ function renderImage(
       <div className="min-h-0 flex-1 overflow-hidden">
         <div
           className="h-full w-full overflow-hidden"
-          style={{
-            ...frameStyle,
+style={{
+  ...frameStyle,
+  ...getTextureBackgroundStyle(block.appearance),
+  padding:
+    block.appearance?.textureEnabled &&
+    block.appearance?.textureImageUrl
+      ? `${Math.max(2, block.appearance?.borderWidth ?? 6)}px`
+      : undefined,
             transform: `translate(${translateX}%, ${translateY}%) scale(${zoom}) rotate(${rotation}deg)`,
             transformOrigin: "center center",
             opacity: block.data.image.opacity ?? 1,
@@ -882,6 +989,9 @@ function renderImage(
               transform: "none",
               opacity: 1,
               ...fadeMaskStyle,
+              borderRadius: "inherit",
+              display: "block",
+              backgroundColor: "transparent",
             }}
           />
         </div>
@@ -2090,7 +2200,15 @@ function renderGallery(
   return (
     <div
       className="h-full w-full overflow-hidden p-2"
-      style={getAppearanceStyle(block)}
+style={{
+  ...getAppearanceStyle(block),
+  ...getTextureBackgroundStyle(block.appearance),
+  padding:
+    block.appearance?.textureEnabled &&
+    block.appearance?.textureImageUrl
+      ? `${Math.max(2, block.appearance?.borderWidth ?? 6)}px`
+      : undefined,
+}}
     >
       <div
         className="grid h-full w-full gap-2"
