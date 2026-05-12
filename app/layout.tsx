@@ -27,6 +27,7 @@ import {
   Lora,
   Crimson_Text,
   Anton,
+  Bebas_Neue,
   Bangers,
   Orbitron,
   Righteous,
@@ -173,6 +174,12 @@ const anton = Anton({
   variable: "--font-anton",
 });
 
+const bebasNeue = Bebas_Neue({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-bebas-neue",
+});
+
 const bangers = Bangers({
   subsets: ["latin"],
   weight: "400",
@@ -290,6 +297,7 @@ className={[
   rajdhani.variable,
   teko.variable,
   abril.variable,
+  bebasNeue.variable,
   "min-h-screen bg-white text-neutral-950 overflow-x-hidden",
 ].join(" ")}
       >

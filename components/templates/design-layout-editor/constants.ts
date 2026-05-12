@@ -105,6 +105,7 @@ export const FONT_FAMILY_OPTIONS = [
   "Verdana",
   "Courier New",
   "system-ui",
+  "Bebas Neue",
 ] as const;
 
 export const FONT_FAMILY_MAP: Record<string, string> = {
@@ -145,9 +146,10 @@ export const FONT_FAMILY_MAP: Record<string, string> = {
   "Crimson Text":
     'var(--font-crimson-text), "Crimson Text", ui-serif, Georgia, serif',
 
-  // Display / stylized fonts
-  Anton: 'var(--font-anton), Anton, sans-serif',
-  Bangers: 'var(--font-bangers), Bangers, cursive',
+// Display / stylized fonts
+Anton: 'var(--font-anton), Anton, sans-serif',
+"Bebas Neue": 'var(--font-bebas-neue), "Bebas Neue", Impact, sans-serif',
+Bangers: 'var(--font-bangers), Bangers, cursive',
   Orbitron: 'var(--font-orbitron), Orbitron, sans-serif',
   Righteous: 'var(--font-righteous), Righteous, cursive',
   "Alfa Slab One":
