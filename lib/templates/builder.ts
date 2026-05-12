@@ -761,6 +761,7 @@ export type DonationBlock = BaseBlock & {
   data: {
     heading?: string;
     description?: string;
+    buttonSpacing?: number;
 
     donationOptions: Array<{
       id: string;

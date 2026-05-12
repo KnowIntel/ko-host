@@ -11429,6 +11429,36 @@ if (selectedBlock?.type === "rsvp") {
         </button>
       </div>
     </div>
+    <div className="mt-4">
+  <div className={inspectorLabelClass()}>
+    Button Spacing
+  </div>
+
+  <input
+    type="number"
+    min="0"
+    max="100"
+    value={selectedBlock.data.buttonSpacing ?? 12}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "donation"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                buttonSpacing: Math.max(
+                  0,
+                  Number(e.target.value) || 0,
+                ),
+              },
+            },
+      )
+    }
+    className={inspectorInputClass()}
+    placeholder="12"
+  />
+</div>
   </div>
 ) : null}
 

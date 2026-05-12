@@ -5490,7 +5490,12 @@ return (
     ) : null}
 
     {isConfigured ? (
-      <div className="mt-4 flex flex-wrap gap-2">
+      <div
+        className="mt-4 flex flex-wrap"
+        style={{
+          gap: `${Math.max(0, Number(block.data.buttonSpacing ?? 8))}px`,
+        }}
+      >
         {donationOptions.map((option, index) => {
           const amount = Number(option.amount || 0);
           const label =
