@@ -768,7 +768,7 @@ export type DonationBlock = BaseBlock & {
       label?: string;
       amount: number;
     }>;
-
+    
     style?: TextStyle;
   };
 };
@@ -2196,6 +2196,7 @@ case "donation":
         { id: makeId("donationopt"), label: "$50", amount: 50 },
       ],
       style: createDefaultTextStyle(),
+      buttonSpacing: 8,
     },
   };
 
