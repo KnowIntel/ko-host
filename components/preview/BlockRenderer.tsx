@@ -3490,8 +3490,14 @@ function renderThread(
     ]);
 
     const trimmedMessageValue = messageValue.trim();
-    const isPostDisabled =
-      isSubmitting || (!trimmedMessageValue && attachments.length === 0);
+const trimmedNameValue = nameValue.trim();
+
+const isNameRequired = showNameField && !block.data.allowAnonymous;
+
+const isPostDisabled =
+  isSubmitting ||
+  (!trimmedMessageValue && attachments.length === 0) ||
+  (isNameRequired && !trimmedNameValue);
 
     function getAttachmentType(file: File): ThreadAttachment["type"] | null {
       if (file.type === "image/gif") return "gif";
@@ -3579,7 +3585,7 @@ function renderThread(
                   key={attachment.id}
                   src={src}
                   controls
-                  className="h-auto max-h-none w-full rounded-xl border object-contain"
+                  className="max-h-[140px] w-full rounded-xl border object-contain"
                 />
               );
             }
@@ -3611,6 +3617,11 @@ function renderThread(
     async function handleSubmit() {
       const nextMessage = messageValue.trim();
             if ((!nextMessage && attachments.length === 0) || isSubmitting) return;
+
+if (isNameRequired && !nameValue.trim()) {
+  setThreadError("Name is required to post.");
+  return;
+}
 
       const resolvedName = showNameField
         ? nameValue.trim() || (block.data.allowAnonymous ? "Anon" : "Guest")
