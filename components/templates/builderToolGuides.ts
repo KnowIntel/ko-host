@@ -96,8 +96,8 @@ export const BUILDER_TOOL_GUIDES: BuilderToolGuide[] = [
 
   {
     name: "Thread",
-    purpose: "Creates a public message/comment area.",
-    howToUse: "Use this for guestbooks, shoutouts, testimonials, public questions, discussion, or event messages. Configure anonymous posting, approval, visible count, and composer settings.",
+    purpose: "Creates a public message/comment area with optional media replies.",
+    howToUse: "Use this for guestbooks, shoutouts, testimonials, public questions, discussion, or event messages. Configure anonymous posting, approval, message count, composer settings, per-element styling, and visitor media uploads for GIFs, images, videos, or audio notes.",
   },
   {
     name: "File Share",

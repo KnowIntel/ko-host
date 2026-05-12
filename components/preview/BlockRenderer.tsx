@@ -3380,6 +3380,7 @@ function renderThread(
     const [nameValue, setNameValue] = useState("");
     const [messageValue, setMessageValue] = useState("");
     const [attachments, setAttachments] = useState<ThreadAttachment[]>([]);
+    const attachmentInputRef = useRef<HTMLInputElement | null>(null);
     const [isLoading, setIsLoading] = useState(Boolean(micrositeId));
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [voteLoadingId, setVoteLoadingId] = useState<string | null>(null);
@@ -3585,7 +3586,11 @@ const isPostDisabled =
                   key={attachment.id}
                   src={src}
                   controls
-                  className="max-h-[140px] w-full rounded-xl border object-contain"
+className="w-full rounded-xl border"
+style={{
+  maxHeight: "140px",
+  objectFit: "contain",
+}}
                 />
               );
             }
@@ -3606,7 +3611,12 @@ const isPostDisabled =
                 key={attachment.id}
                 src={src}
                 alt={attachment.name || "Thread attachment"}
-                className="max-h-52 w-full rounded-xl border object-cover"
+className="mx-auto rounded-xl border"
+style={{
+  maxHeight: "140px",
+  maxWidth: "320px",
+  objectFit: "contain",
+}}
               />
             );
           })}
@@ -3646,6 +3656,11 @@ if (isNameRequired && !nameValue.trim()) {
         setMessageValue("");
         setNameValue("");
         setAttachments([]);
+
+        if (attachmentInputRef.current) {
+          attachmentInputRef.current.value = "";
+        }
+
         setThreadError("");
         return;
       }
@@ -3923,6 +3938,7 @@ if (isNameRequired && !nameValue.trim()) {
                 <label className="cursor-pointer rounded-lg border border-neutral-300 bg-white px-3 py-2 text-xs font-semibold text-neutral-700 shadow-sm">
                   Add media
                   <input
+                    ref={attachmentInputRef}
                     type="file"
                     accept="image/*,.gif,video/*,audio/*"
                     className="hidden"

@@ -1277,43 +1277,61 @@ link_hub: {
 thread: {
   title: "Thread",
   subtitle:
-    "Enable live messaging and conversation directly on the microsite.",
+    "Enable live messages, media replies, and conversation directly on the microsite.",
   sections: [
     {
       title: "Overview",
       body:
-        "The Thread block allows users to post messages and engage in a shared conversation space.",
+        "The Thread block allows visitors to post messages into a shared public conversation area. Posts can include text and supported media attachments.",
     },
     {
       title: "Objective",
       bullets: [
-        "Enable real-time interaction.",
-        "Create a shared discussion space.",
-        "Encourage engagement among visitors.",
+        "Enable public interaction.",
+        "Create a shared discussion or guestbook space.",
+        "Encourage visitor engagement with text and media posts.",
       ],
     },
     {
       title: "Inspector Configuration",
       bullets: [
-        "Optional heading.",
-        "Display preferences.",
+        "Set the thread subject.",
+        "Allow or prevent anonymous posting.",
+        "Require names when anonymous posting is disabled.",
+        "Choose how many messages are displayed.",
+        "Adjust scroll height for the message area.",
+        "Show or hide vote controls and vote counts.",
+        "Customize the composer placeholder, name placeholder, and post button text.",
+        "Use Style Target to format the form, composer area, subject, name, posted messages, or post button individually.",
+      ],
+    },
+    {
+      title: "Media Support",
+      bullets: [
+        "Visitors can attach GIFs and images up to 2MB.",
+        "Visitors can attach videos up to 5MB.",
+        "Visitors can attach audio or voice notes up to 1MB.",
+        "Media appears inside the posted message after submission.",
       ],
     },
     {
       title: "How It Works",
       bullets: [
-        "Users can submit messages.",
-        "Messages appear in a shared thread.",
-        "Content updates dynamically as users interact.",
+        "Visitors enter a name unless anonymous posting is enabled.",
+        "Visitors write a message and may add supported media.",
+        "Posts appear in the public thread after submission.",
+        "Visitors can upvote or downvote messages when vote controls are enabled.",
       ],
     },
     {
       title: "Best Use Cases",
       bullets: [
-        "Event chat rooms.",
+        "Event guestbooks.",
         "Community discussions.",
         "Live Q&A sessions.",
-        "Guest interactions.",
+        "Testimonials and shoutouts.",
+        "Photo/GIF reaction walls.",
+        "Audio note responses.",
       ],
     },
   ],
