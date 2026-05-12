@@ -1420,16 +1420,28 @@ const selectedBlockTextureEnabled =
 function applyTextureToSelectedBlock(dataUrl: string) {
   if (!selectedBlock) return;
 
-  if (selectedBlock.type === "label" || selectedBlock.type === "text_fx") {
-    applyStylePatch({
-      textureEnabled: true,
-      textureImageUrl: dataUrl,
-      textureScale: 100,
-      texturePositionX: 50,
-      texturePositionY: 50,
-    } as any);
-    return;
-  }
+if (selectedBlock.type === "label" || selectedBlock.type === "text_fx") {
+  updateSelectedBlock((block) => {
+    if (block.type !== "label" && block.type !== "text_fx") return block;
+
+    return {
+      ...block,
+      data: {
+        ...block.data,
+        style: {
+          ...((block.data as any).style ?? {}),
+          textureEnabled: true,
+          textureImageUrl: dataUrl,
+          textureScale: 100,
+          texturePositionX: 50,
+          texturePositionY: 50,
+        },
+      },
+    };
+  });
+
+  return;
+}
 
   if (
     selectedBlock.type === "image" ||
@@ -1475,13 +1487,25 @@ function handleTextureFileChange(fileList: FileList | null) {
 function removeTextureFromSelectedBlock() {
   if (!selectedBlock) return;
 
-  if (selectedBlock.type === "label" || selectedBlock.type === "text_fx") {
-    applyStylePatch({
-      textureEnabled: false,
-      textureImageUrl: "",
-    } as any);
-    return;
-  }
+if (selectedBlock.type === "label" || selectedBlock.type === "text_fx") {
+  updateSelectedBlock((block) => {
+    if (block.type !== "label" && block.type !== "text_fx") return block;
+
+    return {
+      ...block,
+      data: {
+        ...block.data,
+        style: {
+          ...((block.data as any).style ?? {}),
+          textureEnabled: false,
+          textureImageUrl: "",
+        },
+      },
+    };
+  });
+
+  return;
+}
 
   applyAppearancePatch({
     textureEnabled: false,
