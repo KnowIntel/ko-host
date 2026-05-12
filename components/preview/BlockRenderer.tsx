@@ -6868,6 +6868,8 @@ function renderCheckout(
     const [modalTitle, setModalTitle] = useState<string>("Notice");
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    const buttonSpacing = Math.max(0, Number(data.buttonSpacing ?? 12));
+
     const handleCheckout = async () => {
       try {
         setIsSubmitting(true);
@@ -6921,7 +6923,12 @@ function renderCheckout(
     return (
       <>
         <Surface block={block}>
-          <div className="flex h-full w-full flex-col gap-3">
+          <div
+            className="flex h-full w-full flex-col"
+            style={{
+              gap: `${buttonSpacing}px`,
+            }}
+          >
             {data.imageUrl ? (
               <img
                 src={data.imageUrl}

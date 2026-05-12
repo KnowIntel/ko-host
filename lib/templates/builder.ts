@@ -899,6 +899,7 @@ export type CheckoutBlock = BaseBlock & {
     description?: string;
     imageUrl?: string;
     buttonText?: string;
+    buttonSpacing?: number;
     successMessage?: string;
     redirectUrl?: string;
     collectEmail?: boolean;

@@ -10138,6 +10138,31 @@ if (selectedBlock?.type === "rsvp") {
     </div>
 
     <div className="mt-4">
+      <div className={inspectorLabelClass()}>Button Spacing</div>
+      <input
+        type="number"
+        min="0"
+        max="100"
+        value={selectedBlock.data.buttonSpacing ?? 12}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "checkout"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    buttonSpacing: Math.max(0, Number(e.target.value) || 0),
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+        placeholder="12"
+      />
+    </div>
+
+    <div className="mt-4">
       <label className="flex items-center gap-3">
         <input
           type="checkbox"
