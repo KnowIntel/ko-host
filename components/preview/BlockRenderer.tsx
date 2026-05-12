@@ -5487,7 +5487,7 @@ return (
 
     {isConfigured ? (
 <div
-  className="mt-4 flex flex-col"
+  className="mt-4 flex flex-row flex-wrap items-center"
   style={{
     gap: `${Math.max(0, Number(block.data.buttonSpacing ?? 8))}px`,
   }}
