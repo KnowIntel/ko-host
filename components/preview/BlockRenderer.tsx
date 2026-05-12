@@ -5421,10 +5421,6 @@ function renderDonation(
       )
     : [];
 
-  const ctaClass = isLightDesign(designKey)
-    ? "inline-flex h-11 items-center justify-center rounded-xl bg-neutral-900 px-5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
-    : "inline-flex h-11 items-center justify-center rounded-xl bg-white px-5 text-sm font-semibold text-neutral-900 disabled:cursor-not-allowed disabled:opacity-60";
-
   const isConfigured = donationOptions.length > 0;
 
   async function handleDonationCheckout(amount: number, optionLabel?: string) {
@@ -5491,10 +5487,10 @@ return (
 
     {isConfigured ? (
 <div
-  className="mt-4 flex flex-wrap items-center"
+  className="mt-4 grid"
   style={{
-    columnGap: `${Math.max(0, Number(block.data.buttonSpacing ?? 8))}px`,
-    rowGap: `${Math.max(0, Number(block.data.buttonSpacing ?? 8))}px`,
+    gridTemplateColumns: "repeat(auto-fit, minmax(90px, max-content))",
+    gap: `${Math.max(0, Number(block.data.buttonSpacing ?? 8))}px`,
   }}
 >
         {donationOptions.map((option, index) => {
