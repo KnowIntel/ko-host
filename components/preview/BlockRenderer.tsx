@@ -3858,7 +3858,7 @@ function renderThread(
           <div className="relative z-10 mt-4 shrink-0 pointer-events-auto">
             <div
               className={`${getThreadComposerClass(designKey)} border`}
-              style={getThreadElementBoxStyle(block.data.messageAppearance)}
+              style={getThreadElementBoxStyle(block.data.postBlockAppearance)}
             >
               <div
                 className="font-medium"
@@ -4045,9 +4045,9 @@ function renderThread(
                         designKey,
                         currentUserVote !== 0,
                       )}
-                      style={getThreadElementBoxStyle(
-                        block.data.postBlockAppearance,
-                      )}
+                    style={getThreadElementBoxStyle(
+                      block.data.messageAppearance,
+                    )}
                     >
                       <div className="flex items-start gap-3">
                         {showVoteControls ? (
@@ -4153,7 +4153,7 @@ function renderThread(
                           <div
                             className={showNameField ? "mt-1" : ""}
                             style={{
-                              ...getThreadBodyStyle(postBlockStyle, designKey),
+                              ...getThreadBodyStyle(messageStyle, designKey),
                               fontSize: "15px",
                               lineHeight: 1.35,
                             }}

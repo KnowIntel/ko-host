@@ -10648,10 +10648,10 @@ if (selectedBlock?.type === "rsvp") {
         className={inspectorInputClass()}
       >
         <option value="form">Form</option>
-        <option value="post_block">Post Message block</option>
+        <option value="post_block">Post message composer</option>
         <option value="subject">Subject</option>
         <option value="name">Name</option>
-        <option value="message">Message</option>
+        <option value="message">Posted messages</option>
         <option value="post_button">Post button</option>
       </select>
     </div>
