@@ -5485,6 +5485,10 @@ return (
       </div>
     ) : null}
 
+    <div className="text-xs text-red-500">
+  spacing: {String(block.data.buttonSpacing ?? "missing")}
+</div>
+
     {isConfigured ? (
 <div
   className="mt-4 grid"
