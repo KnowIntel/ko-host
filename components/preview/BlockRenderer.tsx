@@ -5485,15 +5485,10 @@ return (
       </div>
     ) : null}
 
-    <div className="text-xs text-red-500">
-  spacing: {String(block.data.buttonSpacing ?? "missing")}
-</div>
-
     {isConfigured ? (
 <div
-  className="mt-4 grid"
+  className="mt-4 flex flex-col"
   style={{
-    gridTemplateColumns: "repeat(auto-fit, minmax(90px, max-content))",
     gap: `${Math.max(0, Number(block.data.buttonSpacing ?? 8))}px`,
   }}
 >
