@@ -17596,17 +17596,17 @@ className="h-[44px] w-[180px] rounded-md border border-neutral-300 bg-white px-3
                     ? "border-amber-500 bg-amber-500 text-white"
                     : "border-blue-600 bg-blue-600 text-white hover:bg-blue-700",
           ].join(" ")}
-onClick={async () => {
-  const zoomBeforeSave = canvasZoom;
+      onClick={async () => {
+        const zoomBeforeSave = canvasZoom;
 
-  await onSaveDraft?.(draft);
+        await onSaveDraft?.(draft);
 
-  downloadBlueprintSnapshot(draft);
+        downloadBlueprintSnapshot(draft);
 
-  setTimeout(() => {
-    setCanvasZoom(zoomBeforeSave);
-  }, 100);
-}}
+        setTimeout(() => {
+          setCanvasZoom(zoomBeforeSave);
+        }, 100);
+      }}
           disabled={saveState === "saving"}
         >
           {saveState === "saving"
