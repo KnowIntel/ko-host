@@ -39,6 +39,7 @@ type Props = {
 
 const FONT_OPTIONS = [
   "inherit",
+  "Bebas Neue",
   "Inter",
   "DM Sans",
   "Poppins",
