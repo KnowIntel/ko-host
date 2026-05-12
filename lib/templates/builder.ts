@@ -1213,7 +1213,7 @@ function normalizeThreadBlock(block: MessageThreadBlock): MessageThreadBlock {
         typeof block.data.scrollHeight === "number" &&
         Number.isFinite(block.data.scrollHeight)
           ? Math.max(120, Math.min(1000, Math.floor(block.data.scrollHeight)))
-          : 280,
+          : 520,
       style: {
         ...createDefaultTextStyle(),
         fontSize: 30,
@@ -2088,7 +2088,7 @@ elementOrder: [
           postButtonText: "Post",
           postButtonStyle: "solid",
           maxVisibleMessages: 4,
-          scrollHeight: 280,
+          scrollHeight: 520,
           style: {
             ...createDefaultTextStyle(),
             fontSize: 30,
