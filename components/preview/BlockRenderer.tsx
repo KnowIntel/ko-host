@@ -370,9 +370,14 @@ function getContainerTextStyle(
   style?: TextStyle,
   designKey?: string,
 ): React.CSSProperties {
+  const hasTexture = Boolean(style?.textureEnabled && style.textureImageUrl);
+
   return {
     ...getTextStyle(style),
-    color: style?.color || getDefaultTextColor(designKey),
+    color: hasTexture
+      ? "transparent"
+      : style?.color || getDefaultTextColor(designKey),
+    WebkitTextFillColor: hasTexture ? "transparent" : undefined,
   };
 }
 
@@ -455,24 +460,6 @@ function getAppearanceStyle(block: MicrositeBlock): React.CSSProperties {
       typeof block.appearance?.borderRadius === "number"
         ? `${block.appearance.borderRadius}px`
         : undefined,
-
-    backgroundImage:
-      textureEnabled && textureUrl
-        ? `url("${textureUrl}")`
-        : undefined,
-
-    backgroundSize:
-      textureEnabled && textureUrl
-        ? `${textureScale}%`
-        : undefined,
-
-    backgroundPosition:
-      textureEnabled && textureUrl
-        ? `${texturePositionX}% ${texturePositionY}%`
-        : undefined,
-
-    backgroundRepeat:
-      textureEnabled && textureUrl ? "repeat" : undefined,
   };
 }
 
@@ -968,32 +955,48 @@ function renderImage(
           className="h-full w-full overflow-hidden"
 style={{
   ...frameStyle,
-  ...getTextureBackgroundStyle(block.appearance),
-  padding:
-    block.appearance?.textureEnabled &&
-    block.appearance?.textureImageUrl
-      ? `${Math.max(2, block.appearance?.borderWidth ?? 6)}px`
+  backgroundImage:
+    block.appearance?.textureEnabled && block.appearance?.textureImageUrl
+      ? `url("${block.appearance.textureImageUrl}")`
       : undefined,
-            transform: `translate(${translateX}%, ${translateY}%) scale(${zoom}) rotate(${rotation}deg)`,
-            transformOrigin: "center center",
-            opacity: block.data.image.opacity ?? 1,
-          }}
+  backgroundSize:
+    block.appearance?.textureEnabled && block.appearance?.textureImageUrl
+      ? `${block.appearance?.textureScale ?? 100}%`
+      : undefined,
+  backgroundPosition:
+    block.appearance?.textureEnabled && block.appearance?.textureImageUrl
+      ? `${block.appearance?.texturePositionX ?? 50}% ${
+          block.appearance?.texturePositionY ?? 50
+        }%`
+      : undefined,
+  backgroundRepeat:
+    block.appearance?.textureEnabled && block.appearance?.textureImageUrl
+      ? "repeat"
+      : undefined,
+  padding:
+    block.appearance?.textureEnabled && block.appearance?.textureImageUrl
+      ? `${Math.max(2, block.appearance?.borderWidth ?? 10)}px`
+      : undefined,
+  transform: `translate(${translateX}%, ${translateY}%) scale(${zoom}) rotate(${rotation}deg)`,
+  transformOrigin: "center center",
+  opacity: block.data.image.opacity ?? 1,
+}}
         >
-          <img
-            src={block.data.image.url}
-            alt={block.data.image.alt || ""}
-            className="h-full w-full"
-            style={{
-              objectFit: getImageObjectFit(block),
-              objectPosition: "center center",
-              transform: "none",
-              opacity: 1,
-              ...fadeMaskStyle,
-              borderRadius: "inherit",
-              display: "block",
-              backgroundColor: "transparent",
-            }}
-          />
+<img
+  src={block.data.image.url}
+  alt={block.data.image.alt || ""}
+  className="h-full w-full"
+  style={{
+    objectFit: getImageObjectFit(block),
+    objectPosition: "center center",
+    transform: "none",
+    opacity: 1,
+    borderRadius: "inherit",
+    display: "block",
+    backgroundColor: "transparent",
+    ...fadeMaskStyle,
+  }}
+/>
         </div>
       </div>
 
