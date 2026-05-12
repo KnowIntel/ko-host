@@ -96,8 +96,19 @@ type Props = {
   onDownloadFrame?: (block: Extract<MicrositeBlock, { type: "frame" }>) => void;
 };
 
+type ThreadAttachment = {
+  id: string;
+  type: "image" | "gif" | "video" | "audio";
+  name: string;
+  mimeType: string;
+  sizeBytes: number;
+  dataUrl?: string;
+  url?: string;
+};
+
 type ThreadUiMessage = ThreadMessage & {
   userVote?: -1 | 0 | 1;
+  attachments?: ThreadAttachment[];
 };
 
 const THREAD_MAX_NAME_LENGTH = 60;
@@ -3185,6 +3196,9 @@ function getThreadSampleMessages(
   if (existing && existing.length > 0) {
     return existing.map((message) => ({
       ...message,
+      attachments: Array.isArray((message as any).attachments)
+        ? (message as any).attachments
+        : [],
       votes: typeof message.votes === "number" ? message.votes : 0,
       userVote: 0,
     }));
@@ -3195,6 +3209,7 @@ function getThreadSampleMessages(
       id: "sample-1",
       name: block.data.allowAnonymous ? "Anon" : "Jordan",
       message: "Looking forward to this.",
+      attachments: [],
       votes: 3,
       userVote: 0,
     },
@@ -3202,6 +3217,7 @@ function getThreadSampleMessages(
       id: "sample-2",
       name: block.data.allowAnonymous ? "Anon" : "Taylor",
       message: "Can’t wait to join the conversation.",
+      attachments: [],
       votes: 2,
       userVote: 0,
     },
@@ -3209,6 +3225,7 @@ function getThreadSampleMessages(
       id: "sample-3",
       name: block.data.allowAnonymous ? "Anon" : "Morgan",
       message: "Following for updates.",
+      attachments: [],
       votes: 1,
       userVote: 0,
     },
@@ -3268,10 +3285,27 @@ function normalizeThreadMessages(rawMessages: any[]): ThreadUiMessage[] {
   return rawMessages.map((message, index) => {
     const id = String(message.id ?? `threadmsg_${index}`);
 
+    const attachments = Array.isArray(message.attachments)
+      ? message.attachments.filter(
+          (item: any) =>
+            item &&
+            typeof item.id === "string" &&
+            (item.type === "image" ||
+              item.type === "gif" ||
+              item.type === "video" ||
+              item.type === "audio") &&
+            typeof item.name === "string" &&
+            typeof item.mimeType === "string" &&
+            typeof item.sizeBytes === "number" &&
+            (typeof item.dataUrl === "string" || typeof item.url === "string"),
+        )
+      : [];
+
     return {
       id,
       name: String(message.author_name ?? message.name ?? "Guest"),
       message: String(message.message_text ?? message.message ?? ""),
+      attachments,
       votes:
         typeof message.votes === "number"
           ? message.votes
@@ -3291,6 +3325,51 @@ function renderThread(
   designKey?: string,
   micrositeId?: string | null,
 ) {
+  function withOpacity(color?: string, opacity?: number) {
+    const safeColor = color || "transparent";
+    const safeOpacity =
+      typeof opacity === "number" && Number.isFinite(opacity)
+        ? Math.max(0, Math.min(100, opacity)) / 100
+        : 1;
+
+    if (safeColor === "transparent") return "transparent";
+
+    if (!safeColor.startsWith("#")) return safeColor;
+
+    const hex = safeColor.replace("#", "");
+    const fullHex =
+      hex.length === 3
+        ? hex
+            .split("")
+            .map((char) => `${char}${char}`)
+            .join("")
+        : hex;
+
+    const r = parseInt(fullHex.slice(0, 2), 16);
+    const g = parseInt(fullHex.slice(2, 4), 16);
+    const b = parseInt(fullHex.slice(4, 6), 16);
+
+    if ([r, g, b].some((value) => Number.isNaN(value))) return safeColor;
+
+    return `rgba(${r}, ${g}, ${b}, ${safeOpacity})`;
+  }
+
+  function getThreadElementBoxStyle(
+    appearance?: {
+      backgroundColor?: string;
+      backgroundOpacity?: number;
+      borderColor?: string;
+    },
+  ) {
+    return {
+      backgroundColor: withOpacity(
+        appearance?.backgroundColor,
+        appearance?.backgroundOpacity,
+      ),
+      borderColor: appearance?.borderColor || undefined,
+    };
+  }
+
   function ThreadInteractivePreview() {
     const initialMessages = useMemo(
       () => getThreadSampleMessages(block),
@@ -3300,6 +3379,7 @@ function renderThread(
     const [messages, setMessages] = useState<ThreadUiMessage[]>(initialMessages);
     const [nameValue, setNameValue] = useState("");
     const [messageValue, setMessageValue] = useState("");
+    const [attachments, setAttachments] = useState<ThreadAttachment[]>([]);
     const [isLoading, setIsLoading] = useState(Boolean(micrositeId));
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [voteLoadingId, setVoteLoadingId] = useState<string | null>(null);
@@ -3314,6 +3394,13 @@ function renderThread(
       120,
       Math.min(1000, Number(block.data.scrollHeight) || 280),
     );
+
+    const baseStyle = block.data.style;
+    const subjectStyle = block.data.subjectStyle ?? baseStyle;
+    const nameStyle = block.data.nameStyle ?? baseStyle;
+    const messageStyle = block.data.messageStyle ?? baseStyle;
+    const postBlockStyle = block.data.postBlockStyle ?? baseStyle;
+    const postButtonTextStyle = block.data.postButtonTextStyle ?? baseStyle;
 
     useEffect(() => {
       if (!micrositeId) {
@@ -3403,11 +3490,127 @@ function renderThread(
     ]);
 
     const trimmedMessageValue = messageValue.trim();
-    const isPostDisabled = isSubmitting || !trimmedMessageValue;
+    const isPostDisabled =
+      isSubmitting || (!trimmedMessageValue && attachments.length === 0);
+
+    function getAttachmentType(file: File): ThreadAttachment["type"] | null {
+      if (file.type === "image/gif") return "gif";
+      if (file.type.startsWith("image/")) return "image";
+      if (file.type.startsWith("video/")) return "video";
+      if (file.type.startsWith("audio/")) return "audio";
+      return null;
+    }
+
+    function getAttachmentLimit(type: ThreadAttachment["type"]) {
+      if (type === "video") return 5 * 1024 * 1024;
+      if (type === "audio") return 1 * 1024 * 1024;
+      return 2 * 1024 * 1024;
+    }
+
+    function handleAttachmentChange(fileList: FileList | null) {
+      const file = fileList?.[0];
+      if (!file) return;
+
+      const type = getAttachmentType(file);
+
+      if (!type) {
+        setThreadError("Unsupported media type.");
+        return;
+      }
+
+      const limit = getAttachmentLimit(type);
+
+      if (file.size > limit) {
+        setThreadError(
+          type === "video"
+            ? "Videos must be 5MB or smaller."
+            : type === "audio"
+              ? "Audio/voice notes must be 1MB or smaller."
+              : "Images and GIFs must be 2MB or smaller.",
+        );
+        return;
+      }
+
+      const reader = new FileReader();
+
+      reader.onload = () => {
+        const dataUrl = typeof reader.result === "string" ? reader.result : "";
+
+        if (!dataUrl) {
+          setThreadError("Could not read media file.");
+          return;
+        }
+
+        setAttachments((prev) => [
+          ...prev,
+          {
+            id: `attachment_${Math.random().toString(36).slice(2, 10)}`,
+            type,
+            name: file.name,
+            mimeType: file.type,
+            sizeBytes: file.size,
+            dataUrl,
+          },
+        ].slice(0, 4));
+
+        setThreadError("");
+      };
+
+      reader.onerror = () => {
+        setThreadError("Could not read media file.");
+      };
+
+      reader.readAsDataURL(file);
+    }
+
+    function renderThreadAttachments(items?: ThreadAttachment[]) {
+      if (!items?.length) return null;
+
+      return (
+        <div className="mt-3 grid gap-2">
+          {items.map((attachment) => {
+            const src = attachment.url || attachment.dataUrl || "";
+
+            if (!src) return null;
+
+            if (attachment.type === "video") {
+              return (
+                <video
+                  key={attachment.id}
+                  src={src}
+                  controls
+                  className="max-h-52 w-full rounded-xl border object-cover"
+                />
+              );
+            }
+
+            if (attachment.type === "audio") {
+              return (
+                <audio
+                  key={attachment.id}
+                  src={src}
+                  controls
+                  className="w-full"
+                />
+              );
+            }
+
+            return (
+              <img
+                key={attachment.id}
+                src={src}
+                alt={attachment.name || "Thread attachment"}
+                className="max-h-52 w-full rounded-xl border object-cover"
+              />
+            );
+          })}
+        </div>
+      );
+    }
 
     async function handleSubmit() {
       const nextMessage = messageValue.trim();
-      if (!nextMessage || isSubmitting) return;
+            if ((!nextMessage && attachments.length === 0) || isSubmitting) return;
 
       const resolvedName = showNameField
         ? nameValue.trim() || (block.data.allowAnonymous ? "Anon" : "Guest")
@@ -3424,12 +3627,14 @@ function renderThread(
         message: safeMessage,
         votes: 0,
         userVote: 0,
+        attachments,
       };
 
       if (!micrositeId) {
         setMessages((prev) => [optimisticMessage, ...prev]);
         setMessageValue("");
         setNameValue("");
+        setAttachments([]);
         setThreadError("");
         return;
       }
@@ -3448,6 +3653,7 @@ function renderThread(
             threadBlockId: block.id,
             authorName: safeName,
             messageText: safeMessage,
+            attachments,
           }),
         });
 
@@ -3467,6 +3673,9 @@ function renderThread(
                 ? data.message.votes
                 : Number(data.message.votes ?? 0) || 0,
             userVote: 0,
+            attachments: Array.isArray(data.message.attachments)
+              ? data.message.attachments
+              : [],
           },
           ...prev,
         ]);
@@ -3613,7 +3822,10 @@ function renderThread(
         designKey={designKey}
         className={getSoftSurfaceClass(designKey)}
       >
-        <div className="flex h-auto min-h-full w-full flex-col overflow-visible">
+        <div
+          className="flex h-auto min-h-full w-full flex-col overflow-visible rounded-xl border p-3"
+          style={getThreadElementBoxStyle(block.data.formAppearance)}
+        >
           <div
             className={`shrink-0 border-b pb-3 ${getThreadDividerClass(
               designKey,
@@ -3621,7 +3833,7 @@ function renderThread(
           >
             <div
               className="font-semibold"
-              style={getThreadHeadingStyle(block.data.style, designKey)}
+              style={getThreadHeadingStyle(subjectStyle, designKey)}
             >
               {block.data.subject || "Message Thread"}
             </div>
@@ -3644,10 +3856,13 @@ function renderThread(
           </div>
 
           <div className="relative z-10 mt-4 shrink-0 pointer-events-auto">
-            <div className={getThreadComposerClass(designKey)}>
+            <div
+              className={`${getThreadComposerClass(designKey)} border`}
+              style={getThreadElementBoxStyle(block.data.messageAppearance)}
+            >
               <div
                 className="font-medium"
-                style={getThreadMetaStyle(block.data.style, designKey)}
+                style={getThreadMetaStyle(nameStyle, designKey)}
               >
                 Post a message
               </div>
@@ -3665,7 +3880,7 @@ function renderThread(
                   placeholder={block.data.namePlaceholder || "Your name"}
                   className={getThreadComposerInputClass(designKey)}
                   style={{
-                    ...getThreadBodyStyle(block.data.style, designKey),
+                    ...getThreadBodyStyle(nameStyle, designKey),
                     pointerEvents: "auto",
                     position: "relative",
                     zIndex: 2,
@@ -3686,16 +3901,67 @@ function renderThread(
                 placeholder={block.data.composerPlaceholder || "Write something…"}
                 className={`${getThreadComposerInputClass(designKey)} min-h-[96px] resize-none`}
                 style={{
-                  ...getThreadBodyStyle(block.data.style, designKey),
+                  ...getThreadBodyStyle(messageStyle, designKey),
                   pointerEvents: "auto",
                   position: "relative",
                   zIndex: 2,
                 }}
               />
 
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <label className="cursor-pointer rounded-lg border border-neutral-300 bg-white px-3 py-2 text-xs font-semibold text-neutral-700 shadow-sm">
+                  Add media
+                  <input
+                    type="file"
+                    accept="image/*,.gif,video/*,audio/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      handleAttachmentChange(e.target.files);
+                      e.target.value = "";
+                    }}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </label>
+
+                <div
+                  className={
+                    isLightDesign(designKey)
+                      ? "text-xs text-neutral-500"
+                      : "text-xs text-white/55"
+                  }
+                >
+                  GIF/Image 2MB • Video 5MB • Audio 1MB
+                </div>
+              </div>
+
+              {attachments.length ? (
+                <div className="mt-3 space-y-2">
+                  {attachments.map((attachment) => (
+                    <div
+                      key={attachment.id}
+                      className="flex items-center justify-between gap-3 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-700"
+                    >
+                      <span className="min-w-0 truncate">{attachment.name}</span>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setAttachments((prev) =>
+                            prev.filter((item) => item.id !== attachment.id),
+                          )
+                        }
+                        className="shrink-0 font-semibold text-red-500"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : null}              
+
               <div className="mt-2 flex items-center justify-between gap-3">
                 <div
-                  style={getThreadMetaStyle(block.data.style, designKey)}
+                  style={getThreadMetaStyle(messageStyle, designKey)}
                   className={
                     isLightDesign(designKey) ? "text-neutral-500" : "text-white/55"
                   }
@@ -3705,7 +3971,7 @@ function renderThread(
 
                 {showNameField ? (
                   <div
-                    style={getThreadMetaStyle(block.data.style, designKey)}
+                    style={getThreadMetaStyle(nameStyle, designKey)}
                     className={
                       isLightDesign(designKey) ? "text-neutral-500" : "text-white/55"
                     }
@@ -3721,7 +3987,7 @@ function renderThread(
 
               <div className="mt-3 flex items-center justify-between gap-3">
                 <div
-                  style={getThreadMetaStyle(block.data.style, designKey)}
+                  style={getThreadMetaStyle(nameStyle, designKey)}
                   className={
                     isLightDesign(designKey) ? "text-neutral-500" : "text-white/55"
                   }
@@ -3740,6 +4006,8 @@ function renderThread(
                     block.data.postButtonStyle ?? "solid",
                   )}
                   style={{
+                    ...getThreadBodyStyle(postButtonTextStyle, designKey),
+                    ...getThreadElementBoxStyle(block.data.postButtonAppearance),
                     opacity: isPostDisabled ? 0.6 : 1,
                     cursor: isPostDisabled ? "not-allowed" : "pointer",
                     pointerEvents: "auto",
@@ -3776,6 +4044,9 @@ function renderThread(
                       className={getThreadCardClass(
                         designKey,
                         currentUserVote !== 0,
+                      )}
+                      style={getThreadElementBoxStyle(
+                        block.data.postBlockAppearance,
                       )}
                     >
                       <div className="flex items-start gap-3">
@@ -3817,7 +4088,7 @@ function renderThread(
                                 className="font-semibold"
                                 style={{
                                   ...getThreadMetaStyle(
-                                    block.data.style,
+                                    postBlockStyle,
                                     designKey,
                                   ),
                                   fontSize: "12px",
@@ -3871,7 +4142,7 @@ function renderThread(
                             <div
                               className="font-semibold"
                               style={{
-                                ...getThreadMetaStyle(block.data.style, designKey),
+                                ...getThreadMetaStyle(nameStyle, designKey),
                                 fontSize: "13px",
                               }}
                             >
@@ -3882,12 +4153,13 @@ function renderThread(
                           <div
                             className={showNameField ? "mt-1" : ""}
                             style={{
-                              ...getThreadBodyStyle(block.data.style, designKey),
+                              ...getThreadBodyStyle(postBlockStyle, designKey),
                               fontSize: "15px",
                               lineHeight: 1.35,
                             }}
                           >
                             {message.message || "Message preview"}
+                            {renderThreadAttachments(message.attachments)}
                           </div>
                         </div>
                       </div>

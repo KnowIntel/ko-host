@@ -2859,6 +2859,21 @@ function applyStylePatch(patch: Partial<TextStyle>) {
   }
 
   if (selectedBlock?.type === "thread") {
+    const target = selectedBlock.data.threadStyleTarget ?? "message";
+
+    const targetStyleKey =
+      target === "post_block"
+        ? "postBlockStyle"
+        : target === "subject"
+          ? "subjectStyle"
+          : target === "name"
+            ? "nameStyle"
+            : target === "post_button"
+              ? "postButtonTextStyle"
+              : target === "message"
+                ? "messageStyle"
+                : "style";
+
     setDraft((prev) => ({
       ...prev,
       blocks: prev.blocks.map((block) =>
@@ -2867,9 +2882,18 @@ function applyStylePatch(patch: Partial<TextStyle>) {
               ...block,
               data: {
                 ...block.data,
-                style: {
-                  fontSize: 30,
-                  ...(block.data.style ?? {}),
+                [targetStyleKey]: {
+                  fontSize:
+                    target === "subject"
+                      ? 18
+                      : target === "name" || target === "post_button"
+                        ? 14
+                        : target === "message"
+                          ? 15
+                          : target === "post_block"
+                            ? 16
+                            : 30,
+                  ...((block.data as any)[targetStyleKey] ?? {}),
                   ...patch,
                 },
               },
@@ -8111,7 +8135,7 @@ const idsToExpand =
               <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
 
               <div className={topBarSliderWrapClass()}>
-                <span>Visible</span>
+                <span>Messages</span>
                 <input
                   type="range"
                   min={1}
@@ -8134,7 +8158,7 @@ const idsToExpand =
                     )
                   }
                   className={topBarSliderClass()}
-                  title="Max visible messages"
+                  title="Maximum messages loaded/displayed in the thread"
                 />
                 <span>{selectedBlock.data.maxVisibleMessages ?? 4}</span>
               </div>
@@ -10597,6 +10621,191 @@ if (selectedBlock?.type === "rsvp") {
 {selectedBlock?.type === "thread" ? (
   <div id="inspector-thread" className={inspectorCardClass()}>
     <div className={inspectorLabelClass()}>Thread / Interactive</div>
+
+        <div className="mt-4">
+      <div className={inspectorLabelClass()}>Style Target</div>
+      <select
+        value={selectedBlock.data.threadStyleTarget ?? "message"}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "thread"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    threadStyleTarget: e.target.value as
+                      | "form"
+                      | "post_block"
+                      | "subject"
+                      | "name"
+                      | "message"
+                      | "post_button",
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      >
+        <option value="form">Form</option>
+        <option value="post_block">Post Message block</option>
+        <option value="subject">Subject</option>
+        <option value="name">Name</option>
+        <option value="message">Message</option>
+        <option value="post_button">Post button</option>
+      </select>
+    </div>
+
+        {["form", "post_block", "message", "post_button"].includes(
+      selectedBlock.data.threadStyleTarget ?? "message",
+    ) ? (
+      <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+        <div className={inspectorLabelClass()}>Target Appearance</div>
+
+        <div className="mt-3">
+          <div className={inspectorLabelClass()}>Background Color</div>
+          <input
+            type="color"
+            value={
+              selectedBlock.data.threadStyleTarget === "form"
+                ? selectedBlock.data.formAppearance?.backgroundColor ?? "#ffffff"
+                : selectedBlock.data.threadStyleTarget === "post_block"
+                  ? selectedBlock.data.postBlockAppearance?.backgroundColor ??
+                    "#ffffff"
+                  : selectedBlock.data.threadStyleTarget === "post_button"
+                    ? selectedBlock.data.postButtonAppearance?.backgroundColor ??
+                      "#111827"
+                    : selectedBlock.data.messageAppearance?.backgroundColor ??
+                      "#ffffff"
+            }
+            onChange={(e) =>
+              updateSelectedBlock((block) => {
+                if (block.type !== "thread") return block;
+
+                const target = block.data.threadStyleTarget ?? "message";
+                const key =
+                  target === "form"
+                    ? "formAppearance"
+                    : target === "post_block"
+                      ? "postBlockAppearance"
+                      : target === "post_button"
+                        ? "postButtonAppearance"
+                        : "messageAppearance";
+
+                return {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    [key]: {
+                      ...((block.data as any)[key] ?? {}),
+                      backgroundColor: e.target.value,
+                    },
+                  },
+                };
+              })
+            }
+            className="mt-2 h-10 w-full cursor-pointer rounded-lg border border-neutral-300 bg-white p-1"
+          />
+        </div>
+
+        <div className="mt-3">
+          <div className={inspectorLabelClass()}>Transparency</div>
+          <input
+            type="range"
+            min={0}
+            max={100}
+            value={
+              selectedBlock.data.threadStyleTarget === "form"
+                ? selectedBlock.data.formAppearance?.backgroundOpacity ?? 100
+                : selectedBlock.data.threadStyleTarget === "post_block"
+                  ? selectedBlock.data.postBlockAppearance?.backgroundOpacity ??
+                    100
+                  : selectedBlock.data.threadStyleTarget === "post_button"
+                    ? selectedBlock.data.postButtonAppearance
+                        ?.backgroundOpacity ?? 100
+                    : selectedBlock.data.messageAppearance?.backgroundOpacity ??
+                      100
+            }
+            onChange={(e) =>
+              updateSelectedBlock((block) => {
+                if (block.type !== "thread") return block;
+
+                const target = block.data.threadStyleTarget ?? "message";
+                const key =
+                  target === "form"
+                    ? "formAppearance"
+                    : target === "post_block"
+                      ? "postBlockAppearance"
+                      : target === "post_button"
+                        ? "postButtonAppearance"
+                        : "messageAppearance";
+
+                return {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    [key]: {
+                      ...((block.data as any)[key] ?? {}),
+                      backgroundOpacity: Math.max(
+                        0,
+                        Math.min(100, Number(e.target.value) || 0),
+                      ),
+                    },
+                  },
+                };
+              })
+            }
+            className="mt-2 w-full"
+          />
+        </div>
+
+        <div className="mt-3">
+          <div className={inspectorLabelClass()}>Border Color</div>
+          <input
+            type="color"
+            value={
+              selectedBlock.data.threadStyleTarget === "form"
+                ? selectedBlock.data.formAppearance?.borderColor ?? "#e5e7eb"
+                : selectedBlock.data.threadStyleTarget === "post_block"
+                  ? selectedBlock.data.postBlockAppearance?.borderColor ??
+                    "#e5e7eb"
+                  : selectedBlock.data.threadStyleTarget === "post_button"
+                    ? selectedBlock.data.postButtonAppearance?.borderColor ??
+                      "#111827"
+                    : selectedBlock.data.messageAppearance?.borderColor ??
+                      "#d4d4d8"
+            }
+            onChange={(e) =>
+              updateSelectedBlock((block) => {
+                if (block.type !== "thread") return block;
+
+                const target = block.data.threadStyleTarget ?? "message";
+                const key =
+                  target === "form"
+                    ? "formAppearance"
+                    : target === "post_block"
+                      ? "postBlockAppearance"
+                      : target === "post_button"
+                        ? "postButtonAppearance"
+                        : "messageAppearance";
+
+                return {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    [key]: {
+                      ...((block.data as any)[key] ?? {}),
+                      borderColor: e.target.value,
+                    },
+                  },
+                };
+              })
+            }
+            className="mt-2 h-10 w-full cursor-pointer rounded-lg border border-neutral-300 bg-white p-1"
+          />
+        </div>
+      </div>
+    ) : null}
 
     <div className="mt-4">
       <div className={inspectorLabelClass()}>Subject</div>

@@ -597,6 +597,20 @@ export type GalleryBlock = BaseBlock & {
   };
 };
 
+export type ThreadStyleTarget =
+  | "form"
+  | "post_block"
+  | "subject"
+  | "name"
+  | "message"
+  | "post_button";
+
+export type ThreadElementAppearance = {
+  backgroundColor?: string;
+  backgroundOpacity?: number;
+  borderColor?: string;
+};
+
 export type MessageThreadBlock = BaseBlock & {
   type: "thread";
   data: {
@@ -614,6 +628,22 @@ export type MessageThreadBlock = BaseBlock & {
     showVoteControls?: boolean;
     showVoteCount?: boolean;
     scrollHeight?: number;
+
+    threadStyleTarget?: ThreadStyleTarget;
+
+    formAppearance?: ThreadElementAppearance;
+
+    postBlockStyle?: TextStyle;
+    postBlockAppearance?: ThreadElementAppearance;
+
+    subjectStyle?: TextStyle;
+    nameStyle?: TextStyle;
+
+    messageStyle?: TextStyle;
+    messageAppearance?: ThreadElementAppearance;
+
+    postButtonTextStyle?: TextStyle;
+    postButtonAppearance?: ThreadElementAppearance;
   };
 };
 
@@ -1188,6 +1218,92 @@ function normalizeThreadBlock(block: MessageThreadBlock): MessageThreadBlock {
         ...createDefaultTextStyle(),
         fontSize: 30,
         ...(block.data.style ?? {}),
+      },
+      threadStyleTarget:
+        block.data.threadStyleTarget === "form" ||
+        block.data.threadStyleTarget === "post_block" ||
+        block.data.threadStyleTarget === "subject" ||
+        block.data.threadStyleTarget === "name" ||
+        block.data.threadStyleTarget === "message" ||
+        block.data.threadStyleTarget === "post_button"
+          ? block.data.threadStyleTarget
+          : "message",
+      formAppearance: {
+        backgroundColor:
+          block.data.formAppearance?.backgroundColor ?? "#ffffff",
+        backgroundOpacity:
+          typeof block.data.formAppearance?.backgroundOpacity === "number"
+            ? Math.max(
+                0,
+                Math.min(100, block.data.formAppearance.backgroundOpacity),
+              )
+            : 100,
+        borderColor: block.data.formAppearance?.borderColor ?? "#e5e7eb",
+      },
+      postBlockStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 16,
+        ...(block.data.postBlockStyle ?? {}),
+      },
+      postBlockAppearance: {
+        backgroundColor:
+          block.data.postBlockAppearance?.backgroundColor ?? "#ffffff",
+        backgroundOpacity:
+          typeof block.data.postBlockAppearance?.backgroundOpacity === "number"
+            ? Math.max(
+                0,
+                Math.min(100, block.data.postBlockAppearance.backgroundOpacity),
+              )
+            : 100,
+        borderColor: block.data.postBlockAppearance?.borderColor ?? "#e5e7eb",
+      },
+      subjectStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 18,
+        bold: true,
+        ...(block.data.subjectStyle ?? {}),
+      },
+      nameStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        bold: true,
+        ...(block.data.nameStyle ?? {}),
+      },
+      messageStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 15,
+        ...(block.data.messageStyle ?? {}),
+      },
+      messageAppearance: {
+        backgroundColor:
+          block.data.messageAppearance?.backgroundColor ?? "#ffffff",
+        backgroundOpacity:
+          typeof block.data.messageAppearance?.backgroundOpacity === "number"
+            ? Math.max(
+                0,
+                Math.min(100, block.data.messageAppearance.backgroundOpacity),
+              )
+            : 100,
+        borderColor: block.data.messageAppearance?.borderColor ?? "#d4d4d8",
+      },
+      postButtonTextStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        bold: true,
+        color: "#ffffff",
+        ...(block.data.postButtonTextStyle ?? {}),
+      },
+      postButtonAppearance: {
+        backgroundColor:
+          block.data.postButtonAppearance?.backgroundColor ?? "#111827",
+        backgroundOpacity:
+          typeof block.data.postButtonAppearance?.backgroundOpacity === "number"
+            ? Math.max(
+                0,
+                Math.min(100, block.data.postButtonAppearance.backgroundOpacity),
+              )
+            : 100,
+        borderColor: block.data.postButtonAppearance?.borderColor ?? "#111827",
       },
     },
   };
@@ -1976,6 +2092,51 @@ elementOrder: [
           style: {
             ...createDefaultTextStyle(),
             fontSize: 30,
+          },
+          threadStyleTarget: "message",
+          formAppearance: {
+            backgroundColor: "#ffffff",
+            backgroundOpacity: 100,
+            borderColor: "#e5e7eb",
+          },
+          postBlockStyle: {
+            ...createDefaultTextStyle(),
+            fontSize: 16,
+          },
+          postBlockAppearance: {
+            backgroundColor: "#ffffff",
+            backgroundOpacity: 100,
+            borderColor: "#e5e7eb",
+          },
+          subjectStyle: {
+            ...createDefaultTextStyle(),
+            fontSize: 18,
+            bold: true,
+          },
+          nameStyle: {
+            ...createDefaultTextStyle(),
+            fontSize: 14,
+            bold: true,
+          },
+          messageStyle: {
+            ...createDefaultTextStyle(),
+            fontSize: 15,
+          },
+          messageAppearance: {
+            backgroundColor: "#ffffff",
+            backgroundOpacity: 100,
+            borderColor: "#d4d4d8",
+          },
+          postButtonTextStyle: {
+            ...createDefaultTextStyle(),
+            fontSize: 14,
+            bold: true,
+            color: "#ffffff",
+          },
+          postButtonAppearance: {
+            backgroundColor: "#111827",
+            backgroundOpacity: 100,
+            borderColor: "#111827",
           },
         },
       };

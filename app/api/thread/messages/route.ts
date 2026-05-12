@@ -45,7 +45,7 @@ export async function GET(request: Request) {
     const baseQuery = supabaseAdmin
       .from("microsite_thread_messages")
       .select(
-        "id, microsite_id, thread_block_id, author_name, message_text, votes, created_at, updated_at",
+        "id, microsite_id, thread_block_id, author_name, message_text, attachments, votes, created_at, updated_at",
       )
       .eq("microsite_id", micrositeId)
       .eq("thread_block_id", threadBlockId);
@@ -114,6 +114,26 @@ export async function POST(request: Request) {
     const messageText =
       typeof body?.messageText === "string" ? body.messageText.trim() : "";
 
+    const attachments = Array.isArray(body?.attachments)
+      ? body.attachments
+          .filter((item: any) => {
+            const type = item?.type;
+            const sizeBytes = Number(item?.sizeBytes);
+            const dataUrl = typeof item?.dataUrl === "string" ? item.dataUrl : "";
+
+            return (
+              (type === "image" ||
+                type === "gif" ||
+                type === "video" ||
+                type === "audio") &&
+              Number.isFinite(sizeBytes) &&
+              sizeBytes > 0 &&
+              dataUrl.startsWith("data:")
+            );
+          })
+          .slice(0, 4)
+      : [];
+
     if (!micrositeId) {
       return badRequest("Missing micrositeId.");
     }
@@ -122,8 +142,8 @@ export async function POST(request: Request) {
       return badRequest("Missing threadBlockId.");
     }
 
-    if (!messageText) {
-      return badRequest("Message text is required.");
+    if (!messageText && attachments.length === 0) {
+      return badRequest("Message text or media is required.");
     }
 
     const safeAuthorName = authorName || "Guest";
@@ -137,6 +157,7 @@ export async function POST(request: Request) {
         thread_block_id: threadBlockId,
         author_name: safeAuthorName,
         message_text: messageText,
+        attachments,
         votes: 0,
       })
       .select(
