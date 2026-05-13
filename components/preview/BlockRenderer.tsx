@@ -906,12 +906,17 @@ function renderVideo(
       ) : null}
 
 <div
-  className="min-h-0 flex-1 overflow-hidden rounded-xl bg-black/5"
+  className="min-h-0 flex-1 rounded-xl bg-black/5"
   style={{
     ...getAppearanceStyle(block),
     borderStyle: "solid",
     borderWidth: `${Math.max(2, block.appearance?.borderWidth ?? 8)}px`,
     ...getTextureBorderStyle(block.appearance),
+    padding:
+      block.appearance?.textureEnabled && block.appearance?.textureImageUrl
+        ? "3px"
+        : undefined,
+    overflow: "hidden",
   }}
 >
         {isDirectVideoFile ? (
@@ -923,10 +928,13 @@ function renderVideo(
             loop={Boolean(block.data.loop)}
             controls={Boolean(block.data.showControls)}
             playsInline
-            style={{
-              borderRadius: "inherit",
-              backgroundColor: "transparent",
-            }}
+style={{
+  height: "100%",
+  width: "100%",
+  borderRadius: "inherit",
+  backgroundColor: "transparent",
+  display: "block",
+}}
           />
         ) : (
           <iframe
