@@ -909,13 +909,36 @@ function renderVideo(
   className="min-h-0 flex-1 rounded-xl bg-black/5"
   style={{
     ...getAppearanceStyle(block),
-    borderStyle: "solid",
-    borderWidth: `${Math.max(2, block.appearance?.borderWidth ?? 8)}px`,
-    ...getTextureBorderStyle(block.appearance),
+    backgroundImage:
+      block.appearance?.textureEnabled && block.appearance?.textureImageUrl
+        ? `url("${block.appearance.textureImageUrl}")`
+        : undefined,
+    backgroundSize:
+      block.appearance?.textureEnabled && block.appearance?.textureImageUrl
+        ? `${block.appearance.textureScale ?? 100}%`
+        : undefined,
+    backgroundPosition:
+      block.appearance?.textureEnabled && block.appearance?.textureImageUrl
+        ? `${block.appearance.texturePositionX ?? 50}% ${
+            block.appearance.texturePositionY ?? 50
+          }%`
+        : undefined,
+    backgroundRepeat:
+      block.appearance?.textureEnabled && block.appearance?.textureImageUrl
+        ? "repeat"
+        : undefined,
     padding:
       block.appearance?.textureEnabled && block.appearance?.textureImageUrl
-        ? "3px"
+        ? `${Math.max(2, block.appearance.borderWidth ?? 8)}px`
         : undefined,
+    borderWidth:
+      block.appearance?.textureEnabled && block.appearance?.textureImageUrl
+        ? 0
+        : `${Math.max(0, block.appearance?.borderWidth ?? 0)}px`,
+    borderStyle:
+      block.appearance?.textureEnabled && block.appearance?.textureImageUrl
+        ? "none"
+        : "solid",
     overflow: "hidden",
   }}
 >
