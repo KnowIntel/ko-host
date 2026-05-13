@@ -908,6 +908,7 @@ function renderVideo(
 <div
   className="min-h-0 flex-1 overflow-hidden rounded-xl border border-neutral-200 bg-black/5"
 style={{
+  ...getAppearanceStyle(block),
   ...getTextureBorderStyle(block.appearance),
 }}
 >
@@ -4481,7 +4482,6 @@ className={[
       ? "border-neutral-200 bg-white"
       : "border-white/10 bg-white/5",
 ].join(" ")}
-style={getTextureBorderStyle(block.appearance)}
               >
                 {item.imageUrl ? (
                   <img
