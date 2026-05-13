@@ -906,11 +906,13 @@ function renderVideo(
       ) : null}
 
 <div
-  className="min-h-0 flex-1 overflow-hidden rounded-xl border border-neutral-200 bg-black/5"
-style={{
-  ...getAppearanceStyle(block),
-  ...getTextureBorderStyle(block.appearance),
-}}
+  className="min-h-0 flex-1 overflow-hidden rounded-xl bg-black/5"
+  style={{
+    ...getAppearanceStyle(block),
+    borderStyle: "solid",
+    borderWidth: `${Math.max(2, block.appearance?.borderWidth ?? 8)}px`,
+    ...getTextureBorderStyle(block.appearance),
+  }}
 >
         {isDirectVideoFile ? (
           <video
