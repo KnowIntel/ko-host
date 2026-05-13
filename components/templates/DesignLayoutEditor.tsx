@@ -8770,7 +8770,7 @@ if (selectedBlock?.type === "rsvp") {
           : "Add texture to border/frame"
       }
     >
-      Add Texture
+      {/* Add Texture */}
               <Image
           src="/icons/icon_add_texture.png"
           alt="Add Texture"
@@ -8787,7 +8787,7 @@ if (selectedBlock?.type === "rsvp") {
         onClick={removeTextureFromSelectedBlock}
         title="Remove texture"
       >
-        Remove Texture
+        {/* Remove Texture */}
               <Image
           src="/icons/icon_remove_texture.png"
           alt="Remove Texture"
