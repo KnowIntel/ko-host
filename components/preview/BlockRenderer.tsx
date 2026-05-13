@@ -473,10 +473,10 @@ function getTextureBorderStyle(
   }
 
   return {
+    borderStyle: "solid",
+    borderWidth: `${Math.max(2, appearance.borderWidth ?? 8)}px`,
     borderColor: "transparent",
-    borderImageSource: `url("${appearance.textureImageUrl}")`,
-    borderImageSlice: 30,
-    borderImageRepeat: "round",
+    borderImage: `url("${appearance.textureImageUrl}") 30 round`,
   };
 }
 
@@ -908,7 +908,9 @@ function renderVideo(
 
 <div
   className="min-h-0 flex-1 overflow-hidden rounded-xl border border-neutral-200 bg-black/5"
-style={getTextureBorderStyle(block.appearance)}
+style={{
+  ...getTextureBorderStyle(block.appearance),
+}}
 >
         {isDirectVideoFile ? (
           <video
@@ -4472,12 +4474,15 @@ function ImageCarouselPreview({
 
             const content = (
               <div
-                className={[
-                  "group relative h-full min-h-[140px] w-full overflow-hidden rounded-xl border",
-                  isLightDesign(designKey)
-                    ? "border-neutral-200 bg-white"
-                    : "border-white/10 bg-white/5",
-                ].join(" ")}
+className={[
+  "group relative h-full min-h-[140px] w-full overflow-hidden rounded-xl border",
+  block.appearance?.textureEnabled && block.appearance?.textureImageUrl
+    ? ""
+    : isLightDesign(designKey)
+      ? "border-neutral-200 bg-white"
+      : "border-white/10 bg-white/5",
+].join(" ")}
+style={getTextureBorderStyle(block.appearance)}
               >
                 {item.imageUrl ? (
                   <img
