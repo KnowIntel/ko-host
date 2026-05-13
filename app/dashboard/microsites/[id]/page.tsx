@@ -4,6 +4,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import AppModal from "@/components/ui/AppModal";
 import { useParams } from "next/navigation";
 
 type MicrositeSettings = {
@@ -63,6 +64,7 @@ export default function DashboardMicrositeManagePage() {
   const [siteVisibility, setSiteVisibility] = useState<"public" | "private">("public");
   const [passcode, setPasscode] = useState("");
   const [broadcastOnHomepage, setBroadcastOnHomepage] = useState(false);
+  const [stripeError, setStripeError] = useState("");  
 
   const [uploads, setUploads] = useState<FileShareUploadRow[]>([]);
   const [uploadsLoading, setUploadsLoading] = useState(true);
@@ -203,10 +205,10 @@ const res = await fetch("/api/stripe/connect/start", {
       return;
     }
 
-    alert("No onboarding URL returned.");
+    setStripeError("No onboarding URL returned.");
   } catch (error) {
     console.error("Connect Stripe error:", error);
-    alert("Failed to start Stripe onboarding.");
+    setStripeError("Failed to start Stripe onboarding.");
   }
 };
 
@@ -453,7 +455,7 @@ async function sendBulkEmail() {
 
     window.open(data.url, "_blank");
   } catch {
-    alert("Failed to open Stripe dashboard");
+    setStripeError("Failed to open Stripe dashboard");
   }
 }
 
@@ -969,4 +971,12 @@ href={`/api/qr?text=${encodeURIComponent(
 
     </main>
   );
+  <AppModal
+  open={Boolean(stripeError)}
+  title="Stripe Error"
+  cancelText="OK"
+  onCancel={() => setStripeError("")}
+>
+  <p className="text-sm text-neutral-700">{stripeError}</p>
+</AppModal>
 }

@@ -4,6 +4,8 @@ import { auth } from "@clerk/nextjs/server";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import MicrositesTableClient from "./MicrositesTableClient";
 
+import PublishToggleButton from "./PublishToggleButton";
+
 export const dynamic = "force-dynamic";
 
 type MicrositeRow = {

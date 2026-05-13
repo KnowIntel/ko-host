@@ -1153,8 +1153,10 @@ const [selectedRsvpElementKey, setSelectedRsvpElementKey] = useState<
   const [pendingPresetDraft, setPendingPresetDraft] = useState<BuilderDraft | null>(null);
   const [registryLoadingMap, setRegistryLoadingMap] = useState<Record<string, boolean>>({});
   const [activeCategory, setActiveCategory] = useState<BottomCategory>("Text");
-const [toolSearchQuery, setToolSearchQuery] = useState("");
-const [flashedToolKey, setFlashedToolKey] = useState<string | null>(null);
+  const [editorUploadError, setEditorUploadError] = useState("");
+  const [toolSearchQuery, setToolSearchQuery] = useState("");
+  const [flashedToolKey, setFlashedToolKey] = useState<string | null>(null);
+  const [textureUploadError, setTextureUploadError] = useState("");
   const [categoryMenuView, setCategoryMenuView] = useState<"compact" | "detail">(
     "compact",
   );
@@ -1464,12 +1466,12 @@ function handleTextureFileChange(fileList: FileList | null) {
   if (!file) return;
 
   if (!file.type.startsWith("image/")) {
-    alert("Please choose an image file for the texture.");
+    setTextureUploadError("Please choose an image file for the texture.");
     return;
   }
 
   if (file.size > 2 * 1024 * 1024) {
-    alert("Texture image must be 2MB or smaller.");
+    setTextureUploadError("Texture image must be 2MB or smaller.");
     return;
   }
 
@@ -2336,7 +2338,9 @@ async function pickColorWithEyeDropper(
     }).EyeDropper;
 
     if (!EyeDropperCtor) {
-      alert("Eyedropper is not available in this browser.");
+      setEditorUploadError(
+        "Eyedropper is not available in this browser.",
+      );
       return;
     }
 
@@ -2869,7 +2873,7 @@ const handleVideoUpload = async (
 
     if (!res.ok || !data?.url) {
       console.error(data);
-      alert("Failed to upload video");
+      setEditorUploadError("Failed to upload video");
       return;
     }
 
@@ -2886,7 +2890,7 @@ const handleVideoUpload = async (
     );
   } catch (err) {
     console.error(err);
-    alert("Upload failed");
+    setEditorUploadError("Upload failed");
   } finally {
     e.target.value = "";
   }
@@ -18273,6 +18277,22 @@ className="h-[44px] w-[180px] rounded-md border border-neutral-300 bg-white px-3
       </div>
     </div>
   ) : null}
+</AppModal>
+<AppModal
+  open={Boolean(textureUploadError)}
+  title="Texture Upload Error"
+  cancelText="OK"
+  onCancel={() => setTextureUploadError("")}
+>
+  <p className="text-sm text-neutral-700">{textureUploadError}</p>
+</AppModal>
+<AppModal
+  open={Boolean(editorUploadError)}
+  title="Upload Error"
+  cancelText="OK"
+  onCancel={() => setEditorUploadError("")}
+>
+  <p className="text-sm text-neutral-700">{editorUploadError}</p>
 </AppModal>
 
 </div>

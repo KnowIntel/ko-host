@@ -452,7 +452,6 @@ async function createPageFromModal() {
 }
 
   async function createPageImmediately() {
-    alert("CREATE PAGE FUNCTION STARTED");
   const nextNumber = Math.max(1, orderedPages.length);
   const safeSlug = normalizeSlug(`page-${nextNumber + 1}`);
 

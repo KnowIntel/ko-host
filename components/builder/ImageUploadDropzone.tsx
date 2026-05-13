@@ -2,6 +2,7 @@
 
 import { useCallback, useRef, useState } from "react";
 import { uploadImage } from "@/lib/uploadImage";
+import AppModal from "@/components/ui/AppModal";
 
 type Props = {
   onUploaded: (url: string) => void;
@@ -19,13 +20,14 @@ export default function ImageUploadDropzone({
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
 
   const processFile = useCallback(
     async (file?: File | null) => {
       if (!file || disabled || isUploading) return;
 
       if (!file.type.startsWith("image/")) {
-        alert("Please upload an image file.");
+        setUploadError("Please upload an image file.");
         return;
       }
 
@@ -35,7 +37,7 @@ export default function ImageUploadDropzone({
         onUploaded(url);
       } catch (error) {
         console.error("Image upload failed:", error);
-        alert("Image upload failed.");
+        setUploadError("Image upload failed.");
       } finally {
         setIsUploading(false);
         setIsDragging(false);
@@ -133,4 +135,12 @@ export default function ImageUploadDropzone({
       </button>
     </>
   );
+  <AppModal
+  open={Boolean(uploadError)}
+  title="Upload Error"
+  cancelText="OK"
+  onCancel={() => setUploadError("")}
+>
+  <p className="text-sm text-neutral-700">{uploadError}</p>
+</AppModal>
 }

@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import SpeedDatingLive from "@/components/blocks/SpeedDatingLive";
 import PopBalloonLive from "@/components/blocks/PopBalloonLive";
+import AppModal from "@/components/ui/AppModal";
 
 type SpeedDatingParticipant = {
   id: string;
@@ -115,6 +116,7 @@ const THREAD_MAX_NAME_LENGTH = 60;
 const THREAD_MAX_MESSAGE_LENGTH = 500;
 const THREAD_ACTIVITY_EVENT = "kht-thread-activity";
 const THREAD_VOTE_STORAGE_KEY = "kht-thread-votes";
+const [donationError, setDonationError] = useState("");
 
 const anton = Anton({ subsets: ["latin"], weight: "400" });
 const bangers = Bangers({ subsets: ["latin"], weight: "400" });
@@ -5867,7 +5869,9 @@ function renderDonation(
 
   async function handleDonationCheckout(amount: number, optionLabel?: string) {
     if (!micrositeId) {
-      alert("Donation checkout only works on a live microsite right now.");
+      setDonationError(
+        "Donation checkout only works on a live microsite right now.",
+      );
       return;
     }
 
@@ -5898,10 +5902,10 @@ function renderDonation(
         return;
       }
 
-      alert("No checkout URL returned.");
+      setDonationError("No checkout URL returned.");
     } catch (err) {
       console.error("Donation checkout error:", err);
-      alert("Something went wrong");
+      setDonationError("Something went wrong");
     }
   }
 
@@ -8937,3 +8941,11 @@ case "pop_balloon":
       return <div className="h-full w-full" />;
   }
 }
+<AppModal
+  open={Boolean(donationError)}
+  title="Checkout Error"
+  cancelText="OK"
+  onCancel={() => setDonationError("")}
+>
+  <p className="text-sm text-neutral-700">{donationError}</p>
+</AppModal>
