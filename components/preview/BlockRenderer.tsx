@@ -906,9 +906,13 @@ function renderVideo(
       ) : null}
 
 <div
-  className="min-h-0 flex-1 rounded-xl bg-black/5"
+  className="min-h-0 flex-1 rounded-xl"
   style={{
-    ...getAppearanceStyle(block),
+    backgroundColor:
+      block.appearance?.backgroundColor &&
+      block.appearance.backgroundColor !== "transparent"
+        ? block.appearance.backgroundColor
+        : "rgba(0,0,0,0.05)",
     backgroundImage:
       block.appearance?.textureEnabled && block.appearance?.textureImageUrl
         ? `url("${block.appearance.textureImageUrl}")`
@@ -929,16 +933,24 @@ function renderVideo(
         : undefined,
     padding:
       block.appearance?.textureEnabled && block.appearance?.textureImageUrl
-        ? `${Math.max(2, block.appearance.borderWidth ?? 8)}px`
+        ? `${Math.max(4, block.appearance.borderWidth ?? 8)}px`
         : undefined,
+    borderColor:
+      block.appearance?.textureEnabled && block.appearance?.textureImageUrl
+        ? "transparent"
+        : block.appearance?.borderColor || "#e5e7eb",
     borderWidth:
       block.appearance?.textureEnabled && block.appearance?.textureImageUrl
         ? 0
-        : `${Math.max(0, block.appearance?.borderWidth ?? 0)}px`,
+        : `${Math.max(1, block.appearance?.borderWidth ?? 1)}px`,
     borderStyle:
       block.appearance?.textureEnabled && block.appearance?.textureImageUrl
         ? "none"
         : "solid",
+    borderRadius:
+      typeof block.appearance?.borderRadius === "number"
+        ? `${block.appearance.borderRadius}px`
+        : "12px",
     overflow: "hidden",
   }}
 >
@@ -966,10 +978,13 @@ style={{
             allow="autoplay; encrypted-media; picture-in-picture"
             allowFullScreen
             title={block.data.title || "Video"}
-            style={{
-              borderRadius: "inherit",
-              backgroundColor: "transparent",
-            }}
+style={{
+  height: "100%",
+  width: "100%",
+  borderRadius: "inherit",
+  backgroundColor: "transparent",
+  display: "block",
+}}
           />
         )}
       </div>
