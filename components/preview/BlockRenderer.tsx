@@ -116,7 +116,6 @@ const THREAD_MAX_NAME_LENGTH = 60;
 const THREAD_MAX_MESSAGE_LENGTH = 500;
 const THREAD_ACTIVITY_EVENT = "kht-thread-activity";
 const THREAD_VOTE_STORAGE_KEY = "kht-thread-votes";
-const [donationError, setDonationError] = useState("");
 
 const anton = Anton({ subsets: ["latin"], weight: "400" });
 const bangers = Bangers({ subsets: ["latin"], weight: "400" });
@@ -5871,6 +5870,7 @@ function renderDonation(
     : [];
 
   const isConfigured = donationOptions.length > 0;
+  const [donationError, setDonationError] = useState("");
 
   async function handleDonationCheckout(amount: number, optionLabel?: string) {
     if (!micrositeId) {
@@ -5898,7 +5898,7 @@ function renderDonation(
 
       if (!res.ok) {
         console.error("Donation checkout failed:", json);
-        alert(json.error || "Donation checkout failed");
+        setDonationError(json.error || "Donation checkout failed");
         return;
       }
 
@@ -5915,11 +5915,12 @@ function renderDonation(
   }
 
 return (
-  <Surface
-    block={block}
-    designKey={designKey}
-    className=""
-  >
+  <>
+    <Surface
+      block={block}
+      designKey={designKey}
+      className=""
+    >
     <div
       className="text-base font-semibold"
       style={getContainerTextStyle(block.data.style, designKey)}
@@ -6004,7 +6005,17 @@ return (
         Add fixed donation options in the builder.
       </div>
     )}
-  </Surface>
+    </Surface>
+
+    <AppModal
+      open={Boolean(donationError)}
+      title="Checkout Error"
+      cancelText="OK"
+      onCancel={() => setDonationError("")}
+    >
+      <p className="text-sm text-neutral-700">{donationError}</p>
+    </AppModal>
+  </>
 );
 }
 
@@ -8946,11 +8957,3 @@ case "pop_balloon":
       return <div className="h-full w-full" />;
   }
 }
-<AppModal
-  open={Boolean(donationError)}
-  title="Checkout Error"
-  cancelText="OK"
-  onCancel={() => setDonationError("")}
->
-  <p className="text-sm text-neutral-700">{donationError}</p>
-</AppModal>
