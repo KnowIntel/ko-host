@@ -8771,6 +8771,13 @@ if (selectedBlock?.type === "rsvp") {
       }
     >
       Add Texture
+              <Image
+          src="/icons/icon_add_texture.png"
+          alt="Add Texture"
+          width={30}
+          height={30}
+          className="pointer-events-none h-[30px] w-[30px] object-contain"
+        />
     </button>
 
     {selectedBlockTextureEnabled ? (
@@ -8781,6 +8788,13 @@ if (selectedBlock?.type === "rsvp") {
         title="Remove texture"
       >
         Remove Texture
+              <Image
+          src="/icons/icon_remove_texture.png"
+          alt="Remove Texture"
+          width={30}
+          height={30}
+          className="pointer-events-none h-[30px] w-[30px] object-contain"
+        />
       </button>
     ) : null}
   </>
