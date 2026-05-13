@@ -5369,8 +5369,8 @@ if (block.type === "label") {
             : undefined,
           backgroundClip: hasTexture ? "text" : undefined,
           WebkitBackgroundClip: hasTexture ? "text" : undefined,
-          color: hasTexture ? "transparent" : undefined,
-          WebkitTextFillColor: hasTexture ? "transparent" : undefined,
+          color: hasTexture ? "transparent" : block.data.style?.color || undefined,
+          WebkitTextFillColor: hasTexture ? "transparent" : block.data.style?.color || undefined,
           transform: `translate(${((block.data as any).positionX ?? 50) - 50}%, ${
             ((block.data as any).positionY ?? 50) - 50
           }%)`,
