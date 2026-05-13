@@ -1445,20 +1445,26 @@ if (selectedBlock.type === "label" || selectedBlock.type === "text_fx") {
   return;
 }
 
-  if (
-    selectedBlock.type === "image" ||
-    selectedBlock.type === "video" ||
-    selectedBlock.type === "gallery" ||
-    selectedBlock.type === "image_carousel"
-  ) {
-    applyAppearancePatch({
+if (
+  selectedBlock.type === "image" ||
+  selectedBlock.type === "video" ||
+  selectedBlock.type === "gallery" ||
+  selectedBlock.type === "image_carousel"
+) {
+  updateSelectedBlock((block) => ({
+    ...block,
+    appearance: {
+      ...block.appearance,
       textureEnabled: true,
       textureImageUrl: dataUrl,
       textureScale: 100,
       texturePositionX: 50,
       texturePositionY: 50,
-    });
-  }
+    },
+  }));
+
+  return;
+}
 }
 
 function handleTextureFileChange(fileList: FileList | null) {
