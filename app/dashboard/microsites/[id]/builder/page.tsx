@@ -749,9 +749,15 @@ async function handlePageDrop(targetPageId: string) {
   await reorderPages(homePage ? [homePage, ...reorderablePages] : reorderablePages);
 }
 
-  if (loading || !site || !editorDraft) {
-    return <div className="p-6">Loading builder...</div>;
-  }
+if (loading || !site || !editorDraft) {
+  return (
+    <div className="flex min-h-[calc(100vh-120px)] items-start justify-center pt-28">
+      <div className="text-sm font-medium text-neutral-600">
+        Loading builder...
+      </div>
+    </div>
+  );
+}
 
 return (
   <main className="w-full max-w-none px-0 py-0">
