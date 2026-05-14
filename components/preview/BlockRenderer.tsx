@@ -844,29 +844,40 @@ function renderLabel(
   return (
     <div className="h-full w-full p-2" style={getAppearanceStyle(block)}>
       <div
-        style={{
-          ...getContainerTextStyle(block.data.style, designKey),
-          display: "inline-block",
-          backgroundImage: hasTexture
-            ? `url("${block.data.style?.textureImageUrl}")`
-            : undefined,
-          backgroundRepeat: hasTexture ? "repeat" : undefined,
-          backgroundSize: hasTexture
-            ? `${block.data.style?.textureScale ?? 100}%`
-            : undefined,
-          backgroundPosition: hasTexture
-            ? `${block.data.style?.texturePositionX ?? 50}% ${
-                block.data.style?.texturePositionY ?? 50
-              }%`
-            : undefined,
-          backgroundClip: hasTexture ? "text" : undefined,
-          WebkitBackgroundClip: hasTexture ? "text" : undefined,
-          color: hasTexture ? "transparent" : undefined,
-          WebkitTextFillColor: hasTexture ? "transparent" : undefined,
-          transform: `translate(${((block.data as any).positionX ?? 50) - 50}%, ${
-            ((block.data as any).positionY ?? 50) - 50
-          }%)`,
-        }}
+style={{
+  ...getContainerTextStyle(block.data.style, designKey),
+  display: "block",
+  width: "100%",
+  textAlign: block.data.style?.align ?? "left",
+
+  backgroundImage: hasTexture
+    ? `url("${block.data.style?.textureImageUrl}")`
+    : undefined,
+  backgroundRepeat: hasTexture ? "repeat" : undefined,
+  backgroundSize: hasTexture
+    ? `${block.data.style?.textureScale ?? 100}%`
+    : undefined,
+  backgroundPosition: hasTexture
+    ? `${block.data.style?.texturePositionX ?? 50}% ${
+        block.data.style?.texturePositionY ?? 50
+      }%`
+    : undefined,
+
+  backgroundClip: hasTexture ? "text" : undefined,
+  WebkitBackgroundClip: hasTexture ? "text" : undefined,
+
+  color: hasTexture
+    ? "transparent"
+    : block.data.style?.color ?? undefined,
+
+  WebkitTextFillColor: hasTexture
+    ? "transparent"
+    : block.data.style?.color ?? undefined,
+
+  transform: `translate(${((block.data as any).positionX ?? 50) - 50}%, ${
+    ((block.data as any).positionY ?? 50) - 50
+  }%)`,
+}}
       >
         {getLabelText(block)}
       </div>
