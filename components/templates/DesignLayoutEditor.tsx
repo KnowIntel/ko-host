@@ -11672,85 +11672,91 @@ if (selectedBlock?.type === "rsvp") {
       </div>
     ) : null}
 
-    <div className="mt-4">
-      <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
-        <input
-          type="checkbox"
-          checked={(selectedBlock.data as any).showContext ?? true}
-          onChange={(e) =>
-            updateSelectedBlock((block) =>
-              block.type !== "progress_bar"
-                ? block
-                : {
-                    ...block,
-                    data: {
-                      ...block.data,
-                      showContext: e.target.checked,
-                    },
-                  },
-            )
-          }
-        />
-        Show Context
-      </label>
-    </div>
-
-    {((selectedBlock.data as any).showContext ?? true) ? (
-      <div className="mt-4 grid grid-cols-2 gap-3">
-        <div>
-          <div className={inspectorLabelClass()}>Context Type</div>
-          <select
-            value={(selectedBlock.data as any).contextType ?? "percentage"}
-            onChange={(e) =>
-              updateSelectedBlock((block) =>
-                block.type !== "progress_bar"
-                  ? block
-                  : {
-                      ...block,
-                      data: {
-                        ...block.data,
-                        contextType: e.target.value as
-                          | "percentage"
-                          | "fraction",
+    {((selectedBlock.data as any).displayStyle ?? "bar") === "bar" ? (
+      <>
+        <div className="mt-4">
+          <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+            <input
+              type="checkbox"
+              checked={(selectedBlock.data as any).showContext ?? true}
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "progress_bar"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          showContext: e.target.checked,
+                        },
                       },
-                    },
-              )
-            }
-            className={inspectorInputClass()}
-          >
-            <option value="percentage">Show Percent</option>
-            <option value="fraction">Show Fraction</option>
-          </select>
+                )
+              }
+            />
+            Show Context
+          </label>
         </div>
 
-        <div>
-          <div className={inspectorLabelClass()}>Context Location</div>
-          <select
-            value={(selectedBlock.data as any).contextLocation ?? "bottom-left"}
-            onChange={(e) =>
-              updateSelectedBlock((block) =>
-                block.type !== "progress_bar"
-                  ? block
-                  : {
-                      ...block,
-                      data: {
-                        ...block.data,
-                        contextLocation: e.target.value as
-                          | "top-right"
-                          | "bottom-left"
-                          | "bottom-right",
-                      },
-                    },
-              )
-            }
-            className={inspectorInputClass()}
-          >
-            <option value="top-right">Top Right</option>
-            <option value="bottom-left">Bottom Left</option>
-            <option value="bottom-right">Bottom Right</option>
-          </select>
-        </div>
-      </div>
+        {((selectedBlock.data as any).showContext ?? true) ? (
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            <div>
+              <div className={inspectorLabelClass()}>Context Type</div>
+              <select
+                value={(selectedBlock.data as any).contextType ?? "percentage"}
+                onChange={(e) =>
+                  updateSelectedBlock((block) =>
+                    block.type !== "progress_bar"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            contextType: e.target.value as
+                              | "percentage"
+                              | "fraction",
+                          },
+                        },
+                  )
+                }
+                className={inspectorInputClass()}
+              >
+                <option value="percentage">Show Percent</option>
+                <option value="fraction">Show Fraction</option>
+              </select>
+            </div>
+
+            <div>
+              <div className={inspectorLabelClass()}>Context Location</div>
+              <select
+                value={
+                  (selectedBlock.data as any).contextLocation ?? "bottom-left"
+                }
+                onChange={(e) =>
+                  updateSelectedBlock((block) =>
+                    block.type !== "progress_bar"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            contextLocation: e.target.value as
+                              | "top-right"
+                              | "bottom-left"
+                              | "bottom-right",
+                          },
+                        },
+                  )
+                }
+                className={inspectorInputClass()}
+              >
+                <option value="top-right">Top Right</option>
+                <option value="bottom-left">Bottom Left</option>
+                <option value="bottom-right">Bottom Right</option>
+              </select>
+            </div>
+          </div>
+        ) : null}
+      </>
     ) : null}
   </div>
 ) : null}

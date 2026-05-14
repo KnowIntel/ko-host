@@ -5929,13 +5929,9 @@ if (displayStyle === "meter") {
 
   return (
     <Surface block={block} designKey={designKey} className="">
-      <div className="flex items-start justify-between gap-3">
-        <div className="text-base font-semibold" style={backgroundStyle}>
-          {block.data.heading || "Progress"}
-        </div>
-
-        {contextLocation === "top-right" ? contextNode : null}
-      </div>
+    <div className="text-center text-base font-semibold" style={backgroundStyle}>
+      {block.data.heading || "Progress"}
+    </div>
 
       <div className="mt-4 flex w-full justify-center">
         <div className="relative w-full max-w-[320px]">
