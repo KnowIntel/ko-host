@@ -17002,32 +17002,6 @@ onInput={(e) => {
   />
 </div>
 
-<div>
-  <div className="text-xs font-medium text-neutral-600">
-    Horizontal Padding
-  </div>
-  <input
-    type="range"
-    min={4}
-    max={120}
-    value={(selectedBlock.data as any).buttonPaddingX ?? 20}
-    onChange={(e) =>
-      updateSelectedBlock((block) =>
-        block.type === "cta"
-          ? {
-              ...block,
-              data: {
-                ...block.data,
-                buttonPaddingX: Number(e.target.value),
-              },
-            }
-          : block,
-      )
-    }
-    className="mt-2 w-full"
-  />
-</div>
-
   <input
     type="range"
     min={10}
