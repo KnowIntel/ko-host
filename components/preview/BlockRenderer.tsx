@@ -5851,43 +5851,80 @@ if (displayStyle === "meter") {
     designKey,
   );
 
+  const centerX = 140;
+  const centerY = 132;
+  const outerRadius = 106;
+  const innerRadius = 78;
+  const gapDegrees = 2.2;
+  const sectionDegrees = 180 / sectionCount;
   const needleAngle = -90 + (percent / 100) * 180;
-  const radius = 82;
-  const strokeWidth = 22;
-  const centerX = 100;
-  const centerY = 100;
 
-  const polarToCartesian = (angle: number) => {
-    const radians = ((angle - 90) * Math.PI) / 180;
+  const hexToRgb = (hex: string) => {
+    const normalized = hex.replace("#", "");
+    const parsed = Number.parseInt(
+      normalized.length === 3
+        ? normalized
+            .split("")
+            .map((char) => char + char)
+            .join("")
+        : normalized,
+      16,
+    );
+
+    return {
+      r: (parsed >> 16) & 255,
+      g: (parsed >> 8) & 255,
+      b: parsed & 255,
+    };
+  };
+
+  const rgbToHex = (r: number, g: number, b: number) =>
+    `#${[r, g, b]
+      .map((value) =>
+        Math.max(0, Math.min(255, Math.round(value)))
+          .toString(16)
+          .padStart(2, "0"),
+      )
+      .join("")}`;
+
+  const mixColor = (from: string, to: string, amount: number) => {
+    const start = hexToRgb(from);
+    const end = hexToRgb(to);
+
+    return rgbToHex(
+      start.r + (end.r - start.r) * amount,
+      start.g + (end.g - start.g) * amount,
+      start.b + (end.b - start.b) * amount,
+    );
+  };
+
+  const pointOnCircle = (radius: number, angle: number) => {
+    const radians = (angle * Math.PI) / 180;
+
     return {
       x: centerX + radius * Math.cos(radians),
       y: centerY + radius * Math.sin(radians),
     };
   };
 
-  const describeArc = (startAngle: number, endAngle: number) => {
-    const start = polarToCartesian(endAngle);
-    const end = polarToCartesian(startAngle);
-    const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+  const describeGaugeSection = (startAngle: number, endAngle: number) => {
+    const outerStart = pointOnCircle(outerRadius, startAngle);
+    const outerEnd = pointOnCircle(outerRadius, endAngle);
+    const innerEnd = pointOnCircle(innerRadius, endAngle);
+    const innerStart = pointOnCircle(innerRadius, startAngle);
 
     return [
-      "M",
-      start.x,
-      start.y,
-      "A",
-      radius,
-      radius,
-      0,
-      largeArcFlag,
-      0,
-      end.x,
-      end.y,
+      `M ${outerStart.x} ${outerStart.y}`,
+      `A ${outerRadius} ${outerRadius} 0 0 1 ${outerEnd.x} ${outerEnd.y}`,
+      `L ${innerEnd.x} ${innerEnd.y}`,
+      `A ${innerRadius} ${innerRadius} 0 0 0 ${innerStart.x} ${innerStart.y}`,
+      "Z",
     ].join(" ");
   };
 
-  const segmentGap = 2;
-  const totalAngle = 180;
-  const sectionAngle = totalAngle / sectionCount;
+  const needleTip = pointOnCircle(innerRadius + 12, needleAngle);
+  const needleBaseLeft = pointOnCircle(10, needleAngle + 112);
+  const needleBaseRight = pointOnCircle(10, needleAngle - 112);
 
   return (
     <Surface block={block} designKey={designKey} className="">
@@ -5900,64 +5937,74 @@ if (displayStyle === "meter") {
       </div>
 
       <div className="mt-4 flex w-full justify-center">
-        <div className="relative w-full max-w-[280px]">
+        <div className="relative w-full max-w-[320px]">
           <svg
-            viewBox="0 0 200 130"
+            viewBox="0 0 280 170"
             className="h-auto w-full overflow-visible"
             role="img"
             aria-label={`Progress meter ${percent}%`}
           >
             <defs>
-              <linearGradient id={`progress-meter-gradient-${block.id}`} x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor={startColor} />
-                <stop offset="100%" stopColor={endColor} />
-              </linearGradient>
-
-              <filter id={`progress-meter-shadow-${block.id}`} x="-20%" y="-20%" width="140%" height="140%">
-                <feDropShadow dx="0" dy="2" stdDeviation="2" floodOpacity="0.3" />
+              <filter
+                id={`progress-meter-soft-shadow-${block.id}`}
+                x="-20%"
+                y="-20%"
+                width="140%"
+                height="140%"
+              >
+                <feDropShadow
+                  dx="0"
+                  dy="3"
+                  stdDeviation="2.25"
+                  floodOpacity="0.28"
+                />
               </filter>
             </defs>
 
             {Array.from({ length: sectionCount }).map((_, index) => {
-              const startAngle = -90 + index * sectionAngle + segmentGap / 2;
-              const endAngle = -90 + (index + 1) * sectionAngle - segmentGap / 2;
+              const startAngle =
+                180 + index * sectionDegrees + gapDegrees / 2;
+              const endAngle =
+                180 + (index + 1) * sectionDegrees - gapDegrees / 2;
+
+              const color =
+                sectionCount === 1
+                  ? startColor
+                  : mixColor(startColor, endColor, index / (sectionCount - 1));
 
               return (
                 <path
                   key={`meter-arc-${index}`}
-                  d={describeArc(startAngle, endAngle)}
-                  fill="none"
-                  stroke={`url(#progress-meter-gradient-${block.id})`}
-                  strokeWidth={strokeWidth}
-                  strokeLinecap="butt"
-                  filter={`url(#progress-meter-shadow-${block.id})`}
+                  d={describeGaugeSection(startAngle, endAngle)}
+                  fill={color}
+                  stroke="rgba(255,255,255,0.16)"
+                  strokeWidth="1"
+                  filter={`url(#progress-meter-soft-shadow-${block.id})`}
                 />
               );
             })}
 
-            <line
-              x1={centerX}
-              y1={centerY}
-              x2={centerX}
-              y2={centerY - radius + 8}
-              stroke={needleColor}
-              strokeWidth="5"
-              strokeLinecap="round"
-              transform={`rotate(${needleAngle} ${centerX} ${centerY})`}
-              filter={`url(#progress-meter-shadow-${block.id})`}
+            <polygon
+              points={`${needleTip.x},${needleTip.y} ${needleBaseLeft.x},${needleBaseLeft.y} ${needleBaseRight.x},${needleBaseRight.y}`}
+              fill={needleColor}
+              stroke="rgba(0,0,0,0.25)"
+              strokeWidth="1"
+              filter={`url(#progress-meter-soft-shadow-${block.id})`}
             />
 
             <circle
               cx={centerX}
               cy={centerY}
-              r="6"
+              r="11"
               fill={needleColor}
-              filter={`url(#progress-meter-shadow-${block.id})`}
+              stroke="rgba(0,0,0,0.25)"
+              strokeWidth="2"
+              filter={`url(#progress-meter-soft-shadow-${block.id})`}
             />
           </svg>
 
           {caption ? (
-            <div className="-mt-4 text-center" style={captionStyle}>
+            <div className="-mt-5 text-center" style={captionStyle}>
               {caption}
             </div>
           ) : null}
