@@ -802,6 +802,14 @@ export type ProgressBarBlock = BaseBlock & {
     max: number;
     showPercentage?: boolean;
     style?: TextStyle;
+
+    displayStyle?: "bar" | "meter";
+    meterSectionCount?: number;
+    meterStartColor?: string;
+    meterEndColor?: string;
+    meterNeedleColor?: string;
+    meterCaption?: string;
+    meterCaptionStyle?: TextStyle;
   };
 };
 
@@ -2348,13 +2356,25 @@ data: {
         label: "Progress Bar",
         grid,
         appearance: createDefaultBlockAppearance(),
-        data: {
-          heading: "Progress",
-          value: 25,
-          max: 100,
-          showPercentage: true,
-          style: createDefaultTextStyle(),
-        },
+data: {
+  heading: "Progress",
+  value: 25,
+  max: 100,
+  showPercentage: true,
+  style: createDefaultTextStyle(),
+
+  displayStyle: "bar",
+  meterSectionCount: 6,
+  meterStartColor: "#22c55e",
+  meterEndColor: "#ef4444",
+  meterNeedleColor: "#111827",
+  meterCaption: "",
+  meterCaptionStyle: {
+    ...createDefaultTextStyle(),
+    fontSize: 14,
+    align: "center",
+  },
+},
       };
 
 case "donation":

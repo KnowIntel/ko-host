@@ -1297,7 +1297,7 @@ const [countdownStyleTarget, setCountdownStyleTarget] = useState<
 >("background");
 
 const [progressBarStyleTarget, setProgressBarStyleTarget] = useState<
-  "background" | "bar" | "scope" | "context"
+  "background" | "bar" | "scope" | "context" | "meterCaption"
 >("background");
 
 const textureInputRef = useRef<HTMLInputElement | null>(null);
@@ -2671,6 +2671,19 @@ function applyFillColor(value: string) {
           },
         };
       }
+
+      if (progressBarStyleTarget === "meterCaption") {
+  return {
+    ...block,
+    data: {
+      ...block.data,
+      meterCaptionStyle: {
+        ...((block.data as any).meterCaptionStyle ?? {}),
+        color: value,
+      },
+    },
+  };
+}
 
       if (progressBarStyleTarget === "context") {
         return {
@@ -7822,16 +7835,22 @@ const idsToExpand =
       value={progressBarStyleTarget}
       onChange={(e) =>
         setProgressBarStyleTarget(
-          e.target.value as "background" | "bar" | "scope" | "context",
+          e.target.value as
+            | "background"
+            | "bar"
+            | "scope"
+            | "context"
+            | "meterCaption",
         )
       }
-      className={topBarFieldClass("w-[145px]")}
+      className={topBarFieldClass("w-[155px]")}
       title="Progress bar style target"
     >
       <option value="background">Background</option>
       <option value="bar">Bar</option>
       <option value="scope">Scope</option>
       <option value="context">Context</option>
+      <option value="meterCaption">Meter Caption</option>
     </select>
   </>
 ) : null}
@@ -11517,6 +11536,30 @@ if (selectedBlock?.type === "rsvp") {
     <div className={inspectorLabelClass()}>Progress Bar</div>
 
     <div className="mt-4">
+      <div className={inspectorLabelClass()}>Display Style</div>
+      <select
+        value={(selectedBlock.data as any).displayStyle ?? "bar"}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "progress_bar"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    displayStyle: e.target.value as "bar" | "meter",
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      >
+        <option value="bar">Bar</option>
+        <option value="meter">Meter</option>
+      </select>
+    </div>
+
+    <div className="mt-4">
       <div className={inspectorLabelClass()}>Heading</div>
       <input
         type="text"
@@ -11585,6 +11628,225 @@ if (selectedBlock?.type === "rsvp") {
         />
       </div>
     </div>
+
+    {((selectedBlock.data as any).displayStyle ?? "bar") === "meter" ? (
+      <div className="mt-5 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+        <div className={inspectorLabelClass()}>Meter Options</div>
+
+        <div className="mt-4">
+          <div className={inspectorLabelClass()}>Sections</div>
+          <input
+            type="number"
+            min={1}
+            max={20}
+            value={(selectedBlock.data as any).meterSectionCount ?? 6}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "progress_bar"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        meterSectionCount: Math.max(
+                          1,
+                          Math.min(20, Number(e.target.value) || 6),
+                        ),
+                      },
+                    },
+              )
+            }
+            className={inspectorInputClass()}
+          />
+        </div>
+
+        <div className="mt-4 grid grid-cols-2 gap-3">
+          <div>
+            <div className={inspectorLabelClass()}>Start Color</div>
+            <input
+              type="color"
+              value={(selectedBlock.data as any).meterStartColor ?? "#22c55e"}
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "progress_bar"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          meterStartColor: e.target.value,
+                        },
+                      },
+                )
+              }
+              className="h-10 w-full cursor-pointer rounded-lg border border-neutral-300 bg-white p-1"
+            />
+          </div>
+
+          <div>
+            <div className={inspectorLabelClass()}>End Color</div>
+            <input
+              type="color"
+              value={(selectedBlock.data as any).meterEndColor ?? "#ef4444"}
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "progress_bar"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          meterEndColor: e.target.value,
+                        },
+                      },
+                )
+              }
+              className="h-10 w-full cursor-pointer rounded-lg border border-neutral-300 bg-white p-1"
+            />
+          </div>
+        </div>
+
+        <div className="mt-4">
+          <div className={inspectorLabelClass()}>Needle Color</div>
+          <input
+            type="color"
+            value={(selectedBlock.data as any).meterNeedleColor ?? "#111827"}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "progress_bar"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        meterNeedleColor: e.target.value,
+                      },
+                    },
+              )
+            }
+            className="h-10 w-full cursor-pointer rounded-lg border border-neutral-300 bg-white p-1"
+          />
+        </div>
+
+        <div className="mt-4">
+          <div className={inspectorLabelClass()}>Caption Text</div>
+          <input
+            type="text"
+            value={(selectedBlock.data as any).meterCaption ?? ""}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "progress_bar"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        meterCaption: e.target.value,
+                      },
+                    },
+              )
+            }
+            className={inspectorInputClass()}
+            placeholder="Optional caption..."
+          />
+        </div>
+
+        <div className="mt-4">
+          <div className={inspectorLabelClass()}>Caption Font Family</div>
+          <input
+            type="text"
+            value={
+              ((selectedBlock.data as any).meterCaptionStyle as any)
+                ?.fontFamily ?? "inherit"
+            }
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "progress_bar"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        meterCaptionStyle: {
+                          ...((block.data as any).meterCaptionStyle ?? {}),
+                          fontFamily: e.target.value || "inherit",
+                          align: "center",
+                        },
+                      },
+                    },
+              )
+            }
+            className={inspectorInputClass()}
+            placeholder="inherit"
+          />
+        </div>
+
+        <div className="mt-4 grid grid-cols-2 gap-3">
+          <div>
+            <div className={inspectorLabelClass()}>Caption Size</div>
+            <input
+              type="number"
+              min={8}
+              max={96}
+              value={
+                ((selectedBlock.data as any).meterCaptionStyle as any)
+                  ?.fontSize ?? 14
+              }
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "progress_bar"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          meterCaptionStyle: {
+                            ...((block.data as any).meterCaptionStyle ?? {}),
+                            fontSize: Math.max(
+                              8,
+                              Math.min(96, Number(e.target.value) || 14),
+                            ),
+                            align: "center",
+                          },
+                        },
+                      },
+                )
+              }
+              className={inspectorInputClass()}
+            />
+          </div>
+
+          <div>
+            <div className={inspectorLabelClass()}>Caption Color</div>
+            <input
+              type="color"
+              value={
+                ((selectedBlock.data as any).meterCaptionStyle as any)?.color ??
+                "#111827"
+              }
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "progress_bar"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          meterCaptionStyle: {
+                            ...((block.data as any).meterCaptionStyle ?? {}),
+                            color: e.target.value,
+                            align: "center",
+                          },
+                        },
+                      },
+                )
+              }
+              className="h-10 w-full cursor-pointer rounded-lg border border-neutral-300 bg-white p-1"
+            />
+          </div>
+        </div>
+      </div>
+    ) : null}
 
     <div className="mt-4">
       <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">

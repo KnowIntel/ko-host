@@ -5788,11 +5788,7 @@ function renderProgressBar(
 
   if (!hasValidMax || !hasValidValue) {
     return (
-      <Surface
-        block={block}
-        designKey={designKey}
-        className=""
-      >
+      <Surface block={block} designKey={designKey} className="">
         <div
           className="text-base font-semibold"
           style={getContainerTextStyle(block.data.style, designKey)}
@@ -5825,6 +5821,8 @@ function renderProgressBar(
     designKey,
   );
 
+  const displayStyle = (block.data as any).displayStyle ?? "bar";
+
   const showContext = (block.data as any).showContext ?? true;
   const contextType = (block.data as any).contextType ?? "percentage";
   const contextLocation = (block.data as any).contextLocation ?? "bottom-left";
@@ -5838,17 +5836,103 @@ function renderProgressBar(
     </div>
   ) : null;
 
+  if (displayStyle === "meter") {
+    const sectionCount = Math.max(
+      1,
+      Math.min(20, Number((block.data as any).meterSectionCount) || 6),
+    );
+
+    const startColor = (block.data as any).meterStartColor || "#22c55e";
+    const endColor = (block.data as any).meterEndColor || "#ef4444";
+    const needleColor = (block.data as any).meterNeedleColor || "#111827";
+    const caption = (block.data as any).meterCaption ?? "";
+    const captionStyle = getContainerTextStyle(
+      ((block.data as any).meterCaptionStyle ?? {}) as TextStyle,
+      designKey,
+    );
+
+    const needleLeft = Math.max(0, Math.min(100, percent));
+
+    return (
+      <Surface block={block} designKey={designKey} className="">
+        <div className="flex items-start justify-between gap-3">
+          <div className="text-base font-semibold" style={backgroundStyle}>
+            {block.data.heading || "Progress"}
+          </div>
+
+          {contextLocation === "top-right" ? contextNode : null}
+        </div>
+
+        <div className="relative mt-5 px-1 pb-4 pt-7">
+          <div
+            className="absolute top-0 z-10 h-7 w-1 -translate-x-1/2 rounded-full shadow-sm"
+            style={{
+              left: `${needleLeft}%`,
+              backgroundColor: needleColor,
+            }}
+          />
+
+          <div
+            className="absolute top-5 z-10 h-0 w-0 -translate-x-1/2 border-l-[7px] border-r-[7px] border-t-[10px] border-l-transparent border-r-transparent"
+            style={{
+              left: `${needleLeft}%`,
+              borderTopColor: needleColor,
+            }}
+          />
+
+          <div
+            className={[
+              "grid h-12 overflow-hidden rounded-2xl border shadow-inner",
+              isLightDesign(designKey) ? "border-neutral-300" : "border-white/15",
+            ].join(" ")}
+            style={{
+              gridTemplateColumns: `repeat(${sectionCount}, minmax(0, 1fr))`,
+              background: `linear-gradient(90deg, ${startColor}, ${endColor})`,
+              borderColor: (barStyle as any).borderColor ?? undefined,
+            }}
+          >
+            {Array.from({ length: sectionCount }).map((_, index) => (
+              <div
+                key={`meter-section-${index}`}
+                className={[
+                  "h-full",
+                  index > 0
+                    ? isLightDesign(designKey)
+                      ? "border-l border-white/70"
+                      : "border-l border-white/25"
+                    : "",
+                ].join(" ")}
+              />
+            ))}
+          </div>
+        </div>
+
+        {caption ? (
+          <div className="mt-1 text-center" style={captionStyle}>
+            {caption}
+          </div>
+        ) : null}
+
+        {contextLocation !== "top-right" && contextNode ? (
+          <div
+            className={[
+              "mt-2 flex",
+              contextLocation === "bottom-right"
+                ? "justify-end"
+                : "justify-start",
+            ].join(" ")}
+          >
+            {contextNode}
+          </div>
+        ) : null}
+      </Surface>
+    );
+  }
+
   return (
-      <Surface
-        block={block}
-        designKey={designKey}
-        className=""
-      >
+    <Surface block={block} designKey={designKey} className="">
       <div className="flex items-start justify-between gap-3">
-        <div
-          className="text-base font-semibold"
-          style={backgroundStyle}
-        >
+        <div className="text-base font-semibold" style={backgroundStyle}>
           {block.data.heading || "Progress"}
         </div>
 
@@ -5869,7 +5953,9 @@ function renderProgressBar(
         }}
       >
         <div
-          className={isLightDesign(designKey) ? "h-full bg-neutral-900" : "h-full bg-white"}
+          className={
+            isLightDesign(designKey) ? "h-full bg-neutral-900" : "h-full bg-white"
+          }
           style={{
             width: `${percent}%`,
             backgroundColor: (barStyle as any).color ?? undefined,
