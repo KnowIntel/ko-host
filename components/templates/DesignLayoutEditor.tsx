@@ -2653,33 +2653,33 @@ function applyFillColor(value: string) {
     updateSelectedBlock((block) => {
       if (block.type !== "progress_bar") return block;
 
-if (progressBarStyleTarget === "meterContext") {
-  return {
-    ...block,
-    data: {
-      ...block.data,
-      contextStyle: {
-        ...((block.data as any).contextStyle ?? {}),
-        color: value,
-        align: "center",
-      },
-    },
-  };
-}
+      if (progressBarStyleTarget === "meterContext") {
+        return {
+          ...block,
+          data: {
+            ...block.data,
+            contextStyle: {
+              ...((block.data as any).contextStyle ?? {}),
+              color: value,
+              align: "center",
+            },
+          },
+        };
+      }
 
-if (progressBarStyleTarget === "meterCaption") {
-  return {
-    ...block,
-    data: {
-      ...block.data,
-      meterCaptionStyle: {
-        ...((block.data as any).meterCaptionStyle ?? {}),
-        color: value,
-        align: "center",
-      },
-    },
-  };
-}
+      if (progressBarStyleTarget === "meterCaption") {
+        return {
+          ...block,
+          data: {
+            ...block.data,
+            meterCaptionStyle: {
+              ...((block.data as any).meterCaptionStyle ?? {}),
+              color: value,
+              align: "center",
+            },
+          },
+        };
+      }
 
       if (progressBarStyleTarget === "bar") {
         return {
@@ -3201,19 +3201,32 @@ if (selectedBlock?.type === "progress_bar") {
                       ...patch,
                     },
                   }
-                : progressBarStyleTarget === "context"
+                : progressBarStyleTarget === "context" ||
+                    progressBarStyleTarget === "meterContext"
                   ? {
                       contextStyle: {
                         ...((block.data as any).contextStyle ?? {}),
                         ...patch,
+                        align:
+                          progressBarStyleTarget === "meterContext"
+                            ? "center"
+                            : ((patch as any).align ?? undefined),
                       },
                     }
-                  : {
-                      style: {
-                        ...(block.data.style ?? {}),
-                        ...patch,
-                      },
-                    }),
+                  : progressBarStyleTarget === "meterCaption"
+                    ? {
+                        meterCaptionStyle: {
+                          ...((block.data as any).meterCaptionStyle ?? {}),
+                          ...patch,
+                          align: "center",
+                        },
+                      }
+                    : {
+                        style: {
+                          ...(block.data.style ?? {}),
+                          ...patch,
+                        },
+                      }),
             },
           }
         : block,
