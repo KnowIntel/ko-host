@@ -16,7 +16,7 @@ export type TemplateKey =
   | "beta_testing"
   | "business_card"
   | "church_event"
-  | "commercial_leasing"
+  // | "commercial_leasing"
   | "community_alert"
   | "companion_service"
   | "conference"
@@ -491,7 +491,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "crowdfunding",
     defaultDraft: { title: "Support Our Campaign", slugSuggestion: "campaign" },
   },
-  {
+/*   {
     key: "property_listing",
     title: "Property Listing",
     description: "Photos, highlights, and inquiries.",
@@ -499,7 +499,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 4,
     demoSlug: "property",
     defaultDraft: { title: "Property Listing", slugSuggestion: "listing" },
-  },
+  }, */
 /*   {
     key: "rental_listing",
     title: "Rental Listing",
@@ -545,7 +545,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "church",
     defaultDraft: { title: "Church Event", slugSuggestion: "churchevent" },
   },
-  {
+/*   {
     key: "commercial_leasing",
     title: "Commercial Leasing",
     description: "Availability, highlights, inquiries.",
@@ -553,7 +553,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 4,
     demoSlug: "leasing",
     defaultDraft: { title: "Commercial Leasing", slugSuggestion: "commercialleasing" },
-  },
+  }, */
   {
     key: "community_alert",
     title: "Community Alert",
@@ -563,7 +563,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "alert",
     defaultDraft: { title: "Community Alert", slugSuggestion: "communityalert" },
   },
-  {
+/*   {
     key: "companion_service",
     title: "Companion Service",
     description: "Service overview + contact.",
@@ -571,8 +571,8 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 3,
     demoSlug: "companion",
     defaultDraft: { title: "Companion Service", slugSuggestion: "companion" },
-  },
-  {
+  }, */
+/*   {
     key: "conference",
     title: "Conference",
     description: "Agenda, speakers, venue, links.",
@@ -580,8 +580,8 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 5,
     demoSlug: "conf",
     defaultDraft: { title: "Conference", slugSuggestion: "conference" },
-  },
-  {
+  }, */
+/*   {
     key: "contractor_portfolio",
     title: "Contractor Portfolio",
     description: "Showcase work + services.",
@@ -589,8 +589,8 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 4,
     demoSlug: "contractor",
     defaultDraft: { title: "My Work", slugSuggestion: "contractor" },
-  },
-  {
+  }, */
+/*   {
     key: "creator_portfolio",
     title: "Creator Portfolio",
     description: "Links, media, and highlights.",
@@ -598,8 +598,8 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 3,
     demoSlug: "creator",
     defaultDraft: { title: "Creator Portfolio", slugSuggestion: "creator" },
-  },
-  {
+  }, */
+/*   {
     key: "divorce_announcement",
     title: "Divorce Announcement",
     description: "Share a respectful update.",
@@ -607,7 +607,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 2,
     demoSlug: "divorce",
     defaultDraft: { title: "Update", slugSuggestion: "announcement" },
-  },
+  }, */
   {
     key: "election_campaign",
     title: "Election Campaign",
@@ -671,7 +671,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "travel",
     defaultDraft: { title: "Group Travel", slugSuggestion: "grouptravel" },
   },
-  {
+/*   {
     key: "hoa_announcement",
     title: "HOA Announcement",
     description: "Notices, rules, updates.",
@@ -679,8 +679,8 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 2,
     demoSlug: "hoa",
     defaultDraft: { title: "HOA Update", slugSuggestion: "hoaupdate" },
-  },
-  {
+  }, */
+/*   {
     key: "investor_pitch",
     title: "Investor Pitch",
     description: "Deck link, traction, contact.",
@@ -688,8 +688,8 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 4,
     demoSlug: "pitch",
     defaultDraft: { title: "Investor Pitch", slugSuggestion: "pitch" },
-  },
-  {
+  }, */
+/*   {
     key: "job_fair",
     title: "Job Fair",
     description: "Schedule, details, registration.",
@@ -697,7 +697,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 4,
     demoSlug: "jobfair",
     defaultDraft: { title: "Job Fair", slugSuggestion: "jobfair" },
-  },
+  }, */
   {
     key: "merchant_drop",
     title: "Merchant Drop",
@@ -716,7 +716,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "pet",
     defaultDraft: { title: "Adopt Me", slugSuggestion: "petadoption" },
   },
-  {
+/*   {
     key: "private_discord",
     title: "Private Discord",
     description: "Invite details + join link.",
@@ -724,7 +724,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 2,
     demoSlug: "discord",
     defaultDraft: { title: "Private Community", slugSuggestion: "discord" },
-  },
+  }, */
  /*  {
     key: "relocation",
     title: "Relocation",
@@ -743,7 +743,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "promo",
     defaultDraft: { title: "Special Offer", slugSuggestion: "promo" },
   }, */
-  {
+/*   {
     key: "corporate_event",
     title: "Corporate Event",
     description: "Agenda, venue, and RSVP in one link.",
@@ -751,8 +751,8 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 4,
     demoSlug: "corporate",
     defaultDraft: { title: "Corporate Event", slugSuggestion: "corporateevent" },
-  },
-  {
+  }, */
+/*   {
     key: "deal_room",
     title: "Deal Room",
     description: "Share documents securely for due diligence.",
@@ -760,8 +760,8 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 4,
     demoSlug: "dealroom",
     defaultDraft: { title: "Deal Room", slugSuggestion: "dealroom" },
-  },
-  {
+  }, */
+/*   {
     key: "dedication",
     title: "Dedication",
     description: "Share dedication details and photos.",
@@ -769,8 +769,8 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 3,
     demoSlug: "dedication",
     defaultDraft: { title: "Dedication", slugSuggestion: "dedication" },
-  },
-  {
+  }, */
+/*   {
     key: "exploration_guide",
     title: "Exploration Guide",
     description: "Itinerary, maps, and tips.",
@@ -778,7 +778,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 4,
     demoSlug: "explore",
     defaultDraft: { title: "Exploration Guide", slugSuggestion: "explore" },
-  },
+  }, */
   {
     key: "disaster_relief",
     title: "Disaster Relief",
@@ -825,7 +825,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "live",
     defaultDraft: { title: "Live Entertainment", slugSuggestion: "liveentertainment" },
   },
-  {
+/*   {
     key: "masterclass",
     title: "Masterclass",
     description: "Promote your masterclass with signup and details.",
@@ -833,7 +833,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 3,
     demoSlug: "masterclass",
     defaultDraft: { title: "Masterclass", slugSuggestion: "masterclass" },
-  },
+  }, */
   {
     key: "meet_and_greet",
     title: "Meet & Greet",
@@ -843,7 +843,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "meet",
     defaultDraft: { title: "Meet & Greet", slugSuggestion: "meetandgreet" },
   },
-  {
+/*   {
     key: "members_only",
     title: "Members Only",
     description: "Private links, updates, and access info.",
@@ -851,8 +851,8 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 2,
     demoSlug: "members",
     defaultDraft: { title: "Members Only", slugSuggestion: "membersonly" },
-  },
-  {
+  }, */
+/*   {
     key: "missing_person",
     title: "Missing Person",
     description: "Share details, photos, and contact info fast.",
@@ -860,8 +860,8 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 2,
     demoSlug: "missing",
     defaultDraft: { title: "Missing Person", slugSuggestion: "missingperson" },
-  },
-  {
+  }, */
+/*   {
     key: "online_course",
     title: "Online Course",
     description: "Course overview, resources, and signup.",
@@ -869,7 +869,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 4,
     demoSlug: "course",
     defaultDraft: { title: "Online Course", slugSuggestion: "onlinecourse" },
-  },
+  }, */
   {
     key: "school_fundraiser",
     title: "School Fundraiser",
@@ -879,7 +879,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "fundraiser",
     defaultDraft: { title: "School Fundraiser", slugSuggestion: "schoolfundraiser" },
   },
-  {
+/*   {
     key: "secure_document",
     title: "Secure Document",
     description: "Share protected documents and instructions.",
@@ -887,7 +887,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 3,
     demoSlug: "secure",
     defaultDraft: { title: "Secure Documents", slugSuggestion: "securedocument" },
-  },
+  }, */
   {
     key: "service_ad",
     title: "Service Ad",
@@ -960,7 +960,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
   demoSlug: "sweepstakes",
   defaultDraft: { title: "Sweepstakes", slugSuggestion: "sweepstakes" },
 },
-  {
+/*   {
     key: "workshop",
     title: "Workshop",
     description: "Agenda, materials, and signup.",
@@ -968,7 +968,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 3,
     demoSlug: "workshop",
     defaultDraft: { title: "Workshop", slugSuggestion: "workshop" },
-  },
+  }, */
   {
     key: "photo_gallery",
     title: "Photo Gallery",
@@ -987,7 +987,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "block",
     defaultDraft: { title: "Block Party", slugSuggestion: "blockparty" },
   },
-  {
+/*   {
     key: "surprise_party",
     title: "Surprise Party",
     description: "Reveal details, RSVP, and coordination info.",
@@ -995,7 +995,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 2,
     demoSlug: "surprise",
     defaultDraft: { title: "Surprise Party", slugSuggestion: "surpriseparty" },
-  },
+  }, */
 /*   {
     key: "celebration_of_life",
     title: "Celebration of Life",
@@ -1005,7 +1005,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "celebration",
     defaultDraft: { title: "Celebration of Life", slugSuggestion: "celebrationoflife" },
   }, */
-  {
+/*   {
     key: "retirement_party",
     title: "Retirement Party",
     description: "Invite guests and share event info in one link.",
@@ -1013,7 +1013,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 2,
     demoSlug: "retirement",
     defaultDraft: { title: "Retirement Party", slugSuggestion: "retirementparty" },
-  },
+  }, */
   {
     key: "holiday_party_invite",
     title: "Holiday Party",
@@ -1041,7 +1041,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
   demoSlug: "learninglab",
   defaultDraft: { title: "Learning Lab", slugSuggestion: "learninglab" },
 },
-  {
+/*   {
     key: "housewarming_party",
     title: "Housewarming Party",
     description: "Invite and share directions in one link.",
@@ -1049,7 +1049,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 2,
     demoSlug: "housewarming",
     defaultDraft: { title: "Housewarming", slugSuggestion: "housewarming" },
-  },
+  }, */
   {
     key: "bachelor_party",
     title: "Bachelor Party",
@@ -1068,7 +1068,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "bachelorette",
     defaultDraft: { title: "Bachelorette Party", slugSuggestion: "bacheloretteparty" },
   },
-  {
+/*   {
     key: "charity_gala_event",
     title: "Charity Gala Event",
     description: "Tickets, venue info, and schedule in one place.",
@@ -1076,7 +1076,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 3,
     demoSlug: "gala",
     defaultDraft: { title: "Charity Gala", slugSuggestion: "charitygala" },
-  },
+  }, */
 /*   {
     key: "alumni_meetup",
     title: "Alumni Meetup",
@@ -1104,7 +1104,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "yardsale",
     defaultDraft: { title: "Yard Sale", slugSuggestion: "yardsale" },
   },
-  {
+/*   {
     key: "sports_team_party",
     title: "Sports Team Party",
     description: "Event details, schedule, and RSVP.",
@@ -1112,8 +1112,8 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 2,
     demoSlug: "team",
     defaultDraft: { title: "Team Party", slugSuggestion: "sportsteamparty" },
-  },
-  {
+  }, */
+ /*  {
     key: "bridal_shower",
     title: "Bridal Shower",
     description: "Invite guests, share details, collect RSVPs.",
@@ -1121,8 +1121,8 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 2,
     demoSlug: "bridal",
     defaultDraft: { title: "Bridal Shower", slugSuggestion: "bridalshower" },
-  },
-  {
+  }, */
+/*   {
     key: "baptism_event",
     title: "Baptism Event",
     description: "Event details, schedule, and updates.",
@@ -1130,7 +1130,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 2,
     demoSlug: "baptism",
     defaultDraft: { title: "Baptism", slugSuggestion: "baptismevent" },
-  },
+  }, */
 /*   {
     key: "christening_event",
     title: "Christening Event",
@@ -1222,7 +1222,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "influencer",
     defaultDraft: { title: "Influencer Campaign", slugSuggestion: "influencercampaign" },
   }, */
-  {
+/*   {
     key: "garage_sale",
     title: "Garage Sale",
     description: "Share date/time, location, and key items.",
@@ -1230,7 +1230,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 2,
     demoSlug: "garagesale",
     defaultDraft: { title: "Garage Sale", slugSuggestion: "garagesale" },
-  },
+  }, */
 /*   {
     key: "marketing_campaign_landing",
     title: "Marketing Campaign",
@@ -1240,7 +1240,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "marketing",
     defaultDraft: { title: "Campaign Landing", slugSuggestion: "marketingcampaign" },
   }, */
-  {
+/*   {
     key: "new_store_opening_announcement",
     title: "New Store Opening",
     description: "Announce the opening with details and links.",
@@ -1248,7 +1248,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 2,
     demoSlug: "opening",
     defaultDraft: { title: "New Store Opening", slugSuggestion: "newstoreopening" },
-  },
+  }, */
 /*   {
     key: "seasonal_promotion",
     title: "Seasonal Promotion",
@@ -1267,7 +1267,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "giveaway",
     defaultDraft: { title: "Giveaway", slugSuggestion: "brandgiveaway" },
   }, */
-  {
+/*   {
     key: "contest_entry",
     title: "Contest Entry",
     description: "Contest info, entry instructions, and links.",
@@ -1275,7 +1275,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 2,
     demoSlug: "contest",
     defaultDraft: { title: "Contest Entry", slugSuggestion: "contestentry" },
-  },
+  }, */
 /*   {
     key: "affiliate_campaign",
     title: "Affiliate Campaign",
@@ -1294,7 +1294,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "referral",
     defaultDraft: { title: "Referral Program", slugSuggestion: "referralprogram" },
   }, */
-  {
+/*   {
     key: "airbnb_vacation_rental",
     title: "Airbnb Vacation Rental",
     description: "House rules, directions, and contact for guests.",
@@ -1302,8 +1302,8 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 3,
     demoSlug: "airbnb",
     defaultDraft: { title: "Vacation Rental", slugSuggestion: "airbnbvacationrental" },
-  },
-  {
+  }, */
+/*   {
     key: "land_sale_listing",
     title: "Land Sale Listing",
     description: "Listing details, photos, and inquiries.",
@@ -1311,7 +1311,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 3,
     demoSlug: "land",
     defaultDraft: { title: "Land For Sale", slugSuggestion: "landsale" },
-  },
+  }, */
   {
     key: "property_auction",
     title: "Property Auction",
@@ -1330,7 +1330,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "development",
     defaultDraft: { title: "New Development", slugSuggestion: "newdevelopment" },
   }, */
-  {
+/*   {
     key: "freelancer_portfolio",
     title: "Freelancer Portfolio",
     description: "Showcase work, services, and contact.",
@@ -1338,7 +1338,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 3,
     demoSlug: "freelance",
     defaultDraft: { title: "Freelancer Portfolio", slugSuggestion: "freelancerportfolio" },
-  },
+  }, */
 /*   {
     key: "designer_portfolio",
     title: "Designer Portfolio",
@@ -1357,7 +1357,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "dev",
     defaultDraft: { title: "Developer Portfolio", slugSuggestion: "developerportfolio" },
   }, */
-  {
+/*   {
     key: "speaker_profile",
     title: "Speaker Profile",
     description: "Bio, topics, and booking contact.",
@@ -1365,7 +1365,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 2,
     demoSlug: "speaker",
     defaultDraft: { title: "Speaker Profile", slugSuggestion: "speakerprofile" },
-  },
+  }, */
 /*   {
     key: "job_candidate_showcase",
     title: "Job Candidate Showcase",
@@ -1375,7 +1375,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "candidate",
     defaultDraft: { title: "Candidate Showcase", slugSuggestion: "jobcandidate" },
   }, */
-  {
+/*   {
     key: "consultant_service",
     title: "Consultant Service",
     description: "Service overview, pricing, and contact.",
@@ -1383,7 +1383,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 2,
     demoSlug: "consult",
     defaultDraft: { title: "Consultant Service", slugSuggestion: "consultantservice" },
-  },
+  }, */
 /*   {
     key: "temporary_work_portfolio",
     title: "Temporary Work Portfolio",
@@ -1438,7 +1438,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "nonprofit",
     defaultDraft: { title: "Nonprofit Campaign", slugSuggestion: "nonprofitcampaign" },
   }, */
-  {
+/*   {
     key: "school_event",
     title: "School Event",
     description: "Schedule, details, and updates.",
@@ -1446,7 +1446,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 2,
     demoSlug: "schoolevent",
     defaultDraft: { title: "School Event", slugSuggestion: "schoolevent" },
-  },
+  }, */
   {
     key: "local_sports_league_signup",
     title: "Local Sports League Signup",
@@ -1456,7 +1456,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "league",
     defaultDraft: { title: "League Signup", slugSuggestion: "localsportsleague" },
   },
-  {
+/*   {
     key: "community_poll",
     title: "Community Poll",
     description: "Collect votes and share results.",
@@ -1464,7 +1464,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 2,
     demoSlug: "poll",
     defaultDraft: { title: "Community Poll", slugSuggestion: "communitypoll" },
-  },
+  }, */
 /*   {
     key: "public_feedback",
     title: "Public Feedback",
@@ -1474,7 +1474,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "feedback",
     defaultDraft: { title: "Public Feedback", slugSuggestion: "publicfeedback" },
   }, */
-  {
+/*   {
     key: "town_hall_discussion",
     title: "Town Hall Discussion",
     description: "Agenda, topics, and how to participate.",
@@ -1482,8 +1482,8 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 3,
     demoSlug: "townhall",
     defaultDraft: { title: "Town Hall", slugSuggestion: "townhall" },
-  },
-  {
+  }, */
+/*   {
     key: "podcast_episode",
     title: "Podcast Episode",
     description: "Episode links, notes, and subscribe CTA.",
@@ -1491,7 +1491,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 2,
     demoSlug: "podcast",
     defaultDraft: { title: "Podcast Episode", slugSuggestion: "podcastepisode" },
-  },
+  }, */
 {
   key: "restaurant_menu",
   title: "Restaurant Menu",
@@ -1573,7 +1573,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "movingsale",
     defaultDraft: { title: "Moving Sale", slugSuggestion: "movingsale" },
   }, */
-  {
+/*   {
     key: "estate_sale_listing",
     title: "Estate Sale Listing",
     description: "Estate sale details, items, and schedule.",
@@ -1581,8 +1581,8 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 2,
     demoSlug: "estatesale",
     defaultDraft: { title: "Estate Sale", slugSuggestion: "estatesale" },
-  },
-  {
+  }, */
+/*   {
     key: "lost_found_notice",
     title: "Lost & Found Notice",
     description: "Post a lost/found notice with contact info.",
@@ -1590,8 +1590,8 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 2,
     demoSlug: "lostfound",
     defaultDraft: { title: "Lost & Found", slugSuggestion: "lostfound" },
-  },
-  {
+  }, */
+/*   {
     key: "pet_missing_alert",
     title: "Pet Missing Alert",
     description: "Share pet details, photo, and contact fast.",
@@ -1599,7 +1599,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 2,
     demoSlug: "petmissing",
     defaultDraft: { title: "Missing Pet", slugSuggestion: "petmissing" },
-  },
+  }, */
   {
     key: "local_classified_ad",
     title: "Local Classified Ad",
@@ -1628,7 +1628,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     category: "Business",
     defaultDraft: { title: "Focus Group", slugSuggestion: "focusgroup" },
   },
-  {
+/*   {
     key: "obstacle_race",
     title: "Obstacle Race",
     description: "Share race details, schedule, and signup info.",
@@ -1637,7 +1637,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "obstaclerace",
     category: "Events",
     defaultDraft: { title: "Obstacle Race", slugSuggestion: "obstaclerace" },
-  },
+  }, */
   {
     key: "memory_timeline",
     title: "Memory Timeline",
@@ -1658,7 +1658,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     category: "Personal",
     defaultDraft: { title: "After Grad", slugSuggestion: "aftergrad" },
   }, */
-  {
+/*   {
     key: "cancer_journey",
     title: "Cancer Journey",
     description: "Share updates, milestones, support links, and resources.",
@@ -1667,7 +1667,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "cancerjourney",
     category: "Personal",
     defaultDraft: { title: "Cancer Journey", slugSuggestion: "cancerjourney" },
-  },
+  }, */
   {
     key: "bible_study",
     title: "Bible Study",
@@ -1678,7 +1678,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     category: "Events",
     defaultDraft: { title: "Bible Study", slugSuggestion: "biblestudy" },
   },
-  {
+/*   {
     key: "chat_room",
     title: "Chat Room",
     description: "Create a simple shared space for discussion and updates.",
@@ -1687,8 +1687,8 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "chatroom",
     category: "Personal",
     defaultDraft: { title: "Chat Room", slugSuggestion: "chatroom" },
-  },
-  {
+  }, */
+/*   {
     key: "speed_dating",
     title: "Speed Dating",
     description: "Share time, location, format, and signup details.",
@@ -1697,8 +1697,8 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "speeddating",
     category: "Events",
     defaultDraft: { title: "Speed Dating", slugSuggestion: "speeddating" },
-  },
-  {
+  }, */
+/*   {
     key: "weight_loss_journey",
     title: "Weight Loss Journey",
     description: "Track progress, milestones, updates, and encouragement.",
@@ -1707,7 +1707,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "weightlossjourney",
     category: "Personal",
     defaultDraft: { title: "Weight Loss Journey", slugSuggestion: "weightlossjourney" },
-  },
+  }, */
   {
     key: "guided_tutorial",
     title: "Guided Tutorial",
@@ -1728,7 +1728,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     category: "Personal",
     defaultDraft: { title: "Custom Template", slugSuggestion: "customtemplate" },
   },
-  {
+/*   {
   key: "funny_fridays",
   title: "Funny Fridays",
   description: "A weekly drop of laughs, jokes, and good vibes.",
@@ -1740,7 +1740,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     title: "Funny Fridays",
     slugSuggestion: "funnyfridays",
   },
-},
+}, */
 {
   key: "roast_session",
   title: "Roast Session",
@@ -1754,7 +1754,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     slugSuggestion: "roastsession",
   },
 },
-{
+/* {
   key: "public_apology",
   title: "Public Apology",
   description: "Own the moment. Share your statement clearly and directly.",
@@ -1766,7 +1766,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     title: "Public Apology",
     slugSuggestion: "publicapology",
   },
-},
+}, */
 
   {
     key: "enthusiast_networking",
