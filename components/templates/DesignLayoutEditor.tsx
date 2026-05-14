@@ -560,12 +560,14 @@ function buildCanvasItems(
   metadata: ReturnType<typeof getMetadata>,
 ): CanvasGridItem[] {
   const pageItems = buildPageCanvasItems(draft, metadata);
-  const blockItems: CanvasGridItem[] = draft.blocks.map((block) => ({
-    id: block.id,
-    type: block.type,
-    label: block.label,
-    grid: block.grid,
-  }));
+const blockItems: CanvasGridItem[] = draft.blocks.map((block) => ({
+  id: block.id,
+  type: block.type,
+  label: block.label,
+  grid: block.grid,
+  dataVersion:
+    block.type === "progress_bar" ? JSON.stringify(block.data) : undefined,
+} as CanvasGridItem));
 
   return normalizeCanvasItems([...pageItems, ...blockItems]);
 }
@@ -5883,101 +5885,18 @@ if (block.type === "faq") {
 }
 
 if (block.type === "progress_bar") {
-  const max = Math.max(1, block.data.max ?? 100);
-  const value = Math.max(0, Math.min(block.data.value ?? 0, max));
-  const percent = Math.round((value / max) * 100);
-
-  const backgroundStyle = getInlineTextStyle(block.data.style);
-  const barStyle = ((block.data as any).barStyle ?? {}) as TextStyle;
-  const contextStyle = getInlineTextStyle(
-    ((block.data as any).contextStyle ?? block.data.style ?? {}) as TextStyle,
-  );
-
-  const showContext = (block.data as any).showContext ?? true;
-  const contextType = (block.data as any).contextType ?? "percentage";
-  const contextLocation = (block.data as any).contextLocation ?? "bottom-left";
-
-  const contextText =
-    contextType === "fraction" ? `${value} / ${max}` : `${percent}%`;
-
-  const contextNode = showContext ? (
-    <div
-      className="text-xs font-medium text-neutral-600"
-      style={contextStyle}
-    >
-      {contextText}
-    </div>
-  ) : null;
-
   return (
-    <div
-      className="flex h-full w-full flex-col rounded-xl p-4"
-      style={{
-        backgroundColor:
-          block.appearance?.backgroundColor &&
-          block.appearance.backgroundColor !== "transparent"
-            ? block.appearance.backgroundColor
-            : "transparent",
-        borderColor: block.appearance?.borderColor || undefined,
-        borderWidth:
-          typeof block.appearance?.borderWidth === "number"
-            ? `${block.appearance.borderWidth}px`
-            : undefined,
-        borderStyle:
-          typeof block.appearance?.borderWidth === "number" &&
-          block.appearance.borderWidth > 0
-            ? "solid"
-            : undefined,
-        borderRadius:
-          typeof block.appearance?.borderRadius === "number"
-            ? `${block.appearance.borderRadius}px`
-            : undefined,
-      }}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div
-          className="text-sm font-medium text-neutral-900"
-          style={backgroundStyle}
-        >
-          {block.data.heading || "Progress"}
-        </div>
-
-        {contextLocation === "top-right" ? contextNode : null}
-      </div>
-
-      <div className="mt-3 h-4 w-full overflow-hidden rounded-full border bg-neutral-200"
-        style={{
-          backgroundColor:
-            (barStyle as any).scopeBackgroundColor ??
-            (barStyle as any).backgroundColor ??
-            undefined,
-          borderColor: (barStyle as any).borderColor ?? undefined,
-        }}
-      >
-        <div
-          className="h-full rounded-full bg-neutral-900"
-          style={{
-            width: `${percent}%`,
-            backgroundColor: (barStyle as any).color ?? undefined,
-          }}
-        />
-      </div>
-
-      {contextLocation !== "top-right" && contextNode ? (
-        <div
-          className={[
-            "mt-2 flex",
-            contextLocation === "bottom-right"
-              ? "justify-end"
-              : "justify-start",
-          ].join(" ")}
-        >
-          {contextNode}
-        </div>
-      ) : null}
+    <div className="h-full w-full">
+      <BlockRenderer
+        key={`${block.id}-${JSON.stringify(block.data)}`}
+        block={block}
+        designKey={designKey}
+      />
     </div>
   );
 }
+
+
 // Donation render block
 if (block.type === "donation") {
   const donationOptions = Array.isArray(block.data.donationOptions)
