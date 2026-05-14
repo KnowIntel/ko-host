@@ -519,6 +519,8 @@ const FONT_FAMILY_MAP: Record<string, string> = {
   Rajdhani: 'var(--font-rajdhani), Rajdhani, sans-serif',
   Teko: 'var(--font-teko), Teko, sans-serif',
   "Abril Fatface": 'var(--font-abril-fatface), "Abril Fatface", serif',
+  "Bebas Neue": 'var(--font-bebas-neue), "Bebas Neue", Impact, sans-serif',
+  "Special Elite": 'var(--font-special-elite), "Special Elite", monospace',
 
   // System
   Arial: "Arial, Helvetica, sans-serif",

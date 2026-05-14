@@ -74,6 +74,7 @@ export const FONT_FAMILY_OPTIONS = [
   "Rajdhani",
   "Teko",
   "Abril Fatface",
+  "Special Elite",
   "inherit",
   "Inter",
   "DM Sans",
@@ -162,6 +163,7 @@ Bangers: 'var(--font-bangers), Bangers, cursive',
   Rajdhani: 'var(--font-rajdhani), Rajdhani, sans-serif',
   Teko: 'var(--font-teko), Teko, sans-serif',
   "Abril Fatface": 'var(--font-abril-fatface), "Abril Fatface", serif',
+  "Special Elite": 'var(--font-special-elite), "Special Elite", monospace',
 
   // System fonts
   Arial: "Arial, Helvetica, sans-serif",

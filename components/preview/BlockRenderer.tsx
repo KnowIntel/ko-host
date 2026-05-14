@@ -252,6 +252,7 @@ const FONT_FAMILY_MAP: Record<string, string> = {
   "Exo 2": `${exo.style.fontFamily}, sans-serif`,
   Rajdhani: `${rajdhani.style.fontFamily}, sans-serif`,
   Teko: `${teko.style.fontFamily}, sans-serif`,
+  "Special Elite": 'var(--font-special-elite), "Special Elite", monospace',
 };
 
 function resolveFontFamily(fontFamily?: string) {

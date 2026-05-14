@@ -39,6 +39,7 @@ import {
   Rajdhani,
   Teko,
   Abril_Fatface,
+  Special_Elite,
 } from "next/font/google";
 
 const greatVibes = Great_Vibes({
@@ -242,6 +243,12 @@ const abril = Abril_Fatface({
   variable: "--font-abril-fatface",
 });
 
+const specialElite = Special_Elite({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-special-elite",
+});
+
 export const metadata: Metadata = {
   title: "Ko-Host",
   description: "Temporary microsites powered by structured templates.",
@@ -298,6 +305,7 @@ className={[
   teko.variable,
   abril.variable,
   bebasNeue.variable,
+  specialElite.variable,
   "min-h-screen bg-white text-neutral-950 overflow-x-hidden",
 ].join(" ")}
       >
