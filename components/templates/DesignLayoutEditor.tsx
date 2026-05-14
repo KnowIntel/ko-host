@@ -1299,7 +1299,12 @@ const [countdownStyleTarget, setCountdownStyleTarget] = useState<
 >("background");
 
 const [progressBarStyleTarget, setProgressBarStyleTarget] = useState<
-  "background" | "bar" | "scope" | "context" | "meterCaption"
+  | "background"
+  | "bar"
+  | "scope"
+  | "context"
+  | "meterContext"
+  | "meterCaption"
 >("background");
 
 const textureInputRef = useRef<HTMLInputElement | null>(null);
