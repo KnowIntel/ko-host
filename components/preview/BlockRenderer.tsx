@@ -5857,7 +5857,8 @@ if (displayStyle === "meter") {
   const innerRadius = 78;
   const gapDegrees = 2.2;
   const sectionDegrees = 180 / sectionCount;
-  const needleAngle = -90 + (percent / 100) * 180;
+  const needlePercent = Math.max(0, Math.min(100, percent));
+  const needleAngle = 180 + (needlePercent / 100) * 180;
 
   const hexToRgb = (hex: string) => {
     const normalized = hex.replace("#", "");

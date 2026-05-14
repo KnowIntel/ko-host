@@ -3947,18 +3947,18 @@ function moveGalleryImage(
     }),
   }));
 }
-  function updateSelectedBlock(
-    updater: (block: MicrositeBlock) => MicrositeBlock,
-  ) {
-    if (!selectedBlock) return;
+function updateSelectedBlock(
+  updater: (block: MicrositeBlock) => MicrositeBlock,
+) {
+  if (!selectedBlock) return;
 
-    setDraft((prev) => ({
-      ...prev,
-      blocks: prev.blocks.map((block) =>
-        block.id === selectedBlock.id ? updater(block) : block,
-      ),
-    }));
-  }
+  setDraft((prev) => ({
+    ...prev,
+    blocks: prev.blocks.map((block) =>
+      block.id === selectedBlock.id ? updater(block) : block,
+    ),
+  }));
+}
 
 function updateSelectedRsvpElementStyle(
   updater: (

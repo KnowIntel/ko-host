@@ -811,6 +811,7 @@ style={{
       }}
     >
 <BlockRenderer
+  key={`${block.id}-${JSON.stringify(block.data)}`}
   block={block}
   designKey={designKey}
   micrositeId={micrositeId}
