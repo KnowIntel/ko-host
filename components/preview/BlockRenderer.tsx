@@ -6000,26 +6000,20 @@ if (displayStyle === "meter") {
             />
           </svg>
 
-          {caption ? (
-            <div className="-mt-5 text-center" style={captionStyle}>
-              {caption}
-            </div>
-          ) : null}
+{showContext ? (
+  <div className="-mt-5 text-center text-xs font-medium" style={contextStyle}>
+    {contextText}
+  </div>
+) : null}
+
+{caption ? (
+  <div className="mt-1 text-center" style={captionStyle}>
+    {caption}
+  </div>
+) : null}
         </div>
       </div>
 
-      {contextLocation !== "top-right" && contextNode ? (
-        <div
-          className={[
-            "mt-2 flex",
-            contextLocation === "bottom-right"
-              ? "justify-end"
-              : "justify-start",
-          ].join(" ")}
-        >
-          {contextNode}
-        </div>
-      ) : null}
     </Surface>
   );
 }

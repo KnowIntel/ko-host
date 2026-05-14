@@ -2648,6 +2648,20 @@ function applyFillColor(value: string) {
     updateSelectedBlock((block) => {
       if (block.type !== "progress_bar") return block;
 
+      if (progressBarStyleTarget === "meterCaption") {
+        return {
+          ...block,
+          data: {
+            ...block.data,
+            meterCaptionStyle: {
+              ...((block.data as any).meterCaptionStyle ?? {}),
+              color: value,
+              align: "center",
+            },
+          },
+        };
+      }
+
       if (progressBarStyleTarget === "bar") {
         return {
           ...block,
@@ -2673,19 +2687,6 @@ function applyFillColor(value: string) {
           },
         };
       }
-
-      if (progressBarStyleTarget === "meterCaption") {
-  return {
-    ...block,
-    data: {
-      ...block.data,
-      meterCaptionStyle: {
-        ...((block.data as any).meterCaptionStyle ?? {}),
-        color: value,
-      },
-    },
-  };
-}
 
       if (progressBarStyleTarget === "context") {
         return {
@@ -11668,6 +11669,29 @@ if (selectedBlock?.type === "rsvp") {
             className={inspectorInputClass()}
             placeholder="Optional caption..."
           />
+        </div>
+
+        <div className="mt-4">
+          <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+            <input
+              type="checkbox"
+              checked={(selectedBlock.data as any).showContext ?? true}
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "progress_bar"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          showContext: e.target.checked,
+                        },
+                      },
+                )
+              }
+            />
+            Display Context
+          </label>
         </div>
       </div>
     ) : null}
