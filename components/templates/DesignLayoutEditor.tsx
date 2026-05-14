@@ -454,6 +454,10 @@ const FONT_FAMILY_OPTIONS = [
   "Rajdhani",
   "Teko",
   "Abril Fatface",
+  "Bebas Neue",
+  "Special Elite",
+
+  // System
 
   // System
   "Arial",
