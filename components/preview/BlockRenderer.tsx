@@ -5947,7 +5947,6 @@ if (displayStyle === "meter") {
       <div className="mt-4 flex min-h-0 flex-1 justify-center">
         <div className="relative h-full w-full">
           <svg
-<svg
   viewBox="0 0 280 170"
   className="h-full w-full overflow-visible"
   preserveAspectRatio="xMidYMid meet"
