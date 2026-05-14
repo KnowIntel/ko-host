@@ -6001,7 +6001,13 @@ if (displayStyle === "meter") {
           </svg>
 
 {showContext ? (
-  <div className="-mt-5 text-center text-xs font-medium" style={contextStyle}>
+  <div
+    className="-mt-5 w-full text-center text-xs font-medium"
+    style={{
+      ...contextStyle,
+      textAlign: "center",
+    }}
+  >
     {contextText}
   </div>
 ) : null}

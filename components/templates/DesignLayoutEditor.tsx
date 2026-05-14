@@ -2648,19 +2648,33 @@ function applyFillColor(value: string) {
     updateSelectedBlock((block) => {
       if (block.type !== "progress_bar") return block;
 
-      if (progressBarStyleTarget === "meterCaption") {
-        return {
-          ...block,
-          data: {
-            ...block.data,
-            meterCaptionStyle: {
-              ...((block.data as any).meterCaptionStyle ?? {}),
-              color: value,
-              align: "center",
-            },
-          },
-        };
-      }
+if (progressBarStyleTarget === "meterContext") {
+  return {
+    ...block,
+    data: {
+      ...block.data,
+      contextStyle: {
+        ...((block.data as any).contextStyle ?? {}),
+        color: value,
+        align: "center",
+      },
+    },
+  };
+}
+
+if (progressBarStyleTarget === "meterCaption") {
+  return {
+    ...block,
+    data: {
+      ...block.data,
+      meterCaptionStyle: {
+        ...((block.data as any).meterCaptionStyle ?? {}),
+        color: value,
+        align: "center",
+      },
+    },
+  };
+}
 
       if (progressBarStyleTarget === "bar") {
         return {
@@ -7760,7 +7774,8 @@ const idsToExpand =
             | "bar"
             | "scope"
             | "context"
-            | "meterCaption",
+            | "meterContext"
+            | "meterCaption"
         )
       }
       className={topBarFieldClass("w-[155px]")}
@@ -7770,7 +7785,8 @@ const idsToExpand =
       <option value="bar">Bar</option>
       <option value="scope">Scope</option>
       <option value="context">Context</option>
-      <option value="meterCaption">Meter Caption</option>
+      <option value="meterContext">Meter Value</option>
+      <option value="meterCaption">Caption</option>
     </select>
   </>
 ) : null}
