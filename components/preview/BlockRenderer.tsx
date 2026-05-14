@@ -5944,11 +5944,13 @@ if (displayStyle === "meter") {
       {block.data.heading || "Progress"}
     </div>
 
-      <div className="mt-4 flex w-full justify-center">
-        <div className="relative w-full max-w-[320px]">
+      <div className="mt-4 flex min-h-0 flex-1 justify-center">
+        <div className="relative h-full w-full">
           <svg
-            viewBox="0 0 280 170"
-            className="h-auto w-full overflow-visible"
+<svg
+  viewBox="0 0 280 170"
+  className="h-full w-full overflow-visible"
+  preserveAspectRatio="xMidYMid meet"
             role="img"
             aria-label={`Progress meter ${percent}%`}
           >
