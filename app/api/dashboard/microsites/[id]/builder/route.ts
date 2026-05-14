@@ -1,3 +1,5 @@
+//app\api\dashboard\microsites\[id]\builder\route.ts
+
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { sanitizeBuilderDraft } from "@/lib/templates/builder";

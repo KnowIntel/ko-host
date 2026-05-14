@@ -1048,6 +1048,7 @@ export type BuilderDraft = {
   pageBackgroundImage?: string;
   pageBackgroundImageFit?: "clip" | "zoom" | "stretch";
   pageVisibility?: PageVisibility;
+  pageLength?: "1200" | "1800" | "2400" | "3200" | "4000" | "5600";
   pageElements?: PageElements;
   pageBlockAppearance?: PageBlockAppearance;
 
@@ -3175,6 +3176,16 @@ if (block.type === "donation") {
       draft.pageBackgroundImageFit === "stretch"
         ? draft.pageBackgroundImageFit
         : "zoom",
+
+    pageLength:
+      (draft as any).pageLength === "1200" ||
+      (draft as any).pageLength === "1800" ||
+      (draft as any).pageLength === "2400" ||
+      (draft as any).pageLength === "3200" ||
+      (draft as any).pageLength === "4000" ||
+      (draft as any).pageLength === "5600"
+        ? (draft as any).pageLength
+        : "1800",
 
     pageVisibility:
       draft.pageVisibility && typeof draft.pageVisibility === "object"
