@@ -1632,7 +1632,8 @@ const showAppearanceControls =
   selectedBlock?.type === "rsvp" ||
   selectedBlock?.type === "video" ||
   selectedBlock?.type === "rich_text" ||
-  selectedBlock?.type === "countdown";
+  selectedBlock?.type === "countdown" ||
+  selectedBlock?.type === "highlight";
 
 const showBorderWidthRadiusControls =
   selectedContext.kind === "label" ||
@@ -1654,7 +1655,8 @@ const showBorderWidthRadiusControls =
   selectedBlock?.type === "cart" ||
   selectedBlock?.type === "video" ||
   selectedBlock?.type === "rich_text" ||
-  selectedBlock?.type === "countdown";
+  selectedBlock?.type === "countdown" ||
+  selectedBlock?.type === "highlight";
 
   const selectedTextValue = getSelectedTextValue(draft, selectedContext);
 
