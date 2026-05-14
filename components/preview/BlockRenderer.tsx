@@ -5836,98 +5836,149 @@ function renderProgressBar(
     </div>
   ) : null;
 
-  if (displayStyle === "meter") {
-    const sectionCount = Math.max(
-      1,
-      Math.min(20, Number((block.data as any).meterSectionCount) || 6),
-    );
+if (displayStyle === "meter") {
+  const sectionCount = Math.max(
+    1,
+    Math.min(20, Number((block.data as any).meterSectionCount) || 6),
+  );
 
-    const startColor = (block.data as any).meterStartColor || "#22c55e";
-    const endColor = (block.data as any).meterEndColor || "#ef4444";
-    const needleColor = (block.data as any).meterNeedleColor || "#111827";
-    const caption = (block.data as any).meterCaption ?? "";
-    const captionStyle = getContainerTextStyle(
-      ((block.data as any).meterCaptionStyle ?? {}) as TextStyle,
-      designKey,
-    );
+  const startColor = (block.data as any).meterStartColor || "#f59e0b";
+  const endColor = (block.data as any).meterEndColor || "#dc2626";
+  const needleColor = (block.data as any).meterNeedleColor || "#e5e7eb";
+  const caption = (block.data as any).meterCaption ?? "";
+  const captionStyle = getContainerTextStyle(
+    ((block.data as any).meterCaptionStyle ?? {}) as TextStyle,
+    designKey,
+  );
 
-    const needleLeft = Math.max(0, Math.min(100, percent));
+  const needleAngle = -90 + (percent / 100) * 180;
+  const radius = 82;
+  const strokeWidth = 22;
+  const centerX = 100;
+  const centerY = 100;
 
-    return (
-      <Surface block={block} designKey={designKey} className="">
-        <div className="flex items-start justify-between gap-3">
-          <div className="text-base font-semibold" style={backgroundStyle}>
-            {block.data.heading || "Progress"}
-          </div>
+  const polarToCartesian = (angle: number) => {
+    const radians = ((angle - 90) * Math.PI) / 180;
+    return {
+      x: centerX + radius * Math.cos(radians),
+      y: centerY + radius * Math.sin(radians),
+    };
+  };
 
-          {contextLocation === "top-right" ? contextNode : null}
+  const describeArc = (startAngle: number, endAngle: number) => {
+    const start = polarToCartesian(endAngle);
+    const end = polarToCartesian(startAngle);
+    const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+
+    return [
+      "M",
+      start.x,
+      start.y,
+      "A",
+      radius,
+      radius,
+      0,
+      largeArcFlag,
+      0,
+      end.x,
+      end.y,
+    ].join(" ");
+  };
+
+  const segmentGap = 2;
+  const totalAngle = 180;
+  const sectionAngle = totalAngle / sectionCount;
+
+  return (
+    <Surface block={block} designKey={designKey} className="">
+      <div className="flex items-start justify-between gap-3">
+        <div className="text-base font-semibold" style={backgroundStyle}>
+          {block.data.heading || "Progress"}
         </div>
 
-        <div className="relative mt-5 px-1 pb-4 pt-7">
-          <div
-            className="absolute top-0 z-10 h-7 w-1 -translate-x-1/2 rounded-full shadow-sm"
-            style={{
-              left: `${needleLeft}%`,
-              backgroundColor: needleColor,
-            }}
-          />
+        {contextLocation === "top-right" ? contextNode : null}
+      </div>
 
-          <div
-            className="absolute top-5 z-10 h-0 w-0 -translate-x-1/2 border-l-[7px] border-r-[7px] border-t-[10px] border-l-transparent border-r-transparent"
-            style={{
-              left: `${needleLeft}%`,
-              borderTopColor: needleColor,
-            }}
-          />
-
-          <div
-            className={[
-              "grid h-12 overflow-hidden rounded-2xl border shadow-inner",
-              isLightDesign(designKey) ? "border-neutral-300" : "border-white/15",
-            ].join(" ")}
-            style={{
-              gridTemplateColumns: `repeat(${sectionCount}, minmax(0, 1fr))`,
-              background: `linear-gradient(90deg, ${startColor}, ${endColor})`,
-              borderColor: (barStyle as any).borderColor ?? undefined,
-            }}
+      <div className="mt-4 flex w-full justify-center">
+        <div className="relative w-full max-w-[280px]">
+          <svg
+            viewBox="0 0 200 130"
+            className="h-auto w-full overflow-visible"
+            role="img"
+            aria-label={`Progress meter ${percent}%`}
           >
-            {Array.from({ length: sectionCount }).map((_, index) => (
-              <div
-                key={`meter-section-${index}`}
-                className={[
-                  "h-full",
-                  index > 0
-                    ? isLightDesign(designKey)
-                      ? "border-l border-white/70"
-                      : "border-l border-white/25"
-                    : "",
-                ].join(" ")}
-              />
-            ))}
-          </div>
+            <defs>
+              <linearGradient id={`progress-meter-gradient-${block.id}`} x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor={startColor} />
+                <stop offset="100%" stopColor={endColor} />
+              </linearGradient>
+
+              <filter id={`progress-meter-shadow-${block.id}`} x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="2" stdDeviation="2" floodOpacity="0.3" />
+              </filter>
+            </defs>
+
+            {Array.from({ length: sectionCount }).map((_, index) => {
+              const startAngle = -90 + index * sectionAngle + segmentGap / 2;
+              const endAngle = -90 + (index + 1) * sectionAngle - segmentGap / 2;
+
+              return (
+                <path
+                  key={`meter-arc-${index}`}
+                  d={describeArc(startAngle, endAngle)}
+                  fill="none"
+                  stroke={`url(#progress-meter-gradient-${block.id})`}
+                  strokeWidth={strokeWidth}
+                  strokeLinecap="butt"
+                  filter={`url(#progress-meter-shadow-${block.id})`}
+                />
+              );
+            })}
+
+            <line
+              x1={centerX}
+              y1={centerY}
+              x2={centerX}
+              y2={centerY - radius + 8}
+              stroke={needleColor}
+              strokeWidth="5"
+              strokeLinecap="round"
+              transform={`rotate(${needleAngle} ${centerX} ${centerY})`}
+              filter={`url(#progress-meter-shadow-${block.id})`}
+            />
+
+            <circle
+              cx={centerX}
+              cy={centerY}
+              r="6"
+              fill={needleColor}
+              filter={`url(#progress-meter-shadow-${block.id})`}
+            />
+          </svg>
+
+          {caption ? (
+            <div className="-mt-4 text-center" style={captionStyle}>
+              {caption}
+            </div>
+          ) : null}
         </div>
+      </div>
 
-        {caption ? (
-          <div className="mt-1 text-center" style={captionStyle}>
-            {caption}
-          </div>
-        ) : null}
-
-        {contextLocation !== "top-right" && contextNode ? (
-          <div
-            className={[
-              "mt-2 flex",
-              contextLocation === "bottom-right"
-                ? "justify-end"
-                : "justify-start",
-            ].join(" ")}
-          >
-            {contextNode}
-          </div>
-        ) : null}
-      </Surface>
-    );
-  }
+      {contextLocation !== "top-right" && contextNode ? (
+        <div
+          className={[
+            "mt-2 flex",
+            contextLocation === "bottom-right"
+              ? "justify-end"
+              : "justify-start",
+          ].join(" ")}
+        >
+          {contextNode}
+        </div>
+      ) : null}
+    </Surface>
+  );
+}
 
   return (
     <Surface block={block} designKey={designKey} className="">

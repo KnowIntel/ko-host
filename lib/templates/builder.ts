@@ -2365,9 +2365,9 @@ data: {
 
   displayStyle: "bar",
   meterSectionCount: 6,
-  meterStartColor: "#22c55e",
-  meterEndColor: "#ef4444",
-  meterNeedleColor: "#111827",
+  meterStartColor: "#f59e0b",
+  meterEndColor: "#dc2626",
+  meterNeedleColor: "#e5e7eb",
   meterCaption: "",
   meterCaptionStyle: {
     ...createDefaultTextStyle(),
