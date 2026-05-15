@@ -3903,6 +3903,12 @@ if (isNameRequired && !nameValue.trim()) {
 
         setMessageValue("");
         setNameValue("");
+        setAttachments([]);
+
+        if (attachmentInputRef.current) {
+          attachmentInputRef.current.value = "";
+        }
+
         setThreadError("");
 
         window.dispatchEvent(
