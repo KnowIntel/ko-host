@@ -349,6 +349,7 @@ export async function PATCH(
   req: Request,
   ctx: { params: Promise<{ id: string }> },
 ) {
+  try {
   const { userId } = await auth();
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -688,4 +689,21 @@ if (micrositeUpdateError) {
     page: updatedPage,
     draft: nextDraft,
   });
+  } catch (error) {
+    console.error("pages route PATCH fatal error:", error);
+
+    const message =
+      error instanceof Error
+        ? error.message
+        : typeof error === "string"
+          ? error
+          : "Unexpected server error while saving page.";
+
+    return NextResponse.json(
+      {
+        error: message,
+      },
+      { status: 500 },
+    );
+  }
 }
