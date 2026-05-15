@@ -2944,6 +2944,9 @@ const handleVideoUpload = async (
             data: {
               ...block.data,
               videoUrl: signedData.publicUrl,
+              videoStoragePath: signedData.storagePath,
+              videoSizeBytes: file.size,
+              videoMimeType: file.type,
             },
           },
     );

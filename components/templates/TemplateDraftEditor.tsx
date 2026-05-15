@@ -52,7 +52,7 @@ const SAVED_STATE_RESET_MS = 2500;
 
 const MAX_DRAFT_BYTES = 20 * 1024 * 1024;
 
-function getSavePayloadBytes(draft: BuilderDraft, activePageId?: string | null) {
+function getJsonPayloadBytes(draft: BuilderDraft, activePageId?: string | null) {
   try {
     const payload = activePageId
       ? {
@@ -67,6 +67,49 @@ function getSavePayloadBytes(draft: BuilderDraft, activePageId?: string | null) 
   } catch {
     return 0;
   }
+}
+
+function collectPageMediaBytes(value: unknown) {
+  let total = 0;
+
+  function walk(input: unknown) {
+    if (!input || typeof input !== "object") return;
+
+    if (Array.isArray(input)) {
+      input.forEach(walk);
+      return;
+    }
+
+    const record = input as Record<string, unknown>;
+
+    for (const [key, rawValue] of Object.entries(record)) {
+      if (
+        typeof rawValue === "number" &&
+        Number.isFinite(rawValue) &&
+        rawValue > 0 &&
+        (
+          key === "sizeBytes" ||
+          key === "fileSizeBytes" ||
+          key === "imageSizeBytes" ||
+          key === "videoSizeBytes" ||
+          key === "audioSizeBytes" ||
+          key === "mediaSizeBytes"
+        )
+      ) {
+        total += rawValue;
+      }
+
+      walk(rawValue);
+    }
+  }
+
+  walk(value);
+
+  return total;
+}
+
+function getPageCapacityBytes(draft: BuilderDraft, activePageId?: string | null) {
+  return getJsonPayloadBytes(draft, activePageId) + collectPageMediaBytes(draft);
 }
 
 function formatDraftBytes(bytes: number) {
@@ -248,8 +291,8 @@ onReorderPages,
     };
   }, [draft, onSave]);
 
-  const currentDraftBytes = useMemo(
-  () => getSavePayloadBytes(draft, activePageId),
+const currentDraftBytes = useMemo(
+  () => getPageCapacityBytes(draft, activePageId),
   [draft, activePageId],
 );
 
