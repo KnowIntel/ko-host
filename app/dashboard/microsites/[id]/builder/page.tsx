@@ -318,8 +318,16 @@ const statusDescription =
     ? "The page data is too large and exceeds the server size limit."
     : "The server could not save the page.";
 
+console.error("Save page failed:", {
+  status: res.status,
+  response: data,
+});
+
 const errorMessage =
   data?.error ||
+  data?.message ||
+  data?.details ||
+  data?.hint ||
   `Failed to save page. Status: ${res.status} - ${statusDescription}`;
 
   setSaveMessage(errorMessage);
