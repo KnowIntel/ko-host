@@ -14,6 +14,99 @@ function normalizeSlug(input: string) {
     .slice(0, 60);
 }
 
+const DRAFT_ASSET_BUCKET = "uploads";
+
+const DATA_IMAGE_URL_PATTERN = /^data:(image\/(?:png|jpeg|jpg|webp|gif));base64,/i;
+
+function extensionFromImageMime(mime: string) {
+  if (mime === "image/png") return "png";
+  if (mime === "image/webp") return "webp";
+  if (mime === "image/gif") return "gif";
+  return "jpg";
+}
+
+async function uploadDraftDataImage(args: {
+  sb: ReturnType<typeof getSupabaseAdmin>;
+  micrositeId: string;
+  dataUrl: string;
+}) {
+  const match = args.dataUrl.match(DATA_IMAGE_URL_PATTERN);
+  if (!match) return args.dataUrl;
+
+  const mime = match[1].toLowerCase().replace("image/jpg", "image/jpeg");
+  const base64 = args.dataUrl.replace(DATA_IMAGE_URL_PATTERN, "");
+  const bytes = Buffer.from(base64, "base64");
+
+  if (!bytes.length) return args.dataUrl;
+
+  const ext = extensionFromImageMime(mime);
+  const objectName = `draft-assets/${args.micrositeId}/${Date.now()}-${Math.random()
+    .toString(16)
+    .slice(2)}.${ext}`;
+
+  const { error } = await args.sb.storage
+    .from(DRAFT_ASSET_BUCKET)
+    .upload(objectName, bytes, {
+      contentType: mime,
+      upsert: false,
+      cacheControl: "31536000",
+    });
+
+  if (error) {
+    throw new Error(`Draft image upload failed: ${error.message}`);
+  }
+
+  const { data } = args.sb.storage
+    .from(DRAFT_ASSET_BUCKET)
+    .getPublicUrl(objectName);
+
+  return data.publicUrl || args.dataUrl;
+}
+
+async function replaceDraftDataImagesWithUrls(args: {
+  sb: ReturnType<typeof getSupabaseAdmin>;
+  micrositeId: string;
+  value: unknown;
+}) {
+  const seen = new Map<string, string>();
+
+  async function walk(input: unknown): Promise<unknown> {
+    if (typeof input === "string") {
+      if (!DATA_IMAGE_URL_PATTERN.test(input)) return input;
+
+      const existing = seen.get(input);
+      if (existing) return existing;
+
+      const uploadedUrl = await uploadDraftDataImage({
+        sb: args.sb,
+        micrositeId: args.micrositeId,
+        dataUrl: input,
+      });
+
+      seen.set(input, uploadedUrl);
+      return uploadedUrl;
+    }
+
+    if (Array.isArray(input)) {
+      return Promise.all(input.map((item) => walk(item)));
+    }
+
+    if (input && typeof input === "object") {
+      const entries = await Promise.all(
+        Object.entries(input as Record<string, unknown>).map(
+          async ([key, value]) => [key, await walk(value)] as const,
+        ),
+      );
+
+      return Object.fromEntries(entries);
+    }
+
+    return input;
+  }
+
+  return walk(args.value);
+}
+
 async function getOwnedMicrosite(id: string, userId: string) {
   const sb = getSupabaseAdmin();
 
@@ -508,7 +601,13 @@ export async function PATCH(
     return NextResponse.json({ error: "Page not found" }, { status: 404 });
   }
 
-const sanitizedDraft = sanitizeBuilderDraft(rawDraft);
+const draftWithUploadedAssets = await replaceDraftDataImagesWithUrls({
+  sb,
+  micrositeId: id,
+  value: rawDraft,
+});
+
+const sanitizedDraft = sanitizeBuilderDraft(draftWithUploadedAssets);
 
 // IMPORTANT:
 // microsite_pages.draft must store ONLY the single active page draft.
