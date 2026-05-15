@@ -5591,9 +5591,15 @@ function renderHighlight(
           ) : null}
 
           {mode === "top_messages" ? (
-            <div
-              className="min-h-0 flex-1 overflow-y-auto pr-1"
-            >
+<div
+  className="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1"
+  style={{
+    pointerEvents: "auto",
+    WebkitOverflowScrolling: "touch",
+  }}
+  onWheel={(e) => e.stopPropagation()}
+  onTouchMove={(e) => e.stopPropagation()}
+>
               <div
                 className="grid gap-3"
                 style={{
