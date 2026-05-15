@@ -15793,6 +15793,11 @@ onInput={(e) => {
                               }
                               className={inspectorInputClass()}
                             />
+
+                            <div className="mt-1 text-[11px] text-neutral-500">
+                              Example internal page link:{" "}
+                              <span className="font-mono">/rules</span>
+                            </div>
                           </div>
 
                           <div className="mt-3 flex justify-end">
