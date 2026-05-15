@@ -3586,10 +3586,7 @@ function renderThread(
     const showNameField = block.data.showNameField !== false;
     const showVoteControls = block.data.showVoteControls !== false;
     const showVoteCount = block.data.showVoteCount !== false;
-    const scrollHeight = Math.max(
-      120,
-      Math.min(1000, Number(block.data.scrollHeight) || 280),
-    );
+
 
     const baseStyle = block.data.style;
     const subjectStyle = block.data.subjectStyle ?? baseStyle;
@@ -4050,7 +4047,7 @@ if (isNameRequired && !nameValue.trim()) {
         className={getSoftSurfaceClass(designKey)}
       >
         <div
-          className="flex h-auto min-h-full w-full flex-col overflow-visible rounded-xl border p-3"
+          className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-xl border p-3"
           style={getThreadElementBoxStyle(block.data.formAppearance)}
         >
           <div
@@ -4249,10 +4246,7 @@ if (isNameRequired && !nameValue.trim()) {
             </div>
           </div>
 
-          <div
-            className="mt-4 min-h-[260px] flex-1 overflow-y-auto pr-1"
-            style={{ maxHeight: `${scrollHeight}px` }}
-          >
+          <div className="mt-4 min-h-0 flex-1 overflow-y-auto pr-1">
             {isLoading ? (
               <div className="rounded-xl border border-dashed border-neutral-300 px-3 py-4 text-sm text-neutral-500">
                 Loading messages...

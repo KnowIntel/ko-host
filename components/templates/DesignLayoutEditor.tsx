@@ -11094,32 +11094,6 @@ if (selectedBlock?.type === "rsvp") {
       </div>
 
       <div className="mt-4">
-        <div className={inspectorLabelClass()}>Scroll Height</div>
-        <input
-          type="number"
-          min={120}
-          max={1000}
-          value={selectedBlock.data.scrollHeight ?? 280}
-          onChange={(e) =>
-            updateSelectedBlock((block) =>
-              block.type !== "thread"
-                ? block
-                : {
-                    ...block,
-                    data: {
-                      ...block.data,
-                      scrollHeight: Math.max(
-                        120,
-                        Math.min(1000, Number(e.target.value) || 280),
-                      ),
-                    },
-                  },
-            )
-          }
-          className={inspectorInputClass()}
-        />
-      </div>
-
       <div className="mt-4 grid grid-cols-1 gap-3">
         <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
           <input
