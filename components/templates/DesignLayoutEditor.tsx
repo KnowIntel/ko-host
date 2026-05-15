@@ -15794,10 +15794,18 @@ onInput={(e) => {
                               className={inspectorInputClass()}
                             />
 
-                            <div className="mt-1 text-[11px] text-neutral-500">
-                              Example internal page link:{" "}
-                              <span className="font-mono">/rules</span>
-                            </div>
+                    <div className="mt-1 text-[11px] text-neutral-500">
+                      Example internal page link:{" "}
+                      <span className="font-mono">
+                        /
+                        {item.label && item.label.trim().length > 0
+                          ? item.label
+                              .trim()
+                              .toLowerCase()
+                              .replace(/\s+/g, "-")
+                          : "page_name"}
+                      </span>
+                    </div>
                           </div>
 
                           <div className="mt-3 flex justify-end">
