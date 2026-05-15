@@ -1608,6 +1608,7 @@ const showTextControls =
 
 const showAppearanceControls =
   selectedContext.kind === "label" ||
+  selectedContext.kind === "textFx" ||
   selectedContext.kind === "cta" ||
   selectedContext.kind === "image" ||
   selectedContext.kind === "imageCarousel" ||
