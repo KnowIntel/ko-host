@@ -2921,11 +2921,17 @@ const handleVideoUpload = async (
   data,
 });
 
-    if (!res.ok || !data?.url) {
-      console.error(data);
-      setEditorUploadError("Failed to upload video");
-      return;
-    }
+if (!res.ok || !data?.url) {
+  console.error("Video upload failed:", {
+    status: res.status,
+    data,
+  });
+
+  setEditorUploadError(
+    data?.error || `Failed to upload video. Status: ${res.status}`,
+  );
+  return;
+}
 
     updateSelectedBlock((block) =>
       block.type !== "video"
