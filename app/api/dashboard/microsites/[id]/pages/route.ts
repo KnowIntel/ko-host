@@ -637,12 +637,20 @@ const nextDraft = {
     .select("id, slug, title, display_order, draft, updated_at")
     .single();
 
-  if (updateError || !updatedPage) {
-    return NextResponse.json(
-      { error: updateError?.message || "Failed to save page draft." },
-      { status: 500 },
-    );
-  }
+if (updateError || !updatedPage) {
+  console.error("Failed to save page draft:", updateError);
+
+  return NextResponse.json(
+    {
+      error:
+        updateError?.message ||
+        updateError?.details ||
+        updateError?.hint ||
+        "Failed to save page draft.",
+    },
+    { status: 500 },
+  );
+}
 
   const isHomePage =
     existingPage.slug === "home" ||
@@ -659,16 +667,20 @@ const nextDraft = {
       .eq("id", id)
       .eq("owner_clerk_user_id", userId);
 
-    if (micrositeUpdateError) {
-      return NextResponse.json(
-        {
-          error:
-            micrositeUpdateError.message ||
-            "Failed to sync microsite draft.",
-        },
-        { status: 500 },
-      );
-    }
+if (micrositeUpdateError) {
+  console.error("Failed to sync microsite draft:", micrositeUpdateError);
+
+  return NextResponse.json(
+    {
+      error:
+        micrositeUpdateError.message ||
+        micrositeUpdateError.details ||
+        micrositeUpdateError.hint ||
+        "Failed to sync microsite draft.",
+    },
+    { status: 500 },
+  );
+}
   }
 
   return NextResponse.json({
