@@ -50,6 +50,37 @@ onReorderPages?: (nextPages: Array<{
 const AUTOSAVE_DELAY_MS = 10 * 60 * 1000;
 const SAVED_STATE_RESET_MS = 2500;
 
+const MAX_DRAFT_BYTES = 20 * 1024 * 1024;
+
+function getSavePayloadBytes(draft: BuilderDraft, activePageId?: string | null) {
+  try {
+    const payload = activePageId
+      ? {
+          pageId: activePageId,
+          draft,
+        }
+      : {
+          draft,
+        };
+
+    return new Blob([JSON.stringify(payload)]).size;
+  } catch {
+    return 0;
+  }
+}
+
+function formatDraftBytes(bytes: number) {
+  if (bytes >= 1024 * 1024) {
+    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+  }
+
+  if (bytes >= 1024) {
+    return `${(bytes / 1024).toFixed(1)} KB`;
+  }
+
+  return `${bytes} B`;
+}
+
 function cloneDraft<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
 }
@@ -217,6 +248,16 @@ onReorderPages,
     };
   }, [draft, onSave]);
 
+  const currentDraftBytes = useMemo(
+  () => getSavePayloadBytes(draft, activePageId),
+  [draft, activePageId],
+);
+
+const draftUsagePercent = Math.min(
+  100,
+  Math.round((currentDraftBytes / MAX_DRAFT_BYTES) * 100),
+);
+
   const effectiveSaveState =
     saveState && saveState !== "idle" ? saveState : localSaveState;
 
@@ -236,8 +277,55 @@ onReorderPages,
     await runSave(draftToSave, "manual");
   }
 
-  return (
-    <div className="relative">
+return (
+  <div className="relative">
+    <div className="mb-4 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <div className="text-sm font-semibold text-neutral-900">
+            Builder Capacity
+          </div>
+
+          <div className="mt-1 text-xs text-neutral-500">
+            {formatDraftBytes(currentDraftBytes)} used of{" "}
+            {formatDraftBytes(MAX_DRAFT_BYTES)}
+          </div>
+        </div>
+
+        <div
+          className={`text-sm font-semibold ${
+            draftUsagePercent >= 90
+              ? "text-red-600"
+              : draftUsagePercent >= 70
+                ? "text-amber-600"
+                : "text-green-600"
+          }`}
+        >
+          {draftUsagePercent}%
+        </div>
+      </div>
+
+      <div className="mt-3 h-3 overflow-hidden rounded-full bg-neutral-200">
+        <div
+          className={`h-full rounded-full transition-all duration-300 ${
+            draftUsagePercent >= 90
+              ? "bg-red-500"
+              : draftUsagePercent >= 70
+                ? "bg-amber-500"
+                : "bg-green-500"
+          }`}
+          style={{
+            width: `${draftUsagePercent}%`,
+          }}
+        />
+      </div>
+
+      <div className="mt-2 text-[11px] text-neutral-400">
+        Large images, textures, videos, galleries, and duplicated media increase
+        builder size usage.
+      </div>
+    </div>
+
 <DesignLayoutEditor
   templateKey={resolvedTemplateName}
   designKey={resolvedDesignLayout}

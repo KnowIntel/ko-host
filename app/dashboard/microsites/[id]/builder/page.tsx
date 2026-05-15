@@ -144,33 +144,6 @@ const orderedPages = useMemo(() => {
 
   const firstPageId = orderedPages[0]?.id || null;
 
-  const MAX_DRAFT_BYTES = 20 * 1024 * 1024;
-
-const currentDraftBytes = useMemo(() => {
-  try {
-    return new Blob([JSON.stringify(editorDraft ?? {})]).size;
-  } catch {
-    return 0;
-  }
-}, [editorDraft]);
-
-const draftUsagePercent = Math.min(
-  100,
-  Math.round((currentDraftBytes / MAX_DRAFT_BYTES) * 100),
-);
-
-function formatDraftBytes(bytes: number) {
-  if (bytes >= 1024 * 1024) {
-    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
-  }
-
-  if (bytes >= 1024) {
-    return `${(bytes / 1024).toFixed(1)} KB`;
-  }
-
-  return `${bytes} B`;
-}
-
   async function loadPages(micrositeId: string) {
     try {
       setPagesLoading(true);
@@ -814,53 +787,6 @@ return (
   onConfirm={() => setSaveErrorModal(null)}
   onCancel={() => setSaveErrorModal(null)}
 />
-
-<div className="mb-4 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
-  <div className="flex items-center justify-between gap-4">
-    <div>
-      <div className="text-sm font-semibold text-neutral-900">
-        Builder Capacity
-      </div>
-
-      <div className="mt-1 text-xs text-neutral-500">
-        {formatDraftBytes(currentDraftBytes)} used of{" "}
-        {formatDraftBytes(MAX_DRAFT_BYTES)}
-      </div>
-    </div>
-
-    <div
-      className={`text-sm font-semibold ${
-        draftUsagePercent >= 90
-          ? "text-red-600"
-          : draftUsagePercent >= 70
-            ? "text-amber-600"
-            : "text-green-600"
-      }`}
-    >
-      {draftUsagePercent}%
-    </div>
-  </div>
-
-  <div className="mt-3 h-3 overflow-hidden rounded-full bg-neutral-200">
-    <div
-      className={`h-full rounded-full transition-all duration-300 ${
-        draftUsagePercent >= 90
-          ? "bg-red-500"
-          : draftUsagePercent >= 70
-            ? "bg-amber-500"
-            : "bg-green-500"
-      }`}
-      style={{
-        width: `${draftUsagePercent}%`,
-      }}
-    />
-  </div>
-
-  <div className="mt-2 text-[11px] text-neutral-400">
-    Large images, textures, videos, galleries, and duplicated media increase
-    builder size usage.
-  </div>
-</div>
 
 <TemplateDraftEditor
   key={`${site.id}::${activePageId || "root"}::${site.selected_design_key || "blank"}`}
