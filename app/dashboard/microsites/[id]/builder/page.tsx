@@ -313,9 +313,14 @@ if (activePageId) {
   const data = await res.json().catch(() => ({}));
 
 if (!res.ok) {
-  const errorMessage =
-    data?.error ||
-    `Failed to save page. Status: ${res.status}`;
+const statusDescription =
+  res.status === 413
+    ? "The page data is too large and exceeds the server size limit."
+    : "The server could not save the page.";
+
+const errorMessage =
+  data?.error ||
+  `Failed to save page. Status: ${res.status} - ${statusDescription}`;
 
   setSaveMessage(errorMessage);
 
@@ -773,11 +778,12 @@ return (
               : saveMessage}
       </div>
 
-      <AppModal
+<AppModal
   open={!!saveErrorModal}
   title={saveErrorModal?.title ?? "Save Failed"}
   description={saveErrorModal?.message ?? "Failed to save page."}
   confirmText="OK"
+  cancelText=""
   onConfirm={() => setSaveErrorModal(null)}
   onCancel={() => setSaveErrorModal(null)}
 />

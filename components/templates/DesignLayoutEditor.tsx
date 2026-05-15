@@ -6,6 +6,7 @@ import { BUILDER_TOOL_GUIDES } from "@/components/templates/builderToolGuides";
 import { BLOCK_GUIDES } from "@/components/templates/blockGuideContent";
 import PopBalloonCanvasPreview from "@/components/blocks/PopBalloonCanvasPreview";
 import { getStoreMeta } from "@/lib/utils/getStoreMeta";
+import { uploadImage } from "@/lib/uploadImage";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -1494,15 +1495,16 @@ function handleTextureFileChange(fileList: FileList | null) {
     return;
   }
 
-  const reader = new FileReader();
-
-  reader.onload = () => {
-    const dataUrl = typeof reader.result === "string" ? reader.result : "";
-    if (!dataUrl) return;
-    applyTextureToSelectedBlock(dataUrl);
-  };
-
-  reader.readAsDataURL(file);
+void uploadBuilderImageFile(file)
+  .then((publicUrl) => {
+    if (!publicUrl) return;
+    applyTextureToSelectedBlock(publicUrl);
+  })
+  .catch((error) => {
+    setTextureUploadError(
+      error instanceof Error ? error.message : "Texture upload failed.",
+    );
+  });
 }
 
 function removeTextureFromSelectedBlock() {
@@ -2830,7 +2832,7 @@ async function uploadPuzzleImageToSelectedBlock(blockId: string) {
       const file = files[0];
       if (!file) return;
 
-      const dataUrl = await readFileAsDataUrl(file);
+      const dataUrl = await uploadBuilderImageFile(file);
 
       setDraft((current) => ({
         ...current,
@@ -4258,23 +4260,8 @@ async function uploadDroppedGalleryFiles(
   let totalBytes = 0;
 
   for (const file of imageFiles) {
-    const compressedUrl = await readFileAsCompressedDataUrl(file, {
-      maxWidth: 1600,
-      maxHeight: 1600,
-      quality: 0.78,
-      outputType: "image/jpeg",
-    });
+const compressedUrl = await uploadBuilderImageFile(file);
 
-    const nextBytes = estimateDataUrlBytes(compressedUrl);
-
-    if (totalBytes + nextBytes > MAX_TOTAL_EMBED_BYTES) {
-      window.alert(
-        `Some dropped gallery images were not added because they would make the draft too large to save.\n\nAdded so far: ${formatBytes(totalBytes)}\nNext image: ${formatBytes(nextBytes)}`,
-      );
-      break;
-    }
-
-    totalBytes += nextBytes;
 
     images.push({
       id: makeClientId("gallery"),
@@ -4298,6 +4285,10 @@ async function uploadDroppedGalleryFiles(
       };
     }),
   }));
+}
+
+async function uploadBuilderImageFile(file: File) {
+  return uploadImage(file);
 }
 
   async function uploadImageToSelectedBlock(blockId: string) {
@@ -4376,23 +4367,8 @@ async function uploadGalleryImagesToBlock(blockId: string) {
       let totalBytes = 0;
 
       for (const file of selectedFiles) {
-        const compressedUrl = await readFileAsCompressedDataUrl(file, {
-          maxWidth: 1600,
-          maxHeight: 1600,
-          quality: 0.78,
-          outputType: "image/jpeg",
-        });
+const compressedUrl = await uploadBuilderImageFile(file);
 
-        const nextBytes = estimateDataUrlBytes(compressedUrl);
-
-        if (totalBytes + nextBytes > MAX_TOTAL_EMBED_BYTES) {
-          window.alert(
-            `Some gallery images were not added because they would make the draft too large to save.\n\nAdded so far: ${formatBytes(totalBytes)}\nNext image: ${formatBytes(nextBytes)}`,
-          );
-          break;
-        }
-
-        totalBytes += nextBytes;
 
         images.push({
           id: makeClientId("gallery"),
@@ -4426,7 +4402,7 @@ async function uploadGalleryImagesToBlock(blockId: string) {
       const file = files[0];
       if (!file) return;
 
-      const dataUrl = await readFileAsDataUrl(file);
+      const dataUrl = await uploadBuilderImageFile(file);
 
       setDraft((prev) => ({
         ...prev,
@@ -4449,7 +4425,7 @@ async function uploadMultipleImagesToCarousel(blockId: string) {
       const newItems: CarouselImageItem[] = await Promise.all(
         files.map(async (file, index) => ({
           id: makeClientId("carouselitem"),
-          imageUrl: await readFileAsDataUrl(file),
+          imageUrl: await uploadBuilderImageFile(file),
           title: `Slide ${index + 1}`,
           subtitle: "",
           href: "",
