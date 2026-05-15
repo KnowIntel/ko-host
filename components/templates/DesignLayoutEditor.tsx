@@ -11093,7 +11093,6 @@ if (selectedBlock?.type === "rsvp") {
         />
       </div>
 
-      <div className="mt-4">
       <div className="mt-4 grid grid-cols-1 gap-3">
         <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
           <input
