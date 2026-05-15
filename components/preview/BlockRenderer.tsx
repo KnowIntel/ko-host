@@ -5603,56 +5603,126 @@ function renderHighlight(
                 gridTemplateColumns: `repeat(${highlightColumns}, minmax(0, 1fr))`,
               }}
             >
-              {items.slice(0, limit).map((msg: any, index: number) => (
-                <div
-                  key={msg.id}
-                  className={getHighlightCardClass(designKey)}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <div
-                          className="inline-flex h-6 min-w-6 items-center justify-center rounded-full px-2 text-[10px] font-bold"
-                          style={{
-                            background: isLightDesign(designKey)
-                              ? "rgba(17,24,39,0.08)"
-                              : "rgba(255,255,255,0.12)",
-                            color: bodyTextStyle.color ?? getDefaultTextColor(designKey),
-                          }}
-                        >
-                          #{index + 1}
+              {items.slice(0, limit).map((msg: any, index: number) => {
+                const msgAttachments = Array.isArray(msg.attachments)
+                  ? msg.attachments.filter(
+                      (item: any) =>
+                        item &&
+                        typeof item.id === "string" &&
+                        (item.type === "image" ||
+                          item.type === "gif" ||
+                          item.type === "video" ||
+                          item.type === "audio") &&
+                        (typeof item.dataUrl === "string" ||
+                          typeof item.url === "string"),
+                    )
+                  : [];
+
+                return (
+                  <div
+                    key={msg.id}
+                    className={getHighlightCardClass(designKey)}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="inline-flex h-6 min-w-6 items-center justify-center rounded-full px-2 text-[10px] font-bold"
+                            style={{
+                              background: isLightDesign(designKey)
+                                ? "rgba(17,24,39,0.08)"
+                                : "rgba(255,255,255,0.12)",
+                              color:
+                                bodyTextStyle.color ??
+                                getDefaultTextColor(designKey),
+                            }}
+                          >
+                            #{index + 1}
+                          </div>
+
+                          <div
+                            className="truncate text-xs font-semibold"
+                            style={bodyTextStyle}
+                          >
+                            {msg.author_name || msg.name || "Guest"}
+                          </div>
                         </div>
 
                         <div
-                          className="truncate text-xs font-semibold"
+                          className="mt-2 text-sm leading-5"
                           style={bodyTextStyle}
                         >
-                          {msg.author_name || msg.name || "Guest"}
+                          {msg.message_text || msg.message}
                         </div>
+
+                        {msgAttachments.length ? (
+                          <div className="mt-3 grid gap-2">
+                            {msgAttachments.map((attachment: any) => {
+                              const src = attachment.url || attachment.dataUrl || "";
+
+                              if (!src) return null;
+
+                              if (attachment.type === "video") {
+                                return (
+                                  <video
+                                    key={attachment.id}
+                                    src={src}
+                                    controls
+                                    className="w-full rounded-xl border"
+                                    style={{
+                                      maxHeight: "180px",
+                                      objectFit: "contain",
+                                    }}
+                                  />
+                                );
+                              }
+
+                              if (attachment.type === "audio") {
+                                return (
+                                  <audio
+                                    key={attachment.id}
+                                    src={src}
+                                    controls
+                                    className="w-full"
+                                  />
+                                );
+                              }
+
+                              return (
+                                <img
+                                  key={attachment.id}
+                                  src={src}
+                                  alt={attachment.name || "Thread attachment"}
+                                  className="mx-auto rounded-xl border"
+                                  style={{
+                                    maxHeight: "180px",
+                                    maxWidth: "100%",
+                                    objectFit: "contain",
+                                  }}
+                                />
+                              );
+                            })}
+                          </div>
+                        ) : null}
                       </div>
 
                       <div
-                        className="mt-2 text-sm leading-5"
-                        style={bodyTextStyle}
+                        className="shrink-0 rounded-full px-2 py-1 text-[11px] font-semibold"
+                        style={{
+                          background: isLightDesign(designKey)
+                            ? "rgba(17,24,39,0.08)"
+                            : "rgba(255,255,255,0.12)",
+                          color:
+                            bodyTextStyle.color ??
+                            getDefaultTextColor(designKey),
+                        }}
                       >
-                        {msg.message_text || msg.message}
+                        👍 {msg.votes ?? 0}
                       </div>
                     </div>
-
-                    <div
-                      className="shrink-0 rounded-full px-2 py-1 text-[11px] font-semibold"
-                      style={{
-                        background: isLightDesign(designKey)
-                          ? "rgba(17,24,39,0.08)"
-                          : "rgba(255,255,255,0.12)",
-                        color: bodyTextStyle.color ?? getDefaultTextColor(designKey),
-                      }}
-                    >
-                      👍 {msg.votes ?? 0}
-                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : null}
 
