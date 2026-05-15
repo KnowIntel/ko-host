@@ -8,8 +8,8 @@ const supabase = createClient(
 
 export async function uploadImage(file: File) {
   const compressed = await imageCompression(file, {
-    maxSizeMB: 1,
-    maxWidthOrHeight: 2000,
+    maxSizeMB: 2,
+    maxWidthOrHeight: 3000,
     useWebWorker: true,
     fileType: "image/webp",
   });

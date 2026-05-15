@@ -3700,11 +3700,11 @@ const isPostDisabled =
       return null;
     }
 
-    function getAttachmentLimit(type: ThreadAttachment["type"]) {
-      if (type === "video") return 5 * 1024 * 1024;
-      if (type === "audio") return 1 * 1024 * 1024;
-      return 2 * 1024 * 1024;
-    }
+function getAttachmentLimit(type: ThreadAttachment["type"]) {
+  if (type === "video") return 20 * 1024 * 1024;
+  if (type === "audio") return 5 * 1024 * 1024;
+  return 2 * 1024 * 1024;
+}
 
     function handleAttachmentChange(fileList: FileList | null) {
       const file = fileList?.[0];
@@ -3721,11 +3721,11 @@ const isPostDisabled =
 
       if (file.size > limit) {
         setThreadError(
-          type === "video"
-            ? "Videos must be 5MB or smaller."
-            : type === "audio"
-              ? "Audio/voice notes must be 1MB or smaller."
-              : "Images and GIFs must be 2MB or smaller.",
+type === "video"
+  ? "Videos must be 20MB or smaller."
+  : type === "audio"
+    ? "Audio/voice notes must be 5MB or smaller."
+    : "Images and GIFs must be 2MB or smaller."
         );
         return;
       }

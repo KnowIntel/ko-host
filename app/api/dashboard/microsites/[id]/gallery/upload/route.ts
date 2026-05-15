@@ -7,20 +7,25 @@ export const dynamic = "force-dynamic";
 const BUCKET = "microsite-gallery";
 
 // Image + video limits
-const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
-// ✅ Change after you answer A/B (25MB default here)
-const MAX_VIDEO_BYTES = 25 * 1024 * 1024;
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+const MAX_VIDEO_BYTES = 150 * 1024 * 1024;
 
 // Max items per microsite
 const MAX_ITEMS = 24;
 
-const ALLOWED_IMAGE_MIMES = new Set(["image/jpeg", "image/png", "image/webp"]);
+const ALLOWED_IMAGE_MIMES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+]);
 const ALLOWED_VIDEO_MIMES = new Set(["video/mp4", "video/webm"]);
 
 function extFromMime(mime: string): string {
   if (mime === "image/png") return "png";
   if (mime === "image/webp") return "webp";
   if (mime === "image/jpeg") return "jpg";
+  if (mime === "image/gif") return "gif";
   if (mime === "video/mp4") return "mp4";
   if (mime === "video/webm") return "webm";
   return "bin";
@@ -49,7 +54,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
 
     if (!isImage && !isVideo) {
       return NextResponse.json(
-        { ok: false, error: "Unsupported file type. Allowed: jpg/png/webp, mp4/webm." },
+        { ok: false, error: "Unsupported file type. Allowed: jpg/png/webp/gif, mp4/webm." },
         { status: 400 }
       );
     }

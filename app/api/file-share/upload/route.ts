@@ -18,7 +18,7 @@ const DEFAULT_ALLOWED_TYPES = [
   "txt",
 ];
 
-const DEFAULT_MAX_FILE_SIZE_MB = 25;
+const DEFAULT_MAX_FILE_SIZE_MB = 100;
 
 function getAdminSupabase() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
