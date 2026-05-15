@@ -9,6 +9,12 @@ const nextConfig: NextConfig = {
   // Recommended for PWA + caching correctness
   reactStrictMode: true,
 
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "20mb",
+    },
+  },
+
   // If you ever ship images from remote domains, configure here:
   // images: { remotePatterns: [{ protocol: "https", hostname: "..." }] },
 };

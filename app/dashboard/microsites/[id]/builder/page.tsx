@@ -313,7 +313,9 @@ if (activePageId) {
   const data = await res.json().catch(() => ({}));
 
 if (!res.ok) {
-  const errorMessage = data?.error || "Failed to save page.";
+  const errorMessage =
+    data?.error ||
+    `Failed to save page. Status: ${res.status}`;
 
   setSaveMessage(errorMessage);
 
