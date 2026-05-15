@@ -390,8 +390,8 @@ function getThreadHeadingStyle(
   return {
     ...getContainerTextStyle(
       {
-        ...style,
         fontSize: 18,
+        ...style,
       },
       designKey,
     ),
@@ -5458,9 +5458,9 @@ function renderHighlight(
       <Surface
         block={block}
         designKey={designKey}
-        className={getSoftSurfaceClass(designKey)}
+        className={`${getSoftSurfaceClass(designKey)} overflow-hidden`}
       >
-        <div className="flex h-full w-full flex-col gap-3">
+        <div className="flex h-full min-h-0 w-full flex-col gap-3 overflow-hidden">
           <div
             className="text-sm font-semibold"
             style={headingTextStyle}
@@ -5592,11 +5592,14 @@ function renderHighlight(
 
           {mode === "top_messages" ? (
             <div
-              className="grid gap-3"
-              style={{
-                gridTemplateColumns: `repeat(${highlightColumns}, minmax(0, 1fr))`,
-              }}
+              className="min-h-0 flex-1 overflow-y-auto pr-1"
             >
+              <div
+                className="grid gap-3"
+                style={{
+                  gridTemplateColumns: `repeat(${highlightColumns}, minmax(0, 1fr))`,
+                }}
+              >
               {items.slice(0, limit).map((msg: any, index: number) => {
                 const msgAttachments = Array.isArray(msg.attachments)
                   ? msg.attachments.filter(
@@ -5717,6 +5720,7 @@ function renderHighlight(
                   </div>
                 );
               })}
+              </div>
             </div>
           ) : null}
 
