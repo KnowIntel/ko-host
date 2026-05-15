@@ -2906,32 +2906,35 @@ const handleVideoUpload = async (
   if (!file) return;
 
   try {
-    const formData = new FormData();
-    formData.append("file", file);
-
-    const res = await fetch("/api/video/upload", {
+    const signedRes = await fetch("/api/video/signed-upload", {
       method: "POST",
-      body: formData,
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        mime: file.type || "application/octet-stream",
+      }),
     });
 
-    const data = await res.json().catch(() => ({}));
-    console.log("CREATE PAGE RESULT", {
-  ok: res.ok,
-  status: res.status,
-  data,
-});
+    const signedData = await signedRes.json().catch(() => ({}));
 
-if (!res.ok || !data?.url) {
-  console.error("Video upload failed:", {
-    status: res.status,
-    data,
-  });
+    if (!signedRes.ok || !signedData?.ok || !signedData?.signedUrl) {
+      setEditorUploadError(
+        signedData?.error || `Failed to prepare video upload. Status: ${signedRes.status}`,
+      );
+      return;
+    }
 
-  setEditorUploadError(
-    data?.error || `Failed to upload video. Status: ${res.status}`,
-  );
-  return;
-}
+    const uploadRes = await fetch(signedData.signedUrl, {
+      method: "PUT",
+      headers: {
+        "Content-Type": file.type || signedData.mime || "application/octet-stream",
+      },
+      body: file,
+    });
+
+    if (!uploadRes.ok) {
+      setEditorUploadError(`Failed to upload video. Status: ${uploadRes.status}`);
+      return;
+    }
 
     updateSelectedBlock((block) =>
       block.type !== "video"
@@ -2940,10 +2943,12 @@ if (!res.ok || !data?.url) {
             ...block,
             data: {
               ...block.data,
-              videoUrl: data.url,
+              videoUrl: signedData.publicUrl,
             },
           },
     );
+
+    setEditorUploadError("");
   } catch (err) {
     console.error(err);
     setEditorUploadError("Upload failed");
