@@ -50,7 +50,7 @@ onReorderPages?: (nextPages: Array<{
 const AUTOSAVE_DELAY_MS = 10 * 60 * 1000;
 const SAVED_STATE_RESET_MS = 2500;
 
-const MAX_DRAFT_BYTES = 4.5 * 1024 * 1024;
+const MAX_DRAFT_BYTES = 20 * 1024 * 1024;
 
 function getSavePayloadBytes(draft: BuilderDraft, activePageId?: string | null) {
   try {

@@ -4,9 +4,6 @@ import withPWA from "next-pwa";
 const isProd = process.env.NODE_ENV === "production";
 
 const nextConfig: NextConfig = {
-  // Wildcard routing is handled in app/page.tsx + app/[...catchall]/page.tsx
-
-  // Recommended for PWA + caching correctness
   reactStrictMode: true,
 
   experimental: {
@@ -14,9 +11,6 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "20mb",
     },
   },
-
-  // If you ever ship images from remote domains, configure here:
-  // images: { remotePatterns: [{ protocol: "https", hostname: "..." }] },
 };
 
 export default withPWA({
