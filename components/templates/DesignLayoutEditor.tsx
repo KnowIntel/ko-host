@@ -5437,9 +5437,42 @@ if (block.type === "label") {
 }
 
 if (block.type === "text_fx") {
+  const hasTexture = Boolean(
+    block.data.style?.textureEnabled && block.data.style?.textureImageUrl,
+  );
+
   return (
     <div className="h-full w-full">
-      <BlockRenderer block={block} designKey={designKey} />
+      <BlockRenderer
+        block={{
+          ...block,
+          data: {
+            ...block.data,
+            style: {
+              ...block.data.style,
+              color: hasTexture ? "transparent" : block.data.style?.color,
+              WebkitTextFillColor: hasTexture
+                ? "transparent"
+                : block.data.style?.color,
+              backgroundImage: hasTexture
+                ? `url("${block.data.style?.textureImageUrl}")`
+                : undefined,
+              backgroundRepeat: hasTexture ? "repeat" : undefined,
+              backgroundSize: hasTexture
+                ? `${block.data.style?.textureScale ?? 100}%`
+                : undefined,
+              backgroundPosition: hasTexture
+                ? `${block.data.style?.texturePositionX ?? 50}% ${
+                    block.data.style?.texturePositionY ?? 50
+                  }%`
+                : undefined,
+              backgroundClip: hasTexture ? "text" : undefined,
+              WebkitBackgroundClip: hasTexture ? "text" : undefined,
+            } as any,
+          },
+        }}
+        designKey={designKey}
+      />
     </div>
   );
 }
