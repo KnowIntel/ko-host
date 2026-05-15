@@ -1432,52 +1432,59 @@ const selectedBlockTextureEnabled =
     ? Boolean((selectedStyle as any).textureEnabled)
     : Boolean(selectedAppearance.textureEnabled);
 
-function applyTextureToSelectedBlock(dataUrl: string) {
+function applyTextureToSelectedBlock(
+  dataUrl: string,
+  meta?: { sizeBytes?: number; mimeType?: string },
+) {
   if (!selectedBlock) return;
 
-if (selectedBlock.type === "label" || selectedBlock.type === "text_fx") {
-  updateSelectedBlock((block) => {
-    if (block.type !== "label" && block.type !== "text_fx") return block;
+  if (selectedBlock.type === "label" || selectedBlock.type === "text_fx") {
+    updateSelectedBlock((block) => {
+      if (block.type !== "label" && block.type !== "text_fx") return block;
 
-    return {
-      ...block,
-      data: {
-        ...block.data,
-        style: {
-          ...((block.data as any).style ?? {}),
-          textureEnabled: true,
-          textureImageUrl: dataUrl,
-          textureScale: 100,
-          texturePositionX: 50,
-          texturePositionY: 50,
+      return {
+        ...block,
+        data: {
+          ...block.data,
+          style: {
+            ...((block.data as any).style ?? {}),
+            textureEnabled: true,
+            textureImageUrl: dataUrl,
+            textureSizeBytes: meta?.sizeBytes ?? 0,
+            textureMimeType: meta?.mimeType ?? "",
+            textureScale: 100,
+            texturePositionX: 50,
+            texturePositionY: 50,
+          },
         },
+      };
+    });
+
+    return;
+  }
+
+  if (
+    selectedBlock.type === "image" ||
+    selectedBlock.type === "video" ||
+    selectedBlock.type === "gallery" ||
+    selectedBlock.type === "image_carousel"
+  ) {
+    updateSelectedBlock((block) => ({
+      ...block,
+      appearance: {
+        ...block.appearance,
+        textureEnabled: true,
+        textureImageUrl: dataUrl,
+        textureSizeBytes: meta?.sizeBytes ?? 0,
+        textureMimeType: meta?.mimeType ?? "",
+        textureScale: 100,
+        texturePositionX: 50,
+        texturePositionY: 50,
       },
-    };
-  });
+    }));
 
-  return;
-}
-
-if (
-  selectedBlock.type === "image" ||
-  selectedBlock.type === "video" ||
-  selectedBlock.type === "gallery" ||
-  selectedBlock.type === "image_carousel"
-) {
-  updateSelectedBlock((block) => ({
-    ...block,
-    appearance: {
-      ...block.appearance,
-      textureEnabled: true,
-      textureImageUrl: dataUrl,
-      textureScale: 100,
-      texturePositionX: 50,
-      texturePositionY: 50,
-    },
-  }));
-
-  return;
-}
+    return;
+  }
 }
 
 function handleTextureFileChange(fileList: FileList | null) {
@@ -1499,7 +1506,11 @@ function handleTextureFileChange(fileList: FileList | null) {
   reader.onload = () => {
     const dataUrl = typeof reader.result === "string" ? reader.result : "";
     if (!dataUrl) return;
-    applyTextureToSelectedBlock(dataUrl);
+
+    applyTextureToSelectedBlock(dataUrl, {
+      sizeBytes: file.size,
+      mimeType: file.type,
+    });
   };
 
   reader.readAsDataURL(file);
@@ -4333,8 +4344,10 @@ async function uploadDroppedGalleryFiles(
                   ...block.data,
                   image: {
                     ...block.data.image,
-                    url: dataUrl,
-                    alt: file.name,
+                      url: dataUrl,
+                      alt: file.name,
+                      imageSizeBytes: file.size,
+                      imageMimeType: file.type,
                   },
                 },
               };
@@ -4346,6 +4359,8 @@ async function uploadDroppedGalleryFiles(
                 data: {
                   ...block.data,
                   buttonImageUrl: dataUrl,
+                  buttonImageSizeBytes: file.size,
+                  buttonImageMimeType: file.type,
                 },
               };
             }
