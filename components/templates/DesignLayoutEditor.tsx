@@ -3498,43 +3498,61 @@ if (selectedBlock?.type === "donation") {
 if (selectedBlock?.type === "countdown") {
   setDraft((prev) => ({
     ...prev,
-    blocks: prev.blocks.map((block) =>
-      block.id === selectedBlock.id && block.type === "countdown"
-        ? {
-            ...block,
-            data: {
-              ...block.data,
-...(countdownStyleTarget === "tiles"
-  ? {
-      tileStyle: {
-        ...((block.data as any).tileStyle ?? {}),
-        ...patch,
-      },
-    }
-  : countdownStyleTarget === "standardValues"
-    ? {
-        standardValueStyle: {
-          ...((block.data as any).standardValueStyle ?? {}),
-          ...patch,
-        },
+    blocks: prev.blocks.map((block) => {
+      if (block.id !== selectedBlock.id || block.type !== "countdown") {
+        return block;
       }
-    : countdownStyleTarget === "standardUnits"
-      ? {
-          standardUnitStyle: {
-            ...((block.data as any).standardUnitStyle ?? {}),
-            ...patch,
+
+      if (countdownStyleTarget === "tiles") {
+        return {
+          ...block,
+          data: {
+            ...block.data,
+            tileStyle: {
+              ...((block.data as any).tileStyle ?? {}),
+              ...patch,
+            },
           },
-        }
-      : {
+        };
+      }
+
+      if (countdownStyleTarget === "standardValues") {
+        return {
+          ...block,
+          data: {
+            ...block.data,
+            standardValueStyle: {
+              ...((block.data as any).standardValueStyle ?? {}),
+              ...patch,
+            },
+          },
+        };
+      }
+
+      if (countdownStyleTarget === "standardUnits") {
+        return {
+          ...block,
+          data: {
+            ...block.data,
+            standardUnitStyle: {
+              ...((block.data as any).standardUnitStyle ?? {}),
+              ...patch,
+            },
+          },
+        };
+      }
+
+      return {
+        ...block,
+        data: {
+          ...block.data,
           style: {
             ...(block.data.style ?? {}),
             ...patch,
           },
-        }),
-            },
-          }
-        : block,
-    ),
+        },
+      };
+    }),
   }));
   return;
 }
