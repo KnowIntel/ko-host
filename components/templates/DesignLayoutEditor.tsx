@@ -2582,6 +2582,43 @@ function applyPageTextBoxBackground(value: string) {
 }
 
 function applyFillColor(value: string) {
+  if (selectedBlock?.type === "countdown") {
+    if (countdownStyleTarget === "tiles") {
+      updateSelectedBlock((block) =>
+        block.type !== "countdown"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                tileStyle: {
+                  ...((block.data as any).tileStyle ?? {}),
+                  backgroundColor: value,
+                },
+              },
+            },
+      );
+
+      pushRecentColor(value);
+      return;
+    }
+
+    updateSelectedBlock((block) =>
+      block.type !== "countdown"
+        ? block
+        : {
+            ...block,
+            appearance: {
+              ...block.appearance,
+              backgroundColor: value,
+            },
+          },
+    );
+
+    pushRecentColor(value);
+    return;
+  }
+
   if (selectedBlock?.type === "rsvp") {
     updateSelectedRsvpElementStyle((current) => ({
       ...current,
@@ -2672,26 +2709,6 @@ function applyFillColor(value: string) {
         },
       };
     });
-
-    pushRecentColor(value);
-    return;
-  }
-
-  if (selectedBlock?.type === "countdown" && countdownStyleTarget === "tiles") {
-    updateSelectedBlock((block) =>
-      block.type !== "countdown"
-        ? block
-        : {
-            ...block,
-            data: {
-              ...block.data,
-              tileStyle: {
-                ...((block.data as any).tileStyle ?? {}),
-                backgroundColor: value,
-              },
-            },
-          },
-    );
 
     pushRecentColor(value);
     return;
@@ -2795,6 +2812,43 @@ function eyedropperButtonClass() {
 
 
 function applyBorderColor(value: string) {
+  if (selectedBlock?.type === "countdown") {
+    if (countdownStyleTarget === "tiles") {
+      updateSelectedBlock((block) =>
+        block.type !== "countdown"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                tileStyle: {
+                  ...((block.data as any).tileStyle ?? {}),
+                  borderColor: value,
+                },
+              },
+            },
+      );
+
+      pushRecentColor(value);
+      return;
+    }
+
+    updateSelectedBlock((block) =>
+      block.type !== "countdown"
+        ? block
+        : {
+            ...block,
+            appearance: {
+              ...block.appearance,
+              borderColor: value,
+            },
+          },
+    );
+
+    pushRecentColor(value);
+    return;
+  }
+
   if (selectedBlock?.type === "progress_bar" && progressBarStyleTarget === "scope") {
     updateSelectedBlock((block) =>
       block.type !== "progress_bar"
@@ -2816,24 +2870,24 @@ function applyBorderColor(value: string) {
   }
 
   if (selectedBlock?.type === "faq" && faqStyleTarget === "section") {
-  updateSelectedBlock((block) =>
-    block.type !== "faq"
-      ? block
-      : {
-          ...block,
-          data: {
-            ...block.data,
-            sectionStyle: {
-              ...((block.data as any).sectionStyle ?? {}),
-              borderColor: value,
+    updateSelectedBlock((block) =>
+      block.type !== "faq"
+        ? block
+        : {
+            ...block,
+            data: {
+              ...block.data,
+              sectionStyle: {
+                ...((block.data as any).sectionStyle ?? {}),
+                borderColor: value,
+              },
             },
           },
-        },
-  );
+    );
 
-  pushRecentColor(value);
-  return;
-}
+    pushRecentColor(value);
+    return;
+  }
 
   applyAppearancePatch({ borderColor: value });
   pushRecentColor(value);
