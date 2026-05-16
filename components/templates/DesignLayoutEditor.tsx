@@ -2981,12 +2981,6 @@ const handleVideoUpload = async (
 };
 
 function applyStylePatch(patch: Partial<TextStyle>) {
-console.log("APPLY STYLE PATCH FIRED", {
-  selectedType: selectedBlock?.type,
-  selectedId: selectedBlock?.id,
-  countdownStyleTarget,
-  patch,
-});
   if (selectedBlock?.type === "rsvp") {
   updateSelectedRsvpElementStyle((current) => ({
     ...current,
@@ -3488,34 +3482,25 @@ if (selectedBlock?.type === "donation") {
     return;
   }
 
-  if (selectedBlock?.type === "countdown") {
+if (selectedBlock?.type === "countdown") {
+  const targetId = selectedBlock.id;
+
   setDraft((prev) => ({
     ...prev,
     blocks: prev.blocks.map((block) => {
-      if (block.id !== selectedBlock.id || block.type !== "countdown") {
+      if (block.id !== targetId || block.type !== "countdown") {
         return block;
       }
 
-      if (countdownStyleTarget === "tiles") {
-        return {
-          ...block,
-          data: {
-            ...block.data,
-            tileStyle: {
-              ...((block.data as any).tileStyle ?? {}),
-              ...patch,
-            },
-          },
-        };
-      }
+      const data = block.data as any;
 
       if (countdownStyleTarget === "standardValues") {
         return {
           ...block,
           data: {
-            ...block.data,
+            ...data,
             standardValueStyle: {
-              ...((block.data as any).standardValueStyle ?? {}),
+              ...(data.standardValueStyle ?? data.style ?? {}),
               ...patch,
             },
           },
@@ -3526,9 +3511,22 @@ if (selectedBlock?.type === "donation") {
         return {
           ...block,
           data: {
-            ...block.data,
+            ...data,
             standardUnitStyle: {
-              ...((block.data as any).standardUnitStyle ?? {}),
+              ...(data.standardUnitStyle ?? data.style ?? {}),
+              ...patch,
+            },
+          },
+        };
+      }
+
+      if (countdownStyleTarget === "tiles") {
+        return {
+          ...block,
+          data: {
+            ...data,
+            tileStyle: {
+              ...(data.tileStyle ?? data.style ?? {}),
               ...patch,
             },
           },
@@ -3538,15 +3536,16 @@ if (selectedBlock?.type === "donation") {
       return {
         ...block,
         data: {
-          ...block.data,
+          ...data,
           style: {
-            ...(block.data.style ?? {}),
+            ...(data.style ?? {}),
             ...patch,
           },
         },
       };
     }),
   }));
+
   return;
 }
 

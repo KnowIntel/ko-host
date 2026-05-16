@@ -1722,15 +1722,19 @@ const showHours = (block.data as any).showHours !== false;
 const showMinutes = (block.data as any).showMinutes !== false;
 const showSeconds = (block.data as any).showSeconds !== false;
 
-const standardValueStyle = {
-  ...getContainerTextStyle(block.data.style, designKey),
-  ...(((block.data as any).standardValueStyle ?? {}) as TextStyle),
-};
+const standardValueStyle = getContainerTextStyle(
+  ((block.data as any).standardValueStyle ??
+    block.data.style ??
+    {}) as TextStyle,
+  designKey,
+);
 
-const standardUnitStyle = {
-  ...getContainerTextStyle(block.data.style, designKey),
-  ...(((block.data as any).standardUnitStyle ?? {}) as TextStyle),
-};
+const standardUnitStyle = getContainerTextStyle(
+  ((block.data as any).standardUnitStyle ??
+    block.data.style ??
+    {}) as TextStyle,
+  designKey,
+);
 
 const countdownAnimationTransform = (baseTransform: string) => {
   if (animationStyle === "none") {
