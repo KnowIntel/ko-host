@@ -1330,6 +1330,21 @@ const selectedStyle =
           selectedBlockFromDraft.data.style ??
           {}
         )
+    : selectedBlockFromDraft?.type === "countdown"
+      ? countdownStyleTarget === "tiles"
+        ? ((selectedBlockFromDraft.data as any).tileStyle ??
+            selectedBlockFromDraft.data.style ??
+            {})
+        : countdownStyleTarget === "standardValues"
+          ? ((selectedBlockFromDraft.data as any).standardValueStyle ??
+              selectedBlockFromDraft.data.style ??
+              {})
+          : countdownStyleTarget === "standardUnits"
+            ? ((selectedBlockFromDraft.data as any).standardUnitStyle ??
+                selectedBlockFromDraft.data.style ??
+                {})
+            : selectedBlockFromDraft.data.style ?? {}
+      : getSelectionTextStyle(draft, selection);
     : selectedBlockFromDraft?.type === "donation"
       ? donationStyleTarget === "buttons"
         ? (((selectedBlockFromDraft.data as any).buttonStyle ??
