@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef } from "react";
+import { uploadImage } from "@/lib/uploadImage";
 import ToolboxPanel from "@/components/templates/design-editors/shared/ToolboxPanel";
 
 import type {
