@@ -1927,7 +1927,9 @@ function renderCountdown(
               <div
                 key={part.key}
                 className={[
-                  "flex gap-1",
+                  variant === "stage"
+                  ? "flex flex-col items-center gap-0"
+                  : "flex gap-1 items-baseline",
                   variant === "stage"
                     ? "flex-col items-center"
                     : "items-baseline",
@@ -2059,7 +2061,9 @@ tileBorderColor
                     <span
                       className={[
                         "relative z-10 font-bold leading-none transition-all duration-200",
-                        animationStyle !== "none" && seconds < 10 ? "animate-pulse" : "",
+                        animationStyle === "pulse" && seconds < 10
+                        ? "animate-pulse"
+                        : "",
                       ].join(" ")}
                       style={{
                         ...valueStyle,
