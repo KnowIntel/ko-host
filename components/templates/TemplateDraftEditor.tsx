@@ -106,6 +106,7 @@ function collectPageMediaBytes(value: unknown) {
           key === "audioSizeBytes" ||
           key === "mediaSizeBytes" ||
           key === "textureSizeBytes" ||
+          key === "buttonImageSizeBytes" ||
           key === "attachmentSizeBytes"
         )
       ) {

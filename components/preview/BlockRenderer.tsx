@@ -1033,10 +1033,10 @@ function renderImage(
   const captionStyle = ((block.data as any).captionStyle ?? {}) as TextStyle;
 
   return (
-    <div className="flex h-full w-full flex-col overflow-hidden">
-      <div className="min-h-0 flex-1 overflow-hidden">
-        <div
-          className="h-full w-full overflow-hidden"
+<div className="flex h-full w-full flex-col overflow-visible">
+  <div className="min-h-0 flex-1 overflow-visible">
+    <div
+      className="h-full w-full overflow-visible"
 style={{
   ...frameStyle,
   borderColor:
