@@ -15,7 +15,6 @@ import {
   useState,
   type CSSProperties,
 } from "react";
-//Test
 
 import {
   moveCanvasItemBackward,
