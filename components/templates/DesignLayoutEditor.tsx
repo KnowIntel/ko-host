@@ -1300,9 +1300,10 @@ const [richTextLinkValue, setRichTextLinkValue] = useState("https://");
 >("heading");
 
 
-const [countdownStyleTarget, setCountdownStyleTarget] = useState<
-  "background" | "tiles"
->("background");
+const [countdownStyleTarget, setCountdownStyleTarget] =
+  useState<
+    "background" | "tiles" | "standardValues" | "standardUnits"
+  >("background");
 
 const [progressBarStyleTarget, setProgressBarStyleTarget] = useState<
   | "background"
@@ -3503,19 +3504,33 @@ if (selectedBlock?.type === "countdown") {
             ...block,
             data: {
               ...block.data,
-              ...(countdownStyleTarget === "tiles"
-                ? {
-                    tileStyle: {
-                      ...((block.data as any).tileStyle ?? {}),
-                      ...patch,
-                    },
-                  }
-                : {
-                    style: {
-                      ...(block.data.style ?? {}),
-                      ...patch,
-                    },
-                  }),
+...(countdownStyleTarget === "tiles"
+  ? {
+      tileStyle: {
+        ...((block.data as any).tileStyle ?? {}),
+        ...patch,
+      },
+    }
+  : countdownStyleTarget === "standardValues"
+    ? {
+        standardValueStyle: {
+          ...((block.data as any).standardValueStyle ?? {}),
+          ...patch,
+        },
+      }
+    : countdownStyleTarget === "standardUnits"
+      ? {
+          standardUnitStyle: {
+            ...((block.data as any).standardUnitStyle ?? {}),
+            ...patch,
+          },
+        }
+      : {
+          style: {
+            ...(block.data.style ?? {}),
+            ...patch,
+          },
+        }),
             },
           }
         : block,
@@ -7802,15 +7817,21 @@ const idsToExpand =
     <select
       value={countdownStyleTarget}
       onChange={(e) =>
-        setCountdownStyleTarget(
-          e.target.value as "background" | "tiles",
-        )
+      setCountdownStyleTarget(
+        e.target.value as
+          | "background"
+          | "tiles"
+          | "standardValues"
+          | "standardUnits",
+      )
       }
       className={topBarFieldClass("w-[140px]")}
       title="Countdown style target"
     >
-      <option value="background">Background</option>
-      <option value="tiles">Tiles</option>
+<option value="background">Background</option>
+<option value="tiles">Tiles</option>
+<option value="standardValues">Standard Values</option>
+<option value="standardUnits">Standard Units</option>
     </select>
   </>
 ) : null}
@@ -10100,53 +10121,107 @@ if (selectedBlock?.type === "rsvp") {
 
     <div className="mt-4">
       <div className={inspectorLabelClass()}>Style Variant</div>
-      <select
-        value={selectedBlock.data.styleVariant ?? "default"}
-        onChange={(e) =>
-          updateSelectedBlock((block) =>
-            block.type !== "countdown"
-              ? block
-              : {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    styleVariant: e.target.value as "default" | "cards" | "hero",
-                  },
-                },
-          )
-        }
-        className={inspectorInputClass()}
-      >
-        <option value="default">Default</option>
-        <option value="cards">Cards</option>
-        <option value="hero">Hero</option>
-      </select>
+<select
+  value={selectedBlock.data.styleVariant ?? "default"}
+  onChange={(e) =>
+    updateSelectedBlock((block) =>
+      block.type !== "countdown"
+        ? block
+        : {
+            ...block,
+            data: {
+              ...block.data,
+              styleVariant: e.target.value as
+                | "default"
+                | "cards"
+                | "hero"
+                | "standard",
+            },
+          },
+    )
+  }
+  className={inspectorInputClass()}
+>
+  <option value="default">Default</option>
+  <option value="cards">Cards</option>
+  <option value="hero">Hero</option>
+  <option value="standard">Standard</option>
+</select>
     </div>
 
     <div className="mt-4">
       <div className={inspectorLabelClass()}>Animation Style</div>
-      <select
-        value={((selectedBlock.data as any).animationStyle ?? "pulse") === "slide" ? "bounce" : ((selectedBlock.data as any).animationStyle ?? "pulse")}
-        onChange={(e) =>
-          updateSelectedBlock((block) =>
-            block.type !== "countdown"
-              ? block
-              : {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    animationStyle: e.target.value as "pulse" | "flip" | "bounce",
-                  },
-                },
-          )
-        }
-        className={inspectorInputClass()}
-      >
-        <option value="pulse">Pulse</option>
-        <option value="flip">Flip</option>
-        <option value="bounce">Bounce</option>
-      </select>
+<select
+  value={
+    ((selectedBlock.data as any).animationStyle ?? "none") === "slide"
+      ? "bounce"
+      : ((selectedBlock.data as any).animationStyle ?? "none")
+  }
+  onChange={(e) =>
+    updateSelectedBlock((block) =>
+      block.type !== "countdown"
+        ? block
+        : {
+            ...block,
+            data: {
+              ...block.data,
+              animationStyle: e.target.value as
+                | "none"
+                | "pulse"
+                | "flip"
+                | "bounce",
+            },
+          },
+    )
+  }
+  className={inspectorInputClass()}
+>
+  <option value="none">None</option>
+  <option value="pulse">Pulse</option>
+  <option value="flip">Flip</option>
+  <option value="bounce">Bounce</option>
+</select>
     </div>
+
+    <div className="mt-4">
+  <div className={inspectorLabelClass()}>Alignment</div>
+
+  <div className="mt-2 flex gap-2">
+    {(["left", "center", "right"] as const).map((alignment) => {
+      const active =
+        (((selectedBlock.data as any).alignment ??
+          "center") as string) === alignment;
+
+      return (
+        <button
+          key={alignment}
+          type="button"
+          onClick={() =>
+            updateSelectedBlock((block) =>
+              block.type !== "countdown"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      alignment,
+                    },
+                  },
+            )
+          }
+          className={[
+            "flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition",
+            active
+              ? "border-neutral-900 bg-neutral-900 text-white"
+              : "border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-100",
+          ].join(" ")}
+        >
+          {alignment.charAt(0).toUpperCase() + alignment.slice(1)}
+        </button>
+      );
+    })}
+  </div>
+</div>
 
     <div className="mt-4">
       <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
@@ -10170,6 +10245,41 @@ if (selectedBlock?.type === "rsvp") {
         Show Rings
       </label>
     </div>
+
+    <div className="mt-4 space-y-2">
+  <div className={inspectorLabelClass()}>Visible Units</div>
+
+  {[
+    ["showDays", "Show Days"],
+    ["showHours", "Show Hours"],
+    ["showMinutes", "Show Minutes"],
+    ["showSeconds", "Show Seconds"],
+  ].map(([key, label]) => (
+    <label
+      key={key}
+      className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800"
+    >
+      <input
+        type="checkbox"
+        checked={(selectedBlock.data as any)[key] !== false}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "countdown"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    [key]: e.target.checked,
+                  },
+                },
+          )
+        }
+      />
+      {label}
+    </label>
+  ))}
+</div>
 
     <div className="mt-4">
       <div className={inspectorLabelClass()}>Heading (optional)</div>

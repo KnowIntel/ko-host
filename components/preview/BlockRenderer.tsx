@@ -1695,11 +1695,52 @@ function renderCountdown(
     const variant = block.data.styleVariant ?? "default";
     const showRings = block.data.showRings !== false;
 const rawAnimationStyle =
-  ((block.data as any).animationStyle as "pulse" | "flip" | "slide" | "bounce" | undefined) ?? "pulse";
+  ((block.data as any).animationStyle as
+    | "none"
+    | "pulse"
+    | "flip"
+    | "slide"
+    | "bounce"
+    | undefined) ?? "none";
 
-const animationStyle = rawAnimationStyle === "slide" ? "bounce" : rawAnimationStyle;
+const animationStyle =
+  rawAnimationStyle === "slide" ? "bounce" : rawAnimationStyle;
+
+const alignment =
+  ((block.data as any).alignment as "left" | "center" | "right" | undefined) ??
+  "center";
+
+const justifyClass =
+  alignment === "left"
+    ? "justify-start text-left"
+    : alignment === "right"
+      ? "justify-end text-right"
+      : "justify-center text-center";
+
+const showDays = (block.data as any).showDays !== false;
+const showHours = (block.data as any).showHours !== false;
+const showMinutes = (block.data as any).showMinutes !== false;
+const showSeconds = (block.data as any).showSeconds !== false;
+
+const standardValueStyle = getContainerTextStyle(
+  ((block.data as any).standardValueStyle ??
+    block.data.style ??
+    {}) as TextStyle,
+  designKey,
+);
+
+const standardUnitStyle = getContainerTextStyle(
+  ((block.data as any).standardUnitStyle ??
+    block.data.style ??
+    {}) as TextStyle,
+  designKey,
+);
 
 const countdownAnimationTransform = (baseTransform: string) => {
+  if (animationStyle === "none") {
+    return baseTransform;
+  }
+
   if (!isTicking) return baseTransform;
 
   if (animationStyle === "flip") {
@@ -1771,14 +1812,91 @@ if (!target || Number.isNaN(target)) {
 
     const format = (n: number) => String(n).padStart(2, "0");
 
-    const partsRaw = [
-      { label: "D", value: format(days), raw: days },
-      { label: "H", value: format(hours), raw: hours },
-      { label: "M", value: format(minutes), raw: minutes },
-      { label: "S", value: format(seconds), raw: seconds },
-    ];
+const partsRaw = [
+  {
+    key: "days",
+    label: "DAYS",
+    shortLabel: "D",
+    value: format(days),
+    raw: days,
+    visible: showDays,
+  },
+  {
+    key: "hours",
+    label: "HRS",
+    shortLabel: "H",
+    value: format(hours),
+    raw: hours,
+    visible: showHours,
+  },
+  {
+    key: "minutes",
+    label: "MINS",
+    shortLabel: "M",
+    value: format(minutes),
+    raw: minutes,
+    visible: showMinutes,
+  },
+  {
+    key: "seconds",
+    label: "SECS",
+    shortLabel: "S",
+    value: format(seconds),
+    raw: seconds,
+    visible: showSeconds,
+  },
+];
 
-    const parts = days > 0 ? partsRaw : partsRaw.filter((p) => p.label !== "D");
+const parts = partsRaw.filter((p) => p.visible);
+
+    if (variant === "standard") {
+  return (
+    <div
+      className={[
+        "flex h-full w-full flex-col gap-2 p-4",
+        alignment === "left"
+          ? "items-start text-left"
+          : alignment === "right"
+            ? "items-end text-right"
+            : "items-center text-center",
+      ].join(" ")}
+      style={appearanceStyle}
+    >
+      {block.data.heading ? (
+        <div
+          className={["uppercase tracking-[0.14em]", getMutedTextClass(designKey)].join(" ")}
+          style={style}
+        >
+          {block.data.heading}
+        </div>
+      ) : null}
+
+      <div
+        className={[
+          "flex w-full flex-wrap items-center gap-2",
+          justifyClass,
+        ].join(" ")}
+      >
+        {parts.map((part) => (
+          <div key={part.key} className="flex items-baseline gap-1">
+            <span
+              className="font-bold leading-none"
+              style={standardValueStyle}
+            >
+              {part.value}
+            </span>
+            <span
+              className="text-xs uppercase tracking-[0.12em]"
+              style={standardUnitStyle}
+            >
+              {part.label}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
     if (variant === "cards") {
       return (
@@ -1832,11 +1950,11 @@ if (!target || Number.isNaN(target)) {
                         strokeDashoffset={
                           175 -
                           175 *
-                            (part.label === "S"
+                            (part.shortLabel === "S"
                               ? seconds / 60
-                              : part.label === "M"
+                              : part.shortLabel === "M"
                                 ? minutes / 60
-                                : part.label === "H"
+                                : part.shortLabel === "H"
                                   ? hours / 24
                                   : days / 365)
                         }
@@ -1854,6 +1972,8 @@ if (!target || Number.isNaN(target)) {
                       ...tileStyle,
                       ...countdownAnimationExtraStyle,
                       fontSize: Math.max(20, Number(tileStyle.fontSize) || 20),
+                      width: Math.max(64, (Number(tileStyle.fontSize) || 20) * 3.2),
+                      minHeight: Math.max(64, (Number(tileStyle.fontSize) || 20) * 3.6),
                       transition: countdownAnimationTransition,
                       transform: countdownAnimationTransform(
                         seconds < 10
@@ -1936,11 +2056,11 @@ if (!target || Number.isNaN(target)) {
                         strokeDashoffset={
                           214 -
                           214 *
-                            (part.label === "S"
+                            (part.shortLabel === "S"
                               ? seconds / 60
-                              : part.label === "M"
+                              : part.shortLabel === "M"
                                 ? minutes / 60
-                                : part.label === "H"
+                                : part.shortLabel === "H"
                                   ? hours / 24
                                   : days / 365)
                         }
@@ -1959,6 +2079,8 @@ if (!target || Number.isNaN(target)) {
                       ...countdownAnimationExtraStyle,
                       display: "inline-block",
                       fontSize: Math.max(36, Number(tileStyle.fontSize) || 36),
+                      width: Math.max(80, (Number(tileStyle.fontSize) || 36) * 2.6),
+                      minHeight: Math.max(80, (Number(tileStyle.fontSize) || 36) * 2.8),
                       transition: countdownAnimationTransition,
                       transform: countdownAnimationTransform(
                         seconds < 10

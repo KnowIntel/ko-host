@@ -488,8 +488,17 @@ export type CountdownBlock = BaseBlock & {
     targetIso: string;
     completedMessage: string;
     style?: TextStyle;
-    styleVariant?: "default" | "cards" | "hero" | "bounce" | "slide";
+    tileStyle?: TextStyle;
+    standardValueStyle?: TextStyle;
+    standardUnitStyle?: TextStyle;
+    styleVariant?: "default" | "cards" | "hero" | "standard" | "bounce" | "slide";
+    animationStyle?: "none" | "pulse" | "flip" | "bounce" | "slide";
+    alignment?: "left" | "center" | "right";
     showRings?: boolean;
+    showDays?: boolean;
+    showHours?: boolean;
+    showMinutes?: boolean;
+    showSeconds?: boolean;
   };
 };
 
@@ -1893,8 +1902,25 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
           targetIso: "",
           completedMessage: "Countdown finished",
           style: createDefaultTextStyle(),
+          tileStyle: createDefaultTextStyle(),
+          standardValueStyle: {
+            ...createDefaultTextStyle(),
+            fontSize: 24,
+            color: "#ef4444",
+          },
+          standardUnitStyle: {
+            ...createDefaultTextStyle(),
+            fontSize: 11,
+            color: "#e5e7eb",
+          },
           styleVariant: "default",
+          animationStyle: "none",
+          alignment: "center",
           showRings: true,
+          showDays: true,
+          showHours: true,
+          showMinutes: true,
+          showSeconds: true,
         },
       };
 
