@@ -2973,6 +2973,11 @@ const handleVideoUpload = async (
 };
 
 function applyStylePatch(patch: Partial<TextStyle>) {
+  console.log("APPLY STYLE PATCH", {
+  selectedType: selectedBlock?.type,
+  countdownStyleTarget,
+  patch,
+});
   if (selectedBlock?.type === "rsvp") {
   updateSelectedRsvpElementStyle((current) => ({
     ...current,
