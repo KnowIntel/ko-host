@@ -1695,124 +1695,150 @@ function renderCountdown(
       ? new Date(block.data.targetIso).getTime()
       : NaN;
 
-    const style = getContainerTextStyle(block.data.style, designKey);
-    const tileStyle = getContainerTextStyle(
-      ((block.data as any).tileStyle ?? block.data.style ?? {}) as TextStyle,
+    const data = block.data as any;
+    const appearanceStyle = getAppearanceStyle(block);
+
+    const headingStyle = getContainerTextStyle(
+      ((data.headingStyle ?? data.style ?? {}) as TextStyle),
       designKey,
     );
+
+    const backgroundTextStyle = getContainerTextStyle(
+      block.data.style,
+      designKey,
+    );
+
+    const tileStyle = getContainerTextStyle(
+      ((data.tileStyle ?? block.data.style ?? {}) as TextStyle),
+      designKey,
+    );
+
+    const valueStyle = getContainerTextStyle(
+      ((data.standardValueStyle ?? block.data.style ?? {}) as TextStyle),
+      designKey,
+    );
+
+    const unitStyle = getContainerTextStyle(
+      ((data.standardUnitStyle ?? block.data.style ?? {}) as TextStyle),
+      designKey,
+    );
+
     const tileBackgroundColor =
-      ((block.data as any).tileStyle?.backgroundColor as string | undefined) ??
-      undefined;
+      (data.tileStyle?.backgroundColor as string | undefined) ?? undefined;
 
-    const variant = block.data.styleVariant ?? "default";
-    const showRings = block.data.showRings !== false;
-const rawAnimationStyle =
-  ((block.data as any).animationStyle as
-    | "none"
-    | "pulse"
-    | "flip"
-    | "slide"
-    | "bounce"
-    | undefined) ?? "none";
+    const tileBorderColor =
+      (data.tileStyle?.borderColor as string | undefined) ?? undefined;
 
-const animationStyle =
-  rawAnimationStyle === "slide" ? "bounce" : rawAnimationStyle;
+    const variant = (data.styleVariant ?? "default") as
+      | "default"
+      | "cards"
+      | "hero"
+      | "stage"
+      | "standard";
 
-const alignment =
-  ((block.data as any).alignment as "left" | "center" | "right" | undefined) ??
-  "center";
+    const showRings = data.showRings !== false;
+    const showSeparator = data.showSeparator !== false;
 
-const justifyClass =
-  alignment === "left"
-    ? "justify-start text-left"
-    : alignment === "right"
-      ? "justify-end text-right"
-      : "justify-center text-center";
+    const rawAnimationStyle =
+      (data.animationStyle as
+        | "none"
+        | "pulse"
+        | "flip"
+        | "slide"
+        | "bounce"
+        | undefined) ?? "none";
 
-const showDays = (block.data as any).showDays !== false;
-const showHours = (block.data as any).showHours !== false;
-const showMinutes = (block.data as any).showMinutes !== false;
-const showSeconds = (block.data as any).showSeconds !== false;
+    const animationStyle =
+      rawAnimationStyle === "slide" ? "bounce" : rawAnimationStyle;
 
-const standardValueStyle = getContainerTextStyle(
-  ((block.data as any).standardValueStyle ??
-    block.data.style ??
-    {}) as TextStyle,
-  designKey,
-);
+    const alignment =
+      (data.alignment as "left" | "center" | "right" | undefined) ?? "center";
 
-const standardUnitStyle = getContainerTextStyle(
-  ((block.data as any).standardUnitStyle ??
-    block.data.style ??
-    {}) as TextStyle,
-  designKey,
-);
+    const alignmentClass =
+      alignment === "left"
+        ? "items-start text-left"
+        : alignment === "right"
+          ? "items-end text-right"
+          : "items-center text-center";
 
-const countdownAnimationTransform = (baseTransform: string) => {
-  if (animationStyle === "none") {
-    return baseTransform;
-  }
+    const justifyClass =
+      alignment === "left"
+        ? "justify-start"
+        : alignment === "right"
+          ? "justify-end"
+          : "justify-center";
 
-  if (!isTicking) return baseTransform;
+    const showDays = data.showDays !== false;
+    const showHours = data.showHours !== false;
+    const showMinutes = data.showMinutes !== false;
+    const showSeconds = data.showSeconds !== false;
 
-  if (animationStyle === "flip") {
-    return `${baseTransform} rotateX(-78deg)`;
-  }
+    const countdownAnimationTransform = (baseTransform: string) => {
+      if (animationStyle === "none") return baseTransform;
+      if (!isTicking) return baseTransform;
 
-  if (animationStyle === "bounce") {
-    return `${baseTransform} translateY(-14px)`;
-  }
-
-  return `${baseTransform} scale(1.08)`;
-};
-
-const countdownAnimationTransition =
-  animationStyle === "flip"
-    ? "transform 260ms cubic-bezier(0.34, 1.56, 0.64, 1), opacity 180ms ease"
-    : animationStyle === "bounce"
-      ? "transform 180ms ease, opacity 180ms ease"
-      : "transform 200ms ease";
-
-const countdownAnimationExtraStyle =
-  animationStyle === "flip"
-    ? {
-        transformStyle: "preserve-3d" as const,
-        backfaceVisibility: "hidden" as const,
-        transformOrigin: "center center",
+      if (animationStyle === "flip") {
+        return `${baseTransform} rotateX(-78deg)`;
       }
-    : {};
 
-const appearanceStyle = getAppearanceStyle(block);
+      if (animationStyle === "bounce") {
+        return `${baseTransform} translateY(-14px)`;
+      }
 
-if (!target || Number.isNaN(target)) {
-  return (
-    <Surface block={block} designKey={designKey} className={getSoftSurfaceClass(designKey)}>
-      {block.data.heading ? (
+      return `${baseTransform} scale(1.08)`;
+    };
+
+    const countdownAnimationTransition =
+      animationStyle === "flip"
+        ? "transform 260ms cubic-bezier(0.34, 1.56, 0.64, 1), opacity 180ms ease"
+        : animationStyle === "bounce"
+          ? "transform 180ms ease, opacity 180ms ease"
+          : "transform 200ms ease";
+
+    const countdownAnimationExtraStyle =
+      animationStyle === "flip"
+        ? {
+            transformStyle: "preserve-3d" as const,
+            backfaceVisibility: "hidden" as const,
+            transformOrigin: "center center",
+          }
+        : {};
+
+    if (!target || Number.isNaN(target)) {
+      return (
         <div
-          className={["uppercase tracking-[0.14em]", getMutedTextClass(designKey)].join(" ")}
-          style={style}
+          className={[
+            "flex h-full w-full flex-col justify-center gap-2 p-4",
+            alignmentClass,
+          ].join(" ")}
+          style={appearanceStyle}
         >
-          {block.data.heading}
-        </div>
-      ) : null}
+          {block.data.heading ? (
+            <div
+              className={["uppercase tracking-[0.14em]", getMutedTextClass(designKey)].join(" ")}
+              style={headingStyle}
+            >
+              {block.data.heading}
+            </div>
+          ) : null}
 
-      <div className="mt-2" style={style}>
-        Set target date
-      </div>
-    </Surface>
-  );
-}
+          <div style={backgroundTextStyle}>Set target date</div>
+        </div>
+      );
+    }
+
     const diff = target - tickNow;
 
     if (diff <= 0) {
       return (
-        <Surface block={block} designKey={designKey} className={getSoftSurfaceClass(designKey)}>
-          <div className="flex h-full w-full items-center justify-center text-center">
-            <div style={style}>
-              {block.data.completedMessage || "Countdown finished"}
-            </div>
+        <div
+          className="flex h-full w-full items-center justify-center p-4 text-center"
+          style={appearanceStyle}
+        >
+          <div style={backgroundTextStyle}>
+            {block.data.completedMessage || "Countdown finished"}
           </div>
-        </Surface>
+        </div>
       );
     }
 
@@ -1824,222 +1850,107 @@ if (!target || Number.isNaN(target)) {
 
     const format = (n: number) => String(n).padStart(2, "0");
 
-const partsRaw = [
-  {
-    key: "days",
-    label: "DAYS",
-    shortLabel: "D",
-    value: format(days),
-    raw: days,
-    visible: showDays,
-  },
-  {
-    key: "hours",
-    label: "HRS",
-    shortLabel: "H",
-    value: format(hours),
-    raw: hours,
-    visible: showHours,
-  },
-  {
-    key: "minutes",
-    label: "MINS",
-    shortLabel: "M",
-    value: format(minutes),
-    raw: minutes,
-    visible: showMinutes,
-  },
-  {
-    key: "seconds",
-    label: "SECS",
-    shortLabel: "S",
-    value: format(seconds),
-    raw: seconds,
-    visible: showSeconds,
-  },
-];
+    const parts = [
+      {
+        key: "days",
+        label: "DAYS",
+        shortLabel: "D",
+        value: format(days),
+        raw: days,
+        visible: showDays,
+      },
+      {
+        key: "hours",
+        label: "HRS",
+        shortLabel: "H",
+        value: format(hours),
+        raw: hours,
+        visible: showHours,
+      },
+      {
+        key: "minutes",
+        label: "MINS",
+        shortLabel: "M",
+        value: format(minutes),
+        raw: minutes,
+        visible: showMinutes,
+      },
+      {
+        key: "seconds",
+        label: "SECS",
+        shortLabel: "S",
+        value: format(seconds),
+        raw: seconds,
+        visible: showSeconds,
+      },
+    ].filter((p) => p.visible);
 
-const parts = partsRaw.filter((p) => p.visible);
+    const getProgress = (part: (typeof parts)[number]) =>
+      part.shortLabel === "S"
+        ? seconds / 60
+        : part.shortLabel === "M"
+          ? minutes / 60
+          : part.shortLabel === "H"
+            ? hours / 24
+            : Math.min(days / 365, 1);
 
-if (variant === "standard") {
-  const valueFontSize =
-    typeof standardValueStyle.fontSize === "number"
-      ? `${standardValueStyle.fontSize}px`
-      : standardValueStyle.fontSize ?? "24px";
+    const valueFontNumber = Number(valueStyle.fontSize) || 24;
+    const unitFontNumber = Number(unitStyle.fontSize) || 11;
 
-  const unitFontSize =
-    typeof standardUnitStyle.fontSize === "number"
-      ? `${standardUnitStyle.fontSize}px`
-      : standardUnitStyle.fontSize ?? "11px";
-
-
-  return (
-    <div
-      className={[
-        "flex h-full w-full flex-col justify-center gap-2 p-4",
-        alignment === "left"
-          ? "items-start text-left"
-          : alignment === "right"
-            ? "items-end text-right"
-            : "items-center text-center",
-      ].join(" ")}
-      style={appearanceStyle}
-    >
-      {block.data.heading ? (
-        <div
-          className={["uppercase tracking-[0.14em]", getMutedTextClass(designKey)].join(" ")}
-          style={style}
-        >
-          {block.data.heading}
-        </div>
-      ) : null}
-
-      <div
-        className={[
-          "flex w-full flex-wrap items-baseline gap-3",
-          alignment === "left"
-            ? "justify-start"
-            : alignment === "right"
-              ? "justify-end"
-              : "justify-center",
-        ].join(" ")}
-      >
-        {parts.map((part) => (
-          <div key={part.key} className="flex items-baseline gap-1">
-            <span
-              className="font-bold leading-none"
-              style={{
-                ...standardValueStyle,
-                fontSize: valueFontSize,
-                color: standardValueStyle.color || "#ef4444",
-              }}
-            >
-              {part.value}
-            </span>
-
-            <span
-              className="uppercase tracking-[0.12em]"
-              style={{
-                ...standardUnitStyle,
-                fontSize: unitFontSize,
-                color: standardUnitStyle.color || "#e5e7eb",
-              }}
-            >
-              {part.label}
-            </span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-    if (variant === "cards") {
+    if (variant === "standard" || variant === "stage") {
       return (
         <div
           className={[
-  "flex h-full w-full flex-col justify-center gap-4 p-4",
-  alignment === "left"
-    ? "items-start text-left"
-    : alignment === "right"
-      ? "items-end text-right"
-      : "items-center text-center",
-].join(" ")}
+            "flex h-full w-full flex-col justify-center gap-2 p-4",
+            alignmentClass,
+          ].join(" ")}
           style={appearanceStyle}
         >
           {block.data.heading ? (
             <div
-              className={["text-center uppercase tracking-[0.14em]", getMutedTextClass(designKey)].join(" ")}
-              style={style}
+              className={["uppercase tracking-[0.14em]", getMutedTextClass(designKey)].join(" ")}
+              style={headingStyle}
             >
               {block.data.heading}
             </div>
           ) : null}
 
-          <div className="flex flex-wrap items-center justify-center gap-2">
-            {parts.map((part, index) => (
-              <div key={part.label} className="flex items-center gap-2">
-                <div
-                  className={[
-                    "relative flex min-w-[64px] flex-col items-center justify-center rounded-xl border px-4 py-3 shadow-sm",
-                    isLightDesign(designKey)
-                      ? "border-neutral-200 bg-white"
-                      : "border-white/10 bg-white/5",
-                  ].join(" ")}
+          <div
+            className={[
+              "flex w-full flex-wrap gap-3",
+              variant === "stage" ? "items-end" : "items-baseline",
+              justifyClass,
+            ].join(" ")}
+          >
+            {parts.map((part) => (
+              <div
+                key={part.key}
+                className={[
+                  "flex gap-1",
+                  variant === "stage"
+                    ? "flex-col items-center"
+                    : "items-baseline",
+                ].join(" ")}
+              >
+                <span
+                  className="font-bold leading-none"
                   style={{
-                    backgroundColor: tileBackgroundColor,
-                    perspective: "700px",
+                    ...valueStyle,
+                    fontSize: valueStyle.fontSize ?? "24px",
                   }}
                 >
-                  {showRings ? (
-                    <svg className="pointer-events-none absolute inset-0 h-full w-full">
-                      <circle cx="50%" cy="50%" r="28" stroke="currentColor" strokeWidth="2" fill="none" opacity="0.1" />
-                      <circle
-                        cx="50%"
-                        cy="50%"
-                        r="28"
-                        stroke={
-                          seconds < 10
-                            ? "#EF4444"
-                            : seconds < 30
-                              ? "#F59E0B"
-                              : isLightDesign(designKey)
-                                ? "#6366F1"
-                                : "#A5B4FC"
-                        }
-                        strokeWidth="2"
-                        fill="none"
-                        strokeDasharray={175}
-                        strokeDashoffset={
-                          175 -
-                          175 *
-                            (part.shortLabel === "S"
-                              ? seconds / 60
-                              : part.shortLabel === "M"
-                                ? minutes / 60
-                                : part.shortLabel === "H"
-                                  ? hours / 24
-                                  : days / 365)
-                        }
-                        className="transition-all duration-500"
-                      />
-                    </svg>
-                  ) : null}
+                  {part.value}
+                </span>
 
-                  <div
-                    className={[
-                      "text-xl font-semibold transition-all duration-200",
-                      seconds < 10 ? "animate-pulse" : "",
-                    ].join(" ")}
-                    style={{
-                      ...tileStyle,
-                      ...countdownAnimationExtraStyle,
-                      fontSize: Math.max(20, Number(tileStyle.fontSize) || 20),
-                      width: Math.max(64, (Number(tileStyle.fontSize) || 20) * 3.2),
-                      minHeight: Math.max(64, (Number(tileStyle.fontSize) || 20) * 3.6),
-                      transition: countdownAnimationTransition,
-                      transform: countdownAnimationTransform(
-                        seconds < 10
-                          ? isTicking
-                            ? "scale(1.15)"
-                            : "scale(1.05)"
-                          : isTicking
-                            ? "scale(1.08)"
-                            : "scale(1)",
-                      ),
-                    }}
-                  >
-                    {part.value}
-                  </div>
-
-                  <div className={["mt-1 text-[10px]", getMutedTextClass(designKey)].join(" ")}>
-                    {part.label}
-                  </div>
-                </div>
-
-                {index < parts.length - 1 ? (
-                  <span className={["text-lg font-semibold", getMutedTextClass(designKey)].join(" ")}>:</span>
-                ) : null}
+                <span
+                  className="uppercase tracking-[0.12em]"
+                  style={{
+                    ...unitStyle,
+                    fontSize: unitStyle.fontSize ?? "11px",
+                  }}
+                >
+                  {part.label}
+                </span>
               </div>
             ))}
           </div>
@@ -2047,112 +1958,147 @@ if (variant === "standard") {
       );
     }
 
-    if (variant === "hero") {
+    if (variant === "cards" || variant === "hero") {
+      const isHero = variant === "hero";
+      const ringSize = Math.max(isHero ? 86 : 70, valueFontNumber * (isHero ? 2.45 : 2.8));
+      const ringStroke = isHero ? 3 : 2;
+      const ringRadius = ringSize / 2 - ringStroke * 3;
+      const ringCircumference = 2 * Math.PI * ringRadius;
+
       return (
         <div
           className={[
-  "flex h-full w-full flex-col justify-center gap-4 p-4",
-  alignment === "left"
-    ? "items-start text-left"
-    : alignment === "right"
-      ? "items-end text-right"
-      : "items-center text-center",
-].join(" ")}
+            "flex h-full w-full flex-col justify-center gap-4 p-4",
+            alignmentClass,
+          ].join(" ")}
           style={appearanceStyle}
         >
           {block.data.heading ? (
             <div
               className={["uppercase tracking-[0.14em]", getMutedTextClass(designKey)].join(" ")}
-              style={style}
+              style={headingStyle}
             >
               {block.data.heading}
             </div>
           ) : null}
 
-          <div className="flex flex-wrap items-center justify-center gap-4">
+          <div
+            className={[
+              "flex w-full flex-wrap items-center gap-2",
+              justifyClass,
+            ].join(" ")}
+          >
             {parts.map((part, index) => (
-              <div key={part.label} className="flex items-center gap-4">
+              <div key={part.key} className="flex items-center gap-2">
                 <div
-                  className="relative flex flex-col items-center rounded-xl px-3 py-2"
+                  className={[
+                    "relative flex flex-col items-center justify-center rounded-xl border px-3 py-3 shadow-sm",
+                    isLightDesign(designKey)
+                      ? "border-neutral-200 bg-white"
+                      : "border-white/10 bg-white/5",
+                  ].join(" ")}
                   style={{
+                    ...tileStyle,
                     backgroundColor: tileBackgroundColor,
+                    borderColor: tileBorderColor,
                     perspective: "700px",
+                    minWidth: ringSize + 18,
                   }}
                 >
-                  {showRings ? (
-                    <svg
-                      className="pointer-events-none absolute -top-2 left-1/2 -translate-x-1/2"
-                      width="80"
-                      height="80"
-                      viewBox="0 0 80 80"
-                    >
-                      <circle cx="40" cy="40" r="34" stroke="currentColor" strokeWidth="3" fill="none" opacity="0.1" />
-                      <circle
-                        cx="40"
-                        cy="40"
-                        r="34"
-                        stroke={
-                          seconds < 10
-                            ? "#EF4444"
-                            : seconds < 30
-                              ? "#F59E0B"
-                              : isLightDesign(designKey)
-                                ? "#6366F1"
-                                : "#A5B4FC"
-                        }
-                        strokeWidth="3"
-                        fill="none"
-                        strokeDasharray={214}
-                        strokeDashoffset={
-                          214 -
-                          214 *
-                            (part.shortLabel === "S"
-                              ? seconds / 60
-                              : part.shortLabel === "M"
-                                ? minutes / 60
-                                : part.shortLabel === "H"
-                                  ? hours / 24
-                                  : days / 365)
-                        }
-                        className="transition-all duration-500"
-                      />
-                    </svg>
-                  ) : null}
-
                   <div
-                    className={[
-                      "text-4xl font-bold leading-none transition-all duration-200",
-                      seconds < 10 ? "animate-pulse" : "",
-                    ].join(" ")}
+                    className="relative flex items-center justify-center"
                     style={{
-                      ...tileStyle,
-                      ...countdownAnimationExtraStyle,
-                      display: "inline-block",
-                      fontSize: Math.max(36, Number(tileStyle.fontSize) || 36),
-                      width: Math.max(80, (Number(tileStyle.fontSize) || 36) * 2.6),
-                      minHeight: Math.max(80, (Number(tileStyle.fontSize) || 36) * 2.8),
-                      transition: countdownAnimationTransition,
-                      transform: countdownAnimationTransform(
-                        seconds < 10
-                          ? isTicking
-                            ? "scale(1.15)"
-                            : "scale(1.05)"
-                          : isTicking
-                            ? "scale(1.08)"
-                            : "scale(1)",
-                      ),
+                      width: ringSize,
+                      height: ringSize,
                     }}
                   >
-                    {part.value}
+                    {showRings ? (
+                      <svg
+                        className="pointer-events-none absolute inset-0 h-full w-full"
+                        width={ringSize}
+                        height={ringSize}
+                        viewBox={`0 0 ${ringSize} ${ringSize}`}
+                      >
+                        <circle
+                          cx={ringSize / 2}
+                          cy={ringSize / 2}
+                          r={ringRadius}
+                          stroke="currentColor"
+                          strokeWidth={ringStroke}
+                          fill="none"
+                          opacity="0.1"
+                        />
+                        <circle
+                          cx={ringSize / 2}
+                          cy={ringSize / 2}
+                          r={ringRadius}
+                          stroke={
+                            seconds < 10
+                              ? "#EF4444"
+                              : seconds < 30
+                                ? "#F59E0B"
+                                : isLightDesign(designKey)
+                                  ? "#6366F1"
+                                  : "#A5B4FC"
+                          }
+                          strokeWidth={ringStroke}
+                          fill="none"
+                          strokeDasharray={ringCircumference}
+                          strokeDashoffset={
+                            ringCircumference -
+                            ringCircumference * getProgress(part)
+                          }
+                          className="transition-all duration-500"
+                        />
+                      </svg>
+                    ) : null}
+
+                    <span
+                      className={[
+                        "relative z-10 font-bold leading-none transition-all duration-200",
+                        seconds < 10 ? "animate-pulse" : "",
+                      ].join(" ")}
+                      style={{
+                        ...valueStyle,
+                        ...countdownAnimationExtraStyle,
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: valueStyle.fontSize ?? (isHero ? "36px" : "24px"),
+                        transition: countdownAnimationTransition,
+                        transform: countdownAnimationTransform(
+                          seconds < 10
+                            ? isTicking
+                              ? "scale(1.15)"
+                              : "scale(1.05)"
+                            : isTicking
+                              ? "scale(1.08)"
+                              : "scale(1)",
+                        ),
+                      }}
+                    >
+                      {part.value}
+                    </span>
                   </div>
 
-                  <div className={["mt-1 text-xs", getMutedTextClass(designKey)].join(" ")}>
+                  <div
+                    className="mt-1 uppercase tracking-[0.12em]"
+                    style={{
+                      ...unitStyle,
+                      fontSize: unitStyle.fontSize ?? (isHero ? "12px" : "10px"),
+                    }}
+                  >
                     {part.label}
                   </div>
                 </div>
 
-                {index < parts.length - 1 ? (
-                  <span className={["text-3xl font-bold", getMutedTextClass(designKey)].join(" ")}>:</span>
+                {showSeparator && index < parts.length - 1 ? (
+                  <span
+                    className={isHero ? "text-3xl font-bold" : "text-lg font-semibold"}
+                    style={unitStyle}
+                  >
+                    :
+                  </span>
                 ) : null}
               </div>
             ))}
@@ -2162,48 +2108,64 @@ if (variant === "standard") {
     }
 
     return (
-      <Surface block={block} designKey={designKey} className={getSoftSurfaceClass(designKey)}>
+      <div
+        className={[
+          "flex h-full w-full flex-col justify-center gap-3 p-4",
+          alignmentClass,
+        ].join(" ")}
+        style={appearanceStyle}
+      >
         {block.data.heading ? (
           <div
             className={["uppercase tracking-[0.14em]", getMutedTextClass(designKey)].join(" ")}
-            style={style}
+            style={headingStyle}
           >
             {block.data.heading}
           </div>
         ) : null}
 
-        <div className="mt-3 flex flex-wrap items-center gap-2">
+        <div
+          className={[
+            "flex w-full flex-wrap items-center gap-2",
+            justifyClass,
+          ].join(" ")}
+        >
           {parts.map((part, index) => (
-            <div key={part.label} className="flex items-center gap-2">
+            <div key={part.key} className="flex items-center gap-2">
               <div
                 className="flex items-baseline gap-1 rounded-lg px-2 py-1"
                 style={{
+                  ...tileStyle,
                   backgroundColor: tileBackgroundColor,
+                  borderColor: tileBorderColor,
                   perspective: "700px",
                 }}
               >
                 <span
                   className="font-semibold transition-transform duration-200"
                   style={{
-                    ...tileStyle,
+                    ...valueStyle,
                     ...countdownAnimationExtraStyle,
                     display: "inline-block",
                     transition: countdownAnimationTransition,
-                    transform: countdownAnimationTransform(isTicking ? "scale(1.05)" : "scale(1)"),
+                    transform: countdownAnimationTransform(
+                      isTicking ? "scale(1.05)" : "scale(1)",
+                    ),
                   }}
                 >
                   {part.value}
                 </span>
-                <span className={getMutedTextClass(designKey)}>{part.label}</span>
+
+                <span style={unitStyle}>{part.label}</span>
               </div>
 
-              {index < parts.length - 1 ? (
-                <span className={getMutedTextClass(designKey)}>:</span>
+              {showSeparator && index < parts.length - 1 ? (
+                <span style={unitStyle}>:</span>
               ) : null}
             </div>
           ))}
         </div>
-      </Surface>
+      </div>
     );
   }
 

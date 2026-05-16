@@ -1305,10 +1305,15 @@ const [richTextLinkValue, setRichTextLinkValue] = useState("https://");
 >("heading");
 
 
+type CountdownStyleTarget =
+  | "background"
+  | "tiles"
+  | "values"
+  | "units"
+  | "heading";
+
 const [countdownStyleTarget, setCountdownStyleTarget] =
-  useState<
-    "background" | "tiles" | "standardValues" | "standardUnits"
-  >("background");
+  useState<CountdownStyleTarget>("background");
 
 const [progressBarStyleTarget, setProgressBarStyleTarget] = useState<
   | "background"
@@ -1370,15 +1375,19 @@ const selectedStyle =
             ? (((selectedBlockFromDraft.data as any).tileStyle ??
                 (selectedBlockFromDraft.data as any).style ??
                 {}) as TextStyle)
-            : countdownStyleTarget === "standardValues"
+            : countdownStyleTarget === "values"
               ? (((selectedBlockFromDraft.data as any).standardValueStyle ??
                   (selectedBlockFromDraft.data as any).style ??
                   {}) as TextStyle)
-              : countdownStyleTarget === "standardUnits"
+              : countdownStyleTarget === "units"
                 ? (((selectedBlockFromDraft.data as any).standardUnitStyle ??
                     (selectedBlockFromDraft.data as any).style ??
                     {}) as TextStyle)
-                : (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
+                : countdownStyleTarget === "heading"
+                  ? (((selectedBlockFromDraft.data as any).headingStyle ??
+                      (selectedBlockFromDraft.data as any).style ??
+                      {}) as TextStyle)
+                  : (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
           : selectedBlockFromDraft?.type === "cart" ||
               selectedBlockFromDraft?.type === "checkout" ||
               selectedBlockFromDraft?.type === "text_fx" ||
@@ -3495,7 +3504,7 @@ if (selectedBlock?.type === "countdown") {
 
       const data = block.data as any;
 
-      if (countdownStyleTarget === "standardValues") {
+      if (countdownStyleTarget === "values") {
         return {
           ...block,
           data: {
@@ -3508,13 +3517,26 @@ if (selectedBlock?.type === "countdown") {
         };
       }
 
-      if (countdownStyleTarget === "standardUnits") {
+      if (countdownStyleTarget === "units") {
         return {
           ...block,
           data: {
             ...data,
             standardUnitStyle: {
               ...(data.standardUnitStyle ?? data.style ?? {}),
+              ...patch,
+            },
+          },
+        };
+      }
+
+      if (countdownStyleTarget === "heading") {
+        return {
+          ...block,
+          data: {
+            ...data,
+            headingStyle: {
+              ...(data.headingStyle ?? data.style ?? {}),
               ...patch,
             },
           },
@@ -7900,31 +7922,7 @@ const idsToExpand =
       {showTextControls ? (
         <>
 
-{selectedBlock?.type === "countdown" ? (
-  <>
-    <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
-
-    <select
-      value={countdownStyleTarget}
-      onChange={(e) =>
-      setCountdownStyleTarget(
-        e.target.value as
-          | "background"
-          | "tiles"
-          | "standardValues"
-          | "standardUnits",
-      )
-      }
-      className={topBarFieldClass("w-[140px]")}
-      title="Countdown style target"
-    >
-<option value="background">Background</option>
-<option value="tiles">Tiles</option>
-<option value="standardValues">Standard Values</option>
-<option value="standardUnits">Standard Units</option>
-    </select>
-  </>
-) : null}
+{null}
 
 
 {selectedBlock?.type === "frame" ? (
@@ -10241,7 +10239,14 @@ if (selectedBlock?.type === "rsvp") {
       <div className={inspectorLabelClass()}>Style Variant</div>
 <select
   value={selectedBlock.data.styleVariant ?? "default"}
-  onChange={(e) =>
+  onChange={(e) => {
+    const nextStyleVariant = e.target.value as
+      | "default"
+      | "cards"
+      | "hero"
+      | "stage"
+      | "standard";
+
     updateSelectedBlock((block) =>
       block.type !== "countdown"
         ? block
@@ -10249,20 +10254,17 @@ if (selectedBlock?.type === "rsvp") {
             ...block,
             data: {
               ...block.data,
-              styleVariant: e.target.value as
-                | "default"
-                | "cards"
-                | "hero"
-                | "standard",
+              styleVariant: nextStyleVariant as any,
             },
           },
-    )
-  }
+    );
+  }}
   className={inspectorInputClass()}
 >
   <option value="default">Default</option>
   <option value="cards">Cards</option>
   <option value="hero">Hero</option>
+  <option value="stage">Stage</option>
   <option value="standard">Standard</option>
 </select>
     </div>
@@ -10301,45 +10303,51 @@ if (selectedBlock?.type === "rsvp") {
 </select>
     </div>
 
-    <div className="mt-4">
-  <div className={inspectorLabelClass()}>Alignment</div>
-
-  <div className="mt-2 flex gap-2">
-    {(["left", "center", "right"] as const).map((alignment) => {
-      const active =
-        (((selectedBlock.data as any).alignment ??
-          "center") as string) === alignment;
-
-      return (
-        <button
-          key={alignment}
-          type="button"
-          onClick={() =>
-            updateSelectedBlock((block) =>
-              block.type !== "countdown"
-                ? block
-                : {
-                    ...block,
-                    data: {
-                      ...block.data,
-                      alignment,
-                    },
+        <div className="mt-4">
+      <div className={inspectorLabelClass()}>Target Date</div>
+      <input
+        ref={countdownTargetInputRef}
+        type="datetime-local"
+        value={selectedBlock.data.targetIso || ""}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "countdown"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    targetIso: e.target.value,
                   },
-            )
-          }
-          className={[
-            "flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition",
-            active
-              ? "border-neutral-900 bg-neutral-900 text-white"
-              : "border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-100",
-          ].join(" ")}
-        >
-          {alignment.charAt(0).toUpperCase() + alignment.slice(1)}
-        </button>
-      );
-    })}
-  </div>
-</div>
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Countdown Style Target</div>
+      <select
+        value={countdownStyleTarget}
+        onChange={(e) =>
+          setCountdownStyleTarget(e.target.value as CountdownStyleTarget)
+        }
+        className={inspectorInputClass()}
+      >
+        <option value="background">Background</option>
+
+        {(["default", "cards", "hero"] as const).includes(
+          ((selectedBlock.data as any).styleVariant ?? "default") as any,
+        ) ? (
+          <option value="tiles">Tiles</option>
+        ) : null}
+
+        <option value="values">Values</option>
+        <option value="units">Units</option>
+        <option value="heading">Heading</option>
+      </select>
+    </div>
 
     <div className="mt-4">
       <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
@@ -10363,6 +10371,33 @@ if (selectedBlock?.type === "rsvp") {
         Show Rings
       </label>
     </div>
+
+        {(["cards", "hero"] as const).includes(
+      ((selectedBlock.data as any).styleVariant ?? "default") as any,
+    ) ? (
+      <div className="mt-3">
+        <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+          <input
+            type="checkbox"
+            checked={(selectedBlock.data as any).showSeparator !== false}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "countdown"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        showSeparator: e.target.checked,
+                      },
+                    },
+              )
+            }
+          />
+          Show Separator
+        </label>
+      </div>
+    ) : null}
 
     <div className="mt-4 space-y-2">
   <div className={inspectorLabelClass()}>Visible Units</div>

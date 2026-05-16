@@ -487,14 +487,37 @@ export type CountdownBlock = BaseBlock & {
     heading?: string;
     targetIso: string;
     completedMessage: string;
+
     style?: TextStyle;
+
     tileStyle?: TextStyle;
+
+    headingStyle?: TextStyle;
+
     standardValueStyle?: TextStyle;
+
     standardUnitStyle?: TextStyle;
-    styleVariant?: "default" | "cards" | "hero" | "standard" | "bounce" | "slide";
-    animationStyle?: "none" | "pulse" | "flip" | "bounce" | "slide";
+
+    styleVariant?:
+      | "default"
+      | "cards"
+      | "hero"
+      | "stage"
+      | "standard";
+
+    animationStyle?:
+      | "none"
+      | "pulse"
+      | "flip"
+      | "bounce"
+      | "slide";
+
     alignment?: "left" | "center" | "right";
+
     showRings?: boolean;
+
+    showSeparator?: boolean;
+
     showDays?: boolean;
     showHours?: boolean;
     showMinutes?: boolean;
@@ -2870,41 +2893,60 @@ export function sanitizeBuilderDraft(input: unknown): BuilderDraft {
         grid: normalizeGridValue(block.grid, fallbackGrid),
         data: {
           ...block.data,
+
           heading:
-            typeof block.data.heading === "string" ? block.data.heading : "",
+            typeof block.data.heading === "string"
+              ? block.data.heading
+              : "",
+
           targetIso:
-            typeof block.data.targetIso === "string" ? block.data.targetIso : "",
+            typeof block.data.targetIso === "string"
+              ? block.data.targetIso
+              : "",
+
           completedMessage:
             typeof block.data.completedMessage === "string"
               ? block.data.completedMessage
               : "Countdown finished",
+
           style: {
             ...createDefaultTextStyle(),
             ...(block.data.style ?? {}),
           },
+
           tileStyle: {
             ...createDefaultTextStyle(),
             ...(countdownData.tileStyle ?? {}),
           },
+
+          headingStyle: {
+            ...createDefaultTextStyle(),
+            ...(countdownData.headingStyle ?? {}),
+          },
+
           standardValueStyle: {
             ...createDefaultTextStyle(),
             fontSize: 24,
             color: "#ef4444",
             ...(countdownData.standardValueStyle ?? {}),
           },
+
           standardUnitStyle: {
             ...createDefaultTextStyle(),
             fontSize: 11,
             color: "#e5e7eb",
             ...(countdownData.standardUnitStyle ?? {}),
           },
+
           styleVariant:
-            block.data.styleVariant === "cards" ||
-            block.data.styleVariant === "hero" ||
-            block.data.styleVariant === "standard" ||
-            block.data.styleVariant === "default"
-              ? block.data.styleVariant
+            countdownData.styleVariant === "cards" ||
+            countdownData.styleVariant === "hero" ||
+            countdownData.styleVariant === "stage" ||
+            countdownData.styleVariant === "standard" ||
+            countdownData.styleVariant === "default"
+              ? countdownData.styleVariant
               : "default",
+
           animationStyle:
             countdownData.animationStyle === "pulse" ||
             countdownData.animationStyle === "flip" ||
@@ -2912,13 +2954,18 @@ export function sanitizeBuilderDraft(input: unknown): BuilderDraft {
             countdownData.animationStyle === "none"
               ? countdownData.animationStyle
               : "none",
+
           alignment:
             countdownData.alignment === "left" ||
             countdownData.alignment === "center" ||
             countdownData.alignment === "right"
               ? countdownData.alignment
               : "center",
-          showRings: block.data.showRings !== false,
+
+          showRings: countdownData.showRings !== false,
+
+          showSeparator: countdownData.showSeparator !== false,
+
           showDays: countdownData.showDays !== false,
           showHours: countdownData.showHours !== false,
           showMinutes: countdownData.showMinutes !== false,
