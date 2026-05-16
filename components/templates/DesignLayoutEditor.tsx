@@ -7556,6 +7556,81 @@ onDrop={async (e) => {
       <div className="flex items-center gap-2">
   <div className={infoPillClass()}>{selectedContext.label}</div>
 
+  {selectedBlock?.type === "countdown" ? (
+  <>
+    <button
+      type="button"
+      className={topBarButtonClass(
+        ((selectedBlock.data as any).alignment ?? "center") === "left",
+      )}
+      onClick={() =>
+        updateSelectedBlock((block) =>
+          block.type !== "countdown"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  alignment: "left",
+                },
+              },
+        )
+      }
+      title="Align left"
+    >
+      Left
+    </button>
+
+    <button
+      type="button"
+      className={topBarButtonClass(
+        ((selectedBlock.data as any).alignment ?? "center") === "center",
+      )}
+      onClick={() =>
+        updateSelectedBlock((block) =>
+          block.type !== "countdown"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  alignment: "center",
+                },
+              },
+        )
+      }
+      title="Align center"
+    >
+      Center
+    </button>
+
+    <button
+      type="button"
+      className={topBarButtonClass(
+        ((selectedBlock.data as any).alignment ?? "center") === "right",
+      )}
+      onClick={() =>
+        updateSelectedBlock((block) =>
+          block.type !== "countdown"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  alignment: "right",
+                },
+              },
+        )
+      }
+      title="Align right"
+    >
+      Right
+    </button>
+
+    <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
+  </>
+) : null}
+
 {selectedBlock ? (
   <>
     <button
@@ -10283,79 +10358,6 @@ if (selectedBlock?.type === "rsvp") {
       </label>
     </div>
   </div>
-) : null}
-
-{selectedBlock?.type === "countdown" ? (
-  <>
-    <button
-      type="button"
-      className={topBarButtonClass(
-        ((selectedBlock.data as any).alignment ?? "center") === "left",
-      )}
-      onClick={() =>
-        updateSelectedBlock((block) =>
-          block.type !== "countdown"
-            ? block
-            : {
-                ...block,
-                data: {
-                  ...block.data,
-                  alignment: "left",
-                },
-              },
-        )
-      }
-      title="Align left"
-    >
-      Left
-    </button>
-
-    <button
-      type="button"
-      className={topBarButtonClass(
-        ((selectedBlock.data as any).alignment ?? "center") === "center",
-      )}
-      onClick={() =>
-        updateSelectedBlock((block) =>
-          block.type !== "countdown"
-            ? block
-            : {
-                ...block,
-                data: {
-                  ...block.data,
-                  alignment: "center",
-                },
-              },
-        )
-      }
-      title="Align center"
-    >
-      Center
-    </button>
-
-    <button
-      type="button"
-      className={topBarButtonClass(
-        ((selectedBlock.data as any).alignment ?? "center") === "right",
-      )}
-      onClick={() =>
-        updateSelectedBlock((block) =>
-          block.type !== "countdown"
-            ? block
-            : {
-                ...block,
-                data: {
-                  ...block.data,
-                  alignment: "right",
-                },
-              },
-        )
-      }
-      title="Align right"
-    >
-      Right
-    </button>
-  </>
 ) : null}
 
 {selectedBlock?.type === "audio" ? (
