@@ -10381,11 +10381,16 @@ if (selectedBlock?.type === "rsvp") {
     </div>
 
     <div className="mt-4">
-      <div className={inspectorLabelClass()}>Countdown Style Target</div>
+      <div className={inspectorLabelClass()}>
+        Countdown Style Target
+      </div>
+
       <select
         value={countdownStyleTarget}
         onChange={(e) =>
-          setCountdownStyleTarget(e.target.value as CountdownStyleTarget)
+          setCountdownStyleTarget(
+            e.target.value as CountdownStyleTarget,
+          )
         }
         className={inspectorInputClass()}
       >
@@ -10398,9 +10403,51 @@ if (selectedBlock?.type === "rsvp") {
         ) : null}
 
         <option value="values">Values</option>
+
         <option value="units">Units</option>
+
         <option value="heading">Heading</option>
       </select>
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Alignment</div>
+
+      <div className="mt-2 grid grid-cols-3 gap-2">
+        {(["left", "center", "right"] as const).map((alignment) => {
+          const active =
+            (((selectedBlock.data as any).alignment ?? "center") as string) ===
+            alignment;
+
+          return (
+            <button
+              key={alignment}
+              type="button"
+              onClick={() =>
+                updateSelectedBlock((block) =>
+                  block.type !== "countdown"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          alignment,
+                        },
+                      },
+                )
+              }
+              className={[
+                "rounded-lg border px-3 py-2 text-xs font-medium transition",
+                active
+                  ? "border-neutral-900 bg-neutral-900 text-white"
+                  : "border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-100",
+              ].join(" ")}
+            >
+              {alignment.charAt(0).toUpperCase() + alignment.slice(1)}
+            </button>
+          );
+        })}
+      </div>
     </div>
 
     <div className="mt-4">
