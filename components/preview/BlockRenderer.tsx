@@ -1845,11 +1845,21 @@ const partsRaw = [
 
 const parts = partsRaw.filter((p) => p.visible);
 
-    if (variant === "standard") {
+if (variant === "standard") {
+  const valueFontSize =
+    typeof standardValueStyle.fontSize === "number"
+      ? `${standardValueStyle.fontSize}px`
+      : standardValueStyle.fontSize ?? "24px";
+
+  const unitFontSize =
+    typeof standardUnitStyle.fontSize === "number"
+      ? `${standardUnitStyle.fontSize}px`
+      : standardUnitStyle.fontSize ?? "11px";
+
   return (
     <div
       className={[
-        "flex h-full w-full flex-col gap-2 p-4",
+        "flex h-full w-full flex-col justify-center gap-2 p-4",
         alignment === "left"
           ? "items-start text-left"
           : alignment === "right"
@@ -1869,40 +1879,37 @@ const parts = partsRaw.filter((p) => p.visible);
 
       <div
         className={[
-          "flex w-full flex-wrap items-center gap-2",
-          justifyClass,
+          "flex w-full flex-wrap items-baseline gap-3",
+          alignment === "left"
+            ? "justify-start"
+            : alignment === "right"
+              ? "justify-end"
+              : "justify-center",
         ].join(" ")}
       >
         {parts.map((part) => (
           <div key={part.key} className="flex items-baseline gap-1">
-<span
-  className="font-bold leading-none"
-  style={{
-    ...standardValueStyle,
-    fontFamily: standardValueStyle.fontFamily,
-    fontSize:
-      typeof standardValueStyle.fontSize === "number"
-        ? `${standardValueStyle.fontSize}px`
-        : standardValueStyle.fontSize,
-    color: standardValueStyle.color,
-  }}
->
-  {part.value}
-</span>
-<span
-  className="uppercase tracking-[0.12em]"
-  style={{
-    ...standardUnitStyle,
-    fontFamily: standardUnitStyle.fontFamily,
-    fontSize:
-      typeof standardUnitStyle.fontSize === "number"
-        ? `${standardUnitStyle.fontSize}px`
-        : standardUnitStyle.fontSize,
-    color: standardUnitStyle.color,
-  }}
->
-  {part.label}
-</span>
+            <span
+              className="font-bold leading-none"
+              style={{
+                ...standardValueStyle,
+                fontSize: valueFontSize,
+                color: standardValueStyle.color || "#ef4444",
+              }}
+            >
+              {part.value}
+            </span>
+
+            <span
+              className="uppercase tracking-[0.12em]"
+              style={{
+                ...standardUnitStyle,
+                fontSize: unitFontSize,
+                color: standardUnitStyle.color || "#e5e7eb",
+              }}
+            >
+              {part.label}
+            </span>
           </div>
         ))}
       </div>
@@ -1913,7 +1920,14 @@ const parts = partsRaw.filter((p) => p.visible);
     if (variant === "cards") {
       return (
         <div
-          className="flex h-full w-full flex-col items-center justify-center gap-4 p-4"
+          className={[
+  "flex h-full w-full flex-col justify-center gap-4 p-4",
+  alignment === "left"
+    ? "items-start text-left"
+    : alignment === "right"
+      ? "items-end text-right"
+      : "items-center text-center",
+].join(" ")}
           style={appearanceStyle}
         >
           {block.data.heading ? (
@@ -2019,7 +2033,14 @@ const parts = partsRaw.filter((p) => p.visible);
     if (variant === "hero") {
       return (
         <div
-          className="flex h-full w-full flex-col items-center justify-center gap-4 p-4 text-center"
+          className={[
+  "flex h-full w-full flex-col justify-center gap-4 p-4",
+  alignment === "left"
+    ? "items-start text-left"
+    : alignment === "right"
+      ? "items-end text-right"
+      : "items-center text-center",
+].join(" ")}
           style={appearanceStyle}
         >
           {block.data.heading ? (
