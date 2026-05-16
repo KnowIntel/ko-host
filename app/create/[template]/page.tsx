@@ -963,17 +963,19 @@ children={
           cancelText="Cancel"
           onConfirm={continueToPublish}
           onCancel={cancelPublishWarning}
-        />
-        extraContent={
-  <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-3 py-3 text-sm font-semibold text-red-700">
-    <span className="mr-2 rounded-md bg-red-600 px-2 py-1 text-xs font-bold uppercase tracking-wide text-white">
-      IMPORTANT
-    </span>
+          extraContent={
+            !isSignedIn ? (
+              <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-3 py-3 text-sm font-semibold text-red-700">
+                <span className="mr-2 rounded-md bg-red-600 px-2 py-1 text-xs font-bold uppercase tracking-wide text-white">
+                  IMPORTANT
+                </span>
 
-    Prior to signing in, download your Blueprint and use Build From Blueprint
-    after signing in to restore your work.
-  </div>
-}
+                Prior to signing in, download your Blueprint and use Build From Blueprint
+                after signing in to restore your work.
+              </div>
+            ) : null
+          }
+        />
       </div>
     </main>
   );

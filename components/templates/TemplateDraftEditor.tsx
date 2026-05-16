@@ -322,7 +322,35 @@ const draftUsagePercent = Math.min(
 
 return (
   <div className="relative">
-    <div className="mb-4 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
+
+    
+    <DesignLayoutEditor
+  templateKey={resolvedTemplateName}
+  designKey={resolvedDesignLayout}
+  draft={draft}
+  setDraft={setDraft}
+  onSaveDraft={handleSaveDraft}
+  publishHref={publishHref}
+  publishLabel={publishLabel}
+  microsite={microsite}
+  onPublishClick={() => {
+    onPublishClick?.();
+  }}
+
+onOpenAddPage={onOpenAddPage}
+onDuplicateActivePage={onDuplicateActivePage}
+onRemoveActivePage={onRemoveActivePage}
+onRenameActivePage={onRenameActivePage}
+  pages={pages}
+  activePageId={activePageId}
+  activePageSlug={activePageSlug}
+  micrositeSlug={micrositeSlug}
+  onSelectPage={onSelectPage}
+  onReorderPages={onReorderPages}
+  saveState={effectiveSaveState}
+  saveMessage={effectiveSaveMessage}
+  builderCapacityContent={
+    <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
       <div className="flex items-center justify-between gap-4">
         <div>
           <div className="text-sm font-semibold text-neutral-900">
@@ -368,33 +396,8 @@ return (
         builder size usage.
       </div>
     </div>
-
-<DesignLayoutEditor
-  templateKey={resolvedTemplateName}
-  designKey={resolvedDesignLayout}
-  draft={draft}
-  setDraft={setDraft}
-  onSaveDraft={handleSaveDraft}
-  publishHref={publishHref}
-  publishLabel={publishLabel}
-  microsite={microsite}
-  onPublishClick={() => {
-    onPublishClick?.();
-  }}
-
-onOpenAddPage={onOpenAddPage}
-onDuplicateActivePage={onDuplicateActivePage}
-onRemoveActivePage={onRemoveActivePage}
-onRenameActivePage={onRenameActivePage}
-  pages={pages}
-  activePageId={activePageId}
-  activePageSlug={activePageSlug}
-  micrositeSlug={micrositeSlug}
-  onSelectPage={onSelectPage}
-  onReorderPages={onReorderPages}
-  saveState={effectiveSaveState}
-  saveMessage={effectiveSaveMessage}
+  }
 />
-    </div>
-  );
+  </div>
+);
 }

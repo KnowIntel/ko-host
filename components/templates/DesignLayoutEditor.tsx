@@ -15,6 +15,7 @@ import {
   useState,
   type CSSProperties,
 } from "react";
+//Test
 
 import {
   moveCanvasItemBackward,
@@ -127,6 +128,7 @@ type Props = {
   publishHref?: string;
   publishLabel?: string;
   onPublishClick?: () => void;
+  builderCapacityContent?: React.ReactNode;
   onOpenAddPage?: () => void;
   onDuplicateActivePage?: () => void;
   saveState?: "idle" | "saving" | "saved" | "error" | "signin-required";
@@ -1124,30 +1126,33 @@ export default function DesignLayoutEditor({
   saveState,
   saveMessage,
   microsite,
+  builderCapacityContent,
 }: Props) {
   const [resetDraftModalOpen, setResetDraftModalOpen] = useState(false);
   const [draggedPageId, setDraggedPageId] = useState<string | null>(null);
   const selectedPageLength =
     ((draft as DraftWithPageExtras).pageLength ?? "1800") as PageLengthOption;
-const [listingStyleTarget, setListingStyleTarget] = useState<
-  "title" | "description" | "metadata"
->("title");
-const [selectedRsvpElementKey, setSelectedRsvpElementKey] = useState<
-  | "form"
-  | "image"
-  | "heading"
-  | "nameLabel"
-  | "firstName"
-  | "lastName"
-  | "email"
-  | "address"
-  | "attending"
-  | "meal"
-  | "guestToggle"
-  | "guestCount"
-  | "guestName"
-  | "comments"
->("heading");
+
+  const [listingStyleTarget, setListingStyleTarget] = useState<
+    "title" | "description" | "metadata"
+  >("title");
+
+  const [selectedRsvpElementKey, setSelectedRsvpElementKey] = useState<
+    | "form"
+    | "image"
+    | "heading"
+    | "nameLabel"
+    | "firstName"
+    | "lastName"
+    | "email"
+    | "address"
+    | "attending"
+    | "meal"
+    | "guestToggle"
+    | "guestCount"
+    | "guestName"
+    | "comments"
+  >("heading");
 
   const isPublished = microsite?.is_published;
   const isActive = microsite?.is_active;
@@ -7219,9 +7224,15 @@ onDrop={async (e) => {
   </>
 ) : null}
           </div>
-        </div>
-      </div>
-    </div>
+</div>
+</div>
+</div>
+
+{builderCapacityContent ? (
+  <div className="border-b border-neutral-200 bg-[#f3f3f3] px-6 py-3">
+    {builderCapacityContent}
+  </div>
+) : null}
 
 <div className="sticky top-0 z-[100] w-full bg-[#809cd4] shadow-md">
 
