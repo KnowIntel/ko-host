@@ -2863,6 +2863,8 @@ export function sanitizeBuilderDraft(input: unknown): BuilderDraft {
     }
 
     if (block.type === "countdown") {
+      const countdownData = block.data as any;
+
       return {
         ...block,
         grid: normalizeGridValue(block.grid, fallbackGrid),
@@ -2880,13 +2882,47 @@ export function sanitizeBuilderDraft(input: unknown): BuilderDraft {
             ...createDefaultTextStyle(),
             ...(block.data.style ?? {}),
           },
+          tileStyle: {
+            ...createDefaultTextStyle(),
+            ...(countdownData.tileStyle ?? {}),
+          },
+          standardValueStyle: {
+            ...createDefaultTextStyle(),
+            fontSize: 24,
+            color: "#ef4444",
+            ...(countdownData.standardValueStyle ?? {}),
+          },
+          standardUnitStyle: {
+            ...createDefaultTextStyle(),
+            fontSize: 11,
+            color: "#e5e7eb",
+            ...(countdownData.standardUnitStyle ?? {}),
+          },
           styleVariant:
             block.data.styleVariant === "cards" ||
             block.data.styleVariant === "hero" ||
+            block.data.styleVariant === "standard" ||
             block.data.styleVariant === "default"
               ? block.data.styleVariant
               : "default",
+          animationStyle:
+            countdownData.animationStyle === "pulse" ||
+            countdownData.animationStyle === "flip" ||
+            countdownData.animationStyle === "bounce" ||
+            countdownData.animationStyle === "none"
+              ? countdownData.animationStyle
+              : "none",
+          alignment:
+            countdownData.alignment === "left" ||
+            countdownData.alignment === "center" ||
+            countdownData.alignment === "right"
+              ? countdownData.alignment
+              : "center",
           showRings: block.data.showRings !== false,
+          showDays: countdownData.showDays !== false,
+          showHours: countdownData.showHours !== false,
+          showMinutes: countdownData.showMinutes !== false,
+          showSeconds: countdownData.showSeconds !== false,
         },
       };
     }
