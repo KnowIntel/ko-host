@@ -3474,28 +3474,7 @@ if (selectedBlock?.type === "donation") {
     return;
   }
 
-  if (selectedBlock?.type === "rich_text") {
-    setDraft((prev) => ({
-      ...prev,
-      blocks: prev.blocks.map((block) =>
-        block.id === selectedBlock.id && block.type === "rich_text"
-          ? {
-              ...block,
-              data: {
-                ...block.data,
-                style: {
-                  ...(block.data.style ?? {}),
-                  ...patch,
-                },
-              },
-            }
-          : block,
-      ),
-    }));
-    return;
-  }
-
-if (selectedBlock?.type === "countdown") {
+  if (selectedBlock?.type === "countdown") {
   setDraft((prev) => ({
     ...prev,
     blocks: prev.blocks.map((block) => {
@@ -3556,6 +3535,27 @@ if (selectedBlock?.type === "countdown") {
   }));
   return;
 }
+
+  if (selectedBlock?.type === "rich_text") {
+    setDraft((prev) => ({
+      ...prev,
+      blocks: prev.blocks.map((block) =>
+        block.id === selectedBlock.id && block.type === "rich_text"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                style: {
+                  ...(block.data.style ?? {}),
+                  ...patch,
+                },
+              },
+            }
+          : block,
+      ),
+    }));
+    return;
+  }
 
   if (selectedBlock?.type === "listing") {
     setDraft((prev) => ({
