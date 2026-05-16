@@ -20,7 +20,6 @@ import churchLayouts from "./templates/church_event";
 import graduationLayouts from "./templates/graduation";
 import petLayouts from "./templates/pet_adoption";
 
-
 import blankLayout from "./layouts/blank";
 
 const registry: Record<string, TemplateLayoutRegistry> = {

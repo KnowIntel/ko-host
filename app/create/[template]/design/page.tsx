@@ -55,6 +55,8 @@ export default async function CreateTemplateDesignPage({
 const draftPageCountByTemplateDesignKey: Record<string, number> = {
   "wedding_rsvp:modern": 5,
   "wedding_rsvp:classic": 3,
+  "wedding_rsvp:subtle": 1,
+
 
   "birthday_party:grown": 2,
   "birthday_party:playful": 1,
