@@ -71,9 +71,20 @@ function getJsonPayloadBytes(draft: BuilderDraft, activePageId?: string | null) 
 
 function collectPageMediaBytes(value: unknown) {
   let total = 0;
+  const seen = new WeakSet<object>();
+
+  function estimateDataUrlBytes(dataUrl: string) {
+    const commaIndex = dataUrl.indexOf(",");
+    const payload = commaIndex >= 0 ? dataUrl.slice(commaIndex + 1) : dataUrl;
+
+    return Math.floor((payload.length * 3) / 4);
+  }
 
   function walk(input: unknown) {
     if (!input || typeof input !== "object") return;
+
+    if (seen.has(input)) return;
+    seen.add(input);
 
     if (Array.isArray(input)) {
       input.forEach(walk);
@@ -93,10 +104,19 @@ function collectPageMediaBytes(value: unknown) {
           key === "imageSizeBytes" ||
           key === "videoSizeBytes" ||
           key === "audioSizeBytes" ||
-          key === "mediaSizeBytes"
+          key === "mediaSizeBytes" ||
+          key === "textureSizeBytes" ||
+          key === "attachmentSizeBytes"
         )
       ) {
         total += rawValue;
+      }
+
+      if (
+        typeof rawValue === "string" &&
+        rawValue.startsWith("data:")
+      ) {
+        total += estimateDataUrlBytes(rawValue);
       }
 
       walk(rawValue);
