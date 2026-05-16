@@ -9253,7 +9253,7 @@ if (selectedBlock?.type === "rsvp") {
           type="number"
           min={0}
           max={100}
-          value={(selectedTextFxBlock.data.fx as any)?.intensity ?? 50}
+          value={(selectedTextFxBlock?.data.fx as any)?.intensity ?? 50}
           onChange={(e) =>
             updateTextFx({
               intensity: Math.max(0, Math.min(100, Number(e.target.value) || 0)),
@@ -9269,7 +9269,7 @@ if (selectedBlock?.type === "rsvp") {
           type="number"
           min={-180}
           max={180}
-          value={(selectedTextFxBlock.data.fx as any)?.rotation ?? 0}
+          value={(selectedTextFxBlock?.data.fx as any)?.rotation ?? 0}
           onChange={(e) =>
             updateTextFx({
               rotation: Math.max(-180, Math.min(180, Number(e.target.value) || 0)),
@@ -9285,7 +9285,7 @@ if (selectedBlock?.type === "rsvp") {
           type="number"
           min={0}
           max={100}
-          value={Math.round(((selectedTextFxBlock.data.fx as any)?.opacity ?? 1) * 100)}
+          value={Math.round(((selectedTextFxBlock?.data.fx as any)?.opacity ?? 1) * 100)}
           onChange={(e) =>
             updateTextFx({
               opacity: Math.max(0, Math.min(100, Number(e.target.value) || 0)) / 100,
@@ -9301,7 +9301,7 @@ if (selectedBlock?.type === "rsvp") {
           type="number"
           min={50}
           max={200}
-          value={Math.round(((selectedTextFxBlock.data.fx as any)?.letterScaleX ?? 1) * 100)}
+          value={Math.round(((selectedTextFxBlock?.data.fx as any)?.letterScaleX ?? 1) * 100)}
           onChange={(e) =>
             updateTextFx({
               letterScaleX:
@@ -9316,7 +9316,7 @@ if (selectedBlock?.type === "rsvp") {
         <label className="flex items-center gap-3 text-sm font-medium text-neutral-800">
           <input
             type="checkbox"
-            checked={(selectedTextFxBlock.data.fx as any)?.shadowEnabled === true}
+            checked={(selectedTextFxBlock?.data.fx as any)?.shadowEnabled === true}
             onChange={(e) => updateTextFx({ shadowEnabled: e.target.checked })}
           />
           Text Shadow
@@ -9327,47 +9327,75 @@ if (selectedBlock?.type === "rsvp") {
             <div className={inspectorLabelClass()}>Shadow Color</div>
             <input
               type="color"
-              value={(selectedTextFxBlock.data.fx as any)?.shadowColor ?? "#000000"}
+              value={(selectedTextFxBlock?.data.fx as any)?.shadowColor ?? "#000000"}
               onChange={(e) => updateTextFx({ shadowColor: e.target.value })}
               className={inspectorInputClass()}
             />
           </div>
 
           <div>
-            <div className={inspectorLabelClass()}>Blur</div>
+            <div className="flex items-center justify-between">
+              <div className={inspectorLabelClass()}>Blur</div>
+              <div className="text-xs text-neutral-500">
+                {Math.round((((selectedTextFxBlock?.data.fx as any)?.shadowBlur ?? 10) / 40) * 100)}%
+              </div>
+            </div>
+
             <input
-              type="number"
+              type="range"
               min={0}
               max={40}
-              value={(selectedTextFxBlock.data.fx as any)?.shadowBlur ?? 4}
+              value={(selectedTextFxBlock?.data.fx as any)?.shadowBlur ?? 10}
               onChange={(e) =>
-                updateTextFx({ shadowBlur: Math.max(0, Number(e.target.value) || 0) })
+                updateTextFx({
+                  shadowBlur: Math.max(0, Math.min(40, Number(e.target.value) || 0)),
+                })
               }
-              className={inspectorInputClass()}
+              className="mt-2 w-full"
             />
           </div>
 
           <div>
-            <div className={inspectorLabelClass()}>Offset X</div>
+            <div className="flex items-center justify-between">
+              <div className={inspectorLabelClass()}>Offset X</div>
+              <div className="text-xs text-neutral-500">
+                {Math.round(((((selectedTextFxBlock?.data.fx as any)?.shadowOffsetX ?? 0) + 50) / 100) * 100)}%
+              </div>
+            </div>
+
             <input
-              type="number"
+              type="range"
               min={-50}
               max={50}
-              value={(selectedTextFxBlock.data.fx as any)?.shadowOffsetX ?? 2}
-              onChange={(e) => updateTextFx({ shadowOffsetX: Number(e.target.value) || 0 })}
-              className={inspectorInputClass()}
+              value={(selectedTextFxBlock?.data.fx as any)?.shadowOffsetX ?? 0}
+              onChange={(e) =>
+                updateTextFx({
+                  shadowOffsetX: Number(e.target.value) || 0,
+                })
+              }
+              className="mt-2 w-full"
             />
           </div>
 
           <div>
-            <div className={inspectorLabelClass()}>Offset Y</div>
+            <div className="flex items-center justify-between">
+              <div className={inspectorLabelClass()}>Offset Y</div>
+              <div className="text-xs text-neutral-500">
+                {Math.round(((((selectedTextFxBlock?.data.fx as any)?.shadowOffsetY ?? 0) + 50) / 100) * 100)}%
+              </div>
+            </div>
+
             <input
-              type="number"
+              type="range"
               min={-50}
               max={50}
-              value={(selectedTextFxBlock.data.fx as any)?.shadowOffsetY ?? 2}
-              onChange={(e) => updateTextFx({ shadowOffsetY: Number(e.target.value) || 0 })}
-              className={inspectorInputClass()}
+              value={(selectedTextFxBlock?.data.fx as any)?.shadowOffsetY ?? 0}
+              onChange={(e) =>
+                updateTextFx({
+                  shadowOffsetY: Number(e.target.value) || 0,
+                })
+              }
+              className="mt-2 w-full"
             />
           </div>
         </div>
@@ -9377,7 +9405,7 @@ if (selectedBlock?.type === "rsvp") {
         <label className="flex items-center gap-3 text-sm font-medium text-neutral-800">
           <input
             type="checkbox"
-            checked={(selectedTextFxBlock.data.fx as any)?.outlineEnabled === true}
+            checked={(selectedTextFxBlock?.data.fx as any)?.outlineEnabled === true}
             onChange={(e) => updateTextFx({ outlineEnabled: e.target.checked })}
           />
           Text Outline
@@ -9389,8 +9417,8 @@ if (selectedBlock?.type === "rsvp") {
             <input
               type="color"
               value={
-                (selectedTextFxBlock.data.fx as any)?.outlineColor
-                  ? String((selectedTextFxBlock.data.fx as any).outlineColor)
+                (selectedTextFxBlock?.data.fx as any)?.outlineColor
+                  ? String((selectedTextFxBlock?.data.fx as any).outlineColor)
                   : "#000000"
               }
               onChange={(e) => {
@@ -9406,7 +9434,7 @@ if (selectedBlock?.type === "rsvp") {
               type="number"
               min={0}
               max={12}
-              value={Number((selectedTextFxBlock.data.fx as any)?.outlineWidth ?? 2)}
+              value={Number((selectedTextFxBlock?.data.fx as any)?.outlineWidth ?? 2)}
               onChange={(e) => {
                 updateTextFx({
                   outlineWidth: Math.max(0, Math.min(12, Number(e.target.value) || 0)),
@@ -16602,9 +16630,9 @@ onInput={(e) => {
                     ...((block.data as any).imageShadow ?? {}),
                     enabled: e.target.checked,
                     color: (block.data as any).imageShadow?.color ?? "#000000",
-                    blur: (block.data as any).imageShadow?.blur ?? 16,
+                    blur: (block.data as any).imageShadow?.blur ?? 15,
                     offsetX: (block.data as any).imageShadow?.offsetX ?? 0,
-                    offsetY: (block.data as any).imageShadow?.offsetY ?? 8,
+                    offsetY: (block.data as any).imageShadow?.offsetY ?? 0,
                   },
                 } as any,
               },
@@ -16642,12 +16670,17 @@ onInput={(e) => {
     </div>
 
     <div>
-      <div className={inspectorLabelClass()}>Blur</div>
+                  <div className="flex items-center justify-between">
+              <div className={inspectorLabelClass()}>Blur</div>
+              <div className="text-xs text-neutral-500">
+                {Math.round((((selectedBlock.data as any).imageShadow?.blur ?? 15) / 60) * 100)}%
+              </div>
+            </div>
       <input
         type="range"
         min={0}
         max={60}
-        value={(selectedBlock.data as any).imageShadow?.blur ?? 16}
+        value={(selectedBlock.data as any).imageShadow?.blur ?? 15}
         onChange={(e) =>
           updateSelectedBlock((block) =>
             block.type !== "image"
@@ -16703,7 +16736,7 @@ onInput={(e) => {
         type="range"
         min={-60}
         max={60}
-        value={(selectedBlock.data as any).imageShadow?.offsetY ?? 8}
+        value={(selectedBlock.data as any).imageShadow?.offsetY ?? 0}
         onChange={(e) =>
           updateSelectedBlock((block) =>
             block.type !== "image"
