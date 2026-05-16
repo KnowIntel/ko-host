@@ -23,13 +23,18 @@ export async function uploadImage(file: File) {
     .upload(fileName, compressed, {
       cacheControl: "3600",
       upsert: false,
+      contentType: "image/webp",
     });
 
-  if (error) {
-    throw error;
-  }
+  if (error) throw error;
 
   const { data } = supabase.storage.from("uploads").getPublicUrl(fileName);
 
-  return data.publicUrl;
+  return {
+    url: data.publicUrl,
+    storagePath: fileName,
+    imageSizeBytes: compressed.size,
+    imageOriginalSizeBytes: file.size,
+    imageMimeType: "image/webp",
+  };
 }

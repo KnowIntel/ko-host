@@ -263,16 +263,38 @@ export default function ShowcaseEditor({ draft, setDraft }: Props) {
     });
   }
 
-  async function handleImageUpload(blockId: string, file: File | null) {
-    if (!file) return;
+  async function uploadBuilderImageFile(file: File) {
+  return uploadImage(file);
+}
 
-    const url = await readFileAsDataUrl(file);
+async function handleImageUpload(blockId: string, file: File | null) {
+  if (!file) return;
 
-    setDraft((prev) => ({
-      ...prev,
-      blocks: updateImageBlockUrl(prev.blocks, blockId, url),
-    }));
-  }
+  const uploaded = await uploadBuilderImageFile(file);
+
+  setDraft((prev) => ({
+    ...prev,
+    blocks: updateImageBlockUrl(prev.blocks, blockId, uploaded.url).map(
+      (block) =>
+        block.id === blockId && block.type === "image"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                image: {
+                  ...block.data.image,
+                  url: uploaded.url,
+                  imageStoragePath: uploaded.storagePath,
+                  imageSizeBytes: uploaded.imageSizeBytes,
+                  imageOriginalSizeBytes: uploaded.imageOriginalSizeBytes,
+                  imageMimeType: uploaded.imageMimeType,
+                },
+              },
+            }
+          : block,
+    ),
+  }));
+}
 
   return (
     <div className="grid gap-6 lg:grid-cols-[220px_minmax(0,1fr)_360px]">

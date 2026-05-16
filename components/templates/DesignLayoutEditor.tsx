@@ -6,6 +6,7 @@ import { BUILDER_TOOL_GUIDES } from "@/components/templates/builderToolGuides";
 import { BLOCK_GUIDES } from "@/components/templates/blockGuideContent";
 import PopBalloonCanvasPreview from "@/components/blocks/PopBalloonCanvasPreview";
 import { getStoreMeta } from "@/lib/utils/getStoreMeta";
+import { uploadImage } from "@/lib/uploadImage";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -2375,6 +2376,11 @@ useEffect(() => {
   });
 }
 
+
+async function uploadBuilderImageFile(file: File) {
+  return uploadImage(file);
+}
+
 async function pickColorWithEyeDropper(
   onPick: (color: string) => void,
 ) {
@@ -2854,7 +2860,7 @@ async function uploadPuzzleImageToSelectedBlock(blockId: string) {
       const file = files[0];
       if (!file) return;
 
-      const dataUrl = await readFileAsDataUrl(file);
+      const uploaded = await uploadBuilderImageFile(file);
 
       setDraft((current) => ({
         ...current,
@@ -2865,7 +2871,11 @@ async function uploadPuzzleImageToSelectedBlock(blockId: string) {
                 ...block,
                 data: {
                   ...block.data,
-                  imageUrl: dataUrl,
+                  imageUrl: uploaded.url,
+                  imageStoragePath: uploaded.storagePath,
+                  imageSizeBytes: uploaded.imageSizeBytes,
+                  imageOriginalSizeBytes: uploaded.imageOriginalSizeBytes,
+                  imageMimeType: uploaded.imageMimeType,
                   imageAlt: file.name || "Puzzle image",
                   generatedAt: "",
                   pieces: [],
@@ -2877,47 +2887,34 @@ async function uploadPuzzleImageToSelectedBlock(blockId: string) {
   });
 }
 
-  async function openAudioPicker(options: {
-    onSelect: (files: File[]) => Promise<void> | void;
-  }) {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = "audio/*";
-    input.multiple = false;
-    input.click();
+async function openAudioPicker(options: {
+  onSelect: (files: File[]) => Promise<void> | void;
+}) {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "audio/*";
+  input.multiple = false;
+  input.click();
 
-    input.onchange = async () => {
-      const files = Array.from(input.files ?? []);
-      if (!files.length) return;
-      await options.onSelect(files);
-    };
-  }
+  input.onchange = async () => {
+    const files = Array.from(input.files ?? []);
+    if (!files.length) return;
+    await options.onSelect(files);
+  };
+}
 
-  async function uploadAudioToSelectedBlock(blockId: string) {
-    await openAudioPicker({
-      onSelect: async (files) => {
-        const file = files[0];
-        if (!file) return;
+async function uploadAudioToSelectedBlock(blockId: string) {
+  await openAudioPicker({
+    onSelect: async (files) => {
+      const file = files[0];
+      if (!file) return;
 
-        const dataUrl = await readFileAsDataUrl(file);
-
-        setDraft((prev) => ({
-          ...prev,
-          blocks: prev.blocks.map((block) =>
-            block.id === blockId && block.type === "audio"
-              ? {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    audioUrl: dataUrl,
-                  },
-                }
-              : block,
-          ),
-        }));
-      },
-    });
-  }
+      setEditorUploadError(
+        "Audio upload is temporarily disabled until audio files are uploaded to Supabase before saving to the draft.",
+      );
+    },
+  });
+}
 
 function cancelResetDraft() {
   setResetDraftModalOpen(false);
@@ -4195,17 +4192,24 @@ function updateSelectedImageFadePatch(
   );
 }
 
-  async function uploadPageBackgroundImage() {
+async function uploadPageBackgroundImage() {
   await openImagePicker({
     onSelect: async (files) => {
       const file = files[0];
       if (!file) return;
 
-      const dataUrl = await readFileAsDataUrl(file);
+      const uploaded = await uploadBuilderImageFile(file);
 
       setDraft((prev) => ({
         ...(prev as DraftWithPageExtras),
-        pageBackgroundImage: dataUrl,
+
+        pageBackgroundImage: uploaded.url,
+        pageBackgroundImageStoragePath: uploaded.storagePath,
+        pageBackgroundImageSizeBytes: uploaded.imageSizeBytes,
+        pageBackgroundImageOriginalSizeBytes:
+          uploaded.imageOriginalSizeBytes,
+        pageBackgroundImageMimeType: uploaded.imageMimeType,
+
         pageBackgroundImageFit:
           (prev as DraftWithPageExtras).pageBackgroundImageFit ?? "zoom",
       }));
@@ -4222,21 +4226,30 @@ async function readFileAsCompressedDataUrl(
     outputType?: "image/jpeg" | "image/webp";
   },
 ) {
-  const {
-    maxWidth = 1600,
-    maxHeight = 1600,
-    quality = 0.78,
-    outputType = "image/jpeg",
-  } = options || {};
+const {
+  maxWidth = 1600,
+  maxHeight = 1600,
+  quality = 0.78,
+  outputType = "image/jpeg",
+} = options || {};
 
-  const originalDataUrl = await readFileAsDataUrl(file);
+const objectUrl = URL.createObjectURL(file);
 
-  const image = await new Promise<HTMLImageElement>((resolve, reject) => {
-    const img = new window.Image();
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error("Failed to load image."));
-    img.src = originalDataUrl;
-  });
+const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+  const img = new window.Image();
+
+  img.onload = () => {
+    URL.revokeObjectURL(objectUrl);
+    resolve(img);
+  };
+
+  img.onerror = () => {
+    URL.revokeObjectURL(objectUrl);
+    reject(new Error("Failed to load image."));
+  };
+
+  img.src = objectUrl;
+});
 
   let targetWidth = image.width;
   let targetHeight = image.height;
@@ -4375,66 +4388,76 @@ async function uploadDroppedGalleryFiles(
   }));
 }
 
-  async function uploadImageToSelectedBlock(blockId: string) {
-    await openImagePicker({
-      onSelect: async (files) => {
-        const file = files[0];
-        if (!file) return;
-        const dataUrl = await readFileAsDataUrl(file);
 
-        setDraft((prev) => ({
-          ...prev,
-          blocks: prev.blocks.map((block) => {
-            if (block.id !== blockId) return block;
+async function uploadImageToSelectedBlock(blockId: string) {
+  await openImagePicker({
+    onSelect: async (files) => {
+      const file = files[0];
+      if (!file) return;
 
-            if (block.type === "image") {
-              return {
-                ...block,
-                data: {
-                  ...block.data,
-                  image: {
-                    ...block.data.image,
-                      url: dataUrl,
-                      alt: file.name,
-                      imageSizeBytes: file.size,
-                      imageMimeType: file.type,
-                  },
+      const uploaded = await uploadBuilderImageFile(file);
+
+      setDraft((prev) => ({
+        ...prev,
+        blocks: prev.blocks.map((block) => {
+          if (block.id !== blockId) return block;
+
+          if (block.type === "image") {
+            return {
+              ...block,
+              data: {
+                ...block.data,
+                image: {
+                  ...block.data.image,
+                  url: uploaded.url,
+                  alt: file.name,
+                  imageStoragePath: uploaded.storagePath,
+                  imageSizeBytes: uploaded.imageSizeBytes,
+                  imageOriginalSizeBytes: uploaded.imageOriginalSizeBytes,
+                  imageMimeType: uploaded.imageMimeType,
                 },
-              };
-            }
+              },
+            };
+          }
 
-            if (block.type === "cta") {
-              return {
-                ...block,
-                data: {
-                  ...block.data,
-                  buttonImageUrl: dataUrl,
-                  buttonImageSizeBytes: file.size,
-                  buttonImageMimeType: file.type,
+          if (block.type === "cta") {
+            return {
+              ...block,
+              data: {
+                ...block.data,
+                buttonImageUrl: uploaded.url,
+                buttonImageStoragePath: uploaded.storagePath,
+                buttonImageSizeBytes: uploaded.imageSizeBytes,
+                buttonImageOriginalSizeBytes: uploaded.imageOriginalSizeBytes,
+                buttonImageMimeType: uploaded.imageMimeType,
+              },
+            };
+          }
+
+          if (block.type === "listing") {
+            return {
+              ...block,
+              data: {
+                ...block.data,
+                image: {
+                  ...block.data.image,
+                  url: uploaded.url,
+                  alt: file.name,
+                  imageStoragePath: uploaded.storagePath,
+                  imageSizeBytes: uploaded.imageSizeBytes,
+                  imageOriginalSizeBytes: uploaded.imageOriginalSizeBytes,
+                  imageMimeType: uploaded.imageMimeType,
                 },
-              };
-            }
+              },
+            };
+          }
 
-            if (block.type === "listing") {
-              return {
-                ...block,
-                data: {
-                  ...block.data,
-                  image: {
-                    ...block.data.image,
-                    url: dataUrl,
-                    alt: file.name,
-                  },
-                },
-              };
-            }
-
-            return block;
-          }),
-        }));
-      },
-    });
-  }
+          return block;
+        }),
+      }));
+    },
+  });
+}
 
 async function uploadGalleryImagesToBlock(blockId: string) {
   await openImagePicker({
@@ -4499,23 +4522,41 @@ async function uploadGalleryImagesToBlock(blockId: string) {
   });
 }
 
-  async function uploadImageToCarouselItem(blockId: string, itemId: string) {
+async function uploadImageToCarouselItem(blockId: string, itemId: string) {
   await openImagePicker({
     onSelect: async (files) => {
       const file = files[0];
       if (!file) return;
 
-      const dataUrl = await readFileAsDataUrl(file);
+      const uploaded = await uploadBuilderImageFile(file);
 
       setDraft((prev) => ({
         ...prev,
-        blocks: updateImageCarouselItemField(
-          prev.blocks,
-          blockId,
-          itemId,
-          "imageUrl",
-          dataUrl,
-        ),
+        blocks: prev.blocks.map((block) => {
+          if (block.id !== blockId || block.type !== "image_carousel") {
+            return block;
+          }
+
+          return {
+            ...block,
+            data: {
+              ...block.data,
+              items: (block.data.items ?? []).map((item: any) =>
+                item.id !== itemId
+                  ? item
+                  : {
+                      ...item,
+                      imageUrl: uploaded.url,
+                      imageStoragePath: uploaded.storagePath,
+                      imageSizeBytes: uploaded.imageSizeBytes,
+                      imageOriginalSizeBytes:
+                        uploaded.imageOriginalSizeBytes,
+                      imageMimeType: uploaded.imageMimeType,
+                    },
+              ),
+            },
+          };
+        }),
       }));
     },
   });
@@ -4526,18 +4567,26 @@ async function uploadMultipleImagesToCarousel(blockId: string) {
     multiple: true,
     onSelect: async (files) => {
       const newItems: CarouselImageItem[] = await Promise.all(
-        files.map(async (file, index) => ({
-          id: makeClientId("carouselitem"),
-          imageUrl: await readFileAsDataUrl(file),
-          title: `Slide ${index + 1}`,
-          subtitle: "",
-          href: "",
-          openInNewTab: false,
-          positionX: 50,
-          positionY: 50,
-          zoom: 1,
-          rotation: 0,
-        })),
+        files.map(async (file, index) => {
+          const uploaded = await uploadBuilderImageFile(file);
+
+          return {
+            id: makeClientId("carouselitem"),
+            imageUrl: uploaded.url,
+            imageStoragePath: uploaded.storagePath,
+            imageSizeBytes: uploaded.imageSizeBytes,
+            imageOriginalSizeBytes: uploaded.imageOriginalSizeBytes,
+            imageMimeType: uploaded.imageMimeType,
+            title: `Slide ${index + 1}`,
+            subtitle: "",
+            href: "",
+            openInNewTab: false,
+            positionX: 50,
+            positionY: 50,
+            zoom: 1,
+            rotation: 0,
+          };
+        }),
       );
 
       setDraft((prev) => ({
