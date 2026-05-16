@@ -9355,49 +9355,49 @@ if (selectedBlock?.type === "rsvp") {
             />
           </div>
 
-          <div>
-            <div className="flex items-center justify-between">
-              <div className={inspectorLabelClass()}>Offset X</div>
-              <div className="text-xs text-neutral-500">
-                {Math.round(((((selectedTextFxBlock?.data.fx as any)?.shadowOffsetX ?? 0) + 50) / 100) * 100)}%
-              </div>
-            </div>
+<div>
+  <div className="flex items-center justify-between">
+    <div className={inspectorLabelClass()}>Offset X</div>
+    <div className="text-xs text-neutral-500">
+      {Math.round((((selectedTextFxBlock?.data.fx as any)?.shadowOffsetX ?? 0) + 50))}%
+    </div>
+  </div>
 
-            <input
-              type="range"
-              min={-50}
-              max={50}
-              value={(selectedTextFxBlock?.data.fx as any)?.shadowOffsetX ?? 0}
-              onChange={(e) =>
-                updateTextFx({
-                  shadowOffsetX: Number(e.target.value) || 0,
-                })
-              }
-              className="mt-2 w-full"
-            />
-          </div>
+  <input
+    type="range"
+    min={-50}
+    max={50}
+    value={(selectedTextFxBlock?.data.fx as any)?.shadowOffsetX ?? 0}
+    onChange={(e) =>
+      updateTextFx({
+        shadowOffsetX: Number(e.target.value) || 0,
+      })
+    }
+    className="mt-2 w-full"
+  />
+</div>
 
-          <div>
-            <div className="flex items-center justify-between">
-              <div className={inspectorLabelClass()}>Offset Y</div>
-              <div className="text-xs text-neutral-500">
-                {Math.round(((((selectedTextFxBlock?.data.fx as any)?.shadowOffsetY ?? 0) + 50) / 100) * 100)}%
-              </div>
-            </div>
+<div>
+  <div className="flex items-center justify-between">
+    <div className={inspectorLabelClass()}>Offset Y</div>
+    <div className="text-xs text-neutral-500">
+      {Math.round((((selectedTextFxBlock?.data.fx as any)?.shadowOffsetY ?? 0) + 50))}%
+    </div>
+  </div>
 
-            <input
-              type="range"
-              min={-50}
-              max={50}
-              value={(selectedTextFxBlock?.data.fx as any)?.shadowOffsetY ?? 0}
-              onChange={(e) =>
-                updateTextFx({
-                  shadowOffsetY: Number(e.target.value) || 0,
-                })
-              }
-              className="mt-2 w-full"
-            />
-          </div>
+  <input
+    type="range"
+    min={-50}
+    max={50}
+    value={(selectedTextFxBlock?.data.fx as any)?.shadowOffsetY ?? 0}
+    onChange={(e) =>
+      updateTextFx({
+        shadowOffsetY: Number(e.target.value) || 0,
+      })
+    }
+    className="mt-2 w-full"
+  />
+</div>
         </div>
       </div>
 
