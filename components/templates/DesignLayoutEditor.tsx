@@ -2981,8 +2981,9 @@ const handleVideoUpload = async (
 };
 
 function applyStylePatch(patch: Partial<TextStyle>) {
-  console.log("APPLY STYLE PATCH", {
+console.log("APPLY STYLE PATCH FIRED", {
   selectedType: selectedBlock?.type,
+  selectedId: selectedBlock?.id,
   countdownStyleTarget,
   patch,
 });
@@ -8158,10 +8159,16 @@ const idsToExpand =
           }}
           onMouseEnter={() => applyStylePatch({ fontFamily: font })}
           onFocus={() => applyStylePatch({ fontFamily: font })}
-          onClick={() => {
-            applyStylePatch({ fontFamily: font });
-            setFontMenuOpen(false);
-          }}
+onClick={() => {
+  console.log("FONT CLICK", {
+    selectedType: selectedBlock?.type,
+    countdownStyleTarget,
+    font,
+  });
+
+  applyStylePatch({ fontFamily: font });
+  setFontMenuOpen(false);
+}}
         >
           {font}
         </button>
