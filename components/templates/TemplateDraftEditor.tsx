@@ -263,6 +263,20 @@ onReorderPages,
 
     const draftToSave = resolveDraftForSave(nextDraft);
 
+    const totalBytes = getPageCapacityBytes(draftToSave, activePageId);
+
+if (totalBytes > MAX_DRAFT_BYTES) {
+  setLocalSaveState("error");
+
+  setLocalSaveMessage(
+    `Builder capacity exceeded (${formatDraftBytes(
+      totalBytes,
+    )} / ${formatDraftBytes(MAX_DRAFT_BYTES)}). Reduce media usage before saving.`,
+  );
+
+  return;
+}
+
     try {
       setLocalSaveState("saving");
 

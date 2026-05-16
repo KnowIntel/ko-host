@@ -5,7 +5,7 @@ import { createLayoutPreset } from "../../shared";
 export default createLayoutPreset({
   designKey: "subtle",
 
-  label: "Subtle Grace",
+  label: "Subtle Anticipation",
   description:
     "Elegant and understated anticipation of a wedding invitation layout with soft typography and refined spacing",
   thumbnail:
