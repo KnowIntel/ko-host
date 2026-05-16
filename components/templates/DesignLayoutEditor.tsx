@@ -16702,33 +16702,39 @@ onInput={(e) => {
       />
     </div>
 
-    <div>
-      <div className={inspectorLabelClass()}>Offset X</div>
-      <input
-        type="range"
-        min={-60}
-        max={60}
-        value={(selectedBlock.data as any).imageShadow?.offsetX ?? 0}
-        onChange={(e) =>
-          updateSelectedBlock((block) =>
-            block.type !== "image"
-              ? block
-              : {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    imageShadow: {
-                      ...((block.data as any).imageShadow ?? {}),
-                      enabled: true,
-                      offsetX: Number(e.target.value),
-                    },
-                  } as any,
-                },
-          )
-        }
-        className="mt-2 w-full"
-      />
+<div>
+  <div className="flex items-center justify-between">
+    <div className={inspectorLabelClass()}>Offset X</div>
+    <div className="text-xs text-neutral-500">
+      {Math.round(((((selectedBlock.data as any).imageShadow?.offsetX ?? 0) + 60) / 120) * 100)}%
     </div>
+  </div>
+
+  <input
+    type="range"
+    min={-60}
+    max={60}
+    value={(selectedBlock.data as any).imageShadow?.offsetX ?? 0}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "image"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                imageShadow: {
+                  ...((block.data as any).imageShadow ?? {}),
+                  enabled: true,
+                  offsetX: Number(e.target.value),
+                },
+              } as any,
+            },
+      )
+    }
+    className="mt-2 w-full"
+  />
+</div>
 
     <div>
       <div className={inspectorLabelClass()}>Offset Y</div>
