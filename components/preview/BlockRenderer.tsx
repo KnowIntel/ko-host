@@ -1031,6 +1031,17 @@ function renderImage(
   const showCaption = Boolean((block.data as any).addCaption);
   const caption = String((block.data as any).caption ?? "").trim();
   const captionStyle = ((block.data as any).captionStyle ?? {}) as TextStyle;
+const imageShadow = (block.data as any).imageShadow ?? {};
+const imageShadowStyle =
+  imageShadow.enabled
+    ? {
+        filter: `drop-shadow(${Number(imageShadow.offsetX ?? 0)}px ${Number(
+          imageShadow.offsetY ?? 8,
+        )}px ${Number(imageShadow.blur ?? 16)}px ${
+          imageShadow.color ?? "rgba(0,0,0,0.35)"
+        })`,
+      }
+    : {};
 
   return (
 <div className="flex h-full w-full flex-col overflow-visible">
@@ -1039,6 +1050,7 @@ function renderImage(
       className="h-full w-full overflow-visible"
 style={{
   ...frameStyle,
+  ...imageShadowStyle,
   borderColor:
     block.appearance?.textureEnabled && block.appearance?.textureImageUrl
       ? "transparent"
@@ -1073,13 +1085,6 @@ style={{
     borderRadius: "inherit",
     display: "block",
     backgroundColor: "transparent",
-    filter: (block.data as any).imageShadow?.enabled
-      ? `drop-shadow(${Number((block.data as any).imageShadow?.offsetX ?? 0)}px ${Number(
-          (block.data as any).imageShadow?.offsetY ?? 8,
-        )}px ${Number((block.data as any).imageShadow?.blur ?? 16)}px ${
-          (block.data as any).imageShadow?.color ?? "rgba(0,0,0,0.35)"
-        })`
-      : undefined,
     ...fadeMaskStyle,
   }}
 />
