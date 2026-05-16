@@ -1993,9 +1993,11 @@ function renderCountdown(
                 <div
                   className={[
                     "relative flex flex-col items-center justify-center rounded-xl border px-3 py-3 shadow-sm",
-                    isLightDesign(designKey)
-                      ? "border-neutral-200 bg-white"
-                      : "border-white/10 bg-white/5",
+tileBorderColor
+  ? "border bg-white"
+  : isLightDesign(designKey)
+    ? "border-neutral-200 bg-white"
+    : "border-white/10 bg-white/5",
                   ].join(" ")}
                   style={{
                     ...tileStyle,
@@ -2133,7 +2135,7 @@ function renderCountdown(
           {parts.map((part, index) => (
             <div key={part.key} className="flex items-center gap-2">
               <div
-                className="flex items-baseline gap-1 rounded-lg px-2 py-1"
+                className="flex items-baseline gap-1 rounded-lg border px-2 py-1"
                 style={{
                   ...tileStyle,
                   backgroundColor: tileBackgroundColor,
