@@ -877,7 +877,7 @@ onSelectPage={(pageId) => {
       ) : null}
 
       {addPageModalOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+        <div className="fixed inset-0 z-[999999] flex items-center justify-center bg-black/40 px-4">
           <div className="w-full max-w-md rounded-3xl border border-neutral-200 bg-white p-6 shadow-2xl">
             <div className="text-lg font-semibold text-neutral-950">
               Add New Page
@@ -943,7 +943,7 @@ onSelectPage={(pageId) => {
       ) : null}
 
       {renameModalOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+        <div className="fixed inset-0 z-[999999] flex items-center justify-center bg-black/40 px-4">
           <div className="w-full max-w-md rounded-3xl border border-neutral-200 bg-white p-6 shadow-2xl">
             <div className="text-lg font-semibold text-neutral-950">
               Rename Page
@@ -1009,7 +1009,7 @@ onSelectPage={(pageId) => {
       ) : null}
 
       {deleteModalOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+        <div className="fixed inset-0 z-[999999] flex items-center justify-center bg-black/40 px-4">
           <div className="w-full max-w-md rounded-3xl border border-neutral-200 bg-white p-6 shadow-2xl">
             <div className="text-lg font-semibold text-neutral-950">
               Delete Page?

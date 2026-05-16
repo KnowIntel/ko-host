@@ -8141,39 +8141,33 @@ const idsToExpand =
     style={{
       left: fontMenuPosition.left,
       top: fontMenuPosition.top,
-      }}
-    >
-      {FONT_FAMILY_OPTIONS.map((font) => (
-        <button
-          key={font}
-          type="button"
-          className={[
-            "block w-full rounded-lg px-3 py-2 text-left text-sm text-neutral-900 hover:bg-neutral-100",
-            (selectedStyle.fontFamily ?? "inherit") === font
-              ? "bg-neutral-100 font-semibold"
-              : "",
-          ].join(" ")}
-          style={{
-            fontFamily: resolveFontFamily(font),
-          }}
-          onMouseEnter={() => applyStylePatch({ fontFamily: font })}
-          onFocus={() => applyStylePatch({ fontFamily: font })}
-onClick={() => {
-  console.log("FONT CLICK", {
-    selectedType: selectedBlock?.type,
-    countdownStyleTarget,
-    font,
-  });
-
-  applyStylePatch({ fontFamily: font });
-  setFontMenuOpen(false);
-}}
-        >
-          {font}
-        </button>
-      ))}
-    </div>
-  ) : null}
+    }}
+  >
+    {FONT_FAMILY_OPTIONS.map((font) => (
+      <button
+        key={font}
+        type="button"
+        className={[
+          "block w-full rounded-lg px-3 py-2 text-left text-sm text-neutral-900 hover:bg-neutral-100",
+          (selectedStyle.fontFamily ?? "inherit") === font
+            ? "bg-neutral-100 font-semibold"
+            : "",
+        ].join(" ")}
+        style={{
+          fontFamily: resolveFontFamily(font),
+        }}
+        onMouseEnter={() => applyStylePatch({ fontFamily: font })}
+        onFocus={() => applyStylePatch({ fontFamily: font })}
+        onClick={() => {
+          applyStylePatch({ fontFamily: font });
+          setFontMenuOpen(false);
+        }}
+      >
+        {font}
+      </button>
+    ))}
+  </div>
+) : null}
 </div>
 
 <input
@@ -16579,8 +16573,152 @@ onInput={(e) => {
                       </div>
                     </div>
 
-                    <div className="mt-5">
-                      <div className={inspectorLabelClass()}>Fade Edges</div>
+<div className="mt-5">
+  <div className={inspectorLabelClass()}>Shadow</div>
+
+  <label className="mt-3 flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+    <input
+      type="checkbox"
+      checked={Boolean((selectedBlock.data as any).imageShadow?.enabled)}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "image"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  imageShadow: {
+                    ...((block.data as any).imageShadow ?? {}),
+                    enabled: e.target.checked,
+                    color: (block.data as any).imageShadow?.color ?? "#000000",
+                    blur: (block.data as any).imageShadow?.blur ?? 16,
+                    offsetX: (block.data as any).imageShadow?.offsetX ?? 0,
+                    offsetY: (block.data as any).imageShadow?.offsetY ?? 8,
+                  },
+                } as any,
+              },
+        )
+      }
+    />
+    Enable Shadow
+  </label>
+
+  <div className="mt-4 grid grid-cols-1 gap-3">
+    <div>
+      <div className={inspectorLabelClass()}>Shadow Color</div>
+      <input
+        type="color"
+        value={(selectedBlock.data as any).imageShadow?.color ?? "#000000"}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "image"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    imageShadow: {
+                      ...((block.data as any).imageShadow ?? {}),
+                      enabled: true,
+                      color: e.target.value,
+                    },
+                  } as any,
+                },
+          )
+        }
+        className="mt-2 h-10 w-full rounded-xl border border-neutral-300 bg-white"
+      />
+    </div>
+
+    <div>
+      <div className={inspectorLabelClass()}>Blur</div>
+      <input
+        type="range"
+        min={0}
+        max={60}
+        value={(selectedBlock.data as any).imageShadow?.blur ?? 16}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "image"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    imageShadow: {
+                      ...((block.data as any).imageShadow ?? {}),
+                      enabled: true,
+                      blur: Number(e.target.value),
+                    },
+                  } as any,
+                },
+          )
+        }
+        className="mt-2 w-full"
+      />
+    </div>
+
+    <div>
+      <div className={inspectorLabelClass()}>Offset X</div>
+      <input
+        type="range"
+        min={-60}
+        max={60}
+        value={(selectedBlock.data as any).imageShadow?.offsetX ?? 0}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "image"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    imageShadow: {
+                      ...((block.data as any).imageShadow ?? {}),
+                      enabled: true,
+                      offsetX: Number(e.target.value),
+                    },
+                  } as any,
+                },
+          )
+        }
+        className="mt-2 w-full"
+      />
+    </div>
+
+    <div>
+      <div className={inspectorLabelClass()}>Offset Y</div>
+      <input
+        type="range"
+        min={-60}
+        max={60}
+        value={(selectedBlock.data as any).imageShadow?.offsetY ?? 8}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "image"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    imageShadow: {
+                      ...((block.data as any).imageShadow ?? {}),
+                      enabled: true,
+                      offsetY: Number(e.target.value),
+                    },
+                  } as any,
+                },
+          )
+        }
+        className="mt-2 w-full"
+      />
+    </div>
+  </div>
+</div>
+
+<div className="mt-5">
+  <div className={inspectorLabelClass()}>Fade Edges</div>
 
                       <div className="mt-3 grid grid-cols-2 gap-3">
                         <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
