@@ -1722,19 +1722,15 @@ const showHours = (block.data as any).showHours !== false;
 const showMinutes = (block.data as any).showMinutes !== false;
 const showSeconds = (block.data as any).showSeconds !== false;
 
-const standardValueStyle = getContainerTextStyle(
-  ((block.data as any).standardValueStyle ??
-    block.data.style ??
-    {}) as TextStyle,
-  designKey,
-);
+const standardValueStyle = {
+  ...getContainerTextStyle(block.data.style, designKey),
+  ...(((block.data as any).standardValueStyle ?? {}) as TextStyle),
+};
 
-const standardUnitStyle = getContainerTextStyle(
-  ((block.data as any).standardUnitStyle ??
-    block.data.style ??
-    {}) as TextStyle,
-  designKey,
-);
+const standardUnitStyle = {
+  ...getContainerTextStyle(block.data.style, designKey),
+  ...(((block.data as any).standardUnitStyle ?? {}) as TextStyle),
+};
 
 const countdownAnimationTransform = (baseTransform: string) => {
   if (animationStyle === "none") {
@@ -1879,18 +1875,34 @@ const parts = partsRaw.filter((p) => p.visible);
       >
         {parts.map((part) => (
           <div key={part.key} className="flex items-baseline gap-1">
-            <span
-              className="font-bold leading-none"
-              style={standardValueStyle}
-            >
-              {part.value}
-            </span>
-            <span
-              className="text-xs uppercase tracking-[0.12em]"
-              style={standardUnitStyle}
-            >
-              {part.label}
-            </span>
+<span
+  className="font-bold leading-none"
+  style={{
+    ...standardValueStyle,
+    fontFamily: standardValueStyle.fontFamily,
+    fontSize:
+      typeof standardValueStyle.fontSize === "number"
+        ? `${standardValueStyle.fontSize}px`
+        : standardValueStyle.fontSize,
+    color: standardValueStyle.color,
+  }}
+>
+  {part.value}
+</span>
+<span
+  className="uppercase tracking-[0.12em]"
+  style={{
+    ...standardUnitStyle,
+    fontFamily: standardUnitStyle.fontFamily,
+    fontSize:
+      typeof standardUnitStyle.fontSize === "number"
+        ? `${standardUnitStyle.fontSize}px`
+        : standardUnitStyle.fontSize,
+    color: standardUnitStyle.color,
+  }}
+>
+  {part.label}
+</span>
           </div>
         ))}
       </div>
