@@ -33,8 +33,8 @@ export default function ImageUploadDropzone({
 
       try {
         setIsUploading(true);
-        const url = await uploadImage(file);
-        onUploaded(url);
+const uploaded = await uploadImage(file);
+onUploaded(uploaded.url);
       } catch (error) {
         console.error("Image upload failed:", error);
         setUploadError("Image upload failed.");

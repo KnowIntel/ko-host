@@ -4562,8 +4562,6 @@ async function uploadImageToCarouselItem(blockId: string, itemId: string) {
   });
 }
 
-//test
-
 async function uploadMultipleImagesToCarousel(blockId: string) {
   await openImagePicker({
     multiple: true,
