@@ -10286,277 +10286,76 @@ if (selectedBlock?.type === "rsvp") {
 ) : null}
 
 {selectedBlock?.type === "countdown" ? (
-  <div id="inspector-countdown" className={inspectorCardClass()}>
-    <div className={inspectorLabelClass()}>Countdown</div>
-
-    <div className="mt-4">
-      <div className={inspectorLabelClass()}>Style Variant</div>
-<select
-  value={selectedBlock.data.styleVariant ?? "default"}
-  onChange={(e) => {
-    const nextStyleVariant = e.target.value as
-      | "default"
-      | "cards"
-      | "hero"
-      | "stage"
-      | "standard";
-
-    updateSelectedBlock((block) =>
-      block.type !== "countdown"
-        ? block
-        : {
-            ...block,
-            data: {
-              ...block.data,
-              styleVariant: nextStyleVariant as any,
-            },
-          },
-    );
-  }}
-  className={inspectorInputClass()}
->
-  <option value="default">Default</option>
-  <option value="cards">Cards</option>
-  <option value="hero">Hero</option>
-  <option value="stage">Stage</option>
-  <option value="standard">Standard</option>
-</select>
-    </div>
-
-    <div className="mt-4">
-      <div className={inspectorLabelClass()}>Animation Style</div>
-<select
-  value={
-    ((selectedBlock.data as any).animationStyle ?? "none") === "slide"
-      ? "bounce"
-      : ((selectedBlock.data as any).animationStyle ?? "none")
-  }
-  onChange={(e) =>
-    updateSelectedBlock((block) =>
-      block.type !== "countdown"
-        ? block
-        : {
-            ...block,
-            data: {
-              ...block.data,
-              animationStyle: e.target.value as
-                | "none"
-                | "pulse"
-                | "flip"
-                | "bounce",
-            },
-          },
-    )
-  }
-  className={inspectorInputClass()}
->
-  <option value="none">None</option>
-  <option value="pulse">Pulse</option>
-  <option value="flip">Flip</option>
-  <option value="bounce">Bounce</option>
-</select>
-    </div>
-
-        <div className="mt-4">
-      <div className={inspectorLabelClass()}>Target Date</div>
-      <input
-        ref={countdownTargetInputRef}
-        type="datetime-local"
-        value={selectedBlock.data.targetIso || ""}
-        onChange={(e) =>
-          updateSelectedBlock((block) =>
-            block.type !== "countdown"
-              ? block
-              : {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    targetIso: e.target.value,
-                  },
+  <>
+    <button
+      type="button"
+      className={topBarButtonClass(
+        ((selectedBlock.data as any).alignment ?? "center") === "left",
+      )}
+      onClick={() =>
+        updateSelectedBlock((block) =>
+          block.type !== "countdown"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  alignment: "left",
                 },
-          )
-        }
-        className={inspectorInputClass()}
-      />
-    </div>
-
-    <div className="mt-4">
-      <div className={inspectorLabelClass()}>Countdown Style Target</div>
-      <select
-        value={countdownStyleTarget}
-        onChange={(e) =>
-          setCountdownStyleTarget(e.target.value as CountdownStyleTarget)
-        }
-        className={inspectorInputClass()}
-      >
-        <option value="background">Background</option>
-
-        {(["default", "cards", "hero"] as const).includes(
-          ((selectedBlock.data as any).styleVariant ?? "default") as any,
-        ) ? (
-          <option value="tiles">Tiles</option>
-        ) : null}
-
-        <option value="values">Values</option>
-        <option value="units">Units</option>
-        <option value="heading">Heading</option>
-      </select>
-    </div>
-
-    <div className="mt-4">
-      <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
-        <input
-          type="checkbox"
-          checked={selectedBlock.data.showRings !== false}
-          onChange={(e) =>
-            updateSelectedBlock((block) =>
-              block.type !== "countdown"
-                ? block
-                : {
-                    ...block,
-                    data: {
-                      ...block.data,
-                      showRings: e.target.checked,
-                    },
-                  },
-            )
-          }
-        />
-        Show Rings
-      </label>
-    </div>
-
-        {(["cards", "hero"] as const).includes(
-      ((selectedBlock.data as any).styleVariant ?? "default") as any,
-    ) ? (
-      <div className="mt-3">
-        <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
-          <input
-            type="checkbox"
-            checked={(selectedBlock.data as any).showSeparator !== false}
-            onChange={(e) =>
-              updateSelectedBlock((block) =>
-                block.type !== "countdown"
-                  ? block
-                  : {
-                      ...block,
-                      data: {
-                        ...block.data,
-                        showSeparator: e.target.checked,
-                      },
-                    },
-              )
-            }
-          />
-          Show Separator
-        </label>
-      </div>
-    ) : null}
-
-    <div className="mt-4 space-y-2">
-  <div className={inspectorLabelClass()}>Visible Units</div>
-
-  {[
-    ["showDays", "Show Days"],
-    ["showHours", "Show Hours"],
-    ["showMinutes", "Show Minutes"],
-    ["showSeconds", "Show Seconds"],
-  ].map(([key, label]) => (
-    <label
-      key={key}
-      className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800"
+              },
+        )
+      }
+      title="Align left"
     >
-      <input
-        type="checkbox"
-        checked={(selectedBlock.data as any)[key] !== false}
-        onChange={(e) =>
-          updateSelectedBlock((block) =>
-            block.type !== "countdown"
-              ? block
-              : {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    [key]: e.target.checked,
-                  },
-                },
-          )
-        }
-      />
-      {label}
-    </label>
-  ))}
-</div>
+      Left
+    </button>
 
-    <div className="mt-4">
-      <div className={inspectorLabelClass()}>Heading (optional)</div>
-      <input
-        ref={countdownHeadingInputRef}
-        type="text"
-        value={selectedBlock.data.heading ?? ""}
-        onChange={(e) =>
-          updateSelectedBlock((block) =>
-            block.type !== "countdown"
-              ? block
-              : {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    heading: e.target.value,
-                  },
+    <button
+      type="button"
+      className={topBarButtonClass(
+        ((selectedBlock.data as any).alignment ?? "center") === "center",
+      )}
+      onClick={() =>
+        updateSelectedBlock((block) =>
+          block.type !== "countdown"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  alignment: "center",
                 },
-          )
-        }
-        className={inspectorInputClass()}
-      />
-    </div>
+              },
+        )
+      }
+      title="Align center"
+    >
+      Center
+    </button>
 
-    <div className="mt-4">
-      <div className={inspectorLabelClass()}>Target Date</div>
-      <input
-        ref={countdownTargetInputRef}
-        type="datetime-local"
-        value={selectedBlock.data.targetIso || ""}
-        onChange={(e) =>
-          updateSelectedBlock((block) =>
-            block.type !== "countdown"
-              ? block
-              : {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    targetIso: e.target.value,
-                  },
+    <button
+      type="button"
+      className={topBarButtonClass(
+        ((selectedBlock.data as any).alignment ?? "center") === "right",
+      )}
+      onClick={() =>
+        updateSelectedBlock((block) =>
+          block.type !== "countdown"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  alignment: "right",
                 },
-          )
-        }
-        className={inspectorInputClass()}
-      />
-    </div>
-
-    <div className="mt-4">
-      <div className={inspectorLabelClass()}>Completed Message</div>
-      <input
-        ref={countdownCompletedInputRef}
-        type="text"
-        value={selectedBlock.data.completedMessage}
-        onChange={(e) =>
-          updateSelectedBlock((block) =>
-            block.type !== "countdown"
-              ? block
-              : {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    completedMessage: e.target.value,
-                  },
-                },
-          )
-        }
-        className={inspectorInputClass()}
-      />
-    </div>
-  </div>
+              },
+        )
+      }
+      title="Align right"
+    >
+      Right
+    </button>
+  </>
 ) : null}
 
 {selectedBlock?.type === "audio" ? (
