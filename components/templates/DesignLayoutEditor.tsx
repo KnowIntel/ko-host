@@ -4810,6 +4810,13 @@ function addBlock(type: BuilderBlockType, label?: string, iconName?: string) {
 
     if (created) createdBlockId = created.id;
 
+    if (created?.type === "icon") {
+  console.log("CREATED ICON BLOCK", {
+    label,
+    created,
+  });
+}
+
     return {
       ...prev,
       blocks: nextBlocks.map((block) =>
