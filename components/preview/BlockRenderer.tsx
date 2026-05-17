@@ -1742,6 +1742,10 @@ function renderCountdown(
       typeof data.spacing === "number" && Number.isFinite(data.spacing)
         ? Math.max(0, Math.min(80, data.spacing))
         : 12;
+    const stageUnitGap =
+      typeof data.stageUnitGap === "number" && Number.isFinite(data.stageUnitGap)
+        ? Math.max(-40, Math.min(40, data.stageUnitGap))
+        : -24;
 
     const rawAnimationStyle =
       (data.animationStyle as
@@ -1949,11 +1953,12 @@ function renderCountdown(
 <span
   className={[
     "uppercase tracking-[0.12em]",
-    variant === "stage" ? "-mt-6" : "",
+    variant === "stage" ? "" : "",
   ].join(" ")}
                   style={{
                     ...unitStyle,
                     fontSize: unitStyle.fontSize ?? "11px",
+                    marginTop: variant === "stage" ? `${stageUnitGap}px` : undefined,
                   }}
                 >
                   {part.label}

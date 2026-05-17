@@ -10521,6 +10521,40 @@ if (selectedBlock?.type === "rsvp") {
       </div>
     </div>
 
+        {((selectedBlock.data as any).styleVariant ?? "default") === "stage" ? (
+      <div className="mt-4">
+        <div className={inspectorLabelClass()}>Stage Value/Unit Spacing</div>
+
+        <div className="mt-2 flex items-center gap-3">
+          <input
+            type="range"
+            min={-40}
+            max={20}
+            step={1}
+            value={Number((selectedBlock.data as any).stageUnitGap ?? -24)}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "countdown"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        stageUnitGap: Number(e.target.value),
+                      },
+                    },
+              )
+            }
+            className="w-full"
+          />
+
+          <div className="w-12 text-right text-xs text-neutral-500">
+            {Number((selectedBlock.data as any).stageUnitGap ?? -24)}px
+          </div>
+        </div>
+      </div>
+    ) : null}
+
     <div className="mt-4">
       <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
         <input

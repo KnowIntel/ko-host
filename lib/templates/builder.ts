@@ -515,6 +515,7 @@ export type CountdownBlock = BaseBlock & {
     alignment?: "left" | "center" | "right";
 
     spacing?: number;
+    stageUnitGap?: number;
 
     showRings?: boolean;
 
@@ -2969,6 +2970,12 @@ export function sanitizeBuilderDraft(input: unknown): BuilderDraft {
             Number.isFinite(countdownData.spacing)
               ? Math.max(0, Math.min(80, countdownData.spacing))
               : 12,
+
+          stageUnitGap:
+            typeof countdownData.stageUnitGap === "number" &&
+            Number.isFinite(countdownData.stageUnitGap)
+              ? Math.max(-40, Math.min(40, countdownData.stageUnitGap))
+              : -24,
 
           showRings: countdownData.showRings !== false,
 
