@@ -233,7 +233,13 @@ type BottomCategory =
 type PageBlockType = "title" | "subtitle" | "tagline" | "description";
 
 type ToolDropPayload =
-  | { kind: "block"; type: BuilderBlockType; label?: string; iconUrl?: string }
+  | {
+      kind: "block";
+      type: BuilderBlockType;
+      label?: string;
+      iconName?: string;
+      iconUrl?: string;
+    }
   | { kind: "shape"; type: ShapeType }
   | { kind: "page"; type: PageBlockType };
 
@@ -4792,7 +4798,7 @@ function applyIconDefaults(
   };
 }
 
-function addBlock(type: BuilderBlockType, label?: string) {
+function addBlock(type: BuilderBlockType, label?: string, iconName?: string) {
   let createdBlockId = "";
 
   setDraft((prev) => {
@@ -4808,7 +4814,7 @@ function addBlock(type: BuilderBlockType, label?: string) {
       ...prev,
       blocks: nextBlocks.map((block) =>
         created && block.id === created.id
-  ? applyIconDefaults(block, label, getIconUrlFromLabel(label))
+  ? applyIconDefaults(block, label, `/media-icons/${iconName ?? "star"}.svg`)
   : block,
       ),
     };
@@ -5198,7 +5204,11 @@ function handleBringForward(blockId: string) {
       const nextBlocks = addBlockTypeToDraft(prev.blocks, payload.type).map(
         (block) =>
           block.type === "icon" && !prev.blocks.some((prevBlock) => prevBlock.id === block.id)
-            ? applyIconDefaults(block, payload.label, payload.iconUrl)
+? applyIconDefaults(
+    block,
+    payload.label,
+    payload.iconUrl ?? `/media-icons/${payload.iconName ?? "star"}.svg`,
+  )
             : block,
       );
       const nextDraft: BuilderDraft = {
@@ -19055,7 +19065,7 @@ onInput={(e) => {
     : "",
 ].join(" ")}
         onClick={() => {
-          if (tool.kind === "block") addBlock(tool.type, tool.label);
+          if (tool.kind === "block") addBlock(tool.type, tool.label, tool.iconName);
           if (tool.kind === "shape") addShape(tool.type);
           if (tool.kind === "page") addPageBlock(tool.type);
           setOpenToolMenu(null);
@@ -19064,12 +19074,16 @@ onInput={(e) => {
         onDragStart={(e) => {
 const payload: ToolDropPayload =
   tool.kind === "block"
-? {
-    kind: "block",
-    type: tool.type,
-    label: tool.label,
-    iconUrl: tool.type === "icon" ? getIconUrlFromLabel(tool.label) : undefined,
-  }
+    ? {
+        kind: "block",
+        type: tool.type,
+        label: tool.label,
+        iconName: tool.iconName,
+        iconUrl:
+          tool.type === "icon"
+            ? `/media-icons/${tool.iconName ?? "star"}.svg`
+            : undefined,
+      }
     : tool.kind === "shape"
       ? { kind: "shape", type: tool.type }
       : { kind: "page", type: tool.type };
@@ -19100,7 +19114,7 @@ const payload: ToolDropPayload =
     : "border-neutral-200",
 ].join(" ")}
         onClick={() => {
-          if (tool.kind === "block") addBlock(tool.type, tool.label);
+          if (tool.kind === "block") addBlock(tool.type, tool.label, tool.iconName);
           if (tool.kind === "shape") addShape(tool.type);
           if (tool.kind === "page") addPageBlock(tool.type);
           setOpenToolMenu(null);
@@ -19109,12 +19123,16 @@ const payload: ToolDropPayload =
         onDragStart={(e) => {
 const payload: ToolDropPayload =
   tool.kind === "block"
-? {
-    kind: "block",
-    type: tool.type,
-    label: tool.label,
-    iconUrl: tool.type === "icon" ? getIconUrlFromLabel(tool.label) : undefined,
-  }
+    ? {
+        kind: "block",
+        type: tool.type,
+        label: tool.label,
+        iconName: tool.iconName,
+        iconUrl:
+          tool.type === "icon"
+            ? `/media-icons/${tool.iconName ?? "star"}.svg`
+            : undefined,
+      }
     : tool.kind === "shape"
       ? { kind: "shape", type: tool.type }
       : { kind: "page", type: tool.type };
