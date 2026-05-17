@@ -6996,6 +6996,44 @@ onBlur={(e) => {
   );
 }
 
+    if (block.type === "icon") {
+      const icon = block.data.icon;
+      const iconUrl = `/media-icons/${String(block.label || icon.alt || "star")
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "")}.svg`;
+
+      const positionX = icon.positionX ?? 50;
+      const positionY = icon.positionY ?? 50;
+      const zoom = icon.zoom ?? 1;
+      const rotation = icon.rotation ?? 0;
+      const translateX = (positionX - 50) * 0.6;
+      const translateY = (positionY - 50) * 0.6;
+
+      return (
+        <div className="flex h-full w-full items-center justify-center overflow-visible">
+          <div
+            className="h-full w-full"
+            style={{
+              transform: `translate(${translateX}%, ${translateY}%) scale(${zoom}) rotate(${rotation}deg)`,
+              transformOrigin: "center center",
+              opacity: icon.opacity ?? 1,
+              backgroundColor: icon.color ?? "#111111",
+              WebkitMaskImage: `url("${iconUrl}")`,
+              maskImage: `url("${iconUrl}")`,
+              WebkitMaskRepeat: "no-repeat",
+              maskRepeat: "no-repeat",
+              WebkitMaskPosition: "center",
+              maskPosition: "center",
+              WebkitMaskSize: "contain",
+              maskSize: "contain",
+            }}
+          />
+        </div>
+      );
+    }
+
     return <BlockRenderer block={block} designKey={designKey} />;
   }
 
