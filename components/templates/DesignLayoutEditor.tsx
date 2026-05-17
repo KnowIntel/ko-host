@@ -7581,7 +7581,7 @@ onDrop={async (e) => {
     }}
   >
     <Image
-      src="/icons/icon_color_picker.png"
+      src="/icons/pick_color_icon.png"
       alt="Pick color"
       width={20}
       height={20}
