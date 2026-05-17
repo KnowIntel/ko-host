@@ -285,8 +285,13 @@ const CATEGORY_BUTTONS: Record<
   Array<
     | { kind: "page"; label: string; type: PageBlockType }
     | { kind: "shape"; label: string; type: ShapeType }
-    | { kind: "block"; label: string; type: BuilderBlockType }
-    | { kind: "block"; label: "Input Field"; type: "form_field" }
+    | {
+        kind: "block";
+        label: string;
+        type: BuilderBlockType;
+        iconName?: string;
+      }
+    | { kind: "block"; label: "Input Field"; type: "form_field"; iconName?: string }
   >
 > = {
   Text: [
@@ -305,16 +310,16 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Carousel", type: "image_carousel" },
   ],
   Icons: [
-    { kind: "block", label: "Graduate Cap", type: "icon" },
-    { kind: "block", label: "Open Book", type: "icon" },
-    { kind: "block", label: "Closed Book", type: "icon" },
-    { kind: "block", label: "Star", type: "icon" },
-    { kind: "block", label: "Heart", type: "icon" },
-    { kind: "block", label: "Person", type: "icon" },
-    { kind: "block", label: "People", type: "icon" },
-    { kind: "block", label: "Calendar", type: "icon" },
-    { kind: "block", label: "Location Pin", type: "icon" },
-    { kind: "block", label: "Clock", type: "icon" },
+    { kind: "block", label: "Graduate Cap", type: "icon", iconName: "graduate-cap" },
+    { kind: "block", label: "Open Book", type: "icon", iconName: "open-book" },
+    { kind: "block", label: "Closed Book", type: "icon", iconName: "closed-book" },
+    { kind: "block", label: "Star", type: "icon", iconName: "star" },
+    { kind: "block", label: "Heart", type: "icon", iconName: "heart" },
+    { kind: "block", label: "Person", type: "icon", iconName: "person" },
+    { kind: "block", label: "People", type: "icon", iconName: "people" },
+    { kind: "block", label: "Calendar", type: "icon", iconName: "calendar" },
+    { kind: "block", label: "Location Pin", type: "icon", iconName: "location-pin" },
+    { kind: "block", label: "Clock", type: "icon", iconName: "clock" },
   ],
   Layout: [
     { kind: "shape", label: "Rectangle", type: "rectangle" },
