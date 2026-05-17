@@ -1105,6 +1105,14 @@ style={{
 
 function renderIcon(block: Extract<MicrositeBlock, { type: "icon" }>) {
   const icon = block.data.icon;
+  const iconUrl =
+    icon.url && !icon.url.endsWith("/star.svg")
+      ? icon.url
+      : `/media-icons/${String(block.label || icon.alt || "star")
+          .trim()
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, "")}.svg`;
   const positionX = icon.positionX ?? 50;
   const positionY = icon.positionY ?? 50;
   const zoom = icon.zoom ?? 1;
@@ -1122,8 +1130,8 @@ function renderIcon(block: Extract<MicrositeBlock, { type: "icon" }>) {
           transformOrigin: "center center",
           opacity: icon.opacity ?? 1,
           backgroundColor: icon.color ?? "#111111",
-          WebkitMaskImage: `url("${icon.url}")`,
-          maskImage: `url("${icon.url}")`,
+          WebkitMaskImage: `url("${iconUrl}")`,
+          maskImage: `url("${iconUrl}")`,
           WebkitMaskRepeat: "no-repeat",
           maskRepeat: "no-repeat",
           WebkitMaskPosition: "center",
