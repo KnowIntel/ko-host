@@ -514,6 +514,8 @@ export type CountdownBlock = BaseBlock & {
 
     alignment?: "left" | "center" | "right";
 
+    spacing?: number;
+
     showRings?: boolean;
 
     showSeparator?: boolean;

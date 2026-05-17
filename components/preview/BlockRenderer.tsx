@@ -1738,6 +1738,10 @@ function renderCountdown(
 
     const showRings = data.showRings !== false;
     const showSeparator = data.showSeparator !== false;
+    const spacing =
+      typeof data.spacing === "number" && Number.isFinite(data.spacing)
+        ? Math.max(0, Math.min(80, data.spacing))
+        : 12;
 
     const rawAnimationStyle =
       (data.animationStyle as
@@ -1918,22 +1922,19 @@ function renderCountdown(
           <div
             className={[
               "flex w-full flex-wrap",
-              variant === "stage" ? "gap-6" : "gap-3",
               variant === "stage" ? "items-end" : "items-baseline",
               justifyClass,
             ].join(" ")}
+            style={{ gap: `${spacing}px` }}
           >
             {parts.map((part) => (
               <div
                 key={part.key}
-                className={[
-variant === "stage"
-  ? "flex flex-col items-center"
-                  : "flex gap-1 items-baseline",
+                className={
                   variant === "stage"
-                    ? "flex-col items-center"
-                    : "items-baseline",
-                ].join(" ")}
+                    ? "flex flex-col items-center"
+                    : "flex items-baseline gap-1"
+                }
               >
                 <span
                   className="font-bold leading-none"
@@ -1990,9 +1991,10 @@ variant === "stage"
 
           <div
             className={[
-              "flex w-full flex-wrap items-center gap-2",
+              "flex w-full flex-wrap items-center",
               justifyClass,
             ].join(" ")}
+            style={{ gap: `${spacing}px` }}
           >
             {parts.map((part, index) => (
               <div key={part.key} className="flex items-center gap-2">
@@ -2139,9 +2141,10 @@ transform:
 
         <div
           className={[
-            "flex w-full flex-wrap items-center gap-2",
+            "flex w-full flex-wrap items-center",
             justifyClass,
           ].join(" ")}
+          style={{ gap: `${spacing}px` }}
         >
           {parts.map((part, index) => (
             <div key={part.key} className="flex items-center gap-2">

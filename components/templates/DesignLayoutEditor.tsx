@@ -10450,6 +10450,38 @@ if (selectedBlock?.type === "rsvp") {
       </div>
     </div>
 
+        <div className="mt-4">
+      <div className={inspectorLabelClass()}>Spacing Between Values</div>
+
+      <div className="mt-2 flex items-center gap-3">
+        <input
+          type="range"
+          min={0}
+          max={80}
+          step={1}
+          value={Number((selectedBlock.data as any).spacing ?? 12)}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "countdown"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      spacing: Number(e.target.value),
+                    },
+                  },
+            )
+          }
+          className="w-full"
+        />
+
+        <div className="w-12 text-right text-xs text-neutral-500">
+          {Number((selectedBlock.data as any).spacing ?? 12)}px
+        </div>
+      </div>
+    </div>
+
     <div className="mt-4">
       <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
         <input
