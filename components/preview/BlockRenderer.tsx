@@ -1927,8 +1927,8 @@ function renderCountdown(
               <div
                 key={part.key}
                 className={[
-                  variant === "stage"
-                  ? "flex flex-col items-center gap-0"
+variant === "stage"
+  ? "flex flex-col items-center gap-[2px]"
                   : "flex gap-1 items-baseline",
                   variant === "stage"
                     ? "flex-col items-center"
@@ -2073,15 +2073,18 @@ tileBorderColor
                         justifyContent: "center",
                         fontSize: valueStyle.fontSize ?? (isHero ? "36px" : "24px"),
                         transition: countdownAnimationTransition,
-                        transform: countdownAnimationTransform(
-                          seconds < 10
-                            ? isTicking
-                              ? "scale(1.15)"
-                              : "scale(1.05)"
-                            : isTicking
-                              ? "scale(1.08)"
-                              : "scale(1)",
-                        ),
+transform:
+  animationStyle === "none"
+    ? "scale(1)"
+    : countdownAnimationTransform(
+        seconds < 10
+          ? isTicking
+            ? "scale(1.15)"
+            : "scale(1.05)"
+          : isTicking
+            ? "scale(1.08)"
+            : "scale(1)",
+      ),
                       }}
                     >
                       {part.value}
@@ -2150,15 +2153,21 @@ tileBorderColor
               >
                 <span
                   className="font-semibold transition-transform duration-200"
-                  style={{
-                    ...valueStyle,
-                    ...countdownAnimationExtraStyle,
-                    display: "inline-block",
-                    transition: countdownAnimationTransition,
-                    transform: countdownAnimationTransform(
-                      isTicking ? "scale(1.05)" : "scale(1)",
-                    ),
-                  }}
+style={{
+  ...valueStyle,
+  ...countdownAnimationExtraStyle,
+  display: "inline-block",
+  transition:
+    animationStyle === "none"
+      ? "none"
+      : countdownAnimationTransition,
+  transform:
+    animationStyle === "none"
+      ? "scale(1)"
+      : countdownAnimationTransform(
+          isTicking ? "scale(1.05)" : "scale(1)",
+        ),
+}}
                 >
                   {part.value}
                 </span>
