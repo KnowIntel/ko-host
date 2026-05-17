@@ -108,6 +108,7 @@ export type BuilderBlockType =
   | "label"
   | "text_fx"
   | "image"
+  | "icon"
   | "image_carousel"
   | "links"
   | "cta"
@@ -432,6 +433,23 @@ export type ImageBlock = BaseBlock & {
         left?: boolean;
         size?: number; // percent, 0-50
       };
+    };
+  };
+};
+
+export type IconBlock = BaseBlock & {
+  type: "icon";
+  data: {
+    icon: {
+      id: string;
+      url: string;
+      alt?: string;
+      positionX?: number;
+      positionY?: number;
+      zoom?: number;
+      rotation?: number;
+      opacity?: number;
+      color?: string;
     };
   };
 };
@@ -1025,6 +1043,7 @@ export type MicrositeBlock =
   | LabelBlock
   | TextFxBlock
   | ImageBlock
+  | IconBlock
   | ImageCarouselBlock
   | LinksBlock
   | CtaBlock
@@ -1791,6 +1810,27 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
               right: false,
               size: 15,
             },
+          },
+        },
+      };
+
+    case "icon":
+      return {
+        id: makeId("icon"),
+        type: "icon",
+        label: "Icon",
+        grid,
+        appearance: createDefaultBlockAppearance(),
+        data: {
+          icon: {
+            id: makeId("icon-asset"),
+            url: "/media-icons/star.svg",
+            positionX: 50,
+            positionY: 50,
+            zoom: 1,
+            rotation: 0,
+            opacity: 1,
+            color: "#111111",
           },
         },
       };
@@ -2857,6 +2897,43 @@ export function sanitizeBuilderDraft(input: unknown): BuilderDraft {
                   ? Math.max(0, Math.min(50, Math.floor(block.data.image.fade.size)))
                   : 15,
             },
+          },
+        },
+      };
+    }
+
+    if (block.type === "icon") {
+      return {
+        ...block,
+        grid: normalizeGridValue(block.grid, fallbackGrid),
+        data: {
+          ...block.data,
+          icon: {
+            ...block.data.icon,
+            positionX:
+              typeof block.data.icon?.positionX === "number"
+                ? block.data.icon.positionX
+                : 50,
+            positionY:
+              typeof block.data.icon?.positionY === "number"
+                ? block.data.icon.positionY
+                : 50,
+            zoom:
+              typeof block.data.icon?.zoom === "number"
+                ? block.data.icon.zoom
+                : 1,
+            rotation:
+              typeof block.data.icon?.rotation === "number"
+                ? block.data.icon.rotation
+                : 0,
+            opacity:
+              typeof block.data.icon?.opacity === "number"
+                ? block.data.icon.opacity
+                : 1,
+            color:
+              typeof block.data.icon?.color === "string"
+                ? block.data.icon.color
+                : "#111111",
           },
         },
       };

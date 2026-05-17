@@ -1,3 +1,5 @@
+// components\demo\DemoTemplatePage.tsx
+
 import Link from "next/link";
 import type { TemplateDef } from "@/lib/templates/registry";
 import DemoStickyCta from "./DemoStickyCta";

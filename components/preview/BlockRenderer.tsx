@@ -1103,6 +1103,40 @@ style={{
   );
 }
 
+function renderIcon(block: Extract<MicrositeBlock, { type: "icon" }>) {
+  const icon = block.data.icon;
+  const positionX = icon.positionX ?? 50;
+  const positionY = icon.positionY ?? 50;
+  const zoom = icon.zoom ?? 1;
+  const rotation = icon.rotation ?? 0;
+
+  const translateX = (positionX - 50) * 0.6;
+  const translateY = (positionY - 50) * 0.6;
+
+  return (
+    <div className="flex h-full w-full items-center justify-center overflow-visible">
+      <div
+        className="h-full w-full"
+        style={{
+          transform: `translate(${translateX}%, ${translateY}%) scale(${zoom}) rotate(${rotation}deg)`,
+          transformOrigin: "center center",
+          opacity: icon.opacity ?? 1,
+          backgroundColor: icon.color ?? "#111111",
+          WebkitMaskImage: `url("${icon.url}")`,
+          maskImage: `url("${icon.url}")`,
+          WebkitMaskRepeat: "no-repeat",
+          maskRepeat: "no-repeat",
+          WebkitMaskPosition: "center",
+          maskPosition: "center",
+          WebkitMaskSize: "contain",
+          maskSize: "contain",
+        }}
+        aria-label={icon.alt || "Icon"}
+      />
+    </div>
+  );
+}
+
 function renderListing(
   block: Extract<MicrositeBlock, { type: "listing" }>,
   designKey?: string,
@@ -3060,6 +3094,9 @@ function renderRadioSection(
     switch (key) {
       case "image":
         return renderImage();
+
+      case "icon":
+        return null;
 
       case "heading":
         return (
@@ -9243,6 +9280,9 @@ export default function BlockRenderer({
 
     case "image":
       return renderImage(block, designKey);
+
+    case "icon":
+      return renderIcon(block);
 
 case "listing":
   return renderListing(

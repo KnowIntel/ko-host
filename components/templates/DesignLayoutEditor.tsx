@@ -221,6 +221,7 @@ type AppearancePatch = Partial<
 type BottomCategory =
   | "Text"
   | "Media"
+  | "Icons"
   | "Layout"
   | "Forms"
   | "Exchange"
@@ -232,7 +233,7 @@ type BottomCategory =
 type PageBlockType = "title" | "subtitle" | "tagline" | "description";
 
 type ToolDropPayload =
-  | { kind: "block"; type: BuilderBlockType }
+  | { kind: "block"; type: BuilderBlockType; label?: string }
   | { kind: "shape"; type: ShapeType }
   | { kind: "page"; type: PageBlockType };
 
@@ -269,6 +270,7 @@ type InspectorFocusTarget =
 const CATEGORY_ORDER: BottomCategory[] = [
   "Text",
   "Media",
+  "Icons",
   "Layout",
   "Forms",
   "Exchange",
@@ -301,6 +303,18 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Audio", type: "audio" },
     { kind: "block", label: "Gallery", type: "gallery" },
     { kind: "block", label: "Carousel", type: "image_carousel" },
+  ],
+  Icons: [
+    { kind: "block", label: "Graduate Cap", type: "icon" },
+    { kind: "block", label: "Open Book", type: "icon" },
+    { kind: "block", label: "Closed Book", type: "icon" },
+    { kind: "block", label: "Star", type: "icon" },
+    { kind: "block", label: "Heart", type: "icon" },
+    { kind: "block", label: "Person", type: "icon" },
+    { kind: "block", label: "People", type: "icon" },
+    { kind: "block", label: "Calendar", type: "icon" },
+    { kind: "block", label: "Location Pin", type: "icon" },
+    { kind: "block", label: "Clock", type: "icon" },
   ],
   Layout: [
     { kind: "shape", label: "Rectangle", type: "rectangle" },
@@ -927,6 +941,7 @@ function toolSetButtonClass(kind: "front" | "back" | "remove") {
 function getToolGlyph(label: string) {
   if (label === "Text") return "T";
   if (label === "Media") return "🖼";
+  if (label === "Icons") return "⭐";
   if (label === "Layout") return "▦";
   if (label === "Forms") return "☰";
   if (label === "Interactive") return "💬";
@@ -940,6 +955,16 @@ function getToolGlyph(label: string) {
   if (label === "Label") return "LB";
   if (label === "TextFX") return "✨";
   if (label === "Image") return "🖼";
+  if (label === "Graduate Cap") return "🎓";
+  if (label === "Open Book") return "📖";
+  if (label === "Closed Book") return "📕";
+  if (label === "Star") return "⭐";
+  if (label === "Heart") return "❤";
+  if (label === "Person") return "👤";
+  if (label === "People") return "👥";
+  if (label === "Calendar") return "📅";
+  if (label === "Location Pin") return "📍";
+  if (label === "Clock") return "🕒";
   if (label === "Gallery") return "▥";
   if (label === "Rectangle") return "▭";
   if (label === "Circle") return "◯";
@@ -2619,6 +2644,26 @@ function applyFillColor(value: string) {
     return;
   }
 
+    if (selectedBlock?.type === "icon") {
+    updateSelectedBlock((block) =>
+      block.type !== "icon"
+        ? block
+        : {
+            ...block,
+            data: {
+              ...block.data,
+              icon: {
+                ...block.data.icon,
+                color: value,
+              },
+            },
+          },
+    );
+
+    pushRecentColor(value);
+    return;
+  }
+
   if (selectedBlock?.type === "rsvp") {
     updateSelectedRsvpElementStyle((current) => ({
       ...current,
@@ -4236,6 +4281,31 @@ function updateSelectedImagePatch(
   );
 }
 
+function updateSelectedIconPatch(
+  patch: Partial<{
+    positionX: number;
+    positionY: number;
+    zoom: number;
+    rotation: number;
+    opacity: number;
+  }>,
+) {
+  updateSelectedBlock((block) =>
+    block.type !== "icon"
+      ? block
+      : {
+          ...block,
+          data: {
+            ...block.data,
+            icon: {
+              ...block.data.icon,
+              ...patch,
+            },
+          },
+        },
+  );
+}
+
 function updateSelectedImageFadePatch(
   patch: Partial<{
     top: boolean;
@@ -4684,7 +4754,35 @@ async function uploadMultipleImagesToCarousel(blockId: string) {
 }
 
 
-function addBlock(type: BuilderBlockType) {
+function getIconUrlFromLabel(label?: string) {
+  const normalized = String(label ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+
+  return `/media-icons/${normalized || "star"}.svg`;
+}
+
+function applyIconDefaults(block: MicrositeBlock, label?: string): MicrositeBlock {
+  if (block.type !== "icon") return block;
+
+  return {
+    ...block,
+    label: label || block.label || "Icon",
+    data: {
+      ...block.data,
+      icon: {
+        ...block.data.icon,
+        id: block.data.icon.id || getIconUrlFromLabel(label),
+        url: getIconUrlFromLabel(label),
+        alt: label || block.data.icon.alt || "Icon",
+      },
+    },
+  };
+}
+
+function addBlock(type: BuilderBlockType, label?: string) {
   let createdBlockId = "";
 
   setDraft((prev) => {
@@ -4698,7 +4796,9 @@ function addBlock(type: BuilderBlockType) {
 
     return {
       ...prev,
-      blocks: nextBlocks,
+      blocks: nextBlocks.map((block) =>
+        created && block.id === created.id ? applyIconDefaults(block, label) : block,
+      ),
     };
   });
 
@@ -5114,7 +5214,16 @@ function handleBringForward(blockId: string) {
 
       const withFront = bringCanvasItemToFront(withPosition, createdItem.id);
 
-      return applyCanvasItemsToDraft(nextDraft, withFront);
+      const positionedDraft = applyCanvasItemsToDraft(nextDraft, withFront);
+
+      return {
+        ...positionedDraft,
+        blocks: positionedDraft.blocks.map((block) =>
+          block.id === createdBlockId
+            ? applyIconDefaults(block, payload.label)
+            : block,
+        ),
+      };
     });
 
     if (createdBlockId) {
@@ -8886,6 +8995,98 @@ const idsToExpand =
               title="Fade size"
             />
             <span>{selectedBlock.data.image.fade?.size ?? 15}%</span>
+          </div>
+        </>
+      ) : null}
+
+            {selectedBlock?.type === "icon" ? (
+        <>
+          <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
+
+          <div className={topBarSliderWrapClass()}>
+            <span>X</span>
+            <input
+              type="range"
+              min={0}
+              max={100}
+              value={selectedBlock.data.icon.positionX ?? 50}
+              onChange={(e) =>
+                updateSelectedIconPatch({
+                  positionX: Number(e.target.value),
+                })
+              }
+              className={topBarSliderClass()}
+              title="Icon horizontal position"
+            />
+          </div>
+
+          <div className={topBarSliderWrapClass()}>
+            <span>Y</span>
+            <input
+              type="range"
+              min={0}
+              max={100}
+              value={selectedBlock.data.icon.positionY ?? 50}
+              onChange={(e) =>
+                updateSelectedIconPatch({
+                  positionY: Number(e.target.value),
+                })
+              }
+              className={topBarSliderClass()}
+              title="Icon vertical position"
+            />
+          </div>
+
+          <div className={topBarSliderWrapClass()}>
+            <span>Zoom</span>
+            <input
+              type="range"
+              min={50}
+              max={300}
+              value={Math.round((selectedBlock.data.icon.zoom ?? 1) * 100)}
+              onChange={(e) =>
+                updateSelectedIconPatch({
+                  zoom: Number(e.target.value) / 100,
+                })
+              }
+              className={topBarSliderClass()}
+              title="Icon zoom"
+            />
+          </div>
+
+          <div className={topBarSliderWrapClass()}>
+            <span>Rotate</span>
+            <input
+              type="range"
+              min={-180}
+              max={180}
+              value={selectedBlock.data.icon.rotation ?? 0}
+              onChange={(e) =>
+                updateSelectedIconPatch({
+                  rotation: Number(e.target.value),
+                })
+              }
+              className={topBarSliderClass()}
+              title="Icon rotation"
+            />
+          </div>
+
+          <div className={topBarSliderWrapClass()}>
+            <span>Opacity</span>
+            <input
+              type="range"
+              min={0}
+              max={100}
+              value={Math.round((selectedBlock.data.icon.opacity ?? 1) * 100)}
+              onChange={(e) =>
+                updateSelectedIconPatch({
+                  opacity: Number(e.target.value) / 100,
+                })
+              }
+              className={topBarSliderClass()}
+              title="Icon opacity"
+            />
+            <span>{Math.round((selectedBlock.data.icon.opacity ?? 1) * 100)}%</span>
           </div>
         </>
       ) : null}
@@ -17141,6 +17342,64 @@ onInput={(e) => {
                   </div>
                 ) : null}
 
+                {selectedBlock?.type === "icon" ? (
+                  <div className={inspectorCardClass()}>
+                    <div className={inspectorLabelClass()}>Icon</div>
+
+                    <div className="mt-4">
+                      <div className={inspectorLabelClass()}>Icon Color</div>
+                      <input
+                        type="color"
+                        value={selectedBlock.data.icon.color ?? "#111111"}
+                        onChange={(e) => applyFillColor(e.target.value)}
+                        className="mt-2 h-10 w-full rounded-xl border border-neutral-300 bg-white"
+                      />
+                    </div>
+
+                    <div className="mt-4 grid grid-cols-1 gap-3">
+                      {[
+                        ["Horizontal Position", "positionX", 0, 100, "%"],
+                        ["Vertical Position", "positionY", 0, 100, "%"],
+                        ["Zoom", "zoom", 50, 300, "%"],
+                        ["Rotation", "rotation", -180, 180, "°"],
+                        ["Opacity", "opacity", 0, 100, "%"],
+                      ].map(([label, key, min, max, suffix]) => {
+                        const rawValue =
+                          key === "zoom"
+                            ? Math.round((selectedBlock.data.icon.zoom ?? 1) * 100)
+                            : key === "opacity"
+                              ? Math.round((selectedBlock.data.icon.opacity ?? 1) * 100)
+                              : ((selectedBlock.data.icon as any)[key] ?? (key === "rotation" ? 0 : 50));
+
+                        return (
+                          <div key={String(key)}>
+                            <div className={inspectorLabelClass()}>{label}</div>
+                            <input
+                              type="range"
+                              min={Number(min)}
+                              max={Number(max)}
+                              value={Number(rawValue)}
+                              onChange={(e) =>
+                                updateSelectedIconPatch({
+                                  [key as string]:
+                                    key === "zoom" || key === "opacity"
+                                      ? Number(e.target.value) / 100
+                                      : Number(e.target.value),
+                                } as any)
+                              }
+                              className="mt-2 w-full"
+                            />
+                            <div className="mt-1 text-xs text-neutral-500">
+                              {Number(rawValue)}
+                              {suffix}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : null}
+
                 {selectedBlock?.type === "shape" ? (
   <div className={inspectorCardClass()}>
     <div className={inspectorLabelClass()}>Shape</div>
@@ -18750,7 +19009,7 @@ onInput={(e) => {
     : "",
 ].join(" ")}
         onClick={() => {
-          if (tool.kind === "block") addBlock(tool.type);
+          if (tool.kind === "block") addBlock(tool.type, tool.label);
           if (tool.kind === "shape") addShape(tool.type);
           if (tool.kind === "page") addPageBlock(tool.type);
           setOpenToolMenu(null);
@@ -18759,7 +19018,7 @@ onInput={(e) => {
         onDragStart={(e) => {
           const payload: ToolDropPayload =
             tool.kind === "block"
-              ? { kind: "block", type: tool.type }
+              ? { kind: "block", type: tool.type, label: tool.label }
               : tool.kind === "shape"
                 ? { kind: "shape", type: tool.type }
                 : { kind: "page", type: tool.type };
@@ -18790,7 +19049,7 @@ onInput={(e) => {
     : "border-neutral-200",
 ].join(" ")}
         onClick={() => {
-          if (tool.kind === "block") addBlock(tool.type);
+          if (tool.kind === "block") addBlock(tool.type, tool.label);
           if (tool.kind === "shape") addShape(tool.type);
           if (tool.kind === "page") addPageBlock(tool.type);
           setOpenToolMenu(null);
@@ -18799,7 +19058,7 @@ onInput={(e) => {
         onDragStart={(e) => {
           const payload: ToolDropPayload =
             tool.kind === "block"
-              ? { kind: "block", type: tool.type }
+              ? { kind: "block", type: tool.type, label: tool.label }
               : tool.kind === "shape"
                 ? { kind: "shape", type: tool.type }
                 : { kind: "page", type: tool.type };
