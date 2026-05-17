@@ -19012,12 +19012,12 @@ onInput={(e) => {
         }}
         draggable
         onDragStart={(e) => {
-          const payload: ToolDropPayload =
-            tool.kind === "block"
-              ? { kind: "block", type: tool.type, label: tool.label }
-              : tool.kind === "shape"
-                ? { kind: "shape", type: tool.type }
-                : { kind: "page", type: tool.type };
+const payload: ToolDropPayload =
+  tool.kind === "block"
+    ? { kind: "block", type: tool.type, label: tool.label }
+    : tool.kind === "shape"
+      ? { kind: "shape", type: tool.type }
+      : { kind: "page", type: tool.type };
 
           e.dataTransfer.setData(
             "application/kht-tool",
@@ -19052,12 +19052,12 @@ onInput={(e) => {
         }}
         draggable
         onDragStart={(e) => {
-          const payload: ToolDropPayload =
-            tool.kind === "block"
-              ? { kind: "block", type: tool.type, label: tool.label }
-              : tool.kind === "shape"
-                ? { kind: "shape", type: tool.type }
-                : { kind: "page", type: tool.type };
+const payload: ToolDropPayload =
+  tool.kind === "block"
+    ? { kind: "block", type: tool.type, label: tool.label }
+    : tool.kind === "shape"
+      ? { kind: "shape", type: tool.type }
+      : { kind: "page", type: tool.type };
 
           e.dataTransfer.setData(
             "application/kht-tool",
