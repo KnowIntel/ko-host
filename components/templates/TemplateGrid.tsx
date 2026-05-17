@@ -3,6 +3,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import TemplateCard from "./TemplateCard";
+import { getTemplateLayoutRegistry } from "@/lib/templates/layout-presets/layoutRegistry";
 import TemplatePreviewModal, { type PreviewMeta } from "./TemplatePreviewModal";
 import {
   TEMPLATE_DEFS,
@@ -69,6 +70,10 @@ function moveCustomTemplateLast(list: TemplateDef[]) {
   if (!custom) return list;
 
   return [...list.filter((t) => t.key !== CUSTOM_TEMPLATE_KEY), custom];
+}
+
+function getDesignCount(templateKey: string) {
+  return getTemplateLayoutRegistry(templateKey as any)?.layouts.length ?? 0;
 }
 
 export default function TemplateGrid(props: {
@@ -290,7 +295,7 @@ export default function TemplateGrid(props: {
             isFavorite={favorites.includes(t.key)}
             onToggleFavorite={toggleFavorite}
             onPreview={openPreview}
-            setupMins={t.setupMins ?? 3}
+            designCount={getDesignCount(t.key)}
           />
         ))}
       </div>

@@ -1,3 +1,5 @@
+// components\templates\TemplateCard.tsx
+
 "use client";
 
 import { useRouter } from "next/navigation";
@@ -88,6 +90,7 @@ export default function TemplateCard(props: {
   onToggleFavorite?: (templateKey: string) => void;
   onPreview?: (templateKey: string) => void;
   setupMins?: number;
+  designCount?: number;
 }) {
   const router = useRouter();
 
@@ -101,6 +104,7 @@ export default function TemplateCard(props: {
     onToggleFavorite,
     onPreview,
     setupMins,
+    designCount,
   } = props;
 
   const src = thumbnailUrl || "/templates/placeholder.webp";
@@ -228,7 +232,7 @@ export default function TemplateCard(props: {
         <div className="px-2 pt-2" onClick={(e) => e.stopPropagation()}>
           <div className="flex items-center justify-between">
             <div className="whitespace-nowrap text-[10px] font-semibold text-neutral-600">
-              ⚡ {setupMins ?? 3} min
+              {designCount ?? 1} {(designCount ?? 1) === 1 ? "design" : "designs"}
             </div>
 
             <button
