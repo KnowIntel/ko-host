@@ -2964,6 +2964,12 @@ export function sanitizeBuilderDraft(input: unknown): BuilderDraft {
               ? countdownData.alignment
               : "center",
 
+          spacing:
+            typeof countdownData.spacing === "number" &&
+            Number.isFinite(countdownData.spacing)
+              ? Math.max(0, Math.min(80, countdownData.spacing))
+              : 12,
+
           showRings: countdownData.showRings !== false,
 
           showSeparator: countdownData.showSeparator !== false,
