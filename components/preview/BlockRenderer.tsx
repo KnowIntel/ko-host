@@ -1865,7 +1865,7 @@ function renderCountdown(
       },
       {
         key: "hours",
-        label: "HRS",
+        label: "HOURS",
         shortLabel: "H",
         value: format(hours),
         raw: hours,
@@ -1873,7 +1873,7 @@ function renderCountdown(
       },
       {
         key: "minutes",
-        label: "MINS",
+        label: "MINUTES",
         shortLabel: "M",
         value: format(minutes),
         raw: minutes,
@@ -1881,7 +1881,7 @@ function renderCountdown(
       },
       {
         key: "seconds",
-        label: "SECS",
+        label: "SECONDS",
         shortLabel: "S",
         value: format(seconds),
         raw: seconds,
