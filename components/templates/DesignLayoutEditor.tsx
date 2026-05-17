@@ -4753,17 +4753,6 @@ async function uploadMultipleImagesToCarousel(blockId: string) {
   });
 }
 
-
-function getIconUrlFromLabel(label?: string) {
-  const normalized = String(label ?? "")
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-
-  return `/media-icons/${normalized || "star"}.svg`;
-}
-
 function getIconUrlFromLabel(label?: string) {
   const normalized = String(label ?? "")
     .trim()
