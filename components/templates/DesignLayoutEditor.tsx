@@ -7011,22 +7011,6 @@ return (
             {currentSiteName}
           </div>
         </div>
-
-        <button
-          type="button"
-          onClick={handleJumpToFullCanvasView}
-          className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-neutral-300 bg-white shadow-sm hover:bg-neutral-50"
-          title="Full canvas view"
-          aria-label="Full canvas view"
-        >
-          <Image
-            src="/icons/icon_full_page_canvas.png"
-            alt=""
-            width={24}
-            height={24}
-            className="pointer-events-none h-6 w-6 object-contain"
-          />
-        </button>
       </div>
 
       <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-neutral-500">
@@ -7360,19 +7344,37 @@ onDrop={async (e) => {
 
 <div className="sticky top-0 z-[100] w-full bg-[#809cd4] shadow-md">
 
+
+// TOP TOOLBAR SECTION
 <div
   ref={topBarScrollRef}
     className="sticky top-0 z-[101] flex w-full items-center justify-between gap-4 overflow-x-auto overflow-y-hidden bg-[#2f3541] px-2 py-2 shadow-md"
 >
   <div className="flex items-center justify-between gap-4">
     <div className="sticky left-0 z-0 flex min-w-max items-center gap-2 bg-[#2f3541] py-1 pr-4 pointer-events-auto">
-      <button
-        type="button"
-        className={topBarButtonClass(false, canvasZoom <= MIN_CANVAS_ZOOM)}
-        onClick={zoomOutCanvas}
-        disabled={canvasZoom <= MIN_CANVAS_ZOOM}
-        title="Zoom out canvas"
-      >
+<button
+  type="button"
+  className={topBarButtonClass(false)}
+  onClick={handleJumpToFullCanvasView}
+  title="Full canvas view"
+  aria-label="Full canvas view"
+>
+  <Image
+    src="/icons/icon_full_page_canvas.png"
+    alt=""
+    width={30}
+    height={30}
+    className="pointer-events-none h-[30px] w-[30px] object-contain"
+  />
+</button>
+
+<button
+  type="button"
+  className={topBarButtonClass(false, canvasZoom <= MIN_CANVAS_ZOOM)}
+  onClick={zoomOutCanvas}
+  disabled={canvasZoom <= MIN_CANVAS_ZOOM}
+  title="Zoom out canvas"
+>
         <Image
           src="/icons/zoom_out_icon.png"
           alt="Zoom Out"
