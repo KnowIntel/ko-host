@@ -5183,7 +5183,12 @@ function handleBringForward(blockId: string) {
     let createdBlockId = "";
 
     setDraft((prev) => {
-      const nextBlocks = addBlockTypeToDraft(prev.blocks, payload.type);
+      const nextBlocks = addBlockTypeToDraft(prev.blocks, payload.type).map(
+        (block) =>
+          block.type === "icon" && !prev.blocks.some((prevBlock) => prevBlock.id === block.id)
+            ? applyIconDefaults(block, payload.label)
+            : block,
+      );
       const nextDraft: BuilderDraft = {
         ...prev,
         blocks: nextBlocks,
@@ -5214,16 +5219,7 @@ function handleBringForward(blockId: string) {
 
       const withFront = bringCanvasItemToFront(withPosition, createdItem.id);
 
-      const positionedDraft = applyCanvasItemsToDraft(nextDraft, withFront);
-
-      return {
-        ...positionedDraft,
-        blocks: positionedDraft.blocks.map((block) =>
-          block.id === createdBlockId
-            ? applyIconDefaults(block, payload.label)
-            : block,
-        ),
-      };
+      return applyCanvasItemsToDraft(nextDraft, withFront);
     });
 
     if (createdBlockId) {
