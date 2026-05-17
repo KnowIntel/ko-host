@@ -7343,7 +7343,6 @@ onDrop={async (e) => {
 ) : null}
 
 
-// TOP TOOLBAR SECTION
 <div className="sticky top-0 z-[100] w-full bg-[#809cd4] shadow-md">
 <div
   ref={topBarScrollRef}
