@@ -1928,7 +1928,7 @@ function renderCountdown(
                 key={part.key}
                 className={[
 variant === "stage"
-  ? "flex flex-col items-center gap-[2px]"
+  ? "flex flex-col items-center"
                   : "flex gap-1 items-baseline",
                   variant === "stage"
                     ? "flex-col items-center"
@@ -1945,8 +1945,11 @@ variant === "stage"
                   {part.value}
                 </span>
 
-                <span
-                  className="uppercase tracking-[0.12em]"
+<span
+  className={[
+    "uppercase tracking-[0.12em]",
+    variant === "stage" ? "-mt-1" : "",
+  ].join(" ")}
                   style={{
                     ...unitStyle,
                     fontSize: unitStyle.fontSize ?? "11px",
