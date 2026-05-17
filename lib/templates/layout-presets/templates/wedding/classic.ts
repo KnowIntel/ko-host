@@ -7,6 +7,6 @@ export default createLayoutPreset({
   description: "Traditional refined visual style",
   thumbnail: "/designs/design-cards/design-card_wedding_classic.webp",
 
-  recommended: true,
+  recommended: false,
 
 });
