@@ -7532,24 +7532,63 @@ onDrop={async (e) => {
 
 <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
 
-<input
-  type="color"
-  value={(draft as DraftWithPageExtras).pageColor ?? "#ffffff"}
-  onChange={(e) => {
-    const next = e.target.value;
+<div className="flex items-center gap-2">
+  <input
+    type="color"
+    value={(draft as DraftWithPageExtras).pageColor ?? "#ffffff"}
+    onChange={(e) => {
+      const next = e.target.value;
 
-    setDraft((prev) => {
-      if ((prev as DraftWithPageExtras).pageColor === next) return prev; // ✅ prevents loop
+      setDraft((prev) => {
+        if ((prev as DraftWithPageExtras).pageColor === next) return prev;
 
-      return {
-        ...(prev as DraftWithPageExtras),
-        pageColor: next,
-      };
-    });
-  }}
-  className={topBarColorClass(false)}
-  title="Page color"
-/>
+        return {
+          ...(prev as DraftWithPageExtras),
+          pageColor: next,
+        };
+      });
+    }}
+    className={topBarColorClass(false)}
+    title="Page color"
+  />
+
+  <button
+    type="button"
+    className={topBarButtonClass(false)}
+    title="Pick fill color from screen"
+    onClick={async () => {
+      try {
+        // @ts-ignore
+        if (!window.EyeDropper) {
+          alert("Eyedropper is not supported in this browser.");
+          return;
+        }
+
+        // @ts-ignore
+        const eyeDropper = new window.EyeDropper();
+
+        const result = await eyeDropper.open();
+
+        if (!result?.sRGBHex) return;
+
+        setDraft((prev) => ({
+          ...(prev as DraftWithPageExtras),
+          pageColor: result.sRGBHex,
+        }));
+      } catch {
+        // user cancelled
+      }
+    }}
+  >
+    <Image
+      src="/icons/icon_color_picker.png"
+      alt="Pick color"
+      width={20}
+      height={20}
+      className="pointer-events-none h-5 w-5 object-contain"
+    />
+  </button>
+</div>
 
       <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
 

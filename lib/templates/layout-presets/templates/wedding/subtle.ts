@@ -9,7 +9,7 @@ export default createLayoutPreset({
   description:
     "Elegant and understated anticipation of a wedding invitation layout with soft typography and refined spacing",
   thumbnail:
-    "/designs/design-cards/design-card_wedding_rsvp_subtle.webp",
+    "/designs/design-cards/design-card_wedding_subtle.webp",
 
   recommended: true,
 });
