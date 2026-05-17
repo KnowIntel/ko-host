@@ -1948,7 +1948,7 @@ variant === "stage"
 <span
   className={[
     "uppercase tracking-[0.12em]",
-    variant === "stage" ? "-mt-1" : "",
+    variant === "stage" ? "-mt-3" : "",
   ].join(" ")}
                   style={{
                     ...unitStyle,
