@@ -3073,7 +3073,7 @@ function renderRadioSection(
         );
 
       case "nameLabel":
-        renderFieldLabel("nameLabel", "Name")
+        return renderFieldLabel("nameLabel", "Name");
 
       case "firstName":
         return renderField("firstName", "First Name", firstName, setFirstName);
