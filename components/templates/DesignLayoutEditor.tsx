@@ -233,7 +233,7 @@ type BottomCategory =
 type PageBlockType = "title" | "subtitle" | "tagline" | "description";
 
 type ToolDropPayload =
-  | { kind: "block"; type: BuilderBlockType; label?: string }
+  | { kind: "block"; type: BuilderBlockType; label?: string; iconUrl?: string }
   | { kind: "shape"; type: ShapeType }
   | { kind: "page"; type: PageBlockType };
 
@@ -4764,8 +4764,24 @@ function getIconUrlFromLabel(label?: string) {
   return `/media-icons/${normalized || "star"}.svg`;
 }
 
-function applyIconDefaults(block: MicrositeBlock, label?: string): MicrositeBlock {
+function getIconUrlFromLabel(label?: string) {
+  const normalized = String(label ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+
+  return `/media-icons/${normalized || "star"}.svg`;
+}
+
+function applyIconDefaults(
+  block: MicrositeBlock,
+  label?: string,
+  iconUrl?: string,
+): MicrositeBlock {
   if (block.type !== "icon") return block;
+
+  const resolvedIconUrl = iconUrl || getIconUrlFromLabel(label);
 
   return {
     ...block,
@@ -4774,8 +4790,8 @@ function applyIconDefaults(block: MicrositeBlock, label?: string): MicrositeBloc
       ...block.data,
       icon: {
         ...block.data.icon,
-        id: block.data.icon.id || getIconUrlFromLabel(label),
-        url: getIconUrlFromLabel(label),
+        id: block.data.icon.id || resolvedIconUrl,
+        url: resolvedIconUrl,
         alt: label || block.data.icon.alt || "Icon",
       },
     },
@@ -4797,7 +4813,9 @@ function addBlock(type: BuilderBlockType, label?: string) {
     return {
       ...prev,
       blocks: nextBlocks.map((block) =>
-        created && block.id === created.id ? applyIconDefaults(block, label) : block,
+        created && block.id === created.id
+  ? applyIconDefaults(block, label, getIconUrlFromLabel(label))
+  : block,
       ),
     };
   });
@@ -5186,7 +5204,7 @@ function handleBringForward(blockId: string) {
       const nextBlocks = addBlockTypeToDraft(prev.blocks, payload.type).map(
         (block) =>
           block.type === "icon" && !prev.blocks.some((prevBlock) => prevBlock.id === block.id)
-            ? applyIconDefaults(block, payload.label)
+            ? applyIconDefaults(block, payload.label, payload.iconUrl)
             : block,
       );
       const nextDraft: BuilderDraft = {
@@ -19014,7 +19032,12 @@ onInput={(e) => {
         onDragStart={(e) => {
 const payload: ToolDropPayload =
   tool.kind === "block"
-    ? { kind: "block", type: tool.type, label: tool.label }
+? {
+    kind: "block",
+    type: tool.type,
+    label: tool.label,
+    iconUrl: tool.type === "icon" ? getIconUrlFromLabel(tool.label) : undefined,
+  }
     : tool.kind === "shape"
       ? { kind: "shape", type: tool.type }
       : { kind: "page", type: tool.type };
@@ -19054,7 +19077,12 @@ const payload: ToolDropPayload =
         onDragStart={(e) => {
 const payload: ToolDropPayload =
   tool.kind === "block"
-    ? { kind: "block", type: tool.type, label: tool.label }
+? {
+    kind: "block",
+    type: tool.type,
+    label: tool.label,
+    iconUrl: tool.type === "icon" ? getIconUrlFromLabel(tool.label) : undefined,
+  }
     : tool.kind === "shape"
       ? { kind: "shape", type: tool.type }
       : { kind: "page", type: tool.type };
