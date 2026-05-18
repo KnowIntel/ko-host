@@ -7842,7 +7842,18 @@ function renderCheckout(
 
     return (
       <>
-<Surface block={block}>
+<Surface
+  block={{
+    ...block,
+    appearance: {
+      ...block.appearance,
+      backgroundColor:
+        block.appearance?.backgroundColor === "#FFFFFF"
+          ? "transparent"
+          : block.appearance?.backgroundColor,
+    },
+  }}
+>
   <div
     className="flex h-full w-full flex-col bg-transparent"
     style={{
