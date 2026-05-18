@@ -930,9 +930,22 @@ children={
 
         const url = URL.createObjectURL(blob);
 
+        const pageName =
+          (
+            (liveDraft as any)?.title ||
+            (liveDraft as any)?.pageName ||
+            (liveDraft as any)?.slug ||
+            "page"
+          )
+            .toString()
+            .trim()
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/^-|-$/g, "") || "page";
+
         const link = document.createElement("a");
         link.href = url;
-        link.download = `ko-host-blueprint-${Date.now()}.txt`;
+        link.download = `ko-host-blueprint-${pageName}-${Date.now()}.txt`;
 
         document.body.appendChild(link);
         link.click();

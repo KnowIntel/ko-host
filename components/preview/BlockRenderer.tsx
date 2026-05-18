@@ -1331,7 +1331,7 @@ function renderListing(
             )}
           </div>
 
-          <div className="flex min-w-0 flex-1 flex-col gap-2 p-3">
+          <div className="flex min-w-0 flex-1 flex-col gap-2 px-3 pt-3 pb-6">
             {contentNode}
           </div>
         </div>
@@ -1370,7 +1370,7 @@ function renderListing(
             )}
           </div>
 
-          <div className="flex min-h-0 flex-1 flex-col gap-2 p-3">
+          <div className="flex min-h-0 flex-1 flex-col gap-2 px-3 pt-3 pb-6">
             {contentNode}
           </div>
         </div>
