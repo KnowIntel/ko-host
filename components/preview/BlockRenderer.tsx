@@ -5231,6 +5231,11 @@ function renderTextFx(
   const rotation = fx.rotation ?? 0;
   const opacity = fx.opacity ?? 1;
   const letterScaleX = Math.max(0.5, Math.min(2, Number(fx.letterScaleX ?? 1)));
+  const positionX = block.data.positionX ?? 50;
+  const positionY = block.data.positionY ?? 50;
+
+  const translateX = (positionX - 50) * 0.6;
+  const translateY = (positionY - 50) * 0.6;
 
   const shadowEnabled = fx.shadowEnabled === true;
   const shadowColor = fx.shadowColor ?? "#000000";
@@ -5259,12 +5264,13 @@ if (mode === "straight") {
   return (
     <div
       className="flex h-full w-full p-2"
-      style={{
-        ...getAppearanceStyle(block),
-        justifyContent,
-        alignItems: "center",
-        textAlign,
-      }}
+style={{
+  ...getAppearanceStyle(block),
+  justifyContent,
+  alignItems: "center",
+  textAlign,
+  transform: `translate(${translateX}%, ${translateY}%)`,
+}}
     >
       <div
         style={{
@@ -5358,7 +5364,10 @@ if (mode === "straight") {
   return (
     <div
       className="h-full w-full overflow-visible"
-      style={getAppearanceStyle(block)}
+      style={{
+  ...getAppearanceStyle(block),
+  transform: `translate(${translateX}%, ${translateY}%)`,
+}}
     >
       <svg
         width="100%"

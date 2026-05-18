@@ -397,12 +397,18 @@ export type TextFxBlock = BaseBlock & {
   type: "text_fx";
   data: {
     text: string;
+
+    positionX?: number;
+    positionY?: number;
+
     style?: TextStyle;
+
     fx?: {
       mode?: "straight" | "arch" | "dip" | "circle";
       intensity?: number;
       rotation?: number;
       opacity?: number;
+
       outline?: {
         enabled?: boolean;
         color?: string;
@@ -1752,39 +1758,46 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
         },
       };
 
-    case "text_fx":
-      return {
-        id: makeId("textfx"),
-        type: "text_fx",
-        label: "TextFX",
-        grid,
-        data: {
-          text: "TextFX",
-          style: {
-            fontFamily: "Inter",
-            fontSize: 32,
-            bold: false,
-            italic: false,
-            underline: false,
-            strike: false,
-            align: "center",
-            color: "#000000",
-          },
-          fx: {
-            mode: "straight",
-            intensity: 50,
-            rotation: 0,
-            opacity: 1,
-          },
-        },
-        appearance: {
-          backgroundColor: "transparent",
-          borderColor: "#000000",
-          borderWidth: 0,
-          borderRadius: 0,
-        },
-      };
+case "text_fx":
+  return {
+    id: makeId("textfx"),
+    type: "text_fx",
+    label: "TextFX",
+    grid,
 
+    data: {
+      text: "TextFX",
+
+      positionX: 50,
+      positionY: 50,
+
+      style: {
+        fontFamily: "Inter",
+        fontSize: 32,
+        bold: false,
+        italic: false,
+        underline: false,
+        strike: false,
+        align: "center",
+        color: "#000000",
+      },
+
+      fx: {
+        mode: "straight",
+        intensity: 50,
+        rotation: 0,
+        opacity: 1,
+      },
+    },
+
+    appearance: {
+      backgroundColor: "transparent",
+      borderColor: "#000000",
+      borderWidth: 0,
+      borderRadius: 0,
+    },
+  };
+  
     case "image":
       return {
         id: makeId("image"),

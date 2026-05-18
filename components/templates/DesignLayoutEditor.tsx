@@ -9673,12 +9673,13 @@ if (selectedBlock?.type === "rsvp") {
 {showTextControls ? (
   <>
   {(
-  selectedContext.kind === "pageText" ||
-  selectedContext.kind === "label" ||
-  selectedContext.kind === "textFx"
+selectedContext.kind === "pageText" ||
+selectedContext.kind === "label" ||
+selectedContext.kind === "textFx"
 ) ? (
   <div className={inspectorCardClass()}>
     <div className={inspectorLabelClass()}>Text</div>
+
     <textarea
       value={selectedTextValue}
       onChange={(e) =>
@@ -9687,6 +9688,72 @@ if (selectedBlock?.type === "rsvp") {
       className={inspectorTextareaClass()}
       placeholder="Enter text..."
     />
+
+    {selectedBlock?.type === "text_fx" ? (
+      <div className="mt-4 grid grid-cols-1 gap-3">
+        <div>
+          <div className={inspectorLabelClass()}>
+            Horizontal Position
+          </div>
+
+          <input
+            type="range"
+            min={0}
+            max={100}
+            value={selectedBlock.data.positionX ?? 50}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "text_fx"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        positionX: Number(e.target.value),
+                      },
+                    },
+              )
+            }
+            className="mt-2 w-full"
+          />
+
+          <div className="mt-1 text-xs text-neutral-500">
+            {selectedBlock.data.positionX ?? 50}%
+          </div>
+        </div>
+
+        <div>
+          <div className={inspectorLabelClass()}>
+            Vertical Position
+          </div>
+
+          <input
+            type="range"
+            min={0}
+            max={100}
+            value={selectedBlock.data.positionY ?? 50}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "text_fx"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        positionY: Number(e.target.value),
+                      },
+                    },
+              )
+            }
+            className="mt-2 w-full"
+          />
+
+          <div className="mt-1 text-xs text-neutral-500">
+            {selectedBlock.data.positionY ?? 50}%
+          </div>
+        </div>
+      </div>
+    ) : null}
   </div>
 ) : null}
 
