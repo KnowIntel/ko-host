@@ -2746,13 +2746,13 @@ case "speed_dating":
           ...grid,
           rowSpan: 4,
         },
-        appearance: {
-          ...createDefaultBlockAppearance(),
-          backgroundColor: "#FFFFFF",
-          borderColor: "#E5E7EB",
-          borderWidth: 1,
-          borderRadius: 16,
-        },
+appearance: {
+  ...createDefaultBlockAppearance(),
+  backgroundColor: "transparent",
+  borderColor: "#E5E7EB",
+  borderWidth: 1,
+  borderRadius: 16,
+},
         data: {
           heading: "Cart",
           taxRate: 0,
