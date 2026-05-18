@@ -1520,8 +1520,13 @@ const selectedBlockTextureEnabled =
     : Boolean(selectedAppearance.textureEnabled);
 
 function applyTextureToSelectedBlock(
-  dataUrl: string,
-  meta?: { sizeBytes?: number; mimeType?: string },
+  textureUrl: string,
+  meta?: {
+    sizeBytes?: number;
+    originalSizeBytes?: number;
+    mimeType?: string;
+    storagePath?: string;
+  },
 ) {
   if (!selectedBlock) return;
 
@@ -1536,8 +1541,10 @@ function applyTextureToSelectedBlock(
           style: {
             ...((block.data as any).style ?? {}),
             textureEnabled: true,
-            textureImageUrl: dataUrl,
+            textureImageUrl: textureUrl,
+            textureStoragePath: meta?.storagePath ?? "",
             textureSizeBytes: meta?.sizeBytes ?? 0,
+            textureOriginalSizeBytes: meta?.originalSizeBytes ?? 0,
             textureMimeType: meta?.mimeType ?? "",
             textureScale: 100,
             texturePositionX: 50,
@@ -1561,8 +1568,10 @@ function applyTextureToSelectedBlock(
       appearance: {
         ...block.appearance,
         textureEnabled: true,
-        textureImageUrl: dataUrl,
+        textureImageUrl: textureUrl,
+        textureStoragePath: meta?.storagePath ?? "",
         textureSizeBytes: meta?.sizeBytes ?? 0,
+        textureOriginalSizeBytes: meta?.originalSizeBytes ?? 0,
         textureMimeType: meta?.mimeType ?? "",
         textureScale: 100,
         texturePositionX: 50,
@@ -1574,7 +1583,7 @@ function applyTextureToSelectedBlock(
   }
 }
 
-function handleTextureFileChange(fileList: FileList | null) {
+async function handleTextureFileChange(fileList: FileList | null) {
   const file = fileList?.[0];
   if (!file) return;
 
@@ -1588,19 +1597,20 @@ function handleTextureFileChange(fileList: FileList | null) {
     return;
   }
 
-  const reader = new FileReader();
+  try {
+    setTextureUploadError("");
 
-  reader.onload = () => {
-    const dataUrl = typeof reader.result === "string" ? reader.result : "";
-    if (!dataUrl) return;
+    const uploaded = await uploadBuilderImageFile(file);
 
-    applyTextureToSelectedBlock(dataUrl, {
-      sizeBytes: file.size,
-      mimeType: file.type,
+    applyTextureToSelectedBlock(uploaded.url, {
+      storagePath: uploaded.storagePath,
+      sizeBytes: uploaded.imageSizeBytes,
+      originalSizeBytes: uploaded.imageOriginalSizeBytes,
+      mimeType: uploaded.imageMimeType,
     });
-  };
-
-  reader.readAsDataURL(file);
+  } catch {
+    setTextureUploadError("Texture upload failed. Please try again.");
+  }
 }
 
 function removeTextureFromSelectedBlock() {
