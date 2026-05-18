@@ -5250,7 +5250,16 @@ function handleCreateToolDrop(
 
       const withFront = bringCanvasItemToFront(withPosition, createdItem.id);
 
-      return applyCanvasItemsToDraft(nextDraft, withFront);
+      const positionedDraft = applyCanvasItemsToDraft(nextDraft, withFront);
+
+      return {
+        ...positionedDraft,
+        blocks: positionedDraft.blocks.map((block) =>
+          block.id === createdItem.id && block.type === "icon"
+            ? applyIconDefaults(block, payload.label, payload.iconUrl)
+            : block,
+        ),
+      };
     });
 
     if (createdBlockId) {
