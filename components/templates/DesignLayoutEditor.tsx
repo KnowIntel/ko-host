@@ -326,6 +326,7 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Calendar", type: "icon", iconName: "calendar" },
     { kind: "block", label: "Location Pin", type: "icon", iconName: "location-pin" },
     { kind: "block", label: "Clock", type: "icon", iconName: "clock" },
+    { kind: "block", label: "Jagged Line", type: "icon", iconName: "jagged-line" },
   ],
   Layout: [
     { kind: "shape", label: "Rectangle", type: "rectangle" },
@@ -1197,9 +1198,9 @@ export default function DesignLayoutEditor({
   const selectedPageLength =
     ((draft as DraftWithPageExtras).pageLength ?? "1800") as PageLengthOption;
 
-  const [listingStyleTarget, setListingStyleTarget] = useState<
-    "title" | "description" | "metadata"
-  >("title");
+const [listingStyleTarget, setListingStyleTarget] = useState<
+  "title" | "description" | "metadata" | "price" | "quantity"
+>("title");
 
   const [selectedRsvpElementKey, setSelectedRsvpElementKey] = useState<
     | "form"
@@ -1410,11 +1411,15 @@ const selectedStyle =
             (selectedBlockFromDraft.data as any).style ??
             {}) as TextStyle)
         : (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
-    : selectedBlockFromDraft?.type === "listing"
-      ? listingStyleTarget === "description"
-        ? (selectedBlockFromDraft.data.descriptionStyle ?? {})
-        : listingStyleTarget === "metadata"
-          ? (selectedBlockFromDraft.data.metadataStyle ?? {})
+: selectedBlockFromDraft?.type === "listing"
+  ? listingStyleTarget === "description"
+    ? (selectedBlockFromDraft.data.descriptionStyle ?? {})
+    : listingStyleTarget === "metadata"
+      ? (selectedBlockFromDraft.data.metadataStyle ?? {})
+      : listingStyleTarget === "price"
+        ? ((selectedBlockFromDraft.data as any).priceStyle ?? {})
+        : listingStyleTarget === "quantity"
+          ? ((selectedBlockFromDraft.data as any).quantityStyle ?? {})
           : (selectedBlockFromDraft.data.titleStyle ?? {})
       : selectedBlockFromDraft?.type === "highlight"
         ? highlightStyleTarget === "body"
@@ -3741,42 +3746,56 @@ if (selectedBlock?.type === "countdown") {
     return;
   }
 
-  if (selectedBlock?.type === "listing") {
-    setDraft((prev) => ({
-      ...prev,
-      blocks: prev.blocks.map((block) =>
-        block.id === selectedBlock.id && block.type === "listing"
-          ? {
-              ...block,
-              data: {
-                ...block.data,
-                ...(listingStyleTarget === "description"
+if (selectedBlock?.type === "listing") {
+  setDraft((prev) => ({
+    ...prev,
+    blocks: prev.blocks.map((block) =>
+      block.id === selectedBlock.id && block.type === "listing"
+        ? {
+            ...block,
+            data: {
+              ...block.data,
+              ...(listingStyleTarget === "description"
+                ? {
+                    descriptionStyle: {
+                      ...(block.data.descriptionStyle ?? {}),
+                      ...patch,
+                    },
+                  }
+                : listingStyleTarget === "metadata"
                   ? {
-                      descriptionStyle: {
-                        ...(block.data.descriptionStyle ?? {}),
+                      metadataStyle: {
+                        ...(block.data.metadataStyle ?? {}),
                         ...patch,
                       },
                     }
-                  : listingStyleTarget === "metadata"
+                  : listingStyleTarget === "price"
                     ? {
-                        metadataStyle: {
-                          ...(block.data.metadataStyle ?? {}),
+                        priceStyle: {
+                          ...((block.data as any).priceStyle ?? {}),
                           ...patch,
                         },
                       }
-                    : {
-                        titleStyle: {
-                          ...(block.data.titleStyle ?? {}),
-                          ...patch,
-                        },
-                      }),
-              },
-            }
-          : block,
-      ),
-    }));
-    return;
-  }
+                    : listingStyleTarget === "quantity"
+                      ? {
+                          quantityStyle: {
+                            ...((block.data as any).quantityStyle ?? {}),
+                            ...patch,
+                          },
+                        }
+                      : {
+                          titleStyle: {
+                            ...(block.data.titleStyle ?? {}),
+                            ...patch,
+                          },
+                        }),
+            },
+          }
+        : block,
+    ),
+  }));
+  return;
+}
 
   if (selectedBlock?.type === "cart") {
     setDraft((prev) => ({
@@ -8312,20 +8331,27 @@ const idsToExpand =
           <>
             <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
 
-            <select
-              value={listingStyleTarget}
-              onChange={(e) =>
-                setListingStyleTarget(
-                  e.target.value as "title" | "description" | "metadata",
-                )
-              }
-              className={topBarFieldClass("w-[140px]")}
-              title="Listing text target"
-            >
-              <option value="title">Title</option>
-              <option value="description">Description</option>
-              <option value="metadata">Metadata</option>
-            </select>
+<select
+  value={listingStyleTarget}
+  onChange={(e) =>
+    setListingStyleTarget(
+      e.target.value as
+        | "title"
+        | "description"
+        | "metadata"
+        | "price"
+        | "quantity",
+    )
+  }
+  className={topBarFieldClass("w-[140px]")}
+  title="Listing text target"
+>
+  <option value="title">Title</option>
+  <option value="description">Description</option>
+  <option value="metadata">Metadata</option>
+  <option value="price">Price</option>
+  <option value="quantity">Quantity</option>
+</select>
           </>
         ) : null}
 
@@ -16815,6 +16841,31 @@ onInput={(e) => {
     </div>
 
     <div className="mt-4">
+  <div className={inspectorLabelClass()}>Price Position</div>
+
+  <select
+    value={(selectedBlock.data as any).pricePlacement ?? "mid"}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "listing"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                pricePlacement: e.target.value as "mid" | "lower",
+              },
+            },
+      )
+    }
+    className={inspectorInputClass()}
+  >
+    <option value="mid">Mid-level</option>
+    <option value="lower">Lower-level</option>
+  </select>
+</div>
+
+    <div className="mt-4">
       <div className={inspectorLabelClass()}>Price</div>
       <input
         type="number"
@@ -16864,6 +16915,31 @@ onInput={(e) => {
         placeholder="Optional item code"
       />
     </div>
+
+<div className="mt-4">
+  <div className={inspectorLabelClass()}>Quantity Position</div>
+
+  <select
+    value={(selectedBlock.data as any).quantityPlacement ?? "mid"}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "listing"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                quantityPlacement: e.target.value as "mid" | "lower",
+              },
+            },
+      )
+    }
+    className={inspectorInputClass()}
+  >
+    <option value="mid">Mid-level</option>
+    <option value="lower">Lower-level</option>
+  </select>
+</div>
 
     <div className="mt-4 space-y-2">
       <label className="text-sm font-medium">Add to cart</label>

@@ -818,14 +818,21 @@ export type ListingBlock = BaseBlock & {
     addToCart?: boolean;
     sku?: string;
     metadata: ListingMetadataItem[];
+
+    pricePlacement?: "mid" | "lower";
+    quantityPlacement?: "mid" | "lower";
+
     titleStyle?: TextStyle;
     descriptionStyle?: TextStyle;
     metadataStyle?: TextStyle;
+    priceStyle?: TextStyle;
+    quantityStyle?: TextStyle;
+
     cardVariant?: ListingCardVariant;
     imageHeightPercent?: number;
     rotation?: number;
     scale?: number;
-      };
+  };
 };
 
 export type RichTextBlock = BaseBlock & {
@@ -2392,6 +2399,10 @@ data: {
             { id: makeId("meta"), label: "Price", value: "$0" },
             { id: makeId("meta"), label: "Location", value: "City, State" },
           ],
+
+          pricePlacement: "mid",
+          quantityPlacement: "mid",
+
           titleStyle: {
             ...createDefaultTextStyle(),
             fontSize: 24,
@@ -2402,6 +2413,15 @@ data: {
             fontSize: 16,
           },
           metadataStyle: {
+            ...createDefaultTextStyle(),
+            fontSize: 14,
+          },
+          priceStyle: {
+            ...createDefaultTextStyle(),
+            fontSize: 14,
+            bold: true,
+          },
+          quantityStyle: {
             ...createDefaultTextStyle(),
             fontSize: 14,
           },

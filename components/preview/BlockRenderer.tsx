@@ -1162,24 +1162,31 @@ function renderListing(
   const price = typeof block.data.price === "number" ? block.data.price : 0;
   const addToCart = !!block.data.addToCart;
   const isSelectable = addToCart && price > 0;
+
+  const pricePlacement = (block.data as any).pricePlacement ?? "mid";
+  const quantityPlacement = (block.data as any).quantityPlacement ?? "mid";
+
   const quantity =
     typeof listingQuantities[block.id] === "number" &&
     Number.isFinite(listingQuantities[block.id])
       ? Math.max(0, Math.floor(listingQuantities[block.id]))
       : 0;
+
   const cardVariant = block.data.cardVariant ?? "stacked";
   const imageHeightPercent = Math.max(
     20,
     Math.min(80, Number(block.data.imageHeightPercent) || 50),
   );
+
   const cardRotation = Math.max(
-  -45,
-  Math.min(45, Number((block.data as any).rotation) || 0),
-);
-const cardScale = Math.max(
-  0.5,
-  Math.min(1, Number((block.data as any).scale) || 1),
-);
+    -45,
+    Math.min(45, Number((block.data as any).rotation) || 0),
+  );
+
+  const cardScale = Math.max(
+    0.5,
+    Math.min(1, Number((block.data as any).scale) || 1),
+  );
 
   const positionX = image.positionX ?? 50;
   const positionY = image.positionY ?? 50;
@@ -1196,7 +1203,142 @@ const cardScale = Math.max(
         ? "fill"
         : "cover";
 
-if (cardVariant === "compact") {
+  const priceNode =
+    price > 0 ? (
+      <div
+        className="text-sm font-semibold"
+        style={getContainerTextStyle((block.data as any).priceStyle, designKey)}
+      >
+        ${formatCurrency(price)}
+      </div>
+    ) : null;
+
+  const quantityNode = isSelectable ? (
+    <div
+      className="flex items-center gap-2 text-sm"
+      style={getContainerTextStyle((block.data as any).quantityStyle, designKey)}
+    >
+      <span>Qty</span>
+
+      <button
+        type="button"
+        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-neutral-300 bg-white text-sm font-medium"
+        onClick={(e) => {
+          e.stopPropagation();
+          onChangeListingQuantity?.(block.id, Math.max(0, quantity - 1));
+        }}
+      >
+        -
+      </button>
+
+      <div className="min-w-[28px] text-center font-semibold">{quantity}</div>
+
+      <button
+        type="button"
+        className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-neutral-300 bg-white text-sm font-medium"
+        onClick={(e) => {
+          e.stopPropagation();
+          onChangeListingQuantity?.(block.id, quantity + 1);
+        }}
+      >
+        +
+      </button>
+    </div>
+  ) : null;
+
+  const metadataNode = metadata.length ? (
+    <div className="flex flex-wrap gap-x-3 gap-y-1">
+      {metadata.map((item) => (
+        <div key={item.id} className="min-w-0">
+          <span
+            className="mr-1 opacity-60"
+            style={getContainerTextStyle(block.data.metadataStyle, designKey)}
+          >
+            {item.label}:
+          </span>
+          <span style={getContainerTextStyle(block.data.metadataStyle, designKey)}>
+            {item.value}
+          </span>
+        </div>
+      ))}
+    </div>
+  ) : null;
+
+  const contentNode = (
+    <>
+      <div
+        className="font-semibold"
+        style={getContainerTextStyle(block.data.titleStyle, designKey)}
+      >
+        {block.data.title || "Listing Title"}
+      </div>
+
+      {pricePlacement === "mid" ? priceNode : null}
+      {quantityPlacement === "mid" ? quantityNode : null}
+
+      {block.data.description ? (
+        <div
+          className="text-sm"
+          style={getContainerTextStyle(block.data.descriptionStyle, designKey)}
+        >
+          {block.data.description}
+        </div>
+      ) : null}
+
+      <div className="mt-auto space-y-2">
+        {metadataNode}
+        {pricePlacement === "lower" ? priceNode : null}
+        {quantityPlacement === "lower" ? quantityNode : null}
+      </div>
+    </>
+  );
+
+  if (cardVariant === "compact") {
+    return (
+      <div
+        className="h-full w-full overflow-visible"
+        style={{
+          transform: `scale(${cardScale}) rotate(${cardRotation}deg)`,
+          transformOrigin: "center center",
+        }}
+      >
+        <div
+          className="h-full w-full overflow-hidden"
+          style={{
+            ...getAppearanceStyle(block),
+            display: "flex",
+            flexDirection: "row",
+          }}
+        >
+          <div className="relative h-full overflow-hidden" style={{ width: "42%", minWidth: "42%" }}>
+            {image.url ? (
+              <img
+                src={image.url}
+                alt={image.alt || ""}
+                className="h-full w-full"
+                style={{
+                  objectFit: imageObjectFit,
+                  objectPosition: "center center",
+                  transform: `translate(${translateX}%, ${translateY}%) scale(${zoom}) rotate(${rotation}deg)`,
+                  transformOrigin: "center center",
+                  opacity: image.opacity ?? 1,
+                }}
+              />
+            ) : (
+              <div className={["flex h-full w-full items-center justify-center border-r border-dashed text-sm", getPlaceholderClass(designKey)].join(" ")}>
+                Add image
+              </div>
+            )}
+          </div>
+
+          <div className="flex min-w-0 flex-1 flex-col gap-2 p-3">
+            {contentNode}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       className="h-full w-full overflow-visible"
@@ -1205,265 +1347,36 @@ if (cardVariant === "compact") {
         transformOrigin: "center center",
       }}
     >
-      <div
-        className="h-full w-full overflow-hidden"
-        style={{
-          ...getAppearanceStyle(block),
-          display: "flex",
-          flexDirection: "row",
-        }}
-      >
-        <div
-          className="relative h-full overflow-hidden"
-          style={{
-            width: "42%",
-            minWidth: "42%",
-          }}
-        >
-          {image.url ? (
-            <img
-              src={image.url}
-              alt={image.alt || ""}
-              className="h-full w-full"
-              style={{
-                objectFit: imageObjectFit,
-                objectPosition: "center center",
-                transform: `translate(${translateX}%, ${translateY}%) scale(${zoom}) rotate(${rotation}deg)`,
-                transformOrigin: "center center",
-                opacity: image.opacity ?? 1,
-              }}
-            />
-          ) : (
-            <div
-              className={[
-                "flex h-full w-full items-center justify-center border-r border-dashed text-sm",
-                getPlaceholderClass(designKey),
-              ].join(" ")}
-            >
-              Add image
-            </div>
-          )}
-        </div>
-
-        <div className="flex min-w-0 flex-1 flex-col gap-2 p-3">
-          <div
-            className="font-semibold"
-            style={getContainerTextStyle(block.data.titleStyle, designKey)}
-          >
-            {block.data.title || "Listing Title"}
+      <div className="h-full w-full overflow-hidden" style={getAppearanceStyle(block)}>
+        <div className="flex h-full w-full flex-col">
+          <div className="relative w-full overflow-hidden" style={{ height: `${imageHeightPercent}%` }}>
+            {image.url ? (
+              <img
+                src={image.url}
+                alt={image.alt || ""}
+                className="h-full w-full"
+                style={{
+                  objectFit: imageObjectFit,
+                  objectPosition: "center center",
+                  transform: `translate(${translateX}%, ${translateY}%) scale(${zoom}) rotate(${rotation}deg)`,
+                  transformOrigin: "center center",
+                  opacity: image.opacity ?? 1,
+                }}
+              />
+            ) : (
+              <div className={["flex h-full w-full items-center justify-center border-b border-dashed text-sm", getPlaceholderClass(designKey)].join(" ")}>
+                Add image
+              </div>
+            )}
           </div>
 
-          {price > 0 ? (
-            <div className="text-sm font-semibold">
-              ${formatCurrency(price)}
-            </div>
-          ) : null}
-
-          {isSelectable ? (
-            <div className="flex items-center gap-2 text-sm">
-              <span>Qty</span>
-
-              <button
-                type="button"
-                className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-neutral-300 bg-white text-sm font-medium"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onChangeListingQuantity?.(block.id, Math.max(0, quantity - 1));
-                }}
-              >
-                -
-              </button>
-
-              <div className="min-w-[28px] text-center font-semibold">
-                {quantity}
-              </div>
-
-              <button
-                type="button"
-                className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-neutral-300 bg-white text-sm font-medium"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onChangeListingQuantity?.(block.id, quantity + 1);
-                }}
-              >
-                +
-              </button>
-            </div>
-          ) : null}
-
-          {block.data.description ? (
-            <div
-              className="text-sm"
-              style={getContainerTextStyle(
-                block.data.descriptionStyle,
-                designKey,
-              )}
-            >
-              {block.data.description}
-            </div>
-          ) : null}
-
-          {metadata.length ? (
-            <div className="mt-auto flex flex-wrap gap-x-3 gap-y-1">
-              {metadata.map((item) => (
-                <div key={item.id} className="min-w-0">
-                  <span
-                    className="mr-1 opacity-60"
-                    style={getContainerTextStyle(
-                      block.data.metadataStyle,
-                      designKey,
-                    )}
-                  >
-                    {item.label}:
-                  </span>
-                  <span
-                    style={getContainerTextStyle(
-                      block.data.metadataStyle,
-                      designKey,
-                    )}
-                  >
-                    {item.value}
-                  </span>
-                </div>
-              ))}
-            </div>
-          ) : null}
+          <div className="flex min-h-0 flex-1 flex-col gap-2 p-3">
+            {contentNode}
+          </div>
         </div>
       </div>
     </div>
   );
-}
-
-return (
-  <div
-    className="h-full w-full overflow-visible"
-    style={{
-      transform: `scale(${cardScale}) rotate(${cardRotation}deg)`,
-      transformOrigin: "center center",
-    }}
-  >
-    <div
-      className="h-full w-full overflow-hidden"
-      style={getAppearanceStyle(block)}
-    >
-      <div className="flex h-full w-full flex-col">
-        <div
-          className="relative w-full overflow-hidden"
-          style={{ height: `${imageHeightPercent}%` }}
-        >
-          {image.url ? (
-            <img
-              src={image.url}
-              alt={image.alt || ""}
-              className="h-full w-full"
-              style={{
-                objectFit: imageObjectFit,
-                objectPosition: "center center",
-                transform: `translate(${translateX}%, ${translateY}%) scale(${zoom}) rotate(${rotation}deg)`,
-                transformOrigin: "center center",
-                opacity: image.opacity ?? 1,
-              }}
-            />
-          ) : (
-            <div
-              className={[
-                "flex h-full w-full items-center justify-center border-b border-dashed text-sm",
-                getPlaceholderClass(designKey),
-              ].join(" ")}
-            >
-              Add image
-            </div>
-          )}
-        </div>
-
-        <div className="flex min-h-0 flex-1 flex-col gap-2 p-3">
-          <div
-            className="font-semibold"
-            style={getContainerTextStyle(block.data.titleStyle, designKey)}
-          >
-            {block.data.title || "Listing Title"}
-          </div>
-
-          {price > 0 ? (
-            <div className="text-sm font-semibold">
-              ${formatCurrency(price)}
-            </div>
-          ) : null}
-
-          {isSelectable ? (
-            <div className="flex items-center gap-2 text-sm">
-              <span>Qty</span>
-
-              <button
-                type="button"
-                className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-neutral-300 bg-white text-sm font-medium"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onChangeListingQuantity?.(block.id, Math.max(0, quantity - 1));
-                }}
-              >
-                -
-              </button>
-
-              <div className="min-w-[28px] text-center font-semibold">
-                {quantity}
-              </div>
-
-              <button
-                type="button"
-                className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-neutral-300 bg-white text-sm font-medium"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onChangeListingQuantity?.(block.id, quantity + 1);
-                }}
-              >
-                +
-              </button>
-            </div>
-          ) : null}
-
-          {block.data.description ? (
-            <div
-              className="text-sm"
-              style={getContainerTextStyle(
-                block.data.descriptionStyle,
-                designKey,
-              )}
-            >
-              {block.data.description}
-            </div>
-          ) : null}
-
-          {metadata.length ? (
-            <div className="mt-auto flex flex-wrap gap-x-3 gap-y-1">
-              {metadata.map((item) => (
-                <div key={item.id} className="min-w-0">
-                  <span
-                    className="mr-1 opacity-60"
-                    style={getContainerTextStyle(
-                      block.data.metadataStyle,
-                      designKey,
-                    )}
-                  >
-                    {item.label}:
-                  </span>
-                  <span
-                    style={getContainerTextStyle(
-                      block.data.metadataStyle,
-                      designKey,
-                    )}
-                  >
-                    {item.value}
-                  </span>
-                </div>
-              ))}
-            </div>
-          ) : null}
-        </div>
-      </div>
-    </div>
-  </div>
-);
 }
 
 function renderCta(
