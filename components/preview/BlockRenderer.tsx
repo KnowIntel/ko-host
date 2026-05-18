@@ -8052,7 +8052,7 @@ function renderCart(
               {block.data.heading || "Cart"}
             </div>
 
-            <div className="flex-1 space-y-2 overflow-y-auto">
+            <div className="flex-1 space-y-5 overflow-y-auto pr-1">
               {safeCartItems.length > 0 ? (
                 safeCartItems.map((item) => (
                   <div
