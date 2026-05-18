@@ -17148,12 +17148,9 @@ onInput={(e) => {
                           ...block,
                           data: {
                             ...block.data,
-                            metadata:
-                              block.data.metadata.length > 1
-                                ? block.data.metadata.filter(
-                                    (entry) => entry.id !== item.id,
-                                  )
-                                : block.data.metadata,
+                              metadata: block.data.metadata.filter(
+                                (entry) => entry.id !== item.id,
+                              ),
                           },
                         },
                   )
