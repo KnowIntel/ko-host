@@ -5085,7 +5085,7 @@ function handleBringForward(blockId: string) {
   });
 }
 
-  function handleCreateToolDrop(
+function handleCreateToolDrop(
   payload: ToolDropPayload,
   patch: {
     colStart: number;
@@ -5094,6 +5094,8 @@ function handleBringForward(blockId: string) {
     rowSpan: number;
   },
 ) {
+  console.log("TOOL DROP PAYLOAD", payload);
+
   setSelection(createEmptySelection());
   setOpenToolMenu(null);
 
@@ -19009,7 +19011,6 @@ onInput={(e) => {
   <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
     {category} Tools
   </div>
-  //s
 
   <div className="flex items-center gap-2">
     <button
