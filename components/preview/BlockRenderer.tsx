@@ -1214,10 +1214,17 @@ function renderListing(
     ) : null;
 
   const quantityNode = isSelectable ? (
-    <div
-      className="flex items-center gap-2 text-sm"
-      style={getContainerTextStyle((block.data as any).quantityStyle, designKey)}
-    >
+<div
+  className={[
+    "flex items-center gap-2 text-sm",
+    ((block.data as any).quantityStyle?.align ?? "left") === "center"
+      ? "justify-center"
+      : ((block.data as any).quantityStyle?.align ?? "left") === "right"
+        ? "justify-end"
+        : "justify-start",
+  ].join(" ")}
+  style={getContainerTextStyle((block.data as any).quantityStyle, designKey)}
+>
       <span>Qty</span>
 
       <button
