@@ -1838,8 +1838,20 @@ if (event.key.toLowerCase() === "s") {
   event.preventDefault();
 
   void (async () => {
-    await onSaveDraft?.(draft);
-    downloadBlueprintSnapshot(draft);
+const zoomBeforeSave = canvasZoom;
+
+try {
+  await onSaveDraft?.(draft);
+  downloadBlueprintSnapshot(draft);
+} finally {
+  window.requestAnimationFrame(() => {
+    setCanvasZoom(zoomBeforeSave);
+
+    window.setTimeout(() => {
+      setCanvasZoom(zoomBeforeSave);
+    }, 250);
+  });
+}
   })();
 
   return;
@@ -19501,15 +19513,32 @@ className="h-[44px] w-[180px] rounded-md border border-neutral-300 bg-white px-3
                     : "border-blue-600 bg-blue-600 text-white hover:bg-blue-700",
           ].join(" ")}
       onClick={async () => {
-        const zoomBeforeSave = canvasZoom;
+const zoomBeforeSave = canvasZoom;
 
-        await onSaveDraft?.(draft);
+try {
+const zoomBeforeSave = canvasZoom;
 
-        downloadBlueprintSnapshot(draft);
+try {
+  await onSaveDraft?.(draft);
+  downloadBlueprintSnapshot(draft);
+} finally {
+  window.requestAnimationFrame(() => {
+    setCanvasZoom(zoomBeforeSave);
 
-        setTimeout(() => {
-          setCanvasZoom(zoomBeforeSave);
-        }, 100);
+    window.setTimeout(() => {
+      setCanvasZoom(zoomBeforeSave);
+    }, 250);
+  });
+}
+} finally {
+  window.requestAnimationFrame(() => {
+    setCanvasZoom(zoomBeforeSave);
+
+    window.setTimeout(() => {
+      setCanvasZoom(zoomBeforeSave);
+    }, 250);
+  });
+}
       }}
           disabled={saveState === "saving"}
         >
