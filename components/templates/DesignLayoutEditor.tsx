@@ -949,6 +949,34 @@ function toolSetButtonClass(kind: "front" | "back" | "remove") {
   return "inline-flex h-8 items-center justify-center rounded-lg border border-neutral-300 bg-white px-3 text-xs font-medium text-neutral-700 hover:bg-neutral-50";
 }
 
+function renderToolGlyph(tool: (typeof CATEGORY_BUTTONS)[BottomCategory][number]) {
+  if (
+    tool.kind === "block" &&
+    tool.type === "icon" &&
+    "iconName" in tool &&
+    tool.iconName
+  ) {
+    return (
+      <span
+        className="block h-5 w-5"
+        style={{
+          backgroundColor: "#111827",
+          WebkitMaskImage: `url("/media-icons/${tool.iconName}.svg")`,
+          maskImage: `url("/media-icons/${tool.iconName}.svg")`,
+          WebkitMaskRepeat: "no-repeat",
+          maskRepeat: "no-repeat",
+          WebkitMaskPosition: "center",
+          maskPosition: "center",
+          WebkitMaskSize: "contain",
+          maskSize: "contain",
+        }}
+      />
+    );
+  }
+
+  return getToolGlyph(tool.label);
+}
+
 function getToolGlyph(label: string) {
   if (label === "Text") return "T";
   if (label === "Media") return "🖼";
@@ -4762,6 +4790,11 @@ async function uploadMultipleImagesToCarousel(blockId: string) {
       }));
     },
   });
+}
+
+function getIconNameFromUrl(url?: string) {
+  const fileName = String(url ?? "").split("/").pop() ?? "";
+  return fileName.replace(/\.svg$/i, "") || "star";
 }
 
 function getIconUrlFromLabel(label?: string) {
@@ -17421,6 +17454,49 @@ onInput={(e) => {
                     <div className={inspectorLabelClass()}>Icon</div>
 
                     <div className="mt-4">
+                      <div className={inspectorLabelClass()}>Icon</div>
+                      <select
+                        value={getIconNameFromUrl(selectedBlock.data.icon.url)}
+                        onChange={(e) => {
+                          const iconName = e.target.value;
+                          const iconTool = CATEGORY_BUTTONS.Icons.find(
+                            (tool) =>
+                              tool.kind === "block" &&
+                              tool.type === "icon" &&
+                              tool.iconName === iconName,
+                          );
+
+                          updateSelectedBlock((block) =>
+                            block.type !== "icon"
+                              ? block
+                              : {
+                                  ...block,
+                                  label: iconTool?.label ?? block.label,
+                                  data: {
+                                    ...block.data,
+                                    icon: {
+                                      ...block.data.icon,
+                                      id: `/media-icons/${iconName}.svg`,
+                                      url: `/media-icons/${iconName}.svg`,
+                                      alt: iconTool?.label ?? block.data.icon.alt ?? "Icon",
+                                    },
+                                  },
+                                },
+                          );
+                        }}
+                        className={inspectorInputClass()}
+                      >
+                        {CATEGORY_BUTTONS.Icons.filter(
+                          (tool) => tool.kind === "block" && tool.type === "icon",
+                        ).map((tool) => (
+                          <option key={tool.iconName ?? tool.label} value={tool.iconName}>
+                            {tool.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="mt-4">
                       <div className={inspectorLabelClass()}>Icon Color</div>
                       <input
                         type="color"
@@ -19113,7 +19189,7 @@ const payload: ToolDropPayload =
         }}
         title={tool.label}
       >
-        {getToolGlyph(tool.label)}
+        {renderToolGlyph(tool)}
       </button>
     ))}
   </div>
@@ -19163,7 +19239,7 @@ const payload: ToolDropPayload =
         title={tool.label}
       >
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-neutral-200 bg-neutral-50 text-sm font-semibold text-neutral-800">
-          {getToolGlyph(tool.label)}
+          {renderToolGlyph(tool)}
         </span>
 
         <span className="min-w-0">
