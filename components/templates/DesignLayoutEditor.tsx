@@ -17486,13 +17486,19 @@ onInput={(e) => {
                         }}
                         className={inspectorInputClass()}
                       >
-                        {CATEGORY_BUTTONS.Icons.filter(
-                          (tool) => tool.kind === "block" && tool.type === "icon",
-                        ).map((tool) => (
-                          <option key={tool.iconName ?? tool.label} value={tool.iconName}>
-                            {tool.label}
-                          </option>
-                        ))}
+{CATEGORY_BUTTONS.Icons.filter(
+  (
+    tool,
+  ): tool is Extract<
+    (typeof CATEGORY_BUTTONS)["Icons"][number],
+    { kind: "block" }
+  > & { iconName?: string } =>
+    tool.kind === "block" && tool.type === "icon",
+).map((tool) => (
+  <option key={tool.iconName ?? tool.label} value={tool.iconName ?? "star"}>
+    {tool.label}
+  </option>
+))}
                       </select>
                     </div>
 
@@ -19159,7 +19165,11 @@ onInput={(e) => {
     : "",
 ].join(" ")}
         onClick={() => {
-          if (tool.kind === "block") addBlock(tool.type, tool.label, tool.iconName);
+          if (tool.kind === "block") addBlock(
+  tool.type,
+  tool.label,
+  "iconName" in tool ? tool.iconName : undefined,
+);
           if (tool.kind === "shape") addShape(tool.type);
           if (tool.kind === "page") addPageBlock(tool.type);
           setOpenToolMenu(null);
@@ -19172,11 +19182,11 @@ const payload: ToolDropPayload =
         kind: "block",
         type: tool.type,
         label: tool.label,
-        iconName: tool.iconName,
-        iconUrl:
-          tool.type === "icon"
-            ? `/media-icons/${tool.iconName ?? "star"}.svg`
-            : undefined,
+iconName: "iconName" in tool ? tool.iconName : undefined,
+iconUrl:
+  tool.type === "icon"
+    ? `/media-icons/${"iconName" in tool ? tool.iconName ?? "star" : "star"}.svg`
+    : undefined,
       }
     : tool.kind === "shape"
       ? { kind: "shape", type: tool.type }
@@ -19208,7 +19218,11 @@ const payload: ToolDropPayload =
     : "border-neutral-200",
 ].join(" ")}
         onClick={() => {
-          if (tool.kind === "block") addBlock(tool.type, tool.label, tool.iconName);
+          if (tool.kind === "block") addBlock(
+  tool.type,
+  tool.label,
+  "iconName" in tool ? tool.iconName : undefined,
+);
           if (tool.kind === "shape") addShape(tool.type);
           if (tool.kind === "page") addPageBlock(tool.type);
           setOpenToolMenu(null);
@@ -19221,11 +19235,11 @@ const payload: ToolDropPayload =
         kind: "block",
         type: tool.type,
         label: tool.label,
-        iconName: tool.iconName,
-        iconUrl:
-          tool.type === "icon"
-            ? `/media-icons/${tool.iconName ?? "star"}.svg`
-            : undefined,
+iconName: "iconName" in tool ? tool.iconName : undefined,
+iconUrl:
+  tool.type === "icon"
+    ? `/media-icons/${"iconName" in tool ? tool.iconName ?? "star" : "star"}.svg`
+    : undefined,
       }
     : tool.kind === "shape"
       ? { kind: "shape", type: tool.type }
