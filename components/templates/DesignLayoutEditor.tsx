@@ -327,6 +327,7 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Location Pin", type: "icon", iconName: "location-pin" },
     { kind: "block", label: "Clock", type: "icon", iconName: "clock" },
     { kind: "block", label: "Jagged Line", type: "icon", iconName: "jagged-line" },
+    { kind: "block", label: "Phone", type: "icon", iconName: "phone" },
   ],
   Layout: [
     { kind: "shape", label: "Rectangle", type: "rectangle" },
