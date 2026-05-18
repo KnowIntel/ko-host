@@ -7842,13 +7842,14 @@ function renderCheckout(
 
     return (
       <>
-        <Surface block={block}>
-          <div
-            className="flex h-full w-full flex-col"
-            style={{
-              gap: `${buttonSpacing}px`,
-            }}
-          >
+<Surface block={block}>
+  <div
+    className="flex h-full w-full flex-col bg-transparent"
+    style={{
+      gap: `${Math.max(buttonSpacing, 20)}px`,
+      backgroundColor: "transparent",
+    }}
+  >
             {data.imageUrl ? (
               <img
                 src={data.imageUrl}
