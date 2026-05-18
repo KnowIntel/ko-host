@@ -4145,11 +4145,24 @@ function downloadBlueprintSnapshot(nextDraft: BuilderDraft) {
     type: "text/plain;charset=utf-8",
   });
 
+  const pageName =
+    (
+      (nextDraft as any)?.title ||
+      (nextDraft as any)?.pageName ||
+      (nextDraft as any)?.slug ||
+      "page"
+    )
+      .toString()
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "") || "page";
+
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
 
   link.href = url;
-  link.download = `ko-host-blueprint-${timestamp}.txt`;
+  link.download = `ko-host-blueprint-${pageName}-${timestamp}.txt`;
 
   document.body.appendChild(link);
   link.click();
