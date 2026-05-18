@@ -8039,11 +8039,11 @@ function renderCart(
 
     return (
       <>
-        <Surface
-          block={block}
-          designKey={designKey}
-          className={getSoftSurfaceClass(designKey)}
-        >
+<Surface
+  block={block}
+  designKey={designKey}
+  className=""
+>
           <div className="flex h-full w-full flex-col gap-3">
             <div
               className="text-base font-semibold"
