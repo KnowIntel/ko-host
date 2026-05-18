@@ -95,6 +95,7 @@ const draftPageCountByTemplateDesignKey: Record<string, number> = {
   "church_event:easter": 1,
 
   "graduation:spotlight": 4,
+  "graduation:prestige": 4,
 
   "pet_adoption:welcome": 2,
 
