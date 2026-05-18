@@ -2908,6 +2908,22 @@ function applyFillColor(value: string) {
     pushRecentColor(value);
     return;
   }
+if (selectedBlock?.type === "checkout") {
+  updateSelectedBlock((block) =>
+    block.type !== "checkout"
+      ? block
+      : {
+          ...block,
+          appearance: {
+            ...block.appearance,
+            backgroundColor: value,
+          },
+        },
+  );
+
+  pushRecentColor(value);
+  return;
+}
 
   applyAppearancePatch({ backgroundColor: value });
   pushRecentColor(value);
@@ -9350,6 +9366,21 @@ if (selectedBlock?.type === "rsvp") {
   }));
   return;
 }
+
+    if (selectedBlock?.type === "checkout") {
+      updateSelectedBlock((block) =>
+        block.type !== "checkout"
+          ? block
+          : {
+              ...block,
+              appearance: {
+                ...block.appearance,
+                backgroundColor: "transparent",
+              },
+            },
+      );
+      return;
+    }
 
     applyAppearancePatch({ backgroundColor: "transparent" });
   }}
