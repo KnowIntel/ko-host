@@ -4761,134 +4761,108 @@ function renderFormField(
   block: Extract<MicrositeBlock, { type: "form_field" }>,
   designKey?: string,
 ) {
-  const inputClass = isLightDesign(designKey)
-    ? "w-full rounded border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900"
-    : "w-full rounded border border-white/15 bg-white/5 px-3 py-2 text-sm text-white";
+  function FormFieldPreview() {
+    const inputClass = isLightDesign(designKey)
+      ? "w-full rounded border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900"
+      : "w-full rounded border border-white/15 bg-white/5 px-3 py-2 text-sm text-white";
 
-  const showLabel = block.data.showLabel !== false;
-  const showPlaceholder = block.data.showPlaceholder !== false;
-  const showRequired = block.data.showRequired !== false;
-  const linkedButtonId = (block.data as any).linkedButtonId ?? "";
-const showRating = (block.data as any).showRating === true;
-const ratingValue = Math.max(
-  0,
-  Math.min(5, Number((block.data as any).ratingValue ?? 0)),
-);
+    const showLabel = block.data.showLabel !== false;
+    const showPlaceholder = block.data.showPlaceholder !== false;
+    const showRequired = block.data.showRequired !== false;
+    const linkedButtonId = (block.data as any).linkedButtonId ?? "";
 
-const ratingColor =
-  (block.data as any).ratingColor || "#F59E0B";
+    const showRating = (block.data as any).showRating === true;
+    const initialRating = Math.max(
+      0,
+      Math.min(5, Number((block.data as any).ratingValue ?? 0)),
+    );
 
-const ratingPosition =
-  (block.data as any).ratingPosition === "low"
-    ? "low"
-    : "high";
+    const [ratingValue, setRatingValue] = useState(initialRating);
 
-  return (
-    <div className="h-full w-full p-2" style={getAppearanceStyle(block)}>
-      <div className="flex h-full flex-col gap-2">
-{showRating && ratingPosition === "high" ? (
-  <div className="flex items-center gap-1">
-    {Array.from({ length: 5 }).map((_, index) => {
-      const filled = index < ratingValue;
+    const ratingColor = (block.data as any).ratingColor || "#F59E0B";
+    const ratingPosition =
+      (block.data as any).ratingPosition === "low" ? "low" : "high";
 
-      return (
-        <button
-          key={index}
-          type="button"
-          onClick={() => {
-            (block.data as any).ratingValue = index + 1;
-          }}
-          className="transition-transform hover:scale-110"
-          style={{
-            color: ratingColor,
-          }}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill={filled ? "currentColor" : "none"}
-            stroke="currentColor"
-            strokeWidth="2"
-            className="h-6 w-6"
-          >
-            <path d="M12 2l3.1 6.3 7 .9-5 4.8 1.2 6.9L12 17.8 5.7 21l1.2-6.9-5-4.8 7-.9L12 2z" />
-          </svg>
-        </button>
-      );
-    })}
-  </div>
-) : null}
-        {showLabel ? (
-          <label
-            className="text-sm"
-            style={getContainerTextStyle(block.data.style, designKey)}
-          >
-            {block.data.label}
-            {showRequired && block.data.required ? " *" : ""}
-          </label>
-        ) : null}
+    const ratingStars = (
+      <div className="flex items-center gap-1">
+        {Array.from({ length: 5 }).map((_, index) => {
+          const filled = index < ratingValue;
 
-        {block.data.fieldType === "textarea" ? (
-          <textarea
-            className={`${inputClass} min-h-[96px] resize-none`}
-            placeholder={showPlaceholder ? block.data.placeholder : ""}
-            defaultValue={block.data.value || ""}
-            data-form-field-id={block.id}
-            data-linked-button={(block.data as any).linkedButtonId || ""}
-            data-linked-button-id={linkedButtonId}
-            data-field-label={block.data.label || "Field"}
-            data-required={block.data.required ? "true" : "false"}
-            style={getContainerTextStyle(block.data.style, designKey)}
-          />
-        ) : (
-          <input
-            type={block.data.fieldType === "phone" ? "tel" : block.data.fieldType}
-            className={inputClass}
-            placeholder={showPlaceholder ? block.data.placeholder : ""}
-            defaultValue={block.data.value || ""}
-            data-form-field-id={block.id}
-            data-linked-button={(block.data as any).linkedButtonId || ""}
-            data-field-label={block.data.label || "Field"}
-            data-required={block.data.required ? "true" : "false"}
-            style={getContainerTextStyle(block.data.style, designKey)}
-          />
-        )}
-
-        {showRating && ratingPosition === "low" ? (
-  <div className="flex items-center gap-1 pt-1">
-    {Array.from({ length: 5 }).map((_, index) => {
-      const filled = index < ratingValue;
-
-      return (
-        <button
-          key={index}
-          type="button"
-          onClick={() => {
-            (block.data as any).ratingValue = index + 1;
-          }}
-          className="transition-transform hover:scale-110"
-          style={{
-            color: ratingColor,
-          }}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill={filled ? "currentColor" : "none"}
-            stroke="currentColor"
-            strokeWidth="2"
-            className="h-6 w-6"
-          >
-            <path d="M12 2l3.1 6.3 7 .9-5 4.8 1.2 6.9L12 17.8 5.7 21l1.2-6.9-5-4.8 7-.9L12 2z" />
-          </svg>
-        </button>
-      );
-    })}
-  </div>
-) : null}
+          return (
+            <button
+              key={index}
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setRatingValue(index + 1);
+              }}
+              className="transition-transform hover:scale-110"
+              style={{ color: ratingColor }}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill={filled ? "currentColor" : "none"}
+                stroke="currentColor"
+                strokeWidth="2"
+                className="h-6 w-6"
+              >
+                <path d="M12 2l3.1 6.3 7 .9-5 4.8 1.2 6.9L12 17.8 5.7 21l1.2-6.9-5-4.8 7-.9L12 2z" />
+              </svg>
+            </button>
+          );
+        })}
       </div>
-    </div>
-  );
+    );
+
+    return (
+      <div className="h-full w-full p-2" style={getAppearanceStyle(block)}>
+        <div className="flex h-full flex-col gap-2">
+          {showRating && ratingPosition === "high" ? ratingStars : null}
+
+          {showLabel ? (
+            <label
+              className="text-sm"
+              style={getContainerTextStyle(block.data.style, designKey)}
+            >
+              {block.data.label}
+              {showRequired && block.data.required ? " *" : ""}
+            </label>
+          ) : null}
+
+          {block.data.fieldType === "textarea" ? (
+            <textarea
+              className={`${inputClass} min-h-[96px] resize-none`}
+              placeholder={showPlaceholder ? block.data.placeholder : ""}
+              defaultValue={block.data.value || ""}
+              data-form-field-id={block.id}
+              data-linked-button={(block.data as any).linkedButtonId || ""}
+              data-linked-button-id={linkedButtonId}
+              data-field-label={block.data.label || "Field"}
+              data-required={block.data.required ? "true" : "false"}
+              style={getContainerTextStyle(block.data.style, designKey)}
+            />
+          ) : (
+            <input
+              type={block.data.fieldType === "phone" ? "tel" : block.data.fieldType}
+              className={inputClass}
+              placeholder={showPlaceholder ? block.data.placeholder : ""}
+              defaultValue={block.data.value || ""}
+              data-form-field-id={block.id}
+              data-linked-button={(block.data as any).linkedButtonId || ""}
+              data-field-label={block.data.label || "Field"}
+              data-required={block.data.required ? "true" : "false"}
+              style={getContainerTextStyle(block.data.style, designKey)}
+            />
+          )}
+
+          {showRating && ratingPosition === "low" ? ratingStars : null}
+        </div>
+      </div>
+    );
+  }
+
+  return <FormFieldPreview />;
 }
 
 function renderShowcase(
