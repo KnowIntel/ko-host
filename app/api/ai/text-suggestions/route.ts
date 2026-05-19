@@ -126,8 +126,11 @@ Rules:
 - Make every option meaningfully different
 - Keep copy appropriate for the requested length
 - Avoid generic filler
-- Use the subject/details when provided
+- If Subject is provided, every option must clearly reference or be directly about that subject
+- If Details are provided, every option must include at least 2 concrete details from the Details field when possible
+- Do not ignore dates, times, locations, prices, offers, names, or event-specific facts from Details
 - If details are limited, improve the existing text instead of inventing specific facts
+- Avoid vague phrases like "something special", "unforgettable experience", or "moment worth sharing" unless the user specifically asks for vague teaser copy
 - Titles should be short, like "Elegant Welcome" or "Bold Promotion"
 `;
 }
