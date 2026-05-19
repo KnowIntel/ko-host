@@ -36,12 +36,12 @@ const FontSize = Extension.create({
           fontSize: {
             default: null,
             parseHTML: (element) => element.style.fontSize || null,
-            renderHTML: (attributes) => {
-              if (!attributes.fontSize) return {};
-              return {
-                style: `font-size: ${attributes.fontSize}`,
-              };
-            },
+renderHTML: (attributes) => {
+  if (!attributes.fontSize) return {};
+  return {
+    style: `font-size: ${attributes.fontSize};`,
+  };
+},
           },
         },
       },
@@ -237,9 +237,16 @@ export default function RichTextTiptapEditor({
           <select
             className="rounded border border-neutral-300 bg-white px-2 py-1 text-xs text-black"
             defaultValue="16px"
-            onChange={(e) =>
-              editor.chain().focus().setMark("textStyle", { fontSize: e.target.value }).run()
-            }
+onMouseDown={(e) => e.preventDefault()}
+onChange={(e) => {
+  const fontSize = e.target.value;
+
+  editor
+    .chain()
+    .focus()
+    .setMark("textStyle", { fontSize })
+    .run();
+}}
           >
             <option value="12px">12px</option>
             <option value="14px">14px</option>
