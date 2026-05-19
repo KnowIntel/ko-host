@@ -1252,8 +1252,27 @@ const [pageDragPreview, setPageDragPreview] = useState<typeof pages | null>(null
   const [toolGuideModalOpen, setToolGuideModalOpen] = useState(false);
   const [inspectorCollapsed, setInspectorCollapsed] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
-  const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
-  const [showAiSuggestions, setShowAiSuggestions] = useState(false);
+type SmartContentOption = {
+  id: string;
+  title: string;
+  text: string;
+};
+
+const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
+const [aiOptions, setAiOptions] = useState<SmartContentOption[]>([]);
+const [showAiSuggestions, setShowAiSuggestions] = useState(false);
+
+const [aiSubject, setAiSubject] = useState("");
+const [aiDetails, setAiDetails] = useState("");
+const [aiTone, setAiTone] = useState("Friendly");
+const [aiLength, setAiLength] = useState("Short");
+const [aiAudience, setAiAudience] = useState("");
+const [aiKeywords, setAiKeywords] = useState("");
+const [aiContentType, setAiContentType] = useState("Description");
+const [aiCreativity, setAiCreativity] = useState(50);
+const [aiMatchPageStyle, setAiMatchPageStyle] = useState(true);
+const [showAiAdvancedOptions, setShowAiAdvancedOptions] =
+  useState(false);
   const [removeAllModalOpen, setRemoveAllModalOpen] = useState(false);
   const [inspectorFocusTarget, setInspectorFocusTarget] =
     useState<InspectorFocusTarget>(null);
@@ -5607,35 +5626,75 @@ async function handleCopyUrl() {
     !!activePageId &&
     pages.findIndex((page) => page.id === activePageId) > 0;
 
-  async function handleAioClick() {
-    if (!isTextSelection(selectedContext)) return;
+async function handleAioClick() {
+  if (!isTextSelection(selectedContext)) return;
 
-    setAiLoading(true);
-    setShowAiSuggestions(true);
-    setAiSuggestions([]);
+  setShowAiSuggestions(true);
 
-    try {
-      const res = await fetch("/api/ai/text-suggestions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          templateKey,
-          designKey,
-          targetLabel: selectedContext.label,
-          currentText: selectedTextValue,
-        }),
-      });
+  setAiSubject(selectedContext.label || "");
+  setAiDetails(selectedTextValue || "");
 
-      const data = (await res.json()) as { suggestions?: string[] };
-      setAiSuggestions(Array.isArray(data.suggestions) ? data.suggestions : []);
-    } catch {
-      setAiSuggestions([]);
-    } finally {
-      setAiLoading(false);
-    }
+  if (!aiOptions.length) {
+    await generateSmartContent();
   }
+}
+
+async function generateSmartContent() {
+  if (!isTextSelection(selectedContext)) return;
+
+  setAiLoading(true);
+
+  setAiSuggestions([]);
+  setAiOptions([]);
+
+  try {
+    const res = await fetch("/api/ai/text-suggestions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        templateKey,
+        designKey,
+
+        targetLabel: selectedContext.label,
+        currentText: selectedTextValue,
+
+        subject: aiSubject,
+        details: aiDetails,
+        tone: aiTone,
+        audience: aiAudience,
+        length: aiLength,
+        contentType: aiContentType,
+        creativity: aiCreativity,
+        matchPageStyle: aiMatchPageStyle,
+
+        keywords: aiKeywords
+          .split(",")
+          .map((item) => item.trim())
+          .filter(Boolean),
+      }),
+    });
+
+    const data = (await res.json()) as {
+      suggestions?: string[];
+      options?: SmartContentOption[];
+    };
+
+    setAiSuggestions(
+      Array.isArray(data.suggestions) ? data.suggestions : [],
+    );
+
+    setAiOptions(
+      Array.isArray(data.options) ? data.options : [],
+    );
+  } catch {
+    setAiSuggestions([]);
+    setAiOptions([]);
+  } finally {
+    setAiLoading(false);
+  }
+}
 
   function applyAiSuggestion(value: string) {
     if (!selectedCanvasBlockId) return;
@@ -9651,39 +9710,256 @@ if (selectedBlock?.type === "rsvp") {
 
 <AppModal
   open={showAiSuggestions}
-    title={`Suggestions for ${selectedContext.label}`}
-    description="Artificial Intelligent Output"
-    confirmText="Close"
-    cancelText="Cancel"
-    loading={aiLoading}
-    onConfirm={() => setShowAiSuggestions(false)}
-    onCancel={() => setShowAiSuggestions(false)}
-  >
-    <div className="mt-4">
-      {aiLoading ? (
-        <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-6 text-sm text-neutral-600">
-          Generating suggestions...
-        </div>
-      ) : aiSuggestions.length ? (
-        <div className="space-y-3">
-          {aiSuggestions.map((suggestion, index) => (
-            <button
-              key={`${suggestion}-${index}`}
-              type="button"
-              onClick={() => applyAiSuggestion(suggestion)}
-              className="block w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 text-left text-sm text-neutral-900 hover:bg-neutral-50"
+  title="Smart Content Assistant"
+  description="Generate polished microsite content with guided inputs."
+  confirmText="Close"
+  cancelText="Cancel"
+  loading={aiLoading}
+  onConfirm={() => setShowAiSuggestions(false)}
+  onCancel={() => setShowAiSuggestions(false)}
+>
+  <div className="mt-4 grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
+    <div className="space-y-4">
+      <div>
+        <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-neutral-500">
+          Subject
+        </label>
+
+        <input
+          type="text"
+          value={aiSubject}
+          onChange={(e) => setAiSubject(e.target.value)}
+          placeholder="Wedding announcement"
+          className="w-full rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm outline-none focus:border-neutral-500"
+        />
+      </div>
+
+      <div>
+        <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-neutral-500">
+          Details
+        </label>
+
+        <textarea
+          value={aiDetails}
+          onChange={(e) => setAiDetails(e.target.value)}
+          placeholder="Add important details, vibe, location, pricing, timing..."
+          rows={6}
+          className="w-full rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm outline-none focus:border-neutral-500"
+        />
+      </div>
+
+      <button
+        type="button"
+        onClick={() =>
+          setShowAiAdvancedOptions((prev) => !prev)
+        }
+        className="text-sm font-medium text-neutral-700 hover:text-black"
+      >
+        {showAiAdvancedOptions
+          ? "Hide More Options"
+          : "More Options"}
+      </button>
+
+      {showAiAdvancedOptions ? (
+        <div className="space-y-4 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+          <div>
+            <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-neutral-500">
+              Tone
+            </label>
+
+            <select
+              value={aiTone}
+              onChange={(e) => setAiTone(e.target.value)}
+              className="w-full rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm"
             >
-              {suggestion}
-            </button>
+              {[
+                "Professional",
+                "Friendly",
+                "Elegant",
+                "Funny",
+                "Exciting",
+                "Romantic",
+                "Bold",
+                "Casual",
+                "Luxury",
+                "Minimal",
+              ].map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-neutral-500">
+              Length
+            </label>
+
+            <select
+              value={aiLength}
+              onChange={(e) => setAiLength(e.target.value)}
+              className="w-full rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm"
+            >
+              {[
+                "Very Short",
+                "Short",
+                "Medium",
+                "Long",
+              ].map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-neutral-500">
+              Audience
+            </label>
+
+            <input
+              type="text"
+              value={aiAudience}
+              onChange={(e) => setAiAudience(e.target.value)}
+              placeholder="Customers, guests, parents..."
+              className="w-full rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm"
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-neutral-500">
+              Keywords
+            </label>
+
+            <input
+              type="text"
+              value={aiKeywords}
+              onChange={(e) => setAiKeywords(e.target.value)}
+              placeholder="live music, outdoor seating"
+              className="w-full rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm"
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-neutral-500">
+              Content Type
+            </label>
+
+            <select
+              value={aiContentType}
+              onChange={(e) =>
+                setAiContentType(e.target.value)
+              }
+              className="w-full rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm"
+            >
+              {[
+                "Announcement",
+                "Invitation",
+                "Description",
+                "Welcome message",
+                "Promotion",
+                "Event details",
+                "About us",
+                "FAQ answer",
+                "Testimonial",
+                "Call to action",
+                "Menu description",
+                "Schedule item",
+              ].map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <div className="mb-2 flex items-center justify-between">
+              <label className="block text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                Creativity Level
+              </label>
+
+              <span className="text-xs text-neutral-500">
+                {aiCreativity}
+              </span>
+            </div>
+
+            <input
+              type="range"
+              min={0}
+              max={100}
+              value={aiCreativity}
+              onChange={(e) =>
+                setAiCreativity(Number(e.target.value))
+              }
+              className="w-full"
+            />
+          </div>
+
+          <label className="flex items-center gap-2 text-sm text-neutral-700">
+            <input
+              type="checkbox"
+              checked={aiMatchPageStyle}
+              onChange={(e) =>
+                setAiMatchPageStyle(e.target.checked)
+              }
+            />
+
+            Match page style
+          </label>
+        </div>
+      ) : null}
+
+      <button
+        type="button"
+        onClick={generateSmartContent}
+        disabled={aiLoading}
+        className="w-full rounded-xl bg-black px-4 py-3 text-sm font-semibold text-white hover:bg-neutral-800 disabled:opacity-50"
+      >
+        {aiLoading ? "Generating..." : "Generate Options"}
+      </button>
+    </div>
+
+    <div>
+      {aiLoading ? (
+        <div className="rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-8 text-sm text-neutral-600">
+          Generating polished content options...
+        </div>
+      ) : aiOptions.length ? (
+        <div className="space-y-4">
+          {aiOptions.map((option) => (
+            <div
+              key={option.id}
+              className="rounded-2xl border border-neutral-200 bg-white p-4"
+            >
+              <div className="mb-2 text-sm font-semibold text-neutral-900">
+                {option.title}
+              </div>
+
+              <div className="whitespace-pre-wrap text-sm leading-6 text-neutral-700">
+                {option.text}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => applyAiSuggestion(option.text)}
+                className="mt-4 rounded-xl border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-900 hover:bg-neutral-50"
+              >
+                Use This
+              </button>
+            </div>
           ))}
         </div>
       ) : (
-        <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-6 text-sm text-neutral-600">
-          No suggestions available.
+        <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 px-6 py-10 text-sm text-neutral-500">
+          Generate content options to preview polished suggestions here.
         </div>
       )}
     </div>
-  </AppModal>
+  </div>
+</AppModal>
 </div>
 
 <div className="flex-1 px-6 py-5">
