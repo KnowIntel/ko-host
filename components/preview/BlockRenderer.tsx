@@ -6121,7 +6121,7 @@ function renderRichText(
           "[&_ul]:list-disc [&_ul]:pl-6",
           "[&_ol]:list-decimal [&_ol]:pl-6",
           "[&_li]:ml-1",
-          "[&_p]:my-2 [&_p:first-child]:mt-0 [&_p:last-child]:mb-0",
+          "[&_p]:my-0 [&_p+p]:mt-3 [&_p:empty]:min-h-[1em]",
           "[&_a]:underline [&_a]:break-words",
           "[&_h1]:text-[1.8em] [&_h1]:font-bold [&_h1]:leading-tight",
           "[&_h2]:text-[1.45em] [&_h2]:font-bold [&_h2]:leading-tight",

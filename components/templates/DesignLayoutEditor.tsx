@@ -7134,18 +7134,10 @@ if (block.type === "video") {
 
 if (block.type === "rich_text") {
   const richTextStyle = getInlineTextStyle(block.data.style);
-const richTextBehavior = block.data.behavior ?? {};
-const richTextMaxHeight = Number(richTextBehavior.maxHeight ?? 0);
-const richTextScrollable = Boolean(
-  richTextBehavior.scrollable && richTextMaxHeight > 0,
-);
 
   return (
     <div
-      className={[
-  "h-full w-full rounded-xl",
-  richTextScrollable ? "overflow-y-auto" : "overflow-hidden",
-].join(" ")}
+      className="h-full w-full rounded-xl overflow-y-auto"
       onClick={(e) => {
         e.stopPropagation();
 
@@ -7194,7 +7186,6 @@ borderRadius:
   typeof block.appearance?.borderRadius === "number"
     ? `${block.appearance.borderRadius}px`
     : undefined,
-maxHeight: richTextScrollable ? `${richTextMaxHeight}px` : undefined,
       }}
     >
       <div className="h-full w-full p-4">
@@ -7211,7 +7202,7 @@ maxHeight: richTextScrollable ? `${richTextMaxHeight}px` : undefined,
           data-canvas-rich-text={block.id}
           contentEditable
           suppressContentEditableWarning
-          className="min-h-full min-w-0 max-w-full text-sm text-neutral-800 whitespace-pre-wrap break-words outline-none [&_a]:break-words [&_img]:max-w-full [&_img]:h-auto"
+          className="min-h-full min-w-0 max-w-full text-sm text-neutral-800 whitespace-pre-wrap break-words outline-none [&_p]:my-0 [&_p+p]:mt-3 [&_p:empty]:min-h-[1em] [&_a]:break-words [&_img]:max-w-full [&_img]:h-auto"
           style={richTextStyle}
           onClick={(e) => e.stopPropagation()}
 ref={(node) => {
@@ -16540,59 +16531,6 @@ data: {
     </button>
   </div>
 </div>
-
-    <div className="mt-4">
-      <div className={inspectorLabelClass()}>Max Height</div>
-      <input
-        type="number"
-        min={0}
-        value={Number(selectedBlock.data.behavior?.maxHeight ?? 0)}
-        onChange={(e) =>
-          updateSelectedBlock((block) =>
-            block.type !== "rich_text"
-              ? block
-              : {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    behavior: {
-                      ...(block.data.behavior ?? {}),
-                      maxHeight: Number(e.target.value),
-                    },
-                  },
-                },
-          )
-        }
-        className={inspectorInputClass()}
-      />
-      <div className="mt-1 text-xs text-neutral-500">
-        Use 0 for no max height.
-      </div>
-    </div>
-
-    <label className="mt-3 flex items-center gap-2 text-xs text-neutral-700">
-      <input
-        type="checkbox"
-        checked={Boolean(selectedBlock.data.behavior?.scrollable)}
-        onChange={(e) =>
-          updateSelectedBlock((block) =>
-            block.type !== "rich_text"
-              ? block
-              : {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    behavior: {
-                      ...(block.data.behavior ?? {}),
-                      scrollable: e.target.checked,
-                    },
-                  },
-                },
-          )
-        }
-      />
-      Make content scrollable when max height is reached
-    </label>
 
     </div>
   </div>
