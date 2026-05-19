@@ -7200,50 +7200,14 @@ borderRadius:
 
         <div
           data-canvas-rich-text={block.id}
-          contentEditable
-          suppressContentEditableWarning
-          className="min-h-full min-w-0 max-w-full text-sm text-neutral-800 whitespace-pre-wrap break-words outline-none [&_p]:my-0 [&_p+p]:mt-3 [&_p:empty]:min-h-[1em] [&_a]:break-words [&_img]:max-w-full [&_img]:h-auto"
+          className="min-h-full min-w-0 max-w-full text-sm text-neutral-800 break-words outline-none [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:ml-1 [&_li_p]:m-0 [&_li_p]:inline [&_p]:my-0 [&_p+p]:mt-3 [&_p:empty]:min-h-[1em] [&_a]:break-words [&_a]:underline [&_img]:max-w-full [&_img]:h-auto"
           style={richTextStyle}
-          onClick={(e) => e.stopPropagation()}
-ref={(node) => {
-  if (!node) return;
-  if (document.activeElement === node) return;
-
-  const nextHtml =
-  typeof block.data.contentHtml === "string"
-    ? block.data.contentHtml
-    : block.data.content || "";
-
-  if (node.innerHTML !== nextHtml) {
-    node.innerHTML = nextHtml;
-  }
-}}
-onInput={(e) => {
-  const html = normalizeRichTextHtml(
-    (e.currentTarget as HTMLDivElement).innerHTML,
-  );
-
-  setIsRichTextEditorEmpty(isRichTextHtmlEmpty(html));
-}}
-onBlur={(e) => {
-  const html = normalizeRichTextHtml(
-    (e.currentTarget as HTMLDivElement).innerHTML,
-  );
-
-  updateSelectedBlock((currentBlock) =>
-    currentBlock.type !== "rich_text"
-      ? currentBlock
-      : {
-          ...currentBlock,
-          data: {
-            ...currentBlock.data,
-            content: html,
-            contentHtml: html,
-            plainText: getPlainTextFromRichTextHtml(html),
-          },
-        },
-  );
-}}
+          dangerouslySetInnerHTML={{
+            __html:
+              typeof block.data.contentHtml === "string"
+                ? block.data.contentHtml
+                : block.data.content || "",
+          }}
         />
       </div>
     </div>
