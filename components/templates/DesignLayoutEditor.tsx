@@ -1271,6 +1271,7 @@ const [aiKeywords, setAiKeywords] = useState("");
 const [aiContentType, setAiContentType] = useState("Description");
 const [aiCreativity, setAiCreativity] = useState(50);
 const [aiMatchPageStyle, setAiMatchPageStyle] = useState(true);
+const [aiError, setAiError] = useState("");
 const [showAiAdvancedOptions, setShowAiAdvancedOptions] =
   useState(false);
   const [removeAllModalOpen, setRemoveAllModalOpen] = useState(false);
@@ -5633,6 +5634,7 @@ function handleAioClick() {
   setAiDetails(selectedTextValue || "");
   setAiSuggestions([]);
   setAiOptions([]);
+  setAiError("");
   setShowAiAdvancedOptions(false);
   setShowAiSuggestions(true);
 }
@@ -5642,8 +5644,9 @@ async function generateSmartContent() {
 
   setAiLoading(true);
 
-  setAiSuggestions([]);
-  setAiOptions([]);
+setAiSuggestions([]);
+setAiOptions([]);
+setAiError("");
 
   try {
     const res = await fetch("/api/ai/text-suggestions", {
@@ -5683,13 +5686,18 @@ async function generateSmartContent() {
       Array.isArray(data.suggestions) ? data.suggestions : [],
     );
 
-    setAiOptions(
-      Array.isArray(data.options) ? data.options : [],
-    );
-  } catch {
-    setAiSuggestions([]);
-    setAiOptions([]);
-  } finally {
+const nextOptions = Array.isArray(data.options) ? data.options : [];
+
+setAiOptions(nextOptions);
+
+if (!nextOptions.length) {
+  setAiError("No content options were generated. Try adding more details.");
+}
+} catch {
+  setAiSuggestions([]);
+  setAiOptions([]);
+  setAiError("Something went wrong while generating content. Please try again.");
+} finally {
     setAiLoading(false);
   }
 }
@@ -9927,7 +9935,11 @@ if (selectedBlock?.type === "rsvp") {
         <div className="rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-8 text-sm text-neutral-600">
           Generating polished content options...
         </div>
-      ) : aiOptions.length ? (
+      ) : aiError ? (
+  <div className="rounded-2xl border border-red-200 bg-red-50 px-6 py-5 text-sm text-red-700">
+    {aiError}
+  </div>
+) : aiOptions.length ? (
         <div className="space-y-4">
           {aiOptions.map((option) => (
             <div
