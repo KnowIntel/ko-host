@@ -14,6 +14,7 @@ type Props = {
   cancelText?: string;
   danger?: boolean;
   loading?: boolean;
+  size?: "default" | "wide";
   onConfirm?: () => void;
   onCancel: () => void;
 };
@@ -28,6 +29,7 @@ export default function AppModal({
   cancelText = "Cancel",
   danger = false,
   loading = false,
+  size = "default",
   onConfirm,
   onCancel,
 }: Props) {
@@ -52,7 +54,11 @@ if (!open || !mounted) return null;
 
 return createPortal(
   <div className="fixed inset-0 z-[99999] flex items-start justify-center overflow-y-auto bg-black/40 px-4 py-8">
-  <div className="my-auto w-full max-w-md rounded-3xl border border-neutral-200 bg-white p-6 shadow-2xl">
+  <div
+  className={`my-auto w-full rounded-3xl border border-neutral-200 bg-white p-6 shadow-2xl ${
+    size === "wide" ? "max-w-5xl" : "max-w-md"
+  }`}
+>
         <div className="text-lg font-semibold text-neutral-950">{title}</div>
 
         {description && (
@@ -63,10 +69,10 @@ return createPortal(
 
         {extraContent}
 
-<div className="mt-6 flex items-center justify-between gap-3">
-  <div className="flex items-center">{children}</div>
+<div className="mt-6">
+  <div>{children}</div>
 
-  <div className="flex items-center gap-3">
+  <div className="mt-6 flex items-center justify-end gap-3">
     {cancelText ? (
       <button
         onClick={onCancel}

@@ -9710,6 +9710,7 @@ if (selectedBlock?.type === "rsvp") {
 
 <AppModal
   open={showAiSuggestions}
+  size="wide"
   title="Smart Content Assistant"
   description="Generate polished microsite content with guided inputs."
   confirmText="Close"
