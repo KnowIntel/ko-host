@@ -795,6 +795,8 @@ export type FormFieldBlock = BaseBlock & {
     showRequired?: boolean;
     showSubmitButtonText?: boolean;
     style?: TextStyle;
+    labelStyle?: TextStyle;
+    inputStyle?: TextStyle;
 
 showRating?: boolean;
 ratingValue?: number;
@@ -1951,6 +1953,8 @@ ratingColor: "#F59E0B",
 ratingPosition: "high",
 
 style: createDefaultTextStyle(),
+labelStyle: createDefaultTextStyle(),
+inputStyle: createDefaultTextStyle(),
         },
       };
 
@@ -3445,10 +3449,20 @@ if (block.type === "form_field") {
           ? data.ratingPosition
           : "high",
 
-      style: {
-        ...createDefaultTextStyle(),
-        ...(block.data.style ?? {}),
-      },
+style: {
+  ...createDefaultTextStyle(),
+  ...(block.data.style ?? {}),
+},
+
+labelStyle: {
+  ...createDefaultTextStyle(),
+  ...((block.data as any).labelStyle ?? block.data.style ?? {}),
+},
+
+inputStyle: {
+  ...createDefaultTextStyle(),
+  ...((block.data as any).inputStyle ?? block.data.style ?? {}),
+},
     },
   };
 }

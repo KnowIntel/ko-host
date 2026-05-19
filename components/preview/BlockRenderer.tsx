@@ -4757,6 +4757,7 @@ function renderImageCarousel(
   return <ImageCarouselPreview block={block} designKey={designKey} />;
 }
 
+
 function renderFormField(
   block: Extract<MicrositeBlock, { type: "form_field" }>,
   designKey?: string,
@@ -4823,7 +4824,10 @@ function renderFormField(
           {showLabel ? (
             <label
               className="text-sm"
-              style={getContainerTextStyle(block.data.style, designKey)}
+style={getContainerTextStyle(
+  (block.data as any).labelStyle ?? block.data.style,
+  designKey,
+)}
             >
               {block.data.label}
               {showRequired && block.data.required ? " *" : ""}
@@ -4840,7 +4844,10 @@ function renderFormField(
               data-linked-button-id={linkedButtonId}
               data-field-label={block.data.label || "Field"}
               data-required={block.data.required ? "true" : "false"}
-              style={getContainerTextStyle(block.data.style, designKey)}
+style={getContainerTextStyle(
+  (block.data as any).inputStyle ?? block.data.style,
+  designKey,
+)}
             />
           ) : (
             <input
@@ -4852,7 +4859,10 @@ function renderFormField(
               data-linked-button={(block.data as any).linkedButtonId || ""}
               data-field-label={block.data.label || "Field"}
               data-required={block.data.required ? "true" : "false"}
-              style={getContainerTextStyle(block.data.style, designKey)}
+style={getContainerTextStyle(
+  (block.data as any).inputStyle ?? block.data.style,
+  designKey,
+)}
             />
           )}
 

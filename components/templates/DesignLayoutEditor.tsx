@@ -1205,6 +1205,10 @@ const [listingStyleTarget, setListingStyleTarget] = useState<
   "title" | "description" | "metadata" | "price" | "quantity"
 >("title");
 
+const [formFieldTextTarget, setFormFieldTextTarget] = useState<"label" | "text">(
+  "label",
+);
+
   const [selectedRsvpElementKey, setSelectedRsvpElementKey] = useState<
     | "form"
     | "image"
@@ -1414,16 +1418,24 @@ const selectedStyle =
             (selectedBlockFromDraft.data as any).style ??
             {}) as TextStyle)
         : (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
-: selectedBlockFromDraft?.type === "listing"
-  ? listingStyleTarget === "description"
-    ? (selectedBlockFromDraft.data.descriptionStyle ?? {})
-    : listingStyleTarget === "metadata"
-      ? (selectedBlockFromDraft.data.metadataStyle ?? {})
-      : listingStyleTarget === "price"
-        ? ((selectedBlockFromDraft.data as any).priceStyle ?? {})
-        : listingStyleTarget === "quantity"
-          ? ((selectedBlockFromDraft.data as any).quantityStyle ?? {})
-          : (selectedBlockFromDraft.data.titleStyle ?? {})
+    : selectedBlockFromDraft?.type === "listing"
+      ? listingStyleTarget === "description"
+        ? (selectedBlockFromDraft.data.descriptionStyle ?? {})
+        : listingStyleTarget === "metadata"
+          ? (selectedBlockFromDraft.data.metadataStyle ?? {})
+          : listingStyleTarget === "price"
+            ? ((selectedBlockFromDraft.data as any).priceStyle ?? {})
+            : listingStyleTarget === "quantity"
+              ? ((selectedBlockFromDraft.data as any).quantityStyle ?? {})
+              : (selectedBlockFromDraft.data.titleStyle ?? {})
+    : selectedBlockFromDraft?.type === "form_field"
+      ? formFieldTextTarget === "text"
+        ? (((selectedBlockFromDraft.data as any).inputStyle ??
+            (selectedBlockFromDraft.data as any).style ??
+            {}) as TextStyle)
+        : (((selectedBlockFromDraft.data as any).labelStyle ??
+            (selectedBlockFromDraft.data as any).style ??
+            {}) as TextStyle)
       : selectedBlockFromDraft?.type === "highlight"
         ? highlightStyleTarget === "body"
           ? (selectedBlockFromDraft.data.bodyStyle ??
@@ -1465,7 +1477,6 @@ const selectedStyle =
               selectedBlockFromDraft?.type === "text_fx" ||
               selectedBlockFromDraft?.type === "cta" ||
               selectedBlockFromDraft?.type === "thread" ||
-              selectedBlockFromDraft?.type === "form_field" ||
               selectedBlockFromDraft?.type === "image" ||
               selectedBlockFromDraft?.type === "gallery" ||
               selectedBlockFromDraft?.type === "image_carousel" ||
@@ -3343,26 +3354,39 @@ if (
   return;
 }
 
-  if (selectedBlock?.type === "form_field") {
-    setDraft((prev) => ({
-      ...prev,
-      blocks: prev.blocks.map((block) =>
-        block.id === selectedBlock.id && block.type === "form_field"
-          ? {
-              ...block,
-              data: {
-                ...block.data,
-                style: {
-                  ...(block.data.style ?? {}),
-                  ...patch,
-                },
-              },
-            }
-          : block,
-      ),
-    }));
-    return;
-  }
+if (selectedBlock?.type === "form_field") {
+  setDraft((prev) => ({
+    ...prev,
+    blocks: prev.blocks.map((block) =>
+      block.id === selectedBlock.id && block.type === "form_field"
+        ? {
+            ...block,
+            data: {
+              ...block.data,
+              ...(formFieldTextTarget === "text"
+                ? {
+                    inputStyle: {
+                      ...((block.data as any).inputStyle ??
+                        block.data.style ??
+                        {}),
+                      ...patch,
+                    },
+                  }
+                : {
+                    labelStyle: {
+                      ...((block.data as any).labelStyle ??
+                        block.data.style ??
+                        {}),
+                      ...patch,
+                    },
+                  }),
+            },
+          }
+        : block,
+    ),
+  }));
+  return;
+}
 
   if (selectedBlock?.type === "highlight") {
     const selectedHighlightId = selectedBlock.id;
@@ -10686,6 +10710,21 @@ selectedContext.kind === "textFx"
 {selectedBlock?.type === "form_field" ? (
   <div className={inspectorCardClass()}>
     <div className={inspectorLabelClass()}>Form Field</div>
+
+    <div className="mt-4">
+  <div className={inspectorLabelClass()}>Text Target</div>
+
+  <select
+    value={formFieldTextTarget}
+    onChange={(e) =>
+      setFormFieldTextTarget(e.target.value as "label" | "text")
+    }
+    className={inspectorInputClass()}
+  >
+    <option value="label">Label</option>
+    <option value="text">Text</option>
+  </select>
+</div>
 
     <div className="mt-4">
       <div className="mb-2 flex items-center justify-between gap-3">
