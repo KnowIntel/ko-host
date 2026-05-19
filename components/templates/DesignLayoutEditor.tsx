@@ -9715,13 +9715,14 @@ if (selectedBlock?.type === "rsvp") {
 </div>
 
 <AppModal
-  open={showAiSuggestions}
-  size="wide"
-  title="Smart Content Assistant"
-  description="Generate polished microsite content with guided inputs."
-  loading={aiLoading}
-  onConfirm={() => setShowAiSuggestions(false)}
-  onCancel={() => setShowAiSuggestions(false)}
+open={showAiSuggestions}
+size="wide"
+title="Smart Content Assistant"
+description="Generate polished microsite content with guided inputs."
+confirmText=""
+cancelText="Close"
+loading={aiLoading}
+onCancel={() => setShowAiSuggestions(false)}
 >
   <div className="mt-4 max-h-[72vh] overflow-y-auto pr-2">
   <div className="grid min-w-[720px] gap-6 lg:grid-cols-[320px_minmax(360px,1fr)]">

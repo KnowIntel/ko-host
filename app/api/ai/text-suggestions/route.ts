@@ -36,36 +36,68 @@ type RequestPayload = {
 function buildFallbackOptions(payload: RequestPayload): SmartContentOption[] {
   const subject = payload.subject?.trim() || payload.targetLabel || "your update";
   const details = payload.details?.trim();
+  const tone = payload.tone || "Friendly";
+  const length = payload.length || "Short";
+  const audience = payload.audience?.trim() || "your audience";
+  const contentType = payload.contentType || "Description";
+  const keywords =
+    Array.isArray(payload.keywords) && payload.keywords.length > 0
+      ? payload.keywords.join(", ")
+      : "";
 
-  const base = details
-    ? `${subject}: ${details}`
-    : `Share the latest details about ${subject}.`;
+  const detailLine = details
+    ? details
+    : keywords
+      ? `Featuring ${keywords}.`
+      : "";
+
+  const lengthNote =
+    length === "Very Short"
+      ? "Keep it quick:"
+      : length === "Long"
+        ? "Here’s the full message:"
+        : "";
 
   return [
     {
       id: "option-1",
-      title: "Direct",
-      text: base,
+      title: `${tone} ${contentType}`,
+      text:
+        length === "Very Short"
+          ? `${subject} is serving flavor.`
+          : `${lengthNote} Welcome to ${subject}, where ${audience} can enjoy ${detailLine || "fresh flavor, good energy, and a reason to come hungry."}`.trim(),
     },
     {
       id: "option-2",
-      title: "Friendly",
-      text: `You're invited to learn more about ${subject}. ${details || ""}`.trim(),
+      title: "More Playful",
+      text:
+        length === "Very Short"
+          ? `Big flavor. ${subject}.`
+          : `Pull up hungry. ${subject} is bringing the kind of hometown flavor that makes ${audience} come back for seconds. ${detailLine}`.trim(),
     },
     {
       id: "option-3",
-      title: "Polished",
-      text: `${subject} is ready to share. ${details || "Add the key details your audience needs to know."}`.trim(),
+      title: "Bolder",
+      text:
+        length === "Very Short"
+          ? `Cravings, meet ${subject}.`
+          : `${subject} is not here to whisper. It is here with bold bites, feel-good favorites, and a menu made for ${audience}. ${detailLine}`.trim(),
     },
     {
       id: "option-4",
-      title: "Bold",
-      text: `Don't miss ${subject}. ${details || ""}`.trim(),
+      title: "Warm Welcome",
+      text:
+        length === "Very Short"
+          ? `Welcome to ${subject}.`
+          : `Welcome to ${subject}, a place built for comfort food, familiar favorites, and an easygoing good time for ${audience}. ${detailLine}`.trim(),
     },
     {
       id: "option-5",
-      title: "Simple",
-      text: `${subject}${details ? ` — ${details}` : ""}`,
+      title: "Creative",
+      text:
+        length === "Very Short"
+          ? `${subject}: hometown flavor, hot and ready.`
+          : `At ${subject}, the grill is hot, the shakes are cold, and the hometown flavor speaks for itself. Bring your appetite, bring your people, and settle in for something satisfying. ${detailLine}`.trim(),
     },
   ];
 }
@@ -174,10 +206,15 @@ export async function POST(req: Request) {
       apiKey: process.env.OPENAI_API_KEY,
     });
 
-    const response = await client.responses.create({
-      model: "gpt-5-mini",
-      input: buildPrompt(body),
-    });
+const response = await client.responses.create({
+  model: "gpt-5-mini",
+  input: buildPrompt(body),
+  text: {
+    format: {
+      type: "json_object",
+    },
+  },
+});
 
     const raw = response.output_text?.trim() || "";
     const parsed = JSON.parse(raw) as {
