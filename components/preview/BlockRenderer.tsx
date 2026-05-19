@@ -5152,6 +5152,11 @@ function renderTextFx(
   const opacity = fx.opacity ?? 1;
   const letterScaleX = Math.max(0.5, Math.min(2, Number(fx.letterScaleX ?? 1)));
   const transformStyle = String(fx.transformStyle ?? "normal");
+const transformStrength = Math.max(
+  0,
+  Math.min(200, Number(fx.transformStrength ?? 100)),
+);
+const transformMultiplier = transformStrength / 100;
   const positionX = block.data.positionX ?? 50;
   const positionY = block.data.positionY ?? 50;
 
@@ -5211,26 +5216,22 @@ style={{
   : text.split("").map((char, index) => {
       const offset =
         transformStyle === "wave"
-          ? Math.sin(index * 0.9) * 6
+          ? Math.sin(index * 0.9) * 6 * transformMultiplier
           : transformStyle === "rise"
-            ? -index * 1.5
+            ? -index * 1.5 * transformMultiplier
             : transformStyle === "dipLetters"
-              ? index * 1.5
+              ? index * 1.5 * transformMultiplier
               : transformStyle === "stagger"
-                ? index % 2 === 0
-                  ? -5
-                  : 5
+                ? (index % 2 === 0 ? -5 : 5) * transformMultiplier
                 : transformStyle === "bounce"
-                  ? index % 2 === 0
-                    ? -7
-                    : 0
+                  ? (index % 2 === 0 ? -7 : 0) * transformMultiplier
                   : 0;
 
       const rotate =
         transformStyle === "tiltLeft"
-          ? -8
+          ? -8 * transformMultiplier
           : transformStyle === "tiltRight"
-            ? 8
+            ? 8 * transformMultiplier
             : 0;
 
       return (

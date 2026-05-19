@@ -3992,6 +3992,7 @@ function updateTextFx(
     opacity: number;
     letterScaleX: number;
     transformStyle: string;
+    transformStrength: number;
     shadowEnabled: boolean;
     shadowColor: string;
     shadowOffsetX: number;
@@ -9893,20 +9894,24 @@ selectedContext.kind === "textFx"
 
       <div>
         <div className={inspectorLabelClass()}>Transform Style</div>
-        <select
-          value={(selectedTextFxBlock?.data.fx as any)?.transformStyle ?? "normal"}
-onChange={(e) => {
-  const nextStyle = e.target.value;
 
-  updateTextFx({
-    transformStyle: nextStyle,
-    ...(nextStyle !== "normal"
-      ? {
-          mode: "straight",
-        }
-      : {}),
-  });
-}}
+        <select
+          value={
+            (selectedTextFxBlock?.data.fx as any)?.transformStyle ?? "normal"
+          }
+          onChange={(e) => {
+            const nextStyle = e.target.value;
+
+            updateTextFx({
+              transformStyle: nextStyle,
+
+              ...(nextStyle !== "normal"
+                ? {
+                    mode: "straight",
+                  }
+                : {}),
+            });
+          }}
           className={inspectorInputClass()}
         >
           <option value="normal">Normal</option>
@@ -9918,6 +9923,34 @@ onChange={(e) => {
           <option value="tiltRight">Tilt Right</option>
           <option value="bounce">Bounce</option>
         </select>
+      </div>
+
+      <div>
+        <div className={inspectorLabelClass()}>
+          Transform Strength
+        </div>
+
+        <input
+          type="range"
+          min={0}
+          max={200}
+          value={
+            (selectedTextFxBlock?.data.fx as any)?.transformStrength ?? 100
+          }
+          onChange={(e) =>
+            updateTextFx({
+              transformStrength: Math.max(
+                0,
+                Math.min(200, Number(e.target.value) || 0),
+              ),
+            })
+          }
+          className="mt-2 w-full"
+        />
+
+        <div className="mt-1 text-xs text-neutral-500">
+          {(selectedTextFxBlock?.data.fx as any)?.transformStrength ?? 100}%
+        </div>
       </div>
 
       <div>
