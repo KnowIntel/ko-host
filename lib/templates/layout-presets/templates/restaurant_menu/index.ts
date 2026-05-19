@@ -1,10 +1,10 @@
 import type { TemplateLayoutRegistry } from "../../types";
-import deluxe from "./deluxe";
 import hometown from "./hometown";
+import deluxe from "./deluxe";
 
 const restaurantMenuLayouts: TemplateLayoutRegistry = {
   templateKey: "restaurant_menu",
-  layouts: [deluxe, hometown],
+  layouts: [hometown, deluxe],
 };
 
 export default restaurantMenuLayouts;
