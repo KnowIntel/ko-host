@@ -34,62 +34,114 @@ type RequestPayload = {
 };
 
 function buildFallbackOptions(payload: RequestPayload): SmartContentOption[] {
-  const subject = payload.subject?.trim() || payload.targetLabel || "your update";
-  const details = payload.details?.trim();
+  const subject = payload.subject?.trim() || payload.targetLabel || "this update";
+  const rawDetails = payload.details?.trim() || "";
   const tone = payload.tone || "Friendly";
   const length = payload.length || "Short";
   const audience = payload.audience?.trim() || "your audience";
   const contentType = payload.contentType || "Description";
 
-  const context = details
-    ? `${subject}: ${details}`
-    : `${subject}`;
+  const detailWords = rawDetails
+    .split(/[\n,]+/)
+    .map((item) => item.trim())
+    .filter(Boolean);
 
-  if (length === "Very Short") {
-    return [
-      { id: "option-1", title: `${tone} ${contentType}`, text: subject },
-      { id: "option-2", title: "Simple", text: `Introducing ${subject}` },
-      { id: "option-3", title: "Clear", text: `Explore ${subject}` },
-      { id: "option-4", title: "Direct", text: `Discover ${subject}` },
-      { id: "option-5", title: "Polished", text: `${subject}, made simple.` },
-    ];
-  }
+  const detailPhrase =
+    detailWords.length > 1
+      ? detailWords.slice(0, -1).join(", ") + `, and ${detailWords.at(-1)}`
+      : detailWords[0] || "";
+
+  const isVeryShort = length === "Very Short";
+  const isMedium = length === "Medium";
+  const isLong = length === "Long";
+
+  const sentenceCount = isLong ? 4 : isMedium ? 3 : 1;
+
+  const endings = {
+    "Call to action": `Take a closer look today.`,
+    Description: `It is a simple way to get the features that matter without overcomplicating the experience.`,
+    Promotion: `Now is a great time to check it out.`,
+    Announcement: `More details are available now.`,
+    Invitation: `Come see what makes it worth checking out.`,
+    "Welcome message": `We’re glad you’re here.`,
+  } as Record<string, string>;
+
+  const closer = endings[contentType] || `Learn more today.`;
+
+  const buildText = (style: "exciting" | "polished" | "direct" | "premium" | "friendly") => {
+    if (isVeryShort) {
+      if (style === "exciting") return `Meet ${subject}.`;
+      if (style === "premium") return `${subject}, refined.`;
+      if (style === "direct") return `Explore ${subject}.`;
+      if (style === "friendly") return `Say hello to ${subject}.`;
+      return `Discover ${subject}.`;
+    }
+
+    const detailSentence = detailPhrase
+      ? `With ${detailPhrase}, it gives ${audience} a clear reason to pay attention.`
+      : `It gives ${audience} a clear reason to pay attention.`;
+
+    const options = {
+      exciting: [
+        `Meet ${subject}, built to stand out from the first look.`,
+        detailSentence,
+        `Whether you are upgrading, browsing, or ready to buy, this option keeps the essentials front and center.`,
+        closer,
+      ],
+      polished: [
+        `${subject} brings together a clean look, practical features, and an easy everyday feel.`,
+        detailSentence,
+        `It is presented with the kind of clarity that helps ${audience} quickly understand the value.`,
+        closer,
+      ],
+      direct: [
+        `${subject} is a straightforward choice for ${audience} looking for something useful and easy to understand.`,
+        detailSentence,
+        `The important details are clear, simple, and ready to review.`,
+        closer,
+      ],
+      premium: [
+        `${subject} offers a sleek, considered experience with details that feel intentional.`,
+        detailSentence,
+        `It is a polished option for ${audience} who want function, style, and confidence in one place.`,
+        closer,
+      ],
+      friendly: [
+        `Looking for something simple, useful, and easy to love? ${subject} is a great place to start.`,
+        detailSentence,
+        `It keeps the focus on what ${audience} actually care about.`,
+        closer,
+      ],
+    };
+
+    return options[style].slice(0, sentenceCount).join(" ");
+  };
 
   return [
     {
       id: "option-1",
       title: `${tone} ${contentType}`,
-      text: details
-        ? `Introducing ${subject}. ${details}`
-        : `Introducing ${subject}, thoughtfully presented for ${audience}.`,
+      text: buildText("exciting"),
     },
     {
       id: "option-2",
-      title: "Clear",
-      text: details
-        ? `${subject} includes the key details you need: ${details}`
-        : `${subject} gives ${audience} a clear and helpful way to learn more.`,
+      title: "Polished",
+      text: buildText("polished"),
     },
     {
       id: "option-3",
-      title: "Polished",
-      text: details
-        ? `${context}. Designed to help ${audience} understand what matters most.`
-        : `${subject} is designed to be clear, helpful, and easy for ${audience} to understand.`,
+      title: "Direct",
+      text: buildText("direct"),
     },
     {
       id: "option-4",
-      title: "Warm",
-      text: details
-        ? `Here’s what to know about ${subject}: ${details}`
-        : `Welcome to ${subject}. Everything is organized to help ${audience} get the details quickly.`,
+      title: "Premium",
+      text: buildText("premium"),
     },
     {
       id: "option-5",
-      title: "Direct",
-      text: details
-        ? `${subject} — ${details}`
-        : `Learn more about ${subject}.`,
+      title: "Friendly",
+      text: buildText("friendly"),
     },
   ];
 }
@@ -191,6 +243,7 @@ export async function POST(req: Request) {
     body = (await req.json()) as RequestPayload;
 
     if (!process.env.OPENAI_API_KEY) {
+  console.warn("Smart Content Assistant using fallback: OPENAI_API_KEY is missing.");
       return Response.json(
         {
         options: buildFallbackOptions(body),
@@ -237,15 +290,31 @@ const response = await client.responses.create({
       },
       { status: 200 },
     );
-  } catch {
+} catch (error) {
+  console.error("Smart Content Assistant error:", error);
+
+  if (process.env.NODE_ENV === "development") {
     return Response.json(
-{
-  options: buildFallbackOptions(body),
-  suggestions: buildFallbackOptions(body).map(
-    (option: SmartContentOption) => option.text,
-  ),
-},
-      { status: 200 },
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Unknown Smart Content Assistant error",
+        options: [],
+        suggestions: [],
+      },
+      { status: 500 },
     );
   }
+
+  const fallback = buildFallbackOptions(body);
+
+  return Response.json(
+    {
+      options: fallback,
+      suggestions: fallback.map((option) => option.text),
+    },
+    { status: 200 },
+  );
+}
 }
