@@ -1,12 +1,12 @@
 import type { TemplateLayoutRegistry } from "../../types";
+import subtle from "./subtle";
 import classic from "./classic";
 import evergreen from "./evergreen";
 import modern from "./modern";
-import subtle from "./subtle";
 
 const weddingLayouts: TemplateLayoutRegistry = {
   templateKey: "wedding_rsvp",
-  layouts: [classic, modern, subtle, evergreen],
+  layouts: [subtle, classic, modern, evergreen],
 };
 
 
