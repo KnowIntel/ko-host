@@ -276,7 +276,10 @@ export default function RichTextTiptapEditor({
         </div>
       </div>
 
-      <div className={className} style={style}>
+      <div
+        className={`${className ?? ""} max-h-[320px] overflow-y-auto`}
+        style={style}
+      >
         <EditorContent editor={editor} />
       </div>
     </div>
