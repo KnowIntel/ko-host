@@ -328,6 +328,8 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Clock", type: "icon", iconName: "clock" },
     { kind: "block", label: "Jagged Line", type: "icon", iconName: "jagged-line" },
     { kind: "block", label: "Phone", type: "icon", iconName: "phone" },
+    { kind: "block", label: "Open Quote", type: "icon", iconName: "open-quote" },
+    { kind: "block", label: "Close Quote", type: "icon", iconName: "close-quote" },
   ],
   Layout: [
     { kind: "shape", label: "Rectangle", type: "rectangle" },

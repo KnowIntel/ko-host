@@ -1791,14 +1791,14 @@ case "text_fx":
         color: "#000000",
       },
 
-fx: {
-  mode: "straight",
-  intensity: 50,
-  rotation: 0,
-  opacity: 1,
-  transformStyle: "normal",
-  transformStrength: 100,
-},
+      fx: {
+        mode: "straight",
+        intensity: 50,
+        rotation: 0,
+        opacity: 1,
+        transformStyle: "normal",
+        transformStrength: 100,
+      },
     },
 
     appearance: {
