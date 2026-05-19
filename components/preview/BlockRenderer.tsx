@@ -6120,7 +6120,7 @@ function renderRichText(
           "rich-text-content min-w-0 max-w-full break-words",
           "[&_ul]:list-disc [&_ul]:pl-6",
           "[&_ol]:list-decimal [&_ol]:pl-6",
-          "[&_li]:ml-1",
+          "[&_li]:ml-1 [&_li]:list-item [&_li>p]:m-0 [&_li>p]:inline",
           "[&_p]:my-0 [&_p+p]:mt-3 [&_p:empty]:min-h-[1em]",
           "[&_a]:underline [&_a]:break-words",
           "[&_h1]:text-[1.8em] [&_h1]:font-bold [&_h1]:leading-tight",

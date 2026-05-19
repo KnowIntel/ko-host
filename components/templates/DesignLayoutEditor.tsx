@@ -7200,7 +7200,7 @@ borderRadius:
 
         <div
           data-canvas-rich-text={block.id}
-          className="min-h-full min-w-0 max-w-full text-sm text-neutral-800 break-words outline-none [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:ml-1 [&_li_p]:m-0 [&_li_p]:inline [&_p]:my-0 [&_p+p]:mt-3 [&_p:empty]:min-h-[1em] [&_a]:break-words [&_a]:underline [&_img]:max-w-full [&_img]:h-auto"
+          className="min-h-full min-w-0 max-w-full text-sm text-neutral-800 break-words outline-none [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:ml-1 [&_li]:list-item [&_li>p]:m-0 [&_li>p]:inline [&_p]:my-0 [&_p+p]:mt-3 [&_p:empty]:min-h-[1em] [&_a]:break-words [&_a]:underline [&_img]:max-w-full [&_img]:h-auto"
           style={richTextStyle}
           dangerouslySetInnerHTML={{
             __html:
