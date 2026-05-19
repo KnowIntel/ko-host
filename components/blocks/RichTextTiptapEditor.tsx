@@ -1,5 +1,6 @@
 "use client";
 
+import { Extension } from "@tiptap/core";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
@@ -23,6 +24,30 @@ type RichTextTiptapEditorProps = {
     plainText: string;
   }) => void;
 };
+
+const FontSize = Extension.create({
+  name: "fontSize",
+
+  addGlobalAttributes() {
+    return [
+      {
+        types: ["textStyle"],
+        attributes: {
+          fontSize: {
+            default: null,
+            parseHTML: (element) => element.style.fontSize || null,
+            renderHTML: (attributes) => {
+              if (!attributes.fontSize) return {};
+              return {
+                style: `font-size: ${attributes.fontSize}`,
+              };
+            },
+          },
+        },
+      },
+    ];
+  },
+});
 
 function cleanPastedHtml(html: string, pasteMode: PasteMode) {
   if (pasteMode === "plain") return "";
@@ -76,6 +101,7 @@ export default function RichTextTiptapEditor({
       StarterKit,
       Underline,
       TextStyle,
+      FontSize,
       Color,
       TextAlign.configure({
         types: ["heading", "paragraph"],
@@ -94,7 +120,7 @@ export default function RichTextTiptapEditor({
     editorProps: {
       attributes: {
         class:
-          "min-h-full min-w-0 max-w-full cursor-text break-words outline-none [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:ml-1 [&_a]:break-words [&_img]:max-w-full [&_img]:h-auto",
+          "min-h-[220px] min-w-0 max-w-full cursor-text break-words outline-none [&_p]:my-0 [&_p]:leading-normal [&_ul]:my-0 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:my-0 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-0 [&_li]:pl-1 [&_li_p]:m-0 [&_li_p]:inline [&_a]:break-words [&_a]:underline [&_img]:h-auto [&_img]:max-w-full",
       },
       handlePaste(view, event) {
         const text = event.clipboardData?.getData("text/plain") ?? "";
@@ -139,9 +165,119 @@ export default function RichTextTiptapEditor({
     }
   }, [editor, html, placeholder]);
 
+  if (!editor) return null;
+
   return (
-    <div className={className} style={style}>
-      <EditorContent editor={editor} />
+    <div className="space-y-2">
+      <div className="space-y-2 rounded-lg border border-neutral-200 bg-neutral-50 p-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <select
+            className="rounded border border-neutral-300 bg-white px-2 py-1 text-xs text-black"
+            defaultValue="paragraph"
+            onChange={(e) => {
+              const value = e.target.value;
+
+              if (value === "paragraph") {
+                editor.chain().focus().setParagraph().run();
+              }
+
+              if (value === "h1") {
+                editor.chain().focus().toggleHeading({ level: 1 }).run();
+              }
+
+              if (value === "h2") {
+                editor.chain().focus().toggleHeading({ level: 2 }).run();
+              }
+
+              if (value === "h3") {
+                editor.chain().focus().toggleHeading({ level: 3 }).run();
+              }
+            }}
+          >
+            <option value="paragraph">Paragraph</option>
+            <option value="h1">Heading 1</option>
+            <option value="h2">Heading 2</option>
+            <option value="h3">Heading 3</option>
+          </select>
+
+          <button type="button" className="rounded border px-2 py-1 text-xs" onClick={() => editor.chain().focus().toggleBold().run()}>
+            B
+          </button>
+          <button type="button" className="rounded border px-2 py-1 text-xs" onClick={() => editor.chain().focus().toggleItalic().run()}>
+            I
+          </button>
+          <button type="button" className="rounded border px-2 py-1 text-xs" onClick={() => editor.chain().focus().toggleUnderline().run()}>
+            U
+          </button>
+          <button type="button" className="rounded border px-2 py-1 text-xs" onClick={() => editor.chain().focus().toggleStrike().run()}>
+            S
+          </button>
+
+          <button type="button" className="rounded border px-2 py-1 text-xs" onClick={() => editor.chain().focus().setTextAlign("left").run()}>
+            Left
+          </button>
+          <button type="button" className="rounded border px-2 py-1 text-xs" onClick={() => editor.chain().focus().setTextAlign("center").run()}>
+            Center
+          </button>
+          <button type="button" className="rounded border px-2 py-1 text-xs" onClick={() => editor.chain().focus().setTextAlign("right").run()}>
+            Right
+          </button>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <select
+            className="rounded border border-neutral-300 bg-white px-2 py-1 text-xs text-black"
+            defaultValue="16px"
+            onChange={(e) =>
+              editor.chain().focus().setMark("textStyle", { fontSize: e.target.value }).run()
+            }
+          >
+            <option value="12px">12px</option>
+            <option value="14px">14px</option>
+            <option value="16px">16px</option>
+            <option value="18px">18px</option>
+            <option value="20px">20px</option>
+            <option value="24px">24px</option>
+            <option value="28px">28px</option>
+            <option value="32px">32px</option>
+            <option value="40px">40px</option>
+          </select>
+
+          <input
+            type="color"
+            className="h-7 w-10 rounded border border-neutral-300 bg-white"
+            onChange={(e) => editor.chain().focus().setColor(e.target.value).run()}
+          />
+
+          <button type="button" className="rounded border px-2 py-1 text-xs" onClick={() => editor.chain().focus().toggleBulletList().run()}>
+            Bulleted List
+          </button>
+
+          <button type="button" className="rounded border px-2 py-1 text-xs" onClick={() => editor.chain().focus().toggleOrderedList().run()}>
+            Numbered List
+          </button>
+
+          <button
+            type="button"
+            className="rounded border px-2 py-1 text-xs"
+            onClick={() => {
+              const url = window.prompt("Enter link URL");
+              if (!url) return;
+              editor.chain().focus().setLink({ href: url }).run();
+            }}
+          >
+            Link
+          </button>
+
+          <button type="button" className="rounded border px-2 py-1 text-xs" onClick={() => editor.chain().focus().unsetAllMarks().clearNodes().run()}>
+            Clear Formatting
+          </button>
+        </div>
+      </div>
+
+      <div className={className} style={style}>
+        <EditorContent editor={editor} />
+      </div>
     </div>
   );
 }
