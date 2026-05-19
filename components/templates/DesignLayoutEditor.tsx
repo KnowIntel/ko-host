@@ -9719,8 +9719,6 @@ if (selectedBlock?.type === "rsvp") {
   size="wide"
   title="Smart Content Assistant"
   description="Generate polished microsite content with guided inputs."
-  confirmText="Close"
-  cancelText="Cancel"
   loading={aiLoading}
   onConfirm={() => setShowAiSuggestions(false)}
   onCancel={() => setShowAiSuggestions(false)}
