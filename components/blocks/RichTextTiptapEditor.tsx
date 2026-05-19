@@ -170,7 +170,15 @@ export default function RichTextTiptapEditor({
 
   return (
     <div className="space-y-2">
-      <div className="space-y-2 rounded-lg border border-neutral-200 bg-neutral-50 p-2">
+      <div
+  className="space-y-2 rounded-lg border border-neutral-200 bg-neutral-50 p-2"
+  onMouseDownCapture={(e) => {
+    const target = e.target as HTMLElement;
+    if (target.closest("button")) {
+      e.preventDefault();
+    }
+  }}
+>
         <div className="flex flex-wrap items-center gap-2">
           <select
             className="rounded border border-neutral-300 bg-white px-2 py-1 text-xs text-black"
