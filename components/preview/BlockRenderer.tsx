@@ -4769,10 +4769,55 @@ function renderFormField(
   const showPlaceholder = block.data.showPlaceholder !== false;
   const showRequired = block.data.showRequired !== false;
   const linkedButtonId = (block.data as any).linkedButtonId ?? "";
+const showRating = (block.data as any).showRating === true;
+const ratingValue = Math.max(
+  0,
+  Math.min(5, Number((block.data as any).ratingValue ?? 0)),
+);
+
+const ratingColor =
+  (block.data as any).ratingColor || "#F59E0B";
+
+const ratingPosition =
+  (block.data as any).ratingPosition === "low"
+    ? "low"
+    : "high";
 
   return (
     <div className="h-full w-full p-2" style={getAppearanceStyle(block)}>
-      <div className="flex h-full flex-col gap-1">
+      <div className="flex h-full flex-col gap-2">
+{showRating && ratingPosition === "high" ? (
+  <div className="flex items-center gap-1">
+    {Array.from({ length: 5 }).map((_, index) => {
+      const filled = index < ratingValue;
+
+      return (
+        <button
+          key={index}
+          type="button"
+          onClick={() => {
+            (block.data as any).ratingValue = index + 1;
+          }}
+          className="transition-transform hover:scale-110"
+          style={{
+            color: ratingColor,
+          }}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill={filled ? "currentColor" : "none"}
+            stroke="currentColor"
+            strokeWidth="2"
+            className="h-6 w-6"
+          >
+            <path d="M12 2l3.1 6.3 7 .9-5 4.8 1.2 6.9L12 17.8 5.7 21l1.2-6.9-5-4.8 7-.9L12 2z" />
+          </svg>
+        </button>
+      );
+    })}
+  </div>
+) : null}
         {showLabel ? (
           <label
             className="text-sm"
@@ -4808,6 +4853,39 @@ function renderFormField(
             style={getContainerTextStyle(block.data.style, designKey)}
           />
         )}
+
+        {showRating && ratingPosition === "low" ? (
+  <div className="flex items-center gap-1 pt-1">
+    {Array.from({ length: 5 }).map((_, index) => {
+      const filled = index < ratingValue;
+
+      return (
+        <button
+          key={index}
+          type="button"
+          onClick={() => {
+            (block.data as any).ratingValue = index + 1;
+          }}
+          className="transition-transform hover:scale-110"
+          style={{
+            color: ratingColor,
+          }}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill={filled ? "currentColor" : "none"}
+            stroke="currentColor"
+            strokeWidth="2"
+            className="h-6 w-6"
+          >
+            <path d="M12 2l3.1 6.3 7 .9-5 4.8 1.2 6.9L12 17.8 5.7 21l1.2-6.9-5-4.8 7-.9L12 2z" />
+          </svg>
+        </button>
+      );
+    })}
+  </div>
+) : null}
       </div>
     </div>
   );

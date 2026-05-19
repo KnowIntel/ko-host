@@ -10831,6 +10831,79 @@ selectedContext.kind === "textFx"
       </select>
     </div>
 
+<div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+  <label className="flex items-center gap-3 text-sm font-medium text-neutral-800">
+    <input
+      type="checkbox"
+      checked={Boolean((selectedBlock.data as any).showRating)}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "form_field"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  showRating: e.target.checked,
+                },
+              },
+        )
+      }
+    />
+    Show Rating
+  </label>
+
+  {(selectedBlock.data as any).showRating ? (
+    <div className="mt-4 grid grid-cols-1 gap-3">
+      <div>
+        <div className={inspectorLabelClass()}>Star Color</div>
+        <input
+          type="color"
+          value={(selectedBlock.data as any).ratingColor ?? "#F59E0B"}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "form_field"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      ratingColor: e.target.value,
+                    },
+                  },
+            )
+          }
+          className="mt-2 h-10 w-full rounded-xl border border-neutral-300 bg-white"
+        />
+      </div>
+
+      <div>
+        <div className={inspectorLabelClass()}>Rating Position</div>
+        <select
+          value={(selectedBlock.data as any).ratingPosition ?? "high"}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "form_field"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      ratingPosition: e.target.value as "high" | "low",
+                    },
+                  },
+            )
+          }
+          className={inspectorInputClass()}
+        >
+          <option value="high">High Level</option>
+          <option value="low">Low Level</option>
+        </select>
+      </div>
+    </div>
+  ) : null}
+</div>
+
     <div className="mt-4">
       <label className="flex items-center justify-between gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
         <span className="flex items-center gap-3">

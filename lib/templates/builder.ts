@@ -795,6 +795,11 @@ export type FormFieldBlock = BaseBlock & {
     showRequired?: boolean;
     showSubmitButtonText?: boolean;
     style?: TextStyle;
+
+showRating?: boolean;
+ratingValue?: number;
+ratingColor?: string;
+ratingPosition?: "high" | "low";
   };
 };
 
@@ -1938,8 +1943,14 @@ case "text_fx":
           showLabel: true,
           showPlaceholder: true,
           showRequired: true,
-          showSubmitButtonText: true,
-          style: createDefaultTextStyle(),
+showSubmitButtonText: true,
+
+showRating: false,
+ratingValue: 0,
+ratingColor: "#F59E0B",
+ratingPosition: "high",
+
+style: createDefaultTextStyle(),
         },
       };
 
@@ -3365,6 +3376,79 @@ if (block.type === "donation") {
       collectEmail: block.data.collectEmail !== false,
       collectName: Boolean(block.data.collectName),
       collectAddress: Boolean(block.data.collectAddress),
+    },
+  };
+}
+
+if (block.type === "form_field") {
+  const data = block.data as any;
+
+  return {
+    ...block,
+    grid: normalizeGridValue(block.grid, fallbackGrid),
+    data: {
+      ...block.data,
+
+      label:
+        typeof block.data.label === "string"
+          ? block.data.label
+          : "Input Label",
+
+      placeholder:
+        typeof block.data.placeholder === "string"
+          ? block.data.placeholder
+          : "Enter value...",
+
+      required: Boolean(block.data.required),
+
+      fieldType:
+        block.data.fieldType === "text" ||
+        block.data.fieldType === "email" ||
+        block.data.fieldType === "phone" ||
+        block.data.fieldType === "textarea"
+          ? block.data.fieldType
+          : "text",
+
+      value:
+        typeof block.data.value === "string"
+          ? block.data.value
+          : "",
+
+      submitButtonText:
+        typeof block.data.submitButtonText === "string"
+          ? block.data.submitButtonText
+          : "Submit",
+
+      showLabel: block.data.showLabel !== false,
+      showPlaceholder: block.data.showPlaceholder !== false,
+      showRequired: block.data.showRequired !== false,
+      showSubmitButtonText:
+        block.data.showSubmitButtonText !== false,
+
+      showRating: Boolean(data.showRating),
+
+      ratingValue:
+        typeof data.ratingValue === "number" &&
+        Number.isFinite(data.ratingValue)
+          ? Math.max(0, Math.min(5, Math.floor(data.ratingValue)))
+          : 0,
+
+      ratingColor:
+        typeof data.ratingColor === "string" &&
+        data.ratingColor.trim()
+          ? data.ratingColor
+          : "#F59E0B",
+
+      ratingPosition:
+        data.ratingPosition === "low" ||
+        data.ratingPosition === "high"
+          ? data.ratingPosition
+          : "high",
+
+      style: {
+        ...createDefaultTextStyle(),
+        ...(block.data.style ?? {}),
+      },
     },
   };
 }
