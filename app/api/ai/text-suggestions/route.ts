@@ -122,7 +122,7 @@ Field: ${fieldLabel}
 Content type: ${payload.contentType || "General microsite copy"}
 Existing text: ${existingText || "none"}
 Subject: ${payload.subject || "not provided"}
-Details: ${payload.details || "not provided"}
+Raw user notes/details: ${payload.details || "not provided"}
 Tone: ${payload.tone || "Friendly"}
 Length: ${payload.length || "Short"} 
 Length guidance:
@@ -169,9 +169,15 @@ Rules:
 - Make every option meaningfully different
 - Keep copy appropriate for the requested length
 - Avoid generic filler
+- The output should feel like it was written by a skilled marketer, host, or brand copywriter, not like a form response
+- Treat Raw user notes/details as rough input, not final wording
+- Rewrite, remix, polish, and transform the user's notes into natural finished copy
+- Do not simply repeat the user's notes line-by-line
+- If the user provides keywords, fragments, bullets, or incomplete phrases, convert them into smooth sentences
+- Preserve important facts, but improve wording, rhythm, punctuation, and flow
 - If Subject is provided, every option must clearly reference or be directly about that subject
-- If Details are provided, every option must include at least 2 concrete details from the Details field when possible
-- Do not ignore dates, times, locations, prices, offers, names, or event-specific facts from Details
+- If Raw user notes/details are provided, every option should use the meaning of those notes without copying the exact rough format
+- Do not ignore dates, times, locations, prices, offers, names, or event-specific facts from the notes
 - If details are limited, improve the existing text instead of inventing specific facts
 - Avoid vague phrases like "something special", "unforgettable experience", or "moment worth sharing" unless the user specifically asks for vague teaser copy
 - Titles should be short, like "Elegant Welcome" or "Bold Promotion"
