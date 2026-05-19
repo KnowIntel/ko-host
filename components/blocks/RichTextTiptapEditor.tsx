@@ -8,7 +8,7 @@ import TextAlign from "@tiptap/extension-text-align";
 import Underline from "@tiptap/extension-underline";
 import Color from "@tiptap/extension-color";
 import { TextStyle } from "@tiptap/extension-text-style";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 type PasteMode = "keep" | "match" | "plain";
 
@@ -95,6 +95,7 @@ export default function RichTextTiptapEditor({
   placeholder = "Write something here...",
   onChange,
 }: RichTextTiptapEditorProps) {
+  const savedSelectionRef = useRef<{ from: number; to: number } | null>(null);
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
@@ -242,8 +243,24 @@ onMouseDownCapture={(e) => {
 <select
   className="rounded border border-neutral-300 bg-white px-2 py-1 text-xs text-black"
   defaultValue="16px"
+  onMouseDown={() => {
+    const { from, to } = editor.state.selection;
+    savedSelectionRef.current = { from, to };
+  }}
   onChange={(e) => {
     const fontSize = e.target.value;
+    const savedSelection = savedSelectionRef.current;
+
+    if (savedSelection) {
+      editor
+        .chain()
+        .focus()
+        .setTextSelection(savedSelection)
+        .setMark("textStyle", { fontSize })
+        .run();
+
+      return;
+    }
 
     editor
       .chain()
