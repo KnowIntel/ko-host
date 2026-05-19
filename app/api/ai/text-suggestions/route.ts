@@ -40,64 +40,56 @@ function buildFallbackOptions(payload: RequestPayload): SmartContentOption[] {
   const length = payload.length || "Short";
   const audience = payload.audience?.trim() || "your audience";
   const contentType = payload.contentType || "Description";
-  const keywords =
-    Array.isArray(payload.keywords) && payload.keywords.length > 0
-      ? payload.keywords.join(", ")
-      : "";
 
-  const detailLine = details
-    ? details
-    : keywords
-      ? `Featuring ${keywords}.`
-      : "";
+  const context = details
+    ? `${subject}: ${details}`
+    : `${subject}`;
 
-  const lengthNote =
-    length === "Very Short"
-      ? "Keep it quick:"
-      : length === "Long"
-        ? "Here’s the full message:"
-        : "";
+  if (length === "Very Short") {
+    return [
+      { id: "option-1", title: `${tone} ${contentType}`, text: subject },
+      { id: "option-2", title: "Simple", text: `Introducing ${subject}` },
+      { id: "option-3", title: "Clear", text: `Explore ${subject}` },
+      { id: "option-4", title: "Direct", text: `Discover ${subject}` },
+      { id: "option-5", title: "Polished", text: `${subject}, made simple.` },
+    ];
+  }
 
   return [
     {
       id: "option-1",
       title: `${tone} ${contentType}`,
-      text:
-        length === "Very Short"
-          ? `${subject} is serving flavor.`
-          : `${lengthNote} Welcome to ${subject}, where ${audience} can enjoy ${detailLine || "fresh flavor, good energy, and a reason to come hungry."}`.trim(),
+      text: details
+        ? `Introducing ${subject}. ${details}`
+        : `Introducing ${subject}, thoughtfully presented for ${audience}.`,
     },
     {
       id: "option-2",
-      title: "More Playful",
-      text:
-        length === "Very Short"
-          ? `Big flavor. ${subject}.`
-          : `Pull up hungry. ${subject} is bringing the kind of hometown flavor that makes ${audience} come back for seconds. ${detailLine}`.trim(),
+      title: "Clear",
+      text: details
+        ? `${subject} includes the key details you need: ${details}`
+        : `${subject} gives ${audience} a clear and helpful way to learn more.`,
     },
     {
       id: "option-3",
-      title: "Bolder",
-      text:
-        length === "Very Short"
-          ? `Cravings, meet ${subject}.`
-          : `${subject} is not here to whisper. It is here with bold bites, feel-good favorites, and a menu made for ${audience}. ${detailLine}`.trim(),
+      title: "Polished",
+      text: details
+        ? `${context}. Designed to help ${audience} understand what matters most.`
+        : `${subject} is designed to be clear, helpful, and easy for ${audience} to understand.`,
     },
     {
       id: "option-4",
-      title: "Warm Welcome",
-      text:
-        length === "Very Short"
-          ? `Welcome to ${subject}.`
-          : `Welcome to ${subject}, a place built for comfort food, familiar favorites, and an easygoing good time for ${audience}. ${detailLine}`.trim(),
+      title: "Warm",
+      text: details
+        ? `Here’s what to know about ${subject}: ${details}`
+        : `Welcome to ${subject}. Everything is organized to help ${audience} get the details quickly.`,
     },
     {
       id: "option-5",
-      title: "Creative",
-      text:
-        length === "Very Short"
-          ? `${subject}: hometown flavor, hot and ready.`
-          : `At ${subject}, the grill is hot, the shakes are cold, and the hometown flavor speaks for itself. Bring your appetite, bring your people, and settle in for something satisfying. ${detailLine}`.trim(),
+      title: "Direct",
+      text: details
+        ? `${subject} — ${details}`
+        : `Learn more about ${subject}.`,
     },
   ];
 }

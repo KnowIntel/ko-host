@@ -5630,13 +5630,22 @@ async function handleCopyUrl() {
 function handleAioClick() {
   if (!isTextSelection(selectedContext)) return;
 
-  setAiSubject(selectedContext.label || "");
-  setAiDetails(selectedTextValue || "");
-  setAiSuggestions([]);
-  setAiOptions([]);
-  setAiError("");
-  setShowAiAdvancedOptions(false);
-  setShowAiSuggestions(true);
+setAiSubject(selectedContext.label || "");
+setAiDetails(selectedTextValue || "");
+
+setAiTone("Friendly");
+setAiLength("Short");
+setAiAudience("");
+setAiKeywords("");
+setAiContentType("Description");
+setAiCreativity(50);
+setAiMatchPageStyle(true);
+
+setAiSuggestions([]);
+setAiOptions([]);
+setAiError("");
+setShowAiAdvancedOptions(false);
+setShowAiSuggestions(true);
 }
 
 async function generateSmartContent() {
