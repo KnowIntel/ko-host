@@ -8078,7 +8078,11 @@ const idsToExpand =
             className={topBarButtonClass(
               selectedTextFxBlock?.data.fx?.mode === "straight",
             )}
-            onClick={() => updateTextFx({ mode: "straight" })}
+            onClick={() =>
+              updateTextFx({
+                mode: "straight",
+              })
+            }
             title="Straight"
           >
             <Image
@@ -8096,7 +8100,12 @@ const idsToExpand =
             className={topBarButtonClass(
               selectedTextFxBlock?.data.fx?.mode === "arch",
             )}
-            onClick={() => updateTextFx({ mode: "arch" })}
+            onClick={() =>
+              updateTextFx({
+                mode: "arch",
+                transformStyle: "normal",
+              })
+            }
             title="Arch"
           >
             <Image
@@ -8114,7 +8123,12 @@ const idsToExpand =
             className={topBarButtonClass(
               selectedTextFxBlock?.data.fx?.mode === "dip",
             )}
-            onClick={() => updateTextFx({ mode: "dip" })}
+            onClick={() =>
+              updateTextFx({
+                mode: "dip",
+                transformStyle: "normal",
+              })
+            }
             title="Dip"
           >
             <Image
@@ -8132,7 +8146,12 @@ const idsToExpand =
             className={topBarButtonClass(
               selectedTextFxBlock?.data.fx?.mode === "circle",
             )}
-            onClick={() => updateTextFx({ mode: "circle" })}
+            onClick={() =>
+              updateTextFx({
+                mode: "circle",
+                transformStyle: "normal",
+              })
+            }
             title="Circle"
           >
             <Image
@@ -9876,11 +9895,18 @@ selectedContext.kind === "textFx"
         <div className={inspectorLabelClass()}>Transform Style</div>
         <select
           value={(selectedTextFxBlock?.data.fx as any)?.transformStyle ?? "normal"}
-          onChange={(e) =>
-            updateTextFx({
-              transformStyle: e.target.value,
-            })
-          }
+onChange={(e) => {
+  const nextStyle = e.target.value;
+
+  updateTextFx({
+    transformStyle: nextStyle,
+    ...(nextStyle !== "normal"
+      ? {
+          mode: "straight",
+        }
+      : {}),
+  });
+}}
           className={inspectorInputClass()}
         >
           <option value="normal">Normal</option>
