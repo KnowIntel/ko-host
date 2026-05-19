@@ -9718,7 +9718,8 @@ if (selectedBlock?.type === "rsvp") {
   onConfirm={() => setShowAiSuggestions(false)}
   onCancel={() => setShowAiSuggestions(false)}
 >
-  <div className="mt-4 grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
+  <div className="mt-4 max-h-[72vh] overflow-y-auto pr-2">
+  <div className="grid min-w-[720px] gap-6 lg:grid-cols-[320px_minmax(360px,1fr)]">
     <div className="space-y-4">
       <div>
         <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-neutral-500">
@@ -9922,7 +9923,7 @@ if (selectedBlock?.type === "rsvp") {
       </button>
     </div>
 
-    <div>
+    <div className="min-w-0">
       {aiLoading ? (
         <div className="rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-8 text-sm text-neutral-600">
           Generating polished content options...
@@ -9959,6 +9960,7 @@ if (selectedBlock?.type === "rsvp") {
       )}
     </div>
   </div>
+</div>
 </AppModal>
 </div>
 
