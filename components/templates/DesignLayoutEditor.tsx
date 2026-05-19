@@ -2470,13 +2470,14 @@ function normalizeRichTextHtml(html?: string) {
     });
 
     if (node instanceof HTMLElement) {
-      const allowedStyles = [
-        "font-weight",
-        "font-style",
-        "text-decoration",
-        "text-align",
-        "color",
-      ];
+const allowedStyles = [
+  "font-size",
+  "font-weight",
+  "font-style",
+  "text-decoration",
+  "text-align",
+  "color",
+];
 
       const nextStyle = allowedStyles
         .map((key) => {
