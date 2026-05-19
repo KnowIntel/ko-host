@@ -172,12 +172,17 @@ export default function RichTextTiptapEditor({
     <div className="space-y-2">
       <div
   className="space-y-2 rounded-lg border border-neutral-200 bg-neutral-50 p-2"
-  onMouseDownCapture={(e) => {
-    const target = e.target as HTMLElement;
-    if (target.closest("button")) {
-      e.preventDefault();
-    }
-  }}
+onMouseDownCapture={(e) => {
+  const target = e.target as HTMLElement;
+  if (target.closest("button")) {
+    e.preventDefault();
+    return;
+  }
+
+  if (target.closest("input[type='color']")) {
+    e.preventDefault();
+  }
+}}
 >
         <div className="flex flex-wrap items-center gap-2">
           <select
@@ -234,20 +239,19 @@ export default function RichTextTiptapEditor({
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <select
-            className="rounded border border-neutral-300 bg-white px-2 py-1 text-xs text-black"
-            defaultValue="16px"
-onMouseDown={(e) => e.preventDefault()}
-onChange={(e) => {
-  const fontSize = e.target.value;
+<select
+  className="rounded border border-neutral-300 bg-white px-2 py-1 text-xs text-black"
+  defaultValue="16px"
+  onChange={(e) => {
+    const fontSize = e.target.value;
 
-  editor
-    .chain()
-    .focus()
-    .setMark("textStyle", { fontSize })
-    .run();
-}}
-          >
+    editor
+      .chain()
+      .focus()
+      .setMark("textStyle", { fontSize })
+      .run();
+  }}
+>
             <option value="12px">12px</option>
             <option value="14px">14px</option>
             <option value="16px">16px</option>
