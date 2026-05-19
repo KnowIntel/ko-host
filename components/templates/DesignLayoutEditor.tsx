@@ -49,6 +49,7 @@ import GridCanvas, {
 } from "@/components/templates/design-editors/shared/GridCanvas";
 
 import BlockRenderer from "@/components/preview/BlockRenderer";
+import RichTextTiptapEditor from "@/components/blocks/RichTextTiptapEditor";
 
 import {
   PAGE_DESCRIPTION_BLOCK_ID,
@@ -2433,24 +2434,99 @@ function handleCanvasShortcuts(event: KeyboardEvent) {
   }, [draft]);
 
 function normalizeRichTextHtml(html?: string) {
-  const value = String(html ?? "").trim();
+  const raw = String(html ?? "").trim();
 
   if (
-    value === "" ||
-    value === "<br>" ||
-    value === "<p><br></p>" ||
-    value === "<div><br></div>" ||
-    value === "<ul><li><br></li></ul>" ||
-    value === "<ol><li><br></li></ol>"
+    raw === "" ||
+    raw === "<br>" ||
+    raw === "<p><br></p>" ||
+    raw === "<div><br></div>" ||
+    raw === "<ul><li><br></li></ul>" ||
+    raw === "<ol><li><br></li></ol>"
   ) {
     return "";
   }
 
-  return html ?? "";
+  const wrapper = document.createElement("div");
+  wrapper.innerHTML = raw;
+
+  wrapper.querySelectorAll("script, style, iframe, object, embed, meta, link").forEach((node) => {
+    node.remove();
+  });
+
+  wrapper.querySelectorAll("*").forEach((node) => {
+    Array.from(node.attributes).forEach((attr) => {
+      const name = attr.name.toLowerCase();
+
+      if (
+        name.startsWith("on") ||
+        name === "class" ||
+        name === "id" ||
+        name === "data-mce-style" ||
+        name === "data-mce-selected"
+      ) {
+        node.removeAttribute(attr.name);
+      }
+    });
+
+    if (node instanceof HTMLElement) {
+      const allowedStyles = [
+        "font-weight",
+        "font-style",
+        "text-decoration",
+        "text-align",
+        "color",
+      ];
+
+      const nextStyle = allowedStyles
+        .map((key) => {
+          const value = node.style.getPropertyValue(key);
+          return value ? `${key}: ${value}` : "";
+        })
+        .filter(Boolean)
+        .join("; ");
+
+      if (nextStyle) {
+        node.setAttribute("style", nextStyle);
+      } else {
+        node.removeAttribute("style");
+      }
+    }
+
+    if (node instanceof HTMLAnchorElement) {
+      const href = node.getAttribute("href") ?? "";
+
+      if (!/^https?:\/\//i.test(href) && !href.startsWith("mailto:") && !href.startsWith("tel:")) {
+        node.removeAttribute("href");
+      } else {
+        node.setAttribute("target", "_blank");
+        node.setAttribute("rel", "noopener noreferrer");
+      }
+    }
+  });
+
+  const normalized = wrapper.innerHTML.trim();
+
+  if (
+    normalized === "" ||
+    normalized === "<br>" ||
+    normalized === "<p><br></p>" ||
+    normalized === "<div><br></div>"
+  ) {
+    return "";
+  }
+
+  return normalized;
 }
 
 function isRichTextHtmlEmpty(html?: string) {
   return normalizeRichTextHtml(html) === "";
+}
+
+function getPlainTextFromRichTextHtml(html?: string) {
+  const wrapper = document.createElement("div");
+  wrapper.innerHTML = String(html ?? "");
+  return wrapper.textContent?.trim() ?? "";
 }
 
 useEffect(() => {
@@ -2466,7 +2542,11 @@ useEffect(() => {
 useEffect(() => {
   if (selectedBlock?.type !== "rich_text") return;
 
-  const normalized = normalizeRichTextHtml(selectedBlock.data.content ?? "");
+  const normalized = normalizeRichTextHtml(
+  typeof selectedBlock.data.contentHtml === "string"
+    ? selectedBlock.data.contentHtml
+    : selectedBlock.data.content ?? "",
+);
   setIsRichTextEditorEmpty(isRichTextHtmlEmpty(normalized));
 
   if (!richTextEditorRef.current) return;
@@ -2477,7 +2557,9 @@ useEffect(() => {
 }, [
   selectedBlock?.id,
   selectedBlock?.type,
-  selectedBlock?.type === "rich_text" ? selectedBlock.data.content : null,
+  selectedBlock?.type === "rich_text"
+  ? selectedBlock.data.contentHtml ?? selectedBlock.data.content
+  : null,
 ]);
 
   function pushRecentColor(color: string) {
@@ -2596,6 +2678,8 @@ function withRichTextEditor(action: (editor: HTMLDivElement) => void) {
           data: {
             ...block.data,
             content: normalized,
+            contentHtml: normalized,
+            plainText: getPlainTextFromRichTextHtml(normalized),
           },
         },
   );
@@ -7050,10 +7134,18 @@ if (block.type === "video") {
 
 if (block.type === "rich_text") {
   const richTextStyle = getInlineTextStyle(block.data.style);
+const richTextBehavior = block.data.behavior ?? {};
+const richTextMaxHeight = Number(richTextBehavior.maxHeight ?? 0);
+const richTextScrollable = Boolean(
+  richTextBehavior.scrollable && richTextMaxHeight > 0,
+);
 
   return (
     <div
-      className="h-full w-full rounded-xl overflow-auto"
+      className={[
+  "h-full w-full rounded-xl",
+  richTextScrollable ? "overflow-y-auto" : "overflow-hidden",
+].join(" ")}
       onClick={(e) => {
         e.stopPropagation();
 
@@ -7098,10 +7190,11 @@ if (block.type === "rich_text") {
           block.appearance.borderWidth > 0
             ? "solid"
             : undefined,
-        borderRadius:
-          typeof block.appearance?.borderRadius === "number"
-            ? `${block.appearance.borderRadius}px`
-            : undefined,
+borderRadius:
+  typeof block.appearance?.borderRadius === "number"
+    ? `${block.appearance.borderRadius}px`
+    : undefined,
+maxHeight: richTextScrollable ? `${richTextMaxHeight}px` : undefined,
       }}
     >
       <div className="h-full w-full p-4">
@@ -7118,14 +7211,17 @@ if (block.type === "rich_text") {
           data-canvas-rich-text={block.id}
           contentEditable
           suppressContentEditableWarning
-          className="min-h-full text-sm text-neutral-800 whitespace-pre-wrap outline-none"
+          className="min-h-full min-w-0 max-w-full text-sm text-neutral-800 whitespace-pre-wrap break-words outline-none [&_a]:break-words [&_img]:max-w-full [&_img]:h-auto"
           style={richTextStyle}
           onClick={(e) => e.stopPropagation()}
 ref={(node) => {
   if (!node) return;
   if (document.activeElement === node) return;
 
-  const nextHtml = block.data.content || "";
+  const nextHtml =
+  typeof block.data.contentHtml === "string"
+    ? block.data.contentHtml
+    : block.data.content || "";
 
   if (node.innerHTML !== nextHtml) {
     node.innerHTML = nextHtml;
@@ -7151,6 +7247,8 @@ onBlur={(e) => {
           data: {
             ...currentBlock.data,
             content: html,
+            contentHtml: html,
+            plainText: getPlainTextFromRichTextHtml(html),
           },
         },
   );
@@ -16353,6 +16451,34 @@ const lines = e.target.value.split("\n");
     </div>
 
     <div className="mt-4">
+      <div className={inspectorLabelClass()}>Paste Mode</div>
+      <select
+        value={selectedBlock.data.pasteMode ?? "match"}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "rich_text"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    pasteMode: e.target.value as "match" | "keep" | "plain",
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      >
+        <option value="match">Match Site Style</option>
+        <option value="keep">Keep Formatting</option>
+        <option value="plain">Plain Text</option>
+      </select>
+      <div className="mt-1 text-xs text-neutral-500">
+        Recommended: Match Site Style keeps structure while removing messy pasted styling.
+      </div>
+    </div>
+
+    <div className="mt-4">
       <div className={inspectorLabelClass()}>Content</div>
 
       <div
@@ -16365,6 +16491,36 @@ const lines = e.target.value.split("\n");
         }}
       >
         <div className="flex flex-wrap gap-2">
+          <select
+            className="px-2 py-1 text-xs rounded border bg-white text-black border-neutral-300"
+            defaultValue="paragraph"
+            onChange={(e) =>
+              withRichTextEditor((editor) => {
+                document.execCommand("formatBlock", false, e.target.value);
+
+                const html = normalizeRichTextHtml(editor.innerHTML);
+
+                updateSelectedBlock((block) =>
+                  block.type !== "rich_text"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          content: html,
+                          contentHtml: html,
+                          plainText: getPlainTextFromRichTextHtml(html),
+                        },
+                      },
+                );
+              })
+            }
+          >
+            <option value="p">Paragraph</option>
+            <option value="h1">Heading 1</option>
+            <option value="h2">Heading 2</option>
+            <option value="h3">Heading 3</option>
+          </select>
 <button
   type="button"
   className="px-2 py-1 text-xs rounded border bg-white text-black border-neutral-300 hover:bg-neutral-100"
@@ -16379,6 +16535,8 @@ const lines = e.target.value.split("\n");
               data: {
                 ...block.data,
                 content: normalizeRichTextHtml(editor.innerHTML),
+                contentHtml: normalizeRichTextHtml(editor.innerHTML),
+                plainText: getPlainTextFromRichTextHtml(normalizeRichTextHtml(editor.innerHTML)),
               },
             },
       );
@@ -16434,6 +16592,34 @@ const lines = e.target.value.split("\n");
   U
 </button>
 
+<button
+  type="button"
+  className="px-2 py-1 text-xs rounded border bg-white text-black border-neutral-300 hover:bg-neutral-100"
+  onClick={() =>
+    withRichTextEditor((editor) => {
+      document.execCommand("strikeThrough");
+
+      const html = normalizeRichTextHtml(editor.innerHTML);
+
+      updateSelectedBlock((block) =>
+        block.type !== "rich_text"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                content: html,
+                contentHtml: html,
+                plainText: getPlainTextFromRichTextHtml(html),
+              },
+            },
+      );
+    })
+  }
+>
+  S
+</button>
+
           <button
             type="button"
             className={`px-2 py-1 text-xs rounded border ${
@@ -16451,7 +16637,9 @@ const lines = e.target.value.split("\n");
                         ...block,
                         data: {
                           ...block.data,
-                          content: editor.innerHTML,
+                          content: normalizeRichTextHtml(editor.innerHTML),
+                          contentHtml: normalizeRichTextHtml(editor.innerHTML),
+                          plainText: getPlainTextFromRichTextHtml(normalizeRichTextHtml(editor.innerHTML)),
                           style: {
                             ...(block.data.style ?? {}),
                             align: "left",
@@ -16489,7 +16677,9 @@ const lines = e.target.value.split("\n");
                         ...block,
                         data: {
                           ...block.data,
-                          content: editor.innerHTML,
+                          content: normalizeRichTextHtml(editor.innerHTML),
+                          contentHtml: normalizeRichTextHtml(editor.innerHTML),
+                          plainText: getPlainTextFromRichTextHtml(normalizeRichTextHtml(editor.innerHTML)),
                           style: {
                             ...(block.data.style ?? {}),
                             align: "center",
@@ -16527,7 +16717,9 @@ const lines = e.target.value.split("\n");
               ...block,
               data: {
                 ...block.data,
-                content: editor.innerHTML,
+content: normalizeRichTextHtml(editor.innerHTML),
+contentHtml: normalizeRichTextHtml(editor.innerHTML),
+plainText: getPlainTextFromRichTextHtml(normalizeRichTextHtml(editor.innerHTML)),
                 style: {
                   ...(block.data.style ?? {}),
                   align: "right",
@@ -16551,6 +16743,88 @@ const lines = e.target.value.split("\n");
 </div>
 
         <div className="flex flex-wrap gap-2">
+          <select
+            className="px-2 py-1 text-xs rounded border bg-white text-black border-neutral-300"
+            value={String(selectedBlock.data.style?.fontSize ?? 16)}
+            onChange={(e) => {
+              const fontSize = Number(e.target.value);
+
+              withRichTextEditor((editor) => {
+                document.execCommand("fontSize", false, "3");
+
+                editor.querySelectorAll("font[size='3']").forEach((node) => {
+                  if (node instanceof HTMLElement) {
+                    node.removeAttribute("size");
+                    node.style.fontSize = `${fontSize}px`;
+                  }
+                });
+
+                const html = normalizeRichTextHtml(editor.innerHTML);
+
+                updateSelectedBlock((block) =>
+                  block.type !== "rich_text"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          content: html,
+                          contentHtml: html,
+                          plainText: getPlainTextFromRichTextHtml(html),
+                          style: {
+                            ...(block.data.style ?? {}),
+                            fontSize,
+                          },
+                        },
+                      },
+                );
+              });
+            }}
+          >
+            <option value="12">12px</option>
+            <option value="14">14px</option>
+            <option value="16">16px</option>
+            <option value="18">18px</option>
+            <option value="20">20px</option>
+            <option value="24">24px</option>
+            <option value="28">28px</option>
+            <option value="32">32px</option>
+            <option value="40">40px</option>
+          </select>
+
+          <input
+            type="color"
+            value={selectedBlock.data.style?.color ?? "#111827"}
+            title="Text color"
+            className="h-7 w-10 rounded border border-neutral-300 bg-white"
+            onChange={(e) => {
+              const color = e.target.value;
+
+              withRichTextEditor((editor) => {
+                document.execCommand("foreColor", false, color);
+
+                const html = normalizeRichTextHtml(editor.innerHTML);
+
+                updateSelectedBlock((block) =>
+                  block.type !== "rich_text"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          content: html,
+                          contentHtml: html,
+                          plainText: getPlainTextFromRichTextHtml(html),
+                          style: {
+                            ...(block.data.style ?? {}),
+                            color,
+                          },
+                        },
+                      },
+                );
+              });
+            }}
+          />
           <button
             type="button"
             className={`px-2 py-1 text-xs rounded border ${
@@ -16568,7 +16842,9 @@ const lines = e.target.value.split("\n");
                         ...block,
                         data: {
                           ...block.data,
-                          content: editor.innerHTML,
+content: normalizeRichTextHtml(editor.innerHTML),
+contentHtml: normalizeRichTextHtml(editor.innerHTML),
+plainText: getPlainTextFromRichTextHtml(normalizeRichTextHtml(editor.innerHTML)),
                           listType:
                             block.data.listType === "bullet" ? "none" : "bullet",
                         },
@@ -16597,7 +16873,9 @@ const lines = e.target.value.split("\n");
                         ...block,
                         data: {
                           ...block.data,
-                          content: editor.innerHTML,
+content: normalizeRichTextHtml(editor.innerHTML),
+contentHtml: normalizeRichTextHtml(editor.innerHTML),
+plainText: getPlainTextFromRichTextHtml(normalizeRichTextHtml(editor.innerHTML)),
                           listType:
                             block.data.listType === "number" ? "none" : "number",
                         },
@@ -16609,159 +16887,70 @@ const lines = e.target.value.split("\n");
             Numbered List
           </button>
 
-                    <button
-            type="button"
-            className="px-2 py-1 text-xs rounded border bg-white text-black border-neutral-300 hover:bg-neutral-100"
-            onClick={openRichTextLinkModal}
-          >
-            Link
-          </button>
+<button
+  type="button"
+  className="px-2 py-1 text-xs rounded border bg-white text-black border-neutral-300 hover:bg-neutral-100"
+  onClick={() =>
+    withRichTextEditor((editor) => {
+      document.execCommand("removeFormat");
+
+      const html = normalizeRichTextHtml(editor.innerHTML);
+
+      updateSelectedBlock((block) =>
+        block.type !== "rich_text"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                content: html,
+                contentHtml: html,
+                plainText: getPlainTextFromRichTextHtml(html),
+              },
+            },
+      );
+    })
+  }
+>
+  Clear Formatting
+</button>
         </div>
       </div>
 
-<div
-  className="relative"
-  onMouseDown={(e) => {
-    const target = e.target as HTMLElement;
-    const editor = richTextEditorRef.current;
+<div className="relative">
+  <RichTextTiptapEditor
+    html={
+      typeof selectedBlock.data.contentHtml === "string"
+        ? selectedBlock.data.contentHtml
+        : selectedBlock.data.content ?? ""
+    }
+    pasteMode={selectedBlock.data.pasteMode ?? "match"}
+    className={`${inspectorTextareaClass()} min-h-[220px] relative z-20 min-w-0 max-w-full cursor-text break-words`}
+    style={{
+      textAlign: selectedBlock.data.style?.align ?? "left",
+    }}
+    onChange={({ contentJson, contentHtml, plainText }) => {
+      const normalized = normalizeRichTextHtml(contentHtml);
 
-    if (!editor) return;
+      setIsRichTextEditorEmpty(isRichTextHtmlEmpty(normalized));
 
-    const clickedInsideEditor = target === editor || editor.contains(target);
-    if (clickedInsideEditor) return;
-
-    e.preventDefault();
-
-    window.setTimeout(() => {
-      editor.focus();
-
-      const selection = window.getSelection();
-      const range = document.createRange();
-      range.selectNodeContents(editor);
-      range.collapse(false);
-      selection?.removeAllRanges();
-      selection?.addRange(range);
-    }, 0);
-  }}
->
-        {isRichTextEditorEmpty ? (
-          <div
-            className="pointer-events-none absolute left-3 top-3 z-30 text-sm text-neutral-400"
-            style={{
-              textAlign: selectedBlock.data.style?.align ?? "left",
-            }}
-          >
-            Start writing here...
-          </div>
-        ) : null}
-
-        <div
-          ref={richTextEditorRef}
-          data-rich-text-editor={selectedBlock.id}
-          contentEditable
-          suppressContentEditableWarning
-          onKeyDown={(e) => {
-            const isCmd = e.metaKey || e.ctrlKey;
-
-            if (!isCmd) return;
-
-            if (e.key.toLowerCase() === "b") {
-              e.preventDefault();
-              withRichTextEditor(() => {
-                document.execCommand("bold");
-              });
-            }
-
-            if (e.key.toLowerCase() === "i") {
-              e.preventDefault();
-              withRichTextEditor(() => {
-                document.execCommand("italic");
-              });
-            }
-
-            if (e.key.toLowerCase() === "u") {
-              e.preventDefault();
-              withRichTextEditor(() => {
-                document.execCommand("underline");
-              });
-            }
-
-            if (e.key.toLowerCase() === "k") {
-              e.preventDefault();
-              openRichTextLinkModal();
-            }
-          }}
-          onPaste={(e) => {
-            const text = e.clipboardData.getData("text/plain");
-            const html = e.clipboardData.getData("text/html");
-
-            e.preventDefault();
-
-            withRichTextEditor(() => {
-              const safeText = text || "";
-              const urlMatch = safeText.trim().match(/^https?:\/\/\S+$/i);
-
-              if (urlMatch) {
-                document.execCommand(
-                  "insertHTML",
-                  false,
-                  `<a href="${urlMatch[0]}" target="_blank" rel="noopener noreferrer">${urlMatch[0]}</a>`,
-                );
-                return;
-              }
-
-              if (html && html.trim()) {
-                document.execCommand("insertHTML", false, html);
-                return;
-              }
-
-              document.execCommand("insertText", false, safeText);
-            });
-          }}
-onInput={(e) => {
-  const html = normalizeRichTextHtml(
-    (e.currentTarget as HTMLDivElement).innerHTML,
-  );
-
-  setIsRichTextEditorEmpty(isRichTextHtmlEmpty(html));
-
-  updateSelectedBlock((block) =>
-    block.type !== "rich_text"
-      ? block
-      : {
-          ...block,
-          data: {
-            ...block.data,
-            content: html,
-          },
-        },
-  );
-}}
-          onBlur={(e) => {
-            const normalized = normalizeRichTextHtml(
-              (e.currentTarget as HTMLDivElement).innerHTML,
-            );
-
-            setIsRichTextEditorEmpty(isRichTextHtmlEmpty(normalized));
-
-            updateSelectedBlock((block) =>
-              block.type !== "rich_text"
-                ? block
-                : {
-                    ...block,
-                    data: {
-                      ...block.data,
-                      content: normalized,
-                    },
-                  },
-            );
-          }}
-          className={`${inspectorTextareaClass()} min-h-[220px] relative z-20 cursor-text [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:ml-1 [&_li]:text-[inherit] [&_li]:leading-[inherit] [&_span]:text-[inherit] [&_p]:text-[inherit]`}
-          style={{
-            textAlign: selectedBlock.data.style?.align ?? "left",
-          }}
-        />
-      </div>
+      updateSelectedBlock((block) =>
+        block.type !== "rich_text"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                content: normalized,
+                contentHtml: normalized,
+                contentJson,
+                plainText,
+              },
+            },
+      );
+    }}
+  />
+</div>
 
 <div className="mt-2">
   <div className="text-xs text-neutral-500">
@@ -16785,18 +16974,22 @@ onInput={(e) => {
             ? block
             : {
                 ...block,
-                data: {
-                  ...block.data,
-                  content: "",
-                  listType: "none",
-                  linkUrl: "",
-                  style: {
-                    ...(block.data.style ?? {}),
-                    bold: false,
-                    italic: false,
-                    underline: false,
-                  },
-                },
+data: {
+  ...block.data,
+  content: "",
+  contentHtml: "",
+  contentJson: null,
+  plainText: "",
+  listType: "none",
+  linkUrl: "",
+  style: {
+    ...(block.data.style ?? {}),
+    bold: false,
+    italic: false,
+    underline: false,
+    strike: false,
+  },
+},
               },
         );
       }}
@@ -16805,6 +16998,60 @@ onInput={(e) => {
     </button>
   </div>
 </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Max Height</div>
+      <input
+        type="number"
+        min={0}
+        value={Number(selectedBlock.data.behavior?.maxHeight ?? 0)}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "rich_text"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    behavior: {
+                      ...(block.data.behavior ?? {}),
+                      maxHeight: Number(e.target.value),
+                    },
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      />
+      <div className="mt-1 text-xs text-neutral-500">
+        Use 0 for no max height.
+      </div>
+    </div>
+
+    <label className="mt-3 flex items-center gap-2 text-xs text-neutral-700">
+      <input
+        type="checkbox"
+        checked={Boolean(selectedBlock.data.behavior?.scrollable)}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "rich_text"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    behavior: {
+                      ...(block.data.behavior ?? {}),
+                      scrollable: e.target.checked,
+                    },
+                  },
+                },
+          )
+        }
+      />
+      Make content scrollable when max height is reached
+    </label>
+
     </div>
   </div>
 ) : null}

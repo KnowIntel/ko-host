@@ -7,7 +7,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.0.0",
@@ -16,8 +16,16 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@supabase/ssr": "^0.5.0",
     "@supabase/supabase-js": "^2.45.0",
+    "@tiptap/extension-color": "^3.23.5",
+    "@tiptap/extension-link": "^3.23.5",
+    "@tiptap/extension-text-align": "^3.23.5",
+    "@tiptap/extension-text-style": "^3.23.5",
+    "@tiptap/extension-underline": "^3.23.5",
+    "@tiptap/react": "^3.23.5",
+    "@tiptap/starter-kit": "^3.23.5",
     "browser-image-compression": "^2.0.2",
     "clsx": "^2.1.1",
+    "dompurify": "^3.4.5",
     "html-to-image": "^1.11.13",
     "jszip": "^3.10.1",
     "lucide-react": "^0.577.0",
@@ -34,6 +42,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@types/dompurify": "^3.0.5",
     "@types/node": "^20.11.30",
     "@types/react": "^19.0.2",
     "@types/react-dom": "^19.0.2",

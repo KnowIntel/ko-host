@@ -846,13 +846,31 @@ export type ListingBlock = BaseBlock & {
 
 export type RichTextBlock = BaseBlock & {
   type: "rich_text";
-  data: {
-    title?: string;
-    content: string;
-    style?: TextStyle;
-    listType?: "none" | "bullet" | "number";
-    linkUrl?: string;
+data: {
+  title?: string;
+  content: string;
+  contentHtml?: string;
+  contentJson?: unknown;
+  plainText?: string;
+  pasteMode?: "keep" | "match" | "plain";
+  style?: TextStyle;
+  typography?: {
+    fontFamily?: string;
+    fontSize?: number;
+    color?: string;
+    lineHeight?: number;
+    letterSpacing?: number;
+    paragraphSpacing?: number;
+    textAlign?: TextAlign;
   };
+  behavior?: {
+    maxHeight?: number;
+    scrollable?: boolean;
+    preserveFormatting?: boolean;
+  };
+  listType?: "none" | "bullet" | "number";
+  linkUrl?: string;
+};
 };
 
 export type VideoBlock = BaseBlock & {
@@ -2456,22 +2474,47 @@ data: {
         label: "Rich Text",
         grid: {
           ...grid,
+          colSpan: 5,
           rowSpan: 5,
         },
-        appearance: createDefaultBlockAppearance(),
+        appearance: {
+          ...createDefaultBlockAppearance(),
+          backgroundColor: "transparent",
+          borderColor: "#D1D5DB",
+          borderWidth: 0,
+          borderRadius: 16,
+        },
         data: {
           title: "",
-          content: "",
+          content: "<p>Write something here...</p>",
+          contentHtml: "<p>Write something here...</p>",
+          contentJson: null,
+          plainText: "Write something here...",
+          pasteMode: "match",
           style: {
             ...createDefaultTextStyle(),
             fontSize: 16,
             align: "left",
           },
+          typography: {
+            fontFamily: "inherit",
+            fontSize: 16,
+            color: "#111827",
+            lineHeight: 1.4,
+            letterSpacing: 0,
+            paragraphSpacing: 8,
+            textAlign: "left",
+          },
+          behavior: {
+            maxHeight: 0,
+            scrollable: false,
+            preserveFormatting: false,
+          },
           listType: "none",
           linkUrl: "",
         },
       };
-
+      
     case "video":
       return {
         id: makeId("video"),

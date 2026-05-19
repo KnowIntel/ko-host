@@ -6077,21 +6077,32 @@ function renderRichText(
   const style = getContainerTextStyle(block.data.style, designKey);
 
   const html =
-    typeof block.data.content === "string" ? block.data.content : "";
+    typeof block.data.contentHtml === "string"
+      ? block.data.contentHtml
+      : typeof block.data.content === "string"
+        ? block.data.content
+        : "";
+
+  const plainText =
+    typeof block.data.plainText === "string"
+      ? block.data.plainText
+      : html.replace(/<[^>]*>/g, "").trim();
+
+  const behavior = (block.data as any).behavior ?? {};
+  const maxHeight = Number(behavior.maxHeight ?? 0);
+  const scrollable = Boolean(behavior.scrollable && maxHeight > 0);
 
   return (
     <div
-  className={[
-    "h-full w-full p-3",
-    !String((block as any)?.data?.text || "").trim()
-      ? "pointer-events-none"
-      : "",
-  ].join(" ")}
-  style={getAppearanceStyle(block)}
->
+      className={[
+        "h-full w-full min-w-0 overflow-hidden p-3",
+        !plainText.trim() ? "pointer-events-none" : "",
+      ].join(" ")}
+      style={getAppearanceStyle(block)}
+    >
       {block.data.title ? (
         <div
-          className="mb-2 font-semibold"
+          className="mb-2 font-semibold break-words"
           style={{
             ...style,
             fontSize: Math.max(
@@ -6105,8 +6116,25 @@ function renderRichText(
       ) : null}
 
       <div
-        className="[&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:ml-1 [&_p]:my-0 [&_a]:underline"
-        style={style}
+        className={[
+          "rich-text-content min-w-0 max-w-full break-words",
+          "[&_ul]:list-disc [&_ul]:pl-6",
+          "[&_ol]:list-decimal [&_ol]:pl-6",
+          "[&_li]:ml-1",
+          "[&_p]:my-2 [&_p:first-child]:mt-0 [&_p:last-child]:mb-0",
+          "[&_a]:underline [&_a]:break-words",
+          "[&_h1]:text-[1.8em] [&_h1]:font-bold [&_h1]:leading-tight",
+          "[&_h2]:text-[1.45em] [&_h2]:font-bold [&_h2]:leading-tight",
+          "[&_h3]:text-[1.2em] [&_h3]:font-semibold [&_h3]:leading-tight",
+          "[&_blockquote]:border-l-4 [&_blockquote]:pl-3 [&_blockquote]:italic",
+          "[&_img]:max-w-full [&_img]:h-auto",
+          scrollable ? "overflow-y-auto" : "overflow-hidden",
+        ].join(" ")}
+        style={{
+          ...style,
+          lineHeight: 1.4,
+          maxHeight: scrollable ? `${maxHeight}px` : undefined,
+        }}
         dangerouslySetInnerHTML={{ __html: html }}
       />
     </div>
