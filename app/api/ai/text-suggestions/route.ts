@@ -100,7 +100,13 @@ Existing text: ${existingText || "none"}
 Subject: ${payload.subject || "not provided"}
 Details: ${payload.details || "not provided"}
 Tone: ${payload.tone || "Friendly"}
-Length: ${payload.length || "Short"}
+Length: ${payload.length || "Short"} 
+Length guidance:
+- Very Short = 3 to 8 words
+- Short = 1 short sentence
+- Medium = 2 to 3 sentences
+- Long = 1 short paragraph
+
 Audience: ${payload.audience || "General audience"}
 Keywords: ${
     Array.isArray(payload.keywords) && payload.keywords.length > 0
@@ -132,6 +138,10 @@ Rules:
 - No markdown
 - No explanations
 - No numbering inside the text
+- Every option must strongly reflect the selected Tone: ${payload.tone || "Friendly"}
+- Every option must follow the selected Length: ${payload.length || "Short"}
+- Every option must be written for this Audience: ${payload.audience || "General audience"}
+- Every option must match this Content Type: ${payload.contentType || "General microsite copy"}
 - Make every option meaningfully different
 - Keep copy appropriate for the requested length
 - Avoid generic filler
