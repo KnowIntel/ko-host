@@ -156,6 +156,7 @@ export default function RichTextTiptapEditor({
 
   useEffect(() => {
     if (!editor) return;
+    if (editor.isFocused) return;
 
     const currentHtml = editor.getHTML();
     const nextHtml = html || `<p>${placeholder}</p>`;
