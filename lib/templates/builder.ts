@@ -408,6 +408,7 @@ export type TextFxBlock = BaseBlock & {
       intensity?: number;
       rotation?: number;
       opacity?: number;
+      transformStyle?: string;
 
       outline?: {
         enabled?: boolean;
@@ -1794,6 +1795,7 @@ case "text_fx":
         intensity: 50,
         rotation: 0,
         opacity: 1,
+        transformStyle: "normal",
       },
     },
 

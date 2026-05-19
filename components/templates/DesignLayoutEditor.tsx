@@ -3991,6 +3991,7 @@ function updateTextFx(
     rotation: number;
     opacity: number;
     letterScaleX: number;
+    transformStyle: string;
     shadowEnabled: boolean;
     shadowColor: string;
     shadowOffsetX: number;
@@ -9869,6 +9870,28 @@ selectedContext.kind === "textFx"
           }
           className={inspectorInputClass()}
         />
+      </div>
+
+      <div>
+        <div className={inspectorLabelClass()}>Transform Style</div>
+        <select
+          value={(selectedTextFxBlock?.data.fx as any)?.transformStyle ?? "normal"}
+          onChange={(e) =>
+            updateTextFx({
+              transformStyle: e.target.value,
+            })
+          }
+          className={inspectorInputClass()}
+        >
+          <option value="normal">Normal</option>
+          <option value="wave">Wave</option>
+          <option value="rise">Rise</option>
+          <option value="dipLetters">Dip Letters</option>
+          <option value="stagger">Stagger</option>
+          <option value="tiltLeft">Tilt Left</option>
+          <option value="tiltRight">Tilt Right</option>
+          <option value="bounce">Bounce</option>
+        </select>
       </div>
 
       <div>

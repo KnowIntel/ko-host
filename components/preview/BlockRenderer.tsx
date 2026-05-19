@@ -5151,6 +5151,7 @@ function renderTextFx(
   const rotation = fx.rotation ?? 0;
   const opacity = fx.opacity ?? 1;
   const letterScaleX = Math.max(0.5, Math.min(2, Number(fx.letterScaleX ?? 1)));
+  const transformStyle = String(fx.transformStyle ?? "normal");
   const positionX = block.data.positionX ?? 50;
   const positionY = block.data.positionY ?? 50;
 
@@ -5205,7 +5206,46 @@ style={{
             : undefined,
         }}
       >
-        {text}
+        {transformStyle === "normal"
+  ? text
+  : text.split("").map((char, index) => {
+      const offset =
+        transformStyle === "wave"
+          ? Math.sin(index * 0.9) * 6
+          : transformStyle === "rise"
+            ? -index * 1.5
+            : transformStyle === "dipLetters"
+              ? index * 1.5
+              : transformStyle === "stagger"
+                ? index % 2 === 0
+                  ? -5
+                  : 5
+                : transformStyle === "bounce"
+                  ? index % 2 === 0
+                    ? -7
+                    : 0
+                  : 0;
+
+      const rotate =
+        transformStyle === "tiltLeft"
+          ? -8
+          : transformStyle === "tiltRight"
+            ? 8
+            : 0;
+
+      return (
+        <span
+          key={`${char}-${index}`}
+          style={{
+            display: "inline-block",
+            transform: `translateY(${offset}px) rotate(${rotate}deg)`,
+            whiteSpace: char === " " ? "pre" : undefined,
+          }}
+        >
+          {char}
+        </span>
+      );
+    })}
       </div>
     </div>
   );
@@ -5216,7 +5256,8 @@ style={{
       ? block.data.style.fontSize
       : 48;
 
-  const radius = 120 + intensity * 2;
+  const curveStrength = Math.max(0, Math.min(100, intensity));
+  const radius = 1200 - curveStrength * 10;
   const horizontalPadding = 20;
   const topPadding = Math.max(40, fontSize * 1.1);
   const bottomPadding = Math.max(32, fontSize * 0.65);
