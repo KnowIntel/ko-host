@@ -5626,17 +5626,15 @@ async function handleCopyUrl() {
     !!activePageId &&
     pages.findIndex((page) => page.id === activePageId) > 0;
 
-async function handleAioClick() {
+function handleAioClick() {
   if (!isTextSelection(selectedContext)) return;
-
-  setShowAiSuggestions(true);
 
   setAiSubject(selectedContext.label || "");
   setAiDetails(selectedTextValue || "");
-
-  if (!aiOptions.length) {
-    await generateSmartContent();
-  }
+  setAiSuggestions([]);
+  setAiOptions([]);
+  setShowAiAdvancedOptions(false);
+  setShowAiSuggestions(true);
 }
 
 async function generateSmartContent() {
