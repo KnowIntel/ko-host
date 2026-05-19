@@ -33,33 +33,42 @@ type RequestPayload = {
   surroundingContent?: string;
 };
 
-const fallbackOptions: SmartContentOption[] = [
-  {
-    id: "option-1",
-    title: "Warm Welcome",
-    text: "Welcome to something special.",
-  },
-  {
-    id: "option-2",
-    title: "Clear Invitation",
-    text: "Join us for a moment worth sharing.",
-  },
-  {
-    id: "option-3",
-    title: "Polished Message",
-    text: "Celebrate with us and be part of the experience.",
-  },
-  {
-    id: "option-4",
-    title: "Simple Highlight",
-    text: "A thoughtful page for an unforgettable occasion.",
-  },
-  {
-    id: "option-5",
-    title: "Friendly CTA",
-    text: "Explore the details and join us when the time comes.",
-  },
-];
+function buildFallbackOptions(payload: RequestPayload): SmartContentOption[] {
+  const subject = payload.subject?.trim() || payload.targetLabel || "your update";
+  const details = payload.details?.trim();
+
+  const base = details
+    ? `${subject}: ${details}`
+    : `Share the latest details about ${subject}.`;
+
+  return [
+    {
+      id: "option-1",
+      title: "Direct",
+      text: base,
+    },
+    {
+      id: "option-2",
+      title: "Friendly",
+      text: `You're invited to learn more about ${subject}. ${details || ""}`.trim(),
+    },
+    {
+      id: "option-3",
+      title: "Polished",
+      text: `${subject} is ready to share. ${details || "Add the key details your audience needs to know."}`.trim(),
+    },
+    {
+      id: "option-4",
+      title: "Bold",
+      text: `Don't miss ${subject}. ${details || ""}`.trim(),
+    },
+    {
+      id: "option-5",
+      title: "Simple",
+      text: `${subject}${details ? ` — ${details}` : ""}`,
+    },
+  ];
+}
 
 function normalizeOptions(options: SmartContentOption[]) {
   return options
@@ -136,14 +145,16 @@ Rules:
 }
 
 export async function POST(req: Request) {
+  let body: RequestPayload = {};
+
   try {
-    const body = (await req.json()) as RequestPayload;
+    body = (await req.json()) as RequestPayload;
 
     if (!process.env.OPENAI_API_KEY) {
       return Response.json(
         {
-          options: fallbackOptions,
-          suggestions: fallbackOptions.map((option) => option.text),
+        options: buildFallbackOptions(body),
+        suggestions: buildFallbackOptions(body).map((option) => option.text),
         },
         { status: 200 },
       );
@@ -183,10 +194,12 @@ export async function POST(req: Request) {
     );
   } catch {
     return Response.json(
-      {
-        options: fallbackOptions,
-        suggestions: fallbackOptions.map((option) => option.text),
-      },
+{
+  options: buildFallbackOptions(body),
+  suggestions: buildFallbackOptions(body).map(
+    (option: SmartContentOption) => option.text,
+  ),
+},
       { status: 200 },
     );
   }
