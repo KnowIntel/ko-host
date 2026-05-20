@@ -1243,8 +1243,6 @@ const [formFieldTextTarget, setFormFieldTextTarget] = useState<"label" | "text">
   const [toolSearchQuery, setToolSearchQuery] = useState("");
   const [flashedToolKey, setFlashedToolKey] = useState<string | null>(null);
   const [textureUploadError, setTextureUploadError] = useState("");
-  const [copiedBlockPayload, setCopiedBlockPayload] = useState<MicrositeBlock | null>(null);
-  const [copiedBlockMessage, setCopiedBlockMessage] = useState("");
   const [categoryMenuView, setCategoryMenuView] = useState<"compact" | "detail">(
     "compact",
   );
@@ -1263,6 +1261,7 @@ type SmartContentOption = {
 const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
 const [aiOptions, setAiOptions] = useState<SmartContentOption[]>([]);
 const [showAiSuggestions, setShowAiSuggestions] = useState(false);
+
 const [aiSubject, setAiSubject] = useState("");
 const [aiDetails, setAiDetails] = useState("");
 const [aiTone, setAiTone] = useState("Friendly");
@@ -1893,13 +1892,6 @@ try {
   return;
 }
 
-if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "c") {
-  event.preventDefault();
-  void copySelectedBlockJsonToClipboard();
-  return;
-}
-
-
 if (!selectedBlock) return;
 
     const key = event.key.toLowerCase();
@@ -2352,20 +2344,11 @@ function handleCanvasShortcuts(event: KeyboardEvent) {
 
   if (!event.ctrlKey) return;
 
-if (event.key.toLowerCase() === "v") {
-  event.preventDefault();
-  event.stopPropagation();
-
-  void (async () => {
-    const pasted = await pasteCopiedBlockJsonFromClipboard();
-
-    if (!pasted) {
-      handleDuplicateCanvasBlock(blockId);
-    }
-  })();
-
-  return;
-}
+  if (event.key.toLowerCase() === "v") {
+    event.preventDefault();
+    handleDuplicateCanvasBlock(blockId);
+    return;
+  }
 
   if (event.key.toLowerCase() === "x") {
     event.preventDefault();
@@ -5145,161 +5128,6 @@ function addPageBlock(type: PageBlockType) {
   if (createdPageId) {
     setSelection(selectionFromCanvasBlockId(createdPageId));
   }
-}
-
-const COPIED_BLOCK_CLIPBOARD_TYPE = "ko-host:block-json";
-
-function cloneCopiedBlockForPaste(block: MicrositeBlock): MicrositeBlock {
-  const nextId = `block_${Math.random().toString(36).slice(2, 10)}`;
-
-  const highestZIndex = Math.max(
-    1,
-    ...draft.blocks.map((item) => item.grid?.zIndex ?? 1),
-  );
-
-  return {
-    ...structuredClone(block),
-    id: nextId,
-    grid: {
-      ...(block.grid ?? {
-        colStart: 1,
-        rowStart: 1,
-        colSpan: 4,
-        rowSpan: 1,
-      }),
-      rowStart: (block.grid?.rowStart ?? 1) + 1,
-      zIndex: highestZIndex + 1,
-    },
-  };
-}
-
-async function copySelectedBlockJsonToClipboard() {
-  if (!selectedBlock) return;
-
-  const copiedBlock = structuredClone(selectedBlock);
-
-  setCopiedBlockPayload(copiedBlock);
-
-const payload = {
-  title: `${selectedBlock.type} copied block`,
-  blocks: [copiedBlock],
-  subtext: "",
-  subtitle: "",
-  pageColor: "#ffffff",
-  pageScale: 85,
-  description: "",
-  pageElements: {
-    title: {
-      zIndex: 1,
-      colSpan: 12,
-      rowSpan: 1.5,
-      colStart: 1,
-      rowStart: 1,
-    },
-  },
-  pageBackground: "#ffffff",
-  pageVisibility: {
-    title: false,
-    subtext: false,
-    subtitle: false,
-    description: false,
-  },
-  pageBackgroundImage: "",
-  pageBlockAppearance: {},
-  pageBackgroundImageFit: "zoom",
-};
-
-  const text = JSON.stringify(payload, null, 2);
-
-  try {
-    await navigator.clipboard.writeText(text);
-  } catch {
-    window.localStorage.setItem("kht:copied-block-json", text);
-  }
-
-  window.localStorage.setItem("kht:copied-block-json", text);
-
-setCopiedBlockMessage(
-  `${selectedBlock.type} copied to clipboard... Press "CTRL+V" to paste it to the canvas.`,
-);
-}
-
-async function pasteCopiedBlockJsonFromClipboard() {
-  let raw = "";
-
-  try {
-    raw = await navigator.clipboard.readText();
-  } catch {
-    raw = window.localStorage.getItem("kht:copied-block-json") ?? "";
-  }
-
-  if (!raw.trim()) {
-    raw = window.localStorage.getItem("kht:copied-block-json") ?? "";
-  }
-
-  if (!raw.trim()) return false;
-
-  let parsed: any = null;
-
-  try {
-    parsed = JSON.parse(raw);
-  } catch {
-    return false;
-  }
-
-  const sourceBlock =
-    Array.isArray(parsed?.blocks) && parsed.blocks[0]
-      ? (parsed.blocks[0] as MicrositeBlock)
-      : parsed?.block
-        ? (parsed.block as MicrositeBlock)
-        : parsed?.id && parsed?.type && parsed?.grid
-          ? (parsed as MicrositeBlock)
-          : null;
-
-  if (!sourceBlock) return false;
-
-  let pastedBlockId = "";
-
-  setDraft((prev) => {
-    const highestZIndex = Math.max(
-      1,
-      ...prev.blocks.map((item) => item.grid?.zIndex ?? 1),
-    );
-
-    const pastedBlock: MicrositeBlock = {
-      ...structuredClone(sourceBlock),
-      id: makeClientId(sourceBlock.type || "block"),
-      grid: {
-        ...(sourceBlock.grid ?? {
-          colStart: 1,
-          rowStart: 1,
-          colSpan: 4,
-          rowSpan: 2,
-          zIndex: 1,
-        }),
-        rowStart: (sourceBlock.grid?.rowStart ?? 1) + 1,
-        zIndex: highestZIndex + 1,
-      },
-    } as MicrositeBlock;
-
-    pastedBlockId = pastedBlock.id;
-
-    return {
-      ...prev,
-      blocks: [...prev.blocks, pastedBlock],
-    };
-  });
-
-  setCopiedBlockMessage("");
-  setCopiedBlockPayload(null);
-
-  window.requestAnimationFrame(() => {
-    if (pastedBlockId) {
-      setSelection(selectionFromCanvasBlockId(pastedBlockId));
-    }
-  });
-
-  return true;
 }
 
 function handleDuplicateCanvasBlock(blockId: string) {
@@ -19967,32 +19795,24 @@ try {
         ) : null}
       </div>
 
-<div className="grid w-full grid-cols-[1fr_auto] items-center gap-3">
-  {copiedBlockMessage ? (
-    <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700">
-      {copiedBlockMessage}
-    </div>
-  ) : null}
+{saveMessage ? (
+  <div
+    className={[
+      "max-w-xl rounded-xl px-3 py-2 text-xs leading-5",
+      saveState === "error"
+        ? "border border-red-200 bg-red-50 text-red-700"
+        : "text-neutral-500",
+    ].join(" ")}
+  >
+    <div>{saveMessage}</div>
 
-  {saveMessage ? (
-    <div
-      className={[
-        "max-w-xl rounded-xl px-3 py-2 text-xs leading-5",
-        saveState === "error"
-          ? "border border-red-200 bg-red-50 text-red-700"
-          : "text-neutral-500",
-      ].join(" ")}
-    >
-      <div>{saveMessage}</div>
-
-      {saveState === "error" ? (
-        <div className="mt-1 font-medium">
-          How to correct it: {getSaveFailureHelp(saveMessage)}
-        </div>
-      ) : null}
-    </div>
-  ) : null}
-</div>
+    {saveState === "error" ? (
+      <div className="mt-1 font-medium">
+        How to correct it: {getSaveFailureHelp(saveMessage)}
+      </div>
+    ) : null}
+  </div>
+) : null}
     </div>
   </div>
 </div>
