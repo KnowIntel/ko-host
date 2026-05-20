@@ -2237,10 +2237,10 @@ const renderJourneyPath = () => {
     const nextY = y + journeyConnectorHeight;
 
     if (index % 2 === 0) {
-      return `M 5 ${y} H 88 Q 98 ${y} 98 ${y + 42} Q 98 ${nextY - 10} 88 ${nextY - 10} H 5`;
+      return `M 5 ${y} H 92 Q 98 ${y} 98 ${y + 8} V ${nextY - 18} Q 98 ${nextY - 10} 90 ${nextY - 10} H 5`;
     }
 
-    return `M 95 ${y} H 12 Q 2 ${y} 2 ${y + 42} Q 2 ${nextY - 10} 12 ${nextY - 10} H 95`;
+    return `M 95 ${y} H 8 Q 2 ${y} 2 ${y + 8} V ${nextY - 18} Q 2 ${nextY - 10} 10 ${nextY - 10} H 95`;
   });
 
   return (
@@ -2256,8 +2256,8 @@ const renderJourneyPath = () => {
           fill="none"
           stroke={data.lineColor || "#CBD5E1"}
           strokeWidth={connectorThickness}
-          strokeLinecap="round"
-          strokeLinejoin="round"
+          strokeLinecap="square"
+          strokeLinejoin="miter"
           vectorEffect="non-scaling-stroke"
           strokeDasharray={
             data.connectorStyle === "dashed"
@@ -2488,7 +2488,7 @@ const renderJourneyPath = () => {
           justifyContent: "space-between",
           columnGap: `${spacing}px`,
           rowGap: `${Math.max(24, journeyConnectorHeight - 120)}px`,
-          minHeight: `${Math.ceil(orderedEntries.length / 3) * journeyConnectorHeight + 80}px`,
+          minHeight: `${Math.ceil(orderedEntries.length / 3) * journeyConnectorHeight + cardWidth}px`,
           position: "relative",
         }
       : { gap: `${spacing}px` }
