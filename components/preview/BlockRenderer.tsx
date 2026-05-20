@@ -2509,27 +2509,21 @@ const renderJourneyPath = () => {
 
 const journeyOffset = undefined;
 if (isJourney) {
-const segmentIndex = Math.floor(index / journeyCardsPerRow);
-const rawPositionInSegment = index % journeyCardsPerRow;
-const leftToRight = segmentIndex % 2 === 0;
-const positionInSegment = leftToRight
-  ? rawPositionInSegment
-  : journeyCardsPerRow - 1 - rawPositionInSegment;
+  const segmentIndex = Math.floor(index / journeyCardsPerRow);
+  const rawPositionInSegment = index % journeyCardsPerRow;
+  const leftToRight = segmentIndex % 2 === 0;
 
-  const justifyClass = leftToRight
-    ? "justify-start"
-    : "justify-end";
+  const visualColumn = leftToRight
+    ? rawPositionInSegment + 1
+    : journeyCardsPerRow - rawPositionInSegment;
 
   return (
     <div
       key={entry.id || index}
-      className={[
-        "relative flex",
-        justifyClass,
-      ].join(" ")}
+      className="relative flex justify-center"
       style={{
-        gap: `${spacing}px`,
-        marginTop: positionInSegment === 0 ? 0 : undefined,
+        gridColumn: visualColumn,
+        gridRow: segmentIndex + 1,
       }}
     >
       <div
