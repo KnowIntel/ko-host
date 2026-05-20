@@ -2219,6 +2219,12 @@ const journeyConnectorHeight =
     ? Math.max(120, Math.min(360, data.journeyConnectorHeight))
     : 170;
 
+const journeyCardsPerRow =
+  typeof data.journeyCardsPerRow === "number" &&
+  Number.isFinite(data.journeyCardsPerRow)
+    ? Math.max(1, Math.min(5, Math.floor(data.journeyCardsPerRow)))
+    : 3;
+
   const connectorBorderStyle =
     data.connectorStyle === "dashed"
       ? "dashed"
@@ -2226,11 +2232,10 @@ const journeyConnectorHeight =
         ? "dotted"
         : "solid";
 
-        // test
   const showConnector = data.connectorStyle !== "none";
 
 const renderJourneyPath = () => {
-  const rowCount = Math.max(1, Math.ceil(orderedEntries.length / 3));
+  const rowCount = Math.max(1, Math.ceil(orderedEntries.length / journeyCardsPerRow));
   const svgHeight = rowCount * journeyConnectorHeight;
 
   const d = Array.from({ length: rowCount })
@@ -2489,11 +2494,11 @@ const renderJourneyPath = () => {
     isJourney
       ? {
           display: "grid",
-          gridTemplateColumns: `repeat(3, ${cardWidth}px)`,
+          gridTemplateColumns: `repeat(${journeyCardsPerRow}, ${cardWidth}px)`,
           justifyContent: "space-between",
           columnGap: `${spacing}px`,
           rowGap: `${Math.max(24, journeyConnectorHeight - 120)}px`,
-          minHeight: `${Math.ceil(orderedEntries.length / 3) * journeyConnectorHeight + cardWidth}px`,
+          minHeight: `${Math.ceil(orderedEntries.length / journeyCardsPerRow) * journeyConnectorHeight + cardWidth}px`,
           position: "relative",
         }
       : { gap: `${spacing}px` }
@@ -2504,8 +2509,8 @@ const renderJourneyPath = () => {
 
 const journeyOffset = undefined;
 if (isJourney) {
-  const segmentIndex = Math.floor(index / 3);
-  const positionInSegment = index % 3;
+const segmentIndex = Math.floor(index / journeyCardsPerRow);
+const positionInSegment = index % journeyCardsPerRow;
   const leftToRight = segmentIndex % 2 === 0;
 
   const justifyClass = leftToRight

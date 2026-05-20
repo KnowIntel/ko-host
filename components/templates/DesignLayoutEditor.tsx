@@ -11924,35 +11924,64 @@ selectedContext.kind === "textFx"
       />
     </div>
 
-    {selectedBlock.data.styleVariant === "journey" ? (
-      <div className="mt-4">
-        <div className={inspectorLabelClass()}>Connector Height</div>
-        <input
-          type="range"
-          min={120}
-          max={360}
-          step={10}
-          value={Number((selectedBlock.data as any).journeyConnectorHeight ?? 170)}
-          onChange={(e) =>
-            updateSelectedBlock((block) =>
-              block.type !== "timeline"
-                ? block
-                : {
-                    ...block,
-                    data: {
-                      ...block.data,
-                      journeyConnectorHeight: Number(e.target.value),
-                    },
+{selectedBlock.data.styleVariant === "journey" ? (
+  <>
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Connector Height</div>
+      <input
+        type="range"
+        min={120}
+        max={360}
+        step={10}
+        value={Number((selectedBlock.data as any).journeyConnectorHeight ?? 170)}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "timeline"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    journeyConnectorHeight: Number(e.target.value),
                   },
-            )
-          }
-          className="w-full"
-        />
-        <div className="mt-1 text-xs text-neutral-500">
-          {Number((selectedBlock.data as any).journeyConnectorHeight ?? 170)}px
-        </div>
+                },
+          )
+        }
+        className="w-full"
+      />
+      <div className="mt-1 text-xs text-neutral-500">
+        {Number((selectedBlock.data as any).journeyConnectorHeight ?? 170)}px
       </div>
-    ) : null}
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Cards Per Row</div>
+      <select
+        value={Number((selectedBlock.data as any).journeyCardsPerRow ?? 3)}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "timeline"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    journeyCardsPerRow: Number(e.target.value),
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      >
+        <option value={1}>1 Card</option>
+        <option value={2}>2 Cards</option>
+        <option value={3}>3 Cards</option>
+        <option value={4}>4 Cards</option>
+        <option value={5}>5 Cards</option>
+      </select>
+    </div>
+  </>
+) : null}
 
     <div className="mt-4 grid grid-cols-2 gap-3">
       <div>
