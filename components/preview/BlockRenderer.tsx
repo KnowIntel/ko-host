@@ -2442,11 +2442,11 @@ style={{
                     className="relative grid grid-cols-[minmax(0,1fr)_40px_minmax(0,1fr)] items-start gap-4"
                     style={{ transform: journeyOffset }}
                   >
-                    <div className="min-w-0">
-                      {!rightSide ? renderEntryCard(entry, index) : null}
-                    </div>
+<div className="flex min-w-0 justify-end">
+  {!rightSide ? renderEntryCard(entry, index) : null}
+</div>
 
-                    <div className="relative z-10 flex justify-center pt-4">
+<div className="relative z-10 flex justify-center pt-4">
                       <div
                         className="h-4 w-4 rounded-full border-2 bg-white"
                         style={{
@@ -2455,9 +2455,9 @@ style={{
                       />
                     </div>
 
-                    <div className="min-w-0">
-                      {rightSide ? renderEntryCard(entry, index) : null}
-                    </div>
+<div className="flex min-w-0 justify-start">
+  {rightSide ? renderEntryCard(entry, index) : null}
+</div>
                   </div>
                 );
               }
