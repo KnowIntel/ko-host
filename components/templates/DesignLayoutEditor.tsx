@@ -11924,6 +11924,36 @@ selectedContext.kind === "textFx"
       />
     </div>
 
+    {selectedBlock.data.styleVariant === "journey" ? (
+      <div className="mt-4">
+        <div className={inspectorLabelClass()}>Connector Height</div>
+        <input
+          type="range"
+          min={120}
+          max={360}
+          step={10}
+          value={Number((selectedBlock.data as any).journeyConnectorHeight ?? 170)}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "timeline"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      journeyConnectorHeight: Number(e.target.value),
+                    },
+                  },
+            )
+          }
+          className="w-full"
+        />
+        <div className="mt-1 text-xs text-neutral-500">
+          {Number((selectedBlock.data as any).journeyConnectorHeight ?? 170)}px
+        </div>
+      </div>
+    ) : null}
+
     <div className="mt-4 grid grid-cols-2 gap-3">
       <div>
         <div className={inspectorLabelClass()}>Line Color</div>

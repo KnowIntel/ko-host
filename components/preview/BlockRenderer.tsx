@@ -2213,6 +2213,12 @@ const connectorThickness =
     ? Math.max(1, Math.min(24, data.connectorThickness))
     : 3;
 
+const journeyConnectorHeight =
+  typeof data.journeyConnectorHeight === "number" &&
+  Number.isFinite(data.journeyConnectorHeight)
+    ? Math.max(120, Math.min(360, data.journeyConnectorHeight))
+    : 170;
+
   const connectorBorderStyle =
     data.connectorStyle === "dashed"
       ? "dashed"
@@ -2222,30 +2228,49 @@ const connectorThickness =
 
   const showConnector = data.connectorStyle !== "none";
 
-  const renderJourneyPath = () => (
-  <svg
-    className="pointer-events-none absolute inset-0 h-full w-full overflow-visible"
-    preserveAspectRatio="none"
-    viewBox="0 0 100 100"
-  >
-    <path
-      d="M 10 8 H 82 Q 96 8 96 24 V 28 Q 96 44 82 44 H 18 Q 4 44 4 60 V 64 Q 4 80 18 80 H 78"
-      fill="none"
-      stroke={data.lineColor || "#CBD5E1"}
-      strokeWidth={connectorThickness}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      vectorEffect="non-scaling-stroke"
-      strokeDasharray={
-        data.connectorStyle === "dashed"
-          ? "10 8"
-          : data.connectorStyle === "dotted"
-            ? "2 8"
-            : undefined
-      }
-    />
-  </svg>
-);
+const renderJourneyPath = () => {
+  const segmentCount = Math.max(1, Math.ceil(orderedEntries.length / 3));
+  const svgHeight = segmentCount * journeyConnectorHeight;
+
+  const paths = Array.from({ length: segmentCount }).map((_, index) => {
+    const y = index * journeyConnectorHeight + 40;
+    const nextY = y + journeyConnectorHeight;
+
+    if (index % 2 === 0) {
+      return `M 5 ${y} H 88 Q 98 ${y} 98 ${y + 42} Q 98 ${nextY - 10} 88 ${nextY - 10} H 5`;
+    }
+
+    return `M 95 ${y} H 12 Q 2 ${y} 2 ${y + 42} Q 2 ${nextY - 10} 12 ${nextY - 10} H 95`;
+  });
+
+  return (
+    <svg
+      className="pointer-events-none absolute inset-0 h-full w-full overflow-visible"
+      preserveAspectRatio="none"
+      viewBox={`0 0 100 ${svgHeight}`}
+    >
+      {paths.map((d, index) => (
+        <path
+          key={index}
+          d={d}
+          fill="none"
+          stroke={data.lineColor || "#CBD5E1"}
+          strokeWidth={connectorThickness}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          vectorEffect="non-scaling-stroke"
+          strokeDasharray={
+            data.connectorStyle === "dashed"
+              ? "10 8"
+              : data.connectorStyle === "dotted"
+                ? "2 8"
+                : undefined
+          }
+        />
+      ))}
+    </svg>
+  );
+};
 
   const imageShapeClass = (shape?: string) => {
     switch (shape) {
@@ -2457,7 +2482,15 @@ const connectorThickness =
   className={isJourney ? "relative" : "relative flex flex-col"}
   style={
     isJourney
-      ? { minHeight: `${Math.ceil(orderedEntries.length / 3) * 170 + 80}px` }
+      ? {
+          display: "grid",
+          gridTemplateColumns: `repeat(3, ${cardWidth}px)`,
+          justifyContent: "space-between",
+          columnGap: `${spacing}px`,
+          rowGap: `${Math.max(24, journeyConnectorHeight - 120)}px`,
+          minHeight: `${Math.ceil(orderedEntries.length / 3) * journeyConnectorHeight + 80}px`,
+          position: "relative",
+        }
       : { gap: `${spacing}px` }
   }
 >
@@ -2470,35 +2503,37 @@ if (isJourney) {
   const positionInSegment = index % 3;
   const leftToRight = segmentIndex % 2 === 0;
 
-  const leftPositions = leftToRight
-    ? ["6%", "34%", "72%"]
-    : ["72%", "34%", "6%"];
-
-  const cardLeft = leftPositions[positionInSegment];
+  const justifyClass = leftToRight
+    ? "justify-start"
+    : "justify-end";
 
   return (
     <div
       key={entry.id || index}
-      className="absolute"
+      className={[
+        "relative flex",
+        justifyClass,
+      ].join(" ")}
       style={{
-        left: cardLeft,
-        top: `${segmentIndex * 170 + 18}px`,
-        transform:
-          cardLeft === "72%"
-            ? "translateX(-100%)"
-            : cardLeft === "34%"
-              ? "translateX(-50%)"
-              : "translateX(0)",
+        gap: `${spacing}px`,
+        marginTop: positionInSegment === 0 ? 0 : undefined,
       }}
     >
       <div
-        className="absolute -top-2 left-1/2 z-10 h-4 w-4 -translate-x-1/2 rounded-full border-2 bg-white"
+        className="relative"
         style={{
-          borderColor: data.nodeColor || entry.accentColor || "#2563EB",
+          width: `${cardWidth}px`,
         }}
-      />
+      >
+        <div
+          className="absolute -top-2 left-1/2 z-10 h-4 w-4 -translate-x-1/2 rounded-full border-2 bg-white"
+          style={{
+            borderColor: data.nodeColor || entry.accentColor || "#2563EB",
+          }}
+        />
 
-      {renderEntryCard(entry, index)}
+        {renderEntryCard(entry, index)}
+      </div>
     </div>
   );
 }
