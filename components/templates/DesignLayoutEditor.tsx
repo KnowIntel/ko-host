@@ -17231,7 +17231,6 @@ data: {
 
     {(selectedBlock.data.cardVariant ?? "stacked") === "stacked" ? (
       <div className="mt-4">
-        <div className={inspectorLabelClass()}>Image Height %</div>
 <div className="flex items-center justify-between">
   <div className={inspectorLabelClass()}>Image Height %</div>
 
