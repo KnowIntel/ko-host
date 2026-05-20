@@ -12155,60 +12155,54 @@ selectedContext.kind === "textFx"
                 className={inspectorTextareaClass()}
               />
             </div>
-
             <div className="mt-3">
-              <div className={inspectorLabelClass()}>Image URL</div>
-              <input
-                type="text"
-                value={entry.imageUrl ?? ""}
-                onChange={(e) =>
-                  updateSelectedBlock((block) =>
-                    block.type !== "timeline"
-                      ? block
-                      : {
-                          ...block,
-                          data: {
-                            ...block.data,
-                            entries: block.data.entries.map((item) =>
-                              item.id === entry.id
-                                ? { ...item, imageUrl: e.target.value }
-                                : item,
-                            ),
-                          },
-                        },
-                  )
-                }
-                className={inspectorInputClass()}
-                placeholder="https://..."
-              />
-            </div>
+  <button
+    type="button"
+    className="inline-flex h-11 w-full items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-sm text-neutral-700 hover:bg-neutral-50"
+    onClick={() => {
+      const input = document.createElement("input");
 
-            <div className="mt-3">
-              <div className={inspectorLabelClass()}>Icon URL</div>
-              <input
-                type="text"
-                value={entry.icon ?? ""}
-                onChange={(e) =>
-                  updateSelectedBlock((block) =>
-                    block.type !== "timeline"
-                      ? block
-                      : {
-                          ...block,
-                          data: {
-                            ...block.data,
-                            entries: block.data.entries.map((item) =>
-                              item.id === entry.id
-                                ? { ...item, icon: e.target.value }
-                                : item,
-                            ),
-                          },
-                        },
-                  )
-                }
-                className={inspectorInputClass()}
-                placeholder="/media-icons/star.svg"
-              />
-            </div>
+      input.type = "file";
+      input.accept = "image/*";
+
+      input.onchange = async () => {
+        const file = input.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+
+        reader.onload = () => {
+          const result = String(reader.result ?? "");
+
+          updateSelectedBlock((block) =>
+            block.type !== "timeline"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    entries: block.data.entries.map((item) =>
+                      item.id === entry.id
+                        ? {
+                            ...item,
+                            imageUrl: result,
+                          }
+                        : item,
+                    ),
+                  },
+                },
+          );
+        };
+
+        reader.readAsDataURL(file);
+      };
+
+      input.click();
+    }}
+  >
+    Select Image
+  </button>
+</div>
 
             <div className="mt-3 grid grid-cols-2 gap-3">
               <div>
