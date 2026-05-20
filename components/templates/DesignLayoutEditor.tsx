@@ -5176,16 +5176,13 @@ function cloneCopiedBlockForPaste(block: MicrositeBlock): MicrositeBlock {
 async function copySelectedBlockJsonToClipboard() {
   if (!selectedBlock) return;
 
-  setCopiedBlockPayload(structuredClone(selectedBlock));
+  const copiedBlock = structuredClone(selectedBlock);
 
-  setCopiedBlockMessage(
-    `${selectedBlock.type} copied to clipboard... Press "CTRL+V" to paste it to the canvas.`,
-  );
+  setCopiedBlockPayload(copiedBlock);
 
   const payload = {
-    type: COPIED_BLOCK_CLIPBOARD_TYPE,
-    copiedAt: Date.now(),
-    block: selectedBlock,
+    title: `${selectedBlock.type} copied block`,
+    blocks: [copiedBlock],
   };
 
   const text = JSON.stringify(payload, null, 2);
@@ -5195,6 +5192,12 @@ async function copySelectedBlockJsonToClipboard() {
   } catch {
     window.localStorage.setItem("kht:copied-block-json", text);
   }
+
+  window.localStorage.setItem("kht:copied-block-json", text);
+
+  setCopiedBlockMessage(
+    `${selectedBlock.type} copied to clipboard... Press "CTRL+V" to paste it to the canvas.`,
+  );
 }
 
 async function pasteCopiedBlockJsonFromClipboard() {
@@ -5203,6 +5206,10 @@ async function pasteCopiedBlockJsonFromClipboard() {
   try {
     raw = await navigator.clipboard.readText();
   } catch {
+    raw = window.localStorage.getItem("kht:copied-block-json") ?? "";
+  }
+
+  if (!raw.trim()) {
     raw = window.localStorage.getItem("kht:copied-block-json") ?? "";
   }
 
@@ -5217,11 +5224,13 @@ async function pasteCopiedBlockJsonFromClipboard() {
   }
 
   const sourceBlock =
-    parsed?.type === COPIED_BLOCK_CLIPBOARD_TYPE && parsed?.block
-      ? (parsed.block as MicrositeBlock)
-      : parsed?.id && parsed?.type && parsed?.grid
-        ? (parsed as MicrositeBlock)
-        : null;
+    Array.isArray(parsed?.blocks) && parsed.blocks[0]
+      ? (parsed.blocks[0] as MicrositeBlock)
+      : parsed?.block
+        ? (parsed.block as MicrositeBlock)
+        : parsed?.id && parsed?.type && parsed?.grid
+          ? (parsed as MicrositeBlock)
+          : null;
 
   if (!sourceBlock) return false;
 
@@ -5258,7 +5267,7 @@ async function pasteCopiedBlockJsonFromClipboard() {
   });
 
   setCopiedBlockMessage("");
-  setCopiedBlockPayload?.(null);
+  setCopiedBlockPayload(null);
 
   window.requestAnimationFrame(() => {
     if (pastedBlockId) {
