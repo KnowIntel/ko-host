@@ -2850,6 +2850,23 @@ function applyFillColor(value: string) {
     return;
   }
 
+    if (selectedBlock?.type === "timeline") {
+    updateSelectedBlock((block) =>
+      block.type !== "timeline"
+        ? block
+        : {
+            ...block,
+            appearance: {
+              ...block.appearance,
+              backgroundColor: value,
+            },
+          },
+    );
+
+    pushRecentColor(value);
+    return;
+  }
+
     if (selectedBlock?.type === "icon") {
     updateSelectedBlock((block) =>
       block.type !== "icon"
@@ -3825,6 +3842,41 @@ if (selectedBlock?.type === "donation") {
     }));
     return;
   }
+
+if (selectedBlock?.type === "timeline") {
+  const targetId = selectedBlock.id;
+
+  const targetStyleKey =
+    timelineStyleTarget === "title"
+      ? "titleStyle"
+      : timelineStyleTarget === "date"
+        ? "dateStyle"
+        : timelineStyleTarget === "entryTitle"
+          ? "entryTitleStyle"
+          : timelineStyleTarget === "subtitle"
+            ? "subtitleStyle"
+            : "descriptionStyle";
+
+  setDraft((prev) => ({
+    ...prev,
+    blocks: prev.blocks.map((block) =>
+      block.id === targetId && block.type === "timeline"
+        ? {
+            ...block,
+            data: {
+              ...block.data,
+              [targetStyleKey]: {
+                ...((block.data as any)[targetStyleKey] ?? {}),
+                ...patch,
+              },
+            },
+          }
+        : block,
+    ),
+  }));
+
+  return;
+}
 
 if (selectedBlock?.type === "countdown") {
   const targetId = selectedBlock.id;
@@ -11722,6 +11774,24 @@ selectedContext.kind === "textFx"
 {selectedBlock?.type === "timeline" ? (
   <div id="inspector-timeline" className={inspectorCardClass()}>
     <div className={inspectorLabelClass()}>Story Timeline</div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Text Target</div>
+
+      <select
+        value={timelineStyleTarget}
+        onChange={(e) =>
+          setTimelineStyleTarget(e.target.value as TimelineStyleTarget)
+        }
+        className={inspectorInputClass()}
+      >
+        <option value="title">Timeline Title</option>
+        <option value="date">Entry Date</option>
+        <option value="entryTitle">Entry Title</option>
+        <option value="subtitle">Subtitle</option>
+        <option value="description">Description</option>
+      </select>
+    </div>
 
     <div className="mt-4">
       <div className={inspectorLabelClass()}>Heading</div>
