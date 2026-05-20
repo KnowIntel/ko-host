@@ -361,7 +361,12 @@ Utilities: [
   ],
 Scheduling: [
   { kind: "block", label: "Countdown", type: "countdown" },
-  { kind: "block", label: "Story Timeline", type: "timeline" },
+  {
+  kind: "block",
+  label: "Story Timeline",
+  type: "timeline",
+  iconName: "timeline",
+},
   { kind: "block", label: "Checklist", type: "checklist" },
   { kind: "block", label: "Schedule / Agenda", type: "schedule_agenda" },
   { kind: "block", label: "Map / Location", type: "map_location" },
