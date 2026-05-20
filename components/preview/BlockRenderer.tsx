@@ -2192,9 +2192,20 @@ function renderTimeline(
     data.direction === "descending" ? [...entries].reverse() : entries;
 
   const variant = data.styleVariant ?? "classic";
-  const isAlternating = variant === "alternating" || variant === "journey";
   const isHorizontal = variant === "horizontal";
   const isMemory = variant === "memory";
+  const isAlternating = variant === "alternating";
+  const isJourney = variant === "journey";
+
+  const spacing =
+    typeof data.spacing === "number" && Number.isFinite(data.spacing)
+      ? data.spacing
+      : 24;
+
+  const cardWidth =
+    typeof data.cardWidth === "number" && Number.isFinite(data.cardWidth)
+      ? Math.max(160, Math.min(520, data.cardWidth))
+      : 260;
 
   const connectorBorderStyle =
     data.connectorStyle === "dashed"
@@ -2204,10 +2215,6 @@ function renderTimeline(
         : "solid";
 
   const showConnector = data.connectorStyle !== "none";
-  const spacing =
-    typeof data.spacing === "number" && Number.isFinite(data.spacing)
-      ? data.spacing
-      : 24;
 
   const imageShapeClass = (shape?: string) => {
     switch (shape) {
@@ -2223,12 +2230,16 @@ function renderTimeline(
         return "rounded-[28%]";
       case "blob":
         return "rounded-[38%_62%_55%_45%/45%_42%_58%_55%]";
+      case "none":
+        return "hidden";
       default:
         return "rounded-2xl";
     }
   };
 
   const renderMedia = (entry: any) => {
+    if (entry.imageShape === "none") return null;
+
     if (entry.imageUrl) {
       return (
         <div
@@ -2252,16 +2263,15 @@ function renderTimeline(
     if (entry.icon) {
       return (
         <div
-          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border bg-white"
+          className={[
+            "flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden border bg-white",
+            imageShapeClass(entry.imageShape),
+          ].join(" ")}
           style={{
             borderColor: entry.accentColor || data.nodeColor || "#2563EB",
           }}
         >
-          <img
-            src={entry.icon}
-            alt=""
-            className="h-6 w-6 object-contain"
-          />
+          <img src={entry.icon} alt="" className="h-6 w-6 object-contain" />
         </div>
       );
     }
@@ -2276,11 +2286,13 @@ function renderTimeline(
       <div
         key={entry.id || index}
         className={[
-          "relative rounded-2xl border p-4",
-          data.shadow ? "shadow-sm" : "",
-          isMemory ? "min-w-[180px]" : "",
+          "relative min-w-0 border p-4",
+          data.shadow !== false ? "shadow-md" : "",
+          isMemory ? "bg-white/90" : "",
         ].join(" ")}
         style={{
+          width: isHorizontal || isMemory ? `${cardWidth}px` : "100%",
+          maxWidth: "100%",
           backgroundColor: data.cardBackground || "#FFFFFF",
           borderColor: accentColor,
           borderRadius:
@@ -2289,37 +2301,49 @@ function renderTimeline(
               : "20px",
         }}
       >
-        <div className="flex gap-3">
+        <div className="flex min-w-0 gap-3">
           {renderMedia(entry)}
 
           <div className="min-w-0 flex-1">
             {entry.date ? (
-              <div className="mb-1 text-xs font-semibold uppercase tracking-[0.12em]" style={dateStyle}>
+              <div
+                className="mb-1 whitespace-normal break-words text-xs font-semibold uppercase tracking-[0.12em]"
+                style={dateStyle}
+              >
                 {entry.date}
               </div>
             ) : null}
 
             {entry.title ? (
-              <div className="font-semibold leading-tight" style={titleStyle}>
+              <div
+                className="whitespace-normal break-words font-semibold leading-tight"
+                style={titleStyle}
+              >
                 {entry.title}
               </div>
             ) : null}
 
             {entry.subtitle ? (
-              <div className="mt-1 text-sm" style={subtitleStyle}>
+              <div
+                className="mt-1 whitespace-normal break-words text-sm"
+                style={subtitleStyle}
+              >
                 {entry.subtitle}
               </div>
             ) : null}
 
             {entry.description ? (
-              <div className="mt-2 text-sm leading-relaxed" style={descriptionStyle}>
+              <div
+                className="mt-2 whitespace-normal break-words text-sm leading-relaxed"
+                style={descriptionStyle}
+              >
                 {entry.description}
               </div>
             ) : null}
 
-            {entry.ctaLabel && entry.ctaUrl ? (
+            {entry.ctaLabel ? (
               <a
-                href={normalizePreviewHref(entry.ctaUrl)}
+                href={normalizePreviewHref(entry.ctaUrl || "#")}
                 className="mt-3 inline-flex rounded-full px-3 py-1.5 text-xs font-semibold text-white"
                 style={{ backgroundColor: accentColor }}
               >
@@ -2333,26 +2357,54 @@ function renderTimeline(
   };
 
   return (
-    <div
-      className="h-full w-full overflow-hidden p-4"
-      style={appearanceStyle}
-    >
+    <div className="h-full w-full overflow-auto p-4" style={appearanceStyle}>
       {data.heading ? (
-        <div className="mb-4" style={headingStyle}>
+        <div className="mb-4 whitespace-normal break-words" style={headingStyle}>
           {data.heading}
         </div>
       ) : null}
 
-      {isHorizontal || isMemory ? (
+      {isHorizontal ? (
+        <div className="relative">
+          {showConnector ? (
+            <div
+              className="absolute left-0 right-0 top-5 border-t"
+              style={{
+                borderColor: data.lineColor || "#CBD5E1",
+                borderTopStyle: connectorBorderStyle,
+                borderTopWidth:
+                  typeof data.connectorThickness === "number"
+                    ? data.connectorThickness
+                    : 3,
+              }}
+            />
+          ) : null}
+
+          <div className="relative flex overflow-x-auto pb-2" style={{ gap: `${spacing}px` }}>
+            {orderedEntries.map((entry: any, index: number) => (
+              <div key={entry.id || index} className="shrink-0 pt-10">
+                <div
+                  className="absolute top-3 h-4 w-4 rounded-full border-2 bg-white"
+                  style={{
+                    borderColor: entry.accentColor || data.nodeColor || "#2563EB",
+                  }}
+                />
+                {renderEntryCard(entry, index)}
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : isMemory ? (
         <div
-          className="flex h-full overflow-x-auto pb-2"
-          style={{ gap: `${spacing}px` }}
+          className="grid"
+          style={{
+            gridTemplateColumns: `repeat(auto-fit, minmax(${Math.min(cardWidth, 220)}px, 1fr))`,
+            gap: `${spacing}px`,
+          }}
         >
-          {orderedEntries.map((entry: any, index: number) => (
-            <div key={entry.id || index} className="min-w-[220px]">
-              {renderEntryCard(entry, index)}
-            </div>
-          ))}
+          {orderedEntries.map((entry: any, index: number) =>
+            renderEntryCard(entry, index),
+          )}
         </div>
       ) : (
         <div className="relative">
@@ -2360,7 +2412,7 @@ function renderTimeline(
             <div
               className="absolute bottom-0 top-0 w-0 border-l"
               style={{
-                left: isAlternating ? "50%" : "20px",
+                left: isAlternating || isJourney ? "50%" : "20px",
                 borderColor: data.lineColor || "#CBD5E1",
                 borderLeftStyle: connectorBorderStyle,
                 borderLeftWidth:
@@ -2373,20 +2425,48 @@ function renderTimeline(
 
           <div className="relative flex flex-col" style={{ gap: `${spacing}px` }}>
             {orderedEntries.map((entry: any, index: number) => {
-              const side =
-                isAlternating && index % 2 === 1 ? "right" : "left";
+              const rightSide =
+                (isAlternating || isJourney) && index % 2 === 1;
+
+              const journeyOffset = isJourney
+                ? index % 2 === 0
+                  ? "translateY(0px)"
+                  : "translateY(18px)"
+                : undefined;
+
+              if (isAlternating || isJourney) {
+                return (
+                  <div
+                    key={entry.id || index}
+                    className="relative grid grid-cols-[minmax(0,1fr)_40px_minmax(0,1fr)] items-start gap-4"
+                    style={{ transform: journeyOffset }}
+                  >
+                    <div className="min-w-0">
+                      {!rightSide ? renderEntryCard(entry, index) : null}
+                    </div>
+
+                    <div className="relative z-10 flex justify-center pt-4">
+                      <div
+                        className="h-4 w-4 rounded-full border-2 bg-white"
+                        style={{
+                          borderColor: entry.accentColor || data.nodeColor || "#2563EB",
+                        }}
+                      />
+                    </div>
+
+                    <div className="min-w-0">
+                      {rightSide ? renderEntryCard(entry, index) : null}
+                    </div>
+                  </div>
+                );
+              }
 
               return (
                 <div
                   key={entry.id || index}
-                  className={[
-                    "relative grid items-start gap-4",
-                    isAlternating ? "grid-cols-[1fr_40px_1fr]" : "grid-cols-[40px_1fr]",
-                  ].join(" ")}
+                  className="relative grid grid-cols-[40px_minmax(0,1fr)] items-start gap-4"
                 >
-                  {isAlternating && side === "right" ? <div /> : null}
-
-                  <div className="relative z-10 flex justify-center">
+                  <div className="relative z-10 flex justify-center pt-4">
                     <div
                       className="h-4 w-4 rounded-full border-2 bg-white"
                       style={{
@@ -2395,11 +2475,9 @@ function renderTimeline(
                     />
                   </div>
 
-                  <div>
+                  <div className="min-w-0">
                     {renderEntryCard(entry, index)}
                   </div>
-
-                  {isAlternating && side === "left" ? <div /> : null}
                 </div>
               );
             })}

@@ -11971,6 +11971,34 @@ selectedContext.kind === "textFx"
     </div>
 
     <div className="mt-4">
+      <div className={inspectorLabelClass()}>Card Width</div>
+      <input
+        type="range"
+        min={160}
+        max={520}
+        step={10}
+        value={Number((selectedBlock.data as any).cardWidth ?? 260)}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "timeline"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    cardWidth: Number(e.target.value),
+                  },
+                },
+          )
+        }
+        className="w-full"
+      />
+      <div className="mt-1 text-xs text-neutral-500">
+        {Number((selectedBlock.data as any).cardWidth ?? 260)}px
+      </div>
+    </div>
+
+    <div className="mt-4">
       <div className={inspectorLabelClass()}>Spacing</div>
       <input
         type="range"
