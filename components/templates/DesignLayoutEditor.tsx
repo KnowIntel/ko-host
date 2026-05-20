@@ -2356,12 +2356,14 @@ if (event.key.toLowerCase() === "v") {
   event.preventDefault();
   event.stopPropagation();
 
-  if (copiedBlockPayload) {
-    void pasteCopiedBlockJsonFromClipboard();
-    return;
-  }
+  void (async () => {
+    const pasted = await pasteCopiedBlockJsonFromClipboard();
 
-  handleDuplicateCanvasBlock(blockId);
+    if (!pasted) {
+      handleDuplicateCanvasBlock(blockId);
+    }
+  })();
+
   return;
 }
 
@@ -5196,22 +5198,72 @@ async function copySelectedBlockJsonToClipboard() {
 }
 
 async function pasteCopiedBlockJsonFromClipboard() {
-  const sourceBlock = copiedBlockPayload;
+  let raw = "";
+
+  try {
+    raw = await navigator.clipboard.readText();
+  } catch {
+    raw = window.localStorage.getItem("kht:copied-block-json") ?? "";
+  }
+
+  if (!raw.trim()) return false;
+
+  let parsed: any = null;
+
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return false;
+  }
+
+  const sourceBlock =
+    parsed?.type === COPIED_BLOCK_CLIPBOARD_TYPE && parsed?.block
+      ? (parsed.block as MicrositeBlock)
+      : parsed?.id && parsed?.type && parsed?.grid
+        ? (parsed as MicrositeBlock)
+        : null;
 
   if (!sourceBlock) return false;
 
-  const pastedBlock = cloneCopiedBlockForPaste(sourceBlock);
+  let pastedBlockId = "";
 
-  setDraft((prev) => ({
-    ...prev,
-    blocks: [...prev.blocks, pastedBlock],
-  }));
+  setDraft((prev) => {
+    const highestZIndex = Math.max(
+      1,
+      ...prev.blocks.map((item) => item.grid?.zIndex ?? 1),
+    );
+
+    const pastedBlock: MicrositeBlock = {
+      ...structuredClone(sourceBlock),
+      id: makeClientId(sourceBlock.type || "block"),
+      grid: {
+        ...(sourceBlock.grid ?? {
+          colStart: 1,
+          rowStart: 1,
+          colSpan: 4,
+          rowSpan: 2,
+          zIndex: 1,
+        }),
+        rowStart: (sourceBlock.grid?.rowStart ?? 1) + 1,
+        zIndex: highestZIndex + 1,
+      },
+    } as MicrositeBlock;
+
+    pastedBlockId = pastedBlock.id;
+
+    return {
+      ...prev,
+      blocks: [...prev.blocks, pastedBlock],
+    };
+  });
 
   setCopiedBlockMessage("");
-  setCopiedBlockPayload(null);
+  setCopiedBlockPayload?.(null);
 
   window.requestAnimationFrame(() => {
-    setSelection(selectionFromCanvasBlockId(pastedBlock.id));
+    if (pastedBlockId) {
+      setSelection(selectionFromCanvasBlockId(pastedBlockId));
+    }
   });
 
   return true;
