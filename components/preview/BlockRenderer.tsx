@@ -2222,6 +2222,31 @@ const connectorThickness =
 
   const showConnector = data.connectorStyle !== "none";
 
+  const renderJourneyPath = () => (
+  <svg
+    className="pointer-events-none absolute inset-0 h-full w-full overflow-visible"
+    preserveAspectRatio="none"
+    viewBox="0 0 100 100"
+  >
+    <path
+      d="M 10 8 H 82 Q 96 8 96 24 V 28 Q 96 44 82 44 H 18 Q 4 44 4 60 V 64 Q 4 80 18 80 H 78"
+      fill="none"
+      stroke={data.lineColor || "#CBD5E1"}
+      strokeWidth={connectorThickness}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      vectorEffect="non-scaling-stroke"
+      strokeDasharray={
+        data.connectorStyle === "dashed"
+          ? "10 8"
+          : data.connectorStyle === "dotted"
+            ? "2 8"
+            : undefined
+      }
+    />
+  </svg>
+);
+
   const imageShapeClass = (shape?: string) => {
     switch (shape) {
       case "circle":
@@ -2411,31 +2436,55 @@ const connectorThickness =
         </div>
       ) : (
         <div className="relative">
-          {showConnector ? (
-            <div
-              className="absolute bottom-0 top-0 w-0 border-l"
-style={{
-  left: isAlternating || isJourney ? "50%" : "20px",
-  transform: "translateX(-50%)",
-  borderColor: data.lineColor || "#CBD5E1",
-  borderLeftStyle: connectorBorderStyle,
-  borderLeftWidth: connectorThickness,
-}}
-            />
-          ) : null}
+{showConnector ? (
+  isJourney ? (
+    renderJourneyPath()
+  ) : (
+    <div
+      className="absolute bottom-0 top-0 w-0 border-l"
+      style={{
+        left: isAlternating ? "50%" : "20px",
+        transform: "translateX(-50%)",
+        borderColor: data.lineColor || "#CBD5E1",
+        borderLeftStyle: connectorBorderStyle,
+        borderLeftWidth: connectorThickness,
+      }}
+    />
+  )
+) : null}
 
           <div className="relative flex flex-col" style={{ gap: `${spacing}px` }}>
             {orderedEntries.map((entry: any, index: number) => {
-              const rightSide =
-                (isAlternating || isJourney) && index % 2 === 1;
+            const rightSide = isAlternating && index % 2 === 1;
 
-              const journeyOffset = isJourney
-                ? index % 2 === 0
-                  ? "translateY(0px)"
-                  : "translateY(18px)"
-                : undefined;
+const journeyOffset = undefined;
+if (isJourney) {
+  const row = Math.floor(index / 2);
+  const isRight = row % 2 === 0;
 
-              if (isAlternating || isJourney) {
+  return (
+    <div
+      key={entry.id || index}
+      className={[
+        "relative flex",
+        isRight ? "justify-end pr-4" : "justify-start pl-4",
+      ].join(" ")}
+    >
+      <div
+        className="absolute top-5 z-10 h-4 w-4 rounded-full border-2 bg-white"
+        style={{
+          left: isRight ? undefined : "6%",
+          right: isRight ? "6%" : undefined,
+          borderColor: data.nodeColor || entry.accentColor || "#2563EB",
+        }}
+      />
+
+      {renderEntryCard(entry, index)}
+    </div>
+  );
+}
+
+              if (isAlternating) {
                 return (
                   <div
                     key={entry.id || index}
