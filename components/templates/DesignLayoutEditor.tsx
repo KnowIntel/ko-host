@@ -1900,8 +1900,11 @@ if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "c") {
 
 if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "p") {
   event.preventDefault();
+  event.stopPropagation();
+
   void pasteCopiedBlockJsonFromClipboard();
-  return;
+
+  return false;
 }
 
 
@@ -19896,13 +19899,12 @@ try {
         ) : null}
       </div>
 
-<div className="flex w-full items-center justify-between gap-3">
+<div className="flex w-full items-center gap-3">
   {copiedBlockMessage ? (
-    <div className="mr-auto rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700">
+    <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700">
       {copiedBlockMessage}
     </div>
   ) : (
-    <div className="mr-auto" />
   )}
 
   {saveMessage ? (
