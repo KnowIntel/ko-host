@@ -1892,6 +1892,19 @@ try {
   return;
 }
 
+if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "c") {
+  event.preventDefault();
+  void copySelectedBlockJsonToClipboard();
+  return;
+}
+
+if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "p") {
+  event.preventDefault();
+  void pasteCopiedBlockJsonFromClipboard();
+  return;
+}
+
+
 if (!selectedBlock) return;
 
     const key = event.key.toLowerCase();
@@ -5128,6 +5141,83 @@ function addPageBlock(type: PageBlockType) {
   if (createdPageId) {
     setSelection(selectionFromCanvasBlockId(createdPageId));
   }
+}
+
+const COPIED_BLOCK_CLIPBOARD_TYPE = "ko-host:block-json";
+
+function cloneCopiedBlockForPaste(block: MicrositeBlock): MicrositeBlock {
+  const nextId = `block_${Math.random().toString(36).slice(2, 10)}`;
+
+  const highestZIndex = Math.max(
+    1,
+    ...draft.blocks.map((item) => item.grid?.zIndex ?? 1),
+  );
+
+  return {
+    ...structuredClone(block),
+    id: nextId,
+    grid: {
+      ...(block.grid ?? {
+        colStart: 1,
+        rowStart: 1,
+        colSpan: 4,
+        rowSpan: 1,
+      }),
+      rowStart: (block.grid?.rowStart ?? 1) + 1,
+      zIndex: highestZIndex + 1,
+    },
+  };
+}
+
+async function copySelectedBlockJsonToClipboard() {
+  if (!selectedBlock) return;
+
+  const payload = {
+    type: COPIED_BLOCK_CLIPBOARD_TYPE,
+    copiedAt: Date.now(),
+    block: selectedBlock,
+  };
+
+  const text = JSON.stringify(payload, null, 2);
+
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {
+    window.localStorage.setItem("kht:copied-block-json", text);
+  }
+}
+
+async function pasteCopiedBlockJsonFromClipboard() {
+  let raw = "";
+
+  try {
+    raw = await navigator.clipboard.readText();
+  } catch {
+    raw = window.localStorage.getItem("kht:copied-block-json") ?? "";
+  }
+
+  if (!raw.trim()) return;
+
+  let parsed: any = null;
+
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return;
+  }
+
+  if (parsed?.type !== COPIED_BLOCK_CLIPBOARD_TYPE || !parsed?.block) return;
+
+  const pastedBlock = cloneCopiedBlockForPaste(parsed.block as MicrositeBlock);
+
+  setDraft((prev) => ({
+    ...prev,
+    blocks: [...prev.blocks, pastedBlock],
+  }));
+
+  window.requestAnimationFrame(() => {
+    setSelection(selectionFromCanvasBlockId(pastedBlock.id));
+  });
 }
 
 function handleDuplicateCanvasBlock(blockId: string) {
