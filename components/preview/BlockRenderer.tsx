@@ -2510,8 +2510,11 @@ const renderJourneyPath = () => {
 const journeyOffset = undefined;
 if (isJourney) {
 const segmentIndex = Math.floor(index / journeyCardsPerRow);
-const positionInSegment = index % journeyCardsPerRow;
-  const leftToRight = segmentIndex % 2 === 0;
+const rawPositionInSegment = index % journeyCardsPerRow;
+const leftToRight = segmentIndex % 2 === 0;
+const positionInSegment = leftToRight
+  ? rawPositionInSegment
+  : journeyCardsPerRow - 1 - rawPositionInSegment;
 
   const justifyClass = leftToRight
     ? "justify-start"

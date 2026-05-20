@@ -12057,30 +12057,32 @@ selectedContext.kind === "textFx"
       </div>
     </div>
 
-    <div className="mt-4">
-      <div className={inspectorLabelClass()}>Spacing</div>
-      <input
-        type="range"
-        min={0}
-        max={80}
-        step={1}
-        value={Number(selectedBlock.data.spacing ?? 24)}
-        onChange={(e) =>
-          updateSelectedBlock((block) =>
-            block.type !== "timeline"
-              ? block
-              : {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    spacing: Number(e.target.value),
-                  },
+{selectedBlock.data.styleVariant !== "journey" ? (
+  <div className="mt-4">
+    <div className={inspectorLabelClass()}>Spacing</div>
+    <input
+      type="range"
+      min={0}
+      max={80}
+      step={1}
+      value={Number(selectedBlock.data.spacing ?? 24)}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "timeline"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  spacing: Number(e.target.value),
                 },
-          )
-        }
-        className="w-full"
-      />
-    </div>
+              },
+        )
+      }
+      className="w-full"
+    />
+  </div>
+) : null}
 
     <div className="mt-4">
       <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
