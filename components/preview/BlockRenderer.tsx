@@ -2453,41 +2453,47 @@ const connectorThickness =
   )
 ) : null}
 
-          <div className="relative flex flex-col" style={{ gap: `${spacing}px` }}>
+          <div
+  className={isJourney ? "relative" : "relative flex flex-col"}
+  style={
+    isJourney
+      ? { minHeight: `${Math.ceil(orderedEntries.length / 3) * 170 + 80}px` }
+      : { gap: `${spacing}px` }
+  }
+>
             {orderedEntries.map((entry: any, index: number) => {
             const rightSide = isAlternating && index % 2 === 1;
 
 const journeyOffset = undefined;
 if (isJourney) {
-  const stopPattern = [
-    { justify: "justify-start", pad: "pl-4", nodeLeft: "6%" },
-    { justify: "justify-center", pad: "", nodeLeft: "50%" },
-    { justify: "justify-end", pad: "pr-4", nodeRight: "6%" },
-    { justify: "justify-end", pad: "pr-4", nodeRight: "6%" },
-    { justify: "justify-center", pad: "", nodeLeft: "50%" },
-    { justify: "justify-start", pad: "pl-4", nodeLeft: "6%" },
-  ] as const;
+  const segmentIndex = Math.floor(index / 3);
+  const positionInSegment = index % 3;
+  const leftToRight = segmentIndex % 2 === 0;
 
-  const stop = stopPattern[index % stopPattern.length];
+  const leftPositions = leftToRight
+    ? ["6%", "34%", "72%"]
+    : ["72%", "34%", "6%"];
+
+  const cardLeft = leftPositions[positionInSegment];
 
   return (
     <div
       key={entry.id || index}
-      className={[
-        "relative flex",
-        stop.justify,
-        stop.pad,
-      ].join(" ")}
+      className="absolute"
+      style={{
+        left: cardLeft,
+        top: `${segmentIndex * 170 + 18}px`,
+        transform:
+          cardLeft === "72%"
+            ? "translateX(-100%)"
+            : cardLeft === "34%"
+              ? "translateX(-50%)"
+              : "translateX(0)",
+      }}
     >
       <div
-        className="absolute top-5 z-10 h-4 w-4 -translate-x-1/2 rounded-full border-2 bg-white"
+        className="absolute -top-2 left-1/2 z-10 h-4 w-4 -translate-x-1/2 rounded-full border-2 bg-white"
         style={{
-          left: "nodeLeft" in stop ? stop.nodeLeft : undefined,
-          right: "nodeRight" in stop ? stop.nodeRight : undefined,
-          transform:
-            "nodeRight" in stop
-              ? "translateX(50%)"
-              : "translateX(-50%)",
           borderColor: data.nodeColor || entry.accentColor || "#2563EB",
         }}
       />
