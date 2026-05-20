@@ -1243,6 +1243,8 @@ const [formFieldTextTarget, setFormFieldTextTarget] = useState<"label" | "text">
   const [toolSearchQuery, setToolSearchQuery] = useState("");
   const [flashedToolKey, setFlashedToolKey] = useState<string | null>(null);
   const [textureUploadError, setTextureUploadError] = useState("");
+  const [copiedBlockPayload, setCopiedBlockPayload] = useState<MicrositeBlock | null>(null);
+  const [copiedBlockMessage, setCopiedBlockMessage] = useState("");
   const [categoryMenuView, setCategoryMenuView] = useState<"compact" | "detail">(
     "compact",
   );
@@ -1261,7 +1263,6 @@ type SmartContentOption = {
 const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
 const [aiOptions, setAiOptions] = useState<SmartContentOption[]>([]);
 const [showAiSuggestions, setShowAiSuggestions] = useState(false);
-const [copiedBlockMessage, setCopiedBlockMessage] = useState("");
 const [aiSubject, setAiSubject] = useState("");
 const [aiDetails, setAiDetails] = useState("");
 const [aiTone, setAiTone] = useState("Friendly");
@@ -1898,15 +1899,6 @@ if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "c") {
   return;
 }
 
-if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "p") {
-  event.preventDefault();
-  event.stopPropagation();
-
-  void pasteCopiedBlockJsonFromClipboard();
-
-  return false;
-}
-
 
 if (!selectedBlock) return;
 
@@ -2360,11 +2352,18 @@ function handleCanvasShortcuts(event: KeyboardEvent) {
 
   if (!event.ctrlKey) return;
 
-  if (event.key.toLowerCase() === "v") {
-    event.preventDefault();
-    handleDuplicateCanvasBlock(blockId);
+if (event.key.toLowerCase() === "v") {
+  event.preventDefault();
+  event.stopPropagation();
+
+  if (copiedBlockPayload) {
+    void pasteCopiedBlockJsonFromClipboard();
     return;
   }
+
+  handleDuplicateCanvasBlock(blockId);
+  return;
+}
 
   if (event.key.toLowerCase() === "x") {
     event.preventDefault();
@@ -5175,6 +5174,12 @@ function cloneCopiedBlockForPaste(block: MicrositeBlock): MicrositeBlock {
 async function copySelectedBlockJsonToClipboard() {
   if (!selectedBlock) return;
 
+  setCopiedBlockPayload(structuredClone(selectedBlock));
+
+  setCopiedBlockMessage(
+    `${selectedBlock.type} copied to clipboard... Press "CTRL+V" to paste it to the canvas.`,
+  );
+
   const payload = {
     type: COPIED_BLOCK_CLIPBOARD_TYPE,
     copiedAt: Date.now(),
@@ -5188,50 +5193,28 @@ async function copySelectedBlockJsonToClipboard() {
   } catch {
     window.localStorage.setItem("kht:copied-block-json", text);
   }
-
-  setCopiedBlockMessage(
-    `${selectedBlock.type} copied to clipboard... Press "CTRL+P" to paste it to the canvas.`,
-  );
-
-  window.setTimeout(() => {
-    setCopiedBlockMessage((current) =>
-      current.startsWith(`${selectedBlock.type} copied`) ? "" : current,
-    );
-  }, 3000);
 }
 
 async function pasteCopiedBlockJsonFromClipboard() {
-  let raw = "";
+  const sourceBlock = copiedBlockPayload;
 
-  try {
-    raw = await navigator.clipboard.readText();
-  } catch {
-    raw = window.localStorage.getItem("kht:copied-block-json") ?? "";
-  }
+  if (!sourceBlock) return false;
 
-  if (!raw.trim()) return;
-
-  let parsed: any = null;
-
-  try {
-    parsed = JSON.parse(raw);
-  } catch {
-    return;
-  }
-
-  if (parsed?.type !== COPIED_BLOCK_CLIPBOARD_TYPE || !parsed?.block) return;
-
-  const pastedBlock = cloneCopiedBlockForPaste(parsed.block as MicrositeBlock);
+  const pastedBlock = cloneCopiedBlockForPaste(sourceBlock);
 
   setDraft((prev) => ({
     ...prev,
     blocks: [...prev.blocks, pastedBlock],
   }));
 
+  setCopiedBlockMessage("");
+  setCopiedBlockPayload(null);
+
   window.requestAnimationFrame(() => {
     setSelection(selectionFromCanvasBlockId(pastedBlock.id));
-    setCopiedBlockMessage("");
   });
+
+  return true;
 }
 
 function handleDuplicateCanvasBlock(blockId: string) {
@@ -19899,7 +19882,7 @@ try {
         ) : null}
       </div>
 
-<div className="flex w-full items-center gap-3">
+<div className="grid w-full grid-cols-[1fr_auto] items-center gap-3">
   {copiedBlockMessage ? (
     <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700">
       {copiedBlockMessage}
