@@ -8544,34 +8544,6 @@ const idsToExpand =
   </>
 ) : null}
 
-        {selectedBlock?.type === "listing" ? (
-          <>
-            <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
-
-<select
-  value={listingStyleTarget}
-  onChange={(e) =>
-    setListingStyleTarget(
-      e.target.value as
-        | "title"
-        | "description"
-        | "metadata"
-        | "price"
-        | "quantity",
-    )
-  }
-  className={topBarFieldClass("w-[140px]")}
-  title="Listing text target"
->
-  <option value="title">Title</option>
-  <option value="description">Description</option>
-  <option value="metadata">Metadata</option>
-  <option value="price">Price</option>
-  <option value="quantity">Quantity</option>
-</select>
-          </>
-        ) : null}
-
         {selectedBlock?.type === "highlight" ? (
           <>
             <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
@@ -17031,6 +17003,31 @@ data: {
   <div className={inspectorCardClass()}>
     <div className={inspectorLabelClass()}>Listing</div>
 
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Text Target</div>
+
+      <select
+        value={listingStyleTarget}
+        onChange={(e) =>
+          setListingStyleTarget(
+            e.target.value as
+              | "title"
+              | "description"
+              | "metadata"
+              | "price"
+              | "quantity",
+          )
+        }
+        className={inspectorInputClass()}
+      >
+        <option value="title">Title</option>
+        <option value="description">Description</option>
+        <option value="metadata">Metadata</option>
+        <option value="price">Price</option>
+        <option value="quantity">Quantity</option>
+      </select>
+    </div>
+
     <button
       type="button"
       className="mt-3 inline-flex h-11 items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-sm text-neutral-700 hover:bg-neutral-50"
@@ -17083,29 +17080,29 @@ data: {
     </div>
 
     <div className="mt-4">
-  <div className={inspectorLabelClass()}>Price Position</div>
+      <div className={inspectorLabelClass()}>Price Position</div>
 
-  <select
-    value={(selectedBlock.data as any).pricePlacement ?? "mid"}
-    onChange={(e) =>
-      updateSelectedBlock((block) =>
-        block.type !== "listing"
-          ? block
-          : {
-              ...block,
-              data: {
-                ...block.data,
-                pricePlacement: e.target.value as "mid" | "lower",
-              },
-            },
-      )
-    }
-    className={inspectorInputClass()}
-  >
-    <option value="mid">Mid-level</option>
-    <option value="lower">Lower-level</option>
-  </select>
-</div>
+      <select
+        value={(selectedBlock.data as any).pricePlacement ?? "mid"}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "listing"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    pricePlacement: e.target.value as "mid" | "lower",
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      >
+        <option value="mid">Mid-level</option>
+        <option value="lower">Lower-level</option>
+      </select>
+    </div>
 
     <div className="mt-4">
       <div className={inspectorLabelClass()}>Price</div>
@@ -17158,30 +17155,30 @@ data: {
       />
     </div>
 
-<div className="mt-4">
-  <div className={inspectorLabelClass()}>Quantity Position</div>
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Quantity Position</div>
 
-  <select
-    value={(selectedBlock.data as any).quantityPlacement ?? "mid"}
-    onChange={(e) =>
-      updateSelectedBlock((block) =>
-        block.type !== "listing"
-          ? block
-          : {
-              ...block,
-              data: {
-                ...block.data,
-                quantityPlacement: e.target.value as "mid" | "lower",
-              },
-            },
-      )
-    }
-    className={inspectorInputClass()}
-  >
-    <option value="mid">Mid-level</option>
-    <option value="lower">Lower-level</option>
-  </select>
-</div>
+      <select
+        value={(selectedBlock.data as any).quantityPlacement ?? "mid"}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "listing"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    quantityPlacement: e.target.value as "mid" | "lower",
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      >
+        <option value="mid">Mid-level</option>
+        <option value="lower">Lower-level</option>
+      </select>
+    </div>
 
     <div className="mt-4 space-y-2">
       <label className="text-sm font-medium">Add to cart</label>
@@ -17232,13 +17229,80 @@ data: {
       </select>
     </div>
 
+    {(selectedBlock.data.cardVariant ?? "stacked") === "stacked" ? (
+      <div className="mt-4">
+        <div className={inspectorLabelClass()}>Image Height %</div>
+<div className="flex items-center justify-between">
+  <div className={inspectorLabelClass()}>Image Height %</div>
+
+  <div className="text-xs text-neutral-500">
+    {selectedBlock.data.imageHeightPercent ?? 50}%
+  </div>
+</div>
+
+<input
+  type="range"
+  min={20}
+  max={80}
+  value={selectedBlock.data.imageHeightPercent ?? 50}
+  onChange={(e) =>
+    updateSelectedBlock((block) =>
+      block.type !== "listing"
+        ? block
+        : {
+            ...block,
+            data: {
+              ...block.data,
+              imageHeightPercent: Number(e.target.value),
+            },
+          },
+    )
+  }
+  className="mt-2 w-full"
+/>
+      </div>
+    ) : null}
+
+    {(selectedBlock.data.cardVariant ?? "stacked") === "compact" ? (
+      <div className="mt-4">
+        <div className="flex items-center justify-between">
+          <div className={inspectorLabelClass()}>Image Width %</div>
+
+          <div className="text-xs text-neutral-500">
+            {(selectedBlock.data as any).imageWidthPercent ?? 35}%
+          </div>
+        </div>
+
+        <input
+          type="range"
+          min={15}
+          max={80}
+          value={(selectedBlock.data as any).imageWidthPercent ?? 35}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "listing"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      imageWidthPercent: Number(e.target.value),
+                    },
+                  },
+            )
+          }
+          className="mt-2 w-full"
+        />
+      </div>
+    ) : null}
+
     <div className="mt-4">
-      <div className={inspectorLabelClass()}>Image Height %</div>
+      <div className={inspectorLabelClass()}>Card Rotation</div>
       <input
-        type="number"
-        min={20}
-        max={80}
-        value={selectedBlock.data.imageHeightPercent ?? 50}
+        type="range"
+        min={-45}
+        max={45}
+        value={(selectedBlock.data as any).rotation ?? 0}
         onChange={(e) =>
           updateSelectedBlock((block) =>
             block.type !== "listing"
@@ -17247,77 +17311,50 @@ data: {
                   ...block,
                   data: {
                     ...block.data,
-                    imageHeightPercent: Math.max(
-                      20,
-                      Math.min(80, Number(e.target.value) || 50),
+                    rotation: Math.max(
+                      -45,
+                      Math.min(45, Number(e.target.value) || 0),
                     ),
                   },
                 },
           )
         }
-        className={inspectorInputClass()}
+        className="mt-2 w-full"
       />
+      <div className="mt-1 text-xs text-neutral-500">
+        {(selectedBlock.data as any).rotation ?? 0}°
+      </div>
     </div>
 
-<div className="mt-4">
-  <div className={inspectorLabelClass()}>Card Rotation</div>
-  <input
-    type="range"
-    min={-45}
-    max={45}
-    value={(selectedBlock.data as any).rotation ?? 0}
-    onChange={(e) =>
-      updateSelectedBlock((block) =>
-        block.type !== "listing"
-          ? block
-          : {
-              ...block,
-              data: {
-                ...block.data,
-                rotation: Math.max(
-                  -45,
-                  Math.min(45, Number(e.target.value) || 0),
-                ),
-              },
-            },
-      )
-    }
-    className="mt-2 w-full"
-  />
-  <div className="mt-1 text-xs text-neutral-500">
-    {(selectedBlock.data as any).rotation ?? 0}°
-  </div>
-</div>
-
-<div className="mt-4">
-  <div className={inspectorLabelClass()}>Card Scale</div>
-  <input
-    type="range"
-    min={50}
-    max={100}
-    value={Math.round(((selectedBlock.data as any).scale ?? 1) * 100)}
-    onChange={(e) =>
-      updateSelectedBlock((block) =>
-        block.type !== "listing"
-          ? block
-          : {
-              ...block,
-              data: {
-                ...block.data,
-                scale: Math.max(
-                  0.5,
-                  Math.min(1, Number(e.target.value) / 100 || 1),
-                ),
-              },
-            },
-      )
-    }
-    className="mt-2 w-full"
-  />
-  <div className="mt-1 text-xs text-neutral-500">
-    {Math.round(((selectedBlock.data as any).scale ?? 1) * 100)}%
-  </div>
-</div>
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Card Scale</div>
+      <input
+        type="range"
+        min={50}
+        max={100}
+        value={Math.round(((selectedBlock.data as any).scale ?? 1) * 100)}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "listing"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    scale: Math.max(
+                      0.5,
+                      Math.min(1, Number(e.target.value) / 100 || 1),
+                    ),
+                  },
+                },
+          )
+        }
+        className="mt-2 w-full"
+      />
+      <div className="mt-1 text-xs text-neutral-500">
+        {Math.round(((selectedBlock.data as any).scale ?? 1) * 100)}%
+      </div>
+    </div>
 
     <div className="mt-5">
       <div className={inspectorLabelClass()}>Metadata</div>
@@ -17390,9 +17427,9 @@ data: {
                           ...block,
                           data: {
                             ...block.data,
-                              metadata: block.data.metadata.filter(
-                                (entry) => entry.id !== item.id,
-                              ),
+                            metadata: block.data.metadata.filter(
+                              (entry) => entry.id !== item.id,
+                            ),
                           },
                         },
                   )

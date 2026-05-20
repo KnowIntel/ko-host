@@ -1317,7 +1317,14 @@ function renderListing(
             flexDirection: "row",
           }}
         >
-          <div className="relative h-full overflow-hidden" style={{ width: "42%", minWidth: "42%" }}>
+          <div
+  className="relative h-full overflow-hidden"
+  style={{
+    width: `${block.data.imageWidthPercent ?? 35}%`,
+    minWidth: `${block.data.imageWidthPercent ?? 35}%`,
+    flexShrink: 0,
+  }}
+>
             {image.url ? (
               <img
                 src={image.url}

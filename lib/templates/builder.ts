@@ -839,6 +839,7 @@ export type ListingBlock = BaseBlock & {
 
     cardVariant?: ListingCardVariant;
     imageHeightPercent?: number;
+    imageWidthPercent?: number;
     rotation?: number;
     scale?: number;
   };
@@ -1541,6 +1542,11 @@ imageHeightPercent:
   Number.isFinite(block.data.imageHeightPercent)
     ? Math.max(20, Math.min(80, Math.floor(block.data.imageHeightPercent)))
     : 50,
+imageWidthPercent:
+  typeof block.data.imageWidthPercent === "number" &&
+  Number.isFinite(block.data.imageWidthPercent)
+    ? Math.max(15, Math.min(80, block.data.imageWidthPercent))
+    : 35,
 rotation:
   typeof block.data.rotation === "number" &&
   Number.isFinite(block.data.rotation)
@@ -2400,74 +2406,85 @@ data: {
 },
       };
 
-    case "listing":
-      return {
-        id: makeId("listing"),
-        type: "listing",
-        label: "Listing",
-        grid: createDefaultListingGrid(),
-        appearance: {
-          ...createDefaultBlockAppearance(),
-          backgroundColor: "#FFFFFF",
-          borderColor: "#D1D5DB",
-          borderWidth: 1,
-          borderRadius: 20,
-        },
-        data: {
-          image: {
-            id: makeId("img"),
-            url: "",
-            alt: "",
-            fitMode: "zoom",
-            frame: "square",
-            positionX: 50,
-            positionY: 50,
-            zoom: 1,
-            rotation: 0,
-            scale: 1,
-            opacity: 1,
-          },
-          title: "Listing Title",
-          description: "Add a short description here.",
-          price: 0,
-          addToCart: false,
-          sku: "",
-          metadata: [
-            { id: makeId("meta"), label: "Price", value: "$0" },
-            { id: makeId("meta"), label: "Location", value: "City, State" },
-          ],
+case "listing":
+  return {
+    id: makeId("listing"),
+    type: "listing",
+    label: "Listing",
+    grid: createDefaultListingGrid(),
+    appearance: {
+      ...createDefaultBlockAppearance(),
+      backgroundColor: "#FFFFFF",
+      borderColor: "#D1D5DB",
+      borderWidth: 1,
+      borderRadius: 20,
+    },
+    data: {
+      image: {
+        id: makeId("img"),
+        url: "",
+        alt: "",
+        fitMode: "zoom",
+        frame: "square",
+        positionX: 50,
+        positionY: 50,
+        zoom: 1,
+        rotation: 0,
+        scale: 1,
+        opacity: 1,
+      },
 
-          pricePlacement: "mid",
-          quantityPlacement: "mid",
+      title: "Listing Title",
+      description: "Add a short description here.",
+      price: 0,
+      addToCart: false,
+      sku: "",
 
-          titleStyle: {
-            ...createDefaultTextStyle(),
-            fontSize: 24,
-            bold: true,
-          },
-          descriptionStyle: {
-            ...createDefaultTextStyle(),
-            fontSize: 16,
-          },
-          metadataStyle: {
-            ...createDefaultTextStyle(),
-            fontSize: 14,
-          },
-          priceStyle: {
-            ...createDefaultTextStyle(),
-            fontSize: 14,
-            bold: true,
-          },
-          quantityStyle: {
-            ...createDefaultTextStyle(),
-            fontSize: 14,
-          },
-          cardVariant: "stacked",
-          imageHeightPercent: 50,
-          rotation: 0,
-        },
-      };
-    case "rich_text":
+      metadata: [
+        { id: makeId("meta"), label: "Price", value: "$0" },
+        { id: makeId("meta"), label: "Location", value: "City, State" },
+      ],
+
+      pricePlacement: "mid",
+      quantityPlacement: "mid",
+
+      titleStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 24,
+        bold: true,
+      },
+
+      descriptionStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 16,
+      },
+
+      metadataStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+      },
+
+      priceStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        bold: true,
+      },
+
+      quantityStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+      },
+
+      cardVariant: "stacked",
+
+      imageHeightPercent: 50,
+      imageWidthPercent: 35,
+
+      rotation: 0,
+    },
+  };
+
+      case "rich_text":
       return {
         id: makeId("richtext"),
         type: "rich_text",
