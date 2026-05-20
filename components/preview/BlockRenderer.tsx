@@ -2226,22 +2226,30 @@ const journeyConnectorHeight =
         ? "dotted"
         : "solid";
 
+        // test
   const showConnector = data.connectorStyle !== "none";
 
 const renderJourneyPath = () => {
-  const segmentCount = Math.max(1, Math.ceil(orderedEntries.length / 3));
-  const svgHeight = segmentCount * journeyConnectorHeight;
+  const rowCount = Math.max(1, Math.ceil(orderedEntries.length / 3));
+  const svgHeight = rowCount * journeyConnectorHeight;
 
-  const paths = Array.from({ length: segmentCount }).map((_, index) => {
-    const y = index * journeyConnectorHeight + 40;
-    const nextY = y + journeyConnectorHeight;
+  const d = Array.from({ length: rowCount })
+    .map((_, index) => {
+      const y = index * journeyConnectorHeight + 40;
+      const nextY = (index + 1) * journeyConnectorHeight + 40;
+      const isLast = index === rowCount - 1;
 
-    if (index % 2 === 0) {
-      return `M 5 ${y} H 92 Q 98 ${y} 98 ${y + 8} V ${nextY - 18} Q 98 ${nextY - 10} 90 ${nextY - 10} H 5`;
-    }
+      if (index % 2 === 0) {
+        return isLast
+          ? `M 5 ${y} H 95`
+          : `M 5 ${y} H 95 V ${nextY} H 5`;
+      }
 
-    return `M 95 ${y} H 8 Q 2 ${y} 2 ${y + 8} V ${nextY - 18} Q 2 ${nextY - 10} 10 ${nextY - 10} H 95`;
-  });
+      return isLast
+        ? `M 95 ${y} H 5`
+        : `M 95 ${y} H 5 V ${nextY} H 95`;
+    })
+    .join(" ");
 
   return (
     <svg
@@ -2249,25 +2257,22 @@ const renderJourneyPath = () => {
       preserveAspectRatio="none"
       viewBox={`0 0 100 ${svgHeight}`}
     >
-      {paths.map((d, index) => (
-        <path
-          key={index}
-          d={d}
-          fill="none"
-          stroke={data.lineColor || "#CBD5E1"}
-          strokeWidth={connectorThickness}
-          strokeLinecap="square"
-          strokeLinejoin="miter"
-          vectorEffect="non-scaling-stroke"
-          strokeDasharray={
-            data.connectorStyle === "dashed"
-              ? "10 8"
-              : data.connectorStyle === "dotted"
-                ? "2 8"
-                : undefined
-          }
-        />
-      ))}
+      <path
+        d={d}
+        fill="none"
+        stroke={data.lineColor || "#CBD5E1"}
+        strokeWidth={connectorThickness}
+        strokeLinecap="butt"
+        strokeLinejoin="miter"
+        vectorEffect="non-scaling-stroke"
+        strokeDasharray={
+          data.connectorStyle === "dashed"
+            ? "10 8"
+            : data.connectorStyle === "dotted"
+              ? "2 8"
+              : undefined
+        }
+      />
     </svg>
   );
 };
