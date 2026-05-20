@@ -326,6 +326,8 @@ if (totalBytes > MAX_DRAFT_BYTES) {
     };
   }, [draft, onSave]);
 
+  const [showBuilderCapacityExpanded, setShowBuilderCapacityExpanded] =
+  useState(false);
 const currentDraftBytes = useMemo(
   () => getPageCapacityBytes(draft, activePageId),
   [draft, activePageId],
@@ -384,41 +386,21 @@ onRenameActivePage={onRenameActivePage}
   onReorderPages={onReorderPages}
   saveState={effectiveSaveState}
   saveMessage={effectiveSaveMessage}
-  builderCapacityContent={
-    <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <div className="text-sm font-semibold text-neutral-900">
-            Builder Capacity
-          </div>
-
-          <div className="mt-1 text-xs text-neutral-500">
-            {formatDraftBytes(currentDraftBytes)} used of{" "}
-            {formatDraftBytes(MAX_DRAFT_BYTES)}
-          </div>
-        </div>
-
+builderCapacityContent={
+  <div className="w-full border-t border-neutral-700 bg-neutral-900">
+    <button
+      type="button"
+      onClick={() => setShowBuilderCapacityExpanded((prev) => !prev)}
+      className="block w-full"
+    >
+      <div className="relative h-2 w-full overflow-hidden bg-neutral-800">
         <div
-          className={`text-sm font-semibold ${
-            draftUsagePercent >= 90
-              ? "text-red-600"
-              : draftUsagePercent >= 70
-                ? "text-amber-600"
-                : "text-green-600"
-          }`}
-        >
-          {draftUsagePercent}%
-        </div>
-      </div>
-
-      <div className="mt-3 h-3 overflow-hidden rounded-full bg-neutral-200">
-        <div
-          className={`h-full rounded-full transition-all duration-300 ${
+          className={`absolute inset-y-0 left-0 transition-all ${
             draftUsagePercent >= 90
               ? "bg-red-500"
               : draftUsagePercent >= 70
                 ? "bg-amber-500"
-                : "bg-green-500"
+                : "bg-blue-500"
           }`}
           style={{
             width: `${draftUsagePercent}%`,
@@ -426,12 +408,48 @@ onRenameActivePage={onRenameActivePage}
         />
       </div>
 
-      <div className="mt-2 text-[11px] text-neutral-400">
-        Large images, textures, videos, galleries, and duplicated media increase
-        builder size usage.
+      {!showBuilderCapacityExpanded ? (
+        <div className="px-3 py-1 text-right text-[11px] font-semibold text-neutral-300">
+          {draftUsagePercent}%
+        </div>
+      ) : null}
+    </button>
+
+    {showBuilderCapacityExpanded ? (
+      <div className="px-4 py-3">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <div className="text-sm font-semibold text-white">
+              Builder Capacity
+            </div>
+
+            <div className="mt-1 text-xs text-neutral-400">
+              {formatDraftBytes(currentDraftBytes)} used of{" "}
+              {formatDraftBytes(MAX_DRAFT_BYTES)}
+            </div>
+          </div>
+
+          <div
+            className={`text-sm font-semibold ${
+              draftUsagePercent >= 90
+                ? "text-red-400"
+                : draftUsagePercent >= 70
+                  ? "text-amber-400"
+                  : "text-blue-400"
+            }`}
+          >
+            {draftUsagePercent}%
+          </div>
+        </div>
+
+        <div className="mt-3 text-xs text-neutral-500">
+          Large images, textures, videos, galleries, and duplicated media
+          increase builder size usage.
+        </div>
       </div>
-    </div>
-  }
+    ) : null}
+  </div>
+}
 />
   </div>
 );

@@ -7875,20 +7875,14 @@ onDrop={async (e) => {
 </div>
 </div>
 
-{builderCapacityContent ? (
-  <div className="border-b border-neutral-200 bg-[#f3f3f3] px-6 py-3">
-    {builderCapacityContent}
-  </div>
-) : null}
-
-
 <div className="sticky top-0 z-[100] w-full bg-[#809cd4] shadow-md">
-<div
-  ref={topBarScrollRef}
-    className="sticky top-0 z-[101] flex w-full items-center justify-between gap-4 overflow-x-auto overflow-y-hidden bg-[#2f3541] px-2 py-2 shadow-md"
->
-  <div className="flex items-center justify-between gap-4">
-    <div className="sticky left-0 z-0 flex min-w-max items-center gap-2 bg-[#2f3541] py-1 pr-4 pointer-events-auto">
+  <div
+    ref={topBarScrollRef}
+    className="flex w-full items-center justify-between gap-4 overflow-x-auto overflow-y-hidden bg-[#2f3541] px-2 py-2 shadow-md"
+  >
+    <div className="flex items-center justify-between gap-4">
+      <div className="sticky left-0 z-0 flex min-w-max items-center gap-2 bg-[#2f3541] py-1 pr-4 pointer-events-auto">
+
 <button
   type="button"
   className={topBarButtonClass(false)}
@@ -9766,8 +9760,12 @@ if (selectedBlock?.type === "rsvp") {
           {recentColors.length ? (
             <>
               <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
+
               <div className="flex items-center gap-2">
-                <span className="text-xs text-white/70">Recent</span>
+                <span className="text-xs text-white/70">
+                  Recent
+                </span>
+
                 <div className="flex items-center gap-1">
                   {recentColors.map((color) => (
                     <button
@@ -9789,6 +9787,12 @@ if (selectedBlock?.type === "rsvp") {
       ) : null}
     </div>
   </div>
+
+  {builderCapacityContent ? (
+    <div className="border-t border-white/10 bg-[#2f3541]">
+      {builderCapacityContent}
+    </div>
+  ) : null}
 </div>
 
 <AppModal
