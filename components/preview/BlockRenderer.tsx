@@ -2345,15 +2345,15 @@ const renderJourneyPath = () => {
     return null;
   };
 
-  const renderEntryCard = (entry: any, index: number) => {
-    const accentColor = entry.accentColor || data.nodeColor || "#2563EB";
-
-const placementOffset =
+  const getPlacementOffset = (entry: any) =>
   entry.useDefaultPlacement === false &&
   typeof entry.placementOffset === "number" &&
   Number.isFinite(entry.placementOffset)
     ? Math.max(-160, Math.min(160, entry.placementOffset))
     : 0;
+
+const renderEntryCard = (entry: any, index: number) => {
+    const accentColor = entry.accentColor || data.nodeColor || "#2563EB";
 
 return (
   <div
@@ -2366,7 +2366,7 @@ return (
 style={{
   width: `${cardWidth}px`,
   maxWidth: "100%",
-  transform: placementOffset ? `translateY(${placementOffset}px)` : undefined,
+  
           backgroundColor: entry.cardBackground || data.cardBackground || "#FFFFFF",
           borderColor: accentColor,
           borderRadius:
@@ -2453,7 +2453,15 @@ style={{
 
           <div className="relative flex overflow-x-auto pb-2" style={{ gap: `${spacing}px` }}>
             {orderedEntries.map((entry: any, index: number) => (
-              <div key={entry.id || index} className="shrink-0 pt-10">
+              <div
+  key={entry.id || index}
+  className="shrink-0 pt-10"
+  style={{
+    transform: getPlacementOffset(entry)
+      ? `translateY(${getPlacementOffset(entry)}px)`
+      : undefined,
+  }}
+>
                 <div
                   className="absolute top-3 h-4 w-4 rounded-full border-2 bg-white"
                   style={{
@@ -2514,8 +2522,6 @@ style={{
 >
             {orderedEntries.map((entry: any, index: number) => {
             const rightSide = isAlternating && index % 2 === 1;
-
-const journeyOffset = undefined;
 if (isJourney) {
   const segmentIndex = Math.floor(index / journeyCardsPerRow);
   const rawPositionInSegment = index % journeyCardsPerRow;
@@ -2534,12 +2540,15 @@ if (isJourney) {
         gridRow: segmentIndex + 1,
       }}
     >
-      <div
-        className="relative"
-        style={{
-          width: `${cardWidth}px`,
-        }}
-      >
+<div
+  className="relative"
+  style={{
+    width: `${cardWidth}px`,
+    transform: getPlacementOffset(entry)
+  ? `translateY(${getPlacementOffset(entry)}px)`
+  : undefined,
+  }}
+>
         <div
           className="absolute -top-2 left-1/2 z-10 h-4 w-4 -translate-x-1/2 rounded-full border-2 bg-white"
           style={{
@@ -2558,7 +2567,7 @@ if (isJourney) {
                   <div
                     key={entry.id || index}
                     className="relative grid grid-cols-[minmax(0,1fr)_40px_minmax(0,1fr)] items-start gap-4"
-                    style={{ transform: journeyOffset }}
+                    style={undefined}
                   >
 <div className="flex min-w-0 justify-end">
   {!rightSide ? renderEntryCard(entry, index) : null}
