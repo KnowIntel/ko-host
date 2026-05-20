@@ -9788,11 +9788,6 @@ if (selectedBlock?.type === "rsvp") {
     </div>
   </div>
 
-  {builderCapacityContent ? (
-    <div className="border-t border-white/10 bg-[#2f3541]">
-      {builderCapacityContent}
-    </div>
-  ) : null}
 </div>
 
 <AppModal
@@ -20729,6 +20724,12 @@ try {
 ) : null}
     </div>
   </div>
+
+  {builderCapacityContent ? (
+    <div className="w-full border-t border-white/10 bg-[#2f3541]">
+      {builderCapacityContent}
+    </div>
+  ) : null}
 </div>
 
 <AppModal
