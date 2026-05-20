@@ -105,6 +105,7 @@ export type BuilderBlockType =
   | "puzzle"
   | "spin_wheel"
   | "spreadsheet"
+  | "timeline"
   | "label"
   | "text_fx"
   | "image"
@@ -156,6 +157,47 @@ export type GalleryImage = {
   id: string;
   url: string;
   shape?: "square" | "rounded" | "circle";
+};
+
+export type TimelineEntry = {
+  id: string;
+  date?: string;
+  title?: string;
+  subtitle?: string;
+  description?: string;
+  imageUrl?: string;
+  icon?: string;
+  imageShape?: "circle" | "rounded" | "square" | "diamond" | "hexagon" | "blob" | "none";
+  accentColor?: string;
+  alignment?: "auto" | "left" | "right" | "center";
+  animation?: "fade" | "slide" | "pop" | "reveal" | "none";
+  ctaLabel?: string;
+  ctaUrl?: string;
+};
+
+export type TimelineBlock = BaseBlock & {
+  type: "timeline";
+  data: {
+    heading: string;
+    styleVariant: "classic" | "alternating" | "horizontal" | "journey" | "memory";
+    entries: TimelineEntry[];
+    direction: "ascending" | "descending";
+    connectorStyle: "solid" | "dashed" | "dotted" | "none";
+    connectorThickness: number;
+    lineColor: string;
+    nodeColor: string;
+    cardBackground: string;
+    borderRadius: number;
+    shadow: boolean;
+    spacing: number;
+    animateOnScroll: boolean;
+    mobileMode: "auto" | "vertical" | "horizontal";
+    titleStyle: TextStyle;
+    dateStyle: TextStyle;
+    entryTitleStyle: TextStyle;
+    subtitleStyle: TextStyle;
+    descriptionStyle: TextStyle;
+  };
 };
 
 export type ShowcaseImage = {
@@ -1081,6 +1123,7 @@ export type MicrositeBlock =
   | PuzzleBlock
   | SpinWheelBlock
   | SpreadsheetBlock
+  | TimelineBlock
   | LabelBlock
   | TextFxBlock
   | ImageBlock
@@ -1782,6 +1825,99 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
           selectedCell: "0:0",
           selectedRange: undefined,
           editMode: true,
+        },
+      };
+
+          case "timeline":
+      return {
+        id: makeId("timeline"),
+        type: "timeline",
+        label: "Story Timeline",
+        grid: {
+          ...grid,
+          colSpan: 6,
+          rowSpan: 6,
+        },
+        appearance: {
+          ...createDefaultBlockAppearance(),
+          backgroundColor: "#FFFFFF",
+          borderColor: "#E5E7EB",
+          borderWidth: 1,
+          borderRadius: 24,
+        },
+        data: {
+          heading: "Our Journey",
+          styleVariant: "classic",
+          entries: [
+            {
+              id: makeId("timelineentry"),
+              date: "2024",
+              title: "The Beginning",
+              subtitle: "Where it started",
+              description: "Add the first moment in your story.",
+              imageUrl: "",
+              icon: "/media-icons/star.svg",
+              imageShape: "circle",
+              accentColor: "#2563EB",
+              alignment: "auto",
+              animation: "fade",
+              ctaLabel: "",
+              ctaUrl: "",
+            },
+            {
+              id: makeId("timelineentry"),
+              date: "2025",
+              title: "The Next Chapter",
+              subtitle: "A meaningful milestone",
+              description: "Add another important moment here.",
+              imageUrl: "",
+              icon: "/media-icons/heart.svg",
+              imageShape: "rounded",
+              accentColor: "#EC4899",
+              alignment: "auto",
+              animation: "fade",
+              ctaLabel: "",
+              ctaUrl: "",
+            },
+          ],
+          direction: "ascending",
+          connectorStyle: "solid",
+          connectorThickness: 3,
+          lineColor: "#CBD5E1",
+          nodeColor: "#2563EB",
+          cardBackground: "#FFFFFF",
+          borderRadius: 20,
+          shadow: true,
+          spacing: 24,
+          animateOnScroll: false,
+          mobileMode: "auto",
+          titleStyle: {
+            ...createDefaultTextStyle(),
+            fontSize: 26,
+            bold: true,
+            align: "center",
+          },
+          dateStyle: {
+            ...createDefaultTextStyle(),
+            fontSize: 14,
+            bold: true,
+            color: "#2563EB",
+          },
+          entryTitleStyle: {
+            ...createDefaultTextStyle(),
+            fontSize: 20,
+            bold: true,
+          },
+          subtitleStyle: {
+            ...createDefaultTextStyle(),
+            fontSize: 14,
+            color: "#6B7280",
+          },
+          descriptionStyle: {
+            ...createDefaultTextStyle(),
+            fontSize: 15,
+            color: "#374151",
+          },
         },
       };
 
@@ -2941,6 +3077,173 @@ export function sanitizeBuilderDraft(input: unknown): BuilderDraft {
       rowStart: index + 1,
       zIndex: index + 1,
     };
+
+        if (block.type === "timeline") {
+      const data = block.data as any;
+
+      return {
+        ...block,
+        grid: normalizeGridValue(block.grid, fallbackGrid),
+        data: {
+          heading:
+            typeof data.heading === "string" ? data.heading : "Our Journey",
+
+          styleVariant:
+            data.styleVariant === "classic" ||
+            data.styleVariant === "alternating" ||
+            data.styleVariant === "horizontal" ||
+            data.styleVariant === "journey" ||
+            data.styleVariant === "memory"
+              ? data.styleVariant
+              : "classic",
+
+          entries: Array.isArray(data.entries)
+            ? data.entries.map((entry: any) => ({
+                id:
+                  typeof entry?.id === "string" && entry.id.trim()
+                    ? entry.id
+                    : makeId("timelineentry"),
+                date: typeof entry?.date === "string" ? entry.date : "",
+                title: typeof entry?.title === "string" ? entry.title : "",
+                subtitle:
+                  typeof entry?.subtitle === "string" ? entry.subtitle : "",
+                description:
+                  typeof entry?.description === "string"
+                    ? entry.description
+                    : "",
+                imageUrl:
+                  typeof entry?.imageUrl === "string" ? entry.imageUrl : "",
+                icon:
+                  typeof entry?.icon === "string"
+                    ? entry.icon
+                    : "/media-icons/star.svg",
+                imageShape:
+                  entry?.imageShape === "circle" ||
+                  entry?.imageShape === "rounded" ||
+                  entry?.imageShape === "square" ||
+                  entry?.imageShape === "diamond" ||
+                  entry?.imageShape === "hexagon" ||
+                  entry?.imageShape === "blob" ||
+                  entry?.imageShape === "none"
+                    ? entry.imageShape
+                    : "circle",
+                accentColor:
+                  typeof entry?.accentColor === "string"
+                    ? entry.accentColor
+                    : "#2563EB",
+                alignment:
+                  entry?.alignment === "auto" ||
+                  entry?.alignment === "left" ||
+                  entry?.alignment === "right" ||
+                  entry?.alignment === "center"
+                    ? entry.alignment
+                    : "auto",
+                animation:
+                  entry?.animation === "fade" ||
+                  entry?.animation === "slide" ||
+                  entry?.animation === "pop" ||
+                  entry?.animation === "reveal" ||
+                  entry?.animation === "none"
+                    ? entry.animation
+                    : "fade",
+                ctaLabel:
+                  typeof entry?.ctaLabel === "string" ? entry.ctaLabel : "",
+                ctaUrl:
+                  typeof entry?.ctaUrl === "string" ? entry.ctaUrl : "",
+              }))
+            : [],
+
+          direction:
+            data.direction === "ascending" || data.direction === "descending"
+              ? data.direction
+              : "ascending",
+
+          connectorStyle:
+            data.connectorStyle === "solid" ||
+            data.connectorStyle === "dashed" ||
+            data.connectorStyle === "dotted" ||
+            data.connectorStyle === "none"
+              ? data.connectorStyle
+              : "solid",
+
+          connectorThickness:
+            typeof data.connectorThickness === "number" &&
+            Number.isFinite(data.connectorThickness)
+              ? Math.max(1, Math.min(12, data.connectorThickness))
+              : 3,
+
+          lineColor:
+            typeof data.lineColor === "string" ? data.lineColor : "#CBD5E1",
+
+          nodeColor:
+            typeof data.nodeColor === "string" ? data.nodeColor : "#2563EB",
+
+          cardBackground:
+            typeof data.cardBackground === "string"
+              ? data.cardBackground
+              : "#FFFFFF",
+
+          borderRadius:
+            typeof data.borderRadius === "number" &&
+            Number.isFinite(data.borderRadius)
+              ? Math.max(0, Math.min(48, data.borderRadius))
+              : 20,
+
+          shadow: data.shadow !== false,
+
+          spacing:
+            typeof data.spacing === "number" && Number.isFinite(data.spacing)
+              ? Math.max(0, Math.min(80, data.spacing))
+              : 24,
+
+          animateOnScroll: Boolean(data.animateOnScroll),
+
+          mobileMode:
+            data.mobileMode === "auto" ||
+            data.mobileMode === "vertical" ||
+            data.mobileMode === "horizontal"
+              ? data.mobileMode
+              : "auto",
+
+          titleStyle: {
+            ...createDefaultTextStyle(),
+            fontSize: 26,
+            bold: true,
+            align: "center",
+            ...(data.titleStyle ?? {}),
+          },
+
+          dateStyle: {
+            ...createDefaultTextStyle(),
+            fontSize: 14,
+            bold: true,
+            color: "#2563EB",
+            ...(data.dateStyle ?? {}),
+          },
+
+          entryTitleStyle: {
+            ...createDefaultTextStyle(),
+            fontSize: 20,
+            bold: true,
+            ...(data.entryTitleStyle ?? {}),
+          },
+
+          subtitleStyle: {
+            ...createDefaultTextStyle(),
+            fontSize: 14,
+            color: "#6B7280",
+            ...(data.subtitleStyle ?? {}),
+          },
+
+          descriptionStyle: {
+            ...createDefaultTextStyle(),
+            fontSize: 15,
+            color: "#374151",
+            ...(data.descriptionStyle ?? {}),
+          },
+        },
+      };
+    }
 
             if (block.type === "file_share") {
       return {

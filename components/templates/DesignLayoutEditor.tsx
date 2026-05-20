@@ -361,6 +361,7 @@ Utilities: [
   ],
 Scheduling: [
   { kind: "block", label: "Countdown", type: "countdown" },
+  { kind: "block", label: "Story Timeline", type: "timeline" },
   { kind: "block", label: "Checklist", type: "checklist" },
   { kind: "block", label: "Schedule / Agenda", type: "schedule_agenda" },
   { kind: "block", label: "Map / Location", type: "map_location" },
@@ -1405,8 +1406,18 @@ type CountdownStyleTarget =
   | "units"
   | "heading";
 
+type TimelineStyleTarget =
+  | "title"
+  | "date"
+  | "entryTitle"
+  | "subtitle"
+  | "description";
+
 const [countdownStyleTarget, setCountdownStyleTarget] =
   useState<CountdownStyleTarget>("background");
+
+const [timelineStyleTarget, setTimelineStyleTarget] =
+  useState<TimelineStyleTarget>("entryTitle");
 
 const [progressBarStyleTarget, setProgressBarStyleTarget] = useState<
   | "background"
@@ -1493,6 +1504,16 @@ const selectedStyle =
                       (selectedBlockFromDraft.data as any).style ??
                       {}) as TextStyle)
                   : (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
+        : selectedBlockFromDraft?.type === "timeline"
+          ? timelineStyleTarget === "title"
+            ? (((selectedBlockFromDraft.data as any).titleStyle ?? {}) as TextStyle)
+            : timelineStyleTarget === "date"
+              ? (((selectedBlockFromDraft.data as any).dateStyle ?? {}) as TextStyle)
+              : timelineStyleTarget === "entryTitle"
+                ? (((selectedBlockFromDraft.data as any).entryTitleStyle ?? {}) as TextStyle)
+                : timelineStyleTarget === "subtitle"
+                  ? (((selectedBlockFromDraft.data as any).subtitleStyle ?? {}) as TextStyle)
+                  : (((selectedBlockFromDraft.data as any).descriptionStyle ?? {}) as TextStyle)
           : selectedBlockFromDraft?.type === "cart" ||
               selectedBlockFromDraft?.type === "checkout" ||
               selectedBlockFromDraft?.type === "text_fx" ||
@@ -11694,6 +11715,577 @@ selectedContext.kind === "textFx"
         }
         className={inspectorInputClass()}
       />
+    </div>
+  </div>
+) : null}
+
+{selectedBlock?.type === "timeline" ? (
+  <div id="inspector-timeline" className={inspectorCardClass()}>
+    <div className={inspectorLabelClass()}>Story Timeline</div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Heading</div>
+      <input
+        type="text"
+        value={selectedBlock.data.heading ?? ""}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "timeline"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    heading: e.target.value,
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Style Variant</div>
+      <select
+        value={selectedBlock.data.styleVariant ?? "classic"}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "timeline"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    styleVariant: e.target.value as any,
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      >
+        <option value="classic">Classic Vertical</option>
+        <option value="alternating">Alternating Vertical</option>
+        <option value="horizontal">Horizontal Timeline</option>
+        <option value="journey">Curved Journey</option>
+        <option value="memory">Memory Cards</option>
+      </select>
+    </div>
+
+    <div className="mt-4 grid grid-cols-2 gap-3">
+      <div>
+        <div className={inspectorLabelClass()}>Direction</div>
+        <select
+          value={selectedBlock.data.direction ?? "ascending"}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "timeline"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      direction: e.target.value as "ascending" | "descending",
+                    },
+                  },
+            )
+          }
+          className={inspectorInputClass()}
+        >
+          <option value="ascending">Ascending</option>
+          <option value="descending">Descending</option>
+        </select>
+      </div>
+
+      <div>
+        <div className={inspectorLabelClass()}>Connector</div>
+        <select
+          value={selectedBlock.data.connectorStyle ?? "solid"}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "timeline"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      connectorStyle: e.target.value as any,
+                    },
+                  },
+            )
+          }
+          className={inspectorInputClass()}
+        >
+          <option value="solid">Solid</option>
+          <option value="dashed">Dashed</option>
+          <option value="dotted">Dotted</option>
+          <option value="none">None</option>
+        </select>
+      </div>
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Connector Thickness</div>
+      <input
+        type="range"
+        min={1}
+        max={12}
+        step={1}
+        value={Number(selectedBlock.data.connectorThickness ?? 3)}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "timeline"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    connectorThickness: Number(e.target.value),
+                  },
+                },
+          )
+        }
+        className="w-full"
+      />
+    </div>
+
+    <div className="mt-4 grid grid-cols-2 gap-3">
+      <div>
+        <div className={inspectorLabelClass()}>Line Color</div>
+        <input
+          type="color"
+          value={selectedBlock.data.lineColor ?? "#CBD5E1"}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "timeline"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      lineColor: e.target.value,
+                    },
+                  },
+            )
+          }
+          className="h-10 w-full rounded-lg border border-neutral-200 bg-white"
+        />
+      </div>
+
+      <div>
+        <div className={inspectorLabelClass()}>Node Color</div>
+        <input
+          type="color"
+          value={selectedBlock.data.nodeColor ?? "#2563EB"}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "timeline"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      nodeColor: e.target.value,
+                    },
+                  },
+            )
+          }
+          className="h-10 w-full rounded-lg border border-neutral-200 bg-white"
+        />
+      </div>
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Spacing</div>
+      <input
+        type="range"
+        min={0}
+        max={80}
+        step={1}
+        value={Number(selectedBlock.data.spacing ?? 24)}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "timeline"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    spacing: Number(e.target.value),
+                  },
+                },
+          )
+        }
+        className="w-full"
+      />
+    </div>
+
+    <div className="mt-4">
+      <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+        <input
+          type="checkbox"
+          checked={selectedBlock.data.shadow !== false}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "timeline"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      shadow: e.target.checked,
+                    },
+                  },
+            )
+          }
+        />
+        Card Shadow
+      </label>
+    </div>
+
+    <div className="mt-5">
+      <div className={inspectorLabelClass()}>Entries</div>
+
+      <div className="mt-3 space-y-3">
+        {(selectedBlock.data.entries ?? []).map((entry) => (
+          <div
+            key={entry.id}
+            className="rounded-xl border border-neutral-200 bg-neutral-50 p-3"
+          >
+            <div className={inspectorLabelClass()}>Date / Year</div>
+            <input
+              type="text"
+              value={entry.date ?? ""}
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "timeline"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          entries: block.data.entries.map((item) =>
+                            item.id === entry.id
+                              ? { ...item, date: e.target.value }
+                              : item,
+                          ),
+                        },
+                      },
+                )
+              }
+              className={inspectorInputClass()}
+            />
+
+            <div className="mt-3">
+              <div className={inspectorLabelClass()}>Title</div>
+              <input
+                type="text"
+                value={entry.title ?? ""}
+                onChange={(e) =>
+                  updateSelectedBlock((block) =>
+                    block.type !== "timeline"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            entries: block.data.entries.map((item) =>
+                              item.id === entry.id
+                                ? { ...item, title: e.target.value }
+                                : item,
+                            ),
+                          },
+                        },
+                  )
+                }
+                className={inspectorInputClass()}
+              />
+            </div>
+
+            <div className="mt-3">
+              <div className={inspectorLabelClass()}>Subtitle</div>
+              <input
+                type="text"
+                value={entry.subtitle ?? ""}
+                onChange={(e) =>
+                  updateSelectedBlock((block) =>
+                    block.type !== "timeline"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            entries: block.data.entries.map((item) =>
+                              item.id === entry.id
+                                ? { ...item, subtitle: e.target.value }
+                                : item,
+                            ),
+                          },
+                        },
+                  )
+                }
+                className={inspectorInputClass()}
+              />
+            </div>
+
+            <div className="mt-3">
+              <div className={inspectorLabelClass()}>Description</div>
+              <textarea
+                value={entry.description ?? ""}
+                onChange={(e) =>
+                  updateSelectedBlock((block) =>
+                    block.type !== "timeline"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            entries: block.data.entries.map((item) =>
+                              item.id === entry.id
+                                ? { ...item, description: e.target.value }
+                                : item,
+                            ),
+                          },
+                        },
+                  )
+                }
+                className={inspectorTextareaClass()}
+              />
+            </div>
+
+            <div className="mt-3">
+              <div className={inspectorLabelClass()}>Image URL</div>
+              <input
+                type="text"
+                value={entry.imageUrl ?? ""}
+                onChange={(e) =>
+                  updateSelectedBlock((block) =>
+                    block.type !== "timeline"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            entries: block.data.entries.map((item) =>
+                              item.id === entry.id
+                                ? { ...item, imageUrl: e.target.value }
+                                : item,
+                            ),
+                          },
+                        },
+                  )
+                }
+                className={inspectorInputClass()}
+                placeholder="https://..."
+              />
+            </div>
+
+            <div className="mt-3">
+              <div className={inspectorLabelClass()}>Icon URL</div>
+              <input
+                type="text"
+                value={entry.icon ?? ""}
+                onChange={(e) =>
+                  updateSelectedBlock((block) =>
+                    block.type !== "timeline"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            entries: block.data.entries.map((item) =>
+                              item.id === entry.id
+                                ? { ...item, icon: e.target.value }
+                                : item,
+                            ),
+                          },
+                        },
+                  )
+                }
+                className={inspectorInputClass()}
+                placeholder="/media-icons/star.svg"
+              />
+            </div>
+
+            <div className="mt-3 grid grid-cols-2 gap-3">
+              <div>
+                <div className={inspectorLabelClass()}>Accent</div>
+                <input
+                  type="color"
+                  value={entry.accentColor ?? "#2563EB"}
+                  onChange={(e) =>
+                    updateSelectedBlock((block) =>
+                      block.type !== "timeline"
+                        ? block
+                        : {
+                            ...block,
+                            data: {
+                              ...block.data,
+                              entries: block.data.entries.map((item) =>
+                                item.id === entry.id
+                                  ? { ...item, accentColor: e.target.value }
+                                  : item,
+                              ),
+                            },
+                          },
+                    )
+                  }
+                  className="h-10 w-full rounded-lg border border-neutral-200 bg-white"
+                />
+              </div>
+
+              <div>
+                <div className={inspectorLabelClass()}>Frame</div>
+                <select
+                  value={entry.imageShape ?? "circle"}
+                  onChange={(e) =>
+                    updateSelectedBlock((block) =>
+                      block.type !== "timeline"
+                        ? block
+                        : {
+                            ...block,
+                            data: {
+                              ...block.data,
+                              entries: block.data.entries.map((item) =>
+                                item.id === entry.id
+                                  ? { ...item, imageShape: e.target.value as any }
+                                  : item,
+                              ),
+                            },
+                          },
+                    )
+                  }
+                  className={inspectorInputClass()}
+                >
+                  <option value="circle">Circle</option>
+                  <option value="rounded">Rounded</option>
+                  <option value="square">Square</option>
+                  <option value="diamond">Diamond</option>
+                  <option value="hexagon">Hexagon</option>
+                  <option value="blob">Blob</option>
+                  <option value="none">None</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="mt-3 grid grid-cols-2 gap-3">
+              <div>
+                <div className={inspectorLabelClass()}>CTA Label</div>
+                <input
+                  type="text"
+                  value={entry.ctaLabel ?? ""}
+                  onChange={(e) =>
+                    updateSelectedBlock((block) =>
+                      block.type !== "timeline"
+                        ? block
+                        : {
+                            ...block,
+                            data: {
+                              ...block.data,
+                              entries: block.data.entries.map((item) =>
+                                item.id === entry.id
+                                  ? { ...item, ctaLabel: e.target.value }
+                                  : item,
+                              ),
+                            },
+                          },
+                    )
+                  }
+                  className={inspectorInputClass()}
+                />
+              </div>
+
+              <div>
+                <div className={inspectorLabelClass()}>CTA URL</div>
+                <input
+                  type="text"
+                  value={entry.ctaUrl ?? ""}
+                  onChange={(e) =>
+                    updateSelectedBlock((block) =>
+                      block.type !== "timeline"
+                        ? block
+                        : {
+                            ...block,
+                            data: {
+                              ...block.data,
+                              entries: block.data.entries.map((item) =>
+                                item.id === entry.id
+                                  ? { ...item, ctaUrl: e.target.value }
+                                  : item,
+                              ),
+                            },
+                          },
+                    )
+                  }
+                  className={inspectorInputClass()}
+                />
+              </div>
+            </div>
+
+            <div className="mt-3 flex justify-end">
+              <button
+                type="button"
+                className={toolSetButtonClass("remove")}
+                onClick={() =>
+                  updateSelectedBlock((block) =>
+                    block.type !== "timeline"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            entries: block.data.entries.filter(
+                              (item) => item.id !== entry.id,
+                            ),
+                          },
+                        },
+                  )
+                }
+                title="Remove timeline entry"
+              >
+                ×
+              </button>
+            </div>
+          </div>
+        ))}
+
+        <button
+          type="button"
+          className={toolSetButtonClass("front")}
+          onClick={() =>
+            updateSelectedBlock((block) =>
+              block.type !== "timeline"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      entries: [
+                        ...block.data.entries,
+                        {
+                          id: makeClientId("timelineentry"),
+                          date: "New Date",
+                          title: "New Timeline Entry",
+                          subtitle: "",
+                          description: "Add a short description.",
+                          imageUrl: "",
+                          icon: "/media-icons/star.svg",
+                          imageShape: "circle",
+                          accentColor: block.data.nodeColor ?? "#2563EB",
+                          alignment: "auto",
+                          animation: "fade",
+                          ctaLabel: "",
+                          ctaUrl: "",
+                        },
+                      ],
+                    },
+                  },
+            )
+          }
+        >
+          Add Timeline Entry
+        </button>
+      </div>
     </div>
   </div>
 ) : null}

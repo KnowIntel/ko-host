@@ -6,7 +6,7 @@ import modern from "./modern";
 
 const weddingLayouts: TemplateLayoutRegistry = {
   templateKey: "wedding_rsvp",
-  layouts: [subtle, classic, modern, evergreen],
+  layouts: [subtle, evergreen, modern, classic],
 };
 
 

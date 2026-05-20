@@ -2174,6 +2174,242 @@ style={{
   return <CountdownPreview />;
 }
 
+function renderTimeline(
+  block: Extract<MicrositeBlock, { type: "timeline" }>,
+  designKey?: string,
+) {
+  const data = block.data as any;
+  const appearanceStyle = getAppearanceStyle(block);
+
+  const headingStyle = getContainerTextStyle(data.titleStyle, designKey);
+  const dateStyle = getContainerTextStyle(data.dateStyle, designKey);
+  const titleStyle = getContainerTextStyle(data.entryTitleStyle, designKey);
+  const subtitleStyle = getContainerTextStyle(data.subtitleStyle, designKey);
+  const descriptionStyle = getContainerTextStyle(data.descriptionStyle, designKey);
+
+  const entries = Array.isArray(data.entries) ? data.entries : [];
+  const orderedEntries =
+    data.direction === "descending" ? [...entries].reverse() : entries;
+
+  const variant = data.styleVariant ?? "classic";
+  const isAlternating = variant === "alternating" || variant === "journey";
+  const isHorizontal = variant === "horizontal";
+  const isMemory = variant === "memory";
+
+  const connectorBorderStyle =
+    data.connectorStyle === "dashed"
+      ? "dashed"
+      : data.connectorStyle === "dotted"
+        ? "dotted"
+        : "solid";
+
+  const showConnector = data.connectorStyle !== "none";
+  const spacing =
+    typeof data.spacing === "number" && Number.isFinite(data.spacing)
+      ? data.spacing
+      : 24;
+
+  const imageShapeClass = (shape?: string) => {
+    switch (shape) {
+      case "circle":
+        return "rounded-full";
+      case "rounded":
+        return "rounded-2xl";
+      case "square":
+        return "rounded-none";
+      case "diamond":
+        return "rotate-45 rounded-lg";
+      case "hexagon":
+        return "rounded-[28%]";
+      case "blob":
+        return "rounded-[38%_62%_55%_45%/45%_42%_58%_55%]";
+      default:
+        return "rounded-2xl";
+    }
+  };
+
+  const renderMedia = (entry: any) => {
+    if (entry.imageUrl) {
+      return (
+        <div
+          className={[
+            "h-16 w-16 shrink-0 overflow-hidden bg-neutral-100",
+            imageShapeClass(entry.imageShape),
+          ].join(" ")}
+        >
+          <img
+            src={entry.imageUrl}
+            alt=""
+            className={[
+              "h-full w-full object-cover",
+              entry.imageShape === "diamond" ? "-rotate-45 scale-150" : "",
+            ].join(" ")}
+          />
+        </div>
+      );
+    }
+
+    if (entry.icon) {
+      return (
+        <div
+          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border bg-white"
+          style={{
+            borderColor: entry.accentColor || data.nodeColor || "#2563EB",
+          }}
+        >
+          <img
+            src={entry.icon}
+            alt=""
+            className="h-6 w-6 object-contain"
+          />
+        </div>
+      );
+    }
+
+    return null;
+  };
+
+  const renderEntryCard = (entry: any, index: number) => {
+    const accentColor = entry.accentColor || data.nodeColor || "#2563EB";
+
+    return (
+      <div
+        key={entry.id || index}
+        className={[
+          "relative rounded-2xl border p-4",
+          data.shadow ? "shadow-sm" : "",
+          isMemory ? "min-w-[180px]" : "",
+        ].join(" ")}
+        style={{
+          backgroundColor: data.cardBackground || "#FFFFFF",
+          borderColor: accentColor,
+          borderRadius:
+            typeof data.borderRadius === "number"
+              ? `${data.borderRadius}px`
+              : "20px",
+        }}
+      >
+        <div className="flex gap-3">
+          {renderMedia(entry)}
+
+          <div className="min-w-0 flex-1">
+            {entry.date ? (
+              <div className="mb-1 text-xs font-semibold uppercase tracking-[0.12em]" style={dateStyle}>
+                {entry.date}
+              </div>
+            ) : null}
+
+            {entry.title ? (
+              <div className="font-semibold leading-tight" style={titleStyle}>
+                {entry.title}
+              </div>
+            ) : null}
+
+            {entry.subtitle ? (
+              <div className="mt-1 text-sm" style={subtitleStyle}>
+                {entry.subtitle}
+              </div>
+            ) : null}
+
+            {entry.description ? (
+              <div className="mt-2 text-sm leading-relaxed" style={descriptionStyle}>
+                {entry.description}
+              </div>
+            ) : null}
+
+            {entry.ctaLabel && entry.ctaUrl ? (
+              <a
+                href={normalizePreviewHref(entry.ctaUrl)}
+                className="mt-3 inline-flex rounded-full px-3 py-1.5 text-xs font-semibold text-white"
+                style={{ backgroundColor: accentColor }}
+              >
+                {entry.ctaLabel}
+              </a>
+            ) : null}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div
+      className="h-full w-full overflow-hidden p-4"
+      style={appearanceStyle}
+    >
+      {data.heading ? (
+        <div className="mb-4" style={headingStyle}>
+          {data.heading}
+        </div>
+      ) : null}
+
+      {isHorizontal || isMemory ? (
+        <div
+          className="flex h-full overflow-x-auto pb-2"
+          style={{ gap: `${spacing}px` }}
+        >
+          {orderedEntries.map((entry: any, index: number) => (
+            <div key={entry.id || index} className="min-w-[220px]">
+              {renderEntryCard(entry, index)}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="relative">
+          {showConnector ? (
+            <div
+              className="absolute bottom-0 top-0 w-0 border-l"
+              style={{
+                left: isAlternating ? "50%" : "20px",
+                borderColor: data.lineColor || "#CBD5E1",
+                borderLeftStyle: connectorBorderStyle,
+                borderLeftWidth:
+                  typeof data.connectorThickness === "number"
+                    ? data.connectorThickness
+                    : 3,
+              }}
+            />
+          ) : null}
+
+          <div className="relative flex flex-col" style={{ gap: `${spacing}px` }}>
+            {orderedEntries.map((entry: any, index: number) => {
+              const side =
+                isAlternating && index % 2 === 1 ? "right" : "left";
+
+              return (
+                <div
+                  key={entry.id || index}
+                  className={[
+                    "relative grid items-start gap-4",
+                    isAlternating ? "grid-cols-[1fr_40px_1fr]" : "grid-cols-[40px_1fr]",
+                  ].join(" ")}
+                >
+                  {isAlternating && side === "right" ? <div /> : null}
+
+                  <div className="relative z-10 flex justify-center">
+                    <div
+                      className="h-4 w-4 rounded-full border-2 bg-white"
+                      style={{
+                        borderColor: entry.accentColor || data.nodeColor || "#2563EB",
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    {renderEntryCard(entry, index)}
+                  </div>
+
+                  {isAlternating && side === "left" ? <div /> : null}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function renderFrame(
   block: Extract<MicrositeBlock, { type: "frame" }>,
   onDownloadFrame?: (block: Extract<MicrositeBlock, { type: "frame" }>) => void,
@@ -9498,6 +9734,9 @@ case "cta":
 
     case "countdown":
       return renderCountdown(block, designKey, serverNow);
+
+    case "timeline":
+      return renderTimeline(block, designKey);
 
     case "audio":
       return renderAudio(block);
