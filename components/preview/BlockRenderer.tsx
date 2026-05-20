@@ -2359,7 +2359,7 @@ const renderJourneyPath = () => {
         style={{
           width: `${cardWidth}px`,
           maxWidth: "100%",
-          backgroundColor: data.cardBackground || "#FFFFFF",
+          backgroundColor: entry.cardBackground || data.cardBackground || "#FFFFFF",
           borderColor: accentColor,
           borderRadius:
             typeof data.borderRadius === "number"

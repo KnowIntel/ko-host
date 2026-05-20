@@ -1775,6 +1775,7 @@ const showTextControls =
   selectedBlock?.type === "video" ||
   selectedBlock?.type === "rich_text" ||
   selectedBlock?.type === "countdown" ||
+  selectedBlock?.type === "timeline" ||
   selectedBlock?.type === "cart" ||
   selectedBlock?.type === "checkout" ||
   selectedBlock?.type === "listing" ||
@@ -1808,6 +1809,7 @@ const showAppearanceControls =
   selectedBlock?.type === "video" ||
   selectedBlock?.type === "rich_text" ||
   selectedBlock?.type === "countdown" ||
+  selectedBlock?.type === "timeline" ||
   selectedBlock?.type === "highlight";
 
 const showBorderWidthRadiusControls =
@@ -1831,6 +1833,7 @@ const showBorderWidthRadiusControls =
   selectedBlock?.type === "video" ||
   selectedBlock?.type === "rich_text" ||
   selectedBlock?.type === "countdown" ||
+  selectedBlock?.type === "timeline" ||
   selectedBlock?.type === "highlight";
 
   const selectedTextValue = getSelectedTextValue(draft, selectedContext);
@@ -4142,9 +4145,24 @@ function clearLinksBackgroundColor() {
   }));
 }
 
-  function applyAppearancePatch(patch: AppearancePatch) {
-    setDraft((prev) => applyAppearancePatchToSelection(prev, selection, patch));
+function applyAppearancePatch(patch: AppearancePatch) {
+  if (selectedBlock?.type === "timeline") {
+    updateSelectedBlock((block) =>
+      block.type !== "timeline"
+        ? block
+        : {
+            ...block,
+            appearance: {
+              ...block.appearance,
+              ...patch,
+            },
+          },
+    );
+    return;
   }
+
+  setDraft((prev) => applyAppearancePatchToSelection(prev, selection, patch));
+}
 
 function applyPageTextBackgroundColor(value: string) {
   if (!selectedPageAppearanceKey) return;
@@ -12265,9 +12283,35 @@ selectedContext.kind === "textFx"
   </button>
 </div>
 
-            <div className="mt-3 grid grid-cols-2 gap-3">
-              <div>
-                <div className={inspectorLabelClass()}>Accent</div>
+<div className="mt-3">
+  <div className={inspectorLabelClass()}>Card Fill Color</div>
+  <input
+    type="color"
+    value={(entry as any).cardBackground ?? selectedBlock.data.cardBackground ?? "#FFFFFF"}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "timeline"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                entries: block.data.entries.map((item) =>
+                  item.id === entry.id
+                    ? { ...item, cardBackground: e.target.value }
+                    : item,
+                ),
+              },
+            },
+      )
+    }
+    className="h-10 w-full rounded-lg border border-neutral-200 bg-white"
+  />
+</div>
+
+<div className="mt-3 grid grid-cols-2 gap-3">
+  <div>
+    <div className={inspectorLabelClass()}>Accent</div>
                 <input
                   type="color"
                   value={entry.accentColor ?? "#2563EB"}
@@ -12430,6 +12474,7 @@ selectedContext.kind === "textFx"
                           icon: "/media-icons/star.svg",
                           imageShape: "circle",
                           accentColor: block.data.nodeColor ?? "#2563EB",
+                          cardBackground: block.data.cardBackground ?? "#FFFFFF",
                           alignment: "auto",
                           animation: "fade",
                           ctaLabel: "",
