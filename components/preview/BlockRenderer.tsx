@@ -2348,17 +2348,25 @@ const renderJourneyPath = () => {
   const renderEntryCard = (entry: any, index: number) => {
     const accentColor = entry.accentColor || data.nodeColor || "#2563EB";
 
-    return (
-      <div
-        key={entry.id || index}
-        className={[
+const placementOffset =
+  entry.useDefaultPlacement === false &&
+  typeof entry.placementOffset === "number" &&
+  Number.isFinite(entry.placementOffset)
+    ? Math.max(-160, Math.min(160, entry.placementOffset))
+    : 0;
+
+return (
+  <div
+    key={entry.id || index}
+    className={[
           "relative min-w-0 border p-4",
           data.shadow !== false ? "shadow-md" : "",
           isMemory ? "bg-white/90" : "",
         ].join(" ")}
-        style={{
-          width: `${cardWidth}px`,
-          maxWidth: "100%",
+style={{
+  width: `${cardWidth}px`,
+  maxWidth: "100%",
+  transform: placementOffset ? `translateY(${placementOffset}px)` : undefined,
           backgroundColor: entry.cardBackground || data.cardBackground || "#FFFFFF",
           borderColor: accentColor,
           borderRadius:

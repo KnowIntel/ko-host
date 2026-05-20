@@ -12210,30 +12210,107 @@ selectedContext.kind === "textFx"
               />
             </div>
 
-            <div className="mt-3">
-              <div className={inspectorLabelClass()}>Description</div>
-              <textarea
-                value={entry.description ?? ""}
-                onChange={(e) =>
-                  updateSelectedBlock((block) =>
-                    block.type !== "timeline"
-                      ? block
-                      : {
-                          ...block,
-                          data: {
-                            ...block.data,
-                            entries: block.data.entries.map((item) =>
-                              item.id === entry.id
-                                ? { ...item, description: e.target.value }
-                                : item,
-                            ),
-                          },
-                        },
-                  )
-                }
-                className={inspectorTextareaClass()}
-              />
-            </div>
+<div className="mt-3">
+  <div className={inspectorLabelClass()}>Description</div>
+  <textarea
+    value={entry.description ?? ""}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "timeline"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                entries: block.data.entries.map((item) =>
+                  item.id === entry.id
+                    ? { ...item, description: e.target.value }
+                    : item,
+                ),
+              },
+            },
+      )
+    }
+    className={inspectorTextareaClass()}
+  />
+</div>
+
+{selectedBlock.data.styleVariant !== "classic" &&
+selectedBlock.data.styleVariant !== "alternating" ? (
+  <div className="mt-3 rounded-xl border border-neutral-200 bg-white p-3">
+    <div className={inspectorLabelClass()}>Placement</div>
+
+    <label className="mt-2 flex items-center gap-3 text-sm text-neutral-700">
+      <input
+        type="checkbox"
+        checked={(entry as any).useDefaultPlacement !== false}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "timeline"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    entries: block.data.entries.map((item) =>
+                      item.id === entry.id
+                        ? {
+                            ...item,
+                            useDefaultPlacement: e.target.checked,
+                            placementOffset: e.target.checked
+                              ? 0
+                              : ((item as any).placementOffset ?? 0),
+                          }
+                        : item,
+                    ),
+                  },
+                },
+          )
+        }
+      />
+      Default Alignment
+    </label>
+
+    <div className="mt-3">
+      <div className="mb-1 flex items-center justify-between">
+        <div className={inspectorLabelClass()}>Height Placement</div>
+        <div className="text-xs text-neutral-500">
+          {Number((entry as any).placementOffset ?? 0)}px
+        </div>
+      </div>
+
+      <input
+        type="range"
+        min={-160}
+        max={160}
+        step={5}
+        value={Number((entry as any).placementOffset ?? 0)}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "timeline"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    entries: block.data.entries.map((item) =>
+                      item.id === entry.id
+                        ? {
+                            ...item,
+                            useDefaultPlacement: false,
+                            placementOffset: Number(e.target.value),
+                          }
+                        : item,
+                    ),
+                  },
+                },
+          )
+        }
+        className="w-full"
+      />
+    </div>
+  </div>
+) : null}
             <div className="mt-3">
   <button
     type="button"
@@ -12477,6 +12554,8 @@ selectedContext.kind === "textFx"
                           cardBackground: block.data.cardBackground ?? "#FFFFFF",
                           alignment: "auto",
                           animation: "fade",
+                          useDefaultPlacement: true,
+                          placementOffset: 0,
                           ctaLabel: "",
                           ctaUrl: "",
                         },
