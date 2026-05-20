@@ -2202,10 +2202,16 @@ function renderTimeline(
       ? data.spacing
       : 24;
 
-  const cardWidth =
-    typeof data.cardWidth === "number" && Number.isFinite(data.cardWidth)
-      ? Math.max(160, Math.min(520, data.cardWidth))
-      : 260;
+const cardWidth =
+  typeof data.cardWidth === "number" && Number.isFinite(data.cardWidth)
+    ? Math.max(80, Math.min(520, data.cardWidth))
+    : 260;
+
+const nodeSize = 16;
+const connectorThickness =
+  typeof data.connectorThickness === "number" && Number.isFinite(data.connectorThickness)
+    ? Math.max(1, Math.min(24, data.connectorThickness))
+    : 3;
 
   const connectorBorderStyle =
     data.connectorStyle === "dashed"
@@ -2268,7 +2274,7 @@ function renderTimeline(
             imageShapeClass(entry.imageShape),
           ].join(" ")}
           style={{
-            borderColor: entry.accentColor || data.nodeColor || "#2563EB",
+            borderColor: data.nodeColor || entry.accentColor || "#2563EB",
           }}
         >
           <img src={entry.icon} alt="" className="h-6 w-6 object-contain" />
@@ -2291,7 +2297,7 @@ function renderTimeline(
           isMemory ? "bg-white/90" : "",
         ].join(" ")}
         style={{
-          width: isHorizontal || isMemory ? `${cardWidth}px` : "100%",
+          width: `${cardWidth}px`,
           maxWidth: "100%",
           backgroundColor: data.cardBackground || "#FFFFFF",
           borderColor: accentColor,
@@ -2372,10 +2378,7 @@ function renderTimeline(
               style={{
                 borderColor: data.lineColor || "#CBD5E1",
                 borderTopStyle: connectorBorderStyle,
-                borderTopWidth:
-                  typeof data.connectorThickness === "number"
-                    ? data.connectorThickness
-                    : 3,
+                borderTopWidth: connectorThickness,
               }}
             />
           ) : null}
@@ -2386,7 +2389,7 @@ function renderTimeline(
                 <div
                   className="absolute top-3 h-4 w-4 rounded-full border-2 bg-white"
                   style={{
-                    borderColor: entry.accentColor || data.nodeColor || "#2563EB",
+                    borderColor: data.nodeColor || entry.accentColor || "#2563EB",
                   }}
                 />
                 {renderEntryCard(entry, index)}
@@ -2411,15 +2414,13 @@ function renderTimeline(
           {showConnector ? (
             <div
               className="absolute bottom-0 top-0 w-0 border-l"
-              style={{
-                left: isAlternating || isJourney ? "50%" : "20px",
-                borderColor: data.lineColor || "#CBD5E1",
-                borderLeftStyle: connectorBorderStyle,
-                borderLeftWidth:
-                  typeof data.connectorThickness === "number"
-                    ? data.connectorThickness
-                    : 3,
-              }}
+style={{
+  left: isAlternating || isJourney ? "50%" : "20px",
+  transform: "translateX(-50%)",
+  borderColor: data.lineColor || "#CBD5E1",
+  borderLeftStyle: connectorBorderStyle,
+  borderLeftWidth: connectorThickness,
+}}
             />
           ) : null}
 
@@ -2449,7 +2450,7 @@ function renderTimeline(
                       <div
                         className="h-4 w-4 rounded-full border-2 bg-white"
                         style={{
-                          borderColor: entry.accentColor || data.nodeColor || "#2563EB",
+                          borderColor: data.nodeColor || entry.accentColor || "#2563EB",
                         }}
                       />
                     </div>
@@ -2470,7 +2471,7 @@ function renderTimeline(
                     <div
                       className="h-4 w-4 rounded-full border-2 bg-white"
                       style={{
-                        borderColor: entry.accentColor || data.nodeColor || "#2563EB",
+                        borderColor: data.nodeColor || entry.accentColor || "#2563EB",
                       }}
                     />
                   </div>
