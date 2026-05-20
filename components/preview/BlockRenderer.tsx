@@ -2459,22 +2459,35 @@ const connectorThickness =
 
 const journeyOffset = undefined;
 if (isJourney) {
-  const row = Math.floor(index / 2);
-  const isRight = row % 2 === 0;
+  const stopPattern = [
+    { justify: "justify-start", pad: "pl-4", nodeLeft: "6%" },
+    { justify: "justify-center", pad: "", nodeLeft: "50%" },
+    { justify: "justify-end", pad: "pr-4", nodeRight: "6%" },
+    { justify: "justify-end", pad: "pr-4", nodeRight: "6%" },
+    { justify: "justify-center", pad: "", nodeLeft: "50%" },
+    { justify: "justify-start", pad: "pl-4", nodeLeft: "6%" },
+  ] as const;
+
+  const stop = stopPattern[index % stopPattern.length];
 
   return (
     <div
       key={entry.id || index}
       className={[
         "relative flex",
-        isRight ? "justify-end pr-4" : "justify-start pl-4",
+        stop.justify,
+        stop.pad,
       ].join(" ")}
     >
       <div
-        className="absolute top-5 z-10 h-4 w-4 rounded-full border-2 bg-white"
+        className="absolute top-5 z-10 h-4 w-4 -translate-x-1/2 rounded-full border-2 bg-white"
         style={{
-          left: isRight ? undefined : "6%",
-          right: isRight ? "6%" : undefined,
+          left: "nodeLeft" in stop ? stop.nodeLeft : undefined,
+          right: "nodeRight" in stop ? stop.nodeRight : undefined,
+          transform:
+            "nodeRight" in stop
+              ? "translateX(50%)"
+              : "translateX(-50%)",
           borderColor: data.nodeColor || entry.accentColor || "#2563EB",
         }}
       />
