@@ -5180,10 +5180,34 @@ async function copySelectedBlockJsonToClipboard() {
 
   setCopiedBlockPayload(copiedBlock);
 
-  const payload = {
-    title: `${selectedBlock.type} copied block`,
-    blocks: [copiedBlock],
-  };
+const payload = {
+  title: `${selectedBlock.type} copied block`,
+  blocks: [copiedBlock],
+  subtext: "",
+  subtitle: "",
+  pageColor: "#ffffff",
+  pageScale: 85,
+  description: "",
+  pageElements: {
+    title: {
+      zIndex: 1,
+      colSpan: 12,
+      rowSpan: 1.5,
+      colStart: 1,
+      rowStart: 1,
+    },
+  },
+  pageBackground: "#ffffff",
+  pageVisibility: {
+    title: false,
+    subtext: false,
+    subtitle: false,
+    description: false,
+  },
+  pageBackgroundImage: "",
+  pageBlockAppearance: {},
+  pageBackgroundImageFit: "zoom",
+};
 
   const text = JSON.stringify(payload, null, 2);
 
@@ -5195,9 +5219,9 @@ async function copySelectedBlockJsonToClipboard() {
 
   window.localStorage.setItem("kht:copied-block-json", text);
 
-  setCopiedBlockMessage(
-    `${selectedBlock.type} copied to clipboard... Press "CTRL+V" to paste it to the canvas.`,
-  );
+setCopiedBlockMessage(
+  `${selectedBlock.type} copied to clipboard... Press "CTRL+V" to paste it to the canvas.`,
+);
 }
 
 async function pasteCopiedBlockJsonFromClipboard() {
