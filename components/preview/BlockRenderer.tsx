@@ -2495,10 +2495,10 @@ style={{
             />
           ) : null}
 
-          <div
-            className="relative flex w-full justify-between overflow-x-auto pb-2"
-            style={{ gap: `${spacing}px` }}
-          >
+<div
+  className="relative flex w-full justify-evenly overflow-x-auto pb-2"
+  style={{ gap: `${spacing}px` }}
+>
             {orderedEntries.map((entry: any, index: number) => (
               <div
   key={entry.id || index}
