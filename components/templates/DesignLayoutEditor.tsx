@@ -4909,7 +4909,7 @@ async function uploadDroppedGalleryFiles(
 }
 
 
-async function uploadImageToSelectedBlock(blockId: string) {
+async function uploadImageToSelectedBlock(blockId: string, timelineEntryId?: string) {
   await openImagePicker({
     onSelect: async (files) => {
       const file = files[0];
@@ -4968,6 +4968,29 @@ async function uploadImageToSelectedBlock(blockId: string) {
                   imageOriginalSizeBytes: uploaded.imageOriginalSizeBytes,
                   imageMimeType: uploaded.imageMimeType,
                 },
+              },
+            };
+          }
+
+          if (block.type === "timeline" && timelineEntryId) {
+            return {
+              ...block,
+              data: {
+                ...block.data,
+                entries: block.data.entries.map((entry) =>
+                  entry.id === timelineEntryId
+                    ? {
+                        ...entry,
+                        imageUrl: uploaded.url,
+                        imageStoragePath: uploaded.storagePath,
+                        imageSizeBytes: uploaded.imageSizeBytes,
+                        imageOriginalSizeBytes:
+                          uploaded.imageOriginalSizeBytes,
+                        imageMimeType: uploaded.imageMimeType,
+                        icon: "/media-icons/star.svg",
+                      }
+                    : entry,
+                ),
               },
             };
           }
@@ -12450,47 +12473,9 @@ selectedBlock.data.styleVariant !== "alternating" ? (
   <button
     type="button"
     className="mt-2 inline-flex h-11 w-full items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-sm text-neutral-700 hover:bg-neutral-50"
-    onClick={() => {
-      const input = document.createElement("input");
-
-      input.type = "file";
-      input.accept = "image/*";
-
-      input.onchange = async () => {
-        const file = input.files?.[0];
-        if (!file) return;
-
-        const reader = new FileReader();
-
-        reader.onload = () => {
-          const result = String(reader.result ?? "");
-
-          updateSelectedBlock((block) =>
-            block.type !== "timeline"
-              ? block
-              : {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    entries: block.data.entries.map((item) =>
-                      item.id === entry.id
-                        ? {
-                            ...item,
-                            imageUrl: result,
-                            icon: "/media-icons/star.svg",
-                          }
-                        : item,
-                    ),
-                  },
-                },
-          );
-        };
-
-        reader.readAsDataURL(file);
-      };
-
-      input.click();
-    }}
+onClick={() =>
+  void uploadImageToSelectedBlock(selectedBlock.id, entry.id)
+}
   >
     Select Image
   </button>
