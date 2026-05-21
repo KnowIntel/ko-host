@@ -1426,6 +1426,9 @@ const [countdownStyleTarget, setCountdownStyleTarget] =
 const [timelineStyleTarget, setTimelineStyleTarget] =
   useState<TimelineStyleTarget>("entryTitle");
 
+const [focusedTimelineEntryId, setFocusedTimelineEntryId] =
+  useState<string | null>(null);
+
 const [progressBarStyleTarget, setProgressBarStyleTarget] = useState<
   | "background"
   | "bar"
@@ -5953,6 +5956,45 @@ function openPreviewWindow() {
     setRound(0);
     setTimeLeft(duration);
   }, [block.id, duration]);
+
+  useEffect(() => {
+  function handleFocusTimelineEntry(event: Event) {
+    const customEvent = event as CustomEvent<{
+      blockId?: string;
+      entryId?: string;
+    }>;
+
+    const blockId = customEvent.detail?.blockId;
+    const entryId = customEvent.detail?.entryId;
+
+    if (!blockId || !entryId) return;
+
+    setSelection(selectionFromCanvasBlockId(blockId));
+    setFocusedTimelineEntryId(entryId);
+
+    requestAnimationFrame(() => {
+      document
+        .getElementById(`timeline-entry-inspector-${entryId}`)
+        ?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+    });
+  }
+
+  window.addEventListener(
+    "ko-host-focus-timeline-entry",
+    handleFocusTimelineEntry,
+  );
+
+  return () => {
+    window.removeEventListener(
+      "ko-host-focus-timeline-entry",
+      handleFocusTimelineEntry,
+    );
+  };
+}, []);
+
 
   useEffect(() => {
     if (duration <= 0) return;
@@ -12161,10 +12203,16 @@ selectedContext.kind === "textFx"
 
       <div className="mt-3 space-y-3">
         {(selectedBlock.data.entries ?? []).map((entry) => (
-          <div
-            key={entry.id}
-            className="rounded-xl border border-neutral-200 bg-neutral-50 p-3"
-          >
+<div
+  key={entry.id}
+  id={`timeline-entry-inspector-${entry.id}`}
+  className={[
+    "rounded-xl border p-3 transition",
+    focusedTimelineEntryId === entry.id
+      ? "border-blue-500 bg-blue-50 ring-2 ring-blue-200"
+      : "border-neutral-200 bg-neutral-50",
+  ].join(" ")}
+>
             <div className={inspectorLabelClass()}>Date / Year</div>
             <input
               type="text"

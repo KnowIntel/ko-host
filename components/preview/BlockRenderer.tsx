@@ -2374,9 +2374,21 @@ const renderEntryCard = (entry: any, index: number) => {
     const isStoryCard = cardLayout === "story";
 
 return (
-  <div
-    key={entry.id || index}
-    className={[
+<div
+  key={entry.id || index}
+  onClick={(e) => {
+    e.stopPropagation();
+
+    window.dispatchEvent(
+      new CustomEvent("ko-host-focus-timeline-entry", {
+        detail: {
+          blockId: block.id,
+          entryId: entry.id,
+        },
+      }),
+    );
+  }}
+  className={[
           "relative min-w-0 border p-4",
           data.shadow !== false ? "shadow-md" : "",
           isMemory ? "bg-white/90" : "",
