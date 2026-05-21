@@ -19732,9 +19732,15 @@ data: {
     </div>
 
     <div>
+<div className="mb-1 flex items-center justify-between">
   <div className="text-xs font-medium text-neutral-600">
     Horizontal Padding
   </div>
+
+  <div className="text-xs text-neutral-500">
+    {(selectedBlock.data as any).buttonPaddingX ?? 16}%
+  </div>
+</div>
 
   <input
     type="range"
@@ -19759,9 +19765,15 @@ data: {
 </div>
 
 <div>
+<div className="mb-1 flex items-center justify-between">
   <div className="text-xs font-medium text-neutral-600">
     Vertical Padding
   </div>
+
+  <div className="text-xs text-neutral-500">
+    {(selectedBlock.data as any).buttonPaddingY ?? 8}%
+  </div>
+</div>
 
   <input
     type="range"
@@ -19786,9 +19798,15 @@ data: {
 </div>
 
 <div>
+<div className="mb-1 flex items-center justify-between">
   <div className="text-xs font-medium text-neutral-600">
     Button Image Size
   </div>
+
+  <div className="text-xs text-neutral-500">
+    {(selectedBlock.data as any).buttonImageSize ?? 20}px
+  </div>
+</div>
 
   <input
     type="range"
@@ -19921,9 +19939,18 @@ data: {
     </label>
 
     <div>
-      <div className="text-xs font-medium text-neutral-600">
-        Horizontal Position
-      </div>
+<div className="mb-1 flex items-center justify-between">
+  <div className={inspectorLabelClass()}>
+    Horizontal Position
+  </div>
+
+  <div className="text-xs text-neutral-500">
+    {Math.round(
+      (((selectedBlock.data as any).positionX ?? 50) / 100) * 100,
+    )}
+    %
+  </div>
+</div>
       <input
         type="range"
         min={0}
@@ -19947,9 +19974,18 @@ data: {
     </div>
 
     <div>
-      <div className="text-xs font-medium text-neutral-600">
-        Vertical Position
-      </div>
+<div className="mb-1 flex items-center justify-between">
+  <div className={inspectorLabelClass()}>
+    Vertical Position
+  </div>
+
+  <div className="text-xs text-neutral-500">
+    {Math.round(
+      (((selectedBlock.data as any).positionY ?? 50) / 100) * 100,
+    )}
+    %
+  </div>
+</div>
       <input
         type="range"
         min={0}
