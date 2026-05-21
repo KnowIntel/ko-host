@@ -106,6 +106,7 @@ export type BuilderBlockType =
   | "spin_wheel"
   | "spreadsheet"
   | "timeline"
+  | "wave"
   | "label"
   | "text_fx"
   | "image"
@@ -174,6 +175,20 @@ export type TimelineEntry = {
   animation?: "fade" | "slide" | "pop" | "reveal" | "none";
   ctaLabel?: string;
   ctaUrl?: string;
+};
+
+export type WaveBlock = BaseBlock & {
+  type: "wave";
+  label: string;
+  data: {
+    lineColor: string;
+    lineThickness: number;
+    waveHeight: number;
+    waveFrequency: number;
+    opacity: number;
+    styleVariant: "gentle" | "ribbon" | "organic" | "double";
+    flipVertical: boolean;
+  };
 };
 
 export type TimelineBlock = BaseBlock & {
@@ -1125,6 +1140,7 @@ export type MicrositeBlock =
   | SpinWheelBlock
   | SpreadsheetBlock
   | TimelineBlock
+  | WaveBlock
   | LabelBlock
   | TextFxBlock
   | ImageBlock
@@ -2508,6 +2524,32 @@ elementOrder: [
           },
         },
       };
+
+case "wave":
+  return {
+    id: makeId("wave"),
+    type: "wave",
+    label: "Wave",
+    grid: {
+      ...grid,
+      colSpan: 6,
+      rowSpan: 1,
+    },
+    appearance: {
+      ...createDefaultBlockAppearance(),
+      backgroundColor: "transparent",
+      borderWidth: 0,
+    },
+    data: {
+      lineColor: "#C8A97E",
+      lineThickness: 2,
+      waveHeight: 40,
+      waveFrequency: 3,
+      opacity: 1,
+      styleVariant: "gentle",
+      flipVertical: false,
+    },
+  };
 
     case "shape":
       return {

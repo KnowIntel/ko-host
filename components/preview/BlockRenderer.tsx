@@ -835,6 +835,65 @@ function renderShape(block: Extract<MicrositeBlock, { type: "shape" }>) {
   );
 }
 
+function renderWave(block: Extract<MicrositeBlock, { type: "wave" }>) {
+  const data = block.data as any;
+  const appearanceStyle = getAppearanceStyle(block);
+
+  const lineColor = data.lineColor || "#C8A97E";
+  const lineThickness =
+    typeof data.lineThickness === "number" ? data.lineThickness : 2;
+  const waveHeight =
+    typeof data.waveHeight === "number" ? data.waveHeight : 40;
+  const waveFrequency =
+    typeof data.waveFrequency === "number" ? data.waveFrequency : 3;
+  const opacity =
+    typeof data.opacity === "number" ? data.opacity : 1;
+
+  const segments = Math.max(1, Math.min(8, Math.floor(waveFrequency)));
+  const segmentWidth = 720 / segments;
+
+  const path = Array.from({ length: segments })
+    .map((_, index) => {
+      const startX = index * segmentWidth;
+      const midX = startX + segmentWidth / 2;
+      const endX = startX + segmentWidth;
+
+      return `${index === 0 ? `M ${startX} 50` : ""} C ${
+        startX + segmentWidth * 0.25
+      } ${50 - waveHeight}, ${midX - segmentWidth * 0.25} ${
+        50 + waveHeight
+      }, ${midX} 50 S ${endX - segmentWidth * 0.25} ${
+        50 - waveHeight
+      }, ${endX} 50`;
+    })
+    .join(" ");
+
+  return (
+    <div
+      className="flex h-full w-full items-center justify-center overflow-hidden"
+      style={appearanceStyle}
+    >
+      <svg
+        viewBox="0 0 720 100"
+        preserveAspectRatio="none"
+        className="h-full w-full"
+        style={{
+          opacity,
+          transform: data.flipVertical ? "scaleY(-1)" : undefined,
+        }}
+      >
+        <path
+          d={path}
+          fill="none"
+          stroke={lineColor}
+          strokeWidth={lineThickness}
+          strokeLinecap="round"
+        />
+      </svg>
+    </div>
+  );
+}
+
 function renderLabel(
   block: Extract<MicrositeBlock, { type: "label" }>,
   designKey?: string,
@@ -2369,11 +2428,7 @@ return null;
     ? Math.max(-160, Math.min(160, entry.placementOffset))
     : 0;
 
-const renderEntryCard = (
-  entry: any,
-  index: number,
-  fillSlot = false,
-) => {
+const renderEntryCard = (entry: any, index: number) => {
     const accentColor = entry.accentColor || data.nodeColor || "#2563EB";
     const cardLayout = data.cardLayout ?? "standard";
     const isSpotlightCard = cardLayout === "spotlight";
@@ -2393,8 +2448,8 @@ return (
           isMemory ? "bg-white/90" : "",
         ].join(" ")}
 style={{
-width: fillSlot ? "100%" : `${cardWidth}px`,
-maxWidth: fillSlot ? `${cardWidth}px` : "100%",
+width: `${cardWidth}px`,
+maxWidth: "100%",
   
           backgroundColor: entry.cardBackground || data.cardBackground || "#FFFFFF",
           borderColor: accentColor,
@@ -2500,16 +2555,13 @@ maxWidth: fillSlot ? `${cardWidth}px` : "100%",
           ) : null}
 
 <div
-  className="relative grid w-full overflow-x-auto pb-2"
-  style={{
-    gridTemplateColumns: `repeat(${orderedEntries.length}, minmax(0, 1fr))`,
-    columnGap: `${spacing}px`,
-  }}
+  className="relative flex overflow-x-auto pb-2"
+  style={{ gap: `${spacing}px` }}
 >
             {orderedEntries.map((entry: any, index: number) => (
               <div
   key={entry.id || index}
-  className="relative flex justify-center pt-10"
+  className="shrink-0 pt-10"
   style={{
     transform: getPlacementOffset(entry)
       ? `translateY(${getPlacementOffset(entry)}px)`
@@ -2517,12 +2569,12 @@ maxWidth: fillSlot ? `${cardWidth}px` : "100%",
   }}
 >
                 <div
-                  className="absolute left-1/2 top-3 h-4 w-4 -translate-x-1/2 rounded-full border-2 bg-white"
+                  className="absolute top-3 h-4 w-4 rounded-full border-2 bg-white"
                   style={{
                     borderColor: data.nodeColor || entry.accentColor || "#2563EB",
                   }}
                 />
-                {renderEntryCard(entry, index, true)}
+                {renderEntryCard(entry, index)}
               </div>
             ))}
           </div>
@@ -10026,6 +10078,8 @@ case "timeline":
       return renderFestiveBackground(block, designKey);
     case "shape":
       return renderShape(block);
+    case "wave":
+    return renderWave(block);
     case "highlight":
       return renderHighlight(block, designKey, micrositeId, micrositeSlug);
     case "rich_text":

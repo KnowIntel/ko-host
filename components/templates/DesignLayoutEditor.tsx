@@ -338,6 +338,7 @@ const CATEGORY_BUTTONS: Record<
     { kind: "shape", label: "Rectangle", type: "rectangle" },
     { kind: "shape", label: "Circle", type: "circle" },
     { kind: "shape", label: "Line", type: "line" },
+    { kind: "block", label: "Wave", type: "wave" },
     { kind: "block", label: "Frame", type: "frame" },
     { kind: "block", label: "Spacer", type: "padding" },
   ],
@@ -402,6 +403,7 @@ const TOOL_DESCRIPTIONS: Record<string, string> = {
   Rectangle: "Basic rectangular shape layer",
   Circle: "Basic circular shape layer",
   Line: "Straight divider or accent line",
+  Wave: "Curvy decorative divider line",
   Frame: "Canvas-only capture boundary",
   Spacer: "Adds empty vertical spacing",
 
@@ -1021,6 +1023,7 @@ function getToolGlyph(label: string) {
   if (label === "Rectangle") return "▭";
   if (label === "Circle") return "◯";
   if (label === "Line") return "—";
+  if (label === "Wave") return "〰";
   if (label === "Frame") return "▣";
   if (label === "Spacer") return "↕";
   if (label === "Poll") return "☑";
