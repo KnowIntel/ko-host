@@ -12342,10 +12342,12 @@ selectedBlock.data.styleVariant !== "alternating" ? (
     </div>
   </div>
 ) : null}
-            <div className="mt-3">
+<div className="mt-3 rounded-xl border border-neutral-200 bg-white p-3">
+  <div className={inspectorLabelClass()}>Image</div>
+
   <button
     type="button"
-    className="inline-flex h-11 w-full items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-sm text-neutral-700 hover:bg-neutral-50"
+    className="mt-2 inline-flex h-11 w-full items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-sm text-neutral-700 hover:bg-neutral-50"
     onClick={() => {
       const input = document.createElement("input");
 
@@ -12373,6 +12375,7 @@ selectedBlock.data.styleVariant !== "alternating" ? (
                         ? {
                             ...item,
                             imageUrl: result,
+                            icon: "/media-icons/star.svg",
                           }
                         : item,
                     ),
@@ -12389,6 +12392,76 @@ selectedBlock.data.styleVariant !== "alternating" ? (
   >
     Select Image
   </button>
+
+  {entry.imageUrl ? (
+    <button
+      type="button"
+      className="mt-2 inline-flex h-10 w-full items-center justify-center rounded-xl border border-neutral-300 bg-neutral-50 px-4 text-sm text-neutral-700 hover:bg-neutral-100"
+      onClick={() =>
+        updateSelectedBlock((block) =>
+          block.type !== "timeline"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  entries: block.data.entries.map((item) =>
+                    item.id === entry.id
+                      ? {
+                          ...item,
+                          imageUrl: "",
+                          icon: "/media-icons/star.svg",
+                          imageSize: 64,
+                        }
+                      : item,
+                  ),
+                },
+              },
+        )
+      }
+    >
+      Reset Image
+    </button>
+  ) : null}
+
+  <div className="mt-3">
+    <div className="mb-1 flex items-center justify-between">
+      <div className={inspectorLabelClass()}>Image Size</div>
+
+      <div className="text-xs text-neutral-500">
+        {Number((entry as any).imageSize ?? 64)}px
+      </div>
+    </div>
+
+    <input
+      type="range"
+      min={24}
+      max={160}
+      step={2}
+      value={Number((entry as any).imageSize ?? 64)}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "timeline"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  entries: block.data.entries.map((item) =>
+                    item.id === entry.id
+                      ? {
+                          ...item,
+                          imageSize: Number(e.target.value),
+                        }
+                      : item,
+                  ),
+                },
+              },
+        )
+      }
+      className="w-full"
+    />
+  </div>
 </div>
 
 <div className="mt-3">
@@ -12580,6 +12653,7 @@ selectedBlock.data.styleVariant !== "alternating" ? (
                           description: "Add a short description.",
                           imageUrl: "",
                           icon: "/media-icons/star.svg",
+                          imageSize: 64,
                           imageShape: "circle",
                           accentColor: block.data.nodeColor ?? "#2563EB",
                           cardBackground: block.data.cardBackground ?? "#FFFFFF",

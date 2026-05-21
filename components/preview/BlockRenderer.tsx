@@ -2303,47 +2303,62 @@ const renderJourneyPath = () => {
     }
   };
 
-  const renderMedia = (entry: any) => {
-    if (entry.imageShape === "none") return null;
+const renderMedia = (entry: any) => {
+  if (entry.imageShape === "none") return null;
 
-    if (entry.imageUrl) {
-      return (
-        <div
-          className={[
-            "h-16 w-16 shrink-0 overflow-hidden bg-neutral-100",
-            imageShapeClass(entry.imageShape),
-          ].join(" ")}
-        >
-          <img
-            src={entry.imageUrl}
-            alt=""
-            className={[
-              "h-full w-full object-cover",
-              entry.imageShape === "diamond" ? "-rotate-45 scale-150" : "",
-            ].join(" ")}
-          />
-        </div>
-      );
-    }
+  const imageSize =
+    typeof entry.imageSize === "number" && Number.isFinite(entry.imageSize)
+      ? Math.max(24, Math.min(160, entry.imageSize))
+      : 64;
 
-    if (entry.icon) {
-      return (
-        <div
-          className={[
-            "flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden border bg-white",
-            imageShapeClass(entry.imageShape),
-          ].join(" ")}
-          style={{
-            borderColor: data.nodeColor || entry.accentColor || "#2563EB",
-          }}
-        >
-          <img src={entry.icon} alt="" className="h-6 w-6 object-contain" />
-        </div>
-      );
-    }
+if (entry.imageUrl) {
+  return (
+    <div
+      className={[
+        "shrink-0 overflow-hidden bg-neutral-100",
+        imageShapeClass(entry.imageShape),
+      ].join(" ")}
+      style={{
+        width: `${imageSize}px`,
+        height: `${imageSize}px`,
+      }}
+    >
+      <img
+        src={entry.imageUrl}
+        alt=""
+        className={[
+          "h-full w-full object-cover",
+          entry.imageShape === "diamond" ? "-rotate-45 scale-150" : "",
+        ].join(" ")}
+      />
+    </div>
+  );
+}
 
-    return null;
-  };
+if (entry.icon) {
+  return (
+    <div
+      className={[
+        "flex shrink-0 items-center justify-center overflow-hidden border bg-white",
+        imageShapeClass(entry.imageShape),
+      ].join(" ")}
+      style={{
+        width: `${imageSize}px`,
+        height: `${imageSize}px`,
+        borderColor: data.nodeColor || entry.accentColor || "#2563EB",
+      }}
+    >
+      <img
+        src={entry.icon}
+        alt=""
+        className="h-1/2 w-1/2 object-contain"
+      />
+    </div>
+  );
+}
+
+return null;
+};
 
   const getPlacementOffset = (entry: any) =>
   entry.useDefaultPlacement === false &&

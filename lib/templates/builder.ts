@@ -167,6 +167,7 @@ export type TimelineEntry = {
   description?: string;
   imageUrl?: string;
   icon?: string;
+  imageSize?: number;
   imageShape?: "circle" | "rounded" | "square" | "diamond" | "hexagon" | "blob" | "none";
   accentColor?: string;
   alignment?: "auto" | "left" | "right" | "center";
@@ -1857,6 +1858,7 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
               description: "Add the first moment in your story.",
               imageUrl: "",
               icon: "/media-icons/star.svg",
+              imageSize: 64,
               imageShape: "circle",
               accentColor: "#2563EB",
               alignment: "auto",
@@ -1871,7 +1873,8 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
               subtitle: "A meaningful milestone",
               description: "Add another important moment here.",
               imageUrl: "",
-              icon: "/media-icons/heart.svg",
+              icon: "/media-icons/star.svg",
+              imageSize: 64,
               imageShape: "rounded",
               accentColor: "#EC4899",
               alignment: "auto",
