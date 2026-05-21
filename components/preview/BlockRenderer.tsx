@@ -2356,7 +2356,7 @@ const renderEntryCard = (entry: any, index: number) => {
     const accentColor = entry.accentColor || data.nodeColor || "#2563EB";
     const cardLayout = data.cardLayout ?? "standard";
     const isSpotlightCard = cardLayout === "spotlight";
-    const isCompactCard = cardLayout === "compact";
+    const isStoryCard = cardLayout === "story";
 
 return (
   <div
@@ -2381,16 +2381,20 @@ style={{
 <div
   className={[
     "min-w-0",
-    isSpotlightCard
+    isSpotlightCard || isStoryCard
       ? "flex flex-col items-center gap-3 text-center"
-      : isCompactCard
-        ? "flex items-start gap-2"
-        : "flex gap-3",
+      : "flex gap-3",
   ].join(" ")}
 >
-  {renderMedia(entry)}
+  {(isSpotlightCard || !isStoryCard) && renderMedia(entry)}
 
-  <div className={isSpotlightCard ? "min-w-0 w-full" : "min-w-0 flex-1"}>
+  <div
+    className={
+      isSpotlightCard || isStoryCard
+        ? "min-w-0 w-full"
+        : "min-w-0 flex-1"
+    }
+  >
             {entry.date ? (
               <div
                 className="mb-1 whitespace-normal break-words text-xs font-semibold uppercase tracking-[0.12em]"
@@ -2418,14 +2422,20 @@ style={{
               </div>
             ) : null}
 
-            {entry.description ? (
-              <div
-                className="mt-2 whitespace-normal break-words text-sm leading-relaxed"
-                style={descriptionStyle}
-              >
-                {entry.description}
-              </div>
-            ) : null}
+{isStoryCard ? (
+  <div className="mt-3 flex justify-center">
+    {renderMedia(entry)}
+  </div>
+) : null}
+
+{entry.description ? (
+  <div
+    className="mt-2 whitespace-normal break-words text-sm leading-relaxed"
+    style={descriptionStyle}
+  >
+    {entry.description}
+  </div>
+) : null}
 
             {entry.ctaLabel ? (
               <a
