@@ -19,6 +19,7 @@ import communityLayouts from "./templates/community_alert";
 import churchLayouts from "./templates/church_event";
 import graduationLayouts from "./templates/graduation";
 import petLayouts from "./templates/pet_adoption";
+import memoryLayouts from "./templates/memory_timeline";
 
 import blankLayout from "./layouts/blank";
 
@@ -43,6 +44,7 @@ const registry: Record<string, TemplateLayoutRegistry> = {
   church_event: churchLayouts,
   graduation: graduationLayouts,
   pet_adoption: petLayouts,
+  memory_timeline: memoryLayouts,
 
 };
 

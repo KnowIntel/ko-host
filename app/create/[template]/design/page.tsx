@@ -101,6 +101,9 @@ const draftPageCountByTemplateDesignKey: Record<string, number> = {
   "restaurant:deluxe": 1,
   "restaurant:hometown": 3,
 
+  "memory_timeline:timeless": 3,
+
+
 };
 
 const pageCount =
