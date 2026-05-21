@@ -328,6 +328,10 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Arrow Down Thin", type: "icon", iconName: "arrow-down-thin" },
     { kind: "block", label: "Arrow Left Thin", type: "icon", iconName: "arrow-left-thin" },
     { kind: "block", label: "Arrow Right Thin", type: "icon", iconName: "arrow-right-thin" },
+    { kind: "block", label: "Paper Airplane", type: "icon", iconName: "paper-airplane" },
+    { kind: "block", label: "Shield", type: "icon", iconName: "shield" },
+    { kind: "block", label: "Dog Paw", type: "icon", iconName: "dog-paw" },
+    { kind: "block", label: "City", type: "icon", iconName: "city" },
     { kind: "block", label: "Star", type: "icon", iconName: "star" },
     { kind: "block", label: "Heart", type: "icon", iconName: "heart" },
     { kind: "block", label: "Circle", type: "icon", iconName: "circle" },
@@ -1027,6 +1031,10 @@ function getToolGlyph(label: string) {
   if (label === "Graduate Cap") return "🎓";
   if (label === "Open Book") return "📖";
   if (label === "Closed Book") return "📕";
+  if (label === "Paper Airplane") return "🛩";
+  if (label === "Shield") return "🛡";
+  if (label === "Dog Paw") return "🐾";
+  if (label === "City") return "🏙";
   if (label === "Star") return "⭐";
   if (label === "Heart") return "❤";
   if (label === "Arrow Up Thick") return "⬆";
