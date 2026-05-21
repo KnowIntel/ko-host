@@ -2496,13 +2496,17 @@ style={{
           ) : null}
 
 <div
-  className="relative flex w-full justify-evenly overflow-x-auto pb-2"
-  style={{ gap: `${spacing}px` }}
+  className="relative grid w-full overflow-x-auto pb-2"
+  style={{
+    gridTemplateColumns: `repeat(${orderedEntries.length}, ${cardWidth}px)`,
+    justifyContent: "space-evenly",
+    columnGap: `${spacing}px`,
+  }}
 >
             {orderedEntries.map((entry: any, index: number) => (
               <div
   key={entry.id || index}
-  className="shrink-0 pt-10"
+  className="relative pt-10"
   style={{
     transform: getPlacementOffset(entry)
       ? `translateY(${getPlacementOffset(entry)}px)`
