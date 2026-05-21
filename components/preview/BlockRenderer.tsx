@@ -2369,7 +2369,11 @@ return null;
     ? Math.max(-160, Math.min(160, entry.placementOffset))
     : 0;
 
-const renderEntryCard = (entry: any, index: number) => {
+const renderEntryCard = (
+  entry: any,
+  index: number,
+  fillSlot = false,
+) => {
     const accentColor = entry.accentColor || data.nodeColor || "#2563EB";
     const cardLayout = data.cardLayout ?? "standard";
     const isSpotlightCard = cardLayout === "spotlight";
@@ -2389,8 +2393,8 @@ return (
           isMemory ? "bg-white/90" : "",
         ].join(" ")}
 style={{
-  width: `${cardWidth}px`,
-  maxWidth: "100%",
+width: fillSlot ? "100%" : `${cardWidth}px`,
+maxWidth: fillSlot ? `${cardWidth}px` : "100%",
   
           backgroundColor: entry.cardBackground || data.cardBackground || "#FFFFFF",
           borderColor: accentColor,
@@ -2498,7 +2502,7 @@ style={{
 <div
   className="relative grid w-full overflow-x-auto pb-2"
   style={{
-    gridTemplateColumns: `repeat(${orderedEntries.length}, minmax(${cardWidth}px, 1fr))`,
+    gridTemplateColumns: `repeat(${orderedEntries.length}, minmax(0, 1fr))`,
     columnGap: `${spacing}px`,
   }}
 >
@@ -2513,12 +2517,12 @@ style={{
   }}
 >
                 <div
-                  className="absolute top-3 h-4 w-4 rounded-full border-2 bg-white"
+                  className="absolute left-1/2 top-3 h-4 w-4 -translate-x-1/2 rounded-full border-2 bg-white"
                   style={{
                     borderColor: data.nodeColor || entry.accentColor || "#2563EB",
                   }}
                 />
-                {renderEntryCard(entry, index)}
+                {renderEntryCard(entry, index, true)}
               </div>
             ))}
           </div>
