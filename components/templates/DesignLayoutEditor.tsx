@@ -11883,7 +11883,7 @@ selectedContext.kind === "textFx"
                 cardLayout: e.target.value as
                   | "standard"
                   | "spotlight"
-                  | "compact",
+                  | "story",
               },
             },
       )
