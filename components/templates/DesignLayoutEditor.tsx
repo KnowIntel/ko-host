@@ -7470,10 +7470,23 @@ borderRadius:
     if (block.type === "timeline") {
       return (
         <div className="h-full w-full">
-          <BlockRenderer
-            block={block}
-            designKey={designKey}
-          />
+<BlockRenderer
+  block={block}
+  designKey={designKey}
+  onFocusTimelineEntry={(blockId, entryId) => {
+    setSelection(selectionFromCanvasBlockId(blockId));
+    setFocusedTimelineEntryId(entryId);
+
+    requestAnimationFrame(() => {
+      document
+        .getElementById(`timeline-entry-inspector-${entryId}`)
+        ?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+    });
+  }}
+/>
         </div>
       );
     }

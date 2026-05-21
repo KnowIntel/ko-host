@@ -95,6 +95,7 @@ type Props = {
   listingQuantities?: Record<string, number>;
   onChangeListingQuantity?: (listingId: string, nextQuantity: number) => void;
   onDownloadFrame?: (block: Extract<MicrositeBlock, { type: "frame" }>) => void;
+  onFocusTimelineEntry?: (blockId: string, entryId: string) => void;
 };
 
 type ThreadAttachment = {
@@ -2376,18 +2377,11 @@ const renderEntryCard = (entry: any, index: number) => {
 return (
 <div
   key={entry.id || index}
-onPointerDownCapture={(e) => {
-  e.stopPropagation();
+  onPointerDownCapture={(e) => {
+    e.stopPropagation();
 
-  window.dispatchEvent(
-    new CustomEvent("ko-host-focus-timeline-entry", {
-      detail: {
-        blockId: block.id,
-        entryId: entry.id,
-      },
-    }),
-  );
-}}
+    onFocusTimelineEntry?.(block.id, entry.id);
+  }}
   className={[
           "relative min-w-0 border p-4",
           data.shadow !== false ? "shadow-md" : "",
@@ -9852,6 +9846,7 @@ export default function BlockRenderer({
   listingQuantities,
   onChangeListingQuantity,
   onDownloadFrame,
+  onFocusTimelineEntry,
 }: Props) {
   const safeCartItems = cartItems ?? [];
   const safeCartSubtotal = cartSubtotal ?? 0;
