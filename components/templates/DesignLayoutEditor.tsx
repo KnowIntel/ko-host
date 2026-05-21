@@ -7467,6 +7467,17 @@ borderRadius:
       );
     }
 
+    if (block.type === "timeline") {
+      return (
+        <div className="h-full w-full">
+          <BlockRenderer
+            block={block}
+            designKey={designKey}
+          />
+        </div>
+      );
+    }
+
     return <BlockRenderer block={block} designKey={designKey} />;
   }
 
