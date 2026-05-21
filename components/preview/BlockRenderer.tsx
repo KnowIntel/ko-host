@@ -2354,6 +2354,9 @@ const renderJourneyPath = () => {
 
 const renderEntryCard = (entry: any, index: number) => {
     const accentColor = entry.accentColor || data.nodeColor || "#2563EB";
+    const cardLayout = data.cardLayout ?? "standard";
+    const isSpotlightCard = cardLayout === "spotlight";
+    const isCompactCard = cardLayout === "compact";
 
 return (
   <div
@@ -2375,10 +2378,19 @@ style={{
               : "20px",
         }}
       >
-        <div className="flex min-w-0 gap-3">
-          {renderMedia(entry)}
+<div
+  className={[
+    "min-w-0",
+    isSpotlightCard
+      ? "flex flex-col items-center gap-3 text-center"
+      : isCompactCard
+        ? "flex items-start gap-2"
+        : "flex gap-3",
+  ].join(" ")}
+>
+  {renderMedia(entry)}
 
-          <div className="min-w-0 flex-1">
+  <div className={isSpotlightCard ? "min-w-0 w-full" : "min-w-0 flex-1"}>
             {entry.date ? (
               <div
                 className="mb-1 whitespace-normal break-words text-xs font-semibold uppercase tracking-[0.12em]"

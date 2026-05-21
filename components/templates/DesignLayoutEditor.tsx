@@ -332,6 +332,7 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Phone", type: "icon", iconName: "phone" },
     { kind: "block", label: "Open Quote", type: "icon", iconName: "open-quote" },
     { kind: "block", label: "Close Quote", type: "icon", iconName: "close-quote" },
+    { kind: "block", label: "Photo", type: "icon", iconName: "photo-placeholder" },
   ],
   Layout: [
     { kind: "shape", label: "Rectangle", type: "rectangle" },
@@ -11838,32 +11839,62 @@ selectedContext.kind === "textFx"
       />
     </div>
 
-    <div className="mt-4">
-      <div className={inspectorLabelClass()}>Style Variant</div>
-      <select
-        value={selectedBlock.data.styleVariant ?? "classic"}
-        onChange={(e) =>
-          updateSelectedBlock((block) =>
-            block.type !== "timeline"
-              ? block
-              : {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    styleVariant: e.target.value as any,
-                  },
-                },
-          )
-        }
-        className={inspectorInputClass()}
-      >
-        <option value="classic">Classic Vertical</option>
-        <option value="alternating">Alternating Vertical</option>
-        <option value="horizontal">Horizontal Timeline</option>
-        <option value="journey">Curved Journey</option>
-        <option value="memory">Memory Cards</option>
-      </select>
-    </div>
+<div className="mt-4">
+  <div className={inspectorLabelClass()}>Style Variant</div>
+
+  <select
+    value={selectedBlock.data.styleVariant ?? "classic"}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "timeline"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                styleVariant: e.target.value as any,
+              },
+            },
+      )
+    }
+    className={inspectorInputClass()}
+  >
+    <option value="classic">Classic Vertical</option>
+    <option value="alternating">Alternating Vertical</option>
+    <option value="horizontal">Horizontal Timeline</option>
+    <option value="journey">Curved Journey</option>
+    <option value="memory">Memory Cards</option>
+  </select>
+</div>
+
+<div className="mt-4">
+  <div className={inspectorLabelClass()}>Card Layout</div>
+
+  <select
+    value={(selectedBlock.data as any).cardLayout ?? "standard"}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "timeline"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                cardLayout: e.target.value as
+                  | "standard"
+                  | "spotlight"
+                  | "compact",
+              },
+            },
+      )
+    }
+    className={inspectorInputClass()}
+  >
+    <option value="standard">Standard</option>
+    <option value="spotlight">Spotlight</option>
+    <option value="compact">Compact</option>
+  </select>
+</div>
 
     <div className="mt-4 grid grid-cols-2 gap-3">
       <div>
