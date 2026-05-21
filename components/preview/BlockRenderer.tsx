@@ -2587,9 +2587,18 @@ maxWidth: "100%",
             gap: `${spacing}px`,
           }}
         >
-          {orderedEntries.map((entry: any, index: number) =>
-            renderEntryCard(entry, index),
-          )}
+{orderedEntries.map((entry: any, index: number) => (
+  <div
+    key={entry.id || index}
+    style={{
+      transform: getPlacementOffset(entry)
+        ? `translateY(${getPlacementOffset(entry)}px)`
+        : undefined,
+    }}
+  >
+    {renderEntryCard(entry, index)}
+  </div>
+))}
         </div>
       ) : (
         <div className="relative">
