@@ -750,6 +750,7 @@ export type GalleryBlock = BaseBlock & {
     frameColor?: string;
 
     addCaption?: boolean;
+    captionStyle?: TextStyle;
   };
 };
 
@@ -2420,7 +2421,22 @@ elementOrder: [
         data: {
           columns: 2,
           rows: undefined,
+
           images: [],
+
+          columnGap: 8,
+          rowGap: 8,
+
+          frameThickness: 0,
+          frameColor: "#ffffff",
+
+          addCaption: false,
+
+          captionStyle: {
+            fontSize: 16,
+            color: "#111827",
+            align: "left",
+          },
         },
       };
 
@@ -3382,6 +3398,30 @@ export function sanitizeBuilderDraft(input: unknown): BuilderDraft {
                   : 15,
             },
           },
+        },
+      };
+    }
+
+    if (block.type === "gallery") {
+      return {
+        ...block,
+        grid: normalizeGridValue(block.grid, fallbackGrid),
+        data: {
+          ...block.data,
+          columns: Math.max(1, Math.min(12, Number(block.data.columns) || 2)),
+          rows:
+            typeof block.data.rows === "number" && Number.isFinite(block.data.rows)
+              ? Math.max(1, Math.min(12, Math.floor(block.data.rows)))
+              : block.data.rows,
+          images: Array.isArray(block.data.images) ? block.data.images : [],
+          columnGap: Math.max(0, Number((block.data as any).columnGap ?? 8)),
+          rowGap: Math.max(0, Number((block.data as any).rowGap ?? 8)),
+          frameThickness: Math.max(
+            0,
+            Number((block.data as any).frameThickness ?? 0),
+          ),
+          frameColor: String((block.data as any).frameColor ?? "#ffffff"),
+          addCaption: Boolean((block.data as any).addCaption),
         },
       };
     }

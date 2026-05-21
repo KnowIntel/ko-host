@@ -1484,7 +1484,14 @@ const [faqStyleTarget, setFaqStyleTarget] = useState<
   "form" | "section" | "question" | "answer"
 >("form");
 
+
 const selectedStyle =
+  selectedBlockFromDraft?.type === "gallery"
+    ? (((selectedBlockFromDraft.data.images?.[0] as any)?.captionStyle ??
+        (selectedBlockFromDraft.data as any).captionStyle ??
+        (selectedBlockFromDraft.data as any).style ??
+        {}) as TextStyle)
+    :
   selectedBlockFromDraft?.type === "rsvp"
     ? selectedRsvpElementKey === "form"
       ? selectedBlockFromDraft.data.style ?? {}
@@ -1570,7 +1577,7 @@ const selectedStyle =
               selectedBlockFromDraft?.type === "cta" ||
               selectedBlockFromDraft?.type === "thread" ||
               selectedBlockFromDraft?.type === "image" ||
-              selectedBlockFromDraft?.type === "gallery" ||
+              (selectedBlockFromDraft as any)?.type === "gallery"
               selectedBlockFromDraft?.type === "image_carousel" ||
               selectedBlockFromDraft?.type === "progress_bar" ||
               selectedBlockFromDraft?.type === "link_hub" ||
@@ -2753,6 +2760,12 @@ function applyTextColor(value: string) {
     return;
   }
 
+  if (selectedBlock?.type === "gallery") {
+    applyStylePatch({ color: value });
+    pushRecentColor(value);
+    return;
+  }
+
   applyStylePatch({ color: value });
   pushRecentColor(value);
 }
@@ -3545,26 +3558,48 @@ if (
 ) {
   setDraft((prev) => ({
     ...prev,
-    blocks: prev.blocks.map((block) =>
-      block.id === selectedBlock.id &&
-      (
-        block.type === "image" ||
-        block.type === "gallery" ||
-        block.type === "image_carousel" ||
-        block.type === "video"
-      )
-        ? {
-            ...block,
-            data: {
-              ...block.data,
+    blocks: prev.blocks.map((block) => {
+      if (block.id !== selectedBlock.id) return block;
+
+      if (block.type === "gallery") {
+        return {
+          ...block,
+          data: {
+            ...block.data,
+            captionStyle: {
+              ...((block.data as any).captionStyle ?? {}),
+              ...patch,
+            },
+            images: block.data.images.map((image) => ({
+              ...image,
               captionStyle: {
-                ...((block.data as any).captionStyle ?? {}),
+                ...((image as any).captionStyle ?? {}),
                 ...patch,
               },
-            } as any,
-          }
-        : block,
-    ),
+            })),
+          } as any,
+        };
+      }
+
+      if (
+        block.type === "image" ||
+        block.type === "image_carousel" ||
+        block.type === "video"
+      ) {
+        return {
+          ...block,
+          data: {
+            ...block.data,
+            captionStyle: {
+              ...((block.data as any).captionStyle ?? {}),
+              ...patch,
+            },
+          } as any,
+        };
+      }
+
+      return block;
+    }),
   }));
   return;
 }
@@ -8827,7 +8862,10 @@ const idsToExpand =
 ) : null}
 
 
-          <div className="mx-1 h-8 w-px shrink-0 bg-white/15" />
+          {(selectedBlockFromDraft as any)?.type !== "gallery" ||
+          Boolean((selectedBlockFromDraft as any)?.data?.addCaption) ? (
+            <>
+              <div className="mx-1 h-8 w-px shrink-0 bg-white/15" />
 
           <button
             type="button"
@@ -9055,6 +9093,8 @@ const idsToExpand =
               className="pointer-events-none object-contain"
             />
           </button>
+            </>
+          ) : null}
 
           {selectedBlock?.type === "links" ? (
             <>

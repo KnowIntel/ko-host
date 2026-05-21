@@ -2908,6 +2908,7 @@ function renderGalleryTile(
   showCaption = false,
   frameThickness = 0,
   frameColor = "#ffffff",
+  designKey?: string,
 ) {
   if (!image?.url) {
     return (
@@ -2952,7 +2953,7 @@ function renderGalleryTile(
       {showCaption && caption ? (
         <div
           className="shrink-0 px-2 py-1 text-xs text-neutral-700"
-          style={getContainerTextStyle(captionStyle)}
+          style={getContainerTextStyle(captionStyle, designKey)}
         >
           {caption}
         </div>
@@ -3036,6 +3037,7 @@ renderGalleryTile(
   Boolean((block.data as any).addCaption),
   frameThickness,
   frameColor,
+  designKey,
 ),
         )}
       </div>
