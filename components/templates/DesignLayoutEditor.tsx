@@ -19443,25 +19443,25 @@ data: {
     <div className={inspectorLabelClass()}>Gallery</div>
 
     <label className="mt-4 flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
-  <input
-    type="checkbox"
-    checked={Boolean((selectedBlock.data as any).addCaption)}
-    onChange={(e) =>
-      updateSelectedBlock((block) =>
-        block.type !== "gallery"
-          ? block
-          : {
-              ...block,
-              data: {
-                ...block.data,
-                addCaption: e.target.checked,
-              } as any,
-            },
-      )
-    }
-  />
-  Add captions
-</label>
+      <input
+        type="checkbox"
+        checked={Boolean((selectedBlock.data as any).addCaption)}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "gallery"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    addCaption: e.target.checked,
+                  } as any,
+                },
+          )
+        }
+      />
+      Add captions
+    </label>
 
     <div className="mt-4 grid grid-cols-2 gap-3">
       <div>
@@ -19522,9 +19522,120 @@ data: {
       </div>
     </div>
 
+    <div className="mt-5 grid grid-cols-1 gap-4">
+      <div>
+        <div className="flex items-center justify-between">
+          <div className={inspectorLabelClass()}>Horizontal Photo Spacing</div>
+          <div className="text-xs text-neutral-500">
+            {(selectedBlock.data as any).columnGap ?? 8}px
+          </div>
+        </div>
+        <input
+          type="range"
+          min={0}
+          max={60}
+          value={(selectedBlock.data as any).columnGap ?? 8}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "gallery"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      columnGap: Number(e.target.value),
+                    } as any,
+                  },
+            )
+          }
+          className="mt-2 w-full"
+        />
+      </div>
+
+      <div>
+        <div className="flex items-center justify-between">
+          <div className={inspectorLabelClass()}>Vertical Photo Spacing</div>
+          <div className="text-xs text-neutral-500">
+            {(selectedBlock.data as any).rowGap ?? 8}px
+          </div>
+        </div>
+        <input
+          type="range"
+          min={0}
+          max={60}
+          value={(selectedBlock.data as any).rowGap ?? 8}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "gallery"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      rowGap: Number(e.target.value),
+                    } as any,
+                  },
+            )
+          }
+          className="mt-2 w-full"
+        />
+      </div>
+
+      <div>
+        <div className="flex items-center justify-between">
+          <div className={inspectorLabelClass()}>Photo Frame Thickness</div>
+          <div className="text-xs text-neutral-500">
+            {(selectedBlock.data as any).frameThickness ?? 0}px
+          </div>
+        </div>
+        <input
+          type="range"
+          min={0}
+          max={24}
+          value={(selectedBlock.data as any).frameThickness ?? 0}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "gallery"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      frameThickness: Number(e.target.value),
+                    } as any,
+                  },
+            )
+          }
+          className="mt-2 w-full"
+        />
+      </div>
+
+      <div>
+        <div className={inspectorLabelClass()}>Photo Frame Color</div>
+        <input
+          type="color"
+          value={(selectedBlock.data as any).frameColor ?? "#ffffff"}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "gallery"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      frameColor: e.target.value,
+                    } as any,
+                  },
+            )
+          }
+          className="mt-2 h-10 w-full rounded-xl border border-neutral-300 bg-white"
+        />
+      </div>
+    </div>
+
     <button
       type="button"
-      className="mt-3 inline-flex h-11 items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-sm text-neutral-700 hover:bg-neutral-50"
+      className="mt-5 inline-flex h-11 items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-sm text-neutral-700 hover:bg-neutral-50"
       onClick={() => void uploadGalleryImagesToBlock(selectedBlock.id)}
     >
       Add Images
@@ -19538,11 +19649,7 @@ data: {
         >
           <div className="flex items-center gap-3">
             <div className="h-14 w-14 overflow-hidden rounded-lg border border-neutral-200 bg-white">
-              <img
-                src={image.url}
-                alt=""
-                className="h-full w-full object-cover"
-              />
+              <img src={image.url} alt="" className="h-full w-full object-cover" />
             </div>
 
             <div className="min-w-0 flex-1">
@@ -19595,6 +19702,33 @@ data: {
                 ×
               </button>
             </div>
+          </div>
+
+          <div className="mt-3">
+            <div className={inspectorLabelClass()}>Image Link URL</div>
+            <input
+              type="url"
+              value={(image as any).href ?? ""}
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "gallery"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          images: block.data.images.map((galleryImage) =>
+                            galleryImage.id === image.id
+                              ? { ...galleryImage, href: e.target.value }
+                              : galleryImage,
+                          ),
+                        } as any,
+                      },
+                )
+              }
+              className={inspectorInputClass()}
+              placeholder="https://example.com"
+            />
           </div>
 
           {(selectedBlock.data as any).addCaption ? (
@@ -20532,7 +20666,7 @@ data: {
                                   }))
                                 }
                                 className={inspectorInputClass()}
-                                placeholder="/roast/jordan or https://..."
+                                placeholder="/gallery/sights or https://..."
                               />
                             </div>
 

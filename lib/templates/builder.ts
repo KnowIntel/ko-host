@@ -157,6 +157,14 @@ export type LinkItem = {
 export type GalleryImage = {
   id: string;
   url: string;
+
+  alt?: string;
+
+  caption?: string;
+  captionStyle?: TextStyle;
+
+  href?: string;
+
   shape?: "square" | "rounded" | "circle";
 };
 
@@ -729,9 +737,19 @@ export type GalleryBlock = BaseBlock & {
   data: {
     columns: number;
     rows?: number;
+
     images: GalleryImage[];
+
     positionX?: number;
     positionY?: number;
+
+    columnGap?: number;
+    rowGap?: number;
+
+    frameThickness?: number;
+    frameColor?: string;
+
+    addCaption?: boolean;
   };
 };
 

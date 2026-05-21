@@ -2902,7 +2902,13 @@ return (
   );
 }
 
-function renderGalleryTile(image: any, index: number, showCaption = false) {
+function renderGalleryTile(
+  image: any,
+  index: number,
+  showCaption = false,
+  frameThickness = 0,
+  frameColor = "#ffffff",
+) {
   if (!image?.url) {
     return (
       <div
@@ -2920,12 +2926,19 @@ function renderGalleryTile(image: any, index: number, showCaption = false) {
     shape === "circle" ? "9999px" : shape === "rounded" ? "16px" : "0px";
   const caption = String(image.caption ?? "").trim();
   const captionStyle = ((image.captionStyle ?? {}) as TextStyle);
+  const href = String(image.href ?? "").trim();
 
-  return (
+  const content = (
     <div
-      key={image.id || image.url || `gallery-${index}`}
       className="flex h-full w-full flex-col overflow-hidden"
-      style={{ borderRadius }}
+      style={{
+        borderRadius,
+        border:
+          frameThickness > 0
+            ? `${frameThickness}px solid ${frameColor || "#ffffff"}`
+            : "0px solid transparent",
+        backgroundColor: frameThickness > 0 ? frameColor || "#ffffff" : undefined,
+      }}
     >
       <div className="min-h-0 flex-1 overflow-hidden" style={{ borderRadius }}>
         <img
@@ -2937,13 +2950,33 @@ function renderGalleryTile(image: any, index: number, showCaption = false) {
       </div>
 
       {showCaption && caption ? (
-<div
-  className="shrink-0 px-2 py-1 text-xs text-neutral-700"
-  style={getContainerTextStyle(captionStyle)}
->
-  {caption}
-</div>
+        <div
+          className="shrink-0 px-2 py-1 text-xs text-neutral-700"
+          style={getContainerTextStyle(captionStyle)}
+        >
+          {caption}
+        </div>
       ) : null}
+    </div>
+  );
+
+  if (href) {
+    return (
+      <a
+        key={image.id || image.url || `gallery-${index}`}
+        href={href}
+        target="_blank"
+        rel="noreferrer"
+        className="block h-full w-full"
+      >
+        {content}
+      </a>
+    );
+  }
+
+  return (
+    <div key={image.id || image.url || `gallery-${index}`} className="h-full w-full">
+      {content}
     </div>
   );
 }
@@ -2969,6 +3002,11 @@ function renderGallery(
   const positionX = block.data.positionX ?? 50;
   const positionY = block.data.positionY ?? 50;
 
+  const columnGap = Math.max(0, Number((block.data as any).columnGap ?? 8));
+  const rowGap = Math.max(0, Number((block.data as any).rowGap ?? 8));
+  const frameThickness = Math.max(0, Number((block.data as any).frameThickness ?? 0));
+  const frameColor = String((block.data as any).frameColor ?? "#ffffff");
+
   const translateX = (positionX - 50) * 2;
   const translateY = (positionY - 50) * 2;
 
@@ -2981,20 +3019,24 @@ style={{
 }}
     >
       <div
-        className="grid h-full w-full gap-2"
-        style={{
-          gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
-          gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,
-          transform: `translate(${translateX}%, ${translateY}%)`,
-          transformOrigin: "center center",
-        }}
+className="grid h-full w-full"
+style={{
+  gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
+  gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,
+  columnGap,
+  rowGap,
+  transform: `translate(${translateX}%, ${translateY}%)`,
+  transformOrigin: "center center",
+}}
       >
         {Array.from({ length: tileCount }).map((_, index) =>
-          renderGalleryTile(
-            images[index],
-            index,
-            Boolean((block.data as any).addCaption),
-          ),
+renderGalleryTile(
+  images[index],
+  index,
+  Boolean((block.data as any).addCaption),
+  frameThickness,
+  frameColor,
+),
         )}
       </div>
     </div>
