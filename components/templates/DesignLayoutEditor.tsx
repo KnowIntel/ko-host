@@ -341,7 +341,7 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Phone", type: "icon", iconName: "phone" },
     { kind: "block", label: "Open Quote", type: "icon", iconName: "open-quote" },
     { kind: "block", label: "Close Quote", type: "icon", iconName: "close-quote" },
-    { kind: "block", label: "Photo", type: "icon", iconName: "photo-placeholder" },
+    { kind: "block", label: "Photo Placeholder", type: "icon", iconName: "photo-placeholder" },
   ],
   Layout: [
     { kind: "shape", label: "Rectangle", type: "rectangle" },
@@ -1038,6 +1038,7 @@ function getToolGlyph(label: string) {
   if (label === "Person") return "👤";
   if (label === "People") return "👥";
   if (label === "Calendar") return "📅";
+  if (label === "Photo Placeholder") return "▧";
   if (label === "Story Timeline") return "⋯";
   if (label === "Message Thread") return "💬";
   if (label === "Jagged Line") return "〽";
@@ -19725,6 +19726,60 @@ data: {
         </button>
       )}
     </div>
+
+    <div>
+  <div className="text-xs font-medium text-neutral-600">
+    Horizontal Padding
+  </div>
+
+  <input
+    type="range"
+    min={2}
+    max={120}
+    value={(selectedBlock.data as any).buttonPaddingX ?? 16}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type === "cta"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                buttonPaddingX: Number(e.target.value),
+              },
+            }
+          : block,
+      )
+    }
+    className="mt-2 w-full"
+  />
+</div>
+
+<div>
+  <div className="text-xs font-medium text-neutral-600">
+    Vertical Padding
+  </div>
+
+  <input
+    type="range"
+    min={2}
+    max={80}
+    value={(selectedBlock.data as any).buttonPaddingY ?? 8}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type === "cta"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                buttonPaddingY: Number(e.target.value),
+              },
+            }
+          : block,
+      )
+    }
+    className="mt-2 w-full"
+  />
+</div>
 
 <div>
   <div className="text-xs font-medium text-neutral-600">
