@@ -320,20 +320,22 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Graduate Cap", type: "icon", iconName: "graduate-cap" },
     { kind: "block", label: "Open Book", type: "icon", iconName: "open-book" },
     { kind: "block", label: "Closed Book", type: "icon", iconName: "closed-book" },
-    { kind: "block", label: "Up Arrow (Thick)", type: "icon", iconName: "arrow-up-thick" },
-    { kind: "block", label: "Down Arrow (Thick)", type: "icon", iconName: "arrow-down-thick" },
-    { kind: "block", label: "Left Arrow (Thick)", type: "icon", iconName: "arrow-left-thick" },
-    { kind: "block", label: "Right Arrow (Thick)", type: "icon", iconName: "arrow-right-thick" },
-    { kind: "block", label: "Up Arrow (Thin)", type: "icon", iconName: "arrow-up-thin" },
-    { kind: "block", label: "Down Arrow (Thin)", type: "icon", iconName: "arrow-down-thin" },
-    { kind: "block", label: "Left Arrow (Thin)", type: "icon", iconName: "arrow-left-thin" },
-    { kind: "block", label: "Right Arrow (Thin)", type: "icon", iconName: "arrow-right-thin" },
+    { kind: "block", label: "Arrow Up Thick", type: "icon", iconName: "arrow-up-thick" },
+    { kind: "block", label: "Arrow Down Thick", type: "icon", iconName: "arrow-down-thick" },
+    { kind: "block", label: "Arrow Left Thick", type: "icon", iconName: "arrow-left-thick" },
+    { kind: "block", label: "Arrow Right Thick", type: "icon", iconName: "arrow-right-thick" },
+    { kind: "block", label: "Arrow Up Thin", type: "icon", iconName: "arrow-up-thin" },
+    { kind: "block", label: "Arrow Down Thin", type: "icon", iconName: "arrow-down-thin" },
+    { kind: "block", label: "Arrow Left Thin", type: "icon", iconName: "arrow-left-thin" },
+    { kind: "block", label: "Arrow Right Thin", type: "icon", iconName: "arrow-right-thin" },
     { kind: "block", label: "Star", type: "icon", iconName: "star" },
     { kind: "block", label: "Heart", type: "icon", iconName: "heart" },
     { kind: "block", label: "Circle", type: "icon", iconName: "circle" },
     { kind: "block", label: "Person", type: "icon", iconName: "person" },
     { kind: "block", label: "People", type: "icon", iconName: "people" },
+    { kind: "block", label: "Camera", type: "icon", iconName: "camera" },
     { kind: "block", label: "Calendar", type: "icon", iconName: "calendar" },
+    { kind: "block", label: "Globe", type: "icon", iconName: "globe" },
     { kind: "block", label: "Message Thread", type: "icon", iconName: "message-thread" },
     { kind: "block", label: "Location Pin", type: "icon", iconName: "location-pin" },
     { kind: "block", label: "Clock", type: "icon", iconName: "clock" },
@@ -1027,17 +1029,19 @@ function getToolGlyph(label: string) {
   if (label === "Closed Book") return "📕";
   if (label === "Star") return "⭐";
   if (label === "Heart") return "❤";
-  if (label === "Up Arrow (Thick)") return "⬆";
-  if (label === "Down Arrow (Thick)") return "⬇";
-  if (label === "Left Arrow (Thick)") return "⬅";
-  if (label === "Right Arrow (Thick)") return "➡";
-  if (label === "Up Arrow (Thin)") return "↑";
-  if (label === "Down Arrow (Thin)") return "↓";
-  if (label === "Left Arrow (Thin)") return "←";
-  if (label === "Right Arrow (Thin)") return "→";
+  if (label === "Arrow Up Thick") return "⬆";
+  if (label === "Arrow Down Thick") return "⬇";
+  if (label === "Arrow Left Thick") return "⬅";
+  if (label === "Arrow Right Thick") return "➡";
+  if (label === "Arrow Up Thin") return "↑";
+  if (label === "Arrow Down Thin") return "↓";
+  if (label === "Arrow Left Thin") return "←";
+  if (label === "Arrow Right Thin") return "→";
   if (label === "Person") return "👤";
   if (label === "People") return "👥";
+  if (label === "Camera") return "📷";
   if (label === "Calendar") return "📅";
+  if (label === "Globe") return "🌐";
   if (label === "Photo Placeholder") return "▧";
   if (label === "Story Timeline") return "⋯";
   if (label === "Message Thread") return "💬";

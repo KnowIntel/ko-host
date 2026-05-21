@@ -1,0 +1,48 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 64 64"
+  fill="none"
+>
+  <circle
+    cx="32"
+    cy="32"
+    r="24"
+    stroke="currentColor"
+    stroke-width="2"
+  />
+
+  <path
+    d="M8 32H56"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+  />
+
+  <path
+    d="M32 8C39 14 43 22 43 32C43 42 39 50 32 56"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+  />
+
+  <path
+    d="M32 8C25 14 21 22 21 32C21 42 25 50 32 56"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+  />
+
+  <path
+    d="M14 22C19 25 25 26 32 26C39 26 45 25 50 22"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+  />
+
+  <path
+    d="M14 42C19 39 25 38 32 38C39 38 45 39 50 42"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+  />
+</svg>

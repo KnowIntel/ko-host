@@ -1,0 +1,27 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 64 64"
+  fill="none"
+>
+  <path
+    d="M22 16L26 10H38L42 16H50C53.3137 16 56 18.6863 56 22V46C56 49.3137 53.3137 52 50 52H14C10.6863 52 8 49.3137 8 46V22C8 18.6863 10.6863 16 14 16H22Z"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linejoin="round"
+  />
+
+  <circle
+    cx="32"
+    cy="34"
+    r="10"
+    stroke="currentColor"
+    stroke-width="2"
+  />
+
+  <circle
+    cx="47"
+    cy="23"
+    r="2"
+    fill="currentColor"
+  />
+</svg>
