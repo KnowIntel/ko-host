@@ -320,6 +320,14 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Graduate Cap", type: "icon", iconName: "graduate-cap" },
     { kind: "block", label: "Open Book", type: "icon", iconName: "open-book" },
     { kind: "block", label: "Closed Book", type: "icon", iconName: "closed-book" },
+    { kind: "block", label: "Up Arrow (Thick)", type: "icon", iconName: "arrow-up-thick" },
+    { kind: "block", label: "Down Arrow (Thick)", type: "icon", iconName: "arrow-down-thick" },
+    { kind: "block", label: "Left Arrow (Thick)", type: "icon", iconName: "arrow-left-thick" },
+    { kind: "block", label: "Right Arrow (Thick)", type: "icon", iconName: "arrow-right-thick" },
+    { kind: "block", label: "Up Arrow (Thin)", type: "icon", iconName: "arrow-up-thin" },
+    { kind: "block", label: "Down Arrow (Thin)", type: "icon", iconName: "arrow-down-thin" },
+    { kind: "block", label: "Left Arrow (Thin)", type: "icon", iconName: "arrow-left-thin" },
+    { kind: "block", label: "Right Arrow (Thin)", type: "icon", iconName: "arrow-right-thin" },
     { kind: "block", label: "Star", type: "icon", iconName: "star" },
     { kind: "block", label: "Heart", type: "icon", iconName: "heart" },
     { kind: "block", label: "Circle", type: "icon", iconName: "circle" },
@@ -1019,6 +1027,14 @@ function getToolGlyph(label: string) {
   if (label === "Closed Book") return "📕";
   if (label === "Star") return "⭐";
   if (label === "Heart") return "❤";
+  if (label === "Up Arrow (Thick)") return "⬆";
+  if (label === "Down Arrow (Thick)") return "⬇";
+  if (label === "Left Arrow (Thick)") return "⬅";
+  if (label === "Right Arrow (Thick)") return "➡";
+  if (label === "Up Arrow (Thin)") return "↑";
+  if (label === "Down Arrow (Thin)") return "↓";
+  if (label === "Left Arrow (Thin)") return "←";
+  if (label === "Right Arrow (Thin)") return "→";
   if (label === "Person") return "👤";
   if (label === "People") return "👥";
   if (label === "Calendar") return "📅";

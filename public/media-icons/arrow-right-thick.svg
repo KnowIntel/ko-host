@@ -1,0 +1,10 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 64 64"
+  fill="none"
+>
+  <path
+    d="M52 32L32 52V40H12V24H32V12L52 32Z"
+    fill="currentColor"
+  />
+</svg>
