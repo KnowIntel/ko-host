@@ -3087,6 +3087,12 @@ export function sanitizeBuilderDraft(input: unknown): BuilderDraft {
         data: {
           heading:
             typeof data.heading === "string" ? data.heading : "Our Journey",
+          cardLayout:
+            data.cardLayout === "standard" ||
+            data.cardLayout === "spotlight" ||
+            data.cardLayout === "compact"
+              ? data.cardLayout
+              : "standard",
 
           styleVariant:
             data.styleVariant === "classic" ||

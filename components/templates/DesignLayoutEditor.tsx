@@ -11892,7 +11892,7 @@ selectedContext.kind === "textFx"
   >
     <option value="standard">Standard</option>
     <option value="spotlight">Spotlight</option>
-    <option value="compact">Compact</option>
+    <option value="story">Story</option>
   </select>
 </div>
 
