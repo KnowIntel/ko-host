@@ -326,6 +326,7 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Person", type: "icon", iconName: "person" },
     { kind: "block", label: "People", type: "icon", iconName: "people" },
     { kind: "block", label: "Calendar", type: "icon", iconName: "calendar" },
+    { kind: "block", label: "Message Thread", type: "icon", iconName: "message-thread" },
     { kind: "block", label: "Location Pin", type: "icon", iconName: "location-pin" },
     { kind: "block", label: "Clock", type: "icon", iconName: "clock" },
     { kind: "block", label: "Jagged Line", type: "icon", iconName: "jagged-line" },
@@ -1021,6 +1022,9 @@ function getToolGlyph(label: string) {
   if (label === "Person") return "👤";
   if (label === "People") return "👥";
   if (label === "Calendar") return "📅";
+  if (label === "Story Timeline") return "⋯";
+  if (label === "Message Thread") return "💬";
+  if (label === "Jagged Line") return "〽";
   if (label === "Location Pin") return "📍";
   if (label === "Clock") return "🕒";
   if (label === "Gallery") return "▥";
@@ -19725,32 +19729,6 @@ data: {
   <div className="text-xs font-medium text-neutral-600">
     Button Image Size
   </div>
-
-<div>
-  <div className="text-xs font-medium text-neutral-600">
-    Vertical Padding
-  </div>
-  <input
-    type="range"
-    min={2}
-    max={80}
-    value={(selectedBlock.data as any).buttonPaddingY ?? 8}
-    onChange={(e) =>
-      updateSelectedBlock((block) =>
-        block.type === "cta"
-          ? {
-              ...block,
-              data: {
-                ...block.data,
-                buttonPaddingY: Number(e.target.value),
-              },
-            }
-          : block,
-      )
-    }
-    className="mt-2 w-full"
-  />
-</div>
 
   <input
     type="range"
