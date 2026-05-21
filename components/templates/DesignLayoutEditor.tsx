@@ -322,6 +322,7 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Closed Book", type: "icon", iconName: "closed-book" },
     { kind: "block", label: "Star", type: "icon", iconName: "star" },
     { kind: "block", label: "Heart", type: "icon", iconName: "heart" },
+    { kind: "block", label: "Circle", type: "icon", iconName: "circle" },
     { kind: "block", label: "Person", type: "icon", iconName: "person" },
     { kind: "block", label: "People", type: "icon", iconName: "people" },
     { kind: "block", label: "Calendar", type: "icon", iconName: "calendar" },
