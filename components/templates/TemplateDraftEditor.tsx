@@ -407,12 +407,6 @@ builderCapacityContent={
           }}
         />
       </div>
-
-      {!showBuilderCapacityExpanded ? (
-        <div className="px-3 py-1 text-right text-[11px] font-semibold text-neutral-300">
-          {draftUsagePercent}%
-        </div>
-      ) : null}
     </button>
 
     {showBuilderCapacityExpanded ? (
