@@ -387,12 +387,12 @@ onRenameActivePage={onRenameActivePage}
   saveState={effectiveSaveState}
   saveMessage={effectiveSaveMessage}
 builderCapacityContent={
-  <div className="w-full border-t border-neutral-700 bg-neutral-900">
-    <button
-      type="button"
-      onClick={() => setShowBuilderCapacityExpanded((prev) => !prev)}
-      className="block w-full"
-    >
+  <div className="w-full border-t border-neutral-700 bg-neutral-900 leading-none">
+<button
+  type="button"
+  onClick={() => setShowBuilderCapacityExpanded((prev) => !prev)}
+  className="block w-full leading-none"
+>
       <div className="relative h-2 w-full overflow-hidden bg-neutral-800">
         <div
           className={`absolute inset-y-0 left-0 transition-all ${
