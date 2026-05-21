@@ -2178,6 +2178,7 @@ style={{
 function renderTimeline(
   block: Extract<MicrositeBlock, { type: "timeline" }>,
   designKey?: string,
+  onFocusTimelineEntry?: (blockId: string, entryId: string) => void,
 ) {
   const data = block.data as any;
   const appearanceStyle = getAppearanceStyle(block);
@@ -9985,8 +9986,8 @@ case "cta":
     case "countdown":
       return renderCountdown(block, designKey, serverNow);
 
-    case "timeline":
-      return renderTimeline(block, designKey);
+case "timeline":
+  return renderTimeline(block, designKey, onFocusTimelineEntry);
 
     case "audio":
       return renderAudio(block);
