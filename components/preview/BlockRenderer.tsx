@@ -2376,18 +2376,18 @@ const renderEntryCard = (entry: any, index: number) => {
 return (
 <div
   key={entry.id || index}
-  onClick={(e) => {
-    e.stopPropagation();
+onPointerDownCapture={(e) => {
+  e.stopPropagation();
 
-    window.dispatchEvent(
-      new CustomEvent("ko-host-focus-timeline-entry", {
-        detail: {
-          blockId: block.id,
-          entryId: entry.id,
-        },
-      }),
-    );
-  }}
+  window.dispatchEvent(
+    new CustomEvent("ko-host-focus-timeline-entry", {
+      detail: {
+        blockId: block.id,
+        entryId: entry.id,
+      },
+    }),
+  );
+}}
   className={[
           "relative min-w-0 border p-4",
           data.shadow !== false ? "shadow-md" : "",
