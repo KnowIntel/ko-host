@@ -1623,6 +1623,7 @@ const selectedRsvpElementBackgroundColor =
 const textureEligibleBlockTypes = [
   "label",
   "text_fx",
+  "shape",
   "image",
   "video",
   "gallery",
@@ -1678,10 +1679,11 @@ function applyTextureToSelectedBlock(
   }
 
   if (
-    selectedBlock.type === "image" ||
-    selectedBlock.type === "video" ||
-    selectedBlock.type === "gallery" ||
-    selectedBlock.type === "image_carousel"
+      selectedBlock.type === "shape" ||
+      selectedBlock.type === "image" ||
+      selectedBlock.type === "video" ||
+      selectedBlock.type === "gallery" ||
+      selectedBlock.type === "image_carousel"
   ) {
     updateSelectedBlock((block) => ({
       ...block,
