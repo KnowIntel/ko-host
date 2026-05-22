@@ -1827,6 +1827,7 @@ const showTextControls =
   selectedBlock?.type === "poll" ||
   selectedBlock?.type === "faq" ||
   selectedBlock?.type === "video" ||
+  selectedBlock?.type === "gallery" ||
   selectedBlock?.type === "rich_text" ||
   selectedBlock?.type === "countdown" ||
   selectedBlock?.type === "timeline" ||

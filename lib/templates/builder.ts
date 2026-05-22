@@ -169,6 +169,7 @@ export type GalleryImage = {
   imageSizeBytes?: number;
   imageOriginalSizeBytes?: number;
   imageMimeType?: string;
+  isEmbeddedDataUrl?: boolean;
 };
 
 export type TimelineEntry = {
@@ -3416,7 +3417,14 @@ export function sanitizeBuilderDraft(input: unknown): BuilderDraft {
             typeof block.data.rows === "number" && Number.isFinite(block.data.rows)
               ? Math.max(1, Math.min(12, Math.floor(block.data.rows)))
               : block.data.rows,
-          images: Array.isArray(block.data.images) ? block.data.images : [],
+          images: Array.isArray(block.data.images)
+  ? block.data.images.map((image) => ({
+      ...image,
+      url: typeof image.url === "string" ? image.url : "",
+      isEmbeddedDataUrl:
+        typeof image.url === "string" && image.url.startsWith("data:"),
+    }))
+  : [],
           columnGap: Math.max(0, Number((block.data as any).columnGap ?? 8)),
           rowGap: Math.max(0, Number((block.data as any).rowGap ?? 8)),
           frameThickness: Math.max(
