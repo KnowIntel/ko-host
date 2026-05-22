@@ -1295,8 +1295,8 @@ const [listingStyleTarget, setListingStyleTarget] = useState<
   "title" | "description" | "metadata" | "price" | "quantity"
 >("title");
 
-const [formFieldTextTarget, setFormFieldTextTarget] = useState<"label" | "text">(
-  "label",
+const [formFieldTextTarget, setFormFieldTextTarget] = useState<"form" | "text">(
+  "form",
 );
 
   const [selectedRsvpElementKey, setSelectedRsvpElementKey] = useState<
@@ -1560,14 +1560,12 @@ const selectedStyle =
             : listingStyleTarget === "quantity"
               ? ((selectedBlockFromDraft.data as any).quantityStyle ?? {})
               : (selectedBlockFromDraft.data.titleStyle ?? {})
-    : selectedBlockFromDraft?.type === "form_field"
-      ? formFieldTextTarget === "text"
-        ? (((selectedBlockFromDraft.data as any).inputStyle ??
-            (selectedBlockFromDraft.data as any).style ??
-            {}) as TextStyle)
-        : (((selectedBlockFromDraft.data as any).labelStyle ??
-            (selectedBlockFromDraft.data as any).style ??
-            {}) as TextStyle)
+: selectedBlockFromDraft?.type === "form_field"
+  ? formFieldTextTarget === "text"
+    ? (((selectedBlockFromDraft.data as any).inputStyle ??
+        (selectedBlockFromDraft.data as any).style ??
+        {}) as TextStyle)
+    : (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
       : selectedBlockFromDraft?.type === "highlight"
         ? highlightStyleTarget === "body"
           ? (selectedBlockFromDraft.data.bodyStyle ??
@@ -3214,6 +3212,34 @@ if (selectedBlock?.type === "wave") {
   return;
 }
 
+if (selectedBlock?.type === "form_field") {
+  updateSelectedBlock((block) =>
+    block.type !== "form_field"
+      ? block
+      : formFieldTextTarget === "text"
+        ? {
+            ...block,
+            data: {
+              ...block.data,
+              inputStyle: {
+                ...((block.data as any).inputStyle ?? block.data.style ?? {}),
+                backgroundColor: value,
+              },
+            },
+          }
+        : {
+            ...block,
+            appearance: {
+              ...block.appearance,
+              backgroundColor: value,
+            },
+          },
+  );
+
+  pushRecentColor(value);
+  return;
+}
+
   applyAppearancePatch({ backgroundColor: value });
   pushRecentColor(value);
 }
@@ -3668,7 +3694,7 @@ if (selectedBlock?.type === "form_field") {
                 ...patch,
               },
 
-              ...(formFieldTextTarget === "label"
+              ...(formFieldTextTarget === "form"
                 ? {
                     labelStyle: {
                       ...((block.data as any).labelStyle ??
@@ -4293,6 +4319,32 @@ function clearLinksBackgroundColor() {
 }
 
 function applyAppearancePatch(patch: AppearancePatch) {
+  if (selectedBlock?.type === "form_field") {
+    updateSelectedBlock((block) =>
+      block.type !== "form_field"
+        ? block
+        : formFieldTextTarget === "text"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                inputStyle: {
+                  ...((block.data as any).inputStyle ?? block.data.style ?? {}),
+                  ...patch,
+                },
+              },
+            }
+          : {
+              ...block,
+              appearance: {
+                ...block.appearance,
+                ...patch,
+              },
+            },
+    );
+    return;
+  }
+
   if (selectedBlock?.type === "timeline") {
     updateSelectedBlock((block) =>
       block.type !== "timeline"
@@ -11377,13 +11429,13 @@ selectedContext.kind === "textFx"
 
   <select
     value={formFieldTextTarget}
-    onChange={(e) =>
-      setFormFieldTextTarget(e.target.value as "label" | "text")
-    }
+onChange={(e) =>
+  setFormFieldTextTarget(e.target.value as "form" | "text")
+}
     className={inspectorInputClass()}
   >
-    <option value="label">Label</option>
-    <option value="text">Text</option>
+<option value="form">Form</option>
+<option value="text">Text</option>
   </select>
 </div>
 
@@ -11530,6 +11582,53 @@ selectedContext.kind === "textFx"
         <option value="textarea">Textarea</option>
       </select>
     </div>
+
+{formFieldTextTarget === "text" ? (
+  <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+    <div className={inspectorLabelClass()}>Text Area Padding</div>
+
+    {[
+      ["paddingLeft", "Left Padding"],
+      ["paddingRight", "Right Padding"],
+      ["paddingBottom", "Bottom Padding"],
+    ].map(([key, label]) => (
+      <div key={key} className="mt-4">
+        <div className="flex items-center justify-between">
+          <div className={inspectorLabelClass()}>{label}</div>
+          <div className="text-xs text-neutral-500">
+            {Number(((selectedBlock.data as any).inputStyle ?? {})[key] ?? 12)}px
+          </div>
+        </div>
+
+        <input
+          type="range"
+          min={0}
+          max={160}
+          value={Number(((selectedBlock.data as any).inputStyle ?? {})[key] ?? 12)}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "form_field"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      inputStyle: {
+                        ...((block.data as any).inputStyle ??
+                          block.data.style ??
+                          {}),
+                        [key]: Number(e.target.value),
+                      },
+                    },
+                  },
+            )
+          }
+          className="mt-2 w-full"
+        />
+      </div>
+    ))}
+  </div>
+) : null}
 
 <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
   <label className="flex items-center gap-3 text-sm font-medium text-neutral-800">
