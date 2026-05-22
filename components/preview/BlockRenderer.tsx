@@ -7284,11 +7284,17 @@ function renderLinkHub(
   const items = Array.isArray(block.data.items) ? block.data.items : [];
 
   const imagePlacement = (block.data as any).imagePlacement ?? "floatLeft";
-  const isFlush = imagePlacement === "flushLeft" || imagePlacement === "flushRight";
-  const imageOnRight = imagePlacement === "flushRight" || imagePlacement === "floatRight";
+  const isFlush =
+    imagePlacement === "flushLeft" || imagePlacement === "flushRight";
+  const imageOnRight =
+    imagePlacement === "flushRight" || imagePlacement === "floatRight";
+
+  const cardPaddingX = Number((block.data as any).cardPaddingX ?? 16);
+  const cardPaddingY = Number((block.data as any).cardPaddingY ?? 12);
 
   const triggerSymbol =
-    (block.data as any).customTriggerEnabled && (block.data as any).customTriggerUrl
+    (block.data as any).customTriggerEnabled &&
+    (block.data as any).customTriggerUrl
       ? (block.data as any).customTriggerUrl
       : (block.data as any).triggerSymbol || "/icons/icon_thin_chevron.png";
 
@@ -7328,19 +7334,31 @@ function renderLinkHub(
             const imageNode = logoUrl ? (
               <span
                 className={[
-                  "flex shrink-0 items-center justify-center overflow-hidden border bg-white",
-                  isFlush ? "h-full w-16 rounded-none border-0" : "h-10 w-10 rounded-full",
-                  isLightDesign(designKey) ? "border-neutral-200" : "border-white/15",
+                  "flex shrink-0 items-center justify-center overflow-hidden bg-white",
+                  isFlush
+                    ? "self-stretch w-20 rounded-none border-0"
+                    : "h-10 w-10 rounded-full border",
+                  isLightDesign(designKey)
+                    ? "border-neutral-200"
+                    : "border-white/15",
                 ].join(" ")}
               >
-                <img src={logoUrl} alt="" className="h-full w-full object-cover" />
+                <img
+                  src={logoUrl}
+                  alt=""
+                  className="h-full w-full object-cover"
+                />
               </span>
             ) : null;
 
             const triggerNode =
               !imageOnRight && triggerSymbol ? (
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center">
-                  <img src={triggerSymbol} alt="" className="h-5 w-5 object-contain" />
+                <span className="flex self-stretch w-14 shrink-0 items-center justify-center">
+                  <img
+                    src={triggerSymbol}
+                    alt=""
+                    className="h-10 w-10 object-contain"
+                  />
                 </span>
               ) : null;
 
@@ -7353,20 +7371,26 @@ function renderLinkHub(
                 onClick={(e) => e.stopPropagation()}
                 className={[
                   "group relative z-10 flex cursor-pointer items-stretch gap-3 overflow-hidden rounded-xl border transition pointer-events-auto",
-                  isFlush ? "px-0 py-0" : "px-4 py-3",
                   isLightDesign(designKey)
                     ? "border-neutral-200 bg-white hover:bg-neutral-50"
                     : "border-white/10 bg-white/5 hover:bg-white/10",
                 ].join(" ")}
-                style={{ boxShadow: cardShadow }}
+                style={{
+                  boxShadow: cardShadow,
+                  paddingLeft: isFlush ? 0 : `${cardPaddingX}px`,
+                  paddingRight: isFlush ? 0 : `${cardPaddingX}px`,
+                  paddingTop: `${cardPaddingY}px`,
+                  paddingBottom: `${cardPaddingY}px`,
+                }}
               >
                 {!imageOnRight ? imageNode : null}
 
                 <div
-                  className={[
-                    "min-w-0 flex flex-1 flex-col justify-center",
-                    isFlush ? "px-4 py-3" : "",
-                  ].join(" ")}
+                  className="min-w-0 flex flex-1 flex-col justify-center"
+                  style={{
+                    paddingLeft: isFlush ? `${cardPaddingX}px` : undefined,
+                    paddingRight: isFlush ? `${cardPaddingX}px` : undefined,
+                  }}
                 >
                   <div
                     className="truncate text-sm font-medium"
@@ -7382,7 +7406,8 @@ function renderLinkHub(
                     <div
                       className="mt-1 truncate text-xs"
                       style={getContainerTextStyle(
-                        (block.data as any).descriptionStyle ?? block.data.style,
+                        (block.data as any).descriptionStyle ??
+                          block.data.style,
                         designKey,
                       )}
                     >
@@ -7398,7 +7423,9 @@ function renderLinkHub(
                         designKey,
                       )}
                     >
-                      {item.url.replace(/^https?:\/\//i, "").replace(/^\/\//, "")}
+                      {item.url
+                        .replace(/^https?:\/\//i, "")
+                        .replace(/^\/\//, "")}
                     </div>
                   ) : null}
                 </div>

@@ -7129,60 +7129,158 @@ if (block.type === "donation") {
   );
 }
 
-    if (block.type === "link_hub") {
-      return (
-        <div
-          className="h-full w-full rounded-xl p-4"
-          style={{
-            backgroundColor:
-              block.appearance?.backgroundColor &&
-              block.appearance.backgroundColor !== "transparent"
-                ? block.appearance.backgroundColor
-                : "transparent",
-            borderColor: block.appearance?.borderColor || undefined,
-            borderWidth:
-              typeof block.appearance?.borderWidth === "number"
-                ? `${block.appearance.borderWidth}px`
-                : undefined,
-            borderStyle:
-              typeof block.appearance?.borderWidth === "number" &&
-              block.appearance.borderWidth > 0
-                ? "solid"
-                : undefined,
-            borderRadius:
-              typeof block.appearance?.borderRadius === "number"
-                ? `${block.appearance.borderRadius}px`
-                : undefined,
-          }}
-        >
-          <div
-            className="mb-3 text-base font-semibold text-neutral-900"
-            style={getInlineTextStyle(block.data.style)}
-          >
-            {block.data.heading || "My Links"}
-          </div>
+if (block.type === "link_hub") {
+  const imagePlacement = (block.data as any).imagePlacement ?? "floatLeft";
+  const isFlush =
+    imagePlacement === "flushLeft" || imagePlacement === "flushRight";
+  const imageOnRight =
+    imagePlacement === "flushRight" || imagePlacement === "floatRight";
 
-          <div className="space-y-2">
-            {block.data.items.slice(0, 4).map((item) => (
+  const cardPaddingX = Number((block.data as any).cardPaddingX ?? 16);
+  const cardPaddingY = Number((block.data as any).cardPaddingY ?? 12);
+
+  const cardShadow =
+    (block.data as any).cardShadowEnabled &&
+    Number((block.data as any).cardShadowBlur ?? 0) > 0
+      ? `${Number((block.data as any).cardShadowX ?? 0)}px ${Number(
+          (block.data as any).cardShadowY ?? 0,
+        )}px ${Number((block.data as any).cardShadowBlur ?? 0)}px ${
+          (block.data as any).cardShadowColor ?? "#000000"
+        }`
+      : undefined;
+
+  const triggerSymbol =
+    (block.data as any).customTriggerEnabled &&
+    (block.data as any).customTriggerUrl
+      ? (block.data as any).customTriggerUrl
+      : (block.data as any).triggerSymbol || "/icons/icon_thin_chevron.png";
+
+  return (
+    <div
+      className="h-full w-full rounded-xl p-4"
+      style={{
+        backgroundColor:
+          block.appearance?.backgroundColor &&
+          block.appearance.backgroundColor !== "transparent"
+            ? block.appearance.backgroundColor
+            : "transparent",
+        borderColor: block.appearance?.borderColor || undefined,
+        borderWidth:
+          typeof block.appearance?.borderWidth === "number"
+            ? `${block.appearance.borderWidth}px`
+            : undefined,
+        borderStyle:
+          typeof block.appearance?.borderWidth === "number" &&
+          block.appearance.borderWidth > 0
+            ? "solid"
+            : undefined,
+        borderRadius:
+          typeof block.appearance?.borderRadius === "number"
+            ? `${block.appearance.borderRadius}px`
+            : undefined,
+      }}
+    >
+      {String(block.data.heading ?? "").trim() ? (
+        <div
+          className="mb-3 text-base font-semibold text-neutral-900"
+          style={getInlineTextStyle(block.data.style)}
+        >
+          {block.data.heading}
+        </div>
+      ) : null}
+
+      <div className="space-y-2">
+        {block.data.items.slice(0, 4).map((item, index) => {
+          const linkItem = item as LinkItem & {
+            description?: string;
+            logoUrl?: string;
+          };
+
+          const description = String(linkItem.description ?? "").trim();
+          const logoUrl = linkItem.logoUrl;
+
+          const imageNode = logoUrl ? (
+            <span
+              className={[
+                "flex shrink-0 items-center justify-center overflow-hidden bg-white",
+                isFlush
+                  ? "self-stretch w-16 rounded-none border-0"
+                  : "h-9 w-9 rounded-full border border-neutral-200",
+              ].join(" ")}
+            >
+              <img src={logoUrl} alt="" className="h-full w-full object-cover" />
+            </span>
+          ) : null;
+
+          const triggerNode =
+            !imageOnRight && triggerSymbol ? (
+              <span className="flex self-stretch w-12 shrink-0 items-center justify-center">
+                <img src={triggerSymbol} alt="" className="h-8 w-8 object-contain" />
+              </span>
+            ) : null;
+
+          return (
+            <div
+              key={item.id}
+              className="flex items-stretch gap-2 overflow-hidden rounded-lg border border-neutral-200 bg-white"
+              style={{
+                boxShadow: cardShadow,
+                paddingLeft: isFlush ? 0 : `${cardPaddingX}px`,
+                paddingRight: isFlush ? 0 : `${cardPaddingX}px`,
+                paddingTop: `${cardPaddingY}px`,
+                paddingBottom: `${cardPaddingY}px`,
+              }}
+            >
+              {!imageOnRight ? imageNode : null}
+
               <div
-                key={item.id}
-                className="rounded-lg border border-neutral-200 bg-white px-3 py-2"
+                className="min-w-0 flex flex-1 flex-col justify-center"
+                style={{
+                  paddingLeft: isFlush ? `${cardPaddingX}px` : undefined,
+                  paddingRight: isFlush ? `${cardPaddingX}px` : undefined,
+                }}
               >
                 <div
-                  className="text-sm font-medium text-neutral-900"
-                  style={getInlineTextStyle(block.data.style)}
+                  className="truncate text-sm font-medium text-neutral-900"
+                  style={getInlineTextStyle(
+                    (block.data as any).labelStyle ?? block.data.style,
+                  )}
                 >
-                  {item.label || "Link"}
+                  {item.label || `Link ${index + 1}`}
                 </div>
-                <div className="mt-1 text-xs text-neutral-500">
+
+                {description ? (
+                  <div
+                    className="mt-1 truncate text-xs text-neutral-600"
+                    style={getInlineTextStyle(
+                      (block.data as any).descriptionStyle ??
+                        block.data.style,
+                    )}
+                  >
+                    {description}
+                  </div>
+                ) : null}
+
+                <div
+                  className="mt-1 truncate text-xs text-neutral-500"
+                  style={getInlineTextStyle(
+                    (block.data as any).urlStyle ?? block.data.style,
+                  )}
+                >
                   {item.url || "#"}
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
-      );
-    }
+
+              {triggerNode}
+
+              {imageOnRight ? imageNode : null}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
     if (block.type === "checklist") {
       return (
@@ -14924,6 +15022,69 @@ onClick={() =>
         <option value="flushRight">Flush Right</option>
         <option value="floatRight">Float Right</option>
       </select>
+    <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+  <div className={inspectorLabelClass()}>Card Padding</div>
+
+  <div className="mt-3">
+    <div className="mb-1 flex items-center justify-between">
+      <div className={inspectorLabelClass()}>Horizontal Padding</div>
+      <div className="text-xs text-neutral-500">
+        {(selectedBlock.data as any).cardPaddingX ?? 16}px
+      </div>
+    </div>
+
+    <input
+      type="range"
+      min={0}
+      max={80}
+      value={(selectedBlock.data as any).cardPaddingX ?? 16}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "link_hub"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  cardPaddingX: Number(e.target.value),
+                },
+              },
+        )
+      }
+      className="w-full"
+    />
+  </div>
+
+  <div className="mt-4">
+    <div className="mb-1 flex items-center justify-between">
+      <div className={inspectorLabelClass()}>Vertical Padding</div>
+      <div className="text-xs text-neutral-500">
+        {(selectedBlock.data as any).cardPaddingY ?? 12}px
+      </div>
+    </div>
+
+    <input
+      type="range"
+      min={0}
+      max={80}
+      value={(selectedBlock.data as any).cardPaddingY ?? 12}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "link_hub"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  cardPaddingY: Number(e.target.value),
+                },
+              },
+        )
+      }
+      className="w-full"
+    />
+  </div>
+</div>
     </div>
 
     {["floatLeft", "flushLeft"].includes(
