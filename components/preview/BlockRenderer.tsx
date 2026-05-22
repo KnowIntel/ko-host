@@ -5377,8 +5377,8 @@ function renderFormField(
 ) {
   function FormFieldPreview() {
 const inputClass = isLightDesign(designKey)
-  ? "w-full rounded border border-neutral-300 bg-white px-3 py-2 text-sm"
-  : "w-full rounded border border-white/15 bg-white/5 px-3 py-2 text-sm";
+  ? "w-full rounded border border-neutral-300 bg-white px-3 py-2 text-sm placeholder-current"
+  : "w-full rounded border border-white/15 bg-white/5 px-3 py-2 text-sm placeholder-current";
 
     const showLabel = block.data.showLabel !== false;
     const showPlaceholder = block.data.showPlaceholder !== false;
