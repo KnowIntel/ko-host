@@ -256,6 +256,7 @@ const FONT_FAMILY_MAP: Record<string, string> = {
   "Special Elite": 'var(--font-special-elite), "Special Elite", monospace',
 };
 
+
 function resolveFontFamily(fontFamily?: string) {
   if (!fontFamily || fontFamily === "inherit") return "inherit";
   return FONT_FAMILY_MAP[fontFamily] ?? fontFamily;
@@ -5355,8 +5356,9 @@ className={[
             );
 
             return link.href ? (
-              <a
-                key={item.id}
+<a
+  key={item.id}
+  onClick={(e) => e.stopPropagation()}
                 href={link.href}
                 target={link.target}
                 rel={link.rel}
@@ -7282,8 +7284,8 @@ const logoUrl = linkItem.logoUrl;
                 href={normalizePreviewHref(item.url)}
                 target="_blank"
                 rel="noreferrer noopener"
-                className={[
-                  "group flex items-center justify-between gap-3 rounded-xl border px-4 py-3 transition",
+className={[
+  "group relative z-10 flex cursor-pointer items-center justify-between gap-3 rounded-xl border px-4 py-3 transition pointer-events-auto",
                   isLightDesign(designKey)
                     ? "border-neutral-200 bg-white hover:bg-neutral-50"
                     : "border-white/10 bg-white/5 hover:bg-white/10",
