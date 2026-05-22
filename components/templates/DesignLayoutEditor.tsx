@@ -20287,9 +20287,7 @@ data: {
   </div>
 
   <div className="text-xs text-neutral-500">
-    {Math.round(
-      (((selectedBlock.data as any).positionX ?? 50) / 100) * 100,
-    )}
+{Math.round((selectedBlock.data as any).posX ?? 50)}
     %
   </div>
 </div>
@@ -20322,9 +20320,7 @@ data: {
   </div>
 
   <div className="text-xs text-neutral-500">
-    {Math.round(
-      (((selectedBlock.data as any).positionY ?? 50) / 100) * 100,
-    )}
+{Math.round((selectedBlock.data as any).posY ?? 50)}
     %
   </div>
 </div>
