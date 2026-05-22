@@ -328,6 +328,8 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Arrow Down Thin", type: "icon", iconName: "arrow-down-thin" },
     { kind: "block", label: "Arrow Left Thin", type: "icon", iconName: "arrow-left-thin" },
     { kind: "block", label: "Arrow Right Thin", type: "icon", iconName: "arrow-right-thin" },
+    { kind: "block", label: "Chevron Left", type: "icon", iconName: "chevron-left" },
+    { kind: "block", label: "Chevron Right", type: "icon", iconName: "chevron-right" },
     { kind: "block", label: "Paper Airplane", type: "icon", iconName: "paper-airplane" },
     { kind: "block", label: "Shield", type: "icon", iconName: "shield" },
     { kind: "block", label: "Dog Paw", type: "icon", iconName: "dog-paw" },
@@ -1045,6 +1047,45 @@ function getToolGlyph(label: string) {
   if (label === "Arrow Down Thin") return "↓";
   if (label === "Arrow Left Thin") return "←";
   if (label === "Arrow Right Thin") return "→";
+  if (label === "Chevron Left") {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+    >
+      <path
+        d="M15 5L8 12L15 19"
+        stroke="currentColor"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+if (label === "Chevron Right") {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+    >
+      <path
+        d="M9 5L16 12L9 19"
+        stroke="currentColor"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
   if (label === "Person") return "👤";
   if (label === "People") return "👥";
   if (label === "Camera") return "📷";
