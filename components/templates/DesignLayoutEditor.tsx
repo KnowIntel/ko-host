@@ -333,6 +333,7 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Paper Airplane", type: "icon", iconName: "paper-airplane" },
     { kind: "block", label: "Shield", type: "icon", iconName: "shield" },
     { kind: "block", label: "Dog Paw", type: "icon", iconName: "dog-paw" },
+    { kind: "block", label: "Gable Panel", type: "icon", iconName: "gable_panel" },
     { kind: "block", label: "City", type: "icon", iconName: "city" },
     { kind: "block", label: "Star", type: "icon", iconName: "star" },
     { kind: "block", label: "Heart", type: "icon", iconName: "heart" },
@@ -1047,6 +1048,24 @@ function getToolGlyph(label: string) {
   if (label === "Arrow Down Thin") return "↓";
   if (label === "Arrow Left Thin") return "←";
   if (label === "Arrow Right Thin") return "→";
+  if (label === "Gable Panel") {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+    >
+      <path
+        d="M3 9.5L12 4L21 9.5V20H3V9.5Z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
   if (label === "Chevron Left") {
   return (
     <svg
