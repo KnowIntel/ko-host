@@ -7283,24 +7283,66 @@ function renderLinkHub(
 ) {
   const items = Array.isArray(block.data.items) ? block.data.items : [];
 
+  const imagePlacement = (block.data as any).imagePlacement ?? "floatLeft";
+  const isFlush = imagePlacement === "flushLeft" || imagePlacement === "flushRight";
+  const imageOnRight = imagePlacement === "flushRight" || imagePlacement === "floatRight";
+
+  const triggerSymbol =
+    (block.data as any).customTriggerEnabled && (block.data as any).customTriggerUrl
+      ? (block.data as any).customTriggerUrl
+      : (block.data as any).triggerSymbol || "/icons/icon_thin_chevron.png";
+
+  const cardShadow =
+    (block.data as any).cardShadowEnabled &&
+    Number((block.data as any).cardShadowBlur ?? 0) > 0
+      ? `${Number((block.data as any).cardShadowX ?? 0)}px ${Number(
+          (block.data as any).cardShadowY ?? 0,
+        )}px ${Number((block.data as any).cardShadowBlur ?? 0)}px ${
+          (block.data as any).cardShadowColor ?? "#000000"
+        }`
+      : undefined;
+
   return (
     <Surface block={block} className="">
-      <div
-        className="mb-3 text-base font-semibold"
-        style={getContainerTextStyle(block.data.style, designKey)}
-      >
-        {block.data.heading || "My Links"}
-      </div>
+      {String(block.data.heading ?? "").trim() ? (
+        <div
+          className="mb-3 text-base font-semibold"
+          style={getContainerTextStyle(block.data.style, designKey)}
+        >
+          {block.data.heading}
+        </div>
+      ) : null}
 
       {items.length ? (
         <div className="space-y-3">
           {items.map((item, index) => {
             const linkItem = item as typeof item & {
-  logoUrl?: string;
-  autoGenerateLogo?: boolean;
-};
+              description?: string;
+              logoUrl?: string;
+              autoGenerateLogo?: boolean;
+            };
 
-const logoUrl = linkItem.logoUrl;
+            const logoUrl = linkItem.logoUrl;
+            const description = String(linkItem.description ?? "").trim();
+
+            const imageNode = logoUrl ? (
+              <span
+                className={[
+                  "flex shrink-0 items-center justify-center overflow-hidden border bg-white",
+                  isFlush ? "h-full w-16 rounded-none border-0" : "h-10 w-10 rounded-full",
+                  isLightDesign(designKey) ? "border-neutral-200" : "border-white/15",
+                ].join(" ")}
+              >
+                <img src={logoUrl} alt="" className="h-full w-full object-cover" />
+              </span>
+            ) : null;
+
+            const triggerNode =
+              !imageOnRight && triggerSymbol ? (
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center">
+                  <img src={triggerSymbol} alt="" className="h-5 w-5 object-contain" />
+                </span>
+              ) : null;
 
             return (
               <a
@@ -7308,61 +7350,62 @@ const logoUrl = linkItem.logoUrl;
                 href={normalizePreviewHref(item.url)}
                 target="_blank"
                 rel="noreferrer noopener"
-className={[
-  "group relative z-10 flex cursor-pointer items-center justify-between gap-3 rounded-xl border px-4 py-3 transition pointer-events-auto",
+                onClick={(e) => e.stopPropagation()}
+                className={[
+                  "group relative z-10 flex cursor-pointer items-stretch gap-3 overflow-hidden rounded-xl border transition pointer-events-auto",
+                  isFlush ? "px-0 py-0" : "px-4 py-3",
                   isLightDesign(designKey)
                     ? "border-neutral-200 bg-white hover:bg-neutral-50"
                     : "border-white/10 bg-white/5 hover:bg-white/10",
                 ].join(" ")}
+                style={{ boxShadow: cardShadow }}
               >
-                {logoUrl ? (
-                  <span
-                    className={[
-                      "flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border bg-white",
-                      isLightDesign(designKey)
-                        ? "border-neutral-200"
-                        : "border-white/15",
-                    ].join(" ")}
-                  >
-                    <img
-                      src={logoUrl}
-                      alt=""
-                      className="h-full w-full object-cover"
-                    />
-                  </span>
-                ) : null}
+                {!imageOnRight ? imageNode : null}
 
-                <div className="min-w-0 flex-1">
+                <div
+                  className={[
+                    "min-w-0 flex flex-1 flex-col justify-center",
+                    isFlush ? "px-4 py-3" : "",
+                  ].join(" ")}
+                >
                   <div
                     className="truncate text-sm font-medium"
-                    style={getContainerTextStyle(block.data.style, designKey)}
+                    style={getContainerTextStyle(
+                      (block.data as any).labelStyle ?? block.data.style,
+                      designKey,
+                    )}
                   >
                     {item.label || `Link ${index + 1}`}
                   </div>
 
+                  {description ? (
+                    <div
+                      className="mt-1 truncate text-xs"
+                      style={getContainerTextStyle(
+                        (block.data as any).descriptionStyle ?? block.data.style,
+                        designKey,
+                      )}
+                    >
+                      {description}
+                    </div>
+                  ) : null}
+
                   {item.url ? (
                     <div
-                      className={`mt-1 truncate text-xs ${getMutedTextClass(
+                      className="mt-1 truncate text-xs"
+                      style={getContainerTextStyle(
+                        (block.data as any).urlStyle ?? block.data.style,
                         designKey,
-                      )}`}
+                      )}
                     >
-                      {item.url
-                        .replace(/^https?:\/\//i, "")
-                        .replace(/^\/\//, "")}
+                      {item.url.replace(/^https?:\/\//i, "").replace(/^\/\//, "")}
                     </div>
                   ) : null}
                 </div>
 
-                <div
-                  className={[
-                    "shrink-0 text-sm font-semibold transition",
-                    isLightDesign(designKey)
-                      ? "text-neutral-400 group-hover:text-neutral-700"
-                      : "text-white/45 group-hover:text-white/80",
-                  ].join(" ")}
-                >
-                  →
-                </div>
+                {triggerNode}
+
+                {imageOnRight ? imageNode : null}
               </a>
             );
           })}

@@ -1462,9 +1462,12 @@ const currentSiteDisplay = isLiveMicrosite
   const [isRichTextEditorEmpty, setIsRichTextEditorEmpty] = useState(true);
   const [richTextLinkModalOpen, setRichTextLinkModalOpen] = useState(false);
   const [buildPresetModalOpen, setBuildPresetModalOpen] = useState(false);
-const [buildPresetJson, setBuildPresetJson] = useState("");
-const [buildPresetError, setBuildPresetError] = useState("");
-const [richTextLinkValue, setRichTextLinkValue] = useState("https://");
+  const [buildPresetJson, setBuildPresetJson] = useState("");
+  const [buildPresetError, setBuildPresetError] = useState("");
+  const [linkHubTextTarget, setLinkHubTextTarget] = useState<
+  "form" | "label" | "description" | "url"
+>("form");
+  const [richTextLinkValue, setRichTextLinkValue] = useState("https://");
   const [recentColors, setRecentColors] = useState<string[]>(() => {
     if (typeof window === "undefined") return [];
     try {
@@ -3889,26 +3892,35 @@ if (selectedBlock?.type === "donation") {
   return;
 }
 
-  if (selectedBlock?.type === "link_hub") {
-    setDraft((prev) => ({
-      ...prev,
-      blocks: prev.blocks.map((block) =>
-        block.id === selectedBlock.id && block.type === "link_hub"
-          ? {
-              ...block,
-              data: {
-                ...block.data,
-                style: {
-                  ...(block.data.style ?? {}),
-                  ...patch,
-                },
+if (selectedBlock?.type === "link_hub") {
+  const targetStyleKey =
+    linkHubTextTarget === "label"
+      ? "labelStyle"
+      : linkHubTextTarget === "description"
+        ? "descriptionStyle"
+        : linkHubTextTarget === "url"
+          ? "urlStyle"
+          : "style";
+
+  setDraft((prev) => ({
+    ...prev,
+    blocks: prev.blocks.map((block) =>
+      block.id === selectedBlock.id && block.type === "link_hub"
+        ? {
+            ...block,
+            data: {
+              ...block.data,
+              [targetStyleKey]: {
+                ...((block.data as any)[targetStyleKey] ?? block.data.style ?? {}),
+                ...patch,
               },
-            }
-          : block,
-      ),
-    }));
-    return;
-  }
+            },
+          }
+        : block,
+    ),
+  }));
+  return;
+}
 
   if (selectedBlock?.type === "checklist") {
     setDraft((prev) => ({
@@ -14871,6 +14883,258 @@ onClick={() =>
     <div className={inspectorLabelClass()}>Link Hub</div>
 
     <div className="mt-4">
+      <div className={inspectorLabelClass()}>Text Target</div>
+      <select
+        value={linkHubTextTarget}
+        onChange={(e) =>
+          setLinkHubTextTarget(
+            e.target.value as "form" | "label" | "description" | "url",
+          )
+        }
+        className={inspectorInputClass()}
+      >
+        <option value="form">Form</option>
+        <option value="label">Link Label</option>
+        <option value="description">Link Description</option>
+        <option value="url">Link URL</option>
+      </select>
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Image Placement</div>
+      <select
+        value={(selectedBlock.data as any).imagePlacement ?? "floatLeft"}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "link_hub"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    imagePlacement: e.target.value as any,
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      >
+        <option value="flushLeft">Flush Left</option>
+        <option value="floatLeft">Float Left</option>
+        <option value="flushRight">Flush Right</option>
+        <option value="floatRight">Float Right</option>
+      </select>
+    </div>
+
+    {["floatLeft", "flushLeft"].includes(
+      (selectedBlock.data as any).imagePlacement ?? "floatLeft",
+    ) ? (
+      <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+        <label className="flex items-center gap-3 text-sm font-medium text-neutral-800">
+          <input
+            type="checkbox"
+            checked={Boolean((selectedBlock.data as any).customTriggerEnabled)}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "link_hub"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        customTriggerEnabled: e.target.checked,
+                      },
+                    },
+              )
+            }
+          />
+          Choose Custom Trigger Symbol
+        </label>
+
+        {(selectedBlock.data as any).customTriggerEnabled ? (
+          <div className="mt-3">
+            <div className={inspectorLabelClass()}>Custom Trigger Symbol</div>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+
+                const uploaded = await uploadBuilderImageFile(file);
+
+                updateSelectedBlock((block) =>
+                  block.type !== "link_hub"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          customTriggerUrl: uploaded.url,
+                        },
+                      },
+                );
+              }}
+              className={inspectorInputClass()}
+            />
+          </div>
+        ) : (
+          <div className="mt-3">
+            <div className={inspectorLabelClass()}>Trigger Symbol</div>
+            <select
+              value={
+                (selectedBlock.data as any).triggerSymbol ??
+                "/icons/icon_thin_chevron.png"
+              }
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "link_hub"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          triggerSymbol: e.target.value,
+                        },
+                      },
+                )
+              }
+              className={inspectorInputClass()}
+            >
+              <option value="/icons/icon_thin_chevron.png">Thin Chevron</option>
+              <option value="/icons/icon_bold_chevron.png">Bold Chevron</option>
+              <option value="/icons/icon_triple_chevron.png">Triple Chevron</option>
+              <option value="/icons/icon_right_arrow.png">Right Arrow</option>
+              <option value="/icons/icon_solid_arrowhead.png">Solid Arrowhead</option>
+              <option value="/icons/icon_open_arrowhead.png">Open Arrowhead</option>
+              <option value="/icons/icon_play_triangle.png">Play Triangle</option>
+            </select>
+          </div>
+        )}
+      </div>
+    ) : null}
+
+    <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+      <label className="flex items-center justify-between gap-3">
+        <div className={inspectorLabelClass()}>Add Shadow</div>
+        <input
+          type="checkbox"
+          checked={Boolean((selectedBlock.data as any).cardShadowEnabled)}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "link_hub"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      cardShadowEnabled: e.target.checked,
+                    },
+                  },
+            )
+          }
+        />
+      </label>
+
+      <div className="mt-3">
+        <div className="mb-1 flex items-center justify-between">
+          <div className={inspectorLabelClass()}>Blur</div>
+          <div className="text-xs text-neutral-500">
+            {(selectedBlock.data as any).cardShadowBlur ?? 0}px
+          </div>
+        </div>
+        <input
+          type="range"
+          min={0}
+          max={100}
+          value={(selectedBlock.data as any).cardShadowBlur ?? 0}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "link_hub"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      cardShadowBlur: Number(e.target.value),
+                    },
+                  },
+            )
+          }
+          className="w-full"
+        />
+      </div>
+
+      <div className="mt-4">
+        <div className={inspectorLabelClass()}>Shadow Color</div>
+        <input
+          type="color"
+          value={(selectedBlock.data as any).cardShadowColor ?? "#000000"}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "link_hub"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      cardShadowColor: e.target.value,
+                    },
+                  },
+            )
+          }
+          className="mt-2 h-10 w-full rounded-xl border border-neutral-300 bg-white"
+        />
+      </div>
+
+      <div className="mt-4 grid grid-cols-2 gap-3">
+        <div>
+          <div className={inspectorLabelClass()}>Offset X</div>
+          <input
+            type="number"
+            value={(selectedBlock.data as any).cardShadowX ?? 0}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "link_hub"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        cardShadowX: Number(e.target.value),
+                      },
+                    },
+              )
+            }
+            className={inspectorInputClass()}
+          />
+        </div>
+
+        <div>
+          <div className={inspectorLabelClass()}>Offset Y</div>
+          <input
+            type="number"
+            value={(selectedBlock.data as any).cardShadowY ?? 0}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "link_hub"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        cardShadowY: Number(e.target.value),
+                      },
+                    },
+              )
+            }
+            className={inspectorInputClass()}
+          />
+        </div>
+      </div>
+    </div>
+
+    <div className="mt-4">
       <div className={inspectorLabelClass()}>Heading</div>
       <input
         type="text"
@@ -14894,10 +15158,12 @@ onClick={() =>
 
     <div className="mt-4 space-y-3">
       {selectedBlock.data.items.map((rawItem: LinkItem) => {
-  const item = rawItem as LinkItem & {
-    logoUrl?: string;
-    autoGenerateLogo?: boolean;
-  };
+        const item = rawItem as LinkItem & {
+          description?: string;
+          logoUrl?: string;
+          autoGenerateLogo?: boolean;
+        };
+
         const autoGenerateLogo = item.autoGenerateLogo ?? true;
         const logoPreviewUrl =
           item.logoUrl ||
@@ -14911,11 +15177,7 @@ onClick={() =>
             <div className="flex items-start gap-3">
               <span className="mt-5 flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-neutral-300 bg-white text-[10px] text-neutral-400">
                 {logoPreviewUrl ? (
-                  <img
-                    src={logoPreviewUrl}
-                    alt=""
-                    className="h-full w-full object-cover"
-                  />
+                  <img src={logoPreviewUrl} alt="" className="h-full w-full object-cover" />
                 ) : (
                   "Logo"
                 )}
@@ -14945,6 +15207,32 @@ onClick={() =>
                   }
                   className={inspectorInputClass()}
                 />
+
+                <div className="mt-4">
+                  <div className={inspectorLabelClass()}>Description</div>
+                  <input
+                    type="text"
+                    value={(item as any).description ?? ""}
+                    onChange={(e) =>
+                      updateSelectedBlock((block) =>
+                        block.type !== "link_hub"
+                          ? block
+                          : {
+                              ...block,
+                              data: {
+                                ...block.data,
+                                items: block.data.items.map((entry) =>
+                                  entry.id === item.id
+                                    ? { ...entry, description: e.target.value }
+                                    : entry,
+                                ),
+                              },
+                            },
+                      )
+                    }
+                    className={inspectorInputClass()}
+                  />
+                </div>
 
                 <div className="mt-4">
                   <div className={inspectorLabelClass()}>URL</div>
@@ -15024,11 +15312,11 @@ onClick={() =>
                 <input
                   type="file"
                   accept="image/*"
-                  onChange={(e) => {
+                  onChange={async (e) => {
                     const file = e.target.files?.[0];
                     if (!file) return;
 
-                    const logoUrl = URL.createObjectURL(file);
+                    const uploaded = await uploadBuilderImageFile(file);
 
                     updateSelectedBlock((block) =>
                       block.type !== "link_hub"
@@ -15041,7 +15329,7 @@ onClick={() =>
                                 entry.id === item.id
                                   ? {
                                       ...entry,
-                                      logoUrl,
+                                      logoUrl: uploaded.url,
                                       autoGenerateLogo: false,
                                     }
                                   : entry,
@@ -15098,9 +15386,7 @@ onClick={() =>
                             ...block.data,
                             items:
                               block.data.items.length > 1
-                                ? block.data.items.filter(
-                                    (entry) => entry.id !== item.id,
-                                  )
+                                ? block.data.items.filter((entry) => entry.id !== item.id)
                                 : block.data.items,
                           },
                         },
@@ -15131,6 +15417,7 @@ onClick={() =>
                       {
                         id: makeClientId("link"),
                         label: "New Link",
+                        description: "",
                         url: "#",
                         logoUrl: resolveMediaLogoFromUrl("#"),
                         autoGenerateLogo: true,

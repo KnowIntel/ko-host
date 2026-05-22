@@ -152,6 +152,10 @@ export type LinkItem = {
   id: string;
   label: string;
   url: string;
+
+  description?: string;
+  logoUrl?: string;
+  autoGenerateLogo?: boolean;
 };
 
 export type GalleryImage = {
@@ -1016,7 +1020,23 @@ export type LinkHubBlock = BaseBlock & {
   data: {
     heading?: string;
     items: LinkItem[];
+
     style?: TextStyle;
+    labelStyle?: TextStyle;
+    descriptionStyle?: TextStyle;
+    urlStyle?: TextStyle;
+
+    imagePlacement?: "flushLeft" | "floatLeft" | "flushRight" | "floatRight";
+
+    triggerSymbol?: string;
+    customTriggerEnabled?: boolean;
+    customTriggerUrl?: string;
+
+    cardShadowEnabled?: boolean;
+    cardShadowColor?: string;
+    cardShadowBlur?: number;
+    cardShadowX?: number;
+    cardShadowY?: number;
   };
 };
 
@@ -2843,10 +2863,26 @@ case "donation":
         data: {
           heading: "My Links",
           items: [
-            { id: makeId("link"), label: "Link 1", url: "#" },
-            { id: makeId("link"), label: "Link 2", url: "#" },
+            { id: makeId("link"), label: "Link 1", description: "", url: "#" },
+            { id: makeId("link"), label: "Link 2", description: "", url: "#" },
           ],
+
           style: createDefaultTextStyle(),
+          labelStyle: createDefaultTextStyle(),
+          descriptionStyle: createDefaultTextStyle(),
+          urlStyle: createDefaultTextStyle(),
+
+          imagePlacement: "floatLeft",
+
+          triggerSymbol: "/icons/icon_thin_chevron.png",
+          customTriggerEnabled: false,
+          customTriggerUrl: "",
+
+          cardShadowEnabled: false,
+          cardShadowColor: "#000000",
+          cardShadowBlur: 0,
+          cardShadowX: 0,
+          cardShadowY: 0,
         },
       };
 
