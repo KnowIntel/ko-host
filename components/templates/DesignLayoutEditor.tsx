@@ -1886,6 +1886,7 @@ const showBorderWidthRadiusControls =
   selectedBlock?.type === "speed_dating" ||
   selectedBlock?.type === "registry" ||
   selectedBlock?.type === "cart" ||
+  selectedBlock?.type === "form_field" ||
   selectedBlock?.type === "video" ||
   selectedBlock?.type === "rich_text" ||
   selectedBlock?.type === "countdown" ||
