@@ -850,10 +850,11 @@ export type ShapeBlock = BaseBlock & {
     rotation?: number;
     opacity?: number;
 
-    shadowColor?: string;
-    shadowBlur?: number;
-    shadowX?: number;
-    shadowY?: number;
+shadowEnabled?: boolean;
+shadowColor?: string;
+shadowBlur?: number;
+shadowX?: number;
+shadowY?: number;
 
     fade?: {
       top?: boolean;

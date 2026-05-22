@@ -330,6 +330,7 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Arrow Right Thin", type: "icon", iconName: "arrow-right-thin" },
     { kind: "block", label: "Chevron Left", type: "icon", iconName: "chevron-left" },
     { kind: "block", label: "Chevron Right", type: "icon", iconName: "chevron-right" },
+    { kind: "block", label: "Solid Play Triangle", type: "icon", iconName: "solid_play_triangle" },
     { kind: "block", label: "Paper Airplane", type: "icon", iconName: "paper-airplane" },
     { kind: "block", label: "Shield", type: "icon", iconName: "shield" },
     { kind: "block", label: "Dog Paw", type: "icon", iconName: "dog-paw" },
@@ -1048,6 +1049,19 @@ function getToolGlyph(label: string) {
   if (label === "Arrow Down Thin") return "↓";
   if (label === "Arrow Left Thin") return "←";
   if (label === "Arrow Right Thin") return "→";
+  if (label === "Solid Play Triangle") {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+    >
+      <path d="M6 3L20 12L6 21V3Z" />
+    </svg>
+  );
+}
   if (label === "Gable Panel") {
   return (
     <svg
@@ -19431,8 +19445,28 @@ data: {
       </div>
     </div>
 
-    <div className="mt-5 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
-      <div className={inspectorLabelClass()}>Shadow</div>
+<div className="mt-5 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+  <label className="flex items-center justify-between gap-3">
+    <div className={inspectorLabelClass()}>Shadow</div>
+
+    <input
+      type="checkbox"
+      checked={Boolean((selectedBlock.data as any).shadowEnabled)}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "shape"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  shadowEnabled: e.target.checked,
+                },
+              },
+        )
+      }
+    />
+  </label>
 
       <div className="mt-3">
         <div className="mb-1 flex items-center justify-between">

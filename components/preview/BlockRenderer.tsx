@@ -760,7 +760,7 @@ const style = {
   const shadowY = block.data.shadowY ?? 0;
 
 const boxShadow =
-  shadowBlur > 0
+  block.data.shadowEnabled && shadowBlur > 0
     ? `${shadowX}px ${shadowY}px ${shadowBlur}px ${shadowColor}`
     : undefined;
 
