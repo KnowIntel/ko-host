@@ -333,7 +333,7 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Paper Airplane", type: "icon", iconName: "paper-airplane" },
     { kind: "block", label: "Shield", type: "icon", iconName: "shield" },
     { kind: "block", label: "Dog Paw", type: "icon", iconName: "dog-paw" },
-    { kind: "block", label: "Gable Panel", type: "icon", iconName: "gable_panel" },
+    { kind: "block", label: "Gable Panel", type: "icon", iconName: "gable-panel" },
     { kind: "block", label: "City", type: "icon", iconName: "city" },
     { kind: "block", label: "Star", type: "icon", iconName: "star" },
     { kind: "block", label: "Heart", type: "icon", iconName: "heart" },
