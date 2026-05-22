@@ -844,18 +844,23 @@ export type ShapeBlock = BaseBlock & {
   data: {
     shapeType: ShapeType;
 
-    positionX?: number; // 0–100
-    positionY?: number; // 0–100
-    scale?: number;     // 0.5–3 (same as zoom)
-    rotation?: number;  // -180–180
-    opacity?: number;   // 0–1
+    positionX?: number;
+    positionY?: number;
+    scale?: number;
+    rotation?: number;
+    opacity?: number;
+
+    shadowColor?: string;
+    shadowBlur?: number;
+    shadowX?: number;
+    shadowY?: number;
 
     fade?: {
       top?: boolean;
       bottom?: boolean;
       left?: boolean;
       right?: boolean;
-      size?: number; // 0–50
+      size?: number;
     };
   };
 };

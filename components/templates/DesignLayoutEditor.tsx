@@ -19431,6 +19431,111 @@ data: {
       </div>
     </div>
 
+    <div className="mt-5 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+      <div className={inspectorLabelClass()}>Shadow</div>
+
+      <div className="mt-3">
+        <div className="mb-1 flex items-center justify-between">
+          <div className={inspectorLabelClass()}>Blur</div>
+          <div className="text-xs text-neutral-500">
+            {(selectedBlock.data as any).shadowBlur ?? 0}px
+          </div>
+        </div>
+
+        <input
+          type="range"
+          min={0}
+          max={100}
+          value={(selectedBlock.data as any).shadowBlur ?? 0}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "shape"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      shadowBlur: Number(e.target.value),
+                    },
+                  },
+            )
+          }
+          className="w-full"
+        />
+      </div>
+
+      <div className="mt-4">
+        <div className={inspectorLabelClass()}>Shadow Color</div>
+
+        <input
+          type="color"
+          value={(selectedBlock.data as any).shadowColor ?? "#000000"}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "shape"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      shadowColor: e.target.value,
+                    },
+                  },
+            )
+          }
+          className="mt-2 h-10 w-full rounded-xl border border-neutral-300 bg-white"
+        />
+      </div>
+
+      <div className="mt-4 grid grid-cols-2 gap-3">
+        <div>
+          <div className={inspectorLabelClass()}>Offset X</div>
+
+          <input
+            type="number"
+            value={(selectedBlock.data as any).shadowX ?? 0}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "shape"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        shadowX: Number(e.target.value),
+                      },
+                    },
+              )
+            }
+            className={inspectorInputClass()}
+          />
+        </div>
+
+        <div>
+          <div className={inspectorLabelClass()}>Offset Y</div>
+
+          <input
+            type="number"
+            value={(selectedBlock.data as any).shadowY ?? 0}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "shape"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        shadowY: Number(e.target.value),
+                      },
+                    },
+              )
+            }
+            className={inspectorInputClass()}
+          />
+        </div>
+      </div>
+    </div>
+
     <div className="mt-5">
       <div className={inspectorLabelClass()}>Fade Edges</div>
 

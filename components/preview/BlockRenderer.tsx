@@ -754,6 +754,16 @@ const style = {
   const opacity = block.data.opacity ?? 1;
   const fade = block.data.fade;
 
+  const shadowColor = block.data.shadowColor ?? "#000000";
+  const shadowBlur = block.data.shadowBlur ?? 0;
+  const shadowX = block.data.shadowX ?? 0;
+  const shadowY = block.data.shadowY ?? 0;
+
+const boxShadow =
+  shadowBlur > 0
+    ? `${shadowX}px ${shadowY}px ${shadowBlur}px ${shadowColor}`
+    : undefined;
+
   const translateX = (positionX - 50) * 0.6;
   const translateY = (positionY - 50) * 0.6;
 
@@ -826,6 +836,7 @@ const style = {
               block.appearance?.backgroundColor ||
               "#111827",
             borderRadius: "999px",
+            boxShadow,
           }}
         />
       </div>
@@ -845,6 +856,7 @@ const style = {
             ? "9999px"
             : style.borderRadius || "16px",
         minHeight: "100%",
+        boxShadow,
         ...fadeStyle,
       }}
     />
