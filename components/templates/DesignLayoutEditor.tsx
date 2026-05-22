@@ -7200,14 +7200,22 @@ if (block.type === "link_hub") {
           const logoUrl = linkItem.logoUrl;
 
           const imageNode = logoUrl ? (
-            <span
-              className={[
-                "flex shrink-0 items-center justify-center overflow-hidden bg-white",
-                isFlush
-                  ? "self-stretch w-16 rounded-none border-0"
-                  : "h-9 w-9 rounded-full border border-neutral-200",
-              ].join(" ")}
-            >
+<span
+  className={[
+    "flex shrink-0 items-center justify-center overflow-hidden bg-white",
+    isFlush
+      ? "self-stretch w-16 rounded-none border-0"
+      : "rounded-full border border-neutral-200",
+  ].join(" ")}
+  style={{
+    ...(isFlush
+      ? {}
+      : {
+          width: `${Number((block.data as any).imageWidth ?? 40)}px`,
+          height: `${Number((block.data as any).imageWidth ?? 40)}px`,
+        }),
+  }}
+>
               <img src={logoUrl} alt="" className="h-full w-full object-cover" />
             </span>
           ) : null;
@@ -14998,31 +15006,67 @@ onClick={() =>
       </select>
     </div>
 
-    <div className="mt-4">
-      <div className={inspectorLabelClass()}>Image Placement</div>
-      <select
-        value={(selectedBlock.data as any).imagePlacement ?? "floatLeft"}
-        onChange={(e) =>
-          updateSelectedBlock((block) =>
-            block.type !== "link_hub"
-              ? block
-              : {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    imagePlacement: e.target.value as any,
-                  },
+<div className="mt-4">
+  <div className={inspectorLabelClass()}>Image Placement</div>
+  <select
+    value={(selectedBlock.data as any).imagePlacement ?? "floatLeft"}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "link_hub"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                imagePlacement: e.target.value as any,
+              },
+            },
+      )
+    }
+    className={inspectorInputClass()}
+  >
+    <option value="flushLeft">Flush Left</option>
+    <option value="floatLeft">Float Left</option>
+    <option value="flushRight">Flush Right</option>
+    <option value="floatRight">Float Right</option>
+  </select>
+</div>
+
+{["floatLeft", "floatRight"].includes(
+  (selectedBlock.data as any).imagePlacement ?? "floatLeft",
+) ? (
+  <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+    <div className="mb-1 flex items-center justify-between">
+      <div className={inspectorLabelClass()}>Image Width</div>
+      <div className="text-xs text-neutral-500">
+        {(selectedBlock.data as any).imageWidth ?? 40}px
+      </div>
+    </div>
+
+    <input
+      type="range"
+      min={24}
+      max={120}
+      value={(selectedBlock.data as any).imageWidth ?? 40}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "link_hub"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  imageWidth: Number(e.target.value),
                 },
-          )
-        }
-        className={inspectorInputClass()}
-      >
-        <option value="flushLeft">Flush Left</option>
-        <option value="floatLeft">Float Left</option>
-        <option value="flushRight">Flush Right</option>
-        <option value="floatRight">Float Right</option>
-      </select>
-    <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+              },
+        )
+      }
+      className="w-full"
+    />
+  </div>
+) : null}
+
+<div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
   <div className={inspectorLabelClass()}>Card Padding</div>
 
   <div className="mt-3">
@@ -15085,7 +15129,6 @@ onClick={() =>
     />
   </div>
 </div>
-    </div>
 
     {["floatLeft", "flushLeft"].includes(
       (selectedBlock.data as any).imagePlacement ?? "floatLeft",

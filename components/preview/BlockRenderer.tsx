@@ -7332,17 +7332,25 @@ function renderLinkHub(
             const description = String(linkItem.description ?? "").trim();
 
             const imageNode = logoUrl ? (
-              <span
-                className={[
-                  "flex shrink-0 items-center justify-center overflow-hidden bg-white",
-                  isFlush
-                    ? "self-stretch w-20 rounded-none border-0"
-                    : "h-10 w-10 rounded-full border",
-                  isLightDesign(designKey)
-                    ? "border-neutral-200"
-                    : "border-white/15",
-                ].join(" ")}
-              >
+<span
+  className={[
+    "flex shrink-0 items-center justify-center overflow-hidden bg-white",
+    isFlush
+      ? "self-stretch w-20 rounded-none border-0"
+      : "rounded-full border",
+    isLightDesign(designKey)
+      ? "border-neutral-200"
+      : "border-white/15",
+  ].join(" ")}
+  style={
+    isFlush
+      ? undefined
+      : {
+          width: `${Number((block.data as any).imageWidth ?? 40)}px`,
+          height: `${Number((block.data as any).imageWidth ?? 40)}px`,
+        }
+  }
+>
                 <img
                   src={logoUrl}
                   alt=""

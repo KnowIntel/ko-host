@@ -1025,6 +1025,7 @@ export type LinkHubBlock = BaseBlock & {
     labelStyle?: TextStyle;
     descriptionStyle?: TextStyle;
     urlStyle?: TextStyle;
+    imageWidth?: number;
 
     imagePlacement?: "flushLeft" | "floatLeft" | "flushRight" | "floatRight";
 
@@ -2876,6 +2877,7 @@ case "donation":
           urlStyle: createDefaultTextStyle(),
 
           imagePlacement: "floatLeft",
+          imageWidth: 40,
 
           triggerSymbol: "/icons/icon_thin_chevron.png",
           customTriggerEnabled: false,
