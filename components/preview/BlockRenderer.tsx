@@ -5393,9 +5393,45 @@ function renderFormField(
   designKey?: string,
 ) {
   function FormFieldPreview() {
-const inputClass = isLightDesign(designKey)
-  ? "w-full rounded border border-neutral-300 bg-white px-3 py-2 text-sm placeholder-current"
-  : "w-full rounded border border-white/15 bg-white/5 px-3 py-2 text-sm placeholder-current";
+    const inputClass = isLightDesign(designKey)
+      ? "w-full rounded border border-neutral-300 bg-white px-3 py-2 text-sm placeholder-current"
+      : "w-full rounded border border-white/15 bg-white/5 px-3 py-2 text-sm placeholder-current";
+
+    const inputStyle = ((block.data as any).inputStyle ??
+      block.data.style ??
+      {}) as any;
+
+    const inputVisualStyle: React.CSSProperties = {
+      ...getContainerTextStyle(inputStyle, designKey),
+
+      color: inputStyle.color ?? getDefaultTextColor(designKey),
+      WebkitTextFillColor: inputStyle.color ?? getDefaultTextColor(designKey),
+
+      backgroundColor: inputStyle.backgroundColor ?? undefined,
+
+      borderColor: inputStyle.borderColor ?? undefined,
+      borderWidth:
+        typeof inputStyle.borderWidth === "number"
+          ? `${inputStyle.borderWidth}px`
+          : undefined,
+      borderRadius:
+        typeof inputStyle.borderRadius === "number"
+          ? `${inputStyle.borderRadius}px`
+          : undefined,
+
+      paddingLeft:
+        typeof inputStyle.paddingLeft === "number"
+          ? `${inputStyle.paddingLeft}px`
+          : undefined,
+      paddingRight:
+        typeof inputStyle.paddingRight === "number"
+          ? `${inputStyle.paddingRight}px`
+          : undefined,
+      paddingBottom:
+        typeof inputStyle.paddingBottom === "number"
+          ? `${inputStyle.paddingBottom}px`
+          : undefined,
+    };
 
     const showLabel = block.data.showLabel !== false;
     const showPlaceholder = block.data.showPlaceholder !== false;
@@ -5454,10 +5490,10 @@ const inputClass = isLightDesign(designKey)
           {showLabel ? (
             <label
               className="text-sm"
-style={getContainerTextStyle(
-  (block.data as any).labelStyle ?? block.data.style,
-  designKey,
-)}
+              style={getContainerTextStyle(
+                (block.data as any).labelStyle ?? block.data.style,
+                designKey,
+              )}
             >
               {block.data.label}
               {showRequired && block.data.required ? " *" : ""}
@@ -5474,19 +5510,7 @@ style={getContainerTextStyle(
               data-linked-button-id={linkedButtonId}
               data-field-label={block.data.label || "Field"}
               data-required={block.data.required ? "true" : "false"}
-style={{
-  ...getContainerTextStyle(
-    (block.data as any).inputStyle ?? block.data.style,
-    designKey,
-  ),
-  color:
-    ((block.data as any).inputStyle ?? block.data.style)?.color ??
-    getDefaultTextColor(designKey),
-
-  WebkitTextFillColor:
-    ((block.data as any).inputStyle ?? block.data.style)?.color ??
-    getDefaultTextColor(designKey),
-}}
+              style={inputVisualStyle}
             />
           ) : (
             <input
@@ -5498,19 +5522,7 @@ style={{
               data-linked-button={(block.data as any).linkedButtonId || ""}
               data-field-label={block.data.label || "Field"}
               data-required={block.data.required ? "true" : "false"}
-style={{
-  ...getContainerTextStyle(
-    (block.data as any).inputStyle ?? block.data.style,
-    designKey,
-  ),
-  color:
-    ((block.data as any).inputStyle ?? block.data.style)?.color ??
-    getDefaultTextColor(designKey),
-
-  WebkitTextFillColor:
-    ((block.data as any).inputStyle ?? block.data.style)?.color ??
-    getDefaultTextColor(designKey),
-}}
+              style={inputVisualStyle}
             />
           )}
 
