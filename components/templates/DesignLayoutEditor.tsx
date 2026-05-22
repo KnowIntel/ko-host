@@ -1591,9 +1591,9 @@ const selectedStyle =
               selectedBlockFromDraft?.type === "video" ||
               selectedBlockFromDraft?.type === "rich_text" ||
               selectedBlockFromDraft?.type === "links"
-            ? (((selectedBlockFromDraft.data as any).captionStyle ??
-                (selectedBlockFromDraft.data as any).style ??
-                {}) as TextStyle)
+? ((((selectedBlockFromDraft as any)?.data?.captionStyle ??
+    (selectedBlockFromDraft as any)?.data?.style ??
+    {}) as TextStyle))
             : getSelectionTextStyle(draft, selection);
 
   const selectedAppearance = getSelectionBlockAppearance(draft, selection);
