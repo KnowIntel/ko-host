@@ -103,6 +103,7 @@ const draftPageCountByTemplateDesignKey: Record<string, number> = {
 
   "memory_timeline:timeless": 3,
 
+  "photo_gallery:escape": 4,
 
 };
 
