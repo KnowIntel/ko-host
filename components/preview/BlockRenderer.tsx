@@ -729,9 +729,21 @@ function Placeholder({
 }
 
 function renderShape(block: Extract<MicrositeBlock, { type: "shape" }>) {
-  const style = {
+const textureFaceStyle =
+  block.appearance?.textureEnabled && block.appearance?.textureImageUrl
+    ? {
+        backgroundImage: `url("${block.appearance.textureImageUrl}")`,
+        backgroundSize: `${block.appearance.textureScale ?? 100}%`,
+        backgroundPosition: `${block.appearance.texturePositionX ?? 50}% ${
+          block.appearance.texturePositionY ?? 50
+        }%`,
+        backgroundRepeat: "repeat",
+      }
+    : {};
+
+const style = {
   ...getAppearanceStyle(block),
-  ...getTextureBorderStyle(block.appearance),
+  ...textureFaceStyle,
 };
 
   const positionX = block.data.positionX ?? 50;
