@@ -5072,44 +5072,29 @@ async function uploadGalleryImagesToBlock(blockId: string) {
   await openImagePicker({
     multiple: true,
     onSelect: async (files) => {
-      const MAX_FILES_PER_ADD = 8;
-      const MAX_TOTAL_EMBED_BYTES = 8_500_000;
-
+      const MAX_FILES_PER_ADD = 24;
       const selectedFiles = files.slice(0, MAX_FILES_PER_ADD);
 
       if (files.length > MAX_FILES_PER_ADD) {
         window.alert(
-          `You selected ${files.length} images. Only the first ${MAX_FILES_PER_ADD} were added to keep the draft saveable.`,
+          `You selected ${files.length} images. Only the first ${MAX_FILES_PER_ADD} were added at once.`,
         );
       }
 
-      const images: GalleryImage[] = [];
-      let totalBytes = 0;
+      const images: GalleryImage[] = await Promise.all(
+        selectedFiles.map(async (file) => {
+          const uploaded = await uploadBuilderImageFile(file);
 
-      for (const file of selectedFiles) {
-        const compressedUrl = await readFileAsCompressedDataUrl(file, {
-          maxWidth: 1600,
-          maxHeight: 1600,
-          quality: 0.78,
-          outputType: "image/jpeg",
-        });
-
-        const nextBytes = estimateDataUrlBytes(compressedUrl);
-
-        if (totalBytes + nextBytes > MAX_TOTAL_EMBED_BYTES) {
-          window.alert(
-            `Some gallery images were not added because they would make the draft too large to save.\n\nAdded so far: ${formatBytes(totalBytes)}\nNext image: ${formatBytes(nextBytes)}`,
-          );
-          break;
-        }
-
-        totalBytes += nextBytes;
-
-        images.push({
-          id: makeClientId("gallery"),
-          url: compressedUrl,
-        });
-      }
+          return {
+            id: makeClientId("gallery"),
+            url: uploaded.url,
+            storagePath: uploaded.storagePath,
+            imageSizeBytes: uploaded.imageSizeBytes,
+            imageOriginalSizeBytes: uploaded.imageOriginalSizeBytes,
+            imageMimeType: uploaded.imageMimeType,
+          } as GalleryImage;
+        }),
+      );
 
       if (!images.length) return;
 

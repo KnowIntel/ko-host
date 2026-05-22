@@ -157,15 +157,18 @@ export type LinkItem = {
 export type GalleryImage = {
   id: string;
   url: string;
-
   alt?: string;
 
   caption?: string;
   captionStyle?: TextStyle;
-
   href?: string;
 
   shape?: "square" | "rounded" | "circle";
+
+  storagePath?: string;
+  imageSizeBytes?: number;
+  imageOriginalSizeBytes?: number;
+  imageMimeType?: string;
 };
 
 export type TimelineEntry = {
