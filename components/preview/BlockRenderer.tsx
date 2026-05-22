@@ -5465,6 +5465,10 @@ style={{
   color:
     ((block.data as any).inputStyle ?? block.data.style)?.color ??
     getDefaultTextColor(designKey),
+
+  WebkitTextFillColor:
+    ((block.data as any).inputStyle ?? block.data.style)?.color ??
+    getDefaultTextColor(designKey),
 }}
             />
           ) : (
@@ -5483,6 +5487,10 @@ style={{
     designKey,
   ),
   color:
+    ((block.data as any).inputStyle ?? block.data.style)?.color ??
+    getDefaultTextColor(designKey),
+
+  WebkitTextFillColor:
     ((block.data as any).inputStyle ?? block.data.style)?.color ??
     getDefaultTextColor(designKey),
 }}
