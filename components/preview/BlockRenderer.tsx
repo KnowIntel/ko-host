@@ -729,7 +729,10 @@ function Placeholder({
 }
 
 function renderShape(block: Extract<MicrositeBlock, { type: "shape" }>) {
-  const style = getAppearanceStyle(block);
+  const style = {
+  ...getAppearanceStyle(block),
+  ...getTextureBorderStyle(block.appearance),
+};
 
   const positionX = block.data.positionX ?? 50;
   const positionY = block.data.positionY ?? 50;
