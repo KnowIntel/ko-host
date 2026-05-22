@@ -5376,9 +5376,9 @@ function renderFormField(
   designKey?: string,
 ) {
   function FormFieldPreview() {
-    const inputClass = isLightDesign(designKey)
-      ? "w-full rounded border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900"
-      : "w-full rounded border border-white/15 bg-white/5 px-3 py-2 text-sm text-white";
+const inputClass = isLightDesign(designKey)
+  ? "w-full rounded border border-neutral-300 bg-white px-3 py-2 text-sm"
+  : "w-full rounded border border-white/15 bg-white/5 px-3 py-2 text-sm";
 
     const showLabel = block.data.showLabel !== false;
     const showPlaceholder = block.data.showPlaceholder !== false;
@@ -5457,10 +5457,15 @@ style={getContainerTextStyle(
               data-linked-button-id={linkedButtonId}
               data-field-label={block.data.label || "Field"}
               data-required={block.data.required ? "true" : "false"}
-style={getContainerTextStyle(
-  (block.data as any).inputStyle ?? block.data.style,
-  designKey,
-)}
+style={{
+  ...getContainerTextStyle(
+    (block.data as any).inputStyle ?? block.data.style,
+    designKey,
+  ),
+  color:
+    ((block.data as any).inputStyle ?? block.data.style)?.color ??
+    getDefaultTextColor(designKey),
+}}
             />
           ) : (
             <input
@@ -5472,10 +5477,15 @@ style={getContainerTextStyle(
               data-linked-button={(block.data as any).linkedButtonId || ""}
               data-field-label={block.data.label || "Field"}
               data-required={block.data.required ? "true" : "false"}
-style={getContainerTextStyle(
-  (block.data as any).inputStyle ?? block.data.style,
-  designKey,
-)}
+style={{
+  ...getContainerTextStyle(
+    (block.data as any).inputStyle ?? block.data.style,
+    designKey,
+  ),
+  color:
+    ((block.data as any).inputStyle ?? block.data.style)?.color ??
+    getDefaultTextColor(designKey),
+}}
             />
           )}
 
