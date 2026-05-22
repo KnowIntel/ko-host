@@ -3616,23 +3616,24 @@ if (selectedBlock?.type === "form_field") {
             ...block,
             data: {
               ...block.data,
-              ...(formFieldTextTarget === "text"
+
+              inputStyle: {
+                ...((block.data as any).inputStyle ??
+                  block.data.style ??
+                  {}),
+                ...patch,
+              },
+
+              ...(formFieldTextTarget === "label"
                 ? {
-                    inputStyle: {
-                      ...((block.data as any).inputStyle ??
-                        block.data.style ??
-                        {}),
-                      ...patch,
-                    },
-                  }
-                : {
                     labelStyle: {
                       ...((block.data as any).labelStyle ??
                         block.data.style ??
                         {}),
                       ...patch,
                     },
-                  }),
+                  }
+                : {}),
             },
           }
         : block,
