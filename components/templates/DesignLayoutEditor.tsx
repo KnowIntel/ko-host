@@ -1290,6 +1290,8 @@ const [formFieldTextTarget, setFormFieldTextTarget] = useState<"label" | "text">
   const [editorUploadError, setEditorUploadError] = useState("");
   const [toolSearchQuery, setToolSearchQuery] = useState("");
   const [flashedToolKey, setFlashedToolKey] = useState<string | null>(null);
+  const [selectedGalleryImageId, setSelectedGalleryImageId] =
+  useState<string | null>(null);
   const [textureUploadError, setTextureUploadError] = useState("");
   const [categoryMenuView, setCategoryMenuView] = useState<"compact" | "detail">(
     "compact",
@@ -1577,7 +1579,7 @@ const selectedStyle =
               selectedBlockFromDraft?.type === "cta" ||
               selectedBlockFromDraft?.type === "thread" ||
               selectedBlockFromDraft?.type === "image" ||
-              (selectedBlockFromDraft as any)?.type === "gallery"
+              (selectedBlockFromDraft as any)?.type === "gallery" ||
               selectedBlockFromDraft?.type === "image_carousel" ||
               selectedBlockFromDraft?.type === "progress_bar" ||
               selectedBlockFromDraft?.type === "link_hub" ||
@@ -6075,6 +6077,21 @@ function openPreviewWindow() {
   }, [block.id, duration]);
 
   useEffect(() => {
+  if (!selectedGalleryImageId) return;
+
+  const node = galleryImageCardRefs.current[selectedGalleryImageId];
+
+  if (!node) return;
+
+  requestAnimationFrame(() => {
+    node.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
+  });
+}, [selectedGalleryImageId]);
+
+  useEffect(() => {
   function handleFocusTimelineEntry(event: Event) {
     const customEvent = event as CustomEvent<{
       blockId?: string;
@@ -7698,6 +7715,11 @@ const handleJumpToFullCanvasView = () => {
     block: "start",
   });
 };
+
+const galleryImageCardRefs = useRef<
+  Record<string, HTMLDivElement | null>
+>({});
+
 
 const getSaveFailureHelp = (message?: string) => {
   const lowerMessage = String(message ?? "").toLowerCase();
@@ -19683,10 +19705,18 @@ data: {
 
     <div className="mt-4 space-y-3">
       {selectedBlock.data.images.map((image, index) => (
-        <div
-          key={image.id}
-          className="rounded-xl border border-neutral-200 bg-neutral-50 p-3"
-        >
+<div
+  key={image.id}
+  ref={(node) => {
+    galleryImageCardRefs.current[image.id] = node;
+  }}
+  className={[
+    "rounded-xl border bg-neutral-50 p-3 transition",
+    selectedGalleryImageId === image.id
+      ? "border-blue-500 ring-2 ring-blue-200"
+      : "border-neutral-200",
+  ].join(" ")}
+>
           <div className="flex items-center gap-3">
             <div className="h-14 w-14 overflow-hidden rounded-lg border border-neutral-200 bg-white">
               <img src={image.url} alt="" className="h-full w-full object-cover" />

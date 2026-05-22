@@ -2908,7 +2908,8 @@ function renderGalleryTile(
   showCaption = false,
   frameThickness = 0,
   frameColor = "#ffffff",
-  designKey?: string,
+  onSelect?: () => void,
+  isSelected = false,
 ) {
   if (!image?.url) {
     return (
@@ -2930,8 +2931,13 @@ function renderGalleryTile(
   const href = String(image.href ?? "").trim();
 
   const content = (
-    <div
-      className="flex h-full w-full flex-col overflow-hidden"
+<div
+  onClick={onSelect}
+  className={[
+    "flex h-full w-full flex-col overflow-hidden transition",
+    onSelect ? "cursor-pointer" : "",
+    isSelected ? "ring-2 ring-blue-500" : "",
+  ].join(" ")}
       style={{
         borderRadius,
         border:
@@ -2953,7 +2959,7 @@ function renderGalleryTile(
       {showCaption && caption ? (
         <div
           className="shrink-0 px-2 py-1 text-xs text-neutral-700"
-          style={getContainerTextStyle(captionStyle, designKey)}
+          style={getContainerTextStyle(captionStyle)}
         >
           {caption}
         </div>
@@ -3037,7 +3043,6 @@ renderGalleryTile(
   Boolean((block.data as any).addCaption),
   frameThickness,
   frameColor,
-  designKey,
 ),
         )}
       </div>
@@ -5326,7 +5331,7 @@ className={[
                 {showCaptions && String((item as any).caption ?? "").trim() ? (
 <div
   className="absolute inset-x-0 bottom-0 bg-black/60 px-3 py-1 text-xs text-white"
-  style={getContainerTextStyle(captionStyle, designKey)}
+  style={getContainerTextStyle(captionStyle)}
 >
   {String((item as any).caption ?? "").trim()}
 </div>
