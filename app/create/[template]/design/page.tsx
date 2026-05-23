@@ -106,6 +106,7 @@ const draftPageCountByTemplateDesignKey: Record<string, number> = {
   "photo_gallery:escape": 4,
 
   "creator_link_hub:canvas": 1,
+  "creator_link_hub:studio": 1,
 
 };
 
