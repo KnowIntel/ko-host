@@ -1027,6 +1027,7 @@ export type LinkHubBlock = BaseBlock & {
     descriptionStyle?: TextStyle;
     urlStyle?: TextStyle;
     imageWidth?: number;
+    logoFileName?: string;
 
     imagePlacement?: "flushLeft" | "floatLeft" | "flushRight" | "floatRight";
 
@@ -2906,7 +2907,7 @@ case "donation":
           cardPaddingY: 12,
         },
       };
-      
+
       case "registry":
       return {
         id: makeId("registry"),

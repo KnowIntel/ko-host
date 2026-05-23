@@ -1638,7 +1638,21 @@ const selectedStyle =
                       (selectedBlockFromDraft.data as any).style ??
                       {}) as TextStyle)
                   : (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
-        : selectedBlockFromDraft?.type === "timeline"
+: selectedBlockFromDraft?.type === "link_hub"
+  ? linkHubTextTarget === "label"
+    ? (((selectedBlockFromDraft.data as any).labelStyle ??
+        selectedBlockFromDraft.data.style ??
+        {}) as TextStyle)
+    : linkHubTextTarget === "description"
+      ? (((selectedBlockFromDraft.data as any).descriptionStyle ??
+          selectedBlockFromDraft.data.style ??
+          {}) as TextStyle)
+      : linkHubTextTarget === "url"
+        ? (((selectedBlockFromDraft.data as any).urlStyle ??
+            selectedBlockFromDraft.data.style ??
+            {}) as TextStyle)
+        : (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
+: selectedBlockFromDraft?.type === "timeline"
           ? timelineStyleTarget === "title"
             ? (((selectedBlockFromDraft.data as any).titleStyle ?? {}) as TextStyle)
             : timelineStyleTarget === "date"
@@ -7232,8 +7246,8 @@ const imageWidth = Number((block.data as any).imageWidth ?? 40);
                 boxShadow: cardShadow,
                 paddingLeft: isFlush ? 0 : `${cardPaddingX}px`,
                 paddingRight: isFlush ? 0 : `${cardPaddingX}px`,
-                paddingTop: `${cardPaddingY}px`,
-                paddingBottom: `${cardPaddingY}px`,
+paddingTop: isFlush ? 0 : `${cardPaddingY}px`,
+paddingBottom: isFlush ? 0 : `${cardPaddingY}px`,
               }}
             >
               {!imageOnRight ? imageNode : null}
@@ -7241,8 +7255,10 @@ const imageWidth = Number((block.data as any).imageWidth ?? 40);
               <div
                 className="min-w-0 flex flex-1 flex-col justify-center"
                 style={{
-                  paddingLeft: isFlush ? `${cardPaddingX}px` : undefined,
-                  paddingRight: isFlush ? `${cardPaddingX}px` : undefined,
+paddingLeft: isFlush ? `${cardPaddingX}px` : undefined,
+paddingRight: isFlush ? `${cardPaddingX}px` : undefined,
+paddingTop: isFlush ? `${cardPaddingY}px` : undefined,
+paddingBottom: isFlush ? `${cardPaddingY}px` : undefined,
                 }}
               >
                 <div
@@ -15045,7 +15061,7 @@ onClick={() =>
     <input
       type="range"
       min={24}
-      max={120}
+      max={260}
       value={(selectedBlock.data as any).imageWidth ?? 40}
       onChange={(e) =>
         updateSelectedBlock((block) =>
@@ -15537,42 +15553,53 @@ onClick={() =>
               Auto-Generate Logo
             </label>
 
-            {!autoGenerateLogo ? (
-              <div className="mt-3">
-                <div className={inspectorLabelClass()}>Custom Logo</div>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
+{!autoGenerateLogo ? (
+  <div className="mt-3">
+    <div className={inspectorLabelClass()}>Custom Logo</div>
 
-                    const uploaded = await uploadBuilderImageFile(file);
+    <div className="mt-2 flex items-center gap-3">
+      <label className="inline-flex h-10 shrink-0 cursor-pointer items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-700 hover:bg-neutral-50">
+        Choose File
+        <input
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={async (e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
 
-                    updateSelectedBlock((block) =>
-                      block.type !== "link_hub"
-                        ? block
-                        : {
-                            ...block,
-                            data: {
-                              ...block.data,
-                              items: block.data.items.map((entry) =>
-                                entry.id === item.id
-                                  ? {
-                                      ...entry,
-                                      logoUrl: uploaded.url,
-                                      autoGenerateLogo: false,
-                                    }
-                                  : entry,
-                              ),
-                            },
-                          },
-                    );
-                  }}
-                  className={inspectorInputClass()}
-                />
-              </div>
-            ) : null}
+            const uploaded = await uploadBuilderImageFile(file);
+
+            updateSelectedBlock((block) =>
+              block.type !== "link_hub"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      items: block.data.items.map((entry) =>
+                        entry.id === item.id
+                          ? {
+                              ...entry,
+                              logoUrl: uploaded.url,
+                              logoFileName: file.name,
+                              autoGenerateLogo: false,
+                            }
+                          : entry,
+                      ),
+                    },
+                  },
+            );
+          }}
+        />
+      </label>
+
+      <div className="min-w-0 flex-1 truncate rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-500">
+        {(item as any).logoFileName || "No file chosen"}
+      </div>
+    </div>
+  </div>
+) : null}
 
             <div className="mt-3 flex justify-end gap-2">
               <button
