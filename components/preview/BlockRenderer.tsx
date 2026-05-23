@@ -7370,14 +7370,14 @@ function renderLinkHub(
                 <span
                   className="flex self-stretch shrink-0 items-center justify-center"
                   style={{
-                    width: `${Math.max(triggerSymbolSize + 12, 56)}px`,
-                    minWidth: `${Math.max(triggerSymbolSize + 12, 56)}px`,
+                  width: `${triggerSymbolSize + 20}px`,
+                  minWidth: `${triggerSymbolSize + 20}px`,
                   }}
                 >
                   <img
                     src={triggerSymbol}
                     alt=""
-                    className="object-contain"
+                    className="block max-h-none max-w-none object-contain"
                     style={{
                       width: `${triggerSymbolSize}px`,
                       height: `${triggerSymbolSize}px`,
