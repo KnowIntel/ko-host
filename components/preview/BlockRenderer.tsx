@@ -990,7 +990,8 @@ function renderVideo(
   const showCustomThumbnail =
     !autoGenerateThumbnail && Boolean(thumbnailUrl);
 
-  const showPlayOverlay = (block.data as any).showPlayOverlay !== false;
+  const showPlayOverlay =
+    (block.data as any).showPlayOverlay !== false;
 
   const showCaption = Boolean((block.data as any).addCaption);
   const caption = String((block.data as any).caption ?? "").trim();
@@ -1009,6 +1010,9 @@ function renderVideo(
   const isDirectVideoFile =
     videoUrl.startsWith("data:video/") ||
     /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(videoUrl);
+
+  const shouldShowOverlay =
+    showPlayOverlay && !block.data.showControls;
 
   const frameStyle: React.CSSProperties = {
     backgroundImage:
@@ -1056,25 +1060,31 @@ function renderVideo(
       ) : null}
 
       <div className="min-h-0 flex-1 overflow-hidden rounded-xl" style={frameStyle}>
-        <div className="relative h-full w-full overflow-hidden rounded-lg bg-black pointer-events-auto">
+        <div className="relative h-full w-full overflow-hidden rounded-lg bg-black">
           {isDirectVideoFile ? (
-<video
-  src={videoUrl}
-  poster={showCustomThumbnail ? thumbnailUrl : undefined}
-  className="relative z-20 h-full w-full object-cover pointer-events-auto"
-  autoPlay={Boolean(block.data.autoplay)}
-  muted={Boolean(block.data.muted)}
-  loop={Boolean(block.data.loop)}
-  controls={Boolean(block.data.showControls)}
-  playsInline
-  preload="metadata"
-  style={{
-    height: "100%",
-    width: "100%",
-    display: "block",
-    objectFit: "cover",
-  }}
-/>
+            <video
+              src={videoUrl}
+              poster={showCustomThumbnail ? thumbnailUrl : undefined}
+              className="h-full w-full object-cover"
+              autoPlay={Boolean(block.data.autoplay)}
+              muted={Boolean(block.data.muted)}
+              loop={Boolean(block.data.loop)}
+              controls={Boolean(block.data.showControls)}
+              playsInline
+              preload="metadata"
+              style={{
+                height: "100%",
+                width: "100%",
+                display: "block",
+                objectFit: "cover",
+              }}
+            />
+          ) : showCustomThumbnail ? (
+            <img
+              src={thumbnailUrl}
+              alt=""
+              className="h-full w-full object-cover"
+            />
           ) : videoUrl ? (
             <iframe
               src={videoUrl}
@@ -1095,13 +1105,13 @@ function renderVideo(
             </div>
           )}
 
-{showPlayOverlay ? (
-  <img
-    src="/icons/button_video_play.png"
-    alt=""
-    className="pointer-events-none absolute left-1/2 top-1/2 z-30 h-16 w-16 -translate-x-1/2 -translate-y-1/2 object-contain"
-  />
-) : null}
+          {shouldShowOverlay ? (
+            <img
+              src="/icons/button_video_play.png"
+              alt=""
+              className="pointer-events-none absolute left-1/2 top-1/2 z-10 h-16 w-16 -translate-x-1/2 -translate-y-1/2 object-contain"
+            />
+          ) : null}
         </div>
       </div>
 
