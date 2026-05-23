@@ -15170,34 +15170,78 @@ onClick={() =>
           Choose Custom Trigger Symbol
         </label>
 
-        {(selectedBlock.data as any).customTriggerEnabled ? (
-          <div className="mt-3">
-            <div className={inspectorLabelClass()}>Custom Trigger Symbol</div>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={async (e) => {
-                const file = e.target.files?.[0];
-                if (!file) return;
+{(selectedBlock.data as any).customTriggerEnabled ? (
+  <div className="mt-3">
+    <div className={inspectorLabelClass()}>Custom Trigger Symbol</div>
 
-                const uploaded = await uploadBuilderImageFile(file);
+    <div className="mt-2 flex items-center gap-3">
+      <label className="inline-flex h-10 shrink-0 cursor-pointer items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-700 hover:bg-neutral-50">
+        Choose File
 
-                updateSelectedBlock((block) =>
-                  block.type !== "link_hub"
-                    ? block
-                    : {
-                        ...block,
-                        data: {
-                          ...block.data,
-                          customTriggerUrl: uploaded.url,
-                        },
-                      },
-                );
-              }}
-              className={inspectorInputClass()}
-            />
-          </div>
-        ) : (
+        <input
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={async (e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+
+            const uploaded = await uploadBuilderImageFile(file);
+
+            updateSelectedBlock((block) =>
+              block.type !== "link_hub"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      customTriggerUrl: uploaded.url,
+                      customTriggerFileName: file.name,
+                    },
+                  },
+            );
+          }}
+        />
+      </label>
+
+      <div className="min-w-0 flex-1 truncate rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-500">
+        {(selectedBlock.data as any).customTriggerFileName || "No file chosen"}
+      </div>
+    </div>
+    <div className="mt-4">
+  <div className="mb-1 flex items-center justify-between">
+    <div className={inspectorLabelClass()}>
+      Trigger Symbol Size
+    </div>
+
+    <div className="text-xs text-neutral-500">
+      {(selectedBlock.data as any).triggerSymbolSize ?? 40}px
+    </div>
+  </div>
+
+  <input
+    type="range"
+    min={16}
+    max={160}
+    value={(selectedBlock.data as any).triggerSymbolSize ?? 40}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "link_hub"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                triggerSymbolSize: Number(e.target.value),
+              },
+            },
+      )
+    }
+    className="w-full"
+  />
+</div>
+  </div>
+) : (
           <div className="mt-3">
             <div className={inspectorLabelClass()}>Trigger Symbol</div>
             <select

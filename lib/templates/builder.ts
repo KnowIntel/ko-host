@@ -1033,6 +1033,7 @@ export type LinkHubBlock = BaseBlock & {
 
     triggerSymbol?: string;
     customTriggerEnabled?: boolean;
+    customTriggerFileName?: string;
     customTriggerUrl?: string;
 
     cardShadowEnabled?: boolean;
