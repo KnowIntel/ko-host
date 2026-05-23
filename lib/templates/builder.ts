@@ -1042,6 +1042,7 @@ export type LinkHubBlock = BaseBlock & {
     cardShadowBlur?: number;
     cardShadowX?: number;
     cardShadowY?: number;
+    cardGap?: number;
 
     cardPaddingX?: number;
     cardPaddingY?: number;
@@ -2910,6 +2911,7 @@ case "donation":
 
           cardPaddingX: 16,
           cardPaddingY: 12,
+          cardGap: 12,
         },
       };
 

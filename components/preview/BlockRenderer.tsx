@@ -7324,7 +7324,12 @@ function renderLinkHub(
       ) : null}
 
       {items.length ? (
-        <div className="space-y-3">
+        <div
+  className="flex flex-col"
+  style={{
+    gap: `${Number((block.data as any).cardGap ?? 12)}px`,
+  }}
+>
           {items.map((item, index) => {
             const linkItem = item as typeof item & {
               description?: string;

@@ -15130,6 +15130,39 @@ onClick={() =>
       </div>
     </div>
 
+    <div className="mt-4">
+  <div className="mb-1 flex items-center justify-between">
+    <div className={inspectorLabelClass()}>
+      Padding Between Cards
+    </div>
+
+    <div className="text-xs text-neutral-500">
+      {(selectedBlock.data as any).cardGap ?? 12}px
+    </div>
+  </div>
+
+  <input
+    type="range"
+    min={0}
+    max={80}
+    value={(selectedBlock.data as any).cardGap ?? 12}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "link_hub"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                cardGap: Number(e.target.value),
+              },
+            },
+      )
+    }
+    className="w-full"
+  />
+</div>
+
     <input
       type="range"
       min={0}
