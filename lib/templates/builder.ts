@@ -2906,7 +2906,8 @@ case "donation":
           cardPaddingY: 12,
         },
       };
-    case "registry":
+      
+      case "registry":
       return {
         id: makeId("registry"),
         type: "registry",

@@ -7462,6 +7462,7 @@ function renderLinkHub(
     </Surface>
   );
 }
+
 function renderRegistry(
   block: Extract<MicrositeBlock, { type: "registry" }>,
   designKey?: string,

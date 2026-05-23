@@ -7136,8 +7136,9 @@ if (block.type === "link_hub") {
   const imageOnRight =
     imagePlacement === "flushRight" || imagePlacement === "floatRight";
 
-  const cardPaddingX = Number((block.data as any).cardPaddingX ?? 16);
-  const cardPaddingY = Number((block.data as any).cardPaddingY ?? 12);
+const cardPaddingX = Number((block.data as any).cardPaddingX ?? 16);
+const cardPaddingY = Number((block.data as any).cardPaddingY ?? 12);
+const imageWidth = Number((block.data as any).imageWidth ?? 40);
 
   const cardShadow =
     (block.data as any).cardShadowEnabled &&
@@ -7204,16 +7205,12 @@ if (block.type === "link_hub") {
   className={[
     "flex shrink-0 items-center justify-center overflow-hidden bg-white",
     isFlush
-      ? "self-stretch w-16 rounded-none border-0"
+      ? "self-stretch rounded-none border-0"
       : "rounded-full border border-neutral-200",
   ].join(" ")}
   style={{
-    ...(isFlush
-      ? {}
-      : {
-          width: `${Number((block.data as any).imageWidth ?? 40)}px`,
-          height: `${Number((block.data as any).imageWidth ?? 40)}px`,
-        }),
+    width: `${imageWidth}px`,
+    ...(isFlush ? {} : { height: `${imageWidth}px` }),
   }}
 >
               <img src={logoUrl} alt="" className="h-full w-full object-cover" />
@@ -7269,19 +7266,21 @@ if (block.type === "link_hub") {
                   </div>
                 ) : null}
 
-                <div
-                  className="mt-1 truncate text-xs text-neutral-500"
-                  style={getInlineTextStyle(
-                    (block.data as any).urlStyle ?? block.data.style,
-                  )}
-                >
-                  {item.url || "#"}
-                </div>
-              </div>
+{(item as any).showUrl && item.url ? (
+  <div
+    className="mt-1 truncate text-xs text-neutral-500"
+    style={getInlineTextStyle(
+      (block.data as any).urlStyle ?? block.data.style,
+    )}
+  >
+    {item.url || "#"}
+  </div>
+) : null}
+</div>
 
-              {triggerNode}
+{triggerNode}
 
-              {imageOnRight ? imageNode : null}
+{imageOnRight ? imageNode : null}
             </div>
           );
         })}
