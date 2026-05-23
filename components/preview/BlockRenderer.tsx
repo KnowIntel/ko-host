@@ -7364,15 +7364,15 @@ function renderLinkHub(
             const triggerNode =
               !imageOnRight && triggerSymbol ? (
                 <span className="flex self-stretch w-14 shrink-0 items-center justify-center">
-                  <img
-                    src={triggerSymbol}
-                    alt=""
-                    className="object-contain"
-                    style={{
-                      width: `${Number((block.data as any).triggerSymbolSize ?? 40)}px`,
-                      height: `${Number((block.data as any).triggerSymbolSize ?? 40)}px`,
-                    }}
-                  />
+<img
+  src={triggerSymbol}
+  alt=""
+  className="object-contain"
+  style={{
+    width: `${Number((block.data as any).triggerSymbolSize ?? 40)}px`,
+    height: `${Number((block.data as any).triggerSymbolSize ?? 40)}px`,
+  }}
+/>
                 </span>
               ) : null;
 
