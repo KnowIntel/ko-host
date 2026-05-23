@@ -1056,12 +1056,12 @@ function renderVideo(
       ) : null}
 
       <div className="min-h-0 flex-1 overflow-hidden rounded-xl" style={frameStyle}>
-        <div className="relative h-full w-full overflow-hidden rounded-lg bg-black">
+        <div className="relative h-full w-full overflow-hidden rounded-lg bg-black pointer-events-auto">
           {isDirectVideoFile ? (
 <video
   src={videoUrl}
   poster={showCustomThumbnail ? thumbnailUrl : undefined}
-  className="h-full w-full object-cover"
+  className="relative z-20 h-full w-full object-cover pointer-events-auto"
   autoPlay={Boolean(block.data.autoplay)}
   muted={Boolean(block.data.muted)}
   loop={Boolean(block.data.loop)}
@@ -1095,11 +1095,11 @@ function renderVideo(
             </div>
           )}
 
-{showPlayOverlay && !block.data.showControls ? (
+{showPlayOverlay ? (
   <img
     src="/icons/button_video_play.png"
     alt=""
-    className="pointer-events-none absolute left-1/2 top-1/2 z-10 h-16 w-16 -translate-x-1/2 -translate-y-1/2 object-contain"
+    className="pointer-events-none absolute left-1/2 top-1/2 z-30 h-16 w-16 -translate-x-1/2 -translate-y-1/2 object-contain"
   />
 ) : null}
         </div>
