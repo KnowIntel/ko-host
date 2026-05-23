@@ -7756,13 +7756,13 @@ if (block.type === "video") {
           </div>
         )}
 
-        {showPlayOverlay ? (
-          <img
-            src="/icons/button_video_play.png"
-            alt=""
-            className="pointer-events-none absolute left-1/2 top-1/2 z-10 h-16 w-16 -translate-x-1/2 -translate-y-1/2 object-contain"
-          />
-        ) : null}
+{showPlayOverlay && !block.data.showControls ? (
+  <img
+    src="/icons/button_video_play.png"
+    alt=""
+    className="pointer-events-none absolute left-1/2 top-1/2 z-10 h-16 w-16 -translate-x-1/2 -translate-y-1/2 object-contain"
+  />
+) : null}
       </div>
     </div>
   );
