@@ -7706,128 +7706,76 @@ if (block.type === "registry") {
 }
 
 if (block.type === "video") {
-      return (
+  const thumbnailUrl = String((block.data as any).thumbnailUrl ?? "").trim();
+  const autoGenerateThumbnail =
+    (block.data as any).autoGenerateThumbnail !== false;
+  const showPlayOverlay = (block.data as any).showPlayOverlay !== false;
+
+  const shouldShowCustomThumbnail =
+    !autoGenerateThumbnail && Boolean(thumbnailUrl);
+
+  return (
+    <div
+      className="h-full w-full overflow-hidden rounded-xl"
+      style={{
+        backgroundColor:
+          block.appearance?.backgroundColor &&
+          block.appearance.backgroundColor !== "transparent"
+            ? block.appearance.backgroundColor
+            : "#000",
+        borderColor: block.appearance?.borderColor || undefined,
+        borderWidth:
+          typeof block.appearance?.borderWidth === "number"
+            ? `${block.appearance.borderWidth}px`
+            : undefined,
+        borderStyle:
+          typeof block.appearance?.borderWidth === "number" &&
+          block.appearance.borderWidth > 0
+            ? "solid"
+            : undefined,
+        borderRadius:
+          typeof block.appearance?.borderRadius === "number"
+            ? `${block.appearance.borderRadius}px`
+            : undefined,
+      }}
+    >
+      {block.data.title ? (
         <div
-          className="h-full w-full rounded-xl overflow-hidden"
-          style={{
-            backgroundColor:
-              block.appearance?.backgroundColor &&
-              block.appearance.backgroundColor !== "transparent"
-                ? block.appearance.backgroundColor
-                : "#000",
-            borderColor: block.appearance?.borderColor || undefined,
-            borderWidth:
-              typeof block.appearance?.borderWidth === "number"
-                ? `${block.appearance.borderWidth}px`
-                : undefined,
-            borderStyle:
-              typeof block.appearance?.borderWidth === "number" &&
-              block.appearance.borderWidth > 0
-                ? "solid"
-                : undefined,
-            borderRadius:
-              typeof block.appearance?.borderRadius === "number"
-                ? `${block.appearance.borderRadius}px`
-                : undefined,
-          }}
+          className="px-3 py-2 text-sm font-semibold text-white"
+          style={getInlineTextStyle(block.data.style)}
         >
-          {block.data.title ? (
-            <div
-              className="px-3 py-2 text-sm font-semibold text-white"
-              style={getInlineTextStyle(block.data.style)}
-            >
-              {block.data.title}
-            </div>
-          ) : null}
-
-          {block.data.videoUrl ? (
-            (() => {
-              const rawUrl = (block.data.videoUrl ?? "").trim();
-
-              const buildEmbedUrl = (url: string) => {
-                if (!url) return "";
-
-                if (url.startsWith("data:video/")) return url;
-                if (/\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(url)) return url;
-
-                try {
-                  const parsed = new URL(url);
-
-                  if (
-                    parsed.hostname.includes("youtube.com") &&
-                    parsed.pathname === "/watch"
-                  ) {
-                    const videoId = parsed.searchParams.get("v");
-                    if (videoId) {
-                      return `https://www.youtube.com/embed/${videoId}`;
-                    }
-                  }
-
-                  if (parsed.hostname.includes("youtu.be")) {
-                    const videoId = parsed.pathname.replace(/^\/+/, "");
-                    if (videoId) {
-                      return `https://www.youtube.com/embed/${videoId}`;
-                    }
-                  }
-
-                  if (
-                    parsed.hostname.includes("youtube.com") &&
-                    parsed.pathname.startsWith("/embed/")
-                  ) {
-                    return url;
-                  }
-
-                  if (parsed.hostname.includes("vimeo.com")) {
-                    const videoId = parsed.pathname.replace(/^\/+/, "");
-                    if (videoId) {
-                      return `https://player.vimeo.com/video/${videoId}`;
-                    }
-                  }
-
-                  return url;
-                } catch {
-                  return url;
-                }
-              };
-
-              const resolvedUrl = buildEmbedUrl(rawUrl);
-              const isDirectVideo =
-                resolvedUrl.startsWith("data:video/") ||
-                /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(resolvedUrl);
-
-              return isDirectVideo ? (
-                <video
-                  src={resolvedUrl}
-                  className="h-full w-full"
-                  autoPlay={Boolean(block.data.autoplay)}
-                  muted={Boolean(block.data.muted)}
-                  loop={Boolean(block.data.loop)}
-                  controls={Boolean(block.data.showControls)}
-                  playsInline
-                />
-              ) : (
-                <iframe
-                  src={`${resolvedUrl}${
-                    resolvedUrl.includes("?") ? "&" : "?"
-                  }autoplay=${block.data.autoplay ? 1 : 0}&mute=${
-                    block.data.muted ? 1 : 0
-                  }&loop=${block.data.loop ? 1 : 0}&controls=${
-                    block.data.showControls ? 1 : 0
-                  }`}
-                  className="h-full w-full"
-                  allow="autoplay; encrypted-media"
-                  allowFullScreen
-                />
-              );
-            })()
-          ) : (
-            <div className="flex h-full w-full items-center justify-center text-sm text-neutral-400">
-              Add video URL
-            </div>
-          )}
+          {block.data.title}
         </div>
-      );
-    }
+      ) : null}
+
+      <div className="relative h-full w-full overflow-hidden bg-black">
+        {shouldShowCustomThumbnail ? (
+          <img
+            src={thumbnailUrl}
+            alt=""
+            className="h-full w-full object-cover"
+          />
+        ) : block.data.videoUrl ? (
+          <div className="flex h-full w-full items-center justify-center bg-neutral-900 text-sm text-neutral-400">
+            Video preview
+          </div>
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-sm text-neutral-400">
+            Add video URL
+          </div>
+        )}
+
+        {showPlayOverlay ? (
+          <img
+            src="/icons/button_video_play.png"
+            alt=""
+            className="pointer-events-none absolute left-1/2 top-1/2 h-16 w-16 -translate-x-1/2 -translate-y-1/2 object-contain"
+          />
+        ) : null}
+      </div>
+    </div>
+  );
+}
 
 if (block.type === "rich_text") {
   const richTextStyle = getInlineTextStyle(block.data.style);

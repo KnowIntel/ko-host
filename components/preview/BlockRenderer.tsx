@@ -980,7 +980,6 @@ function renderVideo(
   designKey?: string,
 ) {
   const titleStyle = getContainerTextStyle(block.data.style, designKey);
-
   const videoUrl = (block.data.videoUrl ?? "").trim();
 
   const autoGenerateThumbnail =
@@ -990,20 +989,17 @@ function renderVideo(
     (block.data as any).thumbnailUrl ?? "",
   ).trim();
 
+  const showCustomThumbnail =
+    !autoGenerateThumbnail && Boolean(thumbnailUrl);
+
   const showPlayOverlay =
     (block.data as any).showPlayOverlay !== false;
 
   const showCaption = Boolean((block.data as any).addCaption);
+  const caption = String((block.data as any).caption ?? "").trim();
+  const captionStyle = ((block.data as any).captionStyle ?? {}) as TextStyle;
 
-  const caption = String(
-    (block.data as any).caption ?? "",
-  ).trim();
-
-  const captionStyle = (
-    (block.data as any).captionStyle ?? {}
-  ) as TextStyle;
-
-  if (!videoUrl) {
+  if (!videoUrl && !showCustomThumbnail) {
     return (
       <Placeholder
         block={block}
@@ -1017,6 +1013,42 @@ function renderVideo(
     videoUrl.startsWith("data:video/") ||
     /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(videoUrl);
 
+  const frameStyle: React.CSSProperties = {
+    backgroundImage:
+      block.appearance?.textureEnabled && block.appearance?.textureImageUrl
+        ? `url("${block.appearance.textureImageUrl}")`
+        : undefined,
+    backgroundSize:
+      block.appearance?.textureEnabled && block.appearance?.textureImageUrl
+        ? `${block.appearance.textureScale ?? 100}%`
+        : undefined,
+    backgroundPosition:
+      block.appearance?.textureEnabled && block.appearance?.textureImageUrl
+        ? `${block.appearance.texturePositionX ?? 50}% ${
+            block.appearance.texturePositionY ?? 50
+          }%`
+        : undefined,
+    backgroundRepeat:
+      block.appearance?.textureEnabled && block.appearance?.textureImageUrl
+        ? "repeat"
+        : undefined,
+    padding:
+      block.appearance?.textureEnabled && block.appearance?.textureImageUrl
+        ? `${Math.max(6, block.appearance.borderWidth ?? 10)}px`
+        : undefined,
+    border:
+      block.appearance?.textureEnabled && block.appearance?.textureImageUrl
+        ? "none"
+        : `${Math.max(1, block.appearance?.borderWidth ?? 1)}px solid ${
+            block.appearance?.borderColor ?? "#e5e7eb"
+          }`,
+    borderRadius:
+      typeof block.appearance?.borderRadius === "number"
+        ? `${block.appearance.borderRadius}px`
+        : "12px",
+    backgroundColor: "rgba(0,0,0,0.05)",
+  };
+
   return (
     <div
       className="flex h-full w-full flex-col gap-2 overflow-hidden p-2"
@@ -1026,72 +1058,17 @@ function renderVideo(
         <div style={titleStyle}>{block.data.title}</div>
       ) : null}
 
-      <div
-        className="min-h-0 flex-1 overflow-hidden rounded-xl"
-        style={{
-          backgroundImage:
-            block.appearance?.textureEnabled &&
-            block.appearance?.textureImageUrl
-              ? `url("${block.appearance.textureImageUrl}")`
-              : undefined,
-
-          backgroundSize:
-            block.appearance?.textureEnabled &&
-            block.appearance?.textureImageUrl
-              ? `${block.appearance.textureScale ?? 100}%`
-              : undefined,
-
-          backgroundPosition:
-            block.appearance?.textureEnabled &&
-            block.appearance?.textureImageUrl
-              ? `${block.appearance.texturePositionX ?? 50}% ${
-                  block.appearance.texturePositionY ?? 50
-                }%`
-              : undefined,
-
-          backgroundRepeat:
-            block.appearance?.textureEnabled &&
-            block.appearance?.textureImageUrl
-              ? "repeat"
-              : undefined,
-
-          padding:
-            block.appearance?.textureEnabled &&
-            block.appearance?.textureImageUrl
-              ? `${Math.max(
-                  6,
-                  block.appearance.borderWidth ?? 10,
-                )}px`
-              : undefined,
-
-          border:
-            block.appearance?.textureEnabled &&
-            block.appearance?.textureImageUrl
-              ? "none"
-              : `${Math.max(
-                  1,
-                  block.appearance?.borderWidth ?? 1,
-                )}px solid ${
-                  block.appearance?.borderColor ?? "#e5e7eb"
-                }`,
-
-          borderRadius:
-            typeof block.appearance?.borderRadius === "number"
-              ? `${block.appearance.borderRadius}px`
-              : "12px",
-
-          backgroundColor: "rgba(0,0,0,0.05)",
-        }}
-      >
+      <div className="min-h-0 flex-1 overflow-hidden rounded-xl" style={frameStyle}>
         <div className="relative h-full w-full overflow-hidden rounded-lg bg-black">
-          {isDirectVideoFile ? (
+          {showCustomThumbnail ? (
+            <img
+              src={thumbnailUrl}
+              alt=""
+              className="h-full w-full object-cover"
+            />
+          ) : isDirectVideoFile ? (
             <video
               src={videoUrl}
-              poster={
-                autoGenerateThumbnail
-                  ? undefined
-                  : thumbnailUrl || undefined
-              }
               className="h-full w-full object-cover"
               autoPlay={Boolean(block.data.autoplay)}
               muted={Boolean(block.data.muted)}
@@ -1105,7 +1082,7 @@ function renderVideo(
                 objectFit: "cover",
               }}
             />
-          ) : (
+          ) : videoUrl ? (
             <iframe
               src={videoUrl}
               className="h-full w-full"
@@ -1119,6 +1096,10 @@ function renderVideo(
                 border: "none",
               }}
             />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center text-sm text-neutral-400">
+              Add video URL
+            </div>
           )}
 
           {showPlayOverlay ? (
