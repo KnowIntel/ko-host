@@ -18485,50 +18485,50 @@ const lines = e.target.value.split("\n");
     <div className={inspectorLabelClass()}>Video</div>
 
     <label className="mt-4 flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
-  <input
-    type="checkbox"
-    checked={Boolean((selectedBlock.data as any).addCaption)}
-    onChange={(e) =>
-      updateSelectedBlock((block) =>
-        block.type !== "video"
-          ? block
-          : {
-              ...block,
-              data: {
-                ...block.data,
-                addCaption: e.target.checked,
-              } as any,
-            },
-      )
-    }
-  />
-  Add caption
-</label>
+      <input
+        type="checkbox"
+        checked={Boolean((selectedBlock.data as any).addCaption)}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "video"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    addCaption: e.target.checked,
+                  } as any,
+                },
+          )
+        }
+      />
+      Add caption
+    </label>
 
-{(selectedBlock.data as any).addCaption ? (
-  <div className="mt-3">
-    <div className={inspectorLabelClass()}>Caption</div>
-    <input
-      type="text"
-      value={(selectedBlock.data as any).caption ?? ""}
-      onChange={(e) =>
-        updateSelectedBlock((block) =>
-          block.type !== "video"
-            ? block
-            : {
-                ...block,
-                data: {
-                  ...block.data,
-                  caption: e.target.value,
-                } as any,
-              },
-        )
-      }
-      className={inspectorInputClass()}
-      placeholder="Video caption..."
-    />
-  </div>
-) : null}
+    {(selectedBlock.data as any).addCaption ? (
+      <div className="mt-3">
+        <div className={inspectorLabelClass()}>Caption</div>
+        <input
+          type="text"
+          value={(selectedBlock.data as any).caption ?? ""}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "video"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      caption: e.target.value,
+                    } as any,
+                  },
+            )
+          }
+          className={inspectorInputClass()}
+          placeholder="Video caption..."
+        />
+      </div>
+    ) : null}
 
     <div className="mt-4">
       <div className={inspectorLabelClass()}>Title</div>
@@ -18552,27 +18552,71 @@ const lines = e.target.value.split("\n");
       />
     </div>
 
-<div className="mt-4">
-  <div className={inspectorLabelClass()}>Upload Video</div>
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Upload Video</div>
 
-  <div className="mt-2 grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3">
-    <label className="flex h-11 cursor-pointer items-center justify-center rounded-xl bg-black px-4 text-sm font-semibold text-white hover:opacity-90">
-      <span className="leading-none">Choose File</span>
-      <input
-        type="file"
-        accept="video/*"
-        className="hidden"
-        onChange={handleVideoUpload}
-      />
-    </label>
+      <div className="mt-2 grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3">
+        <label className="flex h-11 cursor-pointer items-center justify-center rounded-xl bg-black px-4 text-sm font-semibold text-white hover:opacity-90">
+          <span className="leading-none">Choose File</span>
+          <input
+            type="file"
+            accept="video/*"
+            className="hidden"
+            onChange={handleVideoUpload}
+          />
+        </label>
 
-    <div className="flex h-11 min-w-0 items-center rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-500">
-      <span className="truncate">
-        {selectedBlock.data.videoUrl?.trim() || "No file chosen"}
-      </span>
+        <div className="flex h-11 min-w-0 items-center rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-500">
+          <span className="truncate">
+            {selectedBlock.data.videoUrl?.trim() || "No file chosen"}
+          </span>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Upload Thumbnail</div>
+
+      <div className="mt-2 grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3">
+        <label className="flex h-11 cursor-pointer items-center justify-center rounded-xl bg-black px-4 text-sm font-semibold text-white hover:opacity-90">
+          <span className="leading-none">Choose File</span>
+
+          <input
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+
+              const uploaded = await uploadBuilderImageFile(file);
+
+              updateSelectedBlock((block) =>
+                block.type !== "video"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        thumbnailUrl: uploaded.url,
+                        thumbnailPath: uploaded.storagePath,
+                        thumbnailFileName: file.name,
+                      },
+                    },
+              );
+            }}
+          />
+        </label>
+
+        <div className="flex h-11 min-w-0 items-center rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-500">
+          <span className="truncate">
+            {(selectedBlock.data as any).thumbnailFileName ||
+              (selectedBlock.data as any).thumbnailUrl ||
+              "No thumbnail chosen"}
+          </span>
+        </div>
+      </div>
+    </div>
 
     <div className="mt-4">
       <div className={inspectorLabelClass()}>

@@ -972,6 +972,11 @@ export type VideoBlock = BaseBlock & {
     title?: string;
     videoUrl: string;
     videoPath?: string;
+
+    thumbnailUrl?: string;
+    thumbnailPath?: string;
+    thumbnailFileName?: string;
+
     autoplay?: boolean;
     muted?: boolean;
     loop?: boolean;

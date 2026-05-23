@@ -981,6 +981,7 @@ function renderVideo(
 ) {
   const titleStyle = getContainerTextStyle(block.data.style, designKey);
   const videoUrl = (block.data.videoUrl ?? "").trim();
+  const thumbnailUrl = String((block.data as any).thumbnailUrl ?? "").trim();
   const showCaption = Boolean((block.data as any).addCaption);
   const caption = String((block.data as any).caption ?? "").trim();
   const captionStyle = ((block.data as any).captionStyle ?? {}) as TextStyle;
@@ -1048,20 +1049,22 @@ return (
     >
       <div className="h-full w-full overflow-hidden rounded-lg bg-black">
         {isDirectVideoFile ? (
-          <video
-            src={videoUrl}
-            className="h-full w-full"
-            autoPlay={Boolean(block.data.autoplay)}
-            muted={Boolean(block.data.muted)}
-            loop={Boolean(block.data.loop)}
-            controls={Boolean(block.data.showControls)}
-            playsInline
-            style={{
-              height: "100%",
-              width: "100%",
-              display: "block",
-            }}
-          />
+<video
+  src={videoUrl}
+  poster={thumbnailUrl || undefined}
+  className="h-full w-full object-cover"
+  autoPlay={Boolean(block.data.autoplay)}
+  muted={Boolean(block.data.muted)}
+  loop={Boolean(block.data.loop)}
+  controls={Boolean(block.data.showControls)}
+  playsInline
+  style={{
+    height: "100%",
+    width: "100%",
+    display: "block",
+    objectFit: "cover",
+  }}
+/>
         ) : (
           <iframe
             src={videoUrl}
