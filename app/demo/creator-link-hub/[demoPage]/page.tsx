@@ -71,14 +71,43 @@ const DEMO_PAGES: Record<
     message:
       "You opened the email destination. Normally this could launch a newsletter signup, contact page, business inquiry form, or a very ambitious automated funnel.",
   },
+
+  collaboration: {
+  title: "Demo Collaboration",
+  eyebrow: "Creator Link Hub Demo",
+  message:
+    "You opened the collaboration page. In a real creator hub, this could include sponsorships, brand partnerships, media kits, inquiries, or someone asking if exposure counts as payment.",
+},
+
+shop: {
+  title: "Demo Shop",
+  eyebrow: "Creator Link Hub Demo",
+  message:
+    "You clicked the shop link. This is where creators could sell products, merch, downloads, presets, templates, or extremely expensive hoodies with minimal text on them.",
+},
+
+website: {
+  title: "Demo Website",
+  eyebrow: "Creator Link Hub Demo",
+  message:
+    "You reached the website destination. Normally this could lead to a portfolio, business site, booking platform, blog, or an aggressively modern landing page with floating gradients.",
+},
+
+donation: {
+  title: "Demo Donation",
+  eyebrow: "Creator Link Hub Demo",
+  message:
+    "You opened the donation page. In a real microsite, this could support creators, projects, causes, communities, coffee funds, or someone trying to justify buying another camera lens.",
+},
 };
 
-export default function CreatorLinkHubDemoPage({
+export default async function CreatorLinkHubDemoPage({
   params,
 }: {
-  params: { demoPage: string };
+  params: Promise<{ demoPage: string }>;
 }) {
-  const page = DEMO_PAGES[params.demoPage];
+  const { demoPage } = await params;
+  const page = DEMO_PAGES[demoPage];
 
   if (!page) notFound();
 
