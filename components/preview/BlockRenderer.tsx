@@ -980,11 +980,28 @@ function renderVideo(
   designKey?: string,
 ) {
   const titleStyle = getContainerTextStyle(block.data.style, designKey);
+
   const videoUrl = (block.data.videoUrl ?? "").trim();
-  const thumbnailUrl = String((block.data as any).thumbnailUrl ?? "").trim();
+
+  const autoGenerateThumbnail =
+    (block.data as any).autoGenerateThumbnail !== false;
+
+  const thumbnailUrl = String(
+    (block.data as any).thumbnailUrl ?? "",
+  ).trim();
+
+  const showPlayOverlay =
+    (block.data as any).showPlayOverlay !== false;
+
   const showCaption = Boolean((block.data as any).addCaption);
-  const caption = String((block.data as any).caption ?? "").trim();
-  const captionStyle = ((block.data as any).captionStyle ?? {}) as TextStyle;
+
+  const caption = String(
+    (block.data as any).caption ?? "",
+  ).trim();
+
+  const captionStyle = (
+    (block.data as any).captionStyle ?? {}
+  ) as TextStyle;
 
   if (!videoUrl) {
     return (
@@ -1000,99 +1017,130 @@ function renderVideo(
     videoUrl.startsWith("data:video/") ||
     /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(videoUrl);
 
-return (
-  <div
-    className="flex h-full w-full flex-col gap-2 overflow-hidden p-2"
-    style={getAppearanceStyle(block)}
-  >
-    {block.data.title ? (
-      <div style={titleStyle}>{block.data.title}</div>
-    ) : null}
-
+  return (
     <div
-      className="min-h-0 flex-1 overflow-hidden rounded-xl"
-      style={{
-        backgroundImage:
-          block.appearance?.textureEnabled && block.appearance?.textureImageUrl
-            ? `url("${block.appearance.textureImageUrl}")`
-            : undefined,
-        backgroundSize:
-          block.appearance?.textureEnabled && block.appearance?.textureImageUrl
-            ? `${block.appearance.textureScale ?? 100}%`
-            : undefined,
-        backgroundPosition:
-          block.appearance?.textureEnabled && block.appearance?.textureImageUrl
-            ? `${block.appearance.texturePositionX ?? 50}% ${
-                block.appearance.texturePositionY ?? 50
-              }%`
-            : undefined,
-        backgroundRepeat:
-          block.appearance?.textureEnabled && block.appearance?.textureImageUrl
-            ? "repeat"
-            : undefined,
-        padding:
-          block.appearance?.textureEnabled && block.appearance?.textureImageUrl
-            ? `${Math.max(6, block.appearance.borderWidth ?? 10)}px`
-            : undefined,
-        border:
-          block.appearance?.textureEnabled && block.appearance?.textureImageUrl
-            ? "none"
-            : `${Math.max(1, block.appearance?.borderWidth ?? 1)}px solid ${
-                block.appearance?.borderColor ?? "#e5e7eb"
-              }`,
-        borderRadius:
-          typeof block.appearance?.borderRadius === "number"
-            ? `${block.appearance.borderRadius}px`
-            : "12px",
-        backgroundColor: "rgba(0,0,0,0.05)",
-      }}
+      className="flex h-full w-full flex-col gap-2 overflow-hidden p-2"
+      style={getAppearanceStyle(block)}
     >
-      <div className="h-full w-full overflow-hidden rounded-lg bg-black">
-        {isDirectVideoFile ? (
-<video
-  src={videoUrl}
-  poster={thumbnailUrl || undefined}
-  className="h-full w-full object-cover"
-  autoPlay={Boolean(block.data.autoplay)}
-  muted={Boolean(block.data.muted)}
-  loop={Boolean(block.data.loop)}
-  controls={Boolean(block.data.showControls)}
-  playsInline
-  style={{
-    height: "100%",
-    width: "100%",
-    display: "block",
-    objectFit: "cover",
-  }}
-/>
-        ) : (
-          <iframe
-            src={videoUrl}
-            className="h-full w-full"
-            allow="autoplay; encrypted-media; picture-in-picture"
-            allowFullScreen
-            title={block.data.title || "Video"}
-            style={{
-              height: "100%",
-              width: "100%",
-              display: "block",
-              border: "none",
-            }}
-          />
-        )}
-      </div>
-    </div>
+      {block.data.title ? (
+        <div style={titleStyle}>{block.data.title}</div>
+      ) : null}
 
-    {showCaption && caption ? (
       <div
-        className="shrink-0 px-2 text-xs text-neutral-700"
-        style={getContainerTextStyle(captionStyle, designKey)}
+        className="min-h-0 flex-1 overflow-hidden rounded-xl"
+        style={{
+          backgroundImage:
+            block.appearance?.textureEnabled &&
+            block.appearance?.textureImageUrl
+              ? `url("${block.appearance.textureImageUrl}")`
+              : undefined,
+
+          backgroundSize:
+            block.appearance?.textureEnabled &&
+            block.appearance?.textureImageUrl
+              ? `${block.appearance.textureScale ?? 100}%`
+              : undefined,
+
+          backgroundPosition:
+            block.appearance?.textureEnabled &&
+            block.appearance?.textureImageUrl
+              ? `${block.appearance.texturePositionX ?? 50}% ${
+                  block.appearance.texturePositionY ?? 50
+                }%`
+              : undefined,
+
+          backgroundRepeat:
+            block.appearance?.textureEnabled &&
+            block.appearance?.textureImageUrl
+              ? "repeat"
+              : undefined,
+
+          padding:
+            block.appearance?.textureEnabled &&
+            block.appearance?.textureImageUrl
+              ? `${Math.max(
+                  6,
+                  block.appearance.borderWidth ?? 10,
+                )}px`
+              : undefined,
+
+          border:
+            block.appearance?.textureEnabled &&
+            block.appearance?.textureImageUrl
+              ? "none"
+              : `${Math.max(
+                  1,
+                  block.appearance?.borderWidth ?? 1,
+                )}px solid ${
+                  block.appearance?.borderColor ?? "#e5e7eb"
+                }`,
+
+          borderRadius:
+            typeof block.appearance?.borderRadius === "number"
+              ? `${block.appearance.borderRadius}px`
+              : "12px",
+
+          backgroundColor: "rgba(0,0,0,0.05)",
+        }}
       >
-        {caption}
+        <div className="relative h-full w-full overflow-hidden rounded-lg bg-black">
+          {isDirectVideoFile ? (
+            <video
+              src={videoUrl}
+              poster={
+                autoGenerateThumbnail
+                  ? undefined
+                  : thumbnailUrl || undefined
+              }
+              className="h-full w-full object-cover"
+              autoPlay={Boolean(block.data.autoplay)}
+              muted={Boolean(block.data.muted)}
+              loop={Boolean(block.data.loop)}
+              controls={Boolean(block.data.showControls)}
+              playsInline
+              style={{
+                height: "100%",
+                width: "100%",
+                display: "block",
+                objectFit: "cover",
+              }}
+            />
+          ) : (
+            <iframe
+              src={videoUrl}
+              className="h-full w-full"
+              allow="autoplay; encrypted-media; picture-in-picture"
+              allowFullScreen
+              title={block.data.title || "Video"}
+              style={{
+                height: "100%",
+                width: "100%",
+                display: "block",
+                border: "none",
+              }}
+            />
+          )}
+
+          {showPlayOverlay ? (
+            <img
+              src="/icons/button_video_play.png"
+              alt=""
+              className="pointer-events-none absolute left-1/2 top-1/2 h-16 w-16 -translate-x-1/2 -translate-y-1/2 object-contain"
+            />
+          ) : null}
+        </div>
       </div>
-    ) : null}
-  </div>
-);
+
+      {showCaption && caption ? (
+        <div
+          className="shrink-0 px-2 text-xs text-neutral-700"
+          style={getContainerTextStyle(captionStyle, designKey)}
+        >
+          {caption}
+        </div>
+      ) : null}
+    </div>
+  );
 }
 
 function renderImage(

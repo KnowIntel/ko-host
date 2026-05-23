@@ -18574,49 +18574,74 @@ const lines = e.target.value.split("\n");
       </div>
     </div>
 
-    <div className="mt-4">
-      <div className={inspectorLabelClass()}>Upload Thumbnail</div>
+<label className="mt-4 flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+  <input
+    type="checkbox"
+    checked={(selectedBlock.data as any).autoGenerateThumbnail !== false}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "video"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                autoGenerateThumbnail: e.target.checked,
+              } as any,
+            },
+      )
+    }
+  />
+  Auto-generate thumbnail
+</label>
 
-      <div className="mt-2 grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3">
-        <label className="flex h-11 cursor-pointer items-center justify-center rounded-xl bg-black px-4 text-sm font-semibold text-white hover:opacity-90">
-          <span className="leading-none">Choose File</span>
+{(selectedBlock.data as any).autoGenerateThumbnail === false ? (
+  <div className="mt-4">
+    <div className={inspectorLabelClass()}>Upload Thumbnail</div>
 
-          <input
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={async (e) => {
-              const file = e.target.files?.[0];
-              if (!file) return;
+    <div className="mt-2 grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3">
+      <label className="flex h-11 cursor-pointer items-center justify-center rounded-xl bg-black px-4 text-sm font-semibold text-white hover:opacity-90">
+        <span className="leading-none">Choose File</span>
 
-              const uploaded = await uploadBuilderImageFile(file);
+        <input
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={async (e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
 
-              updateSelectedBlock((block) =>
-                block.type !== "video"
-                  ? block
-                  : {
-                      ...block,
-                      data: {
-                        ...block.data,
-                        thumbnailUrl: uploaded.url,
-                        thumbnailPath: uploaded.storagePath,
-                        thumbnailFileName: file.name,
-                      },
-                    },
-              );
-            }}
-          />
-        </label>
+            const uploaded = await uploadBuilderImageFile(file);
 
-        <div className="flex h-11 min-w-0 items-center rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-500">
-          <span className="truncate">
-            {(selectedBlock.data as any).thumbnailFileName ||
-              (selectedBlock.data as any).thumbnailUrl ||
-              "No thumbnail chosen"}
-          </span>
-        </div>
+            updateSelectedBlock((block) =>
+              block.type !== "video"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      thumbnailUrl: uploaded.url,
+                      thumbnailPath: uploaded.storagePath,
+                      thumbnailFileName: file.name,
+                    } as any,
+                  },
+            );
+          }}
+        />
+      </label>
+
+      <div className="flex h-11 min-w-0 items-center rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-500">
+        <span className="truncate">
+          {(selectedBlock.data as any).thumbnailFileName || "No thumbnail chosen"}
+        </span>
       </div>
     </div>
+
+    <p className="mt-2 text-xs leading-5 text-neutral-500">
+      Recommended thumbnail ratio: 16:9 for best video frame fit.
+    </p>
+  </div>
+) : null}
 
     <div className="mt-4">
       <div className={inspectorLabelClass()}>
@@ -18644,6 +18669,28 @@ const lines = e.target.value.split("\n");
     </div>
 
     <div className="mt-4 grid grid-cols-1 gap-3">
+
+      <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm">
+  <input
+    type="checkbox"
+    checked={(selectedBlock.data as any).showPlayOverlay !== false}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "video"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                showPlayOverlay: e.target.checked,
+              } as any,
+            },
+      )
+    }
+  />
+  Play Overlay
+</label>
+
       <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm">
         <input
           type="checkbox"

@@ -977,6 +977,9 @@ export type VideoBlock = BaseBlock & {
     thumbnailPath?: string;
     thumbnailFileName?: string;
 
+    autoGenerateThumbnail?: boolean;
+    showPlayOverlay?: boolean;
+
     autoplay?: boolean;
     muted?: boolean;
     loop?: boolean;
@@ -2814,6 +2817,8 @@ case "listing":
           muted: false,
           loop: false,
           showControls: true,
+          autoGenerateThumbnail: true,
+          showPlayOverlay: true,
           style: createDefaultTextStyle(),
         },
       };
