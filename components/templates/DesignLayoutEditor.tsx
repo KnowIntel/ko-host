@@ -7711,7 +7711,7 @@ if (block.type === "video") {
     (block.data as any).autoGenerateThumbnail !== false;
   const showPlayOverlay = (block.data as any).showPlayOverlay !== false;
 
-  const showCustomThumbnail =
+  const shouldShowCustomThumbnail =
     !autoGenerateThumbnail && Boolean(thumbnailUrl);
 
   return (
@@ -7749,7 +7749,7 @@ if (block.type === "video") {
       ) : null}
 
       <div className="relative h-full w-full overflow-hidden bg-black">
-        {showCustomThumbnail ? (
+        {shouldShowCustomThumbnail ? (
           <img
             src={thumbnailUrl}
             alt=""
@@ -7769,7 +7769,7 @@ if (block.type === "video") {
           <img
             src="/icons/button_video_play.png"
             alt=""
-            className="pointer-events-none absolute left-1/2 top-1/2 z-10 h-16 w-16 -translate-x-1/2 -translate-y-1/2 object-contain"
+            className="pointer-events-none absolute left-1/2 top-1/2 h-16 w-16 -translate-x-1/2 -translate-y-1/2 object-contain"
           />
         ) : null}
       </div>
