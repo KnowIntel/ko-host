@@ -1066,6 +1066,17 @@ function renderVideo(
     alt=""
     className="h-full w-full object-cover"
   />
+) : autoGenerateThumbnail ? (
+  <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-neutral-900 via-neutral-800 to-black">
+    <div className="text-center">
+      <div className="text-xs font-semibold uppercase tracking-[0.22em] text-white/45">
+        Video Preview
+      </div>
+      <div className="mt-2 text-sm font-semibold text-white/70">
+        {block.data.title || "Ready to play"}
+      </div>
+    </div>
+  </div>
 ) : isDirectVideoFile ? (
 <video
   src={videoUrl}
