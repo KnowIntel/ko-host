@@ -247,6 +247,7 @@ function inferCategory(key: TemplateKey): TemplateCategory {
     key.includes("airbnb") ||
     key.includes("land_sale") ||
     key.includes("auction") ||
+    key.includes("house") ||
     key.includes("estate_sale")
   ) {
     return "Real Estate";
