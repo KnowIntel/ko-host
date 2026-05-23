@@ -1060,28 +1060,30 @@ function renderVideo(
 
       <div className="min-h-0 flex-1 overflow-hidden rounded-xl" style={frameStyle}>
         <div className="relative h-full w-full overflow-hidden rounded-lg bg-black">
-          {showCustomThumbnail ? (
-            <img
-              src={thumbnailUrl}
-              alt=""
-              className="h-full w-full object-cover"
-            />
-          ) : isDirectVideoFile ? (
-            <video
-              src={videoUrl}
-              className="h-full w-full object-cover"
-              autoPlay={Boolean(block.data.autoplay)}
-              muted={Boolean(block.data.muted)}
-              loop={Boolean(block.data.loop)}
-              controls={Boolean(block.data.showControls)}
-              playsInline
-              style={{
-                height: "100%",
-                width: "100%",
-                display: "block",
-                objectFit: "cover",
-              }}
-            />
+{showCustomThumbnail ? (
+  <img
+    src={thumbnailUrl}
+    alt=""
+    className="h-full w-full object-cover"
+  />
+) : isDirectVideoFile ? (
+<video
+  src={videoUrl}
+  poster={showCustomThumbnail ? thumbnailUrl : undefined}
+  className="h-full w-full object-cover"
+  autoPlay={Boolean(block.data.autoplay)}
+  muted={Boolean(block.data.muted)}
+  loop={Boolean(block.data.loop)}
+  controls={Boolean(block.data.showControls)}
+  playsInline
+  preload="metadata"
+  style={{
+    height: "100%",
+    width: "100%",
+    display: "block",
+    objectFit: "cover",
+  }}
+/>
           ) : videoUrl ? (
             <iframe
               src={videoUrl}
