@@ -1084,7 +1084,7 @@ function renderVideo(
         ) : null}
 
         <div className="min-h-0 flex-1 overflow-hidden rounded-xl" style={frameStyle}>
-          <div className="relative h-full w-full overflow-hidden rounded-lg bg-black">
+          <div className="relative h-full w-full overflow-hidden rounded-lg bg-black pointer-events-auto">
             {!started && showCustomThumbnail ? (
               <button
                 type="button"
@@ -1102,37 +1102,39 @@ function renderVideo(
                 ) : null}
               </button>
             ) : isDirectVideoFile ? (
-              <video
-                src={videoUrl}
-                poster={showCustomThumbnail && !started ? thumbnailUrl : undefined}
-                className="h-full w-full object-cover"
-                autoPlay={Boolean(block.data.autoplay) || started}
-                muted={Boolean(block.data.muted)}
-                loop={Boolean(block.data.loop)}
-                controls={Boolean(block.data.showControls)}
-                playsInline
-                preload="metadata"
-                style={{
-                  height: "100%",
-                  width: "100%",
-                  display: "block",
-                  objectFit: "cover",
-                }}
-              />
+<video
+  src={videoUrl}
+  poster={showCustomThumbnail ? thumbnailUrl : undefined}
+  className="relative z-20 h-full w-full object-cover pointer-events-auto"
+  autoPlay={Boolean(block.data.autoplay)}
+  muted={Boolean(block.data.muted)}
+  loop={Boolean(block.data.loop)}
+  controls={Boolean(block.data.showControls)}
+  playsInline
+  preload="metadata"
+  style={{
+    height: "100%",
+    width: "100%",
+    display: "block",
+    objectFit: "cover",
+    pointerEvents: "auto",
+  }}
+/>
             ) : videoUrl ? (
-              <iframe
-                src={embedSrc}
-                className="h-full w-full"
-                allow="autoplay; encrypted-media; picture-in-picture"
-                allowFullScreen
-                title={block.data.title || "Video"}
-                style={{
-                  height: "100%",
-                  width: "100%",
-                  display: "block",
-                  border: "none",
-                }}
-              />
+<iframe
+  src={embedSrc}
+  className="relative z-20 h-full w-full pointer-events-auto"
+  allow="autoplay; encrypted-media; picture-in-picture"
+  allowFullScreen
+  title={block.data.title || "Video"}
+  style={{
+    height: "100%",
+    width: "100%",
+    display: "block",
+    border: "none",
+    pointerEvents: "auto",
+  }}
+/>
             ) : (
               <div className="flex h-full w-full items-center justify-center text-sm text-neutral-400">
                 Add video URL
