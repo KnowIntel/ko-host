@@ -1671,7 +1671,7 @@ const selectedStyle =
               (selectedBlockFromDraft as any)?.type === "gallery" ||
               selectedBlockFromDraft?.type === "image_carousel" ||
               selectedBlockFromDraft?.type === "progress_bar" ||
-              selectedBlockFromDraft?.type === "link_hub" ||
+              (selectedBlockFromDraft as any)?.type === "link_hub" ||
               selectedBlockFromDraft?.type === "checklist" ||
               selectedBlockFromDraft?.type === "schedule_agenda" ||
               selectedBlockFromDraft?.type === "map_location" ||
