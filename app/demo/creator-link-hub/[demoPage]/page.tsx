@@ -99,7 +99,38 @@ donation: {
   message:
     "You opened the donation page. In a real microsite, this could support creators, projects, causes, communities, coffee funds, or someone trying to justify buying another camera lens.",
 },
+
+"adopt-a-pet": {
+  title: "Demo Adopt-a-Pet",
+  eyebrow: "Pet Adoption Demo",
+  message:
+    "You opened the adopt-a-pet page. In a real microsite, this could feature lovable pets, adoption stories, happy tails, or a suspiciously photogenic golden retriever named Cooper.",
+},
+
+"how-to-adopt": {
+  title: "Demo How-To-Adopt",
+  eyebrow: "Pet Adoption Demo",
+  message:
+    "You clicked the adoption guide. Normally this could walk visitors through the process, answer common questions, and gently prepare them for becoming emotionally attached to animals they just met online.",
+},
+
+facebook: {
+  title: "Demo Facebook",
+  eyebrow: "Resume Profile Demo",
+  message:
+    "You opened the Facebook link. In a real profile site, this could connect visitors to updates, networking, career highlights, family photos, or debates nobody asked for in the comments section.",
+},
+
+twitter: {
+  title: "Demo Twitter",
+  eyebrow: "Resume Profile Demo",
+  message:
+    "You clicked the Twitter page. This is where someone could share thoughts, updates, industry insights, breaking opinions, or a perfectly reasonable 2am rant about user interface spacing.",
+},
+
 };
+
+
 
 export default async function CreatorLinkHubDemoPage({
   params,
