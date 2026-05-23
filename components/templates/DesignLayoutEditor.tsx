@@ -7711,18 +7711,13 @@ if (block.type === "video") {
     (block.data as any).autoGenerateThumbnail !== false;
   const showPlayOverlay = (block.data as any).showPlayOverlay !== false;
 
-  const shouldShowCustomThumbnail =
+  const showCustomThumbnail =
     !autoGenerateThumbnail && Boolean(thumbnailUrl);
 
   return (
     <div
-      className="h-full w-full overflow-hidden rounded-xl"
+      className="flex h-full w-full flex-col overflow-hidden rounded-xl bg-black"
       style={{
-        backgroundColor:
-          block.appearance?.backgroundColor &&
-          block.appearance.backgroundColor !== "transparent"
-            ? block.appearance.backgroundColor
-            : "#000",
         borderColor: block.appearance?.borderColor || undefined,
         borderWidth:
           typeof block.appearance?.borderWidth === "number"
@@ -7741,23 +7736,19 @@ if (block.type === "video") {
     >
       {block.data.title ? (
         <div
-          className="px-3 py-2 text-sm font-semibold text-white"
+          className="shrink-0 px-3 py-2 text-sm font-semibold text-white"
           style={getInlineTextStyle(block.data.style)}
         >
           {block.data.title}
         </div>
       ) : null}
 
-      <div className="relative h-full w-full overflow-hidden bg-black">
-        {shouldShowCustomThumbnail ? (
-          <img
-            src={thumbnailUrl}
-            alt=""
-            className="h-full w-full object-cover"
-          />
+      <div className="relative min-h-0 flex-1 overflow-hidden bg-black">
+        {showCustomThumbnail ? (
+          <img src={thumbnailUrl} alt="" className="h-full w-full object-cover" />
         ) : block.data.videoUrl ? (
-          <div className="flex h-full w-full items-center justify-center bg-neutral-900 text-sm text-neutral-400">
-            Video preview
+          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-neutral-900 via-neutral-800 to-black text-sm text-white/60">
+            Video Preview
           </div>
         ) : (
           <div className="flex h-full w-full items-center justify-center text-sm text-neutral-400">
@@ -7769,7 +7760,7 @@ if (block.type === "video") {
           <img
             src="/icons/button_video_play.png"
             alt=""
-            className="pointer-events-none absolute left-1/2 top-1/2 h-16 w-16 -translate-x-1/2 -translate-y-1/2 object-contain"
+            className="pointer-events-none absolute left-1/2 top-1/2 z-10 h-16 w-16 -translate-x-1/2 -translate-y-1/2 object-contain"
           />
         ) : null}
       </div>

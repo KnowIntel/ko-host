@@ -985,15 +985,12 @@ function renderVideo(
   const autoGenerateThumbnail =
     (block.data as any).autoGenerateThumbnail !== false;
 
-  const thumbnailUrl = String(
-    (block.data as any).thumbnailUrl ?? "",
-  ).trim();
+  const thumbnailUrl = String((block.data as any).thumbnailUrl ?? "").trim();
 
   const showCustomThumbnail =
     !autoGenerateThumbnail && Boolean(thumbnailUrl);
 
-  const showPlayOverlay =
-    (block.data as any).showPlayOverlay !== false;
+  const showPlayOverlay = (block.data as any).showPlayOverlay !== false;
 
   const showCaption = Boolean((block.data as any).addCaption);
   const caption = String((block.data as any).caption ?? "").trim();
@@ -1060,24 +1057,7 @@ function renderVideo(
 
       <div className="min-h-0 flex-1 overflow-hidden rounded-xl" style={frameStyle}>
         <div className="relative h-full w-full overflow-hidden rounded-lg bg-black">
-{showCustomThumbnail ? (
-  <img
-    src={thumbnailUrl}
-    alt=""
-    className="h-full w-full object-cover"
-  />
-) : autoGenerateThumbnail ? (
-  <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-neutral-900 via-neutral-800 to-black">
-    <div className="text-center">
-      <div className="text-xs font-semibold uppercase tracking-[0.22em] text-white/45">
-        Video Preview
-      </div>
-      <div className="mt-2 text-sm font-semibold text-white/70">
-        {block.data.title || "Ready to play"}
-      </div>
-    </div>
-  </div>
-) : isDirectVideoFile ? (
+          {isDirectVideoFile ? (
 <video
   src={videoUrl}
   poster={showCustomThumbnail ? thumbnailUrl : undefined}
@@ -1119,7 +1099,7 @@ function renderVideo(
             <img
               src="/icons/button_video_play.png"
               alt=""
-              className="pointer-events-none absolute left-1/2 top-1/2 h-16 w-16 -translate-x-1/2 -translate-y-1/2 object-contain"
+              className="pointer-events-none absolute left-1/2 top-1/2 z-10 h-16 w-16 -translate-x-1/2 -translate-y-1/2 object-contain"
             />
           ) : null}
         </div>
