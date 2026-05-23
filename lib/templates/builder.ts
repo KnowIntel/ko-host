@@ -984,6 +984,11 @@ export type VideoBlock = BaseBlock & {
     muted?: boolean;
     loop?: boolean;
     showControls?: boolean;
+
+    addCaption?: boolean;
+    caption?: string;
+    captionStyle?: TextStyle;
+
     style?: TextStyle;
   };
 };
@@ -1688,7 +1693,13 @@ rotation:
 }
 
 function normalizeVideoBlock(block: VideoBlock): VideoBlock {
-  const fallbackGrid = createDefaultGridPlacement();
+  const fallbackGrid: GridPlacement = {
+  colStart: 1,
+  rowStart: 1,
+  colSpan: 6,
+  rowSpan: 4,
+  zIndex: 1,
+};
 
   return {
     ...block,
