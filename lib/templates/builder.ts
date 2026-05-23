@@ -1687,6 +1687,81 @@ rotation:
   };
 }
 
+function normalizeVideoBlock(block: VideoBlock): VideoBlock {
+  const fallbackGrid = createDefaultGridPlacement();
+
+  return {
+    ...block,
+
+    grid: normalizeGridValue(block.grid, fallbackGrid),
+
+    data: {
+      ...block.data,
+
+      title:
+        typeof block.data.title === "string"
+          ? block.data.title
+          : "",
+
+      videoUrl:
+        typeof block.data.videoUrl === "string"
+          ? block.data.videoUrl
+          : "",
+
+      videoPath:
+        typeof block.data.videoPath === "string"
+          ? block.data.videoPath
+          : "",
+
+      thumbnailUrl:
+        typeof (block.data as any).thumbnailUrl === "string"
+          ? (block.data as any).thumbnailUrl
+          : "",
+
+      thumbnailPath:
+        typeof (block.data as any).thumbnailPath === "string"
+          ? (block.data as any).thumbnailPath
+          : "",
+
+      thumbnailFileName:
+        typeof (block.data as any).thumbnailFileName === "string"
+          ? (block.data as any).thumbnailFileName
+          : "",
+
+      autoGenerateThumbnail:
+        (block.data as any).autoGenerateThumbnail !== false,
+
+      showPlayOverlay:
+        (block.data as any).showPlayOverlay !== false,
+
+      autoplay: Boolean(block.data.autoplay),
+      muted: Boolean(block.data.muted),
+      loop: Boolean(block.data.loop),
+
+      showControls:
+        block.data.showControls !== false,
+
+      addCaption:
+        Boolean((block.data as any).addCaption),
+
+      caption:
+        typeof (block.data as any).caption === "string"
+          ? (block.data as any).caption
+          : "",
+
+      captionStyle: {
+        ...createDefaultTextStyle(),
+        ...(((block.data as any).captionStyle ?? {}) as object),
+      },
+
+      style: {
+        ...createDefaultTextStyle(),
+        ...(block.data.style ?? {}),
+      },
+    },
+  };
+}
+
 /* =========================================
    Block Factory
    ========================================= */
@@ -3242,6 +3317,10 @@ export function sanitizeBuilderDraft(input: unknown): BuilderDraft {
     if (block.type === "thread") {
       return normalizeThreadBlock(block as MessageThreadBlock);
     }
+
+    if (block.type === "video") {
+  return normalizeVideoBlock(block);
+}
 
     if (block.type === "listing") {
       return normalizeListingBlock(block as ListingBlock);
