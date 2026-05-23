@@ -991,8 +991,7 @@ function renderVideo(
     const showCustomThumbnail =
       !autoGenerateThumbnail && Boolean(thumbnailUrl);
 
-    const showPlayOverlay =
-      (block.data as any).showPlayOverlay !== false;
+    const showPlayOverlay = (block.data as any).showPlayOverlay !== false;
 
     const showCaption = Boolean((block.data as any).addCaption);
     const caption = String((block.data as any).caption ?? "").trim();
@@ -1056,7 +1055,7 @@ function renderVideo(
             started || block.data.autoplay ? 1 : 0
           }&mute=${block.data.muted ? 1 : 0}&loop=${
             block.data.loop ? 1 : 0
-          }&controls=${block.data.showControls ? 1 : 0}`
+          }&controls=${block.data.showControls !== false ? 1 : 0}`
         : videoUrl;
 
     const thumbnailLayer = showCustomThumbnail ? (
@@ -1079,29 +1078,20 @@ function renderVideo(
 
     return (
       <div
-        className="flex h-full w-full flex-col gap-2 overflow-hidden p-2 pointer-events-auto"
+        className="flex h-full w-full flex-col gap-2 overflow-hidden p-2"
         style={getAppearanceStyle(block)}
-        onPointerDown={(e) => e.stopPropagation()}
-        onClick={(e) => e.stopPropagation()}
       >
         {block.data.title ? (
           <div style={titleStyle}>{block.data.title}</div>
         ) : null}
 
         <div className="min-h-0 flex-1 overflow-hidden rounded-xl" style={frameStyle}>
-          <div
-            className="relative h-full w-full overflow-hidden rounded-lg bg-black pointer-events-auto"
-            onPointerDown={(e) => e.stopPropagation()}
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className="relative h-full w-full overflow-hidden rounded-lg bg-black">
             {shouldShowStartScreen ? (
               <button
                 type="button"
-                className="relative block h-full w-full cursor-pointer border-0 bg-transparent p-0 pointer-events-auto"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setStarted(true);
-                }}
+                className="relative block h-full w-full cursor-pointer border-0 bg-transparent p-0"
+                onClick={() => setStarted(true)}
               >
                 {thumbnailLayer}
 
@@ -1116,39 +1106,33 @@ function renderVideo(
             ) : isDirectVideoFile ? (
               <video
                 src={videoUrl}
-                poster={showCustomThumbnail && !started ? thumbnailUrl : undefined}
-                className="relative z-20 h-full w-full object-cover pointer-events-auto"
+                poster={showCustomThumbnail ? thumbnailUrl : undefined}
+                className="relative z-20 h-full w-full object-cover"
                 autoPlay={Boolean(block.data.autoplay) || started}
                 muted={Boolean(block.data.muted)}
                 loop={Boolean(block.data.loop)}
-                controls={Boolean(block.data.showControls)}
+                controls={block.data.showControls !== false}
                 playsInline
                 preload="metadata"
-                onPointerDown={(e) => e.stopPropagation()}
-                onClick={(e) => e.stopPropagation()}
                 style={{
                   height: "100%",
                   width: "100%",
                   display: "block",
                   objectFit: "cover",
-                  pointerEvents: "auto",
                 }}
               />
             ) : videoUrl ? (
               <iframe
                 src={embedSrc}
-                className="relative z-20 h-full w-full pointer-events-auto"
+                className="relative z-20 h-full w-full"
                 allow="autoplay; encrypted-media; picture-in-picture"
                 allowFullScreen
                 title={block.data.title || "Video"}
-                onPointerDown={(e) => e.stopPropagation()}
-                onClick={(e) => e.stopPropagation()}
                 style={{
                   height: "100%",
                   width: "100%",
                   display: "block",
                   border: "none",
-                  pointerEvents: "auto",
                 }}
               />
             ) : (
@@ -1156,14 +1140,6 @@ function renderVideo(
                 Add video URL
               </div>
             )}
-
-            {!shouldShowStartScreen && showPlayOverlay && !block.data.showControls ? (
-              <img
-                src="/icons/button_video_play.png"
-                alt=""
-                className="pointer-events-none absolute left-1/2 top-1/2 z-30 h-16 w-16 -translate-x-1/2 -translate-y-1/2 object-contain"
-              />
-            ) : null}
           </div>
         </div>
 
