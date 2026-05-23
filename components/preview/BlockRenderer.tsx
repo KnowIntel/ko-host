@@ -7336,20 +7336,20 @@ function renderLinkHub(
   className={[
     "flex shrink-0 items-center justify-center overflow-hidden bg-white",
     isFlush
-      ? "self-stretch w-20 rounded-none border-0"
+      ? "self-stretch rounded-none border-0"
       : "rounded-full border",
     isLightDesign(designKey)
       ? "border-neutral-200"
       : "border-white/15",
   ].join(" ")}
-  style={
-    isFlush
-      ? undefined
+  style={{
+    width: `${Number((block.data as any).imageWidth ?? 40)}px`,
+    ...(isFlush
+      ? {}
       : {
-          width: `${Number((block.data as any).imageWidth ?? 40)}px`,
           height: `${Number((block.data as any).imageWidth ?? 40)}px`,
-        }
-  }
+        }),
+  }}
 >
                 <img
                   src={logoUrl}

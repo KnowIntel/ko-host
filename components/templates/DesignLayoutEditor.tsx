@@ -15032,7 +15032,7 @@ onClick={() =>
   </select>
 </div>
 
-{["floatLeft", "floatRight"].includes(
+{["floatLeft", "floatRight", "flushLeft", "flushRight"].includes(
   (selectedBlock.data as any).imagePlacement ?? "floatLeft",
 ) ? (
   <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
