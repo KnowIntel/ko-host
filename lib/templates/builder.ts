@@ -154,6 +154,7 @@ export type LinkItem = {
   url: string;
 
   description?: string;
+  showUrl?: boolean;
   logoUrl?: string;
   autoGenerateLogo?: boolean;
 };
@@ -2867,8 +2868,20 @@ case "donation":
         data: {
           heading: "My Links",
           items: [
-            { id: makeId("link"), label: "Link 1", description: "", url: "#" },
-            { id: makeId("link"), label: "Link 2", description: "", url: "#" },
+            {
+              id: makeId("link"),
+              label: "Link 1",
+              description: "",
+              url: "#",
+              showUrl: false,
+            },
+            {
+              id: makeId("link"),
+              label: "Link 2",
+              description: "",
+              url: "#",
+              showUrl: false,
+            },
           ],
 
           style: createDefaultTextStyle(),
@@ -2893,7 +2906,6 @@ case "donation":
           cardPaddingY: 12,
         },
       };
-
     case "registry":
       return {
         id: makeId("registry"),

@@ -15438,9 +15438,37 @@ onClick={() =>
                   />
                 </div>
 
-                <div className="mt-4">
-                  <div className={inspectorLabelClass()}>URL</div>
-                  <input
+<div className="mt-4">
+  <div className="mb-2 flex items-center justify-between gap-3">
+    <div className={inspectorLabelClass()}>URL</div>
+
+    <label className="flex items-center gap-2 text-xs text-neutral-600">
+      <input
+        type="checkbox"
+        checked={Boolean((item as any).showUrl)}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "link_hub"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    items: block.data.items.map((entry) =>
+                      entry.id === item.id
+                        ? { ...entry, showUrl: e.target.checked }
+                        : entry,
+                    ),
+                  },
+                },
+          )
+        }
+      />
+      Show URL
+    </label>
+  </div>
+
+  <input
                     type="text"
                     value={item.url}
                     onChange={(e) => {

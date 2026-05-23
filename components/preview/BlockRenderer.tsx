@@ -7291,6 +7291,7 @@ function renderLinkHub(
 
   const cardPaddingX = Number((block.data as any).cardPaddingX ?? 16);
   const cardPaddingY = Number((block.data as any).cardPaddingY ?? 12);
+  const imageWidth = Number((block.data as any).imageWidth ?? 40);
 
   const triggerSymbol =
     (block.data as any).customTriggerEnabled &&
@@ -7324,6 +7325,7 @@ function renderLinkHub(
           {items.map((item, index) => {
             const linkItem = item as typeof item & {
               description?: string;
+              showUrl?: boolean;
               logoUrl?: string;
               autoGenerateLogo?: boolean;
             };
@@ -7332,25 +7334,25 @@ function renderLinkHub(
             const description = String(linkItem.description ?? "").trim();
 
             const imageNode = logoUrl ? (
-<span
-  className={[
-    "flex shrink-0 items-center justify-center overflow-hidden bg-white",
-    isFlush
-      ? "self-stretch rounded-none border-0"
-      : "rounded-full border",
-    isLightDesign(designKey)
-      ? "border-neutral-200"
-      : "border-white/15",
-  ].join(" ")}
-  style={{
-    width: `${Number((block.data as any).imageWidth ?? 40)}px`,
-    ...(isFlush
-      ? {}
-      : {
-          height: `${Number((block.data as any).imageWidth ?? 40)}px`,
-        }),
-  }}
->
+              <span
+                className={[
+                  "flex shrink-0 items-center justify-center overflow-hidden bg-white",
+                  isFlush
+                    ? "self-stretch rounded-none border-0"
+                    : "rounded-full border",
+                  isLightDesign(designKey)
+                    ? "border-neutral-200"
+                    : "border-white/15",
+                ].join(" ")}
+                style={{
+                  width: `${imageWidth}px`,
+                  ...(isFlush
+                    ? {}
+                    : {
+                        height: `${imageWidth}px`,
+                      }),
+                }}
+              >
                 <img
                   src={logoUrl}
                   alt=""
@@ -7423,7 +7425,7 @@ function renderLinkHub(
                     </div>
                   ) : null}
 
-                  {item.url ? (
+                  {linkItem.showUrl && item.url ? (
                     <div
                       className="mt-1 truncate text-xs"
                       style={getContainerTextStyle(
@@ -7460,7 +7462,6 @@ function renderLinkHub(
     </Surface>
   );
 }
-
 function renderRegistry(
   block: Extract<MicrositeBlock, { type: "registry" }>,
   designKey?: string,
