@@ -1032,6 +1032,7 @@ export type LinkHubBlock = BaseBlock & {
     imagePlacement?: "flushLeft" | "floatLeft" | "flushRight" | "floatRight";
 
     triggerSymbol?: string;
+    triggerSymbolSize?: number;
     customTriggerEnabled?: boolean;
     customTriggerFileName?: string;
     customTriggerUrl?: string;
@@ -2895,8 +2896,11 @@ case "donation":
           imageWidth: 40,
 
           triggerSymbol: "/icons/icon_thin_chevron.png",
+          triggerSymbolSize: 40,
+
           customTriggerEnabled: false,
           customTriggerUrl: "",
+          customTriggerFileName: "",
 
           cardShadowEnabled: false,
           cardShadowColor: "#000000",

@@ -7367,7 +7367,11 @@ function renderLinkHub(
                   <img
                     src={triggerSymbol}
                     alt=""
-                    className="h-10 w-10 object-contain"
+                    className="object-contain"
+                    style={{
+                      width: `${Number((block.data as any).triggerSymbolSize ?? 40)}px`,
+                      height: `${Number((block.data as any).triggerSymbolSize ?? 40)}px`,
+                    }}
                   />
                 </span>
               ) : null;
