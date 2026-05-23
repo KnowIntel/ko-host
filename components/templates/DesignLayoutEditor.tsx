@@ -7204,7 +7204,12 @@ const imageWidth = Number((block.data as any).imageWidth ?? 40);
         </div>
       ) : null}
 
-      <div className="space-y-2">
+      <div
+  className="flex flex-col"
+  style={{
+    gap: `${Number((block.data as any).cardGap ?? 12)}px`,
+  }}
+>
         {block.data.items.slice(0, 4).map((item, index) => {
           const linkItem = item as LinkItem & {
             description?: string;
