@@ -7292,6 +7292,9 @@ function renderLinkHub(
   const cardPaddingX = Number((block.data as any).cardPaddingX ?? 16);
   const cardPaddingY = Number((block.data as any).cardPaddingY ?? 12);
   const imageWidth = Number((block.data as any).imageWidth ?? 40);
+  const triggerSymbolSize = Number(
+    (block.data as any).triggerSymbolSize ?? 40,
+  );
 
   const triggerSymbol =
     (block.data as any).customTriggerEnabled &&
@@ -7346,6 +7349,7 @@ function renderLinkHub(
                 ].join(" ")}
                 style={{
                   width: `${imageWidth}px`,
+                  minWidth: `${imageWidth}px`,
                   ...(isFlush
                     ? {}
                     : {
@@ -7363,16 +7367,22 @@ function renderLinkHub(
 
             const triggerNode =
               !imageOnRight && triggerSymbol ? (
-                <span className="flex self-stretch w-14 shrink-0 items-center justify-center">
-<img
-  src={triggerSymbol}
-  alt=""
-  className="object-contain"
-  style={{
-    width: `${Number((block.data as any).triggerSymbolSize ?? 40)}px`,
-    height: `${Number((block.data as any).triggerSymbolSize ?? 40)}px`,
-  }}
-/>
+                <span
+                  className="flex self-stretch shrink-0 items-center justify-center"
+                  style={{
+                    width: `${Math.max(triggerSymbolSize + 12, 56)}px`,
+                    minWidth: `${Math.max(triggerSymbolSize + 12, 56)}px`,
+                  }}
+                >
+                  <img
+                    src={triggerSymbol}
+                    alt=""
+                    className="object-contain"
+                    style={{
+                      width: `${triggerSymbolSize}px`,
+                      height: `${triggerSymbolSize}px`,
+                    }}
+                  />
                 </span>
               ) : null;
 
@@ -7393,8 +7403,8 @@ function renderLinkHub(
                   boxShadow: cardShadow,
                   paddingLeft: isFlush ? 0 : `${cardPaddingX}px`,
                   paddingRight: isFlush ? 0 : `${cardPaddingX}px`,
-                  paddingTop: `${cardPaddingY}px`,
-                  paddingBottom: `${cardPaddingY}px`,
+                  paddingTop: isFlush ? 0 : `${cardPaddingY}px`,
+                  paddingBottom: isFlush ? 0 : `${cardPaddingY}px`,
                 }}
               >
                 {!imageOnRight ? imageNode : null}
@@ -7404,6 +7414,8 @@ function renderLinkHub(
                   style={{
                     paddingLeft: isFlush ? `${cardPaddingX}px` : undefined,
                     paddingRight: isFlush ? `${cardPaddingX}px` : undefined,
+                    paddingTop: isFlush ? `${cardPaddingY}px` : undefined,
+                    paddingBottom: isFlush ? `${cardPaddingY}px` : undefined,
                   }}
                 >
                   <div
