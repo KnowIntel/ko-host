@@ -979,152 +979,189 @@ function renderVideo(
   block: Extract<MicrositeBlock, { type: "video" }>,
   designKey?: string,
 ) {
-  const titleStyle = getContainerTextStyle(block.data.style, designKey);
-  const videoUrl = (block.data.videoUrl ?? "").trim();
+  function VideoPreview() {
+    const titleStyle = getContainerTextStyle(block.data.style, designKey);
+    const videoUrl = (block.data.videoUrl ?? "").trim();
 
-  const autoGenerateThumbnail =
-    (block.data as any).autoGenerateThumbnail !== false;
+    const autoGenerateThumbnail =
+      (block.data as any).autoGenerateThumbnail !== false;
 
-  const thumbnailUrl = String((block.data as any).thumbnailUrl ?? "").trim();
+    const thumbnailUrl = String((block.data as any).thumbnailUrl ?? "").trim();
 
-  const showCustomThumbnail =
-    !autoGenerateThumbnail && Boolean(thumbnailUrl);
+    const showCustomThumbnail =
+      !autoGenerateThumbnail && Boolean(thumbnailUrl);
 
-  const showPlayOverlay =
-    (block.data as any).showPlayOverlay !== false;
+    const showPlayOverlay =
+      (block.data as any).showPlayOverlay !== false;
 
-  const showCaption = Boolean((block.data as any).addCaption);
-  const caption = String((block.data as any).caption ?? "").trim();
-  const captionStyle = ((block.data as any).captionStyle ?? {}) as TextStyle;
+    const showCaption = Boolean((block.data as any).addCaption);
+    const caption = String((block.data as any).caption ?? "").trim();
+    const captionStyle = ((block.data as any).captionStyle ?? {}) as TextStyle;
 
-  if (!videoUrl && !showCustomThumbnail) {
+    const [started, setStarted] = useState(Boolean(block.data.autoplay));
+
+    if (!videoUrl && !showCustomThumbnail) {
+      return (
+        <Placeholder
+          block={block}
+          designKey={designKey}
+          label="Add video URL or upload a video"
+        />
+      );
+    }
+
+    const isDirectVideoFile =
+      videoUrl.startsWith("data:video/") ||
+      /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(videoUrl);
+
+    const frameStyle: React.CSSProperties = {
+      backgroundImage:
+        block.appearance?.textureEnabled && block.appearance?.textureImageUrl
+          ? `url("${block.appearance.textureImageUrl}")`
+          : undefined,
+      backgroundSize:
+        block.appearance?.textureEnabled && block.appearance?.textureImageUrl
+          ? `${block.appearance.textureScale ?? 100}%`
+          : undefined,
+      backgroundPosition:
+        block.appearance?.textureEnabled && block.appearance?.textureImageUrl
+          ? `${block.appearance.texturePositionX ?? 50}% ${
+              block.appearance.texturePositionY ?? 50
+            }%`
+          : undefined,
+      backgroundRepeat:
+        block.appearance?.textureEnabled && block.appearance?.textureImageUrl
+          ? "repeat"
+          : undefined,
+      padding:
+        block.appearance?.textureEnabled && block.appearance?.textureImageUrl
+          ? `${Math.max(6, block.appearance.borderWidth ?? 10)}px`
+          : undefined,
+      border:
+        block.appearance?.textureEnabled && block.appearance?.textureImageUrl
+          ? "none"
+          : `${Math.max(1, block.appearance?.borderWidth ?? 1)}px solid ${
+              block.appearance?.borderColor ?? "#e5e7eb"
+            }`,
+      borderRadius:
+        typeof block.appearance?.borderRadius === "number"
+          ? `${block.appearance.borderRadius}px`
+          : "12px",
+      backgroundColor: "rgba(0,0,0,0.05)",
+    };
+
+    const thumbnailLayer = showCustomThumbnail ? (
+      <img src={thumbnailUrl} alt="" className="h-full w-full object-cover" />
+    ) : (
+      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-neutral-900 via-neutral-800 to-black">
+        <div className="text-center">
+          <div className="text-xs font-semibold uppercase tracking-[0.22em] text-white/45">
+            Video Preview
+          </div>
+          <div className="mt-2 text-sm font-semibold text-white/70">
+            {block.data.title || "Ready to play"}
+          </div>
+        </div>
+      </div>
+    );
+
+    const embedSrc =
+      videoUrl && !isDirectVideoFile
+        ? `${videoUrl}${videoUrl.includes("?") ? "&" : "?"}autoplay=${
+            started || block.data.autoplay ? 1 : 0
+          }&mute=${block.data.muted ? 1 : 0}&loop=${
+            block.data.loop ? 1 : 0
+          }&controls=${block.data.showControls ? 1 : 0}`
+        : videoUrl;
+
     return (
-      <Placeholder
-        block={block}
-        designKey={designKey}
-        label="Add video URL or upload a video"
-      />
+      <div
+        className="flex h-full w-full flex-col gap-2 overflow-hidden p-2"
+        style={getAppearanceStyle(block)}
+      >
+        {block.data.title ? (
+          <div style={titleStyle}>{block.data.title}</div>
+        ) : null}
+
+        <div className="min-h-0 flex-1 overflow-hidden rounded-xl" style={frameStyle}>
+          <div className="relative h-full w-full overflow-hidden rounded-lg bg-black">
+            {!started && showCustomThumbnail ? (
+              <button
+                type="button"
+                className="relative block h-full w-full"
+                onClick={() => setStarted(true)}
+              >
+                {thumbnailLayer}
+
+                {showPlayOverlay ? (
+                  <img
+                    src="/icons/button_video_play.png"
+                    alt=""
+                    className="pointer-events-none absolute left-1/2 top-1/2 z-10 h-16 w-16 -translate-x-1/2 -translate-y-1/2 object-contain"
+                  />
+                ) : null}
+              </button>
+            ) : isDirectVideoFile ? (
+              <video
+                src={videoUrl}
+                poster={showCustomThumbnail && !started ? thumbnailUrl : undefined}
+                className="h-full w-full object-cover"
+                autoPlay={Boolean(block.data.autoplay) || started}
+                muted={Boolean(block.data.muted)}
+                loop={Boolean(block.data.loop)}
+                controls={Boolean(block.data.showControls)}
+                playsInline
+                preload="metadata"
+                style={{
+                  height: "100%",
+                  width: "100%",
+                  display: "block",
+                  objectFit: "cover",
+                }}
+              />
+            ) : videoUrl ? (
+              <iframe
+                src={embedSrc}
+                className="h-full w-full"
+                allow="autoplay; encrypted-media; picture-in-picture"
+                allowFullScreen
+                title={block.data.title || "Video"}
+                style={{
+                  height: "100%",
+                  width: "100%",
+                  display: "block",
+                  border: "none",
+                }}
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center text-sm text-neutral-400">
+                Add video URL
+              </div>
+            )}
+
+            {!showCustomThumbnail && showPlayOverlay && !block.data.showControls ? (
+              <img
+                src="/icons/button_video_play.png"
+                alt=""
+                className="pointer-events-none absolute left-1/2 top-1/2 z-10 h-16 w-16 -translate-x-1/2 -translate-y-1/2 object-contain"
+              />
+            ) : null}
+          </div>
+        </div>
+
+        {showCaption && caption ? (
+          <div
+            className="shrink-0 px-2 text-xs text-neutral-700"
+            style={getContainerTextStyle(captionStyle, designKey)}
+          >
+            {caption}
+          </div>
+        ) : null}
+      </div>
     );
   }
 
-  const isDirectVideoFile =
-    videoUrl.startsWith("data:video/") ||
-    /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(videoUrl);
-
-  const shouldShowOverlay =
-    showPlayOverlay && !block.data.showControls;
-
-  const frameStyle: React.CSSProperties = {
-    backgroundImage:
-      block.appearance?.textureEnabled && block.appearance?.textureImageUrl
-        ? `url("${block.appearance.textureImageUrl}")`
-        : undefined,
-    backgroundSize:
-      block.appearance?.textureEnabled && block.appearance?.textureImageUrl
-        ? `${block.appearance.textureScale ?? 100}%`
-        : undefined,
-    backgroundPosition:
-      block.appearance?.textureEnabled && block.appearance?.textureImageUrl
-        ? `${block.appearance.texturePositionX ?? 50}% ${
-            block.appearance.texturePositionY ?? 50
-          }%`
-        : undefined,
-    backgroundRepeat:
-      block.appearance?.textureEnabled && block.appearance?.textureImageUrl
-        ? "repeat"
-        : undefined,
-    padding:
-      block.appearance?.textureEnabled && block.appearance?.textureImageUrl
-        ? `${Math.max(6, block.appearance.borderWidth ?? 10)}px`
-        : undefined,
-    border:
-      block.appearance?.textureEnabled && block.appearance?.textureImageUrl
-        ? "none"
-        : `${Math.max(1, block.appearance?.borderWidth ?? 1)}px solid ${
-            block.appearance?.borderColor ?? "#e5e7eb"
-          }`,
-    borderRadius:
-      typeof block.appearance?.borderRadius === "number"
-        ? `${block.appearance.borderRadius}px`
-        : "12px",
-    backgroundColor: "rgba(0,0,0,0.05)",
-  };
-
-  return (
-    <div
-      className="flex h-full w-full flex-col gap-2 overflow-hidden p-2"
-      style={getAppearanceStyle(block)}
-    >
-      {block.data.title ? (
-        <div style={titleStyle}>{block.data.title}</div>
-      ) : null}
-
-      <div className="min-h-0 flex-1 overflow-hidden rounded-xl" style={frameStyle}>
-        <div className="relative h-full w-full overflow-hidden rounded-lg bg-black">
-          {isDirectVideoFile ? (
-            <video
-              src={videoUrl}
-              poster={showCustomThumbnail ? thumbnailUrl : undefined}
-              className="h-full w-full object-cover"
-              autoPlay={Boolean(block.data.autoplay)}
-              muted={Boolean(block.data.muted)}
-              loop={Boolean(block.data.loop)}
-              controls={Boolean(block.data.showControls)}
-              playsInline
-              preload="metadata"
-              style={{
-                height: "100%",
-                width: "100%",
-                display: "block",
-                objectFit: "cover",
-              }}
-            />
-          ) : showCustomThumbnail ? (
-            <img
-              src={thumbnailUrl}
-              alt=""
-              className="h-full w-full object-cover"
-            />
-          ) : videoUrl ? (
-            <iframe
-              src={videoUrl}
-              className="h-full w-full"
-              allow="autoplay; encrypted-media; picture-in-picture"
-              allowFullScreen
-              title={block.data.title || "Video"}
-              style={{
-                height: "100%",
-                width: "100%",
-                display: "block",
-                border: "none",
-              }}
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center text-sm text-neutral-400">
-              Add video URL
-            </div>
-          )}
-
-          {shouldShowOverlay ? (
-            <img
-              src="/icons/button_video_play.png"
-              alt=""
-              className="pointer-events-none absolute left-1/2 top-1/2 z-10 h-16 w-16 -translate-x-1/2 -translate-y-1/2 object-contain"
-            />
-          ) : null}
-        </div>
-      </div>
-
-      {showCaption && caption ? (
-        <div
-          className="shrink-0 px-2 text-xs text-neutral-700"
-          style={getContainerTextStyle(captionStyle, designKey)}
-        >
-          {caption}
-        </div>
-      ) : null}
-    </div>
-  );
+  return <VideoPreview />;
 }
 
 function renderImage(
