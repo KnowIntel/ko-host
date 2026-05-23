@@ -7233,16 +7233,22 @@ const imageWidth = Number((block.data as any).imageWidth ?? 40);
 
           const triggerNode =
             !imageOnRight && triggerSymbol ? (
-              <span className="flex self-stretch w-12 shrink-0 items-center justify-center">
+              <span
+                className="flex self-stretch shrink-0 items-center justify-center"
+                style={{
+                  width: `${Number((block.data as any).triggerSymbolSize ?? 40) + 32}px`,
+                  minWidth: `${Number((block.data as any).triggerSymbolSize ?? 40) + 32}px`,
+                }}
+              >
                 <img
-  src={triggerSymbol}
-  alt=""
-  className="object-contain"
-  style={{
-    width: `${Number((block.data as any).triggerSymbolSize ?? 40)}px`,
-    height: `${Number((block.data as any).triggerSymbolSize ?? 40)}px`,
-  }}
-/>
+                  src={triggerSymbol}
+                  alt=""
+                  className="block max-h-none max-w-none object-contain"
+                  style={{
+                    width: `${Number((block.data as any).triggerSymbolSize ?? 40)}px`,
+                    height: `${Number((block.data as any).triggerSymbolSize ?? 40)}px`,
+                  }}
+                />
               </span>
             ) : null;
 
@@ -7254,8 +7260,8 @@ const imageWidth = Number((block.data as any).imageWidth ?? 40);
                 boxShadow: cardShadow,
                 paddingLeft: isFlush ? 0 : `${cardPaddingX}px`,
                 paddingRight: isFlush ? 0 : `${cardPaddingX}px`,
-paddingTop: isFlush ? 0 : `${cardPaddingY}px`,
-paddingBottom: isFlush ? 0 : `${cardPaddingY}px`,
+                paddingTop: isFlush ? 0 : `${cardPaddingY}px`,
+                paddingBottom: isFlush ? 0 : `${cardPaddingY}px`,
               }}
             >
               {!imageOnRight ? imageNode : null}
@@ -7263,10 +7269,10 @@ paddingBottom: isFlush ? 0 : `${cardPaddingY}px`,
               <div
                 className="min-w-0 flex flex-1 flex-col justify-center"
                 style={{
-paddingLeft: isFlush ? `${cardPaddingX}px` : undefined,
-paddingRight: isFlush ? `${cardPaddingX}px` : undefined,
-paddingTop: isFlush ? `${cardPaddingY}px` : undefined,
-paddingBottom: isFlush ? `${cardPaddingY}px` : undefined,
+                  paddingLeft: isFlush ? `${cardPaddingX}px` : undefined,
+                  paddingRight: isFlush ? `${cardPaddingX}px` : undefined,
+                  paddingTop: isFlush ? `${cardPaddingY}px` : undefined,
+                  paddingBottom: isFlush ? `${cardPaddingY}px` : undefined,
                 }}
               >
                 <div
@@ -7290,18 +7296,17 @@ paddingBottom: isFlush ? `${cardPaddingY}px` : undefined,
                   </div>
                 ) : null}
 
-{(item as any).showUrl && item.url ? (
-  <div
-    className="mt-1 truncate text-xs text-neutral-500"
-    style={getInlineTextStyle(
-      (block.data as any).urlStyle ?? block.data.style,
-    )}
-  >
-    {item.url || "#"}
-  </div>
-) : null}
-</div>
-
+                {(item as any).showUrl && item.url ? (
+                  <div
+                    className="mt-1 truncate text-xs text-neutral-500"
+                    style={getInlineTextStyle(
+                      (block.data as any).urlStyle ?? block.data.style,
+                    )}
+                  >
+                    {item.url || "#"}
+                  </div>
+                ) : null}
+              </div>
 {triggerNode}
 
 {imageOnRight ? imageNode : null}
@@ -15130,39 +15135,6 @@ onClick={() =>
       </div>
     </div>
 
-    <div className="mt-4">
-  <div className="mb-1 flex items-center justify-between">
-    <div className={inspectorLabelClass()}>
-      Padding Between Cards
-    </div>
-
-    <div className="text-xs text-neutral-500">
-      {(selectedBlock.data as any).cardGap ?? 12}px
-    </div>
-  </div>
-
-  <input
-    type="range"
-    min={0}
-    max={80}
-    value={(selectedBlock.data as any).cardGap ?? 12}
-    onChange={(e) =>
-      updateSelectedBlock((block) =>
-        block.type !== "link_hub"
-          ? block
-          : {
-              ...block,
-              data: {
-                ...block.data,
-                cardGap: Number(e.target.value),
-              },
-            },
-      )
-    }
-    className="w-full"
-  />
-</div>
-
     <input
       type="range"
       min={0}
@@ -15177,6 +15149,36 @@ onClick={() =>
                 data: {
                   ...block.data,
                   cardPaddingY: Number(e.target.value),
+                },
+              },
+        )
+      }
+      className="w-full"
+    />
+  </div>
+
+  <div className="mt-4">
+    <div className="mb-1 flex items-center justify-between">
+      <div className={inspectorLabelClass()}>Padding Between Cards</div>
+      <div className="text-xs text-neutral-500">
+        {(selectedBlock.data as any).cardGap ?? 12}px
+      </div>
+    </div>
+
+    <input
+      type="range"
+      min={0}
+      max={80}
+      value={(selectedBlock.data as any).cardGap ?? 12}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "link_hub"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  cardGap: Number(e.target.value),
                 },
               },
         )
