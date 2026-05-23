@@ -7404,9 +7404,22 @@ function renderLinkHub(
                     ? "border-neutral-200 bg-white hover:bg-neutral-50"
                     : "border-white/10 bg-white/5 hover:bg-white/10",
                 ].join(" ")}
-                style={{
-                  boxShadow: cardShadow,
-                  paddingLeft: isFlush ? 0 : `${cardPaddingX}px`,
+style={{
+  boxShadow: cardShadow,
+  backgroundColor:
+    (block.data as any).cardTransparentBackground
+      ? "transparent"
+      : ((block.data as any).cardBackgroundColor ?? undefined),
+  borderColor: (block.data as any).cardBorderColor ?? undefined,
+  borderWidth:
+    typeof (block.data as any).cardBorderWidth === "number"
+      ? `${(block.data as any).cardBorderWidth}px`
+      : undefined,
+  borderRadius:
+    typeof (block.data as any).cardBorderRadius === "number"
+      ? `${(block.data as any).cardBorderRadius}px`
+      : undefined,
+  paddingLeft: isFlush ? 0 : `${cardPaddingX}px`,
                   paddingRight: isFlush ? 0 : `${cardPaddingX}px`,
                   paddingTop: isFlush ? 0 : `${cardPaddingY}px`,
                   paddingBottom: isFlush ? 0 : `${cardPaddingY}px`,

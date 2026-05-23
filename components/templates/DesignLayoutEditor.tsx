@@ -3262,6 +3262,32 @@ if (selectedBlock?.type === "wave") {
   return;
 }
 
+if (selectedBlock?.type === "link_hub") {
+  updateSelectedBlock((block) =>
+    block.type !== "link_hub"
+      ? block
+      : linkHubTextTarget === "form"
+        ? {
+            ...block,
+            appearance: {
+              ...block.appearance,
+              backgroundColor: value,
+            },
+          }
+        : {
+            ...block,
+            data: {
+              ...block.data,
+              cardBackgroundColor: value,
+              cardTransparentBackground: false,
+            },
+          },
+  );
+
+  pushRecentColor(value);
+  return;
+}
+
 if (selectedBlock?.type === "form_field") {
   updateSelectedBlock((block) =>
     block.type !== "form_field"
@@ -4378,6 +4404,46 @@ function clearLinksBackgroundColor() {
 }
 
 function applyAppearancePatch(patch: AppearancePatch) {
+  if (selectedBlock?.type === "link_hub") {
+  updateSelectedBlock((block) => {
+    if (block.type !== "link_hub") return block;
+
+    if (linkHubTextTarget === "form") {
+      return {
+        ...block,
+        appearance: {
+          ...block.appearance,
+          ...patch,
+        },
+      };
+    }
+
+    return {
+      ...block,
+      data: {
+        ...block.data,
+        ...(patch.backgroundColor !== undefined
+          ? {
+              cardBackgroundColor: patch.backgroundColor,
+              cardTransparentBackground: patch.backgroundColor === "transparent",
+            }
+          : {}),
+        ...(patch.borderColor !== undefined
+          ? { cardBorderColor: patch.borderColor }
+          : {}),
+        ...(patch.borderWidth !== undefined
+          ? { cardBorderWidth: patch.borderWidth }
+          : {}),
+        ...(patch.borderRadius !== undefined
+          ? { cardBorderRadius: patch.borderRadius }
+          : {}),
+      },
+    };
+  });
+
+  return;
+}
+
   if (selectedBlock?.type === "form_field") {
     updateSelectedBlock((block) =>
       block.type !== "form_field"
@@ -7261,9 +7327,22 @@ const imageWidth = Number((block.data as any).imageWidth ?? 40);
             <div
               key={item.id}
               className="flex items-stretch gap-2 overflow-hidden rounded-lg border border-neutral-200 bg-white"
-              style={{
-                boxShadow: cardShadow,
-                paddingLeft: isFlush ? 0 : `${cardPaddingX}px`,
+style={{
+  boxShadow: cardShadow,
+  backgroundColor:
+    (block.data as any).cardTransparentBackground
+      ? "transparent"
+      : ((block.data as any).cardBackgroundColor ?? undefined),
+  borderColor: (block.data as any).cardBorderColor ?? undefined,
+  borderWidth:
+    typeof (block.data as any).cardBorderWidth === "number"
+      ? `${(block.data as any).cardBorderWidth}px`
+      : undefined,
+  borderRadius:
+    typeof (block.data as any).cardBorderRadius === "number"
+      ? `${(block.data as any).cardBorderRadius}px`
+      : undefined,
+  paddingLeft: isFlush ? 0 : `${cardPaddingX}px`,
                 paddingRight: isFlush ? 0 : `${cardPaddingX}px`,
                 paddingTop: isFlush ? 0 : `${cardPaddingY}px`,
                 paddingBottom: isFlush ? 0 : `${cardPaddingY}px`,

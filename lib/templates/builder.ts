@@ -1043,9 +1043,14 @@ export type LinkHubBlock = BaseBlock & {
     cardShadowX?: number;
     cardShadowY?: number;
     cardGap?: number;
-
     cardPaddingX?: number;
     cardPaddingY?: number;
+
+    cardBackgroundColor?: string;
+    cardBorderColor?: string;
+    cardBorderWidth?: number;
+    cardBorderRadius?: number;
+    cardTransparentBackground?: boolean;
   };
 };
 
@@ -2912,6 +2917,12 @@ case "donation":
           cardPaddingX: 16,
           cardPaddingY: 12,
           cardGap: 12,
+
+          cardBackgroundColor: "#ffffff",
+          cardBorderColor: "#e5e7eb",
+          cardBorderWidth: 1,
+          cardBorderRadius: 12,
+          cardTransparentBackground: false,
         },
       };
 
