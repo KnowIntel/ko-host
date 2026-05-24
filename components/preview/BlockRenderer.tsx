@@ -979,142 +979,234 @@ function renderVideo(
   block: Extract<MicrositeBlock, { type: "video" }>,
   designKey?: string,
 ) {
-  const titleStyle = getContainerTextStyle(block.data.style, designKey);
-  const videoUrl = (block.data.videoUrl ?? "").trim();
+  function VideoPreview() {
+    const titleStyle = getContainerTextStyle(block.data.style, designKey);
+    const rawVideoUrl = (block.data.videoUrl ?? "").trim();
 
-  const autoGenerateThumbnail =
-    (block.data as any).autoGenerateThumbnail !== false;
+    const buildEmbedUrl = (url: string) => {
+      if (!url) return "";
 
-  const thumbnailUrl = String((block.data as any).thumbnailUrl ?? "").trim();
+      if (url.startsWith("data:video/")) return url;
+      if (/\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(url)) return url;
 
-  const showCustomThumbnail =
-    !autoGenerateThumbnail && Boolean(thumbnailUrl);
+      try {
+        const parsed = new URL(url);
 
-  const showPlayOverlay = (block.data as any).showPlayOverlay !== false;
+        if (parsed.hostname.includes("youtube.com") && parsed.pathname === "/watch") {
+          const videoId = parsed.searchParams.get("v");
+          if (videoId) return `https://www.youtube.com/embed/${videoId}`;
+        }
 
-  const showCaption = Boolean((block.data as any).addCaption);
-  const caption = String((block.data as any).caption ?? "").trim();
-  const captionStyle = ((block.data as any).captionStyle ?? {}) as TextStyle;
+        if (parsed.hostname.includes("youtu.be")) {
+          const videoId = parsed.pathname.replace(/^\/+/, "");
+          if (videoId) return `https://www.youtube.com/embed/${videoId}`;
+        }
 
-  if (!videoUrl && !showCustomThumbnail) {
+        if (parsed.hostname.includes("vimeo.com")) {
+          const videoId = parsed.pathname.replace(/^\/+/, "");
+          if (videoId) return `https://player.vimeo.com/video/${videoId}`;
+        }
+
+        return url;
+      } catch {
+        return url;
+      }
+    };
+
+    const videoUrl = buildEmbedUrl(rawVideoUrl);
+
+    const autoGenerateThumbnail =
+      (block.data as any).autoGenerateThumbnail !== false;
+
+    const thumbnailUrl = String((block.data as any).thumbnailUrl ?? "").trim();
+    const showCustomThumbnail = !autoGenerateThumbnail && Boolean(thumbnailUrl);
+    const showPlayOverlay = (block.data as any).showPlayOverlay !== false;
+
+    const showCaption = Boolean((block.data as any).addCaption);
+    const caption = String((block.data as any).caption ?? "").trim();
+    const captionStyle = ((block.data as any).captionStyle ?? {}) as TextStyle;
+
+    const videoRef = useRef<HTMLVideoElement | null>(null);
+const [started, setStarted] = useState(Boolean(block.data.autoplay));
+
+const startVideo = async () => {
+  setStarted(true);
+
+  const video = videoRef.current;
+
+  if (video) {
+    try {
+      await video.play();
+    } catch {
+      // Controls remain available if browser blocks autoplay
+    }
+  }
+};
+
+    if (!videoUrl && !showCustomThumbnail) {
+      return (
+        <Placeholder
+          block={block}
+          designKey={designKey}
+          label="Add video URL or upload a video"
+        />
+      );
+    }
+
+const isDirectVideoFile =
+  videoUrl.startsWith("data:video/") ||
+  /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(videoUrl) ||
+  videoUrl.includes("/storage/v1/object/public/");
+
+    const frameStyle: React.CSSProperties = {
+      border: `${Math.max(1, block.appearance?.borderWidth ?? 1)}px solid ${
+        block.appearance?.borderColor ?? "#e5e7eb"
+      }`,
+      borderRadius:
+        typeof block.appearance?.borderRadius === "number"
+          ? `${block.appearance.borderRadius}px`
+          : "12px",
+      backgroundColor: "rgba(0,0,0,0.05)",
+    };
+
+    const embedSrc =
+      videoUrl && !isDirectVideoFile
+        ? `${videoUrl}${videoUrl.includes("?") ? "&" : "?"}autoplay=${
+            started || block.data.autoplay ? 1 : 0
+          }&mute=${block.data.muted ? 1 : 0}&loop=${
+            block.data.loop ? 1 : 0
+          }&controls=${block.data.showControls !== false ? 1 : 0}`
+        : videoUrl;
+
     return (
-      <Placeholder
-        block={block}
-        designKey={designKey}
-        label="Add video URL or upload a video"
+      <div
+        className="flex h-full w-full flex-col gap-2 overflow-hidden p-2"
+        style={getAppearanceStyle(block)}
+      >
+        {block.data.title ? (
+          <div style={titleStyle}>{block.data.title}</div>
+        ) : null}
+
+        <div className="min-h-0 flex-1 overflow-hidden rounded-xl" style={frameStyle}>
+          <div
+  className="relative h-full w-full overflow-hidden rounded-lg bg-black"
+  onPointerDownCapture={(e) => {
+    if (showCustomThumbnail && !started && !block.data.autoplay) {
+      e.preventDefault();
+      e.stopPropagation();
+      startVideo();
+    }
+  }}
+>
+            {isDirectVideoFile ? (
+<video
+  ref={videoRef}
+  src={videoUrl}
+                poster={!started && showCustomThumbnail ? thumbnailUrl : undefined}
+                className="relative z-10 h-full w-full object-cover"
+                autoPlay={Boolean(block.data.autoplay) || started}
+                muted={Boolean(block.data.muted)}
+                loop={Boolean(block.data.loop)}
+                controls={block.data.showControls !== false}
+                playsInline
+                preload="metadata"
+                style={{
+                  height: "100%",
+                  width: "100%",
+                  display: "block",
+                  objectFit: "cover",
+                  pointerEvents: "auto",
+                }}
+              />
+            ) : videoUrl ? (
+              <iframe
+                key={embedSrc}
+                src={embedSrc}
+                className="relative z-10 h-full w-full"
+                allow="autoplay; encrypted-media; picture-in-picture"
+                allowFullScreen
+                title={block.data.title || "Video"}
+                style={{
+                  height: "100%",
+                  width: "100%",
+                  display: "block",
+                  border: "none",
+                  pointerEvents: "auto",
+                }}
+              />
+            ) : null}
+
+{showCustomThumbnail && !started && !block.data.autoplay ? (
+  <button
+    type="button"
+    className="absolute inset-0 z-50 flex h-full w-full cursor-pointer items-center justify-center border-0 bg-black p-0"
+    onMouseDown={(e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    }}
+    onClick={(e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      startVideo();
+    }}
+  >
+    <img
+      src={thumbnailUrl}
+      alt=""
+      className="absolute inset-0 h-full w-full object-cover"
+    />
+
+    {showPlayOverlay ? (
+      <img
+        src="/icons/button_video_play.png"
+        alt=""
+        className="relative z-10 h-16 w-16 object-contain"
       />
+    ) : null}
+  </button>
+) : null}
+
+{!showCustomThumbnail &&
+showPlayOverlay &&
+!started &&
+!block.data.autoplay &&
+block.data.showControls === false ? (
+  <button
+    type="button"
+    className="absolute inset-0 z-50 flex h-full w-full cursor-pointer items-center justify-center border-0 bg-transparent p-0"
+    onMouseDown={(e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    }}
+    onClick={(e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      startVideo();
+    }}
+  >
+    <img
+      src="/icons/button_video_play.png"
+      alt=""
+      className="relative z-10 h-16 w-16 object-contain"
+    />
+  </button>
+) : null}
+          </div>
+        </div>
+
+        {showCaption && caption ? (
+          <div
+            className="shrink-0 px-2 text-xs text-neutral-700"
+            style={getContainerTextStyle(captionStyle, designKey)}
+          >
+            {caption}
+          </div>
+        ) : null}
+      </div>
     );
   }
 
-  const isDirectVideoFile =
-    videoUrl.startsWith("data:video/") ||
-    /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(videoUrl);
-
-  const frameStyle: React.CSSProperties = {
-    backgroundImage:
-      block.appearance?.textureEnabled && block.appearance?.textureImageUrl
-        ? `url("${block.appearance.textureImageUrl}")`
-        : undefined,
-    backgroundSize:
-      block.appearance?.textureEnabled && block.appearance?.textureImageUrl
-        ? `${block.appearance.textureScale ?? 100}%`
-        : undefined,
-    backgroundPosition:
-      block.appearance?.textureEnabled && block.appearance?.textureImageUrl
-        ? `${block.appearance.texturePositionX ?? 50}% ${
-            block.appearance.texturePositionY ?? 50
-          }%`
-        : undefined,
-    backgroundRepeat:
-      block.appearance?.textureEnabled && block.appearance?.textureImageUrl
-        ? "repeat"
-        : undefined,
-    padding:
-      block.appearance?.textureEnabled && block.appearance?.textureImageUrl
-        ? `${Math.max(6, block.appearance.borderWidth ?? 10)}px`
-        : undefined,
-    border:
-      block.appearance?.textureEnabled && block.appearance?.textureImageUrl
-        ? "none"
-        : `${Math.max(1, block.appearance?.borderWidth ?? 1)}px solid ${
-            block.appearance?.borderColor ?? "#e5e7eb"
-          }`,
-    borderRadius:
-      typeof block.appearance?.borderRadius === "number"
-        ? `${block.appearance.borderRadius}px`
-        : "12px",
-    backgroundColor: "rgba(0,0,0,0.05)",
-  };
-
-  return (
-    <div
-      className="flex h-full w-full flex-col gap-2 overflow-hidden p-2"
-      style={getAppearanceStyle(block)}
-    >
-      {block.data.title ? (
-        <div style={titleStyle}>{block.data.title}</div>
-      ) : null}
-
-      <div className="min-h-0 flex-1 overflow-hidden rounded-xl" style={frameStyle}>
-        <div className="relative h-full w-full overflow-hidden rounded-lg bg-black pointer-events-auto">
-          {isDirectVideoFile ? (
-<video
-  src={videoUrl}
-  poster={showCustomThumbnail ? thumbnailUrl : undefined}
-  className="relative z-20 h-full w-full object-cover pointer-events-auto"
-  autoPlay={Boolean(block.data.autoplay)}
-  muted={Boolean(block.data.muted)}
-  loop={Boolean(block.data.loop)}
-  controls={Boolean(block.data.showControls)}
-  playsInline
-  preload="metadata"
-  style={{
-    height: "100%",
-    width: "100%",
-    display: "block",
-    objectFit: "cover",
-  }}
-/>
-          ) : videoUrl ? (
-            <iframe
-              src={videoUrl}
-              className="h-full w-full"
-              allow="autoplay; encrypted-media; picture-in-picture"
-              allowFullScreen
-              title={block.data.title || "Video"}
-              style={{
-                height: "100%",
-                width: "100%",
-                display: "block",
-                border: "none",
-              }}
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center text-sm text-neutral-400">
-              Add video URL
-            </div>
-          )}
-
-{showPlayOverlay && !block.data.showControls ? (
-  <img
-    src="/icons/button_video_play.png"
-    alt=""
-    className="pointer-events-none absolute left-1/2 top-1/2 z-10 h-16 w-16 -translate-x-1/2 -translate-y-1/2 object-contain"
-  />
-) : null}
-        </div>
-      </div>
-
-      {showCaption && caption ? (
-        <div
-          className="shrink-0 px-2 text-xs text-neutral-700"
-          style={getContainerTextStyle(captionStyle, designKey)}
-        >
-          {caption}
-        </div>
-      ) : null}
-    </div>
-  );
+  return <VideoPreview />;
 }
 
 function renderImage(
@@ -10190,84 +10282,6 @@ case "listing":
     safeListingQuantities,
     onChangeListingQuantity,
   );
-
-  case "video": {
-  const rawUrl = (block.data.videoUrl ?? "").trim();
-
-  const buildEmbedUrl = (url: string) => {
-    if (!url) return "";
-
-    if (url.startsWith("data:video/")) return url;
-    if (/\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(url)) return url;
-
-    try {
-      const parsed = new URL(url);
-
-      // YouTube watch → embed
-      if (parsed.hostname.includes("youtube.com") && parsed.pathname === "/watch") {
-        const videoId = parsed.searchParams.get("v");
-        if (videoId) return `https://www.youtube.com/embed/${videoId}`;
-      }
-
-      // youtu.be → embed
-      if (parsed.hostname.includes("youtu.be")) {
-        const videoId = parsed.pathname.replace(/^\/+/, "");
-        if (videoId) return `https://www.youtube.com/embed/${videoId}`;
-      }
-
-      // Vimeo
-      if (parsed.hostname.includes("vimeo.com")) {
-        const videoId = parsed.pathname.replace(/^\/+/, "");
-        if (videoId) return `https://player.vimeo.com/video/${videoId}`;
-      }
-
-      return url;
-    } catch {
-      return url;
-    }
-  };
-
-  const resolvedUrl = buildEmbedUrl(rawUrl);
-
-  const isDirectVideo =
-    resolvedUrl.startsWith("data:video/") ||
-    /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(resolvedUrl);
-
-  return (
-    <div className="h-full w-full overflow-hidden rounded-xl bg-black">
-      {block.data.title ? (
-        <div className="px-3 py-2 text-sm font-semibold text-white">
-          {block.data.title}
-        </div>
-      ) : null}
-
-      {resolvedUrl ? (
-        isDirectVideo ? (
-          <video
-            src={resolvedUrl}
-            className="h-full w-full"
-            autoPlay={Boolean(block.data.autoplay)}
-            muted={Boolean(block.data.muted)}
-            loop={Boolean(block.data.loop)}
-            controls={Boolean(block.data.showControls)}
-            playsInline
-          />
-        ) : (
-          <iframe
-            src={resolvedUrl}
-            className="h-full w-full"
-            allow="autoplay; encrypted-media"
-            allowFullScreen
-          />
-        )
-      ) : (
-        <div className="flex h-full w-full items-center justify-center text-sm text-neutral-400">
-          Add video URL
-        </div>
-      )}
-    </div>
-  );
-}
 
     case "image_carousel":
       return renderImageCarousel(block, designKey);
