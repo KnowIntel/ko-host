@@ -1029,15 +1029,18 @@ function renderVideo(
     const videoRef = useRef<HTMLVideoElement | null>(null);
 const [started, setStarted] = useState(Boolean(block.data.autoplay));
 
-const startVideo = () => {
+const startVideo = async () => {
   setStarted(true);
 
-  window.setTimeout(() => {
-    videoRef.current?.play().catch(() => {
-      // Browser may block playback if video is unmuted.
-      // Controls remain available for manual play.
-    });
-  }, 0);
+  const video = videoRef.current;
+
+  if (video) {
+    try {
+      await video.play();
+    } catch {
+      // Controls remain available if browser blocks autoplay
+    }
+  }
 };
 
     if (!videoUrl && !showCustomThumbnail) {
@@ -1089,7 +1092,7 @@ const startVideo = () => {
 <video
   ref={videoRef}
   src={videoUrl}
-                poster={showCustomThumbnail ? thumbnailUrl : undefined}
+                poster={!started && showCustomThumbnail ? thumbnailUrl : undefined}
                 className="relative z-10 h-full w-full object-cover"
                 autoPlay={Boolean(block.data.autoplay) || started}
                 muted={Boolean(block.data.muted)}
