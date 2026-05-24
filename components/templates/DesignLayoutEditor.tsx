@@ -330,7 +330,7 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Arrow Right Thin", type: "icon", iconName: "arrow-right-thin" },
     { kind: "block", label: "Chevron Left", type: "icon", iconName: "chevron-left" },
     { kind: "block", label: "Chevron Right", type: "icon", iconName: "chevron-right" },
-    { kind: "block", label: "Solid Play Triangle", type: "icon", iconName: "solid_play_triangle" },
+    { kind: "block", label: "Solid Play Triangle", type: "icon", iconName: "solid-play-triangle" },
     { kind: "block", label: "Paper Airplane", type: "icon", iconName: "paper-airplane" },
     { kind: "block", label: "Shield", type: "icon", iconName: "shield" },
     { kind: "block", label: "Square Outline", type: "icon", iconName: "square-outline" },
