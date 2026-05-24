@@ -18608,28 +18608,6 @@ const lines = e.target.value.split("\n");
     </div>
 
     <div className="mt-4 grid grid-cols-1 gap-3">
-
-      <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm">
-  <input
-    type="checkbox"
-    checked={(selectedBlock.data as any).showPlayOverlay !== false}
-    onChange={(e) =>
-      updateSelectedBlock((block) =>
-        block.type !== "video"
-          ? block
-          : {
-              ...block,
-              data: {
-                ...block.data,
-                showPlayOverlay: e.target.checked,
-              } as any,
-            },
-      )
-    }
-  />
-  Play Overlay
-</label>
-
       <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm">
         <input
           type="checkbox"

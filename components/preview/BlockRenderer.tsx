@@ -1156,41 +1156,9 @@ const isDirectVideoFile =
       className="absolute inset-0 h-full w-full object-cover"
     />
 
-    {showPlayOverlay ? (
-      <img
-        src="/icons/button_video_play.png"
-        alt=""
-        className="relative z-10 h-16 w-16 object-contain"
-      />
-    ) : null}
   </button>
 ) : null}
 
-{!showCustomThumbnail &&
-showPlayOverlay &&
-!started &&
-!block.data.autoplay &&
-block.data.showControls === false ? (
-  <button
-    type="button"
-    className="absolute inset-0 z-50 flex h-full w-full cursor-pointer items-center justify-center border-0 bg-transparent p-0"
-    onMouseDown={(e) => {
-      e.preventDefault();
-      e.stopPropagation();
-    }}
-    onClick={(e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      startVideo();
-    }}
-  >
-    <img
-      src="/icons/button_video_play.png"
-      alt=""
-      className="relative z-10 h-16 w-16 object-contain"
-    />
-  </button>
-) : null}
           </div>
         </div>
 
