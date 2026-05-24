@@ -988,6 +988,7 @@ function renderVideo(
 
       if (url.startsWith("data:video/")) return url;
       if (/\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(url)) return url;
+      if (url.includes("/storage/v1/object/public/")) return url;
 
       try {
         const parsed = new URL(url);
@@ -1020,27 +1021,13 @@ function renderVideo(
 
     const thumbnailUrl = String((block.data as any).thumbnailUrl ?? "").trim();
     const showCustomThumbnail = !autoGenerateThumbnail && Boolean(thumbnailUrl);
+    const showPlayOverlay = (block.data as any).showPlayOverlay !== false;
 
     const showCaption = Boolean((block.data as any).addCaption);
     const caption = String((block.data as any).caption ?? "").trim();
     const captionStyle = ((block.data as any).captionStyle ?? {}) as TextStyle;
 
-    const videoRef = useRef<HTMLVideoElement | null>(null);
-const [started, setStarted] = useState(Boolean(block.data.autoplay));
-
-const startVideo = async () => {
-  setStarted(true);
-
-  const video = videoRef.current;
-
-  if (video) {
-    try {
-      await video.play();
-    } catch {
-      // Controls remain available if browser blocks autoplay
-    }
-  }
-};
+    const [started, setStarted] = useState(Boolean(block.data.autoplay));
 
     if (!videoUrl && !showCustomThumbnail) {
       return (
@@ -1052,10 +1039,10 @@ const startVideo = async () => {
       );
     }
 
-const isDirectVideoFile =
-  videoUrl.startsWith("data:video/") ||
-  /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(videoUrl) ||
-  videoUrl.includes("/storage/v1/object/public/");
+    const isDirectVideoFile =
+      videoUrl.startsWith("data:video/") ||
+      /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(videoUrl) ||
+      videoUrl.includes("/storage/v1/object/public/");
 
     const frameStyle: React.CSSProperties = {
       border: `${Math.max(1, block.appearance?.borderWidth ?? 1)}px solid ${
@@ -1077,6 +1064,10 @@ const isDirectVideoFile =
           }&controls=${block.data.showControls !== false ? 1 : 0}`
         : videoUrl;
 
+    const startVideo = () => {
+      setStarted(true);
+    };
+
     return (
       <div
         className="flex h-full w-full flex-col gap-2 overflow-hidden p-2"
@@ -1087,20 +1078,10 @@ const isDirectVideoFile =
         ) : null}
 
         <div className="min-h-0 flex-1 overflow-hidden rounded-xl" style={frameStyle}>
-          <div
-  className="relative h-full w-full overflow-hidden rounded-lg bg-black"
-  onPointerDownCapture={(e) => {
-    if (showCustomThumbnail && !started && !block.data.autoplay) {
-      e.preventDefault();
-      e.stopPropagation();
-      startVideo();
-    }
-  }}
->
+          <div className="relative h-full w-full overflow-hidden rounded-lg bg-black">
             {isDirectVideoFile ? (
-<video
-  ref={videoRef}
-  src={videoUrl}
+              <video
+                src={videoUrl}
                 poster={!started && showCustomThumbnail ? thumbnailUrl : undefined}
                 className="relative z-10 h-full w-full object-cover"
                 autoPlay={Boolean(block.data.autoplay) || started}
@@ -1135,29 +1116,48 @@ const isDirectVideoFile =
               />
             ) : null}
 
-{showCustomThumbnail && !started && !block.data.autoplay ? (
-  <button
-    type="button"
-    className="absolute inset-0 z-50 flex h-full w-full cursor-pointer items-center justify-center border-0 bg-black p-0"
-    onMouseDown={(e) => {
-      e.preventDefault();
-      e.stopPropagation();
-    }}
-    onClick={(e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      startVideo();
-    }}
-  >
-    <img
-      src={thumbnailUrl}
-      alt=""
-      className="absolute inset-0 h-full w-full object-cover"
-    />
+            {showCustomThumbnail && !started && !block.data.autoplay ? (
+              <button
+                type="button"
+                className="absolute inset-0 z-30 flex h-full w-full cursor-pointer items-center justify-center border-0 bg-black p-0"
+                onClick={startVideo}
+              >
+                <img
+                  src={thumbnailUrl}
+                  alt=""
+                  className="absolute inset-0 h-full w-full object-cover"
+                  draggable={false}
+                />
 
-  </button>
-) : null}
+                {showPlayOverlay ? (
+                  <img
+                    src="/icons/button_video_play.png"
+                    alt=""
+                    className="pointer-events-none relative z-10 h-16 w-16 object-contain"
+                    draggable={false}
+                  />
+                ) : null}
+              </button>
+            ) : null}
 
+            {!showCustomThumbnail &&
+            showPlayOverlay &&
+            !started &&
+            !block.data.autoplay &&
+            block.data.showControls === false ? (
+              <button
+                type="button"
+                className="absolute inset-0 z-30 flex h-full w-full cursor-pointer items-center justify-center border-0 bg-transparent p-0"
+                onClick={startVideo}
+              >
+                <img
+                  src="/icons/button_video_play.png"
+                  alt=""
+                  className="pointer-events-none h-16 w-16 object-contain"
+                  draggable={false}
+                />
+              </button>
+            ) : null}
           </div>
         </div>
 
