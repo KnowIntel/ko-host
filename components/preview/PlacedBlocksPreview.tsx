@@ -791,7 +791,12 @@ const isInteractiveBlock =
   }
 style={{
   ...itemStyle,
-  zIndex: block.type === "bookmark" ? -1 : itemStyle.zIndex,
+  zIndex:
+  block.type === "bookmark"
+    ? -1
+    : isInteractiveBlock
+      ? Math.max(Number(itemStyle.zIndex ?? 1), 1000)
+      : itemStyle.zIndex,
   overflow: "visible",
   pointerEvents: block.type === "bookmark" ? "none" : isInteractiveBlock ? "auto" : "none",
   isolation: "isolate",
