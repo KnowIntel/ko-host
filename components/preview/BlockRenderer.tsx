@@ -981,7 +981,39 @@ function renderVideo(
 ) {
   function VideoPreview() {
     const titleStyle = getContainerTextStyle(block.data.style, designKey);
-    const videoUrl = (block.data.videoUrl ?? "").trim();
+    const rawVideoUrl = (block.data.videoUrl ?? "").trim();
+
+    const buildEmbedUrl = (url: string) => {
+      if (!url) return "";
+
+      if (url.startsWith("data:video/")) return url;
+      if (/\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(url)) return url;
+
+      try {
+        const parsed = new URL(url);
+
+        if (parsed.hostname.includes("youtube.com") && parsed.pathname === "/watch") {
+          const videoId = parsed.searchParams.get("v");
+          if (videoId) return `https://www.youtube.com/embed/${videoId}`;
+        }
+
+        if (parsed.hostname.includes("youtu.be")) {
+          const videoId = parsed.pathname.replace(/^\/+/, "");
+          if (videoId) return `https://www.youtube.com/embed/${videoId}`;
+        }
+
+        if (parsed.hostname.includes("vimeo.com")) {
+          const videoId = parsed.pathname.replace(/^\/+/, "");
+          if (videoId) return `https://player.vimeo.com/video/${videoId}`;
+        }
+
+        return url;
+      } catch {
+        return url;
+      }
+    };
+
+    const videoUrl = buildEmbedUrl(rawVideoUrl);
 
     const autoGenerateThumbnail =
       (block.data as any).autoGenerateThumbnail !== false;
@@ -10231,84 +10263,6 @@ case "listing":
     safeListingQuantities,
     onChangeListingQuantity,
   );
-
-  case "video": {
-  const rawUrl = (block.data.videoUrl ?? "").trim();
-
-  const buildEmbedUrl = (url: string) => {
-    if (!url) return "";
-
-    if (url.startsWith("data:video/")) return url;
-    if (/\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(url)) return url;
-
-    try {
-      const parsed = new URL(url);
-
-      // YouTube watch → embed
-      if (parsed.hostname.includes("youtube.com") && parsed.pathname === "/watch") {
-        const videoId = parsed.searchParams.get("v");
-        if (videoId) return `https://www.youtube.com/embed/${videoId}`;
-      }
-
-      // youtu.be → embed
-      if (parsed.hostname.includes("youtu.be")) {
-        const videoId = parsed.pathname.replace(/^\/+/, "");
-        if (videoId) return `https://www.youtube.com/embed/${videoId}`;
-      }
-
-      // Vimeo
-      if (parsed.hostname.includes("vimeo.com")) {
-        const videoId = parsed.pathname.replace(/^\/+/, "");
-        if (videoId) return `https://player.vimeo.com/video/${videoId}`;
-      }
-
-      return url;
-    } catch {
-      return url;
-    }
-  };
-
-  const resolvedUrl = buildEmbedUrl(rawUrl);
-
-  const isDirectVideo =
-    resolvedUrl.startsWith("data:video/") ||
-    /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(resolvedUrl);
-
-  return (
-    <div className="h-full w-full overflow-hidden rounded-xl bg-black">
-      {block.data.title ? (
-        <div className="px-3 py-2 text-sm font-semibold text-white">
-          {block.data.title}
-        </div>
-      ) : null}
-
-      {resolvedUrl ? (
-        isDirectVideo ? (
-          <video
-            src={resolvedUrl}
-            className="h-full w-full"
-            autoPlay={Boolean(block.data.autoplay)}
-            muted={Boolean(block.data.muted)}
-            loop={Boolean(block.data.loop)}
-            controls={Boolean(block.data.showControls)}
-            playsInline
-          />
-        ) : (
-          <iframe
-            src={resolvedUrl}
-            className="h-full w-full"
-            allow="autoplay; encrypted-media"
-            allowFullScreen
-          />
-        )
-      ) : (
-        <div className="flex h-full w-full items-center justify-center text-sm text-neutral-400">
-          Add video URL
-        </div>
-      )}
-    </div>
-  );
-}
 
     case "image_carousel":
       return renderImageCarousel(block, designKey);
