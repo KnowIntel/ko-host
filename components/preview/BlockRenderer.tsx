@@ -1110,37 +1110,37 @@ function renderVideo(
               />
             ) : null}
 
-            {showCustomThumbnail && !started && !block.data.autoplay ? (
-              <button
-                type="button"
-                className="absolute inset-0 z-30 block h-full w-full cursor-pointer border-0 bg-black p-0"
-                onClick={() => setStarted(true)}
-              >
-                <img src={thumbnailUrl} alt="" className="h-full w-full object-cover" />
+{showCustomThumbnail && !started && !block.data.autoplay ? (
+  <button
+    type="button"
+    className="absolute inset-0 z-30 block h-full w-full cursor-pointer border-0 bg-black p-0"
+    onClick={() => setStarted(true)}
+  >
+    <img src={thumbnailUrl} alt="" className="h-full w-full object-cover" />
 
-                {showPlayOverlay ? (
-                  <img
-                    src="/icons/button_video_play.png"
-                    alt=""
-                    className="pointer-events-none absolute left-1/2 top-1/2 z-40 h-16 w-16 -translate-x-1/2 -translate-y-1/2 object-contain"
-                  />
-                ) : null}
-              </button>
-            ) : null}
+    {showPlayOverlay ? (
+      <img
+        src="/icons/button_video_play.png"
+        alt=""
+        className="pointer-events-none absolute left-1/2 top-1/2 z-40 h-16 w-16 -translate-x-1/2 -translate-y-1/2 object-contain"
+      />
+    ) : null}
+  </button>
+) : null}
 
-            {!showCustomThumbnail && showPlayOverlay && !started && !block.data.autoplay ? (
-              <button
-                type="button"
-                className="absolute inset-0 z-30 flex h-full w-full cursor-pointer items-center justify-center border-0 bg-transparent p-0"
-                onClick={() => setStarted(true)}
-              >
-                <img
-                  src="/icons/button_video_play.png"
-                  alt=""
-                  className="pointer-events-none h-16 w-16 object-contain"
-                />
-              </button>
-            ) : null}
+{!showCustomThumbnail && showPlayOverlay && !started && !block.data.autoplay && block.data.showControls === false ? (
+  <button
+    type="button"
+    className="absolute inset-0 z-30 flex h-full w-full cursor-pointer items-center justify-center border-0 bg-transparent p-0"
+    onClick={() => setStarted(true)}
+  >
+    <img
+      src="/icons/button_video_play.png"
+      alt=""
+      className="pointer-events-none h-16 w-16 object-contain"
+    />
+  </button>
+) : null}
           </div>
         </div>
 
