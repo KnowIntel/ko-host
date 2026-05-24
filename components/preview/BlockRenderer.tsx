@@ -1019,10 +1019,7 @@ function renderVideo(
       (block.data as any).autoGenerateThumbnail !== false;
 
     const thumbnailUrl = String((block.data as any).thumbnailUrl ?? "").trim();
-
-    const showCustomThumbnail =
-      !autoGenerateThumbnail && Boolean(thumbnailUrl);
-
+    const showCustomThumbnail = !autoGenerateThumbnail && Boolean(thumbnailUrl);
     const showPlayOverlay = (block.data as any).showPlayOverlay !== false;
 
     const showCaption = Boolean((block.data as any).addCaption);
@@ -1046,34 +1043,9 @@ function renderVideo(
       /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(videoUrl);
 
     const frameStyle: React.CSSProperties = {
-      backgroundImage:
-        block.appearance?.textureEnabled && block.appearance?.textureImageUrl
-          ? `url("${block.appearance.textureImageUrl}")`
-          : undefined,
-      backgroundSize:
-        block.appearance?.textureEnabled && block.appearance?.textureImageUrl
-          ? `${block.appearance.textureScale ?? 100}%`
-          : undefined,
-      backgroundPosition:
-        block.appearance?.textureEnabled && block.appearance?.textureImageUrl
-          ? `${block.appearance.texturePositionX ?? 50}% ${
-              block.appearance.texturePositionY ?? 50
-            }%`
-          : undefined,
-      backgroundRepeat:
-        block.appearance?.textureEnabled && block.appearance?.textureImageUrl
-          ? "repeat"
-          : undefined,
-      padding:
-        block.appearance?.textureEnabled && block.appearance?.textureImageUrl
-          ? `${Math.max(6, block.appearance.borderWidth ?? 10)}px`
-          : undefined,
-      border:
-        block.appearance?.textureEnabled && block.appearance?.textureImageUrl
-          ? "none"
-          : `${Math.max(1, block.appearance?.borderWidth ?? 1)}px solid ${
-              block.appearance?.borderColor ?? "#e5e7eb"
-            }`,
+      border: `${Math.max(1, block.appearance?.borderWidth ?? 1)}px solid ${
+        block.appearance?.borderColor ?? "#e5e7eb"
+      }`,
       borderRadius:
         typeof block.appearance?.borderRadius === "number"
           ? `${block.appearance.borderRadius}px`
@@ -1090,24 +1062,6 @@ function renderVideo(
           }&controls=${block.data.showControls !== false ? 1 : 0}`
         : videoUrl;
 
-    const thumbnailLayer = showCustomThumbnail ? (
-      <img src={thumbnailUrl} alt="" className="h-full w-full object-cover" />
-    ) : (
-      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-neutral-900 via-neutral-800 to-black">
-        <div className="text-center">
-          <div className="text-xs font-semibold uppercase tracking-[0.22em] text-white/45">
-            Video Preview
-          </div>
-          <div className="mt-2 text-sm font-semibold text-white/70">
-            {block.data.title || "Ready to play"}
-          </div>
-        </div>
-      </div>
-    );
-
-    const shouldShowStartScreen =
-      showCustomThumbnail && !started && !block.data.autoplay;
-
     return (
       <div
         className="flex h-full w-full flex-col gap-2 overflow-hidden p-2"
@@ -1119,27 +1073,11 @@ function renderVideo(
 
         <div className="min-h-0 flex-1 overflow-hidden rounded-xl" style={frameStyle}>
           <div className="relative h-full w-full overflow-hidden rounded-lg bg-black">
-            {shouldShowStartScreen ? (
-              <button
-                type="button"
-                className="relative block h-full w-full cursor-pointer border-0 bg-transparent p-0"
-                onClick={() => setStarted(true)}
-              >
-                {thumbnailLayer}
-
-                {showPlayOverlay ? (
-                  <img
-                    src="/icons/button_video_play.png"
-                    alt=""
-                    className="pointer-events-none absolute left-1/2 top-1/2 z-30 h-16 w-16 -translate-x-1/2 -translate-y-1/2 object-contain"
-                  />
-                ) : null}
-              </button>
-            ) : isDirectVideoFile ? (
+            {isDirectVideoFile ? (
               <video
                 src={videoUrl}
                 poster={showCustomThumbnail ? thumbnailUrl : undefined}
-                className="relative z-20 h-full w-full object-cover"
+                className="relative z-10 h-full w-full object-cover"
                 autoPlay={Boolean(block.data.autoplay) || started}
                 muted={Boolean(block.data.muted)}
                 loop={Boolean(block.data.loop)}
@@ -1151,12 +1089,14 @@ function renderVideo(
                   width: "100%",
                   display: "block",
                   objectFit: "cover",
+                  pointerEvents: "auto",
                 }}
               />
             ) : videoUrl ? (
               <iframe
+                key={embedSrc}
                 src={embedSrc}
-                className="relative z-20 h-full w-full"
+                className="relative z-10 h-full w-full"
                 allow="autoplay; encrypted-media; picture-in-picture"
                 allowFullScreen
                 title={block.data.title || "Video"}
@@ -1165,13 +1105,42 @@ function renderVideo(
                   width: "100%",
                   display: "block",
                   border: "none",
+                  pointerEvents: "auto",
                 }}
               />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center text-sm text-neutral-400">
-                Add video URL
-              </div>
-            )}
+            ) : null}
+
+            {showCustomThumbnail && !started && !block.data.autoplay ? (
+              <button
+                type="button"
+                className="absolute inset-0 z-30 block h-full w-full cursor-pointer border-0 bg-black p-0"
+                onClick={() => setStarted(true)}
+              >
+                <img src={thumbnailUrl} alt="" className="h-full w-full object-cover" />
+
+                {showPlayOverlay ? (
+                  <img
+                    src="/icons/button_video_play.png"
+                    alt=""
+                    className="pointer-events-none absolute left-1/2 top-1/2 z-40 h-16 w-16 -translate-x-1/2 -translate-y-1/2 object-contain"
+                  />
+                ) : null}
+              </button>
+            ) : null}
+
+            {!showCustomThumbnail && showPlayOverlay && !started && !block.data.autoplay ? (
+              <button
+                type="button"
+                className="absolute inset-0 z-30 flex h-full w-full cursor-pointer items-center justify-center border-0 bg-transparent p-0"
+                onClick={() => setStarted(true)}
+              >
+                <img
+                  src="/icons/button_video_play.png"
+                  alt=""
+                  className="pointer-events-none h-16 w-16 object-contain"
+                />
+              </button>
+            ) : null}
           </div>
         </div>
 
