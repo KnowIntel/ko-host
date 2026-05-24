@@ -1131,11 +1131,7 @@ const isDirectVideoFile =
   <button
     type="button"
     className="absolute inset-0 z-50 flex h-full w-full cursor-pointer items-center justify-center border-0 bg-black p-0"
-    onMouseDown={(e) => {
-      e.preventDefault();
-      e.stopPropagation();
-    }}
-    onClick={(e) => {
+    onPointerDown={(e) => {
       e.preventDefault();
       e.stopPropagation();
       startVideo();
@@ -1151,7 +1147,7 @@ const isDirectVideoFile =
       <img
         src="/icons/button_video_play.png"
         alt=""
-        className="relative z-10 h-16 w-16 object-contain"
+        className="pointer-events-none relative z-10 h-16 w-16 object-contain"
       />
     ) : null}
   </button>
@@ -1165,11 +1161,7 @@ block.data.showControls === false ? (
   <button
     type="button"
     className="absolute inset-0 z-50 flex h-full w-full cursor-pointer items-center justify-center border-0 bg-transparent p-0"
-    onMouseDown={(e) => {
-      e.preventDefault();
-      e.stopPropagation();
-    }}
-    onClick={(e) => {
+    onPointerDown={(e) => {
       e.preventDefault();
       e.stopPropagation();
       startVideo();
@@ -1178,7 +1170,7 @@ block.data.showControls === false ? (
     <img
       src="/icons/button_video_play.png"
       alt=""
-      className="relative z-10 h-16 w-16 object-contain"
+      className="pointer-events-none relative z-10 h-16 w-16 object-contain"
     />
   </button>
 ) : null}
