@@ -1088,7 +1088,16 @@ const isDirectVideoFile =
         ) : null}
 
         <div className="min-h-0 flex-1 overflow-hidden rounded-xl" style={frameStyle}>
-          <div className="relative h-full w-full overflow-hidden rounded-lg bg-black">
+          <div
+  className="relative h-full w-full overflow-hidden rounded-lg bg-black"
+  onPointerDownCapture={(e) => {
+    if (showCustomThumbnail && !started && !block.data.autoplay) {
+      e.preventDefault();
+      e.stopPropagation();
+      startVideo();
+    }
+  }}
+>
             {isDirectVideoFile ? (
 <video
   ref={videoRef}
