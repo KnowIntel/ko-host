@@ -703,6 +703,7 @@ const isInteractiveBlock =
   block.type === "spin_wheel" ||
   block.type === "spreadsheet" ||
   block.type === "audio" ||
+  block.type === "video" ||
   block.type === "frame";
 
   async function handleDownloadFrame(
