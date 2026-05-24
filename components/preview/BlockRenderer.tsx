@@ -1137,39 +1137,29 @@ const isDirectVideoFile =
             ) : null}
 
 {showCustomThumbnail && !started && !block.data.autoplay ? (
-  <div
-    role="button"
-    tabIndex={0}
-    className="absolute inset-0 z-[9999] flex h-full w-full cursor-pointer items-center justify-center bg-black"
+  <button
+    type="button"
+    aria-label="Play video"
+    className="absolute inset-0 z-[9999] block h-full w-full cursor-pointer border-0 bg-black p-0"
+    style={{
+      backgroundImage: showPlayOverlay
+        ? `url("${thumbnailUrl}"), url("/icons/button_video_play.png")`
+        : `url("${thumbnailUrl}")`,
+      backgroundSize: showPlayOverlay ? "cover, 64px 64px" : "cover",
+      backgroundPosition: showPlayOverlay ? "center, center" : "center",
+      backgroundRepeat: "no-repeat, no-repeat",
+    }}
     onPointerDownCapture={(e) => {
       e.preventDefault();
       e.stopPropagation();
       startVideo();
     }}
-    onKeyDown={(e) => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        e.stopPropagation();
-        startVideo();
-      }
+    onClickCapture={(e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      startVideo();
     }}
-  >
-    <img
-      src={thumbnailUrl}
-      alt=""
-      className="pointer-events-none absolute inset-0 h-full w-full object-cover"
-      draggable={false}
-    />
-
-    {showPlayOverlay ? (
-      <img
-        src="/icons/button_video_play.png"
-        alt=""
-        className="pointer-events-none relative z-10 h-16 w-16 object-contain"
-        draggable={false}
-      />
-    ) : null}
-  </div>
+  />
 ) : null}
 
 {!showCustomThumbnail &&
