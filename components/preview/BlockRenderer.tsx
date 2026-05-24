@@ -1140,11 +1140,15 @@ onPointerUp={(e) => {
     <img src={thumbnailUrl} alt="" className="h-full w-full object-cover" />
 
     {showPlayOverlay ? (
-      <img
-        src="/icons/button_video_play.png"
-        alt=""
-        className="pointer-events-none absolute left-1/2 top-1/2 z-40 h-16 w-16 -translate-x-1/2 -translate-y-1/2 object-contain"
-      />
+<img
+  src="/icons/button_video_play.png"
+  alt=""
+  className="pointer-events-auto absolute left-1/2 top-1/2 z-40 h-16 w-16 -translate-x-1/2 -translate-y-1/2 object-contain"
+  onClick={(e) => {
+    e.stopPropagation();
+    startVideo();
+  }}
+/>
     ) : null}
   </button>
 ) : null}
