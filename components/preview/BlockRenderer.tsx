@@ -1131,7 +1131,11 @@ const isDirectVideoFile =
   <button
     type="button"
     className="absolute inset-0 z-30 block h-full w-full cursor-pointer border-0 bg-black p-0"
-    onClick={startVideo}
+    onPointerDown={(e) => e.stopPropagation()}
+onPointerUp={(e) => {
+  e.stopPropagation();
+  startVideo();
+}}
   >
     <img src={thumbnailUrl} alt="" className="h-full w-full object-cover" />
 
@@ -1149,7 +1153,11 @@ const isDirectVideoFile =
   <button
     type="button"
     className="absolute inset-0 z-30 flex h-full w-full cursor-pointer items-center justify-center border-0 bg-transparent p-0"
-    onClick={startVideo}
+    onPointerDown={(e) => e.stopPropagation()}
+onPointerUp={(e) => {
+  e.stopPropagation();
+  startVideo();
+}}
   >
     <img
       src="/icons/button_video_play.png"
