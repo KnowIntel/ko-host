@@ -1146,25 +1146,14 @@ const isDirectVideoFile =
       />
     </button>
 
-    {showPlayOverlay ? (
-      <button
-        type="button"
-        aria-label="Play video"
-        className="absolute left-1/2 top-1/2 z-[999] flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 cursor-pointer items-center justify-center border-0 bg-transparent p-0"
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          startVideo();
-        }}
-      >
-        <img
-          src="/icons/button_video_play.png"
-          alt=""
-          className="h-16 w-16 object-contain"
-          draggable={false}
-        />
-      </button>
-    ) : null}
+{showPlayOverlay ? (
+  <img
+    src="/icons/button_video_play.png"
+    alt=""
+    className="pointer-events-none absolute left-1/2 top-1/2 z-[999] h-16 w-16 -translate-x-1/2 -translate-y-1/2 object-contain"
+    draggable={false}
+  />
+) : null}
   </>
 ) : null}
 
