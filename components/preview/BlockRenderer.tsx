@@ -1026,7 +1026,19 @@ function renderVideo(
     const caption = String((block.data as any).caption ?? "").trim();
     const captionStyle = ((block.data as any).captionStyle ?? {}) as TextStyle;
 
-    const [started, setStarted] = useState(Boolean(block.data.autoplay));
+    const videoRef = useRef<HTMLVideoElement | null>(null);
+const [started, setStarted] = useState(Boolean(block.data.autoplay));
+
+const startVideo = () => {
+  setStarted(true);
+
+  window.setTimeout(() => {
+    videoRef.current?.play().catch(() => {
+      // Browser may block playback if video is unmuted.
+      // Controls remain available for manual play.
+    });
+  }, 0);
+};
 
     if (!videoUrl && !showCustomThumbnail) {
       return (
@@ -1074,8 +1086,9 @@ function renderVideo(
         <div className="min-h-0 flex-1 overflow-hidden rounded-xl" style={frameStyle}>
           <div className="relative h-full w-full overflow-hidden rounded-lg bg-black">
             {isDirectVideoFile ? (
-              <video
-                src={videoUrl}
+<video
+  ref={videoRef}
+  src={videoUrl}
                 poster={showCustomThumbnail ? thumbnailUrl : undefined}
                 className="relative z-10 h-full w-full object-cover"
                 autoPlay={Boolean(block.data.autoplay) || started}
@@ -1114,7 +1127,7 @@ function renderVideo(
   <button
     type="button"
     className="absolute inset-0 z-30 block h-full w-full cursor-pointer border-0 bg-black p-0"
-    onClick={() => setStarted(true)}
+    onClick={startVideo}
   >
     <img src={thumbnailUrl} alt="" className="h-full w-full object-cover" />
 
@@ -1132,7 +1145,7 @@ function renderVideo(
   <button
     type="button"
     className="absolute inset-0 z-30 flex h-full w-full cursor-pointer items-center justify-center border-0 bg-transparent p-0"
-    onClick={() => setStarted(true)}
+    onClick={startVideo}
   >
     <img
       src="/icons/button_video_play.png"
