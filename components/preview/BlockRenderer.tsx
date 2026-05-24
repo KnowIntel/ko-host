@@ -1020,7 +1020,6 @@ function renderVideo(
 
     const thumbnailUrl = String((block.data as any).thumbnailUrl ?? "").trim();
     const showCustomThumbnail = !autoGenerateThumbnail && Boolean(thumbnailUrl);
-    const showPlayOverlay = (block.data as any).showPlayOverlay !== false;
 
     const showCaption = Boolean((block.data as any).addCaption);
     const caption = String((block.data as any).caption ?? "").trim();
