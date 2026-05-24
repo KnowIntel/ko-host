@@ -345,6 +345,8 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Check Circle", type: "icon", iconName: "check-circle" },
     { kind: "block", label: "Check", type: "icon", iconName: "check" },
     { kind: "block", label: "Circle", type: "icon", iconName: "circle" },
+    { kind: "block", label: "Trophy", type: "icon", iconName: "trophy" },
+    { kind: "block", label: "Envelope", type: "icon", iconName: "envelope" },
     { kind: "block", label: "Person", type: "icon", iconName: "person" },
     { kind: "block", label: "People", type: "icon", iconName: "people" },
     { kind: "block", label: "Camera", type: "icon", iconName: "camera" },
@@ -1051,6 +1053,8 @@ function getToolGlyph(label: string) {
   if (label === "House") return "⌂";
   if (label === "Star") return "⭐";
   if (label === "Heart") return "❤";
+  if (label === "Trophy") return "🏆";
+  if (label === "Envelope") return "✉️";
   if (label === "Check Circle") return "⭕";
   if (label === "Check") return "✔";
   if (label === "Arrow Up Thick") return "⬆";
