@@ -1128,29 +1128,44 @@ const isDirectVideoFile =
             ) : null}
 
 {showCustomThumbnail && !started && !block.data.autoplay ? (
-  <button
-    type="button"
-    className="absolute inset-0 z-50 flex h-full w-full cursor-pointer items-center justify-center border-0 bg-black p-0"
-    onPointerDown={(e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      startVideo();
-    }}
-  >
-    <img
-      src={thumbnailUrl}
-      alt=""
-      className="absolute inset-0 h-full w-full object-cover"
-    />
+  <>
+    <button
+      type="button"
+      className="absolute inset-0 z-40 block h-full w-full cursor-pointer border-0 bg-black p-0"
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        startVideo();
+      }}
+    >
+      <img
+        src={thumbnailUrl}
+        alt=""
+        className="h-full w-full object-cover"
+        draggable={false}
+      />
+    </button>
 
     {showPlayOverlay ? (
-      <img
-        src="/icons/button_video_play.png"
-        alt=""
-        className="pointer-events-none relative z-10 h-16 w-16 object-contain"
-      />
+      <button
+        type="button"
+        aria-label="Play video"
+        className="absolute left-1/2 top-1/2 z-[999] flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 cursor-pointer items-center justify-center border-0 bg-transparent p-0"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          startVideo();
+        }}
+      >
+        <img
+          src="/icons/button_video_play.png"
+          alt=""
+          className="h-16 w-16 object-contain"
+          draggable={false}
+        />
+      </button>
     ) : null}
-  </button>
+  </>
 ) : null}
 
 {!showCustomThumbnail &&
@@ -1160,8 +1175,9 @@ showPlayOverlay &&
 block.data.showControls === false ? (
   <button
     type="button"
-    className="absolute inset-0 z-50 flex h-full w-full cursor-pointer items-center justify-center border-0 bg-transparent p-0"
-    onPointerDown={(e) => {
+    aria-label="Play video"
+    className="absolute left-1/2 top-1/2 z-[999] flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 cursor-pointer items-center justify-center border-0 bg-transparent p-0"
+    onClick={(e) => {
       e.preventDefault();
       e.stopPropagation();
       startVideo();
@@ -1170,7 +1186,8 @@ block.data.showControls === false ? (
     <img
       src="/icons/button_video_play.png"
       alt=""
-      className="pointer-events-none relative z-10 h-16 w-16 object-contain"
+      className="h-16 w-16 object-contain"
+      draggable={false}
     />
   </button>
 ) : null}
