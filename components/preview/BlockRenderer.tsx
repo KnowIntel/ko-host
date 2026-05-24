@@ -1128,33 +1128,39 @@ const isDirectVideoFile =
             ) : null}
 
 {showCustomThumbnail && !started && !block.data.autoplay ? (
-  <>
-    <button
-      type="button"
-      className="absolute inset-0 z-40 block h-full w-full cursor-pointer border-0 bg-black p-0"
-      onClick={(e) => {
+  <div
+    role="button"
+    tabIndex={0}
+    className="absolute inset-0 z-[9999] flex h-full w-full cursor-pointer items-center justify-center bg-black"
+    onPointerDownCapture={(e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      startVideo();
+    }}
+    onKeyDown={(e) => {
+      if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
         e.stopPropagation();
         startVideo();
-      }}
-    >
+      }
+    }}
+  >
+    <img
+      src={thumbnailUrl}
+      alt=""
+      className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+      draggable={false}
+    />
+
+    {showPlayOverlay ? (
       <img
-        src={thumbnailUrl}
+        src="/icons/button_video_play.png"
         alt=""
-        className="h-full w-full object-cover"
+        className="pointer-events-none relative z-10 h-16 w-16 object-contain"
         draggable={false}
       />
-    </button>
-
-{showPlayOverlay ? (
-  <img
-    src="/icons/button_video_play.png"
-    alt=""
-    className="pointer-events-none absolute left-1/2 top-1/2 z-[999] h-16 w-16 -translate-x-1/2 -translate-y-1/2 object-contain"
-    draggable={false}
-  />
-) : null}
-  </>
+    ) : null}
+  </div>
 ) : null}
 
 {!showCustomThumbnail &&
