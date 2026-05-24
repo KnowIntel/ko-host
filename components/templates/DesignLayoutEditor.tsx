@@ -337,6 +337,9 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Dog Paw", type: "icon", iconName: "dog-paw" },
     { kind: "block", label: "Gable Panel", type: "icon", iconName: "gable-panel" },
     { kind: "block", label: "City", type: "icon", iconName: "city" },
+    { kind: "block", label: "Gym Dumbbell", type: "icon", iconName: "gym-dumbbell" },
+    { kind: "block", label: "Download", type: "icon", iconName: "download" },
+    { kind: "block", label: "House", type: "icon", iconName: "house" },
     { kind: "block", label: "Star", type: "icon", iconName: "star" },
     { kind: "block", label: "Heart", type: "icon", iconName: "heart" },
     { kind: "block", label: "Circle", type: "icon", iconName: "circle" },
@@ -1041,6 +1044,9 @@ function getToolGlyph(label: string) {
   if (label === "Square Outline") return "⬜";
   if (label === "Dog Paw") return "🐾";
   if (label === "City") return "🏙";
+  if (label === "Gym Dumbbell") return "🏋️";
+  if (label === "Download") return "⬇️";
+  if (label === "House") return "⌂";
   if (label === "Star") return "⭐";
   if (label === "Heart") return "❤";
   if (label === "Arrow Up Thick") return "⬆";
