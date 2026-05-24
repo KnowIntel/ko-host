@@ -1053,9 +1053,10 @@ const startVideo = async () => {
       );
     }
 
-    const isDirectVideoFile =
-      videoUrl.startsWith("data:video/") ||
-      /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(videoUrl);
+const isDirectVideoFile =
+  videoUrl.startsWith("data:video/") ||
+  /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(videoUrl) ||
+  videoUrl.includes("/storage/v1/object/public/");
 
     const frameStyle: React.CSSProperties = {
       border: `${Math.max(1, block.appearance?.borderWidth ?? 1)}px solid ${
