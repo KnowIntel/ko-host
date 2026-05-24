@@ -1130,43 +1130,55 @@ const isDirectVideoFile =
 {showCustomThumbnail && !started && !block.data.autoplay ? (
   <button
     type="button"
-    className="absolute inset-0 z-30 block h-full w-full cursor-pointer border-0 bg-black p-0"
-    onPointerDown={(e) => e.stopPropagation()}
-onPointerUp={(e) => {
-  e.stopPropagation();
-  startVideo();
-}}
+    className="absolute inset-0 z-50 flex h-full w-full cursor-pointer items-center justify-center border-0 bg-black p-0"
+    onMouseDown={(e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    }}
+    onClick={(e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      startVideo();
+    }}
   >
-    <img src={thumbnailUrl} alt="" className="h-full w-full object-cover" />
+    <img
+      src={thumbnailUrl}
+      alt=""
+      className="absolute inset-0 h-full w-full object-cover"
+    />
 
     {showPlayOverlay ? (
-<img
-  src="/icons/button_video_play.png"
-  alt=""
-  className="pointer-events-auto absolute left-1/2 top-1/2 z-40 h-16 w-16 -translate-x-1/2 -translate-y-1/2 object-contain"
-  onClick={(e) => {
-    e.stopPropagation();
-    startVideo();
-  }}
-/>
+      <img
+        src="/icons/button_video_play.png"
+        alt=""
+        className="relative z-10 h-16 w-16 object-contain"
+      />
     ) : null}
   </button>
 ) : null}
 
-{!showCustomThumbnail && showPlayOverlay && !started && !block.data.autoplay && block.data.showControls === false ? (
+{!showCustomThumbnail &&
+showPlayOverlay &&
+!started &&
+!block.data.autoplay &&
+block.data.showControls === false ? (
   <button
     type="button"
-    className="absolute inset-0 z-30 flex h-full w-full cursor-pointer items-center justify-center border-0 bg-transparent p-0"
-    onPointerDown={(e) => e.stopPropagation()}
-onPointerUp={(e) => {
-  e.stopPropagation();
-  startVideo();
-}}
+    className="absolute inset-0 z-50 flex h-full w-full cursor-pointer items-center justify-center border-0 bg-transparent p-0"
+    onMouseDown={(e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    }}
+    onClick={(e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      startVideo();
+    }}
   >
     <img
       src="/icons/button_video_play.png"
       alt=""
-      className="pointer-events-none h-16 w-16 object-contain"
+      className="relative z-10 h-16 w-16 object-contain"
     />
   </button>
 ) : null}
