@@ -3316,28 +3316,43 @@ if (selectedBlock?.type === "link_hub") {
 }
 
 if (selectedBlock?.type === "form_field") {
-  updateSelectedBlock((block) =>
-    block.type !== "form_field"
-      ? block
-      : formFieldTextTarget === "text"
-        ? {
-            ...block,
-            data: {
-              ...block.data,
-              inputStyle: {
-                ...((block.data as any).inputStyle ?? block.data.style ?? {}),
-                backgroundColor: value,
-              },
-            },
-          }
-        : {
-            ...block,
-            appearance: {
-              ...block.appearance,
-              backgroundColor: value,
-            },
+  updateSelectedBlock((block) => {
+    if (block.type !== "form_field") return block;
+
+    if (formFieldTextTarget === "placeholder") {
+      return {
+        ...block,
+        data: {
+          ...block.data,
+          placeholderStyle: {
+            ...((block.data as any).placeholderStyle ?? {}),
+            color: value,
           },
-  );
+        },
+      };
+    }
+
+    if (formFieldTextTarget === "text") {
+      return {
+        ...block,
+        data: {
+          ...block.data,
+          inputStyle: {
+            ...((block.data as any).inputStyle ?? block.data.style ?? {}),
+            backgroundColor: value,
+          },
+        },
+      };
+    }
+
+    return {
+      ...block,
+      appearance: {
+        ...block.appearance,
+        backgroundColor: value,
+      },
+    };
+  });
 
   pushRecentColor(value);
   return;
@@ -3801,10 +3816,10 @@ if (selectedBlock?.type === "form_field") {
                   }
                 : formFieldTextTarget === "placeholder"
                   ? {
-                      placeholderStyle: {
-                        ...((block.data as any).placeholderStyle ?? {}),
-                        color: patch.color,
-                      },
+placeholderStyle: {
+  ...((block.data as any).placeholderStyle ?? {}),
+  ...(patch.color !== undefined ? { color: patch.color } : {}),
+},
                     }
                   : {
                       style: {
