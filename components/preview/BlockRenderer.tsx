@@ -5741,7 +5741,10 @@ function renderFormField(
               ))}
             </select>
           ) : fieldType === "checkbox_text" ? (
-            <label className="flex items-center gap-3">
+            <label
+              className="flex items-center gap-3"
+              style={getContainerTextStyle(inputStyle, designKey)}
+            >
               <input
                 type="checkbox"
                 defaultChecked={block.data.value === "true"}
@@ -5751,20 +5754,33 @@ function renderFormField(
                 }
                 style={{
                   accentColor: inputStyle.color ?? undefined,
+                  width:
+                    typeof inputStyle.fontSize === "number"
+                      ? `${Math.max(14, inputStyle.fontSize)}px`
+                      : undefined,
+                  height:
+                    typeof inputStyle.fontSize === "number"
+                      ? `${Math.max(14, inputStyle.fontSize)}px`
+                      : undefined,
+                  borderColor: inputStyle.borderColor ?? undefined,
+                  borderWidth:
+                    typeof inputStyle.borderWidth === "number"
+                      ? `${inputStyle.borderWidth}px`
+                      : undefined,
+                  borderRadius:
+                    typeof inputStyle.borderRadius === "number"
+                      ? `${inputStyle.borderRadius}px`
+                      : undefined,
                 }}
                 {...sharedFieldProps}
               />
 
-              <span
-                className="text-sm"
-                style={getContainerTextStyle(
-                  (block.data as any).labelStyle ?? block.data.style,
-                  designKey,
-                )}
-              >
-                {block.data.label}
-                {showRequired && block.data.required ? " *" : ""}
-              </span>
+              {showLabel ? (
+                <span style={getContainerTextStyle(inputStyle, designKey)}>
+                  {block.data.label}
+                  {showRequired && block.data.required ? " *" : ""}
+                </span>
+              ) : null}
             </label>
           ) : (
             <input

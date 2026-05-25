@@ -4469,28 +4469,42 @@ function applyAppearancePatch(patch: AppearancePatch) {
 }
 
   if (selectedBlock?.type === "form_field") {
-    updateSelectedBlock((block) =>
-      block.type !== "form_field"
-        ? block
-        : formFieldTextTarget === "text"
-          ? {
-              ...block,
-              data: {
-                ...block.data,
-                inputStyle: {
-                  ...((block.data as any).inputStyle ?? block.data.style ?? {}),
-                  ...patch,
-                },
-              },
-            }
-          : {
-              ...block,
-              appearance: {
-                ...block.appearance,
-                ...patch,
-              },
+    updateSelectedBlock((block) => {
+      if (block.type !== "form_field") return block;
+
+      if (formFieldTextTarget === "text") {
+        return {
+          ...block,
+          data: {
+            ...block.data,
+            inputStyle: {
+              ...((block.data as any).inputStyle ?? block.data.style ?? {}),
+              ...(patch.backgroundColor !== undefined
+                ? { backgroundColor: patch.backgroundColor }
+                : {}),
+              ...(patch.borderColor !== undefined
+                ? { borderColor: patch.borderColor }
+                : {}),
+              ...(patch.borderWidth !== undefined
+                ? { borderWidth: Number(patch.borderWidth) || 0 }
+                : {}),
+              ...(patch.borderRadius !== undefined
+                ? { borderRadius: Number(patch.borderRadius) || 0 }
+                : {}),
             },
-    );
+          },
+        };
+      }
+
+      return {
+        ...block,
+        appearance: {
+          ...block.appearance,
+          ...patch,
+        },
+      };
+    });
+
     return;
   }
 
@@ -11807,7 +11821,7 @@ selectedContext.kind === "textFx"
         <option value="phone">Phone</option>
         <option value="textarea">Textarea</option>
         <option value="state">State</option>
-        <option value="checkbox_text">Checkbox + Text</option>
+        <option value="checkbox_text">Checkbox</option>
       </select>
     </div>
 
