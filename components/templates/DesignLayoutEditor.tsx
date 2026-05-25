@@ -2860,6 +2860,29 @@ function resolveMediaLogoFromUrl(url: string) {
 
 function applyTextColor(value: string) {
   if (
+    selectedBlock?.type === "form_field" &&
+    formFieldTextTarget === "placeholder"
+  ) {
+    updateSelectedBlock((block) =>
+      block.type !== "form_field"
+        ? block
+        : {
+            ...block,
+            data: {
+              ...block.data,
+              placeholderStyle: {
+                ...((block.data as any).placeholderStyle ?? {}),
+                color: value,
+              },
+            },
+          },
+    );
+
+    pushRecentColor(value);
+    return;
+  }
+
+  if (
     selectedBlock?.type === "donation" &&
     donationStyleTarget === "buttons"
   ) {
