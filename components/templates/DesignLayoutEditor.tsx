@@ -1218,6 +1218,7 @@ function getSelectedTextValue(
     return "";
   }
 
+  // Test
   if (
   context.kind === "label" ||
   context.kind === "textFx" ||
