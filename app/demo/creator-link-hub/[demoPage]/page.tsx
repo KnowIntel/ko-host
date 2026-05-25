@@ -127,6 +127,24 @@ twitter: {
   message:
     "You clicked the Twitter page. This is where someone could share thoughts, updates, industry insights, breaking opinions, or a perfectly reasonable 2am rant about user interface spacing.",
 },
+"free-tutorial": {
+  title: "Demo Free Tutorial",
+  eyebrow: "Guided Tutorial Demo",
+  message:
+    "You opened the free tutorial page. In a real microsite, this could unlock walkthroughs, beginner lessons, downloadable guides, training videos, or that one ‘quick tutorial’ that somehow turns into a 47-minute masterclass.",
+},
+trailer: {
+  title: "Demo Trailer",
+  eyebrow: "Guided Tutorial Demo",
+  message:
+    "You opened the trailer page. Normally this could preview a course, introduce a program, showcase highlights, or dramatically convince visitors their life is about to change after pressing play.",
+},
+
+
+
+
+
+
 
 };
 

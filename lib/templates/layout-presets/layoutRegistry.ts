@@ -23,6 +23,7 @@ import memoryLayouts from "./templates/memory_timeline";
 import photoLayouts from "./templates/photo_gallery";
 import creatorLayouts from "./templates/creator_link_hub";
 import guidedLayouts from "./templates/guided_tutorial";
+import electionLayouts from "./templates/election_campaign";
 
 import blankLayout from "./layouts/blank";
 
@@ -51,6 +52,7 @@ const registry: Record<string, TemplateLayoutRegistry> = {
   photo_gallery: photoLayouts,
   creator_link_hub: creatorLayouts,
   guided_tutorial: guidedLayouts,
+  election_campaign: electionLayouts,
 
 };
 

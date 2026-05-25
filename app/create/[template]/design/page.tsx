@@ -110,6 +110,8 @@ const draftPageCountByTemplateDesignKey: Record<string, number> = {
 
   "guided_tutorial:fabulous": 3,
 
+  "election_campaign:city": 3,
+
 };
 
 const pageCount =
