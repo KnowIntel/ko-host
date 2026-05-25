@@ -9527,9 +9527,10 @@ const idsToExpand =
 <input
   type="color"
   value={
-    selectedBlock?.type === "form_field" &&
+    selectedBlockFromDraft?.type === "form_field" &&
     formFieldTextTarget === "placeholder"
-      ? ((selectedBlock.data as any).placeholderStyle?.color ?? "#bababa")
+      ? (((selectedBlockFromDraft.data as any).placeholderStyle?.color as string) ??
+        "#bababa")
       : selectedAppearance.backgroundColor === "transparent"
         ? "#ffffff"
         : (selectedAppearance.backgroundColor ?? "#ffffff")
@@ -9537,10 +9538,10 @@ const idsToExpand =
   onChange={(e) => applyFillColor(e.target.value)}
   className={topBarColorClass(false)}
   title={
-    selectedBlock?.type === "form_field" &&
+    selectedBlockFromDraft?.type === "form_field" &&
     formFieldTextTarget === "placeholder"
       ? "Placeholder font color"
-      : selectedBlock.type === "poll"
+      : selectedBlockFromDraft?.type === "poll"
         ? "Poll background color"
         : "Highlight background color"
   }
