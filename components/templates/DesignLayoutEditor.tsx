@@ -11651,19 +11651,19 @@ selectedContext.kind === "textFx"
     <div className={inspectorLabelClass()}>Form Field</div>
 
     <div className="mt-4">
-  <div className={inspectorLabelClass()}>Text Target</div>
+      <div className={inspectorLabelClass()}>Text Target</div>
 
-  <select
-    value={formFieldTextTarget}
-onChange={(e) =>
-  setFormFieldTextTarget(e.target.value as "form" | "text")
-}
-    className={inspectorInputClass()}
-  >
-<option value="form">Form</option>
-<option value="text">Text</option>
-  </select>
-</div>
+      <select
+        value={formFieldTextTarget}
+        onChange={(e) =>
+          setFormFieldTextTarget(e.target.value as "form" | "text")
+        }
+        className={inspectorInputClass()}
+      >
+        <option value="form">Form</option>
+        <option value="text">Text</option>
+      </select>
+    </div>
 
     <div className="mt-4">
       <div className="mb-2 flex items-center justify-between gap-3">
@@ -11806,85 +11806,93 @@ onChange={(e) =>
         <option value="email">Email</option>
         <option value="phone">Phone</option>
         <option value="textarea">Textarea</option>
+        <option value="state">State</option>
+        <option value="checkbox_text">Checkbox + Text</option>
       </select>
     </div>
 
-{formFieldTextTarget === "text" ? (
-  <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
-    <div className={inspectorLabelClass()}>Text Area Padding</div>
-
-    {[
-      ["paddingLeft", "Left Padding"],
-      ["paddingRight", "Right Padding"],
-      ["paddingBottom", "Bottom Padding"],
-    ].map(([key, label]) => (
-      <div key={key} className="mt-4">
-        <div className="flex items-center justify-between">
-          <div className={inspectorLabelClass()}>{label}</div>
-          <div className="text-xs text-neutral-500">
-            {Number(((selectedBlock.data as any).inputStyle ?? {})[key] ?? 12)}px
-          </div>
-        </div>
-
-        <input
-          type="range"
-          min={0}
-          max={160}
-          value={Number(((selectedBlock.data as any).inputStyle ?? {})[key] ?? 12)}
-          onChange={(e) =>
-            updateSelectedBlock((block) =>
-              block.type !== "form_field"
-                ? block
-                : {
-                    ...block,
-                    data: {
-                      ...block.data,
-                      inputStyle: {
-                        ...((block.data as any).inputStyle ??
-                          block.data.style ??
-                          {}),
-                        [key]: Number(e.target.value),
+    {selectedBlock.data.fieldType === "checkbox_text" ? (
+      <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+        <label className="flex items-center gap-3 text-sm font-medium text-neutral-800">
+          <input
+            type="checkbox"
+            checked={Boolean((selectedBlock.data as any).allowMultipleSelections)}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "form_field"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        allowMultipleSelections: e.target.checked,
                       },
                     },
-                  },
-            )
-          }
-          className="mt-2 w-full"
-        />
+              )
+            }
+          />
+          Allow Multiple Selections
+        </label>
+
+        <p className="mt-2 text-xs leading-5 text-neutral-500">
+          When off, only one checkbox connected to the same submit button should be selected.
+        </p>
       </div>
-    ))}
-  </div>
-) : null}
+    ) : null}
 
-<div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
-  <label className="flex items-center gap-3 text-sm font-medium text-neutral-800">
-    <input
-      type="checkbox"
-      checked={Boolean((selectedBlock.data as any).showRating)}
-      onChange={(e) =>
-        updateSelectedBlock((block) =>
-          block.type !== "form_field"
-            ? block
-            : {
-                ...block,
-                data: {
-                  ...block.data,
-                  showRating: e.target.checked,
-                },
-              },
-        )
-      }
-    />
-    Show Rating
-  </label>
+    {formFieldTextTarget === "text" ? (
+      <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+        <div className={inspectorLabelClass()}>Text Area Padding</div>
 
-  {(selectedBlock.data as any).showRating ? (
-    <div className="mt-4 grid grid-cols-1 gap-3">
-      <div>
-        <div className={inspectorLabelClass()}>Star Color</div>
+        {[
+          ["paddingTop", "Top Padding"],
+          ["paddingLeft", "Left Padding"],
+          ["paddingRight", "Right Padding"],
+          ["paddingBottom", "Bottom Padding"],
+        ].map(([key, label]) => (
+          <div key={key} className="mt-4">
+            <div className="flex items-center justify-between">
+              <div className={inspectorLabelClass()}>{label}</div>
+              <div className="text-xs text-neutral-500">
+                {Number(((selectedBlock.data as any).inputStyle ?? {})[key] ?? 12)}px
+              </div>
+            </div>
+
+            <input
+              type="range"
+              min={0}
+              max={160}
+              value={Number(((selectedBlock.data as any).inputStyle ?? {})[key] ?? 12)}
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "form_field"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          inputStyle: {
+                            ...((block.data as any).inputStyle ??
+                              block.data.style ??
+                              {}),
+                            [key]: Number(e.target.value),
+                          },
+                        },
+                      },
+                )
+              }
+              className="mt-2 w-full"
+            />
+          </div>
+        ))}
+      </div>
+    ) : null}
+
+    <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+      <label className="flex items-center gap-3 text-sm font-medium text-neutral-800">
         <input
-          type="color"
-          value={(selectedBlock.data as any).ratingColor ?? "#F59E0B"}
+          type="checkbox"
+          checked={Boolean((selectedBlock.data as any).showRating)}
           onChange={(e) =>
             updateSelectedBlock((block) =>
               block.type !== "form_field"
@@ -11893,41 +11901,65 @@ onChange={(e) =>
                     ...block,
                     data: {
                       ...block.data,
-                      ratingColor: e.target.value,
+                      showRating: e.target.checked,
                     },
                   },
             )
           }
-          className="mt-2 h-10 w-full rounded-xl border border-neutral-300 bg-white"
         />
-      </div>
+        Show Rating
+      </label>
 
-      <div>
-        <div className={inspectorLabelClass()}>Rating Position</div>
-        <select
-          value={(selectedBlock.data as any).ratingPosition ?? "high"}
-          onChange={(e) =>
-            updateSelectedBlock((block) =>
-              block.type !== "form_field"
-                ? block
-                : {
-                    ...block,
-                    data: {
-                      ...block.data,
-                      ratingPosition: e.target.value as "high" | "low",
-                    },
-                  },
-            )
-          }
-          className={inspectorInputClass()}
-        >
-          <option value="high">High Level</option>
-          <option value="low">Low Level</option>
-        </select>
-      </div>
+      {(selectedBlock.data as any).showRating ? (
+        <div className="mt-4 grid grid-cols-1 gap-3">
+          <div>
+            <div className={inspectorLabelClass()}>Star Color</div>
+            <input
+              type="color"
+              value={(selectedBlock.data as any).ratingColor ?? "#F59E0B"}
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "form_field"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          ratingColor: e.target.value,
+                        },
+                      },
+                )
+              }
+              className="mt-2 h-10 w-full rounded-xl border border-neutral-300 bg-white"
+            />
+          </div>
+
+          <div>
+            <div className={inspectorLabelClass()}>Rating Position</div>
+            <select
+              value={(selectedBlock.data as any).ratingPosition ?? "high"}
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "form_field"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          ratingPosition: e.target.value as "high" | "low",
+                        },
+                      },
+                )
+              }
+              className={inspectorInputClass()}
+            >
+              <option value="high">High Level</option>
+              <option value="low">Low Level</option>
+            </select>
+          </div>
+        </div>
+      ) : null}
     </div>
-  ) : null}
-</div>
 
     <div className="mt-4">
       <label className="flex items-center justify-between gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">

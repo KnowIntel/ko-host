@@ -1637,98 +1637,145 @@ function renderCta(
           ? softStyle
           : solidStyle;
 
-    async function handleLinkedFieldSubmit() {
-      if (submitting) return;
+async function handleLinkedFieldSubmit() {
+  if (submitting) return;
 
-      const fields = Array.from(
-        document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>(
-          `[data-linked-button="${block.id}"]`,
-        ),
-      );
+  const fields = Array.from(
+    document.querySelectorAll<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >(`[data-linked-button="${block.id}"]`),
+  );
 
-      if (!fields.length) {
-        if (block.data.buttonUrl?.trim()) {
-          const href = normalizePreviewHref(block.data.buttonUrl, micrositeSlug);
+  if (!fields.length) {
+    if (block.data.buttonUrl?.trim()) {
+      const href = normalizePreviewHref(block.data.buttonUrl, micrositeSlug);
 
-if (href.startsWith("#")) {
-  document.querySelector(href)?.scrollIntoView({
-    behavior: "smooth",
-    block: "start",
-  });
-} else {
-  window.open(href, "_blank");
-}
-        }
-        return;
+      if (href.startsWith("#")) {
+        document.querySelector(href)?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      } else {
+        window.open(href, "_blank");
       }
-
-      const missingRequired = fields.find(
-        (field) => field.dataset.required === "true" && !field.value.trim(),
-      );
-
-      if (missingRequired) {
-        missingRequired.focus();
-        return;
-      }
-
-      const values = fields.map((field) => {
-        const label = field.dataset.fieldLabel || "Field";
-        return {
-          label,
-          value: field.value.trim(),
-        };
-      });
-
-      const message = values
-        .map((field) => `${field.label}: ${field.value}`)
-        .join("<|>");
-
-try {
-  setSubmitting(true);
-
-  const startedAt = Date.now();
-
-  const res = await fetch("/api/public/general-submissions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      micrositeId: (block as any).micrositeId ?? "",
-      hostname:
-        typeof window !== "undefined" ? window.location.hostname : "",
-      pageSlug:
-        typeof window !== "undefined"
-          ? window.location.pathname.split("/").filter(Boolean)[1] || "home"
-          : "home",
-      linkedButtonId: block.id,
-      message,
-      fields: values,
-    }),
-  });
-
-  const elapsed = Date.now() - startedAt;
-  const remaining = Math.max(0, 2000 - elapsed);
-
-  await new Promise((resolve) => window.setTimeout(resolve, remaining));
-
-  if (!res.ok) throw new Error("Submission failed");
-
-  setSubmitted(true);
-
-  fields.forEach((field) => {
-    field.value = "";
-  });
-
-  window.setTimeout(() => {
-    setSubmitted(false);
-  }, 2500);
-} catch {
-  setSubmitted(false);
-} finally {
-  setSubmitting(false);
-}
     }
+
+    return;
+  }
+
+  const checkboxFields = fields.filter(
+    (field): field is HTMLInputElement =>
+      field instanceof HTMLInputElement && field.type === "checkbox",
+  );
+
+  const checkboxGroups = new Map<string, HTMLInputElement[]>();
+
+  checkboxFields.forEach((field) => {
+    const groupKey = field.dataset.checkboxGroup || block.id;
+    const current = checkboxGroups.get(groupKey) ?? [];
+    checkboxGroups.set(groupKey, [...current, field]);
+  });
+
+  checkboxGroups.forEach((groupFields) => {
+    const allowMultiple = groupFields.some(
+      (field) => field.dataset.allowMultipleSelections === "true",
+    );
+
+    if (allowMultiple) return;
+
+    const checkedFields = groupFields.filter((field) => field.checked);
+
+    checkedFields.slice(1).forEach((field) => {
+      field.checked = false;
+    });
+  });
+
+  const missingRequired = fields.find((field) => {
+    if (field.dataset.required !== "true") return false;
+
+    if (field instanceof HTMLInputElement && field.type === "checkbox") {
+      return !field.checked;
+    }
+
+    return !field.value.trim();
+  });
+
+  if (missingRequired) {
+    missingRequired.focus();
+    return;
+  }
+
+  const values = fields.map((field) => {
+    const label = field.dataset.fieldLabel || "Field";
+
+    if (field instanceof HTMLInputElement && field.type === "checkbox") {
+      return {
+        label,
+        value: field.checked ? "true" : "false",
+      };
+    }
+
+    return {
+      label,
+      value: field.value.trim(),
+    };
+  });
+
+  const message = values
+    .map((field) => `${field.label}: ${field.value}`)
+    .join("<|>");
+
+  try {
+    setSubmitting(true);
+
+    const startedAt = Date.now();
+
+    const res = await fetch("/api/public/general-submissions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        micrositeId: (block as any).micrositeId ?? "",
+        hostname:
+          typeof window !== "undefined" ? window.location.hostname : "",
+        pageSlug:
+          typeof window !== "undefined"
+            ? window.location.pathname.split("/").filter(Boolean)[1] || "home"
+            : "home",
+        linkedButtonId: block.id,
+        message,
+        fields: values,
+      }),
+    });
+
+    const elapsed = Date.now() - startedAt;
+    const remaining = Math.max(0, 2000 - elapsed);
+
+    await new Promise((resolve) => window.setTimeout(resolve, remaining));
+
+    if (!res.ok) throw new Error("Submission failed");
+
+    setSubmitted(true);
+
+    fields.forEach((field) => {
+      if (field instanceof HTMLInputElement && field.type === "checkbox") {
+        field.checked = false;
+        return;
+      }
+
+      field.value = "";
+    });
+
+    window.setTimeout(() => {
+      setSubmitted(false);
+    }, 2500);
+  } catch {
+    setSubmitted(false);
+  } finally {
+    setSubmitting(false);
+  }
+}
 
 const posX = Number((block.data as any).posX ?? 50);
 const posY = Number((block.data as any).posY ?? 50);
@@ -5490,8 +5537,8 @@ function renderFormField(
 ) {
   function FormFieldPreview() {
     const inputClass = isLightDesign(designKey)
-      ? "w-full rounded border border-neutral-300 bg-white px-3 py-2 text-sm placeholder-current"
-      : "w-full rounded border border-white/15 bg-white/5 px-3 py-2 text-sm placeholder-current";
+      ? "w-full rounded border border-neutral-300 bg-white px-3 py-2 text-sm"
+      : "w-full rounded border border-white/15 bg-white/5 px-3 py-2 text-sm";
 
     const inputStyle = ((block.data as any).inputStyle ??
       block.data.style ??
@@ -5515,6 +5562,10 @@ function renderFormField(
           ? `${inputStyle.borderRadius}px`
           : undefined,
 
+      paddingTop:
+        typeof inputStyle.paddingTop === "number"
+          ? `${inputStyle.paddingTop}px`
+          : undefined,
       paddingLeft:
         typeof inputStyle.paddingLeft === "number"
           ? `${inputStyle.paddingLeft}px`
@@ -5529,10 +5580,78 @@ function renderFormField(
           : undefined,
     };
 
+    const placeholderStyle =
+      "placeholder:text-[rgb(186,186,186)] placeholder:opacity-100";
+
     const showLabel = block.data.showLabel !== false;
     const showPlaceholder = block.data.showPlaceholder !== false;
     const showRequired = block.data.showRequired !== false;
     const linkedButtonId = (block.data as any).linkedButtonId ?? "";
+    const fieldLabel = block.data.label || "Field";
+    const fieldType = (block.data as any).fieldType ?? "text";
+
+    const stateOptions = [
+      "AL",
+      "AK",
+      "AZ",
+      "AR",
+      "CA",
+      "CO",
+      "CT",
+      "DE",
+      "FL",
+      "GA",
+      "HI",
+      "ID",
+      "IL",
+      "IN",
+      "IA",
+      "KS",
+      "KY",
+      "LA",
+      "ME",
+      "MD",
+      "MA",
+      "MI",
+      "MN",
+      "MS",
+      "MO",
+      "MT",
+      "NE",
+      "NV",
+      "NH",
+      "NJ",
+      "NM",
+      "NY",
+      "NC",
+      "ND",
+      "OH",
+      "OK",
+      "OR",
+      "PA",
+      "RI",
+      "SC",
+      "SD",
+      "TN",
+      "TX",
+      "UT",
+      "VT",
+      "VA",
+      "WA",
+      "WV",
+      "WI",
+      "WY",
+      "DC",
+    ];
+
+    const sharedFieldProps = {
+      "data-form-field-id": block.id,
+      "data-linked-button": linkedButtonId,
+      "data-linked-button-id": linkedButtonId,
+      "data-field-label": fieldLabel,
+      "data-required": block.data.required ? "true" : "false",
+      "data-field-type": fieldType,
+    };
 
     const showRating = (block.data as any).showRating === true;
     const initialRating = Math.max(
@@ -5583,7 +5702,7 @@ function renderFormField(
         <div className="flex h-full flex-col gap-2">
           {showRating && ratingPosition === "high" ? ratingStars : null}
 
-          {showLabel ? (
+          {showLabel && fieldType !== "checkbox_text" ? (
             <label
               className="text-sm"
               style={getContainerTextStyle(
@@ -5596,29 +5715,65 @@ function renderFormField(
             </label>
           ) : null}
 
-          {block.data.fieldType === "textarea" ? (
+          {fieldType === "textarea" ? (
             <textarea
-              className={`${inputClass} min-h-[96px] resize-none`}
+              className={`${inputClass} ${placeholderStyle} min-h-[96px] resize-none`}
               placeholder={showPlaceholder ? block.data.placeholder : ""}
               defaultValue={block.data.value || ""}
-              data-form-field-id={block.id}
-              data-linked-button={(block.data as any).linkedButtonId || ""}
-              data-linked-button-id={linkedButtonId}
-              data-field-label={block.data.label || "Field"}
-              data-required={block.data.required ? "true" : "false"}
               style={inputVisualStyle}
+              {...sharedFieldProps}
             />
+          ) : fieldType === "state" ? (
+            <select
+              className={`${inputClass} ${placeholderStyle}`}
+              defaultValue={block.data.value || ""}
+              style={inputVisualStyle}
+              {...sharedFieldProps}
+            >
+              <option value="" disabled>
+                {showPlaceholder ? block.data.placeholder || "Select state..." : "Select state..."}
+              </option>
+
+              {stateOptions.map((state) => (
+                <option key={state} value={state}>
+                  {state}
+                </option>
+              ))}
+            </select>
+          ) : fieldType === "checkbox_text" ? (
+            <label className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                defaultChecked={block.data.value === "true"}
+                data-checkbox-group={linkedButtonId || block.id}
+                data-allow-multiple-selections={
+                  (block.data as any).allowMultipleSelections ? "true" : "false"
+                }
+                style={{
+                  accentColor: inputStyle.color ?? undefined,
+                }}
+                {...sharedFieldProps}
+              />
+
+              <span
+                className="text-sm"
+                style={getContainerTextStyle(
+                  (block.data as any).labelStyle ?? block.data.style,
+                  designKey,
+                )}
+              >
+                {block.data.label}
+                {showRequired && block.data.required ? " *" : ""}
+              </span>
+            </label>
           ) : (
             <input
-              type={block.data.fieldType === "phone" ? "tel" : block.data.fieldType}
-              className={inputClass}
+              type={fieldType === "phone" ? "tel" : fieldType}
+              className={`${inputClass} ${placeholderStyle}`}
               placeholder={showPlaceholder ? block.data.placeholder : ""}
               defaultValue={block.data.value || ""}
-              data-form-field-id={block.id}
-              data-linked-button={(block.data as any).linkedButtonId || ""}
-              data-field-label={block.data.label || "Field"}
-              data-required={block.data.required ? "true" : "false"}
               style={inputVisualStyle}
+              {...sharedFieldProps}
             />
           )}
 

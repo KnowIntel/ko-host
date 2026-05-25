@@ -23,6 +23,11 @@ export type TextStyle = {
   align?: TextAlign;
   color?: string;
 
+  paddingTop?: number;
+  paddingRight?: number;
+  paddingBottom?: number;
+  paddingLeft?: number;
+
   textureEnabled?: boolean;
   textureImageUrl?: string;
   textureScale?: number;
@@ -871,7 +876,13 @@ shadowY?: number;
   };
 };
 
-export type FormFieldType = "text" | "email" | "phone" | "textarea";
+export type FormFieldType =
+  | "text"
+  | "email"
+  | "phone"
+  | "textarea"
+  | "state"
+  | "checkbox_text";
 
 export type FormFieldBlock = BaseBlock & {
   type: "form_field";
@@ -889,11 +900,13 @@ export type FormFieldBlock = BaseBlock & {
     style?: TextStyle;
     labelStyle?: TextStyle;
     inputStyle?: TextStyle;
+    linkedButtonId?: string;
+    allowMultipleSelections?: boolean;
 
-showRating?: boolean;
-ratingValue?: number;
-ratingColor?: string;
-ratingPosition?: "high" | "low";
+    showRating?: boolean;
+    ratingValue?: number;
+    ratingColor?: string;
+    ratingPosition?: "high" | "low";
   };
 };
 
@@ -2281,16 +2294,23 @@ case "text_fx":
           showLabel: true,
           showPlaceholder: true,
           showRequired: true,
-showSubmitButtonText: true,
+          showSubmitButtonText: true,
+          allowMultipleSelections: false,
 
-showRating: false,
-ratingValue: 0,
-ratingColor: "#F59E0B",
-ratingPosition: "high",
+          showRating: false,
+          ratingValue: 0,
+          ratingColor: "#F59E0B",
+          ratingPosition: "high",
 
-style: createDefaultTextStyle(),
-labelStyle: createDefaultTextStyle(),
-inputStyle: createDefaultTextStyle(),
+          style: createDefaultTextStyle(),
+          labelStyle: createDefaultTextStyle(),
+          inputStyle: {
+            ...createDefaultTextStyle(),
+            paddingTop: 12,
+            paddingRight: 12,
+            paddingBottom: 12,
+            paddingLeft: 12,
+          },
         },
       };
 
@@ -4074,7 +4094,9 @@ if (block.type === "form_field") {
         block.data.fieldType === "text" ||
         block.data.fieldType === "email" ||
         block.data.fieldType === "phone" ||
-        block.data.fieldType === "textarea"
+        block.data.fieldType === "textarea" ||
+        block.data.fieldType === "state" ||
+        block.data.fieldType === "checkbox_text"
           ? block.data.fieldType
           : "text",
 
@@ -4087,6 +4109,13 @@ if (block.type === "form_field") {
         typeof block.data.submitButtonText === "string"
           ? block.data.submitButtonText
           : "Submit",
+
+      linkedButtonId:
+        typeof data.linkedButtonId === "string" && data.linkedButtonId.trim()
+          ? data.linkedButtonId
+          : undefined,
+
+      allowMultipleSelections: Boolean(data.allowMultipleSelections),
 
       showLabel: block.data.showLabel !== false,
       showPlaceholder: block.data.showPlaceholder !== false,
@@ -4114,20 +4143,24 @@ if (block.type === "form_field") {
           ? data.ratingPosition
           : "high",
 
-style: {
-  ...createDefaultTextStyle(),
-  ...(block.data.style ?? {}),
-},
+      style: {
+        ...createDefaultTextStyle(),
+        ...(block.data.style ?? {}),
+      },
 
-labelStyle: {
-  ...createDefaultTextStyle(),
-  ...((block.data as any).labelStyle ?? block.data.style ?? {}),
-},
+      labelStyle: {
+        ...createDefaultTextStyle(),
+        ...((block.data as any).labelStyle ?? block.data.style ?? {}),
+      },
 
-inputStyle: {
-  ...createDefaultTextStyle(),
-  ...((block.data as any).inputStyle ?? block.data.style ?? {}),
-},
+      inputStyle: {
+        ...createDefaultTextStyle(),
+        paddingTop: 12,
+        paddingRight: 12,
+        paddingBottom: 12,
+        paddingLeft: 12,
+        ...((block.data as any).inputStyle ?? block.data.style ?? {}),
+      },
     },
   };
 }
