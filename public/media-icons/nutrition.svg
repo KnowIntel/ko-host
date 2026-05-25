@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <path
+    d="M34 16c4-5 9-6 14-5 1 6-1 11-6 14-4 2-8 2-12 0 0-4 1-7 4-9Z"
+    stroke="currentColor"
+    stroke-width="4"
+    stroke-linejoin="round"
+  />
+
+  <path
+    d="M32 25c-3-7-8-10-15-9-6 1-10 7-9 15 1 11 10 22 20 22 2 0 3-1 4-1s2 1 4 1c10 0 19-11 20-22 1-8-3-14-9-15-7-1-12 2-15 9Z"
+    stroke="currentColor"
+    stroke-width="4"
+    stroke-linejoin="round"
+  />
+
+  <path
+    d="M32 25c0-6 2-10 6-14"
+    stroke="currentColor"
+    stroke-width="4"
+    stroke-linecap="round"
+  />
+</svg>

@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <circle
+    cx="18"
+    cy="46"
+    r="8"
+    stroke="currentColor"
+    stroke-width="4"
+  />
+
+  <circle
+    cx="46"
+    cy="46"
+    r="8"
+    stroke="currentColor"
+    stroke-width="4"
+  />
+
+  <path
+    d="M18 46h28"
+    stroke="currentColor"
+    stroke-width="4"
+    stroke-linecap="round"
+  />
+
+  <path
+    d="M24 46l8-18h10l6 18"
+    stroke="currentColor"
+    stroke-width="4"
+    stroke-linejoin="round"
+    stroke-linecap="round"
+  />
+
+  <path
+    d="M30 28l-6-10"
+    stroke="currentColor"
+    stroke-width="4"
+    stroke-linecap="round"
+  />
+
+  <path
+    d="M42 28l4-10"
+    stroke="currentColor"
+    stroke-width="4"
+    stroke-linecap="round"
+  />
+
+  <path
+    d="M20 18h28"
+    stroke="currentColor"
+    stroke-width="4"
+    stroke-linecap="round"
+  />
+</svg>

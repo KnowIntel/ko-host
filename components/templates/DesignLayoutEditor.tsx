@@ -342,6 +342,9 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "House", type: "icon", iconName: "house" },
     { kind: "block", label: "Star", type: "icon", iconName: "star" },
     { kind: "block", label: "Heart", type: "icon", iconName: "heart" },
+    { kind: "block", label: "Wellness Recovery", type: "icon", iconName: "wellness-recovery" },
+    { kind: "block", label: "Nutrition", type: "icon", iconName: "nutrition" },
+    { kind: "block", label: "Mobility", type: "icon", iconName: "mobility" },
     { kind: "block", label: "Check Circle", type: "icon", iconName: "check-circle" },
     { kind: "block", label: "Check", type: "icon", iconName: "check" },
     { kind: "block", label: "Circle", type: "icon", iconName: "circle" },
@@ -1053,6 +1056,9 @@ function getToolGlyph(label: string) {
   if (label === "House") return "⌂";
   if (label === "Star") return "⭐";
   if (label === "Heart") return "❤";
+  if (label === "Wellness Recovery") return "❤️";
+  if (label === "Mobility") return "🛞";
+  if (label === "Nutrition") return "🍎";
   if (label === "Trophy") return "🏆";
   if (label === "Envelope") return "✉️";
   if (label === "Check Circle") return "⭕";
