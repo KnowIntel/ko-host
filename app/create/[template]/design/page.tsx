@@ -108,6 +108,8 @@ const draftPageCountByTemplateDesignKey: Record<string, number> = {
   "creator_link_hub:canvas": 1,
   "creator_link_hub:studio": 1,
 
+  "guided_tutorial:fabulous": 3,
+
 };
 
 const pageCount =
