@@ -9524,21 +9524,27 @@ const idsToExpand =
             <>
               <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
 
-              <input
-                type="color"
-                value={
-                  selectedAppearance.backgroundColor === "transparent"
-                    ? "#ffffff"
-                    : (selectedAppearance.backgroundColor ?? "#ffffff")
-                }
-                onChange={(e) => applyFillColor(e.target.value)}
-                className={topBarColorClass(false)}
-                title={
-                  selectedBlock.type === "poll"
-                    ? "Poll background color"
-                    : "Highlight background color"
-                }
-              />
+<input
+  type="color"
+  value={
+    selectedBlock?.type === "form_field" &&
+    formFieldTextTarget === "placeholder"
+      ? ((selectedBlock.data as any).placeholderStyle?.color ?? "#bababa")
+      : selectedAppearance.backgroundColor === "transparent"
+        ? "#ffffff"
+        : (selectedAppearance.backgroundColor ?? "#ffffff")
+  }
+  onChange={(e) => applyFillColor(e.target.value)}
+  className={topBarColorClass(false)}
+  title={
+    selectedBlock?.type === "form_field" &&
+    formFieldTextTarget === "placeholder"
+      ? "Placeholder font color"
+      : selectedBlock.type === "poll"
+        ? "Poll background color"
+        : "Highlight background color"
+  }
+/>
 
               <button
                 type="button"
