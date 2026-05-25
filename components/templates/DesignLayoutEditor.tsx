@@ -10260,7 +10260,15 @@ if (selectedBlock?.type === "rsvp") {
                   type="range"
                   min={0}
                   max={30}
-                  value={selectedAppearance.borderWidth ?? 0}
+                  value={
+                    selectedBlock?.type === "form_field" &&
+                    formFieldTextTarget === "text"
+                      ? Number(
+                          ((selectedBlock.data as any).inputStyle ?? {})
+                            .borderWidth ?? 0,
+                        )
+                      : selectedAppearance.borderWidth ?? 0
+                  }
                   onChange={(e) =>
                     applyAppearancePatch({
                       borderWidth: Number(e.target.value) || 0,
@@ -10269,7 +10277,15 @@ if (selectedBlock?.type === "rsvp") {
                   className={topBarSliderClass()}
                   title="Border width"
                 />
-                <span>{selectedAppearance.borderWidth ?? 0}</span>
+                <span>
+                  {selectedBlock?.type === "form_field" &&
+                  formFieldTextTarget === "text"
+                    ? Number(
+                        ((selectedBlock.data as any).inputStyle ?? {})
+                          .borderWidth ?? 0,
+                      )
+                    : selectedAppearance.borderWidth ?? 0}
+                </span>
               </div>
 
               <div className={topBarSliderWrapClass()}>
@@ -10278,7 +10294,15 @@ if (selectedBlock?.type === "rsvp") {
                   type="range"
                   min={0}
                   max={100}
-                  value={selectedAppearance.borderRadius ?? 0}
+                  value={
+                    selectedBlock?.type === "form_field" &&
+                    formFieldTextTarget === "text"
+                      ? Number(
+                          ((selectedBlock.data as any).inputStyle ?? {})
+                            .borderRadius ?? 0,
+                        )
+                      : selectedAppearance.borderRadius ?? 0
+                  }
                   onChange={(e) =>
                     applyAppearancePatch({
                       borderRadius: Number(e.target.value) || 0,
@@ -10287,7 +10311,15 @@ if (selectedBlock?.type === "rsvp") {
                   className={topBarSliderClass()}
                   title="Corner radius"
                 />
-                <span>{selectedAppearance.borderRadius ?? 0}</span>
+                <span>
+                  {selectedBlock?.type === "form_field" &&
+                  formFieldTextTarget === "text"
+                    ? Number(
+                        ((selectedBlock.data as any).inputStyle ?? {})
+                          .borderRadius ?? 0,
+                      )
+                    : selectedAppearance.borderRadius ?? 0}
+                </span>
               </div>
             </>
           ) : null}
@@ -11724,7 +11756,11 @@ selectedContext.kind === "textFx"
 
     <div className="mt-4">
       <div className="mb-2 flex items-center justify-between gap-3">
-        <div className={inspectorLabelClass()}>Placeholder</div>
+        <div className={inspectorLabelClass()}>
+  {selectedBlock.data.fieldType === "checkbox_text"
+    ? "Checkbox Label Text"
+    : "Placeholder"}
+</div>
         <label className="flex items-center gap-2 text-xs text-neutral-600">
           <input
             type="checkbox"

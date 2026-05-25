@@ -5710,7 +5710,7 @@ function renderFormField(
                 designKey,
               )}
             >
-              {block.data.label}
+              {block.data.placeholder || block.data.label || "Checkbox Label"}
               {showRequired && block.data.required ? " *" : ""}
             </label>
           ) : null}
