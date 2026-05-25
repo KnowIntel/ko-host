@@ -11662,11 +11662,7 @@ selectedContext.kind === "textFx"
       </div>
 
       <div className="mt-4">
-        <div className={inspectorLabelClass()}>
-  {selectedBlock.data.fieldType === "checkbox_text"
-    ? "Checkbox Label Text"
-    : "Placeholder"}
-</div>
+        <div className={inspectorLabelClass()}>Placeholder</div>
         <input
           type="text"
           value={selectedBlock.data.commentsPlaceholder ?? "Additional comments"}
@@ -11721,16 +11717,16 @@ selectedContext.kind === "textFx"
 
       <select
         value={formFieldTextTarget}
-onChange={(e) =>
-  setFormFieldTextTarget(
-    e.target.value as "form" | "text" | "placeholder",
-  )
-}
+        onChange={(e) =>
+          setFormFieldTextTarget(
+            e.target.value as "form" | "text" | "placeholder",
+          )
+        }
         className={inspectorInputClass()}
       >
-<option value="form">Form</option>
-<option value="text">Text</option>
-<option value="placeholder">Placeholder</option>
+        <option value="form">Form</option>
+        <option value="text">Text</option>
+        <option value="placeholder">Placeholder</option>
       </select>
     </div>
 
@@ -11780,10 +11776,10 @@ onChange={(e) =>
     <div className="mt-4">
       <div className="mb-2 flex items-center justify-between gap-3">
         <div className={inspectorLabelClass()}>
-  {selectedBlock.data.fieldType === "checkbox_text"
-    ? "Checkbox Label Text"
-    : "Placeholder"}
-</div>
+          {selectedBlock.data.fieldType === "checkbox_text"
+            ? "Checkbox Label Text"
+            : "Placeholder"}
+        </div>
         <label className="flex items-center gap-2 text-xs text-neutral-600">
           <input
             type="checkbox"
