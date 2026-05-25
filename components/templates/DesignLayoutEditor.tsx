@@ -333,6 +333,7 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Solid Play Triangle", type: "icon", iconName: "solid-play-triangle" },
     { kind: "block", label: "Paper Airplane", type: "icon", iconName: "paper-airplane" },
     { kind: "block", label: "Shield", type: "icon", iconName: "shield" },
+    { kind: "block", label: "Fire", type: "icon", iconName: "fire" },
     { kind: "block", label: "Square Outline", type: "icon", iconName: "square-outline" },
     { kind: "block", label: "Dog Paw", type: "icon", iconName: "dog-paw" },
     { kind: "block", label: "Gable Panel", type: "icon", iconName: "gable-panel" },
@@ -1048,6 +1049,7 @@ function getToolGlyph(label: string) {
   if (label === "Closed Book") return "📕";
   if (label === "Paper Airplane") return "🛩";
   if (label === "Shield") return "🛡";
+  if (label === "Fire") return "🔥";
   if (label === "Square Outline") return "⬜";
   if (label === "Dog Paw") return "🐾";
   if (label === "City") return "🏙";
