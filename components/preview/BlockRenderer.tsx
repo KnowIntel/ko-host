@@ -5557,6 +5557,10 @@ function renderFormField(
         typeof inputStyle.borderWidth === "number"
           ? `${inputStyle.borderWidth}px`
           : undefined,
+      borderStyle:
+        typeof inputStyle.borderWidth === "number" && inputStyle.borderWidth > 0
+          ? "solid"
+          : undefined,
       borderRadius:
         typeof inputStyle.borderRadius === "number"
           ? `${inputStyle.borderRadius}px`
@@ -5710,7 +5714,7 @@ function renderFormField(
                 designKey,
               )}
             >
-              {block.data.placeholder || block.data.label || "Checkbox Label"}
+              {block.data.label}
               {showRequired && block.data.required ? " *" : ""}
             </label>
           ) : null}
@@ -5731,7 +5735,9 @@ function renderFormField(
               {...sharedFieldProps}
             >
               <option value="" disabled>
-                {showPlaceholder ? block.data.placeholder || "Select state..." : "Select state..."}
+                {showPlaceholder
+                  ? block.data.placeholder || "Select state..."
+                  : "Select state..."}
               </option>
 
               {stateOptions.map((state) => (
@@ -5767,6 +5773,11 @@ function renderFormField(
                     typeof inputStyle.borderWidth === "number"
                       ? `${inputStyle.borderWidth}px`
                       : undefined,
+                  borderStyle:
+                    typeof inputStyle.borderWidth === "number" &&
+                    inputStyle.borderWidth > 0
+                      ? "solid"
+                      : undefined,
                   borderRadius:
                     typeof inputStyle.borderRadius === "number"
                       ? `${inputStyle.borderRadius}px`
@@ -5777,7 +5788,7 @@ function renderFormField(
 
               {showLabel ? (
                 <span style={getContainerTextStyle(inputStyle, designKey)}>
-                  {block.data.label}
+                  {block.data.placeholder || block.data.label || "Checkbox Label"}
                   {showRequired && block.data.required ? " *" : ""}
                 </span>
               ) : null}
