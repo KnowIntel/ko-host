@@ -1352,9 +1352,9 @@ const [listingStyleTarget, setListingStyleTarget] = useState<
   "title" | "description" | "metadata" | "price" | "quantity"
 >("title");
 
-const [formFieldTextTarget, setFormFieldTextTarget] = useState<
-  "form" | "text" | "placeholder"
->("form");
+const [formFieldTextTarget, setFormFieldTextTarget] = useState<"form" | "text">(
+  "form",
+);
 
   const [selectedRsvpElementKey, setSelectedRsvpElementKey] = useState<
     | "form"
@@ -1625,9 +1625,6 @@ const selectedStyle =
     ? (((selectedBlockFromDraft.data as any).inputStyle ??
         (selectedBlockFromDraft.data as any).style ??
         {}) as TextStyle)
-    : formFieldTextTarget === "placeholder"
-      ? (((selectedBlockFromDraft.data as any).placeholderStyle ??
-          {}) as TextStyle)
       : (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
       : selectedBlockFromDraft?.type === "highlight"
         ? highlightStyleTarget === "body"
@@ -2860,34 +2857,6 @@ function resolveMediaLogoFromUrl(url: string) {
 
 function applyTextColor(value: string) {
   if (
-    selectedBlockFromDraft?.type === "form_field" &&
-    formFieldTextTarget === "placeholder"
-  ) {
-    const targetId = selectedBlockFromDraft.id;
-
-    setDraft((prev) => ({
-      ...prev,
-      blocks: prev.blocks.map((block) =>
-        block.id === targetId && block.type === "form_field"
-          ? {
-              ...block,
-              data: {
-                ...block.data,
-                placeholderStyle: {
-                  ...((block.data as any).placeholderStyle ?? {}),
-                  color: value,
-                },
-              },
-            }
-          : block,
-      ),
-    }));
-
-    pushRecentColor(value);
-    return;
-  }
-
-  if (
     selectedBlock?.type === "donation" &&
     donationStyleTarget === "buttons"
   ) {
@@ -3346,19 +3315,6 @@ if (selectedBlock?.type === "link_hub") {
 if (selectedBlock?.type === "form_field") {
   updateSelectedBlock((block) => {
     if (block.type !== "form_field") return block;
-
-    if (formFieldTextTarget === "placeholder") {
-      return {
-        ...block,
-        data: {
-          ...block.data,
-          placeholderStyle: {
-            ...((block.data as any).placeholderStyle ?? {}),
-            color: value,
-          },
-        },
-      };
-    }
 
     if (formFieldTextTarget === "text") {
       return {
@@ -3842,26 +3798,19 @@ if (selectedBlock?.type === "form_field") {
                       ...patch,
                     },
                   }
-                : formFieldTextTarget === "placeholder"
-                  ? {
-placeholderStyle: {
-  ...((block.data as any).placeholderStyle ?? {}),
-  ...(patch.color !== undefined ? { color: patch.color } : {}),
-},
-                    }
-                  : {
-                      style: {
-                        ...((block.data as any).style ?? {}),
-                        ...patch,
-                      },
+                : {
+                    style: {
+                      ...((block.data as any).style ?? {}),
+                      ...patch,
+                    },
 
-                      labelStyle: {
-                        ...((block.data as any).labelStyle ??
-                          block.data.style ??
-                          {}),
-                        ...patch,
-                      },
-                    }),
+                    labelStyle: {
+                      ...((block.data as any).labelStyle ??
+                        block.data.style ??
+                        {}),
+                      ...patch,
+                    },
+                  }),
             },
           }
         : block,
@@ -9466,12 +9415,7 @@ const idsToExpand =
 
 <input
   type="color"
-  value={
-    selectedBlockFromDraft?.type === "form_field" &&
-    formFieldTextTarget === "placeholder"
-      ? ((selectedBlockFromDraft.data as any).placeholderStyle?.color ?? "#bababa")
-      : selectedStyle.color ?? "#111827"
-  }
+  value={selectedStyle.color ?? "#111827"}
   onChange={(e) => {
     const value = e.target.value;
     requestAnimationFrame(() => {
@@ -9479,12 +9423,7 @@ const idsToExpand =
     });
   }}
   className={topBarColorClass(false)}
-  title={
-    selectedBlockFromDraft?.type === "form_field" &&
-    formFieldTextTarget === "placeholder"
-      ? "Placeholder text color"
-      : "Text color"
-  }
+  title="Text color"
 />
 
           <button
@@ -9565,23 +9504,16 @@ const idsToExpand =
 <input
   type="color"
   value={
-    selectedBlockFromDraft?.type === "form_field" &&
-    formFieldTextTarget === "placeholder"
-      ? (((selectedBlockFromDraft.data as any).placeholderStyle?.color as string) ??
-        "#bababa")
-      : selectedAppearance.backgroundColor === "transparent"
-        ? "#ffffff"
-        : (selectedAppearance.backgroundColor ?? "#ffffff")
+    selectedAppearance.backgroundColor === "transparent"
+      ? "#ffffff"
+      : (selectedAppearance.backgroundColor ?? "#ffffff")
   }
   onChange={(e) => applyFillColor(e.target.value)}
   className={topBarColorClass(false)}
   title={
-    selectedBlockFromDraft?.type === "form_field" &&
-    formFieldTextTarget === "placeholder"
-      ? "Placeholder font color"
-      : selectedBlockFromDraft?.type === "poll"
-        ? "Poll background color"
-        : "Highlight background color"
+    selectedBlockFromDraft?.type === "poll"
+      ? "Poll background color"
+      : "Highlight background color"
   }
 />
 
@@ -11778,15 +11710,12 @@ selectedContext.kind === "textFx"
       <select
         value={formFieldTextTarget}
         onChange={(e) =>
-          setFormFieldTextTarget(
-            e.target.value as "form" | "text" | "placeholder",
-          )
+          setFormFieldTextTarget(e.target.value as "form" | "text")
         }
         className={inspectorInputClass()}
       >
         <option value="form">Form</option>
         <option value="text">Text</option>
-        <option value="placeholder">Placeholder</option>
       </select>
     </div>
 
@@ -11840,26 +11769,29 @@ selectedContext.kind === "textFx"
             ? "Checkbox Label Text"
             : "Placeholder"}
         </div>
-        <label className="flex items-center gap-2 text-xs text-neutral-600">
-          <input
-            type="checkbox"
-            checked={selectedBlock.data.showPlaceholder !== false}
-            onChange={(e) =>
-              updateSelectedBlock((block) =>
-                block.type !== "form_field"
-                  ? block
-                  : {
-                      ...block,
-                      data: {
-                        ...block.data,
-                        showPlaceholder: e.target.checked,
+
+        {selectedBlock.data.fieldType !== "checkbox_text" ? (
+          <label className="flex items-center gap-2 text-xs text-neutral-600">
+            <input
+              type="checkbox"
+              checked={selectedBlock.data.showPlaceholder !== false}
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "form_field"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          showPlaceholder: e.target.checked,
+                        },
                       },
-                    },
-              )
-            }
-          />
-          Show
-        </label>
+                )
+              }
+            />
+            Show
+          </label>
+        ) : null}
       </div>
 
       <input
@@ -11877,6 +11809,35 @@ selectedContext.kind === "textFx"
           }))
         }
         className={inspectorInputClass()}
+      />
+    </div>
+
+    <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+      <div className={inspectorLabelClass()}>Placeholder Text Color</div>
+
+      <input
+        type="color"
+        value={
+          ((selectedBlock.data as any).placeholderStyle?.color as string) ??
+          "#bababa"
+        }
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "form_field"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    placeholderStyle: {
+                      ...((block.data as any).placeholderStyle ?? {}),
+                      color: e.target.value,
+                    },
+                  },
+                },
+          )
+        }
+        className="mt-3 h-10 w-full rounded-xl border border-neutral-300 bg-white"
       />
     </div>
 
