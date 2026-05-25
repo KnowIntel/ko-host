@@ -5584,8 +5584,17 @@ function renderFormField(
           : undefined,
     };
 
-    const placeholderStyle =
-      "placeholder:text-[rgb(186,186,186)] placeholder:opacity-100";
+const placeholderStyle =
+  "placeholder:opacity-100";
+
+const placeholderColor =
+  ((block.data as any).placeholderStyle?.color as string | undefined) ||
+  "rgb(186, 186, 186)";
+
+const placeholderClassName = `ko-form-placeholder-${block.id.replace(
+  /[^a-zA-Z0-9_-]/g,
+  "",
+)}`;
 
     const showLabel = block.data.showLabel !== false;
     const showPlaceholder = block.data.showPlaceholder !== false;
@@ -5703,6 +5712,14 @@ function renderFormField(
 
     return (
       <div className="h-full w-full p-2" style={getAppearanceStyle(block)}>
+  <style>
+    {`
+      .${placeholderClassName}::placeholder {
+        color: ${placeholderColor};
+        opacity: 1;
+      }
+    `}
+  </style>
         <div className="flex h-full flex-col gap-2">
           {showRating && ratingPosition === "high" ? ratingStars : null}
 
@@ -5721,7 +5738,7 @@ function renderFormField(
 
           {fieldType === "textarea" ? (
             <textarea
-              className={`${inputClass} ${placeholderStyle} min-h-[96px] resize-none`}
+              className={`${inputClass} ${placeholderStyle} ${placeholderClassName} min-h-[96px] resize-none`}
               placeholder={showPlaceholder ? block.data.placeholder : ""}
               defaultValue={block.data.value || ""}
               style={inputVisualStyle}
@@ -5729,7 +5746,7 @@ function renderFormField(
             />
           ) : fieldType === "state" ? (
             <select
-              className={`${inputClass} ${placeholderStyle}`}
+              className={`${inputClass} ${placeholderStyle} ${placeholderClassName}`}
               defaultValue={block.data.value || ""}
               style={inputVisualStyle}
               {...sharedFieldProps}
@@ -5786,17 +5803,15 @@ function renderFormField(
                 {...sharedFieldProps}
               />
 
-              {showLabel ? (
-                <span style={getContainerTextStyle(inputStyle, designKey)}>
-                  {block.data.placeholder || block.data.label || "Checkbox Label"}
-                  {showRequired && block.data.required ? " *" : ""}
-                </span>
-              ) : null}
+<span style={getContainerTextStyle(inputStyle, designKey)}>
+  {block.data.placeholder || block.data.label || "Checkbox Label"}
+  {showRequired && block.data.required ? " *" : ""}
+</span>
             </label>
           ) : (
             <input
               type={fieldType === "phone" ? "tel" : fieldType}
-              className={`${inputClass} ${placeholderStyle}`}
+              className={`${inputClass} ${placeholderStyle} ${placeholderClassName}`}
               placeholder={showPlaceholder ? block.data.placeholder : ""}
               defaultValue={block.data.value || ""}
               style={inputVisualStyle}

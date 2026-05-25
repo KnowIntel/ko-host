@@ -1352,9 +1352,9 @@ const [listingStyleTarget, setListingStyleTarget] = useState<
   "title" | "description" | "metadata" | "price" | "quantity"
 >("title");
 
-const [formFieldTextTarget, setFormFieldTextTarget] = useState<"form" | "text">(
-  "form",
-);
+const [formFieldTextTarget, setFormFieldTextTarget] = useState<
+  "form" | "text" | "placeholder"
+>("form");
 
   const [selectedRsvpElementKey, setSelectedRsvpElementKey] = useState<
     | "form"
@@ -1625,7 +1625,10 @@ const selectedStyle =
     ? (((selectedBlockFromDraft.data as any).inputStyle ??
         (selectedBlockFromDraft.data as any).style ??
         {}) as TextStyle)
-    : (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
+    : formFieldTextTarget === "placeholder"
+      ? (((selectedBlockFromDraft.data as any).placeholderStyle ??
+          {}) as TextStyle)
+      : (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
       : selectedBlockFromDraft?.type === "highlight"
         ? highlightStyleTarget === "body"
           ? (selectedBlockFromDraft.data.bodyStyle ??
@@ -3787,28 +3790,41 @@ if (selectedBlock?.type === "form_field") {
             data: {
               ...block.data,
 
-              inputStyle: {
-                ...((block.data as any).inputStyle ??
-                  block.data.style ??
-                  {}),
-                ...patch,
-              },
-
-              ...(formFieldTextTarget === "form"
+              ...(formFieldTextTarget === "text"
                 ? {
-                    labelStyle: {
-                      ...((block.data as any).labelStyle ??
+                    inputStyle: {
+                      ...((block.data as any).inputStyle ??
                         block.data.style ??
                         {}),
                       ...patch,
                     },
                   }
-                : {}),
+                : formFieldTextTarget === "placeholder"
+                  ? {
+                      placeholderStyle: {
+                        ...((block.data as any).placeholderStyle ?? {}),
+                        color: patch.color,
+                      },
+                    }
+                  : {
+                      style: {
+                        ...((block.data as any).style ?? {}),
+                        ...patch,
+                      },
+
+                      labelStyle: {
+                        ...((block.data as any).labelStyle ??
+                          block.data.style ??
+                          {}),
+                        ...patch,
+                      },
+                    }),
             },
           }
         : block,
     ),
   }));
+
   return;
 }
 
@@ -11646,7 +11662,11 @@ selectedContext.kind === "textFx"
       </div>
 
       <div className="mt-4">
-        <div className={inspectorLabelClass()}>Placeholder</div>
+        <div className={inspectorLabelClass()}>
+  {selectedBlock.data.fieldType === "checkbox_text"
+    ? "Checkbox Label Text"
+    : "Placeholder"}
+</div>
         <input
           type="text"
           value={selectedBlock.data.commentsPlaceholder ?? "Additional comments"}
@@ -11701,13 +11721,16 @@ selectedContext.kind === "textFx"
 
       <select
         value={formFieldTextTarget}
-        onChange={(e) =>
-          setFormFieldTextTarget(e.target.value as "form" | "text")
-        }
+onChange={(e) =>
+  setFormFieldTextTarget(
+    e.target.value as "form" | "text" | "placeholder",
+  )
+}
         className={inspectorInputClass()}
       >
-        <option value="form">Form</option>
-        <option value="text">Text</option>
+<option value="form">Form</option>
+<option value="text">Text</option>
+<option value="placeholder">Placeholder</option>
       </select>
     </div>
 

@@ -900,6 +900,7 @@ export type FormFieldBlock = BaseBlock & {
     style?: TextStyle;
     labelStyle?: TextStyle;
     inputStyle?: TextStyle;
+    placeholderStyle?: TextStyle;
     linkedButtonId?: string;
     allowMultipleSelections?: boolean;
 
@@ -2310,6 +2311,10 @@ case "text_fx":
             paddingRight: 12,
             paddingBottom: 12,
             paddingLeft: 12,
+          },
+          placeholderStyle: {
+            ...createDefaultTextStyle(),
+            color: "rgb(186, 186, 186)",
           },
         },
       };
@@ -4160,6 +4165,12 @@ if (block.type === "form_field") {
         paddingBottom: 12,
         paddingLeft: 12,
         ...((block.data as any).inputStyle ?? block.data.style ?? {}),
+      },
+
+      placeholderStyle: {
+        ...createDefaultTextStyle(),
+        color: "rgb(186, 186, 186)",
+        ...((block.data as any).placeholderStyle ?? {}),
       },
     },
   };
