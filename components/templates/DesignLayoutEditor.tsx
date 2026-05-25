@@ -2860,23 +2860,28 @@ function resolveMediaLogoFromUrl(url: string) {
 
 function applyTextColor(value: string) {
   if (
-    selectedBlock?.type === "form_field" &&
+    selectedBlockFromDraft?.type === "form_field" &&
     formFieldTextTarget === "placeholder"
   ) {
-    updateSelectedBlock((block) =>
-      block.type !== "form_field"
-        ? block
-        : {
-            ...block,
-            data: {
-              ...block.data,
-              placeholderStyle: {
-                ...((block.data as any).placeholderStyle ?? {}),
-                color: value,
+    const targetId = selectedBlockFromDraft.id;
+
+    setDraft((prev) => ({
+      ...prev,
+      blocks: prev.blocks.map((block) =>
+        block.id === targetId && block.type === "form_field"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                placeholderStyle: {
+                  ...((block.data as any).placeholderStyle ?? {}),
+                  color: value,
+                },
               },
-            },
-          },
-    );
+            }
+          : block,
+      ),
+    }));
 
     pushRecentColor(value);
     return;
@@ -9459,18 +9464,28 @@ const idsToExpand =
   title="Font size"
 />
 
-          <input
-            type="color"
-            value={selectedStyle.color ?? "#111827"}
-            onChange={(e) => {
-              const value = e.target.value;
-              requestAnimationFrame(() => {
-                applyTextColor(value);
-              });
-            }}
-            className={topBarColorClass(false)}
-            title="Text color"
-          />
+<input
+  type="color"
+  value={
+    selectedBlockFromDraft?.type === "form_field" &&
+    formFieldTextTarget === "placeholder"
+      ? ((selectedBlockFromDraft.data as any).placeholderStyle?.color ?? "#bababa")
+      : selectedStyle.color ?? "#111827"
+  }
+  onChange={(e) => {
+    const value = e.target.value;
+    requestAnimationFrame(() => {
+      applyTextColor(value);
+    });
+  }}
+  className={topBarColorClass(false)}
+  title={
+    selectedBlockFromDraft?.type === "form_field" &&
+    formFieldTextTarget === "placeholder"
+      ? "Placeholder text color"
+      : "Text color"
+  }
+/>
 
           <button
             type="button"
