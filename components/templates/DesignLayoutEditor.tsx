@@ -15463,31 +15463,31 @@ onClick={() =>
     const triggerOptions = [
       {
         label: "Thin Chevron",
-        base: "icon_thin_chevron",
+        base: "trigger_symbol_thin_chevron",
       },
       {
         label: "Bold Chevron",
-        base: "icon_bold_chevron",
+        base: "trigger_symbol_bold_chevron",
       },
       {
         label: "Triple Chevron",
-        base: "icon_triple_chevron",
+        base: "trigger_symbol_triple_chevron",
       },
       {
         label: "Right Arrow",
-        base: "icon_right_arrow",
+        base: "trigger_symbol_right_arrow",
       },
       {
         label: "Solid Arrowhead",
-        base: "icon_solid_arrowhead",
+        base: "trigger_symbol_solid_arrowhead",
       },
       {
         label: "Open Arrowhead",
-        base: "icon_open_arrowhead",
+        base: "trigger_symbol_open_arrowhead",
       },
       {
         label: "Play Triangle",
-        base: "icon_play_triangle",
+        base: "trigger_symbol_play_triangle",
       },
     ];
 
@@ -15502,11 +15502,11 @@ onClick={() =>
 
     const selectedTriggerSymbol =
       (selectedBlock.data as any).triggerSymbol ??
-      "/icons/icon_thin_chevron_black.png";
+      "/icons/trigger_symbol_thin_chevron_black.png";
 
     const selectedFileName =
       selectedTriggerSymbol.split("/").pop()?.replace(".png", "") ??
-      "icon_thin_chevron_black";
+      "trigger_symbol_thin_chevron_black";
 
     const selectedColor =
       (selectedBlock.data as any).triggerSymbolColor ??
@@ -15518,7 +15518,7 @@ onClick={() =>
     const selectedBase =
       triggerOptions.find((option) =>
         selectedFileName.startsWith(option.base),
-      )?.base ?? "icon_thin_chevron";
+      )?.base ?? "trigger_symbol_thin_chevron";
 
     const buildTriggerPath = (base: string, color: string) =>
       `/icons/${base}_${color}.png`;
