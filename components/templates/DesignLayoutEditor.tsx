@@ -15456,37 +15456,146 @@ onClick={() =>
 </div>
   </div>
 ) : (
-          <div className="mt-3">
-            <div className={inspectorLabelClass()}>Trigger Symbol</div>
-            <select
-              value={
-                (selectedBlock.data as any).triggerSymbol ??
-                "/icons/icon_thin_chevron.png"
-              }
-              onChange={(e) =>
-                updateSelectedBlock((block) =>
-                  block.type !== "link_hub"
-                    ? block
-                    : {
-                        ...block,
-                        data: {
-                          ...block.data,
-                          triggerSymbol: e.target.value,
+<div className="mt-3">
+  <div className={inspectorLabelClass()}>Trigger Symbol</div>
+
+  {(() => {
+    const triggerOptions = [
+      {
+        label: "Thin Chevron",
+        base: "icon_thin_chevron",
+      },
+      {
+        label: "Bold Chevron",
+        base: "icon_bold_chevron",
+      },
+      {
+        label: "Triple Chevron",
+        base: "icon_triple_chevron",
+      },
+      {
+        label: "Right Arrow",
+        base: "icon_right_arrow",
+      },
+      {
+        label: "Solid Arrowhead",
+        base: "icon_solid_arrowhead",
+      },
+      {
+        label: "Open Arrowhead",
+        base: "icon_open_arrowhead",
+      },
+      {
+        label: "Play Triangle",
+        base: "icon_play_triangle",
+      },
+    ];
+
+    const triggerColors = [
+      { label: "Black", value: "black", swatch: "#000000" },
+      { label: "White", value: "white", swatch: "#ffffff" },
+      { label: "Blue", value: "blue", swatch: "#2563eb" },
+      { label: "Red", value: "red", swatch: "#dc2626" },
+      { label: "Gray", value: "gray", swatch: "#6b7280" },
+      { label: "Green", value: "green", swatch: "#16a34a" },
+    ];
+
+    const selectedTriggerSymbol =
+      (selectedBlock.data as any).triggerSymbol ??
+      "/icons/icon_thin_chevron_black.png";
+
+    const selectedFileName =
+      selectedTriggerSymbol.split("/").pop()?.replace(".png", "") ??
+      "icon_thin_chevron_black";
+
+    const selectedColor =
+      (selectedBlock.data as any).triggerSymbolColor ??
+      triggerColors.find((color) =>
+        selectedFileName.endsWith(`_${color.value}`),
+      )?.value ??
+      "black";
+
+    const selectedBase =
+      triggerOptions.find((option) =>
+        selectedFileName.startsWith(option.base),
+      )?.base ?? "icon_thin_chevron";
+
+    const buildTriggerPath = (base: string, color: string) =>
+      `/icons/${base}_${color}.png`;
+
+    return (
+      <>
+        <select
+          value={selectedBase}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "link_hub"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      triggerSymbol: buildTriggerPath(
+                        e.target.value,
+                        selectedColor,
+                      ),
+                      triggerSymbolBase: e.target.value,
+                      triggerSymbolColor: selectedColor,
+                    },
+                  },
+            )
+          }
+          className={inspectorInputClass()}
+        >
+          {triggerOptions.map((option) => (
+            <option key={option.base} value={option.base}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+
+        <div className="mt-3 flex items-center justify-between gap-2">
+          {triggerColors.map((color) => {
+            const isSelected = selectedColor === color.value;
+
+            return (
+              <button
+                key={color.value}
+                type="button"
+                title={color.label}
+                onClick={() =>
+                  updateSelectedBlock((block) =>
+                    block.type !== "link_hub"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            triggerSymbol: buildTriggerPath(
+                              selectedBase,
+                              color.value,
+                            ),
+                            triggerSymbolBase: selectedBase,
+                            triggerSymbolColor: color.value,
+                          },
                         },
-                      },
-                )
-              }
-              className={inspectorInputClass()}
-            >
-              <option value="/icons/icon_thin_chevron.png">Thin Chevron</option>
-              <option value="/icons/icon_bold_chevron.png">Bold Chevron</option>
-              <option value="/icons/icon_triple_chevron.png">Triple Chevron</option>
-              <option value="/icons/icon_right_arrow.png">Right Arrow</option>
-              <option value="/icons/icon_solid_arrowhead.png">Solid Arrowhead</option>
-              <option value="/icons/icon_open_arrowhead.png">Open Arrowhead</option>
-              <option value="/icons/icon_play_triangle.png">Play Triangle</option>
-            </select>
-          </div>
+                  )
+                }
+                className={[
+                  "h-7 w-7 rounded border transition",
+                  isSelected
+                    ? "border-neutral-950 ring-2 ring-neutral-950/20"
+                    : "border-neutral-400 hover:scale-105",
+                ].join(" ")}
+                style={{ backgroundColor: color.swatch }}
+              />
+            );
+          })}
+        </div>
+      </>
+    );
+  })()}
+</div>
         )}
       </div>
     ) : null}
