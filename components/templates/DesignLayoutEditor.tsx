@@ -1357,6 +1357,7 @@ export default function DesignLayoutEditor({
   builderCapacityContent,
 }: Props) {
   const [resetDraftModalOpen, setResetDraftModalOpen] = useState(false);
+  const [clearClipboardModalOpen, setClearClipboardModalOpen] = useState(false);
   const [draggedPageId, setDraggedPageId] = useState<string | null>(null);
   const selectedPageLength =
     ((draft as DraftWithPageExtras).pageLength ?? "1800") as PageLengthOption;
@@ -22841,7 +22842,7 @@ try {
 
         <button
           type="button"
-          onClick={handleClearClipboard}
+          onClick={() => setClearClipboardModalOpen(true)}
           disabled={clipboardEntries.length === 0}
           className="rounded-lg border border-white/15 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
         >
@@ -22953,6 +22954,20 @@ try {
     ))}
   </div>
 </AppModal>
+
+<AppModal
+  open={clearClipboardModalOpen}
+  title="Clear clipboard?"
+  description="This will remove all copied blocks from the clipboard."
+  confirmText="Clear All"
+  cancelText="Cancel"
+  danger
+  onConfirm={() => {
+    handleClearClipboard();
+    setClearClipboardModalOpen(false);
+  }}
+  onCancel={() => setClearClipboardModalOpen(false)}
+/>
 
 <AppModal
   open={richTextLinkModalOpen}
