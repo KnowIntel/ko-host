@@ -139,7 +139,46 @@ trailer: {
   message:
     "You opened the trailer page. Normally this could preview a course, introduce a program, showcase highlights, or dramatically convince visitors their life is about to change after pressing play.",
 },
+about: {
+  title: "Demo About",
+  eyebrow: "Creator Link Hub Demo",
+  message:
+    "You opened the about page. In a real creator hub, this could introduce the creator, share their story, explain their brand, list accomplishments, or include a carefully written paragraph pretending they accidentally became successful.",
+},
 
+portfolio: {
+  title: "Demo Portfolio",
+  eyebrow: "Creator Link Hub Demo",
+  message:
+    "You clicked the portfolio page. Normally this could showcase projects, designs, photography, client work, creative experiments, or screenshots arranged with suspiciously high confidence.",
+},
+
+github: {
+  title: "Demo GitHub",
+  eyebrow: "Creator Link Hub Demo",
+  message:
+    "You opened the GitHub destination. In a real microsite, this could feature repositories, open-source projects, developer experiments, side projects, or code written at 1:14am with complete emotional commitment.",
+},
+
+linkedin: {
+  title: "Demo LinkedIn",
+  eyebrow: "Creator Link Hub Demo",
+  message:
+    "You clicked the LinkedIn page. This is where someone could share career experience, achievements, networking information, endorsements, or a motivational post about leadership and coffee.",
+},
+myblog: {
+  title: "Demo Blog",
+  eyebrow: "Creator Link Hub Demo",
+  message:
+    "You opened the blog page. Normally this could feature articles, updates, tutorials, opinions, creator insights, or a post titled ‘Things I Wish I Knew Earlier’ written at midnight.",
+},
+
+emailme: {
+  title: "Demo Email",
+  eyebrow: "Creator Link Hub Demo",
+  message:
+    "You opened the email destination. In a real creator microsite, this could launch a contact form, newsletter signup, collaboration inquiry, support request, or a surprisingly aggressive automated welcome sequence.",
+},
 
 
 
