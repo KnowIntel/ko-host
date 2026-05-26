@@ -174,14 +174,6 @@ type DraftPageVisibility = Partial<{
   description: boolean;
 }>;
 
-type ClipboardEntry = {
-  clipboardId: string;
-  copiedAt: number;
-  block: MicrositeBlock;
-};
-
-const [clipboardEntries, setClipboardEntries] = useState<ClipboardEntry[]>([]);
-const [clipboardOpen, setClipboardOpen] = useState(true);
 
 type DraftPageElementLayout = {
   colStart: number;
@@ -1583,6 +1575,16 @@ type TimelineStyleTarget =
   | "entryTitle"
   | "subtitle"
   | "description";
+
+  
+type ClipboardEntry = {
+  clipboardId: string;
+  copiedAt: number;
+  block: MicrositeBlock;
+};
+
+const [clipboardEntries, setClipboardEntries] = useState<ClipboardEntry[]>([]);
+const [clipboardOpen, setClipboardOpen] = useState(true);
 
 const [countdownStyleTarget, setCountdownStyleTarget] =
   useState<CountdownStyleTarget>("background");
