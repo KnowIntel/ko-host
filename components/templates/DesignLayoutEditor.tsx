@@ -340,6 +340,7 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "City", type: "icon", iconName: "city" },
     { kind: "block", label: "Gym Dumbbell", type: "icon", iconName: "gym-dumbbell" },
     { kind: "block", label: "Download", type: "icon", iconName: "download" },
+    { kind: "block", label: "External Link", type: "icon", iconName: "external-link" },
     { kind: "block", label: "House", type: "icon", iconName: "house" },
     { kind: "block", label: "Star", type: "icon", iconName: "star" },
     { kind: "block", label: "Heart", type: "icon", iconName: "heart" },
@@ -1055,6 +1056,7 @@ function getToolGlyph(label: string) {
   if (label === "City") return "🏙";
   if (label === "Gym Dumbbell") return "🏋️";
   if (label === "Download") return "⬇️";
+  if (label === "External Link") return "↗";
   if (label === "House") return "⌂";
   if (label === "Star") return "⭐";
   if (label === "Heart") return "❤";
