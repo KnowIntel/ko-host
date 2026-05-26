@@ -1583,8 +1583,33 @@ type ClipboardEntry = {
   block: MicrositeBlock;
 };
 
-const [clipboardEntries, setClipboardEntries] = useState<ClipboardEntry[]>([]);
+const [clipboardEntries, setClipboardEntries] = useState<ClipboardEntry[]>(() => {
+  if (typeof window === "undefined") return [];
+
+  try {
+    const raw = window.sessionStorage.getItem("ko-host-canvas-clipboard");
+    const parsed = raw ? JSON.parse(raw) : [];
+
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+});
+
 const [clipboardOpen, setClipboardOpen] = useState(false);
+
+useEffect(() => {
+  if (typeof window === "undefined") return;
+
+  try {
+    window.sessionStorage.setItem(
+      "ko-host-canvas-clipboard",
+      JSON.stringify(clipboardEntries),
+    );
+  } catch {
+    // ignore clipboard persistence errors
+  }
+}, [clipboardEntries]);
 
 const [countdownStyleTarget, setCountdownStyleTarget] =
   useState<CountdownStyleTarget>("background");
