@@ -22823,7 +22823,9 @@ try {
     onClick={() => setClipboardOpen((prev) => !prev)}
     className="flex w-full items-center justify-between text-left text-sm font-semibold text-white"
   >
-    <span>Clipboard</span>
+    <span>
+  Clipboard ({clipboardEntries.length})
+</span>
     <span className="text-xs text-white/70">
       {clipboardOpen ? "Collapse" : "Expand"}
     </span>
@@ -22852,51 +22854,53 @@ try {
           Copied blocks will appear here.
         </div>
       ) : (
-        <div className="space-y-2">
-          {clipboardEntries.map((entry) => (
-            <div
-              key={entry.clipboardId}
-              className="flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-black/10 px-3 py-2"
-            >
-              <div className="min-w-0">
-                <div className="truncate text-xs font-semibold text-white">
-                  {entry.clipboardId}
-                </div>
-                <div className="text-[11px] text-white/45">
-                  {entry.block.label ?? entry.block.type}
-                </div>
-              </div>
-
-              <div className="flex shrink-0 items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => handlePasteClipboardBlock(entry)}
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/15 bg-white/10 transition hover:bg-white/20"
-                  title="Paste Block"
-                >
-                  <img
-                    src="/icons/icon_canvas_paste_block.png"
-                    alt="Paste Block"
-                    className="h-5 w-5"
-                  />
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleRemoveClipboardEntry(entry.clipboardId)}
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/15 bg-white/10 transition hover:bg-white/20"
-                  title="Remove Block from Clipboard"
-                >
-                  <img
-                    src="/icons/icon_canvas_remove_block.png"
-                    alt="Remove Block from Clipboard"
-                    className="h-5 w-5"
-                  />
-                </button>
-              </div>
-            </div>
-          ))}
+<div className="overflow-x-auto pb-1">
+  <div className="flex w-max min-w-full gap-3">
+    {clipboardEntries.map((entry) => (
+      <div
+        key={entry.clipboardId}
+        className="flex w-[150px] shrink-0 flex-col rounded-lg border border-white/10 bg-black/10 px-3 py-2"
+      >
+        <div className="min-w-0">
+          <div className="truncate text-xs font-semibold text-white">
+            {entry.clipboardId}
+          </div>
+          <div className="truncate text-[11px] text-white/45">
+            {entry.block.label ?? entry.block.type}
+          </div>
         </div>
+
+        <div className="mt-3 flex items-center justify-center gap-2">
+          <button
+            type="button"
+            onClick={() => handlePasteClipboardBlock(entry)}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/15 bg-white/10 transition hover:bg-white/20"
+            title="Paste Block"
+          >
+            <img
+              src="/icons/icon_canvas_paste_block.png"
+              alt="Paste Block"
+              className="h-5 w-5"
+            />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleRemoveClipboardEntry(entry.clipboardId)}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/15 bg-white/10 transition hover:bg-white/20"
+            title="Remove Block from Clipboard"
+          >
+            <img
+              src="/icons/icon_canvas_remove_block.png"
+              alt="Remove Block from Clipboard"
+              className="h-5 w-5"
+            />
+          </button>
+        </div>
+      </div>
+    ))}
+  </div>
+</div>
       )}
     </div>
   ) : null}
