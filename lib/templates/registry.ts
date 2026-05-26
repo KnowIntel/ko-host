@@ -76,7 +76,7 @@ export type TemplateKey =
   | "bachelorette_party"
   | "charity_gala_event"
   | "alumni_meetup"
-  | "neighborhood_bbq"
+  | "social_gathering"
   | "yard_sale"
   | "sports_team_party"
   | "bridal_shower"
@@ -1088,13 +1088,13 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     defaultDraft: { title: "Alumni Meetup", slugSuggestion: "alumnimeetup" },
   }, */
   {
-    key: "neighborhood_bbq",
-    title: "Neighborhood BBQ",
+    key: "social_gathering",
+    title: "Social Gathering",
     description: "Invite neighbors and share details.",
-    thumb: "neighborhoodbbq",
+    thumb: "socialgathering",
     setupMins: 2,
-    demoSlug: "bbq",
-    defaultDraft: { title: "Neighborhood BBQ", slugSuggestion: "neighborhoodbbq" },
+    demoSlug: "socialgathering",
+    defaultDraft: { title: "Social Gathering", slugSuggestion: "socialgathering" },
   },
   {
     key: "yard_sale",
