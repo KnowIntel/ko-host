@@ -1057,6 +1057,7 @@ export type LinkHubBlock = BaseBlock & {
     logoFileName?: string;
 
     imagePlacement?: "flushLeft" | "floatLeft" | "flushRight" | "floatRight";
+    imageFrame?: "circle" | "square";
 
     triggerSymbol?: string;
     triggerSymbolSize?: number;
@@ -3022,6 +3023,7 @@ case "donation":
           urlStyle: createDefaultTextStyle(),
 
           imagePlacement: "floatLeft",
+          imageFrame: "circle",
           imageWidth: 40,
 
           triggerSymbol: "/icons/icon_thin_chevron.png",

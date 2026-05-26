@@ -7652,34 +7652,37 @@ function renderLinkHub(
             const logoUrl = linkItem.logoUrl;
             const description = String(linkItem.description ?? "").trim();
 
-            const imageNode = logoUrl ? (
-              <span
-                className={[
-                  "flex shrink-0 items-center justify-center overflow-hidden bg-white",
-                  isFlush
-                    ? "self-stretch rounded-none border-0"
-                    : "rounded-full border",
-                  isLightDesign(designKey)
-                    ? "border-neutral-200"
-                    : "border-white/15",
-                ].join(" ")}
-                style={{
-                  width: `${imageWidth}px`,
-                  minWidth: `${imageWidth}px`,
-                  ...(isFlush
-                    ? {}
-                    : {
-                        height: `${imageWidth}px`,
-                      }),
-                }}
-              >
-                <img
-                  src={logoUrl}
-                  alt=""
-                  className="h-full w-full object-cover"
-                />
-              </span>
-            ) : null;
+const imageFrame = (block.data as any).imageFrame ?? "circle";
+
+const imageNode = logoUrl ? (
+  <span
+    className={[
+      "flex shrink-0 items-center justify-center overflow-hidden",
+      isFlush
+        ? "self-stretch rounded-none border-0"
+        : imageFrame === "square"
+          ? "rounded-lg border"
+          : "rounded-full border",
+      isLightDesign(designKey) ? "border-neutral-200" : "border-white/15",
+    ].join(" ")}
+    style={{
+      width: `${imageWidth}px`,
+      minWidth: `${imageWidth}px`,
+      backgroundColor: "transparent",
+      ...(isFlush
+        ? {}
+        : {
+            height: `${imageWidth}px`,
+          }),
+    }}
+  >
+    <img
+      src={logoUrl}
+      alt=""
+      className="h-full w-full object-contain"
+    />
+  </span>
+) : null;
 
             const triggerNode =
               !imageOnRight && triggerSymbol ? (

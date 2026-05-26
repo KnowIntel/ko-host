@@ -7324,7 +7324,7 @@ const imageWidth = Number((block.data as any).imageWidth ?? 40);
     gap: `${Number((block.data as any).cardGap ?? 12)}px`,
   }}
 >
-        {block.data.items.slice(0, 4).map((item, index) => {
+        {block.data.items.map((item, index) => {
           const linkItem = item as LinkItem & {
             description?: string;
             logoUrl?: string;
@@ -7333,22 +7333,28 @@ const imageWidth = Number((block.data as any).imageWidth ?? 40);
           const description = String(linkItem.description ?? "").trim();
           const logoUrl = linkItem.logoUrl;
 
-          const imageNode = logoUrl ? (
-<span
-  className={[
-    "flex shrink-0 items-center justify-center overflow-hidden bg-white",
-    isFlush
-      ? "self-stretch rounded-none border-0"
-      : "rounded-full border border-neutral-200",
-  ].join(" ")}
-  style={{
-    width: `${imageWidth}px`,
-    ...(isFlush ? {} : { height: `${imageWidth}px` }),
-  }}
->
-              <img src={logoUrl} alt="" className="h-full w-full object-cover" />
-            </span>
-          ) : null;
+          const imageFrame = (block.data as any).imageFrame ?? "circle";
+
+const imageNode = logoUrl ? (
+  <span
+    className={[
+      "flex shrink-0 items-center justify-center overflow-hidden",
+      isFlush
+        ? "self-stretch rounded-none border-0"
+        : imageFrame === "square"
+          ? "rounded-lg border border-neutral-200"
+          : "rounded-full border border-neutral-200",
+    ].join(" ")}
+    style={{
+      width: `${imageWidth}px`,
+      minWidth: `${imageWidth}px`,
+      backgroundColor: "transparent",
+      ...(isFlush ? {} : { height: `${imageWidth}px` }),
+    }}
+  >
+    <img src={logoUrl} alt="" className="h-full w-full object-contain" />
+  </span>
+) : null;
 
           const triggerNode =
             !imageOnRight && triggerSymbol ? (
@@ -15262,6 +15268,35 @@ onClick={() =>
       }
       className="w-full"
     />
+
+    {["floatLeft", "floatRight"].includes(
+      (selectedBlock.data as any).imagePlacement ?? "floatLeft",
+    ) ? (
+      <div className="mt-4">
+        <div className={inspectorLabelClass()}>Image Frame</div>
+
+        <select
+          value={(selectedBlock.data as any).imageFrame ?? "circle"}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "link_hub"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      imageFrame: e.target.value as "circle" | "square",
+                    },
+                  },
+            )
+          }
+          className={inspectorInputClass()}
+        >
+          <option value="circle">Circle</option>
+          <option value="square">Square</option>
+        </select>
+      </div>
+    ) : null}
   </div>
 ) : null}
 
