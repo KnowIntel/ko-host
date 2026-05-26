@@ -5759,11 +5759,18 @@ return (
               style={inputVisualStyle}
               {...sharedFieldProps}
             >
-              <option value="" disabled>
-                {showPlaceholder
-                  ? block.data.placeholder || "Select state..."
-                  : "Select state..."}
-              </option>
+<option
+  value=""
+  disabled
+  style={{
+    color: placeholderColor,
+    WebkitTextFillColor: placeholderColor,
+  }}
+>
+  {showPlaceholder
+    ? block.data.placeholder || "Select state..."
+    : "Select state..."}
+</option>
 
               {stateOptions.map((state) => (
                 <option key={state} value={state}>

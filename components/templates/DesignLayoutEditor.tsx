@@ -11718,6 +11718,32 @@ selectedContext.kind === "textFx"
         <option value="text">Text</option>
       </select>
     </div>
+    
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Field Type</div>
+      <select
+        value={selectedBlock.data.fieldType}
+        onChange={(e) =>
+          setDraft((prev) => ({
+            ...prev,
+            blocks: updateFormField(
+              prev.blocks,
+              selectedBlock.id,
+              "fieldType",
+              e.target.value,
+            ),
+          }))
+        }
+        className={inspectorInputClass()}
+      >
+        <option value="text">Text</option>
+        <option value="email">Email</option>
+        <option value="phone">Phone</option>
+        <option value="textarea">Textarea</option>
+        <option value="state">State</option>
+        <option value="checkbox_text">Checkbox</option>
+      </select>
+    </div>
 
     <div className="mt-4">
       <div className="mb-2 flex items-center justify-between gap-3">
@@ -11873,32 +11899,6 @@ selectedContext.kind === "textFx"
       <p className="mt-2 text-xs leading-5 text-neutral-500">
         When this button is pressed, this field will be included in the combined general submission.
       </p>
-    </div>
-
-    <div className="mt-4">
-      <div className={inspectorLabelClass()}>Field Type</div>
-      <select
-        value={selectedBlock.data.fieldType}
-        onChange={(e) =>
-          setDraft((prev) => ({
-            ...prev,
-            blocks: updateFormField(
-              prev.blocks,
-              selectedBlock.id,
-              "fieldType",
-              e.target.value,
-            ),
-          }))
-        }
-        className={inspectorInputClass()}
-      >
-        <option value="text">Text</option>
-        <option value="email">Email</option>
-        <option value="phone">Phone</option>
-        <option value="textarea">Textarea</option>
-        <option value="state">State</option>
-        <option value="checkbox_text">Checkbox</option>
-      </select>
     </div>
 
     {selectedBlock.data.fieldType === "checkbox_text" ? (
