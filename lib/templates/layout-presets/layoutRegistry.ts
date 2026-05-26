@@ -6,7 +6,7 @@ import enthusiastLayouts from "./templates/enthusiast_networking";
 import birthdayLayouts from "./templates/birthday";
 import reunionLayouts from "./templates/reunion";
 import roastLayouts from "./templates/roast_session";
-import property_listingLayouts from "./templates/property_listing";
+import open_houseLayouts from "./templates/open_house";
 import productLaunchLayouts from "./templates/product_launch";
 import crowdfundingLayouts from "./templates/crowdfunding_campaign";
 import resumeprofileLayouts from "./templates/resume_profile";
@@ -34,7 +34,7 @@ const registry: Record<string, TemplateLayoutRegistry> = {
   enthusiast_networking: enthusiastLayouts,
   birthday_party: birthdayLayouts,
   family_reunion: reunionLayouts,
-  property_listing: property_listingLayouts,
+  open_house: open_houseLayouts,
   roast_session: roastLayouts,
   product_launch: productLaunchLayouts,
   crowdfunding_campaign: crowdfundingLayouts,

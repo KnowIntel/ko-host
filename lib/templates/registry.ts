@@ -5,7 +5,7 @@ export type TemplateKey =
   | "crowdfunding_campaign"
   | "family_reunion"
   | "memorial_tribute"
-  | "open_house"
+  // | "open_house"
   | "birthday_party"
   | "product_launch"
   | "waitlist"
@@ -76,7 +76,7 @@ export type TemplateKey =
   | "bachelorette_party"
   | "charity_gala_event"
   | "alumni_meetup"
-  | "neighborhood_bbq"
+  | "social_gathering"
   | "yard_sale"
   | "sports_team_party"
   | "bridal_shower"
@@ -194,7 +194,7 @@ const POPULAR_KEYS = new Set<TemplateKey>([
 ]);
 
 const NEW_KEYS = new Set<TemplateKey>([
-  "open_house",
+  // "open_house",
   "crowdfunding_campaign",
   "beta_testing",
   "private_discord",
@@ -210,7 +210,7 @@ const NEW_KEYS = new Set<TemplateKey>([
   "chat_room",
   "speed_dating",
   "guided_tutorial",
-  "custom_template",
+  // "custom_template",
 ]);
 
 function inferBadge(key: TemplateKey): TemplateBadge {
@@ -1088,13 +1088,13 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     defaultDraft: { title: "Alumni Meetup", slugSuggestion: "alumnimeetup" },
   }, */
   {
-    key: "neighborhood_bbq",
-    title: "Neighborhood BBQ",
+    key: "social_gathering",
+    title: "Social Gathering",
     description: "Invite neighbors and share details.",
-    thumb: "neighborhoodbbq",
+    thumb: "socialgathering",
     setupMins: 2,
-    demoSlug: "bbq",
-    defaultDraft: { title: "Neighborhood BBQ", slugSuggestion: "neighborhoodbbq" },
+    demoSlug: "socialgathering",
+    defaultDraft: { title: "Social Gathering", slugSuggestion: "socialgathering" },
   },
   {
     key: "yard_sale",
