@@ -5756,23 +5756,22 @@ return (
 <select
   className={`${inputClass} ${placeholderStyle} ${safePlaceholderClassName}`}
   defaultValue={block.data.value || ""}
-  style={{
-    ...inputVisualStyle,
-    color: block.data.value ? inputVisualStyle.color : placeholderColor,
-    WebkitTextFillColor: block.data.value
-      ? inputVisualStyle.WebkitTextFillColor
-      : placeholderColor,
-  }}
+style={{
+  ...inputVisualStyle,
+  color: inputVisualStyle.color,
+  WebkitTextFillColor: inputVisualStyle.WebkitTextFillColor,
+}}
   {...sharedFieldProps}
 >
-  <option
-    value=""
-    disabled
-    style={{
-      color: placeholderColor,
-      WebkitTextFillColor: placeholderColor,
-    }}
-  >
+<option
+  value=""
+  disabled
+  hidden
+  style={{
+    color: placeholderColor,
+    WebkitTextFillColor: placeholderColor,
+  }}
+>
     {showPlaceholder
       ? block.data.placeholder || "Select state..."
       : "Select state..."}
