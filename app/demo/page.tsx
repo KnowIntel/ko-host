@@ -13,11 +13,10 @@ function templateKeyFromSubdomain(sub: string): string | null {
     birthday: "party_birthday",
     reunion: "family_reunion",
     memorial: "memorial_tribute",
-    openhouse: "open_house",
+    property_listing: "property_listing",
     launch: "product_launch",
     waitlist: "product_launch_waitlist",
     crowdfunding: "crowdfunding_campaign",
-    property: "property_listing",
     rental: "property_listing_rental",
     portfolio: "resume_portfolio",
   };

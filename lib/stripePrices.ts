@@ -11,7 +11,6 @@ export type TemplateKey =
   | "family_reunion"
   | "memorial_tribute"
   | "property_listing"
-  | "open_house"
   | "product_launch"
   | "crowdfunding_campaign"
   | "resume_portfolio";
@@ -39,8 +38,6 @@ export function getPriceIdForTemplate(templateKey: string): string | null {
       return mustGetEnv("STRIPE_PRICE_MEMORIAL");
     case "property_listing":
       return mustGetEnv("STRIPE_PRICE_PROPERTY");
-    case "open_house":
-      return mustGetEnv("STRIPE_PRICE_OPENHOUSE");
     case "product_launch":
       return mustGetEnv("STRIPE_PRICE_LAUNCH");
     case "crowdfunding_campaign":

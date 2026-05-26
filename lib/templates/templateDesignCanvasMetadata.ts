@@ -389,7 +389,7 @@ export const TEMPLATE_DESIGN_CANVAS_METADATA: Record<
   TemplateOverlayMetadata
 > = {
   [normalizeTemplateName("Wedding")]: createTemplateCanvasMetadata("Wedding"),
-  [normalizeTemplateName("Open House")]: createTemplateCanvasMetadata("Open House"),
+  [normalizeTemplateName("Property Listing")]: createTemplateCanvasMetadata("Property Listing"),
   [normalizeTemplateName("Product Launch")]: createTemplateCanvasMetadata("Product Launch"),
   [normalizeTemplateName("Birthday")]: createTemplateCanvasMetadata("Birthday"),
   [normalizeTemplateName("Custom Template")]: createTemplateCanvasMetadata("Custom Template"),

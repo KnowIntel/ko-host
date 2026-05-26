@@ -70,7 +70,7 @@ const draftPageCountByTemplateDesignKey: Record<string, number> = {
   "memorial_tribute:elegant": 1,
   "memorial_tribute:soft": 1,
 
-  "open_house:signature": 1,
+  "property_listing:signature": 1,
 
   "product_launch:simplistic": 1,
 
