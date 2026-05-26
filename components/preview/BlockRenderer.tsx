@@ -5584,14 +5584,13 @@ function renderFormField(
           : undefined,
     };
 
-const placeholderStyle =
-  "placeholder:opacity-100";
+const placeholderStyle = "placeholder:opacity-100";
 
 const placeholderColor =
   ((block.data as any).placeholderStyle?.color as string | undefined) ||
   "rgb(186, 186, 186)";
 
-const placeholderClassName = `ko-form-placeholder-${block.id.replace(
+const safePlaceholderClassName = `ko-form-placeholder-${block.id.replace(
   /[^a-zA-Z0-9_-]/g,
   "",
 )}`;
@@ -5710,17 +5709,26 @@ const placeholderClassName = `ko-form-placeholder-${block.id.replace(
       </div>
     );
 
-    return (
-      <div className="h-full w-full p-2" style={getAppearanceStyle(block)}>
-  <style>
-    {`
-      .${placeholderClassName}::placeholder {
-        color: ${placeholderColor};
-        opacity: 1;
-      }
-    `}
-  </style>
-        <div className="flex h-full flex-col gap-2">
+return (
+  <div className="h-full w-full p-2" style={getAppearanceStyle(block)}>
+    <style
+      dangerouslySetInnerHTML={{
+        __html: `
+          .${safePlaceholderClassName}::placeholder {
+            color: ${placeholderColor} !important;
+            opacity: 1 !important;
+            -webkit-text-fill-color: ${placeholderColor} !important;
+          }
+          .${safePlaceholderClassName}::-webkit-input-placeholder {
+            color: ${placeholderColor} !important;
+            opacity: 1 !important;
+            -webkit-text-fill-color: ${placeholderColor} !important;
+          }
+        `,
+      }}
+    />
+
+    <div className="flex h-full flex-col gap-2">
           {showRating && ratingPosition === "high" ? ratingStars : null}
 
           {showLabel && fieldType !== "checkbox_text" ? (
@@ -5738,7 +5746,7 @@ const placeholderClassName = `ko-form-placeholder-${block.id.replace(
 
           {fieldType === "textarea" ? (
             <textarea
-              className={`${inputClass} ${placeholderStyle} ${placeholderClassName} min-h-[96px] resize-none`}
+              className={`${inputClass} ${placeholderStyle} ${safePlaceholderClassName} min-h-[96px] resize-none`}
               placeholder={showPlaceholder ? block.data.placeholder : ""}
               defaultValue={block.data.value || ""}
               style={inputVisualStyle}
@@ -5746,7 +5754,7 @@ const placeholderClassName = `ko-form-placeholder-${block.id.replace(
             />
           ) : fieldType === "state" ? (
             <select
-              className={`${inputClass} ${placeholderStyle} ${placeholderClassName}`}
+              className={`${inputClass} ${placeholderStyle} ${safePlaceholderClassName}`}
               defaultValue={block.data.value || ""}
               style={inputVisualStyle}
               {...sharedFieldProps}
@@ -5811,7 +5819,7 @@ const placeholderClassName = `ko-form-placeholder-${block.id.replace(
           ) : (
             <input
               type={fieldType === "phone" ? "tel" : fieldType}
-              className={`${inputClass} ${placeholderStyle} ${placeholderClassName}`}
+              className={`${inputClass} ${placeholderStyle} ${safePlaceholderClassName}`}
               placeholder={showPlaceholder ? block.data.placeholder : ""}
               defaultValue={block.data.value || ""}
               style={inputVisualStyle}
