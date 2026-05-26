@@ -174,6 +174,15 @@ type DraftPageVisibility = Partial<{
   description: boolean;
 }>;
 
+type ClipboardEntry = {
+  clipboardId: string;
+  copiedAt: number;
+  block: MicrositeBlock;
+};
+
+const [clipboardEntries, setClipboardEntries] = useState<ClipboardEntry[]>([]);
+const [clipboardOpen, setClipboardOpen] = useState(true);
+
 type DraftPageElementLayout = {
   colStart: number;
   rowStart: number;
@@ -633,6 +642,16 @@ function resolveFontFamily(fontFamily?: string) {
 
 function makeClientId(prefix: string) {
   return `${prefix}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function makeClipboardId() {
+  return `clip_${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function cloneClipboardBlock(
+  block: MicrositeBlock,
+): MicrositeBlock {
+  return structuredClone(block);
 }
 
 function buildCanvasItems(
@@ -2548,11 +2567,27 @@ function handleCanvasShortcuts(event: KeyboardEvent) {
 
   if (!event.ctrlKey) return;
 
-  if (event.key.toLowerCase() === "v") {
-    event.preventDefault();
-    handleDuplicateCanvasBlock(blockId);
-    return;
-  }
+if (event.key.toLowerCase() === "c") {
+  const active = document.activeElement;
+
+  const isTyping =
+    active instanceof HTMLInputElement ||
+    active instanceof HTMLTextAreaElement ||
+    active instanceof HTMLSelectElement ||
+    active?.getAttribute("contenteditable") === "true";
+
+  if (isTyping) return;
+
+  event.preventDefault();
+  handleCopyCanvasBlock(blockId);
+  return;
+}
+
+if (event.key.toLowerCase() === "v") {
+  event.preventDefault();
+  handleDuplicateCanvasBlock(blockId);
+  return;
+}
 
   if (event.key.toLowerCase() === "x") {
     event.preventDefault();
@@ -5649,6 +5684,69 @@ function handleDuplicateCanvasBlock(blockId: string) {
   window.requestAnimationFrame(() => {
     setSelection(selectionFromCanvasBlockId(duplicatedBlockId));
   });
+}
+
+function handleCopyCanvasBlock(blockId: string) {
+  if (isPageBlockId(blockId)) return;
+
+  const original = draft.blocks.find((block) => block.id === blockId);
+
+  if (!original) return;
+
+  const clipboardEntry: ClipboardEntry = {
+    clipboardId: makeClipboardId(),
+    copiedAt: Date.now(),
+    block: cloneClipboardBlock(original),
+  };
+
+  setClipboardEntries((prev) => [clipboardEntry, ...prev]);
+}
+
+function handlePasteClipboardBlock(entry: ClipboardEntry) {
+  const cloned = structuredClone(entry.block);
+
+  const newBlockId =
+    typeof makeClientId === "function"
+      ? makeClientId(cloned.type)
+      : `block_${Math.random().toString(36).slice(2, 10)}`;
+
+  const highestZIndex = Math.max(
+    1,
+    ...draft.blocks.map((block) => block.grid?.zIndex ?? 1),
+  );
+
+  const nextBlock: MicrositeBlock = {
+    ...cloned,
+    id: newBlockId,
+    grid: {
+      ...(cloned.grid ?? {
+        colStart: 1,
+        rowStart: 1,
+        colSpan: 4,
+        rowSpan: 1,
+      }),
+      zIndex: highestZIndex + 1,
+    },
+  };
+
+  setDraft((prev) => ({
+    ...prev,
+    blocks: [...prev.blocks, nextBlock],
+  }));
+
+  window.requestAnimationFrame(() => {
+    setSelection(selectionFromCanvasBlockId(newBlockId));
+  });
+}
+
+function handleRemoveClipboardEntry(clipboardId: string) {
+  setClipboardEntries((prev) =>
+    prev.filter((entry) => entry.clipboardId !== clipboardId),
+  );
+}
+
+function handleClearClipboard() {
+  setClipboardEntries([]);
 }
 
   function removeCanvasBlock(blockId: string) {
@@ -22692,11 +22790,96 @@ try {
     </div>
   </div>
 
-  {builderCapacityContent ? (
-    <div className="w-full border-t border-white/10 bg-[#2f3541]">
-      {builderCapacityContent}
+<div className="w-full border-t border-white/10 bg-[#2f3541] px-4 py-3">
+  <button
+    type="button"
+    onClick={() => setClipboardOpen((prev) => !prev)}
+    className="flex w-full items-center justify-between text-left text-sm font-semibold text-white"
+  >
+    <span>Clipboard</span>
+    <span className="text-xs text-white/70">
+      {clipboardOpen ? "Collapse" : "Expand"}
+    </span>
+  </button>
+
+  {clipboardOpen ? (
+    <div className="mt-3 rounded-xl border border-white/10 bg-white/5 p-3">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <div className="text-xs text-white/60">
+          {clipboardEntries.length} copied block
+          {clipboardEntries.length === 1 ? "" : "s"}
+        </div>
+
+        <button
+          type="button"
+          onClick={handleClearClipboard}
+          disabled={clipboardEntries.length === 0}
+          className="rounded-lg border border-white/15 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          Clear All
+        </button>
+      </div>
+
+      {clipboardEntries.length === 0 ? (
+        <div className="rounded-lg border border-dashed border-white/15 px-3 py-4 text-sm text-white/50">
+          Copied blocks will appear here.
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {clipboardEntries.map((entry) => (
+            <div
+              key={entry.clipboardId}
+              className="flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-black/10 px-3 py-2"
+            >
+              <div className="min-w-0">
+                <div className="truncate text-xs font-semibold text-white">
+                  {entry.clipboardId}
+                </div>
+                <div className="text-[11px] text-white/45">
+                  {entry.block.label ?? entry.block.type}
+                </div>
+              </div>
+
+              <div className="flex shrink-0 items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => handlePasteClipboardBlock(entry)}
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/15 bg-white/10 transition hover:bg-white/20"
+                  title="Paste Block"
+                >
+                  <img
+                    src="/icons/icon_canvas_paste_block.png"
+                    alt="Paste Block"
+                    className="h-5 w-5"
+                  />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleRemoveClipboardEntry(entry.clipboardId)}
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/15 bg-white/10 transition hover:bg-white/20"
+                  title="Remove Block from Clipboard"
+                >
+                  <img
+                    src="/icons/icon_canvas_remove_block.png"
+                    alt="Remove Block from Clipboard"
+                    className="h-5 w-5"
+                  />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   ) : null}
+</div>
+
+{builderCapacityContent ? (
+  <div className="w-full border-t border-white/10 bg-[#2f3541]">
+    {builderCapacityContent}
+  </div>
+) : null}
 </div>
 
 <AppModal
