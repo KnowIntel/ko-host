@@ -5672,6 +5672,7 @@ const safePlaceholderClassName = `ko-form-placeholder-${block.id.replace(
     );
 
     const [ratingValue, setRatingValue] = useState(initialRating);
+    const [stateValue, setStateValue] = useState(block.data.value || "");
 
     const ratingColor = (block.data as any).ratingColor || "#F59E0B";
     const ratingPosition =
@@ -5753,44 +5754,45 @@ return (
       {...sharedFieldProps}
     />
   ) : fieldType === "state" ? (
-    <select
-      className={`${inputClass} ${placeholderStyle} ${safePlaceholderClassName}`}
-      defaultValue={block.data.value || ""}
-      style={{
-        ...inputVisualStyle,
-        color: !block.data.value ? placeholderColor : inputVisualStyle.color,
-        WebkitTextFillColor: !block.data.value
-          ? placeholderColor
-          : inputVisualStyle.WebkitTextFillColor,
-      }}
-      {...sharedFieldProps}
-    >
-      <option
-        value=""
-        disabled
-        style={{
-          color: placeholderColor,
-          WebkitTextFillColor: placeholderColor,
-        }}
-      >
-        {showPlaceholder
-          ? block.data.placeholder || "Select state..."
-          : "Select state..."}
-      </option>
+<select
+  className={`${inputClass} ${placeholderStyle} ${safePlaceholderClassName}`}
+  value={stateValue}
+  onChange={(e) => setStateValue(e.target.value)}
+  style={{
+    ...inputVisualStyle,
+    color: stateValue ? inputVisualStyle.color : placeholderColor,
+    WebkitTextFillColor: stateValue
+      ? inputVisualStyle.WebkitTextFillColor
+      : placeholderColor,
+  }}
+  {...sharedFieldProps}
+>
+  <option
+    value=""
+    disabled
+    style={{
+      color: placeholderColor,
+      WebkitTextFillColor: placeholderColor,
+    }}
+  >
+    {showPlaceholder
+      ? block.data.placeholder || "Select state..."
+      : "Select state..."}
+  </option>
 
-      {stateOptions.map((state) => (
-        <option
-          key={state}
-          value={state}
-          style={{
-            color: inputVisualStyle.color,
-            WebkitTextFillColor: inputVisualStyle.WebkitTextFillColor,
-          }}
-        >
-          {state}
-        </option>
-      ))}
-    </select>
+  {stateOptions.map((state) => (
+    <option
+      key={state}
+      value={state}
+      style={{
+        color: inputVisualStyle.color,
+        WebkitTextFillColor: inputVisualStyle.WebkitTextFillColor,
+      }}
+    >
+      {state}
+    </option>
+  ))}
+</select>
   ) : fieldType === "checkbox_text" ? (
     <label
       className="flex items-center gap-3"
