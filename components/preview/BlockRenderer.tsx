@@ -5753,31 +5753,44 @@ return (
               {...sharedFieldProps}
             />
           ) : fieldType === "state" ? (
-            <select
-              className={`${inputClass} ${placeholderStyle} ${safePlaceholderClassName}`}
-              defaultValue={block.data.value || ""}
-              style={inputVisualStyle}
-              {...sharedFieldProps}
-            >
-<option
-  value=""
-  disabled
+<select
+  className={`${inputClass} ${placeholderStyle} ${safePlaceholderClassName}`}
+  defaultValue={block.data.value || ""}
   style={{
-    color: placeholderColor,
-    WebkitTextFillColor: placeholderColor,
+    ...inputVisualStyle,
+    color: block.data.value ? inputVisualStyle.color : placeholderColor,
+    WebkitTextFillColor: block.data.value
+      ? inputVisualStyle.WebkitTextFillColor
+      : placeholderColor,
   }}
+  {...sharedFieldProps}
 >
-  {showPlaceholder
-    ? block.data.placeholder || "Select state..."
-    : "Select state..."}
-</option>
+  <option
+    value=""
+    disabled
+    style={{
+      color: placeholderColor,
+      WebkitTextFillColor: placeholderColor,
+    }}
+  >
+    {showPlaceholder
+      ? block.data.placeholder || "Select state..."
+      : "Select state..."}
+  </option>
 
-              {stateOptions.map((state) => (
-                <option key={state} value={state}>
-                  {state}
-                </option>
-              ))}
-            </select>
+  {stateOptions.map((state) => (
+    <option
+      key={state}
+      value={state}
+      style={{
+        color: inputVisualStyle.color,
+        WebkitTextFillColor: inputVisualStyle.WebkitTextFillColor,
+      }}
+    >
+      {state}
+    </option>
+  ))}
+</select>
           ) : fieldType === "checkbox_text" ? (
             <label
               className="flex items-center gap-3"
