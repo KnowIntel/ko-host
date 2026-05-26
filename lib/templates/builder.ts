@@ -1060,6 +1060,8 @@ export type LinkHubBlock = BaseBlock & {
 
     triggerSymbol?: string;
     triggerSymbolSize?: number;
+    triggerSymbolBase?: string;
+    triggerSymbolColor?: string;
     customTriggerEnabled?: boolean;
     customTriggerFileName?: string;
     customTriggerUrl?: string;
