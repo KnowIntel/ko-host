@@ -5728,126 +5728,127 @@ return (
       }}
     />
 
-    <div className="flex h-full flex-col gap-2">
-          {showRating && ratingPosition === "high" ? ratingStars : null}
+<div className="flex h-full flex-col gap-2">
+  {showRating && ratingPosition === "high" ? ratingStars : null}
 
-          {showLabel && fieldType !== "checkbox_text" ? (
-            <label
-              className="text-sm"
-              style={getContainerTextStyle(
-                (block.data as any).labelStyle ?? block.data.style,
-                designKey,
-              )}
-            >
-              {block.data.label}
-              {showRequired && block.data.required ? " *" : ""}
-            </label>
-          ) : null}
-
-          {fieldType === "textarea" ? (
-            <textarea
-              className={`${inputClass} ${placeholderStyle} ${safePlaceholderClassName} min-h-[96px] resize-none`}
-              placeholder={showPlaceholder ? block.data.placeholder : ""}
-              defaultValue={block.data.value || ""}
-              style={inputVisualStyle}
-              {...sharedFieldProps}
-            />
-          ) : fieldType === "state" ? (
-<select
-  className={`${inputClass} ${placeholderStyle} ${safePlaceholderClassName}`}
-  defaultValue={block.data.value || ""}
-style={{
-  ...inputVisualStyle,
-  color: inputVisualStyle.color,
-  WebkitTextFillColor: inputVisualStyle.WebkitTextFillColor,
-}}
-  {...sharedFieldProps}
->
-<option
-  value=""
-  disabled
-  hidden
-  style={{
-    color: placeholderColor,
-    WebkitTextFillColor: placeholderColor,
-  }}
->
-    {showPlaceholder
-      ? block.data.placeholder || "Select state..."
-      : "Select state..."}
-  </option>
-
-  {stateOptions.map((state) => (
-    <option
-      key={state}
-      value={state}
-      style={{
-        color: inputVisualStyle.color,
-        WebkitTextFillColor: inputVisualStyle.WebkitTextFillColor,
-      }}
+  {showLabel && fieldType !== "checkbox_text" ? (
+    <label
+      className="text-sm"
+      style={getContainerTextStyle(
+        (block.data as any).labelStyle ?? block.data.style,
+        designKey,
+      )}
     >
-      {state}
-    </option>
-  ))}
-</select>
-          ) : fieldType === "checkbox_text" ? (
-            <label
-              className="flex items-center gap-3"
-              style={getContainerTextStyle(inputStyle, designKey)}
-            >
-              <input
-                type="checkbox"
-                defaultChecked={block.data.value === "true"}
-                data-checkbox-group={linkedButtonId || block.id}
-                data-allow-multiple-selections={
-                  (block.data as any).allowMultipleSelections ? "true" : "false"
-                }
-                style={{
-                  accentColor: inputStyle.color ?? undefined,
-                  width:
-                    typeof inputStyle.fontSize === "number"
-                      ? `${Math.max(14, inputStyle.fontSize)}px`
-                      : undefined,
-                  height:
-                    typeof inputStyle.fontSize === "number"
-                      ? `${Math.max(14, inputStyle.fontSize)}px`
-                      : undefined,
-                  borderColor: inputStyle.borderColor ?? undefined,
-                  borderWidth:
-                    typeof inputStyle.borderWidth === "number"
-                      ? `${inputStyle.borderWidth}px`
-                      : undefined,
-                  borderStyle:
-                    typeof inputStyle.borderWidth === "number" &&
-                    inputStyle.borderWidth > 0
-                      ? "solid"
-                      : undefined,
-                  borderRadius:
-                    typeof inputStyle.borderRadius === "number"
-                      ? `${inputStyle.borderRadius}px`
-                      : undefined,
-                }}
-                {...sharedFieldProps}
-              />
+      {block.data.label}
+      {showRequired && block.data.required ? " *" : ""}
+    </label>
+  ) : null}
 
-<span style={getContainerTextStyle(inputStyle, designKey)}>
-  {block.data.placeholder || block.data.label || "Checkbox Label"}
-  {showRequired && block.data.required ? " *" : ""}
-</span>
-            </label>
-          ) : (
-            <input
-              type={fieldType === "phone" ? "tel" : fieldType}
-              className={`${inputClass} ${placeholderStyle} ${safePlaceholderClassName}`}
-              placeholder={showPlaceholder ? block.data.placeholder : ""}
-              defaultValue={block.data.value || ""}
-              style={inputVisualStyle}
-              {...sharedFieldProps}
-            />
-          )}
+  {fieldType === "textarea" ? (
+    <textarea
+      className={`${inputClass} ${placeholderStyle} ${safePlaceholderClassName} min-h-[96px] resize-none`}
+      placeholder={showPlaceholder ? block.data.placeholder : ""}
+      defaultValue={block.data.value || ""}
+      style={inputVisualStyle}
+      {...sharedFieldProps}
+    />
+  ) : fieldType === "state" ? (
+    <select
+      className={`${inputClass} ${placeholderStyle} ${safePlaceholderClassName}`}
+      defaultValue={block.data.value || ""}
+      style={{
+        ...inputVisualStyle,
+        color: !block.data.value ? placeholderColor : inputVisualStyle.color,
+        WebkitTextFillColor: !block.data.value
+          ? placeholderColor
+          : inputVisualStyle.WebkitTextFillColor,
+      }}
+      {...sharedFieldProps}
+    >
+      <option
+        value=""
+        disabled
+        style={{
+          color: placeholderColor,
+          WebkitTextFillColor: placeholderColor,
+        }}
+      >
+        {showPlaceholder
+          ? block.data.placeholder || "Select state..."
+          : "Select state..."}
+      </option>
 
-          {showRating && ratingPosition === "low" ? ratingStars : null}
-        </div>
+      {stateOptions.map((state) => (
+        <option
+          key={state}
+          value={state}
+          style={{
+            color: inputVisualStyle.color,
+            WebkitTextFillColor: inputVisualStyle.WebkitTextFillColor,
+          }}
+        >
+          {state}
+        </option>
+      ))}
+    </select>
+  ) : fieldType === "checkbox_text" ? (
+    <label
+      className="flex items-center gap-3"
+      style={getContainerTextStyle(inputStyle, designKey)}
+    >
+      <input
+        type="checkbox"
+        defaultChecked={block.data.value === "true"}
+        data-checkbox-group={linkedButtonId || block.id}
+        data-allow-multiple-selections={
+          (block.data as any).allowMultipleSelections ? "true" : "false"
+        }
+        style={{
+          accentColor: inputStyle.color ?? undefined,
+          width:
+            typeof inputStyle.fontSize === "number"
+              ? `${Math.max(14, inputStyle.fontSize)}px`
+              : undefined,
+          height:
+            typeof inputStyle.fontSize === "number"
+              ? `${Math.max(14, inputStyle.fontSize)}px`
+              : undefined,
+          borderColor: inputStyle.borderColor ?? undefined,
+          borderWidth:
+            typeof inputStyle.borderWidth === "number"
+              ? `${inputStyle.borderWidth}px`
+              : undefined,
+          borderStyle:
+            typeof inputStyle.borderWidth === "number" &&
+            inputStyle.borderWidth > 0
+              ? "solid"
+              : undefined,
+          borderRadius:
+            typeof inputStyle.borderRadius === "number"
+              ? `${inputStyle.borderRadius}px`
+              : undefined,
+        }}
+        {...sharedFieldProps}
+      />
+
+      <span style={getContainerTextStyle(inputStyle, designKey)}>
+        {block.data.placeholder || block.data.label || "Checkbox Label"}
+        {showRequired && block.data.required ? " *" : ""}
+      </span>
+    </label>
+  ) : (
+    <input
+      type={fieldType === "phone" ? "tel" : fieldType}
+      className={`${inputClass} ${placeholderStyle} ${safePlaceholderClassName}`}
+      placeholder={showPlaceholder ? block.data.placeholder : ""}
+      defaultValue={block.data.value || ""}
+      style={inputVisualStyle}
+      {...sharedFieldProps}
+    />
+  )}
+
+  {showRating && ratingPosition === "low" ? ratingStars : null}
+</div>
       </div>
     );
   }
