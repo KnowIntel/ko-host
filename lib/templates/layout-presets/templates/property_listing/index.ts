@@ -1,10 +1,10 @@
 import type { TemplateLayoutRegistry } from "../../types";
 import signature from "./signature";
 
-const open_houseLayouts: TemplateLayoutRegistry = {
-  templateKey: "open_house",
+const property_listingLayouts: TemplateLayoutRegistry = {
+  templateKey: "property_listing",
   layouts: [signature],
 };
 
 
-export default open_houseLayouts;
+export default property_listingLayouts;

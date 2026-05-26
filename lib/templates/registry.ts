@@ -270,6 +270,7 @@ function inferCategory(key: TemplateKey): TemplateCategory {
     "gala",
     "meetup",
     "bbq",
+    "gathering",
     "festival",
     "recital",
     "baptism",
@@ -456,7 +457,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "memorial",
     defaultDraft: { title: "In Loving Memory", slugSuggestion: "inmemory" },
   },
-  {
+/*   {
     key: "open_house",
     title: "Open House",
     description: "Show details. Capture leads fast.",
@@ -464,7 +465,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 3,
     demoSlug: "openhouse",
     defaultDraft: { title: "Open House", slugSuggestion: "openhouse" },
-  },
+  }, */
   {
     key: "product_launch",
     title: "Product Launch",
@@ -492,7 +493,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "crowdfunding",
     defaultDraft: { title: "Support Our Campaign", slugSuggestion: "campaign" },
   },
-/*   {
+  {
     key: "property_listing",
     title: "Property Listing",
     description: "Photos, highlights, and inquiries.",
@@ -500,7 +501,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 4,
     demoSlug: "property",
     defaultDraft: { title: "Property Listing", slugSuggestion: "listing" },
-  }, */
+  },
 /*   {
     key: "rental_listing",
     title: "Rental Listing",
