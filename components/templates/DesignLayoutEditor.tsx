@@ -22878,7 +22878,7 @@ try {
             title="Paste Block"
           >
             <img
-              src="/icons/icon_canvas_paste_block.png"
+              src="/icons/icon_clipboard_paste.png"
               alt="Paste Block"
               className="h-5 w-5"
             />
@@ -22891,7 +22891,7 @@ try {
             title="Remove Block from Clipboard"
           >
             <img
-              src="/icons/icon_canvas_remove_block.png"
+              src="/icons/icon_clipboard_remove.png"
               alt="Remove Block from Clipboard"
               className="h-5 w-5"
             />
