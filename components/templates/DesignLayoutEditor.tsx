@@ -15524,6 +15524,10 @@ onClick={() =>
         label: "Play Triangle",
         base: "trigger_symbol_play_triangle",
       },
+      {
+        label: "External Link",
+        base: "trigger_symbol_external_link",
+      },
     ];
 
     const triggerColors = [
