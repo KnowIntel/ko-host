@@ -1584,7 +1584,7 @@ type ClipboardEntry = {
 };
 
 const [clipboardEntries, setClipboardEntries] = useState<ClipboardEntry[]>([]);
-const [clipboardOpen, setClipboardOpen] = useState(true);
+const [clipboardOpen, setClipboardOpen] = useState(false);
 
 const [countdownStyleTarget, setCountdownStyleTarget] =
   useState<CountdownStyleTarget>("background");
