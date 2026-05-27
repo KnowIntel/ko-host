@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
+import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -31,6 +32,31 @@ export async function POST(req: Request) {
           ]
         : undefined;
 
+    const sb = getSupabaseAdmin();
+
+    const { data: inserted, error: insertError } = await sb
+      .from("claim_offer_requests")
+      .insert({
+        name,
+        email,
+        site_url: siteUrl || null,
+        description,
+        deadline: deadline || null,
+        file_name:
+          file instanceof File && file.size > 0 ? file.name : null,
+      })
+      .select("id")
+      .single();
+
+    if (insertError) {
+      console.error("Claim offer insert error:", insertError);
+
+      return NextResponse.json(
+        { error: "Failed to save request" },
+        { status: 500 },
+      );
+    }
+
     const adminSend = await resend.emails.send({
       from: "Ko-Host <support@ko-host.com>",
       to: process.env.SUPPORT_EMAIL!,
@@ -40,6 +66,8 @@ export async function POST(req: Request) {
       html: `
         <div style="font-family: Arial, sans-serif; line-height: 1.6;">
           <h2>New Ko-Host Custom Development Request</h2>
+
+          <p><strong>Request ID:</strong> ${inserted.id}</p>
 
           <p><strong>Name:</strong> ${escapeHtml(name)}</p>
           <p><strong>Email:</strong> ${escapeHtml(email)}</p>
@@ -58,19 +86,26 @@ export async function POST(req: Request) {
       `,
     });
 
-if (adminSend.error) {
-  console.error("Claim offer admin email error:", adminSend.error);
+    if (adminSend.error) {
+      console.error("Claim offer admin email error:", adminSend.error);
 
-  return NextResponse.json(
-    {
-      error:
-        typeof adminSend.error?.message === "string"
-          ? adminSend.error.message
-          : JSON.stringify(adminSend.error),
-    },
-    { status: 500 },
-  );
-}
+      return NextResponse.json(
+        {
+          error:
+            typeof adminSend.error?.message === "string"
+              ? adminSend.error.message
+              : JSON.stringify(adminSend.error),
+        },
+        { status: 500 },
+      );
+    }
+
+    await sb
+      .from("claim_offer_requests")
+      .update({
+        resend_message_id: adminSend.data?.id ?? null,
+      })
+      .eq("id", inserted.id);
 
     const autoReply = await resend.emails.send({
       from: "Ko-Host Support <support@ko-host.com>",
@@ -107,6 +142,7 @@ if (adminSend.error) {
 
     return NextResponse.json({
       success: true,
+      requestId: inserted.id,
     });
   } catch (error) {
     console.error("Claim offer route error:", error);
