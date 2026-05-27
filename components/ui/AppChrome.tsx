@@ -10,23 +10,29 @@ export function AppChrome({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-const isPublicMicrosite = pathname === "/s" || pathname.startsWith("/s/");
-const isPreviewPage = pathname.startsWith("/preview/");
-const shouldShowNav = !isPublicMicrosite;
-const shouldShowFooter = !isPublicMicrosite;
-const shouldOffsetForFixedNav = shouldShowNav && !isPreviewPage;
+
+  const isPublicMicrosite =
+    pathname === "/s" || pathname.startsWith("/s/");
+
+  const isPreviewPage = pathname.startsWith("/preview/");
+
+  const shouldShowNav = !isPublicMicrosite;
+  const shouldShowFooter = !isPublicMicrosite;
+
+  const shouldOffsetForFixedNav =
+    shouldShowNav && !isPreviewPage;
 
   return (
     <div className="flex min-h-screen flex-col">
       {shouldShowNav ? <LayoutNavVisibility /> : null}
 
-<div
-  className={`w-full min-h-screen bg-white ${
-    shouldOffsetForFixedNav ? "pt-6" : ""
-  }`}
->
-  {children}
-</div>
+      <div
+        className={`w-full min-h-screen bg-white ${
+          shouldOffsetForFixedNav ? "pt-6" : ""
+        }`}
+      >
+        {children}
+      </div>
 
       {shouldShowFooter ? (
         <footer className="border-t border-neutral-200 bg-white">
@@ -43,18 +49,21 @@ const shouldOffsetForFixedNav = shouldShowNav && !isPreviewPage;
                 >
                   Terms
                 </Link>
+
                 <Link
                   href="/privacy"
                   className="transition hover:text-neutral-950 hover:underline"
                 >
                   Privacy
                 </Link>
+
                 <Link
                   href="/about"
                   className="transition hover:text-neutral-950 hover:underline"
                 >
                   About
                 </Link>
+
                 <Link
                   href="/support"
                   className="transition hover:text-neutral-950 hover:underline"
