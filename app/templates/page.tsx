@@ -200,12 +200,12 @@ const visibleRecentSites = useMemo(() => {
       </div>
 
 <div className="flex shrink-0 items-center gap-2">
-  <button
-    type="button"
-    className="rounded-full bg-neutral-950 px-4 py-2 text-xs font-bold text-white transition hover:bg-neutral-800"
-  >
-    Claim Offer
-  </button>
+<a
+  href="/claim-offer"
+  className="rounded-full bg-neutral-950 px-4 py-2 text-xs font-bold text-white transition hover:bg-neutral-800"
+>
+  Claim Offer
+</a>
 
   <div className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-amber-700">
     Ends Soon
@@ -409,12 +409,12 @@ const visibleRecentSites = useMemo(() => {
       </div>
 
       <div className="flex shrink-0 items-center gap-2">
-        <button
-          type="button"
-          className="rounded-full bg-neutral-950 px-4 py-2 text-xs font-bold text-white transition hover:bg-neutral-800"
-        >
-          Claim Offer
-        </button>
+<a
+  href="/claim-offer"
+  className="rounded-full bg-neutral-950 px-4 py-2 text-xs font-bold text-white transition hover:bg-neutral-800"
+>
+  Claim Offer
+</a>
 
         <div className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-amber-700">
           Ends Soon
