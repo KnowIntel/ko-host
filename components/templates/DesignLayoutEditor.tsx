@@ -434,7 +434,7 @@ Scheduling: [
 Premium: [
   { kind: "block", label: "Registry", type: "registry" },
   // { kind: "block", label: "Speed Dating", type: "speed_dating" },
-  { kind: "block", label: "Pop the Balloon", type: "pop_balloon" },
+  // { kind: "block", label: "Pop the Balloon", type: "pop_balloon" },
   { kind: "block", label: "Puzzle", type: "puzzle" },
   { kind: "block", label: "Spin Wheel", type: "spin_wheel" },
   { kind: "block", label: "Donation", type: "donation" },
