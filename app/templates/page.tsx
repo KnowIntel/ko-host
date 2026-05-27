@@ -186,9 +186,9 @@ const visibleRecentSites = useMemo(() => {
   <div className="mt-3 max-w-[680px] rounded-2xl border border-blue-100 bg-gradient-to-r from-blue-50 via-white to-amber-50 px-4 py-3 shadow-sm">
     <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
       <div className="min-w-0">
-        <div className="text-[11px] font-black uppercase tracking-[0.16em] text-blue-700">
-          Limited-Time Offer
-        </div>
+<div className="inline-flex w-fit rounded-full border border-blue-200 bg-white px-3 py-1 text-[11px] font-black uppercase tracking-[0.16em] text-blue-700 animate-kht-offer-glow">
+  Limited-Time Offer
+</div>
 
         <div className="mt-1 text-sm font-semibold leading-5 text-neutral-900">
           Free custom development with your microsite purchase.
