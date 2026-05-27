@@ -58,14 +58,19 @@ export async function POST(req: Request) {
       `,
     });
 
-    if (adminSend.error) {
-      console.error("Claim offer admin email error:", adminSend.error);
+if (adminSend.error) {
+  console.error("Claim offer admin email error:", adminSend.error);
 
-      return NextResponse.json(
-        { error: "Failed to send request" },
-        { status: 500 },
-      );
-    }
+  return NextResponse.json(
+    {
+      error:
+        typeof adminSend.error?.message === "string"
+          ? adminSend.error.message
+          : JSON.stringify(adminSend.error),
+    },
+    { status: 500 },
+  );
+}
 
     const autoReply = await resend.emails.send({
       from: "Ko-Host Support <support@ko-host.com>",
