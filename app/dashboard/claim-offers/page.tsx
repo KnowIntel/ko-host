@@ -1,6 +1,10 @@
+import { currentUser } from "@clerk/nextjs/server";
+import { notFound } from "next/navigation";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 
 export const dynamic = "force-dynamic";
+
+const ADMIN_EMAIL = "knowintelligentlife@gmail.com";
 
 type ClaimOfferRequest = {
   id: string;
@@ -16,6 +20,14 @@ type ClaimOfferRequest = {
 };
 
 export default async function ClaimOffersDashboardPage() {
+  const user = await currentUser();
+  const userEmail =
+    user?.primaryEmailAddress?.emailAddress?.toLowerCase() ?? "";
+
+  if (userEmail !== ADMIN_EMAIL) {
+    notFound();
+  }
+
   const supabaseAdmin = getSupabaseAdmin();
 
   const { data, error } = await supabaseAdmin
