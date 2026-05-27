@@ -10,11 +10,14 @@ export default function ClaimOfferPage() {
 
 async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
   event.preventDefault();
+
+  const form = event.currentTarget;
+
   setStatus("sending");
   setErrorMessage("");
 
   try {
-    const formData = new FormData(event.currentTarget);
+    const formData = new FormData(form);
 
     const response = await fetch("/api/claim-offer", {
       method: "POST",
@@ -29,12 +32,16 @@ async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
       return;
     }
 
-    event.currentTarget.reset();
+    form.reset();
+
     setStatus("sent");
   } catch (error) {
     setStatus("error");
+
     setErrorMessage(
-      error instanceof Error ? error.message : "Failed to submit request.",
+      error instanceof Error
+        ? error.message
+        : "Failed to submit request.",
     );
   }
 }
