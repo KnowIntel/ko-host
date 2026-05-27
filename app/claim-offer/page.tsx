@@ -29,7 +29,7 @@ const sampleCards = [
     image:
       "/designs/design-cards/design-card_community_alert_newsletter.webp",
     className:
-      "left-[30px] bottom-[120px] rotate-[4deg] hidden lg:block",
+      "left-[130px] bottom-[320px] rotate-[4deg] hidden lg:block",
     glow: "from-emerald-400/20 to-green-200/10",
   },
 
