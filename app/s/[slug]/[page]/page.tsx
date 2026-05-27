@@ -2,7 +2,6 @@
 import { cookies } from "next/headers";
 import crypto from "crypto";
 import PlacedBlocksPreview from "@/components/preview/PlacedBlocksPreview";
-// import MicrositeFooterBrand from "@/components/microsite/MicrositeFooterBrand";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import type { BuilderDraft } from "@/lib/templates/builder";
 import PrivateMicrositeAccessForm from "@/components/microsite/PrivateMicrositeAccessForm";

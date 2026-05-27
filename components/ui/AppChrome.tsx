@@ -10,10 +10,11 @@ export function AppChrome({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const isPublicMicrosite = pathname.startsWith("/s/");
-  const isPreviewPage = pathname.startsWith("/preview/");
-  const shouldShowNav = !isPublicMicrosite;
-  const shouldOffsetForFixedNav = shouldShowNav && !isPreviewPage;
+const isPublicMicrosite = pathname === "/s" || pathname.startsWith("/s/");
+const isPreviewPage = pathname.startsWith("/preview/");
+const shouldShowNav = !isPublicMicrosite;
+const shouldShowFooter = !isPublicMicrosite;
+const shouldOffsetForFixedNav = shouldShowNav && !isPreviewPage;
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -27,7 +28,7 @@ export function AppChrome({
   {children}
 </div>
 
-      {!isPublicMicrosite ? (
+      {shouldShowFooter ? (
         <footer className="border-t border-neutral-200 bg-white">
           <div className="w-full px-4 py-6 sm:px-6 lg:px-8">
             <div className="flex w-full flex-col items-center justify-between gap-3 text-center text-sm text-neutral-600 sm:flex-row sm:text-left">
