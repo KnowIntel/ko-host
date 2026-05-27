@@ -357,6 +357,28 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "People", type: "icon", iconName: "people" },
     { kind: "block", label: "Camera", type: "icon", iconName: "camera" },
     { kind: "block", label: "Calendar", type: "icon", iconName: "calendar" },
+    { kind: "block", label: "Transmission Manual", type: "icon", iconName: "transmission-manual" },
+    { kind: "block", label: "Transmission Automatic", type: "icon", iconName: "transmission-automatic" },
+    { kind: "block", label: "Speedometer", type: "icon", iconName: "speedometer" },
+    { kind: "block", label: "Tire", type: "icon", iconName: "tire" },
+    { kind: "block", label: "Seat", type: "icon", iconName: "seat" },
+    { kind: "block", label: "Odometer", type: "icon", iconName: "odometer" },
+    { kind: "block", label: "Message", type: "icon", iconName: "message" },
+    { kind: "block", label: "Keys", type: "icon", iconName: "keys" },
+    { kind: "block", label: "Key", type: "icon", iconName: "key" },
+    { kind: "block", label: "Engine", type: "icon", iconName: "engine" },
+    { kind: "block", label: "Electric Power", type: "icon", iconName: "electric-power" },
+    { kind: "block", label: "Dummy", type: "icon", iconName: "dummy" },
+    { kind: "block", label: "Drive Type", type: "icon", iconName: "drive-type" },
+    { kind: "block", label: "Check Circle Solid", type: "icon", iconName: "check-circle-solid" },
+    { kind: "block", label: "Car Side", type: "icon", iconName: "car-side" },
+    { kind: "block", label: "Car Fuel", type: "icon", iconName: "car-fuel" },
+    { kind: "block", label: "Car Front", type: "icon", iconName: "car-front" },
+    { kind: "block", label: "Car Battery", type: "icon", iconName: "car-battery" },
+    { kind: "block", label: "Battery", type: "icon", iconName: "battery" },
+    { kind: "block", label: "Barcode", type: "icon", iconName: "barcode" },
+    { kind: "block", label: "Airplane", type: "icon", iconName: "airplane" },
+    { kind: "block", label: "Accident", type: "icon", iconName: "accident" },
     { kind: "block", label: "Globe", type: "icon", iconName: "globe" },
     { kind: "block", label: "Message Thread", type: "icon", iconName: "message-thread" },
     { kind: "block", label: "Location Pin", type: "icon", iconName: "location-pin" },
@@ -1161,6 +1183,28 @@ if (label === "Chevron Right") {
   if (label === "Camera") return "📷";
   if (label === "Calendar") return "📅";
   if (label === "Globe") return "🌐";
+  if (label === "Transmission Manual") return "⚙";
+  if (label === "Transmission Automatic") return "🔁";
+  if (label === "Speedometer") return "⏱";
+  if (label === "Tire") return "🛞";
+  if (label === "Seat") return "🪑";
+  if (label === "Odometer") return "🔢";
+  if (label === "Message") return "💬";
+  if (label === "Keys") return "🔑";
+  if (label === "Key") return "🗝";
+  if (label === "Engine") return "⚙";
+  if (label === "Electric Power") return "⚡";
+  if (label === "Dummy") return "◯";
+  if (label === "Drive Type") return "⇄";
+  if (label === "Check Circle Solid") return "✅";
+  if (label === "Car Side") return "🚗";
+  if (label === "Car Fuel") return "⛽";
+  if (label === "Car Front") return "🚘";
+  if (label === "Car Battery") return "🔋";
+  if (label === "Battery") return "🔋";
+  if (label === "Barcode") return "▥";
+  if (label === "Airplane") return "✈️";
+  if (label === "Accident") return "⚠️";
   if (label === "Photo Placeholder") return "▧";
   if (label === "Story Timeline") return "⋯";
   if (label === "Message Thread") return "💬";
