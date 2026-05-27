@@ -17115,30 +17115,15 @@ onClick={() =>
   </button>
 </div>
 
-          <div className="mt-4">
-            <div className={inspectorLabelClass()}>Selected Cell Font Size</div>
-<input
-  type="number"
-  min={8}
-  max={72}
-  value={selectedCellFormat.fontSize ?? 14}
-  onChange={(e) =>
-    updateSelectedCellFormat({
-      fontSize: Math.max(8, Math.min(72, Number(e.target.value) || 14)),
-    })
-  }
-  className={inspectorInputClass()}
-/>
-
-<button
-  type="button"
-  className="mt-3 h-10 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm font-semibold text-neutral-800 hover:bg-neutral-50"
-  onClick={clearSelectedCells}
->
-  Clear Selected Cell Contents
-</button>
-
-          </div>
+<div className="mt-4">
+  <button
+    type="button"
+    className="h-10 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm font-semibold text-neutral-800 hover:bg-neutral-50"
+    onClick={clearSelectedCells}
+  >
+    Clear Selected Cell Contents
+  </button>
+</div>
 
           <div className="mt-4">
   <div className={inspectorLabelClass()}>Selected Row Height</div>
@@ -17195,6 +17180,52 @@ onClick={() =>
       );
     }}
     className={inspectorInputClass()}
+  />
+</div>
+
+<div className="mt-4">
+  <div className={inspectorLabelClass()}>Selected Cell Font Family</div>
+  <select
+    value={selectedCellFormat.fontFamily ?? "Inter"}
+    onChange={(e) => updateSelectedCellFormat({ fontFamily: e.target.value })}
+    className={inspectorInputClass()}
+  >
+    <option value="Inter">Inter</option>
+    <option value="Arial">Arial</option>
+    <option value="Helvetica">Helvetica</option>
+    <option value="Georgia">Georgia</option>
+    <option value="Times New Roman">Times New Roman</option>
+    <option value="Courier New">Courier New</option>
+    <option value="Verdana">Verdana</option>
+    <option value="Trebuchet MS">Trebuchet MS</option>
+    <option value="Cormorant Garamond">Cormorant Garamond</option>
+    <option value="Libre Baskerville">Libre Baskerville</option>
+    <option value="Marcellus">Marcellus</option>
+    <option value="Merriweather">Merriweather</option>
+    <option value="Playball">Playball</option>
+    <option value="Anton">Anton</option>
+  </select>
+</div>
+
+<div className="mt-4">
+  <div className="mb-1 flex items-center justify-between">
+    <div className={inspectorLabelClass()}>Selected Cell Font Size</div>
+    <div className="text-xs text-neutral-500">
+      {selectedCellFormat.fontSize ?? 14}px
+    </div>
+  </div>
+
+  <input
+    type="range"
+    min={8}
+    max={72}
+    value={selectedCellFormat.fontSize ?? 14}
+    onChange={(e) =>
+      updateSelectedCellFormat({
+        fontSize: Math.max(8, Math.min(72, Number(e.target.value) || 14)),
+      })
+    }
+    className="w-full"
   />
 </div>
 
