@@ -11,8 +11,10 @@ export function AppChrome({
 }) {
   const pathname = usePathname();
 
-  const isPublicMicrosite =
-    pathname === "/s" || pathname.startsWith("/s/");
+const isPublicMicrosite =
+  pathname === "/s" ||
+  pathname.startsWith("/s/") ||
+  pathname.startsWith("/s");
 
   const isPreviewPage = pathname.startsWith("/preview/");
 
