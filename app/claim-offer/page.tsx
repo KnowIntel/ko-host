@@ -4,24 +4,133 @@ import { useState } from "react";
 
 const sampleCards = [
   {
-    title: "Wedding RSVP",
-    subtitle: "Elegant guest experience",
-    className: "left-[-70px] top-[120px] rotate-[-10deg] bg-rose-100",
+    title: "Beta Testing",
+    subtitle: "Professional launch preview",
+    image:
+      "/designs/design-cards/design-card_beta_testing_professional.webp",
+    className:
+      "left-[-40px] top-[120px] rotate-[-10deg] hidden xl:block",
+    glow: "from-blue-500/20 to-cyan-400/10",
   },
+
+  {
+    title: "Birthday Event",
+    subtitle: "Elegant celebration page",
+    image:
+      "/designs/design-cards/design-card_birthday_grown.webp",
+    className:
+      "right-[-50px] top-[90px] rotate-[8deg] hidden xl:block",
+    glow: "from-pink-500/20 to-orange-300/10",
+  },
+
+  {
+    title: "Community Alert",
+    subtitle: "Local news & updates",
+    image:
+      "/designs/design-cards/design-card_community_alert_newsletter.webp",
+    className:
+      "left-[30px] bottom-[120px] rotate-[4deg] hidden lg:block",
+    glow: "from-emerald-400/20 to-green-200/10",
+  },
+
   {
     title: "Creator Link Hub",
-    subtitle: "Social-first landing page",
-    className: "right-[-80px] top-[150px] rotate-[9deg] bg-blue-100",
+    subtitle: "Social-first creator page",
+    image:
+      "/designs/design-cards/design-card_creator_link_hub_canvas.webp",
+    className:
+      "right-[40px] top-[280px] rotate-[-6deg] hidden 2xl:block",
+    glow: "from-fuchsia-500/20 to-violet-400/10",
   },
+
   {
-    title: "Property Listing",
-    subtitle: "Modern listing showcase",
-    className: "left-[4%] bottom-[160px] rotate-[7deg] bg-emerald-100",
+    title: "Election Campaign",
+    subtitle: "City council promotion",
+    image:
+      "/designs/design-cards/design-card_election_campaign_city.webp",
+    className:
+      "left-[120px] top-[420px] rotate-[7deg] hidden 2xl:block",
+    glow: "from-blue-400/20 to-indigo-300/10",
   },
+
   {
-    title: "Product Launch",
-    subtitle: "Bold promo microsite",
-    className: "right-[5%] bottom-[120px] rotate-[-7deg] bg-amber-100",
+    title: "Family Reunion",
+    subtitle: "Casual family gathering",
+    image:
+      "/designs/design-cards/design-card_family_reunion_casual.webp",
+    className:
+      "right-[100px] bottom-[180px] rotate-[5deg] hidden xl:block",
+    glow: "from-yellow-400/20 to-orange-200/10",
+  },
+
+  {
+    title: "Vehicle Listing",
+    subtitle: "For sale by owner",
+    image:
+      "/designs/design-cards/design-card_for_sale_by_owner_auto.webp",
+    className:
+      "left-[220px] top-[40px] rotate-[-5deg] hidden 2xl:block",
+    glow: "from-neutral-400/20 to-zinc-300/10",
+  },
+
+  {
+    title: "Graduation",
+    subtitle: "Spotlight celebration",
+    image:
+      "/designs/design-cards/design-card_graduation_spotlight.webp",
+    className:
+      "right-[220px] bottom-[40px] rotate-[-7deg] hidden 2xl:block",
+    glow: "from-amber-400/20 to-yellow-200/10",
+  },
+
+  {
+    title: "Guided Tutorial",
+    subtitle: "Educational walkthrough",
+    image:
+      "/designs/design-cards/design-card_guided_tutorial_fabulous.webp",
+    className:
+      "left-[340px] bottom-[70px] rotate-[6deg] hidden 2xl:block",
+    glow: "from-purple-500/20 to-pink-300/10",
+  },
+
+  {
+    title: "Memory Timeline",
+    subtitle: "Story & milestone journey",
+    image:
+      "/designs/design-cards/design-card_memory_timeline_timeless.webp",
+    className:
+      "right-[320px] top-[40px] rotate-[4deg] hidden 2xl:block",
+    glow: "from-stone-400/20 to-neutral-200/10",
+  },
+
+  {
+    title: "Open House",
+    subtitle: "Luxury property showcase",
+    image:
+      "/designs/design-cards/design-card_open_house_signature.webp",
+    className:
+      "left-[480px] top-[260px] rotate-[-5deg] hidden 2xl:block",
+    glow: "from-sky-500/20 to-cyan-200/10",
+  },
+
+  {
+    title: "Pet Adoption",
+    subtitle: "Welcome home companion",
+    image:
+      "/designs/design-cards/design-card_pet_adoption_welcome.webp",
+    className:
+      "right-[480px] bottom-[260px] rotate-[7deg] hidden 2xl:block",
+    glow: "from-lime-400/20 to-green-200/10",
+  },
+
+  {
+    title: "Restaurant",
+    subtitle: "Hometown dining microsite",
+    image:
+      "/designs/design-cards/design-card_restaurant_hometown.webp",
+    className:
+      "left-[620px] bottom-[260px] rotate-[-4deg] hidden 2xl:block",
+    glow: "from-red-500/20 to-orange-300/10",
   },
 ];
 
@@ -70,34 +179,40 @@ export default function ClaimOfferPage() {
   return (
     <main className="min-h-screen overflow-hidden bg-neutral-950 text-white">
       <section className="relative px-6 py-16">
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute left-1/2 top-10 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-blue-500/20 blur-3xl" />
-          <div className="absolute bottom-0 right-0 h-[460px] w-[460px] rounded-full bg-amber-400/10 blur-3xl" />
+<div className="pointer-events-none absolute inset-0 overflow-hidden">
+  {sampleCards.map((card) => (
+    <div
+      key={card.title}
+      className={`absolute ${card.className} animate-kht-float`}
+    >
+      <div
+        className={`relative w-[150px] overflow-hidden rounded-[28px] border border-white/10 bg-gradient-to-br ${card.glow} p-[1px] shadow-[0_20px_80px_rgba(0,0,0,0.45)] backdrop-blur-xl`}
+      >
+        <div className="rounded-[27px] bg-neutral-950/80 p-3">
+          <div className="overflow-hidden rounded-2xl border border-white/10">
+            <img
+              src={card.image}
+              alt={card.title}
+              className="h-[180px] w-full object-cover"
+            />
+          </div>
 
-          {sampleCards.map((card, index) => (
-            <div
-              key={card.title}
-              className={[
-                "absolute hidden h-[190px] w-[150px] rounded-[28px] border border-white/20 p-4 shadow-2xl backdrop-blur-xl lg:block",
-                card.className,
-              ].join(" ")}
-              style={{
-                animation: `claimCardFloat ${8 + index}s ease-in-out infinite`,
-                animationDelay: `${index * 0.8}s`,
-              }}
-            >
-              <div className="h-20 rounded-2xl bg-white/70" />
-              <div className="mt-4 text-xs font-black text-neutral-950">
-                {card.title}
-              </div>
-              <div className="mt-1 text-[11px] leading-4 text-neutral-700">
-                {card.subtitle}
-              </div>
-              <div className="mt-4 h-2 w-16 rounded-full bg-neutral-950/20" />
-              <div className="mt-2 h-2 w-24 rounded-full bg-neutral-950/10" />
+          <div className="mt-3">
+            <div className="text-sm font-black text-white">
+              {card.title}
             </div>
-          ))}
+
+            <div className="mt-1 text-xs leading-5 text-white/60">
+              {card.subtitle}
+            </div>
+          </div>
+
+          <div className="mt-3 h-1.5 w-16 rounded-full bg-white/20" />
         </div>
+      </div>
+    </div>
+  ))}
+</div>
 
         <style jsx>{`
           @keyframes claimCardFloat {
