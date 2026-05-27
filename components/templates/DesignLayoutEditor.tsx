@@ -348,8 +348,10 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Wellness Recovery", type: "icon", iconName: "wellness-recovery" },
     { kind: "block", label: "Nutrition", type: "icon", iconName: "nutrition" },
     { kind: "block", label: "Mobility", type: "icon", iconName: "mobility" },
-    { kind: "block", label: "Check Circle", type: "icon", iconName: "check-circle" },
     { kind: "block", label: "Check", type: "icon", iconName: "check" },
+    { kind: "block", label: "Check Circle", type: "icon", iconName: "check-circle" },
+    { kind: "block", label: "Check Shield", type: "icon", iconName: "check-shield" },
+    { kind: "block", label: "Open Door", type: "icon", iconName: "open-door" },
     { kind: "block", label: "Circle", type: "icon", iconName: "circle" },
     { kind: "block", label: "Trophy", type: "icon", iconName: "trophy" },
     { kind: "block", label: "Envelope", type: "icon", iconName: "envelope" },
@@ -1197,6 +1199,8 @@ if (label === "Chevron Right") {
   if (label === "Dummy") return "◯";
   if (label === "Drive Type") return "⇄";
   if (label === "Check Circle Solid") return "✅";
+  if (label === "Check Shield") return "🛡";
+  if (label === "Open Door") return "🚪";
   if (label === "Car Side") return "🚗";
   if (label === "Car Fuel") return "⛽";
   if (label === "Car Front") return "🚘";
