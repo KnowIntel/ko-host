@@ -207,6 +207,7 @@ const NEW_KEYS = new Set<TemplateKey>([
   "creator_link_hub",
   "focus_group",
   "memory_timeline",
+  "roast_session",
   "chat_room",
   "speed_dating",
   "guided_tutorial",
