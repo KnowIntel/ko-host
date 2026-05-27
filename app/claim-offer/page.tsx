@@ -9,7 +9,7 @@ const sampleCards = [
     image:
       "/designs/design-cards/design-card_beta_testing_professional.webp",
     className:
-      "left-[-40px] top-[120px] rotate-[-10deg] hidden xl:block",
+      "left-[-310px] bottom-[180px] rotate-[-10deg] hidden xl:block",
     glow: "from-blue-500/20 to-cyan-400/10",
   },
 
@@ -49,7 +49,7 @@ const sampleCards = [
     image:
       "/designs/design-cards/design-card_election_campaign_city.webp",
     className:
-      "left-[120px] top-[420px] rotate-[7deg] hidden 2xl:block",
+      "left-[120px] top-[350px] rotate-[7deg] hidden 2xl:block",
     glow: "from-blue-400/20 to-indigo-300/10",
   },
 
@@ -89,7 +89,7 @@ const sampleCards = [
     image:
       "/designs/design-cards/design-card_guided_tutorial_fabulous.webp",
     className:
-      "left-[340px] bottom-[70px] rotate-[6deg] hidden 2xl:block",
+      "left-[340px] bottom-[30px] rotate-[6deg] hidden 2xl:block",
     glow: "from-purple-500/20 to-pink-300/10",
   },
 
