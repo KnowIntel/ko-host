@@ -109,7 +109,7 @@ const sampleCards = [
     image:
       "/designs/design-cards/design-card_open_house_signature.webp",
     className:
-      "left-[480px] top-[260px] rotate-[-5deg] hidden 2xl:block",
+      "left-[450px] top-[300px] rotate-[-5deg] hidden 2xl:block",
     glow: "from-sky-500/20 to-cyan-200/10",
   },
 
