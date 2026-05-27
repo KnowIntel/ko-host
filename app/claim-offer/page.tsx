@@ -9,7 +9,7 @@ const sampleCards = [
     image:
       "/designs/design-cards/design-card_beta_testing_professional.webp",
     className:
-      "left-[-310px] bottom-[180px] rotate-[-10deg] hidden xl:block",
+      "left-[300px] top-[500px] rotate-[-10deg] hidden xl:block",
     glow: "from-blue-500/20 to-cyan-400/10",
   },
 
@@ -19,7 +19,7 @@ const sampleCards = [
     image:
       "/designs/design-cards/design-card_birthday_grown.webp",
     className:
-      "right-[-50px] top-[90px] rotate-[8deg] hidden xl:block",
+      "right-[-50px] bottom-[80px] rotate-[8deg] hidden xl:block",
     glow: "from-pink-500/20 to-orange-300/10",
   },
 
@@ -59,7 +59,7 @@ const sampleCards = [
     image:
       "/designs/design-cards/design-card_family_reunion_casual.webp",
     className:
-      "right-[100px] bottom-[180px] rotate-[5deg] hidden xl:block",
+      "right-[260px] bottom-[180px] rotate-[5deg] hidden xl:block",
     glow: "from-yellow-400/20 to-orange-200/10",
   },
 
@@ -99,7 +99,7 @@ const sampleCards = [
     image:
       "/designs/design-cards/design-card_memory_timeline_timeless.webp",
     className:
-      "right-[320px] top-[40px] rotate-[4deg] hidden 2xl:block",
+      "right-[-100px] top-[40px] rotate-[4deg] hidden 2xl:block",
     glow: "from-stone-400/20 to-neutral-200/10",
   },
 
@@ -129,7 +129,7 @@ const sampleCards = [
     image:
       "/designs/design-cards/design-card_restaurant_hometown.webp",
     className:
-      "left-[620px] bottom-[260px] rotate-[-4deg] hidden 2xl:block",
+      "left-[580px] bottom-[260px] rotate-[-4deg] hidden 2xl:block",
     glow: "from-red-500/20 to-orange-300/10",
   },
 ];
