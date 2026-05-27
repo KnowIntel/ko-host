@@ -2,7 +2,7 @@
 import { cookies } from "next/headers";
 import crypto from "crypto";
 import PlacedBlocksPreview from "@/components/preview/PlacedBlocksPreview";
-import MicrositeFooterBrand from "@/components/microsite/MicrositeFooterBrand";
+// import MicrositeFooterBrand from "@/components/microsite/MicrositeFooterBrand";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import type { BuilderDraft } from "@/lib/templates/builder";
 import PrivateMicrositeAccessForm from "@/components/microsite/PrivateMicrositeAccessForm";
@@ -66,7 +66,6 @@ function PageShell({
           <div className="mt-2 text-sm text-neutral-600">{message}</div>
         </div>
       </main>
-      <MicrositeFooterBrand />
     </>
   );
 }
@@ -185,7 +184,6 @@ export default async function PublishedMicrositeSubPage({
               </div>
             </div>
           </main>
-          <MicrositeFooterBrand />
         </>
       );
     }
@@ -233,7 +231,6 @@ export default async function PublishedMicrositeSubPage({
 />
         </div>
       </main>
-      <MicrositeFooterBrand />
     </>
   );
 }
