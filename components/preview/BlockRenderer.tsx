@@ -10039,7 +10039,7 @@ const moveToCell = (row: number, col: number) => {
 };
 
   return (
-    <div className="flex h-full w-full flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white">
+    <div className="isolate relative z-0 flex h-full w-full flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white">
       {data.showTitle !== false ? (
         <div className="border-b border-neutral-200 px-4 py-3">
           <div className="text-base font-semibold text-neutral-900">
