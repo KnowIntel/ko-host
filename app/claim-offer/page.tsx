@@ -185,17 +185,17 @@ export default function ClaimOfferPage() {
       key={card.title}
       className={`absolute ${card.className} animate-kht-float`}
     >
-      <div
-        className={`relative w-[150px] overflow-hidden rounded-[28px] border border-white/10 bg-gradient-to-br ${card.glow} p-[1px] shadow-[0_20px_80px_rgba(0,0,0,0.45)] backdrop-blur-xl`}
-      >
+<div
+  className={`relative w-[220px] overflow-hidden rounded-[28px] border border-white/10 bg-gradient-to-br ${card.glow} p-[1px] shadow-[0_20px_80px_rgba(0,0,0,0.45)] backdrop-blur-xl`}
+>
         <div className="rounded-[27px] bg-neutral-950/80 p-3">
-          <div className="overflow-hidden rounded-2xl border border-white/10">
-            <img
-              src={card.image}
-              alt={card.title}
-              className="h-[180px] w-full object-cover"
-            />
-          </div>
+<div className="aspect-[4/3] w-full overflow-hidden">
+  <img
+    src={card.image}
+    alt={card.title}
+    className="h-full w-full object-cover"
+  />
+</div>
 
           <div className="mt-3">
             <div className="text-sm font-black text-white">
