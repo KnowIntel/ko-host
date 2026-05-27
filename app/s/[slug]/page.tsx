@@ -5,7 +5,6 @@ import crypto from "crypto";
 import PlacedBlocksPreview from "@/components/preview/PlacedBlocksPreview";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 import type { BuilderDraft } from "@/lib/templates/builder";
-import MicrositeFooterBrand from "@/components/microsite/MicrositeFooterBrand";
 import PrivateMicrositeAccessForm from "@/components/microsite/PrivateMicrositeAccessForm";
 
 export const dynamic = "force-dynamic";
@@ -366,38 +365,34 @@ if (draft) {
         : "cover";
 
 return (
-  <>
-    <main
-      className="w-full max-w-none overflow-x-auto overflow-y-auto text-neutral-900"
-      style={{
-        minHeight: "100vh",
-        width: "100%",
-        margin: 0,
-        padding: 0,
-        backgroundColor: pageColor,
-        ...(pageBackgroundImage
-          ? {
-              backgroundImage: `url("${pageBackgroundImage}")`,
-              backgroundSize: pageBackgroundSize,
-              backgroundPosition: "center center",
-              backgroundRepeat: "no-repeat",
-            }
-          : {}),
-      }}
-    >
-      <div className="w-full max-w-none overflow-visible">
-        <PlacedBlocksPreview
-          draft={draft}
-          designKey={designKey}
-          micrositeId={microsite.id}
-          micrositeSlug={microsite.slug}
-          serverNow={Date.now()}
-          hideFrame={true}
-        />
-      </div>
-    </main>
-
-    <MicrositeFooterBrand />
-  </>
+  <main
+    className="w-full max-w-none overflow-x-auto overflow-y-auto text-neutral-900"
+    style={{
+      minHeight: "100vh",
+      width: "100%",
+      margin: 0,
+      padding: 0,
+      backgroundColor: pageColor,
+      ...(pageBackgroundImage
+        ? {
+            backgroundImage: `url("${pageBackgroundImage}")`,
+            backgroundSize: pageBackgroundSize,
+            backgroundPosition: "center center",
+            backgroundRepeat: "no-repeat",
+          }
+        : {}),
+    }}
+  >
+    <div className="w-full max-w-none overflow-visible">
+      <PlacedBlocksPreview
+        draft={draft}
+        designKey={designKey}
+        micrositeId={microsite.id}
+        micrositeSlug={microsite.slug}
+        serverNow={Date.now()}
+        hideFrame={true}
+      />
+    </div>
+  </main>
 );
 }
