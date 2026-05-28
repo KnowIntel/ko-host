@@ -3251,15 +3251,6 @@ function applyFillColor(value: string) {
     return;
   }
 
-  if (selectedBlock?.type === "rsvp") {
-    updateSelectedRsvpElementStyle((current) => ({
-      ...current,
-      backgroundColor: value,
-    }));
-    pushRecentColor(value);
-    return;
-  }
-
   if (selectedBlock?.type === "donation") {
     updateSelectedBlock((block) => {
       if (block.type !== "donation") return block;
@@ -3766,17 +3757,6 @@ const handleVideoUpload = async (
 };
 
 function applyStylePatch(patch: Partial<TextStyle>) {
-  if (selectedBlock?.type === "rsvp") {
-  updateSelectedRsvpElementStyle((current) => ({
-    ...current,
-    textStyle: {
-      ...(current?.textStyle ?? {}),
-      ...patch,
-    },
-  }));
-  return;
-}
-
   if (selectedBlock?.type === "text_fx") {
     setDraft((prev) => ({
       ...prev,
@@ -11532,6 +11512,44 @@ selectedContext.kind === "textFx"
     <div className={inspectorLabelClass()}>RSVP</div>
 
     <div className="mt-4">
+      <div className={inspectorLabelClass()}>Style Variant</div>
+      <select
+        value={selectedBlock.data.styleVariant ?? "standard"}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "rsvp"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    styleVariant: e.target.value as any,
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      >
+        <option value="standard">Standard</option>
+        <option value="elegant_wedding">Elegant Wedding</option>
+        <option value="modern_minimal">Modern Minimal</option>
+        <option value="glassmorphism">Glassmorphism</option>
+        <option value="luxury_black">Luxury Black</option>
+        <option value="editorial_magazine">Editorial Magazine</option>
+        <option value="floral_invitation">Floral Invitation</option>
+        <option value="bold_event">Bold Event</option>
+        <option value="luxury_invitation">Luxury Invitation</option>
+        <option value="soft_pastel">Soft Pastel</option>
+        <option value="dark_neon">Dark Neon</option>
+        <option value="ticket_style">Ticket Style</option>
+        <option value="timeline_rsvp">Timeline RSVP</option>
+        <option value="split_layout">Split Layout</option>
+        <option value="floating_panels">Floating Panels</option>
+        <option value="formal_banquet">Formal Banquet</option>
+      </select>
+    </div>
+
+    <div className="mt-4">
       <div className={inspectorLabelClass()}>Heading</div>
       <input
         ref={rsvpHeadingInputRef}
@@ -11632,6 +11650,88 @@ selectedContext.kind === "textFx"
       </label>
 
       <div className="mt-4">
+        <div className={inspectorLabelClass()}>Label</div>
+        <input
+          type="text"
+          value={selectedBlock.data.attendingLabel ?? "Are you attending?"}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "rsvp"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      attendingLabel: e.target.value,
+                    },
+                  },
+            )
+          }
+          className={inspectorInputClass()}
+        />
+      </div>
+
+      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div>
+          <div className={inspectorLabelClass()}>Option 1</div>
+          <input
+            type="text"
+            value={selectedBlock.data.attendingOptions?.[0] ?? "Yes"}
+            onChange={(e) =>
+              updateSelectedBlock((block) => {
+                if (block.type !== "rsvp") return block;
+
+                const option1 = e.target.value;
+                const option2 = block.data.attendingOptions?.[1] ?? "No";
+
+                return {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    attendingOptions: [option1, option2],
+                    attendingDefaultValue:
+                      block.data.attendingDefaultValue === block.data.attendingOptions?.[0]
+                        ? option1
+                        : block.data.attendingDefaultValue,
+                  },
+                };
+              })
+            }
+            className={inspectorInputClass()}
+          />
+        </div>
+
+        <div>
+          <div className={inspectorLabelClass()}>Option 2</div>
+          <input
+            type="text"
+            value={selectedBlock.data.attendingOptions?.[1] ?? "No"}
+            onChange={(e) =>
+              updateSelectedBlock((block) => {
+                if (block.type !== "rsvp") return block;
+
+                const option1 = block.data.attendingOptions?.[0] ?? "Yes";
+                const option2 = e.target.value;
+
+                return {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    attendingOptions: [option1, option2],
+                    attendingDefaultValue:
+                      block.data.attendingDefaultValue === block.data.attendingOptions?.[1]
+                        ? option2
+                        : block.data.attendingDefaultValue,
+                  },
+                };
+              })
+            }
+            className={inspectorInputClass()}
+          />
+        </div>
+      </div>
+
+      <div className="mt-4">
         <div className={inspectorLabelClass()}>Default Table Value</div>
         <select
           value={selectedBlock.data.attendingDefaultValue ?? "Yes"}
@@ -11657,28 +11757,6 @@ selectedContext.kind === "textFx"
             {selectedBlock.data.attendingOptions?.[1] ?? "No"}
           </option>
         </select>
-      </div>
-
-      <div className="mt-4">
-        <div className={inspectorLabelClass()}>Label</div>
-        <input
-          type="text"
-          value={selectedBlock.data.attendingLabel ?? "Are you attending?"}
-          onChange={(e) =>
-            updateSelectedBlock((block) =>
-              block.type !== "rsvp"
-                ? block
-                : {
-                    ...block,
-                    data: {
-                      ...block.data,
-                      attendingLabel: e.target.value,
-                    },
-                  },
-            )
-          }
-          className={inspectorInputClass()}
-        />
       </div>
     </div>
 
@@ -11707,6 +11785,88 @@ selectedContext.kind === "textFx"
       </label>
 
       <div className="mt-4">
+        <div className={inspectorLabelClass()}>Label</div>
+        <input
+          type="text"
+          value={selectedBlock.data.mealLabel ?? "Your meal selection:"}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "rsvp"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      mealLabel: e.target.value,
+                    },
+                  },
+            )
+          }
+          className={inspectorInputClass()}
+        />
+      </div>
+
+      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div>
+          <div className={inspectorLabelClass()}>Option 1</div>
+          <input
+            type="text"
+            value={selectedBlock.data.mealOptions?.[0] ?? "Chicken"}
+            onChange={(e) =>
+              updateSelectedBlock((block) => {
+                if (block.type !== "rsvp") return block;
+
+                const option1 = e.target.value;
+                const option2 = block.data.mealOptions?.[1] ?? "Salmon";
+
+                return {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    mealOptions: [option1, option2],
+                    mealDefaultValue:
+                      block.data.mealDefaultValue === block.data.mealOptions?.[0]
+                        ? option1
+                        : block.data.mealDefaultValue,
+                  },
+                };
+              })
+            }
+            className={inspectorInputClass()}
+          />
+        </div>
+
+        <div>
+          <div className={inspectorLabelClass()}>Option 2</div>
+          <input
+            type="text"
+            value={selectedBlock.data.mealOptions?.[1] ?? "Salmon"}
+            onChange={(e) =>
+              updateSelectedBlock((block) => {
+                if (block.type !== "rsvp") return block;
+
+                const option1 = block.data.mealOptions?.[0] ?? "Chicken";
+                const option2 = e.target.value;
+
+                return {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    mealOptions: [option1, option2],
+                    mealDefaultValue:
+                      block.data.mealDefaultValue === block.data.mealOptions?.[1]
+                        ? option2
+                        : block.data.mealDefaultValue,
+                  },
+                };
+              })
+            }
+            className={inspectorInputClass()}
+          />
+        </div>
+      </div>
+
+      <div className="mt-4">
         <div className={inspectorLabelClass()}>Default Table Value</div>
         <select
           value={selectedBlock.data.mealDefaultValue ?? "Chicken"}
@@ -11732,28 +11892,6 @@ selectedContext.kind === "textFx"
             {selectedBlock.data.mealOptions?.[1] ?? "Salmon"}
           </option>
         </select>
-      </div>
-
-      <div className="mt-4">
-        <div className={inspectorLabelClass()}>Label</div>
-        <input
-          type="text"
-          value={selectedBlock.data.mealLabel ?? "Your meal selection:"}
-          onChange={(e) =>
-            updateSelectedBlock((block) =>
-              block.type !== "rsvp"
-                ? block
-                : {
-                    ...block,
-                    data: {
-                      ...block.data,
-                      mealLabel: e.target.value,
-                    },
-                  },
-            )
-          }
-          className={inspectorInputClass()}
-        />
       </div>
     </div>
 
@@ -11782,6 +11920,88 @@ selectedContext.kind === "textFx"
       </label>
 
       <div className="mt-4">
+        <div className={inspectorLabelClass()}>Label</div>
+        <input
+          type="text"
+          value={selectedBlock.data.guestLabel ?? "Are you bringing a guest?"}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "rsvp"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      guestLabel: e.target.value,
+                    },
+                  },
+            )
+          }
+          className={inspectorInputClass()}
+        />
+      </div>
+
+      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div>
+          <div className={inspectorLabelClass()}>Option 1</div>
+          <input
+            type="text"
+            value={selectedBlock.data.guestOptions?.[0] ?? "Yes"}
+            onChange={(e) =>
+              updateSelectedBlock((block) => {
+                if (block.type !== "rsvp") return block;
+
+                const option1 = e.target.value;
+                const option2 = block.data.guestOptions?.[1] ?? "No";
+
+                return {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    guestOptions: [option1, option2],
+                    guestDefaultValue:
+                      block.data.guestDefaultValue === block.data.guestOptions?.[0]
+                        ? option1
+                        : block.data.guestDefaultValue,
+                  },
+                };
+              })
+            }
+            className={inspectorInputClass()}
+          />
+        </div>
+
+        <div>
+          <div className={inspectorLabelClass()}>Option 2</div>
+          <input
+            type="text"
+            value={selectedBlock.data.guestOptions?.[1] ?? "No"}
+            onChange={(e) =>
+              updateSelectedBlock((block) => {
+                if (block.type !== "rsvp") return block;
+
+                const option1 = block.data.guestOptions?.[0] ?? "Yes";
+                const option2 = e.target.value;
+
+                return {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    guestOptions: [option1, option2],
+                    guestDefaultValue:
+                      block.data.guestDefaultValue === block.data.guestOptions?.[1]
+                        ? option2
+                        : block.data.guestDefaultValue,
+                  },
+                };
+              })
+            }
+            className={inspectorInputClass()}
+          />
+        </div>
+      </div>
+
+      <div className="mt-4">
         <div className={inspectorLabelClass()}>Default Table Value</div>
         <select
           value={selectedBlock.data.guestDefaultValue ?? "No"}
@@ -11807,28 +12027,6 @@ selectedContext.kind === "textFx"
             {selectedBlock.data.guestOptions?.[1] ?? "No"}
           </option>
         </select>
-      </div>
-
-      <div className="mt-4">
-        <div className={inspectorLabelClass()}>Label</div>
-        <input
-          type="text"
-          value={selectedBlock.data.guestLabel ?? "Are you bringing a guest?"}
-          onChange={(e) =>
-            updateSelectedBlock((block) =>
-              block.type !== "rsvp"
-                ? block
-                : {
-                    ...block,
-                    data: {
-                      ...block.data,
-                      guestLabel: e.target.value,
-                    },
-                  },
-            )
-          }
-          className={inspectorInputClass()}
-        />
       </div>
     </div>
 
