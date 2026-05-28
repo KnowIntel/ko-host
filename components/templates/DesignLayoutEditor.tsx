@@ -12264,7 +12264,7 @@ selectedContext.kind === "textFx"
   <label className="mt-3 flex items-center gap-3 text-sm text-neutral-800">
     <input
       type="checkbox"
-      checked={selectedBlock.data.contactDetailsDisplay !== false}
+      checked={selectedBlock.data.nameDisplay !== false}
       onChange={(e) =>
         updateSelectedBlock((block) =>
           block.type !== "rsvp"
@@ -12273,7 +12273,7 @@ selectedContext.kind === "textFx"
                 ...block,
                 data: {
                   ...block.data,
-                  contactDetailsDisplay: e.target.checked,
+                  nameDisplay: e.target.checked,
                 },
               },
         )
@@ -12287,7 +12287,7 @@ selectedContext.kind === "textFx"
 
     <input
       type="text"
-      value={selectedBlock.data.contactDetailsLabel ?? "Contact Details"}
+      value={selectedBlock.data.contactLabel ?? "Contact Details"}
       onChange={(e) =>
         updateSelectedBlock((block) =>
           block.type !== "rsvp"
@@ -12314,7 +12314,7 @@ selectedContext.kind === "textFx"
 
         <input
           type="checkbox"
-          checked={selectedBlock.data.nameFieldsDisplay !== false}
+          checked={selectedBlock.data.nameDisplay !== false}
           onChange={(e) =>
             updateSelectedBlock((block) =>
               block.type !== "rsvp"
