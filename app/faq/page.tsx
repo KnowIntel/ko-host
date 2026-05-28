@@ -2,32 +2,32 @@ const faqCards = [
   {
     title: "Photo Gallery",
     image: "/designs/design-cards/design-card_photo_gallery_escape.webp",
-    className: "left-[60px] top-[80px] rotate-[-8deg] hidden xl:block",
+    className: "left-[60px] top-[280px] rotate-[-8deg] hidden xl:block",
   },
   {
     title: "Wedding",
     image: "/designs/design-cards/design-card_wedding_evergreen.webp",
-    className: "left-[260px] top-[480px] rotate-[8deg] hidden xl:block",
+    className: "left-[260px] top-[680px] rotate-[8deg] hidden xl:block",
   },
   {
     title: "Product Launch",
     image: "/designs/design-cards/design-card_product_launch_simplistic.webp",
-    className: "left-[80px] top-[880px] rotate-[6deg] hidden 2xl:block",
+    className: "left-[80px] top-[1080px] rotate-[6deg] hidden 2xl:block",
   },
   {
     title: "Restaurant",
     image: "/designs/design-cards/design-card_restaurant_menu_deluxe.webp",
-    className: "left-[240px] top-[1280px] rotate-[-7deg] hidden 2xl:block",
+    className: "left-[240px] top-[1480px] rotate-[-7deg] hidden 2xl:block",
   },
   {
     title: "Sweepstakes",
     image: "/designs/design-cards/design-card_sweepstakes_inclusive.webp",
-    className: "left-[40px] top-[1680px] rotate-[5deg] hidden 2xl:block",
+    className: "left-[40px] top-[1880px] rotate-[5deg] hidden 2xl:block",
   },
   {
     title: "Baby Shower",
     image: "/designs/design-cards/design-card_baby_shower_elegant.webp",
-    className: "left-[230px] top-[2080px] rotate-[-5deg] hidden 2xl:block",
+    className: "left-[230px] top-[2280px] rotate-[-5deg] hidden 2xl:block",
   },
 
 
@@ -37,40 +37,40 @@ const faqCards = [
   title: "Learning Lab",
   image: "/designs/design-cards/design-card_learning_lab_worksheet.webp",
   className:
-    "right-[60px] top-[80px] rotate-[7deg] hidden 2xl:block",
+    "right-[60px] top-[280px] rotate-[7deg] hidden 2xl:block",
 },
 
 {
   title: "Memorial Tribute",
   image: "/designs/design-cards/design-card_memorial_tribute_soft.webp",
   className:
-    "right-[240px] top-[480px] rotate-[-6deg] hidden 2xl:block",
+    "right-[240px] top-[680px] rotate-[-6deg] hidden 2xl:block",
 },
 
 {
   title: "Wedding Story",
   image: "/designs/design-cards/design-card_wedding_subtle.webp",
   className:
-    "right-[50px] top-[880px] rotate-[-5deg] hidden 2xl:block",
+    "right-[50px] top-[1080px] rotate-[-5deg] hidden 2xl:block",
 },
 
 {
   title: "Networking",
   image: "/designs/design-cards/design-card_enthusiast_networking_direct.webp",
   className:
-    "right-[260px] top-[1280px] rotate-[6deg] hidden 2xl:block",
+    "right-[260px] top-[1480px] rotate-[6deg] hidden 2xl:block",
 },
 
 {
 title: "Creator Link Hub",
 image: "/designs/design-cards/design-card_creator_link_hub_studio.webp",
-className: "right-[60] top-[1680px] rotate-[-4deg] hidden 2xl:block",
+className: "right-[60] top-[1880px] rotate-[-4deg] hidden 2xl:block",
 },
 
 {
 title: "Graduation",
 image: "/designs/design-cards/design-card_graduation_prestige.webp",
-className: "right-[230] top-[2080px] rotate-[5deg] hidden 2xl:block",
+className: "right-[230] top-[2280px] rotate-[5deg] hidden 2xl:block",
 },
 
 ];
