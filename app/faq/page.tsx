@@ -393,34 +393,37 @@ export default function FAQPage() {
               </div>
 
               <div className="grid gap-8">
-                {faqGroups.map((group) => (
-                  <section key={group.title}>
-                    <h3 className="mb-4 text-lg font-black text-white">
-                      {group.title}
-                    </h3>
+{faqGroups.map((group) => (
+  <section key={group.title}>
+    <h3 className="mb-4 text-lg font-black text-white">
+      {group.title}
+    </h3>
 
-                    <div className="grid gap-3">
-                      {group.items.map((item) => (
-                        <details
-                          key={item.q}
-                          className="group rounded-2xl border border-white/10 bg-white/[0.08] px-4 py-4 transition-all duration-300 hover:bg-white/[0.12]"
-                        >
-                          <summary className="cursor-pointer list-none text-sm font-black text-white">
-                            <div className="flex items-center justify-between gap-4">
-                              <span>{item.q}</span>
-                              <span className="text-xl text-blue-200 transition group-open:rotate-45">
-                                +
-                              </span>
-                            </div>
-                          </summary>
+    <div className="grid gap-3">
+      {group.items.map((item) => (
+        <details
+          key={item.q}
+          className="group rounded-2xl border border-white/10 bg-white/[0.08] px-4 py-4 transition-all duration-300 hover:bg-white/[0.12]"
+        >
+          <summary className="cursor-pointer list-none text-sm font-black text-white">
+            <div className="flex items-center justify-between gap-4">
+              <span>{item.q}</span>
+              <span className="text-xl text-blue-200 transition group-open:rotate-45">
+                +
+              </span>
+            </div>
+          </summary>
 
-                          <p className="mt-3 text-sm leading-7 text-white/70 animate-in fade-in duration-300">
-                            {item.a}
-                          </p>
-                        </details>
-                      ))}
-                    </div>
-                    <div className="relative mx-auto mt-16 max-w-3xl text-center">
+          <p className="mt-3 text-sm leading-7 text-white/70 animate-in fade-in duration-300">
+            {item.a}
+          </p>
+        </details>
+      ))}
+    </div>
+  </section>
+))}
+
+<div className="relative mx-auto mt-16 max-w-3xl text-center">
   <div className="rounded-[32px] border border-white/10 bg-white/[0.08] px-6 py-10 shadow-[0_20px_80px_rgba(0,0,0,0.35)] backdrop-blur-xl">
     <div className="text-sm font-black uppercase tracking-[0.18em] text-blue-200">
       Ready to Build?
@@ -445,8 +448,6 @@ export default function FAQPage() {
     </div>
   </div>
 </div>
-                  </section>
-                ))}
               </div>
             </div>
           </div>
