@@ -11646,6 +11646,236 @@ selectedContext.kind === "textFx"
         <option value="heart">Heart</option>
       </select>
     </div>
+    
+<div className="mt-5 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+  <div className={inspectorLabelClass()}>Contact Details Section</div>
+
+  <label className="mt-3 flex items-center gap-3 text-sm text-neutral-800">
+    <input
+      type="checkbox"
+      checked={selectedBlock.data.nameDisplay !== false}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "rsvp"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  nameDisplay: e.target.checked,
+                },
+              },
+        )
+      }
+    />
+    Display contact details section
+  </label>
+
+  <div className="mt-4">
+    <div className={inspectorLabelClass()}>Section Label</div>
+
+    <input
+      type="text"
+      value={selectedBlock.data.contactLabel ?? "Contact Details"}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "rsvp"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  contactDetailsLabel: e.target.value,
+                },
+              },
+        )
+      }
+      className={inspectorInputClass()}
+    />
+  </div>
+
+  <div className="mt-5 space-y-4">
+    <div className="rounded-xl border border-neutral-200 bg-white p-4">
+      <div className="flex items-center justify-between">
+        <div className="text-sm font-medium text-neutral-800">
+          Name Fields
+        </div>
+
+        <input
+          type="checkbox"
+          checked={selectedBlock.data.nameDisplay !== false}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "rsvp"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      nameFieldsDisplay: e.target.checked,
+                    },
+                  },
+            )
+          }
+        />
+      </div>
+
+      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div>
+          <div className={inspectorLabelClass()}>First Name Placeholder</div>
+
+          <input
+            type="text"
+            value={
+              selectedBlock.data.firstNamePlaceholder ?? "First Name"
+            }
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "rsvp"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        firstNamePlaceholder: e.target.value,
+                      },
+                    },
+              )
+            }
+            className={inspectorInputClass()}
+          />
+        </div>
+
+        <div>
+          <div className={inspectorLabelClass()}>Last Name Placeholder</div>
+
+          <input
+            type="text"
+            value={
+              selectedBlock.data.lastNamePlaceholder ?? "Last Name"
+            }
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "rsvp"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        lastNamePlaceholder: e.target.value,
+                      },
+                    },
+              )
+            }
+            className={inspectorInputClass()}
+          />
+        </div>
+      </div>
+    </div>
+
+    <div className="rounded-xl border border-neutral-200 bg-white p-4">
+      <div className="flex items-center justify-between">
+        <div className="text-sm font-medium text-neutral-800">
+          Email Address
+        </div>
+
+        <input
+          type="checkbox"
+          checked={selectedBlock.data.emailDisplay !== false}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "rsvp"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      emailDisplay: e.target.checked,
+                    },
+                  },
+            )
+          }
+        />
+      </div>
+
+      <div className="mt-4">
+        <div className={inspectorLabelClass()}>Email Placeholder</div>
+
+        <input
+          type="text"
+          value={
+            selectedBlock.data.emailPlaceholder ?? "Email Address"
+          }
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "rsvp"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      emailPlaceholder: e.target.value,
+                    },
+                  },
+            )
+          }
+          className={inspectorInputClass()}
+        />
+      </div>
+    </div>
+
+    <div className="rounded-xl border border-neutral-200 bg-white p-4">
+      <div className="flex items-center justify-between">
+        <div className="text-sm font-medium text-neutral-800">
+          Mailing Address
+        </div>
+
+        <input
+          type="checkbox"
+          checked={selectedBlock.data.addressDisplay !== false}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "rsvp"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      addressDisplay: e.target.checked,
+                    },
+                  },
+            )
+          }
+        />
+      </div>
+
+      <div className="mt-4">
+        <div className={inspectorLabelClass()}>Address Placeholder</div>
+
+        <input
+          type="text"
+          value={
+            selectedBlock.data.addressPlaceholder ?? "Mailing Address"
+          }
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "rsvp"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      addressPlaceholder: e.target.value,
+                    },
+                  },
+            )
+          }
+          className={inspectorInputClass()}
+        />
+      </div>
+    </div>
+  </div>
+</div>
 
     <div className="mt-5 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
       <div className={inspectorLabelClass()}>Are You Attending Section</div>
@@ -12257,236 +12487,6 @@ selectedContext.kind === "textFx"
         </select>
       </div>
     </div>
-
-<div className="mt-5 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
-  <div className={inspectorLabelClass()}>Contact Details Section</div>
-
-  <label className="mt-3 flex items-center gap-3 text-sm text-neutral-800">
-    <input
-      type="checkbox"
-      checked={selectedBlock.data.nameDisplay !== false}
-      onChange={(e) =>
-        updateSelectedBlock((block) =>
-          block.type !== "rsvp"
-            ? block
-            : {
-                ...block,
-                data: {
-                  ...block.data,
-                  nameDisplay: e.target.checked,
-                },
-              },
-        )
-      }
-    />
-    Display contact details section
-  </label>
-
-  <div className="mt-4">
-    <div className={inspectorLabelClass()}>Section Label</div>
-
-    <input
-      type="text"
-      value={selectedBlock.data.contactLabel ?? "Contact Details"}
-      onChange={(e) =>
-        updateSelectedBlock((block) =>
-          block.type !== "rsvp"
-            ? block
-            : {
-                ...block,
-                data: {
-                  ...block.data,
-                  contactDetailsLabel: e.target.value,
-                },
-              },
-        )
-      }
-      className={inspectorInputClass()}
-    />
-  </div>
-
-  <div className="mt-5 space-y-4">
-    <div className="rounded-xl border border-neutral-200 bg-white p-4">
-      <div className="flex items-center justify-between">
-        <div className="text-sm font-medium text-neutral-800">
-          Name Fields
-        </div>
-
-        <input
-          type="checkbox"
-          checked={selectedBlock.data.nameDisplay !== false}
-          onChange={(e) =>
-            updateSelectedBlock((block) =>
-              block.type !== "rsvp"
-                ? block
-                : {
-                    ...block,
-                    data: {
-                      ...block.data,
-                      nameFieldsDisplay: e.target.checked,
-                    },
-                  },
-            )
-          }
-        />
-      </div>
-
-      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <div>
-          <div className={inspectorLabelClass()}>First Name Placeholder</div>
-
-          <input
-            type="text"
-            value={
-              selectedBlock.data.firstNamePlaceholder ?? "First Name"
-            }
-            onChange={(e) =>
-              updateSelectedBlock((block) =>
-                block.type !== "rsvp"
-                  ? block
-                  : {
-                      ...block,
-                      data: {
-                        ...block.data,
-                        firstNamePlaceholder: e.target.value,
-                      },
-                    },
-              )
-            }
-            className={inspectorInputClass()}
-          />
-        </div>
-
-        <div>
-          <div className={inspectorLabelClass()}>Last Name Placeholder</div>
-
-          <input
-            type="text"
-            value={
-              selectedBlock.data.lastNamePlaceholder ?? "Last Name"
-            }
-            onChange={(e) =>
-              updateSelectedBlock((block) =>
-                block.type !== "rsvp"
-                  ? block
-                  : {
-                      ...block,
-                      data: {
-                        ...block.data,
-                        lastNamePlaceholder: e.target.value,
-                      },
-                    },
-              )
-            }
-            className={inspectorInputClass()}
-          />
-        </div>
-      </div>
-    </div>
-
-    <div className="rounded-xl border border-neutral-200 bg-white p-4">
-      <div className="flex items-center justify-between">
-        <div className="text-sm font-medium text-neutral-800">
-          Email Address
-        </div>
-
-        <input
-          type="checkbox"
-          checked={selectedBlock.data.emailDisplay !== false}
-          onChange={(e) =>
-            updateSelectedBlock((block) =>
-              block.type !== "rsvp"
-                ? block
-                : {
-                    ...block,
-                    data: {
-                      ...block.data,
-                      emailDisplay: e.target.checked,
-                    },
-                  },
-            )
-          }
-        />
-      </div>
-
-      <div className="mt-4">
-        <div className={inspectorLabelClass()}>Email Placeholder</div>
-
-        <input
-          type="text"
-          value={
-            selectedBlock.data.emailPlaceholder ?? "Email Address"
-          }
-          onChange={(e) =>
-            updateSelectedBlock((block) =>
-              block.type !== "rsvp"
-                ? block
-                : {
-                    ...block,
-                    data: {
-                      ...block.data,
-                      emailPlaceholder: e.target.value,
-                    },
-                  },
-            )
-          }
-          className={inspectorInputClass()}
-        />
-      </div>
-    </div>
-
-    <div className="rounded-xl border border-neutral-200 bg-white p-4">
-      <div className="flex items-center justify-between">
-        <div className="text-sm font-medium text-neutral-800">
-          Mailing Address
-        </div>
-
-        <input
-          type="checkbox"
-          checked={selectedBlock.data.addressDisplay !== false}
-          onChange={(e) =>
-            updateSelectedBlock((block) =>
-              block.type !== "rsvp"
-                ? block
-                : {
-                    ...block,
-                    data: {
-                      ...block.data,
-                      addressDisplay: e.target.checked,
-                    },
-                  },
-            )
-          }
-        />
-      </div>
-
-      <div className="mt-4">
-        <div className={inspectorLabelClass()}>Address Placeholder</div>
-
-        <input
-          type="text"
-          value={
-            selectedBlock.data.addressPlaceholder ?? "Mailing Address"
-          }
-          onChange={(e) =>
-            updateSelectedBlock((block) =>
-              block.type !== "rsvp"
-                ? block
-                : {
-                    ...block,
-                    data: {
-                      ...block.data,
-                      addressPlaceholder: e.target.value,
-                    },
-                  },
-            )
-          }
-          className={inspectorInputClass()}
-        />
-      </div>
-    </div>
-  </div>
-</div>
 
     <div className="mt-5 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
       <div className={inspectorLabelClass()}>Comments Section</div>
