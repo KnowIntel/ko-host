@@ -9,7 +9,7 @@ const sampleCards = [
     image:
       "/designs/design-cards/design-card_beta_testing_professional.webp",
     className:
-      "left-[40px] top-[390px] rotate-[-10deg] hidden xl:block",
+      "left-[90px] top-[290px] rotate-[-10deg] hidden xl:block",
     glow: "from-blue-500/20 to-cyan-400/10",
   },
 
@@ -49,7 +49,7 @@ const sampleCards = [
     image:
       "/designs/design-cards/design-card_election_campaign_city.webp",
     className:
-      "left-[300px] top-[620px] rotate-[7deg] hidden 2xl:block",
+      "left-[330px] top-[520px] rotate-[7deg] hidden 2xl:block",
     glow: "from-blue-400/20 to-indigo-300/10",
   },
 
