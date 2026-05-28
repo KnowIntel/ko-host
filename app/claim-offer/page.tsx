@@ -49,7 +49,7 @@ const sampleCards = [
     image:
       "/designs/design-cards/design-card_election_campaign_city.webp",
     className:
-      "left-[120px] top-[350px] rotate-[7deg] hidden 2xl:block",
+      "left-[80px] top-[350px] rotate-[7deg] hidden 2xl:block",
     glow: "from-blue-400/20 to-indigo-300/10",
   },
 
