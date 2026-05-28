@@ -29,16 +29,7 @@ const faqCards = [
     image: "/designs/design-cards/design-card_baby_shower_elegant.webp",
     className: "left-[230px] top-[2080px] rotate-[-5deg] hidden 2xl:block",
   },
-  {
-    title: "Creator Link Hub",
-    image: "/designs/design-cards/design-card_creator_link_hub_studio.webp",
-    className: "left-[60px] top-[2480px] rotate-[-4deg] hidden 2xl:block",
-  },
-  {
-    title: "Graduation",
-    image: "/designs/design-cards/design-card_graduation_prestige.webp",
-    className: "left-[250px] top-[2880px] rotate-[5deg] hidden 2xl:block",
-  },
+
 
 
 
@@ -68,6 +59,18 @@ const faqCards = [
   image: "/designs/design-cards/design-card_enthusiast_networking_direct.webp",
   className:
     "right-[260px] top-[1280px] rotate-[6deg] hidden 2xl:block",
+},
+
+{
+title: "Creator Link Hub",
+image: "/designs/design-cards/design-card_creator_link_hub_studio.webp",
+className: "right-[60] top-[1680px] rotate-[-4deg] hidden 2xl:block",
+},
+
+{
+title: "Graduation",
+image: "/designs/design-cards/design-card_graduation_prestige.webp",
+className: "right-[230] top-[2080px] rotate-[5deg] hidden 2xl:block",
 },
 
 ];
