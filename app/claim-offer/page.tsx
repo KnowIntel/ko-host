@@ -79,7 +79,7 @@ const sampleCards = [
     image:
       "/designs/design-cards/design-card_graduation_spotlight.webp",
     className:
-      "right-[220px] bottom-[40px] rotate-[-7deg] hidden 2xl:block",
+      "right-[220px] bottom-[80px] rotate-[-7deg] hidden 2xl:block",
     glow: "from-amber-400/20 to-yellow-200/10",
   },
 
@@ -109,7 +109,7 @@ const sampleCards = [
     image:
       "/designs/design-cards/design-card_open_house_signature.webp",
     className:
-      "left-[450px] top-[300px] rotate-[-5deg] hidden 2xl:block",
+      "left-[350px] top-[330px] rotate-[-5deg] hidden 2xl:block",
     glow: "from-sky-500/20 to-cyan-200/10",
   },
 
@@ -119,7 +119,7 @@ const sampleCards = [
     image:
       "/designs/design-cards/design-card_pet_adoption_welcome.webp",
     className:
-      "right-[410px] bottom-[60px] rotate-[7deg] hidden 2xl:block",
+      "right-[110px] bottom-[60px] rotate-[7deg] hidden 2xl:block",
     glow: "from-lime-400/20 to-green-200/10",
   },
 
