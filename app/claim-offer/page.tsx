@@ -33,7 +33,7 @@ const sampleCards = [
     glow: "from-emerald-400/20 to-green-200/10",
   },
 
-  {
+/*   {
     title: "Creator Link Hub",
     subtitle: "Social-first creator page",
     image:
@@ -41,7 +41,7 @@ const sampleCards = [
     className:
       "right-[40px] top-[40px] rotate-[-6deg] hidden 2xl:block",
     glow: "from-fuchsia-500/20 to-violet-400/10",
-  },
+  }, */
 
   {
     title: "Election Campaign",
@@ -63,7 +63,7 @@ const sampleCards = [
     glow: "from-yellow-400/20 to-orange-200/10",
   },
 
-  {
+/*   {
     title: "Vehicle Listing",
     subtitle: "For sale by owner",
     image:
@@ -71,7 +71,7 @@ const sampleCards = [
     className:
       "left-[220px] top-[40px] rotate-[-5deg] hidden 2xl:block",
     glow: "from-neutral-400/20 to-zinc-300/10",
-  },
+  }, */
 
   {
     title: "Graduation",

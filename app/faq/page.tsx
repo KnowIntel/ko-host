@@ -30,6 +30,16 @@ const faqCards = [
     className: "left-[230px] top-[2280px] rotate-[-5deg] hidden 2xl:block",
   },
 
+  {
+    title: "Vehicle Listing",
+    image: "/designs/design-cards/design-card_for_sale_by_owner_auto.webp",
+    className: "left-[50px] top-[2680px] rotate-[-5deg] hidden 2xl:block",
+  },
+
+
+
+
+
 
 
 
@@ -72,6 +82,26 @@ title: "Graduation",
 image: "/designs/design-cards/design-card_graduation_prestige.webp",
 className: "right-[230] top-[2280px] rotate-[5deg] hidden 2xl:block",
 },
+
+{
+title: "Creator Link Hub",
+image: "/designs/design-cards/design-card_creator_link_hub_canvas.webp",
+className: "right-[40px] top-[2680px] rotate-[-6deg] hidden 2xl:block",
+},
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ];
 
