@@ -442,13 +442,6 @@ export default function FAQPage() {
       >
         Browse Templates
       </a>
-
-      <a
-        href="/claim-offer"
-        className="rounded-full border border-white/15 bg-white/10 px-6 py-3 text-sm font-black text-white transition hover:bg-white/15"
-      >
-        Claim Offer
-      </a>
     </div>
   </div>
 </div>
