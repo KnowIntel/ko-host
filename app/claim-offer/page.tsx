@@ -59,7 +59,7 @@ const sampleCards = [
     image:
       "/designs/design-cards/design-card_family_reunion_casual.webp",
     className:
-      "right-[260px] bottom-[180px] rotate-[5deg] hidden xl:block",
+      "right-[260px] bottom-[380px] rotate-[5deg] hidden xl:block",
     glow: "from-yellow-400/20 to-orange-200/10",
   },
 
@@ -119,7 +119,7 @@ const sampleCards = [
     image:
       "/designs/design-cards/design-card_pet_adoption_welcome.webp",
     className:
-      "right-[480px] bottom-[260px] rotate-[7deg] hidden 2xl:block",
+      "right-[280px] bottom-[260px] rotate-[7deg] hidden 2xl:block",
     glow: "from-lime-400/20 to-green-200/10",
   },
 
