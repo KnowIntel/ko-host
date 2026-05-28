@@ -103,7 +103,7 @@ const sampleCards = [
     glow: "from-stone-400/20 to-neutral-200/10",
   },
 
-  {
+/*   {
     title: "Open House",
     subtitle: "Luxury property showcase",
     image:
@@ -111,7 +111,7 @@ const sampleCards = [
     className:
       "left-[320px] top-[330px] rotate-[-5deg] hidden 2xl:block",
     glow: "from-sky-500/20 to-cyan-200/10",
-  },
+  }, */
 
   {
     title: "Pet Adoption",
