@@ -2,27 +2,27 @@ const faqCards = [
   {
     title: "Photo Gallery",
     image: "/designs/design-cards/design-card_photo_gallery_escape.webp",
-    className: "left-[-80px] top-[120px] rotate-[-8deg] hidden xl:block",
+    className: "left-[260px] top-[280px] rotate-[-8deg] hidden xl:block",
   },
   {
     title: "Wedding",
     image: "/designs/design-cards/design-card_wedding_evergreen.webp",
-    className: "right-[-80px] top-[140px] rotate-[8deg] hidden xl:block",
+    className: "left-[260px] top-[480px] rotate-[8deg] hidden xl:block",
   },
   {
     title: "Product Launch",
     image: "/designs/design-cards/design-card_product_launch_simplistic.webp",
-    className: "left-[70px] bottom-[160px] rotate-[6deg] hidden 2xl:block",
+    className: "left-[260px] top-[680px] rotate-[6deg] hidden 2xl:block",
   },
   {
     title: "Restaurant",
     image: "/designs/design-cards/design-card_restaurant_menu_deluxe.webp",
-    className: "right-[80px] bottom-[120px] rotate-[-7deg] hidden 2xl:block",
+    className: "left-[260px] top-[880px] rotate-[-7deg] hidden 2xl:block",
   },
   {
     title: "Sweepstakes",
     image: "/designs/design-cards/design-card_sweepstakes_inclusive.webp",
-    className: "left-[260px] top-[80px] rotate-[5deg] hidden 2xl:block",
+    className: "left-[260px] top-[1080px] rotate-[5deg] hidden 2xl:block",
   },
   {
     title: "Baby Shower",
