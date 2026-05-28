@@ -36,7 +36,11 @@ const faqCards = [
     className: "left-[50px] top-[2680px] rotate-[-5deg] hidden 2xl:block",
   },
 
-
+  {
+    title: "Open House",
+    image: "/designs/design-cards/design-card_open_house_signature.webp",
+    className: "left-[220px] top-[3080px] rotate-[-5deg] hidden 2xl:block",
+  },
 
 
 
