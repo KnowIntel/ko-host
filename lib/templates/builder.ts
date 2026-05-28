@@ -686,6 +686,24 @@ export type RsvpElementKey =
   | "guestName"
   | "comments";
 
+  export type RsvpStyleVariant =
+  | "standard"
+  | "elegant_wedding"
+  | "modern_minimal"
+  | "glassmorphism"
+  | "luxury_black"
+  | "editorial_magazine"
+  | "floral_invitation"
+  | "bold_event"
+  | "luxury_invitation"
+  | "soft_pastel"
+  | "dark_neon"
+  | "ticket_style"
+  | "timeline_rsvp"
+  | "split_layout"
+  | "floating_panels"
+  | "formal_banquet";
+
 export type RsvpElementStyleMap = Partial<
   Record<
     RsvpElementKey,
@@ -700,6 +718,7 @@ export type RsvpBlock = BaseBlock & {
   type: "rsvp";
   data: {
     heading: string;
+    styleVariant?: RsvpStyleVariant;
 
     imageUrl?: string;
     imageFrameShape?: RsvpImageFrameShape;
@@ -2463,8 +2482,9 @@ case "rsvp":
     grid,
     appearance: createDefaultBlockAppearance(),
     data: {
-      heading: "Wedding Invitation RSVP Form",
-      imageUrl: "",
+    heading: "Wedding Invitation RSVP Form",
+    styleVariant: "elegant_wedding",
+    imageUrl: "",
       imageFrameShape: "circle",
       elementOrder: [
         "image",
@@ -2505,52 +2525,6 @@ case "rsvp":
       commentsDisplay: true,
       commentsDefaultValue: "",
 
-      submitButtonText: "Submit RSVP",
-
-      elementStyles: {},
-      style: createDefaultTextStyle(),
-    },
-  };
-  return {
-    id: makeId("rsvp"),
-    type: "rsvp",
-    label: "RSVP",
-    grid,
-    appearance: createDefaultBlockAppearance(),
-    data: {
-      heading: "Wedding Invitation RSVP Form",
-      imageUrl: "",
-      imageFrameShape: "circle",
-elementOrder: [
-  "image",
-  "heading",
-  "nameLabel",
-  "firstName",
-  "lastName",
-  "email",
-  "address",
-  "attending",
-  "meal",
-  "guestToggle",
-  "guestCount",
-  "guestName",
-  "comments",
-],
-      hiddenElements: [],
-      guestMin: 0,
-      guestMax: 1,
-
-      attendingLabel: "Are you attending?",
-      attendingOptions: ["Yes", "No"],
-
-      mealLabel: "Your meal selection:",
-      mealOptions: ["Chicken", "Salmon"],
-
-      guestLabel: "Are you bringing a guest?",
-      guestOptions: ["Yes", "No"],
-
-      commentsLabel: "Additional comments",
-      commentsPlaceholder: "Additional comments",
       submitButtonText: "Submit RSVP",
 
       elementStyles: {},

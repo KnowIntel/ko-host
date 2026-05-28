@@ -9312,6 +9312,7 @@ const idsToExpand =
   </>
 ) : null}
 
+// top toolbar rsvp text target
       {selectedBlock?.type === "rsvp" ? (
   <div className="flex items-center gap-2">
     <div className="text-xs font-medium text-neutral-600">RSVP Element</div>

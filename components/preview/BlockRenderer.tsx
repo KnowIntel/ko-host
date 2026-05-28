@@ -3333,96 +3333,150 @@ function RsvpFormBlock({
 }) {
   const styles = block.data.elementStyles ?? {};
   const hidden = new Set(block.data.hiddenElements ?? []);
-  const defaultRsvpOrder = [
-  "image",
-  "heading",
-  "nameLabel",
-  "firstName",
-  "lastName",
-  "email",
-  "address",
-  "attending",
-  "meal",
-  "guestToggle",
-  "guestCount",
-  "guestName",
-  "comments",
-] as const;
+  const styleVariant = block.data.styleVariant ?? "standard";
 
-const order = block.data.elementOrder?.length
-  ? block.data.elementOrder.includes("comments")
-    ? block.data.elementOrder
-    : [...block.data.elementOrder, "comments"]
-  : [...defaultRsvpOrder];
+  const defaultRsvpOrder = [
+    "image",
+    "heading",
+    "nameLabel",
+    "firstName",
+    "lastName",
+    "email",
+    "address",
+    "attending",
+    "meal",
+    "guestToggle",
+    "guestCount",
+    "guestName",
+    "comments",
+  ] as const;
+
+  const order = block.data.elementOrder?.length
+    ? block.data.elementOrder.includes("comments")
+      ? block.data.elementOrder
+      : [...block.data.elementOrder, "comments"]
+    : [...defaultRsvpOrder];
+
   const imageShape = block.data.imageFrameShape ?? "circle";
   const guestMin = Math.max(0, block.data.guestMin ?? 0);
   const guestMax = Math.max(guestMin, block.data.guestMax ?? 1);
-const attendingLabel = block.data.attendingLabel || "Are you attending?";
-const attendingOptions = block.data.attendingOptions ?? ["Yes", "No"];
-const attendingDisplay = block.data.attendingDisplay !== false;
-const attendingDefaultValue =
-  block.data.attendingDefaultValue || attendingOptions[0] || "Yes";
-const showAttendingInForm = attendingDisplay && !hidden.has("attending");
 
-const mealLabel = block.data.mealLabel || "Your meal selection:";
-const mealOptions = block.data.mealOptions ?? ["Chicken", "Salmon"];
-const mealDisplay = block.data.mealDisplay !== false;
-const mealDefaultValue = block.data.mealDefaultValue || mealOptions[0] || "Chicken";
-const showMealInForm = mealDisplay && !hidden.has("meal");
+  const attendingLabel = block.data.attendingLabel || "Are you attending?";
+  const attendingOptions = block.data.attendingOptions ?? ["Yes", "No"];
+  const attendingDisplay = block.data.attendingDisplay !== false;
+  const attendingDefaultValue =
+    block.data.attendingDefaultValue || attendingOptions[0] || "Yes";
+  const showAttendingInForm = attendingDisplay && !hidden.has("attending");
 
-const guestLabel = block.data.guestLabel || "Are you bringing a guest?";
-const guestOptions = block.data.guestOptions ?? ["Yes", "No"];
-const guestDisplay = block.data.guestDisplay !== false;
-const guestDefaultValue = block.data.guestDefaultValue || guestOptions[1] || "No";
-const showGuestInForm =
-  guestDisplay &&
-  !hidden.has("guestToggle") &&
-  !hidden.has("guestCount") &&
-  !hidden.has("guestName");
+  const mealLabel = block.data.mealLabel || "Meal Selection";
+  const mealOptions = block.data.mealOptions ?? ["Chicken", "Salmon"];
+  const mealDisplay = block.data.mealDisplay !== false;
+  const mealDefaultValue = block.data.mealDefaultValue || mealOptions[0] || "Chicken";
+  const showMealInForm = mealDisplay && !hidden.has("meal");
 
-const commentsLabel = block.data.commentsLabel || "Additional comments";
-const commentsPlaceholder =
-  block.data.commentsPlaceholder || "Additional comments";
-const commentsDisplay = block.data.commentsDisplay !== false;
-const commentsDefaultValue = block.data.commentsDefaultValue || "";
-const showCommentsInForm = commentsDisplay && !hidden.has("comments");
+  const guestLabel = block.data.guestLabel || "Guest";
+  const guestOptions = block.data.guestOptions ?? ["Yes", "No"];
+  const guestDisplay = block.data.guestDisplay !== false;
+  const guestDefaultValue = block.data.guestDefaultValue || guestOptions[1] || "No";
+  const showGuestInForm =
+    guestDisplay &&
+    !hidden.has("guestToggle") &&
+    !hidden.has("guestCount") &&
+    !hidden.has("guestName");
 
-const submitButtonText = block.data.submitButtonText || "Submit RSVP";
+  const commentsLabel = block.data.commentsLabel || "Additional Comments";
+  const commentsPlaceholder =
+    block.data.commentsPlaceholder || "Share any notes, song requests, or details.";
+  const commentsDisplay = block.data.commentsDisplay !== false;
+  const commentsDefaultValue = block.data.commentsDefaultValue || "";
+  const showCommentsInForm = commentsDisplay && !hidden.has("comments");
+
+  const submitButtonText = block.data.submitButtonText || "Submit RSVP →";
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [address, setAddress] = useState("");
-
-const [isAttending, setIsAttending] = useState(
-  attendingDisplay ? true : attendingDefaultValue === attendingOptions[0],
-);
-const [mealChoice, setMealChoice] = useState(
-  mealDisplay ? mealOptions[0] ?? "Chicken" : mealDefaultValue,
-);
-const [bringingGuest, setBringingGuest] = useState(
-  guestDisplay ? false : guestDefaultValue === guestOptions[0],
-);
-const [guestCount, setGuestCount] = useState(
-  guestDisplay ? Math.max(guestMin, 1) : 0,
-);
+  const [isAttending, setIsAttending] = useState(
+    attendingDefaultValue === attendingOptions[0],
+  );
+  const [mealChoice, setMealChoice] = useState(mealDefaultValue);
+  const [bringingGuest, setBringingGuest] = useState(
+    guestDefaultValue === guestOptions[0],
+  );
+  const [guestCount, setGuestCount] = useState(
+    guestDefaultValue === guestOptions[0] ? Math.max(guestMin, 1) : 0,
+  );
   const [guestNames, setGuestNames] = useState<string[]>([]);
-  const [comments, setComments] = useState("");
+  const [comments, setComments] = useState(commentsDefaultValue);
   const [company, setCompany] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitState, setSubmitState] = useState<"idle" | "success" | "error">("idle");
   const [submitMessage, setSubmitMessage] = useState("");
 
+  const isCurrentlyAttending = showAttendingInForm
+    ? isAttending
+    : attendingDefaultValue === attendingOptions[0];
+
+  const variantClassMap: Record<string, string> = {
+    standard:
+      "border-neutral-200 bg-white text-neutral-900 shadow-[0_18px_60px_rgba(15,23,42,0.10)]",
+    elegant_wedding:
+      "border-[#e6dcc8] bg-[#fffaf0] text-[#30291f] shadow-[0_24px_70px_rgba(120,97,60,0.14)]",
+    modern_minimal:
+      "border-neutral-200 bg-white text-neutral-950 shadow-sm",
+    glassmorphism:
+      "border-white/35 bg-white/45 text-neutral-950 shadow-[0_24px_80px_rgba(15,23,42,0.18)] backdrop-blur-xl",
+    luxury_black:
+      "border-[#bfa46a]/50 bg-[#11100d] text-[#fff8e8] shadow-[0_24px_80px_rgba(0,0,0,0.35)]",
+    editorial_magazine:
+      "border-neutral-900 bg-white text-neutral-950 shadow-[10px_10px_0_rgba(0,0,0,0.10)]",
+    floral_invitation:
+      "border-pink-100 bg-[#fff7f5] text-[#3f2a2a] shadow-[0_20px_60px_rgba(190,120,130,0.16)]",
+    bold_event:
+      "border-transparent bg-gradient-to-br from-fuchsia-600 via-rose-500 to-orange-400 text-white shadow-[0_24px_80px_rgba(225,29,72,0.30)]",
+    luxury_invitation:
+      "border-[#d8c08d] bg-[#fbf6ea] text-[#2d2418] shadow-[0_24px_80px_rgba(122,89,38,0.16)]",
+    soft_pastel:
+      "border-pink-100 bg-gradient-to-br from-pink-50 via-violet-50 to-sky-50 text-neutral-900 shadow-[0_24px_70px_rgba(147,113,160,0.16)]",
+    dark_neon:
+      "border-cyan-300/60 bg-[#080b16] text-white shadow-[0_0_45px_rgba(34,211,238,0.22)]",
+    ticket_style:
+      "border-dashed border-neutral-300 bg-white text-neutral-950 shadow-[0_20px_60px_rgba(15,23,42,0.12)]",
+    timeline_rsvp:
+      "border-neutral-200 bg-white text-neutral-950 shadow-[0_20px_60px_rgba(15,23,42,0.12)]",
+    split_layout:
+      "border-neutral-200 bg-white text-neutral-950 shadow-[0_24px_70px_rgba(15,23,42,0.14)]",
+    floating_panels:
+      "border-white bg-neutral-50 text-neutral-950 shadow-[0_28px_90px_rgba(15,23,42,0.18)]",
+    formal_banquet:
+      "border-[#c7a76c]/60 bg-[#111827] text-[#fff8e8] shadow-[0_24px_80px_rgba(15,23,42,0.35)]",
+  };
+
+  const darkVariant =
+    styleVariant === "luxury_black" ||
+    styleVariant === "dark_neon" ||
+    styleVariant === "formal_banquet" ||
+    styleVariant === "bold_event";
+
   function getStyle(key: string) {
     const entry = styles[key as keyof typeof styles];
     return {
-      ...(entry?.textStyle
-        ? getContainerTextStyle(entry.textStyle, designKey)
-        : {}),
-      ...(entry?.backgroundColor
-        ? { backgroundColor: entry.backgroundColor }
-        : {}),
+      ...(entry?.textStyle ? getContainerTextStyle(entry.textStyle, designKey) : {}),
+      ...(entry?.backgroundColor ? { backgroundColor: entry.backgroundColor } : {}),
     };
+  }
+
+  function sectionClass() {
+    return darkVariant
+      ? "rounded-2xl border border-white/15 bg-white/10 p-4"
+      : "rounded-2xl border border-black/10 bg-white/70 p-4";
+  }
+
+  function inputClass() {
+    return darkVariant
+      ? "relative z-10 block min-h-[50px] w-full rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm text-white outline-none placeholder:text-white/45 focus:border-white/45"
+      : "relative z-10 block min-h-[50px] w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-900 outline-none placeholder:text-neutral-400 focus:border-neutral-400";
   }
 
   function getFrameClass(shape: string) {
@@ -3432,32 +3486,32 @@ const [guestCount, setGuestCount] = useState(
     return "";
   }
 
-function getMicrositeSlugFromLocation() {
-  if (typeof window === "undefined") return "";
+  function getMicrositeSlugFromLocation() {
+    if (typeof window === "undefined") return "";
 
-  const host = window.location.hostname.toLowerCase();
-  const pathname = window.location.pathname;
-  const search = new URLSearchParams(window.location.search);
+    const host = window.location.hostname.toLowerCase();
+    const pathname = window.location.pathname;
+    const search = new URLSearchParams(window.location.search);
 
-  const qsSlug = search.get("slug");
-  if (qsSlug?.trim()) return qsSlug.trim().toLowerCase();
+    const qsSlug = search.get("slug");
+    if (qsSlug?.trim()) return qsSlug.trim().toLowerCase();
 
-  if (host.endsWith(".ko-host.com")) {
-    const sub = host.replace(".ko-host.com", "").split(".")[0] || "";
-    if (sub && sub !== "www") return sub;
+    if (host.endsWith(".ko-host.com")) {
+      const sub = host.replace(".ko-host.com", "").split(".")[0] || "";
+      if (sub && sub !== "www") return sub;
+    }
+
+    const sRouteMatch = pathname.match(/^\/s\/([^/]+)/i);
+    if (sRouteMatch?.[1]) {
+      return decodeURIComponent(sRouteMatch[1]).toLowerCase();
+    }
+
+    const metaSlug =
+      document.querySelector('meta[name="ko-host-slug"]')?.getAttribute("content") ?? "";
+    if (metaSlug.trim()) return metaSlug.trim().toLowerCase();
+
+    return "";
   }
-
-  const sRouteMatch = pathname.match(/^\/s\/([^/]+)/i);
-  if (sRouteMatch?.[1]) {
-    return decodeURIComponent(sRouteMatch[1]).toLowerCase();
-  }
-
-  const metaSlug =
-    document.querySelector('meta[name="ko-host-slug"]')?.getAttribute("content") ?? "";
-  if (metaSlug.trim()) return metaSlug.trim().toLowerCase();
-
-  return "";
-}
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -3468,34 +3522,34 @@ function getMicrositeSlugFromLocation() {
       return;
     }
 
-if (bringingGuest && guestCount > 0) {
-  const missingGuestName = Array.from({ length: guestCount }).some(
-    (_, index) => !(guestNames[index] ?? "").trim(),
-  );
+    if (bringingGuest && guestCount > 0) {
+      const missingGuestName = Array.from({ length: guestCount }).some(
+        (_, index) => !(guestNames[index] ?? "").trim(),
+      );
 
-  if (missingGuestName) {
-    setSubmitState("error");
-    setSubmitMessage("Guest name is required for each guest.");
-    return;
-  }
-}
+      if (missingGuestName) {
+        setSubmitState("error");
+        setSubmitMessage("Guest name is required for each guest.");
+        return;
+      }
+    }
 
     const micrositeSlug = getMicrositeSlugFromLocation();
 
-if (!micrositeSlug) {
-  setSubmitState("error");
-  setSubmitMessage(
-    "Unable to determine microsite slug. RSVP submission works on public microsite pages, not builder/preview routes.",
-  );
-  return;
-}
+    if (!micrositeSlug) {
+      setSubmitState("error");
+      setSubmitMessage(
+        "Unable to determine microsite slug. RSVP submission works on public microsite pages, not builder/preview routes.",
+      );
+      return;
+    }
 
     setSubmitting(true);
     setSubmitState("idle");
     setSubmitMessage("");
 
     try {
-      const res = await fetch("/api/public/rsvp/route".replace("/route", ""), {
+      const res = await fetch("/api/public/rsvp", {
         method: "POST",
         headers: {
           "content-type": "application/json",
@@ -3506,26 +3560,20 @@ if (!micrositeSlug) {
           lastName: lastName.trim(),
           email: email.trim(),
           address: address.trim(),
-isAttending: showAttendingInForm
-  ? isAttending
-  : attendingDefaultValue === attendingOptions[0],
-
-mealChoice:
-  (showAttendingInForm ? isAttending : attendingDefaultValue === attendingOptions[0])
-    ? showMealInForm
-  ? mealChoice
-  : mealDefaultValue
-    : "",
-
-bringingGuest: showGuestInForm
-  ? bringingGuest
-  : guestDefaultValue === guestOptions[0],
-
-guestCount:
-  (attendingDisplay ? isAttending : attendingDefaultValue === attendingOptions[0]) &&
-  (showGuestInForm ? bringingGuest : guestDefaultValue === guestOptions[0])
-    ? guestCount
-    : 0,
+          isAttending: isCurrentlyAttending,
+          mealChoice: isCurrentlyAttending
+            ? showMealInForm
+              ? mealChoice
+              : mealDefaultValue
+            : "",
+          bringingGuest: showGuestInForm
+            ? bringingGuest
+            : guestDefaultValue === guestOptions[0],
+          guestCount:
+            isCurrentlyAttending &&
+            (showGuestInForm ? bringingGuest : guestDefaultValue === guestOptions[0])
+              ? guestCount
+              : 0,
           guestName: bringingGuest
             ? guestNames
                 .slice(0, guestCount)
@@ -3546,19 +3594,21 @@ guestCount:
         return;
       }
 
-    setSubmitState("success");
-    setSubmitMessage("RSVP submitted.");
-    setFirstName("");
-    setLastName("");
-    setEmail("");
-    setAddress("");
-    setIsAttending(true);
-    setMealChoice(mealOptions[0] ?? "Chicken");
-    setBringingGuest(false);
-    setGuestCount(Math.max(guestMin, 1));
-    setGuestNames([]);
-    setComments(""); // ✅ ADD THIS LINE
-    setCompany("");
+      setSubmitState("success");
+      setSubmitMessage(
+        "Thank you — your RSVP has been received. We’re excited to celebrate with you.",
+      );
+      setFirstName("");
+      setLastName("");
+      setEmail("");
+      setAddress("");
+      setIsAttending(attendingDefaultValue === attendingOptions[0]);
+      setMealChoice(mealDefaultValue);
+      setBringingGuest(guestDefaultValue === guestOptions[0]);
+      setGuestCount(guestDefaultValue === guestOptions[0] ? Math.max(guestMin, 1) : 0);
+      setGuestNames([]);
+      setComments(commentsDefaultValue);
+      setCompany("");
     } catch {
       setSubmitState("error");
       setSubmitMessage("Failed to submit RSVP.");
@@ -3567,213 +3617,190 @@ guestCount:
     }
   }
 
-function renderImage() {
-  if (!block.data.imageUrl) return null;
+  function renderImage() {
+    if (!block.data.imageUrl) return null;
 
-  const imageStyle = getStyle("image");
+    const imageStyle = getStyle("image");
 
-  if (imageShape === "heart") {
-    const heartClipId = `rsvp-heart-clip-${block.id}`;
+    if (imageShape === "heart") {
+      const heartClipId = `rsvp-heart-clip-${block.id}`;
+
+      return (
+        <div key="image" className="relative z-0 flex justify-center overflow-hidden">
+          <div className="h-28 w-28" style={imageStyle}>
+            <svg viewBox="0 0 100 100" className="block h-full w-full">
+              <defs>
+                <clipPath id={heartClipId} clipPathUnits="objectBoundingBox">
+                  <path d="M 0.5 0.95 C 0.2 0.72, 0.02 0.5, 0.02 0.28 C 0.02 0.1, 0.16 0.0, 0.3 0.0 C 0.42 0.0, 0.5 0.1, 0.5 0.18 C 0.5 0.1, 0.58 0.0, 0.7 0.0 C 0.84 0.0, 0.98 0.1, 0.98 0.28 C 0.98 0.5, 0.8 0.72, 0.5 0.95 Z" />
+                </clipPath>
+              </defs>
+
+              <image
+                href={block.data.imageUrl}
+                x="0"
+                y="0"
+                width="100"
+                height="100"
+                preserveAspectRatio="xMidYMid slice"
+                clipPath={`url(#${heartClipId})`}
+              />
+            </svg>
+          </div>
+        </div>
+      );
+    }
+
+    if (imageShape === "diamond") {
+      return (
+        <div key="image" className="relative z-0 flex justify-center overflow-hidden py-2">
+          <div
+            className={`relative h-28 w-28 overflow-hidden border border-neutral-200 bg-neutral-100 ${getFrameClass(
+              imageShape,
+            )}`}
+            style={imageStyle}
+          >
+            <img
+              src={block.data.imageUrl}
+              alt=""
+              className="block h-full w-full -rotate-45 scale-150 object-cover"
+            />
+          </div>
+        </div>
+      );
+    }
 
     return (
       <div key="image" className="relative z-0 flex justify-center overflow-hidden">
-        <div className="h-28 w-28" style={imageStyle}>
-          <svg
-            viewBox="0 0 100 100"
-            className="block h-full w-full"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <defs>
-              <clipPath id={heartClipId} clipPathUnits="objectBoundingBox">
-                <path d="M 0.5 0.95 C 0.2 0.72, 0.02 0.5, 0.02 0.28 C 0.02 0.1, 0.16 0.0, 0.3 0.0 C 0.42 0.0, 0.5 0.1, 0.5 0.18 C 0.5 0.1, 0.58 0.0, 0.7 0.0 C 0.84 0.0, 0.98 0.1, 0.98 0.28 C 0.98 0.5, 0.8 0.72, 0.5 0.95 Z" />
-              </clipPath>
-            </defs>
-
-            <image
-              href={block.data.imageUrl}
-              x="0"
-              y="0"
-              width="100"
-              height="100"
-              preserveAspectRatio="xMidYMid slice"
-              clipPath={`url(#${heartClipId})`}
-            />
-
-            <path
-              d="M 50 95 C 20 72, 2 50, 2 28 C 2 10, 16 0, 30 0 C 42 0, 50 10, 50 18 C 50 10, 58 0, 70 0 C 84 0, 98 10, 98 28 C 98 50, 80 72, 50 95 Z"
-              fill="none"
-              stroke="#e5e5e5"
-              strokeWidth="2"
-            />
-          </svg>
-        </div>
-      </div>
-    );
-  }
-
-  if (imageShape === "diamond") {
-    return (
-      <div key="image" className="relative z-0 flex justify-center overflow-hidden py-2">
-        <div
-          className={`relative h-28 w-28 overflow-hidden border border-neutral-200 bg-neutral-100 ${getFrameClass(
+        <img
+          src={block.data.imageUrl}
+          alt=""
+          className={`block h-28 w-28 border border-neutral-200 object-cover ${getFrameClass(
             imageShape,
           )}`}
           style={imageStyle}
-        >
-          <img
-            src={block.data.imageUrl}
-            alt=""
-            className="block h-full w-full -rotate-45 scale-150 object-cover"
-          />
+        />
+      </div>
+    );
+  }
+
+  function renderField(
+    key: string,
+    placeholder: string,
+    value: string,
+    onChange: (v: string) => void,
+    type: string = "text",
+  ) {
+    return (
+      <input
+        key={key}
+        type={type}
+        placeholder={placeholder}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={inputClass()}
+        style={{ ...getStyle(key), textAlign: "left" }}
+      />
+    );
+  }
+
+  function renderTextarea(
+    key: string,
+    placeholder: string,
+    value: string,
+    onChange: (value: string) => void,
+  ) {
+    return (
+      <textarea
+        key={key}
+        placeholder={placeholder}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={`${inputClass()} min-h-[120px] resize-none`}
+        style={{ ...getStyle(key), textAlign: "left" }}
+        rows={4}
+      />
+    );
+  }
+
+  function renderFieldLabel(key: string, text: string) {
+    return (
+      <div
+        key={key}
+        className={darkVariant ? "text-sm font-semibold text-white/90" : "text-sm font-semibold text-neutral-800"}
+        style={getStyle(key)}
+      >
+        {text}
+      </div>
+    );
+  }
+
+  function renderChoiceSection(
+    key: string,
+    label: string,
+    options: string[],
+    value: string,
+    onChange: (value: string) => void,
+  ) {
+    return (
+      <div key={key} className={sectionClass()}>
+        <div className="mb-3 text-sm font-semibold" style={getStyle(key)}>
+          {label}
+        </div>
+
+        <div className="relative z-10 grid grid-cols-1 gap-2 sm:grid-cols-2">
+          {options.map((option) => {
+            const selected = value === option;
+
+            return (
+              <button
+                key={`${key}-${option}`}
+                type="button"
+                onClick={() => onChange(option)}
+                className={[
+                  "min-h-[46px] rounded-2xl border px-4 py-3 text-left text-sm font-medium transition",
+                  selected
+                    ? darkVariant
+                      ? "border-white bg-white text-neutral-950"
+                      : "border-neutral-950 bg-neutral-950 text-white"
+                    : darkVariant
+                      ? "border-white/15 bg-white/5 text-white/80 hover:bg-white/10"
+                      : "border-neutral-200 bg-white text-neutral-800 hover:border-neutral-400",
+                ].join(" ")}
+              >
+                {option}
+              </button>
+            );
+          })}
         </div>
       </div>
     );
   }
 
-  return (
-    <div key="image" className="relative z-0 flex justify-center overflow-hidden">
-      <img
-        src={block.data.imageUrl}
-        alt=""
-        className={`block h-28 w-28 object-cover border border-neutral-200 ${getFrameClass(
-          imageShape,
-        )}`}
-        style={imageStyle}
-      />
-    </div>
-  );
-}
-
-function renderField(
-  key: string,
-  placeholder: string,
-  value: string,
-  onChange: (v: string) => void,
-  type: string = "text",
-) {
-  const fieldStyle = getStyle(key);
-
-  return (
-    <input
-      key={key}
-      type={type}
-      placeholder={placeholder}
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className="relative z-10 block w-full rounded-xl border border-neutral-300 bg-white px-3 py-3 text-sm text-neutral-800 outline-none"
-      style={{
-        ...fieldStyle,
-        textAlign: "left",
-      }}
-    />
-  );
-}
-
-function renderTextarea(
-  key: string,
-  placeholder: string,
-  value: string,
-  onChange: (value: string) => void,
-) {
-  const fieldStyle = getStyle(key);
-
-  return (
-    <textarea
-      key={key}
-      placeholder={placeholder}
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className="relative z-10 block w-full rounded-xl border border-neutral-300 bg-white px-3 py-3 text-sm text-neutral-800 outline-none"
-      style={{
-        ...fieldStyle,
-        textAlign: "left",
-      }}
-      rows={4}
-    />
-  );
-}
-
-function renderFieldLabel(
-  key: string,
-  text: string,
-) {
-  return (
-    <div
-      key={key}
-      className="text-sm font-medium text-neutral-800"
-      style={getStyle(key)}
-    >
-      {text}
-    </div>
-  );
-}
-
-function renderRadioSection(
-  key: string,
-  label: string,
-  options: string[],
-  value: string,
-  onChange: (value: string) => void,
-) {
-  const sectionStyle = getStyle(key);
-
-  return (
-    <div key={key} className="space-y-2">
-      <div
-        className="font-medium"
-        style={sectionStyle}
-      >
-        {label}
-      </div>
-
-      <div className="relative z-10 flex flex-wrap gap-4">
-        {options.map((option) => (
-          <label
-            key={`${key}-${option}`}
-            className="inline-flex items-center gap-2"
-            style={sectionStyle}
-          >
-            <input
-              type="radio"
-              name={`${block.id}-${key}`}
-              checked={value === option}
-              onChange={() => onChange(option)}
-            />
-            <span>{option}</span>
-          </label>
-        ))}
-      </div>
-    </div>
-  );
-}
-
   function renderGuestCount() {
     return (
-      <div key="guestCount" className="space-y-2" style={getStyle("guestCount")}>
-        <div className="text-sm font-medium text-neutral-800">Guest count</div>
-        <div className="inline-flex items-center gap-3 rounded-xl border border-neutral-300 bg-white px-3 py-2">
+      <div key="guestCount" className={sectionClass()} style={getStyle("guestCount")}>
+        <div className="mb-3 text-sm font-semibold">Guest Count</div>
+
+        <div className="inline-flex items-center gap-3 rounded-2xl border border-current/15 bg-white/10 px-3 py-2">
           <button
             type="button"
-              onClick={() =>
-                setGuestCount((current) => {
-                  const next = Math.max(0, current - 1);
+            onClick={() =>
+              setGuestCount((current) => {
+                const next = Math.max(0, current - 1);
+                setGuestNames((prev) => prev.slice(0, next));
 
-                  setGuestNames((prev) => prev.slice(0, next));
+                if (next === 0) setBringingGuest(false);
 
-                  if (next === 0) {
-                    setBringingGuest(false);
-                  }
-
-                  return next;
-                })
-              }
-            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-neutral-300 text-base text-neutral-700"
+                return next;
+              })
+            }
+            className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-current/20 text-base"
           >
             -
           </button>
-          <div className="min-w-[68px] text-center text-sm text-neutral-800">
-            {guestCount}
-          </div>
+
+          <div className="min-w-[68px] text-center text-sm">{guestCount}</div>
+
           <button
             type="button"
             onClick={() =>
@@ -3787,7 +3814,7 @@ function renderRadioSection(
                 return next;
               })
             }
-            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-neutral-300 text-base text-neutral-700"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-xl border border-current/20 text-base"
           >
             +
           </button>
@@ -3806,17 +3833,21 @@ function renderRadioSection(
 
       case "heading":
         return (
-          <div
-            key="heading"
-            className="text-center text-2xl font-semibold text-neutral-900"
-            style={getStyle("heading")}
-          >
-            {block.data.heading || "Wedding Invitation RSVP Form"}
+          <div key="heading" className="space-y-2 text-center">
+            <div
+              className="text-2xl font-semibold tracking-tight"
+              style={getStyle("heading")}
+            >
+              {block.data.heading || "RSVP"}
+            </div>
+            <div className={darkVariant ? "text-sm text-white/65" : "text-sm text-neutral-500"}>
+              Please let us know if you’ll be joining us.
+            </div>
           </div>
         );
 
       case "nameLabel":
-        return renderFieldLabel("nameLabel", "Name");
+        return renderFieldLabel("nameLabel", "Contact Details");
 
       case "firstName":
         return renderField("firstName", "First Name", firstName, setFirstName);
@@ -3825,168 +3856,86 @@ function renderRadioSection(
         return renderField("lastName", "Last Name", lastName, setLastName);
 
       case "email":
-        return renderField("email", "Email", email, setEmail, "email");
+        return renderField("email", "Email Address", email, setEmail, "email");
 
       case "address":
-        return renderField("address", "Address", address, setAddress);
+        return renderField("address", "Mailing Address", address, setAddress);
 
-case "attending":
-  if (!showAttendingInForm) return null;
+      case "attending":
+        if (!showAttendingInForm) return null;
 
-  return renderRadioSection(
-    "attending",
-    attendingLabel,
-    attendingOptions,
-    isAttending ? attendingOptions[0] : attendingOptions[1] ?? "No",
-    (next) => setIsAttending(next === attendingOptions[0]),
-  );
+        return renderChoiceSection(
+          "attending",
+          attendingLabel,
+          attendingOptions,
+          isAttending ? attendingOptions[0] : attendingOptions[1] ?? "No",
+          (next) => setIsAttending(next === attendingOptions[0]),
+        );
 
-case "meal":
-  if (!showMealInForm) return null;
-  if (!(attendingDisplay ? isAttending : attendingDefaultValue === attendingOptions[0])) {
-    return null;
-  }
+      case "meal":
+        if (!showMealInForm || !isCurrentlyAttending) return null;
 
-  return renderRadioSection(
-    "meal",
-    mealLabel,
-    mealOptions,
-    mealChoice,
-    setMealChoice,
-  );
-        if (!isAttending) return null;
-          return renderRadioSection(
-            "meal",
-            mealLabel,
-            mealOptions,
-            mealChoice,
-            setMealChoice,
-          );
+        return renderChoiceSection("meal", mealLabel, mealOptions, mealChoice, setMealChoice);
 
-case "guestToggle":
-  if (!showGuestInForm) return null;
-  if (!(attendingDisplay ? isAttending : attendingDefaultValue === attendingOptions[0])) {
-    return null;
-  }
+      case "guestToggle":
+        if (!showGuestInForm || !isCurrentlyAttending) return null;
 
-  return renderRadioSection(
-    "guestToggle",
-    guestLabel,
-    guestOptions,
-    bringingGuest ? guestOptions[0] : guestOptions[1] ?? "No",
-    (next) => {
-      const yes = next === guestOptions[0];
-      setBringingGuest(yes);
-      const nextCount = yes ? Math.max(1, guestMin) : 0;
-      setGuestCount(nextCount);
-      setGuestNames(yes ? Array.from({ length: nextCount }, () => "") : []);
-    },
-  );
-        if (!isAttending) return null;
-          return renderRadioSection(
-            "guestToggle",
-            guestLabel,
-            guestOptions,
-            bringingGuest ? guestOptions[0] : guestOptions[1] ?? "No",
-            (next) => {
-              const yes = next === guestOptions[0];
-              setBringingGuest(yes);
-              const nextCount = yes ? Math.max(1, guestMin) : 0;
-              setGuestCount(nextCount);
-              setGuestNames(yes ? Array.from({ length: nextCount }, () => "") : []);
-                          },
-          );
+        return renderChoiceSection(
+          "guestToggle",
+          guestLabel,
+          guestOptions,
+          bringingGuest ? guestOptions[0] : guestOptions[1] ?? "No",
+          (next) => {
+            const yes = next === guestOptions[0];
+            setBringingGuest(yes);
 
-case "guestCount":
-  if (!showGuestInForm) return null;
-  if (!(attendingDisplay ? isAttending : attendingDefaultValue === attendingOptions[0])) {
-    return null;
-  }
-  if (!bringingGuest) return null;
+            const nextCount = yes ? Math.max(1, guestMin) : 0;
+            setGuestCount(nextCount);
+            setGuestNames(yes ? Array.from({ length: nextCount }, () => "") : []);
+          },
+        );
 
-  return renderGuestCount();
+      case "guestCount":
+        if (!showGuestInForm || !isCurrentlyAttending || !bringingGuest) return null;
+        return renderGuestCount();
 
-case "guestName":
-  if (!showGuestInForm) return null;
-  if (!(attendingDisplay ? isAttending : attendingDefaultValue === attendingOptions[0])) {
-    return null;
-  }
-  if (!bringingGuest || guestCount <= 0) return null;
+      case "guestName":
+        if (!showGuestInForm || !isCurrentlyAttending || !bringingGuest || guestCount <= 0) {
+          return null;
+        }
 
-  return (
-    <div key="guestName" className="space-y-3">
-      {Array.from({ length: guestCount }).map((_, index) => (
-        <input
-          key={`guest-name-${index}`}
-          type="text"
-          placeholder={`Guest Name ${index + 1}`}
-          value={guestNames[index] ?? ""}
-          onChange={(e) => {
-            const next = [...guestNames];
-            next[index] = e.target.value;
-            setGuestNames(next);
-          }}
-          className="w-full rounded-xl border border-neutral-300 bg-white px-3 py-3 text-sm text-neutral-800 outline-none"
-          style={getStyle("guestName")}
-        />
-      ))}
-    </div>
-  );
-  if (!isAttending || !bringingGuest || guestCount <= 0) return null;
-
-  return (
-    <div key="guestName" className="space-y-3">
-      {Array.from({ length: guestCount }).map((_, index) => (
-        <input
-          key={`guest-name-${index}`}
-          type="text"
-          placeholder={`Guest Name ${index + 1}`}
-          value={guestNames[index] ?? ""}
-          onChange={(e) => {
-            const next = [...guestNames];
-            next[index] = e.target.value;
-            setGuestNames(next);
-          }}
-          className="w-full rounded-xl border border-neutral-300 bg-white px-3 py-3 text-sm text-neutral-800 outline-none"
-          style={getStyle("guestName")}
-        />
-      ))}
-    </div>
-  );
-
-case "comments":
-  if (!showCommentsInForm) return null;
-
-  return (
-    <div key="comments" className="space-y-2">
-      <div
-        className="text-sm font-medium text-neutral-800"
-        style={getStyle("comments")}
-      >
-        {commentsLabel}
-      </div>
-      {renderTextarea(
-        "comments",
-        commentsPlaceholder,
-        comments,
-        setComments,
-      )}
-    </div>
-  );
         return (
-          <div key="comments" className="space-y-2">
+          <div key="guestName" className="space-y-3">
+            {Array.from({ length: guestCount }).map((_, index) => (
+              <input
+                key={`guest-name-${index}`}
+                type="text"
+                placeholder={`Guest Name ${index + 1}`}
+                value={guestNames[index] ?? ""}
+                onChange={(e) => {
+                  const next = [...guestNames];
+                  next[index] = e.target.value;
+                  setGuestNames(next);
+                }}
+                className={inputClass()}
+                style={getStyle("guestName")}
+              />
+            ))}
+          </div>
+        );
+
+      case "comments":
+        if (!showCommentsInForm) return null;
+
+        return (
+          <div key="comments" className={sectionClass()}>
             <div
-              className="text-sm font-medium text-neutral-800"
+              className="mb-3 text-sm font-semibold"
               style={getStyle("comments")}
             >
               {commentsLabel}
             </div>
-            {renderTextarea(
-              "comments",
-              commentsPlaceholder,
-              comments,
-              setComments,
-            )}
+            {renderTextarea("comments", commentsPlaceholder, comments, setComments)}
           </div>
         );
 
@@ -3996,13 +3945,14 @@ case "comments":
   }
 
   return (
-    <Surface
-      block={block}
-      designKey={designKey}
-      className={getSoftSurfaceClass(designKey)}
-    >
-
-      <form onSubmit={handleSubmit} className="mx-auto flex w-full max-w-xl flex-col gap-4">
+    <Surface block={block} designKey={designKey} className={getSoftSurfaceClass(designKey)}>
+      <form
+        onSubmit={handleSubmit}
+        className={[
+          "mx-auto flex w-full max-w-xl flex-col gap-4 rounded-[24px] border p-6 sm:p-8",
+          variantClassMap[styleVariant] ?? variantClassMap.standard,
+        ].join(" ")}
+      >
         <input
           type="text"
           tabIndex={-1}
@@ -4023,19 +3973,14 @@ case "comments":
             if (!showFirst && !showLast) return null;
 
             return (
-              <div
-                key={`name-row-${index}`}
-                className="grid grid-cols-1 gap-3 sm:grid-cols-2"
-              >
+              <div key={`name-row-${index}`} className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {showFirst ? renderElement("firstName") : <div />}
                 {showLast ? renderElement("lastName") : <div />}
               </div>
             );
           }
 
-          if (key === "lastName") {
-            return null;
-          }
+          if (key === "lastName") return null;
 
           return renderElement(key);
         })}
@@ -4043,26 +3988,43 @@ case "comments":
         <button
           type="submit"
           disabled={submitting}
-          className="inline-flex items-center justify-center rounded-xl bg-neutral-900 px-4 py-3 text-sm font-medium text-white hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-60"
+          className={[
+            "inline-flex min-h-[52px] items-center justify-center rounded-2xl px-5 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60",
+            darkVariant
+              ? "bg-white text-neutral-950 hover:bg-white/90"
+              : "bg-neutral-950 text-white hover:bg-neutral-800",
+          ].join(" ")}
         >
           {submitting ? "Submitting..." : submitButtonText}
         </button>
 
         {submitState === "success" ? (
-          <div className="text-sm text-green-700">{
-            submitMessage || "RSVP submitted."
-          }</div>
+          <div
+            className={
+              darkVariant
+                ? "rounded-2xl border border-emerald-300/30 bg-emerald-300/10 p-3 text-sm text-emerald-100"
+                : "rounded-2xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800"
+            }
+          >
+            {submitMessage}
+          </div>
         ) : null}
 
         {submitState === "error" ? (
-          <div className="text-sm text-red-700">{
-            submitMessage || "Failed to submit RSVP."
-          }</div>
+          <div
+            className={
+              darkVariant
+                ? "rounded-2xl border border-red-300/30 bg-red-300/10 p-3 text-sm text-red-100"
+                : "rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-800"
+            }
+          >
+            {submitMessage || "Failed to submit RSVP."}
+          </div>
         ) : null}
       </form>
     </Surface>
   );
-} 
+}
 
 function renderFaq(
   block: Extract<MicrositeBlock, { type: "faq" }>,
