@@ -730,7 +730,7 @@ export type RsvpBlock = BaseBlock & {
     guestMax?: number;
 
     attendingLabel?: string;
-    attendingOptions?: [string, string];
+    attendingOptions?: string[];
     attendingDisplay?: boolean;
     attendingDefaultValue?: string;
 
@@ -740,7 +740,7 @@ export type RsvpBlock = BaseBlock & {
     mealDefaultValue?: string;
 
     guestLabel?: string;
-    guestOptions?: [string, string];
+    guestOptions?: string[];
     guestDisplay?: boolean;
     guestDefaultValue?: string;
 

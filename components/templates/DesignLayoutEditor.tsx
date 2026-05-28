@@ -11671,70 +11671,138 @@ selectedContext.kind === "textFx"
         />
       </div>
 
-      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <div>
-          <div className={inspectorLabelClass()}>Option 1</div>
-          <input
-            type="text"
-            value={selectedBlock.data.attendingOptions?.[0] ?? "Yes"}
-            onChange={(e) =>
-              updateSelectedBlock((block) => {
-                if (block.type !== "rsvp") return block;
+      <div className="mt-4 space-y-3">
+        <div className={inspectorLabelClass()}>Attendance Options</div>
 
-                const option1 = e.target.value;
-                const option2 = block.data.attendingOptions?.[1] ?? "No";
+        {(selectedBlock.data.attendingOptions?.length
+          ? selectedBlock.data.attendingOptions
+          : ["Yes", "No"]
+        )
+          .slice(0, 8)
+          .map((option, index, options) => (
+            <div
+              key={`attending-option-${index}`}
+              className="flex items-center gap-2"
+            >
+              <input
+                type="text"
+                value={option}
+                onChange={(e) =>
+                  updateSelectedBlock((block) => {
+                    if (block.type !== "rsvp") return block;
 
-                return {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    attendingOptions: [option1, option2],
-                    attendingDefaultValue:
-                      block.data.attendingDefaultValue === block.data.attendingOptions?.[0]
-                        ? option1
-                        : block.data.attendingDefaultValue,
-                  },
-                };
-              })
-            }
-            className={inspectorInputClass()}
-          />
-        </div>
+                    const currentOptions = (
+                      block.data.attendingOptions?.length
+                        ? block.data.attendingOptions
+                        : ["Yes", "No"]
+                    ).slice(0, 8);
 
-        <div>
-          <div className={inspectorLabelClass()}>Option 2</div>
-          <input
-            type="text"
-            value={selectedBlock.data.attendingOptions?.[1] ?? "No"}
-            onChange={(e) =>
-              updateSelectedBlock((block) => {
-                if (block.type !== "rsvp") return block;
+                    const previousValue = currentOptions[index];
 
-                const option1 = block.data.attendingOptions?.[0] ?? "Yes";
-                const option2 = e.target.value;
+                    const nextOptions = currentOptions.map(
+                      (item, itemIndex) =>
+                        itemIndex === index ? e.target.value : item,
+                    );
 
-                return {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    attendingOptions: [option1, option2],
-                    attendingDefaultValue:
-                      block.data.attendingDefaultValue === block.data.attendingOptions?.[1]
-                        ? option2
-                        : block.data.attendingDefaultValue,
-                  },
-                };
-              })
-            }
-            className={inspectorInputClass()}
-          />
-        </div>
+                    return {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        attendingOptions: nextOptions,
+                        attendingDefaultValue:
+                          block.data.attendingDefaultValue === previousValue
+                            ? e.target.value
+                            : block.data.attendingDefaultValue,
+                      },
+                    };
+                  })
+                }
+                className={inspectorInputClass()}
+                placeholder={`Attendance option ${index + 1}`}
+              />
+
+              <button
+                type="button"
+                disabled={options.length <= 1}
+                onClick={() =>
+                  updateSelectedBlock((block) => {
+                    if (block.type !== "rsvp") return block;
+
+                    const currentOptions = (
+                      block.data.attendingOptions?.length
+                        ? block.data.attendingOptions
+                        : ["Yes", "No"]
+                    ).slice(0, 8);
+
+                    const removedValue = currentOptions[index];
+
+                    const nextOptions = currentOptions.filter(
+                      (_, itemIndex) => itemIndex !== index,
+                    );
+
+                    return {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        attendingOptions: nextOptions.length
+                          ? nextOptions
+                          : ["Yes"],
+                        attendingDefaultValue:
+                          block.data.attendingDefaultValue === removedValue
+                            ? nextOptions[0] ?? "Yes"
+                            : block.data.attendingDefaultValue,
+                      },
+                    };
+                  })
+                }
+                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-neutral-200 bg-white text-sm text-neutral-700 transition hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                ×
+              </button>
+            </div>
+          ))}
+
+        <button
+          type="button"
+          disabled={(selectedBlock.data.attendingOptions?.length ?? 2) >= 8}
+          onClick={() =>
+            updateSelectedBlock((block) => {
+              if (block.type !== "rsvp") return block;
+
+              const currentOptions = (
+                block.data.attendingOptions?.length
+                  ? block.data.attendingOptions
+                  : ["Yes", "No"]
+              ).slice(0, 8);
+
+              if (currentOptions.length >= 8) return block;
+
+              return {
+                ...block,
+                data: {
+                  ...block.data,
+                  attendingOptions: [
+                    ...currentOptions,
+                    `Option ${currentOptions.length + 1}`,
+                  ],
+                },
+              };
+            })
+          }
+          className="inline-flex h-10 items-center justify-center rounded-xl border border-neutral-200 bg-white px-3 text-sm font-medium text-neutral-800 transition hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          + Add attendance option
+        </button>
       </div>
 
       <div className="mt-4">
         <div className={inspectorLabelClass()}>Default Table Value</div>
         <select
-          value={selectedBlock.data.attendingDefaultValue ?? "Yes"}
+          value={
+            selectedBlock.data.attendingDefaultValue ??
+            selectedBlock.data.attendingOptions?.[0] ??
+            "Yes"
+          }
           onChange={(e) =>
             updateSelectedBlock((block) =>
               block.type !== "rsvp"
@@ -11750,12 +11818,16 @@ selectedContext.kind === "textFx"
           }
           className={inspectorInputClass()}
         >
-          <option value={selectedBlock.data.attendingOptions?.[0] ?? "Yes"}>
-            {selectedBlock.data.attendingOptions?.[0] ?? "Yes"}
-          </option>
-          <option value={selectedBlock.data.attendingOptions?.[1] ?? "No"}>
-            {selectedBlock.data.attendingOptions?.[1] ?? "No"}
-          </option>
+          {(selectedBlock.data.attendingOptions?.length
+            ? selectedBlock.data.attendingOptions
+            : ["Yes", "No"]
+          )
+            .slice(0, 8)
+            .map((option, index) => (
+              <option key={`attending-default-${index}`} value={option}>
+                {option || `Option ${index + 1}`}
+              </option>
+            ))}
         </select>
       </div>
     </div>
@@ -12003,70 +12075,138 @@ selectedContext.kind === "textFx"
         />
       </div>
 
-      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <div>
-          <div className={inspectorLabelClass()}>Option 1</div>
-          <input
-            type="text"
-            value={selectedBlock.data.guestOptions?.[0] ?? "Yes"}
-            onChange={(e) =>
-              updateSelectedBlock((block) => {
-                if (block.type !== "rsvp") return block;
+      <div className="mt-4 space-y-3">
+        <div className={inspectorLabelClass()}>Guest Options</div>
 
-                const option1 = e.target.value;
-                const option2 = block.data.guestOptions?.[1] ?? "No";
+        {(selectedBlock.data.guestOptions?.length
+          ? selectedBlock.data.guestOptions
+          : ["Yes", "No"]
+        )
+          .slice(0, 8)
+          .map((option, index, options) => (
+            <div
+              key={`guest-option-${index}`}
+              className="flex items-center gap-2"
+            >
+              <input
+                type="text"
+                value={option}
+                onChange={(e) =>
+                  updateSelectedBlock((block) => {
+                    if (block.type !== "rsvp") return block;
 
-                return {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    guestOptions: [option1, option2],
-                    guestDefaultValue:
-                      block.data.guestDefaultValue === block.data.guestOptions?.[0]
-                        ? option1
-                        : block.data.guestDefaultValue,
-                  },
-                };
-              })
-            }
-            className={inspectorInputClass()}
-          />
-        </div>
+                    const currentOptions = (
+                      block.data.guestOptions?.length
+                        ? block.data.guestOptions
+                        : ["Yes", "No"]
+                    ).slice(0, 8);
 
-        <div>
-          <div className={inspectorLabelClass()}>Option 2</div>
-          <input
-            type="text"
-            value={selectedBlock.data.guestOptions?.[1] ?? "No"}
-            onChange={(e) =>
-              updateSelectedBlock((block) => {
-                if (block.type !== "rsvp") return block;
+                    const previousValue = currentOptions[index];
 
-                const option1 = block.data.guestOptions?.[0] ?? "Yes";
-                const option2 = e.target.value;
+                    const nextOptions = currentOptions.map(
+                      (item, itemIndex) =>
+                        itemIndex === index ? e.target.value : item,
+                    );
 
-                return {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    guestOptions: [option1, option2],
-                    guestDefaultValue:
-                      block.data.guestDefaultValue === block.data.guestOptions?.[1]
-                        ? option2
-                        : block.data.guestDefaultValue,
-                  },
-                };
-              })
-            }
-            className={inspectorInputClass()}
-          />
-        </div>
+                    return {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        guestOptions: nextOptions,
+                        guestDefaultValue:
+                          block.data.guestDefaultValue === previousValue
+                            ? e.target.value
+                            : block.data.guestDefaultValue,
+                      },
+                    };
+                  })
+                }
+                className={inspectorInputClass()}
+                placeholder={`Guest option ${index + 1}`}
+              />
+
+              <button
+                type="button"
+                disabled={options.length <= 1}
+                onClick={() =>
+                  updateSelectedBlock((block) => {
+                    if (block.type !== "rsvp") return block;
+
+                    const currentOptions = (
+                      block.data.guestOptions?.length
+                        ? block.data.guestOptions
+                        : ["Yes", "No"]
+                    ).slice(0, 8);
+
+                    const removedValue = currentOptions[index];
+
+                    const nextOptions = currentOptions.filter(
+                      (_, itemIndex) => itemIndex !== index,
+                    );
+
+                    return {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        guestOptions: nextOptions.length
+                          ? nextOptions
+                          : ["Yes"],
+                        guestDefaultValue:
+                          block.data.guestDefaultValue === removedValue
+                            ? nextOptions[0] ?? "Yes"
+                            : block.data.guestDefaultValue,
+                      },
+                    };
+                  })
+                }
+                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-neutral-200 bg-white text-sm text-neutral-700 transition hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                ×
+              </button>
+            </div>
+          ))}
+
+        <button
+          type="button"
+          disabled={(selectedBlock.data.guestOptions?.length ?? 2) >= 8}
+          onClick={() =>
+            updateSelectedBlock((block) => {
+              if (block.type !== "rsvp") return block;
+
+              const currentOptions = (
+                block.data.guestOptions?.length
+                  ? block.data.guestOptions
+                  : ["Yes", "No"]
+              ).slice(0, 8);
+
+              if (currentOptions.length >= 8) return block;
+
+              return {
+                ...block,
+                data: {
+                  ...block.data,
+                  guestOptions: [
+                    ...currentOptions,
+                    `Option ${currentOptions.length + 1}`,
+                  ],
+                },
+              };
+            })
+          }
+          className="inline-flex h-10 items-center justify-center rounded-xl border border-neutral-200 bg-white px-3 text-sm font-medium text-neutral-800 transition hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          + Add guest option
+        </button>
       </div>
 
       <div className="mt-4">
         <div className={inspectorLabelClass()}>Default Table Value</div>
         <select
-          value={selectedBlock.data.guestDefaultValue ?? "No"}
+          value={
+            selectedBlock.data.guestDefaultValue ??
+            selectedBlock.data.guestOptions?.[0] ??
+            "Yes"
+          }
           onChange={(e) =>
             updateSelectedBlock((block) =>
               block.type !== "rsvp"
@@ -12082,12 +12222,16 @@ selectedContext.kind === "textFx"
           }
           className={inspectorInputClass()}
         >
-          <option value={selectedBlock.data.guestOptions?.[0] ?? "Yes"}>
-            {selectedBlock.data.guestOptions?.[0] ?? "Yes"}
-          </option>
-          <option value={selectedBlock.data.guestOptions?.[1] ?? "No"}>
-            {selectedBlock.data.guestOptions?.[1] ?? "No"}
-          </option>
+          {(selectedBlock.data.guestOptions?.length
+            ? selectedBlock.data.guestOptions
+            : ["Yes", "No"]
+          )
+            .slice(0, 8)
+            .map((option, index) => (
+              <option key={`guest-default-${index}`} value={option}>
+                {option || `Option ${index + 1}`}
+              </option>
+            ))}
         </select>
       </div>
     </div>

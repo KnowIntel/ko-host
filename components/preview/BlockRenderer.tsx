@@ -3369,9 +3369,22 @@ function RsvpFormBlock({
   const showAttendingInForm = attendingDisplay && !hidden.has("attending");
 
   const mealLabel = block.data.mealLabel || "Meal Selection";
-  const mealOptions = block.data.mealOptions ?? ["Chicken", "Salmon"];
+  const mealOptions = (block.data.mealOptions?.length
+  ? block.data.mealOptions
+  : ["Chicken", "Salmon"]
+)
+  .map((option) => option.trim())
+  .filter(Boolean)
+  .slice(0, 8);
+
+if (!mealOptions.length) {
+  mealOptions.push("Chicken");
+}
   const mealDisplay = block.data.mealDisplay !== false;
-  const mealDefaultValue = block.data.mealDefaultValue || mealOptions[0] || "Chicken";
+  const mealDefaultValue =
+  block.data.mealDefaultValue && mealOptions.includes(block.data.mealDefaultValue)
+    ? block.data.mealDefaultValue
+    : mealOptions[0] || "Chicken";
   const showMealInForm = mealDisplay && !hidden.has("meal");
 
   const guestLabel = block.data.guestLabel || "Guest";
