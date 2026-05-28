@@ -751,9 +751,18 @@ export type RsvpBlock = BaseBlock & {
 
     submitButtonText?: string;
 
+    buttonLayout?: "full" | "compact";
+    buttonShape?: "rounded" | "pill" | "square";
+    buttonVariant?: "solid" | "outline" | "gradient";
+    buttonUppercase?: boolean;
+
     elementStyles?: RsvpElementStyleMap;
 
     style?: TextStyle;
+
+    helperText?: string;
+    confirmationTitle?: string;
+    confirmationMessage?: string;
   };
 };
 
@@ -2482,8 +2491,11 @@ case "rsvp":
     grid,
     appearance: createDefaultBlockAppearance(),
     data: {
-    heading: "Wedding Invitation RSVP Form",
-    styleVariant: "elegant_wedding",
+heading: "Wedding Invitation RSVP Form",
+helperText: "Please let us know if you’ll be joining us.",
+confirmationTitle: "Thank you — your RSVP has been received.",
+confirmationMessage: "We’re excited to celebrate with you.",
+styleVariant: "elegant_wedding",
     imageUrl: "",
       imageFrameShape: "circle",
       elementOrder: [
@@ -2525,7 +2537,11 @@ case "rsvp":
       commentsDisplay: true,
       commentsDefaultValue: "",
 
-      submitButtonText: "Submit RSVP",
+      submitButtonText: "Submit RSVP →",
+      buttonLayout: "full",
+      buttonShape: "rounded",
+      buttonVariant: "solid",
+      buttonUppercase: false,
 
       elementStyles: {},
       style: createDefaultTextStyle(),

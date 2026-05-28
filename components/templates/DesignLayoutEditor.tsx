@@ -11573,6 +11573,28 @@ selectedContext.kind === "textFx"
     </div>
 
     <div className="mt-4">
+      <div className={inspectorLabelClass()}>Helper Text</div>
+      <textarea
+        value={selectedBlock.data.helperText ?? ""}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "rsvp"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    helperText: e.target.value,
+                  },
+                },
+          )
+        }
+        className={`${inspectorInputClass()} min-h-[80px] py-2`}
+        placeholder="Please let us know if you’ll be joining us."
+      />
+    </div>
+
+    <div className="mt-4">
       <div className={inspectorLabelClass()}>Choose Image</div>
       <input
         type="text"
@@ -12327,26 +12349,191 @@ selectedContext.kind === "textFx"
       </div>
     </div>
 
-    <div className="mt-5">
-      <div className={inspectorLabelClass()}>Submit Button Text</div>
-      <input
-        type="text"
-        value={selectedBlock.data.submitButtonText ?? "Submit RSVP"}
-        onChange={(e) =>
-          updateSelectedBlock((block) =>
-            block.type !== "rsvp"
-              ? block
-              : {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    submitButtonText: e.target.value,
+    <div className="mt-5 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+      <div className={inspectorLabelClass()}>Submit Button</div>
+
+      <div className="mt-4">
+        <div className={inspectorLabelClass()}>Button Text</div>
+
+        <input
+          type="text"
+          value={selectedBlock.data.submitButtonText ?? "Submit RSVP →"}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "rsvp"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      submitButtonText: e.target.value,
+                    },
                   },
-                },
-          )
-        }
-        className={inspectorInputClass()}
-      />
+            )
+          }
+          className={inspectorInputClass()}
+        />
+      </div>
+
+      <div className="mt-4">
+        <div className={inspectorLabelClass()}>Button Layout</div>
+
+        <select
+          value={selectedBlock.data.buttonLayout ?? "full"}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "rsvp"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      buttonLayout: e.target.value as "full" | "compact",
+                    },
+                  },
+            )
+          }
+          className={inspectorInputClass()}
+        >
+          <option value="full">Full Width</option>
+          <option value="compact">Compact</option>
+        </select>
+      </div>
+
+      <div className="mt-4">
+        <div className={inspectorLabelClass()}>Button Shape</div>
+
+        <select
+          value={selectedBlock.data.buttonShape ?? "rounded"}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "rsvp"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      buttonShape: e.target.value as
+                        | "rounded"
+                        | "pill"
+                        | "square",
+                    },
+                  },
+            )
+          }
+          className={inspectorInputClass()}
+        >
+          <option value="rounded">Rounded</option>
+          <option value="pill">Pill</option>
+          <option value="square">Square</option>
+        </select>
+      </div>
+
+      <div className="mt-4">
+        <div className={inspectorLabelClass()}>Button Variant</div>
+
+        <select
+          value={selectedBlock.data.buttonVariant ?? "solid"}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "rsvp"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      buttonVariant: e.target.value as
+                        | "solid"
+                        | "outline"
+                        | "gradient",
+                    },
+                  },
+            )
+          }
+          className={inspectorInputClass()}
+        >
+          <option value="solid">Solid</option>
+          <option value="outline">Outline</option>
+          <option value="gradient">Gradient</option>
+        </select>
+      </div>
+
+      <label className="mt-4 flex items-center gap-3 text-sm text-neutral-800">
+        <input
+          type="checkbox"
+          checked={selectedBlock.data.buttonUppercase ?? false}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "rsvp"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      buttonUppercase: e.target.checked,
+                    },
+                  },
+            )
+          }
+        />
+        Uppercase button text
+      </label>
+    </div>
+
+    <div className="mt-5 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+      <div className={inspectorLabelClass()}>Confirmation State</div>
+
+      <div className="mt-4">
+        <div className={inspectorLabelClass()}>Confirmation Title</div>
+
+        <input
+          type="text"
+          value={
+            selectedBlock.data.confirmationTitle ??
+            "Thank you — your RSVP has been received."
+          }
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "rsvp"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      confirmationTitle: e.target.value,
+                    },
+                  },
+            )
+          }
+          className={inspectorInputClass()}
+        />
+      </div>
+
+      <div className="mt-4">
+        <div className={inspectorLabelClass()}>Confirmation Message</div>
+
+        <textarea
+          value={
+            selectedBlock.data.confirmationMessage ??
+            "We’re excited to celebrate with you."
+          }
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "rsvp"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      confirmationMessage: e.target.value,
+                    },
+                  },
+            )
+          }
+          className={`${inspectorInputClass()} min-h-[90px] py-2`}
+          placeholder="We’re excited to celebrate with you."
+        />
+      </div>
     </div>
   </div>
 ) : null}

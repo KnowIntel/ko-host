@@ -3362,7 +3362,17 @@ function RsvpFormBlock({
   const guestMax = Math.max(guestMin, block.data.guestMax ?? 1);
 
   const attendingLabel = block.data.attendingLabel || "Are you attending?";
-  const attendingOptions = block.data.attendingOptions ?? ["Yes", "No"];
+  const attendingOptions = (block.data.attendingOptions?.length
+  ? block.data.attendingOptions
+  : ["Yes", "No"]
+)
+  .map((option) => option.trim())
+  .filter(Boolean)
+  .slice(0, 8);
+
+if (!attendingOptions.length) {
+  attendingOptions.push("Yes");
+}
   const attendingDisplay = block.data.attendingDisplay !== false;
   const attendingDefaultValue =
     block.data.attendingDefaultValue || attendingOptions[0] || "Yes";
@@ -3388,7 +3398,17 @@ if (!mealOptions.length) {
   const showMealInForm = mealDisplay && !hidden.has("meal");
 
   const guestLabel = block.data.guestLabel || "Guest";
-  const guestOptions = block.data.guestOptions ?? ["Yes", "No"];
+  const guestOptions = (block.data.guestOptions?.length
+  ? block.data.guestOptions
+  : ["Yes", "No"]
+)
+  .map((option) => option.trim())
+  .filter(Boolean)
+  .slice(0, 8);
+
+if (!guestOptions.length) {
+  guestOptions.push("Yes");
+}
   const guestDisplay = block.data.guestDisplay !== false;
   const guestDefaultValue = block.data.guestDefaultValue || guestOptions[1] || "No";
   const showGuestInForm =
@@ -3404,7 +3424,18 @@ if (!mealOptions.length) {
   const commentsDefaultValue = block.data.commentsDefaultValue || "";
   const showCommentsInForm = commentsDisplay && !hidden.has("comments");
 
-  const submitButtonText = block.data.submitButtonText || "Submit RSVP →";
+  const helperText =
+  block.data.helperText || "Please let us know if you’ll be joining us.";
+const confirmationTitle =
+  block.data.confirmationTitle || "Thank you — your RSVP has been received.";
+const confirmationMessage =
+  block.data.confirmationMessage || "We’re excited to celebrate with you.";
+
+const submitButtonText = block.data.submitButtonText || "Submit RSVP →";
+const buttonLayout = block.data.buttonLayout ?? "full";
+const buttonShape = block.data.buttonShape ?? "rounded";
+const buttonVariant = block.data.buttonVariant ?? "solid";
+const buttonUppercase = block.data.buttonUppercase ?? false;
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -3427,9 +3458,18 @@ if (!mealOptions.length) {
   const [submitState, setSubmitState] = useState<"idle" | "success" | "error">("idle");
   const [submitMessage, setSubmitMessage] = useState("");
 
-  const isCurrentlyAttending = showAttendingInForm
-    ? isAttending
-    : attendingDefaultValue === attendingOptions[0];
+const attendingYesValue = attendingOptions[0] ?? "Yes";
+const attendingNoValue = attendingOptions[1] ?? "No";
+const guestYesValue = guestOptions[0] ?? "Yes";
+const guestNoValue = guestOptions[1] ?? "No";
+
+const isCurrentlyAttending = showAttendingInForm
+  ? isAttending
+  : attendingDefaultValue === attendingYesValue;
+
+const isCurrentlyBringingGuest = showGuestInForm
+  ? bringingGuest
+  : guestDefaultValue === guestYesValue;
 
   const variantClassMap: Record<string, string> = {
     standard:
@@ -3579,15 +3619,9 @@ if (!mealOptions.length) {
               ? mealChoice
               : mealDefaultValue
             : "",
-          bringingGuest: showGuestInForm
-            ? bringingGuest
-            : guestDefaultValue === guestOptions[0],
-          guestCount:
-            isCurrentlyAttending &&
-            (showGuestInForm ? bringingGuest : guestDefaultValue === guestOptions[0])
-              ? guestCount
-              : 0,
-          guestName: bringingGuest
+bringingGuest: isCurrentlyBringingGuest,
+guestCount: isCurrentlyAttending && isCurrentlyBringingGuest ? guestCount : 0,
+          guestName: isCurrentlyBringingGuest
             ? guestNames
                 .slice(0, guestCount)
                 .map((name) => name.trim())
@@ -3608,17 +3642,15 @@ if (!mealOptions.length) {
       }
 
       setSubmitState("success");
-      setSubmitMessage(
-        "Thank you — your RSVP has been received. We’re excited to celebrate with you.",
-      );
+setSubmitMessage(`${confirmationTitle} ${confirmationMessage}`.trim());
       setFirstName("");
       setLastName("");
       setEmail("");
       setAddress("");
       setIsAttending(attendingDefaultValue === attendingOptions[0]);
       setMealChoice(mealDefaultValue);
-      setBringingGuest(guestDefaultValue === guestOptions[0]);
-      setGuestCount(guestDefaultValue === guestOptions[0] ? Math.max(guestMin, 1) : 0);
+setBringingGuest(guestDefaultValue === guestYesValue);
+setGuestCount(guestDefaultValue === guestYesValue ? Math.max(guestMin, 1) : 0);
       setGuestNames([]);
       setComments(commentsDefaultValue);
       setCompany("");
@@ -3853,9 +3885,11 @@ if (!mealOptions.length) {
             >
               {block.data.heading || "RSVP"}
             </div>
-            <div className={darkVariant ? "text-sm text-white/65" : "text-sm text-neutral-500"}>
-              Please let us know if you’ll be joining us.
-            </div>
+{helperText ? (
+  <div className={darkVariant ? "text-sm text-white/65" : "text-sm text-neutral-500"}>
+    {helperText}
+  </div>
+) : null}
           </div>
         );
 
@@ -3881,8 +3915,8 @@ if (!mealOptions.length) {
           "attending",
           attendingLabel,
           attendingOptions,
-          isAttending ? attendingOptions[0] : attendingOptions[1] ?? "No",
-          (next) => setIsAttending(next === attendingOptions[0]),
+isAttending ? attendingYesValue : attendingNoValue,
+(next) => setIsAttending(next === attendingYesValue),
         );
 
       case "meal":
@@ -3897,9 +3931,9 @@ if (!mealOptions.length) {
           "guestToggle",
           guestLabel,
           guestOptions,
-          bringingGuest ? guestOptions[0] : guestOptions[1] ?? "No",
-          (next) => {
-            const yes = next === guestOptions[0];
+bringingGuest ? guestYesValue : guestNoValue,
+(next) => {
+  const yes = next === guestYesValue;
             setBringingGuest(yes);
 
             const nextCount = yes ? Math.max(1, guestMin) : 0;
@@ -4001,12 +4035,25 @@ if (!mealOptions.length) {
         <button
           type="submit"
           disabled={submitting}
-          className={[
-            "inline-flex min-h-[52px] items-center justify-center rounded-2xl px-5 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60",
-            darkVariant
-              ? "bg-white text-neutral-950 hover:bg-white/90"
-              : "bg-neutral-950 text-white hover:bg-neutral-800",
-          ].join(" ")}
+className={[
+  "inline-flex min-h-[52px] items-center justify-center px-5 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60",
+  buttonLayout === "full" ? "w-full" : "w-fit self-center",
+  buttonShape === "pill"
+    ? "rounded-full"
+    : buttonShape === "square"
+      ? "rounded-none"
+      : "rounded-2xl",
+  buttonUppercase ? "uppercase tracking-[0.18em]" : "",
+  buttonVariant === "outline"
+    ? darkVariant
+      ? "border border-white/35 bg-transparent text-white hover:bg-white/10"
+      : "border border-neutral-950 bg-transparent text-neutral-950 hover:bg-neutral-950 hover:text-white"
+    : buttonVariant === "gradient"
+      ? "border border-transparent bg-gradient-to-r from-fuchsia-600 via-rose-500 to-orange-400 text-white hover:opacity-90"
+      : darkVariant
+        ? "bg-white text-neutral-950 hover:bg-white/90"
+        : "bg-neutral-950 text-white hover:bg-neutral-800",
+].join(" ")}
         >
           {submitting ? "Submitting..." : submitButtonText}
         </button>
