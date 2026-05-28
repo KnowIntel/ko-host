@@ -847,20 +847,28 @@ const visibleRecentSites = useMemo(() => {
           </div>
         ) : null}
 
-        <div className="mt-12 flex justify-end">
-          <div className="inline-flex items-center gap-3 rounded-2xl border border-neutral-200 bg-white/85 px-4 py-3 shadow-sm backdrop-blur">
-            <Image
-              src="/icon.png"
-              alt="Ko-Host"
-              width={28}
-              height={28}
-              className="h-7 w-7 rounded-md"
-            />
-            <span className="text-sm font-medium text-neutral-700">
-              Ko-Host: A KnowIntel Company
-            </span>
-          </div>
-        </div>
+<div className="mt-12 flex items-center justify-between gap-4">
+  <Link
+    href="/faq"
+    className="inline-flex items-center rounded-2xl border border-neutral-200 bg-white/85 px-4 py-3 text-sm font-semibold text-neutral-700 shadow-sm backdrop-blur transition hover:bg-white"
+  >
+    FAQ
+  </Link>
+
+  <div className="inline-flex items-center gap-3 rounded-2xl border border-neutral-200 bg-white/85 px-4 py-3 shadow-sm backdrop-blur">
+    <Image
+      src="/icon.png"
+      alt="Ko-Host"
+      width={28}
+      height={28}
+      className="h-7 w-7 rounded-md"
+    />
+
+    <span className="text-sm font-medium text-neutral-700">
+      Ko-Host: A KnowIntel Company
+    </span>
+  </div>
+</div>
       </div>
     </div>
   );
