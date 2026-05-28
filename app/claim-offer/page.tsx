@@ -9,7 +9,7 @@ const sampleCards = [
     image:
       "/designs/design-cards/design-card_beta_testing_professional.webp",
     className:
-      "left-[300px] top-[620px] rotate-[-10deg] hidden xl:block",
+      "left-[40px] top-[390px] rotate-[-10deg] hidden xl:block",
     glow: "from-blue-500/20 to-cyan-400/10",
   },
 
@@ -49,7 +49,7 @@ const sampleCards = [
     image:
       "/designs/design-cards/design-card_election_campaign_city.webp",
     className:
-      "left-[80px] top-[350px] rotate-[7deg] hidden 2xl:block",
+      "left-[300px] top-[620px] rotate-[7deg] hidden 2xl:block",
     glow: "from-blue-400/20 to-indigo-300/10",
   },
 
@@ -109,7 +109,7 @@ const sampleCards = [
     image:
       "/designs/design-cards/design-card_open_house_signature.webp",
     className:
-      "left-[350px] top-[330px] rotate-[-5deg] hidden 2xl:block",
+      "left-[320px] top-[330px] rotate-[-5deg] hidden 2xl:block",
     glow: "from-sky-500/20 to-cyan-200/10",
   },
 
@@ -119,7 +119,7 @@ const sampleCards = [
     image:
       "/designs/design-cards/design-card_pet_adoption_welcome.webp",
     className:
-      "right-[110px] bottom-[60px] rotate-[7deg] hidden 2xl:block",
+      "right-[0px] bottom-[0px] rotate-[7deg] hidden 2xl:block",
     glow: "from-lime-400/20 to-green-200/10",
   },
 
