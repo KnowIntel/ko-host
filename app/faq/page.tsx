@@ -341,7 +341,7 @@ export default function FAQPage() {
             key={card.title}
             className={`absolute ${card.className}`}
             style={{
-              animation: `faqCardFloat ${9 + index}s ease-in-out infinite`,
+              animation: `kht-float2 ${9 + index}s ease-in-out infinite`,
               animationDelay: `${index * 0.7}s`,
             }}
           >
@@ -362,17 +362,6 @@ export default function FAQPage() {
         ))}
       </div>
 
-      <style jsx>{`
-        @keyframes faqCardFloat {
-          0%,
-          100% {
-            transform: translateY(0px);
-          }
-          50% {
-            transform: translateY(-18px);
-          }
-        }
-      `}</style>
 
       <section className="relative px-6 py-20">
         <div className="mx-auto max-w-6xl">
