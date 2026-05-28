@@ -348,6 +348,37 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Wellness Recovery", type: "icon", iconName: "wellness-recovery" },
     { kind: "block", label: "Nutrition", type: "icon", iconName: "nutrition" },
     { kind: "block", label: "Mobility", type: "icon", iconName: "mobility" },
+    { kind: "block", label: "Trees", type: "icon", iconName: "trees" },
+    { kind: "block", label: "Stock Chart Up", type: "icon", iconName: "stock-chart-up" },
+    { kind: "block", label: "Stock Chart Down", type: "icon", iconName: "stock-chart-down" },
+    { kind: "block", label: "Party Confetti", type: "icon", iconName: "party-confetti" },
+    { kind: "block", label: "Number Blocks", type: "icon", iconName: "number-blocks" },
+    { kind: "block", label: "Megaphone Speaker", type: "icon", iconName: "megaphone-speaker" },
+    { kind: "block", label: "Lock Locked", type: "icon", iconName: "lock-locked" },
+    { kind: "block", label: "Lock Unlock", type: "icon", iconName: "lock_unlock" },
+    { kind: "block", label: "Heart Outline", type: "icon", iconName: "heart-outline" },
+    { kind: "block", label: "Gift Box", type: "icon", iconName: "gift-box" },
+    { kind: "block", label: "Folder Hierarchy", type: "icon", iconName: "folder-hierarchy" },
+    { kind: "block", label: "Export Share", type: "icon", iconName: "export-share" },
+    { kind: "block", label: "Download Folder", type: "icon", iconName: "download-folder" },
+    { kind: "block", label: "Dollar Sign", type: "icon", iconName: "dollar-sign" },
+    { kind: "block", label: "Credit Card", type: "icon", iconName: "credit-card" },
+    { kind: "block", label: "Card Spade", type: "icon", iconName: "card-spade" },
+    { kind: "block", label: "Card Heart", type: "icon", iconName: "card-heart" },
+    { kind: "block", label: "Card Club", type: "icon", iconName: "card-club" },
+    { kind: "block", label: "Card Diamond", type: "icon", iconName: "card-diamond" },
+    { kind: "block", label: "Archive Box", type: "icon", iconName: "archive-box" },
+    { kind: "block", label: "Alphabet Blocks", type: "icon", iconName: "alphabet-blocks" },
+    { kind: "block", label: "Magnifying Glass Zoom In", type: "icon", iconName: "magnifying-glass-zoom-in" },
+    { kind: "block", label: "Magnifying Glass Zoom Out", type: "icon", iconName: "magnifying-glass-zoom-out" },
+    { kind: "block", label: "Magnifying Glass", type: "icon", iconName: "magnifying-glass" },
+    { kind: "block", label: "Share", type: "icon", iconName: "share" },
+    { kind: "block", label: "Hour Glass Empty", type: "icon", iconName: "hour-glass-empty" },
+    { kind: "block", label: "Hour Glass Full", type: "icon", iconName: "hour-glass-full" },
+    { kind: "block", label: "Hour Glass Half", type: "icon", iconName: "hour-glass-half" },
+    { kind: "block", label: "Cross Cancel", type: "icon", iconName: "cross-cancel" },
+    { kind: "block", label: "Wrong Files", type: "icon", iconName: "wrong-files" },
+    { kind: "block", label: "Settings Gears", type: "icon", iconName: "settings-gears" },
     { kind: "block", label: "Check", type: "icon", iconName: "check" },
     { kind: "block", label: "Check Circle", type: "icon", iconName: "check-circle" },
     { kind: "block", label: "Check Shield", type: "icon", iconName: "check-shield" },
@@ -382,6 +413,7 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Airplane", type: "icon", iconName: "airplane" },
     { kind: "block", label: "Accident", type: "icon", iconName: "accident" },
     { kind: "block", label: "Globe", type: "icon", iconName: "globe" },
+    { kind: "block", label: "Globe Earth", type: "icon", iconName: "globe-earth" },
     { kind: "block", label: "Message Thread", type: "icon", iconName: "message-thread" },
     { kind: "block", label: "Location Pin", type: "icon", iconName: "location-pin" },
     { kind: "block", label: "Clock", type: "icon", iconName: "clock" },
@@ -1095,6 +1127,38 @@ function getToolGlyph(label: string) {
   if (label === "House") return "⌂";
   if (label === "Star") return "⭐";
   if (label === "Heart") return "❤";
+  if (label === "Trees") return "🌲";
+  if (label === "Stock Chart Up") return "📈";
+  if (label === "Stock Chart Down") return "📉";
+  if (label === "Party Confetti") return "🎉";
+  if (label === "Number Blocks") return "🔢";
+  if (label === "Megaphone Speaker") return "📣";
+  if (label === "Lock Locked") return "🔒";
+  if (label === "Lock Unlock") return "🔓";
+  if (label === "Heart Outline") return "♡";
+  if (label === "Gift Box") return "🎁";
+  if (label === "Folder Hierarchy") return "📁";
+  if (label === "Export Share") return "↗";
+  if (label === "Download Folder") return "📥";
+  if (label === "Dollar Sign") return "$";
+  if (label === "Credit Card") return "💳";
+  if (label === "Card Spade") return "♠";
+  if (label === "Card Heart") return "♥";
+  if (label === "Card Club") return "♣";
+  if (label === "Card Diamond") return "♦";
+  if (label === "Archive Box") return "🗄";
+  if (label === "Alphabet Blocks") return "🔤";
+  if (label === "Magnifying Glass Zoom In") return "🔎";
+  if (label === "Magnifying Glass Zoom Out") return "🔍";
+  if (label === "Magnifying Glass") return "⌕";
+  if (label === "Share") return "↗";
+  if (label === "Hour Glass Empty") return "⌛";
+  if (label === "Hour Glass Full") return "⏳";
+  if (label === "Hour Glass Half") return "⌛";
+  if (label === "Globe Earth") return "🌍";
+  if (label === "Cross Cancel") return "✕";
+  if (label === "Wrong Files") return "📄";
+  if (label === "Settings Gears") return "⚙";
   if (label === "Wellness Recovery") return "❤️";
   if (label === "Mobility") return "🛞";
   if (label === "Nutrition") return "🍎";
