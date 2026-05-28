@@ -53,21 +53,21 @@ const faqCards = [
   title: "Memorial Tribute",
   image: "/designs/design-cards/design-card_memorial_tribute_soft.webp",
   className:
-    "right-[40px] top-[480px] rotate-[-6deg] hidden 2xl:block",
+    "right-[240px] top-[480px] rotate-[-6deg] hidden 2xl:block",
 },
 
 {
   title: "Wedding Story",
   image: "/designs/design-cards/design-card_wedding_subtle.webp",
   className:
-    "right-[50px] bottom-[880px] rotate-[-5deg] hidden 2xl:block",
+    "right-[50px] top-[880px] rotate-[-5deg] hidden 2xl:block",
 },
 
 {
   title: "Networking",
   image: "/designs/design-cards/design-card_enthusiast_networking_direct.webp",
   className:
-    "right-[60px] bottom-[1280px] rotate-[6deg] hidden 2xl:block",
+    "right-[260px] top-[1280px] rotate-[6deg] hidden 2xl:block",
 },
 
 ];
