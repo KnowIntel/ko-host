@@ -3894,19 +3894,53 @@ setGuestCount(guestDefaultValue === guestYesValue ? Math.max(guestMin, 1) : 0);
         );
 
       case "nameLabel":
-        return renderFieldLabel("nameLabel", "Contact Details");
+        if (block.data.nameDisplay === false) return null;
+
+        return renderFieldLabel(
+          "nameLabel",
+          block.data.contactLabel || "Contact Details",
+        );
 
       case "firstName":
-        return renderField("firstName", "First Name", firstName, setFirstName);
+        if (block.data.nameDisplay === false) return null;
+
+        return renderField(
+          "firstName",
+          block.data.firstNamePlaceholder || "First Name",
+          firstName,
+          setFirstName,
+        );
 
       case "lastName":
-        return renderField("lastName", "Last Name", lastName, setLastName);
+        if (block.data.nameDisplay === false) return null;
+
+        return renderField(
+          "lastName",
+          block.data.lastNamePlaceholder || "Last Name",
+          lastName,
+          setLastName,
+        );
 
       case "email":
-        return renderField("email", "Email Address", email, setEmail, "email");
+        if (block.data.emailDisplay === false) return null;
+
+        return renderField(
+          "email",
+          block.data.emailPlaceholder || "Email Address",
+          email,
+          setEmail,
+          "email",
+        );
 
       case "address":
-        return renderField("address", "Mailing Address", address, setAddress);
+        if (block.data.addressDisplay === false) return null;
+
+        return renderField(
+          "address",
+          block.data.addressPlaceholder || "Mailing Address",
+          address,
+          setAddress,
+        );
 
       case "attending":
         if (!showAttendingInForm) return null;
@@ -4010,27 +4044,62 @@ bringingGuest ? guestYesValue : guestNoValue,
           aria-hidden="true"
         />
 
-        {order.map((key, index) => {
-          if (hidden.has(key as any)) return null;
+        {(() => {
+          const rendered: React.ReactNode[] = [];
 
-          if (key === "firstName") {
-            const showFirst = !hidden.has("firstName");
-            const showLast = !hidden.has("lastName");
+          const showContactSection =
+            block.data.nameDisplay !== false ||
+            block.data.emailDisplay !== false ||
+            block.data.addressDisplay !== false;
 
-            if (!showFirst && !showLast) return null;
+          if (showContactSection) {
+            rendered.push(
+              <div
+                key="contact-details-card"
+                className={
+                  darkVariant
+                    ? "space-y-4 rounded-[28px] border border-white/10 bg-white/[0.04] p-5"
+                    : "space-y-4 rounded-[28px] border border-neutral-200 bg-neutral-50/80 p-5"
+                }
+              >
+                {renderElement("nameLabel")}
 
-            return (
-              <div key={`name-row-${index}`} className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                {showFirst ? renderElement("firstName") : <div />}
-                {showLast ? renderElement("lastName") : <div />}
-              </div>
+                {block.data.nameDisplay !== false ? (
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    {renderElement("firstName")}
+                    {renderElement("lastName")}
+                  </div>
+                ) : null}
+
+                {block.data.emailDisplay !== false
+                  ? renderElement("email")
+                  : null}
+
+                {block.data.addressDisplay !== false
+                  ? renderElement("address")
+                  : null}
+              </div>,
             );
           }
 
-          if (key === "lastName") return null;
+          order.forEach((key) => {
+            if (
+              key === "nameLabel" ||
+              key === "firstName" ||
+              key === "lastName" ||
+              key === "email" ||
+              key === "address"
+            ) {
+              return;
+            }
 
-          return renderElement(key);
-        })}
+            if (hidden.has(key as any)) return;
+
+            rendered.push(renderElement(key));
+          });
+
+          return rendered;
+        })()}
 
         <button
           type="submit"

@@ -729,6 +729,15 @@ export type RsvpBlock = BaseBlock & {
     guestMin?: number;
     guestMax?: number;
 
+    contactLabel?: string;
+    firstNamePlaceholder?: string;
+    lastNamePlaceholder?: string;
+    emailPlaceholder?: string;
+    addressPlaceholder?: string;
+    nameDisplay?: boolean;
+    emailDisplay?: boolean;
+    addressDisplay?: boolean;
+
     attendingLabel?: string;
     attendingOptions?: string[];
     attendingDisplay?: boolean;
@@ -2498,6 +2507,16 @@ confirmationMessage: "We’re excited to celebrate with you.",
 styleVariant: "elegant_wedding",
     imageUrl: "",
       imageFrameShape: "circle",
+
+      contactLabel: "Contact Details",
+      firstNamePlaceholder: "First Name",
+      lastNamePlaceholder: "Last Name",
+      emailPlaceholder: "Email Address",
+      addressPlaceholder: "Mailing Address",
+      nameDisplay: true,
+      emailDisplay: true,
+      addressDisplay: true,
+
       elementOrder: [
         "image",
         "heading",
