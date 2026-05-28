@@ -29,7 +29,7 @@ const sampleCards = [
     image:
       "/designs/design-cards/design-card_community_alert_newsletter.webp",
     className:
-      "left-[50px] bottom-[320px] rotate-[4deg] hidden lg:block",
+      "left-[50px] bottom-[180px] rotate-[4deg] hidden lg:block",
     glow: "from-emerald-400/20 to-green-200/10",
   },
 
@@ -99,7 +99,7 @@ const sampleCards = [
     image:
       "/designs/design-cards/design-card_memory_timeline_timeless.webp",
     className:
-      "right-[-100px] top-[510px] rotate-[4deg] hidden 2xl:block",
+      "right-[-100px] top-[330px] rotate-[4deg] hidden 2xl:block",
     glow: "from-stone-400/20 to-neutral-200/10",
   },
 
