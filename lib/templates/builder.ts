@@ -735,7 +735,7 @@ export type RsvpBlock = BaseBlock & {
     attendingDefaultValue?: string;
 
     mealLabel?: string;
-    mealOptions?: [string, string];
+    mealOptions?: string[];
     mealDisplay?: boolean;
     mealDefaultValue?: string;
 

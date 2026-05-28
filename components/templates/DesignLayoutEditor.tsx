@@ -11806,70 +11806,128 @@ selectedContext.kind === "textFx"
         />
       </div>
 
-      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <div>
-          <div className={inspectorLabelClass()}>Option 1</div>
-          <input
-            type="text"
-            value={selectedBlock.data.mealOptions?.[0] ?? "Chicken"}
-            onChange={(e) =>
-              updateSelectedBlock((block) => {
-                if (block.type !== "rsvp") return block;
+      <div className="mt-4 space-y-3">
+        <div className={inspectorLabelClass()}>Meal Options</div>
 
-                const option1 = e.target.value;
-                const option2 = block.data.mealOptions?.[1] ?? "Salmon";
+        {(selectedBlock.data.mealOptions?.length
+          ? selectedBlock.data.mealOptions
+          : ["Chicken", "Salmon"]
+        )
+          .slice(0, 8)
+          .map((option, index, options) => (
+            <div key={`meal-option-${index}`} className="flex items-center gap-2">
+              <input
+                type="text"
+                value={option}
+                onChange={(e) =>
+                  updateSelectedBlock((block) => {
+                    if (block.type !== "rsvp") return block;
 
-                return {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    mealOptions: [option1, option2],
-                    mealDefaultValue:
-                      block.data.mealDefaultValue === block.data.mealOptions?.[0]
-                        ? option1
-                        : block.data.mealDefaultValue,
-                  },
-                };
-              })
-            }
-            className={inspectorInputClass()}
-          />
-        </div>
+                    const currentOptions = (block.data.mealOptions?.length
+                      ? block.data.mealOptions
+                      : ["Chicken", "Salmon"]
+                    ).slice(0, 8);
 
-        <div>
-          <div className={inspectorLabelClass()}>Option 2</div>
-          <input
-            type="text"
-            value={selectedBlock.data.mealOptions?.[1] ?? "Salmon"}
-            onChange={(e) =>
-              updateSelectedBlock((block) => {
-                if (block.type !== "rsvp") return block;
+                    const previousValue = currentOptions[index];
+                    const nextOptions = currentOptions.map((item, itemIndex) =>
+                      itemIndex === index ? e.target.value : item,
+                    );
 
-                const option1 = block.data.mealOptions?.[0] ?? "Chicken";
-                const option2 = e.target.value;
+                    return {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        mealOptions: nextOptions,
+                        mealDefaultValue:
+                          block.data.mealDefaultValue === previousValue
+                            ? e.target.value
+                            : block.data.mealDefaultValue,
+                      },
+                    };
+                  })
+                }
+                className={inspectorInputClass()}
+                placeholder={`Meal option ${index + 1}`}
+              />
 
-                return {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    mealOptions: [option1, option2],
-                    mealDefaultValue:
-                      block.data.mealDefaultValue === block.data.mealOptions?.[1]
-                        ? option2
-                        : block.data.mealDefaultValue,
-                  },
-                };
-              })
-            }
-            className={inspectorInputClass()}
-          />
-        </div>
+              <button
+                type="button"
+                disabled={options.length <= 1}
+                onClick={() =>
+                  updateSelectedBlock((block) => {
+                    if (block.type !== "rsvp") return block;
+
+                    const currentOptions = (block.data.mealOptions?.length
+                      ? block.data.mealOptions
+                      : ["Chicken", "Salmon"]
+                    ).slice(0, 8);
+
+                    const removedValue = currentOptions[index];
+                    const nextOptions = currentOptions.filter(
+                      (_, itemIndex) => itemIndex !== index,
+                    );
+
+                    return {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        mealOptions: nextOptions.length ? nextOptions : ["Chicken"],
+                        mealDefaultValue:
+                          block.data.mealDefaultValue === removedValue
+                            ? nextOptions[0] ?? "Chicken"
+                            : block.data.mealDefaultValue,
+                      },
+                    };
+                  })
+                }
+                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-neutral-200 bg-white text-sm text-neutral-700 transition hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-40"
+                title="Remove meal option"
+              >
+                ×
+              </button>
+            </div>
+          ))}
+
+        <button
+          type="button"
+          disabled={(selectedBlock.data.mealOptions?.length ?? 2) >= 8}
+          onClick={() =>
+            updateSelectedBlock((block) => {
+              if (block.type !== "rsvp") return block;
+
+              const currentOptions = (block.data.mealOptions?.length
+                ? block.data.mealOptions
+                : ["Chicken", "Salmon"]
+              ).slice(0, 8);
+
+              if (currentOptions.length >= 8) return block;
+
+              return {
+                ...block,
+                data: {
+                  ...block.data,
+                  mealOptions: [
+                    ...currentOptions,
+                    `Option ${currentOptions.length + 1}`,
+                  ],
+                },
+              };
+            })
+          }
+          className="inline-flex h-10 items-center justify-center rounded-xl border border-neutral-200 bg-white px-3 text-sm font-medium text-neutral-800 transition hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          + Add meal option
+        </button>
       </div>
 
       <div className="mt-4">
         <div className={inspectorLabelClass()}>Default Table Value</div>
         <select
-          value={selectedBlock.data.mealDefaultValue ?? "Chicken"}
+          value={
+            selectedBlock.data.mealDefaultValue ??
+            selectedBlock.data.mealOptions?.[0] ??
+            "Chicken"
+          }
           onChange={(e) =>
             updateSelectedBlock((block) =>
               block.type !== "rsvp"
@@ -11885,12 +11943,16 @@ selectedContext.kind === "textFx"
           }
           className={inspectorInputClass()}
         >
-          <option value={selectedBlock.data.mealOptions?.[0] ?? "Chicken"}>
-            {selectedBlock.data.mealOptions?.[0] ?? "Chicken"}
-          </option>
-          <option value={selectedBlock.data.mealOptions?.[1] ?? "Salmon"}>
-            {selectedBlock.data.mealOptions?.[1] ?? "Salmon"}
-          </option>
+          {(selectedBlock.data.mealOptions?.length
+            ? selectedBlock.data.mealOptions
+            : ["Chicken", "Salmon"]
+          )
+            .slice(0, 8)
+            .map((option, index) => (
+              <option key={`meal-default-${index}`} value={option}>
+                {option || `Option ${index + 1}`}
+              </option>
+            ))}
         </select>
       </div>
     </div>
