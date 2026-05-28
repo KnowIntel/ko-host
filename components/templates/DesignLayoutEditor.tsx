@@ -11549,6 +11549,27 @@ selectedContext.kind === "textFx"
       </select>
     </div>
 
+    <label className="mt-4 flex items-center gap-3 text-sm text-neutral-800">
+      <input
+        type="checkbox"
+        checked={selectedBlock.data.useChoiceCards ?? true}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "rsvp"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    useChoiceCards: e.target.checked,
+                  },
+                },
+          )
+        }
+      />
+      Use premium choice cards
+    </label>
+    
     <div className="mt-4">
       <div className={inspectorLabelClass()}>Heading</div>
       <input

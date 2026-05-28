@@ -3436,6 +3436,7 @@ const buttonLayout = block.data.buttonLayout ?? "full";
 const buttonShape = block.data.buttonShape ?? "rounded";
 const buttonVariant = block.data.buttonVariant ?? "solid";
 const buttonUppercase = block.data.buttonUppercase ?? false;
+const useChoiceCards = block.data.useChoiceCards ?? true;
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -3792,31 +3793,55 @@ setGuestCount(guestDefaultValue === guestYesValue ? Math.max(guestMin, 1) : 0);
           {label}
         </div>
 
-        <div className="relative z-10 grid grid-cols-1 gap-2 sm:grid-cols-2">
-          {options.map((option) => {
-            const selected = value === option;
+        {useChoiceCards ? (
+          <div className="relative z-10 grid grid-cols-1 gap-2 sm:grid-cols-2">
+            {options.map((option) => {
+              const selected = value === option;
 
-            return (
-              <button
+              return (
+                <button
+                  key={`${key}-${option}`}
+                  type="button"
+                  onClick={() => onChange(option)}
+                  className={[
+                    "min-h-[46px] rounded-2xl border px-4 py-3 text-left text-sm font-medium transition duration-200",
+                    "hover:-translate-y-0.5 hover:shadow-md active:translate-y-0",
+                    selected
+                      ? darkVariant
+                        ? "border-white bg-white text-neutral-950 shadow-lg"
+                        : "border-neutral-950 bg-neutral-950 text-white shadow-lg"
+                      : darkVariant
+                        ? "border-white/15 bg-white/5 text-white/80 hover:bg-white/10"
+                        : "border-neutral-200 bg-white text-neutral-800 hover:border-neutral-400",
+                  ].join(" ")}
+                >
+                  {option}
+                </button>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="relative z-10 flex flex-wrap gap-4">
+            {options.map((option) => (
+              <label
                 key={`${key}-${option}`}
-                type="button"
-                onClick={() => onChange(option)}
-                className={[
-                  "min-h-[46px] rounded-2xl border px-4 py-3 text-left text-sm font-medium transition",
-                  selected
-                    ? darkVariant
-                      ? "border-white bg-white text-neutral-950"
-                      : "border-neutral-950 bg-neutral-950 text-white"
-                    : darkVariant
-                      ? "border-white/15 bg-white/5 text-white/80 hover:bg-white/10"
-                      : "border-neutral-200 bg-white text-neutral-800 hover:border-neutral-400",
-                ].join(" ")}
+                className={
+                  darkVariant
+                    ? "inline-flex items-center gap-2 text-sm text-white/85"
+                    : "inline-flex items-center gap-2 text-sm text-neutral-800"
+                }
               >
-                {option}
-              </button>
-            );
-          })}
-        </div>
+                <input
+                  type="radio"
+                  name={`${block.id}-${key}`}
+                  checked={value === option}
+                  onChange={() => onChange(option)}
+                />
+                <span>{option}</span>
+              </label>
+            ))}
+          </div>
+        )}
       </div>
     );
   }
@@ -4026,11 +4051,15 @@ bringingGuest ? guestYesValue : guestNoValue,
   }
 
   return (
-    <Surface block={block} designKey={designKey} className={getSoftSurfaceClass(designKey)}>
-      <form
+<Surface
+  block={block}
+  designKey={designKey}
+  className={`${getSoftSurfaceClass(designKey)} h-full overflow-hidden`}
+>
+  <form
         onSubmit={handleSubmit}
         className={[
-          "mx-auto flex w-full max-w-xl flex-col gap-4 rounded-[24px] border p-6 sm:p-8",
+          "mx-auto flex h-full w-full max-w-xl flex-col gap-4 overflow-y-auto rounded-[24px] border p-6 sm:p-8",
           variantClassMap[styleVariant] ?? variantClassMap.standard,
         ].join(" ")}
       >

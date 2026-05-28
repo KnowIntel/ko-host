@@ -720,6 +720,8 @@ export type RsvpBlock = BaseBlock & {
     heading: string;
     styleVariant?: RsvpStyleVariant;
 
+    useChoiceCards?: boolean;
+
     imageUrl?: string;
     imageFrameShape?: RsvpImageFrameShape;
 
@@ -2507,6 +2509,8 @@ confirmationMessage: "We’re excited to celebrate with you.",
 styleVariant: "elegant_wedding",
     imageUrl: "",
       imageFrameShape: "circle",
+
+      useChoiceCards: true,
 
       contactLabel: "Contact Details",
       firstNamePlaceholder: "First Name",
