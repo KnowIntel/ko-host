@@ -760,6 +760,9 @@ export type RsvpBlock = BaseBlock & {
     commentsDisplay?: boolean;
     commentsDefaultValue?: string;
 
+    replyByText?: string;
+    replyByDisplay?: boolean;
+
     submitButtonText?: string;
 
     buttonLayout?: "full" | "compact";
@@ -2559,6 +2562,9 @@ styleVariant: "elegant_wedding",
       commentsPlaceholder: "Additional comments",
       commentsDisplay: true,
       commentsDefaultValue: "",
+      
+      replyByText: "Reply by May 12",
+      replyByDisplay: true,
 
       submitButtonText: "Submit RSVP →",
       buttonLayout: "full",

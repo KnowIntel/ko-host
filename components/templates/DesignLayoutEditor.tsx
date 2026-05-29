@@ -11569,7 +11569,7 @@ selectedContext.kind === "textFx"
       />
       Use premium choice cards
     </label>
-    
+
     <div className="mt-4">
       <div className={inspectorLabelClass()}>Heading</div>
       <input
@@ -11613,6 +11613,53 @@ selectedContext.kind === "textFx"
         className={`${inspectorInputClass()} min-h-[80px] py-2`}
         placeholder="Please let us know if you’ll be joining us."
       />
+    </div>
+
+        <div className="mt-4 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+      <div className={inspectorLabelClass()}>Reply-By Badge</div>
+
+      <label className="mt-3 flex items-center gap-3 text-sm text-neutral-800">
+        <input
+          type="checkbox"
+          checked={selectedBlock.data.replyByDisplay !== false}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "rsvp"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      replyByDisplay: e.target.checked,
+                    },
+                  },
+            )
+          }
+        />
+        Display reply-by badge
+      </label>
+
+      <div className="mt-4">
+        <div className={inspectorLabelClass()}>Badge Text</div>
+        <input
+          type="text"
+          value={selectedBlock.data.replyByText ?? "Reply by May 12"}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "rsvp"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      replyByText: e.target.value,
+                    },
+                  },
+            )
+          }
+          className={inspectorInputClass()}
+        />
+      </div>
     </div>
 
     <div className="mt-4">

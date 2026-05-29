@@ -3424,8 +3424,10 @@ if (!guestOptions.length) {
   const commentsDefaultValue = block.data.commentsDefaultValue || "";
   const showCommentsInForm = commentsDisplay && !hidden.has("comments");
 
-  const helperText =
+const helperText =
   block.data.helperText || "Please let us know if you’ll be joining us.";
+const replyByText = block.data.replyByText || "Reply by May 12";
+const replyByDisplay = block.data.replyByDisplay !== false;
 const confirmationTitle =
   block.data.confirmationTitle || "Thank you — your RSVP has been received.";
 const confirmationMessage =
@@ -3913,6 +3915,18 @@ setGuestCount(guestDefaultValue === guestYesValue ? Math.max(guestMin, 1) : 0);
 {helperText ? (
   <div className={darkVariant ? "text-sm text-white/65" : "text-sm text-neutral-500"}>
     {helperText}
+  </div>
+) : null}
+
+{replyByDisplay && replyByText ? (
+  <div
+    className={
+      darkVariant
+        ? "mx-auto inline-flex rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold text-white/80"
+        : "mx-auto inline-flex rounded-full border border-neutral-200 bg-white px-3 py-1 text-xs font-semibold text-neutral-700"
+    }
+  >
+    {replyByText}
   </div>
 ) : null}
           </div>
