@@ -1386,17 +1386,17 @@ function renderListing(
     ) : null;
 
   const quantityNode = isSelectable ? (
-<div
-  className={[
-    "flex items-center gap-2 text-sm",
-    ((block.data as any).quantityStyle?.align ?? "left") === "center"
-      ? "justify-center"
-      : ((block.data as any).quantityStyle?.align ?? "left") === "right"
-        ? "justify-end"
-        : "justify-start",
-  ].join(" ")}
-  style={getContainerTextStyle((block.data as any).quantityStyle, designKey)}
->
+    <div
+      className={[
+        "flex items-center gap-2 text-sm",
+        ((block.data as any).quantityStyle?.align ?? "left") === "center"
+          ? "justify-center"
+          : ((block.data as any).quantityStyle?.align ?? "left") === "right"
+            ? "justify-end"
+            : "justify-start",
+      ].join(" ")}
+      style={getContainerTextStyle((block.data as any).quantityStyle, designKey)}
+    >
       <span>Qty</span>
 
       <button
@@ -1472,6 +1472,189 @@ function renderListing(
     </>
   );
 
+  const imageNode = (
+    <>
+      {image.url ? (
+        <img
+          src={image.url}
+          alt={image.alt || ""}
+          className="h-full w-full"
+          style={{
+            objectFit: imageObjectFit,
+            objectPosition: "center center",
+            transform: `translate(${translateX}%, ${translateY}%) scale(${zoom}) rotate(${rotation}deg)`,
+            transformOrigin: "center center",
+            opacity: image.opacity ?? 1,
+          }}
+        />
+      ) : (
+        <div
+          className={[
+            "flex h-full w-full items-center justify-center border-dashed text-sm",
+            getPlaceholderClass(designKey),
+          ].join(" ")}
+        >
+          Add image
+        </div>
+      )}
+    </>
+  );
+
+  if (cardVariant === "feature") {
+    const showTitle = (block.data as any).showTitle ?? true;
+    const showPrice = (block.data as any).showPrice ?? true;
+    const showImage = (block.data as any).showImage ?? true;
+    const showBullets = (block.data as any).showBullets ?? true;
+    const showButton = (block.data as any).showButton ?? true;
+
+    const pricePosition = (block.data as any).pricePosition ?? "right";
+    const imageShape = (block.data as any).imageShape ?? "rounded";
+    const bulletStyle = (block.data as any).bulletStyle ?? "dot";
+    const buttonText = (block.data as any).buttonText || "Buy Ticket";
+    const buttonLink = (block.data as any).buttonLink || "";
+    const buttonAlignment = (block.data as any).buttonAlignment ?? "right";
+
+    const featureBullets = Array.isArray((block.data as any).featureBullets)
+      ? (block.data as any).featureBullets.filter(
+          (item: unknown): item is string =>
+            typeof item === "string" && item.trim().length > 0,
+        )
+      : [];
+
+    const featureImageWidth = Math.max(
+      20,
+      Math.min(50, Number((block.data as any).imageWidthPercent) || 35),
+    );
+
+    const bulletMark =
+      bulletStyle === "checkmark"
+        ? "✓"
+        : bulletStyle === "arrow"
+          ? "→"
+          : bulletStyle === "star"
+            ? "★"
+            : bulletStyle === "icon"
+              ? "◆"
+              : "•";
+
+    const imageShapeClass =
+      imageShape === "circle"
+        ? "rounded-full"
+        : imageShape === "ticket"
+          ? "rounded-[22px]"
+          : imageShape === "badge"
+            ? "rounded-full"
+            : imageShape === "rounded"
+              ? "rounded-2xl"
+              : "rounded-none";
+
+    const buttonJustify =
+      buttonAlignment === "center"
+        ? "justify-center"
+        : buttonAlignment === "left"
+          ? "justify-start"
+          : "justify-end";
+
+    const featureButton =
+      showButton && buttonAlignment !== "hidden" ? (
+        <div className={["mt-auto flex", buttonJustify].join(" ")}>
+          {buttonLink ? (
+            <a
+              href={buttonLink}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center justify-center rounded-full bg-neutral-950 px-4 py-2 text-xs font-semibold text-white shadow-sm"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {buttonText}
+            </a>
+          ) : (
+            <button
+              type="button"
+              className="inline-flex items-center justify-center rounded-full bg-neutral-950 px-4 py-2 text-xs font-semibold text-white shadow-sm"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {buttonText}
+            </button>
+          )}
+        </div>
+      ) : null;
+
+    return (
+      <div
+        className="h-full w-full overflow-visible"
+        style={{
+          transform: `scale(${cardScale}) rotate(${cardRotation}deg)`,
+          transformOrigin: "center center",
+        }}
+      >
+        <div
+          className="flex h-full w-full flex-col gap-3 overflow-hidden p-4"
+          style={getAppearanceStyle(block)}
+        >
+          <div
+            className={[
+              "flex gap-3",
+              pricePosition === "belowTitle"
+                ? "flex-col items-start"
+                : "items-start justify-between",
+            ].join(" ")}
+          >
+            <div className="min-w-0">
+              {showTitle ? (
+                <div
+                  className="font-semibold uppercase tracking-[0.04em]"
+                  style={getContainerTextStyle(block.data.titleStyle, designKey)}
+                >
+                  {block.data.title || "Listing Title"}
+                </div>
+              ) : null}
+
+              {showPrice && pricePosition === "belowTitle" ? priceNode : null}
+            </div>
+
+            {showPrice && pricePosition !== "belowTitle" ? (
+              <div className={pricePosition === "left" ? "order-first" : ""}>
+                {priceNode}
+              </div>
+            ) : null}
+          </div>
+
+          <div className="flex min-h-0 flex-1 gap-4">
+            {showImage ? (
+              <div
+                className={[
+                  "relative min-h-[88px] shrink-0 overflow-hidden border border-black/10 bg-black/5",
+                  imageShapeClass,
+                ].join(" ")}
+                style={{
+                  width: `${featureImageWidth}%`,
+                }}
+              >
+                {imageNode}
+              </div>
+            ) : null}
+
+            <div className="flex min-w-0 flex-1 flex-col gap-3">
+              {showBullets ? (
+                <div className="space-y-1.5 text-sm">
+                  {featureBullets.map((item: string, index: number) => (
+                    <div key={`${item}-${index}`} className="flex gap-2">
+                      <span className="shrink-0 opacity-70">{bulletMark}</span>
+                      <span>{item}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+
+              {featureButton}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (cardVariant === "compact") {
     return (
       <div
@@ -1490,31 +1673,14 @@ function renderListing(
           }}
         >
           <div
-  className="relative h-full overflow-hidden"
-  style={{
-    width: `${block.data.imageWidthPercent ?? 35}%`,
-    minWidth: `${block.data.imageWidthPercent ?? 35}%`,
-    flexShrink: 0,
-  }}
->
-            {image.url ? (
-              <img
-                src={image.url}
-                alt={image.alt || ""}
-                className="h-full w-full"
-                style={{
-                  objectFit: imageObjectFit,
-                  objectPosition: "center center",
-                  transform: `translate(${translateX}%, ${translateY}%) scale(${zoom}) rotate(${rotation}deg)`,
-                  transformOrigin: "center center",
-                  opacity: image.opacity ?? 1,
-                }}
-              />
-            ) : (
-              <div className={["flex h-full w-full items-center justify-center border-r border-dashed text-sm", getPlaceholderClass(designKey)].join(" ")}>
-                Add image
-              </div>
-            )}
+            className="relative h-full overflow-hidden"
+            style={{
+              width: `${block.data.imageWidthPercent ?? 35}%`,
+              minWidth: `${block.data.imageWidthPercent ?? 35}%`,
+              flexShrink: 0,
+            }}
+          >
+            {imageNode}
           </div>
 
           <div className="flex min-w-0 flex-1 flex-col gap-2 px-3 pt-3 pb-6">
@@ -1535,25 +1701,11 @@ function renderListing(
     >
       <div className="h-full w-full overflow-hidden" style={getAppearanceStyle(block)}>
         <div className="flex h-full w-full flex-col">
-          <div className="relative w-full overflow-hidden" style={{ height: `${imageHeightPercent}%` }}>
-            {image.url ? (
-              <img
-                src={image.url}
-                alt={image.alt || ""}
-                className="h-full w-full"
-                style={{
-                  objectFit: imageObjectFit,
-                  objectPosition: "center center",
-                  transform: `translate(${translateX}%, ${translateY}%) scale(${zoom}) rotate(${rotation}deg)`,
-                  transformOrigin: "center center",
-                  opacity: image.opacity ?? 1,
-                }}
-              />
-            ) : (
-              <div className={["flex h-full w-full items-center justify-center border-b border-dashed text-sm", getPlaceholderClass(designKey)].join(" ")}>
-                Add image
-              </div>
-            )}
+          <div
+            className="relative w-full overflow-hidden"
+            style={{ height: `${imageHeightPercent}%` }}
+          >
+            {imageNode}
           </div>
 
           <div className="flex min-h-0 flex-1 flex-col gap-2 px-3 pt-3 pb-6">

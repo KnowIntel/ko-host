@@ -20643,31 +20643,6 @@ data: {
     </div>
 
     <div className="mt-4">
-      <div className={inspectorLabelClass()}>Price Position</div>
-
-      <select
-        value={(selectedBlock.data as any).pricePlacement ?? "mid"}
-        onChange={(e) =>
-          updateSelectedBlock((block) =>
-            block.type !== "listing"
-              ? block
-              : {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    pricePlacement: e.target.value as "mid" | "lower",
-                  },
-                },
-          )
-        }
-        className={inspectorInputClass()}
-      >
-        <option value="mid">Mid-level</option>
-        <option value="lower">Lower-level</option>
-      </select>
-    </div>
-
-    <div className="mt-4">
       <div className={inspectorLabelClass()}>Price</div>
       <input
         type="number"
@@ -20718,31 +20693,6 @@ data: {
       />
     </div>
 
-    <div className="mt-4">
-      <div className={inspectorLabelClass()}>Quantity Position</div>
-
-      <select
-        value={(selectedBlock.data as any).quantityPlacement ?? "mid"}
-        onChange={(e) =>
-          updateSelectedBlock((block) =>
-            block.type !== "listing"
-              ? block
-              : {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    quantityPlacement: e.target.value as "mid" | "lower",
-                  },
-                },
-          )
-        }
-        className={inspectorInputClass()}
-      >
-        <option value="mid">Mid-level</option>
-        <option value="lower">Lower-level</option>
-      </select>
-    </div>
-
     <div className="mt-4 space-y-2">
       <label className="text-sm font-medium">Add to cart</label>
       <label className="flex items-center gap-3 rounded-md border border-neutral-200 px-3 py-2">
@@ -20780,7 +20730,10 @@ data: {
                   ...block,
                   data: {
                     ...block.data,
-                    cardVariant: e.target.value as "stacked" | "compact",
+                    cardVariant: e.target.value as
+                      | "stacked"
+                      | "compact"
+                      | "feature",
                   },
                 },
           )
@@ -20789,39 +20742,419 @@ data: {
       >
         <option value="stacked">Stacked</option>
         <option value="compact">Compact</option>
+        <option value="feature">Feature</option>
       </select>
     </div>
 
+    {(selectedBlock.data.cardVariant ?? "stacked") !== "feature" ? (
+      <>
+        <div className="mt-4">
+          <div className={inspectorLabelClass()}>Price Position</div>
+
+          <select
+            value={(selectedBlock.data as any).pricePlacement ?? "mid"}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "listing"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        pricePlacement: e.target.value as "mid" | "lower",
+                      },
+                    },
+              )
+            }
+            className={inspectorInputClass()}
+          >
+            <option value="mid">Mid-level</option>
+            <option value="lower">Lower-level</option>
+          </select>
+        </div>
+
+        <div className="mt-4">
+          <div className={inspectorLabelClass()}>Quantity Position</div>
+
+          <select
+            value={(selectedBlock.data as any).quantityPlacement ?? "mid"}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "listing"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        quantityPlacement: e.target.value as "mid" | "lower",
+                      },
+                    },
+              )
+            }
+            className={inspectorInputClass()}
+          >
+            <option value="mid">Mid-level</option>
+            <option value="lower">Lower-level</option>
+          </select>
+        </div>
+      </>
+    ) : null}
+
+    {(selectedBlock.data.cardVariant ?? "stacked") === "feature" ? (
+      <div className="mt-5 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+        <div className="text-sm font-semibold text-neutral-800">
+          Feature Options
+        </div>
+
+        <div className="mt-4 space-y-2">
+          {[
+            ["showTitle", "Show Title"],
+            ["showPrice", "Show Price"],
+            ["showImage", "Show Image"],
+            ["showBullets", "Show Bullets"],
+            ["showButton", "Show Button"],
+          ].map(([key, label]) => (
+            <label
+              key={key}
+              className="flex items-center gap-3 rounded-md border border-neutral-200 bg-white px-3 py-2"
+            >
+              <input
+                type="checkbox"
+                checked={!!((selectedBlock.data as any)[key] ?? true)}
+                onChange={(e) =>
+                  updateSelectedBlock((block) =>
+                    block.type !== "listing"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            [key]: e.target.checked,
+                          },
+                        },
+                  )
+                }
+                className="h-4 w-4"
+              />
+              <span className="text-sm text-neutral-700">{label}</span>
+            </label>
+          ))}
+        </div>
+
+        <div className="mt-4">
+          <div className={inspectorLabelClass()}>Price Position</div>
+          <select
+            value={(selectedBlock.data as any).pricePosition ?? "right"}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "listing"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        pricePosition: e.target.value as
+                          | "left"
+                          | "right"
+                          | "belowTitle",
+                      },
+                    },
+              )
+            }
+            className={inspectorInputClass()}
+          >
+            <option value="left">Left</option>
+            <option value="right">Right</option>
+            <option value="belowTitle">Below Title</option>
+          </select>
+        </div>
+
+        <div className="mt-4">
+          <div className={inspectorLabelClass()}>Image Shape</div>
+          <select
+            value={(selectedBlock.data as any).imageShape ?? "rounded"}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "listing"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        imageShape: e.target.value as
+                          | "square"
+                          | "rounded"
+                          | "circle"
+                          | "ticket"
+                          | "badge",
+                      },
+                    },
+              )
+            }
+            className={inspectorInputClass()}
+          >
+            <option value="square">Square</option>
+            <option value="rounded">Rounded</option>
+            <option value="circle">Circle</option>
+            <option value="ticket">Ticket</option>
+            <option value="badge">Badge</option>
+          </select>
+        </div>
+
+        <div className="mt-4">
+          <div className="flex items-center justify-between">
+            <div className={inspectorLabelClass()}>Image Width %</div>
+            <div className="text-xs text-neutral-500">
+              {(selectedBlock.data as any).imageWidthPercent ?? 35}%
+            </div>
+          </div>
+
+          <input
+            type="range"
+            min={20}
+            max={50}
+            value={(selectedBlock.data as any).imageWidthPercent ?? 35}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "listing"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        imageWidthPercent: Number(e.target.value),
+                      },
+                    },
+              )
+            }
+            className="mt-2 w-full"
+          />
+        </div>
+
+        <div className="mt-4">
+          <div className={inspectorLabelClass()}>Bullet Style</div>
+          <select
+            value={(selectedBlock.data as any).bulletStyle ?? "dot"}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "listing"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        bulletStyle: e.target.value as
+                          | "dot"
+                          | "checkmark"
+                          | "arrow"
+                          | "star"
+                          | "icon",
+                      },
+                    },
+              )
+            }
+            className={inspectorInputClass()}
+          >
+            <option value="dot">Dot</option>
+            <option value="checkmark">Checkmark</option>
+            <option value="arrow">Arrow</option>
+            <option value="star">Star</option>
+            <option value="icon">Icon</option>
+          </select>
+        </div>
+
+        <div className="mt-4">
+          <div className={inspectorLabelClass()}>Feature Bullets</div>
+
+          <div className="mt-3 space-y-2">
+            {((selectedBlock.data as any).featureBullets ?? []).map(
+              (item: string, index: number) => (
+                <div key={index} className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={item}
+                    onChange={(e) =>
+                      updateSelectedBlock((block) =>
+                        block.type !== "listing"
+                          ? block
+                          : {
+                              ...block,
+                              data: {
+                                ...block.data,
+                                featureBullets: (
+                                  (block.data as any).featureBullets ?? []
+                                ).map((entry: string, entryIndex: number) =>
+                                  entryIndex === index
+                                    ? e.target.value
+                                    : entry,
+                                ),
+                              },
+                            },
+                      )
+                    }
+                    className={inspectorInputClass()}
+                  />
+
+                  <button
+                    type="button"
+                    className={toolSetButtonClass("remove")}
+                    onClick={() =>
+                      updateSelectedBlock((block) =>
+                        block.type !== "listing"
+                          ? block
+                          : {
+                              ...block,
+                              data: {
+                                ...block.data,
+                                featureBullets: (
+                                  (block.data as any).featureBullets ?? []
+                                ).filter(
+                                  (_entry: string, entryIndex: number) =>
+                                    entryIndex !== index,
+                                ),
+                              },
+                            },
+                      )
+                    }
+                  >
+                    ×
+                  </button>
+                </div>
+              ),
+            )}
+
+            <button
+              type="button"
+              className={toolSetButtonClass("front")}
+              onClick={() =>
+                updateSelectedBlock((block) =>
+                  block.type !== "listing"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          featureBullets: [
+                            ...((block.data as any).featureBullets ?? []),
+                            "New feature",
+                          ],
+                        },
+                      },
+                )
+              }
+            >
+              Add Feature Bullet
+            </button>
+          </div>
+        </div>
+
+        <div className="mt-4">
+          <div className={inspectorLabelClass()}>Button Text</div>
+          <input
+            type="text"
+            value={(selectedBlock.data as any).buttonText ?? "Buy Ticket"}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "listing"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        buttonText: e.target.value,
+                      },
+                    },
+              )
+            }
+            className={inspectorInputClass()}
+          />
+        </div>
+
+        <div className="mt-4">
+          <div className={inspectorLabelClass()}>Button Link</div>
+          <input
+            type="text"
+            value={(selectedBlock.data as any).buttonLink ?? ""}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "listing"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        buttonLink: e.target.value,
+                      },
+                    },
+              )
+            }
+            className={inspectorInputClass()}
+            placeholder="https://..."
+          />
+        </div>
+
+        <div className="mt-4">
+          <div className={inspectorLabelClass()}>Button Alignment</div>
+          <select
+            value={(selectedBlock.data as any).buttonAlignment ?? "right"}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "listing"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        buttonAlignment: e.target.value as
+                          | "left"
+                          | "center"
+                          | "right"
+                          | "hidden",
+                      },
+                    },
+              )
+            }
+            className={inspectorInputClass()}
+          >
+            <option value="left">Left</option>
+            <option value="center">Center</option>
+            <option value="right">Right</option>
+            <option value="hidden">Hidden</option>
+          </select>
+        </div>
+      </div>
+    ) : null}
+
     {(selectedBlock.data.cardVariant ?? "stacked") === "stacked" ? (
       <div className="mt-4">
-<div className="flex items-center justify-between">
-  <div className={inspectorLabelClass()}>Image Height %</div>
+        <div className="flex items-center justify-between">
+          <div className={inspectorLabelClass()}>Image Height %</div>
 
-  <div className="text-xs text-neutral-500">
-    {selectedBlock.data.imageHeightPercent ?? 50}%
-  </div>
-</div>
+          <div className="text-xs text-neutral-500">
+            {selectedBlock.data.imageHeightPercent ?? 50}%
+          </div>
+        </div>
 
-<input
-  type="range"
-  min={20}
-  max={80}
-  value={selectedBlock.data.imageHeightPercent ?? 50}
-  onChange={(e) =>
-    updateSelectedBlock((block) =>
-      block.type !== "listing"
-        ? block
-        : {
-            ...block,
-            data: {
-              ...block.data,
-              imageHeightPercent: Number(e.target.value),
-            },
-          },
-    )
-  }
-  className="mt-2 w-full"
-/>
+        <input
+          type="range"
+          min={20}
+          max={80}
+          value={selectedBlock.data.imageHeightPercent ?? 50}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "listing"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      imageHeightPercent: Number(e.target.value),
+                    },
+                  },
+            )
+          }
+          className="mt-2 w-full"
+        />
       </div>
     ) : null}
 

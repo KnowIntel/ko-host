@@ -298,7 +298,7 @@ export type RegistryItem = {
 export type ShapeType = "rectangle" | "circle" | "line";
 export type ImageFitMode = "clip" | "stretch" | "zoom";
 export type ImageFrameType = "square" | "circle" | "diamond" | "heart";
-export type ListingCardVariant = "stacked" | "compact";
+export type ListingCardVariant = "stacked" | "compact" | "feature";
 
 export type ImageFade = {
   top?: boolean;
@@ -990,6 +990,19 @@ export type ListingBlock = BaseBlock & {
     imageWidthPercent?: number;
     rotation?: number;
     scale?: number;
+
+    showTitle?: boolean;
+    showPrice?: boolean;
+    pricePosition?: "left" | "right" | "belowTitle";
+    showImage?: boolean;
+    imageShape?: "square" | "rounded" | "circle" | "ticket" | "badge";
+    featureBullets?: string[];
+    showBullets?: boolean;
+    bulletStyle?: "dot" | "checkmark" | "arrow" | "star" | "icon";
+    showButton?: boolean;
+    buttonText?: string;
+    buttonLink?: string;
+    buttonAlignment?: "left" | "center" | "right" | "hidden";
   };
 };
 
@@ -1727,11 +1740,92 @@ function normalizeListingBlock(block: ListingBlock): ListingBlock {
         ...createDefaultTextStyle(),
         ...(block.data.metadataStyle ?? {}),
       },
-      cardVariant:
-        block.data.cardVariant === "compact" ||
-        block.data.cardVariant === "stacked"
-          ? block.data.cardVariant
-          : "stacked",
+cardVariant:
+  block.data.cardVariant === "compact" ||
+  block.data.cardVariant === "stacked" ||
+  block.data.cardVariant === "feature"
+    ? block.data.cardVariant
+    : "stacked",
+
+showTitle:
+  typeof block.data.showTitle === "boolean"
+    ? block.data.showTitle
+    : true,
+
+showPrice:
+  typeof block.data.showPrice === "boolean"
+    ? block.data.showPrice
+    : true,
+
+pricePosition:
+  block.data.pricePosition === "left" ||
+  block.data.pricePosition === "right" ||
+  block.data.pricePosition === "belowTitle"
+    ? block.data.pricePosition
+    : "right",
+
+showImage:
+  typeof block.data.showImage === "boolean"
+    ? block.data.showImage
+    : true,
+
+imageShape:
+  block.data.imageShape === "square" ||
+  block.data.imageShape === "rounded" ||
+  block.data.imageShape === "circle" ||
+  block.data.imageShape === "ticket" ||
+  block.data.imageShape === "badge"
+    ? block.data.imageShape
+    : "rounded",
+
+featureBullets:
+  Array.isArray(block.data.featureBullets)
+    ? block.data.featureBullets.filter(
+        (item): item is string => typeof item === "string",
+      )
+    : [
+        "Access all attractions",
+        "Live shows included",
+        "Flexible admission",
+        "Mobile-friendly ticket",
+      ],
+
+showBullets:
+  typeof block.data.showBullets === "boolean"
+    ? block.data.showBullets
+    : true,
+
+bulletStyle:
+  block.data.bulletStyle === "checkmark" ||
+  block.data.bulletStyle === "arrow" ||
+  block.data.bulletStyle === "star" ||
+  block.data.bulletStyle === "icon" ||
+  block.data.bulletStyle === "dot"
+    ? block.data.bulletStyle
+    : "dot",
+
+showButton:
+  typeof block.data.showButton === "boolean"
+    ? block.data.showButton
+    : true,
+
+buttonText:
+  typeof block.data.buttonText === "string"
+    ? block.data.buttonText
+    : "Buy Ticket",
+
+buttonLink:
+  typeof block.data.buttonLink === "string"
+    ? block.data.buttonLink
+    : "",
+
+buttonAlignment:
+  block.data.buttonAlignment === "left" ||
+  block.data.buttonAlignment === "center" ||
+  block.data.buttonAlignment === "right" ||
+  block.data.buttonAlignment === "hidden"
+    ? block.data.buttonAlignment
+    : "right",
 imageHeightPercent:
   typeof block.data.imageHeightPercent === "number" &&
   Number.isFinite(block.data.imageHeightPercent)
@@ -2875,12 +2969,34 @@ case "listing":
         fontSize: 14,
       },
 
-      cardVariant: "stacked",
+cardVariant: "stacked",
 
-      imageHeightPercent: 50,
-      imageWidthPercent: 35,
+showTitle: true,
+showPrice: true,
+pricePosition: "right",
 
-      rotation: 0,
+showImage: true,
+imageShape: "rounded",
+
+featureBullets: [
+  "Access all attractions",
+  "Live shows included",
+  "Flexible admission",
+  "Mobile-friendly ticket",
+],
+
+showBullets: true,
+bulletStyle: "dot",
+
+showButton: true,
+buttonText: "Buy Ticket",
+buttonLink: "",
+buttonAlignment: "right",
+
+imageHeightPercent: 50,
+imageWidthPercent: 35,
+
+rotation: 0,
     },
   };
 
