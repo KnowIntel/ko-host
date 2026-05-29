@@ -4068,7 +4068,11 @@ bringingGuest ? guestYesValue : guestNoValue,
 <Surface
   block={block}
   designKey={designKey}
-  className={`${getSoftSurfaceClass(designKey)} h-full overflow-hidden`}
+  className={
+    block.appearance?.backgroundColor === "transparent"
+      ? "h-full overflow-hidden bg-transparent"
+      : `${getSoftSurfaceClass(designKey)} h-full overflow-hidden`
+  }
 >
   <form
         onSubmit={handleSubmit}
