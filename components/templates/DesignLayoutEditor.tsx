@@ -341,6 +341,7 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Shield", type: "icon", iconName: "shield" },
     { kind: "block", label: "Fire", type: "icon", iconName: "fire" },
     { kind: "block", label: "Dog Paw", type: "icon", iconName: "dog-paw" },
+    { kind: "block", label: "Dinosaur Rex", type: "icon", iconName: "dinosaur-rex" },
     { kind: "block", label: "Gable Panel", type: "icon", iconName: "gable-panel" },
     { kind: "block", label: "City", type: "icon", iconName: "city" },
     { kind: "block", label: "Gym Dumbbell", type: "icon", iconName: "gym-dumbbell" },
@@ -365,6 +366,7 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Stock Chart Up", type: "icon", iconName: "stock-chart-up" },
     { kind: "block", label: "Stock Chart Down", type: "icon", iconName: "stock-chart-down" },
     { kind: "block", label: "Party Confetti", type: "icon", iconName: "party-confetti" },
+    { kind: "block", label: "Four Square", type: "icon", iconName: "four-square" },
     { kind: "block", label: "Number Blocks", type: "icon", iconName: "number-blocks" },
     { kind: "block", label: "Megaphone Speaker", type: "icon", iconName: "megaphone-speaker" },
     { kind: "block", label: "Lock Locked", type: "icon", iconName: "lock-locked" },
@@ -409,6 +411,7 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Ban Sign", type: "icon", iconName: "ban-sign" },
     { kind: "block", label: "Wrong Files", type: "icon", iconName: "wrong-files" },
     { kind: "block", label: "Settings Gears", type: "icon", iconName: "settings-gears" },
+    { kind: "block", label: "Mining Dig", type: "icon", iconName: "mining-dig" },
     { kind: "block", label: "Dollar Sign", type: "icon", iconName: "dollar-sign" },
     { kind: "block", label: "Check", type: "icon", iconName: "check" },
     { kind: "block", label: "Check Circle", type: "icon", iconName: "check-circle" },
@@ -418,8 +421,10 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Envelope", type: "icon", iconName: "envelope" },
     { kind: "block", label: "Person", type: "icon", iconName: "person" },
     { kind: "block", label: "People", type: "icon", iconName: "people" },
+    { kind: "block", label: "People Group", type: "icon", iconName: "people-group" },
     { kind: "block", label: "Camera", type: "icon", iconName: "camera" },
     { kind: "block", label: "Calendar", type: "icon", iconName: "calendar" },
+    { kind: "block", label: "Calendar Full", type: "icon", iconName: "calendar-full" },
     { kind: "block", label: "Transmission Manual", type: "icon", iconName: "transmission-manual" },
     { kind: "block", label: "Transmission Automatic", type: "icon", iconName: "transmission-automatic" },
     { kind: "block", label: "Tire", type: "icon", iconName: "tire" },
@@ -447,12 +452,15 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Location Pin", type: "icon", iconName: "location-pin" },
     { kind: "block", label: "Location Pin Outline", type: "icon", iconName: "location-pin-outline" },
     { kind: "block", label: "Location Pin Alt", type: "icon", iconName: "location-pin-alt" },
+    { kind: "block", label: "Video Camera", type: "icon", iconName: "video-camera" },
+    { kind: "block", label: "Training Presentation", type: "icon", iconName: "training-presentation" },
     { kind: "block", label: "Clock", type: "icon", iconName: "clock" },
     { kind: "block", label: "Jagged Line", type: "icon", iconName: "jagged-line" },
     { kind: "block", label: "Phone", type: "icon", iconName: "phone" },
     { kind: "block", label: "Shopping Cart", type: "icon", iconName: "shopping-cart" },
     { kind: "block", label: "Open Quote", type: "icon", iconName: "open-quote" },
     { kind: "block", label: "Close Quote", type: "icon", iconName: "close-quote" },
+    { kind: "block", label: "VIP Lanyard", type: "icon", iconName: "vip-lanyard" },
     { kind: "block", label: "Photo Placeholder", type: "icon", iconName: "photo-placeholder" },
   ],
   Layout: [
@@ -1145,6 +1153,14 @@ function getToolGlyph(label: string) {
   if (label === "Subtract Minus") return "➖";
   if (label === "Shopping Cart") return "🛒";
   if (label === "Scheduling") return "🗓";
+  if (label === "VIP Lanyard") return "🎟️";
+  if (label === "Video Camera") return "🎥";
+  if (label === "Training Presentation") return "📊";
+  if (label === "People Group") return "👥";
+  if (label === "Mining Dig") return "⛏️";
+  if (label === "Four Square") return "⊞";
+  if (label === "Dinosaur Rex") return "🦖";
+  if (label === "Calendar Full") return "📅";
   if (label === "Title") return "TT";
   if (label === "Subtitle") return "ST";
   if (label === "Tagline") return "TL";
