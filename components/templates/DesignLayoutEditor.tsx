@@ -332,6 +332,10 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Arrow Rotate", type: "icon", iconName: "arrow-rotate" },
     { kind: "block", label: "Chevron Left", type: "icon", iconName: "chevron-left" },
     { kind: "block", label: "Chevron Right", type: "icon", iconName: "chevron-right" },
+    { kind: "block", label: "Add Plus", type: "icon", iconName: "add-plus" },
+    { kind: "block", label: "Subtract Minus", type: "icon", iconName: "subtract-minus" },
+    { kind: "block", label: "Information Circle", type: "icon", iconName: "information-circle" },
+    { kind: "block", label: "Exclamation Round", type: "icon", iconName: "exclamation-round" },
     { kind: "block", label: "Solid Play Triangle", type: "icon", iconName: "solid-play-triangle" },
     { kind: "block", label: "Paper Airplane", type: "icon", iconName: "paper-airplane" },
     { kind: "block", label: "Shield", type: "icon", iconName: "shield" },
@@ -356,6 +360,7 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Trees", type: "icon", iconName: "trees" },
     { kind: "block", label: "Dinner Cap", type: "icon", iconName: "dinner-cap" },
     { kind: "block", label: "Formal Shirt", type: "icon", iconName: "formal-shirt" },
+    { kind: "block", label: "Formal Dress", type: "icon", iconName: "formal-dress" },
     { kind: "block", label: "Hanger", type: "icon", iconName: "hanger" },
     { kind: "block", label: "Stock Chart Up", type: "icon", iconName: "stock-chart-up" },
     { kind: "block", label: "Stock Chart Down", type: "icon", iconName: "stock-chart-down" },
@@ -417,10 +422,10 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Calendar", type: "icon", iconName: "calendar" },
     { kind: "block", label: "Transmission Manual", type: "icon", iconName: "transmission-manual" },
     { kind: "block", label: "Transmission Automatic", type: "icon", iconName: "transmission-automatic" },
-    { kind: "block", label: "Speedometer", type: "icon", iconName: "speedometer" },
     { kind: "block", label: "Tire", type: "icon", iconName: "tire" },
     { kind: "block", label: "Seat", type: "icon", iconName: "seat" },
     { kind: "block", label: "Odometer", type: "icon", iconName: "odometer" },
+    { kind: "block", label: "Speedometer", type: "icon", iconName: "speedometer" },
     { kind: "block", label: "Message", type: "icon", iconName: "message" },
     { kind: "block", label: "Keys", type: "icon", iconName: "keys" },
     { kind: "block", label: "Key", type: "icon", iconName: "key" },
@@ -440,9 +445,12 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Globe Earth", type: "icon", iconName: "globe-earth" },
     { kind: "block", label: "Message Thread", type: "icon", iconName: "message-thread" },
     { kind: "block", label: "Location Pin", type: "icon", iconName: "location-pin" },
+    { kind: "block", label: "Location Pin Outline", type: "icon", iconName: "location-pin-outline" },
+    { kind: "block", label: "Location Pin Alt", type: "icon", iconName: "location-pin-alt" },
     { kind: "block", label: "Clock", type: "icon", iconName: "clock" },
     { kind: "block", label: "Jagged Line", type: "icon", iconName: "jagged-line" },
     { kind: "block", label: "Phone", type: "icon", iconName: "phone" },
+    { kind: "block", label: "Shopping Cart", type: "icon", iconName: "shopping-cart" },
     { kind: "block", label: "Open Quote", type: "icon", iconName: "open-quote" },
     { kind: "block", label: "Close Quote", type: "icon", iconName: "close-quote" },
     { kind: "block", label: "Photo Placeholder", type: "icon", iconName: "photo-placeholder" },
@@ -1128,6 +1136,14 @@ function getToolGlyph(label: string) {
   if (label === "Interactive") return "💬";
   if (label === "Utilities") return "⚙";
   if (label === "Data & Metrics") return "📊";
+  if (label === "Add Plus") return "➕";
+  if (label === "Exclamation Round") return "❗";
+  if (label === "Formal Dress") return "👗";
+  if (label === "Information Circle") return "ℹ️";
+  if (label === "Location Pin Alt") return "📍";
+  if (label === "Location Pin Outline") return "📌";
+  if (label === "Subtract Minus") return "➖";
+  if (label === "Shopping Cart") return "🛒";
   if (label === "Scheduling") return "🗓";
   if (label === "Title") return "TT";
   if (label === "Subtitle") return "ST";
