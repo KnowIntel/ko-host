@@ -7,6 +7,6 @@ export default createLayoutPreset({
   description: "Bright energetic party design",
   thumbnail: "/designs/design-cards/design-card_birthday_playful.webp",
 
-  recommended: true,
+  recommended: false,
 
 });
