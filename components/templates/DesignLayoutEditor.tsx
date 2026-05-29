@@ -357,7 +357,8 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Circle Target", type: "icon", iconName: "circle-target" },
     { kind: "block", label: "Wellness Recovery", type: "icon", iconName: "wellness-recovery" },
     { kind: "block", label: "Nutrition", type: "icon", iconName: "nutrition" },
-    { kind: "block", label: "Mobility", type: "icon", iconName: "mobility" },
+    // { kind: "block", label: "Mobility", type: "icon", iconName: "mobility" },
+    { kind: "block", label: "Balloon", type: "icon", iconName: "balloon" },
     { kind: "block", label: "Trees", type: "icon", iconName: "trees" },
     { kind: "block", label: "Dinner Cap", type: "icon", iconName: "dinner-cap" },
     { kind: "block", label: "Formal Shirt", type: "icon", iconName: "formal-shirt" },
@@ -1177,6 +1178,7 @@ function getToolGlyph(label: string) {
   if (label === "Square Outline") return "⬜";
   if (label === "Dog Paw") return "🐾";
   if (label === "City") return "🏙";
+  if (label === "Balloon") return "🎈";
   if (label === "Gym Dumbbell") return "🏋️";
   if (label === "Download") return "⬇️";
   if (label === "External Link") return "↗";
