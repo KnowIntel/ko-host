@@ -60,7 +60,7 @@ const draftPageCountByTemplateDesignKey: Record<string, number> = {
 
   "birthday_party:grown": 2,
   "birthday_party:playful": 1,
-  "birthday_party:golden": 3,
+  "birthday_party:golden": 4,
 
   "baby_shower:elegant": 1,
   "baby_shower:playful": 3,
@@ -114,6 +114,9 @@ const draftPageCountByTemplateDesignKey: Record<string, number> = {
   "guided_tutorial:fabulous": 3,
 
   "election_campaign:city": 3,
+
+  "live_entertainment:adventure": 1,
+
 
 };
 
