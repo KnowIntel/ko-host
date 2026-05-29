@@ -345,6 +345,7 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "House", type: "icon", iconName: "house" },
     { kind: "block", label: "Star", type: "icon", iconName: "star" },
     { kind: "block", label: "Heart", type: "icon", iconName: "heart" },
+    { kind: "block", label: "Heart Outline", type: "icon", iconName: "heart-outline" },
     { kind: "block", label: "Wellness Recovery", type: "icon", iconName: "wellness-recovery" },
     { kind: "block", label: "Nutrition", type: "icon", iconName: "nutrition" },
     { kind: "block", label: "Mobility", type: "icon", iconName: "mobility" },
@@ -356,12 +357,27 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Megaphone Speaker", type: "icon", iconName: "megaphone-speaker" },
     { kind: "block", label: "Lock Locked", type: "icon", iconName: "lock-locked" },
     { kind: "block", label: "Lock Unlock", type: "icon", iconName: "lock_unlock" },
-    { kind: "block", label: "Heart Outline", type: "icon", iconName: "heart-outline" },
     { kind: "block", label: "Gift Box", type: "icon", iconName: "gift-box" },
     { kind: "block", label: "Folder Hierarchy", type: "icon", iconName: "folder-hierarchy" },
     { kind: "block", label: "Export Share", type: "icon", iconName: "export-share" },
     { kind: "block", label: "Download Folder", type: "icon", iconName: "download-folder" },
     { kind: "block", label: "Dollar Sign", type: "icon", iconName: "dollar-sign" },
+    { kind: "block", label: "Eye Glasses", type: "icon", iconName: "eye-glasses" },
+    { kind: "block", label: "Flag", type: "icon", iconName: "flag" },
+    { kind: "block", label: "Fork Knife Plate", type: "icon", iconName: "fork-knife-plate" },
+    { kind: "block", label: "Glass Drink", type: "icon", iconName: "glass-drink" },
+    { kind: "block", label: "Headphones", type: "icon", iconName: "headphones" },
+    { kind: "block", label: "Help Assistant", type: "icon", iconName: "help-assistant" },
+    { kind: "block", label: "Champagne Flutes", type: "icon", iconName: "champagne-flutes" },
+    { kind: "block", label: "Birthday Cake", type: "icon", iconName: "birthday-cake" },
+    { kind: "block", label: "Baby", type: "icon", iconName: "baby" },
+    { kind: "block", label: "Music Note Treble Clef", type: "icon", iconName: "music-note-treble-clef" },
+    { kind: "block", label: "Music Note", type: "icon", iconName: "music-note" },
+    { kind: "block", label: "Notebook Pen", type: "icon", iconName: "notebook-pen" },
+    { kind: "block", label: "Pause Circle", type: "icon", iconName: "pause-circle" },
+    { kind: "block", label: "Pin Tac", type: "icon", iconName: "pin-tac" },
+    { kind: "block", label: "Power On", type: "icon", iconName: "power-on" },
+    { kind: "block", label: "Service Tower Signal", type: "icon", iconName: "service-tower-signal" },
     { kind: "block", label: "Credit Card", type: "icon", iconName: "credit-card" },
     { kind: "block", label: "Card Spade", type: "icon", iconName: "card-spade" },
     { kind: "block", label: "Card Heart", type: "icon", iconName: "card-heart" },
@@ -380,6 +396,7 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Wrong Files", type: "icon", iconName: "wrong-files" },
     { kind: "block", label: "Settings Gears", type: "icon", iconName: "settings-gears" },
     { kind: "block", label: "Check", type: "icon", iconName: "check" },
+    { kind: "block", label: "Dollar Sign", type: "icon", iconName: "dollar-sign" },
     { kind: "block", label: "Check Circle", type: "icon", iconName: "check-circle" },
     { kind: "block", label: "Check Shield", type: "icon", iconName: "check-shield" },
     { kind: "block", label: "Open Door", type: "icon", iconName: "open-door" },
@@ -1128,6 +1145,22 @@ function getToolGlyph(label: string) {
   if (label === "Star") return "⭐";
   if (label === "Heart") return "❤";
   if (label === "Trees") return "🌲";
+  if (label === "Eye Glasses") return "👓";
+  if (label === "Flag") return "🚩";
+  if (label === "Fork Knife Plate") return "🍽";
+  if (label === "Glass Drink") return "🥤";
+  if (label === "Headphones") return "🎧";
+  if (label === "Help Assistant") return "🤖";
+  if (label === "Champagne Flutes") return "🥂";
+  if (label === "Birthday Cake") return "🎂";
+  if (label === "Baby") return "👶";
+  if (label === "Music Note Treble Clef") return "𝄞";
+  if (label === "Music Note") return "🎵";
+  if (label === "Notebook Pen") return "📝";
+  if (label === "Pause Circle") return "⏸";
+  if (label === "Pin Tac") return "📍";
+  if (label === "Power On") return "⏻";
+  if (label === "Service Tower Signal") return "📡";
   if (label === "Stock Chart Up") return "📈";
   if (label === "Stock Chart Down") return "📉";
   if (label === "Party Confetti") return "🎉";
