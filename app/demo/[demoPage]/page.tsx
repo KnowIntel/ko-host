@@ -184,37 +184,37 @@ const DEMO_PAGES: Record<
       "You opened the trailer page. Normally this could preview a course, introduce a program, showcase highlights, or dramatically convince visitors their life is about to change after pressing play.",
   },
 
-  "live-event-about": {
+  "live-entertainment-about": {
     title: "Demo About",
-    eyebrow: "Live Event Demo",
+    eyebrow: "Live Entertainment Demo",
     message:
       "You opened the about page. In a real event microsite, this could share event details, featured attractions, guest appearances, venue information, and several convincing reasons why visitors should clear their calendar.",
   },
 
-  "live-event-schedule": {
+  "live-entertainment-schedule": {
     title: "Demo Schedule",
-    eyebrow: "Live Event Demo",
+    eyebrow: "Live Entertainment Demo",
     message:
       "You clicked the schedule page. Normally this could display event times, performances, speakers, activities, opening ceremonies, and the exact moment everyone realizes they should have arrived earlier.",
   },
 
-  "live-event-contact": {
+  "live-entertainment-contact": {
     title: "Demo Contact",
-    eyebrow: "Live Event Demo",
+    eyebrow: "Live Entertainment Demo",
     message:
       "You opened the contact page. In a real microsite, this could provide organizer information, support details, venue assistance, FAQs, or a way to ask questions that were probably already answered on the schedule page.",
   },
 
-  "live-event-get-tickets": {
+  "live-entertainment-get-tickets": {
     title: "Demo Get Tickets",
-    eyebrow: "Live Event Demo",
+    eyebrow: "Live Entertainment Demo",
     message:
       "You clicked the ticket page. Normally this could offer admission options, VIP packages, early access passes, group discounts, and a countdown reminding everyone that prices never seem to go down.",
   },
 
-  "live-event-explore-more": {
+  "live-entertainment-explore-more": {
     title: "Demo Explore More",
-    eyebrow: "Live Event Demo",
+    eyebrow: "Live Entertainment Demo",
     message:
       "You opened the explore more page. In a real event microsite, this could highlight attractions, vendors, activities, sponsors, special exhibits, and all the extra reasons visitors end up staying longer than planned.",
   },
