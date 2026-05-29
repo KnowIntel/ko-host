@@ -244,7 +244,7 @@ export default async function DemoPage({
         </div>
       </header>
 
-      <section className="mx-auto flex min-h-[70vh] max-w-3xl flex-col items-center justify-center px-6 py-20 text-center">
+      <section className="mx-auto flex min-h-[calc(100vh-160px)] max-w-3xl flex-col items-center justify-center px-6 pb-20 pt-32 text-center">
         <div className="mb-3 text-xs font-black uppercase tracking-[0.28em] text-blue-300">
           {page.eyebrow}
         </div>
