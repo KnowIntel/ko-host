@@ -10355,7 +10355,7 @@ if (selectedBlock?.type === "rsvp") {
   }}
   title={
     selectedBlock?.type === "rsvp"
-      ? "Transparent RSVP element background"
+      ? "Transparent RSVP block background"
       : "Transparent fill"
   }
 >
