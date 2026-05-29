@@ -4074,7 +4074,7 @@ bringingGuest ? guestYesValue : guestNoValue,
         onSubmit={handleSubmit}
 className={[
   "mx-auto flex h-full w-full max-w-xl flex-col gap-4 overflow-y-auto rounded-[24px] border p-6 sm:p-8",
-  block.appearance.backgroundColor === "transparent"
+  block.appearance?.backgroundColor === "transparent"
     ? "border-transparent bg-transparent shadow-none"
     : variantClassMap[styleVariant] ?? variantClassMap.standard,
 ].join(" ")}
