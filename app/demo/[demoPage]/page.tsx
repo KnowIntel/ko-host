@@ -231,7 +231,7 @@ export default async function DemoPage({
   if (!page) notFound();
 
   return (
-    <main className="min-h-screen bg-neutral-950 pt-24 text-white">
+    <main className="min-h-screen bg-neutral-950 pt-12 text-white">
       <header className="border-b border-white/10 bg-black/40 px-6 py-5">
         <div className="mx-auto flex max-w-5xl items-center justify-between">
           <Link href="/" className="text-xl font-bold tracking-tight">
