@@ -329,13 +329,13 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Arrow Down Thin", type: "icon", iconName: "arrow-down-thin" },
     { kind: "block", label: "Arrow Left Thin", type: "icon", iconName: "arrow-left-thin" },
     { kind: "block", label: "Arrow Right Thin", type: "icon", iconName: "arrow-right-thin" },
+    { kind: "block", label: "Arrow Rotate", type: "icon", iconName: "arrow-rotate" },
     { kind: "block", label: "Chevron Left", type: "icon", iconName: "chevron-left" },
     { kind: "block", label: "Chevron Right", type: "icon", iconName: "chevron-right" },
     { kind: "block", label: "Solid Play Triangle", type: "icon", iconName: "solid-play-triangle" },
     { kind: "block", label: "Paper Airplane", type: "icon", iconName: "paper-airplane" },
     { kind: "block", label: "Shield", type: "icon", iconName: "shield" },
     { kind: "block", label: "Fire", type: "icon", iconName: "fire" },
-    { kind: "block", label: "Square Outline", type: "icon", iconName: "square-outline" },
     { kind: "block", label: "Dog Paw", type: "icon", iconName: "dog-paw" },
     { kind: "block", label: "Gable Panel", type: "icon", iconName: "gable-panel" },
     { kind: "block", label: "City", type: "icon", iconName: "city" },
@@ -346,10 +346,17 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Star", type: "icon", iconName: "star" },
     { kind: "block", label: "Heart", type: "icon", iconName: "heart" },
     { kind: "block", label: "Heart Outline", type: "icon", iconName: "heart-outline" },
+    { kind: "block", label: "Square Outline", type: "icon", iconName: "square-outline" },
+    { kind: "block", label: "Circle", type: "icon", iconName: "circle" },
+    { kind: "block", label: "Open Circle", type: "icon", iconName: "open-circle" },
+    { kind: "block", label: "Circle Target", type: "icon", iconName: "circle-target" },
     { kind: "block", label: "Wellness Recovery", type: "icon", iconName: "wellness-recovery" },
     { kind: "block", label: "Nutrition", type: "icon", iconName: "nutrition" },
     { kind: "block", label: "Mobility", type: "icon", iconName: "mobility" },
     { kind: "block", label: "Trees", type: "icon", iconName: "trees" },
+    { kind: "block", label: "Dinner Cap", type: "icon", iconName: "dinner-cap" },
+    { kind: "block", label: "Formal Shirt", type: "icon", iconName: "formal-shirt" },
+    { kind: "block", label: "Hanger", type: "icon", iconName: "hanger" },
     { kind: "block", label: "Stock Chart Up", type: "icon", iconName: "stock-chart-up" },
     { kind: "block", label: "Stock Chart Down", type: "icon", iconName: "stock-chart-down" },
     { kind: "block", label: "Party Confetti", type: "icon", iconName: "party-confetti" },
@@ -378,6 +385,7 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Pin Tac", type: "icon", iconName: "pin-tac" },
     { kind: "block", label: "Power On", type: "icon", iconName: "power-on" },
     { kind: "block", label: "Service Tower Signal", type: "icon", iconName: "service-tower-signal" },
+    { kind: "block", label: "Trophy", type: "icon", iconName: "trophy" },
     { kind: "block", label: "Credit Card", type: "icon", iconName: "credit-card" },
     { kind: "block", label: "Card Spade", type: "icon", iconName: "card-spade" },
     { kind: "block", label: "Card Heart", type: "icon", iconName: "card-heart" },
@@ -393,15 +401,15 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Hour Glass Full", type: "icon", iconName: "hour-glass-full" },
     { kind: "block", label: "Hour Glass Half", type: "icon", iconName: "hour-glass-half" },
     { kind: "block", label: "Cross Cancel", type: "icon", iconName: "cross-cancel" },
+    { kind: "block", label: "Ban Sign", type: "icon", iconName: "ban-sign" },
     { kind: "block", label: "Wrong Files", type: "icon", iconName: "wrong-files" },
     { kind: "block", label: "Settings Gears", type: "icon", iconName: "settings-gears" },
-    { kind: "block", label: "Check", type: "icon", iconName: "check" },
     { kind: "block", label: "Dollar Sign", type: "icon", iconName: "dollar-sign" },
+    { kind: "block", label: "Check", type: "icon", iconName: "check" },
     { kind: "block", label: "Check Circle", type: "icon", iconName: "check-circle" },
+    { kind: "block", label: "Check Circle Solid", type: "icon", iconName: "check-circle-solid" },
     { kind: "block", label: "Check Shield", type: "icon", iconName: "check-shield" },
     { kind: "block", label: "Open Door", type: "icon", iconName: "open-door" },
-    { kind: "block", label: "Circle", type: "icon", iconName: "circle" },
-    { kind: "block", label: "Trophy", type: "icon", iconName: "trophy" },
     { kind: "block", label: "Envelope", type: "icon", iconName: "envelope" },
     { kind: "block", label: "Person", type: "icon", iconName: "person" },
     { kind: "block", label: "People", type: "icon", iconName: "people" },
@@ -420,7 +428,6 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Electric Power", type: "icon", iconName: "electric-power" },
     { kind: "block", label: "Dummy", type: "icon", iconName: "dummy" },
     { kind: "block", label: "Drive Type", type: "icon", iconName: "drive-type" },
-    { kind: "block", label: "Check Circle Solid", type: "icon", iconName: "check-circle-solid" },
     { kind: "block", label: "Car Side", type: "icon", iconName: "car-side" },
     { kind: "block", label: "Car Fuel", type: "icon", iconName: "car-fuel" },
     { kind: "block", label: "Car Front", type: "icon", iconName: "car-front" },
@@ -1158,6 +1165,13 @@ function getToolGlyph(label: string) {
   if (label === "Music Note") return "🎵";
   if (label === "Notebook Pen") return "📝";
   if (label === "Pause Circle") return "⏸";
+  if (label === "Arrow Rotate") return "↻";
+  if (label === "Ban Sign") return "🚫";
+  if (label === "Circle Target") return "🎯";
+  if (label === "Dinner Cap") return "🎓";
+  if (label === "Open Circle") return "◯";
+  if (label === "Formal Shirt") return "👔";
+  if (label === "Hanger") return "👕";
   if (label === "Pin Tac") return "📍";
   if (label === "Power On") return "⏻";
   if (label === "Service Tower Signal") return "📡";
