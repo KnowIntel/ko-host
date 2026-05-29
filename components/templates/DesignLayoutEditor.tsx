@@ -9292,42 +9292,6 @@ const idsToExpand =
   </>
 ) : null}
 
-// top toolbar rsvp text target
-      {selectedBlock?.type === "rsvp" ? (
-  <div className="flex items-center gap-2">
-    <div className="text-xs font-medium text-neutral-600">RSVP Element</div>
-    <select
-      value={selectedRsvpElementKey}
-      onChange={(e) =>
-        setSelectedRsvpElementKey(
-          e.target.value as
-            | "form"
-            | "image"
-            | "heading"
-            | "nameLabel"
-            | "firstName"
-            | "lastName"
-            | "email"
-            | "address"
-            | "attending"
-            | "meal"
-            | "guestToggle"
-            | "guestCount"
-            | "guestName"
-            | "comments",
-        )
-      }
-      className="h-9 rounded-xl border border-neutral-200 bg-white px-3 text-sm text-neutral-900"
-    >
-      {rsvpElementOptions.map((option) => (
-        <option key={option.value} value={option.value}>
-          {option.label}
-        </option>
-      ))}
-    </select>
-  </div>
-) : null}
-
 
       {showTextControls ? (
         <>
@@ -10368,10 +10332,7 @@ const idsToExpand =
     }
 
 if (selectedBlock?.type === "rsvp") {
-  updateSelectedRsvpElementStyle((current) => ({
-    ...current,
-    backgroundColor: "transparent",
-  }));
+  applyAppearancePatch({ backgroundColor: "transparent" });
   return;
 }
 
