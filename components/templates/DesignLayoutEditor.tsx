@@ -23618,7 +23618,13 @@ data: {
 </div>
 
 {categoryMenuView === "compact" ? (
-  <div className="flex max-w-[400px] flex-wrap gap-2">
+  <div
+  className={
+    category === "Icons"
+      ? "flex max-h-[260px] max-w-[400px] flex-wrap gap-2 overflow-y-auto pr-1"
+      : "flex max-w-[400px] flex-wrap gap-2"
+  }
+>
     {CATEGORY_BUTTONS[category].map((tool, index) => (
       <button
         key={`${category}-${tool.kind}-${tool.type}-${index}`}
