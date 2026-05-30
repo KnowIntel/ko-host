@@ -20566,6 +20566,34 @@ data: {
   <div className={inspectorCardClass()}>
     <div className={inspectorLabelClass()}>Listing</div>
 
+        <div className="mt-4">
+      <div className={inspectorLabelClass()}>Card Variant</div>
+      <select
+        value={selectedBlock.data.cardVariant ?? "stacked"}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "listing"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    cardVariant: e.target.value as
+                      | "stacked"
+                      | "compact"
+                      | "feature",
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      >
+        <option value="stacked">Stacked</option>
+        <option value="compact">Compact</option>
+        <option value="feature">Feature</option>
+      </select>
+    </div>
+
     <div className="mt-4">
       <div className={inspectorLabelClass()}>Text Target</div>
 
@@ -20716,34 +20744,6 @@ data: {
         />
         <span className="text-sm text-neutral-700">Include in Cart</span>
       </label>
-    </div>
-
-    <div className="mt-4">
-      <div className={inspectorLabelClass()}>Card Variant</div>
-      <select
-        value={selectedBlock.data.cardVariant ?? "stacked"}
-        onChange={(e) =>
-          updateSelectedBlock((block) =>
-            block.type !== "listing"
-              ? block
-              : {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    cardVariant: e.target.value as
-                      | "stacked"
-                      | "compact"
-                      | "feature",
-                  },
-                },
-          )
-        }
-        className={inspectorInputClass()}
-      >
-        <option value="stacked">Stacked</option>
-        <option value="compact">Compact</option>
-        <option value="feature">Feature</option>
-      </select>
     </div>
 
     {(selectedBlock.data.cardVariant ?? "stacked") !== "feature" ? (
@@ -21251,8 +21251,9 @@ data: {
       </div>
     </div>
 
-    <div className="mt-5">
-      <div className={inspectorLabelClass()}>Metadata</div>
+{(selectedBlock.data.cardVariant ?? "stacked") !== "feature" ? (
+  <div className="mt-5">
+    <div className={inspectorLabelClass()}>Metadata</div>
 
       <div className="mt-3 space-y-3">
         {selectedBlock.data.metadata.map((item) => (
@@ -21365,7 +21366,8 @@ data: {
         </button>
       </div>
     </div>
-  </div>
+  ) : null}
+</div>
 ) : null}
 
                 {selectedBlock?.type === "image" ? (
