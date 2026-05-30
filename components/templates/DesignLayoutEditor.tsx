@@ -20566,6 +20566,31 @@ data: {
   <div className={inspectorCardClass()}>
     <div className={inspectorLabelClass()}>Listing</div>
 
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Text Target</div>
+
+      <select
+        value={listingStyleTarget}
+        onChange={(e) =>
+          setListingStyleTarget(
+            e.target.value as
+              | "title"
+              | "description"
+              | "metadata"
+              | "price"
+              | "quantity",
+          )
+        }
+        className={inspectorInputClass()}
+      >
+        <option value="title">Title</option>
+        <option value="description">Description</option>
+        <option value="metadata">Metadata</option>
+        <option value="price">Price</option>
+        <option value="quantity">Quantity</option>
+      </select>
+    </div>
+
         <div className="mt-4">
       <div className={inspectorLabelClass()}>Card Variant</div>
       <select
@@ -20591,31 +20616,6 @@ data: {
         <option value="stacked">Stacked</option>
         <option value="compact">Compact</option>
         <option value="feature">Feature</option>
-      </select>
-    </div>
-
-    <div className="mt-4">
-      <div className={inspectorLabelClass()}>Text Target</div>
-
-      <select
-        value={listingStyleTarget}
-        onChange={(e) =>
-          setListingStyleTarget(
-            e.target.value as
-              | "title"
-              | "description"
-              | "metadata"
-              | "price"
-              | "quantity",
-          )
-        }
-        className={inspectorInputClass()}
-      >
-        <option value="title">Title</option>
-        <option value="description">Description</option>
-        <option value="metadata">Metadata</option>
-        <option value="price">Price</option>
-        <option value="quantity">Quantity</option>
       </select>
     </div>
 
