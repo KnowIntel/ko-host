@@ -7735,6 +7735,35 @@ function renderDonation(
   const [customAmountOpen, setCustomAmountOpen] = useState(false);
   const [customAmountValue, setCustomAmountValue] = useState("");
 
+  const buttonStyle = (block.data as any).buttonStyle ?? {};
+  const showCustomAmount = (block.data as any).allowCustomAmount !== false;
+  const customAmountLabel =
+    (block.data as any).customAmountLabel || "Custom Amount";
+
+  const buttonBaseStyle = {
+    marginLeft: `${Math.max(0, Number(block.data.buttonSpacing ?? 8)) / 2}px`,
+    marginRight: `${Math.max(0, Number(block.data.buttonSpacing ?? 8)) / 2}px`,
+    backgroundColor:
+      buttonStyle.backgroundColor ??
+      (isLightDesign(designKey) ? "#171717" : "#ffffff"),
+    color:
+      buttonStyle.color ?? (isLightDesign(designKey) ? "#ffffff" : "#171717"),
+    fontFamily: buttonStyle.fontFamily ?? block.data.style?.fontFamily,
+    fontSize:
+      typeof buttonStyle.fontSize === "number"
+        ? `${buttonStyle.fontSize}px`
+        : undefined,
+    fontWeight: buttonStyle.bold ? 700 : 600,
+    fontStyle: buttonStyle.italic ? "italic" : undefined,
+    textDecoration:
+      [
+        buttonStyle.underline ? "underline" : "",
+        buttonStyle.strike ? "line-through" : "",
+      ]
+        .filter(Boolean)
+        .join(" ") || undefined,
+  };
+
   async function handleDonationCheckout(amount: number, optionLabel?: string) {
     if (!micrositeId) {
       setDonationError(
@@ -7777,106 +7806,7 @@ function renderDonation(
     }
   }
 
-return (
-  <>
-    <Surface
-      block={block}
-      designKey={designKey}
-      className=""
-    >
-    <div
-      className="text-base font-semibold"
-      style={getContainerTextStyle(block.data.style, designKey)}
-    >
-      {block.data.heading || "Support This Cause"}
-    </div>
-
-    {block.data.description ? (
-      <div
-        className="mt-2 text-sm"
-        style={getContainerTextStyle(block.data.style, designKey)}
-      >
-        {block.data.description}
-      </div>
-    ) : null}
-
-    {isConfigured ? (
-<div
-  className="mt-4 flex flex-row flex-wrap items-center"
-  style={{
-    marginLeft: `-${Math.max(0, Number(block.data.buttonSpacing ?? 8)) / 2}px`,
-    marginRight: `-${Math.max(0, Number(block.data.buttonSpacing ?? 8)) / 2}px`,
-  }}
->
-        {donationOptions.map((option, index) => {
-          const amount = Number(option.amount || 0);
-          const label =
-            typeof option.label === "string" && option.label.trim().length > 0
-              ? option.label.trim()
-              : `$${formatCurrency(amount)}`;
-
-const buttonStyle = (block.data as any).buttonStyle ?? {};
-
-return (
-  <button
-    key={option.id || `donation-option-${index}`}
-    type="button"
-    onClick={() => void handleDonationCheckout(amount, label)}
-    disabled={!micrositeId}
-    className="inline-flex min-h-11 items-center justify-center rounded-xl px-5 py-2 disabled:cursor-not-allowed disabled:opacity-60"
-    style={{
-      marginLeft: `${Math.max(0, Number(block.data.buttonSpacing ?? 8)) / 2}px`,
-      marginRight: `${Math.max(0, Number(block.data.buttonSpacing ?? 8)) / 2}px`,
-      backgroundColor:
-        buttonStyle.backgroundColor ??
-        (isLightDesign(designKey) ? "#171717" : "#ffffff"),
-      color:
-        buttonStyle.color ??
-        (isLightDesign(designKey) ? "#ffffff" : "#171717"),
-      fontFamily: buttonStyle.fontFamily ?? block.data.style?.fontFamily,
-      fontSize:
-        typeof buttonStyle.fontSize === "number"
-          ? `${buttonStyle.fontSize}px`
-          : undefined,
-      fontWeight: buttonStyle.bold ? 700 : 600,
-      fontStyle: buttonStyle.italic ? "italic" : undefined,
-      textDecoration: [
-        buttonStyle.underline ? "underline" : "",
-        buttonStyle.strike ? "line-through" : "",
-      ]
-        .filter(Boolean)
-        .join(" ") || undefined,
-    }}
-    title={
-      !micrositeId
-        ? "Donation checkout only works on live microsites right now."
-        : undefined
-    }
-  >
-    {label}
-  </button>
-);
-        })}
-      </div>
-    ) : (
-      <div
-        className={[
-          "mt-4 rounded-xl border border-dashed px-4 py-6 text-sm",
-          "border-neutral-300 text-neutral-500"
-        ].join(" ")}
-      >
-        Add fixed donation options in the builder.
-      </div>
-    )}
-    </Surface>
-
-    <AppModal
-  open={customAmountOpen}
-  title="Custom Donation"
-  description="Enter the amount you would like to donate."
-  confirmText="Continue"
-  cancelText="Cancel"
-  onConfirm={() => {
+  function handleCustomAmountContinue() {
     const amount = Number(customAmountValue);
 
     if (!Number.isFinite(amount) || amount <= 0) {
@@ -7886,35 +7816,130 @@ return (
 
     setCustomAmountOpen(false);
     void handleDonationCheckout(amount, "Custom Donation");
-  }}
-  onCancel={() => setCustomAmountOpen(false)}
->
-  <div className="mt-4">
-    <label className="text-sm font-medium text-neutral-700">
-      Donation Amount
-    </label>
-    <input
-      type="number"
-      min="1"
-      step="0.01"
-      value={customAmountValue}
-      onChange={(e) => setCustomAmountValue(e.target.value)}
-      className="mt-2 w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-900"
-      placeholder="25.00"
-    />
-  </div>
-</AppModal>
+  }
 
-    <AppModal
-      open={Boolean(donationError)}
-      title="Checkout Error"
-      cancelText="OK"
-      onCancel={() => setDonationError("")}
-    >
-      <p className="text-sm text-neutral-700">{donationError}</p>
-    </AppModal>
-  </>
-);
+  return (
+    <>
+      <Surface block={block} designKey={designKey} className="">
+        <div
+          className="text-base font-semibold"
+          style={getContainerTextStyle(block.data.style, designKey)}
+        >
+          {block.data.heading || "Support This Cause"}
+        </div>
+
+        {block.data.description ? (
+          <div
+            className="mt-2 text-sm"
+            style={getContainerTextStyle(block.data.style, designKey)}
+          >
+            {block.data.description}
+          </div>
+        ) : null}
+
+        {isConfigured || showCustomAmount ? (
+          <div
+            className="mt-4 flex flex-row flex-wrap items-center"
+            style={{
+              marginLeft: `-${
+                Math.max(0, Number(block.data.buttonSpacing ?? 8)) / 2
+              }px`,
+              marginRight: `-${
+                Math.max(0, Number(block.data.buttonSpacing ?? 8)) / 2
+              }px`,
+            }}
+          >
+            {donationOptions.map((option, index) => {
+              const amount = Number(option.amount || 0);
+              const label =
+                typeof option.label === "string" &&
+                option.label.trim().length > 0
+                  ? option.label.trim()
+                  : `$${formatCurrency(amount)}`;
+
+              return (
+                <button
+                  key={option.id || `donation-option-${index}`}
+                  type="button"
+                  onClick={() => void handleDonationCheckout(amount, label)}
+                  disabled={!micrositeId}
+                  className="inline-flex min-h-11 items-center justify-center rounded-xl px-5 py-2 disabled:cursor-not-allowed disabled:opacity-60"
+                  style={buttonBaseStyle}
+                  title={
+                    !micrositeId
+                      ? "Donation checkout only works on live microsites right now."
+                      : undefined
+                  }
+                >
+                  {label}
+                </button>
+              );
+            })}
+
+            {showCustomAmount ? (
+              <button
+                type="button"
+                onClick={() => setCustomAmountOpen(true)}
+                disabled={!micrositeId}
+                className="inline-flex min-h-11 items-center justify-center rounded-xl px-5 py-2 disabled:cursor-not-allowed disabled:opacity-60"
+                style={buttonBaseStyle}
+                title={
+                  !micrositeId
+                    ? "Donation checkout only works on live microsites right now."
+                    : undefined
+                }
+              >
+                {customAmountLabel}
+              </button>
+            ) : null}
+          </div>
+        ) : (
+          <div
+            className={[
+              "mt-4 rounded-xl border border-dashed px-4 py-6 text-sm",
+              "border-neutral-300 text-neutral-500",
+            ].join(" ")}
+          >
+            Add fixed donation options in the builder.
+          </div>
+        )}
+      </Surface>
+
+      <AppModal
+        open={customAmountOpen}
+        title="Custom Donation"
+        description="Enter the amount you would like to donate."
+        confirmText="Continue"
+        cancelText="Cancel"
+        onConfirm={handleCustomAmountContinue}
+        onCancel={() => setCustomAmountOpen(false)}
+      >
+        <div className="mt-4">
+          <label className="text-sm font-medium text-neutral-700">
+            Donation Amount
+          </label>
+          <input
+            type="number"
+            min="1"
+            step="0.01"
+            value={customAmountValue}
+            onChange={(e) => setCustomAmountValue(e.target.value)}
+            className="mt-2 w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-900"
+            placeholder="25.00"
+          />
+        </div>
+      </AppModal>
+
+      <AppModal
+        open={Boolean(donationError)}
+        title="Checkout Error"
+        cancelText="OK"
+        onCancel={() => setDonationError("")}
+      >
+        <p className="text-sm text-neutral-700">{donationError}</p>
+      </AppModal>
+    </>
+  );
 }
 
 function renderLinkHub(
