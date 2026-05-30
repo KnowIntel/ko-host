@@ -6097,6 +6097,53 @@ function handleBringForward(blockId: string) {
   });
 }
 
+function handlePasteAllClipboardBlocks() {
+  if (clipboardEntries.length === 0) return;
+
+  const newBlockIds: string[] = [];
+
+  setDraft((prev) => {
+    let nextHighestZIndex = Math.max(
+      1,
+      ...prev.blocks.map((block) => block.grid?.zIndex ?? 1),
+    );
+
+    const pastedBlocks = clipboardEntries.map((entry) => {
+      const cloned = structuredClone(entry.block);
+      const newBlockId = makeClientId(cloned.type);
+
+      newBlockIds.push(newBlockId);
+      nextHighestZIndex += 1;
+
+      return {
+        ...cloned,
+        id: newBlockId,
+        grid: {
+          ...(cloned.grid ?? {
+            colStart: 1,
+            rowStart: 1,
+            colSpan: 4,
+            rowSpan: 1,
+          }),
+          zIndex: nextHighestZIndex,
+        },
+      } as MicrositeBlock;
+    });
+
+    return {
+      ...prev,
+      blocks: [...prev.blocks, ...pastedBlocks],
+    };
+  });
+
+  window.requestAnimationFrame(() => {
+    setSelectedBlockIds(newBlockIds);
+    if (newBlockIds[0]) {
+      setSelection(selectionFromCanvasBlockId(newBlockIds[0]));
+    }
+  });
+}
+
 function handleCreateToolDrop(
   payload: ToolDropPayload,
   patch: {
@@ -24256,14 +24303,25 @@ try {
           {clipboardEntries.length === 1 ? "" : "s"}
         </div>
 
-        <button
-          type="button"
-          onClick={() => setClearClipboardModalOpen(true)}
-          disabled={clipboardEntries.length === 0}
-          className="rounded-lg border border-white/15 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          Clear All
-        </button>
+<div className="flex items-center gap-2">
+  <button
+    type="button"
+    onClick={handlePasteAllClipboardBlocks}
+    disabled={clipboardEntries.length === 0}
+    className="rounded-lg border border-white/15 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+  >
+    Paste All
+  </button>
+
+  <button
+    type="button"
+    onClick={() => setClearClipboardModalOpen(true)}
+    disabled={clipboardEntries.length === 0}
+    className="rounded-lg border border-white/15 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+  >
+    Clear All
+  </button>
+</div>
       </div>
 
       {clipboardEntries.length === 0 ? (
