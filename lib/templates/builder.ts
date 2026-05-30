@@ -1087,6 +1087,8 @@ export type DonationBlock = BaseBlock & {
     heading?: string;
     description?: string;
     buttonSpacing?: number;
+    allowCustomAmount?: boolean;
+    customAmountLabel?: string;
 
     donationOptions: Array<{
       id: string;
@@ -3110,17 +3112,19 @@ case "donation":
       rowSpan: 3,
     },
     appearance: createDefaultBlockAppearance(),
-    data: {
-      heading: "Support This Cause",
-      description: "",
-      donationOptions: [
-        { id: makeId("donationopt"), label: "$10", amount: 10 },
-        { id: makeId("donationopt"), label: "$25", amount: 25 },
-        { id: makeId("donationopt"), label: "$50", amount: 50 },
-      ],
-      style: createDefaultTextStyle(),
-      buttonSpacing: 8,
-    },
+data: {
+  heading: "Support This Cause",
+  description: "",
+  donationOptions: [
+    { id: makeId("donationopt"), label: "$10", amount: 10 },
+    { id: makeId("donationopt"), label: "$25", amount: 25 },
+    { id: makeId("donationopt"), label: "$50", amount: 50 },
+  ],
+  allowCustomAmount: true,
+  customAmountLabel: "Custom Amount",
+  style: createDefaultTextStyle(),
+  buttonSpacing: 8,
+},
   };
 
     case "link_hub":
@@ -4069,6 +4073,21 @@ if (block.type === "donation") {
         typeof block.data.description === "string"
           ? block.data.description
           : "",
+
+      allowCustomAmount:
+        typeof (block.data as any).allowCustomAmount === "boolean"
+          ? (block.data as any).allowCustomAmount
+          : true,
+
+      customAmountLabel:
+        typeof (block.data as any).customAmountLabel === "string"
+          ? (block.data as any).customAmountLabel
+          : "Custom Amount",
+
+      buttonSpacing:
+        typeof (block.data as any).buttonSpacing === "number"
+          ? Math.max(0, (block.data as any).buttonSpacing)
+          : 8,
 
       donationOptions: Array.isArray(block.data.donationOptions)
         ? block.data.donationOptions

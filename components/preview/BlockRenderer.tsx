@@ -7732,6 +7732,8 @@ function renderDonation(
 
   const isConfigured = donationOptions.length > 0;
   const [donationError, setDonationError] = useState("");
+  const [customAmountOpen, setCustomAmountOpen] = useState(false);
+  const [customAmountValue, setCustomAmountValue] = useState("");
 
   async function handleDonationCheckout(amount: number, optionLabel?: string) {
     if (!micrositeId) {
@@ -7867,6 +7869,41 @@ return (
       </div>
     )}
     </Surface>
+
+    <AppModal
+  open={customAmountOpen}
+  title="Custom Donation"
+  description="Enter the amount you would like to donate."
+  confirmText="Continue"
+  cancelText="Cancel"
+  onConfirm={() => {
+    const amount = Number(customAmountValue);
+
+    if (!Number.isFinite(amount) || amount <= 0) {
+      setDonationError("Enter a valid donation amount.");
+      return;
+    }
+
+    setCustomAmountOpen(false);
+    void handleDonationCheckout(amount, "Custom Donation");
+  }}
+  onCancel={() => setCustomAmountOpen(false)}
+>
+  <div className="mt-4">
+    <label className="text-sm font-medium text-neutral-700">
+      Donation Amount
+    </label>
+    <input
+      type="number"
+      min="1"
+      step="0.01"
+      value={customAmountValue}
+      onChange={(e) => setCustomAmountValue(e.target.value)}
+      className="mt-2 w-full rounded-xl border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-900"
+      placeholder="25.00"
+    />
+  </div>
+</AppModal>
 
     <AppModal
       open={Boolean(donationError)}

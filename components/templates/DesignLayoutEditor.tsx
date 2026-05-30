@@ -7561,10 +7561,8 @@ if (block.type === "donation") {
                 ? option.label.trim()
                 : `$${formatCurrency(amount)}`;
 
-            const buttonStyle =
-              ((selectedBlock as any)?.data?.buttonStyle ?? {}) as any;
-            const donationTextStyle =
-              ((selectedBlock as any)?.data?.style ?? {}) as any;
+            const buttonStyle = ((block.data as any).buttonStyle ?? {}) as any;
+            const donationTextStyle = ((block.data as any).style ?? {}) as any;
 
             return (
               <button
@@ -16225,6 +16223,52 @@ onClick={() =>
         className={inspectorTextareaClass()}
       />
     </div>
+
+    <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+  <label className="flex items-center gap-2 text-sm font-medium text-neutral-800">
+    <input
+      type="checkbox"
+      checked={(selectedBlock.data as any).allowCustomAmount ?? true}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "donation"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  allowCustomAmount: e.target.checked,
+                },
+              },
+        )
+      }
+    />
+    Allow custom donation amount
+  </label>
+
+  <div className="mt-3">
+    <div className={inspectorLabelClass()}>Custom Button Label</div>
+    <input
+      type="text"
+      value={(selectedBlock.data as any).customAmountLabel ?? "Custom Amount"}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "donation"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  customAmountLabel: e.target.value,
+                },
+              },
+        )
+      }
+      className={inspectorInputClass()}
+      placeholder="Custom Amount"
+    />
+  </div>
+</div>
 
     <div className="mt-4">
       <div className={inspectorLabelClass()}>Donation Buttons</div>
