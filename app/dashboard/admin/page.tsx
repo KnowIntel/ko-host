@@ -257,7 +257,7 @@ const quickStats = [
   ))}
 </section>
 
-<section className="overflow-visible rounded-3xl border border-neutral-200 bg-white p-6 pb-10 shadow-sm">
+<section className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
   <div className="flex items-center justify-between">
     <div>
       <h2 className="text-lg font-black text-neutral-950">
@@ -270,85 +270,30 @@ const quickStats = [
     </div>
   </div>
 
-  <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-    <Link
-      href="/dashboard/admin/microsites"
-      className="flex min-h-[88px] items-center justify-center rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-4 text-center text-sm font-bold text-neutral-900 hover:bg-neutral-100"
-    >
-      Manage Microsites
-    </Link>
-
-    <Link
-    href="/dashboard/admin/email"
-    className="rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-4 text-sm font-bold text-neutral-900 hover:bg-neutral-100"
-    >
-    Email Center
-    </Link>
-
-    <Link
-      href="/dashboard/claim-offers"
-      className="rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-4 text-sm font-bold text-neutral-900 hover:bg-neutral-100"
-    >
-      Review Claim Offers
-    </Link>
-
-<Link
-  href="/dashboard/admin/feature-requests"
-  className="rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-4 text-sm font-bold text-neutral-900 hover:bg-neutral-100"
->
-  Feature Requests
-</Link>
-
-    <Link
-      href="/dashboard/admin/support"
-      className="rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-4 text-sm font-bold text-neutral-900 hover:bg-neutral-100"
-    >
-      Open Support Queue
-    </Link>
-
-    <Link
-  href="/dashboard/admin/settings"
-  className="rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-4 text-sm font-bold text-neutral-900 hover:bg-neutral-100"
->
-  Platform Settings
-</Link>
-
-    <Link
-  href="/dashboard/admin/audit"
-  className="rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-4 text-sm font-bold text-neutral-900 hover:bg-neutral-100"
->
-  Audit Dashboard
-</Link>
-
-    <Link
-      href="/dashboard/admin/errors"
-      className="rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-4 text-sm font-bold text-neutral-900 hover:bg-neutral-100"
-    >
-      Review Errors
-    </Link>
+  <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    {[
+      ["Manage Microsites", "/dashboard/admin/microsites"],
+      ["Email Center", "/dashboard/admin/email"],
+      ["Review Claim Offers", "/dashboard/claim-offers"],
+      ["Feature Requests", "/dashboard/admin/feature-requests"],
+      ["Open Support Queue", "/dashboard/admin/support"],
+      ["Platform Settings", "/dashboard/admin/settings"],
+      ["Audit Dashboard", "/dashboard/admin/audit"],
+      ["Review Errors", "/dashboard/admin/errors"],
+      ["System Health", "/dashboard/admin/health"],
+      ["Admin Activity", "/dashboard/admin/activity"],
+      ["Payments", "/dashboard/admin/payments"],
+    ].map(([label, href]) => (
+      <Link
+        key={href}
+        href={href}
+        className="flex min-h-[78px] items-center justify-center rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-4 text-center text-sm font-bold text-neutral-900 transition hover:bg-neutral-100"
+      >
+        {label}
+      </Link>
+    ))}
   </div>
 </section>
-
-<Link
-  href="/dashboard/admin/health"
-  className="rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-4 text-sm font-bold text-neutral-900 hover:bg-neutral-100"
->
-  System Health
-</Link>
-
-<Link
-  href="/dashboard/admin/activity"
-  className="rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-4 text-sm font-bold text-neutral-900 hover:bg-neutral-100"
->
-  Admin Activity
-</Link>
-
-<Link
-  href="/dashboard/admin/payments"
-  className="rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-4 text-sm font-bold text-neutral-900 hover:bg-neutral-100"
->
-  Payments
-</Link>
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {adminSections.map((section) => (
