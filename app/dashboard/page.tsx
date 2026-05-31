@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { auth, currentUser } from "@clerk/nextjs/server";
-import { cookies } from "next/headers";
+import ViewerEmailCookie from "@/components/dashboard/ViewerEmailCookie";
 
 export const dynamic = "force-dynamic";
 
@@ -17,22 +17,13 @@ export default async function DashboardPage() {
   const userEmail =
     user?.primaryEmailAddress?.emailAddress?.toLowerCase() ?? "";
 
-  const cookieStore = await cookies();
-
-  cookieStore.set("kht_viewer_email", userEmail, {
-    httpOnly: false,
-    sameSite: "lax",
-    secure: true,
-    path: "/",
-    maxAge: 60 * 60 * 24 * 365,
-  });
-
   const isAdmin =
     userEmail === ADMIN_EMAIL ||
     userEmail === "michel.darbeau@gmail.com";
 
   return (
     <div className="space-y-6">
+      <ViewerEmailCookie email={userEmail} />
       <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
         <h1 className="text-xl font-semibold tracking-tight">Dashboard</h1>
 
