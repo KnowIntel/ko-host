@@ -119,10 +119,16 @@ export default function TemplateCard(props: {
     bumpStat(templateKey, "views");
   }
 
-  function goToDesignSelection() {
-    trackCreate();
-    router.push(`/create/${encodeURIComponent(templateKey)}/design`);
+function goToDesignSelection() {
+  trackCreate();
+
+  if (templateKey === "custom_template") {
+    router.push(`/create/${encodeURIComponent(templateKey)}`);
+    return;
   }
+
+  router.push(`/create/${encodeURIComponent(templateKey)}/design`);
+}
 
   function stopAll(
     e: MouseEvent<HTMLElement> | KeyboardEvent<HTMLElement>,
