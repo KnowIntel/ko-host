@@ -23,6 +23,10 @@ type AdminMicrositeRow = {
   updated_at: string | null;
   is_favorite: boolean | null;
   admin_notes: string | null;
+  total_views?: number;
+  unique_visitors?: number;
+  views_today?: number;
+  last_visit_at?: string | null;
 };
 
 function formatDate(value: string | null) {
@@ -230,7 +234,76 @@ const normalizedSearch = search.toLowerCase();
 
   const { data, error } = await query;
 
-const rows = ((data ?? []) as AdminMicrositeRow[]).filter((row) => {
+const micrositeIds = ((data ?? []) as AdminMicrositeRow[]).map((row) => row.id);
+
+const today = new Date();
+today.setHours(0, 0, 0, 0);
+
+const { data: visitRows } = micrositeIds.length
+  ? await supabase
+      .from("microsite_visits")
+      .select("microsite_id, visitor_key, created_at")
+      .in("microsite_id", micrositeIds)
+      .eq("is_owner_or_admin", false)
+  : { data: [] };
+
+const visitStats = new Map<
+  string,
+  {
+    totalViews: number;
+    uniqueVisitors: Set<string>;
+    viewsToday: number;
+    lastVisitAt: string | null;
+  }
+>();
+
+for (const visit of visitRows ?? []) {
+  const micrositeId = String(visit.microsite_id || "");
+
+  if (!visitStats.has(micrositeId)) {
+    visitStats.set(micrositeId, {
+      totalViews: 0,
+      uniqueVisitors: new Set<string>(),
+      viewsToday: 0,
+      lastVisitAt: null,
+    });
+  }
+
+  const stat = visitStats.get(micrositeId)!;
+
+  stat.totalViews += 1;
+
+  if (visit.visitor_key) {
+    stat.uniqueVisitors.add(String(visit.visitor_key));
+  }
+
+  if (visit.created_at && new Date(visit.created_at).getTime() >= today.getTime()) {
+    stat.viewsToday += 1;
+  }
+
+  if (
+    visit.created_at &&
+    (!stat.lastVisitAt ||
+      new Date(visit.created_at).getTime() >
+        new Date(stat.lastVisitAt).getTime())
+  ) {
+    stat.lastVisitAt = visit.created_at;
+  }
+}
+
+const rows = ((data ?? []) as AdminMicrositeRow[])
+  .map((row) => {
+    const stat = visitStats.get(row.id);
+
+    return {
+      ...row,
+      total_views: stat?.totalViews ?? 0,
+      unique_visitors: stat?.uniqueVisitors.size ?? 0,
+      views_today: stat?.viewsToday ?? 0,
+      last_visit_at: stat?.lastVisitAt ?? null,
+    };
+  })
+  .filter((row) => {
   const matchesSearch =
     !normalizedSearch ||
     row.title?.toLowerCase().includes(normalizedSearch) ||
@@ -376,7 +449,7 @@ const filters = [
         </div>
       ) : null}
 
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-8">
     <Stat label="Showing" value={rows.length} />
     <Stat
         label="Published"
@@ -398,6 +471,21 @@ const filters = [
         label="With Notes"
         value={rows.filter((row) => row.admin_notes?.trim()).length}
     />
+
+    <Stat
+  label="Total Views"
+  value={rows.reduce((total, row) => total + (row.total_views ?? 0), 0)}
+/>
+
+<Stat
+  label="Unique Visitors"
+  value={rows.reduce((total, row) => total + (row.unique_visitors ?? 0), 0)}
+/>
+
+<Stat
+  label="Views Today"
+  value={rows.reduce((total, row) => total + (row.views_today ?? 0), 0)}
+/>
     </section>
 
       <section className="overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm">
@@ -410,17 +498,25 @@ const filters = [
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead className="bg-neutral-50 text-xs uppercase tracking-[0.08em] text-neutral-500">
-              <tr>
-                <th className="px-4 py-3 font-black">Site</th>
-                <th className="px-4 py-3 font-black">Owner</th>
-                <th className="px-4 py-3 font-black">Template</th>
-                <th className="px-4 py-3 font-black">Status</th>
-                <th className="px-4 py-3 font-black">Published</th>
-                <th className="px-4 py-3 font-black">Paid Until</th>
-                <th className="px-4 py-3 font-black">Updated</th>
-                <th className="px-4 py-3 font-black">Notes</th>
-                <th className="px-4 py-3 font-black">Actions</th>
-              </tr>
+<tr>
+  <th className="px-4 py-3 font-black">Site</th>
+  <th className="px-4 py-3 font-black">Owner</th>
+  <th className="px-4 py-3 font-black">Template</th>
+  <th className="px-4 py-3 font-black">Status</th>
+  <th className="px-4 py-3 font-black">Published</th>
+  <th className="px-4 py-3 font-black">Views</th>
+  <th className="px-4 py-3 font-black">Visitors</th>
+  <th className="px-4 py-3 font-black">Today</th>
+  <th className="px-4 py-3 font-black">Last Visit</th>
+  <th className="px-4 py-3 font-black">Views</th>
+  <th className="px-4 py-3 font-black">Visitors</th>
+  <th className="px-4 py-3 font-black">Today</th>
+  <th className="px-4 py-3 font-black">Last Visit</th>
+  <th className="px-4 py-3 font-black">Paid Until</th>
+  <th className="px-4 py-3 font-black">Updated</th>
+  <th className="px-4 py-3 font-black">Notes</th>
+  <th className="px-4 py-3 font-black">Actions</th>
+</tr>
             </thead>
 
             <tbody>
@@ -482,6 +578,22 @@ const filters = [
                         >
                           {row.is_published ? "Yes" : "No"}
                         </span>
+                      </td>
+
+                      <td className="px-4 py-4 text-xs font-semibold text-neutral-700">
+                        {row.total_views ?? 0}
+                      </td>
+
+                      <td className="px-4 py-4 text-xs font-semibold text-neutral-700">
+                        {row.unique_visitors ?? 0}
+                      </td>
+
+                      <td className="px-4 py-4 text-xs font-semibold text-neutral-700">
+                        {row.views_today ?? 0}
+                      </td>
+
+                      <td className="px-4 py-4 text-xs font-semibold text-neutral-700">
+                        {formatDate(row.last_visit_at || null)}
                       </td>
 
                       <td className="px-4 py-4 text-xs font-semibold text-neutral-700">
@@ -595,7 +707,7 @@ const filters = [
                 })
               ) : (
                 <tr>
-                  <td className="px-4 py-8 text-center text-sm font-semibold text-neutral-500" colSpan={9}>
+                  <td className="px-4 py-8 text-center text-sm font-semibold text-neutral-500" colSpan={13}>
                     No microsites found.
                   </td>
                 </tr>

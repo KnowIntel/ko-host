@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { auth, currentUser } from "@clerk/nextjs/server";
+import { cookies } from "next/headers";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +17,19 @@ export default async function DashboardPage() {
   const userEmail =
     user?.primaryEmailAddress?.emailAddress?.toLowerCase() ?? "";
 
-  const isAdmin = userEmail === ADMIN_EMAIL;
+  const cookieStore = await cookies();
+
+  cookieStore.set("kht_viewer_email", userEmail, {
+    httpOnly: false,
+    sameSite: "lax",
+    secure: true,
+    path: "/",
+    maxAge: 60 * 60 * 24 * 365,
+  });
+
+  const isAdmin =
+    userEmail === ADMIN_EMAIL ||
+    userEmail === "michel.darbeau@gmail.com";
 
   return (
     <div className="space-y-6">
@@ -35,14 +48,14 @@ export default async function DashboardPage() {
             View Microsites
           </Link>
 
-{isAdmin ? (
-  <Link
-    href="/dashboard/admin"
-    className="inline-flex items-center justify-center rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-bold text-blue-700 hover:bg-blue-100"
-  >
-    Admin Control Center
-  </Link>
-) : null}
+          {isAdmin ? (
+            <Link
+              href="/dashboard/admin"
+              className="inline-flex items-center justify-center rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-bold text-blue-700 hover:bg-blue-100"
+            >
+              Admin Control Center
+            </Link>
+          ) : null}
         </div>
       </div>
     </div>
