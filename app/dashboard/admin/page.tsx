@@ -257,7 +257,7 @@ const quickStats = [
   ))}
 </section>
 
-<section className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
+<section className="overflow-visible rounded-3xl border border-neutral-200 bg-white p-6 pb-10 shadow-sm">
   <div className="flex items-center justify-between">
     <div>
       <h2 className="text-lg font-black text-neutral-950">
@@ -270,7 +270,7 @@ const quickStats = [
     </div>
   </div>
 
-  <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+  <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
     <Link
       href="/dashboard/admin/microsites"
       className="flex min-h-[88px] items-center justify-center rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-4 text-center text-sm font-bold text-neutral-900 hover:bg-neutral-100"
