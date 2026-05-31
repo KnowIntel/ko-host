@@ -25,14 +25,37 @@ export default function GetStartedPage() {
     null,
   );
   const [selectedDesignKey, setSelectedDesignKey] = useState<string>("");
+  const [templateSearchQuery, setTemplateSearchQuery] = useState("");
 
-  const visibleTemplates = useMemo(() => {
-    return TEMPLATE_DEFS.filter((template) => {
-      if (template.key === BLANK_TEMPLATE_KEY) return false;
-      if (selectedCategory === "All") return true;
-      return template.category === selectedCategory;
-    });
-  }, [selectedCategory]);
+const visibleTemplates = useMemo(() => {
+  const query = templateSearchQuery.trim().toLowerCase();
+
+  return TEMPLATE_DEFS.filter((template) => {
+    if (template.key === BLANK_TEMPLATE_KEY) return false;
+
+    const matchesCategory =
+      selectedCategory === "All" || template.category === selectedCategory;
+
+    if (!matchesCategory) return false;
+    if (!query) return true;
+
+    const searchableText = [
+      template.title,
+      template.description,
+      template.category,
+      template.badge || "",
+      template.key,
+      template.demoSlug,
+      template.thumb,
+      ...template.tags,
+      ...template.features,
+    ]
+      .join(" ")
+      .toLowerCase();
+
+    return searchableText.includes(query);
+  });
+}, [selectedCategory, templateSearchQuery]);
 
   const selectedLayouts = useMemo(() => {
     if (!selectedTemplate) return [];
@@ -158,23 +181,53 @@ export default function GetStartedPage() {
               </p>
             </div>
 
-            <div className="mb-6 flex flex-wrap gap-2">
-              {["All", ...TEMPLATE_CATEGORIES].map((category) => (
-                <button
-                  key={category}
-                  type="button"
-                  onClick={() => setSelectedCategory(category)}
-                  className={classNames(
-                    "rounded-full border px-4 py-2 text-xs font-bold transition",
-                    selectedCategory === category
-                      ? "border-neutral-950 bg-neutral-950 text-white"
-                      : "border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50",
-                  )}
-                >
-                  {category}
-                </button>
-              ))}
-            </div>
+<div className="mb-6 space-y-4">
+  <div className="relative">
+    <input
+      type="search"
+      value={templateSearchQuery}
+      onChange={(event) => setTemplateSearchQuery(event.target.value)}
+      placeholder="Search templates by keyword, tag, purpose, or feature..."
+      className="h-12 w-full rounded-2xl border border-neutral-200 bg-white px-4 pr-11 text-sm text-neutral-900 shadow-sm outline-none transition placeholder:text-neutral-400 focus:border-neutral-950"
+    />
+
+    {templateSearchQuery.trim() ? (
+      <button
+        type="button"
+        onClick={() => setTemplateSearchQuery("")}
+        className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full px-2 py-1 text-xs font-bold text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"
+        aria-label="Clear template search"
+      >
+        ×
+      </button>
+    ) : null}
+  </div>
+
+  <div className="flex flex-wrap gap-2">
+    {["All", ...TEMPLATE_CATEGORIES].map((category) => (
+      <button
+        key={category}
+        type="button"
+        onClick={() => setSelectedCategory(category)}
+        className={classNames(
+          "rounded-full border px-4 py-2 text-xs font-bold transition",
+          selectedCategory === category
+            ? "border-neutral-950 bg-neutral-950 text-white"
+            : "border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50",
+        )}
+      >
+        {category}
+      </button>
+    ))}
+  </div>
+
+  <div className="text-xs font-medium text-neutral-500">
+    Showing {visibleTemplates.length} template
+    {visibleTemplates.length === 1 ? "" : "s"}
+    {selectedCategory !== "All" ? ` in ${selectedCategory}` : ""}
+    {templateSearchQuery.trim() ? ` matching “${templateSearchQuery.trim()}”` : ""}
+  </div>
+</div>
 
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               <button
@@ -191,9 +244,15 @@ export default function GetStartedPage() {
                 <div className="mt-4 inline-flex rounded-full bg-neutral-950 px-3 py-1 text-[11px] font-bold text-white">
                   Flexible
                 </div>
-              </button>
+</button>
 
-              {visibleTemplates.map((template) => (
+{visibleTemplates.length === 0 ? (
+  <div className="rounded-3xl border border-dashed border-neutral-300 bg-neutral-50 p-5 text-sm text-neutral-600 sm:col-span-2 lg:col-span-3">
+    No matching templates found. Try a different keyword, tag, or category.
+  </div>
+) : null}
+
+{visibleTemplates.map((template) => (
                 <button
                   key={template.key}
                   type="button"
