@@ -104,28 +104,36 @@ export default function GetStartedPage() {
 
             <div className="relative">
               <div className="mb-4 flex flex-wrap gap-2">
-                <span
-                  className={classNames(
-                    "rounded-full px-3 py-1 text-xs font-bold",
-                    step === 1
-                      ? "bg-neutral-950 text-white"
-                      : "bg-neutral-100 text-neutral-600",
-                  )}
-                >
-                  Step 1: Choose Template
-                </span>
+  <span
+    className={classNames(
+      "rounded-full px-3 py-1 text-xs font-bold",
+      step === 1
+        ? "bg-neutral-950 text-white"
+        : "bg-neutral-100 text-neutral-600",
+    )}
+  >
+    Step 1: Choose Template
+  </span>
 
-                <span
-                  className={classNames(
-                    "rounded-full px-3 py-1 text-xs font-bold",
-                    step === 2
-                      ? "bg-neutral-950 text-white"
-                      : "bg-neutral-100 text-neutral-600",
-                  )}
-                >
-                  Step 2: Choose Design
-                </span>
-              </div>
+  <span
+    className={classNames(
+      "rounded-full px-3 py-1 text-xs font-bold",
+      step === 2
+        ? "bg-neutral-950 text-white"
+        : "bg-neutral-100 text-neutral-600",
+    )}
+  >
+    Step 2: Choose Design
+  </span>
+
+  <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-bold text-neutral-600">
+    Step 3: Customize Draft
+  </span>
+
+  <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-bold text-neutral-600">
+    Step 4: Publish
+  </span>
+</div>
 
               <h1 className="text-3xl font-semibold tracking-tight text-neutral-950 sm:text-5xl">
                 Let’s build your microsite step by step.
