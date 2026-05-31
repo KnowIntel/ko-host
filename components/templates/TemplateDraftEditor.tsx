@@ -3,6 +3,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import type { BuilderDraft } from "@/lib/templates/builder";
 import DesignLayoutEditor from "@/components/templates/DesignLayoutEditor";
 
@@ -183,6 +184,11 @@ export default function TemplateDraftEditor({
 onSelectPage,
 onReorderPages,
 }: Props) {
+  const searchParams = useSearchParams();
+  const [showGuidedStepModal, setShowGuidedStepModal] = useState(
+    () => searchParams.get("guided") === "1",
+  );
+
   const resolvedTemplateName = templateName ?? templateKey ?? "";
   const resolvedDesignLayout = designLayout ?? "blank";
 
@@ -359,8 +365,37 @@ const draftUsagePercent = Math.min(
 
 return (
   <div className="relative">
+    {showGuidedStepModal ? (
+      <div className="fixed inset-0 z-[2147483647] flex items-center justify-center bg-black/45 px-4">
+        <div className="w-full max-w-lg rounded-[28px] border border-neutral-200 bg-white p-6 shadow-2xl">
+          <div className="mb-3 inline-flex rounded-full bg-neutral-950 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-white">
+            Step 3
+          </div>
 
-    
+          <h2 className="text-2xl font-semibold tracking-tight text-neutral-950">
+            Customize your draft
+          </h2>
+
+          <p className="mt-3 text-sm leading-7 text-neutral-600">
+            Use the canvas tools to customize your microsite. When finished,
+            press{" "}
+            <span className="font-semibold text-neutral-950">Publish</span>{" "}
+            and follow the checkout steps to go live.
+          </p>
+
+          <div className="mt-6 flex justify-end">
+            <button
+              type="button"
+              onClick={() => setShowGuidedStepModal(false)}
+              className="rounded-full bg-neutral-950 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-neutral-800"
+            >
+              Start Customizing
+            </button>
+          </div>
+        </div>
+      </div>
+    ) : null}
+
     <DesignLayoutEditor
   templateKey={resolvedTemplateName}
   designKey={resolvedDesignLayout}
