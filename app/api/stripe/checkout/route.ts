@@ -37,6 +37,7 @@ export async function POST(req: Request) {
     let slug = "";
     let templateKey = "";
     let designKey = "";
+    let publishMode: "publish" | "draft" = "publish";
 
     // CART FIELDS
     let cartItems: any[] = [];
@@ -54,6 +55,7 @@ export async function POST(req: Request) {
       slug = String(body?.slug || "");
       templateKey = String(body?.templateKey || "");
       designKey = String(body?.designKey || "");
+      publishMode = body?.publishMode === "draft" ? "draft" : "publish";
 
       cartItems = Array.isArray(body?.cartItems) ? body.cartItems : [];
       subtotal = Number(body?.subtotal || 0);
@@ -69,6 +71,7 @@ export async function POST(req: Request) {
       slug = String(formData.get("slug") || "");
       templateKey = String(formData.get("templateKey") || "");
       designKey = String(formData.get("designKey") || "");
+      publishMode = formData.get("publishMode") === "draft" ? "draft" : "publish";
     }
 
     const supabaseAdmin = getSupabaseAdmin();
@@ -239,20 +242,30 @@ const session = await stripe.checkout.sessions.create({
       quantity: 1,
     },
   ],
-  success_url: `${appUrl}/dashboard/microsites?checkout=success&session_id={CHECKOUT_SESSION_ID}&slug=${encodeURIComponent(
-    pendingRow.slug || "",
-  )}`,
-  cancel_url: `${appUrl}/dashboard/microsites?checkout=cancel&slug=${encodeURIComponent(
-    pendingRow.slug || "",
-  )}`,
-  metadata: {
-    flow: "publish",
-    owner_clerk_user_id: userId,
-    pending_checkout_id: pendingRow.id,
-    slug: pendingRow.slug || "",
-    template_key: resolvedTemplateKey,
-    design_key: resolvedDesignKey,
-  },
+success_url:
+  publishMode === "draft"
+    ? `${appUrl}/create/${encodeURIComponent(
+        resolvedTemplateKey,
+      )}?design=${encodeURIComponent(
+        resolvedDesignKey || "blank",
+      )}&mode=draft&checkout=success&reserved=1&slug=${encodeURIComponent(
+        pendingRow.slug || "",
+      )}&session_id={CHECKOUT_SESSION_ID}`
+    : `${appUrl}/dashboard/microsites?checkout=success&session_id={CHECKOUT_SESSION_ID}&slug=${encodeURIComponent(
+        pendingRow.slug || "",
+      )}`,
+cancel_url: `${appUrl}/dashboard/microsites?checkout=cancel&slug=${encodeURIComponent(
+  pendingRow.slug || "",
+)}`,
+metadata: {
+  flow: "publish",
+  owner_clerk_user_id: userId,
+  pending_checkout_id: pendingRow.id,
+  slug: pendingRow.slug || "",
+  template_key: resolvedTemplateKey,
+  design_key: resolvedDesignKey,
+  publish_mode: publishMode,
+},
 });
 
       await supabaseAdmin

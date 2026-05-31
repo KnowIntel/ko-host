@@ -78,6 +78,152 @@ function makeOrderId(sessionId: string) {
   return `ord_${sessionId.slice(-12)}`;
 }
 
+async function getOwnerEmail(ownerClerkUserId: string) {
+  if (!ownerClerkUserId || !process.env.CLERK_SECRET_KEY) return null;
+
+  try {
+    const clerkRes = await fetch(
+      `https://api.clerk.com/v1/users/${ownerClerkUserId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.CLERK_SECRET_KEY}`,
+        },
+      },
+    );
+
+    if (!clerkRes.ok) {
+      console.error("OWNER EMAIL FETCH FAILED", {
+        status: clerkRes.status,
+        ownerClerkUserId,
+      });
+      return null;
+    }
+
+    const clerkData = await clerkRes.json();
+
+    return (
+      clerkData?.primary_email_address_id
+        ? clerkData?.email_addresses?.find(
+            (item: any) => item?.id === clerkData.primary_email_address_id,
+          )?.email_address
+        : clerkData?.email_addresses?.[0]?.email_address
+    ) || null;
+  } catch (error) {
+    console.error("OWNER EMAIL FETCH FAILED", error);
+    return null;
+  }
+}
+
+async function sendKoHostPublishEmail(input: {
+  to: string;
+  siteTitle: string;
+  slug: string;
+  paidUntil: string;
+  sessionId: string;
+  amountTotal?: number | null;
+  mode: "published" | "extended" | "reserved";
+}) {
+  if (!process.env.RESEND_API_KEY || !input.to) return;
+
+  const siteUrl = `https://${input.slug}.ko-host.com`;
+  const dashboardUrl = `${verifiedAppUrl}/dashboard/microsites`;
+
+  const paidUntilLabel = new Date(input.paidUntil).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    timeZone: "America/New_York",
+  });
+
+  const amount =
+    typeof input.amountTotal === "number" && Number.isFinite(input.amountTotal)
+      ? input.amountTotal / 100
+      : 0;
+
+const heading =
+  input.mode === "extended"
+    ? "Your Ko-Host microsite has been extended."
+    : input.mode === "reserved"
+      ? "Your Ko-Host microsite name has been reserved."
+      : "Your Ko-Host microsite is live.";
+
+const subject =
+  input.mode === "extended"
+    ? `Ko-Host — ${input.siteTitle} was extended`
+    : input.mode === "reserved"
+      ? `Ko-Host — ${input.siteTitle} is reserved`
+      : `Ko-Host — ${input.siteTitle} is live`;
+
+  const html = `
+<div style="font-family:Arial,sans-serif;background:#f9f9f9;padding:20px;">
+  <div style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #eeeeee;">
+    <div style="background:#000;color:#fff;padding:18px 20px;">
+      <div style="font-size:18px;font-weight:bold;">Ko-Host</div>
+      <div style="font-size:12px;opacity:0.75;">Microsite Confirmation</div>
+    </div>
+
+    <div style="padding:22px;">
+      <h1 style="margin:0 0 12px 0;font-size:22px;line-height:1.25;color:#111;">
+        ${heading}
+      </h1>
+
+      <p style="margin:0 0 18px 0;font-size:14px;line-height:1.7;color:#555;">
+        ${
+  input.mode === "reserved"
+    ? "Thank you for your purchase. Your microsite name is reserved and your 90-day access is active. Your site will remain unpublished while you continue editing."
+    : "Thank you for your purchase. Your microsite is active for 90 days."
+}
+      </p>
+
+      <div style="background:#f6f6f6;border-radius:10px;padding:14px;margin-bottom:18px;font-size:14px;color:#222;">
+        <div style="margin-bottom:8px;"><strong>Microsite:</strong> ${input.siteTitle}</div>
+        <div style="margin-bottom:8px;"><strong>Site URL:</strong> ${siteUrl}</div>
+        <div style="margin-bottom:8px;"><strong>Paid Until:</strong> ${paidUntilLabel}</div>
+        <div style="margin-bottom:8px;"><strong>Amount:</strong> $${formatCurrency(amount)}</div>
+        <div><strong>Stripe Session:</strong> ${input.sessionId}</div>
+      </div>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <a href="${siteUrl}" style="display:inline-block;background:#000;color:#fff;text-decoration:none;padding:11px 15px;border-radius:8px;font-size:14px;font-weight:bold;">
+          View Microsite
+        </a>
+
+        <a href="${dashboardUrl}" style="display:inline-block;background:#f1f1f1;color:#111;text-decoration:none;padding:11px 15px;border-radius:8px;font-size:14px;font-weight:bold;">
+          Open Dashboard
+        </a>
+      </div>
+
+      <p style="margin-top:22px;font-size:12px;color:#777;line-height:1.6;">
+        Keep this email for your records. Stripe may also send a separate payment receipt depending on your checkout settings.
+      </p>
+    </div>
+  </div>
+</div>
+`;
+
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: "Ko-Host <no-reply@ko-host.com>",
+      to: input.to,
+      subject,
+      html,
+    }),
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    console.error("PUBLISH EMAIL SEND FAILED", {
+      status: res.status,
+      text,
+    });
+  }
+}
+
 export async function POST(req: Request) {
   try {
     console.log("WEBHOOK ROUTE HIT");
@@ -136,9 +282,10 @@ export async function POST(req: Request) {
     const micrositeIdFromMetadata = String(
       metadata.micrositeId || metadata.microsite_id || "",
     );
-    const designKeyFromMetadata = String(
-      metadata.designKey || metadata.design_key || "",
-    );
+const designKeyFromMetadata = String(
+  metadata.designKey || metadata.design_key || "",
+);
+const publishMode = metadata.publish_mode === "draft" ? "draft" : "publish";
 
     console.log("STRIPE WEBHOOK checkout.session.completed", {
       sessionId: session.id,
@@ -724,24 +871,27 @@ export async function POST(req: Request) {
 
       const nowIso = new Date().toISOString();
 
-      const micrositePayload = {
-        owner_clerk_user_id: ownerClerkUserId,
-        template_key: templateKey,
-        slug,
-        title,
-        status: "published",
-        is_active: true,
-        is_published: true,
-        published_at: nowIso,
-        paid_until: addDaysIsoFrom(null, 90),
-        site_visibility: siteVisibility,
-        broadcast_on_homepage: broadcastOnHomepage,
-        private_mode: privateMode,
-        passcode_hash: passcodeHash,
-        draft: pendingRow.draft ?? null,
-        selected_design_key: resolvedDesignKey,
-        updated_at: nowIso,
-      };
+const paidUntil = addDaysIsoFrom(null, 90);
+const shouldPublishNow = publishMode !== "draft";
+
+const micrositePayload = {
+  owner_clerk_user_id: ownerClerkUserId,
+  template_key: templateKey,
+  slug,
+  title,
+  status: shouldPublishNow ? "published" : "draft",
+  is_active: shouldPublishNow,
+  is_published: shouldPublishNow,
+  published_at: shouldPublishNow ? nowIso : null,
+  paid_until: paidUntil,
+  site_visibility: siteVisibility,
+  broadcast_on_homepage: shouldPublishNow ? broadcastOnHomepage : false,
+  private_mode: privateMode,
+  passcode_hash: passcodeHash,
+  draft: pendingRow.draft ?? null,
+  selected_design_key: resolvedDesignKey,
+  updated_at: nowIso,
+};
 
       console.log("=== MICROSITE PAYLOAD ===", micrositePayload);
 
@@ -1114,57 +1264,77 @@ export async function POST(req: Request) {
         );
       }
 
-      try {
-        const snapshotUrl = `https://${slug}.ko-host.com`;
-        const buffer = await generateMicrositeThumbnail(snapshotUrl);
-        const filePath = `${slug}.jpg`;
+if (shouldPublishNow) {
+  try {
+    const snapshotUrl = `https://${slug}.ko-host.com`;
+    const buffer = await generateMicrositeThumbnail(snapshotUrl);
+    const filePath = `${slug}.jpg`;
 
-        const { error: uploadError } = await supabaseAdmin.storage
-          .from("microsite-thumbnails")
-          .upload(filePath, buffer, {
-            contentType: "image/jpeg",
-            upsert: true,
-          });
-
-        if (uploadError) {
-          console.error("Thumbnail upload failed:", uploadError);
-        } else {
-          const { data } = supabaseAdmin.storage
-            .from("microsite-thumbnails")
-            .getPublicUrl(filePath);
-
-          const { error: thumbnailUpdateError } = await supabaseAdmin
-            .from("microsites")
-            .update({
-              homepage_thumbnail_url: data.publicUrl,
-              updated_at: new Date().toISOString(),
-            })
-            .eq("id", publishedMicrositeId);
-
-          if (thumbnailUpdateError) {
-            console.error(
-              "Homepage thumbnail db update failed:",
-              thumbnailUpdateError,
-            );
-          } else {
-            console.log("✅ Homepage thumbnail saved:", data.publicUrl);
-          }
-        }
-      } catch (err) {
-        console.error("Thumbnail generation failed:", err);
-      }
-
-      console.log("STRIPE WEBHOOK SUCCESS:", {
-        flow: "pending_checkout_publish",
-        micrositeId: publishedMicrositeId,
-        slug,
-        title,
-        stripeSessionId: session.id,
-        pendingCheckoutId,
-        broadcastOnHomepage,
+    const { error: uploadError } = await supabaseAdmin.storage
+      .from("microsite-thumbnails")
+      .upload(filePath, buffer, {
+        contentType: "image/jpeg",
+        upsert: true,
       });
 
-      return NextResponse.json({ ok: true });
+    if (uploadError) {
+      console.error("Thumbnail upload failed:", uploadError);
+    } else {
+      const { data } = supabaseAdmin.storage
+        .from("microsite-thumbnails")
+        .getPublicUrl(filePath);
+
+      const { error: thumbnailUpdateError } = await supabaseAdmin
+        .from("microsites")
+        .update({
+          homepage_thumbnail_url: data.publicUrl,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", publishedMicrositeId);
+
+      if (thumbnailUpdateError) {
+        console.error(
+          "Homepage thumbnail db update failed:",
+          thumbnailUpdateError,
+        );
+      } else {
+        console.log("✅ Homepage thumbnail saved:", data.publicUrl);
+      }
+    }
+  } catch (err) {
+    console.error("Thumbnail generation failed:", err);
+  }
+}
+
+try {
+  const ownerEmail = await getOwnerEmail(ownerClerkUserId);
+  const buyerEmail = String(session.customer_details?.email || "");
+  const emailTo = buyerEmail || ownerEmail || "";
+
+await sendKoHostPublishEmail({
+  to: emailTo,
+  siteTitle: title || slug || "Ko-Host Microsite",
+  slug,
+  paidUntil: micrositePayload.paid_until,
+  sessionId: session.id,
+  amountTotal: session.amount_total,
+  mode: shouldPublishNow ? "published" : "reserved",
+});
+} catch (error) {
+  console.error("PUBLISH CONFIRMATION EMAIL FAILED", error);
+}
+
+console.log("STRIPE WEBHOOK SUCCESS:", {
+  flow: shouldPublishNow ? "pending_checkout_publish" : "pending_checkout_reserve",
+  micrositeId: publishedMicrositeId,
+  slug,
+  title,
+  stripeSessionId: session.id,
+  pendingCheckoutId,
+  broadcastOnHomepage,
+});
+
+return NextResponse.json({ ok: true });
     }
 
     // ============================================================
@@ -1431,15 +1601,33 @@ export async function POST(req: Request) {
         }
       }
 
-      console.log("STRIPE WEBHOOK SUCCESS:", {
-        flow: "existing_microsite_publish",
-        micrositeId: micrositeRow.id,
-        slug: micrositeRow.slug,
-        title: micrositeRow.title,
-        stripeSessionId: session.id,
-      });
+try {
+  const ownerEmail = await getOwnerEmail(micrositeRow.owner_clerk_user_id);
+  const buyerEmail = String(session.customer_details?.email || "");
+  const emailTo = buyerEmail || ownerEmail || "";
 
-      return NextResponse.json({ ok: true });
+  await sendKoHostPublishEmail({
+    to: emailTo,
+    siteTitle: micrositeRow.title || micrositeRow.slug || "Ko-Host Microsite",
+    slug: micrositeRow.slug,
+    paidUntil: nextPaidUntil,
+    sessionId: session.id,
+    amountTotal: session.amount_total,
+    mode: "extended",
+  });
+} catch (error) {
+  console.error("EXTENSION CONFIRMATION EMAIL FAILED", error);
+}
+
+console.log("STRIPE WEBHOOK SUCCESS:", {
+  flow: "existing_microsite_publish",
+  micrositeId: micrositeRow.id,
+  slug: micrositeRow.slug,
+  title: micrositeRow.title,
+  stripeSessionId: session.id,
+});
+
+return NextResponse.json({ ok: true });
     }
 
     console.error("STRIPE WEBHOOK ERROR: Missing publish identifiers", {

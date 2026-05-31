@@ -93,6 +93,7 @@ const [publishState, setPublishState] = useState<PublishState>("idle");
 const [message, setMessage] = useState("");
 const [pendingCheckoutId, setPendingCheckoutId] = useState("");
 const [createdSlug, setCreatedSlug] = useState("");
+const [checkoutMode, setCheckoutMode] = useState<"publish" | "draft">("publish");
 const [slugStatus, setSlugStatus] = useState<
   "idle" | "checking" | "available" | "taken" | "invalid" | "error"
 >("idle");
@@ -244,7 +245,7 @@ const timer = window.setTimeout(async () => {
   };
 }, [slugSuggestion]);
 
-  async function handlePreparePublish() {
+  async function handlePreparePublish(mode: "publish" | "draft" = "publish") {
     if (!draft) {
       setPublishState("error");
       setMessage("No builder draft found. Save your draft first.");
@@ -299,9 +300,14 @@ if (siteVisibility === "private" && broadcastOnHomepage) {
   return;
 }
 
-    try {
-      setPublishState("loading");
-      setMessage("Preparing microsite draft for checkout...");
+try {
+  setCheckoutMode(mode);
+  setPublishState("loading");
+  setMessage(
+    mode === "draft"
+      ? "Preparing checkout while keeping your microsite unpublished..."
+      : "Preparing microsite draft for checkout...",
+  );
 
       const draftPayload: BuilderDraft = {
         ...draft,
@@ -564,20 +570,45 @@ return (
                     Back to Builder
                   </Link>
 
-                    <button
-                    type="button"
-                    onClick={() => void handlePreparePublish()}
-                    disabled={
-                        publishState === "loading" ||
-                        loadingDraft ||
-                        slugStatus !== "available"
-                    }
-                    className="inline-flex items-center justify-center rounded-xl border border-blue-600 bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                    {publishState === "loading"
-                      ? "Preparing..."
-                      : "Continue to Checkout"}
-                  </button>
+<div className="flex flex-col gap-2">
+  <div className="flex flex-wrap items-center gap-3">
+    <button
+      type="button"
+      onClick={() => void handlePreparePublish("publish")}
+      disabled={
+        publishState === "loading" ||
+        loadingDraft ||
+        slugStatus !== "available"
+      }
+      className="inline-flex items-center justify-center rounded-xl border border-blue-600 bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+    >
+      {publishState === "loading" && checkoutMode === "publish"
+        ? "Preparing..."
+        : "Continue to Checkout"}
+    </button>
+
+    <button
+      type="button"
+      onClick={() => void handlePreparePublish("draft")}
+      disabled={
+        publishState === "loading" ||
+        loadingDraft ||
+        slugStatus !== "available"
+      }
+      className="inline-flex items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-900 transition hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-60"
+    >
+      {publishState === "loading" && checkoutMode === "draft"
+        ? "Preparing..."
+        : "Checkout Without Publishing"}
+    </button>
+  </div>
+
+  <div className="max-w-xl text-xs leading-5 text-neutral-500">
+    Prefer to keep working first? Checkout Without Publishing reserves your
+    microsite name and activates your 90-day access, but returns you to the
+    builder with the site kept unpublished.
+  </div>
+</div>
                 </div>
 
                 {message ? (
@@ -716,21 +747,22 @@ return (
           </div>
         </div>
 
-        <form
-          ref={checkoutFormRef}
-          action="/api/stripe/checkout"
-          method="POST"
-          className="hidden"
-        >
-          <input
-            type="hidden"
-            name="pendingCheckoutId"
-            value={pendingCheckoutId}
-          />
-          <input type="hidden" name="templateKey" value={templateKey} />
-          <input type="hidden" name="designKey" value={designKey} />
-          <input type="hidden" name="slug" value={createdSlug} />
-        </form>
+<form
+  ref={checkoutFormRef}
+  action="/api/stripe/checkout"
+  method="POST"
+  className="hidden"
+>
+  <input
+    type="hidden"
+    name="pendingCheckoutId"
+    value={pendingCheckoutId}
+  />
+  <input type="hidden" name="templateKey" value={templateKey} />
+  <input type="hidden" name="designKey" value={designKey} />
+  <input type="hidden" name="slug" value={createdSlug} />
+  <input type="hidden" name="publishMode" value={checkoutMode} />
+</form>
       </div>
     </main>
   );
