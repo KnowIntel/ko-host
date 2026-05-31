@@ -930,43 +930,72 @@ function renderLabel(
     block.data.style?.textureEnabled && block.data.style?.textureImageUrl,
   );
 
+  const fade = (block.data as any).fade ?? {};
+  const fadeSize = Math.max(0, Math.min(50, Number(fade.size ?? 15)));
+
+  const fadeMasks = [
+    fade.top
+      ? `linear-gradient(to bottom, transparent 0%, black ${fadeSize}%, black 100%)`
+      : "",
+    fade.bottom
+      ? `linear-gradient(to top, transparent 0%, black ${fadeSize}%, black 100%)`
+      : "",
+    fade.left
+      ? `linear-gradient(to right, transparent 0%, black ${fadeSize}%, black 100%)`
+      : "",
+    fade.right
+      ? `linear-gradient(to left, transparent 0%, black ${fadeSize}%, black 100%)`
+      : "",
+  ].filter(Boolean);
+
+  const fadeMaskImage = fadeMasks.length ? fadeMasks.join(", ") : undefined;
+
   return (
-    <div className="h-full w-full p-2" style={getAppearanceStyle(block)}>
+    <div
+      className="h-full w-full p-2"
+      style={{
+        ...getAppearanceStyle(block),
+        WebkitMaskImage: fadeMaskImage,
+        maskImage: fadeMaskImage,
+        WebkitMaskComposite: fadeMasks.length > 1 ? "source-in" : undefined,
+        maskComposite: fadeMasks.length > 1 ? "intersect" : undefined,
+      }}
+    >
       <div
-style={{
-  ...getContainerTextStyle(block.data.style, designKey),
-  display: "block",
-  width: "100%",
-  textAlign: block.data.style?.align ?? "left",
+        style={{
+          ...getContainerTextStyle(block.data.style, designKey),
+          display: "block",
+          width: "100%",
+          textAlign: block.data.style?.align ?? "left",
 
-  backgroundImage: hasTexture
-    ? `url("${block.data.style?.textureImageUrl}")`
-    : undefined,
-  backgroundRepeat: hasTexture ? "repeat" : undefined,
-  backgroundSize: hasTexture
-    ? `${block.data.style?.textureScale ?? 100}%`
-    : undefined,
-  backgroundPosition: hasTexture
-    ? `${block.data.style?.texturePositionX ?? 50}% ${
-        block.data.style?.texturePositionY ?? 50
-      }%`
-    : undefined,
+          backgroundImage: hasTexture
+            ? `url("${block.data.style?.textureImageUrl}")`
+            : undefined,
+          backgroundRepeat: hasTexture ? "repeat" : undefined,
+          backgroundSize: hasTexture
+            ? `${block.data.style?.textureScale ?? 100}%`
+            : undefined,
+          backgroundPosition: hasTexture
+            ? `${block.data.style?.texturePositionX ?? 50}% ${
+                block.data.style?.texturePositionY ?? 50
+              }%`
+            : undefined,
 
-  backgroundClip: hasTexture ? "text" : undefined,
-  WebkitBackgroundClip: hasTexture ? "text" : undefined,
+          backgroundClip: hasTexture ? "text" : undefined,
+          WebkitBackgroundClip: hasTexture ? "text" : undefined,
 
-  color: hasTexture
-    ? "transparent"
-    : block.data.style?.color ?? undefined,
+          color: hasTexture
+            ? "transparent"
+            : block.data.style?.color ?? undefined,
 
-  WebkitTextFillColor: hasTexture
-    ? "transparent"
-    : block.data.style?.color ?? undefined,
+          WebkitTextFillColor: hasTexture
+            ? "transparent"
+            : block.data.style?.color ?? undefined,
 
-  transform: `translate(${((block.data as any).positionX ?? 50) - 50}%, ${
-    ((block.data as any).positionY ?? 50) - 50
-  }%)`,
-}}
+          transform: `translate(${((block.data as any).positionX ?? 50) - 50}%, ${
+            ((block.data as any).positionY ?? 50) - 50
+          }%)`,
+        }}
       >
         {getLabelText(block)}
       </div>

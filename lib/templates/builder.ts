@@ -470,6 +470,13 @@ export type LabelBlock = BaseBlock & {
   data: {
     text: string;
     style?: TextStyle;
+    fade?: {
+      top?: boolean;
+      bottom?: boolean;
+      left?: boolean;
+      right?: boolean;
+      size?: number;
+    };
   };
 };
 
@@ -1926,7 +1933,7 @@ function normalizeVideoBlock(block: VideoBlock): VideoBlock {
       },
     },
   };
-}
+} 
 
 /* =========================================
    Block Factory
@@ -2262,6 +2269,13 @@ export function createBlock(type: BuilderBlockType): MicrositeBlock {
         data: {
           text: "New Label",
           style: createDefaultTextStyle(),
+          fade: {
+            top: false,
+            bottom: false,
+            left: false,
+            right: false,
+            size: 15,
+          },
         },
       };
 
