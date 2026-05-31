@@ -1,3 +1,5 @@
+// app\api\dashboard\microsites\[id]\settings\route.ts
+
 import { NextResponse } from "next/server";
 import crypto from "crypto";
 import { auth } from "@clerk/nextjs/server";

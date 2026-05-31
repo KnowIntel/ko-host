@@ -1,3 +1,5 @@
+// app\api\public\create-microsite\route.ts
+
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { createHash } from "crypto";

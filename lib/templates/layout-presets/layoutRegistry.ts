@@ -1,3 +1,5 @@
+// lib\templates\layout-presets\layoutRegistry.ts
+
 import type { TemplateLayoutRegistry } from "./types";
 import weddingLayouts from "./templates/wedding";
 import babyShowerLayouts from "./templates/baby_shower";
