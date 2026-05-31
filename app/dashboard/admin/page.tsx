@@ -270,10 +270,10 @@ const quickStats = [
     </div>
   </div>
 
-  <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-10">
+  <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
     <Link
       href="/dashboard/admin/microsites"
-      className="rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-4 text-sm font-bold text-neutral-900 hover:bg-neutral-100"
+      className="flex min-h-[88px] items-center justify-center rounded-2xl border border-neutral-200 bg-neutral-50 px-4 py-4 text-center text-sm font-bold text-neutral-900 hover:bg-neutral-100"
     >
       Manage Microsites
     </Link>
