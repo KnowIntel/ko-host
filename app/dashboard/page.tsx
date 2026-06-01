@@ -14,12 +14,12 @@ export default async function DashboardPage() {
     return <div className="p-6">Unauthorized</div>;
   }
 
-  const userEmail =
-    user?.primaryEmailAddress?.emailAddress?.toLowerCase() ?? "";
+const userEmail =
+  user?.primaryEmailAddress?.emailAddress?.toLowerCase().trim() ?? "";
 
-  const isAdmin =
-    userEmail === ADMIN_EMAIL ||
-    userEmail === "michel.darbeau@gmail.com";
+const isAdmin =
+  userEmail === "knowintelligentlife@gmail.com";
+    // userEmail === "michel.darbeau@gmail.com";
 
   return (
     <div className="space-y-6">
@@ -39,14 +39,14 @@ export default async function DashboardPage() {
             View Microsites
           </Link>
 
-          {isAdmin ? (
-            <Link
-              href="/dashboard/admin"
-              className="inline-flex items-center justify-center rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-bold text-blue-700 hover:bg-blue-100"
-            >
-              Admin Control Center
-            </Link>
-          ) : null}
+{isAdmin && (
+  <Link
+    href="/dashboard/admin"
+    className="inline-flex items-center justify-center rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-bold text-blue-700 hover:bg-blue-100"
+  >
+    Admin Control Center
+  </Link>
+)}
         </div>
       </div>
     </div>
