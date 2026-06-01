@@ -479,10 +479,16 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "RSVP", type: "rsvp" },
     { kind: "block", label: "FAQ", type: "faq" },
   ],
-  Exchange: [
-    { kind: "block", label: "Thread", type: "thread" },
-    { kind: "block", label: "File Share", type: "file_share" },
-  ],
+Exchange: [
+  { kind: "block", label: "Thread", type: "thread" },
+  {
+    kind: "block",
+    label: "Post Board",
+    type: "post_board",
+    iconName: "message-thread",
+  },
+  { kind: "block", label: "File Share", type: "file_share" },
+],
 Utilities: [
   { kind: "block", label: "Button", type: "cta" },
   { kind: "block", label: "Links", type: "links" },
@@ -550,6 +556,7 @@ const TOOL_DESCRIPTIONS: Record<string, string> = {
   FAQ: "Expandable questions and answers",
 
   Thread: "Public discussion message thread",
+  "Post Board": "Owner announcements with likes and discussion links",
   "File Share": "Upload and share visitor files",
 
   Bookmark: "Jump point anchor for page navigation",
@@ -17442,6 +17449,495 @@ onClick={() =>
   </div>
 ) : null}
 
+{selectedBlock?.type === "post_board" ? (
+  <div className={inspectorCardClass()}>
+    <div className={inspectorLabelClass()}>Post Board</div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Heading</div>
+      <input
+        type="text"
+        value={selectedBlock.data.heading ?? ""}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "post_board"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    heading: e.target.value,
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Subtitle</div>
+      <input
+        type="text"
+        value={selectedBlock.data.subtitle ?? ""}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "post_board"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    subtitle: e.target.value,
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Style Variant</div>
+      <select
+        value={selectedBlock.data.variant ?? "standard"}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "post_board"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    variant: e.target.value as "standard" | "compact" | "feature",
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      >
+        <option value="standard">Standard</option>
+        <option value="compact">Compact</option>
+        <option value="feature">Feature</option>
+      </select>
+    </div>
+
+    <div className="mt-4 grid gap-2">
+      {[
+        ["showHeading", "Show heading"],
+        ["showSubtitle", "Show subtitle"],
+        ["showOwnerAvatar", "Show profile image"],
+        ["showTimestamps", "Show timestamps"],
+        ["showPinnedPostsFirst", "Pinned posts first"],
+        ["showLikes", "Show likes"],
+        ["showMessages", "Show message button"],
+        ["allowImages", "Allow images"],
+        ["allowVideos", "Allow videos"],
+      ].map(([key, label]) => (
+        <label
+          key={key}
+          className="flex items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm text-neutral-700"
+        >
+          <input
+            type="checkbox"
+            checked={Boolean((selectedBlock.data as any)[key] ?? true)}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "post_board"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        [key]: e.target.checked,
+                      },
+                    },
+              )
+            }
+          />
+          {label}
+        </label>
+      ))}
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Max Message Length</div>
+      <input
+        type="number"
+        min={50}
+        max={1000}
+        value={selectedBlock.data.maxMessageLength ?? 300}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "post_board"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    maxMessageLength: Math.max(
+                      50,
+                      Math.min(1000, Number(e.target.value) || 300),
+                    ),
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
+
+    <div className="mt-5 space-y-3">
+      <div className={inspectorLabelClass()}>Posts</div>
+
+      {selectedBlock.data.posts.map((post) => (
+        <div
+          key={post.id}
+          className="rounded-xl border border-neutral-200 bg-neutral-50 p-3"
+        >
+          <label className="mb-3 flex items-center gap-2 text-sm text-neutral-700">
+            <input
+              type="checkbox"
+              checked={Boolean(post.pinned)}
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "post_board"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          posts: block.data.posts.map((entry) =>
+                            entry.id === post.id
+                              ? { ...entry, pinned: e.target.checked }
+                              : entry,
+                          ),
+                        },
+                      },
+                )
+              }
+            />
+            Pin post
+          </label>
+
+          <div className={inspectorLabelClass()}>Title</div>
+          <input
+            type="text"
+            value={post.title}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "post_board"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        posts: block.data.posts.map((entry) =>
+                          entry.id === post.id
+                            ? { ...entry, title: e.target.value }
+                            : entry,
+                        ),
+                      },
+                    },
+              )
+            }
+            className={inspectorInputClass()}
+          />
+
+          <div className="mt-4">
+            <div className={inspectorLabelClass()}>Subtitle / Category</div>
+            <input
+              type="text"
+              value={post.subtitle ?? ""}
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "post_board"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          posts: block.data.posts.map((entry) =>
+                            entry.id === post.id
+                              ? { ...entry, subtitle: e.target.value }
+                              : entry,
+                          ),
+                        },
+                      },
+                )
+              }
+              className={inspectorInputClass()}
+            />
+          </div>
+
+          <div className="mt-4">
+            <div className={inspectorLabelClass()}>Message</div>
+            <textarea
+              value={post.message}
+              maxLength={selectedBlock.data.maxMessageLength ?? 300}
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "post_board"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          posts: block.data.posts.map((entry) =>
+                            entry.id === post.id
+                              ? { ...entry, message: e.target.value }
+                              : entry,
+                          ),
+                        },
+                      },
+                )
+              }
+              className={inspectorTextareaClass()}
+            />
+            <div className="mt-1 text-xs text-neutral-500">
+              {post.message.length}/{selectedBlock.data.maxMessageLength ?? 300}
+            </div>
+          </div>
+
+          <div className="mt-4">
+            <div className={inspectorLabelClass()}>Owner Display Name</div>
+            <input
+              type="text"
+              value={post.ownerDisplayName ?? ""}
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "post_board"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          posts: block.data.posts.map((entry) =>
+                            entry.id === post.id
+                              ? { ...entry, ownerDisplayName: e.target.value }
+                              : entry,
+                          ),
+                        },
+                      },
+                )
+              }
+              className={inspectorInputClass()}
+            />
+          </div>
+
+          <div className="mt-4">
+            <div className={inspectorLabelClass()}>Image URL</div>
+            <input
+              type="text"
+              value={post.imageUrl ?? ""}
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "post_board"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          posts: block.data.posts.map((entry) =>
+                            entry.id === post.id
+                              ? { ...entry, imageUrl: e.target.value }
+                              : entry,
+                          ),
+                        },
+                      },
+                )
+              }
+              className={inspectorInputClass()}
+            />
+          </div>
+
+          <div className="mt-4">
+            <div className={inspectorLabelClass()}>Thread ID</div>
+            <input
+              type="text"
+              value={post.threadId ?? ""}
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "post_board"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          posts: block.data.posts.map((entry) =>
+                            entry.id === post.id
+                              ? { ...entry, threadId: e.target.value }
+                              : entry,
+                          ),
+                        },
+                      },
+                )
+              }
+              className={inspectorInputClass()}
+            />
+          </div>
+
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            <div>
+              <div className={inspectorLabelClass()}>Likes</div>
+              <input
+                type="number"
+                min={0}
+                value={post.likeCount ?? 0}
+                onChange={(e) =>
+                  updateSelectedBlock((block) =>
+                    block.type !== "post_board"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            posts: block.data.posts.map((entry) =>
+                              entry.id === post.id
+                                ? {
+                                    ...entry,
+                                    likeCount: Math.max(
+                                      0,
+                                      Number(e.target.value) || 0,
+                                    ),
+                                  }
+                                : entry,
+                            ),
+                          },
+                        },
+                  )
+                }
+                className={inspectorInputClass()}
+              />
+            </div>
+
+            <div>
+              <div className={inspectorLabelClass()}>Messages</div>
+              <input
+                type="number"
+                min={0}
+                value={post.messageCount ?? 0}
+                onChange={(e) =>
+                  updateSelectedBlock((block) =>
+                    block.type !== "post_board"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            posts: block.data.posts.map((entry) =>
+                              entry.id === post.id
+                                ? {
+                                    ...entry,
+                                    messageCount: Math.max(
+                                      0,
+                                      Number(e.target.value) || 0,
+                                    ),
+                                  }
+                                : entry,
+                            ),
+                          },
+                        },
+                  )
+                }
+                className={inspectorInputClass()}
+              />
+            </div>
+          </div>
+
+          <div className="mt-3 flex justify-between gap-2">
+            <button
+              type="button"
+              className={toolSetButtonClass("front")}
+              onClick={() =>
+                updateSelectedBlock((block) =>
+                  block.type !== "post_board"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          posts: [
+                            ...block.data.posts,
+                            {
+                              ...post,
+                              id: makeClientId("post"),
+                              title: `${post.title || "Post"} Copy`,
+                              createdAt: new Date().toISOString(),
+                            },
+                          ],
+                        },
+                      },
+                )
+              }
+            >
+              Duplicate
+            </button>
+
+            <button
+              type="button"
+              className={toolSetButtonClass("remove")}
+              onClick={() =>
+                updateSelectedBlock((block) =>
+                  block.type !== "post_board"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          posts:
+                            block.data.posts.length > 1
+                              ? block.data.posts.filter(
+                                  (entry) => entry.id !== post.id,
+                                )
+                              : block.data.posts,
+                        },
+                      },
+                )
+              }
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      ))}
+
+      <button
+        type="button"
+        className={toolSetButtonClass("front")}
+        onClick={() =>
+          updateSelectedBlock((block) =>
+            block.type !== "post_board"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    posts: [
+                      ...block.data.posts,
+                      {
+                        id: makeClientId("post"),
+                        title: "New update",
+                        subtitle: "",
+                        message: "Write a short announcement here.",
+                        createdAt: new Date().toISOString(),
+                        ownerDisplayName: "Owner",
+                        pinned: false,
+                        likeCount: 0,
+                        messageCount: 0,
+                      },
+                    ],
+                  },
+                },
+          )
+        }
+      >
+        Add Post
+      </button>
+    </div>
+  </div>
+) : null}
+
 {selectedBlock?.type === "checklist" ? (
   <div className={inspectorCardClass()}>
     <div className={inspectorLabelClass()}>Checklist</div>
@@ -17835,19 +18331,24 @@ onClick={() =>
     className="rounded-xl border border-neutral-200 bg-neutral-50 p-3"
   >
     <div className="mb-4 flex items-center gap-3 rounded-xl border border-neutral-200 bg-white p-3">
-      {event.imageUrl ? (
-        <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-neutral-200">
-          <img
-            src={event.imageUrl}
-            alt={event.imageAlt || event.title || "Event"}
-            className="h-full w-full object-cover"
-          />
-        </div>
-      ) : (
-        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg border border-dashed border-neutral-300 text-xs text-neutral-400">
-          IMG
-        </div>
-      )}
+<button
+  type="button"
+  onClick={() =>
+    void uploadImageToSelectedBlock(selectedBlock.id, undefined, event.id)
+  }
+  className="h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-dashed border-neutral-300 bg-white text-xs text-neutral-400 hover:border-neutral-900 hover:text-neutral-900"
+  title="Browse event image"
+>
+  {event.imageUrl ? (
+    <img
+      src={event.imageUrl}
+      alt={event.imageAlt || event.title || "Event"}
+      className="h-full w-full object-cover"
+    />
+  ) : (
+    <span>IMG</span>
+  )}
+</button>
 
       <div className="min-w-0 flex-1">
         <div className="truncate text-sm font-semibold text-neutral-900">

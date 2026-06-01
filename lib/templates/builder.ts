@@ -129,6 +129,7 @@ export type BuilderBlockType =
   | "faq"
   | "gallery"
   | "thread"
+  | "post_board"
   | "highlight"
   | "showcase"
   | "festiveBackground"
@@ -1362,6 +1363,48 @@ export type CalendarEventBlock = BaseBlock & {
   };
 };
 
+export type PostBoardPost = {
+  id: string;
+  title: string;
+  subtitle?: string;
+  message: string;
+  createdAt: string;
+  updatedAt?: string;
+  ownerDisplayName?: string;
+  ownerAvatarUrl?: string;
+  pinned?: boolean;
+  imageUrl?: string;
+  imageStoragePath?: string;
+  videoUrl?: string;
+  videoStoragePath?: string;
+  threadId?: string;
+  likeCount?: number;
+  messageCount?: number;
+};
+
+export type PostBoardBlock = BaseBlock & {
+  type: "post_board";
+  data: {
+    heading?: string;
+    subtitle?: string;
+    showHeading?: boolean;
+    showSubtitle?: boolean;
+    showOwnerAvatar?: boolean;
+    showTimestamps?: boolean;
+    showPinnedPostsFirst?: boolean;
+    showLikes?: boolean;
+    showMessages?: boolean;
+    allowImages?: boolean;
+    allowVideos?: boolean;
+    maxMessageLength?: number;
+    posts: PostBoardPost[];
+    variant?: "standard" | "compact" | "feature";
+    style?: Record<string, any>;
+    cardStyle?: Record<string, any>;
+    buttonStyle?: Record<string, any>;
+  };
+};
+
 export type MicrositeBlock =
   | BookmarkBlock
   | PuzzleBlock
@@ -1385,6 +1428,9 @@ export type MicrositeBlock =
   | FaqBlock
   | GalleryBlock
   | MessageThreadBlock
+  | MessageThreadBlock
+  | PostBoardBlock
+  | HighlightBlock
   | HighlightBlock
   | ShowcaseBlock
   | FestiveBackgroundBlock
@@ -1406,6 +1452,7 @@ export type MicrositeBlock =
   | RegistryBlock
   | CheckoutBlock
   | CartBlock;
+  
 
 /* =========================================
    Draft Model
@@ -1717,6 +1764,93 @@ function normalizeThreadBlock(block: MessageThreadBlock): MessageThreadBlock {
             : 100,
         borderColor: block.data.postButtonAppearance?.borderColor ?? "#111827",
       },
+    },
+  };
+}
+
+function normalizePostBoardBlock(block: PostBoardBlock): PostBoardBlock {
+  const fallbackGrid = createDefaultThreadGrid();
+  const normalizedGrid = normalizeGridValue(block.grid, fallbackGrid);
+
+  return {
+    ...block,
+    grid: {
+      ...normalizedGrid,
+      colSpan: normalizedGrid.colSpan < 6 ? fallbackGrid.colSpan : normalizedGrid.colSpan,
+      rowSpan: normalizedGrid.rowSpan < 6 ? fallbackGrid.rowSpan : normalizedGrid.rowSpan,
+    },
+    data: {
+      ...block.data,
+      heading:
+        typeof block.data.heading === "string" ? block.data.heading : "Updates",
+      subtitle:
+        typeof block.data.subtitle === "string"
+          ? block.data.subtitle
+          : "Latest announcements and posts",
+      showHeading: block.data.showHeading !== false,
+      showSubtitle: block.data.showSubtitle !== false,
+      showOwnerAvatar: block.data.showOwnerAvatar !== false,
+      showTimestamps: block.data.showTimestamps !== false,
+      showPinnedPostsFirst: block.data.showPinnedPostsFirst !== false,
+      showLikes: block.data.showLikes !== false,
+      showMessages: block.data.showMessages !== false,
+      allowImages: block.data.allowImages !== false,
+      allowVideos: Boolean(block.data.allowVideos),
+      maxMessageLength:
+        typeof block.data.maxMessageLength === "number" &&
+        Number.isFinite(block.data.maxMessageLength)
+          ? Math.max(50, Math.min(1000, Math.floor(block.data.maxMessageLength)))
+          : 300,
+      variant:
+        block.data.variant === "compact" || block.data.variant === "feature"
+          ? block.data.variant
+          : "standard",
+      posts: Array.isArray(block.data.posts)
+        ? block.data.posts.map((post) => ({
+            id: typeof post.id === "string" && post.id ? post.id : makeId("post"),
+            title:
+              typeof post.title === "string" && post.title.trim()
+                ? post.title
+                : "Untitled post",
+            subtitle: typeof post.subtitle === "string" ? post.subtitle : "",
+            message: typeof post.message === "string" ? post.message : "",
+            createdAt:
+              typeof post.createdAt === "string" && post.createdAt
+                ? post.createdAt
+                : new Date().toISOString(),
+            updatedAt: typeof post.updatedAt === "string" ? post.updatedAt : undefined,
+            ownerDisplayName:
+              typeof post.ownerDisplayName === "string"
+                ? post.ownerDisplayName
+                : "",
+            ownerAvatarUrl:
+              typeof post.ownerAvatarUrl === "string" ? post.ownerAvatarUrl : "",
+            pinned: Boolean(post.pinned),
+            imageUrl: typeof post.imageUrl === "string" ? post.imageUrl : "",
+            imageStoragePath:
+              typeof post.imageStoragePath === "string"
+                ? post.imageStoragePath
+                : "",
+            videoUrl: typeof post.videoUrl === "string" ? post.videoUrl : "",
+            videoStoragePath:
+              typeof post.videoStoragePath === "string"
+                ? post.videoStoragePath
+                : "",
+            threadId: typeof post.threadId === "string" ? post.threadId : "",
+            likeCount:
+              typeof post.likeCount === "number" && Number.isFinite(post.likeCount)
+                ? Math.max(0, Math.floor(post.likeCount))
+                : 0,
+            messageCount:
+              typeof post.messageCount === "number" &&
+              Number.isFinite(post.messageCount)
+                ? Math.max(0, Math.floor(post.messageCount))
+                : 0,
+          }))
+        : [],
+      style: block.data.style ?? {},
+      cardStyle: block.data.cardStyle ?? {},
+      buttonStyle: block.data.buttonStyle ?? {},
     },
   };
 }
@@ -2880,6 +3014,47 @@ styleVariant: "elegant_wedding",
         },
       };
 
+          case "post_board":
+      return {
+        id: makeId("postboard"),
+        type: "post_board",
+        label: "Post Board",
+        grid: createDefaultThreadGrid(),
+        appearance: createDefaultBlockAppearance(),
+        data: {
+          heading: "Updates",
+          subtitle: "Latest announcements and posts",
+          showHeading: true,
+          showSubtitle: true,
+          showOwnerAvatar: true,
+          showTimestamps: true,
+          showPinnedPostsFirst: true,
+          showLikes: true,
+          showMessages: true,
+          allowImages: true,
+          allowVideos: false,
+          maxMessageLength: 300,
+          variant: "standard",
+          posts: [
+            {
+              id: makeId("post"),
+              title: "Welcome update",
+              subtitle: "Pinned",
+              message:
+                "Use this post board to share announcements, updates, and important notes with visitors.",
+              createdAt: new Date().toISOString(),
+              ownerDisplayName: "Owner",
+              pinned: true,
+              likeCount: 0,
+              messageCount: 0,
+            },
+          ],
+          style: {},
+          cardStyle: {},
+          buttonStyle: {},
+        },
+      };
+
      case "highlight":
       return {
         id: makeId("highlight"),
@@ -3662,13 +3837,17 @@ export function sanitizeBuilderDraft(input: unknown): BuilderDraft {
 
 
 
-    if (block.type === "thread") {
-      return normalizeThreadBlock(block as MessageThreadBlock);
-    }
+  if (block.type === "thread") {
+    return normalizeThreadBlock(block as MessageThreadBlock);
+  }
 
-    if (block.type === "video") {
-  return normalizeVideoBlock(block);
-}
+  if (block.type === "post_board") {
+    return normalizePostBoardBlock(block as PostBoardBlock);
+  }
+
+  if (block.type === "video") {
+    return normalizeVideoBlock(block);
+  }
 
     if (block.type === "listing") {
       return normalizeListingBlock(block as ListingBlock);

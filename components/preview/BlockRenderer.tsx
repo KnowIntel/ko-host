@@ -4747,6 +4747,7 @@ function setStoredVote(messageId: string, vote: -1 | 1) {
   writeVoteMap(map);
 }
 
+
 function normalizeThreadMessages(rawMessages: any[]): ThreadUiMessage[] {
   if (!Array.isArray(rawMessages)) return [];
 
@@ -4786,6 +4787,262 @@ function normalizeThreadMessages(rawMessages: any[]): ThreadUiMessage[] {
             : getStoredVote(id),
     };
   });
+}
+
+function renderPostBoard(
+  block: Extract<MicrositeBlock, { type: "post_board" }>,
+  designKey?: string,
+) {
+  const posts = Array.isArray(block.data.posts) ? block.data.posts : [];
+  const maxMessageLength =
+    typeof block.data.maxMessageLength === "number"
+      ? Math.max(50, Math.min(1000, block.data.maxMessageLength))
+      : 300;
+
+  const sortedPosts = [...posts].sort((a, b) => {
+    if (block.data.showPinnedPostsFirst !== false) {
+      if (Boolean(a.pinned) !== Boolean(b.pinned)) {
+        return Boolean(a.pinned) ? -1 : 1;
+      }
+    }
+
+    const aTime = new Date(a.createdAt || 0).getTime();
+    const bTime = new Date(b.createdAt || 0).getTime();
+
+    return bTime - aTime;
+  });
+
+  function formatPostTime(value?: string) {
+    const time = value ? new Date(value).getTime() : 0;
+
+    if (!time || Number.isNaN(time)) return "Just now";
+
+    const diffMs = Date.now() - time;
+    const diffMinutes = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMinutes / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffMinutes < 1) return "Just now";
+    if (diffMinutes < 60) return `${diffMinutes}m`;
+    if (diffHours < 24) return `${diffHours}h`;
+    return `${diffDays}d`;
+  }
+
+  function getPostInitials(name?: string) {
+    const safeName = typeof name === "string" && name.trim() ? name.trim() : "Owner";
+
+    return safeName
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((part) => part.charAt(0).toUpperCase())
+      .join("");
+  }
+
+  function getPostMessage(message?: string) {
+    const safeMessage = typeof message === "string" ? message : "";
+
+    if (safeMessage.length <= maxMessageLength) return safeMessage;
+
+    return `${safeMessage.slice(0, maxMessageLength).trim()}…`;
+  }
+
+  const isCompact = block.data.variant === "compact";
+  const isFeature = block.data.variant === "feature";
+
+  return (
+    <Surface
+      block={block}
+      designKey={designKey}
+      className={`${getSoftSurfaceClass(designKey)} overflow-y-auto`}
+    >
+      {block.data.showHeading !== false ? (
+        <div
+          className={isFeature ? "text-xl font-bold" : "text-base font-semibold"}
+          style={getContainerTextStyle(block.data.style as any, designKey)}
+        >
+          {block.data.heading || "Updates"}
+        </div>
+      ) : null}
+
+      {block.data.showSubtitle !== false ? (
+        <div
+          className={`mt-1 ${isFeature ? "text-sm" : "text-xs"} ${getMutedTextClass(
+            designKey,
+          )}`}
+          style={getContainerTextStyle(block.data.style as any, designKey)}
+        >
+          {block.data.subtitle || "Latest announcements and posts"}
+        </div>
+      ) : null}
+
+      <div className={block.data.showHeading !== false || block.data.showSubtitle !== false ? "mt-4" : ""}>
+        {sortedPosts.length ? (
+          <div className={isCompact ? "space-y-2" : "space-y-3"}>
+            {sortedPosts.map((post) => {
+              const ownerName = post.ownerDisplayName || "Owner";
+
+              return (
+                <article
+                  key={post.id}
+                  className={[
+                    "rounded-xl border",
+                    isFeature ? "p-4" : isCompact ? "p-3" : "p-3",
+                    isLightDesign(designKey)
+                      ? "border-neutral-200 bg-white"
+                      : "border-white/10 bg-white/5",
+                  ].join(" ")}
+                >
+                  <div className="flex items-start gap-3">
+                    {block.data.showOwnerAvatar !== false ? (
+                      post.ownerAvatarUrl ? (
+                        <img
+                          src={post.ownerAvatarUrl}
+                          alt={`${ownerName} avatar`}
+                          className={[
+                            "shrink-0 rounded-full object-cover",
+                            isFeature ? "h-11 w-11" : "h-9 w-9",
+                          ].join(" ")}
+                        />
+                      ) : (
+                        <div
+                          className={[
+                            "flex shrink-0 items-center justify-center rounded-full text-xs font-bold",
+                            isFeature ? "h-11 w-11" : "h-9 w-9",
+                            isLightDesign(designKey)
+                              ? "bg-neutral-900 text-white"
+                              : "bg-white text-neutral-900",
+                          ].join(" ")}
+                        >
+                          {getPostInitials(ownerName)}
+                        </div>
+                      )
+                    ) : null}
+
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <div
+                          className="text-sm font-semibold"
+                          style={getContainerTextStyle(block.data.style as any, designKey)}
+                        >
+                          {ownerName}
+                        </div>
+
+                        {block.data.showTimestamps !== false ? (
+                          <div className={`text-xs ${getMutedTextClass(designKey)}`}>
+                            {formatPostTime(post.createdAt)}
+                          </div>
+                        ) : null}
+
+                        {post.pinned ? (
+                          <div
+                            className={[
+                              "rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.12em]",
+                              isLightDesign(designKey)
+                                ? "bg-neutral-100 text-neutral-700"
+                                : "bg-white/10 text-white/75",
+                            ].join(" ")}
+                          >
+                            Pinned
+                          </div>
+                        ) : null}
+                      </div>
+
+                      {post.subtitle ? (
+                        <div className={`mt-1 text-xs ${getMutedTextClass(designKey)}`}>
+                          {post.subtitle}
+                        </div>
+                      ) : null}
+
+                      <div
+                        className={[
+                          "mt-2 font-semibold",
+                          isFeature ? "text-lg" : "text-sm",
+                        ].join(" ")}
+                        style={getContainerTextStyle(block.data.style as any, designKey)}
+                      >
+                        {post.title || "Untitled post"}
+                      </div>
+
+                      {post.message ? (
+                        <div
+                          className={[
+                            "mt-1 leading-snug",
+                            isCompact ? "text-xs" : "text-sm",
+                          ].join(" ")}
+                          style={getContainerTextStyle(block.data.style as any, designKey)}
+                        >
+                          {getPostMessage(post.message)}
+                        </div>
+                      ) : null}
+
+                      {post.imageUrl && block.data.allowImages !== false ? (
+                        <img
+                          src={post.imageUrl}
+                          alt={post.title || "Post image"}
+                          className="mt-3 max-h-52 w-full rounded-xl border object-cover"
+                        />
+                      ) : null}
+
+                      {post.videoUrl && block.data.allowVideos ? (
+                        <video
+                          src={post.videoUrl}
+                          controls
+                          className="mt-3 max-h-52 w-full rounded-xl border object-cover"
+                        />
+                      ) : null}
+
+                      <div className="mt-3 flex items-center gap-2">
+                        {block.data.showLikes !== false ? (
+                          <button
+                            type="button"
+                            className={[
+                              "rounded-full border px-3 py-1 text-xs font-semibold",
+                              isLightDesign(designKey)
+                                ? "border-neutral-200 bg-neutral-50 text-neutral-700"
+                                : "border-white/10 bg-white/5 text-white/75",
+                            ].join(" ")}
+                            aria-label={`Like ${post.title || "post"}`}
+                          >
+                            ♥ {post.likeCount ?? 0}
+                          </button>
+                        ) : null}
+
+                        {block.data.showMessages !== false ? (
+                          <a
+                            href={post.threadId ? `#thread-${post.threadId}` : "#"}
+                            className={[
+                              "rounded-full border px-3 py-1 text-xs font-semibold",
+                              isLightDesign(designKey)
+                                ? "border-neutral-200 bg-neutral-50 text-neutral-700"
+                                : "border-white/10 bg-white/5 text-white/75",
+                            ].join(" ")}
+                            aria-label={`Open discussion for ${post.title || "post"}`}
+                          >
+                            💬 {post.messageCount ?? 0}
+                          </a>
+                        ) : null}
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        ) : (
+          <div
+            className={[
+              "rounded-xl border border-dashed px-4 py-6 text-sm",
+              isLightDesign(designKey)
+                ? "border-neutral-300 bg-neutral-50 text-neutral-500"
+                : "border-white/15 bg-white/5 text-white/60",
+            ].join(" ")}
+          >
+            No posts yet.
+          </div>
+        )}
+      </div>
+    </Surface>
+  );
 }
 
 function renderThread(
@@ -11605,6 +11862,8 @@ case "timeline":
       return renderFaq(block, designKey);
     case "thread":
       return renderThread(block, designKey, micrositeId);
+    case "post_board":
+      return renderPostBoard(block, designKey);
     case "padding":
       return <div className="h-full w-full" />;
     case "showcase":
