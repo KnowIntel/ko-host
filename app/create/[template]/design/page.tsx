@@ -64,6 +64,7 @@ const draftPageCountByTemplateDesignKey: Record<string, number> = {
 
   "baby_shower:elegant": 1,
   "baby_shower:playful": 3,
+  "baby_shower:treasure": 1,
 
   "family_reunion:warm": 1,
   "family_reunion:casual": 1,

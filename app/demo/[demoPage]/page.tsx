@@ -218,6 +218,56 @@ const DEMO_PAGES: Record<
     message:
       "You opened the explore more page. In a real event microsite, this could highlight attractions, vendors, activities, sponsors, special exhibits, and all the extra reasons visitors end up staying longer than planned.",
   },
+
+"baby-shower-rsvp-decline": {
+  title: "Demo RSVP Decline",
+  eyebrow: "Baby Shower Demo",
+  message:
+    "You opened the RSVP decline page. In a real baby shower microsite, this could let guests politely decline, send warm wishes, and avoid the awkward group text where everyone explains why they suddenly remembered a conflict.",
+},
+
+"baby-shower-schedule": {
+  title: "Demo Schedule",
+  eyebrow: "Baby Shower Demo",
+  message:
+    "You opened the schedule page. Normally this could show the shower timeline, games, gift opening, food, photos, and the exact moment everyone starts guessing the baby’s name like it’s a competitive sport.",
+},
+
+"baby-shower-rsvp": {
+  title: "Demo RSVP",
+  eyebrow: "Baby Shower Demo",
+  message:
+    "You opened the RSVP page. In a real baby shower microsite, this could collect guest names, attendance, meal notes, plus-ones, and all the tiny details that keep the host from managing forty separate text messages.",
+},
+
+"baby-shower-registry": {
+  title: "Demo Registry",
+  eyebrow: "Baby Shower Demo",
+  message:
+    "You opened the registry page. Normally this could link guests to baby essentials, wish lists, gift ideas, diaper funds, and at least one item nobody understands but every new parent swears they need.",
+},
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 };
 
 export default async function DemoPage({
