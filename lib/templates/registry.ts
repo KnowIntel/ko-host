@@ -16,6 +16,7 @@ export type TemplateKey =
   | "beta_testing"
   | "business_card"
   | "church_event"
+  | "watch_club"
   // | "commercial_leasing"
   | "community_alert"
   | "companion_service"
@@ -638,7 +639,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "fsbo",
     defaultDraft: { title: "For Sale", slugSuggestion: "forsale" },
   },
-  {
+/*   {
     key: "nft_drop",
     title: "NFT Drop",
     description: "Drop details, links, roadmap.",
@@ -646,7 +647,19 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 4,
     demoSlug: "nft",
     defaultDraft: { title: "NFT Drop", slugSuggestion: "nftdrop" },
+  }, */
+{
+  key: "watch_club",
+  title: "Watch Club",
+  description: "Episode schedules, discussions, member updates, and club events.",
+  thumb: "watchclub",
+  setupMins: 4,
+  demoSlug: "watch-club",
+  defaultDraft: {
+    title: "Watch Club",
+    slugSuggestion: "watchclub",
   },
+},
   {
     key: "gender_reveal",
     title: "Gender Reveal",
