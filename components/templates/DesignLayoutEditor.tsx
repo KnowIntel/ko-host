@@ -217,6 +217,7 @@ type AppearancePatch = Partial<
     | "textureScale"
     | "texturePositionX"
     | "texturePositionY"
+    | "backgroundOpacity"
   >
 >;
 
@@ -9911,22 +9912,47 @@ const idsToExpand =
                 />
               </button>
 
-              <button
-                type="button"
-                className={topBarButtonClass(
-                  selectedAppearance.backgroundColor === "transparent",
-                )}
-                onClick={() =>
-                  applyAppearancePatch({ backgroundColor: "transparent" })
-                }
-                title={
-                  selectedBlock.type === "poll"
-                    ? "Transparent poll background"
-                    : "Transparent highlight background"
-                }
-              >
-                ☐
-              </button>
+<button
+  type="button"
+  className={topBarButtonClass(
+    selectedAppearance.backgroundColor === "transparent",
+  )}
+  onClick={() =>
+    applyAppearancePatch({ backgroundColor: "transparent" })
+  }
+  title={
+    selectedBlock.type === "poll"
+      ? "Transparent poll background"
+      : "Transparent highlight background"
+  }
+>
+  ☐
+</button>
+
+<div className={topBarSliderWrapClass()}>
+  <span>BG Opacity</span>
+  <input
+    type="range"
+    min={0}
+    max={100}
+    value={Math.round(
+      ((selectedAppearance as any).backgroundOpacity ?? 1) * 100,
+    )}
+    onChange={(e) =>
+      applyAppearancePatch({
+        backgroundOpacity: Number(e.target.value) / 100,
+      } as any)
+    }
+    className={topBarSliderClass()}
+    title="Background transparency"
+  />
+  <span>
+    {Math.round(
+      ((selectedAppearance as any).backgroundOpacity ?? 1) * 100,
+    )}
+    %
+  </span>
+</div>
             </>
           ) : null}
 

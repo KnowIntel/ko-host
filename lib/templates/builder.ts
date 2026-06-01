@@ -64,6 +64,7 @@ export type BlockAppearance = {
   textureScale?: number;
   texturePositionX?: number;
   texturePositionY?: number;
+  backgroundOpacity?: number;
 };
 
 /* =========================================
