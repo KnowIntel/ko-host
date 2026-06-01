@@ -495,13 +495,19 @@ Utilities: [
 Scheduling: [
   { kind: "block", label: "Countdown", type: "countdown" },
   {
-  kind: "block",
-  label: "Story Timeline",
-  type: "timeline",
-  iconName: "timeline",
-},
+    kind: "block",
+    label: "Story Timeline",
+    type: "timeline",
+    iconName: "timeline",
+  },
   { kind: "block", label: "Checklist", type: "checklist" },
   { kind: "block", label: "Schedule / Agenda", type: "schedule_agenda" },
+{
+  kind: "block",
+  label: "Calendar Event",
+  type: "calendar_event",
+  iconName: "calendar-full",
+},
   { kind: "block", label: "Map / Location", type: "map_location" },
 ],
 Premium: [
@@ -5482,7 +5488,11 @@ async function uploadDroppedGalleryFiles(
 }
 
 
-async function uploadImageToSelectedBlock(blockId: string, timelineEntryId?: string) {
+async function uploadImageToSelectedBlock(
+  blockId: string,
+  timelineEntryId?: string,
+  calendarEventId?: string,
+) {
   await openImagePicker({
     onSelect: async (files) => {
       const file = files[0];
@@ -5563,6 +5573,25 @@ async function uploadImageToSelectedBlock(blockId: string, timelineEntryId?: str
                         icon: "/media-icons/star.svg",
                       }
                     : entry,
+                ),
+              },
+            };
+          }
+
+                    if (block.type === "calendar_event" && calendarEventId) {
+            return {
+              ...block,
+              data: {
+                ...block.data,
+                events: block.data.events.map((event) =>
+                  event.id === calendarEventId
+                    ? {
+                        ...event,
+                        imageUrl: uploaded.url,
+                        imageStoragePath: uploaded.storagePath,
+                        imageAlt: file.name,
+                      }
+                    : event,
                 ),
               },
             };
@@ -17493,6 +17522,991 @@ onClick={() =>
         }
       >
         Add Item
+      </button>
+    </div>
+  </div>
+) : null}
+
+{selectedBlock?.type === "calendar_event" ? (
+  <div className={inspectorCardClass()}>
+    <div className={inspectorLabelClass()}>Calendar Event</div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Heading</div>
+      <input
+        type="text"
+        value={selectedBlock.data.heading ?? ""}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "calendar_event"
+              ? block
+              : { ...block, data: { ...block.data, heading: e.target.value } },
+          )
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Subtitle</div>
+      <input
+        type="text"
+        value={selectedBlock.data.subtitle ?? ""}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "calendar_event"
+              ? block
+              : { ...block, data: { ...block.data, subtitle: e.target.value } },
+          )
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Style Variant</div>
+      <select
+        value={selectedBlock.data.variant}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "calendar_event"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    variant: e.target.value as "standard" | "formal" | "simplified",
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      >
+        <option value="standard">Standard</option>
+        <option value="formal">Formal</option>
+        <option value="simplified">Simplified</option>
+      </select>
+    </div>
+
+    <div className="mt-5">
+      <div className={inspectorLabelClass()}>Display Options</div>
+      <div className="mt-3 grid grid-cols-2 gap-3">
+        {[
+          ["showHeading", "Heading"],
+          ["showSubtitle", "Subtitle"],
+          ["showCalendarHeading", "Calendar Title"],
+          ["showEmptyState", "Empty State"],
+          ["showCategoryBadge", "Category Badge"],
+          ["showHost", "Host"],
+          ["showCapacity", "Capacity"],
+          ["showRsvpBadge", "RSVP Badge"],
+          ["showEventImages", "Event Images"],
+          ["showCtaButtons", "CTA Buttons"],
+        ].map(([key, label]) => (
+          <label key={key} className="flex items-center gap-2 text-sm text-neutral-700">
+            <input
+              type="checkbox"
+              checked={(selectedBlock.data as any)[key] !== false}
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "calendar_event"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          [key]: e.target.checked,
+                        },
+                      },
+                )
+              }
+            />
+            {label}
+          </label>
+        ))}
+      </div>
+    </div>
+
+    <div className="mt-5">
+      <div className={inspectorLabelClass()}>Calendar Styling</div>
+      <div className="mt-3 grid grid-cols-2 gap-3">
+        {[
+          ["backgroundColor", "Background"],
+          ["textColor", "Text"],
+          ["activeDateColor", "Active Date"],
+          ["todayBorderColor", "Today Border"],
+          ["eventDotColor", "Event Dot"],
+        ].map(([key, label]) => (
+          <div key={key}>
+            <div className={inspectorLabelClass()}>{label}</div>
+            <input
+              type="color"
+              value={(selectedBlock.data.calendarStyle as any)?.[key] || "#000000"}
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "calendar_event"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          calendarStyle: {
+                            ...(block.data.calendarStyle ?? {}),
+                            [key]: e.target.value,
+                          },
+                        },
+                      },
+                )
+              }
+              className="mt-2 h-10 w-full rounded-xl border border-neutral-300 bg-white"
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <div className="mt-5">
+      <div className={inspectorLabelClass()}>Event Card Styling</div>
+      <div className="mt-3 grid grid-cols-2 gap-3">
+        {[
+          ["backgroundColor", "Card Background"],
+          ["borderColor", "Border"],
+        ].map(([key, label]) => (
+          <div key={key}>
+            <div className={inspectorLabelClass()}>{label}</div>
+            <input
+              type="color"
+              value={(selectedBlock.data.detailStyle as any)?.[key] || "#ffffff"}
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "calendar_event"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          detailStyle: {
+                            ...(block.data.detailStyle ?? {}),
+                            [key]: e.target.value,
+                          },
+                        },
+                      },
+                )
+              }
+              className="mt-2 h-10 w-full rounded-xl border border-neutral-300 bg-white"
+            />
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-4">
+        <div className={inspectorLabelClass()}>
+          Border Radius: {(selectedBlock.data.detailStyle?.borderRadius ?? 16)}px
+        </div>
+        <input
+          type="range"
+          min={0}
+          max={40}
+          value={selectedBlock.data.detailStyle?.borderRadius ?? 16}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "calendar_event"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      detailStyle: {
+                        ...(block.data.detailStyle ?? {}),
+                        borderRadius: Number(e.target.value),
+                      },
+                    },
+                  },
+            )
+          }
+          className="mt-2 w-full"
+        />
+      </div>
+
+      <label className="mt-3 flex items-center gap-2 text-sm text-neutral-700">
+        <input
+          type="checkbox"
+          checked={Boolean(selectedBlock.data.detailStyle?.shadowEnabled)}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "calendar_event"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      detailStyle: {
+                        ...(block.data.detailStyle ?? {}),
+                        shadowEnabled: e.target.checked,
+                      },
+                    },
+                  },
+            )
+          }
+        />
+        Enable event card shadow
+      </label>
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Empty State Text</div>
+      <input
+        type="text"
+        value={selectedBlock.data.emptyStateText ?? ""}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "calendar_event"
+              ? block
+              : {
+                  ...block,
+                  data: { ...block.data, emptyStateText: e.target.value },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
+
+    <div className="mt-5 space-y-3">
+      <div className={inspectorLabelClass()}>Events</div>
+
+{selectedBlock.data.events.map((event, eventIndex) => (
+  <div
+    key={event.id}
+    className="rounded-xl border border-neutral-200 bg-neutral-50 p-3"
+  >
+    <div className="mb-4 flex items-center gap-3 rounded-xl border border-neutral-200 bg-white p-3">
+      {event.imageUrl ? (
+        <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-neutral-200">
+          <img
+            src={event.imageUrl}
+            alt={event.imageAlt || event.title || "Event"}
+            className="h-full w-full object-cover"
+          />
+        </div>
+      ) : (
+        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-lg border border-dashed border-neutral-300 text-xs text-neutral-400">
+          IMG
+        </div>
+      )}
+
+      <div className="min-w-0 flex-1">
+        <div className="truncate text-sm font-semibold text-neutral-900">
+          {event.title || "Untitled Event"}
+        </div>
+
+        <div className="mt-1 text-xs text-neutral-500">
+          {event.date || "No date"}
+          {(event.startTime || event.endTime) &&
+            ` • ${event.startTime || ""}${
+              event.endTime ? ` - ${event.endTime}` : ""
+            }`}
+        </div>
+
+        {(event.category || event.meetingMethod) && (
+          <div className="mt-1 text-xs text-neutral-400">
+            {[event.category, event.meetingMethod]
+              .filter(Boolean)
+              .join(" • ")}
+          </div>
+        )}
+      </div>
+    </div>
+
+    <div className="space-y-3">
+            <input
+              type="text"
+              value={event.title}
+              placeholder="Event title"
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "calendar_event"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          events: block.data.events.map((entry) =>
+                            entry.id === event.id
+                              ? { ...entry, title: e.target.value }
+                              : entry,
+                          ),
+                        },
+                      },
+                )
+              }
+              className={inspectorInputClass()}
+            />
+
+            <input
+              type="text"
+              value={event.subtitle ?? ""}
+              placeholder="Subtitle"
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "calendar_event"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          events: block.data.events.map((entry) =>
+                            entry.id === event.id
+                              ? { ...entry, subtitle: e.target.value }
+                              : entry,
+                          ),
+                        },
+                      },
+                )
+              }
+              className={inspectorInputClass()}
+            />
+
+            <div className="grid grid-cols-3 gap-2">
+              <input
+                type="date"
+                value={event.date}
+                onChange={(e) =>
+                  updateSelectedBlock((block) =>
+                    block.type !== "calendar_event"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            events: block.data.events.map((entry) =>
+                              entry.id === event.id
+                                ? { ...entry, date: e.target.value }
+                                : entry,
+                            ),
+                          },
+                        },
+                  )
+                }
+                className={inspectorInputClass()}
+              />
+
+              <input
+                type="time"
+                value={event.startTime}
+                onChange={(e) =>
+                  updateSelectedBlock((block) =>
+                    block.type !== "calendar_event"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            events: block.data.events.map((entry) =>
+                              entry.id === event.id
+                                ? { ...entry, startTime: e.target.value }
+                                : entry,
+                            ),
+                          },
+                        },
+                  )
+                }
+                className={inspectorInputClass()}
+              />
+
+              <input
+                type="time"
+                value={event.endTime}
+                onChange={(e) =>
+                  updateSelectedBlock((block) =>
+                    block.type !== "calendar_event"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            events: block.data.events.map((entry) =>
+                              entry.id === event.id
+                                ? { ...entry, endTime: e.target.value }
+                                : entry,
+                            ),
+                          },
+                        },
+                  )
+                }
+                className={inspectorInputClass()}
+              />
+            </div>
+
+            <input
+              type="text"
+              value={event.meetingMethod ?? ""}
+              placeholder="Meeting method"
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "calendar_event"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          events: block.data.events.map((entry) =>
+                            entry.id === event.id
+                              ? { ...entry, meetingMethod: e.target.value }
+                              : entry,
+                          ),
+                        },
+                      },
+                )
+              }
+              className={inspectorInputClass()}
+            />
+
+            <input
+              type="text"
+              value={event.location ?? ""}
+              placeholder="Location"
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "calendar_event"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          events: block.data.events.map((entry) =>
+                            entry.id === event.id
+                              ? { ...entry, location: e.target.value }
+                              : entry,
+                          ),
+                        },
+                      },
+                )
+              }
+              className={inspectorInputClass()}
+            />
+
+            <input
+              type="text"
+              value={event.address ?? ""}
+              placeholder="Address"
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "calendar_event"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          events: block.data.events.map((entry) =>
+                            entry.id === event.id
+                              ? { ...entry, address: e.target.value }
+                              : entry,
+                          ),
+                        },
+                      },
+                )
+              }
+              className={inspectorInputClass()}
+            />
+
+            <input
+              type="text"
+              value={event.virtualLink ?? ""}
+              placeholder="Virtual meeting link"
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "calendar_event"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          events: block.data.events.map((entry) =>
+                            entry.id === event.id
+                              ? { ...entry, virtualLink: e.target.value }
+                              : entry,
+                          ),
+                        },
+                      },
+                )
+              }
+              className={inspectorInputClass()}
+            />
+
+            <textarea
+              value={event.notes ?? ""}
+              placeholder="Notes / description"
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "calendar_event"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          events: block.data.events.map((entry) =>
+                            entry.id === event.id
+                              ? { ...entry, notes: e.target.value }
+                              : entry,
+                          ),
+                        },
+                      },
+                )
+              }
+              className={`${inspectorInputClass()} min-h-[80px] resize-none`}
+            />
+
+            <div className="grid grid-cols-2 gap-2">
+              <input
+                type="text"
+                value={event.category ?? ""}
+                placeholder="Category"
+                onChange={(e) =>
+                  updateSelectedBlock((block) =>
+                    block.type !== "calendar_event"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            events: block.data.events.map((entry) =>
+                              entry.id === event.id
+                                ? { ...entry, category: e.target.value }
+                                : entry,
+                            ),
+                          },
+                        },
+                  )
+                }
+                className={inspectorInputClass()}
+              />
+
+              <input
+                type="text"
+                value={event.host ?? ""}
+                placeholder="Host"
+                onChange={(e) =>
+                  updateSelectedBlock((block) =>
+                    block.type !== "calendar_event"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            events: block.data.events.map((entry) =>
+                              entry.id === event.id
+                                ? { ...entry, host: e.target.value }
+                                : entry,
+                            ),
+                          },
+                        },
+                  )
+                }
+                className={inspectorInputClass()}
+              />
+            </div>
+
+            <input
+              type="text"
+              value={event.capacity ?? ""}
+              placeholder="Capacity / spots available"
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "calendar_event"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          events: block.data.events.map((entry) =>
+                            entry.id === event.id
+                              ? { ...entry, capacity: e.target.value }
+                              : entry,
+                          ),
+                        },
+                      },
+                )
+              }
+              className={inspectorInputClass()}
+            />
+
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-2">
+                <input
+                  type="text"
+                  value={event.imageUrl ?? ""}
+                  placeholder="Image URL"
+                  onChange={(e) =>
+                    updateSelectedBlock((block) =>
+                      block.type !== "calendar_event"
+                        ? block
+                        : {
+                            ...block,
+                            data: {
+                              ...block.data,
+                              events: block.data.events.map((entry) =>
+                                entry.id === event.id
+                                  ? { ...entry, imageUrl: e.target.value }
+                                  : entry,
+                              ),
+                            },
+                          },
+                    )
+                  }
+                  className={inspectorInputClass()}
+                />
+
+                <button
+                  type="button"
+                  className="inline-flex h-10 items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-700 hover:bg-neutral-50"
+                  onClick={() =>
+                    void uploadImageToSelectedBlock(
+                      selectedBlock.id,
+                      undefined,
+                      event.id,
+                    )
+                  }
+                >
+                  Browse Event Image
+                </button>
+              </div>
+
+              <select
+                value={event.imagePosition ?? "right"}
+                onChange={(e) =>
+                  updateSelectedBlock((block) =>
+                    block.type !== "calendar_event"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            events: block.data.events.map((entry) =>
+                              entry.id === event.id
+                                ? {
+                                    ...entry,
+                                    imagePosition: e.target.value as "left" | "right",
+                                  }
+                                : entry,
+                            ),
+                          },
+                        },
+                  )
+                }
+                className={inspectorInputClass()}
+              >
+                <option value="left">Image Left</option>
+                <option value="right">Image Right</option>
+              </select>
+            </div>
+
+            <input
+              type="text"
+              value={event.imageAlt ?? ""}
+              placeholder="Image alt text"
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "calendar_event"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          events: block.data.events.map((entry) =>
+                            entry.id === event.id
+                              ? { ...entry, imageAlt: e.target.value }
+                              : entry,
+                          ),
+                        },
+                      },
+                )
+              }
+              className={inspectorInputClass()}
+            />
+
+<div className="grid grid-cols-2 gap-2">
+  <input
+    type="text"
+    value={event.buttonText ?? ""}
+    placeholder="CTA button text"
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "calendar_event"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                events: block.data.events.map((entry) =>
+                  entry.id === event.id
+                    ? { ...entry, buttonText: e.target.value }
+                    : entry,
+                ),
+              },
+            },
+      )
+    }
+    className={inspectorInputClass()}
+  />
+
+  <input
+    type="text"
+    value={event.buttonUrl ?? ""}
+    placeholder="CTA button URL"
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "calendar_event"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                events: block.data.events.map((entry) =>
+                  entry.id === event.id
+                    ? { ...entry, buttonUrl: e.target.value }
+                    : entry,
+                ),
+              },
+            },
+      )
+    }
+    className={inspectorInputClass()}
+  />
+
+  <input
+    type="text"
+    value={event.addToCalendarText ?? ""}
+    placeholder="Add to calendar text"
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "calendar_event"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                events: block.data.events.map((entry) =>
+                  entry.id === event.id
+                    ? { ...entry, addToCalendarText: e.target.value }
+                    : entry,
+                ),
+              },
+            },
+      )
+    }
+    className={inspectorInputClass()}
+  />
+
+  <input
+    type="text"
+    value={event.addToCalendarUrl ?? ""}
+    placeholder="Add to calendar URL"
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "calendar_event"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                events: block.data.events.map((entry) =>
+                  entry.id === event.id
+                    ? { ...entry, addToCalendarUrl: e.target.value }
+                    : entry,
+                ),
+              },
+            },
+      )
+    }
+    className={inspectorInputClass()}
+  />
+</div>
+
+            <label className="flex items-center gap-2 text-sm text-neutral-700">
+              <input
+                type="checkbox"
+                checked={Boolean(event.rsvpRequired)}
+                onChange={(e) =>
+                  updateSelectedBlock((block) =>
+                    block.type !== "calendar_event"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            events: block.data.events.map((entry) =>
+                              entry.id === event.id
+                                ? { ...entry, rsvpRequired: e.target.checked }
+                                : entry,
+                            ),
+                          },
+                        },
+                  )
+                }
+              />
+              RSVP Required
+            </label>
+          </div>
+
+          <div className="mt-3 flex flex-wrap justify-end gap-2">
+            <button
+              type="button"
+              className={toolSetButtonClass("back")}
+              disabled={eventIndex === 0}
+              onClick={() =>
+                updateSelectedBlock((block) => {
+                  if (block.type !== "calendar_event" || eventIndex === 0) return block;
+
+                  const nextEvents = [...block.data.events];
+                  [nextEvents[eventIndex - 1], nextEvents[eventIndex]] = [
+                    nextEvents[eventIndex],
+                    nextEvents[eventIndex - 1],
+                  ];
+
+                  return {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      events: nextEvents,
+                    },
+                  };
+                })
+              }
+            >
+              Up
+            </button>
+
+            <button
+              type="button"
+              className={toolSetButtonClass("back")}
+              disabled={eventIndex === selectedBlock.data.events.length - 1}
+              onClick={() =>
+                updateSelectedBlock((block) => {
+                  if (
+                    block.type !== "calendar_event" ||
+                    eventIndex >= block.data.events.length - 1
+                  ) {
+                    return block;
+                  }
+
+                  const nextEvents = [...block.data.events];
+                  [nextEvents[eventIndex], nextEvents[eventIndex + 1]] = [
+                    nextEvents[eventIndex + 1],
+                    nextEvents[eventIndex],
+                  ];
+
+                  return {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      events: nextEvents,
+                    },
+                  };
+                })
+              }
+            >
+              Down
+            </button>
+
+            <button
+              type="button"
+              className={toolSetButtonClass("back")}
+              onClick={() =>
+                updateSelectedBlock((block) =>
+                  block.type !== "calendar_event"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          events: [
+                            ...block.data.events,
+                            {
+                              ...event,
+                              id: makeClientId("calendarevent"),
+                              title: `${event.title || "Event"} Copy`,
+                            },
+                          ],
+                        },
+                      },
+                )
+              }
+            >
+              Duplicate
+            </button>
+
+            <button
+              type="button"
+              className={toolSetButtonClass("remove")}
+              onClick={() =>
+                updateSelectedBlock((block) =>
+                  block.type !== "calendar_event"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          events:
+                            block.data.events.length > 1
+                              ? block.data.events.filter((entry) => entry.id !== event.id)
+                              : block.data.events,
+                        },
+                      },
+                )
+              }
+            >
+              Remove
+            </button>
+          </div>
+        </div>
+      ))}
+
+      <button
+        type="button"
+        className={toolSetButtonClass("front")}
+        onClick={() =>
+          updateSelectedBlock((block) =>
+            block.type !== "calendar_event"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    events: [
+                      ...block.data.events,
+                      {
+                        id: makeClientId("calendarevent"),
+                        title: "New Event",
+                        subtitle: "",
+                        date: new Date().toISOString().slice(0, 10),
+                        startTime: "18:00",
+                        endTime: "19:00",
+                        meetingMethod: "",
+                        location: "",
+                        address: "",
+                        virtualLink: "",
+                        notes: "",
+                        host: "",
+                        category: "",
+                        capacity: "",
+                        rsvpRequired: false,
+                        imageUrl: "",
+                        imageStoragePath: "",
+                        imageAlt: "",
+                        imagePosition: "right",
+                        buttonText: "",
+                        buttonUrl: "",
+                        addToCalendarText: "Add to Calendar",
+                        addToCalendarUrl: "",
+                      },
+                    ],
+                  },
+                },
+          )
+        }
+      >
+        Add Event
       </button>
     </div>
   </div>

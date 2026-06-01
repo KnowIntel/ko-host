@@ -953,6 +953,74 @@ schedule_agenda: {
   ],
 },
 
+calendar_event: {
+  title: "Calendar Event",
+  subtitle:
+    "Display scheduled events inside an interactive calendar that visitors can browse by date.",
+
+  sections: [
+    {
+      title: "What is it?",
+      body:
+        "The Calendar Event block allows you to organize events by date and present them in a professional calendar interface. Visitors can browse the calendar, select dates, and view event details.",
+    },
+
+    {
+      title: "Best Uses",
+      bullets: [
+        "Community event schedules",
+        "Club meetings",
+        "Class calendars",
+        "Workshops",
+        "Tour schedules",
+        "Campaign appearances",
+        "Watch parties",
+        "Webinars",
+        "Conferences",
+        "Multi-day events",
+      ],
+    },
+
+    {
+      title: "Style Variants",
+      bullets: [
+        "Standard — calendar on left, details on right",
+        "Formal — calendar above details",
+        "Simplified — event cards without full calendar",
+      ],
+    },
+
+    {
+      title: "Event Images",
+      body:
+        "Each event can include its own image. Images may appear on either the left or right side of the event details card.",
+    },
+
+    {
+      title: "Virtual Meetings",
+      body:
+        "Events can include a virtual meeting URL. Visitors can open the meeting link or copy it directly from the event card.",
+    },
+
+    {
+      title: "Add To Calendar",
+      body:
+        "Optionally provide a calendar link for each event. Visitors can add events to their preferred calendar service using your supplied URL.",
+    },
+
+    {
+      title: "Professional Tips",
+      bullets: [
+        "Keep event titles short and recognizable",
+        "Use category labels to organize event types",
+        "Add images for featured activities",
+        "Include locations whenever possible",
+        "Provide Add To Calendar links for registrations and appointments",
+      ],
+    },
+  ],
+},
+
 map_location: {
   title: "Map / Location",
   subtitle:

@@ -141,6 +141,7 @@ export type BuilderBlockType =
   | "link_hub"
   | "checklist"
   | "schedule_agenda"
+  | "calendar_event"
   | "map_location"
   | "file_share"
   | "speed_dating"
@@ -1291,6 +1292,75 @@ export type CartBlock = BaseBlock & {
   };
 };
 
+export type CalendarEventEntry = {
+  id: string;
+  title: string;
+  subtitle?: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  meetingMethod?: string;
+  location?: string;
+  address?: string;
+  virtualLink?: string;
+  notes?: string;
+  host?: string;
+  category?: string;
+  capacity?: string;
+  rsvpRequired?: boolean;
+  imageUrl?: string;
+  imageStoragePath?: string;
+  imageAlt?: string;
+  imagePosition?: "left" | "right";
+  buttonText?: string;
+  buttonUrl?: string;
+  addToCalendarText?: string;
+  addToCalendarUrl?: string;
+};
+
+export type CalendarEventBlock = BaseBlock & {
+  type: "calendar_event";
+  data: {
+    heading?: string;
+    subtitle?: string;
+    variant: "standard" | "formal" | "simplified";
+    defaultSelectedDate?: string;
+    defaultMonth?: string;
+
+    showHeading?: boolean;
+    showSubtitle?: boolean;
+    showCalendarHeading?: boolean;
+    showEventCount?: boolean;
+    showEmptyState?: boolean;
+
+    showCategoryBadge?: boolean;
+    showHost?: boolean;
+    showCapacity?: boolean;
+    showRsvpBadge?: boolean;
+    showEventImages?: boolean;
+    showCtaButtons?: boolean;
+
+    emptyStateText?: string;
+    events: CalendarEventEntry[];
+
+    style?: TextStyle;
+    calendarStyle?: {
+      backgroundColor?: string;
+      textColor?: string;
+      activeDateColor?: string;
+      todayBorderColor?: string;
+      eventDotColor?: string;
+    };
+    detailStyle?: {
+      backgroundColor?: string;
+      borderColor?: string;
+      borderRadius?: number;
+      shadowEnabled?: boolean;
+    };
+    buttonStyle?: Record<string, any>;
+  };
+};
+
 export type MicrositeBlock =
   | BookmarkBlock
   | PuzzleBlock
@@ -1327,6 +1397,7 @@ export type MicrositeBlock =
   | LinkHubBlock
   | ChecklistBlock
   | ScheduleAgendaBlock
+  | CalendarEventBlock
   | MapLocationBlock
   | FileShareBlock
   | SpeedDatingBlock
@@ -3294,6 +3365,89 @@ data: {
             },
           ],
           style: createDefaultTextStyle(),
+        },
+      };
+
+          case "calendar_event":
+      return {
+        id: makeId("calendar"),
+        type: "calendar_event",
+        label: "Calendar Event",
+        grid: {
+          ...grid,
+          rowSpan: 6,
+        },
+        appearance: createDefaultBlockAppearance(),
+        data: {
+          heading: "Event Calendar",
+          subtitle: "Select a date to view event details.",
+          variant: "standard",
+
+          defaultSelectedDate: "2026-06-24",
+          defaultMonth: "2026-06",
+
+          showHeading: true,
+          showSubtitle: true,
+          showCalendarHeading: true,
+          showEventCount: true,
+          showEmptyState: true,
+
+          showCategoryBadge: true,
+          showHost: true,
+          showCapacity: true,
+          showRsvpBadge: true,
+          showEventImages: true,
+          showCtaButtons: true,
+
+          emptyStateText: "No events scheduled for this date.",
+
+          events: [
+            {
+              id: makeId("calendarevent"),
+              title: "Community Meetup",
+              subtitle: "Monthly gathering and updates",
+              date: "2026-06-24",
+              startTime: "6:00 PM",
+              endTime: "7:30 PM",
+              meetingMethod: "In Person",
+              location: "Main Hall",
+              address: "",
+              virtualLink: "",
+              notes:
+                "Join us for announcements, networking, and upcoming schedule details.",
+              host: "Event Host",
+              category: "Featured",
+              capacity: "",
+              rsvpRequired: false,
+              imageUrl: "",
+              imageStoragePath: "",
+              imageAlt: "",
+              imagePosition: "right",
+              buttonText: "View Details",
+              buttonUrl: "",
+              addToCalendarText: "Add to Calendar",
+              addToCalendarUrl: "",
+            },
+          ],
+
+          style: createDefaultTextStyle(),
+
+          calendarStyle: {
+            backgroundColor: "",
+            textColor: "",
+            activeDateColor: "",
+            todayBorderColor: "",
+            eventDotColor: "",
+          },
+
+          detailStyle: {
+            backgroundColor: "",
+            borderColor: "",
+            borderRadius: 16,
+            shadowEnabled: false,
+          },
+
+          buttonStyle: {},
         },
       };
 

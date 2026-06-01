@@ -8912,6 +8912,617 @@ function renderScheduleAgenda(
   );
 }
 
+function renderCalendarEvent(
+  block: Extract<MicrositeBlock, { type: "calendar_event" }>,
+  designKey?: string,
+) {
+const events = Array.isArray(block.data.events)
+  ? block.data.events.map((event) => ({
+      id: typeof event.id === "string" && event.id ? event.id : "event",
+      title: typeof event.title === "string" ? event.title : "Event",
+      subtitle: typeof event.subtitle === "string" ? event.subtitle : "",
+      date: typeof event.date === "string" ? event.date : "",
+      startTime: typeof event.startTime === "string" ? event.startTime : "",
+      endTime: typeof event.endTime === "string" ? event.endTime : "",
+      meetingMethod:
+        typeof event.meetingMethod === "string" ? event.meetingMethod : "",
+      location: typeof event.location === "string" ? event.location : "",
+      address: typeof event.address === "string" ? event.address : "",
+      virtualLink:
+        typeof event.virtualLink === "string" ? event.virtualLink : "",
+      notes: typeof event.notes === "string" ? event.notes : "",
+      host: typeof event.host === "string" ? event.host : "",
+      category: typeof event.category === "string" ? event.category : "",
+      capacity: typeof event.capacity === "string" ? event.capacity : "",
+      rsvpRequired: Boolean(event.rsvpRequired),
+      imageUrl: typeof event.imageUrl === "string" ? event.imageUrl : "",
+      imageStoragePath:
+        typeof event.imageStoragePath === "string"
+          ? event.imageStoragePath
+          : "",
+      imageAlt: typeof event.imageAlt === "string" ? event.imageAlt : "",
+      imagePosition:
+        event.imagePosition === "left" || event.imagePosition === "right"
+          ? event.imagePosition
+          : "right",
+      buttonText:
+        typeof event.buttonText === "string" ? event.buttonText : "",
+      buttonUrl: typeof event.buttonUrl === "string" ? event.buttonUrl : "",
+      addToCalendarText:
+        typeof event.addToCalendarText === "string"
+          ? event.addToCalendarText
+          : "Add to Calendar",
+      addToCalendarUrl:
+        typeof event.addToCalendarUrl === "string"
+          ? event.addToCalendarUrl
+          : "",
+    }))
+  : [];
+
+const calendarStyle = {
+  backgroundColor:
+    typeof block.data.calendarStyle?.backgroundColor === "string"
+      ? block.data.calendarStyle.backgroundColor
+      : "",
+  textColor:
+    typeof block.data.calendarStyle?.textColor === "string"
+      ? block.data.calendarStyle.textColor
+      : "",
+  activeDateColor:
+    typeof block.data.calendarStyle?.activeDateColor === "string"
+      ? block.data.calendarStyle.activeDateColor
+      : "",
+  todayBorderColor:
+    typeof block.data.calendarStyle?.todayBorderColor === "string"
+      ? block.data.calendarStyle.todayBorderColor
+      : "",
+  eventDotColor:
+    typeof block.data.calendarStyle?.eventDotColor === "string"
+      ? block.data.calendarStyle.eventDotColor
+      : "",
+};
+
+const detailStyle = {
+  backgroundColor:
+    typeof block.data.detailStyle?.backgroundColor === "string"
+      ? block.data.detailStyle.backgroundColor
+      : "",
+  borderColor:
+    typeof block.data.detailStyle?.borderColor === "string"
+      ? block.data.detailStyle.borderColor
+      : "",
+  borderRadius:
+    typeof block.data.detailStyle?.borderRadius === "number" &&
+    Number.isFinite(block.data.detailStyle.borderRadius)
+      ? block.data.detailStyle.borderRadius
+      : 16,
+  shadowEnabled: Boolean(block.data.detailStyle?.shadowEnabled),
+};
+const [copiedEventId, setCopiedEventId] = useState<string | null>(null);
+
+function copyMeetingLink(eventId: string, link?: string) {
+  if (!link || typeof navigator === "undefined" || !navigator.clipboard) return;
+
+  void navigator.clipboard.writeText(link).then(() => {
+    setCopiedEventId(eventId);
+    setTimeout(() => setCopiedEventId(null), 1600);
+  });
+}
+  const todayDate = new Date();
+  const todayKey = todayDate.toISOString().slice(0, 10);
+
+  const fallbackSelectedDate =
+    block.data.defaultSelectedDate || events[0]?.date || todayKey;
+
+  const [selectedDate, setSelectedDate] = useState(fallbackSelectedDate);
+
+  const initialMonthDate = (() => {
+    const monthSource =
+      block.data.defaultMonth ||
+      fallbackSelectedDate.slice(0, 7) ||
+      todayKey.slice(0, 7);
+
+    const parsed = new Date(`${monthSource}-01T00:00:00`);
+
+    return Number.isNaN(parsed.getTime())
+      ? new Date(todayDate.getFullYear(), todayDate.getMonth(), 1)
+      : parsed;
+  })();
+
+  const [visibleMonth, setVisibleMonth] = useState(initialMonthDate);
+
+  const year = visibleMonth.getFullYear();
+  const month = visibleMonth.getMonth();
+
+  const monthLabel = visibleMonth.toLocaleDateString(undefined, {
+    month: "long",
+    year: "numeric",
+  });
+
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  const calendarCells = Array.from({ length: firstDay + daysInMonth }).map(
+    (_, index) => {
+      if (index < firstDay) return null;
+
+      const dayNumber = index - firstDay + 1;
+      const dateKey = `${year}-${String(month + 1).padStart(2, "0")}-${String(
+        dayNumber,
+      ).padStart(2, "0")}`;
+
+      return { dayNumber, dateKey };
+    },
+  );
+
+const selectedEvents = events.filter(
+  (event) => event.date === selectedDate,
+);
+
+const visibleEvents =
+  block.data.variant === "simplified"
+    ? [...events].sort((a, b) => a.date.localeCompare(b.date))
+    : selectedEvents;
+
+const selectedDateLabel =
+  block.data.variant === "simplified"
+    ? ""
+    : formatEventDate(selectedDate);
+
+const selectedDateCount = visibleEvents.length;
+
+  function moveMonth(direction: number) {
+    setVisibleMonth(
+      (current) =>
+        new Date(current.getFullYear(), current.getMonth() + direction, 1),
+    );
+  }
+
+  function formatEventDate(dateValue?: string) {
+    if (!dateValue) return "Date TBD";
+    const parsed = new Date(`${dateValue}T00:00:00`);
+    if (Number.isNaN(parsed.getTime())) return dateValue;
+
+    return parsed.toLocaleDateString(undefined, {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  }
+
+  function eventStatusLabel(dateValue?: string) {
+    if (!dateValue) return "";
+    if (dateValue < todayKey) return "Past Event";
+    if (dateValue === todayKey) return "Today";
+    return "Upcoming";
+  }
+
+const calendarPanel = (
+  <div
+    className={[
+      "rounded-[1.75rem] border p-4 shadow-sm",
+      isLightDesign(designKey)
+        ? "border-neutral-200 bg-white"
+        : "border-white/10 bg-white/5",
+    ].join(" ")}
+    style={{
+      backgroundColor: calendarStyle.backgroundColor || undefined,
+      color: calendarStyle.textColor || undefined,
+    }}
+  >
+    {block.data.showCalendarHeading !== false ? (
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <button
+          type="button"
+          onClick={() => moveMonth(-1)}
+          className={[
+            "inline-flex h-9 w-9 items-center justify-center rounded-full border text-lg leading-none transition",
+            isLightDesign(designKey)
+              ? "border-neutral-200 bg-neutral-50 text-neutral-800 hover:bg-neutral-100"
+              : "border-white/10 bg-white/10 text-white hover:bg-white/15",
+          ].join(" ")}
+          aria-label="Previous month"
+        >
+          ‹
+        </button>
+
+        <div className="text-center">
+          <div
+            className="text-sm font-bold"
+            style={getContainerTextStyle(block.data.style, designKey)}
+          >
+            {monthLabel}
+          </div>
+
+          {block.data.showEventCount !== false ? (
+            <div className={`mt-0.5 text-[11px] ${getMutedTextClass(designKey)}`}>
+              {events.length} scheduled {events.length === 1 ? "event" : "events"}
+            </div>
+          ) : null}
+        </div>
+
+        <button
+          type="button"
+          onClick={() => moveMonth(1)}
+          className={[
+            "inline-flex h-9 w-9 items-center justify-center rounded-full border text-lg leading-none transition",
+            isLightDesign(designKey)
+              ? "border-neutral-200 bg-neutral-50 text-neutral-800 hover:bg-neutral-100"
+              : "border-white/10 bg-white/10 text-white hover:bg-white/15",
+          ].join(" ")}
+          aria-label="Next month"
+        >
+          ›
+        </button>
+      </div>
+    ) : null}
+
+    <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-bold uppercase tracking-[0.12em] opacity-60">
+      {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+        <div key={day} className="py-1">
+          {day}
+        </div>
+      ))}
+    </div>
+
+    <div className="mt-2 grid grid-cols-7 gap-1.5">
+      {calendarCells.map((cell, index) => {
+        if (!cell) {
+          return <div key={`empty-${index}`} className="aspect-square" />;
+        }
+
+        const dayEvents = events.filter((event) => event.date === cell.dateKey);
+        const hasEvent = dayEvents.length > 0;
+        const eventCount = dayEvents.length;
+        const isSelected = selectedDate === cell.dateKey;
+        const isToday = todayKey === cell.dateKey;
+
+        return (
+          <button
+            key={cell.dateKey}
+            type="button"
+            onClick={() => setSelectedDate(cell.dateKey)}
+            className={[
+              "group relative flex aspect-square flex-col items-center justify-center rounded-2xl border text-xs font-semibold transition",
+              isSelected
+                ? isLightDesign(designKey)
+                  ? "border-neutral-950 bg-neutral-950 text-white shadow-md"
+                  : "border-white bg-white text-neutral-950 shadow-md"
+                : isToday
+                  ? isLightDesign(designKey)
+                    ? "border-neutral-950 bg-white text-neutral-950"
+                    : "border-white/60 bg-white/10 text-white"
+                  : isLightDesign(designKey)
+                    ? "border-neutral-200 bg-neutral-50 text-neutral-700 hover:border-neutral-400 hover:bg-white"
+                    : "border-white/10 bg-white/5 text-white/75 hover:border-white/30 hover:bg-white/10",
+            ].join(" ")}
+            style={{
+              backgroundColor:
+                isSelected && calendarStyle.activeDateColor
+                  ? calendarStyle.activeDateColor
+                  : undefined,
+              borderColor:
+                isToday && calendarStyle.todayBorderColor
+                  ? calendarStyle.todayBorderColor
+                  : undefined,
+            }}
+            aria-label={`View events for ${cell.dateKey}`}
+          >
+            <span>{cell.dayNumber}</span>
+
+{hasEvent ? (
+  <>
+    <span className="mt-1 flex items-center justify-center gap-0.5">
+                {dayEvents.slice(0, 3).map((event) => (
+                  <span
+                    key={event.id}
+                    className="h-1.5 w-1.5 rounded-full bg-current"
+                    style={{
+                      backgroundColor: calendarStyle.eventDotColor || undefined,
+                    }}
+                  />
+                ))}
+</span>
+
+{eventCount > 1 ? (
+  <span
+    className={[
+      "absolute right-1 top-1 flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[9px] font-bold",
+      isSelected
+        ? "bg-white text-neutral-950"
+        : "bg-neutral-900 text-white",
+    ].join(" ")}
+  >
+    {eventCount}
+  </span>
+) : null}
+  </>
+) : null}
+          </button>
+        );
+      })}
+    </div>
+  </div>
+);
+
+  const eventCards = (
+    <div className="space-y-3">
+  {block.data.variant !== "simplified" ? (
+    <div
+      className={[
+        "rounded-2xl border px-4 py-3",
+        isLightDesign(designKey)
+          ? "border-neutral-200 bg-neutral-50"
+          : "border-white/10 bg-white/5",
+      ].join(" ")}
+    >
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <div className="text-xs uppercase tracking-[0.12em] opacity-60">
+            Selected Date
+          </div>
+
+          <div
+            className="mt-1 text-sm font-semibold"
+            style={getContainerTextStyle(block.data.style, designKey)}
+          >
+            {selectedDateLabel}
+          </div>
+        </div>
+
+        {block.data.showEventCount !== false ? (
+          <div
+            className={[
+              "rounded-full border px-3 py-1 text-xs font-semibold",
+              isLightDesign(designKey)
+                ? "border-neutral-300 bg-white"
+                : "border-white/15 bg-white/10",
+            ].join(" ")}
+          >
+            {selectedDateCount}{" "}
+            {selectedDateCount === 1 ? "event" : "events"}
+          </div>
+        ) : null}
+      </div>
+    </div>
+  ) : null}
+      {visibleEvents.length ? (
+        visibleEvents.map((event) => {
+          const status = eventStatusLabel(event.date);
+          const shouldShowImage =
+            block.data.showEventImages !== false && Boolean(event.imageUrl);
+
+          return (
+            <div
+              key={event.id}
+              className={[
+                "rounded-2xl border p-4",
+                detailStyle.shadowEnabled ? "shadow-lg" : "",
+                isLightDesign(designKey)
+                  ? "border-neutral-200 bg-white"
+                  : "border-white/10 bg-white/5",
+              ].join(" ")}
+              style={{
+                backgroundColor: detailStyle.backgroundColor || undefined,
+                borderColor: detailStyle.borderColor || undefined,
+                borderRadius:
+                  typeof detailStyle.borderRadius === "number"
+                    ? detailStyle.borderRadius
+                    : undefined,
+              }}
+            >
+              <div
+                className={[
+                  "flex gap-4",
+                  shouldShowImage && event.imagePosition === "left"
+                    ? "flex-col sm:flex-row"
+                    : shouldShowImage
+                      ? "flex-col sm:flex-row-reverse"
+                      : "flex-col",
+                ].join(" ")}
+              >
+                {shouldShowImage ? (
+                  <div className="w-full shrink-0 overflow-hidden rounded-xl sm:w-40">
+                    <img
+                      src={event.imageUrl}
+                      alt={event.imageAlt || event.title || "Event image"}
+                      className="h-40 w-full object-cover sm:h-full"
+                    />
+                  </div>
+                ) : null}
+
+                <div className="min-w-0 flex-1">
+                  <div className="mb-2 flex flex-wrap items-center gap-2">
+                    {block.data.showCategoryBadge !== false && event.category ? (
+                      <div className="inline-flex rounded-full border px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] opacity-80">
+                        {event.category}
+                      </div>
+                    ) : null}
+
+                    {status ? (
+                      <div className="inline-flex rounded-full border px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] opacity-70">
+                        {status}
+                      </div>
+                    ) : null}
+
+                    {block.data.showRsvpBadge !== false && event.rsvpRequired ? (
+                      <div className="inline-flex rounded-full border px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] opacity-70">
+                        RSVP Required
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div
+                    className="text-sm font-semibold"
+                    style={getContainerTextStyle(block.data.style, designKey)}
+                  >
+                    {event.title || "Event"}
+                  </div>
+
+                  {event.subtitle ? (
+                    <div className={`mt-1 text-sm ${getMutedTextClass(designKey)}`}>
+                      {event.subtitle}
+                    </div>
+                  ) : null}
+
+                  <div className={`mt-3 text-xs ${getMutedTextClass(designKey)}`}>
+                    {formatEventDate(event.date)}
+                    {event.startTime || event.endTime
+                      ? ` • ${event.startTime || ""}${
+                          event.endTime ? ` - ${event.endTime}` : ""
+                        }`
+                      : ""}
+                  </div>
+
+                  {event.location || event.meetingMethod ? (
+                    <div className="mt-2 text-sm">
+                      {[event.meetingMethod, event.location]
+                        .filter(Boolean)
+                        .join(" • ")}
+                    </div>
+                  ) : null}
+
+                  {event.address ? (
+                    <div className={`mt-1 text-sm ${getMutedTextClass(designKey)}`}>
+                      {event.address}
+                    </div>
+                  ) : null}
+
+                  {block.data.showHost !== false && event.host ? (
+                    <div className={`mt-2 text-xs ${getMutedTextClass(designKey)}`}>
+                      Hosted by {event.host}
+                    </div>
+                  ) : null}
+
+                  {block.data.showCapacity !== false && event.capacity ? (
+                    <div className={`mt-1 text-xs ${getMutedTextClass(designKey)}`}>
+                      Capacity: {event.capacity}
+                    </div>
+                  ) : null}
+
+                  {event.notes ? (
+                    <div className={`mt-2 text-sm ${getMutedTextClass(designKey)}`}>
+                      {event.notes}
+                    </div>
+                  ) : null}
+
+                  {event.virtualLink ? (
+                    <a
+                      href={event.virtualLink}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-3 inline-flex text-xs font-semibold underline"
+                    >
+                      Open virtual link
+                    </a>
+                  ) : null}
+
+<div className="mt-4 flex flex-wrap gap-2">
+  {event.virtualLink ? (
+    <button
+      type="button"
+      onClick={() => copyMeetingLink(event.id, event.virtualLink)}
+      className="inline-flex rounded-xl border px-4 py-2 text-xs font-semibold"
+    >
+      {copiedEventId === event.id ? "Copied!" : "Copy Meeting Link"}
+    </button>
+  ) : null}
+
+  {event.addToCalendarText && event.addToCalendarUrl ? (
+    <a
+      href={event.addToCalendarUrl}
+      target="_blank"
+      rel="noreferrer"
+      className="inline-flex rounded-xl border px-4 py-2 text-xs font-semibold"
+    >
+      {event.addToCalendarText}
+    </a>
+  ) : null}
+
+  {block.data.showCtaButtons !== false &&
+  event.buttonText &&
+  event.buttonUrl ? (
+    <a
+      href={event.buttonUrl}
+      target="_blank"
+      rel="noreferrer"
+      className="inline-flex rounded-xl bg-black px-4 py-2 text-xs font-semibold text-white"
+    >
+      {event.buttonText}
+    </a>
+  ) : null}
+</div>
+                </div>
+              </div>
+            </div>
+          );
+        })
+      ) : block.data.showEmptyState !== false ? (
+<div
+  className={[
+    "rounded-2xl border border-dashed px-6 py-10 text-center",
+    isLightDesign(designKey)
+      ? "border-neutral-300 bg-neutral-50 text-neutral-500"
+      : "border-white/15 bg-white/5 text-white/60",
+  ].join(" ")}
+>
+  <div className="text-3xl">📅</div>
+
+  <div className="mt-3 font-medium">
+    {block.data.emptyStateText ||
+      "No events scheduled for this date."}
+  </div>
+
+  <div className="mt-1 text-xs opacity-70">
+    Select another date to view scheduled activities.
+  </div>
+</div>
+      ) : null}
+    </div>
+  );
+
+  return (
+    <Surface
+      block={block}
+      designKey={designKey}
+      className={`${getSoftSurfaceClass(designKey)} overflow-y-auto`}
+    >
+      {block.data.showHeading !== false ? (
+        <div
+          className="text-base font-semibold"
+          style={getContainerTextStyle(block.data.style, designKey)}
+        >
+          {block.data.heading || "Event Calendar"}
+        </div>
+      ) : null}
+
+      {block.data.showSubtitle !== false ? (
+        <div
+          className={`mt-1 text-sm ${getMutedTextClass(designKey)}`}
+          style={getContainerTextStyle(block.data.style, designKey)}
+        >
+          {block.data.subtitle || "Select a date to view event details."}
+        </div>
+      ) : null}
+
+      {block.data.variant === "simplified" ? (
+        <div className="mt-4">{eventCards}</div>
+      ) : block.data.variant === "formal" ? (
+        <div className="mt-4 space-y-4">
+          {calendarPanel}
+          {eventCards}
+        </div>
+      ) : (
+        <div className="mt-4 grid gap-4 lg:grid-cols-[280px_1fr]">
+          {calendarPanel}
+          {eventCards}
+        </div>
+      )}
+    </Surface>
+  );
+}
+
 function renderMapLocation(
   block: Extract<MicrositeBlock, { type: "map_location" }>,
   designKey?: string,
@@ -10946,6 +11557,8 @@ case "timeline":
       return renderRegistry(block, designKey);
     case "schedule_agenda":
       return renderScheduleAgenda(block, designKey);
+    case "calendar_event":
+      return renderCalendarEvent(block, designKey);
     case "map_location":
       return renderMapLocation(block, designKey);
     case "file_share":
