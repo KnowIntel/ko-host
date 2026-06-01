@@ -2208,6 +2208,7 @@ const showTextControls =
   selectedBlock?.type === "link_hub" ||
   selectedBlock?.type === "checklist" ||
   selectedBlock?.type === "schedule_agenda" ||
+  selectedBlock?.type === "calendar_event" ||
   selectedBlock?.type === "map_location" ||
   selectedBlock?.type === "file_share" ||
   selectedBlock?.type === "speed_dating" ||
@@ -2239,6 +2240,7 @@ const showAppearanceControls =
   selectedBlock?.type === "link_hub" ||
   selectedBlock?.type === "checklist" ||
   selectedBlock?.type === "schedule_agenda" ||
+  selectedBlock?.type === "calendar_event" ||
   selectedBlock?.type === "map_location" ||
   selectedBlock?.type === "file_share" ||
   selectedBlock?.type === "speed_dating" ||
@@ -2270,6 +2272,7 @@ const showBorderWidthRadiusControls =
   selectedBlock?.type === "link_hub" ||
   selectedBlock?.type === "checklist" ||
   selectedBlock?.type === "schedule_agenda" ||
+  selectedBlock?.type === "calendar_event" ||
   selectedBlock?.type === "map_location" ||
   selectedBlock?.type === "file_share" ||
   selectedBlock?.type === "speed_dating" ||
