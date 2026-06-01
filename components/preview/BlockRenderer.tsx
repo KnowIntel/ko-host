@@ -73,6 +73,15 @@ import {
   Rajdhani,
   Teko,
   Abril_Fatface,
+  Architects_Daughter,
+  Bungee,
+  Courier_Prime,
+  Gloria_Hallelujah,
+  Luckiest_Guy,
+  Open_Sans,
+  Oswald,
+  Patrick_Hand,
+  Source_Sans_3,
 } from "next/font/google";
 
 type CartItem = {
@@ -143,6 +152,15 @@ const prata = Prata({ subsets: ["latin"], weight: "400" });
 const marcellus = Marcellus({ subsets: ["latin"], weight: "400" });
 const bodoniModa = Bodoni_Moda({ subsets: ["latin"] });
 const cinzel = Cinzel({ subsets: ["latin"] });
+const architectsDaughter = Architects_Daughter({ subsets: ["latin"], weight: "400" });
+const bungee = Bungee({ subsets: ["latin"], weight: "400" });
+const courierPrime = Courier_Prime({ subsets: ["latin"], weight: ["400", "700"] });
+const gloriaHallelujah = Gloria_Hallelujah({ subsets: ["latin"], weight: "400" });
+const luckiestGuy = Luckiest_Guy({ subsets: ["latin"], weight: "400" });
+const openSans = Open_Sans({ subsets: ["latin"] });
+const oswaldFont = Oswald({ subsets: ["latin"] });
+const patrickHand = Patrick_Hand({ subsets: ["latin"], weight: "400" });
+const sourceSans3 = Source_Sans_3({ subsets: ["latin"] });
 const libreBaskerville = Libre_Baskerville({
   subsets: ["latin"],
   weight: ["400", "700"],
@@ -252,6 +270,18 @@ const FONT_FAMILY_MAP: Record<string, string> = {
   "Indie Flower": `${indie.style.fontFamily}, cursive`,
   "Exo 2": `${exo.style.fontFamily}, sans-serif`,
   Rajdhani: `${rajdhani.style.fontFamily}, sans-serif`,
+  "Architects Daughter": `${architectsDaughter.style.fontFamily}, cursive`,
+  Bungee: `${bungee.style.fontFamily}, display, sans-serif`,
+  "Courier Prime": `${courierPrime.style.fontFamily}, "Courier New", monospace`,
+  "Gloria Hallelujah": `${gloriaHallelujah.style.fontFamily}, cursive`,
+  Handwritten: `${patrickHand.style.fontFamily}, ${architectsDaughter.style.fontFamily}, ${gloriaHallelujah.style.fontFamily}, ${caveat.style.fontFamily}, cursive`,
+  "Luckiest Guy": `${luckiestGuy.style.fontFamily}, display, sans-serif`,
+  "Modern UI": `${openSans.style.fontFamily}, ${sourceSans3.style.fontFamily}, ui-sans-serif, system-ui, sans-serif`,
+  "Montserrat SemiBold":
+    'var(--font-montserrat), Montserrat, ui-sans-serif, system-ui, sans-serif',
+  "Patrick Hand": `${patrickHand.style.fontFamily}, cursive`,
+  "Source Sans Pro": `${sourceSans3.style.fontFamily}, ui-sans-serif, system-ui, sans-serif`,
+  Typewriter: `${courierPrime.style.fontFamily}, "Courier New", monospace`,
   Teko: `${teko.style.fontFamily}, sans-serif`,
   "Special Elite": 'var(--font-special-elite), "Special Elite", monospace',
 };

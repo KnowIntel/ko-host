@@ -590,62 +590,64 @@ function formatCurrency(value: number) {
 
 const FONT_FAMILY_OPTIONS = [
   "inherit",
-
-  // Core
-  "Inter",
-  "DM Sans",
-  "Poppins",
-  "Playfair Display",
-  "Cormorant Garamond",
-  "Great Vibes",
-
-  // Script / invitation
-  "Dancing Script",
-  "Pacifico",
-  "Allura",
-  "Parisienne",
-  "Sacramento",
-  "Playball",
-  "Satisfy",
-  "Tangerine",
-
-  // Serif
-  "Prata",
-  "Marcellus",
-  "Bodoni Moda",
-  "Cinzel",
-  "Libre Baskerville",
-  "Merriweather",
-  "Lora",
-  "Crimson Text",
-
-  // Display
-  "Anton",
-  "Bangers",
-  "Orbitron",
-  "Righteous",
-  "Alfa Slab One",
-  "Permanent Marker",
-  "Caveat",
-  "Indie Flower",
-  "Exo 2",
-  "Rajdhani",
-  "Teko",
   "Abril Fatface",
-  "Bebas Neue",
-  "Special Elite",
-
-  // System
-
-  // System
+  "Alfa Slab One",
+  "Allura",
+  "Anton",
+  "Architects Daughter",
   "Arial",
-  "Helvetica",
+  "Bangers",
+  "Bebas Neue",
+  "Bodoni Moda",
+  "Bungee",
+  "Caveat",
+  "Cinzel",
+  "Cormorant Garamond",
+  "Courier New",
+  "Courier Prime",
+  "Crimson Text",
+  "Dancing Script",
+  "DM Sans",
+  "Exo 2",
   "Georgia",
+  "Gloria Hallelujah",
+  "Great Vibes",
+  "Handwritten",
+  "Helvetica",
+  "Indie Flower",
+  "Inter",
+  "Libre Baskerville",
+  "Lora",
+  "Luckiest Guy",
+  "Marcellus",
+  "Merriweather",
+  "Modern UI",
+  "Montserrat",
+  "Montserrat SemiBold",
+  "Open Sans",
+  "Orbitron",
+  "Oswald",
+  "Pacifico",
+  "Parisienne",
+  "Patrick Hand",
+  "Permanent Marker",
+  "Playball",
+  "Playfair Display",
+  "Poppins",
+  "Prata",
+  "Rajdhani",
+  "Righteous",
+  "Sacramento",
+  "Satisfy",
+  "Source Sans Pro",
+  "Special Elite",
+  "system-ui",
+  "Tangerine",
+  "Teko",
   "Times New Roman",
   "Trebuchet MS",
+  "Typewriter",
   "Verdana",
-  "Courier New",
-  "system-ui",
 ] as const;
 
 const FONT_FAMILY_MAP: Record<string, string> = {
@@ -713,6 +715,29 @@ const FONT_FAMILY_MAP: Record<string, string> = {
   Verdana: "Verdana, sans-serif",
   "Courier New": '"Courier New", monospace',
   "system-ui": "system-ui, sans-serif",
+
+  "Architects Daughter":
+  'var(--font-architects-daughter), "Architects Daughter", cursive',
+Bungee: 'var(--font-bungee), Bungee, display, sans-serif',
+"Courier Prime":
+  'var(--font-courier-prime), "Courier Prime", "Courier New", monospace',
+"Gloria Hallelujah":
+  'var(--font-gloria-hallelujah), "Gloria Hallelujah", cursive',
+Handwritten:
+  'var(--font-patrick-hand), "Patrick Hand", var(--font-architects-daughter), "Architects Daughter", var(--font-gloria-hallelujah), "Gloria Hallelujah", var(--font-caveat), Caveat, cursive',
+"Luckiest Guy": 'var(--font-luckiest-guy), "Luckiest Guy", display, sans-serif',
+"Modern UI":
+  'var(--font-open-sans), "Open Sans", var(--font-source-sans-3), "Source Sans Pro", "Source Sans 3", ui-sans-serif, system-ui, sans-serif',
+"Montserrat SemiBold":
+  'var(--font-montserrat), Montserrat, ui-sans-serif, system-ui, sans-serif',
+"Open Sans":
+  'var(--font-open-sans), "Open Sans", ui-sans-serif, system-ui, sans-serif',
+Oswald: 'var(--font-oswald), Oswald, ui-sans-serif, system-ui, sans-serif',
+"Patrick Hand": 'var(--font-patrick-hand), "Patrick Hand", cursive',
+"Source Sans Pro":
+  'var(--font-source-sans-3), "Source Sans Pro", "Source Sans 3", ui-sans-serif, system-ui, sans-serif',
+Typewriter:
+  'var(--font-special-elite), "Special Elite", var(--font-courier-prime), "Courier Prime", "Courier New", monospace',
 };
 
 
@@ -19291,20 +19316,11 @@ onClick={() =>
     onChange={(e) => updateSelectedCellFormat({ fontFamily: e.target.value })}
     className={inspectorInputClass()}
   >
-    <option value="Inter">Inter</option>
-    <option value="Arial">Arial</option>
-    <option value="Helvetica">Helvetica</option>
-    <option value="Georgia">Georgia</option>
-    <option value="Times New Roman">Times New Roman</option>
-    <option value="Courier New">Courier New</option>
-    <option value="Verdana">Verdana</option>
-    <option value="Trebuchet MS">Trebuchet MS</option>
-    <option value="Cormorant Garamond">Cormorant Garamond</option>
-    <option value="Libre Baskerville">Libre Baskerville</option>
-    <option value="Marcellus">Marcellus</option>
-    <option value="Merriweather">Merriweather</option>
-    <option value="Playball">Playball</option>
-    <option value="Anton">Anton</option>
+{FONT_FAMILY_OPTIONS.filter((font) => font !== "inherit").map((font) => (
+  <option key={font} value={font}>
+    {font}
+  </option>
+))}
   </select>
 </div>
 
