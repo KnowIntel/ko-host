@@ -7,6 +7,6 @@ export default createLayoutPreset({
   description: "Soft florals elegant styling",
   thumbnail: "/designs/design-cards/design-card_baby_shower_elegant.webp",
 
-  recommended: true,
+  recommended: false,
 
 });
