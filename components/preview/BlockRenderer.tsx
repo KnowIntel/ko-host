@@ -9229,12 +9229,19 @@ function renderCalendarEvent(
           const isToday = todayKey === cell.dateKey;
 
           return (
-            <button
-              key={cell.dateKey}
-              type="button"
-              onClick={() => setSelectedDate(cell.dateKey)}
+<button
+  key={cell.dateKey}
+  type="button"
+  onPointerDown={(event) => {
+    event.stopPropagation();
+  }}
+  onClick={(event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setSelectedDate(cell.dateKey);
+  }}
               className={[
-                "group relative flex aspect-square flex-col items-center justify-center rounded-2xl border text-xs font-semibold transition",
+                "pointer-events-auto group relative z-10 flex aspect-square flex-col items-center justify-center rounded-2xl border text-xs font-semibold transition",
                 isSelected
                   ? isLightDesign(designKey)
                     ? "border-neutral-950 bg-neutral-950 text-white shadow-md"
