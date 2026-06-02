@@ -5146,23 +5146,42 @@ style={{
   ) : null}
 
   {block.data.showMessages !== false ? (
-    <a
-      href={post.threadId ? `#thread-${post.threadId}` : "#"}
-      className={[
-        "rounded-full border px-3 py-1 text-xs font-semibold",
-        isLightDesign(designKey)
-          ? "border-neutral-200 bg-neutral-50 text-neutral-700"
-          : "border-white/10 bg-white/5 text-white/75",
-      ].join(" ")}
-style={{
-  ...getContainerTextStyle(buttonStyle, designKey),
-  ...getPostBoardBoxStyle(buttonStyle),
-}}
-      aria-label={`Open discussion for ${post.title || "post"}`}
-    >
-      💬 {post.messageCount ?? 0}
-    </a>
-  ) : null}
+<a
+  href={post.threadId ? `#thread-${post.threadId}` : "#"}
+  onClick={(e) => {
+    if (!post.threadId) {
+      e.preventDefault();
+      return;
+    }
+
+    const target = document.getElementById(`thread-${post.threadId}`);
+
+    if (target) {
+      e.preventDefault();
+
+      target.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+
+      window.history.replaceState(null, "", `#thread-${post.threadId}`);
+    }
+  }}
+  className={[
+    "rounded-full border px-3 py-1 text-xs font-semibold",
+    isLightDesign(designKey)
+      ? "border-neutral-200 bg-neutral-50 text-neutral-700"
+      : "border-white/10 bg-white/5 text-white/75",
+  ].join(" ")}
+  style={{
+    ...getContainerTextStyle(buttonStyle, designKey),
+    ...getPostBoardBoxStyle(buttonStyle),
+  }}
+  aria-label={`Open discussion for ${post.title || "post"}`}
+>
+  💬 {post.messageCount ?? 0}
+</a>
+) : null}
 </div>
                     </div>
                   </div>
