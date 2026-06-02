@@ -4887,18 +4887,66 @@ function applyAppearancePatch(patch: AppearancePatch) {
     return;
   }
   
-  if (selectedBlock?.type === "post_board") {
-  updateSelectedBlock((block) =>
-    block.type !== "post_board"
-      ? block
-      : {
-          ...block,
-          appearance: {
-            ...block.appearance,
-            ...patch,
+if ((selectedBlock as any)?.type === "post_board") {
+  updateSelectedBlock((block) => {
+    if (block.type !== "post_board") return block;
+
+    if (postBoardStyleTarget === "card") {
+      return {
+        ...block,
+        data: {
+          ...block.data,
+          cardStyle: {
+            ...((block.data as any).cardStyle ?? {}),
+            ...(patch.backgroundColor !== undefined
+              ? { backgroundColor: patch.backgroundColor }
+              : {}),
+            ...(patch.borderColor !== undefined
+              ? { borderColor: patch.borderColor }
+              : {}),
+            ...(patch.borderWidth !== undefined
+              ? { borderWidth: patch.borderWidth }
+              : {}),
+            ...(patch.borderRadius !== undefined
+              ? { borderRadius: patch.borderRadius }
+              : {}),
           },
         },
-  );
+      };
+    }
+
+    if (postBoardStyleTarget === "buttons") {
+      return {
+        ...block,
+        data: {
+          ...block.data,
+          buttonStyle: {
+            ...((block.data as any).buttonStyle ?? {}),
+            ...(patch.backgroundColor !== undefined
+              ? { backgroundColor: patch.backgroundColor }
+              : {}),
+            ...(patch.borderColor !== undefined
+              ? { borderColor: patch.borderColor }
+              : {}),
+            ...(patch.borderWidth !== undefined
+              ? { borderWidth: patch.borderWidth }
+              : {}),
+            ...(patch.borderRadius !== undefined
+              ? { borderRadius: patch.borderRadius }
+              : {}),
+          },
+        },
+      };
+    }
+
+    return {
+      ...block,
+      appearance: {
+        ...block.appearance,
+        ...patch,
+      },
+    };
+  });
 
   return;
 }
