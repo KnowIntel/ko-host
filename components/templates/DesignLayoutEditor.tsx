@@ -2189,6 +2189,15 @@ if (selectedBlock.type === "label" || selectedBlock.type === "text_fx") {
             ? block.data.buttonText || block.label || "Button"
             : "Button",
       }));
+      const threadOptions: Array<{ id: string; label: string }> = draft.blocks
+  .filter((block) => block.type === "thread")
+  .map((block) => ({
+    id: block.id,
+    label:
+      block.type === "thread"
+        ? block.data.subject || block.label || "Thread"
+        : "Thread",
+  }));
 
       const selectedBlockGuide = selectedBlock
   ? BLOCK_GUIDES[selectedBlock.type]
@@ -18134,31 +18143,69 @@ onClick={() =>
   Browse Post Image
 </button>
 
-          <div className="mt-4">
-            <div className={inspectorLabelClass()}>Related Thread Block ID</div>
-            <input
-              type="text"
-              value={post.threadId ?? ""}
-              onChange={(e) =>
-                updateSelectedBlock((block) =>
-                  block.type !== "post_board"
-                    ? block
-                    : {
-                        ...block,
-                        data: {
-                          ...block.data,
-                          posts: block.data.posts.map((entry) =>
-                            entry.id === post.id
-                              ? { ...entry, threadId: e.target.value }
-                              : entry,
-                          ),
-                        },
-                      },
-                )
-              }
-              className={inspectorInputClass()}
-            />
-          </div>
+<div className="mt-4">
+  <div className={inspectorLabelClass()}>Video URL</div>
+  <input
+    type="text"
+    value={post.videoUrl ?? ""}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "post_board"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                posts: block.data.posts.map((entry) =>
+                  entry.id === post.id
+                    ? { ...entry, videoUrl: e.target.value }
+                    : entry,
+                ),
+              },
+            },
+      )
+    }
+    className={inspectorInputClass()}
+    placeholder="https://..."
+  />
+</div>
+
+<div className="mt-4">
+  <div className={inspectorLabelClass()}>Discussion Thread</div>
+  <select
+    value={post.threadId ?? ""}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "post_board"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                posts: block.data.posts.map((entry) =>
+                  entry.id === post.id
+                    ? { ...entry, threadId: e.target.value }
+                    : entry,
+                ),
+              },
+            },
+      )
+    }
+    className={inspectorInputClass()}
+  >
+    <option value="">No linked thread</option>
+
+    {threadOptions.map((thread) => (
+      <option key={thread.id} value={thread.id}>
+        {thread.label}
+      </option>
+    ))}
+  </select>
+
+  <div className="mt-1 text-xs text-neutral-500">
+    Link this post to an existing Thread block for visitor discussion.
+  </div>
+</div>
 
           <div className="mt-4 grid grid-cols-2 gap-3">
             <div>

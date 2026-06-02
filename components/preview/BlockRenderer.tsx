@@ -735,6 +735,7 @@ function Surface({
   className = "",
   padded = true,
   styleOverride,
+  id,
 }: {
   block: MicrositeBlock;
   designKey?: string;
@@ -742,9 +743,11 @@ function Surface({
   className?: string;
   padded?: boolean;
   styleOverride?: React.CSSProperties;
+  id?: string;
 }) {
   return (
     <div
+      id={id}
       className={[
         "h-full w-full min-h-0 overflow-visible",
         padded ? "p-4" : "",
@@ -4917,7 +4920,7 @@ function getPostBoardBoxStyle(style?: {
   const isCompact = block.data.variant === "compact";
   const isFeature = block.data.variant === "feature";
 
-  async function handleLikePost(postId: string, fallbackCount: number) {
+async function handleLikePost(postId: string, fallbackCount: number) {
   if (likeLoading[postId] || likedPosts[postId]) return;
 
   const currentCount = likeCounts[postId] ?? fallbackCount ?? 0;
@@ -4925,7 +4928,9 @@ function getPostBoardBoxStyle(style?: {
   setLikedPosts((prev) => ({ ...prev, [postId]: true }));
   setLikeCounts((prev) => ({ ...prev, [postId]: currentCount + 1 }));
 
-  if (!micrositeId) return;
+  if (!micrositeId) {
+    return;
+  }
 
   try {
     setLikeLoading((prev) => ({ ...prev, [postId]: true }));
@@ -4948,6 +4953,7 @@ function getPostBoardBoxStyle(style?: {
       throw new Error(data?.error || "Failed to like post.");
     }
 
+    setLikedPosts((prev) => ({ ...prev, [postId]: true }));
     setLikeCounts((prev) => ({
       ...prev,
       [postId]:
@@ -5706,12 +5712,13 @@ if (isNameRequired && !nameValue.trim()) {
       }
     }
 
-    return (
-      <Surface
-        block={block}
-        designKey={designKey}
-        className={getSoftSurfaceClass(designKey)}
-      >
+return (
+  <Surface
+    block={block}
+    designKey={designKey}
+    className={getSoftSurfaceClass(designKey)}
+    id={`thread-${block.id}`}
+  >
         <div
           className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-xl border p-3"
           style={getThreadElementBoxStyle(block.data.formAppearance)}
