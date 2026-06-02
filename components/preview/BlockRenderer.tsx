@@ -5713,15 +5713,33 @@ if (isNameRequired && !nameValue.trim()) {
     }
 
 return (
-  <Surface
-    block={block}
-    designKey={designKey}
-    className={getSoftSurfaceClass(designKey)}
-    id={`thread-${block.id}`}
-  >
+<Surface
+  block={block}
+  designKey={designKey}
+  className={
+    block.data.threadStyleTarget === "form" &&
+    block.data.formAppearance?.backgroundColor === "transparent"
+      ? "bg-transparent"
+      : getSoftSurfaceClass(designKey)
+  }
+  id={`thread-${block.id}`}
+  styleOverride={
+    block.data.threadStyleTarget === "form"
+      ? {
+          backgroundColor: "transparent",
+        }
+      : undefined
+  }
+>
         <div
           className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-xl border p-3"
-          style={getThreadElementBoxStyle(block.data.formAppearance)}
+          style={{
+  ...getThreadElementBoxStyle(block.data.formAppearance),
+  backgroundColor:
+    block.data.formAppearance?.backgroundColor === "transparent"
+      ? "transparent"
+      : getThreadElementBoxStyle(block.data.formAppearance).backgroundColor,
+}}
         >
           <div
             className={`shrink-0 border-b pb-3 ${getThreadDividerClass(
