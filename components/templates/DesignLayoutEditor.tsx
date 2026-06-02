@@ -2212,6 +2212,7 @@ const showTextControls =
   selectedContext.kind === "textFx" ||
   selectedContext.kind === "cta" ||
   selectedBlock?.type === "thread" ||
+  selectedBlock?.type === "post_board" ||
   selectedBlock?.type === "form_field" ||
   selectedBlock?.type === "highlight" ||
   selectedBlock?.type === "progress_bar" ||
@@ -2245,6 +2246,7 @@ const showAppearanceControls =
   selectedContext.kind === "imageCarousel" ||
   selectedContext.kind === "shape" ||
   selectedBlock?.type === "thread" ||
+  selectedBlock?.type === "post_board" ||
   selectedBlock?.type === "listing" ||
   selectedBlock?.type === "progress_bar" ||
   selectedBlock?.type === "donation" ||
@@ -2277,6 +2279,7 @@ const showBorderWidthRadiusControls =
   selectedContext.kind === "imageCarousel" ||
   selectedContext.kind === "shape" ||
   selectedBlock?.type === "thread" ||
+  selectedBlock?.type === "post_board" ||
   selectedBlock?.type === "listing" ||
   selectedBlock?.type === "progress_bar" ||
   selectedBlock?.type === "donation" ||
@@ -10628,18 +10631,44 @@ const idsToExpand =
 
 <input
   type="color"
-  value={
-    selectedBlock?.type === "rsvp"
-      ? selectedRsvpElementBackgroundColor === "transparent"
-        ? "#ffffff"
-        : selectedRsvpElementBackgroundColor
-      : selectedAppearance.backgroundColor === "transparent"
-        ? "#ffffff"
-        : (selectedAppearance.backgroundColor ?? "#ffffff")
+value={
+  selectedBlock?.type === "rsvp"
+    ? selectedRsvpElementBackgroundColor === "transparent"
+      ? "#ffffff"
+      : selectedRsvpElementBackgroundColor
+    : selectedBlock?.type === "post_board" &&
+        postBoardStyleTarget === "card"
+      ? ((selectedBlock.data as any).cardStyle?.backgroundColor ===
+          "transparent"
+          ? "#ffffff"
+          : ((selectedBlock.data as any).cardStyle?.backgroundColor ??
+            "#ffffff"))
+      : selectedBlock?.type === "post_board" &&
+          postBoardStyleTarget === "buttons"
+        ? ((selectedBlock.data as any).buttonStyle?.backgroundColor ===
+            "transparent"
+            ? "#ffffff"
+            : ((selectedBlock.data as any).buttonStyle?.backgroundColor ??
+              "#ffffff"))
+        : selectedAppearance.backgroundColor === "transparent"
+          ? "#ffffff"
+          : (selectedAppearance.backgroundColor ?? "#ffffff")
+}
+onChange={(e) => {
+  if (
+    selectedBlock?.type === "rsvp" &&
+    selectedRsvpElementKey === "form"
+  ) {
+    applyAppearancePatch({
+      backgroundColor: e.target.value,
+    });
+    return;
   }
-  onChange={(e) => {
-  if (selectedBlock?.type === "rsvp" && selectedRsvpElementKey === "form") {
-    applyAppearancePatch({ backgroundColor: e.target.value });
+
+  if (selectedBlock?.type === "post_board") {
+    applyAppearancePatch({
+      backgroundColor: e.target.value,
+    });
     return;
   }
 
@@ -10684,10 +10713,13 @@ const idsToExpand =
       ? ((selectedBlock.data as any).sectionStyle?.backgroundColor === "transparent")
       : selectedBlock?.type === "rsvp"
         ? selectedRsvpElementBackgroundColor === "transparent"
-        : selectedAppearance.backgroundColor === "transparent",
+        : selectedBlock?.type === "post_board" && postBoardStyleTarget === "card"
+          ? ((selectedBlock.data as any).cardStyle?.backgroundColor === "transparent")
+          : selectedBlock?.type === "post_board" && postBoardStyleTarget === "buttons"
+            ? ((selectedBlock.data as any).buttonStyle?.backgroundColor === "transparent")
+            : selectedAppearance.backgroundColor === "transparent",
   )}
   onClick={() => {
-    // ✅ FAQ SECTION (fix)
     if (selectedBlock?.type === "faq" && faqStyleTarget === "section") {
       updateSelectedBlock((block) =>
         block.type !== "faq"
@@ -10706,10 +10738,15 @@ const idsToExpand =
       return;
     }
 
-if (selectedBlock?.type === "rsvp") {
-  applyAppearancePatch({ backgroundColor: "transparent" });
-  return;
-}
+    if (selectedBlock?.type === "rsvp") {
+      applyAppearancePatch({ backgroundColor: "transparent" });
+      return;
+    }
+
+    if (selectedBlock?.type === "post_board") {
+      applyAppearancePatch({ backgroundColor: "transparent" });
+      return;
+    }
 
     if (selectedBlock?.type === "checkout") {
       updateSelectedBlock((block) =>
@@ -10731,7 +10768,11 @@ if (selectedBlock?.type === "rsvp") {
   title={
     selectedBlock?.type === "rsvp"
       ? "Transparent RSVP block background"
-      : "Transparent fill"
+      : selectedBlock?.type === "post_board" && postBoardStyleTarget === "card"
+        ? "Transparent post card background"
+        : selectedBlock?.type === "post_board" && postBoardStyleTarget === "buttons"
+          ? "Transparent post button background"
+          : "Transparent fill"
   }
 >
   <Image
