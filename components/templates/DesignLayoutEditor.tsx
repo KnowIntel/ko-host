@@ -4822,6 +4822,60 @@ function clearLinksBackgroundColor() {
 }
 
 function applyAppearancePatch(patch: AppearancePatch) {
+
+    if (selectedBlock?.type === "thread") {
+  updateSelectedBlock((block) => {
+    if (block.type !== "thread") return block;
+
+    const target = block.data.threadStyleTarget ?? "message";
+
+    const appearanceKey =
+      target === "form"
+        ? "formAppearance"
+        : target === "post_block"
+          ? "postBlockAppearance"
+          : target === "post_button"
+            ? "postButtonAppearance"
+            : "messageAppearance";
+
+    if (
+      target === "form" ||
+      target === "post_block" ||
+      target === "message" ||
+      target === "post_button"
+    ) {
+      return {
+        ...block,
+        data: {
+          ...block.data,
+          [appearanceKey]: {
+            ...((block.data as any)[appearanceKey] ?? {}),
+            ...(patch.backgroundColor !== undefined
+              ? { backgroundColor: patch.backgroundColor }
+              : {}),
+            ...(patch.backgroundOpacity !== undefined
+              ? { backgroundOpacity: patch.backgroundOpacity }
+              : {}),
+            ...(patch.borderColor !== undefined
+              ? { borderColor: patch.borderColor }
+              : {}),
+          },
+        },
+      };
+    }
+
+    return {
+      ...block,
+      appearance: {
+        ...block.appearance,
+        ...patch,
+      },
+    };
+  });
+
+  return;
+}
+
   if (selectedBlock?.type === "link_hub") {
   updateSelectedBlock((block) => {
     if (block.type !== "link_hub") return block;
@@ -10795,15 +10849,27 @@ const idsToExpand =
 
         applyAppearancePatch({ backgroundColor: "transparent" });
       }}
-      title={
-        selectedBlock?.type === "rsvp"
-          ? "Transparent RSVP block background"
-          : selectedBlock?.type === "post_board" && postBoardStyleTarget === "card"
-            ? "Transparent post card background"
-            : selectedBlock?.type === "post_board" && postBoardStyleTarget === "buttons"
-              ? "Transparent post button background"
-              : "Transparent fill"
-      }
+title={
+  selectedBlock?.type === "rsvp"
+    ? "Transparent RSVP block background"
+    : selectedBlock?.type === "thread" &&
+        selectedBlock.data.threadStyleTarget === "form"
+      ? "Transparent thread form background"
+      : selectedBlock?.type === "thread" &&
+          selectedBlock.data.threadStyleTarget === "post_block"
+        ? "Transparent thread composer background"
+        : selectedBlock?.type === "thread" &&
+            selectedBlock.data.threadStyleTarget === "message"
+          ? "Transparent thread message background"
+          : selectedBlock?.type === "thread" &&
+              selectedBlock.data.threadStyleTarget === "post_button"
+            ? "Transparent thread post button background"
+            : selectedBlock?.type === "post_board" && postBoardStyleTarget === "card"
+              ? "Transparent post card background"
+              : selectedBlock?.type === "post_board" && postBoardStyleTarget === "buttons"
+                ? "Transparent post button background"
+                : "Transparent fill"
+}
     >
       <Image
         src="/icons/transparent_fill_icon.png"
@@ -10814,37 +10880,70 @@ const idsToExpand =
       />
     </button>
 
-    {selectedBlock?.type === "post_board" &&
-    (postBoardStyleTarget === "card" || postBoardStyleTarget === "buttons") ? (
-      <div className={topBarSliderWrapClass()}>
-        <span>BG Opacity</span>
-        <input
-          type="range"
-          min={0}
-          max={100}
-          value={Math.round(
+{((selectedBlock?.type === "post_board" &&
+  (postBoardStyleTarget === "card" || postBoardStyleTarget === "buttons")) ||
+  (selectedBlock?.type === "thread" &&
+    ["form", "post_block", "message", "post_button"].includes(
+      selectedBlock.data.threadStyleTarget ?? "message",
+    ))) ? (
+  <div className={topBarSliderWrapClass()}>
+    <span>BG Opacity</span>
+    <input
+      type="range"
+      min={0}
+      max={100}
+      value={
+        selectedBlock?.type === "post_board"
+          ? Math.round(
+              postBoardStyleTarget === "card"
+                ? (((selectedBlock.data as any).cardStyle?.backgroundOpacity ?? 1) *
+                    100)
+                : (((selectedBlock.data as any).buttonStyle?.backgroundOpacity ??
+                    1) * 100),
+            )
+          : selectedBlock?.type === "thread"
+            ? selectedBlock.data.threadStyleTarget === "form"
+              ? selectedBlock.data.formAppearance?.backgroundOpacity ?? 100
+              : selectedBlock.data.threadStyleTarget === "post_block"
+                ? selectedBlock.data.postBlockAppearance?.backgroundOpacity ?? 100
+                : selectedBlock.data.threadStyleTarget === "post_button"
+                  ? selectedBlock.data.postButtonAppearance?.backgroundOpacity ?? 100
+                  : selectedBlock.data.messageAppearance?.backgroundOpacity ?? 100
+            : 100
+      }
+      onChange={(e) =>
+        applyAppearancePatch({
+          backgroundOpacity:
+            selectedBlock?.type === "thread"
+              ? Number(e.target.value)
+              : Number(e.target.value) / 100,
+        } as any)
+      }
+      className={topBarSliderClass()}
+      title="Background transparency"
+    />
+    <span>
+      {selectedBlock?.type === "post_board"
+        ? Math.round(
             postBoardStyleTarget === "card"
-              ? (((selectedBlock.data as any).cardStyle?.backgroundOpacity ?? 1) * 100)
-              : (((selectedBlock.data as any).buttonStyle?.backgroundOpacity ?? 1) * 100),
-          )}
-          onChange={(e) =>
-            applyAppearancePatch({
-              backgroundOpacity: Number(e.target.value) / 100,
-            } as any)
-          }
-          className={topBarSliderClass()}
-          title="Background transparency"
-        />
-        <span>
-          {Math.round(
-            postBoardStyleTarget === "card"
-              ? (((selectedBlock.data as any).cardStyle?.backgroundOpacity ?? 1) * 100)
-              : (((selectedBlock.data as any).buttonStyle?.backgroundOpacity ?? 1) * 100),
-          )}
-          %
-        </span>
-      </div>
-    ) : null}
+              ? (((selectedBlock.data as any).cardStyle?.backgroundOpacity ?? 1) *
+                  100)
+              : (((selectedBlock.data as any).buttonStyle?.backgroundOpacity ??
+                  1) * 100),
+          )
+        : selectedBlock?.type === "thread"
+          ? selectedBlock.data.threadStyleTarget === "form"
+            ? selectedBlock.data.formAppearance?.backgroundOpacity ?? 100
+            : selectedBlock.data.threadStyleTarget === "post_block"
+              ? selectedBlock.data.postBlockAppearance?.backgroundOpacity ?? 100
+              : selectedBlock.data.threadStyleTarget === "post_button"
+                ? selectedBlock.data.postButtonAppearance?.backgroundOpacity ?? 100
+                : selectedBlock.data.messageAppearance?.backgroundOpacity ?? 100
+          : 100}
+      %
+    </span>
+  </div>
+) : null}
 
     {selectedBlockSupportsTexture ? (
       <>
