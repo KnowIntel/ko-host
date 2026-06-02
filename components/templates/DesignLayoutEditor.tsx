@@ -10821,52 +10821,104 @@ const idsToExpand =
                 ? ((selectedBlock.data as any).buttonStyle?.backgroundColor === "transparent")
                 : selectedAppearance.backgroundColor === "transparent",
       )}
-      onClick={() => {
-        if (selectedBlock?.type === "faq" && faqStyleTarget === "section") {
-          updateSelectedBlock((block) =>
-            block.type !== "faq"
-              ? block
-              : {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    sectionStyle: {
-                      ...((block.data as any).sectionStyle ?? {}),
-                      backgroundColor: "transparent",
-                    },
-                  },
-                },
-          );
-          return;
-        }
+onClick={() => {
+  if (selectedBlock?.type === "faq" && faqStyleTarget === "section") {
+    updateSelectedBlock((block) =>
+      block.type !== "faq"
+        ? block
+        : {
+            ...block,
+            data: {
+              ...block.data,
+              sectionStyle: {
+                ...((block.data as any).sectionStyle ?? {}),
+                backgroundColor: "transparent",
+              },
+            },
+          },
+    );
+    return;
+  }
 
-        if (selectedBlock?.type === "rsvp") {
-          applyAppearancePatch({ backgroundColor: "transparent" });
-          return;
-        }
+  if (selectedBlock?.type === "rsvp") {
+    applyAppearancePatch({ backgroundColor: "transparent" });
+    return;
+  }
 
-        if (selectedBlock?.type === "post_board") {
-          applyAppearancePatch({ backgroundColor: "transparent" });
-          return;
-        }
+  if (selectedBlock?.type === "thread") {
+    updateSelectedBlock((block) => {
+      if (block.type !== "thread") return block;
 
-        if (selectedBlock?.type === "checkout") {
-          updateSelectedBlock((block) =>
-            block.type !== "checkout"
-              ? block
-              : {
-                  ...block,
-                  appearance: {
-                    ...block.appearance,
-                    backgroundColor: "transparent",
-                  },
-                },
-          );
-          return;
-        }
+      const target = block.data.threadStyleTarget ?? "message";
 
-        applyAppearancePatch({ backgroundColor: "transparent" });
-      }}
+      const appearanceKey =
+        target === "form"
+          ? "formAppearance"
+          : target === "post_block"
+            ? "postBlockAppearance"
+            : target === "post_button"
+              ? "postButtonAppearance"
+              : "messageAppearance";
+
+      if (
+        target === "form" ||
+        target === "post_block" ||
+        target === "message" ||
+        target === "post_button"
+      ) {
+        return {
+          ...block,
+          appearance:
+            target === "form"
+              ? {
+                  ...block.appearance,
+                  backgroundColor: "transparent",
+                }
+              : block.appearance,
+          data: {
+            ...block.data,
+            [appearanceKey]: {
+              ...((block.data as any)[appearanceKey] ?? {}),
+              backgroundColor: "transparent",
+            },
+          },
+        };
+      }
+
+      return {
+        ...block,
+        appearance: {
+          ...block.appearance,
+          backgroundColor: "transparent",
+        },
+      };
+    });
+
+    return;
+  }
+
+  if (selectedBlock?.type === "post_board") {
+    applyAppearancePatch({ backgroundColor: "transparent" });
+    return;
+  }
+
+  if (selectedBlock?.type === "checkout") {
+    updateSelectedBlock((block) =>
+      block.type !== "checkout"
+        ? block
+        : {
+            ...block,
+            appearance: {
+              ...block.appearance,
+              backgroundColor: "transparent",
+            },
+          },
+    );
+    return;
+  }
+
+  applyAppearancePatch({ backgroundColor: "transparent" });
+}}
 title={
   selectedBlock?.type === "rsvp"
     ? "Transparent RSVP block background"
