@@ -5123,21 +5123,25 @@ style={{
                         />
                       ) : null}
 
-<div className="mt-3 flex items-center gap-2">
+<div className="relative z-20 mt-3 flex items-center gap-2 pointer-events-auto">
   {block.data.showLikes !== false ? (
-<button
-  type="button"
-  onClick={() => void handleLikePost(post.id, post.likeCount ?? 0)}
-  disabled={Boolean(likeLoading[post.id]) || Boolean(likedPosts[post.id])}
+    <button
+      type="button"
+      onMouseDown={(e) => e.stopPropagation()}
+      onClick={(e) => {
+        e.stopPropagation();
+        void handleLikePost(post.id, post.likeCount ?? 0);
+      }}
+      disabled={Boolean(likeLoading[post.id]) || Boolean(likedPosts[post.id])}
       className={[
-        "rounded-full border px-3 py-1 text-xs font-semibold",
+        "rounded-full border px-3 py-1 text-xs font-semibold pointer-events-auto",
         isLightDesign(designKey)
           ? "border-neutral-200 bg-neutral-50 text-neutral-700"
           : "border-white/10 bg-white/5 text-white/75",
       ].join(" ")}
       style={{
         ...getContainerTextStyle(buttonStyle, designKey),
-...getPostBoardBoxStyle(buttonStyle),
+        ...getPostBoardBoxStyle(buttonStyle),
       }}
       aria-label={`Like ${post.title || "post"}`}
     >
@@ -5146,42 +5150,45 @@ style={{
   ) : null}
 
   {block.data.showMessages !== false ? (
-<a
-  href={post.threadId ? `#thread-${post.threadId}` : "#"}
-  onClick={(e) => {
-    if (!post.threadId) {
-      e.preventDefault();
-      return;
-    }
+    <a
+      href={post.threadId ? `#thread-${post.threadId}` : "#"}
+      onMouseDown={(e) => e.stopPropagation()}
+      onClick={(e) => {
+        e.stopPropagation();
 
-    const target = document.getElementById(`thread-${post.threadId}`);
+        if (!post.threadId) {
+          e.preventDefault();
+          return;
+        }
 
-    if (target) {
-      e.preventDefault();
+        const target = document.getElementById(`thread-${post.threadId}`);
 
-      target.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
+        if (target) {
+          e.preventDefault();
 
-      window.history.replaceState(null, "", `#thread-${post.threadId}`);
-    }
-  }}
-  className={[
-    "rounded-full border px-3 py-1 text-xs font-semibold",
-    isLightDesign(designKey)
-      ? "border-neutral-200 bg-neutral-50 text-neutral-700"
-      : "border-white/10 bg-white/5 text-white/75",
-  ].join(" ")}
-  style={{
-    ...getContainerTextStyle(buttonStyle, designKey),
-    ...getPostBoardBoxStyle(buttonStyle),
-  }}
-  aria-label={`Open discussion for ${post.title || "post"}`}
->
-  💬 {post.messageCount ?? 0}
-</a>
-) : null}
+          target.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+
+          window.history.replaceState(null, "", `#thread-${post.threadId}`);
+        }
+      }}
+      className={[
+        "rounded-full border px-3 py-1 text-xs font-semibold pointer-events-auto",
+        isLightDesign(designKey)
+          ? "border-neutral-200 bg-neutral-50 text-neutral-700"
+          : "border-white/10 bg-white/5 text-white/75",
+      ].join(" ")}
+      style={{
+        ...getContainerTextStyle(buttonStyle, designKey),
+        ...getPostBoardBoxStyle(buttonStyle),
+      }}
+      aria-label={`Open discussion for ${post.title || "post"}`}
+    >
+      💬 {post.messageCount ?? 0}
+    </a>
+  ) : null}
 </div>
                     </div>
                   </div>
