@@ -734,12 +734,14 @@ function Surface({
   children,
   className = "",
   padded = true,
+  styleOverride,
 }: {
   block: MicrositeBlock;
   designKey?: string;
   children: React.ReactNode;
   className?: string;
   padded?: boolean;
+  styleOverride?: React.CSSProperties;
 }) {
   return (
     <div
@@ -748,7 +750,10 @@ function Surface({
         padded ? "p-4" : "",
         className,
       ].join(" ")}
-      style={getAppearanceStyle(block)}
+      style={{
+        ...getAppearanceStyle(block),
+        ...(styleOverride ?? {}),
+      }}
     >
       {children}
     </div>
@@ -4957,11 +4962,12 @@ function getPostBoardBoxStyle(style?: {
 }
 
   return (
-    <Surface
-      block={block}
-      designKey={designKey}
-      className={`${getSoftSurfaceClass(designKey)} overflow-y-auto`}
-    >
+<Surface
+  block={block}
+  designKey={designKey}
+  className={`${getSoftSurfaceClass(designKey)} overflow-y-auto`}
+  styleOverride={getPostBoardBoxStyle(block.appearance as any)}
+>
       {block.data.showHeading !== false ? (
         <div
           className={isFeature ? "text-xl font-bold" : "text-base font-semibold"}
