@@ -5086,7 +5086,10 @@ style={{
                             "mt-1 leading-snug",
                             isCompact ? "text-xs" : "text-sm",
                           ].join(" ")}
-                          style={getContainerTextStyle(bodyStyle, designKey)}
+                          style={{
+                            ...getContainerTextStyle(bodyStyle, designKey),
+                            ...getPostBoardBoxStyle(bodyStyle),
+                          }}
                         >
                           {getPostMessage(post.message)}
                         </div>

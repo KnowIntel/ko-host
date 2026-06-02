@@ -4894,6 +4894,24 @@ if ((selectedBlock as any)?.type === "post_board") {
   updateSelectedBlock((block) => {
     if (block.type !== "post_board") return block;
 
+    const patchToStyle = {
+      ...(patch.backgroundColor !== undefined
+        ? { backgroundColor: patch.backgroundColor }
+        : {}),
+      ...(patch.backgroundOpacity !== undefined
+        ? { backgroundOpacity: patch.backgroundOpacity }
+        : {}),
+      ...(patch.borderColor !== undefined
+        ? { borderColor: patch.borderColor }
+        : {}),
+      ...(patch.borderWidth !== undefined
+        ? { borderWidth: patch.borderWidth }
+        : {}),
+      ...(patch.borderRadius !== undefined
+        ? { borderRadius: patch.borderRadius }
+        : {}),
+    };
+
     if (postBoardStyleTarget === "card") {
       return {
         ...block,
@@ -4901,21 +4919,20 @@ if ((selectedBlock as any)?.type === "post_board") {
           ...block.data,
           cardStyle: {
             ...((block.data as any).cardStyle ?? {}),
-            ...(patch.backgroundColor !== undefined
-              ? { backgroundColor: patch.backgroundColor }
-              : {}),
-            ...(patch.backgroundOpacity !== undefined
-              ? { backgroundOpacity: patch.backgroundOpacity }
-              : {}),
-            ...(patch.borderColor !== undefined
-              ? { borderColor: patch.borderColor }
-              : {}),
-            ...(patch.borderWidth !== undefined
-              ? { borderWidth: patch.borderWidth }
-              : {}),
-            ...(patch.borderRadius !== undefined
-              ? { borderRadius: patch.borderRadius }
-              : {}),
+            ...patchToStyle,
+          },
+        },
+      };
+    }
+
+    if (postBoardStyleTarget === "body") {
+      return {
+        ...block,
+        data: {
+          ...block.data,
+          bodyStyle: {
+            ...((block.data as any).bodyStyle ?? {}),
+            ...patchToStyle,
           },
         },
       };
@@ -4928,21 +4945,7 @@ if ((selectedBlock as any)?.type === "post_board") {
           ...block.data,
           buttonStyle: {
             ...((block.data as any).buttonStyle ?? {}),
-            ...(patch.backgroundColor !== undefined
-              ? { backgroundColor: patch.backgroundColor }
-              : {}),
-            ...(patch.backgroundOpacity !== undefined
-              ? { backgroundOpacity: patch.backgroundOpacity }
-              : {}),
-            ...(patch.borderColor !== undefined
-              ? { borderColor: patch.borderColor }
-              : {}),
-            ...(patch.borderWidth !== undefined
-              ? { borderWidth: patch.borderWidth }
-              : {}),
-            ...(patch.borderRadius !== undefined
-              ? { borderRadius: patch.borderRadius }
-              : {}),
+            ...patchToStyle,
           },
         },
       };
