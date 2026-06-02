@@ -99,6 +99,14 @@ export const BUILDER_TOOL_GUIDES: BuilderToolGuide[] = [
     purpose: "Creates a public message/comment area with optional media replies.",
     howToUse: "Use this for guestbooks, shoutouts, testimonials, public questions, discussion, or event messages. Configure anonymous posting, approval, message count, composer settings, per-element styling, and visitor media uploads for GIFs, images, videos, or audio notes.",
   },
+
+  {
+  name: "Post Board",
+  purpose: "Creates an owner-controlled announcement feed with short posts, pinned updates, likes, and discussion links.",
+  howToUse:
+    "Use this for announcements, creator updates, event notices, club posts, campaign updates, class notices, watch club episode updates, business bulletins, or pinned welcome posts. Add posts in the inspector, choose Standard, Compact, or Feature layout, upload post images, pin important updates, style cards/buttons, and connect each post to a related Thread block when you want visitors to continue the conversation.",
+},
+
   {
     name: "File Share",
     purpose: "Allows visitors to upload files.",

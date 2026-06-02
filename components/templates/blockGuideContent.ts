@@ -1345,19 +1345,20 @@ link_hub: {
 thread: {
   title: "Thread",
   subtitle:
-    "Enable live messages, media replies, and conversation directly on the microsite.",
+    "Enable live conversations, replies, media posts, and community interaction directly on the microsite.",
   sections: [
     {
       title: "Overview",
       body:
-        "The Thread block allows visitors to post messages into a shared public conversation area. Posts can include text and supported media attachments.",
+        "The Thread block creates a public discussion area where visitors can post messages, upload media, react to comments, and participate in ongoing conversations. Threads can operate independently or be connected to Post Board announcements for deeper discussion.",
     },
     {
       title: "Objective",
       bullets: [
         "Enable public interaction.",
-        "Create a shared discussion or guestbook space.",
-        "Encourage visitor engagement with text and media posts.",
+        "Create a shared discussion space.",
+        "Collect feedback, reactions, and visitor participation.",
+        "Extend conversations beyond announcements and updates.",
       ],
     },
     {
@@ -1369,26 +1370,39 @@ thread: {
         "Choose how many messages are displayed.",
         "Adjust scroll height for the message area.",
         "Show or hide vote controls and vote counts.",
-        "Customize the composer placeholder, name placeholder, and post button text.",
-        "Use Style Target to format the form, composer area, subject, name, posted messages, or post button individually.",
+        "Customize composer placeholder text.",
+        "Customize name placeholder text.",
+        "Customize post button text.",
+        "Use Style Target to independently style the form, composer, subject, name field, posted messages, and action button.",
       ],
     },
     {
       title: "Media Support",
       bullets: [
-        "Visitors can attach GIFs and images up to 2MB.",
-        "Visitors can attach videos up to 5MB.",
-        "Visitors can attach audio or voice notes up to 1MB.",
-        "Media appears inside the posted message after submission.",
+        "Visitors can attach GIFs and images.",
+        "Visitors can attach videos.",
+        "Visitors can attach audio clips and voice notes.",
+        "Media appears directly inside the posted message.",
       ],
     },
     {
       title: "How It Works",
       bullets: [
         "Visitors enter a name unless anonymous posting is enabled.",
-        "Visitors write a message and may add supported media.",
-        "Posts appear in the public thread after submission.",
-        "Visitors can upvote or downvote messages when vote controls are enabled.",
+        "Visitors create a message and optionally attach media.",
+        "Posts appear immediately inside the discussion feed.",
+        "Visitors can vote on messages when voting is enabled.",
+        "Multiple visitors can participate in the same conversation.",
+      ],
+    },
+    {
+      title: "Works Great With Post Board",
+      bullets: [
+        "Create official announcements in a Post Board block.",
+        "Link each announcement to a dedicated Thread discussion.",
+        "Allow visitors to discuss individual updates separately.",
+        "Keep announcements organized while still encouraging engagement.",
+        "Perfect for clubs, events, creators, communities, and organizations.",
       ],
     },
     {
@@ -1398,8 +1412,106 @@ thread: {
         "Community discussions.",
         "Live Q&A sessions.",
         "Testimonials and shoutouts.",
-        "Photo/GIF reaction walls.",
+        "Photo and GIF reaction walls.",
         "Audio note responses.",
+        "Episode discussions.",
+        "Announcement discussions linked from Post Board posts.",
+      ],
+    },
+  ],
+},
+
+post_board: {
+  title: "Post Board",
+  subtitle:
+    "Publish announcements, updates, news, and featured posts in a structured feed layout.",
+  sections: [
+    {
+      title: "Overview",
+      body:
+        "The Post Board block allows microsite owners to create a feed of announcements, updates, notices, articles, featured posts, and important information. Posts can include images, engagement counts, pinned content, and links to Thread discussions.",
+    },
+    {
+      title: "Objective",
+      bullets: [
+        "Create a professional announcement feed.",
+        "Highlight important updates.",
+        "Organize information chronologically.",
+        "Drive engagement through linked discussions.",
+      ],
+    },
+    {
+      title: "Inspector Configuration",
+      bullets: [
+        "Set the board heading and subtitle.",
+        "Choose Standard, Compact, or Feature layout.",
+        "Show or hide profile images.",
+        "Show or hide timestamps.",
+        "Enable pinned posts.",
+        "Show or hide like counts.",
+        "Show or hide message counts.",
+        "Allow post images.",
+        "Allow post videos.",
+        "Configure maximum message length.",
+        "Create, duplicate, edit, reorder, and remove posts.",
+      ],
+    },
+    {
+      title: "Styling Options",
+      bullets: [
+        "Style overall block text.",
+        "Style individual post cards.",
+        "Style post titles independently.",
+        "Style post body content independently.",
+        "Style Like and Message buttons independently.",
+        "Customize card backgrounds, borders, and corner radius.",
+      ],
+    },
+    {
+      title: "Post Features",
+      bullets: [
+        "Upload featured images for individual posts.",
+        "Display author names.",
+        "Display timestamps.",
+        "Pin important posts to the top.",
+        "Show engagement counts.",
+        "Display category labels and subtitles.",
+        "Link posts to dedicated Thread discussions.",
+      ],
+    },
+    {
+      title: "How It Works",
+      bullets: [
+        "The owner creates and manages posts from the builder.",
+        "Visitors view announcements in a feed layout.",
+        "Pinned posts remain at the top.",
+        "Newest posts automatically appear first.",
+        "Posts can direct visitors into dedicated Thread discussions.",
+      ],
+    },
+    {
+      title: "Works Great With Thread",
+      bullets: [
+        "Use Post Board for official announcements.",
+        "Use Thread blocks for visitor discussion.",
+        "Assign a Thread ID to a post.",
+        "Allow each announcement to have its own conversation area.",
+        "Separate announcements from discussion clutter.",
+      ],
+    },
+    {
+      title: "Best Use Cases",
+      bullets: [
+        "Club announcements.",
+        "Watch club episode updates.",
+        "Event updates.",
+        "Conference news.",
+        "Community bulletins.",
+        "School notices.",
+        "Creator updates.",
+        "Business announcements.",
+        "Release notes and changelogs.",
+        "Featured news feeds.",
       ],
     },
   ],
