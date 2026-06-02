@@ -10845,57 +10845,60 @@ onClick={() => {
     return;
   }
 
-  if (selectedBlock?.type === "thread") {
-    updateSelectedBlock((block) => {
-      if (block.type !== "thread") return block;
+if (selectedBlock?.type === "thread") {
+  updateSelectedBlock((block) => {
+    if (block.type !== "thread") return block;
 
-      const target = block.data.threadStyleTarget ?? "message";
+    const target = block.data.threadStyleTarget ?? "message";
 
-      const appearanceKey =
-        target === "form"
-          ? "formAppearance"
-          : target === "post_block"
-            ? "postBlockAppearance"
-            : target === "post_button"
-              ? "postButtonAppearance"
-              : "messageAppearance";
+    const appearanceKey =
+      target === "form"
+        ? "formAppearance"
+        : target === "post_block"
+          ? "postBlockAppearance"
+          : target === "post_button"
+            ? "postButtonAppearance"
+            : "messageAppearance";
 
-      if (
-        target === "form" ||
-        target === "post_block" ||
-        target === "message" ||
-        target === "post_button"
-      ) {
-        return {
-          ...block,
-          appearance:
-            target === "form"
-              ? {
-                  ...block.appearance,
-                  backgroundColor: "transparent",
-                }
-              : block.appearance,
-          data: {
-            ...block.data,
-            [appearanceKey]: {
-              ...((block.data as any)[appearanceKey] ?? {}),
-              backgroundColor: "transparent",
-            },
-          },
-        };
-      }
-
+    if (
+      target === "form" ||
+      target === "post_block" ||
+      target === "message" ||
+      target === "post_button"
+    ) {
       return {
         ...block,
-        appearance: {
-          ...block.appearance,
-          backgroundColor: "transparent",
+        appearance:
+          target === "form"
+            ? {
+                ...block.appearance,
+                backgroundColor: "transparent",
+                backgroundOpacity: 0,
+              }
+            : block.appearance,
+        data: {
+          ...block.data,
+          [appearanceKey]: {
+            ...((block.data as any)[appearanceKey] ?? {}),
+            backgroundColor: "transparent",
+            backgroundOpacity: 0,
+          },
         },
       };
-    });
+    }
 
-    return;
-  }
+    return {
+      ...block,
+      appearance: {
+        ...block.appearance,
+        backgroundColor: "transparent",
+        backgroundOpacity: 0,
+      },
+    };
+  });
+
+  return;
+}
 
   if (selectedBlock?.type === "post_board") {
     applyAppearancePatch({ backgroundColor: "transparent" });
