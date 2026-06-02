@@ -1692,8 +1692,12 @@ const [showAiAdvancedOptions, setShowAiAdvancedOptions] =
   const bottomBarRef = useRef<HTMLDivElement | null>(null);
   const [blockGuideOpen, setBlockGuideOpen] = useState(false);
   const toolMenuRef = useRef<HTMLDivElement | null>(null);
-  const [donationStyleTarget, setDonationStyleTarget] =
+const [donationStyleTarget, setDonationStyleTarget] =
   useState<"background" | "buttons">("background");
+
+const [postBoardStyleTarget, setPostBoardStyleTarget] = useState<
+  "block" | "card" | "heading" | "body" | "buttons"
+>("block");
   const pollQuestionInputRef = useRef<HTMLTextAreaElement | null>(null);
   const pollOptionInputRefs = useRef<Record<string, HTMLInputElement | null>>(
     {},
@@ -4005,6 +4009,41 @@ function applyStylePatch(patch: Partial<TextStyle>) {
     return;
   }
 
+  if (selectedBlock?.type === "post_board") {
+  setDraft((prev) => ({
+    ...prev,
+    blocks: prev.blocks.map((block) => {
+      if (block.id !== selectedBlock.id || block.type !== "post_board") {
+        return block;
+      }
+
+      const targetStyleKey =
+        postBoardStyleTarget === "card"
+          ? "cardStyle"
+          : postBoardStyleTarget === "heading"
+            ? "headingStyle"
+            : postBoardStyleTarget === "body"
+              ? "bodyStyle"
+              : postBoardStyleTarget === "buttons"
+                ? "buttonStyle"
+                : "style";
+
+      return {
+        ...block,
+        data: {
+          ...block.data,
+          [targetStyleKey]: {
+            ...(((block.data as any)[targetStyleKey] ?? block.data.style ?? {})),
+            ...patch,
+          },
+        },
+      };
+    }),
+  }));
+
+  return;
+}
+
 if (
   selectedBlock?.type === "image" ||
   selectedBlock?.type === "gallery" ||
@@ -4271,6 +4310,43 @@ if (selectedBlock?.type === "link_hub") {
         : block,
     ),
   }));
+  return;
+}
+
+if ((selectedBlock as any)?.type === "post_board") {
+  const selectedPostBoardId = (selectedBlock as any).id;
+
+  setDraft((prev) => ({
+    ...prev,
+    blocks: prev.blocks.map((block) => {
+      if (block.id !== selectedPostBoardId || block.type !== "post_board") {
+        return block;
+      }
+
+      const targetStyleKey =
+        postBoardStyleTarget === "card"
+          ? "cardStyle"
+          : postBoardStyleTarget === "heading"
+            ? "headingStyle"
+            : postBoardStyleTarget === "body"
+              ? "bodyStyle"
+              : postBoardStyleTarget === "buttons"
+                ? "buttonStyle"
+                : "style";
+
+      return {
+        ...block,
+        data: {
+          ...block.data,
+          [targetStyleKey]: {
+            ...(((block.data as any)[targetStyleKey] ?? block.data.style ?? {})),
+            ...patch,
+          },
+        },
+      };
+    }),
+  }));
+
   return;
 }
 
@@ -4810,6 +4886,22 @@ function applyAppearancePatch(patch: AppearancePatch) {
     );
     return;
   }
+  
+  if (selectedBlock?.type === "post_board") {
+  updateSelectedBlock((block) =>
+    block.type !== "post_board"
+      ? block
+      : {
+          ...block,
+          appearance: {
+            ...block.appearance,
+            ...patch,
+          },
+        },
+  );
+
+  return;
+}
 
   setDraft((prev) => applyAppearancePatchToSelection(prev, selection, patch));
 }
@@ -5528,6 +5620,7 @@ async function uploadImageToSelectedBlock(
   blockId: string,
   timelineEntryId?: string,
   calendarEventId?: string,
+  postBoardPostId?: string,
 ) {
   await openImagePicker({
     onSelect: async (files) => {
@@ -5632,6 +5725,24 @@ async function uploadImageToSelectedBlock(
               },
             };
           }
+
+          if (block.type === "post_board" && postBoardPostId) {
+  return {
+    ...block,
+    data: {
+      ...block.data,
+      posts: block.data.posts.map((post) =>
+        post.id === postBoardPostId
+          ? {
+              ...post,
+              imageUrl: uploaded.url,
+              imageStoragePath: uploaded.storagePath,
+            }
+          : post,
+      ),
+    },
+  };
+}
 
           return block;
         }),
@@ -17497,30 +17608,49 @@ onClick={() =>
       />
     </div>
 
-    <div className="mt-4">
-      <div className={inspectorLabelClass()}>Style Variant</div>
-      <select
-        value={selectedBlock.data.variant ?? "standard"}
-        onChange={(e) =>
-          updateSelectedBlock((block) =>
-            block.type !== "post_board"
-              ? block
-              : {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    variant: e.target.value as "standard" | "compact" | "feature",
-                  },
-                },
-          )
-        }
-        className={inspectorInputClass()}
-      >
-        <option value="standard">Standard</option>
-        <option value="compact">Compact</option>
-        <option value="feature">Feature</option>
-      </select>
-    </div>
+<div className="mt-4">
+  <div className={inspectorLabelClass()}>Style Variant</div>
+  <select
+    value={selectedBlock.data.variant ?? "standard"}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "post_board"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                variant: e.target.value as "standard" | "compact" | "feature",
+              },
+            },
+      )
+    }
+    className={inspectorInputClass()}
+  >
+    <option value="standard">Standard</option>
+    <option value="compact">Compact</option>
+    <option value="feature">Feature</option>
+  </select>
+</div>
+
+<div className="mt-4">
+  <div className={inspectorLabelClass()}>Style Target</div>
+  <select
+    value={postBoardStyleTarget}
+    onChange={(e) =>
+      setPostBoardStyleTarget(
+        e.target.value as "block" | "card" | "heading" | "body" | "buttons",
+      )
+    }
+    className={inspectorInputClass()}
+  >
+    <option value="block">Block Text</option>
+    <option value="card">Post Card</option>
+    <option value="heading">Post Heading</option>
+    <option value="body">Post Body</option>
+    <option value="buttons">Like / Message Buttons</option>
+  </select>
+</div>
 
     <div className="mt-4 grid gap-2">
       {[
@@ -17586,6 +17716,91 @@ onClick={() =>
         className={inspectorInputClass()}
       />
     </div>
+
+    <div className="mt-5">
+  <div className={inspectorLabelClass()}>Card Styling</div>
+
+  <div className="mt-3 grid grid-cols-2 gap-3">
+    <div>
+      <div className={inspectorLabelClass()}>Card Background</div>
+      <input
+        type="color"
+        value={(selectedBlock.data.cardStyle as any)?.backgroundColor ?? "#ffffff"}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "post_board"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    cardStyle: {
+                      ...((block.data as any).cardStyle ?? {}),
+                      backgroundColor: e.target.value,
+                    },
+                  },
+                },
+          )
+        }
+        className="mt-2 h-10 w-full rounded-xl border border-neutral-300 bg-white"
+      />
+    </div>
+
+    <div>
+      <div className={inspectorLabelClass()}>Border Color</div>
+      <input
+        type="color"
+        value={(selectedBlock.data.cardStyle as any)?.borderColor ?? "#e5e7eb"}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "post_board"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    cardStyle: {
+                      ...((block.data as any).cardStyle ?? {}),
+                      borderColor: e.target.value,
+                    },
+                  },
+                },
+          )
+        }
+        className="mt-2 h-10 w-full rounded-xl border border-neutral-300 bg-white"
+      />
+    </div>
+  </div>
+
+  <div className="mt-4">
+    <div className={inspectorLabelClass()}>
+      Card Radius: {(selectedBlock.data.cardStyle as any)?.borderRadius ?? 16}px
+    </div>
+    <input
+      type="range"
+      min={0}
+      max={40}
+      value={(selectedBlock.data.cardStyle as any)?.borderRadius ?? 16}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "post_board"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  cardStyle: {
+                    ...((block.data as any).cardStyle ?? {}),
+                    borderRadius: Number(e.target.value),
+                  },
+                },
+              },
+        )
+      }
+      className="mt-2 w-full"
+    />
+  </div>
+</div>
 
     <div className="mt-5 space-y-3">
       <div className={inspectorLabelClass()}>Posts</div>
@@ -17750,6 +17965,21 @@ onClick={() =>
               className={inspectorInputClass()}
             />
           </div>
+
+          <button
+  type="button"
+  className="mt-2 inline-flex h-10 items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-700 hover:bg-neutral-50"
+  onClick={() =>
+    void uploadImageToSelectedBlock(
+      selectedBlock.id,
+      undefined,
+      undefined,
+      post.id,
+    )
+  }
+>
+  Browse Post Image
+</button>
 
           <div className="mt-4">
             <div className={inspectorLabelClass()}>Thread ID</div>

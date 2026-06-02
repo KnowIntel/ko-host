@@ -4794,6 +4794,12 @@ function renderPostBoard(
   designKey?: string,
 ) {
   const posts = Array.isArray(block.data.posts) ? block.data.posts : [];
+  const blockStyle = (block.data.style ?? {}) as any;
+  const cardStyle = (block.data.cardStyle ?? {}) as any;
+  const headingStyle = ((block.data as any).headingStyle ?? blockStyle) as any;
+  const bodyStyle = ((block.data as any).bodyStyle ?? blockStyle) as any;
+  const buttonStyle = ((block.data as any).buttonStyle ?? {}) as any;
+
   const maxMessageLength =
     typeof block.data.maxMessageLength === "number"
       ? Math.max(50, Math.min(1000, block.data.maxMessageLength))
@@ -4858,7 +4864,7 @@ function renderPostBoard(
       {block.data.showHeading !== false ? (
         <div
           className={isFeature ? "text-xl font-bold" : "text-base font-semibold"}
-          style={getContainerTextStyle(block.data.style as any, designKey)}
+          style={getContainerTextStyle(blockStyle, designKey)}
         >
           {block.data.heading || "Updates"}
         </div>
@@ -4869,13 +4875,19 @@ function renderPostBoard(
           className={`mt-1 ${isFeature ? "text-sm" : "text-xs"} ${getMutedTextClass(
             designKey,
           )}`}
-          style={getContainerTextStyle(block.data.style as any, designKey)}
+          style={getContainerTextStyle(blockStyle, designKey)}
         >
           {block.data.subtitle || "Latest announcements and posts"}
         </div>
       ) : null}
 
-      <div className={block.data.showHeading !== false || block.data.showSubtitle !== false ? "mt-4" : ""}>
+      <div
+        className={
+          block.data.showHeading !== false || block.data.showSubtitle !== false
+            ? "mt-4"
+            : ""
+        }
+      >
         {sortedPosts.length ? (
           <div className={isCompact ? "space-y-2" : "space-y-3"}>
             {sortedPosts.map((post) => {
@@ -4891,6 +4903,15 @@ function renderPostBoard(
                       ? "border-neutral-200 bg-white"
                       : "border-white/10 bg-white/5",
                   ].join(" ")}
+                  style={{
+                    ...getContainerTextStyle(cardStyle, designKey),
+                    backgroundColor: cardStyle.backgroundColor || undefined,
+                    borderColor: cardStyle.borderColor || undefined,
+                    borderRadius:
+                      typeof cardStyle.borderRadius === "number"
+                        ? `${cardStyle.borderRadius}px`
+                        : undefined,
+                  }}
                 >
                   <div className="flex items-start gap-3">
                     {block.data.showOwnerAvatar !== false ? (
@@ -4922,7 +4943,7 @@ function renderPostBoard(
                       <div className="flex flex-wrap items-center gap-2">
                         <div
                           className="text-sm font-semibold"
-                          style={getContainerTextStyle(block.data.style as any, designKey)}
+                          style={getContainerTextStyle(blockStyle, designKey)}
                         >
                           {ownerName}
                         </div>
@@ -4958,7 +4979,7 @@ function renderPostBoard(
                           "mt-2 font-semibold",
                           isFeature ? "text-lg" : "text-sm",
                         ].join(" ")}
-                        style={getContainerTextStyle(block.data.style as any, designKey)}
+                        style={getContainerTextStyle(headingStyle, designKey)}
                       >
                         {post.title || "Untitled post"}
                       </div>
@@ -4969,7 +4990,7 @@ function renderPostBoard(
                             "mt-1 leading-snug",
                             isCompact ? "text-xs" : "text-sm",
                           ].join(" ")}
-                          style={getContainerTextStyle(block.data.style as any, designKey)}
+                          style={getContainerTextStyle(bodyStyle, designKey)}
                         >
                           {getPostMessage(post.message)}
                         </div>
@@ -5001,6 +5022,7 @@ function renderPostBoard(
                                 ? "border-neutral-200 bg-neutral-50 text-neutral-700"
                                 : "border-white/10 bg-white/5 text-white/75",
                             ].join(" ")}
+                            style={getContainerTextStyle(buttonStyle, designKey)}
                             aria-label={`Like ${post.title || "post"}`}
                           >
                             ♥ {post.likeCount ?? 0}
@@ -5016,6 +5038,7 @@ function renderPostBoard(
                                 ? "border-neutral-200 bg-neutral-50 text-neutral-700"
                                 : "border-white/10 bg-white/5 text-white/75",
                             ].join(" ")}
+                            style={getContainerTextStyle(buttonStyle, designKey)}
                             aria-label={`Open discussion for ${post.title || "post"}`}
                           >
                             💬 {post.messageCount ?? 0}
