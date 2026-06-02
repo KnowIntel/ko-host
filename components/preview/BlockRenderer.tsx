@@ -4792,6 +4792,7 @@ function normalizeThreadMessages(rawMessages: any[]): ThreadUiMessage[] {
 function renderPostBoard(
   block: Extract<MicrositeBlock, { type: "post_board" }>,
   designKey?: string,
+  micrositeId?: string | null,
 ) {
   const posts = Array.isArray(block.data.posts) ? block.data.posts : [];
   const blockStyle = (block.data.style ?? {}) as any;
@@ -4799,6 +4800,9 @@ function renderPostBoard(
   const headingStyle = ((block.data as any).headingStyle ?? blockStyle) as any;
   const bodyStyle = ((block.data as any).bodyStyle ?? blockStyle) as any;
   const buttonStyle = ((block.data as any).buttonStyle ?? {}) as any;
+  const [likeCounts, setLikeCounts] = useState<Record<string, number>>({});
+  const [likedPosts, setLikedPosts] = useState<Record<string, boolean>>({});
+  const [likeLoading, setLikeLoading] = useState<Record<string, boolean>>({});
 
   const maxMessageLength =
     typeof block.data.maxMessageLength === "number"
@@ -4854,6 +4858,50 @@ function renderPostBoard(
 
   const isCompact = block.data.variant === "compact";
   const isFeature = block.data.variant === "feature";
+
+  async function handleLikePost(postId: string, fallbackCount: number) {
+  if (likeLoading[postId] || likedPosts[postId]) return;
+
+  const currentCount = likeCounts[postId] ?? fallbackCount ?? 0;
+
+  setLikedPosts((prev) => ({ ...prev, [postId]: true }));
+  setLikeCounts((prev) => ({ ...prev, [postId]: currentCount + 1 }));
+
+  if (!micrositeId) return;
+
+  try {
+    setLikeLoading((prev) => ({ ...prev, [postId]: true }));
+
+    const res = await fetch("/api/public/post-board/like", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        micrositeId,
+        blockId: block.id,
+        postId,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data?.error || "Failed to like post.");
+    }
+
+    setLikeCounts((prev) => ({
+      ...prev,
+      [postId]:
+        typeof data.likeCount === "number" ? data.likeCount : currentCount + 1,
+    }));
+  } catch {
+    setLikedPosts((prev) => ({ ...prev, [postId]: false }));
+    setLikeCounts((prev) => ({ ...prev, [postId]: currentCount }));
+  } finally {
+    setLikeLoading((prev) => ({ ...prev, [postId]: false }));
+  }
+}
 
   return (
     <Surface
@@ -5012,39 +5060,65 @@ function renderPostBoard(
                         />
                       ) : null}
 
-                      <div className="mt-3 flex items-center gap-2">
-                        {block.data.showLikes !== false ? (
-                          <button
-                            type="button"
-                            className={[
-                              "rounded-full border px-3 py-1 text-xs font-semibold",
-                              isLightDesign(designKey)
-                                ? "border-neutral-200 bg-neutral-50 text-neutral-700"
-                                : "border-white/10 bg-white/5 text-white/75",
-                            ].join(" ")}
-                            style={getContainerTextStyle(buttonStyle, designKey)}
-                            aria-label={`Like ${post.title || "post"}`}
-                          >
-                            ♥ {post.likeCount ?? 0}
-                          </button>
-                        ) : null}
+<div className="mt-3 flex items-center gap-2">
+  {block.data.showLikes !== false ? (
+<button
+  type="button"
+  onClick={() => void handleLikePost(post.id, post.likeCount ?? 0)}
+  disabled={Boolean(likeLoading[post.id]) || Boolean(likedPosts[post.id])}
+      className={[
+        "rounded-full border px-3 py-1 text-xs font-semibold",
+        isLightDesign(designKey)
+          ? "border-neutral-200 bg-neutral-50 text-neutral-700"
+          : "border-white/10 bg-white/5 text-white/75",
+      ].join(" ")}
+      style={{
+        ...getContainerTextStyle(buttonStyle, designKey),
+        backgroundColor: buttonStyle.backgroundColor || undefined,
+        borderColor: buttonStyle.borderColor || undefined,
+        borderWidth:
+          typeof buttonStyle.borderWidth === "number"
+            ? `${buttonStyle.borderWidth}px`
+            : undefined,
+        borderRadius:
+          typeof buttonStyle.borderRadius === "number"
+            ? `${buttonStyle.borderRadius}px`
+            : undefined,
+      }}
+      aria-label={`Like ${post.title || "post"}`}
+    >
+      ♥ {likeCounts[post.id] ?? post.likeCount ?? 0}
+    </button>
+  ) : null}
 
-                        {block.data.showMessages !== false ? (
-                          <a
-                            href={post.threadId ? `#thread-${post.threadId}` : "#"}
-                            className={[
-                              "rounded-full border px-3 py-1 text-xs font-semibold",
-                              isLightDesign(designKey)
-                                ? "border-neutral-200 bg-neutral-50 text-neutral-700"
-                                : "border-white/10 bg-white/5 text-white/75",
-                            ].join(" ")}
-                            style={getContainerTextStyle(buttonStyle, designKey)}
-                            aria-label={`Open discussion for ${post.title || "post"}`}
-                          >
-                            💬 {post.messageCount ?? 0}
-                          </a>
-                        ) : null}
-                      </div>
+  {block.data.showMessages !== false ? (
+    <a
+      href={post.threadId ? `#thread-${post.threadId}` : "#"}
+      className={[
+        "rounded-full border px-3 py-1 text-xs font-semibold",
+        isLightDesign(designKey)
+          ? "border-neutral-200 bg-neutral-50 text-neutral-700"
+          : "border-white/10 bg-white/5 text-white/75",
+      ].join(" ")}
+      style={{
+        ...getContainerTextStyle(buttonStyle, designKey),
+        backgroundColor: buttonStyle.backgroundColor || undefined,
+        borderColor: buttonStyle.borderColor || undefined,
+        borderWidth:
+          typeof buttonStyle.borderWidth === "number"
+            ? `${buttonStyle.borderWidth}px`
+            : undefined,
+        borderRadius:
+          typeof buttonStyle.borderRadius === "number"
+            ? `${buttonStyle.borderRadius}px`
+            : undefined,
+      }}
+      aria-label={`Open discussion for ${post.title || "post"}`}
+    >
+      💬 {post.messageCount ?? 0}
+    </a>
+  ) : null}
+</div>
                     </div>
                   </div>
                 </article>
@@ -11885,8 +11959,8 @@ case "timeline":
       return renderFaq(block, designKey);
     case "thread":
       return renderThread(block, designKey, micrositeId);
-    case "post_board":
-      return renderPostBoard(block, designKey);
+case "post_board":
+  return renderPostBoard(block, designKey, micrositeId);
     case "padding":
       return <div className="h-full w-full" />;
     case "showcase":

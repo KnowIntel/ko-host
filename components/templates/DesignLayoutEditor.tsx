@@ -18030,7 +18030,7 @@ onClick={() =>
 </button>
 
           <div className="mt-4">
-            <div className={inspectorLabelClass()}>Thread ID</div>
+            <div className={inspectorLabelClass()}>Related Thread Block ID</div>
             <input
               type="text"
               value={post.threadId ?? ""}
