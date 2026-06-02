@@ -4856,6 +4856,54 @@ function renderPostBoard(
     return `${safeMessage.slice(0, maxMessageLength).trim()}…`;
   }
 
+function getPostBoardBoxStyle(style?: {
+  backgroundColor?: string;
+  backgroundOpacity?: number;
+  borderColor?: string;
+  borderWidth?: number;
+  borderRadius?: number;
+}) {
+  function postBoardWithOpacity(color?: string, opacity?: number) {
+    const safeColor = color || "transparent";
+    const safeOpacity =
+      typeof opacity === "number" && Number.isFinite(opacity)
+        ? Math.max(0, Math.min(1, opacity))
+        : 1;
+
+    if (safeColor === "transparent") return "transparent";
+    if (!safeColor.startsWith("#")) return safeColor;
+
+    const hex = safeColor.replace("#", "");
+    const fullHex =
+      hex.length === 3
+        ? hex
+            .split("")
+            .map((char) => `${char}${char}`)
+            .join("")
+        : hex;
+
+    const r = parseInt(fullHex.slice(0, 2), 16);
+    const g = parseInt(fullHex.slice(2, 4), 16);
+    const b = parseInt(fullHex.slice(4, 6), 16);
+
+    if ([r, g, b].some((value) => Number.isNaN(value))) return safeColor;
+
+    return `rgba(${r}, ${g}, ${b}, ${safeOpacity})`;
+  }
+
+  return {
+    backgroundColor: postBoardWithOpacity(
+      style?.backgroundColor,
+      style?.backgroundOpacity,
+    ),
+    borderColor: style?.borderColor || undefined,
+    borderWidth:
+      typeof style?.borderWidth === "number" ? `${style.borderWidth}px` : undefined,
+    borderRadius:
+      typeof style?.borderRadius === "number" ? `${style.borderRadius}px` : undefined,
+  };
+}
+
   const isCompact = block.data.variant === "compact";
   const isFeature = block.data.variant === "feature";
 
@@ -4951,15 +4999,10 @@ function renderPostBoard(
                       ? "border-neutral-200 bg-white"
                       : "border-white/10 bg-white/5",
                   ].join(" ")}
-                  style={{
-                    ...getContainerTextStyle(cardStyle, designKey),
-                    backgroundColor: cardStyle.backgroundColor || undefined,
-                    borderColor: cardStyle.borderColor || undefined,
-                    borderRadius:
-                      typeof cardStyle.borderRadius === "number"
-                        ? `${cardStyle.borderRadius}px`
-                        : undefined,
-                  }}
+style={{
+  ...getContainerTextStyle(cardStyle, designKey),
+  ...getPostBoardBoxStyle(cardStyle),
+}}
                 >
                   <div className="flex items-start gap-3">
                     {block.data.showOwnerAvatar !== false ? (
@@ -5074,16 +5117,7 @@ function renderPostBoard(
       ].join(" ")}
       style={{
         ...getContainerTextStyle(buttonStyle, designKey),
-        backgroundColor: buttonStyle.backgroundColor || undefined,
-        borderColor: buttonStyle.borderColor || undefined,
-        borderWidth:
-          typeof buttonStyle.borderWidth === "number"
-            ? `${buttonStyle.borderWidth}px`
-            : undefined,
-        borderRadius:
-          typeof buttonStyle.borderRadius === "number"
-            ? `${buttonStyle.borderRadius}px`
-            : undefined,
+...getPostBoardBoxStyle(buttonStyle),
       }}
       aria-label={`Like ${post.title || "post"}`}
     >

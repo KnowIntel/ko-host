@@ -4899,21 +4899,24 @@ if ((selectedBlock as any)?.type === "post_board") {
         ...block,
         data: {
           ...block.data,
-          cardStyle: {
-            ...((block.data as any).cardStyle ?? {}),
-            ...(patch.backgroundColor !== undefined
-              ? { backgroundColor: patch.backgroundColor }
-              : {}),
-            ...(patch.borderColor !== undefined
-              ? { borderColor: patch.borderColor }
-              : {}),
-            ...(patch.borderWidth !== undefined
-              ? { borderWidth: patch.borderWidth }
-              : {}),
-            ...(patch.borderRadius !== undefined
-              ? { borderRadius: patch.borderRadius }
-              : {}),
-          },
+cardStyle: {
+  ...((block.data as any).cardStyle ?? {}),
+  ...(patch.backgroundColor !== undefined
+    ? { backgroundColor: patch.backgroundColor }
+    : {}),
+  ...(patch.backgroundOpacity !== undefined
+    ? { backgroundOpacity: patch.backgroundOpacity }
+    : {}),
+  ...(patch.borderColor !== undefined
+    ? { borderColor: patch.borderColor }
+    : {}),
+  ...(patch.borderWidth !== undefined
+    ? { borderWidth: patch.borderWidth }
+    : {}),
+  ...(patch.borderRadius !== undefined
+    ? { borderRadius: patch.borderRadius }
+    : {}),
+},
         },
       };
     }
@@ -4923,21 +4926,24 @@ if ((selectedBlock as any)?.type === "post_board") {
         ...block,
         data: {
           ...block.data,
-          buttonStyle: {
-            ...((block.data as any).buttonStyle ?? {}),
-            ...(patch.backgroundColor !== undefined
-              ? { backgroundColor: patch.backgroundColor }
-              : {}),
-            ...(patch.borderColor !== undefined
-              ? { borderColor: patch.borderColor }
-              : {}),
-            ...(patch.borderWidth !== undefined
-              ? { borderWidth: patch.borderWidth }
-              : {}),
-            ...(patch.borderRadius !== undefined
-              ? { borderRadius: patch.borderRadius }
-              : {}),
-          },
+buttonStyle: {
+  ...((block.data as any).buttonStyle ?? {}),
+  ...(patch.backgroundColor !== undefined
+    ? { backgroundColor: patch.backgroundColor }
+    : {}),
+  ...(patch.backgroundOpacity !== undefined
+    ? { backgroundOpacity: patch.backgroundOpacity }
+    : {}),
+  ...(patch.borderColor !== undefined
+    ? { borderColor: patch.borderColor }
+    : {}),
+  ...(patch.borderWidth !== undefined
+    ? { borderWidth: patch.borderWidth }
+    : {}),
+  ...(patch.borderRadius !== undefined
+    ? { borderRadius: patch.borderRadius }
+    : {}),
+},
         },
       };
     }
@@ -9970,209 +9976,207 @@ const idsToExpand =
   title="Text color"
 />
 
-          <button
-            type="button"
-            className={eyedropperButtonClass()}
-            onClick={() =>
-              void pickColorWithEyeDropper((color) => {
-                requestAnimationFrame(() => {
-                applyTextColor(color);
-              });
-              })
-            }
-            title="Pick text color from screen"
-          >
-            <Image
-              src="/icons/pick_color_icon.png"
-              alt="Pick Color"
-              width={20}
-              height={20}
-              className="pointer-events-none object-contain"
-            />
-          </button>
-            </>
-          ) : null}
-
-          {selectedBlock?.type === "links" ? (
-            <>
-              <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
-
-              <input
-                type="color"
-                value={
-                  selectedBlock.data.transparentBackground
-                    ? "#ffffff"
-                    : (selectedBlock.data.backgroundColor ?? "#ffffff")
-                }
-                onChange={(e) => applyLinksBackgroundColor(e.target.value)}
-                className={topBarColorClass(false)}
-                title="Link block background color"
-              />
-
-              <button
-                type="button"
-                className={eyedropperButtonClass()}
-                onClick={() =>
-                  void pickColorWithEyeDropper((color) => {
-                    applyLinksBackgroundColor(color);
-                  })
-                }
-                title="Pick link block background color from screen"
-              >
-                <Image
-                  src="/icons/pick_color_icon.png"
-                  alt="Pick Color"
-                  width={20}
-                  height={20}
-                  className="pointer-events-none object-contain"
-                />
-              </button>
-
-              <button
-                type="button"
-                className={topBarButtonClass(
-                  Boolean(selectedBlock.data.transparentBackground),
-                )}
-                onClick={clearLinksBackgroundColor}
-                title="Transparent link block background"
-              >
-                ☐
-              </button>
-            </>
-          ) : null}
-
-          {selectedBlock?.type === "poll" || selectedBlock?.type === "highlight" ? (
-            <>
-              <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
-
-<input
-  type="color"
-  value={
-    selectedAppearance.backgroundColor === "transparent"
-      ? "#ffffff"
-      : (selectedAppearance.backgroundColor ?? "#ffffff")
-  }
-  onChange={(e) => applyFillColor(e.target.value)}
-  className={topBarColorClass(false)}
-  title={
-    selectedBlockFromDraft?.type === "poll"
-      ? "Poll background color"
-      : "Highlight background color"
-  }
-/>
-
-              <button
-                type="button"
-                className={eyedropperButtonClass()}
-                onClick={() =>
-                  void pickColorWithEyeDropper((color) => {
-                    applyFillColor(color);
-                  })
-                }
-                title={
-                  selectedBlock.type === "poll"
-                    ? "Pick poll background color from screen"
-                    : "Pick highlight background color from screen"
-                }
-              >
-                <Image
-                  src="/icons/pick_color_icon.png"
-                  alt="Pick Color"
-                  width={20}
-                  height={20}
-                  className="pointer-events-none object-contain"
-                />
-              </button>
-
 <button
   type="button"
-  className={topBarButtonClass(
-    selectedAppearance.backgroundColor === "transparent",
-  )}
+  className={eyedropperButtonClass()}
   onClick={() =>
-    applyAppearancePatch({ backgroundColor: "transparent" })
+    void pickColorWithEyeDropper((color) => {
+      requestAnimationFrame(() => {
+        applyTextColor(color);
+      });
+    })
   }
-  title={
-    selectedBlock.type === "poll"
-      ? "Transparent poll background"
-      : "Transparent highlight background"
-  }
+  title="Pick text color from screen"
 >
-  ☐
-</button>
-
-<div className={topBarSliderWrapClass()}>
-  <span>BG Opacity</span>
-  <input
-    type="range"
-    min={0}
-    max={100}
-    value={Math.round(
-      ((selectedAppearance as any).backgroundOpacity ?? 1) * 100,
-    )}
-    onChange={(e) =>
-      applyAppearancePatch({
-        backgroundOpacity: Number(e.target.value) / 100,
-      } as any)
-    }
-    className={topBarSliderClass()}
-    title="Background transparency"
+  <Image
+    src="/icons/pick_color_icon.png"
+    alt="Pick Color"
+    width={20}
+    height={20}
+    className="pointer-events-none object-contain"
   />
-  <span>
-    {Math.round(
-      ((selectedAppearance as any).backgroundOpacity ?? 1) * 100,
-    )}
-    %
-  </span>
-</div>
-            </>
-          ) : null}
+</button>
+</>
+) : null}
 
-          {selectedContext.kind === "pageText" ? (
-            <>
-              <input
-                type="color"
-                value={
-                  selectedPageBackgroundColor === "transparent"
-                    ? "#ffffff"
-                    : selectedPageBackgroundColor
-                }
-                onChange={(e) => applyPageTextBoxBackground(e.target.value)}
-                className={topBarColorClass(false)}
-                title="Text box background color"
-              />
+{selectedBlock?.type === "links" ? (
+  <>
+    <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
 
-              <button
-                type="button"
-                className={eyedropperButtonClass()}
-                onClick={() =>
-                  void pickColorWithEyeDropper((color) => {
-                    applyPageTextBoxBackground(color);
-                  })
-                }
-                title="Pick text box background color from screen"
-              >
-                <Image
-                  src="/icons/pick_color_icon.png"
-                  alt="Pick Color"
-                  width={20}
-                  height={20}
-                  className="pointer-events-none object-contain"
-                />
-              </button>
+    <input
+      type="color"
+      value={
+        selectedBlock.data.transparentBackground
+          ? "#ffffff"
+          : (selectedBlock.data.backgroundColor ?? "#ffffff")
+      }
+      onChange={(e) => applyLinksBackgroundColor(e.target.value)}
+      className={topBarColorClass(false)}
+      title="Link block background color"
+    />
 
-              <button
-                type="button"
-                className={topBarButtonClass(
-                  selectedPageBackgroundColor === "transparent",
-                )}
-                onClick={clearPageTextBackgroundColor}
-                title="Transparent text box background"
-              >
-                ☐
-              </button>
-            </>
-          ) : null}
+    <button
+      type="button"
+      className={eyedropperButtonClass()}
+      onClick={() =>
+        void pickColorWithEyeDropper((color) => {
+          applyLinksBackgroundColor(color);
+        })
+      }
+      title="Pick link block background color from screen"
+    >
+      <Image
+        src="/icons/pick_color_icon.png"
+        alt="Pick Color"
+        width={20}
+        height={20}
+        className="pointer-events-none object-contain"
+      />
+    </button>
+
+    <button
+      type="button"
+      className={topBarButtonClass(
+        Boolean(selectedBlock.data.transparentBackground),
+      )}
+      onClick={clearLinksBackgroundColor}
+      title="Transparent link block background"
+    >
+      ☐
+    </button>
+  </>
+) : null}
+
+{selectedBlock?.type === "poll" || selectedBlock?.type === "highlight" ? (
+  <>
+    <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
+
+    <input
+      type="color"
+      value={
+        selectedAppearance.backgroundColor === "transparent"
+          ? "#ffffff"
+          : (selectedAppearance.backgroundColor ?? "#ffffff")
+      }
+      onChange={(e) => applyFillColor(e.target.value)}
+      className={topBarColorClass(false)}
+      title={
+        selectedBlockFromDraft?.type === "poll"
+          ? "Poll background color"
+          : "Highlight background color"
+      }
+    />
+
+    <button
+      type="button"
+      className={eyedropperButtonClass()}
+      onClick={() =>
+        void pickColorWithEyeDropper((color) => {
+          applyFillColor(color);
+        })
+      }
+      title={
+        selectedBlock.type === "poll"
+          ? "Pick poll background color from screen"
+          : "Pick highlight background color from screen"
+      }
+    >
+      <Image
+        src="/icons/pick_color_icon.png"
+        alt="Pick Color"
+        width={20}
+        height={20}
+        className="pointer-events-none object-contain"
+      />
+    </button>
+
+    <button
+      type="button"
+      className={topBarButtonClass(
+        selectedAppearance.backgroundColor === "transparent",
+      )}
+      onClick={() => applyAppearancePatch({ backgroundColor: "transparent" })}
+      title={
+        selectedBlock.type === "poll"
+          ? "Transparent poll background"
+          : "Transparent highlight background"
+      }
+    >
+      ☐
+    </button>
+
+    <div className={topBarSliderWrapClass()}>
+      <span>BG Opacity</span>
+      <input
+        type="range"
+        min={0}
+        max={100}
+        value={Math.round(
+          (((selectedAppearance as any).backgroundOpacity ?? 1) * 100),
+        )}
+        onChange={(e) =>
+          applyAppearancePatch({
+            backgroundOpacity: Number(e.target.value) / 100,
+          } as any)
+        }
+        className={topBarSliderClass()}
+        title="Background transparency"
+      />
+      <span>
+        {Math.round(
+          (((selectedAppearance as any).backgroundOpacity ?? 1) * 100),
+        )}
+        %
+      </span>
+    </div>
+  </>
+) : null}
+
+{selectedContext.kind === "pageText" ? (
+  <>
+    <input
+      type="color"
+      value={
+        selectedPageBackgroundColor === "transparent"
+          ? "#ffffff"
+          : selectedPageBackgroundColor
+      }
+      onChange={(e) => applyPageTextBoxBackground(e.target.value)}
+      className={topBarColorClass(false)}
+      title="Text box background color"
+    />
+
+    <button
+      type="button"
+      className={eyedropperButtonClass()}
+      onClick={() =>
+        void pickColorWithEyeDropper((color) => {
+          applyPageTextBoxBackground(color);
+        })
+      }
+      title="Pick text box background color from screen"
+    >
+      <Image
+        src="/icons/pick_color_icon.png"
+        alt="Pick Color"
+        width={20}
+        height={20}
+        className="pointer-events-none object-contain"
+      />
+    </button>
+
+    <button
+      type="button"
+      className={topBarButtonClass(
+        selectedPageBackgroundColor === "transparent",
+      )}
+      onClick={clearPageTextBackgroundColor}
+      title="Transparent text box background"
+    >
+      ☐
+    </button>
+  </>
+) : null}
 
           {selectedBlock?.type === "thread" ? (
             <>
