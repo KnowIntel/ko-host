@@ -5140,15 +5140,28 @@ style={{
 
 {post.videoUrl && block.data.allowVideos ? (
   getYouTubeEmbedUrl(post.videoUrl) ? (
-<iframe
-  src={getYouTubeEmbedUrl(post.videoUrl)}
-  title={post.title || "Post video"}
-  className="relative z-20 mt-3 aspect-video w-full rounded-xl border pointer-events-auto"
+<div
+  className="relative z-20 mt-3 pointer-events-auto"
   onMouseDown={(e) => e.stopPropagation()}
   onClick={(e) => e.stopPropagation()}
-  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-  allowFullScreen
-/>
+>
+  <iframe
+    src={getYouTubeEmbedUrl(post.videoUrl)}
+    title={post.title || "Post video"}
+    className="aspect-video w-full rounded-xl border"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    allowFullScreen
+  />
+
+  <a
+    href={post.videoUrl}
+    target="_blank"
+    rel="noreferrer"
+    className="mt-2 inline-flex rounded-full border border-neutral-300 bg-white px-3 py-1 text-xs font-semibold text-neutral-700"
+  >
+    Open video
+  </a>
+</div>
   ) : (
     <video
       src={post.videoUrl}
