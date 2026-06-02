@@ -4856,6 +4856,29 @@ function renderPostBoard(
       .join("");
   }
 
+  function getYouTubeEmbedUrl(url?: string) {
+  if (!url) return "";
+
+  try {
+    const parsed = new URL(url);
+    const host = parsed.hostname.replace("www.", "");
+
+    if (host === "youtube.com" || host === "m.youtube.com") {
+      const videoId = parsed.searchParams.get("v");
+      return videoId ? `https://www.youtube.com/embed/${videoId}` : "";
+    }
+
+    if (host === "youtu.be") {
+      const videoId = parsed.pathname.replace("/", "");
+      return videoId ? `https://www.youtube.com/embed/${videoId}` : "";
+    }
+
+    return "";
+  } catch {
+    return "";
+  }
+}
+
   function getPostMessage(message?: string) {
     const safeMessage = typeof message === "string" ? message : "";
 
@@ -5115,13 +5138,23 @@ style={{
                         />
                       ) : null}
 
-                      {post.videoUrl && block.data.allowVideos ? (
-                        <video
-                          src={post.videoUrl}
-                          controls
-                          className="mt-3 max-h-52 w-full rounded-xl border object-cover"
-                        />
-                      ) : null}
+{post.videoUrl && block.data.allowVideos ? (
+  getYouTubeEmbedUrl(post.videoUrl) ? (
+    <iframe
+      src={getYouTubeEmbedUrl(post.videoUrl)}
+      title={post.title || "Post video"}
+      className="mt-3 aspect-video w-full rounded-xl border"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+      allowFullScreen
+    />
+  ) : (
+    <video
+      src={post.videoUrl}
+      controls
+      className="mt-3 max-h-52 w-full rounded-xl border object-cover"
+    />
+  )
+) : null}
 
 <div className="relative z-20 mt-3 flex items-center gap-2 pointer-events-auto">
   {block.data.showLikes !== false ? (
