@@ -4864,16 +4864,17 @@ function getPostBoardBoxStyle(style?: {
   borderRadius?: number;
 }) {
   function postBoardWithOpacity(color?: string, opacity?: number) {
-    const safeColor = color || "transparent";
+    if (!color) return undefined;
+    if (color === "transparent") return "transparent";
+
     const safeOpacity =
       typeof opacity === "number" && Number.isFinite(opacity)
         ? Math.max(0, Math.min(1, opacity))
         : 1;
 
-    if (safeColor === "transparent") return "transparent";
-    if (!safeColor.startsWith("#")) return safeColor;
+    if (!color.startsWith("#")) return color;
 
-    const hex = safeColor.replace("#", "");
+    const hex = color.replace("#", "");
     const fullHex =
       hex.length === 3
         ? hex
@@ -4886,7 +4887,7 @@ function getPostBoardBoxStyle(style?: {
     const g = parseInt(fullHex.slice(2, 4), 16);
     const b = parseInt(fullHex.slice(4, 6), 16);
 
-    if ([r, g, b].some((value) => Number.isNaN(value))) return safeColor;
+    if ([r, g, b].some((value) => Number.isNaN(value))) return color;
 
     return `rgba(${r}, ${g}, ${b}, ${safeOpacity})`;
   }
@@ -4898,9 +4899,13 @@ function getPostBoardBoxStyle(style?: {
     ),
     borderColor: style?.borderColor || undefined,
     borderWidth:
-      typeof style?.borderWidth === "number" ? `${style.borderWidth}px` : undefined,
+      typeof style?.borderWidth === "number"
+        ? `${style.borderWidth}px`
+        : undefined,
     borderRadius:
-      typeof style?.borderRadius === "number" ? `${style.borderRadius}px` : undefined,
+      typeof style?.borderRadius === "number"
+        ? `${style.borderRadius}px`
+        : undefined,
   };
 }
 

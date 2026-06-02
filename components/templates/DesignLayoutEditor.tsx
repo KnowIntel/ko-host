@@ -10629,345 +10629,384 @@ const idsToExpand =
         </>
       ) : null}
 
-      {showAppearanceControls ? (
-        <>
-          <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
+{showAppearanceControls ? (
+  <>
+    <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
 
-<input
-  type="color"
-value={
-  selectedBlock?.type === "rsvp"
-    ? selectedRsvpElementBackgroundColor === "transparent"
-      ? "#ffffff"
-      : selectedRsvpElementBackgroundColor
-    : selectedBlock?.type === "post_board" &&
-        postBoardStyleTarget === "card"
-      ? ((selectedBlock.data as any).cardStyle?.backgroundColor ===
-          "transparent"
-          ? "#ffffff"
-          : ((selectedBlock.data as any).cardStyle?.backgroundColor ??
-            "#ffffff"))
-      : selectedBlock?.type === "post_board" &&
-          postBoardStyleTarget === "buttons"
-        ? ((selectedBlock.data as any).buttonStyle?.backgroundColor ===
-            "transparent"
+    <input
+      type="color"
+      value={
+        selectedBlock?.type === "rsvp"
+          ? selectedRsvpElementBackgroundColor === "transparent"
             ? "#ffffff"
-            : ((selectedBlock.data as any).buttonStyle?.backgroundColor ??
-              "#ffffff"))
-        : selectedAppearance.backgroundColor === "transparent"
-          ? "#ffffff"
-          : (selectedAppearance.backgroundColor ?? "#ffffff")
-}
-onChange={(e) => {
-  if (
-    selectedBlock?.type === "rsvp" &&
-    selectedRsvpElementKey === "form"
-  ) {
-    applyAppearancePatch({
-      backgroundColor: e.target.value,
-    });
-    return;
-  }
+            : selectedRsvpElementBackgroundColor
+          : selectedBlock?.type === "post_board" && postBoardStyleTarget === "card"
+            ? ((selectedBlock.data as any).cardStyle?.backgroundColor === "transparent"
+                ? "#ffffff"
+                : ((selectedBlock.data as any).cardStyle?.backgroundColor ?? "#ffffff"))
+            : selectedBlock?.type === "post_board" && postBoardStyleTarget === "buttons"
+              ? ((selectedBlock.data as any).buttonStyle?.backgroundColor === "transparent"
+                  ? "#ffffff"
+                  : ((selectedBlock.data as any).buttonStyle?.backgroundColor ?? "#ffffff"))
+              : selectedAppearance.backgroundColor === "transparent"
+                ? "#ffffff"
+                : (selectedAppearance.backgroundColor ?? "#ffffff")
+      }
+      onChange={(e) => {
+        if (selectedBlock?.type === "rsvp" && selectedRsvpElementKey === "form") {
+          applyAppearancePatch({ backgroundColor: e.target.value });
+          return;
+        }
 
-  if (selectedBlock?.type === "post_board") {
-    applyAppearancePatch({
-      backgroundColor: e.target.value,
-    });
-    return;
-  }
+        if (selectedBlock?.type === "post_board") {
+          applyAppearancePatch({ backgroundColor: e.target.value });
+          return;
+        }
 
-  applyFillColor(e.target.value);
-}}
-  className={topBarColorClass(false)}
-  title={
-    selectedBlock?.type === "rsvp"
-      ? "RSVP element background color"
-      : "Fill color"
-  }
-/>
+        applyFillColor(e.target.value);
+      }}
+      className={topBarColorClass(false)}
+      title={
+        selectedBlock?.type === "rsvp"
+          ? "RSVP element background color"
+          : selectedBlock?.type === "post_board" && postBoardStyleTarget === "card"
+            ? "Post card background color"
+            : selectedBlock?.type === "post_board" && postBoardStyleTarget === "buttons"
+              ? "Post button background color"
+              : "Fill color"
+      }
+    />
 
+    <button
+      type="button"
+      className={eyedropperButtonClass()}
+      onClick={() =>
+        void pickColorWithEyeDropper((color) => {
+          if (selectedBlock?.type === "rsvp" && selectedRsvpElementKey === "form") {
+            applyAppearancePatch({ backgroundColor: color });
+            return;
+          }
+
+          if (selectedBlock?.type === "post_board") {
+            applyAppearancePatch({ backgroundColor: color });
+            return;
+          }
+
+          applyFillColor(color);
+        })
+      }
+      title="Pick fill color from screen"
+    >
+      <Image
+        src="/icons/pick_color_icon.png"
+        alt="Pick Color"
+        width={20}
+        height={20}
+        className="pointer-events-none object-contain"
+      />
+    </button>
+
+    <button
+      type="button"
+      className={topBarButtonClass(
+        selectedBlock?.type === "faq" && faqStyleTarget === "section"
+          ? ((selectedBlock.data as any).sectionStyle?.backgroundColor === "transparent")
+          : selectedBlock?.type === "rsvp"
+            ? selectedRsvpElementBackgroundColor === "transparent"
+            : selectedBlock?.type === "post_board" && postBoardStyleTarget === "card"
+              ? ((selectedBlock.data as any).cardStyle?.backgroundColor === "transparent")
+              : selectedBlock?.type === "post_board" && postBoardStyleTarget === "buttons"
+                ? ((selectedBlock.data as any).buttonStyle?.backgroundColor === "transparent")
+                : selectedAppearance.backgroundColor === "transparent",
+      )}
+      onClick={() => {
+        if (selectedBlock?.type === "faq" && faqStyleTarget === "section") {
+          updateSelectedBlock((block) =>
+            block.type !== "faq"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    sectionStyle: {
+                      ...((block.data as any).sectionStyle ?? {}),
+                      backgroundColor: "transparent",
+                    },
+                  },
+                },
+          );
+          return;
+        }
+
+        if (selectedBlock?.type === "rsvp") {
+          applyAppearancePatch({ backgroundColor: "transparent" });
+          return;
+        }
+
+        if (selectedBlock?.type === "post_board") {
+          applyAppearancePatch({ backgroundColor: "transparent" });
+          return;
+        }
+
+        if (selectedBlock?.type === "checkout") {
+          updateSelectedBlock((block) =>
+            block.type !== "checkout"
+              ? block
+              : {
+                  ...block,
+                  appearance: {
+                    ...block.appearance,
+                    backgroundColor: "transparent",
+                  },
+                },
+          );
+          return;
+        }
+
+        applyAppearancePatch({ backgroundColor: "transparent" });
+      }}
+      title={
+        selectedBlock?.type === "rsvp"
+          ? "Transparent RSVP block background"
+          : selectedBlock?.type === "post_board" && postBoardStyleTarget === "card"
+            ? "Transparent post card background"
+            : selectedBlock?.type === "post_board" && postBoardStyleTarget === "buttons"
+              ? "Transparent post button background"
+              : "Transparent fill"
+      }
+    >
+      <Image
+        src="/icons/transparent_fill_icon.png"
+        alt="Transparent fill"
+        width={20}
+        height={20}
+        className="pointer-events-none object-contain"
+      />
+    </button>
+
+    {selectedBlock?.type === "post_board" &&
+    (postBoardStyleTarget === "card" || postBoardStyleTarget === "buttons") ? (
+      <div className={topBarSliderWrapClass()}>
+        <span>BG Opacity</span>
+        <input
+          type="range"
+          min={0}
+          max={100}
+          value={Math.round(
+            postBoardStyleTarget === "card"
+              ? (((selectedBlock.data as any).cardStyle?.backgroundOpacity ?? 1) * 100)
+              : (((selectedBlock.data as any).buttonStyle?.backgroundOpacity ?? 1) * 100),
+          )}
+          onChange={(e) =>
+            applyAppearancePatch({
+              backgroundOpacity: Number(e.target.value) / 100,
+            } as any)
+          }
+          className={topBarSliderClass()}
+          title="Background transparency"
+        />
+        <span>
+          {Math.round(
+            postBoardStyleTarget === "card"
+              ? (((selectedBlock.data as any).cardStyle?.backgroundOpacity ?? 1) * 100)
+              : (((selectedBlock.data as any).buttonStyle?.backgroundOpacity ?? 1) * 100),
+          )}
+          %
+        </span>
+      </div>
+    ) : null}
+
+    {selectedBlockSupportsTexture ? (
+      <>
+        <input
+          ref={textureInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => {
+            handleTextureFileChange(e.target.files);
+            e.target.value = "";
+          }}
+        />
+
+        <button
+          type="button"
+          className={topBarButtonClass()}
+          onClick={() => textureInputRef.current?.click()}
+          title={
+            selectedBlock?.type === "label" || selectedBlock?.type === "text_fx"
+              ? "Add texture to text"
+              : "Add texture to border/frame"
+          }
+        >
+          <Image
+            src="/icons/icon_add_texture.png"
+            alt="Add Texture"
+            width={30}
+            height={30}
+            className="pointer-events-none h-[30px] w-[30px] object-contain"
+          />
+        </button>
+
+        {selectedBlockTextureEnabled ? (
           <button
             type="button"
-            className={eyedropperButtonClass()}
-            onClick={() =>
-              void pickColorWithEyeDropper((color) => {
-                if (selectedBlock?.type === "rsvp" && selectedRsvpElementKey === "form") {
+            className={topBarButtonClass()}
+            onClick={removeTextureFromSelectedBlock}
+            title="Remove texture"
+          >
+            <Image
+              src="/icons/icon_remove_texture.png"
+              alt="Remove Texture"
+              width={30}
+              height={30}
+              className="pointer-events-none h-[30px] w-[30px] object-contain"
+            />
+          </button>
+        ) : null}
+      </>
+    ) : null}
+
+    <input
+      type="color"
+      value={
+        selectedBlock?.type === "post_board" && postBoardStyleTarget === "card"
+          ? ((selectedBlock.data as any).cardStyle?.borderColor ?? "#d1d5db")
+          : selectedBlock?.type === "post_board" && postBoardStyleTarget === "buttons"
+            ? ((selectedBlock.data as any).buttonStyle?.borderColor ?? "#d1d5db")
+            : (selectedAppearance.borderColor ?? "#d1d5db")
+      }
+      onChange={(e) => applyBorderColor(e.target.value)}
+      className={topBarColorClass(false)}
+      title="Border color"
+    />
+
+    <button
+      type="button"
+      className={eyedropperButtonClass()}
+      onClick={() =>
+        void pickColorWithEyeDropper((color) => {
+          applyBorderColor(color);
+        })
+      }
+      title="Pick border color from screen"
+    >
+      <Image
+        src="/icons/pick_color_icon.png"
+        alt="Pick Color"
+        width={20}
+        height={20}
+        className="pointer-events-none object-contain"
+      />
+    </button>
+
+    {showBorderWidthRadiusControls ? (
+      <>
+        <div className={topBarSliderWrapClass()}>
+          <span>Border</span>
+          <input
+            type="range"
+            min={0}
+            max={30}
+            value={
+              selectedBlock?.type === "post_board" && postBoardStyleTarget === "card"
+                ? Number(((selectedBlock.data as any).cardStyle ?? {}).borderWidth ?? 0)
+                : selectedBlock?.type === "post_board" &&
+                    postBoardStyleTarget === "buttons"
+                  ? Number(((selectedBlock.data as any).buttonStyle ?? {}).borderWidth ?? 0)
+                  : selectedBlock?.type === "form_field" &&
+                      formFieldTextTarget === "text"
+                    ? Number(((selectedBlock.data as any).inputStyle ?? {}).borderWidth ?? 0)
+                    : selectedAppearance.borderWidth ?? 0
+            }
+            onChange={(e) =>
+              applyAppearancePatch({
+                borderWidth: Number(e.target.value) || 0,
+              })
+            }
+            className={topBarSliderClass()}
+            title="Border width"
+          />
+          <span>
+            {selectedBlock?.type === "post_board" && postBoardStyleTarget === "card"
+              ? Number(((selectedBlock.data as any).cardStyle ?? {}).borderWidth ?? 0)
+              : selectedBlock?.type === "post_board" && postBoardStyleTarget === "buttons"
+                ? Number(((selectedBlock.data as any).buttonStyle ?? {}).borderWidth ?? 0)
+                : selectedBlock?.type === "form_field" && formFieldTextTarget === "text"
+                  ? Number(((selectedBlock.data as any).inputStyle ?? {}).borderWidth ?? 0)
+                  : selectedAppearance.borderWidth ?? 0}
+          </span>
+        </div>
+
+        <div className={topBarSliderWrapClass()}>
+          <span>Radius</span>
+          <input
+            type="range"
+            min={0}
+            max={100}
+            value={
+              selectedBlock?.type === "post_board" && postBoardStyleTarget === "card"
+                ? Number(((selectedBlock.data as any).cardStyle ?? {}).borderRadius ?? 0)
+                : selectedBlock?.type === "post_board" &&
+                    postBoardStyleTarget === "buttons"
+                  ? Number(((selectedBlock.data as any).buttonStyle ?? {}).borderRadius ?? 0)
+                  : selectedBlock?.type === "form_field" &&
+                      formFieldTextTarget === "text"
+                    ? Number(((selectedBlock.data as any).inputStyle ?? {}).borderRadius ?? 0)
+                    : selectedAppearance.borderRadius ?? 0
+            }
+            onChange={(e) =>
+              applyAppearancePatch({
+                borderRadius: Number(e.target.value) || 0,
+              })
+            }
+            className={topBarSliderClass()}
+            title="Corner radius"
+          />
+          <span>
+            {selectedBlock?.type === "post_board" && postBoardStyleTarget === "card"
+              ? Number(((selectedBlock.data as any).cardStyle ?? {}).borderRadius ?? 0)
+              : selectedBlock?.type === "post_board" && postBoardStyleTarget === "buttons"
+                ? Number(((selectedBlock.data as any).buttonStyle ?? {}).borderRadius ?? 0)
+                : selectedBlock?.type === "form_field" && formFieldTextTarget === "text"
+                  ? Number(((selectedBlock.data as any).inputStyle ?? {}).borderRadius ?? 0)
+                  : selectedAppearance.borderRadius ?? 0}
+          </span>
+        </div>
+      </>
+    ) : null}
+
+    {recentColors.length ? (
+      <>
+        <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
+
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-white/70">Recent</span>
+
+          <div className="flex items-center gap-1">
+            {recentColors.map((color) => (
+              <button
+                key={color}
+                type="button"
+                className={recentColorButtonClass()}
+                style={{ backgroundColor: color }}
+                onClick={() => {
+                  if (selectedBlock?.type === "post_board") {
                     applyAppearancePatch({ backgroundColor: color });
                     return;
                   }
 
                   applyFillColor(color);
-              })
-            }
-            title="Pick fill color from screen"
-          >
-            <Image
-              src="/icons/pick_color_icon.png"
-              alt="Pick Color"
-              width={20}
-              height={20}
-              className="pointer-events-none object-contain"
-            />
-          </button>
-
-<button
-  type="button"
-  className={topBarButtonClass(
-    selectedBlock?.type === "faq" && faqStyleTarget === "section"
-      ? ((selectedBlock.data as any).sectionStyle?.backgroundColor === "transparent")
-      : selectedBlock?.type === "rsvp"
-        ? selectedRsvpElementBackgroundColor === "transparent"
-        : selectedBlock?.type === "post_board" && postBoardStyleTarget === "card"
-          ? ((selectedBlock.data as any).cardStyle?.backgroundColor === "transparent")
-          : selectedBlock?.type === "post_board" && postBoardStyleTarget === "buttons"
-            ? ((selectedBlock.data as any).buttonStyle?.backgroundColor === "transparent")
-            : selectedAppearance.backgroundColor === "transparent",
-  )}
-  onClick={() => {
-    if (selectedBlock?.type === "faq" && faqStyleTarget === "section") {
-      updateSelectedBlock((block) =>
-        block.type !== "faq"
-          ? block
-          : {
-              ...block,
-              data: {
-                ...block.data,
-                sectionStyle: {
-                  ...((block.data as any).sectionStyle ?? {}),
-                  backgroundColor: "transparent",
-                },
-              },
-            },
-      );
-      return;
-    }
-
-    if (selectedBlock?.type === "rsvp") {
-      applyAppearancePatch({ backgroundColor: "transparent" });
-      return;
-    }
-
-    if (selectedBlock?.type === "post_board") {
-      applyAppearancePatch({ backgroundColor: "transparent" });
-      return;
-    }
-
-    if (selectedBlock?.type === "checkout") {
-      updateSelectedBlock((block) =>
-        block.type !== "checkout"
-          ? block
-          : {
-              ...block,
-              appearance: {
-                ...block.appearance,
-                backgroundColor: "transparent",
-              },
-            },
-      );
-      return;
-    }
-
-    applyAppearancePatch({ backgroundColor: "transparent" });
-  }}
-  title={
-    selectedBlock?.type === "rsvp"
-      ? "Transparent RSVP block background"
-      : selectedBlock?.type === "post_board" && postBoardStyleTarget === "card"
-        ? "Transparent post card background"
-        : selectedBlock?.type === "post_board" && postBoardStyleTarget === "buttons"
-          ? "Transparent post button background"
-          : "Transparent fill"
-  }
->
-  <Image
-    src="/icons/transparent_fill_icon.png"
-    alt="Transparent fill"
-    width={20}
-    height={20}
-    className="pointer-events-none object-contain"
-  />
-</button>
-
-{selectedBlockSupportsTexture ? (
-  <>
-    <input
-      ref={textureInputRef}
-      type="file"
-      accept="image/*"
-      className="hidden"
-      onChange={(e) => {
-        handleTextureFileChange(e.target.files);
-        e.target.value = "";
-      }}
-    />
-
-    <button
-      type="button"
-      className={topBarButtonClass()}
-      onClick={() => textureInputRef.current?.click()}
-      title={
-        selectedBlock?.type === "label" || selectedBlock?.type === "text_fx"
-          ? "Add texture to text"
-          : "Add texture to border/frame"
-      }
-    >
-      {/* Add Texture */}
-              <Image
-          src="/icons/icon_add_texture.png"
-          alt="Add Texture"
-          width={30}
-          height={30}
-          className="pointer-events-none h-[30px] w-[30px] object-contain"
-        />
-    </button>
-
-    {selectedBlockTextureEnabled ? (
-      <button
-        type="button"
-        className={topBarButtonClass()}
-        onClick={removeTextureFromSelectedBlock}
-        title="Remove texture"
-      >
-        {/* Remove Texture */}
-              <Image
-          src="/icons/icon_remove_texture.png"
-          alt="Remove Texture"
-          width={30}
-          height={30}
-          className="pointer-events-none h-[30px] w-[30px] object-contain"
-        />
-      </button>
+                }}
+                title={color}
+              />
+            ))}
+          </div>
+        </div>
+      </>
     ) : null}
   </>
 ) : null}
-
-          <input
-            type="color"
-            value={selectedAppearance.borderColor ?? "#d1d5db"}
-            onChange={(e) => applyBorderColor(e.target.value)}
-            className={topBarColorClass(false)}
-            title="Border color"
-          />
-
-          <button
-            type="button"
-            className={eyedropperButtonClass()}
-            onClick={() =>
-              void pickColorWithEyeDropper((color) => {
-                applyBorderColor(color);
-              })
-            }
-            title="Pick border color from screen"
-          >
-            <Image
-              src="/icons/pick_color_icon.png"
-              alt="Pick Color"
-              width={20}
-              height={20}
-              className="pointer-events-none object-contain"
-            />
-          </button>
-
-          {showBorderWidthRadiusControls ? (
-            <>
-              <div className={topBarSliderWrapClass()}>
-                <span>Border</span>
-                <input
-                  type="range"
-                  min={0}
-                  max={30}
-                  value={
-                    selectedBlock?.type === "form_field" &&
-                    formFieldTextTarget === "text"
-                      ? Number(
-                          ((selectedBlock.data as any).inputStyle ?? {})
-                            .borderWidth ?? 0,
-                        )
-                      : selectedAppearance.borderWidth ?? 0
-                  }
-                  onChange={(e) =>
-                    applyAppearancePatch({
-                      borderWidth: Number(e.target.value) || 0,
-                    })
-                  }
-                  className={topBarSliderClass()}
-                  title="Border width"
-                />
-                <span>
-                  {selectedBlock?.type === "form_field" &&
-                  formFieldTextTarget === "text"
-                    ? Number(
-                        ((selectedBlock.data as any).inputStyle ?? {})
-                          .borderWidth ?? 0,
-                      )
-                    : selectedAppearance.borderWidth ?? 0}
-                </span>
-              </div>
-
-              <div className={topBarSliderWrapClass()}>
-                <span>Radius</span>
-                <input
-                  type="range"
-                  min={0}
-                  max={100}
-                  value={
-                    selectedBlock?.type === "form_field" &&
-                    formFieldTextTarget === "text"
-                      ? Number(
-                          ((selectedBlock.data as any).inputStyle ?? {})
-                            .borderRadius ?? 0,
-                        )
-                      : selectedAppearance.borderRadius ?? 0
-                  }
-                  onChange={(e) =>
-                    applyAppearancePatch({
-                      borderRadius: Number(e.target.value) || 0,
-                    })
-                  }
-                  className={topBarSliderClass()}
-                  title="Corner radius"
-                />
-                <span>
-                  {selectedBlock?.type === "form_field" &&
-                  formFieldTextTarget === "text"
-                    ? Number(
-                        ((selectedBlock.data as any).inputStyle ?? {})
-                          .borderRadius ?? 0,
-                      )
-                    : selectedAppearance.borderRadius ?? 0}
-                </span>
-              </div>
-            </>
-          ) : null}
-
-          {recentColors.length ? (
-            <>
-              <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
-
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-white/70">
-                  Recent
-                </span>
-
-                <div className="flex items-center gap-1">
-                  {recentColors.map((color) => (
-                    <button
-                      key={color}
-                      type="button"
-                      className={recentColorButtonClass()}
-                      style={{ backgroundColor: color }}
-                      onClick={() => {
-                        applyFillColor(color);
-                      }}
-                      title={color}
-                    />
-                  ))}
-                </div>
-              </div>
-            </>
-          ) : null}
-        </>
-      ) : null}
     </div>
   </div>
 
