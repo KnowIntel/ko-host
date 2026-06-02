@@ -4823,7 +4823,7 @@ function clearLinksBackgroundColor() {
 
 function applyAppearancePatch(patch: AppearancePatch) {
 
-    if (selectedBlock?.type === "thread") {
+if (selectedBlock?.type === "thread") {
   updateSelectedBlock((block) => {
     if (block.type !== "thread") return block;
 
@@ -4846,6 +4846,24 @@ function applyAppearancePatch(patch: AppearancePatch) {
     ) {
       return {
         ...block,
+
+        // IMPORTANT: form target also updates outer block background
+        appearance:
+          target === "form"
+            ? {
+                ...block.appearance,
+                ...(patch.backgroundColor !== undefined
+                  ? { backgroundColor: patch.backgroundColor }
+                  : {}),
+                ...(patch.backgroundOpacity !== undefined
+                  ? { backgroundOpacity: patch.backgroundOpacity }
+                  : {}),
+                ...(patch.borderColor !== undefined
+                  ? { borderColor: patch.borderColor }
+                  : {}),
+              }
+            : block.appearance,
+
         data: {
           ...block.data,
           [appearanceKey]: {
