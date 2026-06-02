@@ -5161,18 +5161,29 @@ style={{
           return;
         }
 
-        const target = document.getElementById(`thread-${post.threadId}`);
+const target = document.getElementById(`thread-${post.threadId}`);
 
-        if (target) {
-          e.preventDefault();
+if (target) {
+  e.preventDefault();
 
-          target.scrollIntoView({
-            behavior: "smooth",
-            block: "start",
-          });
+  target.scrollIntoView({
+    behavior: "smooth",
+    block: "start",
+  });
 
-          window.history.replaceState(null, "", `#thread-${post.threadId}`);
-        }
+  window.history.replaceState(null, "", `#thread-${post.threadId}`);
+
+  setTimeout(() => {
+    const nameInput = target.querySelector(
+      'input[type="text"]',
+    ) as HTMLInputElement | null;
+
+    if (nameInput) {
+      nameInput.focus();
+      nameInput.select();
+    }
+  }, 350);
+}
       }}
       className={[
         "rounded-full border px-3 py-1 text-xs font-semibold pointer-events-auto",
