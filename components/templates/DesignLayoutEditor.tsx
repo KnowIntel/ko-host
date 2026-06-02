@@ -4899,24 +4899,24 @@ if ((selectedBlock as any)?.type === "post_board") {
         ...block,
         data: {
           ...block.data,
-cardStyle: {
-  ...((block.data as any).cardStyle ?? {}),
-  ...(patch.backgroundColor !== undefined
-    ? { backgroundColor: patch.backgroundColor }
-    : {}),
-  ...(patch.backgroundOpacity !== undefined
-    ? { backgroundOpacity: patch.backgroundOpacity }
-    : {}),
-  ...(patch.borderColor !== undefined
-    ? { borderColor: patch.borderColor }
-    : {}),
-  ...(patch.borderWidth !== undefined
-    ? { borderWidth: patch.borderWidth }
-    : {}),
-  ...(patch.borderRadius !== undefined
-    ? { borderRadius: patch.borderRadius }
-    : {}),
-},
+          cardStyle: {
+            ...((block.data as any).cardStyle ?? {}),
+            ...(patch.backgroundColor !== undefined
+              ? { backgroundColor: patch.backgroundColor }
+              : {}),
+            ...(patch.backgroundOpacity !== undefined
+              ? { backgroundOpacity: patch.backgroundOpacity }
+              : {}),
+            ...(patch.borderColor !== undefined
+              ? { borderColor: patch.borderColor }
+              : {}),
+            ...(patch.borderWidth !== undefined
+              ? { borderWidth: patch.borderWidth }
+              : {}),
+            ...(patch.borderRadius !== undefined
+              ? { borderRadius: patch.borderRadius }
+              : {}),
+          },
         },
       };
     }
@@ -4926,24 +4926,24 @@ cardStyle: {
         ...block,
         data: {
           ...block.data,
-buttonStyle: {
-  ...((block.data as any).buttonStyle ?? {}),
-  ...(patch.backgroundColor !== undefined
-    ? { backgroundColor: patch.backgroundColor }
-    : {}),
-  ...(patch.backgroundOpacity !== undefined
-    ? { backgroundOpacity: patch.backgroundOpacity }
-    : {}),
-  ...(patch.borderColor !== undefined
-    ? { borderColor: patch.borderColor }
-    : {}),
-  ...(patch.borderWidth !== undefined
-    ? { borderWidth: patch.borderWidth }
-    : {}),
-  ...(patch.borderRadius !== undefined
-    ? { borderRadius: patch.borderRadius }
-    : {}),
-},
+          buttonStyle: {
+            ...((block.data as any).buttonStyle ?? {}),
+            ...(patch.backgroundColor !== undefined
+              ? { backgroundColor: patch.backgroundColor }
+              : {}),
+            ...(patch.backgroundOpacity !== undefined
+              ? { backgroundOpacity: patch.backgroundOpacity }
+              : {}),
+            ...(patch.borderColor !== undefined
+              ? { borderColor: patch.borderColor }
+              : {}),
+            ...(patch.borderWidth !== undefined
+              ? { borderWidth: patch.borderWidth }
+              : {}),
+            ...(patch.borderRadius !== undefined
+              ? { borderRadius: patch.borderRadius }
+              : {}),
+          },
         },
       };
     }

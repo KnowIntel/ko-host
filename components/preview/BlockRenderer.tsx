@@ -5139,19 +5139,10 @@ style={{
           ? "border-neutral-200 bg-neutral-50 text-neutral-700"
           : "border-white/10 bg-white/5 text-white/75",
       ].join(" ")}
-      style={{
-        ...getContainerTextStyle(buttonStyle, designKey),
-        backgroundColor: buttonStyle.backgroundColor || undefined,
-        borderColor: buttonStyle.borderColor || undefined,
-        borderWidth:
-          typeof buttonStyle.borderWidth === "number"
-            ? `${buttonStyle.borderWidth}px`
-            : undefined,
-        borderRadius:
-          typeof buttonStyle.borderRadius === "number"
-            ? `${buttonStyle.borderRadius}px`
-            : undefined,
-      }}
+style={{
+  ...getContainerTextStyle(buttonStyle, designKey),
+  ...getPostBoardBoxStyle(buttonStyle),
+}}
       aria-label={`Open discussion for ${post.title || "post"}`}
     >
       💬 {post.messageCount ?? 0}
