@@ -4856,24 +4856,30 @@ function renderPostBoard(
       .join("");
   }
 
-  function getYouTubeEmbedUrl(url?: string) {
+function getYouTubeEmbedUrl(url?: string) {
   if (!url) return "";
 
   try {
     const parsed = new URL(url);
     const host = parsed.hostname.replace("www.", "");
 
+    let videoId = "";
+
     if (host === "youtube.com" || host === "m.youtube.com") {
-      const videoId = parsed.searchParams.get("v");
-      return videoId ? `https://www.youtube.com/embed/${videoId}` : "";
+      videoId =
+        parsed.searchParams.get("v") ||
+        parsed.pathname.match(/^\/shorts\/([^/?#]+)/)?.[1] ||
+        parsed.pathname.match(/^\/embed\/([^/?#]+)/)?.[1] ||
+        "";
     }
 
     if (host === "youtu.be") {
-      const videoId = parsed.pathname.replace("/", "");
-      return videoId ? `https://www.youtube.com/embed/${videoId}` : "";
+      videoId = parsed.pathname.replace("/", "").split("?")[0];
     }
 
-    return "";
+    return videoId
+      ? `https://www.youtube-nocookie.com/embed/${videoId}?rel=0`
+      : "";
   } catch {
     return "";
   }
@@ -5145,13 +5151,13 @@ style={{
   onMouseDown={(e) => e.stopPropagation()}
   onClick={(e) => e.stopPropagation()}
 >
-  <iframe
-    src={getYouTubeEmbedUrl(post.videoUrl)}
-    title={post.title || "Post video"}
-    className="aspect-video w-full rounded-xl border"
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-    allowFullScreen
-  />
+<iframe
+  src={getYouTubeEmbedUrl(post.videoUrl)}
+  title={post.title || "Post video"}
+  className="mt-3 aspect-video w-full rounded-xl border"
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+  allowFullScreen
+/>
 
   <a
     href={post.videoUrl}
