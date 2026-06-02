@@ -1910,7 +1910,25 @@ const selectedStyle =
     ? (((selectedBlockFromDraft.data as any).inputStyle ??
         (selectedBlockFromDraft.data as any).style ??
         {}) as TextStyle)
-      : (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
+    : (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
+: selectedBlockFromDraft?.type === "post_board"
+  ? postBoardStyleTarget === "card"
+    ? (((selectedBlockFromDraft.data as any).cardStyle ??
+        (selectedBlockFromDraft.data as any).style ??
+        {}) as TextStyle)
+    : postBoardStyleTarget === "heading"
+      ? (((selectedBlockFromDraft.data as any).headingStyle ??
+          (selectedBlockFromDraft.data as any).style ??
+          {}) as TextStyle)
+      : postBoardStyleTarget === "body"
+        ? (((selectedBlockFromDraft.data as any).bodyStyle ??
+            (selectedBlockFromDraft.data as any).style ??
+            {}) as TextStyle)
+        : postBoardStyleTarget === "buttons"
+          ? (((selectedBlockFromDraft.data as any).buttonStyle ??
+              (selectedBlockFromDraft.data as any).style ??
+              {}) as TextStyle)
+          : (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
       : selectedBlockFromDraft?.type === "highlight"
         ? highlightStyleTarget === "body"
           ? (selectedBlockFromDraft.data.bodyStyle ??
