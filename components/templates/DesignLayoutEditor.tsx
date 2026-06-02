@@ -4900,36 +4900,48 @@ if (selectedBlock?.type === "thread") {
         ...block,
 
         // IMPORTANT: form target also updates outer block background
-        appearance:
-          target === "form"
-            ? {
-                ...block.appearance,
-                ...(patch.backgroundColor !== undefined
-                  ? { backgroundColor: patch.backgroundColor }
-                  : {}),
-                ...(patch.backgroundOpacity !== undefined
-                  ? { backgroundOpacity: patch.backgroundOpacity }
-                  : {}),
-                ...(patch.borderColor !== undefined
-                  ? { borderColor: patch.borderColor }
-                  : {}),
-              }
-            : block.appearance,
+appearance:
+  target === "form"
+    ? {
+        ...block.appearance,
+        ...(patch.backgroundColor !== undefined
+          ? { backgroundColor: patch.backgroundColor }
+          : {}),
+        ...(patch.backgroundOpacity !== undefined
+          ? { backgroundOpacity: patch.backgroundOpacity }
+          : {}),
+        ...(patch.borderColor !== undefined
+          ? { borderColor: patch.borderColor }
+          : {}),
+        ...(patch.borderWidth !== undefined
+          ? { borderWidth: patch.borderWidth }
+          : {}),
+        ...(patch.borderRadius !== undefined
+          ? { borderRadius: patch.borderRadius }
+          : {}),
+      }
+    : block.appearance,
 
         data: {
           ...block.data,
-          [appearanceKey]: {
-            ...((block.data as any)[appearanceKey] ?? {}),
-            ...(patch.backgroundColor !== undefined
-              ? { backgroundColor: patch.backgroundColor }
-              : {}),
-            ...(patch.backgroundOpacity !== undefined
-              ? { backgroundOpacity: patch.backgroundOpacity }
-              : {}),
-            ...(patch.borderColor !== undefined
-              ? { borderColor: patch.borderColor }
-              : {}),
-          },
+[appearanceKey]: {
+  ...((block.data as any)[appearanceKey] ?? {}),
+  ...(patch.backgroundColor !== undefined
+    ? { backgroundColor: patch.backgroundColor }
+    : {}),
+  ...(patch.backgroundOpacity !== undefined
+    ? { backgroundOpacity: patch.backgroundOpacity }
+    : {}),
+  ...(patch.borderColor !== undefined
+    ? { borderColor: patch.borderColor }
+    : {}),
+  ...(patch.borderWidth !== undefined
+    ? { borderWidth: patch.borderWidth }
+    : {}),
+  ...(patch.borderRadius !== undefined
+    ? { borderRadius: patch.borderRadius }
+    : {}),
+},
         },
       };
     }
