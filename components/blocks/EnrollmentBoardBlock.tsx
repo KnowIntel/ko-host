@@ -375,8 +375,32 @@ window.dispatchEvent(
     }
   }
 
-  async function handleDelete(entryId: string) {
-    if (!micrositeId || deletingId) return;
+async function handleDelete(entryId: string) {
+  if (deletingId) return;
+
+  if (!micrositeId) {
+    setEntries((prev) => prev.filter((entry) => entry.id !== entryId));
+    setStatusMessage("Your enrollment was removed.");
+    setErrorMessage("");
+
+    window.dispatchEvent(
+      new CustomEvent(ENROLLMENT_BOARD_PROFILE_EVENT, {
+        detail: {
+          micrositeId: "preview",
+          enrollmentBlockId: block.id,
+          linkedProfileImageBlockId: block.data.linkedProfileImageBlockId,
+          linkedNameLabelBlockId: block.data.linkedNameLabelBlockId,
+          linkedQuoteLabelBlockId: block.data.linkedQuoteLabelBlockId,
+          profileImageUrl: null,
+          name: null,
+          quote: null,
+          activeCount: 0,
+        },
+      }),
+    );
+
+    return;
+  }
 
     try {
       setDeletingId(entryId);
@@ -403,6 +427,22 @@ window.dispatchEvent(
       setEntries((prev) => prev.filter((entry) => entry.id !== entryId));
       window.localStorage.removeItem(entryIdKey(micrositeId, block.id));
       setStatusMessage("Your enrollment was removed.");
+
+      window.dispatchEvent(
+  new CustomEvent(ENROLLMENT_BOARD_PROFILE_EVENT, {
+    detail: {
+      micrositeId,
+      enrollmentBlockId: block.id,
+      linkedProfileImageBlockId: block.data.linkedProfileImageBlockId,
+      linkedNameLabelBlockId: block.data.linkedNameLabelBlockId,
+      linkedQuoteLabelBlockId: block.data.linkedQuoteLabelBlockId,
+      profileImageUrl: null,
+      name: null,
+      quote: null,
+      activeCount: Math.max(0, entries.length - 1),
+    },
+  }),
+);
 
       window.dispatchEvent(
   new CustomEvent(ENROLLMENT_BOARD_PROFILE_EVENT, {
