@@ -415,9 +415,10 @@ export default function EnrollmentBoardBlock({
 
 {block.data.showSubtitle !== false ? (
   <div
-    className="text-sm font-medium text-neutral-500"
+    className="mt-3 font-medium"
     style={{
       lineHeight: 1.5,
+      ...subtitleStyle,
     }}
   >
     {block.data.subtitle || "Add your name to the list."}
