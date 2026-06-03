@@ -7593,12 +7593,13 @@ if (
       return Math.max(0, Math.min(100, Math.round((current / goal) * 100)));
     }
 
-    useEffect(() => {
-  if (!useCardRenderer || !micrositeId) return;
+useEffect(() => {
+  if (!useCardRenderer) return;
 
   const enrollmentCards = normalizedCards.filter(
     (card: any) =>
-      card.type === "enrollment_records" && String(card.sourceBlockId ?? "").trim(),
+      card.type === "enrollment_records" &&
+      String(card.sourceBlockId ?? "").trim(),
   );
 
   if (!enrollmentCards.length) return;
@@ -7606,15 +7607,17 @@ if (
   let cancelled = false;
 
   async function loadEnrollmentCounts() {
+    if (!micrositeId) return;
+
     const nextValues: Record<string, number> = {};
 
     await Promise.all(
       enrollmentCards.map(async (card: any) => {
         try {
-const params = new URLSearchParams({
-  micrositeId: String(micrositeId),
-  blockId: String(card.sourceBlockId ?? "").trim(),
-});
+          const params = new URLSearchParams({
+            micrositeId: String(micrositeId),
+            blockId: String(card.sourceBlockId ?? "").trim(),
+          });
 
           const res = await fetch(
             `/api/public/enrollment-board/count?${params.toString()}`,
@@ -7644,37 +7647,42 @@ const params = new URLSearchParams({
   }
 
   function handleEnrollmentUpdated(event: Event) {
-const customEvent = event as CustomEvent<{
-  micrositeId?: string;
-  enrollmentBlockId?: string;
-  activeCount?: number;
-}>;
+    const customEvent = event as CustomEvent<{
+      micrositeId?: string;
+      enrollmentBlockId?: string;
+      activeCount?: number;
+    }>;
 
     const detail = customEvent.detail;
-    if (!detail) return;
-    if (detail.micrositeId !== micrositeId) return;
+    if (!detail?.enrollmentBlockId) return;
 
-    const shouldRefresh = enrollmentCards.some(
+    if (
+      micrositeId &&
+      detail.micrositeId &&
+      detail.micrositeId !== micrositeId
+    ) {
+      return;
+    }
+
+    const matchingCards = enrollmentCards.filter(
       (card: any) => card.sourceBlockId === detail.enrollmentBlockId,
     );
 
-if (!shouldRefresh) return;
+    if (!matchingCards.length) return;
 
-if (typeof detail.activeCount === "number") {
-  setHighlightCardValues((prev) => {
-    const next = { ...prev };
+    if (typeof detail.activeCount === "number") {
+      setHighlightCardValues((prev) => {
+        const next = { ...prev };
 
-    enrollmentCards.forEach((card: any) => {
-      if (card.sourceBlockId === detail.enrollmentBlockId) {
-        next[card.id] = detail.activeCount ?? 0;
-      }
-    });
+        matchingCards.forEach((card: any) => {
+          next[card.id] = detail.activeCount ?? 0;
+        });
 
-    return next;
-  });
-}
+        return next;
+      });
+    }
 
-setRefreshKey((prev) => prev + 1);
+    void loadEnrollmentCounts();
   }
 
   void loadEnrollmentCounts();

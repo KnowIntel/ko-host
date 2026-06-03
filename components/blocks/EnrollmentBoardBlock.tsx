@@ -233,147 +233,170 @@ export default function EnrollmentBoardBlock({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [micrositeId, block.id]);
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  event.preventDefault();
 
-    if (!micrositeId) {
-      const localProfileImageUrl = image ? URL.createObjectURL(image) : "";
-      const localEntry: EnrollmentEntry = {
-        id: `local_${Date.now()}`,
-        name: name.trim(),
-        quote: quote.trim(),
-        profileImageUrl: localProfileImageUrl,
-        createdAt: new Date().toISOString(),
-        isMine: true,
-      };
-
-      setEntries((prev) => [localEntry, ...prev]);
-      setName("");
-      setQuote("");
-      setEmail("");
-      setImage(null);
-      if (imageInputRef.current) imageInputRef.current.value = "";
-      setStatusMessage(
-        block.data.successMessage ?? "You’ve been added to the board.",
-      );
-      setErrorMessage("");
-      window.dispatchEvent(
-  new CustomEvent(ENROLLMENT_BOARD_PROFILE_EVENT, {
-    detail: {
-      micrositeId: "preview",
-      enrollmentBlockId: block.id,
-      linkedProfileImageBlockId: block.data.linkedProfileImageBlockId,
-      linkedNameLabelBlockId: block.data.linkedNameLabelBlockId,
-      linkedQuoteLabelBlockId: block.data.linkedQuoteLabelBlockId,
-      profileImageUrl: localProfileImageUrl || null,
-      name: localEntry.name,
-      quote: localEntry.quote,
-      activeCount: entries.length + 1,
-    },
-  }),
-);
-      return;
-    }
-
-    if (hasMine) {
-      setErrorMessage(
-        block.data.alreadyEnrolledMessage ??
-          "You’re already enrolled from this device.",
-      );
-      return;
-    }
-
-    if (!name.trim()) {
-      setErrorMessage("Name is required.");
-      return;
-    }
-
-    if (block.data.requireQuote && !quote.trim()) {
-      setErrorMessage("Quote is required.");
-      return;
-    }
-
-    if (block.data.requireEmail && !email.trim()) {
-      setErrorMessage("Email is required.");
-      return;
-    }
-
-    if (block.data.requireImage && !image) {
-      setErrorMessage("Profile image is required.");
-      return;
-    }
-
-    try {
-      setIsSubmitting(true);
-      setErrorMessage("");
-      setStatusMessage("");
-
-      const formData = new FormData();
-      formData.set("micrositeId", micrositeId);
-      formData.set("blockId", block.id);
-      formData.set("visitorToken", visitorToken || getVisitorToken());
-      formData.set("name", name.trim());
-      formData.set("quote", quote.trim());
-      formData.set("email", email.trim());
-
-      if (image) formData.set("image", image);
-
-      const res = await fetch("/api/public/enrollment-board", {
-        method: "POST",
-        body: formData,
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(
-          data?.error ||
-            block.data.alreadyEnrolledMessage ||
-            "Failed to submit enrollment.",
-        );
-      }
-
-      if (data.entry?.id) {
-        window.localStorage.setItem(
-          entryIdKey(micrositeId, block.id),
-          data.entry.id,
-        );
-      }
-
-      setEntries((prev) => [data.entry, ...prev]);
-      setName("");
-      setQuote("");
-      setEmail("");
-      setImage(null);
-      if (imageInputRef.current) imageInputRef.current.value = "";
-      setStatusMessage(
-        block.data.successMessage ?? "You’ve been added to the board.",
-      );
-      
-window.dispatchEvent(
-  new CustomEvent(ENROLLMENT_BOARD_PROFILE_EVENT, {
-    detail: {
-      micrositeId,
-      enrollmentBlockId: block.id,
-      linkedProfileImageBlockId: block.data.linkedProfileImageBlockId,
-      linkedNameLabelBlockId: block.data.linkedNameLabelBlockId,
-      linkedQuoteLabelBlockId: block.data.linkedQuoteLabelBlockId,
-      profileImageUrl: data.entry?.profileImageUrl ?? null,
-      name: data.entry?.name ?? name.trim(),
-      quote: data.entry?.quote ?? quote.trim(),
-      activeCount: entries.length + 1,
-    },
-  }),
-);
-
-    } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : "Failed to submit enrollment.",
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
+  if (!name.trim()) {
+    setErrorMessage("Name is required.");
+    return;
   }
+
+  if (block.data.requireQuote && !quote.trim()) {
+    setErrorMessage("Quote is required.");
+    return;
+  }
+
+  if (block.data.requireEmail && !email.trim()) {
+    setErrorMessage("Email is required.");
+    return;
+  }
+
+  if (block.data.requireImage && !image) {
+    setErrorMessage("Profile image is required.");
+    return;
+  }
+
+  if (!micrositeId) {
+    const localProfileImageUrl = image ? URL.createObjectURL(image) : "";
+    const nextActiveCount = entries.length + 1;
+
+    const localEntry: EnrollmentEntry = {
+      id: `local_${Date.now()}`,
+      name: name.trim(),
+      quote: quote.trim(),
+      profileImageUrl: localProfileImageUrl,
+      createdAt: new Date().toISOString(),
+      isMine: true,
+    };
+
+    setEntries((prev) => [localEntry, ...prev]);
+    setName("");
+    setQuote("");
+    setEmail("");
+    setImage(null);
+    if (imageInputRef.current) imageInputRef.current.value = "";
+
+    setStatusMessage(
+      block.data.successMessage ?? "You’ve been added to the board.",
+    );
+    setErrorMessage("");
+
+    window.dispatchEvent(
+      new CustomEvent(ENROLLMENT_BOARD_PROFILE_EVENT, {
+        detail: {
+          micrositeId: "",
+          enrollmentBlockId: block.id,
+          linkedProfileImageBlockId: block.data.linkedProfileImageBlockId,
+          linkedNameLabelBlockId: block.data.linkedNameLabelBlockId,
+          linkedQuoteLabelBlockId: block.data.linkedQuoteLabelBlockId,
+          profileImageUrl: localProfileImageUrl || null,
+          name: localEntry.name,
+          quote: localEntry.quote,
+          activeCount: nextActiveCount,
+        },
+      }),
+    );
+
+    window.dispatchEvent(
+      new CustomEvent(ENROLLMENT_BOARD_PROFILE_EVENT, {
+        detail: {
+          micrositeId: "preview",
+          enrollmentBlockId: block.id,
+          linkedProfileImageBlockId: block.data.linkedProfileImageBlockId,
+          linkedNameLabelBlockId: block.data.linkedNameLabelBlockId,
+          linkedQuoteLabelBlockId: block.data.linkedQuoteLabelBlockId,
+          profileImageUrl: localProfileImageUrl || null,
+          name: localEntry.name,
+          quote: localEntry.quote,
+          activeCount: nextActiveCount,
+        },
+      }),
+    );
+
+    return;
+  }
+
+  if (hasMine) {
+    setErrorMessage(
+      block.data.alreadyEnrolledMessage ??
+        "You’re already enrolled from this device.",
+    );
+    return;
+  }
+
+  try {
+    setIsSubmitting(true);
+    setErrorMessage("");
+    setStatusMessage("");
+
+    const formData = new FormData();
+    formData.set("micrositeId", micrositeId);
+    formData.set("blockId", block.id);
+    formData.set("visitorToken", visitorToken || getVisitorToken());
+    formData.set("name", name.trim());
+    formData.set("quote", quote.trim());
+    formData.set("email", email.trim());
+
+    if (image) formData.set("image", image);
+
+    const res = await fetch("/api/public/enrollment-board", {
+      method: "POST",
+      body: formData,
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(
+        data?.error ||
+          block.data.alreadyEnrolledMessage ||
+          "Failed to submit enrollment.",
+      );
+    }
+
+    if (data.entry?.id) {
+      window.localStorage.setItem(
+        entryIdKey(micrositeId, block.id),
+        data.entry.id,
+      );
+    }
+
+    const nextActiveCount = entries.length + 1;
+
+    setEntries((prev) => [data.entry, ...prev]);
+    setName("");
+    setQuote("");
+    setEmail("");
+    setImage(null);
+    if (imageInputRef.current) imageInputRef.current.value = "";
+
+    setStatusMessage(
+      block.data.successMessage ?? "You’ve been added to the board.",
+    );
+
+    window.dispatchEvent(
+      new CustomEvent(ENROLLMENT_BOARD_PROFILE_EVENT, {
+        detail: {
+          micrositeId,
+          enrollmentBlockId: block.id,
+          linkedProfileImageBlockId: block.data.linkedProfileImageBlockId,
+          linkedNameLabelBlockId: block.data.linkedNameLabelBlockId,
+          linkedQuoteLabelBlockId: block.data.linkedQuoteLabelBlockId,
+          profileImageUrl: data.entry?.profileImageUrl ?? null,
+          name: data.entry?.name ?? name.trim(),
+          quote: data.entry?.quote ?? quote.trim(),
+          activeCount: nextActiveCount,
+        },
+      }),
+    );
+  } catch (error) {
+    setErrorMessage(
+      error instanceof Error ? error.message : "Failed to submit enrollment.",
+    );
+  } finally {
+    setIsSubmitting(false);
+  }
+}
 
 async function handleDelete(entryId: string) {
   if (deletingId) return;
