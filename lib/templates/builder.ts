@@ -129,6 +129,7 @@ export type BuilderBlockType =
   | "faq"
   | "gallery"
   | "thread"
+  | "enrollment_board"
   | "post_board"
   | "highlight"
   | "showcase"
@@ -870,6 +871,57 @@ export type MessageThreadBlock = BaseBlock & {
   };
 };
 
+export type EnrollmentBoardVariant =
+  | "classic_board"
+  | "member_wall"
+  | "signature_list";
+
+export type EnrollmentBoardBlock = BaseBlock & {
+  type: "enrollment_board";
+  data: {
+    heading?: string;
+    subtitle?: string;
+    variant: EnrollmentBoardVariant;
+
+    showHeading?: boolean;
+    showSubtitle?: boolean;
+
+    nameLabel?: string;
+    quoteLabel?: string;
+    emailLabel?: string;
+    imageLabel?: string;
+
+    showQuoteField?: boolean;
+    showEmailField?: boolean;
+    showImageUpload?: boolean;
+
+    requireQuote?: boolean;
+    requireEmail?: boolean;
+    requireImage?: boolean;
+
+    quoteMaxLength?: number;
+
+    submitButtonText?: string;
+    successMessage?: string;
+    alreadyEnrolledMessage?: string;
+    emptyListMessage?: string;
+
+    showProfileImages?: boolean;
+    showQuotes?: boolean;
+    showEnrollmentCount?: boolean;
+
+    sortOrder?: "newest" | "oldest" | "alphabetical";
+    maxVisibleEntries?: number;
+
+    avatarShape?: "circle" | "rounded" | "square";
+
+    style?: TextStyle;
+    formStyle?: TextStyle;
+    cardStyle?: TextStyle;
+    buttonStyle?: TextStyle;
+  };
+};
+
 export type HighlightBlock = BaseBlock & {
   type: "highlight";
   data: {
@@ -1429,9 +1481,8 @@ export type MicrositeBlock =
   | FaqBlock
   | GalleryBlock
   | MessageThreadBlock
-  | MessageThreadBlock
   | PostBoardBlock
-  | HighlightBlock
+  | EnrollmentBoardBlock
   | HighlightBlock
   | ShowcaseBlock
   | FestiveBackgroundBlock
@@ -3053,6 +3104,61 @@ styleVariant: "elegant_wedding",
           style: {},
           cardStyle: {},
           buttonStyle: {},
+        },
+      };
+
+          case "enrollment_board":
+      return {
+        id: makeId("enrollmentboard"),
+        type: "enrollment_board",
+        label: "Enrollment Board",
+        grid: createDefaultThreadGrid(),
+        appearance: createDefaultBlockAppearance(),
+        data: {
+          heading: "Join the Board",
+          subtitle: "Add your name to the list.",
+          variant: "classic_board",
+
+          showHeading: true,
+          showSubtitle: true,
+
+          nameLabel: "Name",
+          quoteLabel: "Quote or message",
+          emailLabel: "Email",
+          imageLabel: "Profile image",
+
+          showQuoteField: true,
+          showEmailField: true,
+          showImageUpload: true,
+
+          requireQuote: false,
+          requireEmail: false,
+          requireImage: false,
+
+          quoteMaxLength: 150,
+
+          submitButtonText: "Submit",
+          successMessage: "You’ve been added to the board.",
+          alreadyEnrolledMessage: "You’re already enrolled from this device.",
+          emptyListMessage: "No enrollments yet.",
+
+          showProfileImages: true,
+          showQuotes: true,
+          showEnrollmentCount: true,
+
+          sortOrder: "newest",
+          maxVisibleEntries: 24,
+
+          avatarShape: "circle",
+
+          style: createDefaultTextStyle(),
+          formStyle: createDefaultTextStyle(),
+          cardStyle: createDefaultTextStyle(),
+          buttonStyle: {
+            ...createDefaultTextStyle(),
+            color: "#ffffff",
+            bold: true,
+          },
         },
       };
 

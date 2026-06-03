@@ -94,6 +94,12 @@ export const BUILDER_TOOL_GUIDES: BuilderToolGuide[] = [
     howToUse: "Use this to answer common visitor questions about rules, parking, schedules, payments, event details, policies, or instructions. Add question/answer pairs in the inspector.",
   },
 
+    {
+    name: "Enrollment Board",
+    purpose: "Creates a public sign-up board where visitors can add their name, optional quote, private email, and optional profile image.",
+    howToUse: "Use this for clubs, petitions, supporter walls, volunteer lists, event participation lists, class rosters, watch clubs, waitlists, and community member boards. Public entries show name, quote, and profile image while email remains private for the owner.",
+  },
+  
   {
     name: "Thread",
     purpose: "Creates a public message/comment area with optional media replies.",

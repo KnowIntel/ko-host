@@ -61,6 +61,15 @@ const buckets = [
     purpose: "Gallery images and public microsite media",
     risk: "Large public media",
   },
+  {
+    name: "enrollment-board-images",
+    visibility: "Public",
+    policies: 0,
+    fileSizeLimit: "5 MB",
+    mimeTypes: "JPEG, PNG, WebP",
+    purpose: "Public profile images for Enrollment Board entries",
+    risk: "Public user-generated images",
+  },
 ];
 
 const cleanupTools = [

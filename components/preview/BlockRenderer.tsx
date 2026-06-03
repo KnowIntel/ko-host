@@ -6,6 +6,8 @@ import { createPortal } from "react-dom";
 import SpeedDatingLive from "@/components/blocks/SpeedDatingLive";
 import PopBalloonLive from "@/components/blocks/PopBalloonLive";
 import AppModal from "@/components/ui/AppModal";
+import EnrollmentBoardBlock from "@/components/blocks/EnrollmentBoardBlock";
+
 
 type SpeedDatingParticipant = {
   id: string;
@@ -12179,6 +12181,15 @@ case "timeline":
       return renderFaq(block, designKey);
     case "thread":
       return renderThread(block, designKey, micrositeId);
+    case "enrollment_board":
+      return (
+        <EnrollmentBoardBlock
+          block={block}
+          micrositeId={micrositeId}
+          designKey={designKey}
+        />
+      );
+      
 case "post_board":
   return renderPostBoard(block, designKey, micrositeId);
     case "padding":

@@ -1341,6 +1341,65 @@ link_hub: {
   ],
 },
 
+enrollment_board: {
+  title: "Enrollment Board",
+  subtitle:
+    "Let visitors publicly add themselves to a visible member, supporter, volunteer, or sign-up list.",
+  sections: [
+    {
+      title: "Overview",
+      body:
+        "The Enrollment Board block creates a public form and running enrollment list. Visitors can add their name, optional quote, optional private email, and optional profile image. Public entries appear on the microsite while private email details are reserved for the owner dashboard.",
+    },
+    {
+      title: "Objective",
+      bullets: [
+        "Collect public sign-ups.",
+        "Display a live member or supporter board.",
+        "Support clubs, petitions, waitlists, events, classes, and community pages.",
+        "Keep private contact details hidden from public visitors.",
+      ],
+    },
+    {
+      title: "Inspector Configuration",
+      bullets: [
+        "Customize heading and subtitle text.",
+        "Choose Classic Board, Member Wall, or Signature List layout.",
+        "Show or hide quote, email, and profile image fields.",
+        "Require optional fields when needed.",
+        "Customize field labels and button text.",
+        "Set quote character limit.",
+        "Show or hide profile images, quotes, and enrollment count.",
+        "Choose list sorting and avatar shape.",
+      ],
+    },
+    {
+      title: "How It Works",
+      bullets: [
+        "Visitors submit their enrollment from the public microsite.",
+        "Name, quote, and profile image appear publicly.",
+        "Email stays private and is not shown publicly.",
+        "Each browser/device can enroll once.",
+        "Visitors can remove their own enrollment from the same browser/device.",
+      ],
+    },
+    {
+      title: "Best Use Cases",
+      bullets: [
+        "Club member lists.",
+        "Watch club rosters.",
+        "Supporter walls.",
+        "Volunteer sign-up sheets.",
+        "Petition-style signature lists.",
+        "Event participation boards.",
+        "Class rosters.",
+        "Community member boards.",
+        "Waitlists.",
+      ],
+    },
+  ],
+},
+
 
 thread: {
   title: "Thread",
