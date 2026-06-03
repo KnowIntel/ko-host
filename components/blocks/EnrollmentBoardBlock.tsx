@@ -334,7 +334,7 @@ export default function EnrollmentBoardBlock({
         block.data.successMessage ?? "You’ve been added to the board.",
       );
       
-      window.dispatchEvent(
+window.dispatchEvent(
   new CustomEvent(ENROLLMENT_BOARD_PROFILE_EVENT, {
     detail: {
       micrositeId,
@@ -342,9 +342,10 @@ export default function EnrollmentBoardBlock({
       linkedProfileImageBlockId: block.data.linkedProfileImageBlockId,
       linkedNameLabelBlockId: block.data.linkedNameLabelBlockId,
       linkedQuoteLabelBlockId: block.data.linkedQuoteLabelBlockId,
-      profileImageUrl: data.entry?.profileImageUrl ?? null,
-      name: data.entry?.name ?? null,
-      quote: data.entry?.quote ?? null,
+      profileImageUrl: null,
+      name: null,
+      quote: null,
+      activeCount: Math.max(0, entries.length - 1),
     },
   }),
 );
@@ -392,6 +393,7 @@ export default function EnrollmentBoardBlock({
     detail: {
       micrositeId,
       enrollmentBlockId: block.id,
+      activeCount: entries.length + 1,
       linkedProfileImageBlockId: block.data.linkedProfileImageBlockId,
       linkedNameLabelBlockId: block.data.linkedNameLabelBlockId,
       linkedQuoteLabelBlockId: block.data.linkedQuoteLabelBlockId,

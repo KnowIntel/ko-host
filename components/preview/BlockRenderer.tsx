@@ -7644,10 +7644,11 @@ const params = new URLSearchParams({
   }
 
   function handleEnrollmentUpdated(event: Event) {
-    const customEvent = event as CustomEvent<{
-      micrositeId?: string;
-      enrollmentBlockId?: string;
-    }>;
+const customEvent = event as CustomEvent<{
+  micrositeId?: string;
+  enrollmentBlockId?: string;
+  activeCount?: number;
+}>;
 
     const detail = customEvent.detail;
     if (!detail) return;
@@ -7657,9 +7658,23 @@ const params = new URLSearchParams({
       (card: any) => card.sourceBlockId === detail.enrollmentBlockId,
     );
 
-    if (!shouldRefresh) return;
+if (!shouldRefresh) return;
 
-    void loadEnrollmentCounts();
+if (typeof detail.activeCount === "number") {
+  setHighlightCardValues((prev) => {
+    const next = { ...prev };
+
+    enrollmentCards.forEach((card: any) => {
+      if (card.sourceBlockId === detail.enrollmentBlockId) {
+        next[card.id] = detail.activeCount ?? 0;
+      }
+    });
+
+    return next;
+  });
+}
+
+void loadEnrollmentCounts();
   }
 
   void loadEnrollmentCounts();
