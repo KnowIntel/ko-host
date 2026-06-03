@@ -917,8 +917,14 @@ export type EnrollmentBoardBlock = BaseBlock & {
 
     style?: TextStyle;
     formStyle?: TextStyle;
-    cardStyle?: TextStyle;
+    inputStyle?: TextStyle;
     buttonStyle?: TextStyle;
+    listStyle?: TextStyle;
+    cardStyle?: TextStyle;
+    headingStyle?: TextStyle;
+    subtitleStyle?: TextStyle;
+    memberNameStyle?: TextStyle;
+    memberQuoteStyle?: TextStyle;
   };
 };
 
@@ -3145,6 +3151,29 @@ styleVariant: "elegant_wedding",
           showProfileImages: true,
           showQuotes: true,
           showEnrollmentCount: true,
+
+                    inputStyle: createDefaultTextStyle(),
+          listStyle: createDefaultTextStyle(),
+          headingStyle: {
+            ...createDefaultTextStyle(),
+            fontSize: 24,
+            bold: true,
+          },
+          subtitleStyle: {
+            ...createDefaultTextStyle(),
+            fontSize: 14,
+            color: "#6b7280",
+          },
+          memberNameStyle: {
+            ...createDefaultTextStyle(),
+            fontSize: 14,
+            bold: true,
+          },
+          memberQuoteStyle: {
+            ...createDefaultTextStyle(),
+            fontSize: 12,
+            color: "#6b7280",
+          },
 
           sortOrder: "newest",
           maxVisibleEntries: 24,

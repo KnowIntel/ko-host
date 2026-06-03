@@ -1714,6 +1714,18 @@ const [postBoardStyleTarget, setPostBoardStyleTarget] = useState<
   const pollOptionInputRefs = useRef<Record<string, HTMLInputElement | null>>(
     {},
   );
+const [enrollmentBoardStyleTarget, setEnrollmentBoardStyleTarget] = useState<
+  | "block"
+  | "form"
+  | "inputs"
+  | "button"
+  | "list"
+  | "cards"
+  | "heading"
+  | "subtitle"
+  | "memberName"
+  | "memberQuote"
+>("block");
 
   const [copied, setCopied] = useState(false);
 
@@ -4089,16 +4101,38 @@ function applyStylePatch(patch: Partial<TextStyle>) {
   return;
 }
 if (selectedBlock?.type === "enrollment_board") {
+  const target = enrollmentBoardStyleTarget;
+
+  const targetStyleKey =
+    target === "heading"
+      ? "headingStyle"
+      : target === "subtitle"
+        ? "subtitleStyle"
+        : target === "memberName"
+          ? "memberNameStyle"
+          : target === "memberQuote"
+            ? "memberQuoteStyle"
+            : target === "inputs"
+              ? "inputStyle"
+              : target === "button"
+                ? "buttonStyle"
+                : target === "cards"
+                  ? "cardStyle"
+                  : target === "list"
+                    ? "listStyle"
+                    : "style";
+
   setDraft((prev) => ({
     ...prev,
     blocks: prev.blocks.map((block) =>
-      block.id === selectedBlock.id && block.type === "enrollment_board"
+      block.id === selectedBlock.id &&
+      block.type === "enrollment_board"
         ? {
             ...block,
             data: {
               ...block.data,
-              style: {
-                ...(block.data.style ?? {}),
+              [targetStyleKey]: {
+                ...((block.data as any)[targetStyleKey] ?? {}),
                 ...patch,
               },
             },
@@ -5163,38 +5197,72 @@ if ((selectedBlock as any)?.type === "post_board") {
 }
 
 if (selectedBlock?.type === "enrollment_board") {
-  updateSelectedBlock((block) =>
-    block.type !== "enrollment_board"
-      ? block
-      : {
-          ...block,
-          appearance: {
-            ...block.appearance,
-            ...patch,
-          },
-          data: {
-            ...block.data,
-            style: {
-              ...(block.data.style ?? {}),
-              ...(patch.backgroundColor !== undefined
-                ? { backgroundColor: patch.backgroundColor }
-                : {}),
-              ...(patch.backgroundOpacity !== undefined
-                ? { backgroundOpacity: patch.backgroundOpacity }
-                : {}),
-              ...(patch.borderColor !== undefined
-                ? { borderColor: patch.borderColor }
-                : {}),
-              ...(patch.borderWidth !== undefined
-                ? { borderWidth: patch.borderWidth }
-                : {}),
-              ...(patch.borderRadius !== undefined
-                ? { borderRadius: patch.borderRadius }
-                : {}),
-            },
-          },
+  updateSelectedBlock((block) => {
+    if (block.type !== "enrollment_board") return block;
+
+    const target = enrollmentBoardStyleTarget;
+
+    const targetStyleKey =
+      target === "form"
+        ? "formStyle"
+        : target === "inputs"
+          ? "inputStyle"
+          : target === "button"
+            ? "buttonStyle"
+            : target === "cards"
+              ? "cardStyle"
+              : target === "list"
+                ? "listStyle"
+                : target === "heading"
+                  ? "headingStyle"
+                  : target === "subtitle"
+                    ? "subtitleStyle"
+                    : target === "memberName"
+                      ? "memberNameStyle"
+                      : target === "memberQuote"
+                        ? "memberQuoteStyle"
+                        : "style";
+
+    return {
+      ...block,
+
+      appearance:
+        target === "block"
+          ? {
+              ...block.appearance,
+              ...patch,
+            }
+          : block.appearance,
+
+      data: {
+        ...block.data,
+
+        [targetStyleKey]: {
+          ...((block.data as any)[targetStyleKey] ?? {}),
+
+          ...(patch.backgroundColor !== undefined
+            ? { backgroundColor: patch.backgroundColor }
+            : {}),
+
+          ...(patch.backgroundOpacity !== undefined
+            ? { backgroundOpacity: patch.backgroundOpacity }
+            : {}),
+
+          ...(patch.borderColor !== undefined
+            ? { borderColor: patch.borderColor }
+            : {}),
+
+          ...(patch.borderWidth !== undefined
+            ? { borderWidth: patch.borderWidth }
+            : {}),
+
+          ...(patch.borderRadius !== undefined
+            ? { borderRadius: patch.borderRadius }
+            : {}),
         },
-  );
+      },
+    };
+  });
 
   return;
 }
@@ -9890,6 +9958,43 @@ const idsToExpand =
   </>
 ) : null}
 
+{selectedBlock?.type === "enrollment_board" ? (
+  <>
+    <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
+
+    <select
+      value={enrollmentBoardStyleTarget}
+      onChange={(e) =>
+        setEnrollmentBoardStyleTarget(
+          e.target.value as
+            | "block"
+            | "form"
+            | "inputs"
+            | "button"
+            | "list"
+            | "cards"
+            | "heading"
+            | "subtitle"
+            | "memberName"
+            | "memberQuote",
+        )
+      }
+      className={topBarFieldClass("w-[170px]")}
+      title="Enrollment Board style target"
+    >
+      <option value="block">Block Background</option>
+      <option value="form">Form Panel</option>
+      <option value="inputs">Input Fields</option>
+      <option value="button">Submit Button</option>
+      <option value="list">List Area</option>
+      <option value="cards">Member Cards</option>
+      <option value="heading">Heading</option>
+      <option value="subtitle">Subtitle</option>
+      <option value="memberName">Member Name</option>
+      <option value="memberQuote">Member Quote</option>
+    </select>
+  </>
+) : null}
 
       {showTextControls ? (
         <>

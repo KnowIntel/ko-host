@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import type { MicrositeBlock } from "@/lib/templates/builder";
+import type { CSSProperties } from "react";
+import type { MicrositeBlock, TextStyle } from "@/lib/templates/builder";
 
 type EnrollmentBoardBlockProps = {
   block: Extract<MicrositeBlock, { type: "enrollment_board" }>;
@@ -67,6 +68,80 @@ function sortEntries(entries: EnrollmentEntry[], sortOrder?: string) {
   );
 }
 
+function withOpacity(color?: string, opacity?: number) {
+  if (!color) return undefined;
+  if (color === "transparent") return "transparent";
+
+  const safeOpacity =
+    typeof opacity === "number" && Number.isFinite(opacity)
+      ? Math.max(0, Math.min(1, opacity))
+      : 1;
+
+  if (!color.startsWith("#")) return color;
+
+  const hex = color.replace("#", "");
+  const fullHex =
+    hex.length === 3
+      ? hex
+          .split("")
+          .map((char) => `${char}${char}`)
+          .join("")
+      : hex;
+
+  const r = parseInt(fullHex.slice(0, 2), 16);
+  const g = parseInt(fullHex.slice(2, 4), 16);
+  const b = parseInt(fullHex.slice(4, 6), 16);
+
+  if ([r, g, b].some((value) => Number.isNaN(value))) return color;
+
+  return `rgba(${r}, ${g}, ${b}, ${safeOpacity})`;
+}
+
+function styleToCss(style?: TextStyle): CSSProperties {
+  const next = (style ?? {}) as TextStyle & {
+    backgroundColor?: string;
+    backgroundOpacity?: number;
+    borderColor?: string;
+    borderWidth?: number;
+    borderRadius?: number;
+    scale?: number;
+  };
+
+  const decorations: string[] = [];
+  if (next.underline) decorations.push("underline");
+  if (next.strike) decorations.push("line-through");
+
+  return {
+    fontFamily:
+      next.fontFamily && next.fontFamily !== "inherit"
+        ? next.fontFamily
+        : undefined,
+    fontSize: next.fontSize ? `${next.fontSize}px` : undefined,
+    fontWeight: next.bold ? 800 : undefined,
+    fontStyle: next.italic ? "italic" : undefined,
+    textDecoration: decorations.length ? decorations.join(" ") : undefined,
+    textAlign: next.align ?? undefined,
+    color: next.color || undefined,
+    backgroundColor: withOpacity(next.backgroundColor, next.backgroundOpacity),
+    borderColor: next.borderColor || undefined,
+    borderWidth:
+      typeof next.borderWidth === "number" ? `${next.borderWidth}px` : undefined,
+    borderStyle:
+      typeof next.borderWidth === "number" && next.borderWidth > 0
+        ? "solid"
+        : undefined,
+    borderRadius:
+      typeof next.borderRadius === "number"
+        ? `${next.borderRadius}px`
+        : undefined,
+    transform:
+      typeof next.scale === "number" && Number.isFinite(next.scale)
+        ? `scale(${next.scale})`
+        : undefined,
+    transformOrigin: "center center",
+  };
+}
+
 export default function EnrollmentBoardBlock({
   block,
   micrositeId,
@@ -83,13 +158,28 @@ export default function EnrollmentBoardBlock({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
+  const blockStyle = styleToCss(block.data.style);
+  const formStyle = styleToCss(block.data.formStyle);
+  const inputStyle = styleToCss((block.data as any).inputStyle);
+  const buttonStyle = styleToCss(block.data.buttonStyle);
+  const listStyle = styleToCss((block.data as any).listStyle);
+  const cardStyle = styleToCss(block.data.cardStyle);
+  const headingStyle = styleToCss((block.data as any).headingStyle);
+  const subtitleStyle = styleToCss((block.data as any).subtitleStyle);
+  const memberNameStyle = styleToCss((block.data as any).memberNameStyle);
+  const memberQuoteStyle = styleToCss((block.data as any).memberQuoteStyle);
+
   const quoteMaxLength = Math.max(
     25,
     Math.min(500, block.data.quoteMaxLength ?? 150),
   );
 
   const sortedEntries = useMemo(
-    () => sortEntries(entries, block.data.sortOrder).slice(0, block.data.maxVisibleEntries ?? 24),
+    () =>
+      sortEntries(entries, block.data.sortOrder).slice(
+        0,
+        block.data.maxVisibleEntries ?? 24,
+      ),
     [entries, block.data.sortOrder, block.data.maxVisibleEntries],
   );
 
@@ -158,7 +248,9 @@ export default function EnrollmentBoardBlock({
       setQuote("");
       setEmail("");
       setImage(null);
-      setStatusMessage(block.data.successMessage ?? "You’ve been added to the board.");
+      setStatusMessage(
+        block.data.successMessage ?? "You’ve been added to the board.",
+      );
       setErrorMessage("");
       return;
     }
@@ -204,9 +296,7 @@ export default function EnrollmentBoardBlock({
       formData.set("quote", quote.trim());
       formData.set("email", email.trim());
 
-      if (image) {
-        formData.set("image", image);
-      }
+      if (image) formData.set("image", image);
 
       const res = await fetch("/api/public/enrollment-board", {
         method: "POST",
@@ -224,7 +314,10 @@ export default function EnrollmentBoardBlock({
       }
 
       if (data.entry?.id) {
-        window.localStorage.setItem(entryIdKey(micrositeId, block.id), data.entry.id);
+        window.localStorage.setItem(
+          entryIdKey(micrositeId, block.id),
+          data.entry.id,
+        );
       }
 
       setEntries((prev) => [data.entry, ...prev]);
@@ -232,7 +325,9 @@ export default function EnrollmentBoardBlock({
       setQuote("");
       setEmail("");
       setImage(null);
-      setStatusMessage(block.data.successMessage ?? "You’ve been added to the board.");
+      setStatusMessage(
+        block.data.successMessage ?? "You’ve been added to the board.",
+      );
 
       const imageInput = document.getElementById(
         `enrollment-image-${block.id}`,
@@ -258,9 +353,7 @@ export default function EnrollmentBoardBlock({
 
       const res = await fetch("/api/public/enrollment-board", {
         method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           micrositeId,
           blockId: block.id,
@@ -294,34 +387,56 @@ export default function EnrollmentBoardBlock({
 
   const entryClass =
     block.data.variant === "signature_list"
-      ? "flex items-center justify-between gap-3 border-b border-neutral-200 py-3"
-      : "flex items-center justify-between gap-3 rounded-2xl border border-neutral-200 bg-white/90 p-3 shadow-sm";
+      ? "flex items-center justify-between gap-3 border-b py-3"
+      : "flex items-center justify-between gap-3 border p-3 shadow-sm";
 
   return (
-    <div className="h-full w-full overflow-auto rounded-3xl border border-neutral-200 bg-white/90 p-4 text-neutral-950 shadow-sm">
+    <div
+      className="h-full w-full overflow-auto p-4 text-neutral-950"
+      style={{
+        borderStyle: "solid",
+        ...blockStyle,
+      }}
+    >
       {block.data.showHeading !== false || block.data.showSubtitle !== false ? (
         <div className="mb-4">
           {block.data.showHeading !== false ? (
-            <div className="text-xl font-black tracking-tight">
+            <div
+              className="text-xl font-black tracking-tight"
+              style={headingStyle}
+            >
               {block.data.heading || "Join the Board"}
             </div>
           ) : null}
 
           {block.data.showSubtitle !== false ? (
-            <div className="mt-1 text-sm font-medium text-neutral-500">
+            <div className="mt-1 text-sm font-medium" style={subtitleStyle}>
               {block.data.subtitle || "Add your name to the list."}
             </div>
           ) : null}
 
           {block.data.showEnrollmentCount !== false ? (
-            <div className="mt-2 inline-flex rounded-full bg-neutral-100 px-3 py-1 text-xs font-bold text-neutral-600">
+            <div
+              className="mt-2 inline-flex rounded-full px-3 py-1 text-xs font-bold"
+              style={{
+                backgroundColor: "rgba(0,0,0,0.06)",
+                color: subtitleStyle.color ?? "#4b5563",
+              }}
+            >
               {entries.length} enrolled
             </div>
           ) : null}
         </div>
       ) : null}
 
-      <form onSubmit={handleSubmit} className="rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
+      <form
+        onSubmit={handleSubmit}
+        className="p-3"
+        style={{
+          borderStyle: "solid",
+          ...formStyle,
+        }}
+      >
         <div className="grid gap-3">
           <input
             type="text"
@@ -329,21 +444,31 @@ export default function EnrollmentBoardBlock({
             maxLength={80}
             onChange={(e) => setName(e.target.value.slice(0, 80))}
             placeholder={block.data.nameLabel ?? "Name"}
-            className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-semibold text-neutral-900 outline-none focus:border-neutral-900"
+            className="w-full px-3 py-2 text-sm font-semibold outline-none"
+            style={{
+              borderStyle: "solid",
+              ...inputStyle,
+            }}
           />
 
           {block.data.showQuoteField !== false ? (
             <textarea
               value={quote}
               maxLength={quoteMaxLength}
-              onChange={(e) => setQuote(e.target.value.slice(0, quoteMaxLength))}
+              onChange={(e) =>
+                setQuote(e.target.value.slice(0, quoteMaxLength))
+              }
               placeholder={block.data.quoteLabel ?? "Quote or message"}
-              className="min-h-[76px] w-full resize-none rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-semibold text-neutral-900 outline-none focus:border-neutral-900"
+              className="min-h-[76px] w-full resize-none px-3 py-2 text-sm font-semibold outline-none"
+              style={{
+                borderStyle: "solid",
+                ...inputStyle,
+              }}
             />
           ) : null}
 
           {block.data.showQuoteField !== false ? (
-            <div className="text-right text-[11px] font-bold text-neutral-400">
+            <div className="text-right text-[11px] font-bold opacity-60">
               {quote.length}/{quoteMaxLength}
             </div>
           ) : null}
@@ -354,13 +479,20 @@ export default function EnrollmentBoardBlock({
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder={block.data.emailLabel ?? "Email"}
-              className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-semibold text-neutral-900 outline-none focus:border-neutral-900"
+              className="w-full px-3 py-2 text-sm font-semibold outline-none"
+              style={{
+                borderStyle: "solid",
+                ...inputStyle,
+              }}
             />
           ) : null}
 
           {block.data.showImageUpload !== false ? (
             <label className="block">
-              <div className="mb-1 text-xs font-bold text-neutral-500">
+              <div
+                className="mb-1 text-xs font-bold opacity-70"
+                style={subtitleStyle}
+              >
                 {block.data.imageLabel ?? "Profile image"}
               </div>
               <input
@@ -368,7 +500,11 @@ export default function EnrollmentBoardBlock({
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
                 onChange={(e) => setImage(e.target.files?.[0] ?? null)}
-                className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm font-semibold text-neutral-700"
+                className="w-full px-3 py-2 text-sm font-semibold"
+                style={{
+                  borderStyle: "solid",
+                  ...inputStyle,
+                }}
               />
             </label>
           ) : null}
@@ -376,7 +512,11 @@ export default function EnrollmentBoardBlock({
           <button
             type="submit"
             disabled={isSubmitting || hasMine}
-            className="inline-flex items-center justify-center rounded-xl bg-neutral-950 px-4 py-2 text-sm font-black text-white transition hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex items-center justify-center px-4 py-2 text-sm font-black transition disabled:cursor-not-allowed disabled:opacity-50"
+            style={{
+              borderStyle: "solid",
+              ...buttonStyle,
+            }}
           >
             {isSubmitting
               ? "Submitting..."
@@ -399,15 +539,34 @@ export default function EnrollmentBoardBlock({
         ) : null}
       </form>
 
-      <div className="mt-4">
+      <div
+        className="mt-4"
+        style={{
+          borderStyle: "solid",
+          ...listStyle,
+        }}
+      >
         {isLoading ? (
-          <div className="rounded-2xl border border-neutral-200 bg-white p-4 text-sm font-bold text-neutral-500">
+          <div
+            className="p-4 text-sm font-bold"
+            style={{
+              borderStyle: "solid",
+              ...cardStyle,
+            }}
+          >
             Loading enrollments...
           </div>
         ) : sortedEntries.length ? (
           <div className={listClass}>
             {sortedEntries.map((entry) => (
-              <div key={entry.id} className={entryClass}>
+              <div
+                key={entry.id}
+                className={entryClass}
+                style={{
+                  borderStyle: "solid",
+                  ...cardStyle,
+                }}
+              >
                 <div className="flex min-w-0 items-center gap-3">
                   {block.data.showProfileImages !== false ? (
                     entry.profileImageUrl ? (
@@ -430,12 +589,18 @@ export default function EnrollmentBoardBlock({
                   ) : null}
 
                   <div className="min-w-0">
-                    <div className="truncate text-sm font-black text-neutral-950">
+                    <div
+                      className="truncate text-sm font-black"
+                      style={memberNameStyle}
+                    >
                       {entry.name}
                     </div>
 
                     {block.data.showQuotes !== false && entry.quote ? (
-                      <div className="mt-0.5 line-clamp-2 text-xs font-medium text-neutral-500">
+                      <div
+                        className="mt-0.5 line-clamp-2 text-xs font-medium"
+                        style={memberQuoteStyle}
+                      >
                         {entry.quote}
                       </div>
                     ) : null}
@@ -458,7 +623,12 @@ export default function EnrollmentBoardBlock({
             ))}
           </div>
         ) : (
-          <div className="rounded-2xl border border-dashed border-neutral-300 bg-white p-4 text-center text-sm font-bold text-neutral-500">
+          <div
+            className="border border-dashed p-4 text-center text-sm font-bold"
+            style={{
+              ...cardStyle,
+            }}
+          >
             {block.data.emptyListMessage || "No enrollments yet."}
           </div>
         )}
