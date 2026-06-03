@@ -1723,6 +1723,7 @@ const [enrollmentBoardStyleTarget, setEnrollmentBoardStyleTarget] = useState<
   | "cards"
   | "heading"
   | "subtitle"
+  | "imageLabel"
   | "memberName"
   | "memberQuote"
 >("block");
@@ -1928,6 +1929,11 @@ const selectedStyle =
                   ? (((selectedBlockFromDraft.data as any).cardStyle ??
                       (selectedBlockFromDraft.data as any).style ??
                       {}) as TextStyle)
+                      : enrollmentBoardStyleTarget === "imageLabel"
+                        ? (((selectedBlockFromDraft.data as any).imageLabelStyle ??
+                            (selectedBlockFromDraft.data as any).subtitleStyle ??
+                            (selectedBlockFromDraft.data as any).style ??
+                            {}) as TextStyle)
                   : enrollmentBoardStyleTarget === "memberName"
                     ? (((selectedBlockFromDraft.data as any).memberNameStyle ??
                         (selectedBlockFromDraft.data as any).style ??
@@ -4141,6 +4147,8 @@ if (selectedBlock?.type === "enrollment_board") {
       ? "headingStyle"
       : target === "subtitle"
         ? "subtitleStyle"
+      : target === "imageLabel"
+        ? "imageLabelStyle"
         : target === "memberName"
           ? "memberNameStyle"
           : target === "memberQuote"
@@ -5250,6 +5258,8 @@ if (selectedBlock?.type === "enrollment_board") {
                   ? "headingStyle"
                   : target === "subtitle"
                     ? "subtitleStyle"
+                : target === "imageLabel"
+                  ? "imageLabelStyle"
                     : target === "memberName"
                       ? "memberNameStyle"
                       : target === "memberQuote"
@@ -10008,6 +10018,7 @@ const idsToExpand =
             | "cards"
             | "heading"
             | "subtitle"
+            | "imageLabel"
             | "memberName"
             | "memberQuote",
         )
@@ -10022,7 +10033,8 @@ const idsToExpand =
       <option value="list">List Area</option>
       <option value="cards">Member Cards</option>
       <option value="heading">Heading</option>
-      <option value="subtitle">Subtitle</option>
+      <option value="subtitle">Form Subheader</option>
+      <option value="imageLabel">Image Label</option>
       <option value="memberName">Member Name</option>
       <option value="memberQuote">Member Quote</option>
     </select>

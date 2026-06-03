@@ -166,6 +166,7 @@ export default function EnrollmentBoardBlock({
   const cardStyle = styleToCss(block.data.cardStyle);
   const headingStyle = styleToCss((block.data as any).headingStyle);
   const subtitleStyle = styleToCss((block.data as any).subtitleStyle);
+  const imageLabelStyle = styleToCss((block.data as any).imageLabelStyle);
   const memberNameStyle = styleToCss((block.data as any).memberNameStyle);
   const memberQuoteStyle = styleToCss((block.data as any).memberQuoteStyle);
 
@@ -497,12 +498,12 @@ export default function EnrollmentBoardBlock({
 
           {block.data.showImageUpload !== false ? (
             <label className="block">
-              <div
-                className="mb-1 text-xs font-bold opacity-70"
-                style={subtitleStyle}
-              >
-                {block.data.imageLabel ?? "Profile image"}
-              </div>
+<div
+  className="mb-1 text-xs font-bold opacity-70"
+  style={imageLabelStyle}
+>
+  {block.data.imageLabel ?? "Profile image"}
+</div>
               <input
                 id={`enrollment-image-${block.id}`}
                 type="file"
