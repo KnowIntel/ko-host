@@ -1819,9 +1819,8 @@ const currentSiteDisplay = isLiveMicrosite
       ? draft.blocks.find((item) => item.id === selection.blockId) ?? null
       : null;
     
-  const [highlightStyleTarget, setHighlightStyleTarget] = useState<
-  "heading" | "body"
->("heading");
+const [highlightStyleTarget, setHighlightStyleTarget] =
+  useState<"heading" | "value" | "body">("heading");
 
 
 type CountdownStyleTarget =
@@ -1992,14 +1991,19 @@ const selectedStyle =
                           (selectedBlockFromDraft.data as any).style ??
                           {}) as TextStyle)
                       : (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
-              : selectedBlockFromDraft?.type === "highlight"
-                ? highlightStyleTarget === "body"
-                  ? (selectedBlockFromDraft.data.bodyStyle ??
-                      selectedBlockFromDraft.data.style ??
-                      {})
-                  : (selectedBlockFromDraft.data.headingStyle ??
-                      selectedBlockFromDraft.data.style ??
-                      {})
+: selectedBlockFromDraft?.type === "highlight"
+  ? highlightStyleTarget === "value"
+    ? (selectedBlockFromDraft.data.valueStyle ??
+        selectedBlockFromDraft.data.bodyStyle ??
+        selectedBlockFromDraft.data.style ??
+        {})
+    : highlightStyleTarget === "body"
+      ? (selectedBlockFromDraft.data.bodyStyle ??
+          selectedBlockFromDraft.data.style ??
+          {})
+      : (selectedBlockFromDraft.data.headingStyle ??
+          selectedBlockFromDraft.data.style ??
+          {})
                 : selectedBlockFromDraft?.type === "faq"
                   ? faqStyleTarget === "question"
                     ? (((selectedBlockFromDraft.data as any).questionStyle ??
@@ -10111,25 +10115,26 @@ const idsToExpand =
   </>
 ) : null}
 
-        {selectedBlock?.type === "highlight" ? (
-          <>
-            <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
+{selectedBlock?.type === "highlight" ? (
+  <>
+    <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
 
-            <select
-              value={highlightStyleTarget}
-              onChange={(e) =>
-                setHighlightStyleTarget(
-                  e.target.value as "heading" | "body",
-                )
-              }
-              className={topBarFieldClass("w-[140px]")}
-              title="Highlight text target"
-            >
-              <option value="heading">Heading</option>
-              <option value="body">Body</option>
-            </select>
-          </>
-        ) : null}
+    <select
+      value={highlightStyleTarget}
+      onChange={(e) =>
+        setHighlightStyleTarget(
+          e.target.value as "heading" | "value" | "body",
+        )
+      }
+      className={topBarFieldClass("w-[160px]")}
+      title="Highlight text target"
+    >
+      <option value="heading">Heading</option>
+      <option value="value">Number Value</option>
+      <option value="body">Body</option>
+    </select>
+  </>
+) : null}
 
         {selectedBlock?.type === "faq" ? (
   <>
