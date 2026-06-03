@@ -9940,7 +9940,10 @@ function renderCalendarEvent(
                     className="font-semibold"
                     style={{
                       ...getContainerTextStyle(block.data.style, designKey),
-                      color: detailStyle.textColor || block.data.style?.color || undefined,
+                      color:
+                        detailStyle.textColor ||
+                        block.data.style?.color ||
+                        undefined,
                     }}
                   >
                     {event.title || "Event"}
@@ -9948,14 +9951,26 @@ function renderCalendarEvent(
 
                   {event.subtitle ? (
                     <div
-                      className={`mt-1 text-sm ${getMutedTextClass(designKey)}`}
+                      className="mt-1 text-sm"
+                      style={{
+                        color:
+                          detailStyle.textColor ||
+                          block.data.style?.color ||
+                          undefined,
+                      }}
                     >
                       {event.subtitle}
                     </div>
                   ) : null}
 
                   <div
-                    className={`mt-3 text-xs ${getMutedTextClass(designKey)}`}
+                    className="mt-3 text-xs"
+                    style={{
+                      color:
+                        detailStyle.textColor ||
+                        block.data.style?.color ||
+                        undefined,
+                    }}
                   >
                     {formatEventDate(event.date)}
                     {event.startTime || event.endTime
@@ -9966,7 +9981,15 @@ function renderCalendarEvent(
                   </div>
 
                   {event.location || event.meetingMethod ? (
-                    <div className="mt-2 text-sm">
+                    <div
+                      className="mt-2 text-sm"
+                      style={{
+                        color:
+                          detailStyle.textColor ||
+                          block.data.style?.color ||
+                          undefined,
+                      }}
+                    >
                       {[event.meetingMethod, event.location]
                         .filter(Boolean)
                         .join(" • ")}
@@ -9975,7 +9998,13 @@ function renderCalendarEvent(
 
                   {event.address ? (
                     <div
-                      className={`mt-1 text-sm ${getMutedTextClass(designKey)}`}
+                      className="mt-1 text-sm"
+                      style={{
+                        color:
+                          detailStyle.textColor ||
+                          block.data.style?.color ||
+                          undefined,
+                      }}
                     >
                       {event.address}
                     </div>
@@ -9983,7 +10012,13 @@ function renderCalendarEvent(
 
                   {block.data.showHost !== false && event.host ? (
                     <div
-                      className={`mt-2 text-xs ${getMutedTextClass(designKey)}`}
+                      className="mt-2 text-xs"
+                      style={{
+                        color:
+                          detailStyle.textColor ||
+                          block.data.style?.color ||
+                          undefined,
+                      }}
                     >
                       Hosted by {event.host}
                     </div>
@@ -9991,7 +10026,13 @@ function renderCalendarEvent(
 
                   {block.data.showCapacity !== false && event.capacity ? (
                     <div
-                      className={`mt-1 text-xs ${getMutedTextClass(designKey)}`}
+                      className="mt-1 text-xs"
+                      style={{
+                        color:
+                          detailStyle.textColor ||
+                          block.data.style?.color ||
+                          undefined,
+                      }}
                     >
                       Capacity: {event.capacity}
                     </div>
@@ -9999,7 +10040,13 @@ function renderCalendarEvent(
 
                   {event.notes ? (
                     <div
-                      className={`mt-2 text-sm ${getMutedTextClass(designKey)}`}
+                      className="mt-2 text-sm"
+                      style={{
+                        color:
+                          detailStyle.textColor ||
+                          block.data.style?.color ||
+                          undefined,
+                      }}
                     >
                       {event.notes}
                     </div>
