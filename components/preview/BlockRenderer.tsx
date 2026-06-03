@@ -7674,7 +7674,7 @@ if (typeof detail.activeCount === "number") {
   });
 }
 
-void loadEnrollmentCounts();
+setRefreshKey((prev) => prev + 1);
   }
 
   void loadEnrollmentCounts();
@@ -7691,7 +7691,7 @@ void loadEnrollmentCounts();
       handleEnrollmentUpdated as EventListener,
     );
   };
-}, [useCardRenderer, micrositeId, normalizedCards]);
+}, [useCardRenderer, micrositeId, block.data.cards, refreshKey]);
 
     useEffect(() => {
       if (useCardRenderer) {
