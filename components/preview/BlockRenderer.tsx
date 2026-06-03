@@ -9921,12 +9921,11 @@ function renderCalendarEvent(
                     ) : null}
                   </div>
 
-                  <div
-                    className="text-sm font-semibold"
-                    style={getContainerTextStyle(block.data.style, designKey)}
-                  >
-                    {event.title || "Event"}
-                  </div>
+<div
+  style={getContainerTextStyle(block.data.style, designKey)}
+>
+  {event.title || "Event"}
+</div>
 
                   {event.subtitle ? (
                     <div
