@@ -9544,6 +9544,10 @@ function renderCalendarEvent(
       typeof block.data.detailStyle?.backgroundColor === "string"
         ? block.data.detailStyle.backgroundColor
         : "",
+        textColor:
+  typeof block.data.detailStyle?.textColor === "string"
+    ? block.data.detailStyle.textColor
+    : "",
     borderColor:
       typeof block.data.detailStyle?.borderColor === "string"
         ? block.data.detailStyle.borderColor
@@ -9757,11 +9761,11 @@ function renderCalendarEvent(
                     : "border-white bg-white text-neutral-950 shadow-md"
                   : isToday
                     ? isLightDesign(designKey)
-                      ? "border-neutral-950 bg-white text-neutral-950"
-                      : "border-white/60 bg-white/10 text-white"
+                      ? "border-neutral-950 bg-white"
+                      : "border-white/60 bg-white/10"
                     : isLightDesign(designKey)
-                      ? "border-neutral-200 bg-neutral-50 text-neutral-700 hover:border-neutral-400 hover:bg-white"
-                      : "border-white/10 bg-white/5 text-white/75 hover:border-white/30 hover:bg-white/10",
+                      ? "border-neutral-200 bg-neutral-50 hover:border-neutral-400 hover:bg-white"
+                      : "border-white/10 bg-white/5 hover:border-white/30 hover:bg-white/10",
               ].join(" ")}
               style={{
                 backgroundColor:
@@ -9771,6 +9775,10 @@ function renderCalendarEvent(
                 borderColor:
                   isToday && calendarStyle.todayBorderColor
                     ? calendarStyle.todayBorderColor
+                    : undefined,
+                color:
+                  calendarStyle.textColor && !isSelected
+                    ? calendarStyle.textColor
                     : undefined,
               }}
               aria-label={`View events for ${cell.dateKey}`}
@@ -9783,10 +9791,13 @@ function renderCalendarEvent(
                     {dayEvents.slice(0, 3).map((event) => (
                       <span
                         key={event.id}
-                        className="h-1.5 w-1.5 rounded-full bg-current"
+                        className="h-1.5 w-1.5 rounded-full"
                         style={{
                           backgroundColor:
-                            calendarStyle.eventDotColor || undefined,
+                            calendarStyle.eventDotColor ||
+                            (calendarStyle.textColor && !isSelected
+                              ? calendarStyle.textColor
+                              : undefined),
                         }}
                       />
                     ))}
@@ -9823,6 +9834,9 @@ function renderCalendarEvent(
               ? "border-neutral-200 bg-neutral-50"
               : "border-white/10 bg-white/5",
           ].join(" ")}
+          style={{
+            color: calendarStyle.textColor || undefined,
+          }}
         >
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
@@ -9874,6 +9888,7 @@ function renderCalendarEvent(
               style={{
                 backgroundColor: detailStyle.backgroundColor || undefined,
                 borderColor: detailStyle.borderColor || undefined,
+                color: detailStyle.textColor || undefined,
                 borderRadius:
                   typeof detailStyle.borderRadius === "number"
                     ? detailStyle.borderRadius
@@ -9921,11 +9936,15 @@ function renderCalendarEvent(
                     ) : null}
                   </div>
 
-<div
-  style={getContainerTextStyle(block.data.style, designKey)}
->
-  {event.title || "Event"}
-</div>
+                  <div
+                    className="font-semibold"
+                    style={{
+                      ...getContainerTextStyle(block.data.style, designKey),
+                      color: detailStyle.textColor || block.data.style?.color || undefined,
+                    }}
+                  >
+                    {event.title || "Event"}
+                  </div>
 
                   {event.subtitle ? (
                     <div

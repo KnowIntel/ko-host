@@ -1358,6 +1358,7 @@ export type CalendarEventBlock = BaseBlock & {
       borderColor?: string;
       borderRadius?: number;
       shadowEnabled?: boolean;
+      textColor?: string;
     };
     buttonStyle?: Record<string, any>;
   };
@@ -3621,6 +3622,7 @@ data: {
             borderColor: "",
             borderRadius: 16,
             shadowEnabled: false,
+            textColor: "",
           },
 
           buttonStyle: {},
