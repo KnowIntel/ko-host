@@ -7471,20 +7471,20 @@ function renderHighlight(
       designKey,
     );
 
-    const valueTextStyle = getContainerTextStyle(
-      block.data.valueStyle ?? block.data.bodyStyle ?? block.data.style,
-      designKey,
-    );
+const valueTextStyle = getContainerTextStyle(
+  block.data.bodyStyle ?? block.data.valueStyle ?? block.data.style,
+  designKey,
+);
 
-    const labelTextStyle = getContainerTextStyle(
-      block.data.labelStyle ?? block.data.bodyStyle ?? block.data.style,
-      designKey,
-    );
+const labelTextStyle = getContainerTextStyle(
+  block.data.bodyStyle ?? block.data.labelStyle ?? block.data.style,
+  designKey,
+);
 
-    const descriptionTextStyle = getContainerTextStyle(
-      block.data.descriptionStyle ?? block.data.bodyStyle ?? block.data.style,
-      designKey,
-    );
+const descriptionTextStyle = getContainerTextStyle(
+  block.data.bodyStyle ?? block.data.descriptionStyle ?? block.data.style,
+  designKey,
+);
 
     function formatNumber(value: string | number | undefined) {
       if (value === undefined || value === null || value === "") return "0";
