@@ -932,17 +932,83 @@ export type EnrollmentBoardBlock = BaseBlock & {
   };
 };
 
+export type HighlightDisplayStyle = "grid" | "list";
+
+export type HighlightType =
+  | "manual_stat"
+  | "money_raised"
+  | "progress"
+  | "countdown"
+  | "rsvp_count"
+  | "poll_result"
+  | "visitor_count"
+  | "enrollment_records";
+
+export type HighlightCard = {
+  id: string;
+  type: HighlightType;
+
+  label?: string;
+  value?: string | number;
+  prefix?: string;
+  suffix?: string;
+  description?: string;
+  icon?: string;
+  showIcon?: boolean;
+
+  currentValue?: number;
+  goalValue?: number;
+  unit?: string;
+  showProgressBar?: boolean;
+
+  amount?: number;
+  currency?: string;
+  goalAmount?: number;
+  showProgressPercentage?: boolean;
+
+  targetDate?: string;
+  targetTime?: string;
+  countdownUnits?: "days" | "hours" | "minutes" | "full";
+
+  sourceBlockId?: string;
+  sourceFormBlockId?: string;
+  sourceType?: "rsvp" | "poll" | "visitor_counter" | "enrollment_board";
+  countType?: string;
+  pollOptionId?: string;
+  displayType?: "count" | "percentage" | "winner";
+
+  fallbackValue?: string | number;
+};
+
 export type HighlightBlock = BaseBlock & {
   type: "highlight";
   data: {
     mode?: "top_messages" | "rsvp_count" | "total_funds" | "poll_results";
+
     heading?: string;
+    subtitle?: string;
+    showHeading?: boolean;
+    showSubtitle?: boolean;
+
+    displayStyle?: HighlightDisplayStyle;
+    cards?: HighlightCard[];
+
     limit?: number;
     sourceBlockId?: string;
     sourceFormBlockId?: string;
+
+    label?: string;
+    value?: string | number;
+    description?: string;
+    icon?: string;
+
     style?: TextStyle;
     headingStyle?: TextStyle;
     bodyStyle?: TextStyle;
+    cardStyle?: TextStyle;
+    valueStyle?: TextStyle;
+    labelStyle?: TextStyle;
+    descriptionStyle?: TextStyle;
   };
 };
 
@@ -3178,7 +3244,7 @@ styleVariant: "elegant_wedding",
             fontSize: 12,
             color: "#6b7280",
           },
-          
+
           linkedProfileImageBlockId: "",
           linkedNameLabelBlockId: "",
           linkedQuoteLabelBlockId: "",
@@ -3199,7 +3265,7 @@ styleVariant: "elegant_wedding",
         },
       };
 
-     case "highlight":
+    case "highlight":
       return {
         id: makeId("highlight"),
         type: "highlight",
@@ -3208,16 +3274,36 @@ styleVariant: "elegant_wedding",
         appearance: createDefaultBlockAppearance(),
         data: {
           mode: "top_messages",
-          heading: "Top Messages",
+          heading: "Highlights",
+          subtitle: "Key details at a glance.",
+          showHeading: true,
+          showSubtitle: false,
+          displayStyle: "grid",
           limit: 4,
           sourceBlockId: "",
           sourceFormBlockId: "",
+          cards: [
+            {
+              id: makeId("highlight_card"),
+              type: "manual_stat",
+              label: "Guests",
+              value: "120",
+              suffix: "+",
+              description: "Expected attendees",
+              icon: "✨",
+              showIcon: true,
+            },
+          ],
           style: createDefaultTextStyle(),
           headingStyle: createDefaultTextStyle(),
           bodyStyle: createDefaultTextStyle(),
+          cardStyle: createDefaultTextStyle(),
+          valueStyle: createDefaultTextStyle(),
+          labelStyle: createDefaultTextStyle(),
+          descriptionStyle: createDefaultTextStyle(),
         },
       };
-
+      
     case "showcase":
       return {
         id: makeId("showcase"),

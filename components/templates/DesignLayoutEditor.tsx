@@ -16469,144 +16469,6 @@ onClick={() =>
     <div className={inspectorLabelClass()}>Highlight</div>
 
     <div className="mt-4">
-      <div className={inspectorLabelClass()}>Highlight Type</div>
-      <select
-        value={selectedBlock.data.mode ?? "top_messages"}
-        onChange={(e) =>
-          updateSelectedBlock((block) =>
-            block.type !== "highlight"
-              ? block
-              : {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    mode: e.target.value as
-                      | "top_messages"
-                      | "rsvp_count"
-                      | "total_funds"
-                      | "poll_results",
-                    heading:
-                      e.target.value === "top_messages"
-                        ? "Top Messages"
-                        : e.target.value === "rsvp_count"
-                          ? "RSVP Count"
-                          : e.target.value === "total_funds"
-                            ? "Total Funds"
-                            : "Poll Results",
-                    sourceBlockId:
-                      e.target.value === "top_messages"
-                        ? block.data.sourceBlockId ||
-                          draft.blocks.find((b) => b.type === "thread")?.id ||
-                          ""
-                        : e.target.value === "poll_results"
-                          ? block.data.sourceBlockId ||
-                            draft.blocks.find((b) => b.type === "poll")?.id ||
-                            ""
-                          : "",
-                    sourceFormBlockId:
-                      e.target.value === "rsvp_count" || e.target.value === "total_funds"
-                        ? block.data.sourceFormBlockId ||
-                          draft.blocks.find((b) => b.type === "form_field")?.id ||
-                          ""
-                        : "",
-                  },
-                },
-          )
-        }
-        className={inspectorInputClass()}
-      >
-        <option value="top_messages">Top Messages</option>
-        <option value="rsvp_count">RSVP Count</option>
-        <option value="total_funds">Total Funds</option>
-        <option value="poll_results">Poll Results</option>
-      </select>
-    </div>
-
-    <div className="mt-4">
-      <div className={inspectorLabelClass()}>
-        {selectedBlock.data.mode === "poll_results"
-          ? "Source Poll"
-          : "Source Thread"}
-      </div>
-      <select
-        value={selectedBlock.data.sourceBlockId ?? ""}
-        onChange={(e) =>
-          updateSelectedBlock((block) =>
-            block.type !== "highlight"
-              ? block
-              : {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    sourceBlockId: e.target.value,
-                  },
-                },
-          )
-        }
-        className={inspectorInputClass()}
-        disabled={
-          selectedBlock.data.mode !== "top_messages" &&
-          selectedBlock.data.mode !== "poll_results"
-        }
-      >
-        <option value="">
-          {selectedBlock.data.mode === "poll_results"
-            ? "Select poll block"
-            : "Select thread block"}
-        </option>
-        {draft.blocks
-          .filter((block) =>
-            selectedBlock.data.mode === "poll_results"
-              ? block.type === "poll"
-              : block.type === "thread",
-          )
-          .map((sourceBlock) => (
-            <option key={sourceBlock.id} value={sourceBlock.id}>
-              {sourceBlock.type === "poll"
-                ? sourceBlock.data.question || sourceBlock.label || "Poll"
-                : sourceBlock.type === "thread"
-                  ? sourceBlock.data.subject || sourceBlock.label || "Message Thread"
-                  : sourceBlock.label || "Source Block"}
-            </option>
-          ))}
-      </select>
-    </div>
-
-    <div className="mt-4">
-      <div className={inspectorLabelClass()}>Source Form</div>
-      <select
-        value={selectedBlock.data.sourceFormBlockId ?? ""}
-        onChange={(e) =>
-          updateSelectedBlock((block) =>
-            block.type !== "highlight"
-              ? block
-              : {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    sourceFormBlockId: e.target.value,
-                  },
-                },
-          )
-        }
-        className={inspectorInputClass()}
-        disabled={
-          selectedBlock.data.mode !== "rsvp_count" &&
-          selectedBlock.data.mode !== "total_funds"
-        }
-      >
-        <option value="">Select form block</option>
-        {draft.blocks
-          .filter((block) => block.type === "form_field")
-          .map((formBlock) => (
-            <option key={formBlock.id} value={formBlock.id}>
-              {formBlock.label || formBlock.data.label || "Form Field"}
-            </option>
-          ))}
-      </select>
-    </div>
-
-    <div className="mt-4">
       <div className={inspectorLabelClass()}>Heading</div>
       <input
         type="text"
@@ -16628,13 +16490,10 @@ onClick={() =>
       />
     </div>
 
-    <div className="mt-4">
-      <div className={inspectorLabelClass()}>Item Limit</div>
+    <label className="mt-3 flex items-center gap-2 text-xs text-neutral-600">
       <input
-        type="number"
-        min={1}
-        max={12}
-        value={selectedBlock.data.limit ?? 4}
+        type="checkbox"
+        checked={selectedBlock.data.showHeading !== false}
         onChange={(e) =>
           updateSelectedBlock((block) =>
             block.type !== "highlight"
@@ -16643,7 +16502,29 @@ onClick={() =>
                   ...block,
                   data: {
                     ...block.data,
-                    limit: Math.max(1, Math.min(12, Number(e.target.value) || 4)),
+                    showHeading: e.target.checked,
+                  },
+                },
+          )
+        }
+      />
+      Show heading
+    </label>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Subtitle</div>
+      <input
+        type="text"
+        value={selectedBlock.data.subtitle ?? ""}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "highlight"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    subtitle: e.target.value,
                   },
                 },
           )
@@ -16652,8 +16533,651 @@ onClick={() =>
       />
     </div>
 
+    <label className="mt-3 flex items-center gap-2 text-xs text-neutral-600">
+      <input
+        type="checkbox"
+        checked={selectedBlock.data.showSubtitle === true}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "highlight"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    showSubtitle: e.target.checked,
+                  },
+                },
+          )
+        }
+      />
+      Show subtitle
+    </label>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Display Style</div>
+      <select
+        value={selectedBlock.data.displayStyle ?? "grid"}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "highlight"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    displayStyle: e.target.value as "grid" | "list",
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      >
+        <option value="grid">Grid</option>
+        <option value="list">List</option>
+      </select>
+    </div>
+
+    <div className="mt-5 flex items-center justify-between gap-3">
+      <div className={inspectorLabelClass()}>Highlight Cards</div>
+
+      <button
+        type="button"
+        className={toolSetButtonClass("front")}
+        onClick={() =>
+          updateSelectedBlock((block) => {
+            if (block.type !== "highlight") return block;
+
+            return {
+              ...block,
+              data: {
+                ...block.data,
+                cards: [
+                  ...(block.data.cards ?? []),
+                  {
+                    id: makeClientId("highlight"),
+                    type: "manual_stat",
+                    label: "New Stat",
+                    value: "100",
+                    suffix: "+",
+                    description: "Key detail",
+                    icon: "✨",
+                    showIcon: true,
+                  },
+                ],
+              },
+            };
+          })
+        }
+      >
+        Add Card
+      </button>
+    </div>
+
+    <div className="mt-3 grid gap-4">
+      {(selectedBlock.data.cards ?? []).map((card, cardIndex) => (
+        <div
+          key={card.id}
+          className="rounded-2xl border border-neutral-200 bg-neutral-50 p-3"
+        >
+          <div className="flex items-center justify-between gap-2">
+            <div className="text-xs font-semibold text-neutral-700">
+              Card {cardIndex + 1}
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                className={toolSetButtonClass("front")}
+                onClick={() =>
+                  updateSelectedBlock((block) => {
+                    if (block.type !== "highlight") return block;
+
+                    const cards = [...(block.data.cards ?? [])];
+                    if (cardIndex <= 0) return block;
+
+                    [cards[cardIndex - 1], cards[cardIndex]] = [
+                      cards[cardIndex],
+                      cards[cardIndex - 1],
+                    ];
+
+                    return {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        cards,
+                      },
+                    };
+                  })
+                }
+              >
+                ↑
+              </button>
+
+              <button
+                type="button"
+                className={toolSetButtonClass("front")}
+                onClick={() =>
+                  updateSelectedBlock((block) => {
+                    if (block.type !== "highlight") return block;
+
+                    const cards = [...(block.data.cards ?? [])];
+                    if (cardIndex >= cards.length - 1) return block;
+
+                    [cards[cardIndex], cards[cardIndex + 1]] = [
+                      cards[cardIndex + 1],
+                      cards[cardIndex],
+                    ];
+
+                    return {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        cards,
+                      },
+                    };
+                  })
+                }
+              >
+                ↓
+              </button>
+
+              <button
+                type="button"
+                className={toolSetButtonClass("front")}
+                onClick={() =>
+                  updateSelectedBlock((block) =>
+                    block.type !== "highlight"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            cards: [
+                              ...(block.data.cards ?? []).slice(0, cardIndex + 1),
+                              {
+                                ...card,
+                                id: makeClientId("highlight"),
+                              },
+                              ...(block.data.cards ?? []).slice(cardIndex + 1),
+                            ],
+                          },
+                        },
+                  )
+                }
+              >
+                Duplicate
+              </button>
+
+              <button
+                type="button"
+                className={toolSetButtonClass("front")}
+                onClick={() =>
+                  updateSelectedBlock((block) =>
+                    block.type !== "highlight"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            cards: (block.data.cards ?? []).filter(
+                              (item) => item.id !== card.id,
+                            ),
+                          },
+                        },
+                  )
+                }
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-3">
+            <div className={inspectorLabelClass()}>Highlight Type</div>
+            <select
+              value={card.type}
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "highlight"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          cards: (block.data.cards ?? []).map((item) =>
+                            item.id !== card.id
+                              ? item
+                              : {
+                                  ...item,
+                                  type: e.target.value as any,
+                                  label:
+                                    e.target.value === "money_raised"
+                                      ? "Raised"
+                                      : e.target.value === "progress"
+                                        ? "Progress"
+                                        : e.target.value === "countdown"
+                                          ? "Days Left"
+                                          : e.target.value === "rsvp_count"
+                                            ? "Guests Attending"
+                                            : e.target.value === "poll_result"
+                                              ? "Poll Result"
+                                              : e.target.value === "visitor_count"
+                                                ? "Page Views"
+                                                : e.target.value === "enrollment_records"
+                                                  ? "Members Joined"
+                                                  : item.label || "New Stat",
+                                },
+                          ),
+                        },
+                      },
+                )
+              }
+              className={inspectorInputClass()}
+            >
+              <option value="manual_stat">Manual Stat</option>
+              <option value="money_raised">Money Raised</option>
+              <option value="progress">Progress</option>
+              <option value="countdown">Countdown</option>
+              <option value="rsvp_count">RSVP Count</option>
+              <option value="poll_result">Poll Result</option>
+              <option value="visitor_count">Visitor Count</option>
+              <option value="enrollment_records">Enrollment Records</option>
+            </select>
+          </div>
+
+          <div className="mt-3">
+            <div className={inspectorLabelClass()}>Label</div>
+            <input
+              type="text"
+              value={card.label ?? ""}
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "highlight"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          cards: (block.data.cards ?? []).map((item) =>
+                            item.id === card.id
+                              ? { ...item, label: e.target.value }
+                              : item,
+                          ),
+                        },
+                      },
+                )
+              }
+              className={inspectorInputClass()}
+            />
+          </div>
+
+          {card.type === "manual_stat" ? (
+            <div className="mt-3">
+              <div className={inspectorLabelClass()}>Value</div>
+              <input
+                type="text"
+                value={card.value ?? ""}
+                onChange={(e) =>
+                  updateSelectedBlock((block) =>
+                    block.type !== "highlight"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            cards: (block.data.cards ?? []).map((item) =>
+                              item.id === card.id
+                                ? { ...item, value: e.target.value }
+                                : item,
+                            ),
+                          },
+                        },
+                  )
+                }
+                className={inspectorInputClass()}
+              />
+            </div>
+          ) : null}
+
+          {card.type === "money_raised" ? (
+            <div className="mt-3 grid grid-cols-2 gap-3">
+              <div>
+                <div className={inspectorLabelClass()}>Amount</div>
+                <input
+                  type="number"
+                  value={card.amount ?? 0}
+                  onChange={(e) =>
+                    updateSelectedBlock((block) =>
+                      block.type !== "highlight"
+                        ? block
+                        : {
+                            ...block,
+                            data: {
+                              ...block.data,
+                              cards: (block.data.cards ?? []).map((item) =>
+                                item.id === card.id
+                                  ? { ...item, amount: Number(e.target.value) || 0 }
+                                  : item,
+                              ),
+                            },
+                          },
+                    )
+                  }
+                  className={inspectorInputClass()}
+                />
+              </div>
+
+              <div>
+                <div className={inspectorLabelClass()}>Goal</div>
+                <input
+                  type="number"
+                  value={card.goalAmount ?? 0}
+                  onChange={(e) =>
+                    updateSelectedBlock((block) =>
+                      block.type !== "highlight"
+                        ? block
+                        : {
+                            ...block,
+                            data: {
+                              ...block.data,
+                              cards: (block.data.cards ?? []).map((item) =>
+                                item.id === card.id
+                                  ? { ...item, goalAmount: Number(e.target.value) || 0 }
+                                  : item,
+                              ),
+                            },
+                          },
+                    )
+                  }
+                  className={inspectorInputClass()}
+                />
+              </div>
+            </div>
+          ) : null}
+
+          {card.type === "progress" ? (
+            <div className="mt-3 grid grid-cols-2 gap-3">
+              <div>
+                <div className={inspectorLabelClass()}>Current</div>
+                <input
+                  type="number"
+                  value={card.currentValue ?? 0}
+                  onChange={(e) =>
+                    updateSelectedBlock((block) =>
+                      block.type !== "highlight"
+                        ? block
+                        : {
+                            ...block,
+                            data: {
+                              ...block.data,
+                              cards: (block.data.cards ?? []).map((item) =>
+                                item.id === card.id
+                                  ? { ...item, currentValue: Number(e.target.value) || 0 }
+                                  : item,
+                              ),
+                            },
+                          },
+                    )
+                  }
+                  className={inspectorInputClass()}
+                />
+              </div>
+
+              <div>
+                <div className={inspectorLabelClass()}>Goal</div>
+                <input
+                  type="number"
+                  value={card.goalValue ?? 0}
+                  onChange={(e) =>
+                    updateSelectedBlock((block) =>
+                      block.type !== "highlight"
+                        ? block
+                        : {
+                            ...block,
+                            data: {
+                              ...block.data,
+                              cards: (block.data.cards ?? []).map((item) =>
+                                item.id === card.id
+                                  ? { ...item, goalValue: Number(e.target.value) || 0 }
+                                  : item,
+                              ),
+                            },
+                          },
+                    )
+                  }
+                  className={inspectorInputClass()}
+                />
+              </div>
+            </div>
+          ) : null}
+
+          {card.type === "countdown" ? (
+            <div className="mt-3 grid gap-3">
+              <div>
+                <div className={inspectorLabelClass()}>Target Date</div>
+                <input
+                  type="date"
+                  value={card.targetDate ?? ""}
+                  onChange={(e) =>
+                    updateSelectedBlock((block) =>
+                      block.type !== "highlight"
+                        ? block
+                        : {
+                            ...block,
+                            data: {
+                              ...block.data,
+                              cards: (block.data.cards ?? []).map((item) =>
+                                item.id === card.id
+                                  ? { ...item, targetDate: e.target.value }
+                                  : item,
+                              ),
+                            },
+                          },
+                    )
+                  }
+                  className={inspectorInputClass()}
+                />
+              </div>
+
+              <div>
+                <div className={inspectorLabelClass()}>Countdown Units</div>
+                <select
+                  value={card.countdownUnits ?? "days"}
+                  onChange={(e) =>
+                    updateSelectedBlock((block) =>
+                      block.type !== "highlight"
+                        ? block
+                        : {
+                            ...block,
+                            data: {
+                              ...block.data,
+                              cards: (block.data.cards ?? []).map((item) =>
+                                item.id === card.id
+                                  ? { ...item, countdownUnits: e.target.value as any }
+                                  : item,
+                              ),
+                            },
+                          },
+                    )
+                  }
+                  className={inspectorInputClass()}
+                >
+                  <option value="days">Days</option>
+                  <option value="hours">Hours</option>
+                  <option value="minutes">Minutes</option>
+                  <option value="full">Full</option>
+                </select>
+              </div>
+            </div>
+          ) : null}
+
+          {["rsvp_count", "poll_result", "visitor_count", "enrollment_records"].includes(
+            card.type,
+          ) ? (
+            <div className="mt-3">
+              <div className={inspectorLabelClass()}>Manual Fallback Value</div>
+              <input
+                type="text"
+                value={card.fallbackValue ?? ""}
+                onChange={(e) =>
+                  updateSelectedBlock((block) =>
+                    block.type !== "highlight"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            cards: (block.data.cards ?? []).map((item) =>
+                              item.id === card.id
+                                ? { ...item, fallbackValue: e.target.value }
+                                : item,
+                            ),
+                          },
+                        },
+                  )
+                }
+                className={inspectorInputClass()}
+              />
+            </div>
+          ) : null}
+
+          <div className="mt-3 grid grid-cols-2 gap-3">
+            <div>
+              <div className={inspectorLabelClass()}>Prefix</div>
+              <input
+                type="text"
+                value={card.prefix ?? ""}
+                onChange={(e) =>
+                  updateSelectedBlock((block) =>
+                    block.type !== "highlight"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            cards: (block.data.cards ?? []).map((item) =>
+                              item.id === card.id
+                                ? { ...item, prefix: e.target.value }
+                                : item,
+                            ),
+                          },
+                        },
+                  )
+                }
+                className={inspectorInputClass()}
+              />
+            </div>
+
+            <div>
+              <div className={inspectorLabelClass()}>Suffix</div>
+              <input
+                type="text"
+                value={card.suffix ?? ""}
+                onChange={(e) =>
+                  updateSelectedBlock((block) =>
+                    block.type !== "highlight"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            cards: (block.data.cards ?? []).map((item) =>
+                              item.id === card.id
+                                ? { ...item, suffix: e.target.value }
+                                : item,
+                            ),
+                          },
+                        },
+                  )
+                }
+                className={inspectorInputClass()}
+              />
+            </div>
+          </div>
+
+          <div className="mt-3">
+            <div className={inspectorLabelClass()}>Description</div>
+            <textarea
+              value={card.description ?? ""}
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "highlight"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          cards: (block.data.cards ?? []).map((item) =>
+                            item.id === card.id
+                              ? { ...item, description: e.target.value }
+                              : item,
+                          ),
+                        },
+                      },
+                )
+              }
+              className={inspectorInputClass()}
+              rows={2}
+            />
+          </div>
+
+          <div className="mt-3">
+            <div className={inspectorLabelClass()}>Icon</div>
+            <input
+              type="text"
+              value={card.icon ?? ""}
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "highlight"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          cards: (block.data.cards ?? []).map((item) =>
+                            item.id === card.id
+                              ? { ...item, icon: e.target.value }
+                              : item,
+                          ),
+                        },
+                      },
+                )
+              }
+              className={inspectorInputClass()}
+            />
+          </div>
+
+          <label className="mt-3 flex items-center gap-2 text-xs text-neutral-600">
+            <input
+              type="checkbox"
+              checked={card.showIcon !== false}
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "highlight"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          cards: (block.data.cards ?? []).map((item) =>
+                            item.id === card.id
+                              ? { ...item, showIcon: e.target.checked }
+                              : item,
+                          ),
+                        },
+                      },
+                )
+              }
+            />
+            Show icon
+          </label>
+        </div>
+      ))}
+    </div>
+
     <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-4 text-sm text-neutral-500">
-      This block is read-only and should display live DB-backed summary data.
+      Source-linked highlight cards use fallback values for now. Live count APIs can be connected later.
     </div>
   </div>
 ) : null}

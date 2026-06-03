@@ -7416,7 +7416,6 @@ function renderHighlight(
     const limit = Math.max(1, Math.min(12, Number(block.data?.limit) || 4));
     const rawSourceBlockId = block.data?.sourceBlockId?.trim() || "";
     const resolvedSourceBlockId = rawSourceBlockId;
-
     const sourceFormBlockId = block.data?.sourceFormBlockId?.trim() || "";
     const widthUnits = Number(block.grid?.colSpan ?? 1);
 
@@ -7427,29 +7426,174 @@ function renderHighlight(
       highlightColumns = 2;
     }
 
+    const displayStyle = block.data?.displayStyle ?? "grid";
+
+    const normalizedCards =
+      Array.isArray(block.data?.cards) && block.data.cards.length
+        ? block.data.cards
+        : block.data?.label || block.data?.value || block.data?.description || block.data?.icon
+          ? [
+              {
+                id: `${block.id}-legacy-highlight-card`,
+                type: "manual_stat" as const,
+                label: block.data.label,
+                value: block.data.value,
+                description: block.data.description,
+                icon: block.data.icon,
+                showIcon: Boolean(block.data.icon),
+              },
+            ]
+          : [];
+
+    const useCardRenderer = normalizedCards.length > 0;
+
     const heading =
       block.data?.heading?.trim() ||
-      (mode === "top_messages"
-        ? "Top Messages"
-        : mode === "rsvp_count"
-          ? "RSVP Count"
-          : mode === "total_funds"
-            ? "Total Funds"
-            : "Poll Results");
+      (useCardRenderer
+        ? "Highlights"
+        : mode === "top_messages"
+          ? "Top Messages"
+          : mode === "rsvp_count"
+            ? "RSVP Count"
+            : mode === "total_funds"
+              ? "Total Funds"
+              : "Poll Results");
 
-    const headingTextStyle =
-      getContainerTextStyle(
-        block.data.headingStyle ?? block.data.style,
-        designKey,
+    const subtitle = block.data?.subtitle?.trim() || "";
+
+    const headingTextStyle = getContainerTextStyle(
+      block.data.headingStyle ?? block.data.style,
+      designKey,
+    );
+
+    const bodyTextStyle = getContainerTextStyle(
+      block.data.bodyStyle ?? block.data.style,
+      designKey,
+    );
+
+    const valueTextStyle = getContainerTextStyle(
+      block.data.valueStyle ?? block.data.bodyStyle ?? block.data.style,
+      designKey,
+    );
+
+    const labelTextStyle = getContainerTextStyle(
+      block.data.labelStyle ?? block.data.bodyStyle ?? block.data.style,
+      designKey,
+    );
+
+    const descriptionTextStyle = getContainerTextStyle(
+      block.data.descriptionStyle ?? block.data.bodyStyle ?? block.data.style,
+      designKey,
+    );
+
+    function formatNumber(value: string | number | undefined) {
+      if (value === undefined || value === null || value === "") return "0";
+
+      if (typeof value === "number") {
+        return new Intl.NumberFormat("en-US").format(value);
+      }
+
+      return value;
+    }
+
+    function formatMoney(value: number | undefined, currency = "USD") {
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency,
+        maximumFractionDigits: 0,
+      }).format(Number(value) || 0);
+    }
+
+    function getCountdownValue(card: any) {
+      if (!card.targetDate) return card.fallbackValue ?? "0";
+
+      const target = new Date(
+        `${card.targetDate}${card.targetTime ? `T${card.targetTime}` : "T00:00"}`,
       );
 
-    const bodyTextStyle =
-      getContainerTextStyle(
-        block.data.bodyStyle ?? block.data.style,
-        designKey,
-      );
+      const diff = target.getTime() - Date.now();
+
+      if (!Number.isFinite(diff) || diff <= 0) return "0";
+
+      const minutes = Math.floor(diff / 60000);
+      const hours = Math.floor(minutes / 60);
+      const days = Math.floor(hours / 24);
+
+      if (card.countdownUnits === "minutes") return minutes;
+      if (card.countdownUnits === "hours") return hours;
+      if (card.countdownUnits === "full") {
+        return `${days}d ${hours % 24}h`;
+      }
+
+      return days;
+    }
+
+    function getCardValue(card: any) {
+      if (card.type === "money_raised") {
+        return formatMoney(card.amount ?? card.fallbackValue, card.currency || "USD");
+      }
+
+      if (card.type === "progress") {
+        const current = Number(card.currentValue ?? card.fallbackValue ?? 0);
+        const goal = Number(card.goalValue ?? 0);
+
+        if (goal > 0) {
+          return `${formatNumber(current)} of ${formatNumber(goal)}${card.unit ? ` ${card.unit}` : ""}`;
+        }
+
+        return `${formatNumber(current)}${card.unit ? ` ${card.unit}` : ""}`;
+      }
+
+      if (card.type === "countdown") {
+        return formatNumber(getCountdownValue(card));
+      }
+
+      if (
+        card.type === "rsvp_count" ||
+        card.type === "poll_result" ||
+        card.type === "visitor_count" ||
+        card.type === "enrollment_records"
+      ) {
+        return `${card.prefix ?? ""}${formatNumber(card.fallbackValue ?? 0)}${card.suffix ?? ""}`;
+      }
+
+      return `${card.prefix ?? ""}${formatNumber(card.value)}${card.suffix ?? ""}`;
+    }
+
+    function getCardDescription(card: any) {
+      if (card.description) return card.description;
+
+      if (card.type === "money_raised" && card.goalAmount) {
+        const amount = Number(card.amount ?? 0);
+        const goal = Number(card.goalAmount ?? 0);
+        const percent = goal > 0 ? Math.round((amount / goal) * 100) : 0;
+
+        return `${percent}% of goal`;
+      }
+
+      if (card.type === "rsvp_count") return "RSVP summary";
+      if (card.type === "poll_result") return "Poll result";
+      if (card.type === "visitor_count") return "Visitor activity";
+      if (card.type === "enrollment_records") return "Enrollment summary";
+
+      return "";
+    }
+
+    function getProgressPercent(card: any) {
+      const current = Number(card.currentValue ?? card.amount ?? 0);
+      const goal = Number(card.goalValue ?? card.goalAmount ?? 0);
+
+      if (!goal || goal <= 0) return 0;
+
+      return Math.max(0, Math.min(100, Math.round((current / goal) * 100)));
+    }
 
     useEffect(() => {
+      if (useCardRenderer) {
+        setIsLoading(false);
+        return;
+      }
+
       let cancelled = false;
 
       async function load() {
@@ -7660,6 +7804,7 @@ function renderHighlight(
       sourceFormBlockId,
       limit,
       refreshKey,
+      useCardRenderer,
     ]);
 
     return (
@@ -7669,18 +7814,129 @@ function renderHighlight(
         className={`${getSoftSurfaceClass(designKey)} overflow-hidden`}
       >
         <div className="flex h-full min-h-0 w-full flex-col gap-3 overflow-hidden">
-          <div
-            className="text-sm font-semibold"
-            style={headingTextStyle}
-          >
-            {heading}
-          </div>
+          {block.data.showHeading !== false ? (
+            <div className="text-sm font-semibold" style={headingTextStyle}>
+              {heading}
+            </div>
+          ) : null}
 
-          {isLoading ? (
+          {block.data.showSubtitle === true && subtitle ? (
+            <div className="-mt-2 text-xs opacity-70" style={bodyTextStyle}>
+              {subtitle}
+            </div>
+          ) : null}
+
+          {useCardRenderer ? (
+            <div
+              className={
+                displayStyle === "list"
+                  ? "grid gap-3"
+                  : "grid gap-3 overflow-y-auto pr-1"
+              }
+              style={
+                displayStyle === "list"
+                  ? undefined
+                  : {
+                      gridTemplateColumns: `repeat(${highlightColumns}, minmax(0, 1fr))`,
+                    }
+              }
+            >
+              {normalizedCards.map((card: any) => {
+                const percent = getProgressPercent(card);
+                const shouldShowProgress =
+                  card.showProgressBar ||
+                  card.showProgressPercentage ||
+                  card.type === "progress" ||
+                  card.type === "money_raised";
+
+                return (
+                  <div
+                    key={card.id}
+                    className={
+                      displayStyle === "list"
+                        ? `${getHighlightCardClass(designKey)} flex items-center justify-between gap-4`
+                        : getHighlightCardClass(designKey)
+                    }
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0 flex-1">
+                          {card.label ? (
+                            <div
+                              className="truncate text-[11px] font-semibold uppercase tracking-[0.14em] opacity-60"
+                              style={labelTextStyle}
+                            >
+                              {card.label}
+                            </div>
+                          ) : null}
+
+                          <div
+                            className="mt-2 text-3xl font-bold leading-none"
+                            style={valueTextStyle}
+                          >
+                            {getCardValue(card)}
+                          </div>
+                        </div>
+
+                        {card.showIcon !== false && card.icon ? (
+                          <div className="shrink-0 text-2xl">{card.icon}</div>
+                        ) : null}
+                      </div>
+
+                      {shouldShowProgress ? (
+                        <div className="mt-3">
+                          <div
+                            className="h-2 overflow-hidden rounded-full"
+                            style={{
+                              background: isLightDesign(designKey)
+                                ? "rgba(17,24,39,0.10)"
+                                : "rgba(255,255,255,0.16)",
+                            }}
+                          >
+                            <div
+                              className="h-full rounded-full"
+                              style={{
+                                width: `${percent}%`,
+                                background:
+                                  valueTextStyle.color ??
+                                  (isLightDesign(designKey)
+                                    ? "rgba(37,99,235,0.85)"
+                                    : "rgba(255,255,255,0.92)"),
+                              }}
+                            />
+                          </div>
+
+                          {card.showProgressPercentage ? (
+                            <div
+                              className="mt-1 text-[11px] opacity-60"
+                              style={descriptionTextStyle}
+                            >
+                              {percent}% complete
+                            </div>
+                          ) : null}
+                        </div>
+                      ) : null}
+
+                      {getCardDescription(card) ? (
+                        <div
+                          className="mt-3 text-xs opacity-60"
+                          style={descriptionTextStyle}
+                        >
+                          {getCardDescription(card)}
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : null}
+
+          {!useCardRenderer && isLoading ? (
             <div className="text-xs text-neutral-400">Loading...</div>
           ) : null}
 
-          {!isLoading && mode === "top_messages" && !resolvedSourceBlockId ? (
+          {!useCardRenderer && !isLoading && mode === "top_messages" && !resolvedSourceBlockId ? (
             <div
               className="rounded-xl border border-dashed px-3 py-4 text-sm opacity-60"
               style={bodyTextStyle}
@@ -7689,7 +7945,7 @@ function renderHighlight(
             </div>
           ) : null}
 
-          {!isLoading && mode === "poll_results" && !resolvedSourceBlockId ? (
+          {!useCardRenderer && !isLoading && mode === "poll_results" && !resolvedSourceBlockId ? (
             <div
               className="rounded-xl border border-dashed px-3 py-4 text-sm opacity-60"
               style={bodyTextStyle}
@@ -7698,7 +7954,7 @@ function renderHighlight(
             </div>
           ) : null}
 
-          {!isLoading && mode === "rsvp_count" && !sourceFormBlockId ? (
+          {!useCardRenderer && !isLoading && mode === "rsvp_count" && !sourceFormBlockId ? (
             <div
               className="rounded-xl border border-dashed px-3 py-4 text-sm opacity-60"
               style={bodyTextStyle}
@@ -7707,16 +7963,16 @@ function renderHighlight(
             </div>
           ) : null}
 
-          {!isLoading && mode === "total_funds" && !sourceFormBlockId ? (
+          {!useCardRenderer && !isLoading && mode === "total_funds" && !sourceFormBlockId ? (
             <div
               className="rounded-xl border border-dashed px-3 py-4 text-sm opacity-60"
-              style={getContainerTextStyle(block.data.style, designKey)}
+              style={bodyTextStyle}
             >
               Select a source form block.
             </div>
           ) : null}
 
-          {!isLoading && mode === "top_messages" && resolvedSourceBlockId && !items.length ? (
+          {!useCardRenderer && !isLoading && mode === "top_messages" && resolvedSourceBlockId && !items.length ? (
             <div
               className="rounded-xl border border-dashed px-3 py-4 text-sm opacity-60"
               style={bodyTextStyle}
@@ -7725,7 +7981,7 @@ function renderHighlight(
             </div>
           ) : null}
 
-          {!isLoading && mode === "poll_results" && resolvedSourceBlockId && !items.length ? (
+          {!useCardRenderer && !isLoading && mode === "poll_results" && resolvedSourceBlockId && !items.length ? (
             <div
               className="rounded-xl border border-dashed px-3 py-4 text-sm opacity-60"
               style={bodyTextStyle}
@@ -7734,7 +7990,7 @@ function renderHighlight(
             </div>
           ) : null}
 
-          {!isLoading && mode === "rsvp_count" && !!sourceFormBlockId ? (
+          {!useCardRenderer && !isLoading && mode === "rsvp_count" && !!sourceFormBlockId ? (
             <div className={getHighlightCardClass(designKey)}>
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -7755,16 +8011,13 @@ function renderHighlight(
                 <div className="text-2xl">✉️</div>
               </div>
 
-              <div
-                className="mt-3 text-xs opacity-60"
-                style={bodyTextStyle}
-              >
+              <div className="mt-3 text-xs opacity-60" style={bodyTextStyle}>
                 Live RSVP count from submitted forms.
               </div>
             </div>
           ) : null}
 
-          {!isLoading && mode === "total_funds" && !!sourceFormBlockId ? (
+          {!useCardRenderer && !isLoading && mode === "total_funds" && !!sourceFormBlockId ? (
             <div className={getHighlightCardClass(designKey)}>
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -7789,156 +8042,146 @@ function renderHighlight(
                 <div className="text-2xl">💰</div>
               </div>
 
-              <div
-                className="mt-3 text-xs opacity-60"
-                style={bodyTextStyle}
-              >
+              <div className="mt-3 text-xs opacity-60" style={bodyTextStyle}>
                 Live funding total from submitted forms.
               </div>
             </div>
           ) : null}
 
-          {mode === "top_messages" ? (
-<div
-  className="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1"
-  style={{
-    pointerEvents: "auto",
-    WebkitOverflowScrolling: "touch",
-  }}
-  onWheel={(e) => e.stopPropagation()}
-  onTouchMove={(e) => e.stopPropagation()}
->
+          {!useCardRenderer && mode === "top_messages" ? (
+            <div
+              className="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1"
+              style={{
+                pointerEvents: "auto",
+                WebkitOverflowScrolling: "touch",
+              }}
+              onWheel={(e) => e.stopPropagation()}
+              onTouchMove={(e) => e.stopPropagation()}
+            >
               <div
                 className="grid gap-3"
                 style={{
                   gridTemplateColumns: `repeat(${highlightColumns}, minmax(0, 1fr))`,
                 }}
               >
-              {items.slice(0, limit).map((msg: any, index: number) => {
-                const msgAttachments = Array.isArray(msg.attachments)
-                  ? msg.attachments.filter(
-                      (item: any) =>
-                        item &&
-                        typeof item.id === "string" &&
-                        (item.type === "image" ||
-                          item.type === "gif" ||
-                          item.type === "video" ||
-                          item.type === "audio") &&
-                        (typeof item.dataUrl === "string" ||
-                          typeof item.url === "string"),
-                    )
-                  : [];
+                {items.slice(0, limit).map((msg: any, index: number) => {
+                  const msgAttachments = Array.isArray(msg.attachments)
+                    ? msg.attachments.filter(
+                        (item: any) =>
+                          item &&
+                          typeof item.id === "string" &&
+                          (item.type === "image" ||
+                            item.type === "gif" ||
+                            item.type === "video" ||
+                            item.type === "audio") &&
+                          (typeof item.dataUrl === "string" ||
+                            typeof item.url === "string"),
+                      )
+                    : [];
 
-                return (
-                  <div
-                    key={msg.id}
-                    className={getHighlightCardClass(designKey)}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                          <div
-                            className="inline-flex h-6 min-w-6 items-center justify-center rounded-full px-2 text-[10px] font-bold"
-                            style={{
-                              background: isLightDesign(designKey)
-                                ? "rgba(17,24,39,0.08)"
-                                : "rgba(255,255,255,0.12)",
-                              color:
-                                bodyTextStyle.color ??
-                                getDefaultTextColor(designKey),
-                            }}
-                          >
-                            #{index + 1}
+                  return (
+                    <div key={msg.id} className={getHighlightCardClass(designKey)}>
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="inline-flex h-6 min-w-6 items-center justify-center rounded-full px-2 text-[10px] font-bold"
+                              style={{
+                                background: isLightDesign(designKey)
+                                  ? "rgba(17,24,39,0.08)"
+                                  : "rgba(255,255,255,0.12)",
+                                color:
+                                  bodyTextStyle.color ??
+                                  getDefaultTextColor(designKey),
+                              }}
+                            >
+                              #{index + 1}
+                            </div>
+
+                            <div
+                              className="truncate text-xs font-semibold"
+                              style={bodyTextStyle}
+                            >
+                              {msg.author_name || msg.name || "Guest"}
+                            </div>
                           </div>
 
-                          <div
-                            className="truncate text-xs font-semibold"
-                            style={bodyTextStyle}
-                          >
-                            {msg.author_name || msg.name || "Guest"}
+                          <div className="mt-2 text-sm leading-5" style={bodyTextStyle}>
+                            {msg.message_text || msg.message}
                           </div>
-                        </div>
 
-                        <div
-                          className="mt-2 text-sm leading-5"
-                          style={bodyTextStyle}
-                        >
-                          {msg.message_text || msg.message}
-                        </div>
+                          {msgAttachments.length ? (
+                            <div className="mt-3 grid gap-2">
+                              {msgAttachments.map((attachment: any) => {
+                                const src = attachment.url || attachment.dataUrl || "";
 
-                        {msgAttachments.length ? (
-                          <div className="mt-3 grid gap-2">
-                            {msgAttachments.map((attachment: any) => {
-                              const src = attachment.url || attachment.dataUrl || "";
+                                if (!src) return null;
 
-                              if (!src) return null;
+                                if (attachment.type === "video") {
+                                  return (
+                                    <video
+                                      key={attachment.id}
+                                      src={src}
+                                      controls
+                                      className="w-full rounded-xl border"
+                                      style={{
+                                        maxHeight: "180px",
+                                        objectFit: "contain",
+                                      }}
+                                    />
+                                  );
+                                }
 
-                              if (attachment.type === "video") {
+                                if (attachment.type === "audio") {
+                                  return (
+                                    <audio
+                                      key={attachment.id}
+                                      src={src}
+                                      controls
+                                      className="w-full"
+                                    />
+                                  );
+                                }
+
                                 return (
-                                  <video
+                                  <img
                                     key={attachment.id}
                                     src={src}
-                                    controls
-                                    className="w-full rounded-xl border"
+                                    alt={attachment.name || "Thread attachment"}
+                                    className="mx-auto rounded-xl border"
                                     style={{
                                       maxHeight: "180px",
+                                      maxWidth: "100%",
                                       objectFit: "contain",
                                     }}
                                   />
                                 );
-                              }
+                              })}
+                            </div>
+                          ) : null}
+                        </div>
 
-                              if (attachment.type === "audio") {
-                                return (
-                                  <audio
-                                    key={attachment.id}
-                                    src={src}
-                                    controls
-                                    className="w-full"
-                                  />
-                                );
-                              }
-
-                              return (
-                                <img
-                                  key={attachment.id}
-                                  src={src}
-                                  alt={attachment.name || "Thread attachment"}
-                                  className="mx-auto rounded-xl border"
-                                  style={{
-                                    maxHeight: "180px",
-                                    maxWidth: "100%",
-                                    objectFit: "contain",
-                                  }}
-                                />
-                              );
-                            })}
-                          </div>
-                        ) : null}
-                      </div>
-
-                      <div
-                        className="shrink-0 rounded-full px-2 py-1 text-[11px] font-semibold"
-                        style={{
-                          background: isLightDesign(designKey)
-                            ? "rgba(17,24,39,0.08)"
-                            : "rgba(255,255,255,0.12)",
-                          color:
-                            bodyTextStyle.color ??
-                            getDefaultTextColor(designKey),
-                        }}
-                      >
-                        👍 {msg.votes ?? 0}
+                        <div
+                          className="shrink-0 rounded-full px-2 py-1 text-[11px] font-semibold"
+                          style={{
+                            background: isLightDesign(designKey)
+                              ? "rgba(17,24,39,0.08)"
+                              : "rgba(255,255,255,0.12)",
+                            color:
+                              bodyTextStyle.color ?? getDefaultTextColor(designKey),
+                          }}
+                        >
+                          👍 {msg.votes ?? 0}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
               </div>
             </div>
           ) : null}
 
-          {mode === "poll_results" ? (
+          {!useCardRenderer && mode === "poll_results" ? (
             <div
               className="grid gap-3"
               style={{
@@ -7949,35 +8192,8 @@ function renderHighlight(
                 const percent =
                   countValue > 0 ? Math.round((item.count / countValue) * 100) : 0;
 
-                const cardBackground = isLightDesign(designKey)
-                  ? "rgba(255,255,255,0.92)"
-                  : "rgba(255,255,255,0.08)";
-
-                const badgeBackground = isLightDesign(designKey)
-                  ? "rgba(17,24,39,0.08)"
-                  : "rgba(255,255,255,0.14)";
-
-                const trackBackground = isLightDesign(designKey)
-                  ? "rgba(17,24,39,0.10)"
-                  : "rgba(255,255,255,0.16)";
-
-                const fillBackground =
-                  bodyTextStyle.color ??
-                  (isLightDesign(designKey)
-                    ? "rgba(37,99,235,0.85)"
-                    : "rgba(255,255,255,0.92)");
-
                 return (
-                  <div
-                    key={item.optionId}
-                    className="rounded-3xl p-4"
-                    style={{
-                      background: cardBackground,
-                      border: isLightDesign(designKey)
-                        ? "1px solid rgba(17,24,39,0.08)"
-                        : "1px solid rgba(255,255,255,0.10)",
-                    }}
-                  >
+                  <div key={item.optionId} className={getHighlightCardClass(designKey)}>
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0 flex-1">
                         <div
@@ -7990,22 +8206,25 @@ function renderHighlight(
                         <div
                           className="mt-3 h-2 overflow-hidden rounded-full"
                           style={{
-                            background: trackBackground,
+                            background: isLightDesign(designKey)
+                              ? "rgba(17,24,39,0.10)"
+                              : "rgba(255,255,255,0.16)",
                           }}
                         >
                           <div
                             className="h-full rounded-full"
                             style={{
                               width: `${percent}%`,
-                              background: fillBackground,
+                              background:
+                                bodyTextStyle.color ??
+                                (isLightDesign(designKey)
+                                  ? "rgba(37,99,235,0.85)"
+                                  : "rgba(255,255,255,0.92)"),
                             }}
                           />
                         </div>
 
-                        <div
-                          className="mt-2 text-xs opacity-70"
-                          style={bodyTextStyle}
-                        >
+                        <div className="mt-2 text-xs opacity-70" style={bodyTextStyle}>
                           {percent}% of votes
                         </div>
                       </div>
@@ -8013,7 +8232,9 @@ function renderHighlight(
                       <div
                         className="shrink-0 rounded-full px-2 py-1 text-[11px] font-semibold"
                         style={{
-                          background: badgeBackground,
+                          background: isLightDesign(designKey)
+                            ? "rgba(17,24,39,0.08)"
+                            : "rgba(255,255,255,0.14)",
                           color: bodyTextStyle.color ?? getDefaultTextColor(designKey),
                         }}
                       >
