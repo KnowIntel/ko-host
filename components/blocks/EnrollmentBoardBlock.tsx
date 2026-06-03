@@ -400,20 +400,28 @@ export default function EnrollmentBoardBlock({
     >
       {block.data.showHeading !== false || block.data.showSubtitle !== false ? (
         <div className="mb-4">
-          {block.data.showHeading !== false ? (
-            <div
-              className="text-xl font-black tracking-tight"
-              style={headingStyle}
-            >
-              {block.data.heading || "Join the Board"}
-            </div>
-          ) : null}
+ {block.data.showHeading !== false ? (
+  <div
+    className="font-black tracking-tight"
+    style={{
+      marginBottom: 12,
+      lineHeight: 1.15,
+    }}
+  >
+    {block.data.heading || "Join the Board"}
+  </div>
+) : null}
 
-          {block.data.showSubtitle !== false ? (
-            <div className="mt-1 text-sm font-medium" style={subtitleStyle}>
-              {block.data.subtitle || "Add your name to the list."}
-            </div>
-          ) : null}
+{block.data.showSubtitle !== false ? (
+  <div
+    className="text-sm font-medium text-neutral-500"
+    style={{
+      lineHeight: 1.5,
+    }}
+  >
+    {block.data.subtitle || "Add your name to the list."}
+  </div>
+) : null}
 
           {block.data.showEnrollmentCount !== false ? (
             <div
