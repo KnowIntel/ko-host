@@ -18877,10 +18877,11 @@ onClick={() =>
     <div className="mt-5">
       <div className={inspectorLabelClass()}>Event Card Styling</div>
       <div className="mt-3 grid grid-cols-2 gap-3">
-        {[
-          ["backgroundColor", "Card Background"],
-          ["borderColor", "Border"],
-        ].map(([key, label]) => (
+{[
+  ["backgroundColor", "Card Background"],
+  ["borderColor", "Border"],
+  ["textColor", "Text"],
+].map(([key, label]) => (
           <div key={key}>
             <div className={inspectorLabelClass()}>{label}</div>
             <input
