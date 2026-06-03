@@ -22605,7 +22605,7 @@ const lines = e.target.value.split("\n");
     </div>
 
     <div className="mt-5 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
-  <div className={inspectorLabelClass()}>Linked Visitor Display Blocks</div>
+  <div className={inspectorLabelClass()}>Linked Enrollment Display Blocks</div>
 
   <p className="mt-2 text-xs leading-relaxed text-neutral-500">
     Optionally connect this Enrollment Board to existing Image and Label blocks.

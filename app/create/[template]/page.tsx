@@ -203,10 +203,19 @@ const [renamePageModalOpen, setRenamePageModalOpen] = useState(false);
 const [renamePageName, setRenamePageName] = useState("");
   const liveDraftRef = useRef<BuilderDraft>(initialDraft);
   const lastSavedDraftRef = useRef<string>(JSON.stringify(initialDraft));
+  const builderPagesRef = useRef<LocalBuilderPage[]>(builderPages);
+const activeBuilderPageIdRef = useRef(activeBuilderPageId);
 
   useEffect(() => {
     liveDraftRef.current = liveDraft;
   }, [liveDraft]);
+  useEffect(() => {
+  builderPagesRef.current = builderPages;
+}, [builderPages]);
+
+useEffect(() => {
+  activeBuilderPageIdRef.current = activeBuilderPageId;
+}, [activeBuilderPageId]);
 
   const [saveState, setSaveState] = useState<
     "idle" | "saving" | "saved" | "error" | "signin-required"
@@ -369,14 +378,18 @@ setSaveMessage("Loaded your saved dashboard draft.");
   void loadServerDraft();
 }, [isSignedIn, templateKey, designKey, initialDraft, shouldLoadExistingDraft, resetPreset]);
 
-  function buildDraftWithPages(currentDraft: BuilderDraft = liveDraft) {
-  const syncedPages = builderPages.map((page) =>
-    page.id === activeBuilderPageId
+function buildDraftWithPages(currentDraft: BuilderDraft = liveDraftRef.current) {
+  const currentPages = builderPagesRef.current;
+  const currentActivePageId = activeBuilderPageIdRef.current;
+
+  const syncedPages = currentPages.map((page) =>
+    page.id === currentActivePageId
       ? { ...page, draft: currentDraft }
       : page,
   );
 
-  const homePage = syncedPages.find((page) => page.id === "home") || syncedPages[0];
+  const homePage =
+    syncedPages.find((page) => page.id === "home") || syncedPages[0];
 
   return {
     ...(homePage?.draft || currentDraft),
@@ -739,6 +752,23 @@ setLiveDraft((prev) => ({
 
 <TemplateDraftEditor
   key={`${editorInstanceKey}::${activeBuilderPageId}`}
+
+  onDraftChange={(nextDraft) => {
+  setLiveDraft(nextDraft);
+  liveDraftRef.current = nextDraft;
+
+  setBuilderPages((prev) => {
+    const nextPages = prev.map((page) =>
+      page.id === activeBuilderPageIdRef.current
+        ? { ...page, draft: nextDraft }
+        : page,
+    );
+
+    builderPagesRef.current = nextPages;
+    return nextPages;
+  });
+}}
+
   templateName={templateKey}
   designLayout={designKey}
   initialDraft={hydratedDraft}

@@ -1,3 +1,5 @@
+// app\api\dashboard\admin\microsites\[id]\export\route.ts
+
 import { NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
