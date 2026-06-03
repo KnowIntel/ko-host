@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import type { MicrositeBlock, TextStyle } from "@/lib/templates/builder";
 import { ENROLLMENT_BOARD_PROFILE_EVENT } from "@/components/blocks/enrollmentBoardEvents";
@@ -158,6 +158,7 @@ export default function EnrollmentBoardBlock({
   const [isLoading, setIsLoading] = useState(Boolean(micrositeId));
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const imageInputRef = useRef<HTMLInputElement | null>(null);
 
   const blockStyle = styleToCss(block.data.style);
   const formStyle = styleToCss(block.data.formStyle);
@@ -250,6 +251,7 @@ export default function EnrollmentBoardBlock({
       setQuote("");
       setEmail("");
       setImage(null);
+      if (imageInputRef.current) imageInputRef.current.value = "";
       setStatusMessage(
         block.data.successMessage ?? "You’ve been added to the board.",
       );
@@ -327,6 +329,7 @@ export default function EnrollmentBoardBlock({
       setQuote("");
       setEmail("");
       setImage(null);
+      if (imageInputRef.current) imageInputRef.current.value = "";
       setStatusMessage(
         block.data.successMessage ?? "You’ve been added to the board.",
       );
@@ -346,11 +349,6 @@ export default function EnrollmentBoardBlock({
   }),
 );
 
-      const imageInput = document.getElementById(
-        `enrollment-image-${block.id}`,
-      ) as HTMLInputElement | null;
-
-      if (imageInput) imageInput.value = "";
     } catch (error) {
       setErrorMessage(
         error instanceof Error ? error.message : "Failed to submit enrollment.",
@@ -419,10 +417,10 @@ export default function EnrollmentBoardBlock({
       ? "grid grid-cols-1 gap-3 sm:grid-cols-2"
       : "space-y-3";
 
-  const entryClass =
-    block.data.variant === "signature_list"
-      ? "flex items-center justify-between gap-3 border-b py-3"
-      : "flex items-center justify-between gap-3 border p-3 shadow-sm";
+const entryClass =
+  block.data.variant === "signature_list"
+    ? "flex items-center gap-3 py-3"
+    : "flex items-center gap-3 p-3 shadow-sm";
 
   return (
     <div
@@ -538,17 +536,18 @@ export default function EnrollmentBoardBlock({
 >
   {block.data.imageLabel ?? "Profile image"}
 </div>
-              <input
-                id={`enrollment-image-${block.id}`}
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                onChange={(e) => setImage(e.target.files?.[0] ?? null)}
-                className="w-full px-3 py-2 text-sm font-semibold"
-                style={{
-                  borderStyle: "solid",
-                  ...inputStyle,
-                }}
-              />
+<input
+  ref={imageInputRef}
+  id={`enrollment-image-${block.id}`}
+  type="file"
+  accept="image/jpeg,image/png,image/webp"
+  onChange={(e) => setImage(e.target.files?.[0] ?? null)}
+  className="w-full px-3 py-2 text-sm font-semibold"
+  style={{
+    borderStyle: "solid",
+    ...inputStyle,
+  }}
+/>
             </label>
           ) : null}
 
@@ -610,7 +609,7 @@ export default function EnrollmentBoardBlock({
                   ...cardStyle,
                 }}
               >
-                <div className="flex min-w-0 items-center gap-3">
+                <div className="flex min-w-0 flex-1 items-center gap-3">
                   {block.data.showProfileImages !== false ? (
                     entry.profileImageUrl ? (
                       <img
@@ -655,7 +654,7 @@ export default function EnrollmentBoardBlock({
                     type="button"
                     onClick={() => void handleDelete(entry.id)}
                     disabled={deletingId === entry.id}
-                    className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-50 text-sm font-black text-red-600 transition hover:bg-red-100 disabled:opacity-50"
+                    className="ml-auto inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-50 text-sm font-black text-red-600 transition hover:bg-red-100 disabled:opacity-50"
                     title="Remove your enrollment"
                     aria-label="Remove your enrollment"
                   >
