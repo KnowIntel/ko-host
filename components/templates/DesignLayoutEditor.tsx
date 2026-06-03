@@ -2252,6 +2252,7 @@ const showTextControls =
   selectedContext.kind === "cta" ||
   selectedBlock?.type === "thread" ||
   selectedBlock?.type === "post_board" ||
+  selectedBlock?.type === "enrollment_board" ||
   selectedBlock?.type === "form_field" ||
   selectedBlock?.type === "highlight" ||
   selectedBlock?.type === "progress_bar" ||
@@ -2285,6 +2286,7 @@ const showAppearanceControls =
   selectedContext.kind === "imageCarousel" ||
   selectedContext.kind === "shape" ||
   selectedBlock?.type === "thread" ||
+  selectedBlock?.type === "enrollment_board" ||
   selectedBlock?.type === "post_board" ||
   selectedBlock?.type === "listing" ||
   selectedBlock?.type === "progress_bar" ||
@@ -2318,6 +2320,7 @@ const showBorderWidthRadiusControls =
   selectedContext.kind === "imageCarousel" ||
   selectedContext.kind === "shape" ||
   selectedBlock?.type === "thread" ||
+  selectedBlock?.type === "enrollment_board" ||
   selectedBlock?.type === "post_board" ||
   selectedBlock?.type === "listing" ||
   selectedBlock?.type === "progress_bar" ||
@@ -4085,6 +4088,27 @@ function applyStylePatch(patch: Partial<TextStyle>) {
 
   return;
 }
+if (selectedBlock?.type === "enrollment_board") {
+  setDraft((prev) => ({
+    ...prev,
+    blocks: prev.blocks.map((block) =>
+      block.id === selectedBlock.id && block.type === "enrollment_board"
+        ? {
+            ...block,
+            data: {
+              ...block.data,
+              style: {
+                ...(block.data.style ?? {}),
+                ...patch,
+              },
+            },
+          }
+        : block,
+    ),
+  }));
+
+  return;
+}
 
 if (
   selectedBlock?.type === "image" ||
@@ -5134,6 +5158,43 @@ if ((selectedBlock as any)?.type === "post_board") {
       },
     };
   });
+
+  return;
+}
+
+if (selectedBlock?.type === "enrollment_board") {
+  updateSelectedBlock((block) =>
+    block.type !== "enrollment_board"
+      ? block
+      : {
+          ...block,
+          appearance: {
+            ...block.appearance,
+            ...patch,
+          },
+          data: {
+            ...block.data,
+            style: {
+              ...(block.data.style ?? {}),
+              ...(patch.backgroundColor !== undefined
+                ? { backgroundColor: patch.backgroundColor }
+                : {}),
+              ...(patch.backgroundOpacity !== undefined
+                ? { backgroundOpacity: patch.backgroundOpacity }
+                : {}),
+              ...(patch.borderColor !== undefined
+                ? { borderColor: patch.borderColor }
+                : {}),
+              ...(patch.borderWidth !== undefined
+                ? { borderWidth: patch.borderWidth }
+                : {}),
+              ...(patch.borderRadius !== undefined
+                ? { borderRadius: patch.borderRadius }
+                : {}),
+            },
+          },
+        },
+  );
 
   return;
 }

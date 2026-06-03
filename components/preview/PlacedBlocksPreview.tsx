@@ -692,6 +692,9 @@ const isInteractiveBlock =
   block.type === "form_field" ||
   block.type === "poll" ||
   block.type === "thread" ||
+  block.type === "post_board" ||
+  block.type === "enrollment_board" ||
+  block.type === "file_share" ||
   block.type === "checkout" ||
   block.type === "cart" ||
   block.type === "listing" ||
