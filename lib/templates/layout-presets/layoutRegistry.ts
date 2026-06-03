@@ -27,6 +27,7 @@ import creatorLayouts from "./templates/creator_link_hub";
 import guidedLayouts from "./templates/guided_tutorial";
 import electionLayouts from "./templates/election_campaign";
 import liveLayouts from "./templates/live_entertainment";
+import watchLayouts from "./templates/watch_club";
 
 
 import blankLayout from "./layouts/blank";
@@ -58,6 +59,7 @@ const registry: Record<string, TemplateLayoutRegistry> = {
   guided_tutorial: guidedLayouts,
   election_campaign: electionLayouts,
   live_entertainment: liveLayouts,
+  watch_club: watchLayouts,
 
 };
 

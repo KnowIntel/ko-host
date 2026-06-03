@@ -247,6 +247,20 @@ const DEMO_PAGES: Record<
     "You opened the registry page. Normally this could link guests to baby essentials, wish lists, gift ideas, diaper funds, and at least one item nobody understands but every new parent swears they need.",
 },
 
+"watch-club-join-the-club": {
+  title: "Demo Join the Club",
+  eyebrow: "Watch Club Demo",
+  message:
+    "You opened the join the club page. In a real watch club microsite, this could welcome new members, collect signups, explain participation details, and help visitors officially become part of the group before the next screening night.",
+},
+
+"watch-club-members": {
+  title: "Demo Members",
+  eyebrow: "Watch Club Demo",
+  message:
+    "You opened the members page. Normally this could showcase club members, featured contributors, discussion leaders, viewing regulars, and the people who somehow notice plot details everyone else completely missed.",
+},
+
 
 
 
