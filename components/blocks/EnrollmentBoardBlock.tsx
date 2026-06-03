@@ -537,11 +537,11 @@ const entryClass =
         }}
       >
         <div className="grid gap-3">
-          <input
-            type="text"
-            value={name}
-            maxLength={80}
-            onChange={(e) => setName(e.target.value.slice(0, 80))}
+<input
+  type="text"
+  value={name}
+  maxLength={20}
+  onChange={(e) => setName(e.target.value.slice(0, 20))}
             placeholder={block.data.nameLabel ?? "Name"}
             className="w-full px-3 py-2 text-sm font-semibold outline-none"
             style={{

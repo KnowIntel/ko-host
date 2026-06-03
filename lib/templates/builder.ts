@@ -3211,7 +3211,7 @@ styleVariant: "elegant_wedding",
           requireEmail: false,
           requireImage: false,
 
-          quoteMaxLength: 150,
+          quoteMaxLength: 80,
 
           submitButtonText: "Submit",
           successMessage: "You’ve been added to the board.",
@@ -3303,7 +3303,7 @@ styleVariant: "elegant_wedding",
           descriptionStyle: createDefaultTextStyle(),
         },
       };
-      
+
     case "showcase":
       return {
         id: makeId("showcase"),

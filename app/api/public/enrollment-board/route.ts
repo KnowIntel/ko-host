@@ -110,15 +110,21 @@ export async function POST(request: NextRequest) {
     }
 
     if (!name) {
+      if (name.length > 20) {
+  return NextResponse.json(
+    { error: "Name must be 20 characters or less." },
+    { status: 400 },
+  );
+}
       return NextResponse.json(
         { error: "Name is required." },
         { status: 400 },
       );
     }
 
-    if (quote.length > 150) {
-      return NextResponse.json(
-        { error: "Quote must be 150 characters or less." },
+if (quote.length > 80) {
+  return NextResponse.json(
+    { error: "Quote must be 80 characters or less." },
         { status: 400 },
       );
     }
