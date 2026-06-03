@@ -17012,35 +17012,312 @@ onClick={() =>
             </div>
           ) : null}
 
-          {["rsvp_count", "poll_result", "visitor_count", "enrollment_records"].includes(
-            card.type,
-          ) ? (
-            <div className="mt-3">
-              <div className={inspectorLabelClass()}>Manual Fallback Value</div>
-              <input
-                type="text"
-                value={card.fallbackValue ?? ""}
-                onChange={(e) =>
-                  updateSelectedBlock((block) =>
-                    block.type !== "highlight"
-                      ? block
-                      : {
-                          ...block,
-                          data: {
-                            ...block.data,
-                            cards: (block.data.cards ?? []).map((item) =>
-                              item.id === card.id
-                                ? { ...item, fallbackValue: e.target.value }
-                                : item,
-                            ),
-                          },
-                        },
-                  )
-                }
-                className={inspectorInputClass()}
-              />
-            </div>
-          ) : null}
+{["rsvp_count", "poll_result", "visitor_count", "enrollment_records"].includes(
+  card.type,
+) ? (
+  <div className="mt-3 grid gap-3">
+    {card.type === "rsvp_count" ? (
+      <>
+        <div>
+          <div className={inspectorLabelClass()}>Source RSVP/Form Block</div>
+          <select
+            value={card.sourceFormBlockId ?? ""}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "highlight"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        cards: (block.data.cards ?? []).map((item) =>
+                          item.id === card.id
+                            ? {
+                                ...item,
+                                sourceType: "rsvp",
+                                sourceFormBlockId: e.target.value,
+                              }
+                            : item,
+                        ),
+                      },
+                    },
+              )
+            }
+            className={inspectorInputClass()}
+          >
+            <option value="">Select RSVP/form block</option>
+            {draft.blocks
+              .filter((block) => block.type === "form_field")
+              .map((formBlock) => (
+                <option key={formBlock.id} value={formBlock.id}>
+                  {formBlock.label || formBlock.data.label || "Form Field"}
+                </option>
+              ))}
+          </select>
+        </div>
+
+        <div>
+          <div className={inspectorLabelClass()}>Count Type</div>
+          <select
+            value={card.countType ?? "total_responses"}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "highlight"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        cards: (block.data.cards ?? []).map((item) =>
+                          item.id === card.id
+                            ? { ...item, countType: e.target.value }
+                            : item,
+                        ),
+                      },
+                    },
+              )
+            }
+            className={inspectorInputClass()}
+          >
+            <option value="accepted">Accepted</option>
+            <option value="declined">Declined</option>
+            <option value="maybe">Maybe</option>
+            <option value="total_responses">Total Responses</option>
+          </select>
+        </div>
+      </>
+    ) : null}
+
+    {card.type === "poll_result" ? (
+      <>
+        <div>
+          <div className={inspectorLabelClass()}>Source Poll Block</div>
+          <select
+            value={card.sourceBlockId ?? ""}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "highlight"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        cards: (block.data.cards ?? []).map((item) =>
+                          item.id === card.id
+                            ? {
+                                ...item,
+                                sourceType: "poll",
+                                sourceBlockId: e.target.value,
+                              }
+                            : item,
+                        ),
+                      },
+                    },
+              )
+            }
+            className={inspectorInputClass()}
+          >
+            <option value="">Select poll block</option>
+            {draft.blocks
+              .filter((block) => block.type === "poll")
+              .map((pollBlock) => (
+                <option key={pollBlock.id} value={pollBlock.id}>
+                  {pollBlock.data.question || pollBlock.label || "Poll"}
+                </option>
+              ))}
+          </select>
+        </div>
+
+        <div>
+          <div className={inspectorLabelClass()}>Display Type</div>
+          <select
+            value={card.displayType ?? "count"}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "highlight"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        cards: (block.data.cards ?? []).map((item) =>
+                          item.id === card.id
+                            ? { ...item, displayType: e.target.value as any }
+                            : item,
+                        ),
+                      },
+                    },
+              )
+            }
+            className={inspectorInputClass()}
+          >
+            <option value="count">Vote Count</option>
+            <option value="percentage">Percentage</option>
+            <option value="winner">Winning Option</option>
+          </select>
+        </div>
+
+        <div>
+          <div className={inspectorLabelClass()}>Poll Option ID</div>
+          <input
+            type="text"
+            value={card.pollOptionId ?? ""}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "highlight"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        cards: (block.data.cards ?? []).map((item) =>
+                          item.id === card.id
+                            ? { ...item, pollOptionId: e.target.value }
+                            : item,
+                        ),
+                      },
+                    },
+              )
+            }
+            className={inspectorInputClass()}
+            placeholder="Optional for later live result lookup"
+          />
+        </div>
+      </>
+    ) : null}
+
+    {card.type === "visitor_count" ? (
+      <div>
+        <div className={inspectorLabelClass()}>Metric Type</div>
+        <select
+          value={card.countType ?? "total_visits"}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "highlight"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      cards: (block.data.cards ?? []).map((item) =>
+                        item.id === card.id
+                          ? {
+                              ...item,
+                              sourceType: "visitor_counter",
+                              countType: e.target.value,
+                            }
+                          : item,
+                      ),
+                    },
+                  },
+            )
+          }
+          className={inspectorInputClass()}
+        >
+          <option value="total_visits">Total Visits</option>
+          <option value="unique_visitors">Unique Visitors</option>
+          <option value="todays_visits">Today’s Visits</option>
+        </select>
+      </div>
+    ) : null}
+
+    {card.type === "enrollment_records" ? (
+      <>
+        <div>
+          <div className={inspectorLabelClass()}>Source Enrollment Board Block</div>
+          <select
+            value={card.sourceBlockId ?? ""}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "highlight"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        cards: (block.data.cards ?? []).map((item) =>
+                          item.id === card.id
+                            ? {
+                                ...item,
+                                sourceType: "enrollment_board",
+                                sourceBlockId: e.target.value,
+                              }
+                            : item,
+                        ),
+                      },
+                    },
+              )
+            }
+            className={inspectorInputClass()}
+          >
+            <option value="">Select enrollment board block</option>
+            {draft.blocks
+              .filter((block) => (block as any).type === "enrollment_board")
+              .map((enrollmentBlock) => (
+                <option key={enrollmentBlock.id} value={enrollmentBlock.id}>
+                  {enrollmentBlock.label || "Enrollment Board"}
+                </option>
+              ))}
+          </select>
+        </div>
+
+        <div>
+          <div className={inspectorLabelClass()}>Count Type</div>
+          <select
+            value={card.countType ?? "active_enrollments"}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "highlight"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        cards: (block.data.cards ?? []).map((item) =>
+                          item.id === card.id
+                            ? { ...item, countType: e.target.value }
+                            : item,
+                        ),
+                      },
+                    },
+              )
+            }
+            className={inspectorInputClass()}
+          >
+            <option value="active_enrollments">Active Enrollments</option>
+            <option value="total_submissions">Total Submissions</option>
+          </select>
+        </div>
+      </>
+    ) : null}
+
+    <div>
+      <div className={inspectorLabelClass()}>Manual Fallback Value</div>
+      <input
+        type="text"
+        value={card.fallbackValue ?? ""}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "highlight"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    cards: (block.data.cards ?? []).map((item) =>
+                      item.id === card.id
+                        ? { ...item, fallbackValue: e.target.value }
+                        : item,
+                    ),
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
+  </div>
+) : null}
 
           <div className="mt-3 grid grid-cols-2 gap-3">
             <div>
