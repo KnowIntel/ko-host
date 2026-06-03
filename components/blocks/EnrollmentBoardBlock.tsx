@@ -237,11 +237,12 @@ export default function EnrollmentBoardBlock({
     event.preventDefault();
 
     if (!micrositeId) {
+      const localProfileImageUrl = image ? URL.createObjectURL(image) : "";
       const localEntry: EnrollmentEntry = {
         id: `local_${Date.now()}`,
         name: name.trim(),
         quote: quote.trim(),
-        profileImageUrl: "",
+        profileImageUrl: localProfileImageUrl,
         createdAt: new Date().toISOString(),
         isMine: true,
       };
@@ -256,6 +257,21 @@ export default function EnrollmentBoardBlock({
         block.data.successMessage ?? "You’ve been added to the board.",
       );
       setErrorMessage("");
+      window.dispatchEvent(
+  new CustomEvent(ENROLLMENT_BOARD_PROFILE_EVENT, {
+    detail: {
+      micrositeId: "preview",
+      enrollmentBlockId: block.id,
+      linkedProfileImageBlockId: block.data.linkedProfileImageBlockId,
+      linkedNameLabelBlockId: block.data.linkedNameLabelBlockId,
+      linkedQuoteLabelBlockId: block.data.linkedQuoteLabelBlockId,
+      profileImageUrl: localProfileImageUrl || null,
+      name: localEntry.name,
+      quote: localEntry.quote,
+      activeCount: entries.length + 1,
+    },
+  }),
+);
       return;
     }
 
@@ -342,10 +358,10 @@ window.dispatchEvent(
       linkedProfileImageBlockId: block.data.linkedProfileImageBlockId,
       linkedNameLabelBlockId: block.data.linkedNameLabelBlockId,
       linkedQuoteLabelBlockId: block.data.linkedQuoteLabelBlockId,
-      profileImageUrl: null,
-      name: null,
-      quote: null,
-      activeCount: Math.max(0, entries.length - 1),
+      profileImageUrl: data.entry?.profileImageUrl ?? null,
+      name: data.entry?.name ?? name.trim(),
+      quote: data.entry?.quote ?? quote.trim(),
+      activeCount: entries.length + 1,
     },
   }),
 );
