@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { CSSProperties } from "react";
 import type { MicrositeBlock, TextStyle } from "@/lib/templates/builder";
+import { ENROLLMENT_BOARD_PROFILE_EVENT } from "@/components/blocks/enrollmentBoardEvents";
 
 type EnrollmentBoardBlockProps = {
   block: Extract<MicrositeBlock, { type: "enrollment_board" }>;
@@ -329,6 +330,21 @@ export default function EnrollmentBoardBlock({
       setStatusMessage(
         block.data.successMessage ?? "You’ve been added to the board.",
       );
+      
+      window.dispatchEvent(
+  new CustomEvent(ENROLLMENT_BOARD_PROFILE_EVENT, {
+    detail: {
+      micrositeId,
+      enrollmentBlockId: block.id,
+      linkedProfileImageBlockId: block.data.linkedProfileImageBlockId,
+      linkedNameLabelBlockId: block.data.linkedNameLabelBlockId,
+      linkedQuoteLabelBlockId: block.data.linkedQuoteLabelBlockId,
+      profileImageUrl: data.entry?.profileImageUrl ?? null,
+      name: data.entry?.name ?? null,
+      quote: data.entry?.quote ?? null,
+    },
+  }),
+);
 
       const imageInput = document.getElementById(
         `enrollment-image-${block.id}`,
@@ -372,6 +388,23 @@ export default function EnrollmentBoardBlock({
       setEntries((prev) => prev.filter((entry) => entry.id !== entryId));
       window.localStorage.removeItem(entryIdKey(micrositeId, block.id));
       setStatusMessage("Your enrollment was removed.");
+
+      window.dispatchEvent(
+  new CustomEvent(ENROLLMENT_BOARD_PROFILE_EVENT, {
+    detail: {
+      micrositeId,
+      enrollmentBlockId: block.id,
+      linkedProfileImageBlockId: block.data.linkedProfileImageBlockId,
+      linkedNameLabelBlockId: block.data.linkedNameLabelBlockId,
+      linkedQuoteLabelBlockId: block.data.linkedQuoteLabelBlockId,
+      profileImageUrl: null,
+      name: null,
+      quote: null,
+    },
+  }),
+);
+
+
     } catch (error) {
       setErrorMessage(
         error instanceof Error ? error.message : "Failed to delete enrollment.",

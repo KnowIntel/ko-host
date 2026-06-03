@@ -7,7 +7,10 @@ import SpeedDatingLive from "@/components/blocks/SpeedDatingLive";
 import PopBalloonLive from "@/components/blocks/PopBalloonLive";
 import AppModal from "@/components/ui/AppModal";
 import EnrollmentBoardBlock from "@/components/blocks/EnrollmentBoardBlock";
-
+import {
+  ENROLLMENT_BOARD_PROFILE_EVENT,
+  type EnrollmentBoardProfileEventDetail,
+} from "@/components/blocks/enrollmentBoardEvents";
 
 type SpeedDatingParticipant = {
   id: string;
@@ -980,9 +983,50 @@ function renderWave(block: Extract<MicrositeBlock, { type: "wave" }>) {
   );
 }
 
-function renderLabel(
+function EnrollmentLinkedLabel({
+  block,
+  designKey,
+}: {
+  block: Extract<MicrositeBlock, { type: "label" }>;
+  designKey?: string;
+}) {
+  const [overrideText, setOverrideText] = useState<string | null>(null);
+
+  useEffect(() => {
+    function handleEnrollmentProfileUpdate(event: Event) {
+      const customEvent =
+        event as CustomEvent<EnrollmentBoardProfileEventDetail>;
+
+      if (customEvent.detail?.linkedNameLabelBlockId === block.id) {
+        setOverrideText(customEvent.detail.name || null);
+        return;
+      }
+
+      if (customEvent.detail?.linkedQuoteLabelBlockId === block.id) {
+        setOverrideText(customEvent.detail.quote || null);
+      }
+    }
+
+    window.addEventListener(
+      ENROLLMENT_BOARD_PROFILE_EVENT,
+      handleEnrollmentProfileUpdate,
+    );
+
+    return () => {
+      window.removeEventListener(
+        ENROLLMENT_BOARD_PROFILE_EVENT,
+        handleEnrollmentProfileUpdate,
+      );
+    };
+  }, [block.id]);
+
+  return renderLabelBase(block, designKey, overrideText);
+}
+
+function renderLabelBase(
   block: Extract<MicrositeBlock, { type: "label" }>,
   designKey?: string,
+  overrideText?: string | null,
 ) {
   const hasTexture = Boolean(
     block.data.style?.textureEnabled && block.data.style?.textureImageUrl,
@@ -1055,10 +1099,17 @@ function renderLabel(
           }%)`,
         }}
       >
-        {getLabelText(block)}
+        {overrideText ?? getLabelText(block)}
       </div>
     </div>
   );
+}
+
+function renderLabel(
+  block: Extract<MicrositeBlock, { type: "label" }>,
+  designKey?: string,
+) {
+  return <EnrollmentLinkedLabel block={block} designKey={designKey} />;
 }
 
 
@@ -1263,11 +1314,53 @@ function renderVideo(
   return <VideoPreview />;
 }
 
-function renderImage(
+function EnrollmentLinkedImage({
+  block,
+  designKey,
+}: {
+  block: Extract<MicrositeBlock, { type: "image" }>;
+  designKey?: string;
+}) {
+  const [overrideUrl, setOverrideUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    function handleEnrollmentProfileUpdate(event: Event) {
+      const customEvent =
+        event as CustomEvent<EnrollmentBoardProfileEventDetail>;
+
+      if (
+        customEvent.detail?.linkedProfileImageBlockId !== block.id
+      ) {
+        return;
+      }
+
+      setOverrideUrl(customEvent.detail.profileImageUrl || null);
+    }
+
+    window.addEventListener(
+      ENROLLMENT_BOARD_PROFILE_EVENT,
+      handleEnrollmentProfileUpdate,
+    );
+
+    return () => {
+      window.removeEventListener(
+        ENROLLMENT_BOARD_PROFILE_EVENT,
+        handleEnrollmentProfileUpdate,
+      );
+    };
+  }, [block.id]);
+
+  return renderImageBase(block, designKey, overrideUrl);
+}
+
+function renderImageBase(
   block: Extract<MicrositeBlock, { type: "image" }>,
   designKey?: string,
+  overrideUrl?: string | null,
 ) {
-  if (!block.data.image.url) {
+  const imageUrl = overrideUrl || block.data.image.url;
+
+if (!imageUrl) {
     return (
       <Placeholder
         block={block}
@@ -1333,7 +1426,7 @@ style={{
 }}
         >
 <img
-  src={block.data.image.url}
+  src={imageUrl}
   alt={block.data.image.alt || ""}
   className="h-full w-full"
   style={{
@@ -1360,6 +1453,13 @@ style={{
       ) : null}
     </div>
   );
+}
+
+function renderImage(
+  block: Extract<MicrositeBlock, { type: "image" }>,
+  designKey?: string,
+) {
+  return <EnrollmentLinkedImage block={block} designKey={designKey} />;
 }
 
 function renderIcon(block: Extract<MicrositeBlock, { type: "icon" }>) {
@@ -12189,7 +12289,7 @@ case "timeline":
           designKey={designKey}
         />
       );
-      
+
 case "post_board":
   return renderPostBoard(block, designKey, micrositeId);
     case "padding":

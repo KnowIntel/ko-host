@@ -21803,6 +21803,106 @@ const lines = e.target.value.split("\n");
       </select>
     </div>
 
+    <div className="mt-5 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+  <div className={inspectorLabelClass()}>Linked Visitor Display Blocks</div>
+
+  <p className="mt-2 text-xs leading-relaxed text-neutral-500">
+    Optionally connect this Enrollment Board to existing Image and Label blocks.
+    After a visitor enrolls, those linked blocks can show that visitor’s own
+    profile image, name, and quote on their browser.
+  </p>
+
+  <div className="mt-4">
+    <div className={inspectorLabelClass()}>Profile Image Block</div>
+    <select
+      value={selectedBlock.data.linkedProfileImageBlockId ?? ""}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "enrollment_board"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  linkedProfileImageBlockId: e.target.value,
+                },
+              },
+        )
+      }
+      className={inspectorInputClass()}
+    >
+      <option value="">None</option>
+      {draft.blocks
+        .filter((item) => item.type === "image")
+        .map((item) => (
+          <option key={item.id} value={item.id}>
+            {item.label || "Image Block"}
+          </option>
+        ))}
+    </select>
+  </div>
+
+  <div className="mt-4">
+    <div className={inspectorLabelClass()}>Name Label Block</div>
+    <select
+      value={selectedBlock.data.linkedNameLabelBlockId ?? ""}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "enrollment_board"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  linkedNameLabelBlockId: e.target.value,
+                },
+              },
+        )
+      }
+      className={inspectorInputClass()}
+    >
+      <option value="">None</option>
+      {draft.blocks
+        .filter((item) => item.type === "label")
+        .map((item) => (
+          <option key={item.id} value={item.id}>
+            {item.label || "Label Block"}
+          </option>
+        ))}
+    </select>
+  </div>
+
+  <div className="mt-4">
+    <div className={inspectorLabelClass()}>Quote Label Block</div>
+    <select
+      value={selectedBlock.data.linkedQuoteLabelBlockId ?? ""}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "enrollment_board"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  linkedQuoteLabelBlockId: e.target.value,
+                },
+              },
+        )
+      }
+      className={inspectorInputClass()}
+    >
+      <option value="">None</option>
+      {draft.blocks
+        .filter((item) => item.type === "label")
+        .map((item) => (
+          <option key={item.id} value={item.id}>
+            {item.label || "Label Block"}
+          </option>
+        ))}
+    </select>
+  </div>
+</div>
+
     <div className="mt-4 grid grid-cols-1 gap-3">
       <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
         <input

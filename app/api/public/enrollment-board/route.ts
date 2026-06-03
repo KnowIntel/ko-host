@@ -19,15 +19,16 @@ function safeFileName(filename: string) {
 }
 
 function publicEntry(row: any, visitorTokenHash?: string) {
+  const isMine =
+    Boolean(visitorTokenHash) && row.visitor_token_hash === visitorTokenHash;
+
   return {
     id: row.id,
     name: row.name,
     quote: row.quote,
     profileImageUrl: row.profile_image_url,
     createdAt: row.created_at,
-    isMine:
-      Boolean(visitorTokenHash) &&
-      row.visitor_token_hash === visitorTokenHash,
+    isMine,
   };
 }
 

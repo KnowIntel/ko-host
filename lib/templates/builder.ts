@@ -925,6 +925,10 @@ export type EnrollmentBoardBlock = BaseBlock & {
     subtitleStyle?: TextStyle;
     memberNameStyle?: TextStyle;
     memberQuoteStyle?: TextStyle;
+
+    linkedProfileImageBlockId?: string;
+    linkedNameLabelBlockId?: string;
+    linkedQuoteLabelBlockId?: string;
   };
 };
 
@@ -3174,6 +3178,10 @@ styleVariant: "elegant_wedding",
             fontSize: 12,
             color: "#6b7280",
           },
+          
+          linkedProfileImageBlockId: "",
+          linkedNameLabelBlockId: "",
+          linkedQuoteLabelBlockId: "",
 
           sortOrder: "newest",
           maxVisibleEntries: 24,
