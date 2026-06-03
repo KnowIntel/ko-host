@@ -1903,138 +1903,171 @@ const selectedStyle =
         (selectedBlockFromDraft.data as any).captionStyle ??
         (selectedBlockFromDraft.data as any).style ??
         {}) as TextStyle)
-    :
-  selectedBlockFromDraft?.type === "rsvp"
-    ? selectedRsvpElementKey === "form"
-      ? selectedBlockFromDraft.data.style ?? {}
-      : (
-          selectedBlockFromDraft.data.elementStyles?.[selectedRsvpElementKey]
-            ?.textStyle ??
-          selectedBlockFromDraft.data.style ??
-          {}
-        )
-    : selectedBlockFromDraft?.type === "donation"
-      ? donationStyleTarget === "buttons"
-        ? (((selectedBlockFromDraft.data as any).buttonStyle ??
+    : selectedBlockFromDraft?.type === "enrollment_board"
+      ? enrollmentBoardStyleTarget === "heading"
+        ? (((selectedBlockFromDraft.data as any).headingStyle ??
             (selectedBlockFromDraft.data as any).style ??
             {}) as TextStyle)
-        : (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
-    : selectedBlockFromDraft?.type === "listing"
-      ? listingStyleTarget === "description"
-        ? (selectedBlockFromDraft.data.descriptionStyle ?? {})
-        : listingStyleTarget === "metadata"
-          ? (selectedBlockFromDraft.data.metadataStyle ?? {})
-          : listingStyleTarget === "price"
-            ? ((selectedBlockFromDraft.data as any).priceStyle ?? {})
-            : listingStyleTarget === "quantity"
-              ? ((selectedBlockFromDraft.data as any).quantityStyle ?? {})
-              : (selectedBlockFromDraft.data.titleStyle ?? {})
-: selectedBlockFromDraft?.type === "form_field"
-  ? formFieldTextTarget === "text"
-    ? (((selectedBlockFromDraft.data as any).inputStyle ??
-        (selectedBlockFromDraft.data as any).style ??
-        {}) as TextStyle)
-    : (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
-: selectedBlockFromDraft?.type === "post_board"
-  ? postBoardStyleTarget === "card"
-    ? (((selectedBlockFromDraft.data as any).cardStyle ??
-        (selectedBlockFromDraft.data as any).style ??
-        {}) as TextStyle)
-    : postBoardStyleTarget === "heading"
-      ? (((selectedBlockFromDraft.data as any).headingStyle ??
-          (selectedBlockFromDraft.data as any).style ??
-          {}) as TextStyle)
-      : postBoardStyleTarget === "body"
-        ? (((selectedBlockFromDraft.data as any).bodyStyle ??
-            (selectedBlockFromDraft.data as any).style ??
-            {}) as TextStyle)
-        : postBoardStyleTarget === "buttons"
+        : enrollmentBoardStyleTarget === "subtitle"
+          ? (((selectedBlockFromDraft.data as any).subtitleStyle ??
+              (selectedBlockFromDraft.data as any).style ??
+              {}) as TextStyle)
+          : enrollmentBoardStyleTarget === "inputs"
+            ? (((selectedBlockFromDraft.data as any).inputStyle ??
+                (selectedBlockFromDraft.data as any).style ??
+                {}) as TextStyle)
+            : enrollmentBoardStyleTarget === "button"
+              ? (((selectedBlockFromDraft.data as any).buttonStyle ??
+                  (selectedBlockFromDraft.data as any).style ??
+                  {}) as TextStyle)
+              : enrollmentBoardStyleTarget === "list"
+                ? (((selectedBlockFromDraft.data as any).listStyle ??
+                    (selectedBlockFromDraft.data as any).style ??
+                    {}) as TextStyle)
+                : enrollmentBoardStyleTarget === "cards"
+                  ? (((selectedBlockFromDraft.data as any).cardStyle ??
+                      (selectedBlockFromDraft.data as any).style ??
+                      {}) as TextStyle)
+                  : enrollmentBoardStyleTarget === "memberName"
+                    ? (((selectedBlockFromDraft.data as any).memberNameStyle ??
+                        (selectedBlockFromDraft.data as any).style ??
+                        {}) as TextStyle)
+                    : enrollmentBoardStyleTarget === "memberQuote"
+                      ? (((selectedBlockFromDraft.data as any).memberQuoteStyle ??
+                          (selectedBlockFromDraft.data as any).style ??
+                          {}) as TextStyle)
+                      : (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
+    : selectedBlockFromDraft?.type === "rsvp"
+      ? selectedRsvpElementKey === "form"
+        ? selectedBlockFromDraft.data.style ?? {}
+        : (
+            selectedBlockFromDraft.data.elementStyles?.[selectedRsvpElementKey]
+              ?.textStyle ??
+            selectedBlockFromDraft.data.style ??
+            {}
+          )
+      : selectedBlockFromDraft?.type === "donation"
+        ? donationStyleTarget === "buttons"
           ? (((selectedBlockFromDraft.data as any).buttonStyle ??
               (selectedBlockFromDraft.data as any).style ??
               {}) as TextStyle)
           : (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
-      : selectedBlockFromDraft?.type === "highlight"
-        ? highlightStyleTarget === "body"
-          ? (selectedBlockFromDraft.data.bodyStyle ??
-              selectedBlockFromDraft.data.style ??
-              {})
-          : (selectedBlockFromDraft.data.headingStyle ??
-              selectedBlockFromDraft.data.style ??
-              {})
-        : selectedBlockFromDraft?.type === "faq"
-          ? faqStyleTarget === "question"
-            ? (((selectedBlockFromDraft.data as any).questionStyle ??
-                (selectedBlockFromDraft.data as any).style ??
-                {}) as TextStyle)
-            : faqStyleTarget === "answer"
-              ? (((selectedBlockFromDraft.data as any).answerStyle ??
+        : selectedBlockFromDraft?.type === "listing"
+          ? listingStyleTarget === "description"
+            ? (selectedBlockFromDraft.data.descriptionStyle ?? {})
+            : listingStyleTarget === "metadata"
+              ? (selectedBlockFromDraft.data.metadataStyle ?? {})
+              : listingStyleTarget === "price"
+                ? ((selectedBlockFromDraft.data as any).priceStyle ?? {})
+                : listingStyleTarget === "quantity"
+                  ? ((selectedBlockFromDraft.data as any).quantityStyle ?? {})
+                  : (selectedBlockFromDraft.data.titleStyle ?? {})
+          : selectedBlockFromDraft?.type === "form_field"
+            ? formFieldTextTarget === "text"
+              ? (((selectedBlockFromDraft.data as any).inputStyle ??
                   (selectedBlockFromDraft.data as any).style ??
                   {}) as TextStyle)
               : (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
-        : selectedBlockFromDraft?.type === "countdown"
-          ? countdownStyleTarget === "tiles"
-            ? (((selectedBlockFromDraft.data as any).tileStyle ??
-                (selectedBlockFromDraft.data as any).style ??
-                {}) as TextStyle)
-            : countdownStyleTarget === "values"
-              ? (((selectedBlockFromDraft.data as any).standardValueStyle ??
-                  (selectedBlockFromDraft.data as any).style ??
-                  {}) as TextStyle)
-              : countdownStyleTarget === "units"
-                ? (((selectedBlockFromDraft.data as any).standardUnitStyle ??
+            : selectedBlockFromDraft?.type === "post_board"
+              ? postBoardStyleTarget === "card"
+                ? (((selectedBlockFromDraft.data as any).cardStyle ??
                     (selectedBlockFromDraft.data as any).style ??
                     {}) as TextStyle)
-                : countdownStyleTarget === "heading"
+                : postBoardStyleTarget === "heading"
                   ? (((selectedBlockFromDraft.data as any).headingStyle ??
                       (selectedBlockFromDraft.data as any).style ??
                       {}) as TextStyle)
-                  : (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
-: selectedBlockFromDraft?.type === "link_hub"
-  ? linkHubTextTarget === "label"
-    ? (((selectedBlockFromDraft.data as any).labelStyle ??
-        selectedBlockFromDraft.data.style ??
-        {}) as TextStyle)
-    : linkHubTextTarget === "description"
-      ? (((selectedBlockFromDraft.data as any).descriptionStyle ??
-          selectedBlockFromDraft.data.style ??
-          {}) as TextStyle)
-      : linkHubTextTarget === "url"
-        ? (((selectedBlockFromDraft.data as any).urlStyle ??
-            selectedBlockFromDraft.data.style ??
-            {}) as TextStyle)
-        : (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
-: selectedBlockFromDraft?.type === "timeline"
-          ? timelineStyleTarget === "title"
-            ? (((selectedBlockFromDraft.data as any).titleStyle ?? {}) as TextStyle)
-            : timelineStyleTarget === "date"
-              ? (((selectedBlockFromDraft.data as any).dateStyle ?? {}) as TextStyle)
-              : timelineStyleTarget === "entryTitle"
-                ? (((selectedBlockFromDraft.data as any).entryTitleStyle ?? {}) as TextStyle)
-                : timelineStyleTarget === "subtitle"
-                  ? (((selectedBlockFromDraft.data as any).subtitleStyle ?? {}) as TextStyle)
-                  : (((selectedBlockFromDraft.data as any).descriptionStyle ?? {}) as TextStyle)
-          : selectedBlockFromDraft?.type === "cart" ||
-              selectedBlockFromDraft?.type === "checkout" ||
-              selectedBlockFromDraft?.type === "text_fx" ||
-              selectedBlockFromDraft?.type === "cta" ||
-              selectedBlockFromDraft?.type === "thread" ||
-              selectedBlockFromDraft?.type === "image" ||
-              (selectedBlockFromDraft as any)?.type === "gallery" ||
-              selectedBlockFromDraft?.type === "image_carousel" ||
-              selectedBlockFromDraft?.type === "progress_bar" ||
-              (selectedBlockFromDraft as any)?.type === "link_hub" ||
-              selectedBlockFromDraft?.type === "checklist" ||
-              selectedBlockFromDraft?.type === "schedule_agenda" ||
-              selectedBlockFromDraft?.type === "map_location" ||
-              selectedBlockFromDraft?.type === "file_share" ||
-              selectedBlockFromDraft?.type === "speed_dating" ||
-              selectedBlockFromDraft?.type === "video" ||
-              selectedBlockFromDraft?.type === "rich_text" ||
-              selectedBlockFromDraft?.type === "links"
-? ((((selectedBlockFromDraft as any)?.data?.captionStyle ??
-    (selectedBlockFromDraft as any)?.data?.style ??
-    {}) as TextStyle))
-            : getSelectionTextStyle(draft, selection);
+                  : postBoardStyleTarget === "body"
+                    ? (((selectedBlockFromDraft.data as any).bodyStyle ??
+                        (selectedBlockFromDraft.data as any).style ??
+                        {}) as TextStyle)
+                    : postBoardStyleTarget === "buttons"
+                      ? (((selectedBlockFromDraft.data as any).buttonStyle ??
+                          (selectedBlockFromDraft.data as any).style ??
+                          {}) as TextStyle)
+                      : (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
+              : selectedBlockFromDraft?.type === "highlight"
+                ? highlightStyleTarget === "body"
+                  ? (selectedBlockFromDraft.data.bodyStyle ??
+                      selectedBlockFromDraft.data.style ??
+                      {})
+                  : (selectedBlockFromDraft.data.headingStyle ??
+                      selectedBlockFromDraft.data.style ??
+                      {})
+                : selectedBlockFromDraft?.type === "faq"
+                  ? faqStyleTarget === "question"
+                    ? (((selectedBlockFromDraft.data as any).questionStyle ??
+                        (selectedBlockFromDraft.data as any).style ??
+                        {}) as TextStyle)
+                    : faqStyleTarget === "answer"
+                      ? (((selectedBlockFromDraft.data as any).answerStyle ??
+                          (selectedBlockFromDraft.data as any).style ??
+                          {}) as TextStyle)
+                      : (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
+                  : selectedBlockFromDraft?.type === "countdown"
+                    ? countdownStyleTarget === "tiles"
+                      ? (((selectedBlockFromDraft.data as any).tileStyle ??
+                          (selectedBlockFromDraft.data as any).style ??
+                          {}) as TextStyle)
+                      : countdownStyleTarget === "values"
+                        ? (((selectedBlockFromDraft.data as any).standardValueStyle ??
+                            (selectedBlockFromDraft.data as any).style ??
+                            {}) as TextStyle)
+                        : countdownStyleTarget === "units"
+                          ? (((selectedBlockFromDraft.data as any).standardUnitStyle ??
+                              (selectedBlockFromDraft.data as any).style ??
+                              {}) as TextStyle)
+                          : countdownStyleTarget === "heading"
+                            ? (((selectedBlockFromDraft.data as any).headingStyle ??
+                                (selectedBlockFromDraft.data as any).style ??
+                                {}) as TextStyle)
+                            : (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
+                    : selectedBlockFromDraft?.type === "link_hub"
+                      ? linkHubTextTarget === "label"
+                        ? (((selectedBlockFromDraft.data as any).labelStyle ??
+                            selectedBlockFromDraft.data.style ??
+                            {}) as TextStyle)
+                        : linkHubTextTarget === "description"
+                          ? (((selectedBlockFromDraft.data as any).descriptionStyle ??
+                              selectedBlockFromDraft.data.style ??
+                              {}) as TextStyle)
+                          : linkHubTextTarget === "url"
+                            ? (((selectedBlockFromDraft.data as any).urlStyle ??
+                                selectedBlockFromDraft.data.style ??
+                                {}) as TextStyle)
+                            : (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
+                      : selectedBlockFromDraft?.type === "timeline"
+                        ? timelineStyleTarget === "title"
+                          ? (((selectedBlockFromDraft.data as any).titleStyle ?? {}) as TextStyle)
+                          : timelineStyleTarget === "date"
+                            ? (((selectedBlockFromDraft.data as any).dateStyle ?? {}) as TextStyle)
+                            : timelineStyleTarget === "entryTitle"
+                              ? (((selectedBlockFromDraft.data as any).entryTitleStyle ?? {}) as TextStyle)
+                              : timelineStyleTarget === "subtitle"
+                                ? (((selectedBlockFromDraft.data as any).subtitleStyle ?? {}) as TextStyle)
+                                : (((selectedBlockFromDraft.data as any).descriptionStyle ?? {}) as TextStyle)
+                        : selectedBlockFromDraft?.type === "cart" ||
+                            selectedBlockFromDraft?.type === "checkout" ||
+                            selectedBlockFromDraft?.type === "text_fx" ||
+                            selectedBlockFromDraft?.type === "cta" ||
+                            selectedBlockFromDraft?.type === "thread" ||
+                            selectedBlockFromDraft?.type === "image" ||
+                            (selectedBlockFromDraft as any)?.type === "gallery" ||
+                            selectedBlockFromDraft?.type === "image_carousel" ||
+                            selectedBlockFromDraft?.type === "progress_bar" ||
+                            (selectedBlockFromDraft as any)?.type === "link_hub" ||
+                            selectedBlockFromDraft?.type === "checklist" ||
+                            selectedBlockFromDraft?.type === "schedule_agenda" ||
+                            selectedBlockFromDraft?.type === "map_location" ||
+                            selectedBlockFromDraft?.type === "file_share" ||
+                            selectedBlockFromDraft?.type === "speed_dating" ||
+                            selectedBlockFromDraft?.type === "video" ||
+                            selectedBlockFromDraft?.type === "rich_text" ||
+                            selectedBlockFromDraft?.type === "links"
+                          ? ((((selectedBlockFromDraft as any)?.data?.captionStyle ??
+                              (selectedBlockFromDraft as any)?.data?.style ??
+                              {}) as TextStyle))
+                          : getSelectionTextStyle(draft, selection);
 
   const selectedAppearance = getSelectionBlockAppearance(draft, selection);
 const selectedRsvpElementBackgroundColor =
