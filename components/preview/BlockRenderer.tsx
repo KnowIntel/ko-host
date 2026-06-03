@@ -7407,6 +7407,7 @@ function renderHighlight(
     const [items, setItems] = useState<any[]>([]);
     const [countValue, setCountValue] = useState<number>(0);
     const [totalValue, setTotalValue] = useState<number>(0);
+    const [highlightCardValues, setHighlightCardValues] = useState<Record<string, number>>({});
     const [isLoading, setIsLoading] = useState(
       Boolean(micrositeId || micrositeSlug),
     );
@@ -7548,14 +7549,18 @@ const descriptionTextStyle = getContainerTextStyle(
         return formatNumber(getCountdownValue(card));
       }
 
-      if (
-        card.type === "rsvp_count" ||
-        card.type === "poll_result" ||
-        card.type === "visitor_count" ||
-        card.type === "enrollment_records"
-      ) {
-        return `${card.prefix ?? ""}${formatNumber(card.fallbackValue ?? 0)}${card.suffix ?? ""}`;
-      }
+if (
+  card.type === "rsvp_count" ||
+  card.type === "poll_result" ||
+  card.type === "visitor_count" ||
+  card.type === "enrollment_records"
+) {
+  const liveValue = highlightCardValues[card.id];
+
+  return `${card.prefix ?? ""}${formatNumber(
+    typeof liveValue === "number" ? liveValue : card.fallbackValue ?? 0,
+  )}${card.suffix ?? ""}`;
+}
 
       return `${card.prefix ?? ""}${formatNumber(card.value)}${card.suffix ?? ""}`;
     }
@@ -7587,6 +7592,91 @@ const descriptionTextStyle = getContainerTextStyle(
 
       return Math.max(0, Math.min(100, Math.round((current / goal) * 100)));
     }
+
+    useEffect(() => {
+  if (!useCardRenderer || !micrositeId) return;
+
+  const enrollmentCards = normalizedCards.filter(
+    (card: any) =>
+      card.type === "enrollment_records" && String(card.sourceBlockId ?? "").trim(),
+  );
+
+  if (!enrollmentCards.length) return;
+
+  let cancelled = false;
+
+  async function loadEnrollmentCounts() {
+    const nextValues: Record<string, number> = {};
+
+    await Promise.all(
+      enrollmentCards.map(async (card: any) => {
+        try {
+const params = new URLSearchParams({
+  micrositeId: String(micrositeId),
+  blockId: String(card.sourceBlockId ?? "").trim(),
+});
+
+          const res = await fetch(
+            `/api/public/enrollment-board/count?${params.toString()}`,
+            { cache: "no-store" },
+          );
+
+          const data = await res.json();
+
+          if (!res.ok) throw new Error(data?.error || "Failed to load count.");
+
+          nextValues[card.id] =
+            card.countType === "total_submissions"
+              ? Number(data.totalSubmissions ?? 0)
+              : Number(data.activeCount ?? 0);
+        } catch {
+          nextValues[card.id] = Number(card.fallbackValue ?? 0);
+        }
+      }),
+    );
+
+    if (!cancelled) {
+      setHighlightCardValues((prev) => ({
+        ...prev,
+        ...nextValues,
+      }));
+    }
+  }
+
+  function handleEnrollmentUpdated(event: Event) {
+    const customEvent = event as CustomEvent<{
+      micrositeId?: string;
+      enrollmentBlockId?: string;
+    }>;
+
+    const detail = customEvent.detail;
+    if (!detail) return;
+    if (detail.micrositeId !== micrositeId) return;
+
+    const shouldRefresh = enrollmentCards.some(
+      (card: any) => card.sourceBlockId === detail.enrollmentBlockId,
+    );
+
+    if (!shouldRefresh) return;
+
+    void loadEnrollmentCounts();
+  }
+
+  void loadEnrollmentCounts();
+
+  window.addEventListener(
+    "kht:enrollment-board-profile-updated",
+    handleEnrollmentUpdated as EventListener,
+  );
+
+  return () => {
+    cancelled = true;
+    window.removeEventListener(
+      "kht:enrollment-board-profile-updated",
+      handleEnrollmentUpdated as EventListener,
+    );
+  };
+}, [useCardRenderer, micrositeId, normalizedCards]);
 
     useEffect(() => {
       if (useCardRenderer) {
