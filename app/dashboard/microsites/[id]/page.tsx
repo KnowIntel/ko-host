@@ -773,6 +773,13 @@ href={`/api/qr?text=${encodeURIComponent(
     >
       View Media Uploads
     </Link>
+
+    <Link
+  href={`/dashboard/microsites/${site.id}/enrollment-board`}
+  className="inline-flex items-center justify-center rounded-xl border border-emerald-300 bg-white px-4 py-3 text-sm font-medium text-emerald-700 hover:border-emerald-500"
+>
+  Enrollment Board
+</Link>
   </div>
 </div>
 
