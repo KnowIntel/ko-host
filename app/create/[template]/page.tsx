@@ -406,6 +406,12 @@ function buildDraftWithPages(currentDraft: BuilderDraft = liveDraftRef.current) 
 async function handleSaveDraft(draft: BuilderDraft): Promise<void> {
   const draftToSave = buildDraftWithPages(draft);
 
+  const savedPages = (draftToSave as BuilderDraft & { pages?: LocalBuilderPage[] }).pages;
+
+  if (Array.isArray(savedPages)) {
+    builderPagesRef.current = savedPages as LocalBuilderPage[];
+  }
+
   setHydratedDraft(draft);
   setLiveDraft(draft);
 
@@ -602,13 +608,21 @@ draft: {
 },
   };
 
-  setBuilderPages((prev) => [
+setBuilderPages((prev) => {
+  const nextPages = [
     ...prev.map((page) =>
-      page.id === activeBuilderPageId ? { ...page, draft: liveDraft } : page,
+      page.id === activeBuilderPageIdRef.current
+        ? { ...page, draft: liveDraftRef.current }
+        : page,
     ),
     nextPage,
-  ]);
+  ];
 
+  builderPagesRef.current = nextPages;
+  return nextPages;
+});
+
+  activeBuilderPageIdRef.current = nextPage.id;
   setActiveBuilderPageId(nextPage.id);
   setHydratedDraft(nextPage.draft);
   setLiveDraft(nextPage.draft);
@@ -636,28 +650,44 @@ function selectBuilderPage(pageId: string) {
 }
 
 function duplicateActiveBuilderPage() {
-  const currentPage = builderPages.find(
-    (page) => page.id === activeBuilderPageId,
+  const currentPages = builderPagesRef.current;
+  const currentActivePageId = activeBuilderPageIdRef.current;
+
+  const currentPage = currentPages.find(
+    (page) => page.id === currentActivePageId,
   );
 
-  if (!currentPage || builderPages.length >= 5) return;
+  if (!currentPage || currentPages.length >= 5) return;
 
   const nextId = `page_${Date.now()}`;
   const nextSlug = `${currentPage.slug || "page"}-copy`;
 
-  setBuilderPages((prev) => [
-    ...prev,
-    {
-      ...currentPage,
-      id: nextId,
-      slug: nextSlug,
-      title: `${currentPage.title || "Page"} Copy`,
-      display_order: prev.length,
-      draft: structuredClone(hydratedDraft),
-    },
-  ]);
+  const nextPage: LocalBuilderPage = {
+    ...currentPage,
+    id: nextId,
+    slug: nextSlug,
+    title: `${currentPage.title || "Page"} Copy`,
+    display_order: currentPages.length,
+    draft: structuredClone(liveDraftRef.current),
+  };
 
+  const nextPages = [
+    ...currentPages.map((page) =>
+      page.id === currentActivePageId
+        ? { ...page, draft: liveDraftRef.current }
+        : page,
+    ),
+    nextPage,
+  ];
+
+  builderPagesRef.current = nextPages;
+  activeBuilderPageIdRef.current = nextId;
+
+  setBuilderPages(nextPages);
   setActiveBuilderPageId(nextId);
+  setHydratedDraft(nextPage.draft);
+  setLiveDraft(nextPage.draft);
+  liveDraftRef.current = nextPage.draft;
 }
 
 function removeActiveBuilderPage() {
