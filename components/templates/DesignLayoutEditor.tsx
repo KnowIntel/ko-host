@@ -4297,10 +4297,12 @@ if (selectedBlock?.type === "form_field") {
             return block;
           }
 
-          const currentStyle =
-            target === "body"
-              ? (block.data.bodyStyle ?? block.data.style ?? {})
-              : (block.data.headingStyle ?? block.data.style ?? {});
+const currentStyle =
+  target === "value"
+    ? (block.data.valueStyle ?? block.data.bodyStyle ?? block.data.style ?? {})
+    : target === "body"
+      ? (block.data.bodyStyle ?? block.data.style ?? {})
+      : (block.data.headingStyle ?? block.data.style ?? {});
 
           const nextStyle = {
             ...currentStyle,
@@ -4327,9 +4329,11 @@ if (selectedBlock?.type === "form_field") {
             ...block,
             data: {
               ...block.data,
-              ...(target === "body"
-                ? { bodyStyle: nextStyle }
-                : { headingStyle: nextStyle }),
+...(target === "value"
+  ? { valueStyle: nextStyle }
+  : target === "body"
+    ? { bodyStyle: nextStyle }
+    : { headingStyle: nextStyle }),
             },
           };
         });
