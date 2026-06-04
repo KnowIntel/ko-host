@@ -1,12 +1,17 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import type { MicrositeBlock } from "@/lib/templates/builder";
+import { useEffect, useState } from "react";
+import type { MicrositeBlock, TextStyle } from "@/lib/templates/builder";
 
 type ContentPanelBlockProps = {
   block: Extract<MicrositeBlock, { type: "content_panel" }>;
   designKey?: string;
 };
+
+type PanelItem = Extract<
+  MicrositeBlock,
+  { type: "content_panel" }
+>["data"]["panels"][number];
 
 function cx(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
@@ -16,9 +21,63 @@ function getPanelStorageKey(blockId: string) {
   return `ko-host-content-panel-${blockId}`;
 }
 
-export default function ContentPanelBlock({
-  block,
-}: ContentPanelBlockProps) {
+function textStyleToCss(style?: TextStyle): React.CSSProperties {
+  if (!style) return {};
+
+  return {
+    color: style.color,
+    fontFamily: style.fontFamily,
+    fontSize:
+      typeof style.fontSize === "number" ? `${style.fontSize}px` : undefined,
+    fontWeight: style.bold ? 700 : undefined,
+    fontStyle: style.italic ? "italic" : undefined,
+    textDecoration: [
+      style.underline ? "underline" : "",
+      style.strike ? "line-through" : "",
+    ]
+      .filter(Boolean)
+      .join(" "),
+    textAlign: style.align,
+    letterSpacing:
+      typeof (style as any).letterSpacing === "number"
+        ? `${(style as any).letterSpacing}px`
+        : undefined,
+    lineHeight:
+      typeof (style as any).lineHeight === "number"
+        ? (style as any).lineHeight
+        : undefined,
+  };
+}
+
+function getBlockAppearanceStyle(block: MicrositeBlock): React.CSSProperties {
+  return {
+    backgroundColor:
+      block.appearance?.backgroundColor &&
+      block.appearance.backgroundColor !== "transparent"
+        ? block.appearance.backgroundColor
+        : undefined,
+
+    borderColor: block.appearance?.borderColor || undefined,
+
+    borderWidth:
+      typeof block.appearance?.borderWidth === "number"
+        ? `${block.appearance.borderWidth}px`
+        : undefined,
+
+    borderStyle:
+      typeof block.appearance?.borderWidth === "number" &&
+      block.appearance.borderWidth > 0
+        ? "solid"
+        : undefined,
+
+    borderRadius:
+      typeof block.appearance?.borderRadius === "number"
+        ? `${block.appearance.borderRadius}px`
+        : undefined,
+  };
+}
+
+export default function ContentPanelBlock({ block }: ContentPanelBlockProps) {
   const panels = Array.isArray(block.data.panels) ? block.data.panels : [];
 
   const fallbackPanelId = panels[0]?.id ?? "";
@@ -27,6 +86,24 @@ export default function ContentPanelBlock({
     fallbackPanelId;
 
   const [selectedPanelId, setSelectedPanelId] = useState(defaultPanelId);
+
+  const baseStyle = ((block.data as any).style ?? {}) as TextStyle;
+  const headingStyle = {
+    ...baseStyle,
+    ...(((block.data as any).headingStyle ?? {}) as TextStyle),
+  };
+  const subtitleStyle = {
+    ...baseStyle,
+    ...(((block.data as any).subtitleStyle ?? {}) as TextStyle),
+  };
+  const navigationStyle = {
+    ...baseStyle,
+    ...(((block.data as any).navigationStyle ?? {}) as TextStyle),
+  };
+  const panelStyle = {
+    ...baseStyle,
+    ...(((block.data as any).panelStyle ?? {}) as TextStyle),
+  };
 
   useEffect(() => {
     if (!block.data.rememberSelection || typeof window === "undefined") return;
@@ -85,12 +162,13 @@ export default function ContentPanelBlock({
   }
 
   return (
-    <div
-      className="h-full w-full min-h-0 overflow-hidden rounded-xl border border-neutral-200 bg-white p-4 text-neutral-900"
-      style={{
-        height: fixedHeight,
-      }}
-    >
+<div
+  className="h-full w-full min-h-0 overflow-hidden p-4 text-neutral-900"
+  style={{
+    ...getBlockAppearanceStyle(block),
+    height: fixedHeight,
+  }}
+>
       <style>{`
         @keyframes contentPanelFade {
           from { opacity: 0; }
@@ -119,11 +197,21 @@ export default function ContentPanelBlock({
       `}</style>
 
       {block.data.showHeading !== false && block.data.heading ? (
-        <div className="text-lg font-semibold">{block.data.heading}</div>
+        <div
+          className="text-lg font-semibold"
+          style={textStyleToCss(headingStyle)}
+        >
+          {block.data.heading}
+        </div>
       ) : null}
 
       {block.data.showSubtitle !== false && block.data.subtitle ? (
-        <div className="mt-1 text-sm text-neutral-500">{block.data.subtitle}</div>
+        <div
+          className="mt-1 text-sm text-neutral-500"
+          style={textStyleToCss(subtitleStyle)}
+        >
+          {block.data.subtitle}
+        </div>
       ) : null}
 
       <div
@@ -146,6 +234,7 @@ export default function ContentPanelBlock({
                     type="button"
                     onClick={() => selectPanel(panel.id)}
                     className="flex w-full items-center justify-between gap-3 bg-neutral-50 px-3 py-2 text-left text-sm font-semibold"
+                    style={textStyleToCss(navigationStyle)}
                   >
                     <span>
                       {panel.icon ? <span className="mr-2">{panel.icon}</span> : null}
@@ -155,8 +244,11 @@ export default function ContentPanelBlock({
                   </button>
 
                   {isOpen ? (
-                    <div className={cx("p-3", contentClass)}>
-                      <PanelContent panel={panel} />
+                    <div
+                      className={cx("p-3", contentClass)}
+                      style={textStyleToCss(panelStyle)}
+                    >
+                      <PanelContent panel={panel} panelStyle={panelStyle} />
                     </div>
                   ) : null}
                 </div>
@@ -190,6 +282,7 @@ export default function ContentPanelBlock({
                       variant === "tabs" ? "shrink-0 font-semibold" : "",
                       variant === "cards" ? "min-h-[72px]" : "",
                     )}
+                    style={textStyleToCss(navigationStyle)}
                   >
                     <div className="flex items-center gap-2">
                       {panel.icon ? <span>{panel.icon}</span> : null}
@@ -202,7 +295,7 @@ export default function ContentPanelBlock({
                     </div>
 
                     {variant === "cards" && panel.subtitle ? (
-                      <div className="mt-1 text-xs text-neutral-500">
+                      <div className="mt-1 text-xs opacity-75">
                         {panel.subtitle}
                       </div>
                     ) : null}
@@ -218,8 +311,11 @@ export default function ContentPanelBlock({
                 variant === "sidebar" ? "mt-0" : "",
                 contentClass,
               )}
+              style={textStyleToCss(panelStyle)}
             >
-              {selectedPanel ? <PanelContent panel={selectedPanel} /> : null}
+              {selectedPanel ? (
+                <PanelContent panel={selectedPanel} panelStyle={panelStyle} />
+              ) : null}
             </div>
           </>
         )}
@@ -230,9 +326,13 @@ export default function ContentPanelBlock({
 
 function PanelContent({
   panel,
+  panelStyle,
 }: {
-  panel: Extract<MicrositeBlock, { type: "content_panel" }>["data"]["panels"][number];
+  panel: PanelItem;
+  panelStyle?: TextStyle;
 }) {
+  const panelCss = textStyleToCss(panelStyle);
+
   const image = panel.imageUrl ? (
     <img
       src={panel.imageUrl}
@@ -242,7 +342,7 @@ function PanelContent({
   ) : null;
 
   const text = (
-    <div className="min-w-0">
+    <div className="min-w-0" style={panelCss}>
       <div className="flex flex-wrap items-center gap-2">
         {panel.icon ? <span className="text-lg">{panel.icon}</span> : null}
 
@@ -256,11 +356,11 @@ function PanelContent({
       </div>
 
       {panel.subtitle ? (
-        <div className="mt-1 text-sm text-neutral-500">{panel.subtitle}</div>
+        <div className="mt-1 text-sm opacity-75">{panel.subtitle}</div>
       ) : null}
 
       {panel.content ? (
-        <div className="mt-3 whitespace-pre-line text-sm leading-relaxed text-neutral-700">
+        <div className="mt-3 whitespace-pre-line text-sm leading-relaxed">
           {panel.content}
         </div>
       ) : null}

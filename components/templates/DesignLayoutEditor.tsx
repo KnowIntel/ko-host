@@ -317,7 +317,6 @@ const CATEGORY_BUTTONS: Record<
 { kind: "block", label: "Label", type: "label" },
 { kind: "block", label: "TextFX", type: "text_fx" },
 { kind: "block", label: "Rich Text", type: "rich_text" },
-{ kind: "block", label: "Content Panel", type: "content_panel"},
 { kind: "block", label: "Spreadsheet", type: "spreadsheet" },
   ],
   Media: [
@@ -480,6 +479,7 @@ const CATEGORY_BUTTONS: Record<
     { kind: "shape", label: "Line", type: "line" },
     // { kind: "block", label: "Wave", type: "wave" },
     { kind: "block", label: "Frame", type: "frame" },
+    { kind: "block", label: "Content Panel", type: "content_panel"},
     // { kind: "block", label: "Spacer", type: "padding" },
   ],
 Forms: [
@@ -1244,6 +1244,7 @@ function getToolIconPath(tool: (typeof CATEGORY_BUTTONS)[BottomCategory][number]
   if (tool.label === "Line") return "/menu-icons/block-line.svg";
   // if (tool.label === "Wave") return "/menu-icons/block-line.svg";
   if (tool.label === "Frame") return "/menu-icons/block-frame.svg";
+  if (tool.label === "Content Panel") return "/menu-icons/block-content-panel.svg";
   // if (tool.label === "Spacer") return "/menu-icons/block-frame.svg";
 
   if (tool.label === "Input Field") return "/menu-icons/block-input-field.svg";
@@ -1458,6 +1459,10 @@ export default function DesignLayoutEditor({
 const [listingStyleTarget, setListingStyleTarget] = useState<
   "title" | "description" | "metadata" | "price" | "quantity"
 >("title");
+
+const [contentPanelStyleTarget, setContentPanelStyleTarget] = useState<
+  "heading" | "subtitle" | "navigation" | "panel"
+>("heading");
 
 const [formFieldTextTarget, setFormFieldTextTarget] = useState<"form" | "text">(
   "form",
@@ -1905,6 +1910,22 @@ const selectedStyle =
                               : timelineStyleTarget === "subtitle"
                                 ? (((selectedBlockFromDraft.data as any).subtitleStyle ?? {}) as TextStyle)
                                 : (((selectedBlockFromDraft.data as any).descriptionStyle ?? {}) as TextStyle)
+                                                      : selectedBlockFromDraft?.type === "content_panel"
+                        ? contentPanelStyleTarget === "heading"
+                          ? (((selectedBlockFromDraft.data as any).headingStyle ??
+                              (selectedBlockFromDraft.data as any).style ??
+                              {}) as TextStyle)
+                          : contentPanelStyleTarget === "subtitle"
+                            ? (((selectedBlockFromDraft.data as any).subtitleStyle ??
+                                (selectedBlockFromDraft.data as any).style ??
+                                {}) as TextStyle)
+                            : contentPanelStyleTarget === "navigation"
+                              ? (((selectedBlockFromDraft.data as any).navigationStyle ??
+                                  (selectedBlockFromDraft.data as any).style ??
+                                  {}) as TextStyle)
+                              : (((selectedBlockFromDraft.data as any).panelStyle ??
+                                  (selectedBlockFromDraft.data as any).style ??
+                                  {}) as TextStyle)
                         : selectedBlockFromDraft?.type === "cart" ||
                             selectedBlockFromDraft?.type === "checkout" ||
                             selectedBlockFromDraft?.type === "text_fx" ||
@@ -4636,6 +4657,38 @@ if (selectedBlock?.type === "countdown") {
   return;
 }
 
+  if (selectedBlock?.type === "content_panel") {
+    setDraft((prev) => ({
+      ...prev,
+      blocks: prev.blocks.map((block) => {
+        if (block.id !== selectedBlock.id || block.type !== "content_panel") {
+          return block;
+        }
+
+        const targetKey =
+          contentPanelStyleTarget === "heading"
+            ? "headingStyle"
+            : contentPanelStyleTarget === "subtitle"
+              ? "subtitleStyle"
+              : contentPanelStyleTarget === "navigation"
+                ? "navigationStyle"
+                : "panelStyle";
+
+        return {
+          ...block,
+          data: {
+            ...block.data,
+            [targetKey]: {
+              ...((block.data as any)[targetKey] ?? {}),
+              ...patch,
+            },
+          },
+        };
+      }),
+    }));
+    return;
+  }
+
   if (selectedBlock?.type === "rich_text") {
     setDraft((prev) => ({
       ...prev,
@@ -5911,6 +5964,7 @@ async function uploadImageToSelectedBlock(
   timelineEntryId?: string,
   calendarEventId?: string,
   postBoardPostId?: string,
+  contentPanelId?: string,
 ) {
   await openImagePicker({
     onSelect: async (files) => {
@@ -6033,6 +6087,25 @@ async function uploadImageToSelectedBlock(
     },
   };
 }
+
+          if (block.type === "content_panel" && contentPanelId) {
+            return {
+              ...block,
+              data: {
+                ...block.data,
+                panels: block.data.panels.map((panel) =>
+                  panel.id === contentPanelId
+                    ? {
+                        ...panel,
+                        imageUrl: uploaded.url,
+                        imageStoragePath: uploaded.storagePath,
+                        imageAlt: file.name,
+                      }
+                    : panel,
+                ),
+              },
+            };
+          }
 
           return block;
         }),
@@ -15887,6 +15960,657 @@ onClick={() =>
                     </div>
                   </div>
                 ) : null}
+
+{selectedBlock?.type === "content_panel" ? (
+  <div id="inspector-content-panel" className={inspectorCardClass()}>
+    <div className={inspectorLabelClass()}>Content Panel</div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Heading</div>
+      <input
+        type="text"
+        value={selectedBlock.data.heading ?? ""}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "content_panel"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    heading: e.target.value,
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+        placeholder="Information Hub"
+      />
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Subtitle</div>
+      <input
+        type="text"
+        value={selectedBlock.data.subtitle ?? ""}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "content_panel"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    subtitle: e.target.value,
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+        placeholder="Explore each section below."
+      />
+    </div>
+
+    <div className="mt-4 grid grid-cols-2 gap-2">
+      <label className="flex items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm">
+        <input
+          type="checkbox"
+          checked={selectedBlock.data.showHeading !== false}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "content_panel"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      showHeading: e.target.checked,
+                    },
+                  },
+            )
+          }
+        />
+        Show Heading
+      </label>
+
+      <label className="flex items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm">
+        <input
+          type="checkbox"
+          checked={selectedBlock.data.showSubtitle !== false}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "content_panel"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      showSubtitle: e.target.checked,
+                    },
+                  },
+            )
+          }
+        />
+        Show Subtitle
+      </label>
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Panel Style</div>
+      <select
+        value={selectedBlock.data.variant ?? "tabs"}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "content_panel"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    variant: e.target.value as
+                      | "tabs"
+                      | "sidebar"
+                      | "cards"
+                      | "accordion",
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      >
+        <option value="tabs">Tabs</option>
+        <option value="sidebar">Sidebar</option>
+        <option value="cards">Cards</option>
+        <option value="accordion">Accordion</option>
+      </select>
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Transition</div>
+      <select
+        value={selectedBlock.data.transition ?? "fade"}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "content_panel"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    transition: e.target.value as
+                      | "none"
+                      | "fade"
+                      | "slide_left"
+                      | "slide_right"
+                      | "flip"
+                      | "scale",
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      >
+        <option value="none">None</option>
+        <option value="fade">Fade</option>
+        <option value="slide_left">Slide Left</option>
+        <option value="slide_right">Slide Right</option>
+        <option value="flip">Flip</option>
+        <option value="scale">Scale</option>
+      </select>
+    </div>
+
+    <div className="mt-4">
+  <div className={inspectorLabelClass()}>Style Target</div>
+  <select
+    value={contentPanelStyleTarget}
+    onChange={(e) =>
+      setContentPanelStyleTarget(
+        e.target.value as "heading" | "subtitle" | "navigation" | "panel",
+      )
+    }
+    className={inspectorInputClass()}
+  >
+    <option value="heading">Heading</option>
+    <option value="subtitle">Subtitle</option>
+    <option value="navigation">Navigation</option>
+    <option value="panel">Panel Content</option>
+  </select>
+</div>
+
+    <div className="mt-4 grid grid-cols-2 gap-2">
+      <label className="flex items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm">
+        <input
+          type="checkbox"
+          checked={Boolean(selectedBlock.data.rememberSelection)}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "content_panel"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      rememberSelection: e.target.checked,
+                    },
+                  },
+            )
+          }
+        />
+        Remember
+      </label>
+
+      <label className="flex items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm">
+        <input
+          type="checkbox"
+          checked={selectedBlock.data.autoHeight !== false}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "content_panel"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      autoHeight: e.target.checked,
+                    },
+                  },
+            )
+          }
+        />
+        Auto Height
+      </label>
+    </div>
+
+    {selectedBlock.data.autoHeight === false ? (
+      <div className="mt-4">
+        <div className={inspectorLabelClass()}>Fixed Height</div>
+        <input
+          type="number"
+          min={180}
+          max={900}
+          value={selectedBlock.data.fixedHeight ?? 420}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "content_panel"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      fixedHeight: Number(e.target.value),
+                    },
+                  },
+            )
+          }
+          className={inspectorInputClass()}
+        />
+      </div>
+    ) : null}
+
+    <div className="mt-5 space-y-3">
+      <div className={inspectorLabelClass()}>Panels</div>
+
+      {selectedBlock.data.panels.map((panel, panelIndex) => (
+        <div
+          key={panel.id}
+          className="rounded-xl border border-neutral-200 bg-neutral-50 p-3"
+        >
+          <div className="flex items-center justify-between gap-2">
+            <div className="text-xs font-semibold text-neutral-700">
+              Panel {panelIndex + 1}
+            </div>
+
+            <div className="flex gap-1">
+              <button
+                type="button"
+                className={toolSetButtonClass("back")}
+                onClick={() =>
+                  updateSelectedBlock((block) => {
+                    if (block.type !== "content_panel") return block;
+
+                    const panels = [...block.data.panels];
+                    const previous = panels[panelIndex - 1];
+
+                    if (!previous) return block;
+
+                    panels[panelIndex - 1] = panels[panelIndex];
+                    panels[panelIndex] = previous;
+
+                    return {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        panels,
+                      },
+                    };
+                  })
+                }
+              >
+                ↑
+              </button>
+
+              <button
+                type="button"
+                className={toolSetButtonClass("front")}
+                onClick={() =>
+                  updateSelectedBlock((block) => {
+                    if (block.type !== "content_panel") return block;
+
+                    const panels = [...block.data.panels];
+                    const next = panels[panelIndex + 1];
+
+                    if (!next) return block;
+
+                    panels[panelIndex + 1] = panels[panelIndex];
+                    panels[panelIndex] = next;
+
+                    return {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        panels,
+                      },
+                    };
+                  })
+                }
+              >
+                ↓
+              </button>
+
+              <button
+                type="button"
+                className={toolSetButtonClass("remove")}
+                onClick={() =>
+                  updateSelectedBlock((block) =>
+                    block.type !== "content_panel"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            panels:
+                              block.data.panels.length > 1
+                                ? block.data.panels.filter(
+                                    (item) => item.id !== panel.id,
+                                  )
+                                : block.data.panels,
+                            defaultPanelId:
+                              block.data.defaultPanelId === panel.id
+                                ? block.data.panels.find(
+                                    (item) => item.id !== panel.id,
+                                  )?.id
+                                : block.data.defaultPanelId,
+                          },
+                        },
+                  )
+                }
+              >
+                ×
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-3">
+            <div className={inspectorLabelClass()}>Title</div>
+            <input
+              type="text"
+              value={panel.title}
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "content_panel"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          panels: block.data.panels.map((item) =>
+                            item.id === panel.id
+                              ? { ...item, title: e.target.value }
+                              : item,
+                          ),
+                        },
+                      },
+                )
+              }
+              className={inspectorInputClass()}
+            />
+          </div>
+
+          <div className="mt-3">
+            <div className={inspectorLabelClass()}>Subtitle</div>
+            <input
+              type="text"
+              value={panel.subtitle ?? ""}
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "content_panel"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          panels: block.data.panels.map((item) =>
+                            item.id === panel.id
+                              ? { ...item, subtitle: e.target.value }
+                              : item,
+                          ),
+                        },
+                      },
+                )
+              }
+              className={inspectorInputClass()}
+            />
+          </div>
+
+          <div className="mt-3">
+            <div className={inspectorLabelClass()}>Content</div>
+            <textarea
+              value={panel.content ?? ""}
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "content_panel"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          panels: block.data.panels.map((item) =>
+                            item.id === panel.id
+                              ? { ...item, content: e.target.value }
+                              : item,
+                          ),
+                        },
+                      },
+                )
+              }
+              className={inspectorTextareaClass()}
+            />
+          </div>
+
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <div>
+              <div className={inspectorLabelClass()}>Icon</div>
+              <input
+                type="text"
+                value={panel.icon ?? ""}
+                onChange={(e) =>
+                  updateSelectedBlock((block) =>
+                    block.type !== "content_panel"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            panels: block.data.panels.map((item) =>
+                              item.id === panel.id
+                                ? { ...item, icon: e.target.value }
+                                : item,
+                            ),
+                          },
+                        },
+                  )
+                }
+                className={inspectorInputClass()}
+                placeholder="✨"
+              />
+            </div>
+
+            <div>
+              <div className={inspectorLabelClass()}>Badge</div>
+              <input
+                type="text"
+                value={panel.badge ?? ""}
+                onChange={(e) =>
+                  updateSelectedBlock((block) =>
+                    block.type !== "content_panel"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            panels: block.data.panels.map((item) =>
+                              item.id === panel.id
+                                ? { ...item, badge: e.target.value }
+                                : item,
+                            ),
+                          },
+                        },
+                  )
+                }
+                className={inspectorInputClass()}
+                placeholder="New"
+              />
+            </div>
+          </div>
+
+          <div className="mt-3">
+            <div className={inspectorLabelClass()}>Image URL</div>
+            <input
+              type="text"
+              value={panel.imageUrl ?? ""}
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "content_panel"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          panels: block.data.panels.map((item) =>
+                            item.id === panel.id
+                              ? { ...item, imageUrl: e.target.value }
+                              : item,
+                          ),
+                        },
+                      },
+                )
+              }
+              className={inspectorInputClass()}
+              placeholder="https://..."
+            />
+          </div>
+
+          <button
+  type="button"
+  className="mt-3 inline-flex h-11 items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-sm text-neutral-700 hover:bg-neutral-50"
+  onClick={() =>
+    void uploadImageToSelectedBlock(
+      selectedBlock.id,
+      undefined,
+      undefined,
+      undefined,
+      panel.id,
+    )
+  }
+>
+  Browse Panel Image
+</button>
+
+          <div className="mt-3">
+            <div className={inspectorLabelClass()}>Image Position</div>
+            <select
+              value={panel.imagePosition ?? "above"}
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "content_panel"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          panels: block.data.panels.map((item) =>
+                            item.id === panel.id
+                              ? {
+                                  ...item,
+                                  imagePosition: e.target.value as
+                                    | "above"
+                                    | "below"
+                                    | "left"
+                                    | "right",
+                                }
+                              : item,
+                          ),
+                        },
+                      },
+                )
+              }
+              className={inspectorInputClass()}
+            >
+              <option value="above">Above</option>
+              <option value="below">Below</option>
+              <option value="left">Left</option>
+              <option value="right">Right</option>
+            </select>
+          </div>
+
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button
+              type="button"
+              className={toolSetButtonClass("front")}
+              onClick={() =>
+                updateSelectedBlock((block) =>
+                  block.type !== "content_panel"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          defaultPanelId: panel.id,
+                        },
+                      },
+                )
+              }
+            >
+              {selectedBlock.data.defaultPanelId === panel.id
+                ? "Default Panel"
+                : "Set Default"}
+            </button>
+
+            <button
+              type="button"
+              className={toolSetButtonClass("front")}
+              onClick={() =>
+                updateSelectedBlock((block) =>
+                  block.type !== "content_panel"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          panels: [
+                            ...block.data.panels.slice(0, panelIndex + 1),
+                            {
+                              ...panel,
+                              id: makeClientId("panel"),
+                              title: `${panel.title || "Panel"} Copy`,
+                            },
+                            ...block.data.panels.slice(panelIndex + 1),
+                          ],
+                        },
+                      },
+                )
+              }
+            >
+              Duplicate
+            </button>
+          </div>
+        </div>
+      ))}
+
+      <button
+        type="button"
+        className={toolSetButtonClass("front")}
+        onClick={() =>
+          updateSelectedBlock((block) =>
+            block.type !== "content_panel"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    panels: [
+                      ...block.data.panels,
+                      {
+                        id: makeClientId("panel"),
+                        title: "New Panel",
+                        subtitle: "",
+                        content: "Add your panel content here.",
+                        imagePosition: "above",
+                        icon: "📌",
+                        badge: "",
+                      },
+                    ],
+                  },
+                },
+          )
+        }
+      >
+        Add Panel
+      </button>
+    </div>
+  </div>
+) : null}
+
 
 {selectedBlock?.type === "thread" ? (
   <div id="inspector-thread" className={inspectorCardClass()}>
