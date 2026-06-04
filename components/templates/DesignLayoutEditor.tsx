@@ -1178,7 +1178,7 @@ function getCategoryIconPath(category: BottomCategory) {
   if (category === "Media") return "/menu-icons/menu-media.svg";
   if (category === "Icons") return "/media-icons/star.svg";
   if (category === "Layout") return "/menu-icons/menu-layout.svg";
-  if (category === "Forms") return "/menu-icons/block-input-field.svg";
+  if (category === "Forms") return "/menu-icons/menu-forms.svg";
   if (category === "Exchange") return "/menu-icons/menu-exchange.svg";
   if (category === "Utilities") return "/menu-icons/menu-utilities.svg";
   if (category === "Data & Metrics") return "/menu-icons/menu-data-metrics.svg";
@@ -1232,7 +1232,7 @@ function getToolIconPath(tool: (typeof CATEGORY_BUTTONS)[BottomCategory][number]
   if (tool.label === "Rectangle") return "/menu-icons/block-rectangle.svg";
   if (tool.label === "Circle") return "/menu-icons/block-circle.svg";
   if (tool.label === "Line") return "/menu-icons/block-line.svg";
-  if (tool.label === "Wave") return "/menu-icons/block-line.svg";
+  // if (tool.label === "Wave") return "/menu-icons/block-line.svg";
   if (tool.label === "Frame") return "/menu-icons/block-frame.svg";
   // if (tool.label === "Spacer") return "/menu-icons/block-frame.svg";
 
