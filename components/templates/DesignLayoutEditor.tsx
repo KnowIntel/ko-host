@@ -247,6 +247,7 @@ type ToolDropPayload =
       type: BuilderBlockType;
       label?: string;
       iconName?: string;
+      icon?: string;
       iconUrl?: string;
     }
   | { kind: "shape"; type: ShapeType }
@@ -305,8 +306,9 @@ const CATEGORY_BUTTONS: Record<
         label: string;
         type: BuilderBlockType;
         iconName?: string;
+        icon?: string;
       }
-    | { kind: "block"; label: "Input Field"; type: "form_field"; iconName?: string }
+    | { kind: "block"; label: "Input Field"; type: "form_field"; iconName?: string; icon?: string }
   >
 > = {
   Text: [
@@ -1171,299 +1173,124 @@ function toolSetButtonClass(kind: "front" | "back" | "remove") {
   return "inline-flex h-8 items-center justify-center rounded-lg border border-neutral-300 bg-white px-3 text-xs font-medium text-neutral-700 hover:bg-neutral-50";
 }
 
-function renderToolGlyph(tool: (typeof CATEGORY_BUTTONS)[BottomCategory][number]) {
+function getCategoryIconPath(category: BottomCategory) {
+  if (category === "Text") return "/menu-icons/menu-text.svg";
+  if (category === "Media") return "/menu-icons/menu-media.svg";
+  if (category === "Icons") return "/media-icons/star.svg";
+  if (category === "Layout") return "/menu-icons/menu-layout.svg";
+  if (category === "Forms") return "/menu-icons/block-input-field.svg";
+  if (category === "Exchange") return "/menu-icons/menu-exchange.svg";
+  if (category === "Utilities") return "/menu-icons/menu-utilities.svg";
+  if (category === "Data & Metrics") return "/menu-icons/menu-data-metrics.svg";
+  if (category === "Scheduling") return "/menu-icons/menu-scheduling.svg";
+  if (category === "Premium") return "/menu-icons/menu-premium.svg";
+
+  return null;
+}
+
+function renderCategoryIcon(category: BottomCategory) {
+  const iconPath = getCategoryIconPath(category);
+
+  if (!iconPath) return <span className="text-sm font-semibold">•</span>;
+
+  return (
+    <img
+      src={iconPath}
+      alt=""
+      aria-hidden="true"
+      draggable={false}
+      className="h-5 w-5 object-contain"
+    />
+  );
+}
+
+function getToolIconPath(tool: (typeof CATEGORY_BUTTONS)[BottomCategory][number]) {
+  if ("icon" in tool && tool.icon) return tool.icon;
+
   if (
     tool.kind === "block" &&
     tool.type === "icon" &&
     "iconName" in tool &&
     tool.iconName
   ) {
+    return `/media-icons/${tool.iconName}.svg`;
+  }
+
+  if (tool.label === "Title") return "/menu-icons/block-title.svg";
+  if (tool.label === "Subtitle") return "/menu-icons/block-subtitle.svg";
+  if (tool.label === "Label") return "/menu-icons/block-label.svg";
+  if (tool.label === "TextFX") return "/menu-icons/block-text-fx.svg";
+  if (tool.label === "Rich Text") return "/menu-icons/block-rich-text.svg";
+  if (tool.label === "Spreadsheet") return "/menu-icons/block-spreadsheet.svg";
+
+  if (tool.label === "Image") return "/menu-icons/block-image.svg";
+  if (tool.label === "Video") return "/menu-icons/block-video.svg";
+  if (tool.label === "Audio") return "/menu-icons/block-audio.svg";
+  if (tool.label === "Gallery") return "/menu-icons/block-gallery.svg";
+  if (tool.label === "Carousel") return "/menu-icons/block-carousel.svg";
+
+  if (tool.label === "Rectangle") return "/menu-icons/block-rectangle.svg";
+  if (tool.label === "Circle") return "/menu-icons/block-circle.svg";
+  if (tool.label === "Line") return "/menu-icons/block-line.svg";
+  if (tool.label === "Wave") return "/menu-icons/block-line.svg";
+  if (tool.label === "Frame") return "/menu-icons/block-frame.svg";
+  if (tool.label === "Spacer") return "/menu-icons/block-frame.svg";
+
+  if (tool.label === "Input Field") return "/menu-icons/block-input-field.svg";
+  if (tool.label === "Poll") return "/menu-icons/block-poll.svg";
+  if (tool.label === "RSVP") return "/menu-icons/block-rsvp.svg";
+  if (tool.label === "Enrollment Board") return "/menu-icons/block-enrollment-board.svg";
+  if (tool.label === "FAQ") return "/menu-icons/block-faq.svg";
+
+  if (tool.label === "Thread") return "/menu-icons/block-thread.svg";
+  if (tool.label === "Post Board") return "/menu-icons/block-post-board.svg";
+  if (tool.label === "File Share") return "/menu-icons/block-file-share.svg";
+
+  if (tool.label === "Button") return "/menu-icons/block-button.svg";
+  if (tool.label === "Links") return "/menu-icons/block-links.svg";
+  if (tool.label === "Link Hub") return "/menu-icons/block-link-hub.svg";
+  if (tool.label === "Bookmark") return "/menu-icons/block-bookmark.svg";
+
+  if (tool.label === "Highlight") return "/menu-icons/block-highlight.svg";
+  if (tool.label === "Progress Bar") return "/menu-icons/block-progress-meter.svg";
+
+  if (tool.label === "Countdown") return "/menu-icons/block-countdown.svg";
+  if (tool.label === "Story Timeline") return "/menu-icons/block-story-timeline.svg";
+  if (tool.label === "Checklist") return "/menu-icons/block-checklist.svg";
+  if (tool.label === "Schedule / Agenda") return "/menu-icons/block-schedule-agenda.svg";
+  if (tool.label === "Calendar Event") return "/menu-icons/block-calendar-event.svg";
+  if (tool.label === "Map / Location") return "/menu-icons/block-map-location.svg";
+
+  if (tool.label === "Registry") return "/menu-icons/block-registry.svg";
+  if (tool.label === "Puzzle") return "/menu-icons/block-puzzle.svg";
+  if (tool.label === "Spin Wheel") return "/menu-icons/block-spin-wheel.svg";
+  if (tool.label === "Donation") return "/menu-icons/block-donation.svg";
+  if (tool.label === "Listing") return "/menu-icons/block-listing.svg";
+  if (tool.label === "Checkout") return "/menu-icons/block-checkout.svg";
+  if (tool.label === "Cart") return "/menu-icons/block-cart.svg";
+
+  return null;
+}
+
+function renderToolGlyph(
+  tool: (typeof CATEGORY_BUTTONS)[BottomCategory][number],
+  className = "h-5 w-5",
+) {
+  const iconPath = getToolIconPath(tool);
+
+  if (iconPath) {
     return (
-      <span
-        className="block h-5 w-5"
-        style={{
-          backgroundColor: "#111827",
-          WebkitMaskImage: `url("/media-icons/${tool.iconName}.svg")`,
-          maskImage: `url("/media-icons/${tool.iconName}.svg")`,
-          WebkitMaskRepeat: "no-repeat",
-          maskRepeat: "no-repeat",
-          WebkitMaskPosition: "center",
-          maskPosition: "center",
-          WebkitMaskSize: "contain",
-          maskSize: "contain",
-        }}
+      <img
+        src={iconPath}
+        alt=""
+        aria-hidden="true"
+        draggable={false}
+        className={`${className} object-contain`}
       />
     );
   }
 
-  return getToolGlyph(tool.label);
-}
-
-function getToolGlyph(label: string) {
-  if (label === "Text") return "T";
-  if (label === "Media") return "🖼";
-  if (label === "Icons") return "⭐";
-  if (label === "Layout") return "▦";
-  if (label === "Forms") return "☰";
-  if (label === "Interactive") return "💬";
-  if (label === "Utilities") return "⚙";
-  if (label === "Data & Metrics") return "📊";
-  if (label === "Add Plus") return "➕";
-  if (label === "Exclamation Round") return "❗";
-  if (label === "Formal Dress") return "👗";
-  if (label === "Information Circle") return "ℹ️";
-  if (label === "Location Pin Alt") return "📍";
-  if (label === "Location Pin Outline") return "📌";
-  if (label === "Subtract Minus") return "➖";
-  if (label === "Shopping Cart") return "🛒";
-  if (label === "Scheduling") return "🗓";
-  if (label === "VIP Lanyard") return "🎟️";
-  if (label === "Video Camera") return "🎥";
-  if (label === "Training Presentation") return "📊";
-  if (label === "People Group") return "👥";
-  if (label === "Mining Dig") return "⛏️";
-  if (label === "Four Square") return "⊞";
-  if (label === "Dinosaur Rex") return "🦖";
-  if (label === "Calendar Full") return "📅";
-  if (label === "Title") return "TT";
-  if (label === "Subtitle") return "ST";
-  if (label === "Tagline") return "TL";
-  if (label === "Description") return "DE";
-  if (label === "Label") return "LB";
-  if (label === "TextFX") return "✨";
-  if (label === "Image") return "🖼";
-  if (label === "Graduate Cap") return "🎓";
-  if (label === "Open Book") return "📖";
-  if (label === "Closed Book") return "📕";
-  if (label === "Paper Airplane") return "🛩";
-  if (label === "Shield") return "🛡";
-  if (label === "Fire") return "🔥";
-  if (label === "Square Outline") return "⬜";
-  if (label === "Dog Paw") return "🐾";
-  if (label === "City") return "🏙";
-  if (label === "Balloon") return "🎈";
-  if (label === "Gym Dumbbell") return "🏋️";
-  if (label === "Download") return "⬇️";
-  if (label === "External Link") return "↗";
-  if (label === "House") return "⌂";
-  if (label === "Star") return "⭐";
-  if (label === "Heart") return "❤";
-  if (label === "Trees") return "🌲";
-  if (label === "Eye Glasses") return "👓";
-  if (label === "Flag") return "🚩";
-  if (label === "Fork Knife Plate") return "🍽";
-  if (label === "Glass Drink") return "🥤";
-  if (label === "Headphones") return "🎧";
-  if (label === "Help Assistant") return "🤖";
-  if (label === "Champagne Flutes") return "🥂";
-  if (label === "Birthday Cake") return "🎂";
-  if (label === "Baby") return "👶";
-  if (label === "Music Note Treble Clef") return "𝄞";
-  if (label === "Music Note") return "🎵";
-  if (label === "Notebook Pen") return "📝";
-  if (label === "Pause Circle") return "⏸";
-  if (label === "Arrow Rotate") return "↻";
-  if (label === "Ban Sign") return "🚫";
-  if (label === "Circle Target") return "🎯";
-  if (label === "Dinner Cap") return "🎓";
-  if (label === "Open Circle") return "◯";
-  if (label === "Formal Shirt") return "👔";
-  if (label === "Hanger") return "👕";
-  if (label === "Pin Tac") return "📍";
-  if (label === "Power On") return "⏻";
-  if (label === "Service Tower Signal") return "📡";
-  if (label === "Stock Chart Up") return "📈";
-  if (label === "Stock Chart Down") return "📉";
-  if (label === "Party Confetti") return "🎉";
-  if (label === "Number Blocks") return "🔢";
-  if (label === "Megaphone Speaker") return "📣";
-  if (label === "Lock Locked") return "🔒";
-  if (label === "Lock Unlock") return "🔓";
-  if (label === "Heart Outline") return "♡";
-  if (label === "Gift Box") return "🎁";
-  if (label === "Folder Hierarchy") return "📁";
-  if (label === "Export Share") return "↗";
-  if (label === "Download Folder") return "📥";
-  if (label === "Dollar Sign") return "$";
-  if (label === "Credit Card") return "💳";
-  if (label === "Card Spade") return "♠";
-  if (label === "Card Heart") return "♥";
-  if (label === "Card Club") return "♣";
-  if (label === "Card Diamond") return "♦";
-  if (label === "Archive Box") return "🗄";
-  if (label === "Alphabet Blocks") return "🔤";
-  if (label === "Magnifying Glass Zoom In") return "🔎";
-  if (label === "Magnifying Glass Zoom Out") return "🔍";
-  if (label === "Magnifying Glass") return "⌕";
-  if (label === "Share") return "↗";
-  if (label === "Hour Glass Empty") return "⌛";
-  if (label === "Hour Glass Full") return "⏳";
-  if (label === "Hour Glass Half") return "⌛";
-  if (label === "Globe Earth") return "🌍";
-  if (label === "Cross Cancel") return "✕";
-  if (label === "Wrong Files") return "📄";
-  if (label === "Settings Gears") return "⚙";
-  if (label === "Wellness Recovery") return "❤️";
-  if (label === "Mobility") return "🛞";
-  if (label === "Nutrition") return "🍎";
-  if (label === "Trophy") return "🏆";
-  if (label === "Envelope") return "✉️";
-  if (label === "Check Circle") return "⭕";
-  if (label === "Check") return "✔";
-  if (label === "Arrow Up Thick") return "⬆";
-  if (label === "Arrow Down Thick") return "⬇";
-  if (label === "Arrow Left Thick") return "⬅";
-  if (label === "Arrow Right Thick") return "➡";
-  if (label === "Arrow Up Thin") return "↑";
-  if (label === "Arrow Down Thin") return "↓";
-  if (label === "Arrow Left Thin") return "←";
-  if (label === "Arrow Right Thin") return "→";
-  if (label === "Solid Play Triangle") {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-    >
-      <path d="M6 3L20 12L6 21V3Z" />
-    </svg>
-  );
-}
-  if (label === "Gable Panel") {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
-      fill="none"
-    >
-      <path
-        d="M3 9.5L12 4L21 9.5V20H3V9.5Z"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-  if (label === "Chevron Left") {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
-      fill="none"
-    >
-      <path
-        d="M15 5L8 12L15 19"
-        stroke="currentColor"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-if (label === "Chevron Right") {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
-      fill="none"
-    >
-      <path
-        d="M9 5L16 12L9 19"
-        stroke="currentColor"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-  if (label === "Person") return "👤";
-  if (label === "People") return "👥";
-  if (label === "Camera") return "📷";
-  if (label === "Calendar") return "📅";
-  if (label === "Globe") return "🌐";
-  if (label === "Transmission Manual") return "⚙";
-  if (label === "Transmission Automatic") return "🔁";
-  if (label === "Speedometer") return "⏱";
-  if (label === "Tire") return "🛞";
-  if (label === "Seat") return "🪑";
-  if (label === "Odometer") return "🔢";
-  if (label === "Message") return "💬";
-  if (label === "Keys") return "🔑";
-  if (label === "Key") return "🗝";
-  if (label === "Engine") return "⚙";
-  if (label === "Electric Power") return "⚡";
-  if (label === "Dummy") return "◯";
-  if (label === "Drive Type") return "⇄";
-  if (label === "Check Circle Solid") return "✅";
-  if (label === "Check Shield") return "🛡";
-  if (label === "Open Door") return "🚪";
-  if (label === "Car Side") return "🚗";
-  if (label === "Car Fuel") return "⛽";
-  if (label === "Car Front") return "🚘";
-  if (label === "Car Battery") return "🔋";
-  if (label === "Battery") return "🔋";
-  if (label === "Barcode") return "▥";
-  if (label === "Airplane") return "✈️";
-  if (label === "Accident") return "⚠️";
-  if (label === "Photo Placeholder") return "▧";
-  if (label === "Story Timeline") return "⋯";
-  if (label === "Message Thread") return "💬";
-  if (label === "Jagged Line") return "〽";
-  if (label === "Location Pin") return "📍";
-  if (label === "Clock") return "🕒";
-  if (label === "Gallery") return "▥";
-  if (label === "Rectangle") return "▭";
-  if (label === "Circle") return "◯";
-  if (label === "Line") return "—";
-  if (label === "Wave") return "〰";
-  if (label === "Frame") return "▣";
-  if (label === "Spacer") return "↕";
-  if (label === "Poll") return "☑";
-  if (label === "RSVP") return "✉";
-  if (label === "Button") return "▣";
-  if (label === "CTA") return "👉";
-  if (label === "Countdown") return "◔";
-  if (label === "FAQ") return "?";
-  if (label === "Thread") return "☰";
-  if (label === "Bookmark") return "🔖";
-  if (label === "Links") return "🔗";
-  if (label === "Highlight") return "★";
-  if (label === "Listing") return "🧾";  
-  if (label === "Checkout") return "💳";  
-  if (label === "Cart") return "🛒";  
-  if (label === "Carousel") return "⇄";
-  if (label === "Input Field") return "⌨";
-  if (label === "Rich Text") return "📝";
-  if (label === "Video") return "▶";
-  if (label === "Audio") return "♫";
-  if (label === "Progress Bar") return "▰";
-  if (label === "Spreadsheet") return "▦";
-  if (label === "Donation") return "💝";
-  if (label === "Link Hub") return "🌐";
-  if (label === "Checklist") return "☑";
-  if (label === "Schedule / Agenda") return "🗓";
-  if (label === "Map / Location") return "📍";
-  if (label === "File Share") return "📁";
-  if (label === "Speed Dating") return "❤";
-  if (label === "Pop the Balloon") return "🎈";
-  if (label === "Puzzle") return "🧩";
-  if (label === "Spin Wheel") return "🎡";
-  if (label === "Registry") return "🎁";
-  if (label === "Exchange") return "⇄";
-  if (label === "Premium") return "💎";
-  return "•";
+  return <span className="text-sm font-semibold">•</span>;
 }
 
 function getSelectedCanvasBlockId(context: SelectedContext): string | null {
@@ -28098,7 +27925,9 @@ data: {
             onClick={() => toggleToolMenu(category)}
             className={bottomCategoryClass(activeCategory === category, category)}
           >
-            <span>{getToolGlyph(category)}</span>
+            <span className="inline-flex h-5 w-5 items-center justify-center">
+  {renderCategoryIcon(category)}
+</span>
             <span>{category}</span>
           </button>
 
@@ -28214,7 +28043,7 @@ iconUrl:
         }}
         title={tool.label}
       >
-        {renderToolGlyph(tool)}
+        {renderToolGlyph(tool, "h-6 w-6")}
       </button>
     ))}
   </div>
@@ -28268,7 +28097,7 @@ iconUrl:
         title={tool.label}
       >
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-neutral-200 bg-neutral-50 text-sm font-semibold text-neutral-800">
-          {renderToolGlyph(tool)}
+          {renderToolGlyph(tool, "h-5 w-5")}
         </span>
 
         <span className="min-w-0">
