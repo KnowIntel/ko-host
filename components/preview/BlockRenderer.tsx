@@ -7473,7 +7473,7 @@ function renderHighlight(
     );
 
 const valueTextStyle = getContainerTextStyle(
-  block.data.bodyStyle ?? block.data.valueStyle ?? block.data.style,
+  block.data.valueStyle ?? block.data.bodyStyle ?? block.data.style,
   designKey,
 );
 
@@ -7983,12 +7983,16 @@ useEffect(() => {
                             </div>
                           ) : null}
 
-                          <div
-                            className="mt-2 text-3xl font-bold leading-none"
-                            style={valueTextStyle}
-                          >
-                            {getCardValue(card)}
-                          </div>
+<div
+  className="mt-2 leading-none"
+  style={{
+    fontSize: "32px",
+    fontWeight: 800,
+    ...valueTextStyle,
+  }}
+>
+  {getCardValue(card)}
+</div>
                         </div>
 
                         {card.showIcon !== false && card.icon ? (
