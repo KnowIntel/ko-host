@@ -16587,6 +16587,34 @@ onClick={() =>
       </select>
     </div>
 
+    <div className="mt-4">
+  <div className={inspectorLabelClass()}>Rotation</div>
+  <input
+    type="range"
+    min={-45}
+    max={45}
+    step={1}
+    value={selectedBlock.data.rotation ?? 0}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "highlight"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                rotation: Number(e.target.value) || 0,
+              },
+            },
+      )
+    }
+    className="w-full"
+  />
+  <div className="mt-1 text-xs text-neutral-500">
+    {selectedBlock.data.rotation ?? 0}°
+  </div>
+</div>
+
     <div className="mt-5 flex items-center justify-between gap-3">
       <div className={inspectorLabelClass()}>Highlight Cards</div>
 

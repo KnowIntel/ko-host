@@ -7926,7 +7926,13 @@ useEffect(() => {
         designKey={designKey}
         className={`${getSoftSurfaceClass(designKey)} overflow-hidden`}
       >
-        <div className="flex h-full min-h-0 w-full flex-col gap-3 overflow-hidden">
+        <div
+            className="flex h-full min-h-0 w-full flex-col gap-3 overflow-hidden"
+            style={{
+              transform: `rotate(${Number(block.data.rotation ?? 0)}deg)`,
+              transformOrigin: "center center",
+            }}
+          >
           {block.data.showHeading !== false ? (
             <div className="text-sm font-semibold" style={headingTextStyle}>
               {heading}

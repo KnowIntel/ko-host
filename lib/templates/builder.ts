@@ -991,6 +991,7 @@ export type HighlightBlock = BaseBlock & {
     showSubtitle?: boolean;
 
     displayStyle?: HighlightDisplayStyle;
+    rotation?: number;
     cards?: HighlightCard[];
 
     limit?: number;
@@ -3279,6 +3280,7 @@ styleVariant: "elegant_wedding",
           showHeading: true,
           showSubtitle: false,
           displayStyle: "grid",
+          rotation: 0,
           limit: 4,
           sourceBlockId: "",
           sourceFormBlockId: "",
