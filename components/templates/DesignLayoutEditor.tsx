@@ -479,7 +479,7 @@ const CATEGORY_BUTTONS: Record<
     { kind: "shape", label: "Line", type: "line" },
     { kind: "block", label: "Wave", type: "wave" },
     { kind: "block", label: "Frame", type: "frame" },
-    { kind: "block", label: "Spacer", type: "padding" },
+    // { kind: "block", label: "Spacer", type: "padding" },
   ],
 Forms: [
   { kind: "block", label: "Input Field", type: "form_field" },
@@ -500,7 +500,7 @@ Exchange: [
 ],
 Utilities: [
   { kind: "block", label: "Button", type: "cta" },
-  { kind: "block", label: "Links", type: "links" },
+  { kind: "block", label: "Link", type: "links" },
   { kind: "block", label: "Link Hub", type: "link_hub" },
   { kind: "block", label: "Bookmark", type: "bookmark" },
 ],
@@ -572,7 +572,7 @@ const TOOL_DESCRIPTIONS: Record<string, string> = {
 
   Bookmark: "Jump point anchor for page navigation",
   Button: "Clickable call-to-action button",
-  Links: "Stack of important links",
+  Link: "Singular or stack of important links",
   "Link Hub": "Social and web link collection",
 
   Highlight: "Feature stat or key callout",
@@ -1234,7 +1234,7 @@ function getToolIconPath(tool: (typeof CATEGORY_BUTTONS)[BottomCategory][number]
   if (tool.label === "Line") return "/menu-icons/block-line.svg";
   if (tool.label === "Wave") return "/menu-icons/block-line.svg";
   if (tool.label === "Frame") return "/menu-icons/block-frame.svg";
-  if (tool.label === "Spacer") return "/menu-icons/block-frame.svg";
+  // if (tool.label === "Spacer") return "/menu-icons/block-frame.svg";
 
   if (tool.label === "Input Field") return "/menu-icons/block-input-field.svg";
   if (tool.label === "Poll") return "/menu-icons/block-poll.svg";
@@ -1247,7 +1247,7 @@ function getToolIconPath(tool: (typeof CATEGORY_BUTTONS)[BottomCategory][number]
   if (tool.label === "File Share") return "/menu-icons/block-file-share.svg";
 
   if (tool.label === "Button") return "/menu-icons/block-button.svg";
-  if (tool.label === "Links") return "/menu-icons/block-links.svg";
+  if (tool.label === "Link") return "/menu-icons/block-links.svg";
   if (tool.label === "Link Hub") return "/menu-icons/block-link-hub.svg";
   if (tool.label === "Bookmark") return "/menu-icons/block-bookmark.svg";
 
