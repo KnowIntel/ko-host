@@ -3263,16 +3263,19 @@ function renderAudio(
     );
   }
 
-  return (
-    <div className="flex h-full w-full items-center justify-center">
-      <audio
-        controls
-        preload="metadata"
-        className="w-full"
-        src={audioUrl}
-      />
-    </div>
-  );
+return (
+  <div className="flex h-full w-full items-center justify-center">
+    <audio
+      controls={block.data.showPlayer !== false}
+      autoPlay={Boolean(block.data.autoplay)}
+      loop={Boolean(block.data.loop)}
+      preload="auto"
+      playsInline
+      className="w-full"
+      src={audioUrl}
+    />
+  </div>
+);
 }
 
 function renderLinks(
