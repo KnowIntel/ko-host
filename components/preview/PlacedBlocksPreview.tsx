@@ -83,6 +83,7 @@ const BASE_PAGE_WIDTH = MICROSITE_PAGE_WIDTH - 68;
 const GRID_COLUMNS = 12;
 const GRID_GAP = 16;
 
+
 function getPageLengthConfig(length?: DraftWithExtras["pageLength"]) {
   if (length === "1200") return { widthRatio: 1, pageHeight: 1200 };
   if (length === "1400") return { widthRatio: 1, pageHeight: 1400 };

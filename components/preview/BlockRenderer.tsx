@@ -6,6 +6,7 @@ import { createPortal } from "react-dom";
 import SpeedDatingLive from "@/components/blocks/SpeedDatingLive";
 import PopBalloonLive from "@/components/blocks/PopBalloonLive";
 import AppModal from "@/components/ui/AppModal";
+import ContentPanelBlock from "@/components/blocks/ContentPanelBlock";
 import EnrollmentBoardBlock from "@/components/blocks/EnrollmentBoardBlock";
 import {
   ENROLLMENT_BOARD_PROFILE_EVENT,
@@ -3305,6 +3306,7 @@ function renderLinks(
           : designKey === "showcase"
             ? "space-y-2"
             : "grid gap-2";
+
 
   return (
     <div
@@ -12649,6 +12651,8 @@ case "post_board":
       return renderHighlight(block, designKey, micrositeId, micrositeSlug);
     case "rich_text":
       return renderRichText(block, designKey);
+    case "content_panel":
+      return <ContentPanelBlock block={block} designKey={designKey} />;
     case "progress_bar":
       return renderProgressBar(block, designKey);
     case "donation":

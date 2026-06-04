@@ -127,6 +127,7 @@ export type BuilderBlockType =
   | "poll"
   | "rsvp"
   | "faq"
+  | "content_panel"
   | "gallery"
   | "thread"
   | "enrollment_board"
@@ -1540,6 +1541,50 @@ export type PostBoardBlock = BaseBlock & {
   };
 };
 
+export type ContentPanel = {
+  id: string;
+  title: string;
+  subtitle?: string;
+  content?: string;
+  imageUrl?: string;
+  imageStoragePath?: string;
+  imageAlt?: string;
+  imagePosition?: "above" | "below" | "left" | "right";
+  badge?: string;
+  icon?: string;
+  featured?: boolean;
+};
+
+export type ContentPanelsVariant = "tabs" | "sidebar" | "cards" | "accordion";
+
+export type ContentPanelsTransition =
+  | "none"
+  | "fade"
+  | "slide_left"
+  | "slide_right"
+  | "flip"
+  | "scale";
+
+export type ContentPanelBlock = BaseBlock & {
+  type: "content_panel";
+  data: {
+    heading?: string;
+    subtitle?: string;
+    showHeading?: boolean;
+    showSubtitle?: boolean;
+    variant: ContentPanelsVariant;
+    transition: ContentPanelsTransition;
+    defaultPanelId?: string;
+    rememberSelection?: boolean;
+    autoHeight?: boolean;
+    fixedHeight?: number;
+    panels: ContentPanel[];
+    style?: TextStyle;
+    navigationStyle?: Record<string, any>;
+    panelStyle?: Record<string, any>;
+  };
+};
+
 export type MicrositeBlock =
   | BookmarkBlock
   | PuzzleBlock
@@ -1547,6 +1592,7 @@ export type MicrositeBlock =
   | SpreadsheetBlock
   | TimelineBlock
   | WaveBlock
+  | ContentPanelBlock
   | LabelBlock
   | TextFxBlock
   | ImageBlock
@@ -3513,6 +3559,55 @@ imageWidthPercent: 35,
 rotation: 0,
     },
   };
+
+      case "content_panel":
+      return {
+        id: makeId("contentpanel"),
+        type: "content_panel",
+        label: "Content Panel",
+        grid: {
+          ...grid,
+          colSpan: 6,
+          rowSpan: 6,
+        },
+        appearance: createDefaultBlockAppearance(),
+        data: {
+          heading: "Information Hub",
+          subtitle: "Explore each section below.",
+          showHeading: true,
+          showSubtitle: true,
+          variant: "tabs",
+          transition: "fade",
+          rememberSelection: false,
+          autoHeight: true,
+          fixedHeight: 420,
+          panels: [
+            {
+              id: makeId("panel"),
+              title: "Overview",
+              subtitle: "Start here",
+              content:
+                "Use this panel to introduce your event, guide, menu, resources, or important details.",
+              imagePosition: "above",
+              icon: "✨",
+              badge: "",
+            },
+            {
+              id: makeId("panel"),
+              title: "Details",
+              subtitle: "Helpful information",
+              content:
+                "Add schedules, instructions, frequently asked questions, resources, or next steps.",
+              imagePosition: "above",
+              icon: "📌",
+              badge: "",
+            },
+          ],
+          style: createDefaultTextStyle(),
+          navigationStyle: {},
+          panelStyle: {},
+        },
+      };
 
       case "rich_text":
       return {

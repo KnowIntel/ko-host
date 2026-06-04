@@ -2095,6 +2095,39 @@ text_fx: {
   ],
 },
 
+content_panel: {
+  title: "Content Panel",
+  subtitle:
+    "Organize multiple sections of content inside one block without creating real pages.",
+  sections: [
+    {
+      title: "Overview",
+      body:
+        "The Content Panel block lets visitors switch between virtual panels while staying on the same microsite page.",
+    },
+    {
+      title: "Objective",
+      bullets: [
+        "Organize large amounts of information.",
+        "Keep everything on one true page.",
+        "Let visitors switch sections without a refresh or route change.",
+      ],
+    },
+    {
+      title: "Best Use Cases",
+      bullets: [
+        "Event information.",
+        "Schedules.",
+        "FAQs.",
+        "Menus.",
+        "Membership resources.",
+        "Course lessons.",
+        "Travel itineraries.",
+      ],
+    },
+  ],
+},
+
 rich_text: {
   title: "Rich Text",
   subtitle:

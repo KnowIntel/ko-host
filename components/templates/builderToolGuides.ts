@@ -26,6 +26,13 @@ export const BUILDER_TOOL_GUIDES: BuilderToolGuide[] = [
     howToUse: "Use this for bold callouts, slogans, decorative words, or attention-grabbing text. Keep the wording short for best visual impact.",
   },
   {
+  name: "Content Panel",
+  purpose: "Creates multiple switchable content sections inside one block.",
+  howToUse:
+    "Use this for information hubs, menus, FAQs, schedules, guides, resources, or any content that should feel multi-page without creating actual microsite pages.",
+},
+
+  {
     name: "Rich Text",
     purpose: "Adds longer formatted text content.",
     howToUse: "Use this for paragraphs, descriptions, bios, instructions, lists, or linked text. Edit content directly and use formatting controls like bold, italic, underline, alignment, lists, and links.",

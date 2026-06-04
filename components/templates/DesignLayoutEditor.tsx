@@ -317,6 +317,7 @@ const CATEGORY_BUTTONS: Record<
 { kind: "block", label: "Label", type: "label" },
 { kind: "block", label: "TextFX", type: "text_fx" },
 { kind: "block", label: "Rich Text", type: "rich_text" },
+{ kind: "block", label: "Content Panel", type: "content_panel"},
 { kind: "block", label: "Spreadsheet", type: "spreadsheet" },
   ],
   Media: [
@@ -1074,6 +1075,15 @@ if (block.type === "speed_dating" || block.type === "pop_balloon") {
       blockId,
       blockType: block.type,
       label: block.label || "Rich Text",
+    };
+  }
+
+    if (block.type === "content_panel") {
+    return {
+      kind: "otherBlock",
+      blockId,
+      blockType: block.type,
+      label: block.label || "Content Panel",
     };
   }
 
@@ -2165,6 +2175,7 @@ const showTextControls =
   selectedBlock?.type === "video" ||
   selectedBlock?.type === "gallery" ||
   selectedBlock?.type === "rich_text" ||
+  selectedBlock?.type === "content_panel" ||
   selectedBlock?.type === "countdown" ||
   selectedBlock?.type === "timeline" ||
   selectedBlock?.type === "cart" ||
@@ -2202,6 +2213,7 @@ const showAppearanceControls =
   selectedBlock?.type === "rsvp" ||
   selectedBlock?.type === "video" ||
   selectedBlock?.type === "rich_text" ||
+  selectedBlock?.type === "content_panel" ||
   selectedBlock?.type === "countdown" ||
   selectedBlock?.type === "timeline" ||
   selectedBlock?.type === "wave" ||
@@ -2231,6 +2243,7 @@ const showBorderWidthRadiusControls =
   selectedBlock?.type === "form_field" ||
   selectedBlock?.type === "video" ||
   selectedBlock?.type === "rich_text" ||
+  selectedBlock?.type === "content_panel" ||
   selectedBlock?.type === "countdown" ||
   selectedBlock?.type === "timeline" ||
   selectedBlock?.type === "wave" ||
