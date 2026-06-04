@@ -161,9 +161,14 @@ onReorderPages?: (nextPages: Array<{
 
 type PageLengthOption =
   | "1200"
+  | "1400"
+  | "1600"
   | "1800"
+  | "2000"
   | "2400"
+  | "2800"
   | "3200"
+  | "3600"
   | "4000"
   | "5600";
 
@@ -754,10 +759,16 @@ Typewriter:
 
 function getPageLengthPx(length: PageLengthOption) {
   if (length === "1200") return 1200;
+  if (length === "1400") return 1400;
+  if (length === "1600") return 1600;
   if (length === "1800") return 1800;
+  if (length === "2000") return 2000;
   if (length === "2400") return 2400;
+  if (length === "2800") return 2800;
   if (length === "3200") return 3200;
+  if (length === "3600") return 3600;
   if (length === "4000") return 4000;
+
   return 5600;
 }
 
@@ -9536,12 +9547,17 @@ onDrop={async (e) => {
   className={topBarFieldClass("w-[90px]")}
   title="Page length"
 >
-  <option value="1200">1200px</option>
-  <option value="1800">1800px</option>
-  <option value="2400">2400px</option>
-  <option value="3200">3200px</option>
-  <option value="4000">4000px</option>
-  <option value="5600">5600px</option>
+<option value="1200">1200px</option>
+<option value="1400">1400px</option>
+<option value="1600">1600px</option>
+<option value="1800">1800px</option>
+<option value="2000">2000px</option>
+<option value="2400">2400px</option>
+<option value="2800">2800px</option>
+<option value="3200">3200px</option>
+<option value="3600">3600px</option>
+<option value="4000">4000px</option>
+<option value="5600">5600px</option>
 </select>
 
 <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />

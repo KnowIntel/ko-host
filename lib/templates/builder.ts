@@ -1608,7 +1608,18 @@ export type BuilderDraft = {
   pageBackgroundImage?: string;
   pageBackgroundImageFit?: "clip" | "zoom" | "stretch";
   pageVisibility?: PageVisibility;
-  pageLength?: "1200" | "1800" | "2400" | "3200" | "4000" | "5600";
+  pageLength?:
+  | "1200"
+  | "1400"
+  | "1600"
+  | "1800"
+  | "2000"
+  | "2400"
+  | "2800"
+  | "3200"
+  | "3600"
+  | "4000"
+  | "5600";
   pageElements?: PageElements;
   pageBlockAppearance?: PageBlockAppearance;
 
@@ -4961,15 +4972,20 @@ if (block.type === "form_field") {
         ? draft.pageBackgroundImageFit
         : "zoom",
 
-    pageLength:
-      (draft as any).pageLength === "1200" ||
-      (draft as any).pageLength === "1800" ||
-      (draft as any).pageLength === "2400" ||
-      (draft as any).pageLength === "3200" ||
-      (draft as any).pageLength === "4000" ||
-      (draft as any).pageLength === "5600"
-        ? (draft as any).pageLength
-        : "1800",
+pageLength:
+  (draft as any).pageLength === "1200" ||
+  (draft as any).pageLength === "1400" ||
+  (draft as any).pageLength === "1600" ||
+  (draft as any).pageLength === "1800" ||
+  (draft as any).pageLength === "2000" ||
+  (draft as any).pageLength === "2400" ||
+  (draft as any).pageLength === "2800" ||
+  (draft as any).pageLength === "3200" ||
+  (draft as any).pageLength === "3600" ||
+  (draft as any).pageLength === "4000" ||
+  (draft as any).pageLength === "5600"
+    ? (draft as any).pageLength
+    : "1800",
 
     pageVisibility:
       draft.pageVisibility && typeof draft.pageVisibility === "object"

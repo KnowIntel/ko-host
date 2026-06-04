@@ -38,7 +38,18 @@ type DraftWithExtras = BuilderDraft & {
   pageColor?: string;
   pageBackgroundImage?: string;
   pageBackgroundImageFit?: "clip" | "zoom" | "stretch";
-  pageLength?: "1200" | "1800" | "2400" | "3200" | "4000" | "5600";
+  pageLength?:
+  | "1200"
+  | "1400"
+  | "1600"
+  | "1800"
+  | "2000"
+  | "2400"
+  | "2800"
+  | "3200"
+  | "3600"
+  | "4000"
+  | "5600";
   pageVisibility?: Partial<{
     title: boolean;
     subtitle: boolean;
@@ -74,10 +85,16 @@ const GRID_GAP = 16;
 
 function getPageLengthConfig(length?: DraftWithExtras["pageLength"]) {
   if (length === "1200") return { widthRatio: 1, pageHeight: 1200 };
+  if (length === "1400") return { widthRatio: 1, pageHeight: 1400 };
+  if (length === "1600") return { widthRatio: 1, pageHeight: 1600 };
   if (length === "1800") return { widthRatio: 1, pageHeight: 1800 };
+  if (length === "2000") return { widthRatio: 1, pageHeight: 2000 };
   if (length === "2400") return { widthRatio: 1, pageHeight: 2400 };
+  if (length === "2800") return { widthRatio: 1, pageHeight: 2800 };
   if (length === "3200") return { widthRatio: 1, pageHeight: 3200 };
+  if (length === "3600") return { widthRatio: 1, pageHeight: 3600 };
   if (length === "4000") return { widthRatio: 1, pageHeight: 4000 };
+
   return { widthRatio: 1, pageHeight: 5600 };
 }
 
