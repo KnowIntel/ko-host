@@ -1131,7 +1131,7 @@ function bottomCategoryClass(active: boolean, category?: BottomCategory) {
     active
       ? "border-blue-500 bg-blue-600 text-white"
       : category === "Premium"
-        ? "border-neutral-300 bg-white text-blue-700 hover:bg-neutral-100"
+        ? "border-neutral-300 bg-white text-[rgb(0,0,255)] hover:bg-neutral-100"
         : "border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-100",
   ].join(" ");
 }
