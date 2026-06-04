@@ -1,3 +1,5 @@
+// lib\uploadImage.ts
+
 import imageCompression from "browser-image-compression";
 import { createClient } from "@supabase/supabase-js";
 

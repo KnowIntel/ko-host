@@ -649,6 +649,11 @@ export type AudioBlock = BaseBlock & {
   type: "audio";
   data: {
     audioUrl?: string;
+
+    audioStoragePath?: string;
+    audioMimeType?: string;
+    audioSizeBytes?: number;
+
     autoplay?: boolean;
     loop?: boolean;
     showPlayer?: boolean;
@@ -2900,6 +2905,9 @@ case "text_fx":
         appearance: createDefaultBlockAppearance(),
         data: {
           audioUrl: "",
+          audioStoragePath: "",
+          audioMimeType: "",
+          audioSizeBytes: 0,
           autoplay: false,
           loop: false,
           showPlayer: true,

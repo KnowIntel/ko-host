@@ -3250,7 +3250,9 @@ function renderFrame(
   );
 }
 
-function renderAudio(block: Extract<MicrositeBlock, { type: "audio" }>) {
+function renderAudio(
+  block: Extract<MicrositeBlock, { type: "audio" }>,
+) {
   const audioUrl = block.data.audioUrl?.trim();
 
   if (!audioUrl) {
@@ -3262,19 +3264,13 @@ function renderAudio(block: Extract<MicrositeBlock, { type: "audio" }>) {
   }
 
   return (
-    <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-xl bg-neutral-100 p-3">
+    <div className="flex h-full w-full items-center justify-center">
       <audio
-        key={audioUrl}
-        src={audioUrl}
-        preload="auto"
-        controls={block.data.showPlayer !== false}
-        loop={block.data.loop === true}
-        autoPlay={block.data.autoplay === true}
-        playsInline
+        controls
+        preload="metadata"
         className="w-full"
-      >
-        Your browser does not support audio playback.
-      </audio>
+        src={audioUrl}
+      />
     </div>
   );
 }

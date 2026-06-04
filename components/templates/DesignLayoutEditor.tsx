@@ -7,6 +7,7 @@ import { BLOCK_GUIDES } from "@/components/templates/blockGuideContent";
 import PopBalloonCanvasPreview from "@/components/blocks/PopBalloonCanvasPreview";
 import { getStoreMeta } from "@/lib/utils/getStoreMeta";
 import { uploadImage } from "@/lib/uploadImage";
+import { uploadAudio } from "@/lib/uploadAudio";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -3215,6 +3216,10 @@ async function uploadBuilderImageFile(file: File) {
   return uploadImage(file);
 }
 
+async function uploadBuilderAudioFile(file: File) {
+  return uploadAudio(file);
+}
+
 async function pickColorWithEyeDropper(
   onPick: (color: string) => void,
 ) {
@@ -3922,9 +3927,28 @@ async function uploadAudioToSelectedBlock(blockId: string) {
       const file = files[0];
       if (!file) return;
 
-      setEditorUploadError(
-        "Audio upload is temporarily disabled until audio files are uploaded to Supabase before saving to the draft.",
-      );
+      try {
+        setEditorUploadError("");
+
+        const uploaded = await uploadBuilderAudioFile(file);
+
+        updateSelectedBlock((block) =>
+          block.id !== blockId || block.type !== "audio"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  audioUrl: uploaded.url,
+                  audioStoragePath: uploaded.storagePath,
+                  audioMimeType: uploaded.audioMimeType,
+                  audioSizeBytes: uploaded.audioSizeBytes,
+                },
+              },
+        );
+      } catch {
+        setEditorUploadError("Audio upload failed.");
+      }
     },
   });
 }
