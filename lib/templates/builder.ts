@@ -931,6 +931,16 @@ export type EnrollmentBoardBlock = BaseBlock & {
     subtitleStyle?: TextStyle;
     memberNameStyle?: TextStyle;
     memberQuoteStyle?: TextStyle;
+    memberListPosition?: "standard" | "profile";
+    fieldSectionWidth?: number;
+    memberTotalLabel?: string;
+    memberTotalStyle?: TextStyle & {
+    backgroundColor?: string;
+    backgroundOpacity?: number;
+    borderColor?: string;
+    borderWidth?: number;
+    borderRadius?: number;
+  };
 
     linkedProfileImageBlockId?: string;
     linkedNameLabelBlockId?: string;
@@ -3293,6 +3303,17 @@ styleVariant: "elegant_wedding",
           showProfileImages: true,
           showQuotes: true,
           showEnrollmentCount: true,
+          memberListPosition: "standard",
+          fieldSectionWidth: 55,
+          memberTotalLabel: " enrolled",
+          memberTotalStyle: {
+            ...createDefaultTextStyle(),
+            fontSize: 12,
+            bold: true,
+            color: "#4b5563",
+            backgroundColor: "#f3f4f6",
+            borderRadius: 999,
+          },
 
                     inputStyle: createDefaultTextStyle(),
           listStyle: createDefaultTextStyle(),
