@@ -119,6 +119,7 @@ const draftPageCountByTemplateDesignKey: Record<string, number> = {
   "live_entertainment:adventure": 1,
 
   "watch_club:dunder": 5,
+  "watch_club:hangout": 5,
 
 };
 
