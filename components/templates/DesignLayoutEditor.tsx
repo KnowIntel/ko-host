@@ -1928,22 +1928,6 @@ const selectedStyle =
                               : timelineStyleTarget === "subtitle"
                                 ? (((selectedBlockFromDraft.data as any).subtitleStyle ?? {}) as TextStyle)
                                 : (((selectedBlockFromDraft.data as any).descriptionStyle ?? {}) as TextStyle)
-: (selectedBlockFromDraft as any)?.type === "content_panel"
-  ? contentPanelStyleTarget === "heading"
-    ? ((((selectedBlockFromDraft as any).data as any).headingStyle ??
-        ((selectedBlockFromDraft as any).data as any).style ??
-        {}) as TextStyle)
-    : contentPanelStyleTarget === "subtitle"
-      ? ((((selectedBlockFromDraft as any).data as any).subtitleStyle ??
-          ((selectedBlockFromDraft as any).data as any).style ??
-          {}) as TextStyle)
-      : contentPanelStyleTarget === "navigation"
-        ? ((((selectedBlockFromDraft as any).data as any).navigationStyle ??
-            ((selectedBlockFromDraft as any).data as any).style ??
-            {}) as TextStyle)
-        : ((((selectedBlockFromDraft as any).data as any).panelStyle ??
-            ((selectedBlockFromDraft as any).data as any).style ??
-            {}) as TextStyle)
                         : selectedBlockFromDraft?.type === "cart" ||
                             selectedBlockFromDraft?.type === "checkout" ||
                             selectedBlockFromDraft?.type === "text_fx" ||
