@@ -183,7 +183,7 @@ export default function ContentPanelBlock({ block }: ContentPanelBlockProps) {
 
   return (
     <div
-      className="h-full w-full min-h-0 overflow-hidden p-4 text-neutral-900"
+      className="pointer-events-auto relative z-10 flex h-full w-full min-h-0 flex-col overflow-hidden p-4 text-neutral-900"
       style={{
         ...getBlockAppearanceStyle(block),
         height: fixedHeight,
@@ -232,10 +232,10 @@ export default function ContentPanelBlock({ block }: ContentPanelBlockProps) {
       ) : null}
 
       <div
-        className={cx(
-          "mt-4 min-h-0",
-          variant === "sidebar" ? "grid gap-4 md:grid-cols-[180px_1fr]" : "",
-        )}
+className={cx(
+  "mt-4 flex min-h-0 flex-1 flex-col",
+  variant === "sidebar" ? "md:grid md:grid-cols-[180px_1fr] md:gap-4" : "",
+)}
       >
         {variant === "accordion" ? (
           <div className="space-y-2">
@@ -247,11 +247,11 @@ export default function ContentPanelBlock({ block }: ContentPanelBlockProps) {
                   key={panel.id}
                   className="overflow-hidden rounded-xl border border-neutral-200"
                 >
-                  <button
-                    type="button"
-                    onClick={() => selectPanel(panel.id)}
-                    className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm font-semibold"
-                    style={{
+<button
+  type="button"
+  onClick={() => selectPanel(panel.id)}
+  className="pointer-events-auto flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm font-semibold"
+  style={{
                       ...textStyleToCss(navigationStyle),
                       backgroundColor: isOpen
                         ? activeNavigationBackground
@@ -272,7 +272,7 @@ export default function ContentPanelBlock({ block }: ContentPanelBlockProps) {
 
                   {isOpen ? (
                     <div
-                      className={cx("p-3", contentClass)}
+                      className={cx("max-h-full overflow-y-auto p-3", contentClass)}
                       style={{
                         ...textStyleToCss(panelStyle),
                         backgroundColor: panelBackground,
@@ -310,8 +310,8 @@ export default function ContentPanelBlock({ block }: ContentPanelBlockProps) {
                     aria-controls={`content-panel-${block.id}-${panel.id}`}
                     id={`content-panel-tab-${block.id}-${panel.id}`}
                     onClick={() => selectPanel(panel.id)}
-                    className={cx(
-                      "rounded-xl border px-3 py-2 text-left text-sm transition",
+className={cx(
+  "pointer-events-auto rounded-xl border px-3 py-2 text-left text-sm transition",
                       isSelected
                         ? "border-blue-500"
                         : panel.featured
@@ -372,7 +372,7 @@ export default function ContentPanelBlock({ block }: ContentPanelBlockProps) {
                   : undefined
               }
               className={cx(
-                "mt-4 min-h-0 overflow-auto rounded-xl border border-neutral-200 p-4",
+                "mt-4 min-h-0 flex-1 overflow-y-auto rounded-xl border border-neutral-200 p-4",
                 variant === "sidebar" ? "mt-0" : "",
                 contentClass,
               )}
