@@ -410,7 +410,7 @@ function PanelContent({
   ) : null;
 
   const text = (
-    <div className="min-w-0" style={panelCss}>
+    <div className="min-w-0">
       <div className="flex flex-wrap items-center gap-2">
         {panel.icon ? <span className="text-lg">{panel.icon}</span> : null}
 
@@ -427,11 +427,14 @@ function PanelContent({
         <div className="mt-1 text-sm opacity-75">{panel.subtitle}</div>
       ) : null}
 
-      {panel.content ? (
-        <div className="mt-3 whitespace-pre-line text-sm leading-relaxed">
-          {panel.content}
-        </div>
-      ) : null}
+{panel.content ? (
+  <div
+    className="mt-3 whitespace-pre-line"
+    style={panelCss}
+  >
+    {panel.content}
+  </div>
+) : null}
     </div>
   );
 
