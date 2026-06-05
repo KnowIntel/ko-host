@@ -4164,42 +4164,44 @@ if (
   return;
 }
 
-if (selectedBlock?.type === "form_field") {
+if ((selectedBlockFromDraft as any)?.type === "form_field") {
+  const targetBlockId = (selectedBlockFromDraft as any).id;
+
   setDraft((prev) => ({
     ...prev,
-    blocks: prev.blocks.map((block) =>
-      block.id === selectedBlock.id && block.type === "form_field"
-        ? {
-            ...block,
-            data: {
-              ...block.data,
+    blocks: prev.blocks.map((block) => {
+      if (block.id !== targetBlockId || block.type !== "form_field") {
+        return block;
+      }
 
-              ...(formFieldTextTarget === "text"
-                ? {
-                    inputStyle: {
-                      ...((block.data as any).inputStyle ??
-                        block.data.style ??
-                        {}),
-                      ...patch,
-                    },
-                  }
-                : {
-                    style: {
-                      ...((block.data as any).style ?? {}),
-                      ...patch,
-                    },
-
-                    labelStyle: {
-                      ...((block.data as any).labelStyle ??
-                        block.data.style ??
-                        {}),
-                      ...patch,
-                    },
-                  }),
+      if (formFieldTextTarget === "text") {
+        return {
+          ...block,
+          data: {
+            ...block.data,
+            inputStyle: {
+              ...((block.data as any).inputStyle ?? block.data.style ?? {}),
+              ...patch,
             },
-          }
-        : block,
-    ),
+          },
+        };
+      }
+
+      return {
+        ...block,
+        data: {
+          ...block.data,
+          style: {
+            ...((block.data as any).style ?? {}),
+            ...patch,
+          },
+          labelStyle: {
+            ...((block.data as any).labelStyle ?? block.data.style ?? {}),
+            ...patch,
+          },
+        },
+      };
+    }),
   }));
 
   return;
