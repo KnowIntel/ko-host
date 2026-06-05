@@ -8,10 +8,8 @@ type ContentPanelBlockProps = {
   designKey?: string;
 };
 
-type PanelItem = Extract<
-  MicrositeBlock,
-  { type: "content_panel" }
->["data"]["panels"][number];
+type ContentPanelBlock = Extract<MicrositeBlock, { type: "content_panel" }>;
+type PanelItem = ContentPanelBlock["data"]["panels"][number];
 
 function cx(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
@@ -56,20 +54,16 @@ function getBlockAppearanceStyle(block: MicrositeBlock): React.CSSProperties {
       block.appearance.backgroundColor !== "transparent"
         ? block.appearance.backgroundColor
         : undefined,
-
     borderColor: block.appearance?.borderColor || undefined,
-
     borderWidth:
       typeof block.appearance?.borderWidth === "number"
         ? `${block.appearance.borderWidth}px`
         : undefined,
-
     borderStyle:
       typeof block.appearance?.borderWidth === "number" &&
       block.appearance.borderWidth > 0
         ? "solid"
         : undefined,
-
     borderRadius:
       typeof block.appearance?.borderRadius === "number"
         ? `${block.appearance.borderRadius}px`
@@ -88,27 +82,53 @@ export default function ContentPanelBlock({ block }: ContentPanelBlockProps) {
   const [selectedPanelId, setSelectedPanelId] = useState(defaultPanelId);
 
   const baseStyle = ((block.data as any).style ?? {}) as TextStyle;
+
   const headingStyle = {
     ...baseStyle,
     ...(((block.data as any).headingStyle ?? {}) as TextStyle),
   };
+
   const subtitleStyle = {
     ...baseStyle,
     ...(((block.data as any).subtitleStyle ?? {}) as TextStyle),
   };
+
   const navigationStyle = {
     ...baseStyle,
     ...(((block.data as any).navigationStyle ?? {}) as TextStyle),
   };
+
   const panelStyle = {
     ...baseStyle,
     ...(((block.data as any).panelStyle ?? {}) as TextStyle),
   };
 
+  const activeNavigationBackground =
+    typeof (block.data as any).activeNavigationBackground === "string"
+      ? (block.data as any).activeNavigationBackground
+      : "#dbeafe";
+
+  const activeNavigationColor =
+    typeof (block.data as any).activeNavigationColor === "string"
+      ? (block.data as any).activeNavigationColor
+      : "#1d4ed8";
+
+  const inactiveNavigationBackground =
+    typeof (block.data as any).inactiveNavigationBackground === "string"
+      ? (block.data as any).inactiveNavigationBackground
+      : "#ffffff";
+
+  const panelBackground =
+    typeof (block.data as any).panelBackground === "string"
+      ? (block.data as any).panelBackground
+      : "#f9fafb";
+
   useEffect(() => {
     if (!block.data.rememberSelection || typeof window === "undefined") return;
 
-    const storedPanelId = window.localStorage.getItem(getPanelStorageKey(block.id));
+    const storedPanelId = window.localStorage.getItem(
+      getPanelStorageKey(block.id),
+    );
 
     if (storedPanelId && panels.some((panel) => panel.id === storedPanelId)) {
       setSelectedPanelId(storedPanelId);
@@ -162,13 +182,13 @@ export default function ContentPanelBlock({ block }: ContentPanelBlockProps) {
   }
 
   return (
-<div
-  className="h-full w-full min-h-0 overflow-hidden p-4 text-neutral-900"
-  style={{
-    ...getBlockAppearanceStyle(block),
-    height: fixedHeight,
-  }}
->
+    <div
+      className="h-full w-full min-h-0 overflow-hidden p-4 text-neutral-900"
+      style={{
+        ...getBlockAppearanceStyle(block),
+        height: fixedHeight,
+      }}
+    >
       <style>{`
         @keyframes contentPanelFade {
           from { opacity: 0; }
@@ -206,10 +226,7 @@ export default function ContentPanelBlock({ block }: ContentPanelBlockProps) {
       ) : null}
 
       {block.data.showSubtitle !== false && block.data.subtitle ? (
-        <div
-          className="mt-1 text-sm text-neutral-500"
-          style={textStyleToCss(subtitleStyle)}
-        >
+        <div className="mt-1 text-sm" style={textStyleToCss(subtitleStyle)}>
           {block.data.subtitle}
         </div>
       ) : null}
@@ -233,11 +250,21 @@ export default function ContentPanelBlock({ block }: ContentPanelBlockProps) {
                   <button
                     type="button"
                     onClick={() => selectPanel(panel.id)}
-                    className="flex w-full items-center justify-between gap-3 bg-neutral-50 px-3 py-2 text-left text-sm font-semibold"
-                    style={textStyleToCss(navigationStyle)}
+                    className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm font-semibold"
+                    style={{
+                      ...textStyleToCss(navigationStyle),
+                      backgroundColor: isOpen
+                        ? activeNavigationBackground
+                        : inactiveNavigationBackground,
+                      color: isOpen
+                        ? activeNavigationColor
+                        : navigationStyle.color,
+                    }}
                   >
                     <span>
-                      {panel.icon ? <span className="mr-2">{panel.icon}</span> : null}
+                      {panel.icon ? (
+                        <span className="mr-2">{panel.icon}</span>
+                      ) : null}
                       {panel.title}
                     </span>
                     <span>{isOpen ? "−" : "+"}</span>
@@ -246,7 +273,10 @@ export default function ContentPanelBlock({ block }: ContentPanelBlockProps) {
                   {isOpen ? (
                     <div
                       className={cx("p-3", contentClass)}
-                      style={textStyleToCss(panelStyle)}
+                      style={{
+                        ...textStyleToCss(panelStyle),
+                        backgroundColor: panelBackground,
+                      }}
                     >
                       <PanelContent panel={panel} panelStyle={panelStyle} />
                     </div>
@@ -258,6 +288,8 @@ export default function ContentPanelBlock({ block }: ContentPanelBlockProps) {
         ) : (
           <>
             <nav
+              role="tablist"
+              aria-label={block.data.heading || "Content panels"}
               className={cx(
                 variant === "tabs"
                   ? "flex gap-2 overflow-x-auto pb-1"
@@ -273,20 +305,42 @@ export default function ContentPanelBlock({ block }: ContentPanelBlockProps) {
                   <button
                     key={panel.id}
                     type="button"
+                    role="tab"
+                    aria-selected={isSelected}
+                    aria-controls={`content-panel-${block.id}-${panel.id}`}
+                    id={`content-panel-tab-${block.id}-${panel.id}`}
                     onClick={() => selectPanel(panel.id)}
                     className={cx(
                       "rounded-xl border px-3 py-2 text-left text-sm transition",
                       isSelected
-                        ? "border-blue-500 bg-blue-50 text-blue-700"
-                        : "border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50",
+                        ? "border-blue-500"
+                        : panel.featured
+                          ? "border-amber-300 hover:opacity-90"
+                          : "border-neutral-200 hover:opacity-90",
                       variant === "tabs" ? "shrink-0 font-semibold" : "",
                       variant === "cards" ? "min-h-[72px]" : "",
                     )}
-                    style={textStyleToCss(navigationStyle)}
+                    style={{
+                      ...textStyleToCss(navigationStyle),
+                      backgroundColor: isSelected
+                        ? activeNavigationBackground
+                        : inactiveNavigationBackground,
+                      color: isSelected
+                        ? activeNavigationColor
+                        : navigationStyle.color,
+                    }}
                   >
                     <div className="flex items-center gap-2">
                       {panel.icon ? <span>{panel.icon}</span> : null}
+
                       <span className="font-semibold">{panel.title}</span>
+
+                      {panel.featured ? (
+                        <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] text-amber-800">
+                          Featured
+                        </span>
+                      ) : null}
+
                       {panel.badge ? (
                         <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] text-neutral-600">
                           {panel.badge}
@@ -306,12 +360,26 @@ export default function ContentPanelBlock({ block }: ContentPanelBlockProps) {
 
             <div
               key={selectedPanel?.id}
+              role="tabpanel"
+              id={
+                selectedPanel
+                  ? `content-panel-${block.id}-${selectedPanel.id}`
+                  : undefined
+              }
+              aria-labelledby={
+                selectedPanel
+                  ? `content-panel-tab-${block.id}-${selectedPanel.id}`
+                  : undefined
+              }
               className={cx(
-                "mt-4 min-h-0 overflow-auto rounded-xl border border-neutral-200 bg-neutral-50 p-4",
+                "mt-4 min-h-0 overflow-auto rounded-xl border border-neutral-200 p-4",
                 variant === "sidebar" ? "mt-0" : "",
                 contentClass,
               )}
-              style={textStyleToCss(panelStyle)}
+              style={{
+                ...textStyleToCss(panelStyle),
+                backgroundColor: panelBackground,
+              }}
             >
               {selectedPanel ? (
                 <PanelContent panel={selectedPanel} panelStyle={panelStyle} />

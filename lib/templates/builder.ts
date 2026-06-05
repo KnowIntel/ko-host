@@ -1580,8 +1580,14 @@ export type ContentPanelBlock = BaseBlock & {
     fixedHeight?: number;
     panels: ContentPanel[];
     style?: TextStyle;
+    headingStyle?: TextStyle;
+    subtitleStyle?: TextStyle;
     navigationStyle?: Record<string, any>;
     panelStyle?: Record<string, any>;
+    activeNavigationBackground?: string;
+    activeNavigationColor?: string;
+    inactiveNavigationBackground?: string;
+    panelBackground?: string;
   };
 };
 
@@ -3603,9 +3609,34 @@ rotation: 0,
               badge: "",
             },
           ],
+
           style: createDefaultTextStyle(),
-          navigationStyle: {},
-          panelStyle: {},
+
+          headingStyle: {
+            ...createDefaultTextStyle(),
+            fontSize: 20,
+            bold: true,
+          },
+
+          subtitleStyle: {
+            ...createDefaultTextStyle(),
+            fontSize: 14,
+            color: "#6B7280",
+          },
+
+          navigationStyle: {
+            ...createDefaultTextStyle(),
+            bold: true,
+          },
+
+          panelStyle: {
+            ...createDefaultTextStyle(),
+          },
+
+          activeNavigationBackground: "#dbeafe",
+          activeNavigationColor: "#1d4ed8",
+          inactiveNavigationBackground: "#ffffff",
+          panelBackground: "#f9fafb",
         },
       };
 
@@ -4205,6 +4236,141 @@ export function sanitizeBuilderDraft(input: unknown): BuilderDraft {
       rowStart: index + 1,
       zIndex: index + 1,
     };
+
+        if (block.type === "content_panel") {
+      const data = block.data as any;
+
+      const panels = Array.isArray(data.panels)
+        ? data.panels.map((panel: any) => ({
+            id:
+              typeof panel?.id === "string" && panel.id.trim()
+                ? panel.id
+                : makeId("panel"),
+            title:
+              typeof panel?.title === "string" && panel.title.trim()
+                ? panel.title
+                : "Panel",
+            subtitle:
+              typeof panel?.subtitle === "string" ? panel.subtitle : "",
+            content:
+              typeof panel?.content === "string" ? panel.content : "",
+            imageUrl:
+              typeof panel?.imageUrl === "string" ? panel.imageUrl : "",
+            imageStoragePath:
+              typeof panel?.imageStoragePath === "string"
+                ? panel.imageStoragePath
+                : "",
+            imageAlt:
+              typeof panel?.imageAlt === "string" ? panel.imageAlt : "",
+            imagePosition:
+              panel?.imagePosition === "above" ||
+              panel?.imagePosition === "below" ||
+              panel?.imagePosition === "left" ||
+              panel?.imagePosition === "right"
+                ? panel.imagePosition
+                : "above",
+            badge:
+              typeof panel?.badge === "string" ? panel.badge : "",
+            icon:
+              typeof panel?.icon === "string" ? panel.icon : "",
+            featured: Boolean(panel?.featured),
+          }))
+        : [];
+
+      const fallbackPanels =
+        panels.length > 0
+          ? panels
+          : [
+              {
+                id: makeId("panel"),
+                title: "Overview",
+                subtitle: "Start here",
+                content:
+                  "Use this panel to introduce your event, guide, menu, resources, or important details.",
+                imageUrl: "",
+                imageStoragePath: "",
+                imageAlt: "",
+                imagePosition: "above" as const,
+                badge: "",
+                icon: "✨",
+                featured: false,
+              },
+            ];
+
+      return {
+        ...block,
+        grid: normalizeGridValue(block.grid, fallbackGrid),
+        data: {
+          heading:
+            typeof data.heading === "string"
+              ? data.heading
+              : "Information Hub",
+          subtitle:
+            typeof data.subtitle === "string"
+              ? data.subtitle
+              : "Explore each section below.",
+          showHeading: data.showHeading !== false,
+          showSubtitle: data.showSubtitle !== false,
+          variant:
+            data.variant === "tabs" ||
+            data.variant === "sidebar" ||
+            data.variant === "cards" ||
+            data.variant === "accordion"
+              ? data.variant
+              : "tabs",
+          transition:
+            data.transition === "none" ||
+            data.transition === "fade" ||
+            data.transition === "slide_left" ||
+            data.transition === "slide_right" ||
+            data.transition === "flip" ||
+            data.transition === "scale"
+              ? data.transition
+              : "fade",
+          defaultPanelId:
+            typeof data.defaultPanelId === "string" &&
+            fallbackPanels.some((panel: any) => panel.id === data.defaultPanelId)
+              ? data.defaultPanelId
+              : fallbackPanels[0]?.id,
+          rememberSelection: Boolean(data.rememberSelection),
+          autoHeight: data.autoHeight !== false,
+          fixedHeight:
+            typeof data.fixedHeight === "number" &&
+            Number.isFinite(data.fixedHeight)
+              ? Math.max(180, Math.min(900, Math.floor(data.fixedHeight)))
+              : 420,
+          panels: fallbackPanels,
+          style: {
+            ...createDefaultTextStyle(),
+            ...(data.style ?? {}),
+          },
+          headingStyle: {
+            ...createDefaultTextStyle(),
+            fontSize: 20,
+            bold: true,
+            ...(data.headingStyle ?? {}),
+          },
+          subtitleStyle: {
+            ...createDefaultTextStyle(),
+            fontSize: 14,
+            color: "#6B7280",
+            ...(data.subtitleStyle ?? {}),
+          },
+          navigationStyle: {
+            ...createDefaultTextStyle(),
+            fontSize: 14,
+            bold: true,
+            ...(data.navigationStyle ?? {}),
+          },
+          panelStyle: {
+            ...createDefaultTextStyle(),
+            fontSize: 14,
+            color: "#374151",
+            ...(data.panelStyle ?? {}),
+          },
+        },
+      };
+    }
 
         if (block.type === "timeline") {
       const data = block.data as any;

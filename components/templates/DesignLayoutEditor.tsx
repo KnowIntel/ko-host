@@ -16137,6 +16137,96 @@ onClick={() =>
   </select>
 </div>
 
+<div className="mt-4 grid grid-cols-2 gap-3">
+  <div>
+    <div className={inspectorLabelClass()}>Active Nav Background</div>
+    <input
+      type="color"
+      value={(selectedBlock.data as any).activeNavigationBackground ?? "#dbeafe"}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "content_panel"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  activeNavigationBackground: e.target.value,
+                },
+              },
+        )
+      }
+      className="mt-2 h-10 w-full rounded-xl border border-neutral-300 bg-white"
+    />
+  </div>
+
+  <div>
+    <div className={inspectorLabelClass()}>Active Nav Text</div>
+    <input
+      type="color"
+      value={(selectedBlock.data as any).activeNavigationColor ?? "#1d4ed8"}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "content_panel"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  activeNavigationColor: e.target.value,
+                },
+              },
+        )
+      }
+      className="mt-2 h-10 w-full rounded-xl border border-neutral-300 bg-white"
+    />
+  </div>
+
+  <div>
+    <div className={inspectorLabelClass()}>Inactive Nav Background</div>
+    <input
+      type="color"
+      value={(selectedBlock.data as any).inactiveNavigationBackground ?? "#ffffff"}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "content_panel"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  inactiveNavigationBackground: e.target.value,
+                },
+              },
+        )
+      }
+      className="mt-2 h-10 w-full rounded-xl border border-neutral-300 bg-white"
+    />
+  </div>
+
+  <div>
+    <div className={inspectorLabelClass()}>Panel Background</div>
+    <input
+      type="color"
+      value={(selectedBlock.data as any).panelBackground ?? "#f9fafb"}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "content_panel"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  panelBackground: e.target.value,
+                },
+              },
+        )
+      }
+      className="mt-2 h-10 w-full rounded-xl border border-neutral-300 bg-white"
+    />
+  </div>
+</div>
+
     <div className="mt-4 grid grid-cols-2 gap-2">
       <label className="flex items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm">
         <input
@@ -16522,6 +16612,34 @@ onClick={() =>
               <option value="right">Right</option>
             </select>
           </div>
+
+          <label className="mt-3 flex items-center gap-3 rounded-xl border border-neutral-200 bg-white px-3 py-3 text-sm text-neutral-800">
+  <input
+    type="checkbox"
+    checked={Boolean(panel.featured)}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "content_panel"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                panels: block.data.panels.map((item) =>
+                  item.id === panel.id
+                    ? {
+                        ...item,
+                        featured: e.target.checked,
+                      }
+                    : item,
+                ),
+              },
+            },
+      )
+    }
+  />
+  Featured Panel
+</label>
 
           <div className="mt-3 flex flex-wrap gap-2">
             <button
