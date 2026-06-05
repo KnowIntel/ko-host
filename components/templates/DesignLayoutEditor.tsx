@@ -1760,42 +1760,46 @@ const selectedStyle =
         (selectedBlockFromDraft.data as any).captionStyle ??
         (selectedBlockFromDraft.data as any).style ??
         {}) as TextStyle)
-    : selectedBlockFromDraft?.type === "enrollment_board"
-      ? enrollmentBoardStyleTarget === "heading"
-        ? (((selectedBlockFromDraft.data as any).headingStyle ??
+: selectedBlockFromDraft?.type === "enrollment_board"
+  ? enrollmentBoardStyleTarget === "heading"
+    ? (((selectedBlockFromDraft.data as any).headingStyle ??
+        (selectedBlockFromDraft.data as any).style ??
+        {}) as TextStyle)
+    : enrollmentBoardStyleTarget === "subtitle"
+      ? (((selectedBlockFromDraft.data as any).subtitleStyle ??
+          (selectedBlockFromDraft.data as any).style ??
+          {}) as TextStyle)
+      : enrollmentBoardStyleTarget === "imageLabel"
+        ? (((selectedBlockFromDraft.data as any).imageLabelStyle ??
+            (selectedBlockFromDraft.data as any).subtitleStyle ??
             (selectedBlockFromDraft.data as any).style ??
             {}) as TextStyle)
-        : enrollmentBoardStyleTarget === "subtitle"
-          ? (((selectedBlockFromDraft.data as any).subtitleStyle ??
+        : enrollmentBoardStyleTarget === "inputs"
+          ? (((selectedBlockFromDraft.data as any).inputStyle ??
               (selectedBlockFromDraft.data as any).style ??
               {}) as TextStyle)
-          : enrollmentBoardStyleTarget === "inputs"
-            ? (((selectedBlockFromDraft.data as any).inputStyle ??
+          : enrollmentBoardStyleTarget === "button"
+            ? (((selectedBlockFromDraft.data as any).buttonStyle ??
                 (selectedBlockFromDraft.data as any).style ??
                 {}) as TextStyle)
-            : enrollmentBoardStyleTarget === "button"
-              ? (((selectedBlockFromDraft.data as any).buttonStyle ??
+            : enrollmentBoardStyleTarget === "list"
+              ? (((selectedBlockFromDraft.data as any).listStyle ??
                   (selectedBlockFromDraft.data as any).style ??
                   {}) as TextStyle)
-              : enrollmentBoardStyleTarget === "list"
-                ? (((selectedBlockFromDraft.data as any).listStyle ??
+              : enrollmentBoardStyleTarget === "cards"
+                ? (((selectedBlockFromDraft.data as any).cardStyle ??
                     (selectedBlockFromDraft.data as any).style ??
                     {}) as TextStyle)
-                : enrollmentBoardStyleTarget === "cards"
-                  ? (((selectedBlockFromDraft.data as any).cardStyle ??
+                : enrollmentBoardStyleTarget === "memberName"
+                  ? (((selectedBlockFromDraft.data as any).memberNameStyle ??
                       (selectedBlockFromDraft.data as any).style ??
                       {}) as TextStyle)
-                      : enrollmentBoardStyleTarget === "imageLabel"
-                        ? (((selectedBlockFromDraft.data as any).imageLabelStyle ??
-                            (selectedBlockFromDraft.data as any).subtitleStyle ??
-                            (selectedBlockFromDraft.data as any).style ??
-                            {}) as TextStyle)
-                  : enrollmentBoardStyleTarget === "memberName"
-                    ? (((selectedBlockFromDraft.data as any).memberNameStyle ??
+                  : enrollmentBoardStyleTarget === "memberQuote"
+                    ? (((selectedBlockFromDraft.data as any).memberQuoteStyle ??
                         (selectedBlockFromDraft.data as any).style ??
                         {}) as TextStyle)
-                    : enrollmentBoardStyleTarget === "memberQuote"
-                      ? (((selectedBlockFromDraft.data as any).memberQuoteStyle ??
+                    : enrollmentBoardStyleTarget === "memberTotal"
+                      ? (((selectedBlockFromDraft.data as any).memberTotalStyle ??
                           (selectedBlockFromDraft.data as any).style ??
                           {}) as TextStyle)
                       : (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
@@ -4061,23 +4065,23 @@ if (selectedBlock?.type === "enrollment_board") {
       ? "headingStyle"
       : target === "subtitle"
         ? "subtitleStyle"
-      : target === "imageLabel"
-        ? "imageLabelStyle"
-        : target === "memberName"
-          ? "memberNameStyle"
-          : target === "memberQuote"
-            ? "memberQuoteStyle"
-            : target === "inputs"
-              ? "inputStyle"
-              : target === "button"
-                ? "buttonStyle"
-                : target === "cards"
-                  ? "cardStyle"
-                  : target === "memberTotal"
+        : target === "imageLabel"
+          ? "imageLabelStyle"
+          : target === "memberName"
+            ? "memberNameStyle"
+            : target === "memberQuote"
+              ? "memberQuoteStyle"
+              : target === "memberTotal"
                 ? "memberTotalStyle"
-                  : target === "list"
-                    ? "listStyle"
-                    : "style";
+                : target === "inputs"
+                  ? "inputStyle"
+                  : target === "button"
+                    ? "buttonStyle"
+                    : target === "cards"
+                      ? "cardStyle"
+                      : target === "list"
+                        ? "listStyle"
+                        : "style";
 
   setDraft((prev) => ({
     ...prev,
@@ -5198,26 +5202,28 @@ if (selectedBlock?.type === "enrollment_board") {
     const target = enrollmentBoardStyleTarget;
 
     const targetStyleKey =
-      target === "form"
-        ? "formStyle"
-        : target === "inputs"
-          ? "inputStyle"
-          : target === "button"
-            ? "buttonStyle"
-            : target === "cards"
-              ? "cardStyle"
-              : target === "list"
-                ? "listStyle"
-                : target === "heading"
-                  ? "headingStyle"
-                  : target === "subtitle"
-                    ? "subtitleStyle"
+  target === "form"
+    ? "formStyle"
+    : target === "inputs"
+      ? "inputStyle"
+      : target === "button"
+        ? "buttonStyle"
+        : target === "cards"
+          ? "cardStyle"
+          : target === "list"
+            ? "listStyle"
+            : target === "heading"
+              ? "headingStyle"
+              : target === "subtitle"
+                ? "subtitleStyle"
                 : target === "imageLabel"
                   ? "imageLabelStyle"
-                    : target === "memberName"
-                      ? "memberNameStyle"
-                      : target === "memberQuote"
-                        ? "memberQuoteStyle"
+                  : target === "memberName"
+                    ? "memberNameStyle"
+                    : target === "memberQuote"
+                      ? "memberQuoteStyle"
+                      : target === "memberTotal"
+                        ? "memberTotalStyle"
                         : "style";
 
     return {
@@ -23383,6 +23389,60 @@ const lines = e.target.value.split("\n");
       </select>
     </div>
 
+    <div className="mt-4">
+  <div className={inspectorLabelClass()}>Member List Position</div>
+  <select
+    value={selectedBlock.data.memberListPosition ?? "standard"}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "enrollment_board"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                memberListPosition: e.target.value as "standard" | "profile",
+              },
+            },
+      )
+    }
+    className={inspectorInputClass()}
+  >
+    <option value="standard">Standard — Below submit button</option>
+    <option value="profile">Profile — Beside sign-up fields</option>
+  </select>
+</div>
+
+{(selectedBlock.data.memberListPosition ?? "standard") === "profile" ? (
+  <div className="mt-4">
+    <div className={inspectorLabelClass()}>
+      Field Section Width: {selectedBlock.data.fieldSectionWidth ?? 55}%
+    </div>
+
+    <input
+      type="range"
+      min={35}
+      max={70}
+      step={5}
+      value={selectedBlock.data.fieldSectionWidth ?? 55}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "enrollment_board"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  fieldSectionWidth: Number(e.target.value),
+                },
+              },
+        )
+      }
+      className="mt-2 w-full"
+    />
+  </div>
+) : null}
+
     <div className="mt-5 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
   <div className={inspectorLabelClass()}>Linked Enrollment Display Blocks</div>
 
@@ -23931,6 +23991,29 @@ const lines = e.target.value.split("\n");
     </div>
 
     <div className="mt-5 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
+      <div className="mt-4">
+  <div className={inspectorLabelClass()}>Member Total Label</div>
+  <input
+    type="text"
+    value={selectedBlock.data.memberTotalLabel ?? " enrolled"}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "enrollment_board"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                memberTotalLabel: e.target.value,
+              },
+            },
+      )
+    }
+    className={inspectorInputClass()}
+    placeholder=" enrolled"
+  />
+</div>
+
       <div className={inspectorLabelClass()}>Messages</div>
 
       <div className="mt-4">
