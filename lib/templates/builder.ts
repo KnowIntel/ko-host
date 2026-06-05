@@ -5114,6 +5114,110 @@ if (block.type === "donation") {
   };
 }
 
+if (block.type === "enrollment_board") {
+  const data = block.data as any;
+
+  return {
+    ...block,
+    grid: normalizeGridValue(block.grid, fallbackGrid),
+
+    data: {
+      ...data,
+
+      memberListPosition:
+        data.memberListPosition === "profile"
+          ? "profile"
+          : "standard",
+
+      fieldSectionWidth:
+        typeof data.fieldSectionWidth === "number" &&
+        Number.isFinite(data.fieldSectionWidth)
+          ? Math.max(35, Math.min(70, data.fieldSectionWidth))
+          : 55,
+
+      memberTotalLabel:
+        typeof data.memberTotalLabel === "string"
+          ? data.memberTotalLabel
+          : " enrolled",
+
+      linkedProfileImageBlockId:
+        typeof data.linkedProfileImageBlockId === "string"
+          ? data.linkedProfileImageBlockId
+          : "",
+
+      linkedNameLabelBlockId:
+        typeof data.linkedNameLabelBlockId === "string"
+          ? data.linkedNameLabelBlockId
+          : "",
+
+      linkedQuoteLabelBlockId:
+        typeof data.linkedQuoteLabelBlockId === "string"
+          ? data.linkedQuoteLabelBlockId
+          : "",
+
+      style: {
+        ...createDefaultTextStyle(),
+        ...(data.style ?? {}),
+      },
+
+      formStyle: {
+        ...createDefaultTextStyle(),
+        ...(data.formStyle ?? {}),
+      },
+
+      inputStyle: {
+        ...createDefaultTextStyle(),
+        ...(data.inputStyle ?? {}),
+      },
+
+      buttonStyle: {
+        ...createDefaultTextStyle(),
+        ...(data.buttonStyle ?? {}),
+      },
+
+      listStyle: {
+        ...createDefaultTextStyle(),
+        ...(data.listStyle ?? {}),
+      },
+
+      cardStyle: {
+        ...createDefaultTextStyle(),
+        ...(data.cardStyle ?? {}),
+      },
+
+      headingStyle: {
+        ...createDefaultTextStyle(),
+        ...(data.headingStyle ?? {}),
+      },
+
+      subtitleStyle: {
+        ...createDefaultTextStyle(),
+        ...(data.subtitleStyle ?? {}),
+      },
+
+      imageLabelStyle: {
+        ...createDefaultTextStyle(),
+        ...(data.imageLabelStyle ?? {}),
+      },
+
+      memberNameStyle: {
+        ...createDefaultTextStyle(),
+        ...(data.memberNameStyle ?? {}),
+      },
+
+      memberQuoteStyle: {
+        ...createDefaultTextStyle(),
+        ...(data.memberQuoteStyle ?? {}),
+      },
+
+      memberTotalStyle: {
+        ...createDefaultTextStyle(),
+        ...(data.memberTotalStyle ?? {}),
+      },
+    },
+  };
+}
+
 if (block.type === "form_field") {
   const data = block.data as any;
 

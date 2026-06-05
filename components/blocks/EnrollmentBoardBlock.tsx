@@ -172,6 +172,14 @@ export default function EnrollmentBoardBlock({
   const memberNameStyle = styleToCss((block.data as any).memberNameStyle);
   const memberQuoteStyle = styleToCss((block.data as any).memberQuoteStyle);
 
+  const memberTotalStyle = styleToCss((block.data as any).memberTotalStyle);
+const memberListPosition = block.data.memberListPosition ?? "standard";
+const fieldSectionWidth = Math.max(
+  35,
+  Math.min(70, Number(block.data.fieldSectionWidth ?? 55)),
+);
+const isProfilePosition = memberListPosition === "profile";
+
   const quoteMaxLength = Math.max(
     25,
     Math.min(500, block.data.quoteMaxLength ?? 150),
@@ -508,54 +516,67 @@ const entryClass = isMemberWall
     ? "flex items-center gap-3 py-2"
     : "flex items-center gap-3 p-3 shadow-sm";
 
-  return (
+return (
+  <div
+    className="h-full w-full overflow-auto p-4 text-neutral-950"
+    style={{
+      borderStyle: "solid",
+      ...blockStyle,
+    }}
+  >
+    {block.data.showHeading !== false || block.data.showSubtitle !== false ? (
+      <div className="mb-4">
+        {block.data.showHeading !== false ? (
+          <div
+            className="font-black tracking-tight"
+            style={{
+              ...headingStyle,
+              marginBottom: 12,
+              lineHeight: 1.15,
+            }}
+          >
+            {block.data.heading || "Join the Board"}
+          </div>
+        ) : null}
+
+        {block.data.showSubtitle !== false ? (
+          <div
+            className="mt-3 font-medium"
+            style={{
+              lineHeight: 1.5,
+              ...subtitleStyle,
+            }}
+          >
+            {block.data.subtitle || "Add your name to the list."}
+          </div>
+        ) : null}
+
+        {block.data.showEnrollmentCount !== false ? (
+          <div
+            className="mt-2 inline-flex rounded-full px-3 py-1 text-xs font-bold"
+            style={{
+              ...memberTotalStyle,
+            }}
+          >
+            {entries.length}
+            {block.data.memberTotalLabel ?? " enrolled"}
+          </div>
+        ) : null}
+      </div>
+    ) : null}
+
     <div
-      className="h-full w-full overflow-auto p-4 text-neutral-950"
-      style={{
-        borderStyle: "solid",
-        ...blockStyle,
-      }}
+      className={
+        isProfilePosition
+          ? "grid h-[calc(100%-6rem)] min-h-0 gap-4 md:grid-cols-[var(--field-width)_1fr]"
+          : "space-y-4"
+      }
+      style={
+        {
+          "--field-width": `${fieldSectionWidth}%`,
+        } as React.CSSProperties
+      }
     >
-      {block.data.showHeading !== false || block.data.showSubtitle !== false ? (
-        <div className="mb-4">
- {block.data.showHeading !== false ? (
-  <div
-    className="font-black tracking-tight"
-    style={{
-      marginBottom: 12,
-      lineHeight: 1.15,
-    }}
-  >
-    {block.data.heading || "Join the Board"}
-  </div>
-) : null}
-
-{block.data.showSubtitle !== false ? (
-  <div
-    className="mt-3 font-medium"
-    style={{
-      lineHeight: 1.5,
-      ...subtitleStyle,
-    }}
-  >
-    {block.data.subtitle || "Add your name to the list."}
-  </div>
-) : null}
-
-          {block.data.showEnrollmentCount !== false ? (
-            <div
-              className="mt-2 inline-flex rounded-full px-3 py-1 text-xs font-bold"
-              style={{
-                backgroundColor: "rgba(0,0,0,0.06)",
-                color: subtitleStyle.color ?? "#4b5563",
-              }}
-            >
-              {entries.length} enrolled
-            </div>
-          ) : null}
-        </div>
-      ) : null}
-
       <form
         onSubmit={handleSubmit}
         className="p-3"
@@ -565,11 +586,11 @@ const entryClass = isMemberWall
         }}
       >
         <div className="grid gap-3">
-<input
-  type="text"
-  value={name}
-  maxLength={20}
-  onChange={(e) => setName(e.target.value.slice(0, 20))}
+          <input
+            type="text"
+            value={name}
+            maxLength={20}
+            onChange={(e) => setName(e.target.value.slice(0, 20))}
             placeholder={block.data.nameLabel ?? "Name"}
             className="w-full px-3 py-2 text-sm font-semibold outline-none"
             style={{
@@ -616,24 +637,25 @@ const entryClass = isMemberWall
 
           {block.data.showImageUpload !== false ? (
             <label className="block">
-<div
-  className="mb-1 text-xs font-bold opacity-70"
-  style={imageLabelStyle}
->
-  {block.data.imageLabel ?? "Profile image"}
-</div>
-<input
-  ref={imageInputRef}
-  id={`enrollment-image-${block.id}`}
-  type="file"
-  accept="image/jpeg,image/png,image/webp"
-  onChange={(e) => setImage(e.target.files?.[0] ?? null)}
-  className="w-full px-3 py-2 text-sm font-semibold"
-  style={{
-    borderStyle: "solid",
-    ...inputStyle,
-  }}
-/>
+              <div
+                className="mb-1 text-xs font-bold opacity-70"
+                style={imageLabelStyle}
+              >
+                {block.data.imageLabel ?? "Profile image"}
+              </div>
+
+              <input
+                ref={imageInputRef}
+                id={`enrollment-image-${block.id}`}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={(e) => setImage(e.target.files?.[0] ?? null)}
+                className="w-full px-3 py-2 text-sm font-semibold"
+                style={{
+                  borderStyle: "solid",
+                  ...inputStyle,
+                }}
+              />
             </label>
           ) : null}
 
@@ -668,7 +690,11 @@ const entryClass = isMemberWall
       </form>
 
       <div
-        className="mt-4"
+        className={
+          isProfilePosition
+            ? "min-h-0 overflow-y-auto pr-1"
+            : "mt-4"
+        }
         style={{
           borderStyle: "solid",
           ...listStyle,
@@ -686,94 +712,106 @@ const entryClass = isMemberWall
           </div>
         ) : sortedEntries.length ? (
           <div className={listClass}>
-{sortedEntries.map((entry, index) => (
-  <div
-    key={entry.id}
-    className={entryClass}
-    style={{
-      borderStyle: isSignatureList ? undefined : "solid",
-      ...cardStyle,
-    }}
-  >
-    {isSignatureList ? (
-      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-xs font-black text-neutral-500">
-        {index + 1}
-      </div>
-    ) : null}
+            {sortedEntries.map((entry, index) => (
+              <div
+                key={entry.id}
+                className={entryClass}
+                style={{
+                  borderStyle: isSignatureList ? undefined : "solid",
+                  ...cardStyle,
+                }}
+              >
+                {isSignatureList ? (
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-xs font-black text-neutral-500">
+                    {index + 1}
+                  </div>
+                ) : null}
 
-    <div
-      className={[
-        isMemberWall
-          ? "flex min-w-0 flex-col items-center gap-2"
-          : "flex min-w-0 flex-1 items-center gap-3",
-      ].join(" ")}
-    >
-      {block.data.showProfileImages !== false && !isSignatureList ? (
-        entry.profileImageUrl ? (
-          <img
-            src={entry.profileImageUrl}
-            alt={entry.name}
-            className={`${isMemberWall ? "h-16 w-16" : "h-11 w-11"} shrink-0 object-cover ${avatarClass(
-              block.data.avatarShape,
-            )}`}
-          />
-        ) : (
-          <div
-            className={`${isMemberWall ? "h-16 w-16 text-xl" : "h-11 w-11 text-sm"} flex shrink-0 items-center justify-center bg-neutral-200 font-black text-neutral-600 ${avatarClass(
-              block.data.avatarShape,
-            )}`}
-          >
-            {entry.name.slice(0, 1).toUpperCase()}
-          </div>
-        )
-      ) : null}
+                <div
+                  className={
+                    isMemberWall
+                      ? "flex min-w-0 flex-col items-center gap-2"
+                      : "flex min-w-0 flex-1 items-center gap-3"
+                  }
+                >
+                  {block.data.showProfileImages !== false ? (
+                    entry.profileImageUrl ? (
+                      <img
+                        src={entry.profileImageUrl}
+                        alt={entry.name}
+                        className={`${
+                          isMemberWall ? "h-16 w-16" : "h-11 w-11"
+                        } shrink-0 object-cover ${avatarClass(
+                          block.data.avatarShape,
+                        )}`}
+                      />
+                    ) : (
+                      <div
+                        className={`${
+                          isMemberWall
+                            ? "h-16 w-16 text-xl"
+                            : "h-11 w-11 text-sm"
+                        } flex shrink-0 items-center justify-center bg-neutral-200 font-black text-neutral-600 ${avatarClass(
+                          block.data.avatarShape,
+                        )}`}
+                      >
+                        {entry.name.slice(0, 1).toUpperCase()}
+                      </div>
+                    )
+                  ) : null}
 
-      <div className={isMemberWall ? "min-w-0 text-center" : "min-w-0"}>
-        <div
-          className={[
-            isMemberWall
-              ? "line-clamp-1 font-black"
-              : "truncate text-sm font-black",
-          ].join(" ")}
-          style={memberNameStyle}
-        >
-          {entry.name}
-        </div>
+                  <div className={isMemberWall ? "min-w-0 text-center" : "min-w-0"}>
+                    <div
+                      className={
+                        isMemberWall
+                          ? "line-clamp-1 text-center font-black"
+                          : "truncate text-sm font-black"
+                      }
+                      style={{
+                        ...memberNameStyle,
+                        textAlign: isMemberWall ? "center" : memberNameStyle.textAlign,
+                      }}
+                    >
+                      {entry.name}
+                    </div>
 
-        {block.data.showQuotes !== false && entry.quote ? (
-          <div
-            className={[
-              isMemberWall
-                ? "mt-1 line-clamp-3 text-xs font-medium"
-                : "mt-0.5 line-clamp-2 text-xs font-medium",
-            ].join(" ")}
-            style={memberQuoteStyle}
-          >
-            {isSignatureList ? `“${entry.quote}”` : entry.quote}
-          </div>
-        ) : null}
-      </div>
-    </div>
+                    {block.data.showQuotes !== false && entry.quote ? (
+                      <div
+                        className={
+                          isMemberWall
+                            ? "mt-1 line-clamp-3 text-center text-xs font-medium"
+                            : "mt-0.5 line-clamp-2 text-xs font-medium"
+                        }
+                        style={{
+                          ...memberQuoteStyle,
+                          textAlign: isMemberWall
+                            ? "center"
+                            : memberQuoteStyle.textAlign,
+                        }}
+                      >
+                        {isSignatureList ? `“${entry.quote}”` : entry.quote}
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
 
-    {entry.isMine ? (
-      <button
-        type="button"
-        onClick={() => void handleDelete(entry.id)}
-        disabled={deletingId === entry.id}
-        className={[
-          isMemberWall
-            ? "absolute right-2 top-2"
-            : "ml-auto",
-          "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-50 text-sm font-black text-red-600 transition hover:bg-red-100 disabled:opacity-50",
-        ].join(" ")}
-        title="Remove your enrollment"
-        aria-label="Remove your enrollment"
-      >
-        ×
-      </button>
-    ) : null}
-  </div>
-))}
+                {entry.isMine ? (
+                  <button
+                    type="button"
+                    onClick={() => void handleDelete(entry.id)}
+                    disabled={deletingId === entry.id}
+                    className={[
+                      isMemberWall ? "absolute right-2 top-2" : "ml-auto",
+                      "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-50 text-sm font-black text-red-600 transition hover:bg-red-100 disabled:opacity-50",
+                    ].join(" ")}
+                    title="Remove your enrollment"
+                    aria-label="Remove your enrollment"
+                  >
+                    ×
+                  </button>
+                ) : null}
+              </div>
+            ))}
           </div>
         ) : (
           <div
@@ -787,5 +825,5 @@ const entryClass = isMemberWall
         )}
       </div>
     </div>
-  );
-}
+  </div>
+);}
