@@ -6517,9 +6517,9 @@ function renderFormField(
   designKey?: string,
 ) {
   function FormFieldPreview() {
-    const inputClass = isLightDesign(designKey)
-      ? "w-full rounded border border-neutral-300 bg-white px-3 py-2 text-sm"
-      : "w-full rounded border border-white/15 bg-white/5 px-3 py-2 text-sm";
+const inputClass = isLightDesign(designKey)
+  ? "w-full rounded border border-neutral-300 bg-white px-3 py-2"
+  : "w-full rounded border border-white/15 bg-white/5 px-3 py-2";
 
     const inputStyle = ((block.data as any).inputStyle ??
       block.data.style ??
@@ -6714,9 +6714,8 @@ return (
   {showRating && ratingPosition === "high" ? ratingStars : null}
 
   {showLabel && fieldType !== "checkbox_text" ? (
-    <label
-      className="text-sm"
-      style={getContainerTextStyle(
+<label
+  style={getContainerTextStyle(
         (block.data as any).labelStyle ?? block.data.style,
         designKey,
       )}
