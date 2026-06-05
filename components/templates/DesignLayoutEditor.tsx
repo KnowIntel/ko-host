@@ -1460,6 +1460,8 @@ const [listingStyleTarget, setListingStyleTarget] = useState<
   "title" | "description" | "metadata" | "price" | "quantity"
 >("title");
 
+
+
 const [contentPanelStyleTarget, setContentPanelStyleTarget] = useState<
   "heading" | "subtitle" | "navigation" | "panel"
 >("heading");
@@ -1900,6 +1902,22 @@ const selectedStyle =
                                 selectedBlockFromDraft.data.style ??
                                 {}) as TextStyle)
                             : (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
+                            : selectedBlockFromDraft?.type === "content_panel"
+  ? contentPanelStyleTarget === "heading"
+    ? (((selectedBlockFromDraft.data as any).headingStyle ??
+        (selectedBlockFromDraft.data as any).style ??
+        {}) as TextStyle)
+    : contentPanelStyleTarget === "subtitle"
+      ? (((selectedBlockFromDraft.data as any).subtitleStyle ??
+          (selectedBlockFromDraft.data as any).style ??
+          {}) as TextStyle)
+      : contentPanelStyleTarget === "navigation"
+        ? (((selectedBlockFromDraft.data as any).navigationStyle ??
+            (selectedBlockFromDraft.data as any).style ??
+            {}) as TextStyle)
+        : (((selectedBlockFromDraft.data as any).panelStyle ??
+            (selectedBlockFromDraft.data as any).style ??
+            {}) as TextStyle)
                       : selectedBlockFromDraft?.type === "timeline"
                         ? timelineStyleTarget === "title"
                           ? (((selectedBlockFromDraft.data as any).titleStyle ?? {}) as TextStyle)
@@ -2198,6 +2216,7 @@ const showTextControls =
   selectedBlock?.type === "rich_text" ||
   selectedBlock?.type === "content_panel" ||
   selectedBlock?.type === "countdown" ||
+  selectedBlock?.type === "content_panel" ||
   selectedBlock?.type === "timeline" ||
   selectedBlock?.type === "cart" ||
   selectedBlock?.type === "checkout" ||
@@ -4657,37 +4676,37 @@ if (selectedBlock?.type === "countdown") {
   return;
 }
 
-  if (selectedBlock?.type === "content_panel") {
-    setDraft((prev) => ({
-      ...prev,
-      blocks: prev.blocks.map((block) => {
-        if (block.id !== selectedBlock.id || block.type !== "content_panel") {
-          return block;
-        }
+if (selectedBlock?.type === "content_panel") {
+  setDraft((prev) => ({
+    ...prev,
+    blocks: prev.blocks.map((block) => {
+      if (block.id !== selectedBlock.id || block.type !== "content_panel") {
+        return block;
+      }
 
-        const targetKey =
-          contentPanelStyleTarget === "heading"
-            ? "headingStyle"
-            : contentPanelStyleTarget === "subtitle"
-              ? "subtitleStyle"
-              : contentPanelStyleTarget === "navigation"
-                ? "navigationStyle"
-                : "panelStyle";
+      const targetKey =
+        contentPanelStyleTarget === "heading"
+          ? "headingStyle"
+          : contentPanelStyleTarget === "subtitle"
+            ? "subtitleStyle"
+            : contentPanelStyleTarget === "navigation"
+              ? "navigationStyle"
+              : "panelStyle";
 
-        return {
-          ...block,
-          data: {
-            ...block.data,
-            [targetKey]: {
-              ...((block.data as any)[targetKey] ?? {}),
-              ...patch,
-            },
+      return {
+        ...block,
+        data: {
+          ...block.data,
+          [targetKey]: {
+            ...((block.data as any)[targetKey] ?? {}),
+            ...patch,
           },
-        };
-      }),
-    }));
-    return;
-  }
+        },
+      };
+    }),
+  }));
+  return;
+}
 
   if (selectedBlock?.type === "rich_text") {
     setDraft((prev) => ({
