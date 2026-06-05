@@ -493,14 +493,19 @@ async function handleDelete(entryId: string) {
     }
   }
 
-  const listClass =
-    block.data.variant === "member_wall"
-      ? "grid grid-cols-1 gap-3 sm:grid-cols-2"
-      : "space-y-3";
+const isMemberWall = block.data.variant === "member_wall";
+const isSignatureList = block.data.variant === "signature_list";
 
-const entryClass =
-  block.data.variant === "signature_list"
-    ? "flex items-center gap-3 py-3"
+const listClass = isMemberWall
+  ? "grid grid-cols-2 gap-3 sm:grid-cols-3"
+  : isSignatureList
+    ? "divide-y divide-neutral-200"
+    : "space-y-3";
+
+const entryClass = isMemberWall
+  ? "relative flex flex-col items-center justify-start gap-2 p-4 text-center shadow-sm"
+  : isSignatureList
+    ? "flex items-center gap-3 py-2"
     : "flex items-center gap-3 p-3 shadow-sm";
 
   return (
@@ -681,69 +686,94 @@ const entryClass =
           </div>
         ) : sortedEntries.length ? (
           <div className={listClass}>
-            {sortedEntries.map((entry) => (
-              <div
-                key={entry.id}
-                className={entryClass}
-                style={{
-                  borderStyle: "solid",
-                  ...cardStyle,
-                }}
-              >
-                <div className="flex min-w-0 flex-1 items-center gap-3">
-                  {block.data.showProfileImages !== false ? (
-                    entry.profileImageUrl ? (
-                      <img
-                        src={entry.profileImageUrl}
-                        alt={entry.name}
-                        className={`h-11 w-11 shrink-0 object-cover ${avatarClass(
-                          block.data.avatarShape,
-                        )}`}
-                      />
-                    ) : (
-                      <div
-                        className={`flex h-11 w-11 shrink-0 items-center justify-center bg-neutral-200 text-sm font-black text-neutral-600 ${avatarClass(
-                          block.data.avatarShape,
-                        )}`}
-                      >
-                        {entry.name.slice(0, 1).toUpperCase()}
-                      </div>
-                    )
-                  ) : null}
+{sortedEntries.map((entry, index) => (
+  <div
+    key={entry.id}
+    className={entryClass}
+    style={{
+      borderStyle: isSignatureList ? undefined : "solid",
+      ...cardStyle,
+    }}
+  >
+    {isSignatureList ? (
+      <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-xs font-black text-neutral-500">
+        {index + 1}
+      </div>
+    ) : null}
 
-                  <div className="min-w-0">
-                    <div
-                      className="truncate text-sm font-black"
-                      style={memberNameStyle}
-                    >
-                      {entry.name}
-                    </div>
+    <div
+      className={[
+        isMemberWall
+          ? "flex min-w-0 flex-col items-center gap-2"
+          : "flex min-w-0 flex-1 items-center gap-3",
+      ].join(" ")}
+    >
+      {block.data.showProfileImages !== false && !isSignatureList ? (
+        entry.profileImageUrl ? (
+          <img
+            src={entry.profileImageUrl}
+            alt={entry.name}
+            className={`${isMemberWall ? "h-16 w-16" : "h-11 w-11"} shrink-0 object-cover ${avatarClass(
+              block.data.avatarShape,
+            )}`}
+          />
+        ) : (
+          <div
+            className={`${isMemberWall ? "h-16 w-16 text-xl" : "h-11 w-11 text-sm"} flex shrink-0 items-center justify-center bg-neutral-200 font-black text-neutral-600 ${avatarClass(
+              block.data.avatarShape,
+            )}`}
+          >
+            {entry.name.slice(0, 1).toUpperCase()}
+          </div>
+        )
+      ) : null}
 
-                    {block.data.showQuotes !== false && entry.quote ? (
-                      <div
-                        className="mt-0.5 line-clamp-2 text-xs font-medium"
-                        style={memberQuoteStyle}
-                      >
-                        {entry.quote}
-                      </div>
-                    ) : null}
-                  </div>
-                </div>
+      <div className={isMemberWall ? "min-w-0 text-center" : "min-w-0"}>
+        <div
+          className={[
+            isMemberWall
+              ? "line-clamp-1 font-black"
+              : "truncate text-sm font-black",
+          ].join(" ")}
+          style={memberNameStyle}
+        >
+          {entry.name}
+        </div>
 
-                {entry.isMine ? (
-                  <button
-                    type="button"
-                    onClick={() => void handleDelete(entry.id)}
-                    disabled={deletingId === entry.id}
-                    className="ml-auto inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-50 text-sm font-black text-red-600 transition hover:bg-red-100 disabled:opacity-50"
-                    title="Remove your enrollment"
-                    aria-label="Remove your enrollment"
-                  >
-                    ×
-                  </button>
-                ) : null}
-              </div>
-            ))}
+        {block.data.showQuotes !== false && entry.quote ? (
+          <div
+            className={[
+              isMemberWall
+                ? "mt-1 line-clamp-3 text-xs font-medium"
+                : "mt-0.5 line-clamp-2 text-xs font-medium",
+            ].join(" ")}
+            style={memberQuoteStyle}
+          >
+            {isSignatureList ? `“${entry.quote}”` : entry.quote}
+          </div>
+        ) : null}
+      </div>
+    </div>
+
+    {entry.isMine ? (
+      <button
+        type="button"
+        onClick={() => void handleDelete(entry.id)}
+        disabled={deletingId === entry.id}
+        className={[
+          isMemberWall
+            ? "absolute right-2 top-2"
+            : "ml-auto",
+          "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-50 text-sm font-black text-red-600 transition hover:bg-red-100 disabled:opacity-50",
+        ].join(" ")}
+        title="Remove your enrollment"
+        aria-label="Remove your enrollment"
+      >
+        ×
+      </button>
+    ) : null}
+  </div>
+))}
           </div>
         ) : (
           <div
