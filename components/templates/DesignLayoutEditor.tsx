@@ -3613,7 +3613,7 @@ if (selectedBlock?.type === "form_field") {
           ...block.data,
           inputStyle: {
             ...((block.data as any).inputStyle ?? block.data.style ?? {}),
-            backgroundColor: value,
+            color: value,
           },
         },
       };
@@ -3621,9 +3621,16 @@ if (selectedBlock?.type === "form_field") {
 
     return {
       ...block,
-      appearance: {
-        ...block.appearance,
-        backgroundColor: value,
+      data: {
+        ...block.data,
+        style: {
+          ...((block.data as any).style ?? {}),
+          color: value,
+        },
+        labelStyle: {
+          ...((block.data as any).labelStyle ?? block.data.style ?? {}),
+          color: value,
+        },
       },
     };
   });
