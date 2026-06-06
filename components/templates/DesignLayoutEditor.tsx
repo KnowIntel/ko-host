@@ -6312,7 +6312,7 @@ function applyIconDefaults(
       ...block.data,
       icon: {
         ...block.data.icon,
-        id: block.data.icon.id || resolvedIconUrl,
+        id: resolvedIconUrl,
         url: resolvedIconUrl,
         alt: label || block.data.icon.alt || "Icon",
       },
