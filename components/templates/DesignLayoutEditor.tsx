@@ -8854,67 +8854,54 @@ const numberedCircleValue = numberedCircleMatch
     }[numberedCircleMatch[1]]
   : null;
 
-  return (
-    <div className="flex h-full w-full items-center justify-center overflow-visible">
-{numberedCircleValue ? (
-  <svg
-    viewBox="0 0 122.88 122.88"
-    aria-label={icon.alt || "Icon"}
-    className="h-full w-full"
-    style={{
-      transform: `translate(${translateX}%, ${translateY}%) scale(${zoom}) rotate(${rotation}deg)`,
-      transformOrigin: "center center",
-      opacity: icon.opacity ?? 1,
-    }}
-  >
-    <circle cx="61.44" cy="61.44" r="61.44" fill={icon.color ?? "#111111"} />
-    <text
-      x="61.44"
-      y="67"
-      textAnchor="middle"
-      dominantBaseline="middle"
-      fill="#ffffff"
-      fontSize={numberedCircleValue === "10" ? "44" : "58"}
-      fontWeight="800"
-      fontFamily="Arial, Helvetica, sans-serif"
-    >
-      {numberedCircleValue}
-    </text>
-  </svg>
-) : (
-        <img
-          src={iconUrl}
-          alt={icon.alt || "Icon"}
-          draggable={false}
-          className="h-full w-full object-contain"
-          style={{
-            transform: `translate(${translateX}%, ${translateY}%) scale(${zoom}) rotate(${rotation}deg)`,
-            transformOrigin: "center center",
-            opacity: icon.opacity ?? 1,
-          }}
-  />
-)}
-      ) : (
-        <div
-          className="h-full w-full"
-          style={{
-            transform: `translate(${translateX}%, ${translateY}%) scale(${zoom}) rotate(${rotation}deg)`,
-            transformOrigin: "center center",
-            opacity: icon.opacity ?? 1,
-            backgroundColor: icon.color ?? "#111111",
-            WebkitMaskImage: `url("${iconUrl}")`,
-            maskImage: `url("${iconUrl}")`,
-            WebkitMaskRepeat: "no-repeat",
-            maskRepeat: "no-repeat",
-            WebkitMaskPosition: "center",
-            maskPosition: "center",
-            WebkitMaskSize: "contain",
-            maskSize: "contain",
-          }}
-        />
-      )
-    </div>
-  );
+return (
+  <div className="flex h-full w-full items-center justify-center overflow-visible">
+    {numberedCircleValue ? (
+      <svg
+        viewBox="0 0 122.88 122.88"
+        aria-label={icon.alt || "Icon"}
+        className="h-full w-full"
+        style={{
+          transform: `translate(${translateX}%, ${translateY}%) scale(${zoom}) rotate(${rotation}deg)`,
+          transformOrigin: "center center",
+          opacity: icon.opacity ?? 1,
+        }}
+      >
+        <circle cx="61.44" cy="61.44" r="61.44" fill={icon.color ?? "#111111"} />
+        <text
+          x="61.44"
+          y="67"
+          textAnchor="middle"
+          dominantBaseline="middle"
+          fill="#ffffff"
+          fontSize={numberedCircleValue === "10" ? "44" : "58"}
+          fontWeight="800"
+          fontFamily="Arial, Helvetica, sans-serif"
+        >
+          {numberedCircleValue}
+        </text>
+      </svg>
+    ) : (
+      <div
+        className="h-full w-full"
+        style={{
+          transform: `translate(${translateX}%, ${translateY}%) scale(${zoom}) rotate(${rotation}deg)`,
+          transformOrigin: "center center",
+          opacity: icon.opacity ?? 1,
+          backgroundColor: icon.color ?? "#111111",
+          WebkitMaskImage: `url("${iconUrl}")`,
+          maskImage: `url("${iconUrl}")`,
+          WebkitMaskRepeat: "no-repeat",
+          maskRepeat: "no-repeat",
+          WebkitMaskPosition: "center",
+          maskPosition: "center",
+          WebkitMaskSize: "contain",
+          maskSize: "contain",
+        }}
+      />
+    )}
+  </div>
+);
 }
 
     if (block.type === "timeline") {
