@@ -1486,9 +1486,41 @@ function renderIcon(block: Extract<MicrositeBlock, { type: "icon" }>) {
 
   const translateX = (positionX - 50) * 0.6;
   const translateY = (positionY - 50) * 0.6;
+  const numberedCircleMatch = iconUrl.match(/circle-(one|two|three|four|five|six|seven|eight|nine|ten)\.svg$/);
 
-  return (
-    <div className="flex h-full w-full items-center justify-center overflow-visible">
+const numberedCircleValue = numberedCircleMatch
+  ? {
+      one: "1",
+      two: "2",
+      three: "3",
+      four: "4",
+      five: "5",
+      six: "6",
+      seven: "7",
+      eight: "8",
+      nine: "9",
+      ten: "10",
+    }[numberedCircleMatch[1]]
+  : null;
+
+return (
+  <div className="flex h-full w-full items-center justify-center overflow-visible">
+    {numberedCircleValue ? (
+      <div
+        className="flex h-full w-full items-center justify-center rounded-full font-bold text-white"
+        style={{
+          transform: `translate(${translateX}%, ${translateY}%) scale(${zoom}) rotate(${rotation}deg)`,
+          transformOrigin: "center center",
+          opacity: icon.opacity ?? 1,
+          backgroundColor: icon.color ?? "#111111",
+          fontSize: numberedCircleValue === "10" ? "42%" : "52%",
+          lineHeight: 1,
+        }}
+        aria-label={icon.alt || "Icon"}
+      >
+        {numberedCircleValue}
+      </div>
+    ) : (
       <div
         className="h-full w-full"
         style={{
@@ -1507,8 +1539,9 @@ function renderIcon(block: Extract<MicrositeBlock, { type: "icon" }>) {
         }}
         aria-label={icon.alt || "Icon"}
       />
-    </div>
-  );
+    )}
+  </div>
+);
 }
 
 function renderListing(
