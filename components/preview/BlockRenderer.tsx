@@ -1505,22 +1505,19 @@ const numberedCircleValue = numberedCircleMatch
 
 return (
   <div className="flex h-full w-full items-center justify-center overflow-visible">
-    {numberedCircleValue ? (
-      <div
-        className="flex h-full w-full items-center justify-center rounded-full font-bold text-white"
-        style={{
-          transform: `translate(${translateX}%, ${translateY}%) scale(${zoom}) rotate(${rotation}deg)`,
-          transformOrigin: "center center",
-          opacity: icon.opacity ?? 1,
-          backgroundColor: icon.color ?? "#111111",
-          fontSize: numberedCircleValue === "10" ? "42%" : "52%",
-          lineHeight: 1,
-        }}
-        aria-label={icon.alt || "Icon"}
-      >
-        {numberedCircleValue}
-      </div>
-    ) : (
+{numberedCircleValue ? (
+  <img
+    src={iconUrl}
+    alt={icon.alt || "Icon"}
+    draggable={false}
+    className="h-full w-full object-contain"
+    style={{
+      transform: `translate(${translateX}%, ${translateY}%) scale(${zoom}) rotate(${rotation}deg)`,
+      transformOrigin: "center center",
+      opacity: icon.opacity ?? 1,
+    }}
+  />
+) : (
       <div
         className="h-full w-full"
         style={{
