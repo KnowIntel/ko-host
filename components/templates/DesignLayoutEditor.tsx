@@ -8857,22 +8857,31 @@ const numberedCircleValue = numberedCircleMatch
   return (
     <div className="flex h-full w-full items-center justify-center overflow-visible">
 {numberedCircleValue ? (
-  <div
-    className="flex aspect-square max-h-full max-w-full items-center justify-center rounded-full font-bold text-white"
+  <img
+    src={iconUrl}
+    alt={icon.alt || "Icon"}
+    draggable={false}
+    className="h-full w-full object-contain"
     style={{
-      width: "100%",
-      height: "100%",
       transform: `translate(${translateX}%, ${translateY}%) scale(${zoom}) rotate(${rotation}deg)`,
       transformOrigin: "center center",
       opacity: icon.opacity ?? 1,
-      backgroundColor: icon.color ?? "#111111",
-      fontSize: numberedCircleValue === "10" ? "40%" : "55%",
-      lineHeight: 1,
     }}
-  >
-    {numberedCircleValue}
-  </div>
+  />
 ) : (
+        <img
+          src={iconUrl}
+          alt={icon.alt || "Icon"}
+          draggable={false}
+          className="h-full w-full object-contain"
+          style={{
+            transform: `translate(${translateX}%, ${translateY}%) scale(${zoom}) rotate(${rotation}deg)`,
+            transformOrigin: "center center",
+            opacity: icon.opacity ?? 1,
+          }}
+  />
+)}
+      ) : (
         <div
           className="h-full w-full"
           style={{
@@ -8890,7 +8899,7 @@ const numberedCircleValue = numberedCircleMatch
             maskSize: "contain",
           }}
         />
-      )}
+      )
     </div>
   );
 }
