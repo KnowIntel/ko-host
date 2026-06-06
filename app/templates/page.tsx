@@ -172,7 +172,7 @@ const visibleRecentSites = useMemo(() => {
 
 <div className="mt-3 text-sm leading-7 text-neutral-600 sm:text-[15px]">
   <span className="inline">
-    Start with a template, make it yours, then go live — all for $12 for 90 days.
+    Choose a template, make it yours, then go live — all for $12 for 90 days.
   </span>
 
   <button
@@ -381,7 +381,7 @@ const visibleRecentSites = useMemo(() => {
 
 <div className="mt-3 text-sm leading-7 text-neutral-600 sm:text-[15px]">
   <span className="inline">
-    Start with a template, make it yours, then go live — all for $12 for 90 days.
+    Choose a template, make it yours, then go live — all for $12 for 90 days.
   </span>
 
   <button
