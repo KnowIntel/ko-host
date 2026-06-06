@@ -261,7 +261,12 @@ const DEMO_PAGES: Record<
     "You opened the members page. Normally this could showcase club members, featured contributors, discussion leaders, viewing regulars, and the people who somehow notice plot details everyone else completely missed.",
 },
 
-
+"watch-club-zoom-meeting": {
+  title: "Demo Zoom Meeting",
+  eyebrow: "Watch Club Demo",
+  message:
+    "You opened the Zoom meeting page. In a real watch club microsite, this could launch virtual watch parties, member discussions, live reactions, episode breakdowns, and at least one participant who spends the first five minutes asking if everyone can hear them.",
+},
 
 
 
