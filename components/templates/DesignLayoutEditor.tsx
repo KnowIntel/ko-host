@@ -6343,7 +6343,7 @@ function addBlock(type: BuilderBlockType, label?: string, iconName?: string) {
       ...prev,
       blocks: nextBlocks.map((block) =>
         created && block.id === created.id
-  ? applyIconDefaults(block, label, `/media-icons/${iconName ?? "star"}.svg`)
+  ? applyIconDefaults(block, iconName ?? label, `/media-icons/${iconName ?? "star"}.svg`)
   : block,
       ),
     };
