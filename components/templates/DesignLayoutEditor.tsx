@@ -8821,11 +8821,13 @@ borderRadius:
 
     if (block.type === "icon") {
       const icon = block.data.icon;
-      const iconUrl = `/media-icons/${String(block.label || icon.alt || "star")
-        .trim()
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-|-$/g, "")}.svg`;
+const iconUrl =
+  icon.url ||
+  `/media-icons/${String(block.label || icon.alt || "star")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")}.svg`;
 
       const positionX = icon.positionX ?? 50;
       const positionY = icon.positionY ?? 50;
