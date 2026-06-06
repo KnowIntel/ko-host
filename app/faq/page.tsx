@@ -15,8 +15,8 @@ const faqCards = [
     className: "left-[80px] top-[1080px] rotate-[6deg] hidden 2xl:block",
   },
   {
-    title: "Restaurant",
-    image: "/designs/design-cards/design-card_restaurant_menu_deluxe.webp",
+    title: "Creator Link Hub",
+    image: "/designs/design-cards/design-card_creator_link_hub_studio.webp",
     className: "left-[240px] top-[1480px] rotate-[-7deg] hidden 2xl:block",
   },
   {
@@ -76,9 +76,9 @@ const faqCards = [
 },
 
 {
-title: "Creator Link Hub",
-image: "/designs/design-cards/design-card_creator_link_hub_studio.webp",
-className: "right-[60] top-[1880px] rotate-[-4deg] hidden 2xl:block",
+  title: "Restaurant",
+  image: "/designs/design-cards/design-card_restaurant_menu_deluxe.webp",
+  className: "right-[60] top-[1880px] rotate-[-4deg] hidden 2xl:block",
 },
 
 {
@@ -91,6 +91,12 @@ className: "right-[230] top-[2280px] rotate-[5deg] hidden 2xl:block",
 title: "Creator Link Hub",
 image: "/designs/design-cards/design-card_creator_link_hub_canvas.webp",
 className: "right-[40px] top-[2680px] rotate-[-6deg] hidden 2xl:block",
+},
+
+{
+title: "Watch Club",
+image: "/designs/design-cards/design-card_watch_club_hangout.webp",
+className: "right-[250] top-[3080px] rotate-[5deg] hidden 2xl:block",
 },
 
 
