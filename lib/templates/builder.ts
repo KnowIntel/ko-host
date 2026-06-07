@@ -975,6 +975,7 @@ export type HighlightCard = {
   icon?: string;
   showIcon?: boolean;
   imageUrl?: string;
+  imagePosition?: "left" | "right";
 
   currentValue?: number;
   goalValue?: number;

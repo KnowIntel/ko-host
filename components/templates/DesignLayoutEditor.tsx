@@ -18415,6 +18415,37 @@ onClick={() =>
   ) : null}
 </div>
 
+<div className="mt-3">
+  <div className={inspectorLabelClass()}>Image Position</div>
+  <select
+    value={card.imagePosition ?? "left"}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "highlight"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                cards: (block.data.cards ?? []).map((item) =>
+                  item.id === card.id
+                    ? {
+                        ...item,
+                        imagePosition: e.target.value as "left" | "right",
+                      }
+                    : item,
+                ),
+              },
+            },
+      )
+    }
+    className={inspectorInputClass()}
+  >
+    <option value="left">Left</option>
+    <option value="right">Right</option>
+  </select>
+</div>
+
           <div className="mt-3">
             <div className={inspectorLabelClass()}>Icon</div>
             <input

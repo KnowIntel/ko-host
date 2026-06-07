@@ -8059,93 +8059,125 @@ useEffect(() => {
         : getHighlightCardClass(designKey)
   }
 >
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0 flex-1">
-{displayStyle !== "linear" && card.label ? (
+<div className="min-w-0 flex-1">
   <div
-    className="truncate text-[11px] font-semibold uppercase tracking-[0.14em] opacity-60"
-    style={labelTextStyle}
+    className={
+      displayStyle === "linear"
+        ? "flex items-center gap-3"
+        : "flex items-start justify-between gap-3"
+    }
   >
-    {card.label}
-  </div>
-) : null}
+    {displayStyle === "linear" &&
+    card.imagePosition !== "right" &&
+    card.imageUrl ? (
+      <img
+        src={card.imageUrl}
+        alt=""
+        className="h-10 w-10 shrink-0 rounded-full object-cover"
+      />
+    ) : displayStyle === "linear" &&
+      card.imagePosition !== "right" &&
+      card.showIcon !== false &&
+      card.icon ? (
+      <div className="shrink-0 text-2xl">{card.icon}</div>
+    ) : null}
 
-<div
-  className={displayStyle === "linear" ? "leading-none" : "mt-2 leading-none"}
-  style={{
-    fontSize: displayStyle === "linear" ? "24px" : "32px",
-    fontWeight: 800,
-    ...valueTextStyle,
-  }}
->
-  {getCardValue(card)}
+    <div className="min-w-0 flex-1">
+      {displayStyle !== "linear" && card.label ? (
+        <div
+          className="truncate text-[11px] font-semibold uppercase tracking-[0.14em] opacity-60"
+          style={labelTextStyle}
+        >
+          {card.label}
+        </div>
+      ) : null}
+
+      <div
+        className={
+          displayStyle === "linear" ? "leading-none" : "mt-2 leading-none"
+        }
+        style={{
+          fontSize: displayStyle === "linear" ? "24px" : "32px",
+          fontWeight: 800,
+          ...valueTextStyle,
+        }}
+      >
+        {getCardValue(card)}
+      </div>
+
+      {displayStyle === "linear" ? (
+        <div
+          className="mt-1 truncate text-xs font-semibold opacity-70"
+          style={labelTextStyle}
+        >
+          {card.unitLabel || card.linearLabel || card.label || ""}
+        </div>
+      ) : null}
+    </div>
+
+    {displayStyle === "linear" &&
+    card.imagePosition === "right" &&
+    card.imageUrl ? (
+      <img
+        src={card.imageUrl}
+        alt=""
+        className="h-10 w-10 shrink-0 rounded-full object-cover"
+      />
+    ) : displayStyle === "linear" &&
+      card.imagePosition === "right" &&
+      card.showIcon !== false &&
+      card.icon ? (
+      <div className="shrink-0 text-2xl">{card.icon}</div>
+    ) : !displayStyle || displayStyle !== "linear" ? (
+      card.showIcon !== false && card.icon ? (
+        <div className="shrink-0 text-2xl">{card.icon}</div>
+      ) : null
+    ) : null}
+  </div>
+
+  {shouldShowProgress ? (
+    <div className="mt-3">
+      <div
+        className="h-2 overflow-hidden rounded-full"
+        style={{
+          background: isLightDesign(designKey)
+            ? "rgba(17,24,39,0.10)"
+            : "rgba(255,255,255,0.16)",
+        }}
+      >
+        <div
+          className="h-full rounded-full"
+          style={{
+            width: `${percent}%`,
+            background:
+              valueTextStyle.color ??
+              (isLightDesign(designKey)
+                ? "rgba(37,99,235,0.85)"
+                : "rgba(255,255,255,0.92)"),
+          }}
+        />
+      </div>
+
+      {card.showProgressPercentage ? (
+        <div
+          className="mt-1 text-[11px] opacity-60"
+          style={descriptionTextStyle}
+        >
+          {percent}% complete
+        </div>
+      ) : null}
+    </div>
+  ) : null}
+
+  {displayStyle !== "linear" && getCardDescription(card) ? (
+    <div
+      className="mt-3 text-xs opacity-60"
+      style={descriptionTextStyle}
+    >
+      {getCardDescription(card)}
+    </div>
+  ) : null}
 </div>
-
-{displayStyle === "linear" ? (
-  <div
-    className="mt-1 truncate text-xs font-semibold opacity-70"
-    style={labelTextStyle}
-  >
-    {card.unitLabel || card.linearLabel || card.label || ""}
-  </div>
-) : null}
-                        </div>
-
-{displayStyle === "linear" && card.imageUrl ? (
-  <img
-    src={card.imageUrl}
-    alt=""
-    className="h-10 w-10 shrink-0 rounded-full object-cover"
-  />
-) : card.showIcon !== false && card.icon ? (
-  <div className="shrink-0 text-2xl">{card.icon}</div>
-) : null}
-                      </div>
-
-                      {shouldShowProgress ? (
-                        <div className="mt-3">
-                          <div
-                            className="h-2 overflow-hidden rounded-full"
-                            style={{
-                              background: isLightDesign(designKey)
-                                ? "rgba(17,24,39,0.10)"
-                                : "rgba(255,255,255,0.16)",
-                            }}
-                          >
-                            <div
-                              className="h-full rounded-full"
-                              style={{
-                                width: `${percent}%`,
-                                background:
-                                  valueTextStyle.color ??
-                                  (isLightDesign(designKey)
-                                    ? "rgba(37,99,235,0.85)"
-                                    : "rgba(255,255,255,0.92)"),
-                              }}
-                            />
-                          </div>
-
-                          {card.showProgressPercentage ? (
-                            <div
-                              className="mt-1 text-[11px] opacity-60"
-                              style={descriptionTextStyle}
-                            >
-                              {percent}% complete
-                            </div>
-                          ) : null}
-                        </div>
-                      ) : null}
-
-{displayStyle !== "linear" && getCardDescription(card) ? (
-  <div
-    className="mt-3 text-xs opacity-60"
-    style={descriptionTextStyle}
-  >
-    {getCardDescription(card)}
-  </div>
-) : null}
-                    </div>
 
                     {displayStyle === "linear" && getLinearDividerCss(cardIndex) ? (
                       <span style={getLinearDividerCss(cardIndex)} />
