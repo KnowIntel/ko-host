@@ -10855,50 +10855,62 @@ function renderCalendarEvent(
     </div>
   );
 
-  return (
-<Surface
-  block={block}
-  designKey={designKey}
-  className={`${getSoftSurfaceClass(designKey)} relative flex h-full max-h-full min-h-0 flex-col overflow-hidden`}
->
-  <div
-    className="h-full max-h-[inherit] min-h-0 flex-1 overflow-y-auto overscroll-contain rounded-[inherit]"
-    style={{
-      backgroundColor: calendarStyle.formBackgroundColor || undefined,
-      fontFamily: baseTextStyle.fontFamily,
-      color: baseTextStyle.color || undefined,
-    }}
+return (
+  <Surface
+    block={block}
+    designKey={designKey}
+    className={`${getSoftSurfaceClass(designKey)} overflow-hidden`}
   >
-        {block.data.showHeading !== false ? (
-          <div className="text-base font-semibold" style={baseTextStyle}>
-            {block.data.heading || "Event Calendar"}
-          </div>
-        ) : null}
+    <div
+      className="overflow-y-auto overscroll-contain rounded-[inherit]"
+      style={{
+        maxHeight: "100%",
+        height: "100%",
+        minHeight: 0,
+        backgroundColor: calendarStyle.formBackgroundColor || undefined,
+        fontFamily: baseTextStyle.fontFamily,
+        color: baseTextStyle.color || undefined,
+      }}
+      onWheel={(event) => {
+        event.stopPropagation();
+      }}
+      onPointerDown={(event) => {
+        event.stopPropagation();
+      }}
+      onTouchMove={(event) => {
+        event.stopPropagation();
+      }}
+    >
+      {block.data.showHeading !== false ? (
+        <div className="text-base font-semibold" style={baseTextStyle}>
+          {block.data.heading || "Event Calendar"}
+        </div>
+      ) : null}
 
-        {block.data.showSubtitle !== false ? (
-          <div className="mt-1 text-sm opacity-80" style={baseTextStyle}>
-            {block.data.subtitle || "Select a date to view event details."}
-          </div>
-        ) : null}
+      {block.data.showSubtitle !== false ? (
+        <div className="mt-1 text-sm opacity-80" style={baseTextStyle}>
+          {block.data.subtitle || "Select a date to view event details."}
+        </div>
+      ) : null}
 
-        {block.data.variant === "compact" ? (
-          <div className="mt-4">{compactList}</div>
-        ) : block.data.variant === "simplified" ? (
-          <div className="mt-4">{eventCards}</div>
-        ) : block.data.variant === "formal" ? (
-          <div className="mt-4 space-y-4">
-            {calendarPanel}
-            {eventCards}
-          </div>
-        ) : (
-          <div className="mt-4 grid gap-4 lg:grid-cols-[280px_1fr]">
-            {calendarPanel}
-            {eventCards}
-          </div>
-        )}
-      </div>
-    </Surface>
-  );
+      {block.data.variant === "compact" ? (
+        <div className="mt-4">{compactList}</div>
+      ) : block.data.variant === "simplified" ? (
+        <div className="mt-4">{eventCards}</div>
+      ) : block.data.variant === "formal" ? (
+        <div className="mt-4 space-y-4">
+          {calendarPanel}
+          {eventCards}
+        </div>
+      ) : (
+        <div className="mt-4 grid gap-4 lg:grid-cols-[280px_1fr]">
+          {calendarPanel}
+          {eventCards}
+        </div>
+      )}
+    </div>
+  </Surface>
+);
 }
 
 function renderMapLocation(
