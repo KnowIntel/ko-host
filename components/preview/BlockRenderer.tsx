@@ -10859,7 +10859,7 @@ function renderCalendarEvent(
 <Surface
   block={block}
   designKey={designKey}
-  className={`${getSoftSurfaceClass(designKey)} flex min-h-0 flex-col overflow-hidden`}
+  className={`${getSoftSurfaceClass(designKey)} flex h-full min-h-0 flex-col overflow-hidden`}
 >
 <div
   className="min-h-0 flex-1 overflow-y-auto rounded-[inherit]"
