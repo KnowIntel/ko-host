@@ -10859,16 +10859,16 @@ function renderCalendarEvent(
 <Surface
   block={block}
   designKey={designKey}
-  className={`${getSoftSurfaceClass(designKey)} flex h-full min-h-0 flex-col overflow-hidden`}
+  className={`${getSoftSurfaceClass(designKey)} relative flex h-full max-h-full min-h-0 flex-col overflow-hidden`}
 >
-<div
-  className="min-h-0 flex-1 overflow-y-auto rounded-[inherit]"
-        style={{
-          backgroundColor: calendarStyle.formBackgroundColor || undefined,
-          fontFamily: baseTextStyle.fontFamily,
-          color: baseTextStyle.color || undefined,
-        }}
-      >
+  <div
+    className="h-full max-h-[inherit] min-h-0 flex-1 overflow-y-auto overscroll-contain rounded-[inherit]"
+    style={{
+      backgroundColor: calendarStyle.formBackgroundColor || undefined,
+      fontFamily: baseTextStyle.fontFamily,
+      color: baseTextStyle.color || undefined,
+    }}
+  >
         {block.data.showHeading !== false ? (
           <div className="text-base font-semibold" style={baseTextStyle}>
             {block.data.heading || "Event Calendar"}
