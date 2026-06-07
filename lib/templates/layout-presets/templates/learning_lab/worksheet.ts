@@ -9,5 +9,5 @@ export default createLayoutPreset({
   thumbnail:
     "/designs/design-cards/design-card_learning_lab_worksheet.webp",
 
-  recommended: true,
+  recommended: false,
 });
