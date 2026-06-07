@@ -20855,18 +20855,175 @@ onClick={() =>
                   ...block,
                   data: {
                     ...block.data,
-                    variant: e.target.value as "standard" | "formal" | "simplified",
+                    variant: e.target.value as
+  | "standard"
+  | "formal"
+  | "simplified"
+  | "compact",
                   },
                 },
           )
         }
         className={inspectorInputClass()}
       >
-        <option value="standard">Standard</option>
-        <option value="formal">Formal</option>
-        <option value="simplified">Simplified</option>
+<option value="standard">Standard</option>
+<option value="formal">Formal</option>
+<option value="simplified">Simplified</option>
+<option value="compact">Compact</option>
       </select>
     </div>
+
+    {selectedBlock.data.variant === "compact" ? (
+  <div className="mt-4 space-y-3">
+    <div className={inspectorLabelClass()}>Compact Settings</div>
+
+    <div>
+      <div className={inspectorLabelClass()}>
+        Date Format
+      </div>
+
+      <select
+        value={selectedBlock.data.compactDateFormat ?? "weekday"}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "calendar_event"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    compactDateFormat:
+                      e.target.value as
+                        | "weekday"
+                        | "short"
+                        | "numeric",
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      >
+        <option value="weekday">
+          Saturday, May 25
+        </option>
+
+        <option value="short">
+          May 25
+        </option>
+
+        <option value="numeric">
+          05/25/2026
+        </option>
+      </select>
+    </div>
+
+    <div>
+      <div className={inspectorLabelClass()}>
+        Max Visible Events
+      </div>
+
+      <input
+        type="number"
+        min={1}
+        max={20}
+        value={selectedBlock.data.compactMaxVisibleEvents ?? 4}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "calendar_event"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    compactMaxVisibleEvents:
+                      Number(e.target.value) || 4,
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
+
+    <div>
+      <div className={inspectorLabelClass()}>
+        View All Text
+      </div>
+
+      <input
+        type="text"
+        value={
+          selectedBlock.data.compactViewAllText ??
+          "View All Events"
+        }
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "calendar_event"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    compactViewAllText: e.target.value,
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
+
+    <div>
+      <div className={inspectorLabelClass()}>
+        View All URL
+      </div>
+
+      <input
+        type="text"
+        value={
+          selectedBlock.data.compactViewAllUrl ?? ""
+        }
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "calendar_event"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    compactViewAllUrl: e.target.value,
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
+
+    <label className="flex items-center gap-2 text-sm text-neutral-700">
+      <input
+        type="checkbox"
+        checked={
+          selectedBlock.data.showCompactImages !== false
+        }
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "calendar_event"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    showCompactImages: e.target.checked,
+                  },
+                },
+          )
+        }
+      />
+      Show Images
+    </label>
+  </div>
+) : null}
 
     <div className="mt-5">
       <div className={inspectorLabelClass()}>Display Options</div>
@@ -20911,12 +21068,16 @@ onClick={() =>
       <div className={inspectorLabelClass()}>Calendar Styling</div>
       <div className="mt-3 grid grid-cols-2 gap-3">
         {[
-          ["backgroundColor", "Background"],
-          ["textColor", "Text"],
-          ["activeDateColor", "Active Date"],
-          ["todayBorderColor", "Today Border"],
-          ["eventDotColor", "Event Dot"],
-        ].map(([key, label]) => (
+  ["backgroundColor", "Background"],
+  ["textColor", "Text"],
+  ["activeDateColor", "Active Date"],
+  ["todayBorderColor", "Today Border"],
+  ["dateBorderColor", "Date Border"],
+  ["eventDotColor", "Event Dot"],
+  ["scheduledLabelColor", "Scheduled Label"],
+  ["monthLabelColor", "Month Label"],
+  ["monthArrowColor", "Month Arrow"],
+].map(([key, label]) => (
           <div key={key}>
             <div className={inspectorLabelClass()}>{label}</div>
             <input
@@ -20944,6 +21105,97 @@ onClick={() =>
         ))}
       </div>
     </div>
+
+    <div className="mt-5">
+  <div className={inspectorLabelClass()}>
+    Selected Date Styling
+  </div>
+
+  <div className="mt-3 grid grid-cols-2 gap-3">
+    {[
+      [
+        "selectedDateBackgroundColor",
+        "Background",
+      ],
+      [
+        "selectedDateBorderColor",
+        "Border",
+      ],
+    ].map(([key, label]) => (
+      <div key={key}>
+        <div className={inspectorLabelClass()}>
+          {label}
+        </div>
+
+        <input
+          type="color"
+          value={
+            (selectedBlock.data.calendarStyle as any)?.[
+              key
+            ] || "#ffffff"
+          }
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "calendar_event"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      calendarStyle: {
+                        ...(block.data.calendarStyle ??
+                          {}),
+                        [key]: e.target.value,
+                      },
+                    },
+                  },
+            )
+          }
+          className="mt-2 h-10 w-full rounded-xl border border-neutral-300 bg-white"
+        />
+      </div>
+    ))}
+  </div>
+</div>
+
+<div className="mt-5">
+  <div className={inspectorLabelClass()}>
+    Form Styling
+  </div>
+
+  <div className="mt-3">
+    <div className={inspectorLabelClass()}>
+      Background
+    </div>
+
+    <input
+      type="color"
+      value={
+        selectedBlock.data.calendarStyle
+          ?.formBackgroundColor || "#ffffff"
+      }
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "calendar_event"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  calendarStyle: {
+                    ...(block.data.calendarStyle ??
+                      {}),
+                    formBackgroundColor:
+                      e.target.value,
+                  },
+                },
+              },
+        )
+      }
+      className="mt-2 h-10 w-full rounded-xl border border-neutral-300 bg-white"
+    />
+  </div>
+</div>
 
     <div className="mt-5">
       <div className={inspectorLabelClass()}>Event Card Styling</div>

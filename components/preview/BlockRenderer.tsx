@@ -10116,6 +10116,34 @@ function renderCalendarEvent(
       typeof block.data.calendarStyle?.eventDotColor === "string"
         ? block.data.calendarStyle.eventDotColor
         : "",
+    dateBorderColor:
+      typeof block.data.calendarStyle?.dateBorderColor === "string"
+        ? block.data.calendarStyle.dateBorderColor
+        : "",
+    scheduledLabelColor:
+      typeof block.data.calendarStyle?.scheduledLabelColor === "string"
+        ? block.data.calendarStyle.scheduledLabelColor
+        : "",
+    monthLabelColor:
+      typeof block.data.calendarStyle?.monthLabelColor === "string"
+        ? block.data.calendarStyle.monthLabelColor
+        : "",
+    monthArrowColor:
+      typeof block.data.calendarStyle?.monthArrowColor === "string"
+        ? block.data.calendarStyle.monthArrowColor
+        : "",
+    selectedDateBackgroundColor:
+      typeof block.data.calendarStyle?.selectedDateBackgroundColor === "string"
+        ? block.data.calendarStyle.selectedDateBackgroundColor
+        : "",
+    selectedDateBorderColor:
+      typeof block.data.calendarStyle?.selectedDateBorderColor === "string"
+        ? block.data.calendarStyle.selectedDateBorderColor
+        : "",
+    formBackgroundColor:
+      typeof block.data.calendarStyle?.formBackgroundColor === "string"
+        ? block.data.calendarStyle.formBackgroundColor
+        : "",
   };
 
   const detailStyle = {
@@ -10123,10 +10151,10 @@ function renderCalendarEvent(
       typeof block.data.detailStyle?.backgroundColor === "string"
         ? block.data.detailStyle.backgroundColor
         : "",
-        textColor:
-  typeof block.data.detailStyle?.textColor === "string"
-    ? block.data.detailStyle.textColor
-    : "",
+    textColor:
+      typeof block.data.detailStyle?.textColor === "string"
+        ? block.data.detailStyle.textColor
+        : "",
     borderColor:
       typeof block.data.detailStyle?.borderColor === "string"
         ? block.data.detailStyle.borderColor
@@ -10138,6 +10166,8 @@ function renderCalendarEvent(
         : 16,
     shadowEnabled: Boolean(block.data.detailStyle?.shadowEnabled),
   };
+
+  const baseTextStyle = getContainerTextStyle(block.data.style, designKey);
 
   const [copiedEventId, setCopiedEventId] = useState<string | null>(null);
 
@@ -10209,6 +10239,36 @@ function renderCalendarEvent(
     });
   }
 
+  function formatCompactDate(dateValue?: string) {
+    if (!dateValue) return "Date TBD";
+
+    const parsed = new Date(`${dateValue}T00:00:00`);
+    if (Number.isNaN(parsed.getTime())) return dateValue;
+
+    const format = block.data.compactDateFormat ?? "weekday";
+
+    if (format === "numeric") {
+      return parsed.toLocaleDateString(undefined, {
+        month: "2-digit",
+        day: "2-digit",
+        year: "numeric",
+      });
+    }
+
+    if (format === "short") {
+      return parsed.toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric",
+      });
+    }
+
+    return parsed.toLocaleDateString(undefined, {
+      weekday: "long",
+      month: "short",
+      day: "numeric",
+    });
+  }
+
   function eventStatusLabel(dateValue?: string) {
     if (!dateValue) return "";
     if (dateValue < todayKey) return "Past Event";
@@ -10225,17 +10285,30 @@ function renderCalendarEvent(
     });
   }
 
+  const sortedEvents = [...events].sort((a, b) => {
+    const dateCompare = a.date.localeCompare(b.date);
+    if (dateCompare !== 0) return dateCompare;
+    return a.startTime.localeCompare(b.startTime);
+  });
+
   const selectedEvents = events.filter((event) => event.date === selectedDate);
 
   const visibleEvents =
-    block.data.variant === "simplified"
-      ? [...events].sort((a, b) => a.date.localeCompare(b.date))
-      : selectedEvents;
+    block.data.variant === "simplified" ? sortedEvents : selectedEvents;
 
   const selectedDateLabel =
     block.data.variant === "simplified" ? "" : formatEventDate(selectedDate);
 
   const selectedDateCount = visibleEvents.length;
+
+  const compactMaxVisibleEvents =
+    typeof block.data.compactMaxVisibleEvents === "number" &&
+    Number.isFinite(block.data.compactMaxVisibleEvents)
+      ? Math.max(1, Math.min(20, block.data.compactMaxVisibleEvents))
+      : 4;
+
+  const compactEvents = sortedEvents.slice(0, compactMaxVisibleEvents);
+  const compactHasMoreEvents = sortedEvents.length > compactEvents.length;
 
   const calendarPanel = (
     <div
@@ -10247,7 +10320,12 @@ function renderCalendarEvent(
       ].join(" ")}
       style={{
         backgroundColor: calendarStyle.backgroundColor || undefined,
-        color: calendarStyle.textColor || undefined,
+        color: calendarStyle.textColor || baseTextStyle.color || undefined,
+        fontFamily: baseTextStyle.fontFamily,
+        fontSize: baseTextStyle.fontSize,
+        fontWeight: baseTextStyle.fontWeight,
+        fontStyle: baseTextStyle.fontStyle,
+        textDecoration: baseTextStyle.textDecoration,
       }}
     >
       {block.data.showCalendarHeading !== false ? (
@@ -10258,25 +10336,51 @@ function renderCalendarEvent(
             className={[
               "inline-flex h-9 w-9 items-center justify-center rounded-full border text-lg leading-none transition",
               isLightDesign(designKey)
-                ? "border-neutral-200 bg-neutral-50 text-neutral-800 hover:bg-neutral-100"
-                : "border-white/10 bg-white/10 text-white hover:bg-white/15",
+                ? "border-neutral-200 bg-neutral-50 hover:bg-neutral-100"
+                : "border-white/10 bg-white/10 hover:bg-white/15",
             ].join(" ")}
+            style={{
+              color:
+                calendarStyle.monthArrowColor ||
+                calendarStyle.textColor ||
+                baseTextStyle.color ||
+                undefined,
+              fontFamily: baseTextStyle.fontFamily,
+            }}
             aria-label="Previous month"
           >
             ‹
           </button>
 
-          <div className="text-center">
+          <div className="flex-1 text-center">
             <div
-              className="text-sm font-bold"
-              style={getContainerTextStyle(block.data.style, designKey)}
+              className="text-center text-sm font-bold"
+              style={{
+                ...baseTextStyle,
+                textAlign: "center",
+                color:
+                  calendarStyle.monthLabelColor ||
+                  calendarStyle.textColor ||
+                  baseTextStyle.color ||
+                  undefined,
+              }}
             >
               {monthLabel}
             </div>
 
             {block.data.showEventCount !== false ? (
               <div
-                className={`mt-0.5 text-[11px] ${getMutedTextClass(designKey)}`}
+                className="mt-0.5 text-center text-[11px]"
+                style={{
+                  color:
+                    calendarStyle.scheduledLabelColor ||
+                    calendarStyle.textColor ||
+                    baseTextStyle.color ||
+                    undefined,
+                  fontFamily: baseTextStyle.fontFamily,
+                  fontWeight: baseTextStyle.fontWeight,
+                  fontStyle: baseTextStyle.fontStyle,
+                }}
               >
                 {events.length} scheduled{" "}
                 {events.length === 1 ? "event" : "events"}
@@ -10290,9 +10394,17 @@ function renderCalendarEvent(
             className={[
               "inline-flex h-9 w-9 items-center justify-center rounded-full border text-lg leading-none transition",
               isLightDesign(designKey)
-                ? "border-neutral-200 bg-neutral-50 text-neutral-800 hover:bg-neutral-100"
-                : "border-white/10 bg-white/10 text-white hover:bg-white/15",
+                ? "border-neutral-200 bg-neutral-50 hover:bg-neutral-100"
+                : "border-white/10 bg-white/10 hover:bg-white/15",
             ].join(" ")}
+            style={{
+              color:
+                calendarStyle.monthArrowColor ||
+                calendarStyle.textColor ||
+                baseTextStyle.color ||
+                undefined,
+              fontFamily: baseTextStyle.fontFamily,
+            }}
             aria-label="Next month"
           >
             ›
@@ -10300,7 +10412,13 @@ function renderCalendarEvent(
         </div>
       ) : null}
 
-      <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-bold uppercase tracking-[0.12em] opacity-60">
+      <div
+        className="grid grid-cols-7 gap-1 text-center text-[10px] font-bold uppercase tracking-[0.12em] opacity-60"
+        style={{
+          color: calendarStyle.textColor || baseTextStyle.color || undefined,
+          fontFamily: baseTextStyle.fontFamily,
+        }}
+      >
         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
           <div key={day} className="py-1">
             {day}
@@ -10321,44 +10439,46 @@ function renderCalendarEvent(
           const isToday = todayKey === cell.dateKey;
 
           return (
-<button
-  key={cell.dateKey}
-  type="button"
-  onPointerDown={(event) => {
-    event.stopPropagation();
-  }}
-  onClick={(event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    setSelectedDate(cell.dateKey);
-  }}
+            <button
+              key={cell.dateKey}
+              type="button"
+              onPointerDown={(event) => {
+                event.stopPropagation();
+              }}
+              onClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                setSelectedDate(cell.dateKey);
+              }}
               className={[
                 "pointer-events-auto group relative z-10 flex aspect-square flex-col items-center justify-center rounded-2xl border text-xs font-semibold transition",
                 isSelected
-                  ? isLightDesign(designKey)
-                    ? "border-neutral-950 bg-neutral-950 text-white shadow-md"
-                    : "border-white bg-white text-neutral-950 shadow-md"
-                  : isToday
-                    ? isLightDesign(designKey)
-                      ? "border-neutral-950 bg-white"
-                      : "border-white/60 bg-white/10"
-                    : isLightDesign(designKey)
-                      ? "border-neutral-200 bg-neutral-50 hover:border-neutral-400 hover:bg-white"
-                      : "border-white/10 bg-white/5 hover:border-white/30 hover:bg-white/10",
+                  ? "shadow-md"
+                  : isLightDesign(designKey)
+                    ? "bg-neutral-50 hover:bg-white"
+                    : "bg-white/5 hover:bg-white/10",
               ].join(" ")}
               style={{
                 backgroundColor:
-                  isSelected && calendarStyle.activeDateColor
-                    ? calendarStyle.activeDateColor
-                    : undefined,
+                  isSelected && calendarStyle.selectedDateBackgroundColor
+                    ? calendarStyle.selectedDateBackgroundColor
+                    : isSelected && calendarStyle.activeDateColor
+                      ? calendarStyle.activeDateColor
+                      : undefined,
                 borderColor:
-                  isToday && calendarStyle.todayBorderColor
-                    ? calendarStyle.todayBorderColor
-                    : undefined,
+                  isSelected && calendarStyle.selectedDateBorderColor
+                    ? calendarStyle.selectedDateBorderColor
+                    : isToday && calendarStyle.todayBorderColor
+                      ? calendarStyle.todayBorderColor
+                      : !isToday && !isSelected && calendarStyle.dateBorderColor
+                        ? calendarStyle.dateBorderColor
+                        : undefined,
                 color:
-                  calendarStyle.textColor && !isSelected
-                    ? calendarStyle.textColor
-                    : undefined,
+                  calendarStyle.textColor || baseTextStyle.color || undefined,
+                fontFamily: baseTextStyle.fontFamily,
+                fontSize: baseTextStyle.fontSize,
+                fontWeight: baseTextStyle.fontWeight,
+                fontStyle: baseTextStyle.fontStyle,
               }}
               aria-label={`View events for ${cell.dateKey}`}
             >
@@ -10374,9 +10494,9 @@ function renderCalendarEvent(
                         style={{
                           backgroundColor:
                             calendarStyle.eventDotColor ||
-                            (calendarStyle.textColor && !isSelected
-                              ? calendarStyle.textColor
-                              : undefined),
+                            calendarStyle.textColor ||
+                            baseTextStyle.color ||
+                            undefined,
                         }}
                       />
                     ))}
@@ -10414,7 +10534,8 @@ function renderCalendarEvent(
               : "border-white/10 bg-white/5",
           ].join(" ")}
           style={{
-            color: calendarStyle.textColor || undefined,
+            color: calendarStyle.textColor || baseTextStyle.color || undefined,
+            fontFamily: baseTextStyle.fontFamily,
           }}
         >
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -10425,7 +10546,7 @@ function renderCalendarEvent(
 
               <div
                 className="mt-1 text-sm font-semibold"
-                style={getContainerTextStyle(block.data.style, designKey)}
+                style={baseTextStyle}
               >
                 {selectedDateLabel}
               </div>
@@ -10467,7 +10588,12 @@ function renderCalendarEvent(
               style={{
                 backgroundColor: detailStyle.backgroundColor || undefined,
                 borderColor: detailStyle.borderColor || undefined,
-                color: detailStyle.textColor || undefined,
+                color:
+                  detailStyle.textColor || baseTextStyle.color || undefined,
+                fontFamily: baseTextStyle.fontFamily,
+                fontSize: baseTextStyle.fontSize,
+                fontWeight: baseTextStyle.fontWeight,
+                fontStyle: baseTextStyle.fontStyle,
                 borderRadius:
                   typeof detailStyle.borderRadius === "number"
                     ? detailStyle.borderRadius
@@ -10515,42 +10641,17 @@ function renderCalendarEvent(
                     ) : null}
                   </div>
 
-                  <div
-                    className="font-semibold"
-                    style={{
-                      ...getContainerTextStyle(block.data.style, designKey),
-                      color:
-                        detailStyle.textColor ||
-                        block.data.style?.color ||
-                        undefined,
-                    }}
-                  >
+                  <div className="font-semibold" style={baseTextStyle}>
                     {event.title || "Event"}
                   </div>
 
                   {event.subtitle ? (
-                    <div
-                      className="mt-1 text-sm"
-                      style={{
-                        color:
-                          detailStyle.textColor ||
-                          block.data.style?.color ||
-                          undefined,
-                      }}
-                    >
+                    <div className="mt-1 text-sm">
                       {event.subtitle}
                     </div>
                   ) : null}
 
-                  <div
-                    className="mt-3 text-xs"
-                    style={{
-                      color:
-                        detailStyle.textColor ||
-                        block.data.style?.color ||
-                        undefined,
-                    }}
-                  >
+                  <div className="mt-3 text-xs">
                     {formatEventDate(event.date)}
                     {event.startTime || event.endTime
                       ? ` • ${event.startTime || ""}${
@@ -10560,15 +10661,7 @@ function renderCalendarEvent(
                   </div>
 
                   {event.location || event.meetingMethod ? (
-                    <div
-                      className="mt-2 text-sm"
-                      style={{
-                        color:
-                          detailStyle.textColor ||
-                          block.data.style?.color ||
-                          undefined,
-                      }}
-                    >
+                    <div className="mt-2 text-sm">
                       {[event.meetingMethod, event.location]
                         .filter(Boolean)
                         .join(" • ")}
@@ -10576,57 +10669,25 @@ function renderCalendarEvent(
                   ) : null}
 
                   {event.address ? (
-                    <div
-                      className="mt-1 text-sm"
-                      style={{
-                        color:
-                          detailStyle.textColor ||
-                          block.data.style?.color ||
-                          undefined,
-                      }}
-                    >
+                    <div className="mt-1 text-sm">
                       {event.address}
                     </div>
                   ) : null}
 
                   {block.data.showHost !== false && event.host ? (
-                    <div
-                      className="mt-2 text-xs"
-                      style={{
-                        color:
-                          detailStyle.textColor ||
-                          block.data.style?.color ||
-                          undefined,
-                      }}
-                    >
+                    <div className="mt-2 text-xs">
                       Hosted by {event.host}
                     </div>
                   ) : null}
 
                   {block.data.showCapacity !== false && event.capacity ? (
-                    <div
-                      className="mt-1 text-xs"
-                      style={{
-                        color:
-                          detailStyle.textColor ||
-                          block.data.style?.color ||
-                          undefined,
-                      }}
-                    >
+                    <div className="mt-1 text-xs">
                       Capacity: {event.capacity}
                     </div>
                   ) : null}
 
                   {event.notes ? (
-                    <div
-                      className="mt-2 text-sm"
-                      style={{
-                        color:
-                          detailStyle.textColor ||
-                          block.data.style?.color ||
-                          undefined,
-                      }}
-                    >
+                    <div className="mt-2 text-sm">
                       {event.notes}
                     </div>
                   ) : null}
@@ -10694,6 +10755,10 @@ function renderCalendarEvent(
               ? "border-neutral-300 bg-neutral-50 text-neutral-500"
               : "border-white/15 bg-white/5 text-white/60",
           ].join(" ")}
+          style={{
+            fontFamily: baseTextStyle.fontFamily,
+            color: baseTextStyle.color || undefined,
+          }}
         >
           <div className="text-3xl">📅</div>
 
@@ -10709,43 +10774,129 @@ function renderCalendarEvent(
     </div>
   );
 
+  const compactList = (
+    <div className="space-y-3">
+      {compactEvents.map((event) => {
+        const shouldShowImage =
+          block.data.showCompactImages !== false && Boolean(event.imageUrl);
+
+        return (
+          <div
+            key={event.id}
+            className={[
+              "flex items-center gap-4 rounded-2xl border p-3",
+              isLightDesign(designKey)
+                ? "border-neutral-200 bg-white"
+                : "border-white/10 bg-white/5",
+            ].join(" ")}
+            style={{
+              backgroundColor: detailStyle.backgroundColor || undefined,
+              borderColor: detailStyle.borderColor || undefined,
+              color: detailStyle.textColor || baseTextStyle.color || undefined,
+              fontFamily: baseTextStyle.fontFamily,
+              borderRadius:
+                typeof detailStyle.borderRadius === "number"
+                  ? detailStyle.borderRadius
+                  : undefined,
+            }}
+          >
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl border bg-neutral-100 text-xs font-semibold">
+              {shouldShowImage ? (
+                <img
+                  src={event.imageUrl}
+                  alt={event.imageAlt || event.title || "Event image"}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <span>📅</span>
+              )}
+            </div>
+
+            <div className="min-w-0 flex-1">
+              <div className="truncate font-semibold" style={baseTextStyle}>
+                {event.title || "Event"}
+              </div>
+
+              <div className="mt-1 text-xs opacity-75">
+                {formatCompactDate(event.date)}
+                {event.startTime || event.endTime
+                  ? ` • ${event.startTime || ""}${
+                      event.endTime ? ` - ${event.endTime}` : ""
+                    }`
+                  : ""}
+              </div>
+
+              {event.location || event.meetingMethod ? (
+                <div className="mt-1 truncate text-sm opacity-80">
+                  {[event.meetingMethod, event.location]
+                    .filter(Boolean)
+                    .join(" • ")}
+                </div>
+              ) : null}
+            </div>
+          </div>
+        );
+      })}
+
+      {compactHasMoreEvents && block.data.compactViewAllUrl ? (
+        <a
+          href={block.data.compactViewAllUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="mt-3 inline-flex text-sm font-semibold underline"
+          style={{
+            color: detailStyle.textColor || baseTextStyle.color || undefined,
+            fontFamily: baseTextStyle.fontFamily,
+          }}
+        >
+          {block.data.compactViewAllText || "View All Events"} →
+        </a>
+      ) : null}
+    </div>
+  );
+
   return (
     <Surface
       block={block}
       designKey={designKey}
       className={`${getSoftSurfaceClass(designKey)} overflow-y-auto`}
     >
-      {block.data.showHeading !== false ? (
-        <div
-          className="text-base font-semibold"
-          style={getContainerTextStyle(block.data.style, designKey)}
-        >
-          {block.data.heading || "Event Calendar"}
-        </div>
-      ) : null}
+      <div
+        className="rounded-[inherit]"
+        style={{
+          backgroundColor: calendarStyle.formBackgroundColor || undefined,
+          fontFamily: baseTextStyle.fontFamily,
+          color: baseTextStyle.color || undefined,
+        }}
+      >
+        {block.data.showHeading !== false ? (
+          <div className="text-base font-semibold" style={baseTextStyle}>
+            {block.data.heading || "Event Calendar"}
+          </div>
+        ) : null}
 
-      {block.data.showSubtitle !== false ? (
-        <div
-          className={`mt-1 text-sm ${getMutedTextClass(designKey)}`}
-          style={getContainerTextStyle(block.data.style, designKey)}
-        >
-          {block.data.subtitle || "Select a date to view event details."}
-        </div>
-      ) : null}
+        {block.data.showSubtitle !== false ? (
+          <div className="mt-1 text-sm opacity-80" style={baseTextStyle}>
+            {block.data.subtitle || "Select a date to view event details."}
+          </div>
+        ) : null}
 
-      {block.data.variant === "simplified" ? (
-        <div className="mt-4">{eventCards}</div>
-      ) : block.data.variant === "formal" ? (
-        <div className="mt-4 space-y-4">
-          {calendarPanel}
-          {eventCards}
-        </div>
-      ) : (
-        <div className="mt-4 grid gap-4 lg:grid-cols-[280px_1fr]">
-          {calendarPanel}
-          {eventCards}
-        </div>
-      )}
+        {block.data.variant === "compact" ? (
+          <div className="mt-4">{compactList}</div>
+        ) : block.data.variant === "simplified" ? (
+          <div className="mt-4">{eventCards}</div>
+        ) : block.data.variant === "formal" ? (
+          <div className="mt-4 space-y-4">
+            {calendarPanel}
+            {eventCards}
+          </div>
+        ) : (
+          <div className="mt-4 grid gap-4 lg:grid-cols-[280px_1fr]">
+            {calendarPanel}
+            {eventCards}
+          </div>
+        )}
+      </div>
     </Surface>
   );
 }

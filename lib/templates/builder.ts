@@ -1477,7 +1477,7 @@ export type CalendarEventBlock = BaseBlock & {
   data: {
     heading?: string;
     subtitle?: string;
-    variant: "standard" | "formal" | "simplified";
+    variant: "standard" | "formal" | "simplified" | "compact";
     defaultSelectedDate?: string;
     defaultMonth?: string;
 
@@ -1494,6 +1494,12 @@ export type CalendarEventBlock = BaseBlock & {
     showEventImages?: boolean;
     showCtaButtons?: boolean;
 
+    compactDateFormat?: "weekday" | "short" | "numeric";
+    compactMaxVisibleEvents?: number;
+    compactViewAllText?: string;
+    compactViewAllUrl?: string;
+    showCompactImages?: boolean;
+
     emptyStateText?: string;
     events: CalendarEventEntry[];
 
@@ -1504,6 +1510,13 @@ export type CalendarEventBlock = BaseBlock & {
       activeDateColor?: string;
       todayBorderColor?: string;
       eventDotColor?: string;
+      dateBorderColor?: string;
+      scheduledLabelColor?: string;
+      monthLabelColor?: string;
+      monthArrowColor?: string;
+      selectedDateBackgroundColor?: string;
+      selectedDateBorderColor?: string;
+      formBackgroundColor?: string;
     };
     detailStyle?: {
       backgroundColor?: string;
@@ -3953,7 +3966,7 @@ data: {
         },
       };
 
-          case "calendar_event":
+    case "calendar_event":
       return {
         id: makeId("calendar"),
         type: "calendar_event",
@@ -3983,6 +3996,12 @@ data: {
           showRsvpBadge: true,
           showEventImages: true,
           showCtaButtons: true,
+
+          compactDateFormat: "weekday",
+          compactMaxVisibleEvents: 4,
+          compactViewAllText: "View All Events",
+          compactViewAllUrl: "",
+          showCompactImages: true,
 
           emptyStateText: "No events scheduled for this date.",
 
@@ -4023,6 +4042,13 @@ data: {
             activeDateColor: "",
             todayBorderColor: "",
             eventDotColor: "",
+            dateBorderColor: "",
+            scheduledLabelColor: "",
+            monthLabelColor: "",
+            monthArrowColor: "",
+            selectedDateBackgroundColor: "",
+            selectedDateBorderColor: "",
+            formBackgroundColor: "",
           },
 
           detailStyle: {
@@ -4036,7 +4062,6 @@ data: {
           buttonStyle: {},
         },
       };
-
     case "map_location":
       return {
         id: makeId("map"),
