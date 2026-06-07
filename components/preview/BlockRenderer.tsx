@@ -10856,13 +10856,13 @@ function renderCalendarEvent(
   );
 
   return (
-    <Surface
-      block={block}
-      designKey={designKey}
-      className={`${getSoftSurfaceClass(designKey)} overflow-y-auto`}
-    >
-      <div
-        className="rounded-[inherit]"
+<Surface
+  block={block}
+  designKey={designKey}
+  className={`${getSoftSurfaceClass(designKey)} flex min-h-0 flex-col overflow-hidden`}
+>
+<div
+  className="min-h-0 flex-1 overflow-y-auto rounded-[inherit]"
         style={{
           backgroundColor: calendarStyle.formBackgroundColor || undefined,
           fontFamily: baseTextStyle.fontFamily,
