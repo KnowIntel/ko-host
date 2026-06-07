@@ -948,7 +948,7 @@ export type EnrollmentBoardBlock = BaseBlock & {
   };
 };
 
-export type HighlightDisplayStyle = "grid" | "list";
+export type HighlightDisplayStyle = "grid" | "list" | "linear";
 
 export type HighlightType =
   | "manual_stat"

@@ -17380,7 +17380,7 @@ onClick={() =>
                   ...block,
                   data: {
                     ...block.data,
-                    displayStyle: e.target.value as "grid" | "list",
+                    displayStyle: e.target.value as "grid" | "list" | "linear",
                   },
                 },
           )
@@ -17389,6 +17389,7 @@ onClick={() =>
       >
         <option value="grid">Grid</option>
         <option value="list">List</option>
+        <option value="linear">Linear</option>
       </select>
     </div>
 
@@ -17653,6 +17654,37 @@ onClick={() =>
               className={inspectorInputClass()}
             />
           </div>
+
+          <div className="mt-3">
+  <div className={inspectorLabelClass()}>Linear Unit Label</div>
+  <input
+    type="text"
+    value={card.unitLabel ?? card.linearLabel ?? ""}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "highlight"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                cards: (block.data.cards ?? []).map((item) =>
+                  item.id === card.id
+                    ? {
+                        ...item,
+                        unitLabel: e.target.value,
+                        linearLabel: e.target.value,
+                      }
+                    : item,
+                ),
+              },
+            },
+      )
+    }
+    className={inspectorInputClass()}
+    placeholder="Members, Views, Raised, Days"
+  />
+</div>
 
           {card.type === "manual_stat" ? (
             <div className="mt-3">

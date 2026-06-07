@@ -7988,21 +7988,27 @@ useEffect(() => {
             </div>
           ) : null}
 
-          {useCardRenderer ? (
-            <div
-              className={
-                displayStyle === "list"
-                  ? "grid gap-3"
-                  : "grid gap-3 overflow-y-auto pr-1"
-              }
-              style={
-                displayStyle === "list"
-                  ? undefined
-                  : {
-                      gridTemplateColumns: `repeat(${highlightColumns}, minmax(0, 1fr))`,
-                    }
-              }
-            >
+{useCardRenderer ? (
+  <div
+    className={
+      displayStyle === "linear"
+        ? "flex w-full overflow-x-auto rounded-2xl border border-black/10 bg-white/70 shadow-sm backdrop-blur-sm"
+        : displayStyle === "list"
+          ? "grid gap-3"
+          : "grid gap-3 overflow-y-auto pr-1"
+    }
+    style={
+      displayStyle === "linear"
+        ? {
+            WebkitOverflowScrolling: "touch",
+          }
+        : displayStyle === "list"
+          ? undefined
+          : {
+              gridTemplateColumns: `repeat(${highlightColumns}, minmax(0, 1fr))`,
+            }
+    }
+  >
               {normalizedCards.map((card: any) => {
                 const percent = getProgressPercent(card);
                 const shouldShowProgress =
@@ -8012,41 +8018,60 @@ useEffect(() => {
                   card.type === "money_raised";
 
                 return (
-                  <div
-                    key={card.id}
-                    className={
-                      displayStyle === "list"
-                        ? `${getHighlightCardClass(designKey)} flex items-center justify-between gap-4`
-                        : getHighlightCardClass(designKey)
-                    }
-                  >
+<div
+  key={card.id}
+  className={
+    displayStyle === "linear"
+      ? "flex min-w-[150px] flex-1 items-center gap-3 border-r border-black/10 px-4 py-3 last:border-r-0"
+      : displayStyle === "list"
+        ? `${getHighlightCardClass(designKey)} flex items-center justify-between gap-4`
+        : getHighlightCardClass(designKey)
+  }
+>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0 flex-1">
-                          {card.label ? (
-                            <div
-                              className="truncate text-[11px] font-semibold uppercase tracking-[0.14em] opacity-60"
-                              style={labelTextStyle}
-                            >
-                              {card.label}
-                            </div>
-                          ) : null}
+{displayStyle !== "linear" && card.label ? (
+  <div
+    className="truncate text-[11px] font-semibold uppercase tracking-[0.14em] opacity-60"
+    style={labelTextStyle}
+  >
+    {card.label}
+  </div>
+) : null}
 
 <div
-  className="mt-2 leading-none"
+  className={displayStyle === "linear" ? "leading-none" : "mt-2 leading-none"}
   style={{
-    fontSize: "32px",
+    fontSize: displayStyle === "linear" ? "24px" : "32px",
     fontWeight: 800,
     ...valueTextStyle,
   }}
 >
   {getCardValue(card)}
 </div>
+
+{displayStyle === "linear" ? (
+  <div
+    className="mt-1 truncate text-xs font-semibold opacity-70"
+    style={labelTextStyle}
+  >
+    {card.unitLabel || card.linearLabel || card.label || ""}
+  </div>
+) : null}
                         </div>
 
-                        {card.showIcon !== false && card.icon ? (
-                          <div className="shrink-0 text-2xl">{card.icon}</div>
-                        ) : null}
+{card.showIcon !== false && card.icon ? (
+  <div
+    className={
+      displayStyle === "linear"
+        ? "shrink-0 text-2xl"
+        : "shrink-0 text-2xl"
+    }
+  >
+    {card.icon}
+  </div>
+) : null}
                       </div>
 
                       {shouldShowProgress ? (
@@ -8083,14 +8108,14 @@ useEffect(() => {
                         </div>
                       ) : null}
 
-                      {getCardDescription(card) ? (
-                        <div
-                          className="mt-3 text-xs opacity-60"
-                          style={descriptionTextStyle}
-                        >
-                          {getCardDescription(card)}
-                        </div>
-                      ) : null}
+{displayStyle !== "linear" && getCardDescription(card) ? (
+  <div
+    className="mt-3 text-xs opacity-60"
+    style={descriptionTextStyle}
+  >
+    {getCardDescription(card)}
+  </div>
+) : null}
                     </div>
                   </div>
                 );
