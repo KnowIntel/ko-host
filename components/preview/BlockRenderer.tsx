@@ -8,6 +8,7 @@ import PopBalloonLive from "@/components/blocks/PopBalloonLive";
 import AppModal from "@/components/ui/AppModal";
 import ContentPanelBlock from "@/components/blocks/ContentPanelBlock";
 import EnrollmentBoardBlock from "@/components/blocks/EnrollmentBoardBlock";
+import type { CSSProperties } from "react";
 import {
   ENROLLMENT_BOARD_PROFILE_EVENT,
   type EnrollmentBoardProfileEventDetail,
@@ -7530,6 +7531,35 @@ const descriptionTextStyle = getContainerTextStyle(
   designKey,
 );
 
+const linearDividerStyle = block.data.linearDividerStyle ?? "closed_solid";
+const linearDividerColor =
+  block.data.linearDividerColor ?? "rgba(0,0,0,0.14)";
+
+function getLinearDividerCss(
+  cardIndex: number,
+): CSSProperties | undefined {
+  if (linearDividerStyle === "none") return undefined;
+  if (cardIndex >= normalizedCards.length - 1) return undefined;
+
+  const isOpen =
+    linearDividerStyle === "open_solid" ||
+    linearDividerStyle === "open_dotted";
+
+  const isDotted =
+    linearDividerStyle === "closed_dotted" ||
+    linearDividerStyle === "open_dotted";
+
+  return {
+    position: "absolute",
+    right: 0,
+    top: isOpen ? "18%" : 0,
+    bottom: isOpen ? "18%" : 0,
+    width: 0,
+    borderRight: `1px ${isDotted ? "dotted" : "solid"} ${linearDividerColor}`,
+    pointerEvents: "none",
+  };
+}
+
     function formatNumber(value: string | number | undefined) {
       if (value === undefined || value === null || value === "") return "0";
 
@@ -7734,6 +7764,7 @@ useEffect(() => {
     "kht:enrollment-board-profile-updated",
     handleEnrollmentUpdated as EventListener,
   );
+
 
   return () => {
     cancelled = true;
@@ -8009,7 +8040,7 @@ useEffect(() => {
             }
     }
   >
-              {normalizedCards.map((card: any) => {
+              {normalizedCards.map((card: any, cardIndex: number) => {
                 const percent = getProgressPercent(card);
                 const shouldShowProgress =
                   card.showProgressBar ||
@@ -8022,7 +8053,7 @@ useEffect(() => {
   key={card.id}
   className={
     displayStyle === "linear"
-      ? "flex min-w-[150px] flex-1 items-center gap-3 border-r border-black/10 px-4 py-3 last:border-r-0"
+      ? "relative flex min-w-[150px] flex-1 items-center gap-3 px-4 py-3"
       : displayStyle === "list"
         ? `${getHighlightCardClass(designKey)} flex items-center justify-between gap-4`
         : getHighlightCardClass(designKey)
@@ -8061,16 +8092,14 @@ useEffect(() => {
 ) : null}
                         </div>
 
-{card.showIcon !== false && card.icon ? (
-  <div
-    className={
-      displayStyle === "linear"
-        ? "shrink-0 text-2xl"
-        : "shrink-0 text-2xl"
-    }
-  >
-    {card.icon}
-  </div>
+{displayStyle === "linear" && card.imageUrl ? (
+  <img
+    src={card.imageUrl}
+    alt=""
+    className="h-10 w-10 shrink-0 rounded-full object-cover"
+  />
+) : card.showIcon !== false && card.icon ? (
+  <div className="shrink-0 text-2xl">{card.icon}</div>
 ) : null}
                       </div>
 
@@ -8117,6 +8146,10 @@ useEffect(() => {
   </div>
 ) : null}
                     </div>
+
+                    {displayStyle === "linear" && getLinearDividerCss(cardIndex) ? (
+                      <span style={getLinearDividerCss(cardIndex)} />
+                    ) : null}
                   </div>
                 );
               })}

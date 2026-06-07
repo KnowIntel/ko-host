@@ -10481,7 +10481,7 @@ const idsToExpand =
   </>
 ) : null}
 
-{selectedBlock?.type === "poll" || selectedBlock?.type === "highlight" ? (
+{selectedBlock?.type === "poll" ? (
   <>
     <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
 
@@ -17393,6 +17393,68 @@ onClick={() =>
       </select>
     </div>
 
+    {selectedBlock.data.displayStyle === "linear" ? (
+  <>
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Line Divider</div>
+      <select
+        value={selectedBlock.data.linearDividerStyle ?? "closed_solid"}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "highlight"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    linearDividerStyle: e.target.value as
+                      | "none"
+                      | "closed_solid"
+                      | "open_solid"
+                      | "closed_dotted"
+                      | "open_dotted",
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      >
+        <option value="none">None</option>
+        <option value="closed_solid">Closed Solid Line</option>
+        <option value="open_solid">Open Solid Line</option>
+        <option value="closed_dotted">Closed Dotted Line</option>
+        <option value="open_dotted">Open Dotted Line</option>
+      </select>
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Divider Line Color</div>
+      <input
+        type="color"
+        value={
+          selectedBlock.data.linearDividerColor?.startsWith("#")
+            ? selectedBlock.data.linearDividerColor
+            : "#d1d5db"
+        }
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "highlight"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    linearDividerColor: e.target.value,
+                  },
+                },
+          )
+        }
+        className="h-10 w-full cursor-pointer rounded-xl border border-neutral-200 bg-white p-1"
+      />
+    </div>
+  </>
+) : null}
+
     <div className="mt-4">
   <div className={inspectorLabelClass()}>Rotation</div>
   <input
@@ -18272,6 +18334,86 @@ onClick={() =>
               rows={2}
             />
           </div>
+
+          <div className="mt-3">
+  <div className={inspectorLabelClass()}>Linear Image</div>
+
+  {card.imageUrl ? (
+    <div className="mb-2 overflow-hidden rounded-xl border border-neutral-200 bg-white">
+      <img
+        src={card.imageUrl}
+        alt=""
+        className="h-20 w-full object-cover"
+      />
+    </div>
+  ) : null}
+
+  <input
+    type="file"
+    accept="image/jpeg,image/png,image/webp,image/gif"
+    onChange={(e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+
+      reader.onload = () => {
+        const imageUrl = typeof reader.result === "string" ? reader.result : "";
+
+        updateSelectedBlock((block) =>
+          block.type !== "highlight"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  cards: (block.data.cards ?? []).map((item) =>
+                    item.id === card.id
+                      ? {
+                          ...item,
+                          imageUrl,
+                        }
+                      : item,
+                  ),
+                },
+              },
+        );
+      };
+
+      reader.readAsDataURL(file);
+    }}
+    className={inspectorInputClass()}
+  />
+
+  {card.imageUrl ? (
+    <button
+      type="button"
+      className={`${toolSetButtonClass("front")} mt-2`}
+      onClick={() =>
+        updateSelectedBlock((block) =>
+          block.type !== "highlight"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  cards: (block.data.cards ?? []).map((item) =>
+                    item.id === card.id
+                      ? {
+                          ...item,
+                          imageUrl: "",
+                        }
+                      : item,
+                  ),
+                },
+              },
+        )
+      }
+    >
+      Remove Image
+    </button>
+  ) : null}
+</div>
 
           <div className="mt-3">
             <div className={inspectorLabelClass()}>Icon</div>

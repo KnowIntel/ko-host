@@ -974,6 +974,7 @@ export type HighlightCard = {
   description?: string;
   icon?: string;
   showIcon?: boolean;
+  imageUrl?: string;
 
   currentValue?: number;
   goalValue?: number;
@@ -1011,6 +1012,8 @@ export type HighlightBlock = BaseBlock & {
 
     displayStyle?: HighlightDisplayStyle;
     rotation?: number;
+    linearDividerStyle?: "none" | "closed_solid" | "open_solid" | "closed_dotted" | "open_dotted";
+    linearDividerColor?: string;
     cards?: HighlightCard[];
 
     limit?: number;
@@ -3379,6 +3382,8 @@ styleVariant: "elegant_wedding",
           limit: 4,
           sourceBlockId: "",
           sourceFormBlockId: "",
+          linearDividerStyle: "closed_solid",
+          linearDividerColor: "rgba(0,0,0,0.14)", 
           cards: [
             {
               id: makeId("highlight_card"),
