@@ -966,6 +966,9 @@ export type HighlightCard = {
 
   label?: string;
   value?: string | number;
+  unitLabel?: string;
+  linearLabel?: string;
+  linearDescription?: string;
   prefix?: string;
   suffix?: string;
   description?: string;
@@ -3383,6 +3386,8 @@ styleVariant: "elegant_wedding",
               label: "Guests",
               value: "120",
               suffix: "+",
+              unitLabel: "Guests",
+              linearLabel: "Guests",
               description: "Expected attendees",
               icon: "✨",
               showIcon: true,
