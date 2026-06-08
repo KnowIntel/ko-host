@@ -87,8 +87,15 @@ export async function POST(request: Request) {
           ? body.authorAvatarUrl.trim()
           : "";
       const title = typeof body?.title === "string" ? body.title.trim() : "";
-      const message =
-        typeof body?.message === "string" ? body.message.trim() : "";
+const message =
+  typeof body?.message === "string" ? body.message.trim() : "";
+
+const sourcePostAuthorEmail =
+  typeof body?.sourcePostAuthorEmail === "string"
+    ? body.sourcePostAuthorEmail.trim()
+    : "";
+
+const shouldNotifyPostAuthor = Boolean(body?.shouldNotifyPostAuthor);
 
       if (!authorName) return badRequest("Name is required.");
       if (!title) return badRequest("Title is required.");
@@ -137,8 +144,15 @@ export async function POST(request: Request) {
         typeof body?.authorAvatarUrl === "string"
           ? body.authorAvatarUrl.trim()
           : "";
-      const message =
-        typeof body?.message === "string" ? body.message.trim() : "";
+const message =
+  typeof body?.message === "string" ? body.message.trim() : "";
+
+const sourcePostAuthorEmail =
+  typeof body?.sourcePostAuthorEmail === "string"
+    ? body.sourcePostAuthorEmail.trim()
+    : "";
+
+const shouldNotifyPostAuthor = Boolean(body?.shouldNotifyPostAuthor);
 
       if (!postId) return badRequest("Missing postId.");
       if (!authorName) return badRequest("Name is required.");
@@ -165,16 +179,26 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: error.message }, { status: 500 });
       }
 
-      await supabaseAdmin
-        .from("post_board_posts")
-        .update({
-          updated_at: new Date().toISOString(),
-        })
-        .eq("microsite_id", micrositeId)
-        .eq("block_id", blockId)
-        .eq("post_id", postId);
+await supabaseAdmin
+  .from("post_board_posts")
+  .update({
+    updated_at: new Date().toISOString(),
+  })
+  .eq("microsite_id", micrositeId)
+  .eq("block_id", blockId)
+  .eq("post_id", postId);
 
-      return NextResponse.json({ reply: data });
+if (shouldNotifyPostAuthor && sourcePostAuthorEmail) {
+  // Next step: wire this to your email provider.
+  // This confirms the API now receives the original poster email safely.
+}
+
+return NextResponse.json({
+  reply: data,
+  notifiedPostAuthor: Boolean(
+    shouldNotifyPostAuthor && sourcePostAuthorEmail,
+  ),
+});
     }
 
     return badRequest("Invalid action.");

@@ -5515,7 +5515,7 @@ async function handleCreateReply(post: any) {
           setNewPostForm((prev) => ({ ...prev, email: e.target.value }))
         }
         className="h-10 rounded-lg border border-neutral-300 px-3 text-sm text-neutral-900"
-        placeholder="Your email privately stored"
+        placeholder="Your email (privately stored)"
       />
 
       <label className="inline-flex h-10 cursor-pointer items-center justify-center rounded-lg border border-neutral-300 bg-white px-3 text-sm font-semibold text-neutral-700">
@@ -5705,7 +5705,7 @@ const isExpanded = expandedPostId === post.id;
                                 : "bg-emerald-400/15 text-emerald-100",
                             ].join(" ")}
                           >
-                            Contact info confirmed
+                            📧 Replies can reach me
                           </div>
                         ) : null}
 
