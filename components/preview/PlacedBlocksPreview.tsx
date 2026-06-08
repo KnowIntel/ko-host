@@ -586,7 +586,7 @@ return (
     minHeight: scaledPageHeight,
     margin: 0,
     padding: 0,
-    overflow: isScrollableBlock ? "hidden" : "visible",
+    overflow: "visible",
     WebkitOverflowScrolling: "touch",
     touchAction: "auto",
     backgroundColor: transparentPageBackground ? "transparent" : pageColor,
@@ -826,20 +826,35 @@ style={{
   isolation: "isolate",
 }}
     >
-    <div
-      className="h-full w-full"
-      style={{
-        overflow: isScrollableBlock ? "hidden" : "visible",
-        pointerEvents:
-  block.type === "bookmark"
-    ? "none"
-    : previewMode
-      ? "auto"
-      : isInteractiveBlock
-        ? "auto"
-        : "none",
-      }}
-    >
+<div
+  className="h-full w-full"
+  style={{
+    height: "100%",
+    maxHeight: "100%",
+    overflowX: "hidden",
+    overflowY: isScrollableBlock ? "auto" : "visible",
+    WebkitOverflowScrolling: "touch",
+    overscrollBehavior: isScrollableBlock ? "contain" : "auto",
+    pointerEvents:
+      block.type === "bookmark"
+        ? "none"
+        : previewMode
+          ? "auto"
+          : isInteractiveBlock
+            ? "auto"
+            : "none",
+  }}
+  onWheel={(event) => {
+    if (isScrollableBlock) {
+      event.stopPropagation();
+    }
+  }}
+  onTouchMove={(event) => {
+    if (isScrollableBlock) {
+      event.stopPropagation();
+    }
+  }}
+>
 <BlockRenderer
   key={`${block.id}-${JSON.stringify(block.data)}`}
   block={block}
