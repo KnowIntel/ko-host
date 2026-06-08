@@ -4973,13 +4973,16 @@ const [expandedPostId, setExpandedPostId] = useState<string | null>(null);
 const [communityPosts, setCommunityPosts] = useState<any[]>([]);
 const [communityReplies, setCommunityReplies] = useState<Record<string, any[]>>({});
 const [communityLoading, setCommunityLoading] = useState(false);
-  const [newPostForm, setNewPostForm] = useState({
-    name: "",
-    email: "",
-    avatarUrl: "",
-    title: "",
-    message: "",
-  });
+const [showNewPostForm, setShowNewPostForm] = useState(false);
+const [newPostError, setNewPostError] = useState("");
+
+const [newPostForm, setNewPostForm] = useState({
+  name: "",
+  email: "",
+  avatarUrl: "",
+  title: "",
+  message: "",
+});
 const [replyForms, setReplyForms] = useState<
   Record<
     string,
@@ -5096,15 +5099,7 @@ const params = new URLSearchParams({
       ? Math.max(1, Math.min(100, block.data.maxVisibleReplies))
       : 10;
 
-  const allPosts = isCommunityBoard
-  ? [
-      ...communityPosts,
-      ...posts.filter(
-        (post) =>
-          !communityPosts.some((communityPost) => communityPost.id === post.id),
-      ),
-    ]
-  : posts;
+  const allPosts = isCommunityBoard ? communityPosts : posts;
 
   const sortedPosts = [...allPosts].sort((a, b) => {
     if (block.data.showPinnedPostsFirst !== false) {
@@ -5292,8 +5287,17 @@ async function handleCreateCommunityPost() {
   const message = newPostForm.message.trim();
   const avatarUrl = newPostForm.avatarUrl.trim();
 
-  if (!name || !title || !message) return;
-  if ((block.data.requireCommunityPostEmail ?? true) && !email) return;
+  setNewPostError("");
+
+  if (!name || !title || !message) {
+    setNewPostError("Please add your name, discussion title, and message.");
+    return;
+  }
+
+  if ((block.data.requireCommunityPostEmail ?? true) && !email) {
+    setNewPostError("Email is required to start a discussion. It will not be shown publicly.");
+    return;
+  }
 
   const postId = `community_post_${Date.now()}`;
 
@@ -5316,7 +5320,6 @@ async function handleCreateCommunityPost() {
   };
 
   setCommunityPosts((prev) => [optimisticPost, ...prev]);
-  setExpandedPostId(postId);
 
   setNewPostForm({
     name: "",
@@ -5325,6 +5328,8 @@ async function handleCreateCommunityPost() {
     title: "",
     message: "",
   });
+
+  setShowNewPostForm(false);
 
   if (!micrositeId) return;
 
@@ -5413,6 +5418,8 @@ async function handleCreateReply(post: any) {
     },
   }));
 
+  setExpandedPostId(null);
+
   if (!micrositeId) return;
 
   try {
@@ -5477,103 +5484,128 @@ async function handleCreateReply(post: any) {
         </div>
       ) : null}
 
-      {isCommunityBoard ? (
-        <div
-          className={[
-            "relative z-20 mt-4 rounded-xl border p-3 pointer-events-auto",
-            isLightDesign(designKey)
-              ? "border-neutral-200 bg-white"
-              : "border-white/10 bg-white/5",
-          ].join(" ")}
-          onMouseDown={(e) => e.stopPropagation()}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div className="text-sm font-semibold">Start a discussion</div>
+{isCommunityBoard && showNewPostForm ? (
+  <div
+    className={[
+      "relative z-20 mt-4 rounded-xl border p-3 pointer-events-auto",
+      isLightDesign(designKey)
+        ? "border-neutral-200 bg-white"
+        : "border-white/10 bg-white/5",
+    ].join(" ")}
+    onMouseDown={(e) => e.stopPropagation()}
+    onClick={(e) => e.stopPropagation()}
+  >
+    <div className="text-sm font-semibold">Start a discussion</div>
 
-          <div className="mt-3 grid grid-cols-1 gap-2">
-            <input
-              type="text"
-              value={newPostForm.name}
-              onChange={(e) =>
-                setNewPostForm((prev) => ({
-                  ...prev,
-                  name: e.target.value,
-                }))
-              }
-              className="h-10 rounded-lg border border-neutral-300 px-3 text-sm text-neutral-900"
-              placeholder="Your name"
-            />
+    <div className="mt-3 grid grid-cols-1 gap-2">
+      <input
+        type="text"
+        value={newPostForm.name}
+        onChange={(e) =>
+          setNewPostForm((prev) => ({ ...prev, name: e.target.value }))
+        }
+        className="h-10 rounded-lg border border-neutral-300 px-3 text-sm text-neutral-900"
+        placeholder="Your name"
+      />
 
-            <input
-              type="email"
-              value={newPostForm.email}
-              onChange={(e) =>
-                setNewPostForm((prev) => ({
-                  ...prev,
-                  email: e.target.value,
-                }))
-              }
-              className="h-10 rounded-lg border border-neutral-300 px-3 text-sm text-neutral-900"
-              placeholder={
-                block.data.requireCommunityPostEmail ?? true
-                  ? "Your email privately stored"
-                  : "Email optional, privately stored"
-              }
-            />
+      <input
+        type="email"
+        value={newPostForm.email}
+        onChange={(e) =>
+          setNewPostForm((prev) => ({ ...prev, email: e.target.value }))
+        }
+        className="h-10 rounded-lg border border-neutral-300 px-3 text-sm text-neutral-900"
+        placeholder="Your email privately stored"
+      />
 
-            <input
-              type="text"
-              value={newPostForm.avatarUrl}
-              onChange={(e) =>
-                setNewPostForm((prev) => ({
-                  ...prev,
-                  avatarUrl: e.target.value,
-                }))
-              }
-              className="h-10 rounded-lg border border-neutral-300 px-3 text-sm text-neutral-900"
-              placeholder="Profile image URL optional"
-            />
+      <label className="inline-flex h-10 cursor-pointer items-center justify-center rounded-lg border border-neutral-300 bg-white px-3 text-sm font-semibold text-neutral-700">
+        Choose Profile Image
+        <input
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
 
-            <input
-              type="text"
-              value={newPostForm.title}
-              onChange={(e) =>
-                setNewPostForm((prev) => ({
-                  ...prev,
-                  title: e.target.value,
-                }))
-              }
-              className="h-10 rounded-lg border border-neutral-300 px-3 text-sm text-neutral-900"
-              placeholder="Discussion title"
-            />
+            const reader = new FileReader();
 
-            <textarea
-              value={newPostForm.message}
-              onChange={(e) =>
-                setNewPostForm((prev) => ({
-                  ...prev,
-                  message: e.target.value,
-                }))
-              }
-              className="min-h-[84px] rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900"
-              placeholder="Start the conversation..."
-            />
+            reader.onload = () => {
+              setNewPostForm((prev) => ({
+                ...prev,
+                avatarUrl: typeof reader.result === "string" ? reader.result : "",
+              }));
+            };
 
-            <div className="text-[11px] text-neutral-500">
-              Email is never shown publicly. It is stored privately and can be
-              used for reply notifications.
-            </div>
+            reader.readAsDataURL(file);
+            e.target.value = "";
+          }}
+        />
+      </label>
 
-            <button
-              type="button"
-              className="inline-flex h-10 items-center justify-center rounded-lg bg-neutral-900 px-4 text-sm font-semibold text-white"
-              onClick={handleCreateCommunityPost}
-            >
-              Post Discussion
-            </button>
-          </div>
+      {newPostForm.avatarUrl ? (
+        <div className="flex items-center gap-2 text-xs text-neutral-500">
+          <img
+            src={newPostForm.avatarUrl}
+            alt="Selected profile"
+            className="h-8 w-8 rounded-full object-cover"
+          />
+          Profile image selected
         </div>
       ) : null}
+
+      <input
+        type="text"
+        value={newPostForm.title}
+        onChange={(e) =>
+          setNewPostForm((prev) => ({ ...prev, title: e.target.value }))
+        }
+        className="h-10 rounded-lg border border-neutral-300 px-3 text-sm text-neutral-900"
+        placeholder="Discussion title"
+      />
+
+      <textarea
+        value={newPostForm.message}
+        onChange={(e) =>
+          setNewPostForm((prev) => ({ ...prev, message: e.target.value }))
+        }
+        className="min-h-[84px] rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900"
+        placeholder="Start the conversation..."
+      />
+
+      <div className="text-[11px] text-neutral-500">
+        Email is required and never shown publicly. It is stored privately and can be used for reply notifications.
+      </div>
+
+      {newPostError ? (
+        <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700">
+          {newPostError}
+        </div>
+      ) : null}
+
+      <div className="flex gap-2">
+        <button
+          type="button"
+          className="inline-flex h-10 flex-1 items-center justify-center rounded-lg bg-neutral-900 px-4 text-sm font-semibold text-white"
+          onClick={handleCreateCommunityPost}
+        >
+          Post Discussion
+        </button>
+
+        <button
+          type="button"
+          className="inline-flex h-10 items-center justify-center rounded-lg border border-neutral-300 bg-white px-4 text-sm font-semibold text-neutral-700"
+          onClick={() => {
+            setShowNewPostForm(false);
+            setNewPostError("");
+          }}
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+) : null}
 
       <div
         className={
@@ -6071,6 +6103,20 @@ const isExpanded = expandedPostId === post.id;
           </div>
         )}
       </div>
+      {isCommunityBoard && !showNewPostForm ? (
+  <button
+    type="button"
+    className="relative z-20 mt-4 inline-flex h-11 w-full items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-sm font-semibold text-neutral-800 pointer-events-auto"
+    onMouseDown={(e) => e.stopPropagation()}
+    onClick={(e) => {
+      e.stopPropagation();
+      setShowNewPostForm(true);
+      setNewPostError("");
+    }}
+  >
+    Start a Discussion
+  </button>
+) : null}
     </Surface>
   );
 }
