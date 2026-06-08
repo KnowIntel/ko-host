@@ -586,7 +586,7 @@ return (
     minHeight: scaledPageHeight,
     margin: 0,
     padding: 0,
-    overflow: "visible",
+    overflow: isScrollableBlock ? "hidden" : "visible",
     WebkitOverflowScrolling: "touch",
     touchAction: "auto",
     backgroundColor: transparentPageBackground ? "transparent" : pageColor,
@@ -704,7 +704,10 @@ return (
 
 {blockEntries.map(({ block, grid }) => {
   const itemStyle = getItemStyle(grid, logicalPageWidth, logicalRowHeight);
+const isScrollableBlock = block.type === "calendar_event";
+
 const isInteractiveBlock =
+  block.type === "calendar_event" ||
   block.type === "schedule_agenda" ||
   block.type === "rsvp" ||
   block.type === "form_field" ||
@@ -818,7 +821,7 @@ style={{
     : isInteractiveBlock
       ? Math.max(Number(itemStyle.zIndex ?? 1), 1000)
       : itemStyle.zIndex,
-  overflow: "visible",
+  overflow: isScrollableBlock ? "hidden" : "visible",
   pointerEvents: block.type === "bookmark" ? "none" : isInteractiveBlock ? "auto" : "none",
   isolation: "isolate",
 }}
@@ -826,7 +829,7 @@ style={{
     <div
       className="h-full w-full"
       style={{
-        overflow: "visible",
+        overflow: isScrollableBlock ? "hidden" : "visible",
         pointerEvents:
   block.type === "bookmark"
     ? "none"
