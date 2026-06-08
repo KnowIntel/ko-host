@@ -1,3 +1,5 @@
+// app\api\public\post-board\like\route.ts
+
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";

@@ -5096,7 +5096,15 @@ const params = new URLSearchParams({
       ? Math.max(1, Math.min(100, block.data.maxVisibleReplies))
       : 10;
 
-  const allPosts = isCommunityBoard ? [...communityPosts, ...posts] : posts;
+  const allPosts = isCommunityBoard
+  ? [
+      ...communityPosts,
+      ...posts.filter(
+        (post) =>
+          !communityPosts.some((communityPost) => communityPost.id === post.id),
+      ),
+    ]
+  : posts;
 
   const sortedPosts = [...allPosts].sort((a, b) => {
     if (block.data.showPinnedPostsFirst !== false) {
@@ -5277,92 +5285,170 @@ const params = new URLSearchParams({
     }
   }
 
-  function handleCreateCommunityPost() {
-    const name = newPostForm.name.trim();
-    const email = newPostForm.email.trim();
-    const title = newPostForm.title.trim();
-    const message = newPostForm.message.trim();
+async function handleCreateCommunityPost() {
+  const name = newPostForm.name.trim();
+  const email = newPostForm.email.trim();
+  const title = newPostForm.title.trim();
+  const message = newPostForm.message.trim();
+  const avatarUrl = newPostForm.avatarUrl.trim();
 
-    if (!name || !title || !message) return;
+  if (!name || !title || !message) return;
+  if ((block.data.requireCommunityPostEmail ?? true) && !email) return;
 
-    if ((block.data.requireCommunityPostEmail ?? true) && !email) return;
+  const postId = `community_post_${Date.now()}`;
 
-    const postId = `community_post_${Date.now()}`;
+  const optimisticPost = {
+    id: postId,
+    title,
+    subtitle: "Community post",
+    message,
+    createdAt: new Date().toISOString(),
+    ownerDisplayName: name,
+    ownerAvatarUrl: avatarUrl,
+    authorName: name,
+    authorEmail: email,
+    authorAvatarUrl: avatarUrl,
+    contactInfoConfirmed: Boolean(email),
+    isOwnerPost: false,
+    pinned: false,
+    likeCount: 0,
+    messageCount: 0,
+  };
 
-    setCommunityPosts((prev) => [
-      {
-        id: postId,
-        title,
-        subtitle: "Community post",
-        message,
-        createdAt: new Date().toISOString(),
-        ownerDisplayName: name,
-        ownerAvatarUrl: newPostForm.avatarUrl.trim(),
+  setCommunityPosts((prev) => [optimisticPost, ...prev]);
+  setExpandedPostId(postId);
+
+  setNewPostForm({
+    name: "",
+    email: "",
+    avatarUrl: "",
+    title: "",
+    message: "",
+  });
+
+  if (!micrositeId) return;
+
+  try {
+    const res = await fetch("/api/public/post-board/community", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        action: "create_post",
+        micrositeId,
+        blockId: block.id,
+        postId,
         authorName: name,
         authorEmail: email,
-        authorAvatarUrl: newPostForm.avatarUrl.trim(),
-        contactInfoConfirmed: Boolean(email),
-        isOwnerPost: false,
-        pinned: false,
-        likeCount: 0,
-        messageCount: 0,
-      },
-      ...prev,
-    ]);
-
-    setExpandedPostId(postId);
-
-    setNewPostForm({
-      name: "",
-      email: "",
-      avatarUrl: "",
-      title: "",
-      message: "",
+        authorAvatarUrl: avatarUrl,
+        title,
+        message,
+      }),
     });
-  }
 
-  function handleCreateReply(post: any) {
-    const form = replyForms[post.id] ?? {
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data?.error || "Failed to save community post.");
+    }
+  } catch {
+    // Keep optimistic preview behavior even if persistence fails.
+  }
+}
+
+async function handleCreateReply(post: any) {
+  const form = replyForms[post.id] ?? {
+    name: "",
+    email: "",
+    avatarUrl: "",
+    message: "",
+  };
+
+  const name = form.name.trim();
+  const email = form.email.trim();
+  const avatarUrl = form.avatarUrl.trim();
+  const message = form.message.trim();
+
+  if (!name || !message) return;
+
+  const replyId = `reply_${Date.now()}`;
+
+  const reply = {
+    id: replyId,
+    postId: post.id,
+    sourcePostId: post.id,
+    sourcePostTitle: post.title || "Untitled post",
+    name,
+    email,
+    avatarUrl,
+    message,
+    contactInfoConfirmed: Boolean(email),
+    createdAt: new Date().toISOString(),
+  };
+
+  setCommunityReplies((prev) => ({
+    ...prev,
+    [post.id]: [...(prev[post.id] ?? []), reply],
+  }));
+
+  setCommunityPosts((prev) =>
+    prev.map((entry) =>
+      entry.id === post.id
+        ? {
+            ...entry,
+            messageCount: Number(entry.messageCount ?? 0) + 1,
+          }
+        : entry,
+    ),
+  );
+
+  setReplyForms((prev) => ({
+    ...prev,
+    [post.id]: {
       name: "",
       email: "",
       avatarUrl: "",
       message: "",
-    };
+    },
+  }));
 
-    const name = form.name.trim();
-    const email = form.email.trim();
-    const message = form.message.trim();
+  if (!micrositeId) return;
 
-    if (!name || !message) return;
-
-    const reply = {
-      id: `reply_${Date.now()}`,
-      postId: post.id,
-      sourcePostId: post.id,
-      sourcePostTitle: post.title || "Untitled post",
-      name,
-      email,
-      avatarUrl: form.avatarUrl.trim(),
-      message,
-      contactInfoConfirmed: Boolean(email),
-      createdAt: new Date().toISOString(),
-    };
-
-setCommunityReplies((prev) => ({
-  ...prev,
-  [post.id]: [...(prev[post.id] ?? []), reply],
-}));
-
-    setReplyForms((prev) => ({
-      ...prev,
-      [post.id]: {
-        name: "",
-        email: "",
-        avatarUrl: "",
-        message: "",
+  try {
+    const res = await fetch("/api/public/post-board/community", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
       },
-    }));
+      body: JSON.stringify({
+        action: "create_reply",
+        micrositeId,
+        blockId: block.id,
+        replyId,
+        postId: post.id,
+        sourcePostTitle: post.title || "Untitled post",
+        sourcePostAuthorEmail:
+          typeof post.authorEmail === "string" ? post.authorEmail : "",
+        shouldNotifyPostAuthor:
+          block.data.notifyPostAuthorOnReply !== false &&
+          Boolean(post.authorEmail),
+        authorName: name,
+        authorEmail: email,
+        authorAvatarUrl: avatarUrl,
+        message,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data?.error || "Failed to save reply.");
+    }
+  } catch {
+    // Keep optimistic preview behavior even if persistence fails.
   }
+}
 
   return (
     <Surface
