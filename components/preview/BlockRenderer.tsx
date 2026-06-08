@@ -6028,26 +6028,55 @@ const isExpanded = expandedPostId === post.id;
                               />
                             ) : null}
 
-                            <input
-                              type="text"
-                              value={replyForms[post.id]?.avatarUrl ?? ""}
-                              onChange={(e) =>
-                                setReplyForms((prev) => ({
-                                  ...prev,
-                                  [post.id]: {
-                                    ...(prev[post.id] ?? {
-                                      name: "",
-                                      email: "",
-                                      avatarUrl: "",
-                                      message: "",
-                                    }),
-                                    avatarUrl: e.target.value,
-                                  },
-                                }))
-                              }
-                              className="h-10 rounded-lg border border-neutral-300 px-3 text-sm text-neutral-900"
-                              placeholder="Profile image URL optional"
-                            />
+<label className="inline-flex h-10 cursor-pointer items-center justify-center rounded-lg border border-neutral-300 bg-white px-3 text-sm font-semibold text-neutral-700">
+  Choose Profile Image
+
+  <input
+    type="file"
+    accept="image/*"
+    className="hidden"
+    onChange={(e) => {
+      const file = e.target.files?.[0];
+
+      if (!file) return;
+
+      const reader = new FileReader();
+
+      reader.onload = () => {
+        setReplyForms((prev) => ({
+          ...prev,
+          [post.id]: {
+            ...(prev[post.id] ?? {
+              name: "",
+              email: "",
+              avatarUrl: "",
+              message: "",
+            }),
+            avatarUrl:
+              typeof reader.result === "string"
+                ? reader.result
+                : "",
+          },
+        }));
+      };
+
+      reader.readAsDataURL(file);
+
+      e.target.value = "";
+    }}
+  />
+</label>
+
+{replyForms[post.id]?.avatarUrl ? (
+  <div className="mt-2 flex items-center gap-2 text-xs text-neutral-500">
+    <img
+      src={replyForms[post.id]?.avatarUrl}
+      alt="Selected profile"
+      className="h-8 w-8 rounded-full object-cover"
+    />
+    Profile image selected
+  </div>
+) : null}
 
                             <textarea
                               value={replyForms[post.id]?.message ?? ""}
