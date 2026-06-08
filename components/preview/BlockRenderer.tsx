@@ -882,16 +882,18 @@ const boxShadow =
   if (block.data.shapeType === "line") {
     return (
       <div
-        className="flex h-full w-full items-center"
+        className="flex h-full w-full items-center overflow-hidden"
         style={{
           opacity,
           transform,
           transformOrigin: "center",
+          scrollbarWidth: "none",
+          msOverflowStyle: "none",
           ...fadeStyle,
         }}
       >
         <div
-          className="w-full"
+          className="w-full shrink-0"
           style={{
             height: `${Math.max(2, block.appearance?.borderWidth || 4)}px`,
             backgroundColor:
@@ -900,6 +902,7 @@ const boxShadow =
               "#111827",
             borderRadius: "999px",
             boxShadow,
+            overflow: "hidden",
           }}
         />
       </div>
