@@ -3932,6 +3932,42 @@ const handleVideoUpload = async (
 };
 
 function applyStylePatch(patch: Partial<TextStyle>) {
+
+    if (selectedBlockFromDraft?.type === "calendar_event") {
+    const targetStyleKey =
+      calendarEventTextTarget === "heading"
+        ? "headingStyle"
+        : calendarEventTextTarget === "subtitle"
+          ? "subtitleStyle"
+          : calendarEventTextTarget === "eventTitle"
+            ? "eventTitleStyle"
+            : calendarEventTextTarget === "eventDate"
+              ? "eventDateStyle"
+              : "eventDetailsStyle";
+
+    setDraft((prev) => ({
+      ...prev,
+      blocks: prev.blocks.map((block) =>
+        block.id === selectedBlockFromDraft.id && block.type === "calendar_event"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                [targetStyleKey]: {
+                  ...((block.data as any)[targetStyleKey] ??
+                    block.data.style ??
+                    {}),
+                  ...patch,
+                },
+              },
+            }
+          : block,
+      ),
+    }));
+
+    return;
+  }
+  
   if (selectedBlock?.type === "text_fx") {
     setDraft((prev) => ({
       ...prev,
