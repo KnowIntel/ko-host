@@ -10700,7 +10700,7 @@ const eventDetailsTextStyle = getContainerTextStyle(
                     </div>
                   ) : null}
 
-{event.address ? ({event.address ? (
+{event.address ? (
   <div className="mt-1 text-sm" style={eventDetailsTextStyle}>
     {event.address}
   </div>
