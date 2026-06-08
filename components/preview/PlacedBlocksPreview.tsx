@@ -707,7 +707,6 @@ return (
 const isScrollableBlock = block.type === "calendar_event";
 
 const isInteractiveBlock =
-  block.type === "calendar_event" ||
   block.type === "schedule_agenda" ||
   block.type === "rsvp" ||
   block.type === "form_field" ||
@@ -815,12 +814,10 @@ const isInteractiveBlock =
   }
 style={{
   ...itemStyle,
-  zIndex:
+zIndex:
   block.type === "bookmark"
     ? -1
-    : isInteractiveBlock
-      ? Math.max(Number(itemStyle.zIndex ?? 1), 1000)
-      : itemStyle.zIndex,
+    : itemStyle.zIndex,
   overflow: isScrollableBlock ? "hidden" : "visible",
   pointerEvents: block.type === "bookmark" ? "none" : isInteractiveBlock ? "auto" : "none",
   isolation: "isolate",
