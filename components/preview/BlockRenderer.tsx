@@ -12930,7 +12930,19 @@ case "post_board":
     case "festiveBackground":
       return renderFestiveBackground(block, designKey);
     case "shape":
-      return renderShape(block);
+      return block.data.shapeType === "line" ? (
+        <div
+          className="h-full w-full overflow-hidden"
+          style={{
+            scrollbarWidth: "none",
+            msOverflowStyle: "none",
+          }}
+        >
+          {renderShape(block)}
+        </div>
+      ) : (
+        renderShape(block)
+      );
     case "wave":
     return renderWave(block);
     case "highlight":
