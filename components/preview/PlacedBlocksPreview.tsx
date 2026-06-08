@@ -563,16 +563,17 @@ const scaledContentWidthPercent =
 return (
 <div
   ref={containerRef}
+  data-ko-preview-scrollbar-hidden="true"
   className="m-0 block w-full max-w-none p-0"
   style={{
     position: "relative",
     width: "100%",
     margin: 0,
     padding: 0,
-overflowX: "auto",
-overflowY: "auto",
-WebkitOverflowScrolling: "touch",
-...HIDE_PREVIEW_SCROLLBAR_STYLE,
+    overflowX: "auto",
+    overflowY: "auto",
+    WebkitOverflowScrolling: "touch",
+    ...HIDE_PREVIEW_SCROLLBAR_STYLE,
     touchAction: "auto",
     backgroundColor: transparentPageBackground ? "transparent" : pageColor,
     ...(pageBackgroundImage && !transparentPageBackground
@@ -830,6 +831,7 @@ zIndex:
 }}
     >
 <div
+  data-ko-preview-scrollbar-hidden="true"
   className="h-full w-full"
   style={{
     height: "100%",
@@ -838,6 +840,7 @@ zIndex:
     overflowY: isScrollableBlock ? "auto" : "visible",
     WebkitOverflowScrolling: "touch",
     overscrollBehavior: isScrollableBlock ? "contain" : "auto",
+    ...HIDE_PREVIEW_SCROLLBAR_STYLE,
     pointerEvents:
       block.type === "bookmark"
         ? "none"
