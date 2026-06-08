@@ -3967,7 +3967,7 @@ function applyStylePatch(patch: Partial<TextStyle>) {
 
     return;
   }
-  
+
   if (selectedBlock?.type === "text_fx") {
     setDraft((prev) => ({
       ...prev,
@@ -26446,6 +26446,33 @@ data: {
             </label>
           ))}
         </div>
+
+<div className="mt-4">
+  <div className={inspectorLabelClass()}>Metadata Separator</div>
+
+  <select
+    value={(selectedBlock.data as any).metadataSeparator ?? ":"}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "listing"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                metadataSeparator: e.target.value as "none" | ":" | "-" | "|",
+              } as any,
+            },
+      )
+    }
+    className={inspectorInputClass()}
+  >
+    <option value="none">None</option>
+    <option value=":">:</option>
+    <option value="-">-</option>
+    <option value="|">|</option>
+  </select>
+</div>
 
         <div className="mt-4">
           <div className={inspectorLabelClass()}>Price Position</div>

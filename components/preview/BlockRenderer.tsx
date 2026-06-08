@@ -1566,6 +1566,9 @@ function renderListing(
 ) {
   const image = block.data.image;
   const metadata = Array.isArray(block.data.metadata) ? block.data.metadata : [];
+  const metadataSeparator = (block.data as any).metadataSeparator ?? ":";
+const renderedMetadataSeparator =
+  metadataSeparator === "none" ? "" : ` ${metadataSeparator} `;
   const price = typeof block.data.price === "number" ? block.data.price : 0;
   const addToCart = !!block.data.addToCart;
   const isSelectable = addToCart && price > 0;
@@ -1668,7 +1671,8 @@ function renderListing(
             className="mr-1 opacity-60"
             style={getContainerTextStyle(block.data.metadataStyle, designKey)}
           >
-            {item.label}:
+            {item.label}
+{renderedMetadataSeparator}
           </span>
           <span style={getContainerTextStyle(block.data.metadataStyle, designKey)}>
             {item.value}
@@ -10696,7 +10700,7 @@ const eventDetailsTextStyle = getContainerTextStyle(
                     </div>
                   ) : null}
 
-{event.address ? (
+{event.address ? ({event.address ? (
   <div className="mt-1 text-sm" style={eventDetailsTextStyle}>
     {event.address}
   </div>

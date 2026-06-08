@@ -1137,6 +1137,7 @@ export type ListingBlock = BaseBlock & {
     addToCart?: boolean;
     sku?: string;
     metadata: ListingMetadataItem[];
+    metadataSeparator?: "none" | ":" | "-" | "|";
 
     pricePlacement?: "mid" | "lower";
     quantityPlacement?: "mid" | "lower";
@@ -3555,6 +3556,7 @@ case "listing":
         { id: makeId("meta"), label: "Price", value: "$0" },
         { id: makeId("meta"), label: "Location", value: "City, State" },
       ],
+      metadataSeparator: ":",
 
       pricePlacement: "mid",
       quantityPlacement: "mid",
@@ -3586,37 +3588,36 @@ case "listing":
         fontSize: 14,
       },
 
-cardVariant: "stacked",
+      cardVariant: "stacked",
 
-showTitle: true,
-showPrice: true,
-pricePosition: "right",
+      showTitle: true,
+      showPrice: true,
+      pricePosition: "right",
 
-showImage: true,
-imageShape: "rounded",
+      showImage: true,
+      imageShape: "rounded",
 
-featureBullets: [
-  "Access all attractions",
-  "Live shows included",
-  "Flexible admission",
-  "Mobile-friendly ticket",
-],
+      featureBullets: [
+        "Access all attractions",
+        "Live shows included",
+        "Flexible admission",
+        "Mobile-friendly ticket",
+      ],
 
-showBullets: true,
-bulletStyle: "dot",
+      showBullets: true,
+      bulletStyle: "dot",
 
-showButton: true,
-buttonText: "Buy Ticket",
-buttonLink: "",
-buttonAlignment: "right",
+      showButton: true,
+      buttonText: "Buy Ticket",
+      buttonLink: "",
+      buttonAlignment: "right",
 
-imageHeightPercent: 50,
-imageWidthPercent: 35,
+      imageHeightPercent: 50,
+      imageWidthPercent: 35,
 
-rotation: 0,
+      rotation: 0,
     },
   };
-
       case "content_panel":
       return {
         id: makeId("contentpanel"),
