@@ -1536,6 +1536,21 @@ export type CalendarEventBlock = BaseBlock & {
   };
 };
 
+export type PostBoardInteractionMode = "announcement" | "community";
+
+export type PostBoardReply = {
+  id: string;
+  postId: string;
+  sourcePostId: string;
+  sourcePostTitle: string;
+  name: string;
+  email?: string;
+  avatarUrl?: string;
+  message: string;
+  contactInfoConfirmed?: boolean;
+  createdAt: string;
+};
+
 export type PostBoardPost = {
   id: string;
   title: string;
@@ -1553,6 +1568,13 @@ export type PostBoardPost = {
   threadId?: string;
   likeCount?: number;
   messageCount?: number;
+
+  authorName?: string;
+  authorEmail?: string;
+  authorAvatarUrl?: string;
+  contactInfoConfirmed?: boolean;
+  isOwnerPost?: boolean;
+  replies?: PostBoardReply[];
 };
 
 export type PostBoardBlock = BaseBlock & {
@@ -1560,6 +1582,7 @@ export type PostBoardBlock = BaseBlock & {
   data: {
     heading?: string;
     subtitle?: string;
+    interactionMode?: PostBoardInteractionMode;
     showHeading?: boolean;
     showSubtitle?: boolean;
     showOwnerAvatar?: boolean;
@@ -1570,10 +1593,16 @@ export type PostBoardBlock = BaseBlock & {
     allowImages?: boolean;
     allowVideos?: boolean;
     maxMessageLength?: number;
+    maxVisibleReplies?: number;
+    requireCommunityPostEmail?: boolean;
+    allowReplyEmailCapture?: boolean;
+    notifyPostAuthorOnReply?: boolean;
     posts: PostBoardPost[];
     variant?: "standard" | "compact" | "feature";
     style?: Record<string, any>;
     cardStyle?: Record<string, any>;
+    headingStyle?: Record<string, any>;
+    bodyStyle?: Record<string, any>;
     buttonStyle?: Record<string, any>;
   };
 };
@@ -2010,8 +2039,14 @@ function normalizePostBoardBlock(block: PostBoardBlock): PostBoardBlock {
     ...block,
     grid: {
       ...normalizedGrid,
-      colSpan: normalizedGrid.colSpan < 6 ? fallbackGrid.colSpan : normalizedGrid.colSpan,
-      rowSpan: normalizedGrid.rowSpan < 6 ? fallbackGrid.rowSpan : normalizedGrid.rowSpan,
+      colSpan:
+        normalizedGrid.colSpan < 6
+          ? fallbackGrid.colSpan
+          : normalizedGrid.colSpan,
+      rowSpan:
+        normalizedGrid.rowSpan < 6
+          ? fallbackGrid.rowSpan
+          : normalizedGrid.rowSpan,
     },
     data: {
       ...block.data,
@@ -2021,6 +2056,10 @@ function normalizePostBoardBlock(block: PostBoardBlock): PostBoardBlock {
         typeof block.data.subtitle === "string"
           ? block.data.subtitle
           : "Latest announcements and posts",
+      interactionMode:
+        block.data.interactionMode === "community"
+          ? "community"
+          : "announcement",
       showHeading: block.data.showHeading !== false,
       showSubtitle: block.data.showSubtitle !== false,
       showOwnerAvatar: block.data.showOwnerAvatar !== false,
@@ -2035,55 +2074,136 @@ function normalizePostBoardBlock(block: PostBoardBlock): PostBoardBlock {
         Number.isFinite(block.data.maxMessageLength)
           ? Math.max(50, Math.min(1000, Math.floor(block.data.maxMessageLength)))
           : 300,
+      maxVisibleReplies:
+        typeof block.data.maxVisibleReplies === "number" &&
+        Number.isFinite(block.data.maxVisibleReplies)
+          ? Math.max(1, Math.min(100, Math.floor(block.data.maxVisibleReplies)))
+          : 10,
+      requireCommunityPostEmail: block.data.requireCommunityPostEmail !== false,
+      allowReplyEmailCapture: block.data.allowReplyEmailCapture !== false,
+      notifyPostAuthorOnReply: block.data.notifyPostAuthorOnReply !== false,
       variant:
         block.data.variant === "compact" || block.data.variant === "feature"
           ? block.data.variant
           : "standard",
       posts: Array.isArray(block.data.posts)
-        ? block.data.posts.map((post) => ({
-            id: typeof post.id === "string" && post.id ? post.id : makeId("post"),
-            title:
-              typeof post.title === "string" && post.title.trim()
-                ? post.title
-                : "Untitled post",
-            subtitle: typeof post.subtitle === "string" ? post.subtitle : "",
-            message: typeof post.message === "string" ? post.message : "",
-            createdAt:
-              typeof post.createdAt === "string" && post.createdAt
-                ? post.createdAt
-                : new Date().toISOString(),
-            updatedAt: typeof post.updatedAt === "string" ? post.updatedAt : undefined,
-            ownerDisplayName:
+        ? block.data.posts.map((post) => {
+            const ownerDisplayName =
               typeof post.ownerDisplayName === "string"
                 ? post.ownerDisplayName
-                : "",
-            ownerAvatarUrl:
-              typeof post.ownerAvatarUrl === "string" ? post.ownerAvatarUrl : "",
-            pinned: Boolean(post.pinned),
-            imageUrl: typeof post.imageUrl === "string" ? post.imageUrl : "",
-            imageStoragePath:
-              typeof post.imageStoragePath === "string"
-                ? post.imageStoragePath
-                : "",
-            videoUrl: typeof post.videoUrl === "string" ? post.videoUrl : "",
-            videoStoragePath:
-              typeof post.videoStoragePath === "string"
-                ? post.videoStoragePath
-                : "",
-            threadId: typeof post.threadId === "string" ? post.threadId : "",
-            likeCount:
-              typeof post.likeCount === "number" && Number.isFinite(post.likeCount)
-                ? Math.max(0, Math.floor(post.likeCount))
-                : 0,
-            messageCount:
-              typeof post.messageCount === "number" &&
-              Number.isFinite(post.messageCount)
-                ? Math.max(0, Math.floor(post.messageCount))
-                : 0,
-          }))
+                : "";
+
+            const ownerAvatarUrl =
+              typeof post.ownerAvatarUrl === "string"
+                ? post.ownerAvatarUrl
+                : "";
+
+            const authorName =
+              typeof post.authorName === "string"
+                ? post.authorName
+                : ownerDisplayName;
+
+            const authorEmail =
+              typeof post.authorEmail === "string" ? post.authorEmail : "";
+
+            const authorAvatarUrl =
+              typeof post.authorAvatarUrl === "string"
+                ? post.authorAvatarUrl
+                : ownerAvatarUrl;
+
+            return {
+              id:
+                typeof post.id === "string" && post.id
+                  ? post.id
+                  : makeId("post"),
+              title:
+                typeof post.title === "string" && post.title.trim()
+                  ? post.title
+                  : "Untitled post",
+              subtitle: typeof post.subtitle === "string" ? post.subtitle : "",
+              message: typeof post.message === "string" ? post.message : "",
+              createdAt:
+                typeof post.createdAt === "string" && post.createdAt
+                  ? post.createdAt
+                  : new Date().toISOString(),
+              updatedAt:
+                typeof post.updatedAt === "string"
+                  ? post.updatedAt
+                  : undefined,
+              ownerDisplayName,
+              ownerAvatarUrl,
+              authorName,
+              authorEmail,
+              authorAvatarUrl,
+              contactInfoConfirmed:
+                Boolean(post.contactInfoConfirmed) || Boolean(authorEmail),
+              isOwnerPost: post.isOwnerPost !== false,
+              pinned: Boolean(post.pinned),
+              imageUrl: typeof post.imageUrl === "string" ? post.imageUrl : "",
+              imageStoragePath:
+                typeof post.imageStoragePath === "string"
+                  ? post.imageStoragePath
+                  : "",
+              videoUrl: typeof post.videoUrl === "string" ? post.videoUrl : "",
+              videoStoragePath:
+                typeof post.videoStoragePath === "string"
+                  ? post.videoStoragePath
+                  : "",
+              threadId: typeof post.threadId === "string" ? post.threadId : "",
+              likeCount:
+                typeof post.likeCount === "number" &&
+                Number.isFinite(post.likeCount)
+                  ? Math.max(0, Math.floor(post.likeCount))
+                  : 0,
+replies: Array.isArray((post as any).replies)
+  ? (post as any).replies.map((reply: any) => ({
+      id:
+        typeof reply.id === "string" && reply.id
+          ? reply.id
+          : makeId("reply"),
+      postId:
+        typeof reply.postId === "string" && reply.postId
+          ? reply.postId
+          : post.id,
+      sourcePostId:
+        typeof reply.sourcePostId === "string" && reply.sourcePostId
+          ? reply.sourcePostId
+          : post.id,
+      sourcePostTitle:
+        typeof reply.sourcePostTitle === "string"
+          ? reply.sourcePostTitle
+          : post.title,
+      name:
+        typeof reply.name === "string" && reply.name.trim()
+          ? reply.name
+          : "Guest",
+      email: typeof reply.email === "string" ? reply.email : "",
+      avatarUrl:
+        typeof reply.avatarUrl === "string" ? reply.avatarUrl : "",
+      message:
+        typeof reply.message === "string" ? reply.message : "",
+      contactInfoConfirmed:
+        Boolean(reply.contactInfoConfirmed) || Boolean(reply.email),
+      createdAt:
+        typeof reply.createdAt === "string" && reply.createdAt
+          ? reply.createdAt
+          : new Date().toISOString(),
+    }))
+  : [],
+messageCount:
+  typeof post.messageCount === "number" &&
+  Number.isFinite(post.messageCount)
+    ? Math.max(0, Math.floor(post.messageCount))
+    : Array.isArray((post as any).replies)
+      ? (post as any).replies.length
+      : 0,
+            };
+          })
         : [],
       style: block.data.style ?? {},
       cardStyle: block.data.cardStyle ?? {},
+      headingStyle: (block.data as any).headingStyle ?? {},
+      bodyStyle: (block.data as any).bodyStyle ?? {},
       buttonStyle: block.data.buttonStyle ?? {},
     },
   };
@@ -3251,46 +3371,47 @@ styleVariant: "elegant_wedding",
         },
       };
 
-          case "post_board":
-      return {
-        id: makeId("postboard"),
-        type: "post_board",
-        label: "Post Board",
-        grid: createDefaultThreadGrid(),
-        appearance: createDefaultBlockAppearance(),
-        data: {
-          heading: "Updates",
-          subtitle: "Latest announcements and posts",
-          showHeading: true,
-          showSubtitle: true,
-          showOwnerAvatar: true,
-          showTimestamps: true,
-          showPinnedPostsFirst: true,
-          showLikes: true,
-          showMessages: true,
-          allowImages: true,
-          allowVideos: false,
-          maxMessageLength: 300,
-          variant: "standard",
-          posts: [
-            {
-              id: makeId("post"),
-              title: "Welcome update",
-              subtitle: "Pinned",
-              message:
-                "Use this post board to share announcements, updates, and important notes with visitors.",
-              createdAt: new Date().toISOString(),
-              ownerDisplayName: "Owner",
-              pinned: true,
-              likeCount: 0,
-              messageCount: 0,
-            },
-          ],
-          style: {},
-          cardStyle: {},
-          buttonStyle: {},
+case "post_board":
+  return {
+    id: makeId("postboard"),
+    type: "post_board",
+    label: "Post Board",
+    grid: createDefaultThreadGrid(),
+    appearance: createDefaultBlockAppearance(),
+    data: {
+      heading: "Updates",
+      subtitle: "Latest announcements and posts",
+      showHeading: true,
+      showSubtitle: true,
+      showOwnerAvatar: true,
+      showTimestamps: true,
+      showPinnedPostsFirst: true,
+      showLikes: true,
+      showMessages: true,
+      allowImages: true,
+      allowVideos: false,
+      maxMessageLength: 300,
+      variant: "standard",
+      posts: [
+        {
+          id: makeId("post"),
+          title: "Welcome update",
+          subtitle: "Pinned",
+          message:
+            "Use this post board to share announcements, updates, and important notes with visitors.",
+          createdAt: new Date().toISOString(),
+          ownerDisplayName: "Owner",
+          pinned: true,
+          likeCount: 0,
+          messageCount: 0,
         },
-      };
+      ],
+      style: {},
+      cardStyle: {},
+      buttonStyle: {},
+    },
+  };
+
 
           case "enrollment_board":
       return {

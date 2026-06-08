@@ -796,17 +796,22 @@ const isInteractiveBlock =
     canvas.height,
   );
 
-  const croppedUrl = canvas.toDataURL("image/png");
+const croppedUrl = canvas.toDataURL("image/png");
 
-  const link = document.createElement("a");
-  link.href = croppedUrl;
-  link.download = `${
-    frameBlock.data.frameName?.trim() || "frame-capture"
-  }.png`;
+const { jsPDF } = await import("jspdf");
 
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+const orientation =
+  canvas.width >= canvas.height ? "landscape" : "portrait";
+
+const pdf = new jsPDF({
+  orientation,
+  unit: "px",
+  format: [canvas.width, canvas.height],
+});
+
+pdf.addImage(croppedUrl, "PNG", 0, 0, canvas.width, canvas.height);
+
+pdf.save(`${frameBlock.data.frameName?.trim() || "frame-capture"}.pdf`);
 }
 
   return (

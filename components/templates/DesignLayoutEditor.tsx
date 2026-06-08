@@ -20146,6 +20146,133 @@ onClick={() =>
     </div>
 
 <div className="mt-4">
+  <div className={inspectorLabelClass()}>Interaction Mode</div>
+  <select
+    value={selectedBlock.data.interactionMode ?? "announcement"}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "post_board"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                interactionMode: e.target.value as
+                  | "announcement"
+                  | "community",
+              },
+            },
+      )
+    }
+    className={inspectorInputClass()}
+  >
+    <option value="announcement">Announcement Board</option>
+    <option value="community">Community Board</option>
+  </select>
+
+  <div className="mt-2 text-xs text-neutral-500">
+    Announcement Board is owner-created updates. Community Board allows
+    visitors to start discussion posts and reply inside this block.
+  </div>
+</div>
+
+{(selectedBlock.data.interactionMode ?? "announcement") === "community" ? (
+  <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+    <div className={inspectorLabelClass()}>Community Settings</div>
+
+    <label className="mt-3 flex items-center gap-3 text-sm text-neutral-700">
+      <input
+        type="checkbox"
+        checked={selectedBlock.data.requireCommunityPostEmail ?? true}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "post_board"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    requireCommunityPostEmail: e.target.checked,
+                  },
+                },
+          )
+        }
+      />
+      Require email when creating a discussion
+    </label>
+
+    <label className="mt-3 flex items-center gap-3 text-sm text-neutral-700">
+      <input
+        type="checkbox"
+        checked={selectedBlock.data.allowReplyEmailCapture ?? true}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "post_board"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    allowReplyEmailCapture: e.target.checked,
+                  },
+                },
+          )
+        }
+      />
+      Allow private email on replies
+    </label>
+
+    <label className="mt-3 flex items-center gap-3 text-sm text-neutral-700">
+      <input
+        type="checkbox"
+        checked={selectedBlock.data.notifyPostAuthorOnReply ?? true}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "post_board"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    notifyPostAuthorOnReply: e.target.checked,
+                  },
+                },
+          )
+        }
+      />
+      Notify original post author of replies
+    </label>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Max Visible Replies</div>
+      <input
+        type="number"
+        min={1}
+        max={100}
+        value={selectedBlock.data.maxVisibleReplies ?? 10}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "post_board"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    maxVisibleReplies: Math.max(
+                      1,
+                      Math.min(100, Number(e.target.value) || 10),
+                    ),
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
+  </div>
+) : null}
+
+<div className="mt-4">
   <div className={inspectorLabelClass()}>Style Variant</div>
   <select
     value={selectedBlock.data.variant ?? "standard"}

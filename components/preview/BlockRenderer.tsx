@@ -4962,16 +4962,143 @@ function renderPostBoard(
   const headingStyle = ((block.data as any).headingStyle ?? blockStyle) as any;
   const bodyStyle = ((block.data as any).bodyStyle ?? blockStyle) as any;
   const buttonStyle = ((block.data as any).buttonStyle ?? {}) as any;
-  const [likeCounts, setLikeCounts] = useState<Record<string, number>>({});
-  const [likedPosts, setLikedPosts] = useState<Record<string, boolean>>({});
-  const [likeLoading, setLikeLoading] = useState<Record<string, boolean>>({});
+
+  const interactionMode = block.data.interactionMode ?? "announcement";
+  const isCommunityBoard = interactionMode === "community";
+
+const [likeCounts, setLikeCounts] = useState<Record<string, number>>({});
+const [likedPosts, setLikedPosts] = useState<Record<string, boolean>>({});
+const [likeLoading, setLikeLoading] = useState<Record<string, boolean>>({});
+const [expandedPostId, setExpandedPostId] = useState<string | null>(null);
+const [communityPosts, setCommunityPosts] = useState<any[]>([]);
+const [communityReplies, setCommunityReplies] = useState<Record<string, any[]>>({});
+const [communityLoading, setCommunityLoading] = useState(false);
+  const [newPostForm, setNewPostForm] = useState({
+    name: "",
+    email: "",
+    avatarUrl: "",
+    title: "",
+    message: "",
+  });
+const [replyForms, setReplyForms] = useState<
+  Record<
+    string,
+    {
+      name: string;
+      email: string;
+      avatarUrl: string;
+      message: string;
+    }
+  >
+>({});
+
+useEffect(() => {
+  if (!isCommunityBoard || !micrositeId) return;
+
+  let cancelled = false;
+
+  async function loadCommunityBoard() {
+    try {
+      setCommunityLoading(true);
+
+const params = new URLSearchParams({
+  micrositeId: micrositeId ?? "",
+  blockId: block.id,
+});
+
+      const res = await fetch(
+        `/api/public/post-board/community?${params.toString()}`,
+        {
+          cache: "no-store",
+        },
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data?.error || "Failed to load community board.");
+      }
+
+      if (cancelled) return;
+
+      const mappedPosts = Array.isArray(data.posts)
+        ? data.posts.map((post: any) => ({
+            id: post.post_id,
+            title: post.title,
+            subtitle: "Community post",
+            message: post.message,
+            createdAt: post.created_at,
+            updatedAt: post.updated_at,
+            ownerDisplayName: post.author_name,
+            ownerAvatarUrl: post.author_avatar_url ?? "",
+            authorName: post.author_name,
+            authorEmail: post.author_email ?? "",
+            authorAvatarUrl: post.author_avatar_url ?? "",
+            contactInfoConfirmed: Boolean(post.contact_info_confirmed),
+            isOwnerPost: false,
+            pinned: Boolean(post.pinned),
+            likeCount: Number(post.like_count ?? 0),
+            messageCount: Number(post.message_count ?? 0),
+          }))
+        : [];
+
+      const mappedReplies: Record<string, any[]> = {};
+
+      if (Array.isArray(data.replies)) {
+        data.replies.forEach((reply: any) => {
+          const postId = String(reply.post_id ?? "");
+
+          if (!postId) return;
+
+          mappedReplies[postId] = [
+            ...(mappedReplies[postId] ?? []),
+            {
+              id: reply.reply_id,
+              postId,
+              sourcePostId: postId,
+              sourcePostTitle: reply.source_post_title,
+              name: reply.author_name,
+              email: reply.author_email ?? "",
+              avatarUrl: reply.author_avatar_url ?? "",
+              message: reply.message,
+              contactInfoConfirmed: Boolean(reply.contact_info_confirmed),
+              createdAt: reply.created_at,
+            },
+          ];
+        });
+      }
+
+      setCommunityPosts(mappedPosts);
+      setCommunityReplies(mappedReplies);
+    } catch {
+      // fallback to draft data
+    } finally {
+      if (!cancelled) {
+        setCommunityLoading(false);
+      }
+    }
+  }
+
+  void loadCommunityBoard();
+
+  return () => {
+    cancelled = true;
+  };
+}, [isCommunityBoard, micrositeId, block.id]);
 
   const maxMessageLength =
     typeof block.data.maxMessageLength === "number"
       ? Math.max(50, Math.min(1000, block.data.maxMessageLength))
       : 300;
 
-  const sortedPosts = [...posts].sort((a, b) => {
+  const maxVisibleReplies =
+    typeof block.data.maxVisibleReplies === "number"
+      ? Math.max(1, Math.min(100, block.data.maxVisibleReplies))
+      : 10;
+
+  const allPosts = isCommunityBoard ? [...communityPosts, ...posts] : posts;
+
+  const sortedPosts = [...allPosts].sort((a, b) => {
     if (block.data.showPinnedPostsFirst !== false) {
       if (Boolean(a.pinned) !== Boolean(b.pinned)) {
         return Boolean(a.pinned) ? -1 : 1;
@@ -5010,34 +5137,34 @@ function renderPostBoard(
       .join("");
   }
 
-function getYouTubeEmbedUrl(url?: string) {
-  if (!url) return "";
+  function getYouTubeEmbedUrl(url?: string) {
+    if (!url) return "";
 
-  try {
-    const parsed = new URL(url);
-    const host = parsed.hostname.replace("www.", "");
+    try {
+      const parsed = new URL(url);
+      const host = parsed.hostname.replace("www.", "");
 
-    let videoId = "";
+      let videoId = "";
 
-    if (host === "youtube.com" || host === "m.youtube.com") {
-      videoId =
-        parsed.searchParams.get("v") ||
-        parsed.pathname.match(/^\/shorts\/([^/?#]+)/)?.[1] ||
-        parsed.pathname.match(/^\/embed\/([^/?#]+)/)?.[1] ||
-        "";
+      if (host === "youtube.com" || host === "m.youtube.com") {
+        videoId =
+          parsed.searchParams.get("v") ||
+          parsed.pathname.match(/^\/shorts\/([^/?#]+)/)?.[1] ||
+          parsed.pathname.match(/^\/embed\/([^/?#]+)/)?.[1] ||
+          "";
+      }
+
+      if (host === "youtu.be") {
+        videoId = parsed.pathname.replace("/", "").split("?")[0];
+      }
+
+      return videoId
+        ? `https://www.youtube-nocookie.com/embed/${videoId}?rel=0`
+        : "";
+    } catch {
+      return "";
     }
-
-    if (host === "youtu.be") {
-      videoId = parsed.pathname.replace("/", "").split("?")[0];
-    }
-
-    return videoId
-      ? `https://www.youtube-nocookie.com/embed/${videoId}?rel=0`
-      : "";
-  } catch {
-    return "";
   }
-}
 
   function getPostMessage(message?: string) {
     const safeMessage = typeof message === "string" ? message : "";
@@ -5047,116 +5174,203 @@ function getYouTubeEmbedUrl(url?: string) {
     return `${safeMessage.slice(0, maxMessageLength).trim()}…`;
   }
 
-function getPostBoardBoxStyle(style?: {
-  backgroundColor?: string;
-  backgroundOpacity?: number;
-  borderColor?: string;
-  borderWidth?: number;
-  borderRadius?: number;
-}) {
-  function postBoardWithOpacity(color?: string, opacity?: number) {
-    if (!color) return undefined;
-    if (color === "transparent") return "transparent";
+  function getPostBoardBoxStyle(style?: {
+    backgroundColor?: string;
+    backgroundOpacity?: number;
+    borderColor?: string;
+    borderWidth?: number;
+    borderRadius?: number;
+  }) {
+    function postBoardWithOpacity(color?: string, opacity?: number) {
+      if (!color) return undefined;
+      if (color === "transparent") return "transparent";
 
-    const safeOpacity =
-      typeof opacity === "number" && Number.isFinite(opacity)
-        ? Math.max(0, Math.min(1, opacity))
-        : 1;
+      const safeOpacity =
+        typeof opacity === "number" && Number.isFinite(opacity)
+          ? Math.max(0, Math.min(1, opacity))
+          : 1;
 
-    if (!color.startsWith("#")) return color;
+      if (!color.startsWith("#")) return color;
 
-    const hex = color.replace("#", "");
-    const fullHex =
-      hex.length === 3
-        ? hex
-            .split("")
-            .map((char) => `${char}${char}`)
-            .join("")
-        : hex;
+      const hex = color.replace("#", "");
+      const fullHex =
+        hex.length === 3
+          ? hex
+              .split("")
+              .map((char) => `${char}${char}`)
+              .join("")
+          : hex;
 
-    const r = parseInt(fullHex.slice(0, 2), 16);
-    const g = parseInt(fullHex.slice(2, 4), 16);
-    const b = parseInt(fullHex.slice(4, 6), 16);
+      const r = parseInt(fullHex.slice(0, 2), 16);
+      const g = parseInt(fullHex.slice(2, 4), 16);
+      const b = parseInt(fullHex.slice(4, 6), 16);
 
-    if ([r, g, b].some((value) => Number.isNaN(value))) return color;
+      if ([r, g, b].some((value) => Number.isNaN(value))) return color;
 
-    return `rgba(${r}, ${g}, ${b}, ${safeOpacity})`;
+      return `rgba(${r}, ${g}, ${b}, ${safeOpacity})`;
+    }
+
+    return {
+      backgroundColor: postBoardWithOpacity(
+        style?.backgroundColor,
+        style?.backgroundOpacity,
+      ),
+      borderColor: style?.borderColor || undefined,
+      borderWidth:
+        typeof style?.borderWidth === "number"
+          ? `${style.borderWidth}px`
+          : undefined,
+      borderRadius:
+        typeof style?.borderRadius === "number"
+          ? `${style.borderRadius}px`
+          : undefined,
+    };
   }
-
-  return {
-    backgroundColor: postBoardWithOpacity(
-      style?.backgroundColor,
-      style?.backgroundOpacity,
-    ),
-    borderColor: style?.borderColor || undefined,
-    borderWidth:
-      typeof style?.borderWidth === "number"
-        ? `${style.borderWidth}px`
-        : undefined,
-    borderRadius:
-      typeof style?.borderRadius === "number"
-        ? `${style.borderRadius}px`
-        : undefined,
-  };
-}
 
   const isCompact = block.data.variant === "compact";
   const isFeature = block.data.variant === "feature";
 
-async function handleLikePost(postId: string, fallbackCount: number) {
-  if (likeLoading[postId] || likedPosts[postId]) return;
+  async function handleLikePost(postId: string, fallbackCount: number) {
+    if (likeLoading[postId] || likedPosts[postId]) return;
 
-  const currentCount = likeCounts[postId] ?? fallbackCount ?? 0;
-
-  setLikedPosts((prev) => ({ ...prev, [postId]: true }));
-  setLikeCounts((prev) => ({ ...prev, [postId]: currentCount + 1 }));
-
-  if (!micrositeId) {
-    return;
-  }
-
-  try {
-    setLikeLoading((prev) => ({ ...prev, [postId]: true }));
-
-    const res = await fetch("/api/public/post-board/like", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        micrositeId,
-        blockId: block.id,
-        postId,
-      }),
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      throw new Error(data?.error || "Failed to like post.");
-    }
+    const currentCount = likeCounts[postId] ?? fallbackCount ?? 0;
 
     setLikedPosts((prev) => ({ ...prev, [postId]: true }));
-    setLikeCounts((prev) => ({
-      ...prev,
-      [postId]:
-        typeof data.likeCount === "number" ? data.likeCount : currentCount + 1,
-    }));
-  } catch {
-    setLikedPosts((prev) => ({ ...prev, [postId]: false }));
-    setLikeCounts((prev) => ({ ...prev, [postId]: currentCount }));
-  } finally {
-    setLikeLoading((prev) => ({ ...prev, [postId]: false }));
+    setLikeCounts((prev) => ({ ...prev, [postId]: currentCount + 1 }));
+
+    if (!micrositeId) {
+      return;
+    }
+
+    try {
+      setLikeLoading((prev) => ({ ...prev, [postId]: true }));
+
+      const res = await fetch("/api/public/post-board/like", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          micrositeId,
+          blockId: block.id,
+          postId,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data?.error || "Failed to like post.");
+      }
+
+      setLikedPosts((prev) => ({ ...prev, [postId]: true }));
+      setLikeCounts((prev) => ({
+        ...prev,
+        [postId]:
+          typeof data.likeCount === "number" ? data.likeCount : currentCount + 1,
+      }));
+    } catch {
+      setLikedPosts((prev) => ({ ...prev, [postId]: false }));
+      setLikeCounts((prev) => ({ ...prev, [postId]: currentCount }));
+    } finally {
+      setLikeLoading((prev) => ({ ...prev, [postId]: false }));
+    }
   }
-}
+
+  function handleCreateCommunityPost() {
+    const name = newPostForm.name.trim();
+    const email = newPostForm.email.trim();
+    const title = newPostForm.title.trim();
+    const message = newPostForm.message.trim();
+
+    if (!name || !title || !message) return;
+
+    if ((block.data.requireCommunityPostEmail ?? true) && !email) return;
+
+    const postId = `community_post_${Date.now()}`;
+
+    setCommunityPosts((prev) => [
+      {
+        id: postId,
+        title,
+        subtitle: "Community post",
+        message,
+        createdAt: new Date().toISOString(),
+        ownerDisplayName: name,
+        ownerAvatarUrl: newPostForm.avatarUrl.trim(),
+        authorName: name,
+        authorEmail: email,
+        authorAvatarUrl: newPostForm.avatarUrl.trim(),
+        contactInfoConfirmed: Boolean(email),
+        isOwnerPost: false,
+        pinned: false,
+        likeCount: 0,
+        messageCount: 0,
+      },
+      ...prev,
+    ]);
+
+    setExpandedPostId(postId);
+
+    setNewPostForm({
+      name: "",
+      email: "",
+      avatarUrl: "",
+      title: "",
+      message: "",
+    });
+  }
+
+  function handleCreateReply(post: any) {
+    const form = replyForms[post.id] ?? {
+      name: "",
+      email: "",
+      avatarUrl: "",
+      message: "",
+    };
+
+    const name = form.name.trim();
+    const email = form.email.trim();
+    const message = form.message.trim();
+
+    if (!name || !message) return;
+
+    const reply = {
+      id: `reply_${Date.now()}`,
+      postId: post.id,
+      sourcePostId: post.id,
+      sourcePostTitle: post.title || "Untitled post",
+      name,
+      email,
+      avatarUrl: form.avatarUrl.trim(),
+      message,
+      contactInfoConfirmed: Boolean(email),
+      createdAt: new Date().toISOString(),
+    };
+
+setCommunityReplies((prev) => ({
+  ...prev,
+  [post.id]: [...(prev[post.id] ?? []), reply],
+}));
+
+    setReplyForms((prev) => ({
+      ...prev,
+      [post.id]: {
+        name: "",
+        email: "",
+        avatarUrl: "",
+        message: "",
+      },
+    }));
+  }
 
   return (
-<Surface
-  block={block}
-  designKey={designKey}
-  className={`${getSoftSurfaceClass(designKey)} overflow-y-auto`}
-  styleOverride={getPostBoardBoxStyle(block.appearance as any)}
->
+    <Surface
+      block={block}
+      designKey={designKey}
+      className={`${getSoftSurfaceClass(designKey)} overflow-y-auto`}
+      styleOverride={getPostBoardBoxStyle(block.appearance as any)}
+    >
       {block.data.showHeading !== false ? (
         <div
           className={isFeature ? "text-xl font-bold" : "text-base font-semibold"}
@@ -5177,9 +5391,109 @@ async function handleLikePost(postId: string, fallbackCount: number) {
         </div>
       ) : null}
 
+      {isCommunityBoard ? (
+        <div
+          className={[
+            "relative z-20 mt-4 rounded-xl border p-3 pointer-events-auto",
+            isLightDesign(designKey)
+              ? "border-neutral-200 bg-white"
+              : "border-white/10 bg-white/5",
+          ].join(" ")}
+          onMouseDown={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="text-sm font-semibold">Start a discussion</div>
+
+          <div className="mt-3 grid grid-cols-1 gap-2">
+            <input
+              type="text"
+              value={newPostForm.name}
+              onChange={(e) =>
+                setNewPostForm((prev) => ({
+                  ...prev,
+                  name: e.target.value,
+                }))
+              }
+              className="h-10 rounded-lg border border-neutral-300 px-3 text-sm text-neutral-900"
+              placeholder="Your name"
+            />
+
+            <input
+              type="email"
+              value={newPostForm.email}
+              onChange={(e) =>
+                setNewPostForm((prev) => ({
+                  ...prev,
+                  email: e.target.value,
+                }))
+              }
+              className="h-10 rounded-lg border border-neutral-300 px-3 text-sm text-neutral-900"
+              placeholder={
+                block.data.requireCommunityPostEmail ?? true
+                  ? "Your email privately stored"
+                  : "Email optional, privately stored"
+              }
+            />
+
+            <input
+              type="text"
+              value={newPostForm.avatarUrl}
+              onChange={(e) =>
+                setNewPostForm((prev) => ({
+                  ...prev,
+                  avatarUrl: e.target.value,
+                }))
+              }
+              className="h-10 rounded-lg border border-neutral-300 px-3 text-sm text-neutral-900"
+              placeholder="Profile image URL optional"
+            />
+
+            <input
+              type="text"
+              value={newPostForm.title}
+              onChange={(e) =>
+                setNewPostForm((prev) => ({
+                  ...prev,
+                  title: e.target.value,
+                }))
+              }
+              className="h-10 rounded-lg border border-neutral-300 px-3 text-sm text-neutral-900"
+              placeholder="Discussion title"
+            />
+
+            <textarea
+              value={newPostForm.message}
+              onChange={(e) =>
+                setNewPostForm((prev) => ({
+                  ...prev,
+                  message: e.target.value,
+                }))
+              }
+              className="min-h-[84px] rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900"
+              placeholder="Start the conversation..."
+            />
+
+            <div className="text-[11px] text-neutral-500">
+              Email is never shown publicly. It is stored privately and can be
+              used for reply notifications.
+            </div>
+
+            <button
+              type="button"
+              className="inline-flex h-10 items-center justify-center rounded-lg bg-neutral-900 px-4 text-sm font-semibold text-white"
+              onClick={handleCreateCommunityPost}
+            >
+              Post Discussion
+            </button>
+          </div>
+        </div>
+      ) : null}
+
       <div
         className={
-          block.data.showHeading !== false || block.data.showSubtitle !== false
+          block.data.showHeading !== false ||
+          block.data.showSubtitle !== false ||
+          isCommunityBoard
             ? "mt-4"
             : ""
         }
@@ -5187,7 +5501,26 @@ async function handleLikePost(postId: string, fallbackCount: number) {
         {sortedPosts.length ? (
           <div className={isCompact ? "space-y-2" : "space-y-3"}>
             {sortedPosts.map((post) => {
-              const ownerName = post.ownerDisplayName || "Owner";
+              const ownerName =
+                post.authorName ||
+                post.ownerDisplayName ||
+                "Owner";
+
+              const ownerAvatar =
+                post.authorAvatarUrl ||
+                post.ownerAvatarUrl ||
+                "";
+
+const savedReplies = Array.isArray((post as any).replies)
+  ? (post as any).replies
+  : [];
+
+const replies = [
+  ...savedReplies,
+  ...(communityReplies[post.id] ?? []),
+];
+
+const isExpanded = expandedPostId === post.id;
 
               return (
                 <article
@@ -5199,16 +5532,16 @@ async function handleLikePost(postId: string, fallbackCount: number) {
                       ? "border-neutral-200 bg-white"
                       : "border-white/10 bg-white/5",
                   ].join(" ")}
-style={{
-  ...getContainerTextStyle(cardStyle, designKey),
-  ...getPostBoardBoxStyle(cardStyle),
-}}
+                  style={{
+                    ...getContainerTextStyle(cardStyle, designKey),
+                    ...getPostBoardBoxStyle(cardStyle),
+                  }}
                 >
                   <div className="flex items-start gap-3">
                     {block.data.showOwnerAvatar !== false ? (
-                      post.ownerAvatarUrl ? (
+                      ownerAvatar ? (
                         <img
-                          src={post.ownerAvatarUrl}
+                          src={ownerAvatar}
                           alt={`${ownerName} avatar`}
                           className={[
                             "shrink-0 rounded-full object-cover",
@@ -5242,6 +5575,19 @@ style={{
                         {block.data.showTimestamps !== false ? (
                           <div className={`text-xs ${getMutedTextClass(designKey)}`}>
                             {formatPostTime(post.createdAt)}
+                          </div>
+                        ) : null}
+
+                        {post.contactInfoConfirmed ? (
+                          <div
+                            className={[
+                              "rounded-full px-2 py-0.5 text-[10px] font-bold",
+                              isLightDesign(designKey)
+                                ? "bg-emerald-50 text-emerald-700"
+                                : "bg-emerald-400/15 text-emerald-100",
+                            ].join(" ")}
+                          >
+                            Contact info confirmed
                           </div>
                         ) : null}
 
@@ -5298,117 +5644,328 @@ style={{
                         />
                       ) : null}
 
-{post.videoUrl && block.data.allowVideos ? (
-  getYouTubeEmbedUrl(post.videoUrl) ? (
-<div
-  className="relative z-20 mt-3 pointer-events-auto"
-  onMouseDown={(e) => e.stopPropagation()}
-  onClick={(e) => e.stopPropagation()}
->
-<iframe
-  src={getYouTubeEmbedUrl(post.videoUrl)}
-  title={post.title || "Post video"}
-  className="mt-3 aspect-video w-full rounded-xl border"
-  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-  allowFullScreen
-/>
+                      {post.videoUrl && block.data.allowVideos ? (
+                        getYouTubeEmbedUrl(post.videoUrl) ? (
+                          <div
+                            className="relative z-20 mt-3 pointer-events-auto"
+                            onMouseDown={(e) => e.stopPropagation()}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <iframe
+                              src={getYouTubeEmbedUrl(post.videoUrl)}
+                              title={post.title || "Post video"}
+                              className="mt-3 aspect-video w-full rounded-xl border"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                              allowFullScreen
+                            />
 
-  <a
-    href={post.videoUrl}
-    target="_blank"
-    rel="noreferrer"
-    className="mt-2 inline-flex rounded-full border border-neutral-300 bg-white px-3 py-1 text-xs font-semibold text-neutral-700"
-  >
-    Open video
-  </a>
-</div>
-  ) : (
-    <video
-      src={post.videoUrl}
-      controls
-      className="mt-3 max-h-52 w-full rounded-xl border object-cover"
-    />
-  )
-) : null}
+                            <a
+                              href={post.videoUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="mt-2 inline-flex rounded-full border border-neutral-300 bg-white px-3 py-1 text-xs font-semibold text-neutral-700"
+                            >
+                              Open video
+                            </a>
+                          </div>
+                        ) : (
+                          <video
+                            src={post.videoUrl}
+                            controls
+                            className="mt-3 max-h-52 w-full rounded-xl border object-cover"
+                          />
+                        )
+                      ) : null}
 
-<div className="relative z-20 mt-3 flex items-center gap-2 pointer-events-auto">
-  {block.data.showLikes !== false ? (
-    <button
-      type="button"
-      onMouseDown={(e) => e.stopPropagation()}
-      onClick={(e) => {
-        e.stopPropagation();
-        void handleLikePost(post.id, post.likeCount ?? 0);
-      }}
-      disabled={Boolean(likeLoading[post.id]) || Boolean(likedPosts[post.id])}
-      className={[
-        "rounded-full border px-3 py-1 text-xs font-semibold pointer-events-auto",
-        isLightDesign(designKey)
-          ? "border-neutral-200 bg-neutral-50 text-neutral-700"
-          : "border-white/10 bg-white/5 text-white/75",
-      ].join(" ")}
-      style={{
-        ...getContainerTextStyle(buttonStyle, designKey),
-        ...getPostBoardBoxStyle(buttonStyle),
-      }}
-      aria-label={`Like ${post.title || "post"}`}
-    >
-      ♥ {likeCounts[post.id] ?? post.likeCount ?? 0}
-    </button>
-  ) : null}
+                      <div className="relative z-20 mt-3 flex items-center gap-2 pointer-events-auto">
+                        {block.data.showLikes !== false ? (
+                          <button
+                            type="button"
+                            onMouseDown={(e) => e.stopPropagation()}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              void handleLikePost(post.id, post.likeCount ?? 0);
+                            }}
+                            disabled={
+                              Boolean(likeLoading[post.id]) ||
+                              Boolean(likedPosts[post.id])
+                            }
+                            className={[
+                              "rounded-full border px-3 py-1 text-xs font-semibold pointer-events-auto",
+                              isLightDesign(designKey)
+                                ? "border-neutral-200 bg-neutral-50 text-neutral-700"
+                                : "border-white/10 bg-white/5 text-white/75",
+                            ].join(" ")}
+                            style={{
+                              ...getContainerTextStyle(buttonStyle, designKey),
+                              ...getPostBoardBoxStyle(buttonStyle),
+                            }}
+                            aria-label={`Like ${post.title || "post"}`}
+                          >
+                            ♥ {likeCounts[post.id] ?? post.likeCount ?? 0}
+                          </button>
+                        ) : null}
 
-  {block.data.showMessages !== false ? (
-    <a
-      href={post.threadId ? `#thread-${post.threadId}` : "#"}
-      onMouseDown={(e) => e.stopPropagation()}
-      onClick={(e) => {
-        e.stopPropagation();
+                        {block.data.showMessages !== false ? (
+                          isCommunityBoard ? (
+                            <button
+                              type="button"
+                              onMouseDown={(e) => e.stopPropagation()}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setExpandedPostId(isExpanded ? null : post.id);
+                              }}
+                              className={[
+                                "rounded-full border px-3 py-1 text-xs font-semibold pointer-events-auto",
+                                isLightDesign(designKey)
+                                  ? "border-neutral-200 bg-neutral-50 text-neutral-700"
+                                  : "border-white/10 bg-white/5 text-white/75",
+                              ].join(" ")}
+                              style={{
+                                ...getContainerTextStyle(buttonStyle, designKey),
+                                ...getPostBoardBoxStyle(buttonStyle),
+                              }}
+                            >
+                              💬 {replies.length || post.messageCount || 0}
+                            </button>
+                          ) : (
+                            <a
+                              href={post.threadId ? `#thread-${post.threadId}` : "#"}
+                              onMouseDown={(e) => e.stopPropagation()}
+                              onClick={(e) => {
+                                e.stopPropagation();
 
-        if (!post.threadId) {
-          e.preventDefault();
-          return;
-        }
+                                if (!post.threadId) {
+                                  e.preventDefault();
+                                  return;
+                                }
 
-const target = document.getElementById(`thread-${post.threadId}`);
+                                const target = document.getElementById(
+                                  `thread-${post.threadId}`,
+                                );
 
-if (target) {
-  e.preventDefault();
+                                if (target) {
+                                  e.preventDefault();
 
-  target.scrollIntoView({
-    behavior: "smooth",
-    block: "start",
-  });
+                                  target.scrollIntoView({
+                                    behavior: "smooth",
+                                    block: "start",
+                                  });
 
-  window.history.replaceState(null, "", `#thread-${post.threadId}`);
+                                  window.history.replaceState(
+                                    null,
+                                    "",
+                                    `#thread-${post.threadId}`,
+                                  );
 
-  setTimeout(() => {
-    const nameInput = target.querySelector(
-      'input[type="text"]',
-    ) as HTMLInputElement | null;
+                                  setTimeout(() => {
+                                    const nameInput = target.querySelector(
+                                      'input[type="text"]',
+                                    ) as HTMLInputElement | null;
 
-    if (nameInput) {
-      nameInput.focus();
-      nameInput.select();
-    }
-  }, 350);
-}
-      }}
-      className={[
-        "rounded-full border px-3 py-1 text-xs font-semibold pointer-events-auto",
-        isLightDesign(designKey)
-          ? "border-neutral-200 bg-neutral-50 text-neutral-700"
-          : "border-white/10 bg-white/5 text-white/75",
-      ].join(" ")}
-      style={{
-        ...getContainerTextStyle(buttonStyle, designKey),
-        ...getPostBoardBoxStyle(buttonStyle),
-      }}
-      aria-label={`Open discussion for ${post.title || "post"}`}
-    >
-      💬 {post.messageCount ?? 0}
-    </a>
-  ) : null}
-</div>
+                                    if (nameInput) {
+                                      nameInput.focus();
+                                      nameInput.select();
+                                    }
+                                  }, 350);
+                                }
+                              }}
+                              className={[
+                                "rounded-full border px-3 py-1 text-xs font-semibold pointer-events-auto",
+                                isLightDesign(designKey)
+                                  ? "border-neutral-200 bg-neutral-50 text-neutral-700"
+                                  : "border-white/10 bg-white/5 text-white/75",
+                              ].join(" ")}
+                              style={{
+                                ...getContainerTextStyle(buttonStyle, designKey),
+                                ...getPostBoardBoxStyle(buttonStyle),
+                              }}
+                              aria-label={`Open discussion for ${post.title || "post"}`}
+                            >
+                              💬 {post.messageCount ?? 0}
+                            </a>
+                          )
+                        ) : null}
+                      </div>
+
+                      {isCommunityBoard && isExpanded ? (
+                        <div
+                          className={[
+                            "mt-4 rounded-xl border p-3",
+                            isLightDesign(designKey)
+                              ? "border-neutral-200 bg-neutral-50"
+                              : "border-white/10 bg-white/5",
+                          ].join(" ")}
+                        >
+                          <div className="text-xs font-semibold uppercase tracking-[0.12em] opacity-70">
+                            Replies
+                          </div>
+
+                          <div
+                            className="mt-3 space-y-3 overflow-y-auto pr-1"
+                            style={{
+                              maxHeight: replies.length > maxVisibleReplies ? 280 : undefined,
+                            }}
+                          >
+                            {replies.length ? (
+                              replies.map((reply) => (
+                                <div
+                                  key={reply.id}
+                                  className={[
+                                    "rounded-xl border p-3",
+                                    isLightDesign(designKey)
+                                      ? "border-neutral-200 bg-white"
+                                      : "border-white/10 bg-black/10",
+                                  ].join(" ")}
+                                >
+                                  <div className="flex items-start gap-2">
+                                    {reply.avatarUrl ? (
+                                      <img
+                                        src={reply.avatarUrl}
+                                        alt={`${reply.name} avatar`}
+                                        className="h-8 w-8 shrink-0 rounded-full object-cover"
+                                      />
+                                    ) : (
+                                      <div
+                                        className={[
+                                          "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold",
+                                          isLightDesign(designKey)
+                                            ? "bg-neutral-900 text-white"
+                                            : "bg-white text-neutral-900",
+                                        ].join(" ")}
+                                      >
+                                        {getPostInitials(reply.name)}
+                                      </div>
+                                    )}
+
+                                    <div className="min-w-0 flex-1">
+                                      <div className="flex flex-wrap items-center gap-2">
+                                        <div className="text-sm font-semibold">
+                                          {reply.name}
+                                        </div>
+
+                                        {reply.contactInfoConfirmed ? (
+                                          <div className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
+                                            Contact info confirmed
+                                          </div>
+                                        ) : null}
+                                      </div>
+
+                                      <div className="mt-1 text-sm">
+                                        {reply.message}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))
+                            ) : (
+                              <div className="text-sm opacity-70">
+                                No replies yet.
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="mt-4 grid grid-cols-1 gap-2">
+                            <input
+                              type="text"
+                              value={replyForms[post.id]?.name ?? ""}
+                              onChange={(e) =>
+                                setReplyForms((prev) => ({
+                                  ...prev,
+                                  [post.id]: {
+                                    ...(prev[post.id] ?? {
+                                      name: "",
+                                      email: "",
+                                      avatarUrl: "",
+                                      message: "",
+                                    }),
+                                    name: e.target.value,
+                                  },
+                                }))
+                              }
+                              className="h-10 rounded-lg border border-neutral-300 px-3 text-sm text-neutral-900"
+                              placeholder="Your name"
+                            />
+
+                            {block.data.allowReplyEmailCapture !== false ? (
+                              <input
+                                type="email"
+                                value={replyForms[post.id]?.email ?? ""}
+                                onChange={(e) =>
+                                  setReplyForms((prev) => ({
+                                    ...prev,
+                                    [post.id]: {
+                                      ...(prev[post.id] ?? {
+                                        name: "",
+                                        email: "",
+                                        avatarUrl: "",
+                                        message: "",
+                                      }),
+                                      email: e.target.value,
+                                    },
+                                  }))
+                                }
+                                className="h-10 rounded-lg border border-neutral-300 px-3 text-sm text-neutral-900"
+                                placeholder="Email optional, privately stored"
+                              />
+                            ) : null}
+
+                            <input
+                              type="text"
+                              value={replyForms[post.id]?.avatarUrl ?? ""}
+                              onChange={(e) =>
+                                setReplyForms((prev) => ({
+                                  ...prev,
+                                  [post.id]: {
+                                    ...(prev[post.id] ?? {
+                                      name: "",
+                                      email: "",
+                                      avatarUrl: "",
+                                      message: "",
+                                    }),
+                                    avatarUrl: e.target.value,
+                                  },
+                                }))
+                              }
+                              className="h-10 rounded-lg border border-neutral-300 px-3 text-sm text-neutral-900"
+                              placeholder="Profile image URL optional"
+                            />
+
+                            <textarea
+                              value={replyForms[post.id]?.message ?? ""}
+                              onChange={(e) =>
+                                setReplyForms((prev) => ({
+                                  ...prev,
+                                  [post.id]: {
+                                    ...(prev[post.id] ?? {
+                                      name: "",
+                                      email: "",
+                                      avatarUrl: "",
+                                      message: "",
+                                    }),
+                                    message: e.target.value,
+                                  },
+                                }))
+                              }
+                              className="min-h-[84px] rounded-lg border border-neutral-300 px-3 py-2 text-sm text-neutral-900"
+                              placeholder="Write a reply..."
+                            />
+
+                            <div className="text-[11px] opacity-70">
+                              Optional email is private and is not shown publicly.
+                              Replies are associated with: “{post.title || "Untitled post"}”.
+                            </div>
+
+                            <button
+                              type="button"
+                              className="inline-flex h-10 items-center justify-center rounded-lg bg-neutral-900 px-4 text-sm font-semibold text-white"
+                              onClick={() => handleCreateReply(post)}
+                            >
+                              Submit Reply
+                            </button>
+                          </div>
+                        </div>
+                      ) : null}
                     </div>
                   </div>
                 </article>
