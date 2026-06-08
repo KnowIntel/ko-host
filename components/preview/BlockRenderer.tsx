@@ -5705,7 +5705,16 @@ const isExpanded = expandedPostId === post.id;
                                 : "bg-emerald-400/15 text-emerald-100",
                             ].join(" ")}
                           >
-                            📧 Replies can reach me
+                            <div
+                              className={[
+                                "mt-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold",
+                                isLightDesign(designKey)
+                                  ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                  : "bg-emerald-500/15 text-emerald-300 border border-emerald-500/30",
+                              ].join(" ")}
+                            >
+                              📧 Replies can reach me
+                            </div>
                           </div>
                         ) : null}
 
