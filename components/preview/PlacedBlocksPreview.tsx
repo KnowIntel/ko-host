@@ -83,6 +83,11 @@ const BASE_PAGE_WIDTH = MICROSITE_PAGE_WIDTH - 68;
 const GRID_COLUMNS = 12;
 const GRID_GAP = 16;
 
+const HIDE_PREVIEW_SCROLLBAR_STYLE: React.CSSProperties = {
+  scrollbarWidth: "none",
+  msOverflowStyle: "none",
+};
+
 
 function getPageLengthConfig(length?: DraftWithExtras["pageLength"]) {
   if (length === "1200") return { widthRatio: 1, pageHeight: 1200 };
@@ -564,9 +569,10 @@ return (
     width: "100%",
     margin: 0,
     padding: 0,
-    overflowX: "auto",
-    overflowY: "auto",
-    WebkitOverflowScrolling: "touch",
+overflowX: "auto",
+overflowY: "auto",
+WebkitOverflowScrolling: "touch",
+...HIDE_PREVIEW_SCROLLBAR_STYLE,
     touchAction: "auto",
     backgroundColor: transparentPageBackground ? "transparent" : pageColor,
     ...(pageBackgroundImage && !transparentPageBackground
