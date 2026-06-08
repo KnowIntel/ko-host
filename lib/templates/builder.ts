@@ -1504,6 +1504,12 @@ export type CalendarEventBlock = BaseBlock & {
     events: CalendarEventEntry[];
 
     style?: TextStyle;
+    headingStyle?: TextStyle;
+    subtitleStyle?: TextStyle;
+    eventTitleStyle?: TextStyle;
+    eventDateStyle?: TextStyle;
+    eventDetailsStyle?: TextStyle;
+
     calendarStyle?: {
       backgroundColor?: string;
       textColor?: string;
@@ -4035,6 +4041,11 @@ data: {
           ],
 
           style: createDefaultTextStyle(),
+          headingStyle: createDefaultTextStyle(),
+          subtitleStyle: createDefaultTextStyle(),
+          eventTitleStyle: createDefaultTextStyle(),
+          eventDateStyle: createDefaultTextStyle(),
+          eventDetailsStyle: createDefaultTextStyle(),
 
           calendarStyle: {
             backgroundColor: "",

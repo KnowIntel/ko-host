@@ -1745,6 +1745,10 @@ const [countdownStyleTarget, setCountdownStyleTarget] =
 const [timelineStyleTarget, setTimelineStyleTarget] =
   useState<TimelineStyleTarget>("entryTitle");
 
+const [calendarEventTextTarget, setCalendarEventTextTarget] = useState<
+  "heading" | "subtitle" | "eventTitle" | "eventDate" | "eventDetails"
+>("heading");
+
 const [focusedTimelineEntryId, setFocusedTimelineEntryId] =
   useState<string | null>(null);
 
@@ -1947,6 +1951,26 @@ const selectedStyle =
                               : timelineStyleTarget === "subtitle"
                                 ? (((selectedBlockFromDraft.data as any).subtitleStyle ?? {}) as TextStyle)
                                 : (((selectedBlockFromDraft.data as any).descriptionStyle ?? {}) as TextStyle)
+                        : selectedBlockFromDraft?.type === "calendar_event"
+                          ? calendarEventTextTarget === "heading"
+                            ? (((selectedBlockFromDraft.data as any).headingStyle ??
+                                (selectedBlockFromDraft.data as any).style ??
+                                {}) as TextStyle)
+                            : calendarEventTextTarget === "subtitle"
+                              ? (((selectedBlockFromDraft.data as any).subtitleStyle ??
+                                  (selectedBlockFromDraft.data as any).style ??
+                                  {}) as TextStyle)
+                              : calendarEventTextTarget === "eventTitle"
+                                ? (((selectedBlockFromDraft.data as any).eventTitleStyle ??
+                                    (selectedBlockFromDraft.data as any).style ??
+                                    {}) as TextStyle)
+                                : calendarEventTextTarget === "eventDate"
+                                  ? (((selectedBlockFromDraft.data as any).eventDateStyle ??
+                                      (selectedBlockFromDraft.data as any).style ??
+                                      {}) as TextStyle)
+                                  : (((selectedBlockFromDraft.data as any).eventDetailsStyle ??
+                                      (selectedBlockFromDraft.data as any).style ??
+                                      {}) as TextStyle)
                         : selectedBlockFromDraft?.type === "cart" ||
                             selectedBlockFromDraft?.type === "checkout" ||
                             selectedBlockFromDraft?.type === "text_fx" ||
@@ -4573,6 +4597,21 @@ if ((selectedBlock as any)?.type === "post_board") {
     }));
     return;
   }
+
+  [{
+	"resource": "/c:/Users/MD/ko-host/components/templates/DesignLayoutEditor.tsx",
+	"owner": "typescript",
+	"code": "2304",
+	"severity": 8,
+	"message": "Cannot find name 'patch'.",
+	"source": "ts",
+	"startLineNumber": 3392,
+	"startColumn": 20,
+	"endLineNumber": 3392,
+	"endColumn": 25,
+	"modelVersionId": 48,
+	"origin": "extHost1"
+}]
 
 if (selectedBlock?.type === "timeline") {
   const targetId = selectedBlock.id;
@@ -20811,6 +20850,33 @@ onClick={() =>
   <div className={inspectorCardClass()}>
     <div className={inspectorLabelClass()}>Calendar Event</div>
 
+<div className="mt-4">
+  <div className={inspectorLabelClass()}>
+    Text Target
+  </div>
+
+  <select
+    value={calendarEventTextTarget}
+    onChange={(e) =>
+      setCalendarEventTextTarget(
+        e.target.value as
+          | "heading"
+          | "subtitle"
+          | "eventTitle"
+          | "eventDate"
+          | "eventDetails",
+      )
+    }
+    className={inspectorInputClass()}
+  >
+    <option value="heading">Heading</option>
+    <option value="subtitle">Subtitle</option>
+    <option value="eventTitle">Event Title</option>
+    <option value="eventDate">Event Date</option>
+    <option value="eventDetails">Event Details</option>
+  </select>
+</div>
+
     <div className="mt-4">
       <div className={inspectorLabelClass()}>Heading</div>
       <input
@@ -21994,7 +22060,7 @@ onClick={() =>
                 )
               }
             >
-              Remove
+              x
             </button>
           </div>
         </div>

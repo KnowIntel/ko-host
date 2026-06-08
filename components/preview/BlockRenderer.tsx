@@ -10170,6 +10170,31 @@ function renderCalendarEvent(
     shadowEnabled: Boolean(block.data.detailStyle?.shadowEnabled),
   };
 
+  const headingTextStyle = getContainerTextStyle(
+  (block.data as any).headingStyle ?? block.data.style,
+  designKey,
+);
+
+const subtitleTextStyle = getContainerTextStyle(
+  (block.data as any).subtitleStyle ?? block.data.style,
+  designKey,
+);
+
+const eventTitleTextStyle = getContainerTextStyle(
+  (block.data as any).eventTitleStyle ?? block.data.style,
+  designKey,
+);
+
+const eventDateTextStyle = getContainerTextStyle(
+  (block.data as any).eventDateStyle ?? block.data.style,
+  designKey,
+);
+
+const eventDetailsTextStyle = getContainerTextStyle(
+  (block.data as any).eventDetailsStyle ?? block.data.style,
+  designKey,
+);
+
   const baseTextStyle = getContainerTextStyle(block.data.style, designKey);
 
   const [copiedEventId, setCopiedEventId] = useState<string | null>(null);
@@ -10549,7 +10574,7 @@ function renderCalendarEvent(
 
               <div
                 className="mt-1 text-sm font-semibold"
-                style={baseTextStyle}
+                style={headingTextStyle}
               >
                 {selectedDateLabel}
               </div>
@@ -10644,9 +10669,9 @@ function renderCalendarEvent(
                     ) : null}
                   </div>
 
-                  <div className="font-semibold" style={baseTextStyle}>
-                    {event.title || "Event"}
-                  </div>
+<div className="font-semibold" style={eventTitleTextStyle}>
+  {event.title || "Event"}
+</div>
 
                   {event.subtitle ? (
                     <div className="mt-1 text-sm">
@@ -10654,7 +10679,7 @@ function renderCalendarEvent(
                     </div>
                   ) : null}
 
-                  <div className="mt-3 text-xs">
+                  <div className="mt-3 text-xs" style={eventDateTextStyle}>
                     {formatEventDate(event.date)}
                     {event.startTime || event.endTime
                       ? ` • ${event.startTime || ""}${
@@ -10664,36 +10689,36 @@ function renderCalendarEvent(
                   </div>
 
                   {event.location || event.meetingMethod ? (
-                    <div className="mt-2 text-sm">
+                    <div className="mt-2 text-sm" style={eventDetailsTextStyle}>
                       {[event.meetingMethod, event.location]
                         .filter(Boolean)
                         .join(" • ")}
                     </div>
                   ) : null}
 
-                  {event.address ? (
-                    <div className="mt-1 text-sm">
-                      {event.address}
-                    </div>
-                  ) : null}
+{event.address ? (
+  <div className="mt-1 text-sm" style={eventDetailsTextStyle}>
+    {event.address}
+  </div>
+) : null}
 
-                  {block.data.showHost !== false && event.host ? (
-                    <div className="mt-2 text-xs">
-                      Hosted by {event.host}
-                    </div>
-                  ) : null}
+{block.data.showHost !== false && event.host ? (
+  <div className="mt-2 text-xs" style={eventDetailsTextStyle}>
+    Hosted by {event.host}
+  </div>
+) : null}
 
-                  {block.data.showCapacity !== false && event.capacity ? (
-                    <div className="mt-1 text-xs">
-                      Capacity: {event.capacity}
-                    </div>
-                  ) : null}
+{block.data.showCapacity !== false && event.capacity ? (
+  <div className="mt-1 text-xs" style={eventDetailsTextStyle}>
+    Capacity: {event.capacity}
+  </div>
+) : null}
 
-                  {event.notes ? (
-                    <div className="mt-2 text-sm">
-                      {event.notes}
-                    </div>
-                  ) : null}
+{event.notes ? (
+  <div className="mt-2 text-sm" style={eventDetailsTextStyle}>
+    {event.notes}
+  </div>
+) : null}
 
                   {event.virtualLink ? (
                     <a
@@ -10816,11 +10841,11 @@ function renderCalendarEvent(
             </div>
 
             <div className="min-w-0 flex-1">
-              <div className="truncate font-semibold" style={baseTextStyle}>
+              <div className="truncate font-semibold" style={eventTitleTextStyle}>
                 {event.title || "Event"}
               </div>
 
-              <div className="mt-1 text-xs opacity-75">
+              <div className="mt-1 text-xs opacity-75" style={eventDateTextStyle}>
                 {formatCompactDate(event.date)}
                 {event.startTime || event.endTime
                   ? ` • ${event.startTime || ""}${
@@ -10830,7 +10855,10 @@ function renderCalendarEvent(
               </div>
 
               {event.location || event.meetingMethod ? (
-                <div className="mt-1 truncate text-sm opacity-80">
+                <div
+                  className="mt-1 truncate text-sm opacity-80"
+                  style={eventDetailsTextStyle}
+                >
                   {[event.meetingMethod, event.location]
                     .filter(Boolean)
                     .join(" • ")}
@@ -10848,8 +10876,14 @@ function renderCalendarEvent(
           rel="noreferrer"
           className="mt-3 inline-flex text-sm font-semibold underline"
           style={{
-            color: detailStyle.textColor || baseTextStyle.color || undefined,
-            fontFamily: baseTextStyle.fontFamily,
+            color:
+              detailStyle.textColor ||
+              eventDetailsTextStyle.color ||
+              baseTextStyle.color ||
+              undefined,
+            fontFamily:
+              eventDetailsTextStyle.fontFamily ||
+              baseTextStyle.fontFamily,
           }}
         >
           {block.data.compactViewAllText || "View All Events"} →
@@ -10859,30 +10893,30 @@ function renderCalendarEvent(
   );
 
   return (
-<Surface
-  block={block}
-  designKey={designKey}
-  className="h-full overflow-auto border-4 border-red-500"
->
-  <div
-    className="rounded-[inherit]"
-    style={{
-      backgroundColor: calendarStyle.formBackgroundColor || undefined,
-      fontFamily: baseTextStyle.fontFamily,
-      color: baseTextStyle.color || undefined,
-    }}
-  >
+    <Surface
+      block={block}
+      designKey={designKey}
+      className={`${getSoftSurfaceClass(designKey)} h-full overflow-auto`}
+    >
+      <div
+        className="rounded-[inherit]"
+        style={{
+          backgroundColor: calendarStyle.formBackgroundColor || undefined,
+          fontFamily: baseTextStyle.fontFamily,
+          color: baseTextStyle.color || undefined,
+        }}
+      >
         {block.data.showHeading !== false ? (
-          <div className="text-base font-semibold" style={baseTextStyle}>
+          <div className="text-base font-semibold" style={headingTextStyle}>
             {block.data.heading || "Event Calendar"}
           </div>
         ) : null}
 
-        {block.data.showSubtitle !== false ? (
-          <div className="mt-1 text-sm opacity-80" style={baseTextStyle}>
-            {block.data.subtitle || "Select a date to view event details."}
-          </div>
-        ) : null}
+{block.data.showSubtitle !== false ? (
+  <div className="mt-1 text-sm opacity-80" style={subtitleTextStyle}>
+    {block.data.subtitle || "Select a date to view event details."}
+  </div>
+) : null}
 
         {block.data.variant === "compact" ? (
           <div className="mt-4">{compactList}</div>
