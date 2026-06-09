@@ -8813,8 +8813,8 @@ useEffect(() => {
 {useCardRenderer ? (
   <div
     className={
-      displayStyle === "linear"
-        ? "flex w-full overflow-x-auto rounded-2xl border border-black/10 bg-white/70 shadow-sm backdrop-blur-sm"
+displayStyle === "linear"
+  ? "flex w-full overflow-x-auto rounded-2xl border border-black/10 bg-transparent shadow-sm backdrop-blur-sm"
         : displayStyle === "list"
           ? "grid gap-3"
           : "grid gap-3 overflow-y-auto pr-1"
@@ -8846,32 +8846,34 @@ useEffect(() => {
     displayStyle === "linear"
       ? "relative flex min-w-[150px] flex-1 items-center gap-3 px-4 py-3"
       : displayStyle === "list"
-        ? `${getHighlightCardClass(designKey)} flex items-center justify-between gap-4`
-        : getHighlightCardClass(designKey)
+        ? "flex items-center justify-between gap-4 px-4 py-3 shadow-sm"
+        : "rounded-2xl px-4 py-3 shadow-sm"
   }
-style={{
-  backgroundColor:
-    cardBackgroundColor === "transparent"
-      ? "transparent"
-      : hexToRgba(
-          cardBackgroundColor ||
-            (isLightDesign(designKey) ? "#ffffff" : "#111827"),
-          cardOpacity,
-        ),
-
-  borderColor:
-    (block.data as any).cardBorderColor ?? undefined,
-
-  borderWidth:
-    typeof (block.data as any).cardBorderWidth === "number"
-      ? `${(block.data as any).cardBorderWidth}px`
-      : undefined,
-
-  borderRadius:
-    typeof (block.data as any).cardBorderRadius === "number"
-      ? `${(block.data as any).cardBorderRadius}px`
-      : undefined,
-}}
+  style={{
+    backgroundColor:
+      cardBackgroundColor === "transparent"
+        ? "transparent"
+        : hexToRgba(
+            cardBackgroundColor ||
+              (isLightDesign(designKey) ? "#ffffff" : "#111827"),
+            cardOpacity,
+          ),
+    borderStyle: "solid",
+    borderColor:
+      (block.data as any).cardBorderColor ??
+      (isLightDesign(designKey)
+        ? "rgba(229,231,235,1)"
+        : "rgba(255,255,255,0.10)"),
+    borderWidth:
+      typeof (block.data as any).cardBorderWidth === "number"
+        ? `${(block.data as any).cardBorderWidth}px`
+        : "1px",
+    borderRadius:
+      typeof (block.data as any).cardBorderRadius === "number"
+        ? `${(block.data as any).cardBorderRadius}px`
+        : "16px",
+    backdropFilter: displayStyle === "linear" ? undefined : "blur(8px)",
+  }}
 >
 <div className="min-w-0 flex-1">
   <div
