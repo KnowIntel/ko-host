@@ -900,6 +900,10 @@ export type EnrollmentBoardBlock = BaseBlock & {
     showQuoteField?: boolean;
     showEmailField?: boolean;
     showImageUpload?: boolean;
+    showEnrollmentList?: boolean;
+
+    linkedGalleryBlockId?: string;
+    linkedCarouselBlockId?: string;
 
     requireQuote?: boolean;
     requireEmail?: boolean;
@@ -3491,6 +3495,8 @@ case "post_board":
             color: "#6b7280",
           },
 
+          showEnrollmentList: true,
+
           linkedProfileImageBlockId: "",
           linkedNameLabelBlockId: "",
           linkedQuoteLabelBlockId: "",
@@ -5300,6 +5306,8 @@ if (block.type === "enrollment_board") {
     data: {
       ...data,
 
+      showEnrollmentList: data.showEnrollmentList !== false,
+
       memberListPosition:
         data.memberListPosition === "profile"
           ? "profile"
@@ -5330,6 +5338,16 @@ if (block.type === "enrollment_board") {
         typeof data.linkedQuoteLabelBlockId === "string"
           ? data.linkedQuoteLabelBlockId
           : "",
+
+          linkedGalleryBlockId:
+  typeof data.linkedGalleryBlockId === "string"
+    ? data.linkedGalleryBlockId
+    : "",
+
+linkedCarouselBlockId:
+  typeof data.linkedCarouselBlockId === "string"
+    ? data.linkedCarouselBlockId
+    : "",
 
       style: {
         ...createDefaultTextStyle(),

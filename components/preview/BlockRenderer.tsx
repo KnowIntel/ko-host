@@ -3538,12 +3538,68 @@ function renderGalleryTile(
   );
 }
 
-function renderGallery(
+function EnrollmentLinkedGallery({
+  block,
+  designKey,
+}: {
+  block: Extract<MicrositeBlock, { type: "gallery" }>;
+  designKey?: string;
+}) {
+  const [overrideImages, setOverrideImages] = useState<any[] | null>(null);
+
+  useEffect(() => {
+    function handleEnrollmentProfileUpdate(event: Event) {
+      const customEvent =
+        event as CustomEvent<EnrollmentBoardProfileEventDetail>;
+
+      if (customEvent.detail?.linkedGalleryBlockId !== block.id) {
+        return;
+      }
+
+      const columns = Math.max(1, Number(block.data.columns) || 2);
+      const rows =
+        typeof block.data.rows === "number" && block.data.rows > 0
+          ? Math.max(1, Math.floor(block.data.rows))
+          : 1;
+
+      const maxImages = columns * rows;
+
+      const nextImages = (customEvent.detail.entries ?? [])
+        .filter((entry) => entry.profileImageUrl)
+        .slice(0, maxImages)
+        .map((entry) => ({
+          id: entry.id,
+          url: entry.profileImageUrl || "",
+          alt: entry.name || "",
+          caption: entry.name || "",
+        }));
+
+      setOverrideImages(nextImages);
+    }
+
+    window.addEventListener(
+      ENROLLMENT_BOARD_PROFILE_EVENT,
+      handleEnrollmentProfileUpdate,
+    );
+
+    return () => {
+      window.removeEventListener(
+        ENROLLMENT_BOARD_PROFILE_EVENT,
+        handleEnrollmentProfileUpdate,
+      );
+    };
+  }, [block.id, block.data.columns, block.data.rows]);
+
+  return renderGalleryBase(block, designKey, overrideImages);
+}
+
+function renderGalleryBase(
   block: Extract<MicrositeBlock, { type: "gallery" }>,
   designKey?: string,
+  overrideImages?: any[] | null,
 ) {
   const columns = Math.max(1, Number(block.data.columns) || 2);
-  const images = block.data.images ?? [];
+  const images = overrideImages ?? block.data.images ?? [];
 
   const explicitRows =
     typeof block.data.rows === "number" && block.data.rows > 0
@@ -3598,6 +3654,13 @@ renderGalleryTile(
       </div>
     </div>
   );
+}
+
+function renderGallery(
+  block: Extract<MicrositeBlock, { type: "gallery" }>,
+  designKey?: string,
+) {
+  return <EnrollmentLinkedGallery block={block} designKey={designKey} />;
 }
 
 function renderPoll(
@@ -7088,14 +7151,75 @@ function getVisibleCarouselItems(
   );
 }
 
-function ImageCarouselPreview({
+function EnrollmentLinkedCarousel({
   block,
   designKey,
 }: {
   block: Extract<MicrositeBlock, { type: "image_carousel" }>;
   designKey?: string;
 }) {
-  const items = block.data.items ?? [];
+  const [overrideItems, setOverrideItems] = useState<any[] | null>(null);
+
+  useEffect(() => {
+    function handleEnrollmentProfileUpdate(event: Event) {
+      const customEvent =
+        event as CustomEvent<EnrollmentBoardProfileEventDetail>;
+
+      if (
+        customEvent.detail?.linkedCarouselBlockId !== block.id
+      ) {
+        return;
+      }
+
+      const nextItems = (customEvent.detail.entries ?? [])
+        .filter((entry) => entry.profileImageUrl)
+        .map((entry) => ({
+          id: entry.id,
+          imageUrl: entry.profileImageUrl || "",
+          title: entry.name || "",
+          subtitle: entry.quote || "",
+          caption: entry.quote || "",
+          positionX: 50,
+          positionY: 50,
+          zoom: 1,
+          rotation: 0,
+        }));
+
+      setOverrideItems(nextItems);
+    }
+
+    window.addEventListener(
+      ENROLLMENT_BOARD_PROFILE_EVENT,
+      handleEnrollmentProfileUpdate,
+    );
+
+    return () => {
+      window.removeEventListener(
+        ENROLLMENT_BOARD_PROFILE_EVENT,
+        handleEnrollmentProfileUpdate,
+      );
+    };
+  }, [block.id]);
+
+  return (
+    <ImageCarouselPreview
+      block={block}
+      designKey={designKey}
+      overrideItems={overrideItems}
+    />
+  );
+}
+
+function ImageCarouselPreview({
+  block,
+  designKey,
+  overrideItems,
+}: {
+  block: Extract<MicrositeBlock, { type: "image_carousel" }>;
+  designKey?: string;
+  overrideItems?: any[] | null;
+}) {
+  const items = overrideItems ?? block.data.items ?? [];
   const visibleCount = Math.max(
     1,
     Math.min(6, Number(block.data.visibleCount) || 1),
@@ -7286,7 +7410,12 @@ function renderImageCarousel(
   block: Extract<MicrositeBlock, { type: "image_carousel" }>,
   designKey?: string,
 ) {
-  return <ImageCarouselPreview block={block} designKey={designKey} />;
+  return (
+    <EnrollmentLinkedCarousel
+      block={block}
+      designKey={designKey}
+    />
+  );
 }
 
 
@@ -8814,7 +8943,7 @@ useEffect(() => {
   <div
     className={
 displayStyle === "linear"
-  ? "flex w-full overflow-x-auto rounded-2xl bg-transparent backdrop-blur-sm"
+  ? "flex w-full overflow-x-auto rounded-2xl bg-transparent"
         : displayStyle === "list"
           ? "grid gap-3"
           : "grid gap-3 overflow-y-auto pr-1"

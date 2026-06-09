@@ -224,7 +224,207 @@ const isProfilePosition = memberListPosition === "profile";
         throw new Error(data?.error || "Failed to load enrollments.");
       }
 
-      setEntries(Array.isArray(data.entries) ? data.entries : []);
+const loadedEntries = Array.isArray(data.entries)
+  ? data.entries
+  : [];
+
+setEntries(loadedEntries);
+
+if (loadedEntries.length > 0) {
+  const newestEntry = loadedEntries[0];
+
+  window.dispatchEvent(
+    new CustomEvent(ENROLLMENT_BOARD_PROFILE_EVENT, {
+      detail: {
+        micrositeId,
+        enrollmentBlockId: block.id,
+
+        linkedProfileImageBlockId:
+          block.data.linkedProfileImageBlockId,
+
+        linkedNameLabelBlockId:
+          block.data.linkedNameLabelBlockId,
+
+        linkedQuoteLabelBlockId:
+          block.data.linkedQuoteLabelBlockId,
+
+        linkedGalleryBlockId:
+          block.data.linkedGalleryBlockId,
+
+        linkedCarouselBlockId:
+          block.data.linkedCarouselBlockId,
+
+        profileImageUrl:
+          newestEntry.profileImageUrl ?? null,
+
+        name:
+          newestEntry.name ?? null,
+
+        quote:
+          newestEntry.quote ?? null,
+
+        activeCount: loadedEntries.length,
+
+        entries: loadedEntries,
+      },
+    }),
+  );
+}
+
+if (loadedEntries.length === 0) {
+  window.dispatchEvent(
+    new CustomEvent(ENROLLMENT_BOARD_PROFILE_EVENT, {
+      detail: {
+        micrositeId,
+        enrollmentBlockId: block.id,
+
+        linkedProfileImageBlockId:
+          block.data.linkedProfileImageBlockId,
+
+        linkedNameLabelBlockId:
+          block.data.linkedNameLabelBlockId,
+
+        linkedQuoteLabelBlockId:
+          block.data.linkedQuoteLabelBlockId,
+
+        linkedGalleryBlockId:
+          block.data.linkedGalleryBlockId,
+
+        linkedCarouselBlockId:
+          block.data.linkedCarouselBlockId,
+
+        profileImageUrl: null,
+        name: null,
+        quote: null,
+        activeCount: 0,
+        entries: [],
+      },
+    }),
+  );
+}
+
+if (loadedEntries.length > 0) {
+  const newestEntry = loadedEntries[0];
+
+  window.dispatchEvent(
+    new CustomEvent(ENROLLMENT_BOARD_PROFILE_EVENT, {
+      detail: {
+        micrositeId,
+        enrollmentBlockId: block.id,
+
+        linkedProfileImageBlockId:
+          block.data.linkedProfileImageBlockId,
+
+        linkedNameLabelBlockId:
+          block.data.linkedNameLabelBlockId,
+
+        linkedQuoteLabelBlockId:
+          block.data.linkedQuoteLabelBlockId,
+
+        linkedGalleryBlockId:
+          block.data.linkedGalleryBlockId,
+
+        linkedCarouselBlockId:
+          block.data.linkedCarouselBlockId,
+
+        profileImageUrl:
+          newestEntry.profileImageUrl ?? null,
+
+        name:
+          newestEntry.name ?? null,
+
+        quote:
+          newestEntry.quote ?? null,
+
+        activeCount: loadedEntries.length,
+
+        entries: loadedEntries,
+      },
+    }),
+  );
+}
+
+if (!micrositeId && loadedEntries.length > 0) {
+  const newestEntry = loadedEntries[0];
+
+  window.dispatchEvent(
+    new CustomEvent(ENROLLMENT_BOARD_PROFILE_EVENT, {
+      detail: {
+        micrositeId: "preview",
+        enrollmentBlockId: block.id,
+
+        linkedProfileImageBlockId:
+          block.data.linkedProfileImageBlockId,
+
+        linkedNameLabelBlockId:
+          block.data.linkedNameLabelBlockId,
+
+        linkedQuoteLabelBlockId:
+          block.data.linkedQuoteLabelBlockId,
+
+        linkedGalleryBlockId:
+          block.data.linkedGalleryBlockId,
+
+        linkedCarouselBlockId:
+          block.data.linkedCarouselBlockId,
+
+        profileImageUrl:
+          newestEntry.profileImageUrl ?? null,
+
+        name:
+          newestEntry.name ?? null,
+
+        quote:
+          newestEntry.quote ?? null,
+
+        activeCount: loadedEntries.length,
+
+        entries: loadedEntries,
+      },
+    }),
+  );
+}
+
+if (loadedEntries.length > 0) {
+  const newestEntry = loadedEntries[0];
+
+  window.dispatchEvent(
+    new CustomEvent(ENROLLMENT_BOARD_PROFILE_EVENT, {
+      detail: {
+        micrositeId,
+        enrollmentBlockId: block.id,
+
+        linkedProfileImageBlockId:
+          block.data.linkedProfileImageBlockId,
+
+        linkedNameLabelBlockId:
+          block.data.linkedNameLabelBlockId,
+
+        linkedQuoteLabelBlockId:
+          block.data.linkedQuoteLabelBlockId,
+
+        linkedGalleryBlockId:
+          block.data.linkedGalleryBlockId,
+
+        linkedCarouselBlockId:
+          block.data.linkedCarouselBlockId,
+
+        profileImageUrl:
+          newestEntry.profileImageUrl ?? null,
+
+        name:
+          newestEntry.name ?? null,
+
+        quote:
+          newestEntry.quote ?? null,
+
+        activeCount: loadedEntries.length,
+
+        entries: loadedEntries,
+      },
+    }),
+  );
+}
     } catch (error) {
       setErrorMessage(
         error instanceof Error ? error.message : "Failed to load enrollments.",
@@ -234,12 +434,73 @@ const isProfilePosition = memberListPosition === "profile";
     }
   }
 
-  useEffect(() => {
-    const token = getVisitorToken();
-    setVisitorToken(token);
-    void loadEntries(token);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [micrositeId, block.id]);
+useEffect(() => {
+  const token = getVisitorToken();
+  setVisitorToken(token);
+
+  if (!micrositeId) {
+    const stored = localStorage.getItem(
+      `kht-preview-enrollment-${block.id}`,
+    );
+
+    if (stored) {
+      try {
+        const loadedEntries = JSON.parse(stored);
+
+        if (Array.isArray(loadedEntries)) {
+          setEntries(loadedEntries);
+
+          const newestEntry = loadedEntries[0];
+
+          window.dispatchEvent(
+            new CustomEvent(ENROLLMENT_BOARD_PROFILE_EVENT, {
+              detail: {
+                micrositeId: "preview",
+                enrollmentBlockId: block.id,
+
+                linkedProfileImageBlockId:
+                  block.data.linkedProfileImageBlockId,
+
+                linkedNameLabelBlockId:
+                  block.data.linkedNameLabelBlockId,
+
+                linkedQuoteLabelBlockId:
+                  block.data.linkedQuoteLabelBlockId,
+
+                linkedGalleryBlockId:
+                  block.data.linkedGalleryBlockId,
+
+                linkedCarouselBlockId:
+                  block.data.linkedCarouselBlockId,
+
+                profileImageUrl:
+                  newestEntry?.profileImageUrl ?? null,
+
+                name:
+                  newestEntry?.name ?? null,
+
+                quote:
+                  newestEntry?.quote ?? null,
+
+                activeCount: loadedEntries.length,
+
+                entries: loadedEntries,
+              },
+            }),
+          );
+        }
+      } catch {
+        // ignore invalid local data
+      }
+    }
+
+    return;
+  }
+
+  void loadEntries(token);
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [micrositeId, block.id]);
 
 async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
   event.preventDefault();
@@ -277,49 +538,44 @@ async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
       isMine: true,
     };
 
-    setEntries((prev) => [localEntry, ...prev]);
-    setName("");
-    setQuote("");
-    setEmail("");
-    setImage(null);
-    if (imageInputRef.current) imageInputRef.current.value = "";
+    const nextEntries = [localEntry, ...entries];
 
-    setStatusMessage(
-      block.data.successMessage ?? "You’ve been added to the board.",
-    );
-    setErrorMessage("");
+setEntries(nextEntries);
+localStorage.setItem(
+  `kht-preview-enrollment-${block.id}`,
+  JSON.stringify(nextEntries),
+);
+setName("");
+setQuote("");
+setEmail("");
+setImage(null);
+if (imageInputRef.current) imageInputRef.current.value = "";
 
-    window.dispatchEvent(
-      new CustomEvent(ENROLLMENT_BOARD_PROFILE_EVENT, {
-        detail: {
-          micrositeId: "",
-          enrollmentBlockId: block.id,
-          linkedProfileImageBlockId: block.data.linkedProfileImageBlockId,
-          linkedNameLabelBlockId: block.data.linkedNameLabelBlockId,
-          linkedQuoteLabelBlockId: block.data.linkedQuoteLabelBlockId,
-          profileImageUrl: localProfileImageUrl || null,
-          name: localEntry.name,
-          quote: localEntry.quote,
-          activeCount: nextActiveCount,
-        },
-      }),
-    );
+setStatusMessage(
+  block.data.successMessage ?? "You’ve been added to the board.",
+);
+setErrorMessage("");
 
-    window.dispatchEvent(
-      new CustomEvent(ENROLLMENT_BOARD_PROFILE_EVENT, {
-        detail: {
-          micrositeId: "preview",
-          enrollmentBlockId: block.id,
-          linkedProfileImageBlockId: block.data.linkedProfileImageBlockId,
-          linkedNameLabelBlockId: block.data.linkedNameLabelBlockId,
-          linkedQuoteLabelBlockId: block.data.linkedQuoteLabelBlockId,
-          profileImageUrl: localProfileImageUrl || null,
-          name: localEntry.name,
-          quote: localEntry.quote,
-          activeCount: nextActiveCount,
-        },
-      }),
-    );
+for (const eventMicrositeId of ["", "preview"]) {
+  window.dispatchEvent(
+    new CustomEvent(ENROLLMENT_BOARD_PROFILE_EVENT, {
+      detail: {
+        micrositeId: eventMicrositeId,
+        enrollmentBlockId: block.id,
+        linkedProfileImageBlockId: block.data.linkedProfileImageBlockId,
+        linkedNameLabelBlockId: block.data.linkedNameLabelBlockId,
+        linkedQuoteLabelBlockId: block.data.linkedQuoteLabelBlockId,
+        linkedGalleryBlockId: block.data.linkedGalleryBlockId,
+        linkedCarouselBlockId: block.data.linkedCarouselBlockId,
+        profileImageUrl: localProfileImageUrl || null,
+        name: localEntry.name,
+        quote: localEntry.quote,
+        activeCount: nextActiveCount,
+        entries: nextEntries,
+      },
+    }),
+  );
+}
 
     return;
   }
@@ -371,32 +627,38 @@ async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
 
     const nextActiveCount = entries.length + 1;
 
-    setEntries((prev) => [data.entry, ...prev]);
-    setName("");
-    setQuote("");
-    setEmail("");
-    setImage(null);
-    if (imageInputRef.current) imageInputRef.current.value = "";
+    const nextEntries = [data.entry, ...entries];
 
-    setStatusMessage(
-      block.data.successMessage ?? "You’ve been added to the board.",
-    );
+setEntries(nextEntries);
+setName("");
+setQuote("");
+setEmail("");
+setImage(null);
+if (imageInputRef.current) imageInputRef.current.value = "";
 
-    window.dispatchEvent(
-      new CustomEvent(ENROLLMENT_BOARD_PROFILE_EVENT, {
-        detail: {
-          micrositeId,
-          enrollmentBlockId: block.id,
-          linkedProfileImageBlockId: block.data.linkedProfileImageBlockId,
-          linkedNameLabelBlockId: block.data.linkedNameLabelBlockId,
-          linkedQuoteLabelBlockId: block.data.linkedQuoteLabelBlockId,
-          profileImageUrl: data.entry?.profileImageUrl ?? null,
-          name: data.entry?.name ?? name.trim(),
-          quote: data.entry?.quote ?? quote.trim(),
-          activeCount: nextActiveCount,
-        },
-      }),
-    );
+setStatusMessage(
+  block.data.successMessage ?? "You’ve been added to the board.",
+);
+
+window.dispatchEvent(
+  new CustomEvent(ENROLLMENT_BOARD_PROFILE_EVENT, {
+    detail: {
+      micrositeId,
+      enrollmentBlockId: block.id,
+      linkedProfileImageBlockId: block.data.linkedProfileImageBlockId,
+      linkedNameLabelBlockId: block.data.linkedNameLabelBlockId,
+      linkedQuoteLabelBlockId: block.data.linkedQuoteLabelBlockId,
+      linkedGalleryBlockId: block.data.linkedGalleryBlockId,
+      linkedCarouselBlockId: block.data.linkedCarouselBlockId,
+      profileImageUrl: data.entry?.profileImageUrl ?? null,
+      name: data.entry?.name ?? name.trim(),
+      quote: data.entry?.quote ?? quote.trim(),
+      activeCount: nextActiveCount,
+      entries: nextEntries,
+    },
+  }),
+);
+
   } catch (error) {
     setErrorMessage(
       error instanceof Error ? error.message : "Failed to submit enrollment.",
@@ -410,25 +672,30 @@ async function handleDelete(entryId: string) {
   if (deletingId) return;
 
   if (!micrositeId) {
-    setEntries((prev) => prev.filter((entry) => entry.id !== entryId));
-    setStatusMessage("Your enrollment was removed.");
-    setErrorMessage("");
+    const nextEntries = entries.filter((entry) => entry.id !== entryId);
 
-    window.dispatchEvent(
-      new CustomEvent(ENROLLMENT_BOARD_PROFILE_EVENT, {
-        detail: {
-          micrositeId: "preview",
-          enrollmentBlockId: block.id,
-          linkedProfileImageBlockId: block.data.linkedProfileImageBlockId,
-          linkedNameLabelBlockId: block.data.linkedNameLabelBlockId,
-          linkedQuoteLabelBlockId: block.data.linkedQuoteLabelBlockId,
-          profileImageUrl: null,
-          name: null,
-          quote: null,
-          activeCount: 0,
-        },
-      }),
-    );
+setEntries(nextEntries);
+setStatusMessage("Your enrollment was removed.");
+setErrorMessage("");
+
+window.dispatchEvent(
+  new CustomEvent(ENROLLMENT_BOARD_PROFILE_EVENT, {
+    detail: {
+      micrositeId: "preview",
+      enrollmentBlockId: block.id,
+      linkedProfileImageBlockId: block.data.linkedProfileImageBlockId,
+      linkedNameLabelBlockId: block.data.linkedNameLabelBlockId,
+      linkedQuoteLabelBlockId: block.data.linkedQuoteLabelBlockId,
+      linkedGalleryBlockId: block.data.linkedGalleryBlockId,
+      linkedCarouselBlockId: block.data.linkedCarouselBlockId,
+      profileImageUrl: null,
+      name: null,
+      quote: null,
+      activeCount: nextEntries.length,
+      entries: nextEntries,
+    },
+  }),
+);
 
     return;
   }
@@ -455,11 +722,13 @@ async function handleDelete(entryId: string) {
         throw new Error(data?.error || "Failed to delete enrollment.");
       }
 
-      setEntries((prev) => prev.filter((entry) => entry.id !== entryId));
-      window.localStorage.removeItem(entryIdKey(micrositeId, block.id));
-      setStatusMessage("Your enrollment was removed.");
+      const nextEntries = entries.filter((entry) => entry.id !== entryId);
 
-      window.dispatchEvent(
+setEntries(nextEntries);
+window.localStorage.removeItem(entryIdKey(micrositeId, block.id));
+setStatusMessage("Your enrollment was removed.");
+
+window.dispatchEvent(
   new CustomEvent(ENROLLMENT_BOARD_PROFILE_EVENT, {
     detail: {
       micrositeId,
@@ -467,26 +736,13 @@ async function handleDelete(entryId: string) {
       linkedProfileImageBlockId: block.data.linkedProfileImageBlockId,
       linkedNameLabelBlockId: block.data.linkedNameLabelBlockId,
       linkedQuoteLabelBlockId: block.data.linkedQuoteLabelBlockId,
+      linkedGalleryBlockId: block.data.linkedGalleryBlockId,
+      linkedCarouselBlockId: block.data.linkedCarouselBlockId,
       profileImageUrl: null,
       name: null,
       quote: null,
-      activeCount: Math.max(0, entries.length - 1),
-    },
-  }),
-);
-
-      window.dispatchEvent(
-  new CustomEvent(ENROLLMENT_BOARD_PROFILE_EVENT, {
-    detail: {
-      micrositeId,
-      enrollmentBlockId: block.id,
-      activeCount: entries.length + 1,
-      linkedProfileImageBlockId: block.data.linkedProfileImageBlockId,
-      linkedNameLabelBlockId: block.data.linkedNameLabelBlockId,
-      linkedQuoteLabelBlockId: block.data.linkedQuoteLabelBlockId,
-      profileImageUrl: null,
-      name: null,
-      quote: null,
+      activeCount: nextEntries.length,
+      entries: nextEntries,
     },
   }),
 );
@@ -503,7 +759,7 @@ async function handleDelete(entryId: string) {
 
 const isMemberWall = block.data.variant === "member_wall";
 const isSignatureList = block.data.variant === "signature_list";
-
+  
 const listClass = isMemberWall
   ? "grid grid-cols-2 gap-3 sm:grid-cols-3"
   : isSignatureList
@@ -689,17 +945,18 @@ return (
         ) : null}
       </form>
 
-      <div
-        className={
-          isProfilePosition
-            ? "min-h-0 overflow-y-auto pr-1"
-            : "mt-4"
-        }
-        style={{
-          borderStyle: "solid",
-          ...listStyle,
-        }}
-      >
+{block.data.showEnrollmentList !== false ? (
+  <div
+    className={
+      isProfilePosition
+        ? "h-full min-h-0 overflow-y-auto pr-1"
+        : "mt-4"
+    }
+    style={{
+      borderStyle: "solid",
+      ...listStyle,
+    }}
+  >
         {isLoading ? (
           <div
             className="p-4 text-sm font-bold"
@@ -824,6 +1081,8 @@ return (
           </div>
         )}
       </div>
+    ) : null}
     </div>
   </div>
-);}
+);
+}
