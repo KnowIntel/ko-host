@@ -24718,66 +24718,6 @@ const lines = e.target.value.split("\n");
       ))}
   </select>
 </div>
-
-  <div className="mt-4">
-  <div className={inspectorLabelClass()}>Linked Gallery Block</div>
-  <select
-    value={selectedBlock.data.linkedGalleryBlockId ?? ""}
-    onChange={(e) =>
-      updateSelectedBlock((block) =>
-        block.type !== "enrollment_board"
-          ? block
-          : {
-              ...block,
-              data: {
-                ...block.data,
-                linkedGalleryBlockId: e.target.value,
-              },
-            },
-      )
-    }
-    className={inspectorInputClass()}
-  >
-    <option value="">None</option>
-    {draft.blocks
-      .filter((item) => item.type === "gallery")
-      .map((item) => (
-        <option key={item.id} value={item.id}>
-          {item.label || "Gallery Block"}
-        </option>
-      ))}
-  </select>
-</div>
-
-<div className="mt-4">
-  <div className={inspectorLabelClass()}>Linked Carousel Block</div>
-  <select
-    value={selectedBlock.data.linkedCarouselBlockId ?? ""}
-    onChange={(e) =>
-      updateSelectedBlock((block) =>
-        block.type !== "enrollment_board"
-          ? block
-          : {
-              ...block,
-              data: {
-                ...block.data,
-                linkedCarouselBlockId: e.target.value,
-              },
-            },
-      )
-    }
-    className={inspectorInputClass()}
-  >
-    <option value="">None</option>
-    {draft.blocks
-      .filter((item) => item.type === "image_carousel")
-      .map((item) => (
-        <option key={item.id} value={item.id}>
-          {item.label || "Carousel Block"}
-        </option>
-      ))}
-  </select>
-</div>
 </div>
 
     <div className="mt-4 grid grid-cols-1 gap-3">
