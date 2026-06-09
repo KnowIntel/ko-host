@@ -8779,18 +8779,25 @@ useEffect(() => {
     ]);
 
     return (
-      <Surface
-        block={block}
-        designKey={designKey}
-        className={`${getSoftSurfaceClass(designKey)} overflow-hidden`}
-      >
-        <div
-            className="flex h-full min-h-0 w-full flex-col gap-3 overflow-hidden"
-            style={{
-              transform: `rotate(${Number(block.data.rotation ?? 0)}deg)`,
-              transformOrigin: "center center",
-            }}
-          >
+<Surface
+  block={block}
+  designKey={designKey}
+  className="overflow-hidden bg-transparent"
+>
+<div
+  className="flex h-full min-h-0 w-full flex-col gap-3 overflow-hidden rounded-[inherit]"
+  style={{
+    transform: `rotate(${Number(block.data.rotation ?? 0)}deg)`,
+    transformOrigin: "center center",
+    backgroundColor:
+      block.appearance?.backgroundColor === "transparent"
+        ? "transparent"
+        : hexToRgba(
+            block.appearance?.backgroundColor || "#ffffff",
+            Number(block.appearance?.backgroundOpacity ?? 100) / 100,
+          ),
+  }}
+>
           {block.data.showHeading !== false ? (
             <div className="text-sm font-semibold" style={headingTextStyle}>
               {heading}
@@ -8842,28 +8849,29 @@ useEffect(() => {
         ? `${getHighlightCardClass(designKey)} flex items-center justify-between gap-4`
         : getHighlightCardClass(designKey)
   }
-style={
-  displayStyle === "linear"
-    ? {
-        backgroundColor:
-          cardBackgroundColor === "transparent"
-            ? "transparent"
-            : hexToRgba(cardBackgroundColor, cardOpacity),
+style={{
+  backgroundColor:
+    cardBackgroundColor === "transparent"
+      ? "transparent"
+      : hexToRgba(
+          cardBackgroundColor ||
+            (isLightDesign(designKey) ? "#ffffff" : "#111827"),
+          cardOpacity,
+        ),
 
-        borderColor: (block.data as any).cardBorderColor ?? undefined,
+  borderColor:
+    (block.data as any).cardBorderColor ?? undefined,
 
-        borderWidth:
-          typeof (block.data as any).cardBorderWidth === "number"
-            ? `${(block.data as any).cardBorderWidth}px`
-            : undefined,
+  borderWidth:
+    typeof (block.data as any).cardBorderWidth === "number"
+      ? `${(block.data as any).cardBorderWidth}px`
+      : undefined,
 
-        borderRadius:
-          typeof (block.data as any).cardBorderRadius === "number"
-            ? `${(block.data as any).cardBorderRadius}px`
-            : undefined,
-      }
-    : undefined
-}
+  borderRadius:
+    typeof (block.data as any).cardBorderRadius === "number"
+      ? `${(block.data as any).cardBorderRadius}px`
+      : undefined,
+}}
 >
 <div className="min-w-0 flex-1">
   <div
