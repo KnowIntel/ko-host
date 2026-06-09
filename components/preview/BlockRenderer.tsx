@@ -11624,30 +11624,40 @@ const eventDetailsTextStyle = getContainerTextStyle(
   );
 
   return (
-    <Surface
-      block={block}
-      designKey={designKey}
-      className={`${getSoftSurfaceClass(designKey)} h-full overflow-auto`}
-    >
-      <div
-        className="rounded-[inherit]"
-        style={{
-backgroundColor:
-  block.appearance?.backgroundColor === "transparent" ||
-  calendarStyle.formBackgroundColor === "transparent"
-    ? "transparent"
-    : calendarStyle.formBackgroundColor ||
-      block.appearance?.backgroundColor ||
-      undefined,
-          fontFamily: baseTextStyle.fontFamily,
-          color: baseTextStyle.color || undefined,
-        }}
-      >
-        {block.data.showHeading !== false ? (
-          <div className="text-base font-semibold" style={headingTextStyle}>
-            {block.data.heading || "Event Calendar"}
-          </div>
-        ) : null}
+<Surface
+  block={block}
+  designKey={designKey}
+  className={
+    block.appearance?.backgroundColor === "transparent" ||
+    calendarStyle.formBackgroundColor === "transparent"
+      ? "h-full overflow-auto bg-transparent shadow-none"
+      : `${getSoftSurfaceClass(designKey)} h-full overflow-auto`
+  }
+>
+  <div
+    className="rounded-[inherit]"
+    style={{
+      backgroundColor:
+        block.appearance?.backgroundColor === "transparent" ||
+        calendarStyle.formBackgroundColor === "transparent"
+          ? "transparent"
+          : calendarStyle.formBackgroundColor ||
+            block.appearance?.backgroundColor ||
+            undefined,
+      boxShadow:
+        block.appearance?.backgroundColor === "transparent" ||
+        calendarStyle.formBackgroundColor === "transparent"
+          ? "none"
+          : undefined,
+      fontFamily: baseTextStyle.fontFamily,
+      color: baseTextStyle.color || undefined,
+    }}
+  >
+    {block.data.showHeading !== false ? (
+      <div className="text-base font-semibold" style={headingTextStyle}>
+        {block.data.heading || "Event Calendar"}
+      </div>
+    ) : null}
 
 {block.data.showSubtitle !== false ? (
   <div className="mt-1 text-sm opacity-80" style={subtitleTextStyle}>
