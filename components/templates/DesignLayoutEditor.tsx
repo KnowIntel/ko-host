@@ -5396,32 +5396,43 @@ if (selectedBlock?.type === "highlight") {
       };
     }
 
-return {
-  ...block,
-  data: {
-    ...block.data,
+    const existingCardBackground =
+      block.data.cardBackgroundColor ||
+      (block.data as any).cardStyle?.backgroundColor ||
+      "#ffffff";
 
-    ...(patch.backgroundColor !== undefined
-      ? { cardBackgroundColor: patch.backgroundColor }
-      : {}),
+    return {
+      ...block,
+      data: {
+        ...block.data,
 
-    ...(patch.backgroundOpacity !== undefined
-      ? { cardBackgroundOpacity: patch.backgroundOpacity }
-      : {}),
+        ...(patch.backgroundColor !== undefined
+          ? { cardBackgroundColor: patch.backgroundColor }
+          : {}),
 
-    ...(patch.borderColor !== undefined
-      ? { cardBorderColor: patch.borderColor }
-      : {}),
+        ...(patch.backgroundOpacity !== undefined
+          ? {
+              cardBackgroundOpacity: patch.backgroundOpacity,
+              cardBackgroundColor:
+                existingCardBackground === "transparent"
+                  ? "#ffffff"
+                  : existingCardBackground,
+            }
+          : {}),
 
-    ...(patch.borderWidth !== undefined
-      ? { cardBorderWidth: patch.borderWidth }
-      : {}),
+        ...(patch.borderColor !== undefined
+          ? { cardBorderColor: patch.borderColor }
+          : {}),
 
-    ...(patch.borderRadius !== undefined
-      ? { cardBorderRadius: patch.borderRadius }
-      : {}),
-  },
-};
+        ...(patch.borderWidth !== undefined
+          ? { cardBorderWidth: patch.borderWidth }
+          : {}),
+
+        ...(patch.borderRadius !== undefined
+          ? { cardBorderRadius: patch.borderRadius }
+          : {}),
+      },
+    };
   });
 
   return;
