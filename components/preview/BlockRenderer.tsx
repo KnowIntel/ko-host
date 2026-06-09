@@ -8859,20 +8859,30 @@ displayStyle === "linear"
             cardOpacity,
           ),
     borderStyle: "solid",
-    borderColor:
-      (block.data as any).cardBorderColor ??
-      (isLightDesign(designKey)
-        ? "rgba(229,231,235,1)"
-        : "rgba(255,255,255,0.10)"),
-    borderWidth:
-      typeof (block.data as any).cardBorderWidth === "number"
-        ? `${(block.data as any).cardBorderWidth}px`
-        : "1px",
-    borderRadius:
-      typeof (block.data as any).cardBorderRadius === "number"
-        ? `${(block.data as any).cardBorderRadius}px`
-        : "16px",
-    backdropFilter: displayStyle === "linear" ? undefined : "blur(8px)",
+borderColor:
+  Number((block.data as any).cardBorderWidth ?? 0) > 0
+    ? (
+        (block.data as any).cardBorderColor ??
+        (isLightDesign(designKey)
+          ? "rgba(229,231,235,1)"
+          : "rgba(255,255,255,0.10)")
+      )
+    : "transparent",
+
+borderWidth:
+  typeof (block.data as any).cardBorderWidth === "number"
+    ? `${(block.data as any).cardBorderWidth}px`
+    : "0px",
+
+borderRadius:
+  typeof (block.data as any).cardBorderRadius === "number"
+    ? `${(block.data as any).cardBorderRadius}px`
+    : "16px",
+
+backdropFilter:
+  displayStyle === "linear"
+    ? undefined
+    : "blur(8px)",
   }}
 >
 <div className="min-w-0 flex-1">
