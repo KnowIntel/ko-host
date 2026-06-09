@@ -2265,6 +2265,10 @@ const showTextControls =
   selectedBlock?.type === "listing" ||
   selectedBlock?.type === "links";
 
+  const showTypographyControls =
+  showTextControls || selectedBlockFromDraft?.type === "gallery";
+
+
 const showAppearanceControls =
   selectedContext.kind === "label" ||
   selectedContext.kind === "textFx" ||
@@ -10327,7 +10331,7 @@ const idsToExpand =
   </>
 ) : null}
 
-      {showTextControls ? (
+      {showTypographyControls ? (
         <>
 
 {null}
@@ -10441,8 +10445,7 @@ const idsToExpand =
 ) : null}
 
 
-          {(selectedBlockFromDraft as any)?.type !== "gallery" ||
-          Boolean((selectedBlockFromDraft as any)?.data?.addCaption) ? (
+{showTypographyControls ? (
             <>
               <div className="mx-1 h-8 w-px shrink-0 bg-white/15" />
 
