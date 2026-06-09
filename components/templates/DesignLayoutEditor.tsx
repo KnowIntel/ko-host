@@ -10599,20 +10599,30 @@ const idsToExpand =
       />
     </button>
 
-    <button
-      type="button"
-      className={topBarButtonClass(
-        selectedAppearance.backgroundColor === "transparent",
-      )}
-      onClick={() => applyAppearancePatch({ backgroundColor: "transparent" })}
-      title={
-        selectedBlock.type === "poll"
-          ? "Transparent poll background"
-          : "Transparent highlight background"
-      }
-    >
-      ☐
-    </button>
+<button
+  type="button"
+  className={topBarButtonClass(
+    selectedBlock?.appearance?.backgroundColor === "transparent",
+  )}
+  onClick={() => {
+    if (!selectedBlock) return;
+
+    updateSelectedBlock((block) => ({
+      ...block,
+      appearance: {
+        ...(block.appearance ?? {}),
+        backgroundColor: "transparent",
+      },
+    }));
+  }}
+  title={
+    selectedBlock.type === "poll"
+      ? "Transparent poll background"
+      : "Transparent highlight background"
+  }
+>
+  ☐
+</button>
 
     <div className={topBarSliderWrapClass()}>
       <span>BG Opacity</span>
