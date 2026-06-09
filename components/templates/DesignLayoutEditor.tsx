@@ -11486,28 +11486,12 @@ title={
   />
 </button>
 
-{(
-  (
-    selectedBlock?.type === "post_board" &&
-    (
-      postBoardStyleTarget === "card" ||
-      postBoardStyleTarget === "buttons"
-    )
-  ) ||
-  (
-    selectedBlock?.type === "thread" &&
+{((selectedBlock?.type === "post_board" &&
+  (postBoardStyleTarget === "card" || postBoardStyleTarget === "buttons")) ||
+  (selectedBlock?.type === "thread" &&
     ["form", "post_block", "message", "post_button"].includes(
       selectedBlock.data.threadStyleTarget ?? "message",
-    )
-  ) ||
-  (
-    selectedBlock?.type === "highlight" &&
-    (
-      highlightStyleTarget === "body" ||
-      highlightStyleTarget === "value"
-    )
-  )
-) ? (
+    ))) ? (
   <div className={topBarSliderWrapClass()}>
     <span>BG Opacity</span>
     <input
@@ -11515,14 +11499,7 @@ title={
       min={0}
       max={100}
       value={
-        value={
-  selectedBlock?.type === "highlight"
-    ? Math.round(
-        Number(
-          (selectedBlock.data as any).cardBackgroundOpacity ?? 1,
-        ) * 100,
-      )
-    : selectedBlock?.type === "post_board"
+        selectedBlock?.type === "post_board"
           ? Math.round(
               postBoardStyleTarget === "card"
                 ? (((selectedBlock.data as any).cardStyle?.backgroundOpacity ?? 1) *
@@ -11552,13 +11529,7 @@ title={
       title="Background transparency"
     />
     <span>
-      {selectedBlock?.type === "highlight"
-  ? Math.round(
-      Number(
-        (selectedBlock.data as any).cardBackgroundOpacity ?? 1,
-      ) * 100,
-    )
-  : selectedBlock?.type === "post_board"
+      {selectedBlock?.type === "post_board"
         ? Math.round(
             postBoardStyleTarget === "card"
               ? (((selectedBlock.data as any).cardStyle?.backgroundOpacity ?? 1) *
@@ -11575,6 +11546,34 @@ title={
                 ? selectedBlock.data.postButtonAppearance?.backgroundOpacity ?? 100
                 : selectedBlock.data.messageAppearance?.backgroundOpacity ?? 100
           : 100}
+      %
+    </span>
+  </div>
+) : null}
+
+{selectedBlock?.type === "highlight" &&
+(highlightStyleTarget === "body" || highlightStyleTarget === "value") ? (
+  <div className={topBarSliderWrapClass()}>
+    <span>BG Opacity</span>
+    <input
+      type="range"
+      min={0}
+      max={100}
+      value={Math.round(
+        Number((selectedBlock.data as any).cardBackgroundOpacity ?? 1) * 100,
+      )}
+      onChange={(e) =>
+        applyAppearancePatch({
+          backgroundOpacity: Number(e.target.value) / 100,
+        } as any)
+      }
+      className={topBarSliderClass()}
+      title="Highlight card background transparency"
+    />
+    <span>
+      {Math.round(
+        Number((selectedBlock.data as any).cardBackgroundOpacity ?? 1) * 100,
+      )}
       %
     </span>
   </div>
