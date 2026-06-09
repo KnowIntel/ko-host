@@ -8814,7 +8814,7 @@ useEffect(() => {
   <div
     className={
 displayStyle === "linear"
-  ? "flex w-full overflow-x-auto rounded-2xl bg-transparent shadow-sm backdrop-blur-sm"
+  ? "flex w-full overflow-x-auto rounded-2xl bg-transparent backdrop-blur-sm"
         : displayStyle === "list"
           ? "grid gap-3"
           : "grid gap-3 overflow-y-auto pr-1"
