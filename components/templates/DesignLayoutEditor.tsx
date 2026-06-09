@@ -18728,42 +18728,49 @@ onClick={() =>
     </div>
   ) : null}
 
-  <input
-    type="file"
-    accept="image/jpeg,image/png,image/webp,image/gif"
-    onChange={(e) => {
-      const file = e.target.files?.[0];
-      if (!file) return;
+<input
+  type="file"
+  accept="image/jpeg,image/png,image/webp,image/gif"
+  onChange={async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-      const reader = new FileReader();
+    try {
+      setEditorUploadError("");
 
-      reader.onload = () => {
-        const imageUrl = typeof reader.result === "string" ? reader.result : "";
+      const uploaded = await uploadBuilderImageFile(file);
 
-        updateSelectedBlock((block) =>
-          block.type !== "highlight"
-            ? block
-            : {
-                ...block,
-                data: {
-                  ...block.data,
-                  cards: (block.data.cards ?? []).map((item) =>
-                    item.id === card.id
-                      ? {
-                          ...item,
-                          imageUrl,
-                        }
-                      : item,
-                  ),
-                },
+      updateSelectedBlock((block) =>
+        block.type !== "highlight"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                cards: (block.data.cards ?? []).map((item) =>
+                  item.id === card.id
+                    ? {
+                        ...item,
+                        imageUrl: uploaded.url,
+                        imageStoragePath: uploaded.storagePath,
+                        imageSizeBytes: uploaded.imageSizeBytes,
+                        imageOriginalSizeBytes:
+                          uploaded.imageOriginalSizeBytes,
+                        imageMimeType: uploaded.imageMimeType,
+                      }
+                    : item,
+                ),
               },
-        );
-      };
-
-      reader.readAsDataURL(file);
-    }}
-    className={inspectorInputClass()}
-  />
+            },
+      );
+    } catch {
+      setEditorUploadError("Highlight image upload failed.");
+    } finally {
+      e.currentTarget.value = "";
+    }
+  }}
+  className={inspectorInputClass()}
+/>
 
   {card.imageUrl ? (
     <button

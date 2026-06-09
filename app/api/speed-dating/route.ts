@@ -350,10 +350,7 @@ async function parseActionBody(req: Request): Promise<ActionBody> {
     let image_url: string | null = null;
 
     if (imageValue instanceof File && imageValue.size > 0) {
-      const bytes = await imageValue.arrayBuffer();
-      const base64 = Buffer.from(bytes).toString("base64");
-      const mimeType = imageValue.type || "application/octet-stream";
-      image_url = `data:${mimeType};base64,${base64}`;
+image_url = "";
     }
 
     return {
