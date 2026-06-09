@@ -17746,41 +17746,9 @@ onClick={() =>
   </div>
 </div>
 
-    <div className="mt-5 flex items-center justify-between gap-3">
-      <div className={inspectorLabelClass()}>Highlight Cards</div>
-
-      <button
-        type="button"
-        className={toolSetButtonClass("front")}
-        onClick={() =>
-          updateSelectedBlock((block) => {
-            if (block.type !== "highlight") return block;
-
-            return {
-              ...block,
-              data: {
-                ...block.data,
-                cards: [
-                  ...(block.data.cards ?? []),
-                  {
-                    id: makeClientId("highlight"),
-                    type: "manual_stat",
-                    label: "New Stat",
-                    value: "100",
-                    suffix: "+",
-                    description: "Key detail",
-                    icon: "✨",
-                    showIcon: true,
-                  },
-                ],
-              },
-            };
-          })
-        }
-      >
-        Add Card
-      </button>
-    </div>
+<div className="mt-5">
+  <div className={inspectorLabelClass()}>Highlight Cards</div>
+</div>
 
     <div className="mt-3 grid gap-4">
       {(selectedBlock.data.cards ?? []).map((card, cardIndex) => (
@@ -18946,6 +18914,40 @@ onClick={() =>
         </div>
       ))}
     </div>
+
+    <div className="mt-4 flex justify-center">
+  <button
+    type="button"
+    className={toolSetButtonClass("front")}
+    onClick={() =>
+      updateSelectedBlock((block) => {
+        if (block.type !== "highlight") return block;
+
+        return {
+          ...block,
+          data: {
+            ...block.data,
+            cards: [
+              ...(block.data.cards ?? []),
+              {
+                id: makeClientId("highlight"),
+                type: "manual_stat",
+                label: "New Stat",
+                value: "100",
+                suffix: "+",
+                description: "Key detail",
+                icon: "✨",
+                showIcon: true,
+              },
+            ],
+          },
+        };
+      })
+    }
+  >
+    Add Card
+  </button>
+</div>
 
     <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-4 text-sm text-neutral-500">
       Source-linked highlight cards use fallback values for now. Live count APIs can be connected later.
