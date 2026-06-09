@@ -11554,34 +11554,42 @@ title={
 {selectedBlock?.type === "highlight" ? (
   <div className={topBarSliderWrapClass()}>
     <span>BG Opacity</span>
+
     <input
       type="range"
       min={0}
       max={100}
-value={
-  highlightStyleTarget === "heading"
-    ? Number(selectedBlock.appearance?.backgroundOpacity ?? 100)
-{highlightStyleTarget === "heading"
-  ? Number(selectedBlock.appearance?.backgroundOpacity ?? 100)
-  : Math.round(
-      Number((selectedBlock.data as any).cardBackgroundOpacity ?? 1) * 100,
-    )}
-}
-onChange={(e) =>
-  applyAppearancePatch({
-    backgroundOpacity:
-      highlightStyleTarget === "heading"
-        ? Number(e.target.value)
-        : Number(e.target.value) / 100,
-  } as any)
-}
+      value={
+        highlightStyleTarget === "heading"
+          ? Number(selectedBlock.appearance?.backgroundOpacity ?? 100)
+          : Math.round(
+              Number((selectedBlock.data as any).cardBackgroundOpacity ?? 1) *
+                100,
+            )
+      }
+      onChange={(e) =>
+        applyAppearancePatch({
+          backgroundOpacity:
+            highlightStyleTarget === "heading"
+              ? Number(e.target.value)
+              : Number(e.target.value) / 100,
+        } as any)
+      }
       className={topBarSliderClass()}
-      title="Highlight card background transparency"
+      title={
+        highlightStyleTarget === "heading"
+          ? "Highlight block background transparency"
+          : "Highlight card background transparency"
+      }
     />
+
     <span>
-      {Math.round(
-        Number((selectedBlock.data as any).cardBackgroundOpacity ?? 1) * 100,
-      )}
+      {highlightStyleTarget === "heading"
+        ? Number(selectedBlock.appearance?.backgroundOpacity ?? 100)
+        : Math.round(
+            Number((selectedBlock.data as any).cardBackgroundOpacity ?? 1) *
+              100,
+          )}
       %
     </span>
   </div>
