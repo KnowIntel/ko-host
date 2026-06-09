@@ -10556,7 +10556,7 @@ const idsToExpand =
   </>
 ) : null}
 
-{selectedBlock?.type === "poll" ? (
+{selectedBlock?.type === "poll" || selectedBlock?.type === "calendar_event" ? (
   <>
     <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
 
