@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
+import { Resend } from "resend";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const dynamic = "force-dynamic";
 
@@ -9,6 +12,15 @@ function badRequest(message: string) {
 
 function makeClientId(prefix: string) {
   return `${prefix}_${crypto.randomUUID()}`;
+}
+
+function escapeHtml(value: string) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
 }
 
 export async function GET(request: Request) {
@@ -89,13 +101,6 @@ export async function POST(request: Request) {
       const title = typeof body?.title === "string" ? body.title.trim() : "";
 const message =
   typeof body?.message === "string" ? body.message.trim() : "";
-
-const sourcePostAuthorEmail =
-  typeof body?.sourcePostAuthorEmail === "string"
-    ? body.sourcePostAuthorEmail.trim()
-    : "";
-
-const shouldNotifyPostAuthor = Boolean(body?.shouldNotifyPostAuthor);
 
       if (!authorName) return badRequest("Name is required.");
       if (!title) return badRequest("Title is required.");
@@ -188,16 +193,56 @@ await supabaseAdmin
   .eq("block_id", blockId)
   .eq("post_id", postId);
 
-if (shouldNotifyPostAuthor && sourcePostAuthorEmail) {
-  // Next step: wire this to your email provider.
-  // This confirms the API now receives the original poster email safely.
+let notifiedPostAuthor = false;
+
+if (shouldNotifyPostAuthor && sourcePostAuthorEmail && process.env.RESEND_API_KEY) {
+  const emailResult = await resend.emails.send({
+    from: "Ko-Host <support@ko-host.com>",
+    to: [sourcePostAuthorEmail],
+    replyTo: authorEmail || undefined,
+    subject: `New reply to your discussion: ${sourcePostTitle}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+        <h2>New reply to your Ko-Host discussion</h2>
+
+        <p>
+          <strong>Discussion:</strong>
+          ${escapeHtml(sourcePostTitle)}
+        </p>
+
+        <p>
+          <strong>Reply from:</strong>
+          ${escapeHtml(authorName)}
+        </p>
+
+        ${
+          authorEmail
+            ? `<p><strong>Reply contact:</strong> ${escapeHtml(authorEmail)}</p>`
+            : `<p><strong>Reply contact:</strong> Not provided</p>`
+        }
+
+        <p><strong>Message:</strong></p>
+
+        <div style="white-space: pre-wrap; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px;">
+          ${escapeHtml(message)}
+        </div>
+
+        <p style="font-size: 12px; color: #6b7280; margin-top: 20px;">
+          This email was sent because someone replied to a public Community Board discussion you started on Ko-Host.
+          Your email address was not displayed publicly.
+        </p>
+      </div>
+    `,
+  });
+
+  if (!emailResult.error) {
+    notifiedPostAuthor = true;
+  }
 }
 
 return NextResponse.json({
   reply: data,
-  notifiedPostAuthor: Boolean(
-    shouldNotifyPostAuthor && sourcePostAuthorEmail,
-  ),
+  notifiedPostAuthor,
 });
     }
 

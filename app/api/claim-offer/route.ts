@@ -1,3 +1,5 @@
+// app\api\claim-offer\route.ts
+
 import crypto from "crypto";
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
