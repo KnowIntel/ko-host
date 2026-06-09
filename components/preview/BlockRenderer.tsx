@@ -11632,7 +11632,10 @@ const eventDetailsTextStyle = getContainerTextStyle(
       <div
         className="rounded-[inherit]"
         style={{
-          backgroundColor: calendarStyle.formBackgroundColor || undefined,
+          backgroundColor:
+  block.appearance?.backgroundColor === "transparent"
+    ? "transparent"
+    : calendarStyle.formBackgroundColor || block.appearance?.backgroundColor || undefined,
           fontFamily: baseTextStyle.fontFamily,
           color: baseTextStyle.color || undefined,
         }}

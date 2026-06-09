@@ -10615,11 +10615,13 @@ const idsToExpand =
       },
     }));
   }}
-  title={
-    selectedBlock.type === "poll"
+title={
+  selectedBlock.type === "calendar_event"
+    ? "Transparent calendar background"
+    : selectedBlock.type === "poll"
       ? "Transparent poll background"
       : "Transparent highlight background"
-  }
+}
 >
   ☐
 </button>
