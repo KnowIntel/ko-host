@@ -8206,6 +8206,8 @@ function renderHighlight(
     }
 
     const displayStyle = block.data?.displayStyle ?? "grid";
+    const cardOpacity =
+  block.data?.cardBackgroundOpacity ?? 1;
 
     const normalizedCards =
       Array.isArray(block.data?.cards) && block.data.cards.length
@@ -8357,10 +8359,12 @@ function getLinearDividerCss(
       }
 
 if (
-  card.type === "rsvp_count" ||
-  card.type === "poll_result" ||
-  card.type === "visitor_count" ||
-  card.type === "enrollment_records"
+card.type === "rsvp_count" ||
+card.type === "poll_result" ||
+card.type === "visitor_count" ||
+card.type === "enrollment_records" ||
+card.type === "calendar_events" ||
+card.type === "post_board_discussions"
 ) {
   const liveValue = highlightCardValues[card.id];
 
@@ -8387,6 +8391,8 @@ if (
       if (card.type === "poll_result") return "Poll result";
       if (card.type === "visitor_count") return "Visitor activity";
       if (card.type === "enrollment_records") return "Enrollment summary";
+      if (card.type === "calendar_events") return "Calendar event summary";
+      if (card.type === "post_board_discussions") return "Discussion summary";
 
       return "";
     }
@@ -8403,42 +8409,95 @@ if (
 useEffect(() => {
   if (!useCardRenderer) return;
 
-  const enrollmentCards = normalizedCards.filter(
+  const sourceCards = normalizedCards.filter(
     (card: any) =>
-      card.type === "enrollment_records" &&
+      [
+        "enrollment_records",
+        "calendar_events",
+        "post_board_discussions",
+      ].includes(card.type) &&
       String(card.sourceBlockId ?? "").trim(),
   );
 
-  if (!enrollmentCards.length) return;
+  if (!sourceCards.length) return;
 
   let cancelled = false;
 
-  async function loadEnrollmentCounts() {
+  async function loadSourceCounts() {
     if (!micrositeId) return;
 
     const nextValues: Record<string, number> = {};
 
     await Promise.all(
-      enrollmentCards.map(async (card: any) => {
+      sourceCards.map(async (card: any) => {
         try {
-          const params = new URLSearchParams({
-            micrositeId: String(micrositeId),
-            blockId: String(card.sourceBlockId ?? "").trim(),
-          });
+          //
+          // Enrollment Board
+          //
+          if (card.type === "enrollment_records") {
+            const params = new URLSearchParams({
+              micrositeId: String(micrositeId),
+              blockId: String(card.sourceBlockId ?? "").trim(),
+            });
 
-          const res = await fetch(
-            `/api/public/enrollment-board/count?${params.toString()}`,
-            { cache: "no-store" },
-          );
+            const res = await fetch(
+              `/api/public/enrollment-board/count?${params.toString()}`,
+              { cache: "no-store" },
+            );
 
-          const data = await res.json();
+            const data = await res.json();
 
-          if (!res.ok) throw new Error(data?.error || "Failed to load count.");
+            if (!res.ok) {
+              throw new Error();
+            }
 
-          nextValues[card.id] =
-            card.countType === "total_submissions"
-              ? Number(data.totalSubmissions ?? 0)
-              : Number(data.activeCount ?? 0);
+            nextValues[card.id] =
+              card.countType === "total_submissions"
+                ? Number(data.totalSubmissions ?? 0)
+                : Number(data.activeCount ?? 0);
+
+            return;
+          }
+
+          //
+          // Calendar Events
+          //
+          if (card.type === "calendar_events") {
+            const params = new URLSearchParams({
+              micrositeId: String(micrositeId),
+              blockId: String(card.sourceBlockId ?? "").trim(),
+            });
+
+            const res = await fetch(
+              `/api/public/highlight-source-count?${params.toString()}&sourceType=calendar_events`,
+              { cache: "no-store" },
+            );
+
+            const data = await res.json();
+
+            nextValues[card.id] = Number(data.count ?? 0);
+            return;
+          }
+
+          //
+          // Post Board Discussions
+          //
+          if (card.type === "post_board_discussions") {
+            const params = new URLSearchParams({
+              micrositeId: String(micrositeId),
+              blockId: String(card.sourceBlockId ?? "").trim(),
+            });
+
+            const res = await fetch(
+              `/api/public/highlight-source-count?${params.toString()}&sourceType=post_board_discussions`,
+              { cache: "no-store" },
+            );
+
+            const data = await res.json();
+
+            nextValues[card.id] = Number(data.count ?? 0);
+            return;
+          }
         } catch {
           nextValues[card.id] = Number(card.fallbackValue ?? 0);
         }
@@ -8453,58 +8512,23 @@ useEffect(() => {
     }
   }
 
-  function handleEnrollmentUpdated(event: Event) {
-    const customEvent = event as CustomEvent<{
-      micrositeId?: string;
-      enrollmentBlockId?: string;
-      activeCount?: number;
-    }>;
-
-    const detail = customEvent.detail;
-    if (!detail?.enrollmentBlockId) return;
-
-    if (
-      micrositeId &&
-      detail.micrositeId &&
-      detail.micrositeId !== micrositeId
-    ) {
-      return;
-    }
-
-    const matchingCards = enrollmentCards.filter(
-      (card: any) => card.sourceBlockId === detail.enrollmentBlockId,
-    );
-
-    if (!matchingCards.length) return;
-
-    if (typeof detail.activeCount === "number") {
-      setHighlightCardValues((prev) => {
-        const next = { ...prev };
-
-        matchingCards.forEach((card: any) => {
-          next[card.id] = detail.activeCount ?? 0;
-        });
-
-        return next;
-      });
-    }
-
-    void loadEnrollmentCounts();
+  function handleSourceUpdated() {
+    void loadSourceCounts();
   }
 
-  void loadEnrollmentCounts();
+  void loadSourceCounts();
 
   window.addEventListener(
     "kht:enrollment-board-profile-updated",
-    handleEnrollmentUpdated as EventListener,
+    handleSourceUpdated,
   );
-
 
   return () => {
     cancelled = true;
+
     window.removeEventListener(
       "kht:enrollment-board-profile-updated",
-      handleEnrollmentUpdated as EventListener,
+      handleSourceUpdated,
     );
   };
 }, [useCardRenderer, micrositeId, block.data.cards, refreshKey]);
@@ -8792,6 +8816,27 @@ useEffect(() => {
         ? `${getHighlightCardClass(designKey)} flex items-center justify-between gap-4`
         : getHighlightCardClass(designKey)
   }
+style={
+  displayStyle === "linear"
+    ? {
+        backgroundColor:
+          (block.data as any).cardStyle?.backgroundColor === "transparent"
+            ? "transparent"
+            : (block.data as any).cardStyle?.backgroundColor,
+
+        opacity: cardOpacity,
+
+        borderColor:
+          (block.data as any).cardStyle?.borderColor,
+
+        borderWidth:
+          (block.data as any).cardStyle?.borderWidth,
+
+        borderRadius:
+          (block.data as any).cardStyle?.borderRadius,
+      }
+    : undefined
+}
 >
 <div className="min-w-0 flex-1">
   <div
@@ -8807,7 +8852,11 @@ useEffect(() => {
       <img
         src={card.imageUrl}
         alt=""
-        className="h-10 w-10 shrink-0 rounded-full object-cover"
+        className="shrink-0 rounded-full object-cover"
+        style={{
+          width: `${Number(card.imageSize ?? 40)}px`,
+          height: `${Number(card.imageSize ?? 40)}px`,
+        }}
       />
     ) : displayStyle === "linear" &&
       card.imagePosition !== "right" &&
@@ -8855,7 +8904,11 @@ useEffect(() => {
       <img
         src={card.imageUrl}
         alt=""
-        className="h-10 w-10 shrink-0 rounded-full object-cover"
+        className="shrink-0 rounded-full object-cover"
+        style={{
+          width: `${Number(card.imageSize ?? 40)}px`,
+          height: `${Number(card.imageSize ?? 40)}px`,
+        }}
       />
     ) : displayStyle === "linear" &&
       card.imagePosition === "right" &&

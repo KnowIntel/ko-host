@@ -958,7 +958,9 @@ export type HighlightType =
   | "rsvp_count"
   | "poll_result"
   | "visitor_count"
-  | "enrollment_records";
+  | "enrollment_records"
+  | "calendar_events"
+  | "post_board_discussions";
 
 export type HighlightCard = {
   id: string;
@@ -976,6 +978,7 @@ export type HighlightCard = {
   showIcon?: boolean;
   imageUrl?: string;
   imagePosition?: "left" | "right";
+  imageSize?: number;
 
   currentValue?: number;
   goalValue?: number;
@@ -1015,6 +1018,7 @@ export type HighlightBlock = BaseBlock & {
     rotation?: number;
     linearDividerStyle?: "none" | "closed_solid" | "open_solid" | "closed_dotted" | "open_dotted";
     linearDividerColor?: string;
+    cardBackgroundColor?: string;
     cards?: HighlightCard[];
 
     limit?: number;
@@ -1033,6 +1037,7 @@ export type HighlightBlock = BaseBlock & {
     valueStyle?: TextStyle;
     labelStyle?: TextStyle;
     descriptionStyle?: TextStyle;
+    cardBackgroundOpacity?: number;
   };
 };
 
@@ -3538,6 +3543,7 @@ case "post_board":
               description: "Expected attendees",
               icon: "✨",
               showIcon: true,
+              imageSize: 40,
             },
           ],
           style: createDefaultTextStyle(),
@@ -3547,6 +3553,7 @@ case "post_board":
           valueStyle: createDefaultTextStyle(),
           labelStyle: createDefaultTextStyle(),
           descriptionStyle: createDefaultTextStyle(),
+          cardBackgroundColor: "",
         },
       };
 

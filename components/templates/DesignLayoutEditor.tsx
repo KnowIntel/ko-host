@@ -3666,6 +3666,33 @@ if (selectedBlock?.type === "form_field") {
   return;
 }
 
+if (selectedBlock?.type === "highlight") {
+  updateSelectedBlock((block) => {
+    if (block.type !== "highlight") return block;
+
+    if (highlightStyleTarget === "heading") {
+      return {
+        ...block,
+        appearance: {
+          ...block.appearance,
+          backgroundColor: value,
+        },
+      };
+    }
+
+    return {
+      ...block,
+      data: {
+        ...block.data,
+        cardBackgroundColor: value,
+      },
+    };
+  });
+
+  pushRecentColor(value);
+  return;
+}
+
   applyAppearancePatch({ backgroundColor: value });
   pushRecentColor(value);
 }
@@ -5350,6 +5377,51 @@ if (selectedBlock?.type === "enrollment_board") {
         },
       },
     };
+  });
+
+  return;
+}
+
+if (selectedBlock?.type === "highlight") {
+  updateSelectedBlock((block) => {
+    if (block.type !== "highlight") return block;
+
+    if (highlightStyleTarget === "heading") {
+      return {
+        ...block,
+        appearance: {
+          ...block.appearance,
+          ...patch,
+        },
+      };
+    }
+
+return {
+  ...block,
+  data: {
+    ...block.data,
+
+    ...(patch.backgroundColor !== undefined
+      ? { cardBackgroundColor: patch.backgroundColor }
+      : {}),
+
+    ...(patch.backgroundOpacity !== undefined
+      ? { cardBackgroundOpacity: patch.backgroundOpacity }
+      : {}),
+
+    ...(patch.borderColor !== undefined
+      ? { cardBorderColor: patch.borderColor }
+      : {}),
+
+    ...(patch.borderWidth !== undefined
+      ? { cardBorderWidth: patch.borderWidth }
+      : {}),
+
+    ...(patch.borderRadius !== undefined
+      ? { cardBorderRadius: patch.borderRadius }
+      : {}),
+  },
+};
   });
 
   return;
@@ -11257,8 +11329,12 @@ title={
               ? ((selectedBlock.data as any).cardStyle?.backgroundColor === "transparent")
               : selectedBlock?.type === "post_board" && postBoardStyleTarget === "buttons"
                 ? ((selectedBlock.data as any).buttonStyle?.backgroundColor === "transparent")
-                : selectedAppearance.backgroundColor === "transparent",
-      )}
+                : selectedBlock?.type === "highlight"
+                  ? highlightStyleTarget === "heading"
+                    ? selectedAppearance.backgroundColor === "transparent"
+                    : (selectedBlock.data.cardBackgroundColor ?? "") === "transparent"
+                  : selectedAppearance.backgroundColor === "transparent",
+                      )}
 onClick={() => {
   if (selectedBlock?.type === "faq" && faqStyleTarget === "section") {
     updateSelectedBlock((block) =>
@@ -11333,6 +11409,32 @@ onClick={() => {
 
   if (selectedBlock?.type === "post_board") {
     applyAppearancePatch({ backgroundColor: "transparent" });
+    return;
+  }
+
+  if (selectedBlock?.type === "highlight") {
+    updateSelectedBlock((block) => {
+      if (block.type !== "highlight") return block;
+
+      if (highlightStyleTarget === "heading") {
+        return {
+          ...block,
+          appearance: {
+            ...block.appearance,
+            backgroundColor: "transparent",
+          },
+        };
+      }
+
+      return {
+        ...block,
+        data: {
+          ...block.data,
+          cardBackgroundColor: "transparent",
+        },
+      };
+    });
+
     return;
   }
 
@@ -17775,9 +17877,13 @@ onClick={() =>
                                               ? "Poll Result"
                                               : e.target.value === "visitor_count"
                                                 ? "Page Views"
-                                                : e.target.value === "enrollment_records"
-                                                  ? "Members Joined"
-                                                  : item.label || "New Stat",
+                                              : e.target.value === "enrollment_records"
+                                                ? "Members Joined"
+                                                : e.target.value === "calendar_events"
+                                                  ? "Events"
+                                                  : e.target.value === "post_board_discussions"
+                                                    ? "Discussions"
+                                                    : item.label || "New Stat",
                                 },
                           ),
                         },
@@ -17794,6 +17900,8 @@ onClick={() =>
               <option value="poll_result">Poll Result</option>
               <option value="visitor_count">Visitor Count</option>
               <option value="enrollment_records">Enrollment Records</option>
+              <option value="calendar_events">Calendar Events</option>
+              <option value="post_board_discussions">Post Board Discussions</option>
             </select>
           </div>
 
@@ -18054,9 +18162,14 @@ onClick={() =>
             </div>
           ) : null}
 
-{["rsvp_count", "poll_result", "visitor_count", "enrollment_records"].includes(
-  card.type,
-) ? (
+{[
+  "rsvp_count",
+  "poll_result",
+  "visitor_count",
+  "enrollment_records",
+  "calendar_events",
+  "post_board_discussions",
+].includes(card.type) ? (
   <div className="mt-3 grid gap-3">
     {card.type === "rsvp_count" ? (
       <>
@@ -18361,6 +18474,144 @@ onClick={() =>
   </div>
 ) : null}
 
+{card.type === "calendar_events" ? (
+  <>
+    <div>
+      <div className={inspectorLabelClass()}>Source Calendar/Schedule Block</div>
+      <select
+        value={card.sourceBlockId ?? ""}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "highlight"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    cards: (block.data.cards ?? []).map((item) =>
+                      item.id === card.id
+                        ? {
+                            ...item,
+                            sourceBlockId: e.target.value,
+                            countType: "total_events",
+                          }
+                        : item,
+                    ),
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      >
+        <option value="">Select schedule/calendar block</option>
+        {draft.blocks
+          .filter((block) => block.type === "schedule_agenda")
+          .map((scheduleBlock) => (
+            <option key={scheduleBlock.id} value={scheduleBlock.id}>
+              {scheduleBlock.label || "Schedule / Agenda"}
+            </option>
+          ))}
+      </select>
+    </div>
+
+    <div>
+      <div className={inspectorLabelClass()}>Count Type</div>
+      <select
+        value={card.countType ?? "total_events"}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "highlight"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    cards: (block.data.cards ?? []).map((item) =>
+                      item.id === card.id
+                        ? { ...item, countType: e.target.value }
+                        : item,
+                    ),
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      >
+        <option value="total_events">Total Events</option>
+      </select>
+    </div>
+  </>
+) : null}
+
+{card.type === "post_board_discussions" ? (
+  <>
+    <div>
+      <div className={inspectorLabelClass()}>Source Post Board Block</div>
+      <select
+        value={card.sourceBlockId ?? ""}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "highlight"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    cards: (block.data.cards ?? []).map((item) =>
+                      item.id === card.id
+                        ? {
+                            ...item,
+                            sourceBlockId: e.target.value,
+                            countType: "top_level_posts",
+                          }
+                        : item,
+                    ),
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      >
+        <option value="">Select post board block</option>
+        {draft.blocks
+          .filter((block) => block.type === "post_board")
+          .map((postBoardBlock) => (
+            <option key={postBoardBlock.id} value={postBoardBlock.id}>
+              {postBoardBlock.label || "Post Board"}
+            </option>
+          ))}
+      </select>
+    </div>
+
+    <div>
+      <div className={inspectorLabelClass()}>Count Type</div>
+      <select
+        value={card.countType ?? "top_level_posts"}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "highlight"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    cards: (block.data.cards ?? []).map((item) =>
+                      item.id === card.id
+                        ? { ...item, countType: e.target.value }
+                        : item,
+                    ),
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      >
+        <option value="top_level_posts">Initiation Posts Only</option>
+      </select>
+    </div>
+  </>
+) : null}
+
           <div className="mt-3 grid grid-cols-2 gap-3">
             <div>
               <div className={inspectorLabelClass()}>Prefix</div>
@@ -18550,6 +18801,41 @@ onClick={() =>
     <option value="left">Left</option>
     <option value="right">Right</option>
   </select>
+</div>
+
+<div className="mt-3">
+  <div className={inspectorLabelClass()}>Image Size</div>
+  <input
+    type="range"
+    min={20}
+    max={120}
+    step={1}
+    value={card.imageSize ?? 40}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "highlight"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                cards: (block.data.cards ?? []).map((item) =>
+                  item.id === card.id
+                    ? {
+                        ...item,
+                        imageSize: Number(e.target.value) || 40,
+                      }
+                    : item,
+                ),
+              },
+            },
+      )
+    }
+    className="w-full"
+  />
+  <div className="mt-1 text-xs text-neutral-500">
+    {card.imageSize ?? 40}px
+  </div>
 </div>
 
           <div className="mt-3">
