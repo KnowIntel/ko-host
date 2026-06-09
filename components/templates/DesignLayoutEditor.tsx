@@ -11486,12 +11486,28 @@ title={
   />
 </button>
 
-{((selectedBlock?.type === "post_board" &&
-  (postBoardStyleTarget === "card" || postBoardStyleTarget === "buttons")) ||
-  (selectedBlock?.type === "thread" &&
+{(
+  (
+    selectedBlock?.type === "post_board" &&
+    (
+      postBoardStyleTarget === "card" ||
+      postBoardStyleTarget === "buttons"
+    )
+  ) ||
+  (
+    selectedBlock?.type === "thread" &&
     ["form", "post_block", "message", "post_button"].includes(
       selectedBlock.data.threadStyleTarget ?? "message",
-    ))) ? (
+    )
+  ) ||
+  (
+    selectedBlock?.type === "highlight" &&
+    (
+      highlightStyleTarget === "body" ||
+      highlightStyleTarget === "value"
+    )
+  )
+) ? (
   <div className={topBarSliderWrapClass()}>
     <span>BG Opacity</span>
     <input
@@ -11499,7 +11515,14 @@ title={
       min={0}
       max={100}
       value={
-        selectedBlock?.type === "post_board"
+        value={
+  selectedBlock?.type === "highlight"
+    ? Math.round(
+        Number(
+          (selectedBlock.data as any).cardBackgroundOpacity ?? 1,
+        ) * 100,
+      )
+    : selectedBlock?.type === "post_board"
           ? Math.round(
               postBoardStyleTarget === "card"
                 ? (((selectedBlock.data as any).cardStyle?.backgroundOpacity ?? 1) *
@@ -11529,7 +11552,13 @@ title={
       title="Background transparency"
     />
     <span>
-      {selectedBlock?.type === "post_board"
+      {selectedBlock?.type === "highlight"
+  ? Math.round(
+      Number(
+        (selectedBlock.data as any).cardBackgroundOpacity ?? 1,
+      ) * 100,
+    )
+  : selectedBlock?.type === "post_board"
         ? Math.round(
             postBoardStyleTarget === "card"
               ? (((selectedBlock.data as any).cardStyle?.backgroundOpacity ?? 1) *
