@@ -174,17 +174,27 @@ export type GalleryImage = {
   url: string;
   alt?: string;
 
-  caption?: string;
-  captionStyle?: TextStyle;
   href?: string;
 
   shape?: "square" | "rounded" | "circle";
+
+  title?: string;
+  description?: string;
+  metadata?: string;
+
+  titleStyle?: TextStyle;
+  descriptionStyle?: TextStyle;
+  metadataStyle?: TextStyle;
 
   storagePath?: string;
   imageSizeBytes?: number;
   imageOriginalSizeBytes?: number;
   imageMimeType?: string;
   isEmbeddedDataUrl?: boolean;
+
+  // legacy only — no longer used by Gallery UI/renderer
+  caption?: string;
+  captionStyle?: TextStyle;
 };
 
 export type TimelineEntry = {
@@ -822,6 +832,18 @@ export type GalleryBlock = BaseBlock & {
     frameThickness?: number;
     frameColor?: string;
 
+    showTitle?: boolean;
+    showDescription?: boolean;
+    showMetadata?: boolean;
+
+    textPlacement?: "top" | "bottom";
+    galleryTextTarget?: "title" | "description" | "metadata";
+
+    titleStyle?: TextStyle;
+    descriptionStyle?: TextStyle;
+    metadataStyle?: TextStyle;
+
+    // legacy only — no longer used by renderer/inspector
     addCaption?: boolean;
     captionStyle?: TextStyle;
   };
@@ -3278,34 +3300,59 @@ styleVariant: "elegant_wedding",
         },
       };
 
-    case "gallery":
-      return {
-        id: makeId("gallery"),
-        type: "gallery",
-        label: "Gallery",
-        grid,
-        appearance: createDefaultBlockAppearance(),
-        data: {
-          columns: 2,
-          rows: undefined,
+case "gallery":
+  return {
+    id: makeId("gallery"),
+    type: "gallery",
+    label: "Gallery",
+    grid,
+    appearance: createDefaultBlockAppearance(),
+    data: {
+      columns: 2,
+      rows: undefined,
 
-          images: [],
+      images: [],
 
-          columnGap: 8,
-          rowGap: 8,
+      columnGap: 8,
+      rowGap: 8,
 
-          frameThickness: 0,
-          frameColor: "#ffffff",
+      frameThickness: 0,
+      frameColor: "#ffffff",
 
-          addCaption: false,
+      showTitle: false,
+      showDescription: false,
+      showMetadata: false,
 
-          captionStyle: {
-            fontSize: 16,
-            color: "#111827",
-            align: "left",
-          },
-        },
-      };
+      textPlacement: "bottom",
+      galleryTextTarget: "title",
+
+      titleStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        bold: true,
+      },
+
+      descriptionStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 12,
+      },
+
+      metadataStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 11,
+        color: "#6b7280",
+      },
+
+      // legacy only
+      addCaption: false,
+      captionStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 16,
+        color: "#111827",
+        align: "left",
+      },
+    },
+  };
 
     case "thread":
       return {
@@ -4820,36 +4867,111 @@ export function sanitizeBuilderDraft(input: unknown): BuilderDraft {
       };
     }
 
-    if (block.type === "gallery") {
-      return {
-        ...block,
-        grid: normalizeGridValue(block.grid, fallbackGrid),
-        data: {
-          ...block.data,
-          columns: Math.max(1, Math.min(12, Number(block.data.columns) || 2)),
-          rows:
-            typeof block.data.rows === "number" && Number.isFinite(block.data.rows)
-              ? Math.max(1, Math.min(12, Math.floor(block.data.rows)))
-              : block.data.rows,
-          images: Array.isArray(block.data.images)
-  ? block.data.images.map((image) => ({
-      ...image,
-      url: typeof image.url === "string" ? image.url : "",
-      isEmbeddedDataUrl:
-        typeof image.url === "string" && image.url.startsWith("data:"),
-    }))
-  : [],
-          columnGap: Math.max(0, Number((block.data as any).columnGap ?? 8)),
-          rowGap: Math.max(0, Number((block.data as any).rowGap ?? 8)),
-          frameThickness: Math.max(
-            0,
-            Number((block.data as any).frameThickness ?? 0),
-          ),
-          frameColor: String((block.data as any).frameColor ?? "#ffffff"),
-          addCaption: Boolean((block.data as any).addCaption),
-        },
-      };
-    }
+if (block.type === "gallery") {
+  const data = block.data as any;
+
+  return {
+    ...block,
+    grid: normalizeGridValue(block.grid, fallbackGrid),
+    data: {
+      ...block.data,
+
+      columns: Math.max(1, Math.min(12, Number(block.data.columns) || 2)),
+
+      rows:
+        typeof block.data.rows === "number" && Number.isFinite(block.data.rows)
+          ? Math.max(1, Math.min(12, Math.floor(block.data.rows)))
+          : block.data.rows,
+
+      images: Array.isArray(block.data.images)
+        ? block.data.images.map((image) => ({
+            ...image,
+            url:
+              typeof image.url === "string" && !image.url.startsWith("data:")
+                ? image.url
+                : "",
+            isEmbeddedDataUrl:
+              typeof image.url === "string" && image.url.startsWith("data:"),
+
+            title:
+              typeof (image as any).title === "string"
+                ? (image as any).title
+                : "",
+
+            description:
+              typeof (image as any).description === "string"
+                ? (image as any).description
+                : "",
+
+            metadata:
+              typeof (image as any).metadata === "string"
+                ? (image as any).metadata
+                : "",
+
+            titleStyle: {
+              ...createDefaultTextStyle(),
+              ...((image as any).titleStyle ?? {}),
+            },
+
+            descriptionStyle: {
+              ...createDefaultTextStyle(),
+              ...((image as any).descriptionStyle ?? {}),
+            },
+
+            metadataStyle: {
+              ...createDefaultTextStyle(),
+              ...((image as any).metadataStyle ?? {}),
+            },
+          }))
+        : [],
+
+      columnGap: Math.max(0, Number(data.columnGap ?? 8)),
+      rowGap: Math.max(0, Number(data.rowGap ?? 8)),
+
+      frameThickness: Math.max(0, Number(data.frameThickness ?? 0)),
+      frameColor: String(data.frameColor ?? "#ffffff"),
+
+      showTitle: Boolean(data.showTitle),
+      showDescription: Boolean(data.showDescription),
+      showMetadata: Boolean(data.showMetadata),
+
+      textPlacement: data.textPlacement === "top" ? "top" : "bottom",
+
+      galleryTextTarget:
+        data.galleryTextTarget === "description" ||
+        data.galleryTextTarget === "metadata"
+          ? data.galleryTextTarget
+          : "title",
+
+      titleStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        bold: true,
+        ...(data.titleStyle ?? {}),
+      },
+
+      descriptionStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 12,
+        ...(data.descriptionStyle ?? {}),
+      },
+
+      metadataStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 11,
+        color: "#6b7280",
+        ...(data.metadataStyle ?? {}),
+      },
+
+      // legacy only — forced off so old caption UI/display stops appearing
+      addCaption: false,
+      captionStyle: {
+        ...createDefaultTextStyle(),
+        ...(data.captionStyle ?? {}),
+      },
+    },
+  };
+}
 
     if (block.type === "icon") {
       return {

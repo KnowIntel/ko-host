@@ -1470,7 +1470,9 @@ const [listingStyleTarget, setListingStyleTarget] = useState<
   "title" | "description" | "metadata" | "price" | "quantity"
 >("title");
 
-
+const [galleryTextTarget, setGalleryTextTarget] = useState<
+  "title" | "description" | "metadata"
+>("title");
 
 const [contentPanelStyleTarget, setContentPanelStyleTarget] = useState<
   "heading" | "subtitle" | "navigation" | "panel"
@@ -1769,11 +1771,15 @@ const [faqStyleTarget, setFaqStyleTarget] = useState<
 
 
 const selectedStyle =
-  selectedBlockFromDraft?.type === "gallery"
-    ? (((selectedBlockFromDraft.data.images?.[0] as any)?.captionStyle ??
-        (selectedBlockFromDraft.data as any).captionStyle ??
-        (selectedBlockFromDraft.data as any).style ??
+selectedBlockFromDraft?.type === "gallery"
+  ? galleryTextTarget === "title"
+    ? (((selectedBlockFromDraft.data as any).titleStyle ??
         {}) as TextStyle)
+    : galleryTextTarget === "description"
+      ? (((selectedBlockFromDraft.data as any).descriptionStyle ??
+          {}) as TextStyle)
+      : (((selectedBlockFromDraft.data as any).metadataStyle ??
+          {}) as TextStyle)
 : selectedBlockFromDraft?.type === "enrollment_board"
   ? enrollmentBoardStyleTarget === "heading"
     ? (((selectedBlockFromDraft.data as any).headingStyle ??
@@ -3205,11 +3211,32 @@ function applyTextColor(value: string) {
     return;
   }
 
-  if (selectedBlock?.type === "gallery") {
-    applyStylePatch({ color: value });
-    pushRecentColor(value);
-    return;
-  }
+if (selectedBlock?.type === "gallery") {
+  const targetStyleKey =
+    galleryTextTarget === "description"
+      ? "descriptionStyle"
+      : galleryTextTarget === "metadata"
+        ? "metadataStyle"
+        : "titleStyle";
+
+  updateSelectedBlock((block) =>
+    block.type !== "gallery"
+      ? block
+      : {
+          ...block,
+          data: {
+            ...block.data,
+            [targetStyleKey]: {
+              ...((block.data as any)[targetStyleKey] ?? {}),
+              color: value,
+            },
+          },
+        },
+  );
+
+  pushRecentColor(value);
+  return;
+}
 
   applyStylePatch({ color: value });
   pushRecentColor(value);
@@ -3960,6 +3987,13 @@ const handleVideoUpload = async (
 
 function applyStylePatch(patch: Partial<TextStyle>) {
 
+  if (selectedBlockFromDraft?.type === "gallery") {
+  setGalleryTextTarget(
+    ((selectedBlockFromDraft.data as any).galleryTextTarget ??
+      "title") as "title" | "description" | "metadata",
+  );
+}
+
     if (selectedBlockFromDraft?.type === "calendar_event") {
     const targetStyleKey =
       calendarEventTextTarget === "heading"
@@ -4154,6 +4188,60 @@ function applyStylePatch(patch: Partial<TextStyle>) {
 
   return;
 }
+
+if (selectedBlockFromDraft?.type === "gallery") {
+  const selectedGalleryBlockId = selectedBlockFromDraft.id;
+
+  updateSelectedBlock((block) => {
+    if (block.id !== selectedGalleryBlockId || block.type !== "gallery") {
+      return block;
+    }
+
+    const appearancePatch = patch as AppearancePatch;
+
+    const targetStyleKey =
+      galleryTextTarget === "description"
+        ? "descriptionStyle"
+        : galleryTextTarget === "metadata"
+          ? "metadataStyle"
+          : "titleStyle";
+
+    return {
+      ...block,
+      data: {
+        ...block.data,
+
+        [targetStyleKey]: {
+          ...((block.data as any)[targetStyleKey] ?? {}),
+
+          ...(appearancePatch.backgroundColor !== undefined
+            ? { backgroundColor: appearancePatch.backgroundColor }
+            : {}),
+
+          ...(appearancePatch.backgroundOpacity !== undefined
+            ? { backgroundOpacity: appearancePatch.backgroundOpacity }
+            : {}),
+
+          ...(appearancePatch.borderColor !== undefined
+            ? { borderColor: appearancePatch.borderColor }
+            : {}),
+
+          ...(appearancePatch.borderWidth !== undefined
+            ? { borderWidth: appearancePatch.borderWidth }
+            : {}),
+
+          ...(appearancePatch.borderRadius !== undefined
+            ? { borderRadius: appearancePatch.borderRadius }
+            : {}),
+        },
+      },
+    };
+  });
+
+  return;
+}
+
+
 if (selectedBlock?.type === "enrollment_board") {
   const target = enrollmentBoardStyleTarget;
 
@@ -28590,27 +28678,6 @@ data: {
   <div className={inspectorCardClass()}>
     <div className={inspectorLabelClass()}>Gallery</div>
 
-    <label className="mt-4 flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
-      <input
-        type="checkbox"
-        checked={Boolean((selectedBlock.data as any).addCaption)}
-        onChange={(e) =>
-          updateSelectedBlock((block) =>
-            block.type !== "gallery"
-              ? block
-              : {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    addCaption: e.target.checked,
-                  } as any,
-                },
-          )
-        }
-      />
-      Add captions
-    </label>
-
     <div className="mt-4 grid grid-cols-2 gap-3">
       <div>
         <div className={inspectorLabelClass()}>Columns</div>
@@ -28627,7 +28694,10 @@ data: {
                     ...block,
                     data: {
                       ...block.data,
-                      columns: Math.max(1, Math.min(12, Number(e.target.value) || 1)),
+                      columns: Math.max(
+                        1,
+                        Math.min(12, Number(e.target.value) || 1),
+                      ),
                     },
                   },
             )
@@ -28660,13 +28730,139 @@ data: {
                     ...block,
                     data: {
                       ...block.data,
-                      rows: Math.max(1, Math.min(12, Number(e.target.value) || 1)),
+                      rows: Math.max(
+                        1,
+                        Math.min(12, Number(e.target.value) || 1),
+                      ),
                     },
                   },
             )
           }
           className={inspectorInputClass()}
         />
+      </div>
+    </div>
+
+    <div className="mt-5 rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
+      <div className={inspectorLabelClass()}>Display Text</div>
+
+      <div className="mt-3 grid gap-2">
+        <label className="flex items-center gap-3 text-sm text-neutral-800">
+          <input
+            type="checkbox"
+            checked={Boolean((selectedBlock.data as any).showTitle)}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "gallery"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        showTitle: e.target.checked,
+                      } as any,
+                    },
+              )
+            }
+          />
+          Show Title
+        </label>
+
+        <label className="flex items-center gap-3 text-sm text-neutral-800">
+          <input
+            type="checkbox"
+            checked={Boolean((selectedBlock.data as any).showDescription)}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "gallery"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        showDescription: e.target.checked,
+                      } as any,
+                    },
+              )
+            }
+          />
+          Show Description
+        </label>
+
+        <label className="flex items-center gap-3 text-sm text-neutral-800">
+          <input
+            type="checkbox"
+            checked={Boolean((selectedBlock.data as any).showMetadata)}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "gallery"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        showMetadata: e.target.checked,
+                      } as any,
+                    },
+              )
+            }
+          />
+          Show Metadata
+        </label>
+      </div>
+
+      <div className="mt-4">
+        <div className={inspectorLabelClass()}>Text Placement</div>
+        <select
+          value={(selectedBlock.data as any).textPlacement ?? "bottom"}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "gallery"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      textPlacement:
+                        e.target.value === "top" ? "top" : "bottom",
+                    } as any,
+                  },
+            )
+          }
+          className={inspectorInputClass()}
+        >
+          <option value="top">Top</option>
+          <option value="bottom">Bottom</option>
+        </select>
+      </div>
+
+      <div className="mt-4">
+        <div className={inspectorLabelClass()}>Text Style Target</div>
+        <select
+          value={(selectedBlock.data as any).galleryTextTarget ?? "title"}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "gallery"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      galleryTextTarget:
+                        e.target.value === "description" ||
+                        e.target.value === "metadata"
+                          ? e.target.value
+                          : "title",
+                    } as any,
+                  },
+            )
+          }
+          className={inspectorInputClass()}
+        >
+          <option value="title">Title</option>
+          <option value="description">Description</option>
+          <option value="metadata">Metadata</option>
+        </select>
       </div>
     </div>
 
@@ -28791,21 +28987,25 @@ data: {
 
     <div className="mt-4 space-y-3">
       {selectedBlock.data.images.map((image, index) => (
-<div
-  key={image.id}
-  ref={(node) => {
-    galleryImageCardRefs.current[image.id] = node;
-  }}
-  className={[
-    "rounded-xl border bg-neutral-50 p-3 transition",
-    selectedGalleryImageId === image.id
-      ? "border-blue-500 ring-2 ring-blue-200"
-      : "border-neutral-200",
-  ].join(" ")}
->
+        <div
+          key={image.id}
+          ref={(node) => {
+            galleryImageCardRefs.current[image.id] = node;
+          }}
+          className={[
+            "rounded-xl border bg-neutral-50 p-3 transition",
+            selectedGalleryImageId === image.id
+              ? "border-blue-500 ring-2 ring-blue-200"
+              : "border-neutral-200",
+          ].join(" ")}
+        >
           <div className="flex items-center gap-3">
             <div className="h-14 w-14 overflow-hidden rounded-lg border border-neutral-200 bg-white">
-              <img src={image.url} alt="" className="h-full w-full object-cover" />
+              <img
+                src={image.url}
+                alt=""
+                className="h-full w-full object-cover"
+              />
             </div>
 
             <div className="min-w-0 flex-1">
@@ -28828,7 +29028,9 @@ data: {
               <button
                 type="button"
                 className={toolSetButtonClass("front")}
-                onClick={() => moveGalleryImage(selectedBlock.id, image.id, "down")}
+                onClick={() =>
+                  moveGalleryImage(selectedBlock.id, image.id, "down")
+                }
                 disabled={index === selectedBlock.data.images.length - 1}
                 title="Move down"
               >
@@ -28861,6 +29063,95 @@ data: {
           </div>
 
           <div className="mt-3">
+            <div className={inspectorLabelClass()}>Title</div>
+            <input
+              type="text"
+              value={(image as any).title ?? ""}
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "gallery"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          images: block.data.images.map((galleryImage) =>
+                            galleryImage.id === image.id
+                              ? {
+                                  ...galleryImage,
+                                  title: e.target.value,
+                                }
+                              : galleryImage,
+                          ),
+                        } as any,
+                      },
+                )
+              }
+              className={inspectorInputClass()}
+              placeholder={`Image ${index + 1} title...`}
+            />
+          </div>
+
+          <div className="mt-3">
+            <div className={inspectorLabelClass()}>Description</div>
+            <textarea
+              value={(image as any).description ?? ""}
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "gallery"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          images: block.data.images.map((galleryImage) =>
+                            galleryImage.id === image.id
+                              ? {
+                                  ...galleryImage,
+                                  description: e.target.value,
+                                }
+                              : galleryImage,
+                          ),
+                        } as any,
+                      },
+                )
+              }
+              className={inspectorTextareaClass()}
+              placeholder={`Image ${index + 1} description...`}
+            />
+          </div>
+
+          <div className="mt-3">
+            <div className={inspectorLabelClass()}>Metadata</div>
+            <input
+              type="text"
+              value={(image as any).metadata ?? ""}
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "gallery"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          images: block.data.images.map((galleryImage) =>
+                            galleryImage.id === image.id
+                              ? {
+                                  ...galleryImage,
+                                  metadata: e.target.value,
+                                }
+                              : galleryImage,
+                          ),
+                        } as any,
+                      },
+                )
+              }
+              className={inspectorInputClass()}
+              placeholder={`Image ${index + 1} metadata...`}
+            />
+          </div>
+
+          <div className="mt-3">
             <div className={inspectorLabelClass()}>Image Link URL</div>
             <input
               type="url"
@@ -28886,35 +29177,6 @@ data: {
               placeholder="https://example.com"
             />
           </div>
-
-          {(selectedBlock.data as any).addCaption ? (
-            <div className="mt-3">
-              <div className={inspectorLabelClass()}>Caption</div>
-              <input
-                type="text"
-                value={(image as any).caption ?? ""}
-                onChange={(e) =>
-                  updateSelectedBlock((block) =>
-                    block.type !== "gallery"
-                      ? block
-                      : {
-                          ...block,
-                          data: {
-                            ...block.data,
-                            images: block.data.images.map((galleryImage) =>
-                              galleryImage.id === image.id
-                                ? { ...galleryImage, caption: e.target.value }
-                                : galleryImage,
-                            ),
-                          } as any,
-                        },
-                  )
-                }
-                className={inspectorInputClass()}
-                placeholder={`Image ${index + 1} caption...`}
-              />
-            </div>
-          ) : null}
         </div>
       ))}
 

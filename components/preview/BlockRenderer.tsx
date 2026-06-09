@@ -3455,12 +3455,25 @@ return (
 function renderGalleryTile(
   image: any,
   index: number,
-  showCaption = false,
-  frameThickness = 0,
-  frameColor = "#ffffff",
-  onSelect?: () => void,
-  isSelected = false,
+  options?: {
+    showTitle?: boolean;
+    showDescription?: boolean;
+    showMetadata?: boolean;
+    textPlacement?: "top" | "bottom";
+    titleStyle?: TextStyle;
+    descriptionStyle?: TextStyle;
+    metadataStyle?: TextStyle;
+    frameThickness?: number;
+    frameColor?: string;
+    onSelect?: () => void;
+    isSelected?: boolean;
+  },
 ) {
+  const frameThickness = options?.frameThickness ?? 0;
+  const frameColor = options?.frameColor ?? "#ffffff";
+  const onSelect = options?.onSelect;
+  const isSelected = Boolean(options?.isSelected);
+
   if (!image?.url) {
     return (
       <div
@@ -3476,44 +3489,91 @@ function renderGalleryTile(
   const shape = image.shape ?? "square";
   const borderRadius =
     shape === "circle" ? "9999px" : shape === "rounded" ? "16px" : "0px";
-  const caption = String(image.caption ?? "").trim();
-  const captionStyle = ((image.captionStyle ?? {}) as TextStyle);
+
   const href = String(image.href ?? "").trim();
 
+  const title = String((image as any).title ?? "").trim();
+  const description = String((image as any).description ?? "").trim();
+  const metadata = String((image as any).metadata ?? "").trim();
+
+  const titleStyle = ((image as any).titleStyle ??
+    options?.titleStyle ??
+    {}) as TextStyle;
+
+  const descriptionStyle = ((image as any).descriptionStyle ??
+    options?.descriptionStyle ??
+    {}) as TextStyle;
+
+  const metadataStyle = ((image as any).metadataStyle ??
+    options?.metadataStyle ??
+    {}) as TextStyle;
+
+  const showTextPanel =
+    (options?.showTitle && title) ||
+    (options?.showDescription && description) ||
+    (options?.showMetadata && metadata);
+
+  const textPanel = showTextPanel ? (
+    <div className="shrink-0 space-y-1 px-2 py-2">
+      {options?.showTitle && title ? (
+        <div
+          className="text-sm font-semibold leading-tight"
+          style={getContainerTextStyle(titleStyle)}
+        >
+          {title}
+        </div>
+      ) : null}
+
+      {options?.showDescription && description ? (
+        <div
+          className="text-xs leading-snug"
+          style={getContainerTextStyle(descriptionStyle)}
+        >
+          {description}
+        </div>
+      ) : null}
+
+      {options?.showMetadata && metadata ? (
+        <div
+          className="text-[11px] leading-tight opacity-75"
+          style={getContainerTextStyle(metadataStyle)}
+        >
+          {metadata}
+        </div>
+      ) : null}
+    </div>
+  ) : null;
+
   const content = (
-<div
-  onClick={onSelect}
-  className={[
-    "flex h-full w-full flex-col overflow-hidden transition",
-    onSelect ? "cursor-pointer" : "",
-    isSelected ? "ring-2 ring-blue-500" : "",
-  ].join(" ")}
+    <div
+      onClick={onSelect}
+      className={[
+        "flex h-full w-full flex-col overflow-hidden transition",
+        onSelect ? "cursor-pointer" : "",
+        isSelected ? "ring-2 ring-blue-500" : "",
+      ].join(" ")}
       style={{
         borderRadius,
         border:
           frameThickness > 0
             ? `${frameThickness}px solid ${frameColor || "#ffffff"}`
             : "0px solid transparent",
-        backgroundColor: frameThickness > 0 ? frameColor || "#ffffff" : undefined,
+        backgroundColor:
+          frameThickness > 0 ? frameColor || "#ffffff" : undefined,
       }}
     >
+      {options?.textPlacement === "top" ? textPanel : null}
+
       <div className="min-h-0 flex-1 overflow-hidden" style={{ borderRadius }}>
         <img
           src={image.url}
-          alt={image.alt || ""}
+          alt={image.alt || title || ""}
           className="h-full w-full object-cover"
           style={{ borderRadius }}
         />
       </div>
 
-      {showCaption && caption ? (
-        <div
-          className="shrink-0 px-2 py-1 text-xs text-neutral-700"
-          style={getContainerTextStyle(captionStyle)}
-        >
-          {caption}
-        </div>
-      ) : null}
+      {options?.textPlacement !== "top" ? textPanel : null}
     </div>
   );
 
@@ -3617,39 +3677,57 @@ function renderGalleryBase(
 
   const columnGap = Math.max(0, Number((block.data as any).columnGap ?? 8));
   const rowGap = Math.max(0, Number((block.data as any).rowGap ?? 8));
-  const frameThickness = Math.max(0, Number((block.data as any).frameThickness ?? 0));
+  const frameThickness = Math.max(
+    0,
+    Number((block.data as any).frameThickness ?? 0),
+  );
   const frameColor = String((block.data as any).frameColor ?? "#ffffff");
 
   const translateX = (positionX - 50) * 2;
   const translateY = (positionY - 50) * 2;
 
+  const showTitle = Boolean((block.data as any).showTitle);
+  const showDescription = Boolean((block.data as any).showDescription);
+  const showMetadata = Boolean((block.data as any).showMetadata);
+  const textPlacement =
+    (block.data as any).textPlacement === "top" ? "top" : "bottom";
+
+  const titleStyle = ((block.data as any).titleStyle ?? {}) as TextStyle;
+  const descriptionStyle = ((block.data as any).descriptionStyle ??
+    {}) as TextStyle;
+  const metadataStyle = ((block.data as any).metadataStyle ?? {}) as TextStyle;
+
   return (
     <div
       className="h-full w-full overflow-hidden p-2"
-style={{
-  ...getAppearanceStyle(block),
-  ...getTextureBorderStyle(block.appearance),
-}}
+      style={{
+        ...getAppearanceStyle(block),
+        ...getTextureBorderStyle(block.appearance),
+      }}
     >
       <div
-className="grid h-full w-full"
-style={{
-  gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
-  gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,
-  columnGap,
-  rowGap,
-  transform: `translate(${translateX}%, ${translateY}%)`,
-  transformOrigin: "center center",
-}}
+        className="grid h-full w-full"
+        style={{
+          gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
+          gridTemplateRows: `repeat(${rows}, minmax(0, 1fr))`,
+          columnGap,
+          rowGap,
+          transform: `translate(${translateX}%, ${translateY}%)`,
+          transformOrigin: "center center",
+        }}
       >
         {Array.from({ length: tileCount }).map((_, index) =>
-renderGalleryTile(
-  images[index],
-  index,
-  Boolean((block.data as any).addCaption),
-  frameThickness,
-  frameColor,
-),
+          renderGalleryTile(images[index], index, {
+            showTitle,
+            showDescription,
+            showMetadata,
+            textPlacement,
+            titleStyle,
+            descriptionStyle,
+            metadataStyle,
+            frameThickness,
+            frameColor,
+          }),
         )}
       </div>
     </div>
