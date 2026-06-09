@@ -10604,17 +10604,36 @@ const idsToExpand =
   className={topBarButtonClass(
     selectedBlock?.appearance?.backgroundColor === "transparent",
   )}
-  onClick={() => {
-    if (!selectedBlock) return;
+onClick={() => {
+  if (!selectedBlock) return;
 
-    updateSelectedBlock((block) => ({
-      ...block,
-      appearance: {
-        ...(block.appearance ?? {}),
-        backgroundColor: "transparent",
-      },
-    }));
-  }}
+  updateSelectedBlock((block) =>
+    block.type === "calendar_event"
+      ? {
+          ...block,
+          appearance: {
+            ...(block.appearance ?? {}),
+            backgroundColor: "transparent",
+            backgroundOpacity: 0,
+          } as any,
+          data: {
+            ...block.data,
+            calendarStyle: {
+              ...(block.data.calendarStyle ?? {}),
+              formBackgroundColor: "transparent",
+            },
+          },
+        }
+      : {
+          ...block,
+          appearance: {
+            ...(block.appearance ?? {}),
+            backgroundColor: "transparent",
+            backgroundOpacity: 0,
+          } as any,
+        },
+  );
+}}
 title={
   selectedBlock.type === "calendar_event"
     ? "Transparent calendar background"
