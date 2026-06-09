@@ -8206,8 +8206,34 @@ function renderHighlight(
     }
 
     const displayStyle = block.data?.displayStyle ?? "grid";
-    const cardOpacity =
-  block.data?.cardBackgroundOpacity ?? 1;
+function hexToRgba(color: string, opacity: number) {
+  if (!color || color === "transparent") return color;
+  if (!color.startsWith("#")) return color;
+
+  const hex = color.replace("#", "");
+  const fullHex =
+    hex.length === 3
+      ? hex
+          .split("")
+          .map((char) => `${char}${char}`)
+          .join("")
+      : hex;
+
+  const r = parseInt(fullHex.slice(0, 2), 16);
+  const g = parseInt(fullHex.slice(2, 4), 16);
+  const b = parseInt(fullHex.slice(4, 6), 16);
+
+  if ([r, g, b].some((value) => Number.isNaN(value))) return color;
+
+  return `rgba(${r}, ${g}, ${b}, ${Math.max(
+    0,
+    Math.min(1, opacity),
+  )})`;
+}
+
+const cardOpacity = block.data?.cardBackgroundOpacity ?? 1;
+const cardBackgroundColor =
+  block.data.cardBackgroundColor || (block.data as any).cardStyle?.backgroundColor || "";
 
     const normalizedCards =
       Array.isArray(block.data?.cards) && block.data.cards.length
@@ -8820,20 +8846,21 @@ style={
   displayStyle === "linear"
     ? {
         backgroundColor:
-          (block.data as any).cardStyle?.backgroundColor === "transparent"
+          cardBackgroundColor === "transparent"
             ? "transparent"
-            : (block.data as any).cardStyle?.backgroundColor,
+            : hexToRgba(cardBackgroundColor, cardOpacity),
 
-        opacity: cardOpacity,
-
-        borderColor:
-          (block.data as any).cardStyle?.borderColor,
+        borderColor: (block.data as any).cardBorderColor ?? undefined,
 
         borderWidth:
-          (block.data as any).cardStyle?.borderWidth,
+          typeof (block.data as any).cardBorderWidth === "number"
+            ? `${(block.data as any).cardBorderWidth}px`
+            : undefined,
 
         borderRadius:
-          (block.data as any).cardStyle?.borderRadius,
+          typeof (block.data as any).cardBorderRadius === "number"
+            ? `${(block.data as any).cardBorderRadius}px`
+            : undefined,
       }
     : undefined
 }
