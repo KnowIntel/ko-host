@@ -2024,6 +2024,16 @@ const selectedRsvpElementBackgroundColor =
       ? null
       : draft.blocks.find((item) => item.id === selectedContext.blockId) ?? null;
 
+      useEffect(() => {
+  if (selectedBlockFromDraft?.type !== "gallery") return;
+
+  const nextTarget =
+    ((selectedBlockFromDraft.data as any).galleryTextTarget ??
+      "title") as "title" | "description" | "metadata";
+
+  setGalleryTextTarget(nextTarget);
+}, [selectedBlockFromDraft?.id, selectedBlockFromDraft]);
+
 const textureEligibleBlockTypes = [
   "label",
   "text_fx",
@@ -3987,12 +3997,6 @@ const handleVideoUpload = async (
 
 function applyStylePatch(patch: Partial<TextStyle>) {
 
-  if (selectedBlockFromDraft?.type === "gallery") {
-  setGalleryTextTarget(
-    ((selectedBlockFromDraft.data as any).galleryTextTarget ??
-      "title") as "title" | "description" | "metadata",
-  );
-}
 
     if (selectedBlockFromDraft?.type === "calendar_event") {
     const targetStyleKey =
@@ -4192,51 +4196,27 @@ function applyStylePatch(patch: Partial<TextStyle>) {
 if (selectedBlockFromDraft?.type === "gallery") {
   const selectedGalleryBlockId = selectedBlockFromDraft.id;
 
-  updateSelectedBlock((block) => {
-    if (block.id !== selectedGalleryBlockId || block.type !== "gallery") {
-      return block;
-    }
+  const targetStyleKey =
+    galleryTextTarget === "description"
+      ? "descriptionStyle"
+      : galleryTextTarget === "metadata"
+        ? "metadataStyle"
+        : "titleStyle";
 
-    const appearancePatch = patch as AppearancePatch;
-
-    const targetStyleKey =
-      galleryTextTarget === "description"
-        ? "descriptionStyle"
-        : galleryTextTarget === "metadata"
-          ? "metadataStyle"
-          : "titleStyle";
-
-    return {
-      ...block,
-      data: {
-        ...block.data,
-
-        [targetStyleKey]: {
-          ...((block.data as any)[targetStyleKey] ?? {}),
-
-          ...(appearancePatch.backgroundColor !== undefined
-            ? { backgroundColor: appearancePatch.backgroundColor }
-            : {}),
-
-          ...(appearancePatch.backgroundOpacity !== undefined
-            ? { backgroundOpacity: appearancePatch.backgroundOpacity }
-            : {}),
-
-          ...(appearancePatch.borderColor !== undefined
-            ? { borderColor: appearancePatch.borderColor }
-            : {}),
-
-          ...(appearancePatch.borderWidth !== undefined
-            ? { borderWidth: appearancePatch.borderWidth }
-            : {}),
-
-          ...(appearancePatch.borderRadius !== undefined
-            ? { borderRadius: appearancePatch.borderRadius }
-            : {}),
+  updateSelectedBlock((block) =>
+    block.id !== selectedGalleryBlockId || block.type !== "gallery"
+      ? block
+      : {
+          ...block,
+          data: {
+            ...block.data,
+            [targetStyleKey]: {
+              ...((block.data as any)[targetStyleKey] ?? {}),
+              ...patch,
+            },
+          },
         },
-      },
-    };
-  });
+  );
 
   return;
 }
@@ -4292,7 +4272,6 @@ if (selectedBlock?.type === "enrollment_board") {
 
 if (
   selectedBlock?.type === "image" ||
-  selectedBlock?.type === "gallery" ||
   selectedBlock?.type === "image_carousel" ||
   selectedBlock?.type === "video"
 ) {
@@ -4301,26 +4280,7 @@ if (
     blocks: prev.blocks.map((block) => {
       if (block.id !== selectedBlock.id) return block;
 
-      if (block.type === "gallery") {
-        return {
-          ...block,
-          data: {
-            ...block.data,
-            captionStyle: {
-              ...((block.data as any).captionStyle ?? {}),
-              ...patch,
-            },
-            images: block.data.images.map((image) => ({
-              ...image,
-              captionStyle: {
-                ...((image as any).captionStyle ?? {}),
-                ...patch,
-              },
-            })),
-          } as any,
-        };
-      }
-
+      
       if (
         block.type === "image" ||
         block.type === "image_carousel" ||
@@ -10328,6 +10288,42 @@ const idsToExpand =
   <option value="memberQuote">Member Quote</option>
   <option value="memberTotal">Member Total Label</option>
 </select>
+  </>
+) : null}
+
+{selectedBlock?.type === "gallery" ? (
+  <>
+    <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
+
+    <select
+      value={galleryTextTarget}
+      onChange={(e) => {
+        const nextTarget = e.target.value as
+          | "title"
+          | "description"
+          | "metadata";
+
+        setGalleryTextTarget(nextTarget);
+
+        updateSelectedBlock((block) =>
+          block.type !== "gallery"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  galleryTextTarget: nextTarget,
+                },
+              },
+        );
+      }}
+      className={topBarFieldClass("w-[150px]")}
+      title="Gallery text style target"
+    >
+      <option value="title">Gallery Title</option>
+      <option value="description">Gallery Description</option>
+      <option value="metadata">Gallery Metadata</option>
+    </select>
   </>
 ) : null}
 
