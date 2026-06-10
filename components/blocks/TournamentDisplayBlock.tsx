@@ -29,7 +29,14 @@ export default function TournamentDisplayBlock({ block }: Props) {
       ) : displayMode === "matchups" ? (
         <Matchups matches={matches} />
       ) : (
-        <Bracket matches={matches} emptyStateText={data.emptyStateText} />
+        <Bracket
+          matches={matches}
+          bracketLayout={data.bracketLayout}
+          leftDivisionLabel={data.leftDivisionLabel}
+          rightDivisionLabel={data.rightDivisionLabel}
+          finalsLabel={data.finalsLabel}
+          emptyStateText={data.emptyStateText}
+        />
       )}
     </div>
   );
@@ -37,15 +44,99 @@ export default function TournamentDisplayBlock({ block }: Props) {
 
 function Bracket({
   matches,
+  bracketLayout,
+  leftDivisionLabel,
+  rightDivisionLabel,
+  finalsLabel,
   emptyStateText,
 }: {
   matches: Array<any>;
+  bracketLayout?: string;
+  leftDivisionLabel?: string;
+  rightDivisionLabel?: string;
+  finalsLabel?: string;
   emptyStateText?: string;
 }) {
   if (!matches.length) {
     return (
       <div className="rounded-xl border border-dashed border-white/20 p-4 text-sm opacity-70">
         {emptyStateText || "Add matchups to build your tournament display."}
+      </div>
+    );
+  }
+
+  if (bracketLayout === "east_west") {
+    const westMatches = matches.filter(
+      (m) => m.division === "west" || !m.division,
+    );
+
+    const eastMatches = matches.filter(
+      (m) => m.division === "east",
+    );
+
+    return (
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div>
+          <div className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] opacity-60">
+            {leftDivisionLabel || "West"}
+          </div>
+
+          <div className="space-y-3">
+            {westMatches.map((match) => (
+              <MatchCard key={match.id} match={match} />
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <div className="mb-3 text-center text-xs font-semibold uppercase tracking-[0.14em] opacity-60">
+            {finalsLabel || "Finals"}
+          </div>
+
+          <div className="rounded-xl border border-white/10 bg-white/10 p-4 text-center">
+            Championship Match
+          </div>
+        </div>
+
+        <div>
+          <div className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] opacity-60">
+            {rightDivisionLabel || "East"}
+          </div>
+
+          <div className="space-y-3">
+            {eastMatches.map((match) => (
+              <MatchCard key={match.id} match={match} />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (bracketLayout === "double_elimination") {
+    return (
+      <div className="grid gap-6 lg:grid-cols-2">
+        <div>
+          <div className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] opacity-60">
+            Winner Bracket
+          </div>
+
+          <div className="space-y-3">
+            {matches.map((match) => (
+              <MatchCard key={match.id} match={match} />
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <div className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] opacity-60">
+            Loser Bracket
+          </div>
+
+          <div className="rounded-xl border border-dashed border-white/20 p-4 text-sm opacity-70">
+            Loser bracket structure coming next phase.
+          </div>
+        </div>
       </div>
     );
   }

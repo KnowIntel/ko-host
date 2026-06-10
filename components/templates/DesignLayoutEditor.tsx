@@ -23833,6 +23833,40 @@ onClick={() =>
         </div>
 
         <div className="mt-3">
+  <div className={inspectorLabelClass()}>Division</div>
+
+  <select
+    value={match.division ?? "custom"}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "tournament_display"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                matches: block.data.matches.map((entry) =>
+                  entry.id === match.id
+                    ? {
+                        ...entry,
+                        division: e.target.value as any,
+                      }
+                    : entry,
+                ),
+              },
+            },
+      )
+    }
+    className={inspectorInputClass()}
+  >
+    <option value="custom">Custom</option>
+    <option value="west">West</option>
+    <option value="east">East</option>
+    <option value="finals">Finals</option>
+  </select>
+</div>
+
+        <div className="mt-3">
           <div className={inspectorLabelClass()}>Status</div>
 
           <select
