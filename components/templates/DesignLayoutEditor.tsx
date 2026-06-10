@@ -24922,7 +24922,7 @@ const lines = e.target.value.split("\n");
       </label>
     </div>
 
-    <label className="mt-3 flex items-center gap-3">
+    <label className="mt-4 flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
   <input
     type="checkbox"
     checked={selectedBlock.data.showTotalEnrolled !== false}
@@ -24943,7 +24943,7 @@ const lines = e.target.value.split("\n");
   Show Total Enrolled
 </label>
 
-<label className="mt-3 flex items-center gap-3">
+<label className="mt-4 flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
   <input
     type="checkbox"
     checked={Boolean(selectedBlock.data.showMetadataField)}
@@ -24964,7 +24964,7 @@ const lines = e.target.value.split("\n");
   Show Metadata Field
 </label>
 
-    <label className="flex items-center gap-2">
+    <label className="mt-4 flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
   <input
     type="checkbox"
     checked={
