@@ -122,7 +122,7 @@ const draftPageCountByTemplateDesignKey: Record<string, number> = {
   "watch_club:dunder": 5,
   "watch_club:hangout": 5,
 
-  "meet_and_greet:community": 2,
+  "meet_and_greet:community": 1,
 
 
 };
