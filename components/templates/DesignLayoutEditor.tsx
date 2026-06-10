@@ -2247,6 +2247,7 @@ const showTextControls =
   selectedBlock?.type === "enrollment_board" ||
   selectedBlock?.type === "form_field" ||
   selectedBlock?.type === "highlight" ||
+  selectedBlock?.type === "visitor_counter" ||
   selectedBlock?.type === "progress_bar" ||
   selectedBlock?.type === "donation" ||
   selectedBlock?.type === "link_hub" ||
@@ -2309,7 +2310,8 @@ const showAppearanceControls =
   selectedBlock?.type === "countdown" ||
   selectedBlock?.type === "timeline" ||
   selectedBlock?.type === "wave" ||
-  selectedBlock?.type === "highlight";
+  selectedBlock?.type === "highlight" ||
+  selectedBlock?.type === "visitor_counter";
 
 const showBorderWidthRadiusControls =
   selectedContext.kind === "label" ||
@@ -2340,6 +2342,7 @@ const showBorderWidthRadiusControls =
   selectedBlock?.type === "countdown" ||
   selectedBlock?.type === "timeline" ||
   selectedBlock?.type === "wave" ||
+  selectedBlock?.type === "visitor_counter" ||
   selectedBlock?.type === "highlight";
 
   const selectedTextValue = getSelectedTextValue(draft, selectedContext);
