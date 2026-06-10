@@ -2310,6 +2310,7 @@ const showBorderWidthRadiusControls =
   selectedContext.kind === "cta" ||
   selectedContext.kind === "image" ||
   selectedContext.kind === "imageCarousel" ||
+  selectedBlockFromDraft?.type === "gallery" ||
   selectedContext.kind === "shape" ||
   selectedBlock?.type === "thread" ||
   selectedBlock?.type === "enrollment_board" ||
