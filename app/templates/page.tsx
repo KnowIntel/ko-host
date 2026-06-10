@@ -175,13 +175,20 @@ const visibleRecentSites = useMemo(() => {
     Choose a template, make it yours, then go live — all for $12 for 90 days.
   </span>
 
-  <button
-    type="button"
-    onClick={() => setShowWhyKoHost(true)}
-    className="ml-2 inline whitespace-nowrap font-semibold text-blue-600 hover:text-blue-700"
-  >
-    Why Ko-Host?
-  </button>
+<button
+  type="button"
+  onClick={() => setShowWhyKoHost(true)}
+  className="ml-2 inline whitespace-nowrap font-semibold text-blue-600 hover:text-blue-700"
+>
+  Why Ko-Host?
+</button>
+
+<a
+  href="/get-started"
+  className="ml-2 mt-3 inline-flex whitespace-nowrap rounded-full bg-neutral-950 px-3 py-1.5 text-xs font-bold text-white shadow-sm transition hover:bg-neutral-800"
+>
+  Get Started
+</a>
 
   <div className="mt-3 max-w-[680px] rounded-2xl border border-blue-100 bg-gradient-to-r from-blue-50 via-white to-amber-50 px-4 py-3 shadow-sm">
     <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
