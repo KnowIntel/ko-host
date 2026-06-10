@@ -121,11 +121,11 @@ const faqGroups = [
     items: [
       {
         q: "What is Ko-Host?",
-        a: "Ko-Host is a microsite builder that allows you to create and publish beautiful, mobile-friendly websites in minutes — without coding, domain setup, or complicated website builders. It is designed for weddings, events, graduations, creator link hubs, parties, campaigns, open houses, community announcements, temporary websites, personal showcases, and more.",
+        a: "Ko-Host is a microsite builder that allows you to create and publish beautiful, mobile-friendly websites in minutes - without coding, domain setup, or complicated website builders. It is designed for weddings, events, graduations, creator link hubs, parties, campaigns, open houses, community announcements, temporary websites, personal showcases, and more.",
       },
       {
         q: "What is a microsite?",
-        a: "A microsite is a focused mini-website built around a specific purpose, event, person, campaign, or moment. Unlike a traditional website, microsites are faster to create, easier to manage, more visual, more shareable, and purpose-driven.",
+        a: "Ko-Host is a microsite publishing platform that allows you to create and publish beautiful, mobile-friendly websites in minutes - without coding, domain setup, or complicated website builders. It is designed for events, communities, creator link hubs, campaigns, promotions, announcements, temporary websites, personal showcases, and more.",
       },
       {
         q: "Who is Ko-Host for?",

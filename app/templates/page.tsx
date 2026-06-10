@@ -171,31 +171,33 @@ const visibleRecentSites = useMemo(() => {
       </h1>
 
 <div className="mt-3 text-sm leading-7 text-neutral-600 sm:text-[15px]">
-  <span className="inline">
+  <div>
     Choose a template, make it yours, then go live — all for $12 for 90 days.
-  </span>
+  </div>
 
-<button
-  type="button"
-  onClick={() => setShowWhyKoHost(true)}
-  className="ml-2 inline whitespace-nowrap font-semibold text-blue-600 hover:text-blue-700"
->
-  Why Ko-Host?
-</button>
+  <div className="mt-3 flex flex-wrap items-center gap-3">
+    <button
+      type="button"
+      onClick={() => setShowWhyKoHost(true)}
+      className="font-semibold text-blue-600 hover:text-blue-700"
+    >
+      Why Ko-Host?
+    </button>
 
-<a
-  href="/get-started"
-  className="ml-2 mt-3 inline-flex whitespace-nowrap rounded-full bg-neutral-950 px-3 py-1.5 text-xs font-bold text-white shadow-sm transition hover:bg-neutral-800"
->
-  Get Started
-</a>
+    <a
+      href="/get-started"
+      className="inline-flex whitespace-nowrap rounded-full bg-neutral-950 px-3 py-1.5 text-xs font-bold text-white shadow-sm transition hover:bg-neutral-800"
+    >
+      Get Started
+    </a>
+  </div>
 
   <div className="mt-3 max-w-[680px] rounded-2xl border border-blue-100 bg-gradient-to-r from-blue-50 via-white to-amber-50 px-4 py-3 shadow-sm">
     <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
       <div className="min-w-0">
-<div className="inline-flex w-fit rounded-full border border-blue-200 bg-white px-3 py-1 text-[11px] font-black uppercase tracking-[0.16em] text-blue-700 animate-kht-offer-glow">
-  Limited-Time Offer
-</div>
+        <div className="inline-flex w-fit rounded-full border border-blue-200 bg-white px-3 py-1 text-[11px] font-black uppercase tracking-[0.16em] text-blue-700 animate-kht-offer-glow">
+          Limited-Time Offer
+        </div>
 
         <div className="mt-1 text-sm font-semibold leading-5 text-neutral-900">
           Free custom development with your microsite purchase.
@@ -206,18 +208,18 @@ const visibleRecentSites = useMemo(() => {
         </div>
       </div>
 
-<div className="flex shrink-0 items-center gap-2">
-<a
-  href="/claim-offer"
-  className="rounded-full bg-neutral-950 px-4 py-2 text-xs font-bold text-white transition hover:bg-neutral-800"
->
-  Claim Offer
-</a>
+      <div className="flex shrink-0 items-center gap-2">
+        <a
+          href="/claim-offer"
+          className="rounded-full bg-neutral-950 px-4 py-2 text-xs font-bold text-white transition hover:bg-neutral-800"
+        >
+          Claim Offer
+        </a>
 
-  <div className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-amber-700">
-    Ends Soon
-  </div>
-</div>
+        <div className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-amber-700">
+          Ends Soon
+        </div>
+      </div>
     </div>
   </div>
 </div>
