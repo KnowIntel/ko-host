@@ -65,7 +65,8 @@ export type TemplateKey =
   | "sweepstakes"
   | "workshop"
   | "photo_gallery"
-  | "block_party"
+  | "game_day_central"
+  // | "block_party"
   | "surprise_party"
   | "celebration_of_life"
   | "retirement_party"
@@ -285,7 +286,7 @@ function inferCategory(key: TemplateKey): TemplateCategory {
     "corporate_event",
     "meet_and_greet",
     "alumni",
-    "block_party",
+    // "block_party",
     "bible_study",
     "speed_dating",
     "obstacle_race",
@@ -994,7 +995,16 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "gallery",
     defaultDraft: { title: "Photo Gallery", slugSuggestion: "photogallery" },
   },
-  {
+    {
+    key: "game_day_central",
+    title: "Game Day Central",
+    description: "Manage tournaments, schedules, brackets, and team discussions.",
+    thumb: "gamedaycentral",
+    setupMins: 2,
+    demoSlug: "gameday",
+    defaultDraft: { title: "Game Day Central", slugSuggestion: "gamedaycentral" },
+  },
+/*   {
     key: "block_party",
     title: "Block Party",
     description: "Invite neighbors, share details, and updates.",
@@ -1002,7 +1012,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 2,
     demoSlug: "block",
     defaultDraft: { title: "Block Party", slugSuggestion: "blockparty" },
-  },
+  }, */
 /*   {
     key: "surprise_party",
     title: "Surprise Party",
