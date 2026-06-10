@@ -3524,14 +3524,22 @@ function renderGalleryTile(
         </div>
       ) : null}
 
-      {options?.showDescription && description ? (
-        <div
-          className="text-xs leading-snug"
-          style={getContainerTextStyle(descriptionStyle)}
-        >
-          {description}
-        </div>
-      ) : null}
+{options?.showDescription ? (
+  <div
+    className="text-xs leading-snug"
+    style={{
+      ...getContainerTextStyle(descriptionStyle),
+      display: "-webkit-box",
+      WebkitLineClamp: 2,
+      WebkitBoxOrient: "vertical",
+      overflow: "hidden",
+      minHeight: "2.6em",
+      maxHeight: "2.6em",
+    }}
+  >
+    {description}
+  </div>
+) : null}
 
       {options?.showMetadata && metadata ? (
         <div
