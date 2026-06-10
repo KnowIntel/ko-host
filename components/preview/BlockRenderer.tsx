@@ -9932,115 +9932,173 @@ if (displayStyle === "meter") {
 function renderVisitorCounter(
   block: Extract<MicrositeBlock, { type: "visitor_counter" }>,
   designKey?: string,
+  micrositeId?: string | null,
 ) {
-  const variant = block.data.variant ?? "flip";
-  const alignment = block.data.alignment ?? "center";
-  const count = 1234;
+  function VisitorCounterPreview() {
+    const variant = block.data.variant ?? "flip";
+    const alignment = block.data.alignment ?? "center";
+    const metricType = block.data.metricType ?? "site_visits";
+    const animationDelayMs = Math.max(
+      0,
+      Number(block.data.animationDelayMs ?? 1500),
+    );
 
-  const baseTextStyle = getContainerTextStyle(block.data.style, designKey);
-  const numberTextStyle = getContainerTextStyle(
-    block.data.numberStyle ?? block.data.style,
-    designKey,
-  );
-  const labelTextStyle = getContainerTextStyle(
-    block.data.labelStyle ?? block.data.style,
-    designKey,
-  );
+    const [count, setCount] = useState(0);
+    const [lastUpdated, setLastUpdated] = useState<string | null>(null);
 
-  const alignClass =
-    alignment === "left"
-      ? "items-start text-left"
-      : alignment === "right"
-        ? "items-end text-right"
-        : "items-center text-center";
+    useEffect(() => {
+      let cancelled = false;
 
-  const formattedCount = new Intl.NumberFormat("en-US").format(count);
-  const digits = String(count).padStart(4, "0").split("");
+      async function loadCount() {
+        if (!micrositeId) {
+          setCount(0);
+          setLastUpdated(null);
+          return;
+        }
 
-  const digitTileClass = [
-    "flex h-12 min-w-9 items-center justify-center rounded-xl px-2 text-2xl font-black shadow-sm",
-    isLightDesign(designKey)
-      ? "bg-neutral-950 text-white"
-      : "bg-white text-neutral-950",
-  ].join(" ");
+        try {
+          const params = new URLSearchParams({
+            micrositeId,
+            metricType,
+          });
 
-  return (
-    <Surface block={block} designKey={designKey} className="">
-      <div className={`flex h-full min-h-0 flex-col justify-center gap-3 ${alignClass}`}>
-        {block.data.showHeading !== false ? (
-          <div className="text-base font-semibold" style={baseTextStyle}>
-            {block.data.heading || "Visitor Count"}
-          </div>
-        ) : null}
+          const res = await fetch(
+            `/api/public/visitor-count?${params.toString()}`,
+            { cache: "no-store" },
+          );
 
-        {block.data.showSubtitle === true && block.data.subtitle ? (
-          <div className="text-xs opacity-70" style={baseTextStyle}>
-            {block.data.subtitle}
-          </div>
-        ) : null}
+          const data = await res.json();
 
-        {variant === "smooth_count" ? (
-          <div
-            className="leading-none"
-            style={{
-              fontSize: 48,
-              fontWeight: 900,
-              ...numberTextStyle,
-            }}
-          >
-            {formattedCount}
-          </div>
-        ) : variant === "dial" ? (
-          <div className="flex justify-center gap-1.5">
-            {digits.map((digit, index) => (
-              <div
-                key={`${block.id}-dial-${index}`}
-                className={[
-                  "relative flex h-14 min-w-9 items-center justify-center overflow-hidden rounded-2xl border px-2 text-2xl font-black shadow-sm",
-                  isLightDesign(designKey)
-                    ? "border-neutral-200 bg-white text-neutral-950"
-                    : "border-white/10 bg-white/10 text-white",
-                ].join(" ")}
-                style={numberTextStyle}
-              >
-                <div className="absolute inset-x-1 top-1 h-px bg-white/30" />
-                <div className="absolute inset-x-1 bottom-1 h-px bg-black/10" />
-                {digit}
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="flex justify-center gap-1.5">
-            {digits.map((digit, index) => (
-              <div
-                key={`${block.id}-flip-${index}`}
-                className={digitTileClass}
-                style={numberTextStyle}
-              >
-                {digit}
-              </div>
-            ))}
-          </div>
-        )}
+          if (!res.ok) throw new Error();
 
-        {block.data.showLabel !== false ? (
-          <div
-            className="text-xs font-semibold uppercase tracking-[0.16em] opacity-70"
-            style={labelTextStyle}
-          >
-            {block.data.showIcon !== false ? "👁️ " : ""}
-            {block.data.label || "Visitors"}
-          </div>
-        ) : null}
+          window.setTimeout(() => {
+            if (cancelled) return;
 
-        {block.data.showLastUpdated === true ? (
-          <div className="text-[11px] opacity-50" style={baseTextStyle}>
-            Last updated just now
-          </div>
-        ) : null}
-      </div>
-    </Surface>
-  );
+            setCount(Number(data.count ?? 0));
+            setLastUpdated(data.lastUpdated ?? null);
+          }, animationDelayMs);
+        } catch {
+          if (!cancelled) {
+            setCount(0);
+            setLastUpdated(null);
+          }
+        }
+      }
+
+      void loadCount();
+
+      return () => {
+        cancelled = true;
+      };
+    }, [micrositeId, metricType, animationDelayMs]);
+
+    const baseTextStyle = getContainerTextStyle(block.data.style, designKey);
+    const numberTextStyle = getContainerTextStyle(
+      block.data.numberStyle ?? block.data.style,
+      designKey,
+    );
+    const labelTextStyle = getContainerTextStyle(
+      block.data.labelStyle ?? block.data.style,
+      designKey,
+    );
+
+    const alignClass =
+      alignment === "left"
+        ? "items-start text-left"
+        : alignment === "right"
+          ? "items-end text-right"
+          : "items-center text-center";
+
+    const formattedCount = new Intl.NumberFormat("en-US").format(count);
+    const digits = String(count).padStart(4, "0").split("");
+
+    const digitTileClass = [
+      "flex h-12 min-w-9 items-center justify-center rounded-xl px-2 text-2xl font-black shadow-sm transition-all duration-500",
+      isLightDesign(designKey)
+        ? "bg-neutral-950 text-white"
+        : "bg-white text-neutral-950",
+    ].join(" ");
+
+    return (
+      <Surface block={block} designKey={designKey} className="">
+        <div className={`flex h-full min-h-0 flex-col justify-center gap-3 ${alignClass}`}>
+          {block.data.showHeading !== false ? (
+            <div className="text-base font-semibold" style={baseTextStyle}>
+              {block.data.heading || "Visitor Count"}
+            </div>
+          ) : null}
+
+          {block.data.showSubtitle === true && block.data.subtitle ? (
+            <div className="text-xs opacity-70" style={baseTextStyle}>
+              {block.data.subtitle}
+            </div>
+          ) : null}
+
+          {variant === "smooth_count" ? (
+            <div
+              className="leading-none transition-all duration-500"
+              style={{
+                fontSize: 48,
+                fontWeight: 900,
+                ...numberTextStyle,
+              }}
+            >
+              {formattedCount}
+            </div>
+          ) : variant === "dial" ? (
+            <div className="flex justify-center gap-1.5">
+              {digits.map((digit, index) => (
+                <div
+                  key={`${block.id}-dial-${index}`}
+                  className={[
+                    "relative flex h-14 min-w-9 items-center justify-center overflow-hidden rounded-2xl border px-2 text-2xl font-black shadow-sm transition-all duration-500",
+                    isLightDesign(designKey)
+                      ? "border-neutral-200 bg-white text-neutral-950"
+                      : "border-white/10 bg-white/10 text-white",
+                  ].join(" ")}
+                  style={numberTextStyle}
+                >
+                  <div className="absolute inset-x-1 top-1 h-px bg-white/30" />
+                  <div className="absolute inset-x-1 bottom-1 h-px bg-black/10" />
+                  {digit}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex justify-center gap-1.5">
+              {digits.map((digit, index) => (
+                <div
+                  key={`${block.id}-flip-${index}`}
+                  className={digitTileClass}
+                  style={numberTextStyle}
+                >
+                  {digit}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {block.data.showLabel !== false ? (
+            <div
+              className="text-xs font-semibold uppercase tracking-[0.16em] opacity-70"
+              style={labelTextStyle}
+            >
+              {block.data.showIcon !== false ? "👁️ " : ""}
+              {block.data.label || "Visitors"}
+            </div>
+          ) : null}
+
+          {block.data.showLastUpdated === true ? (
+            <div className="text-[11px] opacity-50" style={baseTextStyle}>
+              {lastUpdated ? "Last updated just now" : "Waiting for visits"}
+            </div>
+          ) : null}
+        </div>
+      </Surface>
+    );
+  }
+
+  return <VisitorCounterPreview />;
 }
 
 function renderDonation(
@@ -14158,7 +14216,7 @@ case "post_board":
     case "highlight":
       return renderHighlight(block, designKey, micrositeId, micrositeSlug);
     case "visitor_counter":
-      return renderVisitorCounter(block, designKey);
+      return renderVisitorCounter(block, designKey, micrositeId);
     case "rich_text":
       return renderRichText(block, designKey);
     case "content_panel":
