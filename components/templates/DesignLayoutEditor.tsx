@@ -1274,7 +1274,7 @@ function getToolIconPath(tool: (typeof CATEGORY_BUTTONS)[BottomCategory][number]
   if (tool.label === "Bookmark") return "/menu-icons/block-bookmark.svg";
 
   if (tool.label === "Highlight") return "/menu-icons/block-highlight.svg";
-  if (tool.label === "Visitor Count") return "/menu-icons/block-visitor-count.svg";
+  if (tool.label === "Visitor Counter") return "/menu-icons/block-visitor-counter.svg";
   if (tool.label === "Progress Bar") return "/menu-icons/block-progress-meter.svg";
 
   if (tool.label === "Countdown") return "/menu-icons/block-countdown.svg";
