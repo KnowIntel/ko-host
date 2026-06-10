@@ -6281,6 +6281,7 @@ async function uploadImageToSelectedBlock(
   calendarEventId?: string,
   postBoardPostId?: string,
   contentPanelId?: string,
+  tournamentTeamId?: string,
 ) {
   await openImagePicker({
     onSelect: async (files) => {
@@ -6418,6 +6419,24 @@ async function uploadImageToSelectedBlock(
                         imageAlt: file.name,
                       }
                     : panel,
+                ),
+              },
+            };
+          }
+
+                    if (block.type === "tournament_display" && tournamentTeamId) {
+            return {
+              ...block,
+              data: {
+                ...block.data,
+                teams: block.data.teams.map((team) =>
+                  team.id === tournamentTeamId
+                    ? {
+                        ...team,
+                        imageUrl: uploaded.url,
+                        imageStoragePath: uploaded.storagePath,
+                      }
+                    : team,
                 ),
               },
             };
@@ -23518,6 +23537,23 @@ onClick={() =>
               }
               className={inspectorInputClass()}
             />
+
+            <button
+              type="button"
+              className="mt-3 inline-flex h-10 items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-700 hover:bg-neutral-50"
+              onClick={() =>
+                void uploadImageToSelectedBlock(
+                  selectedBlock.id,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  team.id,
+                )
+              }
+            >
+              Browse Team Logo
+            </button>
 
             <div className="mt-3 grid grid-cols-3 gap-2">
               <div>
