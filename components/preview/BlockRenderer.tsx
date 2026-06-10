@@ -8,6 +8,7 @@ import PopBalloonLive from "@/components/blocks/PopBalloonLive";
 import AppModal from "@/components/ui/AppModal";
 import ContentPanelBlock from "@/components/blocks/ContentPanelBlock";
 import EnrollmentBoardBlock from "@/components/blocks/EnrollmentBoardBlock";
+import TournamentDisplayBlock from "@/components/blocks/TournamentDisplayBlock";
 import type { CSSProperties } from "react";
 import {
   ENROLLMENT_BOARD_PROFILE_EVENT,
@@ -14233,6 +14234,8 @@ case "post_board":
       return renderRegistry(block, designKey);
     case "schedule_agenda":
       return renderScheduleAgenda(block, designKey);
+    case "tournament_display":
+      return <TournamentDisplayBlock block={block} designKey={designKey} />;
     case "calendar_event":
       return renderCalendarEvent(block, designKey);
     case "map_location":

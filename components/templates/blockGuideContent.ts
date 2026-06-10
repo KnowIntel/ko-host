@@ -953,6 +953,46 @@ schedule_agenda: {
   ],
 },
 
+tournament_display: {
+  title: "Tournament Display",
+  subtitle:
+    "Build brackets, standings, and matchup cards for tournaments.",
+  sections: [
+    {
+      title: "Overview",
+      body:
+        "The Tournament Display block shows tournament information as a bracket, standings table, or matchup card list.",
+    },
+    {
+      title: "Objective",
+      bullets: [
+        "Display playoff brackets.",
+        "Track team standings.",
+        "Show upcoming, live, final, or postponed matchups.",
+      ],
+    },
+    {
+      title: "Inspector Configuration",
+      bullets: [
+        "Tournament name, season, and year.",
+        "Display mode: Bracket, Standings, or Matchups.",
+        "Bracket layout: Single Elimination, Double Elimination, East / West, or Custom.",
+        "Teams, scores, records, locations, and status badges.",
+      ],
+    },
+    {
+      title: "Best Use Cases",
+      bullets: [
+        "Sports leagues.",
+        "School athletics.",
+        "Esports tournaments.",
+        "Fantasy sports groups.",
+        "Church or company tournaments.",
+      ],
+    },
+  ],
+},
+
 calendar_event: {
   title: "Calendar Event",
   subtitle:

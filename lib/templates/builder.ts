@@ -146,6 +146,7 @@ export type BuilderBlockType =
   | "link_hub"
   | "checklist"
   | "schedule_agenda"
+  | "tournament_display"
   | "calendar_event"
   | "map_location"
   | "file_share"
@@ -1396,6 +1397,86 @@ export type ScheduleAgendaBlock = BaseBlock & {
   };
 };
 
+export type TournamentDisplayMode =
+  | "bracket"
+  | "standings"
+  | "matchups";
+
+export type TournamentBracketLayout =
+  | "single_elimination"
+  | "double_elimination"
+  | "east_west"
+  | "custom";
+
+export type TournamentTeam = {
+  id: string;
+  name: string;
+  seed?: number;
+  wins?: number;
+  losses?: number;
+  record?: string;
+  imageUrl?: string;
+  imageStoragePath?: string;
+  coach?: string;
+  stats?: string;
+  color?: string;
+};
+
+export type TournamentMatch = {
+  id: string;
+  roundId?: string;
+  division?: "east" | "west" | "finals" | "custom";
+  teamA?: string;
+  teamB?: string;
+  scoreA?: number;
+  scoreB?: number;
+  winner?: string;
+  gameDate?: string;
+  gameTime?: string;
+  location?: string;
+  status?: "upcoming" | "live" | "final" | "postponed";
+  threadId?: string;
+  calendarEventId?: string;
+};
+
+export type TournamentRound = {
+  id: string;
+  title: string;
+  division?: "east" | "west" | "finals" | "custom";
+  matchIds: string[];
+};
+
+export type TournamentDisplayBlock = BaseBlock & {
+  type: "tournament_display";
+  data: {
+    tournamentName?: string;
+    season?: string;
+    year?: string;
+    displayMode?: TournamentDisplayMode;
+    bracketLayout?: TournamentBracketLayout;
+    mirroredBracket?: boolean;
+    leftDivisionLabel?: string;
+    rightDivisionLabel?: string;
+    finalsLabel?: string;
+    teams: TournamentTeam[];
+    matches: TournamentMatch[];
+    rounds?: TournamentRound[];
+    showTeamLogos?: boolean;
+    showSeeds?: boolean;
+    showRecords?: boolean;
+    showScores?: boolean;
+    showGameDate?: boolean;
+    showLocation?: boolean;
+    showStatusBadges?: boolean;
+    showDiscussionLinks?: boolean;
+    emptyStateText?: string;
+    style?: Record<string, any>;
+    teamStyle?: Record<string, any>;
+    matchStyle?: Record<string, any>;
+    bracketStyle?: Record<string, any>;
+  };
+};
+
 export type MapLocationBlock = BaseBlock & {
   type: "map_location";
   data: {
@@ -1762,6 +1843,7 @@ export type MicrositeBlock =
   | LinkHubBlock
   | ChecklistBlock
   | ScheduleAgendaBlock
+  | TournamentDisplayBlock
   | CalendarEventBlock
   | MapLocationBlock
   | FileShareBlock
@@ -4227,6 +4309,81 @@ data: {
             },
           ],
           style: createDefaultTextStyle(),
+        },
+      };
+
+    case "tournament_display":
+      return {
+        id: makeId("tournament"),
+        type: "tournament_display",
+        label: "Tournament Display",
+        grid: {
+          ...grid,
+          colSpan: Math.max(grid.colSpan, 5),
+          rowSpan: Math.max(grid.rowSpan, 5),
+        },
+        appearance: createDefaultBlockAppearance(),
+        data: {
+          tournamentName: "Tournament Bracket",
+          season: "Season",
+          year: "2026",
+          displayMode: "bracket",
+          bracketLayout: "single_elimination",
+          mirroredBracket: false,
+          leftDivisionLabel: "West",
+          rightDivisionLabel: "East",
+          finalsLabel: "Finals",
+          showTeamLogos: true,
+          showSeeds: true,
+          showRecords: true,
+          showScores: true,
+          showGameDate: true,
+          showLocation: true,
+          showStatusBadges: true,
+          showDiscussionLinks: true,
+          emptyStateText:
+            "Add teams and matchups to build your tournament display.",
+          teams: [
+            {
+              id: makeId("team"),
+              name: "Team One",
+              seed: 1,
+              wins: 0,
+              losses: 0,
+              record: "0-0",
+            },
+            {
+              id: makeId("team"),
+              name: "Team Two",
+              seed: 2,
+              wins: 0,
+              losses: 0,
+              record: "0-0",
+            },
+          ],
+          matches: [
+            {
+              id: makeId("match"),
+              teamA: "Team One",
+              teamB: "Team Two",
+              scoreA: 0,
+              scoreB: 0,
+              status: "upcoming",
+              division: "custom",
+            },
+          ],
+          rounds: [
+            {
+              id: makeId("round"),
+              title: "Round 1",
+              division: "custom",
+              matchIds: [],
+            },
+          ],
+          style: createDefaultTextStyle(),
+          teamStyle: createDefaultTextStyle(),
+          matchStyle: createDefaultTextStyle(),
+          bracketStyle: createDefaultTextStyle(),
         },
       };
 

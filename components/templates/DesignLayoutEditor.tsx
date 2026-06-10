@@ -528,6 +528,12 @@ Scheduling: [
     type: "timeline",
     iconName: "timeline",
   },
+  {
+    kind: "block",
+    label: "Tournament Display",
+    type: "tournament_display",
+    iconName: "scheduleAgenda",
+  },
   { kind: "block", label: "Checklist", type: "checklist" },
   { kind: "block", label: "Schedule / Agenda", type: "schedule_agenda" },
 {
@@ -23321,6 +23327,606 @@ onClick={() =>
         Add Event
       </button>
     </div>
+  </div>
+) : null}
+
+{selectedBlock?.type === "tournament_display" ? (
+  <div className={inspectorCardClass()}>
+    <div className={inspectorLabelClass()}>Tournament Display</div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Tournament Name</div>
+      <input
+        type="text"
+        value={selectedBlock.data.tournamentName ?? ""}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "tournament_display"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    tournamentName: e.target.value,
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
+
+    <div className="mt-4 grid grid-cols-2 gap-3">
+      <div>
+        <div className={inspectorLabelClass()}>Season</div>
+        <input
+          type="text"
+          value={selectedBlock.data.season ?? ""}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "tournament_display"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      season: e.target.value,
+                    },
+                  },
+            )
+          }
+          className={inspectorInputClass()}
+        />
+      </div>
+
+      <div>
+        <div className={inspectorLabelClass()}>Year</div>
+        <input
+          type="text"
+          value={selectedBlock.data.year ?? ""}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "tournament_display"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      year: e.target.value,
+                    },
+                  },
+            )
+          }
+          className={inspectorInputClass()}
+        />
+      </div>
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Display Mode</div>
+      <select
+        value={selectedBlock.data.displayMode ?? "bracket"}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "tournament_display"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    displayMode: e.target.value as any,
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      >
+        <option value="bracket">Bracket</option>
+        <option value="standings">Standings</option>
+        <option value="matchups">Matchups</option>
+      </select>
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Bracket Layout</div>
+      <select
+        value={selectedBlock.data.bracketLayout ?? "single_elimination"}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "tournament_display"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    bracketLayout: e.target.value as any,
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      >
+        <option value="single_elimination">Single Elimination</option>
+        <option value="double_elimination">Double Elimination</option>
+        <option value="east_west">East / West</option>
+        <option value="custom">Custom</option>
+      </select>
+    </div>
+
+    <div className="mt-4 grid grid-cols-2 gap-2">
+      {[
+        ["showScores", "Scores"],
+        ["showSeeds", "Seeds"],
+        ["showRecords", "Records"],
+        ["showStatusBadges", "Status"],
+      ].map(([key, label]) => (
+        <label
+          key={key}
+          className="flex items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm text-neutral-700"
+        >
+          <input
+            type="checkbox"
+            checked={Boolean((selectedBlock.data as any)[key])}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "tournament_display"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        [key]: e.target.checked,
+                      },
+                    },
+              )
+            }
+          />
+          {label}
+        </label>
+      ))}
+    </div>
+
+    <div className="mt-5">
+      <div className={inspectorLabelClass()}>Teams</div>
+
+      <div className="mt-3 space-y-3">
+        {selectedBlock.data.teams.map((team) => (
+          <div
+            key={team.id}
+            className="rounded-xl border border-neutral-200 bg-neutral-50 p-3"
+          >
+            <div className={inspectorLabelClass()}>Team Name</div>
+            <input
+              type="text"
+              value={team.name}
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "tournament_display"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          teams: block.data.teams.map((entry) =>
+                            entry.id === team.id
+                              ? { ...entry, name: e.target.value }
+                              : entry,
+                          ),
+                        },
+                      },
+                )
+              }
+              className={inspectorInputClass()}
+            />
+
+            <div className="mt-3 grid grid-cols-3 gap-2">
+              <div>
+                <div className={inspectorLabelClass()}>Seed</div>
+                <input
+                  type="number"
+                  value={team.seed ?? 0}
+                  onChange={(e) =>
+                    updateSelectedBlock((block) =>
+                      block.type !== "tournament_display"
+                        ? block
+                        : {
+                            ...block,
+                            data: {
+                              ...block.data,
+                              teams: block.data.teams.map((entry) =>
+                                entry.id === team.id
+                                  ? {
+                                      ...entry,
+                                      seed: Number(e.target.value),
+                                    }
+                                  : entry,
+                              ),
+                            },
+                          },
+                    )
+                  }
+                  className={inspectorInputClass()}
+                />
+              </div>
+
+              <div>
+                <div className={inspectorLabelClass()}>Wins</div>
+                <input
+                  type="number"
+                  value={team.wins ?? 0}
+                  onChange={(e) =>
+                    updateSelectedBlock((block) =>
+                      block.type !== "tournament_display"
+                        ? block
+                        : {
+                            ...block,
+                            data: {
+                              ...block.data,
+                              teams: block.data.teams.map((entry) =>
+                                entry.id === team.id
+                                  ? {
+                                      ...entry,
+                                      wins: Number(e.target.value),
+                                    }
+                                  : entry,
+                              ),
+                            },
+                          },
+                    )
+                  }
+                  className={inspectorInputClass()}
+                />
+              </div>
+
+              <div>
+                <div className={inspectorLabelClass()}>Losses</div>
+                <input
+                  type="number"
+                  value={team.losses ?? 0}
+                  onChange={(e) =>
+                    updateSelectedBlock((block) =>
+                      block.type !== "tournament_display"
+                        ? block
+                        : {
+                            ...block,
+                            data: {
+                              ...block.data,
+                              teams: block.data.teams.map((entry) =>
+                                entry.id === team.id
+                                  ? {
+                                      ...entry,
+                                      losses: Number(e.target.value),
+                                    }
+                                  : entry,
+                              ),
+                            },
+                          },
+                    )
+                  }
+                  className={inspectorInputClass()}
+                />
+              </div>
+            </div>
+
+            <div className="mt-3">
+              <div className={inspectorLabelClass()}>Record</div>
+              <input
+                type="text"
+                value={team.record ?? ""}
+                onChange={(e) =>
+                  updateSelectedBlock((block) =>
+                    block.type !== "tournament_display"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            teams: block.data.teams.map((entry) =>
+                              entry.id === team.id
+                                ? { ...entry, record: e.target.value }
+                                : entry,
+                            ),
+                          },
+                        },
+                  )
+                }
+                className={inspectorInputClass()}
+              />
+            </div>
+
+            <div className="mt-3 flex justify-end">
+              <button
+                type="button"
+                className={toolSetButtonClass("remove")}
+                onClick={() =>
+                  updateSelectedBlock((block) =>
+                    block.type !== "tournament_display"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            teams:
+                              block.data.teams.length > 1
+                                ? block.data.teams.filter(
+                                    (entry) => entry.id !== team.id,
+                                  )
+                                : block.data.teams,
+                          },
+                        },
+                  )
+                }
+              >
+                ×
+              </button>
+            </div>
+          </div>
+        ))}
+
+        <button
+          type="button"
+          className={toolSetButtonClass("front")}
+          onClick={() =>
+            updateSelectedBlock((block) =>
+              block.type !== "tournament_display"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      teams: [
+                        ...block.data.teams,
+                        {
+                          id: makeClientId("team"),
+                          name: "New Team",
+                          seed: block.data.teams.length + 1,
+                          wins: 0,
+                          losses: 0,
+                          record: "0-0",
+                        },
+                      ],
+                    },
+                  },
+            )
+          }
+        >
+          Add Team
+        </button>
+      </div>
+    </div>
+
+    <div className="mt-6">
+  <div className={inspectorLabelClass()}>Matchups</div>
+
+  <div className="mt-3 space-y-3">
+    {selectedBlock.data.matches.map((match) => (
+      <div
+        key={match.id}
+        className="rounded-xl border border-neutral-200 bg-neutral-50 p-3"
+      >
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <div className={inspectorLabelClass()}>Team A</div>
+            <select
+              value={match.teamA ?? ""}
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "tournament_display"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          matches: block.data.matches.map((entry) =>
+                            entry.id === match.id
+                              ? { ...entry, teamA: e.target.value }
+                              : entry,
+                          ),
+                        },
+                      },
+                )
+              }
+              className={inspectorInputClass()}
+            >
+              <option value="">Select Team</option>
+
+              {selectedBlock.data.teams.map((team) => (
+                <option key={team.id} value={team.name}>
+                  {team.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <div className={inspectorLabelClass()}>Team B</div>
+            <select
+              value={match.teamB ?? ""}
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "tournament_display"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          matches: block.data.matches.map((entry) =>
+                            entry.id === match.id
+                              ? { ...entry, teamB: e.target.value }
+                              : entry,
+                          ),
+                        },
+                      },
+                )
+              }
+              className={inspectorInputClass()}
+            >
+              <option value="">Select Team</option>
+
+              {selectedBlock.data.teams.map((team) => (
+                <option key={team.id} value={team.name}>
+                  {team.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <div>
+            <div className={inspectorLabelClass()}>Score A</div>
+            <input
+              type="number"
+              value={match.scoreA ?? 0}
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "tournament_display"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          matches: block.data.matches.map((entry) =>
+                            entry.id === match.id
+                              ? {
+                                  ...entry,
+                                  scoreA: Number(e.target.value),
+                                }
+                              : entry,
+                          ),
+                        },
+                      },
+                )
+              }
+              className={inspectorInputClass()}
+            />
+          </div>
+
+          <div>
+            <div className={inspectorLabelClass()}>Score B</div>
+            <input
+              type="number"
+              value={match.scoreB ?? 0}
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "tournament_display"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          matches: block.data.matches.map((entry) =>
+                            entry.id === match.id
+                              ? {
+                                  ...entry,
+                                  scoreB: Number(e.target.value),
+                                }
+                              : entry,
+                          ),
+                        },
+                      },
+                )
+              }
+              className={inspectorInputClass()}
+            />
+          </div>
+        </div>
+
+        <div className="mt-3">
+          <div className={inspectorLabelClass()}>Status</div>
+
+          <select
+            value={match.status ?? "upcoming"}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "tournament_display"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        matches: block.data.matches.map((entry) =>
+                          entry.id === match.id
+                            ? {
+                                ...entry,
+                                status: e.target.value as any,
+                              }
+                            : entry,
+                        ),
+                      },
+                    },
+              )
+            }
+            className={inspectorInputClass()}
+          >
+            <option value="upcoming">Upcoming</option>
+            <option value="live">Live</option>
+            <option value="final">Final</option>
+            <option value="postponed">Postponed</option>
+          </select>
+        </div>
+
+        <div className="mt-3 flex justify-end">
+          <button
+            type="button"
+            className={toolSetButtonClass("remove")}
+            onClick={() =>
+              updateSelectedBlock((block) =>
+                block.type !== "tournament_display"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        matches:
+                          block.data.matches.length > 1
+                            ? block.data.matches.filter(
+                                (entry) => entry.id !== match.id,
+                              )
+                            : block.data.matches,
+                      },
+                    },
+              )
+            }
+          >
+            ×
+          </button>
+        </div>
+      </div>
+    ))}
+
+    <button
+      type="button"
+      className={toolSetButtonClass("front")}
+      onClick={() =>
+        updateSelectedBlock((block) =>
+          block.type !== "tournament_display"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  matches: [
+                    ...block.data.matches,
+                    {
+                      id: makeClientId("match"),
+                      teamA: "",
+                      teamB: "",
+                      scoreA: 0,
+                      scoreB: 0,
+                      status: "upcoming",
+                      division: "custom",
+                    },
+                  ],
+                },
+              },
+        )
+      }
+    >
+      Add Match
+    </button>
+  </div>
+</div>
   </div>
 ) : null}
 
