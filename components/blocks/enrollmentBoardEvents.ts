@@ -14,6 +14,7 @@ export type EnrollmentBoardProfileEventDetail = {
   profileImageUrl?: string | null;
   name?: string | null;
   quote?: string | null;
+  metadata?: string | null;
   activeCount?: number;
 
   entries?: Array<{

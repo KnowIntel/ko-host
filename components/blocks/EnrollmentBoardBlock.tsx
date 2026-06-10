@@ -15,6 +15,7 @@ type EnrollmentEntry = {
   id: string;
   name: string;
   quote?: string | null;
+  metadata?: string | null;
   profileImageUrl?: string | null;
   createdAt?: string;
   isMine?: boolean;
@@ -151,6 +152,7 @@ export default function EnrollmentBoardBlock({
   const [entries, setEntries] = useState<EnrollmentEntry[]>([]);
   const [name, setName] = useState("");
   const [quote, setQuote] = useState("");
+  const [metadata, setMetadata] = useState("");
   const [email, setEmail] = useState("");
   const [image, setImage] = useState<File | null>(null);
   const [statusMessage, setStatusMessage] = useState("");
@@ -296,6 +298,7 @@ if (loadedEntries.length === 0) {
         profileImageUrl: null,
         name: null,
         quote: null,
+        metadata: null,
         activeCount: 0,
         entries: [],
       },
@@ -536,6 +539,7 @@ async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
       profileImageUrl: localProfileImageUrl,
       createdAt: new Date().toISOString(),
       isMine: true,
+      metadata: metadata.trim(),
     };
 
     const nextEntries = [localEntry, ...entries];
@@ -547,6 +551,7 @@ localStorage.setItem(
 );
 setName("");
 setQuote("");
+setMetadata("");
 setEmail("");
 setImage(null);
 if (imageInputRef.current) imageInputRef.current.value = "";
@@ -570,6 +575,7 @@ for (const eventMicrositeId of ["", "preview"]) {
         profileImageUrl: localProfileImageUrl || null,
         name: localEntry.name,
         quote: localEntry.quote,
+        metadata: localEntry.metadata,
         activeCount: nextActiveCount,
         entries: nextEntries,
       },
@@ -632,6 +638,7 @@ for (const eventMicrositeId of ["", "preview"]) {
 setEntries(nextEntries);
 setName("");
 setQuote("");
+setMetadata("");
 setEmail("");
 setImage(null);
 if (imageInputRef.current) imageInputRef.current.value = "";
@@ -653,6 +660,7 @@ window.dispatchEvent(
       profileImageUrl: data.entry?.profileImageUrl ?? null,
       name: data.entry?.name ?? name.trim(),
       quote: data.entry?.quote ?? quote.trim(),
+      metadata: data.entry?.metadata ?? metadata.trim(),
       activeCount: nextActiveCount,
       entries: nextEntries,
     },
@@ -691,6 +699,7 @@ window.dispatchEvent(
       profileImageUrl: null,
       name: null,
       quote: null,
+      metadata: null,
       activeCount: nextEntries.length,
       entries: nextEntries,
     },
@@ -741,6 +750,7 @@ window.dispatchEvent(
       profileImageUrl: null,
       name: null,
       quote: null,
+      metadata: null,
       activeCount: nextEntries.length,
       entries: nextEntries,
     },
@@ -807,7 +817,7 @@ return (
           </div>
         ) : null}
 
-        {block.data.showEnrollmentCount !== false ? (
+        {block.data.showTotalEnrolled !== false ? (
           <div
             className="mt-2 inline-flex rounded-full px-3 py-1 text-xs font-bold"
             style={{
@@ -876,6 +886,20 @@ return (
               {quote.length}/{quoteMaxLength}
             </div>
           ) : null}
+
+          {block.data.showMetadataField ? (
+  <input
+    type="text"
+    value={metadata}
+    onChange={(e) => setMetadata(e.target.value)}
+    placeholder={block.data.metadataLabel ?? "Metadata"}
+    className="w-full px-3 py-2 text-sm font-semibold outline-none"
+    style={{
+      borderStyle: "solid",
+      ...inputStyle,
+    }}
+  />
+) : null}
 
           {block.data.showEmailField !== false ? (
             <input

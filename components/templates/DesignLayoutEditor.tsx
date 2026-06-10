@@ -24922,6 +24922,48 @@ const lines = e.target.value.split("\n");
       </label>
     </div>
 
+    <label className="mt-3 flex items-center gap-3">
+  <input
+    type="checkbox"
+    checked={selectedBlock.data.showTotalEnrolled !== false}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "enrollment_board"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                showTotalEnrolled: e.target.checked,
+              },
+            },
+      )
+    }
+  />
+  Show Total Enrolled
+</label>
+
+<label className="mt-3 flex items-center gap-3">
+  <input
+    type="checkbox"
+    checked={Boolean(selectedBlock.data.showMetadataField)}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "enrollment_board"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                showMetadataField: e.target.checked,
+              },
+            },
+      )
+    }
+  />
+  Show Metadata Field
+</label>
+
     <label className="flex items-center gap-2">
   <input
     type="checkbox"
@@ -24965,6 +25007,28 @@ const lines = e.target.value.split("\n");
           className={inspectorInputClass()}
         />
       </div>
+
+      <div className="mt-4">
+  <div className={inspectorLabelClass()}>Metadata Label</div>
+  <input
+    type="text"
+    value={selectedBlock.data.metadataLabel ?? "Metadata"}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "enrollment_board"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                metadataLabel: e.target.value,
+              },
+            },
+      )
+    }
+    className={inspectorInputClass()}
+  />
+</div>
 
       <div className="mt-4">
         <div className={inspectorLabelClass()}>Quote Label</div>
@@ -25031,6 +25095,8 @@ const lines = e.target.value.split("\n");
           className={inspectorInputClass()}
         />
       </div>
+
+
     </div>
 
     <div className="mt-5 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">

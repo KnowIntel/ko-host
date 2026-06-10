@@ -910,6 +910,9 @@ export type EnrollmentBoardBlock = BaseBlock & {
     heading?: string;
     subtitle?: string;
     variant: EnrollmentBoardVariant;
+    metadataLabel?: string;
+    showMetadataField?: boolean;
+    showTotalEnrolled?: boolean;
 
     showHeading?: boolean;
     showSubtitle?: boolean;
@@ -3488,10 +3491,13 @@ case "post_board":
           quoteLabel: "Quote or message",
           emailLabel: "Email",
           imageLabel: "Profile image",
+          metadataLabel: "Metadata",
 
           showQuoteField: true,
           showEmailField: true,
           showImageUpload: true,
+          showMetadataField: false,
+          showTotalEnrolled: true,
 
           requireQuote: false,
           requireEmail: false,
@@ -5429,6 +5435,13 @@ if (block.type === "enrollment_board") {
       ...data,
 
       showEnrollmentList: data.showEnrollmentList !== false,
+      showMetadataField: Boolean(data.showMetadataField),
+      showTotalEnrolled: data.showTotalEnrolled !== false,
+
+      metadataLabel:
+        typeof data.metadataLabel === "string"
+          ? data.metadataLabel
+          : "Metadata",
 
       memberListPosition:
         data.memberListPosition === "profile"
@@ -5461,15 +5474,15 @@ if (block.type === "enrollment_board") {
           ? data.linkedQuoteLabelBlockId
           : "",
 
-          linkedGalleryBlockId:
-  typeof data.linkedGalleryBlockId === "string"
-    ? data.linkedGalleryBlockId
-    : "",
+      linkedGalleryBlockId:
+        typeof data.linkedGalleryBlockId === "string"
+          ? data.linkedGalleryBlockId
+          : "",
 
-linkedCarouselBlockId:
-  typeof data.linkedCarouselBlockId === "string"
-    ? data.linkedCarouselBlockId
-    : "",
+      linkedCarouselBlockId:
+        typeof data.linkedCarouselBlockId === "string"
+          ? data.linkedCarouselBlockId
+          : "",
 
       style: {
         ...createDefaultTextStyle(),
