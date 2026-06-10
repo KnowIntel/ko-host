@@ -1,5 +1,5 @@
 // app/s/[slug]/[page]/page.tsx
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import crypto from "crypto";
 import PlacedBlocksPreview from "@/components/preview/PlacedBlocksPreview";
 import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
@@ -216,6 +216,46 @@ export default async function PublishedMicrositeSubPage({
       />
     );
   }
+
+  try {
+  const headerStore = await headers();
+  const cookieStore = await cookies();
+
+  const viewerEmail =
+    cookieStore.get("kht_viewer_email")?.value?.toLowerCase() ?? "";
+
+  const ignoredEmails = new Set([
+    "knowintelligentlife@gmail.com",
+    "michel.darbeau@gmail.com",
+  ]);
+
+  const shouldIgnoreVisit = ignoredEmails.has(viewerEmail);
+
+  const forwardedFor = headerStore.get("x-forwarded-for") || "";
+  const realIp = headerStore.get("x-real-ip") || "";
+  const userAgent = headerStore.get("user-agent") || "";
+  const referrer = headerStore.get("referer") || "";
+
+  const visitorSeed = `${forwardedFor || realIp}:${userAgent}`;
+  const visitorKey = crypto
+    .createHash("sha256")
+    .update(visitorSeed)
+    .digest("hex");
+
+  if (!shouldIgnoreVisit) {
+    await supabaseAdmin.from("microsite_visits").insert({
+      microsite_id: typedMicrosite.id,
+      slug: typedMicrosite.slug,
+      page_path: `/s/${safeSlug}/${safePage}`,
+      visitor_key: visitorKey,
+      referrer,
+      user_agent: userAgent,
+      is_owner_or_admin: false,
+    });
+  }
+} catch (error) {
+  console.error("microsite subpage visit tracking failed", error);
+}
 
   return (
     <>

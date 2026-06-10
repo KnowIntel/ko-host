@@ -1874,6 +1874,10 @@ selectedBlockFromDraft?.type === "gallery"
                           (selectedBlockFromDraft.data as any).style ??
                           {}) as TextStyle)
                       : (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
+                      : selectedBlockFromDraft?.type === "visitor_counter"
+  ? (((selectedBlockFromDraft.data as any).numberStyle ??
+      (selectedBlockFromDraft.data as any).style ??
+      {}) as TextStyle)
 : selectedBlockFromDraft?.type === "highlight"
   ? highlightStyleTarget === "value"
     ? (selectedBlockFromDraft.data.valueStyle ??
@@ -4415,6 +4419,40 @@ const currentStyle =
     return;
   }
 
+  if (selectedBlock?.type === "visitor_counter") {
+  setDraft((prev) => ({
+    ...prev,
+    blocks: prev.blocks.map((block) =>
+      block.id === selectedBlock.id && block.type === "visitor_counter"
+        ? {
+            ...block,
+            data: {
+              ...block.data,
+              style: {
+                ...(block.data.style ?? {}),
+                ...patch,
+              },
+              numberStyle: {
+                ...((block.data as any).numberStyle ?? block.data.style ?? {}),
+                ...patch,
+              },
+              labelStyle: {
+                ...((block.data as any).labelStyle ?? block.data.style ?? {}),
+                ...patch,
+              },
+              tileStyle: {
+                ...((block.data as any).tileStyle ?? block.data.style ?? {}),
+                ...patch,
+              },
+            },
+          }
+        : block,
+    ),
+  }));
+
+  return;
+}
+
 if (selectedBlock?.type === "progress_bar") {
   setDraft((prev) => ({
     ...prev,
@@ -4715,21 +4753,6 @@ if ((selectedBlock as any)?.type === "post_board") {
     }));
     return;
   }
-
-  [{
-	"resource": "/c:/Users/MD/ko-host/components/templates/DesignLayoutEditor.tsx",
-	"owner": "typescript",
-	"code": "2304",
-	"severity": 8,
-	"message": "Cannot find name 'patch'.",
-	"source": "ts",
-	"startLineNumber": 3392,
-	"startColumn": 20,
-	"endLineNumber": 3392,
-	"endColumn": 25,
-	"modelVersionId": 48,
-	"origin": "extHost1"
-}]
 
 if (selectedBlock?.type === "timeline") {
   const targetId = selectedBlock.id;
@@ -5489,6 +5512,43 @@ if (selectedBlock?.type === "highlight") {
       },
     };
   });
+
+  return;
+}
+
+if (selectedBlock?.type === "visitor_counter") {
+  updateSelectedBlock((block) =>
+    block.type !== "visitor_counter"
+      ? block
+      : {
+          ...block,
+          appearance: {
+            ...block.appearance,
+            ...patch,
+          },
+          data: {
+            ...block.data,
+            tileStyle: {
+              ...((block.data as any).tileStyle ?? {}),
+              ...(patch.backgroundColor !== undefined
+                ? { backgroundColor: patch.backgroundColor }
+                : {}),
+              ...(patch.backgroundOpacity !== undefined
+                ? { backgroundOpacity: patch.backgroundOpacity }
+                : {}),
+              ...(patch.borderColor !== undefined
+                ? { borderColor: patch.borderColor }
+                : {}),
+              ...(patch.borderWidth !== undefined
+                ? { borderWidth: patch.borderWidth }
+                : {}),
+              ...(patch.borderRadius !== undefined
+                ? { borderRadius: patch.borderRadius }
+                : {}),
+            },
+          },
+        },
+  );
 
   return;
 }
