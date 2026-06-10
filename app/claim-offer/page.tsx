@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 const sampleCards = [
   {
@@ -135,6 +136,8 @@ const sampleCards = [
 ];
 
 export default function ClaimOfferPage() {
+    const searchParams = useSearchParams();
+  const initialSiteUrl = searchParams.get("siteUrl") || "";
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">(
     "idle",
   );
@@ -268,7 +271,7 @@ export default function ClaimOfferPage() {
             <div className="text-2xl font-black">Claim your offer</div>
 
             <p className="mt-2 text-sm leading-6 text-neutral-600">
-              Tell us what you need and where to reach you.
+              Tell us what you need and how to reach you.
             </p>
 
             <div className="mt-6 grid gap-4">
@@ -287,45 +290,58 @@ export default function ClaimOfferPage() {
                 className="h-12 rounded-2xl border border-neutral-200 px-4 text-sm outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-500/30"
               />
 
-              <input
-                name="siteUrl"
-                placeholder="Microsite URL"
-                className="h-12 rounded-2xl border border-neutral-200 px-4 text-sm outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-500/30"
-              />
+<input
+  name="siteUrl"
+  defaultValue={initialSiteUrl}
+  placeholder="Microsite URL"
+  className="h-12 rounded-2xl border border-neutral-200 px-4 text-sm outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-500/30"
+/>
 
-              <textarea
-                name="description"
-                required
-                placeholder="Describe your ideal design..."
-                className="min-h-[140px] rounded-2xl border border-neutral-200 px-4 py-3 text-sm outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-500/30"
-              />
+<textarea
+  name="description"
+  required
+  placeholder="Describe your ideal design..."
+  className="min-h-[140px] rounded-2xl border border-neutral-200 px-4 py-3 text-sm outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-500/30"
+/>
 
-              <div className="grid gap-4 sm:grid-cols-2">
-                <input
-                  name="deadline"
-                  type="date"
-                  className="h-12 rounded-2xl border border-neutral-200 px-4 text-sm outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-500/30"
-                />
+<div className="grid gap-4 sm:grid-cols-2">
+  <div>
+    <div className="mb-2 text-xs font-black uppercase tracking-[0.14em] text-neutral-500">
+      When do you need this completed?
+    </div>
 
-                <label className="flex h-12 cursor-pointer items-center justify-between gap-3 rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 px-4 text-sm text-neutral-600 transition hover:bg-neutral-100">
-                  <span className="truncate">
-                    {fileName || "Attach design file"}
-                  </span>
+    <input
+      name="deadline"
+      type="date"
+      className="h-12 w-full rounded-2xl border border-neutral-200 px-4 text-sm outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-500/30"
+    />
+  </div>
 
-                  <span className="shrink-0 rounded-full bg-neutral-950 px-3 py-1 text-[11px] font-bold text-white">
-                    Choose
-                  </span>
+  <div>
+    <div className="mb-2 text-xs font-black uppercase tracking-[0.14em] text-neutral-500">
+      Optional Reference File
+    </div>
 
-                  <input
-                    name="file"
-                    type="file"
-                    className="hidden"
-                    onChange={(e) =>
-                      setFileName(e.target.files?.[0]?.name || "")
-                    }
-                  />
-                </label>
-              </div>
+    <label className="flex h-12 cursor-pointer items-center justify-between gap-3 rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 px-4 text-sm text-neutral-600 transition hover:bg-neutral-100">
+      <span className="truncate">
+        {fileName || "Attach design file"}
+      </span>
+
+      <span className="shrink-0 rounded-full bg-neutral-950 px-3 py-1 text-[11px] font-bold text-white">
+        Choose
+      </span>
+
+      <input
+        name="file"
+        type="file"
+        className="hidden"
+        onChange={(e) =>
+          setFileName(e.target.files?.[0]?.name || "")
+        }
+      />
+    </label>
+  </div>
+</div>
 
               <button
                 type="submit"
@@ -368,4 +384,4 @@ export default function ClaimOfferPage() {
       </section>
     </main>
   );
-}
+} 

@@ -366,6 +366,10 @@ body: JSON.stringify({
     }
   }
 
+  const claimOfferSiteUrl = slugSuggestion.trim()
+  ? `https://${slugify(slugSuggestion)}.ko-host.com`
+  : "";
+  
 return (
   <main className="min-h-screen bg-[#f6f4f2]">
     <div className="px-4 py-2 text-sm text-red-600">
@@ -560,56 +564,27 @@ return (
 <div>
 </div>
 
-                <div className="flex flex-wrap items-center gap-3 pt-2">
-                  <Link
-                    href={`/create/${encodeURIComponent(
-                      templateKey,
-                    )}?design=${encodeURIComponent(designKey)}`}
-                    className="inline-flex items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-900 transition hover:bg-neutral-50"
-                  >
-                    Back to Builder
-                  </Link>
+<div className="flex flex-wrap items-center gap-3">
+  <Link
+    href={`/create/${encodeURIComponent(
+      templateKey,
+    )}?design=${encodeURIComponent(designKey)}`}
+    className="inline-flex items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-900 transition hover:bg-neutral-50"
+  >
+    Back to Builder
+  </Link>
 
-<div className="flex flex-col gap-2">
-  <div className="flex flex-wrap items-center gap-3">
-    <button
-      type="button"
-      onClick={() => void handlePreparePublish("publish")}
-      disabled={
-        publishState === "loading" ||
-        loadingDraft ||
-        slugStatus !== "available"
-      }
-      className="inline-flex items-center justify-center rounded-xl border border-blue-600 bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
-    >
-      {publishState === "loading" && checkoutMode === "publish"
-        ? "Preparing..."
-        : "Continue to Checkout"}
-    </button>
-
-    <button
-      type="button"
-      onClick={() => void handlePreparePublish("draft")}
-      disabled={
-        publishState === "loading" ||
-        loadingDraft ||
-        slugStatus !== "available"
-      }
-      className="inline-flex items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 py-2 text-sm font-medium text-neutral-900 transition hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-60"
-    >
-      {publishState === "loading" && checkoutMode === "draft"
-        ? "Preparing..."
-        : "Checkout Without Publishing"}
-    </button>
-  </div>
-
-  <div className="max-w-xl text-xs leading-5 text-neutral-500">
-    Prefer to keep working first? Checkout Without Publishing reserves your
-    microsite name and activates your 90-day access, but returns you to the
-    builder with the site kept unpublished.
-  </div>
+  <Link
+    href={`/claim-offer${
+      claimOfferSiteUrl
+        ? `?siteUrl=${encodeURIComponent(claimOfferSiteUrl)}`
+        : ""
+    }`}
+    className="inline-flex items-center justify-center rounded-xl border border-amber-300 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-800 transition hover:bg-amber-100"
+  >
+    Claim Offer
+  </Link>
 </div>
-                </div>
 
                 {message ? (
                   <div
