@@ -6442,6 +6442,24 @@ async function uploadImageToSelectedBlock(
             };
           }
 
+          if (block.type === "tournament_display" && tournamentTeamId) {
+            return {
+              ...block,
+              data: {
+                ...block.data,
+                teams: block.data.teams.map((team) =>
+                  team.id === tournamentTeamId
+                    ? {
+                        ...team,
+                        imageUrl: uploaded.url,
+                        imageStoragePath: uploaded.storagePath,
+                      }
+                    : team,
+                ),
+              },
+            };
+          }
+
           return block;
         }),
       }));
