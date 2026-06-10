@@ -141,6 +141,7 @@ export type BuilderBlockType =
   | "rich_text"
   | "video"
   | "progress_bar"
+  | "visitor_counter"
   | "donation"
   | "link_hub"
   | "checklist"
@@ -3684,7 +3685,7 @@ case "post_board":
           tileStyle: createDefaultTextStyle(),
         },
       };
-      
+
     case "showcase":
       return {
         id: makeId("showcase"),
