@@ -1070,6 +1070,36 @@ export type HighlightBlock = BaseBlock & {
   };
 };
 
+export type VisitorCounterVariant = "flip" | "dial" | "smooth_count";
+
+export type VisitorCounterBlock = BaseBlock & {
+  type: "visitor_counter";
+  data: {
+    heading?: string;
+    subtitle?: string;
+    label?: string;
+    variant?: VisitorCounterVariant;
+
+    showHeading?: boolean;
+    showSubtitle?: boolean;
+    showLabel?: boolean;
+    showIcon?: boolean;
+    showLastUpdated?: boolean;
+
+    metricType?: "site_visits" | "page_visits" | "unique_visitors" | "today_visits";
+
+    animationDelayMs?: number;
+    animationDurationMs?: number;
+
+    alignment?: "left" | "center" | "right";
+
+    style?: TextStyle;
+    numberStyle?: TextStyle;
+    labelStyle?: TextStyle;
+    tileStyle?: TextStyle;
+  };
+};
+
 export type ShowcaseBlock = BaseBlock & {
   type: "showcase";
   data: {
@@ -1718,6 +1748,7 @@ export type MicrositeBlock =
   | PostBoardBlock
   | EnrollmentBoardBlock
   | HighlightBlock
+  | VisitorCounterBlock
   | ShowcaseBlock
   | FestiveBackgroundBlock
   | FormFieldBlock
@@ -3616,6 +3647,44 @@ case "post_board":
         },
       };
 
+
+          case "visitor_counter":
+      return {
+        id: makeId("visitor_counter"),
+        type: "visitor_counter",
+        label: "Visitor Counter",
+        grid,
+        appearance: createDefaultBlockAppearance(),
+        data: {
+          heading: "Visitor Count",
+          subtitle: "See how many people have visited this site.",
+          label: "Visitors",
+          variant: "flip",
+          showHeading: true,
+          showSubtitle: false,
+          showLabel: true,
+          showIcon: true,
+          showLastUpdated: false,
+          metricType: "site_visits",
+          animationDelayMs: 1500,
+          animationDurationMs: 800,
+          alignment: "center",
+          style: createDefaultTextStyle(),
+          numberStyle: {
+            ...createDefaultTextStyle(),
+            fontSize: 42,
+            bold: true,
+            align: "center",
+          },
+          labelStyle: {
+            ...createDefaultTextStyle(),
+            fontSize: 13,
+            align: "center",
+          },
+          tileStyle: createDefaultTextStyle(),
+        },
+      };
+      
     case "showcase":
       return {
         id: makeId("showcase"),

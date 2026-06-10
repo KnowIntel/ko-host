@@ -161,6 +161,11 @@ export const BUILDER_TOOL_GUIDES: BuilderToolGuide[] = [
     howToUse: "Use this to show top messages, RSVP counts, total funds, or poll results. Select the source block in the inspector and choose the highlight mode.",
   },
   {
+    name: "Visitor Counter",
+    purpose: "Displays a public visitor or view count.",
+    howToUse: "Use this to show how many people have visited or viewed the microsite. Choose a counter style, label, animation timing, and alignment.",
+  },
+  {
     name: "Progress Bar",
     purpose: "Shows progress toward a goal.",
     howToUse: "Use this for fundraising, capacity, milestones, completion tracking, ticket goals, or campaign progress. Set the current value, max value, and percentage display.",

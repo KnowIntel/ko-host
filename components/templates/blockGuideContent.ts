@@ -1126,6 +1126,55 @@ highlight: {
   ],
 },
 
+visitor_counter: {
+  title: "Visitor Counter",
+  subtitle:
+    "Display a public visitor or view count for the microsite.",
+  sections: [
+    {
+      title: "Overview",
+      body:
+        "The Visitor Counter block shows how many visits or views a microsite has received.",
+    },
+    {
+      title: "Objective",
+      bullets: [
+        "Show public engagement.",
+        "Make the microsite feel active.",
+        "Display visitor activity in a styled counter.",
+      ],
+    },
+    {
+      title: "Inspector Configuration",
+      bullets: [
+        "Heading and subtitle.",
+        "Counter label.",
+        "Style variant.",
+        "Animation timing.",
+        "Alignment and display options.",
+      ],
+    },
+    {
+      title: "How It Works",
+      bullets: [
+        "Displays a safe public aggregate count.",
+        "Can animate after a short delay.",
+        "Will connect to live visit analytics later.",
+      ],
+    },
+    {
+      title: "Best Use Cases",
+      bullets: [
+        "Event pages.",
+        "Campaign pages.",
+        "Announcements.",
+        "Creator pages.",
+        "Community microsites.",
+      ],
+    },
+  ],
+},
+
 progress_bar: {
   title: "Progress Bar",
   subtitle:
