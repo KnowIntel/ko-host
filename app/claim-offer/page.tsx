@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 const sampleCards = [
   {
@@ -136,8 +135,12 @@ const sampleCards = [
 ];
 
 export default function ClaimOfferPage() {
-    const searchParams = useSearchParams();
-  const initialSiteUrl = searchParams.get("siteUrl") || "";
+const [initialSiteUrl, setInitialSiteUrl] = useState("");
+
+useEffect(() => {
+  const params = new URLSearchParams(window.location.search);
+  setInitialSiteUrl(params.get("siteUrl") || "");
+}, []);
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">(
     "idle",
   );
