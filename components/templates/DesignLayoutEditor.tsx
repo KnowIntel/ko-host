@@ -2004,6 +2004,28 @@ selectedBlockFromDraft?.type === "gallery"
               (selectedBlockFromDraft.data as any).style ??
               {}) as TextStyle)
           : (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
+          : selectedBlockFromDraft?.type === "tournament_display"
+  ? tournamentDisplayStyleTarget === "tournamentName"
+    ? ((selectedBlockFromDraft.data as any).tournamentNameStyle ?? {})
+    : tournamentDisplayStyleTarget === "season"
+      ? ((selectedBlockFromDraft.data as any).seasonStyle ?? {})
+      : tournamentDisplayStyleTarget === "leftDivisionLabel"
+        ? ((selectedBlockFromDraft.data as any).leftDivisionLabelStyle ?? {})
+        : tournamentDisplayStyleTarget === "rightDivisionLabel"
+          ? ((selectedBlockFromDraft.data as any).rightDivisionLabelStyle ?? {})
+          : tournamentDisplayStyleTarget === "teamNames"
+            ? ((selectedBlockFromDraft.data as any).teamNameStyle ?? {})
+            : tournamentDisplayStyleTarget === "record"
+              ? ((selectedBlockFromDraft.data as any).recordStyle ?? {})
+              : tournamentDisplayStyleTarget === "score"
+                ? ((selectedBlockFromDraft.data as any).scoreStyle ?? {})
+                : tournamentDisplayStyleTarget === "status"
+                  ? ((selectedBlockFromDraft.data as any).statusStyle ?? {})
+                  : tournamentDisplayStyleTarget === "finalsLabel"
+                    ? ((selectedBlockFromDraft.data as any).finalsLabelStyle ?? {})
+                    : tournamentDisplayStyleTarget === "champion"
+                      ? ((selectedBlockFromDraft.data as any).championStyle ?? {})
+                      : ((selectedBlockFromDraft.data as any).style ?? {})
         : selectedBlockFromDraft?.type === "listing"
           ? listingStyleTarget === "description"
             ? (selectedBlockFromDraft.data.descriptionStyle ?? {})
@@ -2434,6 +2456,7 @@ const showTextControls =
   selectedBlock?.type === "cart" ||
   selectedBlock?.type === "checkout" ||
   selectedBlock?.type === "listing" ||
+  selectedBlock?.type === "tournament_display" ||
   selectedBlock?.type === "links";
 
   const showTypographyControls =
@@ -2451,6 +2474,7 @@ const showAppearanceControls =
   selectedBlock?.type === "enrollment_board" ||
   selectedBlock?.type === "post_board" ||
   selectedBlock?.type === "listing" ||
+  selectedBlock?.type === "tournament_display" ||
   selectedBlock?.type === "progress_bar" ||
   selectedBlock?.type === "donation" ||
   selectedBlock?.type === "link_hub" ||
@@ -2488,6 +2512,7 @@ const showBorderWidthRadiusControls =
   selectedBlock?.type === "enrollment_board" ||
   selectedBlock?.type === "post_board" ||
   selectedBlock?.type === "listing" ||
+  selectedBlock?.type === "tournament_display" ||
   selectedBlock?.type === "progress_bar" ||
   selectedBlock?.type === "donation" ||
   selectedBlock?.type === "link_hub" ||
@@ -5088,6 +5113,52 @@ if (selectedBlock?.type === "content_panel") {
     }));
     return;
   }
+
+  if (selectedBlock?.type === "tournament_display") {
+  setDraft((prev) => ({
+    ...prev,
+    blocks: prev.blocks.map((block) => {
+      if (block.id !== selectedBlock.id || block.type !== "tournament_display") {
+        return block;
+      }
+
+      const styleKey =
+        tournamentDisplayStyleTarget === "tournamentName"
+          ? "tournamentNameStyle"
+          : tournamentDisplayStyleTarget === "season"
+            ? "seasonStyle"
+            : tournamentDisplayStyleTarget === "leftDivisionLabel"
+              ? "leftDivisionLabelStyle"
+              : tournamentDisplayStyleTarget === "rightDivisionLabel"
+                ? "rightDivisionLabelStyle"
+                : tournamentDisplayStyleTarget === "teamNames"
+                  ? "teamNameStyle"
+                  : tournamentDisplayStyleTarget === "record"
+                    ? "recordStyle"
+                    : tournamentDisplayStyleTarget === "score"
+                      ? "scoreStyle"
+                      : tournamentDisplayStyleTarget === "status"
+                        ? "statusStyle"
+                        : tournamentDisplayStyleTarget === "finalsLabel"
+                          ? "finalsLabelStyle"
+                          : tournamentDisplayStyleTarget === "champion"
+                            ? "championStyle"
+                            : "style";
+
+      return {
+        ...block,
+        data: {
+          ...block.data,
+          [styleKey]: {
+            ...((block.data as any)[styleKey] ?? {}),
+            ...patch,
+          },
+        },
+      };
+    }),
+  }));
+  return;
+}
 
 if (selectedBlock?.type === "listing") {
   setDraft((prev) => ({
@@ -7720,6 +7791,21 @@ function openPreviewWindow() {
     60,
     Math.min(1800, Number(block.data.roundDurationSeconds) || 120),
   );
+
+  const [tournamentDisplayStyleTarget, setTournamentDisplayStyleTarget] =
+  useState<
+    | "background"
+    | "tournamentName"
+    | "season"
+    | "leftDivisionLabel"
+    | "rightDivisionLabel"
+    | "teamNames"
+    | "record"
+    | "score"
+    | "status"
+    | "finalsLabel"
+    | "champion"
+  >("background");
 
   const [timeLeft, setTimeLeft] = useState(duration);
 
@@ -23528,6 +23614,43 @@ onClick={() =>
 {selectedBlock?.type === "tournament_display" ? (
   <div className={inspectorCardClass()}>
     <div className={inspectorLabelClass()}>Tournament Display</div>
+
+    <div className="mt-4">
+  <div className={inspectorLabelClass()}>Style Target</div>
+
+  <select
+    value={tournamentDisplayStyleTarget}
+    onChange={(e) =>
+      setTournamentDisplayStyleTarget(
+        e.target.value as
+          | "background"
+          | "tournamentName"
+          | "season"
+          | "leftDivisionLabel"
+          | "rightDivisionLabel"
+          | "teamNames"
+          | "record"
+          | "score"
+          | "status"
+          | "finalsLabel"
+          | "champion",
+      )
+    }
+    className={inspectorInputClass()}
+  >
+    <option value="background">Background</option>
+    <option value="tournamentName">Tournament Name</option>
+    <option value="season">Season</option>
+    <option value="leftDivisionLabel">Left Division Label</option>
+    <option value="rightDivisionLabel">Right Division Label</option>
+    <option value="teamNames">Team Names</option>
+    <option value="record">Record</option>
+    <option value="score">Score</option>
+    <option value="status">Status</option>
+    <option value="finalsLabel">Finals Label</option>
+    <option value="champion">Champion</option>
+  </select>
+</div>
 
     <div className="mt-4">
       <div className={inspectorLabelClass()}>Tournament Name</div>
