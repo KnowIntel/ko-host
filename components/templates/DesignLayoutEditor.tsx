@@ -23958,6 +23958,36 @@ onClick={() =>
     </div>
 
     <div className="mt-4">
+  <div className="flex items-center justify-between">
+    <div className={inspectorLabelClass()}>Logo Size</div>
+    <div className="text-xs text-neutral-500">
+      {(selectedBlock.data as any).logoSize ?? 32}px
+    </div>
+  </div>
+
+  <input
+    type="range"
+    min={16}
+    max={72}
+    value={(selectedBlock.data as any).logoSize ?? 32}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "tournament_display"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                logoSize: Number(e.target.value),
+              },
+            },
+      )
+    }
+    className="mt-2 w-full"
+  />
+</div>
+
+    <div className="mt-4">
   <div className={inspectorLabelClass()}>Empty State Text</div>
 
   <input

@@ -53,6 +53,7 @@ type TournamentDisplayOptions = {
   showSeeds: boolean;
   showRecords: boolean;
   showStatusBadges: boolean;
+  logoSize: number;
 };
 
 export default function TournamentDisplayBlock({ block }: Props) {
@@ -75,12 +76,16 @@ export default function TournamentDisplayBlock({ block }: Props) {
     championStyle: getTextStyle(data.championStyle),
   };
 
-  const options: TournamentDisplayOptions = {
-    showScores: data.showScores !== false,
-    showSeeds: data.showSeeds !== false,
-    showRecords: data.showRecords !== false,
-    showStatusBadges: data.showStatusBadges !== false,
-  };
+const options: TournamentDisplayOptions = {
+  showScores: data.showScores !== false,
+  showSeeds: data.showSeeds !== false,
+  showRecords: data.showRecords !== false,
+  showStatusBadges: data.showStatusBadges !== false,
+  logoSize:
+    typeof data.logoSize === "number" && Number.isFinite(data.logoSize)
+      ? Math.max(16, Math.min(72, data.logoSize))
+      : 32,
+};
 
 const appearance = block.appearance as any;
 
@@ -669,7 +674,7 @@ function BracketTeamRow({
 
   const teamInfo = (
     <>
-      <TeamLogo team={team} />
+      <TeamLogo team={team} size={options.logoSize} />
 
       <div className={["min-w-0 flex-1", mirrored ? "text-right" : ""].join(" ")}>
         <div
@@ -795,7 +800,7 @@ function Standings({
                     </div>
                   ) : null}
 
-                  <TeamLogo team={team} />
+                  <TeamLogo team={team} size={options.logoSize} />
 
                   <span className="font-medium" style={styles.teamNameStyle}>
                     {team.name || "Team"}
@@ -871,7 +876,7 @@ function MatchCard({
     >
       <div className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2">
-          <TeamLogo team={teamA} />
+          <TeamLogo team={teamA} size={options.logoSize} />
 
           <div
             className={[
@@ -897,7 +902,7 @@ function MatchCard({
             {match.teamB || "Team B"}
           </div>
 
-          <TeamLogo team={teamB} />
+          <TeamLogo team={teamB} size={options.logoSize} />
         </div>
       </div>
 
@@ -929,14 +934,24 @@ function MatchCard({
   );
 }
 
-function TeamLogo({ team }: { team?: TournamentTeamLike }) {
+function TeamLogo({
+  team,
+  size = 32,
+}: {
+  team?: TournamentTeamLike;
+  size?: number;
+}) {
   if (!team?.imageUrl) return null;
 
   return (
     <img
       src={team.imageUrl}
       alt={team.name || "Team logo"}
-      className="h-8 w-8 shrink-0 rounded-full border border-white/10 bg-white/10 object-cover"
+      className="shrink-0 rounded-full border border-white/10 bg-white/10 object-cover"
+      style={{
+        width: size,
+        height: size,
+      }}
     />
   );
 }
