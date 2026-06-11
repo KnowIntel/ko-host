@@ -949,6 +949,7 @@ function findExistingMatchBySlot(
   )[slotIndex];
 }
 
+
 function inferWinnerFromScores(
   teamA?: string,
   teamB?: string,
