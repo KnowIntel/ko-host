@@ -23648,46 +23648,56 @@ onClick={() =>
 
       <div className="mt-3 space-y-3">
         {selectedBlock.data.teams.map((team) => (
-          <div
+          <details
             key={team.id}
             className="rounded-xl border border-neutral-200 bg-neutral-50 p-3"
           >
-            <div className={inspectorLabelClass()}>Team Name</div>
-            <input
-              type="text"
-              value={team.name}
-              onChange={(e) =>
-                updateSelectedBlock((block) =>
-                  block.type !== "tournament_display"
-                    ? block
-                    : {
-                        ...block,
-                        data: {
-                          ...block.data,
-                          teams: block.data.teams.map((entry) =>
-                            entry.id === team.id
-                              ? { ...entry, name: e.target.value }
-                              : entry,
-                          ),
-                        },
-                      },
-                )
-              }
-              className={inspectorInputClass()}
-            />
-
-            {team.imageUrl ? (
-              <div className="mt-3 flex items-center gap-3">
-                <img
-                  src={team.imageUrl}
-                  alt={team.name || "Team logo"}
-                  className="h-12 w-12 rounded-lg border border-neutral-200 bg-white object-cover"
-                />
-                <div className="text-xs text-neutral-500">
-                  Team logo uploaded
+            <summary className="cursor-pointer list-none">
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="truncate text-sm font-semibold text-neutral-800">
+                    {team.name || "Team"}
+                  </div>
+                  <div className="text-xs text-neutral-500">
+                    Seed {team.seed ?? "-"} • {team.record || "0-0"}
+                  </div>
                 </div>
+
+                {team.imageUrl ? (
+                  <img
+                    src={team.imageUrl}
+                    alt={team.name || "Team logo"}
+                    className="h-10 w-10 rounded-lg border border-neutral-200 bg-white object-cover"
+                  />
+                ) : null}
               </div>
-            ) : null}
+            </summary>
+
+            <div className="mt-4">
+              <div className={inspectorLabelClass()}>Team Name</div>
+              <input
+                type="text"
+                value={team.name}
+                onChange={(e) =>
+                  updateSelectedBlock((block) =>
+                    block.type !== "tournament_display"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            teams: block.data.teams.map((entry) =>
+                              entry.id === team.id
+                                ? { ...entry, name: e.target.value }
+                                : entry,
+                            ),
+                          },
+                        },
+                  )
+                }
+                className={inspectorInputClass()}
+              />
+            </div>
 
             <button
               type="button"
@@ -23706,7 +23716,7 @@ onClick={() =>
               Browse Team Logo
             </button>
 
-            <div className="mt-3 grid grid-cols-3 gap-2">
+            <div className="mt-3 grid grid-cols-2 gap-2">
               <div>
                 <div className={inspectorLabelClass()}>Seed</div>
                 <input
@@ -23737,10 +23747,10 @@ onClick={() =>
               </div>
 
               <div>
-                <div className={inspectorLabelClass()}>Wins</div>
+                <div className={inspectorLabelClass()}>Record</div>
                 <input
-                  type="number"
-                  value={team.wins ?? 0}
+                  type="text"
+                  value={team.record ?? ""}
                   onChange={(e) =>
                     updateSelectedBlock((block) =>
                       block.type !== "tournament_display"
@@ -23751,39 +23761,7 @@ onClick={() =>
                               ...block.data,
                               teams: block.data.teams.map((entry) =>
                                 entry.id === team.id
-                                  ? {
-                                      ...entry,
-                                      wins: Number(e.target.value),
-                                    }
-                                  : entry,
-                              ),
-                            },
-                          },
-                    )
-                  }
-                  className={inspectorInputClass()}
-                />
-              </div>
-
-              <div>
-                <div className={inspectorLabelClass()}>Losses</div>
-                <input
-                  type="number"
-                  value={team.losses ?? 0}
-                  onChange={(e) =>
-                    updateSelectedBlock((block) =>
-                      block.type !== "tournament_display"
-                        ? block
-                        : {
-                            ...block,
-                            data: {
-                              ...block.data,
-                              teams: block.data.teams.map((entry) =>
-                                entry.id === team.id
-                                  ? {
-                                      ...entry,
-                                      losses: Number(e.target.value),
-                                    }
+                                  ? { ...entry, record: e.target.value }
                                   : entry,
                               ),
                             },
@@ -23795,149 +23773,96 @@ onClick={() =>
               </div>
             </div>
 
-<div className="mt-3">
-  <div className={inspectorLabelClass()}>Record</div>
-  <input
-    type="text"
-    value={team.record ?? ""}
-    onChange={(e) =>
-      updateSelectedBlock((block) =>
-        block.type !== "tournament_display"
-          ? block
-          : {
-              ...block,
-              data: {
-                ...block.data,
-                teams: block.data.teams.map((entry) =>
-                  entry.id === team.id
-                    ? { ...entry, record: e.target.value }
-                    : entry,
-                ),
-              },
-            },
-      )
-    }
-    className={inspectorInputClass()}
-  />
-</div>
+            <div className="mt-3 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                className={toolSetButtonClass("front")}
+                onClick={() =>
+                  updateSelectedBlock((block) => {
+                    if (block.type !== "tournament_display") return block;
 
-<div className="mt-3">
-  <div className={inspectorLabelClass()}>Coach</div>
-  <input
-    type="text"
-    value={team.coach ?? ""}
-    onChange={(e) =>
-      updateSelectedBlock((block) =>
-        block.type !== "tournament_display"
-          ? block
-          : {
-              ...block,
-              data: {
-                ...block.data,
-                teams: block.data.teams.map((entry) =>
-                  entry.id === team.id
-                    ? { ...entry, coach: e.target.value }
-                    : entry,
-                ),
-              },
-            },
-      )
-    }
-    className={inspectorInputClass()}
-  />
-</div>
+                    const index = block.data.teams.findIndex(
+                      (entry) => entry.id === team.id,
+                    );
 
-<div className="mt-3">
-  <div className={inspectorLabelClass()}>Stats</div>
-  <input
-    type="text"
-    value={team.stats ?? ""}
-    onChange={(e) =>
-      updateSelectedBlock((block) =>
-        block.type !== "tournament_display"
-          ? block
-          : {
-              ...block,
-              data: {
-                ...block.data,
-                teams: block.data.teams.map((entry) =>
-                  entry.id === team.id
-                    ? { ...entry, stats: e.target.value }
-                    : entry,
-                ),
-              },
-            },
-      )
-    }
-    className={inspectorInputClass()}
-  />
-</div>
+                    if (index <= 0) return block;
 
-<div className="mt-3">
-  <div className={inspectorLabelClass()}>Team Color</div>
-  <input
-    type="color"
-    value={team.color ?? "#3b82f6"}
-    onChange={(e) =>
-      updateSelectedBlock((block) =>
-        block.type !== "tournament_display"
-          ? block
-          : {
-              ...block,
-              data: {
-                ...block.data,
-                teams: block.data.teams.map((entry) =>
-                  entry.id === team.id
-                    ? { ...entry, color: e.target.value }
-                    : entry,
-                ),
-              },
-            },
-      )
-    }
-    className="h-10 w-full"
-  />
-</div>
+                    const teams = [...block.data.teams];
 
-<div className="mt-3 flex items-center justify-end gap-2">
-  <button
-    type="button"
-    className={toolSetButtonClass("front")}
-  >
-    ▲
-  </button>
+                    [teams[index - 1], teams[index]] = [
+                      teams[index],
+                      teams[index - 1],
+                    ];
 
-  <button
-    type="button"
-    className={toolSetButtonClass("front")}
-  >
-    ▼
-  </button>
+                    return {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        teams,
+                      },
+                    };
+                  })
+                }
+              >
+                ▲
+              </button>
 
-  <button
-    type="button"
-    className={toolSetButtonClass("remove")}
-    onClick={() =>
-      updateSelectedBlock((block) =>
-        block.type !== "tournament_display"
-          ? block
-          : {
-              ...block,
-              data: {
-                ...block.data,
-teams:
-  block.data.teams.filter(
-    (entry) => entry.id !== team.id,
-  ),
-              },
-            },
-      )
-    }
-  >
-    ×
-  </button>
-</div>
-          </div>
+              <button
+                type="button"
+                className={toolSetButtonClass("front")}
+                onClick={() =>
+                  updateSelectedBlock((block) => {
+                    if (block.type !== "tournament_display") return block;
+
+                    const index = block.data.teams.findIndex(
+                      (entry) => entry.id === team.id,
+                    );
+
+                    if (index >= block.data.teams.length - 1) return block;
+
+                    const teams = [...block.data.teams];
+
+                    [teams[index], teams[index + 1]] = [
+                      teams[index + 1],
+                      teams[index],
+                    ];
+
+                    return {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        teams,
+                      },
+                    };
+                  })
+                }
+              >
+                ▼
+              </button>
+
+              <button
+                type="button"
+                className={toolSetButtonClass("remove")}
+                onClick={() =>
+                  updateSelectedBlock((block) =>
+                    block.type !== "tournament_display"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            teams: block.data.teams.filter(
+                              (entry) => entry.id !== team.id,
+                            ),
+                          },
+                        },
+                  )
+                }
+              >
+                ×
+              </button>
+            </div>
+          </details>
         ))}
 
         <button
@@ -23957,8 +23882,6 @@ teams:
                           id: makeClientId("team"),
                           name: "New Team",
                           seed: block.data.teams.length + 1,
-                          wins: 0,
-                          losses: 0,
                           record: "0-0",
                         },
                       ],
