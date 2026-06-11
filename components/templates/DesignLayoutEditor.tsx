@@ -1636,6 +1636,21 @@ const [listingStyleTarget, setListingStyleTarget] = useState<
   "title" | "description" | "metadata" | "price" | "quantity"
 >("title");
 
+  const [tournamentDisplayStyleTarget, setTournamentDisplayStyleTarget] =
+  useState<
+    | "background"
+    | "tournamentName"
+    | "season"
+    | "leftDivisionLabel"
+    | "rightDivisionLabel"
+    | "teamNames"
+    | "record"
+    | "score"
+    | "status"
+    | "finalsLabel"
+    | "champion"
+  >("background");
+
 const [galleryTextTarget, setGalleryTextTarget] = useState<
   "title" | "description" | "metadata"
 >("title");
@@ -7791,21 +7806,6 @@ function openPreviewWindow() {
     60,
     Math.min(1800, Number(block.data.roundDurationSeconds) || 120),
   );
-
-  const [tournamentDisplayStyleTarget, setTournamentDisplayStyleTarget] =
-  useState<
-    | "background"
-    | "tournamentName"
-    | "season"
-    | "leftDivisionLabel"
-    | "rightDivisionLabel"
-    | "teamNames"
-    | "record"
-    | "score"
-    | "status"
-    | "finalsLabel"
-    | "champion"
-  >("background");
 
   const [timeLeft, setTimeLeft] = useState(duration);
 
