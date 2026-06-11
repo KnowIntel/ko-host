@@ -23556,6 +23556,19 @@ onClick={() =>
               className={inspectorInputClass()}
             />
 
+            {team.imageUrl ? (
+              <div className="mt-3 flex items-center gap-3">
+                <img
+                  src={team.imageUrl}
+                  alt={team.name || "Team logo"}
+                  className="h-12 w-12 rounded-lg border border-neutral-200 bg-white object-cover"
+                />
+                <div className="text-xs text-neutral-500">
+                  Team logo uploaded
+                </div>
+              </div>
+            ) : null}
+
             <button
               type="button"
               className="mt-3 inline-flex h-10 items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-700 hover:bg-neutral-50"
