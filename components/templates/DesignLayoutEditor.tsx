@@ -1151,9 +1151,9 @@ function syncTournamentMatchesFromTeams(
       const existing = getExisting(roundTitle, index);
       const scoreA = existing?.scoreA ?? 0;
       const scoreB = existing?.scoreB ?? 0;
+      const inferredWinner = getWinnerFromScores(teamA, teamB, scoreA, scoreB);
 
       return {
-        ...(existing ?? {}),
         id: existing?.id ?? makeClientId("match"),
         division,
         roundTitle,
@@ -1162,17 +1162,41 @@ function syncTournamentMatchesFromTeams(
         scoreA,
         scoreB,
         winner:
-          existing?.winner ||
-          getWinnerFromScores(teamA, teamB, scoreA, scoreB),
+          existing?.winner === teamA || existing?.winner === teamB
+            ? existing.winner
+            : inferredWinner,
         status: existing?.status ?? "upcoming",
+        gameDate: existing?.gameDate,
+        gameTime: existing?.gameTime,
+        location: existing?.location,
       };
     };
 
     const round1 = [
-      makeMatch("Round 1", 0, divisionTeams[0]?.name ?? "", divisionTeams[1]?.name ?? ""),
-      makeMatch("Round 1", 1, divisionTeams[2]?.name ?? "", divisionTeams[3]?.name ?? ""),
-      makeMatch("Round 1", 2, divisionTeams[4]?.name ?? "", divisionTeams[5]?.name ?? ""),
-      makeMatch("Round 1", 3, divisionTeams[6]?.name ?? "", divisionTeams[7]?.name ?? ""),
+      makeMatch(
+        "Round 1",
+        0,
+        divisionTeams[0]?.name ?? "",
+        divisionTeams[1]?.name ?? "",
+      ),
+      makeMatch(
+        "Round 1",
+        1,
+        divisionTeams[2]?.name ?? "",
+        divisionTeams[3]?.name ?? "",
+      ),
+      makeMatch(
+        "Round 1",
+        2,
+        divisionTeams[4]?.name ?? "",
+        divisionTeams[5]?.name ?? "",
+      ),
+      makeMatch(
+        "Round 1",
+        3,
+        divisionTeams[6]?.name ?? "",
+        divisionTeams[7]?.name ?? "",
+      ),
     ];
 
     const round2 = [
@@ -1220,7 +1244,6 @@ function syncTournamentMatchesFromTeams(
   const championshipScoreB = existingChampionship?.scoreB ?? 0;
 
   const championship = {
-    ...(existingChampionship ?? {}),
     id: existingChampionship?.id ?? makeClientId("match"),
     division: "finals" as const,
     roundTitle: "Championship",
@@ -1229,14 +1252,19 @@ function syncTournamentMatchesFromTeams(
     scoreA: championshipScoreA,
     scoreB: championshipScoreB,
     winner:
-      existingChampionship?.winner ||
-      getWinnerFromScores(
-        westWinner,
-        eastWinner,
-        championshipScoreA,
-        championshipScoreB,
-      ),
+      existingChampionship?.winner === westWinner ||
+      existingChampionship?.winner === eastWinner
+        ? existingChampionship.winner
+        : getWinnerFromScores(
+            westWinner,
+            eastWinner,
+            championshipScoreA,
+            championshipScoreB,
+          ),
     status: existingChampionship?.status ?? "upcoming",
+    gameDate: existingChampionship?.gameDate,
+    gameTime: existingChampionship?.gameTime,
+    location: existingChampionship?.location,
   };
 
   return [...westMatches, ...eastMatches, championship];
