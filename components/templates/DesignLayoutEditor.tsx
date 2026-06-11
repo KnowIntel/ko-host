@@ -5160,16 +5160,49 @@ if (selectedBlock?.type === "content_panel") {
                             ? "championStyle"
                             : "style";
 
-      return {
-        ...block,
-        data: {
-          ...block.data,
-          [styleKey]: {
-            ...((block.data as any)[styleKey] ?? {}),
-            ...patch,
-          },
-        },
-      };
+if (tournamentDisplayStyleTarget === "background") {
+  const appearancePatch = patch as any;
+
+  return {
+    ...block,
+    appearance: {
+      ...block.appearance,
+      ...(appearancePatch.backgroundColor !== undefined
+        ? { backgroundColor: appearancePatch.backgroundColor }
+        : {}),
+      ...(appearancePatch.backgroundOpacity !== undefined
+        ? { backgroundOpacity: appearancePatch.backgroundOpacity }
+        : {}),
+      ...(appearancePatch.borderColor !== undefined
+        ? { borderColor: appearancePatch.borderColor }
+        : {}),
+      ...(appearancePatch.borderWidth !== undefined
+        ? { borderWidth: appearancePatch.borderWidth }
+        : {}),
+      ...(appearancePatch.borderRadius !== undefined
+        ? { borderRadius: appearancePatch.borderRadius }
+        : {}),
+    },
+    data: {
+      ...block.data,
+      style: {
+        ...((block.data as any).style ?? {}),
+        ...appearancePatch,
+      },
+    },
+  };
+}
+
+return {
+  ...block,
+  data: {
+    ...block.data,
+    [styleKey]: {
+      ...((block.data as any)[styleKey] ?? {}),
+      ...patch,
+    },
+  },
+};
     }),
   }));
   return;
