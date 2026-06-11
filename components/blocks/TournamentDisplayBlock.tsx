@@ -7,6 +7,30 @@ type Props = {
   designKey?: string;
 };
 
+type TournamentTeamLike = {
+  id?: string;
+  name?: string;
+  seed?: number;
+  wins?: number;
+  losses?: number;
+  record?: string;
+  imageUrl?: string;
+};
+
+type TournamentMatchLike = {
+  id?: string;
+  division?: "east" | "west" | "finals" | "custom";
+  teamA?: string;
+  teamB?: string;
+  scoreA?: number;
+  scoreB?: number;
+  winner?: string;
+  gameDate?: string;
+  gameTime?: string;
+  location?: string;
+  status?: "upcoming" | "live" | "final" | "postponed";
+};
+
 export default function TournamentDisplayBlock({ block }: Props) {
   const data = block.data;
   const teams = Array.isArray(data.teams) ? data.teams : [];
@@ -19,6 +43,7 @@ export default function TournamentDisplayBlock({ block }: Props) {
         <div className="text-lg font-semibold">
           {data.tournamentName || "Tournament Display"}
         </div>
+
         <div className="text-xs opacity-70">
           {[data.season, data.year].filter(Boolean).join(" • ")}
         </div>
@@ -27,10 +52,11 @@ export default function TournamentDisplayBlock({ block }: Props) {
       {displayMode === "standings" ? (
         <Standings teams={teams} />
       ) : displayMode === "matchups" ? (
-        <Matchups matches={matches} />
+        <Matchups matches={matches} teams={teams} />
       ) : (
         <Bracket
           matches={matches}
+          teams={teams}
           bracketLayout={data.bracketLayout}
           leftDivisionLabel={data.leftDivisionLabel}
           rightDivisionLabel={data.rightDivisionLabel}
@@ -44,13 +70,15 @@ export default function TournamentDisplayBlock({ block }: Props) {
 
 function Bracket({
   matches,
+  teams,
   bracketLayout,
   leftDivisionLabel,
   rightDivisionLabel,
   finalsLabel,
   emptyStateText,
 }: {
-  matches: Array<any>;
+  matches: TournamentMatchLike[];
+  teams: TournamentTeamLike[];
   bracketLayout?: string;
   leftDivisionLabel?: string;
   rightDivisionLabel?: string;
@@ -67,12 +95,10 @@ function Bracket({
 
   if (bracketLayout === "east_west") {
     const westMatches = matches.filter(
-      (m) => m.division === "west" || !m.division,
+      (match) => match.division === "west" || !match.division,
     );
 
-    const eastMatches = matches.filter(
-      (m) => m.division === "east",
-    );
+    const eastMatches = matches.filter((match) => match.division === "east");
 
     return (
       <div className="grid gap-6 lg:grid-cols-3">
@@ -82,8 +108,12 @@ function Bracket({
           </div>
 
           <div className="space-y-3">
-            {westMatches.map((match) => (
-              <MatchCard key={match.id} match={match} />
+            {westMatches.map((match, index) => (
+              <MatchCard
+                key={match.id || `west-match-${index}`}
+                match={match}
+                teams={teams}
+              />
             ))}
           </div>
         </div>
@@ -104,8 +134,12 @@ function Bracket({
           </div>
 
           <div className="space-y-3">
-            {eastMatches.map((match) => (
-              <MatchCard key={match.id} match={match} />
+            {eastMatches.map((match, index) => (
+              <MatchCard
+                key={match.id || `east-match-${index}`}
+                match={match}
+                teams={teams}
+              />
             ))}
           </div>
         </div>
@@ -122,8 +156,12 @@ function Bracket({
           </div>
 
           <div className="space-y-3">
-            {matches.map((match) => (
-              <MatchCard key={match.id} match={match} />
+            {matches.map((match, index) => (
+              <MatchCard
+                key={match.id || `winner-match-${index}`}
+                match={match}
+                teams={teams}
+              />
             ))}
           </div>
         </div>
@@ -143,17 +181,21 @@ function Bracket({
 
   return (
     <div className="flex gap-4 overflow-x-auto pb-2">
-      <div className="min-w-[220px] space-y-3">
+      <div className="min-w-[240px] space-y-3">
         <div className="text-xs font-semibold uppercase tracking-[0.14em] opacity-60">
           Round 1
         </div>
 
-        {matches.map((match) => (
-          <MatchCard key={match.id} match={match} />
+        {matches.map((match, index) => (
+          <MatchCard
+            key={match.id || `round-match-${index}`}
+            match={match}
+            teams={teams}
+          />
         ))}
       </div>
 
-      <div className="min-w-[220px] space-y-3">
+      <div className="min-w-[240px] space-y-3">
         <div className="text-xs font-semibold uppercase tracking-[0.14em] opacity-60">
           Finals
         </div>
@@ -166,7 +208,7 @@ function Bracket({
   );
 }
 
-function Standings({ teams }: { teams: Array<any> }) {
+function Standings({ teams }: { teams: TournamentTeamLike[] }) {
   const sortedTeams = [...teams].sort((a, b) => {
     const winsA = Number(a.wins ?? 0);
     const winsB = Number(b.wins ?? 0);
@@ -184,10 +226,21 @@ function Standings({ teams }: { teams: Array<any> }) {
             <th className="py-2 pr-3">Record</th>
           </tr>
         </thead>
+
         <tbody>
-          {sortedTeams.map((team) => (
-            <tr key={team.id} className="border-t border-white/10">
-              <td className="py-2 pr-3 font-medium">{team.name || "Team"}</td>
+          {sortedTeams.map((team, index) => (
+            <tr
+              key={team.id || `team-${index}`}
+              className="border-t border-white/10"
+            >
+              <td className="py-2 pr-3">
+                <div className="flex items-center gap-2">
+                  <TeamLogo team={team} />
+
+                  <span className="font-medium">{team.name || "Team"}</span>
+                </div>
+              </td>
+
               <td className="py-2 pr-3">{team.wins ?? 0}</td>
               <td className="py-2 pr-3">{team.losses ?? 0}</td>
               <td className="py-2 pr-3">{team.record || "0-0"}</td>
@@ -199,37 +252,65 @@ function Standings({ teams }: { teams: Array<any> }) {
   );
 }
 
-function Matchups({ matches }: { matches: Array<any> }) {
+function Matchups({
+  matches,
+  teams,
+}: {
+  matches: TournamentMatchLike[];
+  teams: TournamentTeamLike[];
+}) {
   return (
     <div className="grid gap-3">
-      {matches.map((match) => (
-        <MatchCard key={match.id} match={match} />
+      {matches.map((match, index) => (
+        <MatchCard
+          key={match.id || `matchup-${index}`}
+          match={match}
+          teams={teams}
+        />
       ))}
     </div>
   );
 }
 
-function MatchCard({ match }: { match: any }) {
+function MatchCard({
+  match,
+  teams,
+}: {
+  match: TournamentMatchLike;
+  teams: TournamentTeamLike[];
+}) {
+  const teamA = findTeamByName(teams, match.teamA);
+  const teamB = findTeamByName(teams, match.teamB);
+
   return (
     <div className="rounded-xl border border-white/10 bg-white/10 p-3 text-sm">
       <div className="flex items-center justify-between gap-3">
-        <div className="font-medium">{match.teamA || "Team A"}</div>
-        <div className="text-xs opacity-60">vs</div>
-        <div className="font-medium">{match.teamB || "Team B"}</div>
+        <div className="flex min-w-0 items-center gap-2">
+          <TeamLogo team={teamA} />
+
+          <div className="truncate font-medium">{match.teamA || "Team A"}</div>
+        </div>
+
+        <div className="shrink-0 text-xs opacity-60">vs</div>
+
+        <div className="flex min-w-0 items-center gap-2 text-right">
+          <div className="truncate font-medium">{match.teamB || "Team B"}</div>
+
+          <TeamLogo team={teamB} />
+        </div>
       </div>
 
       <div className="mt-2 flex items-center justify-between text-xs opacity-70">
         <span>
           {match.scoreA ?? 0} - {match.scoreB ?? 0}
         </span>
+
         <span className="rounded-full bg-white/10 px-2 py-1 capitalize">
           {match.status || "upcoming"}
         </span>
       </div>
 
-      {[match.gameDate, match.gameTime, match.location]
-        .filter(Boolean)
-        .length ? (
+      {[match.gameDate, match.gameTime, match.location].filter(Boolean).length ? (
         <div className="mt-2 text-xs opacity-70">
           {[match.gameDate, match.gameTime, match.location]
             .filter(Boolean)
@@ -237,5 +318,28 @@ function MatchCard({ match }: { match: any }) {
         </div>
       ) : null}
     </div>
+  );
+}
+
+function TeamLogo({ team }: { team?: TournamentTeamLike }) {
+  if (!team?.imageUrl) return null;
+
+  return (
+    <img
+      src={team.imageUrl}
+      alt={team.name || "Team logo"}
+      className="h-8 w-8 shrink-0 rounded-full border border-white/10 bg-white/10 object-cover"
+    />
+  );
+}
+
+function findTeamByName(
+  teams: TournamentTeamLike[],
+  name?: string,
+): TournamentTeamLike | undefined {
+  if (!name) return undefined;
+
+  return teams.find(
+    (team) => (team.name || "").trim().toLowerCase() === name.trim().toLowerCase(),
   );
 }
