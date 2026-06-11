@@ -23763,7 +23763,101 @@ onClick={() =>
     </div>
 
     <div className="mt-6">
-  <div className={inspectorLabelClass()}>Matchups</div>
+      <div className={inspectorLabelClass()}>Rounds</div>
+
+      <div className="mt-3 space-y-3">
+        {((selectedBlock.data as any).rounds ?? []).map((round: any) => (
+          <div
+            key={round.id}
+            className="rounded-xl border border-neutral-200 bg-neutral-50 p-3"
+          >
+            <div className={inspectorLabelClass()}>Round Name</div>
+
+            <input
+              type="text"
+              value={round.title ?? ""}
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "tournament_display"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          rounds: ((block.data as any).rounds ?? []).map(
+                            (entry: any) =>
+                              entry.id === round.id
+                                ? {
+                                    ...entry,
+                                    title: e.target.value,
+                                  }
+                                : entry,
+                          ),
+                        },
+                      },
+                )
+              }
+              className={inspectorInputClass()}
+            />
+
+            <div className="mt-3 flex justify-end">
+              <button
+                type="button"
+                className={toolSetButtonClass("remove")}
+                onClick={() =>
+                  updateSelectedBlock((block) =>
+                    block.type !== "tournament_display"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            rounds: ((block.data as any).rounds ?? []).filter(
+                              (entry: any) => entry.id !== round.id,
+                            ),
+                          },
+                        },
+                  )
+                }
+              >
+                ×
+              </button>
+            </div>
+          </div>
+        ))}
+
+        <button
+          type="button"
+          className={toolSetButtonClass("front")}
+          onClick={() =>
+            updateSelectedBlock((block) =>
+              block.type !== "tournament_display"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      rounds: [
+                        ...(((block.data as any).rounds ?? []) as any[]),
+                        {
+                          id: makeClientId("round"),
+                          title: `Round ${
+                            (((block.data as any).rounds ?? []) as any[])
+                              .length + 1
+                          }`,
+                        },
+                      ],
+                    },
+                  },
+            )
+          }
+        >
+          Add Round
+        </button>
+      </div>
+
+      <div className="mt-6">
+        <div className={inspectorLabelClass()}>Matchups</div>
 
   <div className="mt-3 space-y-3">
     {selectedBlock.data.matches.map((match) => (
@@ -23900,7 +23994,46 @@ onClick={() =>
         </div>
 
         <div className="mt-3">
-  <div className={inspectorLabelClass()}>Division</div>
+          <div className={inspectorLabelClass()}>Round</div>
+
+          <select
+            value={(match as any).roundTitle ?? "Round 1"}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "tournament_display"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        matches: block.data.matches.map((entry) =>
+                          entry.id === match.id
+                            ? {
+                                ...entry,
+                                roundTitle: e.target.value,
+                              }
+                            : entry,
+                        ),
+                      },
+                    },
+              )
+            }
+            className={inspectorInputClass()}
+          >
+            <option value="Round 1">Round 1</option>
+
+            {(((selectedBlock.data as any).rounds ?? []) as any[]).map(
+              (round: any) => (
+                <option key={round.id} value={round.title}>
+                  {round.title}
+                </option>
+              ),
+            )}
+          </select>
+        </div>
+
+        <div className="mt-3">
+          <div className={inspectorLabelClass()}>Division</div>
 
   <select
     value={match.division ?? "custom"}
@@ -23932,6 +24065,45 @@ onClick={() =>
     <option value="finals">Finals</option>
   </select>
 </div>
+
+        <div className="mt-3">
+          <div className={inspectorLabelClass()}>Winner</div>
+
+          <select
+            value={match.winner ?? ""}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "tournament_display"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        matches: block.data.matches.map((entry) =>
+                          entry.id === match.id
+                            ? {
+                                ...entry,
+                                winner: e.target.value,
+                              }
+                            : entry,
+                        ),
+                      },
+                    },
+              )
+            }
+            className={inspectorInputClass()}
+          >
+            <option value="">No Winner</option>
+
+            {match.teamA ? (
+              <option value={match.teamA}>{match.teamA}</option>
+            ) : null}
+
+            {match.teamB ? (
+              <option value={match.teamB}>{match.teamB}</option>
+            ) : null}
+          </select>
+        </div>
 
         <div className="mt-3">
           <div className={inspectorLabelClass()}>Status</div>
@@ -24028,7 +24200,8 @@ onClick={() =>
     </button>
   </div>
 </div>
-  </div>
+</div>
+</div>
 ) : null}
 
 {selectedBlock?.type === "map_location" ? (

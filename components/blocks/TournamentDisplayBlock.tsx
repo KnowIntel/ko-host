@@ -179,31 +179,46 @@ function Bracket({
     );
   }
 
+  const rounds =
+    matches.reduce(
+      (acc, match) => {
+        const roundName =
+          (match as any).roundTitle ||
+          (match as any).round ||
+          "Round 1";
+
+        if (!acc[roundName]) {
+          acc[roundName] = [];
+        }
+
+        acc[roundName].push(match);
+        return acc;
+      },
+      {} as Record<string, TournamentMatchLike[]>,
+    );
+
+  const roundNames = Object.keys(rounds);
+
   return (
-    <div className="flex gap-4 overflow-x-auto pb-2">
-      <div className="min-w-[240px] space-y-3">
-        <div className="text-xs font-semibold uppercase tracking-[0.14em] opacity-60">
-          Round 1
-        </div>
+    <div className="flex gap-5 overflow-x-auto pb-2">
+      {roundNames.map((roundName) => (
+        <div
+          key={roundName}
+          className="min-w-[260px] space-y-3"
+        >
+          <div className="text-xs font-semibold uppercase tracking-[0.14em] opacity-60">
+            {roundName}
+          </div>
 
-        {matches.map((match, index) => (
-          <MatchCard
-            key={match.id || `round-match-${index}`}
-            match={match}
-            teams={teams}
-          />
-        ))}
-      </div>
-
-      <div className="min-w-[240px] space-y-3">
-        <div className="text-xs font-semibold uppercase tracking-[0.14em] opacity-60">
-          Finals
+          {rounds[roundName].map((match, index) => (
+            <MatchCard
+              key={match.id || `${roundName}-${index}`}
+              match={match}
+              teams={teams}
+            />
+          ))}
         </div>
-
-        <div className="rounded-xl border border-white/10 bg-white/10 p-3 text-sm">
-          Winner advances here
-        </div>
-      </div>
+      ))}
     </div>
   );
 }
@@ -283,18 +298,43 @@ function MatchCard({
   const teamB = findTeamByName(teams, match.teamB);
 
   return (
-    <div className="rounded-xl border border-white/10 bg-white/10 p-3 text-sm">
+    <div
+  className={[
+    "rounded-xl p-3 text-sm border",
+    match.winner
+      ? "border-emerald-500/50 bg-emerald-500/10"
+      : "border-white/10 bg-white/10",
+  ].join(" ")}
+>
       <div className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2">
           <TeamLogo team={teamA} />
 
-          <div className="truncate font-medium">{match.teamA || "Team A"}</div>
+          <div
+  className={[
+    "truncate font-medium",
+    match.winner === match.teamA
+      ? "text-emerald-300"
+      : "",
+  ].join(" ")}
+>
+  {match.teamA || "Team A"}
+</div>
         </div>
 
         <div className="shrink-0 text-xs opacity-60">vs</div>
 
         <div className="flex min-w-0 items-center gap-2 text-right">
-          <div className="truncate font-medium">{match.teamB || "Team B"}</div>
+          <div
+  className={[
+    "truncate font-medium",
+    match.winner === match.teamB
+      ? "text-emerald-300"
+      : "",
+  ].join(" ")}
+>
+  {match.teamB || "Team B"}
+</div>
 
           <TeamLogo team={teamB} />
         </div>
