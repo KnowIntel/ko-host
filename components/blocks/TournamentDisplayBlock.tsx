@@ -422,13 +422,16 @@ function BracketMatchCard({
   championship = false,
   mirrored = false,
 }: {
-  match: TournamentMatchLike;
+  match?: TournamentMatchLike;
   teams: TournamentTeamLike[];
   compact?: boolean;
   large?: boolean;
   championship?: boolean;
   mirrored?: boolean;
 }) {
+  if (!match) {
+    return null;
+  }
   const teamA = findTeamByName(teams, match.teamA);
   const teamB = findTeamByName(teams, match.teamB);
   const teamAWon = Boolean(match.winner && match.winner === match.teamA);
@@ -663,9 +666,12 @@ function MatchCard({
   match,
   teams,
 }: {
-  match: TournamentMatchLike;
+  match?: TournamentMatchLike;
   teams: TournamentTeamLike[];
 }) {
+  if (!match) {
+    return null;
+  }
   const teamA = findTeamByName(teams, match.teamA);
   const teamB = findTeamByName(teams, match.teamB);
 
