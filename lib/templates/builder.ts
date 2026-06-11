@@ -1411,6 +1411,7 @@ export type TournamentBracketLayout =
 export type TournamentTeam = {
   id: string;
   name: string;
+  division?: "west" | "east";
   seed?: number;
   wins?: number;
   losses?: number;
@@ -1455,6 +1456,7 @@ export type TournamentDisplayBlock = BaseBlock & {
     year?: string;
     displayMode?: TournamentDisplayMode;
     designStyle?: "style1" | "style2" | "style3";
+    autoGenerateBracket?: boolean;
     bracketLayout?: TournamentBracketLayout;
     mirroredBracket?: boolean;
     leftDivisionLabel?: string;
@@ -4332,6 +4334,7 @@ data: {
 
           displayMode: "bracket",
           designStyle: "style1",
+          autoGenerateBracket: true,
 
           bracketLayout: "east_west",
           mirroredBracket: true,

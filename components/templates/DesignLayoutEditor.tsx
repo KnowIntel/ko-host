@@ -23517,6 +23517,29 @@ onClick={() =>
       </select>
     </div>
 
+    <div className="mt-4">
+  <label className="flex items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm text-neutral-700">
+    <input
+      type="checkbox"
+      checked={Boolean((selectedBlock.data as any).autoGenerateBracket ?? true)}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "tournament_display"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  autoGenerateBracket: e.target.checked,
+                },
+              },
+        )
+      }
+    />
+    Auto-generate bracket from teams and seeds
+  </label>
+</div>
+
     {(selectedBlock.data.bracketLayout ?? "") === "east_west" ? (
       <div className="mt-4 space-y-3">
         <div>
@@ -23716,6 +23739,38 @@ onClick={() =>
               Browse Team Logo
             </button>
 
+            <div className="mt-3">
+              <div className={inspectorLabelClass()}>Division</div>
+
+              <select
+                value={(team as any).division ?? "west"}
+                onChange={(e) =>
+                  updateSelectedBlock((block) =>
+                    block.type !== "tournament_display"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            teams: block.data.teams.map((entry) =>
+                              entry.id === team.id
+                                ? {
+                                    ...entry,
+                                    division: e.target.value as "west" | "east",
+                                  }
+                                : entry,
+                            ),
+                          },
+                        },
+                  )
+                }
+                className={inspectorInputClass()}
+              >
+                <option value="west">West</option>
+                <option value="east">East</option>
+              </select>
+            </div>
+
             <div className="mt-3 grid grid-cols-2 gap-2">
               <div>
                 <div className={inspectorLabelClass()}>Seed</div>
@@ -23881,6 +23936,7 @@ onClick={() =>
                         {
                           id: makeClientId("team"),
                           name: "New Team",
+                          division: "west",
                           seed: block.data.teams.length + 1,
                           record: "0-0",
                         },
