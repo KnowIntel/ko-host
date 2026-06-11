@@ -8,6 +8,35 @@ import { getSupabaseAdmin } from "@/lib/supabaseAdmin";
 const resend = new Resend(process.env.RESEND_API_KEY);
 const ATTACHMENT_BUCKET = "claim-offer-attachments";
 
+function extractMicrositeSlug(value: string) {
+  const raw = String(value || "").trim().toLowerCase();
+
+  if (!raw) return "";
+
+  try {
+    const withProtocol =
+      raw.startsWith("http://") || raw.startsWith("https://")
+        ? raw
+        : `https://${raw}`;
+
+    const url = new URL(withProtocol);
+    const hostname = url.hostname.replace(/^www\./, "");
+
+    if (hostname.endsWith(".ko-host.com")) {
+      return hostname.replace(".ko-host.com", "").trim();
+    }
+
+    return "";
+  } catch {
+    return raw
+      .replace(/^https?:\/\//, "")
+      .replace(/^www\./, "")
+      .replace(".ko-host.com", "")
+      .split("/")[0]
+      .trim();
+  }
+}
+
 export async function POST(req: Request) {
   try {
     const formData = await req.formData();
@@ -19,11 +48,64 @@ export async function POST(req: Request) {
     const deadline = String(formData.get("deadline") ?? "").trim();
     const file = formData.get("file");
 
-    if (!name || !email || !description) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
-    }
+if (!name || !email || !description) {
+  return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+}
 
-    const sb = getSupabaseAdmin();
+if (!siteUrl) {
+  return NextResponse.json(
+    { error: "Please fill out the Microsite URL field." },
+    { status: 400 },
+  );
+}
+
+const micrositeSlug = extractMicrositeSlug(siteUrl);
+
+if (!micrositeSlug) {
+  return NextResponse.json(
+    {
+      error:
+        "Please enter a valid Ko-Host microsite URL, such as yourname.ko-host.com.",
+    },
+    { status: 400 },
+  );
+}
+
+const sb = getSupabaseAdmin();
+
+const { data: microsite, error: micrositeError } = await sb
+  .from("microsites")
+  .select("id, slug, is_active, is_published, paid_until")
+  .eq("slug", micrositeSlug)
+  .maybeSingle();
+
+if (micrositeError) {
+  console.error("Claim offer microsite lookup error:", micrositeError);
+
+  return NextResponse.json(
+    { error: "Could not verify microsite purchase." },
+    { status: 500 },
+  );
+}
+
+const paidUntil = microsite?.paid_until
+  ? new Date(String(microsite.paid_until))
+  : null;
+
+const isPaidActive =
+  microsite !== null &&
+  microsite.is_active !== false &&
+  (!paidUntil || paidUntil.getTime() > Date.now());
+
+if (!isPaidActive) {
+  return NextResponse.json(
+    {
+      error:
+        "You must first purchase a microsite before submitting a custom development request.",
+    },
+    { status: 403 },
+  );
+}
 
     let fileName: string | null = null;
     let filePath: string | null = null;
@@ -152,4 +234,4 @@ function escapeHtml(value: string) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
-}
+} 

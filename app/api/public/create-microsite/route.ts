@@ -19,6 +19,34 @@ function normalizeSlug(value: string) {
     .slice(0, 60);
 } 
 
+function extractMicrositeSlug(value: string) {
+  const raw = String(value || "").trim().toLowerCase();
+
+  if (!raw) return "";
+
+  try {
+    const withProtocol = raw.startsWith("http://") || raw.startsWith("https://")
+      ? raw
+      : `https://${raw}`;
+
+    const url = new URL(withProtocol);
+    const hostname = url.hostname.replace(/^www\./, "");
+
+    if (hostname.endsWith(".ko-host.com")) {
+      return hostname.replace(".ko-host.com", "").trim();
+    }
+
+    return "";
+  } catch {
+    return raw
+      .replace(/^https?:\/\//, "")
+      .replace(/^www\./, "")
+      .replace(".ko-host.com", "")
+      .split("/")[0]
+      .trim();
+  }
+}
+
 export async function POST(req: Request) {
   try {
     const { userId } = await auth();
