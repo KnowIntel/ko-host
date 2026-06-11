@@ -15,10 +15,12 @@ type TournamentTeamLike = {
   losses?: number;
   record?: string;
   imageUrl?: string;
+  color?: string;
 };
 
 type TournamentMatchLike = {
   id?: string;
+  roundTitle?: string;
   division?: "east" | "west" | "finals" | "custom";
   teamA?: string;
   teamB?: string;
@@ -57,6 +59,7 @@ export default function TournamentDisplayBlock({ block }: Props) {
         <Bracket
           matches={matches}
           teams={teams}
+          designStyle={(data as any).designStyle ?? "style1"}
           bracketLayout={data.bracketLayout}
           leftDivisionLabel={data.leftDivisionLabel}
           rightDivisionLabel={data.rightDivisionLabel}
@@ -71,6 +74,7 @@ export default function TournamentDisplayBlock({ block }: Props) {
 function Bracket({
   matches,
   teams,
+  designStyle,
   bracketLayout,
   leftDivisionLabel,
   rightDivisionLabel,
@@ -79,12 +83,29 @@ function Bracket({
 }: {
   matches: TournamentMatchLike[];
   teams: TournamentTeamLike[];
+  designStyle?: string;
   bracketLayout?: string;
   leftDivisionLabel?: string;
   rightDivisionLabel?: string;
   finalsLabel?: string;
   emptyStateText?: string;
 }) {
+  if (designStyle === "style2") {
+    return (
+      <div className="rounded-xl border border-dashed border-white/20 p-6 text-center">
+        Style 2 Coming Soon
+      </div>
+    );
+  }
+
+  if (designStyle === "style3") {
+    return (
+      <div className="rounded-xl border border-dashed border-white/20 p-6 text-center">
+        Style 3 Coming Soon
+      </div>
+    );
+  }
+
   if (!matches.length) {
     return (
       <div className="rounded-xl border border-dashed border-white/20 p-4 text-sm opacity-70">
@@ -94,118 +115,394 @@ function Bracket({
   }
 
   if (bracketLayout === "east_west") {
-    const westMatches = matches.filter(
-      (match) => match.division === "west" || !match.division,
-    );
-
-    const eastMatches = matches.filter((match) => match.division === "east");
-
     return (
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div>
-          <div className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] opacity-60">
-            {leftDivisionLabel || "West"}
-          </div>
-
-          <div className="space-y-3">
-            {westMatches.map((match, index) => (
-              <MatchCard
-                key={match.id || `west-match-${index}`}
-                match={match}
-                teams={teams}
-              />
-            ))}
-          </div>
-        </div>
-
-        <div>
-          <div className="mb-3 text-center text-xs font-semibold uppercase tracking-[0.14em] opacity-60">
-            {finalsLabel || "Finals"}
-          </div>
-
-          <div className="rounded-xl border border-white/10 bg-white/10 p-4 text-center">
-            Championship Match
-          </div>
-        </div>
-
-        <div>
-          <div className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] opacity-60">
-            {rightDivisionLabel || "East"}
-          </div>
-
-          <div className="space-y-3">
-            {eastMatches.map((match, index) => (
-              <MatchCard
-                key={match.id || `east-match-${index}`}
-                match={match}
-                teams={teams}
-              />
-            ))}
-          </div>
-        </div>
-      </div>
+      <Style1EastWestBracket
+        matches={matches}
+        teams={teams}
+        leftDivisionLabel={leftDivisionLabel}
+        rightDivisionLabel={rightDivisionLabel}
+        finalsLabel={finalsLabel}
+      />
     );
   }
 
-  if (bracketLayout === "double_elimination") {
-    return (
-      <div className="grid gap-6 lg:grid-cols-2">
-        <div>
-          <div className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] opacity-60">
-            Winner Bracket
-          </div>
+  return <RoundColumnBracket matches={matches} teams={teams} />;
+}
 
-          <div className="space-y-3">
-            {matches.map((match, index) => (
-              <MatchCard
-                key={match.id || `winner-match-${index}`}
-                match={match}
-                teams={teams}
-              />
-            ))}
-          </div>
+function Style1EastWestBracket({
+  matches,
+  teams,
+  leftDivisionLabel,
+  rightDivisionLabel,
+  finalsLabel,
+}: {
+  matches: TournamentMatchLike[];
+  teams: TournamentTeamLike[];
+  leftDivisionLabel?: string;
+  rightDivisionLabel?: string;
+  finalsLabel?: string;
+}) {
+  const westRound1 = matches.filter(
+    (match) => match.division === "west" && getRoundName(match) === "Round 1",
+  );
+  const westRound2 = matches.filter(
+    (match) => match.division === "west" && getRoundName(match) === "Round 2",
+  );
+  const westFinal = matches.find(
+    (match) =>
+      match.division === "west" && getRoundName(match) === "Division Finals",
+  );
+
+  const eastRound1 = matches.filter(
+    (match) => match.division === "east" && getRoundName(match) === "Round 1",
+  );
+  const eastRound2 = matches.filter(
+    (match) => match.division === "east" && getRoundName(match) === "Round 2",
+  );
+  const eastFinal = matches.find(
+    (match) =>
+      match.division === "east" && getRoundName(match) === "Division Finals",
+  );
+
+  const championship = matches.find(
+    (match) =>
+      match.division === "finals" ||
+      getRoundName(match) === "Championship",
+  );
+
+  return (
+    <div className="min-w-[1180px]">
+      <div className="grid grid-cols-[1fr_260px_1fr] gap-8">
+        <BracketSide
+          label={leftDivisionLabel || "West Division"}
+          align="left"
+          round1={westRound1}
+          round2={westRound2}
+          divisionFinal={westFinal}
+          teams={teams}
+        />
+
+        <ChampionshipCard
+          label={finalsLabel || "Championship"}
+          match={championship}
+          teams={teams}
+        />
+
+        <BracketSide
+          label={rightDivisionLabel || "East Division"}
+          align="right"
+          round1={eastRound1}
+          round2={eastRound2}
+          divisionFinal={eastFinal}
+          teams={teams}
+        />
+      </div>
+    </div>
+  );
+}
+
+function BracketSide({
+  label,
+  align,
+  round1,
+  round2,
+  divisionFinal,
+  teams,
+}: {
+  label: string;
+  align: "left" | "right";
+  round1: TournamentMatchLike[];
+  round2: TournamentMatchLike[];
+  divisionFinal?: TournamentMatchLike;
+  teams: TournamentTeamLike[];
+}) {
+  const round2Matches = fillMatches(round2, 2);
+  const finalMatch = divisionFinal ?? {
+    id: `${align}-division-final-placeholder`,
+    roundTitle: "Division Finals",
+    teamA: round2Matches[0]?.winner || round2Matches[0]?.teamA || "Winner",
+    teamB: round2Matches[1]?.winner || round2Matches[1]?.teamA || "Winner",
+    scoreA: 0,
+    scoreB: 0,
+    status: "upcoming" as const,
+  };
+
+  return (
+    <div>
+      <div
+        className={[
+          "mb-4 text-xs font-bold uppercase tracking-[0.18em]",
+          align === "right" ? "text-right" : "",
+        ].join(" ")}
+      >
+        {label}
+      </div>
+
+      <div className="grid grid-cols-[220px_54px_220px_54px_220px] items-center">
+        <div className="space-y-4">
+          {fillMatches(round1, 4).map((match, index) => (
+            <BracketMatchCard
+              key={match.id || `${align}-round1-${index}`}
+              match={match}
+              teams={teams}
+              compact
+            />
+          ))}
         </div>
 
-        <div>
-          <div className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] opacity-60">
-            Loser Bracket
-          </div>
+        <ConnectorColumn rows={4} align={align} />
 
-          <div className="rounded-xl border border-dashed border-white/20 p-4 text-sm opacity-70">
-            Loser bracket structure coming next phase.
-          </div>
+        <div className="space-y-16">
+          {round2Matches.map((match, index) => (
+            <BracketMatchCard
+              key={match.id || `${align}-round2-${index}`}
+              match={match}
+              teams={teams}
+            />
+          ))}
+        </div>
+
+        <ConnectorColumn rows={2} align={align} />
+
+        <div>
+          <BracketMatchCard match={finalMatch} teams={teams} large />
         </div>
       </div>
-    );
-  }
+    </div>
+  );
+}
 
-  const rounds =
-    matches.reduce(
-      (acc, match) => {
-        const roundName =
-          (match as any).roundTitle ||
-          (match as any).round ||
-          "Round 1";
+function ConnectorColumn({
+  rows,
+  align,
+}: {
+  rows: 2 | 4;
+  align: "left" | "right";
+}) {
+  const heightClass = rows === 4 ? "h-[420px]" : "h-[240px]";
 
-        if (!acc[roundName]) {
-          acc[roundName] = [];
-        }
+  return (
+    <div className={`relative ${heightClass}`}>
+      <div
+        className={[
+          "absolute top-[13%] h-[2px] w-full bg-white/20",
+          align === "right" ? "right-0" : "left-0",
+        ].join(" ")}
+      />
+      <div
+        className={[
+          "absolute top-[38%] h-[2px] w-full bg-white/20",
+          align === "right" ? "right-0" : "left-0",
+        ].join(" ")}
+      />
+      <div
+        className={[
+          "absolute top-[63%] h-[2px] w-full bg-white/20",
+          rows === 4 ? "" : "hidden",
+          align === "right" ? "right-0" : "left-0",
+        ].join(" ")}
+      />
+      <div
+        className={[
+          "absolute top-[88%] h-[2px] w-full bg-white/20",
+          rows === 4 ? "" : "hidden",
+          align === "right" ? "right-0" : "left-0",
+        ].join(" ")}
+      />
 
-        acc[roundName].push(match);
-        return acc;
-      },
-      {} as Record<string, TournamentMatchLike[]>,
-    );
+      <div
+        className={[
+          "absolute top-[13%] h-[25%] w-[2px] bg-white/20",
+          align === "right" ? "left-0" : "right-0",
+        ].join(" ")}
+      />
+      <div
+        className={[
+          "absolute top-[63%] h-[25%] w-[2px] bg-white/20",
+          rows === 4 ? "" : "hidden",
+          align === "right" ? "left-0" : "right-0",
+        ].join(" ")}
+      />
+      <div
+        className={[
+          "absolute top-[38%] h-[2px] w-full bg-white/20",
+          align === "right" ? "left-0" : "right-0",
+        ].join(" ")}
+      />
+    </div>
+  );
+}
 
-  const roundNames = Object.keys(rounds);
+function ChampionshipCard({
+  label,
+  match,
+  teams,
+}: {
+  label: string;
+  match?: TournamentMatchLike;
+  teams: TournamentTeamLike[];
+}) {
+  const safeMatch = match ?? {
+    teamA: "West Champion",
+    teamB: "East Champion",
+    scoreA: 0,
+    scoreB: 0,
+    status: "upcoming" as const,
+  };
+
+  return (
+    <div className="flex h-full min-h-[500px] flex-col items-center justify-center">
+      <div className="mb-4 text-center text-xs font-bold uppercase tracking-[0.18em] opacity-70">
+        {label}
+      </div>
+
+      <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full border border-yellow-300/40 bg-yellow-300/10 text-3xl">
+        🏆
+      </div>
+
+      <BracketMatchCard match={safeMatch} teams={teams} championship />
+
+      <div className="mt-5 rounded-2xl border border-yellow-300/30 bg-yellow-300/10 px-5 py-3 text-center">
+        <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-yellow-200">
+          Champion
+        </div>
+        <div className="mt-1 text-sm font-semibold">
+          {safeMatch.winner || "Awaiting Winner"}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function BracketMatchCard({
+  match,
+  teams,
+  compact = false,
+  large = false,
+  championship = false,
+}: {
+  match: TournamentMatchLike;
+  teams: TournamentTeamLike[];
+  compact?: boolean;
+  large?: boolean;
+  championship?: boolean;
+}) {
+  const teamA = findTeamByName(teams, match.teamA);
+  const teamB = findTeamByName(teams, match.teamB);
+  const teamAWon = Boolean(match.winner && match.winner === match.teamA);
+  const teamBWon = Boolean(match.winner && match.winner === match.teamB);
+
+  return (
+    <div
+      className={[
+        "rounded-2xl border bg-white/10 shadow-sm",
+        championship
+          ? "border-yellow-300/30 p-3"
+          : large
+            ? "border-white/15 p-3"
+            : "border-white/10 p-2",
+        compact ? "text-xs" : "text-sm",
+      ].join(" ")}
+    >
+      <BracketTeamRow
+        team={teamA}
+        fallbackName={match.teamA || "Team A"}
+        score={match.scoreA}
+        isWinner={teamAWon}
+      />
+
+      <div className="my-2 h-px bg-white/10" />
+
+      <BracketTeamRow
+        team={teamB}
+        fallbackName={match.teamB || "Team B"}
+        score={match.scoreB}
+        isWinner={teamBWon}
+      />
+
+      {match.status ? (
+        <div className="mt-2 text-[10px] uppercase tracking-[0.14em] opacity-60">
+          {match.status}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function BracketTeamRow({
+  team,
+  fallbackName,
+  score,
+  isWinner,
+}: {
+  team?: TournamentTeamLike;
+  fallbackName: string;
+  score?: number;
+  isWinner?: boolean;
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      {team?.seed ? (
+        <div className="w-5 text-[10px] font-bold opacity-70">
+          {team.seed}
+        </div>
+      ) : (
+        <div className="w-5" />
+      )}
+
+      <TeamLogo team={team} />
+
+      <div className="min-w-0 flex-1">
+        <div
+          className={[
+            "truncate font-semibold",
+            isWinner ? "text-emerald-300" : "",
+          ].join(" ")}
+          style={{ color: team?.color || undefined }}
+        >
+          {team?.name || fallbackName}
+        </div>
+
+        {team?.record ? (
+          <div className="text-[10px] opacity-55">{team.record}</div>
+        ) : null}
+      </div>
+
+      <div
+        className={[
+          "min-w-8 rounded-lg px-2 py-1 text-center text-xs font-bold",
+          isWinner
+            ? "bg-emerald-400 text-black"
+            : "bg-white/10 text-white/70",
+        ].join(" ")}
+      >
+        {score ?? 0}
+      </div>
+    </div>
+  );
+}
+
+function RoundColumnBracket({
+  matches,
+  teams,
+}: {
+  matches: TournamentMatchLike[];
+  teams: TournamentTeamLike[];
+}) {
+  const rounds = matches.reduce(
+    (acc, match) => {
+      const roundName = getRoundName(match);
+      if (!acc[roundName]) acc[roundName] = [];
+      acc[roundName].push(match);
+      return acc;
+    },
+    {} as Record<string, TournamentMatchLike[]>,
+  );
 
   return (
     <div className="flex gap-5 overflow-x-auto pb-2">
-      {roundNames.map((roundName) => (
-        <div
-          key={roundName}
-          className="min-w-[260px] space-y-3"
-        >
+      {Object.keys(rounds).map((roundName) => (
+        <div key={roundName} className="min-w-[260px] space-y-3">
           <div className="text-xs font-semibold uppercase tracking-[0.14em] opacity-60">
             {roundName}
           </div>
@@ -250,9 +547,20 @@ function Standings({ teams }: { teams: TournamentTeamLike[] }) {
             >
               <td className="py-2 pr-3">
                 <div className="flex items-center gap-2">
+                  {team.seed ? (
+                    <div className="rounded-full bg-white/10 px-2 py-1 text-[10px] font-semibold">
+                      #{team.seed}
+                    </div>
+                  ) : null}
+
                   <TeamLogo team={team} />
 
-                  <span className="font-medium">{team.name || "Team"}</span>
+                  <span
+                    className="font-medium"
+                    style={{ color: team.color || undefined }}
+                  >
+                    {team.name || "Team"}
+                  </span>
                 </div>
               </td>
 
@@ -299,42 +607,38 @@ function MatchCard({
 
   return (
     <div
-  className={[
-    "rounded-xl p-3 text-sm border",
-    match.winner
-      ? "border-emerald-500/50 bg-emerald-500/10"
-      : "border-white/10 bg-white/10",
-  ].join(" ")}
->
+      className={[
+        "rounded-xl p-3 text-sm border",
+        match.winner
+          ? "border-emerald-500/50 bg-emerald-500/10"
+          : "border-white/10 bg-white/10",
+      ].join(" ")}
+    >
       <div className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2">
           <TeamLogo team={teamA} />
 
           <div
-  className={[
-    "truncate font-medium",
-    match.winner === match.teamA
-      ? "text-emerald-300"
-      : "",
-  ].join(" ")}
->
-  {match.teamA || "Team A"}
-</div>
+            className={[
+              "truncate font-medium",
+              match.winner === match.teamA ? "text-emerald-300" : "",
+            ].join(" ")}
+          >
+            {match.teamA || "Team A"}
+          </div>
         </div>
 
         <div className="shrink-0 text-xs opacity-60">vs</div>
 
         <div className="flex min-w-0 items-center gap-2 text-right">
           <div
-  className={[
-    "truncate font-medium",
-    match.winner === match.teamB
-      ? "text-emerald-300"
-      : "",
-  ].join(" ")}
->
-  {match.teamB || "Team B"}
-</div>
+            className={[
+              "truncate font-medium",
+              match.winner === match.teamB ? "text-emerald-300" : "",
+            ].join(" ")}
+          >
+            {match.teamB || "Team B"}
+          </div>
 
           <TeamLogo team={teamB} />
         </div>
@@ -373,6 +677,25 @@ function TeamLogo({ team }: { team?: TournamentTeamLike }) {
   );
 }
 
+function fillMatches(matches: TournamentMatchLike[], count: number) {
+  return Array.from({ length: count }, (_item, index) => {
+    return (
+      matches[index] ?? {
+        id: `placeholder-${index}`,
+        teamA: "Team",
+        teamB: "Team",
+        scoreA: 0,
+        scoreB: 0,
+        status: "upcoming" as const,
+      }
+    );
+  });
+}
+
+function getRoundName(match: TournamentMatchLike) {
+  return match.roundTitle || "Round 1";
+}
+
 function findTeamByName(
   teams: TournamentTeamLike[],
   name?: string,
@@ -380,6 +703,7 @@ function findTeamByName(
   if (!name) return undefined;
 
   return teams.find(
-    (team) => (team.name || "").trim().toLowerCase() === name.trim().toLowerCase(),
+    (team) =>
+      (team.name || "").trim().toLowerCase() === name.trim().toLowerCase(),
   );
 }

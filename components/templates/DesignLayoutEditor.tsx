@@ -23467,76 +23467,6 @@ onClick={() =>
     <div className="mt-4">
       <div className={inspectorLabelClass()}>Bracket Layout</div>
 
-      {(selectedBlock.data.bracketLayout ?? "") === "east_west" ? (
-  <div className="mt-4 space-y-3">
-    <div>
-      <div className={inspectorLabelClass()}>Left Division Label</div>
-      <input
-        type="text"
-        value={selectedBlock.data.leftDivisionLabel ?? ""}
-        onChange={(e) =>
-          updateSelectedBlock((block) =>
-            block.type !== "tournament_display"
-              ? block
-              : {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    leftDivisionLabel: e.target.value,
-                  },
-                },
-          )
-        }
-        className={inspectorInputClass()}
-      />
-    </div>
-
-    <div>
-      <div className={inspectorLabelClass()}>Right Division Label</div>
-      <input
-        type="text"
-        value={selectedBlock.data.rightDivisionLabel ?? ""}
-        onChange={(e) =>
-          updateSelectedBlock((block) =>
-            block.type !== "tournament_display"
-              ? block
-              : {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    rightDivisionLabel: e.target.value,
-                  },
-                },
-          )
-        }
-        className={inspectorInputClass()}
-      />
-    </div>
-
-    <div>
-      <div className={inspectorLabelClass()}>Finals Label</div>
-      <input
-        type="text"
-        value={selectedBlock.data.finalsLabel ?? ""}
-        onChange={(e) =>
-          updateSelectedBlock((block) =>
-            block.type !== "tournament_display"
-              ? block
-              : {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    finalsLabel: e.target.value,
-                  },
-                },
-          )
-        }
-        className={inspectorInputClass()}
-      />
-    </div>
-  </div>
-) : null}
-
       <select
         value={selectedBlock.data.bracketLayout ?? "single_elimination"}
         onChange={(e) =>
@@ -23560,6 +23490,102 @@ onClick={() =>
         <option value="custom">Custom</option>
       </select>
     </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Design Style</div>
+
+      <select
+        value={(selectedBlock.data as any).designStyle ?? "style1"}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "tournament_display"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    designStyle: e.target.value as "style1" | "style2" | "style3",
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      >
+        <option value="style1">Style 1</option>
+        <option value="style2">Style 2</option>
+        <option value="style3">Style 3</option>
+      </select>
+    </div>
+
+    {(selectedBlock.data.bracketLayout ?? "") === "east_west" ? (
+      <div className="mt-4 space-y-3">
+        <div>
+          <div className={inspectorLabelClass()}>Left Division Label</div>
+          <input
+            type="text"
+            value={selectedBlock.data.leftDivisionLabel ?? ""}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "tournament_display"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        leftDivisionLabel: e.target.value,
+                      },
+                    },
+              )
+            }
+            className={inspectorInputClass()}
+          />
+        </div>
+
+        <div>
+          <div className={inspectorLabelClass()}>Right Division Label</div>
+          <input
+            type="text"
+            value={selectedBlock.data.rightDivisionLabel ?? ""}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "tournament_display"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        rightDivisionLabel: e.target.value,
+                      },
+                    },
+              )
+            }
+            className={inspectorInputClass()}
+          />
+        </div>
+
+        <div>
+          <div className={inspectorLabelClass()}>Finals Label</div>
+          <input
+            type="text"
+            value={selectedBlock.data.finalsLabel ?? ""}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "tournament_display"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        finalsLabel: e.target.value,
+                      },
+                    },
+              )
+            }
+            className={inspectorInputClass()}
+          />
+        </div>
+      </div>
+    ) : null}
 
     <div className="mt-4 grid grid-cols-2 gap-2">
       {[
