@@ -24040,8 +24040,8 @@ teams:
         </button>
       </div>
 
-      <div className="mt-6">
-        <div className={inspectorLabelClass()}>Matchups</div>
+<div className="mt-6">
+  <div className={inspectorLabelClass()}>Matchups</div>
 
   <div className="mt-3 space-y-3">
     {selectedBlock.data.matches.map((match) => (
@@ -24074,7 +24074,6 @@ teams:
               className={inspectorInputClass()}
             >
               <option value="">Select Team</option>
-
               {selectedBlock.data.teams.map((team) => (
                 <option key={team.id} value={team.name}>
                   {team.name}
@@ -24107,7 +24106,6 @@ teams:
               className={inspectorInputClass()}
             >
               <option value="">Select Team</option>
-
               {selectedBlock.data.teams.map((team) => (
                 <option key={team.id} value={team.name}>
                   {team.name}
@@ -24133,10 +24131,7 @@ teams:
                           ...block.data,
                           matches: block.data.matches.map((entry) =>
                             entry.id === match.id
-                              ? {
-                                  ...entry,
-                                  scoreA: Number(e.target.value),
-                                }
+                              ? { ...entry, scoreA: Number(e.target.value) }
                               : entry,
                           ),
                         },
@@ -24162,10 +24157,35 @@ teams:
                           ...block.data,
                           matches: block.data.matches.map((entry) =>
                             entry.id === match.id
-                              ? {
-                                  ...entry,
-                                  scoreB: Number(e.target.value),
-                                }
+                              ? { ...entry, scoreB: Number(e.target.value) }
+                              : entry,
+                          ),
+                        },
+                      },
+                )
+              }
+              className={inspectorInputClass()}
+            />
+          </div>
+        </div>
+
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <div>
+            <div className={inspectorLabelClass()}>Game Date</div>
+            <input
+              type="date"
+              value={match.gameDate ?? ""}
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "tournament_display"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          matches: block.data.matches.map((entry) =>
+                            entry.id === match.id
+                              ? { ...entry, gameDate: e.target.value }
                               : entry,
                           ),
                         },
@@ -24176,119 +24196,61 @@ teams:
             />
           </div>
 
-          <div className="mt-3">
-  <div className={inspectorLabelClass()}>Game Date</div>
-  <input
-    type="date"
-    value={match.gameDate ?? ""}
-    onChange={(e) =>
-      updateSelectedBlock((block) =>
-        block.type !== "tournament_display"
-          ? block
-          : {
-              ...block,
-              data: {
-                ...block.data,
-                matches: block.data.matches.map((entry) =>
-                  entry.id === match.id
-                    ? { ...entry, gameDate: e.target.value }
-                    : entry,
-                ),
-              },
-            },
-      )
-    }
-    className={inspectorInputClass()}
-  />
-</div>
+          <div>
+            <div className={inspectorLabelClass()}>Game Time</div>
+            <input
+              type="time"
+              value={match.gameTime ?? ""}
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "tournament_display"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          matches: block.data.matches.map((entry) =>
+                            entry.id === match.id
+                              ? { ...entry, gameTime: e.target.value }
+                              : entry,
+                          ),
+                        },
+                      },
+                )
+              }
+              className={inspectorInputClass()}
+            />
+          </div>
+        </div>
 
-<div className="mt-3">
-  <div className={inspectorLabelClass()}>Game Time</div>
-  <input
-    type="time"
-    value={match.gameTime ?? ""}
-    onChange={(e) =>
-      updateSelectedBlock((block) =>
-        block.type !== "tournament_display"
-          ? block
-          : {
-              ...block,
-              data: {
-                ...block.data,
-                matches: block.data.matches.map((entry) =>
-                  entry.id === match.id
-                    ? { ...entry, gameTime: e.target.value }
-                    : entry,
-                ),
-              },
-            },
-      )
-    }
-    className={inspectorInputClass()}
-  />
-</div>
-
-<div className="mt-3">
-  <div className={inspectorLabelClass()}>Location</div>
-  <input
-    type="text"
-    value={match.location ?? ""}
-    onChange={(e) =>
-      updateSelectedBlock((block) =>
-        block.type !== "tournament_display"
-          ? block
-          : {
-              ...block,
-              data: {
-                ...block.data,
-                matches: block.data.matches.map((entry) =>
-                  entry.id === match.id
-                    ? { ...entry, location: e.target.value }
-                    : entry,
-                ),
-              },
-            },
-      )
-    }
-    className={inspectorInputClass()}
-  />
-</div>
-
-<div className="mt-3">
-  <div className={inspectorLabelClass()}>Winner</div>
-
-  <select
-    value={match.winner ?? ""}
-    onChange={(e) =>
-      updateSelectedBlock((block) =>
-        block.type !== "tournament_display"
-          ? block
-          : {
-              ...block,
-              data: {
-                ...block.data,
-                matches: block.data.matches.map((entry) =>
-                  entry.id === match.id
-                    ? { ...entry, winner: e.target.value }
-                    : entry,
-                ),
-              },
-            },
-      )
-    }
-    className={inspectorInputClass()}
-  >
-    <option value="">None</option>
-    <option value={match.teamA}>{match.teamA || "Team A"}</option>
-    <option value={match.teamB}>{match.teamB || "Team B"}</option>
-  </select>
-</div>
-
+        <div className="mt-3">
+          <div className={inspectorLabelClass()}>Location</div>
+          <input
+            type="text"
+            value={match.location ?? ""}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "tournament_display"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        matches: block.data.matches.map((entry) =>
+                          entry.id === match.id
+                            ? { ...entry, location: e.target.value }
+                            : entry,
+                        ),
+                      },
+                    },
+              )
+            }
+            className={inspectorInputClass()}
+          />
         </div>
 
         <div className="mt-3">
           <div className={inspectorLabelClass()}>Round</div>
-
           <select
             value={(match as any).roundTitle ?? "Round 1"}
             onChange={(e) =>
@@ -24301,10 +24263,7 @@ teams:
                         ...block.data,
                         matches: block.data.matches.map((entry) =>
                           entry.id === match.id
-                            ? {
-                                ...entry,
-                                roundTitle: e.target.value,
-                              }
+                            ? { ...entry, roundTitle: e.target.value }
                             : entry,
                         ),
                       },
@@ -24314,7 +24273,6 @@ teams:
             className={inspectorInputClass()}
           >
             <option value="Round 1">Round 1</option>
-
             {(((selectedBlock.data as any).rounds ?? []) as any[]).map(
               (round: any) => (
                 <option key={round.id} value={round.title}>
@@ -24327,41 +24285,36 @@ teams:
 
         <div className="mt-3">
           <div className={inspectorLabelClass()}>Division</div>
-
-  <select
-    value={match.division ?? "custom"}
-    onChange={(e) =>
-      updateSelectedBlock((block) =>
-        block.type !== "tournament_display"
-          ? block
-          : {
-              ...block,
-              data: {
-                ...block.data,
-                matches: block.data.matches.map((entry) =>
-                  entry.id === match.id
-                    ? {
-                        ...entry,
-                        division: e.target.value as any,
-                      }
-                    : entry,
-                ),
-              },
-            },
-      )
-    }
-    className={inspectorInputClass()}
-  >
-    <option value="custom">Custom</option>
-    <option value="west">West</option>
-    <option value="east">East</option>
-    <option value="finals">Finals</option>
-  </select>
-</div>
+          <select
+            value={match.division ?? "custom"}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "tournament_display"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        matches: block.data.matches.map((entry) =>
+                          entry.id === match.id
+                            ? { ...entry, division: e.target.value as any }
+                            : entry,
+                        ),
+                      },
+                    },
+              )
+            }
+            className={inspectorInputClass()}
+          >
+            <option value="custom">Custom</option>
+            <option value="west">West</option>
+            <option value="east">East</option>
+            <option value="finals">Finals</option>
+          </select>
+        </div>
 
         <div className="mt-3">
           <div className={inspectorLabelClass()}>Winner</div>
-
           <select
             value={match.winner ?? ""}
             onChange={(e) =>
@@ -24374,10 +24327,7 @@ teams:
                         ...block.data,
                         matches: block.data.matches.map((entry) =>
                           entry.id === match.id
-                            ? {
-                                ...entry,
-                                winner: e.target.value,
-                              }
+                            ? { ...entry, winner: e.target.value }
                             : entry,
                         ),
                       },
@@ -24387,20 +24337,13 @@ teams:
             className={inspectorInputClass()}
           >
             <option value="">No Winner</option>
-
-            {match.teamA ? (
-              <option value={match.teamA}>{match.teamA}</option>
-            ) : null}
-
-            {match.teamB ? (
-              <option value={match.teamB}>{match.teamB}</option>
-            ) : null}
+            {match.teamA ? <option value={match.teamA}>{match.teamA}</option> : null}
+            {match.teamB ? <option value={match.teamB}>{match.teamB}</option> : null}
           </select>
         </div>
 
         <div className="mt-3">
           <div className={inspectorLabelClass()}>Status</div>
-
           <select
             value={match.status ?? "upcoming"}
             onChange={(e) =>
@@ -24413,10 +24356,7 @@ teams:
                         ...block.data,
                         matches: block.data.matches.map((entry) =>
                           entry.id === match.id
-                            ? {
-                                ...entry,
-                                status: e.target.value as any,
-                              }
+                            ? { ...entry, status: e.target.value as any }
                             : entry,
                         ),
                       },
@@ -24432,33 +24372,77 @@ teams:
           </select>
         </div>
 
-<div className="mt-3 flex justify-end">
-  <button
-    type="button"
-    className={toolSetButtonClass("remove")}
-    onClick={() =>
-      updateSelectedBlock((block) =>
-        block.type !== "tournament_display"
-          ? block
-          : {
-              ...block,
-              data: {
-                ...block.data,
-                matches:
-                  block.data.matches.length > 1
-                    ? block.data.matches.filter(
-                        (entry) => entry.id !== match.id,
-                      )
-                    : block.data.matches,
-              },
-            },
-      )
-    }
-  >
-    ×
-  </button>
-</div>
-  </div>
+        <div className="mt-3 flex items-center justify-end gap-2">
+          <button
+            type="button"
+            className={toolSetButtonClass("front")}
+            onClick={() =>
+              updateSelectedBlock((block) => {
+                if (block.type !== "tournament_display") return block;
+                const index = block.data.matches.findIndex(
+                  (entry) => entry.id === match.id,
+                );
+                if (index <= 0) return block;
+                const matches = [...block.data.matches];
+                [matches[index - 1], matches[index]] = [
+                  matches[index],
+                  matches[index - 1],
+                ];
+                return { ...block, data: { ...block.data, matches } };
+              })
+            }
+          >
+            ▲
+          </button>
+
+          <button
+            type="button"
+            className={toolSetButtonClass("front")}
+            onClick={() =>
+              updateSelectedBlock((block) => {
+                if (block.type !== "tournament_display") return block;
+                const index = block.data.matches.findIndex(
+                  (entry) => entry.id === match.id,
+                );
+                if (index >= block.data.matches.length - 1) return block;
+                const matches = [...block.data.matches];
+                [matches[index], matches[index + 1]] = [
+                  matches[index + 1],
+                  matches[index],
+                ];
+                return { ...block, data: { ...block.data, matches } };
+              })
+            }
+          >
+            ▼
+          </button>
+
+          <button
+            type="button"
+            className={toolSetButtonClass("remove")}
+            onClick={() =>
+              updateSelectedBlock((block) =>
+                block.type !== "tournament_display"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        matches:
+                          block.data.matches.length > 1
+                            ? block.data.matches.filter(
+                                (entry) => entry.id !== match.id,
+                              )
+                            : block.data.matches,
+                      },
+                    },
+              )
+            }
+          >
+            ×
+          </button>
+        </div>
+      </div>
     ))}
 
     <button
@@ -24482,6 +24466,8 @@ teams:
                       scoreB: 0,
                       status: "upcoming",
                       division: "custom",
+                      roundTitle: "Round 1",
+                      winner: "",
                     },
                   ],
                 },
