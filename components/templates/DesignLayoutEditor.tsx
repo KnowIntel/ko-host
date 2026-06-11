@@ -24065,16 +24065,15 @@ onClick={() =>
             updateSelectedBlock((block) => {
               if (block.type !== "tournament_display") return block;
 
-              const teams = [
-                ...block.data.teams,
-                {
-                  id: makeClientId("team"),
-                  name: "New Team",
-                  division: "west",
-                  seed: block.data.teams.length + 1,
-                  record: "0-0",
-                },
-              ];
+              const newTeam = {
+                id: makeClientId("team"),
+                name: "New Team",
+                division: "west" as "west" | "east",
+                seed: block.data.teams.length + 1,
+                record: "0-0",
+              };
+
+              const teams = [...block.data.teams, newTeam];
 
               return {
                 ...block,
