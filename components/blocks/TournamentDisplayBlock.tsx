@@ -238,36 +238,71 @@ function BracketSide({
         {label}
       </div>
 
-      <div className="grid grid-cols-[220px_54px_220px_54px_220px] items-center">
-        <div className="space-y-4">
-          {fillMatches(round1, 4).map((match, index) => (
-            <BracketMatchCard
-              key={match.id || `${align}-round1-${index}`}
-              match={match}
-              teams={teams}
-              compact
-            />
-          ))}
+      {align === "right" ? (
+        <div className="grid grid-cols-[220px_54px_220px_54px_220px] items-center">
+          <div>
+            <BracketMatchCard match={finalMatch} teams={teams} large mirrored />
+          </div>
+
+          <ConnectorColumn rows={2} align={align} />
+
+          <div className="space-y-16">
+            {round2Matches.map((match, index) => (
+              <BracketMatchCard
+                key={match.id || `${align}-round2-${index}`}
+                match={match}
+                teams={teams}
+                mirrored
+              />
+            ))}
+          </div>
+
+          <ConnectorColumn rows={4} align={align} />
+
+          <div className="space-y-4">
+            {fillMatches(round1, 4).map((match, index) => (
+              <BracketMatchCard
+                key={match.id || `${align}-round1-${index}`}
+                match={match}
+                teams={teams}
+                compact
+                mirrored
+              />
+            ))}
+          </div>
         </div>
+      ) : (
+        <div className="grid grid-cols-[220px_54px_220px_54px_220px] items-center">
+          <div className="space-y-4">
+            {fillMatches(round1, 4).map((match, index) => (
+              <BracketMatchCard
+                key={match.id || `${align}-round1-${index}`}
+                match={match}
+                teams={teams}
+                compact
+              />
+            ))}
+          </div>
 
-        <ConnectorColumn rows={4} align={align} />
+          <ConnectorColumn rows={4} align={align} />
 
-        <div className="space-y-16">
-          {round2Matches.map((match, index) => (
-            <BracketMatchCard
-              key={match.id || `${align}-round2-${index}`}
-              match={match}
-              teams={teams}
-            />
-          ))}
+          <div className="space-y-16">
+            {round2Matches.map((match, index) => (
+              <BracketMatchCard
+                key={match.id || `${align}-round2-${index}`}
+                match={match}
+                teams={teams}
+              />
+            ))}
+          </div>
+
+          <ConnectorColumn rows={2} align={align} />
+
+          <div>
+            <BracketMatchCard match={finalMatch} teams={teams} large />
+          </div>
         </div>
-
-        <ConnectorColumn rows={2} align={align} />
-
-        <div>
-          <BracketMatchCard match={finalMatch} teams={teams} large />
-        </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -380,12 +415,14 @@ function BracketMatchCard({
   compact = false,
   large = false,
   championship = false,
+  mirrored = false,
 }: {
   match: TournamentMatchLike;
   teams: TournamentTeamLike[];
   compact?: boolean;
   large?: boolean;
   championship?: boolean;
+  mirrored?: boolean;
 }) {
   const teamA = findTeamByName(teams, match.teamA);
   const teamB = findTeamByName(teams, match.teamB);
@@ -409,6 +446,7 @@ function BracketMatchCard({
         fallbackName={match.teamA || "Team A"}
         score={match.scoreA}
         isWinner={teamAWon}
+        mirrored={mirrored}
       />
 
       <div className="my-2 h-px bg-white/10" />
@@ -418,6 +456,7 @@ function BracketMatchCard({
         fallbackName={match.teamB || "Team B"}
         score={match.scoreB}
         isWinner={teamBWon}
+        mirrored={mirrored}
       />
 
       {match.status ? (
@@ -434,25 +473,38 @@ function BracketTeamRow({
   fallbackName,
   score,
   isWinner,
+  mirrored = false,
 }: {
   team?: TournamentTeamLike;
   fallbackName: string;
   score?: number;
   isWinner?: boolean;
+  mirrored?: boolean;
 }) {
-  return (
-    <div className="flex items-center gap-2">
-      {team?.seed ? (
-        <div className="w-5 text-[10px] font-bold opacity-70">
-          {team.seed}
-        </div>
-      ) : (
-        <div className="w-5" />
-      )}
+  const scoreBadge = (
+    <div
+      className={[
+        "min-w-8 rounded-lg px-2 py-1 text-center text-xs font-bold",
+        isWinner
+          ? "bg-emerald-400 text-black"
+          : "bg-white/10 text-white/70",
+      ].join(" ")}
+    >
+      {score ?? 0}
+    </div>
+  );
 
+  const seedBadge = team?.seed ? (
+    <div className="w-5 text-[10px] font-bold opacity-70">{team.seed}</div>
+  ) : (
+    <div className="w-5" />
+  );
+
+  const teamInfo = (
+    <>
       <TeamLogo team={team} />
 
-      <div className="min-w-0 flex-1">
+      <div className={["min-w-0 flex-1", mirrored ? "text-right" : ""].join(" ")}>
         <div
           className={[
             "truncate font-semibold",
@@ -467,17 +519,24 @@ function BracketTeamRow({
           <div className="text-[10px] opacity-55">{team.record}</div>
         ) : null}
       </div>
+    </>
+  );
 
-      <div
-        className={[
-          "min-w-8 rounded-lg px-2 py-1 text-center text-xs font-bold",
-          isWinner
-            ? "bg-emerald-400 text-black"
-            : "bg-white/10 text-white/70",
-        ].join(" ")}
-      >
-        {score ?? 0}
-      </div>
+  return (
+    <div className="flex items-center gap-2">
+      {mirrored ? (
+        <>
+          {scoreBadge}
+          {teamInfo}
+          {seedBadge}
+        </>
+      ) : (
+        <>
+          {seedBadge}
+          {teamInfo}
+          {scoreBadge}
+        </>
+      )}
     </div>
   );
 }
