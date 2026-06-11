@@ -23826,80 +23826,80 @@ onClick={() =>
               </div>
             </summary>
 
-            <div className="mt-4">
-              <div className={inspectorLabelClass()}>Team Name</div>
-              <input
-                type="text"
-                value={team.name}
-                onChange={(e) =>
-                  updateSelectedBlock((block) =>
-                    block.type !== "tournament_display"
-                      ? block
-                      : {
-                          ...block,
-                          data: {
-                            ...block.data,
-                            teams: block.data.teams.map((entry) =>
-                              entry.id === team.id
-                                ? { ...entry, name: e.target.value }
-                                : entry,
-                            ),
-                          },
-                        },
-                  )
-                }
-                className={inspectorInputClass()}
-              />
-            </div>
+<div className="mt-4">
+  <div className={inspectorLabelClass()}>Team Name</div>
+  <input
+    type="text"
+    value={team.name}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "tournament_display"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                teams: block.data.teams.map((entry) =>
+                  entry.id === team.id
+                    ? { ...entry, name: e.target.value }
+                    : entry,
+                ),
+              },
+            },
+      )
+    }
+    className={inspectorInputClass()}
+  />
+</div>
 
-            <button
-              type="button"
-              className="mt-3 inline-flex h-10 items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-700 hover:bg-neutral-50"
-              onClick={() =>
-                void uploadImageToSelectedBlock(
-                  selectedBlock.id,
-                  undefined,
-                  undefined,
-                  undefined,
-                  undefined,
-                  team.id,
-                )
-              }
-            >
-              Browse Team Logo
-            </button>
+<button
+  type="button"
+  className="mt-3 inline-flex h-10 items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-700 hover:bg-neutral-50"
+  onClick={() =>
+    void uploadImageToSelectedBlock(
+      selectedBlock.id,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      team.id,
+    )
+  }
+>
+  Browse Team Logo
+</button>
 
-            <div className="mt-3">
-              <div className={inspectorLabelClass()}>Division</div>
+<div className="mt-3">
+  <div className={inspectorLabelClass()}>Division</div>
 
-              <select
-                value={(team as any).division ?? "west"}
-                onChange={(e) =>
-                  updateSelectedBlock((block) =>
-                    block.type !== "tournament_display"
-                      ? block
-                      : {
-                          ...block,
-                          data: {
-                            ...block.data,
-                            teams: block.data.teams.map((entry) =>
-                              entry.id === team.id
-                                ? {
-                                    ...entry,
-                                    division: e.target.value as "west" | "east",
-                                  }
-                                : entry,
-                            ),
-                          },
-                        },
-                  )
-                }
-                className={inspectorInputClass()}
-              >
-                <option value="west">West</option>
-                <option value="east">East</option>
-              </select>
-            </div>
+  <select
+    value={(team as any).division ?? "west"}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "tournament_display"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                teams: block.data.teams.map((entry) =>
+                  entry.id === team.id
+                    ? {
+                        ...entry,
+                        division: e.target.value as "west" | "east",
+                      }
+                    : entry,
+                ),
+              },
+            },
+      )
+    }
+    className={inspectorInputClass()}
+  >
+    <option value="west">West</option>
+    <option value="east">East</option>
+  </select>
+</div>
 
             <div className="mt-3 grid grid-cols-2 gap-2">
               <div>
