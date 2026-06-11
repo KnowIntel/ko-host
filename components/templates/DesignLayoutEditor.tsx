@@ -1112,6 +1112,130 @@ if (block.type === "speed_dating" || block.type === "pop_balloon") {
   };
 }
 
+function syncTournamentMatchesFromTeams(
+  teams: any[],
+  existingMatches: any[] = [],
+) {
+  const buildDivision = (division: "west" | "east") => {
+    const divisionTeams = teams.filter(
+      (team) => (team.division ?? "west") === division,
+    );
+
+    const getExisting = (roundTitle: string, index: number) =>
+      existingMatches.filter(
+        (match) =>
+          match.division === division && match.roundTitle === roundTitle,
+      )[index];
+
+    const round1Pairs = [
+      [divisionTeams[0], divisionTeams[1]],
+      [divisionTeams[2], divisionTeams[3]],
+      [divisionTeams[4], divisionTeams[5]],
+      [divisionTeams[6], divisionTeams[7]],
+    ];
+
+    const round1 = round1Pairs.map(([teamA, teamB], index) => {
+      const existing = getExisting("Round 1", index);
+
+      return {
+        ...(existing ?? {}),
+        id: existing?.id ?? makeClientId("match"),
+        division,
+        roundTitle: "Round 1",
+        teamA: teamA?.name ?? "",
+        teamB: teamB?.name ?? "",
+        scoreA: existing?.scoreA ?? 0,
+        scoreB: existing?.scoreB ?? 0,
+        winner:
+          existing?.winner === teamA?.name || existing?.winner === teamB?.name
+            ? existing.winner
+            : "",
+        status: existing?.status ?? "upcoming",
+      };
+    });
+
+    const round2 = [
+      [round1[0], round1[1]],
+      [round1[2], round1[3]],
+    ].map(([matchA, matchB], index) => {
+      const existing = getExisting("Round 2", index);
+
+      return {
+        ...(existing ?? {}),
+        id: existing?.id ?? makeClientId("match"),
+        division,
+        roundTitle: "Round 2",
+        teamA: matchA?.winner || "",
+        teamB: matchB?.winner || "",
+        scoreA: existing?.scoreA ?? 0,
+        scoreB: existing?.scoreB ?? 0,
+        winner:
+          existing?.winner === matchA?.winner ||
+          existing?.winner === matchB?.winner
+            ? existing.winner
+            : "",
+        status: existing?.status ?? "upcoming",
+      };
+    });
+
+    const existingFinal = getExisting("Division Finals", 0);
+
+    const divisionFinal = {
+      ...(existingFinal ?? {}),
+      id: existingFinal?.id ?? makeClientId("match"),
+      division,
+      roundTitle: "Division Finals",
+      teamA: round2[0]?.winner || "",
+      teamB: round2[1]?.winner || "",
+      scoreA: existingFinal?.scoreA ?? 0,
+      scoreB: existingFinal?.scoreB ?? 0,
+      winner:
+        existingFinal?.winner === round2[0]?.winner ||
+        existingFinal?.winner === round2[1]?.winner
+          ? existingFinal.winner
+          : "",
+      status: existingFinal?.status ?? "upcoming",
+    };
+
+    return [...round1, ...round2, divisionFinal];
+  };
+
+  const westMatches = buildDivision("west");
+  const eastMatches = buildDivision("east");
+
+  const westFinalWinner =
+    westMatches.find((match) => match.roundTitle === "Division Finals")
+      ?.winner ?? "";
+
+  const eastFinalWinner =
+    eastMatches.find((match) => match.roundTitle === "Division Finals")
+      ?.winner ?? "";
+
+  const existingChampionship = existingMatches.find(
+    (match) =>
+      match.division === "finals" || match.roundTitle === "Championship",
+  );
+
+  const championship = {
+    ...(existingChampionship ?? {}),
+    id: existingChampionship?.id ?? makeClientId("match"),
+    division: "finals",
+    roundTitle: "Championship",
+    teamA: westFinalWinner,
+    teamB: eastFinalWinner,
+    scoreA: existingChampionship?.scoreA ?? 0,
+    scoreB: existingChampionship?.scoreB ?? 0,
+    winner:
+      existingChampionship?.winner === westFinalWinner ||
+      existingChampionship?.winner === eastFinalWinner
+        ? existingChampionship.winner
+        : "",
+    status: existingChampionship?.status ?? "upcoming",
+  };
+
+  return [...westMatches, ...eastMatches, championship];
+}
+
 function topBarButtonClass(active = false, disabled = false, danger = false) {
   return [
     "inline-flex h-11 min-w-11 items-center justify-center rounded-md border px-3 text-sm transition",
@@ -2129,130 +2253,6 @@ function applyTextureToSelectedBlock(
 
     return;
   }
-}
-
-function syncTournamentMatchesFromTeams(
-  teams: any[],
-  existingMatches: any[] = [],
-) {
-  const buildDivision = (division: "west" | "east") => {
-    const divisionTeams = teams.filter(
-      (team) => (team.division ?? "west") === division,
-    );
-
-    const getExisting = (roundTitle: string, index: number) =>
-      existingMatches.filter(
-        (match) =>
-          match.division === division && match.roundTitle === roundTitle,
-      )[index];
-
-    const round1Pairs = [
-      [divisionTeams[0], divisionTeams[1]],
-      [divisionTeams[2], divisionTeams[3]],
-      [divisionTeams[4], divisionTeams[5]],
-      [divisionTeams[6], divisionTeams[7]],
-    ];
-
-    const round1 = round1Pairs.map(([teamA, teamB], index) => {
-      const existing = getExisting("Round 1", index);
-
-      return {
-        ...(existing ?? {}),
-        id: existing?.id ?? makeClientId("match"),
-        division,
-        roundTitle: "Round 1",
-        teamA: teamA?.name ?? "",
-        teamB: teamB?.name ?? "",
-        scoreA: existing?.scoreA ?? 0,
-        scoreB: existing?.scoreB ?? 0,
-        winner:
-          existing?.winner === teamA?.name || existing?.winner === teamB?.name
-            ? existing.winner
-            : "",
-        status: existing?.status ?? "upcoming",
-      };
-    });
-
-    const round2 = [
-      [round1[0], round1[1]],
-      [round1[2], round1[3]],
-    ].map(([matchA, matchB], index) => {
-      const existing = getExisting("Round 2", index);
-
-      return {
-        ...(existing ?? {}),
-        id: existing?.id ?? makeClientId("match"),
-        division,
-        roundTitle: "Round 2",
-        teamA: matchA?.winner || "",
-        teamB: matchB?.winner || "",
-        scoreA: existing?.scoreA ?? 0,
-        scoreB: existing?.scoreB ?? 0,
-        winner:
-          existing?.winner === matchA?.winner ||
-          existing?.winner === matchB?.winner
-            ? existing.winner
-            : "",
-        status: existing?.status ?? "upcoming",
-      };
-    });
-
-    const existingFinal = getExisting("Division Finals", 0);
-
-    const divisionFinal = {
-      ...(existingFinal ?? {}),
-      id: existingFinal?.id ?? makeClientId("match"),
-      division,
-      roundTitle: "Division Finals",
-      teamA: round2[0]?.winner || "",
-      teamB: round2[1]?.winner || "",
-      scoreA: existingFinal?.scoreA ?? 0,
-      scoreB: existingFinal?.scoreB ?? 0,
-      winner:
-        existingFinal?.winner === round2[0]?.winner ||
-        existingFinal?.winner === round2[1]?.winner
-          ? existingFinal.winner
-          : "",
-      status: existingFinal?.status ?? "upcoming",
-    };
-
-    return [...round1, ...round2, divisionFinal];
-  };
-
-  const westMatches = buildDivision("west");
-  const eastMatches = buildDivision("east");
-
-  const westFinalWinner =
-    westMatches.find((match) => match.roundTitle === "Division Finals")
-      ?.winner ?? "";
-
-  const eastFinalWinner =
-    eastMatches.find((match) => match.roundTitle === "Division Finals")
-      ?.winner ?? "";
-
-  const existingChampionship = existingMatches.find(
-    (match) =>
-      match.division === "finals" || match.roundTitle === "Championship",
-  );
-
-  const championship = {
-    ...(existingChampionship ?? {}),
-    id: existingChampionship?.id ?? makeClientId("match"),
-    division: "finals",
-    roundTitle: "Championship",
-    teamA: westFinalWinner,
-    teamB: eastFinalWinner,
-    scoreA: existingChampionship?.scoreA ?? 0,
-    scoreB: existingChampionship?.scoreB ?? 0,
-    winner:
-      existingChampionship?.winner === westFinalWinner ||
-      existingChampionship?.winner === eastFinalWinner
-        ? existingChampionship.winner
-        : "",
-    status: existingChampionship?.status ?? "upcoming",
-  };
-
-  return [...westMatches, ...eastMatches, championship];
 }
 
 async function handleTextureFileChange(fileList: FileList | null) {
@@ -24093,7 +24093,7 @@ onClick={() =>
         </button>
       </div>
     </div>
-    
+
 
     <div className="mt-6">
       <div className={inspectorLabelClass()}>Rounds</div>
