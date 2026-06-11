@@ -23899,12 +23899,10 @@ onClick={() =>
               ...block,
               data: {
                 ...block.data,
-                teams:
-                  block.data.teams.length > 1
-                    ? block.data.teams.filter(
-                        (entry) => entry.id !== team.id,
-                      )
-                    : block.data.teams,
+teams:
+  block.data.teams.filter(
+    (entry) => entry.id !== team.id,
+  ),
               },
             },
       )
@@ -24434,21 +24432,7 @@ onClick={() =>
           </select>
         </div>
 
-<div className="mt-3 flex items-center justify-end gap-2">
-  <button
-    type="button"
-    className={toolSetButtonClass("front")}
-  >
-    ▲
-  </button>
-
-  <button
-    type="button"
-    className={toolSetButtonClass("front")}
-  >
-    ▼
-  </button>
-
+<div className="mt-3 flex justify-end">
   <button
     type="button"
     className={toolSetButtonClass("remove")}
@@ -24473,7 +24457,8 @@ onClick={() =>
   >
     ×
   </button>
-</div>      </div>
+</div>
+  </div>
     ))}
 
     <button
