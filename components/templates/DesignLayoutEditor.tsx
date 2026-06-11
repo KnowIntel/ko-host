@@ -23805,26 +23805,108 @@ onClick={() =>
             key={team.id}
             className="rounded-xl border border-neutral-200 bg-neutral-50 p-3"
           >
-            <summary className="cursor-pointer list-none">
-              <div className="flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="truncate text-sm font-semibold text-neutral-800">
-                    {team.name || "Team"}
-                  </div>
-                  <div className="text-xs text-neutral-500">
-                    Seed {team.seed ?? "-"} • {team.record || "0-0"}
-                  </div>
-                </div>
+<summary className="cursor-pointer list-none">
+  <div className="flex items-center justify-between gap-3">
+    <div className="min-w-0">
+      <div className="truncate text-sm font-semibold text-neutral-800">
+        {team.name || "Team"}
+      </div>
+      <div className="text-xs text-neutral-500">
+        Seed {team.seed ?? "-"} • {team.record || "0-0"}
+      </div>
+    </div>
 
-                {team.imageUrl ? (
-                  <img
-                    src={team.imageUrl}
-                    alt={team.name || "Team logo"}
-                    className="h-10 w-10 rounded-lg border border-neutral-200 bg-white object-cover"
-                  />
-                ) : null}
-              </div>
-            </summary>
+    <div className="flex shrink-0 items-center gap-2">
+      {team.imageUrl ? (
+        <img
+          src={team.imageUrl}
+          alt={team.name || "Team logo"}
+          className="h-10 w-10 rounded-lg border border-neutral-200 bg-white object-cover"
+        />
+      ) : null}
+
+      <button
+        type="button"
+        className={toolSetButtonClass("front")}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+
+          updateSelectedBlock((block) => {
+            if (block.type !== "tournament_display") return block;
+
+            const index = block.data.teams.findIndex(
+              (entry) => entry.id === team.id,
+            );
+
+            if (index <= 0) return block;
+
+            const teams = [...block.data.teams];
+
+            [teams[index - 1], teams[index]] = [
+              teams[index],
+              teams[index - 1],
+            ];
+
+            return {
+              ...block,
+              data: {
+                ...block.data,
+                teams,
+                matches: syncTournamentMatchesFromTeams(
+                  teams,
+                  block.data.matches,
+                ),
+              },
+            };
+          });
+        }}
+      >
+        ▲
+      </button>
+
+      <button
+        type="button"
+        className={toolSetButtonClass("front")}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+
+          updateSelectedBlock((block) => {
+            if (block.type !== "tournament_display") return block;
+
+            const index = block.data.teams.findIndex(
+              (entry) => entry.id === team.id,
+            );
+
+            if (index >= block.data.teams.length - 1) return block;
+
+            const teams = [...block.data.teams];
+
+            [teams[index], teams[index + 1]] = [
+              teams[index + 1],
+              teams[index],
+            ];
+
+            return {
+              ...block,
+              data: {
+                ...block.data,
+                teams,
+                matches: syncTournamentMatchesFromTeams(
+                  teams,
+                  block.data.matches,
+                ),
+              },
+            };
+          });
+        }}
+      >
+        ▼
+      </button>
+    </div>
+  </div>
+</summary>
 
 <div className="mt-4">
   <div className={inspectorLabelClass()}>Team Name</div>
