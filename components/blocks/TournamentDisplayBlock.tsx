@@ -82,20 +82,37 @@ export default function TournamentDisplayBlock({ block }: Props) {
     showStatusBadges: data.showStatusBadges !== false,
   };
 
-  const rootStyle: CSSProperties = {
-    ...styles.backgroundStyle,
-    backgroundColor:
-      data.style?.backgroundColor === "transparent"
-        ? "transparent"
-        : data.style?.backgroundColor || undefined,
-  };
+const appearance = block.appearance as any;
+
+const rootStyle: CSSProperties = {
+  ...styles.backgroundStyle,
+  backgroundColor:
+    appearance?.backgroundColor === "transparent" ||
+    data.style?.backgroundColor === "transparent"
+      ? "transparent"
+      : appearance?.backgroundColor ||
+        data.style?.backgroundColor ||
+        undefined,
+  borderColor: appearance?.borderColor || undefined,
+  borderWidth:
+    typeof appearance?.borderWidth === "number"
+      ? appearance.borderWidth
+      : undefined,
+  borderRadius:
+    typeof appearance?.borderRadius === "number"
+      ? appearance.borderRadius
+      : undefined,
+};
 
   return (
     <div
-      className={[
-        "h-full w-full overflow-auto rounded-2xl border border-white/10 p-4 text-white",
-        data.style?.backgroundColor === "transparent" ? "" : "bg-black/20",
-      ].join(" ")}
+className={[
+  "h-full w-full overflow-auto rounded-2xl border p-4 text-white",
+  appearance?.backgroundColor === "transparent" ||
+  data.style?.backgroundColor === "transparent"
+    ? ""
+    : "bg-black/20",
+].join(" ")}
       style={rootStyle}
     >
       <div className="mb-4">
