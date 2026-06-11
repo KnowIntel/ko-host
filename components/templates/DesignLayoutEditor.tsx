@@ -1116,86 +1116,86 @@ function syncTournamentMatchesFromTeams(
   teams: any[],
   existingMatches: any[] = [],
 ) {
+  const safeExistingMatches = Array.isArray(existingMatches)
+    ? existingMatches
+    : [];
+
+  const getWinnerFromScores = (
+    teamA: string,
+    teamB: string,
+    scoreA: number,
+    scoreB: number,
+  ) => {
+    if (!teamA || !teamB) return "";
+    if (scoreA === scoreB) return "";
+    return scoreA > scoreB ? teamA : teamB;
+  };
+
   const buildDivision = (division: "west" | "east") => {
     const divisionTeams = teams.filter(
       (team) => (team.division ?? "west") === division,
     );
 
     const getExisting = (roundTitle: string, index: number) =>
-      existingMatches.filter(
+      safeExistingMatches.filter(
         (match) =>
-          match.division === division && match.roundTitle === roundTitle,
+          match?.division === division && match?.roundTitle === roundTitle,
       )[index];
 
-    const round1Pairs = [
-      [divisionTeams[0], divisionTeams[1]],
-      [divisionTeams[2], divisionTeams[3]],
-      [divisionTeams[4], divisionTeams[5]],
-      [divisionTeams[6], divisionTeams[7]],
+    const makeMatch = (
+      roundTitle: string,
+      index: number,
+      teamA: string,
+      teamB: string,
+    ) => {
+      const existing = getExisting(roundTitle, index);
+      const scoreA = existing?.scoreA ?? 0;
+      const scoreB = existing?.scoreB ?? 0;
+
+      return {
+        ...(existing ?? {}),
+        id: existing?.id ?? makeClientId("match"),
+        division,
+        roundTitle,
+        teamA,
+        teamB,
+        scoreA,
+        scoreB,
+        winner:
+          existing?.winner ||
+          getWinnerFromScores(teamA, teamB, scoreA, scoreB),
+        status: existing?.status ?? "upcoming",
+      };
+    };
+
+    const round1 = [
+      makeMatch("Round 1", 0, divisionTeams[0]?.name ?? "", divisionTeams[1]?.name ?? ""),
+      makeMatch("Round 1", 1, divisionTeams[2]?.name ?? "", divisionTeams[3]?.name ?? ""),
+      makeMatch("Round 1", 2, divisionTeams[4]?.name ?? "", divisionTeams[5]?.name ?? ""),
+      makeMatch("Round 1", 3, divisionTeams[6]?.name ?? "", divisionTeams[7]?.name ?? ""),
     ];
 
-    const round1 = round1Pairs.map(([teamA, teamB], index) => {
-      const existing = getExisting("Round 1", index);
-
-      return {
-        ...(existing ?? {}),
-        id: existing?.id ?? makeClientId("match"),
-        division,
-        roundTitle: "Round 1",
-        teamA: teamA?.name ?? "",
-        teamB: teamB?.name ?? "",
-        scoreA: existing?.scoreA ?? 0,
-        scoreB: existing?.scoreB ?? 0,
-        winner:
-          existing?.winner === teamA?.name || existing?.winner === teamB?.name
-            ? existing.winner
-            : "",
-        status: existing?.status ?? "upcoming",
-      };
-    });
-
     const round2 = [
-      [round1[0], round1[1]],
-      [round1[2], round1[3]],
-    ].map(([matchA, matchB], index) => {
-      const existing = getExisting("Round 2", index);
+      makeMatch(
+        "Round 2",
+        0,
+        round1[0]?.winner || "",
+        round1[1]?.winner || "",
+      ),
+      makeMatch(
+        "Round 2",
+        1,
+        round1[2]?.winner || "",
+        round1[3]?.winner || "",
+      ),
+    ];
 
-      return {
-        ...(existing ?? {}),
-        id: existing?.id ?? makeClientId("match"),
-        division,
-        roundTitle: "Round 2",
-        teamA: matchA?.winner || "",
-        teamB: matchB?.winner || "",
-        scoreA: existing?.scoreA ?? 0,
-        scoreB: existing?.scoreB ?? 0,
-        winner:
-          existing?.winner === matchA?.winner ||
-          existing?.winner === matchB?.winner
-            ? existing.winner
-            : "",
-        status: existing?.status ?? "upcoming",
-      };
-    });
-
-    const existingFinal = getExisting("Division Finals", 0);
-
-    const divisionFinal = {
-      ...(existingFinal ?? {}),
-      id: existingFinal?.id ?? makeClientId("match"),
-      division,
-      roundTitle: "Division Finals",
-      teamA: round2[0]?.winner || "",
-      teamB: round2[1]?.winner || "",
-      scoreA: existingFinal?.scoreA ?? 0,
-      scoreB: existingFinal?.scoreB ?? 0,
-      winner:
-        existingFinal?.winner === round2[0]?.winner ||
-        existingFinal?.winner === round2[1]?.winner
-          ? existingFinal.winner
-          : "",
-      status: existingFinal?.status ?? "upcoming",
-    };
+    const divisionFinal = makeMatch(
+      "Division Finals",
+      0,
+      round2[0]?.winner || "",
+      round2[1]?.winner || "",
+    );
 
     return [...round1, ...round2, divisionFinal];
   };
@@ -1203,33 +1203,39 @@ function syncTournamentMatchesFromTeams(
   const westMatches = buildDivision("west");
   const eastMatches = buildDivision("east");
 
-  const westFinalWinner =
+  const westWinner =
     westMatches.find((match) => match.roundTitle === "Division Finals")
       ?.winner ?? "";
 
-  const eastFinalWinner =
+  const eastWinner =
     eastMatches.find((match) => match.roundTitle === "Division Finals")
       ?.winner ?? "";
 
-  const existingChampionship = existingMatches.find(
+  const existingChampionship = safeExistingMatches.find(
     (match) =>
-      match.division === "finals" || match.roundTitle === "Championship",
+      match?.division === "finals" || match?.roundTitle === "Championship",
   );
+
+  const championshipScoreA = existingChampionship?.scoreA ?? 0;
+  const championshipScoreB = existingChampionship?.scoreB ?? 0;
 
   const championship = {
     ...(existingChampionship ?? {}),
     id: existingChampionship?.id ?? makeClientId("match"),
-    division: "finals",
+    division: "finals" as const,
     roundTitle: "Championship",
-    teamA: westFinalWinner,
-    teamB: eastFinalWinner,
-    scoreA: existingChampionship?.scoreA ?? 0,
-    scoreB: existingChampionship?.scoreB ?? 0,
+    teamA: westWinner,
+    teamB: eastWinner,
+    scoreA: championshipScoreA,
+    scoreB: championshipScoreB,
     winner:
-      existingChampionship?.winner === westFinalWinner ||
-      existingChampionship?.winner === eastFinalWinner
-        ? existingChampionship.winner
-        : "",
+      existingChampionship?.winner ||
+      getWinnerFromScores(
+        westWinner,
+        eastWinner,
+        championshipScoreA,
+        championshipScoreB,
+      ),
     status: existingChampionship?.status ?? "upcoming",
   };
 
