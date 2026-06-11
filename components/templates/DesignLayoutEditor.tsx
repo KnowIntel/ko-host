@@ -23957,7 +23957,7 @@ onClick={() =>
       ))}
     </div>
 
-    <div className="mt-4">
+<div className="mt-4">
   <div className="flex items-center justify-between">
     <div className={inspectorLabelClass()}>Logo Size</div>
     <div className="text-xs text-neutral-500">
@@ -23985,6 +23985,250 @@ onClick={() =>
     }
     className="mt-2 w-full"
   />
+</div>
+
+<div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+  <label className="flex items-center gap-2 text-sm text-neutral-700">
+    <input
+      type="checkbox"
+      checked={Boolean((selectedBlock.data as any).matchCardShadowEnabled)}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "tournament_display"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  matchCardShadowEnabled: e.target.checked,
+                },
+              },
+        )
+      }
+    />
+    Matchup card shadow
+  </label>
+
+  <div className="mt-3">
+    <div className={inspectorLabelClass()}>Shadow Blur</div>
+    <input
+      type="range"
+      min={0}
+      max={40}
+      value={(selectedBlock.data as any).matchCardShadowBlur ?? 16}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "tournament_display"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  matchCardShadowBlur: Number(e.target.value),
+                },
+              },
+        )
+      }
+      className="mt-2 w-full"
+    />
+  </div>
+
+  <div className="mt-3 grid grid-cols-2 gap-2">
+    <div>
+      <div className={inspectorLabelClass()}>Shadow X</div>
+      <input
+        type="range"
+        min={-30}
+        max={30}
+        value={(selectedBlock.data as any).matchCardShadowX ?? 0}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "tournament_display"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    matchCardShadowX: Number(e.target.value),
+                  },
+                },
+          )
+        }
+        className="mt-2 w-full"
+      />
+    </div>
+
+    <div>
+      <div className={inspectorLabelClass()}>Shadow Y</div>
+      <input
+        type="range"
+        min={-30}
+        max={30}
+        value={(selectedBlock.data as any).matchCardShadowY ?? 8}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "tournament_display"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    matchCardShadowY: Number(e.target.value),
+                  },
+                },
+          )
+        }
+        className="mt-2 w-full"
+      />
+    </div>
+  </div>
+
+  <div className="mt-3">
+    <div className={inspectorLabelClass()}>Shadow Direction</div>
+    <select
+      value={(selectedBlock.data as any).matchCardShadowDirection ?? "down"}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "tournament_display"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  matchCardShadowDirection: e.target.value as any,
+                },
+              },
+        )
+      }
+      className={inspectorInputClass()}
+    >
+      <option value="down">Down</option>
+      <option value="up">Up</option>
+      <option value="left">Left</option>
+      <option value="right">Right</option>
+      <option value="custom">Custom X/Y</option>
+    </select>
+  </div>
+</div>
+
+<div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+  <label className="flex items-center gap-2 text-sm text-neutral-700">
+    <input
+      type="checkbox"
+      checked={Boolean((selectedBlock.data as any).matchCardBorderEnabled ?? true)}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "tournament_display"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  matchCardBorderEnabled: e.target.checked,
+                },
+              },
+        )
+      }
+    />
+    Matchup card border
+  </label>
+
+  <div className="mt-3">
+    <div className={inspectorLabelClass()}>Border Color</div>
+    <input
+      type="color"
+      value={(selectedBlock.data as any).matchCardBorderColor ?? "#ffffff"}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "tournament_display"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  matchCardBorderColor: e.target.value,
+                },
+              },
+        )
+      }
+      className="mt-2 h-10 w-full"
+    />
+  </div>
+</div>
+
+<div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+  <label className="flex items-center gap-2 text-sm text-neutral-700">
+    <input
+      type="checkbox"
+      checked={Boolean((selectedBlock.data as any).connectorLinesEnabled ?? true)}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "tournament_display"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  connectorLinesEnabled: e.target.checked,
+                },
+              },
+        )
+      }
+    />
+    Match connector lines
+  </label>
+
+  <div className="mt-3">
+    <div className={inspectorLabelClass()}>Connector Color</div>
+    <input
+      type="color"
+      value={(selectedBlock.data as any).connectorLineColor ?? "#ffffff"}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "tournament_display"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  connectorLineColor: e.target.value,
+                },
+              },
+        )
+      }
+      className="mt-2 h-10 w-full"
+    />
+  </div>
+
+  <div className="mt-3">
+    <div className="flex items-center justify-between">
+      <div className={inspectorLabelClass()}>Connector Thickness</div>
+      <div className="text-xs text-neutral-500">
+        {(selectedBlock.data as any).connectorLineThickness ?? 2}px
+      </div>
+    </div>
+
+    <input
+      type="range"
+      min={1}
+      max={8}
+      value={(selectedBlock.data as any).connectorLineThickness ?? 2}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "tournament_display"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  connectorLineThickness: Number(e.target.value),
+                },
+              },
+        )
+      }
+      className="mt-2 w-full"
+    />
+  </div>
 </div>
 
     <div className="mt-4">

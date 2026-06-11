@@ -54,6 +54,16 @@ type TournamentDisplayOptions = {
   showRecords: boolean;
   showStatusBadges: boolean;
   logoSize: number;
+  matchCardShadowEnabled: boolean;
+  matchCardShadowBlur: number;
+  matchCardShadowX: number;
+  matchCardShadowY: number;
+  matchCardShadowDirection: "down" | "up" | "left" | "right" | "custom";
+  matchCardBorderEnabled: boolean;
+  matchCardBorderColor: string;
+  connectorLinesEnabled: boolean;
+  connectorLineColor: string;
+  connectorLineThickness: number;
 };
 
 export default function TournamentDisplayBlock({ block }: Props) {
@@ -85,6 +95,34 @@ const options: TournamentDisplayOptions = {
     typeof data.logoSize === "number" && Number.isFinite(data.logoSize)
       ? Math.max(16, Math.min(72, data.logoSize))
       : 32,
+  matchCardShadowEnabled: Boolean(data.matchCardShadowEnabled),
+  matchCardShadowBlur:
+    typeof data.matchCardShadowBlur === "number" ? data.matchCardShadowBlur : 16,
+  matchCardShadowX:
+    typeof data.matchCardShadowX === "number" ? data.matchCardShadowX : 0,
+  matchCardShadowY:
+    typeof data.matchCardShadowY === "number" ? data.matchCardShadowY : 8,
+  matchCardShadowDirection:
+    data.matchCardShadowDirection === "up" ||
+    data.matchCardShadowDirection === "left" ||
+    data.matchCardShadowDirection === "right" ||
+    data.matchCardShadowDirection === "custom"
+      ? data.matchCardShadowDirection
+      : "down",
+  matchCardBorderEnabled: data.matchCardBorderEnabled !== false,
+  matchCardBorderColor:
+    typeof data.matchCardBorderColor === "string"
+      ? data.matchCardBorderColor
+      : "#ffffff",
+  connectorLinesEnabled: data.connectorLinesEnabled !== false,
+  connectorLineColor:
+    typeof data.connectorLineColor === "string"
+      ? data.connectorLineColor
+      : "#ffffff",
+  connectorLineThickness:
+    typeof data.connectorLineThickness === "number"
+      ? Math.max(1, Math.min(8, data.connectorLineThickness))
+      : 2,
 };
 
 const appearance = block.appearance as any;
@@ -369,7 +407,7 @@ function BracketSide({
             />
           </div>
 
-          <ConnectorColumn rows={2} align={align} />
+          <ConnectorColumn rows={2} align={align} options={options} />
 
           <div className="space-y-16">
             {round2Matches.map((match, index) => (
@@ -384,7 +422,7 @@ function BracketSide({
             ))}
           </div>
 
-          <ConnectorColumn rows={4} align={align} />
+          <ConnectorColumn rows={4} align={align} options={options} />
 
           <div className="space-y-4">
             {fillMatches(round1, 4).map((match, index) => (
@@ -415,7 +453,7 @@ function BracketSide({
             ))}
           </div>
 
-          <ConnectorColumn rows={4} align={align} />
+          <ConnectorColumn rows={4} align={align} options={options} />
 
           <div className="space-y-16">
             {round2Matches.map((match, index) => (
@@ -429,7 +467,7 @@ function BracketSide({
             ))}
           </div>
 
-          <ConnectorColumn rows={2} align={align} />
+          <ConnectorColumn rows={2} align={align} options={options} />
 
           <div>
             <BracketMatchCard
@@ -449,62 +487,89 @@ function BracketSide({
 function ConnectorColumn({
   rows,
   align,
+  options,
 }: {
   rows: 2 | 4;
   align: "left" | "right";
+  options: TournamentDisplayOptions;
 }) {
   const heightClass = rows === 4 ? "h-[420px]" : "h-[240px]";
 
-  return (
-    <div className={`relative ${heightClass}`}>
-      <div
-        className={[
-          "absolute top-[13%] h-[2px] w-full bg-white/20",
-          align === "right" ? "right-0" : "left-0",
-        ].join(" ")}
-      />
-      <div
-        className={[
-          "absolute top-[38%] h-[2px] w-full bg-white/20",
-          align === "right" ? "right-0" : "left-0",
-        ].join(" ")}
-      />
-      <div
-        className={[
-          "absolute top-[63%] h-[2px] w-full bg-white/20",
-          rows === 4 ? "" : "hidden",
-          align === "right" ? "right-0" : "left-0",
-        ].join(" ")}
-      />
-      <div
-        className={[
-          "absolute top-[88%] h-[2px] w-full bg-white/20",
-          rows === 4 ? "" : "hidden",
-          align === "right" ? "right-0" : "left-0",
-        ].join(" ")}
-      />
+    if (!options.connectorLinesEnabled) {
+    return <div className={heightClass} />;
+  }
 
-      <div
-        className={[
-          "absolute top-[13%] h-[25%] w-[2px] bg-white/20",
-          align === "right" ? "left-0" : "right-0",
-        ].join(" ")}
-      />
-      <div
-        className={[
-          "absolute top-[63%] h-[25%] w-[2px] bg-white/20",
-          rows === 4 ? "" : "hidden",
-          align === "right" ? "left-0" : "right-0",
-        ].join(" ")}
-      />
-      <div
-        className={[
-          "absolute top-[38%] h-[2px] w-full bg-white/20",
-          align === "right" ? "left-0" : "right-0",
-        ].join(" ")}
-      />
-    </div>
-  );
+  const connectorStyle: CSSProperties = {
+    backgroundColor: options.connectorLineColor,
+  };
+
+  const horizontalStyle: CSSProperties = {
+    ...connectorStyle,
+    height: options.connectorLineThickness,
+  };
+
+  const verticalStyle: CSSProperties = {
+    ...connectorStyle,
+    width: options.connectorLineThickness,
+  };
+
+return (
+  <div className={`relative ${heightClass}`}>
+    <div
+      className={[
+        "absolute top-[13%] w-full",
+        align === "right" ? "right-0" : "left-0",
+      ].join(" ")}
+      style={horizontalStyle}
+    />
+    <div
+      className={[
+        "absolute top-[38%] w-full",
+        align === "right" ? "right-0" : "left-0",
+      ].join(" ")}
+      style={horizontalStyle}
+    />
+    <div
+      className={[
+        "absolute top-[63%] w-full",
+        rows === 4 ? "" : "hidden",
+        align === "right" ? "right-0" : "left-0",
+      ].join(" ")}
+      style={horizontalStyle}
+    />
+    <div
+      className={[
+        "absolute top-[88%] w-full",
+        rows === 4 ? "" : "hidden",
+        align === "right" ? "right-0" : "left-0",
+      ].join(" ")}
+      style={horizontalStyle}
+    />
+
+    <div
+      className={[
+        "absolute top-[13%] h-[25%]",
+        align === "right" ? "left-0" : "right-0",
+      ].join(" ")}
+      style={verticalStyle}
+    />
+    <div
+      className={[
+        "absolute top-[63%] h-[25%]",
+        rows === 4 ? "" : "hidden",
+        align === "right" ? "left-0" : "right-0",
+      ].join(" ")}
+      style={verticalStyle}
+    />
+    <div
+      className={[
+        "absolute top-[38%] w-full",
+        align === "right" ? "left-0" : "right-0",
+      ].join(" ")}
+      style={horizontalStyle}
+    />
+  </div>
+);
 }
 
 function ChampionshipCard({
@@ -590,18 +655,46 @@ function BracketMatchCard({
   const teamAWon = Boolean(match.winner && match.winner === match.teamA);
   const teamBWon = Boolean(match.winner && match.winner === match.teamB);
 
-  return (
-    <div
-      className={[
-        "rounded-2xl border bg-white/10 shadow-sm",
-        championship
-          ? "border-yellow-300/30 p-3"
-          : large
-            ? "border-white/15 p-3"
-            : "border-white/10 p-2",
-        compact ? "text-xs" : "text-sm",
-      ].join(" ")}
-    >
+const cardShadowX =
+  options.matchCardShadowDirection === "left"
+    ? -Math.abs(options.matchCardShadowX || 12)
+    : options.matchCardShadowDirection === "right"
+      ? Math.abs(options.matchCardShadowX || 12)
+      : options.matchCardShadowDirection === "custom"
+        ? options.matchCardShadowX
+        : 0;
+
+const cardShadowY =
+  options.matchCardShadowDirection === "up"
+    ? -Math.abs(options.matchCardShadowY || 8)
+    : options.matchCardShadowDirection === "down"
+      ? Math.abs(options.matchCardShadowY || 8)
+      : options.matchCardShadowDirection === "custom"
+        ? options.matchCardShadowY
+        : 0;
+
+const cardStyle: CSSProperties = {
+  borderColor: options.matchCardBorderEnabled
+    ? options.matchCardBorderColor
+    : "transparent",
+  boxShadow: options.matchCardShadowEnabled
+    ? `${cardShadowX}px ${cardShadowY}px ${options.matchCardShadowBlur}px rgba(0,0,0,0.35)`
+    : undefined,
+};
+
+return (
+  <div
+    className={[
+      "rounded-2xl border bg-white/10",
+      championship
+        ? "border-yellow-300/30 p-3"
+        : large
+          ? "border-white/15 p-3"
+          : "border-white/10 p-2",
+      compact ? "text-xs" : "text-sm",
+    ].join(" ")}
+    style={cardStyle}
+  >
       <BracketTeamRow
         team={teamA}
         fallbackName={match.teamA || "Team A"}
