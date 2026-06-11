@@ -784,27 +784,40 @@ function buildDivisionMatches(
   teams: TournamentTeamLike[],
   existingMatches: TournamentMatchLike[],
 ): TournamentMatchLike[] {
-  const seededPairs = [
-    [1, 8],
-    [4, 5],
-    [3, 6],
-    [2, 7],
+  const orderedTeams = teams.filter((team) => team.name?.trim());
+
+  const round1Pairs = [
+    [orderedTeams[0], orderedTeams[1]],
+    [orderedTeams[2], orderedTeams[3]],
+    [orderedTeams[4], orderedTeams[5]],
+    [orderedTeams[6], orderedTeams[7]],
   ];
 
-  const round1 = seededPairs.map(([seedA, seedB], index) => {
-    const teamA = teams.find((team) => team.seed === seedA);
-    const teamB = teams.find((team) => team.seed === seedB);
-    const existing = findExistingMatch(existingMatches, division, "Round 1", teamA?.name, teamB?.name);
+  const round1 = round1Pairs.map(([teamA, teamB], index) => {
+    const existing = findExistingMatchBySlot(
+      existingMatches,
+      division,
+      "Round 1",
+      index,
+    );
 
     return {
       id: existing?.id || `${division}-round1-${index}`,
       division,
       roundTitle: "Round 1",
-      teamA: teamA?.name || `Seed ${seedA}`,
-      teamB: teamB?.name || `Seed ${seedB}`,
+      teamA: teamA?.name || `Team ${index * 2 + 1}`,
+      teamB: teamB?.name || `Team ${index * 2 + 2}`,
       scoreA: existing?.scoreA ?? 0,
       scoreB: existing?.scoreB ?? 0,
-      winner: existing?.winner || teamA?.name || "",
+      winner:
+        existing?.winner ||
+        inferWinnerFromScores(
+          teamA?.name,
+          teamB?.name,
+          existing?.scoreA,
+          existing?.scoreB,
+        ) ||
+        "",
       status: existing?.status || "upcoming",
       gameDate: existing?.gameDate,
       gameTime: existing?.gameTime,
@@ -816,9 +829,15 @@ function buildDivisionMatches(
     [round1[0], round1[1]],
     [round1[2], round1[3]],
   ].map(([matchA, matchB], index) => {
-    const teamA = matchA.winner || `Winner ${index * 2 + 1}`;
-    const teamB = matchB.winner || `Winner ${index * 2 + 2}`;
-    const existing = findExistingMatch(existingMatches, division, "Round 2", teamA, teamB);
+    const teamA = matchA.winner || `Winner Match ${index * 2 + 1}`;
+    const teamB = matchB.winner || `Winner Match ${index * 2 + 2}`;
+
+    const existing = findExistingMatchBySlot(
+      existingMatches,
+      division,
+      "Round 2",
+      index,
+    );
 
     return {
       id: existing?.id || `${division}-round2-${index}`,
@@ -828,7 +847,15 @@ function buildDivisionMatches(
       teamB,
       scoreA: existing?.scoreA ?? 0,
       scoreB: existing?.scoreB ?? 0,
-      winner: existing?.winner || teamA,
+      winner:
+        existing?.winner ||
+        inferWinnerFromScores(
+          teamA,
+          teamB,
+          existing?.scoreA,
+          existing?.scoreB,
+        ) ||
+        "",
       status: existing?.status || "upcoming",
       gameDate: existing?.gameDate,
       gameTime: existing?.gameTime,
@@ -838,12 +865,12 @@ function buildDivisionMatches(
 
   const finalTeamA = round2[0]?.winner || "Winner Round 2";
   const finalTeamB = round2[1]?.winner || "Winner Round 2";
-  const existingFinal = findExistingMatch(
+
+  const existingFinal = findExistingMatchBySlot(
     existingMatches,
     division,
     "Division Finals",
-    finalTeamA,
-    finalTeamB,
+    0,
   );
 
   const divisionFinal = {
@@ -854,7 +881,15 @@ function buildDivisionMatches(
     teamB: finalTeamB,
     scoreA: existingFinal?.scoreA ?? 0,
     scoreB: existingFinal?.scoreB ?? 0,
-    winner: existingFinal?.winner || finalTeamA,
+    winner:
+      existingFinal?.winner ||
+      inferWinnerFromScores(
+        finalTeamA,
+        finalTeamB,
+        existingFinal?.scoreA,
+        existingFinal?.scoreB,
+      ) ||
+      "",
     status: existingFinal?.status || "upcoming",
     gameDate: existingFinal?.gameDate,
     gameTime: existingFinal?.gameTime,
@@ -899,6 +934,31 @@ function findExistingMatch(
       (!teamA || match.teamA === teamA) &&
       (!teamB || match.teamB === teamB),
   );
+}
+
+function findExistingMatchBySlot(
+  matches: TournamentMatchLike[],
+  division: "west" | "east",
+  roundTitle: string,
+  slotIndex: number,
+): TournamentMatchLike | undefined {
+  return matches.filter(
+    (match) =>
+      match.division === division &&
+      match.roundTitle === roundTitle,
+  )[slotIndex];
+}
+
+function inferWinnerFromScores(
+  teamA?: string,
+  teamB?: string,
+  scoreA?: number,
+  scoreB?: number,
+): string {
+  if (!teamA || !teamB) return "";
+  if (typeof scoreA !== "number" || typeof scoreB !== "number") return "";
+  if (scoreA === scoreB) return "";
+  return scoreA > scoreB ? teamA : teamB;
 }
 
 function findTeamByName(
