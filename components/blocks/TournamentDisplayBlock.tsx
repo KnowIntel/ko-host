@@ -370,8 +370,15 @@ function Style1EastWestBracket({
   );
 
 return (
-  <div className="w-full min-w-[920px]">
-    <div className="grid grid-cols-[clamp(360px,39vw,548px)_clamp(200px,20vw,260px)_clamp(360px,39vw,548px)] gap-[clamp(8px,1vw,32px)]">
+  <div className="w-full overflow-hidden">
+    <div
+      className="origin-top-left min-w-[1180px]"
+      style={{
+        transform: "scaleX(min(1, calc(100% / 1180)))",
+        transformOrigin: "top left",
+      }}
+    >
+      <div className="grid grid-cols-[1fr_260px_1fr] gap-8">
         <BracketSide
           label={leftDivisionLabel || "West Division"}
           align="left"
@@ -408,7 +415,8 @@ return (
         />
       </div>
     </div>
-  );
+  </div>
+);
 }
 
 function BracketSide({
