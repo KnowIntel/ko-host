@@ -61,6 +61,9 @@ type TournamentDisplayOptions = {
   matchCardShadowDirection: "down" | "up" | "left" | "right" | "custom";
   matchCardBorderEnabled: boolean;
   matchCardBorderColor: string;
+  matchCardRadius: number;
+matchCardPaddingX: number;
+matchCardPaddingY: number;
   connectorLinesEnabled: boolean;
   connectorLineColor: string;
   connectorLineThickness: number;
@@ -114,6 +117,20 @@ const options: TournamentDisplayOptions = {
     typeof data.matchCardBorderColor === "string"
       ? data.matchCardBorderColor
       : "#ffffff",
+      matchCardRadius:
+  typeof data.matchCardRadius === "number"
+    ? data.matchCardRadius
+    : 16,
+
+matchCardPaddingX:
+  typeof data.matchCardPaddingX === "number"
+    ? data.matchCardPaddingX
+    : 12,
+
+matchCardPaddingY:
+  typeof data.matchCardPaddingY === "number"
+    ? data.matchCardPaddingY
+    : 10,
   connectorLinesEnabled: data.connectorLinesEnabled !== false,
   connectorLineColor:
     typeof data.connectorLineColor === "string"
@@ -677,6 +694,15 @@ const cardStyle: CSSProperties = {
   borderColor: options.matchCardBorderEnabled
     ? options.matchCardBorderColor
     : "transparent",
+
+  borderRadius: options.matchCardRadius,
+
+  paddingLeft: options.matchCardPaddingX,
+  paddingRight: options.matchCardPaddingX,
+
+  paddingTop: options.matchCardPaddingY,
+  paddingBottom: options.matchCardPaddingY,
+
   boxShadow: options.matchCardShadowEnabled
     ? `${cardShadowX}px ${cardShadowY}px ${options.matchCardShadowBlur}px rgba(0,0,0,0.35)`
     : undefined,
@@ -686,11 +712,11 @@ return (
   <div
     className={[
       "rounded-2xl border bg-white/10",
-      championship
-        ? "border-yellow-300/30 p-3"
-        : large
-          ? "border-white/15 p-3"
-          : "border-white/10 p-2",
+championship
+  ? "border-yellow-300/30"
+  : large
+    ? "border-white/15"
+    : "border-white/10",
       compact ? "text-xs" : "text-sm",
     ].join(" ")}
     style={cardStyle}

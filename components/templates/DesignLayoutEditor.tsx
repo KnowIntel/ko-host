@@ -24154,6 +24154,102 @@ onClick={() =>
       className="mt-2 h-10 w-full"
     />
   </div>
+
+  <div className="mt-3">
+  <div className="flex items-center justify-between">
+    <div className={inspectorLabelClass()}>Card Radius</div>
+    <div className="text-xs text-neutral-500">
+      {(selectedBlock.data as any).matchCardRadius ?? 16}px
+    </div>
+  </div>
+
+  <input
+    type="range"
+    min={0}
+    max={40}
+    value={(selectedBlock.data as any).matchCardRadius ?? 16}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "tournament_display"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                matchCardRadius: Number(e.target.value),
+              },
+            },
+      )
+    }
+    className="mt-2 w-full"
+  />
+</div>
+
+<div className="mt-3">
+  <div className="flex items-center justify-between">
+    <div className={inspectorLabelClass()}>
+      Horizontal Padding
+    </div>
+
+    <div className="text-xs text-neutral-500">
+      {(selectedBlock.data as any).matchCardPaddingX ?? 12}px
+    </div>
+  </div>
+
+  <input
+    type="range"
+    min={0}
+    max={40}
+    value={(selectedBlock.data as any).matchCardPaddingX ?? 12}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "tournament_display"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                matchCardPaddingX: Number(e.target.value),
+              },
+            },
+      )
+    }
+    className="mt-2 w-full"
+  />
+</div>
+
+<div className="mt-3">
+  <div className="flex items-center justify-between">
+    <div className={inspectorLabelClass()}>
+      Vertical Padding
+    </div>
+
+    <div className="text-xs text-neutral-500">
+      {(selectedBlock.data as any).matchCardPaddingY ?? 10}px
+    </div>
+  </div>
+
+  <input
+    type="range"
+    min={0}
+    max={40}
+    value={(selectedBlock.data as any).matchCardPaddingY ?? 10}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "tournament_display"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                matchCardPaddingY: Number(e.target.value),
+              },
+            },
+      )
+    }
+    className="mt-2 w-full"
+  />
+</div>
 </div>
 
 <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
