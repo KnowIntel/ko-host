@@ -795,28 +795,38 @@ function BracketTeamRow({
       <div className="w-5" />
     );
 
-  const teamInfo = (
-    <>
-      <TeamLogo team={team} size={options.logoSize} />
+  const fadedClass = matchHasWinner && !isWinner ? "opacity-40" : "";
 
-      <div className={["min-w-0 flex-1", mirrored ? "text-right" : ""].join(" ")}>
-<div
-  className={[
-    "truncate font-semibold",
-    matchHasWinner && !isWinner ? "opacity-40" : "",
-  ].join(" ")}
-  style={styles.teamNameStyle}
->
-  {team?.name || fallbackName}
-</div>
+  const teamNameNode = (
+    <div
+      className={[
+        "truncate font-semibold",
+        mirrored ? "text-right" : "",
+        fadedClass,
+      ].join(" ")}
+      style={styles.teamNameStyle}
+    >
+      {team?.name || fallbackName}
+    </div>
+  );
 
-        {options.showRecords && team?.record ? (
-          <div className="text-[10px] opacity-55" style={styles.recordStyle}>
-            {team.record}
-          </div>
-        ) : null}
+  const recordNode =
+    options.showRecords && team?.record ? (
+      <div
+        className={[
+          "text-[10px] opacity-55",
+          mirrored ? "text-right" : "",
+        ].join(" ")}
+        style={styles.recordStyle}
+      >
+        {team.record}
       </div>
-    </>
+    ) : null;
+
+  const logoNode = (
+    <div className={fadedClass}>
+      <TeamLogo team={team} size={options.logoSize} />
+    </div>
   );
 
   return (
@@ -824,13 +834,25 @@ function BracketTeamRow({
       {mirrored ? (
         <>
           {scoreBadge}
-          {teamInfo}
+
+          <div className="min-w-0 flex-1">
+            {teamNameNode}
+            {recordNode}
+          </div>
+
+          {logoNode}
           {seedBadge}
         </>
       ) : (
         <>
           {seedBadge}
-          {teamInfo}
+          {logoNode}
+
+          <div className="min-w-0 flex-1">
+            {teamNameNode}
+            {recordNode}
+          </div>
+
           {scoreBadge}
         </>
       )}
