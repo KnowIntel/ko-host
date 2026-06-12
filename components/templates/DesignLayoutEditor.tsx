@@ -24919,8 +24919,18 @@ onClick={() =>
     key={match.id}
     className="rounded-xl border border-neutral-200 bg-neutral-50 p-3"
   >
-    <summary className="cursor-pointer list-none">
-      <div className="grid grid-cols-2 gap-2">
+<summary className="cursor-pointer list-none">
+  <div className="mb-3 flex items-center justify-between gap-3">
+    <div className="text-xs font-semibold uppercase tracking-[0.14em] text-neutral-500">
+      {(match as any).roundTitle ?? "Round 1"}
+    </div>
+
+    <div className="text-xs text-neutral-400">
+      Click to expand
+    </div>
+  </div>
+
+  <div className="grid grid-cols-2 gap-2">
         <div>
           <div className={inspectorLabelClass()}>Team A</div>
           <select
