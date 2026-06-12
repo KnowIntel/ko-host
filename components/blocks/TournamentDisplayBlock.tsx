@@ -207,18 +207,23 @@ className={[
           options={options}
         />
       ) : (
-        <Bracket
-          matches={matches}
-          teams={teams}
-          designStyle={data.designStyle ?? "style1"}
-          bracketLayout={data.bracketLayout}
-          leftDivisionLabel={data.leftDivisionLabel}
-          rightDivisionLabel={data.rightDivisionLabel}
-          finalsLabel={data.finalsLabel}
-          emptyStateText={data.emptyStateText}
-          styles={styles}
-          options={options}
-        />
+<Bracket
+  matches={matches}
+  teams={teams}
+  finalsImageUrl={(data as any).finalsImageUrl}
+  leftDivisionDisplayType={(data as any).leftDivisionDisplayType ?? "text"}
+  rightDivisionDisplayType={(data as any).rightDivisionDisplayType ?? "text"}
+  finalsDisplayType={(data as any).finalsDisplayType ?? "text"}
+  championshipDisplayType={(data as any).championshipDisplayType ?? "text"}
+  designStyle={data.designStyle ?? "style1"}
+  bracketLayout={data.bracketLayout}
+  leftDivisionLabel={data.leftDivisionLabel}
+  rightDivisionLabel={data.rightDivisionLabel}
+  finalsLabel={data.finalsLabel}
+  emptyStateText={data.emptyStateText}
+  styles={styles}
+  options={options}
+/>
       )}
     </div>
   );
@@ -227,6 +232,11 @@ className={[
 function Bracket({
   matches,
   teams,
+  finalsImageUrl,
+  leftDivisionDisplayType,
+  rightDivisionDisplayType,
+  finalsDisplayType,
+  championshipDisplayType,
   designStyle,
   bracketLayout,
   leftDivisionLabel,
@@ -238,6 +248,11 @@ function Bracket({
 }: {
   matches: TournamentMatchLike[];
   teams: TournamentTeamLike[];
+  finalsImageUrl?: string;
+  leftDivisionDisplayType?: "text" | "image";
+  rightDivisionDisplayType?: "text" | "image";
+  finalsDisplayType?: "text" | "image";
+  championshipDisplayType?: "text" | "image";
   designStyle?: string;
   bracketLayout?: string;
   leftDivisionLabel?: string;
@@ -271,19 +286,24 @@ function Bracket({
     );
   }
 
-  if (bracketLayout === "east_west") {
-    return (
-      <Style1EastWestBracket
-        matches={matches}
-        teams={teams}
-        leftDivisionLabel={leftDivisionLabel}
-        rightDivisionLabel={rightDivisionLabel}
-        finalsLabel={finalsLabel}
-        styles={styles}
-        options={options}
-      />
-    );
-  }
+if (bracketLayout === "east_west") {
+  return (
+    <Style1EastWestBracket
+      matches={matches}
+      teams={teams}
+      finalsImageUrl={finalsImageUrl}
+      leftDivisionDisplayType={leftDivisionDisplayType}
+      rightDivisionDisplayType={rightDivisionDisplayType}
+      finalsDisplayType={finalsDisplayType}
+      championshipDisplayType={championshipDisplayType}
+      leftDivisionLabel={leftDivisionLabel}
+      rightDivisionLabel={rightDivisionLabel}
+      finalsLabel={finalsLabel}
+      styles={styles}
+      options={options}
+    />
+  );
+}
 
   return (
     <RoundColumnBracket
@@ -298,6 +318,11 @@ function Bracket({
 function Style1EastWestBracket({
   matches,
   teams,
+  finalsImageUrl,
+  leftDivisionDisplayType,
+  rightDivisionDisplayType,
+  finalsDisplayType,
+  championshipDisplayType,
   leftDivisionLabel,
   rightDivisionLabel,
   finalsLabel,
@@ -306,6 +331,11 @@ function Style1EastWestBracket({
 }: {
   matches: TournamentMatchLike[];
   teams: TournamentTeamLike[];
+  finalsImageUrl?: string;
+  leftDivisionDisplayType?: "text" | "image";
+  rightDivisionDisplayType?: "text" | "image";
+  finalsDisplayType?: "text" | "image";
+  championshipDisplayType?: "text" | "image";
   leftDivisionLabel?: string;
   rightDivisionLabel?: string;
   finalsLabel?: string;
@@ -345,6 +375,7 @@ function Style1EastWestBracket({
         <BracketSide
           label={leftDivisionLabel || "West Division"}
           align="left"
+          displayType={leftDivisionDisplayType}
           round1={westRound1}
           round2={westRound2}
           divisionFinal={westFinal}
@@ -359,11 +390,15 @@ function Style1EastWestBracket({
           teams={teams}
           styles={styles}
           options={options}
+          finalsImageUrl={finalsImageUrl}
+          finalsDisplayType={finalsDisplayType}
+          championshipDisplayType={championshipDisplayType}
         />
 
         <BracketSide
           label={rightDivisionLabel || "East Division"}
           align="right"
+          displayType={rightDivisionDisplayType}
           round1={eastRound1}
           round2={eastRound2}
           divisionFinal={eastFinal}
@@ -379,6 +414,7 @@ function Style1EastWestBracket({
 function BracketSide({
   label,
   align,
+  displayType,
   round1,
   round2,
   divisionFinal,
@@ -388,6 +424,7 @@ function BracketSide({
 }: {
   label: string;
   align: "left" | "right";
+  displayType?: "text" | "image";
   round1: TournamentMatchLike[];
   round2: TournamentMatchLike[];
   divisionFinal?: TournamentMatchLike;
@@ -396,11 +433,18 @@ function BracketSide({
   options: TournamentDisplayOptions;
 }) {
   const round2Matches = fillMatches(round2, 2);
+
   const finalMatch = divisionFinal ?? {
     id: `${align}-division-final-placeholder`,
     roundTitle: "Division Finals",
-    teamA: round2Matches[0]?.winner || round2Matches[0]?.teamA || "Winner",
-    teamB: round2Matches[1]?.winner || round2Matches[1]?.teamA || "Winner",
+    teamA:
+      round2Matches[0]?.winner ||
+      round2Matches[0]?.teamA ||
+      "Winner",
+    teamB:
+      round2Matches[1]?.winner ||
+      round2Matches[1]?.teamA ||
+      "Winner",
     scoreA: 0,
     scoreB: 0,
     status: "upcoming" as const,
@@ -415,15 +459,24 @@ function BracketSide({
     <div>
       {((align === "left" && options.showLeftDivisionLabel) ||
         (align === "right" && options.showRightDivisionLabel)) ? (
-        <div
-          className={[
-            "mb-4 text-xs font-bold uppercase tracking-[0.18em]",
-            align === "right" ? "text-right" : "",
-          ].join(" ")}
-          style={divisionLabelStyle}
-        >
-          {label}
-        </div>
+        displayType === "image" ? (
+          <div
+            className={[
+              "mb-4 h-10 rounded-xl border border-white/20 bg-white/10",
+              align === "right" ? "ml-auto" : "",
+            ].join(" ")}
+          />
+        ) : (
+          <div
+            className={[
+              "mb-4 text-xs font-bold uppercase tracking-[0.18em]",
+              align === "right" ? "text-right" : "",
+            ].join(" ")}
+            style={divisionLabelStyle}
+          >
+            {label}
+          </div>
+        )
       ) : null}
 
       {align === "right" ? (
@@ -611,6 +664,8 @@ function ChampionshipCard({
   styles,
   options,
   finalsImageUrl,
+  finalsDisplayType,
+  championshipDisplayType,
 }: {
   label: string;
   match?: TournamentMatchLike;
@@ -618,6 +673,8 @@ function ChampionshipCard({
   styles: TournamentDisplayStyles;
   options: TournamentDisplayOptions;
   finalsImageUrl?: string;
+  finalsDisplayType?: "text" | "image";
+  championshipDisplayType?: "text" | "image";
 }) {
   const safeMatch = match ?? {
     teamA: "West Champion",

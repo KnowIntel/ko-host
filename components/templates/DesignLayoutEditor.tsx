@@ -6781,18 +6781,22 @@ async function uploadImageToSelectedBlock(
             };
           }
 
-          if (block.type === "tournament_display" && tournamentFinalsImage) {
-            return {
-              ...block,
-              data: {
-                ...block.data,
-                finalsImageUrl: uploaded.url,
-                finalsImageStoragePath: uploaded.storagePath,
-              },
-            };
-          }
+if (
+  block.type === "tournament_display" &&
+  tournamentTeamId === "__finals_image__"
+) {
+  return {
+    ...block,
+    data: {
+      ...block.data,
+      finalsImageUrl: uploaded.url,
+      finalsImageStoragePath: uploaded.storagePath,
+      finalsImageAlt: file.name,
+    },
+  };
+}
 
-          if (block.type === "tournament_display" && tournamentTeamId) {
+if (block.type === "tournament_display" && tournamentTeamId) {
             return {
               ...block,
               data: {
@@ -24074,13 +24078,50 @@ onClick={() =>
       undefined,
       undefined,
       undefined,
-      undefined,
-      true,
+      "__finals_image__",
     )
   }
 >
   Browse Finals Image
 </button>
+
+<div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+  <div className="text-sm font-semibold text-neutral-700">
+    Display Options
+  </div>
+
+  {[
+    ["leftDivisionDisplayType", "Left Division"],
+    ["rightDivisionDisplayType", "Right Division"],
+    ["finalsDisplayType", "Finals"],
+    ["championshipDisplayType", "Championship"],
+  ].map(([key, label]) => (
+    <div key={key} className="mt-3">
+      <div className={inspectorLabelClass()}>{label}</div>
+
+      <select
+        value={(selectedBlock.data as any)[key] ?? "text"}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "tournament_display"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    [key]: e.target.value as "text" | "image",
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      >
+        <option value="text">Text Label</option>
+        <option value="image">Image / Frame</option>
+      </select>
+    </div>
+  ))}
+</div>
 
 <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
   <label className="flex items-center gap-2 text-sm text-neutral-700">
