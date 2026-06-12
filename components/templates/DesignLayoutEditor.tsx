@@ -24069,6 +24069,66 @@ onClick={() =>
   />
 </div>
 
+<div className="mt-4">
+  <div className="flex items-center justify-between">
+    <div className={inspectorLabelClass()}>Matchup Card Width</div>
+    <div className="text-xs text-neutral-500">
+      {(selectedBlock.data as any).matchCardColumnWidth ?? 220}px
+    </div>
+  </div>
+
+  <input
+    type="range"
+    min={140}
+    max={320}
+    value={(selectedBlock.data as any).matchCardColumnWidth ?? 220}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "tournament_display"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                matchCardColumnWidth: Number(e.target.value),
+              },
+            },
+      )
+    }
+    className="mt-2 w-full"
+  />
+</div>
+
+<div className="mt-4">
+  <div className="flex items-center justify-between">
+    <div className={inspectorLabelClass()}>Column Spacing</div>
+    <div className="text-xs text-neutral-500">
+      {(selectedBlock.data as any).bracketColumnSpacing ?? 54}px
+    </div>
+  </div>
+
+  <input
+    type="range"
+    min={12}
+    max={110}
+    value={(selectedBlock.data as any).bracketColumnSpacing ?? 54}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "tournament_display"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                bracketColumnSpacing: Number(e.target.value),
+              },
+            },
+      )
+    }
+    className="mt-2 w-full"
+  />
+</div>
+
 <button
   type="button"
   className="mt-3 inline-flex h-10 items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-700 hover:bg-neutral-50"

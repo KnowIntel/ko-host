@@ -68,6 +68,8 @@ type TournamentDisplayOptions = {
   matchCardRadius: number;
 matchCardPaddingX: number;
 matchCardPaddingY: number;
+matchCardColumnWidth: number;
+bracketColumnSpacing: number;
   connectorLinesEnabled: boolean;
   connectorLineColor: string;
   connectorLineThickness: number;
@@ -129,6 +131,16 @@ const options: TournamentDisplayOptions = {
   typeof data.matchCardRadius === "number"
     ? data.matchCardRadius
     : 16,
+
+    matchCardColumnWidth:
+  typeof data.matchCardColumnWidth === "number"
+    ? Math.max(140, Math.min(320, data.matchCardColumnWidth))
+    : 220,
+
+bracketColumnSpacing:
+  typeof data.bracketColumnSpacing === "number"
+    ? Math.max(12, Math.min(110, data.bracketColumnSpacing))
+    : 54,
 
 matchCardPaddingX:
   typeof data.matchCardPaddingX === "number"
@@ -319,6 +331,8 @@ function Style1EastWestBracket({
   matches,
   teams,
   finalsImageUrl,
+  leftDivisionImageUrl,
+  rightDivisionImageUrl,
   leftDivisionDisplayType,
   rightDivisionDisplayType,
   finalsDisplayType,
@@ -332,6 +346,8 @@ function Style1EastWestBracket({
   matches: TournamentMatchLike[];
   teams: TournamentTeamLike[];
   finalsImageUrl?: string;
+  leftDivisionImageUrl?: string;
+  rightDivisionImageUrl?: string;
   leftDivisionDisplayType?: "text" | "image";
   rightDivisionDisplayType?: "text" | "image";
   finalsDisplayType?: "text" | "image";
@@ -370,12 +386,19 @@ function Style1EastWestBracket({
   );
 
   return (
-    <div className="min-w-[1180px]">
-      <div className="grid grid-cols-[1fr_260px_1fr] gap-8">
+    <div className="min-w-max">
+      <div
+        className="grid"
+        style={{
+          gridTemplateColumns: "1fr 260px 1fr",
+          columnGap: options.bracketColumnSpacing,
+        }}
+      >
         <BracketSide
           label={leftDivisionLabel || "West Division"}
           align="left"
           displayType={leftDivisionDisplayType}
+          imageUrl={leftDivisionImageUrl}
           round1={westRound1}
           round2={westRound2}
           divisionFinal={westFinal}
@@ -399,6 +422,7 @@ function Style1EastWestBracket({
           label={rightDivisionLabel || "East Division"}
           align="right"
           displayType={rightDivisionDisplayType}
+          imageUrl={rightDivisionImageUrl}
           round1={eastRound1}
           round2={eastRound2}
           divisionFinal={eastFinal}
@@ -415,6 +439,7 @@ function BracketSide({
   label,
   align,
   displayType,
+  imageUrl,
   round1,
   round2,
   divisionFinal,
@@ -425,6 +450,7 @@ function BracketSide({
   label: string;
   align: "left" | "right";
   displayType?: "text" | "image";
+  imageUrl?: string;
   round1: TournamentMatchLike[];
   round2: TournamentMatchLike[];
   divisionFinal?: TournamentMatchLike;
@@ -455,32 +481,52 @@ function BracketSide({
       ? styles.rightDivisionLabelStyle
       : styles.leftDivisionLabelStyle;
 
+  const shouldShowLabel =
+    (align === "left" && options.showLeftDivisionLabel) ||
+    (align === "right" && options.showRightDivisionLabel);
+
+  const divisionHeader =
+    shouldShowLabel && displayType === "image" ? (
+      imageUrl ? (
+        <img
+          src={imageUrl}
+          alt={label}
+          className={[
+            "mb-4 h-10 max-w-[220px] rounded-xl object-cover",
+            align === "right" ? "ml-auto" : "",
+          ].join(" ")}
+        />
+      ) : (
+        <div
+          className={[
+            "mb-4 h-10 max-w-[220px] rounded-xl border border-white/20 bg-white/10",
+            align === "right" ? "ml-auto" : "",
+          ].join(" ")}
+        />
+      )
+    ) : shouldShowLabel ? (
+      <div
+        className={[
+          "mb-4 text-xs font-bold uppercase tracking-[0.18em]",
+          align === "right" ? "text-right" : "",
+        ].join(" ")}
+        style={divisionLabelStyle}
+      >
+        {label}
+      </div>
+    ) : null;
+
   return (
     <div>
-      {((align === "left" && options.showLeftDivisionLabel) ||
-        (align === "right" && options.showRightDivisionLabel)) ? (
-        displayType === "image" ? (
-          <div
-            className={[
-              "mb-4 h-10 rounded-xl border border-white/20 bg-white/10",
-              align === "right" ? "ml-auto" : "",
-            ].join(" ")}
-          />
-        ) : (
-          <div
-            className={[
-              "mb-4 text-xs font-bold uppercase tracking-[0.18em]",
-              align === "right" ? "text-right" : "",
-            ].join(" ")}
-            style={divisionLabelStyle}
-          >
-            {label}
-          </div>
-        )
-      ) : null}
+      {divisionHeader}
 
       {align === "right" ? (
-        <div className="grid grid-cols-[220px_54px_220px_54px_220px] items-center">
+        <div
+          className="grid items-center"
+          style={{
+            gridTemplateColumns: `${options.matchCardColumnWidth}px ${options.bracketColumnSpacing}px ${options.matchCardColumnWidth}px ${options.bracketColumnSpacing}px ${options.matchCardColumnWidth}px`,
+          }}
+        >
           <div>
             <BracketMatchCard
               match={finalMatch}
@@ -524,7 +570,12 @@ function BracketSide({
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-[220px_54px_220px_54px_220px] items-center">
+        <div
+          className="grid items-center"
+          style={{
+            gridTemplateColumns: `${options.matchCardColumnWidth}px ${options.bracketColumnSpacing}px ${options.matchCardColumnWidth}px ${options.bracketColumnSpacing}px ${options.matchCardColumnWidth}px`,
+          }}
+        >
           <div className="space-y-4">
             {fillMatches(round1, 4).map((match, index) => (
               <BracketMatchCard
