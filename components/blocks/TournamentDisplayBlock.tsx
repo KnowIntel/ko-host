@@ -371,7 +371,7 @@ function Style1EastWestBracket({
 
 return (
   <div className="w-full min-w-[920px]">
-    <div className="grid grid-cols-[minmax(0,1fr)_clamp(200px,22vw,260px)_minmax(0,1fr)] gap-[clamp(12px,2vw,32px)]">
+    <div className="grid grid-cols-[clamp(360px,39vw,548px)_clamp(200px,20vw,260px)_clamp(360px,39vw,548px)] gap-[clamp(8px,1vw,32px)]">
         <BracketSide
           label={leftDivisionLabel || "West Division"}
           align="left"
