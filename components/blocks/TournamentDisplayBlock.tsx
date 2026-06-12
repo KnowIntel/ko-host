@@ -595,12 +595,14 @@ function ChampionshipCard({
   teams,
   styles,
   options,
+  finalsImageUrl,
 }: {
   label: string;
   match?: TournamentMatchLike;
   teams: TournamentTeamLike[];
   styles: TournamentDisplayStyles;
   options: TournamentDisplayOptions;
+  finalsImageUrl?: string;
 }) {
   const safeMatch = match ?? {
     teamA: "West Champion",
@@ -610,8 +612,11 @@ function ChampionshipCard({
     status: "upcoming" as const,
   };
 
+  const teamA = findTeamByName(teams, safeMatch.teamA);
+  const teamB = findTeamByName(teams, safeMatch.teamB);
+
   return (
-    <div className="flex h-full min-h-[500px] flex-col items-center justify-center">
+    <div className="flex h-full min-h-[560px] flex-col items-center justify-center">
       <div
         className="mb-4 text-center text-xs font-bold uppercase tracking-[0.18em] opacity-70"
         style={styles.finalsLabelStyle}
@@ -619,17 +624,57 @@ function ChampionshipCard({
         {label}
       </div>
 
-      <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full border border-yellow-300/40 bg-yellow-300/10 text-3xl">
-        🏆
-      </div>
+      <div className="w-full max-w-[250px] overflow-hidden rounded-[28px] border border-white/15 bg-slate-950 shadow-xl">
+        {finalsImageUrl ? (
+          <img
+            src={finalsImageUrl}
+            alt="Finals"
+            className="h-24 w-full object-cover"
+          />
+        ) : (
+          <div className="flex h-24 w-full items-center justify-center bg-white/10 text-xs uppercase tracking-[0.16em] opacity-60">
+            Finals Image
+          </div>
+        )}
 
-      <BracketMatchCard
-        match={safeMatch}
-        teams={teams}
-        championship
-        styles={styles}
-        options={options}
-      />
+        <div className="px-5 py-6 text-center">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-yellow-300/40 bg-yellow-300/10 text-3xl">
+            🏆
+          </div>
+
+          <div className="text-2xl font-black uppercase tracking-[0.08em]">
+            Final
+          </div>
+
+          <div className="mt-2 text-xs opacity-70">
+            {[safeMatch.gameDate, safeMatch.gameTime].filter(Boolean).join(" • ")}
+          </div>
+
+          <div className="mt-6 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+            <div className="flex flex-col items-center gap-2">
+              <TeamLogo team={teamA} size={56} />
+              <div className="text-xs font-bold uppercase">
+                {safeMatch.teamA || "West Champion"}
+              </div>
+              <div className="text-lg font-black" style={styles.scoreStyle}>
+                {safeMatch.scoreA ?? 0}
+              </div>
+            </div>
+
+            <div className="text-sm font-black opacity-70">VS</div>
+
+            <div className="flex flex-col items-center gap-2">
+              <TeamLogo team={teamB} size={56} />
+              <div className="text-xs font-bold uppercase">
+                {safeMatch.teamB || "East Champion"}
+              </div>
+              <div className="text-lg font-black" style={styles.scoreStyle}>
+                {safeMatch.scoreB ?? 0}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div className="mt-5 rounded-2xl border border-yellow-300/30 bg-yellow-300/10 px-5 py-3 text-center">
         <div

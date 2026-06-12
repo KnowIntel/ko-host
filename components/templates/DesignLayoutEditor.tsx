@@ -6638,6 +6638,7 @@ async function uploadImageToSelectedBlock(
   postBoardPostId?: string,
   contentPanelId?: string,
   tournamentTeamId?: string,
+  tournamentFinalsImage?: boolean,
 ) {
   await openImagePicker({
     onSelect: async (files) => {
@@ -6780,20 +6781,13 @@ async function uploadImageToSelectedBlock(
             };
           }
 
-                    if (block.type === "tournament_display" && tournamentTeamId) {
+          if (block.type === "tournament_display" && tournamentFinalsImage) {
             return {
               ...block,
               data: {
                 ...block.data,
-                teams: block.data.teams.map((team) =>
-                  team.id === tournamentTeamId
-                    ? {
-                        ...team,
-                        imageUrl: uploaded.url,
-                        imageStoragePath: uploaded.storagePath,
-                      }
-                    : team,
-                ),
+                finalsImageUrl: uploaded.url,
+                finalsImageStoragePath: uploaded.storagePath,
               },
             };
           }
@@ -24065,6 +24059,24 @@ onClick={() =>
     className="mt-2 w-full"
   />
 </div>
+
+<button
+  type="button"
+  className="mt-3 inline-flex h-10 items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-700 hover:bg-neutral-50"
+  onClick={() =>
+    void uploadImageToSelectedBlock(
+      selectedBlock.id,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      true,
+    )
+  }
+>
+  Browse Finals Image
+</button>
 
 <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
   <label className="flex items-center gap-2 text-sm text-neutral-700">
