@@ -23998,12 +23998,16 @@ onClick={() =>
     ) : null}
 
     <div className="mt-4 grid grid-cols-2 gap-2">
-      {[
-        ["showScores", "Scores"],
-        ["showSeeds", "Seeds"],
-        ["showRecords", "Records"],
-        ["showStatusBadges", "Status"],
-      ].map(([key, label]) => (
+{[
+  ["showScores", "Scores"],
+  ["showSeeds", "Seeds"],
+  ["showRecords", "Records"],
+  ["showStatusBadges", "Status"],
+  ["showLeftDivisionLabel", "Left Division Label"],
+  ["showRightDivisionLabel", "Right Division Label"],
+  ["showSeasonYear", "Season / Year"],
+  ["showTournamentName", "Tournament Bracket"],
+].map(([key, label]) => (
         <label
           key={key}
           className="flex items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm text-neutral-700"

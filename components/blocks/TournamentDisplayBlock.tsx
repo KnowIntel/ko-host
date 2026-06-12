@@ -53,6 +53,10 @@ type TournamentDisplayOptions = {
   showSeeds: boolean;
   showRecords: boolean;
   showStatusBadges: boolean;
+  showLeftDivisionLabel: boolean;
+  showRightDivisionLabel: boolean;
+  showSeasonYear: boolean;
+  showTournamentName: boolean;
   logoSize: number;
   matchCardShadowEnabled: boolean;
   matchCardShadowBlur: number;
@@ -94,6 +98,10 @@ const options: TournamentDisplayOptions = {
   showSeeds: data.showSeeds !== false,
   showRecords: data.showRecords !== false,
   showStatusBadges: data.showStatusBadges !== false,
+  showLeftDivisionLabel: data.showLeftDivisionLabel !== false,
+  showRightDivisionLabel: data.showRightDivisionLabel !== false,
+  showSeasonYear: data.showSeasonYear !== false,
+  showTournamentName: data.showTournamentName !== false,
   logoSize:
     typeof data.logoSize === "number" && Number.isFinite(data.logoSize)
       ? Math.max(16, Math.min(72, data.logoSize))
@@ -175,15 +183,19 @@ className={[
 ].join(" ")}
       style={rootStyle}
     >
-      <div className="mb-4">
-        <div className="text-lg font-semibold" style={styles.tournamentNameStyle}>
-          {data.tournamentName || "Tournament Display"}
-        </div>
+<div className="mb-4">
+  {options.showTournamentName ? (
+    <div className="text-lg font-semibold" style={styles.tournamentNameStyle}>
+      {data.tournamentName || "Tournament Display"}
+    </div>
+  ) : null}
 
-        <div className="text-xs opacity-70" style={styles.seasonStyle}>
-          {[data.season, data.year].filter(Boolean).join(" • ")}
-        </div>
-      </div>
+  {options.showSeasonYear ? (
+    <div className="text-xs opacity-70" style={styles.seasonStyle}>
+      {[data.season, data.year].filter(Boolean).join(" • ")}
+    </div>
+  ) : null}
+</div>
 
       {displayMode === "standings" ? (
         <Standings teams={teams} styles={styles} options={options} />
@@ -401,15 +413,18 @@ function BracketSide({
 
   return (
     <div>
-      <div
-        className={[
-          "mb-4 text-xs font-bold uppercase tracking-[0.18em]",
-          align === "right" ? "text-right" : "",
-        ].join(" ")}
-        style={divisionLabelStyle}
-      >
-        {label}
-      </div>
+      {((align === "left" && options.showLeftDivisionLabel) ||
+        (align === "right" && options.showRightDivisionLabel)) ? (
+        <div
+          className={[
+            "mb-4 text-xs font-bold uppercase tracking-[0.18em]",
+            align === "right" ? "text-right" : "",
+          ].join(" ")}
+          style={divisionLabelStyle}
+        >
+          {label}
+        </div>
+      ) : null}
 
       {align === "right" ? (
         <div className="grid grid-cols-[220px_54px_220px_54px_220px] items-center">
