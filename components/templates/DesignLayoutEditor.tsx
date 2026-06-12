@@ -24063,6 +24063,103 @@ onClick={() =>
           >
             Choose Image
           </button>
+
+          {target === "leftDivision" ? (
+  <div className="mt-3">
+    <div className="flex items-center justify-between">
+      <div className={inspectorLabelClass()}>Horizontal Position</div>
+      <div className="text-xs text-neutral-500">
+        {(selectedBlock.data as any).leftDivisionImageOffsetX ?? 0}px
+      </div>
+    </div>
+
+    <input
+      type="range"
+      min={0}
+      max={220}
+      value={(selectedBlock.data as any).leftDivisionImageOffsetX ?? 0}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "tournament_display"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  leftDivisionImageOffsetX: Number(e.target.value),
+                },
+              },
+        )
+      }
+      className="mt-2 w-full"
+    />
+  </div>
+) : null}
+
+{target === "rightDivision" ? (
+  <div className="mt-3">
+    <div className="flex items-center justify-between">
+      <div className={inspectorLabelClass()}>Horizontal Position</div>
+      <div className="text-xs text-neutral-500">
+        {(selectedBlock.data as any).rightDivisionImageOffsetX ?? 0}px
+      </div>
+    </div>
+
+    <input
+      type="range"
+      min={-220}
+      max={0}
+      value={(selectedBlock.data as any).rightDivisionImageOffsetX ?? 0}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "tournament_display"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  rightDivisionImageOffsetX: Number(e.target.value),
+                },
+              },
+        )
+      }
+      className="mt-2 w-full"
+    />
+  </div>
+) : null}
+
+{target === "finals" ? (
+  <div className="mt-3">
+    <div className="flex items-center justify-between">
+      <div className={inspectorLabelClass()}>Vertical Position</div>
+      <div className="text-xs text-neutral-500">
+        {(selectedBlock.data as any).finalsImageOffsetY ?? 0}px
+      </div>
+    </div>
+
+    <input
+      type="range"
+      min={-120}
+      max={120}
+      value={(selectedBlock.data as any).finalsImageOffsetY ?? 0}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "tournament_display"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  finalsImageOffsetY: Number(e.target.value),
+                },
+              },
+        )
+      }
+      className="mt-2 w-full"
+    />
+  </div>
+) : null}
+
         </div>
       ) : null}
     </div>

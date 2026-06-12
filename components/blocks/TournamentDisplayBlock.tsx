@@ -69,6 +69,9 @@ type TournamentDisplayOptions = {
 matchCardPaddingX: number;
 matchCardPaddingY: number;
 matchCardColumnWidth: number;
+leftDivisionImageOffsetX: number;
+rightDivisionImageOffsetX: number;
+finalsImageOffsetY: number;
 bracketColumnSpacing: number;
   connectorLinesEnabled: boolean;
   connectorLineColor: string;
@@ -131,6 +134,21 @@ const options: TournamentDisplayOptions = {
   typeof data.matchCardRadius === "number"
     ? data.matchCardRadius
     : 16,
+
+    leftDivisionImageOffsetX:
+  typeof data.leftDivisionImageOffsetX === "number"
+    ? data.leftDivisionImageOffsetX
+    : 0,
+
+rightDivisionImageOffsetX:
+  typeof data.rightDivisionImageOffsetX === "number"
+    ? data.rightDivisionImageOffsetX
+    : 0,
+
+finalsImageOffsetY:
+  typeof data.finalsImageOffsetY === "number"
+    ? data.finalsImageOffsetY
+    : 0,
 
     matchCardColumnWidth:
   typeof data.matchCardColumnWidth === "number"
@@ -499,14 +517,21 @@ function BracketSide({
 const divisionHeader =
   shouldShowLabel && displayType === "image" ? (
     imageUrl ? (
-      <img
-        src={imageUrl}
-        alt={label}
-        className={[
-          "mb-4 h-10 w-[220px] rounded-xl object-cover",
-          align === "right" ? "ml-auto" : "",
-        ].join(" ")}
-      />
+<img
+  src={imageUrl}
+  alt={label}
+  className={[
+    "mb-4 h-10 w-[220px] rounded-xl object-cover",
+    align === "right" ? "ml-auto" : "",
+  ].join(" ")}
+  style={{
+    transform: `translateX(${
+      align === "right"
+        ? options.rightDivisionImageOffsetX
+        : options.leftDivisionImageOffsetX
+    }px)`,
+  }}
+/>
     ) : (
       <div
         className={[
@@ -752,7 +777,23 @@ function ChampionshipCard({
   return (
     <div className="flex h-full min-h-[560px] flex-col items-center justify-center">
 {finalsDisplayType === "image" ? (
-  <div className="mb-4 h-10 w-40 rounded-xl border border-white/20 bg-white/10" />
+  finalsImageUrl ? (
+    <img
+      src={finalsImageUrl}
+      alt={label}
+      className="mb-4 h-10 w-40 rounded-xl object-cover"
+      style={{
+        transform: `translateY(${options.finalsImageOffsetY}px)`,
+      }}
+    />
+  ) : (
+    <div
+      className="mb-4 h-10 w-40 rounded-xl border border-white/20 bg-white/10"
+      style={{
+        transform: `translateY(${options.finalsImageOffsetY}px)`,
+      }}
+    />
+  )
 ) : (
   <div
     className="mb-4 text-center text-xs font-bold uppercase tracking-[0.18em] opacity-70"
