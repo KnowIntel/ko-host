@@ -369,9 +369,9 @@ function Style1EastWestBracket({
       match.division === "finals" || getRoundName(match) === "Championship",
   );
 
-  return (
-    <div className="min-w-[1180px]">
-      <div className="grid grid-cols-[1fr_260px_1fr] gap-8">
+return (
+  <div className="w-full min-w-[920px]">
+    <div className="grid grid-cols-[minmax(0,1fr)_clamp(200px,22vw,260px)_minmax(0,1fr)] gap-[clamp(12px,2vw,32px)]">
         <BracketSide
           label={leftDivisionLabel || "West Division"}
           align="left"
@@ -480,7 +480,7 @@ function BracketSide({
       ) : null}
 
       {align === "right" ? (
-        <div className="grid grid-cols-[220px_54px_220px_54px_220px] items-center">
+        <div className="grid grid-cols-[clamp(150px,15vw,220px)_clamp(20px,4vw,54px)_clamp(150px,15vw,220px)_clamp(20px,4vw,54px)_clamp(150px,15vw,220px)] items-center">
           <div>
             <BracketMatchCard
               match={finalMatch}
@@ -524,7 +524,7 @@ function BracketSide({
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-[220px_54px_220px_54px_220px] items-center">
+        <div className="grid grid-cols-[clamp(150px,15vw,220px)_clamp(20px,4vw,54px)_clamp(150px,15vw,220px)_clamp(20px,4vw,54px)_clamp(150px,15vw,220px)] items-center">
           <div className="space-y-4">
             {fillMatches(round1, 4).map((match, index) => (
               <BracketMatchCard
