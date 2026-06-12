@@ -6638,7 +6638,7 @@ async function uploadImageToSelectedBlock(
   postBoardPostId?: string,
   contentPanelId?: string,
   tournamentTeamId?: string,
-  tournamentFinalsImage?: boolean,
+  tournamentDisplayImageTarget?: string,
 ) {
   await openImagePicker({
     onSelect: async (files) => {
@@ -6783,38 +6783,39 @@ async function uploadImageToSelectedBlock(
 
 if (
   block.type === "tournament_display" &&
-  tournamentTeamId === "__finals_image__"
+  tournamentDisplayImageTarget
 ) {
   return {
     ...block,
     data: {
       ...block.data,
-      finalsImageUrl: uploaded.url,
-      finalsImageStoragePath: uploaded.storagePath,
-      finalsImageAlt: file.name,
+      [`${tournamentDisplayImageTarget}ImageUrl`]: uploaded.url,
+      [`${tournamentDisplayImageTarget}ImageStoragePath`]:
+        uploaded.storagePath,
+      [`${tournamentDisplayImageTarget}ImageAlt`]: file.name,
     },
   };
 }
 
 if (block.type === "tournament_display" && tournamentTeamId) {
-            return {
-              ...block,
-              data: {
-                ...block.data,
-                teams: block.data.teams.map((team) =>
-                  team.id === tournamentTeamId
-                    ? {
-                        ...team,
-                        imageUrl: uploaded.url,
-                        imageStoragePath: uploaded.storagePath,
-                      }
-                    : team,
-                ),
-              },
-            };
-          }
+  return {
+    ...block,
+    data: {
+      ...block.data,
+      teams: block.data.teams.map((team) =>
+        team.id === tournamentTeamId
+          ? {
+              ...team,
+              imageUrl: uploaded.url,
+              imageStoragePath: uploaded.storagePath,
+            }
+          : team,
+      ),
+    },
+  };
+}
 
-          return block;
+return block;
         }),
       }));
     },
@@ -24091,12 +24092,12 @@ onClick={() =>
   </div>
 
   {[
-    ["leftDivisionDisplayType", "Left Division"],
-    ["rightDivisionDisplayType", "Right Division"],
-    ["finalsDisplayType", "Finals"],
-    ["championshipDisplayType", "Championship"],
-  ].map(([key, label]) => (
-    <div key={key} className="mt-3">
+    ["leftDivision", "leftDivisionDisplayType", "Left Division"],
+    ["rightDivision", "rightDivisionDisplayType", "Right Division"],
+    ["finals", "finalsDisplayType", "Finals"],
+    ["championship", "championshipDisplayType", "Championship"],
+  ].map(([target, key, label]) => (
+    <div key={key} className="mt-3 rounded-xl border border-neutral-200 bg-white p-3">
       <div className={inspectorLabelClass()}>{label}</div>
 
       <select
@@ -24119,6 +24120,36 @@ onClick={() =>
         <option value="text">Text Label</option>
         <option value="image">Image / Frame</option>
       </select>
+
+      {((selectedBlock.data as any)[key] ?? "text") === "image" ? (
+        <div className="mt-3">
+          {(selectedBlock.data as any)[`${target}ImageUrl`] ? (
+            <img
+              src={(selectedBlock.data as any)[`${target}ImageUrl`]}
+              alt={`${label} image`}
+              className="mb-3 h-16 w-full rounded-lg border border-neutral-200 bg-neutral-100 object-cover"
+            />
+          ) : null}
+
+          <button
+            type="button"
+            className="inline-flex h-10 items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-700 hover:bg-neutral-50"
+            onClick={() =>
+              void uploadImageToSelectedBlock(
+                selectedBlock.id,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                target,
+              )
+            }
+          >
+            Choose Image
+          </button>
+        </div>
+      ) : null}
     </div>
   ))}
 </div>
