@@ -182,6 +182,9 @@ const rootStyle: CSSProperties = {
     typeof appearance?.borderRadius === "number"
       ? appearance.borderRadius
       : undefined,
+  transform: `translate(${data.contentOffsetX ?? 0}px, ${
+    data.contentOffsetY ?? 0
+  }px)`,
 };
 
   return (

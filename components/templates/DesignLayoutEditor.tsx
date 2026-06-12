@@ -23999,6 +23999,142 @@ onClick={() =>
             className={inspectorInputClass()}
           />
         </div>
+        
+        
+<div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+  <div className="text-sm font-semibold text-neutral-700">
+    Display Options
+  </div>
+
+  {[
+    ["leftDivision", "leftDivisionDisplayType", "Left Division"],
+    ["rightDivision", "rightDivisionDisplayType", "Right Division"],
+    ["finals", "finalsDisplayType", "Finals"],
+    ["championship", "championshipDisplayType", "Championship"],
+  ].map(([target, key, label]) => (
+    <div key={key} className="mt-3 rounded-xl border border-neutral-200 bg-white p-3">
+      <div className={inspectorLabelClass()}>{label}</div>
+
+      <select
+        value={(selectedBlock.data as any)[key] ?? "text"}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "tournament_display"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    [key]: e.target.value as "text" | "image",
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      >
+        <option value="text">Text Label</option>
+        <option value="image">Image / Frame</option>
+      </select>
+
+      {((selectedBlock.data as any)[key] ?? "text") === "image" ? (
+        <div className="mt-3">
+          {(selectedBlock.data as any)[`${target}ImageUrl`] ? (
+            <img
+              src={(selectedBlock.data as any)[`${target}ImageUrl`]}
+              alt={`${label} image`}
+              className="mb-3 h-16 w-full rounded-lg border border-neutral-200 bg-neutral-100 object-cover"
+            />
+          ) : null}
+
+          <button
+            type="button"
+            className="inline-flex h-10 items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-700 hover:bg-neutral-50"
+            onClick={() =>
+              void uploadImageToSelectedBlock(
+                selectedBlock.id,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                target,
+              )
+            }
+          >
+            Choose Image
+          </button>
+        </div>
+      ) : null}
+    </div>
+  ))}
+</div>
+
+<div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+  <div className="text-sm font-semibold text-neutral-700">
+    Block Position
+  </div>
+
+  <div className="mt-3">
+    <div className="flex items-center justify-between">
+      <div className={inspectorLabelClass()}>Horizontal Position</div>
+      <div className="text-xs text-neutral-500">
+        {(selectedBlock.data as any).contentOffsetX ?? 0}px
+      </div>
+    </div>
+
+    <input
+      type="range"
+      min={-300}
+      max={300}
+      value={(selectedBlock.data as any).contentOffsetX ?? 0}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "tournament_display"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  contentOffsetX: Number(e.target.value),
+                },
+              },
+        )
+      }
+      className="mt-2 w-full"
+    />
+  </div>
+
+  <div className="mt-3">
+    <div className="flex items-center justify-between">
+      <div className={inspectorLabelClass()}>Vertical Position</div>
+      <div className="text-xs text-neutral-500">
+        {(selectedBlock.data as any).contentOffsetY ?? 0}px
+      </div>
+    </div>
+
+    <input
+      type="range"
+      min={-300}
+      max={300}
+      value={(selectedBlock.data as any).contentOffsetY ?? 0}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "tournament_display"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  contentOffsetY: Number(e.target.value),
+                },
+              },
+        )
+      }
+      className="mt-2 w-full"
+    />
+  </div>
+</div>
+
       </div>
     ) : null}
 
@@ -24146,73 +24282,6 @@ onClick={() =>
   Browse Finals Image
 </button>
 
-<div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
-  <div className="text-sm font-semibold text-neutral-700">
-    Display Options
-  </div>
-
-  {[
-    ["leftDivision", "leftDivisionDisplayType", "Left Division"],
-    ["rightDivision", "rightDivisionDisplayType", "Right Division"],
-    ["finals", "finalsDisplayType", "Finals"],
-    ["championship", "championshipDisplayType", "Championship"],
-  ].map(([target, key, label]) => (
-    <div key={key} className="mt-3 rounded-xl border border-neutral-200 bg-white p-3">
-      <div className={inspectorLabelClass()}>{label}</div>
-
-      <select
-        value={(selectedBlock.data as any)[key] ?? "text"}
-        onChange={(e) =>
-          updateSelectedBlock((block) =>
-            block.type !== "tournament_display"
-              ? block
-              : {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    [key]: e.target.value as "text" | "image",
-                  },
-                },
-          )
-        }
-        className={inspectorInputClass()}
-      >
-        <option value="text">Text Label</option>
-        <option value="image">Image / Frame</option>
-      </select>
-
-      {((selectedBlock.data as any)[key] ?? "text") === "image" ? (
-        <div className="mt-3">
-          {(selectedBlock.data as any)[`${target}ImageUrl`] ? (
-            <img
-              src={(selectedBlock.data as any)[`${target}ImageUrl`]}
-              alt={`${label} image`}
-              className="mb-3 h-16 w-full rounded-lg border border-neutral-200 bg-neutral-100 object-cover"
-            />
-          ) : null}
-
-          <button
-            type="button"
-            className="inline-flex h-10 items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-700 hover:bg-neutral-50"
-            onClick={() =>
-              void uploadImageToSelectedBlock(
-                selectedBlock.id,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                target,
-              )
-            }
-          >
-            Choose Image
-          </button>
-        </div>
-      ) : null}
-    </div>
-  ))}
-</div>
 
 <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
   <label className="flex items-center gap-2 text-sm text-neutral-700">
