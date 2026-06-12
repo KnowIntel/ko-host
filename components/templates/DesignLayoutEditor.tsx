@@ -24007,10 +24007,10 @@ onClick={() =>
   ["showSeeds", "Seeds"],
   ["showRecords", "Records"],
   ["showStatusBadges", "Status"],
-  ["showLeftDivisionLabel", "Left Division Label"],
-  ["showRightDivisionLabel", "Right Division Label"],
+  ["showLeftDivisionLabel", "Left Division"],
+  ["showRightDivisionLabel", "Right Division"],
   ["showSeasonYear", "Season / Year"],
-  ["showTournamentName", "Tournament Bracket"],
+  ["showTournamentName", "Tournament"],
 ].map(([key, label]) => (
         <label
           key={key}
