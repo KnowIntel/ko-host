@@ -226,6 +226,8 @@ className={[
   matches={matches}
   teams={teams}
   finalsImageUrl={(data as any).finalsImageUrl}
+  leftDivisionImageUrl={(data as any).leftDivisionImageUrl}
+  rightDivisionImageUrl={(data as any).rightDivisionImageUrl}
   leftDivisionDisplayType={(data as any).leftDivisionDisplayType ?? "text"}
   rightDivisionDisplayType={(data as any).rightDivisionDisplayType ?? "text"}
   finalsDisplayType={(data as any).finalsDisplayType ?? "text"}
@@ -248,6 +250,8 @@ function Bracket({
   matches,
   teams,
   finalsImageUrl,
+  leftDivisionImageUrl,
+  rightDivisionImageUrl,
   leftDivisionDisplayType,
   rightDivisionDisplayType,
   finalsDisplayType,
@@ -264,6 +268,8 @@ function Bracket({
   matches: TournamentMatchLike[];
   teams: TournamentTeamLike[];
   finalsImageUrl?: string;
+  leftDivisionImageUrl?: string;
+  rightDivisionImageUrl?: string;
   leftDivisionDisplayType?: "text" | "image";
   rightDivisionDisplayType?: "text" | "image";
   finalsDisplayType?: "text" | "image";
@@ -303,20 +309,22 @@ function Bracket({
 
 if (bracketLayout === "east_west") {
   return (
-    <Style1EastWestBracket
-      matches={matches}
-      teams={teams}
-      finalsImageUrl={finalsImageUrl}
-      leftDivisionDisplayType={leftDivisionDisplayType}
-      rightDivisionDisplayType={rightDivisionDisplayType}
-      finalsDisplayType={finalsDisplayType}
-      championshipDisplayType={championshipDisplayType}
-      leftDivisionLabel={leftDivisionLabel}
-      rightDivisionLabel={rightDivisionLabel}
-      finalsLabel={finalsLabel}
-      styles={styles}
-      options={options}
-    />
+<Style1EastWestBracket
+  matches={matches}
+  teams={teams}
+  finalsImageUrl={finalsImageUrl}
+  leftDivisionImageUrl={leftDivisionImageUrl}
+  rightDivisionImageUrl={rightDivisionImageUrl}
+  leftDivisionDisplayType={leftDivisionDisplayType}
+  rightDivisionDisplayType={rightDivisionDisplayType}
+  finalsDisplayType={finalsDisplayType}
+  championshipDisplayType={championshipDisplayType}
+  leftDivisionLabel={leftDivisionLabel}
+  rightDivisionLabel={rightDivisionLabel}
+  finalsLabel={finalsLabel}
+  styles={styles}
+  options={options}
+/>
   );
 }
 
@@ -488,36 +496,36 @@ function BracketSide({
     (align === "left" && options.showLeftDivisionLabel) ||
     (align === "right" && options.showRightDivisionLabel);
 
-  const divisionHeader =
-    shouldShowLabel && displayType === "image" ? (
-      imageUrl ? (
-        <img
-          src={imageUrl}
-          alt={label}
-          className={[
-            "mb-4 h-10 max-w-[220px] rounded-xl object-cover",
-            align === "right" ? "ml-auto" : "",
-          ].join(" ")}
-        />
-      ) : (
-        <div
-          className={[
-            "mb-4 h-10 max-w-[220px] rounded-xl border border-white/20 bg-white/10",
-            align === "right" ? "ml-auto" : "",
-          ].join(" ")}
-        />
-      )
-    ) : shouldShowLabel ? (
+const divisionHeader =
+  shouldShowLabel && displayType === "image" ? (
+    imageUrl ? (
+      <img
+        src={imageUrl}
+        alt={label}
+        className={[
+          "mb-4 h-10 w-[220px] rounded-xl object-cover",
+          align === "right" ? "ml-auto" : "",
+        ].join(" ")}
+      />
+    ) : (
       <div
         className={[
-          "mb-4 text-xs font-bold uppercase tracking-[0.18em]",
-          align === "right" ? "text-right" : "",
+          "mb-4 h-10 w-[220px] rounded-xl border border-white/20 bg-white/10",
+          align === "right" ? "ml-auto" : "",
         ].join(" ")}
-        style={divisionLabelStyle}
-      >
-        {label}
-      </div>
-    ) : null;
+      />
+    )
+  ) : shouldShowLabel ? (
+    <div
+      className={[
+        "mb-4 text-xs font-bold uppercase tracking-[0.18em]",
+        align === "right" ? "text-right" : "",
+      ].join(" ")}
+      style={divisionLabelStyle}
+    >
+      {label}
+    </div>
+  ) : null;
 
   return (
     <div>
