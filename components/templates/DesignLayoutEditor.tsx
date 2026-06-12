@@ -1112,6 +1112,85 @@ if (block.type === "speed_dating" || block.type === "pop_balloon") {
   };
 }
 
+function advanceTournamentWinners(matches: any[]) {
+  const nextMatches = [...matches];
+
+  const getWinner = (match: any) => {
+    const scoreA = Number(match.scoreA);
+    const scoreB = Number(match.scoreB);
+
+    if (!match.teamA || !match.teamB) return "";
+    if (!Number.isFinite(scoreA) || !Number.isFinite(scoreB)) return "";
+    if (scoreA === scoreB) return "";
+
+    return scoreA > scoreB ? match.teamA : match.teamB;
+  };
+
+  const applyRound = (
+    division: "west" | "east",
+    sourceRound: string,
+    targetRound: string,
+  ) => {
+    const sourceMatches = nextMatches.filter(
+      (match) =>
+        match.division === division && match.roundTitle === sourceRound,
+    );
+
+    const targetMatches = nextMatches.filter(
+      (match) =>
+        match.division === division && match.roundTitle === targetRound,
+    );
+
+    sourceMatches.forEach((sourceMatch, sourceIndex) => {
+      const winner = getWinner(sourceMatch);
+      if (!winner) return;
+
+      sourceMatch.winner = winner;
+
+      const targetIndex = Math.floor(sourceIndex / 2);
+      const targetSlot = sourceIndex % 2 === 0 ? "teamA" : "teamB";
+      const targetMatch = targetMatches[targetIndex];
+
+      if (targetMatch) {
+        targetMatch[targetSlot] = winner;
+      }
+    });
+  };
+
+  applyRound("west", "Round 1", "Round 2");
+  applyRound("east", "Round 1", "Round 2");
+  applyRound("west", "Round 2", "Division Finals");
+  applyRound("east", "Round 2", "Division Finals");
+
+  const westFinal = nextMatches.find(
+    (match) =>
+      match.division === "west" && match.roundTitle === "Division Finals",
+  );
+
+  const eastFinal = nextMatches.find(
+    (match) =>
+      match.division === "east" && match.roundTitle === "Division Finals",
+  );
+
+  const championship = nextMatches.find(
+    (match) =>
+      match.division === "finals" || match.roundTitle === "Championship",
+  );
+
+  const westWinner = westFinal ? getWinner(westFinal) : "";
+  const eastWinner = eastFinal ? getWinner(eastFinal) : "";
+
+  if (westFinal && westWinner) westFinal.winner = westWinner;
+  if (eastFinal && eastWinner) eastFinal.winner = eastWinner;
+
+  if (championship) {
+    if (westWinner) championship.teamA = westWinner;
+    if (eastWinner) championship.teamB = eastWinner;
+  }
+
+  return nextMatches;
+}
+
 function syncTournamentMatchesFromTeams(
   teams: any[],
   existingMatches: any[] = [],
@@ -24913,21 +24992,26 @@ onClick={() =>
               type="number"
               value={match.scoreA ?? 0}
               onChange={(e) =>
-                updateSelectedBlock((block) =>
-                  block.type !== "tournament_display"
-                    ? block
-                    : {
-                        ...block,
-                        data: {
-                          ...block.data,
-                          matches: block.data.matches.map((entry) =>
-                            entry.id === match.id
-                              ? { ...entry, scoreA: Number(e.target.value) }
-                              : entry,
-                          ),
-                        },
-                      },
-                )
+                updateSelectedBlock((block) => {
+                  if (block.type !== "tournament_display") return block;
+
+                  const matches = block.data.matches.map((entry) =>
+                    entry.id === match.id
+                      ? {
+                          ...entry,
+                          scoreA: Number(e.target.value),
+                        }
+                      : entry,
+                  );
+
+                  return {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      matches: advanceTournamentWinners(matches),
+                    },
+                  };
+                })
               }
               className={inspectorInputClass()}
             />
@@ -24939,21 +25023,26 @@ onClick={() =>
               type="number"
               value={match.scoreB ?? 0}
               onChange={(e) =>
-                updateSelectedBlock((block) =>
-                  block.type !== "tournament_display"
-                    ? block
-                    : {
-                        ...block,
-                        data: {
-                          ...block.data,
-                          matches: block.data.matches.map((entry) =>
-                            entry.id === match.id
-                              ? { ...entry, scoreB: Number(e.target.value) }
-                              : entry,
-                          ),
-                        },
-                      },
-                )
+                updateSelectedBlock((block) => {
+                  if (block.type !== "tournament_display") return block;
+
+                  const matches = block.data.matches.map((entry) =>
+                    entry.id === match.id
+                      ? {
+                          ...entry,
+                          scoreB: Number(e.target.value),
+                        }
+                      : entry,
+                  );
+
+                  return {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      matches: advanceTournamentWinners(matches),
+                    },
+                  };
+                })
               }
               className={inspectorInputClass()}
             />
@@ -25063,14 +25152,16 @@ onClick={() =>
             }
             className={inspectorInputClass()}
           >
-            <option value="Round 1">Round 1</option>
-            {(((selectedBlock.data as any).rounds ?? []) as any[]).map(
-              (round: any) => (
-                <option key={round.id} value={round.title}>
-                  {round.title}
-                </option>
-              ),
-            )}
+{[
+  "Round 1",
+  ...(((selectedBlock.data as any).rounds ?? []) as any[])
+    .map((round: any) => round.title)
+    .filter((title: string) => title && title !== "Round 1"),
+].map((title) => (
+  <option key={title} value={title}>
+    {title}
+  </option>
+))}
           </select>
         </div>
 
