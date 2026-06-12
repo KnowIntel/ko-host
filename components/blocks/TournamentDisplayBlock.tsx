@@ -986,21 +986,28 @@ function MatchCard({
 
   return (
     <div
-      className={[
-        "rounded-xl p-3 text-sm border",
-        match.winner
-          ? "border-emerald-500/50 bg-emerald-500/10"
-          : "border-white/10 bg-white/10",
-      ].join(" ")}
+      className="rounded-xl p-3 text-sm border border-white/10 bg-white/10"
     >
       <div className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2">
-          <TeamLogo team={teamA} size={options.logoSize} />
+          <div
+            className={
+              match.winner &&
+              match.winner !== match.teamA
+                ? "opacity-40"
+                : ""
+            }
+          >
+            <TeamLogo team={teamA} size={options.logoSize} />
+          </div>
 
           <div
             className={[
               "truncate font-medium",
-              match.winner === match.teamA ? "text-emerald-300" : "",
+              match.winner &&
+              match.winner !== match.teamA
+                ? "opacity-40"
+                : "",
             ].join(" ")}
             style={styles.teamNameStyle}
           >
@@ -1014,14 +1021,26 @@ function MatchCard({
           <div
             className={[
               "truncate font-medium",
-              match.winner === match.teamB ? "text-emerald-300" : "",
+              match.winner &&
+              match.winner !== match.teamB
+                ? "opacity-40"
+                : "",
             ].join(" ")}
             style={styles.teamNameStyle}
           >
             {match.teamB || "Team B"}
           </div>
 
-          <TeamLogo team={teamB} size={options.logoSize} />
+          <div
+            className={
+              match.winner &&
+              match.winner !== match.teamB
+                ? "opacity-40"
+                : ""
+            }
+          >
+            <TeamLogo team={teamB} size={options.logoSize} />
+          </div>
         </div>
       </div>
 
