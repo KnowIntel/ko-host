@@ -726,6 +726,7 @@ championship
         fallbackName={match.teamA || "Team A"}
         score={match.scoreA}
         isWinner={teamAWon}
+        matchHasWinner={Boolean(match.winner)}
         mirrored={mirrored}
         styles={styles}
         options={options}
@@ -738,6 +739,7 @@ championship
         fallbackName={match.teamB || "Team B"}
         score={match.scoreB}
         isWinner={teamBWon}
+        matchHasWinner={Boolean(match.winner)}
         mirrored={mirrored}
         styles={styles}
         options={options}
@@ -760,6 +762,7 @@ function BracketTeamRow({
   fallbackName,
   score,
   isWinner,
+  matchHasWinner = false,
   mirrored = false,
   styles,
   options,
@@ -768,6 +771,7 @@ function BracketTeamRow({
   fallbackName: string;
   score?: number;
   isWinner?: boolean;
+  matchHasWinner?: boolean;
   mirrored?: boolean;
   styles: TournamentDisplayStyles;
   options: TournamentDisplayOptions;
@@ -796,15 +800,15 @@ function BracketTeamRow({
       <TeamLogo team={team} size={options.logoSize} />
 
       <div className={["min-w-0 flex-1", mirrored ? "text-right" : ""].join(" ")}>
-        <div
-          className={[
-            "truncate font-semibold",
-            isWinner ? "text-emerald-300" : "",
-          ].join(" ")}
-          style={styles.teamNameStyle}
-        >
-          {team?.name || fallbackName}
-        </div>
+<div
+  className={[
+    "truncate font-semibold",
+    matchHasWinner && !isWinner ? "opacity-40" : "",
+  ].join(" ")}
+  style={styles.teamNameStyle}
+>
+  {team?.name || fallbackName}
+</div>
 
         {options.showRecords && team?.record ? (
           <div className="text-[10px] opacity-55" style={styles.recordStyle}>
