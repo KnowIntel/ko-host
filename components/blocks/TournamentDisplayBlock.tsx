@@ -689,12 +689,16 @@ function ChampionshipCard({
 
   return (
     <div className="flex h-full min-h-[560px] flex-col items-center justify-center">
-      <div
-        className="mb-4 text-center text-xs font-bold uppercase tracking-[0.18em] opacity-70"
-        style={styles.finalsLabelStyle}
-      >
-        {label}
-      </div>
+{finalsDisplayType === "image" ? (
+  <div className="mb-4 h-10 w-40 rounded-xl border border-white/20 bg-white/10" />
+) : (
+  <div
+    className="mb-4 text-center text-xs font-bold uppercase tracking-[0.18em] opacity-70"
+    style={styles.finalsLabelStyle}
+  >
+    {label}
+  </div>
+)}
 
       <div className="w-full max-w-[250px] overflow-hidden rounded-[28px] border border-white/15 bg-slate-950 shadow-xl">
         {finalsImageUrl ? (
@@ -749,12 +753,16 @@ function ChampionshipCard({
       </div>
 
       <div className="mt-5 rounded-2xl border border-yellow-300/30 bg-yellow-300/10 px-5 py-3 text-center">
-        <div
-          className="text-[10px] font-bold uppercase tracking-[0.18em] text-yellow-200"
-          style={styles.championStyle}
-        >
-          Champion
-        </div>
+{championshipDisplayType === "image" ? (
+  <div className="mx-auto mb-2 h-10 w-36 rounded-xl border border-yellow-300/30 bg-yellow-300/10" />
+) : (
+  <div
+    className="text-[10px] font-bold uppercase tracking-[0.18em] text-yellow-200"
+    style={styles.championStyle}
+  >
+    Champion
+  </div>
+)}
         <div className="mt-1 text-sm font-semibold" style={styles.championStyle}>
           {safeMatch.winner || "Awaiting Winner"}
         </div>
