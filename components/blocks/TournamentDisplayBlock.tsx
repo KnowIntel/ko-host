@@ -369,15 +369,8 @@ function Style1EastWestBracket({
       match.division === "finals" || getRoundName(match) === "Championship",
   );
 
-return (
-  <div className="w-full overflow-hidden">
-    <div
-      className="origin-top-left min-w-[1180px]"
-      style={{
-        transform: "scaleX(min(1, calc(100% / 1180)))",
-        transformOrigin: "top left",
-      }}
-    >
+  return (
+    <div className="min-w-[1180px]">
       <div className="grid grid-cols-[1fr_260px_1fr] gap-8">
         <BracketSide
           label={leftDivisionLabel || "West Division"}
@@ -415,8 +408,7 @@ return (
         />
       </div>
     </div>
-  </div>
-);
+  );
 }
 
 function BracketSide({
@@ -488,7 +480,7 @@ function BracketSide({
       ) : null}
 
       {align === "right" ? (
-        <div className="grid grid-cols-[clamp(150px,15vw,220px)_clamp(20px,4vw,54px)_clamp(150px,15vw,220px)_clamp(20px,4vw,54px)_clamp(150px,15vw,220px)] items-center">
+        <div className="grid grid-cols-[220px_54px_220px_54px_220px] items-center">
           <div>
             <BracketMatchCard
               match={finalMatch}
@@ -532,7 +524,7 @@ function BracketSide({
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-[clamp(150px,15vw,220px)_clamp(20px,4vw,54px)_clamp(150px,15vw,220px)_clamp(20px,4vw,54px)_clamp(150px,15vw,220px)] items-center">
+        <div className="grid grid-cols-[220px_54px_220px_54px_220px] items-center">
           <div className="space-y-4">
             {fillMatches(round1, 4).map((match, index) => (
               <BracketMatchCard
