@@ -191,6 +191,12 @@ export const BUILDER_TOOL_GUIDES: BuilderToolGuide[] = [
     purpose: "Displays location details.",
     howToUse: "Use this for venues, addresses, meeting points, parking details, pickup spots, or directions. Add the location name, address, and optional map URL.",
   },
+  {
+  name: "Tournament Display",
+  purpose: "Displays tournament brackets, playoff matchups, standings, scores, championship results, and sports competition progress.",
+  howToUse:
+    "Use this for sports leagues, playoffs, tournaments, esports competitions, fantasy leagues, school athletics, and championship events. Add teams, seeds, records, scores, matchups, division labels, championship branding, and bracket progression to create a complete tournament experience.",
+},
 
   {
     name: "Registry",

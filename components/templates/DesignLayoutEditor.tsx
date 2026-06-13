@@ -2007,9 +2007,15 @@ const [countdownStyleTarget, setCountdownStyleTarget] =
 const [timelineStyleTarget, setTimelineStyleTarget] =
   useState<TimelineStyleTarget>("entryTitle");
 
-const [calendarEventTextTarget, setCalendarEventTextTarget] = useState<
-  "heading" | "subtitle" | "eventTitle" | "eventDate" | "eventDetails"
->("heading");
+const [calendarEventTextTarget, setCalendarEventTextTarget] =
+  useState<
+    | "heading"
+    | "subtitle"
+    | "eventTitle"
+    | "eventSubtitle"
+    | "eventDate"
+    | "eventDetails"
+  >("heading");
 
 const [focusedTimelineEntryId, setFocusedTimelineEntryId] =
   useState<string | null>(null);
@@ -22323,31 +22329,131 @@ onClick={() =>
   <div className={inspectorCardClass()}>
     <div className={inspectorLabelClass()}>Calendar Event</div>
 
+    <div className="mt-4">
+  <div className={inspectorLabelClass()}>
+    Time Format
+  </div>
+
+<select
+  value={(selectedBlock.data as any).timeFormat ?? "12h"}
+  onChange={(e) =>
+    updateSelectedBlock((block) =>
+      block.type !== "calendar_event"
+        ? block
+        : {
+            ...block,
+            data: {
+              ...block.data,
+              timeFormat: e.target.value as "12h" | "24h",
+            },
+          },
+    )
+  }
+  className={inspectorInputClass()}
+>
+    <option value="12h">12 Hour Clock</option>
+    <option value="24h">24 Hour Clock</option>
+  </select>
+</div>
+
+<label className="mt-4 flex items-center gap-2 text-sm text-neutral-700">
+  <input
+    type="checkbox"
+    checked={(selectedBlock.data as any).showHeadingImage === true}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "calendar_event"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                showHeadingImage: e.target.checked,
+              },
+            },
+      )
+    }
+  />
+  Show Heading Image
+</label>
+
+{(selectedBlock.data as any).showHeadingImage === true ? (
+  <>
+<div className="mt-3 flex items-center gap-3">
+  {(selectedBlock.data as any).headingImageUrl ? (
+    <img
+      src={(selectedBlock.data as any).headingImageUrl}
+      alt=""
+      className="h-14 w-14 rounded-lg border object-cover"
+    />
+  ) : null}
+
+  <button
+    type="button"
+    className="h-10 flex-1 rounded-xl border border-neutral-300 bg-white"
+    onClick={() =>
+      uploadImageToSelectedBlock(selectedBlock.id)
+    }
+  >
+    Choose Image
+  </button>
+</div>
+
+    <div className="mt-3">
+      <div className={inspectorLabelClass()}>
+        Image Size
+      </div>
+
+      <input
+        type="range"
+        min={32}
+        max={160}
+        value={(selectedBlock.data as any).headingImageSize ?? 64}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "calendar_event"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    headingImageSize: Number(e.target.value),
+                  },
+                },
+          )
+        }
+      />
+    </div>
+  </>
+) : null}
+
 <div className="mt-4">
   <div className={inspectorLabelClass()}>
     Text Target
   </div>
 
-  <select
-    value={calendarEventTextTarget}
-    onChange={(e) =>
-      setCalendarEventTextTarget(
-        e.target.value as
-          | "heading"
-          | "subtitle"
-          | "eventTitle"
-          | "eventDate"
-          | "eventDetails",
-      )
-    }
-    className={inspectorInputClass()}
-  >
-    <option value="heading">Heading</option>
-    <option value="subtitle">Subtitle</option>
-    <option value="eventTitle">Event Title</option>
-    <option value="eventDate">Event Date</option>
-    <option value="eventDetails">Event Details</option>
-  </select>
+<select
+  value={calendarEventTextTarget}
+  onChange={(e) =>
+    setCalendarEventTextTarget(
+      e.target.value as
+        | "heading"
+        | "subtitle"
+        | "eventTitle"
+        | "eventSubtitle"
+        | "eventDate"
+        | "eventDetails",
+    )
+  }
+  className={inspectorInputClass()}
+>
+  <option value="heading">Heading</option>
+  <option value="subtitle">Subtitle</option>
+  <option value="eventTitle">Event Title</option>
+  <option value="eventSubtitle">Event Subtitle</option>
+  <option value="eventDate">Event Date</option>
+  <option value="eventDetails">Event Details</option>
+</select>
 </div>
 
     <div className="mt-4">
@@ -23208,75 +23314,6 @@ onClick={() =>
               className={inspectorInputClass()}
             />
 
-            <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-2">
-                <input
-                  type="text"
-                  value={event.imageUrl ?? ""}
-                  placeholder="Image URL"
-                  onChange={(e) =>
-                    updateSelectedBlock((block) =>
-                      block.type !== "calendar_event"
-                        ? block
-                        : {
-                            ...block,
-                            data: {
-                              ...block.data,
-                              events: block.data.events.map((entry) =>
-                                entry.id === event.id
-                                  ? { ...entry, imageUrl: e.target.value }
-                                  : entry,
-                              ),
-                            },
-                          },
-                    )
-                  }
-                  className={inspectorInputClass()}
-                />
-
-                <button
-                  type="button"
-                  className="inline-flex h-10 items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-700 hover:bg-neutral-50"
-                  onClick={() =>
-                    void uploadImageToSelectedBlock(
-                      selectedBlock.id,
-                      undefined,
-                      event.id,
-                    )
-                  }
-                >
-                  Browse Event Image
-                </button>
-              </div>
-
-              <select
-                value={event.imagePosition ?? "right"}
-                onChange={(e) =>
-                  updateSelectedBlock((block) =>
-                    block.type !== "calendar_event"
-                      ? block
-                      : {
-                          ...block,
-                          data: {
-                            ...block.data,
-                            events: block.data.events.map((entry) =>
-                              entry.id === event.id
-                                ? {
-                                    ...entry,
-                                    imagePosition: e.target.value as "left" | "right",
-                                  }
-                                : entry,
-                            ),
-                          },
-                        },
-                  )
-                }
-                className={inspectorInputClass()}
-              >
-                <option value="left">Image Left</option>
-                <option value="right">Image Right</option>
-              </select>
-            </div>
 
             <input
               type="text"
@@ -23398,6 +23435,120 @@ onClick={() =>
     }
     className={inspectorInputClass()}
   />
+</div>
+
+<div className="grid grid-cols-2 gap-2">
+  <label className="flex items-center gap-2 text-sm text-neutral-700">
+    <input
+      type="checkbox"
+      checked={event.showLive === true}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "calendar_event"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  events: block.data.events.map((entry) =>
+                    entry.id === event.id
+                      ? {
+                          ...entry,
+                          showLive: e.target.checked,
+                        }
+                      : entry,
+                  ),
+                },
+              },
+        )
+      }
+    />
+    Show LIVE Pill
+  </label>
+
+  <label className="flex items-center gap-2 text-sm text-neutral-700">
+    <input
+      type="checkbox"
+      checked={event.showSubtitle !== false}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "calendar_event"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  events: block.data.events.map((entry) =>
+                    entry.id === event.id
+                      ? {
+                          ...entry,
+                          showSubtitle: e.target.checked,
+                        }
+                      : entry,
+                  ),
+                },
+              },
+        )
+      }
+    />
+    Show Subtitle
+  </label>
+
+  <label className="flex items-center gap-2 text-sm text-neutral-700">
+    <input
+      type="checkbox"
+      checked={event.showStartTime !== false}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "calendar_event"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  events: block.data.events.map((entry) =>
+                    entry.id === event.id
+                      ? {
+                          ...entry,
+                          showStartTime: e.target.checked,
+                        }
+                      : entry,
+                  ),
+                },
+              },
+        )
+      }
+    />
+    Show Start Time
+  </label>
+
+  <label className="flex items-center gap-2 text-sm text-neutral-700">
+    <input
+      type="checkbox"
+      checked={event.showEndTime !== false}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "calendar_event"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  events: block.data.events.map((entry) =>
+                    entry.id === event.id
+                      ? {
+                          ...entry,
+                          showEndTime: e.target.checked,
+                        }
+                      : entry,
+                  ),
+                },
+              },
+        )
+      }
+    />
+    Show End Time
+  </label>
 </div>
 
             <label className="flex items-center gap-2 text-sm text-neutral-700">
@@ -23587,6 +23738,7 @@ onClick={() =>
       </button>
     </div>
   </div>
+  
 ) : null}
 
 {selectedBlock?.type === "schedule_agenda" ? (

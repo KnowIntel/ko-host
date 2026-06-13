@@ -1621,6 +1621,18 @@ export type CalendarEventEntry = {
   buttonUrl?: string;
   addToCalendarText?: string;
   addToCalendarUrl?: string;
+
+  showLive?: boolean;
+
+showStartTime?: boolean;
+showEndTime?: boolean;
+
+showSubtitle?: boolean;
+
+headingImageUrl?: string;
+headingImageStoragePath?: string;
+
+imageSize?: number;
 };
 
 export type CalendarEventBlock = BaseBlock & {
@@ -1660,6 +1672,10 @@ export type CalendarEventBlock = BaseBlock & {
     eventTitleStyle?: TextStyle;
     eventDateStyle?: TextStyle;
     eventDetailsStyle?: TextStyle;
+
+    timeFormat?: "12h" | "24h";
+    showHeadingImage?: boolean;
+    headingImageSize?: number;
 
     calendarStyle?: {
       backgroundColor?: string;
@@ -4788,6 +4804,18 @@ data: {
               buttonUrl: "",
               addToCalendarText: "Add to Calendar",
               addToCalendarUrl: "",
+
+              showLive: false,
+
+              showStartTime: true,
+              showEndTime: true,
+
+              showSubtitle: true,
+
+              headingImageUrl: "",
+              headingImageStoragePath: "",
+
+              imageSize: 64,
             },
           ],
 
@@ -4797,6 +4825,11 @@ data: {
           eventTitleStyle: createDefaultTextStyle(),
           eventDateStyle: createDefaultTextStyle(),
           eventDetailsStyle: createDefaultTextStyle(),
+
+          timeFormat: "12h",
+
+          showHeadingImage: false,
+          headingImageSize: 64,
 
           calendarStyle: {
             backgroundColor: "",
