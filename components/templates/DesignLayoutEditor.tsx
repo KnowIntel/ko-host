@@ -2149,9 +2149,7 @@ selectedBlockFromDraft?.type === "gallery"
               : (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
 : selectedBlockFromDraft?.type === "post_board"
   ? postBoardStyleTarget === "block_heading"
-    ? (((selectedBlockFromDraft.data as any).blockHeadingStyle ??
-        (selectedBlockFromDraft.data as any).style ??
-        {}) as TextStyle)
+  ? (((selectedBlockFromDraft.data as any).blockHeadingStyle ?? {}) as TextStyle)
     : postBoardStyleTarget === "card"
       ? (((selectedBlockFromDraft.data as any).cardStyle ??
           (selectedBlockFromDraft.data as any).style ??
@@ -22418,7 +22416,13 @@ onClick={() =>
     value={postBoardStyleTarget}
     onChange={(e) =>
       setPostBoardStyleTarget(
-        e.target.value as "block" | "card" | "heading" | "body" | "buttons",
+        e.target.value as
+  | "block"
+  | "block_heading"
+  | "card"
+  | "heading"
+  | "body"
+  | "buttons",
       )
     }
     className={inspectorInputClass()}
