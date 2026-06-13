@@ -20916,12 +20916,17 @@ onClick={() =>
               ? block
               : {
                   ...block,
-                  data: {
-                    ...block.data,
-                    barMode: e.target.value as
-                      | "progressive"
-                      | "split",
-                  },
+                data: {
+                  ...block.data,
+                  barMode: e.target.value as
+                    | "progressive"
+                    | "split",
+
+                  contextLocation:
+                    e.target.value === "split"
+                      ? "top"
+                      : "bottom-left",
+                },
                 },
           )
         }
