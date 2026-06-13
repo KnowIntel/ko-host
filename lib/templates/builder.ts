@@ -1779,6 +1779,9 @@ export type PostBoardBlock = BaseBlock & {
     headingStyle?: Record<string, any>;
     bodyStyle?: Record<string, any>;
     buttonStyle?: Record<string, any>;
+    avatarStyle?: Record<string, any>;
+    metaStyle?: Record<string, any>;
+    actionButtonStyle?: Record<string, any>;
   };
 };
 
