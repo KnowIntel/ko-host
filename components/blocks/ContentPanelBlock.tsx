@@ -217,10 +217,10 @@ export default function ContentPanelBlock({ block }: ContentPanelBlockProps) {
       `}</style>
 
       {block.data.showHeading !== false && block.data.heading ? (
-        <div
-          className="text-lg font-semibold"
-          style={textStyleToCss(headingStyle)}
-        >
+<div
+  className="text-lg"
+  style={textStyleToCss(headingStyle)}
+>
           {block.data.heading}
         </div>
       ) : null}
@@ -423,7 +423,7 @@ function PanelContent({
       <div className="flex flex-wrap items-center gap-2">
         {panel.icon ? <span className="text-lg">{panel.icon}</span> : null}
 
-        <div className="text-base font-semibold">{panel.title}</div>
+        <div className="text-base">{panel.title}</div>
 
         {panel.badge ? (
           <span className="rounded-full bg-white px-2 py-0.5 text-xs text-neutral-600">
@@ -541,10 +541,10 @@ function PanelListGrid({
                         <img
                           src={cell.imageUrl}
                           alt={cell.imageAlt || column.label}
-                          className="h-16 w-16 rounded-lg object-cover"
+                          className="h-8 w-8 rounded-lg object-cover"
                         />
                       ) : (
-                        <div className="flex h-16 w-16 items-center justify-center rounded-lg border border-dashed border-neutral-300 text-[10px] opacity-60">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-dashed border-neutral-300 text-[9px] opacity-60">
                           Image
                         </div>
                       )
