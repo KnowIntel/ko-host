@@ -1301,6 +1301,14 @@ export type ProgressBarBlock = BaseBlock & {
     style?: TextStyle;
 
     displayStyle?: "bar" | "meter";
+
+    barMode?: "progressive" | "split";
+    barForegroundColor?: string;
+    barBackgroundColor?: string;
+    splitHeadingA?: string;
+    splitHeadingB?: string;
+    splitHeadingSeparator?: "none" | "|" | ":" | "-";
+
     meterSectionCount?: number;
     meterStartColor?: string;
     meterEndColor?: string;
@@ -4213,6 +4221,14 @@ data: {
   style: createDefaultTextStyle(),
 
   displayStyle: "bar",
+
+  barMode: "progressive",
+  barForegroundColor: "#111827",
+  barBackgroundColor: "#e5e7eb",
+  splitHeadingA: "Option A",
+  splitHeadingB: "Option B",
+  splitHeadingSeparator: "none",
+
   meterSectionCount: 6,
   meterStartColor: "#f59e0b",
   meterEndColor: "#dc2626",

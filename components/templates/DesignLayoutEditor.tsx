@@ -20904,13 +20904,104 @@ onClick={() =>
       </div>
     ) : null}
 
-    {((selectedBlock.data as any).displayStyle ?? "bar") === "bar" ? (
+{((selectedBlock.data as any).displayStyle ?? "bar") === "bar" ? (
+  <>
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Bar Mode</div>
+      <select
+        value={(selectedBlock.data as any).barMode ?? "progressive"}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "progress_bar"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    barMode: e.target.value as
+                      | "progressive"
+                      | "split",
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      >
+        <option value="progressive">Progressive</option>
+        <option value="split">Split Comparison</option>
+      </select>
+    </div>
+
+    <div className="mt-4 grid grid-cols-2 gap-3">
+      <div>
+        <div className={inspectorLabelClass()}>
+          Progress Color
+        </div>
+        <input
+          type="color"
+          value={
+            (selectedBlock.data as any).barForegroundColor ??
+            "#111827"
+          }
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "progress_bar"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      barForegroundColor: e.target.value,
+                    },
+                  },
+            )
+          }
+          className="h-10 w-full rounded-lg border border-neutral-300 bg-white"
+        />
+      </div>
+
+      <div>
+        <div className={inspectorLabelClass()}>
+          Background Color
+        </div>
+        <input
+          type="color"
+          value={
+            (selectedBlock.data as any).barBackgroundColor ??
+            "#e5e7eb"
+          }
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "progress_bar"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      barBackgroundColor: e.target.value,
+                    },
+                  },
+            )
+          }
+          className="h-10 w-full rounded-lg border border-neutral-300 bg-white"
+        />
+      </div>
+    </div>
+
+    {((selectedBlock.data as any).barMode ?? "progressive") ===
+    "split" ? (
       <>
-        <div className="mt-4">
-          <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+        <div className="mt-4 grid grid-cols-2 gap-3">
+          <div>
+            <div className={inspectorLabelClass()}>
+              Heading A
+            </div>
             <input
-              type="checkbox"
-              checked={(selectedBlock.data as any).showContext ?? true}
+              type="text"
+              value={
+                (selectedBlock.data as any).splitHeadingA ??
+                "Option A"
+              }
               onChange={(e) =>
                 updateSelectedBlock((block) =>
                   block.type !== "progress_bar"
@@ -20919,77 +21010,154 @@ onClick={() =>
                         ...block,
                         data: {
                           ...block.data,
-                          showContext: e.target.checked,
+                          splitHeadingA: e.target.value,
                         },
                       },
                 )
               }
+              className={inspectorInputClass()}
             />
-            Show Context
-          </label>
+          </div>
+
+          <div>
+            <div className={inspectorLabelClass()}>
+              Heading B
+            </div>
+            <input
+              type="text"
+              value={
+                (selectedBlock.data as any).splitHeadingB ??
+                "Option B"
+              }
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "progress_bar"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          splitHeadingB: e.target.value,
+                        },
+                      },
+                )
+              }
+              className={inspectorInputClass()}
+            />
+          </div>
         </div>
 
-        {((selectedBlock.data as any).showContext ?? true) ? (
-          <div className="mt-4 grid grid-cols-2 gap-3">
-            <div>
-              <div className={inspectorLabelClass()}>Context Type</div>
-              <select
-                value={(selectedBlock.data as any).contextType ?? "percentage"}
-                onChange={(e) =>
-                  updateSelectedBlock((block) =>
-                    block.type !== "progress_bar"
-                      ? block
-                      : {
-                          ...block,
-                          data: {
-                            ...block.data,
-                            contextType: e.target.value as
-                              | "percentage"
-                              | "fraction",
-                          },
-                        },
-                  )
-                }
-                className={inspectorInputClass()}
-              >
-                <option value="percentage">Show Percent</option>
-                <option value="fraction">Show Fraction</option>
-              </select>
-            </div>
-
-            <div>
-              <div className={inspectorLabelClass()}>Context Location</div>
-              <select
-                value={
-                  (selectedBlock.data as any).contextLocation ?? "bottom-left"
-                }
-                onChange={(e) =>
-                  updateSelectedBlock((block) =>
-                    block.type !== "progress_bar"
-                      ? block
-                      : {
-                          ...block,
-                          data: {
-                            ...block.data,
-                            contextLocation: e.target.value as
-                              | "top-right"
-                              | "bottom-left"
-                              | "bottom-right",
-                          },
-                        },
-                  )
-                }
-                className={inspectorInputClass()}
-              >
-                <option value="top-right">Top Right</option>
-                <option value="bottom-left">Bottom Left</option>
-                <option value="bottom-right">Bottom Right</option>
-              </select>
-            </div>
+        <div className="mt-4">
+          <div className={inspectorLabelClass()}>
+            Heading Separator
           </div>
-        ) : null}
+          <select
+            value={
+              (selectedBlock.data as any)
+                .splitHeadingSeparator ?? "none"
+            }
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "progress_bar"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        splitHeadingSeparator: e.target.value as
+                          | "none"
+                          | "|"
+                          | ":"
+                          | "-",
+                      },
+                    },
+              )
+            }
+            className={inspectorInputClass()}
+          >
+            <option value="none">None</option>
+            <option value="|">|</option>
+            <option value=":">:</option>
+            <option value="-">-</option>
+          </select>
+        </div>
       </>
     ) : null}
+
+    <div className="mt-4">
+      <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+        <input
+          type="checkbox"
+          checked={(selectedBlock.data as any).showContext ?? true}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "progress_bar"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      showContext: e.target.checked,
+                    },
+                  },
+            )
+          }
+        />
+        Show Context
+      </label>
+    </div>
+
+    {((selectedBlock.data as any).showContext ?? true) ? (
+      <div className="mt-4">
+        <div className={inspectorLabelClass()}>
+          Context Location
+        </div>
+
+        <select
+          value={
+            (selectedBlock.data as any).contextLocation ??
+            (((selectedBlock.data as any).barMode ?? "progressive") ===
+            "split"
+              ? "top"
+              : "bottom-left")
+          }
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "progress_bar"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      contextLocation: e.target.value,
+                    },
+                  },
+            )
+          }
+          className={inspectorInputClass()}
+        >
+          {((selectedBlock.data as any).barMode ??
+            "progressive") === "split" ? (
+            <>
+              <option value="top">Top</option>
+              <option value="bottom">Bottom</option>
+            </>
+          ) : (
+            <>
+              <option value="top-right">Top Right</option>
+              <option value="bottom-left">
+                Bottom Left
+              </option>
+              <option value="bottom-right">
+                Bottom Right
+              </option>
+            </>
+          )}
+        </select>
+      </div>
+    ) : null}
+  </>
+) : null}
   </div>
 ) : null}
 

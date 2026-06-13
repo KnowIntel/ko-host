@@ -9882,54 +9882,165 @@ if (displayStyle === "meter") {
   );
 }
 
+const barMode = ((block.data as any).barMode ?? "progressive") as
+  | "progressive"
+  | "split";
+
+const barForegroundColor =
+  (block.data as any).barForegroundColor ??
+  (barStyle as any).color ??
+  (isLightDesign(designKey) ? "#111827" : "#ffffff");
+
+const barBackgroundColor =
+  (block.data as any).barBackgroundColor ??
+  (barStyle as any).scopeBackgroundColor ??
+  (barStyle as any).backgroundColor ??
+  (isLightDesign(designKey) ? "#e5e7eb" : "rgba(255,255,255,0.12)");
+
+const splitHeadingA = ((block.data as any).splitHeadingA ?? "Option A").trim();
+const splitHeadingB = ((block.data as any).splitHeadingB ?? "Option B").trim();
+
+const splitHeadingSeparator =
+  ((block.data as any).splitHeadingSeparator ?? "none") as
+    | "none"
+    | "|"
+    | ":"
+    | "-";
+
+const splitLeftPercent = percent;
+const splitRightPercent = Math.max(0, 100 - splitLeftPercent);
+
+const splitLabelA =
+  splitHeadingSeparator === "none"
+    ? splitHeadingA
+    : `${splitHeadingA} ${splitHeadingSeparator}`;
+
+const splitLabelB =
+  splitHeadingSeparator === "none"
+    ? splitHeadingB
+    : `${splitHeadingSeparator} ${splitHeadingB}`;
+
+const splitContextLocation =
+  contextLocation === "bottom" ? "bottom" : "top";
+
+if (barMode === "split") {
   return (
     <Surface block={block} designKey={designKey} className="">
-      <div className="flex items-start justify-between gap-3">
-        <div className="text-base font-semibold" style={backgroundStyle}>
-          {block.data.heading || "Progress"}
-        </div>
-
-        {contextLocation === "top-right" ? contextNode : null}
+      <div className="text-base font-semibold" style={backgroundStyle}>
+        {block.data.heading || "Progress"}
       </div>
 
-      <div
-        className={[
-          "mt-4 h-4 w-full overflow-hidden rounded-full border",
-          isLightDesign(designKey) ? "bg-neutral-200" : "bg-white/10",
-        ].join(" ")}
-        style={{
-          backgroundColor:
-            (barStyle as any).scopeBackgroundColor ??
-            (barStyle as any).backgroundColor ??
-            undefined,
-          borderColor: (barStyle as any).borderColor ?? undefined,
-        }}
-      >
+      <div className="mt-4">
+        {showContext && splitContextLocation === "top" ? (
+          <div className="mb-2 flex items-center justify-between gap-3">
+            <div className="min-w-0 text-sm font-semibold" style={contextStyle}>
+              <span className="truncate">{splitLabelA}</span>{" "}
+              <span>{splitLeftPercent}%</span>
+            </div>
+
+            <div
+              className="min-w-0 text-right text-sm font-semibold"
+              style={contextStyle}
+            >
+              <span>{splitRightPercent}%</span>{" "}
+              <span className="truncate">{splitLabelB}</span>
+            </div>
+          </div>
+        ) : (
+          <div className="mb-2 flex items-center justify-between gap-3">
+            <div className="min-w-0 text-sm font-semibold" style={contextStyle}>
+              <span className="truncate">{splitLabelA}</span>
+            </div>
+
+            <div
+              className="min-w-0 text-right text-sm font-semibold"
+              style={contextStyle}
+            >
+              <span className="truncate">{splitLabelB}</span>
+            </div>
+          </div>
+        )}
+
         <div
-          className={
-            isLightDesign(designKey) ? "h-full bg-neutral-900" : "h-full bg-white"
-          }
+          className="flex h-4 w-full overflow-hidden rounded-full border"
           style={{
-            width: `${percent}%`,
-            backgroundColor: (barStyle as any).color ?? undefined,
+            backgroundColor: barBackgroundColor,
+            borderColor: (barStyle as any).borderColor ?? undefined,
           }}
-        />
-      </div>
-
-      {contextLocation !== "top-right" && contextNode ? (
-        <div
-          className={[
-            "mt-2 flex",
-            contextLocation === "bottom-right"
-              ? "justify-end"
-              : "justify-start",
-          ].join(" ")}
         >
-          {contextNode}
+          <div
+            className="h-full"
+            style={{
+              width: `${splitLeftPercent}%`,
+              backgroundColor: barForegroundColor,
+            }}
+          />
+
+          <div
+            className="h-full"
+            style={{
+              width: `${splitRightPercent}%`,
+              backgroundColor: barBackgroundColor,
+            }}
+          />
         </div>
-      ) : null}
+
+        {showContext && splitContextLocation === "bottom" ? (
+          <div className="mt-2 flex items-center justify-between gap-3">
+            <div className="text-xs font-semibold" style={contextStyle}>
+              {splitLeftPercent}%
+            </div>
+
+            <div className="text-xs font-semibold" style={contextStyle}>
+              {splitRightPercent}%
+            </div>
+          </div>
+        ) : null}
+      </div>
     </Surface>
   );
+}
+
+return (
+  <Surface block={block} designKey={designKey} className="">
+    <div className="flex items-start justify-between gap-3">
+      <div className="text-base font-semibold" style={backgroundStyle}>
+        {block.data.heading || "Progress"}
+      </div>
+
+      {contextLocation === "top-right" ? contextNode : null}
+    </div>
+
+    <div
+      className="mt-4 h-4 w-full overflow-hidden rounded-full border"
+      style={{
+        backgroundColor: barBackgroundColor,
+        borderColor: (barStyle as any).borderColor ?? undefined,
+      }}
+    >
+      <div
+        className="h-full"
+        style={{
+          width: `${percent}%`,
+          backgroundColor: barForegroundColor,
+        }}
+      />
+    </div>
+
+    {contextLocation !== "top-right" && contextNode ? (
+      <div
+        className={[
+          "mt-2 flex",
+          contextLocation === "bottom-right"
+            ? "justify-end"
+            : "justify-start",
+        ].join(" ")}
+      >
+        {contextNode}
+      </div>
+    ) : null}
+  </Surface>
+);
 }
 
 function renderVisitorCounter(
