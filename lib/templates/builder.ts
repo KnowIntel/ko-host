@@ -3617,6 +3617,9 @@ case "post_board":
     data: {
       heading: "Updates",
       subtitle: "Latest announcements and posts",
+
+      interactionMode: "announcement",
+
       showHeading: true,
       showSubtitle: true,
       showOwnerAvatar: true,
@@ -3624,10 +3627,19 @@ case "post_board":
       showPinnedPostsFirst: true,
       showLikes: true,
       showMessages: true,
+
       allowImages: true,
       allowVideos: false,
+
       maxMessageLength: 300,
+      maxVisibleReplies: 10,
+
+      requireCommunityPostEmail: true,
+      allowReplyEmailCapture: true,
+      notifyPostAuthorOnReply: true,
+
       variant: "standard",
+
       posts: [
         {
           id: makeId("post"),
@@ -3636,18 +3648,69 @@ case "post_board":
           message:
             "Use this post board to share announcements, updates, and important notes with visitors.",
           createdAt: new Date().toISOString(),
+
           ownerDisplayName: "Owner",
+          ownerAvatarUrl: "",
+
+          authorName: "Owner",
+          authorEmail: "",
+          authorAvatarUrl: "",
+
+          contactInfoConfirmed: false,
+          isOwnerPost: true,
+
           pinned: true,
           likeCount: 0,
           messageCount: 0,
+          replies: [],
         },
       ],
-      style: {},
-      cardStyle: {},
-      buttonStyle: {},
+
+      style: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        color: "#111827",
+      },
+
+      blockHeadingStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 16,
+        bold: true,
+        color: "#111827",
+      },
+
+      cardStyle: {
+        backgroundColor: "#ffffff",
+        borderColor: "#e5e7eb",
+        borderWidth: 1,
+        borderRadius: 16,
+      },
+
+      headingStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        bold: true,
+        color: "#111827",
+      },
+
+      bodyStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        color: "#374151",
+      },
+
+      buttonStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 12,
+        bold: true,
+        color: "#374151",
+        backgroundColor: "#f9fafb",
+        borderColor: "#e5e7eb",
+        borderWidth: 1,
+        borderRadius: 999,
+      },
     },
   };
-
 
           case "enrollment_board":
       return {
