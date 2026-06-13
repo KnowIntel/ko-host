@@ -1766,6 +1766,7 @@ export type PostBoardBlock = BaseBlock & {
     posts: PostBoardPost[];
     variant?: "standard" | "compact" | "feature";
     style?: Record<string, any>;
+    blockHeadingStyle?: Record<string, any>;
     cardStyle?: Record<string, any>;
     headingStyle?: Record<string, any>;
     bodyStyle?: Record<string, any>;
@@ -2401,11 +2402,12 @@ messageCount:
             };
           })
         : [],
-      style: block.data.style ?? {},
-      cardStyle: block.data.cardStyle ?? {},
-      headingStyle: (block.data as any).headingStyle ?? {},
-      bodyStyle: (block.data as any).bodyStyle ?? {},
-      buttonStyle: block.data.buttonStyle ?? {},
+style: block.data.style ?? {},
+blockHeadingStyle: (block.data as any).blockHeadingStyle ?? {},
+cardStyle: block.data.cardStyle ?? {},
+headingStyle: (block.data as any).headingStyle ?? {},
+bodyStyle: (block.data as any).bodyStyle ?? {},
+buttonStyle: block.data.buttonStyle ?? {},
     },
   };
 }

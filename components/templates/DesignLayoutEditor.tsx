@@ -1836,7 +1836,7 @@ const [donationStyleTarget, setDonationStyleTarget] =
   useState<"background" | "buttons">("background");
 
 const [postBoardStyleTarget, setPostBoardStyleTarget] = useState<
-  "block" | "card" | "heading" | "body" | "buttons"
+  "block" | "block_heading" | "card" | "heading" | "body" | "buttons"
 >("block");
   const pollQuestionInputRef = useRef<HTMLTextAreaElement | null>(null);
   const pollOptionInputRefs = useRef<Record<string, HTMLInputElement | null>>(
@@ -22451,11 +22451,12 @@ onClick={() =>
     }
     className={inspectorInputClass()}
   >
-    <option value="block">Block Text</option>
-    <option value="card">Post Card</option>
-    <option value="heading">Post Heading</option>
-    <option value="body">Post Body</option>
-    <option value="buttons">Like / Message Buttons</option>
+<option value="block">Block Text</option>
+<option value="block_heading">Block Heading</option>
+<option value="card">Post Card</option>
+<option value="heading">Post Heading</option>
+<option value="body">Post Body</option>
+<option value="buttons">Like / Message Buttons</option>
   </select>
 </div>
 
