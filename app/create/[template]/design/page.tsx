@@ -124,6 +124,8 @@ const draftPageCountByTemplateDesignKey: Record<string, number> = {
 
   "meet_and_greet:community": 1,
 
+  "game_day_central:championship": 1,
+
 
 };
 
