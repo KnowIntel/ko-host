@@ -956,7 +956,12 @@ function ChampionshipCard({
   {(options as any).championSubtitle || "NBA Champions"}
 </div>
 
-<div className="mt-0 flex justify-center">
+<div
+  className="flex justify-center"
+  style={{
+    marginTop: "-16px",
+  }}
+>
   <TeamLogo
     team={findTeamByName(teams, safeMatch.winner)}
     size={options.championLogoSize}
