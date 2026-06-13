@@ -1836,7 +1836,12 @@ const [donationStyleTarget, setDonationStyleTarget] =
   useState<"background" | "buttons">("background");
 
 const [postBoardStyleTarget, setPostBoardStyleTarget] = useState<
-  "block" | "block_heading" | "card" | "heading" | "body" | "buttons"
+  | "block"
+  | "block_heading"
+  | "card"
+  | "heading"
+  | "body"
+  | "buttons"
 >("block");
   const pollQuestionInputRef = useRef<HTMLTextAreaElement | null>(null);
   const pollOptionInputRefs = useRef<Record<string, HTMLInputElement | null>>(
@@ -2142,25 +2147,29 @@ selectedBlockFromDraft?.type === "gallery"
                   (selectedBlockFromDraft.data as any).style ??
                   {}) as TextStyle)
               : (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
-            : selectedBlockFromDraft?.type === "post_board"
-              ? postBoardStyleTarget === "card"
-                ? (((selectedBlockFromDraft.data as any).cardStyle ??
-                    (selectedBlockFromDraft.data as any).style ??
-                    {}) as TextStyle)
-                : postBoardStyleTarget === "heading"
-                  ? (((selectedBlockFromDraft.data as any).headingStyle ??
-                      (selectedBlockFromDraft.data as any).style ??
-                      {}) as TextStyle)
-                  : postBoardStyleTarget === "body"
-                    ? (((selectedBlockFromDraft.data as any).bodyStyle ??
-                        (selectedBlockFromDraft.data as any).style ??
-                        {}) as TextStyle)
-                    : postBoardStyleTarget === "buttons"
-                      ? (((selectedBlockFromDraft.data as any).buttonStyle ??
-                          (selectedBlockFromDraft.data as any).style ??
-                          {}) as TextStyle)
-                      : (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
-                      : selectedBlockFromDraft?.type === "visitor_counter"
+: selectedBlockFromDraft?.type === "post_board"
+  ? postBoardStyleTarget === "block_heading"
+    ? (((selectedBlockFromDraft.data as any).blockHeadingStyle ??
+        (selectedBlockFromDraft.data as any).style ??
+        {}) as TextStyle)
+    : postBoardStyleTarget === "card"
+      ? (((selectedBlockFromDraft.data as any).cardStyle ??
+          (selectedBlockFromDraft.data as any).style ??
+          {}) as TextStyle)
+      : postBoardStyleTarget === "heading"
+        ? (((selectedBlockFromDraft.data as any).headingStyle ??
+            (selectedBlockFromDraft.data as any).style ??
+            {}) as TextStyle)
+        : postBoardStyleTarget === "body"
+          ? (((selectedBlockFromDraft.data as any).bodyStyle ??
+              (selectedBlockFromDraft.data as any).style ??
+              {}) as TextStyle)
+          : postBoardStyleTarget === "buttons"
+            ? (((selectedBlockFromDraft.data as any).buttonStyle ??
+                (selectedBlockFromDraft.data as any).style ??
+                {}) as TextStyle)
+            : (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
+: selectedBlockFromDraft?.type === "visitor_counter"
   ? (((selectedBlockFromDraft.data as any).numberStyle ??
       (selectedBlockFromDraft.data as any).style ??
       {}) as TextStyle)
@@ -5743,67 +5752,30 @@ if ((selectedBlock as any)?.type === "post_board") {
     if (block.type !== "post_board") return block;
 
     const patchToStyle = {
-      ...(patch.backgroundColor !== undefined
-        ? { backgroundColor: patch.backgroundColor }
-        : {}),
-      ...(patch.backgroundOpacity !== undefined
-        ? { backgroundOpacity: patch.backgroundOpacity }
-        : {}),
-      ...(patch.borderColor !== undefined
-        ? { borderColor: patch.borderColor }
-        : {}),
-      ...(patch.borderWidth !== undefined
-        ? { borderWidth: patch.borderWidth }
-        : {}),
-      ...(patch.borderRadius !== undefined
-        ? { borderRadius: patch.borderRadius }
-        : {}),
+      ...patch,
     };
 
-    if (postBoardStyleTarget === "card") {
-      return {
-        ...block,
-        data: {
-          ...block.data,
-          cardStyle: {
-            ...((block.data as any).cardStyle ?? {}),
-            ...patchToStyle,
-          },
-        },
-      };
-    }
-
-    if (postBoardStyleTarget === "body") {
-      return {
-        ...block,
-        data: {
-          ...block.data,
-          bodyStyle: {
-            ...((block.data as any).bodyStyle ?? {}),
-            ...patchToStyle,
-          },
-        },
-      };
-    }
-
-    if (postBoardStyleTarget === "buttons") {
-      return {
-        ...block,
-        data: {
-          ...block.data,
-          buttonStyle: {
-            ...((block.data as any).buttonStyle ?? {}),
-            ...patchToStyle,
-          },
-        },
-      };
-    }
+    const targetStyleKey =
+      postBoardStyleTarget === "block_heading"
+        ? "blockHeadingStyle"
+        : postBoardStyleTarget === "card"
+          ? "cardStyle"
+          : postBoardStyleTarget === "heading"
+            ? "headingStyle"
+            : postBoardStyleTarget === "body"
+              ? "bodyStyle"
+              : postBoardStyleTarget === "buttons"
+                ? "buttonStyle"
+                : "style";
 
     return {
       ...block,
-      appearance: {
-        ...block.appearance,
-        ...patch,
+      data: {
+        ...block.data,
+        [targetStyleKey]: {
+          ...((block.data as any)[targetStyleKey] ?? {}),
+          ...patchToStyle,
+        },
       },
     };
   });

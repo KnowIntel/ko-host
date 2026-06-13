@@ -5109,7 +5109,7 @@ function renderPostBoard(
   const posts = Array.isArray(block.data.posts) ? block.data.posts : [];
   const blockStyle = (block.data.style ?? {}) as any;
   const blockHeadingStyle =
-  ((block.data as any).blockHeadingStyle ?? {}) as any;
+  ((block.data as any).blockHeadingStyle ?? blockStyle) as any;
   const cardStyle = (block.data.cardStyle ?? {}) as any;
   const headingStyle = ((block.data as any).headingStyle ?? blockStyle) as any;
   const bodyStyle = ((block.data as any).bodyStyle ?? blockStyle) as any;
@@ -5621,9 +5621,9 @@ async function handleCreateReply(post: any) {
     className={isFeature ? "text-xl font-bold" : "text-base font-semibold"}
     style={getContainerTextStyle(blockHeadingStyle, designKey)}
   >
-          {block.data.heading || "Updates"}
-        </div>
-      ) : null}
+    {block.data.heading || "Updates"}
+  </div>
+) : null}
 
       {block.data.showSubtitle !== false ? (
         <div
