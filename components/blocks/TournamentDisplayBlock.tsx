@@ -964,7 +964,7 @@ function ChampionshipCard({
 
     <div
       style={{
-        marginTop: "-22px",
+        marginTop: "-18px",
       }}
     >
       <TeamLogo
