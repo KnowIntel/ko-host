@@ -12095,8 +12095,21 @@ event.showEndTime !== false ? formatEventTime(event.endTime) : "",
             </div>
 
             <div className="min-w-0 flex-1">
-<div className="truncate font-semibold" style={eventTitleTextStyle}>
-  {event.title || "Event"}
+<div className="relative pr-14">
+  <div className="truncate font-semibold" style={eventTitleTextStyle}>
+    {event.title || "Event"}
+  </div>
+
+  {event.showLive ? (
+    <span
+      className="absolute right-0 top-0 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase leading-none tracking-[0.15em] text-white"
+      style={{
+        backgroundColor: "#dc2626",
+      }}
+    >
+      LIVE
+    </span>
+  ) : null}
 </div>
 
 {event.showSubtitle !== false && event.subtitle ? (
@@ -12134,18 +12147,6 @@ event.showEndTime !== false ? formatEventTime(event.endTime) : "",
   </div>
 ) : null}
 
-{event.showLive ? (
-  <div className="mt-2 flex justify-end">
-    <span
-      className="rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.15em] text-white"
-      style={{
-        backgroundColor: "#dc2626",
-      }}
-    >
-      LIVE
-    </span>
-  </div>
-) : null}
 
             </div>
           </div>
