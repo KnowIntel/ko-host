@@ -79,6 +79,7 @@ type TournamentDisplayOptions = {
   leftDivisionImageSize: number;
   rightDivisionImageSize: number;
   championshipImageSize: number;
+  championLogoSize: number;
   championTitle: string;
   championSubtitle: string;
   championOverlayImageUrl?: string;
@@ -209,6 +210,11 @@ championOverlayOpacity:
   typeof data.championOverlayOpacity === "number"
     ? data.championOverlayOpacity
     : 0.25,
+
+championLogoSize:
+  typeof data.championLogoSize === "number"
+    ? data.championLogoSize
+    : 224,
 
 nbaFinalCardWidth:
   typeof data.nbaFinalCardWidth === "number"
@@ -923,7 +929,7 @@ function ChampionshipCard({
         </div>
       </div>
 
-<div className="relative mt-5 w-[360px] overflow-hidden rounded-[28px] border border-yellow-300/25 bg-yellow-300/10 px-6 py-5 text-center shadow-xl">
+<div className="relative mt-5 w-[360px] overflow-hidden px-6 py-5 text-center">
   {(options as any).championOverlayImageUrl ? (
     <img
       src={(options as any).championOverlayImageUrl}
@@ -951,7 +957,10 @@ function ChampionshipCard({
     </div>
 
     <div className="mt-4 flex justify-center">
-      <TeamLogo team={findTeamByName(teams, safeMatch.winner)} size={224} />
+      <TeamLogo
+  team={findTeamByName(teams, safeMatch.winner)}
+  size={options.championLogoSize}
+/>
     </div>
 
     <div className="mt-3 text-sm font-semibold" style={styles.championStyle}>

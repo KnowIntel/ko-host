@@ -24350,7 +24350,7 @@ onClick={() =>
 
   <div className="mt-3">
     <div className="flex items-center justify-between">
-      <div className={inspectorLabelClass()}>Overlay Opacity</div>
+      <div className={inspectorLabelClass()}>Image Opacity</div>
       <div className="text-xs text-neutral-500">
         {Math.round(((selectedBlock.data as any).championOverlayOpacity ?? 0.25) * 100)}%
       </div>
@@ -24378,6 +24378,35 @@ onClick={() =>
       className="mt-2 w-full"
     />
   </div>
+  <div className="mt-3">
+  <div className="flex items-center justify-between">
+    <div className={inspectorLabelClass()}>Champion Logo Size</div>
+    <div className="text-xs text-neutral-500">
+      {(selectedBlock.data as any).championLogoSize ?? 224}px
+    </div>
+  </div>
+
+  <input
+    type="range"
+    min={80}
+    max={360}
+    value={(selectedBlock.data as any).championLogoSize ?? 224}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "tournament_display"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                championLogoSize: Number(e.target.value),
+              },
+            },
+      )
+    }
+    className="mt-2 w-full"
+  />
+</div>
 </div>
 
 <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
