@@ -68,7 +68,10 @@ type TournamentDisplayOptions = {
   matchCardRadius: number;
 matchCardPaddingX: number;
 matchCardPaddingY: number;
-matchCardColumnWidth: number;
+round1CardWidth: number;
+round2CardWidth: number;
+conferenceFinalCardWidth: number;
+nbaFinalCardWidth: number;
 leftDivisionImageOffsetX: number;
 rightDivisionImageOffsetX: number;
 finalsImageOffsetY: number;
@@ -150,10 +153,25 @@ finalsImageOffsetY:
     ? data.finalsImageOffsetY
     : 0,
 
-    matchCardColumnWidth:
-  typeof data.matchCardColumnWidth === "number"
-    ? Math.max(140, Math.min(320, data.matchCardColumnWidth))
+    round1CardWidth:
+  typeof data.round1CardWidth === "number"
+    ? Math.max(140, Math.min(340, data.round1CardWidth))
     : 220,
+
+round2CardWidth:
+  typeof data.round2CardWidth === "number"
+    ? Math.max(140, Math.min(340, data.round2CardWidth))
+    : 220,
+
+conferenceFinalCardWidth:
+  typeof data.conferenceFinalCardWidth === "number"
+    ? Math.max(140, Math.min(340, data.conferenceFinalCardWidth))
+    : 220,
+
+nbaFinalCardWidth:
+  typeof data.nbaFinalCardWidth === "number"
+    ? Math.max(140, Math.min(340, data.nbaFinalCardWidth))
+    : 260,
 
 bracketColumnSpacing:
   typeof data.bracketColumnSpacing === "number"
@@ -418,7 +436,17 @@ return (
     <div
       className="grid items-start"
       style={{
-        gridTemplateColumns: `${options.matchCardColumnWidth * 3 + options.bracketColumnSpacing * 2}px 260px ${options.matchCardColumnWidth * 3 + options.bracketColumnSpacing * 2}px`,
+        gridTemplateColumns: `${
+  options.round1CardWidth +
+  options.round2CardWidth +
+  options.conferenceFinalCardWidth +
+  options.bracketColumnSpacing * 2
+}px ${options.nbaFinalCardWidth}px ${
+  options.round1CardWidth +
+  options.round2CardWidth +
+  options.conferenceFinalCardWidth +
+  options.bracketColumnSpacing * 2
+}px`,
         columnGap: options.bracketColumnSpacing,
       }}
     >
@@ -552,7 +580,7 @@ function BracketSide({
         <div
           className="grid items-center"
           style={{
-            gridTemplateColumns: `${options.matchCardColumnWidth}px ${options.bracketColumnSpacing}px ${options.matchCardColumnWidth}px ${options.bracketColumnSpacing}px ${options.matchCardColumnWidth}px`,
+            gridTemplateColumns: `${options.conferenceFinalCardWidth}px ${options.bracketColumnSpacing}px ${options.round2CardWidth}px ${options.bracketColumnSpacing}px ${options.round1CardWidth}px`,
           }}
         >
           <div>
@@ -601,7 +629,7 @@ function BracketSide({
         <div
           className="grid items-center"
           style={{
-            gridTemplateColumns: `${options.matchCardColumnWidth}px ${options.bracketColumnSpacing}px ${options.matchCardColumnWidth}px ${options.bracketColumnSpacing}px ${options.matchCardColumnWidth}px`,
+            gridTemplateColumns: `${options.round1CardWidth}px ${options.bracketColumnSpacing}px ${options.round2CardWidth}px ${options.bracketColumnSpacing}px ${options.conferenceFinalCardWidth}px`,
           }}
         >
           <div className="space-y-4">

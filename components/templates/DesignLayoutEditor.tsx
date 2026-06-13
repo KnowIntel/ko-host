@@ -24327,34 +24327,47 @@ onClick={() =>
   />
 </div>
 
-<div className="mt-4">
-  <div className="flex items-center justify-between">
-    <div className={inspectorLabelClass()}>Matchup Card Width</div>
-    <div className="text-xs text-neutral-500">
-      {(selectedBlock.data as any).matchCardColumnWidth ?? 220}px
-    </div>
+<div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+  <div className="text-sm font-semibold text-neutral-700">
+    Matchup Column Widths
   </div>
 
-  <input
-    type="range"
-    min={140}
-    max={320}
-    value={(selectedBlock.data as any).matchCardColumnWidth ?? 220}
-    onChange={(e) =>
-      updateSelectedBlock((block) =>
-        block.type !== "tournament_display"
-          ? block
-          : {
-              ...block,
-              data: {
-                ...block.data,
-                matchCardColumnWidth: Number(e.target.value),
-              },
-            },
-      )
-    }
-    className="mt-2 w-full"
-  />
+  {[
+    ["round1CardWidth", "1st Round Playoffs", 220],
+    ["round2CardWidth", "Semi-Finals", 220],
+    ["conferenceFinalCardWidth", "Conference Finals", 220],
+    ["nbaFinalCardWidth", "NBA Finals", 260],
+  ].map(([key, label, fallback]) => (
+    <div key={key} className="mt-3">
+      <div className="flex items-center justify-between">
+        <div className={inspectorLabelClass()}>{label}</div>
+        <div className="text-xs text-neutral-500">
+          {(selectedBlock.data as any)[key] ?? fallback}px
+        </div>
+      </div>
+
+      <input
+        type="range"
+        min={140}
+        max={340}
+        value={(selectedBlock.data as any)[key] ?? fallback}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type !== "tournament_display"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    [key]: Number(e.target.value),
+                  },
+                },
+          )
+        }
+        className="mt-2 w-full"
+      />
+    </div>
+  ))}
 </div>
 
 <div className="mt-4">
