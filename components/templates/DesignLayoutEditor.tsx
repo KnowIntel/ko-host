@@ -1112,6 +1112,71 @@ if (block.type === "speed_dating" || block.type === "pop_balloon") {
   };
 }
 
+function getPostBoardDefaultStyle(target: string) {
+  const baseText = {
+    fontFamily: "Inter",
+    fontSize: 14,
+    bold: false,
+    italic: false,
+    underline: false,
+    strike: false,
+    align: "left",
+    color: "#111827",
+  };
+
+  if (target === "blockHeadingStyle") {
+    return {
+      ...baseText,
+      fontFamily: "Bebas Neue",
+      fontSize: 30,
+      bold: true,
+      color: "#000000",
+    };
+  }
+
+  if (target === "cardStyle") {
+    return {
+      fontFamily: "Inter",
+      backgroundColor: "#ffffff",
+      borderColor: "#e5e7eb",
+      borderWidth: 1,
+      borderRadius: 14,
+    };
+  }
+
+  if (target === "headingStyle") {
+    return {
+      ...baseText,
+      fontSize: 11,
+      bold: true,
+    };
+  }
+
+  if (target === "bodyStyle") {
+    return {
+      ...baseText,
+      fontSize: 11,
+    };
+  }
+
+  if (target === "buttonStyle") {
+    return {
+      ...baseText,
+      fontSize: 10,
+      bold: true,
+      backgroundColor: "#ffffff",
+      borderColor: "#e5e7eb",
+      borderWidth: 1,
+      borderRadius: 999,
+    };
+  }
+
+  return {
+    ...baseText,
+    fontSize: 11,
+  };
+}
+
 function advanceTournamentWinners(matches: any[]) {
   const nextMatches = [...matches];
 
@@ -4493,10 +4558,11 @@ function applyStylePatch(patch: Partial<TextStyle>) {
         ...block,
         data: {
           ...block.data,
-          [targetStyleKey]: {
-            ...((block.data as any)[targetStyleKey] ?? {}),
-            ...patch,
-          },
+[targetStyleKey]: {
+  ...getPostBoardDefaultStyle(targetStyleKey),
+  ...((block.data as any)[targetStyleKey] ?? {}),
+  ...patch,
+},
         },
       };
     }),
@@ -5735,10 +5801,11 @@ if ((selectedBlock as any)?.type === "post_board") {
       ...block,
       data: {
         ...block.data,
-        [targetStyleKey]: {
-          ...((block.data as any)[targetStyleKey] ?? {}),
-          ...patchToStyle,
-        },
+[targetStyleKey]: {
+  ...getPostBoardDefaultStyle(targetStyleKey),
+  ...((block.data as any)[targetStyleKey] ?? {}),
+  ...patchToStyle,
+},
       },
     };
   });
