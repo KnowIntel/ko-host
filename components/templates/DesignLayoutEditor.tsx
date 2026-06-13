@@ -1177,6 +1177,73 @@ function getPostBoardDefaultStyle(target: string) {
   };
 }
 
+function hydratePostBoardBlockForJson(block: Extract<MicrositeBlock, { type: "post_board" }>) {
+  return {
+    ...block,
+    data: {
+      ...block.data,
+
+      interactionMode: block.data.interactionMode ?? "announcement",
+      maxVisibleReplies: block.data.maxVisibleReplies ?? 10,
+      requireCommunityPostEmail: block.data.requireCommunityPostEmail ?? true,
+      allowReplyEmailCapture: block.data.allowReplyEmailCapture ?? true,
+      notifyPostAuthorOnReply: block.data.notifyPostAuthorOnReply ?? true,
+
+      style: {
+        ...getPostBoardDefaultStyle("style"),
+        ...((block.data as any).style ?? {}),
+      },
+
+      blockHeadingStyle: {
+        ...getPostBoardDefaultStyle("blockHeadingStyle"),
+        ...((block.data as any).blockHeadingStyle ?? {}),
+      },
+
+      cardStyle: {
+        ...getPostBoardDefaultStyle("cardStyle"),
+        ...((block.data as any).cardStyle ?? {}),
+      },
+
+      headingStyle: {
+        ...getPostBoardDefaultStyle("headingStyle"),
+        ...((block.data as any).headingStyle ?? {}),
+      },
+
+      bodyStyle: {
+        ...getPostBoardDefaultStyle("bodyStyle"),
+        ...((block.data as any).bodyStyle ?? {}),
+      },
+
+      buttonStyle: {
+        ...getPostBoardDefaultStyle("buttonStyle"),
+        ...((block.data as any).buttonStyle ?? {}),
+      },
+
+      posts: block.data.posts.map((post) => ({
+        ownerAvatarUrl: "",
+        authorName: post.ownerDisplayName ?? "",
+        authorEmail: "",
+        authorAvatarUrl: "",
+        contactInfoConfirmed: false,
+        isOwnerPost: true,
+        replies: [],
+        ...post,
+      })),
+    },
+  };
+}
+
+function hydrateDraftForJsonExport(sourceDraft: BuilderDraft): BuilderDraft {
+  return {
+    ...sourceDraft,
+    blocks: sourceDraft.blocks.map((block) =>
+      block.type === "post_board"
+        ? hydratePostBoardBlockForJson(block)
+        : block,
+    ),
+  };
+}
+
 function advanceTournamentWinners(matches: any[]) {
   const nextMatches = [...matches];
 
@@ -7725,8 +7792,10 @@ function handleCanvasSelect(
 
 async function handleCopyDraftJson() {
   try {
+    const hydratedDraft = hydrateDraftForJsonExport(draft);
+
     const { slugSuggestion, ...draftWithoutSlugSuggestion } =
-      draft as BuilderDraft & { slugSuggestion?: string };
+      hydratedDraft as BuilderDraft & { slugSuggestion?: string };
 
     await navigator.clipboard.writeText(
       JSON.stringify(draftWithoutSlugSuggestion, null, 2),
