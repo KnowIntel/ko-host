@@ -79,6 +79,10 @@ type TournamentDisplayOptions = {
   leftDivisionImageSize: number;
   rightDivisionImageSize: number;
   championshipImageSize: number;
+  championTitle: string;
+  championSubtitle: string;
+  championOverlayImageUrl?: string;
+  championOverlayOpacity: number;
   finalsImageOffsetY: number;
   bracketColumnSpacing: number;
   connectorLinesEnabled: boolean;
@@ -187,6 +191,24 @@ conferenceFinalCardWidth:
   typeof data.conferenceFinalCardWidth === "number"
     ? Math.max(140, Math.min(340, data.conferenceFinalCardWidth))
     : 220,
+
+championTitle:
+typeof data.championTitle === "string" ? data.championTitle : data.year || "2026",
+
+championSubtitle:
+  typeof data.championSubtitle === "string"
+    ? data.championSubtitle
+    : "NBA Champions",
+
+championOverlayImageUrl:
+  typeof data.championOverlayImageUrl === "string"
+    ? data.championOverlayImageUrl
+    : undefined,
+
+championOverlayOpacity:
+  typeof data.championOverlayOpacity === "number"
+    ? data.championOverlayOpacity
+    : 0.25,
 
 nbaFinalCardWidth:
   typeof data.nbaFinalCardWidth === "number"
@@ -901,18 +923,42 @@ function ChampionshipCard({
         </div>
       </div>
 
-      <div className="mt-5 rounded-2xl border border-yellow-300/30 bg-yellow-300/10 px-5 py-3 text-center">
-        <div
-          className="text-[10px] font-bold uppercase tracking-[0.18em] text-yellow-200"
-          style={styles.championStyle}
-        >
-          Champion
-        </div>
+<div className="relative mt-5 w-[360px] overflow-hidden rounded-[28px] border border-yellow-300/25 bg-yellow-300/10 px-6 py-5 text-center shadow-xl">
+  {(options as any).championOverlayImageUrl ? (
+    <img
+      src={(options as any).championOverlayImageUrl}
+      alt="Champion background"
+      className="absolute inset-0 h-full w-full object-cover"
+      style={{
+        opacity: (options as any).championOverlayOpacity ?? 0.25,
+      }}
+    />
+  ) : null}
 
-        <div className="mt-1 text-sm font-semibold" style={styles.championStyle}>
-          {safeMatch.winner || "Awaiting Winner"}
-        </div>
-      </div>
+  <div className="relative z-10">
+    <div
+      className="text-3xl font-black uppercase tracking-[0.12em]"
+      style={styles.championStyle}
+    >
+      {(options as any).championTitle || "2026"}
+    </div>
+
+    <div
+      className="mt-1 text-sm font-bold uppercase tracking-[0.18em]"
+      style={styles.championStyle}
+    >
+      {(options as any).championSubtitle || "NBA Champions"}
+    </div>
+
+    <div className="mt-4 flex justify-center">
+      <TeamLogo team={findTeamByName(teams, safeMatch.winner)} size={224} />
+    </div>
+
+    <div className="mt-3 text-sm font-semibold" style={styles.championStyle}>
+      {safeMatch.winner || "Awaiting Winner"}
+    </div>
+  </div>
+</div>
     </div>
   );
 }

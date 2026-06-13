@@ -24245,6 +24245,143 @@ onClick={() =>
 
 <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
   <div className="text-sm font-semibold text-neutral-700">
+    Champion Showcase
+  </div>
+
+  <div className="mt-3">
+    <div className={inspectorLabelClass()}>Title</div>
+    <input
+      type="text"
+      value={(selectedBlock.data as any).championTitle ?? selectedBlock.data.year ?? "2026"}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "tournament_display"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  championTitle: e.target.value,
+                },
+              },
+        )
+      }
+      className={inspectorInputClass()}
+    />
+  </div>
+
+  <div className="mt-3">
+    <div className={inspectorLabelClass()}>Subtitle</div>
+    <input
+      type="text"
+      value={(selectedBlock.data as any).championSubtitle ?? "NBA Champions"}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "tournament_display"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  championSubtitle: e.target.value,
+                },
+              },
+        )
+      }
+      className={inspectorInputClass()}
+    />
+  </div>
+
+  <div className="mt-3">
+    <div className={inspectorLabelClass()}>Background Image</div>
+
+    {(selectedBlock.data as any).championOverlayImageUrl ? (
+      <img
+        src={(selectedBlock.data as any).championOverlayImageUrl}
+        alt="Champion showcase background"
+        className="mb-3 h-20 w-full rounded-lg border border-neutral-200 bg-neutral-100 object-cover"
+      />
+    ) : null}
+
+    <div className="flex gap-2">
+      <button
+        type="button"
+        className="flex-1 inline-flex h-10 items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-700 hover:bg-neutral-50"
+        onClick={() =>
+          void uploadImageToSelectedBlock(
+            selectedBlock.id,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            "championOverlay",
+          )
+        }
+      >
+        Choose Image
+      </button>
+
+      {(selectedBlock.data as any).championOverlayImageUrl ? (
+        <button
+          type="button"
+          className="flex-1 inline-flex h-10 items-center justify-center rounded-xl border border-red-300 bg-red-50 px-3 text-sm font-medium text-red-600 hover:bg-red-100"
+          onClick={() =>
+            updateSelectedBlock((block) =>
+              block.type !== "tournament_display"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      championOverlayImageUrl: undefined,
+                      championOverlayImageStoragePath: undefined,
+                      championOverlayImageAlt: undefined,
+                    },
+                  },
+            )
+          }
+        >
+          Remove
+        </button>
+      ) : null}
+    </div>
+  </div>
+
+  <div className="mt-3">
+    <div className="flex items-center justify-between">
+      <div className={inspectorLabelClass()}>Overlay Opacity</div>
+      <div className="text-xs text-neutral-500">
+        {Math.round(((selectedBlock.data as any).championOverlayOpacity ?? 0.25) * 100)}%
+      </div>
+    </div>
+
+    <input
+      type="range"
+      min={0}
+      max={1}
+      step={0.05}
+      value={(selectedBlock.data as any).championOverlayOpacity ?? 0.25}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "tournament_display"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  championOverlayOpacity: Number(e.target.value),
+                },
+              },
+        )
+      }
+      className="mt-2 w-full"
+    />
+  </div>
+</div>
+
+<div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+  <div className="text-sm font-semibold text-neutral-700">
     Block Position
   </div>
 
