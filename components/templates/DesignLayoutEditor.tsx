@@ -4880,22 +4880,24 @@ if ((selectedBlock as any)?.type === "post_board") {
       }
 
       const targetStyleKey =
-        postBoardStyleTarget === "card"
-          ? "cardStyle"
-          : postBoardStyleTarget === "heading"
-            ? "headingStyle"
-            : postBoardStyleTarget === "body"
-              ? "bodyStyle"
-              : postBoardStyleTarget === "buttons"
-                ? "buttonStyle"
-                : "style";
+        postBoardStyleTarget === "block_heading"
+          ? "blockHeadingStyle"
+          : postBoardStyleTarget === "card"
+            ? "cardStyle"
+            : postBoardStyleTarget === "heading"
+              ? "headingStyle"
+              : postBoardStyleTarget === "body"
+                ? "bodyStyle"
+                : postBoardStyleTarget === "buttons"
+                  ? "buttonStyle"
+                  : "style";
 
       return {
         ...block,
         data: {
           ...block.data,
           [targetStyleKey]: {
-            ...(((block.data as any)[targetStyleKey] ?? block.data.style ?? {})),
+            ...((block.data as any)[targetStyleKey] ?? {}),
             ...patch,
           },
         },
