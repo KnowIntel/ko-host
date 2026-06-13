@@ -5500,6 +5500,60 @@ function clearSelectedBackground() {
 
 function applyAppearancePatch(patch: AppearancePatch) {
 
+  if (selectedBlock?.type === "tournament_display") {
+  setDraft((prev) => ({
+    ...prev,
+    blocks: prev.blocks.map((block) => {
+      if (block.id !== selectedBlock.id || block.type !== "tournament_display") {
+        return block;
+      }
+
+      if (tournamentDisplayStyleTarget === "teamNames") {
+        return {
+          ...block,
+          data: {
+            ...block.data,
+            matchCardBackgroundStyle: {
+              ...((block.data as any).matchCardBackgroundStyle ?? {}),
+              ...patch,
+            },
+          },
+        };
+      }
+
+      if (tournamentDisplayStyleTarget === "finalsLabel") {
+        return {
+          ...block,
+          data: {
+            ...block.data,
+            finalsCardStyle: {
+              ...((block.data as any).finalsCardStyle ?? {}),
+              ...patch,
+            },
+          },
+        };
+      }
+
+      return {
+        ...block,
+        appearance: {
+          ...block.appearance,
+          ...patch,
+        },
+        data: {
+          ...block.data,
+          style: {
+            ...((block.data as any).style ?? {}),
+            ...patch,
+          },
+        },
+      };
+    }),
+  }));
+
+  return;
+}
+
 if (selectedBlock?.type === "thread") {
   updateSelectedBlock((block) => {
     if (block.type !== "thread") return block;
