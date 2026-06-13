@@ -959,7 +959,7 @@ function ChampionshipCard({
 <div
   className="flex justify-center"
   style={{
-    marginTop: "-16px",
+    marginTop: "-32px",
   }}
 >
   <TeamLogo
