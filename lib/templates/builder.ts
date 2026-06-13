@@ -5162,140 +5162,281 @@ export function sanitizeBuilderDraft(input: unknown): BuilderDraft {
       zIndex: index + 1,
     };
 
-        if (block.type === "content_panel") {
-      const data = block.data as any;
+if (block.type === "content_panel") {
+  const data = block.data as any;
 
-      const panels = Array.isArray(data.panels)
-        ? data.panels.map((panel: any) => ({
-            id:
-              typeof panel?.id === "string" && panel.id.trim()
-                ? panel.id
-                : makeId("panel"),
-            title:
-              typeof panel?.title === "string" && panel.title.trim()
-                ? panel.title
-                : "Panel",
-            subtitle:
-              typeof panel?.subtitle === "string" ? panel.subtitle : "",
-            content:
-              typeof panel?.content === "string" ? panel.content : "",
-            imageUrl:
-              typeof panel?.imageUrl === "string" ? panel.imageUrl : "",
-            imageStoragePath:
-              typeof panel?.imageStoragePath === "string"
-                ? panel.imageStoragePath
-                : "",
-            imageAlt:
-              typeof panel?.imageAlt === "string" ? panel.imageAlt : "",
-            imagePosition:
-              panel?.imagePosition === "above" ||
-              panel?.imagePosition === "below" ||
-              panel?.imagePosition === "left" ||
-              panel?.imagePosition === "right"
-                ? panel.imagePosition
-                : "above",
-            badge:
-              typeof panel?.badge === "string" ? panel.badge : "",
-            icon:
-              typeof panel?.icon === "string" ? panel.icon : "",
-            featured: Boolean(panel?.featured),
-          }))
-        : [];
+  function normalizePanelGrid(rawGrid: any) {
+    const rawColumns = Array.isArray(rawGrid?.columns)
+      ? rawGrid.columns
+      : [
+          {
+            id: makeId("col"),
+            label: "Item",
+            type: "text",
+          },
+          {
+            id: makeId("col"),
+            label: "Details",
+            type: "text",
+          },
+        ];
 
-      const fallbackPanels =
-        panels.length > 0
-          ? panels
-          : [
-              {
-                id: makeId("panel"),
-                title: "Overview",
-                subtitle: "Start here",
-                content:
-                  "Use this panel to introduce your event, guide, menu, resources, or important details.",
-                imageUrl: "",
-                imageStoragePath: "",
-                imageAlt: "",
-                imagePosition: "above" as const,
-                badge: "",
-                icon: "✨",
-                featured: false,
-              },
-            ];
+    const columns = rawColumns.map((column: any) => ({
+      id:
+        typeof column?.id === "string" && column.id.trim()
+          ? column.id
+          : makeId("col"),
+      label:
+        typeof column?.label === "string" && column.label.trim()
+          ? column.label
+          : "Column",
+      type: column?.type === "image" ? "image" : "text",
+    }));
+
+    const safeColumns =
+      columns.length > 0
+        ? columns
+        : [
+            {
+              id: makeId("col"),
+              label: "Item",
+              type: "text" as const,
+            },
+          ];
+
+    const rawRows = Array.isArray(rawGrid?.rows)
+      ? rawGrid.rows
+      : [
+          {
+            id: makeId("row"),
+            cells: safeColumns.map((column: any) => ({
+              id: makeId("cell"),
+              type: column.type,
+              value: "",
+            })),
+          },
+        ];
+
+    const rows = rawRows.map((row: any) => {
+      const rawCells = Array.isArray(row?.cells) ? row.cells : [];
+
+      const cells = safeColumns.map((column: any, columnIndex: number) => {
+        const cell = rawCells[columnIndex] ?? {};
+
+        return {
+          id:
+            typeof cell?.id === "string" && cell.id.trim()
+              ? cell.id
+              : makeId("cell"),
+          type: column.type === "image" || cell?.type === "image" ? "image" : "text",
+          value:
+            typeof cell?.value === "string"
+              ? cell.value
+              : "",
+          imageUrl:
+            typeof cell?.imageUrl === "string"
+              ? cell.imageUrl
+              : "",
+          imageStoragePath:
+            typeof cell?.imageStoragePath === "string"
+              ? cell.imageStoragePath
+              : "",
+          imageAlt:
+            typeof cell?.imageAlt === "string"
+              ? cell.imageAlt
+              : "",
+        };
+      });
 
       return {
-        ...block,
-        grid: normalizeGridValue(block.grid, fallbackGrid),
-        data: {
-          heading:
-            typeof data.heading === "string"
-              ? data.heading
-              : "Information Hub",
-          subtitle:
-            typeof data.subtitle === "string"
-              ? data.subtitle
-              : "Explore each section below.",
-          showHeading: data.showHeading !== false,
-          showSubtitle: data.showSubtitle !== false,
-          variant:
-            data.variant === "tabs" ||
-            data.variant === "sidebar" ||
-            data.variant === "cards" ||
-            data.variant === "accordion"
-              ? data.variant
-              : "tabs",
-          transition:
-            data.transition === "none" ||
-            data.transition === "fade" ||
-            data.transition === "slide_left" ||
-            data.transition === "slide_right" ||
-            data.transition === "flip" ||
-            data.transition === "scale"
-              ? data.transition
-              : "fade",
-          defaultPanelId:
-            typeof data.defaultPanelId === "string" &&
-            fallbackPanels.some((panel: any) => panel.id === data.defaultPanelId)
-              ? data.defaultPanelId
-              : fallbackPanels[0]?.id,
-          rememberSelection: Boolean(data.rememberSelection),
-          autoHeight: data.autoHeight !== false,
-          fixedHeight:
-            typeof data.fixedHeight === "number" &&
-            Number.isFinite(data.fixedHeight)
-              ? Math.max(180, Math.min(900, Math.floor(data.fixedHeight)))
-              : 420,
-          panels: fallbackPanels,
-          style: {
-            ...createDefaultTextStyle(),
-            ...(data.style ?? {}),
-          },
-          headingStyle: {
-            ...createDefaultTextStyle(),
-            fontSize: 20,
-            bold: true,
-            ...(data.headingStyle ?? {}),
-          },
-          subtitleStyle: {
-            ...createDefaultTextStyle(),
-            fontSize: 14,
-            color: "#6B7280",
-            ...(data.subtitleStyle ?? {}),
-          },
-          navigationStyle: {
-            ...createDefaultTextStyle(),
-            fontSize: 14,
-            bold: true,
-            ...(data.navigationStyle ?? {}),
-          },
-          panelStyle: {
-            ...createDefaultTextStyle(),
-            fontSize: 14,
-            color: "#374151",
-            ...(data.panelStyle ?? {}),
-          },
-        },
+        id:
+          typeof row?.id === "string" && row.id.trim()
+            ? row.id
+            : makeId("row"),
+        cells,
       };
-    }
+    });
+
+    return {
+      columns: safeColumns,
+      rows:
+        rows.length > 0
+          ? rows
+          : [
+              {
+                id: makeId("row"),
+                cells: safeColumns.map((column: any) => ({
+                  id: makeId("cell"),
+                  type: column.type,
+                  value: "",
+                  imageUrl: "",
+                  imageStoragePath: "",
+                  imageAlt: "",
+                })),
+              },
+            ],
+      showRowLines: Boolean(rawGrid?.showRowLines),
+      showColumnLines: Boolean(rawGrid?.showColumnLines),
+      showHeaderRow: rawGrid?.showHeaderRow !== false,
+      freezeHeaderRow: rawGrid?.freezeHeaderRow !== false,
+    };
+  }
+
+  const panels = Array.isArray(data.panels)
+    ? data.panels.map((panel: any) => {
+        const contentStyle =
+          panel?.contentStyle === "list_grid" ? "list_grid" : "plain_text";
+
+        return {
+          id:
+            typeof panel?.id === "string" && panel.id.trim()
+              ? panel.id
+              : makeId("panel"),
+          title:
+            typeof panel?.title === "string" && panel.title.trim()
+              ? panel.title
+              : "Panel",
+          subtitle:
+            typeof panel?.subtitle === "string" ? panel.subtitle : "",
+          content:
+            typeof panel?.content === "string" ? panel.content : "",
+          contentStyle,
+          grid: normalizePanelGrid(panel?.grid),
+          imageUrl:
+            typeof panel?.imageUrl === "string" ? panel.imageUrl : "",
+          imageStoragePath:
+            typeof panel?.imageStoragePath === "string"
+              ? panel.imageStoragePath
+              : "",
+          imageAlt:
+            typeof panel?.imageAlt === "string" ? panel.imageAlt : "",
+          imagePosition:
+            panel?.imagePosition === "above" ||
+            panel?.imagePosition === "below" ||
+            panel?.imagePosition === "left" ||
+            panel?.imagePosition === "right"
+              ? panel.imagePosition
+              : "above",
+          badge:
+            typeof panel?.badge === "string" ? panel.badge : "",
+          icon:
+            typeof panel?.icon === "string" ? panel.icon : "",
+          featured: Boolean(panel?.featured),
+        };
+      })
+    : [];
+
+  const fallbackPanels =
+    panels.length > 0
+      ? panels
+      : [
+          {
+            id: makeId("panel"),
+            title: "Overview",
+            subtitle: "Start here",
+            content:
+              "Use this panel to introduce your event, guide, menu, resources, or important details.",
+            contentStyle: "plain_text" as const,
+            grid: normalizePanelGrid(null),
+            imageUrl: "",
+            imageStoragePath: "",
+            imageAlt: "",
+            imagePosition: "above" as const,
+            badge: "",
+            icon: "✨",
+            featured: false,
+          },
+        ];
+
+  return {
+    ...block,
+    grid: normalizeGridValue(block.grid, fallbackGrid),
+    data: {
+      heading:
+        typeof data.heading === "string"
+          ? data.heading
+          : "Information Hub",
+      subtitle:
+        typeof data.subtitle === "string"
+          ? data.subtitle
+          : "Explore each section below.",
+      showHeading: data.showHeading !== false,
+      showSubtitle: data.showSubtitle !== false,
+      variant:
+        data.variant === "tabs" ||
+        data.variant === "sidebar" ||
+        data.variant === "cards" ||
+        data.variant === "accordion"
+          ? data.variant
+          : "tabs",
+      transition:
+        data.transition === "none" ||
+        data.transition === "fade" ||
+        data.transition === "slide_left" ||
+        data.transition === "slide_right" ||
+        data.transition === "flip" ||
+        data.transition === "scale"
+          ? data.transition
+          : "fade",
+      defaultPanelId:
+        typeof data.defaultPanelId === "string" &&
+        fallbackPanels.some((panel: any) => panel.id === data.defaultPanelId)
+          ? data.defaultPanelId
+          : fallbackPanels[0]?.id,
+      rememberSelection: Boolean(data.rememberSelection),
+      autoHeight: data.autoHeight !== false,
+      fixedHeight:
+        typeof data.fixedHeight === "number" && Number.isFinite(data.fixedHeight)
+          ? Math.max(180, Math.min(900, Math.floor(data.fixedHeight)))
+          : 420,
+      panels: fallbackPanels,
+      style: {
+        ...createDefaultTextStyle(),
+        ...(data.style ?? {}),
+      },
+      headingStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 20,
+        bold: true,
+        ...(data.headingStyle ?? {}),
+      },
+      subtitleStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        color: "#6B7280",
+        ...(data.subtitleStyle ?? {}),
+      },
+      navigationStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        bold: true,
+        ...(data.navigationStyle ?? {}),
+      },
+      panelStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        color: "#374151",
+        ...(data.panelStyle ?? {}),
+      },
+      activeNavigationBackground:
+        typeof data.activeNavigationBackground === "string"
+          ? data.activeNavigationBackground
+          : "#dbeafe",
+      activeNavigationColor:
+        typeof data.activeNavigationColor === "string"
+          ? data.activeNavigationColor
+          : "#1d4ed8",
+      inactiveNavigationBackground:
+        typeof data.inactiveNavigationBackground === "string"
+          ? data.inactiveNavigationBackground
+          : "#ffffff",
+      panelBackground:
+        typeof data.panelBackground === "string"
+          ? data.panelBackground
+          : "#f9fafb",
+    },
+  };
+}
 
         if (block.type === "timeline") {
       const data = block.data as any;

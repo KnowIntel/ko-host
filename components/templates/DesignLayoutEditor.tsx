@@ -6849,8 +6849,10 @@ if (block.type === "content_panel" && contentPanelGridCell) {
 
               const cells = [...row.cells];
 
-              while (cells.length < panel.grid.columns.length) {
-                const targetColumn = panel.grid.columns[cells.length];
+const columns = panel.grid?.columns ?? [];
+
+while (cells.length < columns.length) {
+  const targetColumn = columns[cells.length];
 
                 cells.push({
                   id: makeClientId("cell"),
