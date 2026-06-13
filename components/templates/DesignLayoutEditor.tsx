@@ -4477,22 +4477,24 @@ function applyStylePatch(patch: Partial<TextStyle>) {
       }
 
       const targetStyleKey =
-        postBoardStyleTarget === "card"
-          ? "cardStyle"
-          : postBoardStyleTarget === "heading"
-            ? "headingStyle"
-            : postBoardStyleTarget === "body"
-              ? "bodyStyle"
-              : postBoardStyleTarget === "buttons"
-                ? "buttonStyle"
-                : "style";
+        postBoardStyleTarget === "block_heading"
+          ? "blockHeadingStyle"
+          : postBoardStyleTarget === "card"
+            ? "cardStyle"
+            : postBoardStyleTarget === "heading"
+              ? "headingStyle"
+              : postBoardStyleTarget === "body"
+                ? "bodyStyle"
+                : postBoardStyleTarget === "buttons"
+                  ? "buttonStyle"
+                  : "style";
 
       return {
         ...block,
         data: {
           ...block.data,
           [targetStyleKey]: {
-            ...(((block.data as any)[targetStyleKey] ?? block.data.style ?? {})),
+            ...((block.data as any)[targetStyleKey] ?? {}),
             ...patch,
           },
         },
@@ -4866,45 +4868,6 @@ if (selectedBlock?.type === "link_hub") {
         : block,
     ),
   }));
-  return;
-}
-
-if ((selectedBlock as any)?.type === "post_board") {
-  const selectedPostBoardId = (selectedBlock as any).id;
-
-  setDraft((prev) => ({
-    ...prev,
-    blocks: prev.blocks.map((block) => {
-      if (block.id !== selectedPostBoardId || block.type !== "post_board") {
-        return block;
-      }
-
-      const targetStyleKey =
-        postBoardStyleTarget === "block_heading"
-          ? "blockHeadingStyle"
-          : postBoardStyleTarget === "card"
-            ? "cardStyle"
-            : postBoardStyleTarget === "heading"
-              ? "headingStyle"
-              : postBoardStyleTarget === "body"
-                ? "bodyStyle"
-                : postBoardStyleTarget === "buttons"
-                  ? "buttonStyle"
-                  : "style";
-
-      return {
-        ...block,
-        data: {
-          ...block.data,
-          [targetStyleKey]: {
-            ...((block.data as any)[targetStyleKey] ?? {}),
-            ...patch,
-          },
-        },
-      };
-    }),
-  }));
-
   return;
 }
 
