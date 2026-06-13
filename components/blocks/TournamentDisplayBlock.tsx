@@ -941,7 +941,13 @@ function ChampionshipCard({
     />
   ) : null}
 
-  <div className="relative z-10">
+<div className="relative z-10">
+  <div
+    className="flex flex-col items-center"
+    style={{
+      gap: 0,
+    }}
+  >
     <div
       className="text-3xl font-black uppercase tracking-[0.12em]"
       style={styles.championStyle}
@@ -949,25 +955,25 @@ function ChampionshipCard({
       {(options as any).championTitle || "2026"}
     </div>
 
-<div
-  className="mt-1 text-sm font-bold uppercase tracking-[0.18em]"
-  style={styles.championStyle}
->
-  {(options as any).championSubtitle || "NBA Champions"}
-</div>
+    <div
+      className="text-sm font-bold uppercase tracking-[0.18em]"
+      style={styles.championStyle}
+    >
+      {(options as any).championSubtitle || "NBA Champions"}
+    </div>
 
-<div
-  className="flex justify-center"
-  style={{
-    marginTop: "-32px",
-  }}
->
-  <TeamLogo
-    team={findTeamByName(teams, safeMatch.winner)}
-    size={options.championLogoSize}
-  />
-</div>
+    <div
+      style={{
+        marginTop: "-32px",
+      }}
+    >
+      <TeamLogo
+        team={findTeamByName(teams, safeMatch.winner)}
+        size={options.championLogoSize}
+      />
+    </div>
   </div>
+</div>
 </div>
     </div>
   );
