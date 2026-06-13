@@ -12147,13 +12147,6 @@ event.showEndTime !== false ? formatEventTime(event.endTime) : "",
   </div>
 ) : null}
 
-{event.showLive === true ? (
-  <div className="mt-2 flex justify-end">
-    <span className="rounded-full bg-red-600 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-white shadow-sm">
-      LIVE
-    </span>
-  </div>
-) : null}
             </div>
           </div>
         );
