@@ -12108,12 +12108,6 @@ event.showEndTime !== false ? formatEventTime(event.endTime) : "",
   </div>
 ) : null}
 
-{event.showSubtitle !== false && event.subtitle ? (
-  <div className="mt-0.5 truncate text-sm opacity-80" style={eventSubtitleTextStyle}>
-    {event.subtitle}
-  </div>
-) : null}
-
 <div className="mt-1 text-xs opacity-75" style={eventDateTextStyle}>
 {formatCompactDate(event.date)}
 {[
