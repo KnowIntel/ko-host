@@ -949,23 +949,19 @@ function ChampionshipCard({
       {(options as any).championTitle || "2026"}
     </div>
 
-    <div
-      className="mt-1 text-sm font-bold uppercase tracking-[0.18em]"
-      style={styles.championStyle}
-    >
-      {(options as any).championSubtitle || "NBA Champions"}
-    </div>
+<div
+  className="mt-1 text-sm font-bold uppercase tracking-[0.18em]"
+  style={styles.championStyle}
+>
+  {(options as any).championSubtitle || "NBA Champions"}
+</div>
 
-    <div className="mt-4 flex justify-center">
-      <TeamLogo
-  team={findTeamByName(teams, safeMatch.winner)}
-  size={options.championLogoSize}
-/>
-    </div>
-
-    <div className="mt-3 text-sm font-semibold" style={styles.championStyle}>
-      {safeMatch.winner || "Awaiting Winner"}
-    </div>
+<div className="mt-0 flex justify-center">
+  <TeamLogo
+    team={findTeamByName(teams, safeMatch.winner)}
+    size={options.championLogoSize}
+  />
+</div>
   </div>
 </div>
     </div>
