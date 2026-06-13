@@ -12111,12 +12111,12 @@ event.showEndTime !== false ? formatEventTime(event.endTime) : "",
 <div className="mt-1 text-xs opacity-75" style={eventDateTextStyle}>
 {formatCompactDate(event.date)}
 {[
-  event.showStartTime !== false ? event.startTime : "",
-  event.showEndTime !== false ? event.endTime : "",
+  event.showStartTime !== false ? formatEventTime(event.startTime) : "",
+  event.showEndTime !== false ? formatEventTime(event.endTime) : "",
 ].filter(Boolean).length
   ? ` • ${[
-      event.showStartTime !== false ? event.startTime : "",
-      event.showEndTime !== false ? event.endTime : "",
+      event.showStartTime !== false ? formatEventTime(event.startTime) : "",
+      event.showEndTime !== false ? formatEventTime(event.endTime) : "",
     ]
       .filter(Boolean)
       .join(" - ")}`
