@@ -24006,11 +24006,11 @@ onClick={() =>
     Display Options
   </div>
 
-{[
-  ["leftDivision", "leftDivisionDisplayType", "Left Division"],
-  ["rightDivision", "rightDivisionDisplayType", "Right Division"],
-  ["championship", "championshipDisplayType", "Championship"],
-].map(([target, key, label]) => (
+  {[
+    ["leftDivision", "leftDivisionDisplayType", "Left Division"],
+    ["rightDivision", "rightDivisionDisplayType", "Right Division"],
+    ["championship", "championshipDisplayType", "Championship"],
+  ].map(([target, key, label]) => (
     <div key={key} className="mt-3 rounded-xl border border-neutral-200 bg-white p-3">
       <div className={inspectorLabelClass()}>{label}</div>
 
@@ -24045,140 +24045,143 @@ onClick={() =>
             />
           ) : null}
 
-<div className="flex items-center gap-2">
-  <button
-    type="button"
-    className="inline-flex h-10 items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-700 hover:bg-neutral-50"
-    onClick={() =>
-      void uploadImageToSelectedBlock(
-        selectedBlock.id,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        target,
-      )
-    }
-  >
-    Choose Image
-  </button>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              className="flex-1 inline-flex h-10 items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-700 hover:bg-neutral-50"
+              onClick={() =>
+                void uploadImageToSelectedBlock(
+                  selectedBlock.id,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  undefined,
+                  target,
+                )
+              }
+            >
+              Choose Image
+            </button>
 
-  {(selectedBlock.data as any)[`${target}ImageUrl`] ? (
-<div className="flex gap-2">
-  <button
-    type="button"
-    className="flex-1 inline-flex h-10 items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-700 hover:bg-neutral-50"
-  >
-    Choose Image
-  </button>
-
-  <button
-    type="button"
-    className="flex-1 inline-flex h-10 items-center justify-center rounded-xl border border-red-300 bg-red-50 px-3 text-sm font-medium text-red-600 hover:bg-red-100"
-  >
-    Remove
-  </button>
-</div>
-  ) : null}
-</div>
+            {(selectedBlock.data as any)[`${target}ImageUrl`] ? (
+              <button
+                type="button"
+                className="flex-1 inline-flex h-10 items-center justify-center rounded-xl border border-red-300 bg-red-50 px-3 text-sm font-medium text-red-600 hover:bg-red-100"
+                onClick={() =>
+                  updateSelectedBlock((block) =>
+                    block.type !== "tournament_display"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            [`${target}ImageUrl`]: undefined,
+                            [`${target}ImageStoragePath`]: undefined,
+                            [`${target}ImageAlt`]: undefined,
+                          },
+                        },
+                  )
+                }
+              >
+                Remove
+              </button>
+            ) : null}
+          </div>
 
           {target === "leftDivision" ? (
-  <div className="mt-3">
-    <div className="flex items-center justify-between">
-      <div className={inspectorLabelClass()}>Horizontal Position</div>
-      <div className="text-xs text-neutral-500">
-        {(selectedBlock.data as any).leftDivisionImageOffsetX ?? 0}px
-      </div>
-    </div>
+            <div className="mt-3">
+              <div className="flex items-center justify-between">
+                <div className={inspectorLabelClass()}>Horizontal Position</div>
+                <div className="text-xs text-neutral-500">
+                  {(selectedBlock.data as any).leftDivisionImageOffsetX ?? 0}px
+                </div>
+              </div>
 
-    <input
-      type="range"
-      min={0}
-      max={220}
-      value={(selectedBlock.data as any).leftDivisionImageOffsetX ?? 0}
-      onChange={(e) =>
-        updateSelectedBlock((block) =>
-          block.type !== "tournament_display"
-            ? block
-            : {
-                ...block,
-                data: {
-                  ...block.data,
-                  leftDivisionImageOffsetX: Number(e.target.value),
-                },
-              },
-        )
-      }
-      className="mt-2 w-full"
-    />
-  </div>
-) : null}
+              <input
+                type="range"
+                min={0}
+                max={220}
+                value={(selectedBlock.data as any).leftDivisionImageOffsetX ?? 0}
+                onChange={(e) =>
+                  updateSelectedBlock((block) =>
+                    block.type !== "tournament_display"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            leftDivisionImageOffsetX: Number(e.target.value),
+                          },
+                        },
+                  )
+                }
+                className="mt-2 w-full"
+              />
+            </div>
+          ) : null}
 
-{target === "rightDivision" ? (
-  <div className="mt-3">
-    <div className="flex items-center justify-between">
-      <div className={inspectorLabelClass()}>Horizontal Position</div>
-      <div className="text-xs text-neutral-500">
-        {(selectedBlock.data as any).rightDivisionImageOffsetX ?? 0}px
-      </div>
-    </div>
+          {target === "rightDivision" ? (
+            <div className="mt-3">
+              <div className="flex items-center justify-between">
+                <div className={inspectorLabelClass()}>Horizontal Position</div>
+                <div className="text-xs text-neutral-500">
+                  {(selectedBlock.data as any).rightDivisionImageOffsetX ?? 0}px
+                </div>
+              </div>
 
-    <input
-      type="range"
-      min={-220}
-      max={0}
-      value={(selectedBlock.data as any).rightDivisionImageOffsetX ?? 0}
-      onChange={(e) =>
-        updateSelectedBlock((block) =>
-          block.type !== "tournament_display"
-            ? block
-            : {
-                ...block,
-                data: {
-                  ...block.data,
-                  rightDivisionImageOffsetX: Number(e.target.value),
-                },
-              },
-        )
-      }
-      className="mt-2 w-full"
-    />
-  </div>
-) : null}
+              <input
+                type="range"
+                min={-220}
+                max={0}
+                value={(selectedBlock.data as any).rightDivisionImageOffsetX ?? 0}
+                onChange={(e) =>
+                  updateSelectedBlock((block) =>
+                    block.type !== "tournament_display"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            rightDivisionImageOffsetX: Number(e.target.value),
+                          },
+                        },
+                  )
+                }
+                className="mt-2 w-full"
+              />
+            </div>
+          ) : null}
 
-{target === "finals" ? (
-  <div className="mt-3">
-    <div className="flex items-center justify-between">
-      <div className={inspectorLabelClass()}>Vertical Position</div>
-      <div className="text-xs text-neutral-500">
-        {(selectedBlock.data as any).finalsImageOffsetY ?? 0}px
-      </div>
-    </div>
+          <div className="mt-3">
+            <div className="flex items-center justify-between">
+              <div className={inspectorLabelClass()}>Image Size</div>
+              <div className="text-xs text-neutral-500">
+                {(selectedBlock.data as any)[`${target}ImageSize`] ?? 220}px
+              </div>
+            </div>
 
-    <input
-      type="range"
-      min={-120}
-      max={120}
-      value={(selectedBlock.data as any).finalsImageOffsetY ?? 0}
-      onChange={(e) =>
-        updateSelectedBlock((block) =>
-          block.type !== "tournament_display"
-            ? block
-            : {
-                ...block,
-                data: {
-                  ...block.data,
-                  finalsImageOffsetY: Number(e.target.value),
-                },
-              },
-        )
-      }
-      className="mt-2 w-full"
-    />
-  </div>
-) : null}
-
+            <input
+              type="range"
+              min={60}
+              max={420}
+              value={(selectedBlock.data as any)[`${target}ImageSize`] ?? 220}
+              onChange={(e) =>
+                updateSelectedBlock((block) =>
+                  block.type !== "tournament_display"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          [`${target}ImageSize`]: Number(e.target.value),
+                        },
+                      },
+                )
+              }
+              className="mt-2 w-full"
+            />
+          </div>
         </div>
       ) : null}
     </div>

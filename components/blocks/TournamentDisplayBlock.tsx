@@ -74,6 +74,9 @@ type TournamentDisplayOptions = {
   nbaFinalCardWidth: number;
   leftDivisionImageOffsetX: number;
   rightDivisionImageOffsetX: number;
+  leftDivisionImageSize: number;
+  rightDivisionImageSize: number;
+  championshipImageSize: number;
   finalsImageOffsetY: number;
   bracketColumnSpacing: number;
   connectorLinesEnabled: boolean;
@@ -190,6 +193,20 @@ bracketColumnSpacing:
   typeof data.bracketColumnSpacing === "number"
     ? Math.max(12, Math.min(110, data.bracketColumnSpacing))
     : 54,
+leftDivisionImageSize:
+  typeof data.leftDivisionImageSize === "number"
+    ? data.leftDivisionImageSize
+    : 220,
+
+rightDivisionImageSize:
+  typeof data.rightDivisionImageSize === "number"
+    ? data.rightDivisionImageSize
+    : 220,
+
+championshipImageSize:
+  typeof data.championshipImageSize === "number"
+    ? data.championshipImageSize
+    : 160,
 
 matchCardPaddingX:
   typeof data.matchCardPaddingX === "number"
@@ -554,10 +571,15 @@ function BracketSide({
           src={imageUrl}
           alt={label}
           className={[
-            "mb-4 h-10 w-[220px] rounded-xl object-cover",
+            "mb-4 h-auto rounded-xl object-cover",
             align === "right" ? "ml-auto" : "",
           ].join(" ")}
           style={{
+            width:
+              align === "right"
+                ? options.rightDivisionImageSize
+                : options.leftDivisionImageSize,
+
             transform: `translateX(${
               align === "right"
                 ? options.rightDivisionImageOffsetX
@@ -808,11 +830,14 @@ function ChampionshipCard({
   return (
     <div className="flex h-full min-h-[560px] flex-col items-center justify-center">
 {championshipDisplayType === "image" && championshipImageUrl ? (
-  <img
-    src={championshipImageUrl}
-    alt="Championship"
-    className="mb-4 h-10 w-40 rounded-xl object-cover"
-  />
+<img
+  src={championshipImageUrl}
+  alt="Championship"
+  className="mb-4 h-auto rounded-xl object-cover"
+  style={{
+    width: options.championshipImageSize,
+  }}
+/>
 ) : championshipDisplayType === "image" ? (
   <div className="mb-4 h-10 w-40 rounded-xl border border-white/20 bg-white/10" />
 ) : (
@@ -824,7 +849,7 @@ function ChampionshipCard({
   </div>
 )}
 
-      <div className="w-full max-w-[250px] overflow-hidden rounded-[28px] border border-white/15 bg-slate-950 shadow-xl">
+      <div className="w-full max-w-[250px] min-h-[540px] overflow-hidden rounded-[28px] border border-white/15 bg-slate-950 shadow-xl">
 
         <div className="px-5 py-6 text-center">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-yellow-300/40 bg-yellow-300/10 text-3xl">
@@ -841,7 +866,7 @@ function ChampionshipCard({
 
           <div className="mt-6 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
             <div className="flex flex-col items-center gap-2">
-              <TeamLogo team={teamA} size={56} />
+              <TeamLogo team={teamA} size={112} />
               <div className="text-xs font-bold uppercase">
                 {safeMatch.teamA || "West Champion"}
               </div>
@@ -853,7 +878,7 @@ function ChampionshipCard({
             <div className="text-sm font-black opacity-70">VS</div>
 
             <div className="flex flex-col items-center gap-2">
-              <TeamLogo team={teamB} size={56} />
+              <TeamLogo team={teamB} size={112} />
               <div className="text-xs font-bold uppercase">
                 {safeMatch.teamB || "East Champion"}
               </div>
