@@ -859,7 +859,7 @@ function ChampionshipCard({
       )}
 
       <div
-        className="w-full max-w-[250px] min-h-[440px] overflow-hidden rounded-[28px] border border-white/15 shadow-xl"
+        className="w-full max-w-[250px] min-h-[400px] overflow-hidden rounded-[28px] border border-white/15 shadow-xl"
         style={finalsCardStyle}
       >
         <div className="px-5 py-6 text-center">
