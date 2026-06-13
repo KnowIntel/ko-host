@@ -5168,6 +5168,35 @@ function renderPostBoard(
     ...((block.data as any).buttonStyle ?? {}),
   } as any;
 
+  const avatarStyle = {
+  size: 36,
+  backgroundColor: "#000000",
+  color: "#ffffff",
+  fontSize: 12,
+  bold: true,
+  ...((block.data as any).avatarStyle ?? {}),
+} as any;
+
+const metaStyle = {
+  fontFamily: "Inter",
+  fontSize: 11,
+  color: "#6b7280",
+  bold: false,
+  ...((block.data as any).metaStyle ?? {}),
+} as any;
+
+const actionButtonStyle = {
+  height: 22,
+  minWidth: 42,
+  fontSize: 10,
+  color: "#111827",
+  backgroundColor: "#ffffff",
+  borderColor: "#e5e7eb",
+  borderWidth: 1,
+  borderRadius: 999,
+  ...((block.data as any).actionButtonStyle ?? {}),
+} as any;
+
   const interactionMode = block.data.interactionMode ?? "announcement";
   const isCommunityBoard = interactionMode === "community";
 
@@ -5873,33 +5902,38 @@ const isExpanded = expandedPostId === post.id;
                           ].join(" ")}
                         />
                       ) : (
-                        <div
-                          className={[
-                            "flex shrink-0 items-center justify-center rounded-full text-xs font-bold",
-                            isFeature ? "h-11 w-11" : "h-9 w-9",
-                            isLightDesign(designKey)
-                              ? "bg-neutral-900 text-white"
-                              : "bg-white text-neutral-900",
-                          ].join(" ")}
-                        >
-                          {getPostInitials(ownerName)}
-                        </div>
+<div
+  className="flex shrink-0 items-center justify-center rounded-full"
+  style={{
+    width: `${avatarStyle.size}px`,
+    height: `${avatarStyle.size}px`,
+    backgroundColor: avatarStyle.backgroundColor,
+    color: avatarStyle.color,
+    fontSize: `${avatarStyle.fontSize}px`,
+    fontWeight: avatarStyle.bold ? 700 : 400,
+  }}
+>
+  {getPostInitials(ownerName)}
+</div>
                       )
                     ) : null}
 
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <div
-                          className="text-sm font-semibold"
-                          style={getContainerTextStyle(blockStyle, designKey)}
-                        >
-                          {ownerName}
-                        </div>
+<div
+  className="text-sm font-semibold"
+  style={getContainerTextStyle(metaStyle, designKey)}
+>
+  {ownerName}
+</div>
 
                         {block.data.showTimestamps !== false ? (
-                          <div className={`text-xs ${getMutedTextClass(designKey)}`}>
-                            {formatPostTime(post.createdAt)}
-                          </div>
+<div
+  className="text-xs"
+  style={getContainerTextStyle(metaStyle, designKey)}
+>
+  {formatPostTime(post.createdAt)}
+</div>
                         ) : null}
 
                         {post.contactInfoConfirmed ? (
@@ -6029,10 +6063,18 @@ const isExpanded = expandedPostId === post.id;
                                 ? "border-neutral-200 bg-neutral-50 text-neutral-700"
                                 : "border-white/10 bg-white/5 text-white/75",
                             ].join(" ")}
-                            style={{
-                              ...getContainerTextStyle(buttonStyle, designKey),
-                              ...getPostBoardBoxStyle(buttonStyle),
-                            }}
+style={{
+  ...getContainerTextStyle(buttonStyle, designKey),
+  ...getPostBoardBoxStyle(buttonStyle),
+  height: `${actionButtonStyle.height}px`,
+  minWidth: `${actionButtonStyle.minWidth}px`,
+  fontSize: `${actionButtonStyle.fontSize}px`,
+  backgroundColor: actionButtonStyle.backgroundColor,
+  borderColor: actionButtonStyle.borderColor,
+  borderWidth: `${actionButtonStyle.borderWidth}px`,
+  borderRadius: `${actionButtonStyle.borderRadius}px`,
+  color: actionButtonStyle.color,
+}}
                             aria-label={`Like ${post.title || "post"}`}
                           >
                             ♥ {likeCounts[post.id] ?? post.likeCount ?? 0}
@@ -6054,10 +6096,18 @@ const isExpanded = expandedPostId === post.id;
                                   ? "border-neutral-200 bg-neutral-50 text-neutral-700"
                                   : "border-white/10 bg-white/5 text-white/75",
                               ].join(" ")}
-                              style={{
-                                ...getContainerTextStyle(buttonStyle, designKey),
-                                ...getPostBoardBoxStyle(buttonStyle),
-                              }}
+style={{
+  ...getContainerTextStyle(buttonStyle, designKey),
+  ...getPostBoardBoxStyle(buttonStyle),
+  height: `${actionButtonStyle.height}px`,
+  minWidth: `${actionButtonStyle.minWidth}px`,
+  fontSize: `${actionButtonStyle.fontSize}px`,
+  backgroundColor: actionButtonStyle.backgroundColor,
+  borderColor: actionButtonStyle.borderColor,
+  borderWidth: `${actionButtonStyle.borderWidth}px`,
+  borderRadius: `${actionButtonStyle.borderRadius}px`,
+  color: actionButtonStyle.color,
+}}
                             >
                               💬 {replies.length || post.messageCount || 0}
                             </button>
@@ -6109,10 +6159,19 @@ const isExpanded = expandedPostId === post.id;
                                   ? "border-neutral-200 bg-neutral-50 text-neutral-700"
                                   : "border-white/10 bg-white/5 text-white/75",
                               ].join(" ")}
-                              style={{
-                                ...getContainerTextStyle(buttonStyle, designKey),
-                                ...getPostBoardBoxStyle(buttonStyle),
-                              }}
+style={{
+  ...getContainerTextStyle(buttonStyle, designKey),
+  ...getPostBoardBoxStyle(buttonStyle),
+
+  height: `${actionButtonStyle.height}px`,
+  minWidth: `${actionButtonStyle.minWidth}px`,
+  fontSize: `${actionButtonStyle.fontSize}px`,
+  backgroundColor: actionButtonStyle.backgroundColor,
+  borderColor: actionButtonStyle.borderColor,
+  borderWidth: `${actionButtonStyle.borderWidth}px`,
+  borderRadius: `${actionButtonStyle.borderRadius}px`,
+  color: actionButtonStyle.color,
+}}
                               aria-label={`Open discussion for ${post.title || "post"}`}
                             >
                               💬 {post.messageCount ?? 0}

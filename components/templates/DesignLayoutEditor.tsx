@@ -1124,6 +1124,38 @@ function getPostBoardDefaultStyle(target: string) {
     color: "#111827",
   };
 
+  if (target === "avatarStyle") {
+  return {
+    size: 36,
+    backgroundColor: "#000000",
+    color: "#ffffff",
+    fontSize: 12,
+    bold: true,
+  };
+}
+
+if (target === "metaStyle") {
+  return {
+    fontFamily: "Inter",
+    fontSize: 11,
+    color: "#6b7280",
+    bold: false,
+  };
+}
+
+if (target === "actionButtonStyle") {
+  return {
+    height: 22,
+    minWidth: 42,
+    fontSize: 10,
+    color: "#111827",
+    backgroundColor: "#ffffff",
+    borderColor: "#e5e7eb",
+    borderWidth: 1,
+    borderRadius: 999,
+  };
+}
+
   if (target === "blockHeadingStyle") {
     return {
       ...baseText,
@@ -1188,6 +1220,21 @@ function hydratePostBoardBlockForJson(block: Extract<MicrositeBlock, { type: "po
       requireCommunityPostEmail: block.data.requireCommunityPostEmail ?? true,
       allowReplyEmailCapture: block.data.allowReplyEmailCapture ?? true,
       notifyPostAuthorOnReply: block.data.notifyPostAuthorOnReply ?? true,
+
+      avatarStyle: {
+  ...getPostBoardDefaultStyle("avatarStyle"),
+  ...((block.data as any).avatarStyle ?? {}),
+},
+
+metaStyle: {
+  ...getPostBoardDefaultStyle("metaStyle"),
+  ...((block.data as any).metaStyle ?? {}),
+},
+
+actionButtonStyle: {
+  ...getPostBoardDefaultStyle("actionButtonStyle"),
+  ...((block.data as any).actionButtonStyle ?? {}),
+},
 
       style: {
         ...getPostBoardDefaultStyle("style"),
