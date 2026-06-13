@@ -248,7 +248,7 @@ className={[
   rightDivisionImageUrl={(data as any).rightDivisionImageUrl}
   leftDivisionDisplayType={(data as any).leftDivisionDisplayType ?? "text"}
   rightDivisionDisplayType={(data as any).rightDivisionDisplayType ?? "text"}
-  finalsDisplayType={(data as any).finalsDisplayType ?? "text"}
+  championshipImageUrl={(data as any).championshipImageUrl}
   championshipDisplayType={(data as any).championshipDisplayType ?? "text"}
   designStyle={data.designStyle ?? "style1"}
   bracketLayout={data.bracketLayout}
@@ -270,9 +270,9 @@ function Bracket({
   finalsImageUrl,
   leftDivisionImageUrl,
   rightDivisionImageUrl,
+  championshipImageUrl,
   leftDivisionDisplayType,
   rightDivisionDisplayType,
-  finalsDisplayType,
   championshipDisplayType,
   designStyle,
   bracketLayout,
@@ -288,9 +288,9 @@ function Bracket({
   finalsImageUrl?: string;
   leftDivisionImageUrl?: string;
   rightDivisionImageUrl?: string;
+  championshipImageUrl?: string;
   leftDivisionDisplayType?: "text" | "image";
   rightDivisionDisplayType?: "text" | "image";
-  finalsDisplayType?: "text" | "image";
   championshipDisplayType?: "text" | "image";
   designStyle?: string;
   bracketLayout?: string;
@@ -325,26 +325,26 @@ function Bracket({
     );
   }
 
-if (bracketLayout === "east_west") {
-  return (
-<Style1EastWestBracket
-  matches={matches}
-  teams={teams}
-  finalsImageUrl={finalsImageUrl}
-  leftDivisionImageUrl={leftDivisionImageUrl}
-  rightDivisionImageUrl={rightDivisionImageUrl}
-  leftDivisionDisplayType={leftDivisionDisplayType}
-  rightDivisionDisplayType={rightDivisionDisplayType}
-  finalsDisplayType={finalsDisplayType}
-  championshipDisplayType={championshipDisplayType}
-  leftDivisionLabel={leftDivisionLabel}
-  rightDivisionLabel={rightDivisionLabel}
-  finalsLabel={finalsLabel}
-  styles={styles}
-  options={options}
-/>
-  );
-}
+  if (bracketLayout === "east_west") {
+    return (
+      <Style1EastWestBracket
+        matches={matches}
+        teams={teams}
+        finalsImageUrl={finalsImageUrl}
+        leftDivisionImageUrl={leftDivisionImageUrl}
+        rightDivisionImageUrl={rightDivisionImageUrl}
+        championshipImageUrl={championshipImageUrl}
+        leftDivisionDisplayType={leftDivisionDisplayType}
+        rightDivisionDisplayType={rightDivisionDisplayType}
+        championshipDisplayType={championshipDisplayType}
+        leftDivisionLabel={leftDivisionLabel}
+        rightDivisionLabel={rightDivisionLabel}
+        finalsLabel={finalsLabel}
+        styles={styles}
+        options={options}
+      />
+    );
+  }
 
   return (
     <RoundColumnBracket
@@ -359,12 +359,11 @@ if (bracketLayout === "east_west") {
 function Style1EastWestBracket({
   matches,
   teams,
-  finalsImageUrl,
   leftDivisionImageUrl,
   rightDivisionImageUrl,
+  championshipImageUrl,
   leftDivisionDisplayType,
   rightDivisionDisplayType,
-  finalsDisplayType,
   championshipDisplayType,
   leftDivisionLabel,
   rightDivisionLabel,
@@ -377,9 +376,9 @@ function Style1EastWestBracket({
   finalsImageUrl?: string;
   leftDivisionImageUrl?: string;
   rightDivisionImageUrl?: string;
+  championshipImageUrl?: string;
   leftDivisionDisplayType?: "text" | "image";
   rightDivisionDisplayType?: "text" | "image";
-  finalsDisplayType?: "text" | "image";
   championshipDisplayType?: "text" | "image";
   leftDivisionLabel?: string;
   rightDivisionLabel?: string;
@@ -417,7 +416,7 @@ function Style1EastWestBracket({
   return (
     <div className="min-w-max">
       <div
-        className="grid"
+        className="grid items-start"
         style={{
           gridTemplateColumns: "1fr 260px 1fr",
           columnGap: options.bracketColumnSpacing,
@@ -442,9 +441,8 @@ function Style1EastWestBracket({
           teams={teams}
           styles={styles}
           options={options}
-          finalsImageUrl={finalsImageUrl}
-          finalsDisplayType={finalsDisplayType}
           championshipDisplayType={championshipDisplayType}
+          championshipImageUrl={championshipImageUrl}
         />
 
         <BracketSide
@@ -492,14 +490,8 @@ function BracketSide({
   const finalMatch = divisionFinal ?? {
     id: `${align}-division-final-placeholder`,
     roundTitle: "Division Finals",
-    teamA:
-      round2Matches[0]?.winner ||
-      round2Matches[0]?.teamA ||
-      "Winner",
-    teamB:
-      round2Matches[1]?.winner ||
-      round2Matches[1]?.teamA ||
-      "Winner",
+    teamA: round2Matches[0]?.winner || round2Matches[0]?.teamA || "Winner",
+    teamB: round2Matches[1]?.winner || round2Matches[1]?.teamA || "Winner",
     scoreA: 0,
     scoreB: 0,
     status: "upcoming" as const,
@@ -514,43 +506,43 @@ function BracketSide({
     (align === "left" && options.showLeftDivisionLabel) ||
     (align === "right" && options.showRightDivisionLabel);
 
-const divisionHeader =
-  shouldShowLabel && displayType === "image" ? (
-    imageUrl ? (
-<img
-  src={imageUrl}
-  alt={label}
-  className={[
-    "mb-4 h-10 w-[220px] rounded-xl object-cover",
-    align === "right" ? "ml-auto" : "",
-  ].join(" ")}
-  style={{
-    transform: `translateX(${
-      align === "right"
-        ? options.rightDivisionImageOffsetX
-        : options.leftDivisionImageOffsetX
-    }px)`,
-  }}
-/>
-    ) : (
+  const divisionHeader =
+    shouldShowLabel && displayType === "image" ? (
+      imageUrl ? (
+        <img
+          src={imageUrl}
+          alt={label}
+          className={[
+            "mb-4 h-10 w-[220px] rounded-xl object-cover",
+            align === "right" ? "ml-auto" : "",
+          ].join(" ")}
+          style={{
+            transform: `translateX(${
+              align === "right"
+                ? options.rightDivisionImageOffsetX
+                : options.leftDivisionImageOffsetX
+            }px)`,
+          }}
+        />
+      ) : (
+        <div
+          className={[
+            "mb-4 h-10 w-[220px] rounded-xl border border-white/20 bg-white/10",
+            align === "right" ? "ml-auto" : "",
+          ].join(" ")}
+        />
+      )
+    ) : shouldShowLabel ? (
       <div
         className={[
-          "mb-4 h-10 w-[220px] rounded-xl border border-white/20 bg-white/10",
-          align === "right" ? "ml-auto" : "",
+          "mb-4 text-xs font-bold uppercase tracking-[0.18em]",
+          align === "right" ? "text-right" : "",
         ].join(" ")}
-      />
-    )
-  ) : shouldShowLabel ? (
-    <div
-      className={[
-        "mb-4 text-xs font-bold uppercase tracking-[0.18em]",
-        align === "right" ? "text-right" : "",
-      ].join(" ")}
-      style={divisionLabelStyle}
-    >
-      {label}
-    </div>
-  ) : null;
+        style={divisionLabelStyle}
+      >
+        {label}
+      </div>
+    ) : null;
 
   return (
     <div>
@@ -750,8 +742,7 @@ function ChampionshipCard({
   teams,
   styles,
   options,
-  finalsImageUrl,
-  finalsDisplayType,
+  championshipImageUrl,
   championshipDisplayType,
 }: {
   label: string;
@@ -759,8 +750,7 @@ function ChampionshipCard({
   teams: TournamentTeamLike[];
   styles: TournamentDisplayStyles;
   options: TournamentDisplayOptions;
-  finalsImageUrl?: string;
-  finalsDisplayType?: "text" | "image";
+  championshipImageUrl?: string;
   championshipDisplayType?: "text" | "image";
 }) {
   const safeMatch = match ?? {
@@ -776,24 +766,14 @@ function ChampionshipCard({
 
   return (
     <div className="flex h-full min-h-[560px] flex-col items-center justify-center">
-{finalsDisplayType === "image" ? (
-  finalsImageUrl ? (
-    <img
-      src={finalsImageUrl}
-      alt={label}
-      className="mb-4 h-10 w-40 rounded-xl object-cover"
-      style={{
-        transform: `translateY(${options.finalsImageOffsetY}px)`,
-      }}
-    />
-  ) : (
-    <div
-      className="mb-4 h-10 w-40 rounded-xl border border-white/20 bg-white/10"
-      style={{
-        transform: `translateY(${options.finalsImageOffsetY}px)`,
-      }}
-    />
-  )
+{championshipDisplayType === "image" && championshipImageUrl ? (
+  <img
+    src={championshipImageUrl}
+    alt="Championship"
+    className="mb-4 h-10 w-40 rounded-xl object-cover"
+  />
+) : championshipDisplayType === "image" ? (
+  <div className="mb-4 h-10 w-40 rounded-xl border border-white/20 bg-white/10" />
 ) : (
   <div
     className="mb-4 text-center text-xs font-bold uppercase tracking-[0.18em] opacity-70"
@@ -804,17 +784,6 @@ function ChampionshipCard({
 )}
 
       <div className="w-full max-w-[250px] overflow-hidden rounded-[28px] border border-white/15 bg-slate-950 shadow-xl">
-        {finalsImageUrl ? (
-          <img
-            src={finalsImageUrl}
-            alt="Finals"
-            className="h-24 w-full object-cover"
-          />
-        ) : (
-          <div className="flex h-24 w-full items-center justify-center bg-white/10 text-xs uppercase tracking-[0.16em] opacity-60">
-            Finals Image
-          </div>
-        )}
 
         <div className="px-5 py-6 text-center">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-yellow-300/40 bg-yellow-300/10 text-3xl">

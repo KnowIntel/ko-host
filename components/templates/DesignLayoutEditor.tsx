@@ -24006,12 +24006,11 @@ onClick={() =>
     Display Options
   </div>
 
-  {[
-    ["leftDivision", "leftDivisionDisplayType", "Left Division"],
-    ["rightDivision", "rightDivisionDisplayType", "Right Division"],
-    ["finals", "finalsDisplayType", "Finals"],
-    ["championship", "championshipDisplayType", "Championship"],
-  ].map(([target, key, label]) => (
+{[
+  ["leftDivision", "leftDivisionDisplayType", "Left Division"],
+  ["rightDivision", "rightDivisionDisplayType", "Right Division"],
+  ["championship", "championshipDisplayType", "Championship"],
+].map(([target, key, label]) => (
     <div key={key} className="mt-3 rounded-xl border border-neutral-200 bg-white p-3">
       <div className={inspectorLabelClass()}>{label}</div>
 
@@ -24046,23 +24045,49 @@ onClick={() =>
             />
           ) : null}
 
-          <button
-            type="button"
-            className="inline-flex h-10 items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-700 hover:bg-neutral-50"
-            onClick={() =>
-              void uploadImageToSelectedBlock(
-                selectedBlock.id,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                target,
-              )
-            }
-          >
-            Choose Image
-          </button>
+<div className="flex items-center gap-2">
+  <button
+    type="button"
+    className="inline-flex h-10 items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-700 hover:bg-neutral-50"
+    onClick={() =>
+      void uploadImageToSelectedBlock(
+        selectedBlock.id,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        target,
+      )
+    }
+  >
+    Choose Image
+  </button>
+
+  {(selectedBlock.data as any)[`${target}ImageUrl`] ? (
+    <button
+      type="button"
+      className={toolSetButtonClass("remove")}
+      onClick={() =>
+        updateSelectedBlock((block) =>
+          block.type !== "tournament_display"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  [`${target}ImageUrl`]: undefined,
+                  [`${target}ImageStoragePath`]: undefined,
+                  [`${target}ImageAlt`]: undefined,
+                },
+              },
+        )
+      }
+    >
+      Remove
+    </button>
+  ) : null}
+</div>
 
           {target === "leftDivision" ? (
   <div className="mt-3">
@@ -24361,23 +24386,6 @@ onClick={() =>
     className="mt-2 w-full"
   />
 </div>
-
-<button
-  type="button"
-  className="mt-3 inline-flex h-10 items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-700 hover:bg-neutral-50"
-  onClick={() =>
-    void uploadImageToSelectedBlock(
-      selectedBlock.id,
-      undefined,
-      undefined,
-      undefined,
-      undefined,
-      "__finals_image__",
-    )
-  }
->
-  Browse Finals Image
-</button>
 
 
 <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
