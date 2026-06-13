@@ -3702,16 +3702,32 @@ case "post_board":
         color: "#374151",
       },
 
-      buttonStyle: {
-        ...createDefaultTextStyle(),
-        fontSize: 12,
-        bold: true,
-        color: "#374151",
-        backgroundColor: "#f9fafb",
-        borderColor: "#e5e7eb",
-        borderWidth: 1,
-        borderRadius: 999,
-      },
+avatarStyle: {
+  size: 36,
+  backgroundColor: "#000000",
+  color: "#ffffff",
+  fontSize: 12,
+  bold: true,
+},
+
+metaStyle: {
+  ...createDefaultTextStyle(),
+  fontFamily: "Inter",
+  fontSize: 11,
+  color: "#6b7280",
+  bold: false,
+},
+
+actionButtonStyle: {
+  height: 22,
+  minWidth: 42,
+  fontSize: 10,
+  color: "#111827",
+  backgroundColor: "#ffffff",
+  borderColor: "#e5e7eb",
+  borderWidth: 1,
+  borderRadius: 999,
+},
     },
   };
 
