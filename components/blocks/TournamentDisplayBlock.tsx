@@ -66,19 +66,22 @@ type TournamentDisplayOptions = {
   matchCardBorderEnabled: boolean;
   matchCardBorderColor: string;
   matchCardRadius: number;
-matchCardPaddingX: number;
-matchCardPaddingY: number;
-round1CardWidth: number;
-round2CardWidth: number;
-conferenceFinalCardWidth: number;
-nbaFinalCardWidth: number;
-leftDivisionImageOffsetX: number;
-rightDivisionImageOffsetX: number;
-finalsImageOffsetY: number;
-bracketColumnSpacing: number;
+  matchCardPaddingX: number;
+  matchCardPaddingY: number;
+  round1CardWidth: number;
+  round2CardWidth: number;
+  conferenceFinalCardWidth: number;
+  nbaFinalCardWidth: number;
+  leftDivisionImageOffsetX: number;
+  rightDivisionImageOffsetX: number;
+  finalsImageOffsetY: number;
+  bracketColumnSpacing: number;
   connectorLinesEnabled: boolean;
   connectorLineColor: string;
   connectorLineThickness: number;
+  westScoreColor: string;
+  eastScoreColor: string;
+  scoreFrameShape: "circle" | "rectangle" | "square";
 };
 
 export default function TournamentDisplayBlock({ block }: Props) {
@@ -137,6 +140,16 @@ const options: TournamentDisplayOptions = {
   typeof data.matchCardRadius === "number"
     ? data.matchCardRadius
     : 16,
+  westScoreColor:
+  typeof data.westScoreColor === "string" ? data.westScoreColor : "#34d399",
+
+eastScoreColor:
+  typeof data.eastScoreColor === "string" ? data.eastScoreColor : "#34d399",
+
+scoreFrameShape:
+  data.scoreFrameShape === "circle" || data.scoreFrameShape === "square"
+    ? data.scoreFrameShape
+    : "rectangle",
 
     leftDivisionImageOffsetX:
   typeof data.leftDivisionImageOffsetX === "number"
@@ -897,55 +910,51 @@ function BracketMatchCard({
   const teamAWon = Boolean(match.winner && match.winner === match.teamA);
   const teamBWon = Boolean(match.winner && match.winner === match.teamB);
 
-const cardShadowX =
-  options.matchCardShadowDirection === "left"
-    ? -Math.abs(options.matchCardShadowX || 12)
-    : options.matchCardShadowDirection === "right"
-      ? Math.abs(options.matchCardShadowX || 12)
-      : options.matchCardShadowDirection === "custom"
-        ? options.matchCardShadowX
-        : 0;
+  const cardShadowX =
+    options.matchCardShadowDirection === "left"
+      ? -Math.abs(options.matchCardShadowX || 12)
+      : options.matchCardShadowDirection === "right"
+        ? Math.abs(options.matchCardShadowX || 12)
+        : options.matchCardShadowDirection === "custom"
+          ? options.matchCardShadowX
+          : 0;
 
-const cardShadowY =
-  options.matchCardShadowDirection === "up"
-    ? -Math.abs(options.matchCardShadowY || 8)
-    : options.matchCardShadowDirection === "down"
-      ? Math.abs(options.matchCardShadowY || 8)
-      : options.matchCardShadowDirection === "custom"
-        ? options.matchCardShadowY
-        : 0;
+  const cardShadowY =
+    options.matchCardShadowDirection === "up"
+      ? -Math.abs(options.matchCardShadowY || 8)
+      : options.matchCardShadowDirection === "down"
+        ? Math.abs(options.matchCardShadowY || 8)
+        : options.matchCardShadowDirection === "custom"
+          ? options.matchCardShadowY
+          : 0;
 
-const cardStyle: CSSProperties = {
-  borderColor: options.matchCardBorderEnabled
-    ? options.matchCardBorderColor
-    : "transparent",
+  const cardStyle: CSSProperties = {
+    borderColor: options.matchCardBorderEnabled
+      ? options.matchCardBorderColor
+      : "transparent",
+    borderRadius: options.matchCardRadius,
+    paddingLeft: options.matchCardPaddingX,
+    paddingRight: options.matchCardPaddingX,
+    paddingTop: options.matchCardPaddingY,
+    paddingBottom: options.matchCardPaddingY,
+    boxShadow: options.matchCardShadowEnabled
+      ? `${cardShadowX}px ${cardShadowY}px ${options.matchCardShadowBlur}px rgba(0,0,0,0.35)`
+      : undefined,
+  };
 
-  borderRadius: options.matchCardRadius,
-
-  paddingLeft: options.matchCardPaddingX,
-  paddingRight: options.matchCardPaddingX,
-
-  paddingTop: options.matchCardPaddingY,
-  paddingBottom: options.matchCardPaddingY,
-
-  boxShadow: options.matchCardShadowEnabled
-    ? `${cardShadowX}px ${cardShadowY}px ${options.matchCardShadowBlur}px rgba(0,0,0,0.35)`
-    : undefined,
-};
-
-return (
-  <div
-    className={[
-      "rounded-2xl border bg-white/10",
-championship
-  ? "border-yellow-300/30"
-  : large
-    ? "border-white/15"
-    : "border-white/10",
-      compact ? "text-xs" : "text-sm",
-    ].join(" ")}
-    style={cardStyle}
-  >
+  return (
+    <div
+      className={[
+        "rounded-2xl border bg-white/10",
+        championship
+          ? "border-yellow-300/30"
+          : large
+            ? "border-white/15"
+            : "border-white/10",
+        compact ? "text-xs" : "text-sm",
+      ].join(" ")}
+      style={cardStyle}
+    >
       <BracketTeamRow
         team={teamA}
         fallbackName={match.teamA || "Team A"}
@@ -953,6 +962,7 @@ championship
         isWinner={teamAWon}
         matchHasWinner={Boolean(match.winner)}
         mirrored={mirrored}
+        division={match.division}
         styles={styles}
         options={options}
       />
@@ -966,6 +976,7 @@ championship
         isWinner={teamBWon}
         matchHasWinner={Boolean(match.winner)}
         mirrored={mirrored}
+        division={match.division}
         styles={styles}
         options={options}
       />
@@ -989,6 +1000,7 @@ function BracketTeamRow({
   isWinner,
   matchHasWinner = false,
   mirrored = false,
+  division,
   styles,
   options,
 }: {
@@ -998,16 +1010,37 @@ function BracketTeamRow({
   isWinner?: boolean;
   matchHasWinner?: boolean;
   mirrored?: boolean;
+  division?: "east" | "west" | "finals" | "custom";
   styles: TournamentDisplayStyles;
   options: TournamentDisplayOptions;
 }) {
+  const scoreBackgroundColor =
+    division === "east"
+      ? options.eastScoreColor
+      : division === "west"
+        ? options.westScoreColor
+        : options.westScoreColor;
+
+  const scoreFrameClass =
+    options.scoreFrameShape === "circle"
+      ? "h-8 w-8 rounded-full"
+      : options.scoreFrameShape === "square"
+        ? "h-8 w-8 rounded-lg"
+        : "min-w-8 rounded-lg px-2";
+
   const scoreBadge = options.showScores ? (
     <div
       className={[
-        "min-w-8 rounded-lg px-2 py-1 text-center text-xs font-bold",
-        isWinner ? "bg-emerald-400 text-black" : "bg-white/10 text-white/70",
+        scoreFrameClass,
+        "flex items-center justify-center py-1 text-center text-xs font-bold",
+        isWinner ? "text-black" : "text-white/70",
       ].join(" ")}
-      style={styles.scoreStyle}
+      style={{
+        ...styles.scoreStyle,
+        backgroundColor: isWinner
+          ? scoreBackgroundColor
+          : "rgba(255,255,255,0.10)",
+      }}
     >
       {score ?? 0}
     </div>
@@ -1038,10 +1071,9 @@ function BracketTeamRow({
   const recordNode =
     options.showRecords && team?.record ? (
       <div
-        className={[
-          "text-[10px] opacity-55",
-          mirrored ? "text-right" : "",
-        ].join(" ")}
+        className={["text-[10px] opacity-55", mirrored ? "text-right" : ""].join(
+          " ",
+        )}
         style={styles.recordStyle}
       >
         {team.record}
@@ -1084,6 +1116,7 @@ function BracketTeamRow({
     </div>
   );
 }
+
 
 function RoundColumnBracket({
   matches,

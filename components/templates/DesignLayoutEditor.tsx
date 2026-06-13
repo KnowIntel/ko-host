@@ -24541,6 +24541,84 @@ onClick={() =>
     Matchup card border
   </label>
 
+  <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+  <div className="text-sm font-semibold text-neutral-700">
+    Score Display
+  </div>
+
+  <div className="mt-3">
+    <div className={inspectorLabelClass()}>West Division Color</div>
+    <input
+      type="color"
+      value={(selectedBlock.data as any).westScoreColor ?? "#34d399"}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "tournament_display"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  westScoreColor: e.target.value,
+                },
+              },
+        )
+      }
+      className="mt-2 h-10 w-full"
+    />
+  </div>
+
+  <div className="mt-3">
+    <div className={inspectorLabelClass()}>East Division Color</div>
+    <input
+      type="color"
+      value={(selectedBlock.data as any).eastScoreColor ?? "#34d399"}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "tournament_display"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  eastScoreColor: e.target.value,
+                },
+              },
+        )
+      }
+      className="mt-2 h-10 w-full"
+    />
+  </div>
+
+  <div className="mt-3">
+    <div className={inspectorLabelClass()}>Score Frame</div>
+    <select
+      value={(selectedBlock.data as any).scoreFrameShape ?? "rectangle"}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "tournament_display"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  scoreFrameShape: e.target.value as
+                    | "circle"
+                    | "rectangle"
+                    | "square",
+                },
+              },
+        )
+      }
+      className={inspectorInputClass()}
+    >
+      <option value="circle">Circle</option>
+      <option value="rectangle">Rectangle</option>
+      <option value="square">Square</option>
+    </select>
+  </div>
+</div>
+
   <div className="mt-3">
     <div className={inspectorLabelClass()}>Border Color</div>
     <input
