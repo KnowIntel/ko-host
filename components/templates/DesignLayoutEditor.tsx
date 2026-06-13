@@ -6700,6 +6700,11 @@ async function uploadImageToSelectedBlock(
   contentPanelId?: string,
   tournamentTeamId?: string,
   tournamentDisplayImageTarget?: string,
+  contentPanelGridCell?: {
+    panelId: string;
+    rowId: string;
+    columnIndex: number;
+  },
 ) {
   await openImagePicker({
     onSelect: async (files) => {
@@ -6819,6 +6824,57 @@ async function uploadImageToSelectedBlock(
             }
           : post,
       ),
+    },
+  };
+}
+
+if (block.type === "content_panel" && contentPanelGridCell) {
+  return {
+    ...block,
+    data: {
+      ...block.data,
+      panels: block.data.panels.map((panel) => {
+        if (panel.id !== contentPanelGridCell.panelId || !panel.grid) {
+          return panel;
+        }
+
+        return {
+          ...panel,
+          grid: {
+            ...panel.grid,
+            rows: panel.grid.rows.map((row) => {
+              if (row.id !== contentPanelGridCell.rowId) {
+                return row;
+              }
+
+              const cells = [...row.cells];
+
+              while (cells.length < panel.grid.columns.length) {
+                const targetColumn = panel.grid.columns[cells.length];
+
+                cells.push({
+                  id: makeClientId("cell"),
+                  type: targetColumn?.type ?? "text",
+                  value: "",
+                });
+              }
+
+              cells[contentPanelGridCell.columnIndex] = {
+                ...cells[contentPanelGridCell.columnIndex],
+                type: "image",
+                imageUrl: uploaded.url,
+                imageStoragePath: uploaded.storagePath,
+                imageAlt: file.name,
+              };
+
+              return {
+                ...row,
+                cells,
+              };
+            }),
+          },
+        };
+      }),
     },
   };
 }
@@ -18022,11 +18078,40 @@ onClick={() =>
                   {column.label || `Column ${columnIndex + 1}`}
                 </div>
 
-                {(column.type ?? "text") === "image" ? (
-                  <div className="mt-2 rounded-xl border border-dashed border-neutral-300 bg-neutral-50 p-3 text-sm text-neutral-500">
-                    Image cell upload comes next.
-                  </div>
-                ) : (
+{(column.type ?? "text") === "image" ? (
+  <div className="mt-2 rounded-xl border border-dashed border-neutral-300 bg-neutral-50 p-3">
+    {cell.imageUrl ? (
+      <img
+        src={cell.imageUrl}
+        alt={cell.imageAlt || column.label}
+        className="mb-3 h-20 w-20 rounded-lg object-cover"
+      />
+    ) : null}
+
+    <button
+      type="button"
+      className={toolSetButtonClass("front")}
+      onClick={() =>
+        void uploadImageToSelectedBlock(
+          selectedBlock.id,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          {
+            panelId: panel.id,
+            rowId: row.id,
+            columnIndex,
+          },
+        )
+      }
+    >
+      {cell.imageUrl ? "Replace Image" : "Upload Image"}
+    </button>
+  </div>
+) : (
                   <input
                     type="text"
                     value={cell.value ?? ""}
