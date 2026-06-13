@@ -413,15 +413,15 @@ function Style1EastWestBracket({
       match.division === "finals" || getRoundName(match) === "Championship",
   );
 
-  return (
-    <div className="min-w-max">
-      <div
-        className="grid items-start"
-        style={{
-          gridTemplateColumns: "1fr 260px 1fr",
-          columnGap: options.bracketColumnSpacing,
-        }}
-      >
+return (
+  <div className="flex w-full justify-center">
+    <div
+      className="grid items-start"
+      style={{
+        gridTemplateColumns: `${options.matchCardColumnWidth * 3 + options.bracketColumnSpacing * 2}px 260px ${options.matchCardColumnWidth * 3 + options.bracketColumnSpacing * 2}px`,
+        columnGap: options.bracketColumnSpacing,
+      }}
+    >
         <BracketSide
           label={leftDivisionLabel || "West Division"}
           align="left"
