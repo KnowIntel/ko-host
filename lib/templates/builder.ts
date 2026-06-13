@@ -1773,11 +1773,44 @@ export type PostBoardBlock = BaseBlock & {
   };
 };
 
+export type ContentPanelContentStyle = "plain_text" | "list_grid";
+
+export type ContentPanelGridCell = {
+  id: string;
+  type?: "text" | "image";
+  value?: string;
+  imageUrl?: string;
+  imageStoragePath?: string;
+  imageAlt?: string;
+};
+
+export type ContentPanelGridColumn = {
+  id: string;
+  label: string;
+  type?: "text" | "image";
+};
+
+export type ContentPanelGridRow = {
+  id: string;
+  cells: ContentPanelGridCell[];
+};
+
+export type ContentPanelGrid = {
+  columns: ContentPanelGridColumn[];
+  rows: ContentPanelGridRow[];
+  showRowLines?: boolean;
+  showColumnLines?: boolean;
+  showHeaderRow?: boolean;
+  freezeHeaderRow?: boolean;
+};
+
 export type ContentPanel = {
   id: string;
   title: string;
   subtitle?: string;
   content?: string;
+  contentStyle?: ContentPanelContentStyle;
+  grid?: ContentPanelGrid;
   imageUrl?: string;
   imageStoragePath?: string;
   imageAlt?: string;
@@ -3999,26 +4032,66 @@ case "listing":
           autoHeight: true,
           fixedHeight: 420,
           panels: [
-            {
-              id: makeId("panel"),
-              title: "Overview",
-              subtitle: "Start here",
-              content:
-                "Use this panel to introduce your event, guide, menu, resources, or important details.",
-              imagePosition: "above",
-              icon: "✨",
-              badge: "",
-            },
-            {
-              id: makeId("panel"),
-              title: "Details",
-              subtitle: "Helpful information",
-              content:
-                "Add schedules, instructions, frequently asked questions, resources, or next steps.",
-              imagePosition: "above",
-              icon: "📌",
-              badge: "",
-            },
+{
+  id: makeId("panel"),
+  title: "Overview",
+  subtitle: "Start here",
+  content:
+    "Use this panel to introduce your event, guide, menu, resources, or important details.",
+  contentStyle: "plain_text",
+  grid: {
+    showRowLines: false,
+    showColumnLines: false,
+    showHeaderRow: true,
+    freezeHeaderRow: true,
+    columns: [
+      { id: makeId("col"), label: "Item", type: "text" },
+      { id: makeId("col"), label: "Details", type: "text" },
+    ],
+    rows: [
+      {
+        id: makeId("row"),
+        cells: [
+          { id: makeId("cell"), type: "text", value: "Example item" },
+          { id: makeId("cell"), type: "text", value: "Example details" },
+        ],
+      },
+    ],
+  },
+  imagePosition: "above",
+  icon: "✨",
+  badge: "",
+},
+{
+  id: makeId("panel"),
+  title: "Details",
+  subtitle: "Helpful information",
+  content:
+    "Add schedules, instructions, frequently asked questions, resources, or next steps.",
+  contentStyle: "plain_text",
+  grid: {
+    showRowLines: false,
+    showColumnLines: false,
+    showHeaderRow: true,
+    freezeHeaderRow: true,
+    columns: [
+      { id: makeId("col"), label: "Item", type: "text" },
+      { id: makeId("col"), label: "Details", type: "text" },
+    ],
+    rows: [
+      {
+        id: makeId("row"),
+        cells: [
+          { id: makeId("cell"), type: "text", value: "Example item" },
+          { id: makeId("cell"), type: "text", value: "Example details" },
+        ],
+      },
+    ],
+  },
+  imagePosition: "above",
+  icon: "📌",
+  badge: "",
+},
           ],
 
           style: createDefaultTextStyle(),

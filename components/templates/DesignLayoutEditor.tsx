@@ -17078,112 +17078,112 @@ onClick={() =>
     </div>
 
     <div className="mt-4">
-  <div className={inspectorLabelClass()}>Style Target</div>
-  <select
-    value={contentPanelStyleTarget}
-    onChange={(e) =>
-      setContentPanelStyleTarget(
-        e.target.value as "heading" | "subtitle" | "navigation" | "panel",
-      )
-    }
-    className={inspectorInputClass()}
-  >
-    <option value="heading">Heading</option>
-    <option value="subtitle">Subtitle</option>
-    <option value="navigation">Navigation</option>
-    <option value="panel">Panel Content</option>
-  </select>
-</div>
+      <div className={inspectorLabelClass()}>Style Target</div>
+      <select
+        value={contentPanelStyleTarget}
+        onChange={(e) =>
+          setContentPanelStyleTarget(
+            e.target.value as "heading" | "subtitle" | "navigation" | "panel",
+          )
+        }
+        className={inspectorInputClass()}
+      >
+        <option value="heading">Heading</option>
+        <option value="subtitle">Subtitle</option>
+        <option value="navigation">Navigation</option>
+        <option value="panel">Panel Content</option>
+      </select>
+    </div>
 
-<div className="mt-4 grid grid-cols-2 gap-3">
-  <div>
-    <div className={inspectorLabelClass()}>Active Nav Background</div>
-    <input
-      type="color"
-      value={(selectedBlock.data as any).activeNavigationBackground ?? "#dbeafe"}
-      onChange={(e) =>
-        updateSelectedBlock((block) =>
-          block.type !== "content_panel"
-            ? block
-            : {
-                ...block,
-                data: {
-                  ...block.data,
-                  activeNavigationBackground: e.target.value,
-                },
-              },
-        )
-      }
-      className="mt-2 h-10 w-full rounded-xl border border-neutral-300 bg-white"
-    />
-  </div>
+    <div className="mt-4 grid grid-cols-2 gap-3">
+      <div>
+        <div className={inspectorLabelClass()}>Active Nav Background</div>
+        <input
+          type="color"
+          value={(selectedBlock.data as any).activeNavigationBackground ?? "#dbeafe"}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "content_panel"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      activeNavigationBackground: e.target.value,
+                    },
+                  },
+            )
+          }
+          className="mt-2 h-10 w-full rounded-xl border border-neutral-300 bg-white"
+        />
+      </div>
 
-  <div>
-    <div className={inspectorLabelClass()}>Active Nav Text</div>
-    <input
-      type="color"
-      value={(selectedBlock.data as any).activeNavigationColor ?? "#1d4ed8"}
-      onChange={(e) =>
-        updateSelectedBlock((block) =>
-          block.type !== "content_panel"
-            ? block
-            : {
-                ...block,
-                data: {
-                  ...block.data,
-                  activeNavigationColor: e.target.value,
-                },
-              },
-        )
-      }
-      className="mt-2 h-10 w-full rounded-xl border border-neutral-300 bg-white"
-    />
-  </div>
+      <div>
+        <div className={inspectorLabelClass()}>Active Nav Text</div>
+        <input
+          type="color"
+          value={(selectedBlock.data as any).activeNavigationColor ?? "#1d4ed8"}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "content_panel"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      activeNavigationColor: e.target.value,
+                    },
+                  },
+            )
+          }
+          className="mt-2 h-10 w-full rounded-xl border border-neutral-300 bg-white"
+        />
+      </div>
 
-  <div>
-    <div className={inspectorLabelClass()}>Inactive Nav Background</div>
-    <input
-      type="color"
-      value={(selectedBlock.data as any).inactiveNavigationBackground ?? "#ffffff"}
-      onChange={(e) =>
-        updateSelectedBlock((block) =>
-          block.type !== "content_panel"
-            ? block
-            : {
-                ...block,
-                data: {
-                  ...block.data,
-                  inactiveNavigationBackground: e.target.value,
-                },
-              },
-        )
-      }
-      className="mt-2 h-10 w-full rounded-xl border border-neutral-300 bg-white"
-    />
-  </div>
+      <div>
+        <div className={inspectorLabelClass()}>Inactive Nav Background</div>
+        <input
+          type="color"
+          value={(selectedBlock.data as any).inactiveNavigationBackground ?? "#ffffff"}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "content_panel"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      inactiveNavigationBackground: e.target.value,
+                    },
+                  },
+            )
+          }
+          className="mt-2 h-10 w-full rounded-xl border border-neutral-300 bg-white"
+        />
+      </div>
 
-  <div>
-    <div className={inspectorLabelClass()}>Panel Background</div>
-    <input
-      type="color"
-      value={(selectedBlock.data as any).panelBackground ?? "#f9fafb"}
-      onChange={(e) =>
-        updateSelectedBlock((block) =>
-          block.type !== "content_panel"
-            ? block
-            : {
-                ...block,
-                data: {
-                  ...block.data,
-                  panelBackground: e.target.value,
-                },
-              },
-        )
-      }
-      className="mt-2 h-10 w-full rounded-xl border border-neutral-300 bg-white"
-    />
-  </div>
-</div>
+      <div>
+        <div className={inspectorLabelClass()}>Panel Background</div>
+        <input
+          type="color"
+          value={(selectedBlock.data as any).panelBackground ?? "#f9fafb"}
+          onChange={(e) =>
+            updateSelectedBlock((block) =>
+              block.type !== "content_panel"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      panelBackground: e.target.value,
+                    },
+                  },
+            )
+          }
+          className="mt-2 h-10 w-full rounded-xl border border-neutral-300 bg-white"
+        />
+      </div>
+    </div>
 
     <div className="mt-4 grid grid-cols-2 gap-2">
       <label className="flex items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm">
@@ -17258,189 +17258,132 @@ onClick={() =>
     <div className="mt-5 space-y-3">
       <div className={inspectorLabelClass()}>Panels</div>
 
-      {selectedBlock.data.panels.map((panel, panelIndex) => (
-        <div
-          key={panel.id}
-          className="rounded-xl border border-neutral-200 bg-neutral-50 p-3"
-        >
-          <div className="flex items-center justify-between gap-2">
-            <div className="text-xs font-semibold text-neutral-700">
-              Panel {panelIndex + 1}
-            </div>
+      {selectedBlock.data.panels.map((panel, panelIndex) => {
+        const safeGrid = {
+          columns: panel.grid?.columns ?? [
+            { id: makeClientId("col"), label: "Item", type: "text" as const },
+            { id: makeClientId("col"), label: "Details", type: "text" as const },
+          ],
+          rows: panel.grid?.rows ?? [
+            {
+              id: makeClientId("row"),
+              cells: [
+                { id: makeClientId("cell"), type: "text" as const, value: "" },
+                { id: makeClientId("cell"), type: "text" as const, value: "" },
+              ],
+            },
+          ],
+          showRowLines: Boolean(panel.grid?.showRowLines),
+          showColumnLines: Boolean(panel.grid?.showColumnLines),
+          showHeaderRow: panel.grid?.showHeaderRow !== false,
+          freezeHeaderRow: panel.grid?.freezeHeaderRow !== false,
+        };
 
-            <div className="flex gap-1">
-              <button
-                type="button"
-                className={toolSetButtonClass("back")}
-                onClick={() =>
-                  updateSelectedBlock((block) => {
-                    if (block.type !== "content_panel") return block;
+        return (
+          <div
+            key={panel.id}
+            className="rounded-xl border border-neutral-200 bg-neutral-50 p-3"
+          >
+            <div className="flex items-center justify-between gap-2">
+              <div className="text-xs font-semibold text-neutral-700">
+                Panel {panelIndex + 1}
+              </div>
 
-                    const panels = [...block.data.panels];
-                    const previous = panels[panelIndex - 1];
+              <div className="flex gap-1">
+                <button
+                  type="button"
+                  className={toolSetButtonClass("back")}
+                  onClick={() =>
+                    updateSelectedBlock((block) => {
+                      if (block.type !== "content_panel") return block;
 
-                    if (!previous) return block;
+                      const panels = [...block.data.panels];
+                      const previous = panels[panelIndex - 1];
 
-                    panels[panelIndex - 1] = panels[panelIndex];
-                    panels[panelIndex] = previous;
+                      if (!previous) return block;
 
-                    return {
-                      ...block,
-                      data: {
-                        ...block.data,
-                        panels,
-                      },
-                    };
-                  })
-                }
-              >
-                ↑
-              </button>
+                      panels[panelIndex - 1] = panels[panelIndex];
+                      panels[panelIndex] = previous;
 
-              <button
-                type="button"
-                className={toolSetButtonClass("front")}
-                onClick={() =>
-                  updateSelectedBlock((block) => {
-                    if (block.type !== "content_panel") return block;
+                      return {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          panels,
+                        },
+                      };
+                    })
+                  }
+                >
+                  ↑
+                </button>
 
-                    const panels = [...block.data.panels];
-                    const next = panels[panelIndex + 1];
+                <button
+                  type="button"
+                  className={toolSetButtonClass("front")}
+                  onClick={() =>
+                    updateSelectedBlock((block) => {
+                      if (block.type !== "content_panel") return block;
 
-                    if (!next) return block;
+                      const panels = [...block.data.panels];
+                      const next = panels[panelIndex + 1];
 
-                    panels[panelIndex + 1] = panels[panelIndex];
-                    panels[panelIndex] = next;
+                      if (!next) return block;
 
-                    return {
-                      ...block,
-                      data: {
-                        ...block.data,
-                        panels,
-                      },
-                    };
-                  })
-                }
-              >
-                ↓
-              </button>
+                      panels[panelIndex + 1] = panels[panelIndex];
+                      panels[panelIndex] = next;
 
-              <button
-                type="button"
-                className={toolSetButtonClass("remove")}
-                onClick={() =>
-                  updateSelectedBlock((block) =>
-                    block.type !== "content_panel"
-                      ? block
-                      : {
-                          ...block,
-                          data: {
-                            ...block.data,
-                            panels:
-                              block.data.panels.length > 1
-                                ? block.data.panels.filter(
-                                    (item) => item.id !== panel.id,
-                                  )
-                                : block.data.panels,
-                            defaultPanelId:
-                              block.data.defaultPanelId === panel.id
-                                ? block.data.panels.find(
-                                    (item) => item.id !== panel.id,
-                                  )?.id
-                                : block.data.defaultPanelId,
+                      return {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          panels,
+                        },
+                      };
+                    })
+                  }
+                >
+                  ↓
+                </button>
+
+                <button
+                  type="button"
+                  className={toolSetButtonClass("remove")}
+                  onClick={() =>
+                    updateSelectedBlock((block) =>
+                      block.type !== "content_panel"
+                        ? block
+                        : {
+                            ...block,
+                            data: {
+                              ...block.data,
+                              panels:
+                                block.data.panels.length > 1
+                                  ? block.data.panels.filter(
+                                      (item) => item.id !== panel.id,
+                                    )
+                                  : block.data.panels,
+                              defaultPanelId:
+                                block.data.defaultPanelId === panel.id
+                                  ? block.data.panels.find(
+                                      (item) => item.id !== panel.id,
+                                    )?.id
+                                  : block.data.defaultPanelId,
+                            },
                           },
-                        },
-                  )
-                }
-              >
-                ×
-              </button>
+                    )
+                  }
+                >
+                  ×
+                </button>
+              </div>
             </div>
-          </div>
 
-          <div className="mt-3">
-            <div className={inspectorLabelClass()}>Title</div>
-            <input
-              type="text"
-              value={panel.title}
-              onChange={(e) =>
-                updateSelectedBlock((block) =>
-                  block.type !== "content_panel"
-                    ? block
-                    : {
-                        ...block,
-                        data: {
-                          ...block.data,
-                          panels: block.data.panels.map((item) =>
-                            item.id === panel.id
-                              ? { ...item, title: e.target.value }
-                              : item,
-                          ),
-                        },
-                      },
-                )
-              }
-              className={inspectorInputClass()}
-            />
-          </div>
-
-          <div className="mt-3">
-            <div className={inspectorLabelClass()}>Subtitle</div>
-            <input
-              type="text"
-              value={panel.subtitle ?? ""}
-              onChange={(e) =>
-                updateSelectedBlock((block) =>
-                  block.type !== "content_panel"
-                    ? block
-                    : {
-                        ...block,
-                        data: {
-                          ...block.data,
-                          panels: block.data.panels.map((item) =>
-                            item.id === panel.id
-                              ? { ...item, subtitle: e.target.value }
-                              : item,
-                          ),
-                        },
-                      },
-                )
-              }
-              className={inspectorInputClass()}
-            />
-          </div>
-
-          <div className="mt-3">
-            <div className={inspectorLabelClass()}>Content</div>
-            <textarea
-              value={panel.content ?? ""}
-              onChange={(e) =>
-                updateSelectedBlock((block) =>
-                  block.type !== "content_panel"
-                    ? block
-                    : {
-                        ...block,
-                        data: {
-                          ...block.data,
-                          panels: block.data.panels.map((item) =>
-                            item.id === panel.id
-                              ? { ...item, content: e.target.value }
-                              : item,
-                          ),
-                        },
-                      },
-                )
-              }
-              className={inspectorTextareaClass()}
-            />
-          </div>
-
-          <div className="mt-3 grid grid-cols-2 gap-2">
-            <div>
-              <div className={inspectorLabelClass()}>Icon</div>
+            <div className="mt-3">
+              <div className={inspectorLabelClass()}>Title</div>
               <input
                 type="text"
-                value={panel.icon ?? ""}
+                value={panel.title}
                 onChange={(e) =>
                   updateSelectedBlock((block) =>
                     block.type !== "content_panel"
@@ -17451,7 +17394,7 @@ onClick={() =>
                             ...block.data,
                             panels: block.data.panels.map((item) =>
                               item.id === panel.id
-                                ? { ...item, icon: e.target.value }
+                                ? { ...item, title: e.target.value }
                                 : item,
                             ),
                           },
@@ -17459,15 +17402,14 @@ onClick={() =>
                   )
                 }
                 className={inspectorInputClass()}
-                placeholder="✨"
               />
             </div>
 
-            <div>
-              <div className={inspectorLabelClass()}>Badge</div>
+            <div className="mt-3">
+              <div className={inspectorLabelClass()}>Subtitle</div>
               <input
                 type="text"
-                value={panel.badge ?? ""}
+                value={panel.subtitle ?? ""}
                 onChange={(e) =>
                   updateSelectedBlock((block) =>
                     block.type !== "content_panel"
@@ -17478,7 +17420,7 @@ onClick={() =>
                             ...block.data,
                             panels: block.data.panels.map((item) =>
                               item.id === panel.id
-                                ? { ...item, badge: e.target.value }
+                                ? { ...item, subtitle: e.target.value }
                                 : item,
                             ),
                           },
@@ -17486,96 +17428,674 @@ onClick={() =>
                   )
                 }
                 className={inspectorInputClass()}
-                placeholder="New"
               />
             </div>
+
+            <div className="mt-4">
+              <div className={inspectorLabelClass()}>Content Style</div>
+              <select
+                value={panel.contentStyle ?? "plain_text"}
+                onChange={(e) =>
+                  updateSelectedBlock((block) =>
+                    block.type !== "content_panel"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            panels: block.data.panels.map((item) =>
+                              item.id === panel.id
+                                ? {
+                                    ...item,
+                                    contentStyle: e.target.value as
+                                      | "plain_text"
+                                      | "list_grid",
+                                    grid: item.grid ?? safeGrid,
+                                  }
+                                : item,
+                            ),
+                          },
+                        },
+                  )
+                }
+                className={inspectorInputClass()}
+              >
+                <option value="plain_text">Plain Text</option>
+                <option value="list_grid">List Grid</option>
+              </select>
+            </div>
+
+            {panel.contentStyle !== "list_grid" ? (
+              <div className="mt-3">
+                <div className={inspectorLabelClass()}>Content</div>
+                <textarea
+                  value={panel.content ?? ""}
+                  onChange={(e) =>
+                    updateSelectedBlock((block) =>
+                      block.type !== "content_panel"
+                        ? block
+                        : {
+                            ...block,
+                            data: {
+                              ...block.data,
+                              panels: block.data.panels.map((item) =>
+                                item.id === panel.id
+                                  ? { ...item, content: e.target.value }
+                                  : item,
+                              ),
+                            },
+                          },
+                    )
+                  }
+                  className={inspectorTextareaClass()}
+                />
+              </div>
+            ) : (
+              <div className="mt-4 rounded-xl border border-neutral-200 bg-white p-3">
+                <div className={inspectorLabelClass()}>Grid Options</div>
+
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  {[
+                    ["showRowLines", "Row Lines"],
+                    ["showColumnLines", "Column Lines"],
+                    ["showHeaderRow", "Header Row"],
+                    ["freezeHeaderRow", "Freeze Header"],
+                  ].map(([key, label]) => (
+                    <label
+                      key={key}
+                      className="flex items-center gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={
+                          key === "showRowLines"
+                            ? safeGrid.showRowLines
+                            : key === "showColumnLines"
+                              ? safeGrid.showColumnLines
+                              : key === "showHeaderRow"
+                                ? safeGrid.showHeaderRow
+                                : safeGrid.freezeHeaderRow
+                        }
+                        onChange={(e) =>
+                          updateSelectedBlock((block) =>
+                            block.type !== "content_panel"
+                              ? block
+                              : {
+                                  ...block,
+                                  data: {
+                                    ...block.data,
+                                    panels: block.data.panels.map((item) =>
+                                      item.id === panel.id
+                                        ? {
+                                            ...item,
+                                            grid: {
+                                              columns:
+                                                item.grid?.columns ??
+                                                safeGrid.columns,
+                                              rows:
+                                                item.grid?.rows ??
+                                                safeGrid.rows,
+                                              showRowLines:
+                                                key === "showRowLines"
+                                                  ? e.target.checked
+                                                  : Boolean(
+                                                      item.grid?.showRowLines,
+                                                    ),
+                                              showColumnLines:
+                                                key === "showColumnLines"
+                                                  ? e.target.checked
+                                                  : Boolean(
+                                                      item.grid
+                                                        ?.showColumnLines,
+                                                    ),
+                                              showHeaderRow:
+                                                key === "showHeaderRow"
+                                                  ? e.target.checked
+                                                  : item.grid
+                                                      ?.showHeaderRow !== false,
+                                              freezeHeaderRow:
+                                                key === "freezeHeaderRow"
+                                                  ? e.target.checked
+                                                  : item.grid
+                                                      ?.freezeHeaderRow !==
+                                                    false,
+                                            },
+                                          }
+                                        : item,
+                                    ),
+                                  },
+                                },
+                          )
+                        }
+                      />
+                      {label}
+                    </label>
+                  ))}
+                </div>
+
+                <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+                  <div className={inspectorLabelClass()}>Columns</div>
+
+                  <div className="mt-3 space-y-3">
+                    {safeGrid.columns.map((column, columnIndex) => (
+                      <div
+                        key={column.id}
+                        className="rounded-xl border border-neutral-200 bg-white p-3"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="text-xs font-semibold text-neutral-700">
+                            Column {columnIndex + 1}
+                          </div>
+
+                          <div className="flex gap-1">
+                            <button
+                              type="button"
+                              className={toolSetButtonClass("back")}
+                              onClick={() =>
+                                updateSelectedBlock((block) => {
+                                  if (block.type !== "content_panel") return block;
+
+                                  return {
+                                    ...block,
+                                    data: {
+                                      ...block.data,
+                                      panels: block.data.panels.map((item) => {
+                                        if (item.id !== panel.id) return item;
+
+                                        const grid = item.grid ?? safeGrid;
+                                        const columns = [...grid.columns];
+                                        const previous = columns[columnIndex - 1];
+
+                                        if (!previous) return item;
+
+                                        columns[columnIndex - 1] =
+                                          columns[columnIndex];
+                                        columns[columnIndex] = previous;
+
+                                        return {
+                                          ...item,
+                                          grid: {
+                                            ...grid,
+                                            columns,
+                                          },
+                                        };
+                                      }),
+                                    },
+                                  };
+                                })
+                              }
+                            >
+                              ↑
+                            </button>
+
+                            <button
+                              type="button"
+                              className={toolSetButtonClass("front")}
+                              onClick={() =>
+                                updateSelectedBlock((block) => {
+                                  if (block.type !== "content_panel") return block;
+
+                                  return {
+                                    ...block,
+                                    data: {
+                                      ...block.data,
+                                      panels: block.data.panels.map((item) => {
+                                        if (item.id !== panel.id) return item;
+
+                                        const grid = item.grid ?? safeGrid;
+                                        const columns = [...grid.columns];
+                                        const next = columns[columnIndex + 1];
+
+                                        if (!next) return item;
+
+                                        columns[columnIndex + 1] =
+                                          columns[columnIndex];
+                                        columns[columnIndex] = next;
+
+                                        return {
+                                          ...item,
+                                          grid: {
+                                            ...grid,
+                                            columns,
+                                          },
+                                        };
+                                      }),
+                                    },
+                                  };
+                                })
+                              }
+                            >
+                              ↓
+                            </button>
+
+                            <button
+                              type="button"
+                              className={toolSetButtonClass("remove")}
+                              onClick={() =>
+                                updateSelectedBlock((block) =>
+                                  block.type !== "content_panel"
+                                    ? block
+                                    : {
+                                        ...block,
+                                        data: {
+                                          ...block.data,
+                                          panels: block.data.panels.map((item) => {
+                                            if (item.id !== panel.id) return item;
+
+                                            const grid = item.grid ?? safeGrid;
+
+                                            if (grid.columns.length <= 1) {
+                                              return item;
+                                            }
+
+                                            return {
+                                              ...item,
+                                              grid: {
+                                                ...grid,
+                                                columns: grid.columns.filter(
+                                                  (entry) =>
+                                                    entry.id !== column.id,
+                                                ),
+                                                rows: grid.rows.map((row) => ({
+                                                  ...row,
+                                                  cells: row.cells.filter(
+                                                    (_cell, cellIndex) =>
+                                                      cellIndex !== columnIndex,
+                                                  ),
+                                                })),
+                                              },
+                                            };
+                                          }),
+                                        },
+                                      },
+                                )
+                              }
+                            >
+                              ×
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="mt-3">
+                          <div className={inspectorLabelClass()}>
+                            Column Label
+                          </div>
+                          <input
+                            type="text"
+                            value={column.label}
+                            onChange={(e) =>
+                              updateSelectedBlock((block) =>
+                                block.type !== "content_panel"
+                                  ? block
+                                  : {
+                                      ...block,
+                                      data: {
+                                        ...block.data,
+                                        panels: block.data.panels.map((item) => {
+                                          if (item.id !== panel.id) return item;
+
+                                          const grid = item.grid ?? safeGrid;
+
+                                          return {
+                                            ...item,
+                                            grid: {
+                                              ...grid,
+                                              columns: grid.columns.map(
+                                                (entry) =>
+                                                  entry.id === column.id
+                                                    ? {
+                                                        ...entry,
+                                                        label: e.target.value,
+                                                      }
+                                                    : entry,
+                                              ),
+                                            },
+                                          };
+                                        }),
+                                      },
+                                    },
+                              )
+                            }
+                            className={inspectorInputClass()}
+                          />
+                        </div>
+
+                        <div className="mt-3">
+                          <div className={inspectorLabelClass()}>
+                            Column Type
+                          </div>
+                          <select
+                            value={column.type ?? "text"}
+                            onChange={(e) =>
+                              updateSelectedBlock((block) =>
+                                block.type !== "content_panel"
+                                  ? block
+                                  : {
+                                      ...block,
+                                      data: {
+                                        ...block.data,
+                                        panels: block.data.panels.map((item) => {
+                                          if (item.id !== panel.id) return item;
+
+                                          const grid = item.grid ?? safeGrid;
+
+                                          return {
+                                            ...item,
+                                            grid: {
+                                              ...grid,
+                                              columns: grid.columns.map(
+                                                (entry) =>
+                                                  entry.id === column.id
+                                                    ? {
+                                                        ...entry,
+                                                        type: e.target.value as
+                                                          | "text"
+                                                          | "image",
+                                                      }
+                                                    : entry,
+                                              ),
+                                              rows: grid.rows.map((row) => ({
+                                                ...row,
+                                                cells: row.cells.map(
+                                                  (cell, cellIndex) =>
+                                                    cellIndex === columnIndex
+                                                      ? {
+                                                          ...cell,
+                                                          type: e.target.value as
+                                                            | "text"
+                                                            | "image",
+                                                        }
+                                                      : cell,
+                                                ),
+                                              })),
+                                            },
+                                          };
+                                        }),
+                                      },
+                                    },
+                              )
+                            }
+                            className={inspectorInputClass()}
+                          >
+                            <option value="text">Text</option>
+                            <option value="image">Image</option>
+                          </select>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <button
+                    type="button"
+                    className={`${toolSetButtonClass("front")} mt-3`}
+                    onClick={() =>
+                      updateSelectedBlock((block) =>
+                        block.type !== "content_panel"
+                          ? block
+                          : {
+                              ...block,
+                              data: {
+                                ...block.data,
+                                panels: block.data.panels.map((item) => {
+                                  if (item.id !== panel.id) return item;
+
+                                  const grid = item.grid ?? safeGrid;
+
+                                  return {
+                                    ...item,
+                                    grid: {
+                                      ...grid,
+                                      columns: [
+                                        ...grid.columns,
+                                        {
+                                          id: makeClientId("col"),
+                                          label: "New Column",
+                                          type: "text" as const,
+                                        },
+                                      ],
+                                      rows: grid.rows.map((row) => ({
+                                        ...row,
+                                        cells: [
+                                          ...row.cells,
+                                          {
+                                            id: makeClientId("cell"),
+                                            type: "text" as const,
+                                            value: "",
+                                          },
+                                        ],
+                                      })),
+                                    },
+                                  };
+                                }),
+                              },
+                            },
+                      )
+                    }
+                  >
+                    Add Column
+                  </button>
+                </div>
+
+<div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+  <div className={inspectorLabelClass()}>Rows</div>
+
+  <div className="mt-3 space-y-3">
+    {safeGrid.rows.map((row, rowIndex) => (
+      <div
+        key={row.id}
+        className="rounded-xl border border-neutral-200 bg-white p-3"
+      >
+        <div className="flex items-center justify-between gap-2">
+          <div className="text-xs font-semibold text-neutral-700">
+            Row {rowIndex + 1}
           </div>
 
-          <div className="mt-3">
-            <div className={inspectorLabelClass()}>Image URL</div>
-            <input
-              type="text"
-              value={panel.imageUrl ?? ""}
-              onChange={(e) =>
-                updateSelectedBlock((block) =>
-                  block.type !== "content_panel"
-                    ? block
-                    : {
-                        ...block,
-                        data: {
-                          ...block.data,
-                          panels: block.data.panels.map((item) =>
-                            item.id === panel.id
-                              ? { ...item, imageUrl: e.target.value }
-                              : item,
-                          ),
-                        },
-                      },
-                )
-              }
-              className={inspectorInputClass()}
-              placeholder="https://..."
-            />
-          </div>
+          <div className="flex gap-1">
+            <button
+              type="button"
+              className={toolSetButtonClass("back")}
+              onClick={() =>
+                updateSelectedBlock((block) => {
+                  if (block.type !== "content_panel") return block;
 
-          <button
-  type="button"
-  className="mt-3 inline-flex h-11 items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-sm text-neutral-700 hover:bg-neutral-50"
-  onClick={() =>
-    void uploadImageToSelectedBlock(
-      selectedBlock.id,
-      undefined,
-      undefined,
-      undefined,
-      panel.id,
-    )
-  }
->
-  Browse Panel Image
-</button>
+                  return {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      panels: block.data.panels.map((item) => {
+                        if (item.id !== panel.id) return item;
 
-          <div className="mt-3">
-            <div className={inspectorLabelClass()}>Image Position</div>
-            <select
-              value={panel.imagePosition ?? "above"}
-              onChange={(e) =>
-                updateSelectedBlock((block) =>
-                  block.type !== "content_panel"
-                    ? block
-                    : {
-                        ...block,
-                        data: {
-                          ...block.data,
-                          panels: block.data.panels.map((item) =>
-                            item.id === panel.id
-                              ? {
-                                  ...item,
-                                  imagePosition: e.target.value as
-                                    | "above"
-                                    | "below"
-                                    | "left"
-                                    | "right",
-                                }
-                              : item,
-                          ),
-                        },
-                      },
-                )
+                        const grid = item.grid ?? safeGrid;
+                        const rows = [...grid.rows];
+                        const previous = rows[rowIndex - 1];
+
+                        if (!previous) return item;
+
+                        rows[rowIndex - 1] = rows[rowIndex];
+                        rows[rowIndex] = previous;
+
+                        return {
+                          ...item,
+                          grid: {
+                            ...grid,
+                            rows,
+                          },
+                        };
+                      }),
+                    },
+                  };
+                })
               }
-              className={inspectorInputClass()}
             >
-              <option value="above">Above</option>
-              <option value="below">Below</option>
-              <option value="left">Left</option>
-              <option value="right">Right</option>
-            </select>
-          </div>
+              ↑
+            </button>
 
-          <label className="mt-3 flex items-center gap-3 rounded-xl border border-neutral-200 bg-white px-3 py-3 text-sm text-neutral-800">
-  <input
-    type="checkbox"
-    checked={Boolean(panel.featured)}
-    onChange={(e) =>
+            <button
+              type="button"
+              className={toolSetButtonClass("front")}
+              onClick={() =>
+                updateSelectedBlock((block) => {
+                  if (block.type !== "content_panel") return block;
+
+                  return {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      panels: block.data.panels.map((item) => {
+                        if (item.id !== panel.id) return item;
+
+                        const grid = item.grid ?? safeGrid;
+                        const rows = [...grid.rows];
+                        const next = rows[rowIndex + 1];
+
+                        if (!next) return item;
+
+                        rows[rowIndex + 1] = rows[rowIndex];
+                        rows[rowIndex] = next;
+
+                        return {
+                          ...item,
+                          grid: {
+                            ...grid,
+                            rows,
+                          },
+                        };
+                      }),
+                    },
+                  };
+                })
+              }
+            >
+              ↓
+            </button>
+
+            <button
+              type="button"
+              className={toolSetButtonClass("remove")}
+              onClick={() =>
+                updateSelectedBlock((block) =>
+                  block.type !== "content_panel"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          panels: block.data.panels.map((item) => {
+                            if (item.id !== panel.id) return item;
+
+                            const grid = item.grid ?? safeGrid;
+
+                            if (grid.rows.length <= 1) return item;
+
+                            return {
+                              ...item,
+                              grid: {
+                                ...grid,
+                                rows: grid.rows.filter(
+                                  (entry) => entry.id !== row.id,
+                                ),
+                              },
+                            };
+                          }),
+                        },
+                      },
+                )
+              }
+            >
+              ×
+            </button>
+          </div>
+        </div>
+
+        <div className="mt-3 space-y-3">
+          {safeGrid.columns.map((column, columnIndex) => {
+            const cell =
+              row.cells[columnIndex] ?? {
+                id: makeClientId("cell"),
+                type: column.type ?? "text",
+                value: "",
+              };
+
+            return (
+              <div key={`${row.id}-${column.id}`}>
+                <div className={inspectorLabelClass()}>
+                  {column.label || `Column ${columnIndex + 1}`}
+                </div>
+
+                {(column.type ?? "text") === "image" ? (
+                  <div className="mt-2 rounded-xl border border-dashed border-neutral-300 bg-neutral-50 p-3 text-sm text-neutral-500">
+                    Image cell upload comes next.
+                  </div>
+                ) : (
+                  <input
+                    type="text"
+                    value={cell.value ?? ""}
+                    onChange={(e) =>
+                      updateSelectedBlock((block) =>
+                        block.type !== "content_panel"
+                          ? block
+                          : {
+                              ...block,
+                              data: {
+                                ...block.data,
+                                panels: block.data.panels.map((item) => {
+                                  if (item.id !== panel.id) return item;
+
+                                  const grid = item.grid ?? safeGrid;
+
+                                  return {
+                                    ...item,
+                                    grid: {
+                                      ...grid,
+                                      rows: grid.rows.map((entry) => {
+                                        if (entry.id !== row.id) return entry;
+
+                                        const cells = [...entry.cells];
+
+                                        while (cells.length < grid.columns.length) {
+                                          const targetColumn =
+                                            grid.columns[cells.length];
+
+                                          cells.push({
+                                            id: makeClientId("cell"),
+                                            type: targetColumn?.type ?? "text",
+                                            value: "",
+                                          });
+                                        }
+
+                                        cells[columnIndex] = {
+                                          ...cells[columnIndex],
+                                          type: column.type ?? "text",
+                                          value: e.target.value,
+                                        };
+
+                                        return {
+                                          ...entry,
+                                          cells,
+                                        };
+                                      }),
+                                    },
+                                  };
+                                }),
+                              },
+                            },
+                      )
+                    }
+                    className={inspectorInputClass()}
+                  />
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    ))}
+  </div>
+
+  <button
+    type="button"
+    className={`${toolSetButtonClass("front")} mt-3`}
+    onClick={() =>
       updateSelectedBlock((block) =>
         block.type !== "content_panel"
           ? block
@@ -17583,75 +18103,259 @@ onClick={() =>
               ...block,
               data: {
                 ...block.data,
-                panels: block.data.panels.map((item) =>
-                  item.id === panel.id
-                    ? {
-                        ...item,
-                        featured: e.target.checked,
-                      }
-                    : item,
-                ),
+                panels: block.data.panels.map((item) => {
+                  if (item.id !== panel.id) return item;
+
+                  const grid = item.grid ?? safeGrid;
+
+                  return {
+                    ...item,
+                    grid: {
+                      ...grid,
+                      rows: [
+                        ...grid.rows,
+                        {
+                          id: makeClientId("row"),
+                          cells: grid.columns.map((column) => ({
+                            id: makeClientId("cell"),
+                            type: column.type ?? "text",
+                            value: "",
+                          })),
+                        },
+                      ],
+                    },
+                  };
+                }),
               },
             },
       )
     }
-  />
-  Featured Panel
-</label>
+  >
+    Add Row
+  </button>
+</div>
 
-          <div className="mt-3 flex flex-wrap gap-2">
-            <button
-              type="button"
-              className={toolSetButtonClass("front")}
-              onClick={() =>
-                updateSelectedBlock((block) =>
-                  block.type !== "content_panel"
-                    ? block
-                    : {
-                        ...block,
-                        data: {
-                          ...block.data,
-                          defaultPanelId: panel.id,
-                        },
-                      },
-                )
-              }
-            >
-              {selectedBlock.data.defaultPanelId === panel.id
-                ? "Default Panel"
-                : "Set Default"}
-            </button>
+              </div>
+            )}
 
-            <button
-              type="button"
-              className={toolSetButtonClass("front")}
-              onClick={() =>
-                updateSelectedBlock((block) =>
-                  block.type !== "content_panel"
-                    ? block
-                    : {
-                        ...block,
-                        data: {
-                          ...block.data,
-                          panels: [
-                            ...block.data.panels.slice(0, panelIndex + 1),
-                            {
-                              ...panel,
-                              id: makeClientId("panel"),
-                              title: `${panel.title || "Panel"} Copy`,
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <div>
+                <div className={inspectorLabelClass()}>Icon</div>
+                <input
+                  type="text"
+                  value={panel.icon ?? ""}
+                  onChange={(e) =>
+                    updateSelectedBlock((block) =>
+                      block.type !== "content_panel"
+                        ? block
+                        : {
+                            ...block,
+                            data: {
+                              ...block.data,
+                              panels: block.data.panels.map((item) =>
+                                item.id === panel.id
+                                  ? { ...item, icon: e.target.value }
+                                  : item,
+                              ),
                             },
-                            ...block.data.panels.slice(panelIndex + 1),
-                          ],
+                          },
+                    )
+                  }
+                  className={inspectorInputClass()}
+                  placeholder="✨"
+                />
+              </div>
+
+              <div>
+                <div className={inspectorLabelClass()}>Badge</div>
+                <input
+                  type="text"
+                  value={panel.badge ?? ""}
+                  onChange={(e) =>
+                    updateSelectedBlock((block) =>
+                      block.type !== "content_panel"
+                        ? block
+                        : {
+                            ...block,
+                            data: {
+                              ...block.data,
+                              panels: block.data.panels.map((item) =>
+                                item.id === panel.id
+                                  ? { ...item, badge: e.target.value }
+                                  : item,
+                              ),
+                            },
+                          },
+                    )
+                  }
+                  className={inspectorInputClass()}
+                  placeholder="New"
+                />
+              </div>
+            </div>
+
+            <div className="mt-3">
+              <div className={inspectorLabelClass()}>Image URL</div>
+              <input
+                type="text"
+                value={panel.imageUrl ?? ""}
+                onChange={(e) =>
+                  updateSelectedBlock((block) =>
+                    block.type !== "content_panel"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            panels: block.data.panels.map((item) =>
+                              item.id === panel.id
+                                ? { ...item, imageUrl: e.target.value }
+                                : item,
+                            ),
+                          },
                         },
-                      },
+                  )
+                }
+                className={inspectorInputClass()}
+                placeholder="https://..."
+              />
+            </div>
+
+            <button
+              type="button"
+              className="mt-3 inline-flex h-11 items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-sm text-neutral-700 hover:bg-neutral-50"
+              onClick={() =>
+                void uploadImageToSelectedBlock(
+                  selectedBlock.id,
+                  undefined,
+                  undefined,
+                  undefined,
+                  panel.id,
                 )
               }
             >
-              Duplicate
+              Browse Panel Image
             </button>
+
+            <div className="mt-3">
+              <div className={inspectorLabelClass()}>Image Position</div>
+              <select
+                value={panel.imagePosition ?? "above"}
+                onChange={(e) =>
+                  updateSelectedBlock((block) =>
+                    block.type !== "content_panel"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            panels: block.data.panels.map((item) =>
+                              item.id === panel.id
+                                ? {
+                                    ...item,
+                                    imagePosition: e.target.value as
+                                      | "above"
+                                      | "below"
+                                      | "left"
+                                      | "right",
+                                  }
+                                : item,
+                            ),
+                          },
+                        },
+                  )
+                }
+                className={inspectorInputClass()}
+              >
+                <option value="above">Above</option>
+                <option value="below">Below</option>
+                <option value="left">Left</option>
+                <option value="right">Right</option>
+              </select>
+            </div>
+
+            <label className="mt-3 flex items-center gap-3 rounded-xl border border-neutral-200 bg-white px-3 py-3 text-sm text-neutral-800">
+              <input
+                type="checkbox"
+                checked={Boolean(panel.featured)}
+                onChange={(e) =>
+                  updateSelectedBlock((block) =>
+                    block.type !== "content_panel"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            panels: block.data.panels.map((item) =>
+                              item.id === panel.id
+                                ? {
+                                    ...item,
+                                    featured: e.target.checked,
+                                  }
+                                : item,
+                            ),
+                          },
+                        },
+                  )
+                }
+              />
+              Featured Panel
+            </label>
+
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button
+                type="button"
+                className={toolSetButtonClass("front")}
+                onClick={() =>
+                  updateSelectedBlock((block) =>
+                    block.type !== "content_panel"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            defaultPanelId: panel.id,
+                          },
+                        },
+                  )
+                }
+              >
+                {selectedBlock.data.defaultPanelId === panel.id
+                  ? "Default Panel"
+                  : "Set Default"}
+              </button>
+
+              <button
+                type="button"
+                className={toolSetButtonClass("front")}
+                onClick={() =>
+                  updateSelectedBlock((block) =>
+                    block.type !== "content_panel"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            panels: [
+                              ...block.data.panels.slice(0, panelIndex + 1),
+                              {
+                                ...panel,
+                                id: makeClientId("panel"),
+                                title: `${panel.title || "Panel"} Copy`,
+                              },
+                              ...block.data.panels.slice(panelIndex + 1),
+                            ],
+                          },
+                        },
+                  )
+                }
+              >
+                Duplicate
+              </button>
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
 
       <button
         type="button"
@@ -17671,6 +18375,42 @@ onClick={() =>
                         title: "New Panel",
                         subtitle: "",
                         content: "Add your panel content here.",
+                        contentStyle: "plain_text",
+                        grid: {
+                          showRowLines: false,
+                          showColumnLines: false,
+                          showHeaderRow: true,
+                          freezeHeaderRow: true,
+                          columns: [
+                            {
+                              id: makeClientId("col"),
+                              label: "Item",
+                              type: "text",
+                            },
+                            {
+                              id: makeClientId("col"),
+                              label: "Details",
+                              type: "text",
+                            },
+                          ],
+                          rows: [
+                            {
+                              id: makeClientId("row"),
+                              cells: [
+                                {
+                                  id: makeClientId("cell"),
+                                  type: "text",
+                                  value: "",
+                                },
+                                {
+                                  id: makeClientId("cell"),
+                                  type: "text",
+                                  value: "",
+                                },
+                              ],
+                            },
+                          ],
+                        },
                         imagePosition: "above",
                         icon: "📌",
                         badge: "",

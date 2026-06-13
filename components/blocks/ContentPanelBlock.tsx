@@ -409,6 +409,15 @@ function PanelContent({
     />
   ) : null;
 
+  const body =
+    panel.contentStyle === "list_grid" ? (
+      <PanelListGrid panel={panel} panelStyle={panelStyle} />
+    ) : panel.content ? (
+      <div className="mt-3 whitespace-pre-line" style={panelCss}>
+        {panel.content}
+      </div>
+    ) : null;
+
   const text = (
     <div className="min-w-0">
       <div className="flex flex-wrap items-center gap-2">
@@ -427,14 +436,7 @@ function PanelContent({
         <div className="mt-1 text-sm opacity-75">{panel.subtitle}</div>
       ) : null}
 
-{panel.content ? (
-  <div
-    className="mt-3 whitespace-pre-line"
-    style={panelCss}
-  >
-    {panel.content}
-  </div>
-) : null}
+      {body}
     </div>
   );
 
@@ -453,6 +455,109 @@ function PanelContent({
     <div className="space-y-4">
       {panel.imagePosition === "below" ? text : image}
       {panel.imagePosition === "below" ? image : text}
+    </div>
+  );
+}
+function PanelListGrid({
+  panel,
+  panelStyle,
+}: {
+  panel: PanelItem;
+  panelStyle?: TextStyle;
+}) {
+  const panelCss = textStyleToCss(panelStyle);
+
+  const grid = panel.grid;
+  const columns = grid?.columns ?? [];
+  const rows = grid?.rows ?? [];
+
+  if (!columns.length) {
+    return (
+      <div className="mt-3 rounded-xl border border-dashed border-neutral-300 p-4 text-sm opacity-70">
+        Add columns to this grid.
+      </div>
+    );
+  }
+
+  const showRowLines = Boolean(grid?.showRowLines);
+  const showColumnLines = Boolean(grid?.showColumnLines);
+  const showHeaderRow = grid?.showHeaderRow !== false;
+  const freezeHeaderRow = grid?.freezeHeaderRow !== false;
+
+  return (
+    <div className="mt-3 max-w-full overflow-auto rounded-xl border border-neutral-200 bg-white/70">
+      <table
+        className="w-full min-w-max border-collapse text-left"
+        style={panelCss}
+      >
+        {showHeaderRow ? (
+          <thead
+            className={freezeHeaderRow ? "sticky top-0 z-10 bg-white" : ""}
+          >
+            <tr>
+              {columns.map((column) => (
+                <th
+                  key={column.id}
+                  className="px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em]"
+                  style={{
+                    ...panelCss,
+                    borderRight: showColumnLines
+                      ? "1px solid rgba(0,0,0,0.12)"
+                      : undefined,
+                    borderBottom: showRowLines
+                      ? "1px solid rgba(0,0,0,0.12)"
+                      : undefined,
+                  }}
+                >
+                  {column.label}
+                </th>
+              ))}
+            </tr>
+          </thead>
+        ) : null}
+
+        <tbody>
+          {rows.map((row) => (
+            <tr key={row.id}>
+              {columns.map((column, columnIndex) => {
+                const cell = row.cells[columnIndex];
+
+                return (
+                  <td
+                    key={`${row.id}-${column.id}`}
+                    className="px-3 py-2 align-top"
+                    style={{
+                      ...panelCss,
+                      borderRight: showColumnLines
+                        ? "1px solid rgba(0,0,0,0.12)"
+                        : undefined,
+                      borderBottom: showRowLines
+                        ? "1px solid rgba(0,0,0,0.12)"
+                        : undefined,
+                    }}
+                  >
+                    {(column.type ?? cell?.type ?? "text") === "image" ? (
+                      cell?.imageUrl ? (
+                        <img
+                          src={cell.imageUrl}
+                          alt={cell.imageAlt || column.label}
+                          className="h-16 w-16 rounded-lg object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-16 w-16 items-center justify-center rounded-lg border border-dashed border-neutral-300 text-[10px] opacity-60">
+                          Image
+                        </div>
+                      )
+                    ) : (
+                      <span>{cell?.value ?? ""}</span>
+                    )}
+                  </td>
+                );
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
