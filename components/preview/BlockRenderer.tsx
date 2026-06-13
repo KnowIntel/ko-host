@@ -11310,10 +11310,15 @@ function renderCalendarEvent(
           typeof event.addToCalendarText === "string"
             ? event.addToCalendarText
             : "Add to Calendar",
-        addToCalendarUrl:
-          typeof event.addToCalendarUrl === "string"
-            ? event.addToCalendarUrl
-            : "",
+addToCalendarUrl:
+  typeof event.addToCalendarUrl === "string"
+    ? event.addToCalendarUrl
+    : "",
+
+showLive: Boolean((event as any).showLive),
+showStartTime: (event as any).showStartTime !== false,
+showEndTime: (event as any).showEndTime !== false,
+showSubtitle: (event as any).showSubtitle !== false,
       }))
     : [];
 
@@ -11404,6 +11409,11 @@ const eventTitleTextStyle = getContainerTextStyle(
   designKey,
 );
 
+const eventSubtitleTextStyle = getContainerTextStyle(
+  (block.data as any).eventSubtitleStyle ?? block.data.style,
+  designKey,
+);
+
 const eventDateTextStyle = getContainerTextStyle(
   (block.data as any).eventDateStyle ?? block.data.style,
   designKey,
@@ -11485,6 +11495,25 @@ const eventDetailsTextStyle = getContainerTextStyle(
       year: "numeric",
     });
   }
+
+  function formatEventTime(timeValue?: string) {
+  if (!timeValue) return "";
+
+  const timeFormat = (block.data as any).timeFormat ?? "12h";
+
+  if (timeFormat === "24h") return timeValue;
+
+  const [hourRaw, minuteRaw] = timeValue.split(":");
+  const hour = Number(hourRaw);
+  const minute = Number(minuteRaw);
+
+  if (!Number.isFinite(hour) || !Number.isFinite(minute)) return timeValue;
+
+  const suffix = hour >= 12 ? "PM" : "AM";
+  const displayHour = hour % 12 || 12;
+
+  return `${displayHour}:${String(minute).padStart(2, "0")} ${suffix}`;
+}
 
   function formatCompactDate(dateValue?: string) {
     if (!dateValue) return "Date TBD";
@@ -11899,12 +11928,18 @@ const eventDetailsTextStyle = getContainerTextStyle(
                   ) : null}
 
                   <div className="mt-3 text-xs" style={eventDateTextStyle}>
-                    {formatEventDate(event.date)}
-                    {event.startTime || event.endTime
-                      ? ` • ${event.startTime || ""}${
-                          event.endTime ? ` - ${event.endTime}` : ""
-                        }`
-                      : ""}
+{formatEventDate(event.date)}
+{[
+  event.showStartTime !== false ? formatEventTime(event.startTime) : "",
+  event.showEndTime !== false ? formatEventTime(event.endTime) : "",
+].filter(Boolean).length
+  ? ` • ${[
+event.showStartTime !== false ? formatEventTime(event.startTime) : "",
+event.showEndTime !== false ? formatEventTime(event.endTime) : "",
+    ]
+      .filter(Boolean)
+      .join(" - ")}`
+  : ""}
                   </div>
 
                   {event.location || event.meetingMethod ? (
@@ -12060,29 +12095,71 @@ const eventDetailsTextStyle = getContainerTextStyle(
             </div>
 
             <div className="min-w-0 flex-1">
-              <div className="truncate font-semibold" style={eventTitleTextStyle}>
-                {event.title || "Event"}
+<div className="truncate font-semibold" style={eventTitleTextStyle}>
+  {event.title || "Event"}
+</div>
+
+{event.showSubtitle !== false && event.subtitle ? (
+  <div
+    className="mt-1 truncate text-xs opacity-75"
+    style={eventSubtitleTextStyle}
+  >
+    {event.subtitle}
+  </div>
+) : null}
+
+{event.showSubtitle !== false && event.subtitle ? (
+  <div className="mt-0.5 truncate text-sm opacity-80" style={eventSubtitleTextStyle}>
+    {event.subtitle}
+  </div>
+) : null}
+
+<div className="mt-1 text-xs opacity-75" style={eventDateTextStyle}>
+{formatCompactDate(event.date)}
+{[
+  event.showStartTime !== false ? event.startTime : "",
+  event.showEndTime !== false ? event.endTime : "",
+].filter(Boolean).length
+  ? ` • ${[
+      event.showStartTime !== false ? event.startTime : "",
+      event.showEndTime !== false ? event.endTime : "",
+    ]
+      .filter(Boolean)
+      .join(" - ")}`
+  : ""}
               </div>
 
-              <div className="mt-1 text-xs opacity-75" style={eventDateTextStyle}>
-                {formatCompactDate(event.date)}
-                {event.startTime || event.endTime
-                  ? ` • ${event.startTime || ""}${
-                      event.endTime ? ` - ${event.endTime}` : ""
-                    }`
-                  : ""}
-              </div>
+{event.location || event.meetingMethod ? (
+  <div
+    className="mt-1 truncate text-sm opacity-80"
+    style={eventDetailsTextStyle}
+  >
+    {[event.meetingMethod, event.location]
+      .filter(Boolean)
+      .join(" • ")}
+  </div>
+) : null}
 
-              {event.location || event.meetingMethod ? (
-                <div
-                  className="mt-1 truncate text-sm opacity-80"
-                  style={eventDetailsTextStyle}
-                >
-                  {[event.meetingMethod, event.location]
-                    .filter(Boolean)
-                    .join(" • ")}
-                </div>
-              ) : null}
+{event.showLive ? (
+  <div className="mt-2 flex justify-end">
+    <span
+      className="rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.15em] text-white"
+      style={{
+        backgroundColor: "#dc2626",
+      }}
+    >
+      LIVE
+    </span>
+  </div>
+) : null}
+
+{event.showLive === true ? (
+  <div className="mt-2 flex justify-end">
+    <span className="rounded-full bg-red-600 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-white shadow-sm">
+      LIVE
+    </span>
+  </div>
+) : null}
             </div>
           </div>
         );
@@ -12141,11 +12218,27 @@ const eventDetailsTextStyle = getContainerTextStyle(
       color: baseTextStyle.color || undefined,
     }}
   >
-    {block.data.showHeading !== false ? (
-      <div className="text-base font-semibold" style={headingTextStyle}>
-        {block.data.heading || "Event Calendar"}
-      </div>
+{block.data.showHeading !== false ? (
+  <div className="mb-3 flex items-center gap-3">
+    {(block.data as any).showHeadingImage &&
+    (block.data as any).headingImageUrl ? (
+      <img
+        src={(block.data as any).headingImageUrl}
+        alt=""
+        style={{
+          width: `${(block.data as any).headingImageSize ?? 80}px`,
+          height: `${(block.data as any).headingImageSize ?? 80}px`,
+          objectFit: "cover",
+          borderRadius: 12,
+        }}
+      />
     ) : null}
+
+    <div className="text-base font-semibold" style={headingTextStyle}>
+      {block.data.heading || "Event Calendar"}
+    </div>
+  </div>
+) : null}
 
 {block.data.showSubtitle !== false ? (
   <div className="mt-1 text-sm opacity-80" style={subtitleTextStyle}>

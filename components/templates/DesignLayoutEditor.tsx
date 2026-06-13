@@ -22645,11 +22645,78 @@ onClick={() =>
       />
     </div>
 
-    <label className="flex items-center gap-2 text-sm text-neutral-700">
+<label className="flex items-center gap-2 text-sm text-neutral-700">
+  <input
+    type="checkbox"
+    checked={
+      selectedBlock.data.showCompactImages !== false
+    }
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "calendar_event"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                showCompactImages: e.target.checked,
+              },
+            },
+      )
+    }
+  />
+  Show Images
+</label>
+
+<label className="flex items-center gap-2 text-sm text-neutral-700">
+  <input
+    type="checkbox"
+    checked={
+      (selectedBlock.data as any).showHeadingImage === true
+    }
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "calendar_event"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                showHeadingImage: e.target.checked,
+              },
+            },
+      )
+    }
+  />
+  Show Heading Image
+</label>
+
+{(selectedBlock.data as any).showHeadingImage === true ? (
+  <>
+    <button
+      type="button"
+      onClick={() =>
+        uploadImageToSelectedBlock(
+          selectedBlock.id,
+          "headingImageUrl",
+        )
+      }
+      className="rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-800 hover:bg-neutral-50"
+    >
+      Choose Heading Image
+    </button>
+
+    <div>
+      <div className={inspectorLabelClass()}>
+        Heading Image Size
+      </div>
+
       <input
-        type="checkbox"
-        checked={
-          selectedBlock.data.showCompactImages !== false
+        type="range"
+        min={40}
+        max={180}
+        value={
+          (selectedBlock.data as any).headingImageSize ?? 80
         }
         onChange={(e) =>
           updateSelectedBlock((block) =>
@@ -22659,15 +22726,17 @@ onClick={() =>
                   ...block,
                   data: {
                     ...block.data,
-                    showCompactImages: e.target.checked,
+                    headingImageSize: Number(e.target.value),
                   },
                 },
           )
         }
+        className="w-full"
       />
-      Show Images
-    </label>
-  </div>
+    </div>
+  </>
+) : null}
+</div>
 ) : null}
 
     <div className="mt-5">
@@ -23540,6 +23609,108 @@ onClick={() =>
                           ...entry,
                           showEndTime: e.target.checked,
                         }
+                      : entry,
+                  ),
+                },
+              },
+        )
+      }
+    />
+    Show End Time
+  </label>
+</div>
+
+<div className="grid grid-cols-2 gap-2">
+  <label className="flex items-center gap-2 text-sm text-neutral-700">
+    <input
+      type="checkbox"
+      checked={(event as any).showLive === true}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "calendar_event"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  events: block.data.events.map((entry) =>
+                    entry.id === event.id
+                      ? { ...entry, showLive: e.target.checked }
+                      : entry,
+                  ),
+                },
+              },
+        )
+      }
+    />
+    Show LIVE Pill
+  </label>
+
+  <label className="flex items-center gap-2 text-sm text-neutral-700">
+    <input
+      type="checkbox"
+      checked={(event as any).showSubtitle !== false}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "calendar_event"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  events: block.data.events.map((entry) =>
+                    entry.id === event.id
+                      ? { ...entry, showSubtitle: e.target.checked }
+                      : entry,
+                  ),
+                },
+              },
+        )
+      }
+    />
+    Show Subtitle
+  </label>
+
+  <label className="flex items-center gap-2 text-sm text-neutral-700">
+    <input
+      type="checkbox"
+      checked={(event as any).showStartTime !== false}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "calendar_event"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  events: block.data.events.map((entry) =>
+                    entry.id === event.id
+                      ? { ...entry, showStartTime: e.target.checked }
+                      : entry,
+                  ),
+                },
+              },
+        )
+      }
+    />
+    Show Start Time
+  </label>
+
+  <label className="flex items-center gap-2 text-sm text-neutral-700">
+    <input
+      type="checkbox"
+      checked={(event as any).showEndTime !== false}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "calendar_event"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  events: block.data.events.map((entry) =>
+                    entry.id === event.id
+                      ? { ...entry, showEndTime: e.target.checked }
                       : entry,
                   ),
                 },
