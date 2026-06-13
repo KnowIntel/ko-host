@@ -37,6 +37,8 @@ type TournamentMatchLike = {
 type TournamentDisplayStyles = {
   backgroundStyle?: CSSProperties;
   tournamentNameStyle?: CSSProperties;
+  matchCardBackgroundStyle?: CSSProperties;
+  finalsCardStyle?: CSSProperties;
   seasonStyle?: CSSProperties;
   leftDivisionLabelStyle?: CSSProperties;
   rightDivisionLabelStyle?: CSSProperties;
@@ -93,9 +95,11 @@ export default function TournamentDisplayBlock({ block }: Props) {
   const matches = Array.isArray(data.matches) ? data.matches : [];
   const displayMode = data.displayMode ?? "bracket";
 
-  const styles: TournamentDisplayStyles = {
-    backgroundStyle: getTextStyle(data.style),
-    tournamentNameStyle: getTextStyle(data.tournamentNameStyle),
+const styles: TournamentDisplayStyles = {
+  backgroundStyle: getTextStyle(data.style),
+  matchCardBackgroundStyle: getTextStyle(data.matchCardBackgroundStyle),
+  finalsCardStyle: getTextStyle(data.finalsCardStyle),
+  tournamentNameStyle: getTextStyle(data.tournamentNameStyle),
     seasonStyle: getTextStyle(data.seasonStyle),
     leftDivisionLabelStyle: getTextStyle(data.leftDivisionLabelStyle),
     rightDivisionLabelStyle: getTextStyle(data.rightDivisionLabelStyle),
@@ -827,42 +831,37 @@ function ChampionshipCard({
   const teamA = findTeamByName(teams, safeMatch.teamA);
   const teamB = findTeamByName(teams, safeMatch.teamB);
 
+  const finalsCardStyle: CSSProperties = {
+    ...(styles.finalsCardStyle ?? {}),
+    backgroundColor: styles.finalsCardStyle?.backgroundColor || "#020617",
+  };
+
   return (
     <div className="flex h-full min-h-[560px] flex-col items-center justify-center">
-{championshipDisplayType === "image" && championshipImageUrl ? (
-<img
-  src={championshipImageUrl}
-  alt="Championship"
-  className="mb-4 h-auto rounded-xl object-cover"
-  style={{
-    width: options.championshipImageSize,
-  }}
-/>
-) : championshipDisplayType === "image" ? (
-  <div className="mb-4 h-10 w-40 rounded-xl border border-white/20 bg-white/10" />
-) : (
-  <div
-    className="mb-4 text-center text-xs font-bold uppercase tracking-[0.18em] opacity-70"
-    style={styles.finalsLabelStyle}
-  >
-    {label}
-  </div>
-)}
+      {championshipDisplayType === "image" && championshipImageUrl ? (
+        <img
+          src={championshipImageUrl}
+          alt="Championship"
+          className="mb-4 h-auto rounded-xl object-cover"
+          style={{
+            width: options.championshipImageSize,
+          }}
+        />
+      ) : championshipDisplayType === "image" ? (
+        <div className="mb-4 h-10 w-40 rounded-xl border border-white/20 bg-white/10" />
+      ) : (
+        <div
+          className="mb-4 text-center text-xs font-bold uppercase tracking-[0.18em] opacity-70"
+          style={styles.finalsLabelStyle}
+        >
+          {label}
+        </div>
+      )}
 
       <div
-  className="w-full max-w-[250px] min-h-[540px] overflow-hidden rounded-[28px] border border-white/15 shadow-xl"
-  style={{
-    backgroundColor:
-      (styles as any).finalsCardStyle?.backgroundColor || "#020617",
-    color: (styles as any).finalsCardStyle?.color || undefined,
-    fontFamily: (styles as any).finalsCardStyle?.fontFamily || undefined,
-    fontSize: (styles as any).finalsCardStyle?.fontSize || undefined,
-    fontWeight: (styles as any).finalsCardStyle?.fontWeight || undefined,
-    fontStyle: (styles as any).finalsCardStyle?.fontStyle || undefined,
-    textDecoration: (styles as any).finalsCardStyle?.textDecoration || undefined,
-  }}
->
-
+        className="w-full max-w-[250px] min-h-[540px] overflow-hidden rounded-[28px] border border-white/15 shadow-xl"
+        style={finalsCardStyle}
+      >
         <div className="px-5 py-6 text-center">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-yellow-300/40 bg-yellow-300/10 text-3xl">
             🏆
@@ -903,16 +902,13 @@ function ChampionshipCard({
       </div>
 
       <div className="mt-5 rounded-2xl border border-yellow-300/30 bg-yellow-300/10 px-5 py-3 text-center">
-{championshipDisplayType === "image" ? (
-  <div className="mx-auto mb-2 h-10 w-36 rounded-xl border border-yellow-300/30 bg-yellow-300/10" />
-) : (
-  <div
-    className="text-[10px] font-bold uppercase tracking-[0.18em] text-yellow-200"
-    style={styles.championStyle}
-  >
-    Champion
-  </div>
-)}
+        <div
+          className="text-[10px] font-bold uppercase tracking-[0.18em] text-yellow-200"
+          style={styles.championStyle}
+        >
+          Champion
+        </div>
+
         <div className="mt-1 text-sm font-semibold" style={styles.championStyle}>
           {safeMatch.winner || "Awaiting Winner"}
         </div>
@@ -968,7 +964,7 @@ function BracketMatchCard({
 const matchCardBackgroundStyle = (styles as any).matchCardBackgroundStyle ?? {};
 
 const cardStyle: CSSProperties = {
-  ...matchCardBackgroundStyle,
+  ...(styles.matchCardBackgroundStyle ?? {}),
 
   borderColor: options.matchCardBorderEnabled
     ? options.matchCardBorderColor
