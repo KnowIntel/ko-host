@@ -5101,51 +5101,105 @@ function normalizeThreadMessages(rawMessages: any[]): ThreadUiMessage[] {
   });
 }
 
+
 function renderPostBoard(
   block: Extract<MicrositeBlock, { type: "post_board" }>,
   designKey?: string,
   micrositeId?: string | null,
 ) {
   const posts = Array.isArray(block.data.posts) ? block.data.posts : [];
-  const blockStyle = (block.data.style ?? {}) as any;
-  const blockHeadingStyle =
-  ((block.data as any).blockHeadingStyle ?? {}) as any;
-  const cardStyle = (block.data.cardStyle ?? {}) as any;
-  const headingStyle = ((block.data as any).headingStyle ?? blockStyle) as any;
-  const bodyStyle = ((block.data as any).bodyStyle ?? blockStyle) as any;
-  const buttonStyle = ((block.data as any).buttonStyle ?? {}) as any;
+
+  const defaultPostBoardTextStyle = {
+    fontFamily: "inherit",
+    fontSize: 14,
+    bold: false,
+    italic: false,
+    underline: false,
+    strike: false,
+    align: "left",
+    color: "#111827",
+  } as any;
+
+  const blockStyle = {
+    ...defaultPostBoardTextStyle,
+    ...((block.data as any).style ?? {}),
+  } as any;
+
+  const blockHeadingStyle = {
+    ...defaultPostBoardTextStyle,
+    fontSize: 16,
+    bold: true,
+    color: "#111827",
+    ...((block.data as any).blockHeadingStyle ?? {}),
+  } as any;
+
+  const cardStyle = {
+    backgroundColor: "#ffffff",
+    borderColor: "#e5e7eb",
+    borderWidth: 1,
+    borderRadius: 16,
+    ...((block.data as any).cardStyle ?? {}),
+  } as any;
+
+  const headingStyle = {
+    ...defaultPostBoardTextStyle,
+    fontSize: 14,
+    bold: true,
+    color: "#111827",
+    ...((block.data as any).headingStyle ?? {}),
+  } as any;
+
+  const bodyStyle = {
+    ...defaultPostBoardTextStyle,
+    fontSize: 14,
+    color: "#374151",
+    ...((block.data as any).bodyStyle ?? {}),
+  } as any;
+
+  const buttonStyle = {
+    ...defaultPostBoardTextStyle,
+    fontSize: 12,
+    bold: true,
+    color: "#374151",
+    backgroundColor: "#f9fafb",
+    borderColor: "#e5e7eb",
+    borderWidth: 1,
+    borderRadius: 999,
+    ...((block.data as any).buttonStyle ?? {}),
+  } as any;
 
   const interactionMode = block.data.interactionMode ?? "announcement";
   const isCommunityBoard = interactionMode === "community";
 
-const [likeCounts, setLikeCounts] = useState<Record<string, number>>({});
-const [likedPosts, setLikedPosts] = useState<Record<string, boolean>>({});
-const [likeLoading, setLikeLoading] = useState<Record<string, boolean>>({});
-const [expandedPostId, setExpandedPostId] = useState<string | null>(null);
-const [communityPosts, setCommunityPosts] = useState<any[]>([]);
-const [communityReplies, setCommunityReplies] = useState<Record<string, any[]>>({});
-const [communityLoading, setCommunityLoading] = useState(false);
-const [showNewPostForm, setShowNewPostForm] = useState(false);
-const [newPostError, setNewPostError] = useState("");
+  const [likeCounts, setLikeCounts] = useState<Record<string, number>>({});
+  const [likedPosts, setLikedPosts] = useState<Record<string, boolean>>({});
+  const [likeLoading, setLikeLoading] = useState<Record<string, boolean>>({});
+  const [expandedPostId, setExpandedPostId] = useState<string | null>(null);
+  const [communityPosts, setCommunityPosts] = useState<any[]>([]);
+  const [communityReplies, setCommunityReplies] = useState<Record<string, any[]>>({});
+  const [communityLoading, setCommunityLoading] = useState(false);
+  const [showNewPostForm, setShowNewPostForm] = useState(false);
+  const [newPostError, setNewPostError] = useState("");
 
-const [newPostForm, setNewPostForm] = useState({
-  name: "",
-  email: "",
-  avatarUrl: "",
-  title: "",
-  message: "",
-});
-const [replyForms, setReplyForms] = useState<
-  Record<
-    string,
-    {
-      name: string;
-      email: string;
-      avatarUrl: string;
-      message: string;
-    }
-  >
->({});
+  const [newPostForm, setNewPostForm] = useState({
+    name: "",
+    email: "",
+    avatarUrl: "",
+    title: "",
+    message: "",
+  });
+
+  const [replyForms, setReplyForms] = useState<
+    Record<
+      string,
+      {
+        name: string;
+        email: string;
+        avatarUrl: string;
+        message: string;
+      }
+    >
+  >({});
 
 useEffect(() => {
   if (!isCommunityBoard || !micrositeId) return;
