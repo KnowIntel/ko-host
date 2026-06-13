@@ -4096,11 +4096,11 @@ case "listing":
 
           style: createDefaultTextStyle(),
 
-          headingStyle: {
-            ...createDefaultTextStyle(),
-            fontSize: 20,
-            bold: true,
-          },
+headingStyle: {
+  ...createDefaultTextStyle(),
+  fontSize: 20,
+  bold: false,
+},
 
           subtitleStyle: {
             ...createDefaultTextStyle(),
@@ -5394,12 +5394,15 @@ if (block.type === "content_panel") {
         ...createDefaultTextStyle(),
         ...(data.style ?? {}),
       },
-      headingStyle: {
-        ...createDefaultTextStyle(),
-        fontSize: 20,
-        bold: true,
-        ...(data.headingStyle ?? {}),
-      },
+headingStyle: {
+  ...createDefaultTextStyle(),
+  fontSize: 20,
+  bold:
+    typeof data.headingStyle?.bold === "boolean"
+      ? data.headingStyle.bold
+      : false,
+  ...(data.headingStyle ?? {}),
+},
       subtitleStyle: {
         ...createDefaultTextStyle(),
         fontSize: 14,
