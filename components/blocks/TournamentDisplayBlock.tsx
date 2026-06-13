@@ -849,7 +849,19 @@ function ChampionshipCard({
   </div>
 )}
 
-      <div className="w-full max-w-[250px] min-h-[540px] overflow-hidden rounded-[28px] border border-white/15 bg-slate-950 shadow-xl">
+      <div
+  className="w-full max-w-[250px] min-h-[540px] overflow-hidden rounded-[28px] border border-white/15 shadow-xl"
+  style={{
+    backgroundColor:
+      (styles as any).finalsCardStyle?.backgroundColor || "#020617",
+    color: (styles as any).finalsCardStyle?.color || undefined,
+    fontFamily: (styles as any).finalsCardStyle?.fontFamily || undefined,
+    fontSize: (styles as any).finalsCardStyle?.fontSize || undefined,
+    fontWeight: (styles as any).finalsCardStyle?.fontWeight || undefined,
+    fontStyle: (styles as any).finalsCardStyle?.fontStyle || undefined,
+    textDecoration: (styles as any).finalsCardStyle?.textDecoration || undefined,
+  }}
+>
 
         <div className="px-5 py-6 text-center">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-yellow-300/40 bg-yellow-300/10 text-3xl">
@@ -953,19 +965,27 @@ function BracketMatchCard({
           ? options.matchCardShadowY
           : 0;
 
-  const cardStyle: CSSProperties = {
-    borderColor: options.matchCardBorderEnabled
-      ? options.matchCardBorderColor
-      : "transparent",
-    borderRadius: options.matchCardRadius,
-    paddingLeft: options.matchCardPaddingX,
-    paddingRight: options.matchCardPaddingX,
-    paddingTop: options.matchCardPaddingY,
-    paddingBottom: options.matchCardPaddingY,
-    boxShadow: options.matchCardShadowEnabled
-      ? `${cardShadowX}px ${cardShadowY}px ${options.matchCardShadowBlur}px rgba(0,0,0,0.35)`
-      : undefined,
-  };
+const matchCardBackgroundStyle = (styles as any).matchCardBackgroundStyle ?? {};
+
+const cardStyle: CSSProperties = {
+  ...matchCardBackgroundStyle,
+
+  borderColor: options.matchCardBorderEnabled
+    ? options.matchCardBorderColor
+    : "transparent",
+
+  borderRadius: options.matchCardRadius,
+
+  paddingLeft: options.matchCardPaddingX,
+  paddingRight: options.matchCardPaddingX,
+
+  paddingTop: options.matchCardPaddingY,
+  paddingBottom: options.matchCardPaddingY,
+
+  boxShadow: options.matchCardShadowEnabled
+    ? `${cardShadowX}px ${cardShadowY}px ${options.matchCardShadowBlur}px rgba(0,0,0,0.35)`
+    : undefined,
+};
 
   return (
     <div

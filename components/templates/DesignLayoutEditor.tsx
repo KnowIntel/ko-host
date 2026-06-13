@@ -5208,12 +5208,45 @@ if (selectedBlock?.type === "content_panel") {
     return;
   }
 
-  if (selectedBlock?.type === "tournament_display") {
+if (selectedBlock?.type === "tournament_display") {
   setDraft((prev) => ({
     ...prev,
     blocks: prev.blocks.map((block) => {
       if (block.id !== selectedBlock.id || block.type !== "tournament_display") {
         return block;
+      }
+
+      if (tournamentDisplayStyleTarget === "background") {
+        const appearancePatch = patch as any;
+
+        return {
+          ...block,
+          appearance: {
+            ...block.appearance,
+            ...(appearancePatch.backgroundColor !== undefined
+              ? { backgroundColor: appearancePatch.backgroundColor }
+              : {}),
+            ...(appearancePatch.backgroundOpacity !== undefined
+              ? { backgroundOpacity: appearancePatch.backgroundOpacity }
+              : {}),
+            ...(appearancePatch.borderColor !== undefined
+              ? { borderColor: appearancePatch.borderColor }
+              : {}),
+            ...(appearancePatch.borderWidth !== undefined
+              ? { borderWidth: appearancePatch.borderWidth }
+              : {}),
+            ...(appearancePatch.borderRadius !== undefined
+              ? { borderRadius: appearancePatch.borderRadius }
+              : {}),
+          },
+          data: {
+            ...block.data,
+            style: {
+              ...((block.data as any).style ?? {}),
+              ...appearancePatch,
+            },
+          },
+        };
       }
 
       const styleKey =
@@ -5226,7 +5259,7 @@ if (selectedBlock?.type === "content_panel") {
               : tournamentDisplayStyleTarget === "rightDivisionLabel"
                 ? "rightDivisionLabelStyle"
                 : tournamentDisplayStyleTarget === "teamNames"
-                  ? "teamNameStyle"
+                  ? "matchCardBackgroundStyle"
                   : tournamentDisplayStyleTarget === "record"
                     ? "recordStyle"
                     : tournamentDisplayStyleTarget === "score"
@@ -5234,56 +5267,24 @@ if (selectedBlock?.type === "content_panel") {
                       : tournamentDisplayStyleTarget === "status"
                         ? "statusStyle"
                         : tournamentDisplayStyleTarget === "finalsLabel"
-                          ? "finalsLabelStyle"
+                          ? "finalsCardStyle"
                           : tournamentDisplayStyleTarget === "champion"
                             ? "championStyle"
                             : "style";
 
-if (tournamentDisplayStyleTarget === "background") {
-  const appearancePatch = patch as any;
-
-  return {
-    ...block,
-    appearance: {
-      ...block.appearance,
-      ...(appearancePatch.backgroundColor !== undefined
-        ? { backgroundColor: appearancePatch.backgroundColor }
-        : {}),
-      ...(appearancePatch.backgroundOpacity !== undefined
-        ? { backgroundOpacity: appearancePatch.backgroundOpacity }
-        : {}),
-      ...(appearancePatch.borderColor !== undefined
-        ? { borderColor: appearancePatch.borderColor }
-        : {}),
-      ...(appearancePatch.borderWidth !== undefined
-        ? { borderWidth: appearancePatch.borderWidth }
-        : {}),
-      ...(appearancePatch.borderRadius !== undefined
-        ? { borderRadius: appearancePatch.borderRadius }
-        : {}),
-    },
-    data: {
-      ...block.data,
-      style: {
-        ...((block.data as any).style ?? {}),
-        ...appearancePatch,
-      },
-    },
-  };
-}
-
-return {
-  ...block,
-  data: {
-    ...block.data,
-    [styleKey]: {
-      ...((block.data as any)[styleKey] ?? {}),
-      ...patch,
-    },
-  },
-};
+      return {
+        ...block,
+        data: {
+          ...block.data,
+          [styleKey]: {
+            ...((block.data as any)[styleKey] ?? {}),
+            ...patch,
+          },
+        },
+      };
     }),
   }));
+
   return;
 }
 
