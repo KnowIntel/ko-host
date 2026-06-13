@@ -24065,27 +24065,21 @@ onClick={() =>
   </button>
 
   {(selectedBlock.data as any)[`${target}ImageUrl`] ? (
-    <button
-      type="button"
-      className={toolSetButtonClass("remove")}
-      onClick={() =>
-        updateSelectedBlock((block) =>
-          block.type !== "tournament_display"
-            ? block
-            : {
-                ...block,
-                data: {
-                  ...block.data,
-                  [`${target}ImageUrl`]: undefined,
-                  [`${target}ImageStoragePath`]: undefined,
-                  [`${target}ImageAlt`]: undefined,
-                },
-              },
-        )
-      }
-    >
-      Remove
-    </button>
+<div className="flex gap-2">
+  <button
+    type="button"
+    className="flex-1 inline-flex h-10 items-center justify-center rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-700 hover:bg-neutral-50"
+  >
+    Choose Image
+  </button>
+
+  <button
+    type="button"
+    className="flex-1 inline-flex h-10 items-center justify-center rounded-xl border border-red-300 bg-red-50 px-3 text-sm font-medium text-red-600 hover:bg-red-100"
+  >
+    Remove
+  </button>
+</div>
   ) : null}
 </div>
 
