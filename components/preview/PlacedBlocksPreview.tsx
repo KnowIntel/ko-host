@@ -711,8 +711,11 @@ return (
 
 {blockEntries.map(({ block, grid }) => {
 const itemStyle = getItemStyle(grid, logicalPageWidth, logicalRowHeight);
-const showVerticalScrollbar = (block as any).showVerticalScrollbar === true;
-const showHorizontalScrollbar = (block as any).showHorizontalScrollbar === true;
+const showVerticalScrollbar =
+  (block as any).showVerticalScrollbar === true;
+
+const showHorizontalScrollbar =
+  (block as any).showHorizontalScrollbar === true;
 
 const isScrollableBlock =
   block.type === "calendar_event" ||
@@ -842,18 +845,25 @@ zIndex:
 }}
     >
 <div
-  data-ko-preview-scrollbar-hidden="true"
+  data-ko-preview-scrollbar-hidden={
+    showVerticalScrollbar || showHorizontalScrollbar ? "false" : "true"
+  }
   className="h-full w-full"
   style={{
     height: "100%",
     maxHeight: "100%",
-overflowX: showHorizontalScrollbar ? "auto" : "hidden",
-overflowY: showVerticalScrollbar || block.type === "calendar_event" ? "auto" : "hidden",
+    width: "100%",
+    maxWidth: "100%",
+    overflowX: showHorizontalScrollbar ? "auto" : "hidden",
+    overflowY:
+      showVerticalScrollbar || block.type === "calendar_event"
+        ? "auto"
+        : "hidden",
     WebkitOverflowScrolling: "touch",
     overscrollBehavior: isScrollableBlock ? "contain" : "auto",
-        ...(showVerticalScrollbar || showHorizontalScrollbar
-  ? {}
-  : HIDE_PREVIEW_SCROLLBAR_STYLE),
+    ...(showVerticalScrollbar || showHorizontalScrollbar
+      ? {}
+      : HIDE_PREVIEW_SCROLLBAR_STYLE),
     pointerEvents:
       block.type === "bookmark"
         ? "none"
