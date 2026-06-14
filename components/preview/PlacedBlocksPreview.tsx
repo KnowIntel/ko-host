@@ -573,9 +573,7 @@ return (
     overflowX: "auto",
     overflowY: "auto",
     WebkitOverflowScrolling: "touch",
-    ...(showVerticalScrollbar || showHorizontalScrollbar
-  ? {}
-  : HIDE_PREVIEW_SCROLLBAR_STYLE),
+    ...HIDE_PREVIEW_SCROLLBAR_STYLE,
     touchAction: "auto",
     backgroundColor: transparentPageBackground ? "transparent" : pageColor,
     ...(pageBackgroundImage && !transparentPageBackground
@@ -853,7 +851,9 @@ overflowX: showHorizontalScrollbar ? "auto" : "hidden",
 overflowY: showVerticalScrollbar || block.type === "calendar_event" ? "auto" : "hidden",
     WebkitOverflowScrolling: "touch",
     overscrollBehavior: isScrollableBlock ? "contain" : "auto",
-    ...HIDE_PREVIEW_SCROLLBAR_STYLE,
+        ...(showVerticalScrollbar || showHorizontalScrollbar
+  ? {}
+  : HIDE_PREVIEW_SCROLLBAR_STYLE),
     pointerEvents:
       block.type === "bookmark"
         ? "none"
