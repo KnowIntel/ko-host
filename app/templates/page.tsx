@@ -385,7 +385,7 @@ const visibleRecentSites = useMemo(() => {
   <div className="hidden gap-5 xl:grid xl:grid-cols-[minmax(0,1fr)_760px] xl:items-start">
 <div className="min-w-0">
   {/* <div className="mb-3 h-[104px] overflow-hidden rounded-2xl border border-neutral-200 bg-white/90 shadow-sm"> */}
-  <div className="mb-3 h-[104px] overflow-hidden rounded-2xl bg-white/90 shadow-sm">
+  <div className="mb-3 h-[104px] overflow-hidden rounded-2xl bg-white/90">
     <img
       src="/HomePageHero.png"
       alt="Ko-Host microsite builder"
@@ -399,7 +399,7 @@ const visibleRecentSites = useMemo(() => {
 
       <div className="mt-3 text-sm leading-7 text-neutral-600 sm:text-[15px]">
         <span className="inline">
-          Choose a template, make it yours, then go live — all for $12 for 90 days.
+          Choose a template, make it yours, and then go live — all for just $12 for 90 days.
         </span>
 
         <button
