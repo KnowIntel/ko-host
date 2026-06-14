@@ -1702,6 +1702,7 @@ function getToolIconPath(tool: (typeof CATEGORY_BUTTONS)[BottomCategory][number]
   if (tool.label === "Countdown") return "/menu-icons/block-countdown.svg";
   if (tool.label === "Story Timeline") return "/menu-icons/block-story-timeline.svg";
   if (tool.label === "Checklist") return "/menu-icons/block-checklist.svg";
+  if (tool.label === "Tournament Display") return "/menu-icons/block-tournament-display.svg";
   if (tool.label === "Schedule / Agenda") return "/menu-icons/block-schedule-agenda.svg";
   if (tool.label === "Calendar Event") return "/menu-icons/block-calendar-event.svg";
   if (tool.label === "Map / Location") return "/menu-icons/block-map-location.svg";
