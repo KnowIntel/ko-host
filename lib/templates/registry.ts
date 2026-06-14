@@ -213,6 +213,7 @@ const NEW_KEYS = new Set<TemplateKey>([
   "chat_room",
   "speed_dating",
   "guided_tutorial",
+  "game_day_central",
   // "custom_template",
 ]);
 
