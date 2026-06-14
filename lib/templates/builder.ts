@@ -334,6 +334,8 @@ export type BaseBlock = {
   label: string;
   grid?: GridPlacement;
   appearance?: BlockAppearance;
+  showVerticalScrollbar?: boolean;
+  showHorizontalScrollbar?: boolean;
 };
 
 /* =========================================
