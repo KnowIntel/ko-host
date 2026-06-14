@@ -1,15 +1,15 @@
 import { createLayoutPreset } from "../../shared";
 
 export default createLayoutPreset({
-  designKey: "forever",
+  designKey: "perfect",
 
-  label: "Forever Question",
+  label: "Perfect Moment",
 
   description:
-    "Romantic engagement announcement layout featuring proposal highlights, photo memories, love stories, celebration details, and heartfelt sharing with family and friends",
+    "Elegant engagement announcement layout showcasing proposal photos, memorable milestones, relationship stories, celebration details, and the beginning of a lifelong journey together",
 
   thumbnail:
-    "/designs/design-cards/design-card_engagement_announcement_forever.webp",
+    "/designs/design-cards/design-card_engagement_announcement_perfect.webp",
 
-  recommended: true,
+  recommended: false,
 });
