@@ -384,7 +384,8 @@ const visibleRecentSites = useMemo(() => {
   {/* Desktop */}
   <div className="hidden gap-5 xl:grid xl:grid-cols-[minmax(0,1fr)_760px] xl:items-start">
 <div className="min-w-0">
-  <div className="mb-3 h-[104px] overflow-hidden rounded-2xl border border-neutral-200 bg-white/90 shadow-sm">
+  {/* <div className="mb-3 h-[104px] overflow-hidden rounded-2xl border border-neutral-200 bg-white/90 shadow-sm"> */}
+  <div className="mb-3 h-[104px] overflow-hidden rounded-2xl bg-white/90 shadow-sm">
     <img
       src="/HomePageHero.png"
       alt="Ko-Host microsite builder"
