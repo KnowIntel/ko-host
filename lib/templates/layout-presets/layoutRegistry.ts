@@ -30,6 +30,7 @@ import liveLayouts from "./templates/live_entertainment";
 import watchLayouts from "./templates/watch_club";
 import meetLayouts from "./templates/meet_and_greet";
 import gameLayouts from "./templates/game_day_central";
+import engagementLayouts from "./templates/engagement_announcement";
 
 
 import blankLayout from "./layouts/blank";
@@ -64,6 +65,7 @@ const registry: Record<string, TemplateLayoutRegistry> = {
   watch_club: watchLayouts,
   meet_and_greet: meetLayouts,
   game_day_central: gameLayouts,
+  engagement_announcement: engagementLayouts,
 
 };
 
