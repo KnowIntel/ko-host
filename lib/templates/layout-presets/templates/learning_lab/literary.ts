@@ -1,13 +1,15 @@
 import { createLayoutPreset } from "../../shared";
 
 export default createLayoutPreset({
-  designKey: "worksheet",
+  designKey: "literary",
 
-  label: "Math Worksheet",
+  label: "Literary Foundations",
+
   description:
-    "Structured learning worksheet layout for lessons, assignments, practice exercises, and classroom activities",
+    "Language arts learning layout featuring reading comprehension, grammar practice, writing exercises, vocabulary development, and foundational literacy resources",
+
   thumbnail:
-    "/designs/design-cards/design-card_learning_lab_worksheet.webp",
+    "/designs/design-cards/design-card_learning_lab_literary.webp",
 
   recommended: false,
 });
