@@ -12961,73 +12961,103 @@ onCancel={() => setShowAiSuggestions(false)}
   </div>
 </div>
 
-                {selectedCanvasItem ? (
-                  <div className={inspectorCardClass()}>
-                    <div className={inspectorLabelClass()}>Position & Size</div>
+{selectedCanvasItem ? (
+  <div className={inspectorCardClass()}>
+    <div className={inspectorLabelClass()}>Position & Size</div>
 
-                    <div className="mt-4 grid grid-cols-2 gap-3">
-                      <div>
-                        <div className={inspectorLabelClass()}>X</div>
-                        <input
-                          type="number"
-                          step="0.25"
-                          value={selectedCanvasItem.grid?.colStart ?? 1}
-                          onChange={(e) =>
-                            updateSelectedGrid({
-                              colStart: Number(e.target.value) || 1,
-                            })
-                          }
-                          className={inspectorInputClass()}
-                        />
-                      </div>
+    <div className="mt-4 grid grid-cols-2 gap-3">
+      <div>
+        <div className={inspectorLabelClass()}>X</div>
+        <input
+          type="number"
+          step="0.25"
+          value={selectedCanvasItem.grid?.colStart ?? 1}
+          onChange={(e) =>
+            updateSelectedGrid({
+              colStart: Number(e.target.value) || 1,
+            })
+          }
+          className={inspectorInputClass()}
+        />
+      </div>
 
-                      <div>
-                        <div className={inspectorLabelClass()}>Y</div>
-                        <input
-                          type="number"
-                          step="0.25"
-                          value={selectedCanvasItem.grid?.rowStart ?? 1}
-                          onChange={(e) =>
-                            updateSelectedGrid({
-                              rowStart: Number(e.target.value) || 1,
-                            })
-                          }
-                          className={inspectorInputClass()}
-                        />
-                      </div>
+      <div>
+        <div className={inspectorLabelClass()}>Y</div>
+        <input
+          type="number"
+          step="0.25"
+          value={selectedCanvasItem.grid?.rowStart ?? 1}
+          onChange={(e) =>
+            updateSelectedGrid({
+              rowStart: Number(e.target.value) || 1,
+            })
+          }
+          className={inspectorInputClass()}
+        />
+      </div>
 
-                      <div>
-                        <div className={inspectorLabelClass()}>Width</div>
-                        <input
-                          type="number"
-                          step="0.25"
-                          value={selectedCanvasItem.grid?.colSpan ?? 1}
-                          onChange={(e) =>
-                            updateSelectedGrid({
-                              colSpan: Number(e.target.value) || 1,
-                            })
-                          }
-                          className={inspectorInputClass()}
-                        />
-                      </div>
+      <div>
+        <div className={inspectorLabelClass()}>Width</div>
+        <input
+          type="number"
+          step="0.25"
+          value={selectedCanvasItem.grid?.colSpan ?? 1}
+          onChange={(e) =>
+            updateSelectedGrid({
+              colSpan: Number(e.target.value) || 1,
+            })
+          }
+          className={inspectorInputClass()}
+        />
+      </div>
 
-                      <div>
-                        <div className={inspectorLabelClass()}>Height</div>
-                        <input
-                          type="number"
-                          step="0.25"
-                          value={selectedCanvasItem.grid?.rowSpan ?? 1}
-                          onChange={(e) =>
-                            updateSelectedGrid({
-                              rowSpan: Number(e.target.value) || 1,
-                            })
-                          }
-                          className={inspectorInputClass()}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                ) : null}
+      <div>
+        <div className={inspectorLabelClass()}>Height</div>
+        <input
+          type="number"
+          step="0.25"
+          value={selectedCanvasItem.grid?.rowSpan ?? 1}
+          onChange={(e) =>
+            updateSelectedGrid({
+              rowSpan: Number(e.target.value) || 1,
+            })
+          }
+          className={inspectorInputClass()}
+        />
+      </div>
+    </div>
+
+    <div className="mt-4 grid gap-3 rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
+      <label className="flex items-center gap-2 text-xs font-medium text-neutral-700">
+        <input
+          type="checkbox"
+          checked={(selectedCanvasItem as any).showVerticalScrollbar === true}
+          onChange={(e) =>
+            updateSelectedBlock((block) => ({
+              ...block,
+              showVerticalScrollbar: e.target.checked,
+            } as any))
+          }
+        />
+        Show Vertical Scrollbar
+      </label>
+
+      <label className="flex items-center gap-2 text-xs font-medium text-neutral-700">
+        <input
+          type="checkbox"
+          checked={(selectedCanvasItem as any).showHorizontalScrollbar === true}
+          onChange={(e) =>
+            updateSelectedBlock((block) => ({
+              ...block,
+              showHorizontalScrollbar: e.target.checked,
+            } as any))
+          }
+        />
+        Show Horizontal Scrollbar
+      </label>
+    </div>
+  </div>
+) : null}
 
 {showTextControls ? (
   <>

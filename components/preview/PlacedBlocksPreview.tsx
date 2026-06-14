@@ -573,7 +573,9 @@ return (
     overflowX: "auto",
     overflowY: "auto",
     WebkitOverflowScrolling: "touch",
-    ...HIDE_PREVIEW_SCROLLBAR_STYLE,
+    ...(showVerticalScrollbar || showHorizontalScrollbar
+  ? {}
+  : HIDE_PREVIEW_SCROLLBAR_STYLE),
     touchAction: "auto",
     backgroundColor: transparentPageBackground ? "transparent" : pageColor,
     ...(pageBackgroundImage && !transparentPageBackground
@@ -710,8 +712,14 @@ return (
         ) : null}
 
 {blockEntries.map(({ block, grid }) => {
-  const itemStyle = getItemStyle(grid, logicalPageWidth, logicalRowHeight);
-const isScrollableBlock = block.type === "calendar_event";
+const itemStyle = getItemStyle(grid, logicalPageWidth, logicalRowHeight);
+const showVerticalScrollbar = (block as any).showVerticalScrollbar === true;
+const showHorizontalScrollbar = (block as any).showHorizontalScrollbar === true;
+
+const isScrollableBlock =
+  block.type === "calendar_event" ||
+  showVerticalScrollbar ||
+  showHorizontalScrollbar;
 
 const isInteractiveBlock =
   block.type === "schedule_agenda" ||
@@ -841,8 +849,8 @@ zIndex:
   style={{
     height: "100%",
     maxHeight: "100%",
-    overflowX: "hidden",
-    overflowY: isScrollableBlock ? "auto" : "visible",
+overflowX: showHorizontalScrollbar ? "auto" : "hidden",
+overflowY: showVerticalScrollbar || block.type === "calendar_event" ? "auto" : "hidden",
     WebkitOverflowScrolling: "touch",
     overscrollBehavior: isScrollableBlock ? "contain" : "auto",
     ...HIDE_PREVIEW_SCROLLBAR_STYLE,
