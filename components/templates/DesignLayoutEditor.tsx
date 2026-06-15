@@ -12962,101 +12962,185 @@ onCancel={() => setShowAiSuggestions(false)}
 </div>
 
 {selectedCanvasItem ? (
-  <div className={inspectorCardClass()}>
-    <div className={inspectorLabelClass()}>Position & Size</div>
+  <>
+    <div className={inspectorCardClass()}>
+      <div className={inspectorLabelClass()}>Position & Size</div>
 
-    <div className="mt-4 grid grid-cols-2 gap-3">
-      <div>
-        <div className={inspectorLabelClass()}>X</div>
-        <input
-          type="number"
-          step="0.25"
-          value={selectedCanvasItem.grid?.colStart ?? 1}
-          onChange={(e) =>
-            updateSelectedGrid({
-              colStart: Number(e.target.value) || 1,
-            })
-          }
-          className={inspectorInputClass()}
-        />
-      </div>
+      <div className="mt-4 grid grid-cols-2 gap-3">
+        <div>
+          <div className={inspectorLabelClass()}>X</div>
+          <input
+            type="number"
+            step="0.25"
+            value={selectedCanvasItem.grid?.colStart ?? 1}
+            onChange={(e) =>
+              updateSelectedGrid({
+                colStart: Number(e.target.value) || 1,
+              })
+            }
+            className={inspectorInputClass()}
+          />
+        </div>
 
-      <div>
-        <div className={inspectorLabelClass()}>Y</div>
-        <input
-          type="number"
-          step="0.25"
-          value={selectedCanvasItem.grid?.rowStart ?? 1}
-          onChange={(e) =>
-            updateSelectedGrid({
-              rowStart: Number(e.target.value) || 1,
-            })
-          }
-          className={inspectorInputClass()}
-        />
-      </div>
+        <div>
+          <div className={inspectorLabelClass()}>Y</div>
+          <input
+            type="number"
+            step="0.25"
+            value={selectedCanvasItem.grid?.rowStart ?? 1}
+            onChange={(e) =>
+              updateSelectedGrid({
+                rowStart: Number(e.target.value) || 1,
+              })
+            }
+            className={inspectorInputClass()}
+          />
+        </div>
 
-      <div>
-        <div className={inspectorLabelClass()}>Width</div>
-        <input
-          type="number"
-          step="0.25"
-          value={selectedCanvasItem.grid?.colSpan ?? 1}
-          onChange={(e) =>
-            updateSelectedGrid({
-              colSpan: Number(e.target.value) || 1,
-            })
-          }
-          className={inspectorInputClass()}
-        />
-      </div>
+        <div>
+          <div className={inspectorLabelClass()}>Width</div>
+          <input
+            type="number"
+            step="0.25"
+            value={selectedCanvasItem.grid?.colSpan ?? 1}
+            onChange={(e) =>
+              updateSelectedGrid({
+                colSpan: Number(e.target.value) || 1,
+              })
+            }
+            className={inspectorInputClass()}
+          />
+        </div>
 
-      <div>
-        <div className={inspectorLabelClass()}>Height</div>
-        <input
-          type="number"
-          step="0.25"
-          value={selectedCanvasItem.grid?.rowSpan ?? 1}
-          onChange={(e) =>
-            updateSelectedGrid({
-              rowSpan: Number(e.target.value) || 1,
-            })
-          }
-          className={inspectorInputClass()}
-        />
+        <div>
+          <div className={inspectorLabelClass()}>Height</div>
+          <input
+            type="number"
+            step="0.25"
+            value={selectedCanvasItem.grid?.rowSpan ?? 1}
+            onChange={(e) =>
+              updateSelectedGrid({
+                rowSpan: Number(e.target.value) || 1,
+              })
+            }
+            className={inspectorInputClass()}
+          />
+        </div>
       </div>
     </div>
 
+    <div className={inspectorCardClass()}>
+      <div className={inspectorLabelClass()}>Overflow & Scrolling</div>
+
+      <div className="mt-4 grid gap-3 rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
+        <label className="flex cursor-pointer items-center gap-2 text-xs font-medium text-neutral-700">
+          <input
+            type="checkbox"
+            checked={(selectedCanvasItem as any).showVerticalScrollbar === true}
+            onChange={(e) => {
+              const checked = e.target.checked;
+
+              setDraft((prev) => ({
+                ...prev,
+                blocks: prev.blocks.map((block) =>
+                  block.id === selectedCanvasItem.id
+                    ? {
+                        ...block,
+                        showVerticalScrollbar: checked,
+                      }
+                    : block,
+                ),
+              }));
+            }}
+          />
+          Show Vertical Scrollbar
+        </label>
+
+        <label className="flex cursor-pointer items-center gap-2 text-xs font-medium text-neutral-700">
+          <input
+            type="checkbox"
+            checked={(selectedCanvasItem as any).showHorizontalScrollbar === true}
+            onChange={(e) => {
+              const checked = e.target.checked;
+
+              setDraft((prev) => ({
+                ...prev,
+                blocks: prev.blocks.map((block) =>
+                  block.id === selectedCanvasItem.id
+                    ? {
+                        ...block,
+                        showHorizontalScrollbar: checked,
+                      }
+                    : block,
+                ),
+              }));
+            }}
+          />
+          Show Horizontal Scrollbar
+        </label>
+      </div>
+
+      <div className="mt-3 text-xs leading-5 text-neutral-500">
+        Scrollbars appear only when content exceeds the block’s visible area.
+      </div>
+    </div>
+  </>
+) : null}
+
+  {selectedCanvasItem ? (
+  <div className={inspectorCardClass()}>
+    <div className={inspectorLabelClass()}>Public Display Settings</div>
+
     <div className="mt-4 grid gap-3 rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
-      <label className="relative z-50 flex cursor-pointer items-center gap-2 text-xs font-medium text-neutral-700 pointer-events-auto">
-<input
-  type="checkbox"
-  className="pointer-events-auto"
+      <label className="flex cursor-pointer items-center gap-2 text-xs font-medium text-neutral-700">
+        <input
+          type="checkbox"
           checked={(selectedCanvasItem as any).showVerticalScrollbar === true}
-          onChange={(e) =>
-            updateSelectedBlock((block) => ({
-              ...block,
-              showVerticalScrollbar: e.target.checked,
-            } as any))
-          }
+          onChange={(e) => {
+            const checked = e.target.checked;
+
+            setDraft((prev) => ({
+              ...prev,
+              blocks: prev.blocks.map((block) =>
+                block.id === selectedCanvasItem.id
+                  ? {
+                      ...block,
+                      showVerticalScrollbar: checked,
+                    }
+                  : block,
+              ),
+            }));
+          }}
         />
         Show Vertical Scrollbar
       </label>
 
-      <label className="relative z-50 flex cursor-pointer items-center gap-2 text-xs font-medium text-neutral-700 pointer-events-auto">
-<input
-  type="checkbox"
-  className="pointer-events-auto"
+      <label className="flex cursor-pointer items-center gap-2 text-xs font-medium text-neutral-700">
+        <input
+          type="checkbox"
           checked={(selectedCanvasItem as any).showHorizontalScrollbar === true}
-          onChange={(e) =>
-            updateSelectedBlock((block) => ({
-              ...block,
-              showHorizontalScrollbar: e.target.checked,
-            } as any))
-          }
+          onChange={(e) => {
+            const checked = e.target.checked;
+
+            setDraft((prev) => ({
+              ...prev,
+              blocks: prev.blocks.map((block) =>
+                block.id === selectedCanvasItem.id
+                  ? {
+                      ...block,
+                      showHorizontalScrollbar: checked,
+                    }
+                  : block,
+              ),
+            }));
+          }}
         />
         Show Horizontal Scrollbar
       </label>
+    </div>
+
+    <div className="mt-3 text-xs leading-5 text-neutral-500">
+      Scrollbars appear only when content exceeds the block's visible area.
     </div>
   </div>
 ) : null}
