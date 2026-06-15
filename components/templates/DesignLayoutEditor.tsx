@@ -13029,61 +13029,79 @@ onCancel={() => setShowAiSuggestions(false)}
       </div>
     </div>
 
-    <div className={inspectorCardClass()}>
-      <div className={inspectorLabelClass()}>Overflow & Scrolling</div>
+<div className={inspectorCardClass()}>
+  <div className={inspectorLabelClass()}>Overflow & Scrolling</div>
 
-      <div className="mt-4 grid gap-3 rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
-        <label className="flex cursor-pointer items-center gap-2 text-xs font-medium text-neutral-700">
-          <input
-            type="checkbox"
-            checked={(selectedCanvasItem as any).showVerticalScrollbar === true}
-            onChange={(e) => {
-              const checked = e.target.checked;
+  <div className="mt-4 grid gap-3 rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
+    <button
+      type="button"
+      className={[
+        "flex items-center justify-between rounded-xl border px-3 py-2 text-left text-xs font-semibold transition",
+        (selectedCanvasItem as any).showVerticalScrollbar === true
+          ? "border-neutral-900 bg-white text-neutral-950"
+          : "border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-100",
+      ].join(" ")}
+      onClick={() => {
+        const nextValue =
+          (selectedCanvasItem as any).showVerticalScrollbar !== true;
 
-              setDraft((prev) => ({
-                ...prev,
-                blocks: prev.blocks.map((block) =>
-                  block.id === selectedCanvasItem.id
-                    ? {
-                        ...block,
-                        showVerticalScrollbar: checked,
-                      }
-                    : block,
-                ),
-              }));
-            }}
-          />
-          Show Vertical Scrollbar
-        </label>
+        setDraft((prev) => ({
+          ...prev,
+          blocks: prev.blocks.map((block) =>
+            block.id === selectedCanvasItem.id
+              ? {
+                  ...block,
+                  showVerticalScrollbar: nextValue,
+                }
+              : block,
+          ),
+        }));
+      }}
+    >
+      <span>Show Vertical Scrollbar</span>
+      <span>
+        {(selectedCanvasItem as any).showVerticalScrollbar === true ? "On" : "Off"}
+      </span>
+    </button>
 
-        <label className="flex cursor-pointer items-center gap-2 text-xs font-medium text-neutral-700">
-          <input
-            type="checkbox"
-            checked={(selectedCanvasItem as any).showHorizontalScrollbar === true}
-            onChange={(e) => {
-              const checked = e.target.checked;
+    <button
+      type="button"
+      className={[
+        "flex items-center justify-between rounded-xl border px-3 py-2 text-left text-xs font-semibold transition",
+        (selectedCanvasItem as any).showHorizontalScrollbar === true
+          ? "border-neutral-900 bg-white text-neutral-950"
+          : "border-neutral-200 bg-white text-neutral-600 hover:bg-neutral-100",
+      ].join(" ")}
+      onClick={() => {
+        const nextValue =
+          (selectedCanvasItem as any).showHorizontalScrollbar !== true;
 
-              setDraft((prev) => ({
-                ...prev,
-                blocks: prev.blocks.map((block) =>
-                  block.id === selectedCanvasItem.id
-                    ? {
-                        ...block,
-                        showHorizontalScrollbar: checked,
-                      }
-                    : block,
-                ),
-              }));
-            }}
-          />
-          Show Horizontal Scrollbar
-        </label>
-      </div>
+        setDraft((prev) => ({
+          ...prev,
+          blocks: prev.blocks.map((block) =>
+            block.id === selectedCanvasItem.id
+              ? {
+                  ...block,
+                  showHorizontalScrollbar: nextValue,
+                }
+              : block,
+          ),
+        }));
+      }}
+    >
+      <span>Show Horizontal Scrollbar</span>
+      <span>
+        {(selectedCanvasItem as any).showHorizontalScrollbar === true
+          ? "On"
+          : "Off"}
+      </span>
+    </button>
+  </div>
 
-      <div className="mt-3 text-xs leading-5 text-neutral-500">
-        Scrollbars appear only when content exceeds the block’s visible area.
-      </div>
-    </div>
+  <div className="mt-3 text-xs leading-5 text-neutral-500">
+    Scrollbars appear only when content exceeds the block's visible area.
+  </div>
+</div>
   </>
 ) : null}
 
