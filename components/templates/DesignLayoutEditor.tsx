@@ -13028,9 +13028,10 @@ onCancel={() => setShowAiSuggestions(false)}
     </div>
 
     <div className="mt-4 grid gap-3 rounded-2xl border border-neutral-200 bg-neutral-50 p-3">
-      <label className="flex items-center gap-2 text-xs font-medium text-neutral-700">
-        <input
-          type="checkbox"
+      <label className="relative z-50 flex cursor-pointer items-center gap-2 text-xs font-medium text-neutral-700 pointer-events-auto">
+<input
+  type="checkbox"
+  className="pointer-events-auto"
           checked={(selectedCanvasItem as any).showVerticalScrollbar === true}
           onChange={(e) =>
             updateSelectedBlock((block) => ({
@@ -13042,9 +13043,10 @@ onCancel={() => setShowAiSuggestions(false)}
         Show Vertical Scrollbar
       </label>
 
-      <label className="flex items-center gap-2 text-xs font-medium text-neutral-700">
-        <input
-          type="checkbox"
+      <label className="relative z-50 flex cursor-pointer items-center gap-2 text-xs font-medium text-neutral-700 pointer-events-auto">
+<input
+  type="checkbox"
+  className="pointer-events-auto"
           checked={(selectedCanvasItem as any).showHorizontalScrollbar === true}
           onChange={(e) =>
             updateSelectedBlock((block) => ({
