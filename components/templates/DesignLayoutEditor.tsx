@@ -13031,7 +13031,7 @@ onCancel={() => setShowAiSuggestions(false)}
   </>
 ) : null}
 
-  {selectedCanvasItem ? (
+{selectedBlock ? (
   <div className={inspectorCardClass()}>
     <div className={inspectorLabelClass()}>Public Display Settings</div>
 
@@ -13039,21 +13039,14 @@ onCancel={() => setShowAiSuggestions(false)}
       <label className="flex cursor-pointer items-center gap-2 text-xs font-medium text-neutral-700">
         <input
           type="checkbox"
-          checked={(selectedCanvasItem as any).showVerticalScrollbar === true}
+          checked={(selectedBlock as any).showVerticalScrollbar === true}
           onChange={(e) => {
             const checked = e.target.checked;
 
-            setDraft((prev) => ({
-              ...prev,
-              blocks: prev.blocks.map((block) =>
-                block.id === selectedCanvasItem.id
-                  ? {
-                      ...block,
-                      showVerticalScrollbar: checked,
-                    }
-                  : block,
-              ),
-            }));
+            updateSelectedBlock((block) => ({
+              ...block,
+              showVerticalScrollbar: checked,
+            } as any));
           }}
         />
         Show Vertical Scrollbar
@@ -13062,21 +13055,14 @@ onCancel={() => setShowAiSuggestions(false)}
       <label className="flex cursor-pointer items-center gap-2 text-xs font-medium text-neutral-700">
         <input
           type="checkbox"
-          checked={(selectedCanvasItem as any).showHorizontalScrollbar === true}
+          checked={(selectedBlock as any).showHorizontalScrollbar === true}
           onChange={(e) => {
             const checked = e.target.checked;
 
-            setDraft((prev) => ({
-              ...prev,
-              blocks: prev.blocks.map((block) =>
-                block.id === selectedCanvasItem.id
-                  ? {
-                      ...block,
-                      showHorizontalScrollbar: checked,
-                    }
-                  : block,
-              ),
-            }));
+            updateSelectedBlock((block) => ({
+              ...block,
+              showHorizontalScrollbar: checked,
+            } as any));
           }}
         />
         Show Horizontal Scrollbar
