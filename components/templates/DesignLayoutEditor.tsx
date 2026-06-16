@@ -2968,7 +2968,35 @@ if (!selectedBlock) return;
 
     // prevent interfering with typing
     const tag = (e.target as HTMLElement)?.tagName;
-    if (tag === "INPUT" || tag === "TEXTAREA") return;
+
+        const isTyping =
+      tag === "INPUT" ||
+      tag === "TEXTAREA" ||
+      tag === "SELECT" ||
+      (e.target as HTMLElement)?.isContentEditable;
+
+    if (isTyping) return;
+
+    const activeIds =
+      selectedBlockIds.length > 0
+        ? selectedBlockIds
+        : selection.type === "block"
+          ? [selection.blockId]
+          : selectedBlock?.id
+            ? [selectedBlock.id]
+            : [];
+
+    if (e.ctrlKey && e.shiftKey && e.key === "ArrowUp") {
+      e.preventDefault();
+      activeIds.forEach((blockId) => handleBringToFront(blockId));
+      return;
+    }
+
+    if (e.ctrlKey && e.shiftKey && e.key === "ArrowDown") {
+      e.preventDefault();
+      activeIds.forEach((blockId) => handleSendToBack(blockId));
+      return;
+    }
 
     // ALT + ← = left
     if (e.altKey && e.key === "ArrowLeft") {
