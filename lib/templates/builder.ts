@@ -3317,8 +3317,8 @@ case "text_fx":
           showHeading: true,
           showSubtitle: false,
           options: [
-            { id: "option_1", label: "Option A", value: "option_a" },
-            { id: "option_2", label: "Option B", value: "option_b" },
+            { id: "option_1", label: "Option 1", value: "option_1" },
+            { id: "option_2", label: "Option 2", value: "option_2" },
           ],
           selectedOptionIds: [],
           allowMultiSelect: false,
@@ -6705,8 +6705,8 @@ if (block.type === "option_button") {
     options.length > 0
       ? options
       : [
-          { id: "option_1", label: "Option A", value: "option_a" },
-          { id: "option_2", label: "Option B", value: "option_b" },
+          { id: "option_1", label: "Option 1", value: "option_1" },
+          { id: "option_2", label: "Option 2", value: "option_2" },
         ];
 
   return {

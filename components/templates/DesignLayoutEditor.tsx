@@ -15678,6 +15678,78 @@ selectedContext.kind === "textFx"
             </div>
           ) : null}
 
+          <div>
+  <div className={inspectorLabelClass()}>Image</div>
+
+  {option.imageUrl ? (
+    <div className="mt-2 overflow-hidden rounded-xl border border-neutral-200 bg-white">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={option.imageUrl}
+        alt=""
+        className="h-28 w-full object-cover"
+      />
+    </div>
+  ) : null}
+
+  <div className="mt-3 flex gap-2">
+    <button
+      type="button"
+      onClick={() =>
+        openImagePicker({
+          multiple: false,
+          onSelect: async (files) => {
+            const file = files[0];
+            if (!file) return;
+
+            const uploaded = await uploadBuilderImageFile(file);
+
+            updateSelectedOptionButtonData({
+              options: options.map((item: any) =>
+                item.id === option.id
+                  ? {
+                      ...item,
+                      imageUrl: uploaded.url,
+                      imageStoragePath:
+                        (uploaded as any).path ??
+                        (uploaded as any).storagePath ??
+                        "",
+                    }
+                  : item,
+              ),
+            });
+          },
+        })
+      }
+      className={toolSetButtonClass("front")}
+    >
+      Upload
+    </button>
+
+    {option.imageUrl ? (
+      <button
+        type="button"
+        onClick={() =>
+          updateSelectedOptionButtonData({
+            options: options.map((item: any) =>
+              item.id === option.id
+                ? {
+                    ...item,
+                    imageUrl: "",
+                    imageStoragePath: "",
+                  }
+                : item,
+            ),
+          })
+        }
+        className="inline-flex h-8 items-center justify-center rounded-lg border border-red-200 bg-red-50 px-3 text-xs font-medium text-red-700 hover:bg-red-100"
+      >
+        Remove Image
+      </button>
+    ) : null}
+  </div>
+</div>
+
           <label className="flex items-center gap-3 text-sm text-neutral-800">
             <input
               type="checkbox"
@@ -15710,7 +15782,7 @@ selectedContext.kind === "textFx"
                 nextOptions[0]?.id ?? null,
               );
             }}
-            className={toolSetButtonClass("remove")}
+            className="inline-flex h-10 items-center justify-center rounded-lg border border-red-200 bg-red-50 px-4 text-sm text-red-700 hover:bg-red-100"
           >
             Remove Option
           </button>
