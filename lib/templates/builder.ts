@@ -136,6 +136,7 @@ export type BuilderBlockType =
   | "showcase"
   | "festiveBackground"
   | "form_field"
+  | "option_button"
   | "shape"
   | "listing"
   | "rich_text"
@@ -1183,6 +1184,57 @@ export type FormFieldBlock = BaseBlock & {
   };
 };
 
+export type OptionButtonVariant =
+  | "radio"
+  | "toggle"
+  | "push_button"
+  | "dropdown";
+
+export type OptionButtonFrame = "square" | "circle";
+
+export type OptionButtonOption = {
+  id: string;
+  label: string;
+  value?: string;
+  description?: string;
+  imageUrl?: string;
+  imageStoragePath?: string;
+  iconName?: string;
+  disabled?: boolean;
+};
+
+export type OptionButtonBlock = BaseBlock & {
+  type: "option_button";
+  data: {
+    variant: OptionButtonVariant;
+    heading?: string;
+    subtitle?: string;
+    showHeading?: boolean;
+    showSubtitle?: boolean;
+    options: OptionButtonOption[];
+    selectedOptionIds?: string[];
+    allowMultiSelect?: boolean;
+    linkedButtonBlockId?: string;
+    placeholder?: string;
+    labelPosition?: "left" | "right";
+    pushButtonFrame?: OptionButtonFrame;
+    pushButtonLayout?: "grid" | "horizontal_scroll" | "vertical_stack";
+    horizontalPadding?: number;
+    verticalPadding?: number;
+    selectedBorderColor?: string;
+    selectedCheckColor?: string;
+    checkmarkColor?: string;
+    showCheckmark?: boolean;
+    showOptionImages?: boolean;
+    showOptionDescriptions?: boolean;
+    style?: Record<string, any>;
+    optionStyle?: Record<string, any>;
+    selectedOptionStyle?: Record<string, any>;
+    labelStyle?: Record<string, any>;
+    controlStyle?: Record<string, any>;
+  };
+};
+
 export type ListingBlock = BaseBlock & {
   type: "listing";
   data: {
@@ -1901,6 +1953,7 @@ export type MicrositeBlock =
   | ShowcaseBlock
   | FestiveBackgroundBlock
   | FormFieldBlock
+  | OptionButtonBlock
   | ShapeBlock
   | ListingBlock
   | RichTextBlock
@@ -3247,6 +3300,51 @@ case "text_fx":
             ...createDefaultTextStyle(),
             color: "rgb(186, 186, 186)",
           },
+        },
+      };
+
+          case "option_button":
+      return {
+        id: makeId("option"),
+        type: "option_button",
+        label: "Option Button",
+        grid,
+        appearance: createDefaultBlockAppearance(),
+        data: {
+          variant: "push_button",
+          heading: "Choose an Option",
+          subtitle: "",
+          showHeading: true,
+          showSubtitle: false,
+          options: [
+            { id: "option_1", label: "Option A", value: "option_a" },
+            { id: "option_2", label: "Option B", value: "option_b" },
+          ],
+          selectedOptionIds: [],
+          allowMultiSelect: false,
+          placeholder: "Select",
+          labelPosition: "right",
+          pushButtonFrame: "square",
+          pushButtonLayout: "grid",
+          horizontalPadding: 16,
+          verticalPadding: 16,
+          selectedBorderColor: "#f59e0b",
+          selectedCheckColor: "#f59e0b",
+          checkmarkColor: "#ffffff",
+          showCheckmark: true,
+          showOptionImages: true,
+          showOptionDescriptions: true,
+          style: createDefaultTextStyle(),
+          optionStyle: {
+            ...createDefaultTextStyle(),
+            paddingTop: 16,
+            paddingRight: 16,
+            paddingBottom: 16,
+            paddingLeft: 16,
+          },
+          selectedOptionStyle: {},
+          labelStyle: createDefaultTextStyle(),
+          controlStyle: {},
         },
       };
 
@@ -6559,6 +6657,173 @@ if (block.type === "form_field") {
         ...createDefaultTextStyle(),
         color: "rgb(186, 186, 186)",
         ...((block.data as any).placeholderStyle ?? {}),
+      },
+    },
+  };
+}
+
+if (block.type === "option_button") {
+  const data = block.data as any;
+
+  const options = Array.isArray(data.options)
+    ? data.options
+        .filter((option: any) => option && typeof option === "object")
+        .map((option: any, index: number) => ({
+          id:
+            typeof option.id === "string" && option.id.trim()
+              ? option.id
+              : `option_${index + 1}`,
+          label:
+            typeof option.label === "string" && option.label.trim()
+              ? option.label
+              : `Option ${index + 1}`,
+          value:
+            typeof option.value === "string"
+              ? option.value
+              : `option_${index + 1}`,
+          description:
+            typeof option.description === "string"
+              ? option.description
+              : "",
+          imageUrl:
+            typeof option.imageUrl === "string"
+              ? option.imageUrl
+              : "",
+          imageStoragePath:
+            typeof option.imageStoragePath === "string"
+              ? option.imageStoragePath
+              : "",
+          iconName:
+            typeof option.iconName === "string"
+              ? option.iconName
+              : "",
+          disabled: Boolean(option.disabled),
+        }))
+    : [];
+
+  const safeOptions =
+    options.length > 0
+      ? options
+      : [
+          { id: "option_1", label: "Option A", value: "option_a" },
+          { id: "option_2", label: "Option B", value: "option_b" },
+        ];
+
+  return {
+    ...block,
+    grid: normalizeGridValue(block.grid, fallbackGrid),
+    data: {
+      ...data,
+      variant:
+        data.variant === "radio" ||
+        data.variant === "toggle" ||
+        data.variant === "push_button" ||
+        data.variant === "dropdown"
+          ? data.variant
+          : "push_button",
+
+      heading:
+        typeof data.heading === "string" ? data.heading : "Choose an Option",
+
+      subtitle:
+        typeof data.subtitle === "string" ? data.subtitle : "",
+
+      showHeading: data.showHeading !== false,
+      showSubtitle: Boolean(data.showSubtitle),
+
+      options: safeOptions,
+
+      selectedOptionIds: Array.isArray(data.selectedOptionIds)
+        ? data.selectedOptionIds.filter((id: any) => typeof id === "string")
+        : [],
+
+      allowMultiSelect: Boolean(data.allowMultiSelect),
+
+      linkedButtonBlockId:
+        typeof data.linkedButtonBlockId === "string" &&
+        data.linkedButtonBlockId.trim()
+          ? data.linkedButtonBlockId
+          : undefined,
+
+      placeholder:
+        typeof data.placeholder === "string" ? data.placeholder : "Select",
+
+      labelPosition:
+        data.labelPosition === "left" || data.labelPosition === "right"
+          ? data.labelPosition
+          : "right",
+
+      pushButtonFrame:
+        data.pushButtonFrame === "circle" || data.pushButtonFrame === "square"
+          ? data.pushButtonFrame
+          : "square",
+
+      pushButtonLayout:
+        data.pushButtonLayout === "horizontal_scroll" ||
+        data.pushButtonLayout === "vertical_stack" ||
+        data.pushButtonLayout === "grid"
+          ? data.pushButtonLayout
+          : "grid",
+
+      horizontalPadding:
+        typeof data.horizontalPadding === "number" &&
+        Number.isFinite(data.horizontalPadding)
+          ? Math.max(0, Math.min(64, data.horizontalPadding))
+          : 16,
+
+      verticalPadding:
+        typeof data.verticalPadding === "number" &&
+        Number.isFinite(data.verticalPadding)
+          ? Math.max(0, Math.min(64, data.verticalPadding))
+          : 16,
+
+      selectedBorderColor:
+        typeof data.selectedBorderColor === "string" &&
+        data.selectedBorderColor.trim()
+          ? data.selectedBorderColor
+          : "#f59e0b",
+
+      selectedCheckColor:
+        typeof data.selectedCheckColor === "string" &&
+        data.selectedCheckColor.trim()
+          ? data.selectedCheckColor
+          : "#f59e0b",
+
+      checkmarkColor:
+        typeof data.checkmarkColor === "string" &&
+        data.checkmarkColor.trim()
+          ? data.checkmarkColor
+          : "#ffffff",
+
+      showCheckmark: data.showCheckmark !== false,
+      showOptionImages: data.showOptionImages !== false,
+      showOptionDescriptions: data.showOptionDescriptions !== false,
+
+      style: {
+        ...createDefaultTextStyle(),
+        ...(data.style ?? {}),
+      },
+
+      optionStyle: {
+        ...createDefaultTextStyle(),
+        paddingTop: 16,
+        paddingRight: 16,
+        paddingBottom: 16,
+        paddingLeft: 16,
+        ...(data.optionStyle ?? {}),
+      },
+
+      selectedOptionStyle: {
+        ...(data.selectedOptionStyle ?? {}),
+      },
+
+      labelStyle: {
+        ...createDefaultTextStyle(),
+        ...(data.labelStyle ?? {}),
+      },
+
+      controlStyle: {
+        ...(data.controlStyle ?? {}),
       },
     },
   };

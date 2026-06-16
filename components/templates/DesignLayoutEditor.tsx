@@ -494,6 +494,7 @@ const CATEGORY_BUTTONS: Record<
   ],
 Forms: [
   { kind: "block", label: "Input Field", type: "form_field" },
+  { kind: "block", label: "Option Button", type: "option_button" },
   { kind: "block", label: "Poll", type: "poll" },
   { kind: "block", label: "RSVP", type: "rsvp" },
   { kind: "block", label: "Enrollment Board", type: "enrollment_board" },
@@ -578,6 +579,7 @@ const TOOL_DESCRIPTIONS: Record<string, string> = {
   Spacer: "Adds empty vertical spacing",
 
   "Input Field": "Collect simple user text input",
+  "Option Button": "Selectable radio, toggle, button, or dropdown choices",
   Poll: "Let visitors vote on options",
   RSVP: "Collect event attendance responses",
   "Enrollment Board":
@@ -1921,6 +1923,9 @@ const [contentPanelStyleTarget, setContentPanelStyleTarget] = useState<
 const [formFieldTextTarget, setFormFieldTextTarget] = useState<"form" | "text">(
   "form",
 );
+
+const [selectedOptionButtonOptionId, setSelectedOptionButtonOptionId] =
+  useState<string | null>(null);
 
   const [selectedRsvpElementKey, setSelectedRsvpElementKey] = useState<
     | "form"
@@ -6499,6 +6504,20 @@ function updateSelectedBlock(
   }));
 }
 
+function updateSelectedOptionButtonData(patch: Record<string, any>) {
+  updateSelectedBlock((block) =>
+    block.type !== "option_button"
+      ? block
+      : {
+          ...block,
+          data: {
+            ...(block.data as any),
+            ...patch,
+          },
+        },
+  );
+}
+
 function updateSelectedRsvpElementStyle(
   updater: (
     current:
@@ -8934,6 +8953,14 @@ if (block.type === "faq") {
   );
 }
     if (block.type === "form_field") {
+      return (
+        <div className="h-full w-full">
+          <BlockRenderer block={block} designKey={designKey} />
+        </div>
+      );
+    }
+
+        if (block.type === "option_button") {
       return (
         <div className="h-full w-full">
           <BlockRenderer block={block} designKey={designKey} />
@@ -15301,6 +15328,427 @@ selectedContext.kind === "textFx"
           Show
         </span>
       </label>
+    </div>
+  </div>
+) : null}
+
+{selectedBlock?.type === "option_button" ? (
+  <div className={inspectorCardClass()}>
+    <div className={inspectorLabelClass()}>Option Button</div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Style Variant</div>
+      <select
+        value={(selectedBlock.data as any).variant ?? "push_button"}
+        onChange={(e) =>
+          updateSelectedOptionButtonData({ variant: e.target.value })
+        }
+        className={inspectorInputClass()}
+      >
+        <option value="push_button">Push Button</option>
+        <option value="radio">Radio Button</option>
+        <option value="toggle">Toggle Switch</option>
+        <option value="dropdown">Drop-Down Menu</option>
+      </select>
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Heading</div>
+      <input
+        type="text"
+        value={(selectedBlock.data as any).heading ?? ""}
+        onChange={(e) =>
+          updateSelectedOptionButtonData({ heading: e.target.value })
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
+
+    <div className="mt-4">
+      <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+        <input
+          type="checkbox"
+          checked={(selectedBlock.data as any).showHeading !== false}
+          onChange={(e) =>
+            updateSelectedOptionButtonData({ showHeading: e.target.checked })
+          }
+        />
+        Show Heading
+      </label>
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Subtitle</div>
+      <input
+        type="text"
+        value={(selectedBlock.data as any).subtitle ?? ""}
+        onChange={(e) =>
+          updateSelectedOptionButtonData({ subtitle: e.target.value })
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
+
+    <div className="mt-4">
+      <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+        <input
+          type="checkbox"
+          checked={Boolean((selectedBlock.data as any).showSubtitle)}
+          onChange={(e) =>
+            updateSelectedOptionButtonData({ showSubtitle: e.target.checked })
+          }
+        />
+        Show Subtitle
+      </label>
+    </div>
+
+    <div className="mt-4">
+      <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+        <input
+          type="checkbox"
+          checked={Boolean((selectedBlock.data as any).allowMultiSelect)}
+          onChange={(e) =>
+            updateSelectedOptionButtonData({
+              allowMultiSelect: e.target.checked,
+            })
+          }
+        />
+        Allow Multi-select
+      </label>
+    </div>
+
+    {((selectedBlock.data as any).variant ?? "push_button") === "dropdown" ? (
+      <div className="mt-4">
+        <div className={inspectorLabelClass()}>Placeholder</div>
+        <input
+          type="text"
+          value={(selectedBlock.data as any).placeholder ?? "Select"}
+          onChange={(e) =>
+            updateSelectedOptionButtonData({ placeholder: e.target.value })
+          }
+          className={inspectorInputClass()}
+        />
+      </div>
+    ) : null}
+
+    {["radio", "toggle"].includes(
+      (selectedBlock.data as any).variant ?? "push_button",
+    ) ? (
+      <div className="mt-4">
+        <div className={inspectorLabelClass()}>Label Position</div>
+        <select
+          value={(selectedBlock.data as any).labelPosition ?? "right"}
+          onChange={(e) =>
+            updateSelectedOptionButtonData({ labelPosition: e.target.value })
+          }
+          className={inspectorInputClass()}
+        >
+          <option value="right">Right of control</option>
+          <option value="left">Left of control</option>
+        </select>
+      </div>
+    ) : null}
+
+    {((selectedBlock.data as any).variant ?? "push_button") ===
+    "push_button" ? (
+      <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+        <div className={inspectorLabelClass()}>Push Button Settings</div>
+
+        <div className="mt-4">
+          <div className={inspectorLabelClass()}>Frame</div>
+          <select
+            value={(selectedBlock.data as any).pushButtonFrame ?? "square"}
+            onChange={(e) =>
+              updateSelectedOptionButtonData({
+                pushButtonFrame: e.target.value,
+              })
+            }
+            className={inspectorInputClass()}
+          >
+            <option value="square">Square</option>
+            <option value="circle">Circle</option>
+          </select>
+        </div>
+
+        <div className="mt-4">
+          <div className={inspectorLabelClass()}>Layout</div>
+          <select
+            value={(selectedBlock.data as any).pushButtonLayout ?? "grid"}
+            onChange={(e) =>
+              updateSelectedOptionButtonData({
+                pushButtonLayout: e.target.value,
+              })
+            }
+            className={inspectorInputClass()}
+          >
+            <option value="grid">Grid</option>
+            <option value="horizontal_scroll">Horizontal Scroll</option>
+            <option value="vertical_stack">Vertical Stack</option>
+          </select>
+        </div>
+
+        {[
+          ["horizontalPadding", "Horizontal Padding"],
+          ["verticalPadding", "Vertical Padding"],
+        ].map(([key, label]) => (
+          <div key={key} className="mt-4">
+            <div className="flex items-center justify-between">
+              <div className={inspectorLabelClass()}>{label}</div>
+              <div className="text-xs text-neutral-500">
+                {Number((selectedBlock.data as any)[key] ?? 16)}px
+              </div>
+            </div>
+            <input
+              type="range"
+              min={0}
+              max={64}
+              value={Number((selectedBlock.data as any)[key] ?? 16)}
+              onChange={(e) =>
+                updateSelectedOptionButtonData({
+                  [key]: Number(e.target.value),
+                })
+              }
+              className="mt-2 w-full"
+            />
+          </div>
+        ))}
+
+        <div className="mt-4 space-y-3">
+          <label className="flex items-center gap-3 text-sm text-neutral-800">
+            <input
+              type="checkbox"
+              checked={(selectedBlock.data as any).showCheckmark !== false}
+              onChange={(e) =>
+                updateSelectedOptionButtonData({
+                  showCheckmark: e.target.checked,
+                })
+              }
+            />
+            Show Checkmark
+          </label>
+
+          <label className="flex items-center gap-3 text-sm text-neutral-800">
+            <input
+              type="checkbox"
+              checked={(selectedBlock.data as any).showOptionImages !== false}
+              onChange={(e) =>
+                updateSelectedOptionButtonData({
+                  showOptionImages: e.target.checked,
+                })
+              }
+            />
+            Show Images
+          </label>
+
+          <label className="flex items-center gap-3 text-sm text-neutral-800">
+            <input
+              type="checkbox"
+              checked={
+                (selectedBlock.data as any).showOptionDescriptions !== false
+              }
+              onChange={(e) =>
+                updateSelectedOptionButtonData({
+                  showOptionDescriptions: e.target.checked,
+                })
+              }
+            />
+            Show Descriptions
+          </label>
+        </div>
+      </div>
+    ) : null}
+
+    <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+  <div className="flex items-center justify-between">
+    <div className={inspectorLabelClass()}>Options</div>
+
+    <button
+      type="button"
+      onClick={() => {
+        const options = [...(((selectedBlock.data as any).options ?? []) as any[])];
+
+        const nextId = `option_${options.length + 1}`;
+
+        updateSelectedOptionButtonData({
+          options: [
+            ...options,
+            {
+              id: nextId,
+              label: `Option ${options.length + 1}`,
+              value: nextId,
+            },
+          ],
+        });
+
+        setSelectedOptionButtonOptionId(nextId);
+      }}
+      className={toolSetButtonClass("front")}
+    >
+      Add
+    </button>
+  </div>
+
+  <div className="mt-3 space-y-2">
+    {(((selectedBlock.data as any).options ?? []) as any[]).map(
+      (option: any) => (
+        <button
+          key={option.id}
+          type="button"
+          onClick={() => setSelectedOptionButtonOptionId(option.id)}
+          className={[
+            "w-full rounded-xl border px-3 py-3 text-left text-sm transition",
+            selectedOptionButtonOptionId === option.id
+              ? "border-neutral-900 bg-neutral-900 text-white"
+              : "border-neutral-200 bg-white text-neutral-700",
+          ].join(" ")}
+        >
+          {option.label}
+        </button>
+      ),
+    )}
+  </div>
+
+  {selectedOptionButtonOptionId ? (
+    (() => {
+      const options = (((selectedBlock.data as any).options ?? []) as any[]);
+      const option = options.find(
+        (item: any) => item.id === selectedOptionButtonOptionId,
+      );
+
+      if (!option) return null;
+
+      return (
+        <div className="mt-4 space-y-4">
+          <div>
+            <div className={inspectorLabelClass()}>Label</div>
+
+            <input
+              type="text"
+              value={option.label ?? ""}
+              onChange={(e) =>
+                updateSelectedOptionButtonData({
+                  options: options.map((item: any) =>
+                    item.id === option.id
+                      ? { ...item, label: e.target.value }
+                      : item,
+                  ),
+                })
+              }
+              className={inspectorInputClass()}
+            />
+          </div>
+
+          <div>
+            <div className={inspectorLabelClass()}>Value</div>
+
+            <input
+              type="text"
+              value={option.value ?? ""}
+              onChange={(e) =>
+                updateSelectedOptionButtonData({
+                  options: options.map((item: any) =>
+                    item.id === option.id
+                      ? { ...item, value: e.target.value }
+                      : item,
+                  ),
+                })
+              }
+              className={inspectorInputClass()}
+            />
+          </div>
+
+          {((selectedBlock.data as any).variant ?? "push_button") ===
+          "push_button" ? (
+            <div>
+              <div className={inspectorLabelClass()}>Description</div>
+
+              <textarea
+                value={option.description ?? ""}
+                onChange={(e) =>
+                  updateSelectedOptionButtonData({
+                    options: options.map((item: any) =>
+                      item.id === option.id
+                        ? { ...item, description: e.target.value }
+                        : item,
+                    ),
+                  })
+                }
+                className={inspectorTextareaClass()}
+              />
+            </div>
+          ) : null}
+
+          <label className="flex items-center gap-3 text-sm text-neutral-800">
+            <input
+              type="checkbox"
+              checked={Boolean(option.disabled)}
+              onChange={(e) =>
+                updateSelectedOptionButtonData({
+                  options: options.map((item: any) =>
+                    item.id === option.id
+                      ? { ...item, disabled: e.target.checked }
+                      : item,
+                  ),
+                })
+              }
+            />
+            Disabled
+          </label>
+
+          <button
+            type="button"
+            onClick={() => {
+              const nextOptions = options.filter(
+                (item: any) => item.id !== option.id,
+              );
+
+              updateSelectedOptionButtonData({
+                options: nextOptions,
+              });
+
+              setSelectedOptionButtonOptionId(
+                nextOptions[0]?.id ?? null,
+              );
+            }}
+            className={toolSetButtonClass("remove")}
+          >
+            Remove Option
+          </button>
+        </div>
+      );
+    })()
+  ) : null}
+</div>
+
+    <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+      <div className={inspectorLabelClass()}>Selection Colors</div>
+
+      <div className="mt-4">
+        <div className={inspectorLabelClass()}>Selected Border / Control</div>
+        <input
+          type="color"
+          value={(selectedBlock.data as any).selectedBorderColor ?? "#f59e0b"}
+          onChange={(e) =>
+            updateSelectedOptionButtonData({
+              selectedBorderColor: e.target.value,
+              selectedCheckColor: e.target.value,
+            })
+          }
+          className="mt-2 h-10 w-full rounded-xl border border-neutral-300 bg-white"
+        />
+      </div>
+
+      <div className="mt-4">
+        <div className={inspectorLabelClass()}>Checkmark Color</div>
+        <input
+          type="color"
+          value={(selectedBlock.data as any).checkmarkColor ?? "#ffffff"}
+          onChange={(e) =>
+            updateSelectedOptionButtonData({ checkmarkColor: e.target.value })
+          }
+          className="mt-2 h-10 w-full rounded-xl border border-neutral-300 bg-white"
+        />
+      </div>
     </div>
   </div>
 ) : null}
