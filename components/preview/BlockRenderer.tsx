@@ -7951,109 +7951,69 @@ function renderOptionButton(
   block: Extract<MicrositeBlock, { type: "option_button" }>,
   designKey?: string,
 ) {
-  function OptionButtonPreview() {
-    const data = block.data as any;
-    const options = Array.isArray(data.options) ? data.options : [];
-    const allowMultiSelect = Boolean(data.allowMultiSelect);
-    const variant = data.variant ?? "push_button";
+function OptionButtonPreview() {
+  const data = block.data as any;
+  const options = Array.isArray(data.options) ? data.options : [];
+  const allowMultiSelect = Boolean(data.allowMultiSelect);
+  const variant = data.variant ?? "push_button";
 
-    const [selectedIds, setSelectedIds] = useState<string[]>(
-      Array.isArray(data.selectedOptionIds) ? data.selectedOptionIds : [],
-    );
+  const [selectedIds, setSelectedIds] = useState<string[]>(
+    Array.isArray(data.selectedOptionIds) ? data.selectedOptionIds : [],
+  );
 
-    function toggleOption(optionId: string) {
-      setSelectedIds((current) => {
-        if (allowMultiSelect) {
-          return current.includes(optionId)
-            ? current.filter((id) => id !== optionId)
-            : [...current, optionId];
-        }
+  function toggleOption(optionId: string) {
+    setSelectedIds((current) => {
+      if (allowMultiSelect) {
+        return current.includes(optionId)
+          ? current.filter((id) => id !== optionId)
+          : [...current, optionId];
+      }
 
-        return current.includes(optionId) ? [] : [optionId];
-      });
-    }
+      return current.includes(optionId) ? [] : [optionId];
+    });
+  }
 
-    const labelStyle = getContainerTextStyle(
-      data.labelStyle ?? data.style ?? {},
-      designKey,
-    );
+  const labelStyle = getContainerTextStyle(
+    data.labelStyle ?? data.style ?? {},
+    designKey,
+  );
 
-    const descriptionStyle = getContainerTextStyle(
-      data.descriptionStyle ?? data.labelStyle ?? data.style ?? {},
-      designKey,
-    );
+  const descriptionStyle = getContainerTextStyle(
+    data.descriptionStyle ?? data.labelStyle ?? data.style ?? {},
+    designKey,
+  );
 
-    const optionTextStyle = getContainerTextStyle(
-      data.optionStyle ?? data.style ?? {},
-      designKey,
-    );
+  const optionTextStyle = getContainerTextStyle(
+    data.optionStyle ?? data.style ?? {},
+    designKey,
+  );
 
-    const headingStyle = getContainerTextStyle(data.style ?? {}, designKey);
+  const headingStyle = getContainerTextStyle(data.style ?? {}, designKey);
 
-    const selectedBorderColor = data.selectedBorderColor ?? "#f59e0b";
-    const selectedCheckColor = data.selectedCheckColor ?? "#f59e0b";
-    const checkmarkColor = data.checkmarkColor ?? "#ffffff";
-    const optionImageSize = Number(data.optionImageSize ?? 56);
+  const selectedBorderColor = data.selectedBorderColor ?? "#f59e0b";
+  const selectedCheckColor = data.selectedCheckColor ?? "#f59e0b";
+  const checkmarkColor = data.checkmarkColor ?? "#ffffff";
+  const optionImageSize = Number(data.optionImageSize ?? 56);
 
-    const sharedDataAttrs = {
-      "data-form-field-id": block.id,
-      "data-field-type": "option_button",
-      "data-field-label": data.heading || block.label || "Option Button",
-      "data-required": "false",
-      "data-option-button-value": selectedIds.join(","),
-    };
+  const sharedDataAttrs = {
+    "data-form-field-id": block.id,
+    "data-field-type": "option_button",
+    "data-field-label": data.heading || block.label || "Option Button",
+    "data-required": "false",
+    "data-option-button-value": selectedIds.join(","),
+  };
 
-    if (variant === "dropdown") {
-      return (
-        <div className="h-full w-full p-2" style={getAppearanceStyle(block)}>
-          <div className="flex h-full flex-col gap-2">
-            {data.showHeading !== false ? (
-              <div style={headingStyle}>
-                {data.heading || "Choose an Option"}
-              </div>
-            ) : null}
-
-            {data.showSubtitle ? (
-              <div className="text-sm opacity-75" style={headingStyle}>
-                {data.subtitle}
-              </div>
-            ) : null}
-
-            <select
-              className={
-                isLightDesign(designKey)
-                  ? "w-full rounded border border-neutral-300 bg-white px-3 py-2"
-                  : "w-full rounded border border-white/15 bg-white/5 px-3 py-2"
-              }
-              value={selectedIds[0] ?? ""}
-              onChange={(e) =>
-                setSelectedIds(e.target.value ? [e.target.value] : [])
-              }
-              style={optionTextStyle}
-              {...sharedDataAttrs}
-            >
-              <option value="">{data.placeholder || "Select"}</option>
-
-              {options.map((option: any) => (
-                <option
-                  key={option.id}
-                  value={option.id}
-                  disabled={Boolean(option.disabled)}
-                >
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-      );
-    }
-
+  if (variant === "dropdown") {
     return (
-      <div className="h-full w-full p-2" style={getAppearanceStyle(block)}>
-        <div className="flex h-full flex-col gap-3">
+      <div
+        className="pointer-events-auto h-full w-full p-2"
+        style={getAppearanceStyle(block)}
+      >
+        <div className="pointer-events-auto flex h-full flex-col gap-2">
           {data.showHeading !== false ? (
-            <div style={headingStyle}>{data.heading || "Choose an Option"}</div>
+            <div style={headingStyle}>
+              {data.heading || "Choose an Option"}
+            </div>
           ) : null}
 
           {data.showSubtitle ? (
@@ -8062,114 +8022,121 @@ function renderOptionButton(
             </div>
           ) : null}
 
-          <div
+          <select
             className={
-              variant === "push_button"
-                ? data.pushButtonLayout === "vertical_stack"
-                  ? "flex flex-col"
-                  : data.pushButtonLayout === "horizontal_scroll"
-                    ? "flex overflow-x-auto"
-                    : "grid grid-cols-2"
-                : "flex flex-col gap-3"
+              isLightDesign(designKey)
+                ? "pointer-events-auto w-full rounded border border-neutral-300 bg-white px-3 py-2"
+                : "pointer-events-auto w-full rounded border border-white/15 bg-white/5 px-3 py-2"
             }
-            style={
-              variant === "push_button"
-                ? { gap: `${Number(data.optionGap ?? 12)}px` }
-                : undefined
+            value={selectedIds[0] ?? ""}
+            onChange={(e) =>
+              setSelectedIds(e.target.value ? [e.target.value] : [])
             }
+            style={optionTextStyle}
+            {...sharedDataAttrs}
           >
-            {options.map((option: any) => {
-              const selected = selectedIds.includes(option.id);
-              const disabled = Boolean(option.disabled);
+            <option value="">{data.placeholder || "Select"}</option>
 
-              if (variant === "radio" || variant === "toggle") {
-                const control =
-                  variant === "radio" ? (
-                    <span
-                      className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border"
-                      style={{
-                        borderColor: selected ? selectedBorderColor : undefined,
-                      }}
-                    >
-                      {selected ? (
-                        <span
-                          className="h-2.5 w-2.5 rounded-full"
-                          style={{ backgroundColor: selectedBorderColor }}
-                        />
-                      ) : null}
-                    </span>
-                  ) : (
-                    <span
-                      className="relative h-6 w-11 shrink-0 rounded-full border transition"
-                      style={{
-                        backgroundColor: selected
-                          ? selectedBorderColor
-                          : "rgba(148, 163, 184, 0.25)",
-                        borderColor: selected ? selectedBorderColor : undefined,
-                      }}
-                    >
-                      <span
-                        className="absolute top-0.5 h-5 w-5 rounded-full bg-white transition"
-                        style={{
-                          left: selected ? "20px" : "2px",
-                        }}
-                      />
-                    </span>
-                  );
+            {options.map((option: any) => (
+              <option
+                key={option.id}
+                value={option.id}
+                disabled={Boolean(option.disabled)}
+              >
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+    );
+  }
 
-                return (
-                  <button
-                    key={option.id}
-                    type="button"
-                    disabled={disabled}
-                    onClick={() => toggleOption(option.id)}
-                    className="flex items-center gap-3 rounded-xl border px-3 py-2 text-left transition disabled:cursor-not-allowed disabled:opacity-50"
+  return (
+    <div
+      className="pointer-events-auto h-full w-full p-2"
+      style={getAppearanceStyle(block)}
+    >
+      <div className="pointer-events-auto flex h-full flex-col gap-3">
+        {data.showHeading !== false ? (
+          <div style={headingStyle}>{data.heading || "Choose an Option"}</div>
+        ) : null}
+
+        {data.showSubtitle ? (
+          <div className="text-sm opacity-75" style={headingStyle}>
+            {data.subtitle}
+          </div>
+        ) : null}
+
+        <div
+          className={
+            variant === "push_button"
+              ? data.pushButtonLayout === "vertical_stack"
+                ? "pointer-events-auto flex flex-col"
+                : data.pushButtonLayout === "horizontal_scroll"
+                  ? "pointer-events-auto flex overflow-x-auto"
+                  : "pointer-events-auto grid grid-cols-2"
+              : "pointer-events-auto flex flex-col gap-3"
+          }
+          style={
+            variant === "push_button"
+              ? { gap: `${Number(data.optionGap ?? 12)}px` }
+              : undefined
+          }
+        >
+          {options.map((option: any) => {
+            const selected = selectedIds.includes(option.id);
+            const disabled = Boolean(option.disabled);
+
+            if (variant === "radio" || variant === "toggle") {
+              const control =
+                variant === "radio" ? (
+                  <span
+                    className="pointer-events-none flex h-5 w-5 shrink-0 items-center justify-center rounded-full border"
                     style={{
-                      ...optionTextStyle,
                       borderColor: selected ? selectedBorderColor : undefined,
                     }}
-                    aria-pressed={selected}
-                    data-option-id={option.id}
-                    data-option-label={option.label}
-                    data-option-value={option.value ?? option.id}
-                    {...sharedDataAttrs}
                   >
-                    {data.labelPosition === "left" ? (
-                      <>
-                        <span className="flex-1" style={labelStyle}>
-                          {option.label}
-                        </span>
-                        {control}
-                      </>
-                    ) : (
-                      <>
-                        {control}
-                        <span className="flex-1" style={labelStyle}>
-                          {option.label}
-                        </span>
-                      </>
-                    )}
-                  </button>
+                    {selected ? (
+                      <span
+                        className="h-2.5 w-2.5 rounded-full"
+                        style={{ backgroundColor: selectedBorderColor }}
+                      />
+                    ) : null}
+                  </span>
+                ) : (
+                  <span
+                    className="pointer-events-none relative h-6 w-11 shrink-0 rounded-full border transition"
+                    style={{
+                      backgroundColor: selected
+                        ? selectedBorderColor
+                        : "rgba(148, 163, 184, 0.25)",
+                      borderColor: selected ? selectedBorderColor : undefined,
+                    }}
+                  >
+                    <span
+                      className="absolute top-0.5 h-5 w-5 rounded-full bg-white transition"
+                      style={{
+                        left: selected ? "20px" : "2px",
+                      }}
+                    />
+                  </span>
                 );
-              }
 
               return (
                 <button
                   key={option.id}
                   type="button"
                   disabled={disabled}
-                  onClick={() => toggleOption(option.id)}
-                  className="relative flex min-w-[140px] flex-col items-center justify-center gap-2 border text-center transition disabled:cursor-not-allowed disabled:opacity-50"
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleOption(option.id);
+                  }}
+                  className="pointer-events-auto flex items-center gap-3 rounded-xl border px-3 py-2 text-left transition disabled:cursor-not-allowed disabled:opacity-50"
                   style={{
                     ...optionTextStyle,
-                    paddingLeft: data.horizontalPadding ?? 16,
-                    paddingRight: data.horizontalPadding ?? 16,
-                    paddingTop: data.verticalPadding ?? 16,
-                    paddingBottom: data.verticalPadding ?? 16,
-                    borderRadius:
-                      data.pushButtonFrame === "circle" ? "9999px" : undefined,
                     borderColor: selected ? selectedBorderColor : undefined,
-                    borderWidth: selected ? 2 : undefined,
                   }}
                   aria-pressed={selected}
                   data-option-id={option.id}
@@ -8177,47 +8144,99 @@ function renderOptionButton(
                   data-option-value={option.value ?? option.id}
                   {...sharedDataAttrs}
                 >
-                  {selected && data.showCheckmark !== false ? (
-                    <span
-                      className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold"
-                      style={{
-                        backgroundColor: selectedCheckColor,
-                        color: checkmarkColor,
-                      }}
-                    >
-                      ✓
-                    </span>
-                  ) : null}
-
-                  {data.showOptionImages !== false && option.imageUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={option.imageUrl}
-                      alt=""
-                      className="rounded-full object-cover"
-                      style={{
-                        width: `${optionImageSize}px`,
-                        height: `${optionImageSize}px`,
-                      }}
-                    />
-                  ) : null}
-
-                  <span style={labelStyle}>{option.label}</span>
-
-                  {data.showOptionDescriptions !== false &&
-                  option.description ? (
-                    <span className="text-xs opacity-75" style={descriptionStyle}>
-                      {option.description}
-                    </span>
-                  ) : null}
+                  {data.labelPosition === "left" ? (
+                    <>
+                      <span className="pointer-events-none flex-1" style={labelStyle}>
+                        {option.label}
+                      </span>
+                      {control}
+                    </>
+                  ) : (
+                    <>
+                      {control}
+                      <span className="pointer-events-none flex-1" style={labelStyle}>
+                        {option.label}
+                      </span>
+                    </>
+                  )}
                 </button>
               );
-            })}
-          </div>
+            }
+
+            return (
+              <button
+                key={option.id}
+                type="button"
+                disabled={disabled}
+                onMouseDown={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleOption(option.id);
+                }}
+                className="pointer-events-auto relative flex min-w-[140px] flex-col items-center justify-center gap-2 border text-center transition disabled:cursor-not-allowed disabled:opacity-50"
+                style={{
+                  ...optionTextStyle,
+                  paddingLeft: data.horizontalPadding ?? 16,
+                  paddingRight: data.horizontalPadding ?? 16,
+                  paddingTop: data.verticalPadding ?? 16,
+                  paddingBottom: data.verticalPadding ?? 16,
+                  borderRadius:
+                    data.pushButtonFrame === "circle" ? "9999px" : undefined,
+                  borderColor: selected ? selectedBorderColor : undefined,
+                  borderWidth: selected ? 2 : undefined,
+                }}
+                aria-pressed={selected}
+                data-option-id={option.id}
+                data-option-label={option.label}
+                data-option-value={option.value ?? option.id}
+                {...sharedDataAttrs}
+              >
+                {selected && data.showCheckmark !== false ? (
+                  <span
+                    className="pointer-events-none absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold"
+                    style={{
+                      backgroundColor: selectedCheckColor,
+                      color: checkmarkColor,
+                    }}
+                  >
+                    ✓
+                  </span>
+                ) : null}
+
+                {data.showOptionImages !== false && option.imageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={option.imageUrl}
+                    alt=""
+                    className="pointer-events-none rounded-full object-cover"
+                    style={{
+                      width: `${optionImageSize}px`,
+                      height: `${optionImageSize}px`,
+                    }}
+                  />
+                ) : null}
+
+                <span className="pointer-events-none" style={labelStyle}>
+                  {option.label}
+                </span>
+
+                {data.showOptionDescriptions !== false &&
+                option.description ? (
+                  <span
+                    className="pointer-events-none text-xs opacity-75"
+                    style={descriptionStyle}
+                  >
+                    {option.description}
+                  </span>
+                ) : null}
+              </button>
+            );
+          })}
         </div>
       </div>
-    );
-  }
+    </div>
+  );
+}
 
   return <OptionButtonPreview />;
 }
