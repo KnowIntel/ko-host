@@ -1924,6 +1924,10 @@ const [formFieldTextTarget, setFormFieldTextTarget] = useState<"form" | "text">(
   "form",
 );
 
+const [optionButtonTextTarget, setOptionButtonTextTarget] = useState<
+  "heading" | "label" | "description"
+>("label");
+
 const [selectedOptionButtonOptionId, setSelectedOptionButtonOptionId] =
   useState<string | null>(null);
 
@@ -2334,9 +2338,16 @@ selectedBlockFromDraft?.type === "gallery"
     : (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
 
 : selectedBlockFromDraft?.type === "option_button"
-  ? ((((selectedBlockFromDraft.data as any).labelStyle ??
-      (selectedBlockFromDraft.data as any).style ??
-      {}) as TextStyle))
+  ? optionButtonTextTarget === "description"
+    ? (((selectedBlockFromDraft.data as any).descriptionStyle ??
+        (selectedBlockFromDraft.data as any).labelStyle ??
+        (selectedBlockFromDraft.data as any).style ??
+        {}) as TextStyle)
+    : optionButtonTextTarget === "heading"
+      ? (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
+      : (((selectedBlockFromDraft.data as any).labelStyle ??
+          (selectedBlockFromDraft.data as any).style ??
+          {}) as TextStyle)
 : selectedBlockFromDraft?.type === "post_board"
   ? postBoardStyleTarget === "block_heading"
   ? (((selectedBlockFromDraft.data as any).blockHeadingStyle ?? {}) as TextStyle)
@@ -15395,6 +15406,23 @@ selectedContext.kind === "textFx"
     <div className={inspectorLabelClass()}>Option Button</div>
 
     <div className="mt-4">
+  <div className={inspectorLabelClass()}>Text Target</div>
+  <select
+    value={optionButtonTextTarget}
+    onChange={(e) =>
+      setOptionButtonTextTarget(
+        e.target.value as "heading" | "label" | "description",
+      )
+    }
+    className={inspectorInputClass()}
+  >
+    <option value="heading">Heading</option>
+    <option value="label">Option Label</option>
+    <option value="description">Option Description</option>
+  </select>
+</div>
+
+    <div className="mt-4">
       <div className={inspectorLabelClass()}>Style Variant</div>
       <select
         value={(selectedBlock.data as any).variant ?? "push_button"}
@@ -15807,6 +15835,30 @@ selectedContext.kind === "textFx"
     ) : null}
   </div>
 </div>
+
+{option.imageUrl ? (
+  <div className="mt-4">
+    <div className="flex items-center justify-between">
+      <div className={inspectorLabelClass()}>Image Size</div>
+      <div className="text-xs text-neutral-500">
+        {Number((selectedBlock.data as any).optionImageSize ?? 56)}px
+      </div>
+    </div>
+
+    <input
+      type="range"
+      min={24}
+      max={160}
+      value={Number((selectedBlock.data as any).optionImageSize ?? 56)}
+      onChange={(e) =>
+        updateSelectedOptionButtonData({
+          optionImageSize: Number(e.target.value),
+        })
+      }
+      className="mt-2 w-full"
+    />
+  </div>
+) : null}
 
           <label className="flex items-center gap-3 text-sm text-neutral-800">
             <input
