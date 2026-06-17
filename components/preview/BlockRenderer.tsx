@@ -8052,17 +8052,22 @@ function renderOptionButton(
             </div>
           ) : null}
 
-          <div
-            className={
-              variant === "push_button"
-                ? data.pushButtonLayout === "vertical_stack"
-                  ? "flex flex-col gap-3"
-                  : data.pushButtonLayout === "horizontal_scroll"
-                    ? "flex gap-3 overflow-x-auto"
-                    : "grid grid-cols-2 gap-3"
-                : "flex flex-col gap-3"
-            }
-          >
+<div
+  className={
+    variant === "push_button"
+      ? data.pushButtonLayout === "vertical_stack"
+        ? "flex flex-col"
+        : data.pushButtonLayout === "horizontal_scroll"
+          ? "flex overflow-x-auto"
+          : "grid grid-cols-2"
+      : "flex flex-col gap-3"
+  }
+  style={
+    variant === "push_button"
+      ? { gap: `${Number(data.optionGap ?? 12)}px` }
+      : undefined
+  }
+>
             {options.map((option: any) => {
               const selected = selectedIds.includes(option.id);
               const disabled = Boolean(option.disabled);
@@ -8187,9 +8192,15 @@ function renderOptionButton(
 
                   {data.showOptionDescriptions !== false &&
                   option.description ? (
-                    <span className="text-xs opacity-75">
-                      {option.description}
-                    </span>
+<span
+  className="text-xs opacity-75"
+  style={getContainerTextStyle(
+    data.descriptionStyle ?? data.labelStyle ?? data.style ?? {},
+    designKey,
+  )}
+>
+  {option.description}
+</span>
                   ) : null}
                 </button>
               );
