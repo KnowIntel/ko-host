@@ -7956,6 +7956,7 @@ function renderOptionButton(
     const options = Array.isArray(data.options) ? data.options : [];
     const allowMultiSelect = Boolean(data.allowMultiSelect);
     const variant = data.variant ?? "push_button";
+
     const [selectedIds, setSelectedIds] = useState<string[]>(
       Array.isArray(data.selectedOptionIds) ? data.selectedOptionIds : [],
     );
@@ -7977,6 +7978,11 @@ function renderOptionButton(
       designKey,
     );
 
+    const descriptionStyle = getContainerTextStyle(
+      data.descriptionStyle ?? data.labelStyle ?? data.style ?? {},
+      designKey,
+    );
+
     const optionTextStyle = getContainerTextStyle(
       data.optionStyle ?? data.style ?? {},
       designKey,
@@ -7987,6 +7993,7 @@ function renderOptionButton(
     const selectedBorderColor = data.selectedBorderColor ?? "#f59e0b";
     const selectedCheckColor = data.selectedCheckColor ?? "#f59e0b";
     const checkmarkColor = data.checkmarkColor ?? "#ffffff";
+    const optionImageSize = Number(data.optionImageSize ?? 56);
 
     const sharedDataAttrs = {
       "data-form-field-id": block.id,
@@ -8001,7 +8008,9 @@ function renderOptionButton(
         <div className="h-full w-full p-2" style={getAppearanceStyle(block)}>
           <div className="flex h-full flex-col gap-2">
             {data.showHeading !== false ? (
-              <div style={headingStyle}>{data.heading || "Choose an Option"}</div>
+              <div style={headingStyle}>
+                {data.heading || "Choose an Option"}
+              </div>
             ) : null}
 
             {data.showSubtitle ? (
@@ -8024,6 +8033,7 @@ function renderOptionButton(
               {...sharedDataAttrs}
             >
               <option value="">{data.placeholder || "Select"}</option>
+
               {options.map((option: any) => (
                 <option
                   key={option.id}
@@ -8052,22 +8062,22 @@ function renderOptionButton(
             </div>
           ) : null}
 
-<div
-  className={
-    variant === "push_button"
-      ? data.pushButtonLayout === "vertical_stack"
-        ? "flex flex-col"
-        : data.pushButtonLayout === "horizontal_scroll"
-          ? "flex overflow-x-auto"
-          : "grid grid-cols-2"
-      : "flex flex-col gap-3"
-  }
-  style={
-    variant === "push_button"
-      ? { gap: `${Number(data.optionGap ?? 12)}px` }
-      : undefined
-  }
->
+          <div
+            className={
+              variant === "push_button"
+                ? data.pushButtonLayout === "vertical_stack"
+                  ? "flex flex-col"
+                  : data.pushButtonLayout === "horizontal_scroll"
+                    ? "flex overflow-x-auto"
+                    : "grid grid-cols-2"
+                : "flex flex-col gap-3"
+            }
+            style={
+              variant === "push_button"
+                ? { gap: `${Number(data.optionGap ?? 12)}px` }
+                : undefined
+            }
+          >
             {options.map((option: any) => {
               const selected = selectedIds.includes(option.id);
               const disabled = Boolean(option.disabled);
@@ -8184,7 +8194,11 @@ function renderOptionButton(
                     <img
                       src={option.imageUrl}
                       alt=""
-                      className="h-14 w-14 rounded-full object-cover"
+                      className="rounded-full object-cover"
+                      style={{
+                        width: `${optionImageSize}px`,
+                        height: `${optionImageSize}px`,
+                      }}
                     />
                   ) : null}
 
@@ -8192,15 +8206,9 @@ function renderOptionButton(
 
                   {data.showOptionDescriptions !== false &&
                   option.description ? (
-<span
-  className="text-xs opacity-75"
-  style={getContainerTextStyle(
-    data.descriptionStyle ?? data.labelStyle ?? data.style ?? {},
-    designKey,
-  )}
->
-  {option.description}
-</span>
+                    <span className="text-xs opacity-75" style={descriptionStyle}>
+                      {option.description}
+                    </span>
                   ) : null}
                 </button>
               );
