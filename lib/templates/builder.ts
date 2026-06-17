@@ -1221,6 +1221,9 @@ export type OptionButtonBlock = BaseBlock & {
     pushButtonLayout?: "grid" | "horizontal_scroll" | "vertical_stack";
     horizontalPadding?: number;
     verticalPadding?: number;
+    optionGap?: number;
+    optionImageSize?: number;
+    descriptionStyle?: Record<string, any>;
     selectedBorderColor?: string;
     selectedCheckColor?: string;
     checkmarkColor?: string;
@@ -3328,6 +3331,7 @@ case "text_fx":
           pushButtonLayout: "grid",
           horizontalPadding: 16,
           verticalPadding: 16,
+          optionGap: 12,
           selectedBorderColor: "#f59e0b",
           selectedCheckColor: "#f59e0b",
           checkmarkColor: "#ffffff",

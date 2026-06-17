@@ -4249,14 +4249,19 @@ if (selectedBlock?.type === "option_button") {
   updateSelectedBlock((block) => {
     if (block.type !== "option_button") return block;
 
+    const styleKey =
+      optionButtonTextTarget === "description"
+        ? "descriptionStyle"
+        : optionButtonTextTarget === "heading"
+          ? "style"
+          : "labelStyle";
+
     return {
       ...block,
       data: {
         ...block.data,
-        labelStyle: {
-          ...((block.data as any).labelStyle ??
-            block.data.style ??
-            {}),
+        [styleKey]: {
+          ...((block.data as any)[styleKey] ?? {}),
           color: value,
         },
       },
@@ -4924,14 +4929,19 @@ if ((selectedBlockFromDraft as any)?.type === "option_button") {
         return block;
       }
 
+      const styleKey =
+        optionButtonTextTarget === "description"
+          ? "descriptionStyle"
+          : optionButtonTextTarget === "heading"
+            ? "style"
+            : "labelStyle";
+
       return {
         ...block,
         data: {
           ...block.data,
-          labelStyle: {
-            ...((block.data as any).labelStyle ??
-              block.data.style ??
-              {}),
+          [styleKey]: {
+            ...((block.data as any)[styleKey] ?? {}),
             ...patch,
           },
         },
@@ -15576,6 +15586,7 @@ selectedContext.kind === "textFx"
         {[
           ["horizontalPadding", "Horizontal Padding"],
           ["verticalPadding", "Vertical Padding"],
+          ["optionGap", "Spacing Between Buttons"],
         ].map(([key, label]) => (
           <div key={key} className="mt-4">
             <div className="flex items-center justify-between">
