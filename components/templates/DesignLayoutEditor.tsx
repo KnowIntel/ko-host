@@ -2326,12 +2326,17 @@ selectedBlockFromDraft?.type === "gallery"
                 : listingStyleTarget === "quantity"
                   ? ((selectedBlockFromDraft.data as any).quantityStyle ?? {})
                   : (selectedBlockFromDraft.data.titleStyle ?? {})
-          : selectedBlockFromDraft?.type === "form_field"
-            ? formFieldTextTarget === "text"
-              ? (((selectedBlockFromDraft.data as any).inputStyle ??
-                  (selectedBlockFromDraft.data as any).style ??
-                  {}) as TextStyle)
-              : (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
+: selectedBlockFromDraft?.type === "form_field"
+  ? formFieldTextTarget === "text"
+    ? (((selectedBlockFromDraft.data as any).inputStyle ??
+        (selectedBlockFromDraft.data as any).style ??
+        {}) as TextStyle)
+    : (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
+
+: selectedBlockFromDraft?.type === "option_button"
+  ? ((((selectedBlockFromDraft.data as any).labelStyle ??
+      (selectedBlockFromDraft.data as any).style ??
+      {}) as TextStyle))
 : selectedBlockFromDraft?.type === "post_board"
   ? postBoardStyleTarget === "block_heading"
   ? (((selectedBlockFromDraft.data as any).blockHeadingStyle ?? {}) as TextStyle)
@@ -2724,6 +2729,7 @@ const showTextControls =
   selectedBlock?.type === "post_board" ||
   selectedBlock?.type === "enrollment_board" ||
   selectedBlock?.type === "form_field" ||
+  selectedBlock?.type === "option_button" ||
   selectedBlock?.type === "highlight" ||
   selectedBlock?.type === "visitor_counter" ||
   selectedBlock?.type === "progress_bar" ||
@@ -2781,6 +2787,7 @@ const showAppearanceControls =
   selectedBlock?.type === "checkout" ||
   selectedBlock?.type === "poll" ||
   selectedBlock?.type === "form_field" ||
+  selectedBlock?.type === "option_button" ||
   selectedBlock?.type === "faq" ||
   selectedBlock?.type === "gallery" ||
   selectedBlock?.type === "rsvp" ||
@@ -2817,6 +2824,7 @@ const showBorderWidthRadiusControls =
   selectedBlock?.type === "registry" ||
   selectedBlock?.type === "cart" ||
   selectedBlock?.type === "form_field" ||
+  selectedBlock?.type === "option_button" ||
   selectedBlock?.type === "video" ||
   selectedBlock?.type === "rich_text" ||
   selectedBlock?.type === "content_panel" ||
@@ -4226,6 +4234,28 @@ if (selectedBlock?.type === "form_field") {
   return;
 }
 
+if (selectedBlock?.type === "option_button") {
+  updateSelectedBlock((block) => {
+    if (block.type !== "option_button") return block;
+
+    return {
+      ...block,
+      data: {
+        ...block.data,
+        labelStyle: {
+          ...((block.data as any).labelStyle ??
+            block.data.style ??
+            {}),
+          color: value,
+        },
+      },
+    };
+  });
+
+  pushRecentColor(value);
+  return;
+}
+
 if (selectedBlock?.type === "highlight") {
   updateSelectedBlock((block) => {
     if (block.type !== "highlight") return block;
@@ -4863,6 +4893,34 @@ if ((selectedBlockFromDraft as any)?.type === "form_field") {
           },
           labelStyle: {
             ...((block.data as any).labelStyle ?? block.data.style ?? {}),
+            ...patch,
+          },
+        },
+      };
+    }),
+  }));
+
+  return;
+}
+
+if ((selectedBlockFromDraft as any)?.type === "option_button") {
+  const targetBlockId = (selectedBlockFromDraft as any).id;
+
+  setDraft((prev) => ({
+    ...prev,
+    blocks: prev.blocks.map((block) => {
+      if (block.id !== targetBlockId || block.type !== "option_button") {
+        return block;
+      }
+
+      return {
+        ...block,
+        data: {
+          ...block.data,
+          labelStyle: {
+            ...((block.data as any).labelStyle ??
+              block.data.style ??
+              {}),
             ...patch,
           },
         },
