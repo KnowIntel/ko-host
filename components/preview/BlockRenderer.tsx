@@ -10031,6 +10031,9 @@ function renderSummaryBlock(
 ) {
   const data = block.data as any;
 
+  console.log("SUMMARY DATA", data);
+console.log("LINKED BLOCKS", data.linkedBlocks);
+
   const linkedItems = Array.isArray(data.linkedBlocks)
     ? data.linkedBlocks.filter((item: any) => item?.show !== false)
     : [];
