@@ -10105,9 +10105,15 @@ function renderSummaryBlock(
       : [];
 
     const linkedRows = linkedItems.map((item: any) => {
-      const linkedBlock = blocks.find(
-        (candidate) => candidate.id === item.blockId,
-      );
+const snapshotBlocks = Array.isArray(data.linkedBlockSnapshots)
+  ? data.linkedBlockSnapshots
+  : [];
+
+const availableBlocks = blocks.length > 0 ? blocks : snapshotBlocks;
+
+const linkedBlock = availableBlocks.find(
+  (candidate: any) => candidate.id === item.blockId,
+);
 
       if (linkedBlock?.type === "form_field") {
         return {
@@ -10185,7 +10191,8 @@ function renderSummaryBlock(
 
           <div className="flex flex-col">
             {linkedRows.length > 0 ? (
-              linkedRows.map((item, index) => (
+              linkedRows.map(
+  (item: { id: string; label: string; value: string }, index: number) => (
                 <div key={item.id}>
                   <div className="flex items-start justify-between gap-4 py-3">
                     <div

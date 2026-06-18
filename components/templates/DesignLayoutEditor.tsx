@@ -9091,31 +9091,21 @@ if (block.type === "summary") {
     ? ((block.data as any).linkedBlocks as any[]).map((item) => item.blockId)
     : [];
 
-  const summaryLinkedBlocks = draft.blocks.filter((candidate) =>
+  const linkedBlockSnapshots = draft.blocks.filter((candidate) =>
     linkedBlockIds.includes(candidate.id),
   );
-
-  console.log("SUMMARY BRANCH DEBUG", {
-  summaryId: block.id,
-  linkedBlocks: (block.data as any).linkedBlocks,
-  linkedBlockIds,
-  allDraftBlocks: draft.blocks.map((item) => ({
-    id: item.id,
-    type: item.type,
-    label: item.label,
-  })),
-  summaryLinkedBlocks: summaryLinkedBlocks.map((item) => ({
-    id: item.id,
-    type: item.type,
-    label: item.label,
-  })),
-});
 
   return (
     <div className="h-full w-full">
       <BlockRenderer
-        block={block}
-        blocks={summaryLinkedBlocks}
+        block={{
+          ...block,
+          data: {
+            ...(block.data as any),
+            linkedBlockSnapshots,
+          },
+        } as any}
+        blocks={linkedBlockSnapshots}
         designKey={designKey}
         optionButtonSelections={optionButtonSelections}
       />
