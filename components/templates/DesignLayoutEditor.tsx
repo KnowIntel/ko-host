@@ -9087,11 +9087,19 @@ if (block.type === "option_button") {
 }
 
 if (block.type === "summary") {
+  const linkedBlockIds = Array.isArray((block.data as any).linkedBlocks)
+    ? ((block.data as any).linkedBlocks as any[]).map((item) => item.blockId)
+    : [];
+
+  const summaryLinkedBlocks = draft.blocks.filter((candidate) =>
+    linkedBlockIds.includes(candidate.id),
+  );
+
   return (
     <div className="h-full w-full">
       <BlockRenderer
         block={block}
-        blocks={draft.blocks}
+        blocks={summaryLinkedBlocks}
         designKey={designKey}
         optionButtonSelections={optionButtonSelections}
       />
