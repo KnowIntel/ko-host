@@ -9095,6 +9095,22 @@ if (block.type === "summary") {
     linkedBlockIds.includes(candidate.id),
   );
 
+  console.log("SUMMARY BRANCH DEBUG", {
+  summaryId: block.id,
+  linkedBlocks: (block.data as any).linkedBlocks,
+  linkedBlockIds,
+  allDraftBlocks: draft.blocks.map((item) => ({
+    id: item.id,
+    type: item.type,
+    label: item.label,
+  })),
+  summaryLinkedBlocks: summaryLinkedBlocks.map((item) => ({
+    id: item.id,
+    type: item.type,
+    label: item.label,
+  })),
+});
+
   return (
     <div className="h-full w-full">
       <BlockRenderer

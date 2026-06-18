@@ -207,7 +207,11 @@ if (block.type === "cta") {
         // ✅ SAFE FALLBACK (handles ALL valid block types)
         return (
           <div key={block.id}>
-            <BlockRenderer block={block} micrositeId={micrositeId} />
+            <BlockRenderer
+  block={block}
+  blocks={blocks}
+  micrositeId={micrositeId}
+/>
           </div>
         );
       })}
