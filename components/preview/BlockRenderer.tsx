@@ -105,6 +105,15 @@ type OptionButtonSelectionChange = {
   selectedOptionIds: string[];
 };
 
+const OPTION_BUTTON_SELECTION_EVENT = "ko-host:option-button-selection";
+
+type OptionButtonSelectionEventDetail = {
+  blockId: string;
+  selectedOptionIds: string[];
+  selectedLabels: string[];
+  selectedValues: string[];
+};
+
 type Props = {
   block: MicrositeBlock;
   blocks?: MicrositeBlock[];
@@ -7988,10 +7997,28 @@ const selectedIds = controlledSelectedIds ?? localSelectedIds;
     function applySelection(nextSelectedIds: string[]) {
       setLocalSelectedIds(nextSelectedIds);
 
-      onSelectionChange?.({
-        blockId: block.id,
-        selectedOptionIds: nextSelectedIds,
-      });
+const selectedOptions = options.filter((option: any) =>
+  nextSelectedIds.includes(option.id),
+);
+
+const detail: OptionButtonSelectionEventDetail = {
+  blockId: block.id,
+  selectedOptionIds: nextSelectedIds,
+  selectedLabels: selectedOptions.map((option: any) => option.label),
+  selectedValues: selectedOptions.map((option: any) => option.value ?? option.id),
+};
+
+window.dispatchEvent(
+  new CustomEvent<OptionButtonSelectionEventDetail>(
+    OPTION_BUTTON_SELECTION_EVENT,
+    { detail },
+  ),
+);
+
+onSelectionChange?.({
+  blockId: block.id,
+  selectedOptionIds: nextSelectedIds,
+});
     }
 
     function toggleOption(optionId: string) {
@@ -10029,26 +10056,60 @@ function renderSummaryBlock(
   blocks: MicrositeBlock[] = [],
   optionButtonSelections: Record<string, string[]> = {},
 ) {
-  const data = block.data as any;
+  function SummaryPreview() {
+    const data = block.data as any;
 
-  console.log("SUMMARY DATA", data);
-console.log("LINKED BLOCKS", data.linkedBlocks);
+    const [liveOptionSelections, setLiveOptionSelections] = useState<
+      Record<
+        string,
+        {
+          selectedOptionIds: string[];
+          selectedLabels: string[];
+          selectedValues: string[];
+        }
+      >
+    >({});
 
-  const linkedItems = Array.isArray(data.linkedBlocks)
-    ? data.linkedBlocks.filter((item: any) => item?.show !== false)
-    : [];
+    useEffect(() => {
+      function handleSelection(event: Event) {
+        const detail = (event as CustomEvent<OptionButtonSelectionEventDetail>)
+          .detail;
 
-  const linkedBlocks = linkedItems
-    .map((item: any) => {
-      console.log("SUMMARY LINK ITEM", item);
-console.log(
-  "AVAILABLE BLOCK IDS",
-  blocks.map((block) => ({ id: block.id, type: block.type, label: block.label })),
-);
-      const linkedBlock = blocks.find((candidate) => candidate.id === item.blockId);
-      if (!linkedBlock) return null;
+        if (!detail?.blockId) return;
 
-      if (linkedBlock.type === "form_field") {
+        setLiveOptionSelections((prev) => ({
+          ...prev,
+          [detail.blockId]: {
+            selectedOptionIds: detail.selectedOptionIds,
+            selectedLabels: detail.selectedLabels,
+            selectedValues: detail.selectedValues,
+          },
+        }));
+      }
+
+      window.addEventListener(
+        OPTION_BUTTON_SELECTION_EVENT,
+        handleSelection,
+      );
+
+      return () => {
+        window.removeEventListener(
+          OPTION_BUTTON_SELECTION_EVENT,
+          handleSelection,
+        );
+      };
+    }, []);
+
+    const linkedItems = Array.isArray(data.linkedBlocks)
+      ? data.linkedBlocks.filter((item: any) => item?.show !== false)
+      : [];
+
+    const linkedRows = linkedItems.map((item: any) => {
+      const linkedBlock = blocks.find(
+        (candidate) => candidate.id === item.blockId,
+      );
+
+      if (linkedBlock?.type === "form_field") {
         return {
           id: item.id,
           label: item.label || linkedBlock.data.label || "Input Field",
@@ -10059,12 +10120,15 @@ console.log(
         };
       }
 
-      if (linkedBlock.type === "option_button") {
-const selectedIds =
-  optionButtonSelections[linkedBlock.id] ??
-  (Array.isArray(linkedBlock.data.selectedOptionIds)
-    ? linkedBlock.data.selectedOptionIds
-    : []);
+      if (linkedBlock?.type === "option_button") {
+        const liveSelection = liveOptionSelections[linkedBlock.id];
+
+        const selectedIds =
+          liveSelection?.selectedOptionIds ??
+          optionButtonSelections[linkedBlock.id] ??
+          (Array.isArray(linkedBlock.data.selectedOptionIds)
+            ? linkedBlock.data.selectedOptionIds
+            : []);
 
         const selectedOptions = linkedBlock.data.options.filter((option: any) =>
           selectedIds.includes(option.id),
@@ -10074,80 +10138,100 @@ const selectedIds =
           id: item.id,
           label: item.label || linkedBlock.data.heading || "Option Button",
           value:
-            selectedOptions.length > 0
-              ? selectedOptions.map((option: any) => option.label).join(", ")
-              : "Not selected",
+            liveSelection?.selectedLabels?.length
+              ? liveSelection.selectedLabels.join(", ")
+              : selectedOptions.length > 0
+                ? selectedOptions.map((option: any) => option.label).join(", ")
+                : "Not selected",
         };
       }
 
-      return null;
-    })
-    .filter(Boolean) as Array<{ id: string; label: string; value: string }>;
+      if (!linkedBlock && liveOptionSelections[item.blockId]) {
+        const liveSelection = liveOptionSelections[item.blockId];
 
-  return (
-    <div className="h-full w-full p-4" style={getAppearanceStyle(block)}>
-      <div className="flex flex-col gap-4">
-        {data.showHeader !== false ? (
-          <div style={getContainerTextStyle(data.headerStyle ?? {}, designKey)}>
-            {data.header || "Summary"}
-          </div>
-        ) : null}
+        return {
+          id: item.id,
+          label: item.label || "Option Button",
+          value: liveSelection.selectedLabels.length
+            ? liveSelection.selectedLabels.join(", ")
+            : "Not selected",
+        };
+      }
 
-        {data.showSubheader ? (
-          <div
-            className="text-sm opacity-75"
-            style={getContainerTextStyle(data.subheaderStyle ?? {}, designKey)}
-          >
-            {data.subheader}
-          </div>
-        ) : null}
+      return {
+        id: item.id,
+        label: item.label || "Linked Block",
+        value: "Not selected",
+      };
+    });
 
-        <div className="flex flex-col">
-          {linkedBlocks.length > 0 ? (
-            linkedBlocks.map((item, index) => (
-              <div key={item.id}>
-                <div className="flex items-start justify-between gap-4 py-3">
-                  <div
-                    style={getContainerTextStyle(
-                      data.labelStyle ?? data.style ?? {},
-                      designKey,
-                    )}
-                  >
-                    {item.label}
-                  </div>
-
-                  <div
-                    className="text-right"
-                    style={getContainerTextStyle(
-                      data.valueStyle ?? data.style ?? {},
-                      designKey,
-                    )}
-                  >
-                    {item.value}
-                  </div>
-                </div>
-
-                {data.showDividers !== false &&
-                index < linkedBlocks.length - 1 ? (
-                  <div
-                    className="h-px w-full"
-                    style={{
-                      backgroundColor:
-                        data.dividerColor || "rgba(0,0,0,0.12)",
-                    }}
-                  />
-                ) : null}
-              </div>
-            ))
-          ) : (
-            <div className="rounded-xl border border-dashed border-neutral-300 p-4 text-sm text-neutral-500">
-              No linked fields yet
+    return (
+      <div className="h-full w-full p-4" style={getAppearanceStyle(block)}>
+        <div className="flex flex-col gap-4">
+          {data.showHeader !== false ? (
+            <div style={getContainerTextStyle(data.headerStyle ?? {}, designKey)}>
+              {data.header || "Summary"}
             </div>
-          )}
+          ) : null}
+
+          {data.showSubheader ? (
+            <div
+              className="text-sm opacity-75"
+              style={getContainerTextStyle(data.subheaderStyle ?? {}, designKey)}
+            >
+              {data.subheader}
+            </div>
+          ) : null}
+
+          <div className="flex flex-col">
+            {linkedRows.length > 0 ? (
+              linkedRows.map((item, index) => (
+                <div key={item.id}>
+                  <div className="flex items-start justify-between gap-4 py-3">
+                    <div
+                      style={getContainerTextStyle(
+                        data.labelStyle ?? data.style ?? {},
+                        designKey,
+                      )}
+                    >
+                      {item.label}
+                    </div>
+
+                    <div
+                      className="text-right"
+                      style={getContainerTextStyle(
+                        data.valueStyle ?? data.style ?? {},
+                        designKey,
+                      )}
+                    >
+                      {item.value}
+                    </div>
+                  </div>
+
+                  {data.showDividers !== false &&
+                  index < linkedRows.length - 1 ? (
+                    <div
+                      className="h-px w-full"
+                      style={{
+                        backgroundColor:
+                          data.dividerColor || "rgba(0,0,0,0.12)",
+                      }}
+                    />
+                  ) : null}
+                </div>
+              ))
+            ) : (
+              <div className="rounded-xl border border-dashed border-neutral-300 p-4 text-sm text-neutral-500">
+                No linked fields yet
+              </div>
+            )}
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  }
+
+  return <SummaryPreview />;
 }
 
 function renderRichText(
