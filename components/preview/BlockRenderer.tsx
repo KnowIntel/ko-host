@@ -10040,6 +10040,11 @@ console.log("LINKED BLOCKS", data.linkedBlocks);
 
   const linkedBlocks = linkedItems
     .map((item: any) => {
+      console.log("SUMMARY LINK ITEM", item);
+console.log(
+  "AVAILABLE BLOCK IDS",
+  blocks.map((block) => ({ id: block.id, type: block.type, label: block.label })),
+);
       const linkedBlock = blocks.find((candidate) => candidate.id === item.blockId);
       if (!linkedBlock) return null;
 
