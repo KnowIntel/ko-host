@@ -100,9 +100,16 @@ type CartItem = {
   quantity: number;
 };
 
+type OptionButtonSelectionChange = {
+  blockId: string;
+  selectedOptionIds: string[];
+};
+
 type Props = {
   block: MicrositeBlock;
   blocks?: MicrositeBlock[];
+  optionButtonSelections?: Record<string, string[]>;
+  onOptionButtonSelectionChange?: (change: OptionButtonSelectionChange) => void;
   designKey?: string;
   micrositeId?: string | null;
   micrositeSlug?: string | null;
@@ -7951,6 +7958,8 @@ return (
 function renderOptionButton(
   block: Extract<MicrositeBlock, { type: "option_button" }>,
   designKey?: string,
+  controlledSelectedIds?: string[],
+  onSelectionChange?: (change: OptionButtonSelectionChange) => void,
 ) {
 function OptionButtonPreview() {
   const data = block.data as any;
@@ -7958,19 +7967,26 @@ function OptionButtonPreview() {
   const allowMultiSelect = Boolean(data.allowMultiSelect);
   const variant = data.variant ?? "push_button";
 
-  const [selectedIds, setSelectedIds] = useState<string[]>(
+  const [localSelectedIds, setLocalSelectedIds] = useState<string[]>(
     Array.isArray(data.selectedOptionIds) ? data.selectedOptionIds : [],
   );
 
-  function toggleOption(optionId: string) {
-    setSelectedIds((current) => {
-      if (allowMultiSelect) {
-        return current.includes(optionId)
-          ? current.filter((id) => id !== optionId)
-          : [...current, optionId];
-      }
+  const selectedIds = controlledSelectedIds ?? localSelectedIds;
 
-      return current.includes(optionId) ? [] : [optionId];
+  function toggleOption(optionId: string) {
+    const nextSelectedIds = allowMultiSelect
+      ? selectedIds.includes(optionId)
+        ? selectedIds.filter((id) => id !== optionId)
+        : [...selectedIds, optionId]
+      : selectedIds.includes(optionId)
+        ? []
+        : [optionId];
+
+    setLocalSelectedIds(nextSelectedIds);
+
+    onSelectionChange?.({
+      blockId: block.id,
+      selectedOptionIds: nextSelectedIds,
     });
   }
 
@@ -8035,9 +8051,16 @@ function OptionButtonPreview() {
                 : "pointer-events-auto w-full rounded border border-white/15 bg-white/5 px-3 py-2"
             }
             value={selectedIds[0] ?? ""}
-            onChange={(e) =>
-              setSelectedIds(e.target.value ? [e.target.value] : [])
-            }
+onChange={(e) => {
+  const nextSelectedIds = e.target.value ? [e.target.value] : [];
+
+  setLocalSelectedIds(nextSelectedIds);
+
+  onSelectionChange?.({
+    blockId: block.id,
+    selectedOptionIds: nextSelectedIds,
+  });
+}}
             style={optionTextStyle}
             {...sharedDataAttrs}
           >
@@ -8233,16 +8256,6 @@ option.description ? (
     style={descriptionStyle}
   >
     {option.description}
-  </span>
-) : null}
-
-{option.showPrice !== false && option.price ? (
-  <span
-    className="pointer-events-none text-xs font-semibold"
-    style={priceStyle}
-  >
-    {option.priceLabel ? `${option.priceLabel}: ` : ""}
-    {option.price}
   </span>
 ) : null}
 
@@ -9999,6 +10012,7 @@ function renderSummaryBlock(
   block: Extract<MicrositeBlock, { type: "summary" }>,
   designKey?: string,
   blocks: MicrositeBlock[] = [],
+  optionButtonSelections: Record<string, string[]> = {},
 ) {
   const data = block.data as any;
 
@@ -10023,9 +10037,11 @@ function renderSummaryBlock(
       }
 
       if (linkedBlock.type === "option_button") {
-        const selectedIds = Array.isArray(linkedBlock.data.selectedOptionIds)
-          ? linkedBlock.data.selectedOptionIds
-          : [];
+const selectedIds =
+  optionButtonSelections[linkedBlock.id] ??
+  (Array.isArray(linkedBlock.data.selectedOptionIds)
+    ? linkedBlock.data.selectedOptionIds
+    : []);
 
         const selectedOptions = linkedBlock.data.options.filter((option: any) =>
           selectedIds.includes(option.id),
@@ -14832,6 +14848,8 @@ const spin = () => {
 export default function BlockRenderer({
   block,
   blocks,
+  optionButtonSelections,
+  onOptionButtonSelectionChange,
   designKey,
   micrositeId,
   micrositeSlug,
@@ -14875,7 +14893,12 @@ case "listing":
       return renderFormField(block, designKey);
 
     case "option_button":
-      return renderOptionButton(block, designKey);
+      return renderOptionButton(
+        block,
+        designKey,
+        optionButtonSelections?.[block.id],
+        onOptionButtonSelectionChange,
+      );
 
 case "cart":
   return renderCart(
@@ -14964,7 +14987,12 @@ case "post_board":
     case "highlight":
       return renderHighlight(block, designKey, micrositeId, micrositeSlug);
     case "summary":
-      return renderSummaryBlock(block, designKey, blocks ?? []);
+      return renderSummaryBlock(
+        block,
+        designKey,
+        blocks ?? [],
+        optionButtonSelections ?? {},
+      );
     case "visitor_counter":
       return renderVisitorCounter(block, designKey, micrositeId);
     case "rich_text":

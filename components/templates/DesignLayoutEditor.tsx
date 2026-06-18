@@ -1701,6 +1701,7 @@ function getToolIconPath(tool: (typeof CATEGORY_BUTTONS)[BottomCategory][number]
   if (tool.label === "Bookmark") return "/menu-icons/block-bookmark.svg";
 
   if (tool.label === "Highlight") return "/menu-icons/block-highlight.svg";
+  if (tool.label === "Summary") return "/menu-icons/block-summary.svg";
   if (tool.label === "Visitor Counter") return "/menu-icons/block-visitor-counter.svg";
   if (tool.label === "Progress Bar") return "/menu-icons/block-progress-meter.svg";
 
@@ -1933,6 +1934,10 @@ const [optionButtonTextTarget, setOptionButtonTextTarget] = useState<
 
 const [selectedOptionButtonOptionId, setSelectedOptionButtonOptionId] =
   useState<string | null>(null);
+
+  const [optionButtonSelections, setOptionButtonSelections] = useState<
+  Record<string, string[]>
+>({});
 
   const [selectedRsvpElementKey, setSelectedRsvpElementKey] = useState<
     | "form"
@@ -9056,25 +9061,37 @@ if (block.type === "faq") {
       );
     }
 
-        if (block.type === "option_button") {
-      return (
-        <div className="h-full w-full">
-          <BlockRenderer block={block} designKey={designKey} />
-        </div>
-      );
-    }
+if (block.type === "option_button") {
+  return (
+    <div className="h-full w-full">
+      <BlockRenderer
+        block={block}
+        blocks={draft.blocks}
+        designKey={designKey}
+        optionButtonSelections={optionButtonSelections}
+        onOptionButtonSelectionChange={(change) =>
+          setOptionButtonSelections((prev) => ({
+            ...prev,
+            [change.blockId]: change.selectedOptionIds,
+          }))
+        }
+      />
+    </div>
+  );
+}
 
-        if (block.type === "summary") {
-      return (
-        <div className="h-full w-full">
-          <BlockRenderer
-  block={block}
-  blocks={draft.blocks}
-  designKey={designKey}
-/>
-        </div>
-      );
-    }
+if (block.type === "summary") {
+  return (
+    <div className="h-full w-full">
+      <BlockRenderer
+        block={block}
+        blocks={draft.blocks}
+        designKey={designKey}
+        optionButtonSelections={optionButtonSelections}
+      />
+    </div>
+  );
+}
 
     if (block.type === "listing") {
       return block.data.image.url ? (
