@@ -114,6 +114,13 @@ type OptionButtonSelectionEventDetail = {
   selectedValues: string[];
 };
 
+const FORM_FIELD_VALUE_EVENT = "ko-host:form-field-value";
+
+type FormFieldValueEventDetail = {
+  blockId: string;
+  value: string;
+};
+
 type Props = {
   block: MicrositeBlock;
   blocks?: MicrositeBlock[];
@@ -7763,14 +7770,33 @@ const safePlaceholderClassName = `ko-form-placeholder-${block.id.replace(
       "DC",
     ];
 
-    const sharedFieldProps = {
-      "data-form-field-id": block.id,
-      "data-linked-button": linkedButtonId,
-      "data-linked-button-id": linkedButtonId,
-      "data-field-label": fieldLabel,
-      "data-required": block.data.required ? "true" : "false",
-      "data-field-type": fieldType,
-    };
+const sharedFieldProps = {
+  "data-form-field-id": block.id,
+  "data-linked-button": linkedButtonId,
+  "data-linked-button-id": linkedButtonId,
+  "data-field-label": fieldLabel,
+  "data-required": block.data.required ? "true" : "false",
+  "data-field-type": fieldType,
+  onChange: (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
+  ) => {
+    window.dispatchEvent(
+      new CustomEvent<FormFieldValueEventDetail>(FORM_FIELD_VALUE_EVENT, {
+        detail: {
+          blockId: block.id,
+          value:
+            e.target.type === "checkbox"
+              ? (e.target as HTMLInputElement).checked
+                ? "Yes"
+                : "No"
+              : e.target.value,
+        },
+      }),
+    );
+  },
+};
 
     const showRating = (block.data as any).showRating === true;
     const initialRating = Math.max(
@@ -10058,7 +10084,7 @@ function renderSummaryBlock(
 ) {
   function SummaryPreview() {
     const data = block.data as any;
-
+    const [liveFormValues, setLiveFormValues] = useState<Record<string, string>>({});
     const [liveOptionSelections, setLiveOptionSelections] = useState<
       Record<
         string,
@@ -10100,6 +10126,24 @@ function renderSummaryBlock(
       };
     }, []);
 
+    useEffect(() => {
+  function handleFormValue(event: Event) {
+    const detail = (event as CustomEvent<FormFieldValueEventDetail>).detail;
+    if (!detail?.blockId) return;
+
+    setLiveFormValues((prev) => ({
+      ...prev,
+      [detail.blockId]: detail.value,
+    }));
+  }
+
+  window.addEventListener(FORM_FIELD_VALUE_EVENT, handleFormValue);
+
+  return () => {
+    window.removeEventListener(FORM_FIELD_VALUE_EVENT, handleFormValue);
+  };
+}, []);
+
     const linkedItems = Array.isArray(data.linkedBlocks)
       ? data.linkedBlocks.filter((item: any) => item?.show !== false)
       : [];
@@ -10115,16 +10159,17 @@ const linkedBlock = availableBlocks.find(
   (candidate: any) => candidate.id === item.blockId,
 );
 
-      if (linkedBlock?.type === "form_field") {
-        return {
-          id: item.id,
-          label: item.label || linkedBlock.data.label || "Input Field",
-          value:
-            linkedBlock.data.value ||
-            linkedBlock.data.placeholder ||
-            "Not selected",
-        };
-      }
+if (linkedBlock?.type === "form_field") {
+  return {
+    id: item.id,
+    label: item.label || linkedBlock.data.label || "Input Field",
+    value:
+      liveFormValues[linkedBlock.id] ||
+      linkedBlock.data.value ||
+      linkedBlock.data.placeholder ||
+      "Not selected",
+  };
+}
 
       if (linkedBlock?.type === "option_button") {
         const liveSelection = liveOptionSelections[linkedBlock.id];
