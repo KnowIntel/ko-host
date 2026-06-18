@@ -8457,7 +8457,9 @@ return (
   </div>
 );}
 
-  function renderCanvasPreview(item: CanvasGridItem) {
+function renderCanvasPreview(item: CanvasGridItem) {
+    console.log("CANVAS DRAFT BLOCK COUNT", draft.blocks.length);
+
     if (isPageBlockId(item.id)) {
   const textValue =
     item.id === PAGE_TITLE_BLOCK_ID
@@ -10025,7 +10027,7 @@ return (
     }
 
     return <BlockRenderer block={block} designKey={designKey} />;
-  }
+}
 
   const scrollbarWidth = getGridCanvasScrollableWidth();
 
