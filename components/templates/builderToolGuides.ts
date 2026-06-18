@@ -160,6 +160,14 @@ export const BUILDER_TOOL_GUIDES: BuilderToolGuide[] = [
     purpose: "Displays summarized live data from another block.",
     howToUse: "Use this to show top messages, RSVP counts, total funds, or poll results. Select the source block in the inspector and choose the highlight mode.",
   },
+
+    {
+    name: "Summary",
+    purpose: "Displays selected values from linked blocks in a clean summary list.",
+    howToUse:
+      "Use this to show visitors a review-style summary of their selected inputs and choices. Link Input Field and Option Button blocks in the inspector, then reorder how they appear.",
+  },
+  
   {
     name: "Visitor Counter",
     purpose: "Displays a public visitor or view count.",

@@ -518,6 +518,7 @@ Utilities: [
 ],
   "Data & Metrics": [
     { kind: "block", label: "Highlight", type: "highlight" },
+    { kind: "block", label: "Summary", type: "summary" },
     { kind: "block", label: "Visitor Counter", type: "visitor_counter" },
     { kind: "block", label: "Progress Bar", type: "progress_bar" },
   ],
@@ -596,6 +597,7 @@ const TOOL_DESCRIPTIONS: Record<string, string> = {
   "Link Hub": "Social and web link collection",
 
   Highlight: "Feature stat or key callout",
+  Summary: "Display selected input and option values in a clean summary list",
   "Progress Bar": "Visual progress toward a goal",
   Spreadsheet: "Excel-like editable table block",
 
@@ -1683,6 +1685,7 @@ function getToolIconPath(tool: (typeof CATEGORY_BUTTONS)[BottomCategory][number]
   // if (tool.label === "Spacer") return "/menu-icons/block-frame.svg";
 
   if (tool.label === "Input Field") return "/menu-icons/block-input-field.svg";
+  if (tool.label === "Option Button") return "/menu-icons/block-option-button.svg";
   if (tool.label === "Poll") return "/menu-icons/block-poll.svg";
   if (tool.label === "RSVP") return "/menu-icons/block-rsvp.svg";
   if (tool.label === "Enrollment Board") return "/menu-icons/block-enrollment-board.svg";
@@ -6597,6 +6600,20 @@ function updateSelectedOptionButtonData(patch: Record<string, any>) {
   );
 }
 
+function updateSelectedSummaryData(patch: Record<string, any>) {
+  updateSelectedBlock((block) =>
+    block.type !== "summary"
+      ? block
+      : {
+          ...block,
+          data: {
+            ...(block.data as any),
+            ...patch,
+          },
+        },
+  );
+}
+
 function updateSelectedRsvpElementStyle(
   updater: (
     current:
@@ -9040,6 +9057,14 @@ if (block.type === "faq") {
     }
 
         if (block.type === "option_button") {
+      return (
+        <div className="h-full w-full">
+          <BlockRenderer block={block} designKey={designKey} />
+        </div>
+      );
+    }
+
+        if (block.type === "summary") {
       return (
         <div className="h-full w-full">
           <BlockRenderer block={block} designKey={designKey} />
@@ -15513,6 +15538,62 @@ selectedContext.kind === "textFx"
       </label>
     </div>
 
+    <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+  <div className={inspectorLabelClass()}>Linked Summary Block</div>
+
+  <select
+    value={(selectedBlock.data as any).linkedSummaryBlockId ?? ""}
+    onChange={(e) =>
+      updateSelectedOptionButtonData({
+        linkedSummaryBlockId: e.target.value || undefined,
+      })
+    }
+    className={inspectorInputClass()}
+  >
+    <option value="">No linked summary</option>
+
+    {draft.blocks
+      .filter((block) => block.type === "summary")
+      .map((summaryBlock) => (
+        <option key={summaryBlock.id} value={summaryBlock.id}>
+          {summaryBlock.label || "Summary"}
+        </option>
+      ))}
+  </select>
+
+  <p className="mt-2 text-xs leading-5 text-neutral-500">
+    Links this Option Button to a Summary block for review display.
+  </p>
+</div>
+
+<div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+  <div className={inspectorLabelClass()}>Linked Cart Block</div>
+
+  <select
+    value={(selectedBlock.data as any).linkedCartBlockId ?? ""}
+    onChange={(e) =>
+      updateSelectedOptionButtonData({
+        linkedCartBlockId: e.target.value || undefined,
+      })
+    }
+    className={inspectorInputClass()}
+  >
+    <option value="">No linked cart</option>
+
+    {draft.blocks
+      .filter((block) => block.type === "cart")
+      .map((cartBlock) => (
+        <option key={cartBlock.id} value={cartBlock.id}>
+          {cartBlock.label || "Cart"}
+        </option>
+      ))}
+  </select>
+
+  <p className="mt-2 text-xs leading-5 text-neutral-500">
+    Links this Option Button to a Cart block for future checkout flow.
+  </p>
+</div>
+
     {((selectedBlock.data as any).variant ?? "push_button") === "dropdown" ? (
       <div className="mt-4">
         <div className={inspectorLabelClass()}>Placeholder</div>
@@ -15775,6 +15856,64 @@ selectedContext.kind === "textFx"
             </div>
           ) : null}
 
+          <div className="rounded-xl border border-neutral-200 bg-white p-3">
+  <div className={inspectorLabelClass()}>Price</div>
+
+  <label className="mt-3 flex items-center gap-3 text-sm text-neutral-800">
+    <input
+      type="checkbox"
+      checked={option.showPrice !== false}
+      onChange={(e) =>
+        updateSelectedOptionButtonData({
+          options: options.map((item: any) =>
+            item.id === option.id
+              ? { ...item, showPrice: e.target.checked }
+              : item,
+          ),
+        })
+      }
+    />
+    Show Price
+  </label>
+
+  <div className="mt-4">
+    <div className={inspectorLabelClass()}>Price Label</div>
+    <input
+      type="text"
+      value={option.priceLabel ?? "Price"}
+      onChange={(e) =>
+        updateSelectedOptionButtonData({
+          options: options.map((item: any) =>
+            item.id === option.id
+              ? { ...item, priceLabel: e.target.value }
+              : item,
+          ),
+        })
+      }
+      className={inspectorInputClass()}
+    />
+  </div>
+
+  <div className="mt-4">
+    <div className={inspectorLabelClass()}>Price</div>
+    <input
+      type="text"
+      value={option.price ?? ""}
+      onChange={(e) =>
+        updateSelectedOptionButtonData({
+          options: options.map((item: any) =>
+            item.id === option.id
+              ? { ...item, price: e.target.value }
+              : item,
+          ),
+        })
+      }
+      placeholder="$0.00"
+      className={inspectorInputClass()}
+    />
+  </div>
+</div>
+
           <div>
   <div className={inspectorLabelClass()}>Image</div>
 
@@ -15912,6 +16051,7 @@ selectedContext.kind === "textFx"
     })()
   ) : null}
 </div>
+
 
     <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
       <div className={inspectorLabelClass()}>Selection Colors</div>
@@ -19811,6 +19951,273 @@ onClick={() =>
     Messages are now read-only in the inspector and come from live microsite data.
   </div>
 </div>
+  </div>
+) : null}
+
+{selectedBlock?.type === "summary" ? (
+  <div className={inspectorCardClass()}>
+    <div className={inspectorLabelClass()}>Summary</div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Header</div>
+      <input
+        type="text"
+        value={(selectedBlock.data as any).header ?? ""}
+        onChange={(e) => updateSelectedSummaryData({ header: e.target.value })}
+        className={inspectorInputClass()}
+      />
+    </div>
+
+    <label className="mt-3 flex items-center gap-2 text-xs text-neutral-600">
+      <input
+        type="checkbox"
+        checked={(selectedBlock.data as any).showHeader !== false}
+        onChange={(e) =>
+          updateSelectedSummaryData({ showHeader: e.target.checked })
+        }
+      />
+      Show header
+    </label>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Subheader</div>
+      <input
+        type="text"
+        value={(selectedBlock.data as any).subheader ?? ""}
+        onChange={(e) =>
+          updateSelectedSummaryData({ subheader: e.target.value })
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
+
+    <label className="mt-3 flex items-center gap-2 text-xs text-neutral-600">
+      <input
+        type="checkbox"
+        checked={Boolean((selectedBlock.data as any).showSubheader)}
+        onChange={(e) =>
+          updateSelectedSummaryData({ showSubheader: e.target.checked })
+        }
+      />
+      Show subheader
+    </label>
+
+    <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+      <div className={inspectorLabelClass()}>Linked Blocks</div>
+
+      <div className="mt-3">
+        <select
+          value=""
+          onChange={(e) => {
+            const blockId = e.target.value;
+            if (!blockId) return;
+
+            const linkedBlocks = [
+              ...(((selectedBlock.data as any).linkedBlocks ?? []) as any[]),
+            ];
+
+            if (linkedBlocks.some((item) => item.blockId === blockId)) {
+              return;
+            }
+
+            const sourceBlock = draft.blocks.find((item) => item.id === blockId);
+
+            updateSelectedSummaryData({
+              linkedBlocks: [
+                ...linkedBlocks,
+                {
+                  id: makeClientId("summary_link"),
+                  blockId,
+                  label:
+                    sourceBlock?.type === "form_field"
+                      ? sourceBlock.data.label
+                      : sourceBlock?.type === "option_button"
+                        ? sourceBlock.data.heading
+                        : sourceBlock?.label ?? "Linked Block",
+                  show: true,
+                },
+              ],
+            });
+          }}
+          className={inspectorInputClass()}
+        >
+          <option value="">Add linked block...</option>
+
+          {draft.blocks
+            .filter(
+              (block) =>
+                block.id !== selectedBlock.id &&
+                (block.type === "form_field" ||
+                  block.type === "option_button"),
+            )
+            .map((sourceBlock) => (
+              <option key={sourceBlock.id} value={sourceBlock.id}>
+                {sourceBlock.type === "form_field"
+                  ? sourceBlock.data.label || "Input Field"
+                  : sourceBlock.type === "option_button"
+                    ? sourceBlock.data.heading || "Option Button"
+                    : sourceBlock.label}
+              </option>
+            ))}
+        </select>
+      </div>
+
+      <div className="mt-4 space-y-3">
+        {(((selectedBlock.data as any).linkedBlocks ?? []) as any[]).map(
+          (item: any, index: number) => {
+            const sourceBlock = draft.blocks.find(
+              (block) => block.id === item.blockId,
+            );
+
+            return (
+              <div
+                key={item.id}
+                className="rounded-xl border border-neutral-200 bg-white p-3"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <div className="text-xs font-semibold text-neutral-700">
+                    {sourceBlock?.type === "form_field"
+                      ? "Input Field"
+                      : sourceBlock?.type === "option_button"
+                        ? "Option Button"
+                        : "Missing Block"}
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      className={toolSetButtonClass("front")}
+                      onClick={() => {
+                        const linkedBlocks = [
+                          ...(((selectedBlock.data as any).linkedBlocks ??
+                            []) as any[]),
+                        ];
+                        if (index <= 0) return;
+
+                        [linkedBlocks[index - 1], linkedBlocks[index]] = [
+                          linkedBlocks[index],
+                          linkedBlocks[index - 1],
+                        ];
+
+                        updateSelectedSummaryData({ linkedBlocks });
+                      }}
+                    >
+                      ↑
+                    </button>
+
+                    <button
+                      type="button"
+                      className={toolSetButtonClass("front")}
+                      onClick={() => {
+                        const linkedBlocks = [
+                          ...(((selectedBlock.data as any).linkedBlocks ??
+                            []) as any[]),
+                        ];
+                        if (index >= linkedBlocks.length - 1) return;
+
+                        [linkedBlocks[index], linkedBlocks[index + 1]] = [
+                          linkedBlocks[index + 1],
+                          linkedBlocks[index],
+                        ];
+
+                        updateSelectedSummaryData({ linkedBlocks });
+                      }}
+                    >
+                      ↓
+                    </button>
+
+                    <button
+                      type="button"
+                      className="inline-flex h-8 items-center justify-center rounded-lg border border-red-200 bg-red-50 px-3 text-xs font-medium text-red-700 hover:bg-red-100"
+                      onClick={() =>
+                        updateSelectedSummaryData({
+                          linkedBlocks: (
+                            ((selectedBlock.data as any).linkedBlocks ??
+                              []) as any[]
+                          ).filter((linkedItem) => linkedItem.id !== item.id),
+                        })
+                      }
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+
+                <div className="mt-3">
+                  <div className={inspectorLabelClass()}>Display Label</div>
+                  <input
+                    type="text"
+                    value={item.label ?? ""}
+                    onChange={(e) =>
+                      updateSelectedSummaryData({
+                        linkedBlocks: (
+                          ((selectedBlock.data as any).linkedBlocks ??
+                            []) as any[]
+                        ).map((linkedItem) =>
+                          linkedItem.id === item.id
+                            ? { ...linkedItem, label: e.target.value }
+                            : linkedItem,
+                        ),
+                      })
+                    }
+                    className={inspectorInputClass()}
+                  />
+                </div>
+
+                <label className="mt-3 flex items-center gap-2 text-xs text-neutral-600">
+                  <input
+                    type="checkbox"
+                    checked={item.show !== false}
+                    onChange={(e) =>
+                      updateSelectedSummaryData({
+                        linkedBlocks: (
+                          ((selectedBlock.data as any).linkedBlocks ??
+                            []) as any[]
+                        ).map((linkedItem) =>
+                          linkedItem.id === item.id
+                            ? { ...linkedItem, show: e.target.checked }
+                            : linkedItem,
+                        ),
+                      })
+                    }
+                  />
+                  Show in summary
+                </label>
+              </div>
+            );
+          },
+        )}
+      </div>
+    </div>
+
+    <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+      <label className="flex items-center gap-3 text-sm text-neutral-800">
+        <input
+          type="checkbox"
+          checked={(selectedBlock.data as any).showDividers !== false}
+          onChange={(e) =>
+            updateSelectedSummaryData({ showDividers: e.target.checked })
+          }
+        />
+        Show Dividers
+      </label>
+
+      <div className="mt-4">
+        <div className={inspectorLabelClass()}>Divider Color</div>
+        <input
+          type="color"
+          value={
+            ((selectedBlock.data as any).dividerColor as string)?.startsWith("#")
+              ? (selectedBlock.data as any).dividerColor
+              : "#d1d5db"
+          }
+          onChange={(e) =>
+            updateSelectedSummaryData({ dividerColor: e.target.value })
+          }
+          className="mt-2 h-10 w-full rounded-xl border border-neutral-300 bg-white"
+        />
+      </div>
+    </div>
   </div>
 ) : null}
 

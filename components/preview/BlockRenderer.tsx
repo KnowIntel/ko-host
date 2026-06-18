@@ -102,6 +102,7 @@ type CartItem = {
 
 type Props = {
   block: MicrositeBlock;
+  blocks?: MicrositeBlock[];
   designKey?: string;
   micrositeId?: string | null;
   micrositeSlug?: string | null;
@@ -7983,6 +7984,11 @@ function OptionButtonPreview() {
     designKey,
   );
 
+    const priceStyle = getContainerTextStyle(
+    data.priceStyle ?? data.labelStyle ?? data.style ?? {},
+    designKey,
+  );
+
   const optionTextStyle = getContainerTextStyle(
     data.optionStyle ?? data.style ?? {},
     designKey,
@@ -8216,19 +8222,39 @@ function OptionButtonPreview() {
                   />
                 ) : null}
 
-                <span className="pointer-events-none" style={labelStyle}>
-                  {option.label}
-                </span>
+<span className="pointer-events-none" style={labelStyle}>
+  {option.label}
+</span>
 
-                {data.showOptionDescriptions !== false &&
-                option.description ? (
-                  <span
-                    className="pointer-events-none text-xs opacity-75"
-                    style={descriptionStyle}
-                  >
-                    {option.description}
-                  </span>
-                ) : null}
+{data.showOptionDescriptions !== false &&
+option.description ? (
+  <span
+    className="pointer-events-none text-xs opacity-75"
+    style={descriptionStyle}
+  >
+    {option.description}
+  </span>
+) : null}
+
+{option.showPrice !== false && option.price ? (
+  <span
+    className="pointer-events-none text-xs font-semibold"
+    style={priceStyle}
+  >
+    {option.priceLabel ? `${option.priceLabel}: ` : ""}
+    {option.price}
+  </span>
+) : null}
+
+{option.showPrice !== false && option.price ? (
+  <span
+    className="pointer-events-none text-xs font-semibold"
+    style={priceStyle}
+  >
+    {option.priceLabel ? `${option.priceLabel}: ` : ""}
+    {option.price}
+  </span>
+) : null}
               </button>
             );
           })}
@@ -9967,6 +9993,122 @@ backdropFilter:
   }
 
   return <HighlightPreview />;
+}
+
+function renderSummaryBlock(
+  block: Extract<MicrositeBlock, { type: "summary" }>,
+  designKey?: string,
+  blocks: MicrositeBlock[] = [],
+) {
+  const data = block.data as any;
+
+  const linkedItems = Array.isArray(data.linkedBlocks)
+    ? data.linkedBlocks.filter((item: any) => item?.show !== false)
+    : [];
+
+  const linkedBlocks = linkedItems
+    .map((item: any) => {
+      const linkedBlock = blocks.find((candidate) => candidate.id === item.blockId);
+      if (!linkedBlock) return null;
+
+      if (linkedBlock.type === "form_field") {
+        return {
+          id: item.id,
+          label: item.label || linkedBlock.data.label || "Input Field",
+          value:
+            linkedBlock.data.value ||
+            linkedBlock.data.placeholder ||
+            "Not selected",
+        };
+      }
+
+      if (linkedBlock.type === "option_button") {
+        const selectedIds = Array.isArray(linkedBlock.data.selectedOptionIds)
+          ? linkedBlock.data.selectedOptionIds
+          : [];
+
+        const selectedOptions = linkedBlock.data.options.filter((option: any) =>
+          selectedIds.includes(option.id),
+        );
+
+        return {
+          id: item.id,
+          label: item.label || linkedBlock.data.heading || "Option Button",
+          value:
+            selectedOptions.length > 0
+              ? selectedOptions.map((option: any) => option.label).join(", ")
+              : "Not selected",
+        };
+      }
+
+      return null;
+    })
+    .filter(Boolean) as Array<{ id: string; label: string; value: string }>;
+
+  return (
+    <div className="h-full w-full p-4" style={getAppearanceStyle(block)}>
+      <div className="flex flex-col gap-4">
+        {data.showHeader !== false ? (
+          <div style={getContainerTextStyle(data.headerStyle ?? {}, designKey)}>
+            {data.header || "Summary"}
+          </div>
+        ) : null}
+
+        {data.showSubheader ? (
+          <div
+            className="text-sm opacity-75"
+            style={getContainerTextStyle(data.subheaderStyle ?? {}, designKey)}
+          >
+            {data.subheader}
+          </div>
+        ) : null}
+
+        <div className="flex flex-col">
+          {linkedBlocks.length > 0 ? (
+            linkedBlocks.map((item, index) => (
+              <div key={item.id}>
+                <div className="flex items-start justify-between gap-4 py-3">
+                  <div
+                    style={getContainerTextStyle(
+                      data.labelStyle ?? data.style ?? {},
+                      designKey,
+                    )}
+                  >
+                    {item.label}
+                  </div>
+
+                  <div
+                    className="text-right"
+                    style={getContainerTextStyle(
+                      data.valueStyle ?? data.style ?? {},
+                      designKey,
+                    )}
+                  >
+                    {item.value}
+                  </div>
+                </div>
+
+                {data.showDividers !== false &&
+                index < linkedBlocks.length - 1 ? (
+                  <div
+                    className="h-px w-full"
+                    style={{
+                      backgroundColor:
+                        data.dividerColor || "rgba(0,0,0,0.12)",
+                    }}
+                  />
+                ) : null}
+              </div>
+            ))
+          ) : (
+            <div className="rounded-xl border border-dashed border-neutral-300 p-4 text-sm text-neutral-500">
+              No linked fields yet
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function renderRichText(
@@ -14689,6 +14831,7 @@ const spin = () => {
 
 export default function BlockRenderer({
   block,
+  blocks,
   designKey,
   micrositeId,
   micrositeSlug,
@@ -14820,6 +14963,8 @@ case "post_board":
     return renderWave(block);
     case "highlight":
       return renderHighlight(block, designKey, micrositeId, micrositeSlug);
+    case "summary":
+      return renderSummaryBlock(block, designKey, blocks ?? []);
     case "visitor_counter":
       return renderVisitorCounter(block, designKey, micrositeId);
     case "rich_text":

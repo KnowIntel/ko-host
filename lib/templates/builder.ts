@@ -133,6 +133,7 @@ export type BuilderBlockType =
   | "enrollment_board"
   | "post_board"
   | "highlight"
+  | "summary"
   | "showcase"
   | "festiveBackground"
   | "form_field"
@@ -1075,6 +1076,31 @@ export type HighlightBlock = BaseBlock & {
   };
 };
 
+export type SummaryLinkedBlock = {
+  id: string;
+  blockId: string;
+  label?: string;
+  show?: boolean;
+};
+
+export type SummaryBlock = BaseBlock & {
+  type: "summary";
+  data: {
+    header: string;
+    subheader?: string;
+    showHeader?: boolean;
+    showSubheader?: boolean;
+    linkedBlocks: SummaryLinkedBlock[];
+    style?: TextStyle;
+    headerStyle?: TextStyle;
+    subheaderStyle?: TextStyle;
+    labelStyle?: TextStyle;
+    valueStyle?: TextStyle;
+    dividerColor?: string;
+    showDividers?: boolean;
+  };
+};
+
 export type VisitorCounterVariant = "flip" | "dial" | "smooth_count";
 
 export type VisitorCounterBlock = BaseBlock & {
@@ -1200,6 +1226,9 @@ export type OptionButtonOption = {
   imageUrl?: string;
   imageStoragePath?: string;
   iconName?: string;
+  priceLabel?: string;
+  price?: string;
+  showPrice?: boolean;
   disabled?: boolean;
 };
 
@@ -1215,6 +1244,8 @@ export type OptionButtonBlock = BaseBlock & {
     selectedOptionIds?: string[];
     allowMultiSelect?: boolean;
     linkedButtonBlockId?: string;
+    linkedSummaryBlockId?: string;
+    linkedCartBlockId?: string;
     placeholder?: string;
     labelPosition?: "left" | "right";
     pushButtonFrame?: OptionButtonFrame;
@@ -1224,6 +1255,10 @@ export type OptionButtonBlock = BaseBlock & {
     optionGap?: number;
     optionImageSize?: number;
     descriptionStyle?: Record<string, any>;
+    priceLabel?: string;
+    price?: string;
+    showPrice?: boolean;
+    priceStyle?: Record<string, any>;
     selectedBorderColor?: string;
     selectedCheckColor?: string;
     checkmarkColor?: string;
@@ -1952,6 +1987,7 @@ export type MicrositeBlock =
   | PostBoardBlock
   | EnrollmentBoardBlock
   | HighlightBlock
+  | SummaryBlock
   | VisitorCounterBlock
   | ShowcaseBlock
   | FestiveBackgroundBlock
@@ -3313,43 +3349,65 @@ case "text_fx":
         label: "Option Button",
         grid,
         appearance: createDefaultBlockAppearance(),
-        data: {
-          variant: "push_button",
-          heading: "Choose an Option",
-          subtitle: "",
-          showHeading: true,
-          showSubtitle: false,
-          options: [
-            { id: "option_1", label: "Option 1", value: "option_1" },
-            { id: "option_2", label: "Option 2", value: "option_2" },
-          ],
-          selectedOptionIds: [],
-          allowMultiSelect: false,
-          placeholder: "Select",
-          labelPosition: "right",
-          pushButtonFrame: "square",
-          pushButtonLayout: "grid",
-          horizontalPadding: 16,
-          verticalPadding: 16,
-          optionGap: 12,
-          selectedBorderColor: "#f59e0b",
-          selectedCheckColor: "#f59e0b",
-          checkmarkColor: "#ffffff",
-          showCheckmark: true,
-          showOptionImages: true,
-          showOptionDescriptions: true,
-          style: createDefaultTextStyle(),
-          optionStyle: {
-            ...createDefaultTextStyle(),
-            paddingTop: 16,
-            paddingRight: 16,
-            paddingBottom: 16,
-            paddingLeft: 16,
-          },
-          selectedOptionStyle: {},
-          labelStyle: createDefaultTextStyle(),
-          controlStyle: {},
-        },
+data: {
+  variant: "push_button",
+  heading: "Choose an Option",
+  subtitle: "",
+  showHeading: true,
+  showSubtitle: false,
+
+  options: [
+    { id: "option_1", label: "Option 1", value: "option_1" },
+    { id: "option_2", label: "Option 2", value: "option_2" },
+  ],
+
+  selectedOptionIds: [],
+  allowMultiSelect: false,
+
+  linkedSummaryBlockId: undefined,
+  linkedCartBlockId: undefined,
+
+  priceLabel: "Price",
+  price: "",
+  showPrice: false,
+
+  placeholder: "Select",
+  labelPosition: "right",
+  pushButtonFrame: "square",
+  pushButtonLayout: "grid",
+  horizontalPadding: 16,
+  verticalPadding: 16,
+  optionGap: 12,
+
+  selectedBorderColor: "#f59e0b",
+  selectedCheckColor: "#f59e0b",
+  checkmarkColor: "#ffffff",
+
+  showCheckmark: true,
+  showOptionImages: true,
+  showOptionDescriptions: true,
+
+  style: createDefaultTextStyle(),
+
+  optionStyle: {
+    ...createDefaultTextStyle(),
+    paddingTop: 16,
+    paddingRight: 16,
+    paddingBottom: 16,
+    paddingLeft: 16,
+  },
+
+  selectedOptionStyle: {},
+
+  labelStyle: createDefaultTextStyle(),
+
+  priceStyle: {
+    ...createDefaultTextStyle(),
+    fontWeight: 600,
+  },
+
+  controlStyle: {},
+},
       };
 
     case "links":
@@ -3979,6 +4037,35 @@ actionButtonStyle: {
         },
       };
 
+          case "summary":
+      return {
+        id: makeId("summary"),
+        type: "summary",
+        label: "Summary",
+        grid,
+        appearance: createDefaultBlockAppearance(),
+        data: {
+          header: "Booking Summary",
+          subheader: "",
+          showHeader: true,
+          showSubheader: false,
+          linkedBlocks: [],
+          style: createDefaultTextStyle(),
+          headerStyle: {
+            ...createDefaultTextStyle(),
+            fontSize: 22,
+            bold: true,
+          },
+          subheaderStyle: createDefaultTextStyle(),
+          labelStyle: createDefaultTextStyle(),
+          valueStyle: {
+            ...createDefaultTextStyle(),
+            bold: true,
+          },
+          dividerColor: "rgba(0,0,0,0.12)",
+          showDividers: true,
+        },
+      };
 
           case "visitor_counter":
       return {
@@ -6701,7 +6788,19 @@ if (block.type === "option_button") {
             typeof option.iconName === "string"
               ? option.iconName
               : "",
-          disabled: Boolean(option.disabled),
+        priceLabel:
+          typeof option.priceLabel === "string"
+            ? option.priceLabel
+            : "Price",
+
+        price:
+          typeof option.price === "string"
+            ? option.price
+            : "",
+
+        showPrice: option.showPrice !== false,
+
+        disabled: Boolean(option.disabled),
         }))
     : [];
 
@@ -6748,6 +6847,26 @@ if (block.type === "option_button") {
         data.linkedButtonBlockId.trim()
           ? data.linkedButtonBlockId
           : undefined,
+
+      linkedSummaryBlockId:
+        typeof data.linkedSummaryBlockId === "string" &&
+        data.linkedSummaryBlockId.trim()
+          ? data.linkedSummaryBlockId
+          : undefined,
+
+      linkedCartBlockId:
+        typeof data.linkedCartBlockId === "string" &&
+        data.linkedCartBlockId.trim()
+          ? data.linkedCartBlockId
+          : undefined,
+
+      priceLabel:
+        typeof data.priceLabel === "string" ? data.priceLabel : "Price",
+
+      price:
+        typeof data.price === "string" ? data.price : "",
+
+      showPrice: Boolean(data.showPrice),
 
       placeholder:
         typeof data.placeholder === "string" ? data.placeholder : "Select",
@@ -6826,9 +6945,85 @@ if (block.type === "option_button") {
         ...(data.labelStyle ?? {}),
       },
 
+      priceStyle: {
+        ...createDefaultTextStyle(),
+        ...(data.priceStyle ?? data.labelStyle ?? data.style ?? {}),
+      },
+
       controlStyle: {
         ...(data.controlStyle ?? {}),
       },
+    },
+  };
+}
+
+if (block.type === "summary") {
+  const data = block.data as any;
+
+  const linkedBlocks = Array.isArray(data.linkedBlocks)
+    ? data.linkedBlocks
+        .filter((item: any) => item && typeof item === "object")
+        .map((item: any, index: number) => ({
+          id:
+            typeof item.id === "string" && item.id.trim()
+              ? item.id
+              : `summary_link_${index + 1}`,
+          blockId:
+            typeof item.blockId === "string" ? item.blockId : "",
+          label:
+            typeof item.label === "string" ? item.label : "",
+          show: item.show !== false,
+        }))
+        .filter((item: any) => item.blockId)
+    : [];
+
+  return {
+    ...block,
+    grid: normalizeGridValue(block.grid, fallbackGrid),
+    data: {
+      ...data,
+      header:
+        typeof data.header === "string" ? data.header : "Booking Summary",
+      subheader:
+        typeof data.subheader === "string" ? data.subheader : "",
+      showHeader: data.showHeader !== false,
+      showSubheader: Boolean(data.showSubheader),
+      linkedBlocks,
+
+      style: {
+        ...createDefaultTextStyle(),
+        ...(data.style ?? {}),
+      },
+
+      headerStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 22,
+        bold: true,
+        ...(data.headerStyle ?? data.style ?? {}),
+      },
+
+      subheaderStyle: {
+        ...createDefaultTextStyle(),
+        ...(data.subheaderStyle ?? data.style ?? {}),
+      },
+
+      labelStyle: {
+        ...createDefaultTextStyle(),
+        ...(data.labelStyle ?? data.style ?? {}),
+      },
+
+      valueStyle: {
+        ...createDefaultTextStyle(),
+        bold: true,
+        ...(data.valueStyle ?? data.style ?? {}),
+      },
+
+      dividerColor:
+        typeof data.dividerColor === "string" && data.dividerColor.trim()
+          ? data.dividerColor
+          : "rgba(0,0,0,0.12)",
+
+      showDividers: data.showDividers !== false,
     },
   };
 }

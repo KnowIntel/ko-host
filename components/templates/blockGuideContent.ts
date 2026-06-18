@@ -1166,6 +1166,54 @@ highlight: {
   ],
 },
 
+summary: {
+  title: "Summary",
+  subtitle:
+    "Display selected input and option values from linked blocks in a clean review-style list.",
+  sections: [
+    {
+      title: "Overview",
+      body:
+        "The Summary block shows linked block values such as Input Field entries and Option Button selections.",
+    },
+    {
+      title: "Objective",
+      bullets: [
+        "Create a review section for visitor selections.",
+        "Show linked form and option values together.",
+        "Prepare selected data for future submission, cart, or checkout flows.",
+      ],
+    },
+    {
+      title: "Inspector Configuration",
+      bullets: [
+        "Header and subheader text.",
+        "Linked Input Field blocks.",
+        "Linked Option Button blocks.",
+        "Display order for linked entries.",
+        "Divider visibility and styling.",
+      ],
+    },
+    {
+      title: "How It Works",
+      bullets: [
+        "Owners link supported blocks to the Summary block.",
+        "Visitors interact with linked blocks.",
+        "The Summary block displays those values in the selected order.",
+      ],
+    },
+    {
+      title: "Best Use Cases",
+      bullets: [
+        "Booking summaries.",
+        "Order reviews.",
+        "Registration previews.",
+        "Quote or package selection summaries.",
+      ],
+    },
+  ],
+},
+
 visitor_counter: {
   title: "Visitor Counter",
   subtitle:
