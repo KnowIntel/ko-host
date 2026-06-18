@@ -9053,13 +9053,17 @@ if (block.type === "faq") {
     </div>
   );
 }
-    if (block.type === "form_field") {
-      return (
-        <div className="h-full w-full">
-          <BlockRenderer block={block} designKey={designKey} />
-        </div>
-      );
-    }
+if (block.type === "form_field") {
+  return (
+    <div className="h-full w-full">
+      <BlockRenderer
+        block={block}
+        blocks={draft.blocks}
+        designKey={designKey}
+      />
+    </div>
+  );
+}
 
 if (block.type === "option_button") {
   return (
