@@ -10026,7 +10026,20 @@ return (
       );
     }
 
-    return <BlockRenderer block={block} designKey={designKey} />;
+    return (
+  <BlockRenderer
+    block={block}
+    blocks={draft.blocks}
+    designKey={designKey}
+    optionButtonSelections={optionButtonSelections}
+    onOptionButtonSelectionChange={(change) =>
+      setOptionButtonSelections((prev) => ({
+        ...prev,
+        [change.blockId]: change.selectedOptionIds,
+      }))
+    }
+  />
+);
 }
 
   const scrollbarWidth = getGridCanvasScrollableWidth();
