@@ -9067,7 +9067,11 @@ if (block.type === "faq") {
         if (block.type === "summary") {
       return (
         <div className="h-full w-full">
-          <BlockRenderer block={block} designKey={designKey} />
+          <BlockRenderer
+  block={block}
+  blocks={draft.blocks}
+  designKey={designKey}
+/>
         </div>
       );
     }
