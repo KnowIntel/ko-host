@@ -2238,7 +2238,12 @@ const [faqStyleTarget, setFaqStyleTarget] = useState<
 >("form");
 
 const [summaryStyleTarget, setSummaryStyleTarget] = useState<
-  "form" | "header" | "subheader" | "footerAggregate" | "footerCaption"
+  | "form"
+  | "header"
+  | "subheader"
+  | "footerLabel"
+  | "footerAggregate"
+  | "footerCaption"
 >("form");
 
 
@@ -2498,15 +2503,21 @@ selectedBlockFromDraft?.type === "gallery"
       ? (((selectedBlockFromDraft.data as any).subheaderStyle ??
           (selectedBlockFromDraft.data as any).style ??
           {}) as TextStyle)
-      : summaryStyleTarget === "footerAggregate"
-        ? (((selectedBlockFromDraft.data as any).footerAggregateStyle ??
+      : summaryStyleTarget === "footerLabel"
+        ? (((selectedBlockFromDraft.data as any).footerLabelStyle ??
             (selectedBlockFromDraft.data as any).style ??
             {}) as TextStyle)
-        : summaryStyleTarget === "footerCaption"
-          ? (((selectedBlockFromDraft.data as any).footerCaptionStyle ??
+        : summaryStyleTarget === "footerAggregate"
+          ? (((selectedBlockFromDraft.data as any).footerAggregateStyle ??
               (selectedBlockFromDraft.data as any).style ??
               {}) as TextStyle)
-          : (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
+          : summaryStyleTarget === "footerCaption"
+            ? (((selectedBlockFromDraft.data as any).footerCaptionStyle ??
+                (selectedBlockFromDraft.data as any).style ??
+                {}) as TextStyle)
+            : (((selectedBlockFromDraft.data as any).labelStyle ??
+                (selectedBlockFromDraft.data as any).style ??
+                {}) as TextStyle)
                         : selectedBlockFromDraft?.type === "cart" ||
                             selectedBlockFromDraft?.type === "checkout" ||
                             selectedBlockFromDraft?.type === "text_fx" ||
@@ -4985,8 +4996,8 @@ if ((selectedBlockFromDraft as any)?.type === "option_button") {
   return;
 }
 
-if ((selectedBlockFromDraft as any)?.type === "summary") {
-  const targetBlockId = (selectedBlockFromDraft as any).id;
+if (selectedBlockFromDraft?.type === "summary") {
+  const targetBlockId = selectedBlockFromDraft.id;
 
   setDraft((prev) => ({
     ...prev,
@@ -5000,18 +5011,22 @@ if ((selectedBlockFromDraft as any)?.type === "summary") {
           ? "headerStyle"
           : summaryStyleTarget === "subheader"
             ? "subheaderStyle"
-            : summaryStyleTarget === "footerAggregate"
-              ? "footerAggregateStyle"
-              : summaryStyleTarget === "footerCaption"
-                ? "footerCaptionStyle"
-                : "style";
+            : summaryStyleTarget === "footerLabel"
+              ? "footerLabelStyle"
+              : summaryStyleTarget === "footerAggregate"
+                ? "footerAggregateStyle"
+                : summaryStyleTarget === "footerCaption"
+                  ? "footerCaptionStyle"
+                  : "labelStyle";
 
       return {
         ...block,
         data: {
           ...block.data,
           [styleKey]: {
-            ...((block.data as any)[styleKey] ?? {}),
+            ...((block.data as any)[styleKey] ??
+              (block.data as any).style ??
+              {}),
             ...patch,
           },
         },
@@ -20333,6 +20348,7 @@ onClick={() =>
       <option value="form">Form</option>
       <option value="header">Header</option>
       <option value="subheader">Subheader</option>
+      <option value="footerLabel">Footer Label</option>
       <option value="footerAggregate">Footer Aggregate</option>
       <option value="footerCaption">Footer Caption</option>
     </select>
