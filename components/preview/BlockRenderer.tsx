@@ -10230,6 +10230,7 @@ function renderSummaryBlock(
     useEffect(() => {
       function handleFormValue(event: Event) {
         const detail = (event as CustomEvent<FormFieldValueEventDetail>).detail;
+
         if (!detail?.blockId) return;
 
         setLiveFormValues((prev) => ({
@@ -10248,6 +10249,7 @@ function renderSummaryBlock(
     function parsePriceAmount(value: unknown) {
       const cleaned = String(value ?? "").replace(/[^0-9.-]/g, "");
       const amount = Number(cleaned);
+
       return Number.isFinite(amount) ? amount : 0;
     }
 
@@ -10330,6 +10332,7 @@ function renderSummaryBlock(
 
             if (option.price) {
               const amount = parsePriceAmount(option.price);
+
               hasAnySelectedPrice = true;
               footerMinTotal += amount;
               footerMaxTotal += amount;
@@ -10376,10 +10379,18 @@ function renderSummaryBlock(
       : "$0";
 
     return (
-      <div className="flex h-full w-full flex-col p-4" style={getAppearanceStyle(block)}>
+      <div
+        className="flex h-full w-full flex-col p-4"
+        style={getAppearanceStyle(block)}
+      >
         <div className="flex min-h-0 flex-1 flex-col gap-4">
           {data.showHeader !== false ? (
-            <div style={getContainerTextStyle(data.headerStyle ?? {}, designKey)}>
+            <div
+              style={getContainerTextStyle(
+                data.headerStyle ?? data.style ?? {},
+                designKey,
+              )}
+            >
               {data.header || "Summary"}
             </div>
           ) : null}
@@ -10387,7 +10398,10 @@ function renderSummaryBlock(
           {data.showSubheader ? (
             <div
               className="text-sm opacity-75"
-              style={getContainerTextStyle(data.subheaderStyle ?? {}, designKey)}
+              style={getContainerTextStyle(
+                data.subheaderStyle ?? data.style ?? {},
+                designKey,
+              )}
             >
               {data.subheader}
             </div>
@@ -10442,14 +10456,17 @@ function renderSummaryBlock(
           </div>
         </div>
 
-        {(data.showFooterLabel !== false ||
-          data.showFooterAggregate !== false ||
-          data.showFooterCaption) ? (
+        {data.showFooterLabel !== false ||
+        data.showFooterAggregate !== false ||
+        data.showFooterCaption ? (
           <div className="mt-4 shrink-0 border-t border-neutral-200 pt-4">
             {data.showFooterLabel !== false ? (
               <div
                 style={getContainerTextStyle(
-                  data.labelStyle ?? data.style ?? {},
+                  data.footerLabelStyle ??
+                    data.labelStyle ??
+                    data.style ??
+                    {},
                   designKey,
                 )}
               >

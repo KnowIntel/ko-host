@@ -5006,18 +5006,18 @@ if (selectedBlockFromDraft?.type === "summary") {
         return block;
       }
 
-      const styleKey =
-        summaryStyleTarget === "header"
-          ? "headerStyle"
-          : summaryStyleTarget === "subheader"
-            ? "subheaderStyle"
-            : summaryStyleTarget === "footerLabel"
-              ? "footerLabelStyle"
-              : summaryStyleTarget === "footerAggregate"
-                ? "footerAggregateStyle"
-                : summaryStyleTarget === "footerCaption"
-                  ? "footerCaptionStyle"
-                  : "labelStyle";
+const styleKey =
+  summaryStyleTarget === "header"
+    ? "headerStyle"
+    : summaryStyleTarget === "subheader"
+      ? "subheaderStyle"
+      : summaryStyleTarget === "footerLabel"
+        ? "footerLabelStyle"
+        : summaryStyleTarget === "footerAggregate"
+          ? "footerAggregateStyle"
+          : summaryStyleTarget === "footerCaption"
+            ? "footerCaptionStyle"
+            : "labelStyle";
 
       return {
         ...block,

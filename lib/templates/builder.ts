@@ -1104,6 +1104,7 @@ export type SummaryBlock = BaseBlock & {
     valueStyle?: TextStyle;
     footerAggregateStyle?: TextStyle;
     footerCaptionStyle?: TextStyle;
+    footerLabelStyle?: TextStyle;
     dividerColor?: string;
     showDividers?: boolean;
   };
@@ -4113,6 +4114,8 @@ data: {
     ...createDefaultTextStyle(),
     bold: true,
   },
+
+  footerLabelStyle: createDefaultTextStyle(),
 
   footerAggregateStyle: {
     ...createDefaultTextStyle(),
@@ -7152,6 +7155,11 @@ if (block.type === "summary") {
         ...createDefaultTextStyle(),
         bold: true,
         ...(data.valueStyle ?? data.style ?? {}),
+      },
+
+      footerLabelStyle: {
+        ...createDefaultTextStyle(),
+        ...(data.footerLabelStyle ?? data.labelStyle ?? data.style ?? {}),
       },
 
       footerAggregateStyle: {
