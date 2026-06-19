@@ -8422,15 +8422,20 @@ borderStyle:
                     </span>
                   ) : null}
 
-                  {option.showPrice !== false && option.price ? (
-                    <span
-                      className="pointer-events-none text-xs font-semibold"
-                      style={priceStyle}
-                    >
-                      {option.priceLabel ? `${option.priceLabel}: ` : ""}
-                      {option.price}
-                    </span>
-                  ) : null}
+{option.showPrice !== false &&
+((option.priceMode ?? "fixed") === "range"
+  ? option.priceMin || option.priceMax
+  : option.price) ? (
+  <span
+    className="pointer-events-none text-xs font-semibold"
+    style={priceStyle}
+  >
+    {option.priceLabel ? `${option.priceLabel}: ` : ""}
+    {(option.priceMode ?? "fixed") === "range"
+      ? `${option.priceMin || "$0"} - ${option.priceMax || "$0"}`
+      : option.price}
+  </span>
+) : null}
                 </button>
               );
             })}
@@ -10179,7 +10184,11 @@ function renderSummaryBlock(
 ) {
   function SummaryPreview() {
     const data = block.data as any;
-    const [liveFormValues, setLiveFormValues] = useState<Record<string, string>>({});
+
+    const [liveFormValues, setLiveFormValues] = useState<Record<string, string>>(
+      {},
+    );
+
     const [liveOptionSelections, setLiveOptionSelections] = useState<
       Record<
         string,
@@ -10208,10 +10217,7 @@ function renderSummaryBlock(
         }));
       }
 
-      window.addEventListener(
-        OPTION_BUTTON_SELECTION_EVENT,
-        handleSelection,
-      );
+      window.addEventListener(OPTION_BUTTON_SELECTION_EVENT, handleSelection);
 
       return () => {
         window.removeEventListener(
@@ -10222,107 +10228,156 @@ function renderSummaryBlock(
     }, []);
 
     useEffect(() => {
-  function handleFormValue(event: Event) {
-    const detail = (event as CustomEvent<FormFieldValueEventDetail>).detail;
-    if (!detail?.blockId) return;
+      function handleFormValue(event: Event) {
+        const detail = (event as CustomEvent<FormFieldValueEventDetail>).detail;
+        if (!detail?.blockId) return;
 
-    setLiveFormValues((prev) => ({
-      ...prev,
-      [detail.blockId]: detail.value,
-    }));
-  }
+        setLiveFormValues((prev) => ({
+          ...prev,
+          [detail.blockId]: detail.value,
+        }));
+      }
 
-  window.addEventListener(FORM_FIELD_VALUE_EVENT, handleFormValue);
+      window.addEventListener(FORM_FIELD_VALUE_EVENT, handleFormValue);
 
-  return () => {
-    window.removeEventListener(FORM_FIELD_VALUE_EVENT, handleFormValue);
-  };
-}, []);
+      return () => {
+        window.removeEventListener(FORM_FIELD_VALUE_EVENT, handleFormValue);
+      };
+    }, []);
+
+    function parsePriceAmount(value: unknown) {
+      const cleaned = String(value ?? "").replace(/[^0-9.-]/g, "");
+      const amount = Number(cleaned);
+      return Number.isFinite(amount) ? amount : 0;
+    }
+
+    function formatSummaryCurrency(value: number) {
+      return `$${value.toLocaleString(undefined, {
+        minimumFractionDigits: value % 1 === 0 ? 0 : 2,
+        maximumFractionDigits: 2,
+      })}`;
+    }
+
+    const persistedLinkedBlockSnapshots = Array.isArray(
+      data.linkedBlockSnapshots,
+    )
+      ? data.linkedBlockSnapshots
+      : [];
+
+    const currentRenderableBlocks =
+      blocks.length > 0 ? blocks : persistedLinkedBlockSnapshots;
 
     const linkedItems = Array.isArray(data.linkedBlocks)
       ? data.linkedBlocks.filter((item: any) => item?.show !== false)
       : [];
 
+    let footerMinTotal = 0;
+    let footerMaxTotal = 0;
+    let hasAnyRangePrice = false;
+    let hasAnySelectedPrice = false;
+
     const linkedRows = linkedItems
-  .map((item: any) => {
-const persistedLinkedBlockSnapshots = Array.isArray(
-  data.linkedBlockSnapshots,
-)
-  ? data.linkedBlockSnapshots
-  : [];
-
-const currentRenderableBlocks =
-  blocks.length > 0 ? blocks : persistedLinkedBlockSnapshots;
-
-const resolvedLinkedBlock = currentRenderableBlocks.find(
-  (candidate: any) => candidate.id === item.blockId,
-);
-
-if (resolvedLinkedBlock?.type === "form_field") {
-  return {
-    id: item.id,
-    label: item.label || resolvedLinkedBlock.data.label || "Input Field",
-    value:
-      liveFormValues[item.blockId] ||
-      liveFormValues[resolvedLinkedBlock.id] ||
-      resolvedLinkedBlock.data.value ||
-      "Not selected",
-  };
-}
-
-if (!resolvedLinkedBlock && liveFormValues[item.blockId]) {
-  return {
-    id: item.id,
-    label: item.label || "Input Field",
-    value: liveFormValues[item.blockId] || "Not selected",
-  };
-}
-
-      if (resolvedLinkedBlock?.type === "option_button") {
-        const liveSelection = liveOptionSelections[resolvedLinkedBlock.id];
-
-        const selectedIds =
-          liveSelection?.selectedOptionIds ??
-          optionButtonSelections[resolvedLinkedBlock.id] ??
-          (Array.isArray(resolvedLinkedBlock.data.selectedOptionIds)
-            ? resolvedLinkedBlock.data.selectedOptionIds
-            : []);
-
-        const selectedOptions = resolvedLinkedBlock.data.options.filter((option: any) =>
-          selectedIds.includes(option.id),
+      .map((item: any) => {
+        const resolvedLinkedBlock = currentRenderableBlocks.find(
+          (candidate: any) => candidate.id === item.blockId,
         );
 
-        return {
-          id: item.id,
-          label: item.label || resolvedLinkedBlock.data.heading || "Option Button",
-          value:
-            liveSelection?.selectedLabels?.length
-              ? liveSelection.selectedLabels.join(", ")
-              : selectedOptions.length > 0
-                ? selectedOptions.map((option: any) => option.label).join(", ")
-                : "Not selected",
-        };
-      }
+        if (resolvedLinkedBlock?.type === "form_field") {
+          return {
+            id: item.id,
+            label: item.label || resolvedLinkedBlock.data.label || "Input Field",
+            values: [
+              liveFormValues[item.blockId] ||
+                liveFormValues[resolvedLinkedBlock.id] ||
+                resolvedLinkedBlock.data.value ||
+                "Not selected",
+            ],
+          };
+        }
 
-      if (!resolvedLinkedBlock && liveOptionSelections[item.blockId]) {
-        const liveSelection = liveOptionSelections[item.blockId];
+        if (!resolvedLinkedBlock && liveFormValues[item.blockId]) {
+          return {
+            id: item.id,
+            label: item.label || "Input Field",
+            values: [liveFormValues[item.blockId] || "Not selected"],
+          };
+        }
 
-        return {
-          id: item.id,
-          label: item.label || "Option Button",
-          value: liveSelection.selectedLabels.length
-            ? liveSelection.selectedLabels.join(", ")
-            : "Not selected",
-        };
-      }
+        if (resolvedLinkedBlock?.type === "option_button") {
+          const liveSelection = liveOptionSelections[resolvedLinkedBlock.id];
 
-return null;
-})
-.filter(Boolean) as Array<{ id: string; label: string; value: string }>;
+          const selectedIds =
+            liveSelection?.selectedOptionIds ??
+            optionButtonSelections[resolvedLinkedBlock.id] ??
+            (Array.isArray(resolvedLinkedBlock.data.selectedOptionIds)
+              ? resolvedLinkedBlock.data.selectedOptionIds
+              : []);
+
+          const selectedOptions = resolvedLinkedBlock.data.options.filter(
+            (option: any) => selectedIds.includes(option.id),
+          );
+
+          selectedOptions.forEach((option: any) => {
+            if (option.showPrice === false) return;
+
+            if ((option.priceMode ?? "fixed") === "range") {
+              hasAnyRangePrice = true;
+              hasAnySelectedPrice = true;
+              footerMinTotal += parsePriceAmount(option.priceMin);
+              footerMaxTotal += parsePriceAmount(option.priceMax);
+              return;
+            }
+
+            if (option.price) {
+              const amount = parsePriceAmount(option.price);
+              hasAnySelectedPrice = true;
+              footerMinTotal += amount;
+              footerMaxTotal += amount;
+            }
+          });
+
+          return {
+            id: item.id,
+            label:
+              item.label || resolvedLinkedBlock.data.heading || "Option Button",
+            values:
+              selectedOptions.length > 0
+                ? selectedOptions.map((option: any) => option.label)
+                : ["Not selected"],
+          };
+        }
+
+        if (!resolvedLinkedBlock && liveOptionSelections[item.blockId]) {
+          const liveSelection = liveOptionSelections[item.blockId];
+
+          return {
+            id: item.id,
+            label: item.label || "Option Button",
+            values: liveSelection.selectedLabels.length
+              ? liveSelection.selectedLabels
+              : ["Not selected"],
+          };
+        }
+
+        return null;
+      })
+      .filter(Boolean) as Array<{
+      id: string;
+      label: string;
+      values: string[];
+    }>;
+
+    const footerAggregateValue = hasAnySelectedPrice
+      ? hasAnyRangePrice
+        ? `${formatSummaryCurrency(footerMinTotal)} - ${formatSummaryCurrency(
+            footerMaxTotal,
+          )}`
+        : formatSummaryCurrency(footerMaxTotal)
+      : "$0";
 
     return (
-      <div className="h-full w-full p-4" style={getAppearanceStyle(block)}>
-        <div className="flex flex-col gap-4">
+      <div className="flex h-full w-full flex-col p-4" style={getAppearanceStyle(block)}>
+        <div className="flex min-h-0 flex-1 flex-col gap-4">
           {data.showHeader !== false ? (
             <div style={getContainerTextStyle(data.headerStyle ?? {}, designKey)}>
               {data.header || "Summary"}
@@ -10338,10 +10393,9 @@ return null;
             </div>
           ) : null}
 
-          <div className="flex flex-col">
+          <div className="flex min-h-0 flex-1 flex-col overflow-auto">
             {linkedRows.length > 0 ? (
-              linkedRows.map(
-  (item: { id: string; label: string; value: string }, index: number) => (
+              linkedRows.map((item, index) => (
                 <div key={item.id}>
                   <div className="flex items-start justify-between gap-4 py-3">
                     <div
@@ -10354,13 +10408,17 @@ return null;
                     </div>
 
                     <div
-                      className="text-right"
+                      className="flex flex-col items-end text-right"
                       style={getContainerTextStyle(
                         data.valueStyle ?? data.style ?? {},
                         designKey,
                       )}
                     >
-                      {item.value}
+                      {item.values.map((value, valueIndex) => (
+                        <div key={`${item.id}-value-${valueIndex}`}>
+                          {value}
+                        </div>
+                      ))}
                     </div>
                   </div>
 
@@ -10383,6 +10441,50 @@ return null;
             )}
           </div>
         </div>
+
+        {(data.showFooterLabel !== false ||
+          data.showFooterAggregate !== false ||
+          data.showFooterCaption) ? (
+          <div className="mt-4 shrink-0 border-t border-neutral-200 pt-4">
+            {data.showFooterLabel !== false ? (
+              <div
+                style={getContainerTextStyle(
+                  data.labelStyle ?? data.style ?? {},
+                  designKey,
+                )}
+              >
+                {data.footerLabel || "Estimated Total"}
+              </div>
+            ) : null}
+
+            {data.showFooterAggregate !== false ? (
+              <div
+                className="mt-1"
+                style={getContainerTextStyle(
+                  data.footerAggregateStyle ?? data.style ?? {},
+                  designKey,
+                )}
+              >
+                {data.footerAggregateLabel
+                  ? `${data.footerAggregateLabel}: `
+                  : ""}
+                {footerAggregateValue}
+              </div>
+            ) : null}
+
+            {data.showFooterCaption ? (
+              <div
+                className="mt-1 text-xs opacity-75"
+                style={getContainerTextStyle(
+                  data.footerCaptionStyle ?? data.style ?? {},
+                  designKey,
+                )}
+              >
+                {data.footerCaption}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
       </div>
     );
   }

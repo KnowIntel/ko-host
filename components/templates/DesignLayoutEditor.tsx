@@ -2237,6 +2237,10 @@ const [faqStyleTarget, setFaqStyleTarget] = useState<
   "form" | "section" | "question" | "answer"
 >("form");
 
+const [summaryStyleTarget, setSummaryStyleTarget] = useState<
+  "form" | "header" | "subheader" | "footerAggregate" | "footerCaption"
+>("form");
+
 
 const selectedStyle =
 selectedBlockFromDraft?.type === "gallery"
@@ -2485,6 +2489,24 @@ selectedBlockFromDraft?.type === "gallery"
                                   : (((selectedBlockFromDraft.data as any).eventDetailsStyle ??
                                       (selectedBlockFromDraft.data as any).style ??
                                       {}) as TextStyle)
+: selectedBlockFromDraft?.type === "summary"
+  ? summaryStyleTarget === "header"
+    ? (((selectedBlockFromDraft.data as any).headerStyle ??
+        (selectedBlockFromDraft.data as any).style ??
+        {}) as TextStyle)
+    : summaryStyleTarget === "subheader"
+      ? (((selectedBlockFromDraft.data as any).subheaderStyle ??
+          (selectedBlockFromDraft.data as any).style ??
+          {}) as TextStyle)
+      : summaryStyleTarget === "footerAggregate"
+        ? (((selectedBlockFromDraft.data as any).footerAggregateStyle ??
+            (selectedBlockFromDraft.data as any).style ??
+            {}) as TextStyle)
+        : summaryStyleTarget === "footerCaption"
+          ? (((selectedBlockFromDraft.data as any).footerCaptionStyle ??
+              (selectedBlockFromDraft.data as any).style ??
+              {}) as TextStyle)
+          : (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
                         : selectedBlockFromDraft?.type === "cart" ||
                             selectedBlockFromDraft?.type === "checkout" ||
                             selectedBlockFromDraft?.type === "text_fx" ||
@@ -2750,6 +2772,7 @@ const showTextControls =
   selectedBlock?.type === "form_field" ||
   selectedBlock?.type === "option_button" ||
   selectedBlock?.type === "highlight" ||
+  selectedBlock?.type === "summary" ||
   selectedBlock?.type === "visitor_counter" ||
   selectedBlock?.type === "progress_bar" ||
   selectedBlock?.type === "donation" ||
@@ -2817,6 +2840,7 @@ const showAppearanceControls =
   selectedBlock?.type === "timeline" ||
   selectedBlock?.type === "wave" ||
   selectedBlock?.type === "highlight" ||
+  selectedBlock?.type === "summary" ||
   selectedBlock?.type === "visitor_counter";
 
 const showBorderWidthRadiusControls =
@@ -2851,6 +2875,7 @@ const showBorderWidthRadiusControls =
   selectedBlock?.type === "timeline" ||
   selectedBlock?.type === "wave" ||
   selectedBlock?.type === "visitor_counter" ||
+  selectedBlock?.type === "summary" ||
   selectedBlock?.type === "highlight";
 
   const selectedTextValue = getSelectedTextValue(draft, selectedContext);
@@ -4943,6 +4968,43 @@ if ((selectedBlockFromDraft as any)?.type === "option_button") {
           : optionButtonTextTarget === "heading"
             ? "style"
             : "labelStyle";
+
+      return {
+        ...block,
+        data: {
+          ...block.data,
+          [styleKey]: {
+            ...((block.data as any)[styleKey] ?? {}),
+            ...patch,
+          },
+        },
+      };
+    }),
+  }));
+
+  return;
+}
+
+if ((selectedBlockFromDraft as any)?.type === "summary") {
+  const targetBlockId = (selectedBlockFromDraft as any).id;
+
+  setDraft((prev) => ({
+    ...prev,
+    blocks: prev.blocks.map((block) => {
+      if (block.id !== targetBlockId || block.type !== "summary") {
+        return block;
+      }
+
+      const styleKey =
+        summaryStyleTarget === "header"
+          ? "headerStyle"
+          : summaryStyleTarget === "subheader"
+            ? "subheaderStyle"
+            : summaryStyleTarget === "footerAggregate"
+              ? "footerAggregateStyle"
+              : summaryStyleTarget === "footerCaption"
+                ? "footerCaptionStyle"
+                : "style";
 
       return {
         ...block,
@@ -16045,7 +16107,7 @@ selectedContext.kind === "textFx"
             </div>
           ) : null}
 
-          <div className="rounded-xl border border-neutral-200 bg-white p-3">
+<div className="rounded-xl border border-neutral-200 bg-white p-3">
   <div className={inspectorLabelClass()}>Price</div>
 
   <label className="mt-3 flex items-center gap-3 text-sm text-neutral-800">
@@ -16066,6 +16128,26 @@ selectedContext.kind === "textFx"
   </label>
 
   <div className="mt-4">
+    <div className={inspectorLabelClass()}>Price Type</div>
+    <select
+      value={option.priceMode ?? "fixed"}
+      onChange={(e) =>
+        updateSelectedOptionButtonData({
+          options: options.map((item: any) =>
+            item.id === option.id
+              ? { ...item, priceMode: e.target.value }
+              : item,
+          ),
+        })
+      }
+      className={inspectorInputClass()}
+    >
+      <option value="fixed">Price</option>
+      <option value="range">Price Range</option>
+    </select>
+  </div>
+
+  <div className="mt-4">
     <div className={inspectorLabelClass()}>Price Label</div>
     <input
       type="text"
@@ -16083,24 +16165,66 @@ selectedContext.kind === "textFx"
     />
   </div>
 
-  <div className="mt-4">
-    <div className={inspectorLabelClass()}>Price</div>
-    <input
-      type="text"
-      value={option.price ?? ""}
-      onChange={(e) =>
-        updateSelectedOptionButtonData({
-          options: options.map((item: any) =>
-            item.id === option.id
-              ? { ...item, price: e.target.value }
-              : item,
-          ),
-        })
-      }
-      placeholder="$0.00"
-      className={inspectorInputClass()}
-    />
-  </div>
+  {(option.priceMode ?? "fixed") === "range" ? (
+    <div className="mt-4 grid grid-cols-2 gap-3">
+      <div>
+        <div className={inspectorLabelClass()}>Minimum</div>
+        <input
+          type="text"
+          value={option.priceMin ?? ""}
+          onChange={(e) =>
+            updateSelectedOptionButtonData({
+              options: options.map((item: any) =>
+                item.id === option.id
+                  ? { ...item, priceMin: e.target.value }
+                  : item,
+              ),
+            })
+          }
+          placeholder="$0.00"
+          className={inspectorInputClass()}
+        />
+      </div>
+
+      <div>
+        <div className={inspectorLabelClass()}>Maximum</div>
+        <input
+          type="text"
+          value={option.priceMax ?? ""}
+          onChange={(e) =>
+            updateSelectedOptionButtonData({
+              options: options.map((item: any) =>
+                item.id === option.id
+                  ? { ...item, priceMax: e.target.value }
+                  : item,
+              ),
+            })
+          }
+          placeholder="$0.00"
+          className={inspectorInputClass()}
+        />
+      </div>
+    </div>
+  ) : (
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Price</div>
+      <input
+        type="text"
+        value={option.price ?? ""}
+        onChange={(e) =>
+          updateSelectedOptionButtonData({
+            options: options.map((item: any) =>
+              item.id === option.id
+                ? { ...item, price: e.target.value }
+                : item,
+            ),
+          })
+        }
+        placeholder="$0.00"
+        className={inspectorInputClass()}
+      />
+    </div>
+  )}
 </div>
 
           <div>
@@ -20190,7 +20314,32 @@ onClick={() =>
 
 {selectedBlock?.type === "summary" ? (
   <div className={inspectorCardClass()}>
-    <div className={inspectorLabelClass()}>Summary</div>
+    <div className={inspectorLabelClass()}>Style Target</div>
+
+    <select
+      value={summaryStyleTarget}
+      onChange={(e) =>
+        setSummaryStyleTarget(
+          e.target.value as
+            | "form"
+            | "header"
+            | "subheader"
+            | "footerAggregate"
+            | "footerCaption",
+        )
+      }
+      className={inspectorInputClass()}
+    >
+      <option value="form">Form</option>
+      <option value="header">Header</option>
+      <option value="subheader">Subheader</option>
+      <option value="footerAggregate">Footer Aggregate</option>
+      <option value="footerCaption">Footer Caption</option>
+    </select>
+
+    <div className="mt-5 border-t border-neutral-200 pt-4">
+      <div className={inspectorLabelClass()}>Summary</div>
+    </div>
 
     <div className="mt-4">
       <div className={inspectorLabelClass()}>Header</div>
@@ -20235,6 +20384,98 @@ onClick={() =>
       />
       Show subheader
     </label>
+
+    <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+      <div className={inspectorLabelClass()}>Footer</div>
+
+      <div className="mt-4">
+        <div className="flex items-center justify-between">
+          <div className={inspectorLabelClass()}>Footer Label</div>
+
+          <label className="flex items-center gap-2 text-xs text-neutral-600">
+            <input
+              type="checkbox"
+              checked={(selectedBlock.data as any).showFooterLabel !== false}
+              onChange={(e) =>
+                updateSelectedSummaryData({
+                  showFooterLabel: e.target.checked,
+                })
+              }
+            />
+            Show
+          </label>
+        </div>
+
+        <input
+          type="text"
+          value={(selectedBlock.data as any).footerLabel ?? ""}
+          onChange={(e) =>
+            updateSelectedSummaryData({ footerLabel: e.target.value })
+          }
+          className={inspectorInputClass()}
+        />
+      </div>
+
+      <div className="mt-4">
+        <div className="flex items-center justify-between">
+          <div className={inspectorLabelClass()}>Footer Aggregate</div>
+
+          <label className="flex items-center gap-2 text-xs text-neutral-600">
+            <input
+              type="checkbox"
+              checked={
+                (selectedBlock.data as any).showFooterAggregate !== false
+              }
+              onChange={(e) =>
+                updateSelectedSummaryData({
+                  showFooterAggregate: e.target.checked,
+                })
+              }
+            />
+            Show
+          </label>
+        </div>
+
+        <input
+          type="text"
+          value={(selectedBlock.data as any).footerAggregateLabel ?? ""}
+          onChange={(e) =>
+            updateSelectedSummaryData({
+              footerAggregateLabel: e.target.value,
+            })
+          }
+          className={inspectorInputClass()}
+        />
+      </div>
+
+      <div className="mt-4">
+        <div className="flex items-center justify-between">
+          <div className={inspectorLabelClass()}>Footer Caption</div>
+
+          <label className="flex items-center gap-2 text-xs text-neutral-600">
+            <input
+              type="checkbox"
+              checked={Boolean((selectedBlock.data as any).showFooterCaption)}
+              onChange={(e) =>
+                updateSelectedSummaryData({
+                  showFooterCaption: e.target.checked,
+                })
+              }
+            />
+            Show
+          </label>
+        </div>
+
+        <input
+          type="text"
+          value={(selectedBlock.data as any).footerCaption ?? ""}
+          onChange={(e) =>
+            updateSelectedSummaryData({ footerCaption: e.target.value })
+          }
+          className={inspectorInputClass()}
+        />
+      </div>
+    </div>
 
     <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
       <div className={inspectorLabelClass()}>Linked Blocks</div>

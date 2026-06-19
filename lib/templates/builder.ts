@@ -1091,11 +1091,19 @@ export type SummaryBlock = BaseBlock & {
     showHeader?: boolean;
     showSubheader?: boolean;
     linkedBlocks: SummaryLinkedBlock[];
+    footerLabel?: string;
+    footerAggregateLabel?: string;
+    footerCaption?: string;
+    showFooterLabel?: boolean;
+    showFooterAggregate?: boolean;
+    showFooterCaption?: boolean;
     style?: TextStyle;
     headerStyle?: TextStyle;
     subheaderStyle?: TextStyle;
     labelStyle?: TextStyle;
     valueStyle?: TextStyle;
+    footerAggregateStyle?: TextStyle;
+    footerCaptionStyle?: TextStyle;
     dividerColor?: string;
     showDividers?: boolean;
   };
@@ -1229,8 +1237,11 @@ export type OptionButtonOption = {
   imageUrl?: string;
   imageStoragePath?: string;
   iconName?: string;
+  priceMode?: "fixed" | "range";
   priceLabel?: string;
   price?: string;
+  priceMin?: string;
+  priceMax?: string;
   showPrice?: boolean;
   disabled?: boolean;
 };
@@ -4069,27 +4080,54 @@ actionButtonStyle: {
         label: "Summary",
         grid,
         appearance: createDefaultBlockAppearance(),
-        data: {
-          header: "Booking Summary",
-          subheader: "",
-          showHeader: true,
-          showSubheader: false,
-          linkedBlocks: [],
-          style: createDefaultTextStyle(),
-          headerStyle: {
-            ...createDefaultTextStyle(),
-            fontSize: 22,
-            bold: true,
-          },
-          subheaderStyle: createDefaultTextStyle(),
-          labelStyle: createDefaultTextStyle(),
-          valueStyle: {
-            ...createDefaultTextStyle(),
-            bold: true,
-          },
-          dividerColor: "rgba(0,0,0,0.12)",
-          showDividers: true,
-        },
+data: {
+  header: "Booking Summary",
+  subheader: "",
+
+  showHeader: true,
+  showSubheader: false,
+
+  linkedBlocks: [],
+
+  footerLabel: "Estimated Total",
+  footerAggregateLabel: "Total",
+  footerCaption: "",
+
+  showFooterLabel: true,
+  showFooterAggregate: true,
+  showFooterCaption: false,
+
+  style: createDefaultTextStyle(),
+
+  headerStyle: {
+    ...createDefaultTextStyle(),
+    fontSize: 22,
+    bold: true,
+  },
+
+  subheaderStyle: createDefaultTextStyle(),
+
+  labelStyle: createDefaultTextStyle(),
+
+  valueStyle: {
+    ...createDefaultTextStyle(),
+    bold: true,
+  },
+
+  footerAggregateStyle: {
+    ...createDefaultTextStyle(),
+    fontSize: 24,
+    bold: true,
+  },
+
+  footerCaptionStyle: {
+    ...createDefaultTextStyle(),
+    color: "#737373",
+  },
+
+  dividerColor: "rgba(0,0,0,0.12)",
+  showDividers: true,
+},
       };
 
           case "visitor_counter":
@@ -5461,7 +5499,7 @@ export function sanitizeBuilderDraft(input: unknown): BuilderDraft {
   }
 
   if (block.type === "post_board") {
-    return normalizePostBoardBlock(block as PostBoardBlock);
+    return resolvedLinkedBlockPostBoardBlock(block as PostBoardBlock);
   }
 
   if (block.type === "video") {
@@ -6829,22 +6867,32 @@ if (block.type === "option_button") {
             ? option.priceLabel
             : "Price",
 
+        priceMode:
+          option.priceMode === "range" || option.priceMode === "fixed"
+            ? option.priceMode
+            : "fixed",
+
+        priceLabel:
+          typeof option.priceLabel === "string"
+            ? option.priceLabel
+            : "Price",
+
         price:
           typeof option.price === "string"
             ? option.price
             : "",
 
+        priceMin:
+          typeof option.priceMin === "string"
+            ? option.priceMin
+            : "",
+
+        priceMax:
+          typeof option.priceMax === "string"
+            ? option.priceMax
+            : "",
+
         showPrice: option.showPrice !== false,
-
-generalBorderEnabled:
-  typeof data.generalBorderEnabled === "boolean"
-    ? data.generalBorderEnabled
-    : true,
-
-generalBorderColor:
-  typeof data.generalBorderColor === "string" && data.generalBorderColor.trim()
-    ? data.generalBorderColor
-    : "#d4d4d4",
 
         disabled: Boolean(option.disabled),
         }))
@@ -6905,6 +6953,17 @@ generalBorderColor:
         data.linkedCartBlockId.trim()
           ? data.linkedCartBlockId
           : undefined,
+
+      generalBorderEnabled:
+        typeof data.generalBorderEnabled === "boolean"
+          ? data.generalBorderEnabled
+          : true,
+
+      generalBorderColor:
+        typeof data.generalBorderColor === "string" &&
+        data.generalBorderColor.trim()
+          ? data.generalBorderColor
+          : "#d4d4d4",
 
       priceLabel:
         typeof data.priceLabel === "string" ? data.priceLabel : "Price",
@@ -7037,10 +7096,8 @@ if (block.type === "summary") {
             typeof item.id === "string" && item.id.trim()
               ? item.id
               : `summary_link_${index + 1}`,
-          blockId:
-            typeof item.blockId === "string" ? item.blockId : "",
-          label:
-            typeof item.label === "string" ? item.label : "",
+          blockId: typeof item.blockId === "string" ? item.blockId : "",
+          label: typeof item.label === "string" ? item.label : "",
           show: item.show !== false,
         }))
         .filter((item: any) => item.blockId)
@@ -7051,13 +7108,29 @@ if (block.type === "summary") {
     grid: normalizeGridValue(block.grid, fallbackGrid),
     data: {
       ...data,
-      header:
-        typeof data.header === "string" ? data.header : "Booking Summary",
-      subheader:
-        typeof data.subheader === "string" ? data.subheader : "",
+
+      header: typeof data.header === "string" ? data.header : "Booking Summary",
+      subheader: typeof data.subheader === "string" ? data.subheader : "",
+
       showHeader: data.showHeader !== false,
       showSubheader: Boolean(data.showSubheader),
+
       linkedBlocks,
+
+      footerLabel:
+        typeof data.footerLabel === "string" ? data.footerLabel : "Estimated Total",
+
+      footerAggregateLabel:
+        typeof data.footerAggregateLabel === "string"
+          ? data.footerAggregateLabel
+          : "Total",
+
+      footerCaption:
+        typeof data.footerCaption === "string" ? data.footerCaption : "",
+
+      showFooterLabel: data.showFooterLabel !== false,
+      showFooterAggregate: data.showFooterAggregate !== false,
+      showFooterCaption: Boolean(data.showFooterCaption),
 
       style: {
         ...createDefaultTextStyle(),
@@ -7085,6 +7158,19 @@ if (block.type === "summary") {
         ...createDefaultTextStyle(),
         bold: true,
         ...(data.valueStyle ?? data.style ?? {}),
+      },
+
+      footerAggregateStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 24,
+        bold: true,
+        ...(data.footerAggregateStyle ?? data.style ?? {}),
+      },
+
+      footerCaptionStyle: {
+        ...createDefaultTextStyle(),
+        color: "#737373",
+        ...(data.footerCaptionStyle ?? data.style ?? {}),
       },
 
       dividerColor:
