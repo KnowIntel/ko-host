@@ -8187,7 +8187,7 @@ onSelectionChange?.({
                   ? "pointer-events-auto flex flex-col"
                   : data.pushButtonLayout === "horizontal_scroll"
                     ? "pointer-events-auto flex overflow-x-auto"
-                    : "pointer-events-auto grid grid-cols-2"
+                    : "pointer-events-auto flex flex-wrap"
                 : "pointer-events-auto flex flex-col gap-3"
             }
             style={
@@ -8294,6 +8294,9 @@ onSelectionChange?.({
                   className="pointer-events-auto relative flex min-w-[140px] flex-col items-center justify-center gap-2 border text-center transition disabled:cursor-not-allowed disabled:opacity-50"
                   style={{
                     ...optionTextStyle,
+                    flex: "1 1 140px",
+                    maxWidth: "100%",
+                    minWidth: "140px",
                     paddingLeft: data.horizontalPadding ?? 16,
                     paddingRight: data.horizontalPadding ?? 16,
                     paddingTop: data.verticalPadding ?? 16,
