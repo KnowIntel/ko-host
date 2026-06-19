@@ -5498,9 +5498,9 @@ export function sanitizeBuilderDraft(input: unknown): BuilderDraft {
     return normalizeThreadBlock(block as MessageThreadBlock);
   }
 
-  if (block.type === "post_board") {
-    return resolvedLinkedBlockPostBoardBlock(block as PostBoardBlock);
-  }
+if (block.type === "post_board") {
+  return normalizePostBoardBlock(block as PostBoardBlock);
+}
 
   if (block.type === "video") {
     return normalizeVideoBlock(block);
@@ -6871,12 +6871,6 @@ if (block.type === "option_button") {
           option.priceMode === "range" || option.priceMode === "fixed"
             ? option.priceMode
             : "fixed",
-
-        priceLabel:
-          typeof option.priceLabel === "string"
-            ? option.priceLabel
-            : "Price",
-
         price:
           typeof option.price === "string"
             ? option.price
