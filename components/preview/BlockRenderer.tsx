@@ -10185,10 +10185,18 @@ if (linkedBlock?.type === "form_field") {
     id: item.id,
     label: item.label || linkedBlock.data.label || "Input Field",
     value:
+      liveFormValues[item.blockId] ||
       liveFormValues[linkedBlock.id] ||
       linkedBlock.data.value ||
-      linkedBlock.data.placeholder ||
       "Not selected",
+  };
+}
+
+if (!linkedBlock && liveFormValues[item.blockId]) {
+  return {
+    id: item.id,
+    label: item.label || "Input Field",
+    value: liveFormValues[item.blockId] || "Not selected",
   };
 }
 
