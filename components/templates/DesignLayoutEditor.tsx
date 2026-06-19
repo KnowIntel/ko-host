@@ -15719,6 +15719,32 @@ selectedContext.kind === "textFx"
           </select>
         </div>
 
+{((selectedBlock.data as any).pushButtonLayout ?? "grid") === "grid" ? (
+  <div className="mt-4">
+    <div className={inspectorLabelClass()}>Tiles Per Row</div>
+
+    <input
+      type="number"
+      min={1}
+      max={8}
+      value={Number((selectedBlock.data as any).pushButtonColumns ?? 2)}
+      onChange={(e) =>
+        updateSelectedOptionButtonData({
+          pushButtonColumns: Math.max(
+            1,
+            Math.min(8, Number(e.target.value) || 1),
+          ),
+        })
+      }
+      className={inspectorInputClass()}
+    />
+
+    <p className="mt-2 text-xs leading-5 text-neutral-500">
+      Controls how many push button tiles appear on each row when Layout is Grid.
+    </p>
+  </div>
+) : null}
+
         {[
           ["horizontalPadding", "Horizontal Padding"],
           ["verticalPadding", "Vertical Padding"],

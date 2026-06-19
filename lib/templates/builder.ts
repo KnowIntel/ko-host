@@ -6681,6 +6681,7 @@ if (block.type === "form_field") {
         block.data.fieldType === "phone" ||
         block.data.fieldType === "textarea" ||
         block.data.fieldType === "state" ||
+        block.data.fieldType === "date" ||
         block.data.fieldType === "checkbox_text"
           ? block.data.fieldType
           : "text",
