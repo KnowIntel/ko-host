@@ -2238,13 +2238,13 @@ const [faqStyleTarget, setFaqStyleTarget] = useState<
 >("form");
 
 const [summaryStyleTarget, setSummaryStyleTarget] = useState<
-  | "form"
+  | "content"
   | "header"
   | "subheader"
   | "footerLabel"
   | "footerAggregate"
   | "footerCaption"
->("form");
+>("content");
 
 
 const selectedStyle =
@@ -2515,9 +2515,9 @@ selectedBlockFromDraft?.type === "gallery"
             ? (((selectedBlockFromDraft.data as any).footerCaptionStyle ??
                 (selectedBlockFromDraft.data as any).style ??
                 {}) as TextStyle)
-            : (((selectedBlockFromDraft.data as any).labelStyle ??
-                (selectedBlockFromDraft.data as any).style ??
-                {}) as TextStyle)
+: (((selectedBlockFromDraft.data as any).labelStyle ??
+    (selectedBlockFromDraft.data as any).style ??
+    {}) as TextStyle)
                         : selectedBlockFromDraft?.type === "cart" ||
                             selectedBlockFromDraft?.type === "checkout" ||
                             selectedBlockFromDraft?.type === "text_fx" ||
@@ -5022,14 +5022,15 @@ const styleKey =
       return {
         ...block,
         data: {
-          ...block.data,
-          [styleKey]: {
-            ...((block.data as any)[styleKey] ??
-              (block.data as any).style ??
-              {}),
-            ...patch,
-          },
-        },
+data: {
+  ...block.data,
+  [styleKey]: {
+    ...((block.data as any)[styleKey] ??
+      (block.data as any).style ??
+      {}),
+    ...patch,
+  },
+},
       };
     }),
   }));
@@ -11428,7 +11429,7 @@ const idsToExpand =
       className={topBarFieldClass("w-[150px]")}
       title="FAQ style target"
     >
-      <option value="form">Form</option>
+      <option value="content">Content</option>
       <option value="section">Q&A Section</option>
       <option value="question">Section: Question</option>
       <option value="answer">Section: Answer</option>
@@ -20335,12 +20336,13 @@ onClick={() =>
       value={summaryStyleTarget}
       onChange={(e) =>
         setSummaryStyleTarget(
-          e.target.value as
-            | "form"
-            | "header"
-            | "subheader"
-            | "footerAggregate"
-            | "footerCaption",
+e.target.value as
+  | "content"
+  | "header"
+  | "subheader"
+  | "footerLabel"
+  | "footerAggregate"
+  | "footerCaption"
         )
       }
       className={inspectorInputClass()}
