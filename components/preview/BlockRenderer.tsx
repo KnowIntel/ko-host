@@ -10395,17 +10395,18 @@ function renderSummaryBlock(
             </div>
           ) : null}
 
-          {data.showSubheader ? (
-            <div
-              className="text-sm opacity-75"
-              style={getContainerTextStyle(
-                data.subheaderStyle ?? data.style ?? {},
-                designKey,
-              )}
-            >
-              {data.subheader}
-            </div>
-          ) : null}
+{data.showSubheader ? (
+  <div
+    style={getContainerTextStyle(
+      data.subheaderStyle ??
+        data.style ??
+        {},
+      designKey,
+    )}
+  >
+    {data.subheader}
+  </div>
+) : null}
 
           <div className="flex min-h-0 flex-1 flex-col overflow-auto">
             {linkedRows.length > 0 ? (
