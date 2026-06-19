@@ -7816,6 +7816,7 @@ const initialRating = Math.max(
   Math.min(5, Number((block.data as any).ratingValue ?? 0)),
 );
 
+const [dateInputType, setDateInputType] = useState<"text" | "date">("text");
 const [ratingValue, setRatingValue] = useState(initialRating);
 const [stateValue, setStateValue] = useState(block.data.value || "");
 
@@ -7992,14 +7993,24 @@ return (
           </span>
         </label>
 ) : (
-  <input
-    type={
-      fieldType === "phone"
-        ? "tel"
-        : fieldType === "date"
-          ? "date"
-          : fieldType
+<input
+  type={
+    fieldType === "phone"
+      ? "tel"
+      : fieldType === "date"
+        ? dateInputType
+        : fieldType
+  }
+  onFocus={() => {
+    if (fieldType === "date") {
+      setDateInputType("date");
     }
+  }}
+  onBlur={(e) => {
+    if (fieldType === "date" && !e.target.value) {
+      setDateInputType("text");
+    }
+  }}
           className={`${inputClass} ${placeholderStyle} ${safePlaceholderClassName}`}
           placeholder={showPlaceholder ? block.data.placeholder : ""}
           defaultValue={block.data.value || ""}
