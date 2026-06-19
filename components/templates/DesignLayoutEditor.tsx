@@ -15130,12 +15130,13 @@ selectedContext.kind === "textFx"
         }
         className={inspectorInputClass()}
       >
-        <option value="text">Text</option>
-        <option value="email">Email</option>
-        <option value="phone">Phone</option>
-        <option value="textarea">Textarea</option>
-        <option value="state">State</option>
-        <option value="checkbox_text">Checkbox</option>
+<option value="text">Text</option>
+<option value="email">Email</option>
+<option value="phone">Phone</option>
+<option value="textarea">Textarea</option>
+<option value="state">State</option>
+<option value="date">Date</option>
+<option value="checkbox_text">Checkbox</option>
       </select>
     </div>
 

@@ -7990,9 +7990,15 @@ return (
             {showRequired && block.data.required ? " *" : ""}
           </span>
         </label>
-      ) : (
-        <input
-          type={fieldType === "phone" ? "tel" : fieldType}
+) : (
+  <input
+    type={
+      fieldType === "phone"
+        ? "tel"
+        : fieldType === "date"
+          ? "date"
+          : fieldType
+    }
           className={`${inputClass} ${placeholderStyle} ${safePlaceholderClassName}`}
           placeholder={showPlaceholder ? block.data.placeholder : ""}
           defaultValue={block.data.value || ""}
@@ -8187,14 +8193,24 @@ onSelectionChange?.({
                   ? "pointer-events-auto flex flex-col"
                   : data.pushButtonLayout === "horizontal_scroll"
                     ? "pointer-events-auto flex overflow-x-auto"
-                    : "pointer-events-auto flex flex-wrap"
+                    : "pointer-events-auto grid"
                 : "pointer-events-auto flex flex-col gap-3"
             }
-            style={
-              variant === "push_button"
-                ? { gap: `${Number(data.optionGap ?? 12)}px` }
-                : undefined
+style={
+  variant === "push_button"
+    ? {
+        gap: `${Number(data.optionGap ?? 12)}px`,
+        ...(data.pushButtonLayout === "grid"
+          ? {
+              gridTemplateColumns: `repeat(${Math.max(
+                1,
+                Math.min(8, Number(data.pushButtonColumns ?? 2)),
+              )}, minmax(0, 1fr))`,
             }
+          : {}),
+      }
+    : undefined
+}
           >
             {options.map((option: any) => {
               const selected = selectedIds.includes(option.id);
@@ -8294,9 +8310,6 @@ onSelectionChange?.({
                   className="pointer-events-auto relative flex min-w-[140px] flex-col items-center justify-center gap-2 border text-center transition disabled:cursor-not-allowed disabled:opacity-50"
                   style={{
                     ...optionTextStyle,
-                    flex: "1 1 140px",
-                    maxWidth: "100%",
-                    minWidth: "140px",
                     paddingLeft: data.horizontalPadding ?? 16,
                     paddingRight: data.horizontalPadding ?? 16,
                     paddingTop: data.verticalPadding ?? 16,

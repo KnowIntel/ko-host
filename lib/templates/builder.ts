@@ -1181,6 +1181,7 @@ export type FormFieldType =
   | "phone"
   | "textarea"
   | "state"
+  | "date"
   | "checkbox_text";
 
 export type FormFieldBlock = BaseBlock & {
@@ -1250,6 +1251,7 @@ export type OptionButtonBlock = BaseBlock & {
     labelPosition?: "left" | "right";
     pushButtonFrame?: OptionButtonFrame;
     pushButtonLayout?: "grid" | "horizontal_scroll" | "vertical_stack";
+    pushButtonColumns?: number;
     horizontalPadding?: number;
     verticalPadding?: number;
     optionGap?: number;
@@ -3375,6 +3377,7 @@ data: {
   labelPosition: "right",
   pushButtonFrame: "square",
   pushButtonLayout: "grid",
+  pushButtonColumns: 2,
   horizontalPadding: 16,
   verticalPadding: 16,
   optionGap: 12,
@@ -6887,6 +6890,12 @@ if (block.type === "option_button") {
         data.pushButtonLayout === "grid"
           ? data.pushButtonLayout
           : "grid",
+
+      pushButtonColumns:
+        typeof data.pushButtonColumns === "number" &&
+        Number.isFinite(data.pushButtonColumns)
+          ? Math.max(1, Math.min(8, Math.floor(data.pushButtonColumns)))
+          : 2,
 
       horizontalPadding:
         typeof data.horizontalPadding === "number" &&
