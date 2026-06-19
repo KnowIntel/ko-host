@@ -16242,36 +16242,81 @@ selectedContext.kind === "textFx"
 </div>
 
 
-    <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
-      <div className={inspectorLabelClass()}>Selection Colors</div>
+{((selectedBlock.data as any).variant ?? "push_button") === "push_button" ? (
+  <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+    <div className={inspectorLabelClass()}>Tile Colors</div>
 
-      <div className="mt-4">
-        <div className={inspectorLabelClass()}>Selected Border / Control</div>
+    <div className="mt-4 flex items-center justify-between">
+      <div className={inspectorLabelClass()}>General Border Color</div>
+
+      <label className="flex items-center gap-2 text-sm text-neutral-700">
         <input
-          type="color"
-          value={(selectedBlock.data as any).selectedBorderColor ?? "#f59e0b"}
+          type="checkbox"
+          checked={
+            (selectedBlock.data as any).generalBorderEnabled !== false
+          }
           onChange={(e) =>
             updateSelectedOptionButtonData({
-              selectedBorderColor: e.target.value,
-              selectedCheckColor: e.target.value,
+              generalBorderEnabled: e.target.checked,
             })
           }
-          className="mt-2 h-10 w-full rounded-xl border border-neutral-300 bg-white"
         />
+        Enable
+      </label>
+    </div>
+
+    <input
+      type="color"
+      value={
+        (selectedBlock.data as any).generalBorderColor ?? "#d4d4d4"
+      }
+      disabled={
+        (selectedBlock.data as any).generalBorderEnabled === false
+      }
+      onChange={(e) =>
+        updateSelectedOptionButtonData({
+          generalBorderColor: e.target.value,
+        })
+      }
+      className="mt-2 h-10 w-full rounded-xl border border-neutral-300 bg-white disabled:opacity-50"
+    />
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>
+        Selected Border / Control
       </div>
 
-      <div className="mt-4">
-        <div className={inspectorLabelClass()}>Checkmark Color</div>
-        <input
-          type="color"
-          value={(selectedBlock.data as any).checkmarkColor ?? "#ffffff"}
-          onChange={(e) =>
-            updateSelectedOptionButtonData({ checkmarkColor: e.target.value })
-          }
-          className="mt-2 h-10 w-full rounded-xl border border-neutral-300 bg-white"
-        />
-      </div>
+      <input
+        type="color"
+        value={
+          (selectedBlock.data as any).selectedBorderColor ?? "#f59e0b"
+        }
+        onChange={(e) =>
+          updateSelectedOptionButtonData({
+            selectedBorderColor: e.target.value,
+            selectedCheckColor: e.target.value,
+          })
+        }
+        className="mt-2 h-10 w-full rounded-xl border border-neutral-300 bg-white"
+      />
     </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Checkmark Color</div>
+
+      <input
+        type="color"
+        value={(selectedBlock.data as any).checkmarkColor ?? "#ffffff"}
+        onChange={(e) =>
+          updateSelectedOptionButtonData({
+            checkmarkColor: e.target.value,
+          })
+        }
+        className="mt-2 h-10 w-full rounded-xl border border-neutral-300 bg-white"
+      />
+    </div>
+  </div>
+) : null}
   </div>
 ) : null}
 

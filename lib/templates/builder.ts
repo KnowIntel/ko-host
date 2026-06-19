@@ -1277,6 +1277,8 @@ export type OptionButtonBlock = BaseBlock & {
     selectedOptionStyle?: Record<string, any>;
     labelStyle?: Record<string, any>;
     controlStyle?: Record<string, any>;
+    generalBorderEnabled?: boolean;
+    generalBorderColor?: string;
   };
 };
 
@@ -3402,6 +3404,9 @@ data: {
   selectedBorderColor: "#f59e0b",
   selectedCheckColor: "#f59e0b",
   checkmarkColor: "#ffffff",
+
+  generalBorderEnabled: true,
+  generalBorderColor: "#d4d4d4",
 
   showCheckmark: true,
   showOptionImages: true,
@@ -6830,6 +6835,16 @@ if (block.type === "option_button") {
             : "",
 
         showPrice: option.showPrice !== false,
+
+generalBorderEnabled:
+  typeof data.generalBorderEnabled === "boolean"
+    ? data.generalBorderEnabled
+    : true,
+
+generalBorderColor:
+  typeof data.generalBorderColor === "string" && data.generalBorderColor.trim()
+    ? data.generalBorderColor
+    : "#d4d4d4",
 
         disabled: Boolean(option.disabled),
         }))

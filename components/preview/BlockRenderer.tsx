@@ -8363,8 +8363,19 @@ style={
                     paddingBottom: data.verticalPadding ?? 16,
                     borderRadius:
                       data.pushButtonFrame === "circle" ? "9999px" : undefined,
-                    borderColor: selected ? selectedBorderColor : undefined,
-                    borderWidth: selected ? 2 : undefined,
+borderColor: selected
+  ? selectedBorderColor
+  : data.generalBorderEnabled === false
+    ? "transparent"
+    : data.generalBorderColor ?? "#d4d4d4",
+
+borderWidth:
+  selected || data.generalBorderEnabled !== false ? 2 : 0,
+
+borderStyle:
+  selected || data.generalBorderEnabled !== false
+    ? "solid"
+    : "none",
                   }}
                   aria-pressed={selected}
                   data-option-id={option.id}
