@@ -10185,30 +10185,34 @@ function renderSummaryBlock(
       ? data.linkedBlocks.filter((item: any) => item?.show !== false)
       : [];
 
-    const linkedRows = linkedItems.map((item: any) => {
-const snapshotBlocks = Array.isArray(data.linkedBlockSnapshots)
+    const linkedRows = linkedItems
+  .map((item: any) => {
+const persistedLinkedBlockSnapshots = Array.isArray(
+  data.linkedBlockSnapshots,
+)
   ? data.linkedBlockSnapshots
   : [];
 
-const availableBlocks = blocks.length > 0 ? blocks : snapshotBlocks;
+const currentRenderableBlocks =
+  blocks.length > 0 ? blocks : persistedLinkedBlockSnapshots;
 
-const linkedBlock = availableBlocks.find(
+const resolvedLinkedBlock = currentRenderableBlocks.find(
   (candidate: any) => candidate.id === item.blockId,
 );
 
-if (linkedBlock?.type === "form_field") {
+if (resolvedLinkedBlock?.type === "form_field") {
   return {
     id: item.id,
-    label: item.label || linkedBlock.data.label || "Input Field",
+    label: item.label || resolvedLinkedBlock.data.label || "Input Field",
     value:
       liveFormValues[item.blockId] ||
-      liveFormValues[linkedBlock.id] ||
-      linkedBlock.data.value ||
+      liveFormValues[resolvedLinkedBlock.id] ||
+      resolvedLinkedBlock.data.value ||
       "Not selected",
   };
 }
 
-if (!linkedBlock && liveFormValues[item.blockId]) {
+if (!resolvedLinkedBlock && liveFormValues[item.blockId]) {
   return {
     id: item.id,
     label: item.label || "Input Field",
@@ -10216,23 +10220,23 @@ if (!linkedBlock && liveFormValues[item.blockId]) {
   };
 }
 
-      if (linkedBlock?.type === "option_button") {
-        const liveSelection = liveOptionSelections[linkedBlock.id];
+      if (resolvedLinkedBlock?.type === "option_button") {
+        const liveSelection = liveOptionSelections[resolvedLinkedBlock.id];
 
         const selectedIds =
           liveSelection?.selectedOptionIds ??
-          optionButtonSelections[linkedBlock.id] ??
-          (Array.isArray(linkedBlock.data.selectedOptionIds)
-            ? linkedBlock.data.selectedOptionIds
+          optionButtonSelections[resolvedLinkedBlock.id] ??
+          (Array.isArray(resolvedLinkedBlock.data.selectedOptionIds)
+            ? resolvedLinkedBlock.data.selectedOptionIds
             : []);
 
-        const selectedOptions = linkedBlock.data.options.filter((option: any) =>
+        const selectedOptions = resolvedLinkedBlock.data.options.filter((option: any) =>
           selectedIds.includes(option.id),
         );
 
         return {
           id: item.id,
-          label: item.label || linkedBlock.data.heading || "Option Button",
+          label: item.label || resolvedLinkedBlock.data.heading || "Option Button",
           value:
             liveSelection?.selectedLabels?.length
               ? liveSelection.selectedLabels.join(", ")
@@ -10242,7 +10246,7 @@ if (!linkedBlock && liveFormValues[item.blockId]) {
         };
       }
 
-      if (!linkedBlock && liveOptionSelections[item.blockId]) {
+      if (!resolvedLinkedBlock && liveOptionSelections[item.blockId]) {
         const liveSelection = liveOptionSelections[item.blockId];
 
         return {
@@ -10254,12 +10258,9 @@ if (!linkedBlock && liveFormValues[item.blockId]) {
         };
       }
 
-      return {
-        id: item.id,
-        label: item.label || "Linked Block",
-        value: "Not selected",
-      };
-    });
+return null;
+})
+.filter(Boolean) as Array<{ id: string; label: string; value: string }>;
 
     return (
       <div className="h-full w-full p-4" style={getAppearanceStyle(block)}>
