@@ -4997,7 +4997,8 @@ if ((selectedBlockFromDraft as any)?.type === "option_button") {
 }
 
 if (selectedBlockFromDraft?.type === "summary") {
-  const targetBlockId = selectedBlockFromDraft.id;
+  const summaryBlock = selectedBlockFromDraft;
+  const targetBlockId = summaryBlock.id;
 
   setDraft((prev) => ({
     ...prev,
@@ -5006,31 +5007,30 @@ if (selectedBlockFromDraft?.type === "summary") {
         return block;
       }
 
-const styleKey =
-  summaryStyleTarget === "header"
-    ? "headerStyle"
-    : summaryStyleTarget === "subheader"
-      ? "subheaderStyle"
-      : summaryStyleTarget === "footerLabel"
-        ? "footerLabelStyle"
-        : summaryStyleTarget === "footerAggregate"
-          ? "footerAggregateStyle"
-          : summaryStyleTarget === "footerCaption"
-            ? "footerCaptionStyle"
-            : "labelStyle";
+      const styleKey =
+        summaryStyleTarget === "header"
+          ? "headerStyle"
+          : summaryStyleTarget === "subheader"
+            ? "subheaderStyle"
+            : summaryStyleTarget === "footerLabel"
+              ? "footerLabelStyle"
+              : summaryStyleTarget === "footerAggregate"
+                ? "footerAggregateStyle"
+                : summaryStyleTarget === "footerCaption"
+                  ? "footerCaptionStyle"
+                  : "labelStyle";
 
       return {
         ...block,
         data: {
-data: {
-  ...block.data,
-  [styleKey]: {
-    ...((block.data as any)[styleKey] ??
-      (block.data as any).style ??
-      {}),
-    ...patch,
-  },
-},
+          ...block.data,
+          [styleKey]: {
+            ...((block.data as any)[styleKey] ??
+              (block.data as any).style ??
+              {}),
+            ...patch,
+          },
+        },
       };
     }),
   }));
