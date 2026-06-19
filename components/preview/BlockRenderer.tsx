@@ -8157,16 +8157,21 @@ const fieldBorderColor = data.fieldBorderColor ?? "#d4d4d4";
               onChange={(e) =>
                 applySelection(e.target.value ? [e.target.value] : [])
               }
-              style={{
-              ...optionTextStyle,
-              color: selectedIds[0] ? optionTextStyle.color : placeholderColor,
-              WebkitTextFillColor: selectedIds[0]
-                ? (optionTextStyle as any).WebkitTextFillColor
-                : placeholderColor,
-              borderColor: fieldBorderEnabled ? fieldBorderColor : "transparent",
-              borderWidth: fieldBorderEnabled ? "1px" : "0px",
-              borderStyle: fieldBorderEnabled ? "solid" : "none",
-            }}
+style={{
+  ...optionTextStyle,
+  ...(variant === "dropdown" ? labelStyle : {}),
+  color: selectedIds[0]
+    ? ((labelStyle.color as string | undefined) ??
+        (optionTextStyle.color as string | undefined))
+    : placeholderColor,
+  WebkitTextFillColor: selectedIds[0]
+    ? ((labelStyle as any).WebkitTextFillColor ??
+        (optionTextStyle as any).WebkitTextFillColor)
+    : placeholderColor,
+  borderColor: fieldBorderEnabled ? fieldBorderColor : "transparent",
+  borderWidth: fieldBorderEnabled ? "1px" : "0px",
+  borderStyle: fieldBorderEnabled ? "solid" : "none",
+}}
               {...sharedDataAttrs}
             >
               <option
@@ -8180,11 +8185,12 @@ const fieldBorderColor = data.fieldBorderColor ?? "#d4d4d4";
             </option>
 
               {options.map((option: any) => (
-                <option
-                  key={option.id}
-                  value={option.id}
-                  disabled={Boolean(option.disabled)}
-                >
+<option
+  key={option.id}
+  value={option.id}
+  disabled={Boolean(option.disabled)}
+  style={labelStyle}
+>
                   {option.label}
                 </option>
               ))}
