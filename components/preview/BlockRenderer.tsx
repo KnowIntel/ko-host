@@ -8107,6 +8107,12 @@ onSelectionChange?.({
       designKey,
     );
 
+const placeholderColor =
+  (data.placeholderStyle?.color as string | undefined) || "rgb(186, 186, 186)";
+
+const fieldBorderEnabled = data.fieldBorderEnabled !== false;
+const fieldBorderColor = data.fieldBorderColor ?? "#d4d4d4";
+
     const headingStyle = getContainerTextStyle(data.style ?? {}, designKey);
 
     const selectedBorderColor = data.selectedBorderColor ?? "#f59e0b";
@@ -8151,10 +8157,27 @@ onSelectionChange?.({
               onChange={(e) =>
                 applySelection(e.target.value ? [e.target.value] : [])
               }
-              style={optionTextStyle}
+              style={{
+              ...optionTextStyle,
+              color: selectedIds[0] ? optionTextStyle.color : placeholderColor,
+              WebkitTextFillColor: selectedIds[0]
+                ? (optionTextStyle as any).WebkitTextFillColor
+                : placeholderColor,
+              borderColor: fieldBorderEnabled ? fieldBorderColor : "transparent",
+              borderWidth: fieldBorderEnabled ? "1px" : "0px",
+              borderStyle: fieldBorderEnabled ? "solid" : "none",
+            }}
               {...sharedDataAttrs}
             >
-              <option value="">{data.placeholder || "Select"}</option>
+              <option
+              value=""
+              style={{
+                color: placeholderColor,
+                WebkitTextFillColor: placeholderColor,
+              }}
+            >
+              {data.placeholder || "Select"}
+            </option>
 
               {options.map((option: any) => (
                 <option
@@ -8277,7 +8300,10 @@ style={
                       <>
                         <span
                           className="pointer-events-none flex-1"
-                          style={labelStyle}
+                          style={{
+                          ...labelStyle,
+                          color: selected ? labelStyle.color : placeholderColor,
+                        }}
                         >
                           {option.label}
                         </span>
@@ -8288,7 +8314,10 @@ style={
                         {control}
                         <span
                           className="pointer-events-none flex-1"
-                          style={labelStyle}
+                          style={{
+                          ...labelStyle,
+                          color: selected ? labelStyle.color : placeholderColor,
+                        }}
                         >
                           {option.label}
                         </span>

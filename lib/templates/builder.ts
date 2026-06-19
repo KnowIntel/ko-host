@@ -1250,6 +1250,9 @@ export type OptionButtonBlock = BaseBlock & {
     linkedSummaryBlockId?: string;
     linkedCartBlockId?: string;
     placeholder?: string;
+    placeholderStyle?: Record<string, any>;
+    fieldBorderEnabled?: boolean;
+    fieldBorderColor?: string;
     labelPosition?: "left" | "right";
     pushButtonFrame?: OptionButtonFrame;
     pushButtonLayout?: "grid" | "horizontal_scroll" | "vertical_stack";
@@ -3378,10 +3381,20 @@ data: {
   showPrice: false,
 
   placeholder: "Select",
+
+  placeholderStyle: {
+    ...createDefaultTextStyle(),
+    color: "rgb(186, 186, 186)",
+  },
+
+  fieldBorderEnabled: true,
+  fieldBorderColor: "#d4d4d4",
+
   labelPosition: "right",
   pushButtonFrame: "square",
   pushButtonLayout: "grid",
   pushButtonColumns: 2,
+
   horizontalPadding: 16,
   verticalPadding: 16,
   optionGap: 12,
@@ -6885,6 +6898,23 @@ if (block.type === "option_button") {
         typeof data.price === "string" ? data.price : "",
 
       showPrice: Boolean(data.showPrice),
+
+placeholderStyle: {
+  ...createDefaultTextStyle(),
+  color: "rgb(186, 186, 186)",
+  ...((block.data as any).placeholderStyle ?? {}),
+},
+
+fieldBorderEnabled:
+  typeof data.fieldBorderEnabled === "boolean"
+    ? data.fieldBorderEnabled
+    : true,
+
+fieldBorderColor:
+  typeof data.fieldBorderColor === "string" &&
+  data.fieldBorderColor.trim()
+    ? data.fieldBorderColor
+    : "#d4d4d4",
 
       placeholder:
         typeof data.placeholder === "string" ? data.placeholder : "Select",

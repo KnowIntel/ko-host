@@ -15710,6 +15710,67 @@ selectedContext.kind === "textFx"
       </div>
     ) : null}
 
+    {["dropdown", "radio"].includes(
+  (selectedBlock.data as any).variant ?? "push_button",
+) ? (
+  <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+    <div className={inspectorLabelClass()}>Placeholder Text Color</div>
+
+    <input
+      type="color"
+      value={
+        ((selectedBlock.data as any).placeholderStyle?.color as string) ??
+        "#bababa"
+      }
+      onChange={(e) =>
+        updateSelectedOptionButtonData({
+          placeholderStyle: {
+            ...((selectedBlock.data as any).placeholderStyle ?? {}),
+            color: e.target.value,
+          },
+        })
+      }
+      className="mt-3 h-10 w-full rounded-xl border border-neutral-300 bg-white"
+    />
+
+    {((selectedBlock.data as any).variant ?? "push_button") === "dropdown" ? (
+      <>
+        <div className="mt-5 flex items-center justify-between">
+          <div className={inspectorLabelClass()}>Field Border</div>
+
+          <label className="flex items-center gap-2 text-sm text-neutral-700">
+            <input
+              type="checkbox"
+              checked={(selectedBlock.data as any).fieldBorderEnabled !== false}
+              onChange={(e) =>
+                updateSelectedOptionButtonData({
+                  fieldBorderEnabled: e.target.checked,
+                })
+              }
+            />
+            Enable
+          </label>
+        </div>
+
+        <input
+          type="color"
+          value={
+            ((selectedBlock.data as any).fieldBorderColor as string) ??
+            "#d4d4d4"
+          }
+          disabled={(selectedBlock.data as any).fieldBorderEnabled === false}
+          onChange={(e) =>
+            updateSelectedOptionButtonData({
+              fieldBorderColor: e.target.value,
+            })
+          }
+          className="mt-3 h-10 w-full rounded-xl border border-neutral-300 bg-white disabled:opacity-50"
+        />
+      </>
+    ) : null}
+  </div>
+) : null}
+
     {["radio", "toggle"].includes(
       (selectedBlock.data as any).variant ?? "push_button",
     ) ? (
