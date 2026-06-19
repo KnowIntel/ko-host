@@ -1203,11 +1203,13 @@ export type FormFieldBlock = BaseBlock & {
     placeholderStyle?: TextStyle;
     linkedButtonId?: string;
     allowMultipleSelections?: boolean;
-
+    fieldBorderEnabled?: boolean;
+    fieldBorderColor?: string;
     showRating?: boolean;
     ratingValue?: number;
     ratingColor?: string;
     ratingPosition?: "high" | "low";
+    
   };
 };
 
@@ -3303,48 +3305,50 @@ case "text_fx":
         },
       };
 
-    case "form_field":
-      return {
-        id: makeId("form"),
-        type: "form_field",
-        label: "Input Field",
-        grid,
-        appearance: createDefaultBlockAppearance(),
-        data: {
-          label: "Input Label",
-          placeholder: "Enter value...",
-          required: false,
-          fieldType: "text",
-          value: "",
-          submitButtonText: "Submit",
-          showLabel: true,
-          showPlaceholder: true,
-          showRequired: true,
-          showSubmitButtonText: true,
-          allowMultipleSelections: false,
+case "form_field":
+  return {
+    id: makeId("form"),
+    type: "form_field",
+    label: "Input Field",
+    grid,
+    appearance: createDefaultBlockAppearance(),
+    data: {
+      label: "Input Label",
+      placeholder: "Enter value...",
+      required: false,
+      fieldType: "text",
+      value: "",
+      submitButtonText: "Submit",
+      showLabel: true,
+      showPlaceholder: true,
+      showRequired: true,
+      showSubmitButtonText: true,
+      allowMultipleSelections: false,
+      fieldBorderEnabled: true,
 
-          showRating: false,
-          ratingValue: 0,
-          ratingColor: "#F59E0B",
-          ratingPosition: "high",
+      showRating: false,
+      ratingValue: 0,
+      ratingColor: "#F59E0B",
+      ratingPosition: "high",
 
-          style: createDefaultTextStyle(),
-          labelStyle: createDefaultTextStyle(),
-          inputStyle: {
-            ...createDefaultTextStyle(),
-            paddingTop: 12,
-            paddingRight: 12,
-            paddingBottom: 12,
-            paddingLeft: 12,
-          },
-          placeholderStyle: {
-            ...createDefaultTextStyle(),
-            color: "rgb(186, 186, 186)",
-          },
-        },
-      };
+      style: createDefaultTextStyle(),
+      labelStyle: createDefaultTextStyle(),
+      inputStyle: {
+        ...createDefaultTextStyle(),
+        paddingTop: 12,
+        paddingRight: 12,
+        paddingBottom: 12,
+        paddingLeft: 12,
+      },
+      fieldBorderColor: "#d4d4d4",
+      placeholderStyle: {
+        ...createDefaultTextStyle(),
+        color: "rgb(186, 186, 186)",
+      },
+    },
+  };
 
-          case "option_button":
+  case "option_button":
       return {
         id: makeId("option"),
         type: "option_button",
@@ -6728,6 +6732,16 @@ if (block.type === "form_field") {
         data.ratingPosition === "high"
           ? data.ratingPosition
           : "high",
+
+      fieldBorderEnabled:
+        typeof data.fieldBorderEnabled === "boolean"
+          ? data.fieldBorderEnabled
+          : true,
+
+      fieldBorderColor:
+        typeof data.fieldBorderColor === "string" && data.fieldBorderColor.trim()
+          ? data.fieldBorderColor
+          : "#d4d4d4",
 
       style: {
         ...createDefaultTextStyle(),

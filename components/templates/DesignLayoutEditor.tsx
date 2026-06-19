@@ -15233,15 +15233,41 @@ selectedContext.kind === "textFx"
       />
     </div>
 
-    <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
-      <div className={inspectorLabelClass()}>Placeholder Text Color</div>
+<div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+  <div className={inspectorLabelClass()}>Placeholder Text Color</div>
 
+  <input
+    type="color"
+    value={
+      ((selectedBlock.data as any).placeholderStyle?.color as string) ??
+      "#bababa"
+    }
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "form_field"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                placeholderStyle: {
+                  ...((block.data as any).placeholderStyle ?? {}),
+                  color: e.target.value,
+                },
+              },
+            },
+      )
+    }
+    className="mt-3 h-10 w-full rounded-xl border border-neutral-300 bg-white"
+  />
+
+  <div className="mt-5 flex items-center justify-between">
+    <div className={inspectorLabelClass()}>Field Border</div>
+
+    <label className="flex items-center gap-2 text-sm text-neutral-700">
       <input
-        type="color"
-        value={
-          ((selectedBlock.data as any).placeholderStyle?.color as string) ??
-          "#bababa"
-        }
+        type="checkbox"
+        checked={(selectedBlock.data as any).fieldBorderEnabled !== false}
         onChange={(e) =>
           updateSelectedBlock((block) =>
             block.type !== "form_field"
@@ -15250,17 +15276,38 @@ selectedContext.kind === "textFx"
                   ...block,
                   data: {
                     ...block.data,
-                    placeholderStyle: {
-                      ...((block.data as any).placeholderStyle ?? {}),
-                      color: e.target.value,
-                    },
+                    fieldBorderEnabled: e.target.checked,
                   },
                 },
           )
         }
-        className="mt-3 h-10 w-full rounded-xl border border-neutral-300 bg-white"
       />
-    </div>
+      Enable
+    </label>
+  </div>
+
+  <input
+    type="color"
+    value={
+      ((selectedBlock.data as any).fieldBorderColor as string) ?? "#d4d4d4"
+    }
+    disabled={(selectedBlock.data as any).fieldBorderEnabled === false}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type !== "form_field"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                fieldBorderColor: e.target.value,
+              },
+            },
+      )
+    }
+    className="mt-3 h-10 w-full rounded-xl border border-neutral-300 bg-white disabled:opacity-50"
+  />
+</div>
 
     <div className="mt-4">
       <div className={inspectorLabelClass()}>Linked Submit Button</div>

@@ -7666,15 +7666,16 @@ const inputClass = isLightDesign(designKey)
 
       backgroundColor: inputStyle.backgroundColor ?? undefined,
 
-      borderColor: inputStyle.borderColor ?? undefined,
-      borderWidth:
-        typeof inputStyle.borderWidth === "number"
-          ? `${inputStyle.borderWidth}px`
-          : undefined,
-      borderStyle:
-        typeof inputStyle.borderWidth === "number" && inputStyle.borderWidth > 0
-          ? "solid"
-          : undefined,
+borderColor:
+  (block.data as any).fieldBorderEnabled === false
+    ? "transparent"
+    : ((block.data as any).fieldBorderColor ?? inputStyle.borderColor ?? undefined),
+borderWidth:
+  (block.data as any).fieldBorderEnabled === false
+    ? "0px"
+    : "1px",
+borderStyle:
+  (block.data as any).fieldBorderEnabled === false ? "none" : "solid",
       borderRadius:
         typeof inputStyle.borderRadius === "number"
           ? `${inputStyle.borderRadius}px`
