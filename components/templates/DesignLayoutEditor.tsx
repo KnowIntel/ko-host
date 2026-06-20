@@ -1553,6 +1553,13 @@ function syncTournamentMatchesFromTeams(
   return [...westMatches, ...eastMatches, championship];
 }
 
+const FORM_FIELD_CONFIG_EVENT = "ko-host:form-field-config";
+
+type FormFieldConfigEventDetail = {
+  blockId: string;
+  dateFormat?: string;
+};
+
 function topBarButtonClass(active = false, disabled = false, danger = false) {
   return [
     "inline-flex h-11 min-w-11 items-center justify-center rounded-md border px-3 text-sm transition",
