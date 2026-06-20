@@ -2505,6 +2505,7 @@ selectedBlockFromDraft?.type === "gallery"
           {}) as TextStyle)
       : summaryStyleTarget === "footerLabel"
         ? (((selectedBlockFromDraft.data as any).footerLabelStyle ??
+            (selectedBlockFromDraft.data as any).labelStyle ??
             (selectedBlockFromDraft.data as any).style ??
             {}) as TextStyle)
         : summaryStyleTarget === "footerAggregate"
@@ -2515,9 +2516,9 @@ selectedBlockFromDraft?.type === "gallery"
             ? (((selectedBlockFromDraft.data as any).footerCaptionStyle ??
                 (selectedBlockFromDraft.data as any).style ??
                 {}) as TextStyle)
-: (((selectedBlockFromDraft.data as any).labelStyle ??
-    (selectedBlockFromDraft.data as any).style ??
-    {}) as TextStyle)
+            : (((selectedBlockFromDraft.data as any).labelStyle ??
+                (selectedBlockFromDraft.data as any).style ??
+                {}) as TextStyle)
                         : selectedBlockFromDraft?.type === "cart" ||
                             selectedBlockFromDraft?.type === "checkout" ||
                             selectedBlockFromDraft?.type === "text_fx" ||
@@ -20336,19 +20337,19 @@ onClick={() =>
     <select
       value={summaryStyleTarget}
       onChange={(e) =>
-        setSummaryStyleTarget(
-e.target.value as
-  | "content"
-  | "header"
-  | "subheader"
-  | "footerLabel"
-  | "footerAggregate"
-  | "footerCaption"
-        )
+setSummaryStyleTarget(
+  e.target.value as
+    | "content"
+    | "header"
+    | "subheader"
+    | "footerLabel"
+    | "footerAggregate"
+    | "footerCaption",
+)
       }
       className={inspectorInputClass()}
     >
-      <option value="form">content</option>
+      <option value="content">Content</option>
       <option value="header">Header</option>
       <option value="subheader">Subheader</option>
       <option value="footerLabel">Footer Label</option>
