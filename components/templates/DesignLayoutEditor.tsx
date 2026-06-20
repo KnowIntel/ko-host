@@ -20348,7 +20348,7 @@ e.target.value as
       }
       className={inspectorInputClass()}
     >
-      <option value="form">Form</option>
+      <option value="form">content</option>
       <option value="header">Header</option>
       <option value="subheader">Subheader</option>
       <option value="footerLabel">Footer Label</option>
