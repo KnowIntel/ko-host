@@ -15472,67 +15472,86 @@ selectedContext.kind === "textFx"
   <div className="mt-4">
     <div className={inspectorLabelClass()}>Date Format</div>
 
-    <select
-      value={(selectedBlock.data as any).dateFormat ?? "mm-dd-yyyy"}
-      onChange={(e) => {
-        const nextDateFormat = e.target.value as
-          | "yyyy-dd-mm"
-          | "yyyy-mm-dd"
-          | "mm-dd-yyyy"
-          | "m-d-yy"
-          | "m-d-yyyy"
-          | "mmmm-d-yyyy";
+<select
+  value={(selectedBlock.data as any).dateFormat ?? "mm-dd-yyyy"}
+  onChange={(e) => {
+    const nextDateFormat = e.target.value as
+      | "yyyy-dd-mm"
+      | "yyyy-mm-dd"
+      | "mm-dd-yyyy"
+      | "m-d-yy"
+      | "m-d-yyyy"
+      | "mmmm-d-yyyy";
 
-        updateSelectedBlock((block) =>
-          block.type !== "form_field"
-            ? block
-            : {
-                ...block,
-                data: {
-                  ...block.data,
-                  dateFormat: nextDateFormat,
-                },
-              },
-        );
+    const formBlockId = selectedBlock.id;
 
-        window.dispatchEvent(
-          new CustomEvent<FormFieldConfigEventDetail>(
-            FORM_FIELD_CONFIG_EVENT,
-            {
-              detail: {
-                blockId: selectedBlock.id,
-                dateFormat: nextDateFormat,
-              },
+    updateSelectedBlock((block) =>
+      block.type !== "form_field"
+        ? block
+        : {
+            ...block,
+            data: {
+              ...block.data,
+              dateFormat: nextDateFormat,
             },
-          ),
-        );
-      }}
-      className={inspectorInputClass()}
-    >
-      <option value="yyyy-dd-mm">
-        YYYY-DD-MM (1993-24-05)
-      </option>
+          },
+    );
 
-      <option value="yyyy-mm-dd">
-        YYYY-MM-DD (1993-05-24)
-      </option>
+    setDraft((prev) => ({
+      ...prev,
+      blocks: prev.blocks.map((block) => {
+        if (block.id === formBlockId && block.type === "form_field") {
+          return {
+            ...block,
+            data: {
+              ...block.data,
+              dateFormat: nextDateFormat,
+            },
+          };
+        }
 
-      <option value="mm-dd-yyyy">
-        MM-DD-YYYY (05-24-1993)
-      </option>
+        return block;
+      }),
+    }));
 
-      <option value="m-d-yy">
-        M-D-YY (5-24-93)
-      </option>
+    window.dispatchEvent(
+      new CustomEvent<FormFieldConfigEventDetail>(
+        FORM_FIELD_CONFIG_EVENT,
+        {
+          detail: {
+            blockId: formBlockId,
+            dateFormat: nextDateFormat,
+          },
+        },
+      ),
+    );
+  }}
+  className={inspectorInputClass()}
+>
+  <option value="yyyy-dd-mm">
+    YYYY-DD-MM (1993-24-05)
+  </option>
 
-      <option value="m-d-yyyy">
-        M-D-YYYY (5-24-1993)
-      </option>
+  <option value="yyyy-mm-dd">
+    YYYY-MM-DD (1993-05-24)
+  </option>
 
-      <option value="mmmm-d-yyyy">
-        MMMM D, YYYY (May 24, 1993)
-      </option>
-    </select>
+  <option value="mm-dd-yyyy">
+    MM-DD-YYYY (05-24-1993)
+  </option>
+
+  <option value="m-d-yy">
+    M-D-YY (5-24-93)
+  </option>
+
+  <option value="m-d-yyyy">
+    M-D-YYYY (5-24-1993)
+  </option>
+
+  <option value="mmmm-d-yyyy">
+    MMMM D, YYYY (May 24, 1993)
+  </option>
+</select>
   </div>
 ) : null}
 
