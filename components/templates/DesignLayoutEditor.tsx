@@ -339,6 +339,7 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Circle Ten", type: "icon", iconName: "circle-ten" },
     { kind: "block", label: "Graduate Cap", type: "icon", iconName: "graduate-cap" },
     { kind: "block", label: "Open Book", type: "icon", iconName: "open-book" },
+    { kind: "block", label: "Open Book Empty", type: "icon", iconName: "open-book-empty" },
     { kind: "block", label: "Closed Book", type: "icon", iconName: "closed-book" },
     { kind: "block", label: "Arrow Up Thick", type: "icon", iconName: "arrow-up-thick" },
     { kind: "block", label: "Arrow Down Thick", type: "icon", iconName: "arrow-down-thick" },
@@ -355,10 +356,12 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Subtract Minus", type: "icon", iconName: "subtract-minus" },
     { kind: "block", label: "Information Circle", type: "icon", iconName: "information-circle" },
     { kind: "block", label: "Exclamation Round", type: "icon", iconName: "exclamation-round" },
-    { kind: "block", label: "Solid Play Triangle", type: "icon", iconName: "solid-play-triangle" },
+    { kind: "block", label: "Question Mark Circle", type: "icon", iconName: "question-mark-circle" },
+    { kind: "block", label: "Question Mark", type: "icon", iconName: "question-mark" },
+    { kind: "block", label: "Caution Circle", type: "icon", iconName: "caution-circle" },
     { kind: "block", label: "Paper Airplane", type: "icon", iconName: "paper-airplane" },
     { kind: "block", label: "Shield", type: "icon", iconName: "shield" },
-    { kind: "block", label: "Fire", type: "icon", iconName: "fire" },
+    // { kind: "block", label: "Fire", type: "icon", iconName: "fire" },
     { kind: "block", label: "Dog Paw", type: "icon", iconName: "dog-paw" },
     { kind: "block", label: "Dinosaur Rex", type: "icon", iconName: "dinosaur-rex" },
     { kind: "block", label: "Gable Panel", type: "icon", iconName: "gable-panel" },
@@ -408,7 +411,10 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Music Note Treble Clef", type: "icon", iconName: "music-note-treble-clef" },
     { kind: "block", label: "Music Note", type: "icon", iconName: "music-note" },
     { kind: "block", label: "Notebook Pen", type: "icon", iconName: "notebook-pen" },
+    { kind: "block", label: "Play Triangle Solid", type: "icon", iconName: "play-triangle-solid" },
+    { kind: "block", label: "Play Triangle Circle", type: "icon", iconName: "play-triangle-circle" },
     { kind: "block", label: "Pause Circle", type: "icon", iconName: "pause-circle" },
+    { kind: "block", label: "Eject", type: "icon", iconName: "eject" },
     { kind: "block", label: "Pin Tac", type: "icon", iconName: "pin-tac" },
     { kind: "block", label: "Power On", type: "icon", iconName: "power-on" },
     { kind: "block", label: "Service Tower Signal", type: "icon", iconName: "service-tower-signal" },
@@ -452,7 +458,6 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Seat", type: "icon", iconName: "seat" },
     { kind: "block", label: "Odometer", type: "icon", iconName: "odometer" },
     { kind: "block", label: "Speedometer", type: "icon", iconName: "speedometer" },
-    { kind: "block", label: "Message", type: "icon", iconName: "message" },
     { kind: "block", label: "Keys", type: "icon", iconName: "keys" },
     { kind: "block", label: "Key", type: "icon", iconName: "key" },
     { kind: "block", label: "Engine", type: "icon", iconName: "engine" },
@@ -470,17 +475,33 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Globe", type: "icon", iconName: "globe" },
     { kind: "block", label: "Globe Earth", type: "icon", iconName: "globe-earth" },
     { kind: "block", label: "Message Thread", type: "icon", iconName: "message-thread" },
+    { kind: "block", label: "Message", type: "icon", iconName: "message" },
+    { kind: "block", label: "Inbox", type: "icon", iconName: "inbox" },
     { kind: "block", label: "Location Pin", type: "icon", iconName: "location-pin" },
     { kind: "block", label: "Location Pin Outline", type: "icon", iconName: "location-pin-outline" },
     { kind: "block", label: "Location Pin Alt", type: "icon", iconName: "location-pin-alt" },
     { kind: "block", label: "Video Camera", type: "icon", iconName: "video-camera" },
     { kind: "block", label: "Training Presentation", type: "icon", iconName: "training-presentation" },
-    { kind: "block", label: "Jagged Line", type: "icon", iconName: "jagged-line" },
+    // { kind: "block", label: "Jagged Line", type: "icon", iconName: "jagged-line" },
     { kind: "block", label: "Phone", type: "icon", iconName: "phone" },
     { kind: "block", label: "Shopping Cart", type: "icon", iconName: "shopping-cart" },
     { kind: "block", label: "Open Quote", type: "icon", iconName: "open-quote" },
     { kind: "block", label: "Close Quote", type: "icon", iconName: "close-quote" },
     { kind: "block", label: "VIP Lanyard", type: "icon", iconName: "vip-lanyard" },
+    { kind: "block", label: "Bomb Explosion", type: "icon", iconName: "bomb-explosion" },
+    { kind: "block", label: "Bomb Grenade", type: "icon", iconName: "bomb-grenade" },
+    { kind: "block", label: "Bomb", type: "icon", iconName: "bomb" },
+    { kind: "block", label: "Enter Return", type: "icon", iconName: "enter-return" },
+    { kind: "block", label: "Hand Point Left", type: "icon", iconName: "hand-point-left" },
+    { kind: "block", label: "Hand Point Right", type: "icon", iconName: "hand-point-right" },
+    { kind: "block", label: "Thumbs Down Outline", type: "icon", iconName: "thumbs-down-outline" },
+    { kind: "block", label: "Thumbs Down Solid", type: "icon", iconName: "thumbs-down-solid" },
+    { kind: "block", label: "Thumbs Up Outline", type: "icon", iconName: "thumbs-up-outline" },
+    { kind: "block", label: "Thumbs Up Solid", type: "icon", iconName: "thumbs-up-solid" },
+    { kind: "block", label: "Fire Flame", type: "icon", iconName: "fire-flame" },
+
+
+
     { kind: "block", label: "Photo Placeholder", type: "icon", iconName: "photo-placeholder" },
   ],
   Layout: [
@@ -1633,6 +1654,44 @@ function getCategoryIconPath(category: BottomCategory) {
   if (category === "Premium") return "/menu-icons/menu-premium.svg";
 
   return null;
+}
+
+function formatDateValue(
+  value: string,
+  format: string = "mm-dd-yyyy",
+) {
+  if (!value) return "";
+
+  const [year, month, day] = value.split("-").map(Number);
+
+  const date = new Date(year, month - 1, day);
+
+  switch (format) {
+    case "yyyy-dd-mm":
+      return `${year}-${day}-${String(month).padStart(2, "0")}`;
+
+    case "yyyy-mm-dd":
+      return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+
+    case "mm-dd-yyyy":
+      return `${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}-${year}`;
+
+    case "m-d-yy":
+      return `${month}-${day}-${String(year).slice(-2)}`;
+
+    case "m-d-yyyy":
+      return `${month}-${day}-${year}`;
+
+    case "mmmm-d-yyyy":
+      return date.toLocaleDateString("en-US", {
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+      });
+
+    default:
+      return value;
+  }
 }
 
 function renderCategoryIcon(category: BottomCategory) {
@@ -15408,19 +15467,25 @@ selectedContext.kind === "textFx"
 
     <select
       value={(selectedBlock.data as any).dateFormat ?? "mm-dd-yyyy"}
-      onChange={(e) =>
-        updateSelectedBlock((block) =>
-          block.type !== "form_field"
-            ? block
-            : {
-                ...block,
-                data: {
-                  ...block.data,
-                  dateFormat: e.target.value,
-                },
-              },
-        )
-      }
+onChange={(e) =>
+  updateSelectedBlock((block) =>
+    block.type !== "form_field"
+      ? block
+      : {
+          ...block,
+          data: {
+            ...block.data,
+            dateFormat: e.target.value as
+              | "yyyy-dd-mm"
+              | "yyyy-mm-dd"
+              | "mm-dd-yyyy"
+              | "m-d-yy"
+              | "m-d-yyyy"
+              | "mmmm-d-yyyy",
+          },
+        },
+  )
+}
       className={inspectorInputClass()}
     >
       <option value="yyyy-dd-mm">
