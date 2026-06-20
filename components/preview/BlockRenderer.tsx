@@ -7697,381 +7697,381 @@ function renderFormField(
   block: Extract<MicrositeBlock, { type: "form_field" }>,
   designKey?: string,
 ) {
-  function FormFieldPreview() {
-const inputClass = isLightDesign(designKey)
-  ? "w-full rounded border border-neutral-300 bg-white px-3 py-2"
-  : "w-full rounded border border-white/15 bg-white/5 px-3 py-2";
+function FormFieldPreview() {
+  const inputClass = isLightDesign(designKey)
+    ? "w-full rounded border border-neutral-300 bg-white px-3 py-2"
+    : "w-full rounded border border-white/15 bg-white/5 px-3 py-2";
 
-    const inputStyle = ((block.data as any).inputStyle ??
-      block.data.style ??
-      {}) as any;
+  const inputStyle = ((block.data as any).inputStyle ??
+    block.data.style ??
+    {}) as any;
 
-    const inputVisualStyle: React.CSSProperties = {
-      ...getContainerTextStyle(inputStyle, designKey),
+  const inputVisualStyle: React.CSSProperties = {
+    ...getContainerTextStyle(inputStyle, designKey),
 
-      color: inputStyle.color ?? getDefaultTextColor(designKey),
-      WebkitTextFillColor: inputStyle.color ?? getDefaultTextColor(designKey),
+    color: inputStyle.color ?? getDefaultTextColor(designKey),
+    WebkitTextFillColor: inputStyle.color ?? getDefaultTextColor(designKey),
 
-      backgroundColor: inputStyle.backgroundColor ?? undefined,
+    backgroundColor: inputStyle.backgroundColor ?? undefined,
 
-borderColor:
-  (block.data as any).fieldBorderEnabled === false
-    ? "transparent"
-    : ((block.data as any).fieldBorderColor ?? inputStyle.borderColor ?? undefined),
-borderWidth:
-  (block.data as any).fieldBorderEnabled === false
-    ? "0px"
-    : "1px",
-borderStyle:
-  (block.data as any).fieldBorderEnabled === false ? "none" : "solid",
-      borderRadius:
-        typeof inputStyle.borderRadius === "number"
-          ? `${inputStyle.borderRadius}px`
-          : undefined,
+    borderColor:
+      (block.data as any).fieldBorderEnabled === false
+        ? "transparent"
+        : ((block.data as any).fieldBorderColor ??
+          inputStyle.borderColor ??
+          undefined),
+    borderWidth:
+      (block.data as any).fieldBorderEnabled === false ? "0px" : "1px",
+    borderStyle:
+      (block.data as any).fieldBorderEnabled === false ? "none" : "solid",
 
-      paddingTop:
-        typeof inputStyle.paddingTop === "number"
-          ? `${inputStyle.paddingTop}px`
-          : undefined,
-      paddingLeft:
-        typeof inputStyle.paddingLeft === "number"
-          ? `${inputStyle.paddingLeft}px`
-          : undefined,
-      paddingRight:
-        typeof inputStyle.paddingRight === "number"
-          ? `${inputStyle.paddingRight}px`
-          : undefined,
-      paddingBottom:
-        typeof inputStyle.paddingBottom === "number"
-          ? `${inputStyle.paddingBottom}px`
-          : undefined,
-    };
+    borderRadius:
+      typeof inputStyle.borderRadius === "number"
+        ? `${inputStyle.borderRadius}px`
+        : undefined,
 
-const placeholderStyle = "placeholder:opacity-100";
+    paddingTop:
+      typeof inputStyle.paddingTop === "number"
+        ? `${inputStyle.paddingTop}px`
+        : undefined,
+    paddingLeft:
+      typeof inputStyle.paddingLeft === "number"
+        ? `${inputStyle.paddingLeft}px`
+        : undefined,
+    paddingRight:
+      typeof inputStyle.paddingRight === "number"
+        ? `${inputStyle.paddingRight}px`
+        : undefined,
+    paddingBottom:
+      typeof inputStyle.paddingBottom === "number"
+        ? `${inputStyle.paddingBottom}px`
+        : undefined,
+  };
 
-const placeholderColor =
-  ((block.data as any).placeholderStyle?.color as string | undefined) ||
-  "rgb(186, 186, 186)";
+  const placeholderStyle = "placeholder:opacity-100";
 
-const safePlaceholderClassName = `ko-form-placeholder-${block.id.replace(
-  /[^a-zA-Z0-9_-]/g,
-  "",
-)}`;
+  const placeholderColor =
+    ((block.data as any).placeholderStyle?.color as string | undefined) ||
+    "rgb(186, 186, 186)";
 
-    const showLabel = block.data.showLabel !== false;
-    const showPlaceholder = block.data.showPlaceholder !== false;
-    const showRequired = block.data.showRequired !== false;
-    const linkedButtonId = (block.data as any).linkedButtonId ?? "";
-    const fieldLabel = block.data.label || "Field";
-    const fieldType = (block.data as any).fieldType ?? "text";
+  const safePlaceholderClassName = `ko-form-placeholder-${block.id.replace(
+    /[^a-zA-Z0-9_-]/g,
+    "",
+  )}`;
 
-    const stateOptions = [
-      "AL",
-      "AK",
-      "AZ",
-      "AR",
-      "CA",
-      "CO",
-      "CT",
-      "DE",
-      "FL",
-      "GA",
-      "HI",
-      "ID",
-      "IL",
-      "IN",
-      "IA",
-      "KS",
-      "KY",
-      "LA",
-      "ME",
-      "MD",
-      "MA",
-      "MI",
-      "MN",
-      "MS",
-      "MO",
-      "MT",
-      "NE",
-      "NV",
-      "NH",
-      "NJ",
-      "NM",
-      "NY",
-      "NC",
-      "ND",
-      "OH",
-      "OK",
-      "OR",
-      "PA",
-      "RI",
-      "SC",
-      "SD",
-      "TN",
-      "TX",
-      "UT",
-      "VT",
-      "VA",
-      "WA",
-      "WV",
-      "WI",
-      "WY",
-      "DC",
-    ];
+  const showLabel = block.data.showLabel !== false;
+  const showPlaceholder = block.data.showPlaceholder !== false;
+  const showRequired = block.data.showRequired !== false;
+  const linkedButtonId = (block.data as any).linkedButtonId ?? "";
+  const fieldLabel = block.data.label || "Field";
+  const fieldType = (block.data as any).fieldType ?? "text";
 
-const sharedFieldProps = {
-  "data-form-field-id": block.id,
-  "data-linked-button": linkedButtonId,
-  "data-linked-button-id": linkedButtonId,
-  "data-field-label": fieldLabel,
-  "data-required": block.data.required ? "true" : "false",
-  "data-field-type": fieldType,
-  onChange: (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >,
-  ) => {
+  const stateOptions = [
+    "AL",
+    "AK",
+    "AZ",
+    "AR",
+    "CA",
+    "CO",
+    "CT",
+    "DE",
+    "FL",
+    "GA",
+    "HI",
+    "ID",
+    "IL",
+    "IN",
+    "IA",
+    "KS",
+    "KY",
+    "LA",
+    "ME",
+    "MD",
+    "MA",
+    "MI",
+    "MN",
+    "MS",
+    "MO",
+    "MT",
+    "NE",
+    "NV",
+    "NH",
+    "NJ",
+    "NM",
+    "NY",
+    "NC",
+    "ND",
+    "OH",
+    "OK",
+    "OR",
+    "PA",
+    "RI",
+    "SC",
+    "SD",
+    "TN",
+    "TX",
+    "UT",
+    "VT",
+    "VA",
+    "WA",
+    "WV",
+    "WI",
+    "WY",
+    "DC",
+  ];
+
+  function getDispatchedFieldValue(
+    rawValue: string,
+    inputType: string = fieldType,
+  ) {
+    if (inputType === "date" || fieldType === "date") {
+      return formatDateValue(
+        rawValue,
+        (block.data as any).dateFormat ?? "mm-dd-yyyy",
+      );
+    }
+
+    return rawValue;
+  }
+
+  function dispatchFormFieldValue(value: string) {
     window.dispatchEvent(
       new CustomEvent<FormFieldValueEventDetail>(FORM_FIELD_VALUE_EVENT, {
         detail: {
           blockId: block.id,
-          value:
-            e.target.type === "checkbox"
-              ? (e.target as HTMLInputElement).checked
-                ? "Yes"
-                : "No"
-              : e.target.value,
+          value,
         },
       }),
     );
-  },
-};
+  }
 
-function dispatchFormFieldValue(value: string) {
-  window.dispatchEvent(
-    new CustomEvent<FormFieldValueEventDetail>(FORM_FIELD_VALUE_EVENT, {
-      detail: {
-        blockId: block.id,
-        value,
-      },
-    }),
+  const sharedFieldProps = {
+    "data-form-field-id": block.id,
+    "data-linked-button": linkedButtonId,
+    "data-linked-button-id": linkedButtonId,
+    "data-field-label": fieldLabel,
+    "data-required": block.data.required ? "true" : "false",
+    "data-field-type": fieldType,
+  };
+
+  const showRating = (block.data as any).showRating === true;
+  const initialRating = Math.max(
+    0,
+    Math.min(5, Number((block.data as any).ratingValue ?? 0)),
   );
-}
 
-const showRating = (block.data as any).showRating === true;
-const initialRating = Math.max(
-  0,
-  Math.min(5, Number((block.data as any).ratingValue ?? 0)),
-);
+  const [dateInputType, setDateInputType] = useState<"text" | "date">("text");
+  const [ratingValue, setRatingValue] = useState(initialRating);
+  const [stateValue, setStateValue] = useState(block.data.value || "");
 
-const [dateInputType, setDateInputType] = useState<"text" | "date">("text");
-const [ratingValue, setRatingValue] = useState(initialRating);
-const [stateValue, setStateValue] = useState(block.data.value || "");
+  const ratingColor = (block.data as any).ratingColor || "#F59E0B";
+  const ratingPosition =
+    (block.data as any).ratingPosition === "low" ? "low" : "high";
 
-const ratingColor = (block.data as any).ratingColor || "#F59E0B";
-const ratingPosition =
-  (block.data as any).ratingPosition === "low" ? "low" : "high";
+  const ratingStars = (
+    <div className="flex items-center gap-1">
+      {Array.from({ length: 5 }).map((_, index) => {
+        const filled = index < ratingValue;
 
-const ratingStars = (
-  <div className="flex items-center gap-1">
-    {Array.from({ length: 5 }).map((_, index) => {
-      const filled = index < ratingValue;
-
-      return (
-        <button
-          key={index}
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            const nextRating = index + 1;
-            setRatingValue(nextRating);
-            dispatchFormFieldValue(String(nextRating));
-          }}
-          className="transition-transform hover:scale-110"
-          style={{ color: ratingColor }}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill={filled ? "currentColor" : "none"}
-            stroke="currentColor"
-            strokeWidth="2"
-            className="h-6 w-6"
-          >
-            <path d="M12 2l3.1 6.3 7 .9-5 4.8 1.2 6.9L12 17.8 5.7 21l1.2-6.9-5-4.8 7-.9L12 2z" />
-          </svg>
-        </button>
-      );
-    })}
-  </div>
-);
-
-return (
-  <div className="h-full w-full p-2" style={getAppearanceStyle(block)}>
-    <style
-      dangerouslySetInnerHTML={{
-        __html: `
-          .${safePlaceholderClassName}::placeholder {
-            color: ${placeholderColor} !important;
-            opacity: 1 !important;
-            -webkit-text-fill-color: ${placeholderColor} !important;
-          }
-          .${safePlaceholderClassName}::-webkit-input-placeholder {
-            color: ${placeholderColor} !important;
-            opacity: 1 !important;
-            -webkit-text-fill-color: ${placeholderColor} !important;
-          }
-        `,
-      }}
-    />
-
-    <div className="flex h-full flex-col gap-2">
-      {showRating && ratingPosition === "high" ? ratingStars : null}
-
-      {showLabel && fieldType !== "checkbox_text" ? (
-        <label
-          style={getContainerTextStyle(
-            (block.data as any).labelStyle ?? block.data.style,
-            designKey,
-          )}
-        >
-          {block.data.label}
-          {showRequired && block.data.required ? " *" : ""}
-        </label>
-      ) : null}
-
-      {fieldType === "textarea" ? (
-        <textarea
-          className={`${inputClass} ${placeholderStyle} ${safePlaceholderClassName} min-h-[96px] resize-none`}
-          placeholder={showPlaceholder ? block.data.placeholder : ""}
-          defaultValue={block.data.value || ""}
-          style={inputVisualStyle}
-          {...sharedFieldProps}
-          onChange={(e) => dispatchFormFieldValue(e.target.value)}
-        />
-      ) : fieldType === "state" ? (
-        <select
-          className={`${inputClass} ${placeholderStyle} ${safePlaceholderClassName}`}
-          value={stateValue}
-          style={{
-            ...inputVisualStyle,
-            color: stateValue ? inputVisualStyle.color : placeholderColor,
-            WebkitTextFillColor: stateValue
-              ? inputVisualStyle.WebkitTextFillColor
-              : placeholderColor,
-          }}
-          {...sharedFieldProps}
-          onChange={(e) => {
-            setStateValue(e.target.value);
-            dispatchFormFieldValue(e.target.value);
-          }}
-        >
-          <option
-            value=""
-            disabled
-            style={{
-              color: placeholderColor,
-              WebkitTextFillColor: placeholderColor,
+        return (
+          <button
+            key={index}
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              const nextRating = index + 1;
+              setRatingValue(nextRating);
+              dispatchFormFieldValue(String(nextRating));
             }}
+            className="transition-transform hover:scale-110"
+            style={{ color: ratingColor }}
           >
-            {showPlaceholder
-              ? block.data.placeholder || "Select state..."
-              : "Select state..."}
-          </option>
-
-          {stateOptions.map((state) => (
-            <option
-              key={state}
-              value={state}
-              style={{
-                color: inputVisualStyle.color,
-                WebkitTextFillColor: inputVisualStyle.WebkitTextFillColor,
-              }}
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill={filled ? "currentColor" : "none"}
+              stroke="currentColor"
+              strokeWidth="2"
+              className="h-6 w-6"
             >
-              {state}
-            </option>
-          ))}
-        </select>
-      ) : fieldType === "checkbox_text" ? (
-        <label
-          className="flex items-center gap-3"
-          style={getContainerTextStyle(inputStyle, designKey)}
-        >
-          <input
-            type="checkbox"
-            defaultChecked={block.data.value === "true"}
-            data-checkbox-group={linkedButtonId || block.id}
-            data-allow-multiple-selections={
-              (block.data as any).allowMultipleSelections ? "true" : "false"
+              <path d="M12 2l3.1 6.3 7 .9-5 4.8 1.2 6.9L12 17.8 5.7 21l1.2-6.9-5-4.8 7-.9L12 2z" />
+            </svg>
+          </button>
+        );
+      })}
+    </div>
+  );
+
+  return (
+    <div className="h-full w-full p-2" style={getAppearanceStyle(block)}>
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
+            .${safePlaceholderClassName}::placeholder {
+              color: ${placeholderColor} !important;
+              opacity: 1 !important;
+              -webkit-text-fill-color: ${placeholderColor} !important;
             }
+            .${safePlaceholderClassName}::-webkit-input-placeholder {
+              color: ${placeholderColor} !important;
+              opacity: 1 !important;
+              -webkit-text-fill-color: ${placeholderColor} !important;
+            }
+          `,
+        }}
+      />
+
+      <div className="flex h-full flex-col gap-2">
+        {showRating && ratingPosition === "high" ? ratingStars : null}
+
+        {showLabel && fieldType !== "checkbox_text" ? (
+          <label
+            style={getContainerTextStyle(
+              (block.data as any).labelStyle ?? block.data.style,
+              designKey,
+            )}
+          >
+            {block.data.label}
+            {showRequired && block.data.required ? " *" : ""}
+          </label>
+        ) : null}
+
+        {fieldType === "textarea" ? (
+          <textarea
+            className={`${inputClass} ${placeholderStyle} ${safePlaceholderClassName} min-h-[96px] resize-none`}
+            placeholder={showPlaceholder ? block.data.placeholder : ""}
+            defaultValue={block.data.value || ""}
+            style={inputVisualStyle}
+            {...sharedFieldProps}
+            onChange={(e) => dispatchFormFieldValue(e.target.value)}
+          />
+        ) : fieldType === "state" ? (
+          <select
+            className={`${inputClass} ${placeholderStyle} ${safePlaceholderClassName}`}
+            value={stateValue}
             style={{
-              accentColor: inputStyle.color ?? undefined,
-              width:
-                typeof inputStyle.fontSize === "number"
-                  ? `${Math.max(14, inputStyle.fontSize)}px`
-                  : undefined,
-              height:
-                typeof inputStyle.fontSize === "number"
-                  ? `${Math.max(14, inputStyle.fontSize)}px`
-                  : undefined,
-              borderColor: inputStyle.borderColor ?? undefined,
-              borderWidth:
-                typeof inputStyle.borderWidth === "number"
-                  ? `${inputStyle.borderWidth}px`
-                  : undefined,
-              borderStyle:
-                typeof inputStyle.borderWidth === "number" &&
-                inputStyle.borderWidth > 0
-                  ? "solid"
-                  : undefined,
-              borderRadius:
-                typeof inputStyle.borderRadius === "number"
-                  ? `${inputStyle.borderRadius}px`
-                  : undefined,
+              ...inputVisualStyle,
+              color: stateValue ? inputVisualStyle.color : placeholderColor,
+              WebkitTextFillColor: stateValue
+                ? inputVisualStyle.WebkitTextFillColor
+                : placeholderColor,
             }}
             {...sharedFieldProps}
+            onChange={(e) => {
+              setStateValue(e.target.value);
+              dispatchFormFieldValue(e.target.value);
+            }}
+          >
+            <option
+              value=""
+              disabled
+              style={{
+                color: placeholderColor,
+                WebkitTextFillColor: placeholderColor,
+              }}
+            >
+              {showPlaceholder
+                ? block.data.placeholder || "Select state..."
+                : "Select state..."}
+            </option>
+
+            {stateOptions.map((state) => (
+              <option
+                key={state}
+                value={state}
+                style={{
+                  color: inputVisualStyle.color,
+                  WebkitTextFillColor: inputVisualStyle.WebkitTextFillColor,
+                }}
+              >
+                {state}
+              </option>
+            ))}
+          </select>
+        ) : fieldType === "checkbox_text" ? (
+          <label
+            className="flex items-center gap-3"
+            style={getContainerTextStyle(inputStyle, designKey)}
+          >
+            <input
+              type="checkbox"
+              defaultChecked={block.data.value === "true"}
+              data-checkbox-group={linkedButtonId || block.id}
+              data-allow-multiple-selections={
+                (block.data as any).allowMultipleSelections ? "true" : "false"
+              }
+              style={{
+                accentColor: inputStyle.color ?? undefined,
+                width:
+                  typeof inputStyle.fontSize === "number"
+                    ? `${Math.max(14, inputStyle.fontSize)}px`
+                    : undefined,
+                height:
+                  typeof inputStyle.fontSize === "number"
+                    ? `${Math.max(14, inputStyle.fontSize)}px`
+                    : undefined,
+                borderColor: inputStyle.borderColor ?? undefined,
+                borderWidth:
+                  typeof inputStyle.borderWidth === "number"
+                    ? `${inputStyle.borderWidth}px`
+                    : undefined,
+                borderStyle:
+                  typeof inputStyle.borderWidth === "number" &&
+                  inputStyle.borderWidth > 0
+                    ? "solid"
+                    : undefined,
+                borderRadius:
+                  typeof inputStyle.borderRadius === "number"
+                    ? `${inputStyle.borderRadius}px`
+                    : undefined,
+              }}
+              {...sharedFieldProps}
+              onChange={(e) =>
+                dispatchFormFieldValue(e.target.checked ? "Yes" : "No")
+              }
+            />
+
+            <span style={getContainerTextStyle(inputStyle, designKey)}>
+              {block.data.placeholder || block.data.label || "Checkbox Label"}
+              {showRequired && block.data.required ? " *" : ""}
+            </span>
+          </label>
+        ) : (
+          <input
+            type={
+              fieldType === "phone"
+                ? "tel"
+                : fieldType === "date"
+                  ? dateInputType
+                  : fieldType
+            }
+            onFocus={() => {
+              if (fieldType === "date") {
+                setDateInputType("date");
+              }
+            }}
+            onBlur={(e) => {
+              if (fieldType === "date" && !e.target.value) {
+                setDateInputType("text");
+              }
+            }}
+            className={`${inputClass} ${placeholderStyle} ${safePlaceholderClassName}`}
+            placeholder={showPlaceholder ? block.data.placeholder : ""}
+            defaultValue={block.data.value || ""}
+            style={inputVisualStyle}
+            {...sharedFieldProps}
             onChange={(e) =>
-              dispatchFormFieldValue(e.target.checked ? "Yes" : "No")
+              dispatchFormFieldValue(
+                getDispatchedFieldValue(e.target.value, fieldType),
+              )
             }
           />
+        )}
 
-          <span style={getContainerTextStyle(inputStyle, designKey)}>
-            {block.data.placeholder || block.data.label || "Checkbox Label"}
-            {showRequired && block.data.required ? " *" : ""}
-          </span>
-        </label>
-) : (
-<input
-  type={
-    fieldType === "phone"
-      ? "tel"
-      : fieldType === "date"
-        ? dateInputType
-        : fieldType
-  }
-  onFocus={() => {
-    if (fieldType === "date") {
-      setDateInputType("date");
-    }
-  }}
-  onBlur={(e) => {
-    if (fieldType === "date" && !e.target.value) {
-      setDateInputType("text");
-    }
-  }}
-          className={`${inputClass} ${placeholderStyle} ${safePlaceholderClassName}`}
-          placeholder={showPlaceholder ? block.data.placeholder : ""}
-          defaultValue={block.data.value || ""}
-          style={inputVisualStyle}
-          {...sharedFieldProps}
-          onChange={(e) => dispatchFormFieldValue(e.target.value)}
-        />
-      )}
-
-      {showRating && ratingPosition === "low" ? ratingStars : null}
+        {showRating && ratingPosition === "low" ? ratingStars : null}
+      </div>
     </div>
-  </div>
-);
+  );
 }
 
 return <FormFieldPreview />;
@@ -10369,35 +10369,10 @@ if (resolvedLinkedBlock?.type === "form_field") {
     resolvedLinkedBlock.data.value ||
     "";
 
-  const linkedFormBlock = blocks.find(
-    (candidate): candidate is Extract<MicrositeBlock, { type: "form_field" }> =>
-      candidate.id === item.blockId && candidate.type === "form_field",
-  );
-
-  const fieldType =
-    linkedFormBlock?.data.fieldType ?? resolvedLinkedBlock.data.fieldType;
-
-  const dateFormat =
-    linkedFormBlock?.data.dateFormat ??
-    (resolvedLinkedBlock.data as any).dateFormat ??
-    "mm-dd-yyyy";
-
-    console.log("SUMMARY DATE DEBUG", {
-  rawValue,
-  fieldType,
-  dateFormat,
-  linkedFormBlockDateFormat: linkedFormBlock?.data.dateFormat,
-});
-
-  const displayValue =
-    fieldType === "date" && rawValue
-      ? formatDateValue(rawValue, dateFormat)
-      : rawValue || "Not selected";
-
   return {
     id: item.id,
     label: item.label || resolvedLinkedBlock.data.label || "Input Field",
-    values: [displayValue],
+    values: [rawValue || "Not selected"],
   };
 }
 
