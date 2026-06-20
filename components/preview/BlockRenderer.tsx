@@ -10352,9 +10352,15 @@ function SummaryPreview() {
 
   const linkedRows = linkedItems
     .map((item: any) => {
-      const resolvedLinkedBlock = currentRenderableBlocks.find(
-        (candidate: any) => candidate.id === item.blockId,
-      );
+const liveLinkedBlock = blocks.find(
+  (candidate) => candidate.id === item.blockId,
+);
+
+const resolvedLinkedBlock =
+  liveLinkedBlock ??
+  currentRenderableBlocks.find(
+    (candidate: any) => candidate.id === item.blockId,
+  );
 
       if (resolvedLinkedBlock?.type === "form_field") {
         const rawValue =
