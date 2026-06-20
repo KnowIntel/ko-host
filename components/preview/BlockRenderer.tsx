@@ -10334,10 +10334,10 @@ if (resolvedLinkedBlock?.type === "form_field") {
     "";
 
   const displayValue =
-    resolvedLinkedBlock.data.fieldType === "date"
+    resolvedLinkedBlock.data.fieldType === "date" && rawValue
       ? formatDateValue(
           rawValue,
-          resolvedLinkedBlock.data.dateFormat,
+          (resolvedLinkedBlock.data as any).dateFormat ?? "mm-dd-yyyy",
         )
       : rawValue || "Not selected";
 
