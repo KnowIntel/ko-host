@@ -115,6 +115,12 @@ type OptionButtonSelectionEventDetail = {
 };
 
 const FORM_FIELD_VALUE_EVENT = "ko-host:form-field-value";
+const FORM_FIELD_CONFIG_EVENT = "ko-host:form-field-config";
+
+type FormFieldConfigEventDetail = {
+  blockId: string;
+  dateFormat?: string;
+};
 
 type FormFieldValueEventDetail = {
   blockId: string;
@@ -10224,346 +10230,367 @@ function renderSummaryBlock(
   blocks: MicrositeBlock[] = [],
   optionButtonSelections: Record<string, string[]> = {},
 ) {
-  function SummaryPreview() {
-    const data = block.data as any;
+function SummaryPreview() {
+  const data = block.data as any;
 
-    const [liveFormValues, setLiveFormValues] = useState<Record<string, string>>(
-      {},
-    );
+  const [liveFormValues, setLiveFormValues] = useState<Record<string, string>>(
+    {},
+  );
 
-    const [liveOptionSelections, setLiveOptionSelections] = useState<
-      Record<
-        string,
-        {
-          selectedOptionIds: string[];
-          selectedLabels: string[];
-          selectedValues: string[];
-        }
-      >
-    >({});
+  const [liveFormConfigs, setLiveFormConfigs] = useState<
+    Record<string, { dateFormat?: string }>
+  >({});
 
-    useEffect(() => {
-      function handleSelection(event: Event) {
-        const detail = (event as CustomEvent<OptionButtonSelectionEventDetail>)
-          .detail;
-
-        if (!detail?.blockId) return;
-
-        setLiveOptionSelections((prev) => ({
-          ...prev,
-          [detail.blockId]: {
-            selectedOptionIds: detail.selectedOptionIds,
-            selectedLabels: detail.selectedLabels,
-            selectedValues: detail.selectedValues,
-          },
-        }));
+  const [liveOptionSelections, setLiveOptionSelections] = useState<
+    Record<
+      string,
+      {
+        selectedOptionIds: string[];
+        selectedLabels: string[];
+        selectedValues: string[];
       }
+    >
+  >({});
 
-      window.addEventListener(OPTION_BUTTON_SELECTION_EVENT, handleSelection);
+  useEffect(() => {
+    function handleSelection(event: Event) {
+      const detail = (event as CustomEvent<OptionButtonSelectionEventDetail>)
+        .detail;
 
-      return () => {
-        window.removeEventListener(
-          OPTION_BUTTON_SELECTION_EVENT,
-          handleSelection,
-        );
-      };
-    }, []);
+      if (!detail?.blockId) return;
 
-    useEffect(() => {
-      function handleFormValue(event: Event) {
-        const detail = (event as CustomEvent<FormFieldValueEventDetail>).detail;
-
-        if (!detail?.blockId) return;
-
-        setLiveFormValues((prev) => ({
-          ...prev,
-          [detail.blockId]: detail.value,
-        }));
-      }
-
-      window.addEventListener(FORM_FIELD_VALUE_EVENT, handleFormValue);
-
-      return () => {
-        window.removeEventListener(FORM_FIELD_VALUE_EVENT, handleFormValue);
-      };
-    }, []);
-
-    function parsePriceAmount(value: unknown) {
-      const cleaned = String(value ?? "").replace(/[^0-9.-]/g, "");
-      const amount = Number(cleaned);
-
-      return Number.isFinite(amount) ? amount : 0;
+      setLiveOptionSelections((prev) => ({
+        ...prev,
+        [detail.blockId]: {
+          selectedOptionIds: detail.selectedOptionIds,
+          selectedLabels: detail.selectedLabels,
+          selectedValues: detail.selectedValues,
+        },
+      }));
     }
 
-    function formatSummaryCurrency(value: number) {
-      return `$${value.toLocaleString(undefined, {
-        minimumFractionDigits: value % 1 === 0 ? 0 : 2,
-        maximumFractionDigits: 2,
-      })}`;
+    window.addEventListener(OPTION_BUTTON_SELECTION_EVENT, handleSelection);
+
+    return () => {
+      window.removeEventListener(
+        OPTION_BUTTON_SELECTION_EVENT,
+        handleSelection,
+      );
+    };
+  }, []);
+
+  useEffect(() => {
+    function handleFormValue(event: Event) {
+      const detail = (event as CustomEvent<FormFieldValueEventDetail>).detail;
+
+      if (!detail?.blockId) return;
+
+      setLiveFormValues((prev) => ({
+        ...prev,
+        [detail.blockId]: detail.value,
+      }));
     }
 
-    const persistedLinkedBlockSnapshots = Array.isArray(
-      data.linkedBlockSnapshots,
-    )
-      ? data.linkedBlockSnapshots
-      : [];
+    window.addEventListener(FORM_FIELD_VALUE_EVENT, handleFormValue);
 
-    const currentRenderableBlocks =
-      blocks.length > 0 ? blocks : persistedLinkedBlockSnapshots;
+    return () => {
+      window.removeEventListener(FORM_FIELD_VALUE_EVENT, handleFormValue);
+    };
+  }, []);
 
-    const linkedItems = Array.isArray(data.linkedBlocks)
-      ? data.linkedBlocks.filter((item: any) => item?.show !== false)
-      : [];
+  useEffect(() => {
+    function handleFormConfig(event: Event) {
+      const detail = (event as CustomEvent<FormFieldConfigEventDetail>).detail;
 
-    let footerMinTotal = 0;
-    let footerMaxTotal = 0;
-    let hasAnyRangePrice = false;
-    let hasAnySelectedPrice = false;
+      if (!detail?.blockId) return;
 
-    const linkedRows = linkedItems
-      .map((item: any) => {
-        const resolvedLinkedBlock = currentRenderableBlocks.find(
-          (candidate: any) => candidate.id === item.blockId,
+      setLiveFormConfigs((prev) => ({
+        ...prev,
+        [detail.blockId]: {
+          ...(prev[detail.blockId] ?? {}),
+          dateFormat: detail.dateFormat,
+        },
+      }));
+    }
+
+    window.addEventListener(FORM_FIELD_CONFIG_EVENT, handleFormConfig);
+
+    return () => {
+      window.removeEventListener(FORM_FIELD_CONFIG_EVENT, handleFormConfig);
+    };
+  }, []);
+
+  function parsePriceAmount(value: unknown) {
+    const cleaned = String(value ?? "").replace(/[^0-9.-]/g, "");
+    const amount = Number(cleaned);
+
+    return Number.isFinite(amount) ? amount : 0;
+  }
+
+  function formatSummaryCurrency(value: number) {
+    return `$${value.toLocaleString(undefined, {
+      minimumFractionDigits: value % 1 === 0 ? 0 : 2,
+      maximumFractionDigits: 2,
+    })}`;
+  }
+
+  const persistedLinkedBlockSnapshots = Array.isArray(data.linkedBlockSnapshots)
+    ? data.linkedBlockSnapshots
+    : [];
+
+  const currentRenderableBlocks =
+    blocks.length > 0 ? blocks : persistedLinkedBlockSnapshots;
+
+  const linkedItems = Array.isArray(data.linkedBlocks)
+    ? data.linkedBlocks.filter((item: any) => item?.show !== false)
+    : [];
+
+  let footerMinTotal = 0;
+  let footerMaxTotal = 0;
+  let hasAnyRangePrice = false;
+  let hasAnySelectedPrice = false;
+
+  const linkedRows = linkedItems
+    .map((item: any) => {
+      const resolvedLinkedBlock = currentRenderableBlocks.find(
+        (candidate: any) => candidate.id === item.blockId,
+      );
+
+      if (resolvedLinkedBlock?.type === "form_field") {
+        const rawValue =
+          liveFormValues[item.blockId] ||
+          liveFormValues[resolvedLinkedBlock.id] ||
+          resolvedLinkedBlock.data.value ||
+          "";
+
+        const dateFormat =
+          liveFormConfigs[item.blockId]?.dateFormat ??
+          liveFormConfigs[resolvedLinkedBlock.id]?.dateFormat ??
+          (blocks.find(
+            (candidate) =>
+              candidate.id === resolvedLinkedBlock.id &&
+              candidate.type === "form_field",
+          ) as Extract<MicrositeBlock, { type: "form_field" }> | undefined)
+            ?.data.dateFormat ??
+          (resolvedLinkedBlock.data as any).dateFormat ??
+          "mm-dd-yyyy";
+
+        const displayValue =
+          resolvedLinkedBlock.data.fieldType === "date" && rawValue
+            ? formatDateValue(rawValue, dateFormat)
+            : rawValue || "Not selected";
+
+        return {
+          id: item.id,
+          label: item.label || resolvedLinkedBlock.data.label || "Input Field",
+          values: [displayValue],
+        };
+      }
+
+      if (!resolvedLinkedBlock && liveFormValues[item.blockId]) {
+        return {
+          id: item.id,
+          label: item.label || "Input Field",
+          values: [liveFormValues[item.blockId] || "Not selected"],
+        };
+      }
+
+      if (resolvedLinkedBlock?.type === "option_button") {
+        const liveSelection = liveOptionSelections[resolvedLinkedBlock.id];
+
+        const selectedIds =
+          liveSelection?.selectedOptionIds ??
+          optionButtonSelections[resolvedLinkedBlock.id] ??
+          (Array.isArray(resolvedLinkedBlock.data.selectedOptionIds)
+            ? resolvedLinkedBlock.data.selectedOptionIds
+            : []);
+
+        const selectedOptions = resolvedLinkedBlock.data.options.filter(
+          (option: any) => selectedIds.includes(option.id),
         );
 
-if (resolvedLinkedBlock?.type === "form_field") {
-  const rawValue =
-    liveFormValues[item.blockId] ||
-    liveFormValues[resolvedLinkedBlock.id] ||
-    resolvedLinkedBlock.data.value ||
-    "";
+        selectedOptions.forEach((option: any) => {
+          if (option.showPrice === false) return;
 
-  const dateFormat =
-    (blocks.find(
-      (candidate) =>
-        candidate.id === resolvedLinkedBlock.id &&
-        candidate.type === "form_field",
-    ) as Extract<MicrositeBlock, { type: "form_field" }> | undefined)?.data
-      .dateFormat ??
-    (resolvedLinkedBlock.data as any).dateFormat ??
-    "mm-dd-yyyy";
+          if ((option.priceMode ?? "fixed") === "range") {
+            hasAnyRangePrice = true;
+            hasAnySelectedPrice = true;
+            footerMinTotal += parsePriceAmount(option.priceMin);
+            footerMaxTotal += parsePriceAmount(option.priceMax);
+            return;
+          }
 
-  const displayValue =
-    resolvedLinkedBlock.data.fieldType === "date" && rawValue
-      ? formatDateValue(rawValue, dateFormat)
-      : rawValue || "Not selected";
+          if (option.price) {
+            const amount = parsePriceAmount(option.price);
 
-  return {
-    id: item.id,
-    label: item.label || resolvedLinkedBlock.data.label || "Input Field",
-    values: [displayValue],
-  };
-}
+            hasAnySelectedPrice = true;
+            footerMinTotal += amount;
+            footerMaxTotal += amount;
+          }
+        });
 
-        if (!resolvedLinkedBlock && liveFormValues[item.blockId]) {
-          return {
-            id: item.id,
-            label: item.label || "Input Field",
-            values: [liveFormValues[item.blockId] || "Not selected"],
-          };
-        }
-
-        if (resolvedLinkedBlock?.type === "option_button") {
-          const liveSelection = liveOptionSelections[resolvedLinkedBlock.id];
-
-          const selectedIds =
-            liveSelection?.selectedOptionIds ??
-            optionButtonSelections[resolvedLinkedBlock.id] ??
-            (Array.isArray(resolvedLinkedBlock.data.selectedOptionIds)
-              ? resolvedLinkedBlock.data.selectedOptionIds
-              : []);
-
-          const selectedOptions = resolvedLinkedBlock.data.options.filter(
-            (option: any) => selectedIds.includes(option.id),
-          );
-
-          selectedOptions.forEach((option: any) => {
-            if (option.showPrice === false) return;
-
-            if ((option.priceMode ?? "fixed") === "range") {
-              hasAnyRangePrice = true;
-              hasAnySelectedPrice = true;
-              footerMinTotal += parsePriceAmount(option.priceMin);
-              footerMaxTotal += parsePriceAmount(option.priceMax);
-              return;
-            }
-
-            if (option.price) {
-              const amount = parsePriceAmount(option.price);
-
-              hasAnySelectedPrice = true;
-              footerMinTotal += amount;
-              footerMaxTotal += amount;
-            }
-          });
-
-          return {
-            id: item.id,
-            label:
-              item.label || resolvedLinkedBlock.data.heading || "Option Button",
-            values:
-              selectedOptions.length > 0
-                ? selectedOptions.map((option: any) => option.label)
-                : ["Not selected"],
-          };
-        }
-
-        if (!resolvedLinkedBlock && liveOptionSelections[item.blockId]) {
-          const liveSelection = liveOptionSelections[item.blockId];
-
-          return {
-            id: item.id,
-            label: item.label || "Option Button",
-            values: liveSelection.selectedLabels.length
-              ? liveSelection.selectedLabels
+        return {
+          id: item.id,
+          label: item.label || resolvedLinkedBlock.data.heading || "Option Button",
+          values:
+            selectedOptions.length > 0
+              ? selectedOptions.map((option: any) => option.label)
               : ["Not selected"],
-          };
-        }
+        };
+      }
 
-        return null;
-      })
-      .filter(Boolean) as Array<{
-      id: string;
-      label: string;
-      values: string[];
-    }>;
+      if (!resolvedLinkedBlock && liveOptionSelections[item.blockId]) {
+        const liveSelection = liveOptionSelections[item.blockId];
 
-    const footerAggregateValue = hasAnySelectedPrice
-      ? hasAnyRangePrice
-        ? `${formatSummaryCurrency(footerMinTotal)} - ${formatSummaryCurrency(
-            footerMaxTotal,
-          )}`
-        : formatSummaryCurrency(footerMaxTotal)
-      : "$0";
+        return {
+          id: item.id,
+          label: item.label || "Option Button",
+          values: liveSelection.selectedLabels.length
+            ? liveSelection.selectedLabels
+            : ["Not selected"],
+        };
+      }
 
-    return (
-      <div
-        className="flex h-full w-full flex-col p-4"
-        style={getAppearanceStyle(block)}
-      >
-        <div className="flex min-h-0 flex-1 flex-col gap-4">
-          {data.showHeader !== false ? (
+      return null;
+    })
+    .filter(Boolean) as Array<{
+    id: string;
+    label: string;
+    values: string[];
+  }>;
+
+  const footerAggregateValue = hasAnySelectedPrice
+    ? hasAnyRangePrice
+      ? `${formatSummaryCurrency(footerMinTotal)} - ${formatSummaryCurrency(
+          footerMaxTotal,
+        )}`
+      : formatSummaryCurrency(footerMaxTotal)
+    : "$0";
+
+  return (
+    <div
+      className="flex h-full w-full flex-col p-4"
+      style={getAppearanceStyle(block)}
+    >
+      <div className="flex min-h-0 flex-1 flex-col gap-4">
+        {data.showHeader !== false ? (
+          <div
+            style={getContainerTextStyle(
+              data.headerStyle ?? data.style ?? {},
+              designKey,
+            )}
+          >
+            {data.header || "Summary"}
+          </div>
+        ) : null}
+
+        {data.showSubheader ? (
+          <div
+            style={getContainerTextStyle(
+              data.subheaderStyle ?? data.style ?? {},
+              designKey,
+            )}
+          >
+            {data.subheader}
+          </div>
+        ) : null}
+
+        <div className="flex min-h-0 flex-1 flex-col overflow-auto">
+          {linkedRows.length > 0 ? (
+            linkedRows.map((item, index) => (
+              <div key={item.id}>
+                <div className="flex items-start justify-between gap-4 py-3">
+                  <div
+                    style={getContainerTextStyle(
+                      data.labelStyle ?? data.style ?? {},
+                      designKey,
+                    )}
+                  >
+                    {item.label}
+                  </div>
+
+                  <div
+                    className="flex flex-col items-end text-right"
+                    style={getContainerTextStyle(
+                      data.valueStyle ?? data.style ?? {},
+                      designKey,
+                    )}
+                  >
+                    {item.values.map((value, valueIndex) => (
+                      <div key={`${item.id}-value-${valueIndex}`}>{value}</div>
+                    ))}
+                  </div>
+                </div>
+
+                {data.showDividers !== false &&
+                index < linkedRows.length - 1 ? (
+                  <div
+                    className="h-px w-full"
+                    style={{
+                      backgroundColor:
+                        data.dividerColor || "rgba(0,0,0,0.12)",
+                    }}
+                  />
+                ) : null}
+              </div>
+            ))
+          ) : (
+            <div className="rounded-xl border border-dashed border-neutral-300 p-4 text-sm text-neutral-500">
+              No linked fields yet
+            </div>
+          )}
+        </div>
+      </div>
+
+      {data.showFooterLabel !== false ||
+      data.showFooterAggregate !== false ||
+      data.showFooterCaption ? (
+        <div className="mt-4 shrink-0 border-t border-neutral-200 pt-4">
+          {data.showFooterLabel !== false ? (
             <div
               style={getContainerTextStyle(
-                data.headerStyle ?? data.style ?? {},
+                data.footerLabelStyle ??
+                  data.labelStyle ??
+                  data.style ??
+                  {},
                 designKey,
               )}
             >
-              {data.header || "Summary"}
+              {data.footerLabel || "Estimated Total"}
             </div>
           ) : null}
 
-{data.showSubheader ? (
-  <div
-    style={getContainerTextStyle(
-      data.subheaderStyle ??
-        data.style ??
-        {},
-      designKey,
-    )}
-  >
-    {data.subheader}
-  </div>
-) : null}
+          {data.showFooterAggregate !== false ? (
+            <div
+              className="mt-1"
+              style={getContainerTextStyle(
+                data.footerAggregateStyle ?? data.style ?? {},
+                designKey,
+              )}
+            >
+              {data.footerAggregateLabel
+                ? `${data.footerAggregateLabel}: `
+                : ""}
+              {footerAggregateValue}
+            </div>
+          ) : null}
 
-          <div className="flex min-h-0 flex-1 flex-col overflow-auto">
-            {linkedRows.length > 0 ? (
-              linkedRows.map((item, index) => (
-                <div key={item.id}>
-                  <div className="flex items-start justify-between gap-4 py-3">
-                    <div
-                      style={getContainerTextStyle(
-                        data.labelStyle ?? data.style ?? {},
-                        designKey,
-                      )}
-                    >
-                      {item.label}
-                    </div>
-
-                    <div
-                      className="flex flex-col items-end text-right"
-                      style={getContainerTextStyle(
-                        data.valueStyle ?? data.style ?? {},
-                        designKey,
-                      )}
-                    >
-                      {item.values.map((value, valueIndex) => (
-                        <div key={`${item.id}-value-${valueIndex}`}>
-                          {value}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {data.showDividers !== false &&
-                  index < linkedRows.length - 1 ? (
-                    <div
-                      className="h-px w-full"
-                      style={{
-                        backgroundColor:
-                          data.dividerColor || "rgba(0,0,0,0.12)",
-                      }}
-                    />
-                  ) : null}
-                </div>
-              ))
-            ) : (
-              <div className="rounded-xl border border-dashed border-neutral-300 p-4 text-sm text-neutral-500">
-                No linked fields yet
-              </div>
-            )}
-          </div>
+          {data.showFooterCaption ? (
+            <div
+              className="mt-1 text-xs opacity-75"
+              style={getContainerTextStyle(
+                data.footerCaptionStyle ?? data.style ?? {},
+                designKey,
+              )}
+            >
+              {data.footerCaption}
+            </div>
+          ) : null}
         </div>
-
-        {data.showFooterLabel !== false ||
-        data.showFooterAggregate !== false ||
-        data.showFooterCaption ? (
-          <div className="mt-4 shrink-0 border-t border-neutral-200 pt-4">
-            {data.showFooterLabel !== false ? (
-              <div
-                style={getContainerTextStyle(
-                  data.footerLabelStyle ??
-                    data.labelStyle ??
-                    data.style ??
-                    {},
-                  designKey,
-                )}
-              >
-                {data.footerLabel || "Estimated Total"}
-              </div>
-            ) : null}
-
-            {data.showFooterAggregate !== false ? (
-              <div
-                className="mt-1"
-                style={getContainerTextStyle(
-                  data.footerAggregateStyle ?? data.style ?? {},
-                  designKey,
-                )}
-              >
-                {data.footerAggregateLabel
-                  ? `${data.footerAggregateLabel}: `
-                  : ""}
-                {footerAggregateValue}
-              </div>
-            ) : null}
-
-            {data.showFooterCaption ? (
-              <div
-                className="mt-1 text-xs opacity-75"
-                style={getContainerTextStyle(
-                  data.footerCaptionStyle ?? data.style ?? {},
-                  designKey,
-                )}
-              >
-                {data.footerCaption}
-              </div>
-            ) : null}
-          </div>
-        ) : null}
-      </div>
-    );
-  }
+      ) : null}
+    </div>
+  );
+}
 
   return <SummaryPreview />;
 }

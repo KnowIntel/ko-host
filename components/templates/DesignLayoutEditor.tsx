@@ -15467,25 +15467,39 @@ selectedContext.kind === "textFx"
 
     <select
       value={(selectedBlock.data as any).dateFormat ?? "mm-dd-yyyy"}
-onChange={(e) =>
-  updateSelectedBlock((block) =>
-    block.type !== "form_field"
-      ? block
-      : {
-          ...block,
-          data: {
-            ...block.data,
-            dateFormat: e.target.value as
-              | "yyyy-dd-mm"
-              | "yyyy-mm-dd"
-              | "mm-dd-yyyy"
-              | "m-d-yy"
-              | "m-d-yyyy"
-              | "mmmm-d-yyyy",
-          },
-        },
-  )
-}
+      onChange={(e) => {
+        const nextDateFormat = e.target.value as
+          | "yyyy-dd-mm"
+          | "yyyy-mm-dd"
+          | "mm-dd-yyyy"
+          | "m-d-yy"
+          | "m-d-yyyy"
+          | "mmmm-d-yyyy";
+
+        updateSelectedBlock((block) =>
+          block.type !== "form_field"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  dateFormat: nextDateFormat,
+                },
+              },
+        );
+
+        window.dispatchEvent(
+          new CustomEvent<FormFieldConfigEventDetail>(
+            FORM_FIELD_CONFIG_EVENT,
+            {
+              detail: {
+                blockId: selectedBlock.id,
+                dateFormat: nextDateFormat,
+              },
+            },
+          ),
+        );
+      }}
       className={inspectorInputClass()}
     >
       <option value="yyyy-dd-mm">
@@ -34318,7 +34332,6 @@ data: {
                     <div className={inspectorLabelClass()}>Icon</div>
 
                     <div className="mt-4">
-                      <div className={inspectorLabelClass()}>Icon</div>
                       <select
                         value={getIconNameFromUrl(selectedBlock.data.icon.url)}
                         onChange={(e) => {
