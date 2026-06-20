@@ -10333,12 +10333,19 @@ if (resolvedLinkedBlock?.type === "form_field") {
     resolvedLinkedBlock.data.value ||
     "";
 
+  const dateFormat =
+    (blocks.find(
+      (candidate) =>
+        candidate.id === resolvedLinkedBlock.id &&
+        candidate.type === "form_field",
+    ) as Extract<MicrositeBlock, { type: "form_field" }> | undefined)?.data
+      .dateFormat ??
+    (resolvedLinkedBlock.data as any).dateFormat ??
+    "mm-dd-yyyy";
+
   const displayValue =
     resolvedLinkedBlock.data.fieldType === "date" && rawValue
-      ? formatDateValue(
-          rawValue,
-          (resolvedLinkedBlock.data as any).dateFormat ?? "mm-dd-yyyy",
-        )
+      ? formatDateValue(rawValue, dateFormat)
       : rawValue || "Not selected";
 
   return {
