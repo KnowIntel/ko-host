@@ -10362,29 +10362,24 @@ const resolvedLinkedBlock =
     (candidate: any) => candidate.id === item.blockId,
   );
 
-      if (resolvedLinkedBlock?.type === "form_field") {
-        const rawValue =
-          liveFormValues[item.blockId] ||
-          liveFormValues[resolvedLinkedBlock.id] ||
-          resolvedLinkedBlock.data.value ||
-          "";
+if (resolvedLinkedBlock?.type === "form_field") {
+  const rawValue =
+    liveFormValues[item.blockId] ||
+    liveFormValues[resolvedLinkedBlock.id] ||
+    resolvedLinkedBlock.data.value ||
+    "";
 
-        const dateFormat =
-          liveFormConfigs[item.blockId]?.dateFormat ??
-          liveFormConfigs[resolvedLinkedBlock.id]?.dateFormat ??
-          (blocks.find(
-            (candidate) =>
-              candidate.id === resolvedLinkedBlock.id &&
-              candidate.type === "form_field",
-          ) as Extract<MicrositeBlock, { type: "form_field" }> | undefined)
-            ?.data.dateFormat ??
+  const dateFormat =
+    resolvedLinkedBlock.data.fieldType === "date"
+      ? ((liveLinkedBlock as any)?.data?.dateFormat ??
           (resolvedLinkedBlock.data as any).dateFormat ??
-          "mm-dd-yyyy";
+          "mm-dd-yyyy")
+      : "mm-dd-yyyy";
 
-        const displayValue =
-          resolvedLinkedBlock.data.fieldType === "date" && rawValue
-            ? formatDateValue(rawValue, dateFormat)
-            : rawValue || "Not selected";
+  const displayValue =
+    resolvedLinkedBlock.data.fieldType === "date" && rawValue
+      ? formatDateValue(rawValue, dateFormat)
+      : rawValue || "Not selected";
 
         return {
           id: item.id,
