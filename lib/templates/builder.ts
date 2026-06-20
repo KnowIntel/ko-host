@@ -1267,6 +1267,7 @@ export type OptionButtonBlock = BaseBlock & {
     allowMultiSelect?: boolean;
     linkedButtonBlockId?: string;
     linkedSummaryBlockId?: string;
+    linkedButtonId?: string;
     linkedCartBlockId?: string;
     placeholder?: string;
     placeholderStyle?: Record<string, any>;
@@ -3398,6 +3399,9 @@ data: {
 
   linkedSummaryBlockId: undefined,
   linkedCartBlockId: undefined,
+  
+  linkedButtonId: undefined,
+  linkedButtonBlockId: undefined,
 
   priceLabel: "Price",
   price: "",
@@ -6956,6 +6960,11 @@ if (block.type === "option_button") {
         typeof data.linkedButtonBlockId === "string" &&
         data.linkedButtonBlockId.trim()
           ? data.linkedButtonBlockId
+          : undefined,
+
+      linkedButtonId:
+        typeof data.linkedButtonId === "string" && data.linkedButtonId.trim()
+          ? data.linkedButtonId
           : undefined,
 
       linkedSummaryBlockId:

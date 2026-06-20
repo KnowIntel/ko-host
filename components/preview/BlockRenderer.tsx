@@ -8179,13 +8179,24 @@ const fieldBorderColor = data.fieldBorderColor ?? "#d4d4d4";
     const checkmarkColor = data.checkmarkColor ?? "#ffffff";
     const optionImageSize = Number(data.optionImageSize ?? 56);
 
-    const sharedDataAttrs = {
-      "data-form-field-id": block.id,
-      "data-field-type": "option_button",
-      "data-field-label": data.heading || block.label || "Option Button",
-      "data-required": "false",
-      "data-option-button-value": selectedIds.join(","),
-    };
+const linkedButtonId =
+  data.linkedButtonId || data.linkedButtonBlockId || "";
+
+const selectedLabels = options
+  .filter((option: any) => selectedIds.includes(option.id))
+  .map((option: any) => option.label)
+  .join(", ");
+
+const sharedDataAttrs = {
+  "data-form-field-id": block.id,
+  "data-linked-button": linkedButtonId,
+  "data-linked-button-id": linkedButtonId,
+  "data-field-type": "option_button",
+  "data-field-label": data.heading || block.label || "Option Button",
+  "data-required": "false",
+  "data-option-button-value": selectedIds.join(","),
+  "data-option-button-labels": selectedLabels,
+};
 
     if (variant === "dropdown") {
       return (

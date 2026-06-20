@@ -15886,6 +15886,33 @@ selectedContext.kind === "textFx"
       </label>
     </div>
 
+    <div className="mt-4">
+  <div className={inspectorLabelClass()}>Linked Submit Button</div>
+
+  <select
+    value={(selectedBlock.data as any).linkedButtonId ?? ""}
+    onChange={(e) =>
+      updateSelectedOptionButtonData({
+        linkedButtonId: e.target.value || undefined,
+        linkedButtonBlockId: e.target.value || undefined,
+      })
+    }
+    className={inspectorInputClass()}
+  >
+    <option value="">No linked button</option>
+
+    {ctaButtonOptions.map((button) => (
+      <option key={button.id} value={button.id}>
+        {button.label}
+      </option>
+    ))}
+  </select>
+
+  <p className="mt-2 text-xs leading-5 text-neutral-500">
+    When this button is pressed, this option selection will be included in the combined general submission.
+  </p>
+</div>
+
     <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
   <div className={inspectorLabelClass()}>Linked Summary Block</div>
 
