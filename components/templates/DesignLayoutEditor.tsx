@@ -20347,29 +20347,30 @@ onClick={() =>
   <div className={inspectorCardClass()}>
     <div className={inspectorLabelClass()}>Style Target</div>
 
-    <select
-      value={summaryStyleTarget}
-      onChange={(e) =>
-setSummaryStyleTarget(
-  e.target.value as
-    | "content"
-    | "header"
-    | "subheader"
-    | "footerLabel"
-    | "footerAggregate"
-    | "footerCaption",
-)
-      }
-      className={inspectorInputClass()}
-    >
-<option value="header">Header</option>
-<option value="subheader">Subheader</option>
-<option value="contentLabel">Content Label</option>
-<option value="content">Content</option>
-<option value="footerLabel">Footer Label</option>
-<option value="footerAggregate">Footer Aggregate</option>
-<option value="footerCaption">Footer Caption</option>
-    </select>
+<select
+  value={summaryStyleTarget}
+  onChange={(e) =>
+    setSummaryStyleTarget(
+      e.target.value as
+        | "header"
+        | "subheader"
+        | "contentLabel"
+        | "content"
+        | "footerLabel"
+        | "footerAggregate"
+        | "footerCaption",
+    )
+  }
+  className={inspectorInputClass()}
+>
+  <option value="header">Header</option>
+  <option value="subheader">Subheader</option>
+  <option value="contentLabel">Content Label</option>
+  <option value="content">Content</option>
+  <option value="footerLabel">Footer Label</option>
+  <option value="footerAggregate">Footer Aggregate</option>
+  <option value="footerCaption">Footer Caption</option>
+</select>
 
     <div className="mt-5 border-t border-neutral-200 pt-4">
       <div className={inspectorLabelClass()}>Summary</div>
