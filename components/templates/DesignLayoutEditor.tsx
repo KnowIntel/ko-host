@@ -2238,9 +2238,10 @@ const [faqStyleTarget, setFaqStyleTarget] = useState<
 >("form");
 
 const [summaryStyleTarget, setSummaryStyleTarget] = useState<
-  | "content"
   | "header"
   | "subheader"
+  | "contentLabel"
+  | "content"
   | "footerLabel"
   | "footerAggregate"
   | "footerCaption"
@@ -2503,6 +2504,14 @@ selectedBlockFromDraft?.type === "gallery"
       ? (((selectedBlockFromDraft.data as any).subheaderStyle ??
           (selectedBlockFromDraft.data as any).style ??
           {}) as TextStyle)
+: summaryStyleTarget === "contentLabel"
+  ? (((selectedBlockFromDraft.data as any).labelStyle ??
+      (selectedBlockFromDraft.data as any).style ??
+      {}) as TextStyle)
+: summaryStyleTarget === "content"
+  ? (((selectedBlockFromDraft.data as any).valueStyle ??
+      (selectedBlockFromDraft.data as any).style ??
+      {}) as TextStyle)
       : summaryStyleTarget === "footerLabel"
         ? (((selectedBlockFromDraft.data as any).footerLabelStyle ??
             (selectedBlockFromDraft.data as any).labelStyle ??
@@ -5009,18 +5018,22 @@ if (selectedBlockFromDraft?.type === "summary") {
         return block;
       }
 
-      const styleKey =
-        summaryStyleTarget === "header"
-          ? "headerStyle"
-          : summaryStyleTarget === "subheader"
-            ? "subheaderStyle"
-            : summaryStyleTarget === "footerLabel"
-              ? "footerLabelStyle"
-              : summaryStyleTarget === "footerAggregate"
-                ? "footerAggregateStyle"
-                : summaryStyleTarget === "footerCaption"
-                  ? "footerCaptionStyle"
-                  : "labelStyle";
+const styleKey =
+  summaryStyleTarget === "header"
+    ? "headerStyle"
+    : summaryStyleTarget === "subheader"
+      ? "subheaderStyle"
+      : summaryStyleTarget === "contentLabel"
+        ? "labelStyle"
+        : summaryStyleTarget === "content"
+          ? "valueStyle"
+          : summaryStyleTarget === "footerLabel"
+            ? "footerLabelStyle"
+            : summaryStyleTarget === "footerAggregate"
+              ? "footerAggregateStyle"
+              : summaryStyleTarget === "footerCaption"
+                ? "footerCaptionStyle"
+                : "valueStyle";
 
       return {
         ...block,
@@ -20349,12 +20362,13 @@ setSummaryStyleTarget(
       }
       className={inspectorInputClass()}
     >
-      <option value="content">Content</option>
-      <option value="header">Header</option>
-      <option value="subheader">Subheader</option>
-      <option value="footerLabel">Footer Label</option>
-      <option value="footerAggregate">Footer Aggregate</option>
-      <option value="footerCaption">Footer Caption</option>
+<option value="header">Header</option>
+<option value="subheader">Subheader</option>
+<option value="contentLabel">Content Label</option>
+<option value="content">Content</option>
+<option value="footerLabel">Footer Label</option>
+<option value="footerAggregate">Footer Aggregate</option>
+<option value="footerCaption">Footer Caption</option>
     </select>
 
     <div className="mt-5 border-t border-neutral-200 pt-4">
