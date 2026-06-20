@@ -10369,24 +10369,37 @@ if (resolvedLinkedBlock?.type === "form_field") {
     resolvedLinkedBlock.data.value ||
     "";
 
+  const linkedFormBlock = blocks.find(
+    (candidate): candidate is Extract<MicrositeBlock, { type: "form_field" }> =>
+      candidate.id === item.blockId && candidate.type === "form_field",
+  );
+
+  const fieldType =
+    linkedFormBlock?.data.fieldType ?? resolvedLinkedBlock.data.fieldType;
+
   const dateFormat =
-    resolvedLinkedBlock.data.fieldType === "date"
-      ? ((liveLinkedBlock as any)?.data?.dateFormat ??
-          (resolvedLinkedBlock.data as any).dateFormat ??
-          "mm-dd-yyyy")
-      : "mm-dd-yyyy";
+    linkedFormBlock?.data.dateFormat ??
+    (resolvedLinkedBlock.data as any).dateFormat ??
+    "mm-dd-yyyy";
+
+    console.log("SUMMARY DATE DEBUG", {
+  rawValue,
+  fieldType,
+  dateFormat,
+  linkedFormBlockDateFormat: linkedFormBlock?.data.dateFormat,
+});
 
   const displayValue =
-    resolvedLinkedBlock.data.fieldType === "date" && rawValue
+    fieldType === "date" && rawValue
       ? formatDateValue(rawValue, dateFormat)
       : rawValue || "Not selected";
 
-        return {
-          id: item.id,
-          label: item.label || resolvedLinkedBlock.data.label || "Input Field",
-          values: [displayValue],
-        };
-      }
+  return {
+    id: item.id,
+    label: item.label || resolvedLinkedBlock.data.label || "Input Field",
+    values: [displayValue],
+  };
+}
 
       if (!resolvedLinkedBlock && liveFormValues[item.blockId]) {
         return {
