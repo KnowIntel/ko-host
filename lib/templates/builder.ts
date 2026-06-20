@@ -1218,6 +1218,13 @@ export type FormFieldBlock = BaseBlock & {
     ratingValue?: number;
     ratingColor?: string;
     ratingPosition?: "high" | "low";
+    dateFormat?:
+  | "yyyy-dd-mm"
+  | "yyyy-mm-dd"
+  | "mm-dd-yyyy"
+  | "m-d-yy"
+  | "m-d-yyyy"
+  | "mmmm-d-yyyy";
     
   };
 };
@@ -3347,6 +3354,8 @@ case "form_field":
       ratingValue: 0,
       ratingColor: "#F59E0B",
       ratingPosition: "high",
+
+      dateFormat: "mm-dd-yyyy",
 
       style: createDefaultTextStyle(),
       labelStyle: createDefaultTextStyle(),
@@ -6820,6 +6829,16 @@ if (block.type === "form_field") {
         paddingLeft: 12,
         ...((block.data as any).inputStyle ?? block.data.style ?? {}),
       },
+
+      dateFormat:
+      data.dateFormat === "yyyy-dd-mm" ||
+      data.dateFormat === "yyyy-mm-dd" ||
+      data.dateFormat === "mm-dd-yyyy" ||
+      data.dateFormat === "m-d-yy" ||
+      data.dateFormat === "m-d-yyyy" ||
+      data.dateFormat === "mmmm-d-yyyy"
+        ? data.dateFormat
+        : "mm-dd-yyyy",
 
       placeholderStyle: {
         ...createDefaultTextStyle(),

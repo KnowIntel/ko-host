@@ -427,6 +427,7 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Hour Glass Empty", type: "icon", iconName: "hour-glass-empty" },
     { kind: "block", label: "Hour Glass Full", type: "icon", iconName: "hour-glass-full" },
     { kind: "block", label: "Hour Glass Half", type: "icon", iconName: "hour-glass-half" },
+    { kind: "block", label: "Clock", type: "icon", iconName: "clock" },
     { kind: "block", label: "Cross Cancel", type: "icon", iconName: "cross-cancel" },
     { kind: "block", label: "Ban Sign", type: "icon", iconName: "ban-sign" },
     { kind: "block", label: "Wrong Files", type: "icon", iconName: "wrong-files" },
@@ -474,7 +475,6 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Location Pin Alt", type: "icon", iconName: "location-pin-alt" },
     { kind: "block", label: "Video Camera", type: "icon", iconName: "video-camera" },
     { kind: "block", label: "Training Presentation", type: "icon", iconName: "training-presentation" },
-    { kind: "block", label: "Clock", type: "icon", iconName: "clock" },
     { kind: "block", label: "Jagged Line", type: "icon", iconName: "jagged-line" },
     { kind: "block", label: "Phone", type: "icon", iconName: "phone" },
     { kind: "block", label: "Shopping Cart", type: "icon", iconName: "shopping-cart" },
@@ -15401,6 +15401,54 @@ selectedContext.kind === "textFx"
     className="mt-3 h-10 w-full rounded-xl border border-neutral-300 bg-white disabled:opacity-50"
   />
 </div>
+
+{(selectedBlock.data as any).fieldType === "date" ? (
+  <div className="mt-4">
+    <div className={inspectorLabelClass()}>Date Format</div>
+
+    <select
+      value={(selectedBlock.data as any).dateFormat ?? "mm-dd-yyyy"}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "form_field"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  dateFormat: e.target.value,
+                },
+              },
+        )
+      }
+      className={inspectorInputClass()}
+    >
+      <option value="yyyy-dd-mm">
+        YYYY-DD-MM (1993-24-05)
+      </option>
+
+      <option value="yyyy-mm-dd">
+        YYYY-MM-DD (1993-05-24)
+      </option>
+
+      <option value="mm-dd-yyyy">
+        MM-DD-YYYY (05-24-1993)
+      </option>
+
+      <option value="m-d-yy">
+        M-D-YY (5-24-93)
+      </option>
+
+      <option value="m-d-yyyy">
+        M-D-YYYY (5-24-1993)
+      </option>
+
+      <option value="mmmm-d-yyyy">
+        MMMM D, YYYY (May 24, 1993)
+      </option>
+    </select>
+  </div>
+) : null}
 
     <div className="mt-4">
       <div className={inspectorLabelClass()}>Linked Submit Button</div>

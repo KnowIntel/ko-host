@@ -588,6 +588,48 @@ function getTextureBackgroundStyle(
   };
 }
 
+function formatDateValue(
+  value: string,
+  format: string = "mm-dd-yyyy",
+) {
+  if (!value) return "";
+
+  const [year, month, day] = value.split("-").map(Number);
+
+  if (!year || !month || !day) {
+    return value;
+  }
+
+  const date = new Date(year, month - 1, day);
+
+  switch (format) {
+    case "yyyy-dd-mm":
+      return `${year}-${String(day).padStart(2, "0")}-${String(month).padStart(2, "0")}`;
+
+    case "yyyy-mm-dd":
+      return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+
+    case "mm-dd-yyyy":
+      return `${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}-${year}`;
+
+    case "m-d-yy":
+      return `${month}-${day}-${String(year).slice(-2)}`;
+
+    case "m-d-yyyy":
+      return `${month}-${day}-${year}`;
+
+    case "mmmm-d-yyyy":
+      return date.toLocaleDateString("en-US", {
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+      });
+
+    default:
+      return value;
+  }
+}
+
 function getTextTextureStyle(
   style?: TextStyle,
 ): React.CSSProperties {
@@ -10284,18 +10326,27 @@ function renderSummaryBlock(
           (candidate: any) => candidate.id === item.blockId,
         );
 
-        if (resolvedLinkedBlock?.type === "form_field") {
-          return {
-            id: item.id,
-            label: item.label || resolvedLinkedBlock.data.label || "Input Field",
-            values: [
-              liveFormValues[item.blockId] ||
-                liveFormValues[resolvedLinkedBlock.id] ||
-                resolvedLinkedBlock.data.value ||
-                "Not selected",
-            ],
-          };
-        }
+if (resolvedLinkedBlock?.type === "form_field") {
+  const rawValue =
+    liveFormValues[item.blockId] ||
+    liveFormValues[resolvedLinkedBlock.id] ||
+    resolvedLinkedBlock.data.value ||
+    "";
+
+  const displayValue =
+    resolvedLinkedBlock.data.fieldType === "date"
+      ? formatDateValue(
+          rawValue,
+          resolvedLinkedBlock.data.dateFormat,
+        )
+      : rawValue || "Not selected";
+
+  return {
+    id: item.id,
+    label: item.label || resolvedLinkedBlock.data.label || "Input Field",
+    values: [displayValue],
+  };
+}
 
         if (!resolvedLinkedBlock && liveFormValues[item.blockId]) {
           return {
