@@ -8207,11 +8207,11 @@ const fieldBorderColor = data.fieldBorderColor ?? "#d4d4d4";
             ) : null}
 
             <select
-              className={
-                isLightDesign(designKey)
-                  ? "pointer-events-auto w-full rounded border border-neutral-300 bg-white px-3 py-2"
-                  : "pointer-events-auto w-full rounded border border-white/15 bg-white/5 px-3 py-2"
-              }
+className={
+  isLightDesign(designKey)
+    ? "pointer-events-auto h-[54px] w-full rounded border border-neutral-300 bg-white px-3 py-2"
+    : "pointer-events-auto h-[54px] w-full rounded border border-white/15 bg-white/5 px-3 py-2"
+}
               value={selectedIds[0] ?? ""}
               onChange={(e) =>
                 applySelection(e.target.value ? [e.target.value] : [])
