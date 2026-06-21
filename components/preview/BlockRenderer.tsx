@@ -10437,8 +10437,13 @@ if (resolvedLinkedBlock?.type === "option_button") {
 });
 
 console.log("SUMMARY PRICE DEBUG", {
+  blockId: resolvedLinkedBlock.id,
+  heading: resolvedLinkedBlock.data.heading,
   selectedIds,
+  selectedOptionCount: selectedOptions.length,
+  firstSelectedOption: selectedOptions[0],
   selectedOptions,
+  liveSelection,
 });
 
   selectedOptions.forEach((option: any) => {
