@@ -10425,6 +10425,12 @@ if (resolvedLinkedBlock?.type === "option_button") {
           selectedIds.includes(option.id),
         );
 
+        console.log("SUMMARY PRICE DEBUG", {
+  selectedIds,
+  selectedOptions,
+  liveSelection,
+});
+
   selectedOptions.forEach((option: any) => {
     if (option.showPrice === false) return;
 
