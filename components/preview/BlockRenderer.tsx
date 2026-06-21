@@ -1543,12 +1543,6 @@ function renderImage(
 
 function renderIcon(block: Extract<MicrositeBlock, { type: "icon" }>) {
   const icon = block.data.icon;
-  console.log("ICON DEBUG", {
-  id: block.id,
-  label: block.label,
-  alt: icon.alt,
-  url: icon.url,
-});
   const iconUrl =
     icon.url && !icon.url.endsWith("/star.svg")
       ? icon.url
