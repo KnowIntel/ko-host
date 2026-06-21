@@ -614,7 +614,7 @@ const TOOL_DESCRIPTIONS: Record<string, string> = {
   "Enrollment Board":
     "Public sign-up, member roster, supporter wall, or enrollment list",
   FAQ: "Expandable questions and answers",
-
+  
   Thread: "Public discussion message thread",
   "Post Board": "Owner announcements with likes and discussion links",
   "File Share": "Upload and share visitor files",

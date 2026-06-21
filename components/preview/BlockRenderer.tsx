@@ -112,6 +112,7 @@ type OptionButtonSelectionEventDetail = {
   selectedOptionIds: string[];
   selectedLabels: string[];
   selectedValues: string[];
+  selectedOptions?: any[];
 };
 
 const FORM_FIELD_VALUE_EVENT = "ko-host:form-field-value";
@@ -8118,7 +8119,10 @@ const detail: OptionButtonSelectionEventDetail = {
   blockId: block.id,
   selectedOptionIds: nextSelectedIds,
   selectedLabels: selectedOptions.map((option: any) => option.label),
-  selectedValues: selectedOptions.map((option: any) => option.value ?? option.id),
+  selectedValues: selectedOptions.map(
+    (option: any) => option.value ?? option.id,
+  ),
+  selectedOptions,
 };
 
 window.dispatchEvent(
@@ -10259,16 +10263,17 @@ function SummaryPreview() {
     Record<string, { dateFormat?: string }>
   >({});
 
-  const [liveOptionSelections, setLiveOptionSelections] = useState<
-    Record<
-      string,
-      {
-        selectedOptionIds: string[];
-        selectedLabels: string[];
-        selectedValues: string[];
-      }
-    >
-  >({});
+const [liveOptionSelections, setLiveOptionSelections] = useState<
+  Record<
+    string,
+    {
+      selectedOptionIds: string[];
+      selectedLabels: string[];
+      selectedValues: string[];
+      selectedOptions?: any[];
+    }
+  >
+>({});
 
   useEffect(() => {
     function handleSelection(event: Event) {
@@ -10279,11 +10284,12 @@ function SummaryPreview() {
 
       setLiveOptionSelections((prev) => ({
         ...prev,
-        [detail.blockId]: {
-          selectedOptionIds: detail.selectedOptionIds,
-          selectedLabels: detail.selectedLabels,
-          selectedValues: detail.selectedValues,
-        },
+[detail.blockId]: {
+  selectedOptionIds: detail.selectedOptionIds,
+  selectedLabels: detail.selectedLabels,
+  selectedValues: detail.selectedValues,
+  selectedOptions: (detail as any).selectedOptions ?? [],
+},
       }));
     }
 
@@ -10412,29 +10418,40 @@ if (resolvedLinkedBlock?.type === "form_field") {
             ? resolvedLinkedBlock.data.selectedOptionIds
             : []);
 
-        const selectedOptions = resolvedLinkedBlock.data.options.filter(
-          (option: any) => selectedIds.includes(option.id),
-        );
+const selectedOptions =
+  liveSelection?.selectedOptions?.length
+    ? liveSelection.selectedOptions
+    : resolvedLinkedBlock.data.options.filter((option: any) =>
+        selectedIds.includes(option.id),
+      );
 
-        selectedOptions.forEach((option: any) => {
-          if (option.showPrice === false) return;
+selectedOptions.forEach((option: any) => {
+  if (option.showPrice === false) return;
 
-          if ((option.priceMode ?? "fixed") === "range") {
-            hasAnyRangePrice = true;
-            hasAnySelectedPrice = true;
-            footerMinTotal += parsePriceAmount(option.priceMin);
-            footerMaxTotal += parsePriceAmount(option.priceMax);
-            return;
-          }
+  const priceMode = option.priceMode ?? "fixed";
 
-          if (option.price) {
-            const amount = parsePriceAmount(option.price);
+  if (priceMode === "range") {
+    const minAmount = parsePriceAmount(option.priceMin);
+    const maxAmount = parsePriceAmount(option.priceMax);
 
-            hasAnySelectedPrice = true;
-            footerMinTotal += amount;
-            footerMaxTotal += amount;
-          }
-        });
+    if (option.priceMin || option.priceMax) {
+      hasAnyRangePrice = true;
+      hasAnySelectedPrice = true;
+      footerMinTotal += minAmount;
+      footerMaxTotal += maxAmount || minAmount;
+    }
+
+    return;
+  }
+
+  const fixedAmount = parsePriceAmount(option.price);
+
+  if (option.price || fixedAmount > 0) {
+    hasAnySelectedPrice = true;
+    footerMinTotal += fixedAmount;
+    footerMaxTotal += fixedAmount;
+  }
+});
 
         return {
           id: item.id,
