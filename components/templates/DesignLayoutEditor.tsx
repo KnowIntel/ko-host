@@ -356,7 +356,7 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Question Mark", type: "icon", iconName: "question-mark" },
     { kind: "block", label: "Caution Circle", type: "icon", iconName: "caution-circle" },
     { kind: "block", label: "Paper Airplane", type: "icon", iconName: "paper-airplane" },
-    { kind: "block", label: "Shield", type: "icon", iconName: "shield" },
+    // { kind: "block", label: "Shield", type: "icon", iconName: "shield" },
     { kind: "block", label: "Graduate Cap", type: "icon", iconName: "graduate-cap" },
     { kind: "block", label: "Open Book", type: "icon", iconName: "open-book" },
     { kind: "block", label: "Open Book Empty", type: "icon", iconName: "open-book-empty" },
