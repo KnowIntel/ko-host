@@ -15351,13 +15351,6 @@ const spin = () => {
 }
 
 export default function BlockRenderer({
-
-  console.log("BLOCK RENDERER BLOCKS DEBUG", {
-  blockType: block.type,
-  blockId: block.id,
-  blocksCount: blocks?.length ?? 0,
-});
-
   block,
   blocks,
   optionButtonSelections,
@@ -15377,6 +15370,13 @@ export default function BlockRenderer({
   const safeCartItems = cartItems ?? [];
   const safeCartSubtotal = cartSubtotal ?? 0;
   const safeListingQuantities = listingQuantities ?? {};
+
+    console.log("BLOCK RENDERER BLOCKS DEBUG", {
+    blockType: block.type,
+    blockId: block.id,
+    blocksCount: blocks?.length ?? 0,
+  });
+  
   switch (block.type) {
     case "label":
       return renderLabel(block, designKey);
