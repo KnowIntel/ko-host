@@ -10380,6 +10380,17 @@ const resolvedLinkedBlock =
     (candidate: any) => candidate.id === item.blockId,
   );
 
+  console.log("SUMMARY LINK RESOLVE DEBUG", {
+  itemBlockId: item.blockId,
+  liveLinkedBlockType: liveLinkedBlock?.type,
+  resolvedLinkedBlockType: resolvedLinkedBlock?.type,
+  availableBlockIds: currentRenderableBlocks.map((block: any) => ({
+    id: block.id,
+    type: block.type,
+    label: block.label,
+  })),
+});
+
 if (resolvedLinkedBlock?.type === "form_field") {
   const rawValue =
     liveFormValues[item.blockId] ||
