@@ -449,6 +449,7 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Check Circle Solid", type: "icon", iconName: "check-circle-solid" },
     { kind: "block", label: "Shield Check Plain", type: "icon", iconName: "shield-check-plain" },
     { kind: "block", label: "Shield Check Styled", type: "icon", iconName: "shield-check-styled" },
+    { kind: "block", label: "Shield Lock", type: "icon", iconName: "shield-lock" },
     { kind: "block", label: "Open Door", type: "icon", iconName: "open-door" },
     { kind: "block", label: "Envelope", type: "icon", iconName: "envelope" },
     { kind: "block", label: "Person", type: "icon", iconName: "person" },
