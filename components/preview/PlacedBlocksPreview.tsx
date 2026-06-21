@@ -887,6 +887,7 @@ zIndex:
 <BlockRenderer
   key={`${block.id}-${JSON.stringify(block.data)}`}
   block={block}
+  blocks={draft.blocks}
   designKey={designKey}
   micrositeId={micrositeId}
     micrositeSlug={

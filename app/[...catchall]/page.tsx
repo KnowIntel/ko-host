@@ -222,7 +222,11 @@ export default async function PublicSubdomainPage({ params }: Props) {
             {blocks.length > 0 ? (
               blocks.map((block) => (
                 <div key={block.id} className={theme.sectionClassName}>
-                  <BlockRenderer block={block} designKey={designKey} />
+<BlockRenderer
+  block={block}
+  blocks={draft.blocks}
+  designKey={designKey}
+/>
                 </div>
               ))
             ) : (
