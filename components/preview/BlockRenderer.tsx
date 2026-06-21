@@ -10447,9 +10447,7 @@ console.log("SUMMARY PRICE DEBUG", {
 });
 
   selectedOptions.forEach((option: any) => {
-    if (option.showPrice === false) return;
-
-    const priceMode = option.priceMode ?? "fixed";
+        const priceMode = option.priceMode ?? "fixed";
 
     if (priceMode === "range") {
       const minAmount = parsePriceAmount(option.priceMin);
