@@ -10408,60 +10408,62 @@ if (resolvedLinkedBlock?.type === "form_field") {
         };
       }
 
-      if (resolvedLinkedBlock?.type === "option_button") {
-        const liveSelection = liveOptionSelections[resolvedLinkedBlock.id];
+if (resolvedLinkedBlock?.type === "option_button") {
+  const liveSelection = liveOptionSelections[resolvedLinkedBlock.id];
 
-        const selectedIds =
-          liveSelection?.selectedOptionIds ??
-          optionButtonSelections[resolvedLinkedBlock.id] ??
-          (Array.isArray(resolvedLinkedBlock.data.selectedOptionIds)
-            ? resolvedLinkedBlock.data.selectedOptionIds
-            : []);
+  const selectedIds =
+    liveSelection?.selectedOptionIds ??
+    optionButtonSelections[resolvedLinkedBlock.id] ??
+    (Array.isArray(resolvedLinkedBlock.data.selectedOptionIds)
+      ? resolvedLinkedBlock.data.selectedOptionIds
+      : []);
 
-const selectedOptions =
-  liveSelection?.selectedOptions?.length
-    ? liveSelection.selectedOptions
-    : resolvedLinkedBlock.data.options.filter((option: any) =>
-        selectedIds.includes(option.id),
-      );
+  const selectedOptions =
+    liveSelection?.selectedOptions?.length
+      ? liveSelection.selectedOptions
+      : resolvedLinkedBlock.data.options.filter((option: any) =>
+          selectedIds.includes(option.id),
+        );
 
-selectedOptions.forEach((option: any) => {
-  if (option.showPrice === false) return;
+  selectedOptions.forEach((option: any) => {
+    if (option.showPrice === false) return;
 
-  const priceMode = option.priceMode ?? "fixed";
+    const priceMode = option.priceMode ?? "fixed";
 
-  if (priceMode === "range") {
-    const minAmount = parsePriceAmount(option.priceMin);
-    const maxAmount = parsePriceAmount(option.priceMax);
+    if (priceMode === "range") {
+      const minAmount = parsePriceAmount(option.priceMin);
+      const maxAmount = parsePriceAmount(option.priceMax);
 
-    if (option.priceMin || option.priceMax) {
-      hasAnyRangePrice = true;
-      hasAnySelectedPrice = true;
-      footerMinTotal += minAmount;
-      footerMaxTotal += maxAmount || minAmount;
+      if (option.priceMin || option.priceMax || minAmount > 0 || maxAmount > 0) {
+        hasAnyRangePrice = true;
+        hasAnySelectedPrice = true;
+
+        footerMinTotal += minAmount;
+        footerMaxTotal += maxAmount > 0 ? maxAmount : minAmount;
+      }
+
+      return;
     }
 
-    return;
-  }
+    const fixedAmount = parsePriceAmount(option.price);
 
-  const fixedAmount = parsePriceAmount(option.price);
+    if (option.price || fixedAmount > 0) {
+      hasAnySelectedPrice = true;
 
-  if (option.price || fixedAmount > 0) {
-    hasAnySelectedPrice = true;
-    footerMinTotal += fixedAmount;
-    footerMaxTotal += fixedAmount;
-  }
-});
+      footerMinTotal += fixedAmount;
+      footerMaxTotal += fixedAmount;
+    }
+  });
 
-        return {
-          id: item.id,
-          label: item.label || resolvedLinkedBlock.data.heading || "Option Button",
-          values:
-            selectedOptions.length > 0
-              ? selectedOptions.map((option: any) => option.label)
-              : ["Not selected"],
-        };
-      }
+  return {
+    id: item.id,
+    label: item.label || resolvedLinkedBlock.data.heading || "Option Button",
+    values:
+      selectedOptions.length > 0
+        ? selectedOptions.map((option: any) => option.label)
+        : ["Not selected"],
+  };
+}
 
       if (!resolvedLinkedBlock && liveOptionSelections[item.blockId]) {
         const liveSelection = liveOptionSelections[item.blockId];
