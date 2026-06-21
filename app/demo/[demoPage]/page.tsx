@@ -268,6 +268,12 @@ const DEMO_PAGES: Record<
     "You opened the Zoom meeting page. In a real watch club microsite, this could launch virtual watch parties, member discussions, live reactions, episode breakdowns, and at least one participant who spends the first five minutes asking if everyone can hear them.",
 },
 
+"service-ad-watch-repair-video": {
+  title: "Demo Watch Repair Video",
+  eyebrow: "Service Ad Demo",
+  message:
+    "You opened the watch repair video page. In a real service microsite, this could feature repair demonstrations, before-and-after transformations, customer testimonials, maintenance tips, and the oddly satisfying moment hundreds of tiny parts come back together perfectly.",
+},
 
 
 
