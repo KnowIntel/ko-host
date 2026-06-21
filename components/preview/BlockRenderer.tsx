@@ -8161,7 +8161,7 @@ const descriptionStyle = {
     data.labelStyle?.color ??
     data.style?.color ??
     getDefaultTextColor(designKey),
-};
+}; 
 
     const priceStyle = getContainerTextStyle(
       data.priceStyle ?? data.labelStyle ?? data.style ?? {},
