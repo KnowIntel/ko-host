@@ -8151,10 +8151,17 @@ onSelectionChange?.({
       designKey,
     );
 
-    const descriptionStyle = getContainerTextStyle(
-      data.descriptionStyle ?? data.labelStyle ?? data.style ?? {},
-      designKey,
-    );
+const descriptionStyle = {
+  ...getContainerTextStyle(
+    data.descriptionStyle ?? data.labelStyle ?? data.style ?? {},
+    designKey,
+  ),
+  color:
+    data.descriptionStyle?.color ??
+    data.labelStyle?.color ??
+    data.style?.color ??
+    getDefaultTextColor(designKey),
+};
 
     const priceStyle = getContainerTextStyle(
       data.priceStyle ?? data.labelStyle ?? data.style ?? {},
