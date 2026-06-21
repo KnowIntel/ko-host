@@ -8761,36 +8761,37 @@ if (block.type === "text_fx") {
 
   return (
     <div className="h-full w-full">
-      <BlockRenderer
-        block={{
-          ...block,
-          data: {
-            ...block.data,
-            style: {
-              ...block.data.style,
-              color: hasTexture ? "transparent" : block.data.style?.color,
-              WebkitTextFillColor: hasTexture
-                ? "transparent"
-                : block.data.style?.color,
-              backgroundImage: hasTexture
-                ? `url("${block.data.style?.textureImageUrl}")`
-                : undefined,
-              backgroundRepeat: hasTexture ? "repeat" : undefined,
-              backgroundSize: hasTexture
-                ? `${block.data.style?.textureScale ?? 100}%`
-                : undefined,
-              backgroundPosition: hasTexture
-                ? `${block.data.style?.texturePositionX ?? 50}% ${
-                    block.data.style?.texturePositionY ?? 50
-                  }%`
-                : undefined,
-              backgroundClip: hasTexture ? "text" : undefined,
-              WebkitBackgroundClip: hasTexture ? "text" : undefined,
-            } as any,
-          },
-        }}
-        designKey={designKey}
-      />
+<BlockRenderer
+  block={{
+    ...block,
+    data: {
+      ...block.data,
+      style: {
+        ...block.data.style,
+        color: hasTexture ? "transparent" : block.data.style?.color,
+        WebkitTextFillColor: hasTexture
+          ? "transparent"
+          : block.data.style?.color,
+        backgroundImage: hasTexture
+          ? `url("${block.data.style?.textureImageUrl}")`
+          : undefined,
+        backgroundRepeat: hasTexture ? "repeat" : undefined,
+        backgroundSize: hasTexture
+          ? `${block.data.style?.textureScale ?? 100}%`
+          : undefined,
+        backgroundPosition: hasTexture
+          ? `${block.data.style?.texturePositionX ?? 50}% ${
+              block.data.style?.texturePositionY ?? 50
+            }%`
+          : undefined,
+        backgroundClip: hasTexture ? "text" : undefined,
+        WebkitBackgroundClip: hasTexture ? "text" : undefined,
+      } as any,
+    },
+  }}
+  blocks={draft.blocks}
+  designKey={designKey}
+/>
     </div>
   );
 }
@@ -8802,7 +8803,11 @@ if (block.type === "text_fx") {
           onDoubleClick={() => void uploadImageToSelectedBlock(block.id)}
           title="Double-click to replace image"
         >
-          <BlockRenderer block={block} designKey={designKey} />
+<BlockRenderer
+  block={block}
+  blocks={draft.blocks}
+  designKey={designKey}
+/>
         </div>
       ) : (
         <ImageUploadDropzone
@@ -8837,7 +8842,11 @@ if (block.type === "text_fx") {
           onDoubleClick={() => void uploadAudioToSelectedBlock(block.id)}
           title="Double-click to replace audio"
         >
-          <BlockRenderer block={block} designKey={designKey} />
+<BlockRenderer
+  block={block}
+  blocks={draft.blocks}
+  designKey={designKey}
+/>
         </div>
       ) : (
         <button
@@ -8863,7 +8872,11 @@ if (block.type === "frame") {
           onDoubleClick={() => uploadPuzzleImageToSelectedBlock(block.id)}
           title="Double-click to replace puzzle image"
         >
-          <BlockRenderer block={block} designKey={designKey} />
+<BlockRenderer
+  block={block}
+  blocks={draft.blocks}
+  designKey={designKey}
+/>
         </div>
       ) : (
         <div
@@ -8872,7 +8885,11 @@ if (block.type === "frame") {
           onDoubleClick={() => uploadPuzzleImageToSelectedBlock(block.id)}
           title="Click to add puzzle image"
         >
-          <BlockRenderer block={block} designKey={designKey} />
+<BlockRenderer
+  block={block}
+  blocks={draft.blocks}
+  designKey={designKey}
+/>
         </div>
       );
     }
@@ -8893,7 +8910,11 @@ if (block.type === "gallery") {
       }}
       title="Double-click or drag images here. Large gallery uploads are compressed to keep drafts saveable."
     >
-      <BlockRenderer block={block} designKey={designKey} />
+<BlockRenderer
+  block={block}
+  blocks={draft.blocks}
+  designKey={designKey}
+/>
     </div>
   );
 }
@@ -8963,7 +8984,11 @@ if (block.type === "gallery") {
               });
             }}
           >
-            <BlockRenderer block={block} designKey={designKey} />
+<BlockRenderer
+  block={block}
+  blocks={draft.blocks}
+  designKey={designKey}
+/>
           </div>
         </div>
       );
@@ -8984,7 +9009,11 @@ if (block.type === "gallery") {
               }}
               className="block w-full text-left"
             >
-              <BlockRenderer block={block} designKey={designKey} />
+<BlockRenderer
+  block={block}
+  blocks={draft.blocks}
+  designKey={designKey}
+/>
             </button>
           </div>
         </div>
@@ -9089,7 +9118,11 @@ if (block.type === "faq") {
               e.stopPropagation();
             }}
           >
-            <BlockRenderer block={block} designKey={designKey} />
+<BlockRenderer
+  block={block}
+  blocks={draft.blocks}
+  designKey={designKey}
+/>
           </div>
         )}
       </div>
@@ -9109,7 +9142,11 @@ if (block.type === "faq") {
             });
           }}
         >
-          <BlockRenderer block={block} designKey={designKey} />
+<BlockRenderer
+  block={block}
+  blocks={draft.blocks}
+  designKey={designKey}
+/>
         </div>
       );
     }
@@ -9217,18 +9254,22 @@ if (block.type === "faq") {
       }}
       title="Edit carousel in inspector"
     >
-      <BlockRenderer block={block} designKey={designKey} />
+<BlockRenderer
+  block={block}
+  blocks={draft.blocks}
+  designKey={designKey}
+/>
     </div>
   );
 }
 if (block.type === "form_field") {
   return (
     <div className="h-full w-full">
-      <BlockRenderer
-        block={block}
-        blocks={draft.blocks}
-        designKey={designKey}
-      />
+<BlockRenderer
+  block={block}
+  blocks={draft.blocks}
+  designKey={designKey}
+/>
     </div>
   );
 }
@@ -9286,7 +9327,11 @@ if (block.type === "summary") {
           onDoubleClick={() => void uploadImageToSelectedBlock(block.id)}
           title="Double-click to replace listing image"
         >
-          <BlockRenderer block={block} designKey={designKey} />
+<BlockRenderer
+  block={block}
+  blocks={draft.blocks}
+  designKey={designKey}
+/>
         </div>
       ) : (
         <ImageUploadDropzone
@@ -9318,10 +9363,11 @@ if (block.type === "summary") {
     if (block.type === "cart") {
   return (
     <div className="h-full w-full">
-      <BlockRenderer
-        block={block}
-        designKey={designKey}
-      />
+<BlockRenderer
+  block={block}
+  blocks={draft.blocks}
+  designKey={designKey}
+/>
     </div>
   );
 }
@@ -9332,6 +9378,7 @@ if (block.type === "progress_bar") {
       <BlockRenderer
         key={`${block.id}-${JSON.stringify(block.data)}`}
         block={block}
+  blocks={draft.blocks}
         designKey={designKey}
       />
     </div>
@@ -10187,6 +10234,7 @@ return (
         <div className="h-full w-full">
 <BlockRenderer
   block={block}
+  blocks={draft.blocks}
   designKey={designKey}
   onFocusTimelineEntry={(blockId, entryId) => {
     setSelection(selectionFromCanvasBlockId(blockId));
