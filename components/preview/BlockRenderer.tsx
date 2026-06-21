@@ -92,6 +92,28 @@ import {
   Source_Sans_3,
 } from "next/font/google";
 
+import {
+  Chewy,
+  Black_Ops_One,
+  Chelsea_Market,
+  Barlow,
+  Smooch_Sans,
+  Advent_Pro,
+  Amatic_SC,
+  Titan_One,
+  Creepster,
+  Rock_Salt,
+  Josefin_Slab,
+  Poiret_One,
+  Saira_Stencil_One,
+  Six_Caps,
+  Bungee_Shade,
+  Faster_One,
+  Style_Script,
+  Grenze_Gotisch,
+  Wallpoet,
+} from "next/font/google";
+
 type CartItem = {
   id: string;
   title: string;
@@ -179,6 +201,37 @@ const rajdhani = Rajdhani({ subsets: ["latin"], weight: ["400", "600"] });
 const teko = Teko({ subsets: ["latin"] });
 const abril = Abril_Fatface({ subsets: ["latin"], weight: "400" });
 
+const chewy = Chewy({ subsets: ["latin"], weight: "400" });
+const blackOpsOne = Black_Ops_One({ subsets: ["latin"], weight: "400" });
+const chelseaMarket = Chelsea_Market({ subsets: ["latin"], weight: "400" });
+const barlow = Barlow({ subsets: ["latin"], weight: ["400", "500", "600", "700"] });
+const smoochSans = Smooch_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+});
+
+const adventPro = Advent_Pro({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+});
+
+const grenzeGotisch = Grenze_Gotisch({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+});
+const amaticSc = Amatic_SC({ subsets: ["latin"], weight: ["400", "700"] });
+const titanOne = Titan_One({ subsets: ["latin"], weight: "400" });
+const creepster = Creepster({ subsets: ["latin"], weight: "400" });
+const rockSalt = Rock_Salt({ subsets: ["latin"], weight: "400" });
+const josefinSlab = Josefin_Slab({ subsets: ["latin"] });
+const poiretOne = Poiret_One({ subsets: ["latin"], weight: "400" });
+const sairaStencil = Saira_Stencil_One({ subsets: ["latin"], weight: "400" });
+const sixCaps = Six_Caps({ subsets: ["latin"], weight: "400" });
+const bungeeShade = Bungee_Shade({ subsets: ["latin"], weight: "400" });
+const fasterOne = Faster_One({ subsets: ["latin"], weight: "400" });
+const styleScript = Style_Script({ subsets: ["latin"], weight: "400" });
+const wallpoet = Wallpoet({ subsets: ["latin"], weight: "400" });
+
 const dancingScript = Dancing_Script({ subsets: ["latin"] });
 const pacifico = Pacifico({ subsets: ["latin"], weight: "400" });
 const allura = Allura({ subsets: ["latin"], weight: "400" });
@@ -240,6 +293,7 @@ const FONT_FAMILY_MAP: Record<string, string> = {
   Playball: `${playball.style.fontFamily}, cursive`,
   Satisfy: `${satisfy.style.fontFamily}, cursive`,
   Tangerine: `${tangerine.style.fontFamily}, cursive`,
+  
 
   // Modern sans
   Montserrat:
@@ -322,6 +376,24 @@ const FONT_FAMILY_MAP: Record<string, string> = {
   "Source Sans Pro": `${sourceSans3.style.fontFamily}, ui-sans-serif, system-ui, sans-serif`,
   Typewriter: `${courierPrime.style.fontFamily}, "Courier New", monospace`,
   Teko: `${teko.style.fontFamily}, sans-serif`,
+  Chewy: `${chewy.style.fontFamily}, cursive`,
+"Black Ops One": `${blackOpsOne.style.fontFamily}, sans-serif`,
+"Chelsea Market": `${chelseaMarket.style.fontFamily}, cursive`,
+"Smooch Sans": `${smoochSans.style.fontFamily}, sans-serif`,
+"Advent Pro": `${adventPro.style.fontFamily}, sans-serif`,
+"Amatic SC": `${amaticSc.style.fontFamily}, cursive`,
+"Titan One": `${titanOne.style.fontFamily}, sans-serif`,
+Creepster: `${creepster.style.fontFamily}, cursive`,
+"Rock Salt": `${rockSalt.style.fontFamily}, cursive`,
+"Josefin Slab": `${josefinSlab.style.fontFamily}, serif`,
+"Poiret One": `${poiretOne.style.fontFamily}, cursive`,
+"Saira Stencil": `${sairaStencil.style.fontFamily}, sans-serif`,
+"Six Caps": `${sixCaps.style.fontFamily}, sans-serif`,
+"Bungee Shade": `${bungeeShade.style.fontFamily}, sans-serif`,
+"Faster One": `${fasterOne.style.fontFamily}, cursive`,
+"Style Script": `${styleScript.style.fontFamily}, cursive`,
+"Grenze Gotisch": `${grenzeGotisch.style.fontFamily}, serif`,
+Wallpoet: `${wallpoet.style.fontFamily}, sans-serif`,
   "Special Elite": 'var(--font-special-elite), "Special Elite", monospace',
 };
 
@@ -10380,17 +10452,6 @@ const resolvedLinkedBlock =
     (candidate: any) => candidate.id === item.blockId,
   );
 
-  console.log("SUMMARY LINK RESOLVE DEBUG", {
-  itemBlockId: item.blockId,
-  liveLinkedBlockType: liveLinkedBlock?.type,
-  resolvedLinkedBlockType: resolvedLinkedBlock?.type,
-  availableBlockIds: currentRenderableBlocks.map((block: any) => ({
-    id: block.id,
-    type: block.type,
-    label: block.label,
-  })),
-});
-
 if (resolvedLinkedBlock?.type === "form_field") {
   const rawValue =
     liveFormValues[item.blockId] ||
@@ -10429,22 +10490,6 @@ if (resolvedLinkedBlock?.type === "option_button") {
       : resolvedLinkedBlock.data.options.filter((option: any) =>
           selectedIds.includes(option.id),
         );
-
-        console.log("SUMMARY PRICE DEBUG", {
-  selectedIds,
-  selectedOptions,
-  liveSelection,
-});
-
-console.log("SUMMARY PRICE DEBUG", {
-  blockId: resolvedLinkedBlock.id,
-  heading: resolvedLinkedBlock.data.heading,
-  selectedIds,
-  selectedOptionCount: selectedOptions.length,
-  firstSelectedOption: selectedOptions[0],
-  selectedOptions,
-  liveSelection,
-});
 
   selectedOptions.forEach((option: any) => {
         const priceMode = option.priceMode ?? "fixed";
@@ -15379,11 +15424,6 @@ export default function BlockRenderer({
   const safeCartSubtotal = cartSubtotal ?? 0;
   const safeListingQuantities = listingQuantities ?? {};
 
-    console.log("BLOCK RENDERER BLOCKS DEBUG", {
-    blockType: block.type,
-    blockId: block.id,
-    blocksCount: blocks?.length ?? 0,
-  });
   
   switch (block.type) {
     case "label":
