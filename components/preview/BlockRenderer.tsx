@@ -15351,6 +15351,13 @@ const spin = () => {
 }
 
 export default function BlockRenderer({
+
+  console.log("BLOCK RENDERER BLOCKS DEBUG", {
+  blockType: block.type,
+  blockId: block.id,
+  blocksCount: blocks?.length ?? 0,
+});
+
   block,
   blocks,
   optionButtonSelections,
