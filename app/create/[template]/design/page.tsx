@@ -106,7 +106,7 @@ const draftPageCountByTemplateDesignKey: Record<string, number> = {
   "pet_adoption:welcome": 2,
 
   "restaurant:deluxe": 1,
-  "restaurant:hometown": 3,
+  "restaurant:hometown": 2,
 
   "memory_timeline:timeless": 3,
 
