@@ -275,7 +275,26 @@ const DEMO_PAGES: Record<
     "You opened the watch repair video page. In a real service microsite, this could feature repair demonstrations, before-and-after transformations, customer testimonials, maintenance tips, and the oddly satisfying moment hundreds of tiny parts come back together perfectly.",
 },
 
+"service-ad-facebook": {
+  title: "Demo Facebook",
+  eyebrow: "Service Ad Demo",
+  message:
+    "You opened the Facebook page. In a real service microsite, this could connect visitors to business updates, customer reviews, project photos, promotions, and the occasional post reminding everyone that appointments fill up fast.",
+},
 
+"service-ad-instagram": {
+  title: "Demo Instagram",
+  eyebrow: "Service Ad Demo",
+  message:
+    "You opened the Instagram page. Normally this could showcase before-and-after photos, behind-the-scenes content, completed projects, customer highlights, and enough satisfying transformations to keep visitors scrolling.",
+},
+
+"service-ad-google": {
+  title: "Demo Google",
+  eyebrow: "Service Ad Demo",
+  message:
+    "You opened the Google page. In a real service microsite, this could direct visitors to business listings, customer reviews, contact information, operating hours, directions, and the place where everyone suddenly becomes a professional critic.",
+},
 
 
 
