@@ -132,6 +132,7 @@ const draftPageCountByTemplateDesignKey: Record<string, number> = {
 
   "service_ad:repair": 3,
   "service_ad:vibes": 1,
+  "service_ad:clear": 2,
 
 
 };
