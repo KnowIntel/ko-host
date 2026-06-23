@@ -846,10 +846,14 @@ function handleMouseMove(event: MouseEvent) {
   }
 
   function handleMouseUp() {
-    setIsMarqueeSelecting(false);
-    setMarqueeStart(null);
+onMarqueeSelectEnd?.();
 
-    onMarqueeSelectEnd?.();
+setIsMarqueeSelecting(false);
+setMarqueeStart(null);
+
+window.setTimeout(() => {
+  setMarqueeRect(null);
+}, 0);
   }
 
   window.addEventListener("mousemove", handleMouseMove);
