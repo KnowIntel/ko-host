@@ -2506,20 +2506,29 @@ function renderCountdown(
     const showMinutes = data.showMinutes !== false;
     const showSeconds = data.showSeconds !== false;
 
-    const countdownAnimationTransform = (baseTransform: string) => {
-      if (animationStyle === "none") return baseTransform;
-      if (!isTicking) return baseTransform;
+const countdownAnimationTransform = (baseTransform: string) => {
+  if (animationStyle === "none") return baseTransform;
 
-      if (animationStyle === "flip") {
-        return `${baseTransform} rotateX(-78deg)`;
-      }
+  if (animationStyle === "flip") {
+    return isTicking
+      ? `${baseTransform} rotateX(-78deg)`
+      : baseTransform;
+  }
 
-      if (animationStyle === "bounce") {
-        return `${baseTransform} translateY(-14px)`;
-      }
+  if (animationStyle === "bounce") {
+    return isTicking
+      ? `${baseTransform} translateY(-14px)`
+      : baseTransform;
+  }
 
-      return `${baseTransform} scale(1.08)`;
-    };
+  if (animationStyle === "pulse") {
+    return isTicking
+      ? `${baseTransform} scale(1.12)`
+      : `${baseTransform} scale(1)`;
+  }
+
+  return baseTransform;
+};
 
     const countdownAnimationTransition =
       animationStyle === "flip"
@@ -2665,15 +2674,25 @@ function renderCountdown(
                     : "flex items-baseline gap-1"
                 }
               >
-                <span
-                  className="font-bold leading-none"
-                  style={{
-                    ...valueStyle,
-                    fontSize: valueStyle.fontSize ?? "24px",
-                  }}
-                >
-                  {part.value}
-                </span>
+<span
+  className="font-bold leading-none"
+  style={{
+    ...valueStyle,
+    ...countdownAnimationExtraStyle,
+    display: "inline-block",
+    fontSize: valueStyle.fontSize ?? "24px",
+    transition:
+      animationStyle === "none"
+        ? "none"
+        : countdownAnimationTransition,
+    transform:
+      animationStyle === "none"
+        ? "scale(1)"
+        : countdownAnimationTransform("scale(1)"),
+  }}
+>
+  {part.value}
+</span>
 
 <span
   className={[
