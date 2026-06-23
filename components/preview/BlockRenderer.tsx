@@ -2558,43 +2558,75 @@ const countdownTickAnimationStyle =
               : "kht-countdown-pulse 420ms ease",
       };
 
-    if (!target || Number.isNaN(target)) {
-      return (
-        <div
-          className={[
-            "flex h-full w-full flex-col justify-center gap-2 p-4",
-            alignmentClass,
-          ].join(" ")}
-          style={appearanceStyle}
-        >
-          {block.data.heading ? (
-            <div
-              className={["uppercase tracking-[0.14em]", getMutedTextClass(designKey)].join(" ")}
-              style={headingStyle}
-            >
-              {block.data.heading}
-            </div>
-          ) : null}
+      const countdownKeyframes = (
+  <style>
+    {`
+      @keyframes kht-countdown-pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.18); }
+        100% { transform: scale(1); }
+      }
 
-          <div style={backgroundTextStyle}>Set target date</div>
-        </div>
-      );
-    }
+      @keyframes kht-countdown-bounce {
+        0% { transform: translateY(0); }
+        45% { transform: translateY(-12px); }
+        100% { transform: translateY(0); }
+      }
+
+      @keyframes kht-countdown-flip {
+        0% { transform: rotateX(0deg); }
+        50% { transform: rotateX(-78deg); }
+        100% { transform: rotateX(0deg); }
+      }
+    `}
+  </style>
+);
+
+if (!target || Number.isNaN(target)) {
+  return (
+    <>
+      {countdownKeyframes}
+
+      <div
+        className={[
+          "flex h-full w-full flex-col justify-center gap-2 p-4",
+          alignmentClass,
+        ].join(" ")}
+        style={appearanceStyle}
+      >
+        {block.data.heading ? (
+          <div
+            className={["uppercase tracking-[0.14em]", getMutedTextClass(designKey)].join(" ")}
+            style={headingStyle}
+          >
+            {block.data.heading}
+          </div>
+        ) : null}
+
+        <div style={backgroundTextStyle}>Set target date</div>
+      </div>
+    </>
+  );
+}
 
     const diff = target - tickNow;
 
-    if (diff <= 0) {
-      return (
-        <div
-          className="flex h-full w-full items-center justify-center p-4 text-center"
-          style={appearanceStyle}
-        >
-          <div style={backgroundTextStyle}>
-            {block.data.completedMessage || "Countdown finished"}
-          </div>
+if (diff <= 0) {
+  return (
+    <>
+      {countdownKeyframes}
+
+      <div
+        className="flex h-full w-full items-center justify-center p-4 text-center"
+        style={appearanceStyle}
+      >
+        <div style={backgroundTextStyle}>
+          {block.data.completedMessage || "Countdown finished"}
         </div>
-      );
-    }
+      </div>
+    </>
+  );
+}
 
     const totalSeconds = Math.floor(diff / 1000);
     const days = Math.floor(totalSeconds / 86400);
@@ -2651,97 +2683,102 @@ const countdownTickAnimationStyle =
     const valueFontNumber = Number(valueStyle.fontSize) || 24;
     const unitFontNumber = Number(unitStyle.fontSize) || 11;
 
-    if (variant === "standard" || variant === "stage") {
-      return (
-        <div
-          className={[
-            "flex h-full w-full flex-col justify-center gap-2 p-4",
-            alignmentClass,
-          ].join(" ")}
-          style={appearanceStyle}
-        >
-          {block.data.heading ? (
-            <div
-              className={["uppercase tracking-[0.14em]", getMutedTextClass(designKey)].join(" ")}
-              style={headingStyle}
-            >
-              {block.data.heading}
-            </div>
-          ) : null}
+if (variant === "standard" || variant === "stage") {
+  return (
+    <>
+      {countdownKeyframes}
 
+      <div
+        className={[
+          "flex h-full w-full flex-col justify-center gap-2 p-4",
+          alignmentClass,
+        ].join(" ")}
+        style={appearanceStyle}
+      >
+        {block.data.heading ? (
           <div
-            className={[
-              "flex w-full flex-wrap",
-              variant === "stage" ? "items-end" : "items-baseline",
-              justifyClass,
-            ].join(" ")}
-            style={{ gap: `${spacing}px` }}
+            className={["uppercase tracking-[0.14em]", getMutedTextClass(designKey)].join(" ")}
+            style={headingStyle}
           >
-            {parts.map((part) => (
-              <div
-                key={part.key}
-                className={
-                  variant === "stage"
-                    ? "flex flex-col items-center"
-                    : "flex items-baseline gap-1"
-                }
-              >
-<span
-  className="font-bold leading-none"
-  style={{
-    ...valueStyle,
-    ...countdownAnimationExtraStyle,
-    ...countdownTickAnimationStyle,
-    display: "inline-block",
-    fontSize: valueStyle.fontSize ?? "24px",
-    transition:
-      animationStyle === "none"
-        ? "none"
-        : countdownAnimationTransition,
-    transform:
-      animationStyle === "none"
-        ? "scale(1)"
-        : countdownAnimationTransform("scale(1)"),
-  }}
->
-  {part.value}
-</span>
-
-<span
-  className={[
-    "uppercase tracking-[0.12em]",
-    variant === "stage" ? "" : "",
-  ].join(" ")}
-                  style={{
-                    ...unitStyle,
-                    fontSize: unitStyle.fontSize ?? "11px",
-                    marginTop: variant === "stage" ? `${stageUnitGap}px` : undefined,
-                  }}
-                >
-                  {part.label}
-                </span>
-              </div>
-            ))}
+            {block.data.heading}
           </div>
-        </div>
-      );
-    }
+        ) : null}
 
-    if (variant === "cards" || variant === "hero") {
-      const isHero = variant === "hero";
-      const ringSize = Math.max(isHero ? 86 : 70, valueFontNumber * (isHero ? 2.45 : 2.8));
-      const ringStroke = isHero ? 3 : 2;
-      const ringRadius = ringSize / 2 - ringStroke * 3;
-      const ringCircumference = 2 * Math.PI * ringRadius;
-
-      return (
         <div
           className={[
-            "flex h-full w-full flex-col justify-center gap-4 p-4",
-            alignmentClass,
+            "flex w-full flex-wrap",
+            variant === "stage" ? "items-end" : "items-baseline",
+            justifyClass,
           ].join(" ")}
-          style={appearanceStyle}
+          style={{ gap: `${spacing}px` }}
         >
+          {parts.map((part) => (
+            <div
+              key={part.key}
+              className={
+                variant === "stage"
+                  ? "flex flex-col items-center"
+                  : "flex items-baseline gap-1"
+              }
+            >
+              <span
+                key={`${part.key}-${part.value}`}
+                className="font-bold leading-none"
+                style={{
+                  ...valueStyle,
+                  ...countdownAnimationExtraStyle,
+                  ...countdownTickAnimationStyle,
+                  display: "inline-block",
+                  fontSize: valueStyle.fontSize ?? "24px",
+                }}
+              >
+                {part.value}
+              </span>
+
+              <span
+                className={[
+                  "uppercase tracking-[0.12em]",
+                  variant === "stage" ? "" : "",
+                ].join(" ")}
+                style={{
+                  ...unitStyle,
+                  fontSize: unitStyle.fontSize ?? "11px",
+                  marginTop:
+                    variant === "stage" ? `${stageUnitGap}px` : undefined,
+                }}
+              >
+                {part.label}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}
+
+if (variant === "cards" || variant === "hero") {
+  const isHero = variant === "hero";
+  const ringSize = Math.max(
+    isHero ? 86 : 70,
+    valueFontNumber * (isHero ? 2.45 : 2.8),
+  );
+  const ringStroke = isHero ? 3 : 2;
+  const ringRadius = ringSize / 2 - ringStroke * 3;
+  const ringCircumference = 2 * Math.PI * ringRadius;
+
+  return (
+    <>
+      {countdownKeyframes}
+
+      <div
+        key={`countdown-${animationStyle}-${seconds}`}
+      className={[
+        "flex h-full w-full flex-col justify-center gap-4 p-4",
+        alignmentClass,
+      ].join(" ")}
+      style={appearanceStyle}
+    >
           {block.data.heading ? (
             <div
               className={["uppercase tracking-[0.14em]", getMutedTextClass(designKey)].join(" ")}
@@ -2882,17 +2919,21 @@ transform:
             ))}
           </div>
         </div>
-      );
-    }
+      </>
+    );
+  }
 
     return (
-      <div
-        className={[
-          "flex h-full w-full flex-col justify-center gap-3 p-4",
-          alignmentClass,
-        ].join(" ")}
-        style={appearanceStyle}
-      >
+      <>
+        {countdownKeyframes}
+
+        <div
+          className={[
+            "flex h-full w-full flex-col justify-center gap-3 p-4",
+            alignmentClass,
+          ].join(" ")}
+          style={appearanceStyle}
+        >
         {block.data.heading ? (
           <div
             className={["uppercase tracking-[0.14em]", getMutedTextClass(designKey)].join(" ")}
@@ -2952,10 +2993,11 @@ style={{
           ))}
         </div>
       </div>
-    );
-  }
+    </>
+  );
+}
 
-  return <CountdownPreview />;
+return <CountdownPreview />;
 }
 
 function renderTimeline(
