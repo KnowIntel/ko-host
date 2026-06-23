@@ -89,10 +89,27 @@ type ToolDropPayload =
 type Props = {
   blocks: CanvasGridItem[];
   selection: EditorSelection;
-  onSelect: (
+onSelect: (
   s: EditorSelection,
   event?: React.MouseEvent<HTMLDivElement>
 ) => void;
+
+onMarqueeSelectStart?: (
+  x: number,
+  y: number,
+  event: React.MouseEvent<HTMLDivElement>,
+) => void;
+
+onMarqueeSelectMove?: (
+  rect: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  },
+) => void;
+
+onMarqueeSelectEnd?: () => void;
   onMoveBlock: (
     blockId: string,
     patch: { colStart: number; rowStart: number },
@@ -597,6 +614,9 @@ export default function GridCanvas({
   blocks,
   selection,
   onSelect,
+  onMarqueeSelectStart,
+  onMarqueeSelectMove,
+  onMarqueeSelectEnd,
   onMoveBlock,
   onResizeBlock,
   onBringToFront,
@@ -617,6 +637,20 @@ export default function GridCanvas({
   const [resizeState, setResizeState] = useState<ResizeState | null>(null);
   const [dragGuides, setDragGuides] = useState<DragGuide[]>([]);
   const [dragAnchor, setDragAnchor] = useState<DragAnchor | null>(null);
+
+  const [isMarqueeSelecting, setIsMarqueeSelecting] = useState(false);
+
+const [marqueeStart, setMarqueeStart] = useState<{
+  x: number;
+  y: number;
+} | null>(null);
+
+const [marqueeRect, setMarqueeRect] = useState<{
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+} | null>(null);
   
   const lastDragGuidesRef = useRef<string>("");
 
@@ -782,6 +816,55 @@ function handleMouseMove(event: MouseEvent) {
       window.removeEventListener("mouseup", handleMouseUp);
     };
   }, [resizeState, onResizeBlock, blocks]);
+
+  useEffect(() => {
+  if (!isMarqueeSelecting || !marqueeStart) return;
+
+  const start = marqueeStart;
+
+  function handleMouseMove(event: MouseEvent) {
+    const pageSurface = document.querySelector(
+      '[data-kht-page-surface="true"]',
+    ) as HTMLDivElement | null;
+
+    if (!pageSurface) return;
+
+    const rect = pageSurface.getBoundingClientRect();
+
+    const currentX = event.clientX - rect.left;
+    const currentY = event.clientY - rect.top;
+
+    const nextRect = {
+      x: Math.min(start.x, currentX),
+      y: Math.min(start.y, currentY),
+      width: Math.abs(currentX - start.x),
+      height: Math.abs(currentY - start.y),
+    };
+
+    setMarqueeRect(nextRect);
+    onMarqueeSelectMove?.(nextRect);
+  }
+
+  function handleMouseUp() {
+    setIsMarqueeSelecting(false);
+    setMarqueeStart(null);
+
+    onMarqueeSelectEnd?.();
+  }
+
+  window.addEventListener("mousemove", handleMouseMove);
+  window.addEventListener("mouseup", handleMouseUp);
+
+  return () => {
+    window.removeEventListener("mousemove", handleMouseMove);
+    window.removeEventListener("mouseup", handleMouseUp);
+  };
+}, [
+  isMarqueeSelecting,
+  marqueeStart,
+  onMarqueeSelectMove,
+  onMarqueeSelectEnd,
+]);
 
   function clearPreviewIfNeeded(e: React.DragEvent<HTMLDivElement>) {
     const related = e.relatedTarget as Node | null;
@@ -1002,7 +1085,31 @@ function handleMouseMove(event: MouseEvent) {
   onClick={(e) => {
     if (e.target !== e.currentTarget) return;
 
+    if (isMarqueeSelecting) return;
+
     onSelect({ type: "none" } as EditorSelection, e);
+  }}
+  onMouseDown={(e) => {
+    if (!e.shiftKey) return;
+    if (e.target !== e.currentTarget) return;
+
+    setIsMarqueeSelecting(true);
+
+    const start = {
+      x: e.nativeEvent.offsetX,
+      y: e.nativeEvent.offsetY,
+    };
+
+    setMarqueeStart(start);
+
+    setMarqueeRect({
+      x: start.x,
+      y: start.y,
+      width: 0,
+      height: 0,
+    });
+
+    onMarqueeSelectStart?.(start.x, start.y, e);
   }}
   style={{
                   width: PAGE_WIDTH,
@@ -1047,6 +1154,18 @@ function handleMouseMove(event: MouseEvent) {
                     style={getGuideStyle(guide)}
                   />
                 ))}
+
+                {marqueeRect && isMarqueeSelecting ? (
+  <div
+    className="pointer-events-none absolute z-[999999] border border-blue-500 bg-blue-500/10"
+    style={{
+      left: marqueeRect.x,
+      top: marqueeRect.y,
+      width: marqueeRect.width,
+      height: marqueeRect.height,
+    }}
+  />
+) : null}
 
                 {dropPreview ? (
                   <div
