@@ -2546,6 +2546,18 @@ const countdownAnimationTransform = (baseTransform: string) => {
           }
         : {};
 
+const countdownTickAnimationStyle =
+  animationStyle === "none"
+    ? {}
+    : {
+        animation:
+          animationStyle === "flip"
+            ? "kht-countdown-flip 420ms ease"
+            : animationStyle === "bounce"
+              ? "kht-countdown-bounce 420ms ease"
+              : "kht-countdown-pulse 420ms ease",
+      };
+
     if (!target || Number.isNaN(target)) {
       return (
         <div
@@ -2679,6 +2691,7 @@ const countdownAnimationTransform = (baseTransform: string) => {
   style={{
     ...valueStyle,
     ...countdownAnimationExtraStyle,
+    ...countdownTickAnimationStyle,
     display: "inline-block",
     fontSize: valueStyle.fontSize ?? "24px",
     transition:
@@ -2822,6 +2835,7 @@ tileBorderColor
                       style={{
                         ...valueStyle,
                         ...countdownAnimationExtraStyle,
+    ...countdownTickAnimationStyle,
                         display: "inline-flex",
                         alignItems: "center",
                         justifyContent: "center",
@@ -2911,6 +2925,7 @@ transform:
 style={{
   ...valueStyle,
   ...countdownAnimationExtraStyle,
+    ...countdownTickAnimationStyle,
   display: "inline-block",
   transition:
     animationStyle === "none"
