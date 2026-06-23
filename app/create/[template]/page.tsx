@@ -756,9 +756,9 @@ setLiveDraft((prev) => ({
 
   if (presetLoading) {
     return (
-      <main className="min-h-screen bg-[#f6f4f2] p-6 text-sm text-neutral-600">
-        Loading design preset...
-      </main>
+<main className="flex min-h-screen items-center justify-center bg-[#f6f4f2] p-6 text-sm text-neutral-600">
+  Loading design preset...
+</main>
     );
   }
 
