@@ -3606,8 +3606,11 @@ useEffect(() => {
 
   useEffect(() => {
 function handleCanvasShortcuts(event: KeyboardEvent) {
-  const blockId =
-    "blockId" in selectedContext ? selectedContext.blockId : null;
+const blockId =
+  "blockId" in selectedContext ? selectedContext.blockId : null;
+
+const activeBlockId =
+  blockId ?? selectedBlockIds[0] ?? null;
 
   const target = event.target as HTMLElement | null;
   const isTyping =
@@ -3630,14 +3633,24 @@ function handleCanvasShortcuts(event: KeyboardEvent) {
     return;
   }
 
-  if (!blockId) return;
+if (!activeBlockId && selectedBlockIds.length === 0) return;
 
-  if (event.key === "Delete") {
-    event.preventDefault();
-    removeCanvasBlock(blockId);
-    setSelection(createEmptySelection());
-    return;
-  }
+if (event.key === "Delete" || event.key === "Backspace") {
+  event.preventDefault();
+
+  const idsToDelete =
+    selectedBlockIds.length > 0
+      ? selectedBlockIds
+      : activeBlockId
+        ? [activeBlockId]
+        : [];
+
+  idsToDelete.forEach((id) => removeCanvasBlock(id));
+
+  setSelectedBlockIds([]);
+  setSelection(createEmptySelection());
+  return;
+}
 
   if (!event.ctrlKey) return;
 
@@ -3653,48 +3666,52 @@ if (event.key.toLowerCase() === "c") {
   if (isTyping) return;
 
   event.preventDefault();
-  handleCopyCanvasBlock(blockId);
+  if (!activeBlockId) return;
+
+handleCopyCanvasBlock(activeBlockId);
   return;
 }
 
 if (event.key.toLowerCase() === "v") {
   event.preventDefault();
-  handleDuplicateCanvasBlock(blockId);
+  if (!activeBlockId) return;
+
+handleDuplicateCanvasBlock(activeBlockId);
   return;
 }
 
   if (event.key.toLowerCase() === "x") {
     event.preventDefault();
-    removeCanvasBlock(blockId);
+    removeCanvasBlock(activeBlockId);
     setSelection(createEmptySelection());
     return;
   }
 
   if (event.shiftKey && event.key === "ArrowDown") {
     event.preventDefault();
-    handleSendToBack(blockId);
-    setSelection(selectionFromCanvasBlockId(blockId));
+    handleSendToBack(activeBlockId);
+    setSelection(selectionFromCanvasBlockId(activeBlockId));
     return;
   }
 
   if (event.shiftKey && event.key === "ArrowUp") {
     event.preventDefault();
-    handleBringToFront(blockId);
-    setSelection(selectionFromCanvasBlockId(blockId));
+    handleBringToFront(activeBlockId);
+    setSelection(selectionFromCanvasBlockId(activeBlockId));
     return;
   }
 
   if (event.key === "ArrowUp") {
     event.preventDefault();
-    handleBringForward(blockId);
-    setSelection(selectionFromCanvasBlockId(blockId));
+    handleBringForward(activeBlockId);
+    setSelection(selectionFromCanvasBlockId(activeBlockId));
     return;
   }
 
   if (event.key === "ArrowDown") {
     event.preventDefault();
-    handleSendBackward(blockId);
-    setSelection(selectionFromCanvasBlockId(blockId));
+    handleSendBackward(activeBlockId);
+    setSelection(selectionFromCanvasBlockId(activeBlockId));
   }
 }
 
@@ -3703,7 +3720,7 @@ if (event.key.toLowerCase() === "v") {
   return () => {
     window.removeEventListener("keydown", handleCanvasShortcuts);
   };
-}, [selectedContext, draft]);
+}, [selectedContext, draft, selectedBlockIds]);
 
 
   useEffect(() => {
