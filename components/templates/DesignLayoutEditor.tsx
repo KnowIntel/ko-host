@@ -3663,10 +3663,7 @@ if (event.key === "Delete" || event.key === "Backspace") {
         ? [activeBlockId]
         : [];
 
-setDraft((prev) => ({
-  ...prev,
-  blocks: prev.blocks.filter((block) => !idsToDelete.includes(block.id)),
-}));
+removeCanvasBlocks(idsToDelete);
 
 setSelectedBlockIds([]);
 setSelection(createEmptySelection());
@@ -3727,10 +3724,7 @@ const idsToDelete =
       ? [activeBlockId]
       : [];
 
-setDraft((prev) => ({
-  ...prev,
-  blocks: prev.blocks.filter((block) => !idsToDelete.includes(block.id)),
-}));
+removeCanvasBlocks(idsToDelete);
 
 setSelectedBlockIds([]);
 setSelection(createEmptySelection());
@@ -7954,6 +7948,34 @@ function handleRemoveClipboardEntry(clipboardId: string) {
 
 function handleClearClipboard() {
   setClipboardEntries([]);
+}
+
+function removeCanvasBlocks(blockIds: string[]) {
+  const idsToRemove = new Set(blockIds);
+
+  setDraft((prev) => {
+    const next = prev as DraftWithPageExtras;
+
+    return {
+      ...prev,
+      pageVisibility: {
+        ...(next.pageVisibility ?? {}),
+        title: idsToRemove.has(PAGE_TITLE_BLOCK_ID)
+          ? false
+          : (next.pageVisibility?.title ?? true),
+        subtitle: idsToRemove.has(PAGE_SUBTITLE_BLOCK_ID)
+          ? false
+          : (next.pageVisibility?.subtitle ?? true),
+        subtext: idsToRemove.has(PAGE_SUBTEXT_BLOCK_ID)
+          ? false
+          : (next.pageVisibility?.subtext ?? true),
+        description: idsToRemove.has(PAGE_DESCRIPTION_BLOCK_ID)
+          ? false
+          : (next.pageVisibility?.description ?? true),
+      },
+      blocks: prev.blocks.filter((block) => !idsToRemove.has(block.id)),
+    };
+  });
 }
 
   function removeCanvasBlock(blockId: string) {
