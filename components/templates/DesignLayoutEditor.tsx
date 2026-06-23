@@ -3620,19 +3620,36 @@ const activeBlockId =
     target?.tagName === "SELECT" ||
     target?.isContentEditable;
 
-  if (isTyping) return;
+if (isTyping) return;
 
-  if (event.ctrlKey && event.key.toLowerCase() === "z") {
-    event.preventDefault();
-    handleUndo();
-    return;
-  }
+if (event.key === "Escape") {
+  event.preventDefault();
+  setSelectedBlockIds([]);
+  setSelection(createEmptySelection());
+  return;
+}
 
-  if (event.ctrlKey && event.key.toLowerCase() === "y") {
-    event.preventDefault();
-    handleRedo();
-    return;
-  }
+if (event.ctrlKey && event.key.toLowerCase() === "z") {
+  event.preventDefault();
+  handleUndo();
+  return;
+}
+
+if (event.ctrlKey && event.key.toLowerCase() === "y") {
+  event.preventDefault();
+  handleRedo();
+  return;
+}
+
+if (event.ctrlKey && event.key.toLowerCase() === "a") {
+  event.preventDefault();
+
+  const selectableIds = draft.blocks.map((block) => block.id);
+
+  setSelectedBlockIds(selectableIds);
+  setSelection(createEmptySelection());
+  return;
+}
 
 if (!activeBlockId && selectedBlockIds.length === 0) return;
 
@@ -14731,6 +14748,41 @@ renderBlockPreview={renderCanvasPreview}
                   <div className={inspectorLabelClass()}>Tool Set</div>
 
                   <div className="mt-4 space-y-3">
+                    {isMultiSelection ? (
+  <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+    <div className="text-sm font-semibold text-neutral-900">
+      {selectedBlockIds.length} blocks selected
+    </div>
+
+    <div className="mt-3 grid grid-cols-2 gap-2">
+      <button
+        type="button"
+        onClick={() => handleDuplicateCanvasBlocks(selectedBlockIds)}
+        className="h-10 rounded-xl border border-neutral-300 bg-white px-3 text-xs font-semibold text-neutral-700 hover:bg-neutral-50"
+      >
+        Duplicate
+      </button>
+
+      <button
+        type="button"
+        onClick={() => {
+          setDraft((prev) => ({
+            ...prev,
+            blocks: prev.blocks.filter(
+              (block) => !selectedBlockIds.includes(block.id),
+            ),
+          }));
+
+          setSelectedBlockIds([]);
+          setSelection(createEmptySelection());
+        }}
+        className="h-10 rounded-xl border border-red-200 bg-white px-3 text-xs font-semibold text-red-600 hover:bg-red-50"
+      >
+        Delete
+      </button>
+    </div>
+  </div>
+) : null}
 {toolSetItems.map((tool) => (
   <div
     key={tool.id}
