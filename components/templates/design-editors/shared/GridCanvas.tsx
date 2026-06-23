@@ -653,6 +653,7 @@ const [marqueeRect, setMarqueeRect] = useState<{
 } | null>(null);
   
   const lastDragGuidesRef = useRef<string>("");
+  const suppressNextCanvasClickRef = useRef(false);
 
   const pageHeight = useMemo(
     () => getPageHeight(blocks, dropPreview),
@@ -846,6 +847,8 @@ function handleMouseMove(event: MouseEvent) {
   }
 
   function handleMouseUp() {
+suppressNextCanvasClickRef.current = true;
+
 onMarqueeSelectEnd?.();
 
 setIsMarqueeSelecting(false);
@@ -1086,13 +1089,16 @@ window.setTimeout(() => {
 <div
   data-kht-page-surface="true"
   className="absolute left-1/2 top-[32px] -translate-x-1/2 rounded-[2px] border border-[rgba(0,0,0,0.09)]"
-  onClick={(e) => {
-    if (e.target !== e.currentTarget) return;
+onClick={(e) => {
+  if (e.target !== e.currentTarget) return;
 
-    if (isMarqueeSelecting) return;
+  if (isMarqueeSelecting || suppressNextCanvasClickRef.current) {
+    suppressNextCanvasClickRef.current = false;
+    return;
+  }
 
-    onSelect({ type: "none" } as EditorSelection, e);
-  }}
+  onSelect({ type: "none" } as EditorSelection, e);
+}}
   onMouseDown={(e) => {
     if (!e.shiftKey) return;
     if (e.target !== e.currentTarget) return;
