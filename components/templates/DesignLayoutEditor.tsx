@@ -306,7 +306,7 @@ type ToolDropPayload =
   | { kind: "page"; type: PageBlockType };
 
 type SelectedContext =
-  | { kind: "none"; label: "Nothing selected" }
+  | { kind: "none"; label: "Nothing selected" | "Multiple blocks selected" }
   | { kind: "pageText"; blockId: string; label: string }
   | { kind: "label"; blockId: string; label: string }
   | { kind: "textFx"; blockId: string; label: string }
@@ -1042,9 +1042,9 @@ function getSelectedContext(
     };
   }
 
-  if (selection.type !== "block") {
-    return { kind: "none", label: "Nothing selected" };
-  }
+if (selection.type !== "block") {
+  return { kind: "none", label: "Nothing selected" };
+}
 
   const blockId = selection.blockId;
   const block = draft.blocks.find((item) => item.id === blockId);
@@ -2740,6 +2740,7 @@ const selectedRsvpElementBackgroundColor =
     (draft as DraftWithPageExtras).pageColor ||
     getResolvedPageColor(draft, designKey, metadata);
   const selectedContext = getSelectedContext(selection, draft);
+  const isMultiSelection = selectedBlockIds.length > 1;
   const selectedCanvasBlockId = getSelectedCanvasBlockId(selectedContext);
 
   const selectedCanvasItem =
@@ -3758,8 +3759,12 @@ return;
         tagName === "textarea" ||
         target?.isContentEditable === true;
 
-      if (isTypingTarget) return;
-      if (!selectedCanvasBlockId) return;
+if (isTypingTarget) return;
+
+const hasMovableSelection =
+  selectedBlockIds.length > 0 || Boolean(selectedCanvasBlockId);
+
+if (!hasMovableSelection) return;
 
       const amount = event.shiftKey ? 1 : 0.25;
 
@@ -3789,7 +3794,7 @@ return;
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [selectedCanvasBlockId, metadata]);
+  }, [selectedCanvasBlockId, selectedBlockIds, metadata]);
 
   useEffect(() => {
     if (isHistoryActionRef.current) {
@@ -13593,11 +13598,11 @@ renderBlockPreview={renderCanvasPreview}
   <div className={inspectorLabelClass()}>Inspector</div>
 
   <div className="mt-3 flex items-center justify-between gap-3">
-    <div className="min-w-0 text-lg font-semibold text-neutral-900">
-      {selectedContext.label}
-    </div>
+<div className="min-w-0 text-lg font-semibold text-neutral-900">
+  {isMultiSelection ? "Multiple blocks selected" : selectedContext.label}
+</div>
 
-    {selectedBlock && selectedBlockGuide ? (
+    {!isMultiSelection && selectedBlock && selectedBlockGuide ? (
       <button
         type="button"
         onClick={() => setBlockGuideOpen(true)}
@@ -13617,13 +13622,15 @@ renderBlockPreview={renderCanvasPreview}
   </div>
 
   <div className="mt-1 text-sm text-neutral-500">
-    {selectedContext.kind === "none"
-      ? "Select a block to edit its settings."
-      : "Live properties for the selected canvas item."}
+{isMultiSelection
+  ? `${selectedBlockIds.length} blocks selected. Bulk editing is currently disabled.`
+  : selectedContext.kind === "none"
+    ? "Select a block to edit its settings."
+    : "Live properties for the selected canvas item."}
   </div>
 </div>
 
-{selectedCanvasItem ? (
+{!isMultiSelection && selectedCanvasItem ? (
   <>
     <div className={inspectorCardClass()}>
       <div className={inspectorLabelClass()}>Position & Size</div>
@@ -13693,7 +13700,7 @@ renderBlockPreview={renderCanvasPreview}
   </>
 ) : null}
 
-{selectedBlock ? (
+{!isMultiSelection && selectedBlock ? (
   <div className={inspectorCardClass()}>
     <div className={inspectorLabelClass()}>Public Display Settings</div>
 
@@ -13753,7 +13760,7 @@ renderBlockPreview={renderCanvasPreview}
   />
 ) : null}
 
-{selectedBlock?.type === "poll" ? (
+{!isMultiSelection && selectedBlock?.type === "poll" ? (
   <PollInspector
     selectedBlock={selectedBlock}
     draft={draft}
@@ -13769,7 +13776,7 @@ renderBlockPreview={renderCanvasPreview}
   />
 ) : null}
 
-{selectedBlock?.type === "rsvp" ? (
+{!isMultiSelection && selectedBlock?.type === "rsvp" ? (
   <RsvpInspector
     selectedBlock={selectedBlock}
     updateSelectedBlock={updateSelectedBlock}
@@ -13780,7 +13787,7 @@ renderBlockPreview={renderCanvasPreview}
   />
 ) : null}
 
-{selectedBlock?.type === "form_field" ? (
+{!isMultiSelection && selectedBlock?.type === "form_field" ? (
   <FormFieldInspector
     selectedBlock={selectedBlock}
     setDraft={setDraft}
@@ -13797,7 +13804,7 @@ renderBlockPreview={renderCanvasPreview}
   />
 ) : null}
 
-{selectedBlock?.type === "option_button" ? (
+{!isMultiSelection && selectedBlock?.type === "option_button" ? (
   <OptionButtonInspector
     selectedBlock={selectedBlock}
     draft={draft}
@@ -13817,7 +13824,7 @@ renderBlockPreview={renderCanvasPreview}
   />
 ) : null}
 
-{selectedBlock?.type === "countdown" ? (
+{!isMultiSelection && selectedBlock?.type === "countdown" ? (
   <CountdownInspector
     selectedBlock={selectedBlock}
     updateSelectedBlock={updateSelectedBlock}
@@ -13832,7 +13839,7 @@ renderBlockPreview={renderCanvasPreview}
   />
 ) : null}
 
-{selectedBlock?.type === "timeline" ? (
+{!isMultiSelection && selectedBlock?.type === "timeline" ? (
   <TimelineInspector
     selectedBlock={selectedBlock}
     updateSelectedBlock={updateSelectedBlock}
@@ -13849,7 +13856,7 @@ renderBlockPreview={renderCanvasPreview}
   />
 ) : null}
 
-{selectedBlock?.type === "audio" ? (
+{!isMultiSelection && selectedBlock?.type === "audio" ? (
   <AudioInspector
     selectedBlock={selectedBlock}
     updateSelectedBlock={updateSelectedBlock}
@@ -13860,7 +13867,7 @@ renderBlockPreview={renderCanvasPreview}
 ) : null}
 
 
-{selectedBlock?.type === "checkout" ? (
+{!isMultiSelection && selectedBlock?.type === "checkout" ? (
   <CheckoutInspector
     selectedBlock={selectedBlock}
     updateSelectedBlock={updateSelectedBlock}
@@ -13871,7 +13878,7 @@ renderBlockPreview={renderCanvasPreview}
   />
 ) : null}
 
-{selectedBlock?.type === "cart" ? (
+{!isMultiSelection && selectedBlock?.type === "cart" ? (
   <CartInspector
     selectedBlock={selectedBlock}
     updateSelectedBlock={updateSelectedBlock}
@@ -13881,7 +13888,7 @@ renderBlockPreview={renderCanvasPreview}
   />
 ) : null}
 
-{selectedBlock?.type === "faq" ? (
+{!isMultiSelection && selectedBlock?.type === "faq" ? (
   <FaqInspector
     selectedBlock={selectedBlock}
     updateSelectedBlock={updateSelectedBlock}
@@ -13896,7 +13903,7 @@ renderBlockPreview={renderCanvasPreview}
   />
 ) : null}
 
-{selectedBlock?.type === "content_panel" ? (
+{!isMultiSelection && selectedBlock?.type === "content_panel" ? (
   <ContentPanelInspector
     selectedBlock={selectedBlock}
     updateSelectedBlock={updateSelectedBlock}
@@ -13913,7 +13920,7 @@ renderBlockPreview={renderCanvasPreview}
 ) : null}
 
 
-{selectedBlock?.type === "thread" ? (
+{!isMultiSelection && selectedBlock?.type === "thread" ? (
   <ThreadInspector
     selectedBlock={selectedBlock}
     updateSelectedBlock={updateSelectedBlock}
@@ -13923,7 +13930,7 @@ renderBlockPreview={renderCanvasPreview}
     inspectorInputClass={inspectorInputClass}
   />
 ) : null}
-{selectedBlock?.type === "summary" ? (
+{!isMultiSelection && selectedBlock?.type === "summary" ? (
   <SummaryInspector
     selectedBlock={selectedBlock}
     draft={draft}
@@ -13938,7 +13945,7 @@ renderBlockPreview={renderCanvasPreview}
   />
 ) : null}
 
-{selectedBlock?.type === "highlight" ? (
+{!isMultiSelection && selectedBlock?.type === "highlight" ? (
   <HighlightInspector
     selectedBlock={selectedBlock}
     draft={draft}
@@ -13953,7 +13960,7 @@ renderBlockPreview={renderCanvasPreview}
   />
 ) : null}
 
-{selectedBlock?.type === "visitor_counter" ? (
+{!isMultiSelection && selectedBlock?.type === "visitor_counter" ? (
   <VisitorCounterInspector
     selectedBlock={selectedBlock}
     updateSelectedBlock={updateSelectedBlock}
@@ -13963,7 +13970,7 @@ renderBlockPreview={renderCanvasPreview}
   />
 ) : null}
 
-{selectedBlock?.type === "progress_bar" ? (
+{!isMultiSelection && selectedBlock?.type === "progress_bar" ? (
   <ProgressBarInspector
     selectedBlock={selectedBlock}
     updateSelectedBlock={updateSelectedBlock}
@@ -13973,7 +13980,7 @@ renderBlockPreview={renderCanvasPreview}
   />
 ) : null}
 
-{selectedBlock?.type === "donation" ? (
+{!isMultiSelection && selectedBlock?.type === "donation" ? (
   <DonationInspector
     selectedBlock={selectedBlock}
     updateSelectedBlock={updateSelectedBlock}
@@ -13985,7 +13992,7 @@ renderBlockPreview={renderCanvasPreview}
   />
 ) : null}
 
-{selectedBlock?.type === "link_hub" ? (
+{!isMultiSelection && selectedBlock?.type === "link_hub" ? (
   <LinkHubInspector
     selectedBlock={selectedBlock}
     updateSelectedBlock={updateSelectedBlock}
@@ -14001,7 +14008,7 @@ renderBlockPreview={renderCanvasPreview}
   />
 ) : null}
 
-{selectedBlock?.type === "post_board" ? (
+{!isMultiSelection && selectedBlock?.type === "post_board" ? (
   <PostBoardInspector
     selectedBlock={selectedBlock}
     updateSelectedBlock={updateSelectedBlock}
@@ -14018,7 +14025,7 @@ renderBlockPreview={renderCanvasPreview}
   />
 ) : null}
 
-{selectedBlock?.type === "checklist" ? (
+{!isMultiSelection && selectedBlock?.type === "checklist" ? (
   <ChecklistInspector
     selectedBlock={selectedBlock}
     updateSelectedBlock={updateSelectedBlock}
@@ -14030,7 +14037,7 @@ renderBlockPreview={renderCanvasPreview}
   />
 ) : null}
 
-{selectedBlock?.type === "calendar_event" ? (
+{!isMultiSelection && selectedBlock?.type === "calendar_event" ? (
   <CalendarEventInspector
     selectedBlock={selectedBlock}
     updateSelectedBlock={updateSelectedBlock}
@@ -14045,7 +14052,7 @@ renderBlockPreview={renderCanvasPreview}
   />
 ) : null}
 
-{selectedBlock?.type === "schedule_agenda" ? (
+{!isMultiSelection && selectedBlock?.type === "schedule_agenda" ? (
   <ScheduleAgendaInspector
     selectedBlock={selectedBlock}
     updateSelectedBlock={updateSelectedBlock}
@@ -14058,7 +14065,7 @@ renderBlockPreview={renderCanvasPreview}
   />
 ) : null}
 
-{selectedBlock?.type === "tournament_display" ? (
+{!isMultiSelection && selectedBlock?.type === "tournament_display" ? (
   <TournamentDisplayInspector
     selectedBlock={selectedBlock}
     updateSelectedBlock={updateSelectedBlock}
@@ -14075,7 +14082,7 @@ renderBlockPreview={renderCanvasPreview}
   />
 ) : null}
 
-{selectedBlock?.type === "map_location" ? (
+{!isMultiSelection && selectedBlock?.type === "map_location" ? (
   <MapLocationInspector
     selectedBlock={selectedBlock}
     updateSelectedBlock={updateSelectedBlock}
@@ -14085,7 +14092,7 @@ renderBlockPreview={renderCanvasPreview}
   />
 ) : null}
 
-{selectedBlock?.type === "bookmark" ? (
+{!isMultiSelection && selectedBlock?.type === "bookmark" ? (
   <BookmarkInspector
     selectedBlock={selectedBlock}
     updateSelectedBlock={updateSelectedBlock}
@@ -14096,7 +14103,7 @@ renderBlockPreview={renderCanvasPreview}
   />
 ) : null}
 
-{selectedBlock?.type === "spreadsheet" ? (
+{!isMultiSelection && selectedBlock?.type === "spreadsheet" ? (
   <SpreadsheetInspector
     selectedBlock={selectedBlock}
     updateSelectedBlock={updateSelectedBlock}
@@ -14107,7 +14114,7 @@ renderBlockPreview={renderCanvasPreview}
   />
 ) : null}
 
-{selectedBlock?.type === "puzzle" ? (
+{!isMultiSelection && selectedBlock?.type === "puzzle" ? (
   <PuzzleInspector
     selectedBlock={selectedBlock}
     updateSelectedBlock={updateSelectedBlock}
@@ -14118,7 +14125,7 @@ renderBlockPreview={renderCanvasPreview}
   />
 ) : null}
 
-{selectedBlock?.type === "spin_wheel" ? (
+{!isMultiSelection && selectedBlock?.type === "spin_wheel" ? (
   <SpinWheelInspector
     selectedBlock={selectedBlock}
     updateSelectedBlock={updateSelectedBlock}
@@ -14128,7 +14135,7 @@ renderBlockPreview={renderCanvasPreview}
   />
 ) : null}
 
-{selectedBlock?.type === "file_share" ? (
+{!isMultiSelection && selectedBlock?.type === "file_share" ? (
   <FileShareInspector
     selectedBlock={selectedBlock}
     updateSelectedBlock={updateSelectedBlock}
@@ -14139,7 +14146,7 @@ renderBlockPreview={renderCanvasPreview}
   />
 ) : null}
 
-{selectedBlock?.type === "enrollment_board" ? (
+{!isMultiSelection && selectedBlock?.type === "enrollment_board" ? (
   <EnrollmentBoardInspector
     selectedBlock={selectedBlock}
     selectedBlockFromDraft={selectedBlockFromDraft}
@@ -14152,7 +14159,7 @@ renderBlockPreview={renderCanvasPreview}
   />
 ) : null}
 
-{selectedBlock?.type === "speed_dating" ? (
+{!isMultiSelection && selectedBlock?.type === "speed_dating" ? (
   <SpeedDatingInspector
     selectedBlock={selectedBlock}
     updateSelectedBlock={updateSelectedBlock}
@@ -14162,7 +14169,7 @@ renderBlockPreview={renderCanvasPreview}
   />
 ) : null}
 
-{selectedBlock?.type === "pop_balloon" ? (
+{!isMultiSelection && selectedBlock?.type === "pop_balloon" ? (
   <PopBalloonInspector
     selectedBlock={selectedBlock}
     updateSelectedBlock={updateSelectedBlock}
@@ -14172,7 +14179,7 @@ renderBlockPreview={renderCanvasPreview}
   />
 ) : null}
 
-{selectedBlock?.type === "registry" ? (
+{!isMultiSelection && selectedBlock?.type === "registry" ? (
   <RegistryInspector
     selectedBlock={selectedBlock}
     updateSelectedBlock={updateSelectedBlock}
@@ -14188,7 +14195,7 @@ renderBlockPreview={renderCanvasPreview}
   />
 ) : null}
 
-{selectedBlock?.type === "video" ? (
+{!isMultiSelection && selectedBlock?.type === "video" ? (
   <VideoInspector
     selectedBlock={selectedBlock}
     updateSelectedBlock={updateSelectedBlock}
@@ -14200,7 +14207,7 @@ renderBlockPreview={renderCanvasPreview}
   />
 ) : null}
 
-{selectedBlock?.type === "rich_text" ? (
+{!isMultiSelection && selectedBlock?.type === "rich_text" ? (
   <RichTextInspector
     selectedBlock={selectedBlock}
     updateSelectedBlock={updateSelectedBlock}
@@ -14216,7 +14223,7 @@ renderBlockPreview={renderCanvasPreview}
   />
 ) : null}
 
-{selectedBlock?.type === "label" ? (
+{!isMultiSelection && selectedBlock?.type === "label" ? (
   <LabelInspector
     selectedBlock={selectedBlock}
     updateSelectedBlock={updateSelectedBlock}
@@ -14225,7 +14232,7 @@ renderBlockPreview={renderCanvasPreview}
   />
 ) : null}
 
-{selectedBlock?.type === "links" ? (
+{!isMultiSelection && selectedBlock?.type === "links" ? (
   <LinksInspector
     selectedBlock={selectedBlock}
     updateSelectedBlock={updateSelectedBlock}
@@ -14240,7 +14247,7 @@ renderBlockPreview={renderCanvasPreview}
   />
 ) : null}
 
-{selectedBlock?.type === "listing" ? (
+{!isMultiSelection && selectedBlock?.type === "listing" ? (
   <ListingInspector
     selectedBlock={selectedBlock}
     updateSelectedBlock={updateSelectedBlock}
@@ -14256,7 +14263,7 @@ renderBlockPreview={renderCanvasPreview}
   />
 ) : null}
 
-{selectedBlock?.type === "image" ? (
+{!isMultiSelection && selectedBlock?.type === "image" ? (
   <ImageInspector
     selectedBlock={selectedBlock}
     updateSelectedBlock={updateSelectedBlock}
@@ -14269,7 +14276,7 @@ renderBlockPreview={renderCanvasPreview}
   />
 ) : null}
 
-{selectedBlock?.type === "image_carousel" ? (
+{!isMultiSelection && selectedBlock?.type === "image_carousel" ? (
   <ImageCarouselInspector
     selectedBlock={selectedBlock}
     setDraft={setDraft}
@@ -14293,7 +14300,7 @@ renderBlockPreview={renderCanvasPreview}
   />
 ) : null}
 
-{selectedBlock?.type === "icon" ? (
+{!isMultiSelection && selectedBlock?.type === "icon" ? (
   <IconInspector
     selectedBlock={selectedBlock}
     updateSelectedBlock={updateSelectedBlock}
@@ -14307,7 +14314,7 @@ renderBlockPreview={renderCanvasPreview}
   />
 ) : null}
 
-{selectedBlock?.type === "shape" ? (
+{!isMultiSelection && selectedBlock?.type === "shape" ? (
   <ShapeInspector
     selectedBlock={selectedBlock}
     updateSelectedBlock={updateSelectedBlock}
@@ -14317,7 +14324,7 @@ renderBlockPreview={renderCanvasPreview}
   />
 ) : null}
 
-{selectedBlock?.type === "wave" ? (
+{!isMultiSelection && selectedBlock?.type === "wave" ? (
   <WaveInspector
     selectedBlock={selectedBlock}
     updateSelectedBlock={updateSelectedBlock}
@@ -14326,7 +14333,7 @@ renderBlockPreview={renderCanvasPreview}
   />
 ) : null}
 
-{selectedBlock?.type === "gallery" ? (
+{!isMultiSelection && selectedBlock?.type === "gallery" ? (
   <GalleryInspector
     selectedBlock={selectedBlock}
     updateSelectedBlock={updateSelectedBlock}
@@ -14342,7 +14349,7 @@ renderBlockPreview={renderCanvasPreview}
   />
 ) : null}
                 
-{selectedBlock?.type === "cta" ? (
+{!isMultiSelection && selectedBlock?.type === "cta" ? (
   <div className="space-y-3 rounded-2xl border border-neutral-200 bg-white p-4">
     <div className="text-xs font-semibold uppercase tracking-[0.14em] text-neutral-500">
       Button Settings
