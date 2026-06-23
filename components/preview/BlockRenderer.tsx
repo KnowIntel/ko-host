@@ -2550,12 +2550,15 @@ const countdownTickAnimationStyle =
   animationStyle === "none"
     ? {}
     : {
-        animation:
+        animationName:
           animationStyle === "flip"
-            ? "kht-countdown-flip 420ms ease"
+            ? "kht-countdown-flip"
             : animationStyle === "bounce"
-              ? "kht-countdown-bounce 420ms ease"
-              : "kht-countdown-pulse 420ms ease",
+              ? "kht-countdown-bounce"
+              : "kht-countdown-pulse",
+        animationDuration: "420ms",
+        animationTimingFunction: "ease",
+        animationIterationCount: 1,
       };
 
       const countdownKeyframes = (
@@ -2870,26 +2873,13 @@ tileBorderColor
                         : "",
                       ].join(" ")}
                       style={{
-                        ...valueStyle,
-                        ...countdownAnimationExtraStyle,
-    ...countdownTickAnimationStyle,
-                        display: "inline-flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: valueStyle.fontSize ?? (isHero ? "36px" : "24px"),
-                        transition: countdownAnimationTransition,
-transform:
-  animationStyle === "none"
-    ? "scale(1)"
-    : countdownAnimationTransform(
-        seconds < 10
-          ? isTicking
-            ? "scale(1.15)"
-            : "scale(1.05)"
-          : isTicking
-            ? "scale(1.08)"
-            : "scale(1)",
-      ),
+...valueStyle,
+...countdownAnimationExtraStyle,
+...countdownTickAnimationStyle,
+display: "inline-flex",
+alignItems: "center",
+justifyContent: "center",
+fontSize: valueStyle.fontSize ?? (isHero ? "36px" : "24px"),
                       }}
                     >
                       {part.value}
