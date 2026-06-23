@@ -3686,10 +3686,17 @@ if (event.key.toLowerCase() === "c") {
 
   if (isTyping) return;
 
-  event.preventDefault();
-  if (!activeBlockId) return;
+  const idsToCopy =
+    selectedBlockIds.length > 0
+      ? selectedBlockIds
+      : activeBlockId
+        ? [activeBlockId]
+        : [];
 
-handleCopyCanvasBlock(activeBlockId);
+  if (!idsToCopy.length) return;
+
+  event.preventDefault();
+  handleCopyCanvasBlocks(idsToCopy);
   return;
 }
 
@@ -7874,19 +7881,32 @@ function handleDuplicateCanvasBlocks(blockIds: string[]) {
 }
 
 function handleCopyCanvasBlock(blockId: string) {
-  if (isPageBlockId(blockId)) return;
+  handleCopyCanvasBlocks([blockId]);
+}
 
-  const original = draft.blocks.find((block) => block.id === blockId);
+function handleCopyCanvasBlocks(blockIds: string[]) {
+  const idsToCopy = blockIds.filter((id) => !isPageBlockId(id));
+  if (!idsToCopy.length) return;
 
-  if (!original) return;
+  const copiedAt = Date.now();
 
-  const clipboardEntry: ClipboardEntry = {
-    clipboardId: makeClipboardId(),
-    copiedAt: Date.now(),
-    block: cloneClipboardBlock(original),
-  };
+  const clipboardEntriesToAdd: ClipboardEntry[] = idsToCopy
+    .map((id) => {
+      const original = draft.blocks.find((block) => block.id === id);
+      if (!original) return null;
 
-  setClipboardEntries((prev) => [clipboardEntry, ...prev]);
+      return {
+        clipboardId: makeClipboardId(),
+        copiedAt,
+        block: cloneClipboardBlock(original),
+      } as ClipboardEntry;
+    })
+    .filter(Boolean) as ClipboardEntry[];
+
+  if (!clipboardEntriesToAdd.length) return;
+
+  setClipboardEntries((prev) => [...clipboardEntriesToAdd, ...prev]);
+  setClipboardOpen(true);
 }
 
 function handlePasteClipboardBlock(entry: ClipboardEntry) {
