@@ -3645,11 +3645,14 @@ if (event.key === "Delete" || event.key === "Backspace") {
         ? [activeBlockId]
         : [];
 
-  idsToDelete.forEach((id) => removeCanvasBlock(id));
+setDraft((prev) => ({
+  ...prev,
+  blocks: prev.blocks.filter((block) => !idsToDelete.includes(block.id)),
+}));
 
-  setSelectedBlockIds([]);
-  setSelection(createEmptySelection());
-  return;
+setSelectedBlockIds([]);
+setSelection(createEmptySelection());
+return;
 }
 
   if (!event.ctrlKey) return;
@@ -3685,16 +3688,28 @@ if (
         ? [activeBlockId]
         : [];
 
-  idsToDuplicate.forEach((id) => handleDuplicateCanvasBlock(id));
+handleDuplicateCanvasBlocks(idsToDuplicate);
 
-  return;
+return;
 }
 
   if (event.key.toLowerCase() === "x") {
     event.preventDefault();
-    removeCanvasBlock(activeBlockId);
-    setSelection(createEmptySelection());
-    return;
+const idsToDelete =
+  selectedBlockIds.length > 0
+    ? selectedBlockIds
+    : activeBlockId
+      ? [activeBlockId]
+      : [];
+
+setDraft((prev) => ({
+  ...prev,
+  blocks: prev.blocks.filter((block) => !idsToDelete.includes(block.id)),
+}));
+
+setSelectedBlockIds([]);
+setSelection(createEmptySelection());
+return;
   }
 
   if (event.shiftKey && event.key === "ArrowDown") {
@@ -7771,47 +7786,68 @@ function addPageBlock(type: PageBlockType) {
 }
 
 function handleDuplicateCanvasBlock(blockId: string) {
-  if (isPageBlockId(blockId)) return;
+  handleDuplicateCanvasBlocks([blockId]);
+}
 
-  const duplicatedBlockId = `block_${Math.random().toString(36).slice(2, 10)}`;
+function handleDuplicateCanvasBlocks(blockIds: string[]) {
+  const idsToDuplicate = blockIds.filter((id) => !isPageBlockId(id));
+  if (!idsToDuplicate.length) return;
+
+  const duplicatedIds: string[] = [];
 
   setDraft((prev) => {
-    const original = prev.blocks.find((block) => block.id === blockId);
-    if (!original) return prev;
-
-    const originalGrid = original.grid ?? {
-      colStart: 1,
-      rowStart: 1,
-      colSpan: 4,
-      rowSpan: 1,
-      zIndex: 1,
-    };
-
     const highestZIndex = Math.max(
       1,
       ...prev.blocks.map((block) => block.grid?.zIndex ?? 1),
     );
 
-    const duplicatedBlock: MicrositeBlock = {
-      ...structuredClone(original),
-      id: duplicatedBlockId,
-      grid: {
-        colStart: originalGrid.colStart,
-        rowStart: originalGrid.rowStart + 1,
-        colSpan: originalGrid.colSpan,
-        rowSpan: originalGrid.rowSpan,
-        zIndex: highestZIndex + 1,
-      },
-    };
+    const duplicatedBlocks = idsToDuplicate
+      .map((id, index) => {
+        const original = prev.blocks.find((block) => block.id === id);
+        if (!original) return null;
+
+        const duplicatedBlockId = `block_${Math.random()
+          .toString(36)
+          .slice(2, 10)}`;
+
+        duplicatedIds.push(duplicatedBlockId);
+
+        const originalGrid = original.grid ?? {
+          colStart: 1,
+          rowStart: 1,
+          colSpan: 4,
+          rowSpan: 1,
+          zIndex: 1,
+        };
+
+        return {
+          ...structuredClone(original),
+          id: duplicatedBlockId,
+          grid: {
+            colStart: originalGrid.colStart,
+            rowStart: originalGrid.rowStart + 1,
+            colSpan: originalGrid.colSpan,
+            rowSpan: originalGrid.rowSpan,
+            zIndex: highestZIndex + index + 1,
+          },
+        } as MicrositeBlock;
+      })
+      .filter(Boolean) as MicrositeBlock[];
 
     return {
       ...prev,
-      blocks: [...prev.blocks, duplicatedBlock],
+      blocks: [...prev.blocks, ...duplicatedBlocks],
     };
   });
 
   window.requestAnimationFrame(() => {
-    setSelection(selectionFromCanvasBlockId(duplicatedBlockId));
+    setSelectedBlockIds(duplicatedIds);
+
+    if (duplicatedIds.length === 1) {
+      setSelection(selectionFromCanvasBlockId(duplicatedIds[0]));
+    } else {
+      setSelection(createEmptySelection());
+    }
   });
 }
 
