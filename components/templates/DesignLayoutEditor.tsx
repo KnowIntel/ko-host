@@ -3672,11 +3672,21 @@ handleCopyCanvasBlock(activeBlockId);
   return;
 }
 
-if (event.key.toLowerCase() === "v") {
+if (
+  event.key.toLowerCase() === "v" ||
+  event.key.toLowerCase() === "d"
+) {
   event.preventDefault();
-  if (!activeBlockId) return;
 
-handleDuplicateCanvasBlock(activeBlockId);
+  const idsToDuplicate =
+    selectedBlockIds.length > 0
+      ? selectedBlockIds
+      : activeBlockId
+        ? [activeBlockId]
+        : [];
+
+  idsToDuplicate.forEach((id) => handleDuplicateCanvasBlock(id));
+
   return;
 }
 
@@ -7945,16 +7955,39 @@ function cancelRemoveAllBlocks() {
   setRemoveAllModalOpen(false);
 }
 
-  function handleMoveBlock(
-    blockId: string,
-    patch: { colStart: number; rowStart: number },
-  ) {
-    setDraft((prev) => {
-      const items = buildCanvasItems(prev, metadata);
-      const moved = moveCanvasItemToCell(items, blockId, patch);
-      return applyCanvasItemsToDraft(prev, moved);
-    });
-  }
+function handleMoveBlock(
+  blockId: string,
+  patch: { colStart: number; rowStart: number },
+) {
+  const idsToMove =
+    selectedBlockIds.includes(blockId) && selectedBlockIds.length > 1
+      ? selectedBlockIds
+      : [blockId];
+
+  setDraft((prev) => {
+    const items = buildCanvasItems(prev, metadata);
+    const anchorItem = items.find((item) => item.id === blockId);
+
+    if (!anchorItem?.grid) return prev;
+
+    const deltaCol = patch.colStart - (anchorItem.grid.colStart ?? 1);
+    const deltaRow = patch.rowStart - (anchorItem.grid.rowStart ?? 1);
+
+    const moved = idsToMove.reduce((nextItems, id) => {
+      const item = nextItems.find((current) => current.id === id);
+
+      if (!item?.grid) return nextItems;
+
+      return moveCanvasItemToCell(nextItems, id, {
+        colStart: (item.grid.colStart ?? 1) + deltaCol,
+        rowStart: (item.grid.rowStart ?? 1) + deltaRow,
+      });
+    }, items);
+
+    return applyCanvasItemsToDraft(prev, moved);
+  });
+}
+
 function handleResizeBlock(
   blockId: string,
   patch: {
@@ -10503,39 +10536,40 @@ function nudgeSelectedBlock(
   direction: "left" | "right" | "up" | "down",
   amount: number = 0.25,
 ) {
-  if (!selectedCanvasBlockId) return;
+  const idsToMove =
+    selectedBlockIds.length > 0
+      ? selectedBlockIds
+      : selectedCanvasBlockId
+        ? [selectedCanvasBlockId]
+        : [];
+
+  if (!idsToMove.length) return;
+
+  const deltaCol =
+    direction === "left" ? -amount : direction === "right" ? amount : 0;
+
+  const deltaRow =
+    direction === "up" ? -amount : direction === "down" ? amount : 0;
 
   setDraft((prev) => {
     const items = buildCanvasItems(prev, metadata);
-    const selectedItem = items.find((item) => item.id === selectedCanvasBlockId);
 
-    if (!selectedItem?.grid) return prev;
+    const moved = idsToMove.reduce((nextItems, id) => {
+      const item = nextItems.find((current) => current.id === id);
 
-    const currentColStart = selectedItem.grid.colStart ?? 1;
-    const currentRowStart = selectedItem.grid.rowStart ?? 1;
+      if (!item?.grid) return nextItems;
 
-    const nextColStart =
-      direction === "left"
-        ? currentColStart - amount
-        : direction === "right"
-          ? currentColStart + amount
-          : currentColStart;
-
-    const nextRowStart =
-      direction === "up"
-        ? currentRowStart - amount
-        : direction === "down"
-          ? currentRowStart + amount
-          : currentRowStart;
-
-    const moved = moveCanvasItemToCell(items, selectedCanvasBlockId, {
-      colStart: nextColStart,
-      rowStart: nextRowStart,
-    });
+      return moveCanvasItemToCell(nextItems, id, {
+        colStart: (item.grid.colStart ?? 1) + deltaCol,
+        rowStart: (item.grid.rowStart ?? 1) + deltaRow,
+      });
+    }, items);
 
     return applyCanvasItemsToDraft(prev, moved);
   });
 }
+
+
 const handleJumpToFullCanvasView = () => {
   topBarScrollRef.current?.scrollIntoView({
     behavior: "smooth",
