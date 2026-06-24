@@ -2398,19 +2398,15 @@ function renderCountdown(
   function CountdownPreview() {
     const initialNow = serverNow ?? Date.now();
     const [tickNow, setTickNow] = useState(initialNow);
-    const [isTicking, setIsTicking] = useState(false);
+    const [tickPulse, setTickPulse] = useState(false);
 
     useEffect(() => {
       const startedAt = Date.now();
       const baseNow = serverNow ?? startedAt;
 
       const timer = window.setInterval(() => {
-        setIsTicking(true);
-        setTickNow(baseNow + (Date.now() - startedAt));
-
-        window.setTimeout(() => {
-          setIsTicking(false);
-        }, 220);
+setTickNow(baseNow + (Date.now() - startedAt));
+setTickPulse((prev) => !prev);
       }, 1000);
 
       return () => window.clearInterval(timer);
@@ -2481,6 +2477,7 @@ const variant = (data.styleVariant ?? "cards") as
 
     const animationStyle =
       rawAnimationStyle === "slide" ? "bounce" : rawAnimationStyle;
+      console.log("COUNTDOWN ANIMATION:", animationStyle);
 
     const alignment =
       (data.alignment as "left" | "center" | "right" | undefined) ?? "center";
@@ -2508,42 +2505,30 @@ const variant = (data.styleVariant ?? "cards") as
 const getCountdownAnimationStyle = () => {
   if (animationStyle === "none") {
     return {
-      transform: "none",
-      opacity: 1,
-    };
-  }
-
-  if (!isTicking) {
-    return {
-      transform: "none",
-      opacity: 1,
+      animation: "none",
     };
   }
 
   if (animationStyle === "pulse") {
     return {
-      transform: "scale(1.16)",
-      opacity: 1,
+      animation: "koCountdownPulse 520ms ease",
     };
   }
 
   if (animationStyle === "flip") {
     return {
-      transform: "rotateX(78deg)",
-      opacity: 0.75,
+      animation: "koCountdownFlip 520ms ease",
     };
   }
 
   if (animationStyle === "bounce") {
     return {
-      transform: "translateY(-12px)",
-      opacity: 1,
+      animation: "koCountdownBounce 520ms ease",
     };
   }
 
   return {
-    transform: "none",
-    opacity: 1,
+    animation: "none",
   };
 };
 
@@ -2655,6 +2640,31 @@ const getCountdownAnimationStyle = () => {
 
     const valueFontNumber = Number(valueStyle.fontSize) || 24;
     const unitFontNumber = Number(unitStyle.fontSize) || 11;
+    const animationKey = `${animationStyle}-${tickPulse ? "a" : "b"}`;
+
+const countdownAnimationStyles = (
+  <style>
+    {`
+      @keyframes koCountdownPulse {
+        0% { transform: scale(1); }
+        45% { transform: scale(1.18); }
+        100% { transform: scale(1); }
+      }
+
+      @keyframes koCountdownFlip {
+        0% { transform: rotateX(0deg); }
+        45% { transform: rotateX(82deg); opacity: 0.72; }
+        100% { transform: rotateX(0deg); opacity: 1; }
+      }
+
+      @keyframes koCountdownBounce {
+        0% { transform: translateY(0); }
+        45% { transform: translateY(-14px); }
+        100% { transform: translateY(0); }
+      }
+    `}
+  </style>
+);
 
     if (variant === "standard" || variant === "stage") {
       return (
@@ -2691,11 +2701,12 @@ const getCountdownAnimationStyle = () => {
         : "flex items-baseline gap-1"
     }
   >
-                  <span
-                    className="inline-block font-bold leading-none"
-                    style={{
-                      ...valueStyle,
-                      ...countdownAnimationExtraStyle,
+<span
+  key={`${part.key}-${animationKey}`}
+  className="inline-block font-bold leading-none"
+  style={{
+    ...valueStyle,
+    ...countdownAnimationExtraStyle,
                       fontSize: valueStyle.fontSize ?? "24px",
                       transition:
                         animationStyle === "none"
@@ -2836,13 +2847,14 @@ tileBorderColor
                       </svg>
                     ) : null}
 
-                    <span
-                      className={[
-                        "relative z-10 inline-flex font-bold leading-none",
-                        animationStyle === "pulse" && seconds < 10
-                        ? "animate-pulse"
-                        : "",
-                      ].join(" ")}
+<span
+  key={`${part.key}-${animationKey}`}
+  className={[
+    "relative z-10 inline-flex font-bold leading-none",
+    animationStyle === "pulse" && seconds < 10
+      ? "animate-pulse"
+      : "",
+  ].join(" ")}
                       style={{
                         ...valueStyle,
                         ...countdownAnimationExtraStyle,
