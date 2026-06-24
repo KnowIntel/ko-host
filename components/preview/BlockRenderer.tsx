@@ -2405,8 +2405,8 @@ function renderCountdown(
       const baseNow = serverNow ?? startedAt;
 
       const timer = window.setInterval(() => {
-setTickNow(baseNow + (Date.now() - startedAt));
-setTickPulse((prev) => !prev);
+        setTickNow(baseNow + (Date.now() - startedAt));
+        setTickPulse((prev) => !prev);
       }, 1000);
 
       return () => window.clearInterval(timer);
@@ -2450,17 +2450,19 @@ setTickPulse((prev) => !prev);
     const tileBorderColor =
       (data.tileStyle?.borderColor as string | undefined) ?? undefined;
 
-const variant = (data.styleVariant ?? "cards") as
-  | "cards"
-  | "stage"
-  | "standard";
+    const variant = (data.styleVariant ?? "cards") as
+      | "cards"
+      | "stage"
+      | "standard";
 
     const showRings = data.showRings !== false;
     const showSeparator = data.showSeparator !== false;
+
     const spacing =
       typeof data.spacing === "number" && Number.isFinite(data.spacing)
         ? Math.max(0, Math.min(80, data.spacing))
         : 12;
+
     const stageUnitGap =
       typeof data.stageUnitGap === "number" && Number.isFinite(data.stageUnitGap)
         ? Math.max(-40, Math.min(40, data.stageUnitGap))
@@ -2500,57 +2502,45 @@ const variant = (data.styleVariant ?? "cards") as
     const showMinutes = data.showMinutes !== false;
     const showSeconds = data.showSeconds !== false;
 
+    const getAnimatedValueStyle = () => {
+      if (animationStyle === "none") {
+        return {
+          transform: "none",
+          opacity: 1,
+          transition: "none",
+        };
+      }
 
-const getCountdownAnimationStyle = () => {
-  if (animationStyle === "none") {
-    return {
-      transform: "none",
-      opacity: 1,
+      if (animationStyle === "pulse") {
+        return {
+          transform: tickPulse ? "scale(1.28)" : "scale(1)",
+          opacity: 1,
+          transition: "transform 320ms ease",
+        };
+      }
+
+      if (animationStyle === "flip") {
+        return {
+          transform: tickPulse ? "rotateX(180deg)" : "rotateX(0deg)",
+          opacity: tickPulse ? 0.72 : 1,
+          transition: "transform 420ms ease, opacity 220ms ease",
+        };
+      }
+
+      if (animationStyle === "bounce") {
+        return {
+          transform: tickPulse ? "translateY(-18px)" : "translateY(0)",
+          opacity: 1,
+          transition: "transform 260ms cubic-bezier(0.34, 1.56, 0.64, 1)",
+        };
+      }
+
+      return {
+        transform: "none",
+        opacity: 1,
+        transition: "none",
+      };
     };
-  }
-
-  if (animationStyle === "pulse") {
-    return {
-      transform: tickPulse ? "scale(1.22)" : "scale(1)",
-      opacity: 1,
-    };
-  }
-
-  if (animationStyle === "flip") {
-    return {
-      transform: tickPulse ? "rotateX(180deg)" : "rotateX(0deg)",
-      opacity: tickPulse ? 0.75 : 1,
-    };
-  }
-
-  if (animationStyle === "bounce") {
-    return {
-      transform: tickPulse ? "translateY(-16px)" : "translateY(0)",
-      opacity: 1,
-    };
-  }
-
-  return {
-    transform: "none",
-    opacity: 1,
-  };
-};
-
-    const countdownAnimationTransition =
-      animationStyle === "flip"
-        ? "transform 260ms cubic-bezier(0.34, 1.56, 0.64, 1), opacity 180ms ease"
-        : animationStyle === "bounce"
-          ? "transform 180ms ease, opacity 180ms ease"
-          : "transform 200ms ease";
-
-    const countdownAnimationExtraStyle =
-      animationStyle === "flip"
-        ? {
-            transformStyle: "preserve-3d" as const,
-            backfaceVisibility: "hidden" as const,
-            transformOrigin: "center center",
-          }
-        : {};
 
     if (!target || Number.isNaN(target)) {
       return (
@@ -2643,13 +2633,10 @@ const getCountdownAnimationStyle = () => {
             : Math.min(days / 365, 1);
 
     const valueFontNumber = Number(valueStyle.fontSize) || 24;
-    const unitFontNumber = Number(unitStyle.fontSize) || 11;
-    const animationKey = `${animationStyle}-${tickPulse ? "a" : "b"}`;
 
-if (variant === "standard" || variant === "stage") {
-  return (
-    <>
-      <div
+    if (variant === "standard" || variant === "stage") {
+      return (
+        <div
           className={[
             "flex h-full w-full flex-col justify-center gap-2 p-4",
             alignmentClass,
@@ -2674,26 +2661,23 @@ if (variant === "standard" || variant === "stage") {
             style={{ gap: `${spacing}px` }}
           >
             {parts.map((part, index) => (
-<div key={part.key} className="contents">
-  <div
-    className={
-      variant === "stage"
-        ? "flex flex-col items-center"
-        : "flex items-baseline gap-1"
-    }
-  >
-<span
-  key={`${part.key}-${animationKey}`}
-  className="inline-block font-bold leading-none"
-  style={{
-    ...valueStyle,
-    ...countdownAnimationExtraStyle,
+              <div key={part.key} className="contents">
+                <div
+                  className={
+                    variant === "stage"
+                      ? "flex flex-col items-center"
+                      : "flex items-baseline gap-1"
+                  }
+                >
+                  <span
+                    className="inline-block font-bold leading-none"
+                    style={{
+                      ...valueStyle,
                       fontSize: valueStyle.fontSize ?? "24px",
-                      transition:
-                        animationStyle === "none"
-                          ? "none"
-                          : countdownAnimationTransition,
-...getCountdownAnimationStyle(),
+                      transformOrigin: "center center",
+                      transformStyle: "preserve-3d",
+                      backfaceVisibility: "hidden",
+                      ...getAnimatedValueStyle(),
                     }}
                   >
                     {part.value}
@@ -2712,185 +2696,33 @@ if (variant === "standard" || variant === "stage") {
                   </span>
                 </div>
 
-{showSeparator && index < parts.length - 1 ? (
-  <span
-    className="flex items-center justify-center font-semibold"
-    style={{
-      ...unitStyle,
-      minWidth: `${spacing}px`,
-    }}
-  >
-    :
-  </span>
-) : null}
-              </div>
-            ))}
-          </div>
-        </div>
-      </>
-    );
-    }
-
-    if (variant === "cards") {
-      const isHero = false;
-      const ringSize = Math.max(isHero ? 86 : 70, valueFontNumber * (isHero ? 2.45 : 2.8));
-      const ringStroke = isHero ? 3 : 2;
-      const ringRadius = ringSize / 2 - ringStroke * 3;
-      const ringCircumference = 2 * Math.PI * ringRadius;
-
-return (
-  <>
-    <div
-          className={[
-            "flex h-full w-full flex-col justify-center gap-4 p-4",
-            alignmentClass,
-          ].join(" ")}
-          style={appearanceStyle}
-        >
-          {block.data.heading ? (
-            <div
-              className={["uppercase tracking-[0.14em]", getMutedTextClass(designKey)].join(" ")}
-              style={headingStyle}
-            >
-              {block.data.heading}
-            </div>
-          ) : null}
-
-          <div
-            className={[
-              "flex w-full flex-wrap items-center",
-              justifyClass,
-            ].join(" ")}
-            style={{ gap: `${spacing}px` }}
-          >
-            {parts.map((part, index) => (
-              <div key={part.key} className="contents">
-                <div
-                  className={[
-                    "relative flex flex-col items-center justify-center rounded-xl border px-3 py-3 shadow-sm",
-tileBorderColor
-  ? "border bg-white"
-  : isLightDesign(designKey)
-    ? "border-neutral-200 bg-white"
-    : "border-white/10 bg-white/5",
-                  ].join(" ")}
-                  style={{
-                    ...tileStyle,
-                    backgroundColor: tileBackgroundColor,
-                    borderColor: tileBorderColor,
-                    perspective: "700px",
-                    minWidth: ringSize + 18,
-                  }}
-                >
-                  <div
-                    className="relative flex items-center justify-center"
-                    style={{
-                      width: ringSize,
-                      height: ringSize,
-                    }}
-                  >
-                    {showRings ? (
-                      <svg
-                        className="pointer-events-none absolute inset-0 h-full w-full"
-                        width={ringSize}
-                        height={ringSize}
-                        viewBox={`0 0 ${ringSize} ${ringSize}`}
-                      >
-                        <circle
-                          cx={ringSize / 2}
-                          cy={ringSize / 2}
-                          r={ringRadius}
-                          stroke="currentColor"
-                          strokeWidth={ringStroke}
-                          fill="none"
-                          opacity="0.1"
-                        />
-                        <circle
-                          cx={ringSize / 2}
-                          cy={ringSize / 2}
-                          r={ringRadius}
-                          stroke={
-                            seconds < 10
-                              ? "#EF4444"
-                              : seconds < 30
-                                ? "#F59E0B"
-                                : isLightDesign(designKey)
-                                  ? "#6366F1"
-                                  : "#A5B4FC"
-                          }
-                          strokeWidth={ringStroke}
-                          fill="none"
-                          strokeDasharray={ringCircumference}
-                          strokeDashoffset={
-                            ringCircumference -
-                            ringCircumference * getProgress(part)
-                          }
-                          className="transition-all duration-500"
-                        />
-                      </svg>
-                    ) : null}
-
-<span
-  key={`${part.key}-${animationKey}`}
-  className={[
-    "relative z-10 inline-flex font-bold leading-none",
-  ].join(" ")}
-                      style={{
-                        ...valueStyle,
-                        ...countdownAnimationExtraStyle,
-                        display: "inline-flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: valueStyle.fontSize ?? (isHero ? "36px" : "24px"),
-                        transition: countdownAnimationTransition,
-animation:
-  animationStyle === "pulse"
-    ? "koCountdownPulse 650ms ease-in-out infinite"
-    : animationStyle === "flip"
-      ? "koCountdownFlip 650ms ease-in-out infinite"
-      : animationStyle === "bounce"
-        ? "koCountdownBounce 650ms ease-in-out infinite"
-        : "none",
-                      }}
-                    >
-                      {part.value}
-                    </span>
-                  </div>
-
-                  <div
-                    className="mt-1 uppercase tracking-[0.12em]"
+                {showSeparator && index < parts.length - 1 ? (
+                  <span
+                    className="flex items-center justify-center font-semibold"
                     style={{
                       ...unitStyle,
-                      fontSize: unitStyle.fontSize ?? (isHero ? "12px" : "10px"),
+                      minWidth: `${spacing}px`,
                     }}
                   >
-                    {part.label}
-                  </div>
-                </div>
-
-{showSeparator && index < parts.length - 1 ? (
-  <span
-    className="flex items-center justify-center font-semibold"
-    style={{
-      ...unitStyle,
-      minWidth: `${spacing}px`,
-    }}
-  >
-    :
-  </span>
-) : null}
+                    :
+                  </span>
+                ) : null}
               </div>
             ))}
           </div>
         </div>
-      </>
-    );
+      );
     }
+
+    const ringSize = Math.max(70, valueFontNumber * 2.8);
+    const ringStroke = 2;
+    const ringRadius = ringSize / 2 - ringStroke * 3;
+    const ringCircumference = 2 * Math.PI * ringRadius;
 
     return (
       <div
         className={[
-          "flex h-full w-full flex-col justify-center gap-3 p-4",
+          "flex h-full w-full flex-col justify-center gap-4 p-4",
           alignmentClass,
         ].join(" ")}
         style={appearanceStyle}
@@ -2912,38 +2744,111 @@ animation:
           style={{ gap: `${spacing}px` }}
         >
           {parts.map((part, index) => (
-            <div key={part.key} className="flex items-center">
+            <div key={part.key} className="contents">
               <div
-                className="flex items-baseline gap-1 rounded-lg border px-2 py-1"
+                className={[
+                  "relative flex flex-col items-center justify-center rounded-xl border px-3 py-3 shadow-sm",
+                  tileBorderColor
+                    ? "border bg-white"
+                    : isLightDesign(designKey)
+                      ? "border-neutral-200 bg-white"
+                      : "border-white/10 bg-white/5",
+                ].join(" ")}
                 style={{
                   ...tileStyle,
                   backgroundColor: tileBackgroundColor,
                   borderColor: tileBorderColor,
                   perspective: "700px",
+                  minWidth: ringSize + 18,
                 }}
               >
-                <span
-                  className="font-semibold transition-transform duration-200"
-style={{
-  ...valueStyle,
-  ...countdownAnimationExtraStyle,
-  display: "inline-block",
-transition:
-  animationStyle === "none"
-    ? "none"
-    : "transform 220ms ease, opacity 220ms ease",
-transformOrigin: "center center",
-...getCountdownAnimationStyle(),
-}}
+                <div
+                  className="relative flex items-center justify-center"
+                  style={{
+                    width: ringSize,
+                    height: ringSize,
+                  }}
                 >
-                  {part.value}
-                </span>
+                  {showRings ? (
+                    <svg
+                      className="pointer-events-none absolute inset-0 h-full w-full"
+                      width={ringSize}
+                      height={ringSize}
+                      viewBox={`0 0 ${ringSize} ${ringSize}`}
+                    >
+                      <circle
+                        cx={ringSize / 2}
+                        cy={ringSize / 2}
+                        r={ringRadius}
+                        stroke="currentColor"
+                        strokeWidth={ringStroke}
+                        fill="none"
+                        opacity="0.1"
+                      />
+                      <circle
+                        cx={ringSize / 2}
+                        cy={ringSize / 2}
+                        r={ringRadius}
+                        stroke={
+                          seconds < 10
+                            ? "#EF4444"
+                            : seconds < 30
+                              ? "#F59E0B"
+                              : isLightDesign(designKey)
+                                ? "#6366F1"
+                                : "#A5B4FC"
+                        }
+                        strokeWidth={ringStroke}
+                        fill="none"
+                        strokeDasharray={ringCircumference}
+                        strokeDashoffset={
+                          ringCircumference -
+                          ringCircumference * getProgress(part)
+                        }
+                        className="transition-all duration-500"
+                      />
+                    </svg>
+                  ) : null}
 
-                <span style={unitStyle}>{part.label}</span>
+                  <span
+                    className="relative z-10 inline-flex font-bold leading-none"
+                    style={{
+                      ...valueStyle,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: valueStyle.fontSize ?? "24px",
+                      transformOrigin: "center center",
+                      transformStyle: "preserve-3d",
+                      backfaceVisibility: "hidden",
+                      ...getAnimatedValueStyle(),
+                    }}
+                  >
+                    {part.value}
+                  </span>
+                </div>
+
+                <div
+                  className="mt-1 uppercase tracking-[0.12em]"
+                  style={{
+                    ...unitStyle,
+                    fontSize: unitStyle.fontSize ?? "10px",
+                  }}
+                >
+                  {part.label}
+                </div>
               </div>
 
               {showSeparator && index < parts.length - 1 ? (
-                <span style={unitStyle}>:</span>
+                <span
+                  className="flex items-center justify-center font-semibold"
+                  style={{
+                    ...unitStyle,
+                    minWidth: `${spacing}px`,
+                  }}
+                >
+                  :
+                </span>
               ) : null}
             </div>
           ))}
