@@ -2692,7 +2692,7 @@ const getCountdownAnimationStyle = () => {
     }
   >
                   <span
-                    className="font-bold leading-none"
+                    className="inline-block font-bold leading-none"
                     style={{
                       ...valueStyle,
                       ...countdownAnimationExtraStyle,
@@ -2838,7 +2838,7 @@ tileBorderColor
 
                     <span
                       className={[
-                        "relative z-10 font-bold leading-none transition-all duration-200",
+                        "relative z-10 inline-flex font-bold leading-none",
                         animationStyle === "pulse" && seconds < 10
                         ? "animate-pulse"
                         : "",
@@ -2928,10 +2928,11 @@ style={{
   ...valueStyle,
   ...countdownAnimationExtraStyle,
   display: "inline-block",
-  transition:
-    animationStyle === "none"
-      ? "none"
-      : countdownAnimationTransition,
+transition:
+  animationStyle === "none"
+    ? "none"
+    : "transform 220ms ease, opacity 220ms ease",
+transformOrigin: "center center",
 ...getCountdownAnimationStyle(),
 }}
                 >
