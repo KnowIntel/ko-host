@@ -1417,7 +1417,7 @@ function renderVideo(
                   className="absolute inset-0 h-full w-full object-cover"
                   draggable={false}
                 />
-                
+
 
                 {showPlayOverlay ? (
                   <img
@@ -7524,6 +7524,8 @@ function ImageCarouselPreview({
   const direction = block.data.scrollDirection ?? "right";
   const showCaptions = Boolean((block.data as any).addCaption);
   const captionStyle = ((block.data as any).captionStyle ?? {}) as TextStyle;
+  const titleStyle = ((block.data as any).titleStyle ?? {}) as TextStyle;
+  const subtitleStyle = ((block.data as any).subtitleStyle ?? {}) as TextStyle;
 
   const [startIndex, setStartIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -7647,16 +7649,28 @@ className={[
                   >
                     {showTitles && (item.title || item.subtitle) ? (
                       <div className="min-w-0">
-                        {item.title ? (
-                          <div className="truncate text-sm font-semibold text-white">
-                            {item.title}
-                          </div>
-                        ) : null}
-                        {item.subtitle ? (
-                          <div className="mt-0.5 truncate text-xs text-white/85">
-                            {item.subtitle}
-                          </div>
-                        ) : null}
+{item.title ? (
+  <div
+    className="truncate text-sm font-semibold"
+    style={{
+      ...getContainerTextStyle(titleStyle, designKey),
+      color: titleStyle.color || "#ffffff",
+    }}
+  >
+    {item.title}
+  </div>
+) : null}
+{item.subtitle ? (
+  <div
+    className="mt-0.5 truncate text-xs"
+    style={{
+      ...getContainerTextStyle(subtitleStyle, designKey),
+      color: subtitleStyle.color || "rgba(255,255,255,0.85)",
+    }}
+  >
+    {item.subtitle}
+  </div>
+) : null}
                       </div>
                     ) : null}
                   </div>
@@ -7665,7 +7679,10 @@ className={[
                 {showCaptions && String((item as any).caption ?? "").trim() ? (
 <div
   className="absolute inset-x-0 bottom-0 bg-black/60 px-3 py-1 text-xs text-white"
-  style={getContainerTextStyle(captionStyle)}
+  style={{
+  ...getContainerTextStyle(captionStyle, designKey),
+  color: captionStyle.color || "#ffffff",
+}}
 >
   {String((item as any).caption ?? "").trim()}
 </div>

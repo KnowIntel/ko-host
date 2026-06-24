@@ -5,8 +5,7 @@ type CarouselBlock = Extract<MicrositeBlock, { type: "image_carousel" }>;
 export type CarouselTextTarget =
   | "title"
   | "subtitle"
-  | "caption"
-  | "linkUrl";
+  | "caption";
 
 export function isCarouselBlock(block: MicrositeBlock): block is CarouselBlock {
   return block.type === "image_carousel";
@@ -18,14 +17,12 @@ export function getCarouselTextStyle(
 ) {
   if (!block || block.type !== "image_carousel") return {};
 
-  const styleKey =
-    target === "title"
-      ? "titleStyle"
-      : target === "subtitle"
-        ? "subtitleStyle"
-        : target === "linkUrl"
-          ? "linkUrlStyle"
-          : "captionStyle";
+const styleKey =
+  target === "title"
+    ? "titleStyle"
+    : target === "subtitle"
+      ? "subtitleStyle"
+      : "captionStyle";
 
   return ((block.data as any)[styleKey] ?? {}) as Record<string, any>;
 }
@@ -37,14 +34,12 @@ export function applyCarouselTextStylePatch(
 ): MicrositeBlock {
   if (!isCarouselBlock(block)) return block;
 
-  const styleKey =
-    target === "title"
-      ? "titleStyle"
-      : target === "subtitle"
-        ? "subtitleStyle"
-        : target === "linkUrl"
-          ? "linkUrlStyle"
-          : "captionStyle";
+const styleKey =
+  target === "title"
+    ? "titleStyle"
+    : target === "subtitle"
+      ? "subtitleStyle"
+      : "captionStyle";
 
   return {
     ...block,
