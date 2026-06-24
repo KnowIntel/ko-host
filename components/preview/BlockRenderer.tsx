@@ -2742,7 +2742,7 @@ const countdownAnimationTransform = () => {
             style={{ gap: `${spacing}px` }}
           >
             {parts.map((part, index) => (
-              <div key={part.key} className="flex items-center">
+              <div key={part.key} className="contents">
                 <div
                   className={[
                     "relative flex flex-col items-center justify-center rounded-xl border px-3 py-3 shadow-sm",
@@ -2844,18 +2844,17 @@ transform:
                   </div>
                 </div>
 
-                {showSeparator && index < parts.length - 1 ? (
-                  <span
-                    className="flex items-center justify-center font-semibold"
-                    style={{
-                      ...unitStyle,
-                      marginLeft: `${spacing / 2}px`,
-                      marginRight: `${spacing / 2}px`,
-                    }}
-                  >
-                    :
-                  </span>
-                ) : null}
+{showSeparator && index < parts.length - 1 ? (
+  <span
+    className="flex items-center justify-center font-semibold"
+    style={{
+      ...unitStyle,
+      minWidth: `${spacing}px`,
+    }}
+  >
+    :
+  </span>
+) : null}
               </div>
             ))}
           </div>
