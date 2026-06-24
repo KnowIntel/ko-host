@@ -10336,6 +10336,7 @@ if (block.type === "video") {
 
   const hasVideo = Boolean(String(block.data.videoUrl ?? "").trim());
 
+  const showTitle = Boolean(String(block.data.title ?? "").trim());
   const showCaption = Boolean((block.data as any).addCaption);
   const caption = String((block.data as any).caption ?? "").trim();
   const captionStyle = ((block.data as any).captionStyle ?? {}) as TextStyle;
@@ -10360,18 +10361,6 @@ if (block.type === "video") {
             : undefined,
       }}
     >
-      {String(block.data.title ?? "").trim() ? (
-        <div
-          className="shrink-0 px-3 py-2 text-sm font-semibold"
-style={{
-  ...getInlineTextStyle(block.data.style),
-  color: block.data.style?.color || "#ffffff",
-}}
-        >
-          {String(block.data.title ?? "")}
-        </div>
-      ) : null}
-
       <div className="relative min-h-0 flex-1 overflow-hidden bg-black">
         {showCustomThumbnail ? (
           <img src={thumbnailUrl} alt="" className="h-full w-full object-cover" />
@@ -10391,15 +10380,27 @@ style={{
             Add video URL
           </div>
         )}
+
+        {showTitle ? (
+          <div
+            className="pointer-events-none absolute left-0 top-0 z-10 w-full px-3 py-2 text-sm font-semibold"
+            style={{
+              ...getInlineTextStyle(block.data.style),
+              color: block.data.style?.color || "#ffffff",
+            }}
+          >
+            {String(block.data.title ?? "")}
+          </div>
+        ) : null}
       </div>
 
       {showCaption && caption ? (
         <div
           className="shrink-0 px-3 py-2 text-xs"
-style={{
-  ...getInlineTextStyle(captionStyle),
-  color: captionStyle.color || "#ffffff",
-}}
+          style={{
+            ...getInlineTextStyle(captionStyle),
+            color: captionStyle.color || "#ffffff",
+          }}
         >
           {caption}
         </div>
