@@ -2651,38 +2651,55 @@ const countdownAnimationTransform = () => {
             ].join(" ")}
             style={{ gap: `${spacing}px` }}
           >
-            {parts.map((part) => (
-              <div
-                key={part.key}
-                className={
-                  variant === "stage"
-                    ? "flex flex-col items-center"
-                    : "flex items-baseline gap-1"
-                }
-              >
-                <span
-                  className="font-bold leading-none"
-                  style={{
-                    ...valueStyle,
-                    fontSize: valueStyle.fontSize ?? "24px",
-                  }}
+            {parts.map((part, index) => (
+              <div key={part.key} className="flex items-center gap-2">
+                <div
+                  className={
+                    variant === "stage"
+                      ? "flex flex-col items-center"
+                      : "flex items-baseline gap-1"
+                  }
                 >
-                  {part.value}
-                </span>
+                  <span
+                    className="font-bold leading-none"
+                    style={{
+                      ...valueStyle,
+                      ...countdownAnimationExtraStyle,
+                      fontSize: valueStyle.fontSize ?? "24px",
+                      transition:
+                        animationStyle === "none"
+                          ? "none"
+                          : countdownAnimationTransition,
+                      transform:
+                        animationStyle === "none"
+                          ? "none"
+                          : countdownAnimationTransform(),
+                    }}
+                  >
+                    {part.value}
+                  </span>
 
-<span
-  className={[
-    "uppercase tracking-[0.12em]",
-    variant === "stage" ? "" : "",
-  ].join(" ")}
-                  style={{
-                    ...unitStyle,
-                    fontSize: unitStyle.fontSize ?? "11px",
-                    marginTop: variant === "stage" ? `${stageUnitGap}px` : undefined,
-                  }}
-                >
-                  {part.label}
-                </span>
+                  <span
+                    className="uppercase tracking-[0.12em]"
+                    style={{
+                      ...unitStyle,
+                      fontSize: unitStyle.fontSize ?? "11px",
+                      marginTop:
+                        variant === "stage" ? `${stageUnitGap}px` : undefined,
+                    }}
+                  >
+                    {part.label}
+                  </span>
+                </div>
+
+                {showSeparator && index < parts.length - 1 ? (
+                  <span
+                    className="flex items-center self-center font-semibold"
+                    style={unitStyle}
+                  >
+                    :
+                  </span>
+                ) : null}
               </div>
             ))}
           </div>
