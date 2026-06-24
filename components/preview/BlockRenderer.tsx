@@ -2503,18 +2503,36 @@ const variant = (data.styleVariant ?? "cards") as
 
 const getCountdownAnimationStyle = () => {
   if (animationStyle === "none") {
-    return { animation: "none" };
+    return {
+      transform: "none",
+      opacity: 1,
+    };
   }
 
-  const name =
-    animationStyle === "pulse"
-      ? "koCountdownPulse"
-      : animationStyle === "flip"
-        ? "koCountdownFlip"
-        : "koCountdownBounce";
+  if (animationStyle === "pulse") {
+    return {
+      transform: tickPulse ? "scale(1.22)" : "scale(1)",
+      opacity: 1,
+    };
+  }
+
+  if (animationStyle === "flip") {
+    return {
+      transform: tickPulse ? "rotateX(180deg)" : "rotateX(0deg)",
+      opacity: tickPulse ? 0.75 : 1,
+    };
+  }
+
+  if (animationStyle === "bounce") {
+    return {
+      transform: tickPulse ? "translateY(-16px)" : "translateY(0)",
+      opacity: 1,
+    };
+  }
 
   return {
-    animation: `${name} 650ms ease-in-out`,
+    transform: "none",
+    opacity: 1,
   };
 };
 
