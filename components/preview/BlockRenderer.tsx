@@ -2646,36 +2646,9 @@ const getCountdownAnimationStyle = () => {
     const unitFontNumber = Number(unitStyle.fontSize) || 11;
     const animationKey = `${animationStyle}-${tickPulse ? "a" : "b"}`;
 
-const countdownAnimationStyles = (
-  <style>
-    {`
-      @keyframes koCountdownPulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.35); }
-        100% { transform: scale(1); }
-      }
-
-      @keyframes koCountdownFlip {
-        0% { transform: rotateX(0deg); }
-        50% { transform: rotateX(180deg); }
-        100% { transform: rotateX(360deg); }
-      }
-
-      @keyframes koCountdownBounce {
-        0% { transform: translateY(0); }
-        35% { transform: translateY(-22px); }
-        70% { transform: translateY(8px); }
-        100% { transform: translateY(0); }
-      }
-    `}
-  </style>
-);
-
 if (variant === "standard" || variant === "stage") {
   return (
     <>
-      {countdownAnimationStyles}
-
       <div
           className={[
             "flex h-full w-full flex-col justify-center gap-2 p-4",
@@ -2767,8 +2740,6 @@ if (variant === "standard" || variant === "stage") {
 
 return (
   <>
-    {countdownAnimationStyles}
-
     <div
           className={[
             "flex h-full w-full flex-col justify-center gap-4 p-4",
