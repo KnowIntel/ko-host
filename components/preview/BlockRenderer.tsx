@@ -1371,7 +1371,7 @@ function renderVideo(
             {isDirectVideoFile ? (
               <video
                 src={videoUrl}
-                poster={!started && showCustomThumbnail ? thumbnailUrl : undefined}
+                poster={!started ? thumbnailUrl || undefined : undefined}
                 className="relative z-10 h-full w-full object-cover"
                 autoPlay={Boolean(block.data.autoplay) || started}
                 muted={Boolean(block.data.muted)}
