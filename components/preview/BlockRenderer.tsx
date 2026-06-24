@@ -2854,7 +2854,14 @@ tileBorderColor
                         justifyContent: "center",
                         fontSize: valueStyle.fontSize ?? (isHero ? "36px" : "24px"),
                         transition: countdownAnimationTransition,
-...getCountdownAnimationStyle(),
+animation:
+  animationStyle === "pulse"
+    ? "koCountdownPulse 650ms ease-in-out infinite"
+    : animationStyle === "flip"
+      ? "koCountdownFlip 650ms ease-in-out infinite"
+      : animationStyle === "bounce"
+        ? "koCountdownBounce 650ms ease-in-out infinite"
+        : "none",
                       }}
                     >
                       {part.value}
