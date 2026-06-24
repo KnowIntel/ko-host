@@ -59,9 +59,13 @@ import {
 
 import {
   applyImageCaptionStylePatch, isImageCaptionFormattingTarget,
-
-
 } from "@/components/builder/formatting/imageFormatting";
+
+import {
+  applyVideoTextStylePatch,
+  getVideoTextStyle,
+  type VideoTextTarget,
+} from "@/components/builder/formatting/videoFormatting";
 
 
 import { getStoreMeta } from "@/lib/utils/getStoreMeta";
@@ -2191,6 +2195,10 @@ const [showAiAdvancedOptions, setShowAiAdvancedOptions] =
   const [removeAllModalOpen, setRemoveAllModalOpen] = useState(false);
   const [inspectorFocusTarget, setInspectorFocusTarget] =
     useState<InspectorFocusTarget>(null);
+
+    const [videoTextTarget, setVideoTextTarget] =
+  useState<VideoTextTarget>("title");
+  
 const [canvasZoom, setCanvasZoom] = useState(() => {
   if (typeof window === "undefined") return 70;
 
@@ -2658,81 +2666,90 @@ selectedBlockFromDraft?.type === "gallery"
                               : timelineStyleTarget === "subtitle"
                                 ? (((selectedBlockFromDraft.data as any).subtitleStyle ?? {}) as TextStyle)
                                 : (((selectedBlockFromDraft.data as any).descriptionStyle ?? {}) as TextStyle)
-                        : selectedBlockFromDraft?.type === "calendar_event"
-                          ? calendarEventTextTarget === "heading"
-                            ? (((selectedBlockFromDraft.data as any).headingStyle ??
+
+                      : selectedBlockFromDraft?.type === "calendar_event"
+                        ? calendarEventTextTarget === "heading"
+                          ? (((selectedBlockFromDraft.data as any).headingStyle ??
+                              (selectedBlockFromDraft.data as any).style ??
+                              {}) as TextStyle)
+                          : calendarEventTextTarget === "subtitle"
+                            ? (((selectedBlockFromDraft.data as any).subtitleStyle ??
                                 (selectedBlockFromDraft.data as any).style ??
                                 {}) as TextStyle)
-                            : calendarEventTextTarget === "subtitle"
-                              ? (((selectedBlockFromDraft.data as any).subtitleStyle ??
+                            : calendarEventTextTarget === "eventTitle"
+                              ? (((selectedBlockFromDraft.data as any).eventTitleStyle ??
                                   (selectedBlockFromDraft.data as any).style ??
                                   {}) as TextStyle)
-                              : calendarEventTextTarget === "eventTitle"
-                                ? (((selectedBlockFromDraft.data as any).eventTitleStyle ??
+                              : calendarEventTextTarget === "eventDate"
+                                ? (((selectedBlockFromDraft.data as any).eventDateStyle ??
                                     (selectedBlockFromDraft.data as any).style ??
                                     {}) as TextStyle)
-                                : calendarEventTextTarget === "eventDate"
-                                  ? (((selectedBlockFromDraft.data as any).eventDateStyle ??
+                                : (((selectedBlockFromDraft.data as any).eventDetailsStyle ??
+                                    (selectedBlockFromDraft.data as any).style ??
+                                    {}) as TextStyle)
+
+                      : selectedBlockFromDraft?.type === "summary"
+                        ? summaryStyleTarget === "header"
+                          ? (((selectedBlockFromDraft.data as any).headerStyle ??
+                              (selectedBlockFromDraft.data as any).style ??
+                              {}) as TextStyle)
+                          : summaryStyleTarget === "subheader"
+                            ? (((selectedBlockFromDraft.data as any).subheaderStyle ??
+                                (selectedBlockFromDraft.data as any).style ??
+                                {}) as TextStyle)
+                            : summaryStyleTarget === "contentLabel"
+                              ? (((selectedBlockFromDraft.data as any).labelStyle ??
+                                  (selectedBlockFromDraft.data as any).style ??
+                                  {}) as TextStyle)
+                              : summaryStyleTarget === "content"
+                                ? (((selectedBlockFromDraft.data as any).valueStyle ??
+                                    (selectedBlockFromDraft.data as any).style ??
+                                    {}) as TextStyle)
+                                : summaryStyleTarget === "footerLabel"
+                                  ? (((selectedBlockFromDraft.data as any).footerLabelStyle ??
+                                      (selectedBlockFromDraft.data as any).labelStyle ??
                                       (selectedBlockFromDraft.data as any).style ??
                                       {}) as TextStyle)
-                                  : (((selectedBlockFromDraft.data as any).eventDetailsStyle ??
-                                      (selectedBlockFromDraft.data as any).style ??
-                                      {}) as TextStyle)
-: selectedBlockFromDraft?.type === "summary"
-  ? summaryStyleTarget === "header"
-    ? (((selectedBlockFromDraft.data as any).headerStyle ??
-        (selectedBlockFromDraft.data as any).style ??
-        {}) as TextStyle)
-    : summaryStyleTarget === "subheader"
-      ? (((selectedBlockFromDraft.data as any).subheaderStyle ??
-          (selectedBlockFromDraft.data as any).style ??
-          {}) as TextStyle)
-: summaryStyleTarget === "contentLabel"
-  ? (((selectedBlockFromDraft.data as any).labelStyle ??
-      (selectedBlockFromDraft.data as any).style ??
-      {}) as TextStyle)
-: summaryStyleTarget === "content"
-  ? (((selectedBlockFromDraft.data as any).valueStyle ??
-      (selectedBlockFromDraft.data as any).style ??
-      {}) as TextStyle)
-      : summaryStyleTarget === "footerLabel"
-        ? (((selectedBlockFromDraft.data as any).footerLabelStyle ??
-            (selectedBlockFromDraft.data as any).labelStyle ??
-            (selectedBlockFromDraft.data as any).style ??
-            {}) as TextStyle)
-        : summaryStyleTarget === "footerAggregate"
-          ? (((selectedBlockFromDraft.data as any).footerAggregateStyle ??
-              (selectedBlockFromDraft.data as any).style ??
-              {}) as TextStyle)
-          : summaryStyleTarget === "footerCaption"
-            ? (((selectedBlockFromDraft.data as any).footerCaptionStyle ??
-                (selectedBlockFromDraft.data as any).style ??
-                {}) as TextStyle)
-            : (((selectedBlockFromDraft.data as any).labelStyle ??
-                (selectedBlockFromDraft.data as any).style ??
-                {}) as TextStyle)
-                        : selectedBlockFromDraft?.type === "cart" ||
-                            selectedBlockFromDraft?.type === "checkout" ||
-                            selectedBlockFromDraft?.type === "text_fx" ||
-                            selectedBlockFromDraft?.type === "cta" ||
-                            selectedBlockFromDraft?.type === "thread" ||
-                            selectedBlockFromDraft?.type === "image" ||
-                            (selectedBlockFromDraft as any)?.type === "gallery" ||
-                            selectedBlockFromDraft?.type === "image_carousel" ||
-                            selectedBlockFromDraft?.type === "progress_bar" ||
-                            (selectedBlockFromDraft as any)?.type === "link_hub" ||
-                            selectedBlockFromDraft?.type === "checklist" ||
-                            selectedBlockFromDraft?.type === "schedule_agenda" ||
-                            selectedBlockFromDraft?.type === "map_location" ||
-                            selectedBlockFromDraft?.type === "file_share" ||
-                            selectedBlockFromDraft?.type === "speed_dating" ||
-                            selectedBlockFromDraft?.type === "video" ||
-                            selectedBlockFromDraft?.type === "rich_text" ||
-                            selectedBlockFromDraft?.type === "links"
+                                  : summaryStyleTarget === "footerAggregate"
+                                    ? (((selectedBlockFromDraft.data as any).footerAggregateStyle ??
+                                        (selectedBlockFromDraft.data as any).style ??
+                                        {}) as TextStyle)
+                                    : summaryStyleTarget === "footerCaption"
+                                      ? (((selectedBlockFromDraft.data as any).footerCaptionStyle ??
+                                          (selectedBlockFromDraft.data as any).style ??
+                                          {}) as TextStyle)
+                                      : (((selectedBlockFromDraft.data as any).labelStyle ??
+                                          (selectedBlockFromDraft.data as any).style ??
+                                          {}) as TextStyle)
+
+                      : selectedBlockFromDraft?.type === "video"
+                        ? (getVideoTextStyle(
+                            selectedBlockFromDraft,
+                            videoTextTarget,
+                          ) as TextStyle)
+
+                      : selectedBlockFromDraft?.type === "cart" ||
+                        selectedBlockFromDraft?.type === "checkout" ||
+                        selectedBlockFromDraft?.type === "text_fx" ||
+                        selectedBlockFromDraft?.type === "cta" ||
+                        selectedBlockFromDraft?.type === "thread" ||
+                        selectedBlockFromDraft?.type === "image" ||
+                        (selectedBlockFromDraft as any)?.type === "gallery" ||
+                        selectedBlockFromDraft?.type === "image_carousel" ||
+                        selectedBlockFromDraft?.type === "progress_bar" ||
+                        (selectedBlockFromDraft as any)?.type === "link_hub" ||
+                        selectedBlockFromDraft?.type === "checklist" ||
+                        selectedBlockFromDraft?.type === "schedule_agenda" ||
+                        selectedBlockFromDraft?.type === "map_location" ||
+                        selectedBlockFromDraft?.type === "file_share" ||
+                        selectedBlockFromDraft?.type === "speed_dating" ||
+                        selectedBlockFromDraft?.type === "rich_text" ||
+                        selectedBlockFromDraft?.type === "links"
                           ? ((((selectedBlockFromDraft as any)?.data?.captionStyle ??
                               (selectedBlockFromDraft as any)?.data?.style ??
                               {}) as TextStyle))
-                          : getSelectionTextStyle(draft, selection);
+
+                      : getSelectionTextStyle(draft, selection);
 
   const selectedAppearance = getSelectionBlockAppearance(draft, selection);
 const selectedRsvpElementBackgroundColor =
@@ -5154,19 +5171,21 @@ if (selectedBlock?.type === "image") {
   return;
 }
 
-if (
-  selectedBlock?.type === "image_carousel" ||
-  selectedBlock?.type === "video"
-) {
+if (selectedBlock?.type === "video") {
+  updateSelectedBlock((block) =>
+    applyVideoTextStylePatch(block, videoTextTarget, patch),
+  );
+
+  return;
+}
+
+if (selectedBlock?.type === "image_carousel") {
   setDraft((prev) => ({
     ...prev,
     blocks: prev.blocks.map((block) => {
       if (block.id !== selectedBlock.id) return block;
 
-      if (
-        block.type === "image_carousel" ||
-        block.type === "video"
-      ) {
+      if (block.type === "image_carousel") {
         return {
           ...block,
           data: {
@@ -14265,6 +14284,8 @@ renderBlockPreview={renderCanvasPreview}
     inspectorCardClass={inspectorCardClass}
     inspectorLabelClass={inspectorLabelClass}
     inspectorInputClass={inspectorInputClass}
+    videoTextTarget={videoTextTarget}
+    setVideoTextTarget={setVideoTextTarget}
   />
 ) : null}
 

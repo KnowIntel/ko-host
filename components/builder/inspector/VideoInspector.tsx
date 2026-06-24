@@ -7,6 +7,8 @@
  * DesignLayoutEditor remains the middleman and only renders this when:
  * selectedBlock?.type === "video"
  */
+
+import type { VideoTextTarget } from "@/components/builder/formatting/videoFormatting";
 type VideoInspectorProps = {
   selectedBlock: any;
   updateSelectedBlock: any;
@@ -17,6 +19,9 @@ type VideoInspectorProps = {
   inspectorCardClass: () => string;
   inspectorLabelClass: () => string;
   inspectorInputClass: () => string;
+
+  videoTextTarget: VideoTextTarget;
+  setVideoTextTarget: (target: VideoTextTarget) => void;
 };
 
 export function VideoInspector({
@@ -27,32 +32,54 @@ export function VideoInspector({
   inspectorCardClass,
   inspectorLabelClass,
   inspectorInputClass,
+
+  videoTextTarget,
+  setVideoTextTarget,
 }: VideoInspectorProps) {
   return (
     <div className={inspectorCardClass()}>
       {/* Video */}
-    <div className={inspectorLabelClass()}>Video</div>
+      
+<div className={inspectorLabelClass()}>Video</div>
 
-    <label className="mt-4 flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
-      <input
-        type="checkbox"
-        checked={Boolean((selectedBlock.data as any).addCaption)}
-        onChange={(e) =>
-          updateSelectedBlock((block: any) =>
-            block.type !== "video"
-              ? block
-              : {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    addCaption: e.target.checked,
-                  } as any,
-                },
-          )
-        }
-      />
-      Add caption
-    </label>
+<div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+  <div className={inspectorLabelClass()}>Formatting</div>
+
+  <div className="mt-3">
+    <div className={inspectorLabelClass()}>Text Target</div>
+    <select
+      value={videoTextTarget}
+      onChange={(e) =>
+        setVideoTextTarget(e.target.value as VideoTextTarget)
+      }
+      className={inspectorInputClass()}
+    >
+      <option value="title">Title</option>
+      <option value="caption">Caption</option>
+    </select>
+  </div>
+</div>
+
+<label className="mt-4 flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+  <input
+    type="checkbox"
+    checked={Boolean((selectedBlock.data as any).addCaption)}
+    onChange={(e) =>
+      updateSelectedBlock((block: any) =>
+        block.type !== "video"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                addCaption: e.target.checked,
+              } as any,
+            },
+      )
+    }
+  />
+  Add caption
+</label>
 
     {(selectedBlock.data as any).addCaption ? (
       <div className="mt-3">
