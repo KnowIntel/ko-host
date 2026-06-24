@@ -78,7 +78,7 @@ export function CountdownInspector({
       </select>
     </div>
 
-    <div className="mt-4">
+{/*     <div className="mt-4">
       <div className={inspectorLabelClass()}>Animation Style</div>
 <select
   value={
@@ -110,7 +110,7 @@ export function CountdownInspector({
   <option value="flip">Flip</option>
   <option value="bounce">Bounce</option>
 </select>
-    </div>
+    </div> */}
 
         <div className="mt-4">
       <div className={inspectorLabelClass()}>Target Date</div>
