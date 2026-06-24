@@ -2652,14 +2652,14 @@ const countdownAnimationTransform = () => {
             style={{ gap: `${spacing}px` }}
           >
             {parts.map((part, index) => (
-              <div key={part.key} className="flex items-center">
-                <div
-                  className={
-                    variant === "stage"
-                      ? "flex flex-col items-center"
-                      : "flex items-baseline gap-1"
-                  }
-                >
+<div key={part.key} className="contents">
+  <div
+    className={
+      variant === "stage"
+        ? "flex flex-col items-center"
+        : "flex items-baseline gap-1"
+    }
+  >
                   <span
                     className="font-bold leading-none"
                     style={{
@@ -2692,25 +2692,17 @@ const countdownAnimationTransform = () => {
                   </span>
                 </div>
 
-                {showSeparator && index < parts.length - 1 ? (
-<span
-  className={
-    variant === "stage"
-      ? "flex items-center justify-center self-center"
-      : "flex items-center justify-center"
-  }
-  style={{
-    ...unitStyle,
-    alignSelf: "center",
-    marginTop:
-      variant === "stage"
-        ? `${stageUnitGap / 2}px`
-        : 0,
-  }}
->
-  :
-</span>
-                ) : null}
+{showSeparator && index < parts.length - 1 ? (
+  <span
+    className="flex items-center justify-center font-semibold"
+    style={{
+      ...unitStyle,
+      minWidth: `${spacing}px`,
+    }}
+  >
+    :
+  </span>
+) : null}
               </div>
             ))}
           </div>
