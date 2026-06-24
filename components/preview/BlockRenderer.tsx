@@ -1597,7 +1597,21 @@ style={{
       {showCaption && caption ? (
         <div
           className="shrink-0 px-2 py-1 text-xs text-neutral-700"
-          style={getContainerTextStyle(captionStyle, designKey)}
+          style={{
+  ...getContainerTextStyle(captionStyle, designKey),
+  fontFamily: captionStyle.fontFamily,
+  fontSize: captionStyle.fontSize,
+  color: captionStyle.color,
+  fontWeight: captionStyle.bold ? 700 : undefined,
+  fontStyle: captionStyle.italic ? "italic" : undefined,
+  textDecoration: [
+    captionStyle.underline ? "underline" : "",
+    captionStyle.strike ? "line-through" : "",
+  ]
+    .filter(Boolean)
+    .join(" "),
+  textAlign: captionStyle.align,
+}}
         >
           {caption}
         </div>

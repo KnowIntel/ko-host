@@ -57,6 +57,11 @@ import {
 
 } from "@/components/builder/inspector";
 
+import {
+  applyImageCaptionStylePatch,
+  isImageCaptionFormattingTarget,
+} from "@/components/builder/formatting/imageFormatting";
+
 
 import { getStoreMeta } from "@/lib/utils/getStoreMeta";
 import { uploadImage } from "@/lib/uploadImage";
