@@ -3037,6 +3037,7 @@ const showTextControls =
   selectedBlock?.type === "checkout" ||
   selectedBlock?.type === "listing" ||
   selectedBlock?.type === "tournament_display" ||
+  selectedBlock?.type === "image_carousel" ||
   selectedBlock?.type === "links";
 
   const showTypographyControls =
