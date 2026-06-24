@@ -2477,7 +2477,6 @@ const variant = (data.styleVariant ?? "cards") as
 
     const animationStyle =
       rawAnimationStyle === "slide" ? "bounce" : rawAnimationStyle;
-      console.log("COUNTDOWN ANIMATION:", animationStyle);
 
     const alignment =
       (data.alignment as "left" | "center" | "right" | undefined) ?? "center";
@@ -2504,31 +2503,18 @@ const variant = (data.styleVariant ?? "cards") as
 
 const getCountdownAnimationStyle = () => {
   if (animationStyle === "none") {
-    return {
-      animation: "none",
-    };
+    return { animation: "none" };
   }
 
-  if (animationStyle === "pulse") {
-    return {
-      animation: "koCountdownPulse 520ms ease",
-    };
-  }
-
-  if (animationStyle === "flip") {
-    return {
-      animation: "koCountdownFlip 520ms ease",
-    };
-  }
-
-  if (animationStyle === "bounce") {
-    return {
-      animation: "koCountdownBounce 520ms ease",
-    };
-  }
+  const name =
+    animationStyle === "pulse"
+      ? "koCountdownPulse"
+      : animationStyle === "flip"
+        ? "koCountdownFlip"
+        : "koCountdownBounce";
 
   return {
-    animation: "none",
+    animation: `${name} 650ms ease-in-out`,
   };
 };
 
@@ -2647,28 +2633,32 @@ const countdownAnimationStyles = (
     {`
       @keyframes koCountdownPulse {
         0% { transform: scale(1); }
-        45% { transform: scale(1.18); }
+        50% { transform: scale(1.35); }
         100% { transform: scale(1); }
       }
 
       @keyframes koCountdownFlip {
         0% { transform: rotateX(0deg); }
-        45% { transform: rotateX(82deg); opacity: 0.72; }
-        100% { transform: rotateX(0deg); opacity: 1; }
+        50% { transform: rotateX(180deg); }
+        100% { transform: rotateX(360deg); }
       }
 
       @keyframes koCountdownBounce {
         0% { transform: translateY(0); }
-        45% { transform: translateY(-14px); }
+        35% { transform: translateY(-22px); }
+        70% { transform: translateY(8px); }
         100% { transform: translateY(0); }
       }
     `}
   </style>
 );
 
-    if (variant === "standard" || variant === "stage") {
-      return (
-        <div
+if (variant === "standard" || variant === "stage") {
+  return (
+    <>
+      {countdownAnimationStyles}
+
+      <div
           className={[
             "flex h-full w-full flex-col justify-center gap-2 p-4",
             alignmentClass,
@@ -2746,7 +2736,8 @@ const countdownAnimationStyles = (
             ))}
           </div>
         </div>
-      );
+      </>
+    );
     }
 
     if (variant === "cards") {
@@ -2756,8 +2747,11 @@ const countdownAnimationStyles = (
       const ringRadius = ringSize / 2 - ringStroke * 3;
       const ringCircumference = 2 * Math.PI * ringRadius;
 
-      return (
-        <div
+return (
+  <>
+    {countdownAnimationStyles}
+
+    <div
           className={[
             "flex h-full w-full flex-col justify-center gap-4 p-4",
             alignmentClass,
@@ -2851,9 +2845,6 @@ tileBorderColor
   key={`${part.key}-${animationKey}`}
   className={[
     "relative z-10 inline-flex font-bold leading-none",
-    animationStyle === "pulse" && seconds < 10
-      ? "animate-pulse"
-      : "",
   ].join(" ")}
                       style={{
                         ...valueStyle,
@@ -2896,7 +2887,8 @@ tileBorderColor
             ))}
           </div>
         </div>
-      );
+      </>
+    );
     }
 
     return (
