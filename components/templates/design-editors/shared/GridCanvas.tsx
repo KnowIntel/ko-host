@@ -1343,11 +1343,16 @@ className={[
                         <div className="pointer-events-none absolute inset-0 z-10 bg-white/25" />
                       ) : null}
 
-                      <div className="h-full w-full pt-0">
-                        {renderBlockPreview
-                          ? renderBlockPreview(block)
-                          : block.type}
-                      </div>
+<div
+  className={[
+    "h-full w-full pt-0",
+    block.type === "content_panel" ? "pointer-events-none" : "",
+  ].join(" ")}
+>
+  {renderBlockPreview
+    ? renderBlockPreview(block)
+    : block.type}
+</div>
                     </div>
                   );
                 })}
