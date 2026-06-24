@@ -2693,12 +2693,23 @@ const countdownAnimationTransform = () => {
                 </div>
 
                 {showSeparator && index < parts.length - 1 ? (
-                  <span
-                    className="flex items-center self-center font-semibold"
-                    style={unitStyle}
-                  >
-                    :
-                  </span>
+<span
+  className={
+    variant === "stage"
+      ? "flex items-center justify-center self-center"
+      : "flex items-center justify-center"
+  }
+  style={{
+    ...unitStyle,
+    alignSelf: "center",
+    marginTop:
+      variant === "stage"
+        ? `${stageUnitGap / 2}px`
+        : 0,
+  }}
+>
+  :
+</span>
                 ) : null}
               </div>
             ))}
