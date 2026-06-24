@@ -1229,7 +1229,9 @@ zIndex:
 className={[
   getToolSurfaceClass(selected, resizing),
   "pointer-events-auto",
-  block.type === "schedule_agenda" ? "overflow-visible" : "",
+  block.type === "schedule_agenda" || block.type === "content_panel"
+    ? "overflow-visible"
+    : "",
   isPageTextOverlay && !selected ? "pointer-events-none" : "",
 ].join(" ")}
                     >
