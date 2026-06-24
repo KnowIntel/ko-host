@@ -1368,25 +1368,6 @@ function renderVideo(
 
         <div className="min-h-0 flex-1 overflow-hidden rounded-xl" style={frameStyle}>
           <div className="relative h-full w-full overflow-hidden rounded-lg bg-black">
-
-            <div
-  style={{
-    position: "absolute",
-    top: 8,
-    left: 8,
-    zIndex: 9999,
-    background: "red",
-    color: "white",
-    padding: "4px 8px",
-    fontSize: "12px",
-  }}
->
-  auto:{String(autoGenerateThumbnail)}
-  custom:{String(showCustomThumbnail)}
-  started:{String(started)}
-</div>
-
-
             {isDirectVideoFile ? (
               <video
                 src={videoUrl}
@@ -1430,25 +1411,13 @@ function renderVideo(
                 className="absolute inset-0 z-30 flex h-full w-full cursor-pointer items-center justify-center border-0 bg-black p-0"
                 onClick={startVideo}
               >
-{showCustomThumbnail ? (
-  <img
-    src={thumbnailUrl}
-    alt=""
-    className="absolute inset-0 h-full w-full object-cover"
-    draggable={false}
-  />
-) : (
-  <div className="absolute inset-0 flex h-full w-full items-center justify-center bg-gradient-to-br from-neutral-950 via-neutral-800 to-black">
-    <div className="rounded-2xl border border-white/15 bg-white/10 px-5 py-4 text-center text-white shadow-xl backdrop-blur">
-      <div className="text-xs font-semibold uppercase tracking-[0.24em] text-white/60">
-        Video Uploaded
-      </div>
-      <div className="mt-2 text-sm font-semibold text-white">
-        Click to play
-      </div>
-    </div>
-  </div>
-)}
+                <img
+                  src={thumbnailUrl}
+                  alt=""
+                  className="absolute inset-0 h-full w-full object-cover"
+                  draggable={false}
+                />
+                
 
                 {showPlayOverlay ? (
                   <img

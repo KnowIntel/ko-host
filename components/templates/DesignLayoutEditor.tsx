@@ -10330,10 +10330,11 @@ if (block.type === "video") {
   const thumbnailUrl = String((block.data as any).thumbnailUrl ?? "").trim();
   const autoGenerateThumbnail =
     (block.data as any).autoGenerateThumbnail !== false;
-  const showPlayOverlay = (block.data as any).showPlayOverlay !== false;
 
   const showCustomThumbnail =
     !autoGenerateThumbnail && Boolean(thumbnailUrl);
+
+  const hasVideo = Boolean(String(block.data.videoUrl ?? "").trim());
 
   return (
     <div
@@ -10367,23 +10368,22 @@ if (block.type === "video") {
       <div className="relative min-h-0 flex-1 overflow-hidden bg-black">
         {showCustomThumbnail ? (
           <img src={thumbnailUrl} alt="" className="h-full w-full object-cover" />
-        ) : block.data.videoUrl ? (
-          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-neutral-900 via-neutral-800 to-black text-sm text-white/60">
-            Video Preview
+        ) : hasVideo ? (
+          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-neutral-950 via-neutral-800 to-black">
+            <div className="rounded-2xl border border-white/15 bg-white/10 px-5 py-4 text-center text-white shadow-xl backdrop-blur">
+              <div className="text-xs font-semibold uppercase tracking-[0.24em] text-white/60">
+                Video Uploaded
+              </div>
+              <div className="mt-2 text-sm font-semibold text-white">
+                Ready for preview
+              </div>
+            </div>
           </div>
         ) : (
           <div className="flex h-full w-full items-center justify-center text-sm text-neutral-400">
             Add video URL
           </div>
         )}
-
-{showPlayOverlay && !block.data.showControls ? (
-  <img
-    src="/icons/button_video_play.png"
-    alt=""
-    className="pointer-events-none absolute left-1/2 top-1/2 z-10 h-16 w-16 -translate-x-1/2 -translate-y-1/2 object-contain"
-  />
-) : null}
       </div>
     </div>
   );
