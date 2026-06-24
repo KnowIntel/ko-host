@@ -19,8 +19,6 @@ type ImageInspectorProps = {
   updateSelectedBlock: any;
 
   uploadImageToSelectedBlock: (blockId: string) => Promise<any> | void;
-  updateSelectedImagePatch: (patch: Record<string, any>) => void;
-  updateSelectedImageFadePatch: (patch: Record<string, any>) => void;
 
   inspectorCardClass: () => string;
   inspectorLabelClass: () => string;
@@ -31,8 +29,6 @@ export function ImageInspector({
   selectedBlock,
   updateSelectedBlock,
   uploadImageToSelectedBlock,
-  updateSelectedImagePatch,
-  updateSelectedImageFadePatch,
   inspectorCardClass,
   inspectorLabelClass,
   inspectorInputClass,
@@ -48,15 +44,9 @@ export function ImageInspector({
     checked={Boolean((selectedBlock.data as any).addCaption)}
     onChange={(e) =>
       updateSelectedBlock((block: any) =>
-        block.type !== "image"
-          ? block
-          : {
-              ...block,
-              data: {
-                ...block.data,
-                addCaption: e.target.checked,
-              } as any,
-            },
+        applyImageCaptionPatch(block, {
+          addCaption: e.target.checked,
+        }),
       )
     }
   />
@@ -71,15 +61,9 @@ export function ImageInspector({
       value={(selectedBlock.data as any).caption ?? ""}
       onChange={(e) =>
         updateSelectedBlock((block: any) =>
-          block.type !== "image"
-            ? block
-            : {
-                ...block,
-                data: {
-                  ...block.data,
-                  caption: e.target.value,
-                } as any,
-              },
+          applyImageCaptionPatch(block, {
+            caption: e.target.value,
+          }),
         )
       }
       className={inspectorInputClass()}
@@ -369,79 +353,89 @@ export function ImageInspector({
 <div className="mt-5">
   <div className={inspectorLabelClass()}>Fade Edges</div>
 
-                      <div className="mt-3 grid grid-cols-2 gap-3">
-                        <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
-                          <input
-                            type="checkbox"
-                            checked={Boolean(selectedBlock.data.image.fade?.top)}
-                            onChange={(e) =>
-                              updateSelectedImageFadePatch({
-                                top: e.target.checked,
-                              })
-                            }
-                          />
-                          Top
-                        </label>
+  <div className="mt-3 grid grid-cols-2 gap-3">
+    <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+      <input
+        type="checkbox"
+        checked={Boolean(selectedBlock.data.image.fade?.top)}
+        onChange={(e) =>
+          updateSelectedBlock((block: any) =>
+            applyImageFadePatch(block, {
+              top: e.target.checked,
+            }),
+          )
+        }
+      />
+      Top
+    </label>
 
-                        <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
-                          <input
-                            type="checkbox"
-                            checked={Boolean(selectedBlock.data.image.fade?.bottom)}
-                            onChange={(e) =>
-                              updateSelectedImageFadePatch({
-                                bottom: e.target.checked,
-                              })
-                            }
-                          />
-                          Bottom
-                        </label>
+    <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+      <input
+        type="checkbox"
+        checked={Boolean(selectedBlock.data.image.fade?.bottom)}
+        onChange={(e) =>
+          updateSelectedBlock((block: any) =>
+            applyImageFadePatch(block, {
+              bottom: e.target.checked,
+            }),
+          )
+        }
+      />
+      Bottom
+    </label>
 
-                        <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
-                          <input
-                            type="checkbox"
-                            checked={Boolean(selectedBlock.data.image.fade?.left)}
-                            onChange={(e) =>
-                              updateSelectedImageFadePatch({
-                                left: e.target.checked,
-                              })
-                            }
-                          />
-                          Left
-                        </label>
+    <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+      <input
+        type="checkbox"
+        checked={Boolean(selectedBlock.data.image.fade?.left)}
+        onChange={(e) =>
+          updateSelectedBlock((block: any) =>
+            applyImageFadePatch(block, {
+              left: e.target.checked,
+            }),
+          )
+        }
+      />
+      Left
+    </label>
 
-                        <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
-                          <input
-                            type="checkbox"
-                            checked={Boolean(selectedBlock.data.image.fade?.right)}
-                            onChange={(e) =>
-                              updateSelectedImageFadePatch({
-                                right: e.target.checked,
-                              })
-                            }
-                          />
-                          Right
-                        </label>
-                      </div>
+    <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
+      <input
+        type="checkbox"
+        checked={Boolean(selectedBlock.data.image.fade?.right)}
+        onChange={(e) =>
+          updateSelectedBlock((block: any) =>
+            applyImageFadePatch(block, {
+              right: e.target.checked,
+            }),
+          )
+        }
+      />
+      Right
+    </label>
+  </div>
 
-                      <div className="mt-4">
-                        <div className={inspectorLabelClass()}>Fade Size</div>
-                        <input
-                          type="range"
-                          min={0}
-                          max={50}
-                          value={selectedBlock.data.image.fade?.size ?? 15}
-                          onChange={(e) =>
-                            updateSelectedImageFadePatch({
-                              size: Number(e.target.value),
-                            })
-                          }
-                          className="mt-2 w-full"
-                        />
-                        <div className="mt-1 text-xs text-neutral-500">
-                          {selectedBlock.data.image.fade?.size ?? 15}%
-                        </div>
-                      </div>
-                    </div>
+  <div className="mt-4">
+    <div className={inspectorLabelClass()}>Fade Size</div>
+    <input
+      type="range"
+      min={0}
+      max={50}
+      value={selectedBlock.data.image.fade?.size ?? 15}
+      onChange={(e) =>
+        updateSelectedBlock((block: any) =>
+          applyImageFadePatch(block, {
+            size: Number(e.target.value),
+          }),
+        )
+      }
+      className="mt-2 w-full"
+    />
+    <div className="mt-1 text-xs text-neutral-500">
+      {selectedBlock.data.image.fade?.size ?? 15}%
+    </div>
+  </div>
+</div>
     </div>
   );
 }
