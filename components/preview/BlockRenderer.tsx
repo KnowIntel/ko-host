@@ -2505,15 +2505,46 @@ const variant = (data.styleVariant ?? "cards") as
     const showSeconds = data.showSeconds !== false;
 
 
-const countdownAnimationTransform = () => {
-  if (animationStyle === "none") return "none";
-  if (!isTicking) return "none";
+const getCountdownAnimationStyle = () => {
+  if (animationStyle === "none") {
+    return {
+      transform: "none",
+      opacity: 1,
+    };
+  }
 
-  if (animationStyle === "pulse") return "scale(1.12)";
-  if (animationStyle === "flip") return "rotateX(-78deg)";
-  if (animationStyle === "bounce") return "translateY(-10px)";
+  if (!isTicking) {
+    return {
+      transform: "none",
+      opacity: 1,
+    };
+  }
 
-  return "none";
+  if (animationStyle === "pulse") {
+    return {
+      transform: "scale(1.16)",
+      opacity: 1,
+    };
+  }
+
+  if (animationStyle === "flip") {
+    return {
+      transform: "rotateX(78deg)",
+      opacity: 0.75,
+    };
+  }
+
+  if (animationStyle === "bounce") {
+    return {
+      transform: "translateY(-12px)",
+      opacity: 1,
+    };
+  }
+
+  return {
+    transform: "none",
+    opacity: 1,
+  };
 };
 
     const countdownAnimationTransition =
@@ -2670,10 +2701,7 @@ const countdownAnimationTransform = () => {
                         animationStyle === "none"
                           ? "none"
                           : countdownAnimationTransition,
-                      transform:
-                        animationStyle === "none"
-                          ? "none"
-                          : countdownAnimationTransform(),
+...getCountdownAnimationStyle(),
                     }}
                   >
                     {part.value}
@@ -2823,10 +2851,7 @@ tileBorderColor
                         justifyContent: "center",
                         fontSize: valueStyle.fontSize ?? (isHero ? "36px" : "24px"),
                         transition: countdownAnimationTransition,
-transform:
-  animationStyle === "none"
-    ? "scale(1)"
-    : countdownAnimationTransform(),
+...getCountdownAnimationStyle(),
                       }}
                     >
                       {part.value}
@@ -2907,10 +2932,7 @@ style={{
     animationStyle === "none"
       ? "none"
       : countdownAnimationTransition,
-  transform:
-    animationStyle === "none"
-      ? "scale(1)"
-    : countdownAnimationTransform(),
+...getCountdownAnimationStyle(),
 }}
                 >
                   {part.value}
