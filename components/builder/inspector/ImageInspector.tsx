@@ -7,6 +7,13 @@
  * DesignLayoutEditor remains the middleman and only renders this when:
  * selectedBlock?.type === "image"
  */
+
+import {
+  applyImageCaptionPatch,
+  applyImageFadePatch,
+  applyImagePatch,
+  applyImageShadowPatch,
+} from "@/components/builder/formatting/imageFormatting";
 type ImageInspectorProps = {
   selectedBlock: any;
   updateSelectedBlock: any;
@@ -91,110 +98,112 @@ export function ImageInspector({
                       Browse Image
                     </button>
 
-                    <div className="mt-4 grid grid-cols-1 gap-3">
-                      <div>
-                        <div className={inspectorLabelClass()}>
-                          Horizontal Position
-                        </div>
-                        <input
-                          type="range"
-                          min={0}
-                          max={100}
-                          value={selectedBlock.data.image.positionX ?? 50}
-                          onChange={(e) =>
-                            updateSelectedImagePatch({
-                              positionX: Number(e.target.value),
-                            })
-                          }
-                          className="mt-2 w-full"
-                        />
-                        <div className="mt-1 text-xs text-neutral-500">
-                          {selectedBlock.data.image.positionX ?? 50}%
-                        </div>
-                      </div>
+<div className="mt-4 grid grid-cols-1 gap-3">
+  <div>
+    <div className={inspectorLabelClass()}>Horizontal Position</div>
+    <input
+      type="range"
+      min={0}
+      max={100}
+      value={selectedBlock.data.image.positionX ?? 50}
+      onChange={(e) =>
+        updateSelectedBlock((block: any) =>
+          applyImagePatch(block, {
+            positionX: Number(e.target.value),
+          }),
+        )
+      }
+      className="mt-2 w-full"
+    />
+    <div className="mt-1 text-xs text-neutral-500">
+      {selectedBlock.data.image.positionX ?? 50}%
+    </div>
+  </div>
 
-                      <div>
-                        <div className={inspectorLabelClass()}>
-                          Vertical Position
-                        </div>
-                        <input
-                          type="range"
-                          min={0}
-                          max={100}
-                          value={selectedBlock.data.image.positionY ?? 50}
-                          onChange={(e) =>
-                            updateSelectedImagePatch({
-                              positionY: Number(e.target.value),
-                            })
-                          }
-                          className="mt-2 w-full"
-                        />
-                        <div className="mt-1 text-xs text-neutral-500">
-                          {selectedBlock.data.image.positionY ?? 50}%
-                        </div>
-                      </div>
+  <div>
+    <div className={inspectorLabelClass()}>Vertical Position</div>
+    <input
+      type="range"
+      min={0}
+      max={100}
+      value={selectedBlock.data.image.positionY ?? 50}
+      onChange={(e) =>
+        updateSelectedBlock((block: any) =>
+          applyImagePatch(block, {
+            positionY: Number(e.target.value),
+          }),
+        )
+      }
+      className="mt-2 w-full"
+    />
+    <div className="mt-1 text-xs text-neutral-500">
+      {selectedBlock.data.image.positionY ?? 50}%
+    </div>
+  </div>
 
-                      <div>
-                        <div className={inspectorLabelClass()}>Zoom</div>
-                        <input
-                          type="range"
-                          min={50}
-                          max={300}
-                          value={Math.round(
-                            (selectedBlock.data.image.zoom ?? 1) * 100,
-                          )}
-                          onChange={(e) =>
-                            updateSelectedImagePatch({
-                              zoom: Number(e.target.value) / 100,
-                            })
-                          }
-                          className="mt-2 w-full"
-                        />
-                        <div className="mt-1 text-xs text-neutral-500">
-                          {Math.round((selectedBlock.data.image.zoom ?? 1) * 100)}%
-                        </div>
-                      </div>
+  <div>
+    <div className={inspectorLabelClass()}>Zoom</div>
+    <input
+      type="range"
+      min={50}
+      max={300}
+      value={Math.round((selectedBlock.data.image.zoom ?? 1) * 100)}
+      onChange={(e) =>
+        updateSelectedBlock((block: any) =>
+          applyImagePatch(block, {
+            zoom: Number(e.target.value) / 100,
+          }),
+        )
+      }
+      className="mt-2 w-full"
+    />
+    <div className="mt-1 text-xs text-neutral-500">
+      {Math.round((selectedBlock.data.image.zoom ?? 1) * 100)}%
+    </div>
+  </div>
 
-                      <div>
-                        <div className={inspectorLabelClass()}>Rotation</div>
-                        <input
-                          type="range"
-                          min={-180}
-                          max={180}
-                          value={selectedBlock.data.image.rotation ?? 0}
-                          onChange={(e) =>
-                            updateSelectedImagePatch({
-                              rotation: Number(e.target.value) || 0,
-                            })
-                          }
-                          className="mt-2 w-full"
-                        />
-                        <div className="mt-1 text-xs text-neutral-500">
-                          {selectedBlock.data.image.rotation ?? 0}°
-                        </div>
-                      </div>
+  <div>
+    <div className={inspectorLabelClass()}>Rotation</div>
+    <input
+      type="range"
+      min={-180}
+      max={180}
+      value={selectedBlock.data.image.rotation ?? 0}
+      onChange={(e) =>
+        updateSelectedBlock((block: any) =>
+          applyImagePatch(block, {
+            rotation: Number(e.target.value) || 0,
+          }),
+        )
+      }
+      className="mt-2 w-full"
+    />
+    <div className="mt-1 text-xs text-neutral-500">
+      {selectedBlock.data.image.rotation ?? 0}°
+    </div>
+  </div>
 
-                      <div>
-                        <div className={inspectorLabelClass()}>Opacity</div>
-                        <input
-                          type="range"
-                          min={0}
-                          max={100}
-                          value={Math.round(
-                            (selectedBlock.data.image.opacity ?? 1) * 100,
-                          )}
-                          onChange={(e) =>
-                            updateSelectedImagePatch({
-                              opacity: Number(e.target.value) / 100,
-                            })
-                          }
-                          className="mt-2 w-full"
-                        />
-                        <div className="mt-1 text-xs text-neutral-500">
-                          {Math.round((selectedBlock.data.image.opacity ?? 1) * 100)}%
-                        </div>
-                      </div>
-                    </div>
+  <div>
+    <div className={inspectorLabelClass()}>Opacity</div>
+    <input
+      type="range"
+      min={0}
+      max={100}
+      value={Math.round((selectedBlock.data.image.opacity ?? 1) * 100)}
+      onChange={(e) =>
+        updateSelectedBlock((block: any) =>
+          applyImagePatch(block, {
+            opacity: Number(e.target.value) / 100,
+          }),
+        )
+      }
+      className="mt-2 w-full"
+    />
+    <div className="mt-1 text-xs text-neutral-500">
+      {Math.round((selectedBlock.data.image.opacity ?? 1) * 100)}%
+    </div>
+  </div>
+</div>
 
 <div className="mt-5">
   <div className={inspectorLabelClass()}>Shadow</div>

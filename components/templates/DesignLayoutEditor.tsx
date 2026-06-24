@@ -58,8 +58,9 @@ import {
 } from "@/components/builder/inspector";
 
 import {
-  applyImageCaptionStylePatch,
-  isImageCaptionFormattingTarget,
+  applyImageCaptionStylePatch, isImageCaptionFormattingTarget,
+
+
 } from "@/components/builder/formatting/imageFormatting";
 
 
@@ -5143,8 +5144,15 @@ if (selectedBlock?.type === "enrollment_board") {
   return;
 }
 
+if (selectedBlock?.type === "image") {
+  updateSelectedBlock((block: any) =>
+    applyImageCaptionStylePatch(block, patch),
+  );
+
+  return;
+}
+
 if (
-  selectedBlock?.type === "image" ||
   selectedBlock?.type === "image_carousel" ||
   selectedBlock?.type === "video"
 ) {
@@ -5153,9 +5161,7 @@ if (
     blocks: prev.blocks.map((block) => {
       if (block.id !== selectedBlock.id) return block;
 
-      
       if (
-        block.type === "image" ||
         block.type === "image_carousel" ||
         block.type === "video"
       ) {
@@ -5174,6 +5180,7 @@ if (
       return block;
     }),
   }));
+
   return;
 }
 
@@ -14332,8 +14339,6 @@ renderBlockPreview={renderCanvasPreview}
     selectedBlock={selectedBlock}
     updateSelectedBlock={updateSelectedBlock}
     uploadImageToSelectedBlock={uploadImageToSelectedBlock}
-    updateSelectedImagePatch={updateSelectedImagePatch}
-    updateSelectedImageFadePatch={updateSelectedImageFadePatch}
     inspectorCardClass={inspectorCardClass}
     inspectorLabelClass={inspectorLabelClass}
     inspectorInputClass={inspectorInputClass}
