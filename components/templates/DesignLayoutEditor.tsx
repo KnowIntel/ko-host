@@ -5,7 +5,7 @@ import AppModal from "@/components/ui/AppModal";
 import { BUILDER_TOOL_GUIDES } from "@/components/templates/builderToolGuides";
 import { BLOCK_GUIDES } from "@/components/templates/blockGuideContent";
 import PopBalloonCanvasPreview from "@/components/blocks/PopBalloonCanvasPreview";
-
+import { applyImagePatch } from "@/components/builder/formatting/imageFormatting";
 
 import {
   OptionButtonInspector,
@@ -7025,30 +7025,6 @@ function updateSelectedRsvpElementStyle(
   });
 }
 
-function updateSelectedImagePatch(
-  patch: Partial<{
-    positionX: number;
-    positionY: number;
-    zoom: number;
-    rotation: number;
-    opacity: number;
-  }>,
-) {
-  updateSelectedBlock((block) =>
-    block.type !== "image"
-      ? block
-      : {
-          ...block,
-          data: {
-            ...block.data,
-            image: {
-              ...block.data.image,
-              ...patch,
-            },
-          },
-        },
-  );
-}
 
 function updateSelectedIconPatch(
   patch: Partial<{
@@ -12524,91 +12500,103 @@ title={
 
           <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
 
-          <div className={topBarSliderWrapClass()}>
-            <span>X</span>
-            <input
-              type="range"
-              min={0}
-              max={100}
-              value={selectedBlock.data.image.positionX ?? 50}
-              onChange={(e) =>
-                updateSelectedImagePatch({
-                  positionX: Number(e.target.value),
-                })
-              }
-              className={topBarSliderClass()}
-              title="Image horizontal position"
-            />
-          </div>
+<div className={topBarSliderWrapClass()}>
+  <span>X</span>
+  <input
+    type="range"
+    min={0}
+    max={100}
+    value={selectedBlock.data.image.positionX ?? 50}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        applyImagePatch(block, {
+          positionX: Number(e.target.value),
+        }),
+      )
+    }
+    className={topBarSliderClass()}
+    title="Image horizontal position"
+  />
+</div>
 
-          <div className={topBarSliderWrapClass()}>
-            <span>Y</span>
-            <input
-              type="range"
-              min={0}
-              max={100}
-              value={selectedBlock.data.image.positionY ?? 50}
-              onChange={(e) =>
-                updateSelectedImagePatch({
-                  positionY: Number(e.target.value),
-                })
-              }
-              className={topBarSliderClass()}
-              title="Image vertical position"
-            />
-          </div>
+<div className={topBarSliderWrapClass()}>
+  <span>Y</span>
+  <input
+    type="range"
+    min={0}
+    max={100}
+    value={selectedBlock.data.image.positionY ?? 50}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        applyImagePatch(block, {
+          positionY: Number(e.target.value),
+        }),
+      )
+    }
+    className={topBarSliderClass()}
+    title="Image vertical position"
+  />
+</div>
 
-          <div className={topBarSliderWrapClass()}>
-            <span>Zoom</span>
-            <input
-              type="range"
-              min={50}
-              max={300}
-              value={Math.round((selectedBlock.data.image.zoom ?? 1) * 100)}
-              onChange={(e) =>
-                updateSelectedImagePatch({
-                  zoom: Number(e.target.value) / 100,
-                })
-              }
-              className={topBarSliderClass()}
-              title="Image zoom"
-            />
-          </div>
+<div className={topBarSliderWrapClass()}>
+  <span>Zoom</span>
+  <input
+    type="range"
+    min={50}
+    max={300}
+    value={Math.round((selectedBlock.data.image.zoom ?? 1) * 100)}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        applyImagePatch(block, {
+          zoom: Number(e.target.value) / 100,
+        }),
+      )
+    }
+    className={topBarSliderClass()}
+    title="Image zoom"
+  />
+</div>
 
-          <div className={topBarSliderWrapClass()}>
-            <span>Rotate</span>
-            <input
-              type="range"
-              min={-180}
-              max={180}
-              value={selectedBlock.data.image.rotation ?? 0}
-              onChange={(e) =>
-                updateSelectedImagePatch({
-                  rotation: Number(e.target.value),
-                })
-              }
-              className={topBarSliderClass()}
-              title="Image rotation"
-            />
-          </div>
+<div className={topBarSliderWrapClass()}>
+  <span>Rotate</span>
+  <input
+    type="range"
+    min={-180}
+    max={180}
+    value={selectedBlock.data.image.rotation ?? 0}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        applyImagePatch(block, {
+          rotation: Number(e.target.value),
+        }),
+      )
+    }
+    className={topBarSliderClass()}
+    title="Image rotation"
+  />
+</div>
 
-          <div className={topBarSliderWrapClass()}>
-            <span>Opacity</span>
-            <input
-              type="range"
-              min={0}
-              max={100}
-              value={Math.round((selectedBlock.data.image.opacity ?? 1) * 100)}
-              onChange={(e) =>
-                updateSelectedImagePatch({
-                  opacity: Number(e.target.value) / 100,
-                })
-              }
-              className={topBarSliderClass()}
-              title="Image opacity"
-            />
-            <span>{Math.round((selectedBlock.data.image.opacity ?? 1) * 100)}%</span>
-          </div>
+<div className={topBarSliderWrapClass()}>
+  <span>Opacity</span>
+  <input
+    type="range"
+    min={0}
+    max={100}
+    value={Math.round((selectedBlock.data.image.opacity ?? 1) * 100)}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        applyImagePatch(block, {
+          opacity: Number(e.target.value) / 100,
+        }),
+      )
+    }
+    className={topBarSliderClass()}
+    title="Image opacity"
+  />
+  <span>
+    {Math.round((selectedBlock.data.image.opacity ?? 1) * 100)}%
+  </span>
+</div>
 
           <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
 
