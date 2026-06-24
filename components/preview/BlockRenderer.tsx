@@ -1368,6 +1368,25 @@ function renderVideo(
 
         <div className="min-h-0 flex-1 overflow-hidden rounded-xl" style={frameStyle}>
           <div className="relative h-full w-full overflow-hidden rounded-lg bg-black">
+
+            <div
+  style={{
+    position: "absolute",
+    top: 8,
+    left: 8,
+    zIndex: 9999,
+    background: "red",
+    color: "white",
+    padding: "4px 8px",
+    fontSize: "12px",
+  }}
+>
+  auto:{String(autoGenerateThumbnail)}
+  custom:{String(showCustomThumbnail)}
+  started:{String(started)}
+</div>
+
+
             {isDirectVideoFile ? (
               <video
                 src={videoUrl}
