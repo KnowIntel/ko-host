@@ -10360,7 +10360,7 @@ if (block.type === "video") {
             : undefined,
       }}
     >
-      {block.data.title ? (
+      {String(block.data.title ?? "").trim() ? (
         <div
           className="shrink-0 px-3 py-2 text-sm font-semibold"
 style={{
@@ -10368,7 +10368,7 @@ style={{
   color: block.data.style?.color || "#ffffff",
 }}
         >
-          {block.data.title}
+          {String(block.data.title ?? "")}
         </div>
       ) : null}
 
