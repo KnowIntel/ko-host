@@ -74,6 +74,12 @@ import {
   type GalleryTextTarget,
 } from "@/components/builder/formatting/galleryFormatting";
 
+import {
+  applyCarouselTextStylePatch,
+  getCarouselTextStyle,
+  type CarouselTextTarget,
+} from "@/components/builder/formatting/carouselFormatting";
+
 
 import { getStoreMeta } from "@/lib/utils/getStoreMeta";
 import { uploadImage } from "@/lib/uploadImage";
@@ -2095,6 +2101,9 @@ const [listingStyleTarget, setListingStyleTarget] = useState<
   "title" | "description" | "metadata" | "price" | "quantity"
 >("title");
 
+const [carouselTextTarget, setCarouselTextTarget] =
+  useState<CarouselTextTarget>("title");
+
   const [tournamentDisplayStyleTarget, setTournamentDisplayStyleTarget] =
   useState<
     | "background"
@@ -2730,6 +2739,12 @@ selectedBlockFromDraft?.type === "gallery"
                             videoTextTarget,
                           ) as TextStyle)
 
+                        : selectedBlockFromDraft?.type === "image_carousel"
+                          ? (getCarouselTextStyle(
+                              selectedBlockFromDraft,
+                              carouselTextTarget,
+                            ) as TextStyle)
+
                       : selectedBlockFromDraft?.type === "cart" ||
                         selectedBlockFromDraft?.type === "checkout" ||
                         selectedBlockFromDraft?.type === "text_fx" ||
@@ -2737,7 +2752,6 @@ selectedBlockFromDraft?.type === "gallery"
                         selectedBlockFromDraft?.type === "thread" ||
                         selectedBlockFromDraft?.type === "image" ||
                         (selectedBlockFromDraft as any)?.type === "gallery" ||
-                        selectedBlockFromDraft?.type === "image_carousel" ||
                         selectedBlockFromDraft?.type === "progress_bar" ||
                         (selectedBlockFromDraft as any)?.type === "link_hub" ||
                         selectedBlockFromDraft?.type === "checklist" ||
@@ -5162,27 +5176,9 @@ if (selectedBlock?.type === "video") {
 }
 
 if (selectedBlock?.type === "image_carousel") {
-  setDraft((prev) => ({
-    ...prev,
-    blocks: prev.blocks.map((block) => {
-      if (block.id !== selectedBlock.id) return block;
-
-      if (block.type === "image_carousel") {
-        return {
-          ...block,
-          data: {
-            ...block.data,
-            captionStyle: {
-              ...((block.data as any).captionStyle ?? {}),
-              ...patch,
-            },
-          } as any,
-        };
-      }
-
-      return block;
-    }),
-  }));
+  updateSelectedBlock((block) =>
+    applyCarouselTextStylePatch(block, carouselTextTarget, patch),
+  );
 
   return;
 }
@@ -14343,6 +14339,8 @@ renderBlockPreview={renderCanvasPreview}
     inspectorLabelClass={inspectorLabelClass}
     inspectorInputClass={inspectorInputClass}
     toolSetButtonClass={toolSetButtonClass}
+    carouselTextTarget={carouselTextTarget}
+    setCarouselTextTarget={setCarouselTextTarget}
   />
 ) : null}
 
