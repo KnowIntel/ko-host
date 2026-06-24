@@ -1,6 +1,7 @@
 "use client";
 
 import type { RefObject } from "react";
+import type { GalleryTextTarget } from "@/components/builder/formatting/galleryFormatting";
 
 type GalleryInspectorProps = {
   selectedBlock: any;
@@ -8,6 +9,9 @@ type GalleryInspectorProps = {
 
   selectedGalleryImageId: string | null;
   galleryImageCardRefs: RefObject<Record<string, HTMLDivElement | null>>;
+
+  galleryTextTarget: GalleryTextTarget;
+  setGalleryTextTarget: (target: GalleryTextTarget) => void;
 
   uploadGalleryImagesToBlock: (blockId: string) => Promise<any> | void;
   moveGalleryImage: (
@@ -29,6 +33,8 @@ export function GalleryInspector({
   updateSelectedBlock,
   selectedGalleryImageId,
   galleryImageCardRefs,
+  galleryTextTarget,
+  setGalleryTextTarget,
   uploadGalleryImagesToBlock,
   moveGalleryImage,
   inspectorCardClass,
@@ -41,6 +47,25 @@ export function GalleryInspector({
     <div className={inspectorCardClass()}>
       {/* Gallery */}
     <div className={inspectorLabelClass()}>Gallery</div>
+
+    <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+  <div className={inspectorLabelClass()}>Formatting</div>
+
+  <div className="mt-3">
+    <div className={inspectorLabelClass()}>Text Target</div>
+    <select
+      value={galleryTextTarget}
+      onChange={(e) =>
+        setGalleryTextTarget(e.target.value as GalleryTextTarget)
+      }
+      className={inspectorInputClass()}
+    >
+      <option value="title">Title</option>
+      <option value="description">Description</option>
+      <option value="metadata">Metadata</option>
+    </select>
+  </div>
+</div>
 
     <div className="mt-4 grid grid-cols-2 gap-3">
       <div>

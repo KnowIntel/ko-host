@@ -58,7 +58,8 @@ import {
 } from "@/components/builder/inspector";
 
 import {
-  applyImageCaptionStylePatch, isImageCaptionFormattingTarget,
+  applyImageCaptionStylePatch,
+  isImageCaptionFormattingTarget,
 } from "@/components/builder/formatting/imageFormatting";
 
 import {
@@ -66,6 +67,12 @@ import {
   getVideoTextStyle,
   type VideoTextTarget,
 } from "@/components/builder/formatting/videoFormatting";
+
+import {
+  applyGalleryTextStylePatch,
+  getGalleryTextStyle,
+  type GalleryTextTarget,
+} from "@/components/builder/formatting/galleryFormatting";
 
 
 import { getStoreMeta } from "@/lib/utils/getStoreMeta";
@@ -2103,9 +2110,8 @@ const [listingStyleTarget, setListingStyleTarget] = useState<
     | "champion"
   >("background");
 
-const [galleryTextTarget, setGalleryTextTarget] = useState<
-  "title" | "description" | "metadata"
->("title");
+const [galleryTextTarget, setGalleryTextTarget] =
+  useState<GalleryTextTarget>("title");
 
 const [contentPanelStyleTarget, setContentPanelStyleTarget] = useState<
   "heading" | "subtitle" | "navigation" | "panel"
@@ -2441,14 +2447,10 @@ const [summaryStyleTarget, setSummaryStyleTarget] = useState<
 
 const selectedStyle =
 selectedBlockFromDraft?.type === "gallery"
-  ? galleryTextTarget === "title"
-    ? (((selectedBlockFromDraft.data as any).titleStyle ??
-        {}) as TextStyle)
-    : galleryTextTarget === "description"
-      ? (((selectedBlockFromDraft.data as any).descriptionStyle ??
-          {}) as TextStyle)
-      : (((selectedBlockFromDraft.data as any).metadataStyle ??
-          {}) as TextStyle)
+  ? (getGalleryTextStyle(
+      selectedBlockFromDraft,
+      galleryTextTarget,
+    ) as TextStyle)
 : selectedBlockFromDraft?.type === "enrollment_board"
   ? enrollmentBoardStyleTarget === "heading"
     ? (((selectedBlockFromDraft.data as any).headingStyle ??
@@ -5087,28 +5089,8 @@ function applyStylePatch(patch: Partial<TextStyle>) {
 }
 
 if (selectedBlockFromDraft?.type === "gallery") {
-  const selectedGalleryBlockId = selectedBlockFromDraft.id;
-
-  const targetStyleKey =
-    galleryTextTarget === "description"
-      ? "descriptionStyle"
-      : galleryTextTarget === "metadata"
-        ? "metadataStyle"
-        : "titleStyle";
-
   updateSelectedBlock((block) =>
-    block.id !== selectedGalleryBlockId || block.type !== "gallery"
-      ? block
-      : {
-          ...block,
-          data: {
-            ...block.data,
-            [targetStyleKey]: {
-              ...((block.data as any)[targetStyleKey] ?? {}),
-              ...patch,
-            },
-          },
-        },
+    applyGalleryTextStylePatch(block, galleryTextTarget, patch),
   );
 
   return;
@@ -11772,42 +11754,6 @@ const idsToExpand =
   </>
 ) : null}
 
-{selectedBlock?.type === "gallery" ? (
-  <>
-    <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
-
-    <select
-      value={galleryTextTarget}
-      onChange={(e) => {
-        const nextTarget = e.target.value as
-          | "title"
-          | "description"
-          | "metadata";
-
-        setGalleryTextTarget(nextTarget);
-
-        updateSelectedBlock((block) =>
-          block.type !== "gallery"
-            ? block
-            : {
-                ...block,
-                data: {
-                  ...block.data,
-                  galleryTextTarget: nextTarget,
-                },
-              },
-        );
-      }}
-      className={topBarFieldClass("w-[150px]")}
-      title="Gallery text style target"
-    >
-      <option value="title">Gallery Title</option>
-      <option value="description">Gallery Description</option>
-      <option value="metadata">Gallery Metadata</option>
-    </select>
-  </>
-) : null}
-
       {showTypographyControls ? (
         <>
 
@@ -14446,6 +14392,8 @@ renderBlockPreview={renderCanvasPreview}
     inspectorInputClass={inspectorInputClass}
     inspectorTextareaClass={inspectorTextareaClass}
     toolSetButtonClass={toolSetButtonClass}
+    galleryTextTarget={galleryTextTarget}
+    setGalleryTextTarget={setGalleryTextTarget}
   />
 ) : null}
                 
