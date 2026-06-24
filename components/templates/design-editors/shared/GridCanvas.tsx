@@ -1240,7 +1240,7 @@ className={[
                         onDragStart={(e) => handleDragStart(e, block.id)}
                         onDrag={(e) => handleExistingBlockDrag(e, block.id)}
                         onDragEnd={handleDragEnd}
-                        className="pointer-events-auto absolute inset-x-6 top-0 z-10 h-4 cursor-grab"
+                        className="pointer-events-auto absolute inset-x-6 top-0 z-50 h-4 cursor-grab"
                         style={dragRailDots()}
                         title="Drag block"
                       />
@@ -1250,7 +1250,7 @@ className={[
                         onDragStart={(e) => handleDragStart(e, block.id)}
                         onDrag={(e) => handleExistingBlockDrag(e, block.id)}
                         onDragEnd={handleDragEnd}
-                        className="pointer-events-auto absolute inset-x-6 bottom-0 z-10 h-4 cursor-grab"
+                        className="pointer-events-auto absolute inset-x-6 bottom-0 z-50 h-4 cursor-grab"
                         style={dragRailDots()}
                         title="Drag block"
                       />
@@ -1260,7 +1260,7 @@ className={[
                         onDragStart={(e) => handleDragStart(e, block.id)}
                         onDrag={(e) => handleExistingBlockDrag(e, block.id)}
                         onDragEnd={handleDragEnd}
-                        className="pointer-events-auto absolute inset-y-6 left-0 z-10 w-4 cursor-grab"
+                        className="pointer-events-auto absolute inset-y-6 left-0 z-50 w-4 cursor-grab"
                         style={dragRailDots()}
                         title="Drag block"
                       />
@@ -1270,7 +1270,7 @@ className={[
                         onDragStart={(e) => handleDragStart(e, block.id)}
                         onDrag={(e) => handleExistingBlockDrag(e, block.id)}
                         onDragEnd={handleDragEnd}
-                        className="pointer-events-auto absolute inset-y-6 right-0 z-10 w-4 cursor-grab"
+                        className="pointer-events-auto absolute inset-y-6 right-0 z-50 w-4 cursor-grab"
                         style={dragRailDots()}
                         title="Drag block"
                       />
