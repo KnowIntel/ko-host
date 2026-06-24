@@ -44,36 +44,38 @@ export function CountdownInspector({
 
     <div className="mt-4">
       <div className={inspectorLabelClass()}>Style Variant</div>
-<select
-  value={selectedBlock.data.styleVariant ?? "default"}
-  onChange={(e) => {
-    const nextStyleVariant = e.target.value as
-      | "default"
-      | "cards"
-      | "hero"
-      | "stage"
-      | "standard";
 
-    updateSelectedBlock((block: any) =>
-      block.type !== "countdown"
-        ? block
-        : {
-            ...block,
-            data: {
-              ...block.data,
-              styleVariant: nextStyleVariant as any,
-            },
-          },
-    );
-  }}
-  className={inspectorInputClass()}
->
-  <option value="default">Default</option>
-  <option value="cards">Cards</option>
-  <option value="hero">Hero</option>
-  <option value="stage">Stage</option>
-  <option value="standard">Standard</option>
-</select>
+      <select
+        value={
+          selectedBlock.data.styleVariant === "stage" ||
+          selectedBlock.data.styleVariant === "standard"
+            ? selectedBlock.data.styleVariant
+            : "cards"
+        }
+        onChange={(e) => {
+          const nextStyleVariant = e.target.value as
+            | "cards"
+            | "stage"
+            | "standard";
+
+          updateSelectedBlock((block: any) =>
+            block.type !== "countdown"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    styleVariant: nextStyleVariant,
+                  },
+                },
+          );
+        }}
+        className={inspectorInputClass()}
+      >
+        <option value="cards">Cards</option>
+        <option value="stage">Stage</option>
+        <option value="standard">Standard</option>
+      </select>
     </div>
 
     <div className="mt-4">
@@ -149,9 +151,9 @@ export function CountdownInspector({
       >
         <option value="background">Background</option>
 
-        {(["default", "cards", "hero"] as const).includes(
-          ((selectedBlock.data as any).styleVariant ?? "default") as any,
-        ) ? (
+        {(((selectedBlock.data as any).styleVariant ?? "cards") === "cards" ||
+          ((selectedBlock.data as any).styleVariant ?? "cards") === "hero" ||
+          ((selectedBlock.data as any).styleVariant ?? "cards") === "default") ? (
           <option value="tiles">Tiles</option>
         ) : null}
 
@@ -235,7 +237,7 @@ export function CountdownInspector({
       </div>
     </div>
 
-        {((selectedBlock.data as any).styleVariant ?? "default") === "stage" ? (
+        {((selectedBlock.data as any).styleVariant ?? "cards") === "stage" ? (
       <div className="mt-4">
         <div className={inspectorLabelClass()}>Stage Value/Unit Spacing</div>
 
@@ -293,7 +295,7 @@ export function CountdownInspector({
     </div>
 
         {(["cards", "hero"] as const).includes(
-      ((selectedBlock.data as any).styleVariant ?? "default") as any,
+      ((selectedBlock.data as any).styleVariant ?? "cards") as any,
     ) ? (
       <div className="mt-3">
         <label className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
@@ -327,6 +329,7 @@ export function CountdownInspector({
     ["showHours", "Show Hours"],
     ["showMinutes", "Show Minutes"],
     ["showSeconds", "Show Seconds"],
+    ["showSeparator", "Show Separator"],
   ].map(([key, label]) => (
     <label
       key={key}

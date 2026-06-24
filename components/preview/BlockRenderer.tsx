@@ -2454,12 +2454,10 @@ function renderCountdown(
     const tileBorderColor =
       (data.tileStyle?.borderColor as string | undefined) ?? undefined;
 
-    const variant = (data.styleVariant ?? "default") as
-      | "default"
-      | "cards"
-      | "hero"
-      | "stage"
-      | "standard";
+const variant = (data.styleVariant ?? "cards") as
+  | "cards"
+  | "stage"
+  | "standard";
 
     const showRings = data.showRings !== false;
     const showSeparator = data.showSeparator !== false;
@@ -2506,28 +2504,16 @@ function renderCountdown(
     const showMinutes = data.showMinutes !== false;
     const showSeconds = data.showSeconds !== false;
 
-const countdownAnimationTransform = (baseTransform: string) => {
-  if (animationStyle === "none") return baseTransform;
 
-  if (animationStyle === "flip") {
-    return isTicking
-      ? `${baseTransform} rotateX(-78deg)`
-      : baseTransform;
-  }
+const countdownAnimationTransform = () => {
+  if (animationStyle === "none") return "none";
+  if (!isTicking) return "none";
 
-  if (animationStyle === "bounce") {
-    return isTicking
-      ? `${baseTransform} translateY(-14px)`
-      : baseTransform;
-  }
+  if (animationStyle === "pulse") return "scale(1.12)";
+  if (animationStyle === "flip") return "rotateX(-78deg)";
+  if (animationStyle === "bounce") return "translateY(-10px)";
 
-  if (animationStyle === "pulse") {
-    return isTicking
-      ? `${baseTransform} scale(1.12)`
-      : `${baseTransform} scale(1)`;
-  }
-
-  return baseTransform;
+  return "none";
 };
 
     const countdownAnimationTransition =
@@ -2546,90 +2532,43 @@ const countdownAnimationTransform = (baseTransform: string) => {
           }
         : {};
 
-const countdownTickAnimationStyle =
-  animationStyle === "none"
-    ? {}
-    : {
-        animationName:
-          animationStyle === "flip"
-            ? "kht-countdown-flip"
-            : animationStyle === "bounce"
-              ? "kht-countdown-bounce"
-              : "kht-countdown-pulse",
-        animationDuration: "420ms",
-        animationTimingFunction: "ease",
-        animationIterationCount: 1,
-      };
+    if (!target || Number.isNaN(target)) {
+      return (
+        <div
+          className={[
+            "flex h-full w-full flex-col justify-center gap-2 p-4",
+            alignmentClass,
+          ].join(" ")}
+          style={appearanceStyle}
+        >
+          {block.data.heading ? (
+            <div
+              className={["uppercase tracking-[0.14em]", getMutedTextClass(designKey)].join(" ")}
+              style={headingStyle}
+            >
+              {block.data.heading}
+            </div>
+          ) : null}
 
-      const countdownKeyframes = (
-  <style>
-    {`
-      @keyframes kht-countdown-pulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.18); }
-        100% { transform: scale(1); }
-      }
-
-      @keyframes kht-countdown-bounce {
-        0% { transform: translateY(0); }
-        45% { transform: translateY(-12px); }
-        100% { transform: translateY(0); }
-      }
-
-      @keyframes kht-countdown-flip {
-        0% { transform: rotateX(0deg); }
-        50% { transform: rotateX(-78deg); }
-        100% { transform: rotateX(0deg); }
-      }
-    `}
-  </style>
-);
-
-if (!target || Number.isNaN(target)) {
-  return (
-    <>
-      {countdownKeyframes}
-
-      <div
-        className={[
-          "flex h-full w-full flex-col justify-center gap-2 p-4",
-          alignmentClass,
-        ].join(" ")}
-        style={appearanceStyle}
-      >
-        {block.data.heading ? (
-          <div
-            className={["uppercase tracking-[0.14em]", getMutedTextClass(designKey)].join(" ")}
-            style={headingStyle}
-          >
-            {block.data.heading}
-          </div>
-        ) : null}
-
-        <div style={backgroundTextStyle}>Set target date</div>
-      </div>
-    </>
-  );
-}
+          <div style={backgroundTextStyle}>Set target date</div>
+        </div>
+      );
+    }
 
     const diff = target - tickNow;
 
-if (diff <= 0) {
-  return (
-    <>
-      {countdownKeyframes}
-
-      <div
-        className="flex h-full w-full items-center justify-center p-4 text-center"
-        style={appearanceStyle}
-      >
-        <div style={backgroundTextStyle}>
-          {block.data.completedMessage || "Countdown finished"}
+    if (diff <= 0) {
+      return (
+        <div
+          className="flex h-full w-full items-center justify-center p-4 text-center"
+          style={appearanceStyle}
+        >
+          <div style={backgroundTextStyle}>
+            {block.data.completedMessage || "Countdown finished"}
+          </div>
         </div>
-      </div>
-    </>
-  );
-}
+      );
+    }
 
     const totalSeconds = Math.floor(diff / 1000);
     const days = Math.floor(totalSeconds / 86400);
@@ -2686,102 +2625,86 @@ if (diff <= 0) {
     const valueFontNumber = Number(valueStyle.fontSize) || 24;
     const unitFontNumber = Number(unitStyle.fontSize) || 11;
 
-if (variant === "standard" || variant === "stage") {
-  return (
-    <>
-      {countdownKeyframes}
-
-      <div
-        className={[
-          "flex h-full w-full flex-col justify-center gap-2 p-4",
-          alignmentClass,
-        ].join(" ")}
-        style={appearanceStyle}
-      >
-        {block.data.heading ? (
-          <div
-            className={["uppercase tracking-[0.14em]", getMutedTextClass(designKey)].join(" ")}
-            style={headingStyle}
-          >
-            {block.data.heading}
-          </div>
-        ) : null}
-
+    if (variant === "standard" || variant === "stage") {
+      return (
         <div
           className={[
-            "flex w-full flex-wrap",
-            variant === "stage" ? "items-end" : "items-baseline",
-            justifyClass,
+            "flex h-full w-full flex-col justify-center gap-2 p-4",
+            alignmentClass,
           ].join(" ")}
-          style={{ gap: `${spacing}px` }}
+          style={appearanceStyle}
         >
-          {parts.map((part) => (
+          {block.data.heading ? (
             <div
-              key={part.key}
-              className={
-                variant === "stage"
-                  ? "flex flex-col items-center"
-                  : "flex items-baseline gap-1"
-              }
+              className={["uppercase tracking-[0.14em]", getMutedTextClass(designKey)].join(" ")}
+              style={headingStyle}
             >
-              <span
-                key={`${part.key}-${part.value}`}
-                className="font-bold leading-none"
-                style={{
-                  ...valueStyle,
-                  ...countdownAnimationExtraStyle,
-                  ...countdownTickAnimationStyle,
-                  display: "inline-block",
-                  fontSize: valueStyle.fontSize ?? "24px",
-                }}
-              >
-                {part.value}
-              </span>
-
-              <span
-                className={[
-                  "uppercase tracking-[0.12em]",
-                  variant === "stage" ? "" : "",
-                ].join(" ")}
-                style={{
-                  ...unitStyle,
-                  fontSize: unitStyle.fontSize ?? "11px",
-                  marginTop:
-                    variant === "stage" ? `${stageUnitGap}px` : undefined,
-                }}
-              >
-                {part.label}
-              </span>
+              {block.data.heading}
             </div>
-          ))}
+          ) : null}
+
+          <div
+            className={[
+              "flex w-full flex-wrap",
+              variant === "stage" ? "items-end" : "items-baseline",
+              justifyClass,
+            ].join(" ")}
+            style={{ gap: `${spacing}px` }}
+          >
+            {parts.map((part) => (
+              <div
+                key={part.key}
+                className={
+                  variant === "stage"
+                    ? "flex flex-col items-center"
+                    : "flex items-baseline gap-1"
+                }
+              >
+                <span
+                  className="font-bold leading-none"
+                  style={{
+                    ...valueStyle,
+                    fontSize: valueStyle.fontSize ?? "24px",
+                  }}
+                >
+                  {part.value}
+                </span>
+
+<span
+  className={[
+    "uppercase tracking-[0.12em]",
+    variant === "stage" ? "" : "",
+  ].join(" ")}
+                  style={{
+                    ...unitStyle,
+                    fontSize: unitStyle.fontSize ?? "11px",
+                    marginTop: variant === "stage" ? `${stageUnitGap}px` : undefined,
+                  }}
+                >
+                  {part.label}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
-    </>
-  );
-}
+      );
+    }
 
-if (variant === "cards" || variant === "hero") {
-  const isHero = variant === "hero";
-  const ringSize = Math.max(
-    isHero ? 86 : 70,
-    valueFontNumber * (isHero ? 2.45 : 2.8),
-  );
-  const ringStroke = isHero ? 3 : 2;
-  const ringRadius = ringSize / 2 - ringStroke * 3;
-  const ringCircumference = 2 * Math.PI * ringRadius;
+    if (variant === "cards") {
+      const isHero = false;
+      const ringSize = Math.max(isHero ? 86 : 70, valueFontNumber * (isHero ? 2.45 : 2.8));
+      const ringStroke = isHero ? 3 : 2;
+      const ringRadius = ringSize / 2 - ringStroke * 3;
+      const ringCircumference = 2 * Math.PI * ringRadius;
 
-  return (
-    <>
-      {countdownKeyframes}
-
-      <div
-        key={`countdown-${animationStyle}-${seconds}`}
-      className={[
-        "flex h-full w-full flex-col justify-center gap-4 p-4",
-        alignmentClass,
-      ].join(" ")}
-      style={appearanceStyle}
-    >
+      return (
+        <div
+          className={[
+            "flex h-full w-full flex-col justify-center gap-4 p-4",
+            alignmentClass,
+          ].join(" ")}
+          style={appearanceStyle}
+        >
           {block.data.heading ? (
             <div
               className={["uppercase tracking-[0.14em]", getMutedTextClass(designKey)].join(" ")}
@@ -2873,13 +2796,17 @@ tileBorderColor
                         : "",
                       ].join(" ")}
                       style={{
-...valueStyle,
-...countdownAnimationExtraStyle,
-...countdownTickAnimationStyle,
-display: "inline-flex",
-alignItems: "center",
-justifyContent: "center",
-fontSize: valueStyle.fontSize ?? (isHero ? "36px" : "24px"),
+                        ...valueStyle,
+                        ...countdownAnimationExtraStyle,
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: valueStyle.fontSize ?? (isHero ? "36px" : "24px"),
+                        transition: countdownAnimationTransition,
+transform:
+  animationStyle === "none"
+    ? "scale(1)"
+    : countdownAnimationTransform(),
                       }}
                     >
                       {part.value}
@@ -2909,21 +2836,17 @@ fontSize: valueStyle.fontSize ?? (isHero ? "36px" : "24px"),
             ))}
           </div>
         </div>
-      </>
-    );
-  }
+      );
+    }
 
     return (
-      <>
-        {countdownKeyframes}
-
-        <div
-          className={[
-            "flex h-full w-full flex-col justify-center gap-3 p-4",
-            alignmentClass,
-          ].join(" ")}
-          style={appearanceStyle}
-        >
+      <div
+        className={[
+          "flex h-full w-full flex-col justify-center gap-3 p-4",
+          alignmentClass,
+        ].join(" ")}
+        style={appearanceStyle}
+      >
         {block.data.heading ? (
           <div
             className={["uppercase tracking-[0.14em]", getMutedTextClass(designKey)].join(" ")}
@@ -2956,7 +2879,6 @@ fontSize: valueStyle.fontSize ?? (isHero ? "36px" : "24px"),
 style={{
   ...valueStyle,
   ...countdownAnimationExtraStyle,
-    ...countdownTickAnimationStyle,
   display: "inline-block",
   transition:
     animationStyle === "none"
@@ -2965,9 +2887,7 @@ style={{
   transform:
     animationStyle === "none"
       ? "scale(1)"
-      : countdownAnimationTransform(
-          isTicking ? "scale(1.05)" : "scale(1)",
-        ),
+    : countdownAnimationTransform(),
 }}
                 >
                   {part.value}
@@ -2983,11 +2903,10 @@ style={{
           ))}
         </div>
       </div>
-    </>
-  );
-}
+    );
+  }
 
-return <CountdownPreview />;
+  return <CountdownPreview />;
 }
 
 function renderTimeline(

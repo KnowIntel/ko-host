@@ -632,12 +632,10 @@ export type CountdownBlock = BaseBlock & {
 
     standardUnitStyle?: TextStyle;
 
-    styleVariant?:
-      | "default"
-      | "cards"
-      | "hero"
-      | "stage"
-      | "standard";
+styleVariant?:
+  | "cards"
+  | "stage"
+  | "standard";
 
     animationStyle?:
       | "none"
@@ -3520,10 +3518,13 @@ data: {
             fontSize: 11,
             color: "#e5e7eb",
           },
-          styleVariant: "default",
+          styleVariant: "cards",
           animationStyle: "none",
           alignment: "center",
+          spacing: 12,
+          stageUnitGap: -24,
           showRings: true,
+          showSeparator: true,
           showDays: true,
           showHours: true,
           showMinutes: true,
@@ -6278,14 +6279,11 @@ if (block.type === "gallery") {
             ...(countdownData.standardUnitStyle ?? {}),
           },
 
-          styleVariant:
-            countdownData.styleVariant === "cards" ||
-            countdownData.styleVariant === "hero" ||
-            countdownData.styleVariant === "stage" ||
-            countdownData.styleVariant === "standard" ||
-            countdownData.styleVariant === "default"
-              ? countdownData.styleVariant
-              : "default",
+styleVariant:
+  countdownData.styleVariant === "stage" ||
+  countdownData.styleVariant === "standard"
+    ? countdownData.styleVariant
+    : "cards",
 
           animationStyle:
             countdownData.animationStyle === "pulse" ||
