@@ -10384,10 +10384,10 @@ if (block.type === "video") {
         {showTitle ? (
           <div
             className="pointer-events-none absolute left-0 top-0 z-10 w-full px-3 py-2 text-sm font-semibold"
-            style={{
-              ...getInlineTextStyle(block.data.style),
-              color: block.data.style?.color || "#ffffff",
-            }}
+style={{
+  ...getInlineTextStyle((block.data as any).titleStyle),
+  color: (block.data as any).titleStyle?.color || "#ffffff",
+}}
           >
             {String(block.data.title ?? "")}
           </div>
