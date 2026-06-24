@@ -10336,6 +10336,10 @@ if (block.type === "video") {
 
   const hasVideo = Boolean(String(block.data.videoUrl ?? "").trim());
 
+  const showCaption = Boolean((block.data as any).addCaption);
+  const caption = String((block.data as any).caption ?? "").trim();
+  const captionStyle = ((block.data as any).captionStyle ?? {}) as TextStyle;
+
   return (
     <div
       className="flex h-full w-full flex-col overflow-hidden rounded-xl bg-black"
@@ -10358,8 +10362,11 @@ if (block.type === "video") {
     >
       {block.data.title ? (
         <div
-          className="shrink-0 px-3 py-2 text-sm font-semibold text-white"
-          style={getInlineTextStyle(block.data.style)}
+          className="shrink-0 px-3 py-2 text-sm font-semibold"
+style={{
+  ...getInlineTextStyle(block.data.style),
+  color: block.data.style?.color || "#ffffff",
+}}
         >
           {block.data.title}
         </div>
@@ -10385,6 +10392,18 @@ if (block.type === "video") {
           </div>
         )}
       </div>
+
+      {showCaption && caption ? (
+        <div
+          className="shrink-0 px-3 py-2 text-xs"
+style={{
+  ...getInlineTextStyle(captionStyle),
+  color: captionStyle.color || "#ffffff",
+}}
+        >
+          {caption}
+        </div>
+      ) : null}
     </div>
   );
 }
