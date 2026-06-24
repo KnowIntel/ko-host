@@ -2971,6 +2971,8 @@ const showTextControls =
   selectedContext.kind === "label" ||
   selectedContext.kind === "textFx" ||
   selectedContext.kind === "cta" ||
+  selectedContext.kind === "image" ||
+  selectedBlock?.type === "image" ||
   selectedBlock?.type === "thread" ||
   selectedBlock?.type === "post_board" ||
   selectedBlock?.type === "enrollment_board" ||
