@@ -60,6 +60,28 @@ export function VideoInspector({
   </div>
 </div>
 
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Title</div>
+      <input
+        type="text"
+        value={selectedBlock.data.title ?? ""}
+        onChange={(e) =>
+          updateSelectedBlock((block: any) =>
+            block.type !== "video"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    title: e.target.value,
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+      />
+    </div>
+
 <label className="mt-4 flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm text-neutral-800">
   <input
     type="checkbox"
@@ -105,28 +127,6 @@ export function VideoInspector({
         />
       </div>
     ) : null}
-
-    <div className="mt-4">
-      <div className={inspectorLabelClass()}>Title</div>
-      <input
-        type="text"
-        value={selectedBlock.data.title ?? ""}
-        onChange={(e) =>
-          updateSelectedBlock((block: any) =>
-            block.type !== "video"
-              ? block
-              : {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    title: e.target.value,
-                  },
-                },
-          )
-        }
-        className={inspectorInputClass()}
-      />
-    </div>
 
     <div className="mt-4">
       <div className={inspectorLabelClass()}>Upload Video</div>
