@@ -13956,6 +13956,9 @@ renderBlockPreview={renderCanvasPreview}
   <ContentPanelInspector
     selectedBlock={selectedBlock}
     updateSelectedBlock={updateSelectedBlock}
+    CATEGORY_BUTTONS={CATEGORY_BUTTONS}
+    contentPanelTextTarget={contentPanelTextTarget}
+    setContentPanelTextTarget={setContentPanelTextTarget}
     contentPanelStyleTarget={contentPanelStyleTarget}
     setContentPanelStyleTarget={setContentPanelStyleTarget}
     makeClientId={makeClientId}
@@ -13965,7 +13968,6 @@ renderBlockPreview={renderCanvasPreview}
     inspectorInputClass={inspectorInputClass}
     inspectorTextareaClass={inspectorTextareaClass}
     toolSetButtonClass={toolSetButtonClass}
-    CATEGORY_BUTTONS={CATEGORY_BUTTONS}
   />
 ) : null}
 

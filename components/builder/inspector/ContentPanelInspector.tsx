@@ -6,23 +6,14 @@ import type {
   ContentPanelTextTarget,
 } from "@/components/builder/formatting/contentPanelFormatting";
 
-type ContentPanelStyleTarget =
-  | "heading"
-  | "subtitle"
-  | "navigation"
-  | "panel";
-
 type ContentPanelInspectorProps = {
   selectedBlock: any;
   updateSelectedBlock: any;
+  CATEGORY_BUTTONS: any;
 
-  contentPanelStyleTarget: ContentPanelStyleTarget;
-  setContentPanelStyleTarget: Dispatch<
-    SetStateAction<ContentPanelStyleTarget>
-  >;
-
-  contentPanelTextTarget: ContentPanelTextTarget;
+contentPanelTextTarget: ContentPanelTextTarget;
 setContentPanelTextTarget: (target: ContentPanelTextTarget) => void;
+
 contentPanelStyleTarget: ContentPanelStyleTarget;
 setContentPanelStyleTarget: (target: ContentPanelStyleTarget) => void;
 
@@ -41,8 +32,6 @@ setContentPanelStyleTarget: (target: ContentPanelStyleTarget) => void;
 export function ContentPanelInspector({
   selectedBlock,
   updateSelectedBlock,
-  contentPanelStyleTarget,
-  setContentPanelStyleTarget,
   makeClientId,
   uploadImageToSelectedBlock,
   inspectorCardClass,
@@ -55,6 +44,7 @@ export function ContentPanelInspector({
 setContentPanelTextTarget,
 contentPanelStyleTarget,
 setContentPanelStyleTarget,
+CATEGORY_BUTTONS,
 }: ContentPanelInspectorProps) {
   return (
     <div id="inspector-content-panel" className={inspectorCardClass()}>
@@ -250,114 +240,6 @@ setContentPanelStyleTarget,
         <option value="flip">Flip</option>
         <option value="scale">Scale</option>
       </select>
-    </div>
-
-    <div className="mt-4">
-      <div className={inspectorLabelClass()}>Style Target</div>
-      <select
-        value={contentPanelStyleTarget}
-        onChange={(e) =>
-          setContentPanelStyleTarget(
-            e.target.value as "heading" | "subtitle" | "navigation" | "panel",
-          )
-        }
-        className={inspectorInputClass()}
-      >
-        <option value="heading">Heading</option>
-        <option value="subtitle">Subtitle</option>
-        <option value="navigation">Navigation</option>
-        <option value="panel">Panel Content</option>
-      </select>
-    </div>
-
-    <div className="mt-4 grid grid-cols-2 gap-3">
-      <div>
-        <div className={inspectorLabelClass()}>Active Nav Background</div>
-        <input
-          type="color"
-          value={(selectedBlock.data as any).activeNavigationBackground ?? "#dbeafe"}
-          onChange={(e) =>
-            updateSelectedBlock((block: any) =>
-              block.type !== "content_panel"
-                ? block
-                : {
-                    ...block,
-                    data: {
-                      ...block.data,
-                      activeNavigationBackground: e.target.value,
-                    },
-                  },
-            )
-          }
-          className="mt-2 h-10 w-full rounded-xl border border-neutral-300 bg-white"
-        />
-      </div>
-
-      <div>
-        <div className={inspectorLabelClass()}>Active Nav Text</div>
-        <input
-          type="color"
-          value={(selectedBlock.data as any).activeNavigationColor ?? "#1d4ed8"}
-          onChange={(e) =>
-            updateSelectedBlock((block: any) =>
-              block.type !== "content_panel"
-                ? block
-                : {
-                    ...block,
-                    data: {
-                      ...block.data,
-                      activeNavigationColor: e.target.value,
-                    },
-                  },
-            )
-          }
-          className="mt-2 h-10 w-full rounded-xl border border-neutral-300 bg-white"
-        />
-      </div>
-
-      <div>
-        <div className={inspectorLabelClass()}>Inactive Nav Background</div>
-        <input
-          type="color"
-          value={(selectedBlock.data as any).inactiveNavigationBackground ?? "#ffffff"}
-          onChange={(e) =>
-            updateSelectedBlock((block: any) =>
-              block.type !== "content_panel"
-                ? block
-                : {
-                    ...block,
-                    data: {
-                      ...block.data,
-                      inactiveNavigationBackground: e.target.value,
-                    },
-                  },
-            )
-          }
-          className="mt-2 h-10 w-full rounded-xl border border-neutral-300 bg-white"
-        />
-      </div>
-
-      <div>
-        <div className={inspectorLabelClass()}>Panel Background</div>
-        <input
-          type="color"
-          value={(selectedBlock.data as any).panelBackground ?? "#f9fafb"}
-          onChange={(e) =>
-            updateSelectedBlock((block: any) =>
-              block.type !== "content_panel"
-                ? block
-                : {
-                    ...block,
-                    data: {
-                      ...block.data,
-                      panelBackground: e.target.value,
-                    },
-                  },
-            )
-          }
-          className="mt-2 h-10 w-full rounded-xl border border-neutral-300 bg-white"
-        />
-      </div>
     </div>
 
     <div className="mt-4 grid grid-cols-2 gap-2">
@@ -1343,32 +1225,70 @@ setContentPanelStyleTarget,
             )}
 
             <div className="mt-3 grid grid-cols-2 gap-2">
-              <div>
-                <div className={inspectorLabelClass()}>Icon</div>
-                <input
-                  type="text"
-                  value={panel.icon ?? ""}
-                  onChange={(e) =>
-                    updateSelectedBlock((block: any) =>
-                      block.type !== "content_panel"
-                        ? block
-                        : {
-                            ...block,
-                            data: {
-                              ...block.data,
-                              panels: block.data.panels.map((item: any) =>
-                                item.id === panel.id
-                                  ? { ...item, icon: e.target.value }
-                                  : item,
-                              ),
-                            },
-                          },
-                    )
-                  }
-                  className={inspectorInputClass()}
-                  placeholder="✨"
-                />
-              </div>
+<div>
+  <div className={inspectorLabelClass()}>Icon</div>
+
+  <div className="flex gap-2">
+    <select
+      value={panel.icon ?? ""}
+      onChange={(e) =>
+        updateSelectedBlock((block: any) =>
+          block.type !== "content_panel"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  panels: block.data.panels.map((item: any) =>
+                    item.id === panel.id
+                      ? { ...item, icon: e.target.value || undefined }
+                      : item,
+                  ),
+                },
+              },
+        )
+      }
+      className={inspectorInputClass()}
+    >
+      <option value="">No icon</option>
+
+      {CATEGORY_BUTTONS.Icons.filter(
+        (tool: any) => tool.kind === "block" && tool.type === "icon",
+      ).map((tool: any) => (
+        <option key={tool.iconName ?? tool.label} value={tool.iconName ?? ""}>
+          {tool.label}
+        </option>
+      ))}
+    </select>
+
+    {panel.icon ? (
+      <button
+        type="button"
+        className="h-10 rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-700 hover:bg-neutral-50"
+        onClick={() =>
+          updateSelectedBlock((block: any) =>
+            block.type !== "content_panel"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    panels: block.data.panels.map((item: any) =>
+                      item.id === panel.id
+                        ? { ...item, icon: undefined }
+                        : item,
+                    ),
+                  },
+                },
+          )
+        }
+        title="Remove icon"
+      >
+        ×
+      </button>
+    ) : null}
+  </div>
+</div>
 
               <div>
                 <div className={inspectorLabelClass()}>Badge</div>
