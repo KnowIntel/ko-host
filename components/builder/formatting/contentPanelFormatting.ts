@@ -77,9 +77,12 @@ export function applyContentPanelTextStylePatch(
         ? { activeNavigationColor: patch.color }
         : {}),
 
-      ...(target === "inactiveNavigation" && patch.color !== undefined
-        ? { inactiveNavigationColor: patch.color }
-        : {}),
+...(target === "inactiveNavigation" && patch.color !== undefined
+  ? {
+      inactiveNavigationColor: patch.color,
+      navigationColor: patch.color,
+    }
+  : {}),
     },
   };
 }
@@ -117,9 +120,12 @@ export function applyContentPanelStylePatch(
         ? { activeNavigationBackground: patch.backgroundColor }
         : {}),
 
-      ...(target === "inactiveNavigation" && patch.backgroundColor !== undefined
-        ? { inactiveNavigationBackground: patch.backgroundColor }
-        : {}),
+...(target === "inactiveNavigation" && patch.backgroundColor !== undefined
+  ? {
+      inactiveNavigationBackground: patch.backgroundColor,
+      navigationBackground: patch.backgroundColor,
+    }
+  : {}),
 
       ...(target === "panel" && patch.backgroundColor !== undefined
         ? { panelBackground: patch.backgroundColor }
