@@ -7,6 +7,7 @@ import { BLOCK_GUIDES } from "@/components/templates/blockGuideContent";
 import PopBalloonCanvasPreview from "@/components/blocks/PopBalloonCanvasPreview";
 import { applyImagePatch } from "@/components/builder/formatting/imageFormatting";
 
+/* ------------------------------------ INSPECTOR BLOCK FILES - START ------------------------------------ */
 import {
   OptionButtonInspector,
   FormFieldInspector,
@@ -57,6 +58,10 @@ import {
 
 } from "@/components/builder/inspector";
 
+/* ------------------------------------ INSPECTOR BLOCK FILES - END ------------------------------------ */
+
+
+/* ------------------------------------ FORMATTING BLOCK FILES - START ------------------------------------ */
 import {
   applyImageCaptionStylePatch,
   isImageCaptionFormattingTarget,
@@ -80,6 +85,15 @@ import {
   type CarouselTextTarget,
 } from "@/components/builder/formatting/carouselFormatting";
 
+import {
+  applyContentPanelStylePatch,
+  applyContentPanelTextStylePatch,
+  getContentPanelTextStyle,
+  type ContentPanelStyleTarget,
+  type ContentPanelTextTarget,
+} from "@/components/builder/formatting/contentPanelFormatting";
+
+/* ------------------------------------ FORMATTING BLOCK FILES - END ------------------------------------ */
 
 import { getStoreMeta } from "@/lib/utils/getStoreMeta";
 import { uploadImage } from "@/lib/uploadImage";
@@ -2097,6 +2111,10 @@ export default function DesignLayoutEditor({
   const selectedPageLength =
     ((draft as DraftWithPageExtras).pageLength ?? "1800") as PageLengthOption;
 
+
+    
+/* ------------------------------------ TARGET TEXT/STYLE BLOCKS - START ------------------------------------ */
+
 const [listingStyleTarget, setListingStyleTarget] = useState<
   "title" | "description" | "metadata" | "price" | "quantity"
 >("title");
@@ -2119,12 +2137,16 @@ const [carouselTextTarget, setCarouselTextTarget] =
     | "champion"
   >("background");
 
+  const [contentPanelTextTarget, setContentPanelTextTarget] =
+  useState<ContentPanelTextTarget>("heading");
+
+  const [contentPanelStyleTarget, setContentPanelStyleTarget] =
+    useState<ContentPanelStyleTarget>("form");
+
+
 const [galleryTextTarget, setGalleryTextTarget] =
   useState<GalleryTextTarget>("title");
 
-const [contentPanelStyleTarget, setContentPanelStyleTarget] = useState<
-  "heading" | "subtitle" | "navigation" | "panel"
->("heading");
 
 const [formFieldTextTarget, setFormFieldTextTarget] = useState<"form" | "text">(
   "form",
@@ -2157,6 +2179,9 @@ const [selectedOptionButtonOptionId, setSelectedOptionButtonOptionId] =
     | "guestName"
     | "comments"
   >("heading");
+
+  
+/* ------------------------------------ TARGET TEXT/STYLE BLOCKS - END ------------------------------------ */
 
   const isPublished = microsite?.is_published;
   const isActive = microsite?.is_active;
@@ -2651,22 +2676,11 @@ selectedBlockFromDraft?.type === "gallery"
                                 (selectedBlockFromDraft.data as any).style ??
                                 {}) as TextStyle)
                             : (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
-                            : selectedBlockFromDraft?.type === "content_panel"
-  ? contentPanelStyleTarget === "heading"
-    ? (((selectedBlockFromDraft.data as any).headingStyle ??
-        (selectedBlockFromDraft.data as any).style ??
-        {}) as TextStyle)
-    : contentPanelStyleTarget === "subtitle"
-      ? (((selectedBlockFromDraft.data as any).subtitleStyle ??
-          (selectedBlockFromDraft.data as any).style ??
-          {}) as TextStyle)
-      : contentPanelStyleTarget === "navigation"
-        ? (((selectedBlockFromDraft.data as any).navigationStyle ??
-            (selectedBlockFromDraft.data as any).style ??
-            {}) as TextStyle)
-        : (((selectedBlockFromDraft.data as any).panelStyle ??
-            (selectedBlockFromDraft.data as any).style ??
-            {}) as TextStyle)
+: selectedBlockFromDraft?.type === "content_panel"
+  ? (getContentPanelTextStyle(
+      selectedBlockFromDraft,
+      contentPanelTextTarget,
+    ) as TextStyle)
                       : selectedBlockFromDraft?.type === "timeline"
                         ? timelineStyleTarget === "title"
                           ? (((selectedBlockFromDraft.data as any).titleStyle ?? {}) as TextStyle)
@@ -5782,34 +5796,14 @@ if (selectedBlock?.type === "countdown") {
 }
 
 if (selectedBlock?.type === "content_panel") {
-  setDraft((prev) => ({
-    ...prev,
-    blocks: prev.blocks.map((block) => {
-      if (block.id !== selectedBlock.id || block.type !== "content_panel") {
-        return block;
-      }
+  updateSelectedBlock((block) =>
+    applyContentPanelTextStylePatch(
+      block,
+      contentPanelTextTarget,
+      patch,
+    ),
+  );
 
-      const targetKey =
-        contentPanelStyleTarget === "heading"
-          ? "headingStyle"
-          : contentPanelStyleTarget === "subtitle"
-            ? "subtitleStyle"
-            : contentPanelStyleTarget === "navigation"
-              ? "navigationStyle"
-              : "panelStyle";
-
-      return {
-        ...block,
-        data: {
-          ...block.data,
-          [targetKey]: {
-            ...((block.data as any)[targetKey] ?? {}),
-            ...patch,
-          },
-        },
-      };
-    }),
-  }));
   return;
 }
 
@@ -6176,6 +6170,18 @@ function applyAppearancePatch(patch: AppearancePatch) {
       };
     }),
   }));
+
+  return;
+}
+
+if (selectedBlock?.type === "content_panel") {
+  updateSelectedBlock((block) =>
+    applyContentPanelStylePatch(
+      block,
+      contentPanelStyleTarget,
+      patch,
+    ),
+  );
 
   return;
 }
@@ -13959,6 +13965,7 @@ renderBlockPreview={renderCanvasPreview}
     inspectorInputClass={inspectorInputClass}
     inspectorTextareaClass={inspectorTextareaClass}
     toolSetButtonClass={toolSetButtonClass}
+    CATEGORY_BUTTONS={CATEGORY_BUTTONS}
   />
 ) : null}
 

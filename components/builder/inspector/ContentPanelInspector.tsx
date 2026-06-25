@@ -1,6 +1,10 @@
 "use client";
 
 import type { Dispatch, SetStateAction } from "react";
+import type {
+  ContentPanelStyleTarget,
+  ContentPanelTextTarget,
+} from "@/components/builder/formatting/contentPanelFormatting";
 
 type ContentPanelStyleTarget =
   | "heading"
@@ -16,6 +20,11 @@ type ContentPanelInspectorProps = {
   setContentPanelStyleTarget: Dispatch<
     SetStateAction<ContentPanelStyleTarget>
   >;
+
+  contentPanelTextTarget: ContentPanelTextTarget;
+setContentPanelTextTarget: (target: ContentPanelTextTarget) => void;
+contentPanelStyleTarget: ContentPanelStyleTarget;
+setContentPanelStyleTarget: (target: ContentPanelStyleTarget) => void;
 
   makeClientId: (prefix: string) => string;
 
@@ -41,11 +50,53 @@ export function ContentPanelInspector({
   inspectorInputClass,
   inspectorTextareaClass,
   toolSetButtonClass,
+
+  contentPanelTextTarget,
+setContentPanelTextTarget,
+contentPanelStyleTarget,
+setContentPanelStyleTarget,
 }: ContentPanelInspectorProps) {
   return (
     <div id="inspector-content-panel" className={inspectorCardClass()}>
       {/* Content Panel */}
     <div className={inspectorLabelClass()}>Content Panel</div>
+
+<div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+  <div className={inspectorLabelClass()}>Formatting</div>
+
+  <div className="mt-3">
+    <div className={inspectorLabelClass()}>Text Target</div>
+    <select
+      value={contentPanelTextTarget}
+      onChange={(e) =>
+        setContentPanelTextTarget(e.target.value as ContentPanelTextTarget)
+      }
+      className={inspectorInputClass()}
+    >
+      <option value="heading">Heading</option>
+      <option value="subtitle">Subtitle</option>
+      <option value="activeNavigation">Active Navigation</option>
+      <option value="inactiveNavigation">Inactive Navigation</option>
+      <option value="content">Content</option>
+    </select>
+  </div>
+
+  <div className="mt-3">
+    <div className={inspectorLabelClass()}>Style Target</div>
+    <select
+      value={contentPanelStyleTarget}
+      onChange={(e) =>
+        setContentPanelStyleTarget(e.target.value as ContentPanelStyleTarget)
+      }
+      className={inspectorInputClass()}
+    >
+      <option value="form">Form</option>
+      <option value="activeNavigation">Active Navigation</option>
+      <option value="inactiveNavigation">Inactive Navigation</option>
+      <option value="panel">Panel</option>
+    </select>
+  </div>
+</div>
 
     <div className="mt-4">
       <div className={inspectorLabelClass()}>Heading</div>
