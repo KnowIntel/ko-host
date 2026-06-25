@@ -4280,6 +4280,7 @@ function applyPageTextBoxBackground(value: string) {
 }
 
 function applyFillColor(value: string) {
+
   if (selectedBlock?.type === "countdown") {
     if (countdownStyleTarget === "tiles") {
       updateSelectedBlock((block) =>
@@ -4583,39 +4584,8 @@ if (selectedBlock?.type === "link_hub") {
   return;
 }
 
-if (selectedBlock?.type === "form_field") {
-  updateSelectedBlock((block) => {
-    if (block.type !== "form_field") return block;
-
-    if (formFieldTextTarget === "inputText") {
-      return {
-        ...block,
-        data: {
-          ...block.data,
-          inputStyle: {
-            ...((block.data as any).inputStyle ?? block.data.style ?? {}),
-            color: value,
-          },
-        },
-      };
-    }
-
-    return {
-      ...block,
-      data: {
-        ...block.data,
-        style: {
-          ...((block.data as any).style ?? {}),
-          color: value,
-        },
-        labelStyle: {
-          ...((block.data as any).labelStyle ?? block.data.style ?? {}),
-          color: value,
-        },
-      },
-    };
-  });
-
+if (selectedBlockFromDraft?.type === "form_field") {
+  applyAppearancePatch({ backgroundColor: value });
   pushRecentColor(value);
   return;
 }
@@ -4688,6 +4658,13 @@ function eyedropperButtonClass() {
 
 
 function applyBorderColor(value: string) {
+
+  if (selectedBlock?.type === "form_field") {
+  applyAppearancePatch({ borderColor: value });
+  pushRecentColor(value);
+  return;
+}
+
   if (selectedBlock?.type === "countdown") {
     if (countdownStyleTarget === "tiles") {
       updateSelectedBlock((block) =>
@@ -11758,6 +11735,54 @@ const idsToExpand =
       <option value="meterCaption">Caption</option>
     </select>
   </>
+) : null}
+
+{selectedBlock?.type === "form_field" ? (
+  <div className={topBarSliderWrapClass()}>
+    <span>BG Opacity</span>
+    <input
+      type="range"
+      min={0}
+      max={100}
+      value={
+        formFieldStyleTarget === "field"
+          ? Math.round(
+              Number(
+                ((selectedBlock.data as any).inputStyle?.backgroundOpacity ??
+                  (selectedBlock.data as any).fieldBackgroundOpacity ??
+                  1),
+              ) * 100,
+            )
+          : Number(selectedBlock.appearance?.backgroundOpacity ?? 100)
+      }
+      onChange={(e) =>
+        applyAppearancePatch({
+          backgroundOpacity:
+            formFieldStyleTarget === "field"
+              ? Number(e.target.value) / 100
+              : Number(e.target.value),
+        } as any)
+      }
+      className={topBarSliderClass()}
+      title={
+        formFieldStyleTarget === "field"
+          ? "Field background transparency"
+          : "Block background transparency"
+      }
+    />
+    <span>
+      {formFieldStyleTarget === "field"
+        ? Math.round(
+            Number(
+              ((selectedBlock.data as any).inputStyle?.backgroundOpacity ??
+                (selectedBlock.data as any).fieldBackgroundOpacity ??
+                1),
+            ) * 100,
+          )
+        : Number(selectedBlock.appearance?.backgroundOpacity ?? 100)}
+      %
+    </span>
+  </div>
 ) : null}
 
 {selectedBlock?.type === "highlight" ? (
