@@ -112,20 +112,58 @@ export function applyOptionButtonStylePatch(
           : {}),
       },
 
+      activeStyle: {
+        ...(data.activeStyle ?? {}),
+        ...(patch.backgroundColor !== undefined
+          ? { backgroundColor: patch.backgroundColor }
+          : {}),
+        ...(patch.backgroundOpacity !== undefined
+          ? { backgroundOpacity: patch.backgroundOpacity }
+          : {}),
+        ...(patch.borderColor !== undefined
+          ? { borderColor: patch.borderColor }
+          : {}),
+        ...(patch.borderWidth !== undefined
+          ? { borderWidth: Number(patch.borderWidth) || 0 }
+          : {}),
+        ...(patch.borderRadius !== undefined
+          ? { borderRadius: Number(patch.borderRadius) || 0 }
+          : {}),
+      },
+
       ...(patch.backgroundColor !== undefined
-        ? { fieldBackgroundColor: patch.backgroundColor }
+        ? {
+            fieldBackgroundColor: patch.backgroundColor,
+            buttonBackgroundColor: patch.backgroundColor,
+          }
         : {}),
+
       ...(patch.backgroundOpacity !== undefined
-        ? { fieldBackgroundOpacity: patch.backgroundOpacity }
+        ? {
+            fieldBackgroundOpacity: patch.backgroundOpacity,
+            buttonBackgroundOpacity: patch.backgroundOpacity,
+          }
         : {}),
+
       ...(patch.borderColor !== undefined
-        ? { fieldBorderColor: patch.borderColor }
+        ? {
+            fieldBorderColor: patch.borderColor,
+            buttonBorderColor: patch.borderColor,
+          }
         : {}),
+
       ...(patch.borderWidth !== undefined
-        ? { fieldBorderWidth: Number(patch.borderWidth) || 0 }
+        ? {
+            fieldBorderWidth: Number(patch.borderWidth) || 0,
+            buttonBorderWidth: Number(patch.borderWidth) || 0,
+          }
         : {}),
+
       ...(patch.borderRadius !== undefined
-        ? { fieldBorderRadius: Number(patch.borderRadius) || 0 }
+        ? {
+            fieldBorderRadius: Number(patch.borderRadius) || 0,
+            buttonBorderRadius: Number(patch.borderRadius) || 0,
+          }
         : {}),
     },
   };
