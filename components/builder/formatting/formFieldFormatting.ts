@@ -80,20 +80,38 @@ export function applyFormFieldStylePatch(
     data: {
       ...data,
       inputStyle: {
-        ...(data.inputStyle ?? data.style ?? {}),
-        ...patch,
+        ...(data.inputStyle ?? {}),
+        ...(patch.backgroundColor !== undefined
+          ? { backgroundColor: patch.backgroundColor }
+          : {}),
+        ...(patch.backgroundOpacity !== undefined
+          ? { backgroundOpacity: patch.backgroundOpacity }
+          : {}),
+        ...(patch.borderColor !== undefined
+          ? { borderColor: patch.borderColor }
+          : {}),
+        ...(patch.borderWidth !== undefined
+          ? { borderWidth: Number(patch.borderWidth) || 0 }
+          : {}),
+        ...(patch.borderRadius !== undefined
+          ? { borderRadius: Number(patch.borderRadius) || 0 }
+          : {}),
       },
-      style: {
-        ...(data.style ?? {}),
-        ...patch,
-      },
-
-      ...(patch.borderColor !== undefined
-        ? { fieldBorderColor: patch.borderColor }
-        : {}),
 
       ...(patch.backgroundColor !== undefined
         ? { fieldBackgroundColor: patch.backgroundColor }
+        : {}),
+      ...(patch.backgroundOpacity !== undefined
+        ? { fieldBackgroundOpacity: patch.backgroundOpacity }
+        : {}),
+      ...(patch.borderColor !== undefined
+        ? { fieldBorderColor: patch.borderColor }
+        : {}),
+      ...(patch.borderWidth !== undefined
+        ? { fieldBorderWidth: Number(patch.borderWidth) || 0 }
+        : {}),
+      ...(patch.borderRadius !== undefined
+        ? { fieldBorderRadius: Number(patch.borderRadius) || 0 }
         : {}),
     },
   };
