@@ -9195,57 +9195,29 @@ if (block.type === "gallery") {
   );
 }
 
-    if (block.type === "poll") {
-      return (
-        <div className="h-full w-full">
-          <div
-            className="h-full w-full rounded-xl border border-neutral-200 bg-neutral-50 p-4"
-            style={{
-              backgroundColor:
-                block.appearance?.backgroundColor &&
-                block.appearance.backgroundColor !== "transparent"
-                  ? block.appearance.backgroundColor
-                  : undefined,
-            }}
-          >
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                focusInspectorForBlock({
-                  type: "poll-question",
-                  blockId: block.id,
-                });
-              }}
-              className="block w-full text-left text-sm text-neutral-900"
-              style={getInlineTextStyle(block.data.style)}
-            >
-              {block.data.question || "Your question here"}
-            </button>
-
-            <div className="mt-3 space-y-2">
-              {block.data.options.map((option) => (
-                <button
-                  key={option.id}
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    focusInspectorForBlock({
-                      type: "poll-option",
-                      blockId: block.id,
-                      optionId: option.id,
-                    });
-                  }}
-                  className="block w-full rounded-lg border border-neutral-200 bg-white px-3 py-2 text-left text-sm text-neutral-800"
-                >
-                  {option.text || "Option"}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      );
-    }
+if (block.type === "poll") {
+  return (
+    <div className="h-full w-full">
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          focusInspectorForBlock({
+            type: "poll-question",
+            blockId: block.id,
+          });
+        }}
+        className="block h-full w-full text-left"
+      >
+        <BlockRenderer
+          block={block}
+          designKey={designKey}
+          micrositeSlug={null}
+        />
+      </button>
+    </div>
+  );
+}
 
     if (block.type === "rsvp") {
       return (
