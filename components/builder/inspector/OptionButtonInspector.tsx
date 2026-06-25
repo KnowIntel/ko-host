@@ -1,7 +1,10 @@
 "use client";
 
 import type { Dispatch, SetStateAction } from "react";
-
+import type {
+  OptionButtonStyleTarget,
+  OptionButtonTextTarget,
+} from "@/components/builder/formatting/optionButtonFormatting";
 
 type FormFieldConfigEventDetail = {
   blockId: string;
@@ -24,14 +27,15 @@ type FormFieldConfigEventDetail = {
  *   when selectedBlock?.type === "option_button".
  */
 
-type OptionButtonTextTarget = "heading" | "label" | "description";
-
 type OptionButtonInspectorSectionProps = {
   selectedBlock: any;
   draft: any;
 
   optionButtonTextTarget: OptionButtonTextTarget;
-  setOptionButtonTextTarget: Dispatch<SetStateAction<OptionButtonTextTarget>>;
+  setOptionButtonTextTarget: (target: OptionButtonTextTarget) => void;
+
+  optionButtonStyleTarget: OptionButtonStyleTarget;
+  setOptionButtonStyleTarget: (target: OptionButtonStyleTarget) => void;
 
   selectedOptionButtonOptionId: string | null;
   setSelectedOptionButtonOptionId: Dispatch<SetStateAction<string | null>>;
@@ -54,8 +58,12 @@ type OptionButtonInspectorSectionProps = {
 export function OptionButtonInspector({
   selectedBlock,
   draft,
+
   optionButtonTextTarget,
   setOptionButtonTextTarget,
+  optionButtonStyleTarget,
+  setOptionButtonStyleTarget,
+
   selectedOptionButtonOptionId,
   setSelectedOptionButtonOptionId,
   ctaButtonOptions,
@@ -72,22 +80,41 @@ export function OptionButtonInspector({
     <div className={inspectorCardClass()}>
       {/* Option Button */}
     <div className={inspectorLabelClass()}>Option Button</div>
+<div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+  <div className={inspectorLabelClass()}>Formatting</div>
 
-    <div className="mt-4">
-  <div className={inspectorLabelClass()}>Text Target</div>
-  <select
-    value={optionButtonTextTarget}
-    onChange={(e) =>
-      setOptionButtonTextTarget(
-        e.target.value as "heading" | "label" | "description",
-      )
-    }
-    className={inspectorInputClass()}
-  >
-    <option value="heading">Heading</option>
-    <option value="label">Option Label</option>
-    <option value="description">Option Description</option>
-  </select>
+  <div className="mt-3">
+    <div className={inspectorLabelClass()}>Text Target</div>
+    <select
+      value={optionButtonTextTarget}
+      onChange={(e) =>
+        setOptionButtonTextTarget(e.target.value as OptionButtonTextTarget)
+      }
+      className={inspectorInputClass()}
+    >
+      <option value="heading">Heading</option>
+      <option value="subtitle">Subtitle</option>
+      <option value="optionText">Option Text</option>
+
+      {(selectedBlock.data as any).styleVariant === "dropdown" ? (
+        <option value="placeholder">Placeholder</option>
+      ) : null}
+    </select>
+  </div>
+
+  <div className="mt-3">
+    <div className={inspectorLabelClass()}>Style Target</div>
+    <select
+      value={optionButtonStyleTarget}
+      onChange={(e) =>
+        setOptionButtonStyleTarget(e.target.value as OptionButtonStyleTarget)
+      }
+      className={inspectorInputClass()}
+    >
+      <option value="field">Field</option>
+      <option value="block">Block</option>
+    </select>
+  </div>
 </div>
 
     <div className="mt-4">
@@ -267,67 +294,6 @@ export function OptionButtonInspector({
         />
       </div>
     ) : null}
-
-    {["dropdown", "radio"].includes(
-  (selectedBlock.data as any).variant ?? "push_button",
-) ? (
-  <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
-    <div className={inspectorLabelClass()}>Placeholder Text Color</div>
-
-    <input
-      type="color"
-      value={
-        ((selectedBlock.data as any).placeholderStyle?.color as string) ??
-        "#bababa"
-      }
-      onChange={(e) =>
-        updateSelectedOptionButtonData({
-          placeholderStyle: {
-            ...((selectedBlock.data as any).placeholderStyle ?? {}),
-            color: e.target.value,
-          },
-        })
-      }
-      className="mt-3 h-10 w-full rounded-xl border border-neutral-300 bg-white"
-    />
-
-    {((selectedBlock.data as any).variant ?? "push_button") === "dropdown" ? (
-      <>
-        <div className="mt-5 flex items-center justify-between">
-          <div className={inspectorLabelClass()}>Field Border</div>
-
-          <label className="flex items-center gap-2 text-sm text-neutral-700">
-            <input
-              type="checkbox"
-              checked={(selectedBlock.data as any).fieldBorderEnabled !== false}
-              onChange={(e) =>
-                updateSelectedOptionButtonData({
-                  fieldBorderEnabled: e.target.checked,
-                })
-              }
-            />
-            Enable
-          </label>
-        </div>
-
-        <input
-          type="color"
-          value={
-            ((selectedBlock.data as any).fieldBorderColor as string) ??
-            "#d4d4d4"
-          }
-          disabled={(selectedBlock.data as any).fieldBorderEnabled === false}
-          onChange={(e) =>
-            updateSelectedOptionButtonData({
-              fieldBorderColor: e.target.value,
-            })
-          }
-          className="mt-3 h-10 w-full rounded-xl border border-neutral-300 bg-white disabled:opacity-50"
-        />
-      </>
-    ) : null}
-  </div>
-) : null}
 
     {["radio", "toggle"].includes(
       (selectedBlock.data as any).variant ?? "push_button",

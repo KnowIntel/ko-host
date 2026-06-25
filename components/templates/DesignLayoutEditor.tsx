@@ -68,6 +68,14 @@ import {
 } from "@/components/builder/formatting/imageFormatting";
 
 import {
+  applyOptionButtonStylePatch,
+  applyOptionButtonTextStylePatch,
+  getOptionButtonTextStyle,
+  type OptionButtonStyleTarget,
+  type OptionButtonTextTarget,
+} from "@/components/builder/formatting/optionButtonFormatting";
+
+import {
   applyVideoTextStylePatch,
   getVideoTextStyle,
   type VideoTextTarget,
@@ -2142,6 +2150,12 @@ const [listingStyleTarget, setListingStyleTarget] = useState<
   "title" | "description" | "metadata" | "price" | "quantity"
 >("title");
 
+const [optionButtonTextTarget, setOptionButtonTextTarget] =
+  useState<OptionButtonTextTarget>("heading");
+
+const [optionButtonStyleTarget, setOptionButtonStyleTarget] =
+  useState<OptionButtonStyleTarget>("field");
+
 const [formFieldTextTarget, setFormFieldTextTarget] =
   useState<FormFieldTextTarget>("placeholder");
 
@@ -2175,10 +2189,6 @@ const [carouselTextTarget, setCarouselTextTarget] =
 
 const [galleryTextTarget, setGalleryTextTarget] =
   useState<GalleryTextTarget>("title");
-
-const [optionButtonTextTarget, setOptionButtonTextTarget] = useState<
-  "heading" | "label" | "description"
->("label");
 
 const [selectedOptionButtonOptionId, setSelectedOptionButtonOptionId] =
   useState<string | null>(null);
@@ -2606,16 +2616,10 @@ selectedBlockFromDraft?.type === "gallery"
     ) as TextStyle)
 
 : selectedBlockFromDraft?.type === "option_button"
-  ? optionButtonTextTarget === "description"
-    ? (((selectedBlockFromDraft.data as any).descriptionStyle ??
-        (selectedBlockFromDraft.data as any).labelStyle ??
-        (selectedBlockFromDraft.data as any).style ??
-        {}) as TextStyle)
-    : optionButtonTextTarget === "heading"
-      ? (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
-      : (((selectedBlockFromDraft.data as any).labelStyle ??
-          (selectedBlockFromDraft.data as any).style ??
-          {}) as TextStyle)
+  ? (getOptionButtonTextStyle(
+      selectedBlockFromDraft,
+      optionButtonTextTarget,
+    ) as TextStyle)
 : selectedBlockFromDraft?.type === "post_board"
   ? postBoardStyleTarget === "block_heading"
   ? (((selectedBlockFromDraft.data as any).blockHeadingStyle ?? {}) as TextStyle)
@@ -4595,7 +4599,7 @@ if (selectedBlock?.type === "option_button") {
     if (block.type !== "option_button") return block;
 
     const styleKey =
-      optionButtonTextTarget === "description"
+      optionButtonTextTarget === "subtitle"
         ? "descriptionStyle"
         : optionButtonTextTarget === "heading"
           ? "style"
@@ -5207,34 +5211,13 @@ if ((selectedBlockFromDraft as any)?.type === "form_field") {
 }
 
 if ((selectedBlockFromDraft as any)?.type === "option_button") {
-  const targetBlockId = (selectedBlockFromDraft as any).id;
-
-  setDraft((prev) => ({
-    ...prev,
-    blocks: prev.blocks.map((block) => {
-      if (block.id !== targetBlockId || block.type !== "option_button") {
-        return block;
-      }
-
-      const styleKey =
-        optionButtonTextTarget === "description"
-          ? "descriptionStyle"
-          : optionButtonTextTarget === "heading"
-            ? "style"
-            : "labelStyle";
-
-      return {
-        ...block,
-        data: {
-          ...block.data,
-          [styleKey]: {
-            ...((block.data as any)[styleKey] ?? {}),
-            ...patch,
-          },
-        },
-      };
-    }),
-  }));
+  updateSelectedBlock((block) =>
+    applyOptionButtonTextStylePatch(
+      block,
+      optionButtonTextTarget,
+      patch,
+    ),
+  );
 
   return;
 }
@@ -6084,6 +6067,18 @@ function clearSelectedBackground() {
 }
 
 function applyAppearancePatch(patch: AppearancePatch) {
+
+  if (selectedBlock?.type === "option_button") {
+  updateSelectedBlock((block) =>
+    applyOptionButtonStylePatch(
+      block,
+      optionButtonStyleTarget,
+      patch,
+    ),
+  );
+
+  return;
+}
 
   if (selectedBlock?.type === "tournament_display") {
   setDraft((prev) => ({
@@ -13842,6 +13837,8 @@ renderBlockPreview={renderCanvasPreview}
     draft={draft}
     optionButtonTextTarget={optionButtonTextTarget}
     setOptionButtonTextTarget={setOptionButtonTextTarget}
+    optionButtonStyleTarget={optionButtonStyleTarget}
+    setOptionButtonStyleTarget={setOptionButtonStyleTarget}
     selectedOptionButtonOptionId={selectedOptionButtonOptionId}
     setSelectedOptionButtonOptionId={setSelectedOptionButtonOptionId}
     ctaButtonOptions={ctaButtonOptions}
