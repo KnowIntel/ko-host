@@ -12152,8 +12152,10 @@ const idsToExpand =
       className={topBarColorClass(false)}
       title={
         selectedBlockFromDraft?.type === "poll"
-          ? "Poll background color"
-          : "Highlight background color"
+          ? pollStyleTarget === "field"
+            ? "Poll field background color"
+            : "Poll block background color"
+          : "Calendar background color"
       }
     />
 
@@ -12167,8 +12169,10 @@ const idsToExpand =
       }
       title={
         selectedBlock.type === "poll"
-          ? "Pick poll background color from screen"
-          : "Pick highlight background color from screen"
+          ? pollStyleTarget === "field"
+            ? "Pick poll field background color from screen"
+            : "Pick poll block background color from screen"
+          : "Pick calendar background color from screen"
       }
     >
       <Image
@@ -12180,51 +12184,58 @@ const idsToExpand =
       />
     </button>
 
-<button
-  type="button"
-  className={topBarButtonClass(
-    selectedBlock?.appearance?.backgroundColor === "transparent",
-  )}
-onClick={() => {
-  if (!selectedBlock) return;
+    <button
+      type="button"
+      className={topBarButtonClass(
+        selectedBlock.type === "poll"
+          ? pollStyleTarget === "field"
+            ? ((selectedBlock.data as any).fieldBackgroundColor === "transparent" ||
+                (selectedBlock.data as any).optionBackgroundColor === "transparent")
+            : selectedBlock.appearance?.backgroundColor === "transparent"
+          : selectedBlock.appearance?.backgroundColor === "transparent",
+      )}
+      onClick={() => {
+        if (!selectedBlock) return;
 
-  updateSelectedBlock((block) =>
-    block.type === "calendar_event"
-      ? {
-          ...block,
-          appearance: {
-            ...(block.appearance ?? {}),
+        if (selectedBlock.type === "poll") {
+          applyAppearancePatch({
             backgroundColor: "transparent",
             backgroundOpacity: 0,
-          } as any,
-          data: {
-            ...block.data,
-            calendarStyle: {
-              ...(block.data.calendarStyle ?? {}),
-              formBackgroundColor: "transparent",
-            },
-          },
+          } as any);
+
+          return;
         }
-      : {
-          ...block,
-          appearance: {
-            ...(block.appearance ?? {}),
-            backgroundColor: "transparent",
-            backgroundOpacity: 0,
-          } as any,
-        },
-  );
-}}
-title={
-  selectedBlock.type === "calendar_event"
-    ? "Transparent calendar background"
-    : selectedBlock.type === "poll"
-      ? "Transparent poll background"
-      : "Transparent highlight background"
-}
->
-  ☐
-</button>
+
+        updateSelectedBlock((block) =>
+          block.type === "calendar_event"
+            ? {
+                ...block,
+                appearance: {
+                  ...(block.appearance ?? {}),
+                  backgroundColor: "transparent",
+                  backgroundOpacity: 0,
+                } as any,
+                data: {
+                  ...block.data,
+                  calendarStyle: {
+                    ...(block.data.calendarStyle ?? {}),
+                    formBackgroundColor: "transparent",
+                  },
+                },
+              }
+            : block,
+        );
+      }}
+      title={
+        selectedBlock.type === "poll"
+          ? pollStyleTarget === "field"
+            ? "Transparent poll field background"
+            : "Transparent poll block background"
+          : "Transparent calendar background"
+      }
+    >
+      ☐
+    </button>
 
     <div className={topBarSliderWrapClass()}>
       <span>BG Opacity</span>
@@ -12232,21 +12243,50 @@ title={
         type="range"
         min={0}
         max={100}
-        value={Math.round(
-          (((selectedAppearance as any).backgroundOpacity ?? 1) * 100),
-        )}
+        value={
+          selectedBlock.type === "poll" && pollStyleTarget === "field"
+            ? Math.round(
+                Number(
+                  ((selectedBlock.data as any).fieldStyle?.backgroundOpacity ??
+                    (selectedBlock.data as any).fieldBackgroundOpacity ??
+                    (selectedBlock.data as any).optionBackgroundOpacity ??
+                    1),
+                ) * 100,
+              )
+            : Math.round(
+                (((selectedAppearance as any).backgroundOpacity ?? 1) * 100),
+              )
+        }
         onChange={(e) =>
           applyAppearancePatch({
-            backgroundOpacity: Number(e.target.value) / 100,
+            backgroundOpacity:
+              selectedBlock.type === "poll" && pollStyleTarget === "field"
+                ? Number(e.target.value) / 100
+                : Number(e.target.value) / 100,
           } as any)
         }
         className={topBarSliderClass()}
-        title="Background transparency"
+        title={
+          selectedBlock.type === "poll"
+            ? pollStyleTarget === "field"
+              ? "Poll field background transparency"
+              : "Poll block background transparency"
+            : "Calendar background transparency"
+        }
       />
       <span>
-        {Math.round(
-          (((selectedAppearance as any).backgroundOpacity ?? 1) * 100),
-        )}
+        {selectedBlock.type === "poll" && pollStyleTarget === "field"
+          ? Math.round(
+              Number(
+                ((selectedBlock.data as any).fieldStyle?.backgroundOpacity ??
+                  (selectedBlock.data as any).fieldBackgroundOpacity ??
+                  (selectedBlock.data as any).optionBackgroundOpacity ??
+                  1),
+              ) * 100,
+            )
+          : Math.round(
+              (((selectedAppearance as any).backgroundOpacity ?? 1) * 100),
+            )}
         %
       </span>
     </div>
