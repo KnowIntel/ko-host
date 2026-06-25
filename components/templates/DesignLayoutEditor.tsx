@@ -4938,7 +4938,7 @@ const handleVideoUpload = async (
 
 function applyStylePatch(patch: Partial<TextStyle>) {
 
-  if (selectedBlockFromDraft?.type === "poll") {
+if (selectedBlockFromDraft?.type === "poll") {
   updateSelectedBlock((block) =>
     applyPollTextStylePatch(block, pollTextTarget, patch),
   );

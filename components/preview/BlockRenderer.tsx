@@ -3949,35 +3949,31 @@ const fieldBorderRadius =
             const isSelected = selectedOptionId === option.id;
 
             return (
-              <button
-                key={option.id}
-                type="button"
-                onClick={() => void handleVote(option.id)}
-                disabled={isSubmitting || !micrositeSlug}
-                className={[
-                  "w-full rounded-lg border px-3 py-2 text-left transition",
-                  isLightDesign(designKey)
-                    ? "border-neutral-200"
-                    : "border-white/10",
-                  selectedOptionId
-                    ? isSelected
-                      ? "bg-blue-500/10"
-                      : "opacity-70"
-                    : "hover:bg-black/5",
-                ].join(" ")}
-                style={{
-  ...optionTextStyle,
-  backgroundColor: fieldBackgroundColor,
-  borderColor: fieldBorderColor,
-  borderWidth: Number(fieldBorderWidth) || 0,
-  borderStyle: Number(fieldBorderWidth) > 0 ? "solid" : "none",
-  ...(fieldBorderRadius !== undefined
-    ? { borderRadius: Number(fieldBorderRadius) || 0 }
-    : {}),
-}}
-              >
-                {option.text || "Option"}
-              </button>
+<button
+  key={option.id}
+  type="button"
+  onClick={() => void handleVote(option.id)}
+  disabled={isSubmitting || !micrositeSlug}
+  className={[
+    "w-full px-3 py-2 text-left transition disabled:cursor-not-allowed disabled:opacity-50",
+    selectedOptionId && !isSelected ? "opacity-70" : "",
+  ].join(" ")}
+  style={{
+    backgroundColor:
+      fieldBackgroundColor ??
+      (isSelected ? "rgba(59, 130, 246, 0.1)" : undefined),
+    borderColor: isSelected
+      ? fieldBorderColor ?? "#3b82f6"
+      : fieldBorderColor,
+    borderWidth: Number(fieldBorderWidth) || 0,
+    borderStyle: Number(fieldBorderWidth) > 0 ? "solid" : "none",
+    ...(fieldBorderRadius !== undefined
+      ? { borderRadius: Number(fieldBorderRadius) || 0 }
+      : {}),
+  }}
+>
+  <span style={optionTextStyle}>{option.text || "Option"}</span>
+</button>
             );
           })}
         </div>
