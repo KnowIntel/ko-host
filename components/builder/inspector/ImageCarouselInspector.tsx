@@ -89,7 +89,6 @@ export function ImageCarouselInspector({
             <option value="title">Title</option>
             <option value="subtitle">Subtitle</option>
             <option value="caption">Captions</option>
-            <option value="linkUrl">Link URL</option>
           </select>
         </div>
       </div>
