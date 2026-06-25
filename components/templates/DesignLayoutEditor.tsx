@@ -2614,7 +2614,6 @@ selectedBlockFromDraft?.type === "gallery"
       selectedBlockFromDraft,
       formFieldTextTarget,
     ) as TextStyle)
-
 : selectedBlockFromDraft?.type === "option_button"
   ? (getOptionButtonTextStyle(
       selectedBlockFromDraft,
@@ -4594,29 +4593,8 @@ if (selectedBlockFromDraft?.type === "form_field") {
   return;
 }
 
-if (selectedBlock?.type === "option_button") {
-  updateSelectedBlock((block) => {
-    if (block.type !== "option_button") return block;
-
-    const styleKey =
-      optionButtonTextTarget === "subtitle"
-        ? "descriptionStyle"
-        : optionButtonTextTarget === "heading"
-          ? "style"
-          : "labelStyle";
-
-    return {
-      ...block,
-      data: {
-        ...block.data,
-        [styleKey]: {
-          ...((block.data as any)[styleKey] ?? {}),
-          color: value,
-        },
-      },
-    };
-  });
-
+if (selectedBlockFromDraft?.type === "option_button") {
+  applyAppearancePatch({ backgroundColor: value });
   pushRecentColor(value);
   return;
 }
@@ -4662,6 +4640,11 @@ function eyedropperButtonClass() {
 
 
 function applyBorderColor(value: string) {
+if (selectedBlockFromDraft?.type === "option_button") {
+  applyAppearancePatch({ borderColor: value });
+  pushRecentColor(value);
+  return;
+}
 
   if (selectedBlock?.type === "form_field") {
   applyAppearancePatch({ borderColor: value });
@@ -6068,7 +6051,7 @@ function clearSelectedBackground() {
 
 function applyAppearancePatch(patch: AppearancePatch) {
 
-  if (selectedBlock?.type === "option_button") {
+if (selectedBlock?.type === "option_button") {
   updateSelectedBlock((block) =>
     applyOptionButtonStylePatch(
       block,

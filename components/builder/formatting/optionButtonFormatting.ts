@@ -10,9 +10,7 @@ export type OptionButtonTextTarget =
 
 export type OptionButtonStyleTarget = "field" | "block";
 
-function isOptionButtonBlock(
-  block: MicrositeBlock,
-): block is OptionButtonBlock {
+function isOptionButtonBlock(block: MicrositeBlock): block is OptionButtonBlock {
   return block.type === "option_button";
 }
 
@@ -53,7 +51,7 @@ export function applyOptionButtonTextStylePatch(
     data: {
       ...data,
       [styleKey]: {
-        ...(data[styleKey] ?? data.style ?? {}),
+        ...(data[styleKey] ?? {}),
         ...patch,
       },
 
@@ -80,6 +78,13 @@ export function applyOptionButtonStylePatch(
         ...block.appearance,
         ...patch,
       },
+      data: {
+        ...data,
+        blockStyle: {
+          ...(data.blockStyle ?? {}),
+          ...patch,
+        },
+      },
     };
   }
 
@@ -87,6 +92,7 @@ export function applyOptionButtonStylePatch(
     ...block,
     data: {
       ...data,
+
       fieldStyle: {
         ...(data.fieldStyle ?? {}),
         ...(patch.backgroundColor !== undefined
