@@ -8187,40 +8187,77 @@ onSelectionChange?.({
       applySelection(nextSelectedIds);
     }
 
-    const labelStyle = getContainerTextStyle(
-      data.labelStyle ?? data.style ?? {},
-      designKey,
-    );
+const headingStyle = getContainerTextStyle(
+  data.style ?? {},
+  designKey,
+);
 
-const descriptionStyle = {
-  ...getContainerTextStyle(
-    data.descriptionStyle ?? data.labelStyle ?? data.style ?? {},
-    designKey,
-  ),
-  color:
-    data.descriptionStyle?.color ??
-    data.labelStyle?.color ??
-    data.style?.color ??
-    getDefaultTextColor(designKey),
-}; 
+const subtitleStyle = getContainerTextStyle(
+  data.descriptionStyle ?? {},
+  designKey,
+);
 
-    const priceStyle = getContainerTextStyle(
-      data.priceStyle ?? data.labelStyle ?? data.style ?? {},
-      designKey,
-    );
+const optionLabelStyle = getContainerTextStyle(
+  data.labelStyle ?? {},
+  designKey,
+);
 
-    const optionTextStyle = getContainerTextStyle(
-      data.optionStyle ?? data.style ?? {},
-      designKey,
-    );
+const placeholderStyle = getContainerTextStyle(
+  data.placeholderStyle ?? {},
+  designKey,
+);
+
+const priceStyle = getContainerTextStyle(
+  data.priceStyle ?? {},
+  designKey,
+);
+
+const fieldStyle = data.fieldStyle ?? {};
+
+const fieldBackgroundColor =
+  fieldStyle.backgroundColor ??
+  data.fieldBackgroundColor;
+
+const fieldBackgroundOpacity =
+  fieldStyle.backgroundOpacity ??
+  data.fieldBackgroundOpacity;
+
+const fieldBorderColor =
+  fieldStyle.borderColor ??
+  data.fieldBorderColor ??
+  data.buttonBorderColor ??
+  "#d4d4d4";
+
+const fieldBorderWidth =
+  fieldStyle.borderWidth ??
+  data.fieldBorderWidth ??
+  data.buttonBorderWidth ??
+  1;
+
+const fieldBorderRadius =
+  fieldStyle.borderRadius ??
+  data.fieldBorderRadius ??
+  data.buttonBorderRadius;
 
 const placeholderColor =
-  (data.placeholderStyle?.color as string | undefined) || "rgb(186, 186, 186)";
+  (placeholderStyle.color as string | undefined) ??
+  (data.placeholderColor as string | undefined) ??
+  "rgb(186, 186, 186)";
 
-const fieldBorderEnabled = data.fieldBorderEnabled !== false;
-const fieldBorderColor = data.fieldBorderColor ?? "#d4d4d4";
-
-    const headingStyle = getContainerTextStyle(data.style ?? {}, designKey);
+const optionTextStyle = {
+  ...optionLabelStyle,
+  ...(fieldBackgroundColor !== undefined
+    ? {
+backgroundColor: fieldBackgroundColor,
+      }
+    : {}),
+  borderColor: fieldBorderColor,
+  borderWidth: Number(fieldBorderWidth) || 0,
+  borderStyle: Number(fieldBorderWidth) > 0 ? "solid" : "none",
+  ...(fieldBorderRadius !== undefined
+    ? { borderRadius: Number(fieldBorderRadius) || 0 }
+    : {}),
+};
 
     const selectedBorderColor = data.selectedBorderColor ?? "#f59e0b";
     const selectedCheckColor = data.selectedCheckColor ?? "#f59e0b";
@@ -8260,9 +8297,9 @@ const sharedDataAttrs = {
             ) : null}
 
             {data.showSubtitle ? (
-              <div className="text-sm opacity-75" style={headingStyle}>
-                {data.subtitle}
-              </div>
+<div className="text-sm opacity-75" style={subtitleStyle}>
+  {data.subtitle}
+</div>
             ) : null}
 
             <select
@@ -8277,18 +8314,14 @@ className={
               }
 style={{
   ...optionTextStyle,
-  ...(variant === "dropdown" ? labelStyle : {}),
   color: selectedIds[0]
-    ? ((labelStyle.color as string | undefined) ??
+    ? ((optionLabelStyle.color as string | undefined) ??
         (optionTextStyle.color as string | undefined))
     : placeholderColor,
   WebkitTextFillColor: selectedIds[0]
-    ? ((labelStyle as any).WebkitTextFillColor ??
+    ? ((optionLabelStyle as any).WebkitTextFillColor ??
         (optionTextStyle as any).WebkitTextFillColor)
     : placeholderColor,
-  borderColor: fieldBorderEnabled ? fieldBorderColor : "transparent",
-  borderWidth: fieldBorderEnabled ? "1px" : "0px",
-  borderStyle: fieldBorderEnabled ? "solid" : "none",
 }}
               {...sharedDataAttrs}
             >
@@ -8307,7 +8340,7 @@ style={{
   key={option.id}
   value={option.id}
   disabled={Boolean(option.disabled)}
-  style={labelStyle}
+  style={optionLabelStyle}
 >
                   {option.label}
                 </option>
@@ -8329,9 +8362,9 @@ style={{
           ) : null}
 
           {data.showSubtitle ? (
-            <div className="text-sm opacity-75" style={headingStyle}>
-              {data.subtitle}
-            </div>
+<div className="text-sm opacity-75" style={subtitleStyle}>
+  {data.subtitle}
+</div>
           ) : null}
 
           <div
@@ -8424,10 +8457,7 @@ style={
                       <>
                         <span
                           className="pointer-events-none flex-1"
-                          style={{
-                          ...labelStyle,
-                          color: selected ? labelStyle.color : placeholderColor,
-                        }}
+style={optionLabelStyle}
                         >
                           {option.label}
                         </span>
@@ -8438,10 +8468,7 @@ style={
                         {control}
                         <span
                           className="pointer-events-none flex-1"
-                          style={{
-                          ...labelStyle,
-                          color: selected ? labelStyle.color : placeholderColor,
-                        }}
+style={optionLabelStyle}
                         >
                           {option.label}
                         </span>
@@ -8470,19 +8497,9 @@ style={
                     paddingBottom: data.verticalPadding ?? 16,
                     borderRadius:
                       data.pushButtonFrame === "circle" ? "9999px" : undefined,
-borderColor: selected
-  ? selectedBorderColor
-  : data.generalBorderEnabled === false
-    ? "transparent"
-    : data.generalBorderColor ?? "#d4d4d4",
-
-borderWidth:
-  selected || data.generalBorderEnabled !== false ? 2 : 0,
-
-borderStyle:
-  selected || data.generalBorderEnabled !== false
-    ? "solid"
-    : "none",
+borderColor: selected ? selectedBorderColor : optionTextStyle.borderColor,
+borderWidth: optionTextStyle.borderWidth,
+borderStyle: optionTextStyle.borderStyle,
                   }}
                   aria-pressed={selected}
                   data-option-id={option.id}
@@ -8515,7 +8532,7 @@ borderStyle:
                     />
                   ) : null}
 
-                  <span className="pointer-events-none" style={labelStyle}>
+                  <span className="pointer-events-none" style={optionLabelStyle}>
                     {option.label}
                   </span>
 
@@ -8523,7 +8540,7 @@ borderStyle:
                   option.description ? (
                     <span
                       className="pointer-events-none text-xs opacity-75"
-                      style={descriptionStyle}
+                      style={subtitleStyle}
                     >
                       {option.description}
                     </span>
