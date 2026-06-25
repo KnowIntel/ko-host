@@ -2146,7 +2146,7 @@ const [formFieldTextTarget, setFormFieldTextTarget] =
   useState<FormFieldTextTarget>("placeholder");
 
 const [formFieldStyleTarget, setFormFieldStyleTarget] =
-  useState<FormFieldStyleTarget>("form");
+  useState<FormFieldStyleTarget>("field");
 
 const [carouselTextTarget, setCarouselTextTarget] =
   useState<CarouselTextTarget>("title");

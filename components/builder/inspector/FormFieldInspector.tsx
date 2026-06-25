@@ -82,8 +82,9 @@ export function FormFieldInspector({
       }
       className={inspectorInputClass()}
     >
-      <option value="placeholder">Placeholder</option>
-      <option value="inputText">Input Text</option>
+<option value="label">Label</option>
+<option value="placeholder">Placeholder</option>
+<option value="inputText">Input Text</option>
     </select>
   </div>
 
@@ -96,26 +97,11 @@ export function FormFieldInspector({
       }
       className={inspectorInputClass()}
     >
-      <option value="form">Form</option>
-      <option value="block">Block</option>
+<option value="field">Field</option>
+<option value="block">Block</option>
     </select>
   </div>
 </div>
-
-    <div className="mt-4">
-      <div className={inspectorLabelClass()}>Text Target</div>
-
-<select
-  value={formFieldTextTarget}
-  onChange={(e) =>
-    setFormFieldTextTarget(e.target.value as FormFieldTextTarget)
-  }
-  className={inspectorInputClass()}
->
-  <option value="placeholder">Placeholder</option>
-  <option value="inputText">Input Text</option>
-</select>
-    </div>
     
     <div className="mt-4">
       <div className={inspectorLabelClass()}>Field Type</div>

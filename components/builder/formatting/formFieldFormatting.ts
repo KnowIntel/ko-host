@@ -2,15 +2,19 @@ import type { MicrositeBlock } from "@/lib/templates/builder";
 
 type FormFieldBlock = Extract<MicrositeBlock, { type: "form_field" }>;
 
-export type FormFieldTextTarget = "placeholder" | "inputText";
-export type FormFieldStyleTarget = "form" | "block";
+export type FormFieldTextTarget = "label" | "placeholder" | "inputText";
+export type FormFieldStyleTarget = "field" | "block";
 
 function isFormFieldBlock(block: MicrositeBlock): block is FormFieldBlock {
   return block.type === "form_field";
 }
 
 function getTextStyleKey(target: FormFieldTextTarget) {
-  return target === "placeholder" ? "placeholderStyle" : "inputStyle";
+  return target === "label"
+    ? "labelStyle"
+    : target === "placeholder"
+      ? "placeholderStyle"
+      : "inputStyle";
 }
 
 export function getFormFieldTextStyle(
@@ -79,10 +83,17 @@ export function applyFormFieldStylePatch(
         ...(data.inputStyle ?? data.style ?? {}),
         ...patch,
       },
+      style: {
+        ...(data.style ?? {}),
+        ...patch,
+      },
 
-      // Renderer fallback for existing field border wiring
       ...(patch.borderColor !== undefined
         ? { fieldBorderColor: patch.borderColor }
+        : {}),
+
+      ...(patch.backgroundColor !== undefined
+        ? { fieldBackgroundColor: patch.backgroundColor }
         : {}),
     },
   };
