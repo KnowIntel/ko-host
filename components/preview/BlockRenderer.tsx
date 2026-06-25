@@ -3965,13 +3965,16 @@ const fieldBorderRadius =
     borderColor: isSelected
       ? fieldBorderColor ?? "#3b82f6"
       : fieldBorderColor,
-    borderWidth: Number(fieldBorderWidth) || 0,
-    borderStyle: Number(fieldBorderWidth) > 0 ? "solid" : "none",
+borderWidth: Number(fieldBorderWidth),
+borderStyle: Number(fieldBorderWidth) > 0 ? "solid" : "none",
+borderColor: fieldBorderColor,
+outline: "none",
+boxShadow: "none",
     ...(fieldBorderRadius !== undefined
       ? { borderRadius: Number(fieldBorderRadius) || 0 }
       : {}),
   }}
-  
+
 >
   <span style={optionTextStyle}>{option.text || "Option"}</span>
 </button>
