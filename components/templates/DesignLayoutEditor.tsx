@@ -2799,7 +2799,7 @@ selectedBlockFromDraft?.type === "gallery"
                               carouselTextTarget,
                             ) as TextStyle)
 
-                            : selectedBlockFromDraft?.type === "poll"
+: selectedBlockFromDraft?.type === "poll"
   ? (getPollTextStyle(
       selectedBlockFromDraft,
       pollTextTarget,
