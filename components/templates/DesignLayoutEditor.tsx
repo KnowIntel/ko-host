@@ -3154,6 +3154,7 @@ const showBorderWidthRadiusControls =
   selectedBlock?.type === "thread" ||
   selectedBlock?.type === "enrollment_board" ||
   selectedBlock?.type === "post_board" ||
+  selectedBlock?.type === "poll" ||
   selectedBlock?.type === "listing" ||
   selectedBlock?.type === "tournament_display" ||
   selectedBlock?.type === "progress_bar" ||

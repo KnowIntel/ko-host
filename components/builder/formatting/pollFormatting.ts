@@ -34,14 +34,7 @@ export function applyPollTextStylePatch(
 
   const data = block.data as any;
   const styleKey = getTextStyleKey(target);
-
-  console.log("POLL TEXT PATCH", {
-    target,
-    patch,
-    styleKey,
-    before: data[styleKey],
-  });
-
+  
   return {
     ...block,
     data: {
@@ -70,13 +63,6 @@ export function applyPollStylePatch(
   if (!isPollBlock(block)) return block;
 
   const data = block.data as any;
-
-  console.log("POLL STYLE PATCH", {
-    target,
-    patch,
-    beforeFieldStyle: data.fieldStyle,
-    beforeAppearance: block.appearance,
-  });
 
   if (target === "block") {
     return {
