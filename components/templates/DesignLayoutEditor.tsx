@@ -93,6 +93,29 @@ import {
   type ContentPanelTextTarget,
 } from "@/components/builder/formatting/contentPanelFormatting";
 
+import {
+  applyFormFieldStylePatch,
+  applyFormFieldTextStylePatch,
+  getFormFieldTextStyle,
+  type FormFieldStyleTarget,
+  type FormFieldTextTarget,
+} from "@/components/builder/formatting/formFieldFormatting";
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /* ------------------------------------ FORMATTING BLOCK FILES - END ------------------------------------ */
 
 import { getStoreMeta } from "@/lib/utils/getStoreMeta";
@@ -2119,6 +2142,12 @@ const [listingStyleTarget, setListingStyleTarget] = useState<
   "title" | "description" | "metadata" | "price" | "quantity"
 >("title");
 
+const [formFieldTextTarget, setFormFieldTextTarget] =
+  useState<FormFieldTextTarget>("placeholder");
+
+const [formFieldStyleTarget, setFormFieldStyleTarget] =
+  useState<FormFieldStyleTarget>("form");
+
 const [carouselTextTarget, setCarouselTextTarget] =
   useState<CarouselTextTarget>("title");
 
@@ -2146,11 +2175,6 @@ const [carouselTextTarget, setCarouselTextTarget] =
 
 const [galleryTextTarget, setGalleryTextTarget] =
   useState<GalleryTextTarget>("title");
-
-
-const [formFieldTextTarget, setFormFieldTextTarget] = useState<"form" | "text">(
-  "form",
-);
 
 const [optionButtonTextTarget, setOptionButtonTextTarget] = useState<
   "heading" | "label" | "description"
@@ -2576,11 +2600,10 @@ selectedBlockFromDraft?.type === "gallery"
                   ? ((selectedBlockFromDraft.data as any).quantityStyle ?? {})
                   : (selectedBlockFromDraft.data.titleStyle ?? {})
 : selectedBlockFromDraft?.type === "form_field"
-  ? formFieldTextTarget === "text"
-    ? (((selectedBlockFromDraft.data as any).inputStyle ??
-        (selectedBlockFromDraft.data as any).style ??
-        {}) as TextStyle)
-    : (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
+  ? (getFormFieldTextStyle(
+      selectedBlockFromDraft,
+      formFieldTextTarget,
+    ) as TextStyle)
 
 : selectedBlockFromDraft?.type === "option_button"
   ? optionButtonTextTarget === "description"
@@ -4564,7 +4587,7 @@ if (selectedBlock?.type === "form_field") {
   updateSelectedBlock((block) => {
     if (block.type !== "form_field") return block;
 
-    if (formFieldTextTarget === "text") {
+    if (formFieldTextTarget === "inputText") {
       return {
         ...block,
         data: {
@@ -5199,44 +5222,9 @@ if (selectedBlock?.type === "image_carousel") {
 }
 
 if ((selectedBlockFromDraft as any)?.type === "form_field") {
-  const targetBlockId = (selectedBlockFromDraft as any).id;
-
-  setDraft((prev) => ({
-    ...prev,
-    blocks: prev.blocks.map((block) => {
-      if (block.id !== targetBlockId || block.type !== "form_field") {
-        return block;
-      }
-
-      if (formFieldTextTarget === "text") {
-        return {
-          ...block,
-          data: {
-            ...block.data,
-            inputStyle: {
-              ...((block.data as any).inputStyle ?? block.data.style ?? {}),
-              ...patch,
-            },
-          },
-        };
-      }
-
-      return {
-        ...block,
-        data: {
-          ...block.data,
-          style: {
-            ...((block.data as any).style ?? {}),
-            ...patch,
-          },
-          labelStyle: {
-            ...((block.data as any).labelStyle ?? block.data.style ?? {}),
-            ...patch,
-          },
-        },
-      };
-    }),
-  }));
+  updateSelectedBlock((block) =>
+    applyFormFieldTextStylePatch(block, formFieldTextTarget, patch),
+  );
 
   return;
 }
@@ -6309,45 +6297,13 @@ appearance:
   return;
 }
 
-  if (selectedBlock?.type === "form_field") {
-    updateSelectedBlock((block) => {
-      if (block.type !== "form_field") return block;
+if (selectedBlock?.type === "form_field") {
+  updateSelectedBlock((block) =>
+    applyFormFieldStylePatch(block, formFieldStyleTarget, patch),
+  );
 
-      if (formFieldTextTarget === "text") {
-        return {
-          ...block,
-          data: {
-            ...block.data,
-            inputStyle: {
-              ...((block.data as any).inputStyle ?? block.data.style ?? {}),
-              ...(patch.backgroundColor !== undefined
-                ? { backgroundColor: patch.backgroundColor }
-                : {}),
-              ...(patch.borderColor !== undefined
-                ? { borderColor: patch.borderColor }
-                : {}),
-              ...(patch.borderWidth !== undefined
-                ? { borderWidth: Number(patch.borderWidth) || 0 }
-                : {}),
-              ...(patch.borderRadius !== undefined
-                ? { borderRadius: Number(patch.borderRadius) || 0 }
-                : {}),
-            },
-          },
-        };
-      }
-
-      return {
-        ...block,
-        appearance: {
-          ...block.appearance,
-          ...patch,
-        },
-      };
-    });
-
-    return;
-  }
+  return;
+}
 
   if (selectedBlock?.type === "timeline") {
     updateSelectedBlock((block) =>
@@ -13207,7 +13163,7 @@ title={
                     postBoardStyleTarget === "buttons"
                   ? Number(((selectedBlock.data as any).buttonStyle ?? {}).borderWidth ?? 0)
                   : selectedBlock?.type === "form_field" &&
-                      formFieldTextTarget === "text"
+                      formFieldTextTarget === "inputText"
                     ? Number(((selectedBlock.data as any).inputStyle ?? {}).borderWidth ?? 0)
                     : selectedAppearance.borderWidth ?? 0
             }
@@ -13224,7 +13180,7 @@ title={
               ? Number(((selectedBlock.data as any).cardStyle ?? {}).borderWidth ?? 0)
               : selectedBlock?.type === "post_board" && postBoardStyleTarget === "buttons"
                 ? Number(((selectedBlock.data as any).buttonStyle ?? {}).borderWidth ?? 0)
-                : selectedBlock?.type === "form_field" && formFieldTextTarget === "text"
+                : selectedBlock?.type === "form_field" && formFieldTextTarget === "inputText"
                   ? Number(((selectedBlock.data as any).inputStyle ?? {}).borderWidth ?? 0)
                   : selectedAppearance.borderWidth ?? 0}
           </span>
@@ -13243,7 +13199,7 @@ title={
                     postBoardStyleTarget === "buttons"
                   ? Number(((selectedBlock.data as any).buttonStyle ?? {}).borderRadius ?? 0)
                   : selectedBlock?.type === "form_field" &&
-                      formFieldTextTarget === "text"
+                      formFieldTextTarget === "inputText"
                     ? Number(((selectedBlock.data as any).inputStyle ?? {}).borderRadius ?? 0)
                     : selectedAppearance.borderRadius ?? 0
             }
@@ -13260,7 +13216,7 @@ title={
               ? Number(((selectedBlock.data as any).cardStyle ?? {}).borderRadius ?? 0)
               : selectedBlock?.type === "post_board" && postBoardStyleTarget === "buttons"
                 ? Number(((selectedBlock.data as any).buttonStyle ?? {}).borderRadius ?? 0)
-                : selectedBlock?.type === "form_field" && formFieldTextTarget === "text"
+                : selectedBlock?.type === "form_field" && formFieldTextTarget === "inputText"
                   ? Number(((selectedBlock.data as any).inputStyle ?? {}).borderRadius ?? 0)
                   : selectedAppearance.borderRadius ?? 0}
           </span>
@@ -13837,20 +13793,22 @@ renderBlockPreview={renderCanvasPreview}
 ) : null}
 
 {!isMultiSelection && selectedBlock?.type === "form_field" ? (
-  <FormFieldInspector
-    selectedBlock={selectedBlock}
-    setDraft={setDraft}
-    updateSelectedBlock={updateSelectedBlock}
-    formFieldTextTarget={formFieldTextTarget}
-    setFormFieldTextTarget={setFormFieldTextTarget}
-    ctaButtonOptions={ctaButtonOptions}
-    updateFormField={updateFormField}
-    updateFormFieldRequired={updateFormFieldRequired}
-    FORM_FIELD_CONFIG_EVENT={FORM_FIELD_CONFIG_EVENT}
-    inspectorCardClass={inspectorCardClass}
-    inspectorLabelClass={inspectorLabelClass}
-    inspectorInputClass={inspectorInputClass}
-  />
+<FormFieldInspector
+  selectedBlock={selectedBlock}
+  setDraft={setDraft}
+  updateSelectedBlock={updateSelectedBlock}
+  formFieldTextTarget={formFieldTextTarget}
+  setFormFieldTextTarget={setFormFieldTextTarget}
+  formFieldStyleTarget={formFieldStyleTarget}
+  setFormFieldStyleTarget={setFormFieldStyleTarget}
+  ctaButtonOptions={ctaButtonOptions}
+  updateFormField={updateFormField}
+  updateFormFieldRequired={updateFormFieldRequired}
+  FORM_FIELD_CONFIG_EVENT={FORM_FIELD_CONFIG_EVENT}
+  inspectorCardClass={inspectorCardClass}
+  inspectorLabelClass={inspectorLabelClass}
+  inspectorInputClass={inspectorInputClass}
+/>
 ) : null}
 
 {!isMultiSelection && selectedBlock?.type === "option_button" ? (

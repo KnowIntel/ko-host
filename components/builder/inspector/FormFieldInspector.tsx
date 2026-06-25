@@ -1,6 +1,10 @@
 "use client";
 
 import type { Dispatch, SetStateAction } from "react";
+import type {
+  FormFieldStyleTarget,
+  FormFieldTextTarget,
+} from "@/components/builder/formatting/formFieldFormatting";
 
 export const FORM_FIELD_CONFIG_EVENT = "form-field-config";
 
@@ -22,7 +26,6 @@ export type FormFieldConfigEventDetail = {
  * DesignLayoutEditor should remain the middleman and only render this when:
  * selectedBlock?.type === "form_field"
  */
-type FormFieldTextTarget = "form" | "text";
 
 type FormFieldInspectorSectionProps = {
   selectedBlock: any;
@@ -30,7 +33,10 @@ type FormFieldInspectorSectionProps = {
   updateSelectedBlock: any;
 
   formFieldTextTarget: FormFieldTextTarget;
-  setFormFieldTextTarget: Dispatch<SetStateAction<FormFieldTextTarget>>;
+  setFormFieldTextTarget: (target: FormFieldTextTarget) => void;
+
+  formFieldStyleTarget: FormFieldStyleTarget;
+  setFormFieldStyleTarget: (target: FormFieldStyleTarget) => void;
 
   ctaButtonOptions: { id: string; label: string }[];
 
@@ -50,6 +56,8 @@ export function FormFieldInspector({
   updateSelectedBlock,
   formFieldTextTarget,
   setFormFieldTextTarget,
+  formFieldStyleTarget,
+  setFormFieldStyleTarget,
   ctaButtonOptions,
   updateFormField,
   updateFormFieldRequired,
@@ -62,19 +70,51 @@ export function FormFieldInspector({
     <div className={inspectorCardClass()}>
     <div className={inspectorLabelClass()}>Form Field</div>
 
+    <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+  <div className={inspectorLabelClass()}>Formatting</div>
+
+  <div className="mt-3">
+    <div className={inspectorLabelClass()}>Text Target</div>
+    <select
+      value={formFieldTextTarget}
+      onChange={(e) =>
+        setFormFieldTextTarget(e.target.value as FormFieldTextTarget)
+      }
+      className={inspectorInputClass()}
+    >
+      <option value="placeholder">Placeholder</option>
+      <option value="inputText">Input Text</option>
+    </select>
+  </div>
+
+  <div className="mt-3">
+    <div className={inspectorLabelClass()}>Style Target</div>
+    <select
+      value={formFieldStyleTarget}
+      onChange={(e) =>
+        setFormFieldStyleTarget(e.target.value as FormFieldStyleTarget)
+      }
+      className={inspectorInputClass()}
+    >
+      <option value="form">Form</option>
+      <option value="block">Block</option>
+    </select>
+  </div>
+</div>
+
     <div className="mt-4">
       <div className={inspectorLabelClass()}>Text Target</div>
 
-      <select
-        value={formFieldTextTarget}
-        onChange={(e) =>
-          setFormFieldTextTarget(e.target.value as "form" | "text")
-        }
-        className={inspectorInputClass()}
-      >
-        <option value="form">Form</option>
-        <option value="text">Text</option>
-      </select>
+<select
+  value={formFieldTextTarget}
+  onChange={(e) =>
+    setFormFieldTextTarget(e.target.value as FormFieldTextTarget)
+  }
+  className={inspectorInputClass()}
+>
+  <option value="placeholder">Placeholder</option>
+  <option value="inputText">Input Text</option>
+</select>
     </div>
     
     <div className="mt-4">
@@ -423,7 +463,7 @@ export function FormFieldInspector({
       </div>
     ) : null}
 
-    {formFieldTextTarget === "text" ? (
+    {formFieldTextTarget === "inputText" ? (
       <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
         <div className={inspectorLabelClass()}>Text Area Padding</div>
 
