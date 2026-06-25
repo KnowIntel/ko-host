@@ -4940,7 +4940,9 @@ function applyStylePatch(patch: Partial<TextStyle>) {
 
 if (selectedBlockFromDraft?.type === "poll") {
   updateSelectedBlock((block) =>
-    applyPollTextStylePatch(block, pollTextTarget, patch),
+    block.type !== "poll"
+      ? block
+      : applyPollTextStylePatch(block, pollTextTarget, patch),
   );
 
   return;
@@ -6092,9 +6094,11 @@ function clearSelectedBackground() {
 
 function applyAppearancePatch(patch: AppearancePatch) {
 
-  if (selectedBlock?.type === "poll") {
+  if (selectedBlockFromDraft?.type === "poll") {
   updateSelectedBlock((block) =>
-    applyPollStylePatch(block, pollStyleTarget, patch),
+    block.type !== "poll"
+      ? block
+      : applyPollStylePatch(block, pollStyleTarget, patch),
   );
 
   return;
