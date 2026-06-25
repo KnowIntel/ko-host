@@ -3845,149 +3845,160 @@ function renderPoll(
   designKey?: string,
   micrositeSlug?: string | null,
 ) {
-  function PollPreview() {
-    const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [submitError, setSubmitError] = useState<string>("");
+function PollPreview() {
+  const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
-    const data = block.data as any;
+  const data = block.data as any;
 
-const questionStyle = getContainerTextStyle(
-  data.questionStyle ?? data.style ?? {},
-  designKey,
-);
+  const questionStyle = getContainerTextStyle(
+    data.questionStyle ?? data.style ?? {},
+    designKey,
+  );
 
-const optionTextStyle = getContainerTextStyle(
-  data.optionTextStyle ?? {},
-  designKey,
-);
+  const optionTextStyle = getContainerTextStyle(
+    data.optionTextStyle ?? {},
+    designKey,
+  );
 
-const fieldStyle = data.fieldStyle ?? {};
+  const fieldStyle = data.fieldStyle ?? {};
 
-const fieldBackgroundColor =
-  fieldStyle.backgroundColor ??
-  data.fieldBackgroundColor ??
-  data.optionBackgroundColor;
+  const fieldBackgroundColor =
+    fieldStyle.backgroundColor ??
+    data.fieldBackgroundColor ??
+    data.optionBackgroundColor;
 
-const fieldBorderColor =
-  fieldStyle.borderColor ??
-  data.fieldBorderColor ??
-  data.optionBorderColor;
+  const fieldBorderColor =
+    fieldStyle.borderColor ??
+    data.fieldBorderColor ??
+    data.optionBorderColor ??
+    "#d4d4d4";
 
-const fieldBorderWidth =
-  fieldStyle.borderWidth ??
-  data.fieldBorderWidth ??
-  data.optionBorderWidth ??
-  1;
+  const fieldBorderWidth =
+    Number(
+      fieldStyle.borderWidth ??
+        data.fieldBorderWidth ??
+        data.optionBorderWidth ??
+        1,
+    ) || 0;
 
-const fieldBorderRadius =
-  fieldStyle.borderRadius ??
-  data.fieldBorderRadius ??
-  data.optionBorderRadius;
+  const fieldBorderRadius =
+    Number(
+      fieldStyle.borderRadius ??
+        data.fieldBorderRadius ??
+        data.optionBorderRadius ??
+        8,
+    ) || 0;
 
-    async function handleVote(optionId: string) {
-      if (isSubmitting || !micrositeSlug) return;
+  async function handleVote(optionId: string) {
+    if (isSubmitting || !micrositeSlug) return;
 
-      try {
-        setIsSubmitting(true);
-        setSubmitError("");
+    try {
+      setIsSubmitting(true);
+      setSubmitError("");
 
-        const res = await fetch("/api/public/poll/vote", {
-          method: "POST",
-          headers: {
-            "content-type": "application/json",
-          },
-          body: JSON.stringify({
-            micrositeSlug,
-            pollId: block.id,
-            optionIds: [optionId],
-            company: "",
-          }),
-        });
+      const res = await fetch("/api/public/poll/vote", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          micrositeSlug,
+          pollId: block.id,
+          optionIds: [optionId],
+          company: "",
+        }),
+      });
 
-        const data = await res.json().catch(() => null);
+      const result = await res.json().catch(() => null);
 
-        if (!res.ok) {
-          if (data?.error === "Already voted") {
-            setSubmitError("Already voted");
-            return;
-          }
-          throw new Error(data?.error || "Vote failed");
+      if (!res.ok) {
+        if (result?.error === "Already voted") {
+          setSubmitError("Already voted");
+          return;
         }
 
-        setSelectedOptionId(optionId);
-
-        window.dispatchEvent(
-          new CustomEvent("ko-host-poll-vote", {
-            detail: {
-              pollBlockId: block.id,
-              optionId,
-            },
-          }),
-        );
-      } catch (error) {
-        setSubmitError(
-          error instanceof Error ? error.message : "Vote failed",
-        );
-      } finally {
-        setIsSubmitting(false);
+        throw new Error(result?.error || "Vote failed");
       }
+
+      setSelectedOptionId(optionId);
+
+      window.dispatchEvent(
+        new CustomEvent("ko-host-poll-vote", {
+          detail: {
+            pollBlockId: block.id,
+            optionId,
+          },
+        }),
+      );
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error ? error.message : "Vote failed",
+      );
+    } finally {
+      setIsSubmitting(false);
     }
-
-    return (
-      <Surface
-        block={block}
-        designKey={designKey}
-        className={getSoftSurfaceClass(designKey)}
-      >
-<div style={questionStyle}>
-  {data.question || "Poll"}
-</div>
-
-        <div className="mt-3 space-y-2">
-          {data.options.map((option: PollOption) => {
-            const isSelected = selectedOptionId === option.id;
-
-            return (
-<button
-  key={option.id}
-  type="button"
-  onClick={() => void handleVote(option.id)}
-  disabled={isSubmitting || !micrositeSlug}
-  className={[
-    "w-full px-3 py-2 text-left transition disabled:cursor-not-allowed disabled:opacity-50",
-    selectedOptionId && !isSelected ? "opacity-70" : "",
-  ].join(" ")}
-  style={{
-    backgroundColor:
-      fieldBackgroundColor ??
-      (isSelected ? "rgba(59, 130, 246, 0.1)" : undefined),
-    borderColor: isSelected
-      ? fieldBorderColor ?? "#3b82f6"
-      : fieldBorderColor,
-borderWidth: Number(fieldBorderWidth),
-borderStyle: Number(fieldBorderWidth) > 0 ? "solid" : "none",
-borderColor: fieldBorderColor,
-outline: "none",
-boxShadow: "none",
-    ...(fieldBorderRadius !== undefined
-      ? { borderRadius: Number(fieldBorderRadius) || 0 }
-      : {}),
-  }}
-
->
-  <span style={optionTextStyle}>{option.text || "Option"}</span>
-</button>
-            );
-          })}
-        </div>
-
-        {submitError ? (
-          <div className="mt-2 text-xs text-red-500">{submitError}</div>
-        ) : null}
-      </Surface>
-    );
   }
+
+  return (
+    <Surface
+      block={block}
+      designKey={designKey}
+      className={getSoftSurfaceClass(designKey)}
+    >
+      <div style={questionStyle}>
+        {data.question || "Poll"}
+      </div>
+
+      <div className="mt-3 space-y-2">
+        {data.options.map((option: PollOption) => {
+          const isSelected = selectedOptionId === option.id;
+
+          return (
+            <button
+              key={option.id}
+              type="button"
+              onClick={() => void handleVote(option.id)}
+              disabled={isSubmitting || !micrositeSlug}
+              className={[
+                "w-full px-3 py-2 text-left transition",
+                "disabled:cursor-not-allowed disabled:opacity-50",
+                selectedOptionId && !isSelected ? "opacity-70" : "",
+              ].join(" ")}
+              style={{
+                backgroundColor:
+                  fieldBackgroundColor ??
+                  (isSelected ? "rgba(59,130,246,.10)" : "transparent"),
+
+                borderStyle: fieldBorderWidth > 0 ? "solid" : "none",
+                borderWidth: fieldBorderWidth,
+                borderColor: fieldBorderColor,
+                borderRadius: fieldBorderRadius,
+
+                outline: "none",
+                boxShadow: "none",
+
+                appearance: "none",
+                WebkitAppearance: "none",
+
+                ...optionTextStyle,
+              }}
+            >
+              {option.text || "Option"}
+            </button>
+          );
+        })}
+      </div>
+
+      {submitError ? (
+        <div className="mt-2 text-xs text-red-500">
+          {submitError}
+        </div>
+      ) : null}
+    </Surface>
+  );
+}
 
   return <PollPreview />;
 }
