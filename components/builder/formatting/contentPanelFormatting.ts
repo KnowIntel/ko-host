@@ -26,8 +26,8 @@ function getTextStyleKey(target: ContentPanelTextTarget) {
       ? "subtitleStyle"
       : target === "activeNavigation"
         ? "activeNavigationStyle"
-        : target === "inactiveNavigation"
-          ? "inactiveNavigationStyle"
+: target === "inactiveNavigation"
+  ? "navigationStyle"
           : "panelStyle";
 }
 
