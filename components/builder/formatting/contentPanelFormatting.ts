@@ -21,24 +21,41 @@ export function isContentPanelBlock(
   return block.type === "content_panel";
 }
 
+function getTextStyleKey(target: ContentPanelTextTarget) {
+  return target === "heading"
+    ? "headingStyle"
+    : target === "subtitle"
+      ? "subtitleStyle"
+      : target === "activeNavigation"
+        ? "activeNavigationStyle"
+        : target === "inactiveNavigation"
+          ? "inactiveNavigationStyle"
+          : "contentStyle";
+}
+
+function getStyleTargetKey(target: ContentPanelStyleTarget) {
+  return target === "form"
+    ? "style"
+    : target === "activeNavigation"
+      ? "activeNavigationStyle"
+      : target === "inactiveNavigation"
+        ? "inactiveNavigationStyle"
+        : "panelStyle";
+}
+
 export function getContentPanelTextStyle(
   block: MicrositeBlock | null | undefined,
   target: ContentPanelTextTarget,
 ) {
   if (!block || block.type !== "content_panel") return {};
 
-  const styleKey =
-    target === "heading"
-      ? "headingStyle"
-      : target === "subtitle"
-        ? "subtitleStyle"
-        : target === "activeNavigation"
-          ? "activeNavigationTextStyle"
-          : target === "inactiveNavigation"
-            ? "inactiveNavigationTextStyle"
-            : "contentStyle";
+  const styleKey = getTextStyleKey(target);
 
-  return ((block.data as any)[styleKey] ?? {}) as Record<string, any>;
+  return (
+    ((block.data as any)[styleKey] ??
+      (block.data as any).style ??
+      {}) as Record<string, any>
+  );
 }
 
 export function applyContentPanelTextStylePatch(
@@ -48,16 +65,7 @@ export function applyContentPanelTextStylePatch(
 ): MicrositeBlock {
   if (!isContentPanelBlock(block)) return block;
 
-  const styleKey =
-    target === "heading"
-      ? "headingStyle"
-      : target === "subtitle"
-        ? "subtitleStyle"
-        : target === "activeNavigation"
-          ? "activeNavigationTextStyle"
-          : target === "inactiveNavigation"
-            ? "inactiveNavigationTextStyle"
-            : "contentStyle";
+  const styleKey = getTextStyleKey(target);
 
   return {
     ...block,
@@ -71,24 +79,6 @@ export function applyContentPanelTextStylePatch(
   };
 }
 
-export function getContentPanelStyle(
-  block: MicrositeBlock | null | undefined,
-  target: ContentPanelStyleTarget,
-) {
-  if (!block || block.type !== "content_panel") return {};
-
-  const styleKey =
-    target === "form"
-      ? "formStyle"
-      : target === "activeNavigation"
-        ? "activeNavigationStyle"
-        : target === "inactiveNavigation"
-          ? "inactiveNavigationStyle"
-          : "panelStyle";
-
-  return ((block.data as any)[styleKey] ?? {}) as Record<string, any>;
-}
-
 export function applyContentPanelStylePatch(
   block: MicrositeBlock,
   target: ContentPanelStyleTarget,
@@ -96,14 +86,7 @@ export function applyContentPanelStylePatch(
 ): MicrositeBlock {
   if (!isContentPanelBlock(block)) return block;
 
-  const styleKey =
-    target === "form"
-      ? "formStyle"
-      : target === "activeNavigation"
-        ? "activeNavigationStyle"
-        : target === "inactiveNavigation"
-          ? "inactiveNavigationStyle"
-          : "panelStyle";
+  const styleKey = getStyleTargetKey(target);
 
   return {
     ...block,
@@ -120,21 +103,6 @@ export function applyContentPanelStylePatch(
         ...((block.data as any)[styleKey] ?? {}),
         ...patch,
       },
-    } as any,
-  };
-}
-
-export function applyContentPanelPatch(
-  block: MicrositeBlock,
-  patch: Record<string, any>,
-): MicrositeBlock {
-  if (!isContentPanelBlock(block)) return block;
-
-  return {
-    ...block,
-    data: {
-      ...block.data,
-      ...patch,
     } as any,
   };
 }
