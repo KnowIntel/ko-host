@@ -7594,7 +7594,10 @@ function ImageCarouselPreview({
         {block.data.heading ? (
           <div
             className="mb-2 shrink-0 px-1 text-sm font-semibold"
-            style={getContainerTextStyle(block.data.style, designKey)}
+            style={{
+  ...getContainerTextStyle(titleStyle, designKey),
+  color: titleStyle.color || "#ffffff",
+}}
           >
             {block.data.heading}
           </div>
