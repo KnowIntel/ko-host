@@ -3850,6 +3850,41 @@ function renderPoll(
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState<string>("");
 
+    const data = block.data as any;
+
+const questionStyle = getContainerTextStyle(
+  data.questionStyle ?? data.style ?? {},
+  designKey,
+);
+
+const optionTextStyle = getContainerTextStyle(
+  data.optionTextStyle ?? {},
+  designKey,
+);
+
+const fieldStyle = data.fieldStyle ?? {};
+
+const fieldBackgroundColor =
+  fieldStyle.backgroundColor ??
+  data.fieldBackgroundColor ??
+  data.optionBackgroundColor;
+
+const fieldBorderColor =
+  fieldStyle.borderColor ??
+  data.fieldBorderColor ??
+  data.optionBorderColor;
+
+const fieldBorderWidth =
+  fieldStyle.borderWidth ??
+  data.fieldBorderWidth ??
+  data.optionBorderWidth ??
+  1;
+
+const fieldBorderRadius =
+  fieldStyle.borderRadius ??
+  data.fieldBorderRadius ??
+  data.optionBorderRadius;
+
     async function handleVote(optionId: string) {
       if (isSubmitting || !micrositeSlug) return;
 
@@ -3905,12 +3940,12 @@ function renderPoll(
         designKey={designKey}
         className={getSoftSurfaceClass(designKey)}
       >
-        <div style={getContainerTextStyle(block.data.style, designKey)}>
-          {block.data.question || "Poll"}
-        </div>
+<div style={questionStyle}>
+  {data.question || "Poll"}
+</div>
 
         <div className="mt-3 space-y-2">
-          {block.data.options.map((option: PollOption) => {
+          {data.options.map((option: PollOption) => {
             const isSelected = selectedOptionId === option.id;
 
             return (
@@ -3930,7 +3965,16 @@ function renderPoll(
                       : "opacity-70"
                     : "hover:bg-black/5",
                 ].join(" ")}
-                style={getContainerTextStyle(block.data.style, designKey)}
+                style={{
+  ...optionTextStyle,
+  backgroundColor: fieldBackgroundColor,
+  borderColor: fieldBorderColor,
+  borderWidth: Number(fieldBorderWidth) || 0,
+  borderStyle: Number(fieldBorderWidth) > 0 ? "solid" : "none",
+  ...(fieldBorderRadius !== undefined
+    ? { borderRadius: Number(fieldBorderRadius) || 0 }
+    : {}),
+}}
               >
                 {option.text || "Option"}
               </button>

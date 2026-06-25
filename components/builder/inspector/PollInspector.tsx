@@ -1,6 +1,10 @@
 "use client";
 
 import type { RefObject } from "react";
+import type {
+  PollStyleTarget,
+  PollTextTarget,
+} from "@/components/builder/formatting/pollFormatting";
 
 /**
  * Poll inspector section
@@ -15,6 +19,12 @@ type PollInspectorProps = {
 
   updateSelectedBlock: any;
   makeClientId: (prefix: string) => string;
+
+  pollTextTarget: PollTextTarget;
+  setPollTextTarget: (target: PollTextTarget) => void;
+
+  pollStyleTarget: PollStyleTarget;
+  setPollStyleTarget: (target: PollStyleTarget) => void;
 
   pollQuestionInputRef: RefObject<HTMLTextAreaElement | null>;
   pollOptionInputRefs: RefObject<Record<string, HTMLInputElement | null>>;
@@ -32,6 +42,12 @@ export function PollInspector({
   draft,
   updateSelectedBlock,
   makeClientId,
+
+  pollTextTarget,
+  setPollTextTarget,
+  pollStyleTarget,
+  setPollStyleTarget,
+
   pollQuestionInputRef,
   pollOptionInputRefs,
   inspectorCardClass,
@@ -44,6 +60,34 @@ export function PollInspector({
     <div id="inspector-poll" className={inspectorCardClass()}>
       {/* Poll */}
                     <div className={inspectorLabelClass()}>Poll</div>
+
+                    <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+  <div className={inspectorLabelClass()}>Formatting</div>
+
+  <div className="mt-3">
+    <div className={inspectorLabelClass()}>Text Target</div>
+    <select
+      value={pollTextTarget}
+      onChange={(e) => setPollTextTarget(e.target.value as PollTextTarget)}
+      className={inspectorInputClass()}
+    >
+      <option value="question">Poll Question</option>
+      <option value="optionText">Option Text</option>
+    </select>
+  </div>
+
+  <div className="mt-3">
+    <div className={inspectorLabelClass()}>Style Target</div>
+    <select
+      value={pollStyleTarget}
+      onChange={(e) => setPollStyleTarget(e.target.value as PollStyleTarget)}
+      className={inspectorInputClass()}
+    >
+      <option value="field">Field</option>
+      <option value="block">Block</option>
+    </select>
+  </div>
+</div>
 
                     <div>
                       <div className={inspectorLabelClass()}>Question</div>

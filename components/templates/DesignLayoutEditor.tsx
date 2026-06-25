@@ -68,6 +68,14 @@ import {
 } from "@/components/builder/formatting/imageFormatting";
 
 import {
+  applyPollStylePatch,
+  applyPollTextStylePatch,
+  getPollTextStyle,
+  type PollStyleTarget,
+  type PollTextTarget,
+} from "@/components/builder/formatting/pollFormatting";
+
+import {
   applyOptionButtonStylePatch,
   applyOptionButtonTextStylePatch,
   getOptionButtonTextStyle,
@@ -2150,6 +2158,12 @@ const [listingStyleTarget, setListingStyleTarget] = useState<
   "title" | "description" | "metadata" | "price" | "quantity"
 >("title");
 
+const [pollTextTarget, setPollTextTarget] =
+  useState<PollTextTarget>("question");
+
+const [pollStyleTarget, setPollStyleTarget] =
+  useState<PollStyleTarget>("field");
+
 const [optionButtonTextTarget, setOptionButtonTextTarget] =
   useState<OptionButtonTextTarget>("heading");
 
@@ -2784,6 +2798,12 @@ selectedBlockFromDraft?.type === "gallery"
                               selectedBlockFromDraft,
                               carouselTextTarget,
                             ) as TextStyle)
+
+                            : selectedBlockFromDraft?.type === "poll"
+  ? (getPollTextStyle(
+      selectedBlockFromDraft,
+      pollTextTarget,
+    ) as TextStyle)
 
                       : selectedBlockFromDraft?.type === "cart" ||
                         selectedBlockFromDraft?.type === "checkout" ||
@@ -4284,6 +4304,12 @@ function applyPageTextBoxBackground(value: string) {
 
 function applyFillColor(value: string) {
 
+  if (selectedBlockFromDraft?.type === "poll") {
+  applyAppearancePatch({ backgroundColor: value });
+  pushRecentColor(value);
+  return;
+}
+
   if (selectedBlock?.type === "countdown") {
     if (countdownStyleTarget === "tiles") {
       updateSelectedBlock((block) =>
@@ -4640,6 +4666,13 @@ function eyedropperButtonClass() {
 
 
 function applyBorderColor(value: string) {
+
+  if (selectedBlockFromDraft?.type === "poll") {
+  applyAppearancePatch({ borderColor: value });
+  pushRecentColor(value);
+  return;
+}
+
 if (selectedBlockFromDraft?.type === "option_button") {
   applyAppearancePatch({ borderColor: value });
   pushRecentColor(value);
@@ -4904,6 +4937,14 @@ const handleVideoUpload = async (
 };
 
 function applyStylePatch(patch: Partial<TextStyle>) {
+
+  if (selectedBlockFromDraft?.type === "poll") {
+  updateSelectedBlock((block) =>
+    applyPollTextStylePatch(block, pollTextTarget, patch),
+  );
+
+  return;
+}
 
 
     if (selectedBlockFromDraft?.type === "calendar_event") {
@@ -6050,6 +6091,14 @@ function clearSelectedBackground() {
 }
 
 function applyAppearancePatch(patch: AppearancePatch) {
+
+  if (selectedBlock?.type === "poll") {
+  updateSelectedBlock((block) =>
+    applyPollStylePatch(block, pollStyleTarget, patch),
+  );
+
+  return;
+}
 
 if (selectedBlock?.type === "option_button") {
   updateSelectedBlock((block) =>
@@ -13781,6 +13830,10 @@ renderBlockPreview={renderCanvasPreview}
     inspectorInputClass={inspectorInputClass}
     inspectorTextareaClass={inspectorTextareaClass}
     toolSetButtonClass={toolSetButtonClass}
+    pollTextTarget={pollTextTarget}
+    setPollTextTarget={setPollTextTarget}
+    pollStyleTarget={pollStyleTarget}
+    setPollStyleTarget={setPollStyleTarget}
   />
 ) : null}
 
