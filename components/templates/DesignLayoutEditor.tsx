@@ -12738,19 +12738,19 @@ const idsToExpand =
             ? "#ffffff"
             : (selectedAppearance.backgroundColor ?? "#ffffff")
   }
-  onChange={(e) => {
-    if (selectedBlockFromDraft?.type === "rsvp") {
-      applyAppearancePatch({ backgroundColor: e.target.value });
-      return;
-    }
+onChange={(e) => {
+  if (selectedBlock?.type === "rsvp") {
+    applyAppearancePatch({ backgroundColor: e.target.value });
+    return;
+  }
 
-    if (selectedBlock?.type === "post_board") {
-      applyAppearancePatch({ backgroundColor: e.target.value });
-      return;
-    }
+  if (selectedBlock?.type === "post_board") {
+    applyAppearancePatch({ backgroundColor: e.target.value });
+    return;
+  }
 
-    applyFillColor(e.target.value);
-  }}
+  applyFillColor(e.target.value);
+}}
   className={topBarColorClass(false)}
   title={
     selectedBlock?.type === "rsvp"
