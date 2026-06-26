@@ -4044,6 +4044,7 @@ const placeholderStyle = getContainerTextStyle(
   designKey,
 );
 
+const placeholderClassName = `rsvp-placeholder-${block.id.replace(/[^a-zA-Z0-9_-]/g, "")}`;
 const placeholderColor =
   (placeholderStyle.color as string | undefined) ??
   data.placeholderColor ??
@@ -4479,7 +4480,7 @@ function renderField(
       placeholder={placeholder}
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className={`${inputClass()} placeholder:text-[var(--rsvp-placeholder-color)]`}
+      className={`${inputClass()} ${placeholderClassName}`}
 style={{
   ...fieldStyle,
   color: optionTextStyle.color,
@@ -4511,7 +4512,7 @@ function renderTextarea(
       placeholder={placeholder}
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className={`${inputClass()} min-h-[120px] resize-none placeholder:text-[var(--rsvp-placeholder-color)]`}
+      className={`${inputClass()} min-h-[120px] resize-none ${placeholderClassName}`}
 style={{
   ...fieldStyle,
   color: optionTextStyle.color,
@@ -4864,6 +4865,16 @@ lineHeight: optionTextStyle.lineHeight,
       : `${getSoftSurfaceClass(designKey)} h-full overflow-hidden`
   }
 >
+  {placeholderColor ? (
+  <style>
+    {`
+      .${placeholderClassName}::placeholder {
+        color: ${placeholderColor} !important;
+        opacity: 1 !important;
+      }
+    `}
+  </style>
+) : null}
   <form
         onSubmit={handleSubmit}
 className={[
