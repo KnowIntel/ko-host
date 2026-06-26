@@ -68,6 +68,14 @@ import {
 } from "@/components/builder/formatting/imageFormatting";
 
 import {
+  applyRsvpStylePatch,
+  applyRsvpTextStylePatch,
+  getRsvpTextStyle,
+  type RsvpStyleTarget,
+  type RsvpTextTarget,
+} from "@/components/builder/formatting/rsvpFormatting";
+
+import {
   applyPollStylePatch,
   applyPollTextStylePatch,
   getPollTextStyle,
@@ -2158,6 +2166,12 @@ const [listingStyleTarget, setListingStyleTarget] = useState<
   "title" | "description" | "metadata" | "price" | "quantity"
 >("title");
 
+const [rsvpTextTarget, setRsvpTextTarget] =
+  useState<RsvpTextTarget>("heading");
+
+const [rsvpStyleTarget, setRsvpStyleTarget] =
+  useState<RsvpStyleTarget>("field");
+
 const [pollTextTarget, setPollTextTarget] =
   useState<PollTextTarget>("question");
 
@@ -2576,15 +2590,11 @@ selectedBlockFromDraft?.type === "gallery"
                           (selectedBlockFromDraft.data as any).style ??
                           {}) as TextStyle)
                       : (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
-    : selectedBlockFromDraft?.type === "rsvp"
-      ? selectedRsvpElementKey === "form"
-        ? selectedBlockFromDraft.data.style ?? {}
-        : (
-            selectedBlockFromDraft.data.elementStyles?.[selectedRsvpElementKey]
-              ?.textStyle ??
-            selectedBlockFromDraft.data.style ??
-            {}
-          )
+: selectedBlockFromDraft?.type === "rsvp"
+  ? (getRsvpTextStyle(
+      selectedBlockFromDraft,
+      rsvpTextTarget,
+    ) as TextStyle)
       : selectedBlockFromDraft?.type === "donation"
         ? donationStyleTarget === "buttons"
           ? (((selectedBlockFromDraft.data as any).buttonStyle ??
@@ -3155,6 +3165,7 @@ const showBorderWidthRadiusControls =
   selectedBlock?.type === "enrollment_board" ||
   selectedBlock?.type === "post_board" ||
   selectedBlock?.type === "poll" ||
+  selectedBlock?.type === "rsvp" ||
   selectedBlock?.type === "listing" ||
   selectedBlock?.type === "tournament_display" ||
   selectedBlock?.type === "progress_bar" ||
@@ -4305,6 +4316,12 @@ function applyPageTextBoxBackground(value: string) {
 
 function applyFillColor(value: string) {
 
+  if (selectedBlockFromDraft?.type === "rsvp") {
+  applyAppearancePatch({ backgroundColor: value });
+  pushRecentColor(value);
+  return;
+}
+
   if (selectedBlockFromDraft?.type === "poll") {
   applyAppearancePatch({ backgroundColor: value });
   pushRecentColor(value);
@@ -4668,6 +4685,12 @@ function eyedropperButtonClass() {
 
 function applyBorderColor(value: string) {
 
+  if (selectedBlockFromDraft?.type === "rsvp") {
+  applyAppearancePatch({ borderColor: value });
+  pushRecentColor(value);
+  return;
+}
+
   if (selectedBlockFromDraft?.type === "poll") {
   applyAppearancePatch({ borderColor: value });
   pushRecentColor(value);
@@ -4938,6 +4961,14 @@ const handleVideoUpload = async (
 };
 
 function applyStylePatch(patch: Partial<TextStyle>) {
+
+  if (selectedBlockFromDraft?.type === "rsvp") {
+  updateSelectedBlock((block) =>
+    applyRsvpTextStylePatch(block, rsvpTextTarget, patch),
+  );
+
+  return;
+}
 
 if (selectedBlockFromDraft?.type === "poll") {
   updateSelectedBlock((block) =>
@@ -6094,6 +6125,14 @@ function clearSelectedBackground() {
 }
 
 function applyAppearancePatch(patch: AppearancePatch) {
+
+  if (selectedBlockFromDraft?.type === "rsvp") {
+  updateSelectedBlock((block) =>
+    applyRsvpStylePatch(block, rsvpStyleTarget, patch),
+  );
+
+  return;
+}
 
   if (selectedBlockFromDraft?.type === "poll") {
   updateSelectedBlock((block) =>
@@ -13855,14 +13894,18 @@ renderBlockPreview={renderCanvasPreview}
 ) : null}
 
 {!isMultiSelection && selectedBlock?.type === "rsvp" ? (
-  <RsvpInspector
-    selectedBlock={selectedBlock}
-    updateSelectedBlock={updateSelectedBlock}
-    rsvpHeadingInputRef={rsvpHeadingInputRef}
-    inspectorCardClass={inspectorCardClass}
-    inspectorLabelClass={inspectorLabelClass}
-    inspectorInputClass={inspectorInputClass}
-  />
+<RsvpInspector
+  selectedBlock={selectedBlock}
+  updateSelectedBlock={updateSelectedBlock}
+  rsvpTextTarget={rsvpTextTarget}
+  setRsvpTextTarget={setRsvpTextTarget}
+  rsvpStyleTarget={rsvpStyleTarget}
+  setRsvpStyleTarget={setRsvpStyleTarget}
+  rsvpHeadingInputRef={rsvpHeadingInputRef}
+  inspectorCardClass={inspectorCardClass}
+  inspectorLabelClass={inspectorLabelClass}
+  inspectorInputClass={inspectorInputClass}
+/>
 ) : null}
 
 {!isMultiSelection && selectedBlock?.type === "form_field" ? (

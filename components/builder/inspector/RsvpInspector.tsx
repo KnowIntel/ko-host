@@ -1,8 +1,19 @@
 "use client";
 
+import type {
+  RsvpStyleTarget,
+  RsvpTextTarget,
+} from "@/components/builder/formatting/rsvpFormatting";
+
 type RsvpInspectorProps = {
   selectedBlock: any;
   updateSelectedBlock: any;
+
+  rsvpTextTarget: RsvpTextTarget;
+  setRsvpTextTarget: (target: RsvpTextTarget) => void;
+
+  rsvpStyleTarget: RsvpStyleTarget;
+  setRsvpStyleTarget: (target: RsvpStyleTarget) => void;
 
   rsvpHeadingInputRef: React.RefObject<HTMLInputElement | null>;
 
@@ -14,6 +25,12 @@ type RsvpInspectorProps = {
 export function RsvpInspector({
   selectedBlock,
   updateSelectedBlock,
+
+  rsvpTextTarget,
+  setRsvpTextTarget,
+  rsvpStyleTarget,
+  setRsvpStyleTarget,
+
   rsvpHeadingInputRef,
   inspectorCardClass,
   inspectorLabelClass,
