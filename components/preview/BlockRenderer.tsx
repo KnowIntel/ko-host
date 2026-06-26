@@ -4017,7 +4017,58 @@ function RsvpFormBlock({
   block: Extract<MicrositeBlock, { type: "rsvp" }>;
   designKey?: string;
 }) {
-  const styles = block.data.elementStyles ?? {};
+  const data = block.data as any;
+
+const headingStyle = getContainerTextStyle(
+  data.headingStyle ?? data.style ?? {},
+  designKey,
+);
+
+const helperTextStyle = getContainerTextStyle(
+  data.helperTextStyle ?? {},
+  designKey,
+);
+
+const badgeTextStyle = getContainerTextStyle(
+  data.badgeTextStyle ?? {},
+  designKey,
+);
+
+const sectionLabelStyle = getContainerTextStyle(
+  data.sectionLabelStyle ?? {},
+  designKey,
+);
+
+const placeholderStyle = getContainerTextStyle(
+  data.placeholderStyle ?? {},
+  designKey,
+);
+
+const optionTextStyle = getContainerTextStyle(
+  data.optionTextStyle ?? {},
+  designKey,
+);
+
+const submitButtonTextStyle = getContainerTextStyle(
+  data.submitButtonTextStyle ?? {},
+  designKey,
+);
+
+const confirmationTitleStyle = getContainerTextStyle(
+  data.confirmationTitleStyle ?? {},
+  designKey,
+);
+
+const confirmationMessageStyle = getContainerTextStyle(
+  data.confirmationMessageStyle ?? {},
+  designKey,
+);
+
+const fieldStyle = data.fieldStyle ?? {};
+const sectionStyle = data.sectionStyle ?? {};
+const buttonDefaultStyle = data.buttonDefaultStyle ?? {};
+const buttonSelectionStyle = data.buttonSelectionStyle ?? {};
+const submitButtonStyle = data.submitButtonStyle ?? {};
   const hidden = new Set(block.data.hiddenElements ?? []);
   const styleVariant = block.data.styleVariant ?? "standard";
 
@@ -4201,14 +4252,6 @@ const isCurrentlyBringingGuest = showGuestInForm
     styleVariant === "formal_banquet" ||
     styleVariant === "bold_event";
 
-  function getStyle(key: string) {
-    const entry = styles[key as keyof typeof styles];
-    return {
-      ...(entry?.textStyle ? getContainerTextStyle(entry.textStyle, designKey) : {}),
-      ...(entry?.backgroundColor ? { backgroundColor: entry.backgroundColor } : {}),
-    };
-  }
-
   function sectionClass() {
     return darkVariant
       ? "rounded-2xl border border-white/15 bg-white/10 p-4"
@@ -4354,7 +4397,7 @@ setGuestCount(guestDefaultValue === guestYesValue ? Math.max(guestMin, 1) : 0);
   function renderImage() {
     if (!block.data.imageUrl) return null;
 
-    const imageStyle = getStyle("image");
+    const imageStyle = {};
 
     if (imageShape === "heart") {
       const heartClipId = `rsvp-heart-clip-${block.id}`;
@@ -4417,127 +4460,146 @@ setGuestCount(guestDefaultValue === guestYesValue ? Math.max(guestMin, 1) : 0);
     );
   }
 
-  function renderField(
-    key: string,
-    placeholder: string,
-    value: string,
-    onChange: (v: string) => void,
-    type: string = "text",
-  ) {
-    return (
-      <input
-        key={key}
-        type={type}
-        placeholder={placeholder}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className={inputClass()}
-        style={{ ...getStyle(key), textAlign: "left" }}
-      />
-    );
-  }
+function renderField(
+  key: string,
+  placeholder: string,
+  value: string,
+  onChange: (v: string) => void,
+  type: string = "text",
+) {
+  return (
+    <input
+      key={key}
+      type={type}
+      placeholder={placeholder}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className={inputClass()}
+      style={{
+        ...fieldStyle,
+        ...optionTextStyle,
+        textAlign: "left",
+      }}
+    />
+  );
+}
 
-  function renderTextarea(
-    key: string,
-    placeholder: string,
-    value: string,
-    onChange: (value: string) => void,
-  ) {
-    return (
-      <textarea
-        key={key}
-        placeholder={placeholder}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className={`${inputClass()} min-h-[120px] resize-none`}
-        style={{ ...getStyle(key), textAlign: "left" }}
-        rows={4}
-      />
-    );
-  }
+function renderTextarea(
+  key: string,
+  placeholder: string,
+  value: string,
+  onChange: (value: string) => void,
+) {
+  return (
+    <textarea
+      key={key}
+      placeholder={placeholder}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className={`${inputClass()} min-h-[120px] resize-none`}
+      style={{
+        ...fieldStyle,
+        ...optionTextStyle,
+        textAlign: "left",
+      }}
+      rows={4}
+    />
+  );
+}
 
-  function renderFieldLabel(key: string, text: string) {
-    return (
+function renderFieldLabel(key: string, text: string) {
+  return (
+    <div
+      key={key}
+      className={
+        darkVariant
+          ? "text-sm font-semibold text-white/90"
+          : "text-sm font-semibold text-neutral-800"
+      }
+      style={sectionLabelStyle}
+    >
+      {text}
+    </div>
+  );
+}
+
+function renderChoiceSection(
+  key: string,
+  label: string,
+  options: string[],
+  value: string,
+  onChange: (value: string) => void,
+) {
+  return (
+    <div
+      key={key}
+      className="rounded-2xl border p-4"
+      style={sectionStyle}
+    >
       <div
-        key={key}
-        className={darkVariant ? "text-sm font-semibold text-white/90" : "text-sm font-semibold text-neutral-800"}
-        style={getStyle(key)}
+        className="mb-3 text-sm font-semibold"
+        style={sectionLabelStyle}
       >
-        {text}
+        {label}
       </div>
-    );
-  }
 
-  function renderChoiceSection(
-    key: string,
-    label: string,
-    options: string[],
-    value: string,
-    onChange: (value: string) => void,
-  ) {
-    return (
-      <div key={key} className={sectionClass()}>
-        <div className="mb-3 text-sm font-semibold" style={getStyle(key)}>
-          {label}
-        </div>
+      {useChoiceCards ? (
+        <div className="relative z-10 grid grid-cols-1 gap-2 sm:grid-cols-2">
+          {options.map((option) => {
+            const selected = value === option;
+            const buttonStyle = selected
+              ? buttonSelectionStyle
+              : buttonDefaultStyle;
 
-        {useChoiceCards ? (
-          <div className="relative z-10 grid grid-cols-1 gap-2 sm:grid-cols-2">
-            {options.map((option) => {
-              const selected = value === option;
-
-              return (
-                <button
-                  key={`${key}-${option}`}
-                  type="button"
-                  onClick={() => onChange(option)}
-                  className={[
-                    "min-h-[46px] rounded-2xl border px-4 py-3 text-left text-sm font-medium transition duration-200",
-                    "hover:-translate-y-0.5 hover:shadow-md active:translate-y-0",
-                    selected
-                      ? darkVariant
-                        ? "border-white bg-white text-neutral-950 shadow-lg"
-                        : "border-neutral-950 bg-neutral-950 text-white shadow-lg"
-                      : darkVariant
-                        ? "border-white/15 bg-white/5 text-white/80 hover:bg-white/10"
-                        : "border-neutral-200 bg-white text-neutral-800 hover:border-neutral-400",
-                  ].join(" ")}
-                >
-                  {option}
-                </button>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="relative z-10 flex flex-wrap gap-4">
-            {options.map((option) => (
-              <label
+            return (
+              <button
                 key={`${key}-${option}`}
-                className={
-                  darkVariant
-                    ? "inline-flex items-center gap-2 text-sm text-white/85"
-                    : "inline-flex items-center gap-2 text-sm text-neutral-800"
-                }
+                type="button"
+                onClick={() => onChange(option)}
+                className="min-h-[46px] px-4 py-3 text-left text-sm font-medium transition duration-200"
+                style={{
+                  ...buttonStyle,
+                  ...optionTextStyle,
+                }}
               >
-                <input
-                  type="radio"
-                  name={`${block.id}-${key}`}
-                  checked={value === option}
-                  onChange={() => onChange(option)}
-                />
-                <span>{option}</span>
-              </label>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  }
+                {option}
+              </button>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="relative z-10 flex flex-wrap gap-4">
+          {options.map((option) => (
+            <label
+              key={`${key}-${option}`}
+              className="inline-flex items-center gap-2 text-sm"
+              style={optionTextStyle}
+            >
+              <input
+                type="radio"
+                name={`${block.id}-${key}`}
+                checked={value === option}
+                onChange={() => onChange(option)}
+              />
+              <span>{option}</span>
+            </label>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
   function renderGuestCount() {
     return (
-      <div key="guestCount" className={sectionClass()} style={getStyle("guestCount")}>
-        <div className="mb-3 text-sm font-semibold">Guest Count</div>
+      <div
+  key="guestCount"
+  className="rounded-2xl border p-4"
+  style={sectionStyle}
+>
+        <div className="mb-3 text-sm font-semibold" style={sectionLabelStyle}>
+  Guest Count
+</div>
 
         <div className="inline-flex items-center gap-3 rounded-2xl border border-current/15 bg-white/10 px-3 py-2">
           <button
@@ -4592,25 +4654,25 @@ setGuestCount(guestDefaultValue === guestYesValue ? Math.max(guestMin, 1) : 0);
       case "heading":
         return (
           <div key="heading" className="space-y-2 text-center">
-            <div
-              className="text-2xl font-semibold tracking-tight"
-              style={getStyle("heading")}
-            >
-              {block.data.heading || "RSVP"}
-            </div>
+<div
+  className="text-2xl font-semibold tracking-tight"
+  style={headingStyle}
+>
+  {block.data.heading || "RSVP"}
+</div>
 {helperText ? (
-  <div className={darkVariant ? "text-sm text-white/65" : "text-sm text-neutral-500"}>
+  <div
+    className={darkVariant ? "text-sm text-white/65" : "text-sm text-neutral-500"}
+    style={helperTextStyle}
+  >
     {helperText}
   </div>
 ) : null}
 
 {replyByDisplay && replyByText ? (
   <div
-    className={
-      darkVariant
-        ? "mx-auto inline-flex rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold text-white/80"
-        : "mx-auto inline-flex rounded-full border border-neutral-200 bg-white px-3 py-1 text-xs font-semibold text-neutral-700"
-    }
+    className="mx-auto inline-flex rounded-full border px-3 py-1 text-xs font-semibold"
+    style={badgeTextStyle}
   >
     {replyByText}
   </div>
@@ -4724,7 +4786,10 @@ bringingGuest ? guestYesValue : guestNoValue,
                   setGuestNames(next);
                 }}
                 className={inputClass()}
-                style={getStyle("guestName")}
+                style={{
+  ...fieldStyle,
+  ...optionTextStyle,
+}}
               />
             ))}
           </div>
@@ -4737,7 +4802,7 @@ bringingGuest ? guestYesValue : guestNoValue,
           <div key="comments" className={sectionClass()}>
             <div
               className="mb-3 text-sm font-semibold"
-              style={getStyle("comments")}
+              style={sectionLabelStyle}
             >
               {commentsLabel}
             </div>
@@ -4836,43 +4901,60 @@ className={[
           return rendered;
         })()}
 
-        <button
-          type="submit"
-          disabled={submitting}
-className={[
-  "inline-flex min-h-[52px] items-center justify-center px-5 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60",
-  buttonLayout === "full" ? "w-full" : "w-fit self-center",
-  buttonShape === "pill"
-    ? "rounded-full"
-    : buttonShape === "square"
-      ? "rounded-none"
-      : "rounded-2xl",
-  buttonUppercase ? "uppercase tracking-[0.18em]" : "",
-  buttonVariant === "outline"
-    ? darkVariant
-      ? "border border-white/35 bg-transparent text-white hover:bg-white/10"
-      : "border border-neutral-950 bg-transparent text-neutral-950 hover:bg-neutral-950 hover:text-white"
-    : buttonVariant === "gradient"
-      ? "border border-transparent bg-gradient-to-r from-fuchsia-600 via-rose-500 to-orange-400 text-white hover:opacity-90"
-      : darkVariant
-        ? "bg-white text-neutral-950 hover:bg-white/90"
-        : "bg-neutral-950 text-white hover:bg-neutral-800",
-].join(" ")}
-        >
-          {submitting ? "Submitting..." : submitButtonText}
-        </button>
+<button
+  type="submit"
+  disabled={submitting}
+  className={[
+    "inline-flex min-h-[52px] items-center justify-center px-5 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60",
+    buttonLayout === "full" ? "w-full" : "w-fit self-center",
+    buttonShape === "pill"
+      ? "rounded-full"
+      : buttonShape === "square"
+        ? "rounded-none"
+        : "rounded-2xl",
+    buttonUppercase ? "uppercase tracking-[0.18em]" : "",
+    buttonVariant === "outline"
+      ? darkVariant
+        ? "border border-white/35 bg-transparent text-white hover:bg-white/10"
+        : "border border-neutral-950 bg-transparent text-neutral-950 hover:bg-neutral-950 hover:text-white"
+      : buttonVariant === "gradient"
+        ? "border border-transparent bg-gradient-to-r from-fuchsia-600 via-rose-500 to-orange-400 text-white hover:opacity-90"
+        : darkVariant
+          ? "bg-white text-neutral-950 hover:bg-white/90"
+          : "bg-neutral-950 text-white hover:bg-neutral-800",
+  ].join(" ")}
+  style={{
+    ...submitButtonStyle,
+    ...submitButtonTextStyle,
+  }}
+>
+  {submitting ? "Submitting..." : submitButtonText}
+</button>
 
-        {submitState === "success" ? (
-          <div
-            className={
-              darkVariant
-                ? "rounded-2xl border border-emerald-300/30 bg-emerald-300/10 p-3 text-sm text-emerald-100"
-                : "rounded-2xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800"
-            }
-          >
-            {submitMessage}
-          </div>
-        ) : null}
+{submitState === "success" ? (
+  <div
+    className={
+      darkVariant
+        ? "rounded-2xl border border-emerald-300/30 bg-emerald-300/10 p-3"
+        : "rounded-2xl border border-emerald-200 bg-emerald-50 p-3"
+    }
+    style={submitButtonStyle}
+  >
+    <div
+      className="text-base font-semibold"
+      style={confirmationTitleStyle}
+    >
+      {confirmationTitle || "Thank you!"}
+    </div>
+
+    <div
+      className="mt-2 text-sm"
+      style={confirmationMessageStyle}
+    >
+      {submitMessage}
+    </div>
+  </div>
+) : null}
 
         {submitState === "error" ? (
           <div
@@ -4889,6 +4971,8 @@ className={[
     </Surface>
   );
 }
+
+
 
 function renderFaq(
   block: Extract<MicrositeBlock, { type: "faq" }>,
