@@ -2225,23 +2225,6 @@ const [selectedOptionButtonOptionId, setSelectedOptionButtonOptionId] =
   Record<string, string[]>
 >({});
 
-  const [selectedRsvpElementKey, setSelectedRsvpElementKey] = useState<
-    | "form"
-    | "image"
-    | "heading"
-    | "nameLabel"
-    | "firstName"
-    | "lastName"
-    | "email"
-    | "address"
-    | "attending"
-    | "meal"
-    | "guestToggle"
-    | "guestCount"
-    | "guestName"
-    | "comments"
-  >("heading");
-
   
 /* ------------------------------------ TARGET TEXT/STYLE BLOCKS - END ------------------------------------ */
 
@@ -2838,13 +2821,6 @@ selectedBlockFromDraft?.type === "gallery"
                       : getSelectionTextStyle(draft, selection);
 
   const selectedAppearance = getSelectionBlockAppearance(draft, selection);
-const selectedRsvpElementBackgroundColor =
-  selectedBlockFromDraft?.type === "rsvp"
-    ? selectedRsvpElementKey === "form"
-      ? selectedBlockFromDraft.appearance?.backgroundColor ?? "transparent"
-      : selectedBlockFromDraft.data.elementStyles?.[selectedRsvpElementKey]
-          ?.backgroundColor ?? "transparent"
-    : "transparent";
   const resolvedPageColor =
     (draft as DraftWithPageExtras).pageColor ||
     getResolvedPageColor(draft, designKey, metadata);
@@ -3039,26 +3015,6 @@ if (selectedBlock.type === "label" || selectedBlock.type === "text_fx") {
   ? BLOCK_GUIDES[selectedBlock.type]
   : null;
   
-const rsvpElementOptions =
-  selectedBlock?.type === "rsvp"
-    ? [
-        { value: "form", label: "Form" }, // ✅ ADD THIS LINE
-        { value: "image", label: "Top Image" },
-        { value: "heading", label: "Heading" },
-        { value: "nameLabel", label: "Name Label" },
-        { value: "firstName", label: "First Name Field" },
-        { value: "lastName", label: "Last Name Field" },
-        { value: "email", label: "Email Field" },
-        { value: "address", label: "Address Field" },
-        { value: "attending", label: "Attending Section" },
-        { value: "meal", label: "Meal Section" },
-        { value: "guestToggle", label: "Guest Toggle Section" },
-        { value: "guestCount", label: "Guest Count Control" },
-        { value: "guestName", label: "Guest Name Field" },
-        { value: "comments", label: "Comments Field" },
-      ]
-    : [];
-
   const selectedTextFxBlock =
     selectedBlock?.type === "text_fx" ? selectedBlock : null;
 
@@ -4042,15 +3998,6 @@ function getPlainTextFromRichTextHtml(html?: string) {
   return wrapper.textContent?.trim() ?? "";
 }
 
-useEffect(() => {
-  if (selectedBlock?.type !== "rsvp") return;
-  if (selectedRsvpElementKey === "form") return;
-
-  const order = selectedBlock.data.elementOrder ?? [];
-  if (!order.includes(selectedRsvpElementKey)) {
-    setSelectedRsvpElementKey("heading");
-  }
-}, [selectedBlock, selectedRsvpElementKey]);
 
 useEffect(() => {
   if (selectedBlock?.type !== "rich_text") return;
@@ -6974,65 +6921,6 @@ function updateSelectedSummaryData(patch: Record<string, any>) {
           },
         },
   );
-}
-
-function updateSelectedRsvpElementStyle(
-  updater: (
-    current:
-      | {
-          textStyle?: TextStyle;
-          backgroundColor?: string;
-        }
-      | undefined,
-  ) => {
-    textStyle?: TextStyle;
-    backgroundColor?: string;
-  },
-) {
-  updateSelectedBlock((block) => {
-    if (block.type !== "rsvp") return block;
-
-    if (selectedRsvpElementKey === "form") {
-      const nextValue = updater({
-        textStyle: block.data.style ?? {},
-        backgroundColor: block.appearance?.backgroundColor,
-      });
-
-      return {
-        ...block,
-        appearance: {
-          ...block.appearance,
-          backgroundColor:
-            nextValue.backgroundColor ??
-            block.appearance?.backgroundColor ??
-            "transparent",
-        },
-        data: {
-          ...block.data,
-          style: {
-            ...(block.data.style ?? {}),
-            ...(nextValue.textStyle ?? {}),
-          },
-        },
-      };
-    }
-
-    const key = selectedRsvpElementKey;
-    const currentElementStyles = block.data.elementStyles ?? {};
-    const currentValue = currentElementStyles[key];
-    const nextValue = updater(currentValue);
-
-    return {
-      ...block,
-      data: {
-        ...block.data,
-        elementStyles: {
-          ...currentElementStyles,
-          [key]: nextValue,
-        },
-      },
-    };
-  });
 }
 
 
@@ -12842,10 +12730,10 @@ const idsToExpand =
                 : (selectedAppearance.backgroundColor ?? "#ffffff")
       }
       onChange={(e) => {
-        if (selectedBlock?.type === "rsvp" && selectedRsvpElementKey === "form") {
-          applyAppearancePatch({ backgroundColor: e.target.value });
-          return;
-        }
+if (selectedBlockFromDraft?.type === "rsvp") {
+  applyAppearancePatch({ backgroundColor: e.target.value });
+  return;
+}
 
         if (selectedBlock?.type === "post_board") {
           applyAppearancePatch({ backgroundColor: e.target.value });
@@ -12871,10 +12759,10 @@ const idsToExpand =
       className={eyedropperButtonClass()}
       onClick={() =>
         void pickColorWithEyeDropper((color) => {
-          if (selectedBlock?.type === "rsvp" && selectedRsvpElementKey === "form") {
-            applyAppearancePatch({ backgroundColor: color });
-            return;
-          }
+if (selectedBlockFromDraft?.type === "rsvp") {
+  applyAppearancePatch({ backgroundColor: color });
+  return;
+}
 
           if (selectedBlock?.type === "post_board") {
             applyAppearancePatch({ backgroundColor: color });

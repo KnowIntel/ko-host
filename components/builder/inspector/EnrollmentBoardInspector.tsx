@@ -854,7 +854,7 @@ export function EnrollmentBoardInspector({
 
     <div className="mt-5 rounded-2xl border border-neutral-200 bg-neutral-50 p-4">
       <div className="mt-4">
-  <div className={inspectorLabelClass()}>Member Total Label</div>
+  <div className={inspectorLabelClass()}>Total Enrolled Label</div>
   <input
     type="text"
     value={selectedBlock.data.memberTotalLabel ?? " enrolled"}
