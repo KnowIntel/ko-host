@@ -12795,7 +12795,7 @@ if (selectedBlockFromDraft?.type === "rsvp") {
         selectedBlock?.type === "faq" && faqStyleTarget === "section"
           ? ((selectedBlock.data as any).sectionStyle?.backgroundColor === "transparent")
           : selectedBlock?.type === "rsvp"
-            ? selectedRsvpElementBackgroundColor === "transparent"
+            ? selectedAppearance.backgroundColor === "transparent"
             : selectedBlock?.type === "post_board" && postBoardStyleTarget === "card"
               ? ((selectedBlock.data as any).cardStyle?.backgroundColor === "transparent")
               : selectedBlock?.type === "post_board" && postBoardStyleTarget === "buttons"
