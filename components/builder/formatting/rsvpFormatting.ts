@@ -67,6 +67,8 @@ export function applyRsvpTextStylePatch(
   const data = block.data as any;
   const styleKey = getTextStyleKey(target);
 
+  console.log("RSVP TEXT PATCH", { target, styleKey, patch });
+
   return {
     ...block,
     data: {
@@ -75,7 +77,6 @@ export function applyRsvpTextStylePatch(
         ...(data[styleKey] ?? {}),
         ...patch,
       },
-
       ...(target === "placeholderText" && patch.color !== undefined
         ? { placeholderColor: patch.color }
         : {}),
@@ -106,6 +107,8 @@ export function applyRsvpStylePatch(
 
   const data = block.data as any;
 
+  console.log("RSVP STYLE PATCH", { target, patch });
+
   if (target === "block") {
     return {
       ...block,
@@ -131,42 +134,8 @@ export function applyRsvpStylePatch(
       ...data,
       [styleKey]: {
         ...(data[styleKey] ?? {}),
-        ...(patch.backgroundColor !== undefined
-          ? { backgroundColor: patch.backgroundColor }
-          : {}),
-        ...(patch.backgroundOpacity !== undefined
-          ? { backgroundOpacity: patch.backgroundOpacity }
-          : {}),
-        ...(patch.borderColor !== undefined
-          ? { borderColor: patch.borderColor }
-          : {}),
-        ...(patch.borderWidth !== undefined
-          ? { borderWidth: Number(patch.borderWidth) || 0 }
-          : {}),
-        ...(patch.borderRadius !== undefined
-          ? { borderRadius: Number(patch.borderRadius) || 0 }
-          : {}),
+        ...patch,
       },
-
-      ...(target === "field" && patch.backgroundColor !== undefined
-        ? { fieldBackgroundColor: patch.backgroundColor }
-        : {}),
-
-      ...(target === "section" && patch.backgroundColor !== undefined
-        ? { sectionBackgroundColor: patch.backgroundColor }
-        : {}),
-
-      ...(target === "buttonDefault" && patch.backgroundColor !== undefined
-        ? { buttonBackgroundColor: patch.backgroundColor }
-        : {}),
-
-      ...(target === "buttonSelection" && patch.backgroundColor !== undefined
-        ? { selectedButtonBackgroundColor: patch.backgroundColor }
-        : {}),
-
-      ...(target === "submitButton" && patch.backgroundColor !== undefined
-        ? { submitButtonBackgroundColor: patch.backgroundColor }
-        : {}),
     },
   };
 }
