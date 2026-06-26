@@ -4839,7 +4839,11 @@ lineHeight: optionTextStyle.lineHeight,
         if (!showCommentsInForm) return null;
 
         return (
-          <div key="comments" className={sectionClass()}>
+          <div
+  key="comments"
+  className="rounded-2xl border p-4"
+  style={sectionStyle}
+>
             <div
               className="mb-3 text-sm font-semibold"
               style={sectionLabelStyle}
@@ -4904,14 +4908,11 @@ className={[
 
           if (showContactSection) {
             rendered.push(
-              <div
-                key="contact-details-card"
-                className={
-                  darkVariant
-                    ? "space-y-4 rounded-[28px] border border-white/10 bg-white/[0.04] p-5"
-                    : "space-y-4 rounded-[28px] border border-neutral-200 bg-neutral-50/80 p-5"
-                }
-              >
+<div
+  key="contact-details-card"
+  className="space-y-4 rounded-[28px] border p-5"
+  style={sectionStyle}
+>
                 {renderElement("nameLabel")}
 
                 {block.data.nameDisplay !== false ? (
