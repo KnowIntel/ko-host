@@ -4044,6 +4044,11 @@ const placeholderStyle = getContainerTextStyle(
   designKey,
 );
 
+const placeholderColor =
+  (placeholderStyle.color as string | undefined) ??
+  data.placeholderColor ??
+  undefined;
+
 const optionTextStyle = getContainerTextStyle(
   data.optionTextStyle ?? {},
   designKey,
@@ -4474,12 +4479,15 @@ function renderField(
       placeholder={placeholder}
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className={inputClass()}
-      style={{
-        ...fieldStyle,
-        ...optionTextStyle,
-        textAlign: "left",
-      }}
+      className={`${inputClass()} placeholder:text-[var(--rsvp-placeholder-color)]`}
+style={{
+  ...fieldStyle,
+  ...optionTextStyle,
+  textAlign: "left",
+  ...(placeholderColor
+    ? ({ "--rsvp-placeholder-color": placeholderColor } as React.CSSProperties)
+    : {}),
+}}
     />
   );
 }
@@ -4496,12 +4504,15 @@ function renderTextarea(
       placeholder={placeholder}
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className={`${inputClass()} min-h-[120px] resize-none`}
-      style={{
-        ...fieldStyle,
-        ...optionTextStyle,
-        textAlign: "left",
-      }}
+      className={`${inputClass()} min-h-[120px] resize-none placeholder:text-[var(--rsvp-placeholder-color)]`}
+style={{
+  ...fieldStyle,
+  ...optionTextStyle,
+  textAlign: "left",
+  ...(placeholderColor
+    ? ({ "--rsvp-placeholder-color": placeholderColor } as React.CSSProperties)
+    : {}),
+}}
       rows={4}
     />
   );
