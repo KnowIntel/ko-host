@@ -12710,49 +12710,55 @@ const idsToExpand =
   <>
     <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
 
-    <input
-      type="color"
-      value={
-        selectedBlock?.type === "rsvp"
-          ? selectedRsvpElementBackgroundColor === "transparent"
+<input
+  type="color"
+  value={
+    selectedBlock?.type === "rsvp"
+      ? selectedAppearance.backgroundColor === "transparent"
+        ? "#ffffff"
+        : (selectedAppearance.backgroundColor ?? "#ffffff")
+      : selectedBlock?.type === "post_board" && postBoardStyleTarget === "card"
+        ? ((selectedBlock.data as any).cardStyle?.backgroundColor ===
+          "transparent"
             ? "#ffffff"
-            : selectedRsvpElementBackgroundColor
-          : selectedBlock?.type === "post_board" && postBoardStyleTarget === "card"
-            ? ((selectedBlock.data as any).cardStyle?.backgroundColor === "transparent"
-                ? "#ffffff"
-                : ((selectedBlock.data as any).cardStyle?.backgroundColor ?? "#ffffff"))
-            : selectedBlock?.type === "post_board" && postBoardStyleTarget === "buttons"
-              ? ((selectedBlock.data as any).buttonStyle?.backgroundColor === "transparent"
-                  ? "#ffffff"
-                  : ((selectedBlock.data as any).buttonStyle?.backgroundColor ?? "#ffffff"))
-              : selectedAppearance.backgroundColor === "transparent"
-                ? "#ffffff"
-                : (selectedAppearance.backgroundColor ?? "#ffffff")
-      }
-      onChange={(e) => {
-if (selectedBlockFromDraft?.type === "rsvp") {
-  applyAppearancePatch({ backgroundColor: e.target.value });
-  return;
-}
+            : ((selectedBlock.data as any).cardStyle?.backgroundColor ??
+              "#ffffff"))
+        : selectedBlock?.type === "post_board" &&
+            postBoardStyleTarget === "buttons"
+          ? ((selectedBlock.data as any).buttonStyle?.backgroundColor ===
+            "transparent"
+              ? "#ffffff"
+              : ((selectedBlock.data as any).buttonStyle?.backgroundColor ??
+                "#ffffff"))
+          : selectedAppearance.backgroundColor === "transparent"
+            ? "#ffffff"
+            : (selectedAppearance.backgroundColor ?? "#ffffff")
+  }
+  onChange={(e) => {
+    if (selectedBlockFromDraft?.type === "rsvp") {
+      applyAppearancePatch({ backgroundColor: e.target.value });
+      return;
+    }
 
-        if (selectedBlock?.type === "post_board") {
-          applyAppearancePatch({ backgroundColor: e.target.value });
-          return;
-        }
+    if (selectedBlock?.type === "post_board") {
+      applyAppearancePatch({ backgroundColor: e.target.value });
+      return;
+    }
 
-        applyFillColor(e.target.value);
-      }}
-      className={topBarColorClass(false)}
-      title={
-        selectedBlock?.type === "rsvp"
-          ? "RSVP element background color"
-          : selectedBlock?.type === "post_board" && postBoardStyleTarget === "card"
-            ? "Post card background color"
-            : selectedBlock?.type === "post_board" && postBoardStyleTarget === "buttons"
-              ? "Post button background color"
-              : "Fill color"
-      }
-    />
+    applyFillColor(e.target.value);
+  }}
+  className={topBarColorClass(false)}
+  title={
+    selectedBlock?.type === "rsvp"
+      ? "RSVP background color"
+      : selectedBlock?.type === "post_board" && postBoardStyleTarget === "card"
+        ? "Post card background color"
+        : selectedBlock?.type === "post_board" &&
+            postBoardStyleTarget === "buttons"
+          ? "Post button background color"
+          : "Fill color"
+  }
+/>
 
     <button
       type="button"
