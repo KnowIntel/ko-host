@@ -6,6 +6,7 @@ import { BUILDER_TOOL_GUIDES } from "@/components/templates/builderToolGuides";
 import { BLOCK_GUIDES } from "@/components/templates/blockGuideContent";
 import PopBalloonCanvasPreview from "@/components/blocks/PopBalloonCanvasPreview";
 import { applyImagePatch } from "@/components/builder/formatting/imageFormatting";
+import { ICON_TAGS } from "./iconTags";
 
 /* ------------------------------------ INSPECTOR BLOCK FILES - START ------------------------------------ */
 import {
@@ -10492,21 +10493,35 @@ function getToolSearchKey(category: BottomCategory, tool: { label: string; type:
 function toolMatchesSearch(
   query: string,
   category: BottomCategory,
-  tool: { label: string; type: string },
+  tool: (typeof CATEGORY_BUTTONS)[BottomCategory][number],
 ) {
-  const normalizedQuery = query.trim().toLowerCase();
-  if (!normalizedQuery) return false;
+  const normalized = query.trim().toLowerCase();
 
-  const haystack = [
-    tool.label,
-    tool.type,
-    category,
-    TOOL_DESCRIPTIONS[tool.label] ?? "",
-  ]
-    .join(" ")
-    .toLowerCase();
+  if (!normalized) return true;
 
-  return haystack.includes(normalizedQuery);
+  // Existing behavior
+  if (
+    tool.label.toLowerCase().includes(normalized) ||
+    category.toLowerCase().includes(normalized)
+  ) {
+    return true;
+  }
+
+  // Icon tag lookup
+  if (
+    tool.kind === "block" &&
+    tool.type === "icon" &&
+    "iconName" in tool &&
+    tool.iconName
+  ) {
+    const tags = ICON_TAGS[tool.iconName] ?? [];
+
+    return tags.some((tag) =>
+      tag.toLowerCase().includes(normalized),
+    );
+  }
+
+  return false;
 }
 
 function toggleToolMenu(category: BottomCategory) {
