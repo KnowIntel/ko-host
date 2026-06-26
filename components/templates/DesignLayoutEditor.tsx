@@ -4909,9 +4909,11 @@ const handleVideoUpload = async (
 
 function applyStylePatch(patch: Partial<TextStyle>) {
 
-  if (selectedBlockFromDraft?.type === "rsvp") {
+  if (selectedBlock?.type === "rsvp") {
   updateSelectedBlock((block) =>
-    applyRsvpTextStylePatch(block, rsvpTextTarget, patch),
+    block.type !== "rsvp"
+      ? block
+      : applyRsvpTextStylePatch(block, rsvpTextTarget, patch),
   );
 
   return;
@@ -6073,9 +6075,11 @@ function clearSelectedBackground() {
 
 function applyAppearancePatch(patch: AppearancePatch) {
 
-  if (selectedBlockFromDraft?.type === "rsvp") {
+  if (selectedBlock?.type === "rsvp") {
   updateSelectedBlock((block) =>
-    applyRsvpStylePatch(block, rsvpStyleTarget, patch),
+    block.type !== "rsvp"
+      ? block
+      : applyRsvpStylePatch(block, rsvpStyleTarget, patch),
   );
 
   return;
