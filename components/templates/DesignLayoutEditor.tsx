@@ -15103,6 +15103,16 @@ renderBlockPreview={renderCanvasPreview}
   </div>
 </div>
 
+{category === "Icons" ? (
+  <input
+    type="search"
+    value={toolSearchQuery}
+    onChange={(e) => setToolSearchQuery(e.target.value)}
+    placeholder="Search icons..."
+    className="mb-3 h-10 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm outline-none transition placeholder:text-neutral-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+  />
+) : null}
+
 {categoryMenuView === "compact" ? (
   <div
   className={
