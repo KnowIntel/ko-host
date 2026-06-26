@@ -4482,7 +4482,14 @@ function renderField(
       className={`${inputClass()} placeholder:text-[var(--rsvp-placeholder-color)]`}
 style={{
   ...fieldStyle,
-  ...optionTextStyle,
+  color: optionTextStyle.color,
+fontFamily: optionTextStyle.fontFamily,
+fontSize: optionTextStyle.fontSize,
+fontWeight: optionTextStyle.fontWeight,
+fontStyle: optionTextStyle.fontStyle,
+textDecoration: optionTextStyle.textDecoration,
+letterSpacing: optionTextStyle.letterSpacing,
+lineHeight: optionTextStyle.lineHeight,
   textAlign: "left",
   ...(placeholderColor
     ? ({ "--rsvp-placeholder-color": placeholderColor } as React.CSSProperties)
@@ -4507,7 +4514,14 @@ function renderTextarea(
       className={`${inputClass()} min-h-[120px] resize-none placeholder:text-[var(--rsvp-placeholder-color)]`}
 style={{
   ...fieldStyle,
-  ...optionTextStyle,
+  color: optionTextStyle.color,
+fontFamily: optionTextStyle.fontFamily,
+fontSize: optionTextStyle.fontSize,
+fontWeight: optionTextStyle.fontWeight,
+fontStyle: optionTextStyle.fontStyle,
+textDecoration: optionTextStyle.textDecoration,
+letterSpacing: optionTextStyle.letterSpacing,
+lineHeight: optionTextStyle.lineHeight,
   textAlign: "left",
   ...(placeholderColor
     ? ({ "--rsvp-placeholder-color": placeholderColor } as React.CSSProperties)
@@ -4570,7 +4584,14 @@ function renderChoiceSection(
                 className="min-h-[46px] px-4 py-3 text-left text-sm font-medium transition duration-200"
                 style={{
                   ...buttonStyle,
-                  ...optionTextStyle,
+                  color: optionTextStyle.color,
+fontFamily: optionTextStyle.fontFamily,
+fontSize: optionTextStyle.fontSize,
+fontWeight: optionTextStyle.fontWeight,
+fontStyle: optionTextStyle.fontStyle,
+textDecoration: optionTextStyle.textDecoration,
+letterSpacing: optionTextStyle.letterSpacing,
+lineHeight: optionTextStyle.lineHeight,
                 }}
               >
                 {option}
@@ -4799,7 +4820,14 @@ bringingGuest ? guestYesValue : guestNoValue,
                 className={inputClass()}
                 style={{
   ...fieldStyle,
-  ...optionTextStyle,
+  color: optionTextStyle.color,
+fontFamily: optionTextStyle.fontFamily,
+fontSize: optionTextStyle.fontSize,
+fontWeight: optionTextStyle.fontWeight,
+fontStyle: optionTextStyle.fontStyle,
+textDecoration: optionTextStyle.textDecoration,
+letterSpacing: optionTextStyle.letterSpacing,
+lineHeight: optionTextStyle.lineHeight,
 }}
               />
             ))}
