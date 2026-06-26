@@ -39,6 +39,44 @@ export function RsvpInspector({
   return (
   <div id="inspector-rsvp" className={inspectorCardClass()}>
     <div className={inspectorLabelClass()}>RSVP</div>
+<div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+  <div className={inspectorLabelClass()}>Formatting</div>
+
+  <div className="mt-3">
+    <div className={inspectorLabelClass()}>Text Target</div>
+    <select
+      value={rsvpTextTarget}
+      onChange={(e) => setRsvpTextTarget(e.target.value as RsvpTextTarget)}
+      className={inspectorInputClass()}
+    >
+      <option value="heading">Heading</option>
+      <option value="helperText">Helper Text</option>
+      <option value="badgeText">Badge Text</option>
+      <option value="sectionLabel">Section Label</option>
+      <option value="placeholderText">Placeholder Text</option>
+      <option value="optionText">Option Text</option>
+      <option value="submitButton">Submit Button</option>
+      <option value="confirmationTitle">Confirmation Title</option>
+      <option value="confirmationMessage">Confirmation Message</option>
+    </select>
+  </div>
+
+  <div className="mt-3">
+    <div className={inspectorLabelClass()}>Style Target</div>
+    <select
+      value={rsvpStyleTarget}
+      onChange={(e) => setRsvpStyleTarget(e.target.value as RsvpStyleTarget)}
+      className={inspectorInputClass()}
+    >
+      <option value="field">Field</option>
+      <option value="section">Section</option>
+      <option value="buttonDefault">Button Default</option>
+      <option value="buttonSelection">Button Selection</option>
+      <option value="submitButton">Submit Button</option>
+      <option value="block">Block</option>
+    </select>
+  </div>
+</div>
 
     <div className="mt-4">
       <div className={inspectorLabelClass()}>Style Variant</div>
