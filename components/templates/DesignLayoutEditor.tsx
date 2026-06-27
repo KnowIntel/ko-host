@@ -9014,111 +9014,19 @@ if (block.type === "poll") {
     }
 
 if (block.type === "faq") {
-  const behavior =
-    ((block.data as any).behavior as
-      | "always-open"
-      | "accordion"
-      | "accordion-single"
-      | undefined) ?? "always-open";
-
-  const showIcons = (block.data as any).showIcons !== false;
-  const sectionStyle = ((block.data as any).sectionStyle ?? {}) as any;
-
-  const questionStyle = getInlineTextStyle(
-    ((block.data as any).questionStyle ?? block.data.style ?? {}) as TextStyle,
-  );
-
-  const answerStyle = getInlineTextStyle(
-    ((block.data as any).answerStyle ?? block.data.style ?? {}) as TextStyle,
-  );
-
-  const sectionBackgroundColor =
-    sectionStyle.backgroundColor === "transparent"
-      ? "transparent"
-      : sectionStyle.backgroundColor ?? "rgba(255,255,255,0.6)";
-
-  const openAll = behavior === "always-open";
-
   return (
-    <div className="h-full w-full overflow-auto rounded-xl">
-      <div className="space-y-2 p-2">
-        {block.data.items.length ? (
-          block.data.items.map((faqItem) => {
-            const isOpen = openAll;
-
-            return (
-              <div
-                key={faqItem.id}
-                className="rounded-xl border p-2"
-                style={{
-                  backgroundColor: sectionBackgroundColor,
-                  borderColor: sectionStyle.borderColor ?? "#e5e7eb",
-                  borderWidth:
-                    typeof sectionStyle.borderWidth === "number"
-                      ? `${sectionStyle.borderWidth}px`
-                      : sectionStyle.borderWidth ?? "1px",
-                  borderStyle: "solid",
-                  borderRadius:
-                    typeof sectionStyle.borderRadius === "number"
-                      ? `${sectionStyle.borderRadius}px`
-                      : sectionStyle.borderRadius ?? "0.75rem",
-                }}
-              >
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    focusInspectorForBlock({
-                      type: "faq-question",
-                      blockId: block.id,
-                      itemId: faqItem.id,
-                    });
-                  }}
-                  className="flex w-full items-center justify-between gap-3 text-left text-sm font-medium"
-                  style={questionStyle}
-                >
-                  <span>{faqItem.question || "Question"}</span>
-
-                  {showIcons && behavior !== "always-open" ? (
-                    <span className="shrink-0">›</span>
-                  ) : null}
-                </button>
-
-                {isOpen ? (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      focusInspectorForBlock({
-                        type: "faq-answer",
-                        blockId: block.id,
-                        itemId: faqItem.id,
-                      });
-                    }}
-                    className="mt-2 block w-full text-left text-sm"
-                    style={answerStyle}
-                  >
-                    {faqItem.answer || "Answer"}
-                  </button>
-                ) : null}
-              </div>
-            );
-          })
-        ) : (
-          <div
-            className="h-full w-full cursor-text"
-            onClick={(e) => {
-              e.stopPropagation();
-            }}
-          >
-<BlockRenderer
-  block={block}
-  blocks={draft.blocks}
-  designKey={designKey}
-/>
-          </div>
-        )}
-      </div>
+    <div
+  className="h-full w-full"
+style={{
+  ...selectedAppearance,
+  ...getInlineTextStyle((block.data as any).blockStyle ?? {}),
+}}
+>
+      <BlockRenderer
+        block={block}
+        blocks={draft.blocks}
+        designKey={designKey}
+      />
     </div>
   );
 }

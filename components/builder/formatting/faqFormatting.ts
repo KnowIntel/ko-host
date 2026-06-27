@@ -64,13 +64,17 @@ if (target === "block") {
   return {
     ...block,
     appearance: {
-      ...block.appearance,
+      ...(block.appearance ?? {}),
       ...patch,
     },
     data: {
       ...data,
       style: {
         ...(data.style ?? {}),
+        ...patch,
+      },
+      blockStyle: {
+        ...(data.blockStyle ?? {}),
         ...patch,
       },
     },
