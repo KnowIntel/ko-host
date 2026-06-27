@@ -479,14 +479,6 @@ export function ThreadInspector({
   </div>
 </div>
 
-<div className="mt-5">
-  <div className={inspectorLabelClass()}>Messages</div>
-
-  <div className="mt-3 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-4 text-sm text-neutral-500">
-    Messages are now read-only in the inspector and come from live microsite data.
-  </div>
-</div>
-
 </div>
 );
 }
