@@ -11561,23 +11561,7 @@ const idsToExpand =
   </>
 ) : null}
 
-        {selectedBlock?.type === "faq" ? (
-  <>
-    <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
-
-<select
-  value={faqStyleTarget}
-  onChange={(e) =>
-    setFaqStyleTarget(e.target.value as FaqStyleTarget)
-  }
-  className={topBarFieldClass("w-[150px]")}
-  title="FAQ style target"
->
-<option value="field">Field</option>
-<option value="block">Block</option>
-    </select>
-  </>
-) : null}
+{null}
 
 
 {showTypographyControls ? (
