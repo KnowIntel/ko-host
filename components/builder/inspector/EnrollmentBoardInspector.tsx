@@ -1,5 +1,10 @@
 "use client";
 
+import type {
+  EnrollmentBoardStyleTarget,
+  EnrollmentBoardTextTarget,
+} from "@/components/builder/formatting/enrollmentBoardFormatting";
+
 /**
  * Enrollment Board inspector section
  * Extracted from DesignLayoutEditor.
@@ -14,6 +19,16 @@ type EnrollmentBoardInspectorProps = {
 
   updateSelectedBlock: any;
 
+  enrollmentBoardTextTarget: EnrollmentBoardTextTarget;
+  setEnrollmentBoardTextTarget: (
+    target: EnrollmentBoardTextTarget,
+  ) => void;
+
+  enrollmentBoardStyleTarget: EnrollmentBoardStyleTarget;
+  setEnrollmentBoardStyleTarget: (
+    target: EnrollmentBoardStyleTarget,
+  ) => void;
+
   inspectorCardClass: () => string;
   inspectorLabelClass: () => string;
   inspectorInputClass: () => string;
@@ -25,6 +40,12 @@ export function EnrollmentBoardInspector({
   selectedBlockFromDraft,
   draft,
   updateSelectedBlock,
+
+  enrollmentBoardTextTarget,
+  setEnrollmentBoardTextTarget,
+  enrollmentBoardStyleTarget,
+  setEnrollmentBoardStyleTarget,
+
   inspectorCardClass,
   inspectorLabelClass,
   inspectorInputClass,
@@ -34,6 +55,52 @@ export function EnrollmentBoardInspector({
     <div className={inspectorCardClass()}>
       {/* Enrollment Board */}
     <div className={inspectorLabelClass()}>Enrollment Board</div>
+
+    <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+  <div className={inspectorLabelClass()}>Formatting</div>
+
+  <div className="mt-3">
+    <div className={inspectorLabelClass()}>Text Target</div>
+    <select
+      value={enrollmentBoardTextTarget}
+      onChange={(e) =>
+        setEnrollmentBoardTextTarget(
+          e.target.value as EnrollmentBoardTextTarget,
+        )
+      }
+      className={inspectorInputClass()}
+    >
+      <option value="heading">Heading</option>
+      <option value="subtitle">Subtitle</option>
+      <option value="fieldLabel">Field Label</option>
+      <option value="placeholderText">Placeholder Text</option>
+      <option value="fieldText">Field Text</option>
+      <option value="totalEnrolledLabel">Total Enrolled Label</option>
+      <option value="submitButtonText">Submit Button Text</option>
+      <option value="successMessage">Success Message</option>
+      <option value="alreadyEnrolledMessage">Already Enrolled Message</option>
+      <option value="emptyListMessage">Empty List Message</option>
+    </select>
+  </div>
+
+  <div className="mt-3">
+    <div className={inspectorLabelClass()}>Style Target</div>
+    <select
+      value={enrollmentBoardStyleTarget}
+      onChange={(e) =>
+        setEnrollmentBoardStyleTarget(
+          e.target.value as EnrollmentBoardStyleTarget,
+        )
+      }
+      className={inspectorInputClass()}
+    >
+      <option value="field">Field</option>
+      <option value="enrollmentSection">Enrollment Section</option>
+      <option value="submitButton">Submit Button</option>
+      <option value="block">Block</option>
+    </select>
+  </div>
+</div>
 
     <div className="mt-4">
       <div className={inspectorLabelClass()}>Heading</div>

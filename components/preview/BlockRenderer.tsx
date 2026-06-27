@@ -3372,6 +3372,238 @@ if (isJourney) {
   );
 }
 
+function renderProcessFlow(
+  block: Extract<MicrositeBlock, { type: "process_flow" }>,
+  designKey?: string,
+) {
+  const data = block.data as any;
+  const appearanceStyle = getAppearanceStyle(block);
+
+  const headingStyle = getContainerTextStyle(data.headingStyle, designKey);
+  const subtitleStyle = getContainerTextStyle(data.subtitleStyle, designKey);
+  const stepNumberStyle = getContainerTextStyle(data.stepNumberStyle, designKey);
+  const stepHeadingStyle = getContainerTextStyle(data.stepHeadingStyle, designKey);
+  const stepDescriptionStyle = getContainerTextStyle(
+    data.stepDescriptionStyle,
+    designKey,
+  );
+  const badgeStyle = getContainerTextStyle(data.badgeStyle, designKey);
+  const durationStyle = getContainerTextStyle(data.durationStyle, designKey);
+
+  const steps = Array.isArray(data.steps) ? data.steps : [];
+  const layout = data.layout ?? "horizontal";
+  const isVertical = layout === "vertical";
+  const isZigZag = layout === "zig_zag";
+
+  const gap =
+    typeof data.gap === "number" && Number.isFinite(data.gap)
+      ? Math.max(0, Math.min(80, data.gap))
+      : 16;
+
+  const padding =
+    typeof data.padding === "number" && Number.isFinite(data.padding)
+      ? Math.max(0, Math.min(80, data.padding))
+      : 20;
+
+  const cardRadius =
+    typeof data.cardRadius === "number" && Number.isFinite(data.cardRadius)
+      ? Math.max(0, Math.min(48, data.cardRadius))
+      : 18;
+
+  const connectorColor = data.connectorColor || "#CBD5E1";
+  const accentColor = data.accentColor || "#2563EB";
+
+  const connectorStyle = data.connectorStyle ?? "arrow";
+  const connectorBorderStyle =
+    connectorStyle === "dashed" ? "dashed" : "solid";
+
+  const renderConnector = (index: number) => {
+    if (index >= steps.length - 1) return null;
+
+    if (isVertical || isZigZag) {
+      return (
+        <div
+          className="mx-auto h-8 border-l"
+          style={{
+            borderColor: connectorColor,
+            borderLeftStyle: connectorBorderStyle,
+            borderLeftWidth: 2,
+          }}
+        />
+      );
+    }
+
+    return (
+      <div className="hidden min-w-8 flex-1 items-center sm:flex">
+        <div
+          className="h-0 w-full border-t"
+          style={{
+            borderColor: connectorColor,
+            borderTopStyle: connectorBorderStyle,
+            borderTopWidth: 2,
+          }}
+        />
+        {connectorStyle === "arrow" ? (
+          <div
+            className="-ml-1 h-2 w-2 rotate-45 border-r-2 border-t-2"
+            style={{
+              borderColor: connectorColor,
+            }}
+          />
+        ) : null}
+      </div>
+    );
+  };
+
+  const renderStepCard = (step: any, index: number) => {
+    const hasImage = typeof step.imageUrl === "string" && step.imageUrl.trim();
+
+    return (
+      <div
+        key={step.id || index}
+        className={[
+          "relative min-w-0 border p-4",
+          data.cardShadow !== false ? "shadow-sm" : "",
+        ].join(" ")}
+        style={{
+          backgroundColor: data.cardBackgroundColor || "#FFFFFF",
+          borderColor: data.cardBorderColor || "#E5E7EB",
+          borderRadius: `${cardRadius}px`,
+        }}
+      >
+        <div className="flex flex-col items-center text-center">
+          <div
+            className="mb-3 flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border text-xl"
+            style={{
+              borderColor: accentColor,
+              backgroundColor: `${accentColor}14`,
+            }}
+          >
+            {hasImage ? (
+              <img
+                src={step.imageUrl}
+                alt=""
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <span>{step.icon || "•"}</span>
+            )}
+          </div>
+
+          {step.number ? (
+            <div
+              className="mb-1 whitespace-normal break-words text-xs font-semibold uppercase tracking-[0.16em]"
+              style={stepNumberStyle}
+            >
+              {step.number}
+            </div>
+          ) : null}
+
+          {step.heading ? (
+            <div
+              className="whitespace-normal break-words font-semibold leading-tight"
+              style={stepHeadingStyle}
+            >
+              {step.heading}
+            </div>
+          ) : null}
+
+          {step.description ? (
+            <div
+              className="mt-2 whitespace-normal break-words text-sm leading-relaxed"
+              style={stepDescriptionStyle}
+            >
+              {step.description}
+            </div>
+          ) : null}
+
+          <div className="mt-3 flex flex-wrap justify-center gap-2">
+            {step.badge ? (
+              <span
+                className="rounded-full border px-2 py-1 text-[11px] font-semibold"
+                style={{
+                  ...badgeStyle,
+                  borderColor: accentColor,
+                  backgroundColor: `${accentColor}10`,
+                }}
+              >
+                {step.badge}
+              </span>
+            ) : null}
+
+            {step.duration ? (
+              <span
+                className="rounded-full bg-neutral-100 px-2 py-1 text-[11px]"
+                style={durationStyle}
+              >
+                {step.duration}
+              </span>
+            ) : null}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="h-full w-full overflow-auto" style={appearanceStyle}>
+      <div
+        style={{
+          padding: `${padding}px`,
+          transform:
+            typeof data.rotation === "number" && data.rotation !== 0
+              ? `rotate(${data.rotation}deg)`
+              : undefined,
+          transformOrigin: "center",
+        }}
+      >
+        {data.showHeading !== false && data.heading ? (
+          <div className="mb-2 whitespace-normal break-words" style={headingStyle}>
+            {data.heading}
+          </div>
+        ) : null}
+
+        {data.showSubtitle !== false && data.subtitle ? (
+          <div
+            className="mb-5 whitespace-normal break-words"
+            style={subtitleStyle}
+          >
+            {data.subtitle}
+          </div>
+        ) : null}
+
+        {isVertical || isZigZag ? (
+          <div className="flex flex-col" style={{ gap: `${gap}px` }}>
+            {steps.map((step: any, index: number) => (
+              <div
+                key={step.id || index}
+                className={[
+                  "flex flex-col",
+                  isZigZag && index % 2 === 1 ? "items-end" : "items-start",
+                ].join(" ")}
+              >
+                <div className="w-full max-w-[420px]">
+                  {renderStepCard(step, index)}
+                </div>
+                {renderConnector(index)}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-stretch">
+{steps.map((step: any, index: number) => (
+  <div key={step.id || index} className="contents">
+    <div className="min-w-0 flex-1">{renderStepCard(step, index)}</div>
+    {renderConnector(index)}
+  </div>
+))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function renderFrame(
   block: Extract<MicrositeBlock, { type: "frame" }>,
   onDownloadFrame?: (block: Extract<MicrositeBlock, { type: "frame" }>) => void,
@@ -15669,6 +15901,9 @@ case "cta":
 
 case "timeline":
   return renderTimeline(block, designKey, onFocusTimelineEntry);
+
+case "process_flow":
+  return renderProcessFlow(block, designKey);
 
     case "audio":
       return renderAudio(block);

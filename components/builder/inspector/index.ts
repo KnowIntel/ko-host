@@ -44,6 +44,7 @@ export { AudioInspector } from "./AudioInspector";
 export { CheckoutInspector } from "./CheckoutInspector";
 export { CartInspector } from "./CartInspector";
 export { LinksInspector } from "./LinksInspector";
+export { ProcessFlowInspector } from "./ProcessFlowInspector";
 
 
 

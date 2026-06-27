@@ -7,6 +7,7 @@ import { BLOCK_GUIDES } from "@/components/templates/blockGuideContent";
 import PopBalloonCanvasPreview from "@/components/blocks/PopBalloonCanvasPreview";
 import { applyImagePatch } from "@/components/builder/formatting/imageFormatting";
 import { ICON_TAGS } from "./iconTags";
+import type { ProcessFlowStyleTarget } from "@/components/builder/inspector/ProcessFlowInspector";
 
 /* ------------------------------------ INSPECTOR BLOCK FILES - START ------------------------------------ */
 import {
@@ -56,6 +57,9 @@ import {
   CheckoutInspector,
   CartInspector,
   LinksInspector,
+  ProcessFlowInspector,
+  
+
 
 } from "@/components/builder/inspector";
 
@@ -67,6 +71,14 @@ import {
   applyImageCaptionStylePatch,
   isImageCaptionFormattingTarget,
 } from "@/components/builder/formatting/imageFormatting";
+
+import {
+  applyEnrollmentBoardStylePatch,
+  applyEnrollmentBoardTextStylePatch,
+  getEnrollmentBoardTextStyle,
+  type EnrollmentBoardStyleTarget,
+  type EnrollmentBoardTextTarget,
+} from "@/components/builder/formatting/enrollmentBoardFormatting";
 
 import {
   applyRsvpStylePatch,
@@ -2180,6 +2192,18 @@ const [listingStyleTarget, setListingStyleTarget] = useState<
   "title" | "description" | "metadata" | "price" | "quantity"
 >("title");
 
+/* const [processFlowStyleTarget, setProcessFlowStyleTarget] =
+  useState<ProcessFlowStyleTarget>("heading"); */
+
+  const [processFlowStyleTarget, setProcessFlowStyleTarget] =
+  useState<ProcessFlowStyleTarget>("subtitle");
+
+const [enrollmentBoardTextTarget, setEnrollmentBoardTextTarget] =
+  useState<EnrollmentBoardTextTarget>("heading");
+
+const [enrollmentBoardStyleTarget, setEnrollmentBoardStyleTarget] =
+  useState<EnrollmentBoardStyleTarget>("field");
+
 const [rsvpTextTarget, setRsvpTextTarget] =
   useState<RsvpTextTarget>("heading");
 
@@ -2334,20 +2358,6 @@ const [postBoardStyleTarget, setPostBoardStyleTarget] = useState<
   const pollOptionInputRefs = useRef<Record<string, HTMLInputElement | null>>(
     {},
   );
-const [enrollmentBoardStyleTarget, setEnrollmentBoardStyleTarget] = useState<
-  | "block"
-  | "form"
-  | "inputs"
-  | "button"
-  | "list"
-  | "cards"
-  | "heading"
-  | "subtitle"
-  | "imageLabel"
-  | "memberName"
-  | "memberQuote"
-  | "memberTotal"
->("block");
 
   const [copied, setCopied] = useState(false);
 
@@ -2545,48 +2555,10 @@ selectedBlockFromDraft?.type === "gallery"
       galleryTextTarget,
     ) as TextStyle)
 : selectedBlockFromDraft?.type === "enrollment_board"
-  ? enrollmentBoardStyleTarget === "heading"
-    ? (((selectedBlockFromDraft.data as any).headingStyle ??
-        (selectedBlockFromDraft.data as any).style ??
-        {}) as TextStyle)
-    : enrollmentBoardStyleTarget === "subtitle"
-      ? (((selectedBlockFromDraft.data as any).subtitleStyle ??
-          (selectedBlockFromDraft.data as any).style ??
-          {}) as TextStyle)
-      : enrollmentBoardStyleTarget === "imageLabel"
-        ? (((selectedBlockFromDraft.data as any).imageLabelStyle ??
-            (selectedBlockFromDraft.data as any).subtitleStyle ??
-            (selectedBlockFromDraft.data as any).style ??
-            {}) as TextStyle)
-        : enrollmentBoardStyleTarget === "inputs"
-          ? (((selectedBlockFromDraft.data as any).inputStyle ??
-              (selectedBlockFromDraft.data as any).style ??
-              {}) as TextStyle)
-          : enrollmentBoardStyleTarget === "button"
-            ? (((selectedBlockFromDraft.data as any).buttonStyle ??
-                (selectedBlockFromDraft.data as any).style ??
-                {}) as TextStyle)
-            : enrollmentBoardStyleTarget === "list"
-              ? (((selectedBlockFromDraft.data as any).listStyle ??
-                  (selectedBlockFromDraft.data as any).style ??
-                  {}) as TextStyle)
-              : enrollmentBoardStyleTarget === "cards"
-                ? (((selectedBlockFromDraft.data as any).cardStyle ??
-                    (selectedBlockFromDraft.data as any).style ??
-                    {}) as TextStyle)
-                : enrollmentBoardStyleTarget === "memberName"
-                  ? (((selectedBlockFromDraft.data as any).memberNameStyle ??
-                      (selectedBlockFromDraft.data as any).style ??
-                      {}) as TextStyle)
-                  : enrollmentBoardStyleTarget === "memberQuote"
-                    ? (((selectedBlockFromDraft.data as any).memberQuoteStyle ??
-                        (selectedBlockFromDraft.data as any).style ??
-                        {}) as TextStyle)
-                    : enrollmentBoardStyleTarget === "memberTotal"
-                      ? (((selectedBlockFromDraft.data as any).memberTotalStyle ??
-                          (selectedBlockFromDraft.data as any).style ??
-                          {}) as TextStyle)
-                      : (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
+  ? (getEnrollmentBoardTextStyle(
+      selectedBlockFromDraft,
+      enrollmentBoardTextTarget,
+    ) as TextStyle)
 : selectedBlockFromDraft?.type === "rsvp"
   ? (getRsvpTextStyle(
       selectedBlockFromDraft,
@@ -2718,11 +2690,7 @@ selectedBlockFromDraft?.type === "gallery"
                             ? (((selectedBlockFromDraft.data as any).urlStyle ??
                                 selectedBlockFromDraft.data.style ??
                                 {}) as TextStyle)
-                                : enrollmentBoardStyleTarget === "memberTotal"
-                            ? (((selectedBlockFromDraft.data as any).memberTotalStyle ??
-                                (selectedBlockFromDraft.data as any).style ??
-                                {}) as TextStyle)
-                            : (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
+: (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
 : selectedBlockFromDraft?.type === "content_panel"
   ? (getContentPanelTextStyle(
       selectedBlockFromDraft,
@@ -4277,6 +4245,13 @@ function applyPageTextBoxBackground(value: string) {
 
 function applyFillColor(value: string) {
 
+  if (selectedBlock?.type === "enrollment_board") {
+  applyAppearancePatch({ backgroundColor: value });
+  pushRecentColor(value);
+  return;
+}
+
+
   if (selectedBlockFromDraft?.type === "rsvp") {
   applyAppearancePatch({ backgroundColor: value });
   pushRecentColor(value);
@@ -4646,6 +4621,12 @@ function eyedropperButtonClass() {
 
 function applyBorderColor(value: string) {
 
+  if (selectedBlock?.type === "enrollment_board") {
+  applyAppearancePatch({ borderColor: value });
+  pushRecentColor(value);
+  return;
+}
+
   if (selectedBlockFromDraft?.type === "rsvp") {
   applyAppearancePatch({ borderColor: value });
   pushRecentColor(value);
@@ -4923,6 +4904,20 @@ const handleVideoUpload = async (
 
 function applyStylePatch(patch: Partial<TextStyle>) {
 
+  if (selectedBlock?.type === "enrollment_board") {
+  updateSelectedBlock((block) =>
+    block.type !== "enrollment_board"
+      ? block
+      : applyEnrollmentBoardTextStylePatch(
+          block,
+          enrollmentBoardTextTarget,
+          patch,
+        ),
+  );
+
+  return;
+}
+
   if (selectedBlock?.type === "rsvp") {
   updateSelectedBlock((block) =>
     block.type !== "rsvp"
@@ -5146,55 +5141,6 @@ if (selectedBlockFromDraft?.type === "gallery") {
   updateSelectedBlock((block) =>
     applyGalleryTextStylePatch(block, galleryTextTarget, patch),
   );
-
-  return;
-}
-
-
-if (selectedBlock?.type === "enrollment_board") {
-  const target = enrollmentBoardStyleTarget;
-
-  const targetStyleKey =
-    target === "heading"
-      ? "headingStyle"
-      : target === "subtitle"
-        ? "subtitleStyle"
-        : target === "imageLabel"
-          ? "imageLabelStyle"
-          : target === "memberName"
-            ? "memberNameStyle"
-            : target === "memberQuote"
-              ? "memberQuoteStyle"
-              : target === "memberTotal"
-                ? "memberTotalStyle"
-                : target === "inputs"
-                  ? "inputStyle"
-                  : target === "button"
-                    ? "buttonStyle"
-                    : target === "cards"
-                      ? "cardStyle"
-                      : target === "list"
-                        ? "listStyle"
-                        : "style";
-
-  setDraft((prev) => ({
-    ...prev,
-    blocks: prev.blocks.map((block) =>
-      block.id === selectedBlock.id &&
-      block.type === "enrollment_board"
-        ? {
-            ...block,
-            data: {
-              ...block.data,
-              [targetStyleKey]: {
-                ...((block.data as any)[targetStyleKey] ?? {}),
-                ...patch,
-              },
-            },
-          }
-        : block,
-    ),
-  }));
 
   return;
 }
@@ -6089,6 +6035,20 @@ function clearSelectedBackground() {
 
 function applyAppearancePatch(patch: AppearancePatch) {
 
+  if (selectedBlock?.type === "enrollment_board") {
+  updateSelectedBlock((block) =>
+    block.type !== "enrollment_board"
+      ? block
+      : applyEnrollmentBoardStylePatch(
+          block,
+          enrollmentBoardStyleTarget,
+          patch,
+        ),
+  );
+
+  return;
+}
+
   if (selectedBlock?.type === "rsvp") {
   updateSelectedBlock((block) =>
     block.type !== "rsvp"
@@ -6363,81 +6323,6 @@ if ((selectedBlock as any)?.type === "post_board") {
   ...((block.data as any)[targetStyleKey] ?? {}),
   ...patchToStyle,
 },
-      },
-    };
-  });
-
-  return;
-}
-
-if (selectedBlock?.type === "enrollment_board") {
-  updateSelectedBlock((block) => {
-    if (block.type !== "enrollment_board") return block;
-
-    const target = enrollmentBoardStyleTarget;
-
-    const targetStyleKey =
-  target === "form"
-    ? "formStyle"
-    : target === "inputs"
-      ? "inputStyle"
-      : target === "button"
-        ? "buttonStyle"
-        : target === "cards"
-          ? "cardStyle"
-          : target === "list"
-            ? "listStyle"
-            : target === "heading"
-              ? "headingStyle"
-              : target === "subtitle"
-                ? "subtitleStyle"
-                : target === "imageLabel"
-                  ? "imageLabelStyle"
-                  : target === "memberName"
-                    ? "memberNameStyle"
-                    : target === "memberQuote"
-                      ? "memberQuoteStyle"
-                      : target === "memberTotal"
-                        ? "memberTotalStyle"
-                        : "style";
-
-    return {
-      ...block,
-
-      appearance:
-        target === "block"
-          ? {
-              ...block.appearance,
-              ...patch,
-            }
-          : block.appearance,
-
-      data: {
-        ...block.data,
-
-        [targetStyleKey]: {
-          ...((block.data as any)[targetStyleKey] ?? {}),
-
-          ...(patch.backgroundColor !== undefined
-            ? { backgroundColor: patch.backgroundColor }
-            : {}),
-
-          ...(patch.backgroundOpacity !== undefined
-            ? { backgroundOpacity: patch.backgroundOpacity }
-            : {}),
-
-          ...(patch.borderColor !== undefined
-            ? { borderColor: patch.borderColor }
-            : {}),
-
-          ...(patch.borderWidth !== undefined
-            ? { borderWidth: patch.borderWidth }
-            : {}),
-
-          ...(patch.borderRadius !== undefined
-            ? { borderRadius: patch.borderRadius }
-            : {}),
-        },
       },
     };
   });
@@ -11623,24 +11508,13 @@ const idsToExpand =
   value={enrollmentBoardStyleTarget}
   onChange={(e) =>
     setEnrollmentBoardStyleTarget(
-      e.target.value as
-        | "block"
-        | "form"
-        | "inputs"
-        | "button"
-        | "list"
-        | "cards"
-        | "heading"
-        | "subtitle"
-        | "imageLabel"
-        | "memberName"
-        | "memberQuote"
-        | "memberTotal",
+      e.target.value as EnrollmentBoardStyleTarget,
     )
   }
   className={topBarFieldClass("w-[190px]")}
   title="Enrollment Board style target"
 >
+  
   <option value="block">Block Background</option>
   <option value="form">Form Panel</option>
   <option value="inputs">Input Fields</option>
@@ -13894,6 +13768,22 @@ renderBlockPreview={renderCanvasPreview}
   />
 ) : null}
 
+{!isMultiSelection && selectedBlock?.type === "process_flow" ? (
+<ProcessFlowInspector
+  selectedBlock={selectedBlock}
+  updateSelectedBlock={updateSelectedBlock}
+  processFlowStyleTarget={processFlowStyleTarget}
+  setProcessFlowStyleTarget={setProcessFlowStyleTarget}
+  makeClientId={makeClientId}
+  uploadImageToSelectedBlock={uploadImageToSelectedBlock}
+  inspectorCardClass={inspectorCardClass}
+  inspectorLabelClass={inspectorLabelClass}
+  inspectorInputClass={inspectorInputClass}
+  inspectorTextareaClass={inspectorTextareaClass}
+  toolSetButtonClass={toolSetButtonClass}
+/>
+) : null}
+
 {!isMultiSelection && selectedBlock?.type === "timeline" ? (
   <TimelineInspector
     selectedBlock={selectedBlock}
@@ -14210,6 +14100,10 @@ renderBlockPreview={renderCanvasPreview}
     selectedBlockFromDraft={selectedBlockFromDraft}
     draft={draft}
     updateSelectedBlock={updateSelectedBlock}
+    enrollmentBoardTextTarget={enrollmentBoardTextTarget}
+    setEnrollmentBoardTextTarget={setEnrollmentBoardTextTarget}
+    enrollmentBoardStyleTarget={enrollmentBoardStyleTarget}
+    setEnrollmentBoardStyleTarget={setEnrollmentBoardStyleTarget}
     inspectorCardClass={inspectorCardClass}
     inspectorLabelClass={inspectorLabelClass}
     inspectorInputClass={inspectorInputClass}

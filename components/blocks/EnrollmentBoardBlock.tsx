@@ -162,19 +162,65 @@ export default function EnrollmentBoardBlock({
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const imageInputRef = useRef<HTMLInputElement | null>(null);
 
-  const blockStyle = styleToCss(block.data.style);
-  const formStyle = styleToCss(block.data.formStyle);
-  const inputStyle = styleToCss((block.data as any).inputStyle);
-  const buttonStyle = styleToCss(block.data.buttonStyle);
-  const listStyle = styleToCss((block.data as any).listStyle);
-  const cardStyle = styleToCss(block.data.cardStyle);
-  const headingStyle = styleToCss((block.data as any).headingStyle);
-  const subtitleStyle = styleToCss((block.data as any).subtitleStyle);
-  const imageLabelStyle = styleToCss((block.data as any).imageLabelStyle);
-  const memberNameStyle = styleToCss((block.data as any).memberNameStyle);
-  const memberQuoteStyle = styleToCss((block.data as any).memberQuoteStyle);
+const data = block.data as any;
 
-  const memberTotalStyle = styleToCss((block.data as any).memberTotalStyle);
+const blockStyle = {
+  ...styleToCss(data.style),
+  ...styleToCss(data.blockStyle),
+};
+
+const formStyle = styleToCss(data.formStyle);
+
+const inputStyle = {
+  ...styleToCss(data.inputStyle),
+  ...styleToCss(data.fieldStyle),
+  ...styleToCss(data.fieldTextStyle),
+};
+
+const placeholderStyle = styleToCss(data.placeholderStyle);
+
+const fieldLabelStyle = {
+  ...styleToCss(data.imageLabelStyle),
+  ...styleToCss(data.fieldLabelStyle),
+};
+
+const buttonStyle = {
+  ...styleToCss(data.buttonStyle),
+  ...styleToCss(data.submitButtonStyle),
+  ...styleToCss(data.submitButtonTextStyle),
+};
+
+const listStyle = styleToCss(data.listStyle);
+
+const cardStyle = {
+  ...styleToCss(data.cardStyle),
+  ...styleToCss(data.enrollmentSectionStyle),
+};
+
+const headingStyle = styleToCss(data.headingStyle);
+const subtitleStyle = styleToCss(data.subtitleStyle);
+
+const memberNameStyle = styleToCss(data.memberNameStyle);
+const memberQuoteStyle = styleToCss(data.memberQuoteStyle);
+
+const memberTotalStyle = {
+  ...styleToCss(data.memberTotalStyle),
+  ...styleToCss(data.totalEnrolledLabelStyle),
+};
+
+const successMessageStyle = styleToCss(data.successMessageStyle);
+const alreadyEnrolledMessageStyle = styleToCss(data.alreadyEnrolledMessageStyle);
+const emptyListMessageStyle = styleToCss(data.emptyListMessageStyle);
+
+const placeholderColor =
+  (placeholderStyle.color as string | undefined) ??
+  data.placeholderColor ??
+  undefined;
+
+const placeholderClassName = `enrollment-placeholder-${block.id.replace(
+  /[^a-zA-Z0-9_-]/g,
+  "",
+)}`;
 const memberListPosition = block.data.memberListPosition ?? "standard";
 const fieldSectionWidth = Math.max(
   35,
@@ -783,27 +829,40 @@ const entryClass = isMemberWall
     : "flex items-center gap-3 p-3 shadow-sm";
 
 return (
-  <div
-    className="h-full w-full overflow-auto p-4 text-neutral-950"
-    style={{
-      borderStyle: "solid",
-      ...blockStyle,
-    }}
-  >
-    {block.data.showHeading !== false || block.data.showSubtitle !== false ? (
-      <div className="mb-4">
-        {block.data.showHeading !== false ? (
-          <div
-            className="font-black tracking-tight"
-            style={{
-              ...headingStyle,
-              marginBottom: 12,
-              lineHeight: 1.15,
-            }}
-          >
-            {block.data.heading || "Join the Board"}
-          </div>
-        ) : null}
+  <>
+    {placeholderColor ? (
+      <style>
+        {`
+          .${placeholderClassName}::placeholder {
+            color: ${placeholderColor} !important;
+            opacity: 1 !important;
+          }
+        `}
+      </style>
+    ) : null}
+
+    <div
+      className="h-full w-full overflow-auto p-4 text-neutral-950"
+      style={{
+        borderStyle: "solid",
+        ...blockStyle,
+      }}
+    >
+      {block.data.showHeading !== false ||
+      block.data.showSubtitle !== false ? (
+        <div className="mb-4">
+          {block.data.showHeading !== false ? (
+            <div
+              className="font-black tracking-tight"
+              style={{
+                ...headingStyle,
+                marginBottom: 12,
+                lineHeight: 1.15,
+              }}
+            >
+              {block.data.heading || "Join the Board"}
+            </div>
+          ) : null}
 
         {block.data.showSubtitle !== false ? (
           <div
@@ -818,15 +877,13 @@ return (
         ) : null}
 
         {block.data.showTotalEnrolled !== false ? (
-          <div
-            className="mt-2 inline-flex rounded-full px-3 py-1 text-xs font-bold"
-            style={{
-              ...memberTotalStyle,
-            }}
-          >
-            {entries.length}
-            {block.data.memberTotalLabel ?? " enrolled"}
-          </div>
+<div
+  className="mt-2 inline-flex rounded-full px-3 py-1 text-xs font-bold"
+  style={memberTotalStyle}
+>
+  {entries.length}
+  {block.data.memberTotalLabel ?? " enrolled"}
+</div>
         ) : null}
       </div>
     ) : null}
@@ -851,75 +908,75 @@ return (
           ...formStyle,
         }}
       >
-        <div className="grid gap-3">
-          <input
-            type="text"
-            value={name}
-            maxLength={20}
-            onChange={(e) => setName(e.target.value.slice(0, 20))}
-            placeholder={block.data.nameLabel ?? "Name"}
-            className="w-full px-3 py-2 text-sm font-semibold outline-none"
-            style={{
-              borderStyle: "solid",
-              ...inputStyle,
-            }}
-          />
-
-          {block.data.showQuoteField !== false ? (
-            <textarea
-              value={quote}
-              maxLength={quoteMaxLength}
-              onChange={(e) =>
-                setQuote(e.target.value.slice(0, quoteMaxLength))
-              }
-              placeholder={block.data.quoteLabel ?? "Quote or message"}
-              className="min-h-[76px] w-full resize-none px-3 py-2 text-sm font-semibold outline-none"
-              style={{
-                borderStyle: "solid",
-                ...inputStyle,
-              }}
-            />
-          ) : null}
-
-          {block.data.showQuoteField !== false ? (
-            <div className="text-right text-[11px] font-bold opacity-60">
-              {quote.length}/{quoteMaxLength}
-            </div>
-          ) : null}
-
-          {block.data.showMetadataField ? (
+<div className="grid gap-3">
   <input
     type="text"
-    value={metadata}
-    onChange={(e) => setMetadata(e.target.value)}
-    placeholder={block.data.metadataLabel ?? "Metadata"}
-    className="w-full px-3 py-2 text-sm font-semibold outline-none"
+    value={name}
+    maxLength={20}
+    onChange={(e) => setName(e.target.value.slice(0, 20))}
+    placeholder={block.data.nameLabel ?? "Name"}
+    className={`w-full px-3 py-2 text-sm font-semibold outline-none ${placeholderClassName}`}
     style={{
       borderStyle: "solid",
       ...inputStyle,
     }}
   />
-) : null}
 
-          {block.data.showEmailField !== false ? (
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder={block.data.emailLabel ?? "Email"}
-              className="w-full px-3 py-2 text-sm font-semibold outline-none"
-              style={{
-                borderStyle: "solid",
-                ...inputStyle,
-              }}
-            />
-          ) : null}
+  {block.data.showQuoteField !== false ? (
+    <textarea
+      value={quote}
+      maxLength={quoteMaxLength}
+      onChange={(e) =>
+        setQuote(e.target.value.slice(0, quoteMaxLength))
+      }
+      placeholder={block.data.quoteLabel ?? "Quote or message"}
+      className={`min-h-[76px] w-full resize-none px-3 py-2 text-sm font-semibold outline-none ${placeholderClassName}`}
+      style={{
+        borderStyle: "solid",
+        ...inputStyle,
+      }}
+    />
+  ) : null}
+
+  {block.data.showQuoteField !== false ? (
+    <div className="text-right text-[11px] font-bold opacity-60">
+      {quote.length}/{quoteMaxLength}
+    </div>
+  ) : null}
+
+  {block.data.showMetadataField ? (
+    <input
+      type="text"
+      value={metadata}
+      onChange={(e) => setMetadata(e.target.value)}
+      placeholder={block.data.metadataLabel ?? "Metadata"}
+      className={`w-full px-3 py-2 text-sm font-semibold outline-none ${placeholderClassName}`}
+      style={{
+        borderStyle: "solid",
+        ...inputStyle,
+      }}
+    />
+  ) : null}
+
+  {block.data.showEmailField !== false ? (
+    <input
+      type="email"
+      value={email}
+      onChange={(e) => setEmail(e.target.value)}
+      placeholder={block.data.emailLabel ?? "Email"}
+      className={`w-full px-3 py-2 text-sm font-semibold outline-none ${placeholderClassName}`}
+      style={{
+        borderStyle: "solid",
+        ...inputStyle,
+      }}
+    />
+  ) : null}
 
           {block.data.showImageUpload !== false ? (
             <label className="block">
               <div
                 className="mb-1 text-xs font-bold opacity-70"
-                style={imageLabelStyle}
+                style={fieldLabelStyle}
               >
                 {block.data.imageLabel ?? "Profile image"}
               </div>
@@ -939,35 +996,43 @@ return (
             </label>
           ) : null}
 
-          <button
-            type="submit"
-            disabled={isSubmitting || hasMine}
-            className="inline-flex items-center justify-center px-4 py-2 text-sm font-black transition disabled:cursor-not-allowed disabled:opacity-50"
-            style={{
-              borderStyle: "solid",
-              ...buttonStyle,
-            }}
-          >
-            {isSubmitting
-              ? "Submitting..."
-              : hasMine
-                ? "Already enrolled"
-                : block.data.submitButtonText || "Submit"}
-          </button>
-        </div>
+<button
+  type="submit"
+  disabled={isSubmitting || hasMine}
+  className="inline-flex items-center justify-center px-4 py-2 text-sm font-black transition disabled:cursor-not-allowed disabled:opacity-50"
+  style={{
+    borderStyle: "solid",
+    ...buttonStyle,
+  }}
+>
+  <span style={buttonStyle}>
+    {isSubmitting
+      ? "Submitting..."
+      : hasMine
+        ? "Already enrolled"
+        : block.data.submitButtonText || "Submit"}
+  </span>
+</button>
+</div>
 
-        {statusMessage ? (
-          <div className="mt-3 rounded-xl bg-green-50 px-3 py-2 text-sm font-bold text-green-700">
-            {statusMessage}
-          </div>
-        ) : null}
+{statusMessage ? (
+  <div
+    className="mt-3 rounded-xl bg-green-50 px-3 py-2 text-sm font-bold text-green-700"
+    style={successMessageStyle}
+  >
+    {statusMessage}
+  </div>
+) : null}
 
-        {errorMessage ? (
-          <div className="mt-3 rounded-xl bg-red-50 px-3 py-2 text-sm font-bold text-red-700">
-            {errorMessage}
-          </div>
-        ) : null}
-      </form>
+{errorMessage ? (
+  <div
+    className="mt-3 rounded-xl bg-red-50 px-3 py-2 text-sm font-bold text-red-700"
+    style={alreadyEnrolledMessageStyle}
+  >
+    {errorMessage}
+  </div>
+) : null}
+</form>
 
 {block.data.showEnrollmentList !== false ? (
   <div
@@ -1095,18 +1160,20 @@ return (
             ))}
           </div>
         ) : (
-          <div
-            className="border border-dashed p-4 text-center text-sm font-bold"
-            style={{
-              ...cardStyle,
-            }}
-          >
-            {block.data.emptyListMessage || "No enrollments yet."}
-          </div>
+<div
+  className="border border-dashed p-4 text-center text-sm font-bold"
+  style={{
+    ...cardStyle,
+    ...emptyListMessageStyle,
+  }}
+>
+  {block.data.emptyListMessage || "No enrollments yet."}
+</div>
         )}
       </div>
     ) : null}
     </div>
-  </div>
+    </div>
+  </>
 );
 }
