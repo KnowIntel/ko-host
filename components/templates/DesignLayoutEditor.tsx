@@ -1866,6 +1866,7 @@ function getCategoryIconPath(category: BottomCategory) {
   if (category === "Utilities") return "/menu-icons/menu-utilities.svg";
   if (category === "Data & Metrics") return "/menu-icons/menu-data-metrics.svg";
   if (category === "Scheduling") return "/menu-icons/menu-scheduling.svg";
+  if (category === "Infographics") return "/menu-icons/menu-infographics.svg";
   if (category === "Premium") return "/menu-icons/menu-premium.svg";
 
   return null;
