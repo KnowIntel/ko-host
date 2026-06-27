@@ -60,15 +60,22 @@ export function applyFaqStylePatch(
 
   const data = block.data as any;
 
-  if (target === "block") {
-    return {
-      ...block,
-      appearance: {
-        ...block.appearance,
+if (target === "block") {
+  return {
+    ...block,
+    appearance: {
+      ...block.appearance,
+      ...patch,
+    },
+    data: {
+      ...data,
+      style: {
+        ...(data.style ?? {}),
         ...patch,
       },
-    };
-  }
+    },
+  };
+}
 
   return {
     ...block,
