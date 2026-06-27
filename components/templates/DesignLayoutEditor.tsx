@@ -81,6 +81,14 @@ import {
 } from "@/components/builder/formatting/faqFormatting";
 
 import {
+  applyThreadStylePatch,
+  applyThreadTextStylePatch,
+  getThreadTextStyle,
+  type ThreadStyleTarget,
+  type ThreadTextTarget,
+} from "@/components/builder/formatting/threadFormatting";
+
+import {
   applyEnrollmentBoardStylePatch,
   applyEnrollmentBoardTextStylePatch,
   getEnrollmentBoardTextStyle,
@@ -2200,6 +2208,12 @@ const [listingStyleTarget, setListingStyleTarget] = useState<
   "title" | "description" | "metadata" | "price" | "quantity"
 >("title");
 
+const [threadTextTarget, setThreadTextTarget] =
+  useState<ThreadTextTarget>("subject");
+
+const [threadStyleTarget, setThreadStyleTarget] =
+  useState<ThreadStyleTarget>("field");
+
 const [faqTextTarget, setFaqTextTarget] =
   useState<FaqTextTarget>("heading");
 
@@ -2569,6 +2583,11 @@ selectedBlockFromDraft?.type === "gallery"
       selectedBlockFromDraft,
       enrollmentBoardTextTarget,
     ) as TextStyle)
+    : selectedBlockFromDraft?.type === "thread"
+  ? (getThreadTextStyle(
+      selectedBlockFromDraft,
+      threadTextTarget,
+    ) as TextStyle)
 : selectedBlockFromDraft?.type === "rsvp"
   ? (getRsvpTextStyle(
       selectedBlockFromDraft,
@@ -2789,7 +2808,6 @@ selectedBlockFromDraft?.type === "gallery"
                         selectedBlockFromDraft?.type === "checkout" ||
                         selectedBlockFromDraft?.type === "text_fx" ||
                         selectedBlockFromDraft?.type === "cta" ||
-                        selectedBlockFromDraft?.type === "thread" ||
                         selectedBlockFromDraft?.type === "image" ||
                         (selectedBlockFromDraft as any)?.type === "gallery" ||
                         selectedBlockFromDraft?.type === "progress_bar" ||
@@ -4833,6 +4851,16 @@ const handleVideoUpload = async (
 
 function applyStylePatch(patch: Partial<TextStyle>) {
 
+  if (selectedBlock?.type === "thread") {
+  updateSelectedBlock((block) =>
+    block.type !== "thread"
+      ? block
+      : applyThreadTextStylePatch(block, threadTextTarget, patch),
+  );
+
+  return;
+}
+
   if (selectedBlock?.type === "faq") {
   updateSelectedBlock((block) =>
     block.type !== "faq"
@@ -4947,52 +4975,6 @@ if (selectedBlockFromDraft?.type === "poll") {
                 ...block.data,
                 style: {
                   ...(block.data.style ?? {}),
-                  ...patch,
-                },
-              },
-            }
-          : block,
-      ),
-    }));
-    return;
-  }
-
-  if (selectedBlock?.type === "thread") {
-    const target = selectedBlock.data.threadStyleTarget ?? "message";
-
-    const targetStyleKey =
-      target === "post_block"
-        ? "postBlockStyle"
-        : target === "subject"
-          ? "subjectStyle"
-          : target === "name"
-            ? "nameStyle"
-            : target === "post_button"
-              ? "postButtonTextStyle"
-              : target === "message"
-                ? "messageStyle"
-                : "style";
-
-    setDraft((prev) => ({
-      ...prev,
-      blocks: prev.blocks.map((block) =>
-        block.id === selectedBlock.id && block.type === "thread"
-          ? {
-              ...block,
-              data: {
-                ...block.data,
-                [targetStyleKey]: {
-                  fontSize:
-                    target === "subject"
-                      ? 18
-                      : target === "name" || target === "post_button"
-                        ? 14
-                        : target === "message"
-                          ? 15
-                          : target === "post_block"
-                            ? 16
-                            : 30,
-                  ...((block.data as any)[targetStyleKey] ?? {}),
                   ...patch,
                 },
               },
@@ -5886,58 +5868,20 @@ function clearLinksBackgroundColor() {
 }
 
 function clearSelectedBackground() {
-  if (selectedBlock?.type === "thread") {
-    updateSelectedBlock((block) => {
-      if (block.type !== "thread") return block;
-
-      const target = block.data.threadStyleTarget ?? "message";
-
-      if (target === "form") {
-        return {
-          ...block,
-          appearance: {
-            ...block.appearance,
-            backgroundColor: "transparent",
-            backgroundOpacity: 0,
-          },
-          data: {
-            ...block.data,
-            formAppearance: {
-              ...((block.data as any).formAppearance ?? {}),
-              backgroundColor: "transparent",
-              backgroundOpacity: 0,
-            },
-          },
-        };
-      }
-
-      const appearanceKey =
-        target === "post_block"
-          ? "postBlockAppearance"
-          : target === "post_button"
-            ? "postButtonAppearance"
-            : "messageAppearance";
-
-      return {
-        ...block,
-        data: {
-          ...block.data,
-          [appearanceKey]: {
-            ...((block.data as any)[appearanceKey] ?? {}),
-            backgroundColor: "transparent",
-            backgroundOpacity: 0,
-          },
-        },
-      };
-    });
-
-    return;
-  }
-
   applyAppearancePatch({ backgroundColor: "transparent" });
 }
 
 function applyAppearancePatch(patch: AppearancePatch) {
+
+  if (selectedBlock?.type === "thread") {
+  updateSelectedBlock((block) =>
+    block.type !== "thread"
+      ? block
+      : applyThreadStylePatch(block, threadStyleTarget, patch),
+  );
+
+  return;
+}
 
   if (selectedBlock?.type === "faq") {
   updateSelectedBlock((block) =>
@@ -6057,89 +6001,6 @@ if (selectedBlock?.type === "content_panel") {
       patch,
     ),
   );
-
-  return;
-}
-
-if (selectedBlock?.type === "thread") {
-  updateSelectedBlock((block) => {
-    if (block.type !== "thread") return block;
-
-    const target = block.data.threadStyleTarget ?? "message";
-
-    const appearanceKey =
-      target === "form"
-        ? "formAppearance"
-        : target === "post_block"
-          ? "postBlockAppearance"
-          : target === "post_button"
-            ? "postButtonAppearance"
-            : "messageAppearance";
-
-    if (
-      target === "form" ||
-      target === "post_block" ||
-      target === "message" ||
-      target === "post_button"
-    ) {
-      return {
-        ...block,
-
-        // IMPORTANT: form target also updates outer block background
-appearance:
-  target === "form"
-    ? {
-        ...block.appearance,
-        ...(patch.backgroundColor !== undefined
-          ? { backgroundColor: patch.backgroundColor }
-          : {}),
-        ...(patch.backgroundOpacity !== undefined
-          ? { backgroundOpacity: patch.backgroundOpacity }
-          : {}),
-        ...(patch.borderColor !== undefined
-          ? { borderColor: patch.borderColor }
-          : {}),
-        ...(patch.borderWidth !== undefined
-          ? { borderWidth: patch.borderWidth }
-          : {}),
-        ...(patch.borderRadius !== undefined
-          ? { borderRadius: patch.borderRadius }
-          : {}),
-      }
-    : block.appearance,
-
-        data: {
-          ...block.data,
-[appearanceKey]: {
-  ...((block.data as any)[appearanceKey] ?? {}),
-  ...(patch.backgroundColor !== undefined
-    ? { backgroundColor: patch.backgroundColor }
-    : {}),
-  ...(patch.backgroundOpacity !== undefined
-    ? { backgroundOpacity: patch.backgroundOpacity }
-    : {}),
-  ...(patch.borderColor !== undefined
-    ? { borderColor: patch.borderColor }
-    : {}),
-  ...(patch.borderWidth !== undefined
-    ? { borderWidth: patch.borderWidth }
-    : {}),
-  ...(patch.borderRadius !== undefined
-    ? { borderRadius: patch.borderRadius }
-    : {}),
-},
-        },
-      };
-    }
-
-    return {
-      ...block,
-      appearance: {
-        ...block.appearance,
-        ...patch,
-      },
-    };
-  });
 
   return;
 }
@@ -12526,54 +12387,6 @@ if (selectedBlockFromDraft?.type === "rsvp") {
       return;
     }
 
-    if (selectedBlock?.type === "thread") {
-      updateSelectedBlock((block) => {
-        if (block.type !== "thread") return block;
-
-        const target = block.data.threadStyleTarget ?? "message";
-
-        if (target === "form") {
-          return {
-            ...block,
-            appearance: {
-              ...block.appearance,
-              backgroundColor: "transparent",
-              backgroundOpacity: 0,
-            },
-            data: {
-              ...block.data,
-              formAppearance: {
-                ...((block.data as any).formAppearance ?? {}),
-                backgroundColor: "transparent",
-                backgroundOpacity: 0,
-              },
-            },
-          };
-        }
-
-        const appearanceKey =
-          target === "post_block"
-            ? "postBlockAppearance"
-            : target === "post_button"
-              ? "postButtonAppearance"
-              : "messageAppearance";
-
-        return {
-          ...block,
-          data: {
-            ...block.data,
-            [appearanceKey]: {
-              ...((block.data as any)[appearanceKey] ?? {}),
-              backgroundColor: "transparent",
-              backgroundOpacity: 0,
-            },
-          },
-        };
-      });
-
-      return;
-    }
-
     if (selectedBlock?.type === "post_board") {
       applyAppearancePatch({ backgroundColor: "transparent" });
       return;
@@ -12622,29 +12435,17 @@ if (selectedBlockFromDraft?.type === "rsvp") {
 
     applyAppearancePatch({ backgroundColor: "transparent" });
   }}
-  title={
-    selectedBlock?.type === "rsvp"
-      ? "Transparent RSVP block background"
-      : selectedBlock?.type === "thread" &&
-          selectedBlock.data.threadStyleTarget === "form"
-        ? "Transparent thread form background"
-        : selectedBlock?.type === "thread" &&
-            selectedBlock.data.threadStyleTarget === "post_block"
-          ? "Transparent thread composer background"
-          : selectedBlock?.type === "thread" &&
-              selectedBlock.data.threadStyleTarget === "message"
-            ? "Transparent thread message background"
-            : selectedBlock?.type === "thread" &&
-                selectedBlock.data.threadStyleTarget === "post_button"
-              ? "Transparent thread post button background"
-              : selectedBlock?.type === "post_board" &&
-                  postBoardStyleTarget === "card"
-                ? "Transparent post card background"
-                : selectedBlock?.type === "post_board" &&
-                    postBoardStyleTarget === "buttons"
-                  ? "Transparent post button background"
-                  : "Transparent fill"
-  }
+title={
+  selectedBlock?.type === "rsvp"
+    ? "Transparent RSVP block background"
+    : selectedBlock?.type === "post_board" &&
+        postBoardStyleTarget === "card"
+      ? "Transparent post card background"
+      : selectedBlock?.type === "post_board" &&
+          postBoardStyleTarget === "buttons"
+        ? "Transparent post button background"
+        : "Transparent fill"
+}
 >
   <Image
     src="/icons/transparent_fill_icon.png"
@@ -12657,10 +12458,7 @@ if (selectedBlockFromDraft?.type === "rsvp") {
 
 {((selectedBlock?.type === "post_board" &&
   (postBoardStyleTarget === "card" || postBoardStyleTarget === "buttons")) ||
-  (selectedBlock?.type === "thread" &&
-    ["form", "post_block", "message", "post_button"].includes(
-      selectedBlock.data.threadStyleTarget ?? "message",
-    ))) ? (
+(selectedBlock?.type === "thread")) ? (
   <div className={topBarSliderWrapClass()}>
     <span>BG Opacity</span>
     <input
@@ -12676,14 +12474,28 @@ if (selectedBlockFromDraft?.type === "rsvp") {
                 : (((selectedBlock.data as any).buttonStyle?.backgroundOpacity ??
                     1) * 100),
             )
-          : selectedBlock?.type === "thread"
-            ? selectedBlock.data.threadStyleTarget === "form"
-              ? selectedBlock.data.formAppearance?.backgroundOpacity ?? 100
-              : selectedBlock.data.threadStyleTarget === "post_block"
-                ? selectedBlock.data.postBlockAppearance?.backgroundOpacity ?? 100
-                : selectedBlock.data.threadStyleTarget === "post_button"
-                  ? selectedBlock.data.postButtonAppearance?.backgroundOpacity ?? 100
-                  : selectedBlock.data.messageAppearance?.backgroundOpacity ?? 100
+: selectedBlock?.type === "thread"
+  ? Math.round(
+      ((((selectedBlock.data as any)[
+  threadStyleTarget === "field"
+    ? "fieldStyle"
+    : threadStyleTarget === "section"
+      ? "sectionStyle"
+      : threadStyleTarget === "captionPill"
+        ? "captionPillStyle"
+        : threadStyleTarget === "addMediaButton"
+          ? "addMediaButtonStyle"
+          : threadStyleTarget === "postButton"
+            ? "postButtonStyle"
+            : threadStyleTarget === "thumbsUp"
+              ? "thumbsUpStyle"
+              : threadStyleTarget === "thumbsDown"
+                ? "thumbsDownStyle"
+                : threadStyleTarget === "defaultProfile"
+                  ? "defaultProfileStyle"
+                  : "blockStyle"
+] as any)?.backgroundOpacity ?? 1) * 100),
+    )
             : 100
       }
       onChange={(e) =>
@@ -13661,15 +13473,24 @@ renderBlockPreview={renderCanvasPreview}
 
 
 {!isMultiSelection && selectedBlock?.type === "thread" ? (
-  <ThreadInspector
-    selectedBlock={selectedBlock}
-    updateSelectedBlock={updateSelectedBlock}
-    threadSubjectInputRef={threadSubjectInputRef}
-    inspectorCardClass={inspectorCardClass}
-    inspectorLabelClass={inspectorLabelClass}
-    inspectorInputClass={inspectorInputClass}
-  />
+<ThreadInspector
+  selectedBlock={selectedBlock}
+  updateSelectedBlock={updateSelectedBlock}
+
+  threadTextTarget={threadTextTarget}
+  setThreadTextTarget={setThreadTextTarget}
+
+  threadStyleTarget={threadStyleTarget}
+  setThreadStyleTarget={setThreadStyleTarget}
+
+  threadSubjectInputRef={threadSubjectInputRef}
+
+  inspectorCardClass={inspectorCardClass}
+  inspectorLabelClass={inspectorLabelClass}
+  inspectorInputClass={inspectorInputClass}
+/>
 ) : null}
+
 {!isMultiSelection && selectedBlock?.type === "summary" ? (
   <SummaryInspector
     selectedBlock={selectedBlock}

@@ -7009,12 +7009,33 @@ function renderThread(
     const showVoteCount = block.data.showVoteCount !== false;
 
 
-    const baseStyle = block.data.style;
-    const subjectStyle = block.data.subjectStyle ?? baseStyle;
-    const nameStyle = block.data.nameStyle ?? baseStyle;
-    const messageStyle = block.data.messageStyle ?? baseStyle;
-    const postBlockStyle = block.data.postBlockStyle ?? baseStyle;
-    const postButtonTextStyle = block.data.postButtonTextStyle ?? baseStyle;
+const data = block.data as any;
+
+const baseStyle = data.style ?? {};
+const subjectStyle = data.subjectStyle ?? baseStyle;
+const captionPillTextStyle = data.captionPillTextStyle ?? baseStyle;
+const postLabelStyle = data.postLabelStyle ?? baseStyle;
+const placeholderStyle = data.placeholderStyle ?? {};
+const addMediaButtonTextStyle = data.addMediaButtonTextStyle ?? baseStyle;
+const addMediaMetadataStyle = data.addMediaMetadataStyle ?? baseStyle;
+const nameCharMaxLabelStyle = data.nameCharMaxLabelStyle ?? baseStyle;
+const messageCharMaxLabelStyle = data.messageCharMaxLabelStyle ?? baseStyle;
+const postTypeLabelStyle = data.postTypeLabelStyle ?? baseStyle;
+const postButtonTextStyle = data.postButtonTextStyle ?? baseStyle;
+const voteTextStyle = data.voteTextStyle ?? baseStyle;
+const defaultProfileTextStyle = data.defaultProfileTextStyle ?? baseStyle;
+const nameTextStyle = data.nameTextStyle ?? data.nameStyle ?? baseStyle;
+const messageTextStyle = data.messageTextStyle ?? data.messageStyle ?? baseStyle;
+
+const fieldStyle = data.fieldStyle ?? {};
+const sectionStyle = data.sectionStyle ?? {};
+const captionPillStyle = data.captionPillStyle ?? {};
+const addMediaButtonStyle = data.addMediaButtonStyle ?? {};
+const postButtonBoxStyle = data.postButtonStyle ?? {};
+const thumbsUpStyle = data.thumbsUpStyle ?? {};
+const thumbsDownStyle = data.thumbsDownStyle ?? {};
+const defaultProfileStyle = data.defaultProfileStyle ?? {};
+const blockStyle = data.blockStyle ?? {};
 
     useEffect(() => {
       if (!micrositeId) {
@@ -7513,9 +7534,17 @@ return (
                 </div>
               ) : null}
 
-              {!showAnonymousBadge && !showApprovalBadge ? (
-                <div className={getThreadBadgeClass(designKey)}>Open Thread</div>
-              ) : null}
+{!showAnonymousBadge && !showApprovalBadge ? (
+  <div
+    className={getThreadBadgeClass(designKey)}
+    style={{
+      ...captionPillStyle,
+      ...getThreadMetaStyle(captionPillTextStyle, designKey),
+    }}
+  >
+    {(block.data as any).captionPillText ?? "Open Thread"}
+  </div>
+) : null}
             </div>
           </div>
 
@@ -7524,33 +7553,46 @@ return (
               className={`${getThreadComposerClass(designKey)} border`}
               style={getThreadElementBoxStyle(block.data.postBlockAppearance)}
             >
-              <div
-                className="font-medium"
-                style={getThreadMetaStyle(nameStyle, designKey)}
-              >
-                Post a message
-              </div>
+<div
+  className="font-medium"
+  style={{
+    ...getThreadMetaStyle(postLabelStyle, designKey),
+    ...sectionStyle,
+  }}
+>
+  {(block.data as any).postLabel ?? "Post a message"}
+</div>
 
-              {showNameField ? (
-                <input
-                  type="text"
-                  value={nameValue}
-                  maxLength={THREAD_MAX_NAME_LENGTH}
-                  onChange={(e) =>
-                    setNameValue(e.target.value.slice(0, THREAD_MAX_NAME_LENGTH))
-                  }
-                  onMouseDown={(e) => e.stopPropagation()}
-                  onClick={(e) => e.stopPropagation()}
-                  placeholder={block.data.namePlaceholder || "Your name"}
-                  className={getThreadComposerInputClass(designKey)}
-                  style={{
-                    ...getThreadBodyStyle(nameStyle, designKey),
-                    pointerEvents: "auto",
-                    position: "relative",
-                    zIndex: 2,
-                  }}
-                />
-              ) : null}
+{showNameField ? (
+  <>
+    <input
+      type="text"
+      value={nameValue}
+      maxLength={THREAD_MAX_NAME_LENGTH}
+      onChange={(e) =>
+        setNameValue(e.target.value.slice(0, THREAD_MAX_NAME_LENGTH))
+      }
+      onMouseDown={(e) => e.stopPropagation()}
+      onClick={(e) => e.stopPropagation()}
+      placeholder={block.data.namePlaceholder || "Your name"}
+      className={getThreadComposerInputClass(designKey)}
+      style={{
+        ...getThreadBodyStyle(nameTextStyle, designKey),
+        ...fieldStyle,
+        pointerEvents: "auto",
+        position: "relative",
+        zIndex: 2,
+      }}
+    />
+
+    <div
+      className="mt-1 text-right"
+      style={getThreadMetaStyle(nameCharMaxLabelStyle, designKey)}
+    >
+      {nameValue.length}/{THREAD_MAX_NAME_LENGTH}
+    </div>
+  </>
+) : null}
 
               <textarea
                 value={messageValue}
@@ -7564,17 +7606,24 @@ return (
                 onClick={(e) => e.stopPropagation()}
                 placeholder={block.data.composerPlaceholder || "Write something…"}
                 className={`${getThreadComposerInputClass(designKey)} min-h-[96px] resize-none`}
-                style={{
-                  ...getThreadBodyStyle(messageStyle, designKey),
-                  pointerEvents: "auto",
-                  position: "relative",
-                  zIndex: 2,
-                }}
+style={{
+  ...getThreadBodyStyle(messageTextStyle, designKey),
+  ...fieldStyle,
+  pointerEvents: "auto",
+  position: "relative",
+  zIndex: 2,
+}}
               />
 
               <div className="mt-3 flex flex-wrap items-center gap-2">
-                <label className="cursor-pointer rounded-lg border border-neutral-300 bg-white px-3 py-2 text-xs font-semibold text-neutral-700 shadow-sm">
-                  Add media
+<label
+  className="cursor-pointer rounded-lg border border-neutral-300 bg-white px-3 py-2 text-xs font-semibold text-neutral-700 shadow-sm"
+  style={{
+    ...addMediaButtonStyle,
+    ...getThreadMetaStyle(addMediaButtonTextStyle, designKey),
+  }}
+>
+  {(block.data as any).addMediaButtonText ?? "Add Media"}
                   <input
                     ref={attachmentInputRef}
                     type="file"
@@ -7589,15 +7638,17 @@ return (
                   />
                 </label>
 
-                <div
-                  className={
-                    isLightDesign(designKey)
-                      ? "text-xs text-neutral-500"
-                      : "text-xs text-white/55"
-                  }
-                >
-                  GIF/Image 2MB • Video 5MB • Audio 1MB
-                </div>
+<div
+  className={
+    isLightDesign(designKey)
+      ? "text-xs text-neutral-500"
+      : "text-xs text-white/55"
+  }
+  style={getThreadMetaStyle(addMediaMetadataStyle, designKey)}
+>
+  {(block.data as any).addMediaMetadataText ??
+    "GIF/Image 2MB • Video 5MB • Audio 1MB"}
+</div>
               </div>
 
               {attachments.length ? (
@@ -7624,43 +7675,33 @@ return (
                 </div>
               ) : null}              
 
-              <div className="mt-2 flex items-center justify-between gap-3">
-                <div
-                  style={getThreadMetaStyle(messageStyle, designKey)}
-                  className={
-                    isLightDesign(designKey) ? "text-neutral-500" : "text-white/55"
-                  }
-                >
-                  {messageValue.length}/{THREAD_MAX_MESSAGE_LENGTH}
-                </div>
-
-                {showNameField ? (
-                  <div
-                    style={getThreadMetaStyle(nameStyle, designKey)}
-                    className={
-                      isLightDesign(designKey) ? "text-neutral-500" : "text-white/55"
-                    }
-                  >
-                    {nameValue.length}/{THREAD_MAX_NAME_LENGTH}
-                  </div>
-                ) : null}
-              </div>
+<div className="mt-2">
+  <div
+    style={getThreadMetaStyle(messageCharMaxLabelStyle, designKey)}
+    className={
+      isLightDesign(designKey) ? "text-neutral-500" : "text-white/55"
+    }
+  >
+    {messageValue.length}/{THREAD_MAX_MESSAGE_LENGTH}
+  </div>
+</div>
 
               {threadError ? (
                 <div className="mt-3 text-xs text-red-500">{threadError}</div>
               ) : null}
 
               <div className="mt-3 flex items-center justify-between gap-3">
-                <div
-                  style={getThreadMetaStyle(nameStyle, designKey)}
-                  className={
-                    isLightDesign(designKey) ? "text-neutral-500" : "text-white/55"
-                  }
-                >
-                  {block.data.allowAnonymous
-                    ? "Anonymous posting allowed"
-                    : "Posting with name"}
-                </div>
+<div
+  style={getThreadMetaStyle(postTypeLabelStyle, designKey)}
+  className={
+    isLightDesign(designKey) ? "text-neutral-500" : "text-white/55"
+  }
+>
+  {(block.data as any).postTypeLabel ??
+    (block.data.allowAnonymous
+      ? "Anonymous posting allowed"
+      : "Posting with name")}
+</div>
 
                 <button
                   type="button"
@@ -7670,13 +7711,14 @@ return (
                     designKey,
                     block.data.postButtonStyle ?? "solid",
                   )}
-                  style={{
-                    ...getThreadBodyStyle(postButtonTextStyle, designKey),
-                    ...getThreadElementBoxStyle(block.data.postButtonAppearance),
-                    opacity: isPostDisabled ? 0.6 : 1,
-                    cursor: isPostDisabled ? "not-allowed" : "pointer",
-                    pointerEvents: "auto",
-                  }}
+style={{
+  ...getThreadBodyStyle(postButtonTextStyle, designKey),
+  ...postButtonBoxStyle,
+  ...getThreadElementBoxStyle(block.data.postButtonAppearance),
+  opacity: isPostDisabled ? 0.6 : 1,
+  cursor: isPostDisabled ? "not-allowed" : "pointer",
+  pointerEvents: "auto",
+}}
                 >
                   {isSubmitting
                     ? "Posting..."
@@ -7723,15 +7765,16 @@ return (
                                   ? "text-neutral-700"
                                   : "text-white/80"
                               }
-                              style={{
-                                opacity: voteLoadingId === message.id ? 0.5 : 1,
-                                cursor:
-                                  voteLoadingId === message.id
-                                    ? "not-allowed"
-                                    : "pointer",
-                                transform:
-                                  currentUserVote === 1 ? "scale(1.08)" : undefined,
-                              }}
+style={{
+  ...thumbsUpStyle,
+  opacity: voteLoadingId === message.id ? 0.5 : 1,
+  cursor:
+    voteLoadingId === message.id
+      ? "not-allowed"
+      : "pointer",
+  transform:
+    currentUserVote === 1 ? "scale(1.08)" : undefined,
+}}
                               title={
                                 currentUserVote === 1
                                   ? "You upvoted this"
@@ -7746,18 +7789,15 @@ return (
                             </button>
 
                             {showVoteCount ? (
-                              <div
-                                className="font-semibold"
-                                style={{
-                                  ...getThreadMetaStyle(
-                                    postBlockStyle,
-                                    designKey,
-                                  ),
-                                  fontSize: "12px",
-                                }}
-                              >
-                                {message.votes ?? 0}
-                              </div>
+<div
+  className="font-semibold"
+  style={{
+    ...getThreadMetaStyle(voteTextStyle, designKey),
+    fontSize: "12px",
+  }}
+>
+  {message.votes ?? 0}
+</div>
                             ) : null}
 
                             <button
@@ -7769,15 +7809,16 @@ return (
                                   ? "text-neutral-700"
                                   : "text-white/80"
                               }
-                              style={{
-                                opacity: voteLoadingId === message.id ? 0.5 : 1,
-                                cursor:
-                                  voteLoadingId === message.id
-                                    ? "not-allowed"
-                                    : "pointer",
-                                transform:
-                                  currentUserVote === -1 ? "scale(1.08)" : undefined,
-                              }}
+style={{
+  ...thumbsDownStyle,
+  opacity: voteLoadingId === message.id ? 0.5 : 1,
+  cursor:
+    voteLoadingId === message.id
+      ? "not-allowed"
+      : "pointer",
+  transform:
+    currentUserVote === -1 ? "scale(1.08)" : undefined,
+}}
                               title={
                                 currentUserVote === -1
                                   ? "You downvoted this"
@@ -7794,19 +7835,25 @@ return (
                         ) : null}
 
                         {showNameField ? (
-                          <div className={getThreadAvatarClass(designKey)}>
-                            {getInitials(message.name)}
-                          </div>
+<div
+  className={getThreadAvatarClass(designKey)}
+  style={{
+    ...defaultProfileStyle,
+    ...getThreadMetaStyle(defaultProfileTextStyle, designKey),
+  }}
+>
+  {getInitials(message.name)}
+</div>
                         ) : null}
 
                         <div className="min-w-0 flex-1">
                           {showNameField ? (
                             <div
                               className="font-semibold"
-                              style={{
-                                ...getThreadMetaStyle(nameStyle, designKey),
-                                fontSize: "13px",
-                              }}
+style={{
+  ...getThreadMetaStyle(nameTextStyle, designKey),
+  fontSize: "13px",
+}}
                             >
                               {message.name || "Guest"}
                             </div>
@@ -7814,11 +7861,11 @@ return (
 
                           <div
                             className={showNameField ? "mt-1" : ""}
-                            style={{
-                              ...getThreadBodyStyle(messageStyle, designKey),
-                              fontSize: "15px",
-                              lineHeight: 1.35,
-                            }}
+style={{
+  ...getThreadBodyStyle(messageTextStyle, designKey),
+  fontSize: "15px",
+  lineHeight: 1.35,
+}}
                           >
                             {message.message || "Message preview"}
                             {renderThreadAttachments(message.attachments)}
