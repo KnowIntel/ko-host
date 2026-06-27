@@ -559,7 +559,7 @@ export function EnrollmentBoardInspector({
       <div className={inspectorLabelClass()}>Field Labels</div>
 
       <div className="mt-4">
-        <div className={inspectorLabelClass()}>Name Label</div>
+        <div className={inspectorLabelClass()}>Name Placeholder</div>
         <input
           type="text"
           value={selectedBlock.data.nameLabel ?? "Name"}
@@ -581,7 +581,7 @@ export function EnrollmentBoardInspector({
       </div>
 
       <div className="mt-4">
-  <div className={inspectorLabelClass()}>Metadata Label</div>
+  <div className={inspectorLabelClass()}>Metadata Placeholder</div>
   <input
     type="text"
     value={selectedBlock.data.metadataLabel ?? "Metadata"}
@@ -603,7 +603,7 @@ export function EnrollmentBoardInspector({
 </div>
 
       <div className="mt-4">
-        <div className={inspectorLabelClass()}>Quote Label</div>
+        <div className={inspectorLabelClass()}>Quote Placeholder</div>
         <input
           type="text"
           value={selectedBlock.data.quoteLabel ?? "Quote or message"}
@@ -625,7 +625,7 @@ export function EnrollmentBoardInspector({
       </div>
 
       <div className="mt-4">
-        <div className={inspectorLabelClass()}>Email Label</div>
+        <div className={inspectorLabelClass()}>Email Placeholder</div>
         <input
           type="text"
           value={selectedBlock.data.emailLabel ?? "Email"}

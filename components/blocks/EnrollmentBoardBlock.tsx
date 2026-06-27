@@ -1005,7 +1005,7 @@ return (
     ...buttonStyle,
   }}
 >
-  <span style={buttonStyle}>
+  <span style={styleToCss(data.submitButtonTextStyle)}>
     {isSubmitting
       ? "Submitting..."
       : hasMine
@@ -1027,7 +1027,7 @@ return (
 {errorMessage ? (
   <div
     className="mt-3 rounded-xl bg-red-50 px-3 py-2 text-sm font-bold text-red-700"
-    style={alreadyEnrolledMessageStyle}
+    style={hasMine ? alreadyEnrolledMessageStyle : {}}
   >
     {errorMessage}
   </div>
