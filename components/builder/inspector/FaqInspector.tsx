@@ -68,6 +68,21 @@ export function FaqInspector({
   </select>
 </div>
 
+<div className={inspectorCardClass()}>
+  <label className={inspectorLabelClass()}>Style Target</label>
+
+  <select
+    value={faqStyleTarget}
+    onChange={(e) =>
+      setFaqStyleTarget(e.target.value as FaqStyleTarget)
+    }
+    className={inspectorInputClass()}
+  >
+    <option value="field">Field</option>
+    <option value="block">Block</option>
+  </select>
+</div>
+
                     <div className="mt-4">
   <div className={inspectorLabelClass()}>Heading</div>
   <input
