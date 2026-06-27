@@ -10514,11 +10514,15 @@ function toolMatchesSearch(
     "iconName" in tool &&
     tool.iconName
   ) {
-    const tags = ICON_TAGS[tool.iconName] ?? [];
+const iconName = String(tool.iconName);
+const normalizedIconName = iconName.toLowerCase().replace(/[-_]/g, " ");
+const tags = ICON_TAGS[iconName] ?? [];
 
-    return tags.some((tag) =>
-      tag.toLowerCase().includes(normalized),
-    );
+return (
+  iconName.toLowerCase().includes(normalized) ||
+  normalizedIconName.includes(normalized) ||
+  tags.some((tag) => tag.toLowerCase().includes(normalized))
+);
   }
 
   return false;
@@ -15121,7 +15125,9 @@ renderBlockPreview={renderCanvasPreview}
       : "flex max-w-[400px] flex-wrap gap-2"
   }
 >
-    {CATEGORY_BUTTONS[category].map((tool, index) => (
+    {CATEGORY_BUTTONS[category]
+  .filter((tool) => toolMatchesSearch(toolSearchQuery, category, tool))
+  .map((tool, index) => (
       <button
         key={`${category}-${tool.kind}-${tool.type}-${index}`}
         type="button"
@@ -15174,7 +15180,9 @@ iconUrl:
   </div>
 ) : (
   <div className="flex max-h-[252px] w-[360px] max-w-[calc(100vw-56px)] flex-col gap-2 overflow-y-auto pr-1">
-    {CATEGORY_BUTTONS[category].map((tool, index) => (
+    {CATEGORY_BUTTONS[category]
+  .filter((tool) => toolMatchesSearch(toolSearchQuery, category, tool))
+  .map((tool, index) => (
       <button
         key={`${category}-${tool.kind}-${tool.type}-${index}`}
         type="button"
