@@ -15969,8 +15969,12 @@ case "process_flow":
       return renderRsvp(block, designKey);
     case "faq":
       return renderFaq(block, designKey);
-    case "thread":
-      return renderThread(block, designKey, micrositeId);
+case "thread":
+  return (
+    <div className="rounded-xl border p-4">
+      Thread placeholder
+    </div>
+  );
     case "enrollment_board":
       return (
         <EnrollmentBoardBlock
