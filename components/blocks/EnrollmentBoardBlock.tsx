@@ -184,11 +184,12 @@ const fieldLabelStyle = {
   ...styleToCss(data.fieldLabelStyle),
 };
 
-const buttonStyle = {
+const submitButtonBoxStyle = {
   ...styleToCss(data.buttonStyle),
   ...styleToCss(data.submitButtonStyle),
-  ...styleToCss(data.submitButtonTextStyle),
 };
+
+const submitButtonTextStyle = styleToCss(data.submitButtonTextStyle);
 
 const listStyle = styleToCss(data.listStyle);
 
@@ -1002,10 +1003,12 @@ return (
   className="inline-flex items-center justify-center px-4 py-2 text-sm font-black transition disabled:cursor-not-allowed disabled:opacity-50"
   style={{
     borderStyle: "solid",
-    ...buttonStyle,
+    ...submitButtonBoxStyle,
   }}
 >
-  <span style={styleToCss(data.submitButtonTextStyle)}>
+  <span
+    style={hasMine ? alreadyEnrolledMessageStyle : submitButtonTextStyle}
+  >
     {isSubmitting
       ? "Submitting..."
       : hasMine
