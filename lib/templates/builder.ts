@@ -153,6 +153,14 @@ export type BuilderBlockType =
   | "map_location"
   | "file_share"
   | "speed_dating"
+  | "process_flow"
+  | "statistic_cards"
+  | "comparison_table"
+  | "pyramid"
+  | "circular_hub"
+  | "story_cards"
+  | "interactive_hotspots"
+  | "formula_board"
   | "pop_balloon"
   | "registry"
   | "checkout"
@@ -1987,6 +1995,126 @@ export type ContentPanelBlock = BaseBlock & {
   };
 };
 
+export interface InfographicBaseBlockData {
+  heading: string;
+  subtitle: string;
+  showHeading: boolean;
+  showSubtitle: boolean;
+  style: TextStyle;
+}
+
+export type ProcessFlowBlockData = InfographicBaseBlockData & {
+  layout: "horizontal" | "vertical" | "zig_zag";
+  connectorStyle: "straight" | "curved" | "dashed" | "arrow";
+  steps: Array<{
+    id: string;
+    number: string;
+    icon: string;
+    imageUrl: string;
+    heading: string;
+    description: string;
+    badge: string;
+    duration: string;
+  }>;
+  cardBackgroundColor: string;
+  cardBorderColor: string;
+  accentColor: string;
+  connectorColor: string;
+  headingStyle: TextStyle;
+  subtitleStyle: TextStyle;
+  stepNumberStyle: TextStyle;
+  stepHeadingStyle: TextStyle;
+  stepDescriptionStyle: TextStyle;
+  badgeStyle: TextStyle;
+  durationStyle: TextStyle;
+  padding: number;
+  gap: number;
+  cardRadius: number;
+  cardShadow: boolean;
+  rotation: number;
+  animationStyle: "none" | "fade" | "slide" | "pop";
+};
+
+export type StatisticCardsBlockData = InfographicBaseBlockData;
+export type ComparisonTableBlockData = InfographicBaseBlockData;
+export type PyramidBlockData = InfographicBaseBlockData;
+export type CircularHubBlockData = InfographicBaseBlockData;
+export type StoryCardsBlockData = InfographicBaseBlockData;
+export type InteractiveHotspotsBlockData = InfographicBaseBlockData;
+export type FormulaBoardBlockData = InfographicBaseBlockData;
+
+export type ProcessFlowBlock = {
+  id: string;
+  type: "process_flow";
+  label: string;
+  grid: GridPlacement;
+  appearance?: BlockAppearance;
+  data: ProcessFlowBlockData;
+};
+
+export type StatisticCardsBlock = {
+  id: string;
+  type: "statistic_cards";
+  label: string;
+  grid: GridPlacement;
+  appearance?: BlockAppearance;
+  data: StatisticCardsBlockData;
+};
+
+export type ComparisonTableBlock = {
+  id: string;
+  type: "comparison_table";
+  label: string;
+  grid: GridPlacement;
+  appearance?: BlockAppearance;
+  data: ComparisonTableBlockData;
+};
+
+export type PyramidBlock = {
+  id: string;
+  type: "pyramid";
+  label: string;
+  grid: GridPlacement;
+  appearance?: BlockAppearance;
+  data: PyramidBlockData;
+};
+
+export type CircularHubBlock = {
+  id: string;
+  type: "circular_hub";
+  label: string;
+  grid: GridPlacement;
+  appearance?: BlockAppearance;
+  data: CircularHubBlockData;
+};
+
+export type StoryCardsBlock = {
+  id: string;
+  type: "story_cards";
+  label: string;
+  grid: GridPlacement;
+  appearance?: BlockAppearance;
+  data: StoryCardsBlockData;
+};
+
+export type InteractiveHotspotsBlock = {
+  id: string;
+  type: "interactive_hotspots";
+  label: string;
+  grid: GridPlacement;
+  appearance?: BlockAppearance;
+  data: InteractiveHotspotsBlockData;
+};
+
+export type FormulaBoardBlock = {
+  id: string;
+  type: "formula_board";
+  label: string;
+  grid: GridPlacement;
+  appearance?: BlockAppearance;
+  data: FormulaBoardBlockData;
+};
+
 export type MicrositeBlock =
   | BookmarkBlock
   | PuzzleBlock
@@ -2015,6 +2143,14 @@ export type MicrositeBlock =
   | EnrollmentBoardBlock
   | HighlightBlock
   | SummaryBlock
+  | ProcessFlowBlock
+  | StatisticCardsBlock
+  | ComparisonTableBlock
+  | PyramidBlock
+  | CircularHubBlock
+  | StoryCardsBlock
+  | InteractiveHotspotsBlock
+  | FormulaBoardBlock
   | VisitorCounterBlock
   | ShowcaseBlock
   | FestiveBackgroundBlock
@@ -4147,6 +4283,157 @@ data: {
 },
       };
 
+          case "process_flow":
+      return {
+        id: makeId("infographicprocessflow"),
+        type: "process_flow",
+        label: "Process Flow",
+        grid: {
+          ...grid,
+          colSpan: 8,
+          rowSpan: 5,
+        },
+        appearance: {
+          ...createDefaultBlockAppearance(),
+          backgroundColor: "#FFFFFF",
+          borderColor: "#E5E7EB",
+          borderWidth: 1,
+          borderRadius: 24,
+        },
+        data: {
+          heading: "How It Works",
+          subtitle: "Follow each step in the process.",
+          showHeading: true,
+          showSubtitle: true,
+
+          layout: "horizontal",
+          connectorStyle: "arrow",
+
+          steps: [
+            {
+              id: makeId("processstep"),
+              number: "01",
+              icon: "✨",
+              imageUrl: "",
+              heading: "Start",
+              description: "Introduce the first step in the process.",
+              badge: "Step 1",
+              duration: "5 min",
+            },
+            {
+              id: makeId("processstep"),
+              number: "02",
+              icon: "📌",
+              imageUrl: "",
+              heading: "Review",
+              description: "Explain what happens during the middle step.",
+              badge: "Step 2",
+              duration: "10 min",
+            },
+            {
+              id: makeId("processstep"),
+              number: "03",
+              icon: "✅",
+              imageUrl: "",
+              heading: "Complete",
+              description: "Describe the final result or action.",
+              badge: "Step 3",
+              duration: "Done",
+            },
+          ],
+
+          cardBackgroundColor: "#FFFFFF",
+          cardBorderColor: "#E5E7EB",
+          accentColor: "#2563EB",
+          connectorColor: "#CBD5E1",
+
+          style: createDefaultTextStyle(),
+          headingStyle: {
+            ...createDefaultTextStyle(),
+            fontSize: 26,
+            bold: true,
+            align: "center",
+          },
+          subtitleStyle: {
+            ...createDefaultTextStyle(),
+            fontSize: 14,
+            color: "#6B7280",
+            align: "center",
+          },
+          stepNumberStyle: {
+            ...createDefaultTextStyle(),
+            fontSize: 13,
+            bold: true,
+            color: "#2563EB",
+            align: "center",
+          },
+          stepHeadingStyle: {
+            ...createDefaultTextStyle(),
+            fontSize: 16,
+            bold: true,
+            align: "center",
+          },
+          stepDescriptionStyle: {
+            ...createDefaultTextStyle(),
+            fontSize: 13,
+            color: "#4B5563",
+            align: "center",
+          },
+          badgeStyle: {
+            ...createDefaultTextStyle(),
+            fontSize: 11,
+            bold: true,
+            color: "#1D4ED8",
+            align: "center",
+          },
+          durationStyle: {
+            ...createDefaultTextStyle(),
+            fontSize: 11,
+            color: "#6B7280",
+            align: "center",
+          },
+
+          padding: 20,
+          gap: 16,
+          cardRadius: 18,
+          cardShadow: true,
+          rotation: 0,
+          animationStyle: "none",
+        },
+      };
+
+          case "statistic_cards":
+    case "comparison_table":
+    case "pyramid":
+    case "circular_hub":
+    case "story_cards":
+    case "interactive_hotspots":
+    case "formula_board":
+      return {
+        id: makeId(type),
+        type,
+        label: "Infographic",
+        grid: {
+          ...grid,
+          colSpan: 8,
+          rowSpan: 4,
+        },
+        appearance: {
+          ...createDefaultBlockAppearance(),
+          backgroundColor: "#FFFFFF",
+          borderColor: "#E5E7EB",
+          borderWidth: 1,
+          borderRadius: 24,
+        },
+        data: {
+          heading: "Infographic",
+          subtitle: "Customize this infographic block.",
+          showHeading: true,
+          showSubtitle: true,
+          style: createDefaultTextStyle(),
+        },
+      };
+      
           case "visitor_counter":
       return {
         id: makeId("visitor_counter"),

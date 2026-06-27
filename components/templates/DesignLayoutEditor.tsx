@@ -374,6 +374,7 @@ type BottomCategory =
   | "Utilities"
   | "Data & Metrics"
   | "Scheduling"
+  | "Infographics"
   | "Premium";
 
 type PageBlockType = "title" | "subtitle" | "tagline" | "description";
@@ -430,6 +431,7 @@ const CATEGORY_ORDER: BottomCategory[] = [
   "Utilities",
   "Data & Metrics",
   "Scheduling",
+  "Infographics",
   "Premium",
 ];
 
@@ -726,6 +728,16 @@ Scheduling: [
   iconName: "calendar-full",
 },
   { kind: "block", label: "Map / Location", type: "map_location" },
+],
+Infographics: [
+  { kind: "block", label: "Process Flow", type: "process_flow" },
+  { kind: "block", label: "Statistic Cards", type: "statistic_cards" },
+  { kind: "block", label: "Comparison Table", type: "comparison_table" },
+  { kind: "block", label: "Pyramid", type: "pyramid" },
+  { kind: "block", label: "Circular Hub", type: "circular_hub" },
+  { kind: "block", label: "Story Cards", type: "story_cards" },
+  { kind: "block", label: "Interactive Hotspots", type: "interactive_hotspots" },
+  { kind: "block", label: "Formula Board", type: "formula_board" },
 ],
 Premium: [
   { kind: "block", label: "Registry", type: "registry" },
