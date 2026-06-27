@@ -487,6 +487,6 @@ export function ThreadInspector({
   </div>
 </div>
 
-    </div>
-  );
+</div>
+);
 }
