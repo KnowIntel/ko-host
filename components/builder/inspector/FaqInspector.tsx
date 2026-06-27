@@ -1,12 +1,22 @@
 "use client";
 
 import type { RefObject } from "react";
+import type {
+  FaqStyleTarget,
+  FaqTextTarget,
+} from "@/components/builder/formatting/faqFormatting";
 
 type FaqInspectorProps = {
   selectedBlock: any;
   updateSelectedBlock: any;
 
   makeClientId: (prefix: string) => string;
+
+  faqTextTarget: FaqTextTarget;
+  setFaqTextTarget: (target: FaqTextTarget) => void;
+
+  faqStyleTarget: FaqStyleTarget;
+  setFaqStyleTarget: (target: FaqStyleTarget) => void;
 
   faqQuestionInputRefs: RefObject<Record<string, HTMLInputElement | null>>;
   faqAnswerInputRefs: RefObject<Record<string, HTMLTextAreaElement | null>>;
@@ -23,6 +33,12 @@ export function FaqInspector({
   selectedBlock,
   updateSelectedBlock,
   makeClientId,
+
+  faqTextTarget,
+  setFaqTextTarget,
+  faqStyleTarget,
+  setFaqStyleTarget,
+
   faqQuestionInputRefs,
   faqAnswerInputRefs,
   inspectorCardClass,
@@ -35,6 +51,22 @@ export function FaqInspector({
     <div id="inspector-faq" className={inspectorCardClass()}>
       {/* FAQ */}
                     <div className={inspectorLabelClass()}>FAQ</div>
+
+<div className={inspectorCardClass()}>
+  <label className={inspectorLabelClass()}>Text Target</label>
+
+  <select
+    value={faqTextTarget}
+    onChange={(e) =>
+      setFaqTextTarget(e.target.value as FaqTextTarget)
+    }
+    className={inspectorInputClass()}
+  >
+    <option value="heading">Heading</option>
+    <option value="question">Question</option>
+    <option value="answer">Answer</option>
+  </select>
+</div>
 
                     <div className="mt-4">
   <div className={inspectorLabelClass()}>Heading</div>

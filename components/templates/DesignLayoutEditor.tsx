@@ -73,6 +73,14 @@ import {
 } from "@/components/builder/formatting/imageFormatting";
 
 import {
+  applyFaqStylePatch,
+  applyFaqTextStylePatch,
+  getFaqTextStyle,
+  type FaqStyleTarget,
+  type FaqTextTarget,
+} from "@/components/builder/formatting/faqFormatting";
+
+import {
   applyEnrollmentBoardStylePatch,
   applyEnrollmentBoardTextStylePatch,
   getEnrollmentBoardTextStyle,
@@ -2192,6 +2200,12 @@ const [listingStyleTarget, setListingStyleTarget] = useState<
   "title" | "description" | "metadata" | "price" | "quantity"
 >("title");
 
+const [faqTextTarget, setFaqTextTarget] =
+  useState<FaqTextTarget>("heading");
+
+const [faqStyleTarget, setFaqStyleTarget] =
+  useState<FaqStyleTarget>("field");
+
 /* const [processFlowStyleTarget, setProcessFlowStyleTarget] =
   useState<ProcessFlowStyleTarget>("heading"); */
 
@@ -2533,10 +2547,6 @@ const [progressBarStyleTarget, setProgressBarStyleTarget] = useState<
 
 const textureInputRef = useRef<HTMLInputElement | null>(null);
 
-const [faqStyleTarget, setFaqStyleTarget] = useState<
-  "form" | "section" | "question" | "answer"
->("form");
-
 const [summaryStyleTarget, setSummaryStyleTarget] = useState<
   | "header"
   | "subheader"
@@ -2649,16 +2659,11 @@ selectedBlockFromDraft?.type === "gallery"
       : (selectedBlockFromDraft.data.headingStyle ??
           selectedBlockFromDraft.data.style ??
           {})
-                : selectedBlockFromDraft?.type === "faq"
-                  ? faqStyleTarget === "question"
-                    ? (((selectedBlockFromDraft.data as any).questionStyle ??
-                        (selectedBlockFromDraft.data as any).style ??
-                        {}) as TextStyle)
-                    : faqStyleTarget === "answer"
-                      ? (((selectedBlockFromDraft.data as any).answerStyle ??
-                          (selectedBlockFromDraft.data as any).style ??
-                          {}) as TextStyle)
-                      : (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
+: selectedBlockFromDraft?.type === "faq"
+  ? (getFaqTextStyle(
+      selectedBlockFromDraft,
+      faqTextTarget,
+    ) as TextStyle)
                   : selectedBlockFromDraft?.type === "countdown"
                     ? countdownStyleTarget === "tiles"
                       ? (((selectedBlockFromDraft.data as any).tileStyle ??
@@ -4368,62 +4373,6 @@ function applyFillColor(value: string) {
     return;
   }
 
-  if (selectedBlock?.type === "faq") {
-    updateSelectedBlock((block) => {
-      if (block.type !== "faq") return block;
-
-      if (faqStyleTarget === "section") {
-        return {
-          ...block,
-          data: {
-            ...block.data,
-            sectionStyle: {
-              ...((block.data as any).sectionStyle ?? {}),
-              backgroundColor: value,
-            },
-          },
-        };
-      }
-
-      if (faqStyleTarget === "question") {
-        return {
-          ...block,
-          data: {
-            ...block.data,
-            questionStyle: {
-              ...((block.data as any).questionStyle ?? block.data.style ?? {}),
-              backgroundColor: value,
-            },
-          },
-        };
-      }
-
-      if (faqStyleTarget === "answer") {
-        return {
-          ...block,
-          data: {
-            ...block.data,
-            answerStyle: {
-              ...((block.data as any).answerStyle ?? block.data.style ?? {}),
-              backgroundColor: value,
-            },
-          },
-        };
-      }
-
-      return {
-        ...block,
-        appearance: {
-          ...block.appearance,
-          backgroundColor: value,
-        },
-      };
-    });
-
-    pushRecentColor(value);
-    return;
-  }
-
   if (selectedBlock?.type === "progress_bar") {
     updateSelectedBlock((block) => {
       if (block.type !== "progress_bar") return block;
@@ -4708,26 +4657,6 @@ if (selectedBlockFromDraft?.type === "option_button") {
     return;
   }
 
-  if (selectedBlock?.type === "faq" && faqStyleTarget === "section") {
-    updateSelectedBlock((block) =>
-      block.type !== "faq"
-        ? block
-        : {
-            ...block,
-            data: {
-              ...block.data,
-              sectionStyle: {
-                ...((block.data as any).sectionStyle ?? {}),
-                borderColor: value,
-              },
-            },
-          },
-    );
-
-    pushRecentColor(value);
-    return;
-  }
-
   applyAppearancePatch({ borderColor: value });
   pushRecentColor(value);
 }
@@ -4904,6 +4833,16 @@ const handleVideoUpload = async (
 
 function applyStylePatch(patch: Partial<TextStyle>) {
 
+  if (selectedBlock?.type === "faq") {
+  updateSelectedBlock((block) =>
+    block.type !== "faq"
+      ? block
+      : applyFaqTextStylePatch(block, faqTextTarget, patch),
+  );
+
+  return;
+}
+
   if (selectedBlock?.type === "enrollment_board") {
   updateSelectedBlock((block) =>
     block.type !== "enrollment_board"
@@ -4994,43 +4933,8 @@ if (selectedBlockFromDraft?.type === "poll") {
     }));
     return;
   }
+  
 
-  if (selectedBlock?.type === "faq") {
-  setDraft((prev) => ({
-    ...prev,
-    blocks: prev.blocks.map((block) =>
-      block.id === selectedBlock.id && block.type === "faq"
-        ? {
-            ...block,
-            data: {
-              ...block.data,
-              ...(faqStyleTarget === "question"
-                ? {
-                    questionStyle: {
-                      ...((block.data as any).questionStyle ?? block.data.style ?? {}),
-                      ...patch,
-                    },
-                  }
-                : faqStyleTarget === "answer"
-                  ? {
-                      answerStyle: {
-                        ...((block.data as any).answerStyle ?? block.data.style ?? {}),
-                        ...patch,
-                      },
-                    }
-                  : {
-                      style: {
-                        ...(block.data.style ?? {}),
-                        ...patch,
-                      },
-                    }),
-            },
-          }
-        : block,
-    ),
-  }));
-  return;
-}
 
   if (selectedBlock?.type === "cta") {
     setDraft((prev) => ({
@@ -6034,6 +5938,16 @@ function clearSelectedBackground() {
 }
 
 function applyAppearancePatch(patch: AppearancePatch) {
+
+  if (selectedBlock?.type === "faq") {
+  updateSelectedBlock((block) =>
+    block.type !== "faq"
+      ? block
+      : applyFaqStylePatch(block, faqStyleTarget, patch),
+  );
+
+  return;
+}
 
   if (selectedBlock?.type === "enrollment_board") {
   updateSelectedBlock((block) =>
@@ -11651,20 +11565,16 @@ const idsToExpand =
   <>
     <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
 
-    <select
-      value={faqStyleTarget}
-      onChange={(e) =>
-        setFaqStyleTarget(
-          e.target.value as "form" | "section" | "question" | "answer",
-        )
-      }
-      className={topBarFieldClass("w-[150px]")}
-      title="FAQ style target"
-    >
-      <option value="content">Content</option>
-      <option value="section">Q&A Section</option>
-      <option value="question">Section: Question</option>
-      <option value="answer">Section: Answer</option>
+<select
+  value={faqStyleTarget}
+  onChange={(e) =>
+    setFaqStyleTarget(e.target.value as FaqStyleTarget)
+  }
+  className={topBarFieldClass("w-[150px]")}
+  title="FAQ style target"
+>
+<option value="field">Field</option>
+<option value="block">Block</option>
     </select>
   </>
 ) : null}
@@ -12699,164 +12609,150 @@ if (selectedBlockFromDraft?.type === "rsvp") {
       />
     </button>
 
-    <button
-      type="button"
-      className={topBarButtonClass(
-        selectedBlock?.type === "faq" && faqStyleTarget === "section"
-          ? ((selectedBlock.data as any).sectionStyle?.backgroundColor === "transparent")
-          : selectedBlock?.type === "rsvp"
-            ? selectedAppearance.backgroundColor === "transparent"
-            : selectedBlock?.type === "post_board" && postBoardStyleTarget === "card"
-              ? ((selectedBlock.data as any).cardStyle?.backgroundColor === "transparent")
-              : selectedBlock?.type === "post_board" && postBoardStyleTarget === "buttons"
-                ? ((selectedBlock.data as any).buttonStyle?.backgroundColor === "transparent")
-                : selectedBlock?.type === "highlight"
-                  ? highlightStyleTarget === "heading"
-                    ? selectedAppearance.backgroundColor === "transparent"
-                    : (selectedBlock.data.cardBackgroundColor ?? "") === "transparent"
-                  : selectedAppearance.backgroundColor === "transparent",
-                      )}
-onClick={() => {
-  if (selectedBlock?.type === "faq" && faqStyleTarget === "section") {
-    updateSelectedBlock((block) =>
-      block.type !== "faq"
-        ? block
-        : {
+<button
+  type="button"
+  className={topBarButtonClass(
+    selectedBlock?.type === "rsvp"
+      ? selectedAppearance.backgroundColor === "transparent"
+      : selectedBlock?.type === "post_board" && postBoardStyleTarget === "card"
+        ? ((selectedBlock.data as any).cardStyle?.backgroundColor ===
+          "transparent")
+        : selectedBlock?.type === "post_board" &&
+            postBoardStyleTarget === "buttons"
+          ? ((selectedBlock.data as any).buttonStyle?.backgroundColor ===
+            "transparent")
+          : selectedBlock?.type === "highlight"
+            ? highlightStyleTarget === "heading"
+              ? selectedAppearance.backgroundColor === "transparent"
+              : (selectedBlock.data.cardBackgroundColor ?? "") ===
+                "transparent"
+            : selectedAppearance.backgroundColor === "transparent",
+  )}
+  onClick={() => {
+    if (selectedBlock?.type === "rsvp") {
+      applyAppearancePatch({ backgroundColor: "transparent" });
+      return;
+    }
+
+    if (selectedBlock?.type === "thread") {
+      updateSelectedBlock((block) => {
+        if (block.type !== "thread") return block;
+
+        const target = block.data.threadStyleTarget ?? "message";
+
+        if (target === "form") {
+          return {
             ...block,
+            appearance: {
+              ...block.appearance,
+              backgroundColor: "transparent",
+              backgroundOpacity: 0,
+            },
             data: {
               ...block.data,
-              sectionStyle: {
-                ...((block.data as any).sectionStyle ?? {}),
+              formAppearance: {
+                ...((block.data as any).formAppearance ?? {}),
                 backgroundColor: "transparent",
+                backgroundOpacity: 0,
               },
             },
-          },
-    );
-    return;
-  }
+          };
+        }
 
-  if (selectedBlock?.type === "rsvp") {
-    applyAppearancePatch({ backgroundColor: "transparent" });
-    return;
-  }
+        const appearanceKey =
+          target === "post_block"
+            ? "postBlockAppearance"
+            : target === "post_button"
+              ? "postButtonAppearance"
+              : "messageAppearance";
 
-  if (selectedBlock?.type === "thread") {
-    updateSelectedBlock((block) => {
-      if (block.type !== "thread") return block;
-
-      const target = block.data.threadStyleTarget ?? "message";
-
-      if (target === "form") {
         return {
           ...block,
-          appearance: {
-            ...block.appearance,
-            backgroundColor: "transparent",
-            backgroundOpacity: 0,
-          },
           data: {
             ...block.data,
-            formAppearance: {
-              ...((block.data as any).formAppearance ?? {}),
+            [appearanceKey]: {
+              ...((block.data as any)[appearanceKey] ?? {}),
               backgroundColor: "transparent",
               backgroundOpacity: 0,
             },
           },
         };
-      }
+      });
 
-      const appearanceKey =
-        target === "post_block"
-          ? "postBlockAppearance"
-          : target === "post_button"
-            ? "postButtonAppearance"
-            : "messageAppearance";
+      return;
+    }
 
-      return {
-        ...block,
-        data: {
-          ...block.data,
-          [appearanceKey]: {
-            ...((block.data as any)[appearanceKey] ?? {}),
-            backgroundColor: "transparent",
-            backgroundOpacity: 0,
-          },
-        },
-      };
-    });
+    if (selectedBlock?.type === "post_board") {
+      applyAppearancePatch({ backgroundColor: "transparent" });
+      return;
+    }
 
-    return;
-  }
+    if (selectedBlock?.type === "highlight") {
+      updateSelectedBlock((block) => {
+        if (block.type !== "highlight") return block;
 
-  if (selectedBlock?.type === "post_board") {
-    applyAppearancePatch({ backgroundColor: "transparent" });
-    return;
-  }
-
-  if (selectedBlock?.type === "highlight") {
-    updateSelectedBlock((block) => {
-      if (block.type !== "highlight") return block;
-
-      if (highlightStyleTarget === "heading") {
-        return {
-          ...block,
-          appearance: {
-            ...block.appearance,
-            backgroundColor: "transparent",
-          },
-        };
-      }
-
-      return {
-        ...block,
-        data: {
-          ...block.data,
-          cardBackgroundColor: "transparent",
-        },
-      };
-    });
-
-    return;
-  }
-
-  if (selectedBlock?.type === "checkout") {
-    updateSelectedBlock((block) =>
-      block.type !== "checkout"
-        ? block
-        : {
+        if (highlightStyleTarget === "heading") {
+          return {
             ...block,
             appearance: {
               ...block.appearance,
               backgroundColor: "transparent",
             },
-          },
-    );
-    return;
-  }
+          };
+        }
 
-  applyAppearancePatch({ backgroundColor: "transparent" });
-}}
-title={
-  selectedBlock?.type === "rsvp"
-    ? "Transparent RSVP block background"
-    : selectedBlock?.type === "thread" &&
-        selectedBlock.data.threadStyleTarget === "form"
-      ? "Transparent thread form background"
+        return {
+          ...block,
+          data: {
+            ...block.data,
+            cardBackgroundColor: "transparent",
+          },
+        };
+      });
+
+      return;
+    }
+
+    if (selectedBlock?.type === "checkout") {
+      updateSelectedBlock((block) =>
+        block.type !== "checkout"
+          ? block
+          : {
+              ...block,
+              appearance: {
+                ...block.appearance,
+                backgroundColor: "transparent",
+              },
+            },
+      );
+      return;
+    }
+
+    applyAppearancePatch({ backgroundColor: "transparent" });
+  }}
+  title={
+    selectedBlock?.type === "rsvp"
+      ? "Transparent RSVP block background"
       : selectedBlock?.type === "thread" &&
-          selectedBlock.data.threadStyleTarget === "post_block"
-        ? "Transparent thread composer background"
+          selectedBlock.data.threadStyleTarget === "form"
+        ? "Transparent thread form background"
         : selectedBlock?.type === "thread" &&
-            selectedBlock.data.threadStyleTarget === "message"
-          ? "Transparent thread message background"
+            selectedBlock.data.threadStyleTarget === "post_block"
+          ? "Transparent thread composer background"
           : selectedBlock?.type === "thread" &&
-              selectedBlock.data.threadStyleTarget === "post_button"
-            ? "Transparent thread post button background"
-            : selectedBlock?.type === "post_board" && postBoardStyleTarget === "card"
-              ? "Transparent post card background"
-              : selectedBlock?.type === "post_board" && postBoardStyleTarget === "buttons"
-                ? "Transparent post button background"
-                : "Transparent fill"
-}
+              selectedBlock.data.threadStyleTarget === "message"
+            ? "Transparent thread message background"
+            : selectedBlock?.type === "thread" &&
+                selectedBlock.data.threadStyleTarget === "post_button"
+              ? "Transparent thread post button background"
+              : selectedBlock?.type === "post_board" &&
+                  postBoardStyleTarget === "card"
+                ? "Transparent post card background"
+                : selectedBlock?.type === "post_board" &&
+                    postBoardStyleTarget === "buttons"
+                  ? "Transparent post button background"
+                  : "Transparent fill"
+  }
 >
   <Image
     src="/icons/transparent_fill_icon.png"
@@ -13845,6 +13741,10 @@ renderBlockPreview={renderCanvasPreview}
     inspectorInputClass={inspectorInputClass}
     inspectorTextareaClass={inspectorTextareaClass}
     toolSetButtonClass={toolSetButtonClass}
+    faqTextTarget={faqTextTarget}
+    setFaqTextTarget={setFaqTextTarget}
+    faqStyleTarget={faqStyleTarget}
+    setFaqStyleTarget={setFaqStyleTarget}
   />
 ) : null}
 
