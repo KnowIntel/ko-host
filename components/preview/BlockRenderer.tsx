@@ -7501,7 +7501,18 @@ return (
       : undefined
   }
 >
-        <div
+  {(placeholderStyle as any).color ? (
+    <style>
+      {`
+        #thread-${block.id} .thread-placeholder-${block.id}::placeholder {
+          color: ${(placeholderStyle as any).color} !important;
+          opacity: 1 !important;
+        }
+      `}
+    </style>
+  ) : null}
+
+  <div
           className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-xl border p-3"
           style={{
   ...getThreadElementBoxStyle(block.data.formAppearance),
@@ -7516,6 +7527,7 @@ return (
               designKey,
             )}`}
           >
+            
             <div
               className="font-semibold"
               style={getThreadHeadingStyle(subjectStyle, designKey)}
@@ -7578,7 +7590,7 @@ return (
       onMouseDown={(e) => e.stopPropagation()}
       onClick={(e) => e.stopPropagation()}
       placeholder={block.data.namePlaceholder || "Your name"}
-      className={getThreadComposerInputClass(designKey)}
+      className={`${getThreadComposerInputClass(designKey)} thread-placeholder-${block.id}`}
       style={{
         ...getThreadBodyStyle(nameTextStyle, designKey),
         ...fieldStyle,
@@ -7608,7 +7620,7 @@ return (
                 onMouseDown={(e) => e.stopPropagation()}
                 onClick={(e) => e.stopPropagation()}
                 placeholder={block.data.composerPlaceholder || "Write something…"}
-                className={`${getThreadComposerInputClass(designKey)} min-h-[96px] resize-none`}
+                className={`${getThreadComposerInputClass(designKey)} min-h-[96px] resize-none thread-placeholder-${block.id}`}
 style={{
   ...getThreadBodyStyle(messageTextStyle, designKey),
   ...fieldStyle,
@@ -7771,7 +7783,6 @@ style={{
                                   : "text-white/80"
                               }
 style={{
-  ...thumbsUpStyle,
   opacity: voteLoadingId === message.id ? 0.5 : 1,
   cursor:
     voteLoadingId === message.id
@@ -7825,7 +7836,6 @@ style={{
                                   : "text-white/80"
                               }
 style={{
-  ...thumbsDownStyle,
   opacity: voteLoadingId === message.id ? 0.5 : 1,
   cursor:
     voteLoadingId === message.id
@@ -7905,6 +7915,8 @@ style={{
           </div>
         </div>
       </Surface>
+
+      
     );
   }
 
