@@ -741,12 +741,6 @@ Scheduling: [
     type: "timeline",
     iconName: "timeline",
   },
-  {
-    kind: "block",
-    label: "Tournament Display",
-    type: "tournament_display",
-    iconName: "scheduleAgenda",
-  },
   { kind: "block", label: "Checklist", type: "checklist" },
   { kind: "block", label: "Schedule / Agenda", type: "schedule_agenda" },
 {
@@ -761,6 +755,7 @@ Infographics: [
   { kind: "block", label: "Process Flow", type: "process_flow" },
   { kind: "block", label: "Statistic Cards", type: "statistic_cards" },
   { kind: "block", label: "Comparison Table", type: "comparison_table" },
+  { kind: "block", label: "Tournament Display", type: "tournament_display" },
   { kind: "block", label: "Pyramid", type: "pyramid" },
   { kind: "block", label: "Circular Hub", type: "circular_hub" },
   { kind: "block", label: "Story Cards", type: "story_cards" },
@@ -2011,7 +2006,6 @@ function getToolIconPath(tool: (typeof CATEGORY_BUTTONS)[BottomCategory][number]
   if (tool.label === "Countdown") return "/menu-icons/block-countdown.svg";
   if (tool.label === "Story Timeline") return "/menu-icons/block-story-timeline.svg";
   if (tool.label === "Checklist") return "/menu-icons/block-checklist.svg";
-  if (tool.label === "Tournament Display") return "/menu-icons/block-tournament-display.svg";
   if (tool.label === "Schedule / Agenda") return "/menu-icons/block-schedule-agenda.svg";
   if (tool.label === "Calendar Event") return "/menu-icons/block-calendar-event.svg";
   if (tool.label === "Map / Location") return "/menu-icons/block-map-location.svg";
@@ -2019,6 +2013,7 @@ function getToolIconPath(tool: (typeof CATEGORY_BUTTONS)[BottomCategory][number]
   if (tool.label === "Process Flow") return "/menu-icons/block-process-flow.svg";
   if (tool.label === "Statistic Cards") return "/menu-icons/block-statistic-cards.svg";
   if (tool.label === "Comparison Table") return "/menu-icons/block-comparison-table.svg";
+  if (tool.label === "Tournament Display") return "/menu-icons/block-tournament-display.svg";
   if (tool.label === "Pyramid") return "/menu-icons/block-pyramid.svg";
   if (tool.label === "Circular Hub") return "/menu-icons/block-circular-hub.svg";
   if (tool.label === "Story Cards") return "/menu-icons/block-story-cards.svg";
