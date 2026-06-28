@@ -2016,6 +2016,15 @@ function getToolIconPath(tool: (typeof CATEGORY_BUTTONS)[BottomCategory][number]
   if (tool.label === "Calendar Event") return "/menu-icons/block-calendar-event.svg";
   if (tool.label === "Map / Location") return "/menu-icons/block-map-location.svg";
 
+  if (tool.label === "Process Flow") return "/menu-icons/block-process-flow.svg";
+  if (tool.label === "Statistic Cards") return "/menu-icons/block-statistic-cards.svg";
+  if (tool.label === "Comparison Table") return "/menu-icons/block-comparison-table.svg";
+  if (tool.label === "Pyramid") return "/menu-icons/block-pyramid.svg";
+  if (tool.label === "Circular Hub") return "/menu-icons/block-circular-hub.svg";
+  if (tool.label === "Story Cards") return "/menu-icons/block-story-cards.svg";
+  if (tool.label === "Interactive Hotspots") return "/menu-icons/block-iinteractive-hot-spots.svg";
+  if (tool.label === "Formula Board") return "/menu-icons/block-formula-board.svg";
+
   if (tool.label === "Registry") return "/menu-icons/block-registry.svg";
   if (tool.label === "Puzzle") return "/menu-icons/block-puzzle.svg";
   if (tool.label === "Spin Wheel") return "/menu-icons/block-spin-wheel.svg";
