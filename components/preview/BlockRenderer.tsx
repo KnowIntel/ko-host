@@ -7031,10 +7031,7 @@ const fieldStyle = data.fieldStyle ?? {};
 const sectionStyle = data.sectionStyle ?? {};
 const captionPillStyle = data.captionPillStyle ?? {};
 const addMediaButtonStyle = data.addMediaButtonStyle ?? {};
-const postButtonBoxStyle =
-  typeof data.postButtonStyle === "object" && data.postButtonStyle !== null
-    ? data.postButtonStyle
-    : {};
+const postButtonBoxStyle = data.postButtonAppearanceStyle ?? {};
 const thumbsUpStyle = data.thumbsUpStyle ?? {};
 const thumbsDownStyle = data.thumbsDownStyle ?? {};
 const defaultProfileStyle = data.defaultProfileStyle ?? {};
@@ -7554,7 +7551,10 @@ return (
           <div className="relative z-10 mt-4 shrink-0 pointer-events-auto">
             <div
               className={`${getThreadComposerClass(designKey)} border`}
-              style={getThreadElementBoxStyle(block.data.postBlockAppearance)}
+              style={{
+  ...getThreadElementBoxStyle(block.data.postBlockAppearance),
+  ...sectionStyle,
+}}
             >
 <div
   className="font-medium"
@@ -7752,9 +7752,10 @@ style={{
                         designKey,
                         currentUserVote !== 0,
                       )}
-                    style={getThreadElementBoxStyle(
-                      block.data.messageAppearance,
-                    )}
+style={{
+  ...getThreadElementBoxStyle(block.data.messageAppearance),
+  ...sectionStyle,
+}}
                     >
                       <div className="flex items-start gap-3">
                         {showVoteControls ? (
@@ -7784,11 +7785,7 @@ style={{
                                   : "Upvote"
                               }
                             >
-                              <img
-                                src="/icons/upvote_icon.png"
-                                alt="Upvote"
-                                className="h-4 w-4"
-                              />
+<span style={{ color: (thumbsUpStyle as any).color ?? "currentColor" }}>▲</span>
                             </button>
 
                             {showVoteCount ? (
@@ -7828,11 +7825,7 @@ style={{
                                   : "Downvote"
                               }
                             >
-                              <img
-                                src="/icons/downvote_icon.png"
-                                alt="Downvote"
-                                className="h-4 w-4"
-                              />
+<span style={{ color: (thumbsDownStyle as any).color ?? "currentColor" }}>▼</span>
                             </button>
                           </div>
                         ) : null}
