@@ -7501,16 +7501,27 @@ return (
       : undefined
   }
 >
-  {(placeholderStyle as any).color ? (
-    <style>
-      {`
-        #thread-${block.id} .thread-placeholder-${block.id}::placeholder {
-          color: ${(placeholderStyle as any).color} !important;
-          opacity: 1 !important;
-        }
-      `}
-    </style>
-  ) : null}
+{placeholderStyle ? (
+  <style>
+    {`
+      #thread-${block.id} .thread-placeholder-${block.id}::placeholder {
+        color: ${(placeholderStyle as any).color ?? "inherit"} !important;
+        font-family: ${(placeholderStyle as any).fontFamily ?? "inherit"} !important;
+        font-weight: ${(placeholderStyle as any).bold ? "800" : "400"} !important;
+        font-style: ${(placeholderStyle as any).italic ? "italic" : "normal"} !important;
+        text-decoration: ${
+          [
+            (placeholderStyle as any).underline ? "underline" : "",
+            (placeholderStyle as any).strike ? "line-through" : "",
+          ]
+            .filter(Boolean)
+            .join(" ") || "none"
+        } !important;
+        opacity: 1 !important;
+      }
+    `}
+  </style>
+) : null}
 
   <div
           className="flex h-full min-h-0 w-full flex-col overflow-hidden rounded-xl border p-3"

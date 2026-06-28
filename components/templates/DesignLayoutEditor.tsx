@@ -11815,41 +11815,6 @@ const idsToExpand =
     </button>
   </>
 ) : null}
-
-          {selectedBlock?.type === "thread" ? (
-            <>
-              <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
-
-              <div className={topBarSliderWrapClass()}>
-                <span>Messages</span>
-                <input
-                  type="range"
-                  min={1}
-                  max={8}
-                  value={selectedBlock.data.maxVisibleMessages ?? 4}
-                  onChange={(e) =>
-                    updateSelectedBlock((block) =>
-                      block.type !== "thread"
-                        ? block
-                        : {
-                            ...block,
-                            data: {
-                              ...block.data,
-                              maxVisibleMessages: Math.max(
-                                1,
-                                Math.min(8, Number(e.target.value) || 4),
-                              ),
-                            },
-                          },
-                    )
-                  }
-                  className={topBarSliderClass()}
-                  title="Maximum messages loaded/displayed in the thread"
-                />
-                <span>{selectedBlock.data.maxVisibleMessages ?? 4}</span>
-              </div>
-            </>
-          ) : null}
         </>
       ) : null}
 

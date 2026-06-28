@@ -148,18 +148,22 @@ export function applyThreadStylePatch(
 
   const styleKey = getStyleKey(target);
 
-  if (target === "thumbsUp" || target === "thumbsDown") {
-    return {
-      ...block,
-      data: {
-        ...data,
-        [styleKey]: {
-          ...(data[styleKey] ?? {}),
-          ...(patch.color !== undefined ? { color: patch.color } : {}),
-        },
+if (target === "thumbsUp" || target === "thumbsDown") {
+  return {
+    ...block,
+    data: {
+      ...data,
+      [styleKey]: {
+        ...(data[styleKey] ?? {}),
+        color:
+          patch.color ??
+          patch.backgroundColor ??
+          data[styleKey]?.color ??
+          undefined,
       },
-    };
-  }
+    },
+  };
+}
 
   return {
     ...block,
