@@ -7031,7 +7031,10 @@ const fieldStyle = data.fieldStyle ?? {};
 const sectionStyle = data.sectionStyle ?? {};
 const captionPillStyle = data.captionPillStyle ?? {};
 const addMediaButtonStyle = data.addMediaButtonStyle ?? {};
-const postButtonBoxStyle = data.postButtonStyle ?? {};
+const postButtonBoxStyle =
+  typeof data.postButtonStyle === "object" && data.postButtonStyle !== null
+    ? data.postButtonStyle
+    : {};
 const thumbsUpStyle = data.thumbsUpStyle ?? {};
 const thumbsDownStyle = data.thumbsDownStyle ?? {};
 const defaultProfileStyle = data.defaultProfileStyle ?? {};
@@ -15969,12 +15972,8 @@ case "process_flow":
       return renderRsvp(block, designKey);
     case "faq":
       return renderFaq(block, designKey);
-case "thread":
-  return (
-    <div className="rounded-xl border p-4">
-      Thread placeholder
-    </div>
-  );
+    case "thread":
+      return renderThread(block, designKey, micrositeId);
     case "enrollment_board":
       return (
         <EnrollmentBoardBlock
