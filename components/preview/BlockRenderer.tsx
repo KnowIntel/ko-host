@@ -7706,27 +7706,28 @@ style={{
       : "Posting with name")}
 </div>
 
-                <button
-                  type="button"
-                  onClick={() => void handleSubmit()}
-                  disabled={isPostDisabled}
-                  className={getThreadPostButtonClass(
-                    designKey,
-                    block.data.postButtonStyle ?? "solid",
-                  )}
-style={{
-  ...getThreadBodyStyle(postButtonTextStyle, designKey),
-  ...postButtonBoxStyle,
-  ...getThreadElementBoxStyle(block.data.postButtonAppearance),
-  opacity: isPostDisabled ? 0.6 : 1,
-  cursor: isPostDisabled ? "not-allowed" : "pointer",
-  pointerEvents: "auto",
-}}
-                >
-                  {isSubmitting
-                    ? "Posting..."
-                    : block.data.postButtonText || "Post"}
-                </button>
+<button
+  type="button"
+  onClick={() => void handleSubmit()}
+  disabled={isPostDisabled}
+  className={getThreadPostButtonClass(
+    designKey,
+    block.data.postButtonStyle ?? "solid",
+  )}
+  style={{
+    ...getThreadElementBoxStyle(block.data.postButtonAppearance),
+    ...postButtonBoxStyle,
+    opacity: isPostDisabled ? 0.6 : 1,
+    cursor: isPostDisabled ? "not-allowed" : "pointer",
+    pointerEvents: "auto",
+  }}
+>
+  <span style={getThreadBodyStyle(postButtonTextStyle, designKey)}>
+    {isSubmitting
+      ? "Posting..."
+      : block.data.postButtonText || "Post"}
+  </span>
+</button>
               </div>
             </div>
           </div>
@@ -7785,7 +7786,21 @@ style={{
                                   : "Upvote"
                               }
                             >
-<span style={{ color: (thumbsUpStyle as any).color ?? "currentColor" }}>▲</span>
+<span
+  aria-hidden="true"
+  className="block h-4 w-4"
+  style={{
+    backgroundColor: (thumbsUpStyle as any).color ?? "currentColor",
+    maskImage: "url('/media-icons/thumbs-up-solid.svg')",
+    WebkitMaskImage: "url('/media-icons/thumbs-up-solid.svg')",
+    maskRepeat: "no-repeat",
+    WebkitMaskRepeat: "no-repeat",
+    maskPosition: "center",
+    WebkitMaskPosition: "center",
+    maskSize: "contain",
+    WebkitMaskSize: "contain",
+  }}
+/>
                             </button>
 
                             {showVoteCount ? (
@@ -7825,7 +7840,21 @@ style={{
                                   : "Downvote"
                               }
                             >
-<span style={{ color: (thumbsDownStyle as any).color ?? "currentColor" }}>▼</span>
+<span
+  aria-hidden="true"
+  className="block h-4 w-4"
+  style={{
+    backgroundColor: (thumbsDownStyle as any).color ?? "currentColor",
+    maskImage: "url('/media-icons/thumbs-down-solid.svg')",
+    WebkitMaskImage: "url('/media-icons/thumbs-down-solid.svg')",
+    maskRepeat: "no-repeat",
+    WebkitMaskRepeat: "no-repeat",
+    maskPosition: "center",
+    WebkitMaskPosition: "center",
+    maskSize: "contain",
+    WebkitMaskSize: "contain",
+  }}
+/>
                             </button>
                           </div>
                         ) : null}
