@@ -9585,64 +9585,6 @@ style={{
       );
     }
 
-    if (block.type === "file_share") {
-      return (
-        <div
-          className="h-full w-full rounded-xl p-4"
-          style={{
-            backgroundColor:
-              block.appearance?.backgroundColor &&
-              block.appearance.backgroundColor !== "transparent"
-                ? block.appearance.backgroundColor
-                : "transparent",
-            borderColor: block.appearance?.borderColor || undefined,
-            borderWidth:
-              typeof block.appearance?.borderWidth === "number"
-                ? `${block.appearance.borderWidth}px`
-                : undefined,
-            borderStyle:
-              typeof block.appearance?.borderWidth === "number" &&
-              block.appearance.borderWidth > 0
-                ? "solid"
-                : undefined,
-            borderRadius:
-              typeof block.appearance?.borderRadius === "number"
-                ? `${block.appearance.borderRadius}px`
-                : undefined,
-          }}
-        >
-          <div
-            className="mb-3 text-base font-semibold text-neutral-900"
-            style={getInlineTextStyle(block.data.style)}
-          >
-            {block.data.heading || "File Share"}
-          </div>
-
-          {block.data.subtext ? (
-            <div
-              className="mb-3 text-sm text-neutral-600"
-              style={getInlineTextStyle(block.data.style)}
-            >
-              {block.data.subtext}
-            </div>
-          ) : null}
-
-          <div className="rounded-lg border border-dashed border-neutral-300 bg-neutral-50 px-4 py-8 text-center text-sm text-neutral-500">
-            Upload / download area
-          </div>
-
-          <div className="mt-3 space-y-1 text-xs text-neutral-500">
-            <div>
-              Public upload: {block.data.allowPublicUpload ? "On" : "Off"}
-            </div>
-            <div>
-              Access code: {block.data.requireAccessCode ? "Required" : "Not required"}
-            </div>
-          </div>
-        </div>
-      );
-    }
-
 if (block.type === "speed_dating") {
   return <SpeedDatingCanvasPreview block={block} />;
 }
