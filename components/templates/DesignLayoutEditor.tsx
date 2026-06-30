@@ -13359,7 +13359,6 @@ renderBlockPreview={renderCanvasPreview}
     setLinkHubTextTarget={setLinkHubTextTarget}
     linkHubStyleTarget={linkHubStyleTarget}
     setLinkHubStyleTarget={setLinkHubStyleTarget}
-    setLinkHubTextTarget={setLinkHubTextTarget}
     makeClientId={makeClientId}
     resolveMediaLogoFromUrl={resolveMediaLogoFromUrl}
     uploadBuilderImageFile={uploadBuilderImageFile}
