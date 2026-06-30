@@ -9265,8 +9265,8 @@ const triggerNode = triggerSymbol ? (
   alt=""
   className="block object-contain"
   style={{
-width: `${Number((block.data as any).triggerSymbolSize ?? 40)}px`,
-height: `${Number((block.data as any).triggerSymbolSize ?? 40)}px`,
+  width: `${Number((block.data as any).triggerSymbolSize ?? 40)}px`,
+  height: `${Number((block.data as any).triggerSymbolSize ?? 40)}px`,
   }}
   onError={(e) => {
     e.currentTarget.src = "/icons/trigger_symbol_thin_chevron_black.png";
@@ -10782,34 +10782,8 @@ const idsToExpand =
       {isTextFxSelected ? (
         <>
           <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
-{selectedBlock?.type === "cta" ? (
-  <>
-    <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
 
-    <select
-      value={selectedBlock.data.styleType ?? "solid"}
-      onChange={(e) =>
-        updateSelectedBlock((block) =>
-          block.type !== "cta"
-            ? block
-            : {
-                ...block,
-                data: {
-                  ...block.data,
-                  styleType: e.target.value as "solid" | "outline" | "soft",
-                },
-              },
-        )
-      }
-      className={topBarFieldClass("w-[110px]")}
-      title="Button style"
-    >
-      <option value="solid">Solid</option>
-      <option value="outline">Outline</option>
-      <option value="soft">Soft</option>
-    </select>
-  </>
-) : null}
+
           {/* Straight */}
           <button
             type="button"
@@ -13783,6 +13757,32 @@ renderBlockPreview={renderCanvasPreview}
         className="mt-1 h-10 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-900 outline-none"
       />
     </label>
+
+    <label className="block">
+  <span className="text-xs font-medium text-neutral-600">Button Style</span>
+
+  <select
+    value={(selectedBlock.data as any).styleType ?? "solid"}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type === "cta"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                styleType: e.target.value as "solid" | "outline" | "soft",
+              },
+            }
+          : block,
+      )
+    }
+    className="mt-1 h-10 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-900 outline-none"
+  >
+    <option value="solid">Solid</option>
+    <option value="outline">Outline</option>
+    <option value="soft">Soft</option>
+  </select>
+</label>
 
     <div>
       <div className="text-xs font-medium text-neutral-600">Button Image</div>
