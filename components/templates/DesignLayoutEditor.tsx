@@ -73,6 +73,14 @@ import {
 } from "@/components/builder/formatting/imageFormatting";
 
 import {
+  applyLinkHubStylePatch,
+  applyLinkHubTextStylePatch,
+  getLinkHubTextStyle,
+  type LinkHubStyleTarget,
+  type LinkHubTextTarget,
+} from "@/components/builder/formatting/linkHubFormatting";
+
+import {
   applyFileShareStylePatch,
   applyFileShareTextStylePatch,
   getFileShareTextStyle,
@@ -2228,6 +2236,12 @@ const [listingStyleTarget, setListingStyleTarget] = useState<
   "title" | "description" | "metadata" | "price" | "quantity"
 >("title");
 
+const [linkHubTextTarget, setLinkHubTextTarget] =
+  useState<LinkHubTextTarget>("heading");
+
+const [linkHubStyleTarget, setLinkHubStyleTarget] =
+  useState<LinkHubStyleTarget>("section");
+
 const [fileShareTextTarget, setFileShareTextTarget] =
   useState<FileShareTextTarget>("heading");
 
@@ -2454,9 +2468,6 @@ const currentSiteDisplay = isLiveMicrosite
   const [buildPresetModalOpen, setBuildPresetModalOpen] = useState(false);
   const [buildPresetJson, setBuildPresetJson] = useState("");
   const [buildPresetError, setBuildPresetError] = useState("");
-  const [linkHubTextTarget, setLinkHubTextTarget] = useState<
-  "form" | "label" | "description" | "url"
->("form");
   const [richTextLinkValue, setRichTextLinkValue] = useState("https://");
   const [recentColors, setRecentColors] = useState<string[]>(() => {
     if (typeof window === "undefined") return [];
@@ -2610,6 +2621,11 @@ selectedBlockFromDraft?.type === "gallery"
       selectedBlockFromDraft,
       galleryTextTarget,
     ) as TextStyle)
+: selectedBlockFromDraft?.type === "link_hub"
+  ? (getLinkHubTextStyle(
+      selectedBlockFromDraft,
+      linkHubTextTarget,
+    ) as TextStyle)
 : selectedBlockFromDraft?.type === "file_share"
   ? (getFileShareTextStyle(
       selectedBlockFromDraft,
@@ -2723,20 +2739,6 @@ selectedBlockFromDraft?.type === "gallery"
                                 (selectedBlockFromDraft.data as any).style ??
                                 {}) as TextStyle)
                             : (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
-                    : selectedBlockFromDraft?.type === "link_hub"
-                      ? linkHubTextTarget === "label"
-                        ? (((selectedBlockFromDraft.data as any).labelStyle ??
-                            selectedBlockFromDraft.data.style ??
-                            {}) as TextStyle)
-                        : linkHubTextTarget === "description"
-                          ? (((selectedBlockFromDraft.data as any).descriptionStyle ??
-                              selectedBlockFromDraft.data.style ??
-                              {}) as TextStyle)
-                          : linkHubTextTarget === "url"
-                            ? (((selectedBlockFromDraft.data as any).urlStyle ??
-                                selectedBlockFromDraft.data.style ??
-                                {}) as TextStyle)
-: (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
 : selectedBlockFromDraft?.type === "content_panel"
   ? (getContentPanelTextStyle(
       selectedBlockFromDraft,
@@ -2833,7 +2835,6 @@ selectedBlockFromDraft?.type === "gallery"
                         selectedBlockFromDraft?.type === "image" ||
                         (selectedBlockFromDraft as any)?.type === "gallery" ||
                         selectedBlockFromDraft?.type === "progress_bar" ||
-                        (selectedBlockFromDraft as any)?.type === "link_hub" ||
                         selectedBlockFromDraft?.type === "checklist" ||
                         selectedBlockFromDraft?.type === "schedule_agenda" ||
                         selectedBlockFromDraft?.type === "map_location" ||
@@ -4529,32 +4530,6 @@ if (selectedBlock?.type === "wave") {
   return;
 }
 
-if (selectedBlock?.type === "link_hub") {
-  updateSelectedBlock((block) =>
-    block.type !== "link_hub"
-      ? block
-      : linkHubTextTarget === "form"
-        ? {
-            ...block,
-            appearance: {
-              ...block.appearance,
-              backgroundColor: value,
-            },
-          }
-        : {
-            ...block,
-            data: {
-              ...block.data,
-              cardBackgroundColor: value,
-              cardTransparentBackground: false,
-            },
-          },
-  );
-
-  pushRecentColor(value);
-  return;
-}
-
 if (selectedBlockFromDraft?.type === "form_field") {
   applyAppearancePatch({ backgroundColor: value });
   pushRecentColor(value);
@@ -4871,6 +4846,16 @@ const handleVideoUpload = async (
 };
 
 function applyStylePatch(patch: Partial<TextStyle>) {
+
+  if (selectedBlock?.type === "link_hub") {
+  updateSelectedBlock((block) =>
+    block.type !== "link_hub"
+      ? block
+      : applyLinkHubTextStylePatch(block, linkHubTextTarget, patch),
+  );
+
+  return;
+}
 
 if (selectedBlock?.type === "file_share") {
   updateSelectedBlock((block) =>
@@ -5303,36 +5288,6 @@ if (selectedBlock?.type === "donation") {
         },
       };
     }),
-  }));
-  return;
-}
-
-if (selectedBlock?.type === "link_hub") {
-  const targetStyleKey =
-    linkHubTextTarget === "label"
-      ? "labelStyle"
-      : linkHubTextTarget === "description"
-        ? "descriptionStyle"
-        : linkHubTextTarget === "url"
-          ? "urlStyle"
-          : "style";
-
-  setDraft((prev) => ({
-    ...prev,
-    blocks: prev.blocks.map((block) =>
-      block.id === selectedBlock.id && block.type === "link_hub"
-        ? {
-            ...block,
-            data: {
-              ...block.data,
-              [targetStyleKey]: {
-                ...((block.data as any)[targetStyleKey] ?? block.data.style ?? {}),
-                ...patch,
-              },
-            },
-          }
-        : block,
-    ),
   }));
   return;
 }
@@ -5855,6 +5810,16 @@ function clearSelectedBackground() {
 
 function applyAppearancePatch(patch: AppearancePatch) {
 
+  if (selectedBlock?.type === "link_hub") {
+  updateSelectedBlock((block) =>
+    block.type !== "link_hub"
+      ? block
+      : applyLinkHubStylePatch(block, linkHubStyleTarget, patch),
+  );
+
+  return;
+}
+
 if (selectedBlock?.type === "file_share") {
   updateSelectedBlock((block) =>
     block.type !== "file_share"
@@ -6006,54 +5971,6 @@ if (selectedBlock?.type === "content_panel") {
       contentPanelStyleTarget,
       patch,
     ),
-  );
-
-  return;
-}
-
-  if (selectedBlock?.type === "link_hub") {
-  updateSelectedBlock((block) => {
-    if (block.type !== "link_hub") return block;
-
-    if (linkHubTextTarget === "form") {
-      return {
-        ...block,
-        appearance: {
-          ...block.appearance,
-          ...patch,
-        },
-      };
-    }
-
-    return {
-      ...block,
-      data: {
-        ...block.data,
-        ...(patch.backgroundColor !== undefined
-          ? {
-              cardBackgroundColor: patch.backgroundColor,
-              cardTransparentBackground: patch.backgroundColor === "transparent",
-            }
-          : {}),
-        ...(patch.borderColor !== undefined
-          ? { cardBorderColor: patch.borderColor }
-          : {}),
-        ...(patch.borderWidth !== undefined
-          ? { cardBorderWidth: patch.borderWidth }
-          : {}),
-        ...(patch.borderRadius !== undefined
-          ? { cardBorderRadius: patch.borderRadius }
-          : {}),
-      },
-    };
-  });
-
-  return;
-}
-
-if (selectedBlock?.type === "form_field") {
-  updateSelectedBlock((block) =>
-    applyFormFieldStylePatch(block, formFieldStyleTarget, patch),
   );
 
   return;
@@ -9255,7 +9172,8 @@ const imageWidth = Number((block.data as any).imageWidth ?? 40);
     (block.data as any).customTriggerEnabled &&
     (block.data as any).customTriggerUrl
       ? (block.data as any).customTriggerUrl
-      : (block.data as any).triggerSymbol || "/icons/icon_thin_chevron.png";
+      : (block.data as any).triggerSymbol ||
+  "/icons/trigger_symbol_thin_chevron_black.png";
 
   return (
     <div
@@ -9285,7 +9203,9 @@ const imageWidth = Number((block.data as any).imageWidth ?? 40);
       {String(block.data.heading ?? "").trim() ? (
         <div
           className="mb-3 text-base font-semibold text-neutral-900"
-          style={getInlineTextStyle(block.data.style)}
+          style={getInlineTextStyle(
+  (block.data as any).headingStyle ?? block.data.style,
+)}
         >
           {block.data.heading}
         </div>
@@ -9379,12 +9299,14 @@ style={{
 
               <div
                 className="min-w-0 flex flex-1 flex-col justify-center"
-                style={{
-                  paddingLeft: isFlush ? `${cardPaddingX}px` : undefined,
-                  paddingRight: isFlush ? `${cardPaddingX}px` : undefined,
-                  paddingTop: isFlush ? `${cardPaddingY}px` : undefined,
-                  paddingBottom: isFlush ? `${cardPaddingY}px` : undefined,
-                }}
+style={{
+  boxShadow: cardShadow,
+  ...((block.data as any).sectionStyle ?? {}),
+  paddingLeft: isFlush ? 0 : `${cardPaddingX}px`,
+  paddingRight: isFlush ? 0 : `${cardPaddingX}px`,
+  paddingTop: isFlush ? 0 : `${cardPaddingY}px`,
+  paddingBottom: isFlush ? 0 : `${cardPaddingY}px`,
+}}
               >
                 <div
                   className="truncate text-sm font-medium text-neutral-900"
@@ -13434,6 +13356,9 @@ renderBlockPreview={renderCanvasPreview}
     selectedBlock={selectedBlock}
     updateSelectedBlock={updateSelectedBlock}
     linkHubTextTarget={linkHubTextTarget}
+    setLinkHubTextTarget={setLinkHubTextTarget}
+    linkHubStyleTarget={linkHubStyleTarget}
+    setLinkHubStyleTarget={setLinkHubStyleTarget}
     setLinkHubTextTarget={setLinkHubTextTarget}
     makeClientId={makeClientId}
     resolveMediaLogoFromUrl={resolveMediaLogoFromUrl}

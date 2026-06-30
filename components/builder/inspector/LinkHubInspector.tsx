@@ -1,6 +1,10 @@
 "use client";
 
 import type { Dispatch, SetStateAction } from "react";
+import type {
+  LinkHubStyleTarget,
+  LinkHubTextTarget,
+} from "@/components/builder/formatting/linkHubFormatting";
 
 /**
  * Link Hub inspector section
@@ -9,7 +13,6 @@ import type { Dispatch, SetStateAction } from "react";
  * DesignLayoutEditor remains the middleman and only renders this when:
  * selectedBlock?.type === "link_hub"
  */
-type LinkHubTextTarget = "form" | "label" | "description" | "url";
 
 type LinkHubInspectorProps = {
   selectedBlock: any;
@@ -17,6 +20,9 @@ type LinkHubInspectorProps = {
 
   linkHubTextTarget: LinkHubTextTarget;
   setLinkHubTextTarget: Dispatch<SetStateAction<LinkHubTextTarget>>;
+
+  linkHubStyleTarget: LinkHubStyleTarget;
+  setLinkHubStyleTarget: Dispatch<SetStateAction<LinkHubStyleTarget>>;
 
   makeClientId: (prefix: string) => string;
   resolveMediaLogoFromUrl: (url: string) => string;
@@ -34,6 +40,8 @@ export function LinkHubInspector({
   updateSelectedBlock,
   linkHubTextTarget,
   setLinkHubTextTarget,
+  linkHubStyleTarget,
+  setLinkHubStyleTarget,
   makeClientId,
   resolveMediaLogoFromUrl,
   uploadBuilderImageFile,
@@ -47,23 +55,39 @@ export function LinkHubInspector({
       {/* Link Hub */}
     <div className={inspectorLabelClass()}>Link Hub</div>
 
-    <div className="mt-4">
-      <div className={inspectorLabelClass()}>Text Target</div>
-      <select
-        value={linkHubTextTarget}
-        onChange={(e) =>
-          setLinkHubTextTarget(
-            e.target.value as "form" | "label" | "description" | "url",
-          )
-        }
-        className={inspectorInputClass()}
-      >
-        <option value="form">Form</option>
-        <option value="label">Link Label</option>
-        <option value="description">Link Description</option>
-        <option value="url">Link URL</option>
-      </select>
-    </div>
+<div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+  <div className={inspectorLabelClass()}>Formatting</div>
+
+  <div className="mt-3">
+    <div className={inspectorLabelClass()}>Text Target</div>
+    <select
+      value={linkHubTextTarget}
+      onChange={(e) =>
+        setLinkHubTextTarget(e.target.value as LinkHubTextTarget)
+      }
+      className={inspectorInputClass()}
+    >
+      <option value="heading">Heading</option>
+      <option value="label">Link Label</option>
+      <option value="description">Description</option>
+      <option value="url">URL</option>
+    </select>
+  </div>
+
+  <div className="mt-3">
+    <div className={inspectorLabelClass()}>Style Target</div>
+    <select
+      value={linkHubStyleTarget}
+      onChange={(e) =>
+        setLinkHubStyleTarget(e.target.value as LinkHubStyleTarget)
+      }
+      className={inspectorInputClass()}
+    >
+      <option value="section">Section</option>
+      <option value="block">Block</option>
+    </select>
+  </div>
+</div>
 
 <div className="mt-4">
   <div className={inspectorLabelClass()}>Image Placement</div>

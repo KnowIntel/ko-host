@@ -12059,7 +12059,8 @@ function renderLinkHub(
     (block.data as any).customTriggerEnabled &&
     (block.data as any).customTriggerUrl
       ? (block.data as any).customTriggerUrl
-      : (block.data as any).triggerSymbol || "/icons/icon_thin_chevron.png";
+      : (block.data as any).triggerSymbol ||
+  "/icons/trigger_symbol_thin_chevron_black.png";
 
   const cardShadow =
     (block.data as any).cardShadowEnabled &&
@@ -12076,7 +12077,10 @@ function renderLinkHub(
       {String(block.data.heading ?? "").trim() ? (
         <div
           className="mb-3 text-base font-semibold"
-          style={getContainerTextStyle(block.data.style, designKey)}
+          style={getContainerTextStyle(
+  (block.data as any).headingStyle ?? block.data.style,
+  designKey,
+)}
         >
           {block.data.heading}
         </div>
@@ -12168,24 +12172,12 @@ const imageNode = logoUrl ? (
                 ].join(" ")}
 style={{
   boxShadow: cardShadow,
-  backgroundColor:
-    (block.data as any).cardTransparentBackground
-      ? "transparent"
-      : ((block.data as any).cardBackgroundColor ?? undefined),
-  borderColor: (block.data as any).cardBorderColor ?? undefined,
-  borderWidth:
-    typeof (block.data as any).cardBorderWidth === "number"
-      ? `${(block.data as any).cardBorderWidth}px`
-      : undefined,
-  borderRadius:
-    typeof (block.data as any).cardBorderRadius === "number"
-      ? `${(block.data as any).cardBorderRadius}px`
-      : undefined,
+  ...((block.data as any).sectionStyle ?? {}),
   paddingLeft: isFlush ? 0 : `${cardPaddingX}px`,
-                  paddingRight: isFlush ? 0 : `${cardPaddingX}px`,
-                  paddingTop: isFlush ? 0 : `${cardPaddingY}px`,
-                  paddingBottom: isFlush ? 0 : `${cardPaddingY}px`,
-                }}
+  paddingRight: isFlush ? 0 : `${cardPaddingX}px`,
+  paddingTop: isFlush ? 0 : `${cardPaddingY}px`,
+  paddingBottom: isFlush ? 0 : `${cardPaddingY}px`,
+}}
               >
                 {!imageOnRight ? imageNode : null}
 
