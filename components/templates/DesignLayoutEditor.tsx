@@ -4872,7 +4872,7 @@ const handleVideoUpload = async (
 
 function applyStylePatch(patch: Partial<TextStyle>) {
 
-  if (selectedBlock?.type === "file_share") {
+if (selectedBlock?.type === "file_share") {
   updateSelectedBlock((block) =>
     block.type !== "file_share"
       ? block
@@ -5855,7 +5855,7 @@ function clearSelectedBackground() {
 
 function applyAppearancePatch(patch: AppearancePatch) {
 
-  if (selectedBlock?.type === "file_share") {
+if (selectedBlock?.type === "file_share") {
   updateSelectedBlock((block) =>
     block.type !== "file_share"
       ? block
@@ -5863,7 +5863,7 @@ function applyAppearancePatch(patch: AppearancePatch) {
   );
 
   return;
-}
+} 
 
   if (selectedBlock?.type === "post_board") {
   updateSelectedBlock((block) =>
