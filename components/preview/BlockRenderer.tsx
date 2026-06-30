@@ -5632,82 +5632,51 @@ function renderPostBoard(
     color: "#111827",
   } as any;
 
-  const blockStyle = {
-    ...defaultPostBoardTextStyle,
-    ...((block.data as any).style ?? {}),
-  } as any;
+  const data = block.data as any;
 
-  const blockHeadingStyle = {
-    ...defaultPostBoardTextStyle,
-    fontSize: 16,
-    bold: true,
-    color: "#111827",
-    ...((block.data as any).blockHeadingStyle ?? {}),
-  } as any;
+const baseTextStyle = data.style ?? {};
 
-  const cardStyle = {
-    backgroundColor: "#ffffff",
-    borderColor: "#e5e7eb",
-    borderWidth: 1,
-    borderRadius: 16,
-    ...((block.data as any).cardStyle ?? {}),
-  } as any;
+const blockHeadingStyle =
+  data.blockHeadingStyle ?? baseTextStyle;
 
-  const headingStyle = {
-    ...defaultPostBoardTextStyle,
-    fontSize: 14,
-    bold: true,
-    color: "#111827",
-    ...((block.data as any).headingStyle ?? {}),
-  } as any;
+const subtitleStyle =
+  data.subtitleStyle ?? baseTextStyle;
 
-  const bodyStyle = {
-    ...defaultPostBoardTextStyle,
-    fontSize: 14,
-    color: "#374151",
-    ...((block.data as any).bodyStyle ?? {}),
-  } as any;
+const pinnedPillTextStyle =
+  data.pinnedPillTextStyle ?? baseTextStyle;
 
-  const buttonStyle = {
-    ...defaultPostBoardTextStyle,
-    fontSize: 12,
-    bold: true,
-    color: "#374151",
-    backgroundColor: "#f9fafb",
-    borderColor: "#e5e7eb",
-    borderWidth: 1,
-    borderRadius: 999,
-    ...((block.data as any).buttonStyle ?? {}),
-  } as any;
+const pinnedLabelStyle =
+  data.pinnedLabelStyle ?? baseTextStyle;
 
-  const avatarStyle = {
-  size: 36,
-  backgroundColor: "#000000",
-  color: "#ffffff",
-  fontSize: 12,
-  bold: true,
-  ...((block.data as any).avatarStyle ?? {}),
-} as any;
+const ownerDisplayNameStyle =
+  data.ownerDisplayNameStyle ?? baseTextStyle;
 
-const metaStyle = {
-  fontFamily: "Inter",
-  fontSize: 11,
-  color: "#6b7280",
-  bold: false,
-  ...((block.data as any).metaStyle ?? {}),
-} as any;
+const actionButtonTextStyle =
+  data.actionButtonTextStyle ?? baseTextStyle;
 
-const actionButtonStyle = {
-  height: 22,
-  minWidth: 42,
-  fontSize: 10,
-  color: "#111827",
-  backgroundColor: "#ffffff",
-  borderColor: "#e5e7eb",
-  borderWidth: 1,
-  borderRadius: 999,
-  ...((block.data as any).actionButtonStyle ?? {}),
-} as any;
+const headingStyle =
+  data.headingStyle ?? baseTextStyle;
+
+const bodyStyle =
+  data.bodyStyle ?? baseTextStyle;
+
+const defaultProfileTextStyle =
+  data.defaultProfileTextStyle ?? baseTextStyle;
+
+const sectionStyle =
+  data.cardStyle ?? {};
+
+const pinnedPillStyle =
+  data.pinnedPillStyle ?? {};
+
+const actionButtonStyle =
+  data.buttonStyle ?? {};
+
+const defaultProfileStyle =
+  data.defaultProfileStyle ?? {};
+
+const blockStyle =
+  data.style ?? {};
 
   const interactionMode = block.data.interactionMode ?? "announcement";
   const isCommunityBoard = interactionMode === "community";
@@ -6209,7 +6178,10 @@ async function handleCreateReply(post: any) {
       block={block}
       designKey={designKey}
       className={`${getSoftSurfaceClass(designKey)} overflow-y-auto`}
-      styleOverride={getPostBoardBoxStyle(block.appearance as any)}
+      styleOverride={{
+  ...getPostBoardBoxStyle(block.appearance as any),
+  ...getPostBoardBoxStyle(blockStyle),
+}}
     >
 {block.data.showHeading !== false ? (
   <div
@@ -6225,7 +6197,7 @@ async function handleCreateReply(post: any) {
           className={`mt-1 ${isFeature ? "text-sm" : "text-xs"} ${getMutedTextClass(
             designKey,
           )}`}
-          style={getContainerTextStyle(blockStyle, designKey)}
+          style={getContainerTextStyle(subtitleStyle, designKey)}
         >
           {block.data.subtitle || "Latest announcements and posts"}
         </div>
@@ -6397,10 +6369,10 @@ const isExpanded = expandedPostId === post.id;
                       ? "border-neutral-200 bg-white"
                       : "border-white/10 bg-white/5",
                   ].join(" ")}
-                  style={{
-                    ...getContainerTextStyle(cardStyle, designKey),
-                    ...getPostBoardBoxStyle(cardStyle),
-                  }}
+style={{
+  ...getContainerTextStyle(sectionStyle, designKey),
+  ...getPostBoardBoxStyle(sectionStyle),
+}}
                 >
                   <div className="flex items-start gap-3">
                     {block.data.showOwnerAvatar !== false ? (
@@ -6416,14 +6388,12 @@ const isExpanded = expandedPostId === post.id;
                       ) : (
 <div
   className="flex shrink-0 items-center justify-center rounded-full"
-  style={{
-    width: `${avatarStyle.size}px`,
-    height: `${avatarStyle.size}px`,
-    backgroundColor: avatarStyle.backgroundColor,
-    color: avatarStyle.color,
-    fontSize: `${avatarStyle.fontSize}px`,
-    fontWeight: avatarStyle.bold ? 700 : 400,
-  }}
+style={{
+  width: "36px",
+  height: "36px",
+  ...getPostBoardBoxStyle(defaultProfileStyle),
+  ...getContainerTextStyle(defaultProfileTextStyle, designKey),
+}}
 >
   {getPostInitials(ownerName)}
 </div>
@@ -6434,7 +6404,7 @@ const isExpanded = expandedPostId === post.id;
                       <div className="flex flex-wrap items-center gap-2">
 <div
   className="text-sm font-semibold"
-  style={getContainerTextStyle(metaStyle, designKey)}
+  style={getContainerTextStyle(ownerDisplayNameStyle, designKey)}
 >
   {ownerName}
 </div>
@@ -6442,7 +6412,7 @@ const isExpanded = expandedPostId === post.id;
                         {block.data.showTimestamps !== false ? (
 <div
   className="text-xs"
-  style={getContainerTextStyle(metaStyle, designKey)}
+  style={getContainerTextStyle(ownerDisplayNameStyle, designKey)}
 >
   {formatPostTime(post.createdAt)}
 </div>
@@ -6471,16 +6441,22 @@ const isExpanded = expandedPostId === post.id;
                         ) : null}
 
                         {post.pinned ? (
-                          <div
-                            className={[
-                              "rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.12em]",
-                              isLightDesign(designKey)
-                                ? "bg-neutral-100 text-neutral-700"
-                                : "bg-white/10 text-white/75",
-                            ].join(" ")}
-                          >
-                            Pinned
-                          </div>
+<div
+  className={[
+    "rounded-full px-2 py-0.5 uppercase tracking-[0.12em]",
+    isLightDesign(designKey)
+      ? "bg-neutral-100 text-neutral-700"
+      : "bg-white/10 text-white/75",
+  ].join(" ")}
+  style={{
+    ...getContainerTextStyle(pinnedPillTextStyle, designKey),
+    ...getPostBoardBoxStyle(pinnedPillStyle),
+  }}
+>
+  <span style={getContainerTextStyle(pinnedLabelStyle, designKey)}>
+    {data.pinnedLabel ?? "Pinned"}
+  </span>
+</div>
                         ) : null}
                       </div>
 
@@ -6506,10 +6482,7 @@ const isExpanded = expandedPostId === post.id;
                             "mt-1 leading-snug",
                             isCompact ? "text-xs" : "text-sm",
                           ].join(" ")}
-                          style={{
-                            ...getContainerTextStyle(bodyStyle, designKey),
-                            ...getPostBoardBoxStyle(bodyStyle),
-                          }}
+style={getContainerTextStyle(bodyStyle, designKey)}
                         >
                           {getPostMessage(post.message)}
                         </div>
@@ -6576,16 +6549,8 @@ const isExpanded = expandedPostId === post.id;
                                 : "border-white/10 bg-white/5 text-white/75",
                             ].join(" ")}
 style={{
-  ...getContainerTextStyle(buttonStyle, designKey),
-  ...getPostBoardBoxStyle(buttonStyle),
-  height: `${actionButtonStyle.height}px`,
-  minWidth: `${actionButtonStyle.minWidth}px`,
-  fontSize: `${actionButtonStyle.fontSize}px`,
-  backgroundColor: actionButtonStyle.backgroundColor,
-  borderColor: actionButtonStyle.borderColor,
-  borderWidth: `${actionButtonStyle.borderWidth}px`,
-  borderRadius: `${actionButtonStyle.borderRadius}px`,
-  color: actionButtonStyle.color,
+  ...getContainerTextStyle(actionButtonTextStyle, designKey),
+  ...getPostBoardBoxStyle(actionButtonStyle),
 }}
                             aria-label={`Like ${post.title || "post"}`}
                           >
@@ -6609,16 +6574,8 @@ style={{
                                   : "border-white/10 bg-white/5 text-white/75",
                               ].join(" ")}
 style={{
-  ...getContainerTextStyle(buttonStyle, designKey),
-  ...getPostBoardBoxStyle(buttonStyle),
-  height: `${actionButtonStyle.height}px`,
-  minWidth: `${actionButtonStyle.minWidth}px`,
-  fontSize: `${actionButtonStyle.fontSize}px`,
-  backgroundColor: actionButtonStyle.backgroundColor,
-  borderColor: actionButtonStyle.borderColor,
-  borderWidth: `${actionButtonStyle.borderWidth}px`,
-  borderRadius: `${actionButtonStyle.borderRadius}px`,
-  color: actionButtonStyle.color,
+  ...getContainerTextStyle(actionButtonTextStyle, designKey),
+  ...getPostBoardBoxStyle(actionButtonStyle),
 }}
                             >
                               💬 {replies.length || post.messageCount || 0}
@@ -6672,17 +6629,8 @@ style={{
                                   : "border-white/10 bg-white/5 text-white/75",
                               ].join(" ")}
 style={{
-  ...getContainerTextStyle(buttonStyle, designKey),
-  ...getPostBoardBoxStyle(buttonStyle),
-
-  height: `${actionButtonStyle.height}px`,
-  minWidth: `${actionButtonStyle.minWidth}px`,
-  fontSize: `${actionButtonStyle.fontSize}px`,
-  backgroundColor: actionButtonStyle.backgroundColor,
-  borderColor: actionButtonStyle.borderColor,
-  borderWidth: `${actionButtonStyle.borderWidth}px`,
-  borderRadius: `${actionButtonStyle.borderRadius}px`,
-  color: actionButtonStyle.color,
+  ...getContainerTextStyle(actionButtonTextStyle, designKey),
+  ...getPostBoardBoxStyle(actionButtonStyle),
 }}
                               aria-label={`Open discussion for ${post.title || "post"}`}
                             >

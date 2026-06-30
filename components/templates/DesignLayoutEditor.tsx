@@ -73,6 +73,14 @@ import {
 } from "@/components/builder/formatting/imageFormatting";
 
 import {
+  applyPostBoardStylePatch,
+  applyPostBoardTextStylePatch,
+  getPostBoardTextStyle,
+  type PostBoardStyleTarget,
+  type PostBoardTextTarget,
+} from "@/components/builder/formatting/postBoardFormatting";
+
+import {
   applyFaqStylePatch,
   applyFaqTextStylePatch,
   getFaqTextStyle,
@@ -756,7 +764,7 @@ Infographics: [
   { kind: "block", label: "Statistic Cards", type: "statistic_cards" },
   { kind: "block", label: "Comparison Table", type: "comparison_table" },
   { kind: "block", label: "Tournament Display", type: "tournament_display" },
-  { kind: "block", label: "Pyramid", type: "pyramid" },
+  { kind: "block", label: "Data Pyramid", type: "data_pyramid" },
   { kind: "block", label: "Circular Hub", type: "circular_hub" },
   { kind: "block", label: "Story Cards", type: "story_cards" },
   { kind: "block", label: "Interactive Hotspots", type: "interactive_hotspots" },
@@ -2014,7 +2022,7 @@ function getToolIconPath(tool: (typeof CATEGORY_BUTTONS)[BottomCategory][number]
   if (tool.label === "Statistic Cards") return "/menu-icons/block-statistic-cards.svg";
   if (tool.label === "Comparison Table") return "/menu-icons/block-comparison-table.svg";
   if (tool.label === "Tournament Display") return "/menu-icons/block-tournament-display.svg";
-  if (tool.label === "Pyramid") return "/menu-icons/block-pyramid.svg";
+  if (tool.label === "Data Pyramid") return "/menu-icons/block-pyramid.svg";
   if (tool.label === "Circular Hub") return "/menu-icons/block-circular-hub.svg";
   if (tool.label === "Story Cards") return "/menu-icons/block-story-cards.svg";
   if (tool.label === "Interactive Hotspots") return "/menu-icons/block-iinteractive-hot-spots.svg";
@@ -2211,6 +2219,12 @@ export default function DesignLayoutEditor({
 const [listingStyleTarget, setListingStyleTarget] = useState<
   "title" | "description" | "metadata" | "price" | "quantity"
 >("title");
+
+const [postBoardTextTarget, setPostBoardTextTarget] =
+  useState<PostBoardTextTarget>("heading");
+
+const [postBoardUnifiedStyleTarget, setPostBoardUnifiedStyleTarget] =
+  useState<PostBoardStyleTarget>("section");
 
 const [threadTextTarget, setThreadTextTarget] =
   useState<ThreadTextTarget>("subject");
@@ -2582,6 +2596,11 @@ selectedBlockFromDraft?.type === "gallery"
       selectedBlockFromDraft,
       galleryTextTarget,
     ) as TextStyle)
+: selectedBlockFromDraft?.type === "post_board"
+  ? (getPostBoardTextStyle(
+      selectedBlockFromDraft,
+      postBoardTextTarget,
+    ) as TextStyle)
 : selectedBlockFromDraft?.type === "enrollment_board"
   ? (getEnrollmentBoardTextStyle(
       selectedBlockFromDraft,
@@ -2645,26 +2664,6 @@ selectedBlockFromDraft?.type === "gallery"
       selectedBlockFromDraft,
       optionButtonTextTarget,
     ) as TextStyle)
-: selectedBlockFromDraft?.type === "post_board"
-  ? postBoardStyleTarget === "block_heading"
-  ? (((selectedBlockFromDraft.data as any).blockHeadingStyle ?? {}) as TextStyle)
-    : postBoardStyleTarget === "card"
-      ? (((selectedBlockFromDraft.data as any).cardStyle ??
-          (selectedBlockFromDraft.data as any).style ??
-          {}) as TextStyle)
-      : postBoardStyleTarget === "heading"
-        ? (((selectedBlockFromDraft.data as any).headingStyle ??
-            (selectedBlockFromDraft.data as any).style ??
-            {}) as TextStyle)
-        : postBoardStyleTarget === "body"
-          ? (((selectedBlockFromDraft.data as any).bodyStyle ??
-              (selectedBlockFromDraft.data as any).style ??
-              {}) as TextStyle)
-          : postBoardStyleTarget === "buttons"
-            ? (((selectedBlockFromDraft.data as any).buttonStyle ??
-                (selectedBlockFromDraft.data as any).style ??
-                {}) as TextStyle)
-            : (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
 : selectedBlockFromDraft?.type === "visitor_counter"
   ? (((selectedBlockFromDraft.data as any).numberStyle ??
       (selectedBlockFromDraft.data as any).style ??
@@ -4855,6 +4854,16 @@ const handleVideoUpload = async (
 
 function applyStylePatch(patch: Partial<TextStyle>) {
 
+  if (selectedBlock?.type === "post_board") {
+  updateSelectedBlock((block) =>
+    block.type !== "post_board"
+      ? block
+      : applyPostBoardTextStylePatch(block, postBoardTextTarget, patch),
+  );
+
+  return;
+}
+
   if (selectedBlock?.type === "thread") {
   updateSelectedBlock((block) =>
     block.type !== "thread"
@@ -4988,44 +4997,6 @@ if (selectedBlockFromDraft?.type === "poll") {
     }));
     return;
   }
-
-  if (selectedBlock?.type === "post_board") {
-  setDraft((prev) => ({
-    ...prev,
-    blocks: prev.blocks.map((block) => {
-      if (block.id !== selectedBlock.id || block.type !== "post_board") {
-        return block;
-      }
-
-      const targetStyleKey =
-        postBoardStyleTarget === "block_heading"
-          ? "blockHeadingStyle"
-          : postBoardStyleTarget === "card"
-            ? "cardStyle"
-            : postBoardStyleTarget === "heading"
-              ? "headingStyle"
-              : postBoardStyleTarget === "body"
-                ? "bodyStyle"
-                : postBoardStyleTarget === "buttons"
-                  ? "buttonStyle"
-                  : "style";
-
-      return {
-        ...block,
-        data: {
-          ...block.data,
-[targetStyleKey]: {
-  ...getPostBoardDefaultStyle(targetStyleKey),
-  ...((block.data as any)[targetStyleKey] ?? {}),
-  ...patch,
-},
-        },
-      };
-    }),
-  }));
-
-  return;
-}
 
 if (selectedBlockFromDraft?.type === "gallery") {
   updateSelectedBlock((block) =>
@@ -5877,6 +5848,20 @@ function clearSelectedBackground() {
 
 function applyAppearancePatch(patch: AppearancePatch) {
 
+  if (selectedBlock?.type === "post_board") {
+  updateSelectedBlock((block) =>
+    block.type !== "post_board"
+      ? block
+      : applyPostBoardStylePatch(
+          block,
+          postBoardUnifiedStyleTarget,
+          patch,
+        ),
+  );
+
+  return;
+}
+
   if (selectedBlock?.type === "thread") {
   updateSelectedBlock((block) =>
     block.type !== "thread"
@@ -6072,43 +6057,6 @@ if (selectedBlock?.type === "form_field") {
     return;
   }
   
-if ((selectedBlock as any)?.type === "post_board") {
-  updateSelectedBlock((block) => {
-    if (block.type !== "post_board") return block;
-
-    const patchToStyle = {
-      ...patch,
-    };
-
-    const targetStyleKey =
-      postBoardStyleTarget === "block_heading"
-        ? "blockHeadingStyle"
-        : postBoardStyleTarget === "card"
-          ? "cardStyle"
-          : postBoardStyleTarget === "heading"
-            ? "headingStyle"
-            : postBoardStyleTarget === "body"
-              ? "bodyStyle"
-              : postBoardStyleTarget === "buttons"
-                ? "buttonStyle"
-                : "style";
-
-    return {
-      ...block,
-      data: {
-        ...block.data,
-[targetStyleKey]: {
-  ...getPostBoardDefaultStyle(targetStyleKey),
-  ...((block.data as any)[targetStyleKey] ?? {}),
-  ...patchToStyle,
-},
-      },
-    };
-  });
-
-  return;
-}
-
 if (selectedBlock?.type === "highlight") {
   updateSelectedBlock((block) => {
     if (block.type !== "highlight") return block;
@@ -13542,8 +13490,10 @@ renderBlockPreview={renderCanvasPreview}
   <PostBoardInspector
     selectedBlock={selectedBlock}
     updateSelectedBlock={updateSelectedBlock}
-    postBoardStyleTarget={postBoardStyleTarget}
-    setPostBoardStyleTarget={setPostBoardStyleTarget}
+    postBoardTextTarget={postBoardTextTarget}
+    setPostBoardTextTarget={setPostBoardTextTarget}
+    postBoardUnifiedStyleTarget={postBoardUnifiedStyleTarget}
+    setPostBoardUnifiedStyleTarget={setPostBoardUnifiedStyleTarget}
     threadOptions={threadOptions}
     makeClientId={makeClientId}
     uploadImageToSelectedBlock={uploadImageToSelectedBlock}

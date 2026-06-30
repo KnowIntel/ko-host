@@ -1,6 +1,10 @@
 "use client";
 
 import type { Dispatch, SetStateAction } from "react";
+import type {
+  PostBoardStyleTarget as PostBoardUnifiedStyleTarget,
+  PostBoardTextTarget,
+} from "@/components/builder/formatting/postBoardFormatting";
 
 /**
  * Post Board inspector section
@@ -21,8 +25,13 @@ type PostBoardInspectorProps = {
   selectedBlock: any;
   updateSelectedBlock: any;
 
-  postBoardStyleTarget: PostBoardStyleTarget;
-  setPostBoardStyleTarget: Dispatch<SetStateAction<PostBoardStyleTarget>>;
+  postBoardTextTarget: PostBoardTextTarget;
+  setPostBoardTextTarget: Dispatch<SetStateAction<PostBoardTextTarget>>;
+
+  postBoardUnifiedStyleTarget: PostBoardUnifiedStyleTarget;
+  setPostBoardUnifiedStyleTarget: Dispatch<
+    SetStateAction<PostBoardUnifiedStyleTarget>
+  >;
 
   threadOptions: { id: string; label: string }[];
 
@@ -45,8 +54,10 @@ type PostBoardInspectorProps = {
 export function PostBoardInspector({
   selectedBlock,
   updateSelectedBlock,
-  postBoardStyleTarget,
-  setPostBoardStyleTarget,
+  postBoardTextTarget,
+  setPostBoardTextTarget,
+  postBoardUnifiedStyleTarget,
+  setPostBoardUnifiedStyleTarget,
   threadOptions,
   makeClientId,
   uploadImageToSelectedBlock,
@@ -60,7 +71,51 @@ export function PostBoardInspector({
     <div className={inspectorCardClass()}>
       {/* Post Board */}
     <div className={inspectorLabelClass()}>Post Board</div>
+<div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+  <div className={inspectorLabelClass()}>Formatting</div>
 
+  <div className="mt-3">
+    <div className={inspectorLabelClass()}>Text Target</div>
+    <select
+      value={postBoardTextTarget}
+      onChange={(e) =>
+        setPostBoardTextTarget(
+          e.target.value as PostBoardTextTarget,
+        )
+      }
+      className={inspectorInputClass()}
+    >
+      <option value="heading">Heading</option>
+      <option value="subtitle">Subtitle</option>
+      <option value="pinnedPill">Pinned Pill</option>
+      <option value="pinnedLabel">Pinned Label</option>
+      <option value="ownerDisplayName">Owner Display Name</option>
+      <option value="actionButtons">Like / Message Buttons</option>
+      <option value="title">Title</option>
+      <option value="messageText">Message Text</option>
+      <option value="defaultProfile">Default Profile</option>
+    </select>
+  </div>
+
+  <div className="mt-3">
+    <div className={inspectorLabelClass()}>Style Target</div>
+    <select
+      value={postBoardUnifiedStyleTarget}
+      onChange={(e) =>
+        setPostBoardUnifiedStyleTarget(
+          e.target.value as PostBoardUnifiedStyleTarget,
+        )
+      }
+      className={inspectorInputClass()}
+    >
+      <option value="section">Section</option>
+      <option value="pinnedPill">Pinned Pill</option>
+      <option value="actionButtons">Like / Message Buttons</option>
+      <option value="defaultProfile">Default Profile</option>
+      <option value="block">Block</option>
+    </select>
+  </div>
+</div>
     <div className="mt-4">
       <div className={inspectorLabelClass()}>Heading</div>
       <input
@@ -254,32 +309,6 @@ export function PostBoardInspector({
     <option value="standard">Standard</option>
     <option value="compact">Compact</option>
     <option value="feature">Feature</option>
-  </select>
-</div>
-
-<div className="mt-4">
-  <div className={inspectorLabelClass()}>Style Target</div>
-  <select
-    value={postBoardStyleTarget}
-    onChange={(e) =>
-      setPostBoardStyleTarget(
-        e.target.value as
-  | "block"
-  | "block_heading"
-  | "card"
-  | "heading"
-  | "body"
-  | "buttons",
-      )
-    }
-    className={inspectorInputClass()}
-  >
-<option value="block">Block Text</option>
-<option value="block_heading">Block Heading</option>
-<option value="card">Post Card</option>
-<option value="heading">Post Heading</option>
-<option value="body">Post Body</option>
-<option value="buttons">Like / Message Buttons</option>
   </select>
 </div>
 

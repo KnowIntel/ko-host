@@ -156,7 +156,7 @@ export type BuilderBlockType =
   | "process_flow"
   | "statistic_cards"
   | "comparison_table"
-  | "pyramid"
+  | "data_pyramid"
   | "circular_hub"
   | "story_cards"
   | "interactive_hotspots"
@@ -2037,7 +2037,7 @@ export type ProcessFlowBlockData = InfographicBaseBlockData & {
 
 export type StatisticCardsBlockData = InfographicBaseBlockData;
 export type ComparisonTableBlockData = InfographicBaseBlockData;
-export type PyramidBlockData = InfographicBaseBlockData;
+export type DataPyramidBlockData = InfographicBaseBlockData;
 export type CircularHubBlockData = InfographicBaseBlockData;
 export type StoryCardsBlockData = InfographicBaseBlockData;
 export type InteractiveHotspotsBlockData = InfographicBaseBlockData;
@@ -2070,13 +2070,13 @@ export type ComparisonTableBlock = {
   data: ComparisonTableBlockData;
 };
 
-export type PyramidBlock = {
+export type DataPyramidBlock = {
   id: string;
-  type: "pyramid";
+  type: "data_pyramid";
   label: string;
   grid: GridPlacement;
   appearance?: BlockAppearance;
-  data: PyramidBlockData;
+  data: DataPyramidBlockData;
 };
 
 export type CircularHubBlock = {
@@ -2146,7 +2146,7 @@ export type MicrositeBlock =
   | ProcessFlowBlock
   | StatisticCardsBlock
   | ComparisonTableBlock
-  | PyramidBlock
+  | DataPyramidBlock
   | CircularHubBlock
   | StoryCardsBlock
   | InteractiveHotspotsBlock
@@ -4404,7 +4404,7 @@ data: {
 
           case "statistic_cards":
     case "comparison_table":
-    case "pyramid":
+    case "data_pyramid":
     case "circular_hub":
     case "story_cards":
     case "interactive_hotspots":
