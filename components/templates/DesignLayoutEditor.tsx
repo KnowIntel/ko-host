@@ -10947,35 +10947,6 @@ const idsToExpand =
       ) : null}
 
 
-      {selectedBlock?.type === "cta" ? (
-        <>
-          <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
-
-          <select
-            value={selectedBlock.data.styleType ?? "solid"}
-            onChange={(e) =>
-              updateSelectedBlock((block) =>
-                block.type !== "cta"
-                  ? block
-                  : {
-                      ...block,
-                      data: {
-                        ...block.data,
-                        styleType: e.target.value as "solid" | "outline" | "soft",
-                      },
-                    },
-              )
-            }
-            className={topBarFieldClass("w-[110px]")}
-            title="Button style"
-          >
-            <option value="solid">Solid</option>
-            <option value="outline">Outline</option>
-            <option value="soft">Soft</option>
-          </select>
-        </>
-      ) : null}
-
 {selectedBlock?.type === "donation" ? (
   <>
     <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
