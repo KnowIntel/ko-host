@@ -9224,11 +9224,14 @@ const imageWidth = Number((block.data as any).imageWidth ?? 40);
           };
 
           const description = String(linkItem.description ?? "").trim();
-          const logoUrl = linkItem.logoUrl;
+          const logoUrl =
+  linkItem.logoUrl ||
+  "/icons/icon_recent_site_placeholder.webp";
 
           const imageFrame = (block.data as any).imageFrame ?? "circle";
 
-const imageNode = logoUrl ? (
+const imageNode =
+  typeof logoUrl === "string" && logoUrl.trim() ? (
   <span
     className={[
       "flex shrink-0 items-center justify-center overflow-hidden",
