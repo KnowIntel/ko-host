@@ -12139,8 +12139,7 @@ const imageNode =
   </span>
 ) : null;
 
-            const triggerNode =
-              !imageOnRight && triggerSymbol ? (
+const triggerNode = triggerSymbol ? (
                 <span
                   className="flex self-stretch shrink-0 items-center justify-center"
                   style={{
@@ -12231,9 +12230,9 @@ style={{
                   ) : null}
                 </div>
 
-                {triggerNode}
+{imageOnRight ? imageNode : null}
 
-                {imageOnRight ? imageNode : null}
+{triggerNode}
               </a>
             );
           })}
