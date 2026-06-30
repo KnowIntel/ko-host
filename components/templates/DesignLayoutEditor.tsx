@@ -9168,12 +9168,12 @@ const imageWidth = Number((block.data as any).imageWidth ?? 40);
         }`
       : undefined;
 
-  const triggerSymbol =
-    (block.data as any).customTriggerEnabled &&
-    (block.data as any).customTriggerUrl
-      ? (block.data as any).customTriggerUrl
-      : (block.data as any).triggerSymbol ||
-  "/icons/trigger_symbol_thin_chevron_black.png";
+const triggerSymbol =
+  (block.data as any).customTriggerEnabled &&
+  (block.data as any).customTriggerUrl
+    ? (block.data as any).customTriggerUrl
+    : (block.data as any).triggerSymbol?.trim() ||
+      "/icons/trigger_symbol_thin_chevron_black.png";
 
   return (
     <div
@@ -9260,15 +9260,18 @@ const triggerNode = triggerSymbol ? (
                   minWidth: `${Number((block.data as any).triggerSymbolSize ?? 40) + 32}px`,
                 }}
               >
-                <img
-                  src={triggerSymbol}
-                  alt=""
-                  className="block max-h-none max-w-none object-contain"
-                  style={{
-                    width: `${Number((block.data as any).triggerSymbolSize ?? 40)}px`,
-                    height: `${Number((block.data as any).triggerSymbolSize ?? 40)}px`,
-                  }}
-                />
+<img
+  src={triggerSymbol || "/icons/trigger_symbol_thin_chevron_black.png"}
+  alt=""
+  className="block object-contain"
+  style={{
+width: `${Number((block.data as any).triggerSymbolSize ?? 40)}px`,
+height: `${Number((block.data as any).triggerSymbolSize ?? 40)}px`,
+  }}
+  onError={(e) => {
+    e.currentTarget.src = "/icons/trigger_symbol_thin_chevron_black.png";
+  }}
+/>
               </span>
             ) : null;
 

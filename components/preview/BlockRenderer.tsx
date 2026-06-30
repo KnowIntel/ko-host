@@ -12055,12 +12055,12 @@ function renderLinkHub(
     (block.data as any).triggerSymbolSize ?? 40,
   );
 
-  const triggerSymbol =
-    (block.data as any).customTriggerEnabled &&
-    (block.data as any).customTriggerUrl
-      ? (block.data as any).customTriggerUrl
-      : (block.data as any).triggerSymbol ||
-  "/icons/trigger_symbol_thin_chevron_black.png";
+const triggerSymbol =
+  (block.data as any).customTriggerEnabled &&
+  (block.data as any).customTriggerUrl
+    ? (block.data as any).customTriggerUrl
+    : (block.data as any).triggerSymbol?.trim() ||
+      "/icons/trigger_symbol_thin_chevron_black.png";
 
   const cardShadow =
     (block.data as any).cardShadowEnabled &&
@@ -12147,15 +12147,18 @@ const triggerNode = triggerSymbol ? (
                   minWidth: `${triggerSymbolSize + 20}px`,
                   }}
                 >
-                  <img
-                    src={triggerSymbol}
-                    alt=""
-                    className="block max-h-none max-w-none object-contain"
-                    style={{
-                      width: `${triggerSymbolSize}px`,
-                      height: `${triggerSymbolSize}px`,
-                    }}
-                  />
+<img
+  src={triggerSymbol || "/icons/trigger_symbol_thin_chevron_black.png"}
+  alt=""
+  className="block object-contain"
+  style={{
+    width: `${triggerSymbolSize}px`,
+    height: `${triggerSymbolSize}px`,
+  }}
+  onError={(e) => {
+    e.currentTarget.src = "/icons/trigger_symbol_thin_chevron_black.png";
+  }}
+/>
                 </span>
               ) : null;
 
