@@ -10769,26 +10769,25 @@ const idsToExpand =
     onClick={handleAioClick}
     title="Artificial Intelligent Output"
   >
-    <Image
-      src="/icons/icon_wand_aio.png"
-      alt="AIO"
-      width={36}
-      height={36}
-      className="h-[36px] w-[36px] object-contain"
-    />
-  </button>
+<Image
+  src="/icons/icon_wand_aio.png"
+  alt="AIO"
+  width={36}
+  height={36}
+  className="h-[36px] w-[36px] object-contain"
+/>
+</button>
 ) : null}
 
-      {isTextFxSelected ? (
-        <>
-          <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
+{isTextFxSelected ? (
+  <>
+    <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
 
-
-          {/* Straight */}
-          <button
-            type="button"
-            className={topBarButtonClass(
-              selectedTextFxBlock?.data.fx?.mode === "straight",
+    {/* Straight */}
+    <button
+      type="button"
+      className={topBarButtonClass(
+        selectedTextFxBlock?.data.fx?.mode === "straight",
             )}
             onClick={() =>
               updateTextFx({
@@ -13713,6 +13712,32 @@ renderBlockPreview={renderCanvasPreview}
     </div>
 
     <label className="block">
+  <span className="text-xs font-medium text-neutral-600">Button Style</span>
+
+  <select
+    value={(selectedBlock.data as any).styleType ?? "solid"}
+    onChange={(e) =>
+      updateSelectedBlock((block) =>
+        block.type === "cta"
+          ? {
+              ...block,
+              data: {
+                ...block.data,
+                styleType: e.target.value as "solid" | "outline" | "soft",
+              },
+            }
+          : block,
+      )
+    }
+    className="mt-1 h-10 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-900 outline-none"
+  >
+    <option value="solid">Solid</option>
+    <option value="outline">Outline</option>
+    <option value="soft">Soft</option>
+  </select>
+</label>
+
+    <label className="block">
       <span className="text-xs font-medium text-neutral-600">Button Text</span>
       <input
         type="text"
@@ -13757,32 +13782,6 @@ renderBlockPreview={renderCanvasPreview}
         className="mt-1 h-10 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-900 outline-none"
       />
     </label>
-
-    <label className="block">
-  <span className="text-xs font-medium text-neutral-600">Button Style</span>
-
-  <select
-    value={(selectedBlock.data as any).styleType ?? "solid"}
-    onChange={(e) =>
-      updateSelectedBlock((block) =>
-        block.type === "cta"
-          ? {
-              ...block,
-              data: {
-                ...block.data,
-                styleType: e.target.value as "solid" | "outline" | "soft",
-              },
-            }
-          : block,
-      )
-    }
-    className="mt-1 h-10 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-900 outline-none"
-  >
-    <option value="solid">Solid</option>
-    <option value="outline">Outline</option>
-    <option value="soft">Soft</option>
-  </select>
-</label>
 
     <div>
       <div className="text-xs font-medium text-neutral-600">Button Image</div>
