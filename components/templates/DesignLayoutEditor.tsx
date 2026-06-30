@@ -73,6 +73,14 @@ import {
 } from "@/components/builder/formatting/imageFormatting";
 
 import {
+  applyFileShareStylePatch,
+  applyFileShareTextStylePatch,
+  getFileShareTextStyle,
+  type FileShareStyleTarget,
+  type FileShareTextTarget,
+} from "@/components/builder/formatting/fileShareFormatting";
+
+import {
   applyPostBoardStylePatch,
   applyPostBoardTextStylePatch,
   getPostBoardTextStyle,
@@ -2220,6 +2228,12 @@ const [listingStyleTarget, setListingStyleTarget] = useState<
   "title" | "description" | "metadata" | "price" | "quantity"
 >("title");
 
+const [fileShareTextTarget, setFileShareTextTarget] =
+  useState<FileShareTextTarget>("heading");
+
+const [fileShareStyleTarget, setFileShareStyleTarget] =
+  useState<FileShareStyleTarget>("section");
+
 const [postBoardTextTarget, setPostBoardTextTarget] =
   useState<PostBoardTextTarget>("heading");
 
@@ -2596,6 +2610,11 @@ selectedBlockFromDraft?.type === "gallery"
       selectedBlockFromDraft,
       galleryTextTarget,
     ) as TextStyle)
+: selectedBlockFromDraft?.type === "file_share"
+  ? (getFileShareTextStyle(
+      selectedBlockFromDraft,
+      fileShareTextTarget,
+    ) as TextStyle)
 : selectedBlockFromDraft?.type === "post_board"
   ? (getPostBoardTextStyle(
       selectedBlockFromDraft,
@@ -2818,7 +2837,6 @@ selectedBlockFromDraft?.type === "gallery"
                         selectedBlockFromDraft?.type === "checklist" ||
                         selectedBlockFromDraft?.type === "schedule_agenda" ||
                         selectedBlockFromDraft?.type === "map_location" ||
-                        selectedBlockFromDraft?.type === "file_share" ||
                         selectedBlockFromDraft?.type === "speed_dating" ||
                         selectedBlockFromDraft?.type === "rich_text" ||
                         selectedBlockFromDraft?.type === "links"
@@ -4854,6 +4872,16 @@ const handleVideoUpload = async (
 
 function applyStylePatch(patch: Partial<TextStyle>) {
 
+  if (selectedBlock?.type === "file_share") {
+  updateSelectedBlock((block) =>
+    block.type !== "file_share"
+      ? block
+      : applyFileShareTextStylePatch(block, fileShareTextTarget, patch),
+  );
+
+  return;
+}
+
   if (selectedBlock?.type === "post_board") {
   updateSelectedBlock((block) =>
     block.type !== "post_board"
@@ -5372,27 +5400,6 @@ if (selectedBlock?.type === "link_hub") {
     return;
   }
 
-  if (selectedBlock?.type === "file_share") {
-    setDraft((prev) => ({
-      ...prev,
-      blocks: prev.blocks.map((block) =>
-        block.id === selectedBlock.id && block.type === "file_share"
-          ? {
-              ...block,
-              data: {
-                ...block.data,
-                style: {
-                  ...(block.data.style ?? {}),
-                  ...patch,
-                },
-              },
-            }
-          : block,
-      ),
-    }));
-    return;
-  }
-
   if (selectedBlock?.type === "speed_dating") {
     setDraft((prev) => ({
       ...prev,
@@ -5847,6 +5854,16 @@ function clearSelectedBackground() {
 }
 
 function applyAppearancePatch(patch: AppearancePatch) {
+
+  if (selectedBlock?.type === "file_share") {
+  updateSelectedBlock((block) =>
+    block.type !== "file_share"
+      ? block
+      : applyFileShareStylePatch(block, fileShareStyleTarget, patch),
+  );
+
+  return;
+}
 
   if (selectedBlock?.type === "post_board") {
   updateSelectedBlock((block) =>
@@ -13616,14 +13633,21 @@ renderBlockPreview={renderCanvasPreview}
 ) : null}
 
 {!isMultiSelection && selectedBlock?.type === "file_share" ? (
-  <FileShareInspector
-    selectedBlock={selectedBlock}
-    updateSelectedBlock={updateSelectedBlock}
-    inspectorCardClass={inspectorCardClass}
-    inspectorLabelClass={inspectorLabelClass}
-    inspectorInputClass={inspectorInputClass}
-    inspectorTextareaClass={inspectorTextareaClass}
-  />
+<FileShareInspector
+  selectedBlock={selectedBlock}
+  updateSelectedBlock={updateSelectedBlock}
+
+  fileShareTextTarget={fileShareTextTarget}
+  setFileShareTextTarget={setFileShareTextTarget}
+
+  fileShareStyleTarget={fileShareStyleTarget}
+  setFileShareStyleTarget={setFileShareStyleTarget}
+
+  inspectorCardClass={inspectorCardClass}
+  inspectorLabelClass={inspectorLabelClass}
+  inspectorInputClass={inspectorInputClass}
+  inspectorTextareaClass={inspectorTextareaClass}
+/>
 ) : null}
 
 {!isMultiSelection && selectedBlock?.type === "enrollment_board" ? (

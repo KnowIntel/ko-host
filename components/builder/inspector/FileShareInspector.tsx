@@ -1,5 +1,6 @@
 "use client";
 
+
 /**
  * File Share inspector section
  * Extracted from DesignLayoutEditor.
@@ -7,9 +8,25 @@
  * DesignLayoutEditor remains the middleman and only renders this when:
  * selectedBlock?.type === "file_share"
  */
+import type { Dispatch, SetStateAction } from "react";
+import type {
+  FileShareStyleTarget,
+  FileShareTextTarget,
+} from "@/components/builder/formatting/fileShareFormatting";
+
 type FileShareInspectorProps = {
   selectedBlock: any;
   updateSelectedBlock: any;
+
+  fileShareTextTarget: FileShareTextTarget;
+  setFileShareTextTarget: Dispatch<
+    SetStateAction<FileShareTextTarget>
+  >;
+
+  fileShareStyleTarget: FileShareStyleTarget;
+  setFileShareStyleTarget: Dispatch<
+    SetStateAction<FileShareStyleTarget>
+  >;
 
   inspectorCardClass: () => string;
   inspectorLabelClass: () => string;
@@ -20,6 +37,13 @@ type FileShareInspectorProps = {
 export function FileShareInspector({
   selectedBlock,
   updateSelectedBlock,
+
+  fileShareTextTarget,
+  setFileShareTextTarget,
+
+  fileShareStyleTarget,
+  setFileShareStyleTarget,
+
   inspectorCardClass,
   inspectorLabelClass,
   inspectorInputClass,
@@ -29,6 +53,40 @@ export function FileShareInspector({
     <div className={inspectorCardClass()}>
       {/* File Share */}
     <div className={inspectorLabelClass()}>File Share</div>
+
+<div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+  <div className={inspectorLabelClass()}>Formatting</div>
+
+  <div className="mt-3">
+    <div className={inspectorLabelClass()}>Text Target</div>
+    <select
+      value={fileShareTextTarget}
+      onChange={(e) =>
+        setFileShareTextTarget(e.target.value as FileShareTextTarget)
+      }
+      className={inspectorInputClass()}
+    >
+      <option value="heading">Heading</option>
+      <option value="subtext">Subtext</option>
+      <option value="fileAreaText">File Area Text</option>
+      <option value="settingsText">Settings Text</option>
+    </select>
+  </div>
+
+  <div className="mt-3">
+    <div className={inspectorLabelClass()}>Style Target</div>
+    <select
+      value={fileShareStyleTarget}
+      onChange={(e) =>
+        setFileShareStyleTarget(e.target.value as FileShareStyleTarget)
+      }
+      className={inspectorInputClass()}
+    >
+      <option value="section">Section</option>
+      <option value="block">Block</option>
+    </select>
+  </div>
+</div>
 
     <div className="mt-4">
       <div className={inspectorLabelClass()}>Heading</div>
@@ -70,6 +128,28 @@ export function FileShareInspector({
           )
         }
         className={inspectorTextareaClass()}
+      />
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>File Area Text</div>
+      <input
+        type="text"
+        value={(selectedBlock.data as any).fileAreaText ?? "Upload / download area"}
+        onChange={(e) =>
+          updateSelectedBlock((block: any) =>
+            block.type !== "file_share"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    fileAreaText: e.target.value,
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
       />
     </div>
 

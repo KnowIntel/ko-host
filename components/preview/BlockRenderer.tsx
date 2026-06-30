@@ -9085,6 +9085,17 @@ function renderFileShare(
 
     const acceptAttr = acceptedFileTypes.map((item) => `.${item}`).join(",");
 
+    const data = block.data as any;
+
+const baseStyle = data.style ?? {};
+const headingStyle = data.headingStyle ?? baseStyle;
+const subtextStyle = data.subtextStyle ?? baseStyle;
+const fileAreaTextStyle = data.fileAreaTextStyle ?? baseStyle;
+const settingsTextStyle = data.settingsTextStyle ?? baseStyle;
+
+const sectionStyle = data.sectionStyle ?? {};
+const blockStyle = data.style ?? {};
+
     async function handleUpload() {
       if (!micrositeId) {
         setFeedback({
@@ -9173,13 +9184,17 @@ function renderFileShare(
     }
 
     return (
-      <Surface
-        block={block}
-        designKey={designKey}
-        className={getSoftSurfaceClass(designKey)}
-      >
+<Surface
+  block={block}
+  designKey={designKey}
+  className={getSoftSurfaceClass(designKey)}
+  styleOverride={{
+    ...block.appearance,
+    ...blockStyle,
+  }}
+>
         {block.data.heading ? (
-          <div style={getContainerTextStyle(block.data.style, designKey)}>
+          <div style={getContainerTextStyle(headingStyle, designKey)}>
             {block.data.heading}
           </div>
         ) : null}
@@ -9187,7 +9202,7 @@ function renderFileShare(
         {block.data.subtext ? (
           <div
             className="mt-1 text-sm opacity-70"
-            style={getContainerTextStyle(block.data.style, designKey)}
+            style={getContainerTextStyle(subtextStyle, designKey)}
           >
             {block.data.subtext}
           </div>
@@ -9246,9 +9261,12 @@ function renderFileShare(
                     ? "border-neutral-300 bg-white text-neutral-900"
                     : "border-white/15 bg-white/10 text-white",
                 ].join(" ")}
-                style={getContainerTextStyle(block.data.style, designKey)}
+                style={{
+  ...getContainerTextStyle(fileAreaTextStyle, designKey),
+  ...sectionStyle,
+}}
               >
-                Choose file
+                {(block.data as any).fileAreaText ?? "Choose file"}
                 <input
                   type="file"
                   multiple={Boolean(block.data.allowMultiple)}
@@ -9260,10 +9278,10 @@ function renderFileShare(
 
               <div
                 className="text-xs"
-                style={{
-                  ...getContainerTextStyle(block.data.style, designKey),
-                  opacity: 0.75,
-                }}
+style={{
+  ...getContainerTextStyle(settingsTextStyle, designKey),
+  opacity: 0.75,
+}}
               >
                 {files.length
                   ? `${files.length} file${files.length === 1 ? "" : "s"} selected`
@@ -9272,20 +9290,20 @@ function renderFileShare(
 
               <div
                 className="text-xs"
-                style={{
-                  ...getContainerTextStyle(block.data.style, designKey),
-                  opacity: 0.75,
-                }}
+style={{
+  ...getContainerTextStyle(settingsTextStyle, designKey),
+  opacity: 0.75,
+}}
               >
                 Accepted: {acceptedFileTypes.join(", ")}
               </div>
 
               <div
                 className="text-xs"
-                style={{
-                  ...getContainerTextStyle(block.data.style, designKey),
-                  opacity: 0.75,
-                }}
+style={{
+  ...getContainerTextStyle(settingsTextStyle, designKey),
+  opacity: 0.75,
+}}
               >
                 Max size: {block.data.maxFileSizeMb ?? 25} MB
               </div>
