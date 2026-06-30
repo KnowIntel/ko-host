@@ -9213,7 +9213,10 @@ const blockStyle = data.style ?? {};
             Uploads are currently disabled.
           </div>
         ) : (
-          <div className="mt-4 space-y-3">
+          <div
+  className="mt-4 space-y-3 rounded-xl border p-3"
+  style={sectionStyle}
+>
             {block.data.requireAccessCode ? (
               <input
                 type="text"
@@ -9261,10 +9264,7 @@ const blockStyle = data.style ?? {};
                     ? "border-neutral-300 bg-white text-neutral-900"
                     : "border-white/15 bg-white/10 text-white",
                 ].join(" ")}
-                style={{
-  ...getContainerTextStyle(fileAreaTextStyle, designKey),
-  ...sectionStyle,
-}}
+                style={getContainerTextStyle(fileAreaTextStyle, designKey)}
               >
                 {(block.data as any).fileAreaText ?? "Choose file"}
                 <input
