@@ -81,6 +81,14 @@ import {
 } from "@/components/builder/formatting/linkHubFormatting";
 
 import {
+  applySpinWheelStylePatch,
+  applySpinWheelTextStylePatch,
+  getSpinWheelTextStyle,
+  type SpinWheelStyleTarget,
+  type SpinWheelTextTarget,
+} from "@/components/builder/formatting/spinWheelFormatting";
+
+import {
   applyFileShareStylePatch,
   applyFileShareTextStylePatch,
   getFileShareTextStyle,
@@ -2236,6 +2244,12 @@ const [listingStyleTarget, setListingStyleTarget] = useState<
   "title" | "description" | "metadata" | "price" | "quantity"
 >("title");
 
+const [spinWheelTextTarget, setSpinWheelTextTarget] =
+  useState<SpinWheelTextTarget>("title");
+
+const [spinWheelStyleTarget, setSpinWheelStyleTarget] =
+  useState<SpinWheelStyleTarget>("button");
+
 const [linkHubTextTarget, setLinkHubTextTarget] =
   useState<LinkHubTextTarget>("heading");
 
@@ -2620,6 +2634,11 @@ selectedBlockFromDraft?.type === "gallery"
   ? (getGalleryTextStyle(
       selectedBlockFromDraft,
       galleryTextTarget,
+    ) as TextStyle)
+: selectedBlockFromDraft?.type === "spin_wheel"
+  ? (getSpinWheelTextStyle(
+      selectedBlockFromDraft,
+      spinWheelTextTarget,
     ) as TextStyle)
 : selectedBlockFromDraft?.type === "link_hub"
   ? (getLinkHubTextStyle(
@@ -4847,6 +4866,16 @@ const handleVideoUpload = async (
 
 function applyStylePatch(patch: Partial<TextStyle>) {
 
+  if (selectedBlock?.type === "spin_wheel") {
+  updateSelectedBlock((block) =>
+    block.type !== "spin_wheel"
+      ? block
+      : applySpinWheelTextStylePatch(block, spinWheelTextTarget, patch),
+  );
+
+  return;
+}
+
   if (selectedBlock?.type === "link_hub") {
   updateSelectedBlock((block) =>
     block.type !== "link_hub"
@@ -5809,6 +5838,16 @@ function clearSelectedBackground() {
 }
 
 function applyAppearancePatch(patch: AppearancePatch) {
+
+  if (selectedBlock?.type === "spin_wheel") {
+  updateSelectedBlock((block) =>
+    block.type !== "spin_wheel"
+      ? block
+      : applySpinWheelStylePatch(block, spinWheelStyleTarget, patch),
+  );
+
+  return;
+}
 
   if (selectedBlock?.type === "link_hub") {
   updateSelectedBlock((block) =>
@@ -13441,9 +13480,18 @@ renderBlockPreview={renderCanvasPreview}
   <SpinWheelInspector
     selectedBlock={selectedBlock}
     updateSelectedBlock={updateSelectedBlock}
+
+    spinWheelTextTarget={spinWheelTextTarget}
+    setSpinWheelTextTarget={setSpinWheelTextTarget}
+
+    spinWheelStyleTarget={spinWheelStyleTarget}
+    setSpinWheelStyleTarget={setSpinWheelStyleTarget}
+
     inspectorCardClass={inspectorCardClass}
     inspectorLabelClass={inspectorLabelClass}
     inspectorInputClass={inspectorInputClass}
+    inspectorTextareaClass={inspectorTextareaClass}
+    toolSetButtonClass={toolSetButtonClass}
   />
 ) : null}
 

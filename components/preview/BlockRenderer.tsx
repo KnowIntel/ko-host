@@ -15702,6 +15702,17 @@ function renderPuzzle(block: Extract<MicrositeBlock, { type: "puzzle" }>) {
 
 function renderSpinWheel(block: any) {
   const data = block.data ?? {};
+  const baseStyle = data.style ?? {};
+
+const titleStyle = data.titleStyle ?? baseStyle;
+const subtitleStyle = data.subtitleStyle ?? baseStyle;
+const itemStyle = data.itemStyle ?? baseStyle;
+const buttonTextStyle = data.buttonTextStyle ?? baseStyle;
+const winnerMessageStyle = data.winnerMessageStyle ?? baseStyle;
+const loserMessageStyle = data.loserMessageStyle ?? baseStyle;
+
+const buttonStyle = data.buttonStyle ?? {};
+const blockStyle = data.style ?? {};
   const items = (data.items ?? []).filter((item: any) => String(item.label ?? "").trim()).length
     ? data.items
     : [
@@ -15765,14 +15776,23 @@ const spin = () => {
 };
 
   return (
-    <div className="flex w-full flex-col items-center justify-center gap-3 p-5 text-center">
+    <div
+  className="flex w-full flex-col items-center justify-center gap-3 p-5 text-center"
+  style={blockStyle}
+>
       <div>
-        <div className="text-xl font-semibold text-neutral-900">
-          {data.title || "Spin to Win"}
-        </div>
-        <div className="mt-1 text-sm text-neutral-500">
-          {data.subtitle || "Unlock a surprise reward"}
-        </div>
+<div
+  className="text-xl font-semibold text-neutral-900"
+  style={getContainerTextStyle(titleStyle, undefined)}
+>
+  {data.title || "Spin to Win"}
+</div>
+<div
+  className="mt-1 text-sm text-neutral-500"
+  style={getContainerTextStyle(subtitleStyle, undefined)}
+>
+  {data.subtitle || "Unlock a surprise reward"}
+</div>
       </div>
 
       <div className="relative mt-2 h-[260px] w-[260px]">
@@ -15819,9 +15839,26 @@ const spin = () => {
 <text
   x={(center + textPoint.x) / 2}
   y={(center + textPoint.y) / 2}
-  fill={item.textColor || "#FFFFFF"}
-  fontSize="10"
-  fontWeight="700"
+  fill={
+    (itemStyle as any).color ??
+    item.textColor ??
+    "#FFFFFF"
+  }
+  fontSize={
+    Number((itemStyle as any).fontSize) || 10
+  }
+  fontWeight={
+    (itemStyle as any).fontWeight ?? "700"
+  }
+  fontStyle={
+    (itemStyle as any).fontStyle
+  }
+  textDecoration={
+    (itemStyle as any).textDecoration
+  }
+  fontFamily={
+    (itemStyle as any).fontFamily
+  }
   textAnchor="middle"
   dominantBaseline="middle"
   transform={`rotate(${midAngle}, ${(center + textPoint.x) / 2}, ${(center + textPoint.y) / 2})`}
@@ -15846,22 +15883,32 @@ const spin = () => {
         </div>
       </div>
 
-      <button
-        type="button"
-        onClick={spin}
-        disabled={isSpinning}
-        className="rounded-xl bg-neutral-900 px-5 py-2 text-sm font-semibold text-white hover:bg-neutral-800 disabled:bg-neutral-400"
-      >
+<button
+  type="button"
+  onClick={spin}
+  disabled={isSpinning}
+  className="rounded-xl bg-neutral-900 px-5 py-2 text-sm font-semibold text-white hover:bg-neutral-800 disabled:bg-neutral-400"
+  style={{
+    ...buttonStyle,
+    ...getContainerTextStyle(buttonTextStyle, undefined),
+  }}
+>
         {isSpinning ? "Spinning..." : data.buttonText || "Spin Now"}
       </button>
 
       {result && (
         <div className="mt-2 rounded-xl border border-neutral-200 bg-white px-4 py-3 shadow-sm">
-          <div className="text-sm text-neutral-500">
-            {result.isWinningItem
-              ? data.winnerMessage || "You won!"
-              : data.loserMessage || "Try again next time"}
-          </div>
+<div
+  className="text-sm text-neutral-500"
+  style={getContainerTextStyle(
+    result.isWinningItem ? winnerMessageStyle : loserMessageStyle,
+    undefined,
+  )}
+>
+  {result.isWinningItem
+    ? data.winnerMessage || "You won!"
+    : data.loserMessage || "Try again next time"}
+</div>
           <div className="mt-1 text-lg font-semibold text-neutral-900">
             {result.label}
           </div>
