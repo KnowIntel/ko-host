@@ -73,6 +73,14 @@ import {
 } from "@/components/builder/formatting/imageFormatting";
 
 import {
+  applyHighlightStylePatch,
+  applyHighlightTextStylePatch,
+  getHighlightTextStyle,
+  type HighlightStyleTarget,
+  type HighlightTextTarget,
+} from "@/components/builder/formatting/highlightFormatting";
+
+import {
   applyLinkHubStylePatch,
   applyLinkHubTextStylePatch,
   getLinkHubTextStyle,
@@ -2244,6 +2252,12 @@ const [listingStyleTarget, setListingStyleTarget] = useState<
   "title" | "description" | "metadata" | "price" | "quantity"
 >("title");
 
+const [highlightTextTarget, setHighlightTextTarget] =
+  useState<HighlightTextTarget>("heading");
+
+const [highlightUnifiedStyleTarget, setHighlightUnifiedStyleTarget] =
+  useState<HighlightStyleTarget>("section");
+
 const [spinWheelTextTarget, setSpinWheelTextTarget] =
   useState<SpinWheelTextTarget>("title");
 
@@ -2635,6 +2649,11 @@ selectedBlockFromDraft?.type === "gallery"
       selectedBlockFromDraft,
       galleryTextTarget,
     ) as TextStyle)
+: selectedBlockFromDraft?.type === "highlight"
+  ? (getHighlightTextStyle(
+      selectedBlockFromDraft,
+      highlightTextTarget,
+    ) as TextStyle)
 : selectedBlockFromDraft?.type === "spin_wheel"
   ? (getSpinWheelTextStyle(
       selectedBlockFromDraft,
@@ -2722,19 +2741,6 @@ selectedBlockFromDraft?.type === "gallery"
   ? (((selectedBlockFromDraft.data as any).numberStyle ??
       (selectedBlockFromDraft.data as any).style ??
       {}) as TextStyle)
-: selectedBlockFromDraft?.type === "highlight"
-  ? highlightStyleTarget === "value"
-    ? (selectedBlockFromDraft.data.valueStyle ??
-        selectedBlockFromDraft.data.bodyStyle ??
-        selectedBlockFromDraft.data.style ??
-        {})
-    : highlightStyleTarget === "body"
-      ? (selectedBlockFromDraft.data.bodyStyle ??
-          selectedBlockFromDraft.data.style ??
-          {})
-      : (selectedBlockFromDraft.data.headingStyle ??
-          selectedBlockFromDraft.data.style ??
-          {})
 : selectedBlockFromDraft?.type === "faq"
   ? (getFaqTextStyle(
       selectedBlockFromDraft,
@@ -3083,6 +3089,7 @@ const showTextControls =
   selectedBlock?.type === "enrollment_board" ||
   selectedBlock?.type === "form_field" ||
   selectedBlock?.type === "option_button" ||
+  selectedBlock?.type === "highlight"
   selectedBlock?.type === "highlight" ||
   selectedBlock?.type === "summary" ||
   selectedBlock?.type === "visitor_counter" ||
@@ -3147,6 +3154,7 @@ const showAppearanceControls =
   selectedBlock?.type === "option_button" ||
   selectedBlock?.type === "faq" ||
   selectedBlock?.type === "gallery" ||
+  selectedBlock?.type === "highlight"||
   selectedBlock?.type === "rsvp" ||
   selectedBlock?.type === "video" ||
   selectedBlock?.type === "rich_text" ||
@@ -3154,7 +3162,6 @@ const showAppearanceControls =
   selectedBlock?.type === "countdown" ||
   selectedBlock?.type === "timeline" ||
   selectedBlock?.type === "wave" ||
-  selectedBlock?.type === "highlight" ||
   selectedBlock?.type === "summary" ||
   selectedBlock?.type === "visitor_counter";
 
@@ -4563,34 +4570,6 @@ if (selectedBlockFromDraft?.type === "option_button") {
   pushRecentColor(value);
   return;
 }
-
-if (selectedBlock?.type === "highlight") {
-  updateSelectedBlock((block) => {
-    if (block.type !== "highlight") return block;
-
-    if (highlightStyleTarget === "heading") {
-      return {
-        ...block,
-        appearance: {
-          ...block.appearance,
-          backgroundColor: value,
-        },
-      };
-    }
-
-    return {
-      ...block,
-      data: {
-        ...block.data,
-        cardBackgroundColor: value,
-      },
-    };
-  });
-
-  pushRecentColor(value);
-  return;
-}
-
   applyAppearancePatch({ backgroundColor: value });
   pushRecentColor(value);
 }
@@ -4869,6 +4848,16 @@ const handleVideoUpload = async (
 
 function applyStylePatch(patch: Partial<TextStyle>) {
 
+  if (selectedBlock?.type === "highlight") {
+  updateSelectedBlock((block) =>
+    block.type !== "highlight"
+      ? block
+      : applyHighlightTextStylePatch(block, highlightTextTarget, patch),
+  );
+
+  return;
+}
+
   if (selectedBlock?.type === "spin_wheel") {
   updateSelectedBlock((block) =>
     block.type !== "spin_wheel"
@@ -5142,66 +5131,6 @@ const styleKey =
   return;
 }
 
-  if (selectedBlock?.type === "highlight") {
-    const selectedHighlightId = selectedBlock.id;
-    const target = highlightStyleTarget;
-
-    requestAnimationFrame(() => {
-      setDraft((prev) => {
-        let changed = false;
-
-        const nextBlocks = prev.blocks.map((block) => {
-          if (block.id !== selectedHighlightId || block.type !== "highlight") {
-            return block;
-          }
-
-const currentStyle =
-  target === "value"
-    ? (block.data.valueStyle ?? block.data.bodyStyle ?? block.data.style ?? {})
-    : target === "body"
-      ? (block.data.bodyStyle ?? block.data.style ?? {})
-      : (block.data.headingStyle ?? block.data.style ?? {});
-
-          const nextStyle = {
-            ...currentStyle,
-            ...patch,
-          };
-
-          const isSame =
-            (currentStyle.fontFamily ?? null) === (nextStyle.fontFamily ?? null) &&
-            (currentStyle.fontSize ?? null) === (nextStyle.fontSize ?? null) &&
-            (currentStyle.bold ?? false) === (nextStyle.bold ?? false) &&
-            (currentStyle.italic ?? false) === (nextStyle.italic ?? false) &&
-            (currentStyle.underline ?? false) === (nextStyle.underline ?? false) &&
-            (currentStyle.strike ?? false) === (nextStyle.strike ?? false) &&
-            (currentStyle.align ?? "left") === (nextStyle.align ?? "left") &&
-            (currentStyle.color ?? null) === (nextStyle.color ?? null);
-
-          if (isSame) {
-            return block;
-          }
-
-          changed = true;
-
-          return {
-            ...block,
-            data: {
-              ...block.data,
-...(target === "value"
-  ? { valueStyle: nextStyle }
-  : target === "body"
-    ? { bodyStyle: nextStyle }
-    : { headingStyle: nextStyle }),
-            },
-          };
-        });
-
-        return changed ? { ...prev, blocks: nextBlocks } : prev;
-      });
-    });
-
-    return;
-  }
 
   if (selectedBlock?.type === "visitor_counter") {
   setDraft((prev) => ({
@@ -5842,6 +5771,20 @@ function clearSelectedBackground() {
 
 function applyAppearancePatch(patch: AppearancePatch) {
 
+  if (selectedBlock?.type === "highlight") {
+  updateSelectedBlock((block) =>
+    block.type !== "highlight"
+      ? block
+      : applyHighlightStylePatch(
+          block,
+          highlightUnifiedStyleTarget,
+          patch,
+        ),
+  );
+
+  return;
+}
+
   if (selectedBlock?.type === "spin_wheel") {
   updateSelectedBlock((block) =>
     block.type !== "spin_wheel"
@@ -6032,62 +5975,6 @@ if (selectedBlock?.type === "content_panel") {
     );
     return;
   }
-  
-if (selectedBlock?.type === "highlight") {
-  updateSelectedBlock((block) => {
-    if (block.type !== "highlight") return block;
-
-    if (highlightStyleTarget === "heading") {
-      return {
-        ...block,
-        appearance: {
-          ...block.appearance,
-          ...patch,
-        },
-      };
-    }
-
-    const existingCardBackground =
-      block.data.cardBackgroundColor ||
-      (block.data as any).cardStyle?.backgroundColor ||
-      "#ffffff";
-
-    return {
-      ...block,
-      data: {
-        ...block.data,
-
-        ...(patch.backgroundColor !== undefined
-          ? { cardBackgroundColor: patch.backgroundColor }
-          : {}),
-
-        ...(patch.backgroundOpacity !== undefined
-          ? {
-              cardBackgroundOpacity: patch.backgroundOpacity,
-              cardBackgroundColor:
-                existingCardBackground === "transparent"
-                  ? "#ffffff"
-                  : existingCardBackground,
-            }
-          : {}),
-
-        ...(patch.borderColor !== undefined
-          ? { cardBorderColor: patch.borderColor }
-          : {}),
-
-        ...(patch.borderWidth !== undefined
-          ? { cardBorderWidth: patch.borderWidth }
-          : {}),
-
-        ...(patch.borderRadius !== undefined
-          ? { cardBorderRadius: patch.borderRadius }
-          : {}),
-      },
-    };
-  });
-
-  return;
-}
 
 if (selectedBlock?.type === "visitor_counter") {
   updateSelectedBlock((block) =>
@@ -12181,32 +12068,6 @@ if (selectedBlockFromDraft?.type === "rsvp") {
       return;
     }
 
-    if (selectedBlock?.type === "highlight") {
-      updateSelectedBlock((block) => {
-        if (block.type !== "highlight") return block;
-
-        if (highlightStyleTarget === "heading") {
-          return {
-            ...block,
-            appearance: {
-              ...block.appearance,
-              backgroundColor: "transparent",
-            },
-          };
-        }
-
-        return {
-          ...block,
-          data: {
-            ...block.data,
-            cardBackgroundColor: "transparent",
-          },
-        };
-      });
-
-      return;
-    }
-
     if (selectedBlock?.type === "checkout") {
       updateSelectedBlock((block) =>
         block.type !== "checkout"
@@ -13299,6 +13160,10 @@ renderBlockPreview={renderCanvasPreview}
   <HighlightInspector
     selectedBlock={selectedBlock}
     draft={draft}
+    highlightTextTarget={highlightTextTarget}
+    setHighlightTextTarget={setHighlightTextTarget}
+    highlightUnifiedStyleTarget={highlightUnifiedStyleTarget}
+    setHighlightUnifiedStyleTarget={setHighlightUnifiedStyleTarget}
     updateSelectedBlock={updateSelectedBlock}
     makeClientId={makeClientId}
     uploadBuilderImageFile={uploadBuilderImageFile}

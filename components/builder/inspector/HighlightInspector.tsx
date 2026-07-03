@@ -1,6 +1,10 @@
 "use client";
 
 import type { Dispatch, SetStateAction } from "react";
+import type {
+  HighlightStyleTarget,
+  HighlightTextTarget,
+} from "@/components/builder/formatting/highlightFormatting";
 
 
 /**
@@ -10,11 +14,20 @@ import type { Dispatch, SetStateAction } from "react";
  * DesignLayoutEditor remains the middleman and only renders this when:
  * selectedBlock?.type === "highlight"
  */
+
 type HighlightInspectorSectionProps = {
   selectedBlock: any;
   draft: any;
 
   updateSelectedBlock: any;
+
+  highlightTextTarget: HighlightTextTarget;
+  setHighlightTextTarget: Dispatch<SetStateAction<HighlightTextTarget>>;
+
+  highlightUnifiedStyleTarget: HighlightStyleTarget;
+  setHighlightUnifiedStyleTarget: Dispatch<
+    SetStateAction<HighlightStyleTarget>
+  >;
 
   makeClientId: (prefix: string) => string;
 
@@ -32,6 +45,13 @@ export function HighlightInspector({
   selectedBlock,
   draft,
   updateSelectedBlock,
+
+  highlightTextTarget,
+  setHighlightTextTarget,
+
+  highlightUnifiedStyleTarget,
+  setHighlightUnifiedStyleTarget,
+
   makeClientId,
   uploadBuilderImageFile,
   setEditorUploadError,
@@ -44,7 +64,49 @@ export function HighlightInspector({
     <div className={inspectorCardClass()}>
       {/* Highlight */}
     <div className={inspectorLabelClass()}>Highlight</div>
+<div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+  <div className={inspectorLabelClass()}>Formatting</div>
 
+  <div className="mt-3">
+    <div className={inspectorLabelClass()}>Text Target</div>
+
+    <select
+      value={highlightTextTarget}
+      onChange={(e) =>
+        setHighlightTextTarget(
+          e.target.value as HighlightTextTarget,
+        )
+      }
+      className={inspectorInputClass()}
+    >
+      <option value="heading">Heading</option>
+      <option value="subtitle">Subtitle</option>
+      <option value="label">Label</option>
+      <option value="linearUnitLabel">Linear Unit Label</option>
+      <option value="value">Value</option>
+      <option value="prefix">Prefix</option>
+      <option value="suffix">Suffix</option>
+      <option value="description">Description</option>
+    </select>
+  </div>
+
+  <div className="mt-3">
+    <div className={inspectorLabelClass()}>Style Target</div>
+
+    <select
+      value={highlightUnifiedStyleTarget}
+      onChange={(e) =>
+        setHighlightUnifiedStyleTarget(
+          e.target.value as HighlightStyleTarget,
+        )
+      }
+      className={inspectorInputClass()}
+    >
+      <option value="section">Section</option>
+      <option value="block">Block</option>
+    </select>
+  </div>
+</div>
     <div className="mt-4">
       <div className={inspectorLabelClass()}>Heading</div>
       <input
@@ -1367,57 +1429,6 @@ export function HighlightInspector({
     {card.imageSize ?? 40}px
   </div>
 </div>
-
-          <div className="mt-3">
-            <div className={inspectorLabelClass()}>Icon</div>
-            <input
-              type="text"
-              value={card.icon ?? ""}
-              onChange={(e) =>
-                updateSelectedBlock((block: any) =>
-                  block.type !== "highlight"
-                    ? block
-                    : {
-                        ...block,
-                        data: {
-                          ...block.data,
-                          cards: (block.data.cards ?? []).map((item: any) =>
-                            item.id === card.id
-                              ? { ...item, icon: e.target.value }
-                              : item,
-                          ),
-                        },
-                      },
-                )
-              }
-              className={inspectorInputClass()}
-            />
-          </div>
-
-          <label className="mt-3 flex items-center gap-2 text-xs text-neutral-600">
-            <input
-              type="checkbox"
-              checked={card.showIcon !== false}
-              onChange={(e) =>
-                updateSelectedBlock((block: any) =>
-                  block.type !== "highlight"
-                    ? block
-                    : {
-                        ...block,
-                        data: {
-                          ...block.data,
-                          cards: (block.data.cards ?? []).map((item: any) =>
-                            item.id === card.id
-                              ? { ...item, showIcon: e.target.checked }
-                              : item,
-                          ),
-                        },
-                      },
-                )
-              }
-            />
-            Show icon
-          </label>
         </div>
       ))}
     </div>

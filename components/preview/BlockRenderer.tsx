@@ -9707,30 +9707,55 @@ const cardBackgroundColor =
 
     const subtitle = block.data?.subtitle?.trim() || "";
 
-    const headingTextStyle = getContainerTextStyle(
-      block.data.headingStyle ?? block.data.style,
-      designKey,
-    );
+const data = block.data as any;
 
-    const bodyTextStyle = getContainerTextStyle(
-      block.data.bodyStyle ?? block.data.style,
-      designKey,
-    );
+const headingTextStyle = getContainerTextStyle(
+  data.headingStyle ?? data.style,
+  designKey,
+);
 
-const valueTextStyle = getContainerTextStyle(
-  block.data.valueStyle ?? block.data.bodyStyle ?? block.data.style,
+const subtitleTextStyle = getContainerTextStyle(
+  data.subtitleStyle ?? data.bodyStyle ?? data.style,
   designKey,
 );
 
 const labelTextStyle = getContainerTextStyle(
-  block.data.bodyStyle ?? block.data.labelStyle ?? block.data.style,
+  data.labelStyle ?? data.bodyStyle ?? data.style,
+  designKey,
+);
+
+const linearUnitLabelTextStyle = getContainerTextStyle(
+  data.linearUnitLabelStyle ?? data.labelStyle ?? data.bodyStyle ?? data.style,
+  designKey,
+);
+
+const valueTextStyle = getContainerTextStyle(
+  data.valueStyle ?? data.bodyStyle ?? data.style,
+  designKey,
+);
+
+const prefixTextStyle = getContainerTextStyle(
+  data.prefixStyle ?? data.valueStyle ?? data.bodyStyle ?? data.style,
+  designKey,
+);
+
+const suffixTextStyle = getContainerTextStyle(
+  data.suffixStyle ?? data.valueStyle ?? data.bodyStyle ?? data.style,
   designKey,
 );
 
 const descriptionTextStyle = getContainerTextStyle(
-  block.data.bodyStyle ?? block.data.descriptionStyle ?? block.data.style,
+  data.descriptionStyle ?? data.bodyStyle ?? data.style,
   designKey,
 );
+
+const bodyTextStyle = getContainerTextStyle(
+  data.bodyStyle ?? data.style,
+  designKey,
+);
+
+const sectionStyle = (data.cardStyle ?? {}) as any;
+const blockStyle = (data.style ?? {}) as any;
 
 const linearDividerStyle = block.data.linearDividerStyle ?? "closed_solid";
 const linearDividerColor =
@@ -10222,6 +10247,10 @@ useEffect(() => {
   block={block}
   designKey={designKey}
   className="overflow-hidden bg-transparent"
+  styleOverride={{
+    ...block.appearance,
+    ...blockStyle,
+  }}
 >
 <div
   className="flex h-full min-h-0 w-full flex-col gap-3 overflow-hidden rounded-[inherit]"
@@ -10243,11 +10272,11 @@ useEffect(() => {
             </div>
           ) : null}
 
-          {block.data.showSubtitle === true && subtitle ? (
-            <div className="-mt-2 text-xs opacity-70" style={bodyTextStyle}>
-              {subtitle}
-            </div>
-          ) : null}
+{block.data.showSubtitle === true && subtitle ? (
+  <div className="-mt-2 text-xs opacity-70" style={subtitleTextStyle}>
+    {subtitle}
+  </div>
+) : null}
 
 {useCardRenderer ? (
   <div
@@ -10289,24 +10318,26 @@ displayStyle === "linear"
         : "rounded-2xl px-4 py-3 shadow-sm"
   }
   style={{
-    backgroundColor:
-      cardBackgroundColor === "transparent"
-        ? "transparent"
-        : hexToRgba(
-            cardBackgroundColor ||
-              (isLightDesign(designKey) ? "#ffffff" : "#111827"),
-            cardOpacity,
-          ),
+backgroundColor:
+  sectionStyle.backgroundColor === "transparent"
+    ? "transparent"
+    : hexToRgba(
+        sectionStyle.backgroundColor ||
+          cardBackgroundColor ||
+          (isLightDesign(designKey) ? "#ffffff" : "#111827"),
+        sectionStyle.backgroundOpacity ?? cardOpacity,
+      ),
     borderStyle: "solid",
 borderColor:
-  Number((block.data as any).cardBorderWidth ?? 0) > 0
+  sectionStyle.borderColor ??
+  (Number((block.data as any).cardBorderWidth ?? 0) > 0
     ? (
         (block.data as any).cardBorderColor ??
         (isLightDesign(designKey)
           ? "rgba(229,231,235,1)"
           : "rgba(255,255,255,0.10)")
       )
-    : "transparent",
+    : "transparent"),
 
 borderWidth:
   typeof (block.data as any).cardBorderWidth === "number"
@@ -10334,9 +10365,9 @@ backdropFilter:
   >
     {displayStyle === "linear" &&
     card.imagePosition !== "right" &&
-    card.imageUrl ? (
+    (card.linearImageUrl || card.imageUrl) ? (
       <img
-        src={card.imageUrl}
+        src={card.linearImageUrl || card.imageUrl}
         alt=""
         className="shrink-0 rounded-full object-cover"
         style={{
@@ -10361,34 +10392,61 @@ backdropFilter:
         </div>
       ) : null}
 
-      <div
-        className={
-          displayStyle === "linear" ? "leading-none" : "mt-2 leading-none"
-        }
-        style={{
-          fontSize: displayStyle === "linear" ? "24px" : "32px",
-          fontWeight: 800,
-          ...valueTextStyle,
-        }}
-      >
-        {getCardValue(card)}
-      </div>
+<div
+  className={
+    displayStyle === "linear"
+      ? "leading-none"
+      : "mt-2 leading-none"
+  }
+>
+  <span
+    style={{
+      ...prefixTextStyle,
+    }}
+  >
+    {card.prefix ?? ""}
+  </span>
+
+  <span
+    style={{
+      fontSize: displayStyle === "linear" ? "24px" : "32px",
+      fontWeight: 800,
+      ...valueTextStyle,
+    }}
+  >
+    {formatNumber(
+      typeof highlightCardValues[card.id] === "number"
+        ? highlightCardValues[card.id]
+        : card.value,
+    )}
+  </span>
+
+  <span
+    style={{
+      ...suffixTextStyle,
+    }}
+  >
+    {card.suffix ?? ""}
+  </span>
+</div>
 
       {displayStyle === "linear" ? (
         <div
           className="mt-1 truncate text-xs font-semibold opacity-70"
           style={labelTextStyle}
         >
-          {card.unitLabel || card.linearLabel || card.label || ""}
+          <span style={linearUnitLabelTextStyle}>
+  {card.unitLabel || card.linearLabel || card.label || ""}
+</span>
         </div>
       ) : null}
     </div>
 
     {displayStyle === "linear" &&
     card.imagePosition === "right" &&
-    card.imageUrl ? (
+    (card.linearImageUrl || card.imageUrl) ? (
       <img
-        src={card.imageUrl}
+        src={card.linearImageUrl || card.imageUrl}
         alt=""
         className="shrink-0 rounded-full object-cover"
         style={{
