@@ -3088,6 +3088,7 @@ const showTextControls =
   selectedBlock?.type === "visitor_counter" ||
   selectedBlock?.type === "progress_bar" ||
   selectedBlock?.type === "donation" ||
+  selectedBlock?.type === "spin_wheel"
   selectedBlock?.type === "link_hub" ||
   selectedBlock?.type === "checklist" ||
   selectedBlock?.type === "schedule_agenda" ||
@@ -3129,6 +3130,7 @@ const showAppearanceControls =
   selectedBlock?.type === "listing" ||
   selectedBlock?.type === "tournament_display" ||
   selectedBlock?.type === "progress_bar" ||
+  selectedBlock?.type === "spin_wheel"
   selectedBlock?.type === "donation" ||
   selectedBlock?.type === "link_hub" ||
   selectedBlock?.type === "checklist" ||
@@ -3174,6 +3176,7 @@ const showBorderWidthRadiusControls =
   selectedBlock?.type === "donation" ||
   selectedBlock?.type === "link_hub" ||
   selectedBlock?.type === "checklist" ||
+  selectedBlock?.type === "spin_wheel"
   selectedBlock?.type === "schedule_agenda" ||
   selectedBlock?.type === "calendar_event" ||
   selectedBlock?.type === "map_location" ||
