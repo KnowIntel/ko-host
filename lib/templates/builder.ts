@@ -1009,15 +1009,21 @@ export type HighlightCard = {
 
   label?: string;
   value?: string | number;
+
   unitLabel?: string;
   linearLabel?: string;
   linearDescription?: string;
+
   prefix?: string;
   suffix?: string;
+
   description?: string;
+
   icon?: string;
   showIcon?: boolean;
+
   imageUrl?: string;
+  linearImageUrl?: string;
   imagePosition?: "left" | "right";
   imageSize?: number;
 
@@ -1031,13 +1037,17 @@ export type HighlightCard = {
   goalAmount?: number;
   showProgressPercentage?: boolean;
 
-  targetDate?: string;
+  targetDate?: string | Date;
   targetTime?: string;
   countdownUnits?: "days" | "hours" | "minutes" | "full";
 
   sourceBlockId?: string;
   sourceFormBlockId?: string;
-  sourceType?: "rsvp" | "poll" | "visitor_counter" | "enrollment_board";
+  sourceType?:
+    | "rsvp"
+    | "poll"
+    | "visitor_counter"
+    | "enrollment_board";
   countType?: string;
   pollOptionId?: string;
   displayType?: "count" | "percentage" | "winner";
@@ -4178,51 +4188,52 @@ actionButtonStyle: {
         },
       };
 
-    case "highlight":
-      return {
-        id: makeId("highlight"),
-        type: "highlight",
-        label: "Highlight",
-        grid,
-        appearance: createDefaultBlockAppearance(),
-        data: {
-          mode: "top_messages",
-          heading: "Highlights",
-          subtitle: "Key details at a glance.",
-          showHeading: true,
-          showSubtitle: false,
-          displayStyle: "grid",
-          rotation: 0,
-          limit: 4,
-          sourceBlockId: "",
-          sourceFormBlockId: "",
-          linearDividerStyle: "closed_solid",
-          linearDividerColor: "rgba(0,0,0,0.14)", 
-          cards: [
-            {
-              id: makeId("highlight_card"),
-              type: "manual_stat",
-              label: "Guests",
-              value: "120",
-              suffix: "+",
-              unitLabel: "Guests",
-              linearLabel: "Guests",
-              description: "Expected attendees",
-              icon: "✨",
-              showIcon: true,
-              imageSize: 40,
-            },
-          ],
-          style: createDefaultTextStyle(),
-          headingStyle: createDefaultTextStyle(),
-          bodyStyle: createDefaultTextStyle(),
-          cardStyle: createDefaultTextStyle(),
-          valueStyle: createDefaultTextStyle(),
-          labelStyle: createDefaultTextStyle(),
-          descriptionStyle: createDefaultTextStyle(),
-          cardBackgroundColor: "",
+case "highlight":
+  return {
+    id: makeId("highlight"),
+    type: "highlight",
+    label: "Highlight",
+    grid,
+    appearance: createDefaultBlockAppearance(),
+    data: {
+      mode: "top_messages",
+      heading: "Highlights",
+      subtitle: "Key details at a glance.",
+      showHeading: true,
+      showSubtitle: false,
+      displayStyle: "grid",
+      rotation: 0,
+      limit: 4,
+      sourceBlockId: "",
+      sourceFormBlockId: "",
+      linearDividerStyle: "closed_solid",
+      linearDividerColor: "rgba(0,0,0,0.14)",
+      cards: [
+        {
+          id: makeId("highlight_card"),
+          type: "manual_stat",
+          label: "Guests",
+          value: "120",
+          suffix: "+",
+          unitLabel: "Guests",
+          linearLabel: "Guests",
+          description: "Expected attendees",
+          showIcon: false,
+          imageUrl: "",
+          linearImageUrl: "",
+          imageSize: 40,
         },
-      };
+      ],
+      style: createDefaultTextStyle(),
+      headingStyle: createDefaultTextStyle(),
+      bodyStyle: createDefaultTextStyle(),
+      valueStyle: createDefaultTextStyle(),
+      labelStyle: createDefaultTextStyle(),
+      descriptionStyle: createDefaultTextStyle(),
+      cardStyle: createDefaultTextStyle(),
+      cardBackgroundColor: "",
+    },
+  };
 
           case "summary":
       return {
