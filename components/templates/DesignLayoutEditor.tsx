@@ -11020,27 +11020,6 @@ const idsToExpand =
   </div>
 ) : null}
 
-{selectedBlock?.type === "highlight" ? (
-  <>
-    <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
-
-    <select
-      value={highlightStyleTarget}
-      onChange={(e) =>
-        setHighlightStyleTarget(
-          e.target.value as "heading" | "value" | "body",
-        )
-      }
-      className={topBarFieldClass("w-[160px]")}
-      title="Highlight text target"
-    >
-      <option value="heading">Heading</option>
-      <option value="value">Number Value</option>
-      <option value="body">Body</option>
-    </select>
-  </>
-) : null}
-
 {null}
 
 
@@ -12177,50 +12156,6 @@ title={
                 ? selectedBlock.data.postButtonAppearance?.backgroundOpacity ?? 100
                 : selectedBlock.data.messageAppearance?.backgroundOpacity ?? 100
           : 100}
-      %
-    </span>
-  </div>
-) : null}
-
-{selectedBlock?.type === "highlight" ? (
-  <div className={topBarSliderWrapClass()}>
-    <span>BG Opacity</span>
-
-    <input
-      type="range"
-      min={0}
-      max={100}
-      value={
-        highlightStyleTarget === "heading"
-          ? Number(selectedBlock.appearance?.backgroundOpacity ?? 100)
-          : Math.round(
-              Number((selectedBlock.data as any).cardBackgroundOpacity ?? 1) *
-                100,
-            )
-      }
-      onChange={(e) =>
-        applyAppearancePatch({
-          backgroundOpacity:
-            highlightStyleTarget === "heading"
-              ? Number(e.target.value)
-              : Number(e.target.value) / 100,
-        } as any)
-      }
-      className={topBarSliderClass()}
-      title={
-        highlightStyleTarget === "heading"
-          ? "Highlight block background transparency"
-          : "Highlight card background transparency"
-      }
-    />
-
-    <span>
-      {highlightStyleTarget === "heading"
-        ? Number(selectedBlock.appearance?.backgroundOpacity ?? 100)
-        : Math.round(
-            Number((selectedBlock.data as any).cardBackgroundOpacity ?? 1) *
-              100,
-          )}
       %
     </span>
   </div>
