@@ -11929,7 +11929,7 @@ const idsToExpand =
         </>
       ) : null}
 
-{showAppearanceControls ? (
+{showAppearanceControls || selectedBlock?.type === "highlight" ? (
   <>
     <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
 
