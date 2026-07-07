@@ -12028,11 +12028,6 @@ if (selectedBlockFromDraft?.type === "rsvp") {
             postBoardStyleTarget === "buttons"
           ? ((selectedBlock.data as any).buttonStyle?.backgroundColor ===
             "transparent")
-          : selectedBlock?.type === "highlight"
-            ? highlightStyleTarget === "heading"
-              ? selectedAppearance.backgroundColor === "transparent"
-              : (selectedBlock.data.cardBackgroundColor ?? "") ===
-                "transparent"
             : selectedAppearance.backgroundColor === "transparent",
   )}
   onClick={() => {
