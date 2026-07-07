@@ -3199,8 +3199,8 @@ const showBorderWidthRadiusControls =
   selectedBlock?.type === "timeline" ||
   selectedBlock?.type === "wave" ||
   selectedBlock?.type === "visitor_counter" ||
-  selectedBlock?.type === "summary" ||
-  selectedBlock?.type === "highlight";
+  selectedBlock?.type === "highlight" ||
+  selectedBlock?.type === "summary";
 
   const selectedTextValue = getSelectedTextValue(draft, selectedContext);
 
