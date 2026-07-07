@@ -3089,7 +3089,6 @@ const showTextControls =
   selectedBlock?.type === "enrollment_board" ||
   selectedBlock?.type === "form_field" ||
   selectedBlock?.type === "option_button" ||
-  selectedBlock?.type === "highlight"
   selectedBlock?.type === "highlight" ||
   selectedBlock?.type === "summary" ||
   selectedBlock?.type === "visitor_counter" ||
