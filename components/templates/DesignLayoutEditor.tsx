@@ -12235,7 +12235,7 @@ title={
       />
     </button>
 
-    {showBorderWidthRadiusControls ? (
+    {showBorderWidthRadiusControls || selectedBlock?.type === "highlight" ? (
       <>
         <div className={topBarSliderWrapClass()}>
           <span>Border</span>
