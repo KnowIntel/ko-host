@@ -73,6 +73,12 @@ import {
 } from "@/components/builder/formatting/imageFormatting";
 
 import {
+  applySummaryTextStylePatch,
+  getSummaryTextStyle,
+  type SummaryTextTarget,
+} from "@/components/builder/formatting/summaryFormatting";
+
+import {
   applyHighlightStylePatch,
   applyHighlightTextStylePatch,
   getHighlightTextStyle,
@@ -2252,6 +2258,9 @@ const [listingStyleTarget, setListingStyleTarget] = useState<
   "title" | "description" | "metadata" | "price" | "quantity"
 >("title");
 
+const [summaryTextTarget, setSummaryTextTarget] =
+  useState<SummaryTextTarget>("heading");
+
 const [highlightTextTarget, setHighlightTextTarget] =
   useState<HighlightTextTarget>("heading");
 
@@ -2645,6 +2654,11 @@ selectedBlockFromDraft?.type === "gallery"
       selectedBlockFromDraft,
       galleryTextTarget,
     ) as TextStyle)
+: selectedBlockFromDraft?.type === "summary"
+  ? (getSummaryTextStyle(
+      selectedBlockFromDraft,
+      summaryTextTarget,
+    ) as TextStyle)
 : selectedBlockFromDraft?.type === "highlight"
   ? (getHighlightTextStyle(
       selectedBlockFromDraft,
@@ -2796,41 +2810,6 @@ selectedBlockFromDraft?.type === "gallery"
                                 : (((selectedBlockFromDraft.data as any).eventDetailsStyle ??
                                     (selectedBlockFromDraft.data as any).style ??
                                     {}) as TextStyle)
-
-                      : selectedBlockFromDraft?.type === "summary"
-                        ? summaryStyleTarget === "header"
-                          ? (((selectedBlockFromDraft.data as any).headerStyle ??
-                              (selectedBlockFromDraft.data as any).style ??
-                              {}) as TextStyle)
-                          : summaryStyleTarget === "subheader"
-                            ? (((selectedBlockFromDraft.data as any).subheaderStyle ??
-                                (selectedBlockFromDraft.data as any).style ??
-                                {}) as TextStyle)
-                            : summaryStyleTarget === "contentLabel"
-                              ? (((selectedBlockFromDraft.data as any).labelStyle ??
-                                  (selectedBlockFromDraft.data as any).style ??
-                                  {}) as TextStyle)
-                              : summaryStyleTarget === "content"
-                                ? (((selectedBlockFromDraft.data as any).valueStyle ??
-                                    (selectedBlockFromDraft.data as any).style ??
-                                    {}) as TextStyle)
-                                : summaryStyleTarget === "footerLabel"
-                                  ? (((selectedBlockFromDraft.data as any).footerLabelStyle ??
-                                      (selectedBlockFromDraft.data as any).labelStyle ??
-                                      (selectedBlockFromDraft.data as any).style ??
-                                      {}) as TextStyle)
-                                  : summaryStyleTarget === "footerAggregate"
-                                    ? (((selectedBlockFromDraft.data as any).footerAggregateStyle ??
-                                        (selectedBlockFromDraft.data as any).style ??
-                                        {}) as TextStyle)
-                                    : summaryStyleTarget === "footerCaption"
-                                      ? (((selectedBlockFromDraft.data as any).footerCaptionStyle ??
-                                          (selectedBlockFromDraft.data as any).style ??
-                                          {}) as TextStyle)
-                                      : (((selectedBlockFromDraft.data as any).labelStyle ??
-                                          (selectedBlockFromDraft.data as any).style ??
-                                          {}) as TextStyle)
-
                       : selectedBlockFromDraft?.type === "video"
                         ? (getVideoTextStyle(
                             selectedBlockFromDraft,
@@ -4843,6 +4822,16 @@ const handleVideoUpload = async (
 
 function applyStylePatch(patch: Partial<TextStyle>) {
 
+  if (selectedBlock?.type === "summary") {
+  updateSelectedBlock((block) =>
+    block.type !== "summary"
+      ? block
+      : applySummaryTextStylePatch(block, summaryTextTarget, patch),
+  );
+
+  return;
+}
+
   if (selectedBlock?.type === "highlight") {
   updateSelectedBlock((block) =>
     block.type !== "highlight"
@@ -5078,54 +5067,6 @@ if ((selectedBlockFromDraft as any)?.type === "option_button") {
 
   return;
 }
-
-
-if (selectedBlockFromDraft?.type === "summary") {
-  const summaryBlock = selectedBlockFromDraft;
-  const targetBlockId = summaryBlock.id;
-
-  setDraft((prev) => ({
-    ...prev,
-    blocks: prev.blocks.map((block) => {
-      if (block.id !== targetBlockId || block.type !== "summary") {
-        return block;
-      }
-
-const styleKey =
-  summaryStyleTarget === "header"
-    ? "headerStyle"
-    : summaryStyleTarget === "subheader"
-      ? "subheaderStyle"
-      : summaryStyleTarget === "contentLabel"
-        ? "labelStyle"
-        : summaryStyleTarget === "content"
-          ? "valueStyle"
-          : summaryStyleTarget === "footerLabel"
-            ? "footerLabelStyle"
-            : summaryStyleTarget === "footerAggregate"
-              ? "footerAggregateStyle"
-              : summaryStyleTarget === "footerCaption"
-                ? "footerCaptionStyle"
-                : "valueStyle";
-
-      return {
-        ...block,
-        data: {
-          ...block.data,
-          [styleKey]: {
-            ...((block.data as any)[styleKey] ??
-              (block.data as any).style ??
-              {}),
-            ...patch,
-          },
-        },
-      };
-    }),
-  }));
-
-  return;
-}
-
 
   if (selectedBlock?.type === "visitor_counter") {
   setDraft((prev) => ({
@@ -13067,18 +13008,22 @@ renderBlockPreview={renderCanvasPreview}
 ) : null}
 
 {!isMultiSelection && selectedBlock?.type === "summary" ? (
-  <SummaryInspector
-    selectedBlock={selectedBlock}
-    draft={draft}
-    summaryStyleTarget={summaryStyleTarget}
-    setSummaryStyleTarget={setSummaryStyleTarget}
-    updateSelectedSummaryData={updateSelectedSummaryData}
-    makeClientId={makeClientId}
-    inspectorCardClass={inspectorCardClass}
-    inspectorLabelClass={inspectorLabelClass}
-    inspectorInputClass={inspectorInputClass}
-    toolSetButtonClass={toolSetButtonClass}
-  />
+<SummaryInspector
+  selectedBlock={selectedBlock}
+  draft={draft}
+
+  summaryTextTarget={summaryTextTarget}
+  setSummaryTextTarget={setSummaryTextTarget}
+
+  updateSelectedSummaryData={updateSelectedSummaryData}
+  makeClientId={makeClientId}
+
+  inspectorCardClass={inspectorCardClass}
+  inspectorLabelClass={inspectorLabelClass}
+  inspectorInputClass={inspectorInputClass}
+
+  toolSetButtonClass={toolSetButtonClass}
+/>
 ) : null}
 
 {!isMultiSelection && selectedBlock?.type === "highlight" ? (

@@ -11095,7 +11095,7 @@ if (resolvedLinkedBlock?.type === "option_button") {
         {data.showHeader !== false ? (
           <div
             style={getContainerTextStyle(
-              data.headerStyle ?? data.style ?? {},
+              data.headingStyle ?? data.headerStyle ?? data.style ?? {},
               designKey,
             )}
           >
@@ -11121,7 +11121,7 @@ if (resolvedLinkedBlock?.type === "option_button") {
                 <div className="flex items-start justify-between gap-4 py-3">
                   <div
                     style={getContainerTextStyle(
-                      data.labelStyle ?? data.style ?? {},
+                      data.contentLabelStyle ?? data.labelStyle ?? data.style ?? {},
                       designKey,
                     )}
                   >
@@ -11131,7 +11131,7 @@ if (resolvedLinkedBlock?.type === "option_button") {
                   <div
                     className="flex flex-col items-end text-right"
                     style={getContainerTextStyle(
-                      data.valueStyle ?? data.style ?? {},
+                      data.contentStyle ?? data.valueStyle ?? data.style ?? {},
                       designKey,
                     )}
                   >

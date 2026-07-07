@@ -1,22 +1,14 @@
 "use client";
 
 import type { Dispatch, SetStateAction } from "react";
-
-type SummaryStyleTarget =
-  | "header"
-  | "subheader"
-  | "contentLabel"
-  | "content"
-  | "footerLabel"
-  | "footerAggregate"
-  | "footerCaption";
+import type { SummaryTextTarget } from "@/components/builder/formatting/summaryFormatting";
 
 type SummaryInspectorProps = {
   selectedBlock: any;
   draft: any;
 
-  summaryStyleTarget: SummaryStyleTarget;
-  setSummaryStyleTarget: Dispatch<SetStateAction<SummaryStyleTarget>>;
+  summaryTextTarget: SummaryTextTarget;
+  setSummaryTextTarget: Dispatch<SetStateAction<SummaryTextTarget>>;
 
   updateSelectedSummaryData: (patch: Record<string, any>) => void;
 
@@ -32,48 +24,53 @@ type SummaryInspectorProps = {
 export function SummaryInspector({
   selectedBlock,
   draft,
-  summaryStyleTarget,
-  setSummaryStyleTarget,
+
+  summaryTextTarget,
+  setSummaryTextTarget,
+
   updateSelectedSummaryData,
+
   makeClientId,
+
   inspectorCardClass,
   inspectorLabelClass,
   inspectorInputClass,
+
   toolSetButtonClass,
 }: SummaryInspectorProps) {
   return (
     <div className={inspectorCardClass()}>
       {/* Summary */}
-    <div className={inspectorLabelClass()}>Style Target</div>
-
-<select
-  value={summaryStyleTarget}
-  onChange={(e) =>
-    setSummaryStyleTarget(
-      e.target.value as
-        | "header"
-        | "subheader"
-        | "contentLabel"
-        | "content"
-        | "footerLabel"
-        | "footerAggregate"
-        | "footerCaption",
-    )
-  }
-  className={inspectorInputClass()}
->
-  <option value="header">Header</option>
-  <option value="subheader">Subheader</option>
-  <option value="contentLabel">Content Label</option>
-  <option value="content">Content</option>
-  <option value="footerLabel">Footer Label</option>
-  <option value="footerAggregate">Footer Aggregate</option>
-  <option value="footerCaption">Footer Caption</option>
-</select>
-
+    
     <div className="mt-5 border-t border-neutral-200 pt-4">
       <div className={inspectorLabelClass()}>Summary</div>
     </div>
+
+    <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+  <div className={inspectorLabelClass()}>Formatting</div>
+
+  <div className="mt-3">
+    <div className={inspectorLabelClass()}>Text Target</div>
+
+    <select
+      value={summaryTextTarget}
+      onChange={(e) =>
+        setSummaryTextTarget(
+          e.target.value as SummaryTextTarget,
+        )
+      }
+      className={inspectorInputClass()}
+    >
+      <option value="heading">Heading</option>
+      <option value="subheader">Subheader</option>
+      <option value="contentLabel">Content Label</option>
+      <option value="content">Content</option>
+      <option value="footerLabel">Footer Label</option>
+      <option value="footerAggregate">Footer Aggregate</option>
+      <option value="footerCaption">Footer Caption</option>
+    </select>
+  </div>
+</div>
 
     <div className="mt-4">
       <div className={inspectorLabelClass()}>Header</div>
