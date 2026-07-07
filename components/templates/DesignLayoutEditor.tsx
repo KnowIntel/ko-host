@@ -2548,10 +2548,6 @@ const currentSiteDisplay = isLiveMicrosite
     selection.type === "block"
       ? draft.blocks.find((item) => item.id === selection.blockId) ?? null
       : null;
-    
-const [highlightStyleTarget, setHighlightStyleTarget] =
-  useState<"heading" | "value" | "body">("heading");
-
 
 type CountdownStyleTarget =
   | "background"
