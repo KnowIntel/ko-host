@@ -5,7 +5,8 @@ type VisitorCountBlock = Extract<MicrositeBlock, { type: "visitor_counter" }>;
 export type VisitorCountTextTarget =
   | "heading"
   | "subtitle"
-  | "counterLabel";
+  | "counterLabel"
+  | "tiles";
 
 export type VisitorCountStyleTarget = "tiles" | "block";
 
@@ -14,13 +15,14 @@ function isVisitorCountBlock(
 ): block is VisitorCountBlock {
   return block.type === "visitor_counter";
 }
-
 function getTextStyleKey(target: VisitorCountTextTarget) {
   return target === "heading"
     ? "headingStyle"
     : target === "subtitle"
       ? "subtitleStyle"
-      : "counterLabelStyle";
+      : target === "counterLabel"
+        ? "counterLabelStyle"
+        : "numberStyle";
 }
 
 function getStyleKey(target: VisitorCountStyleTarget) {

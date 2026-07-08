@@ -72,6 +72,7 @@ export function VisitorCounterInspector({
       <option value="heading">Heading</option>
       <option value="subtitle">Subtitle</option>
       <option value="counterLabel">Counter Label</option>
+      <option value="tiles">Tiles</option>
     </select>
   </div>
 
