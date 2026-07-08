@@ -13018,17 +13018,20 @@ renderBlockPreview={renderCanvasPreview}
 ) : null}
 
 {!isMultiSelection && selectedBlock?.type === "visitor_counter" ? (
-  <VisitorCounterInspector
-    selectedBlock={selectedBlock}
-    updateSelectedBlock={updateSelectedBlock}
-    inspectorCardClass={inspectorCardClass}
-    inspectorLabelClass={inspectorLabelClass}
-    inspectorInputClass={inspectorInputClass}
-    visitorCountTextTarget={visitorCountTextTarget}
-    setVisitorCountTextTarget={setVisitorCountTextTarget}
-    visitorCountStyleTarget={visitorCountStyleTarget}
-    setVisitorCountStyleTarget={setVisitorCountStyleTarget}
-  />
+<VisitorCounterInspector
+  selectedBlock={selectedBlock}
+  updateSelectedBlock={updateSelectedBlock}
+
+  visitorCountTextTarget={visitorCountTextTarget}
+  setVisitorCountTextTarget={setVisitorCountTextTarget}
+
+  visitorCountStyleTarget={visitorCountStyleTarget}
+  setVisitorCountStyleTarget={setVisitorCountStyleTarget}
+
+  inspectorCardClass={inspectorCardClass}
+  inspectorLabelClass={inspectorLabelClass}
+  inspectorInputClass={inspectorInputClass}
+/>
 ) : null}
 
 {!isMultiSelection && selectedBlock?.type === "progress_bar" ? (

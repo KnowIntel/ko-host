@@ -11703,7 +11703,7 @@ function renderVisitorCounter(
   function VisitorCounterPreview() {
     const variant = block.data.variant ?? "flip";
     const alignment = block.data.alignment ?? "center";
-    const metricType = block.data.metricType ?? "site_visits";
+    const metricType = "site_visits";
     const animationDelayMs = Math.max(
       0,
       Number(block.data.animationDelayMs ?? 1500),
@@ -11758,15 +11758,32 @@ function renderVisitorCounter(
       };
     }, [micrositeId, metricType, animationDelayMs]);
 
-    const baseTextStyle = getContainerTextStyle(block.data.style, designKey);
-    const numberTextStyle = getContainerTextStyle(
-      block.data.numberStyle ?? block.data.style,
-      designKey,
-    );
-    const labelTextStyle = getContainerTextStyle(
-      block.data.labelStyle ?? block.data.style,
-      designKey,
-    );
+const data = block.data as any;
+
+const baseTextStyle = getContainerTextStyle(data.style, designKey);
+
+const headingTextStyle = getContainerTextStyle(
+  data.headingStyle ?? data.style,
+  designKey,
+);
+
+const subtitleTextStyle = getContainerTextStyle(
+  data.subtitleStyle ?? data.style,
+  designKey,
+);
+
+const counterLabelTextStyle = getContainerTextStyle(
+  data.counterLabelStyle ?? data.labelStyle ?? data.style,
+  designKey,
+);
+
+const numberTextStyle = getContainerTextStyle(
+  data.numberStyle ?? data.style,
+  designKey,
+);
+
+const tileStyle = data.tileStyle ?? {};
+const blockStyle = data.style ?? {};
 
     const alignClass =
       alignment === "left"
@@ -11786,16 +11803,24 @@ function renderVisitorCounter(
     ].join(" ");
 
     return (
-      <Surface block={block} designKey={designKey} className="">
+      <Surface
+  block={block}
+  designKey={designKey}
+  className=""
+  styleOverride={{
+    ...block.appearance,
+    ...blockStyle,
+  }}
+>
         <div className={`flex h-full min-h-0 flex-col justify-center gap-3 ${alignClass}`}>
           {block.data.showHeading !== false ? (
-            <div className="text-base font-semibold" style={baseTextStyle}>
+            <div className="text-base font-semibold" style={headingTextStyle}>
               {block.data.heading || "Visitor Count"}
             </div>
           ) : null}
 
           {block.data.showSubtitle === true && block.data.subtitle ? (
-            <div className="text-xs opacity-70" style={baseTextStyle}>
+            <div className="text-xs opacity-70" style={subtitleTextStyle}>
               {block.data.subtitle}
             </div>
           ) : null}
@@ -11822,7 +11847,10 @@ function renderVisitorCounter(
                       ? "border-neutral-200 bg-white text-neutral-950"
                       : "border-white/10 bg-white/10 text-white",
                   ].join(" ")}
-                  style={numberTextStyle}
+                  style={{
+  ...tileStyle,
+  ...numberTextStyle,
+}}
                 >
                   <div className="absolute inset-x-1 top-1 h-px bg-white/30" />
                   <div className="absolute inset-x-1 bottom-1 h-px bg-black/10" />
@@ -11836,7 +11864,10 @@ function renderVisitorCounter(
                 <div
                   key={`${block.id}-flip-${index}`}
                   className={digitTileClass}
-                  style={numberTextStyle}
+                  style={{
+  ...tileStyle,
+  ...numberTextStyle,
+}}
                 >
                   {digit}
                 </div>
