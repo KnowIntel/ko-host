@@ -79,6 +79,14 @@ import {
 } from "@/components/builder/formatting/summaryFormatting";
 
 import {
+  applyVisitorCountStylePatch,
+  applyVisitorCountTextStylePatch,
+  getVisitorCountTextStyle,
+  type VisitorCountStyleTarget,
+  type VisitorCountTextTarget,
+} from "@/components/builder/formatting/visitorCountFormatting";
+
+import {
   applyHighlightStylePatch,
   applyHighlightTextStylePatch,
   getHighlightTextStyle,
@@ -2258,6 +2266,12 @@ const [listingStyleTarget, setListingStyleTarget] = useState<
   "title" | "description" | "metadata" | "price" | "quantity"
 >("title");
 
+const [visitorCountTextTarget, setVisitorCountTextTarget] =
+  useState<VisitorCountTextTarget>("heading");
+
+const [visitorCountStyleTarget, setVisitorCountStyleTarget] =
+  useState<VisitorCountStyleTarget>("tiles");
+
 const [summaryTextTarget, setSummaryTextTarget] =
   useState<SummaryTextTarget>("heading");
 
@@ -2654,6 +2668,11 @@ selectedBlockFromDraft?.type === "gallery"
       selectedBlockFromDraft,
       galleryTextTarget,
     ) as TextStyle)
+: selectedBlockFromDraft?.type === "visitor_counter"
+  ? (getVisitorCountTextStyle(
+      selectedBlockFromDraft,
+      visitorCountTextTarget,
+    ) as TextStyle)
 : selectedBlockFromDraft?.type === "summary"
   ? (getSummaryTextStyle(
       selectedBlockFromDraft,
@@ -2747,10 +2766,6 @@ selectedBlockFromDraft?.type === "gallery"
       selectedBlockFromDraft,
       optionButtonTextTarget,
     ) as TextStyle)
-: selectedBlockFromDraft?.type === "visitor_counter"
-  ? (((selectedBlockFromDraft.data as any).numberStyle ??
-      (selectedBlockFromDraft.data as any).style ??
-      {}) as TextStyle)
 : selectedBlockFromDraft?.type === "faq"
   ? (getFaqTextStyle(
       selectedBlockFromDraft,
@@ -4822,6 +4837,20 @@ const handleVideoUpload = async (
 
 function applyStylePatch(patch: Partial<TextStyle>) {
 
+  if (selectedBlock?.type === "visitor_counter") {
+  updateSelectedBlock((block) =>
+    block.type !== "visitor_counter"
+      ? block
+      : applyVisitorCountTextStylePatch(
+          block,
+          visitorCountTextTarget,
+          patch,
+        ),
+  );
+
+  return;
+}
+
   if (selectedBlock?.type === "summary") {
   updateSelectedBlock((block) =>
     block.type !== "summary"
@@ -5064,40 +5093,6 @@ if ((selectedBlockFromDraft as any)?.type === "option_button") {
       patch,
     ),
   );
-
-  return;
-}
-
-  if (selectedBlock?.type === "visitor_counter") {
-  setDraft((prev) => ({
-    ...prev,
-    blocks: prev.blocks.map((block) =>
-      block.id === selectedBlock.id && block.type === "visitor_counter"
-        ? {
-            ...block,
-            data: {
-              ...block.data,
-              style: {
-                ...(block.data.style ?? {}),
-                ...patch,
-              },
-              numberStyle: {
-                ...((block.data as any).numberStyle ?? block.data.style ?? {}),
-                ...patch,
-              },
-              labelStyle: {
-                ...((block.data as any).labelStyle ?? block.data.style ?? {}),
-                ...patch,
-              },
-              tileStyle: {
-                ...((block.data as any).tileStyle ?? block.data.style ?? {}),
-                ...patch,
-              },
-            },
-          }
-        : block,
-    ),
-  }));
 
   return;
 }
@@ -5707,6 +5702,20 @@ function clearSelectedBackground() {
 
 function applyAppearancePatch(patch: AppearancePatch) {
 
+  if (selectedBlock?.type === "visitor_counter") {
+  updateSelectedBlock((block) =>
+    block.type !== "visitor_counter"
+      ? block
+      : applyVisitorCountStylePatch(
+          block,
+          visitorCountStyleTarget,
+          patch,
+        ),
+  );
+
+  return;
+}
+
   if (selectedBlock?.type === "highlight") {
   updateSelectedBlock((block) =>
     block.type !== "highlight"
@@ -5911,43 +5920,6 @@ if (selectedBlock?.type === "content_panel") {
     );
     return;
   }
-
-if (selectedBlock?.type === "visitor_counter") {
-  updateSelectedBlock((block) =>
-    block.type !== "visitor_counter"
-      ? block
-      : {
-          ...block,
-          appearance: {
-            ...block.appearance,
-            ...patch,
-          },
-          data: {
-            ...block.data,
-            tileStyle: {
-              ...((block.data as any).tileStyle ?? {}),
-              ...(patch.backgroundColor !== undefined
-                ? { backgroundColor: patch.backgroundColor }
-                : {}),
-              ...(patch.backgroundOpacity !== undefined
-                ? { backgroundOpacity: patch.backgroundOpacity }
-                : {}),
-              ...(patch.borderColor !== undefined
-                ? { borderColor: patch.borderColor }
-                : {}),
-              ...(patch.borderWidth !== undefined
-                ? { borderWidth: patch.borderWidth }
-                : {}),
-              ...(patch.borderRadius !== undefined
-                ? { borderRadius: patch.borderRadius }
-                : {}),
-            },
-          },
-        },
-  );
-
-  return;
-}
 
   setDraft((prev) => applyAppearancePatchToSelection(prev, selection, patch));
 }
@@ -13052,6 +13024,10 @@ renderBlockPreview={renderCanvasPreview}
     inspectorCardClass={inspectorCardClass}
     inspectorLabelClass={inspectorLabelClass}
     inspectorInputClass={inspectorInputClass}
+    visitorCountTextTarget={visitorCountTextTarget}
+    setVisitorCountTextTarget={setVisitorCountTextTarget}
+    visitorCountStyleTarget={visitorCountStyleTarget}
+    setVisitorCountStyleTarget={setVisitorCountStyleTarget}
   />
 ) : null}
 

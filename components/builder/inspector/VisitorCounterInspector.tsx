@@ -10,9 +10,25 @@ import type { Dispatch, SetStateAction } from "react";
  * DesignLayoutEditor remains the middleman and only renders this when:
  * selectedBlock?.type === "visitor_counter"
  */
+
+import type {
+  VisitorCountStyleTarget,
+  VisitorCountTextTarget,
+} from "@/components/builder/formatting/visitorCountFormatting";
+
 type VisitorCounterInspectorSectionProps = {
   selectedBlock: any;
   updateSelectedBlock: any;
+
+  visitorCountTextTarget: VisitorCountTextTarget;
+  setVisitorCountTextTarget: Dispatch<
+    SetStateAction<VisitorCountTextTarget>
+  >;
+
+  visitorCountStyleTarget: VisitorCountStyleTarget;
+  setVisitorCountStyleTarget: Dispatch<
+    SetStateAction<VisitorCountStyleTarget>
+  >;
 
   inspectorCardClass: () => string;
   inspectorLabelClass: () => string;
@@ -22,6 +38,13 @@ type VisitorCounterInspectorSectionProps = {
 export function VisitorCounterInspector({
   selectedBlock,
   updateSelectedBlock,
+
+  visitorCountTextTarget,
+  setVisitorCountTextTarget,
+
+  visitorCountStyleTarget,
+  setVisitorCountStyleTarget,
+
   inspectorCardClass,
   inspectorLabelClass,
   inspectorInputClass,
@@ -30,6 +53,45 @@ export function VisitorCounterInspector({
     <div className={inspectorCardClass()}>
       {/* Visitor Counter */}
     <div className={inspectorLabelClass()}>Visitor Counter</div>
+
+<div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+  <div className={inspectorLabelClass()}>Formatting</div>
+
+  <div className="mt-3">
+    <div className={inspectorLabelClass()}>Text Target</div>
+
+    <select
+      value={visitorCountTextTarget}
+      onChange={(e) =>
+        setVisitorCountTextTarget(
+          e.target.value as VisitorCountTextTarget,
+        )
+      }
+      className={inspectorInputClass()}
+    >
+      <option value="heading">Heading</option>
+      <option value="subtitle">Subtitle</option>
+      <option value="counterLabel">Counter Label</option>
+    </select>
+  </div>
+
+  <div className="mt-3">
+    <div className={inspectorLabelClass()}>Style Target</div>
+
+    <select
+      value={visitorCountStyleTarget}
+      onChange={(e) =>
+        setVisitorCountStyleTarget(
+          e.target.value as VisitorCountStyleTarget,
+        )
+      }
+      className={inspectorInputClass()}
+    >
+      <option value="tiles">Tiles</option>
+      <option value="block">Block</option>
+    </select>
+  </div>
+</div>
 
     <div className="mt-4">
       <div className={inspectorLabelClass()}>Heading</div>
@@ -224,42 +286,6 @@ export function VisitorCounterInspector({
         <option value="flip">Flip</option>
         <option value="dial">Dial</option>
         <option value="smooth_count">Smooth Count</option>
-      </select>
-    </div>
-
-    <div className="mt-4">
-      <div className={inspectorLabelClass()}>Metric Type</div>
-      <select
-        value={selectedBlock.data.metricType ?? "site_visits"}
-        onChange={(e) =>
-          updateSelectedBlock((block: any) =>
-            block.type !== "visitor_counter"
-              ? block
-              : {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    metricType: e.target.value as
-                      | "site_visits"
-                      | "page_visits"
-                      | "unique_visitors"
-                      | "today_visits",
-                  },
-                },
-          )
-        }
-        className={inspectorInputClass()}
-      >
-        <option value="site_visits">Total Microsite Visits</option>
-        <option value="page_visits" disabled>
-          Current Page Visits — later
-        </option>
-        <option value="unique_visitors" disabled>
-          Unique Visitors — later
-        </option>
-        <option value="today_visits" disabled>
-          Today’s Visitors — later
-        </option>
       </select>
     </div>
 
