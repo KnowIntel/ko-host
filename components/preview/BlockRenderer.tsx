@@ -11878,7 +11878,7 @@ const blockStyle = data.style ?? {};
           {block.data.showLabel !== false ? (
             <div
               className="text-xs font-semibold uppercase tracking-[0.16em] opacity-70"
-              style={labelTextStyle}
+              style={counterLabelTextStyle}
             >
               {block.data.showIcon !== false ? "👁️ " : ""}
               {block.data.label || "Visitors"}
