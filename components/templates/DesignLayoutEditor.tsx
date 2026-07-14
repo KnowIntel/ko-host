@@ -11686,9 +11686,7 @@ const idsToExpand =
         </>
       ) : null}
 
-{showAppearanceControls ||
-selectedBlock?.type === "highlight" ||
-selectedBlock?.type === "visitor_counter" ? (
+{showAppearanceControls ? (
   <>
     <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
 
@@ -11994,9 +11992,7 @@ title={
       />
     </button>
 
-    {showBorderWidthRadiusControls ||
-selectedBlock?.type === "highlight" ||
-selectedBlock?.type === "visitor_counter" ? (
+{showBorderWidthRadiusControls ? (
       <>
         <div className={topBarSliderWrapClass()}>
           <span>Border</span>
