@@ -81,6 +81,14 @@ import {
 } from "@/components/builder/formatting/countdownFormatting";
 
 import {
+  applyTimelineStylePatch,
+  applyTimelineTextStylePatch,
+  getTimelineTextStyle,
+  type TimelineStyleTarget,
+  type TimelineTextTarget,
+} from "@/components/builder/formatting/timelineFormatting";
+
+import {
   applyProgressBarTextStylePatch,
   getProgressBarTextStyle,
   type ProgressBarTextTarget,
@@ -2286,6 +2294,12 @@ const [countdownTextTarget, setCountdownTextTarget] =
 const [countdownStyleTarget, setCountdownStyleTarget] =
   useState<CountdownStyleTarget>("tiles");
 
+const [timelineTextTarget, setTimelineTextTarget] =
+  useState<TimelineTextTarget>("heading");
+
+const [timelineStyleTarget, setTimelineStyleTarget] =
+  useState<TimelineStyleTarget>("tile");
+
 const [progressBarTextTarget, setProgressBarTextTarget] =
   useState<ProgressBarTextTarget>("heading");
 
@@ -2595,13 +2609,6 @@ const currentSiteDisplay = isLiveMicrosite
       ? draft.blocks.find((item) => item.id === selection.blockId) ?? null
       : null;
 
-type TimelineStyleTarget =
-  | "title"
-  | "date"
-  | "entryTitle"
-  | "subtitle"
-  | "description";
-
   
 type ClipboardEntry = {
   clipboardId: string;
@@ -2636,9 +2643,6 @@ useEffect(() => {
     // ignore clipboard persistence errors
   }
 }, [clipboardEntries]);
-
-const [timelineStyleTarget, setTimelineStyleTarget] =
-  useState<TimelineStyleTarget>("entryTitle");
 
 const [calendarEventTextTarget, setCalendarEventTextTarget] =
   useState<
@@ -2685,6 +2689,11 @@ selectedBlockFromDraft?.type === "gallery"
   ? (getCountdownTextStyle(
       selectedBlockFromDraft,
       countdownTextTarget,
+    ) as TextStyle)
+: selectedBlockFromDraft?.type === "timeline"
+  ? (getTimelineTextStyle(
+      selectedBlockFromDraft,
+      timelineTextTarget,
     ) as TextStyle)
 : selectedBlockFromDraft?.type === "progress_bar"
   ? (getProgressBarTextStyle(
@@ -2799,18 +2808,7 @@ selectedBlockFromDraft?.type === "gallery"
       selectedBlockFromDraft,
       contentPanelTextTarget,
     ) as TextStyle)
-                      : selectedBlockFromDraft?.type === "timeline"
-                        ? timelineStyleTarget === "title"
-                          ? (((selectedBlockFromDraft.data as any).titleStyle ?? {}) as TextStyle)
-                          : timelineStyleTarget === "date"
-                            ? (((selectedBlockFromDraft.data as any).dateStyle ?? {}) as TextStyle)
-                            : timelineStyleTarget === "entryTitle"
-                              ? (((selectedBlockFromDraft.data as any).entryTitleStyle ?? {}) as TextStyle)
-                              : timelineStyleTarget === "subtitle"
-                                ? (((selectedBlockFromDraft.data as any).subtitleStyle ?? {}) as TextStyle)
-                                : (((selectedBlockFromDraft.data as any).descriptionStyle ?? {}) as TextStyle)
-
-                      : selectedBlockFromDraft?.type === "calendar_event"
+                          : selectedBlockFromDraft?.type === "calendar_event"
                         ? calendarEventTextTarget === "heading"
                           ? (((selectedBlockFromDraft.data as any).headingStyle ??
                               (selectedBlockFromDraft.data as any).style ??
@@ -4799,20 +4797,33 @@ const handleVideoUpload = async (
 };
 
 function applyStylePatch(patch: Partial<TextStyle>) {
+  if (selectedBlock?.type === "countdown") {
+    updateSelectedBlock((block) =>
+      block.type !== "countdown"
+        ? block
+        : applyCountdownTextStylePatch(
+            block,
+            countdownTextTarget,
+            patch,
+          ),
+    );
 
-if (selectedBlock?.type === "countdown") {
-  updateSelectedBlock((block) =>
-    block.type !== "countdown"
-      ? block
-      : applyCountdownTextStylePatch(
-          block,
-          countdownTextTarget,
-          patch,
-        ),
-  );
+    return;
+  }
 
-  return;
-}
+  if (selectedBlock?.type === "timeline") {
+    updateSelectedBlock((block) =>
+      block.type !== "timeline"
+        ? block
+        : applyTimelineTextStylePatch(
+            block,
+            timelineTextTarget,
+            patch,
+          ),
+    );
+
+    return;
+  }
 
   if (selectedBlock?.type === "progress_bar") {
   updateSelectedBlock((block) =>
@@ -5250,41 +5261,6 @@ if (selectedBlock?.type === "donation") {
     return;
   }
 
-if (selectedBlock?.type === "timeline") {
-  const targetId = selectedBlock.id;
-
-  const targetStyleKey =
-    timelineStyleTarget === "title"
-      ? "titleStyle"
-      : timelineStyleTarget === "date"
-        ? "dateStyle"
-        : timelineStyleTarget === "entryTitle"
-          ? "entryTitleStyle"
-          : timelineStyleTarget === "subtitle"
-            ? "subtitleStyle"
-            : "descriptionStyle";
-
-  setDraft((prev) => ({
-    ...prev,
-    blocks: prev.blocks.map((block) =>
-      block.id === targetId && block.type === "timeline"
-        ? {
-            ...block,
-            data: {
-              ...block.data,
-              [targetStyleKey]: {
-                ...((block.data as any)[targetStyleKey] ?? {}),
-                ...patch,
-              },
-            },
-          }
-        : block,
-    ),
-  }));
-
-  return;
-}
-
 
 if (selectedBlock?.type === "content_panel") {
   updateSelectedBlock((block) =>
@@ -5562,20 +5538,33 @@ function clearSelectedBackground() {
 }
 
 function applyAppearancePatch(patch: AppearancePatch) {
-
   if (selectedBlock?.type === "countdown") {
-  updateSelectedBlock((block) =>
-    block.type !== "countdown"
-      ? block
-      : applyCountdownStylePatch(
-          block,
-          countdownStyleTarget,
-          patch,
-        ),
-  );
+    updateSelectedBlock((block) =>
+      block.type !== "countdown"
+        ? block
+        : applyCountdownStylePatch(
+            block,
+            countdownStyleTarget,
+            patch,
+          ),
+    );
 
-  return;
-}
+    return;
+  }
+
+  if (selectedBlock?.type === "timeline") {
+    updateSelectedBlock((block) =>
+      block.type !== "timeline"
+        ? block
+        : applyTimelineStylePatch(
+            block,
+            timelineStyleTarget,
+            patch,
+          ),
+    );
+
+    return;
+  }
 
   if (selectedBlock?.type === "visitor_counter") {
   updateSelectedBlock((block) =>
@@ -5780,21 +5769,6 @@ if (selectedBlock?.type === "content_panel") {
 
   return;
 }
-
-  if (selectedBlock?.type === "timeline") {
-    updateSelectedBlock((block) =>
-      block.type !== "timeline"
-        ? block
-        : {
-            ...block,
-            appearance: {
-              ...block.appearance,
-              ...patch,
-            },
-          },
-    );
-    return;
-  }
 
   setDraft((prev) => applyAppearancePatchToSelection(prev, selection, patch));
 }
@@ -12722,6 +12696,8 @@ renderBlockPreview={renderCanvasPreview}
   <TimelineInspector
     selectedBlock={selectedBlock}
     updateSelectedBlock={updateSelectedBlock}
+    timelineTextTarget={timelineTextTarget}
+    setTimelineTextTarget={setTimelineTextTarget}
     timelineStyleTarget={timelineStyleTarget}
     setTimelineStyleTarget={setTimelineStyleTarget}
     focusedTimelineEntryId={focusedTimelineEntryId}

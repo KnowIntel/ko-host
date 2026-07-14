@@ -2,16 +2,17 @@
 
 import type { Dispatch, SetStateAction } from "react";
 
-type TimelineStyleTarget =
-  | "title"
-  | "date"
-  | "entryTitle"
-  | "subtitle"
-  | "description";
+import type {
+  TimelineStyleTarget,
+  TimelineTextTarget,
+} from "@/components/builder/formatting/timelineFormatting";
 
 type TimelineInspectorProps = {
   selectedBlock: any;
   updateSelectedBlock: any;
+
+  timelineTextTarget: TimelineTextTarget;
+  setTimelineTextTarget: Dispatch<SetStateAction<TimelineTextTarget>>;
 
   timelineStyleTarget: TimelineStyleTarget;
   setTimelineStyleTarget: Dispatch<SetStateAction<TimelineStyleTarget>>;
@@ -32,6 +33,8 @@ type TimelineInspectorProps = {
 export function TimelineInspector({
   selectedBlock,
   updateSelectedBlock,
+  timelineTextTarget,
+  setTimelineTextTarget,
   timelineStyleTarget,
   setTimelineStyleTarget,
   focusedTimelineEntryId,
@@ -43,13 +46,32 @@ export function TimelineInspector({
   inspectorTextareaClass,
   toolSetButtonClass,
 }: TimelineInspectorProps) {
-  return (
-    <div id="inspector-timeline" className={inspectorCardClass()}>
-      {/* Story Timeline */}
-    <div className={inspectorLabelClass()}>Story Timeline</div>
+return (
+  <div id="inspector-timeline" className={inspectorCardClass()}>
+    {/* Formatting */}
+    <div className={inspectorLabelClass()}>Formatting</div>
 
     <div className="mt-4">
       <div className={inspectorLabelClass()}>Text Target</div>
+
+      <select
+        value={timelineTextTarget}
+        onChange={(e) =>
+          setTimelineTextTarget(e.target.value as TimelineTextTarget)
+        }
+        className={inspectorInputClass()}
+      >
+        <option value="heading">Heading</option>
+        <option value="date">Date</option>
+        <option value="title">Title</option>
+        <option value="subtitle">Subtitle</option>
+        <option value="description">Description</option>
+        <option value="ctaLabel">CTA Label</option>
+      </select>
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Style Target</div>
 
       <select
         value={timelineStyleTarget}
@@ -58,12 +80,15 @@ export function TimelineInspector({
         }
         className={inspectorInputClass()}
       >
-        <option value="title">Timeline Title</option>
-        <option value="date">Entry Date</option>
-        <option value="entryTitle">Entry Title</option>
-        <option value="subtitle">Subtitle</option>
-        <option value="description">Description</option>
+        <option value="tile">Tile</option>
+        <option value="ctaLabel">CTA Label</option>
+        <option value="block">Block</option>
       </select>
+    </div>
+
+    {/* Story Timeline */}
+    <div className="mt-6">
+      <div className={inspectorLabelClass()}>Story Timeline</div>
     </div>
 
     <div className="mt-4">
