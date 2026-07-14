@@ -4345,22 +4345,22 @@ if (selectedBlock?.type === "countdown") {
   return;
 }
 
-    if (selectedBlock?.type === "timeline") {
-    updateSelectedBlock((block) =>
-      block.type !== "timeline"
-        ? block
-        : {
-            ...block,
-            appearance: {
-              ...block.appearance,
-              backgroundColor: value,
-            },
+if (selectedBlock?.type === "timeline") {
+  updateSelectedBlock((block) =>
+    block.type !== "timeline"
+      ? block
+      : applyTimelineStylePatch(
+          block,
+          timelineStyleTarget,
+          {
+            backgroundColor: value,
           },
-    );
+        ),
+  );
 
-    pushRecentColor(value);
-    return;
-  }
+  pushRecentColor(value);
+  return;
+}
 
     if (selectedBlock?.type === "icon") {
     updateSelectedBlock((block) =>
@@ -4581,6 +4581,23 @@ if (selectedBlockFromDraft?.type === "option_button") {
 
   if (selectedBlock?.type === "form_field") {
   applyAppearancePatch({ borderColor: value });
+  pushRecentColor(value);
+  return;
+}
+
+if (selectedBlock?.type === "timeline") {
+  updateSelectedBlock((block) =>
+    block.type !== "timeline"
+      ? block
+      : applyTimelineStylePatch(
+          block,
+          timelineStyleTarget,
+          {
+            borderColor: value,
+          },
+        ),
+  );
+
   pushRecentColor(value);
   return;
 }
