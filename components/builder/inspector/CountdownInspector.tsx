@@ -2,16 +2,17 @@
 
 import type { Dispatch, RefObject, SetStateAction } from "react";
 
-type CountdownStyleTarget =
-  | "background"
-  | "tiles"
-  | "values"
-  | "units"
-  | "heading";
+import type {
+  CountdownStyleTarget,
+  CountdownTextTarget,
+} from "@/components/builder/formatting/countdownFormatting";
 
 type CountdownInspectorProps = {
   selectedBlock: any;
   updateSelectedBlock: any;
+
+  countdownTextTarget: CountdownTextTarget;
+  setCountdownTextTarget: Dispatch<SetStateAction<CountdownTextTarget>>;
 
   countdownStyleTarget: CountdownStyleTarget;
   setCountdownStyleTarget: Dispatch<SetStateAction<CountdownStyleTarget>>;
@@ -28,6 +29,8 @@ type CountdownInspectorProps = {
 export function CountdownInspector({
   selectedBlock,
   updateSelectedBlock,
+  countdownTextTarget,
+  setCountdownTextTarget,
   countdownStyleTarget,
   setCountdownStyleTarget,
   countdownTargetInputRef,
@@ -37,10 +40,47 @@ export function CountdownInspector({
   inspectorLabelClass,
   inspectorInputClass,
 }: CountdownInspectorProps) {
-  return (
-    <div id="inspector-countdown" className={inspectorCardClass()}>
-      {/* Countdown */}
-    <div className={inspectorLabelClass()}>Countdown</div>
+return (
+  <div id="inspector-countdown" className={inspectorCardClass()}>
+    {/* Formatting */}
+    <div className={inspectorLabelClass()}>Formatting</div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Text Target</div>
+
+      <select
+        value={countdownTextTarget}
+        onChange={(e) =>
+          setCountdownTextTarget(e.target.value as CountdownTextTarget)
+        }
+        className={inspectorInputClass()}
+      >
+        <option value="heading">Heading</option>
+        <option value="values">Values</option>
+        <option value="units">Units</option>
+        <option value="completedMessage">Completed Message</option>
+      </select>
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Style Target</div>
+
+      <select
+        value={countdownStyleTarget}
+        onChange={(e) =>
+          setCountdownStyleTarget(e.target.value as CountdownStyleTarget)
+        }
+        className={inspectorInputClass()}
+      >
+        <option value="tiles">Tiles</option>
+        <option value="block">Block</option>
+      </select>
+    </div>
+
+    {/* Countdown */}
+    <div className="mt-6">
+      <div className={inspectorLabelClass()}>Countdown</div>
+    </div>
 
     <div className="mt-4">
       <div className={inspectorLabelClass()}>Style Variant</div>

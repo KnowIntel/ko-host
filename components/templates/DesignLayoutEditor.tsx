@@ -73,6 +73,14 @@ import {
 } from "@/components/builder/formatting/imageFormatting";
 
 import {
+  applyCountdownStylePatch,
+  applyCountdownTextStylePatch,
+  getCountdownTextStyle,
+  type CountdownStyleTarget,
+  type CountdownTextTarget,
+} from "@/components/builder/formatting/countdownFormatting";
+
+import {
   applyProgressBarTextStylePatch,
   getProgressBarTextStyle,
   type ProgressBarTextTarget,
@@ -2272,6 +2280,12 @@ const [listingStyleTarget, setListingStyleTarget] = useState<
   "title" | "description" | "metadata" | "price" | "quantity"
 >("title");
 
+const [countdownTextTarget, setCountdownTextTarget] =
+  useState<CountdownTextTarget>("heading");
+
+const [countdownStyleTarget, setCountdownStyleTarget] =
+  useState<CountdownStyleTarget>("tiles");
+
 const [progressBarTextTarget, setProgressBarTextTarget] =
   useState<ProgressBarTextTarget>("heading");
 
@@ -2581,13 +2595,6 @@ const currentSiteDisplay = isLiveMicrosite
       ? draft.blocks.find((item) => item.id === selection.blockId) ?? null
       : null;
 
-type CountdownStyleTarget =
-  | "background"
-  | "tiles"
-  | "values"
-  | "units"
-  | "heading";
-
 type TimelineStyleTarget =
   | "title"
   | "date"
@@ -2629,9 +2636,6 @@ useEffect(() => {
     // ignore clipboard persistence errors
   }
 }, [clipboardEntries]);
-
-const [countdownStyleTarget, setCountdownStyleTarget] =
-  useState<CountdownStyleTarget>("background");
 
 const [timelineStyleTarget, setTimelineStyleTarget] =
   useState<TimelineStyleTarget>("entryTitle");
@@ -2676,6 +2680,11 @@ selectedBlockFromDraft?.type === "gallery"
   ? (getGalleryTextStyle(
       selectedBlockFromDraft,
       galleryTextTarget,
+    ) as TextStyle)
+: selectedBlockFromDraft?.type === "countdown"
+  ? (getCountdownTextStyle(
+      selectedBlockFromDraft,
+      countdownTextTarget,
     ) as TextStyle)
 : selectedBlockFromDraft?.type === "progress_bar"
   ? (getProgressBarTextStyle(
@@ -2785,24 +2794,6 @@ selectedBlockFromDraft?.type === "gallery"
       selectedBlockFromDraft,
       faqTextTarget,
     ) as TextStyle)
-                  : selectedBlockFromDraft?.type === "countdown"
-                    ? countdownStyleTarget === "tiles"
-                      ? (((selectedBlockFromDraft.data as any).tileStyle ??
-                          (selectedBlockFromDraft.data as any).style ??
-                          {}) as TextStyle)
-                      : countdownStyleTarget === "values"
-                        ? (((selectedBlockFromDraft.data as any).standardValueStyle ??
-                            (selectedBlockFromDraft.data as any).style ??
-                            {}) as TextStyle)
-                        : countdownStyleTarget === "units"
-                          ? (((selectedBlockFromDraft.data as any).standardUnitStyle ??
-                              (selectedBlockFromDraft.data as any).style ??
-                              {}) as TextStyle)
-                          : countdownStyleTarget === "heading"
-                            ? (((selectedBlockFromDraft.data as any).headingStyle ??
-                                (selectedBlockFromDraft.data as any).style ??
-                                {}) as TextStyle)
-                            : (((selectedBlockFromDraft.data as any).style ?? {}) as TextStyle)
 : selectedBlockFromDraft?.type === "content_panel"
   ? (getContentPanelTextStyle(
       selectedBlockFromDraft,
@@ -4340,42 +4331,22 @@ function applyFillColor(value: string) {
   return;
 }
 
-  if (selectedBlock?.type === "countdown") {
-    if (countdownStyleTarget === "tiles") {
-      updateSelectedBlock((block) =>
-        block.type !== "countdown"
-          ? block
-          : {
-              ...block,
-              data: {
-                ...block.data,
-                tileStyle: {
-                  ...((block.data as any).tileStyle ?? {}),
-                  backgroundColor: value,
-                },
-              },
-            },
-      );
-
-      pushRecentColor(value);
-      return;
-    }
-
-    updateSelectedBlock((block) =>
-      block.type !== "countdown"
-        ? block
-        : {
-            ...block,
-            appearance: {
-              ...block.appearance,
-              backgroundColor: value,
-            },
+if (selectedBlock?.type === "countdown") {
+  updateSelectedBlock((block) =>
+    block.type !== "countdown"
+      ? block
+      : applyCountdownStylePatch(
+          block,
+          countdownStyleTarget,
+          {
+            backgroundColor: value,
           },
-    );
+        ),
+  );
 
-    pushRecentColor(value);
-    return;
-  }
+  pushRecentColor(value);
+  return;
+}
 
     if (selectedBlock?.type === "timeline") {
     updateSelectedBlock((block) =>
@@ -4617,42 +4588,22 @@ if (selectedBlockFromDraft?.type === "option_button") {
   return;
 }
 
-  if (selectedBlock?.type === "countdown") {
-    if (countdownStyleTarget === "tiles") {
-      updateSelectedBlock((block) =>
-        block.type !== "countdown"
-          ? block
-          : {
-              ...block,
-              data: {
-                ...block.data,
-                tileStyle: {
-                  ...((block.data as any).tileStyle ?? {}),
-                  borderColor: value,
-                },
-              },
-            },
-      );
-
-      pushRecentColor(value);
-      return;
-    }
-
-    updateSelectedBlock((block) =>
-      block.type !== "countdown"
-        ? block
-        : {
-            ...block,
-            appearance: {
-              ...block.appearance,
-              borderColor: value,
-            },
+if (selectedBlock?.type === "countdown") {
+  updateSelectedBlock((block) =>
+    block.type !== "countdown"
+      ? block
+      : applyCountdownStylePatch(
+          block,
+          countdownStyleTarget,
+          {
+            borderColor: value,
           },
-    );
+        ),
+  );
 
-    pushRecentColor(value);
-    return;
-  }
+  pushRecentColor(value);
+  return;
+}
 
   if (selectedBlock?.type === "progress_bar" && progressBarStyleTarget === "scope") {
     updateSelectedBlock((block) =>
@@ -4849,6 +4800,20 @@ const handleVideoUpload = async (
 };
 
 function applyStylePatch(patch: Partial<TextStyle>) {
+
+if (selectedBlock?.type === "countdown") {
+  updateSelectedBlock((block) =>
+    block.type !== "countdown"
+      ? block
+      : applyCountdownTextStylePatch(
+          block,
+          countdownTextTarget,
+          patch,
+        ),
+  );
+
+  return;
+}
 
   if (selectedBlock?.type === "progress_bar") {
   updateSelectedBlock((block) =>
@@ -5321,85 +5286,6 @@ if (selectedBlock?.type === "timeline") {
   return;
 }
 
-if (selectedBlock?.type === "countdown") {
-  const targetId = selectedBlock.id;
-
-  setDraft((prev) => ({
-    ...prev,
-    blocks: prev.blocks.map((block) => {
-      if (block.id !== targetId || block.type !== "countdown") {
-        return block;
-      }
-
-      const data = block.data as any;
-
-      if (countdownStyleTarget === "values") {
-        return {
-          ...block,
-          data: {
-            ...data,
-            standardValueStyle: {
-              ...(data.standardValueStyle ?? data.style ?? {}),
-              ...patch,
-            },
-          },
-        };
-      }
-
-      if (countdownStyleTarget === "units") {
-        return {
-          ...block,
-          data: {
-            ...data,
-            standardUnitStyle: {
-              ...(data.standardUnitStyle ?? data.style ?? {}),
-              ...patch,
-            },
-          },
-        };
-      }
-
-      if (countdownStyleTarget === "heading") {
-        return {
-          ...block,
-          data: {
-            ...data,
-            headingStyle: {
-              ...(data.headingStyle ?? data.style ?? {}),
-              ...patch,
-            },
-          },
-        };
-      }
-
-      if (countdownStyleTarget === "tiles") {
-        return {
-          ...block,
-          data: {
-            ...data,
-            tileStyle: {
-              ...(data.tileStyle ?? data.style ?? {}),
-              ...patch,
-            },
-          },
-        };
-      }
-
-      return {
-        ...block,
-        data: {
-          ...data,
-          style: {
-            ...(data.style ?? {}),
-            ...patch,
-          },
-        },
-      };
-    }),
-  }));
-
-  return;
-}
 
 if (selectedBlock?.type === "content_panel") {
   updateSelectedBlock((block) =>
@@ -5677,6 +5563,20 @@ function clearSelectedBackground() {
 }
 
 function applyAppearancePatch(patch: AppearancePatch) {
+
+  if (selectedBlock?.type === "countdown") {
+  updateSelectedBlock((block) =>
+    block.type !== "countdown"
+      ? block
+      : applyCountdownStylePatch(
+          block,
+          countdownStyleTarget,
+          patch,
+        ),
+  );
+
+  return;
+}
 
   if (selectedBlock?.type === "visitor_counter") {
   updateSelectedBlock((block) =>
@@ -12794,6 +12694,8 @@ renderBlockPreview={renderCanvasPreview}
   <CountdownInspector
     selectedBlock={selectedBlock}
     updateSelectedBlock={updateSelectedBlock}
+    countdownTextTarget={countdownTextTarget}
+    setCountdownTextTarget={setCountdownTextTarget}
     countdownStyleTarget={countdownStyleTarget}
     setCountdownStyleTarget={setCountdownStyleTarget}
     countdownTargetInputRef={countdownTargetInputRef}

@@ -2439,10 +2439,15 @@ function renderCountdown(
       designKey,
     );
 
-    const backgroundTextStyle = getContainerTextStyle(
-      block.data.style,
-      designKey,
-    );
+const backgroundTextStyle = getContainerTextStyle(
+  block.data.style,
+  designKey,
+);
+
+const completedMessageStyle = getContainerTextStyle(
+  ((data.completedMessageStyle ?? block.data.style ?? {}) as TextStyle),
+  designKey,
+);
 
     const tileStyle = getContainerTextStyle(
       ((data.tileStyle ?? block.data.style ?? {}) as TextStyle),
@@ -2588,9 +2593,9 @@ function renderCountdown(
           className="flex h-full w-full items-center justify-center p-4 text-center"
           style={appearanceStyle}
         >
-          <div style={backgroundTextStyle}>
-            {block.data.completedMessage || "Countdown finished"}
-          </div>
+<div style={completedMessageStyle}>
+  {block.data.completedMessage || "Countdown finished"}
+</div>
         </div>
       );
     }
