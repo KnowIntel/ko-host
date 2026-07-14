@@ -11452,7 +11452,7 @@ if (displayStyle === "meter") {
 
   return (
     <Surface block={block} designKey={designKey} className="">
-    <div className="text-center text-base font-semibold" style={backgroundStyle}>
+    <div className="text-center text-base font-semibold" style={headingStyle}>
       {block.data.heading || "Progress"}
     </div>
 
@@ -11592,7 +11592,7 @@ const splitContextLocation =
 if (barMode === "split") {
   return (
     <Surface block={block} designKey={designKey} className="">
-      <div className="text-base font-semibold" style={backgroundStyle}>
+      <div className="text-base font-semibold" style={headingStyle}>
         {block.data.heading || "Progress"}
       </div>
 
@@ -11670,7 +11670,7 @@ if (barMode === "split") {
 return (
   <Surface block={block} designKey={designKey} className="">
     <div className="flex items-start justify-between gap-3">
-      <div className="text-base font-semibold" style={backgroundStyle}>
+      <div className="text-base font-semibold" style={headingStyle}>
         {block.data.heading || "Progress"}
       </div>
 

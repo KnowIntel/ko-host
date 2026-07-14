@@ -39,7 +39,28 @@ export function ProgressBarInspector({
     <div className={inspectorCardClass()}>
 {/* Progress Meter */}
 <div className={inspectorLabelClass()}>Progress Meter</div>
+<div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+  <div className={inspectorLabelClass()}>Formatting</div>
 
+  <div className="mt-3">
+    <div className={inspectorLabelClass()}>Text Target</div>
+
+    <select
+      value={progressBarTextTarget}
+      onChange={(e) =>
+        setProgressBarTextTarget(
+          e.target.value as ProgressBarTextTarget,
+        )
+      }
+      className={inspectorInputClass()}
+    >
+      <option value="heading">Heading</option>
+      <option value="context">Context</option>
+      <option value="meterValue">Meter Value</option>
+      <option value="caption">Caption</option>
+    </select>
+  </div>
+</div>
     <div className="mt-4">
       <div className={inspectorLabelClass()}>Display Style</div>
       <select
