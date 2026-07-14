@@ -2989,26 +2989,22 @@ const renderJourneyPath = () => {
   );
 };
 
-  const imageShapeClass = (shape?: string) => {
-    switch (shape) {
-      case "circle":
-        return "rounded-full";
-      case "rounded":
-        return "rounded-2xl";
-      case "square":
-        return "rounded-none";
-      case "diamond":
-        return "rotate-45 rounded-lg";
-      case "hexagon":
-        return "rounded-[28%]";
-      case "blob":
-        return "rounded-[38%_62%_55%_45%/45%_42%_58%_55%]";
-      case "none":
-        return "hidden";
-      default:
-        return "rounded-2xl";
-    }
-  };
+const imageShapeClass = (shape?: string) => {
+  switch (shape) {
+    case "circle":
+      return "rounded-full";
+    case "rounded":
+      return "rounded-2xl";
+    case "square":
+      return "rounded-none";
+    case "blob":
+      return "rounded-[38%_62%_55%_45%/45%_42%_58%_55%]";
+    case "none":
+      return "hidden";
+    default:
+      return "rounded-2xl";
+  }
+};
 
 const renderMedia = (entry: any) => {
   if (entry.imageShape === "none") return null;
@@ -3033,10 +3029,7 @@ if (entry.imageUrl) {
       <img
         src={entry.imageUrl}
         alt=""
-        className={[
-          "h-full w-full object-cover",
-          entry.imageShape === "diamond" ? "-rotate-45 scale-150" : "",
-        ].join(" ")}
+className="h-full w-full object-cover"
       />
     </div>
   );

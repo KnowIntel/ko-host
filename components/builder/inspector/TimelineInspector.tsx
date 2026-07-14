@@ -3,7 +3,6 @@
 import type { Dispatch, SetStateAction } from "react";
 
 import type {
-  TimelineStyleTarget,
   TimelineTextTarget,
 } from "@/components/builder/formatting/timelineFormatting";
 
@@ -13,9 +12,6 @@ type TimelineInspectorProps = {
 
   timelineTextTarget: TimelineTextTarget;
   setTimelineTextTarget: Dispatch<SetStateAction<TimelineTextTarget>>;
-
-  timelineStyleTarget: TimelineStyleTarget;
-  setTimelineStyleTarget: Dispatch<SetStateAction<TimelineStyleTarget>>;
 
   focusedTimelineEntryId: string | null;
 
@@ -35,8 +31,6 @@ export function TimelineInspector({
   updateSelectedBlock,
   timelineTextTarget,
   setTimelineTextTarget,
-  timelineStyleTarget,
-  setTimelineStyleTarget,
   focusedTimelineEntryId,
   makeClientId,
   uploadImageToSelectedBlock,
@@ -67,22 +61,6 @@ return (
         <option value="subtitle">Subtitle</option>
         <option value="description">Description</option>
         <option value="ctaLabel">CTA Label</option>
-      </select>
-    </div>
-
-    <div className="mt-4">
-      <div className={inspectorLabelClass()}>Style Target</div>
-
-      <select
-        value={timelineStyleTarget}
-        onChange={(e) =>
-          setTimelineStyleTarget(e.target.value as TimelineStyleTarget)
-        }
-        className={inspectorInputClass()}
-      >
-        <option value="tile">Tile</option>
-        <option value="ctaLabel">CTA Label</option>
-        <option value="block">Block</option>
       </select>
     </div>
 
@@ -759,39 +737,38 @@ onClick={() =>
                 />
               </div>
 
-              <div>
-                <div className={inspectorLabelClass()}>Frame</div>
-                <select
-                  value={entry.imageShape ?? "circle"}
-                  onChange={(e) =>
-                    updateSelectedBlock((block: any) =>
-                      block.type !== "timeline"
-                        ? block
-                        : {
-                            ...block,
-                            data: {
-                              ...block.data,
-                              entries: block.data.entries.map((item: any) =>
-                                item.id === entry.id
-                                  ? { ...item, imageShape: e.target.value as any }
-                                  : item,
-                              ),
-                            },
-                          },
-                    )
-                  }
-                  className={inspectorInputClass()}
-                >
-                  <option value="circle">Circle</option>
-                  <option value="rounded">Rounded</option>
-                  <option value="square">Square</option>
-                  <option value="diamond">Diamond</option>
-                  <option value="hexagon">Hexagon</option>
-                  <option value="blob">Blob</option>
-                  <option value="none">None</option>
-                </select>
-              </div>
-            </div>
+<div>
+  <div className={inspectorLabelClass()}>Frame</div>
+  <select
+    value={entry.imageShape ?? "circle"}
+    onChange={(e) =>
+      updateSelectedBlock((block: any) =>
+        block.type !== "timeline"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                entries: block.data.entries.map((item: any) =>
+                  item.id === entry.id
+                    ? { ...item, imageShape: e.target.value as any }
+                    : item,
+                ),
+              },
+            },
+      )
+    }
+    className={inspectorInputClass()}
+  >
+    
+    <option value="circle">Circle</option>
+    <option value="rounded">Rounded</option>
+    <option value="square">Square</option>
+    <option value="blob">Blob</option>
+    <option value="none">None</option>
+  </select>
+</div>
+</div>
 
             <div className="mt-3 grid grid-cols-2 gap-3">
               <div>

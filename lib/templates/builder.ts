@@ -218,7 +218,7 @@ export type TimelineEntry = {
   imageUrl?: string;
   icon?: string;
   imageSize?: number;
-  imageShape?: "circle" | "rounded" | "square" | "diamond" | "hexagon" | "blob" | "none";
+  imageShape?: "circle" | "rounded" | "square" | "blob" | "none";
   accentColor?: string;
   alignment?: "auto" | "left" | "right" | "center";
   animation?: "fade" | "slide" | "pop" | "reveal" | "none";
@@ -6155,16 +6155,14 @@ headingStyle: {
                   typeof entry?.icon === "string"
                     ? entry.icon
                     : "/media-icons/star.svg",
-                imageShape:
-                  entry?.imageShape === "circle" ||
-                  entry?.imageShape === "rounded" ||
-                  entry?.imageShape === "square" ||
-                  entry?.imageShape === "diamond" ||
-                  entry?.imageShape === "hexagon" ||
-                  entry?.imageShape === "blob" ||
-                  entry?.imageShape === "none"
-                    ? entry.imageShape
-                    : "circle",
+imageShape:
+  entry?.imageShape === "circle" ||
+  entry?.imageShape === "rounded" ||
+  entry?.imageShape === "square" ||
+  entry?.imageShape === "blob" ||
+  entry?.imageShape === "none"
+    ? entry.imageShape
+    : "circle",
                 accentColor:
                   typeof entry?.accentColor === "string"
                     ? entry.accentColor

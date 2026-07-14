@@ -81,10 +81,8 @@ import {
 } from "@/components/builder/formatting/countdownFormatting";
 
 import {
-  applyTimelineStylePatch,
   applyTimelineTextStylePatch,
   getTimelineTextStyle,
-  type TimelineStyleTarget,
   type TimelineTextTarget,
 } from "@/components/builder/formatting/timelineFormatting";
 
@@ -2297,9 +2295,6 @@ const [countdownStyleTarget, setCountdownStyleTarget] =
 const [timelineTextTarget, setTimelineTextTarget] =
   useState<TimelineTextTarget>("heading");
 
-const [timelineStyleTarget, setTimelineStyleTarget] =
-  useState<TimelineStyleTarget>("tile");
-
 const [progressBarTextTarget, setProgressBarTextTarget] =
   useState<ProgressBarTextTarget>("heading");
 
@@ -4345,23 +4340,6 @@ if (selectedBlock?.type === "countdown") {
   return;
 }
 
-if (selectedBlock?.type === "timeline") {
-  updateSelectedBlock((block) =>
-    block.type !== "timeline"
-      ? block
-      : applyTimelineStylePatch(
-          block,
-          timelineStyleTarget,
-          {
-            backgroundColor: value,
-          },
-        ),
-  );
-
-  pushRecentColor(value);
-  return;
-}
-
     if (selectedBlock?.type === "icon") {
     updateSelectedBlock((block) =>
       block.type !== "icon"
@@ -4581,23 +4559,6 @@ if (selectedBlockFromDraft?.type === "option_button") {
 
   if (selectedBlock?.type === "form_field") {
   applyAppearancePatch({ borderColor: value });
-  pushRecentColor(value);
-  return;
-}
-
-if (selectedBlock?.type === "timeline") {
-  updateSelectedBlock((block) =>
-    block.type !== "timeline"
-      ? block
-      : applyTimelineStylePatch(
-          block,
-          timelineStyleTarget,
-          {
-            borderColor: value,
-          },
-        ),
-  );
-
   pushRecentColor(value);
   return;
 }
@@ -5562,20 +5523,6 @@ function applyAppearancePatch(patch: AppearancePatch) {
         : applyCountdownStylePatch(
             block,
             countdownStyleTarget,
-            patch,
-          ),
-    );
-
-    return;
-  }
-
-  if (selectedBlock?.type === "timeline") {
-    updateSelectedBlock((block) =>
-      block.type !== "timeline"
-        ? block
-        : applyTimelineStylePatch(
-            block,
-            timelineStyleTarget,
             patch,
           ),
     );
@@ -12715,8 +12662,6 @@ renderBlockPreview={renderCanvasPreview}
     updateSelectedBlock={updateSelectedBlock}
     timelineTextTarget={timelineTextTarget}
     setTimelineTextTarget={setTimelineTextTarget}
-    timelineStyleTarget={timelineStyleTarget}
-    setTimelineStyleTarget={setTimelineStyleTarget}
     focusedTimelineEntryId={focusedTimelineEntryId}
     makeClientId={makeClientId}
     uploadImageToSelectedBlock={uploadImageToSelectedBlock}

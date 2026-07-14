@@ -10,11 +10,6 @@ export type TimelineTextTarget =
   | "description"
   | "ctaLabel";
 
-export type TimelineStyleTarget =
-  | "tile"
-  | "ctaLabel"
-  | "block";
-
 function isTimelineBlock(
   block: MicrositeBlock,
 ): block is TimelineBlock {
@@ -56,41 +51,6 @@ export function applyTimelineTextStylePatch(
 
   const data = block.data as any;
   const styleKey = getTextStyleKey(target);
-
-  return {
-    ...block,
-    data: {
-      ...data,
-      [styleKey]: {
-        ...(data[styleKey] ?? {}),
-        ...patch,
-      },
-    },
-  };
-}
-
-export function applyTimelineStylePatch(
-  block: MicrositeBlock,
-  target: TimelineStyleTarget,
-  patch: Record<string, any>,
-): MicrositeBlock {
-  if (!isTimelineBlock(block)) return block;
-
-  if (target === "block") {
-    return {
-      ...block,
-      appearance: {
-        ...(block.appearance ?? {}),
-        ...patch,
-      },
-    };
-  }
-
-  const data = block.data as any;
-  const styleKey =
-    target === "tile"
-      ? "tileStyle"
-      : "ctaLabelStyle";
 
   return {
     ...block,
