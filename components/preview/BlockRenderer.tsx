@@ -11323,12 +11323,29 @@ function renderProgressBar(
   const value = Math.max(0, Math.min(rawValue, max));
   const percent = Math.round((value / max) * 100);
 
-  const backgroundStyle = getContainerTextStyle(block.data.style, designKey);
-  const barStyle = ((block.data as any).barStyle ?? {}) as TextStyle;
-  const contextStyle = getContainerTextStyle(
-    ((block.data as any).contextStyle ?? block.data.style ?? {}) as TextStyle,
-    designKey,
-  );
+const data = block.data as any;
+
+const headingStyle = getContainerTextStyle(
+  data.headingStyle ?? data.style ?? {},
+  designKey,
+);
+
+const contextStyle = getContainerTextStyle(
+  data.contextStyle ?? data.style ?? {},
+  designKey,
+);
+
+const meterValueStyle = getContainerTextStyle(
+  data.meterValueStyle ?? data.contextStyle ?? data.style ?? {},
+  designKey,
+);
+
+const captionStyle = getContainerTextStyle(
+  data.meterCaptionStyle ?? data.style ?? {},
+  designKey,
+);
+
+const barStyle = (data.barStyle ?? {}) as TextStyle;
 
   const displayStyle = (block.data as any).displayStyle ?? "bar";
 
@@ -11355,10 +11372,7 @@ if (displayStyle === "meter") {
   const endColor = (block.data as any).meterEndColor || "#dc2626";
   const needleColor = (block.data as any).meterNeedleColor || "#e5e7eb";
   const caption = (block.data as any).meterCaption ?? "";
-  const captionStyle = getContainerTextStyle(
-    ((block.data as any).meterCaptionStyle ?? {}) as TextStyle,
-    designKey,
-  );
+
 
   const centerX = 140;
   const centerY = 132;
@@ -11449,7 +11463,7 @@ if (displayStyle === "meter") {
   className="h-full w-full overflow-visible"
   preserveAspectRatio="xMidYMid meet"
             role="img"
-            aria-label={`Progress meter ${percent}%`}
+            aria-label={`Progress dial ${percent}%`}
           >
             <defs>
               <filter
@@ -11513,10 +11527,10 @@ if (displayStyle === "meter") {
 {showContext ? (
   <div
     className="-mt-5 w-full text-center text-xs font-medium"
-    style={{
-      ...contextStyle,
-      textAlign: "center",
-    }}
+style={{
+  ...meterValueStyle,
+  textAlign: "center",
+}}
   >
     {contextText}
   </div>

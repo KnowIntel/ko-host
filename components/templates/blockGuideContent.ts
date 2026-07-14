@@ -1264,14 +1264,14 @@ visitor_counter: {
 },
 
 progress_bar: {
-  title: "Progress Bar",
+  title: "Progress Meter",
   subtitle:
     "Visually represent progress toward a goal, target, or completion state.",
   sections: [
     {
       title: "Overview",
       body:
-        "The Progress Bar block displays a visual indicator showing progress toward a defined value or goal.",
+        "The Progress Meter block displays a visual indicator showing progress toward a defined value or goal.",
     },
     {
       title: "Objective",

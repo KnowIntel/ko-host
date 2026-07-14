@@ -1,15 +1,23 @@
 "use client";
 
 /**
- * Progress Bar inspector section
+ * Progress Meter inspector section
  * Extracted from DesignLayoutEditor.
  *
  * DesignLayoutEditor remains the middleman and only renders this when:
  * selectedBlock?.type === "progress_bar"
  */
+import type { Dispatch, SetStateAction } from "react";
+import type { ProgressBarTextTarget } from "@/components/builder/formatting/progressBarFormatting";
+
 type ProgressBarInspectorProps = {
   selectedBlock: any;
   updateSelectedBlock: any;
+
+  progressBarTextTarget: ProgressBarTextTarget;
+  setProgressBarTextTarget: Dispatch<
+    SetStateAction<ProgressBarTextTarget>
+  >;
 
   inspectorCardClass: () => string;
   inspectorLabelClass: () => string;
@@ -19,14 +27,18 @@ type ProgressBarInspectorProps = {
 export function ProgressBarInspector({
   selectedBlock,
   updateSelectedBlock,
+
+  progressBarTextTarget,
+  setProgressBarTextTarget,
+
   inspectorCardClass,
   inspectorLabelClass,
   inspectorInputClass,
 }: ProgressBarInspectorProps) {
   return (
     <div className={inspectorCardClass()}>
-      {/* Progress Bar */}
-    <div className={inspectorLabelClass()}>Progress Bar</div>
+{/* Progress Meter */}
+<div className={inspectorLabelClass()}>Progress Meter</div>
 
     <div className="mt-4">
       <div className={inspectorLabelClass()}>Display Style</div>
@@ -48,7 +60,7 @@ export function ProgressBarInspector({
         className={inspectorInputClass()}
       >
         <option value="bar">Bar</option>
-        <option value="meter">Meter</option>
+        <option value="meter">Dial</option>
       </select>
     </div>
 

@@ -174,7 +174,7 @@ export const BUILDER_TOOL_GUIDES: BuilderToolGuide[] = [
     howToUse: "Use this to show how many people have visited or viewed the microsite. Choose a counter style, label, animation timing, and alignment.",
   },
   {
-    name: "Progress Bar",
+    name: "Progress Meter",
     purpose: "Shows progress toward a goal.",
     howToUse: "Use this for fundraising, capacity, milestones, completion tracking, ticket goals, or campaign progress. Set the current value, max value, and percentage display.",
   },

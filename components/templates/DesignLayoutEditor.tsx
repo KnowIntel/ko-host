@@ -73,6 +73,12 @@ import {
 } from "@/components/builder/formatting/imageFormatting";
 
 import {
+  applyProgressBarTextStylePatch,
+  getProgressBarTextStyle,
+  type ProgressBarTextTarget,
+} from "@/components/builder/formatting/progressBarFormatting";
+
+import {
   applySummaryTextStylePatch,
   getSummaryTextStyle,
   type SummaryTextTarget,
@@ -785,7 +791,7 @@ Utilities: [
     { kind: "block", label: "Highlight", type: "highlight" },
     { kind: "block", label: "Summary", type: "summary" },
     { kind: "block", label: "Visitor Counter", type: "visitor_counter" },
-    { kind: "block", label: "Progress Bar", type: "progress_bar" },
+    { kind: "block", label: "Progress Meter", type: "progress_bar" },
   ],
 Scheduling: [
   { kind: "block", label: "Countdown", type: "countdown" },
@@ -865,7 +871,7 @@ const TOOL_DESCRIPTIONS: Record<string, string> = {
 
   Highlight: "Feature stat or key callout",
   Summary: "Display selected input and option values in a clean summary list",
-  "Progress Bar": "Visual progress toward a goal",
+  "Progress Meter": "Visual progress toward a goal",
   Spreadsheet: "Excel-like editable table block",
 
   Countdown: "Timer counting to an event",
@@ -1286,7 +1292,7 @@ if (selection.type !== "block") {
       kind: "otherBlock",
       blockId,
       blockType: block.type,
-      label: block.label || "Progress Bar",
+      label: block.label || "Progress Meter",
     };
   }
 
@@ -2055,7 +2061,7 @@ function getToolIconPath(tool: (typeof CATEGORY_BUTTONS)[BottomCategory][number]
   if (tool.label === "Highlight") return "/menu-icons/block-highlight.svg";
   if (tool.label === "Summary") return "/menu-icons/block-summary.svg";
   if (tool.label === "Visitor Counter") return "/menu-icons/block-visitor-counter.svg";
-  if (tool.label === "Progress Bar") return "/menu-icons/block-progress-meter.svg";
+  if (tool.label === "Progress Meter") return "/menu-icons/block-progress-meter.svg";
 
   if (tool.label === "Countdown") return "/menu-icons/block-countdown.svg";
   if (tool.label === "Story Timeline") return "/menu-icons/block-story-timeline.svg";
@@ -2265,6 +2271,9 @@ export default function DesignLayoutEditor({
 const [listingStyleTarget, setListingStyleTarget] = useState<
   "title" | "description" | "metadata" | "price" | "quantity"
 >("title");
+
+const [progressBarTextTarget, setProgressBarTextTarget] =
+  useState<ProgressBarTextTarget>("heading");
 
 const [visitorCountTextTarget, setVisitorCountTextTarget] =
   useState<VisitorCountTextTarget>("heading");
@@ -2668,6 +2677,11 @@ selectedBlockFromDraft?.type === "gallery"
       selectedBlockFromDraft,
       galleryTextTarget,
     ) as TextStyle)
+: selectedBlockFromDraft?.type === "progress_bar"
+  ? (getProgressBarTextStyle(
+      selectedBlockFromDraft,
+      progressBarTextTarget,
+    ) as TextStyle)
 : selectedBlockFromDraft?.type === "visitor_counter"
   ? (getVisitorCountTextStyle(
       selectedBlockFromDraft,
@@ -2849,7 +2863,6 @@ selectedBlockFromDraft?.type === "gallery"
                         selectedBlockFromDraft?.type === "cta" ||
                         selectedBlockFromDraft?.type === "image" ||
                         (selectedBlockFromDraft as any)?.type === "gallery" ||
-                        selectedBlockFromDraft?.type === "progress_bar" ||
                         selectedBlockFromDraft?.type === "checklist" ||
                         selectedBlockFromDraft?.type === "schedule_agenda" ||
                         selectedBlockFromDraft?.type === "map_location" ||
@@ -4837,6 +4850,20 @@ const handleVideoUpload = async (
 
 function applyStylePatch(patch: Partial<TextStyle>) {
 
+  if (selectedBlock?.type === "progress_bar") {
+  updateSelectedBlock((block) =>
+    block.type !== "progress_bar"
+      ? block
+      : applyProgressBarTextStylePatch(
+          block,
+          progressBarTextTarget,
+          patch,
+        ),
+  );
+
+  return;
+}
+
   if (selectedBlock?.type === "visitor_counter") {
   updateSelectedBlock((block) =>
     block.type !== "visitor_counter"
@@ -5094,57 +5121,6 @@ if ((selectedBlockFromDraft as any)?.type === "option_button") {
     ),
   );
 
-  return;
-}
-
-if (selectedBlock?.type === "progress_bar") {
-  setDraft((prev) => ({
-    ...prev,
-    blocks: prev.blocks.map((block) =>
-      block.id === selectedBlock.id && block.type === "progress_bar"
-        ? {
-            ...block,
-            data: {
-              ...block.data,
-              ...(progressBarStyleTarget === "bar" ||
-              progressBarStyleTarget === "scope"
-                ? {
-                    barStyle: {
-                      ...((block.data as any).barStyle ?? {}),
-                      ...patch,
-                    },
-                  }
-                : progressBarStyleTarget === "context" ||
-                    progressBarStyleTarget === "meterContext"
-                  ? {
-                      contextStyle: {
-                        ...((block.data as any).contextStyle ?? {}),
-                        ...patch,
-                        align:
-                          progressBarStyleTarget === "meterContext"
-                            ? "center"
-                            : ((patch as any).align ?? undefined),
-                      },
-                    }
-                  : progressBarStyleTarget === "meterCaption"
-                    ? {
-                        meterCaptionStyle: {
-                          ...((block.data as any).meterCaptionStyle ?? {}),
-                          ...patch,
-                          align: "center",
-                        },
-                      }
-                    : {
-                        style: {
-                          ...(block.data.style ?? {}),
-                          ...patch,
-                        },
-                      }),
-            },
-          }
-        : block,
-    ),
-  }));
   return;
 }
 
@@ -10849,37 +10825,6 @@ const idsToExpand =
   />
 ) : null}
 
-
-{selectedBlock?.type === "progress_bar" ? (
-  <>
-    <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
-
-    <select
-      value={progressBarStyleTarget}
-      onChange={(e) =>
-        setProgressBarStyleTarget(
-          e.target.value as
-            | "background"
-            | "bar"
-            | "scope"
-            | "context"
-            | "meterContext"
-            | "meterCaption"
-        )
-      }
-      className={topBarFieldClass("w-[155px]")}
-      title="Progress bar style target"
-    >
-      <option value="background">Background</option>
-      <option value="bar">Bar</option>
-      <option value="scope">Scope</option>
-      <option value="context">Context</option>
-      <option value="meterContext">Meter Value</option>
-      <option value="meterCaption">Caption</option>
-    </select>
-  </>
-) : null}
-
 {selectedBlock?.type === "form_field" ? (
   <div className={topBarSliderWrapClass()}>
     <span>BG Opacity</span>
@@ -13039,13 +12984,17 @@ renderBlockPreview={renderCanvasPreview}
 ) : null}
 
 {!isMultiSelection && selectedBlock?.type === "progress_bar" ? (
-  <ProgressBarInspector
-    selectedBlock={selectedBlock}
-    updateSelectedBlock={updateSelectedBlock}
-    inspectorCardClass={inspectorCardClass}
-    inspectorLabelClass={inspectorLabelClass}
-    inspectorInputClass={inspectorInputClass}
-  />
+<ProgressBarInspector
+  selectedBlock={selectedBlock}
+  updateSelectedBlock={updateSelectedBlock}
+
+  progressBarTextTarget={progressBarTextTarget}
+  setProgressBarTextTarget={setProgressBarTextTarget}
+
+  inspectorCardClass={inspectorCardClass}
+  inspectorLabelClass={inspectorLabelClass}
+  inspectorInputClass={inspectorInputClass}
+/>
 ) : null}
 
 {!isMultiSelection && selectedBlock?.type === "donation" ? (

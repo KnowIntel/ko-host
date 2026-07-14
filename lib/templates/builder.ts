@@ -4861,7 +4861,7 @@ headingStyle: {
       return {
         id: makeId("progress"),
         type: "progress_bar",
-        label: "Progress Bar",
+        label: "Progress Meter",
         grid,
         appearance: createDefaultBlockAppearance(),
 data: {
