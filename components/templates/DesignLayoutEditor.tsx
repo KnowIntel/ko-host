@@ -9108,60 +9108,88 @@ style={{
       );
     }
 
-    if (block.type === "schedule_agenda") {
-      return (
-        <div
-          className="h-full w-full rounded-xl p-4"
-          style={{
-            backgroundColor:
-              block.appearance?.backgroundColor &&
-              block.appearance.backgroundColor !== "transparent"
-                ? block.appearance.backgroundColor
-                : "transparent",
-            borderColor: block.appearance?.borderColor || undefined,
-            borderWidth:
-              typeof block.appearance?.borderWidth === "number"
-                ? `${block.appearance.borderWidth}px`
-                : undefined,
-            borderStyle:
-              typeof block.appearance?.borderWidth === "number" &&
-              block.appearance.borderWidth > 0
-                ? "solid"
-                : undefined,
-            borderRadius:
-              typeof block.appearance?.borderRadius === "number"
-                ? `${block.appearance.borderRadius}px`
-                : undefined,
-          }}
-        >
-          <div
-            className="mb-3 text-base font-semibold text-neutral-900"
-            style={getInlineTextStyle(block.data.style)}
-          >
-            {block.data.heading || "Schedule"}
-          </div>
+if (block.type === "schedule_agenda") {
+  const data = block.data as any;
 
-          <div className="space-y-2">
-            {block.data.items.slice(0, 5).map((item) => (
-              <div
-                key={item.id}
-                className="rounded-lg border border-neutral-200 bg-white px-3 py-2"
-              >
-                <div className="text-xs text-neutral-500">
-                  {item.time || "Time"}
-                </div>
-                <div
-                  className="text-sm font-medium text-neutral-900"
-                  style={getInlineTextStyle(block.data.style)}
-                >
-                  {item.title || "Event"}
-                </div>
-              </div>
-            ))}
+  const headingStyle = getInlineTextStyle(data.headingStyle ?? {});
+  const timeStyle = getInlineTextStyle(data.timeStyle ?? {});
+  const titleStyle = getInlineTextStyle(data.titleStyle ?? {});
+  const panelStyle = data.panelStyle ?? {};
+
+  return (
+    <div
+      className="h-full w-full rounded-xl p-4"
+      style={{
+        backgroundColor:
+          block.appearance?.backgroundColor &&
+          block.appearance.backgroundColor !== "transparent"
+            ? block.appearance.backgroundColor
+            : "transparent",
+        borderColor: block.appearance?.borderColor || undefined,
+        borderWidth:
+          typeof block.appearance?.borderWidth === "number"
+            ? `${block.appearance.borderWidth}px`
+            : undefined,
+        borderStyle:
+          typeof block.appearance?.borderWidth === "number" &&
+          block.appearance.borderWidth > 0
+            ? "solid"
+            : undefined,
+        borderRadius:
+          typeof block.appearance?.borderRadius === "number"
+            ? `${block.appearance.borderRadius}px`
+            : undefined,
+      }}
+    >
+      <div
+        className="mb-3 text-base font-semibold text-neutral-900"
+        style={headingStyle}
+      >
+        {data.heading || "Schedule"}
+      </div>
+
+      <div className="space-y-2">
+        {data.items.slice(0, 5).map((item: any) => (
+          <div
+            key={item.id}
+            className="rounded-lg border border-neutral-200 bg-white px-3 py-2"
+            style={{
+              backgroundColor: panelStyle.backgroundColor,
+              borderColor: panelStyle.borderColor,
+              borderWidth:
+                typeof panelStyle.borderWidth === "number"
+                  ? `${panelStyle.borderWidth}px`
+                  : undefined,
+              borderStyle:
+                typeof panelStyle.borderWidth === "number" &&
+                panelStyle.borderWidth > 0
+                  ? "solid"
+                  : undefined,
+              borderRadius:
+                typeof panelStyle.borderRadius === "number"
+                  ? `${panelStyle.borderRadius}px`
+                  : undefined,
+            }}
+          >
+            <div
+              className="text-xs text-neutral-500"
+              style={timeStyle}
+            >
+              {item.time || "Time"}
+            </div>
+
+            <div
+              className="text-sm font-medium text-neutral-900"
+              style={titleStyle}
+            >
+              {item.title || "Event"}
+            </div>
           </div>
-        </div>
-      );
-    }
+        ))}
+      </div>
+    </div>
+  );
+}
 
     if (block.type === "map_location") {
       return (
