@@ -9114,6 +9114,9 @@ if (block.type === "schedule_agenda") {
   const headingStyle = getInlineTextStyle(data.headingStyle ?? {});
   const timeStyle = getInlineTextStyle(data.timeStyle ?? {});
   const titleStyle = getInlineTextStyle(data.titleStyle ?? {});
+  const descriptionStyle = getInlineTextStyle(
+    data.descriptionStyle ?? {},
+  );
   const panelStyle = data.panelStyle ?? {};
 
   return (
@@ -9184,6 +9187,15 @@ if (block.type === "schedule_agenda") {
             >
               {item.title || "Event"}
             </div>
+
+            {item.description ? (
+              <div
+                className="mt-1 text-xs text-neutral-600"
+                style={descriptionStyle}
+              >
+                {item.description}
+              </div>
+            ) : null}
           </div>
         ))}
       </div>

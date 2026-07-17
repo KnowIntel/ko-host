@@ -71,7 +71,7 @@ return (
       >
         <option value="heading">Heading</option>
         <option value="time">Time</option>
-        <option value="opening">Opening</option>
+        <option value="opening">Title</option>
         <option value="description">Description</option>
       </select>
     </div>
