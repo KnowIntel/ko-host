@@ -4321,44 +4321,51 @@ function applyPageTextBoxBackground(value: string) {
 }
 
 function applyFillColor(value: string) {
-
   if (selectedBlock?.type === "enrollment_board") {
-  applyAppearancePatch({ backgroundColor: value });
-  pushRecentColor(value);
-  return;
-}
-
+    applyAppearancePatch({ backgroundColor: value });
+    pushRecentColor(value);
+    return;
+  }
 
   if (selectedBlockFromDraft?.type === "rsvp") {
-  applyAppearancePatch({ backgroundColor: value });
-  pushRecentColor(value);
-  return;
-}
+    applyAppearancePatch({ backgroundColor: value });
+    pushRecentColor(value);
+    return;
+  }
 
   if (selectedBlockFromDraft?.type === "poll") {
-  applyAppearancePatch({ backgroundColor: value });
-  pushRecentColor(value);
-  return;
-}
+    applyAppearancePatch({ backgroundColor: value });
+    pushRecentColor(value);
+    return;
+  }
 
-if (selectedBlock?.type === "countdown") {
-  updateSelectedBlock((block) =>
-    block.type !== "countdown"
-      ? block
-      : applyCountdownStylePatch(
-          block,
-          countdownStyleTarget,
-          {
-            backgroundColor: value,
-          },
-        ),
-  );
+  if (selectedBlock?.type === "countdown") {
+    updateSelectedBlock((block) =>
+      block.type !== "countdown"
+        ? block
+        : applyCountdownStylePatch(
+            block,
+            countdownStyleTarget,
+            {
+              backgroundColor: value,
+            },
+          ),
+    );
 
-  pushRecentColor(value);
-  return;
-}
+    pushRecentColor(value);
+    return;
+  }
 
-    if (selectedBlock?.type === "icon") {
+  if (selectedBlock?.type === "schedule_agenda") {
+    applyAppearancePatch({
+      backgroundColor: value,
+    });
+
+    pushRecentColor(value);
+    return;
+  }
+
+  if (selectedBlock?.type === "icon") {
     updateSelectedBlock((block) =>
       block.type !== "icon"
         ? block
@@ -4491,51 +4498,53 @@ if (selectedBlock?.type === "countdown") {
     pushRecentColor(value);
     return;
   }
-if (selectedBlock?.type === "checkout") {
-  updateSelectedBlock((block) =>
-    block.type !== "checkout"
-      ? block
-      : {
-          ...block,
-          appearance: {
-            ...block.appearance,
-            backgroundColor: value,
+
+  if (selectedBlock?.type === "checkout") {
+    updateSelectedBlock((block) =>
+      block.type !== "checkout"
+        ? block
+        : {
+            ...block,
+            appearance: {
+              ...block.appearance,
+              backgroundColor: value,
+            },
           },
-        },
-  );
+    );
 
-  pushRecentColor(value);
-  return;
-}
+    pushRecentColor(value);
+    return;
+  }
 
-if (selectedBlock?.type === "wave") {
-  updateSelectedBlock((block) =>
-    block.type !== "wave"
-      ? block
-      : {
-          ...block,
-          appearance: {
-            ...block.appearance,
-            backgroundColor: value,
+  if (selectedBlock?.type === "wave") {
+    updateSelectedBlock((block) =>
+      block.type !== "wave"
+        ? block
+        : {
+            ...block,
+            appearance: {
+              ...block.appearance,
+              backgroundColor: value,
+            },
           },
-        },
-  );
+    );
 
-  pushRecentColor(value);
-  return;
-}
+    pushRecentColor(value);
+    return;
+  }
 
-if (selectedBlockFromDraft?.type === "form_field") {
-  applyAppearancePatch({ backgroundColor: value });
-  pushRecentColor(value);
-  return;
-}
+  if (selectedBlockFromDraft?.type === "form_field") {
+    applyAppearancePatch({ backgroundColor: value });
+    pushRecentColor(value);
+    return;
+  }
 
-if (selectedBlockFromDraft?.type === "option_button") {
-  applyAppearancePatch({ backgroundColor: value });
-  pushRecentColor(value);
-  return;
-}
+  if (selectedBlockFromDraft?.type === "option_button") {
+    applyAppearancePatch({ backgroundColor: value });
+    pushRecentColor(value);
+    return;
+  }
+
   applyAppearancePatch({ backgroundColor: value });
   pushRecentColor(value);
 }
@@ -4550,55 +4559,66 @@ function eyedropperButtonClass() {
 
 
 function applyBorderColor(value: string) {
-
   if (selectedBlock?.type === "enrollment_board") {
-  applyAppearancePatch({ borderColor: value });
-  pushRecentColor(value);
-  return;
-}
+    applyAppearancePatch({ borderColor: value });
+    pushRecentColor(value);
+    return;
+  }
 
   if (selectedBlockFromDraft?.type === "rsvp") {
-  applyAppearancePatch({ borderColor: value });
-  pushRecentColor(value);
-  return;
-}
+    applyAppearancePatch({ borderColor: value });
+    pushRecentColor(value);
+    return;
+  }
 
   if (selectedBlockFromDraft?.type === "poll") {
-  applyAppearancePatch({ borderColor: value });
-  pushRecentColor(value);
-  return;
-}
+    applyAppearancePatch({ borderColor: value });
+    pushRecentColor(value);
+    return;
+  }
 
-if (selectedBlockFromDraft?.type === "option_button") {
-  applyAppearancePatch({ borderColor: value });
-  pushRecentColor(value);
-  return;
-}
+  if (selectedBlockFromDraft?.type === "option_button") {
+    applyAppearancePatch({ borderColor: value });
+    pushRecentColor(value);
+    return;
+  }
 
   if (selectedBlock?.type === "form_field") {
-  applyAppearancePatch({ borderColor: value });
-  pushRecentColor(value);
-  return;
-}
+    applyAppearancePatch({ borderColor: value });
+    pushRecentColor(value);
+    return;
+  }
 
-if (selectedBlock?.type === "countdown") {
-  updateSelectedBlock((block) =>
-    block.type !== "countdown"
-      ? block
-      : applyCountdownStylePatch(
-          block,
-          countdownStyleTarget,
-          {
-            borderColor: value,
-          },
-        ),
-  );
+  if (selectedBlock?.type === "countdown") {
+    updateSelectedBlock((block) =>
+      block.type !== "countdown"
+        ? block
+        : applyCountdownStylePatch(
+            block,
+            countdownStyleTarget,
+            {
+              borderColor: value,
+            },
+          ),
+    );
 
-  pushRecentColor(value);
-  return;
-}
+    pushRecentColor(value);
+    return;
+  }
 
-  if (selectedBlock?.type === "progress_bar" && progressBarStyleTarget === "scope") {
+  if (selectedBlock?.type === "schedule_agenda") {
+    applyAppearancePatch({
+      borderColor: value,
+    });
+
+    pushRecentColor(value);
+    return;
+  }
+
+  if (
+    selectedBlock?.type === "progress_bar" &&
+    progressBarStyleTarget === "scope"
+  ) {
     updateSelectedBlock((block) =>
       block.type !== "progress_bar"
         ? block
