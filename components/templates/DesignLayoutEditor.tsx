@@ -87,6 +87,14 @@ import {
 } from "@/components/builder/formatting/timelineFormatting";
 
 import {
+  applyScheduleAgendaStylePatch,
+  applyScheduleAgendaTextStylePatch,
+  getScheduleAgendaTextStyle,
+  type ScheduleAgendaStyleTarget,
+  type ScheduleAgendaTextTarget,
+} from "@/components/builder/formatting/scheduleAgendaFormatting";
+
+import {
   applyProgressBarTextStylePatch,
   getProgressBarTextStyle,
   type ProgressBarTextTarget,
@@ -2295,6 +2303,12 @@ const [countdownStyleTarget, setCountdownStyleTarget] =
 const [timelineTextTarget, setTimelineTextTarget] =
   useState<TimelineTextTarget>("heading");
 
+const [scheduleAgendaTextTarget, setScheduleAgendaTextTarget] =
+  useState<ScheduleAgendaTextTarget>("heading");
+
+const [scheduleAgendaStyleTarget, setScheduleAgendaStyleTarget] =
+  useState<ScheduleAgendaStyleTarget>("panel");
+
 const [progressBarTextTarget, setProgressBarTextTarget] =
   useState<ProgressBarTextTarget>("heading");
 
@@ -2675,21 +2689,26 @@ const [summaryStyleTarget, setSummaryStyleTarget] = useState<
 
 
 const selectedStyle =
-selectedBlockFromDraft?.type === "gallery"
-  ? (getGalleryTextStyle(
-      selectedBlockFromDraft,
-      galleryTextTarget,
-    ) as TextStyle)
-: selectedBlockFromDraft?.type === "countdown"
-  ? (getCountdownTextStyle(
-      selectedBlockFromDraft,
-      countdownTextTarget,
-    ) as TextStyle)
-: selectedBlockFromDraft?.type === "timeline"
-  ? (getTimelineTextStyle(
-      selectedBlockFromDraft,
-      timelineTextTarget,
-    ) as TextStyle)
+  selectedBlockFromDraft?.type === "gallery"
+    ? (getGalleryTextStyle(
+        selectedBlockFromDraft,
+        galleryTextTarget,
+      ) as TextStyle)
+    : selectedBlockFromDraft?.type === "countdown"
+      ? (getCountdownTextStyle(
+          selectedBlockFromDraft,
+          countdownTextTarget,
+        ) as TextStyle)
+      : selectedBlockFromDraft?.type === "timeline"
+        ? (getTimelineTextStyle(
+            selectedBlockFromDraft,
+            timelineTextTarget,
+          ) as TextStyle)
+        : selectedBlockFromDraft?.type === "schedule_agenda"
+          ? (getScheduleAgendaTextStyle(
+              selectedBlockFromDraft,
+              scheduleAgendaTextTarget,
+            ) as TextStyle)
 : selectedBlockFromDraft?.type === "progress_bar"
   ? (getProgressBarTextStyle(
       selectedBlockFromDraft,
@@ -2848,7 +2867,6 @@ selectedBlockFromDraft?.type === "gallery"
                         selectedBlockFromDraft?.type === "image" ||
                         (selectedBlockFromDraft as any)?.type === "gallery" ||
                         selectedBlockFromDraft?.type === "checklist" ||
-                        selectedBlockFromDraft?.type === "schedule_agenda" ||
                         selectedBlockFromDraft?.type === "map_location" ||
                         selectedBlockFromDraft?.type === "speed_dating" ||
                         selectedBlockFromDraft?.type === "rich_text" ||
@@ -4803,6 +4821,20 @@ function applyStylePatch(patch: Partial<TextStyle>) {
     return;
   }
 
+  if (selectedBlock?.type === "schedule_agenda") {
+    updateSelectedBlock((block) =>
+      block.type !== "schedule_agenda"
+        ? block
+        : applyScheduleAgendaTextStylePatch(
+            block,
+            scheduleAgendaTextTarget,
+            patch,
+          ),
+    );
+
+    return;
+  }
+
   if (selectedBlock?.type === "progress_bar") {
   updateSelectedBlock((block) =>
     block.type !== "progress_bar"
@@ -5118,27 +5150,6 @@ if (selectedBlock?.type === "donation") {
       ...prev,
       blocks: prev.blocks.map((block) =>
         block.id === selectedBlock.id && block.type === "checklist"
-          ? {
-              ...block,
-              data: {
-                ...block.data,
-                style: {
-                  ...(block.data.style ?? {}),
-                  ...patch,
-                },
-              },
-            }
-          : block,
-      ),
-    }));
-    return;
-  }
-
-  if (selectedBlock?.type === "schedule_agenda") {
-    setDraft((prev) => ({
-      ...prev,
-      blocks: prev.blocks.map((block) =>
-        block.id === selectedBlock.id && block.type === "schedule_agenda"
           ? {
               ...block,
               data: {
@@ -5530,19 +5541,33 @@ function applyAppearancePatch(patch: AppearancePatch) {
     return;
   }
 
-  if (selectedBlock?.type === "visitor_counter") {
-  updateSelectedBlock((block) =>
-    block.type !== "visitor_counter"
-      ? block
-      : applyVisitorCountStylePatch(
-          block,
-          visitorCountStyleTarget,
-          patch,
-        ),
-  );
+  if (selectedBlock?.type === "schedule_agenda") {
+    updateSelectedBlock((block) =>
+      block.type !== "schedule_agenda"
+        ? block
+        : applyScheduleAgendaStylePatch(
+            block,
+            scheduleAgendaStyleTarget,
+            patch,
+          ),
+    );
 
-  return;
-}
+    return;
+  }
+
+  if (selectedBlock?.type === "visitor_counter") {
+    updateSelectedBlock((block) =>
+      block.type !== "visitor_counter"
+        ? block
+        : applyVisitorCountStylePatch(
+            block,
+            visitorCountStyleTarget,
+            patch,
+          ),
+    );
+
+    return;
+  }
 
   if (selectedBlock?.type === "highlight") {
   updateSelectedBlock((block) =>
@@ -12912,6 +12937,10 @@ renderBlockPreview={renderCanvasPreview}
   <ScheduleAgendaInspector
     selectedBlock={selectedBlock}
     updateSelectedBlock={updateSelectedBlock}
+    scheduleAgendaTextTarget={scheduleAgendaTextTarget}
+    setScheduleAgendaTextTarget={setScheduleAgendaTextTarget}
+    scheduleAgendaStyleTarget={scheduleAgendaStyleTarget}
+    setScheduleAgendaStyleTarget={setScheduleAgendaStyleTarget}
     makeClientId={makeClientId}
     inspectorCardClass={inspectorCardClass}
     inspectorLabelClass={inspectorLabelClass}

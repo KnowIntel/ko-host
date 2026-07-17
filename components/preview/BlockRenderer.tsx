@@ -12966,44 +12966,71 @@ function renderScheduleAgenda(
   block: Extract<MicrositeBlock, { type: "schedule_agenda" }>,
   designKey?: string,
 ) {
+  const data = block.data as any;
   const items = Array.isArray(block.data.items) ? block.data.items : [];
+
+  const headingStyle = getContainerTextStyle(
+    data.headingStyle ?? data.style ?? {},
+    designKey,
+  );
+
+  const timeStyle = getContainerTextStyle(
+    data.timeStyle ?? data.style ?? {},
+    designKey,
+  );
+
+  const titleStyle = getContainerTextStyle(
+    data.titleStyle ?? data.style ?? {},
+    designKey,
+  );
+
+  const descriptionStyle = getContainerTextStyle(
+    data.descriptionStyle ?? data.style ?? {},
+    designKey,
+  );
+
+  const panelStyle = getContainerTextStyle(
+    data.panelStyle ?? {},
+    designKey,
+  );
+
   return (
-<Surface
-  block={block}
-  designKey={designKey}
-  className={`${getSoftSurfaceClass(designKey)} overflow-y-auto`}
->
+    <Surface
+      block={block}
+      designKey={designKey}
+      className={`${getSoftSurfaceClass(designKey)} overflow-y-auto`}
+    >
       <div
         className="mb-3 text-base font-semibold"
-        style={getContainerTextStyle(block.data.style, designKey)}
+        style={headingStyle}
       >
         {block.data.heading || "Schedule"}
       </div>
 
-{Boolean((block.data as any)?.allowUserEngagement) ? (
-  <div
-    className={[
-      "mb-4 rounded-xl border p-3",
-      isLightDesign(designKey)
-        ? "border-neutral-200 bg-neutral-50 text-neutral-800"
-        : "border-white/10 bg-white/5 text-white/80",
-    ].join(" ")}
-  >
-    <div className="mb-2 text-xs font-semibold uppercase tracking-[0.12em]">
-      Add to schedule
-    </div>
+      {Boolean((block.data as any)?.allowUserEngagement) ? (
+        <div
+          className={[
+            "mb-4 rounded-xl border p-3",
+            isLightDesign(designKey)
+              ? "border-neutral-200 bg-neutral-50 text-neutral-800"
+              : "border-white/10 bg-white/5 text-white/80",
+          ].join(" ")}
+        >
+          <div className="mb-2 text-xs font-semibold uppercase tracking-[0.12em]">
+            Add to schedule
+          </div>
 
-    <ScheduleAgendaSubmitForm block={block} />
+          <ScheduleAgendaSubmitForm block={block} />
 
-    <div className="mt-2 text-[11px] opacity-70">
-      Public schedule submissions UI enabled.
-    </div>
-  </div>
-) : null}
+          <div className="mt-2 text-[11px] opacity-70">
+            Public schedule submissions UI enabled.
+          </div>
+        </div>
+      ) : null}
 
-{items.length ? (
-  <div className="space-y-3">
-    {items.map((item, index) => (
+      {items.length ? (
+        <div className="space-y-3">
+          {items.map((item, index) => (
             <div
               key={item.id}
               className={[
@@ -13012,6 +13039,7 @@ function renderScheduleAgenda(
                   ? "border-neutral-200 bg-white"
                   : "border-white/10 bg-white/5",
               ].join(" ")}
+              style={panelStyle}
             >
               <div className="flex items-start gap-3">
                 <div
@@ -13022,12 +13050,15 @@ function renderScheduleAgenda(
                       : "bg-white/10",
                   ].join(" ")}
                 >
-                  <div className={`text-[10px] font-semibold uppercase tracking-[0.12em] ${getMutedTextClass(designKey)}`}>
+                  <div
+                    className={`text-[10px] font-semibold uppercase tracking-[0.12em] ${getMutedTextClass(designKey)}`}
+                  >
                     Item
                   </div>
+
                   <div
                     className="mt-1 text-sm font-semibold"
-                    style={getContainerTextStyle(block.data.style, designKey)}
+                    style={timeStyle}
                   >
                     {item.time || `${index + 1}`}
                   </div>
@@ -13036,19 +13067,19 @@ function renderScheduleAgenda(
                 <div className="min-w-0 flex-1">
                   <div
                     className="font-medium"
-                    style={getContainerTextStyle(block.data.style, designKey)}
+                    style={titleStyle}
                   >
                     {item.title || "Event"}
                   </div>
 
-                  {item.description ? (
-                    <div
-                      className="mt-1 text-sm"
-                      style={getContainerTextStyle(block.data.style, designKey)}
-                    >
-                      {item.description}
-                    </div>
-                  ) : null}
+{item.description ? (
+  <div
+    className="mt-1 text-sm"
+    style={descriptionStyle}
+  >
+    {item.description}
+  </div>
+) : null}
                 </div>
               </div>
             </div>

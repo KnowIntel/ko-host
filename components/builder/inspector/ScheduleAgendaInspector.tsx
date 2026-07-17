@@ -1,5 +1,12 @@
 "use client";
 
+import type { Dispatch, SetStateAction } from "react";
+
+import type {
+  ScheduleAgendaStyleTarget,
+  ScheduleAgendaTextTarget,
+} from "@/components/builder/formatting/scheduleAgendaFormatting";
+
 /**
  * Schedule / Agenda inspector section
  * Extracted from DesignLayoutEditor.
@@ -10,6 +17,16 @@
 type ScheduleAgendaInspectorProps = {
   selectedBlock: any;
   updateSelectedBlock: any;
+
+  scheduleAgendaTextTarget: ScheduleAgendaTextTarget;
+  setScheduleAgendaTextTarget: Dispatch<
+    SetStateAction<ScheduleAgendaTextTarget>
+  >;
+
+  scheduleAgendaStyleTarget: ScheduleAgendaStyleTarget;
+  setScheduleAgendaStyleTarget: Dispatch<
+    SetStateAction<ScheduleAgendaStyleTarget>
+  >;
 
   makeClientId: (prefix: string) => string;
 
@@ -24,6 +41,10 @@ type ScheduleAgendaInspectorProps = {
 export function ScheduleAgendaInspector({
   selectedBlock,
   updateSelectedBlock,
+  scheduleAgendaTextTarget,
+  setScheduleAgendaTextTarget,
+  scheduleAgendaStyleTarget,
+  setScheduleAgendaStyleTarget,
   makeClientId,
   inspectorCardClass,
   inspectorLabelClass,
@@ -31,31 +52,72 @@ export function ScheduleAgendaInspector({
   inspectorTextareaClass,
   toolSetButtonClass,
 }: ScheduleAgendaInspectorProps) {
-  return (
-    <div className={inspectorCardClass()}>
-      {/* Schedule / Agenda */}
-    <div className={inspectorLabelClass()}>Schedule</div>
+return (
+  <div className={inspectorCardClass()}>
+    {/* Formatting */}
+    <div className={inspectorLabelClass()}>Formatting</div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Text Target</div>
+
+      <select
+        value={scheduleAgendaTextTarget}
+        onChange={(e) =>
+          setScheduleAgendaTextTarget(
+            e.target.value as ScheduleAgendaTextTarget,
+          )
+        }
+        className={inspectorInputClass()}
+      >
+        <option value="heading">Heading</option>
+        <option value="time">Time</option>
+        <option value="opening">Opening</option>
+        <option value="description">Description</option>
+      </select>
+    </div>
+
+    <div className="mt-4">
+      <div className={inspectorLabelClass()}>Style Target</div>
+
+      <select
+        value={scheduleAgendaStyleTarget}
+        onChange={(e) =>
+          setScheduleAgendaStyleTarget(
+            e.target.value as ScheduleAgendaStyleTarget,
+          )
+        }
+        className={inspectorInputClass()}
+      >
+        <option value="panel">Panel</option>
+        <option value="block">Block</option>
+      </select>
+    </div>
+
+    {/* Schedule / Agenda */}
+    <div className="mt-6">
+      <div className={inspectorLabelClass()}>Schedule</div>
+    </div>
 
     <label className="mt-4 flex items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm text-neutral-700">
-  <input
-    type="checkbox"
-    checked={Boolean((selectedBlock.data as any).allowUserEngagement)}
-    onChange={(e) =>
-      updateSelectedBlock((block: any) =>
-        block.type !== "schedule_agenda"
-          ? block
-          : {
-              ...block,
-              data: {
-                ...block.data,
-                allowUserEngagement: e.target.checked,
-              } as any,
-            },
-      )
-    }
-  />
-  Allow user engagement
-</label>
+      <input
+        type="checkbox"
+        checked={Boolean((selectedBlock.data as any).allowUserEngagement)}
+        onChange={(e) =>
+          updateSelectedBlock((block: any) =>
+            block.type !== "schedule_agenda"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    allowUserEngagement: e.target.checked,
+                  } as any,
+                },
+          )
+        }
+      />
+      Allow user engagement
+    </label>
 
     <div className="mt-4">
       <div className={inspectorLabelClass()}>Heading</div>
