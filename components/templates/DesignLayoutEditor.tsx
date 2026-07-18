@@ -5208,18 +5208,15 @@ if (selectedBlock?.type === "donation") {
   }
 
 if (selectedBlock?.type === "map_location") {
-  setDraft((prev) => ({
-    ...prev,
-    blocks: prev.blocks.map((block) =>
-      block.id === selectedBlock.id && block.type === "map_location"
-        ? applyMapLocationTextStylePatch(
-            block,
-            mapLocationTextTarget,
-            patch,
-          )
-        : block,
-    ),
-  }));
+  updateSelectedBlock((block) =>
+    block.type !== "map_location"
+      ? block
+      : applyMapLocationTextStylePatch(
+          block,
+          mapLocationTextTarget,
+          patch,
+        ),
+  );
 
   return;
 }
