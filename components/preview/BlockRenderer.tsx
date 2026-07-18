@@ -13203,11 +13203,26 @@ showSubtitle: (event as any).showSubtitle !== false,
       typeof block.data.calendarStyle?.selectedDateBorderColor === "string"
         ? block.data.calendarStyle.selectedDateBorderColor
         : "",
-    formBackgroundColor:
-      typeof block.data.calendarStyle?.formBackgroundColor === "string"
-        ? block.data.calendarStyle.formBackgroundColor
-        : "",
-  };
+formBackgroundColor:
+  typeof block.data.calendarStyle?.formBackgroundColor === "string"
+    ? block.data.calendarStyle.formBackgroundColor
+    : "",
+
+borderColor:
+  typeof (block.data.calendarStyle as any)?.borderColor === "string"
+    ? (block.data.calendarStyle as any).borderColor
+    : "",
+
+borderWidth:
+  typeof (block.data.calendarStyle as any)?.borderWidth === "number"
+    ? (block.data.calendarStyle as any).borderWidth
+    : undefined,
+
+borderRadius:
+  typeof (block.data.calendarStyle as any)?.borderRadius === "number"
+    ? (block.data.calendarStyle as any).borderRadius
+    : undefined,
+};
 
   const detailStyle = {
     backgroundColor:
@@ -13230,13 +13245,63 @@ showSubtitle: (event as any).showSubtitle !== false,
     shadowEnabled: Boolean(block.data.detailStyle?.shadowEnabled),
   };
 
-  const headingTextStyle = getContainerTextStyle(
+  const eventCardStyle =
+  ((block.data as any).eventCardStyle ?? {}) as Record<string, any>;
+
+const selectedDateCardStyle =
+  ((block.data as any).selectedDateCardStyle ?? {}) as Record<string, any>;
+
+const calendarDateCirclesStyle =
+  ((block.data as any).calendarDateCirclesStyle ?? {}) as Record<string, any>;
+
+const monthArrowCirclesStyle =
+  ((block.data as any).monthArrowCirclesStyle ?? {}) as Record<string, any>;
+
+const ctaButtonStyle =
+  ((block.data as any).ctaButtonStyle ?? {}) as Record<string, any>;
+
+const headingTextStyle = getContainerTextStyle(
   (block.data as any).headingStyle ?? block.data.style,
   designKey,
 );
 
 const subtitleTextStyle = getContainerTextStyle(
   (block.data as any).subtitleStyle ?? block.data.style,
+  designKey,
+);
+
+const monthYearLabelTextStyle = getContainerTextStyle(
+  (block.data as any).monthYearLabelStyle ?? block.data.style,
+  designKey,
+);
+
+const weeklyDayLabelsTextStyle = getContainerTextStyle(
+  (block.data as any).weeklyDayLabelsStyle ?? block.data.style,
+  designKey,
+);
+
+const monthlyDateLabelsTextStyle = getContainerTextStyle(
+  (block.data as any).monthlyDateLabelsStyle ?? block.data.style,
+  designKey,
+);
+
+const monthArrowsTextStyle = getContainerTextStyle(
+  (block.data as any).monthArrowsStyle ?? block.data.style,
+  designKey,
+);
+
+const emptyStateTextStyle = getContainerTextStyle(
+  (block.data as any).emptyStateTextStyle ?? block.data.style,
+  designKey,
+);
+
+const scheduledLabelTextStyle = getContainerTextStyle(
+  (block.data as any).scheduledLabelStyle ?? block.data.style,
+  designKey,
+);
+
+const eventDotTextStyle = getContainerTextStyle(
+  (block.data as any).eventDotStyle ?? block.data.style,
   designKey,
 );
 
@@ -13255,8 +13320,43 @@ const eventDateTextStyle = getContainerTextStyle(
   designKey,
 );
 
-const eventDetailsTextStyle = getContainerTextStyle(
-  (block.data as any).eventDetailsStyle ?? block.data.style,
+const eventMeetingMethodTextStyle = getContainerTextStyle(
+  (block.data as any).eventMeetingMethodStyle ?? block.data.style,
+  designKey,
+);
+
+const eventLocationTextStyle = getContainerTextStyle(
+  (block.data as any).eventLocationStyle ?? block.data.style,
+  designKey,
+);
+
+const eventAddressTextStyle = getContainerTextStyle(
+  (block.data as any).eventAddressStyle ?? block.data.style,
+  designKey,
+);
+
+const virtualMeetingLinkTextStyle = getContainerTextStyle(
+  (block.data as any).virtualMeetingLinkStyle ?? block.data.style,
+  designKey,
+);
+
+const eventDescriptionTextStyle = getContainerTextStyle(
+  (block.data as any).eventDescriptionStyle ?? block.data.style,
+  designKey,
+);
+
+const capacityTextStyle = getContainerTextStyle(
+  (block.data as any).capacityStyle ?? block.data.style,
+  designKey,
+);
+
+const categoryHostTagsTextStyle = getContainerTextStyle(
+  (block.data as any).categoryHostTagsStyle ?? block.data.style,
+  designKey,
+);
+
+const ctaButtonTextStyle = getContainerTextStyle(
+  (block.data as any).ctaButtonTextStyle ?? block.data.style,
   designKey,
 );
 
@@ -13430,15 +13530,24 @@ const eventDetailsTextStyle = getContainerTextStyle(
           ? "border-neutral-200 bg-white"
           : "border-white/10 bg-white/5",
       ].join(" ")}
-      style={{
-        backgroundColor: calendarStyle.backgroundColor || undefined,
-        color: calendarStyle.textColor || baseTextStyle.color || undefined,
-        fontFamily: baseTextStyle.fontFamily,
-        fontSize: baseTextStyle.fontSize,
-        fontWeight: baseTextStyle.fontWeight,
-        fontStyle: baseTextStyle.fontStyle,
-        textDecoration: baseTextStyle.textDecoration,
-      }}
+style={{
+  backgroundColor: calendarStyle.backgroundColor || undefined,
+  borderColor: calendarStyle.borderColor || undefined,
+  borderWidth:
+    typeof calendarStyle.borderWidth === "number"
+      ? calendarStyle.borderWidth
+      : undefined,
+  borderRadius:
+    typeof calendarStyle.borderRadius === "number"
+      ? calendarStyle.borderRadius
+      : undefined,
+  color: calendarStyle.textColor || baseTextStyle.color || undefined,
+  fontFamily: baseTextStyle.fontFamily,
+  fontSize: baseTextStyle.fontSize,
+  fontWeight: baseTextStyle.fontWeight,
+  fontStyle: baseTextStyle.fontStyle,
+  textDecoration: baseTextStyle.textDecoration,
+}}
     >
       {block.data.showCalendarHeading !== false ? (
         <div className="mb-4 flex items-center justify-between gap-3">
@@ -13451,14 +13560,34 @@ const eventDetailsTextStyle = getContainerTextStyle(
                 ? "border-neutral-200 bg-neutral-50 hover:bg-neutral-100"
                 : "border-white/10 bg-white/10 hover:bg-white/15",
             ].join(" ")}
-            style={{
-              color:
-                calendarStyle.monthArrowColor ||
-                calendarStyle.textColor ||
-                baseTextStyle.color ||
-                undefined,
-              fontFamily: baseTextStyle.fontFamily,
-            }}
+style={{
+  ...monthArrowsTextStyle,
+
+  backgroundColor:
+    monthArrowCirclesStyle.backgroundColor || undefined,
+
+  borderColor:
+    monthArrowCirclesStyle.borderColor || undefined,
+
+  borderWidth:
+    typeof monthArrowCirclesStyle.borderWidth === "number"
+      ? monthArrowCirclesStyle.borderWidth
+      : undefined,
+
+  borderRadius:
+    typeof monthArrowCirclesStyle.borderRadius === "number"
+      ? monthArrowCirclesStyle.borderRadius
+      : undefined,
+
+  boxShadow:
+    monthArrowCirclesStyle.boxShadow || undefined,
+
+  color:
+    calendarStyle.monthArrowColor ||
+    monthArrowsTextStyle.color ||
+    monthArrowCirclesStyle.textColor ||
+    undefined,
+}}
             aria-label="Previous month"
           >
             ‹
@@ -13467,15 +13596,15 @@ const eventDetailsTextStyle = getContainerTextStyle(
           <div className="flex-1 text-center">
             <div
               className="text-center text-sm font-bold"
-              style={{
-                ...baseTextStyle,
-                textAlign: "center",
-                color:
-                  calendarStyle.monthLabelColor ||
-                  calendarStyle.textColor ||
-                  baseTextStyle.color ||
-                  undefined,
-              }}
+style={{
+  ...monthYearLabelTextStyle,
+  textAlign: "center",
+  color:
+    calendarStyle.monthLabelColor ||
+    calendarStyle.textColor ||
+    monthYearLabelTextStyle.color ||
+    undefined,
+}}
             >
               {monthLabel}
             </div>
@@ -13483,16 +13612,14 @@ const eventDetailsTextStyle = getContainerTextStyle(
             {block.data.showEventCount !== false ? (
               <div
                 className="mt-0.5 text-center text-[11px]"
-                style={{
-                  color:
-                    calendarStyle.scheduledLabelColor ||
-                    calendarStyle.textColor ||
-                    baseTextStyle.color ||
-                    undefined,
-                  fontFamily: baseTextStyle.fontFamily,
-                  fontWeight: baseTextStyle.fontWeight,
-                  fontStyle: baseTextStyle.fontStyle,
-                }}
+style={{
+  ...scheduledLabelTextStyle,
+  color:
+    calendarStyle.scheduledLabelColor ||
+    calendarStyle.textColor ||
+    scheduledLabelTextStyle.color ||
+    undefined,
+}}
               >
                 {events.length} scheduled{" "}
                 {events.length === 1 ? "event" : "events"}
@@ -13509,14 +13636,34 @@ const eventDetailsTextStyle = getContainerTextStyle(
                 ? "border-neutral-200 bg-neutral-50 hover:bg-neutral-100"
                 : "border-white/10 bg-white/10 hover:bg-white/15",
             ].join(" ")}
-            style={{
-              color:
-                calendarStyle.monthArrowColor ||
-                calendarStyle.textColor ||
-                baseTextStyle.color ||
-                undefined,
-              fontFamily: baseTextStyle.fontFamily,
-            }}
+style={{
+  ...monthArrowsTextStyle,
+
+  backgroundColor:
+    monthArrowCirclesStyle.backgroundColor || undefined,
+
+  borderColor:
+    monthArrowCirclesStyle.borderColor || undefined,
+
+  borderWidth:
+    typeof monthArrowCirclesStyle.borderWidth === "number"
+      ? monthArrowCirclesStyle.borderWidth
+      : undefined,
+
+  borderRadius:
+    typeof monthArrowCirclesStyle.borderRadius === "number"
+      ? monthArrowCirclesStyle.borderRadius
+      : undefined,
+
+  boxShadow:
+    monthArrowCirclesStyle.boxShadow || undefined,
+
+  color:
+    calendarStyle.monthArrowColor ||
+    monthArrowsTextStyle.color ||
+    monthArrowCirclesStyle.textColor ||
+    undefined,
+}}
             aria-label="Next month"
           >
             ›
@@ -13524,13 +13671,16 @@ const eventDetailsTextStyle = getContainerTextStyle(
         </div>
       ) : null}
 
-      <div
-        className="grid grid-cols-7 gap-1 text-center text-[10px] font-bold uppercase tracking-[0.12em] opacity-60"
-        style={{
-          color: calendarStyle.textColor || baseTextStyle.color || undefined,
-          fontFamily: baseTextStyle.fontFamily,
-        }}
-      >
+<div
+  className="grid grid-cols-7 gap-1 text-center text-[10px] font-bold uppercase tracking-[0.12em] opacity-60"
+  style={{
+    ...weeklyDayLabelsTextStyle,
+    color:
+      calendarStyle.textColor ||
+      weeklyDayLabelsTextStyle.color ||
+      undefined,
+  }}
+>
         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
           <div key={day} className="py-1">
             {day}
@@ -13570,31 +13720,56 @@ const eventDetailsTextStyle = getContainerTextStyle(
                     ? "bg-neutral-50 hover:bg-white"
                     : "bg-white/5 hover:bg-white/10",
               ].join(" ")}
-              style={{
-                backgroundColor:
-                  isSelected && calendarStyle.selectedDateBackgroundColor
-                    ? calendarStyle.selectedDateBackgroundColor
-                    : isSelected && calendarStyle.activeDateColor
-                      ? calendarStyle.activeDateColor
-                      : undefined,
-                borderColor:
-                  isSelected && calendarStyle.selectedDateBorderColor
-                    ? calendarStyle.selectedDateBorderColor
-                    : isToday && calendarStyle.todayBorderColor
-                      ? calendarStyle.todayBorderColor
-                      : !isToday && !isSelected && calendarStyle.dateBorderColor
-                        ? calendarStyle.dateBorderColor
-                        : undefined,
-                color:
-                  calendarStyle.textColor || baseTextStyle.color || undefined,
-                fontFamily: baseTextStyle.fontFamily,
-                fontSize: baseTextStyle.fontSize,
-                fontWeight: baseTextStyle.fontWeight,
-                fontStyle: baseTextStyle.fontStyle,
-              }}
+style={{
+  backgroundColor:
+    isSelected
+      ? selectedDateCardStyle.backgroundColor ||
+        calendarDateCirclesStyle.backgroundColor ||
+        calendarStyle.selectedDateBackgroundColor ||
+        calendarStyle.activeDateColor ||
+        undefined
+      : calendarDateCirclesStyle.backgroundColor ||
+        calendarStyle.backgroundColor ||
+        undefined,
+
+  borderColor:
+    isSelected
+      ? selectedDateCardStyle.borderColor ||
+        calendarDateCirclesStyle.borderColor ||
+        calendarStyle.selectedDateBorderColor ||
+        undefined
+      : calendarDateCirclesStyle.borderColor ||
+        calendarStyle.dateBorderColor ||
+        undefined,
+
+  borderWidth:
+    typeof calendarDateCirclesStyle.borderWidth === "number"
+      ? calendarDateCirclesStyle.borderWidth
+      : undefined,
+
+  borderRadius:
+    typeof calendarDateCirclesStyle.borderRadius === "number"
+      ? calendarDateCirclesStyle.borderRadius
+      : undefined,
+
+  boxShadow: calendarDateCirclesStyle.boxShadow || undefined,
+
+  color:
+    calendarDateCirclesStyle.textColor ||
+    calendarStyle.textColor ||
+    baseTextStyle.color ||
+    undefined,
+
+  fontFamily: baseTextStyle.fontFamily,
+  fontSize: baseTextStyle.fontSize,
+  fontWeight: baseTextStyle.fontWeight,
+  fontStyle: baseTextStyle.fontStyle,
+}}
               aria-label={`View events for ${cell.dateKey}`}
             >
-              <span>{cell.dayNumber}</span>
+<span style={monthlyDateLabelsTextStyle}>
+  {cell.dayNumber}
+</span>
 
               {hasEvent ? (
                 <>
@@ -13603,13 +13778,14 @@ const eventDetailsTextStyle = getContainerTextStyle(
                       <span
                         key={event.id}
                         className="h-1.5 w-1.5 rounded-full"
-                        style={{
-                          backgroundColor:
-                            calendarStyle.eventDotColor ||
-                            calendarStyle.textColor ||
-                            baseTextStyle.color ||
-                            undefined,
-                        }}
+style={{
+  ...eventDotTextStyle,
+  backgroundColor:
+    calendarStyle.eventDotColor ||
+    calendarStyle.textColor ||
+    eventDotTextStyle.color ||
+    undefined,
+}}
                       />
                     ))}
                   </span>
@@ -13645,10 +13821,25 @@ const eventDetailsTextStyle = getContainerTextStyle(
               ? "border-neutral-200 bg-neutral-50"
               : "border-white/10 bg-white/5",
           ].join(" ")}
-          style={{
-            color: calendarStyle.textColor || baseTextStyle.color || undefined,
-            fontFamily: baseTextStyle.fontFamily,
-          }}
+style={{
+  backgroundColor: selectedDateCardStyle.backgroundColor || undefined,
+  borderColor: selectedDateCardStyle.borderColor || undefined,
+  borderWidth:
+    typeof selectedDateCardStyle.borderWidth === "number"
+      ? selectedDateCardStyle.borderWidth
+      : undefined,
+  borderRadius:
+    typeof selectedDateCardStyle.borderRadius === "number"
+      ? selectedDateCardStyle.borderRadius
+      : undefined,
+  boxShadow: selectedDateCardStyle.boxShadow || undefined,
+  color:
+    selectedDateCardStyle.textColor ||
+    calendarStyle.textColor ||
+    baseTextStyle.color ||
+    undefined,
+  fontFamily: baseTextStyle.fontFamily,
+}}
         >
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
@@ -13697,20 +13888,28 @@ const eventDetailsTextStyle = getContainerTextStyle(
                   ? "border-neutral-200 bg-white"
                   : "border-white/10 bg-white/5",
               ].join(" ")}
-              style={{
-                backgroundColor: detailStyle.backgroundColor || undefined,
-                borderColor: detailStyle.borderColor || undefined,
-                color:
-                  detailStyle.textColor || baseTextStyle.color || undefined,
-                fontFamily: baseTextStyle.fontFamily,
-                fontSize: baseTextStyle.fontSize,
-                fontWeight: baseTextStyle.fontWeight,
-                fontStyle: baseTextStyle.fontStyle,
-                borderRadius:
-                  typeof detailStyle.borderRadius === "number"
-                    ? detailStyle.borderRadius
-                    : undefined,
-              }}
+style={{
+  backgroundColor: eventCardStyle.backgroundColor || undefined,
+  borderColor: eventCardStyle.borderColor || undefined,
+  borderWidth:
+    typeof eventCardStyle.borderWidth === "number"
+      ? eventCardStyle.borderWidth
+      : undefined,
+  borderRadius:
+    typeof eventCardStyle.borderRadius === "number"
+      ? eventCardStyle.borderRadius
+      : undefined,
+  boxShadow: eventCardStyle.boxShadow || undefined,
+  color:
+    eventCardStyle.textColor ||
+    detailStyle.textColor ||
+    baseTextStyle.color ||
+    undefined,
+  fontFamily: baseTextStyle.fontFamily,
+  fontSize: baseTextStyle.fontSize,
+  fontWeight: baseTextStyle.fontWeight,
+  fontStyle: baseTextStyle.fontStyle,
+}}
             >
               <div
                 className={[
@@ -13757,11 +13956,14 @@ const eventDetailsTextStyle = getContainerTextStyle(
   {event.title || "Event"}
 </div>
 
-                  {event.subtitle ? (
-                    <div className="mt-1 text-sm">
-                      {event.subtitle}
-                    </div>
-                  ) : null}
+{event.subtitle ? (
+  <div
+    className="mt-1 text-sm"
+    style={eventSubtitleTextStyle}
+  >
+    {event.subtitle}
+  </div>
+) : null}
 
                   <div className="mt-3 text-xs" style={eventDateTextStyle}>
 {formatEventDate(event.date)}
@@ -13778,48 +13980,71 @@ event.showEndTime !== false ? formatEventTime(event.endTime) : "",
   : ""}
                   </div>
 
-                  {event.location || event.meetingMethod ? (
-                    <div className="mt-2 text-sm" style={eventDetailsTextStyle}>
-                      {[event.meetingMethod, event.location]
-                        .filter(Boolean)
-                        .join(" • ")}
-                    </div>
-                  ) : null}
+{event.meetingMethod ? (
+  <div
+    className="mt-2 text-sm"
+    style={eventMeetingMethodTextStyle}
+  >
+    {event.meetingMethod}
+  </div>
+) : null}
+
+{event.location ? (
+  <div
+    className="mt-1 text-sm"
+    style={eventLocationTextStyle}
+  >
+    {event.location}
+  </div>
+) : null}
 
 {event.address ? (
-  <div className="mt-1 text-sm" style={eventDetailsTextStyle}>
+  <div
+    className="mt-1 text-sm"
+    style={eventAddressTextStyle}
+  >
     {event.address}
   </div>
 ) : null}
 
 {block.data.showHost !== false && event.host ? (
-  <div className="mt-2 text-xs" style={eventDetailsTextStyle}>
+  <div
+    className="mt-2 text-xs"
+    style={categoryHostTagsTextStyle}
+  >
     Hosted by {event.host}
   </div>
 ) : null}
 
 {block.data.showCapacity !== false && event.capacity ? (
-  <div className="mt-1 text-xs" style={eventDetailsTextStyle}>
+  <div
+    className="mt-1 text-xs"
+    style={capacityTextStyle}
+  >
     Capacity: {event.capacity}
   </div>
 ) : null}
 
 {event.notes ? (
-  <div className="mt-2 text-sm" style={eventDetailsTextStyle}>
+  <div
+    className="mt-2 text-sm"
+    style={eventDescriptionTextStyle}
+  >
     {event.notes}
   </div>
 ) : null}
 
-                  {event.virtualLink ? (
-                    <a
-                      href={event.virtualLink}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="mt-3 inline-flex text-xs font-semibold underline"
-                    >
-                      Open virtual link
-                    </a>
-                  ) : null}
+{event.virtualLink ? (
+  <a
+    href={event.virtualLink}
+    target="_blank"
+    rel="noreferrer"
+    className="mt-3 inline-flex text-xs font-semibold underline"
+    style={virtualMeetingLinkTextStyle}
+  >
+    Open virtual link
+  </a>
+) : null}
 
                   <div className="mt-4 flex flex-wrap gap-2">
                     {event.virtualLink ? (
@@ -13847,18 +14072,45 @@ event.showEndTime !== false ? formatEventTime(event.endTime) : "",
                       </a>
                     ) : null}
 
-                    {block.data.showCtaButtons !== false &&
-                    event.buttonText &&
-                    event.buttonUrl ? (
-                      <a
-                        href={event.buttonUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex rounded-xl bg-black px-4 py-2 text-xs font-semibold text-white"
-                      >
-                        {event.buttonText}
-                      </a>
-                    ) : null}
+{block.data.showCtaButtons !== false &&
+event.buttonText &&
+event.buttonUrl ? (
+  <a
+    href={event.buttonUrl}
+    target="_blank"
+    rel="noreferrer"
+    className="inline-flex rounded-xl bg-black px-4 py-2 text-xs font-semibold text-white"
+    style={{
+      ...ctaButtonTextStyle,
+
+      backgroundColor:
+        ctaButtonStyle.backgroundColor || undefined,
+
+      borderColor:
+        ctaButtonStyle.borderColor || undefined,
+
+      borderWidth:
+        typeof ctaButtonStyle.borderWidth === "number"
+          ? ctaButtonStyle.borderWidth
+          : undefined,
+
+      borderRadius:
+        typeof ctaButtonStyle.borderRadius === "number"
+          ? ctaButtonStyle.borderRadius
+          : undefined,
+
+      boxShadow:
+        ctaButtonStyle.boxShadow || undefined,
+
+      color:
+        ctaButtonTextStyle.color ||
+        ctaButtonStyle.textColor ||
+        undefined,
+    }}
+  >
+    {event.buttonText}
+  </a>
+) : null}
                   </div>
                 </div>
               </div>
@@ -13880,9 +14132,12 @@ event.showEndTime !== false ? formatEventTime(event.endTime) : "",
         >
           <div className="text-3xl">📅</div>
 
-          <div className="mt-3 font-medium">
-            {block.data.emptyStateText || "No events scheduled for this date."}
-          </div>
+<div
+  className="mt-3 font-medium"
+  style={emptyStateTextStyle}
+>
+  {block.data.emptyStateText || "No events scheduled for this date."}
+</div>
 
           <div className="mt-1 text-xs opacity-70">
             Select another date to view scheduled activities.
@@ -13972,14 +14227,21 @@ event.showEndTime !== false ? formatEventTime(event.endTime) : "",
   : ""}
               </div>
 
-{event.location || event.meetingMethod ? (
+{event.meetingMethod ? (
   <div
     className="mt-1 truncate text-sm opacity-80"
-    style={eventDetailsTextStyle}
+    style={eventMeetingMethodTextStyle}
   >
-    {[event.meetingMethod, event.location]
-      .filter(Boolean)
-      .join(" • ")}
+    {event.meetingMethod}
+  </div>
+) : null}
+
+{event.location ? (
+  <div
+    className="mt-1 truncate text-sm opacity-80"
+    style={eventLocationTextStyle}
+  >
+    {event.location}
   </div>
 ) : null}
 
@@ -13995,16 +14257,14 @@ event.showEndTime !== false ? formatEventTime(event.endTime) : "",
           target="_blank"
           rel="noreferrer"
           className="mt-3 inline-flex text-sm font-semibold underline"
-          style={{
-            color:
-              detailStyle.textColor ||
-              eventDetailsTextStyle.color ||
-              baseTextStyle.color ||
-              undefined,
-            fontFamily:
-              eventDetailsTextStyle.fontFamily ||
-              baseTextStyle.fontFamily,
-          }}
+style={{
+  ...ctaButtonTextStyle,
+  color:
+    detailStyle.textColor ||
+    ctaButtonTextStyle.color ||
+    baseTextStyle.color ||
+    undefined,
+}}
         >
           {block.data.compactViewAllText || "View All Events"} →
         </a>

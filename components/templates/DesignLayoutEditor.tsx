@@ -73,6 +73,14 @@ import {
 } from "@/components/builder/formatting/imageFormatting";
 
 import {
+  applyCalendarEventStylePatch,
+  applyCalendarEventTextStylePatch,
+  getCalendarEventTextStyle,
+  type CalendarEventStyleTarget,
+  type CalendarEventTextTarget,
+} from "@/components/builder/formatting/calendarEventFormatting";
+
+import {
   applyCountdownStylePatch,
   applyCountdownTextStylePatch,
   getCountdownTextStyle,
@@ -2294,6 +2302,12 @@ const [listingStyleTarget, setListingStyleTarget] = useState<
   "title" | "description" | "metadata" | "price" | "quantity"
 >("title");
 
+const [calendarEventTextTarget, setCalendarEventTextTarget] =
+  useState<CalendarEventTextTarget>("heading");
+
+const [calendarEventStyleTarget, setCalendarEventStyleTarget] =
+  useState<CalendarEventStyleTarget>("calendar");
+
 const [countdownTextTarget, setCountdownTextTarget] =
   useState<CountdownTextTarget>("heading");
 
@@ -2653,16 +2667,6 @@ useEffect(() => {
   }
 }, [clipboardEntries]);
 
-const [calendarEventTextTarget, setCalendarEventTextTarget] =
-  useState<
-    | "heading"
-    | "subtitle"
-    | "eventTitle"
-    | "eventSubtitle"
-    | "eventDate"
-    | "eventDetails"
-  >("heading");
-
 const [focusedTimelineEntryId, setFocusedTimelineEntryId] =
   useState<string | null>(null);
 
@@ -2699,6 +2703,11 @@ const selectedStyle =
           selectedBlockFromDraft,
           countdownTextTarget,
         ) as TextStyle)
+      : selectedBlockFromDraft?.type === "calendar_event"
+        ? (getCalendarEventTextStyle(
+            selectedBlockFromDraft,
+            calendarEventTextTarget,
+          ) as TextStyle)
       : selectedBlockFromDraft?.type === "timeline"
         ? (getTimelineTextStyle(
             selectedBlockFromDraft,
@@ -2822,26 +2831,6 @@ const selectedStyle =
       selectedBlockFromDraft,
       contentPanelTextTarget,
     ) as TextStyle)
-                          : selectedBlockFromDraft?.type === "calendar_event"
-                        ? calendarEventTextTarget === "heading"
-                          ? (((selectedBlockFromDraft.data as any).headingStyle ??
-                              (selectedBlockFromDraft.data as any).style ??
-                              {}) as TextStyle)
-                          : calendarEventTextTarget === "subtitle"
-                            ? (((selectedBlockFromDraft.data as any).subtitleStyle ??
-                                (selectedBlockFromDraft.data as any).style ??
-                                {}) as TextStyle)
-                            : calendarEventTextTarget === "eventTitle"
-                              ? (((selectedBlockFromDraft.data as any).eventTitleStyle ??
-                                  (selectedBlockFromDraft.data as any).style ??
-                                  {}) as TextStyle)
-                              : calendarEventTextTarget === "eventDate"
-                                ? (((selectedBlockFromDraft.data as any).eventDateStyle ??
-                                    (selectedBlockFromDraft.data as any).style ??
-                                    {}) as TextStyle)
-                                : (((selectedBlockFromDraft.data as any).eventDetailsStyle ??
-                                    (selectedBlockFromDraft.data as any).style ??
-                                    {}) as TextStyle)
                       : selectedBlockFromDraft?.type === "video"
                         ? (getVideoTextStyle(
                             selectedBlockFromDraft,
@@ -4827,6 +4816,20 @@ function applyStylePatch(patch: Partial<TextStyle>) {
     return;
   }
 
+  if (selectedBlock?.type === "calendar_event") {
+    updateSelectedBlock((block) =>
+      block.type !== "calendar_event"
+        ? block
+        : applyCalendarEventTextStylePatch(
+            block,
+            calendarEventTextTarget,
+            patch,
+          ),
+    );
+
+    return;
+  }
+
   if (selectedBlock?.type === "timeline") {
     updateSelectedBlock((block) =>
       block.type !== "timeline"
@@ -5554,6 +5557,20 @@ function applyAppearancePatch(patch: AppearancePatch) {
         : applyCountdownStylePatch(
             block,
             countdownStyleTarget,
+            patch,
+          ),
+    );
+
+    return;
+  }
+
+  if (selectedBlock?.type === "calendar_event") {
+    updateSelectedBlock((block) =>
+      block.type !== "calendar_event"
+        ? block
+        : applyCalendarEventStylePatch(
+            block,
+            calendarEventStyleTarget,
             patch,
           ),
     );
@@ -12984,6 +13001,8 @@ renderBlockPreview={renderCanvasPreview}
     updateSelectedBlock={updateSelectedBlock}
     calendarEventTextTarget={calendarEventTextTarget}
     setCalendarEventTextTarget={setCalendarEventTextTarget}
+    calendarEventStyleTarget={calendarEventStyleTarget}
+    setCalendarEventStyleTarget={setCalendarEventStyleTarget}
     makeClientId={makeClientId}
     uploadImageToSelectedBlock={uploadImageToSelectedBlock}
     inspectorCardClass={inspectorCardClass}

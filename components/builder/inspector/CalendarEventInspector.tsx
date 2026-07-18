@@ -2,6 +2,11 @@
 
 import type { Dispatch, SetStateAction } from "react";
 
+import type {
+  CalendarEventStyleTarget,
+  CalendarEventTextTarget,
+} from "@/components/builder/formatting/calendarEventFormatting";
+
 /**
  * Calendar Event inspector section
  * Extracted from DesignLayoutEditor.
@@ -9,14 +14,6 @@ import type { Dispatch, SetStateAction } from "react";
  * DesignLayoutEditor remains the middleman and only renders this when:
  * selectedBlock?.type === "calendar_event"
  */
-type CalendarEventTextTarget =
-  | "heading"
-  | "subtitle"
-  | "eventTitle"
-  | "eventSubtitle"
-  | "eventDate"
-  | "eventDetails";
-
 type CalendarEventInspectorProps = {
   selectedBlock: any;
   updateSelectedBlock: any;
@@ -24,6 +21,11 @@ type CalendarEventInspectorProps = {
   calendarEventTextTarget: CalendarEventTextTarget;
   setCalendarEventTextTarget: Dispatch<
     SetStateAction<CalendarEventTextTarget>
+  >;
+
+  calendarEventStyleTarget: CalendarEventStyleTarget;
+  setCalendarEventStyleTarget: Dispatch<
+    SetStateAction<CalendarEventStyleTarget>
   >;
 
   makeClientId: (prefix: string) => string;
@@ -47,6 +49,8 @@ export function CalendarEventInspector({
   updateSelectedBlock,
   calendarEventTextTarget,
   setCalendarEventTextTarget,
+  calendarEventStyleTarget,
+  setCalendarEventStyleTarget,
   makeClientId,
   uploadImageToSelectedBlock,
   inspectorCardClass,
@@ -56,135 +60,184 @@ export function CalendarEventInspector({
 }: CalendarEventInspectorProps) {
   return (
     <div className={inspectorCardClass()}>
-      {/* Calendar Event */}
-    <div className={inspectorLabelClass()}>Calendar Event</div>
+      {/* Formatting */}
+      <div className={inspectorLabelClass()}>Formatting</div>
 
-    <div className="mt-4">
-  <div className={inspectorLabelClass()}>
-    Time Format
-  </div>
+      <div className="mt-4">
+        <div className={inspectorLabelClass()}>Text Target</div>
 
-<select
-  value={(selectedBlock.data as any).timeFormat ?? "12h"}
-  onChange={(e) =>
-    updateSelectedBlock((block: any) =>
-      block.type !== "calendar_event"
-        ? block
-        : {
-            ...block,
-            data: {
-              ...block.data,
-              timeFormat: e.target.value as "12h" | "24h",
-            },
-          },
-    )
-  }
-  className={inspectorInputClass()}
->
-    <option value="12h">12 Hour Clock</option>
-    <option value="24h">24 Hour Clock</option>
-  </select>
-</div>
-
-<label className="mt-4 flex items-center gap-2 text-sm text-neutral-700">
-  <input
-    type="checkbox"
-    checked={(selectedBlock.data as any).showHeadingImage === true}
-    onChange={(e) =>
-      updateSelectedBlock((block: any) =>
-        block.type !== "calendar_event"
-          ? block
-          : {
-              ...block,
-              data: {
-                ...block.data,
-                showHeadingImage: e.target.checked,
-              },
-            },
-      )
-    }
-  />
-  Show Heading Image
-</label>
-
-{(selectedBlock.data as any).showHeadingImage === true ? (
-  <>
-<div className="mt-3 flex items-center gap-3">
-  {(selectedBlock.data as any).headingImageUrl ? (
-    <img
-      src={(selectedBlock.data as any).headingImageUrl}
-      alt=""
-      className="h-14 w-14 rounded-lg border object-cover"
-    />
-  ) : null}
-
-  <button
-    type="button"
-    className="h-10 flex-1 rounded-xl border border-neutral-300 bg-white"
-    onClick={() =>
-      uploadImageToSelectedBlock(selectedBlock.id)
-    }
-  >
-    Choose Image
-  </button>
-</div>
-
-    <div className="mt-3">
-      <div className={inspectorLabelClass()}>
-        Image Size
+        <select
+          value={calendarEventTextTarget}
+          onChange={(e) =>
+            setCalendarEventTextTarget(
+              e.target.value as CalendarEventTextTarget,
+            )
+          }
+          className={inspectorInputClass()}
+        >
+          <option value="heading">Heading</option>
+          <option value="subtitle">Subtitle</option>
+          <option value="monthYearLabel">Month/Year Label</option>
+          <option value="weeklyDayLabels">Weekly Day Labels</option>
+          <option value="monthlyDateLabels">Monthly Date Labels</option>
+          <option value="monthArrows">Month Arrows</option>
+          <option value="emptyStateText">Empty State Text</option>
+          <option value="scheduledLabel">Scheduled Label</option>
+          <option value="eventDot">Event Dot</option>
+          <option value="eventTitle">Event Title</option>
+          <option value="eventSubtitle">Event Subtitle</option>
+          <option value="eventDate">Event Date</option>
+          <option value="eventMeetingMethod">
+            Event Meeting Method
+          </option>
+          <option value="eventLocation">Event Location</option>
+          <option value="eventAddress">Event Address</option>
+          <option value="virtualMeetingLink">
+            Virtual Meeting Link
+          </option>
+          <option value="eventDescription">
+            Event Description
+          </option>
+          <option value="capacity">Capacity</option>
+          <option value="categoryHostTags">
+            Category &amp; Host Tags
+          </option>
+          <option value="ctaButton">CTA Button</option>
+        </select>
       </div>
 
-      <input
-        type="range"
-        min={32}
-        max={160}
-        value={(selectedBlock.data as any).headingImageSize ?? 64}
-        onChange={(e) =>
-          updateSelectedBlock((block: any) =>
-            block.type !== "calendar_event"
-              ? block
-              : {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    headingImageSize: Number(e.target.value),
+      <div className="mt-4">
+        <div className={inspectorLabelClass()}>Style Target</div>
+
+        <select
+          value={calendarEventStyleTarget}
+          onChange={(e) =>
+            setCalendarEventStyleTarget(
+              e.target.value as CalendarEventStyleTarget,
+            )
+          }
+          className={inspectorInputClass()}
+        >
+          <option value="calendar">Calendar</option>
+          <option value="eventCard">Event Card</option>
+          <option value="selectedDateCard">
+            Selected Date Card
+          </option>
+          <option value="calendarDateCircles">
+            Calendar Date Circles
+          </option>
+          <option value="monthArrowCircles">
+            Month Arrow Circles
+          </option>
+          <option value="ctaButton">CTA Button</option>
+          <option value="block">Block</option>
+        </select>
+      </div>
+
+      {/* Calendar Event */}
+      <div className="mt-6">
+        <div className={inspectorLabelClass()}>Calendar Event</div>
+      </div>
+
+      <div className="mt-4">
+        <div className={inspectorLabelClass()}>Time Format</div>
+
+        <select
+          value={(selectedBlock.data as any).timeFormat ?? "12h"}
+          onChange={(e) =>
+            updateSelectedBlock((block: any) =>
+              block.type !== "calendar_event"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      timeFormat: e.target.value as "12h" | "24h",
+                    },
                   },
-                },
-          )
-        }
-      />
-    </div>
-  </>
-) : null}
+            )
+          }
+          className={inspectorInputClass()}
+        >
+          <option value="12h">12 Hour Clock</option>
+          <option value="24h">24 Hour Clock</option>
+        </select>
+      </div>
 
-<div className="mt-4">
-  <div className={inspectorLabelClass()}>
-    Text Target
-  </div>
+      <label className="mt-4 flex items-center gap-2 text-sm text-neutral-700">
+        <input
+          type="checkbox"
+          checked={
+            (selectedBlock.data as any).showHeadingImage === true
+          }
+          onChange={(e) =>
+            updateSelectedBlock((block: any) =>
+              block.type !== "calendar_event"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      showHeadingImage: e.target.checked,
+                    },
+                  },
+            )
+          }
+        />
+        Show Heading Image
+      </label>
 
-<select
-  value={calendarEventTextTarget}
-  onChange={(e) =>
-    setCalendarEventTextTarget(
-      e.target.value as
-        | "heading"
-        | "subtitle"
-        | "eventTitle"
-        | "eventSubtitle"
-        | "eventDate"
-        | "eventDetails",
-    )
-  }
-  className={inspectorInputClass()}
->
-  <option value="heading">Heading</option>
-  <option value="subtitle">Subtitle</option>
-  <option value="eventTitle">Event Title</option>
-  <option value="eventSubtitle">Event Subtitle</option>
-  <option value="eventDate">Event Date</option>
-  <option value="eventDetails">Event Details</option>
-</select>
-</div>
+      {(selectedBlock.data as any).showHeadingImage === true ? (
+        <>
+          <div className="mt-3 flex items-center gap-3">
+            {(selectedBlock.data as any).headingImageUrl ? (
+              <img
+                src={(selectedBlock.data as any).headingImageUrl}
+                alt=""
+                className="h-14 w-14 rounded-lg border object-cover"
+              />
+            ) : null}
+
+            <button
+              type="button"
+              className="h-10 flex-1 rounded-xl border border-neutral-300 bg-white"
+              onClick={() =>
+                uploadImageToSelectedBlock(selectedBlock.id)
+              }
+            >
+              Choose Image
+            </button>
+          </div>
+
+          <div className="mt-3">
+            <div className={inspectorLabelClass()}>
+              Image Size
+            </div>
+
+            <input
+              type="range"
+              min={32}
+              max={160}
+              value={
+                (selectedBlock.data as any).headingImageSize ?? 64
+              }
+              onChange={(e) =>
+                updateSelectedBlock((block: any) =>
+                  block.type !== "calendar_event"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          headingImageSize: Number(e.target.value),
+                        },
+                      },
+                )
+              }
+            />
+          </div>
+        </>
+      ) : null}
 
     <div className="mt-4">
       <div className={inspectorLabelClass()}>Heading</div>
