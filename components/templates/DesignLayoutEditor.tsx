@@ -5207,26 +5207,22 @@ if (selectedBlock?.type === "donation") {
     return;
   }
 
-  if (selectedBlock?.type === "map_location") {
-    setDraft((prev) => ({
-      ...prev,
-      blocks: prev.blocks.map((block) =>
-        block.id === selectedBlock.id && block.type === "map_location"
-          ? {
-              ...block,
-              data: {
-                ...block.data,
-                style: {
-                  ...(block.data.style ?? {}),
-                  ...patch,
-                },
-              },
-            }
-          : block,
-      ),
-    }));
-    return;
-  }
+if (selectedBlock?.type === "map_location") {
+  setDraft((prev) => ({
+    ...prev,
+    blocks: prev.blocks.map((block) =>
+      block.id === selectedBlock.id && block.type === "map_location"
+        ? applyMapLocationTextStylePatch(
+            block,
+            mapLocationTextTarget,
+            patch,
+          )
+        : block,
+    ),
+  }));
+
+  return;
+}
 
   if (selectedBlock?.type === "speed_dating") {
     setDraft((prev) => ({
