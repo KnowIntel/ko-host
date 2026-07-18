@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  type MapLocationTextTarget,
+  type MapLocationStyleTarget,
+} from "@/components/builder/formatting/mapLocationFormatting";
+
 /**
  * Map Location inspector section
  * Extracted from DesignLayoutEditor.
@@ -11,6 +16,16 @@ type MapLocationInspectorProps = {
   selectedBlock: any;
   updateSelectedBlock: any;
 
+  mapLocationTextTarget: MapLocationTextTarget;
+  setMapLocationTextTarget: (
+    target: MapLocationTextTarget,
+  ) => void;
+
+  mapLocationStyleTarget: MapLocationStyleTarget;
+  setMapLocationStyleTarget: (
+    target: MapLocationStyleTarget,
+  ) => void;
+
   inspectorCardClass: () => string;
   inspectorLabelClass: () => string;
   inspectorInputClass: () => string;
@@ -19,6 +34,10 @@ type MapLocationInspectorProps = {
 export function MapLocationInspector({
   selectedBlock,
   updateSelectedBlock,
+  mapLocationTextTarget,
+  setMapLocationTextTarget,
+  mapLocationStyleTarget,
+  setMapLocationStyleTarget,
   inspectorCardClass,
   inspectorLabelClass,
   inspectorInputClass,
@@ -26,6 +45,42 @@ export function MapLocationInspector({
   return (
     <div className={inspectorCardClass()}>
       <div className={inspectorLabelClass()}>Map</div>
+
+      <div className="mt-4">
+  <div className={inspectorLabelClass()}>Text Target</div>
+
+  <select
+    value={mapLocationTextTarget}
+    onChange={(e) =>
+      setMapLocationTextTarget(
+        e.target.value as MapLocationTextTarget,
+      )
+    }
+    className={inspectorInputClass()}
+  >
+    <option value="heading">Heading</option>
+    <option value="locationName">Location Name</option>
+    <option value="address">Address</option>
+    <option value="mapUrl">Map URL</option>
+  </select>
+</div>
+
+<div className="mt-4">
+  <div className={inspectorLabelClass()}>Style Target</div>
+
+  <select
+    value={mapLocationStyleTarget}
+    onChange={(e) =>
+      setMapLocationStyleTarget(
+        e.target.value as MapLocationStyleTarget,
+      )
+    }
+    className={inspectorInputClass()}
+  >
+    <option value="addressPanel">Address Panel</option>
+    <option value="block">Block</option>
+  </select>
+</div>
 
       <div className="mt-4">
         <div className={inspectorLabelClass()}>Heading</div>

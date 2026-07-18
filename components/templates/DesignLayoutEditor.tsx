@@ -73,6 +73,14 @@ import {
 } from "@/components/builder/formatting/imageFormatting";
 
 import {
+  applyMapLocationStylePatch,
+  applyMapLocationTextStylePatch,
+  getMapLocationTextStyle,
+  type MapLocationStyleTarget,
+  type MapLocationTextTarget,
+} from "@/components/builder/formatting/mapLocationFormatting";
+
+import {
   applyCalendarEventStylePatch,
   applyCalendarEventTextStylePatch,
   getCalendarEventTextStyle,
@@ -2302,6 +2310,12 @@ const [listingStyleTarget, setListingStyleTarget] = useState<
   "title" | "description" | "metadata" | "price" | "quantity"
 >("title");
 
+const [mapLocationTextTarget, setMapLocationTextTarget] =
+  useState<MapLocationTextTarget>("heading");
+
+const [mapLocationStyleTarget, setMapLocationStyleTarget] =
+  useState<MapLocationStyleTarget>("addressPanel");
+
 const [calendarEventTextTarget, setCalendarEventTextTarget] =
   useState<CalendarEventTextTarget>("heading");
 
@@ -2698,11 +2712,16 @@ const selectedStyle =
         selectedBlockFromDraft,
         galleryTextTarget,
       ) as TextStyle)
-    : selectedBlockFromDraft?.type === "countdown"
-      ? (getCountdownTextStyle(
+    : selectedBlockFromDraft?.type === "map_location"
+      ? (getMapLocationTextStyle(
           selectedBlockFromDraft,
-          countdownTextTarget,
+          mapLocationTextTarget,
         ) as TextStyle)
+      : selectedBlockFromDraft?.type === "countdown"
+        ? (getCountdownTextStyle(
+            selectedBlockFromDraft,
+            countdownTextTarget,
+          ) as TextStyle)
       : selectedBlockFromDraft?.type === "calendar_event"
         ? (getCalendarEventTextStyle(
             selectedBlockFromDraft,
@@ -2856,7 +2875,6 @@ const selectedStyle =
                         selectedBlockFromDraft?.type === "image" ||
                         (selectedBlockFromDraft as any)?.type === "gallery" ||
                         selectedBlockFromDraft?.type === "checklist" ||
-                        selectedBlockFromDraft?.type === "map_location" ||
                         selectedBlockFromDraft?.type === "speed_dating" ||
                         selectedBlockFromDraft?.type === "rich_text" ||
                         selectedBlockFromDraft?.type === "links"
@@ -5550,6 +5568,20 @@ function clearSelectedBackground() {
 }
 
 function applyAppearancePatch(patch: AppearancePatch) {
+
+  if (selectedBlock?.type === "map_location") {
+  updateSelectedBlock((block) =>
+    applyMapLocationStylePatch(
+      block,
+      mapLocationStyleTarget,
+      patch,
+    ),
+  );
+
+  return;
+}
+
+
   if (selectedBlock?.type === "countdown") {
     updateSelectedBlock((block) =>
       block.type !== "countdown"
@@ -13047,13 +13079,20 @@ renderBlockPreview={renderCanvasPreview}
 ) : null}
 
 {!isMultiSelection && selectedBlock?.type === "map_location" ? (
-  <MapLocationInspector
-    selectedBlock={selectedBlock}
-    updateSelectedBlock={updateSelectedBlock}
-    inspectorCardClass={inspectorCardClass}
-    inspectorLabelClass={inspectorLabelClass}
-    inspectorInputClass={inspectorInputClass}
-  />
+<MapLocationInspector
+  selectedBlock={selectedBlock}
+  updateSelectedBlock={updateSelectedBlock}
+
+  mapLocationTextTarget={mapLocationTextTarget}
+  setMapLocationTextTarget={setMapLocationTextTarget}
+
+  mapLocationStyleTarget={mapLocationStyleTarget}
+  setMapLocationStyleTarget={setMapLocationStyleTarget}
+
+  inspectorCardClass={inspectorCardClass}
+  inspectorLabelClass={inspectorLabelClass}
+  inspectorInputClass={inspectorInputClass}
+/>
 ) : null}
 
 {!isMultiSelection && selectedBlock?.type === "bookmark" ? (

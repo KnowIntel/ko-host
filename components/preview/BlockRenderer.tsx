@@ -14359,6 +14359,29 @@ function renderMapLocation(
   const address = block.data.address?.trim() || "";
   const mapUrl = block.data.mapUrl?.trim() || "";
 
+  const headingStyle = getContainerTextStyle(
+    (block.data as any).headingStyle,
+    designKey,
+  );
+
+  const locationNameStyle = getContainerTextStyle(
+    (block.data as any).locationNameStyle,
+    designKey,
+  );
+
+  const addressStyle = getContainerTextStyle(
+    (block.data as any).addressStyle,
+    designKey,
+  );
+
+  const mapUrlStyle = getContainerTextStyle(
+    (block.data as any).mapUrlStyle,
+    designKey,
+  );
+
+  const addressPanelStyle =
+    ((block.data as any).addressPanelStyle ?? {}) as Record<string, any>;
+
   const hasUsefulLocation = Boolean(locationName || address || mapUrl);
 
   if (!hasUsefulLocation) {
@@ -14370,7 +14393,7 @@ function renderMapLocation(
       >
         <div
           className="mb-3 text-base font-semibold"
-          style={getContainerTextStyle(block.data.style, designKey)}
+          style={headingStyle}
         >
           {heading}
         </div>
@@ -14398,7 +14421,9 @@ function renderMapLocation(
       : "");
 
   const embedSrc = address
-    ? `https://www.google.com/maps?q=${encodeURIComponent(address)}&z=15&output=embed`
+    ? `https://www.google.com/maps?q=${encodeURIComponent(
+        address,
+      )}&z=15&output=embed`
     : "";
 
   const detailCardClass = isLightDesign(designKey)
@@ -14417,7 +14442,7 @@ function renderMapLocation(
     >
       <div
         className="mb-3 text-base font-semibold"
-        style={getContainerTextStyle(block.data.style, designKey)}
+        style={headingStyle}
       >
         {heading}
       </div>
@@ -14452,11 +14477,36 @@ function renderMapLocation(
         </div>
       )}
 
-      <div className={detailCardClass}>
+      <div
+        className={detailCardClass}
+        style={{
+          backgroundColor:
+            addressPanelStyle.backgroundColor || undefined,
+
+          borderColor:
+            addressPanelStyle.borderColor || undefined,
+
+          borderWidth:
+            typeof addressPanelStyle.borderWidth === "number"
+              ? addressPanelStyle.borderWidth
+              : undefined,
+
+          borderRadius:
+            typeof addressPanelStyle.borderRadius === "number"
+              ? addressPanelStyle.borderRadius
+              : undefined,
+
+          boxShadow:
+            addressPanelStyle.boxShadow || undefined,
+
+          color:
+            addressPanelStyle.textColor || undefined,
+        }}
+      >
         {locationName ? (
           <div
             className="text-sm font-semibold"
-            style={getContainerTextStyle(block.data.style, designKey)}
+            style={locationNameStyle}
           >
             {locationName}
           </div>
@@ -14465,7 +14515,7 @@ function renderMapLocation(
         {address ? (
           <div
             className="mt-1 text-sm"
-            style={getContainerTextStyle(block.data.style, designKey)}
+            style={addressStyle}
           >
             {address}
           </div>
@@ -14477,6 +14527,7 @@ function renderMapLocation(
             target="_blank"
             rel="noreferrer noopener"
             className={buttonClass}
+            style={mapUrlStyle}
           >
             Open Map
           </a>
