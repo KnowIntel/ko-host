@@ -9245,49 +9245,95 @@ if (block.type === "schedule_agenda") {
   );
 }
 
-    if (block.type === "map_location") {
-      return (
+if (block.type === "map_location") {
+  const headingStyle = (block.data as any).headingStyle ?? {};
+  const locationNameStyle = (block.data as any).locationNameStyle ?? {};
+  const addressStyle = (block.data as any).addressStyle ?? {};
+  const mapUrlStyle = (block.data as any).mapUrlStyle ?? {};
+  const addressPanelStyle = (block.data as any).addressPanelStyle ?? {};
+
+  return (
+    <div
+      className="h-full w-full rounded-xl p-4"
+      style={{
+        backgroundColor:
+          block.appearance?.backgroundColor &&
+          block.appearance.backgroundColor !== "transparent"
+            ? block.appearance.backgroundColor
+            : "transparent",
+        borderColor: block.appearance?.borderColor || undefined,
+        borderWidth:
+          typeof block.appearance?.borderWidth === "number"
+            ? `${block.appearance.borderWidth}px`
+            : undefined,
+        borderStyle:
+          typeof block.appearance?.borderWidth === "number" &&
+          block.appearance.borderWidth > 0
+            ? "solid"
+            : undefined,
+        borderRadius:
+          typeof block.appearance?.borderRadius === "number"
+            ? `${block.appearance.borderRadius}px`
+            : undefined,
+      }}
+    >
+      <div
+        className="mb-3 text-base font-semibold text-neutral-900"
+        style={getInlineTextStyle(headingStyle)}
+      >
+        {block.data.heading || "Location"}
+      </div>
+
+      <div className="flex h-40 w-full items-center justify-center rounded-lg border border-neutral-200 bg-neutral-100 text-sm text-neutral-500">
+        Map Preview
+      </div>
+
+      <div
+        className="mt-3 rounded-lg p-3"
+        style={{
+          backgroundColor:
+            addressPanelStyle.backgroundColor || "transparent",
+          borderColor: addressPanelStyle.borderColor || undefined,
+          borderWidth:
+            typeof addressPanelStyle.borderWidth === "number"
+              ? `${addressPanelStyle.borderWidth}px`
+              : undefined,
+          borderStyle:
+            typeof addressPanelStyle.borderWidth === "number" &&
+            addressPanelStyle.borderWidth > 0
+              ? "solid"
+              : undefined,
+          borderRadius:
+            typeof addressPanelStyle.borderRadius === "number"
+              ? `${addressPanelStyle.borderRadius}px`
+              : undefined,
+          boxShadow: addressPanelStyle.boxShadow || undefined,
+        }}
+      >
         <div
-          className="h-full w-full rounded-xl p-4"
-          style={{
-            backgroundColor:
-              block.appearance?.backgroundColor &&
-              block.appearance.backgroundColor !== "transparent"
-                ? block.appearance.backgroundColor
-                : "transparent",
-            borderColor: block.appearance?.borderColor || undefined,
-            borderWidth:
-              typeof block.appearance?.borderWidth === "number"
-                ? `${block.appearance.borderWidth}px`
-                : undefined,
-            borderStyle:
-              typeof block.appearance?.borderWidth === "number" &&
-              block.appearance.borderWidth > 0
-                ? "solid"
-                : undefined,
-            borderRadius:
-              typeof block.appearance?.borderRadius === "number"
-                ? `${block.appearance.borderRadius}px`
-                : undefined,
-          }}
+          className="text-sm font-semibold text-neutral-900"
+          style={getInlineTextStyle(locationNameStyle)}
         >
-          <div
-            className="mb-3 text-base font-semibold text-neutral-900"
-            style={getInlineTextStyle(block.data.style)}
-          >
-            {block.data.heading || "Location"}
-          </div>
-
-          <div className="flex h-40 w-full items-center justify-center rounded-lg border border-neutral-200 bg-neutral-100 text-sm text-neutral-500">
-            Map Preview
-          </div>
-
-          <div className="mt-2 text-xs text-neutral-500">
-            {block.data.address || "Enter address"}
-          </div>
+          {block.data.locationName || "Location Name"}
         </div>
-      );
-    }
+
+        <div
+          className="mt-1 text-xs text-neutral-500"
+          style={getInlineTextStyle(addressStyle)}
+        >
+          {block.data.address || "Enter address"}
+        </div>
+
+        <div
+          className="mt-1 break-all text-xs text-neutral-500"
+          style={getInlineTextStyle(mapUrlStyle)}
+        >
+          {block.data.mapUrl || "Map URL"}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 if (block.type === "speed_dating") {
   return <SpeedDatingCanvasPreview block={block} />;
