@@ -3377,19 +3377,49 @@ function renderProcessFlow(
   const data = block.data as any;
   const appearanceStyle = getAppearanceStyle(block);
 
-  const headingStyle = getContainerTextStyle(data.headingStyle, designKey);
-  const subtitleStyle = getContainerTextStyle(data.subtitleStyle, designKey);
-  const stepNumberStyle = getContainerTextStyle(data.stepNumberStyle, designKey);
-  const stepHeadingStyle = getContainerTextStyle(data.stepHeadingStyle, designKey);
-  const stepDescriptionStyle = getContainerTextStyle(
-    data.stepDescriptionStyle,
+  const headingStyle = getContainerTextStyle(
+    data.headingStyle ?? {},
     designKey,
   );
-  const badgeStyle = getContainerTextStyle(data.badgeStyle, designKey);
-  const durationStyle = getContainerTextStyle(data.durationStyle, designKey);
+
+  const subtitleStyle = getContainerTextStyle(
+    data.subtitleStyle ?? {},
+    designKey,
+  );
+
+  const stepNumberStyle = getContainerTextStyle(
+    data.stepNumberStyle ?? {},
+    designKey,
+  );
+
+  const stepHeadingStyle = getContainerTextStyle(
+    data.stepHeadingStyle ?? {},
+    designKey,
+  );
+
+  const stepDescriptionStyle = getContainerTextStyle(
+    data.stepDescriptionStyle ?? {},
+    designKey,
+  );
+
+  const badgeStyle = getContainerTextStyle(
+    data.badgeStyle ?? {},
+    designKey,
+  );
+
+  const durationStyle = getContainerTextStyle(
+    data.durationStyle ?? {},
+    designKey,
+  );
+
+  const cardStyle = data.cardStyle ?? {};
+  const stepIconStyle = data.stepIconStyle ?? {};
+  const connectorAppearanceStyle =
+    data.connectorAppearanceStyle ?? {};
 
   const steps = Array.isArray(data.steps) ? data.steps : [];
   const layout = data.layout ?? "horizontal";
+
   const isVertical = layout === "vertical";
   const isZigZag = layout === "zig_zag";
 
@@ -3403,20 +3433,38 @@ function renderProcessFlow(
       ? Math.max(0, Math.min(80, data.padding))
       : 20;
 
-  const cardRadius =
-    typeof data.cardRadius === "number" && Number.isFinite(data.cardRadius)
+  const legacyCardRadius =
+    typeof data.cardRadius === "number" &&
+    Number.isFinite(data.cardRadius)
       ? Math.max(0, Math.min(48, data.cardRadius))
       : 18;
 
-  const connectorColor = data.connectorColor || "#CBD5E1";
-  const accentColor = data.accentColor || "#2563EB";
-
   const connectorStyle = data.connectorStyle ?? "arrow";
+
   const connectorBorderStyle =
     connectorStyle === "dashed" ? "dashed" : "solid";
 
+  const connectorColor =
+    connectorAppearanceStyle.borderColor ??
+    connectorAppearanceStyle.backgroundColor ??
+    data.connectorColor ??
+    "#CBD5E1";
+
+  const connectorWidth =
+    typeof connectorAppearanceStyle.borderWidth === "number"
+      ? connectorAppearanceStyle.borderWidth
+      : 2;
+
+  const accentColor =
+    stepIconStyle.borderColor ??
+    stepIconStyle.color ??
+    data.accentColor ??
+    "#2563EB";
+
   const renderConnector = (index: number) => {
-    if (index >= steps.length - 1) return null;
+    if (index >= steps.length - 1) {
+      return null;
+    }
 
     if (isVertical || isZigZag) {
       return (
@@ -3424,8 +3472,14 @@ function renderProcessFlow(
           className="mx-auto h-8 border-l"
           style={{
             borderColor: connectorColor,
-            borderLeftStyle: connectorBorderStyle,
-            borderLeftWidth: 2,
+            borderLeftStyle:
+              connectorAppearanceStyle.borderStyle ??
+              connectorBorderStyle,
+            borderLeftWidth: `${connectorWidth}px`,
+            opacity:
+              typeof connectorAppearanceStyle.opacity === "number"
+                ? connectorAppearanceStyle.opacity
+                : undefined,
           }}
         />
       );
@@ -3437,15 +3491,28 @@ function renderProcessFlow(
           className="h-0 w-full border-t"
           style={{
             borderColor: connectorColor,
-            borderTopStyle: connectorBorderStyle,
-            borderTopWidth: 2,
+            borderTopStyle:
+              connectorAppearanceStyle.borderStyle ??
+              connectorBorderStyle,
+            borderTopWidth: `${connectorWidth}px`,
+            opacity:
+              typeof connectorAppearanceStyle.opacity === "number"
+                ? connectorAppearanceStyle.opacity
+                : undefined,
           }}
         />
+
         {connectorStyle === "arrow" ? (
           <div
             className="-ml-1 h-2 w-2 rotate-45 border-r-2 border-t-2"
             style={{
               borderColor: connectorColor,
+              borderRightWidth: `${connectorWidth}px`,
+              borderTopWidth: `${connectorWidth}px`,
+              opacity:
+                typeof connectorAppearanceStyle.opacity === "number"
+                  ? connectorAppearanceStyle.opacity
+                  : undefined,
             }}
           />
         ) : null}
@@ -3454,7 +3521,9 @@ function renderProcessFlow(
   };
 
   const renderStepCard = (step: any, index: number) => {
-    const hasImage = typeof step.imageUrl === "string" && step.imageUrl.trim();
+    const hasImage =
+      typeof step.imageUrl === "string" &&
+      step.imageUrl.trim().length > 0;
 
     return (
       <div
@@ -3464,17 +3533,82 @@ function renderProcessFlow(
           data.cardShadow !== false ? "shadow-sm" : "",
         ].join(" ")}
         style={{
-          backgroundColor: data.cardBackgroundColor || "#FFFFFF",
-          borderColor: data.cardBorderColor || "#E5E7EB",
-          borderRadius: `${cardRadius}px`,
+          backgroundColor:
+            cardStyle.backgroundColor ??
+            data.cardBackgroundColor ??
+            "#FFFFFF",
+
+          borderColor:
+            cardStyle.borderColor ??
+            data.cardBorderColor ??
+            "#E5E7EB",
+
+          borderWidth:
+            typeof cardStyle.borderWidth === "number"
+              ? `${cardStyle.borderWidth}px`
+              : undefined,
+
+          borderStyle:
+            typeof cardStyle.borderWidth === "number" &&
+            cardStyle.borderWidth > 0
+              ? cardStyle.borderStyle ?? "solid"
+              : undefined,
+
+          borderRadius:
+            typeof cardStyle.borderRadius === "number"
+              ? `${cardStyle.borderRadius}px`
+              : `${legacyCardRadius}px`,
+
+          boxShadow:
+            cardStyle.boxShadow ??
+            undefined,
+
+          opacity:
+            typeof cardStyle.opacity === "number"
+              ? cardStyle.opacity
+              : undefined,
         }}
       >
         <div className="flex flex-col items-center text-center">
           <div
             className="mb-3 flex h-12 w-12 items-center justify-center overflow-hidden rounded-full border text-xl"
             style={{
-              borderColor: accentColor,
-              backgroundColor: `${accentColor}14`,
+              color:
+                stepIconStyle.color ??
+                accentColor,
+
+              backgroundColor:
+                stepIconStyle.backgroundColor ??
+                `${accentColor}14`,
+
+              borderColor:
+                stepIconStyle.borderColor ??
+                accentColor,
+
+              borderWidth:
+                typeof stepIconStyle.borderWidth === "number"
+                  ? `${stepIconStyle.borderWidth}px`
+                  : undefined,
+
+              borderStyle:
+                typeof stepIconStyle.borderWidth === "number" &&
+                stepIconStyle.borderWidth > 0
+                  ? stepIconStyle.borderStyle ?? "solid"
+                  : undefined,
+
+              borderRadius:
+                typeof stepIconStyle.borderRadius === "number"
+                  ? `${stepIconStyle.borderRadius}px`
+                  : undefined,
+
+              boxShadow:
+                stepIconStyle.boxShadow ??
+                undefined,
+
+              opacity:
+                typeof stepIconStyle.opacity === "number"
+                  ? stepIconStyle.opacity
+                  : undefined,
             }}
           >
             {hasImage ? (
@@ -3521,8 +3655,12 @@ function renderProcessFlow(
                 className="rounded-full border px-2 py-1 text-[11px] font-semibold"
                 style={{
                   ...badgeStyle,
-                  borderColor: accentColor,
-                  backgroundColor: `${accentColor}10`,
+                  borderColor:
+                    (badgeStyle as any).borderColor ??
+                    accentColor,
+                  backgroundColor:
+                    (badgeStyle as any).backgroundColor ??
+                    `${accentColor}10`,
                 }}
               >
                 {step.badge}
@@ -3544,19 +3682,26 @@ function renderProcessFlow(
   };
 
   return (
-    <div className="h-full w-full overflow-auto" style={appearanceStyle}>
+    <div
+      className="h-full w-full overflow-auto"
+      style={appearanceStyle}
+    >
       <div
         style={{
           padding: `${padding}px`,
           transform:
-            typeof data.rotation === "number" && data.rotation !== 0
+            typeof data.rotation === "number" &&
+            data.rotation !== 0
               ? `rotate(${data.rotation}deg)`
               : undefined,
           transformOrigin: "center",
         }}
       >
         {data.showHeading !== false && data.heading ? (
-          <div className="mb-2 whitespace-normal break-words" style={headingStyle}>
+          <div
+            className="mb-2 whitespace-normal break-words"
+            style={headingStyle}
+          >
             {data.heading}
           </div>
         ) : null}
@@ -3571,30 +3716,42 @@ function renderProcessFlow(
         ) : null}
 
         {isVertical || isZigZag ? (
-          <div className="flex flex-col" style={{ gap: `${gap}px` }}>
+          <div
+            className="flex flex-col"
+            style={{ gap: `${gap}px` }}
+          >
             {steps.map((step: any, index: number) => (
               <div
                 key={step.id || index}
                 className={[
                   "flex flex-col",
-                  isZigZag && index % 2 === 1 ? "items-end" : "items-start",
+                  isZigZag && index % 2 === 1
+                    ? "items-end"
+                    : "items-start",
                 ].join(" ")}
               >
                 <div className="w-full max-w-[420px]">
                   {renderStepCard(step, index)}
                 </div>
+
                 {renderConnector(index)}
               </div>
             ))}
           </div>
         ) : (
           <div className="flex flex-col gap-4 sm:flex-row sm:items-stretch">
-{steps.map((step: any, index: number) => (
-  <div key={step.id || index} className="contents">
-    <div className="min-w-0 flex-1">{renderStepCard(step, index)}</div>
-    {renderConnector(index)}
-  </div>
-))}
+            {steps.map((step: any, index: number) => (
+              <div
+                key={step.id || index}
+                className="contents"
+              >
+                <div className="min-w-0 flex-1">
+                  {renderStepCard(step, index)}
+                </div>
+
+                {renderConnector(index)}
+              </div>
+            ))}
           </div>
         )}
       </div>

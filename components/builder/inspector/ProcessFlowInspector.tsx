@@ -2,18 +2,19 @@
 
 import type { Dispatch, SetStateAction } from "react";
 
-export type ProcessFlowStyleTarget =
-  | "heading"
-  | "subtitle"
-  | "stepNumber"
-  | "stepHeading"
-  | "stepDescription"
-  | "badge"
-  | "duration";
+import type {
+  ProcessFlowStyleTarget,
+  ProcessFlowTextTarget,
+} from "@/components/builder/formatting/processFlowFormatting";
 
 type ProcessFlowInspectorProps = {
   selectedBlock: any;
   updateSelectedBlock: any;
+
+  processFlowTextTarget: ProcessFlowTextTarget;
+  setProcessFlowTextTarget: Dispatch<
+    SetStateAction<ProcessFlowTextTarget>
+  >;
 
   processFlowStyleTarget: ProcessFlowStyleTarget;
   setProcessFlowStyleTarget: Dispatch<
@@ -39,6 +40,9 @@ export function ProcessFlowInspector({
   selectedBlock,
   updateSelectedBlock,
 
+  processFlowTextTarget,
+  setProcessFlowTextTarget,
+
   processFlowStyleTarget,
   setProcessFlowStyleTarget,
 
@@ -52,6 +56,8 @@ export function ProcessFlowInspector({
 
   toolSetButtonClass,
 }: ProcessFlowInspectorProps) {
+  void uploadImageToSelectedBlock;
+
   return (
     <div
       id="inspector-process-flow"
@@ -61,18 +67,18 @@ export function ProcessFlowInspector({
         Process Flow
       </div>
 
-      {/* Formatting */}
+      {/* Text Target */}
 
       <div className="mt-4">
         <div className={inspectorLabelClass()}>
-          Formatting Target
+          Text Target
         </div>
 
         <select
-          value={processFlowStyleTarget}
+          value={processFlowTextTarget}
           onChange={(e) =>
-            setProcessFlowStyleTarget(
-              e.target.value as ProcessFlowStyleTarget,
+            setProcessFlowTextTarget(
+              e.target.value as ProcessFlowTextTarget,
             )
           }
           className={inspectorInputClass()}
@@ -86,6 +92,29 @@ export function ProcessFlowInspector({
           </option>
           <option value="badge">Badge</option>
           <option value="duration">Duration</option>
+        </select>
+      </div>
+
+      {/* Style Target */}
+
+      <div className="mt-4">
+        <div className={inspectorLabelClass()}>
+          Style Target
+        </div>
+
+        <select
+          value={processFlowStyleTarget}
+          onChange={(e) =>
+            setProcessFlowStyleTarget(
+              e.target.value as ProcessFlowStyleTarget,
+            )
+          }
+          className={inspectorInputClass()}
+        >
+          <option value="card">Card</option>
+          <option value="stepIcon">Step Icon</option>
+          <option value="connector">Connector</option>
+          <option value="block">Block</option>
         </select>
       </div>
 
@@ -200,25 +229,22 @@ export function ProcessFlowInspector({
                 value={step.heading ?? ""}
                 onChange={(e) =>
                   updateSelectedBlock((block: any) =>
-                    block.type !==
-                    "process_flow"
+                    block.type !== "process_flow"
                       ? block
                       : {
                           ...block,
                           data: {
                             ...block.data,
-                            steps:
-                              block.data.steps.map(
-                                (item: any) =>
-                                  item.id === step.id
-                                    ? {
-                                        ...item,
-                                        heading:
-                                          e.target
-                                            .value,
-                                      }
-                                    : item,
-                              ),
+                            steps: block.data.steps.map(
+                              (item: any) =>
+                                item.id === step.id
+                                  ? {
+                                      ...item,
+                                      heading:
+                                        e.target.value,
+                                    }
+                                  : item,
+                            ),
                           },
                         },
                   )
@@ -244,9 +270,7 @@ export function ProcessFlowInspector({
                                 ...block.data,
                                 steps:
                                   block.data.steps.filter(
-                                    (
-                                      item: any,
-                                    ) =>
+                                    (item: any) =>
                                       item.id !==
                                       step.id,
                                   ),
@@ -274,14 +298,14 @@ export function ProcessFlowInspector({
                     data: {
                       ...block.data,
                       steps: [
-                        ...block.data.steps,
+                        ...(block.data.steps ?? []),
                         {
                           id: makeClientId(
                             "processstep",
                           ),
                           number: String(
-                            block.data.steps.length +
-                              1,
+                            (block.data.steps ?? [])
+                              .length + 1,
                           ).padStart(2, "0"),
                           icon: "⭐",
                           imageUrl: "",

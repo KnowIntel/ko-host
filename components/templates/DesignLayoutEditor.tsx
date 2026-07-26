@@ -7,8 +7,6 @@ import { BLOCK_GUIDES } from "@/components/templates/blockGuideContent";
 import PopBalloonCanvasPreview from "@/components/blocks/PopBalloonCanvasPreview";
 import { applyImagePatch } from "@/components/builder/formatting/imageFormatting";
 import { ICON_TAGS } from "./iconTags";
-import type { ProcessFlowStyleTarget } from "@/components/builder/inspector/ProcessFlowInspector";
-
 /* ------------------------------------ INSPECTOR BLOCK FILES - START ------------------------------------ */
 import {
   OptionButtonInspector,
@@ -71,6 +69,17 @@ import {
   applyImageCaptionStylePatch,
   isImageCaptionFormattingTarget,
 } from "@/components/builder/formatting/imageFormatting";
+
+import {
+  applyProcessFlowStylePatch,
+  applyProcessFlowTextStylePatch,
+  getProcessFlowTextStyle,
+} from "@/components/builder/formatting/processFlowFormatting";
+
+import type {
+  ProcessFlowTextTarget,
+  ProcessFlowStyleTarget,
+} from "@/components/builder/formatting/processFlowFormatting";
 
 import {
   applyMapLocationStylePatch,
@@ -1373,7 +1382,6 @@ if (selection.type !== "block") {
       label: block.label || "Schedule",
     };
   }
-
   if (block.type === "map_location") {
     return {
       kind: "otherBlock",
@@ -2391,11 +2399,11 @@ const [faqTextTarget, setFaqTextTarget] =
 const [faqStyleTarget, setFaqStyleTarget] =
   useState<FaqStyleTarget>("field");
 
-/* const [processFlowStyleTarget, setProcessFlowStyleTarget] =
-  useState<ProcessFlowStyleTarget>("heading"); */
+const [processFlowTextTarget, setProcessFlowTextTarget] =
+  useState<ProcessFlowTextTarget>("heading");
 
-  const [processFlowStyleTarget, setProcessFlowStyleTarget] =
-  useState<ProcessFlowStyleTarget>("subtitle");
+const [processFlowStyleTarget, setProcessFlowStyleTarget] =
+  useState<ProcessFlowStyleTarget>("card");
 
 const [enrollmentBoardTextTarget, setEnrollmentBoardTextTarget] =
   useState<EnrollmentBoardTextTarget>("heading");
@@ -2717,6 +2725,11 @@ const selectedStyle =
           selectedBlockFromDraft,
           mapLocationTextTarget,
         ) as TextStyle)
+      : selectedBlockFromDraft?.type === "process_flow"
+        ? (getProcessFlowTextStyle(
+            selectedBlockFromDraft,
+            processFlowTextTarget,
+          ) as TextStyle)
       : selectedBlockFromDraft?.type === "countdown"
         ? (getCountdownTextStyle(
             selectedBlockFromDraft,
@@ -3088,7 +3101,6 @@ if (selectedBlock.type === "label" || selectedBlock.type === "text_fx") {
   const selectedItalic = selectedStyle.italic ?? false;
   const selectedUnderline = selectedStyle.underline ?? false;
   const selectedStrike = selectedStyle.strike ?? false;
-
 const showTextControls =
   selectedContext.kind === "pageText" ||
   selectedContext.kind === "label" ||
@@ -3112,6 +3124,7 @@ const showTextControls =
   selectedBlock?.type === "schedule_agenda" ||
   selectedBlock?.type === "calendar_event" ||
   selectedBlock?.type === "map_location" ||
+  selectedBlock?.type === "process_flow" ||
   selectedBlock?.type === "file_share" ||
   selectedBlock?.type === "speed_dating" ||
   selectedBlock?.type === "registry" ||
@@ -3154,6 +3167,7 @@ const showAppearanceControls =
   selectedBlock?.type === "schedule_agenda" ||
   selectedBlock?.type === "calendar_event" ||
   selectedBlock?.type === "map_location" ||
+  selectedBlock?.type === "process_flow" ||
   selectedBlock?.type === "file_share" ||
   selectedBlock?.type === "speed_dating" ||
   selectedBlock?.type === "registry" ||
@@ -3197,6 +3211,7 @@ const showBorderWidthRadiusControls =
   selectedBlock?.type === "schedule_agenda" ||
   selectedBlock?.type === "calendar_event" ||
   selectedBlock?.type === "map_location" ||
+  selectedBlock?.type === "process_flow" ||
   selectedBlock?.type === "file_share" ||
   selectedBlock?.type === "speed_dating" ||
   selectedBlock?.type === "registry" ||
@@ -3212,7 +3227,7 @@ const showBorderWidthRadiusControls =
   selectedBlock?.type === "visitor_counter" ||
   selectedBlock?.type === "highlight" ||
   selectedBlock?.type === "summary";
-
+  
   const selectedTextValue = getSelectedTextValue(draft, selectedContext);
 
   const selectedPageAppearanceKey =
@@ -4820,6 +4835,20 @@ const handleVideoUpload = async (
 };
 
 function applyStylePatch(patch: Partial<TextStyle>) {
+  if (selectedBlock?.type === "process_flow") {
+    updateSelectedBlock((block) =>
+      block.type !== "process_flow"
+        ? block
+        : applyProcessFlowTextStylePatch(
+            block,
+            processFlowTextTarget,
+            patch,
+          ),
+    );
+
+    return;
+  }
+
   if (selectedBlock?.type === "countdown") {
     updateSelectedBlock((block) =>
       block.type !== "countdown"
@@ -5561,6 +5590,19 @@ function clearSelectedBackground() {
 }
 
 function applyAppearancePatch(patch: AppearancePatch) {
+  if (selectedBlock?.type === "process_flow") {
+    updateSelectedBlock((block) =>
+      block.type !== "process_flow"
+        ? block
+        : applyProcessFlowStylePatch(
+            block,
+            processFlowStyleTarget,
+            patch,
+          ),
+    );
+
+    return;
+  }
 
   if (selectedBlock?.type === "map_location") {
   updateSelectedBlock((block) =>
@@ -9697,6 +9739,18 @@ return (
       );
     }
 
+    if (block.type === "process_flow") {
+  return (
+    <div className="h-full w-full">
+      <BlockRenderer
+        block={block}
+        blocks={draft.blocks}
+        designKey={designKey}
+      />
+    </div>
+  );
+}
+
     return (
   <BlockRenderer
     block={block}
@@ -12812,21 +12866,22 @@ renderBlockPreview={renderCanvasPreview}
     inspectorInputClass={inspectorInputClass}
   />
 ) : null}
-
 {!isMultiSelection && selectedBlock?.type === "process_flow" ? (
-<ProcessFlowInspector
-  selectedBlock={selectedBlock}
-  updateSelectedBlock={updateSelectedBlock}
-  processFlowStyleTarget={processFlowStyleTarget}
-  setProcessFlowStyleTarget={setProcessFlowStyleTarget}
-  makeClientId={makeClientId}
-  uploadImageToSelectedBlock={uploadImageToSelectedBlock}
-  inspectorCardClass={inspectorCardClass}
-  inspectorLabelClass={inspectorLabelClass}
-  inspectorInputClass={inspectorInputClass}
-  inspectorTextareaClass={inspectorTextareaClass}
-  toolSetButtonClass={toolSetButtonClass}
-/>
+  <ProcessFlowInspector
+    selectedBlock={selectedBlock}
+    updateSelectedBlock={updateSelectedBlock}
+    processFlowTextTarget={processFlowTextTarget}
+    setProcessFlowTextTarget={setProcessFlowTextTarget}
+    processFlowStyleTarget={processFlowStyleTarget}
+    setProcessFlowStyleTarget={setProcessFlowStyleTarget}
+    makeClientId={makeClientId}
+    uploadImageToSelectedBlock={uploadImageToSelectedBlock}
+    inspectorCardClass={inspectorCardClass}
+    inspectorLabelClass={inspectorLabelClass}
+    inspectorInputClass={inspectorInputClass}
+    inspectorTextareaClass={inspectorTextareaClass}
+    toolSetButtonClass={toolSetButtonClass}
+  />
 ) : null}
 
 {!isMultiSelection && selectedBlock?.type === "timeline" ? (
