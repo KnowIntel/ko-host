@@ -56,9 +56,7 @@ import {
   CartInspector,
   LinksInspector,
   ProcessFlowInspector,
-  
-
-
+  FormulaBoardInspector,
 } from "@/components/builder/inspector";
 
 /* ------------------------------------ INSPECTOR BLOCK FILES - END ------------------------------------ */
@@ -69,6 +67,14 @@ import {
   applyImageCaptionStylePatch,
   isImageCaptionFormattingTarget,
 } from "@/components/builder/formatting/imageFormatting";
+
+import {
+  applyFormulaBoardStylePatch,
+  applyFormulaBoardTextStylePatch,
+  getFormulaBoardTextStyle,
+  type FormulaBoardStyleTarget,
+  type FormulaBoardTextTarget,
+} from "@/components/builder/formatting/formulaBoardFormatting";
 
 import {
   applyProcessFlowStylePatch,
@@ -2405,6 +2411,13 @@ const [processFlowTextTarget, setProcessFlowTextTarget] =
 const [processFlowStyleTarget, setProcessFlowStyleTarget] =
   useState<ProcessFlowStyleTarget>("card");
 
+
+const [formulaBoardTextTarget, setFormulaBoardTextTarget] =
+  useState<FormulaBoardTextTarget>("heading");
+
+const [formulaBoardStyleTarget, setFormulaBoardStyleTarget] =
+  useState<FormulaBoardStyleTarget>("card");
+
 const [enrollmentBoardTextTarget, setEnrollmentBoardTextTarget] =
   useState<EnrollmentBoardTextTarget>("heading");
 
@@ -2725,11 +2738,16 @@ const selectedStyle =
           selectedBlockFromDraft,
           mapLocationTextTarget,
         ) as TextStyle)
-      : selectedBlockFromDraft?.type === "process_flow"
-        ? (getProcessFlowTextStyle(
-            selectedBlockFromDraft,
-            processFlowTextTarget,
-          ) as TextStyle)
+: selectedBlockFromDraft?.type === "process_flow"
+  ? (getProcessFlowTextStyle(
+      selectedBlockFromDraft,
+      processFlowTextTarget,
+    ) as TextStyle)
+: selectedBlockFromDraft?.type === "formula_board"
+  ? (getFormulaBoardTextStyle(
+      selectedBlockFromDraft,
+      formulaBoardTextTarget,
+    ) as TextStyle)
       : selectedBlockFromDraft?.type === "countdown"
         ? (getCountdownTextStyle(
             selectedBlockFromDraft,
@@ -3125,6 +3143,7 @@ const showTextControls =
   selectedBlock?.type === "calendar_event" ||
   selectedBlock?.type === "map_location" ||
   selectedBlock?.type === "process_flow" ||
+  selectedBlock?.type === "formula_board" ||
   selectedBlock?.type === "file_share" ||
   selectedBlock?.type === "speed_dating" ||
   selectedBlock?.type === "registry" ||
@@ -3168,6 +3187,7 @@ const showAppearanceControls =
   selectedBlock?.type === "calendar_event" ||
   selectedBlock?.type === "map_location" ||
   selectedBlock?.type === "process_flow" ||
+  selectedBlock?.type === "formula_board" ||
   selectedBlock?.type === "file_share" ||
   selectedBlock?.type === "speed_dating" ||
   selectedBlock?.type === "registry" ||
@@ -3212,6 +3232,7 @@ const showBorderWidthRadiusControls =
   selectedBlock?.type === "calendar_event" ||
   selectedBlock?.type === "map_location" ||
   selectedBlock?.type === "process_flow" ||
+  selectedBlock?.type === "formula_board" ||
   selectedBlock?.type === "file_share" ||
   selectedBlock?.type === "speed_dating" ||
   selectedBlock?.type === "registry" ||
@@ -4849,6 +4870,20 @@ function applyStylePatch(patch: Partial<TextStyle>) {
     return;
   }
 
+  if (selectedBlock?.type === "formula_board") {
+  updateSelectedBlock((block) =>
+    block.type !== "formula_board"
+      ? block
+      : applyFormulaBoardTextStylePatch(
+          block,
+          formulaBoardTextTarget,
+          patch,
+        ),
+  );
+
+  return;
+}
+
   if (selectedBlock?.type === "countdown") {
     updateSelectedBlock((block) =>
       block.type !== "countdown"
@@ -5603,6 +5638,20 @@ function applyAppearancePatch(patch: AppearancePatch) {
 
     return;
   }
+
+  if (selectedBlock?.type === "formula_board") {
+  updateSelectedBlock((block) =>
+    block.type !== "formula_board"
+      ? block
+      : applyFormulaBoardStylePatch(
+          block,
+          formulaBoardStyleTarget,
+          patch,
+        ),
+  );
+
+  return;
+}
 
   if (selectedBlock?.type === "map_location") {
   updateSelectedBlock((block) =>
@@ -9751,6 +9800,18 @@ return (
   );
 }
 
+if (block.type === "formula_board") {
+  return (
+    <div className="h-full w-full">
+      <BlockRenderer
+        block={block}
+        blocks={draft.blocks}
+        designKey={designKey}
+      />
+    </div>
+  );
+}
+
     return (
   <BlockRenderer
     block={block}
@@ -12874,6 +12935,24 @@ renderBlockPreview={renderCanvasPreview}
     setProcessFlowTextTarget={setProcessFlowTextTarget}
     processFlowStyleTarget={processFlowStyleTarget}
     setProcessFlowStyleTarget={setProcessFlowStyleTarget}
+    makeClientId={makeClientId}
+    uploadImageToSelectedBlock={uploadImageToSelectedBlock}
+    inspectorCardClass={inspectorCardClass}
+    inspectorLabelClass={inspectorLabelClass}
+    inspectorInputClass={inspectorInputClass}
+    inspectorTextareaClass={inspectorTextareaClass}
+    toolSetButtonClass={toolSetButtonClass}
+  />
+) : null}
+
+{!isMultiSelection && selectedBlock?.type === "formula_board" ? (
+  <FormulaBoardInspector
+    selectedBlock={selectedBlock}
+    updateSelectedBlock={updateSelectedBlock}
+    formulaBoardTextTarget={formulaBoardTextTarget}
+    setFormulaBoardTextTarget={setFormulaBoardTextTarget}
+    formulaBoardStyleTarget={formulaBoardStyleTarget}
+    setFormulaBoardStyleTarget={setFormulaBoardStyleTarget}
     makeClientId={makeClientId}
     uploadImageToSelectedBlock={uploadImageToSelectedBlock}
     inspectorCardClass={inspectorCardClass}

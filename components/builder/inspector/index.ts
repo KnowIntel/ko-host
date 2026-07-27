@@ -45,7 +45,7 @@ export { CheckoutInspector } from "./CheckoutInspector";
 export { CartInspector } from "./CartInspector";
 export { LinksInspector } from "./LinksInspector";
 export { ProcessFlowInspector } from "./ProcessFlowInspector";
-
+export { FormulaBoardInspector } from "./FormulaBoardInspector";
 
 
 

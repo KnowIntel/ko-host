@@ -2045,13 +2045,53 @@ export type ProcessFlowBlockData = InfographicBaseBlockData & {
   animationStyle: "none" | "fade" | "slide" | "pop";
 };
 
+
+
 export type StatisticCardsBlockData = InfographicBaseBlockData;
 export type ComparisonTableBlockData = InfographicBaseBlockData;
 export type DataPyramidBlockData = InfographicBaseBlockData;
 export type CircularHubBlockData = InfographicBaseBlockData;
 export type StoryCardsBlockData = InfographicBaseBlockData;
 export type InteractiveHotspotsBlockData = InfographicBaseBlockData;
-export type FormulaBoardBlockData = InfographicBaseBlockData;
+export type FormulaBoardItem = {
+  id: string;
+  title: string;
+  formula: string;
+  description: string;
+  variables: string;
+  example: string;
+  diagramUrl: string;
+};
+
+export type FormulaBoardBlockData = InfographicBaseBlockData & {
+  layout: "grid" | "stacked";
+  columns: 1 | 2 | 3;
+
+  formulas: FormulaBoardItem[];
+
+  headingStyle: TextStyle;
+  subtitleStyle: TextStyle;
+  formulaTitleStyle: TextStyle;
+  formulaStyle: TextStyle;
+  descriptionStyle: TextStyle;
+  variablesStyle: TextStyle;
+  exampleStyle: TextStyle;
+
+  cardBackgroundColor: string;
+  cardBorderColor: string;
+  formulaBackgroundColor: string;
+  variablesBackgroundColor: string;
+  exampleBackgroundColor: string;
+
+  padding: number;
+  gap: number;
+  cardGap: number;
+  cardRadius: number;
+  cardShadow: boolean;
+  rotation: number;
+
+  animationStyle: "none" | "fade" | "slide" | "pop";
+};
 
 export type ProcessFlowBlock = {
   id: string;
@@ -4413,74 +4453,158 @@ data: {
         },
       };
 
-          case "statistic_cards":
-    case "comparison_table":
-    case "data_pyramid":
-    case "circular_hub":
-    case "story_cards":
-    case "interactive_hotspots":
-    case "formula_board":
-      return {
-        id: makeId(type),
-        type,
-        label: "Infographic",
-        grid: {
-          ...grid,
-          colSpan: 8,
-          rowSpan: 4,
+case "statistic_cards":
+case "comparison_table":
+case "data_pyramid":
+case "circular_hub":
+case "story_cards":
+case "interactive_hotspots":
+  return {
+    id: makeId(type),
+    type,
+    label: "Infographic",
+    grid: {
+      ...grid,
+      colSpan: 8,
+      rowSpan: 4,
+    },
+    appearance: {
+      ...createDefaultBlockAppearance(),
+      backgroundColor: "#FFFFFF",
+      borderColor: "#E5E7EB",
+      borderWidth: 1,
+      borderRadius: 24,
+    },
+    data: {
+      heading: "Infographic",
+      subtitle: "Customize this infographic block.",
+      showHeading: true,
+      showSubtitle: true,
+      style: createDefaultTextStyle(),
+    },
+  };
+
+case "formula_board":
+  return {
+    id: makeId("formula_board"),
+    type: "formula_board",
+    label: "Formula Board",
+    grid: {
+      ...grid,
+      colSpan: 8,
+      rowSpan: 5,
+    },
+    appearance: {
+      ...createDefaultBlockAppearance(),
+      backgroundColor: "#FFFFFF",
+      borderColor: "#E5E7EB",
+      borderWidth: 1,
+      borderRadius: 24,
+    },
+    data: {
+      heading: "Formula Board",
+      subtitle: "Key formulas, variables, and worked examples.",
+      showHeading: true,
+      showSubtitle: true,
+
+      layout: "grid",
+      columns: 2,
+
+      formulas: [
+        {
+          id: makeId("formula"),
+          title: "Simple Interest",
+          formula: "I = P × r × t",
+          description:
+            "Calculate the interest earned or paid on a principal amount.",
+          variables:
+            "I = Interest\nP = Principal\nr = Interest rate\nt = Time",
+          example:
+            "$1,000 × 0.05 × 2 = $100",
+          diagramUrl: "",
         },
-        appearance: {
-          ...createDefaultBlockAppearance(),
-          backgroundColor: "#FFFFFF",
-          borderColor: "#E5E7EB",
-          borderWidth: 1,
-          borderRadius: 24,
+        {
+          id: makeId("formula"),
+          title: "Area of a Circle",
+          formula: "A = πr²",
+          description:
+            "Calculate the area enclosed by a circle.",
+          variables:
+            "A = Area\nπ = Pi\nr = Radius",
+          example:
+            "π × 5² = 78.54",
+          diagramUrl: "",
         },
-        data: {
-          heading: "Infographic",
-          subtitle: "Customize this infographic block.",
-          showHeading: true,
-          showSubtitle: true,
-          style: createDefaultTextStyle(),
-        },
-      };
-      
-          case "visitor_counter":
-      return {
-        id: makeId("visitor_counter"),
-        type: "visitor_counter",
-        label: "Visitor Counter",
-        grid,
-        appearance: createDefaultBlockAppearance(),
-        data: {
-          heading: "Visitor Count",
-          subtitle: "See how many people have visited this site.",
-          label: "Visitors",
-          variant: "flip",
-          showHeading: true,
-          showSubtitle: false,
-          showLabel: true,
-          showIcon: true,
-          showLastUpdated: false,
-          metricType: "site_visits",
-          animationDelayMs: 1500,
-          animationDurationMs: 800,
-          alignment: "center",
-          style: createDefaultTextStyle(),
-          numberStyle: {
-            ...createDefaultTextStyle(),
-            fontSize: 42,
-            bold: true,
-            align: "center",
-          },
-          labelStyle: {
-            ...createDefaultTextStyle(),
-            fontSize: 13,
-            align: "center",
-          },
-          tileStyle: createDefaultTextStyle(),
-        },
-      };
+      ],
+
+      style: createDefaultTextStyle(),
+
+      headingStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 26,
+        bold: true,
+        align: "center",
+      },
+
+      subtitleStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        color: "#6B7280",
+        align: "center",
+      },
+
+      formulaTitleStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 16,
+        bold: true,
+        align: "left",
+      },
+
+      formulaStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 24,
+        bold: true,
+        align: "center",
+      },
+
+      descriptionStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 13,
+        color: "#4B5563",
+        align: "left",
+      },
+
+      variablesStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 13,
+        color: "#374151",
+        align: "left",
+      },
+
+      exampleStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 13,
+        bold: true,
+        color: "#1D4ED8",
+        align: "left",
+      },
+
+      cardBackgroundColor: "#FFFFFF",
+      cardBorderColor: "#E5E7EB",
+      formulaBackgroundColor: "#F8FAFC",
+      variablesBackgroundColor: "#F9FAFB",
+      exampleBackgroundColor: "#EFF6FF",
+
+      padding: 20,
+      gap: 16,
+      cardGap: 12,
+      cardRadius: 18,
+      cardShadow: true,
+      rotation: 0,
+
+      animationStyle: "none",
+    },
+  };
 
     case "showcase":
       return {

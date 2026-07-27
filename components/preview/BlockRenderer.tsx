@@ -3759,6 +3759,369 @@ function renderProcessFlow(
   );
 }
 
+function renderFormulaBoard(
+  block: Extract<MicrositeBlock, { type: "formula_board" }>,
+  designKey?: string,
+) {
+  const data = block.data as any;
+  const appearanceStyle = getAppearanceStyle(block);
+
+  const headingStyle = getContainerTextStyle(
+    data.headingStyle ?? {},
+    designKey,
+  );
+
+  const subtitleStyle = getContainerTextStyle(
+    data.subtitleStyle ?? {},
+    designKey,
+  );
+
+  const formulaTitleStyle = getContainerTextStyle(
+    data.formulaTitleStyle ?? {},
+    designKey,
+  );
+
+  const formulaStyle = getContainerTextStyle(
+    data.formulaStyle ?? {},
+    designKey,
+  );
+
+  const descriptionStyle = getContainerTextStyle(
+    data.descriptionStyle ?? {},
+    designKey,
+  );
+
+  const variablesStyle = getContainerTextStyle(
+    data.variablesStyle ?? {},
+    designKey,
+  );
+
+  const exampleStyle = getContainerTextStyle(
+    data.exampleStyle ?? {},
+    designKey,
+  );
+
+  const cardStyle = data.cardStyle ?? {};
+  const formulaPanelStyle = data.formulaPanelStyle ?? {};
+  const variablesPanelStyle = data.variablesPanelStyle ?? {};
+  const examplePanelStyle = data.examplePanelStyle ?? {};
+  const diagramStyle = data.diagramStyle ?? {};
+
+  const formulas = Array.isArray(data.formulas)
+    ? data.formulas
+    : [];
+
+  const layout = data.layout ?? "grid";
+
+  const columns =
+    data.columns === 1 ||
+    data.columns === 2 ||
+    data.columns === 3
+      ? data.columns
+      : 2;
+
+  const padding =
+    typeof data.padding === "number" &&
+    Number.isFinite(data.padding)
+      ? Math.max(0, Math.min(80, data.padding))
+      : 20;
+
+  const gap =
+    typeof data.gap === "number" &&
+    Number.isFinite(data.gap)
+      ? Math.max(0, Math.min(80, data.gap))
+      : 16;
+
+  const cardGap =
+    typeof data.cardGap === "number" &&
+    Number.isFinite(data.cardGap)
+      ? Math.max(0, Math.min(80, data.cardGap))
+      : 12;
+
+  const legacyCardRadius =
+    typeof data.cardRadius === "number" &&
+    Number.isFinite(data.cardRadius)
+      ? Math.max(0, Math.min(48, data.cardRadius))
+      : 18;
+
+  const getPanelStyle = (
+    style: Record<string, any>,
+    fallbackBackgroundColor: string,
+  ) => ({
+    backgroundColor:
+      style.backgroundColor ?? fallbackBackgroundColor,
+
+    borderColor:
+      style.borderColor ?? "transparent",
+
+    borderWidth:
+      typeof style.borderWidth === "number"
+        ? `${style.borderWidth}px`
+        : undefined,
+
+    borderStyle:
+      typeof style.borderWidth === "number" &&
+      style.borderWidth > 0
+        ? style.borderStyle ?? "solid"
+        : undefined,
+
+    borderRadius:
+      typeof style.borderRadius === "number"
+        ? `${style.borderRadius}px`
+        : "12px",
+
+    boxShadow:
+      style.boxShadow ?? undefined,
+
+    opacity:
+      typeof style.opacity === "number"
+        ? style.opacity
+        : undefined,
+  });
+
+  return (
+    <div
+      className="h-full w-full overflow-auto"
+      style={appearanceStyle}
+    >
+      <div
+        style={{
+          padding: `${padding}px`,
+          transform:
+            typeof data.rotation === "number" &&
+            data.rotation !== 0
+              ? `rotate(${data.rotation}deg)`
+              : undefined,
+          transformOrigin: "center",
+        }}
+      >
+        {data.showHeading !== false && data.heading ? (
+          <div
+            className="mb-2 whitespace-normal break-words"
+            style={headingStyle}
+          >
+            {data.heading}
+          </div>
+        ) : null}
+
+        {data.showSubtitle !== false &&
+        data.subtitle ? (
+          <div
+            className="mb-5 whitespace-normal break-words"
+            style={subtitleStyle}
+          >
+            {data.subtitle}
+          </div>
+        ) : null}
+
+        <div
+          className={
+            layout === "stacked"
+              ? "flex flex-col"
+              : "grid"
+          }
+          style={{
+            gap: `${gap}px`,
+
+            gridTemplateColumns:
+              layout === "stacked"
+                ? undefined
+                : `repeat(${columns}, minmax(0, 1fr))`,
+          }}
+        >
+          {formulas.map(
+            (formula: any, index: number) => {
+              const hasDiagram =
+                typeof formula.diagramUrl === "string" &&
+                formula.diagramUrl.trim().length > 0;
+
+              return (
+                <div
+                  key={formula.id || index}
+                  className={[
+                    "min-w-0 border p-4",
+                    data.cardShadow !== false
+                      ? "shadow-sm"
+                      : "",
+                  ].join(" ")}
+                  style={{
+                    backgroundColor:
+                      cardStyle.backgroundColor ??
+                      data.cardBackgroundColor ??
+                      "#FFFFFF",
+
+                    borderColor:
+                      cardStyle.borderColor ??
+                      data.cardBorderColor ??
+                      "#E5E7EB",
+
+                    borderWidth:
+                      typeof cardStyle.borderWidth ===
+                      "number"
+                        ? `${cardStyle.borderWidth}px`
+                        : undefined,
+
+                    borderStyle:
+                      typeof cardStyle.borderWidth ===
+                        "number" &&
+                      cardStyle.borderWidth > 0
+                        ? cardStyle.borderStyle ??
+                          "solid"
+                        : undefined,
+
+                    borderRadius:
+                      typeof cardStyle.borderRadius ===
+                      "number"
+                        ? `${cardStyle.borderRadius}px`
+                        : `${legacyCardRadius}px`,
+
+                    boxShadow:
+                      cardStyle.boxShadow ?? undefined,
+
+                    opacity:
+                      typeof cardStyle.opacity ===
+                      "number"
+                        ? cardStyle.opacity
+                        : undefined,
+                  }}
+                >
+                  <div
+                    className="flex flex-col"
+                    style={{
+                      gap: `${cardGap}px`,
+                    }}
+                  >
+                    {formula.title ? (
+                      <div
+                        className="whitespace-normal break-words font-semibold"
+                        style={formulaTitleStyle}
+                      >
+                        {formula.title}
+                      </div>
+                    ) : null}
+
+                    {formula.formula ? (
+                      <div
+                        className="whitespace-pre-wrap break-words px-4 py-4"
+                        style={{
+                          ...getPanelStyle(
+                            formulaPanelStyle,
+                            data.formulaBackgroundColor ??
+                              "#F8FAFC",
+                          ),
+                          ...formulaStyle,
+                        }}
+                      >
+                        {formula.formula}
+                      </div>
+                    ) : null}
+
+                    {formula.description ? (
+                      <div
+                        className="whitespace-pre-wrap break-words leading-relaxed"
+                        style={descriptionStyle}
+                      >
+                        {formula.description}
+                      </div>
+                    ) : null}
+
+                    {hasDiagram ? (
+                      <div
+                        className="overflow-hidden border p-2"
+                        style={{
+                          backgroundColor:
+                            diagramStyle.backgroundColor ??
+                            "transparent",
+
+                          borderColor:
+                            diagramStyle.borderColor ??
+                            "#E5E7EB",
+
+                          borderWidth:
+                            typeof diagramStyle.borderWidth ===
+                            "number"
+                              ? `${diagramStyle.borderWidth}px`
+                              : undefined,
+
+                          borderStyle:
+                            typeof diagramStyle.borderWidth ===
+                              "number" &&
+                            diagramStyle.borderWidth > 0
+                              ? diagramStyle.borderStyle ??
+                                "solid"
+                              : undefined,
+
+                          borderRadius:
+                            typeof diagramStyle.borderRadius ===
+                            "number"
+                              ? `${diagramStyle.borderRadius}px`
+                              : "12px",
+
+                          boxShadow:
+                            diagramStyle.boxShadow ??
+                            undefined,
+
+                          opacity:
+                            typeof diagramStyle.opacity ===
+                            "number"
+                              ? diagramStyle.opacity
+                              : undefined,
+                        }}
+                      >
+                        <img
+                          src={formula.diagramUrl}
+                          alt={
+                            formula.title
+                              ? `${formula.title} diagram`
+                              : "Formula diagram"
+                          }
+                          className="max-h-64 w-full object-contain"
+                        />
+                      </div>
+                    ) : null}
+
+                    {formula.variables ? (
+                      <div
+                        className="whitespace-pre-wrap break-words px-4 py-3"
+                        style={{
+                          ...getPanelStyle(
+                            variablesPanelStyle,
+                            data.variablesBackgroundColor ??
+                              "#F9FAFB",
+                          ),
+                          ...variablesStyle,
+                        }}
+                      >
+                        {formula.variables}
+                      </div>
+                    ) : null}
+
+                    {formula.example ? (
+                      <div
+                        className="whitespace-pre-wrap break-words px-4 py-3"
+                        style={{
+                          ...getPanelStyle(
+                            examplePanelStyle,
+                            data.exampleBackgroundColor ??
+                              "#EFF6FF",
+                          ),
+                          ...exampleStyle,
+                        }}
+                      >
+                        {formula.example}
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+              );
+            },
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function renderFrame(
   block: Extract<MicrositeBlock, { type: "frame" }>,
   onDownloadFrame?: (block: Extract<MicrositeBlock, { type: "frame" }>) => void,
@@ -16610,6 +16973,9 @@ case "timeline":
 case "process_flow":
   return renderProcessFlow(block, designKey);
 
+case "formula_board":
+  return renderFormulaBoard(block, designKey);
+  
     case "audio":
       return renderAudio(block);
 
