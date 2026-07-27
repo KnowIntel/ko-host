@@ -4172,17 +4172,27 @@ function FormulaBoardLive({
                         </div>
 
                         {isSkillsChallenge ? (
-                          <form
-                            className="mt-4"
-                            onSubmit={(event) => {
-                              event.preventDefault();
+<form
+  className="mt-4 pointer-events-auto relative z-20"
+  onPointerDown={(event) => {
+    event.stopPropagation();
+  }}
+  onMouseDown={(event) => {
+    event.stopPropagation();
+  }}
+  onClick={(event) => {
+    event.stopPropagation();
+  }}
+  onSubmit={(event) => {
+    event.preventDefault();
+    event.stopPropagation();
 
-                              submitAnswer(
-                                formulaId,
-                                formula,
-                              );
-                            }}
-                          >
+    submitAnswer(
+      formulaId,
+      formula,
+    );
+  }}
+>
                             <label
                               htmlFor={`formula-answer-${block.id}-${formulaId}`}
                               className="mb-2 block text-sm font-medium text-neutral-700"
@@ -4232,10 +4242,19 @@ function FormulaBoardLive({
   autoComplete="off"
 />
 
-                            <button
-                              type="submit"
-                              className="mt-3 inline-flex min-h-10 items-center justify-center rounded-lg bg-neutral-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-neutral-400 focus:ring-offset-2"
-                            >
+<button
+  type="submit"
+  onPointerDown={(event) => {
+    event.stopPropagation();
+  }}
+  onMouseDown={(event) => {
+    event.stopPropagation();
+  }}
+  onClick={(event) => {
+    event.stopPropagation();
+  }}
+  className="pointer-events-auto relative z-20 mt-3 inline-flex min-h-10 items-center justify-center rounded-lg bg-neutral-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-neutral-400 focus:ring-offset-2"
+>
                               {data.submitButtonText ||
                                 "Submit Answer"}
                             </button>
