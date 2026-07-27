@@ -9801,53 +9801,8 @@ return (
 }
 
 if (block.type === "formula_board") {
-  const isInteractiveTarget = (
-    target: EventTarget | null,
-  ) =>
-    target instanceof HTMLElement &&
-    Boolean(
-      target.closest(
-        [
-          "input",
-          "textarea",
-          "select",
-          "button",
-          "a",
-          "[contenteditable='true']",
-          "[role='button']",
-        ].join(","),
-      ),
-    );
-
   return (
-    <div
-      className="h-full w-full"
-      onPointerDown={(e) => {
-        if (isInteractiveTarget(e.target)) {
-          e.stopPropagation();
-        }
-      }}
-      onMouseDown={(e) => {
-        if (isInteractiveTarget(e.target)) {
-          e.stopPropagation();
-        }
-      }}
-      onClick={(e) => {
-        if (isInteractiveTarget(e.target)) {
-          e.stopPropagation();
-        }
-      }}
-      onDoubleClick={(e) => {
-        if (isInteractiveTarget(e.target)) {
-          e.stopPropagation();
-        }
-      }}
-      onKeyDown={(e) => {
-        if (isInteractiveTarget(e.target)) {
-          e.stopPropagation();
-        }
-      }}
-    >
+    <div className="h-full w-full">
       <BlockRenderer
         block={block}
         blocks={draft.blocks}

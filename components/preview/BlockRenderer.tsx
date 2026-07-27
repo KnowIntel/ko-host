@@ -4190,44 +4190,47 @@ function FormulaBoardLive({
                               Your answer
                             </label>
 
-                            <input
-                              id={`formula-answer-${block.id}-${formulaId}`}
-                              type="text"
-                              inputMode="decimal"
-                              value={
-                                answers[formulaId] ??
-                                ""
-                              }
-                              onChange={(event) => {
-                                const value =
-                                  event.target.value;
+<input
+  id={`formula-answer-${block.id}-${formulaId}`}
+  type="text"
+  inputMode="decimal"
+  value={answers[formulaId] ?? ""}
+  onPointerDown={(event) => {
+    console.log("FORMULA INPUT POINTER DOWN");
+    event.stopPropagation();
+  }}
+  onMouseDown={(event) => {
+    console.log("FORMULA INPUT MOUSE DOWN");
+    event.stopPropagation();
+  }}
+  onClick={(event) => {
+    console.log("FORMULA INPUT CLICK");
+    event.stopPropagation();
+  }}
+  onFocus={() => {
+    console.log("FORMULA INPUT FOCUSED");
+  }}
+  onChange={(event) => {
+    const value = event.target.value;
 
-                                setAnswers(
-                                  (current) => ({
-                                    ...current,
-                                    [formulaId]:
-                                      value,
-                                  }),
-                                );
+    console.log("FORMULA INPUT CHANGED", value);
 
-                                if (
-                                  feedback[
-                                    formulaId
-                                  ]
-                                ) {
-                                  setFeedback(
-                                    (current) => ({
-                                      ...current,
-                                      [formulaId]:
-                                        undefined,
-                                    }),
-                                  );
-                                }
-                              }}
-                              className="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-base text-neutral-900 outline-none transition focus:border-neutral-500 focus:ring-2 focus:ring-neutral-200"
-                              placeholder="Enter your answer"
-                              autoComplete="off"
-                            />
+    setAnswers((current) => ({
+      ...current,
+      [formulaId]: value,
+    }));
+
+    if (feedback[formulaId]) {
+      setFeedback((current) => ({
+        ...current,
+        [formulaId]: undefined,
+      }));
+    }
+  }}
+  className="pointer-events-auto relative z-20 w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-base text-neutral-900 outline-none transition focus:border-neutral-500 focus:ring-2 focus:ring-neutral-200"
+  placeholder="Enter your answer"
+  autoComplete="off"
+/>
 
                             <button
                               type="submit"
