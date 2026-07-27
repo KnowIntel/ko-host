@@ -3759,12 +3759,37 @@ function renderProcessFlow(
   );
 }
 
-function renderFormulaBoard(
-  block: Extract<MicrositeBlock, { type: "formula_board" }>,
-  designKey?: string,
-) {
+function FormulaBoardLive({
+  block,
+  designKey,
+}: {
+  block: Extract<
+    MicrositeBlock,
+    { type: "formula_board" }
+  >;
+  designKey?: string;
+}) {
   const data = block.data as any;
   const appearanceStyle = getAppearanceStyle(block);
+
+  const [answers, setAnswers] = useState<
+    Record<string, string>
+  >({});
+
+  const [feedback, setFeedback] = useState<
+    Record<
+      string,
+      "correct" | "incorrect" | undefined
+    >
+  >({});
+
+  const operation = data.operation ?? "reference";
+
+  const isSkillsChallenge =
+    operation === "skills_addition" ||
+    operation === "skills_subtraction" ||
+    operation === "skills_multiplication" ||
+    operation === "skills_division";
 
   const headingStyle = getContainerTextStyle(
     data.headingStyle ?? {},
@@ -3802,9 +3827,12 @@ function renderFormulaBoard(
   );
 
   const cardStyle = data.cardStyle ?? {};
-  const formulaPanelStyle = data.formulaPanelStyle ?? {};
-  const variablesPanelStyle = data.variablesPanelStyle ?? {};
-  const examplePanelStyle = data.examplePanelStyle ?? {};
+  const formulaPanelStyle =
+    data.formulaPanelStyle ?? {};
+  const variablesPanelStyle =
+    data.variablesPanelStyle ?? {};
+  const examplePanelStyle =
+    data.examplePanelStyle ?? {};
   const diagramStyle = data.diagramStyle ?? {};
 
   const formulas = Array.isArray(data.formulas)
@@ -3849,7 +3877,8 @@ function renderFormulaBoard(
     fallbackBackgroundColor: string,
   ) => ({
     backgroundColor:
-      style.backgroundColor ?? fallbackBackgroundColor,
+      style.backgroundColor ??
+      fallbackBackgroundColor,
 
     borderColor:
       style.borderColor ?? "transparent",
@@ -3879,6 +3908,116 @@ function renderFormulaBoard(
         : undefined,
   });
 
+  const getOperands = (formula: any) => {
+    const operandA = Number(formula.operandA);
+    const operandB = Number(formula.operandB);
+
+    return {
+      operandA: Number.isFinite(operandA)
+        ? operandA
+        : 0,
+
+      operandB: Number.isFinite(operandB)
+        ? operandB
+        : 0,
+    };
+  };
+
+  const getEquation = (
+    formula: any,
+  ): string => {
+    const { operandA, operandB } =
+      getOperands(formula);
+
+    switch (operation) {
+      case "skills_addition":
+        return `${operandA} + ${operandB} = ?`;
+
+      case "skills_subtraction":
+        return `${operandA} − ${operandB} = ?`;
+
+      case "skills_multiplication":
+        return `${operandA} × ${operandB} = ?`;
+
+      case "skills_division":
+        return `${operandA} ÷ ${operandB} = ?`;
+
+      default:
+        return formula.formula ?? "";
+    }
+  };
+
+  const getCorrectAnswer = (
+    formula: any,
+  ): number | null => {
+    const { operandA, operandB } =
+      getOperands(formula);
+
+    switch (operation) {
+      case "skills_addition":
+        return operandA + operandB;
+
+      case "skills_subtraction":
+        return operandA - operandB;
+
+      case "skills_multiplication":
+        return operandA * operandB;
+
+      case "skills_division":
+        return operandB === 0
+          ? null
+          : operandA / operandB;
+
+      default:
+        return null;
+    }
+  };
+
+  const normalizeNumber = (
+    value: string,
+  ): number | null => {
+    const normalized = value
+      .trim()
+      .replace(/,/g, "")
+      .replace(/[−–—]/g, "-");
+
+    if (!normalized) {
+      return null;
+    }
+
+    const number = Number(normalized);
+
+    return Number.isFinite(number)
+      ? number
+      : null;
+  };
+
+  const submitAnswer = (
+    formulaId: string,
+    formula: any,
+  ) => {
+    const visitorAnswer = normalizeNumber(
+      answers[formulaId] ?? "",
+    );
+
+    const correctAnswer =
+      getCorrectAnswer(formula);
+
+    const isCorrect =
+      visitorAnswer !== null &&
+      correctAnswer !== null &&
+      Math.abs(
+        visitorAnswer - correctAnswer,
+      ) < 0.000000001;
+
+    setFeedback((current) => ({
+      ...current,
+      [formulaId]: isCorrect
+        ? "correct"
+        : "incorrect",
+    }));
+  };
+
   return (
     <div
       className="h-full w-full overflow-auto"
@@ -3887,15 +4026,18 @@ function renderFormulaBoard(
       <div
         style={{
           padding: `${padding}px`,
+
           transform:
             typeof data.rotation === "number" &&
             data.rotation !== 0
               ? `rotate(${data.rotation}deg)`
               : undefined,
+
           transformOrigin: "center",
         }}
       >
-        {data.showHeading !== false && data.heading ? (
+        {data.showHeading !== false &&
+        data.heading ? (
           <div
             className="mb-2 whitespace-normal break-words"
             style={headingStyle}
@@ -3931,15 +4073,28 @@ function renderFormulaBoard(
         >
           {formulas.map(
             (formula: any, index: number) => {
+              const formulaId =
+                formula.id || `formula-${index}`;
+
               const hasDiagram =
-                typeof formula.diagramUrl === "string" &&
+                typeof formula.diagramUrl ===
+                  "string" &&
                 formula.diagramUrl.trim().length > 0;
+
+              const equation =
+                isSkillsChallenge
+                  ? getEquation(formula)
+                  : formula.formula;
+
+              const currentFeedback =
+                feedback[formulaId];
 
               return (
                 <div
-                  key={formula.id || index}
+                  key={formulaId}
                   className={[
                     "min-w-0 border p-4",
+
                     data.cardShadow !== false
                       ? "shadow-sm"
                       : "",
@@ -3976,7 +4131,8 @@ function renderFormulaBoard(
                         : `${legacyCardRadius}px`,
 
                     boxShadow:
-                      cardStyle.boxShadow ?? undefined,
+                      cardStyle.boxShadow ??
+                      undefined,
 
                     opacity:
                       typeof cardStyle.opacity ===
@@ -4000,7 +4156,7 @@ function renderFormulaBoard(
                       </div>
                     ) : null}
 
-                    {formula.formula ? (
+                    {equation ? (
                       <div
                         className="whitespace-pre-wrap break-words px-4 py-4"
                         style={{
@@ -4009,14 +4165,120 @@ function renderFormulaBoard(
                             data.formulaBackgroundColor ??
                               "#F8FAFC",
                           ),
-                          ...formulaStyle,
                         }}
                       >
-                        {formula.formula}
+                        <div style={formulaStyle}>
+                          {equation}
+                        </div>
+
+                        {isSkillsChallenge ? (
+                          <form
+                            className="mt-4"
+                            onSubmit={(event) => {
+                              event.preventDefault();
+
+                              submitAnswer(
+                                formulaId,
+                                formula,
+                              );
+                            }}
+                          >
+                            <label
+                              htmlFor={`formula-answer-${block.id}-${formulaId}`}
+                              className="mb-2 block text-sm font-medium text-neutral-700"
+                            >
+                              Your answer
+                            </label>
+
+                            <input
+                              id={`formula-answer-${block.id}-${formulaId}`}
+                              type="text"
+                              inputMode="decimal"
+                              value={
+                                answers[formulaId] ??
+                                ""
+                              }
+                              onChange={(event) => {
+                                const value =
+                                  event.target.value;
+
+                                setAnswers(
+                                  (current) => ({
+                                    ...current,
+                                    [formulaId]:
+                                      value,
+                                  }),
+                                );
+
+                                if (
+                                  feedback[
+                                    formulaId
+                                  ]
+                                ) {
+                                  setFeedback(
+                                    (current) => ({
+                                      ...current,
+                                      [formulaId]:
+                                        undefined,
+                                    }),
+                                  );
+                                }
+                              }}
+                              className="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-base text-neutral-900 outline-none transition focus:border-neutral-500 focus:ring-2 focus:ring-neutral-200"
+                              placeholder="Enter your answer"
+                              autoComplete="off"
+                            />
+
+                            <button
+                              type="submit"
+                              className="mt-3 inline-flex min-h-10 items-center justify-center rounded-lg bg-neutral-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-neutral-400 focus:ring-offset-2"
+                            >
+                              {data.submitButtonText ||
+                                "Submit Answer"}
+                            </button>
+
+                            {currentFeedback ===
+                            "correct" ? (
+                              <div
+                                role="status"
+                                className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-800"
+                              >
+                                <span
+                                  aria-hidden="true"
+                                  className="mr-2"
+                                >
+                                  ✓
+                                </span>
+
+                                {data.correctResponseText ||
+                                  "Correct! Great job!"}
+                              </div>
+                            ) : null}
+
+                            {currentFeedback ===
+                            "incorrect" ? (
+                              <div
+                                role="alert"
+                                className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-800"
+                              >
+                                <span
+                                  aria-hidden="true"
+                                  className="mr-2"
+                                >
+                                  ↻
+                                </span>
+
+                                {data.incorrectResponseText ||
+                                  "Not quite—try again!"}
+                              </div>
+                            ) : null}
+                          </form>
+                        ) : null}
                       </div>
                     ) : null}
 
-                    {formula.description ? (
+                    {!isSkillsChallenge &&
+                    formula.description ? (
                       <div
                         className="whitespace-pre-wrap break-words leading-relaxed"
                         style={descriptionStyle}
@@ -4025,7 +4287,8 @@ function renderFormulaBoard(
                       </div>
                     ) : null}
 
-                    {hasDiagram ? (
+                    {!isSkillsChallenge &&
+                    hasDiagram ? (
                       <div
                         className="overflow-hidden border p-2"
                         style={{
@@ -4080,7 +4343,8 @@ function renderFormulaBoard(
                       </div>
                     ) : null}
 
-                    {formula.variables ? (
+                    {!isSkillsChallenge &&
+                    formula.variables ? (
                       <div
                         className="whitespace-pre-wrap break-words px-4 py-3"
                         style={{
@@ -4089,6 +4353,7 @@ function renderFormulaBoard(
                             data.variablesBackgroundColor ??
                               "#F9FAFB",
                           ),
+
                           ...variablesStyle,
                         }}
                       >
@@ -4096,7 +4361,8 @@ function renderFormulaBoard(
                       </div>
                     ) : null}
 
-                    {formula.example ? (
+                    {!isSkillsChallenge &&
+                    formula.example ? (
                       <div
                         className="whitespace-pre-wrap break-words px-4 py-3"
                         style={{
@@ -4105,6 +4371,7 @@ function renderFormulaBoard(
                             data.exampleBackgroundColor ??
                               "#EFF6FF",
                           ),
+
                           ...exampleStyle,
                         }}
                       >
@@ -4119,6 +4386,22 @@ function renderFormulaBoard(
         </div>
       </div>
     </div>
+  );
+}
+
+function renderFormulaBoard(
+  block: Extract<
+    MicrositeBlock,
+    { type: "formula_board" }
+  >,
+  designKey?: string,
+) {
+  return (
+    <FormulaBoardLive
+      key={block.id}
+      block={block}
+      designKey={designKey}
+    />
   );
 }
 
@@ -16975,7 +17258,7 @@ case "process_flow":
 
 case "formula_board":
   return renderFormulaBoard(block, designKey);
-  
+
     case "audio":
       return renderAudio(block);
 

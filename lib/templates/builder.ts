@@ -2053,44 +2053,82 @@ export type DataPyramidBlockData = InfographicBaseBlockData;
 export type CircularHubBlockData = InfographicBaseBlockData;
 export type StoryCardsBlockData = InfographicBaseBlockData;
 export type InteractiveHotspotsBlockData = InfographicBaseBlockData;
+export type FormulaBoardOperation =
+  | "reference"
+  | "skills_addition"
+  | "skills_subtraction"
+  | "skills_multiplication"
+  | "skills_division";
+
+export type FormulaBoardBlockData =
+  InfographicBaseBlockData & {
+    operation: FormulaBoardOperation;
+
+    layout: "grid" | "stacked";
+    columns: 1 | 2 | 3;
+
+    formulas: FormulaBoardItem[];
+
+    challengeMin: number;
+    challengeMax: number;
+    challengeProblemCount: number;
+
+    submitButtonText: string;
+    correctResponseText: string;
+    incorrectResponseText: string;
+
+    headingStyle: TextStyle;
+    subtitleStyle: TextStyle;
+    formulaTitleStyle: TextStyle;
+    formulaStyle: TextStyle;
+    descriptionStyle: TextStyle;
+    variablesStyle: TextStyle;
+    exampleStyle: TextStyle;
+
+    cardBackgroundColor: string;
+    cardBorderColor: string;
+    formulaBackgroundColor: string;
+    variablesBackgroundColor: string;
+    exampleBackgroundColor: string;
+
+    padding: number;
+    gap: number;
+    cardGap: number;
+    cardRadius: number;
+    cardShadow: boolean;
+    rotation: number;
+
+    animationStyle:
+      | "none"
+      | "fade"
+      | "slide"
+      | "pop";
+  };
+
 export type FormulaBoardItem = {
   id: string;
   title: string;
+
+  /*
+   * Reference-board content.
+   */
   formula: string;
   description: string;
   variables: string;
   example: string;
   diagramUrl: string;
-};
 
-export type FormulaBoardBlockData = InfographicBaseBlockData & {
-  layout: "grid" | "stacked";
-  columns: 1 | 2 | 3;
+  /*
+   * Skills Challenge content.
+   */
+  operandA?: number;
+  operandB?: number;
 
-  formulas: FormulaBoardItem[];
-
-  headingStyle: TextStyle;
-  subtitleStyle: TextStyle;
-  formulaTitleStyle: TextStyle;
-  formulaStyle: TextStyle;
-  descriptionStyle: TextStyle;
-  variablesStyle: TextStyle;
-  exampleStyle: TextStyle;
-
-  cardBackgroundColor: string;
-  cardBorderColor: string;
-  formulaBackgroundColor: string;
-  variablesBackgroundColor: string;
-  exampleBackgroundColor: string;
-
-  padding: number;
-  gap: number;
-  cardGap: number;
-  cardRadius: number;
-  cardShadow: boolean;
-  rotation: number;
-
-  animationStyle: "none" | "fade" | "slide" | "pop";
+  /*
+   * Kept temporarily for compatibility with previously
+   * saved Formula Board blocks. New challenges do not use it.
+   */
+  correctAnswer?: string;
 };
 
 export type ProcessFlowBlock = {
@@ -4503,12 +4541,23 @@ case "formula_board":
     },
     data: {
       heading: "Formula Board",
-      subtitle: "Key formulas, variables, and worked examples.",
+      subtitle:
+        "Key formulas, variables, and worked examples.",
       showHeading: true,
       showSubtitle: true,
 
+      operation: "reference",
+
       layout: "grid",
       columns: 2,
+
+      challengeMin: 1,
+      challengeMax: 12,
+      challengeProblemCount: 6,
+
+      submitButtonText: "Submit Answer",
+      correctResponseText: "Correct! Great job!",
+      incorrectResponseText: "Not quite—try again!",
 
       formulas: [
         {
@@ -4519,8 +4568,7 @@ case "formula_board":
             "Calculate the interest earned or paid on a principal amount.",
           variables:
             "I = Interest\nP = Principal\nr = Interest rate\nt = Time",
-          example:
-            "$1,000 × 0.05 × 2 = $100",
+          example: "$1,000 × 0.05 × 2 = $100",
           diagramUrl: "",
         },
         {
@@ -4531,8 +4579,7 @@ case "formula_board":
             "Calculate the area enclosed by a circle.",
           variables:
             "A = Area\nπ = Pi\nr = Radius",
-          example:
-            "π × 5² = 78.54",
+          example: "π × 5² = 78.54",
           diagramUrl: "",
         },
       ],
@@ -4606,7 +4653,7 @@ case "formula_board":
     },
   };
 
-    case "showcase":
+  case "showcase":
       return {
         id: makeId("showcase"),
         type: "showcase",
