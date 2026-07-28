@@ -56,6 +56,7 @@ import {
   CartInspector,
   LinksInspector,
   ProcessFlowInspector,
+  StatisticCardsInspector,
   FormulaBoardInspector,
 } from "@/components/builder/inspector";
 
@@ -86,6 +87,17 @@ import type {
   ProcessFlowTextTarget,
   ProcessFlowStyleTarget,
 } from "@/components/builder/formatting/processFlowFormatting";
+
+import {
+  applyStatisticCardsStylePatch,
+  applyStatisticCardsTextStylePatch,
+  getStatisticCardsTextStyle,
+} from "@/components/builder/formatting/statisticCardsFormatting";
+
+import type {
+  StatisticCardsStyleTarget,
+  StatisticCardsTextTarget,
+} from "@/components/builder/formatting/statisticCardsFormatting";
 
 import {
   applyMapLocationStylePatch,
@@ -2411,6 +2423,15 @@ const [processFlowTextTarget, setProcessFlowTextTarget] =
 const [processFlowStyleTarget, setProcessFlowStyleTarget] =
   useState<ProcessFlowStyleTarget>("card");
 
+const [
+statisticCardsTextTarget,
+setStatisticCardsTextTarget,
+] = useState<StatisticCardsTextTarget>("heading");
+
+const [
+statisticCardsStyleTarget,
+setStatisticCardsStyleTarget,
+] = useState<StatisticCardsStyleTarget>("card");
 
 const [formulaBoardTextTarget, setFormulaBoardTextTarget] =
   useState<FormulaBoardTextTarget>("heading");
@@ -2742,6 +2763,11 @@ const selectedStyle =
   ? (getProcessFlowTextStyle(
       selectedBlockFromDraft,
       processFlowTextTarget,
+    ) as TextStyle)
+: selectedBlockFromDraft?.type === "statistic_cards"
+  ? (getStatisticCardsTextStyle(
+      selectedBlockFromDraft,
+      statisticCardsTextTarget,
     ) as TextStyle)
 : selectedBlockFromDraft?.type === "formula_board"
   ? (getFormulaBoardTextStyle(
@@ -3142,8 +3168,9 @@ const showTextControls =
   selectedBlock?.type === "schedule_agenda" ||
   selectedBlock?.type === "calendar_event" ||
   selectedBlock?.type === "map_location" ||
-  selectedBlock?.type === "process_flow" ||
-  selectedBlock?.type === "formula_board" ||
+selectedBlock?.type === "process_flow" ||
+selectedBlock?.type === "statistic_cards" ||
+selectedBlock?.type === "formula_board" ||
   selectedBlock?.type === "file_share" ||
   selectedBlock?.type === "speed_dating" ||
   selectedBlock?.type === "registry" ||
@@ -3187,6 +3214,7 @@ const showAppearanceControls =
   selectedBlock?.type === "calendar_event" ||
   selectedBlock?.type === "map_location" ||
   selectedBlock?.type === "process_flow" ||
+  selectedBlock?.type === "statistic_cards" ||
   selectedBlock?.type === "formula_board" ||
   selectedBlock?.type === "file_share" ||
   selectedBlock?.type === "speed_dating" ||
@@ -3232,6 +3260,7 @@ const showBorderWidthRadiusControls =
   selectedBlock?.type === "calendar_event" ||
   selectedBlock?.type === "map_location" ||
   selectedBlock?.type === "process_flow" ||
+  selectedBlock?.type === "statistic_cards" ||
   selectedBlock?.type === "formula_board" ||
   selectedBlock?.type === "file_share" ||
   selectedBlock?.type === "speed_dating" ||
@@ -4870,6 +4899,20 @@ function applyStylePatch(patch: Partial<TextStyle>) {
     return;
   }
 
+  if (selectedBlock?.type === "statistic_cards") {
+    updateSelectedBlock((block) =>
+      block.type !== "statistic_cards"
+        ? block
+        : applyStatisticCardsTextStylePatch(
+            block,
+            statisticCardsTextTarget,
+            patch,
+          ),
+    );
+
+    return;
+  }
+
   if (selectedBlock?.type === "formula_board") {
   updateSelectedBlock((block) =>
     block.type !== "formula_board"
@@ -5632,6 +5675,20 @@ function applyAppearancePatch(patch: AppearancePatch) {
         : applyProcessFlowStylePatch(
             block,
             processFlowStyleTarget,
+            patch,
+          ),
+    );
+
+    return;
+  }
+
+  if (selectedBlock?.type === "statistic_cards") {
+    updateSelectedBlock((block) =>
+      block.type !== "statistic_cards"
+        ? block
+        : applyStatisticCardsStylePatch(
+            block,
+            statisticCardsStyleTarget,
             patch,
           ),
     );
@@ -9788,7 +9845,10 @@ return (
       );
     }
 
-    if (block.type === "process_flow") {
+if (
+  block.type === "process_flow" ||
+  block.type === "statistic_cards"
+) {
   return (
     <div className="h-full w-full">
       <BlockRenderer
@@ -12942,6 +13002,42 @@ renderBlockPreview={renderCanvasPreview}
     inspectorInputClass={inspectorInputClass}
     inspectorTextareaClass={inspectorTextareaClass}
     toolSetButtonClass={toolSetButtonClass}
+  />
+) : null}
+
+{!isMultiSelection &&
+selectedBlock?.type === "statistic_cards" ? (
+  <StatisticCardsInspector
+    selectedBlock={selectedBlock}
+    updateSelectedBlock={updateSelectedBlock}
+    statisticCardsTextTarget={
+      statisticCardsTextTarget
+    }
+    setStatisticCardsTextTarget={
+      setStatisticCardsTextTarget
+    }
+    statisticCardsStyleTarget={
+      statisticCardsStyleTarget
+    }
+    setStatisticCardsStyleTarget={
+      setStatisticCardsStyleTarget
+    }
+    makeClientId={makeClientId}
+    inspectorCardClass={
+      inspectorCardClass
+    }
+    inspectorLabelClass={
+      inspectorLabelClass
+    }
+    inspectorInputClass={
+      inspectorInputClass
+    }
+    inspectorTextareaClass={
+      inspectorTextareaClass
+    }
+    toolSetButtonClass={
+      toolSetButtonClass
+    }
   />
 ) : null}
 

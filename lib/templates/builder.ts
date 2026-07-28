@@ -2046,8 +2046,6 @@ export type ProcessFlowBlockData = InfographicBaseBlockData & {
 };
 
 
-
-export type StatisticCardsBlockData = InfographicBaseBlockData;
 export type ComparisonTableBlockData = InfographicBaseBlockData;
 export type DataPyramidBlockData = InfographicBaseBlockData;
 export type CircularHubBlockData = InfographicBaseBlockData;
@@ -2131,14 +2129,84 @@ export type FormulaBoardItem = {
   correctAnswer?: string;
 };
 
-export type ProcessFlowBlock = {
+export type StatisticCardsLayout =
+  | "grid"
+  | "row"
+  | "stacked";
+
+export type StatisticCardsCardStyle =
+  | "standard"
+  | "accent"
+  | "minimal";
+
+export type StatisticCardsIconPosition =
+  | "top"
+  | "left"
+  | "right";
+
+export type StatisticCardsAnimationStyle =
+  | "none"
+  | "fade"
+  | "slide"
+  | "pop"
+  | "count";
+
+export type StatisticCardItem = {
   id: string;
-  type: "process_flow";
+
   label: string;
-  grid: GridPlacement;
-  appearance?: BlockAppearance;
-  data: ProcessFlowBlockData;
+  value: string;
+  prefix: string;
+  suffix: string;
+  description: string;
+
+  iconName: string;
+  iconColor: string;
+  iconBackgroundColor: string;
+
+  accentColor: string;
+  backgroundColor: string;
+  borderColor: string;
+
+  href: string;
 };
+
+export type StatisticCardsBlockData =
+  InfographicBaseBlockData & {
+    layout: StatisticCardsLayout;
+    columns: 1 | 2 | 3 | 4 | 5 | 6;
+
+    cardStyle: StatisticCardsCardStyle;
+    iconPosition: StatisticCardsIconPosition;
+
+    cards: StatisticCardItem[];
+
+    showHeading: boolean;
+    showSubtitle: boolean;
+    showIcons: boolean;
+    showDescriptions: boolean;
+    showAccent: boolean;
+
+    headingStyle: TextStyle;
+    subtitleStyle: TextStyle;
+    labelStyle: TextStyle;
+    valueStyle: TextStyle;
+    descriptionStyle: TextStyle;
+    prefixStyle: TextStyle;
+    suffixStyle: TextStyle;
+
+    cardBackgroundColor: string;
+    cardBorderColor: string;
+
+    padding: number;
+    gap: number;
+    cardGap: number;
+    cardRadius: number;
+    cardShadow: boolean;
+    rotation: number;
+
+    animationStyle: StatisticCardsAnimationStyle;
+  };
 
 export type StatisticCardsBlock = {
   id: string;
@@ -2148,6 +2216,16 @@ export type StatisticCardsBlock = {
   appearance?: BlockAppearance;
   data: StatisticCardsBlockData;
 };
+
+export type ProcessFlowBlock = {
+  id: string;
+  type: "process_flow";
+  label: string;
+  grid: GridPlacement;
+  appearance?: BlockAppearance;
+  data: ProcessFlowBlockData;
+};
+
 
 export type ComparisonTableBlock = {
   id: string;
@@ -4492,6 +4570,160 @@ data: {
       };
 
 case "statistic_cards":
+  return {
+    id: makeId("statistic_cards"),
+    type: "statistic_cards",
+    label: "Statistic Cards",
+    grid: {
+      ...grid,
+      colSpan: 8,
+      rowSpan: 4,
+    },
+    appearance: {
+      ...createDefaultBlockAppearance(),
+      backgroundColor: "#FFFFFF",
+      borderColor: "#E5E7EB",
+      borderWidth: 1,
+      borderRadius: 24,
+    },
+    data: {
+      heading: "Key Statistics",
+      subtitle:
+        "A snapshot of the numbers that matter most.",
+      showHeading: true,
+      showSubtitle: true,
+
+      layout: "grid",
+      columns: 3,
+
+      cardStyle: "standard",
+      iconPosition: "top",
+
+      showIcons: true,
+      showDescriptions: true,
+      showAccent: true,
+
+      cards: [
+        {
+          id: makeId("statistic_card"),
+          label: "Total Revenue",
+          value: "128",
+          prefix: "$",
+          suffix: "K",
+          description:
+            "Revenue generated during the current period.",
+          iconName: "chart-no-axes-combined",
+          iconColor: "#2563EB",
+          iconBackgroundColor: "#DBEAFE",
+          accentColor: "#2563EB",
+          backgroundColor: "#FFFFFF",
+          borderColor: "#E5E7EB",
+          href: "",
+        },
+        {
+          id: makeId("statistic_card"),
+          label: "Active Members",
+          value: "2,450",
+          prefix: "",
+          suffix: "",
+          description:
+            "Members currently active across all programs.",
+          iconName: "users",
+          iconColor: "#7C3AED",
+          iconBackgroundColor: "#EDE9FE",
+          accentColor: "#7C3AED",
+          backgroundColor: "#FFFFFF",
+          borderColor: "#E5E7EB",
+          href: "",
+        },
+        {
+          id: makeId("statistic_card"),
+          label: "Growth Rate",
+          value: "18.4",
+          prefix: "",
+          suffix: "%",
+          description:
+            "Increase compared with the previous period.",
+          iconName: "trending-up",
+          iconColor: "#059669",
+          iconBackgroundColor: "#D1FAE5",
+          accentColor: "#059669",
+          backgroundColor: "#FFFFFF",
+          borderColor: "#E5E7EB",
+          href: "",
+        },
+      ],
+
+      style: createDefaultTextStyle(),
+
+      headingStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 26,
+        bold: true,
+        align: "center",
+      },
+
+      subtitleStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        color: "#6B7280",
+        align: "center",
+      },
+
+      labelStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 13,
+        bold: true,
+        color: "#6B7280",
+        align: "left",
+      },
+
+      valueStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 32,
+        bold: true,
+        color: "#111827",
+        align: "left",
+      },
+
+      descriptionStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 13,
+        color: "#6B7280",
+        align: "left",
+      },
+
+      prefixStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 20,
+        bold: true,
+        color: "#111827",
+        align: "left",
+      },
+
+      suffixStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 18,
+        bold: true,
+        color: "#4B5563",
+        align: "left",
+      },
+
+      cardBackgroundColor: "#FFFFFF",
+      cardBorderColor: "#E5E7EB",
+
+      padding: 20,
+      gap: 16,
+      cardGap: 12,
+      cardRadius: 18,
+      cardShadow: true,
+      rotation: 0,
+
+      animationStyle: "none",
+    },
+  };
+
+
 case "comparison_table":
 case "data_pyramid":
 case "circular_hub":

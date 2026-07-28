@@ -3759,6 +3759,625 @@ function renderProcessFlow(
   );
 }
 
+function renderStatisticCards(
+  block: Extract<MicrositeBlock, { type: "statistic_cards" }>,
+  designKey?: string,
+) {
+  const data = block.data as any;
+  const appearanceStyle = getAppearanceStyle(block);
+
+  const headingStyle = getContainerTextStyle(
+    data.headingStyle ?? {},
+    designKey,
+  );
+
+  const subtitleStyle = getContainerTextStyle(
+    data.subtitleStyle ?? {},
+    designKey,
+  );
+
+  const labelStyle = getContainerTextStyle(
+    data.labelStyle ?? {},
+    designKey,
+  );
+
+  const valueStyle = getContainerTextStyle(
+    data.valueStyle ?? {},
+    designKey,
+  );
+
+  const descriptionStyle = getContainerTextStyle(
+    data.descriptionStyle ?? {},
+    designKey,
+  );
+
+  const prefixStyle = getContainerTextStyle(
+    data.prefixStyle ?? {},
+    designKey,
+  );
+
+  const suffixStyle = getContainerTextStyle(
+    data.suffixStyle ?? {},
+    designKey,
+  );
+
+  const cardAppearanceStyle =
+    data.cardAppearanceStyle ?? {};
+
+  const iconAppearanceStyle =
+    data.iconAppearanceStyle ?? {};
+
+  const accentAppearanceStyle =
+    data.accentAppearanceStyle ?? {};
+
+  const cards = Array.isArray(data.cards)
+    ? data.cards
+    : [];
+
+  const layout =
+    data.layout === "row" ||
+    data.layout === "stacked"
+      ? data.layout
+      : "grid";
+
+  const columns =
+    typeof data.columns === "number"
+      ? Math.max(
+          1,
+          Math.min(6, data.columns),
+        )
+      : 3;
+
+  const padding =
+    typeof data.padding === "number" &&
+    Number.isFinite(data.padding)
+      ? Math.max(
+          0,
+          Math.min(80, data.padding),
+        )
+      : 20;
+
+  const gap =
+    typeof data.gap === "number" &&
+    Number.isFinite(data.gap)
+      ? Math.max(
+          0,
+          Math.min(80, data.gap),
+        )
+      : 16;
+
+  const cardGap =
+    typeof data.cardGap === "number" &&
+    Number.isFinite(data.cardGap)
+      ? Math.max(
+          0,
+          Math.min(48, data.cardGap),
+        )
+      : 12;
+
+  const cardRadius =
+    typeof data.cardRadius === "number" &&
+    Number.isFinite(data.cardRadius)
+      ? Math.max(
+          0,
+          Math.min(48, data.cardRadius),
+        )
+      : 18;
+
+  const cardStyle =
+    data.cardStyle === "accent" ||
+    data.cardStyle === "minimal"
+      ? data.cardStyle
+      : "standard";
+
+  const iconPosition =
+    data.iconPosition === "left" ||
+    data.iconPosition === "right"
+      ? data.iconPosition
+      : "top";
+
+  const getStatisticIcon = (
+    iconName: string,
+  ) => {
+    switch (iconName) {
+      case "users":
+      case "user-group":
+        return "👥";
+
+      case "trending-up":
+      case "growth":
+        return "↗";
+
+      case "trending-down":
+        return "↘";
+
+      case "chart-no-axes-combined":
+      case "chart":
+      case "analytics":
+        return "▥";
+
+      case "dollar-sign":
+      case "revenue":
+      case "money":
+        return "$";
+
+      case "shopping-cart":
+      case "sales":
+        return "🛒";
+
+      case "eye":
+      case "views":
+        return "◉";
+
+      case "heart":
+      case "likes":
+        return "♥";
+
+      case "star":
+      case "rating":
+        return "★";
+
+      case "clock":
+      case "time":
+        return "◷";
+
+      case "calendar":
+        return "□";
+
+      case "check":
+      case "completed":
+        return "✓";
+
+      case "target":
+        return "◎";
+
+      case "download":
+        return "↓";
+
+      case "upload":
+        return "↑";
+
+      case "activity":
+        return "⌁";
+
+      case "percent":
+        return "%";
+
+      default:
+        return "●";
+    }
+  };
+
+  const renderCard = (
+    card: any,
+    index: number,
+  ) => {
+    const accentColor =
+      accentAppearanceStyle.backgroundColor ??
+      accentAppearanceStyle.borderColor ??
+      card.accentColor ??
+      data.accentColor ??
+      "#2563EB";
+
+    const cardBackgroundColor =
+      cardAppearanceStyle.backgroundColor ??
+      card.backgroundColor ??
+      data.cardBackgroundColor ??
+      "#FFFFFF";
+
+    const cardBorderColor =
+      cardAppearanceStyle.borderColor ??
+      card.borderColor ??
+      data.cardBorderColor ??
+      "#E5E7EB";
+
+    const cardBorderWidth =
+      typeof cardAppearanceStyle.borderWidth ===
+      "number"
+        ? cardAppearanceStyle.borderWidth
+        : cardStyle === "minimal"
+          ? 0
+          : 1;
+
+    const resolvedCardRadius =
+      typeof cardAppearanceStyle.borderRadius ===
+      "number"
+        ? cardAppearanceStyle.borderRadius
+        : cardRadius;
+
+    const showIcon =
+      data.showIcons !== false &&
+      typeof card.iconName === "string" &&
+      card.iconName.trim().length > 0;
+
+    const icon = showIcon ? (
+      <div
+        className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden text-xl font-bold"
+        style={{
+          color:
+            iconAppearanceStyle.color ??
+            card.iconColor ??
+            accentColor,
+
+          backgroundColor:
+            iconAppearanceStyle.backgroundColor ??
+            card.iconBackgroundColor ??
+            `${accentColor}18`,
+
+          borderColor:
+            iconAppearanceStyle.borderColor ??
+            "transparent",
+
+          borderWidth:
+            typeof iconAppearanceStyle.borderWidth ===
+            "number"
+              ? `${iconAppearanceStyle.borderWidth}px`
+              : undefined,
+
+          borderStyle:
+            typeof iconAppearanceStyle.borderWidth ===
+              "number" &&
+            iconAppearanceStyle.borderWidth > 0
+              ? iconAppearanceStyle.borderStyle ??
+                "solid"
+              : undefined,
+
+          borderRadius:
+            typeof iconAppearanceStyle.borderRadius ===
+            "number"
+              ? `${iconAppearanceStyle.borderRadius}px`
+              : "12px",
+
+          boxShadow:
+            iconAppearanceStyle.boxShadow ??
+            undefined,
+
+          opacity:
+            typeof iconAppearanceStyle.opacity ===
+            "number"
+              ? iconAppearanceStyle.opacity
+              : undefined,
+        }}
+      >
+        {getStatisticIcon(card.iconName)}
+      </div>
+    ) : null;
+
+    const valueContent = (
+      <div
+        className="flex min-w-0 flex-wrap items-baseline"
+        style={{
+          gap: `${Math.min(
+            cardGap,
+            8,
+          )}px`,
+        }}
+      >
+        {card.prefix ? (
+          <span
+            className="whitespace-normal break-words"
+            style={prefixStyle}
+          >
+            {card.prefix}
+          </span>
+        ) : null}
+
+        <span
+          className="whitespace-normal break-words leading-none"
+          style={valueStyle}
+        >
+          {card.value || "0"}
+        </span>
+
+        {card.suffix ? (
+          <span
+            className="whitespace-normal break-words"
+            style={suffixStyle}
+          >
+            {card.suffix}
+          </span>
+        ) : null}
+      </div>
+    );
+
+    const textContent = (
+      <div
+        className="min-w-0 flex-1"
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: `${cardGap}px`,
+        }}
+      >
+        {card.label ? (
+          <div
+            className="whitespace-normal break-words"
+            style={labelStyle}
+          >
+            {card.label}
+          </div>
+        ) : null}
+
+        {valueContent}
+
+        {data.showDescriptions !== false &&
+        card.description ? (
+          <div
+            className="whitespace-normal break-words leading-relaxed"
+            style={descriptionStyle}
+          >
+            {card.description}
+          </div>
+        ) : null}
+      </div>
+    );
+
+    const cardContents =
+      iconPosition === "top" ? (
+        <div
+          className="flex h-full min-w-0 flex-col"
+          style={{
+            gap: `${cardGap}px`,
+          }}
+        >
+          {icon}
+          {textContent}
+        </div>
+      ) : (
+        <div
+          className={[
+            "flex h-full min-w-0 items-start",
+            iconPosition === "right"
+              ? "flex-row-reverse"
+              : "",
+          ].join(" ")}
+          style={{
+            gap: `${cardGap}px`,
+          }}
+        >
+          {icon}
+          {textContent}
+        </div>
+      );
+
+    const cardElement = (
+      <div
+        className={[
+          "relative h-full min-w-0 overflow-hidden",
+          data.cardShadow !== false &&
+          cardStyle !== "minimal" &&
+          !cardAppearanceStyle.boxShadow
+            ? "shadow-sm"
+            : "",
+        ].join(" ")}
+        style={{
+          padding:
+            cardStyle === "minimal"
+              ? "4px 0"
+              : "18px",
+
+          backgroundColor:
+            cardStyle === "minimal"
+              ? "transparent"
+              : cardBackgroundColor,
+
+          borderColor:
+            cardStyle === "minimal"
+              ? "transparent"
+              : cardBorderColor,
+
+          borderWidth:
+            cardStyle === "minimal"
+              ? "0"
+              : `${cardBorderWidth}px`,
+
+          borderStyle:
+            cardStyle === "minimal"
+              ? undefined
+              : cardAppearanceStyle.borderStyle ??
+                "solid",
+
+          borderRadius:
+            cardStyle === "minimal"
+              ? "0"
+              : `${resolvedCardRadius}px`,
+
+          boxShadow:
+            cardStyle === "minimal"
+              ? undefined
+              : cardAppearanceStyle.boxShadow ??
+                (data.cardShadow !== false
+                  ? "0 8px 24px rgba(15, 23, 42, 0.06)"
+                  : undefined),
+
+          opacity:
+            typeof cardAppearanceStyle.opacity ===
+            "number"
+              ? cardAppearanceStyle.opacity
+              : undefined,
+        }}
+      >
+        {data.showAccent !== false &&
+        cardStyle === "accent" ? (
+          <div
+            className="absolute inset-x-0 top-0"
+            style={{
+              height:
+                typeof accentAppearanceStyle.borderWidth ===
+                "number"
+                  ? `${Math.max(
+                      1,
+                      accentAppearanceStyle.borderWidth,
+                    )}px`
+                  : "4px",
+
+              backgroundColor:
+                accentAppearanceStyle.backgroundColor ??
+                accentColor,
+
+              opacity:
+                typeof accentAppearanceStyle.opacity ===
+                "number"
+                  ? accentAppearanceStyle.opacity
+                  : undefined,
+            }}
+          />
+        ) : null}
+
+        {data.showAccent !== false &&
+        cardStyle === "standard" ? (
+          <div
+            className="absolute bottom-0 left-0 top-0"
+            style={{
+              width:
+                typeof accentAppearanceStyle.borderWidth ===
+                "number"
+                  ? `${Math.max(
+                      1,
+                      accentAppearanceStyle.borderWidth,
+                    )}px`
+                  : "4px",
+
+              backgroundColor:
+                accentAppearanceStyle.backgroundColor ??
+                accentColor,
+
+              opacity:
+                typeof accentAppearanceStyle.opacity ===
+                "number"
+                  ? accentAppearanceStyle.opacity
+                  : undefined,
+            }}
+          />
+        ) : null}
+
+        {cardContents}
+      </div>
+    );
+
+    if (
+      typeof card.href === "string" &&
+      card.href.trim()
+    ) {
+      return (
+        <a
+          key={card.id || index}
+          href={card.href}
+          target="_blank"
+          rel="noreferrer"
+          className="block h-full min-w-0"
+          onPointerDown={(event) =>
+            event.stopPropagation()
+          }
+          onMouseDown={(event) =>
+            event.stopPropagation()
+          }
+          onClick={(event) =>
+            event.stopPropagation()
+          }
+        >
+          {cardElement}
+        </a>
+      );
+    }
+
+    return (
+      <div
+        key={card.id || index}
+        className="h-full min-w-0"
+      >
+        {cardElement}
+      </div>
+    );
+  };
+
+  return (
+    <div
+      className="h-full w-full overflow-auto"
+      style={appearanceStyle}
+    >
+      <div
+        style={{
+          padding: `${padding}px`,
+
+          transform:
+            typeof data.rotation === "number" &&
+            data.rotation !== 0
+              ? `rotate(${data.rotation}deg)`
+              : undefined,
+
+          transformOrigin: "center",
+        }}
+      >
+        {data.showHeading !== false &&
+        data.heading ? (
+          <div
+            className="mb-2 whitespace-normal break-words"
+            style={headingStyle}
+          >
+            {data.heading}
+          </div>
+        ) : null}
+
+        {data.showSubtitle !== false &&
+        data.subtitle ? (
+          <div
+            className="mb-5 whitespace-normal break-words"
+            style={subtitleStyle}
+          >
+            {data.subtitle}
+          </div>
+        ) : null}
+
+        {layout === "stacked" ? (
+          <div
+            className="flex flex-col"
+            style={{
+              gap: `${gap}px`,
+            }}
+          >
+            {cards.map(renderCard)}
+          </div>
+        ) : layout === "row" ? (
+          <div
+            className="flex min-w-max items-stretch overflow-x-auto"
+            style={{
+              gap: `${gap}px`,
+            }}
+          >
+            {cards.map(
+              (
+                card: any,
+                index: number,
+              ) => (
+                <div
+                  key={card.id || index}
+                  className="w-[260px] shrink-0"
+                >
+                  {renderCard(
+                    card,
+                    index,
+                  )}
+                </div>
+              ),
+            )}
+          </div>
+        ) : (
+          <div
+            className="grid items-stretch"
+            style={{
+              gap: `${gap}px`,
+              gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
+            }}
+          >
+            {cards.map(renderCard)}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function FormulaBoardLive({
   block,
   designKey,
@@ -17277,6 +17896,9 @@ case "timeline":
 
 case "process_flow":
   return renderProcessFlow(block, designKey);
+
+case "statistic_cards":
+  return renderStatisticCards(block, designKey);
 
 case "formula_board":
   return renderFormulaBoard(block, designKey);
