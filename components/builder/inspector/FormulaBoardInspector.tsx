@@ -776,16 +776,19 @@ export function FormulaBoardInspector({
                           ...block.data,
                           columns: Number(
                             e.target.value,
-                          ) as 1 | 2 | 3,
+                          ) as 1 | 2 | 3 | 4 | 5 | 6,
                         },
                       },
                 )
               }
               className={inspectorInputClass()}
             >
-              <option value={1}>1 Column</option>
-              <option value={2}>2 Columns</option>
-              <option value={3}>3 Columns</option>
+<option value={1}>1 Column</option>
+<option value={2}>2 Columns</option>
+<option value={3}>3 Columns</option>
+<option value={4}>4 Columns</option>
+<option value={5}>5 Columns</option>
+<option value={6}>6 Columns</option>
             </select>
           </div>
         ) : null}
