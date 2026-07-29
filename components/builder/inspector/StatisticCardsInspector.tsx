@@ -26,6 +26,11 @@ type StatisticCardsInspectorProps = {
 
   makeClientId: (prefix: string) => string;
 
+  uploadImageToStatisticCard: (
+    blockId: string,
+    cardId: string,
+  ) => Promise<any> | void;
+
   inspectorCardClass: () => string;
   inspectorLabelClass: () => string;
   inspectorInputClass: () => string;
@@ -45,6 +50,8 @@ export function StatisticCardsInspector({
   setStatisticCardsStyleTarget,
 
   makeClientId,
+
+  uploadImageToStatisticCard,
 
   inspectorCardClass,
   inspectorLabelClass,
@@ -870,387 +877,402 @@ export function StatisticCardsInspector({
         </select>
       </div>
 
-      {/* Cards */}
+{/* Cards */}
 
-      <div className="mt-5">
-        <div className={inspectorLabelClass()}>
-          Cards
+<div className="mt-5">
+  <div className={inspectorLabelClass()}>
+    Cards
+  </div>
+
+  {cards.map(
+    (card: any, index: number) => (
+      <div
+        key={card.id}
+        className="mt-3 rounded-xl border border-neutral-200 bg-neutral-50 p-3"
+      >
+        <div className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+          Card {index + 1}
         </div>
 
-        {cards.map(
-          (card: any, index: number) => (
+        <div className="mt-3">
+          <div
+            className={inspectorLabelClass()}
+          >
+            Label
+          </div>
+
+          <input
+            value={card.label ?? ""}
+            onChange={(e) =>
+              updateCard(card.id, {
+                label: e.target.value,
+              })
+            }
+            className={inspectorInputClass()}
+          />
+        </div>
+
+        <div className="mt-3 grid grid-cols-3 gap-2">
+          <div>
             <div
-              key={card.id}
-              className="mt-3 rounded-xl border border-neutral-200 bg-neutral-50 p-3"
+              className={inspectorLabelClass()}
             >
-              <div className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
-                Card {index + 1}
-              </div>
+              Prefix
+            </div>
 
-              <div className="mt-3">
-                <div
-                  className={inspectorLabelClass()}
-                >
-                  Label
-                </div>
+            <input
+              value={card.prefix ?? ""}
+              onChange={(e) =>
+                updateCard(card.id, {
+                  prefix: e.target.value,
+                })
+              }
+              className={inspectorInputClass()}
+            />
+          </div>
 
-                <input
-                  value={card.label ?? ""}
-                  onChange={(e) =>
-                    updateCard(card.id, {
-                      label: e.target.value,
-                    })
-                  }
-                  className={inspectorInputClass()}
-                />
-              </div>
+          <div>
+            <div
+              className={inspectorLabelClass()}
+            >
+              Value
+            </div>
 
-              <div className="mt-3 grid grid-cols-3 gap-2">
-                <div>
-                  <div
-                    className={inspectorLabelClass()}
-                  >
-                    Prefix
-                  </div>
+            <input
+              value={card.value ?? ""}
+              onChange={(e) =>
+                updateCard(card.id, {
+                  value: e.target.value,
+                })
+              }
+              className={inspectorInputClass()}
+            />
+          </div>
 
-                  <input
-                    value={card.prefix ?? ""}
-                    onChange={(e) =>
-                      updateCard(card.id, {
-                        prefix:
-                          e.target.value,
-                      })
-                    }
-                    className={inspectorInputClass()}
-                  />
-                </div>
+          <div>
+            <div
+              className={inspectorLabelClass()}
+            >
+              Suffix
+            </div>
 
-                <div>
-                  <div
-                    className={inspectorLabelClass()}
-                  >
-                    Value
-                  </div>
+            <input
+              value={card.suffix ?? ""}
+              onChange={(e) =>
+                updateCard(card.id, {
+                  suffix: e.target.value,
+                })
+              }
+              className={inspectorInputClass()}
+            />
+          </div>
+        </div>
 
-                  <input
-                    value={card.value ?? ""}
-                    onChange={(e) =>
-                      updateCard(card.id, {
-                        value:
-                          e.target.value,
-                      })
-                    }
-                    className={inspectorInputClass()}
-                  />
-                </div>
+        <div className="mt-3">
+          <div
+            className={inspectorLabelClass()}
+          >
+            Description
+          </div>
 
-                <div>
-                  <div
-                    className={inspectorLabelClass()}
-                  >
-                    Suffix
-                  </div>
+          <textarea
+            value={card.description ?? ""}
+            onChange={(e) =>
+              updateCard(card.id, {
+                description: e.target.value,
+              })
+            }
+            className={inspectorTextareaClass()}
+          />
+        </div>
 
-                  <input
-                    value={card.suffix ?? ""}
-                    onChange={(e) =>
-                      updateCard(card.id, {
-                        suffix:
-                          e.target.value,
-                      })
-                    }
-                    className={inspectorInputClass()}
-                  />
-                </div>
-              </div>
+        <div className="mt-3">
+          <div
+            className={inspectorLabelClass()}
+          >
+            Icon
+          </div>
 
-              <div className="mt-3">
-                <div
-                  className={inspectorLabelClass()}
-                >
-                  Description
-                </div>
+          <select
+            value={card.iconName ?? "chart"}
+            onChange={(e) =>
+              updateCard(card.id, {
+                iconName: e.target.value,
+              })
+            }
+            className={inspectorInputClass()}
+          >
+            <option value="chart">
+              Chart
+            </option>
 
-                <textarea
-                  value={
-                    card.description ?? ""
-                  }
-                  onChange={(e) =>
-                    updateCard(card.id, {
-                      description:
-                        e.target.value,
-                    })
-                  }
-                  className={inspectorTextareaClass()}
-                />
-              </div>
+            <option value="users">
+              Users
+            </option>
 
-              <div className="mt-3">
-                <div
-                  className={inspectorLabelClass()}
-                >
-                  Icon
-                </div>
+            <option value="trending-up">
+              Trending Up
+            </option>
 
-                <select
-                  value={
-                    card.iconName ?? "chart"
-                  }
-                  onChange={(e) =>
-                    updateCard(card.id, {
-                      iconName:
-                        e.target.value,
-                    })
-                  }
-                  className={inspectorInputClass()}
-                >
-                  <option value="chart">
-                    Chart
-                  </option>
+            <option value="trending-down">
+              Trending Down
+            </option>
 
-                  <option value="users">
-                    Users
-                  </option>
+            <option value="dollar-sign">
+              Revenue
+            </option>
 
-                  <option value="trending-up">
-                    Trending Up
-                  </option>
+            <option value="shopping-cart">
+              Sales
+            </option>
 
-                  <option value="trending-down">
-                    Trending Down
-                  </option>
+            <option value="eye">
+              Views
+            </option>
 
-                  <option value="dollar-sign">
-                    Revenue
-                  </option>
+            <option value="heart">
+              Likes
+            </option>
 
-                  <option value="shopping-cart">
-                    Sales
-                  </option>
+            <option value="star">
+              Rating
+            </option>
 
-                  <option value="eye">
-                    Views
-                  </option>
+            <option value="clock">
+              Time
+            </option>
 
-                  <option value="heart">
-                    Likes
-                  </option>
+            <option value="calendar">
+              Calendar
+            </option>
 
-                  <option value="star">
-                    Rating
-                  </option>
+            <option value="check">
+              Completed
+            </option>
 
-                  <option value="clock">
-                    Time
-                  </option>
+            <option value="target">
+              Target
+            </option>
 
-                  <option value="calendar">
-                    Calendar
-                  </option>
+            <option value="download">
+              Downloads
+            </option>
 
-                  <option value="check">
-                    Completed
-                  </option>
+            <option value="upload">
+              Uploads
+            </option>
 
-                  <option value="target">
-                    Target
-                  </option>
+            <option value="activity">
+              Activity
+            </option>
 
-                  <option value="download">
-                    Downloads
-                  </option>
+            <option value="percent">
+              Percent
+            </option>
+          </select>
+        </div>
 
-                  <option value="upload">
-                    Uploads
-                  </option>
+        <div className="mt-3">
+          <div
+            className={inspectorLabelClass()}
+          >
+            Custom Icon Image
+          </div>
 
-                  <option value="activity">
-                    Activity
-                  </option>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              className="inline-flex min-h-10 items-center justify-center whitespace-nowrap rounded-xl border border-neutral-300 bg-white px-4 text-sm text-neutral-700 hover:bg-neutral-50"
+              onClick={() =>
+                void uploadImageToStatisticCard(
+                  selectedBlock.id,
+                  card.id,
+                )
+              }
+            >
+              {card.imageUrl
+                ? "Replace Image"
+                : "Upload Image"}
+            </button>
 
-                  <option value="percent">
-                    Percent
-                  </option>
-                </select>
-              </div>
-
-              <div className="mt-3 grid grid-cols-2 gap-2">
-                <div>
-                  <div
-                    className={inspectorLabelClass()}
-                  >
-                    Icon Color
-                  </div>
-
-                  <input
-                    type="color"
-                    value={
-                      card.iconColor ||
-                      "#2563EB"
-                    }
-                    onChange={(e) =>
-                      updateCard(card.id, {
-                        iconColor:
-                          e.target.value,
-                      })
-                    }
-                    className="h-10 w-full rounded-lg border border-neutral-200 bg-white p-1"
-                  />
-                </div>
-
-                <div>
-                  <div
-                    className={inspectorLabelClass()}
-                  >
-                    Icon Background
-                  </div>
-
-                  <input
-                    type="color"
-                    value={
-                      card.iconBackgroundColor ||
-                      "#DBEAFE"
-                    }
-                    onChange={(e) =>
-                      updateCard(card.id, {
-                        iconBackgroundColor:
-                          e.target.value,
-                      })
-                    }
-                    className="h-10 w-full rounded-lg border border-neutral-200 bg-white p-1"
-                  />
-                </div>
-
-                <div>
-                  <div
-                    className={inspectorLabelClass()}
-                  >
-                    Accent Color
-                  </div>
-
-                  <input
-                    type="color"
-                    value={
-                      card.accentColor ||
-                      "#2563EB"
-                    }
-                    onChange={(e) =>
-                      updateCard(card.id, {
-                        accentColor:
-                          e.target.value,
-                      })
-                    }
-                    className="h-10 w-full rounded-lg border border-neutral-200 bg-white p-1"
-                  />
-                </div>
-
-                <div>
-                  <div
-                    className={inspectorLabelClass()}
-                  >
-                    Card Background
-                  </div>
-
-                  <input
-                    type="color"
-                    value={
-                      card.backgroundColor ||
-                      "#FFFFFF"
-                    }
-                    onChange={(e) =>
-                      updateCard(card.id, {
-                        backgroundColor:
-                          e.target.value,
-                      })
-                    }
-                    className="h-10 w-full rounded-lg border border-neutral-200 bg-white p-1"
-                  />
-                </div>
-              </div>
-
-              <div className="mt-3">
-                <div
-                  className={inspectorLabelClass()}
-                >
-                  Border Color
-                </div>
-
-                <input
-                  type="color"
-                  value={
-                    card.borderColor ||
-                    "#E5E7EB"
-                  }
-                  onChange={(e) =>
-                    updateCard(card.id, {
-                      borderColor:
-                        e.target.value,
-                    })
-                  }
-                  className="h-10 w-full rounded-lg border border-neutral-200 bg-white p-1"
-                />
-              </div>
-
-              <div className="mt-3">
-                <div
-                  className={inspectorLabelClass()}
-                >
-                  Link
-                </div>
-
-                <input
-                  value={card.href ?? ""}
-                  onChange={(e) =>
-                    updateCard(card.id, {
-                      href: e.target.value,
-                    })
-                  }
-                  placeholder="https://..."
-                  className={inspectorInputClass()}
-                />
-              </div>
-
+            {card.imageUrl ? (
               <button
                 type="button"
-                className={`${toolSetButtonClass(
-                  "remove",
-                )} mt-3`}
+                className="inline-flex min-h-10 items-center justify-center whitespace-nowrap rounded-xl border border-neutral-300 bg-white px-4 text-sm text-neutral-700 hover:bg-neutral-50"
                 onClick={() =>
-                  updateSelectedBlock(
-                    (block: any) =>
-                      block.type !==
-                      "statistic_cards"
-                        ? block
-                        : {
-                            ...block,
-                            data: {
-                              ...block.data,
-                              cards: (
-                                block.data
-                                  .cards ?? []
-                              ).filter(
-                                (
-                                  item: any,
-                                ) =>
-                                  item.id !==
-                                  card.id,
-                              ),
-                            },
-                          },
-                  )
+                  updateCard(card.id, {
+                    imageUrl: "",
+                    imageStoragePath: "",
+                    imageSizeBytes: undefined,
+                    imageOriginalSizeBytes:
+                      undefined,
+                    imageMimeType: "",
+                  })
                 }
               >
-                Remove Card
+                Remove Image
               </button>
+            ) : null}
+          </div>
+
+          {card.imageUrl ? (
+            <div className="mt-3 flex h-24 w-full items-center justify-center overflow-hidden rounded-xl border border-neutral-200 bg-white p-2">
+              <img
+                src={card.imageUrl}
+                alt={
+                  card.label
+                    ? `${card.label} icon`
+                    : `Card ${index + 1} icon`
+                }
+                className="h-full w-full object-contain"
+              />
             </div>
-          ),
-        )}
+          ) : null}
+
+          <div className="mt-2 text-xs text-neutral-500">
+            A custom image replaces the selected
+            default icon.
+          </div>
+        </div>
+
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <div>
+            <div
+              className={inspectorLabelClass()}
+            >
+              Icon Color
+            </div>
+
+            <input
+              type="color"
+              value={
+                card.iconColor ||
+                "#2563EB"
+              }
+              onChange={(e) =>
+                updateCard(card.id, {
+                  iconColor: e.target.value,
+                })
+              }
+              className="h-10 w-full rounded-lg border border-neutral-200 bg-white p-1"
+            />
+          </div>
+
+          <div>
+            <div
+              className={inspectorLabelClass()}
+            >
+              Icon Background
+            </div>
+
+            <input
+              type="color"
+              value={
+                card.iconBackgroundColor ||
+                "#DBEAFE"
+              }
+              onChange={(e) =>
+                updateCard(card.id, {
+                  iconBackgroundColor:
+                    e.target.value,
+                })
+              }
+              className="h-10 w-full rounded-lg border border-neutral-200 bg-white p-1"
+            />
+          </div>
+
+          <div>
+            <div
+              className={inspectorLabelClass()}
+            >
+              Accent Color
+            </div>
+
+            <input
+              type="color"
+              value={
+                card.accentColor ||
+                "#2563EB"
+              }
+              onChange={(e) =>
+                updateCard(card.id, {
+                  accentColor: e.target.value,
+                })
+              }
+              className="h-10 w-full rounded-lg border border-neutral-200 bg-white p-1"
+            />
+          </div>
+
+          <div>
+            <div
+              className={inspectorLabelClass()}
+            >
+              Card Background
+            </div>
+
+            <input
+              type="color"
+              value={
+                card.backgroundColor ||
+                "#FFFFFF"
+              }
+              onChange={(e) =>
+                updateCard(card.id, {
+                  backgroundColor:
+                    e.target.value,
+                })
+              }
+              className="h-10 w-full rounded-lg border border-neutral-200 bg-white p-1"
+            />
+          </div>
+        </div>
+
+        <div className="mt-3">
+          <div
+            className={inspectorLabelClass()}
+          >
+            Border Color
+          </div>
+
+          <input
+            type="color"
+            value={
+              card.borderColor ||
+              "#E5E7EB"
+            }
+            onChange={(e) =>
+              updateCard(card.id, {
+                borderColor: e.target.value,
+              })
+            }
+            className="h-10 w-full rounded-lg border border-neutral-200 bg-white p-1"
+          />
+        </div>
+
+        <div className="mt-3">
+          <div
+            className={inspectorLabelClass()}
+          >
+            Link
+          </div>
+
+          <input
+            value={card.href ?? ""}
+            onChange={(e) =>
+              updateCard(card.id, {
+                href: e.target.value,
+              })
+            }
+            placeholder="https://..."
+            className={inspectorInputClass()}
+          />
+        </div>
 
         <button
           type="button"
           className={`${toolSetButtonClass(
-            "front",
-          )} mt-3`}
+            "remove",
+          )} mt-3 w-full min-w-0 whitespace-nowrap px-3`}
           onClick={() =>
             updateSelectedBlock(
               (block: any) =>
@@ -1261,56 +1283,92 @@ export function StatisticCardsInspector({
                       ...block,
                       data: {
                         ...block.data,
-                        cards: [
-                          ...(block.data.cards ??
-                            []),
-
-                          {
-                            id: makeClientId(
-                              "statisticcard",
-                            ),
-
-                            label:
-                              "New Statistic",
-
-                            value: "100",
-
-                            prefix: "",
-
-                            suffix: "",
-
-                            description:
-                              "Add supporting context for this statistic.",
-
-                            iconName:
-                              "chart",
-
-                            iconColor:
-                              "#2563EB",
-
-                            iconBackgroundColor:
-                              "#DBEAFE",
-
-                            accentColor:
-                              "#2563EB",
-
-                            backgroundColor:
-                              "#FFFFFF",
-
-                            borderColor:
-                              "#E5E7EB",
-
-                            href: "",
-                          },
-                        ],
+                        cards: (
+                          block.data.cards ?? []
+                        ).filter(
+                          (item: any) =>
+                            item.id !== card.id,
+                        ),
                       },
                     },
             )
           }
         >
-          Add Card
+          Remove Card
         </button>
       </div>
+    ),
+  )}
+
+  <button
+    type="button"
+    className={`${toolSetButtonClass(
+      "front",
+    )} mt-3`}
+    onClick={() =>
+      updateSelectedBlock(
+        (block: any) =>
+          block.type !==
+          "statistic_cards"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  cards: [
+                    ...(block.data.cards ?? []),
+
+                    {
+                      id: makeClientId(
+                        "statisticcard",
+                      ),
+
+                      label:
+                        "New Statistic",
+
+                      value: "100",
+
+                      prefix: "",
+
+                      suffix: "",
+
+                      description:
+                        "Add supporting context for this statistic.",
+
+                      iconName: "chart",
+
+                      imageUrl: "",
+
+                      imageStoragePath: "",
+
+                      imageMimeType: "",
+
+                      iconColor:
+                        "#2563EB",
+
+                      iconBackgroundColor:
+                        "#DBEAFE",
+
+                      accentColor:
+                        "#2563EB",
+
+                      backgroundColor:
+                        "#FFFFFF",
+
+                      borderColor:
+                        "#E5E7EB",
+
+                      href: "",
+                    },
+                  ],
+                },
+              },
+      )
+    }
+  >
+    Add Card
+  </button>
+</div>
     </div>
   );
 }

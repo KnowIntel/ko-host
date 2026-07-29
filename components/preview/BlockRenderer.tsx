@@ -3985,63 +3985,80 @@ function renderStatisticCards(
         ? cardAppearanceStyle.borderRadius
         : cardRadius;
 
-    const showIcon =
-      data.showIcons !== false &&
-      typeof card.iconName === "string" &&
-      card.iconName.trim().length > 0;
+const hasCustomImage =
+  typeof card.imageUrl === "string" &&
+  card.imageUrl.trim().length > 0;
 
-    const icon = showIcon ? (
-      <div
-        className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden text-xl font-bold"
-        style={{
-          color:
-            iconAppearanceStyle.color ??
-            card.iconColor ??
-            accentColor,
+const showIcon =
+  data.showIcons !== false &&
+  (hasCustomImage ||
+    (typeof card.iconName === "string" &&
+      card.iconName.trim().length > 0));
 
-          backgroundColor:
-            iconAppearanceStyle.backgroundColor ??
-            card.iconBackgroundColor ??
-            `${accentColor}18`,
+const icon = showIcon ? (
+  <div
+    className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden text-xl font-bold"
+    style={{
+      color:
+        iconAppearanceStyle.color ??
+        card.iconColor ??
+        accentColor,
 
-          borderColor:
-            iconAppearanceStyle.borderColor ??
-            "transparent",
+      backgroundColor:
+        iconAppearanceStyle.backgroundColor ??
+        card.iconBackgroundColor ??
+        `${accentColor}18`,
 
-          borderWidth:
-            typeof iconAppearanceStyle.borderWidth ===
-            "number"
-              ? `${iconAppearanceStyle.borderWidth}px`
-              : undefined,
+      borderColor:
+        iconAppearanceStyle.borderColor ??
+        "transparent",
 
-          borderStyle:
-            typeof iconAppearanceStyle.borderWidth ===
-              "number" &&
-            iconAppearanceStyle.borderWidth > 0
-              ? iconAppearanceStyle.borderStyle ??
-                "solid"
-              : undefined,
+      borderWidth:
+        typeof iconAppearanceStyle.borderWidth ===
+        "number"
+          ? `${iconAppearanceStyle.borderWidth}px`
+          : undefined,
 
-          borderRadius:
-            typeof iconAppearanceStyle.borderRadius ===
-            "number"
-              ? `${iconAppearanceStyle.borderRadius}px`
-              : "12px",
+      borderStyle:
+        typeof iconAppearanceStyle.borderWidth ===
+          "number" &&
+        iconAppearanceStyle.borderWidth > 0
+          ? iconAppearanceStyle.borderStyle ??
+            "solid"
+          : undefined,
 
-          boxShadow:
-            iconAppearanceStyle.boxShadow ??
-            undefined,
+      borderRadius:
+        typeof iconAppearanceStyle.borderRadius ===
+        "number"
+          ? `${iconAppearanceStyle.borderRadius}px`
+          : "12px",
 
-          opacity:
-            typeof iconAppearanceStyle.opacity ===
-            "number"
-              ? iconAppearanceStyle.opacity
-              : undefined,
-        }}
-      >
-        {getStatisticIcon(card.iconName)}
-      </div>
-    ) : null;
+      boxShadow:
+        iconAppearanceStyle.boxShadow ??
+        undefined,
+
+      opacity:
+        typeof iconAppearanceStyle.opacity ===
+        "number"
+          ? iconAppearanceStyle.opacity
+          : undefined,
+    }}
+  >
+    {hasCustomImage ? (
+      <img
+        src={card.imageUrl}
+        alt={
+          card.label
+            ? `${card.label} icon`
+            : "Statistic card icon"
+        }
+        className="h-full w-full object-contain"
+      />
+    ) : (
+      getStatisticIcon(card.iconName)
+    )}
+  </div>
+) : null;
 
     const valueContent = (
       <div

@@ -6964,6 +6964,68 @@ async function uploadImageToCarouselItem(blockId: string, itemId: string) {
   });
 }
 
+async function uploadImageToStatisticCard(
+  blockId: string,
+  cardId: string,
+) {
+  await openImagePicker({
+    onSelect: async (files) => {
+      const file = files[0];
+      if (!file) return;
+
+      const uploaded =
+        await uploadBuilderImageFile(file);
+
+      setDraft((prev) => ({
+        ...prev,
+
+        blocks: prev.blocks.map((block) => {
+          if (
+            block.id !== blockId ||
+            block.type !== "statistic_cards"
+          ) {
+            return block;
+          }
+
+          return {
+            ...block,
+
+            data: {
+              ...block.data,
+
+              cards: (
+                block.data.cards ?? []
+              ).map((card: any) =>
+                card.id !== cardId
+                  ? card
+                  : {
+                      ...card,
+
+                      imageUrl:
+                        uploaded.url,
+
+                      imageStoragePath:
+                        uploaded.storagePath,
+
+                      imageSizeBytes:
+                        uploaded.imageSizeBytes,
+
+                      imageOriginalSizeBytes:
+                        uploaded.imageOriginalSizeBytes,
+
+                      imageMimeType:
+                        uploaded.imageMimeType,
+                    },
+              ),
+            },
+          };
+        }),
+      }));
+    },
+  });
+}
+
+
 async function uploadMultipleImagesToCarousel(blockId: string) {
   await openImagePicker({
     multiple: true,
@@ -13023,6 +13085,9 @@ selectedBlock?.type === "statistic_cards" ? (
       setStatisticCardsStyleTarget
     }
     makeClientId={makeClientId}
+    uploadImageToStatisticCard={
+      uploadImageToStatisticCard
+    }
     inspectorCardClass={
       inspectorCardClass
     }
