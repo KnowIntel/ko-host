@@ -1039,9 +1039,9 @@ const updateCell = (
                 </div>
 
                 <div>
-                  <div
-                    className={inspectorLabelClass()}
-                  >
+<div
+  className={`${inspectorLabelClass()} text-center`}
+>
                     Background Color
                   </div>
 
@@ -1062,9 +1062,9 @@ const updateCell = (
                 </div>
 
                 <div>
-                  <div
-                    className={inspectorLabelClass()}
-                  >
+<div
+  className={`${inspectorLabelClass()} text-center`}
+>
                     Border Color
                   </div>
 
@@ -1103,9 +1103,9 @@ const updateCell = (
               </label>
 
               <div className="mt-3">
-                <div
-                  className={inspectorLabelClass()}
-                >
+<div
+  className={`${inspectorLabelClass()} text-center`}
+>
                   Link
                 </div>
 
