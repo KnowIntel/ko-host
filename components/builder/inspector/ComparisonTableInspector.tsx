@@ -1016,9 +1016,9 @@ const updateCell = (
 
               <div className="mt-3 grid grid-cols-3 gap-2">
                 <div>
-                  <div
-                    className={inspectorLabelClass()}
-                  >
+<div
+  className={`${inspectorLabelClass()} text-center`}
+>
                     Accent Color
                   </div>
 
@@ -1103,9 +1103,9 @@ const updateCell = (
               </label>
 
               <div className="mt-3">
-<div
-  className={`${inspectorLabelClass()} text-center`}
->
+                <div
+                  className={inspectorLabelClass()}
+                >
                   Link
                 </div>
 
