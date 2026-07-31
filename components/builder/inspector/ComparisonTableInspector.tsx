@@ -1019,7 +1019,7 @@ const updateCell = (
                   <div
                     className={inspectorLabelClass()}
                   >
-                    Accent
+                    Accent Color
                   </div>
 
                   <input
@@ -1042,7 +1042,7 @@ const updateCell = (
                   <div
                     className={inspectorLabelClass()}
                   >
-                    Background
+                    Background Color
                   </div>
 
                   <input
@@ -1065,7 +1065,7 @@ const updateCell = (
                   <div
                     className={inspectorLabelClass()}
                   >
-                    Border
+                    Border Color
                   </div>
 
                   <input

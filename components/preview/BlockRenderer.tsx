@@ -4935,20 +4935,19 @@ function renderComparisonTable(
                           style={{
                             padding: `${cellPadding}px`,
 
-                            backgroundColor:
-                              isFeatured
-                                ? `${
-                                    column.accentColor ??
-                                    featuredColumnColor
-                                  }0D`
-                                : rowBackgroundColor,
+backgroundColor:
+  isFeatured
+    ? column.backgroundColor ??
+      `${column.accentColor ?? featuredColumnColor}0D`
+    : rowBackgroundColor,
 
-                            borderColor:
-                              isFeatured
-                                ? column.accentColor ??
-                                  featuredColumnColor
-                                : cellAppearanceStyle.borderColor ??
-                                  borderColor,
+borderColor:
+  isFeatured
+    ? column.borderColor ??
+      column.accentColor ??
+      featuredColumnColor
+    : cellAppearanceStyle.borderColor ??
+      borderColor,
 
                             borderRightWidth:
                               columnIndex <
@@ -4991,137 +4990,140 @@ function renderComparisonTable(
     );
   };
 
-  const renderCardsLayout = () => (
-    <div
-      className="grid items-stretch"
-      style={{
-        gap: `${gap}px`,
-        gridTemplateColumns: `repeat(${Math.max(
-          1,
-          Math.min(
-            columns.length,
-            4,
-          ),
-        )}, minmax(0, 1fr))`,
-      }}
-    >
-      {columns.map(
-        (
-          column: any,
-          columnIndex: number,
-        ) => {
-          const isFeatured =
-            data.showFeaturedColumn !==
-              false &&
-            column.featured === true;
+const renderCardsLayout = () => (
+  <div
+    className="grid items-stretch"
+    style={{
+      gap: `${gap}px`,
+      gridTemplateColumns: `repeat(${Math.max(
+        1,
+        Math.min(columns.length, 4),
+      )}, minmax(0, 1fr))`,
+    }}
+  >
+    {columns.map(
+      (
+        column: any,
+        columnIndex: number,
+      ) => {
+        const isFeatured =
+          data.showFeaturedColumn !== false &&
+          column.featured === true;
 
-          return (
-            <div
-              key={
-                column.id ||
-                columnIndex
-              }
-              className="min-w-0 overflow-hidden"
-              style={{
-                borderRadius: `${borderRadius}px`,
+        return (
+          <div
+            key={
+              column.id ||
+              columnIndex
+            }
+            className="min-w-0 overflow-hidden"
+            style={{
+              borderRadius: `${borderRadius}px`,
 
-                borderColor:
-                  isFeatured
-                    ? column.accentColor ??
+              borderColor:
+                column.borderColor ??
+                (isFeatured
+                  ? column.accentColor ??
+                    featuredColumnColor
+                  : borderColor),
+
+              backgroundColor:
+                column.backgroundColor ??
+                cellBackgroundColor,
+
+              borderWidth: `${borderWidth}px`,
+              borderStyle: "solid",
+
+              boxShadow:
+                isFeatured
+                  ? `0 10px 30px ${
+                      column.accentColor ??
                       featuredColumnColor
-                    : column.borderColor ??
-                      borderColor,
+                    }1F`
+                  : undefined,
+            }}
+          >
+            {renderColumnHeader(
+              column,
+              columnIndex,
+            )}
 
-                borderWidth: `${borderWidth}px`,
-                borderStyle: "solid",
+            {rows.map(
+              (
+                row: any,
+                rowIndex: number,
+              ) => {
+                const cell =
+                  Array.isArray(
+                    row.cells,
+                  )
+                    ? row.cells.find(
+                        (
+                          item: any,
+                        ) =>
+                          item.columnId ===
+                          column.id,
+                      )
+                    : undefined;
 
-                boxShadow:
-                  isFeatured
-                    ? `0 10px 30px ${
-                        column.accentColor ??
-                        featuredColumnColor
-                      }1F`
-                    : undefined,
-              }}
-            >
-              {renderColumnHeader(
-                column,
-                columnIndex,
-              )}
+                return (
+                  <div
+                    key={
+                      row.id ||
+                      rowIndex
+                    }
+                    style={{
+                      padding: `${cellPadding}px`,
 
-              {rows.map(
-                (
-                  row: any,
-                  rowIndex: number,
-                ) => {
-                  const cell =
-                    Array.isArray(
-                      row.cells,
-                    )
-                      ? row.cells.find(
-                          (
-                            item: any,
-                          ) =>
-                            item.columnId ===
-                            column.id,
-                        )
-                      : undefined;
+                      backgroundColor:
+                        data.alternateRows !==
+                          false &&
+                        rowIndex % 2 === 1
+                          ? alternateRowBackgroundColor
+                          : column.backgroundColor ??
+                            cellBackgroundColor,
 
-                  return (
-                    <div
-                      key={
-                        row.id ||
-                        rowIndex
-                      }
-                      style={{
-                        padding: `${cellPadding}px`,
-
-                        backgroundColor:
-                          data.alternateRows !==
-                            false &&
-                          rowIndex % 2 === 1
-                            ? alternateRowBackgroundColor
-                            : cellBackgroundColor,
-
+                      borderColor:
+                        column.borderColor ??
                         borderColor,
 
-                        borderTopWidth: `${borderWidth}px`,
-                        borderStyle: "solid",
-                      }}
+                      borderTopWidth: `${borderWidth}px`,
+                      borderStyle: "solid",
+                    }}
+                  >
+                    <div
+                      className="mb-2 whitespace-normal break-words"
+                      style={rowLabelStyle}
                     >
-                      <div
-                        className="mb-2 whitespace-normal break-words"
-                        style={rowLabelStyle}
-                      >
-                        {row.label}
-                      </div>
-
-                      {data.showRowDescriptions !==
-                        false &&
-                      row.description ? (
-                        <div
-                          className="mb-3 whitespace-normal break-words"
-                          style={
-                            rowDescriptionStyle
-                          }
-                        >
-                          {row.description}
-                        </div>
-                      ) : null}
-
-                      {renderCellContent(
-                        cell,
-                      )}
+                      {row.label}
                     </div>
-                  );
-                },
-              )}
-            </div>
-          );
-        },
-      )}
-    </div>
-  );
+
+                    {data.showRowDescriptions !==
+                      false &&
+                    row.description ? (
+                      <div
+                        className="mb-3 whitespace-normal break-words"
+                        style={
+                          rowDescriptionStyle
+                        }
+                      >
+                        {row.description}
+                      </div>
+                    ) : null}
+
+                    {renderCellContent(
+                      cell,
+                    )}
+                  </div>
+                );
+              },
+            )}
+          </div>
+        );
+      },
+    )}
+  </div>
+);
 
   const renderStackedLayout = () => (
     <div
@@ -5217,15 +5219,19 @@ function renderComparisonTable(
                       style={{
                         padding: `${cellPadding}px`,
 
-                        backgroundColor:
-                          isFeatured
-                            ? `${
-                                column.accentColor ??
-                                featuredColumnColor
-                              }0D`
-                            : cellBackgroundColor,
+backgroundColor:
+  isFeatured
+    ? column.backgroundColor ??
+      `${column.accentColor ?? featuredColumnColor}0D`
+    : column.backgroundColor ??
+      cellBackgroundColor,
 
-                        borderColor,
+borderColor:
+  column.borderColor ??
+  (isFeatured
+    ? column.accentColor ??
+      featuredColumnColor
+    : borderColor),
 
                         borderTopWidth: `${borderWidth}px`,
 
