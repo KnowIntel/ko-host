@@ -47,7 +47,7 @@ export { LinksInspector } from "./LinksInspector";
 export { ProcessFlowInspector } from "./ProcessFlowInspector";
 export { StatisticCardsInspector } from "./StatisticCardsInspector";
 export { FormulaBoardInspector } from "./FormulaBoardInspector";
-
+export { ComparisonTableInspector } from "./ComparisonTableInspector";
 
 
 

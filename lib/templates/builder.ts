@@ -2045,8 +2045,6 @@ export type ProcessFlowBlockData = InfographicBaseBlockData & {
   animationStyle: "none" | "fade" | "slide" | "pop";
 };
 
-
-export type ComparisonTableBlockData = InfographicBaseBlockData;
 export type DataPyramidBlockData = InfographicBaseBlockData;
 export type CircularHubBlockData = InfographicBaseBlockData;
 export type StoryCardsBlockData = InfographicBaseBlockData;
@@ -2217,15 +2215,123 @@ export type StatisticCardsBlock = {
   data: StatisticCardsBlockData;
 };
 
-export type ProcessFlowBlock = {
+export type ComparisonTableLayout =
+  | "table"
+  | "cards"
+  | "stacked";
+
+export type ComparisonTableHeaderStyle =
+  | "standard"
+  | "accent"
+  | "minimal";
+
+export type ComparisonTableCellAlignment =
+  | "left"
+  | "center"
+  | "right";
+
+export type ComparisonTableAnimationStyle =
+  | "none"
+  | "fade"
+  | "slide"
+  | "pop";
+
+export type ComparisonTableColumn = {
   id: string;
-  type: "process_flow";
-  label: string;
-  grid: GridPlacement;
-  appearance?: BlockAppearance;
-  data: ProcessFlowBlockData;
+
+  heading: string;
+  subheading: string;
+
+  badge: string;
+
+  imageUrl: string;
+  imageStoragePath: string;
+  imageMimeType: string;
+  imageSizeBytes?: number;
+  imageOriginalSizeBytes?: number;
+
+  accentColor: string;
+  backgroundColor: string;
+  borderColor: string;
+
+  featured: boolean;
+  href: string;
 };
 
+export type ComparisonTableRowCell = {
+  id: string;
+  columnId: string;
+
+  value: string;
+
+  iconName: string;
+  iconColor: string;
+
+  imageUrl: string;
+  imageStoragePath: string;
+  imageMimeType: string;
+  imageSizeBytes?: number;
+  imageOriginalSizeBytes?: number;
+};
+
+export type ComparisonTableRow = {
+  id: string;
+
+  label: string;
+  description: string;
+
+  cells: ComparisonTableRowCell[];
+};
+
+export type ComparisonTableBlockData =
+  InfographicBaseBlockData & {
+    layout: ComparisonTableLayout;
+
+    headerStyle: ComparisonTableHeaderStyle;
+    cellAlignment: ComparisonTableCellAlignment;
+
+    columns: ComparisonTableColumn[];
+    rows: ComparisonTableRow[];
+
+    showHeading: boolean;
+    showSubtitle: boolean;
+    showColumnSubheadings: boolean;
+    showColumnBadges: boolean;
+    showRowDescriptions: boolean;
+    showHeaderImages: boolean;
+    showCellIcons: boolean;
+    showFeaturedColumn: boolean;
+
+    headingStyle: TextStyle;
+    subtitleStyle: TextStyle;
+
+    columnHeadingStyle: TextStyle;
+    columnSubheadingStyle: TextStyle;
+    columnBadgeStyle: TextStyle;
+
+    rowLabelStyle: TextStyle;
+    rowDescriptionStyle: TextStyle;
+    cellValueStyle: TextStyle;
+
+    headerBackgroundColor: string;
+    rowLabelBackgroundColor: string;
+    cellBackgroundColor: string;
+    alternateRowBackgroundColor: string;
+    borderColor: string;
+    featuredColumnColor: string;
+
+    padding: number;
+    gap: number;
+    cellPadding: number;
+    borderWidth: number;
+    borderRadius: number;
+    rotation: number;
+
+    alternateRows: boolean;
+    stickyFirstColumn: boolean;
+
+    animationStyle: ComparisonTableAnimationStyle;
+  };
 
 export type ComparisonTableBlock = {
   id: string;
@@ -2235,6 +2341,16 @@ export type ComparisonTableBlock = {
   appearance?: BlockAppearance;
   data: ComparisonTableBlockData;
 };
+
+export type ProcessFlowBlock = {
+  id: string;
+  type: "process_flow";
+  label: string;
+  grid: GridPlacement;
+  appearance?: BlockAppearance;
+  data: ProcessFlowBlockData;
+};
+
 
 export type DataPyramidBlock = {
   id: string;
@@ -4724,7 +4840,514 @@ case "statistic_cards":
   };
 
 
-case "comparison_table":
+case "comparison_table": {
+  const columnOneId = makeId(
+    "comparison_column",
+  );
+
+  const columnTwoId = makeId(
+    "comparison_column",
+  );
+
+  const columnThreeId = makeId(
+    "comparison_column",
+  );
+
+  return {
+    id: makeId("comparison_table"),
+    type: "comparison_table",
+    label: "Comparison Table",
+
+    grid: {
+      ...grid,
+      colSpan: 10,
+      rowSpan: 6,
+    },
+
+    appearance: {
+      ...createDefaultBlockAppearance(),
+      backgroundColor: "#FFFFFF",
+      borderColor: "#E5E7EB",
+      borderWidth: 1,
+      borderRadius: 24,
+    },
+
+    data: {
+      heading: "Compare Your Options",
+
+      subtitle:
+        "Review the most important differences side by side.",
+
+      showHeading: true,
+      showSubtitle: true,
+
+      layout: "table",
+
+      headerStyle: "standard",
+      cellAlignment: "center",
+
+      showColumnSubheadings: true,
+      showColumnBadges: true,
+      showRowDescriptions: true,
+      showHeaderImages: true,
+      showCellIcons: true,
+      showFeaturedColumn: true,
+
+      columns: [
+        {
+          id: columnOneId,
+
+          heading: "Essential",
+          subheading:
+            "A simple option for getting started.",
+
+          badge: "",
+
+          imageUrl: "",
+          imageStoragePath: "",
+          imageMimeType: "",
+
+          accentColor: "#64748B",
+          backgroundColor: "#F8FAFC",
+          borderColor: "#E2E8F0",
+
+          featured: false,
+          href: "",
+        },
+
+        {
+          id: columnTwoId,
+
+          heading: "Professional",
+          subheading:
+            "The best balance of features and value.",
+
+          badge: "Most Popular",
+
+          imageUrl: "",
+          imageStoragePath: "",
+          imageMimeType: "",
+
+          accentColor: "#2563EB",
+          backgroundColor: "#EFF6FF",
+          borderColor: "#93C5FD",
+
+          featured: true,
+          href: "",
+        },
+
+        {
+          id: columnThreeId,
+
+          heading: "Enterprise",
+          subheading:
+            "Advanced capabilities for larger teams.",
+
+          badge: "",
+
+          imageUrl: "",
+          imageStoragePath: "",
+          imageMimeType: "",
+
+          accentColor: "#7C3AED",
+          backgroundColor: "#F5F3FF",
+          borderColor: "#C4B5FD",
+
+          featured: false,
+          href: "",
+        },
+      ],
+
+      rows: [
+        {
+          id: makeId("comparison_row"),
+
+          label: "Monthly Price",
+          description:
+            "The recurring monthly cost.",
+
+          cells: [
+            {
+              id: makeId(
+                "comparison_cell",
+              ),
+
+              columnId: columnOneId,
+
+              value: "$19",
+
+              iconName: "",
+              iconColor: "#64748B",
+
+              imageUrl: "",
+              imageStoragePath: "",
+              imageMimeType: "",
+            },
+
+            {
+              id: makeId(
+                "comparison_cell",
+              ),
+
+              columnId: columnTwoId,
+
+              value: "$49",
+
+              iconName: "",
+              iconColor: "#2563EB",
+
+              imageUrl: "",
+              imageStoragePath: "",
+              imageMimeType: "",
+            },
+
+            {
+              id: makeId(
+                "comparison_cell",
+              ),
+
+              columnId: columnThreeId,
+
+              value: "$99",
+
+              iconName: "",
+              iconColor: "#7C3AED",
+
+              imageUrl: "",
+              imageStoragePath: "",
+              imageMimeType: "",
+            },
+          ],
+        },
+
+        {
+          id: makeId("comparison_row"),
+
+          label: "Team Members",
+          description:
+            "The number of people who can access the workspace.",
+
+          cells: [
+            {
+              id: makeId(
+                "comparison_cell",
+              ),
+
+              columnId: columnOneId,
+
+              value: "3",
+
+              iconName: "",
+              iconColor: "#64748B",
+
+              imageUrl: "",
+              imageStoragePath: "",
+              imageMimeType: "",
+            },
+
+            {
+              id: makeId(
+                "comparison_cell",
+              ),
+
+              columnId: columnTwoId,
+
+              value: "15",
+
+              iconName: "",
+              iconColor: "#2563EB",
+
+              imageUrl: "",
+              imageStoragePath: "",
+              imageMimeType: "",
+            },
+
+            {
+              id: makeId(
+                "comparison_cell",
+              ),
+
+              columnId: columnThreeId,
+
+              value: "Unlimited",
+
+              iconName: "",
+              iconColor: "#7C3AED",
+
+              imageUrl: "",
+              imageStoragePath: "",
+              imageMimeType: "",
+            },
+          ],
+        },
+
+        {
+          id: makeId("comparison_row"),
+
+          label: "Advanced Analytics",
+          description:
+            "Detailed performance reports and insights.",
+
+          cells: [
+            {
+              id: makeId(
+                "comparison_cell",
+              ),
+
+              columnId: columnOneId,
+
+              value: "Not included",
+
+              iconName: "x",
+              iconColor: "#DC2626",
+
+              imageUrl: "",
+              imageStoragePath: "",
+              imageMimeType: "",
+            },
+
+            {
+              id: makeId(
+                "comparison_cell",
+              ),
+
+              columnId: columnTwoId,
+
+              value: "Included",
+
+              iconName: "check",
+              iconColor: "#16A34A",
+
+              imageUrl: "",
+              imageStoragePath: "",
+              imageMimeType: "",
+            },
+
+            {
+              id: makeId(
+                "comparison_cell",
+              ),
+
+              columnId: columnThreeId,
+
+              value: "Included",
+
+              iconName: "check",
+              iconColor: "#16A34A",
+
+              imageUrl: "",
+              imageStoragePath: "",
+              imageMimeType: "",
+            },
+          ],
+        },
+
+        {
+          id: makeId("comparison_row"),
+
+          label: "Priority Support",
+          description:
+            "Faster assistance when help is needed.",
+
+          cells: [
+            {
+              id: makeId(
+                "comparison_cell",
+              ),
+
+              columnId: columnOneId,
+
+              value: "Community",
+
+              iconName: "minus",
+              iconColor: "#64748B",
+
+              imageUrl: "",
+              imageStoragePath: "",
+              imageMimeType: "",
+            },
+
+            {
+              id: makeId(
+                "comparison_cell",
+              ),
+
+              columnId: columnTwoId,
+
+              value: "Email",
+
+              iconName: "check",
+              iconColor: "#16A34A",
+
+              imageUrl: "",
+              imageStoragePath: "",
+              imageMimeType: "",
+            },
+
+            {
+              id: makeId(
+                "comparison_cell",
+              ),
+
+              columnId: columnThreeId,
+
+              value: "24/7 Dedicated",
+
+              iconName: "star",
+              iconColor: "#7C3AED",
+
+              imageUrl: "",
+              imageStoragePath: "",
+              imageMimeType: "",
+            },
+          ],
+        },
+
+        {
+          id: makeId("comparison_row"),
+
+          label: "Best For",
+          description:
+            "The type of customer this option suits best.",
+
+          cells: [
+            {
+              id: makeId(
+                "comparison_cell",
+              ),
+
+              columnId: columnOneId,
+
+              value: "Individuals",
+
+              iconName: "",
+              iconColor: "#64748B",
+
+              imageUrl: "",
+              imageStoragePath: "",
+              imageMimeType: "",
+            },
+
+            {
+              id: makeId(
+                "comparison_cell",
+              ),
+
+              columnId: columnTwoId,
+
+              value: "Growing Teams",
+
+              iconName: "",
+              iconColor: "#2563EB",
+
+              imageUrl: "",
+              imageStoragePath: "",
+              imageMimeType: "",
+            },
+
+            {
+              id: makeId(
+                "comparison_cell",
+              ),
+
+              columnId: columnThreeId,
+
+              value: "Large Organizations",
+
+              iconName: "",
+              iconColor: "#7C3AED",
+
+              imageUrl: "",
+              imageStoragePath: "",
+              imageMimeType: "",
+            },
+          ],
+        },
+      ],
+
+      style: createDefaultTextStyle(),
+
+      headingStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 26,
+        bold: true,
+        align: "center",
+      },
+
+      subtitleStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        color: "#6B7280",
+        align: "center",
+      },
+
+      columnHeadingStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 17,
+        bold: true,
+        color: "#111827",
+        align: "center",
+      },
+
+      columnSubheadingStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 12,
+        color: "#6B7280",
+        align: "center",
+      },
+
+      columnBadgeStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 11,
+        bold: true,
+        color: "#2563EB",
+        align: "center",
+      },
+
+      rowLabelStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        bold: true,
+        color: "#111827",
+        align: "left",
+      },
+
+      rowDescriptionStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 12,
+        color: "#6B7280",
+        align: "left",
+      },
+
+      cellValueStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        color: "#111827",
+        align: "center",
+      },
+
+      headerBackgroundColor: "#F8FAFC",
+      rowLabelBackgroundColor: "#F8FAFC",
+      cellBackgroundColor: "#FFFFFF",
+      alternateRowBackgroundColor: "#F9FAFB",
+      borderColor: "#E5E7EB",
+      featuredColumnColor: "#2563EB",
+
+      padding: 20,
+      gap: 16,
+      cellPadding: 14,
+      borderWidth: 1,
+      borderRadius: 18,
+      rotation: 0,
+
+      alternateRows: true,
+      stickyFirstColumn: true,
+
+      animationStyle: "none",
+    },
+  };
+}
+
 case "data_pyramid":
 case "circular_hub":
 case "story_cards":

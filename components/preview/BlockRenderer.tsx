@@ -4395,6 +4395,929 @@ const icon = showIcon ? (
   );
 }
 
+function renderComparisonTable(
+  block: Extract<
+    MicrositeBlock,
+    { type: "comparison_table" }
+  >,
+  designKey?: string,
+) {
+  const data = block.data as any;
+  const appearanceStyle = getAppearanceStyle(block);
+
+  const headingStyle = getContainerTextStyle(
+    data.headingStyle ?? {},
+    designKey,
+  );
+
+  const subtitleStyle = getContainerTextStyle(
+    data.subtitleStyle ?? {},
+    designKey,
+  );
+
+  const columnHeadingStyle =
+    getContainerTextStyle(
+      data.columnHeadingStyle ?? {},
+      designKey,
+    );
+
+  const columnSubheadingStyle =
+    getContainerTextStyle(
+      data.columnSubheadingStyle ?? {},
+      designKey,
+    );
+
+  const columnBadgeStyle =
+    getContainerTextStyle(
+      data.columnBadgeStyle ?? {},
+      designKey,
+    );
+
+  const rowLabelStyle = getContainerTextStyle(
+    data.rowLabelStyle ?? {},
+    designKey,
+  );
+
+  const rowDescriptionStyle =
+    getContainerTextStyle(
+      data.rowDescriptionStyle ?? {},
+      designKey,
+    );
+
+  const cellValueStyle =
+    getContainerTextStyle(
+      data.cellValueStyle ?? {},
+      designKey,
+    );
+
+  const headerAppearanceStyle =
+    data.headerAppearanceStyle ?? {};
+
+  const rowLabelAppearanceStyle =
+    data.rowLabelAppearanceStyle ?? {};
+
+  const cellAppearanceStyle =
+    data.cellAppearanceStyle ?? {};
+
+  const featuredAppearanceStyle =
+    data.featuredAppearanceStyle ?? {};
+
+  const columns = Array.isArray(data.columns)
+    ? data.columns
+    : [];
+
+  const rows = Array.isArray(data.rows)
+    ? data.rows
+    : [];
+
+  const layout =
+    data.layout === "cards" ||
+    data.layout === "stacked"
+      ? data.layout
+      : "table";
+
+  const padding =
+    typeof data.padding === "number" &&
+    Number.isFinite(data.padding)
+      ? Math.max(
+          0,
+          Math.min(80, data.padding),
+        )
+      : 20;
+
+  const gap =
+    typeof data.gap === "number" &&
+    Number.isFinite(data.gap)
+      ? Math.max(
+          0,
+          Math.min(80, data.gap),
+        )
+      : 16;
+
+  const cellPadding =
+    typeof data.cellPadding === "number" &&
+    Number.isFinite(data.cellPadding)
+      ? Math.max(
+          0,
+          Math.min(48, data.cellPadding),
+        )
+      : 14;
+
+  const borderWidth =
+    typeof data.borderWidth === "number" &&
+    Number.isFinite(data.borderWidth)
+      ? Math.max(
+          0,
+          Math.min(12, data.borderWidth),
+        )
+      : 1;
+
+  const borderRadius =
+    typeof data.borderRadius === "number" &&
+    Number.isFinite(data.borderRadius)
+      ? Math.max(
+          0,
+          Math.min(48, data.borderRadius),
+        )
+      : 18;
+
+  const borderColor =
+    data.borderColor ?? "#E5E7EB";
+
+  const headerBackgroundColor =
+    headerAppearanceStyle.backgroundColor ??
+    data.headerBackgroundColor ??
+    "#F8FAFC";
+
+  const rowLabelBackgroundColor =
+    rowLabelAppearanceStyle.backgroundColor ??
+    data.rowLabelBackgroundColor ??
+    "#F8FAFC";
+
+  const cellBackgroundColor =
+    cellAppearanceStyle.backgroundColor ??
+    data.cellBackgroundColor ??
+    "#FFFFFF";
+
+  const alternateRowBackgroundColor =
+    data.alternateRowBackgroundColor ??
+    "#F9FAFB";
+
+  const featuredColumnColor =
+    featuredAppearanceStyle.backgroundColor ??
+    featuredAppearanceStyle.borderColor ??
+    data.featuredColumnColor ??
+    "#2563EB";
+
+  const getCellIcon = (
+    iconName: string,
+  ) => {
+    switch (iconName) {
+      case "check":
+      case "yes":
+      case "included":
+        return "✓";
+
+      case "x":
+      case "no":
+      case "excluded":
+        return "×";
+
+      case "star":
+      case "featured":
+        return "★";
+
+      case "minus":
+      case "partial":
+        return "−";
+
+      case "plus":
+        return "+";
+
+      case "info":
+        return "i";
+
+      case "unlimited":
+        return "∞";
+
+      default:
+        return "";
+    }
+  };
+
+  const renderCellContent = (
+    cell: any,
+  ) => {
+    const hasCustomImage =
+      typeof cell?.imageUrl === "string" &&
+      cell.imageUrl.trim().length > 0;
+
+    const hasIcon =
+      data.showCellIcons !== false &&
+      typeof cell?.iconName === "string" &&
+      cell.iconName.trim().length > 0;
+
+    return (
+      <div
+        className="flex min-w-0 items-center"
+        style={{
+          justifyContent:
+            data.cellAlignment === "left"
+              ? "flex-start"
+              : data.cellAlignment === "right"
+                ? "flex-end"
+                : "center",
+
+          gap: "8px",
+        }}
+      >
+        {hasCustomImage ? (
+          <img
+            src={cell.imageUrl}
+            alt=""
+            className="h-7 w-7 shrink-0 object-contain"
+          />
+        ) : hasIcon ? (
+          <span
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-bold"
+            style={{
+              color:
+                cell.iconColor ??
+                featuredColumnColor,
+
+              backgroundColor:
+                `${cell.iconColor ?? featuredColumnColor}18`,
+            }}
+          >
+            {getCellIcon(cell.iconName)}
+          </span>
+        ) : null}
+
+        {cell?.value ? (
+          <span
+            className="min-w-0 whitespace-normal break-words"
+            style={cellValueStyle}
+          >
+            {cell.value}
+          </span>
+        ) : null}
+      </div>
+    );
+  };
+
+  const renderColumnHeader = (
+    column: any,
+    index: number,
+  ) => {
+    const isFeatured =
+      data.showFeaturedColumn !== false &&
+      column.featured === true;
+
+    const hasImage =
+      data.showHeaderImages !== false &&
+      typeof column.imageUrl === "string" &&
+      column.imageUrl.trim().length > 0;
+
+    return (
+      <div
+        key={column.id || index}
+        className="relative min-w-0 overflow-hidden"
+        style={{
+          padding: `${cellPadding}px`,
+
+          backgroundColor:
+            isFeatured
+              ? `${column.accentColor ?? featuredColumnColor}12`
+              : column.backgroundColor ??
+                headerBackgroundColor,
+
+          borderColor:
+            isFeatured
+              ? column.accentColor ??
+                featuredColumnColor
+              : column.borderColor ??
+                headerAppearanceStyle.borderColor ??
+                borderColor,
+
+          borderWidth: `${borderWidth}px`,
+          borderStyle:
+            headerAppearanceStyle.borderStyle ??
+            "solid",
+
+          borderRadius:
+            layout === "cards"
+              ? `${borderRadius}px`
+              : undefined,
+
+          boxShadow:
+            isFeatured
+              ? featuredAppearanceStyle.boxShadow ??
+                `0 0 0 2px ${
+                  column.accentColor ??
+                  featuredColumnColor
+                }22`
+              : headerAppearanceStyle.boxShadow ??
+                undefined,
+
+          opacity:
+            typeof headerAppearanceStyle.opacity ===
+            "number"
+              ? headerAppearanceStyle.opacity
+              : undefined,
+        }}
+      >
+        {isFeatured ? (
+          <div
+            className="absolute inset-x-0 top-0"
+            style={{
+              height: "4px",
+              backgroundColor:
+                column.accentColor ??
+                featuredColumnColor,
+            }}
+          />
+        ) : null}
+
+        <div
+          className="flex h-full min-w-0 flex-col items-center text-center"
+          style={{
+            gap: "8px",
+          }}
+        >
+          {hasImage ? (
+            <img
+              src={column.imageUrl}
+              alt={
+                column.heading
+                  ? `${column.heading} image`
+                  : `Comparison column ${index + 1}`
+              }
+              className="h-14 w-14 object-contain"
+            />
+          ) : null}
+
+          {data.showColumnBadges !== false &&
+          column.badge ? (
+            <span
+              className="inline-flex max-w-full items-center justify-center rounded-full px-2.5 py-1"
+              style={{
+                ...columnBadgeStyle,
+
+                backgroundColor:
+                  `${column.accentColor ?? featuredColumnColor}18`,
+              }}
+            >
+              {column.badge}
+            </span>
+          ) : null}
+
+          {column.heading ? (
+            <div
+              className="whitespace-normal break-words"
+              style={columnHeadingStyle}
+            >
+              {column.heading}
+            </div>
+          ) : null}
+
+          {data.showColumnSubheadings !==
+            false &&
+          column.subheading ? (
+            <div
+              className="whitespace-normal break-words"
+              style={columnSubheadingStyle}
+            >
+              {column.subheading}
+            </div>
+          ) : null}
+        </div>
+      </div>
+    );
+  };
+
+  const renderTableLayout = () => {
+    const gridTemplateColumns = `minmax(170px, 1.15fr) repeat(${columns.length}, minmax(150px, 1fr))`;
+
+    return (
+      <div
+        className="min-w-max overflow-hidden"
+        style={{
+          borderRadius: `${borderRadius}px`,
+          borderColor,
+          borderWidth: `${borderWidth}px`,
+          borderStyle: "solid",
+        }}
+      >
+        <div
+          className="grid"
+          style={{
+            gridTemplateColumns,
+          }}
+        >
+          <div
+            style={{
+              padding: `${cellPadding}px`,
+              backgroundColor:
+                rowLabelBackgroundColor,
+              borderColor,
+              borderRightWidth: `${borderWidth}px`,
+              borderBottomWidth: `${borderWidth}px`,
+              borderStyle: "solid",
+            }}
+          />
+
+          {columns.map(
+            (
+              column: any,
+              index: number,
+            ) => (
+              <div
+                key={column.id || index}
+                style={{
+                  borderColor,
+                  borderRightWidth:
+                    index <
+                    columns.length - 1
+                      ? `${borderWidth}px`
+                      : undefined,
+                  borderBottomWidth: `${borderWidth}px`,
+                  borderStyle: "solid",
+                }}
+              >
+                {renderColumnHeader(
+                  column,
+                  index,
+                )}
+              </div>
+            ),
+          )}
+
+          {rows.map(
+            (
+              row: any,
+              rowIndex: number,
+            ) => {
+              const rowBackgroundColor =
+                data.alternateRows !== false &&
+                rowIndex % 2 === 1
+                  ? alternateRowBackgroundColor
+                  : cellBackgroundColor;
+
+              return (
+                <>
+                  <div
+                    key={`${row.id || rowIndex}-label`}
+                    className={[
+                      "min-w-0",
+                      data.stickyFirstColumn !==
+                      false
+                        ? "sticky left-0 z-10"
+                        : "",
+                    ].join(" ")}
+                    style={{
+                      padding: `${cellPadding}px`,
+
+                      backgroundColor:
+                        rowLabelAppearanceStyle.backgroundColor ??
+                        rowLabelBackgroundColor,
+
+                      borderColor:
+                        rowLabelAppearanceStyle.borderColor ??
+                        borderColor,
+
+                      borderRightWidth: `${borderWidth}px`,
+
+                      borderBottomWidth:
+                        rowIndex <
+                        rows.length - 1
+                          ? `${borderWidth}px`
+                          : undefined,
+
+                      borderStyle:
+                        rowLabelAppearanceStyle.borderStyle ??
+                        "solid",
+
+                      boxShadow:
+                        rowLabelAppearanceStyle.boxShadow ??
+                        undefined,
+                    }}
+                  >
+                    {row.label ? (
+                      <div
+                        className="whitespace-normal break-words"
+                        style={rowLabelStyle}
+                      >
+                        {row.label}
+                      </div>
+                    ) : null}
+
+                    {data.showRowDescriptions !==
+                      false &&
+                    row.description ? (
+                      <div
+                        className="mt-1 whitespace-normal break-words"
+                        style={
+                          rowDescriptionStyle
+                        }
+                      >
+                        {row.description}
+                      </div>
+                    ) : null}
+                  </div>
+
+                  {columns.map(
+                    (
+                      column: any,
+                      columnIndex: number,
+                    ) => {
+                      const cell =
+                        Array.isArray(
+                          row.cells,
+                        )
+                          ? row.cells.find(
+                              (
+                                item: any,
+                              ) =>
+                                item.columnId ===
+                                column.id,
+                            )
+                          : undefined;
+
+                      const isFeatured =
+                        data.showFeaturedColumn !==
+                          false &&
+                        column.featured === true;
+
+                      return (
+                        <div
+                          key={`${row.id || rowIndex}-${column.id || columnIndex}`}
+                          className="min-w-0"
+                          style={{
+                            padding: `${cellPadding}px`,
+
+                            backgroundColor:
+                              isFeatured
+                                ? `${
+                                    column.accentColor ??
+                                    featuredColumnColor
+                                  }0D`
+                                : rowBackgroundColor,
+
+                            borderColor:
+                              isFeatured
+                                ? column.accentColor ??
+                                  featuredColumnColor
+                                : cellAppearanceStyle.borderColor ??
+                                  borderColor,
+
+                            borderRightWidth:
+                              columnIndex <
+                              columns.length -
+                                1
+                                ? `${borderWidth}px`
+                                : undefined,
+
+                            borderBottomWidth:
+                              rowIndex <
+                              rows.length - 1
+                                ? `${borderWidth}px`
+                                : undefined,
+
+                            borderStyle:
+                              cellAppearanceStyle.borderStyle ??
+                              "solid",
+
+                            boxShadow:
+                              isFeatured
+                                ? featuredAppearanceStyle.boxShadow ??
+                                  undefined
+                                : cellAppearanceStyle.boxShadow ??
+                                  undefined,
+                          }}
+                        >
+                          {renderCellContent(
+                            cell,
+                          )}
+                        </div>
+                      );
+                    },
+                  )}
+                </>
+              );
+            },
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const renderCardsLayout = () => (
+    <div
+      className="grid items-stretch"
+      style={{
+        gap: `${gap}px`,
+        gridTemplateColumns: `repeat(${Math.max(
+          1,
+          Math.min(
+            columns.length,
+            4,
+          ),
+        )}, minmax(0, 1fr))`,
+      }}
+    >
+      {columns.map(
+        (
+          column: any,
+          columnIndex: number,
+        ) => {
+          const isFeatured =
+            data.showFeaturedColumn !==
+              false &&
+            column.featured === true;
+
+          return (
+            <div
+              key={
+                column.id ||
+                columnIndex
+              }
+              className="min-w-0 overflow-hidden"
+              style={{
+                borderRadius: `${borderRadius}px`,
+
+                borderColor:
+                  isFeatured
+                    ? column.accentColor ??
+                      featuredColumnColor
+                    : column.borderColor ??
+                      borderColor,
+
+                borderWidth: `${borderWidth}px`,
+                borderStyle: "solid",
+
+                boxShadow:
+                  isFeatured
+                    ? `0 10px 30px ${
+                        column.accentColor ??
+                        featuredColumnColor
+                      }1F`
+                    : undefined,
+              }}
+            >
+              {renderColumnHeader(
+                column,
+                columnIndex,
+              )}
+
+              {rows.map(
+                (
+                  row: any,
+                  rowIndex: number,
+                ) => {
+                  const cell =
+                    Array.isArray(
+                      row.cells,
+                    )
+                      ? row.cells.find(
+                          (
+                            item: any,
+                          ) =>
+                            item.columnId ===
+                            column.id,
+                        )
+                      : undefined;
+
+                  return (
+                    <div
+                      key={
+                        row.id ||
+                        rowIndex
+                      }
+                      style={{
+                        padding: `${cellPadding}px`,
+
+                        backgroundColor:
+                          data.alternateRows !==
+                            false &&
+                          rowIndex % 2 === 1
+                            ? alternateRowBackgroundColor
+                            : cellBackgroundColor,
+
+                        borderColor,
+
+                        borderTopWidth: `${borderWidth}px`,
+                        borderStyle: "solid",
+                      }}
+                    >
+                      <div
+                        className="mb-2 whitespace-normal break-words"
+                        style={rowLabelStyle}
+                      >
+                        {row.label}
+                      </div>
+
+                      {data.showRowDescriptions !==
+                        false &&
+                      row.description ? (
+                        <div
+                          className="mb-3 whitespace-normal break-words"
+                          style={
+                            rowDescriptionStyle
+                          }
+                        >
+                          {row.description}
+                        </div>
+                      ) : null}
+
+                      {renderCellContent(
+                        cell,
+                      )}
+                    </div>
+                  );
+                },
+              )}
+            </div>
+          );
+        },
+      )}
+    </div>
+  );
+
+  const renderStackedLayout = () => (
+    <div
+      className="flex flex-col"
+      style={{
+        gap: `${gap}px`,
+      }}
+    >
+      {rows.map(
+        (
+          row: any,
+          rowIndex: number,
+        ) => (
+          <div
+            key={row.id || rowIndex}
+            className="overflow-hidden"
+            style={{
+              borderRadius: `${borderRadius}px`,
+              borderColor,
+              borderWidth: `${borderWidth}px`,
+              borderStyle: "solid",
+            }}
+          >
+            <div
+              style={{
+                padding: `${cellPadding}px`,
+                backgroundColor:
+                  rowLabelBackgroundColor,
+              }}
+            >
+              {row.label ? (
+                <div
+                  className="whitespace-normal break-words"
+                  style={rowLabelStyle}
+                >
+                  {row.label}
+                </div>
+              ) : null}
+
+              {data.showRowDescriptions !==
+                false &&
+              row.description ? (
+                <div
+                  className="mt-1 whitespace-normal break-words"
+                  style={
+                    rowDescriptionStyle
+                  }
+                >
+                  {row.description}
+                </div>
+              ) : null}
+            </div>
+
+            <div
+              className="grid"
+              style={{
+                gridTemplateColumns: `repeat(${Math.max(
+                  1,
+                  columns.length,
+                )}, minmax(0, 1fr))`,
+              }}
+            >
+              {columns.map(
+                (
+                  column: any,
+                  columnIndex: number,
+                ) => {
+                  const cell =
+                    Array.isArray(
+                      row.cells,
+                    )
+                      ? row.cells.find(
+                          (
+                            item: any,
+                          ) =>
+                            item.columnId ===
+                            column.id,
+                        )
+                      : undefined;
+
+                  const isFeatured =
+                    data.showFeaturedColumn !==
+                      false &&
+                    column.featured === true;
+
+                  return (
+                    <div
+                      key={
+                        column.id ||
+                        columnIndex
+                      }
+                      className="min-w-0"
+                      style={{
+                        padding: `${cellPadding}px`,
+
+                        backgroundColor:
+                          isFeatured
+                            ? `${
+                                column.accentColor ??
+                                featuredColumnColor
+                              }0D`
+                            : cellBackgroundColor,
+
+                        borderColor,
+
+                        borderTopWidth: `${borderWidth}px`,
+
+                        borderRightWidth:
+                          columnIndex <
+                          columns.length - 1
+                            ? `${borderWidth}px`
+                            : undefined,
+
+                        borderStyle:
+                          "solid",
+                      }}
+                    >
+                      <div
+                        className="mb-2 whitespace-normal break-words"
+                        style={
+                          columnHeadingStyle
+                        }
+                      >
+                        {column.heading}
+                      </div>
+
+                      {renderCellContent(
+                        cell,
+                      )}
+                    </div>
+                  );
+                },
+              )}
+            </div>
+          </div>
+        ),
+      )}
+    </div>
+  );
+
+  return (
+    <div
+      className="h-full w-full overflow-auto"
+      style={appearanceStyle}
+    >
+      <div
+        style={{
+          padding: `${padding}px`,
+
+          transform:
+            typeof data.rotation ===
+              "number" &&
+            data.rotation !== 0
+              ? `rotate(${data.rotation}deg)`
+              : undefined,
+
+          transformOrigin: "center",
+        }}
+      >
+        {data.showHeading !== false &&
+        data.heading ? (
+          <div
+            className="mb-2 whitespace-normal break-words"
+            style={headingStyle}
+          >
+            {data.heading}
+          </div>
+        ) : null}
+
+        {data.showSubtitle !== false &&
+        data.subtitle ? (
+          <div
+            className="mb-5 whitespace-normal break-words"
+            style={subtitleStyle}
+          >
+            {data.subtitle}
+          </div>
+        ) : null}
+
+        {columns.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-neutral-300 p-6 text-center text-sm text-neutral-500">
+            Add comparison columns to display this
+            table.
+          </div>
+        ) : layout === "cards" ? (
+          renderCardsLayout()
+        ) : layout === "stacked" ? (
+          renderStackedLayout()
+        ) : (
+          renderTableLayout()
+        )}
+      </div>
+    </div>
+  );
+}
+
 function FormulaBoardLive({
   block,
   designKey,
@@ -17916,6 +18839,9 @@ case "process_flow":
 
 case "statistic_cards":
   return renderStatisticCards(block, designKey);
+
+  case "comparison_table":
+  return renderComparisonTable(block, designKey);
 
 case "formula_board":
   return renderFormulaBoard(block, designKey);

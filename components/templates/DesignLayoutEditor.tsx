@@ -56,8 +56,9 @@ import {
   CartInspector,
   LinksInspector,
   ProcessFlowInspector,
-  StatisticCardsInspector,
-  FormulaBoardInspector,
+StatisticCardsInspector,
+ComparisonTableInspector,
+FormulaBoardInspector,
 } from "@/components/builder/inspector";
 
 /* ------------------------------------ INSPECTOR BLOCK FILES - END ------------------------------------ */
@@ -98,6 +99,17 @@ import type {
   StatisticCardsStyleTarget,
   StatisticCardsTextTarget,
 } from "@/components/builder/formatting/statisticCardsFormatting";
+
+import {
+  applyComparisonTableStylePatch,
+  applyComparisonTableTextStylePatch,
+  getComparisonTableTextStyle,
+} from "@/components/builder/formatting/comparisonTableFormatting";
+
+import type {
+  ComparisonTableStyleTarget,
+  ComparisonTableTextTarget,
+} from "@/components/builder/formatting/comparisonTableFormatting";
 
 import {
   applyMapLocationStylePatch,
@@ -2433,6 +2445,16 @@ statisticCardsStyleTarget,
 setStatisticCardsStyleTarget,
 ] = useState<StatisticCardsStyleTarget>("card");
 
+const [
+  comparisonTableTextTarget,
+  setComparisonTableTextTarget,
+] = useState<ComparisonTableTextTarget>("heading");
+
+const [
+  comparisonTableStyleTarget,
+  setComparisonTableStyleTarget,
+] = useState<ComparisonTableStyleTarget>("header");
+
 const [formulaBoardTextTarget, setFormulaBoardTextTarget] =
   useState<FormulaBoardTextTarget>("heading");
 
@@ -2768,6 +2790,11 @@ const selectedStyle =
   ? (getStatisticCardsTextStyle(
       selectedBlockFromDraft,
       statisticCardsTextTarget,
+    ) as TextStyle)
+: selectedBlockFromDraft?.type === "comparison_table"
+  ? (getComparisonTableTextStyle(
+      selectedBlockFromDraft,
+      comparisonTableTextTarget,
     ) as TextStyle)
 : selectedBlockFromDraft?.type === "formula_board"
   ? (getFormulaBoardTextStyle(
@@ -3170,6 +3197,7 @@ const showTextControls =
   selectedBlock?.type === "map_location" ||
 selectedBlock?.type === "process_flow" ||
 selectedBlock?.type === "statistic_cards" ||
+selectedBlock?.type === "comparison_table" ||
 selectedBlock?.type === "formula_board" ||
   selectedBlock?.type === "file_share" ||
   selectedBlock?.type === "speed_dating" ||
@@ -3213,9 +3241,10 @@ const showAppearanceControls =
   selectedBlock?.type === "schedule_agenda" ||
   selectedBlock?.type === "calendar_event" ||
   selectedBlock?.type === "map_location" ||
-  selectedBlock?.type === "process_flow" ||
-  selectedBlock?.type === "statistic_cards" ||
-  selectedBlock?.type === "formula_board" ||
+selectedBlock?.type === "process_flow" ||
+selectedBlock?.type === "statistic_cards" ||
+selectedBlock?.type === "comparison_table" ||
+selectedBlock?.type === "formula_board" ||
   selectedBlock?.type === "file_share" ||
   selectedBlock?.type === "speed_dating" ||
   selectedBlock?.type === "registry" ||
@@ -3261,6 +3290,7 @@ const showBorderWidthRadiusControls =
   selectedBlock?.type === "map_location" ||
   selectedBlock?.type === "process_flow" ||
   selectedBlock?.type === "statistic_cards" ||
+selectedBlock?.type === "comparison_table" ||
   selectedBlock?.type === "formula_board" ||
   selectedBlock?.type === "file_share" ||
   selectedBlock?.type === "speed_dating" ||
@@ -4913,6 +4943,20 @@ function applyStylePatch(patch: Partial<TextStyle>) {
     return;
   }
 
+  if (selectedBlock?.type === "comparison_table") {
+  updateSelectedBlock((block) =>
+    block.type !== "comparison_table"
+      ? block
+      : applyComparisonTableTextStylePatch(
+          block,
+          comparisonTableTextTarget,
+          patch,
+        ),
+  );
+
+  return;
+}
+
   if (selectedBlock?.type === "formula_board") {
   updateSelectedBlock((block) =>
     block.type !== "formula_board"
@@ -5695,6 +5739,20 @@ function applyAppearancePatch(patch: AppearancePatch) {
 
     return;
   }
+
+  if (selectedBlock?.type === "comparison_table") {
+  updateSelectedBlock((block) =>
+    block.type !== "comparison_table"
+      ? block
+      : applyComparisonTableStylePatch(
+          block,
+          comparisonTableStyleTarget,
+          patch,
+        ),
+  );
+
+  return;
+}
 
   if (selectedBlock?.type === "formula_board") {
   updateSelectedBlock((block) =>
@@ -13088,6 +13146,42 @@ selectedBlock?.type === "statistic_cards" ? (
     uploadImageToStatisticCard={
       uploadImageToStatisticCard
     }
+    inspectorCardClass={
+      inspectorCardClass
+    }
+    inspectorLabelClass={
+      inspectorLabelClass
+    }
+    inspectorInputClass={
+      inspectorInputClass
+    }
+    inspectorTextareaClass={
+      inspectorTextareaClass
+    }
+    toolSetButtonClass={
+      toolSetButtonClass
+    }
+  />
+) : null}
+
+{!isMultiSelection &&
+selectedBlock?.type === "comparison_table" ? (
+  <ComparisonTableInspector
+    selectedBlock={selectedBlock}
+    updateSelectedBlock={updateSelectedBlock}
+    comparisonTableTextTarget={
+      comparisonTableTextTarget
+    }
+    setComparisonTableTextTarget={
+      setComparisonTableTextTarget
+    }
+    comparisonTableStyleTarget={
+      comparisonTableStyleTarget
+    }
+    setComparisonTableStyleTarget={
+      setComparisonTableStyleTarget
+    }
+    makeClientId={makeClientId}
     inspectorCardClass={
       inspectorCardClass
     }
