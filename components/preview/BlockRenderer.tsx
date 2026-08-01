@@ -5915,6 +5915,740 @@ const renderLevel = (
   );
 }
 
+function renderCircularHub(
+  block: Extract<
+    MicrositeBlock,
+    { type: "circular_hub" }
+  >,
+  designKey?: string,
+) {
+  const data = block.data as any;
+  const appearanceStyle = getAppearanceStyle(block);
+
+  const headingStyle = getContainerTextStyle(
+    data.headingStyle ?? {},
+    designKey,
+  );
+
+  const subtitleStyle = getContainerTextStyle(
+    data.subtitleStyle ?? {},
+    designKey,
+  );
+
+  const centerTitleStyle =
+    getContainerTextStyle(
+      data.centerTitleStyle ?? {},
+      designKey,
+    );
+
+  const centerSubtitleStyle =
+    getContainerTextStyle(
+      data.centerSubtitleStyle ?? {},
+      designKey,
+    );
+
+  const nodeTitleStyle =
+    getContainerTextStyle(
+      data.nodeTitleStyle ?? {},
+      designKey,
+    );
+
+  const nodeSubtitleStyle =
+    getContainerTextStyle(
+      data.nodeSubtitleStyle ?? {},
+      designKey,
+    );
+
+  const nodeDescriptionStyle =
+    getContainerTextStyle(
+      data.nodeDescriptionStyle ?? {},
+      designKey,
+    );
+
+  const nodeBadgeStyle =
+    getContainerTextStyle(
+      data.nodeBadgeStyle ?? {},
+      designKey,
+    );
+
+  const hubAppearanceStyle =
+    data.hubAppearanceStyle ?? {};
+
+  const nodeAppearanceStyle =
+    data.nodeAppearanceStyle ?? {};
+
+  const iconAppearanceStyle =
+    data.iconAppearanceStyle ?? {};
+
+  const connectorAppearanceStyle =
+    data.connectorAppearanceStyle ?? {};
+
+  const nodes = Array.isArray(data.nodes)
+    ? data.nodes
+    : [];
+
+  const layout =
+    data.layout === "orbit" ||
+    data.layout === "spokes"
+      ? data.layout
+      : "radial";
+
+  const padding =
+    typeof data.padding === "number" &&
+    Number.isFinite(data.padding)
+      ? Math.max(
+          0,
+          Math.min(80, data.padding),
+        )
+      : 20;
+
+  const gap =
+    typeof data.gap === "number" &&
+    Number.isFinite(data.gap)
+      ? Math.max(
+          0,
+          Math.min(80, data.gap),
+        )
+      : 16;
+
+  const hubRadius =
+    typeof data.hubRadius === "number" &&
+    Number.isFinite(data.hubRadius)
+      ? Math.max(
+          40,
+          Math.min(180, data.hubRadius),
+        )
+      : 72;
+
+  const nodeRadius =
+    typeof data.nodeRadius === "number" &&
+    Number.isFinite(data.nodeRadius)
+      ? Math.max(
+          0,
+          Math.min(80, data.nodeRadius),
+        )
+      : 18;
+
+  const nodeSize =
+    typeof data.nodeSize === "number" &&
+    Number.isFinite(data.nodeSize)
+      ? Math.max(
+          90,
+          Math.min(280, data.nodeSize),
+        )
+      : 150;
+
+  const borderWidth =
+    typeof data.borderWidth === "number" &&
+    Number.isFinite(data.borderWidth)
+      ? Math.max(
+          0,
+          Math.min(12, data.borderWidth),
+        )
+      : 1;
+
+  const connectorColor =
+    connectorAppearanceStyle.backgroundColor ??
+    connectorAppearanceStyle.borderColor ??
+    data.connectorColor ??
+    "#CBD5E1";
+
+  const getNodeIcon = (
+    iconName: string,
+  ) => {
+    switch (iconName) {
+      case "target":
+        return "◎";
+
+      case "users":
+        return "👥";
+
+      case "activity":
+        return "⌁";
+
+      case "layers":
+        return "▤";
+
+      case "chart":
+      case "analytics":
+        return "▥";
+
+      case "trending-up":
+      case "growth":
+        return "↗";
+
+      case "star":
+        return "★";
+
+      case "check":
+        return "✓";
+
+      case "lightbulb":
+        return "◉";
+
+      case "flag":
+        return "⚑";
+
+      case "award":
+        return "◆";
+
+      case "heart":
+        return "♥";
+
+      default:
+        return "●";
+    }
+  };
+
+  const renderNodeContent = (
+    node: any,
+    index: number,
+  ) => {
+    const hasCustomImage =
+      typeof node.imageUrl === "string" &&
+      node.imageUrl.trim().length > 0;
+
+    const showIcon =
+      data.showIcons !== false &&
+      (hasCustomImage ||
+        (typeof node.iconName === "string" &&
+          node.iconName.trim().length > 0));
+
+    const accentColor =
+      node.accentColor ??
+      node.borderColor ??
+      "#2563EB";
+
+    const nodeElement = (
+      <div
+        className="relative flex h-full min-w-0 flex-col items-center justify-center overflow-hidden text-center"
+        style={{
+          width: `${nodeSize}px`,
+          minHeight: `${nodeSize}px`,
+          padding: `${Math.max(
+            12,
+            Math.min(24, gap),
+          )}px`,
+
+          backgroundColor:
+            nodeAppearanceStyle.backgroundColor ??
+            node.backgroundColor ??
+            "#FFFFFF",
+
+          borderColor:
+            nodeAppearanceStyle.borderColor ??
+            node.borderColor ??
+            "#E5E7EB",
+
+          borderWidth:
+            typeof nodeAppearanceStyle.borderWidth ===
+            "number"
+              ? `${nodeAppearanceStyle.borderWidth}px`
+              : `${borderWidth}px`,
+
+          borderStyle:
+            nodeAppearanceStyle.borderStyle ??
+            "solid",
+
+          borderRadius:
+            typeof nodeAppearanceStyle.borderRadius ===
+            "number"
+              ? `${nodeAppearanceStyle.borderRadius}px`
+              : `${nodeRadius}px`,
+
+          boxShadow:
+            nodeAppearanceStyle.boxShadow ??
+            (data.nodeShadow !== false
+              ? "0 10px 28px rgba(15, 23, 42, 0.10)"
+              : undefined),
+
+          opacity:
+            typeof nodeAppearanceStyle.opacity ===
+            "number"
+              ? nodeAppearanceStyle.opacity
+              : undefined,
+        }}
+      >
+        <div
+          className="absolute inset-x-0 top-0 h-1"
+          style={{
+            backgroundColor:
+              accentColor,
+          }}
+        />
+
+        {showIcon ? (
+          <div
+            className="mb-3 flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden text-xl font-bold"
+            style={{
+              color:
+                iconAppearanceStyle.color ??
+                accentColor,
+
+              backgroundColor:
+                iconAppearanceStyle.backgroundColor ??
+                `${accentColor}18`,
+
+              borderColor:
+                iconAppearanceStyle.borderColor ??
+                "transparent",
+
+              borderWidth:
+                typeof iconAppearanceStyle.borderWidth ===
+                "number"
+                  ? `${iconAppearanceStyle.borderWidth}px`
+                  : undefined,
+
+              borderStyle:
+                typeof iconAppearanceStyle.borderWidth ===
+                  "number" &&
+                iconAppearanceStyle.borderWidth > 0
+                  ? iconAppearanceStyle.borderStyle ??
+                    "solid"
+                  : undefined,
+
+              borderRadius:
+                typeof iconAppearanceStyle.borderRadius ===
+                "number"
+                  ? `${iconAppearanceStyle.borderRadius}px`
+                  : "9999px",
+
+              boxShadow:
+                iconAppearanceStyle.boxShadow ??
+                undefined,
+
+              opacity:
+                typeof iconAppearanceStyle.opacity ===
+                "number"
+                  ? iconAppearanceStyle.opacity
+                  : undefined,
+            }}
+          >
+            {hasCustomImage ? (
+              <img
+                src={node.imageUrl}
+                alt={
+                  node.title
+                    ? `${node.title} icon`
+                    : `Hub node ${index + 1}`
+                }
+                className="h-full w-full object-contain"
+              />
+            ) : (
+              getNodeIcon(node.iconName)
+            )}
+          </div>
+        ) : null}
+
+        {data.showBadges !== false &&
+        node.badge ? (
+          <span
+            className="mb-2 inline-flex max-w-full items-center justify-center rounded-full px-2.5 py-1"
+            style={{
+              ...nodeBadgeStyle,
+              backgroundColor:
+                `${accentColor}18`,
+            }}
+          >
+            {node.badge}
+          </span>
+        ) : null}
+
+        {node.title ? (
+          <div
+            className="whitespace-normal break-words"
+            style={nodeTitleStyle}
+          >
+            {node.title}
+          </div>
+        ) : null}
+
+        {node.subtitle ? (
+          <div
+            className="mt-1 whitespace-normal break-words"
+            style={nodeSubtitleStyle}
+          >
+            {node.subtitle}
+          </div>
+        ) : null}
+
+        {data.showNodeDescriptions !== false &&
+        node.description ? (
+          <div
+            className="mt-2 whitespace-normal break-words leading-relaxed"
+            style={nodeDescriptionStyle}
+          >
+            {node.description}
+          </div>
+        ) : null}
+      </div>
+    );
+
+    if (
+      typeof node.href === "string" &&
+      node.href.trim()
+    ) {
+      return (
+        <a
+          href={node.href}
+          target="_blank"
+          rel="noreferrer"
+          className="block"
+          onPointerDown={(event) =>
+            event.stopPropagation()
+          }
+          onMouseDown={(event) =>
+            event.stopPropagation()
+          }
+          onClick={(event) =>
+            event.stopPropagation()
+          }
+        >
+          {nodeElement}
+        </a>
+      );
+    }
+
+    return nodeElement;
+  };
+
+  const centerHub = (
+    <div
+      className="relative z-20 flex shrink-0 flex-col items-center justify-center overflow-hidden text-center"
+      style={{
+        width: `${hubRadius * 2}px`,
+        height: `${hubRadius * 2}px`,
+
+        backgroundColor:
+          hubAppearanceStyle.backgroundColor ??
+          data.hubBackgroundColor ??
+          "#2563EB",
+
+        borderColor:
+          hubAppearanceStyle.borderColor ??
+          "transparent",
+
+        borderWidth:
+          typeof hubAppearanceStyle.borderWidth ===
+          "number"
+            ? `${hubAppearanceStyle.borderWidth}px`
+            : undefined,
+
+        borderStyle:
+          typeof hubAppearanceStyle.borderWidth ===
+            "number" &&
+          hubAppearanceStyle.borderWidth > 0
+            ? hubAppearanceStyle.borderStyle ??
+              "solid"
+            : undefined,
+
+        borderRadius:
+          typeof hubAppearanceStyle.borderRadius ===
+          "number"
+            ? `${hubAppearanceStyle.borderRadius}px`
+            : "9999px",
+
+        boxShadow:
+          hubAppearanceStyle.boxShadow ??
+          "0 14px 34px rgba(37, 99, 235, 0.24)",
+
+        opacity:
+          typeof hubAppearanceStyle.opacity ===
+          "number"
+            ? hubAppearanceStyle.opacity
+            : undefined,
+
+        padding: "18px",
+      }}
+    >
+      {data.centerTitle ? (
+        <div
+          className="whitespace-normal break-words"
+          style={centerTitleStyle}
+        >
+          {data.centerTitle}
+        </div>
+      ) : null}
+
+      {data.centerSubtitle ? (
+        <div
+          className="mt-1 whitespace-normal break-words"
+          style={centerSubtitleStyle}
+        >
+          {data.centerSubtitle}
+        </div>
+      ) : null}
+    </div>
+  );
+
+  const renderRadialLayout = () => {
+    const count = Math.max(
+      nodes.length,
+      1,
+    );
+
+    const orbitRadius = Math.max(
+      hubRadius + nodeSize / 2 + gap,
+      190,
+    );
+
+    const canvasSize =
+      orbitRadius * 2 +
+      nodeSize +
+      gap * 2;
+
+    return (
+      <div
+        className="relative mx-auto"
+        style={{
+          width: `${canvasSize}px`,
+          height: `${canvasSize}px`,
+          maxWidth: "100%",
+        }}
+      >
+        {data.showCenter !== false ? (
+          <div
+            className="absolute left-1/2 top-1/2"
+            style={{
+              transform:
+                "translate(-50%, -50%)",
+            }}
+          >
+            {centerHub}
+          </div>
+        ) : null}
+
+        {nodes.map(
+          (
+            node: any,
+            index: number,
+          ) => {
+            const angle =
+              -90 +
+              (360 / count) * index;
+
+            const radians =
+              (angle * Math.PI) / 180;
+
+            const x =
+              canvasSize / 2 +
+              orbitRadius *
+                Math.cos(radians);
+
+            const y =
+              canvasSize / 2 +
+              orbitRadius *
+                Math.sin(radians);
+
+            return (
+              <div
+                key={node.id || index}
+              >
+                {data.showConnectors !==
+                  false &&
+                data.showCenter !== false ? (
+                  <div
+                    className="absolute left-1/2 top-1/2 z-0 origin-left"
+                    style={{
+                      width: `${orbitRadius}px`,
+
+                      height:
+                        typeof connectorAppearanceStyle.borderWidth ===
+                        "number"
+                          ? `${Math.max(
+                              1,
+                              connectorAppearanceStyle.borderWidth,
+                            )}px`
+                          : "2px",
+
+                      backgroundColor:
+                        connectorColor,
+
+                      transform: `rotate(${angle}deg)`,
+
+                      opacity:
+                        typeof connectorAppearanceStyle.opacity ===
+                        "number"
+                          ? connectorAppearanceStyle.opacity
+                          : 0.8,
+                    }}
+                  />
+                ) : null}
+
+                <div
+                  className="absolute z-10"
+                  style={{
+                    left: `${x}px`,
+                    top: `${y}px`,
+                    transform:
+                      "translate(-50%, -50%)",
+                  }}
+                >
+                  {renderNodeContent(
+                    node,
+                    index,
+                  )}
+                </div>
+              </div>
+            );
+          },
+        )}
+      </div>
+    );
+  };
+
+  const renderOrbitLayout = () => (
+    <div
+      className="mx-auto flex w-full flex-col items-center"
+      style={{
+        gap: `${gap}px`,
+      }}
+    >
+      {data.showCenter !== false
+        ? centerHub
+        : null}
+
+      <div
+        className="flex max-w-full flex-wrap items-stretch justify-center"
+        style={{
+          gap: `${gap}px`,
+        }}
+      >
+        {nodes.map(
+          (
+            node: any,
+            index: number,
+          ) => (
+            <div
+              key={node.id || index}
+              className="relative"
+            >
+              {renderNodeContent(
+                node,
+                index,
+              )}
+            </div>
+          ),
+        )}
+      </div>
+    </div>
+  );
+
+  const renderSpokesLayout = () => (
+    <div className="mx-auto flex w-full max-w-[960px] flex-col items-center">
+      {data.showCenter !== false
+        ? centerHub
+        : null}
+
+      {data.showConnectors !== false &&
+      data.showCenter !== false ? (
+        <div
+          style={{
+            width:
+              typeof connectorAppearanceStyle.borderWidth ===
+              "number"
+                ? `${Math.max(
+                    1,
+                    connectorAppearanceStyle.borderWidth,
+                  )}px`
+                : "2px",
+
+            height: `${Math.max(
+              16,
+              gap,
+            )}px`,
+
+            backgroundColor:
+              connectorColor,
+          }}
+        />
+      ) : null}
+
+      <div
+        className="grid w-full"
+        style={{
+          gap: `${gap}px`,
+          gridTemplateColumns: `repeat(${Math.max(
+            1,
+            Math.min(nodes.length, 3),
+          )}, minmax(0, 1fr))`,
+        }}
+      >
+        {nodes.map(
+          (
+            node: any,
+            index: number,
+          ) => (
+            <div
+              key={node.id || index}
+              className="flex min-w-0 justify-center"
+            >
+              {renderNodeContent(
+                node,
+                index,
+              )}
+            </div>
+          ),
+        )}
+      </div>
+    </div>
+  );
+
+  return (
+    <div
+      className="h-full w-full overflow-auto"
+      style={appearanceStyle}
+    >
+      <div
+        style={{
+          padding: `${padding}px`,
+
+          transform:
+            typeof data.rotation ===
+              "number" &&
+            data.rotation !== 0
+              ? `rotate(${data.rotation}deg)`
+              : undefined,
+
+          transformOrigin: "center",
+        }}
+      >
+        {data.showHeading !== false &&
+        data.heading ? (
+          <div
+            className="mb-2 whitespace-normal break-words"
+            style={headingStyle}
+          >
+            {data.heading}
+          </div>
+        ) : null}
+
+        {data.showSubtitle !== false &&
+        data.subtitle ? (
+          <div
+            className="mb-5 whitespace-normal break-words"
+            style={subtitleStyle}
+          >
+            {data.subtitle}
+          </div>
+        ) : null}
+
+        {nodes.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-neutral-300 p-6 text-center text-sm text-neutral-500">
+            Add hub nodes to display this diagram.
+          </div>
+        ) : layout === "orbit" ? (
+          renderOrbitLayout()
+        ) : layout === "spokes" ? (
+          renderSpokesLayout()
+        ) : (
+          renderRadialLayout()
+        )}
+      </div>
+    </div>
+  );
+}
+
 function FormulaBoardLive({
   block,
   designKey,
@@ -19442,6 +20176,9 @@ case "statistic_cards":
 
 case "data_pyramid":
   return renderDataPyramid(block, designKey);
+
+  case "circular_hub":
+  return renderCircularHub(block, designKey);
 
 case "formula_board":
   return renderFormulaBoard(block, designKey);

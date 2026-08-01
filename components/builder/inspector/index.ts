@@ -49,7 +49,7 @@ export { StatisticCardsInspector } from "./StatisticCardsInspector";
 export { FormulaBoardInspector } from "./FormulaBoardInspector";
 export { ComparisonTableInspector } from "./ComparisonTableInspector";
 export { DataPyramidInspector } from "./DataPyramidInspector";
-
+export { CircularHubInspector } from "./CircularHubInspector";
 
 
 

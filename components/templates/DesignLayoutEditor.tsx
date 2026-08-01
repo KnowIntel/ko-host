@@ -56,10 +56,11 @@ import {
   CartInspector,
   LinksInspector,
   ProcessFlowInspector,
-StatisticCardsInspector,
-ComparisonTableInspector,
-DataPyramidInspector,
-FormulaBoardInspector,
+  StatisticCardsInspector,
+  ComparisonTableInspector,
+  CircularHubInspector,
+  DataPyramidInspector,
+  FormulaBoardInspector,
 } from "@/components/builder/inspector";
 
 /* ------------------------------------ INSPECTOR BLOCK FILES - END ------------------------------------ */
@@ -81,6 +82,18 @@ import type {
   DataPyramidStyleTarget,
   DataPyramidTextTarget,
 } from "@/components/builder/formatting/dataPyramidFormatting";
+
+
+import {
+  applyCircularHubStylePatch,
+  applyCircularHubTextStylePatch,
+  getCircularHubTextStyle,
+} from "@/components/builder/formatting/circularHubFormatting";
+
+import type {
+  CircularHubStyleTarget,
+  CircularHubTextTarget,
+} from "@/components/builder/formatting/circularHubFormatting";
 
 import {
   applyFormulaBoardStylePatch,
@@ -2473,6 +2486,16 @@ const [
 ] = useState<DataPyramidStyleTarget>("level");
 
 const [
+  circularHubTextTarget,
+  setCircularHubTextTarget,
+] = useState<CircularHubTextTarget>("heading");
+
+const [
+  circularHubStyleTarget,
+  setCircularHubStyleTarget,
+] = useState<CircularHubStyleTarget>("hub");
+
+const [
   comparisonTableStyleTarget,
   setComparisonTableStyleTarget,
 ] = useState<ComparisonTableStyleTarget>("header");
@@ -2822,6 +2845,11 @@ const selectedStyle =
   ? (getDataPyramidTextStyle(
       selectedBlockFromDraft,
       dataPyramidTextTarget,
+    ) as TextStyle)
+: selectedBlockFromDraft?.type === "circular_hub"
+  ? (getCircularHubTextStyle(
+      selectedBlockFromDraft,
+      circularHubTextTarget,
     ) as TextStyle)
 : selectedBlockFromDraft?.type === "formula_board"
   ? (getFormulaBoardTextStyle(
@@ -3226,6 +3254,7 @@ selectedBlock?.type === "process_flow" ||
 selectedBlock?.type === "statistic_cards" ||
 selectedBlock?.type === "comparison_table" ||
 selectedBlock?.type === "data_pyramid" ||
+selectedBlock?.type === "circular_hub" ||
 selectedBlock?.type === "formula_board" ||
   selectedBlock?.type === "file_share" ||
   selectedBlock?.type === "speed_dating" ||
@@ -3273,6 +3302,7 @@ selectedBlock?.type === "process_flow" ||
 selectedBlock?.type === "statistic_cards" ||
 selectedBlock?.type === "comparison_table" ||
 selectedBlock?.type === "data_pyramid" ||
+selectedBlock?.type === "circular_hub" ||
 selectedBlock?.type === "formula_board" ||
   selectedBlock?.type === "file_share" ||
   selectedBlock?.type === "speed_dating" ||
@@ -3321,6 +3351,7 @@ const showBorderWidthRadiusControls =
   selectedBlock?.type === "statistic_cards" ||
 selectedBlock?.type === "comparison_table" ||
 selectedBlock?.type === "data_pyramid" ||
+selectedBlock?.type === "circular_hub" ||
   selectedBlock?.type === "formula_board" ||
   selectedBlock?.type === "file_share" ||
   selectedBlock?.type === "speed_dating" ||
@@ -5001,6 +5032,20 @@ if (selectedBlock?.type === "data_pyramid") {
   return;
 }
 
+if (selectedBlock?.type === "circular_hub") {
+  updateSelectedBlock((block) =>
+    block.type !== "circular_hub"
+      ? block
+      : applyCircularHubTextStylePatch(
+          block,
+          circularHubTextTarget,
+          patch,
+        ),
+  );
+
+  return;
+}
+
   if (selectedBlock?.type === "formula_board") {
   updateSelectedBlock((block) =>
     block.type !== "formula_board"
@@ -5805,6 +5850,20 @@ if (selectedBlock?.type === "data_pyramid") {
       : applyDataPyramidStylePatch(
           block,
           dataPyramidStyleTarget,
+          patch,
+        ),
+  );
+
+  return;
+}
+
+if (selectedBlock?.type === "circular_hub") {
+  updateSelectedBlock((block) =>
+    block.type !== "circular_hub"
+      ? block
+      : applyCircularHubStylePatch(
+          block,
+          circularHubStyleTarget,
           patch,
         ),
   );
@@ -10027,7 +10086,8 @@ if (
   block.type === "process_flow" ||
   block.type === "statistic_cards" ||
   block.type === "comparison_table" ||
-  block.type === "data_pyramid"
+  block.type === "data_pyramid" ||
+  block.type === "circular_hub"
 ) {
   return (
     <div className="h-full w-full">
@@ -13206,6 +13266,42 @@ selectedBlock?.type === "statistic_cards" ? (
     uploadImageToStatisticCard={
       uploadImageToStatisticCard
     }
+    inspectorCardClass={
+      inspectorCardClass
+    }
+    inspectorLabelClass={
+      inspectorLabelClass
+    }
+    inspectorInputClass={
+      inspectorInputClass
+    }
+    inspectorTextareaClass={
+      inspectorTextareaClass
+    }
+    toolSetButtonClass={
+      toolSetButtonClass
+    }
+  />
+) : null}
+
+{!isMultiSelection &&
+selectedBlock?.type === "circular_hub" ? (
+  <CircularHubInspector
+    selectedBlock={selectedBlock}
+    updateSelectedBlock={updateSelectedBlock}
+    circularHubTextTarget={
+      circularHubTextTarget
+    }
+    setCircularHubTextTarget={
+      setCircularHubTextTarget
+    }
+    circularHubStyleTarget={
+      circularHubStyleTarget
+    }
+    setCircularHubStyleTarget={
+      setCircularHubStyleTarget
+    }
+    makeClientId={makeClientId}
     inspectorCardClass={
       inspectorCardClass
     }

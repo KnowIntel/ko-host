@@ -2133,7 +2133,86 @@ export type DataPyramidBlockData =
   };
 
 export type StoryCardsBlockData = InfographicBaseBlockData;
-export type CircularHubBlockData = InfographicBaseBlockData;
+export type CircularHubLayout =
+  | "radial"
+  | "orbit"
+  | "spokes";
+
+export type CircularHubAnimationStyle =
+  | "none"
+  | "fade"
+  | "spin"
+  | "pulse"
+  | "grow";
+
+export type CircularHubNode = {
+  id: string;
+
+  title: string;
+  subtitle: string;
+  description: string;
+  badge: string;
+
+  iconName: string;
+
+  imageUrl: string;
+  imageStoragePath: string;
+  imageMimeType: string;
+  imageSizeBytes?: number;
+  imageOriginalSizeBytes?: number;
+
+  backgroundColor: string;
+  borderColor: string;
+  accentColor: string;
+
+  href: string;
+};
+
+export type CircularHubBlockData =
+  InfographicBaseBlockData & {
+    heading: string;
+    subtitle: string;
+
+    centerTitle: string;
+    centerSubtitle: string;
+
+    layout: CircularHubLayout;
+
+    nodes: CircularHubNode[];
+
+    showHeading: boolean;
+    showSubtitle: boolean;
+    showCenter: boolean;
+    showNodeDescriptions: boolean;
+    showBadges: boolean;
+    showIcons: boolean;
+    showConnectors: boolean;
+
+    headingStyle: TextStyle;
+    subtitleStyle: TextStyle;
+    centerTitleStyle: TextStyle;
+    centerSubtitleStyle: TextStyle;
+    nodeTitleStyle: TextStyle;
+    nodeSubtitleStyle: TextStyle;
+    nodeDescriptionStyle: TextStyle;
+    nodeBadgeStyle: TextStyle;
+
+    hubBackgroundColor: string;
+    connectorColor: string;
+
+    padding: number;
+    gap: number;
+    hubRadius: number;
+    nodeRadius: number;
+    nodeSize: number;
+    borderWidth: number;
+    rotation: number;
+
+    nodeShadow: boolean;
+
+    animationStyle: CircularHubAnimationStyle;
+  };
+
 export type InteractiveHotspotsBlockData = InfographicBaseBlockData;
 export type FormulaBoardOperation =
   | "reference"
@@ -5648,8 +5727,270 @@ case "data_pyramid":
       animationStyle: "none",
     },
   };
-  
+
 case "circular_hub":
+  return {
+    id: makeId("circular_hub"),
+    type: "circular_hub",
+    label: "Circular Hub",
+
+    grid: {
+      ...grid,
+      colSpan: 8,
+      rowSpan: 6,
+    },
+
+    appearance: {
+      ...createDefaultBlockAppearance(),
+      backgroundColor: "#FFFFFF",
+      borderColor: "#E5E7EB",
+      borderWidth: 1,
+      borderRadius: 24,
+    },
+
+    data: {
+      heading: "Connected Ecosystem",
+
+      subtitle:
+        "Show how related ideas, services, or teams connect to one central focus.",
+
+      centerTitle: "Core",
+      centerSubtitle: "Central focus",
+
+      layout: "radial",
+
+      showHeading: true,
+      showSubtitle: true,
+      showCenter: true,
+      showNodeDescriptions: true,
+      showBadges: true,
+      showIcons: true,
+      showConnectors: true,
+
+      nodes: [
+        {
+          id: makeId("circular_hub_node"),
+
+          title: "Strategy",
+          subtitle: "Direction",
+
+          description:
+            "Define priorities, outcomes, and the path forward.",
+
+          badge: "Plan",
+
+          iconName: "target",
+
+          imageUrl: "",
+          imageStoragePath: "",
+          imageMimeType: "",
+
+          backgroundColor: "#EFF6FF",
+          borderColor: "#93C5FD",
+          accentColor: "#2563EB",
+
+          href: "",
+        },
+
+        {
+          id: makeId("circular_hub_node"),
+
+          title: "People",
+          subtitle: "Team",
+
+          description:
+            "Bring together the skills and relationships needed to succeed.",
+
+          badge: "Connect",
+
+          iconName: "users",
+
+          imageUrl: "",
+          imageStoragePath: "",
+          imageMimeType: "",
+
+          backgroundColor: "#F5F3FF",
+          borderColor: "#C4B5FD",
+          accentColor: "#7C3AED",
+
+          href: "",
+        },
+
+        {
+          id: makeId("circular_hub_node"),
+
+          title: "Process",
+          subtitle: "Workflow",
+
+          description:
+            "Create repeatable systems that keep work moving.",
+
+          badge: "Build",
+
+          iconName: "activity",
+
+          imageUrl: "",
+          imageStoragePath: "",
+          imageMimeType: "",
+
+          backgroundColor: "#ECFDF5",
+          borderColor: "#6EE7B7",
+          accentColor: "#059669",
+
+          href: "",
+        },
+
+        {
+          id: makeId("circular_hub_node"),
+
+          title: "Technology",
+          subtitle: "Tools",
+
+          description:
+            "Use the right platforms and resources to support execution.",
+
+          badge: "Enable",
+
+          iconName: "layers",
+
+          imageUrl: "",
+          imageStoragePath: "",
+          imageMimeType: "",
+
+          backgroundColor: "#FFF7ED",
+          borderColor: "#FDBA74",
+          accentColor: "#EA580C",
+
+          href: "",
+        },
+
+        {
+          id: makeId("circular_hub_node"),
+
+          title: "Insights",
+          subtitle: "Learning",
+
+          description:
+            "Measure results and turn information into better decisions.",
+
+          badge: "Measure",
+
+          iconName: "chart",
+
+          imageUrl: "",
+          imageStoragePath: "",
+          imageMimeType: "",
+
+          backgroundColor: "#FEFCE8",
+          borderColor: "#FDE047",
+          accentColor: "#CA8A04",
+
+          href: "",
+        },
+
+        {
+          id: makeId("circular_hub_node"),
+
+          title: "Growth",
+          subtitle: "Outcome",
+
+          description:
+            "Scale what works and create sustainable progress.",
+
+          badge: "Expand",
+
+          iconName: "trending-up",
+
+          imageUrl: "",
+          imageStoragePath: "",
+          imageMimeType: "",
+
+          backgroundColor: "#FDF2F8",
+          borderColor: "#F9A8D4",
+          accentColor: "#DB2777",
+
+          href: "",
+        },
+      ],
+
+      style: createDefaultTextStyle(),
+
+      headingStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 26,
+        bold: true,
+        align: "center",
+      },
+
+      subtitleStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        color: "#6B7280",
+        align: "center",
+      },
+
+      centerTitleStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 20,
+        bold: true,
+        color: "#FFFFFF",
+        align: "center",
+      },
+
+      centerSubtitleStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 12,
+        color: "#DBEAFE",
+        align: "center",
+      },
+
+      nodeTitleStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 15,
+        bold: true,
+        color: "#111827",
+        align: "center",
+      },
+
+      nodeSubtitleStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 11,
+        color: "#6B7280",
+        align: "center",
+      },
+
+      nodeDescriptionStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 12,
+        color: "#4B5563",
+        align: "center",
+      },
+
+      nodeBadgeStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 10,
+        bold: true,
+        color: "#374151",
+        align: "center",
+      },
+
+      hubBackgroundColor: "#2563EB",
+      connectorColor: "#CBD5E1",
+
+      padding: 20,
+      gap: 16,
+      hubRadius: 72,
+      nodeRadius: 18,
+      nodeSize: 150,
+      borderWidth: 1,
+      rotation: 0,
+
+      nodeShadow: true,
+
+      animationStyle: "none",
+    },
+  };
+  
 case "story_cards":
 case "interactive_hotspots":
   return {
