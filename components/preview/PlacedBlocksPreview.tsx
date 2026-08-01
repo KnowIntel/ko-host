@@ -78,7 +78,7 @@ type ResolvedGrid = GridPlacement & {
 
 import { MICROSITE_PAGE_WIDTH } from "@/lib/constants/layout";
 
-const CANVAS_LOGICAL_PAGE_WIDTH = 2200;
+const BASE_PAGE_WIDTH = MICROSITE_PAGE_WIDTH - 68;
 
 const GRID_COLUMNS = 12;
 const GRID_GAP = 16;
@@ -210,8 +210,8 @@ const [containerWidth, setContainerWidth] = useState<number>(0);
     [typedDraft.pageLength],
   );
 
-const logicalPageWidth = CANVAS_LOGICAL_PAGE_WIDTH;
-const logicalRowHeight = 120;
+const logicalPageWidth = BASE_PAGE_WIDTH;
+  const logicalRowHeight = 100;
 
   const pageColor =
     (typedDraft.pageColor && typedDraft.pageColor.trim()) ||
@@ -884,32 +884,82 @@ zIndex:
     }
   }}
 >
-<BlockRenderer
-  key={`${block.id}-${JSON.stringify(block.data)}`}
-  block={block}
-  blocks={draft.blocks}
-  designKey={designKey}
-  micrositeId={micrositeId}
-    micrositeSlug={
-    micrositeSlug ||
-    (draft as any).slug ||
-    (draft as any).siteSlug ||
-    (draft as any).micrositeSlug ||
-    null
-  }
-  serverNow={serverNow}
-  previewMode={previewMode}
-  cartItems={cartItems}
-  cartSubtotal={cartSubtotal}
-  listingQuantities={listingQuantities}
-  onDownloadFrame={handleDownloadFrame as any}
-  onChangeListingQuantity={(listingId: string, nextQuantity: number) => {
-    setListingQuantities((prev) => ({
-      ...prev,
-      [listingId]: Math.max(0, Math.floor(nextQuantity || 0)),
-    }));
-  }}
-/>
+{(() => {
+  const previewBlock =
+    block.type === "text_fx"
+      ? (() => {
+          const hasTexture = Boolean(
+            block.data.style?.textureEnabled &&
+              block.data.style?.textureImageUrl,
+          );
+
+          return {
+            ...block,
+            data: {
+              ...block.data,
+              style: {
+                ...block.data.style,
+                color: hasTexture
+                  ? "transparent"
+                  : block.data.style?.color,
+                WebkitTextFillColor: hasTexture
+                  ? "transparent"
+                  : block.data.style?.color,
+                backgroundImage: hasTexture
+                  ? `url("${block.data.style?.textureImageUrl}")`
+                  : undefined,
+                backgroundRepeat: hasTexture ? "repeat" : undefined,
+                backgroundSize: hasTexture
+                  ? `${block.data.style?.textureScale ?? 100}%`
+                  : undefined,
+                backgroundPosition: hasTexture
+                  ? `${block.data.style?.texturePositionX ?? 50}% ${
+                      block.data.style?.texturePositionY ?? 50
+                    }%`
+                  : undefined,
+                backgroundClip: hasTexture ? "text" : undefined,
+                WebkitBackgroundClip: hasTexture ? "text" : undefined,
+              } as any,
+            },
+          };
+        })()
+      : block;
+
+  return (
+    <BlockRenderer
+      key={`${previewBlock.id}-${JSON.stringify(previewBlock.data)}`}
+      block={previewBlock}
+      blocks={draft.blocks}
+      designKey={designKey}
+      micrositeId={micrositeId}
+      micrositeSlug={
+        micrositeSlug ||
+        (draft as any).slug ||
+        (draft as any).siteSlug ||
+        (draft as any).micrositeSlug ||
+        null
+      }
+      serverNow={serverNow}
+      previewMode={previewMode}
+      cartItems={cartItems}
+      cartSubtotal={cartSubtotal}
+      listingQuantities={listingQuantities}
+      onDownloadFrame={handleDownloadFrame as any}
+      onChangeListingQuantity={(
+        listingId: string,
+        nextQuantity: number,
+      ) => {
+        setListingQuantities((prev) => ({
+          ...prev,
+          [listingId]: Math.max(
+            0,
+            Math.floor(nextQuantity || 0),
+          ),
+        }));
+      }}
+    />
+  );
+})()}
     </div>
     </div>
   );
