@@ -14779,228 +14779,389 @@ function renderTextFx(
   designKey?: string,
 ) {
   const text = block.data.text || "TextFX";
+  const characters = Array.from(text);
   const style = getContainerTextStyle(block.data.style, designKey);
 
   const fx = (block.data.fx || {}) as any;
-  const mode = fx.mode ?? "straight";
-  const intensity = fx.intensity ?? 50;
-  const rotation = fx.rotation ?? 0;
-  const opacity = fx.opacity ?? 1;
-  const letterScaleX = Math.max(0.5, Math.min(2, Number(fx.letterScaleX ?? 1)));
+
+  const mode = String(fx.mode ?? "straight") as
+    | "straight"
+    | "arch"
+    | "dip"
+    | "circle";
+
+  const intensity = Math.max(
+    0,
+    Math.min(100, Number(fx.intensity ?? 0)),
+  );
+
+  const rotation = Math.max(
+    -180,
+    Math.min(180, Number(fx.rotation ?? 0)),
+  );
+
+  const opacity = Math.max(
+    0,
+    Math.min(1, Number(fx.opacity ?? 1)),
+  );
+
+  const letterScaleX = Math.max(
+    0.5,
+    Math.min(2, Number(fx.letterScaleX ?? 1)),
+  );
+
   const transformStyle = String(fx.transformStyle ?? "normal");
-const transformStrength = Math.max(
-  0,
-  Math.min(200, Number(fx.transformStrength ?? 100)),
-);
-const transformMultiplier = transformStrength / 100;
-  const positionX = block.data.positionX ?? 50;
-  const positionY = block.data.positionY ?? 50;
+
+  const transformStrength = Math.max(
+    0,
+    Math.min(200, Number(fx.transformStrength ?? 100)),
+  );
+
+  const transformMultiplier = transformStrength / 100;
+
+  const positionX = Math.max(
+    0,
+    Math.min(100, Number(block.data.positionX ?? 50)),
+  );
+
+  const positionY = Math.max(
+    0,
+    Math.min(100, Number(block.data.positionY ?? 50)),
+  );
 
   const translateX = (positionX - 50) * 0.6;
   const translateY = (positionY - 50) * 0.6;
 
   const shadowEnabled = fx.shadowEnabled === true;
-  const shadowColor = fx.shadowColor ?? "#000000";
-  const shadowOffsetX = fx.shadowOffsetX ?? 2;
-  const shadowOffsetY = fx.shadowOffsetY ?? 2;
-  const shadowBlur = fx.shadowBlur ?? 4;
+  const shadowColor = String(fx.shadowColor ?? "#000000");
+  const shadowOffsetX = Number(fx.shadowOffsetX ?? 2);
+  const shadowOffsetY = Number(fx.shadowOffsetY ?? 2);
+  const shadowBlur = Math.max(0, Number(fx.shadowBlur ?? 4));
 
   const outlineEnabled = fx.outlineEnabled === true;
-  const outlineColor = fx.outlineColor ?? "#000000";
-  const outlineWidth = fx.outlineWidth ?? 2;
+  const outlineColor = String(fx.outlineColor ?? "#000000");
+  const outlineWidth = Math.max(
+    0,
+    Math.min(12, Number(fx.outlineWidth ?? 2)),
+  );
+
+  const defaultTextColor = String(
+    block.data.style?.color || style.color || "#000000",
+  );
+
+  const letterColors: string[] = Array.isArray(fx.letterColors)
+    ? fx.letterColors
+    : [];
+
+  function getCharacterColor(index: number) {
+    const savedColor = letterColors[index];
+
+    return typeof savedColor === "string" && savedColor.trim()
+      ? savedColor
+      : defaultTextColor;
+  }
 
   const textShadow = shadowEnabled
     ? `${shadowOffsetX}px ${shadowOffsetY}px ${shadowBlur}px ${shadowColor}`
     : undefined;
-
-if (mode === "straight") {
-  const textAlign = (block.data.style?.align ?? "center") as "left" | "center" | "right";
-
-  const justifyContent =
-    textAlign === "left"
-      ? "flex-start"
-      : textAlign === "right"
-        ? "flex-end"
-        : "center";
-
-  return (
-    <div
-      className="flex h-full w-full p-2"
-style={{
-  ...getAppearanceStyle(block),
-  justifyContent,
-  alignItems: "center",
-  textAlign,
-  transform: `translate(${translateX}%, ${translateY}%)`,
-}}
-    >
-      <div
-        style={{
-          ...style,
-          display: "inline-block",
-          transform: `rotate(${rotation}deg) scaleX(${letterScaleX})`,
-          transformOrigin: "center center",
-          opacity,
-          textShadow,
-          WebkitTextStroke: outlineEnabled
-            ? `${outlineWidth}px ${outlineColor}`
-            : undefined,
-        }}
-      >
-        {transformStyle === "normal"
-  ? text
-  : text.split("").map((char, index) => {
-      const offset =
-        transformStyle === "wave"
-          ? Math.sin(index * 0.9) * 6 * transformMultiplier
-          : transformStyle === "rise"
-            ? -index * 1.5 * transformMultiplier
-            : transformStyle === "dipLetters"
-              ? index * 1.5 * transformMultiplier
-              : transformStyle === "stagger"
-                ? (index % 2 === 0 ? -5 : 5) * transformMultiplier
-                : transformStyle === "bounce"
-                  ? (index % 2 === 0 ? -7 : 0) * transformMultiplier
-                  : 0;
-
-      const rotate =
-        transformStyle === "tiltLeft"
-          ? -8 * transformMultiplier
-          : transformStyle === "tiltRight"
-            ? 8 * transformMultiplier
-            : 0;
-
-      return (
-        <span
-          key={`${char}-${index}`}
-          style={{
-            display: "inline-block",
-            transform: `translateY(${offset}px) rotate(${rotate}deg)`,
-            whiteSpace: char === " " ? "pre" : undefined,
-          }}
-        >
-          {char}
-        </span>
-      );
-    })}
-      </div>
-    </div>
-  );
-}
 
   const fontSize =
     typeof block.data.style?.fontSize === "number"
       ? block.data.style.fontSize
       : 48;
 
-  const curveStrength = Math.max(0, Math.min(100, intensity));
-  const radius = 1200 - curveStrength * 10;
-  const horizontalPadding = 20;
-  const topPadding = Math.max(40, fontSize * 1.1);
-  const bottomPadding = Math.max(32, fontSize * 0.65);
+  const fontFamily = style.fontFamily;
+  const fontWeight = style.fontWeight;
+  const fontStyle = style.fontStyle;
 
-  const viewBoxWidth = radius * 2 + horizontalPadding * 2;
-  const viewBoxHeight = radius * 2 + topPadding + bottomPadding;
-  const centerX = viewBoxWidth / 2;
-  const centerY = topPadding + radius;
+  /*
+   * Curve level 0 must render as completely straight.
+   * Straight mode also uses this rendering path.
+   */
+  if (mode === "straight" || intensity === 0) {
+    const textAlign = (block.data.style?.align ?? "center") as
+      | "left"
+      | "center"
+      | "right";
 
-  const estimatedTextLength = Math.max(
-    fontSize * text.length * 0.62 * letterScaleX,
+    const justifyContent =
+      textAlign === "left"
+        ? "flex-start"
+        : textAlign === "right"
+          ? "flex-end"
+          : "center";
+
+    return (
+      <div
+        className="flex h-full w-full p-2"
+        style={{
+          ...getAppearanceStyle(block),
+          justifyContent,
+          alignItems: "center",
+          textAlign,
+          transform: `translate(${translateX}%, ${translateY}%)`,
+        }}
+      >
+        <div
+          style={{
+            ...style,
+            display: "inline-block",
+            transform: `rotate(${rotation}deg) scaleX(${letterScaleX})`,
+            transformOrigin: "center center",
+            opacity,
+            textShadow,
+            WebkitTextStroke: outlineEnabled
+              ? `${outlineWidth}px ${outlineColor}`
+              : undefined,
+            paintOrder: outlineEnabled ? "stroke fill" : undefined,
+          }}
+        >
+          {characters.map((character, index) => {
+            const verticalOffset =
+              transformStyle === "wave"
+                ? Math.sin(index * 0.9) * 6 * transformMultiplier
+                : transformStyle === "rise"
+                  ? -index * 1.5 * transformMultiplier
+                  : transformStyle === "dipLetters"
+                    ? index * 1.5 * transformMultiplier
+                    : transformStyle === "stagger"
+                      ? (index % 2 === 0 ? -5 : 5) *
+                        transformMultiplier
+                      : transformStyle === "bounce"
+                        ? (index % 2 === 0 ? -7 : 0) *
+                          transformMultiplier
+                        : 0;
+
+            const characterRotation =
+              transformStyle === "tiltLeft"
+                ? -8 * transformMultiplier
+                : transformStyle === "tiltRight"
+                  ? 8 * transformMultiplier
+                  : 0;
+
+            return (
+              <span
+                key={`${block.id}-character-${index}`}
+                style={{
+                  display: "inline-block",
+                  color: getCharacterColor(index),
+                  transform: `translateY(${verticalOffset}px) rotate(${characterRotation}deg)`,
+                  transformOrigin: "center center",
+                  whiteSpace: character === " " ? "pre" : undefined,
+                }}
+              >
+                {character}
+              </span>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  /*
+   * Keep the SVG coordinate system stable.
+   *
+   * Changing the curve only changes the path radius. It does not change the
+   * viewBox dimensions or font size, preventing the text from shrinking as
+   * the curve increases.
+   */
+  const canvasWidth = Math.max(
+    1600,
+    fontSize * Math.max(characters.length, 1) * 1.6,
+  );
+
+  const canvasHeight = Math.max(
+    800,
+    fontSize * 12,
+  );
+
+  const centerX = canvasWidth / 2;
+  const centerY = canvasHeight / 2;
+
+  /*
+   * At low curve values the radius is very large, producing an almost-flat
+   * path. At high values the radius becomes smaller, producing more curve.
+   */
+  const maximumRadius = Math.max(
+    canvasWidth * 3,
+    fontSize * 50,
+  );
+
+  const minimumRadius = Math.max(
+    canvasWidth * 0.34,
+    fontSize * 5,
+  );
+
+  const curveProgress = intensity / 100;
+
+  const radius =
+    maximumRadius -
+    (maximumRadius - minimumRadius) * curveProgress;
+
+  /*
+   * Arch and Dip use the exact same path width and radius.
+   * Only the sweep direction changes, keeping character spacing consistent.
+   */
+  const estimatedNaturalTextWidth = Math.max(
+    fontSize * Math.max(characters.length, 1) * 0.62,
     fontSize,
   );
 
-  const stableTextFxKey = [
-    block.type,
-    block.data.text || "",
-    mode,
-    intensity,
-    rotation,
-    opacity,
-    letterScaleX,
-    block.data.style?.fontFamily || "",
-    block.data.style?.fontSize || "",
-    block.data.style?.color || "",
-    outlineEnabled ? outlineColor : "",
-    outlineEnabled ? outlineWidth : "",
-    shadowEnabled ? shadowColor : "",
-    shadowEnabled ? shadowOffsetX : "",
-    shadowEnabled ? shadowOffsetY : "",
-    shadowEnabled ? shadowBlur : "",
-  ].join("|");
+  const desiredPathWidth = Math.max(
+    estimatedNaturalTextWidth * 1.25,
+    canvasWidth * 0.22,
+  );
 
-  const pathId = `textfx-path-${stableTextFxKey
+  const maximumPathWidth = canvasWidth * 0.82;
+
+  const pathWidth = Math.min(
+    maximumPathWidth,
+    desiredPathWidth,
+    radius * 1.8,
+  );
+
+  const halfPathWidth = pathWidth / 2;
+  const leftX = centerX - halfPathWidth;
+  const rightX = centerX + halfPathWidth;
+
+  /*
+   * Calculate the vertical rise of the selected arc so Arch and Dip remain
+   * centered within the same canvas area.
+   */
+  const halfChord = Math.min(
+    halfPathWidth,
+    radius * 0.999,
+  );
+
+  const arcRise =
+    radius -
+    Math.sqrt(
+      Math.max(
+        0,
+        radius * radius - halfChord * halfChord,
+      ),
+    );
+
+  const pathBaselineY =
+    mode === "arch"
+      ? centerY + arcRise / 2
+      : mode === "dip"
+        ? centerY - arcRise / 2
+        : centerY;
+
+  const safeBlockId = String(block.id)
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 120)}`;
+    .replace(/[^a-z0-9_-]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  const pathId = `textfx-path-${safeBlockId}-${mode}`;
 
   let path = "";
 
   if (mode === "arch") {
-    path = `
-      M ${horizontalPadding} ${centerY}
-      A ${radius} ${radius} 0 0 1 ${viewBoxWidth - horizontalPadding} ${centerY}
-    `;
+    path = [
+      `M ${leftX} ${pathBaselineY}`,
+      `A ${radius} ${radius} 0 0 1 ${rightX} ${pathBaselineY}`,
+    ].join(" ");
   }
 
   if (mode === "dip") {
-    path = `
-      M ${horizontalPadding} ${topPadding}
-      A ${radius} ${radius} 0 0 0 ${viewBoxWidth - horizontalPadding} ${topPadding}
-    `;
+    path = [
+      `M ${leftX} ${pathBaselineY}`,
+      `A ${radius} ${radius} 0 0 0 ${rightX} ${pathBaselineY}`,
+    ].join(" ");
   }
 
   if (mode === "circle") {
-    path = `
-      M ${centerX}, ${centerY}
-      m -${radius}, 0
-      a ${radius},${radius} 0 1,1 ${radius * 2},0
-      a ${radius},${radius} 0 1,1 -${radius * 2},0
-    `;
+    /*
+     * Circle intensity controls the circle radius without changing font size
+     * or the SVG canvas dimensions.
+     */
+    const largestCircleRadius = Math.min(
+      canvasWidth * 0.34,
+      canvasHeight * 0.38,
+    );
+
+    const smallestCircleRadius = Math.max(
+      fontSize * 2.5,
+      Math.min(canvasWidth, canvasHeight) * 0.16,
+    );
+
+    const circleRadius =
+      largestCircleRadius -
+      (largestCircleRadius - smallestCircleRadius) *
+        curveProgress;
+
+    path = [
+      `M ${centerX} ${centerY}`,
+      `m -${circleRadius} 0`,
+      `a ${circleRadius} ${circleRadius} 0 1 1 ${circleRadius * 2} 0`,
+      `a ${circleRadius} ${circleRadius} 0 1 1 -${circleRadius * 2} 0`,
+    ].join(" ");
   }
+
+  const horizontalScaleTransform =
+    letterScaleX === 1
+      ? undefined
+      : `translate(${centerX} 0) scale(${letterScaleX} 1) translate(${-centerX} 0)`;
 
   return (
     <div
       className="h-full w-full overflow-visible"
       style={{
-  ...getAppearanceStyle(block),
-  transform: `translate(${translateX}%, ${translateY}%)`,
-}}
+        ...getAppearanceStyle(block),
+        transform: `translate(${translateX}%, ${translateY}%)`,
+      }}
     >
       <svg
         width="100%"
         height="100%"
-        viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`}
-        preserveAspectRatio="xMidYMin meet"
+        viewBox={`0 0 ${canvasWidth} ${canvasHeight}`}
+        preserveAspectRatio="xMidYMid meet"
         style={{
           transform: `rotate(${rotation}deg)`,
+          transformOrigin: "center center",
           opacity,
           overflow: "visible",
         }}
       >
         <defs>
-          <path id={pathId} d={path} fill="none" />
+          <path
+            id={pathId}
+            d={path}
+            fill="none"
+          />
         </defs>
 
         <text
-          fill={style.color || "#000"}
-          fontFamily={style.fontFamily}
-          fontSize={style.fontSize}
-          fontWeight={style.fontWeight}
-          fontStyle={style.fontStyle}
+          fontFamily={fontFamily}
+          fontSize={fontSize}
+          fontWeight={fontWeight}
+          fontStyle={fontStyle}
           stroke={outlineEnabled ? outlineColor : undefined}
           strokeWidth={outlineEnabled ? outlineWidth : undefined}
           paintOrder={outlineEnabled ? "stroke fill" : undefined}
-          filter={
-            shadowEnabled
+          transform={horizontalScaleTransform}
+          style={{
+            filter: shadowEnabled
               ? `drop-shadow(${shadowOffsetX}px ${shadowOffsetY}px ${shadowBlur}px ${shadowColor})`
-              : undefined
-          }
-          textLength={estimatedTextLength}
-          lengthAdjust="spacingAndGlyphs"
+              : undefined,
+          }}
         >
-          <textPath href={`#${pathId}`} startOffset="50%" textAnchor="middle">
-            {text}
+          <textPath
+            href={`#${pathId}`}
+            startOffset="50%"
+            textAnchor="middle"
+          >
+            {characters.map((character, index) => (
+              <tspan
+                key={`${block.id}-curved-character-${index}`}
+                fill={getCharacterColor(index)}
+              >
+                {character === " " ? "\u00A0" : character}
+              </tspan>
+            ))}
           </textPath>
         </text>
       </svg>
@@ -21860,7 +22021,7 @@ case "data_pyramid":
 
   case "circular_hub":
   return renderCircularHub(block, designKey);
-  
+
 case "interactive_hotspots":
   return renderInteractiveHotspots(
     block,

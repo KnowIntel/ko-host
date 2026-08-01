@@ -524,14 +524,31 @@ export type TextFxBlock = BaseBlock & {
       intensity?: number;
       rotation?: number;
       opacity?: number;
-      transformStyle?: string;
-      transformStrength?: number;
 
-      outline?: {
-        enabled?: boolean;
-        color?: string;
-        width?: number;
-      };
+      transformStyle?:
+        | "normal"
+        | "wave"
+        | "rise"
+        | "dipLetters"
+        | "stagger"
+        | "tiltLeft"
+        | "tiltRight"
+        | "bounce";
+
+      transformStrength?: number;
+      letterScaleX?: number;
+
+      letterColors?: string[];
+
+      shadowEnabled?: boolean;
+      shadowColor?: string;
+      shadowOffsetX?: number;
+      shadowOffsetY?: number;
+      shadowBlur?: number;
+
+      outlineEnabled?: boolean;
+      outlineColor?: string;
+      outlineWidth?: number;
     };
   };
 };
@@ -4012,11 +4029,25 @@ case "text_fx":
 
       fx: {
         mode: "straight",
-        intensity: 50,
+        intensity: 0,
         rotation: 0,
         opacity: 1,
+
         transformStyle: "normal",
         transformStrength: 100,
+        letterScaleX: 1,
+
+        letterColors: [],
+
+        shadowEnabled: false,
+        shadowColor: "#000000",
+        shadowOffsetX: 2,
+        shadowOffsetY: 2,
+        shadowBlur: 4,
+
+        outlineEnabled: false,
+        outlineColor: "#000000",
+        outlineWidth: 2,
       },
     },
 
@@ -4027,7 +4058,6 @@ case "text_fx":
       borderRadius: 0,
     },
   };
-  
     case "image":
       return {
         id: makeId("image"),

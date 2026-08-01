@@ -6435,84 +6435,98 @@ function updatePageScale(value: number) {
   }));
 }
 
-function updateTextFx(
-  patch: Partial<{
-    mode: "straight" | "arch" | "dip" | "circle";
-    intensity: number;
-    rotation: number;
-    opacity: number;
-    letterScaleX: number;
-    transformStyle: string;
-    transformStrength: number;
-    shadowEnabled: boolean;
-    shadowColor: string;
-    shadowOffsetX: number;
-    shadowOffsetY: number;
-    shadowBlur: number;
-    outlineEnabled: boolean;
-    outlineColor: string;
-    outlineWidth: number;
-  }>,
-) {
+type TextFxPatch = Partial<
+  NonNullable<
+    Extract<MicrositeBlock, { type: "text_fx" }>["data"]["fx"]
+  >
+>;
+
+function updateTextFx(patch: TextFxPatch) {
   if (!selectedBlock || selectedBlock.type !== "text_fx") return;
 
-  setDraft((prev) => ({
+  const selectedBlockId = selectedBlock.id;
+
+  setDraft((prev): BuilderDraft => ({
     ...prev,
-    blocks: prev.blocks.map((b) =>
-      b.id === selectedBlock.id && b.type === "text_fx"
-        ? {
-            ...b,
-            data: {
-              ...b.data,
-              fx: {
-                ...(b.data.fx ?? {}),
-                ...patch,
-              },
-            },
-          }
-        : b,
-    ),
+    blocks: prev.blocks.map((block): MicrositeBlock => {
+      if (block.id !== selectedBlockId || block.type !== "text_fx") {
+        return block;
+      }
+
+      return {
+        ...block,
+        data: {
+          ...block.data,
+          fx: {
+            ...(block.data.fx ?? {}),
+            ...patch,
+          },
+        },
+      };
+    }),
   }));
 }
 
 function resetSelectedTextFx() {
   if (!selectedBlock || selectedBlock.type !== "text_fx") return;
 
-  setDraft((prev) => ({
+  const selectedBlockId = selectedBlock.id;
+
+  setDraft((prev): BuilderDraft => ({
     ...prev,
-    blocks: prev.blocks.map((b) =>
-      b.id === selectedBlock.id && b.type === "text_fx"
-        ? {
-            ...b,
-            data: {
-              ...b.data,
-              style: {
-                fontFamily: "Inter",
-                fontSize: 32,
-                bold: false,
-                italic: false,
-                underline: false,
-                strike: false,
-                align: "center",
-                color: "#000000",
-              },
-              fx: {
-                mode: "straight",
-                intensity: 50,
-                rotation: 0,
-                opacity: 1,
-              },
-            },
-            appearance: {
-              ...b.appearance,
-              backgroundColor: "transparent",
-              borderColor: "#000000",
-              borderWidth: 0,
-              borderRadius: 0,
-            },
-          }
-        : b,
-    ),
+    blocks: prev.blocks.map((block): MicrositeBlock => {
+      if (block.id !== selectedBlockId || block.type !== "text_fx") {
+        return block;
+      }
+
+      return {
+        ...block,
+        data: {
+          ...block.data,
+          text: "TextFX",
+          positionX: 50,
+          positionY: 50,
+          style: {
+            fontFamily: "Inter",
+            fontSize: 32,
+            bold: false,
+            italic: false,
+            underline: false,
+            strike: false,
+            align: "center",
+            color: "#000000",
+          },
+          fx: {
+            mode: "straight",
+            intensity: 0,
+            rotation: 0,
+            opacity: 1,
+            letterScaleX: 1,
+            transformStyle: "normal",
+            transformStrength: 100,
+
+            letterColors: [],
+
+            shadowEnabled: false,
+            shadowColor: "#000000",
+            shadowOffsetX: 2,
+            shadowOffsetY: 2,
+            shadowBlur: 4,
+
+            outlineEnabled: false,
+            outlineColor: "#000000",
+            outlineWidth: 2,
+          },
+        },
+        appearance: {
+          ...block.appearance,
+          backgroundColor: "transparent",
+          borderColor: "#000000",
+          borderWidth: 0,
+          borderRadius: 0,
+        },
+      };
+    }),
   }));
 }
 
