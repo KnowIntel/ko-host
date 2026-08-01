@@ -14840,6 +14840,7 @@ function renderTextFx(
 
   const outlineEnabled = fx.outlineEnabled === true;
   const outlineColor = String(fx.outlineColor ?? "#000000");
+
   const outlineWidth = Math.max(
     0,
     Math.min(12, Number(fx.outlineWidth ?? 2)),
@@ -14865,18 +14866,22 @@ function renderTextFx(
     ? `${shadowOffsetX}px ${shadowOffsetY}px ${shadowBlur}px ${shadowColor}`
     : undefined;
 
-  const fontSize =
-    typeof block.data.style?.fontSize === "number"
-      ? block.data.style.fontSize
-      : 48;
+  const fontSize = Math.max(
+    8,
+    Math.min(
+      480,
+      typeof block.data.style?.fontSize === "number"
+        ? block.data.style.fontSize
+        : 48,
+    ),
+  );
 
   const fontFamily = style.fontFamily;
   const fontWeight = style.fontWeight;
   const fontStyle = style.fontStyle;
 
   /*
-   * Curve level 0 must render as completely straight.
-   * Straight mode also uses this rendering path.
+   * Straight mode and curve level 0 render with regular HTML text.
    */
   if (mode === "straight" || intensity === 0) {
     const textAlign = (block.data.style?.align ?? "center") as
@@ -14905,6 +14910,7 @@ function renderTextFx(
         <div
           style={{
             ...style,
+            fontSize: `${fontSize}px`,
             display: "inline-block",
             transform: `rotate(${rotation}deg) scaleX(${letterScaleX})`,
             transformOrigin: "center center",
@@ -14960,60 +14966,51 @@ function renderTextFx(
   }
 
   /*
-   * Keep the SVG coordinate system stable.
+   * IMPORTANT:
+   * These SVG dimensions must remain independent of fontSize.
    *
-   * Changing the curve only changes the path radius. It does not change the
-   * viewBox dimensions or font size, preventing the text from shrinking as
-   * the curve increases.
+   * Previously, increasing fontSize also increased the viewBox dimensions.
+   * The browser then scaled the larger viewBox back into the same block,
+   * visually cancelling the font-size change.
    */
-  const canvasWidth = Math.max(
-    1600,
-    fontSize * Math.max(characters.length, 1) * 1.6,
-  );
-
-  const canvasHeight = Math.max(
-    800,
-    fontSize * 12,
-  );
+  const canvasWidth = 1600;
+  const canvasHeight = 800;
 
   const centerX = canvasWidth / 2;
   const centerY = canvasHeight / 2;
 
-  /*
-   * At low curve values the radius is very large, producing an almost-flat
-   * path. At high values the radius becomes smaller, producing more curve.
-   */
-  const maximumRadius = Math.max(
-    canvasWidth * 3,
-    fontSize * 50,
-  );
-
-  const minimumRadius = Math.max(
-    canvasWidth * 0.34,
-    fontSize * 5,
-  );
-
   const curveProgress = intensity / 100;
+
+  /*
+   * Curve intensity changes only the path radius.
+   * It does not change the SVG canvas or font size.
+   */
+  const maximumRadius = 4800;
+  const minimumRadius = 540;
 
   const radius =
     maximumRadius -
     (maximumRadius - minimumRadius) * curveProgress;
 
   /*
-   * Arch and Dip use the exact same path width and radius.
-   * Only the sweep direction changes, keeping character spacing consistent.
+   * Estimate the amount of horizontal space the text needs.
+   * This changes path width without changing the SVG viewBox.
    */
   const estimatedNaturalTextWidth = Math.max(
-    fontSize * Math.max(characters.length, 1) * 0.62,
+    fontSize *
+      Math.max(characters.length, 1) *
+      0.62 *
+      letterScaleX,
     fontSize,
   );
 
-  const desiredPathWidth = Math.max(
-    estimatedNaturalTextWidth * 1.25,
-    canvasWidth * 0.22,
-  );
+  const minimumPathWidth = 360;
+  const maximumPathWidth = canvasWidth * 0.9;
 
-  const maximumPathWidth = canvasWidth * 0.82;
+  const desiredPathWidth = Math.max(
+    minimumPathWidth,
+    estimatedNaturalTextWidth * 1.15,
+  );
 
   const pathWidth = Math.min(
     maximumPathWidth,
@@ -15025,10 +15022,6 @@ function renderTextFx(
   const leftX = centerX - halfPathWidth;
   const rightX = centerX + halfPathWidth;
 
-  /*
-   * Calculate the vertical rise of the selected arc so Arch and Dip remain
-   * centered within the same canvas area.
-   */
   const halfChord = Math.min(
     halfPathWidth,
     radius * 0.999,
@@ -15043,6 +15036,10 @@ function renderTextFx(
       ),
     );
 
+  /*
+   * Arch and Dip use identical radius and chord calculations.
+   * Only the SVG sweep direction differs.
+   */
   const pathBaselineY =
     mode === "arch"
       ? centerY + arcRise / 2
@@ -15075,18 +15072,10 @@ function renderTextFx(
 
   if (mode === "circle") {
     /*
-     * Circle intensity controls the circle radius without changing font size
-     * or the SVG canvas dimensions.
+     * Circle size changes with intensity, but remains independent of fontSize.
      */
-    const largestCircleRadius = Math.min(
-      canvasWidth * 0.34,
-      canvasHeight * 0.38,
-    );
-
-    const smallestCircleRadius = Math.max(
-      fontSize * 2.5,
-      Math.min(canvasWidth, canvasHeight) * 0.16,
-    );
+    const largestCircleRadius = 300;
+    const smallestCircleRadius = 135;
 
     const circleRadius =
       largestCircleRadius -
@@ -15104,7 +15093,11 @@ function renderTextFx(
   const horizontalScaleTransform =
     letterScaleX === 1
       ? undefined
-      : `translate(${centerX} 0) scale(${letterScaleX} 1) translate(${-centerX} 0)`;
+      : [
+          `translate(${centerX} 0)`,
+          `scale(${letterScaleX} 1)`,
+          `translate(${-centerX} 0)`,
+        ].join(" ");
 
   return (
     <div
