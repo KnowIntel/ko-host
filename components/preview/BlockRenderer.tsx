@@ -10566,7 +10566,14 @@ className={[
                 {renderElement("nameLabel")}
 
                 {block.data.nameDisplay !== false ? (
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <div
+  className={[
+    "grid grid-cols-1 gap-3",
+    block.data.lastNameDisplay === false
+      ? "sm:grid-cols-1"
+      : "sm:grid-cols-2",
+  ].join(" ")}
+>
                     {renderElement("firstName")}
                     {renderElement("lastName")}
                   </div>
