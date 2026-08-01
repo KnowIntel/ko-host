@@ -5544,300 +5544,268 @@ function renderDataPyramid(
     return "items-center";
   };
 
-  const renderLevel = (
-    level: any,
-    index: number,
-  ) => {
-    const hasCustomImage =
-      typeof level.imageUrl === "string" &&
-      level.imageUrl.trim().length > 0;
+const renderLevel = (
+  level: any,
+  index: number,
+) => {
+  const hasCustomImage =
+    typeof level.imageUrl === "string" &&
+    level.imageUrl.trim().length > 0;
 
-    const showIcon =
-      data.showIcons !== false &&
-      (hasCustomImage ||
-        (typeof level.iconName === "string" &&
-          level.iconName.trim().length > 0));
+  const showIcon =
+    data.showIcons !== false &&
+    (hasCustomImage ||
+      (typeof level.iconName === "string" &&
+        level.iconName.trim().length > 0));
 
-    const widthPercent =
-      getLevelWidth(index);
+  const widthPercent =
+    getLevelWidth(index);
 
-    const levelBackgroundColor =
-      levelAppearanceStyle.backgroundColor ??
-      level.backgroundColor ??
-      data.pyramidBackgroundColor ??
-      "#FFFFFF";
+  const levelBackgroundColor =
+    levelAppearanceStyle.backgroundColor ??
+    level.backgroundColor ??
+    data.pyramidBackgroundColor ??
+    "#FFFFFF";
 
-    const levelBorderColor =
-      levelAppearanceStyle.borderColor ??
-      level.borderColor ??
-      data.levelBorderColor ??
-      "#E5E7EB";
+  const levelBorderColor =
+    levelAppearanceStyle.borderColor ??
+    level.borderColor ??
+    data.levelBorderColor ??
+    "#E5E7EB";
 
-    const accentColor =
-      level.accentColor ??
-      levelBorderColor;
+  const accentColor =
+    level.accentColor ??
+    levelBorderColor;
 
-    const levelTextColor =
-      level.textColor ??
-      undefined;
+  const levelContent = (
+    <div
+      className="relative min-w-0 overflow-hidden"
+      style={{
+        width: `${widthPercent}%`,
 
-    const levelContent = (
+        minHeight:
+          data.equalHeightLevels !== false
+            ? "120px"
+            : undefined,
+
+        padding: `${levelPadding}px`,
+
+        backgroundColor:
+          levelBackgroundColor,
+
+        borderColor:
+          levelBorderColor,
+
+        borderWidth:
+          typeof levelAppearanceStyle.borderWidth ===
+          "number"
+            ? `${levelAppearanceStyle.borderWidth}px`
+            : `${borderWidth}px`,
+
+        borderStyle:
+          levelAppearanceStyle.borderStyle ??
+          "solid",
+
+        borderRadius:
+          typeof levelAppearanceStyle.borderRadius ===
+          "number"
+            ? `${levelAppearanceStyle.borderRadius}px`
+            : `${levelRadius}px`,
+
+        boxShadow:
+          levelAppearanceStyle.boxShadow ??
+          (data.levelShadow !== false
+            ? "0 8px 24px rgba(15, 23, 42, 0.08)"
+            : undefined),
+
+        opacity:
+          typeof levelAppearanceStyle.opacity ===
+          "number"
+            ? levelAppearanceStyle.opacity
+            : undefined,
+      }}
+    >
       <div
-        className="relative min-w-0 overflow-hidden"
+        className="absolute inset-y-0 left-0 w-1"
         style={{
-          width: `${widthPercent}%`,
-          minHeight:
-            data.equalHeightLevels !== false
-              ? "120px"
-              : undefined,
+          backgroundColor: accentColor,
+        }}
+      />
 
-          padding: `${levelPadding}px`,
-
-          backgroundColor:
-            levelBackgroundColor,
-
-          borderColor:
-            levelBorderColor,
-
-          borderWidth:
-            typeof levelAppearanceStyle.borderWidth ===
-            "number"
-              ? `${levelAppearanceStyle.borderWidth}px`
-              : `${borderWidth}px`,
-
-          borderStyle:
-            levelAppearanceStyle.borderStyle ??
-            "solid",
-
-          borderRadius:
-            typeof levelAppearanceStyle.borderRadius ===
-            "number"
-              ? `${levelAppearanceStyle.borderRadius}px`
-              : `${levelRadius}px`,
-
-          boxShadow:
-            levelAppearanceStyle.boxShadow ??
-            (data.levelShadow !== false
-              ? "0 8px 24px rgba(15, 23, 42, 0.08)"
-              : undefined),
-
-          opacity:
-            typeof levelAppearanceStyle.opacity ===
-            "number"
-              ? levelAppearanceStyle.opacity
-              : undefined,
+      <div
+        className="flex min-w-0 items-start"
+        style={{
+          gap: "12px",
         }}
       >
-        <div
-          className="absolute inset-y-0 left-0 w-1"
-          style={{
-            backgroundColor: accentColor,
-          }}
-        />
+        {showIcon ? (
+          <div
+            className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden text-xl font-bold"
+            style={{
+              color:
+                iconAppearanceStyle.color ??
+                accentColor,
 
-        <div
-          className="flex min-w-0 items-start"
-          style={{
-            gap: "12px",
-          }}
-        >
-          {showIcon ? (
-            <div
-              className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden text-xl font-bold"
-              style={{
-                color:
-                  iconAppearanceStyle.color ??
-                  accentColor,
+              backgroundColor:
+                iconAppearanceStyle.backgroundColor ??
+                `${accentColor}18`,
 
-                backgroundColor:
-                  iconAppearanceStyle.backgroundColor ??
-                  `${accentColor}18`,
+              borderColor:
+                iconAppearanceStyle.borderColor ??
+                "transparent",
 
-                borderColor:
-                  iconAppearanceStyle.borderColor ??
-                  "transparent",
+              borderWidth:
+                typeof iconAppearanceStyle.borderWidth ===
+                "number"
+                  ? `${iconAppearanceStyle.borderWidth}px`
+                  : undefined,
 
-                borderWidth:
-                  typeof iconAppearanceStyle.borderWidth ===
-                  "number"
-                    ? `${iconAppearanceStyle.borderWidth}px`
-                    : undefined,
+              borderStyle:
+                typeof iconAppearanceStyle.borderWidth ===
+                  "number" &&
+                iconAppearanceStyle.borderWidth > 0
+                  ? iconAppearanceStyle.borderStyle ??
+                    "solid"
+                  : undefined,
 
-                borderStyle:
-                  typeof iconAppearanceStyle.borderWidth ===
-                    "number" &&
-                  iconAppearanceStyle.borderWidth > 0
-                    ? iconAppearanceStyle.borderStyle ??
-                      "solid"
-                    : undefined,
+              borderRadius:
+                typeof iconAppearanceStyle.borderRadius ===
+                "number"
+                  ? `${iconAppearanceStyle.borderRadius}px`
+                  : "12px",
 
-                borderRadius:
-                  typeof iconAppearanceStyle.borderRadius ===
-                  "number"
-                    ? `${iconAppearanceStyle.borderRadius}px`
-                    : "12px",
+              boxShadow:
+                iconAppearanceStyle.boxShadow ??
+                undefined,
 
-                boxShadow:
-                  iconAppearanceStyle.boxShadow ??
-                  undefined,
+              opacity:
+                typeof iconAppearanceStyle.opacity ===
+                "number"
+                  ? iconAppearanceStyle.opacity
+                  : undefined,
+            }}
+          >
+            {hasCustomImage ? (
+              <img
+                src={level.imageUrl}
+                alt={
+                  level.title
+                    ? `${level.title} icon`
+                    : "Pyramid level icon"
+                }
+                className="h-full w-full object-contain"
+              />
+            ) : (
+              getLevelIcon(level.iconName)
+            )}
+          </div>
+        ) : null}
 
-                opacity:
-                  typeof iconAppearanceStyle.opacity ===
-                  "number"
-                    ? iconAppearanceStyle.opacity
-                    : undefined,
-              }}
-            >
-              {hasCustomImage ? (
-                <img
-                  src={level.imageUrl}
-                  alt={
-                    level.title
-                      ? `${level.title} icon`
-                      : "Pyramid level icon"
-                  }
-                  className="h-full w-full object-contain"
-                />
-              ) : (
-                getLevelIcon(level.iconName)
-              )}
-            </div>
-          ) : null}
-
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-start justify-between gap-2">
-              <div className="min-w-0">
-                {data.showLevelNumbers !==
-                  false ? (
-                  <div
-                    className="mb-1 whitespace-normal break-words"
-                    style={{
-                      ...levelNumberStyle,
-                      color:
-                        levelTextColor ??
-                        (levelNumberStyle as any)
-                          .color,
-                    }}
-                  >
-                    Level {index + 1}
-                  </div>
-                ) : null}
-
-                {level.title ? (
-                  <div
-                    className="whitespace-normal break-words"
-                    style={{
-                      ...levelTitleStyle,
-                      color:
-                        levelTextColor ??
-                        (levelTitleStyle as any)
-                          .color,
-                    }}
-                  >
-                    {level.title}
-                  </div>
-                ) : null}
-              </div>
-
-              {data.showBadges !== false &&
-              level.badge ? (
-                <span
-                  className="inline-flex max-w-full shrink-0 items-center justify-center rounded-full px-2.5 py-1"
-                  style={{
-                    ...levelBadgeStyle,
-                    color:
-                      levelTextColor ??
-                      (levelBadgeStyle as any)
-                        .color,
-
-                    backgroundColor:
-                      `${accentColor}18`,
-                  }}
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div className="min-w-0">
+              {data.showLevelNumbers !==
+                false ? (
+                <div
+                  className="mb-1 whitespace-normal break-words"
+                  style={levelNumberStyle}
                 >
-                  {level.badge}
-                </span>
+                  Level {index + 1}
+                </div>
+              ) : null}
+
+              {level.title ? (
+                <div
+                  className="whitespace-normal break-words"
+                  style={levelTitleStyle}
+                >
+                  {level.title}
+                </div>
               ) : null}
             </div>
 
-            {data.showValues !== false &&
-            level.value ? (
-              <div
-                className="mt-2 whitespace-normal break-words"
+            {data.showBadges !== false &&
+            level.badge ? (
+              <span
+                className="inline-flex max-w-full shrink-0 items-center justify-center rounded-full px-2.5 py-1"
                 style={{
-                  ...levelValueStyle,
-                  color:
-                    levelTextColor ??
-                    (levelValueStyle as any)
-                      .color,
+                  ...levelBadgeStyle,
+                  backgroundColor:
+                    `${accentColor}18`,
                 }}
               >
-                {level.value}
-              </div>
-            ) : null}
-
-            {data.showDescriptions !== false &&
-            level.description ? (
-              <div
-                className="mt-2 whitespace-normal break-words leading-relaxed"
-                style={{
-                  ...levelDescriptionStyle,
-                  color:
-                    levelTextColor ??
-                    (levelDescriptionStyle as any)
-                      .color,
-                }}
-              >
-                {level.description}
-              </div>
+                {level.badge}
+              </span>
             ) : null}
           </div>
+
+          {data.showValues !== false &&
+          level.value ? (
+            <div
+              className="mt-2 whitespace-normal break-words"
+              style={levelValueStyle}
+            >
+              {level.value}
+            </div>
+          ) : null}
+
+          {data.showDescriptions !== false &&
+          level.description ? (
+            <div
+              className="mt-2 whitespace-normal break-words leading-relaxed"
+              style={levelDescriptionStyle}
+            >
+              {level.description}
+            </div>
+          ) : null}
         </div>
       </div>
-    );
+    </div>
+  );
 
-    if (
-      typeof level.href === "string" &&
-      level.href.trim()
-    ) {
-      return (
-        <a
-          key={level.id || index}
-          href={level.href}
-          target="_blank"
-          rel="noreferrer"
-          className="block w-full"
-          onPointerDown={(event) =>
-            event.stopPropagation()
-          }
-          onMouseDown={(event) =>
-            event.stopPropagation()
-          }
-          onClick={(event) =>
-            event.stopPropagation()
-          }
-        >
-          {levelContent}
-        </a>
-      );
-    }
-
+  if (
+    typeof level.href === "string" &&
+    level.href.trim()
+  ) {
     return (
-      <div
+      <a
         key={level.id || index}
-        className="flex w-full"
-        style={{
-          justifyContent:
-            layout === "left_aligned"
-              ? "flex-start"
-              : layout === "right_aligned"
-                ? "flex-end"
-                : "center",
-        }}
+        href={level.href}
+        target="_blank"
+        rel="noreferrer"
+        className="block w-full"
+        onPointerDown={(event) =>
+          event.stopPropagation()
+        }
+        onMouseDown={(event) =>
+          event.stopPropagation()
+        }
+        onClick={(event) =>
+          event.stopPropagation()
+        }
       >
         {levelContent}
-      </div>
+      </a>
     );
-  };
+  }
+
+  return (
+    <div
+      key={level.id || index}
+      className="flex w-full"
+      style={{
+        justifyContent:
+          layout === "left_aligned"
+            ? "flex-start"
+            : layout === "right_aligned"
+              ? "flex-end"
+              : "center",
+      }}
+    >
+      {levelContent}
+    </div>
+  );
+};
 
   return (
     <div
