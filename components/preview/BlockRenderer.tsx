@@ -14779,9 +14779,19 @@ function renderTextFx(
   designKey?: string,
 ) {
   const text = block.data.text || "TextFX";
-  const characters = Array.from(text);
-  const style = getContainerTextStyle(block.data.style, designKey);
 
+  /*
+   * Normalize Windows, Mac, and Unix line endings.
+   * Newline characters separate lines but do not consume a letter-color slot.
+   */
+  const normalizedText = text
+    .replace(/\r\n/g, "\n")
+    .replace(/\r/g, "\n");
+
+  const lines = normalizedText.split("\n");
+  const lineCharacters = lines.map((line) => Array.from(line));
+
+  const style = getContainerTextStyle(block.data.style, designKey);
   const fx = (block.data.fx || {}) as any;
 
   const mode = String(fx.mode ?? "straight") as
@@ -14854,34 +14864,57 @@ function renderTextFx(
     ? fx.letterColors
     : [];
 
-  function getCharacterColor(index: number) {
-    const savedColor = letterColors[index];
+  const fontSize =
+    typeof block.data.style?.fontSize === "number"
+      ? block.data.style.fontSize
+      : 48;
+
+  const fontFamily = style.fontFamily;
+  const fontWeight = style.fontWeight;
+  const fontStyle = style.fontStyle;
+
+  const textShadow = shadowEnabled
+    ? `${shadowOffsetX}px ${shadowOffsetY}px ${shadowBlur}px ${shadowColor}`
+    : undefined;
+
+  /*
+   * Determine the starting color index for each line.
+   *
+   * Newlines are excluded from the count, so adding a line break does not
+   * shift or consume one of the saved per-character colors.
+   */
+  const lineColorOffsets = lineCharacters.reduce<number[]>(
+    (offsets, characters, lineIndex) => {
+      if (lineIndex === 0) {
+        offsets.push(0);
+        return offsets;
+      }
+
+      const previousOffset = offsets[lineIndex - 1] ?? 0;
+      const previousLength = lineCharacters[lineIndex - 1]?.length ?? 0;
+
+      offsets.push(previousOffset + previousLength);
+      return offsets;
+    },
+    [],
+  );
+
+  function getCharacterColor(
+    lineIndex: number,
+    characterIndex: number,
+  ) {
+    const colorIndex =
+      (lineColorOffsets[lineIndex] ?? 0) + characterIndex;
+
+    const savedColor = letterColors[colorIndex];
 
     return typeof savedColor === "string" && savedColor.trim()
       ? savedColor
       : defaultTextColor;
   }
 
-  const textShadow = shadowEnabled
-    ? `${shadowOffsetX}px ${shadowOffsetY}px ${shadowBlur}px ${shadowColor}`
-    : undefined;
-
-  const fontSize = Math.max(
-    8,
-    Math.min(
-      480,
-      typeof block.data.style?.fontSize === "number"
-        ? block.data.style.fontSize
-        : 48,
-    ),
-  );
-
-  const fontFamily = style.fontFamily;
-  const fontWeight = style.fontWeight;
-  const fontStyle = style.fontStyle;
-
   /*
-   * Straight mode and curve level 0 render with regular HTML text.
+   * Curve level zero is always rendered as completely straight text.
    */
   if (mode === "straight" || intensity === 0) {
     const textAlign = (block.data.style?.align ?? "center") as
@@ -14889,7 +14922,7 @@ function renderTextFx(
       | "center"
       | "right";
 
-    const justifyContent =
+    const alignItems =
       textAlign === "left"
         ? "flex-start"
         : textAlign === "right"
@@ -14901,17 +14934,19 @@ function renderTextFx(
         className="flex h-full w-full p-2"
         style={{
           ...getAppearanceStyle(block),
-          justifyContent,
           alignItems: "center",
-          textAlign,
+          justifyContent: "center",
           transform: `translate(${translateX}%, ${translateY}%)`,
         }}
       >
         <div
           style={{
             ...style,
-            fontSize: `${fontSize}px`,
-            display: "inline-block",
+            display: "flex",
+            flexDirection: "column",
+            alignItems,
+            width: "100%",
+            textAlign,
             transform: `rotate(${rotation}deg) scaleX(${letterScaleX})`,
             transformOrigin: "center center",
             opacity,
@@ -14920,184 +14955,144 @@ function renderTextFx(
               ? `${outlineWidth}px ${outlineColor}`
               : undefined,
             paintOrder: outlineEnabled ? "stroke fill" : undefined,
+            lineHeight: style.lineHeight ?? 1.2,
           }}
         >
-          {characters.map((character, index) => {
-            const verticalOffset =
-              transformStyle === "wave"
-                ? Math.sin(index * 0.9) * 6 * transformMultiplier
-                : transformStyle === "rise"
-                  ? -index * 1.5 * transformMultiplier
-                  : transformStyle === "dipLetters"
-                    ? index * 1.5 * transformMultiplier
-                    : transformStyle === "stagger"
-                      ? (index % 2 === 0 ? -5 : 5) *
+          {lineCharacters.map((characters, lineIndex) => (
+            <div
+              key={`${block.id}-straight-line-${lineIndex}`}
+              style={{
+                display: "block",
+                minHeight: `${fontSize * 1.2}px`,
+                whiteSpace: "pre",
+              }}
+            >
+              {characters.length ? (
+                characters.map((character, characterIndex) => {
+                  const verticalOffset =
+                    transformStyle === "wave"
+                      ? Math.sin(characterIndex * 0.9) *
+                        6 *
                         transformMultiplier
-                      : transformStyle === "bounce"
-                        ? (index % 2 === 0 ? -7 : 0) *
+                      : transformStyle === "rise"
+                        ? -characterIndex *
+                          1.5 *
                           transformMultiplier
+                        : transformStyle === "dipLetters"
+                          ? characterIndex *
+                            1.5 *
+                            transformMultiplier
+                          : transformStyle === "stagger"
+                            ? (characterIndex % 2 === 0 ? -5 : 5) *
+                              transformMultiplier
+                            : transformStyle === "bounce"
+                              ? (characterIndex % 2 === 0 ? -7 : 0) *
+                                transformMultiplier
+                              : 0;
+
+                  const characterRotation =
+                    transformStyle === "tiltLeft"
+                      ? -8 * transformMultiplier
+                      : transformStyle === "tiltRight"
+                        ? 8 * transformMultiplier
                         : 0;
 
-            const characterRotation =
-              transformStyle === "tiltLeft"
-                ? -8 * transformMultiplier
-                : transformStyle === "tiltRight"
-                  ? 8 * transformMultiplier
-                  : 0;
-
-            return (
-              <span
-                key={`${block.id}-character-${index}`}
-                style={{
-                  display: "inline-block",
-                  color: getCharacterColor(index),
-                  transform: `translateY(${verticalOffset}px) rotate(${characterRotation}deg)`,
-                  transformOrigin: "center center",
-                  whiteSpace: character === " " ? "pre" : undefined,
-                }}
-              >
-                {character}
-              </span>
-            );
-          })}
+                  return (
+                    <span
+                      key={`${block.id}-straight-${lineIndex}-${characterIndex}`}
+                      style={{
+                        display: "inline-block",
+                        color: getCharacterColor(
+                          lineIndex,
+                          characterIndex,
+                        ),
+                        transform: `translateY(${verticalOffset}px) rotate(${characterRotation}deg)`,
+                        transformOrigin: "center center",
+                        whiteSpace:
+                          character === " " ? "pre" : undefined,
+                      }}
+                    >
+                      {character === " " ? "\u00A0" : character}
+                    </span>
+                  );
+                })
+              ) : (
+                /*
+                 * Preserve intentionally blank lines.
+                 */
+                <span aria-hidden="true">&nbsp;</span>
+              )}
+            </div>
+          ))}
         </div>
       </div>
     );
   }
 
+  const longestLineLength = Math.max(
+    1,
+    ...lineCharacters.map((characters) => characters.length),
+  );
+
   /*
-   * IMPORTANT:
-   * These SVG dimensions must remain independent of fontSize.
-   *
-   * Previously, increasing fontSize also increased the viewBox dimensions.
-   * The browser then scaled the larger viewBox back into the same block,
-   * visually cancelling the font-size change.
+   * Keep the SVG coordinate system stable so changing curve strength does
+   * not visually resize the text.
    */
-  const canvasWidth = 1600;
-  const canvasHeight = 800;
+  const canvasWidth = Math.max(
+    1600,
+    fontSize * longestLineLength * 1.6,
+  );
+
+  const lineSpacing = Math.max(
+    fontSize * 1.75,
+    fontSize + outlineWidth * 2 + shadowBlur,
+  );
+
+  const totalLineHeight = Math.max(
+    lineSpacing,
+    lineSpacing * lines.length,
+  );
+
+  const canvasHeight = Math.max(
+    800,
+    fontSize * 12,
+    totalLineHeight + fontSize * 8,
+  );
 
   const centerX = canvasWidth / 2;
   const centerY = canvasHeight / 2;
 
-  const curveProgress = intensity / 100;
+  const maximumRadius = Math.max(
+    canvasWidth * 3,
+    fontSize * 50,
+  );
 
-  /*
-   * Curve intensity changes only the path radius.
-   * It does not change the SVG canvas or font size.
-   */
-  const maximumRadius = 4800;
-  const minimumRadius = 540;
+  const minimumRadius = Math.max(
+    canvasWidth * 0.34,
+    fontSize * 5,
+  );
+
+  const curveProgress = intensity / 100;
 
   const radius =
     maximumRadius -
     (maximumRadius - minimumRadius) * curveProgress;
-
-  /*
-   * Estimate the amount of horizontal space the text needs.
-   * This changes path width without changing the SVG viewBox.
-   */
-  const estimatedNaturalTextWidth = Math.max(
-    fontSize *
-      Math.max(characters.length, 1) *
-      0.62 *
-      letterScaleX,
-    fontSize,
-  );
-
-  const minimumPathWidth = 360;
-  const maximumPathWidth = canvasWidth * 0.9;
-
-  const desiredPathWidth = Math.max(
-    minimumPathWidth,
-    estimatedNaturalTextWidth * 1.15,
-  );
-
-  const pathWidth = Math.min(
-    maximumPathWidth,
-    desiredPathWidth,
-    radius * 1.8,
-  );
-
-  const halfPathWidth = pathWidth / 2;
-  const leftX = centerX - halfPathWidth;
-  const rightX = centerX + halfPathWidth;
-
-  const halfChord = Math.min(
-    halfPathWidth,
-    radius * 0.999,
-  );
-
-  const arcRise =
-    radius -
-    Math.sqrt(
-      Math.max(
-        0,
-        radius * radius - halfChord * halfChord,
-      ),
-    );
-
-  /*
-   * Arch and Dip use identical radius and chord calculations.
-   * Only the SVG sweep direction differs.
-   */
-  const pathBaselineY =
-    mode === "arch"
-      ? centerY + arcRise / 2
-      : mode === "dip"
-        ? centerY - arcRise / 2
-        : centerY;
 
   const safeBlockId = String(block.id)
     .toLowerCase()
     .replace(/[^a-z0-9_-]+/g, "-")
     .replace(/^-+|-+$/g, "");
 
-  const pathId = `textfx-path-${safeBlockId}-${mode}`;
-
-  let path = "";
-
-  if (mode === "arch") {
-    path = [
-      `M ${leftX} ${pathBaselineY}`,
-      `A ${radius} ${radius} 0 0 1 ${rightX} ${pathBaselineY}`,
-    ].join(" ");
-  }
-
-  if (mode === "dip") {
-    path = [
-      `M ${leftX} ${pathBaselineY}`,
-      `A ${radius} ${radius} 0 0 0 ${rightX} ${pathBaselineY}`,
-    ].join(" ");
-  }
-
-  if (mode === "circle") {
-    /*
-     * Circle size changes with intensity, but remains independent of fontSize.
-     */
-    const largestCircleRadius = 300;
-    const smallestCircleRadius = 135;
-
-    const circleRadius =
-      largestCircleRadius -
-      (largestCircleRadius - smallestCircleRadius) *
-        curveProgress;
-
-    path = [
-      `M ${centerX} ${centerY}`,
-      `m -${circleRadius} 0`,
-      `a ${circleRadius} ${circleRadius} 0 1 1 ${circleRadius * 2} 0`,
-      `a ${circleRadius} ${circleRadius} 0 1 1 -${circleRadius * 2} 0`,
-    ].join(" ");
-  }
-
   const horizontalScaleTransform =
     letterScaleX === 1
       ? undefined
-      : [
-          `translate(${centerX} 0)`,
-          `scale(${letterScaleX} 1)`,
-          `translate(${-centerX} 0)`,
-        ].join(" ");
+      : `translate(${centerX} 0) scale(${letterScaleX} 1) translate(${-centerX} 0)`;
+
+  /*
+   * Center multiple lines vertically around the same midpoint.
+   */
+  const firstLineOffset =
+    -((lines.length - 1) * lineSpacing) / 2;
 
   return (
     <div
@@ -15120,43 +15115,169 @@ function renderTextFx(
         }}
       >
         <defs>
-          <path
-            id={pathId}
-            d={path}
-            fill="none"
-          />
+          {lineCharacters.map((characters, lineIndex) => {
+            const lineLength = Math.max(characters.length, 1);
+
+            const estimatedNaturalTextWidth = Math.max(
+              fontSize * lineLength * 0.62,
+              fontSize,
+            );
+
+            const desiredPathWidth = Math.max(
+              estimatedNaturalTextWidth * 1.25,
+              canvasWidth * 0.22,
+            );
+
+            const maximumPathWidth = canvasWidth * 0.82;
+
+            const pathWidth = Math.min(
+              maximumPathWidth,
+              desiredPathWidth,
+              radius * 1.8,
+            );
+
+            const halfPathWidth = pathWidth / 2;
+            const leftX = centerX - halfPathWidth;
+            const rightX = centerX + halfPathWidth;
+
+            const halfChord = Math.min(
+              halfPathWidth,
+              radius * 0.999,
+            );
+
+            const arcRise =
+              radius -
+              Math.sqrt(
+                Math.max(
+                  0,
+                  radius * radius - halfChord * halfChord,
+                ),
+              );
+
+            const lineOffset =
+              firstLineOffset + lineIndex * lineSpacing;
+
+            const pathId =
+              `textfx-path-${safeBlockId}-${mode}-${lineIndex}`;
+
+            let path = "";
+
+            if (mode === "arch") {
+              const pathBaselineY =
+                centerY + lineOffset + arcRise / 2;
+
+              path = [
+                `M ${leftX} ${pathBaselineY}`,
+                `A ${radius} ${radius} 0 0 1 ${rightX} ${pathBaselineY}`,
+              ].join(" ");
+            }
+
+            if (mode === "dip") {
+              const pathBaselineY =
+                centerY + lineOffset - arcRise / 2;
+
+              path = [
+                `M ${leftX} ${pathBaselineY}`,
+                `A ${radius} ${radius} 0 0 0 ${rightX} ${pathBaselineY}`,
+              ].join(" ");
+            }
+
+            if (mode === "circle") {
+              const largestCircleRadius = Math.min(
+                canvasWidth * 0.34,
+                canvasHeight * 0.38,
+              );
+
+              const smallestCircleRadius = Math.max(
+                fontSize * 2.5,
+                Math.min(canvasWidth, canvasHeight) * 0.16,
+              );
+
+              const baseCircleRadius =
+                largestCircleRadius -
+                (largestCircleRadius - smallestCircleRadius) *
+                  curveProgress;
+
+              /*
+               * Multiple circle lines use concentric paths.
+               */
+              const centeredLineIndex =
+                lineIndex - (lines.length - 1) / 2;
+
+              const circleRadius = Math.max(
+                fontSize * 1.5,
+                baseCircleRadius -
+                  centeredLineIndex * lineSpacing,
+              );
+
+              path = [
+                `M ${centerX} ${centerY}`,
+                `m -${circleRadius} 0`,
+                `a ${circleRadius} ${circleRadius} 0 1 1 ${circleRadius * 2} 0`,
+                `a ${circleRadius} ${circleRadius} 0 1 1 -${circleRadius * 2} 0`,
+              ].join(" ");
+            }
+
+            return (
+              <path
+                key={`${block.id}-definition-${lineIndex}`}
+                id={pathId}
+                d={path}
+                fill="none"
+              />
+            );
+          })}
         </defs>
 
-        <text
-          fontFamily={fontFamily}
-          fontSize={fontSize}
-          fontWeight={fontWeight}
-          fontStyle={fontStyle}
-          stroke={outlineEnabled ? outlineColor : undefined}
-          strokeWidth={outlineEnabled ? outlineWidth : undefined}
-          paintOrder={outlineEnabled ? "stroke fill" : undefined}
-          transform={horizontalScaleTransform}
-          style={{
-            filter: shadowEnabled
-              ? `drop-shadow(${shadowOffsetX}px ${shadowOffsetY}px ${shadowBlur}px ${shadowColor})`
-              : undefined,
-          }}
-        >
-          <textPath
-            href={`#${pathId}`}
-            startOffset="50%"
-            textAnchor="middle"
-          >
-            {characters.map((character, index) => (
-              <tspan
-                key={`${block.id}-curved-character-${index}`}
-                fill={getCharacterColor(index)}
+        {lineCharacters.map((characters, lineIndex) => {
+          /*
+           * An empty curved line cannot display characters, but its path is
+           * still retained so subsequent lines preserve their vertical slot.
+           */
+          if (!characters.length) {
+            return null;
+          }
+
+          const pathId =
+            `textfx-path-${safeBlockId}-${mode}-${lineIndex}`;
+
+          return (
+            <text
+              key={`${block.id}-curved-line-${lineIndex}`}
+              fontFamily={fontFamily}
+              fontSize={fontSize}
+              fontWeight={fontWeight}
+              fontStyle={fontStyle}
+              stroke={outlineEnabled ? outlineColor : undefined}
+              strokeWidth={outlineEnabled ? outlineWidth : undefined}
+              paintOrder={outlineEnabled ? "stroke fill" : undefined}
+              transform={horizontalScaleTransform}
+              style={{
+                filter: shadowEnabled
+                  ? `drop-shadow(${shadowOffsetX}px ${shadowOffsetY}px ${shadowBlur}px ${shadowColor})`
+                  : undefined,
+              }}
+            >
+              <textPath
+                href={`#${pathId}`}
+                startOffset="50%"
+                textAnchor="middle"
               >
-                {character === " " ? "\u00A0" : character}
-              </tspan>
-            ))}
-          </textPath>
-        </text>
+                {characters.map((character, characterIndex) => (
+                  <tspan
+                    key={`${block.id}-curved-${lineIndex}-${characterIndex}`}
+                    fill={getCharacterColor(
+                      lineIndex,
+                      characterIndex,
+                    )}
+                  >
+                    {character === " " ? "\u00A0" : character}
+                  </tspan>
+                ))}
+              </textPath>
+            </text>
+          );
+        })}
       </svg>
     </div>
   );
