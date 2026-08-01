@@ -78,7 +78,7 @@ type ResolvedGrid = GridPlacement & {
 
 import { MICROSITE_PAGE_WIDTH } from "@/lib/constants/layout";
 
-const BASE_PAGE_WIDTH = MICROSITE_PAGE_WIDTH - 68;
+const CANVAS_LOGICAL_PAGE_WIDTH = 2200;
 
 const GRID_COLUMNS = 12;
 const GRID_GAP = 16;
@@ -210,10 +210,7 @@ const [containerWidth, setContainerWidth] = useState<number>(0);
     [typedDraft.pageLength],
   );
 
-const logicalPageWidth = BASE_PAGE_WIDTH;
-
-// Must match GRID_ROW_HEIGHT in GridCanvas.tsx.
-// TextFX SVG sizing depends on the block's rendered height.
+const logicalPageWidth = CANVAS_LOGICAL_PAGE_WIDTH;
 const logicalRowHeight = 120;
 
   const pageColor =
