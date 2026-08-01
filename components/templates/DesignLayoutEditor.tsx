@@ -62,6 +62,7 @@ import {
   DataPyramidInspector,
   FormulaBoardInspector,
   StoryCardsInspector,
+  InteractiveHotspotsInspector,
 } from "@/components/builder/inspector";
 
 /* ------------------------------------ INSPECTOR BLOCK FILES - END ------------------------------------ */
@@ -4330,7 +4331,8 @@ async function uploadInteractiveHotspotsBackground(
       setDraft((prev) => ({
         ...prev,
 
-        blocks: prev.blocks.map((block) => {
+        blocks: prev.blocks.map(
+  (block): MicrositeBlock => {
           if (
             block.id !== blockId ||
             block.type !==
@@ -4361,8 +4363,9 @@ async function uploadInteractiveHotspotsBackground(
                 uploaded.imageMimeType,
             },
           };
-        }),
-      }));
+        },
+      ),
+    }));
     },
   });
 }
@@ -4382,7 +4385,8 @@ async function uploadImageToInteractiveHotspot(
       setDraft((prev) => ({
         ...prev,
 
-        blocks: prev.blocks.map((block) => {
+        blocks: prev.blocks.map(
+  (block): MicrositeBlock => {
           if (
             block.id !== blockId ||
             block.type !==
@@ -4423,7 +4427,8 @@ async function uploadImageToInteractiveHotspot(
               ),
             },
           };
-        }),
+          },
+),
       }));
     },
   });

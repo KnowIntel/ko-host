@@ -6713,30 +6713,30 @@ case "interactive_hotspots":
   };
 
   
-  return {
-    id: makeId(type),
-    type,
-    label: "Infographic",
-    grid: {
-      ...grid,
-      colSpan: 8,
-      rowSpan: 4,
-    },
-    appearance: {
-      ...createDefaultBlockAppearance(),
-      backgroundColor: "#FFFFFF",
-      borderColor: "#E5E7EB",
-      borderWidth: 1,
-      borderRadius: 24,
-    },
-    data: {
-      heading: "Infographic",
-      subtitle: "Customize this infographic block.",
-      showHeading: true,
-      showSubtitle: true,
-      style: createDefaultTextStyle(),
-    },
-  };
+return {
+  id: makeId(type),
+  type,
+  label: "Infographic",
+  grid: {
+    ...grid,
+    colSpan: 8,
+    rowSpan: 4,
+  },
+  appearance: {
+    ...createDefaultBlockAppearance(),
+    backgroundColor: "#FFFFFF",
+    borderColor: "#E5E7EB",
+    borderWidth: 1,
+    borderRadius: 24,
+  },
+  data: {
+    heading: "Infographic",
+    subtitle: "Customize this infographic block.",
+    showHeading: true,
+    showSubtitle: true,
+    style: createDefaultTextStyle(),
+  },
+} as MicrositeBlock;
 
 case "formula_board":
   return {
