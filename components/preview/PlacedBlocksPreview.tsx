@@ -211,7 +211,10 @@ const [containerWidth, setContainerWidth] = useState<number>(0);
   );
 
 const logicalPageWidth = BASE_PAGE_WIDTH;
-  const logicalRowHeight = 100;
+
+// Must match GRID_ROW_HEIGHT in GridCanvas.tsx.
+// TextFX SVG sizing depends on the block's rendered height.
+const logicalRowHeight = 120;
 
   const pageColor =
     (typedDraft.pageColor && typedDraft.pageColor.trim()) ||
