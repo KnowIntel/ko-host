@@ -154,14 +154,12 @@ function makeTextFxBlock(config: OptionalBlockConfig): TextFxBlock {
           typeof config.config?.fx?.opacity === "number"
             ? config.config.fx.opacity
             : 1,
-        outline: {
-          enabled: config.config?.fx?.outline?.enabled ?? false,
-          color: config.config?.fx?.outline?.color || "#000000",
-          width:
-            typeof config.config?.fx?.outline?.width === "number"
-              ? config.config.fx.outline.width
-              : 2,
-        },
+outlineEnabled: config.config?.fx?.outline?.enabled ?? false,
+outlineColor: config.config?.fx?.outline?.color || "#000000",
+outlineWidth:
+  typeof config.config?.fx?.outline?.width === "number"
+    ? config.config.fx.outline.width
+    : 2,
       },
     },
   };
