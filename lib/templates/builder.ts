@@ -2132,7 +2132,116 @@ export type DataPyramidBlockData =
     animationStyle: DataPyramidAnimationStyle;
   };
 
-export type StoryCardsBlockData = InfographicBaseBlockData;
+export type StoryCardsLayout =
+  | "grid"
+  | "horizontal"
+  | "stacked"
+  | "timeline";
+
+export type StoryCardsImagePosition =
+  | "top"
+  | "left"
+  | "right"
+  | "background";
+
+export type StoryCardsAnimationStyle =
+  | "none"
+  | "fade"
+  | "slide"
+  | "pop"
+  | "cascade";
+
+export type StoryCardItem = {
+  id: string;
+
+  eyebrow: string;
+  title: string;
+  subtitle: string;
+  description: string;
+
+  badge: string;
+  date: string;
+  author: string;
+
+  buttonLabel: string;
+  href: string;
+  openInNewTab: boolean;
+
+  iconName: string;
+
+  imageUrl: string;
+  imageStoragePath: string;
+  imageMimeType: string;
+  imageSizeBytes?: number;
+  imageOriginalSizeBytes?: number;
+
+  imagePositionX: number;
+  imagePositionY: number;
+  imageZoom: number;
+
+  backgroundColor: string;
+  borderColor: string;
+  accentColor: string;
+};
+
+export type StoryCardsBlockData =
+  InfographicBaseBlockData & {
+    heading: string;
+    subtitle: string;
+
+    layout: StoryCardsLayout;
+    columns: 1 | 2 | 3 | 4 | 5 | 6;
+
+    imagePosition: StoryCardsImagePosition;
+
+    cards: StoryCardItem[];
+
+    showHeading: boolean;
+    showSubtitle: boolean;
+    showImages: boolean;
+    showEyebrows: boolean;
+    showSubtitles: boolean;
+    showDescriptions: boolean;
+    showBadges: boolean;
+    showDates: boolean;
+    showAuthors: boolean;
+    showButtons: boolean;
+    showIcons: boolean;
+    showAccent: boolean;
+
+    headingStyle: TextStyle;
+    subtitleStyle: TextStyle;
+
+    eyebrowStyle: TextStyle;
+    cardTitleStyle: TextStyle;
+    cardSubtitleStyle: TextStyle;
+    cardDescriptionStyle: TextStyle;
+
+    badgeStyle: TextStyle;
+    dateStyle: TextStyle;
+    authorStyle: TextStyle;
+    buttonLabelStyle: TextStyle;
+
+    cardBackgroundColor: string;
+    cardBorderColor: string;
+    buttonBackgroundColor: string;
+    buttonBorderColor: string;
+
+    padding: number;
+    gap: number;
+    cardGap: number;
+    cardPadding: number;
+    cardRadius: number;
+    imageHeight: number;
+    borderWidth: number;
+    rotation: number;
+
+    cardShadow: boolean;
+    equalHeightCards: boolean;
+
+    animationStyle: StoryCardsAnimationStyle;
+  };
+
 export type CircularHubLayout =
   | "radial"
   | "orbit"
@@ -5990,8 +6099,258 @@ case "circular_hub":
       animationStyle: "none",
     },
   };
-  
+
 case "story_cards":
+  return {
+    id: makeId("story_cards"),
+    type: "story_cards",
+    label: "Story Cards",
+
+    grid: {
+      ...grid,
+      colSpan: 9,
+      rowSpan: 6,
+    },
+
+    appearance: {
+      ...createDefaultBlockAppearance(),
+      backgroundColor: "#FFFFFF",
+      borderColor: "#E5E7EB",
+      borderWidth: 1,
+      borderRadius: 24,
+    },
+
+    data: {
+      heading: "Our Story",
+
+      subtitle:
+        "Share important moments, ideas, people, or milestones through a visual collection of stories.",
+
+      layout: "grid",
+      columns: 3,
+
+      imagePosition: "top",
+
+      showHeading: true,
+      showSubtitle: true,
+      showImages: true,
+      showEyebrows: true,
+      showSubtitles: true,
+      showDescriptions: true,
+      showBadges: true,
+      showDates: true,
+      showAuthors: true,
+      showButtons: true,
+      showIcons: true,
+      showAccent: true,
+
+      cards: [
+        {
+          id: makeId("story_card"),
+
+          eyebrow: "Chapter One",
+          title: "The Beginning",
+
+          subtitle:
+            "Where the idea first took shape.",
+
+          description:
+            "A simple observation became the starting point for something much larger.",
+
+          badge: "Origin",
+          date: "January 2024",
+          author: "The Founding Team",
+
+          buttonLabel: "Read More",
+          href: "",
+          openInNewTab: false,
+
+          iconName: "lightbulb",
+
+          imageUrl: "",
+          imageStoragePath: "",
+          imageMimeType: "",
+
+          imagePositionX: 50,
+          imagePositionY: 50,
+          imageZoom: 1,
+
+          backgroundColor: "#FFFFFF",
+          borderColor: "#E5E7EB",
+          accentColor: "#2563EB",
+        },
+
+        {
+          id: makeId("story_card"),
+
+          eyebrow: "Chapter Two",
+          title: "Building Momentum",
+
+          subtitle:
+            "Turning the idea into meaningful action.",
+
+          description:
+            "The team tested, learned, and refined the approach while bringing more people into the journey.",
+
+          badge: "Growth",
+          date: "June 2024",
+          author: "Community Team",
+
+          buttonLabel: "Explore",
+          href: "",
+          openInNewTab: false,
+
+          iconName: "trending-up",
+
+          imageUrl: "",
+          imageStoragePath: "",
+          imageMimeType: "",
+
+          imagePositionX: 50,
+          imagePositionY: 50,
+          imageZoom: 1,
+
+          backgroundColor: "#FFFFFF",
+          borderColor: "#E5E7EB",
+          accentColor: "#7C3AED",
+        },
+
+        {
+          id: makeId("story_card"),
+
+          eyebrow: "Chapter Three",
+          title: "What Comes Next",
+
+          subtitle:
+            "A vision for the next stage.",
+
+          description:
+            "The next chapter focuses on expanding the impact while preserving what made the story meaningful.",
+
+          badge: "Future",
+          date: "Today",
+          author: "Leadership Team",
+
+          buttonLabel: "Learn More",
+          href: "",
+          openInNewTab: false,
+
+          iconName: "flag",
+
+          imageUrl: "",
+          imageStoragePath: "",
+          imageMimeType: "",
+
+          imagePositionX: 50,
+          imagePositionY: 50,
+          imageZoom: 1,
+
+          backgroundColor: "#FFFFFF",
+          borderColor: "#E5E7EB",
+          accentColor: "#059669",
+        },
+      ],
+
+      style: createDefaultTextStyle(),
+
+      headingStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 26,
+        bold: true,
+        align: "center",
+      },
+
+      subtitleStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        color: "#6B7280",
+        align: "center",
+      },
+
+      eyebrowStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 11,
+        bold: true,
+        color: "#2563EB",
+        align: "left",
+      },
+
+      cardTitleStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 18,
+        bold: true,
+        color: "#111827",
+        align: "left",
+      },
+
+      cardSubtitleStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 13,
+        bold: true,
+        color: "#4B5563",
+        align: "left",
+      },
+
+      cardDescriptionStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 13,
+        color: "#6B7280",
+        align: "left",
+      },
+
+      badgeStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 10,
+        bold: true,
+        color: "#374151",
+        align: "center",
+      },
+
+      dateStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 11,
+        color: "#6B7280",
+        align: "left",
+      },
+
+      authorStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 11,
+        bold: true,
+        color: "#4B5563",
+        align: "left",
+      },
+
+      buttonLabelStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 13,
+        bold: true,
+        color: "#FFFFFF",
+        align: "center",
+      },
+
+      cardBackgroundColor: "#FFFFFF",
+      cardBorderColor: "#E5E7EB",
+
+      buttonBackgroundColor: "#111827",
+      buttonBorderColor: "#111827",
+
+      padding: 20,
+      gap: 16,
+      cardGap: 12,
+      cardPadding: 18,
+      cardRadius: 18,
+      imageHeight: 180,
+      borderWidth: 1,
+      rotation: 0,
+
+      cardShadow: true,
+      equalHeightCards: true,
+
+      animationStyle: "none",
+    },
+  };
+  
 case "interactive_hotspots":
   return {
     id: makeId(type),

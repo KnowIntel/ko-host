@@ -61,6 +61,7 @@ import {
   CircularHubInspector,
   DataPyramidInspector,
   FormulaBoardInspector,
+  StoryCardsInspector,
 } from "@/components/builder/inspector";
 
 /* ------------------------------------ INSPECTOR BLOCK FILES - END ------------------------------------ */
@@ -83,6 +84,16 @@ import type {
   DataPyramidTextTarget,
 } from "@/components/builder/formatting/dataPyramidFormatting";
 
+import {
+  applyStoryCardsStylePatch,
+  applyStoryCardsTextStylePatch,
+  getStoryCardsTextStyle,
+} from "@/components/builder/formatting/storyCardsFormatting";
+
+import type {
+  StoryCardsStyleTarget,
+  StoryCardsTextTarget,
+} from "@/components/builder/formatting/storyCardsFormatting";
 
 import {
   applyCircularHubStylePatch,
@@ -2496,6 +2507,16 @@ const [
 ] = useState<CircularHubStyleTarget>("hub");
 
 const [
+  storyCardsTextTarget,
+  setStoryCardsTextTarget,
+] = useState<StoryCardsTextTarget>("heading");
+
+const [
+  storyCardsStyleTarget,
+  setStoryCardsStyleTarget,
+] = useState<StoryCardsStyleTarget>("card");
+
+const [
   comparisonTableStyleTarget,
   setComparisonTableStyleTarget,
 ] = useState<ComparisonTableStyleTarget>("header");
@@ -2850,6 +2871,11 @@ const selectedStyle =
   ? (getCircularHubTextStyle(
       selectedBlockFromDraft,
       circularHubTextTarget,
+    ) as TextStyle)
+: selectedBlockFromDraft?.type === "story_cards"
+  ? (getStoryCardsTextStyle(
+      selectedBlockFromDraft,
+      storyCardsTextTarget,
     ) as TextStyle)
 : selectedBlockFromDraft?.type === "formula_board"
   ? (getFormulaBoardTextStyle(
@@ -3255,6 +3281,7 @@ selectedBlock?.type === "statistic_cards" ||
 selectedBlock?.type === "comparison_table" ||
 selectedBlock?.type === "data_pyramid" ||
 selectedBlock?.type === "circular_hub" ||
+selectedBlock?.type === "story_cards" ||
 selectedBlock?.type === "formula_board" ||
   selectedBlock?.type === "file_share" ||
   selectedBlock?.type === "speed_dating" ||
@@ -3303,6 +3330,7 @@ selectedBlock?.type === "statistic_cards" ||
 selectedBlock?.type === "comparison_table" ||
 selectedBlock?.type === "data_pyramid" ||
 selectedBlock?.type === "circular_hub" ||
+selectedBlock?.type === "story_cards" ||
 selectedBlock?.type === "formula_board" ||
   selectedBlock?.type === "file_share" ||
   selectedBlock?.type === "speed_dating" ||
@@ -3351,6 +3379,7 @@ const showBorderWidthRadiusControls =
   selectedBlock?.type === "statistic_cards" ||
 selectedBlock?.type === "comparison_table" ||
 selectedBlock?.type === "data_pyramid" ||
+selectedBlock?.type === "story_cards" ||
 selectedBlock?.type === "circular_hub" ||
   selectedBlock?.type === "formula_board" ||
   selectedBlock?.type === "file_share" ||
@@ -5046,6 +5075,20 @@ if (selectedBlock?.type === "circular_hub") {
   return;
 }
 
+if (selectedBlock?.type === "story_cards") {
+  updateSelectedBlock((block) =>
+    block.type !== "story_cards"
+      ? block
+      : applyStoryCardsTextStylePatch(
+          block,
+          storyCardsTextTarget,
+          patch,
+        ),
+  );
+
+  return;
+}
+
   if (selectedBlock?.type === "formula_board") {
   updateSelectedBlock((block) =>
     block.type !== "formula_board"
@@ -5864,6 +5907,20 @@ if (selectedBlock?.type === "circular_hub") {
       : applyCircularHubStylePatch(
           block,
           circularHubStyleTarget,
+          patch,
+        ),
+  );
+
+  return;
+}
+
+if (selectedBlock?.type === "story_cards") {
+  updateSelectedBlock((block) =>
+    block.type !== "story_cards"
+      ? block
+      : applyStoryCardsStylePatch(
+          block,
+          storyCardsStyleTarget,
           patch,
         ),
   );
@@ -7091,6 +7148,67 @@ async function uploadGalleryImagesToBlock(blockId: string) {
             data: {
               ...block.data,
               images: [...block.data.images, ...images],
+            },
+          };
+        }),
+      }));
+    },
+  });
+}
+
+async function uploadImageToStoryCard(
+  blockId: string,
+  cardId: string,
+) {
+  await openImagePicker({
+    onSelect: async (files) => {
+      const file = files[0];
+      if (!file) return;
+
+      const uploaded =
+        await uploadBuilderImageFile(file);
+
+      setDraft((prev) => ({
+        ...prev,
+
+        blocks: prev.blocks.map((block) => {
+          if (
+            block.id !== blockId ||
+            block.type !== "story_cards"
+          ) {
+            return block;
+          }
+
+          return {
+            ...block,
+
+            data: {
+              ...block.data,
+
+              cards: (
+                block.data.cards ?? []
+              ).map((card: any) =>
+                card.id !== cardId
+                  ? card
+                  : {
+                      ...card,
+
+                      imageUrl:
+                        uploaded.url,
+
+                      imageStoragePath:
+                        uploaded.storagePath,
+
+                      imageSizeBytes:
+                        uploaded.imageSizeBytes,
+
+                      imageOriginalSizeBytes:
+                        uploaded.imageOriginalSizeBytes,
+
+                      imageMimeType:
+                        uploaded.imageMimeType,
+                    },
+              ),
             },
           };
         }),
@@ -10087,7 +10205,8 @@ if (
   block.type === "statistic_cards" ||
   block.type === "comparison_table" ||
   block.type === "data_pyramid" ||
-  block.type === "circular_hub"
+  block.type === "circular_hub" ||
+  block.type === "story_cards"
 ) {
   return (
     <div className="h-full w-full">
@@ -13265,6 +13384,47 @@ selectedBlock?.type === "statistic_cards" ? (
     makeClientId={makeClientId}
     uploadImageToStatisticCard={
       uploadImageToStatisticCard
+    }
+    inspectorCardClass={
+      inspectorCardClass
+    }
+    inspectorLabelClass={
+      inspectorLabelClass
+    }
+    inspectorInputClass={
+      inspectorInputClass
+    }
+    inspectorTextareaClass={
+      inspectorTextareaClass
+    }
+    toolSetButtonClass={
+      toolSetButtonClass
+    }
+  />
+) : null}
+
+{!isMultiSelection &&
+selectedBlock?.type === "story_cards" ? (
+  <StoryCardsInspector
+    selectedBlock={selectedBlock}
+    updateSelectedBlock={
+      updateSelectedBlock
+    }
+    storyCardsTextTarget={
+      storyCardsTextTarget
+    }
+    setStoryCardsTextTarget={
+      setStoryCardsTextTarget
+    }
+    storyCardsStyleTarget={
+      storyCardsStyleTarget
+    }
+    setStoryCardsStyleTarget={
+      setStoryCardsStyleTarget
+    }
+    makeClientId={makeClientId}
+    uploadImageToStoryCard={
+      uploadImageToStoryCard
     }
     inspectorCardClass={
       inspectorCardClass

@@ -5915,6 +5915,876 @@ const renderLevel = (
   );
 }
 
+function renderStoryCards(
+  block: Extract<
+    MicrositeBlock,
+    { type: "story_cards" }
+  >,
+  designKey?: string,
+) {
+  const data = block.data as any;
+  const appearanceStyle = getAppearanceStyle(block);
+
+  const headingStyle = getContainerTextStyle(
+    data.headingStyle ?? {},
+    designKey,
+  );
+
+  const subtitleStyle = getContainerTextStyle(
+    data.subtitleStyle ?? {},
+    designKey,
+  );
+
+  const eyebrowStyle = getContainerTextStyle(
+    data.eyebrowStyle ?? {},
+    designKey,
+  );
+
+  const cardTitleStyle =
+    getContainerTextStyle(
+      data.cardTitleStyle ?? {},
+      designKey,
+    );
+
+  const cardSubtitleStyle =
+    getContainerTextStyle(
+      data.cardSubtitleStyle ?? {},
+      designKey,
+    );
+
+  const cardDescriptionStyle =
+    getContainerTextStyle(
+      data.cardDescriptionStyle ?? {},
+      designKey,
+    );
+
+  const badgeStyle = getContainerTextStyle(
+    data.badgeStyle ?? {},
+    designKey,
+  );
+
+  const dateStyle = getContainerTextStyle(
+    data.dateStyle ?? {},
+    designKey,
+  );
+
+  const authorStyle = getContainerTextStyle(
+    data.authorStyle ?? {},
+    designKey,
+  );
+
+  const buttonLabelStyle =
+    getContainerTextStyle(
+      data.buttonLabelStyle ?? {},
+      designKey,
+    );
+
+  const cardAppearanceStyle =
+    data.cardAppearanceStyle ?? {};
+
+  const imageAppearanceStyle =
+    data.imageAppearanceStyle ?? {};
+
+  const iconAppearanceStyle =
+    data.iconAppearanceStyle ?? {};
+
+  const accentAppearanceStyle =
+    data.accentAppearanceStyle ?? {};
+
+  const buttonAppearanceStyle =
+    data.buttonAppearanceStyle ?? {};
+
+  const cards = Array.isArray(data.cards)
+    ? data.cards
+    : [];
+
+  const layout =
+    data.layout === "horizontal" ||
+    data.layout === "stacked" ||
+    data.layout === "timeline"
+      ? data.layout
+      : "grid";
+
+  const imagePosition =
+    data.imagePosition === "left" ||
+    data.imagePosition === "right" ||
+    data.imagePosition === "background"
+      ? data.imagePosition
+      : "top";
+
+  const columns =
+    typeof data.columns === "number"
+      ? Math.max(
+          1,
+          Math.min(6, data.columns),
+        )
+      : 3;
+
+  const padding =
+    typeof data.padding === "number" &&
+    Number.isFinite(data.padding)
+      ? Math.max(
+          0,
+          Math.min(80, data.padding),
+        )
+      : 20;
+
+  const gap =
+    typeof data.gap === "number" &&
+    Number.isFinite(data.gap)
+      ? Math.max(
+          0,
+          Math.min(80, data.gap),
+        )
+      : 16;
+
+  const cardGap =
+    typeof data.cardGap === "number" &&
+    Number.isFinite(data.cardGap)
+      ? Math.max(
+          0,
+          Math.min(48, data.cardGap),
+        )
+      : 12;
+
+  const cardPadding =
+    typeof data.cardPadding === "number" &&
+    Number.isFinite(data.cardPadding)
+      ? Math.max(
+          0,
+          Math.min(48, data.cardPadding),
+        )
+      : 18;
+
+  const cardRadius =
+    typeof data.cardRadius === "number" &&
+    Number.isFinite(data.cardRadius)
+      ? Math.max(
+          0,
+          Math.min(48, data.cardRadius),
+        )
+      : 18;
+
+  const imageHeight =
+    typeof data.imageHeight === "number" &&
+    Number.isFinite(data.imageHeight)
+      ? Math.max(
+          80,
+          Math.min(500, data.imageHeight),
+        )
+      : 180;
+
+  const borderWidth =
+    typeof data.borderWidth === "number" &&
+    Number.isFinite(data.borderWidth)
+      ? Math.max(
+          0,
+          Math.min(12, data.borderWidth),
+        )
+      : 1;
+
+  const getStoryIcon = (
+    iconName: string,
+  ) => {
+    switch (iconName) {
+      case "lightbulb":
+        return "◉";
+
+      case "trending-up":
+      case "growth":
+        return "↗";
+
+      case "flag":
+        return "⚑";
+
+      case "star":
+        return "★";
+
+      case "users":
+        return "👥";
+
+      case "heart":
+        return "♥";
+
+      case "calendar":
+        return "□";
+
+      case "check":
+        return "✓";
+
+      case "target":
+        return "◎";
+
+      case "book":
+        return "▤";
+
+      case "award":
+        return "◆";
+
+      case "activity":
+        return "⌁";
+
+      default:
+        return "●";
+    }
+  };
+
+  const renderCard = (
+    card: any,
+    index: number,
+  ) => {
+    const accentColor =
+      accentAppearanceStyle.backgroundColor ??
+      accentAppearanceStyle.borderColor ??
+      card.accentColor ??
+      "#2563EB";
+
+    const cardBackgroundColor =
+      cardAppearanceStyle.backgroundColor ??
+      card.backgroundColor ??
+      data.cardBackgroundColor ??
+      "#FFFFFF";
+
+    const cardBorderColor =
+      cardAppearanceStyle.borderColor ??
+      card.borderColor ??
+      data.cardBorderColor ??
+      "#E5E7EB";
+
+    const hasImage =
+      data.showImages !== false &&
+      typeof card.imageUrl === "string" &&
+      card.imageUrl.trim().length > 0;
+
+    const hasIcon =
+      data.showIcons !== false &&
+      typeof card.iconName === "string" &&
+      card.iconName.trim().length > 0;
+
+    const resolvedImagePositionX =
+      typeof card.imagePositionX ===
+        "number" &&
+      Number.isFinite(card.imagePositionX)
+        ? Math.max(
+            0,
+            Math.min(
+              100,
+              card.imagePositionX,
+            ),
+          )
+        : 50;
+
+    const resolvedImagePositionY =
+      typeof card.imagePositionY ===
+        "number" &&
+      Number.isFinite(card.imagePositionY)
+        ? Math.max(
+            0,
+            Math.min(
+              100,
+              card.imagePositionY,
+            ),
+          )
+        : 50;
+
+    const resolvedImageZoom =
+      typeof card.imageZoom === "number" &&
+      Number.isFinite(card.imageZoom)
+        ? Math.max(
+            0.5,
+            Math.min(3, card.imageZoom),
+          )
+        : 1;
+
+    const image = hasImage ? (
+      <div
+        className="relative shrink-0 overflow-hidden"
+        style={{
+          height:
+            imagePosition === "left" ||
+            imagePosition === "right"
+              ? undefined
+              : `${imageHeight}px`,
+
+          width:
+            imagePosition === "left" ||
+            imagePosition === "right"
+              ? `${Math.max(
+                  120,
+                  Math.min(
+                    280,
+                    imageHeight,
+                  ),
+                )}px`
+              : "100%",
+
+          minHeight:
+            imagePosition === "left" ||
+            imagePosition === "right"
+              ? `${imageHeight}px`
+              : undefined,
+
+          backgroundColor:
+            imageAppearanceStyle.backgroundColor ??
+            "#F3F4F6",
+
+          borderColor:
+            imageAppearanceStyle.borderColor ??
+            "transparent",
+
+          borderWidth:
+            typeof imageAppearanceStyle.borderWidth ===
+            "number"
+              ? `${imageAppearanceStyle.borderWidth}px`
+              : undefined,
+
+          borderStyle:
+            typeof imageAppearanceStyle.borderWidth ===
+              "number" &&
+            imageAppearanceStyle.borderWidth > 0
+              ? imageAppearanceStyle.borderStyle ??
+                "solid"
+              : undefined,
+
+          borderRadius:
+            typeof imageAppearanceStyle.borderRadius ===
+            "number"
+              ? `${imageAppearanceStyle.borderRadius}px`
+              : undefined,
+
+          boxShadow:
+            imageAppearanceStyle.boxShadow ??
+            undefined,
+
+          opacity:
+            typeof imageAppearanceStyle.opacity ===
+            "number"
+              ? imageAppearanceStyle.opacity
+              : undefined,
+        }}
+      >
+        <img
+          src={card.imageUrl}
+          alt={
+            card.title
+              ? `${card.title} image`
+              : `Story card ${index + 1}`
+          }
+          className="h-full w-full object-cover"
+          style={{
+            objectPosition: `${resolvedImagePositionX}% ${resolvedImagePositionY}%`,
+
+            transform:
+              resolvedImageZoom !== 1
+                ? `scale(${resolvedImageZoom})`
+                : undefined,
+
+            transformOrigin: `${resolvedImagePositionX}% ${resolvedImagePositionY}%`,
+          }}
+        />
+      </div>
+    ) : null;
+
+    const icon = hasIcon ? (
+      <div
+        className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden text-xl font-bold"
+        style={{
+          color:
+            iconAppearanceStyle.color ??
+            accentColor,
+
+          backgroundColor:
+            iconAppearanceStyle.backgroundColor ??
+            `${accentColor}18`,
+
+          borderColor:
+            iconAppearanceStyle.borderColor ??
+            "transparent",
+
+          borderWidth:
+            typeof iconAppearanceStyle.borderWidth ===
+            "number"
+              ? `${iconAppearanceStyle.borderWidth}px`
+              : undefined,
+
+          borderStyle:
+            typeof iconAppearanceStyle.borderWidth ===
+              "number" &&
+            iconAppearanceStyle.borderWidth > 0
+              ? iconAppearanceStyle.borderStyle ??
+                "solid"
+              : undefined,
+
+          borderRadius:
+            typeof iconAppearanceStyle.borderRadius ===
+            "number"
+              ? `${iconAppearanceStyle.borderRadius}px`
+              : "12px",
+
+          boxShadow:
+            iconAppearanceStyle.boxShadow ??
+            undefined,
+
+          opacity:
+            typeof iconAppearanceStyle.opacity ===
+            "number"
+              ? iconAppearanceStyle.opacity
+              : undefined,
+        }}
+      >
+        {getStoryIcon(card.iconName)}
+      </div>
+    ) : null;
+
+    const bodyContent = (
+      <div
+        className="relative flex min-w-0 flex-1 flex-col"
+        style={{
+          padding: `${cardPadding}px`,
+          gap: `${cardGap}px`,
+        }}
+      >
+        {data.showAccent !== false ? (
+          <div
+            className="absolute left-0 top-0 h-full"
+            style={{
+              width:
+                typeof accentAppearanceStyle.borderWidth ===
+                "number"
+                  ? `${Math.max(
+                      1,
+                      accentAppearanceStyle.borderWidth,
+                    )}px`
+                  : "4px",
+
+              backgroundColor:
+                accentAppearanceStyle.backgroundColor ??
+                accentColor,
+
+              opacity:
+                typeof accentAppearanceStyle.opacity ===
+                "number"
+                  ? accentAppearanceStyle.opacity
+                  : undefined,
+            }}
+          />
+        ) : null}
+
+        <div className="flex min-w-0 items-start gap-3">
+          {icon}
+
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <div className="min-w-0">
+                {data.showEyebrows !== false &&
+                card.eyebrow ? (
+                  <div
+                    className="whitespace-normal break-words"
+                    style={eyebrowStyle}
+                  >
+                    {card.eyebrow}
+                  </div>
+                ) : null}
+
+                {card.title ? (
+                  <div
+                    className="mt-1 whitespace-normal break-words"
+                    style={cardTitleStyle}
+                  >
+                    {card.title}
+                  </div>
+                ) : null}
+              </div>
+
+              {data.showBadges !== false &&
+              card.badge ? (
+                <span
+                  className="inline-flex max-w-full shrink-0 items-center justify-center rounded-full px-2.5 py-1"
+                  style={{
+                    ...badgeStyle,
+                    backgroundColor:
+                      `${accentColor}18`,
+                  }}
+                >
+                  {card.badge}
+                </span>
+              ) : null}
+            </div>
+
+            {data.showSubtitles !== false &&
+            card.subtitle ? (
+              <div
+                className="mt-2 whitespace-normal break-words"
+                style={cardSubtitleStyle}
+              >
+                {card.subtitle}
+              </div>
+            ) : null}
+          </div>
+        </div>
+
+        {data.showDescriptions !== false &&
+        card.description ? (
+          <div
+            className="whitespace-normal break-words leading-relaxed"
+            style={cardDescriptionStyle}
+          >
+            {card.description}
+          </div>
+        ) : null}
+
+        {(data.showDates !== false &&
+          card.date) ||
+        (data.showAuthors !== false &&
+          card.author) ? (
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            {data.showDates !== false &&
+            card.date ? (
+              <span
+                className="whitespace-normal break-words"
+                style={dateStyle}
+              >
+                {card.date}
+              </span>
+            ) : null}
+
+            {data.showAuthors !== false &&
+            card.author ? (
+              <span
+                className="whitespace-normal break-words"
+                style={authorStyle}
+              >
+                {card.author}
+              </span>
+            ) : null}
+          </div>
+        ) : null}
+
+        {data.showButtons !== false &&
+        card.buttonLabel &&
+        card.href ? (
+          <a
+            href={card.href}
+            target={
+              card.openInNewTab
+                ? "_blank"
+                : undefined
+            }
+            rel={
+              card.openInNewTab
+                ? "noreferrer"
+                : undefined
+            }
+            className="inline-flex min-h-10 w-fit items-center justify-center rounded-xl px-4 py-2"
+            style={{
+              ...buttonLabelStyle,
+
+              backgroundColor:
+                buttonAppearanceStyle.backgroundColor ??
+                data.buttonBackgroundColor ??
+                "#111827",
+
+              borderColor:
+                buttonAppearanceStyle.borderColor ??
+                data.buttonBorderColor ??
+                "#111827",
+
+              borderWidth:
+                typeof buttonAppearanceStyle.borderWidth ===
+                "number"
+                  ? `${buttonAppearanceStyle.borderWidth}px`
+                  : "1px",
+
+              borderStyle:
+                buttonAppearanceStyle.borderStyle ??
+                "solid",
+
+              borderRadius:
+                typeof buttonAppearanceStyle.borderRadius ===
+                "number"
+                  ? `${buttonAppearanceStyle.borderRadius}px`
+                  : "12px",
+
+              boxShadow:
+                buttonAppearanceStyle.boxShadow ??
+                undefined,
+
+              opacity:
+                typeof buttonAppearanceStyle.opacity ===
+                "number"
+                  ? buttonAppearanceStyle.opacity
+                  : undefined,
+            }}
+            onPointerDown={(event) =>
+              event.stopPropagation()
+            }
+            onMouseDown={(event) =>
+              event.stopPropagation()
+            }
+            onClick={(event) =>
+              event.stopPropagation()
+            }
+          >
+            {card.buttonLabel}
+          </a>
+        ) : null}
+      </div>
+    );
+
+    const foregroundContent =
+      imagePosition === "left" ? (
+        <div className="flex h-full min-w-0">
+          {image}
+          {bodyContent}
+        </div>
+      ) : imagePosition === "right" ? (
+        <div className="flex h-full min-w-0">
+          {bodyContent}
+          {image}
+        </div>
+      ) : (
+        <div className="flex h-full min-w-0 flex-col">
+          {imagePosition === "top"
+            ? image
+            : null}
+
+          {bodyContent}
+        </div>
+      );
+
+    const cardElement = (
+      <div
+        className="relative h-full min-w-0 overflow-hidden"
+        style={{
+          minHeight:
+            data.equalHeightCards !== false
+              ? "100%"
+              : undefined,
+
+          backgroundColor:
+            cardBackgroundColor,
+
+          backgroundImage:
+            imagePosition === "background" &&
+            hasImage
+              ? `linear-gradient(rgba(15, 23, 42, 0.58), rgba(15, 23, 42, 0.58)), url("${card.imageUrl}")`
+              : undefined,
+
+          backgroundSize:
+            imagePosition === "background" &&
+            hasImage
+              ? `${resolvedImageZoom * 100}%`
+              : undefined,
+
+          backgroundPosition:
+            imagePosition === "background" &&
+            hasImage
+              ? `${resolvedImagePositionX}% ${resolvedImagePositionY}%`
+              : undefined,
+
+          backgroundRepeat:
+            imagePosition === "background" &&
+            hasImage
+              ? "no-repeat"
+              : undefined,
+
+          borderColor:
+            cardBorderColor,
+
+          borderWidth:
+            typeof cardAppearanceStyle.borderWidth ===
+            "number"
+              ? `${cardAppearanceStyle.borderWidth}px`
+              : `${borderWidth}px`,
+
+          borderStyle:
+            cardAppearanceStyle.borderStyle ??
+            "solid",
+
+          borderRadius:
+            typeof cardAppearanceStyle.borderRadius ===
+            "number"
+              ? `${cardAppearanceStyle.borderRadius}px`
+              : `${cardRadius}px`,
+
+          boxShadow:
+            cardAppearanceStyle.boxShadow ??
+            (data.cardShadow !== false
+              ? "0 10px 28px rgba(15, 23, 42, 0.08)"
+              : undefined),
+
+          opacity:
+            typeof cardAppearanceStyle.opacity ===
+            "number"
+              ? cardAppearanceStyle.opacity
+              : undefined,
+        }}
+      >
+        {foregroundContent}
+      </div>
+    );
+
+    return (
+      <div
+        key={card.id || index}
+        className="h-full min-w-0"
+      >
+        {cardElement}
+      </div>
+    );
+  };
+
+  const renderGridLayout = () => (
+    <div
+      className="grid items-stretch"
+      style={{
+        gap: `${gap}px`,
+
+        gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
+      }}
+    >
+      {cards.map(renderCard)}
+    </div>
+  );
+
+  const renderHorizontalLayout = () => (
+    <div
+      className="flex min-w-max items-stretch overflow-x-auto"
+      style={{
+        gap: `${gap}px`,
+      }}
+    >
+      {cards.map(
+        (
+          card: any,
+          index: number,
+        ) => (
+          <div
+            key={card.id || index}
+            className="w-[320px] shrink-0"
+          >
+            {renderCard(
+              card,
+              index,
+            )}
+          </div>
+        ),
+      )}
+    </div>
+  );
+
+  const renderStackedLayout = () => (
+    <div
+      className="flex flex-col"
+      style={{
+        gap: `${gap}px`,
+      }}
+    >
+      {cards.map(renderCard)}
+    </div>
+  );
+
+  const renderTimelineLayout = () => (
+    <div
+      className="relative flex flex-col"
+      style={{
+        gap: `${gap}px`,
+      }}
+    >
+      <div
+        className="absolute bottom-0 left-5 top-0 w-px"
+        style={{
+          backgroundColor:
+            accentAppearanceStyle.backgroundColor ??
+            "#CBD5E1",
+        }}
+      />
+
+      {cards.map(
+        (
+          card: any,
+          index: number,
+        ) => (
+          <div
+            key={card.id || index}
+            className="relative pl-12"
+          >
+            <div
+              className="absolute left-2.5 top-6 h-5 w-5 rounded-full border-4 border-white"
+              style={{
+                backgroundColor:
+                  card.accentColor ??
+                  "#2563EB",
+              }}
+            />
+
+            {renderCard(
+              card,
+              index,
+            )}
+          </div>
+        ),
+      )}
+    </div>
+  );
+
+  return (
+    <div
+      className="h-full w-full overflow-auto"
+      style={appearanceStyle}
+    >
+      <div
+        style={{
+          padding: `${padding}px`,
+
+          transform:
+            typeof data.rotation ===
+              "number" &&
+            data.rotation !== 0
+              ? `rotate(${data.rotation}deg)`
+              : undefined,
+
+          transformOrigin: "center",
+        }}
+      >
+        {data.showHeading !== false &&
+        data.heading ? (
+          <div
+            className="mb-2 whitespace-normal break-words"
+            style={headingStyle}
+          >
+            {data.heading}
+          </div>
+        ) : null}
+
+        {data.showSubtitle !== false &&
+        data.subtitle ? (
+          <div
+            className="mb-5 whitespace-normal break-words"
+            style={subtitleStyle}
+          >
+            {data.subtitle}
+          </div>
+        ) : null}
+
+        {cards.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-neutral-300 p-6 text-center text-sm text-neutral-500">
+            Add story cards to display this collection.
+          </div>
+        ) : layout === "horizontal" ? (
+          renderHorizontalLayout()
+        ) : layout === "stacked" ? (
+          renderStackedLayout()
+        ) : layout === "timeline" ? (
+          renderTimelineLayout()
+        ) : (
+          renderGridLayout()
+        )}
+      </div>
+    </div>
+  );
+}
+
 function renderCircularHub(
   block: Extract<
     MicrositeBlock,
@@ -20179,6 +21049,9 @@ case "data_pyramid":
 
   case "circular_hub":
   return renderCircularHub(block, designKey);
+
+case "story_cards":
+  return renderStoryCards(block, designKey);
 
 case "formula_board":
   return renderFormulaBoard(block, designKey);
