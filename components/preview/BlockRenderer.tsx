@@ -7276,17 +7276,17 @@ function renderCircularHub(
           maxWidth: "100%",
         }}
       >
-        {data.showCenter !== false ? (
-          <div
-            className="absolute left-1/2 top-1/2"
-            style={{
-              transform:
-                "translate(-50%, -50%)",
-            }}
-          >
-            {centerHub}
-          </div>
-        ) : null}
+{data.showCenter !== false ? (
+  <div
+    className="absolute left-1/2 top-1/2 z-30"
+    style={{
+      transform:
+        "translate(-50%, -50%)",
+    }}
+  >
+    {centerHub}
+  </div>
+) : null}
 
         {nodes.map(
           (
