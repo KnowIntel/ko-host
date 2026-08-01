@@ -2045,9 +2045,95 @@ export type ProcessFlowBlockData = InfographicBaseBlockData & {
   animationStyle: "none" | "fade" | "slide" | "pop";
 };
 
-export type DataPyramidBlockData = InfographicBaseBlockData;
-export type CircularHubBlockData = InfographicBaseBlockData;
+export type DataPyramidLayout =
+  | "centered"
+  | "left_aligned"
+  | "right_aligned";
+
+export type DataPyramidDirection =
+  | "largest_bottom"
+  | "largest_top";
+
+export type DataPyramidShape =
+  | "pyramid"
+  | "stepped"
+  | "funnel";
+
+export type DataPyramidAnimationStyle =
+  | "none"
+  | "fade"
+  | "slide"
+  | "grow"
+  | "cascade";
+
+export type DataPyramidLevel = {
+  id: string;
+
+  title: string;
+  value: string;
+  description: string;
+  badge: string;
+
+  iconName: string;
+
+  imageUrl: string;
+  imageStoragePath: string;
+  imageMimeType: string;
+  imageSizeBytes?: number;
+  imageOriginalSizeBytes?: number;
+
+  backgroundColor: string;
+  borderColor: string;
+  accentColor: string;
+  textColor: string;
+
+  href: string;
+};
+
+export type DataPyramidBlockData =
+  InfographicBaseBlockData & {
+    layout: DataPyramidLayout;
+    direction: DataPyramidDirection;
+    shape: DataPyramidShape;
+
+    levels: DataPyramidLevel[];
+
+    showHeading: boolean;
+    showSubtitle: boolean;
+    showValues: boolean;
+    showDescriptions: boolean;
+    showBadges: boolean;
+    showIcons: boolean;
+    showLevelNumbers: boolean;
+
+    headingStyle: TextStyle;
+    subtitleStyle: TextStyle;
+    levelNumberStyle: TextStyle;
+    levelTitleStyle: TextStyle;
+    levelValueStyle: TextStyle;
+    levelDescriptionStyle: TextStyle;
+    levelBadgeStyle: TextStyle;
+
+    pyramidBackgroundColor: string;
+    levelBorderColor: string;
+    connectorColor: string;
+
+    padding: number;
+    gap: number;
+    levelPadding: number;
+    levelRadius: number;
+    borderWidth: number;
+    maxWidth: number;
+    rotation: number;
+
+    levelShadow: boolean;
+    equalHeightLevels: boolean;
+
+    animationStyle: DataPyramidAnimationStyle;
+  };
+
 export type StoryCardsBlockData = InfographicBaseBlockData;
+export type CircularHubBlockData = InfographicBaseBlockData;
 export type InteractiveHotspotsBlockData = InfographicBaseBlockData;
 export type FormulaBoardOperation =
   | "reference"
@@ -5349,6 +5435,220 @@ case "comparison_table": {
 }
 
 case "data_pyramid":
+  return {
+    id: makeId("data_pyramid"),
+    type: "data_pyramid",
+    label: "Data Pyramid",
+
+    grid: {
+      ...grid,
+      colSpan: 8,
+      rowSpan: 6,
+    },
+
+    appearance: {
+      ...createDefaultBlockAppearance(),
+      backgroundColor: "#FFFFFF",
+      borderColor: "#E5E7EB",
+      borderWidth: 1,
+      borderRadius: 24,
+    },
+
+    data: {
+      heading: "Growth Pyramid",
+
+      subtitle:
+        "Show how each level builds toward the final outcome.",
+
+      showHeading: true,
+      showSubtitle: true,
+
+      layout: "centered",
+      direction: "largest_bottom",
+      shape: "pyramid",
+
+      showValues: true,
+      showDescriptions: true,
+      showBadges: true,
+      showIcons: true,
+      showLevelNumbers: true,
+
+      levels: [
+        {
+          id: makeId("pyramid_level"),
+
+          title: "Vision",
+          value: "100%",
+
+          description:
+            "The long-term goal or highest-level outcome.",
+
+          badge: "Level 4",
+
+          iconName: "star",
+
+          imageUrl: "",
+          imageStoragePath: "",
+          imageMimeType: "",
+
+          backgroundColor: "#EDE9FE",
+          borderColor: "#C4B5FD",
+          accentColor: "#7C3AED",
+          textColor: "#4C1D95",
+
+          href: "",
+        },
+
+        {
+          id: makeId("pyramid_level"),
+
+          title: "Strategy",
+          value: "75%",
+
+          description:
+            "The plan that connects the vision to measurable action.",
+
+          badge: "Level 3",
+
+          iconName: "target",
+
+          imageUrl: "",
+          imageStoragePath: "",
+          imageMimeType: "",
+
+          backgroundColor: "#DBEAFE",
+          borderColor: "#93C5FD",
+          accentColor: "#2563EB",
+          textColor: "#1E3A8A",
+
+          href: "",
+        },
+
+        {
+          id: makeId("pyramid_level"),
+
+          title: "Execution",
+          value: "50%",
+
+          description:
+            "The activities, systems, and teams that deliver the plan.",
+
+          badge: "Level 2",
+
+          iconName: "activity",
+
+          imageUrl: "",
+          imageStoragePath: "",
+          imageMimeType: "",
+
+          backgroundColor: "#D1FAE5",
+          borderColor: "#6EE7B7",
+          accentColor: "#059669",
+          textColor: "#064E3B",
+
+          href: "",
+        },
+
+        {
+          id: makeId("pyramid_level"),
+
+          title: "Foundation",
+          value: "25%",
+
+          description:
+            "The essential resources and capabilities everything depends on.",
+
+          badge: "Level 1",
+
+          iconName: "layers",
+
+          imageUrl: "",
+          imageStoragePath: "",
+          imageMimeType: "",
+
+          backgroundColor: "#FEF3C7",
+          borderColor: "#FCD34D",
+          accentColor: "#D97706",
+          textColor: "#78350F",
+
+          href: "",
+        },
+      ],
+
+      style: createDefaultTextStyle(),
+
+      headingStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 26,
+        bold: true,
+        align: "center",
+      },
+
+      subtitleStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        color: "#6B7280",
+        align: "center",
+      },
+
+      levelNumberStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 11,
+        bold: true,
+        color: "#6B7280",
+        align: "center",
+      },
+
+      levelTitleStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 17,
+        bold: true,
+        color: "#111827",
+        align: "center",
+      },
+
+      levelValueStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 22,
+        bold: true,
+        color: "#111827",
+        align: "center",
+      },
+
+      levelDescriptionStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 13,
+        color: "#4B5563",
+        align: "center",
+      },
+
+      levelBadgeStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 11,
+        bold: true,
+        color: "#374151",
+        align: "center",
+      },
+
+      pyramidBackgroundColor: "transparent",
+      levelBorderColor: "#E5E7EB",
+      connectorColor: "#CBD5E1",
+
+      padding: 20,
+      gap: 10,
+      levelPadding: 16,
+      levelRadius: 14,
+      borderWidth: 1,
+      maxWidth: 720,
+      rotation: 0,
+
+      levelShadow: true,
+      equalHeightLevels: false,
+
+      animationStyle: "none",
+    },
+  };
+  
 case "circular_hub":
 case "story_cards":
 case "interactive_hotspots":

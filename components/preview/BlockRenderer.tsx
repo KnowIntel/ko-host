@@ -5324,6 +5324,629 @@ borderColor:
   );
 }
 
+function renderDataPyramid(
+  block: Extract<
+    MicrositeBlock,
+    { type: "data_pyramid" }
+  >,
+  designKey?: string,
+) {
+  const data = block.data as any;
+  const appearanceStyle = getAppearanceStyle(block);
+
+  const headingStyle = getContainerTextStyle(
+    data.headingStyle ?? {},
+    designKey,
+  );
+
+  const subtitleStyle = getContainerTextStyle(
+    data.subtitleStyle ?? {},
+    designKey,
+  );
+
+  const levelNumberStyle =
+    getContainerTextStyle(
+      data.levelNumberStyle ?? {},
+      designKey,
+    );
+
+  const levelTitleStyle =
+    getContainerTextStyle(
+      data.levelTitleStyle ?? {},
+      designKey,
+    );
+
+  const levelValueStyle =
+    getContainerTextStyle(
+      data.levelValueStyle ?? {},
+      designKey,
+    );
+
+  const levelDescriptionStyle =
+    getContainerTextStyle(
+      data.levelDescriptionStyle ?? {},
+      designKey,
+    );
+
+  const levelBadgeStyle =
+    getContainerTextStyle(
+      data.levelBadgeStyle ?? {},
+      designKey,
+    );
+
+  const levelAppearanceStyle =
+    data.levelAppearanceStyle ?? {};
+
+  const iconAppearanceStyle =
+    data.iconAppearanceStyle ?? {};
+
+  const connectorAppearanceStyle =
+    data.connectorAppearanceStyle ?? {};
+
+  const levels = Array.isArray(data.levels)
+    ? data.levels
+    : [];
+
+  const layout =
+    data.layout === "left_aligned" ||
+    data.layout === "right_aligned"
+      ? data.layout
+      : "centered";
+
+  const direction =
+    data.direction === "largest_top"
+      ? "largest_top"
+      : "largest_bottom";
+
+  const shape =
+    data.shape === "stepped" ||
+    data.shape === "funnel"
+      ? data.shape
+      : "pyramid";
+
+  const padding =
+    typeof data.padding === "number" &&
+    Number.isFinite(data.padding)
+      ? Math.max(
+          0,
+          Math.min(80, data.padding),
+        )
+      : 20;
+
+  const gap =
+    typeof data.gap === "number" &&
+    Number.isFinite(data.gap)
+      ? Math.max(
+          0,
+          Math.min(48, data.gap),
+        )
+      : 10;
+
+  const levelPadding =
+    typeof data.levelPadding === "number" &&
+    Number.isFinite(data.levelPadding)
+      ? Math.max(
+          0,
+          Math.min(48, data.levelPadding),
+        )
+      : 16;
+
+  const levelRadius =
+    typeof data.levelRadius === "number" &&
+    Number.isFinite(data.levelRadius)
+      ? Math.max(
+          0,
+          Math.min(48, data.levelRadius),
+        )
+      : 14;
+
+  const borderWidth =
+    typeof data.borderWidth === "number" &&
+    Number.isFinite(data.borderWidth)
+      ? Math.max(
+          0,
+          Math.min(12, data.borderWidth),
+        )
+      : 1;
+
+  const maxWidth =
+    typeof data.maxWidth === "number" &&
+    Number.isFinite(data.maxWidth)
+      ? Math.max(
+          240,
+          Math.min(1200, data.maxWidth),
+        )
+      : 720;
+
+  const orderedLevels =
+    direction === "largest_top"
+      ? [...levels].reverse()
+      : levels;
+
+  const getLevelIcon = (
+    iconName: string,
+  ) => {
+    switch (iconName) {
+      case "star":
+        return "★";
+
+      case "target":
+        return "◎";
+
+      case "activity":
+        return "⌁";
+
+      case "layers":
+        return "▤";
+
+      case "check":
+        return "✓";
+
+      case "growth":
+      case "trending-up":
+        return "↗";
+
+      case "users":
+        return "👥";
+
+      case "lightbulb":
+        return "◉";
+
+      case "flag":
+        return "⚑";
+
+      case "award":
+        return "◆";
+
+      default:
+        return "●";
+    }
+  };
+
+  const getLevelWidth = (
+    index: number,
+  ) => {
+    const count = Math.max(
+      orderedLevels.length,
+      1,
+    );
+
+    if (shape === "stepped") {
+      return 100;
+    }
+
+    if (shape === "funnel") {
+      const step =
+        count <= 1
+          ? 0
+          : (50 / (count - 1)) * index;
+
+      return Math.max(50, 100 - step);
+    }
+
+    const step =
+      count <= 1
+        ? 0
+        : (50 / (count - 1)) * index;
+
+    return Math.max(50, 50 + step);
+  };
+
+  const getAlignmentClass = () => {
+    if (layout === "left_aligned") {
+      return "items-start";
+    }
+
+    if (layout === "right_aligned") {
+      return "items-end";
+    }
+
+    return "items-center";
+  };
+
+  const renderLevel = (
+    level: any,
+    index: number,
+  ) => {
+    const hasCustomImage =
+      typeof level.imageUrl === "string" &&
+      level.imageUrl.trim().length > 0;
+
+    const showIcon =
+      data.showIcons !== false &&
+      (hasCustomImage ||
+        (typeof level.iconName === "string" &&
+          level.iconName.trim().length > 0));
+
+    const widthPercent =
+      getLevelWidth(index);
+
+    const levelBackgroundColor =
+      levelAppearanceStyle.backgroundColor ??
+      level.backgroundColor ??
+      data.pyramidBackgroundColor ??
+      "#FFFFFF";
+
+    const levelBorderColor =
+      levelAppearanceStyle.borderColor ??
+      level.borderColor ??
+      data.levelBorderColor ??
+      "#E5E7EB";
+
+    const accentColor =
+      level.accentColor ??
+      levelBorderColor;
+
+    const levelTextColor =
+      level.textColor ??
+      undefined;
+
+    const levelContent = (
+      <div
+        className="relative min-w-0 overflow-hidden"
+        style={{
+          width: `${widthPercent}%`,
+          minHeight:
+            data.equalHeightLevels !== false
+              ? "120px"
+              : undefined,
+
+          padding: `${levelPadding}px`,
+
+          backgroundColor:
+            levelBackgroundColor,
+
+          borderColor:
+            levelBorderColor,
+
+          borderWidth:
+            typeof levelAppearanceStyle.borderWidth ===
+            "number"
+              ? `${levelAppearanceStyle.borderWidth}px`
+              : `${borderWidth}px`,
+
+          borderStyle:
+            levelAppearanceStyle.borderStyle ??
+            "solid",
+
+          borderRadius:
+            typeof levelAppearanceStyle.borderRadius ===
+            "number"
+              ? `${levelAppearanceStyle.borderRadius}px`
+              : `${levelRadius}px`,
+
+          boxShadow:
+            levelAppearanceStyle.boxShadow ??
+            (data.levelShadow !== false
+              ? "0 8px 24px rgba(15, 23, 42, 0.08)"
+              : undefined),
+
+          opacity:
+            typeof levelAppearanceStyle.opacity ===
+            "number"
+              ? levelAppearanceStyle.opacity
+              : undefined,
+        }}
+      >
+        <div
+          className="absolute inset-y-0 left-0 w-1"
+          style={{
+            backgroundColor: accentColor,
+          }}
+        />
+
+        <div
+          className="flex min-w-0 items-start"
+          style={{
+            gap: "12px",
+          }}
+        >
+          {showIcon ? (
+            <div
+              className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden text-xl font-bold"
+              style={{
+                color:
+                  iconAppearanceStyle.color ??
+                  accentColor,
+
+                backgroundColor:
+                  iconAppearanceStyle.backgroundColor ??
+                  `${accentColor}18`,
+
+                borderColor:
+                  iconAppearanceStyle.borderColor ??
+                  "transparent",
+
+                borderWidth:
+                  typeof iconAppearanceStyle.borderWidth ===
+                  "number"
+                    ? `${iconAppearanceStyle.borderWidth}px`
+                    : undefined,
+
+                borderStyle:
+                  typeof iconAppearanceStyle.borderWidth ===
+                    "number" &&
+                  iconAppearanceStyle.borderWidth > 0
+                    ? iconAppearanceStyle.borderStyle ??
+                      "solid"
+                    : undefined,
+
+                borderRadius:
+                  typeof iconAppearanceStyle.borderRadius ===
+                  "number"
+                    ? `${iconAppearanceStyle.borderRadius}px`
+                    : "12px",
+
+                boxShadow:
+                  iconAppearanceStyle.boxShadow ??
+                  undefined,
+
+                opacity:
+                  typeof iconAppearanceStyle.opacity ===
+                  "number"
+                    ? iconAppearanceStyle.opacity
+                    : undefined,
+              }}
+            >
+              {hasCustomImage ? (
+                <img
+                  src={level.imageUrl}
+                  alt={
+                    level.title
+                      ? `${level.title} icon`
+                      : "Pyramid level icon"
+                  }
+                  className="h-full w-full object-contain"
+                />
+              ) : (
+                getLevelIcon(level.iconName)
+              )}
+            </div>
+          ) : null}
+
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <div className="min-w-0">
+                {data.showLevelNumbers !==
+                  false ? (
+                  <div
+                    className="mb-1 whitespace-normal break-words"
+                    style={{
+                      ...levelNumberStyle,
+                      color:
+                        levelTextColor ??
+                        (levelNumberStyle as any)
+                          .color,
+                    }}
+                  >
+                    Level {index + 1}
+                  </div>
+                ) : null}
+
+                {level.title ? (
+                  <div
+                    className="whitespace-normal break-words"
+                    style={{
+                      ...levelTitleStyle,
+                      color:
+                        levelTextColor ??
+                        (levelTitleStyle as any)
+                          .color,
+                    }}
+                  >
+                    {level.title}
+                  </div>
+                ) : null}
+              </div>
+
+              {data.showBadges !== false &&
+              level.badge ? (
+                <span
+                  className="inline-flex max-w-full shrink-0 items-center justify-center rounded-full px-2.5 py-1"
+                  style={{
+                    ...levelBadgeStyle,
+                    color:
+                      levelTextColor ??
+                      (levelBadgeStyle as any)
+                        .color,
+
+                    backgroundColor:
+                      `${accentColor}18`,
+                  }}
+                >
+                  {level.badge}
+                </span>
+              ) : null}
+            </div>
+
+            {data.showValues !== false &&
+            level.value ? (
+              <div
+                className="mt-2 whitespace-normal break-words"
+                style={{
+                  ...levelValueStyle,
+                  color:
+                    levelTextColor ??
+                    (levelValueStyle as any)
+                      .color,
+                }}
+              >
+                {level.value}
+              </div>
+            ) : null}
+
+            {data.showDescriptions !== false &&
+            level.description ? (
+              <div
+                className="mt-2 whitespace-normal break-words leading-relaxed"
+                style={{
+                  ...levelDescriptionStyle,
+                  color:
+                    levelTextColor ??
+                    (levelDescriptionStyle as any)
+                      .color,
+                }}
+              >
+                {level.description}
+              </div>
+            ) : null}
+          </div>
+        </div>
+      </div>
+    );
+
+    if (
+      typeof level.href === "string" &&
+      level.href.trim()
+    ) {
+      return (
+        <a
+          key={level.id || index}
+          href={level.href}
+          target="_blank"
+          rel="noreferrer"
+          className="block w-full"
+          onPointerDown={(event) =>
+            event.stopPropagation()
+          }
+          onMouseDown={(event) =>
+            event.stopPropagation()
+          }
+          onClick={(event) =>
+            event.stopPropagation()
+          }
+        >
+          {levelContent}
+        </a>
+      );
+    }
+
+    return (
+      <div
+        key={level.id || index}
+        className="flex w-full"
+        style={{
+          justifyContent:
+            layout === "left_aligned"
+              ? "flex-start"
+              : layout === "right_aligned"
+                ? "flex-end"
+                : "center",
+        }}
+      >
+        {levelContent}
+      </div>
+    );
+  };
+
+  return (
+    <div
+      className="h-full w-full overflow-auto"
+      style={appearanceStyle}
+    >
+      <div
+        style={{
+          padding: `${padding}px`,
+
+          transform:
+            typeof data.rotation ===
+              "number" &&
+            data.rotation !== 0
+              ? `rotate(${data.rotation}deg)`
+              : undefined,
+
+          transformOrigin: "center",
+        }}
+      >
+        {data.showHeading !== false &&
+        data.heading ? (
+          <div
+            className="mb-2 whitespace-normal break-words"
+            style={headingStyle}
+          >
+            {data.heading}
+          </div>
+        ) : null}
+
+        {data.showSubtitle !== false &&
+        data.subtitle ? (
+          <div
+            className="mb-5 whitespace-normal break-words"
+            style={subtitleStyle}
+          >
+            {data.subtitle}
+          </div>
+        ) : null}
+
+        <div
+          className={[
+            "mx-auto flex w-full flex-col",
+            getAlignmentClass(),
+          ].join(" ")}
+          style={{
+            maxWidth: `${maxWidth}px`,
+            gap: `${gap}px`,
+          }}
+        >
+          {orderedLevels.map(
+            (
+              level: any,
+              index: number,
+            ) => (
+              <div
+                key={
+                  level.id ||
+                  index
+                }
+                className="relative flex w-full flex-col"
+              >
+                {renderLevel(
+                  level,
+                  index,
+                )}
+
+                {index <
+                orderedLevels.length - 1 ? (
+                  <div
+                    className="mx-auto"
+                    style={{
+                      width:
+                        typeof connectorAppearanceStyle.borderWidth ===
+                        "number"
+                          ? `${Math.max(
+                              1,
+                              connectorAppearanceStyle.borderWidth,
+                            )}px`
+                          : "2px",
+
+                      height: `${Math.max(
+                        4,
+                        gap,
+                      )}px`,
+
+                      backgroundColor:
+                        connectorAppearanceStyle.backgroundColor ??
+                        connectorAppearanceStyle.borderColor ??
+                        data.connectorColor ??
+                        "#CBD5E1",
+
+                      opacity:
+                        typeof connectorAppearanceStyle.opacity ===
+                        "number"
+                          ? connectorAppearanceStyle.opacity
+                          : undefined,
+                    }}
+                  />
+                ) : null}
+              </div>
+            ),
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function FormulaBoardLive({
   block,
   designKey,
@@ -18848,6 +19471,9 @@ case "statistic_cards":
 
   case "comparison_table":
   return renderComparisonTable(block, designKey);
+
+case "data_pyramid":
+  return renderDataPyramid(block, designKey);
 
 case "formula_board":
   return renderFormulaBoard(block, designKey);

@@ -58,6 +58,7 @@ import {
   ProcessFlowInspector,
 StatisticCardsInspector,
 ComparisonTableInspector,
+DataPyramidInspector,
 FormulaBoardInspector,
 } from "@/components/builder/inspector";
 
@@ -69,6 +70,17 @@ import {
   applyImageCaptionStylePatch,
   isImageCaptionFormattingTarget,
 } from "@/components/builder/formatting/imageFormatting";
+
+import {
+  applyDataPyramidStylePatch,
+  applyDataPyramidTextStylePatch,
+  getDataPyramidTextStyle,
+} from "@/components/builder/formatting/dataPyramidFormatting";
+
+import type {
+  DataPyramidStyleTarget,
+  DataPyramidTextTarget,
+} from "@/components/builder/formatting/dataPyramidFormatting";
 
 import {
   applyFormulaBoardStylePatch,
@@ -2451,6 +2463,16 @@ const [
 ] = useState<ComparisonTableTextTarget>("heading");
 
 const [
+  dataPyramidTextTarget,
+  setDataPyramidTextTarget,
+] = useState<DataPyramidTextTarget>("heading");
+
+const [
+  dataPyramidStyleTarget,
+  setDataPyramidStyleTarget,
+] = useState<DataPyramidStyleTarget>("level");
+
+const [
   comparisonTableStyleTarget,
   setComparisonTableStyleTarget,
 ] = useState<ComparisonTableStyleTarget>("header");
@@ -2795,6 +2817,11 @@ const selectedStyle =
   ? (getComparisonTableTextStyle(
       selectedBlockFromDraft,
       comparisonTableTextTarget,
+    ) as TextStyle)
+: selectedBlockFromDraft?.type === "data_pyramid"
+  ? (getDataPyramidTextStyle(
+      selectedBlockFromDraft,
+      dataPyramidTextTarget,
     ) as TextStyle)
 : selectedBlockFromDraft?.type === "formula_board"
   ? (getFormulaBoardTextStyle(
@@ -3198,6 +3225,7 @@ const showTextControls =
 selectedBlock?.type === "process_flow" ||
 selectedBlock?.type === "statistic_cards" ||
 selectedBlock?.type === "comparison_table" ||
+selectedBlock?.type === "data_pyramid" ||
 selectedBlock?.type === "formula_board" ||
   selectedBlock?.type === "file_share" ||
   selectedBlock?.type === "speed_dating" ||
@@ -3244,6 +3272,7 @@ const showAppearanceControls =
 selectedBlock?.type === "process_flow" ||
 selectedBlock?.type === "statistic_cards" ||
 selectedBlock?.type === "comparison_table" ||
+selectedBlock?.type === "data_pyramid" ||
 selectedBlock?.type === "formula_board" ||
   selectedBlock?.type === "file_share" ||
   selectedBlock?.type === "speed_dating" ||
@@ -3291,6 +3320,7 @@ const showBorderWidthRadiusControls =
   selectedBlock?.type === "process_flow" ||
   selectedBlock?.type === "statistic_cards" ||
 selectedBlock?.type === "comparison_table" ||
+selectedBlock?.type === "data_pyramid" ||
   selectedBlock?.type === "formula_board" ||
   selectedBlock?.type === "file_share" ||
   selectedBlock?.type === "speed_dating" ||
@@ -4957,6 +4987,20 @@ function applyStylePatch(patch: Partial<TextStyle>) {
   return;
 }
 
+if (selectedBlock?.type === "data_pyramid") {
+  updateSelectedBlock((block) =>
+    block.type !== "data_pyramid"
+      ? block
+      : applyDataPyramidTextStylePatch(
+          block,
+          dataPyramidTextTarget,
+          patch,
+        ),
+  );
+
+  return;
+}
+
   if (selectedBlock?.type === "formula_board") {
   updateSelectedBlock((block) =>
     block.type !== "formula_board"
@@ -5747,6 +5791,20 @@ function applyAppearancePatch(patch: AppearancePatch) {
       : applyComparisonTableStylePatch(
           block,
           comparisonTableStyleTarget,
+          patch,
+        ),
+  );
+
+  return;
+}
+
+if (selectedBlock?.type === "data_pyramid") {
+  updateSelectedBlock((block) =>
+    block.type !== "data_pyramid"
+      ? block
+      : applyDataPyramidStylePatch(
+          block,
+          dataPyramidStyleTarget,
           patch,
         ),
   );
@@ -9967,7 +10025,9 @@ return (
 
 if (
   block.type === "process_flow" ||
-  block.type === "statistic_cards"
+  block.type === "statistic_cards" ||
+  block.type === "comparison_table" ||
+  block.type === "data_pyramid"
 ) {
   return (
     <div className="h-full w-full">
@@ -13146,6 +13206,42 @@ selectedBlock?.type === "statistic_cards" ? (
     uploadImageToStatisticCard={
       uploadImageToStatisticCard
     }
+    inspectorCardClass={
+      inspectorCardClass
+    }
+    inspectorLabelClass={
+      inspectorLabelClass
+    }
+    inspectorInputClass={
+      inspectorInputClass
+    }
+    inspectorTextareaClass={
+      inspectorTextareaClass
+    }
+    toolSetButtonClass={
+      toolSetButtonClass
+    }
+  />
+) : null}
+
+{!isMultiSelection &&
+selectedBlock?.type === "data_pyramid" ? (
+  <DataPyramidInspector
+    selectedBlock={selectedBlock}
+    updateSelectedBlock={updateSelectedBlock}
+    dataPyramidTextTarget={
+      dataPyramidTextTarget
+    }
+    setDataPyramidTextTarget={
+      setDataPyramidTextTarget
+    }
+    dataPyramidStyleTarget={
+      dataPyramidStyleTarget
+    }
+    setDataPyramidStyleTarget={
+      setDataPyramidStyleTarget
+    }
+    makeClientId={makeClientId}
     inspectorCardClass={
       inspectorCardClass
     }
