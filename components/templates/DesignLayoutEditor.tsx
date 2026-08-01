@@ -85,6 +85,17 @@ import type {
 } from "@/components/builder/formatting/dataPyramidFormatting";
 
 import {
+  applyInteractiveHotspotsStylePatch,
+  applyInteractiveHotspotsTextStylePatch,
+  getInteractiveHotspotsTextStyle,
+} from "@/components/builder/formatting/interactiveHotspotsFormatting";
+
+import type {
+  InteractiveHotspotsStyleTarget,
+  InteractiveHotspotsTextTarget,
+} from "@/components/builder/formatting/interactiveHotspotsFormatting";
+
+import {
   applyStoryCardsStylePatch,
   applyStoryCardsTextStylePatch,
   getStoryCardsTextStyle,
@@ -2517,6 +2528,20 @@ const [
 ] = useState<StoryCardsStyleTarget>("card");
 
 const [
+  interactiveHotspotsTextTarget,
+  setInteractiveHotspotsTextTarget,
+] = useState<InteractiveHotspotsTextTarget>(
+  "heading",
+);
+
+const [
+  interactiveHotspotsStyleTarget,
+  setInteractiveHotspotsStyleTarget,
+] = useState<InteractiveHotspotsStyleTarget>(
+  "canvas",
+);
+
+const [
   comparisonTableStyleTarget,
   setComparisonTableStyleTarget,
 ] = useState<ComparisonTableStyleTarget>("header");
@@ -2871,6 +2896,11 @@ const selectedStyle =
   ? (getCircularHubTextStyle(
       selectedBlockFromDraft,
       circularHubTextTarget,
+    ) as TextStyle)
+: selectedBlockFromDraft?.type === "interactive_hotspots"
+  ? (getInteractiveHotspotsTextStyle(
+      selectedBlockFromDraft,
+      interactiveHotspotsTextTarget,
     ) as TextStyle)
 : selectedBlockFromDraft?.type === "story_cards"
   ? (getStoryCardsTextStyle(
@@ -3282,6 +3312,7 @@ selectedBlock?.type === "comparison_table" ||
 selectedBlock?.type === "data_pyramid" ||
 selectedBlock?.type === "circular_hub" ||
 selectedBlock?.type === "story_cards" ||
+selectedBlock?.type === "interactive_hotspots" ||
 selectedBlock?.type === "formula_board" ||
   selectedBlock?.type === "file_share" ||
   selectedBlock?.type === "speed_dating" ||
@@ -3331,6 +3362,7 @@ selectedBlock?.type === "comparison_table" ||
 selectedBlock?.type === "data_pyramid" ||
 selectedBlock?.type === "circular_hub" ||
 selectedBlock?.type === "story_cards" ||
+selectedBlock?.type === "interactive_hotspots" ||
 selectedBlock?.type === "formula_board" ||
   selectedBlock?.type === "file_share" ||
   selectedBlock?.type === "speed_dating" ||
@@ -3380,6 +3412,7 @@ const showBorderWidthRadiusControls =
 selectedBlock?.type === "comparison_table" ||
 selectedBlock?.type === "data_pyramid" ||
 selectedBlock?.type === "story_cards" ||
+selectedBlock?.type === "interactive_hotspots" ||
 selectedBlock?.type === "circular_hub" ||
   selectedBlock?.type === "formula_board" ||
   selectedBlock?.type === "file_share" ||
@@ -4283,6 +4316,118 @@ useEffect(() => {
   });
 }
 
+async function uploadInteractiveHotspotsBackground(
+  blockId: string,
+) {
+  await openImagePicker({
+    onSelect: async (files) => {
+      const file = files[0];
+      if (!file) return;
+
+      const uploaded =
+        await uploadBuilderImageFile(file);
+
+      setDraft((prev) => ({
+        ...prev,
+
+        blocks: prev.blocks.map((block) => {
+          if (
+            block.id !== blockId ||
+            block.type !==
+              "interactive_hotspots"
+          ) {
+            return block;
+          }
+
+          return {
+            ...block,
+
+            data: {
+              ...block.data,
+
+              backgroundImageUrl:
+                uploaded.url,
+
+              backgroundImageStoragePath:
+                uploaded.storagePath,
+
+              backgroundImageSizeBytes:
+                uploaded.imageSizeBytes,
+
+              backgroundImageOriginalSizeBytes:
+                uploaded.imageOriginalSizeBytes,
+
+              backgroundImageMimeType:
+                uploaded.imageMimeType,
+            },
+          };
+        }),
+      }));
+    },
+  });
+}
+
+async function uploadImageToInteractiveHotspot(
+  blockId: string,
+  hotspotId: string,
+) {
+  await openImagePicker({
+    onSelect: async (files) => {
+      const file = files[0];
+      if (!file) return;
+
+      const uploaded =
+        await uploadBuilderImageFile(file);
+
+      setDraft((prev) => ({
+        ...prev,
+
+        blocks: prev.blocks.map((block) => {
+          if (
+            block.id !== blockId ||
+            block.type !==
+              "interactive_hotspots"
+          ) {
+            return block;
+          }
+
+          return {
+            ...block,
+
+            data: {
+              ...block.data,
+
+              hotspots: (
+                block.data.hotspots ?? []
+              ).map((hotspot: any) =>
+                hotspot.id !== hotspotId
+                  ? hotspot
+                  : {
+                      ...hotspot,
+
+                      imageUrl:
+                        uploaded.url,
+
+                      imageStoragePath:
+                        uploaded.storagePath,
+
+                      imageSizeBytes:
+                        uploaded.imageSizeBytes,
+
+                      imageOriginalSizeBytes:
+                        uploaded.imageOriginalSizeBytes,
+
+                      imageMimeType:
+                        uploaded.imageMimeType,
+                    },
+              ),
+            },
+          };
+        }),
+      }));
+    },
+  });
+}
 
 async function uploadBuilderImageFile(file: File) {
   return uploadImage(file);
@@ -5082,6 +5227,23 @@ if (selectedBlock?.type === "story_cards") {
       : applyStoryCardsTextStylePatch(
           block,
           storyCardsTextTarget,
+          patch,
+        ),
+  );
+
+  return;
+}
+
+if (
+  selectedBlock?.type ===
+  "interactive_hotspots"
+) {
+  updateSelectedBlock((block) =>
+    block.type !== "interactive_hotspots"
+      ? block
+      : applyInteractiveHotspotsTextStylePatch(
+          block,
+          interactiveHotspotsTextTarget,
           patch,
         ),
   );
@@ -5921,6 +6083,23 @@ if (selectedBlock?.type === "story_cards") {
       : applyStoryCardsStylePatch(
           block,
           storyCardsStyleTarget,
+          patch,
+        ),
+  );
+
+  return;
+}
+
+if (
+  selectedBlock?.type ===
+  "interactive_hotspots"
+) {
+  updateSelectedBlock((block) =>
+    block.type !== "interactive_hotspots"
+      ? block
+      : applyInteractiveHotspotsStylePatch(
+          block,
+          interactiveHotspotsStyleTarget,
           patch,
         ),
   );
@@ -10206,7 +10385,8 @@ if (
   block.type === "comparison_table" ||
   block.type === "data_pyramid" ||
   block.type === "circular_hub" ||
-  block.type === "story_cards"
+  block.type === "story_cards" ||
+  block.type === "interactive_hotspots"
 ) {
   return (
     <div className="h-full w-full">
@@ -13384,6 +13564,51 @@ selectedBlock?.type === "statistic_cards" ? (
     makeClientId={makeClientId}
     uploadImageToStatisticCard={
       uploadImageToStatisticCard
+    }
+    inspectorCardClass={
+      inspectorCardClass
+    }
+    inspectorLabelClass={
+      inspectorLabelClass
+    }
+    inspectorInputClass={
+      inspectorInputClass
+    }
+    inspectorTextareaClass={
+      inspectorTextareaClass
+    }
+    toolSetButtonClass={
+      toolSetButtonClass
+    }
+  />
+) : null}
+
+{!isMultiSelection &&
+selectedBlock?.type ===
+  "interactive_hotspots" ? (
+  <InteractiveHotspotsInspector
+    selectedBlock={selectedBlock}
+    updateSelectedBlock={
+      updateSelectedBlock
+    }
+    interactiveHotspotsTextTarget={
+      interactiveHotspotsTextTarget
+    }
+    setInteractiveHotspotsTextTarget={
+      setInteractiveHotspotsTextTarget
+    }
+    interactiveHotspotsStyleTarget={
+      interactiveHotspotsStyleTarget
+    }
+    setInteractiveHotspotsStyleTarget={
+      setInteractiveHotspotsStyleTarget
+    }
+    makeClientId={makeClientId}
+    uploadInteractiveHotspotsBackground={
+      uploadInteractiveHotspotsBackground
+    }
+    uploadImageToInteractiveHotspot={
+      uploadImageToInteractiveHotspot
     }
     inspectorCardClass={
       inspectorCardClass

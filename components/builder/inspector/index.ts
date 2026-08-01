@@ -51,7 +51,7 @@ export { ComparisonTableInspector } from "./ComparisonTableInspector";
 export { DataPyramidInspector } from "./DataPyramidInspector";
 export { CircularHubInspector } from "./CircularHubInspector";
 export { StoryCardsInspector } from "./StoryCardsInspector";
-
+export { InteractiveHotspotsInspector } from "./InteractiveHotspotsInspector";
 
 
 

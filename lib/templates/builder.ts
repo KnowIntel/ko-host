@@ -2322,7 +2322,127 @@ export type CircularHubBlockData =
     animationStyle: CircularHubAnimationStyle;
   };
 
-export type InteractiveHotspotsBlockData = InfographicBaseBlockData;
+export type InteractiveHotspotsLayout =
+  | "image"
+  | "diagram"
+  | "map";
+
+export type InteractiveHotspotsMarkerStyle =
+  | "dot"
+  | "number"
+  | "icon"
+  | "pulse";
+
+export type InteractiveHotspotsPanelPosition =
+  | "left"
+  | "right"
+  | "bottom"
+  | "overlay";
+
+export type InteractiveHotspotsAnimationStyle =
+  | "none"
+  | "fade"
+  | "slide"
+  | "pop"
+  | "pulse";
+
+export type InteractiveHotspotItem = {
+  id: string;
+
+  title: string;
+  subtitle: string;
+  description: string;
+  badge: string;
+
+  markerLabel: string;
+  iconName: string;
+
+  positionX: number;
+  positionY: number;
+
+  imageUrl: string;
+  imageStoragePath: string;
+  imageMimeType: string;
+  imageSizeBytes?: number;
+  imageOriginalSizeBytes?: number;
+
+  markerColor: string;
+  markerBackgroundColor: string;
+  markerBorderColor: string;
+
+  panelBackgroundColor: string;
+  panelBorderColor: string;
+  accentColor: string;
+
+  href: string;
+  buttonLabel: string;
+  openInNewTab: boolean;
+};
+
+export type InteractiveHotspotsBlockData =
+  InfographicBaseBlockData & {
+    heading: string;
+    subtitle: string;
+
+    layout: InteractiveHotspotsLayout;
+    markerStyle: InteractiveHotspotsMarkerStyle;
+    panelPosition: InteractiveHotspotsPanelPosition;
+
+    backgroundImageUrl: string;
+    backgroundImageStoragePath: string;
+    backgroundImageMimeType: string;
+    backgroundImageSizeBytes?: number;
+    backgroundImageOriginalSizeBytes?: number;
+
+    backgroundPositionX: number;
+    backgroundPositionY: number;
+    backgroundZoom: number;
+
+    hotspots: InteractiveHotspotItem[];
+
+    showHeading: boolean;
+    showSubtitle: boolean;
+    showMarkers: boolean;
+    showMarkerLabels: boolean;
+    showHotspotImages: boolean;
+    showSubtitles: boolean;
+    showDescriptions: boolean;
+    showBadges: boolean;
+    showButtons: boolean;
+    showConnectorLines: boolean;
+
+    headingStyle: TextStyle;
+    subtitleStyle: TextStyle;
+
+    hotspotTitleStyle: TextStyle;
+    hotspotSubtitleStyle: TextStyle;
+    hotspotDescriptionStyle: TextStyle;
+    hotspotBadgeStyle: TextStyle;
+    markerLabelStyle: TextStyle;
+    buttonLabelStyle: TextStyle;
+
+    canvasBackgroundColor: string;
+    connectorColor: string;
+    buttonBackgroundColor: string;
+    buttonBorderColor: string;
+
+    padding: number;
+    canvasHeight: number;
+    markerSize: number;
+    markerBorderWidth: number;
+    panelWidth: number;
+    panelPadding: number;
+    panelRadius: number;
+    borderWidth: number;
+    rotation: number;
+
+    panelShadow: boolean;
+    markerShadow: boolean;
+    openFirstHotspot: boolean;
+
+    animationStyle: InteractiveHotspotsAnimationStyle;
+  };
+
 export type FormulaBoardOperation =
   | "reference"
   | "skills_addition"
@@ -6350,8 +6470,249 @@ case "story_cards":
       animationStyle: "none",
     },
   };
-  
+
 case "interactive_hotspots":
+  return {
+    id: makeId("interactive_hotspots"),
+    type: "interactive_hotspots",
+    label: "Interactive Hotspots",
+
+    grid: {
+      ...grid,
+      colSpan: 9,
+      rowSpan: 6,
+    },
+
+    appearance: {
+      ...createDefaultBlockAppearance(),
+      backgroundColor: "#FFFFFF",
+      borderColor: "#E5E7EB",
+      borderWidth: 1,
+      borderRadius: 24,
+    },
+
+    data: {
+      heading: "Explore the Details",
+
+      subtitle:
+        "Select a hotspot to learn more about each highlighted area.",
+
+      layout: "image",
+      markerStyle: "number",
+      panelPosition: "right",
+
+      backgroundImageUrl: "",
+      backgroundImageStoragePath: "",
+      backgroundImageMimeType: "",
+
+      backgroundPositionX: 50,
+      backgroundPositionY: 50,
+      backgroundZoom: 1,
+
+      showHeading: true,
+      showSubtitle: true,
+      showMarkers: true,
+      showMarkerLabels: true,
+      showHotspotImages: true,
+      showSubtitles: true,
+      showDescriptions: true,
+      showBadges: true,
+      showButtons: true,
+      showConnectorLines: false,
+
+      openFirstHotspot: true,
+
+      hotspots: [
+        {
+          id: makeId("interactive_hotspot"),
+
+          title: "Main Feature",
+          subtitle: "Primary area",
+
+          description:
+            "Highlight the most important detail and explain why it matters.",
+
+          badge: "Featured",
+
+          markerLabel: "1",
+          iconName: "star",
+
+          positionX: 30,
+          positionY: 35,
+
+          imageUrl: "",
+          imageStoragePath: "",
+          imageMimeType: "",
+
+          markerColor: "#FFFFFF",
+          markerBackgroundColor: "#2563EB",
+          markerBorderColor: "#FFFFFF",
+
+          panelBackgroundColor: "#FFFFFF",
+          panelBorderColor: "#BFDBFE",
+          accentColor: "#2563EB",
+
+          href: "",
+          buttonLabel: "Learn More",
+          openInNewTab: false,
+        },
+
+        {
+          id: makeId("interactive_hotspot"),
+
+          title: "Supporting Detail",
+          subtitle: "Secondary area",
+
+          description:
+            "Use this hotspot to provide additional context or supporting information.",
+
+          badge: "Detail",
+
+          markerLabel: "2",
+          iconName: "info",
+
+          positionX: 65,
+          positionY: 45,
+
+          imageUrl: "",
+          imageStoragePath: "",
+          imageMimeType: "",
+
+          markerColor: "#FFFFFF",
+          markerBackgroundColor: "#7C3AED",
+          markerBorderColor: "#FFFFFF",
+
+          panelBackgroundColor: "#FFFFFF",
+          panelBorderColor: "#DDD6FE",
+          accentColor: "#7C3AED",
+
+          href: "",
+          buttonLabel: "View Details",
+          openInNewTab: false,
+        },
+
+        {
+          id: makeId("interactive_hotspot"),
+
+          title: "Final Highlight",
+          subtitle: "Additional insight",
+
+          description:
+            "Call attention to another useful feature, location, or point of interest.",
+
+          badge: "Insight",
+
+          markerLabel: "3",
+          iconName: "target",
+
+          positionX: 50,
+          positionY: 72,
+
+          imageUrl: "",
+          imageStoragePath: "",
+          imageMimeType: "",
+
+          markerColor: "#FFFFFF",
+          markerBackgroundColor: "#059669",
+          markerBorderColor: "#FFFFFF",
+
+          panelBackgroundColor: "#FFFFFF",
+          panelBorderColor: "#A7F3D0",
+          accentColor: "#059669",
+
+          href: "",
+          buttonLabel: "Explore",
+          openInNewTab: false,
+        },
+      ],
+
+      style: createDefaultTextStyle(),
+
+      headingStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 26,
+        bold: true,
+        align: "center",
+      },
+
+      subtitleStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        color: "#6B7280",
+        align: "center",
+      },
+
+      hotspotTitleStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 18,
+        bold: true,
+        color: "#111827",
+        align: "left",
+      },
+
+      hotspotSubtitleStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 13,
+        bold: true,
+        color: "#4B5563",
+        align: "left",
+      },
+
+      hotspotDescriptionStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 13,
+        color: "#6B7280",
+        align: "left",
+      },
+
+      hotspotBadgeStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 10,
+        bold: true,
+        color: "#374151",
+        align: "center",
+      },
+
+      markerLabelStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 12,
+        bold: true,
+        color: "#FFFFFF",
+        align: "center",
+      },
+
+      buttonLabelStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 13,
+        bold: true,
+        color: "#FFFFFF",
+        align: "center",
+      },
+
+      canvasBackgroundColor: "#F3F4F6",
+      connectorColor: "#CBD5E1",
+
+      buttonBackgroundColor: "#111827",
+      buttonBorderColor: "#111827",
+
+      padding: 20,
+      canvasHeight: 480,
+      markerSize: 38,
+      markerBorderWidth: 3,
+      panelWidth: 320,
+      panelPadding: 18,
+      panelRadius: 18,
+      borderWidth: 1,
+      rotation: 0,
+
+      panelShadow: true,
+      markerShadow: true,
+
+      animationStyle: "none",
+    },
+  };
+
+  
   return {
     id: makeId(type),
     type,

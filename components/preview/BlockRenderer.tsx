@@ -6785,6 +6785,817 @@ function renderStoryCards(
   );
 }
 
+function renderInteractiveHotspots(
+  block: Extract<
+    MicrositeBlock,
+    { type: "interactive_hotspots" }
+  >,
+  designKey?: string,
+) {
+  return (
+    <InteractiveHotspotsLive
+      key={block.id}
+      block={block}
+      designKey={designKey}
+    />
+  );
+}
+
+function InteractiveHotspotsLive({
+  block,
+  designKey,
+}: {
+  block: Extract<
+    MicrositeBlock,
+    { type: "interactive_hotspots" }
+  >;
+  designKey?: string;
+}) {
+  const data = block.data as any;
+  const appearanceStyle = getAppearanceStyle(block);
+
+  const hotspots = Array.isArray(data.hotspots)
+    ? data.hotspots
+    : [];
+
+  const [activeHotspotId, setActiveHotspotId] =
+    useState<string | null>(
+      data.openFirstHotspot !== false
+        ? hotspots[0]?.id ?? null
+        : null,
+    );
+
+  const headingStyle = getContainerTextStyle(
+    data.headingStyle ?? {},
+    designKey,
+  );
+
+  const subtitleStyle = getContainerTextStyle(
+    data.subtitleStyle ?? {},
+    designKey,
+  );
+
+  const hotspotTitleStyle =
+    getContainerTextStyle(
+      data.hotspotTitleStyle ?? {},
+      designKey,
+    );
+
+  const hotspotSubtitleStyle =
+    getContainerTextStyle(
+      data.hotspotSubtitleStyle ?? {},
+      designKey,
+    );
+
+  const hotspotDescriptionStyle =
+    getContainerTextStyle(
+      data.hotspotDescriptionStyle ?? {},
+      designKey,
+    );
+
+  const hotspotBadgeStyle =
+    getContainerTextStyle(
+      data.hotspotBadgeStyle ?? {},
+      designKey,
+    );
+
+  const markerLabelStyle =
+    getContainerTextStyle(
+      data.markerLabelStyle ?? {},
+      designKey,
+    );
+
+  const buttonLabelStyle =
+    getContainerTextStyle(
+      data.buttonLabelStyle ?? {},
+      designKey,
+    );
+
+  const canvasAppearanceStyle =
+    data.canvasAppearanceStyle ?? {};
+
+  const markerAppearanceStyle =
+    data.markerAppearanceStyle ?? {};
+
+  const panelAppearanceStyle =
+    data.panelAppearanceStyle ?? {};
+
+  const hotspotImageAppearanceStyle =
+    data.hotspotImageAppearanceStyle ?? {};
+
+  const connectorAppearanceStyle =
+    data.connectorAppearanceStyle ?? {};
+
+  const buttonAppearanceStyle =
+    data.buttonAppearanceStyle ?? {};
+
+  const activeHotspot =
+    hotspots.find(
+      (hotspot: any) =>
+        hotspot.id === activeHotspotId,
+    ) ?? null;
+
+  const panelPosition =
+    data.panelPosition === "left" ||
+    data.panelPosition === "bottom" ||
+    data.panelPosition === "overlay"
+      ? data.panelPosition
+      : "right";
+
+  const markerStyle =
+    data.markerStyle === "dot" ||
+    data.markerStyle === "icon" ||
+    data.markerStyle === "pulse"
+      ? data.markerStyle
+      : "number";
+
+  const padding =
+    typeof data.padding === "number" &&
+    Number.isFinite(data.padding)
+      ? Math.max(0, Math.min(80, data.padding))
+      : 20;
+
+  const canvasHeight =
+    typeof data.canvasHeight === "number" &&
+    Number.isFinite(data.canvasHeight)
+      ? Math.max(
+          220,
+          Math.min(1000, data.canvasHeight),
+        )
+      : 480;
+
+  const markerSize =
+    typeof data.markerSize === "number" &&
+    Number.isFinite(data.markerSize)
+      ? Math.max(
+          20,
+          Math.min(100, data.markerSize),
+        )
+      : 38;
+
+  const markerBorderWidth =
+    typeof data.markerBorderWidth === "number" &&
+    Number.isFinite(data.markerBorderWidth)
+      ? Math.max(
+          0,
+          Math.min(12, data.markerBorderWidth),
+        )
+      : 3;
+
+  const panelWidth =
+    typeof data.panelWidth === "number" &&
+    Number.isFinite(data.panelWidth)
+      ? Math.max(
+          220,
+          Math.min(640, data.panelWidth),
+        )
+      : 320;
+
+  const panelPadding =
+    typeof data.panelPadding === "number" &&
+    Number.isFinite(data.panelPadding)
+      ? Math.max(
+          0,
+          Math.min(48, data.panelPadding),
+        )
+      : 18;
+
+  const panelRadius =
+    typeof data.panelRadius === "number" &&
+    Number.isFinite(data.panelRadius)
+      ? Math.max(
+          0,
+          Math.min(48, data.panelRadius),
+        )
+      : 18;
+
+  const borderWidth =
+    typeof data.borderWidth === "number" &&
+    Number.isFinite(data.borderWidth)
+      ? Math.max(
+          0,
+          Math.min(12, data.borderWidth),
+        )
+      : 1;
+
+  const backgroundPositionX =
+    typeof data.backgroundPositionX === "number"
+      ? Math.max(
+          0,
+          Math.min(100, data.backgroundPositionX),
+        )
+      : 50;
+
+  const backgroundPositionY =
+    typeof data.backgroundPositionY === "number"
+      ? Math.max(
+          0,
+          Math.min(100, data.backgroundPositionY),
+        )
+      : 50;
+
+  const backgroundZoom =
+    typeof data.backgroundZoom === "number"
+      ? Math.max(
+          0.5,
+          Math.min(3, data.backgroundZoom),
+        )
+      : 1;
+
+  const getHotspotIcon = (
+    iconName: string,
+  ) => {
+    switch (iconName) {
+      case "star":
+        return "★";
+
+      case "info":
+        return "i";
+
+      case "target":
+        return "◎";
+
+      case "check":
+        return "✓";
+
+      case "heart":
+        return "♥";
+
+      case "flag":
+        return "⚑";
+
+      case "lightbulb":
+        return "◉";
+
+      case "pin":
+        return "●";
+
+      case "plus":
+        return "+";
+
+      default:
+        return "•";
+    }
+  };
+
+  const renderPanel = (
+    hotspot: any,
+  ) => {
+    if (!hotspot) {
+      return (
+        <div
+          className="flex h-full min-h-48 items-center justify-center text-center text-sm text-neutral-500"
+          style={{
+            padding: `${panelPadding}px`,
+          }}
+        >
+          Select a hotspot to view its details.
+        </div>
+      );
+    }
+
+    const accentColor =
+      hotspot.accentColor ?? "#2563EB";
+
+    const hasImage =
+      data.showHotspotImages !== false &&
+      typeof hotspot.imageUrl === "string" &&
+      hotspot.imageUrl.trim().length > 0;
+
+    return (
+      <div
+        className="relative h-full min-w-0 overflow-hidden"
+        style={{
+          padding: `${panelPadding}px`,
+
+          backgroundColor:
+            panelAppearanceStyle.backgroundColor ??
+            hotspot.panelBackgroundColor ??
+            "#FFFFFF",
+
+          borderColor:
+            panelAppearanceStyle.borderColor ??
+            hotspot.panelBorderColor ??
+            "#E5E7EB",
+
+          borderWidth:
+            typeof panelAppearanceStyle.borderWidth ===
+            "number"
+              ? `${panelAppearanceStyle.borderWidth}px`
+              : `${borderWidth}px`,
+
+          borderStyle:
+            panelAppearanceStyle.borderStyle ??
+            "solid",
+
+          borderRadius:
+            typeof panelAppearanceStyle.borderRadius ===
+            "number"
+              ? `${panelAppearanceStyle.borderRadius}px`
+              : `${panelRadius}px`,
+
+          boxShadow:
+            panelAppearanceStyle.boxShadow ??
+            (data.panelShadow !== false
+              ? "0 12px 30px rgba(15, 23, 42, 0.12)"
+              : undefined),
+
+          opacity:
+            typeof panelAppearanceStyle.opacity ===
+            "number"
+              ? panelAppearanceStyle.opacity
+              : undefined,
+        }}
+      >
+        <div
+          className="absolute inset-x-0 top-0 h-1"
+          style={{
+            backgroundColor: accentColor,
+          }}
+        />
+
+        {hasImage ? (
+          <div
+            className="mb-4 h-40 overflow-hidden"
+            style={{
+              backgroundColor:
+                hotspotImageAppearanceStyle.backgroundColor ??
+                "#F3F4F6",
+
+              borderColor:
+                hotspotImageAppearanceStyle.borderColor ??
+                "transparent",
+
+              borderWidth:
+                typeof hotspotImageAppearanceStyle.borderWidth ===
+                "number"
+                  ? `${hotspotImageAppearanceStyle.borderWidth}px`
+                  : undefined,
+
+              borderStyle:
+                hotspotImageAppearanceStyle.borderStyle ??
+                "solid",
+
+              borderRadius:
+                typeof hotspotImageAppearanceStyle.borderRadius ===
+                "number"
+                  ? `${hotspotImageAppearanceStyle.borderRadius}px`
+                  : "12px",
+            }}
+          >
+            <img
+              src={hotspot.imageUrl}
+              alt={
+                hotspot.title
+                  ? `${hotspot.title} detail`
+                  : "Hotspot detail"
+              }
+              className="h-full w-full object-cover"
+            />
+          </div>
+        ) : null}
+
+        {data.showBadges !== false &&
+        hotspot.badge ? (
+          <span
+            className="mb-3 inline-flex max-w-full items-center justify-center rounded-full px-2.5 py-1"
+            style={{
+              ...hotspotBadgeStyle,
+              backgroundColor:
+                `${accentColor}18`,
+            }}
+          >
+            {hotspot.badge}
+          </span>
+        ) : null}
+
+        {hotspot.title ? (
+          <div
+            className="whitespace-normal break-words"
+            style={hotspotTitleStyle}
+          >
+            {hotspot.title}
+          </div>
+        ) : null}
+
+        {data.showSubtitles !== false &&
+        hotspot.subtitle ? (
+          <div
+            className="mt-2 whitespace-normal break-words"
+            style={hotspotSubtitleStyle}
+          >
+            {hotspot.subtitle}
+          </div>
+        ) : null}
+
+        {data.showDescriptions !== false &&
+        hotspot.description ? (
+          <div
+            className="mt-3 whitespace-normal break-words leading-relaxed"
+            style={hotspotDescriptionStyle}
+          >
+            {hotspot.description}
+          </div>
+        ) : null}
+
+        {data.showButtons !== false &&
+        hotspot.buttonLabel &&
+        hotspot.href ? (
+          <a
+            href={hotspot.href}
+            target={
+              hotspot.openInNewTab
+                ? "_blank"
+                : undefined
+            }
+            rel={
+              hotspot.openInNewTab
+                ? "noreferrer"
+                : undefined
+            }
+            className="mt-4 inline-flex min-h-10 items-center justify-center px-4 py-2"
+            style={{
+              ...buttonLabelStyle,
+
+              backgroundColor:
+                buttonAppearanceStyle.backgroundColor ??
+                data.buttonBackgroundColor ??
+                "#111827",
+
+              borderColor:
+                buttonAppearanceStyle.borderColor ??
+                data.buttonBorderColor ??
+                "#111827",
+
+              borderWidth:
+                typeof buttonAppearanceStyle.borderWidth ===
+                "number"
+                  ? `${buttonAppearanceStyle.borderWidth}px`
+                  : "1px",
+
+              borderStyle:
+                buttonAppearanceStyle.borderStyle ??
+                "solid",
+
+              borderRadius:
+                typeof buttonAppearanceStyle.borderRadius ===
+                "number"
+                  ? `${buttonAppearanceStyle.borderRadius}px`
+                  : "12px",
+            }}
+            onPointerDown={(event) =>
+              event.stopPropagation()
+            }
+            onMouseDown={(event) =>
+              event.stopPropagation()
+            }
+            onClick={(event) =>
+              event.stopPropagation()
+            }
+          >
+            {hotspot.buttonLabel}
+          </a>
+        ) : null}
+      </div>
+    );
+  };
+
+  const canvas = (
+    <div
+      className="relative min-w-0 overflow-hidden"
+      style={{
+        height: `${canvasHeight}px`,
+
+        backgroundColor:
+          canvasAppearanceStyle.backgroundColor ??
+          data.canvasBackgroundColor ??
+          "#F3F4F6",
+
+        backgroundImage:
+          data.backgroundImageUrl
+            ? `url("${data.backgroundImageUrl}")`
+            : undefined,
+
+        backgroundPosition:
+          data.backgroundImageUrl
+            ? `${backgroundPositionX}% ${backgroundPositionY}%`
+            : undefined,
+
+        backgroundSize:
+          data.backgroundImageUrl
+            ? `${backgroundZoom * 100}%`
+            : undefined,
+
+        backgroundRepeat:
+          data.backgroundImageUrl
+            ? "no-repeat"
+            : undefined,
+
+        borderColor:
+          canvasAppearanceStyle.borderColor ??
+          "#E5E7EB",
+
+        borderWidth:
+          typeof canvasAppearanceStyle.borderWidth ===
+          "number"
+            ? `${canvasAppearanceStyle.borderWidth}px`
+            : `${borderWidth}px`,
+
+        borderStyle:
+          canvasAppearanceStyle.borderStyle ??
+          "solid",
+
+        borderRadius:
+          typeof canvasAppearanceStyle.borderRadius ===
+          "number"
+            ? `${canvasAppearanceStyle.borderRadius}px`
+            : `${panelRadius}px`,
+
+        boxShadow:
+          canvasAppearanceStyle.boxShadow ??
+          undefined,
+      }}
+    >
+      {data.showConnectorLines !== false &&
+      activeHotspot ? (
+        <div
+          className="pointer-events-none absolute left-1/2 top-1/2 origin-left"
+          style={{
+            width: "50%",
+
+            height:
+              typeof connectorAppearanceStyle.borderWidth ===
+              "number"
+                ? `${Math.max(
+                    1,
+                    connectorAppearanceStyle.borderWidth,
+                  )}px`
+                : "2px",
+
+            backgroundColor:
+              connectorAppearanceStyle.backgroundColor ??
+              connectorAppearanceStyle.borderColor ??
+              data.connectorColor ??
+              "#CBD5E1",
+
+            opacity:
+              typeof connectorAppearanceStyle.opacity ===
+              "number"
+                ? connectorAppearanceStyle.opacity
+                : 0.8,
+          }}
+        />
+      ) : null}
+
+      {data.showMarkers !== false
+        ? hotspots.map(
+            (
+              hotspot: any,
+              index: number,
+            ) => {
+              const positionX =
+                typeof hotspot.positionX ===
+                  "number"
+                  ? Math.max(
+                      0,
+                      Math.min(
+                        100,
+                        hotspot.positionX,
+                      ),
+                    )
+                  : 50;
+
+              const positionY =
+                typeof hotspot.positionY ===
+                  "number"
+                  ? Math.max(
+                      0,
+                      Math.min(
+                        100,
+                        hotspot.positionY,
+                      ),
+                    )
+                  : 50;
+
+              const isActive =
+                hotspot.id ===
+                activeHotspotId;
+
+              const markerBackgroundColor =
+                markerAppearanceStyle.backgroundColor ??
+                hotspot.markerBackgroundColor ??
+                "#2563EB";
+
+              const markerColor =
+                markerAppearanceStyle.color ??
+                hotspot.markerColor ??
+                "#FFFFFF";
+
+              const markerBorderColor =
+                markerAppearanceStyle.borderColor ??
+                hotspot.markerBorderColor ??
+                "#FFFFFF";
+
+              return (
+                <button
+                  key={hotspot.id || index}
+                  type="button"
+                  aria-pressed={isActive}
+                  aria-label={
+                    hotspot.title ||
+                    `Hotspot ${index + 1}`
+                  }
+                  className="absolute z-20 flex items-center justify-center rounded-full transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2"
+                  style={{
+                    left: `${positionX}%`,
+                    top: `${positionY}%`,
+
+                    width: `${markerSize}px`,
+                    height: `${markerSize}px`,
+
+                    transform:
+                      "translate(-50%, -50%)",
+
+                    color: markerColor,
+
+                    backgroundColor:
+                      markerStyle === "dot"
+                        ? markerBackgroundColor
+                        : markerBackgroundColor,
+
+                    borderColor:
+                      markerBorderColor,
+
+                    borderWidth:
+                      typeof markerAppearanceStyle.borderWidth ===
+                      "number"
+                        ? `${markerAppearanceStyle.borderWidth}px`
+                        : `${markerBorderWidth}px`,
+
+                    borderStyle:
+                      markerAppearanceStyle.borderStyle ??
+                      "solid",
+
+                    boxShadow:
+                      markerAppearanceStyle.boxShadow ??
+                      (data.markerShadow !== false
+                        ? "0 6px 18px rgba(15, 23, 42, 0.22)"
+                        : undefined),
+
+                    opacity:
+                      typeof markerAppearanceStyle.opacity ===
+                      "number"
+                        ? markerAppearanceStyle.opacity
+                        : undefined,
+
+                    outline:
+                      isActive
+                        ? `3px solid ${hotspot.accentColor ?? markerBackgroundColor}55`
+                        : undefined,
+
+                    animation:
+                      markerStyle === "pulse"
+                        ? "pulse 1.8s ease-in-out infinite"
+                        : undefined,
+                  }}
+                  onClick={(event) => {
+                    event.stopPropagation();
+
+                    setActiveHotspotId(
+                      isActive
+                        ? null
+                        : hotspot.id,
+                    );
+                  }}
+                >
+                  {markerStyle === "icon" ? (
+                    <span className="text-sm font-bold">
+                      {getHotspotIcon(
+                        hotspot.iconName,
+                      )}
+                    </span>
+                  ) : markerStyle === "dot" ? (
+                    <span className="h-2.5 w-2.5 rounded-full bg-current" />
+                  ) : data.showMarkerLabels !==
+                    false ? (
+                    <span style={markerLabelStyle}>
+                      {hotspot.markerLabel ||
+                        String(index + 1)}
+                    </span>
+                  ) : null}
+                </button>
+              );
+            },
+          )
+        : null}
+
+      {panelPosition === "overlay" &&
+      activeHotspot ? (
+        <div
+          className="absolute bottom-4 right-4 z-30 max-h-[calc(100%-2rem)] overflow-auto"
+          style={{
+            width: `min(${panelWidth}px, calc(100% - 2rem))`,
+          }}
+        >
+          {renderPanel(activeHotspot)}
+        </div>
+      ) : null}
+    </div>
+  );
+
+  const mainContent =
+    panelPosition === "bottom" ? (
+      <div className="flex flex-col gap-4">
+        {canvas}
+
+        <div className="min-w-0">
+          {renderPanel(activeHotspot)}
+        </div>
+      </div>
+    ) : panelPosition === "left" ? (
+      <div className="flex min-w-0 flex-col gap-4 lg:flex-row">
+        <div
+          className="min-w-0 shrink-0"
+          style={{
+            width: `min(${panelWidth}px, 100%)`,
+          }}
+        >
+          {renderPanel(activeHotspot)}
+        </div>
+
+        <div className="min-w-0 flex-1">
+          {canvas}
+        </div>
+      </div>
+    ) : panelPosition === "overlay" ? (
+      canvas
+    ) : (
+      <div className="flex min-w-0 flex-col gap-4 lg:flex-row">
+        <div className="min-w-0 flex-1">
+          {canvas}
+        </div>
+
+        <div
+          className="min-w-0 shrink-0"
+          style={{
+            width: `min(${panelWidth}px, 100%)`,
+          }}
+        >
+          {renderPanel(activeHotspot)}
+        </div>
+      </div>
+    );
+
+  return (
+    <div
+      className="h-full w-full overflow-auto"
+      style={appearanceStyle}
+    >
+      <div
+        style={{
+          padding: `${padding}px`,
+
+          transform:
+            typeof data.rotation === "number" &&
+            data.rotation !== 0
+              ? `rotate(${data.rotation}deg)`
+              : undefined,
+
+          transformOrigin: "center",
+        }}
+      >
+        {data.showHeading !== false &&
+        data.heading ? (
+          <div
+            className="mb-2 whitespace-normal break-words"
+            style={headingStyle}
+          >
+            {data.heading}
+          </div>
+        ) : null}
+
+        {data.showSubtitle !== false &&
+        data.subtitle ? (
+          <div
+            className="mb-5 whitespace-normal break-words"
+            style={subtitleStyle}
+          >
+            {data.subtitle}
+          </div>
+        ) : null}
+
+        {hotspots.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-neutral-300 p-6 text-center text-sm text-neutral-500">
+            Add hotspots to begin building this interactive display.
+          </div>
+        ) : (
+          mainContent
+        )}
+      </div>
+    </div>
+  );
+}
+
 function renderCircularHub(
   block: Extract<
     MicrositeBlock,
@@ -21049,6 +21860,12 @@ case "data_pyramid":
 
   case "circular_hub":
   return renderCircularHub(block, designKey);
+  
+case "interactive_hotspots":
+  return renderInteractiveHotspots(
+    block,
+    designKey,
+  );
 
 case "story_cards":
   return renderStoryCards(block, designKey);
