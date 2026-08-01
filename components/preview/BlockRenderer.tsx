@@ -9701,8 +9701,8 @@ const sectionStyle = data.sectionStyle ?? {};
 const buttonDefaultStyle = data.buttonDefaultStyle ?? {};
 const buttonSelectionStyle = data.buttonSelectionStyle ?? {};
 const submitButtonStyle = data.submitButtonStyle ?? {};
-  const hidden = new Set(block.data.hiddenElements ?? []);
-  const styleVariant = block.data.styleVariant ?? "standard";
+const hidden = new Set(block.data.hiddenElements ?? []);
+const styleVariant = block.data.styleVariant ?? "standard";
 
   const defaultRsvpOrder = [
     "image",
@@ -10099,31 +10099,28 @@ function renderField(
   onChange: (v: string) => void,
   type: string = "text",
 ) {
-  return (
-    <input
-      key={key}
-      type={type}
-      placeholder={placeholder}
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className={`${inputClass()} ${placeholderClassName}`}
-style={{
-  ...fieldStyle,
-  color: optionTextStyle.color,
-fontFamily: optionTextStyle.fontFamily,
-fontSize: optionTextStyle.fontSize,
-fontWeight: optionTextStyle.fontWeight,
-fontStyle: optionTextStyle.fontStyle,
-textDecoration: optionTextStyle.textDecoration,
-letterSpacing: optionTextStyle.letterSpacing,
-lineHeight: optionTextStyle.lineHeight,
-  textAlign: "left",
-  ...(placeholderColor
-    ? ({ "--rsvp-placeholder-color": placeholderColor } as React.CSSProperties)
-    : {}),
-}}
-    />
-  );
+return (
+  <input
+    key={key}
+    type={type}
+    placeholder={placeholder}
+    value={value}
+    onChange={(e) => onChange(e.target.value)}
+    className={`${inputClass()} ${placeholderClassName}`}
+    style={{
+      ...fieldStyle,
+      color: placeholderStyle.color,
+      fontFamily: placeholderStyle.fontFamily,
+      fontSize: placeholderStyle.fontSize,
+      fontWeight: placeholderStyle.fontWeight,
+      fontStyle: placeholderStyle.fontStyle,
+      textDecoration: placeholderStyle.textDecoration,
+      letterSpacing: placeholderStyle.letterSpacing,
+      lineHeight: placeholderStyle.lineHeight,
+      textAlign: placeholderStyle.textAlign,
+    }}
+  />
+);
 }
 
 function renderTextarea(
@@ -10197,34 +10194,53 @@ function renderChoiceSection(
 
       {useChoiceCards ? (
         <div className="relative z-10 grid grid-cols-1 gap-2 sm:grid-cols-2">
-          {options.map((option) => {
-            const selected = value === option;
-            const buttonStyle = selected
-              ? buttonSelectionStyle
-              : buttonDefaultStyle;
+{options.map((option) => {
+  const selected = value === option;
 
-            return (
-              <button
-                key={`${key}-${option}`}
-                type="button"
-                onClick={() => onChange(option)}
-                className="min-h-[46px] px-4 py-3 text-left text-sm font-medium transition duration-200"
-                style={{
-                  ...buttonStyle,
-                  color: optionTextStyle.color,
-fontFamily: optionTextStyle.fontFamily,
-fontSize: optionTextStyle.fontSize,
-fontWeight: optionTextStyle.fontWeight,
-fontStyle: optionTextStyle.fontStyle,
-textDecoration: optionTextStyle.textDecoration,
-letterSpacing: optionTextStyle.letterSpacing,
-lineHeight: optionTextStyle.lineHeight,
-                }}
-              >
-                {option}
-              </button>
-            );
-          })}
+  const resolvedButtonStyle = selected
+    ? buttonSelectionStyle
+    : buttonDefaultStyle;
+
+  const optionAlignment =
+    optionTextStyle.textAlign === "right"
+      ? "right"
+      : optionTextStyle.textAlign === "center"
+        ? "center"
+        : "left";
+
+  const justifyContent =
+    optionAlignment === "right"
+      ? "flex-end"
+      : optionAlignment === "center"
+        ? "center"
+        : "flex-start";
+
+  return (
+    <button
+      key={`${key}-${option}`}
+      type="button"
+      onClick={() => onChange(option)}
+      className="flex min-h-[46px] w-full items-center px-4 py-3 text-sm font-medium transition duration-200"
+      style={{
+        ...resolvedButtonStyle,
+        color: optionTextStyle.color,
+        fontFamily: optionTextStyle.fontFamily,
+        fontSize: optionTextStyle.fontSize,
+        fontWeight: optionTextStyle.fontWeight,
+        fontStyle: optionTextStyle.fontStyle,
+        textDecoration: optionTextStyle.textDecoration,
+        letterSpacing: optionTextStyle.letterSpacing,
+        lineHeight: optionTextStyle.lineHeight,
+        textAlign: optionAlignment,
+        justifyContent,
+      }}
+    >
+      <span className="w-full" style={{ textAlign: optionAlignment }}>
+        {option}
+      </span>
+    </button>
+  );
+})}
         </div>
       ) : (
         <div className="relative z-10 flex flex-wrap gap-4">
@@ -10240,6 +10256,7 @@ lineHeight: optionTextStyle.lineHeight,
                 checked={value === option}
                 onChange={() => onChange(option)}
               />
+
               <span>{option}</span>
             </label>
           ))}
@@ -10339,33 +10356,40 @@ lineHeight: optionTextStyle.lineHeight,
           </div>
         );
 
-      case "nameLabel":
-        if (block.data.nameDisplay === false) return null;
+case "nameLabel": {
+  if (block.data.nameDisplay === false) return null;
 
-        return renderFieldLabel(
-          "nameLabel",
-          block.data.contactLabel || "Contact Details",
-        );
+  const contactLabel = block.data.contactLabel ?? "Contact Details";
 
-      case "firstName":
-        if (block.data.nameDisplay === false) return null;
+  if (!contactLabel.trim()) return null;
 
-        return renderField(
-          "firstName",
-          block.data.firstNamePlaceholder || "First Name",
-          firstName,
-          setFirstName,
-        );
+  return renderFieldLabel("nameLabel", contactLabel);
+}
 
-      case "lastName":
-        if (block.data.nameDisplay === false) return null;
+case "firstName":
+  if (block.data.nameDisplay === false) return null;
 
-        return renderField(
-          "lastName",
-          block.data.lastNamePlaceholder || "Last Name",
-          lastName,
-          setLastName,
-        );
+  return renderField(
+    "firstName",
+    block.data.firstNamePlaceholder ?? "First Name",
+    firstName,
+    setFirstName,
+  );
+
+case "lastName":
+  if (
+    block.data.nameDisplay === false ||
+    block.data.lastNameDisplay === false
+  ) {
+    return null;
+  }
+
+  return renderField(
+    "lastName",
+    block.data.lastNamePlaceholder ?? "Last Name",
+    lastName,
+    setLastName,
+  );
 
       case "email":
         if (block.data.emailDisplay === false) return null;

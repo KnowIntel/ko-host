@@ -320,18 +320,23 @@ export function RsvpInspector({
                 ...block,
                 data: {
                   ...block.data,
-                  contactDetailsLabel: e.target.value,
+                  contactLabel: e.target.value,
                 },
               },
         )
       }
       className={inspectorInputClass()}
+      placeholder="Optional section label"
     />
+
+    <div className="mt-1 text-xs text-neutral-500">
+      Leave blank to hide the section label.
+    </div>
   </div>
 
   <div className="mt-5 space-y-4">
     <div className="rounded-xl border border-neutral-200 bg-white p-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <div className="text-sm font-medium text-neutral-800">
           Name Fields
         </div>
@@ -347,7 +352,7 @@ export function RsvpInspector({
                     ...block,
                     data: {
                       ...block.data,
-                      nameFieldsDisplay: e.target.checked,
+                      nameDisplay: e.target.checked,
                     },
                   },
             )
@@ -355,61 +360,92 @@ export function RsvpInspector({
         />
       </div>
 
-      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <div>
-          <div className={inspectorLabelClass()}>First Name Placeholder</div>
+      {selectedBlock.data.nameDisplay !== false ? (
+        <div className="mt-4 space-y-4">
+          <div>
+            <div className={inspectorLabelClass()}>
+              First Name Placeholder
+            </div>
 
-          <input
-            type="text"
-            value={
-              selectedBlock.data.firstNamePlaceholder ?? "First Name"
-            }
-            onChange={(e) =>
-              updateSelectedBlock((block: any) =>
-                block.type !== "rsvp"
-                  ? block
-                  : {
-                      ...block,
-                      data: {
-                        ...block.data,
-                        firstNamePlaceholder: e.target.value,
+            <input
+              type="text"
+              value={
+                selectedBlock.data.firstNamePlaceholder ?? "First Name"
+              }
+              onChange={(e) =>
+                updateSelectedBlock((block: any) =>
+                  block.type !== "rsvp"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+                          firstNamePlaceholder: e.target.value,
+                        },
                       },
-                    },
-              )
-            }
-            className={inspectorInputClass()}
-          />
-        </div>
+                )
+              }
+              className={inspectorInputClass()}
+            />
+          </div>
 
-        <div>
-          <div className={inspectorLabelClass()}>Last Name Placeholder</div>
+          <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+            <label className="flex items-center gap-3 text-sm text-neutral-800">
+              <input
+                type="checkbox"
+                checked={selectedBlock.data.lastNameDisplay !== false}
+                onChange={(e) =>
+                  updateSelectedBlock((block: any) =>
+                    block.type !== "rsvp"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            lastNameDisplay: e.target.checked,
+                          },
+                        },
+                  )
+                }
+              />
+              Include Last Name field
+            </label>
 
-          <input
-            type="text"
-            value={
-              selectedBlock.data.lastNamePlaceholder ?? "Last Name"
-            }
-            onChange={(e) =>
-              updateSelectedBlock((block: any) =>
-                block.type !== "rsvp"
-                  ? block
-                  : {
-                      ...block,
-                      data: {
-                        ...block.data,
-                        lastNamePlaceholder: e.target.value,
-                      },
-                    },
-              )
-            }
-            className={inspectorInputClass()}
-          />
+            {selectedBlock.data.lastNameDisplay !== false ? (
+              <div className="mt-3">
+                <div className={inspectorLabelClass()}>
+                  Last Name Placeholder
+                </div>
+
+                <input
+                  type="text"
+                  value={
+                    selectedBlock.data.lastNamePlaceholder ?? "Last Name"
+                  }
+                  onChange={(e) =>
+                    updateSelectedBlock((block: any) =>
+                      block.type !== "rsvp"
+                        ? block
+                        : {
+                            ...block,
+                            data: {
+                              ...block.data,
+                              lastNamePlaceholder: e.target.value,
+                            },
+                          },
+                    )
+                  }
+                  className={inspectorInputClass()}
+                />
+              </div>
+            ) : null}
+          </div>
         </div>
-      </div>
+      ) : null}
     </div>
 
     <div className="rounded-xl border border-neutral-200 bg-white p-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <div className="text-sm font-medium text-neutral-800">
           Email Address
         </div>
@@ -433,34 +469,36 @@ export function RsvpInspector({
         />
       </div>
 
-      <div className="mt-4">
-        <div className={inspectorLabelClass()}>Email Placeholder</div>
+      {selectedBlock.data.emailDisplay !== false ? (
+        <div className="mt-4">
+          <div className={inspectorLabelClass()}>Email Placeholder</div>
 
-        <input
-          type="text"
-          value={
-            selectedBlock.data.emailPlaceholder ?? "Email Address"
-          }
-          onChange={(e) =>
-            updateSelectedBlock((block: any) =>
-              block.type !== "rsvp"
-                ? block
-                : {
-                    ...block,
-                    data: {
-                      ...block.data,
-                      emailPlaceholder: e.target.value,
+          <input
+            type="text"
+            value={
+              selectedBlock.data.emailPlaceholder ?? "Email Address"
+            }
+            onChange={(e) =>
+              updateSelectedBlock((block: any) =>
+                block.type !== "rsvp"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        emailPlaceholder: e.target.value,
+                      },
                     },
-                  },
-            )
-          }
-          className={inspectorInputClass()}
-        />
-      </div>
+              )
+            }
+            className={inspectorInputClass()}
+          />
+        </div>
+      ) : null}
     </div>
 
     <div className="rounded-xl border border-neutral-200 bg-white p-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <div className="text-sm font-medium text-neutral-800">
           Mailing Address
         </div>
@@ -484,30 +522,32 @@ export function RsvpInspector({
         />
       </div>
 
-      <div className="mt-4">
-        <div className={inspectorLabelClass()}>Address Placeholder</div>
+      {selectedBlock.data.addressDisplay !== false ? (
+        <div className="mt-4">
+          <div className={inspectorLabelClass()}>Address Placeholder</div>
 
-        <input
-          type="text"
-          value={
-            selectedBlock.data.addressPlaceholder ?? "Mailing Address"
-          }
-          onChange={(e) =>
-            updateSelectedBlock((block: any) =>
-              block.type !== "rsvp"
-                ? block
-                : {
-                    ...block,
-                    data: {
-                      ...block.data,
-                      addressPlaceholder: e.target.value,
+          <input
+            type="text"
+            value={
+              selectedBlock.data.addressPlaceholder ?? "Mailing Address"
+            }
+            onChange={(e) =>
+              updateSelectedBlock((block: any) =>
+                block.type !== "rsvp"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        addressPlaceholder: e.target.value,
+                      },
                     },
-                  },
-            )
-          }
-          className={inspectorInputClass()}
-        />
-      </div>
+              )
+            }
+            className={inspectorInputClass()}
+          />
+        </div>
+      ) : null}
     </div>
   </div>
 </div>

@@ -787,14 +787,16 @@ export type RsvpBlock = BaseBlock & {
     guestMin?: number;
     guestMax?: number;
 
-    contactLabel?: string;
-    firstNamePlaceholder?: string;
-    lastNamePlaceholder?: string;
-    emailPlaceholder?: string;
-    addressPlaceholder?: string;
-    nameDisplay?: boolean;
-    emailDisplay?: boolean;
-    addressDisplay?: boolean;
+contactLabel?: string;
+firstNamePlaceholder?: string;
+lastNamePlaceholder?: string;
+emailPlaceholder?: string;
+addressPlaceholder?: string;
+
+nameDisplay?: boolean;
+lastNameDisplay?: boolean;
+emailDisplay?: boolean;
+addressDisplay?: boolean;
 
     attendingLabel?: string;
     attendingOptions?: string[];
@@ -4457,14 +4459,16 @@ styleVariant: "elegant_wedding",
 
       useChoiceCards: true,
 
-      contactLabel: "Contact Details",
-      firstNamePlaceholder: "First Name",
-      lastNamePlaceholder: "Last Name",
-      emailPlaceholder: "Email Address",
-      addressPlaceholder: "Mailing Address",
-      nameDisplay: true,
-      emailDisplay: true,
-      addressDisplay: true,
+contactLabel: "Contact Details",
+firstNamePlaceholder: "First Name",
+lastNamePlaceholder: "Last Name",
+emailPlaceholder: "Email Address",
+addressPlaceholder: "Mailing Address",
+
+nameDisplay: true,
+lastNameDisplay: true,
+emailDisplay: true,
+addressDisplay: true,
 
       elementOrder: [
         "image",
