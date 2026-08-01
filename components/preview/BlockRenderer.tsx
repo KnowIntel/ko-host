@@ -15035,13 +15035,13 @@ function renderTextFx(
   );
 
   /*
-   * Keep the SVG coordinate system stable so changing curve strength does
-   * not visually resize the text.
+   * Use a fixed SVG coordinate system for curved TextFX.
+   *
+   * The canvas must not grow with fontSize because the SVG would then scale
+   * the larger coordinate system back into the same block dimensions,
+   * visually canceling larger font sizes.
    */
-  const canvasWidth = Math.max(
-    1600,
-    fontSize * longestLineLength * 1.6,
-  );
+  const canvasWidth = 1600;
 
   const lineSpacing = Math.max(
     fontSize * 1.75,
@@ -15053,24 +15053,22 @@ function renderTextFx(
     lineSpacing * lines.length,
   );
 
-  const canvasHeight = Math.max(
-    800,
-    fontSize * 12,
-    totalLineHeight + fontSize * 8,
-  );
+  /*
+   * Keep the base height stable while allowing extra room for additional
+   * lines. Font size itself no longer enlarges the viewBox.
+   */
+  const canvasHeight =
+    800 + Math.max(0, lines.length - 1) * 220;
 
   const centerX = canvasWidth / 2;
   const centerY = canvasHeight / 2;
 
-  const maximumRadius = Math.max(
-    canvasWidth * 3,
-    fontSize * 50,
-  );
-
-  const minimumRadius = Math.max(
-    canvasWidth * 0.34,
-    fontSize * 5,
-  );
+  /*
+   * Curve strength changes only the radius—not the SVG dimensions or font
+   * size—so larger font sizes remain visibly larger.
+   */
+  const maximumRadius = canvasWidth * 3;
+  const minimumRadius = canvasWidth * 0.34;
 
   const curveProgress = intensity / 100;
 
