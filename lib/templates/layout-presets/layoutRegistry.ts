@@ -32,6 +32,7 @@ import meetLayouts from "./templates/meet_and_greet";
 import gameLayouts from "./templates/game_day_central";
 import engagementLayouts from "./templates/engagement_announcement";
 import serviceLayouts from "./templates/service_ad";
+import gameNightLayouts from "./templates/game_night";
 
 
 import blankLayout from "./layouts/blank";
@@ -68,6 +69,7 @@ const registry: Record<string, TemplateLayoutRegistry> = {
   game_day_central: gameLayouts,
   engagement_announcement: engagementLayouts,
   service_ad: serviceLayouts,
+  game_night: gameNightLayouts,
 
   
 };

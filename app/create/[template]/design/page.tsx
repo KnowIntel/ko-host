@@ -135,6 +135,7 @@ const draftPageCountByTemplateDesignKey: Record<string, number> = {
   "service_ad:vibes": 1,
   "service_ad:clear": 2,
 
+  "game_night:roll": 1,
 
 };
 
