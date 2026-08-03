@@ -5504,26 +5504,39 @@ if (selectedBlockFromDraft?.type === "poll") {
     return;
   }
   
-  if (selectedBlock?.type === "text_fx") {
-    setDraft((prev) => ({
-      ...prev,
-      blocks: prev.blocks.map((block) =>
-        block.id === selectedBlock.id && block.type === "text_fx"
-          ? {
-              ...block,
-              data: {
-                ...block.data,
-                style: {
-                  ...(block.data.style ?? {}),
-                  ...patch,
-                },
-              },
-            }
-          : block,
-      ),
-    }));
-    return;
-  }
+if (selectedBlock?.type === "text_fx") {
+  setDraft((prev) => ({
+    ...prev,
+    blocks: prev.blocks.map((block) => {
+      if (block.id !== selectedBlock.id || block.type !== "text_fx") {
+        return block;
+      }
+
+      const isMainColorChange = patch.color !== undefined;
+
+      return {
+        ...block,
+        data: {
+          ...block.data,
+          style: {
+            ...(block.data.style ?? {}),
+            ...patch,
+          },
+          fx: {
+            ...(block.data.fx ?? {}),
+            ...(isMainColorChange
+              ? {
+                  letterColors: [],
+                }
+              : {}),
+          },
+        },
+      };
+    }),
+  }));
+
+  return;
+}
   
 
 

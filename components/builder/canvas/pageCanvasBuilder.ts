@@ -90,9 +90,19 @@ export function buildPageCanvasItems(
 ): CanvasGridItem[] {
   const next = coerceDraft(draft);
   const pageElements = next.pageElements ?? {};
+  const pageVisibility = next.pageVisibility ?? {};
   const items: CanvasGridItem[] = [];
 
-  if (isVisible(next, "title")) {
+  /*
+   * Page text blocks are explicit-only.
+   *
+   * They appear on the canvas only after the creator intentionally adds
+   * them and the corresponding pageVisibility value is exactly true.
+   *
+   * Tagline and Description are intentionally disabled.
+   */
+
+  if (pageVisibility.title === true) {
     items.push({
       id: PAGE_TITLE_BLOCK_ID,
       type: "page:title",
@@ -104,7 +114,7 @@ export function buildPageCanvasItems(
     });
   }
 
-  if (isVisible(next, "subtitle")) {
+  if (pageVisibility.subtitle === true) {
     items.push({
       id: PAGE_SUBTITLE_BLOCK_ID,
       type: "page:subtitle",
@@ -113,30 +123,6 @@ export function buildPageCanvasItems(
         pageElements.subtitle ??
         metadata?.page.subtitle?.grid ??
         getDefaultPageElementGrid("subtitle"),
-    });
-  }
-
-  if (isVisible(next, "subtext")) {
-    items.push({
-      id: PAGE_SUBTEXT_BLOCK_ID,
-      type: "page:subtext",
-      label: "Tagline",
-      grid:
-        pageElements.subtext ??
-        metadata?.page.tagline?.grid ??
-        getDefaultPageElementGrid("subtext"),
-    });
-  }
-
-  if (isVisible(next, "description")) {
-    items.push({
-      id: PAGE_DESCRIPTION_BLOCK_ID,
-      type: "page:description",
-      label: "Description",
-      grid:
-        pageElements.description ??
-        metadata?.page.description?.grid ??
-        getDefaultPageElementGrid("description"),
     });
   }
 
