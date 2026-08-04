@@ -137,6 +137,8 @@ const draftPageCountByTemplateDesignKey: Record<string, number> = {
 
   "game_night:roll": 1,
 
+  "book_club:bible": 2,
+
 };
 
 const pageCount =
