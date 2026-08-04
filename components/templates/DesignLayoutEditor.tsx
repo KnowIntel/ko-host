@@ -12830,80 +12830,145 @@ title={
     </button>
 
 {showBorderWidthRadiusControls ? (
-      <>
-        <div className={topBarSliderWrapClass()}>
-          <span>Border</span>
-          <input
-            type="range"
-            min={0}
-            max={30}
-            value={
-              selectedBlock?.type === "post_board" && postBoardStyleTarget === "card"
-                ? Number(((selectedBlock.data as any).cardStyle ?? {}).borderWidth ?? 0)
-                : selectedBlock?.type === "post_board" &&
-                    postBoardStyleTarget === "buttons"
-                  ? Number(((selectedBlock.data as any).buttonStyle ?? {}).borderWidth ?? 0)
-                  : selectedBlock?.type === "form_field" &&
-                      formFieldTextTarget === "inputText"
-                    ? Number(((selectedBlock.data as any).inputStyle ?? {}).borderWidth ?? 0)
-                    : selectedAppearance.borderWidth ?? 0
-            }
-            onChange={(e) =>
-              applyAppearancePatch({
-                borderWidth: Number(e.target.value) || 0,
-              })
-            }
-            className={topBarSliderClass()}
-            title="Border width"
-          />
-          <span>
-            {selectedBlock?.type === "post_board" && postBoardStyleTarget === "card"
-              ? Number(((selectedBlock.data as any).cardStyle ?? {}).borderWidth ?? 0)
-              : selectedBlock?.type === "post_board" && postBoardStyleTarget === "buttons"
-                ? Number(((selectedBlock.data as any).buttonStyle ?? {}).borderWidth ?? 0)
-                : selectedBlock?.type === "form_field" && formFieldTextTarget === "inputText"
-                  ? Number(((selectedBlock.data as any).inputStyle ?? {}).borderWidth ?? 0)
-                  : selectedAppearance.borderWidth ?? 0}
-          </span>
-        </div>
+  <>
+    <div className={topBarSliderWrapClass()}>
+      <span>Border</span>
+      <input
+        type="range"
+        min={0}
+        max={30}
+        value={
+          selectedBlock?.type === "post_board" &&
+          postBoardStyleTarget === "card"
+            ? Number(
+                ((selectedBlock.data as any).cardStyle ?? {}).borderWidth ?? 0,
+              )
+            : selectedBlock?.type === "post_board" &&
+                postBoardStyleTarget === "buttons"
+              ? Number(
+                  ((selectedBlock.data as any).buttonStyle ?? {}).borderWidth ??
+                    0,
+                )
+              : selectedBlock?.type === "form_field" &&
+                  formFieldTextTarget === "inputText"
+                ? Number(
+                    ((selectedBlock.data as any).inputStyle ?? {}).borderWidth ??
+                      0,
+                  )
+                : selectedBlock?.type === "enrollment_board" &&
+                    enrollmentBoardStyleTarget === "field"
+                  ? Number(
+                      ((selectedBlock.data as any).fieldStyle ?? {})
+                        .borderWidth ?? 0,
+                    )
+                  : selectedAppearance.borderWidth ?? 0
+        }
+        onChange={(e) =>
+          applyAppearancePatch({
+            borderWidth: Number(e.target.value) || 0,
+          })
+        }
+        className={topBarSliderClass()}
+        title="Border width"
+      />
 
-        <div className={topBarSliderWrapClass()}>
-          <span>Radius</span>
-          <input
-            type="range"
-            min={0}
-            max={100}
-            value={
-              selectedBlock?.type === "post_board" && postBoardStyleTarget === "card"
-                ? Number(((selectedBlock.data as any).cardStyle ?? {}).borderRadius ?? 0)
-                : selectedBlock?.type === "post_board" &&
-                    postBoardStyleTarget === "buttons"
-                  ? Number(((selectedBlock.data as any).buttonStyle ?? {}).borderRadius ?? 0)
-                  : selectedBlock?.type === "form_field" &&
-                      formFieldTextTarget === "inputText"
-                    ? Number(((selectedBlock.data as any).inputStyle ?? {}).borderRadius ?? 0)
-                    : selectedAppearance.borderRadius ?? 0
-            }
-            onChange={(e) =>
-              applyAppearancePatch({
-                borderRadius: Number(e.target.value) || 0,
-              })
-            }
-            className={topBarSliderClass()}
-            title="Corner radius"
-          />
-          <span>
-            {selectedBlock?.type === "post_board" && postBoardStyleTarget === "card"
-              ? Number(((selectedBlock.data as any).cardStyle ?? {}).borderRadius ?? 0)
-              : selectedBlock?.type === "post_board" && postBoardStyleTarget === "buttons"
-                ? Number(((selectedBlock.data as any).buttonStyle ?? {}).borderRadius ?? 0)
-                : selectedBlock?.type === "form_field" && formFieldTextTarget === "inputText"
-                  ? Number(((selectedBlock.data as any).inputStyle ?? {}).borderRadius ?? 0)
-                  : selectedAppearance.borderRadius ?? 0}
-          </span>
-        </div>
-      </>
-    ) : null}
+      <span>
+        {selectedBlock?.type === "post_board" &&
+        postBoardStyleTarget === "card"
+          ? Number(
+              ((selectedBlock.data as any).cardStyle ?? {}).borderWidth ?? 0,
+            )
+          : selectedBlock?.type === "post_board" &&
+              postBoardStyleTarget === "buttons"
+            ? Number(
+                ((selectedBlock.data as any).buttonStyle ?? {}).borderWidth ?? 0,
+              )
+            : selectedBlock?.type === "form_field" &&
+                formFieldTextTarget === "inputText"
+              ? Number(
+                  ((selectedBlock.data as any).inputStyle ?? {}).borderWidth ??
+                    0,
+                )
+              : selectedBlock?.type === "enrollment_board" &&
+                  enrollmentBoardStyleTarget === "field"
+                ? Number(
+                    ((selectedBlock.data as any).fieldStyle ?? {}).borderWidth ??
+                      0,
+                  )
+                : selectedAppearance.borderWidth ?? 0}
+      </span>
+    </div>
+
+    <div className={topBarSliderWrapClass()}>
+      <span>Radius</span>
+      <input
+        type="range"
+        min={0}
+        max={100}
+        value={
+          selectedBlock?.type === "post_board" &&
+          postBoardStyleTarget === "card"
+            ? Number(
+                ((selectedBlock.data as any).cardStyle ?? {}).borderRadius ?? 0,
+              )
+            : selectedBlock?.type === "post_board" &&
+                postBoardStyleTarget === "buttons"
+              ? Number(
+                  ((selectedBlock.data as any).buttonStyle ?? {}).borderRadius ??
+                    0,
+                )
+              : selectedBlock?.type === "form_field" &&
+                  formFieldTextTarget === "inputText"
+                ? Number(
+                    ((selectedBlock.data as any).inputStyle ?? {})
+                      .borderRadius ?? 0,
+                  )
+                : selectedBlock?.type === "enrollment_board" &&
+                    enrollmentBoardStyleTarget === "field"
+                  ? Number(
+                      ((selectedBlock.data as any).fieldStyle ?? {})
+                        .borderRadius ?? 0,
+                    )
+                  : selectedAppearance.borderRadius ?? 0
+        }
+        onChange={(e) =>
+          applyAppearancePatch({
+            borderRadius: Number(e.target.value) || 0,
+          })
+        }
+        className={topBarSliderClass()}
+        title="Corner radius"
+      />
+
+      <span>
+        {selectedBlock?.type === "post_board" &&
+        postBoardStyleTarget === "card"
+          ? Number(
+              ((selectedBlock.data as any).cardStyle ?? {}).borderRadius ?? 0,
+            )
+          : selectedBlock?.type === "post_board" &&
+              postBoardStyleTarget === "buttons"
+            ? Number(
+                ((selectedBlock.data as any).buttonStyle ?? {}).borderRadius ??
+                  0,
+              )
+            : selectedBlock?.type === "form_field" &&
+                formFieldTextTarget === "inputText"
+              ? Number(
+                  ((selectedBlock.data as any).inputStyle ?? {}).borderRadius ??
+                    0,
+                )
+              : selectedBlock?.type === "enrollment_board" &&
+                  enrollmentBoardStyleTarget === "field"
+                ? Number(
+                    ((selectedBlock.data as any).fieldStyle ?? {})
+                      .borderRadius ?? 0,
+                  )
+                : selectedAppearance.borderRadius ?? 0}
+      </span>
+    </div>
+  </>
+) : null}
 
     {recentColors.length ? (
       <>
