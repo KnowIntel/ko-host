@@ -11544,42 +11544,6 @@ const idsToExpand =
   </>
 ) : null}
 
-{selectedBlock?.type === "enrollment_board" ? (
-  <>
-    <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
-
-<select
-  value={enrollmentBoardStyleTarget}
-  onChange={(e) =>
-    setEnrollmentBoardStyleTarget(
-      e.target.value as EnrollmentBoardStyleTarget,
-    )
-  }
-  className={topBarFieldClass("w-[190px]")}
-  title="Enrollment Board style target"
->
-  
-  <option value="block">Block Background</option>
-  <option value="form">Form Panel</option>
-  <option value="inputs">Input Fields</option>
-  <option value="button">Submit Button</option>
-  <option value="list">List Area</option>
-  <option value="cards">Member Cards</option>
-  <option value="heading">Heading</option>
-  <option value="subtitle">Form Subheader</option>
-  <option value="imageLabel">Image Label</option>
-  <option value="memberName">Member Name</option>
-  <option value="memberQuote">Member Quote</option>
-  <option value="memberTotal">Member Total Label</option>
-</select>
-  </>
-) : null}
-
-      {showTypographyControls ? (
-        <>
-
-{null}
-
 
 {selectedBlock?.type === "frame" ? (
   <FrameInspector
