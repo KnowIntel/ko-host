@@ -11030,19 +11030,19 @@ onDrop={async (e) => {
     </div>
 
     {/* Only this section scrolls */}
-<div
-  ref={topBarScrollRef}
-  className="min-w-0 flex-1 overflow-x-auto overflow-y-hidden pb-3"
->
-      <div className="flex min-w-max items-center gap-2 py-1">
+    <div
+      ref={topBarScrollRef}
+      className="top-toolbar-scrollbar min-w-0 flex-1 overflow-x-auto overflow-y-hidden pb-3"
+    >
+      <div className="flex min-w-max items-center gap-2 pt-4 pb-1">
 
-      
-  <button
-  type="button"
-  onClick={openResetDraftModal}
-  className={topBarButtonClass(false, false, true)}
-  title="Reset Draft"
->
+        <button
+          type="button"
+          onClick={openResetDraftModal}
+          className={topBarButtonClass(false, false, true)}
+          title="Reset Draft"
+        >
+          
   <Image
     src="/icons/reset_draft_icon.png"
     alt="Reset Draft"
