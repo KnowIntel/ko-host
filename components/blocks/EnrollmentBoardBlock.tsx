@@ -173,8 +173,8 @@ const formStyle = styleToCss(data.formStyle);
 
 const inputStyle = {
   ...styleToCss(data.inputStyle),
-  ...styleToCss(data.fieldStyle),
   ...styleToCss(data.fieldTextStyle),
+  ...styleToCss(data.fieldStyle),
 };
 
 const placeholderStyle = styleToCss(data.placeholderStyle);

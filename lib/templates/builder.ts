@@ -9395,10 +9395,17 @@ if (block.type === "enrollment_board") {
         ...(data.formStyle ?? {}),
       },
 
-      inputStyle: {
-        ...createDefaultTextStyle(),
-        ...(data.inputStyle ?? {}),
-      },
+fieldStyle: {
+  ...createDefaultTextStyle(),
+  ...(data.inputStyle ?? {}),
+  ...(data.fieldStyle ?? {}),
+},
+
+inputStyle: {
+  ...createDefaultTextStyle(),
+  ...(data.inputStyle ?? {}),
+  ...(data.fieldStyle ?? {}),
+},
 
       buttonStyle: {
         ...createDefaultTextStyle(),
