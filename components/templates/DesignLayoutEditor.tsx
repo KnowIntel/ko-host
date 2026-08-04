@@ -11027,7 +11027,7 @@ onDrop={async (e) => {
 
       <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
 
-<button
+  <button
   type="button"
   onClick={openResetDraftModal}
   className={topBarButtonClass(false, false, true)}

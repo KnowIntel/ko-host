@@ -4066,7 +4066,10 @@ case "text_fx":
         type: "image",
         label: "Image",
         grid,
-        appearance: createDefaultBlockAppearance(),
+        appearance: {
+  ...createDefaultBlockAppearance(),
+  borderRadius: 0,
+},
         data: {
           image: {
             id: makeId("img"),
