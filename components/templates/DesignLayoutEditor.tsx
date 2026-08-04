@@ -10932,37 +10932,36 @@ onDrop={async (e) => {
 </div>
 </div>
 
-<div className="sticky top-0 z-[100] w-full bg-[#809cd4] shadow-md">
-  <div
-    ref={topBarScrollRef}
-    className="flex w-full items-center justify-between gap-4 overflow-x-auto overflow-y-hidden bg-[#2f3541] px-2 py-2 shadow-md"
-  >
-    <div className="flex items-center justify-between gap-4">
-      <div className="sticky left-0 z-0 flex min-w-max items-center gap-2 bg-[#2f3541] py-1 pr-4 pointer-events-auto">
+<div className="sticky top-0 z-[100] w-full bg-[#2f3541] shadow-md">
+  <div className="flex w-full items-center bg-[#2f3541] px-2 py-2">
+    {/* Permanently frozen left controls */}
+    <div className="relative z-50 flex shrink-0 items-center gap-2 bg-[#2f3541] py-1 pr-4 shadow-[10px_0_12px_-12px_rgba(0,0,0,0.9)]">
+      <button
+        type="button"
+        className={topBarButtonClass(false)}
+        onClick={handleJumpToFullCanvasView}
+        title="Full canvas view"
+        aria-label="Full canvas view"
+      >
+        <Image
+          src="/icons/icon_full_page_canvas.png"
+          alt=""
+          width={30}
+          height={30}
+          className="pointer-events-none h-[30px] w-[30px] object-contain"
+        />
+      </button>
 
-<button
-  type="button"
-  className={topBarButtonClass(false)}
-  onClick={handleJumpToFullCanvasView}
-  title="Full canvas view"
-  aria-label="Full canvas view"
->
-  <Image
-    src="/icons/icon_full_page_canvas.png"
-    alt=""
-    width={30}
-    height={30}
-    className="pointer-events-none h-[30px] w-[30px] object-contain"
-  />
-</button>
-
-<button
-  type="button"
-  className={topBarButtonClass(false, canvasZoom <= MIN_CANVAS_ZOOM)}
-  onClick={zoomOutCanvas}
-  disabled={canvasZoom <= MIN_CANVAS_ZOOM}
-  title="Zoom out canvas"
->
+      <button
+        type="button"
+        className={topBarButtonClass(
+          false,
+          canvasZoom <= MIN_CANVAS_ZOOM,
+        )}
+        onClick={zoomOutCanvas}
+        disabled={canvasZoom <= MIN_CANVAS_ZOOM}
+        title="Zoom out canvas"
+      >
         <Image
           src="/icons/zoom_out_icon.png"
           alt="Zoom Out"
@@ -10974,7 +10973,10 @@ onDrop={async (e) => {
 
       <button
         type="button"
-        className={topBarButtonClass(false, canvasZoom >= MAX_CANVAS_ZOOM)}
+        className={topBarButtonClass(
+          false,
+          canvasZoom >= MAX_CANVAS_ZOOM,
+        )}
         onClick={zoomInCanvas}
         disabled={canvasZoom >= MAX_CANVAS_ZOOM}
         title="Zoom in canvas"
@@ -10998,16 +11000,15 @@ onDrop={async (e) => {
         title="Undo"
         onClick={handleUndo}
         disabled={undoStack.length === 0}
-
-          >
-            <Image
-              src="/icons/icon_main_undo.png"
-              alt="Undo"
-              width={16}
-              height={16}
-              className="pointer-events-none h-5 w-5 object-contain"
-            />
-          </button>
+      >
+        <Image
+          src="/icons/icon_main_undo.png"
+          alt="Undo"
+          width={16}
+          height={16}
+          className="pointer-events-none h-5 w-5 object-contain"
+        />
+      </button>
 
       <button
         type="button"
@@ -11015,18 +11016,27 @@ onDrop={async (e) => {
         title="Redo"
         onClick={handleRedo}
         disabled={redoStack.length === 0}
-          >
-            <Image
-              src="/icons/icon_main_redo.png"
-              alt="Redo"
-              width={16}
-              height={16}
-              className="pointer-events-none h-5 w-5 object-contain"
-            />
-          </button>
+      >
+        <Image
+          src="/icons/icon_main_redo.png"
+          alt="Redo"
+          width={16}
+          height={16}
+          className="pointer-events-none h-5 w-5 object-contain"
+        />
+      </button>
 
       <div className="mx-2 h-8 w-px shrink-0 bg-white/15" />
+    </div>
 
+    {/* Only this section scrolls */}
+    <div
+      ref={topBarScrollRef}
+      className="min-w-0 flex-1 overflow-x-auto overflow-y-hidden"
+    >
+      <div className="flex min-w-max items-center gap-2 py-1">
+
+      
   <button
   type="button"
   onClick={openResetDraftModal}
