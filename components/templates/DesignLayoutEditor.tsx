@@ -11030,10 +11030,10 @@ onDrop={async (e) => {
     </div>
 
     {/* Only this section scrolls */}
-    <div
-      ref={topBarScrollRef}
-      className="min-w-0 flex-1 overflow-x-auto overflow-y-hidden"
-    >
+<div
+  ref={topBarScrollRef}
+  className="min-w-0 flex-1 overflow-x-auto overflow-y-hidden pb-3"
+>
       <div className="flex min-w-max items-center gap-2 py-1">
 
       
