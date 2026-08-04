@@ -11034,7 +11034,7 @@ onDrop={async (e) => {
       ref={topBarScrollRef}
       className="top-toolbar-scrollbar min-w-0 flex-1 overflow-x-auto overflow-y-hidden pb-2"
     >
-      <div className="flex min-w-max items-center gap-2 pt-5.5 pb-1">
+      <div className="flex min-w-max items-end gap-2 pt-2 pb-0 min-h-[56px]">
 
         <button
           type="button"

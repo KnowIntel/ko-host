@@ -85,11 +85,11 @@ body {
 
 .top-toolbar-scrollbar {
   scrollbar-color: #4b5563 #1f2937;
-  scrollbar-width: thin;
+  scrollbar-width: auto; /* Firefox */
 }
 
 .top-toolbar-scrollbar::-webkit-scrollbar {
-  height: 10px;
+  height: 16px; /* was 10px */
 }
 
 .top-toolbar-scrollbar::-webkit-scrollbar-track {
@@ -101,6 +101,7 @@ body {
   background: #4b5563;
   border-radius: 9999px;
   border: 2px solid #1f2937;
+  min-width: 48px;
 }
 
 .top-toolbar-scrollbar::-webkit-scrollbar-thumb:hover {
