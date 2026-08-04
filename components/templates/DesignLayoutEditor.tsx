@@ -11032,9 +11032,9 @@ onDrop={async (e) => {
     {/* Only this section scrolls */}
     <div
       ref={topBarScrollRef}
-      className="top-toolbar-scrollbar min-w-0 flex-1 overflow-x-auto overflow-y-hidden pb-3"
+      className="top-toolbar-scrollbar min-w-0 flex-1 overflow-x-auto overflow-y-hidden pb-2"
     >
-      <div className="flex min-w-max items-center gap-2 pt-5 pb-1">
+      <div className="flex min-w-max items-center gap-2 pt-5.5 pb-1">
 
         <button
           type="button"
