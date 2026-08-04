@@ -11545,6 +11545,12 @@ const idsToExpand =
 ) : null}
 
 
+      {showTypographyControls ? (
+        <>
+
+{null}
+
+
 {selectedBlock?.type === "frame" ? (
   <FrameInspector
     selectedBlock={selectedBlock}
