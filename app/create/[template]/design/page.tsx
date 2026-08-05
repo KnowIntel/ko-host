@@ -91,6 +91,8 @@ const draftPageCountByTemplateDesignKey: Record<string, number> = {
   "learning_lab:algebra": 5,
   "learning_lab:atomic": 1,
   "learning_lab:literary": 1,
+  "learning_lab:foundations": 1,
+
 
   "engagement_announcement:forever": 1,
   "engagement_announcement:perfect": 1,
