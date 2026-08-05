@@ -255,6 +255,107 @@ export function FormulaBoardInspector({
       id="inspector-formula-board"
       className={inspectorCardClass()}
     >
+
+      
+
+      {/* Text Target */}
+
+      <div className="mt-4">
+        <div className={inspectorLabelClass()}>
+          Text Target
+        </div>
+
+        <select
+          value={formulaBoardTextTarget}
+          onChange={(e) =>
+            setFormulaBoardTextTarget(
+              e.target.value as FormulaBoardTextTarget,
+            )
+          }
+          className={inspectorInputClass()}
+        >
+          <option value="heading">Heading</option>
+          <option value="subtitle">Subtitle</option>
+
+          <option value="formulaTitle">
+            Formula Title
+          </option>
+
+          <option value="formula">
+            {isSkillsChallenge ? "Equation" : "Formula"}
+          </option>
+
+          {!isSkillsChallenge ? (
+            <>
+              <option value="description">
+                Description
+              </option>
+
+              <option value="variables">
+                Variables
+              </option>
+
+              <option value="example">
+                Worked Example
+              </option>
+            </>
+          ) : null}
+        </select>
+      </div>
+
+      {/* Style Target */}
+
+      <div className="mt-4">
+        <div className={inspectorLabelClass()}>
+          Style Target
+        </div>
+
+        <select
+          value={formulaBoardStyleTarget}
+          onChange={(e) =>
+            setFormulaBoardStyleTarget(
+              e.target.value as FormulaBoardStyleTarget,
+            )
+          }
+          className={inspectorInputClass()}
+        >
+          <option value="card">Card</option>
+
+          <option value="formulaPanel">
+            {isSkillsChallenge
+              ? "Equation Panel"
+              : "Formula Panel"}
+          </option>
+
+          {!isSkillsChallenge ? (
+            <>
+              <option value="variablesPanel">
+                Variables Panel
+              </option>
+
+              <option value="examplePanel">
+                Example Panel
+              </option>
+
+              <option value="diagram">
+                Diagram
+              </option>
+            </>
+          ) : null}
+
+          {isSkillsChallenge ? (
+  <option value="submitButton">
+    Submit Button
+  </option>
+) : null}
+
+<option value="block">
+  Block
+</option>
+        </select>
+      </div>
+
+      
       <div className={inspectorLabelClass()}>
         Formula Board
       </div>
@@ -530,103 +631,6 @@ export function FormulaBoardInspector({
           </div>
         </div>
       ) : null}
-
-      {/* Text Target */}
-
-      <div className="mt-4">
-        <div className={inspectorLabelClass()}>
-          Text Target
-        </div>
-
-        <select
-          value={formulaBoardTextTarget}
-          onChange={(e) =>
-            setFormulaBoardTextTarget(
-              e.target.value as FormulaBoardTextTarget,
-            )
-          }
-          className={inspectorInputClass()}
-        >
-          <option value="heading">Heading</option>
-          <option value="subtitle">Subtitle</option>
-
-          <option value="formulaTitle">
-            Formula Title
-          </option>
-
-          <option value="formula">
-            {isSkillsChallenge ? "Equation" : "Formula"}
-          </option>
-
-          {!isSkillsChallenge ? (
-            <>
-              <option value="description">
-                Description
-              </option>
-
-              <option value="variables">
-                Variables
-              </option>
-
-              <option value="example">
-                Worked Example
-              </option>
-            </>
-          ) : null}
-        </select>
-      </div>
-
-      {/* Style Target */}
-
-      <div className="mt-4">
-        <div className={inspectorLabelClass()}>
-          Style Target
-        </div>
-
-        <select
-          value={formulaBoardStyleTarget}
-          onChange={(e) =>
-            setFormulaBoardStyleTarget(
-              e.target.value as FormulaBoardStyleTarget,
-            )
-          }
-          className={inspectorInputClass()}
-        >
-          <option value="card">Card</option>
-
-          <option value="formulaPanel">
-            {isSkillsChallenge
-              ? "Equation Panel"
-              : "Formula Panel"}
-          </option>
-
-          {!isSkillsChallenge ? (
-            <>
-              <option value="variablesPanel">
-                Variables Panel
-              </option>
-
-              <option value="examplePanel">
-                Example Panel
-              </option>
-
-              <option value="diagram">
-                Diagram
-              </option>
-            </>
-          ) : null}
-
-          {isSkillsChallenge ? (
-  <option value="submitButton">
-    Submit Button
-  </option>
-) : null}
-
-<option value="block">
-  Block
-</option>
-        </select>
-      </div>
 
       {/* General */}
 
