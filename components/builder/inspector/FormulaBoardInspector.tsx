@@ -79,27 +79,55 @@ function createChallengeOperands(
   min: number,
   max: number,
 ) {
-  if (operation === "skills_division") {
-    /*
-     * Generate a nonzero divisor and a whole-number quotient.
-     * The dividend is calculated from them so division always
-     * has a whole-number answer.
-     */
-    const divisorMin = Math.max(1, min);
-    const divisorMax = Math.max(divisorMin, max);
+if (operation === "skills_division") {
+  const safeMin = Math.max(
+    1,
+    Math.ceil(Math.min(min, max)),
+  );
 
-    const divisor = getRandomInteger(
-      divisorMin,
-      divisorMax,
-    );
+  const safeMax = Math.max(
+    safeMin,
+    Math.floor(Math.max(min, max)),
+  );
 
-    const quotient = getRandomInteger(min, max);
+  const validPairs: Array<{
+    operandA: number;
+    operandB: number;
+  }> = [];
 
+  for (
+    let dividend = safeMin;
+    dividend <= safeMax;
+    dividend += 1
+  ) {
+    for (
+      let divisor = safeMin;
+      divisor <= safeMax;
+      divisor += 1
+    ) {
+      if (dividend % divisor === 0) {
+        validPairs.push({
+          operandA: dividend,
+          operandB: divisor,
+        });
+      }
+    }
+  }
+
+  if (validPairs.length === 0) {
     return {
-      operandA: divisor * quotient,
-      operandB: divisor,
+      operandA: safeMin,
+      operandB: safeMin,
     };
   }
+
+  return validPairs[
+    getRandomInteger(
+      0,
+      validPairs.length - 1,
+    )
+  ];
+}
 
   const first = getRandomInteger(min, max);
   const second = getRandomInteger(min, max);
@@ -300,6 +328,12 @@ export function FormulaBoardInspector({
               </option>
             </>
           ) : null}
+
+          {isSkillsChallenge ? (
+  <option value="submitButton">
+    Submit Button
+  </option>
+) : null}
         </select>
       </div>
 
@@ -355,7 +389,7 @@ export function FormulaBoardInspector({
         </select>
       </div>
 
-      
+
       <div className={inspectorLabelClass()}>
         Formula Board
       </div>

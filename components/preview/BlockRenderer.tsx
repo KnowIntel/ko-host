@@ -8341,7 +8341,8 @@ function FormulaBoardLive({
   designKey?: string;
 }) {
   const data = block.data as any;
-  const appearanceStyle = getAppearanceStyle(block);
+  const appearanceStyle =
+    getAppearanceStyle(block);
 
   const [answers, setAnswers] = useState<
     Record<string, string>
@@ -8354,7 +8355,8 @@ function FormulaBoardLive({
     >
   >({});
 
-  const operation = data.operation ?? "reference";
+  const operation =
+    data.operation ?? "reference";
 
   const isSkillsChallenge =
     operation === "skills_addition" ||
@@ -8362,91 +8364,137 @@ function FormulaBoardLive({
     operation === "skills_multiplication" ||
     operation === "skills_division";
 
-  const headingStyle = getContainerTextStyle(
-    data.headingStyle ?? {},
-    designKey,
-  );
+  const headingStyle =
+    getContainerTextStyle(
+      data.headingStyle ?? {},
+      designKey,
+    );
 
-  const subtitleStyle = getContainerTextStyle(
-    data.subtitleStyle ?? {},
-    designKey,
-  );
+  const subtitleStyle =
+    getContainerTextStyle(
+      data.subtitleStyle ?? {},
+      designKey,
+    );
 
-  const formulaTitleStyle = getContainerTextStyle(
-    data.formulaTitleStyle ?? {},
-    designKey,
-  );
+  const formulaTitleStyle =
+    getContainerTextStyle(
+      data.formulaTitleStyle ?? {},
+      designKey,
+    );
 
-  const formulaStyle = getContainerTextStyle(
-    data.formulaStyle ?? {},
-    designKey,
-  );
+  const formulaStyle =
+    getContainerTextStyle(
+      data.formulaStyle ?? {},
+      designKey,
+    );
 
-  const descriptionStyle = getContainerTextStyle(
-    data.descriptionStyle ?? {},
-    designKey,
-  );
+  const descriptionStyle =
+    getContainerTextStyle(
+      data.descriptionStyle ?? {},
+      designKey,
+    );
 
-  const variablesStyle = getContainerTextStyle(
-    data.variablesStyle ?? {},
-    designKey,
-  );
+  const variablesStyle =
+    getContainerTextStyle(
+      data.variablesStyle ?? {},
+      designKey,
+    );
 
-  const exampleStyle = getContainerTextStyle(
-    data.exampleStyle ?? {},
-    designKey,
-  );
+  const exampleStyle =
+    getContainerTextStyle(
+      data.exampleStyle ?? {},
+      designKey,
+    );
 
-  const cardStyle = data.cardStyle ?? {};
+  const submitButtonTextStyle =
+    getContainerTextStyle(
+      data.submitButtonTextStyle ?? {},
+      designKey,
+    );
+
+  const cardStyle =
+    data.cardStyle ?? {};
+
   const formulaPanelStyle =
     data.formulaPanelStyle ?? {};
+
   const variablesPanelStyle =
     data.variablesPanelStyle ?? {};
+
   const examplePanelStyle =
     data.examplePanelStyle ?? {};
-  const diagramStyle = data.diagramStyle ?? {};
+
+  const diagramStyle =
+    data.diagramStyle ?? {};
 
   const submitButtonStyle =
-  data.submitButtonStyle ?? {};
+    data.submitButtonStyle ?? {};
 
-  const formulas = Array.isArray(data.formulas)
+  const formulas = Array.isArray(
+    data.formulas,
+  )
     ? data.formulas
     : [];
 
-  const layout = data.layout ?? "grid";
+  const layout =
+    data.layout ?? "grid";
 
-const columns =
-  data.columns === 1 ||
-  data.columns === 2 ||
-  data.columns === 3 ||
-  data.columns === 4 ||
-  data.columns === 5 ||
-  data.columns === 6
-    ? data.columns
-    : 2;
+  const columns =
+    data.columns === 1 ||
+    data.columns === 2 ||
+    data.columns === 3 ||
+    data.columns === 4 ||
+    data.columns === 5 ||
+    data.columns === 6
+      ? data.columns
+      : 2;
 
   const padding =
     typeof data.padding === "number" &&
     Number.isFinite(data.padding)
-      ? Math.max(0, Math.min(80, data.padding))
+      ? Math.max(
+          0,
+          Math.min(
+            80,
+            data.padding,
+          ),
+        )
       : 20;
 
   const gap =
     typeof data.gap === "number" &&
     Number.isFinite(data.gap)
-      ? Math.max(0, Math.min(80, data.gap))
+      ? Math.max(
+          0,
+          Math.min(
+            80,
+            data.gap,
+          ),
+        )
       : 16;
 
   const cardGap =
     typeof data.cardGap === "number" &&
     Number.isFinite(data.cardGap)
-      ? Math.max(0, Math.min(80, data.cardGap))
+      ? Math.max(
+          0,
+          Math.min(
+            80,
+            data.cardGap,
+          ),
+        )
       : 12;
 
   const legacyCardRadius =
     typeof data.cardRadius === "number" &&
     Number.isFinite(data.cardRadius)
-      ? Math.max(0, Math.min(48, data.cardRadius))
+      ? Math.max(
+          0,
+          Math.min(
+            48,
+            data.cardRadius,
+          ),
+        )
       : 18;
 
   const getPanelStyle = (
@@ -8458,43 +8506,59 @@ const columns =
       fallbackBackgroundColor,
 
     borderColor:
-      style.borderColor ?? "transparent",
+      style.borderColor ??
+      "transparent",
 
     borderWidth:
-      typeof style.borderWidth === "number"
+      typeof style.borderWidth ===
+      "number"
         ? `${style.borderWidth}px`
         : undefined,
 
     borderStyle:
-      typeof style.borderWidth === "number" &&
+      typeof style.borderWidth ===
+        "number" &&
       style.borderWidth > 0
-        ? style.borderStyle ?? "solid"
+        ? style.borderStyle ??
+          "solid"
         : undefined,
 
     borderRadius:
-      typeof style.borderRadius === "number"
+      typeof style.borderRadius ===
+      "number"
         ? `${style.borderRadius}px`
         : "12px",
 
     boxShadow:
-      style.boxShadow ?? undefined,
+      style.boxShadow ??
+      undefined,
 
     opacity:
-      typeof style.opacity === "number"
+      typeof style.opacity ===
+      "number"
         ? style.opacity
         : undefined,
   });
 
-  const getOperands = (formula: any) => {
-    const operandA = Number(formula.operandA);
-    const operandB = Number(formula.operandB);
+  const getOperands = (
+    formula: any,
+  ) => {
+    const operandA =
+      Number(formula.operandA);
+
+    const operandB =
+      Number(formula.operandB);
 
     return {
-      operandA: Number.isFinite(operandA)
+      operandA: Number.isFinite(
+        operandA,
+      )
         ? operandA
         : 0,
 
-      operandB: Number.isFinite(operandB)
+      operandB: Number.isFinite(
+        operandB,
+      )
         ? operandB
         : 0,
     };
@@ -8503,8 +8567,10 @@ const columns =
   const getEquation = (
     formula: any,
   ): string => {
-    const { operandA, operandB } =
-      getOperands(formula);
+    const {
+      operandA,
+      operandB,
+    } = getOperands(formula);
 
     switch (operation) {
       case "skills_addition":
@@ -8527,8 +8593,10 @@ const columns =
   const getCorrectAnswer = (
     formula: any,
   ): number | null => {
-    const { operandA, operandB } =
-      getOperands(formula);
+    const {
+      operandA,
+      operandB,
+    } = getOperands(formula);
 
     switch (operation) {
       case "skills_addition":
@@ -8562,7 +8630,8 @@ const columns =
       return null;
     }
 
-    const number = Number(normalized);
+    const number =
+      Number(normalized);
 
     return Number.isFinite(number)
       ? number
@@ -8573,9 +8642,10 @@ const columns =
     formulaId: string,
     formula: any,
   ) => {
-    const visitorAnswer = normalizeNumber(
-      answers[formulaId] ?? "",
-    );
+    const visitorAnswer =
+      normalizeNumber(
+        answers[formulaId] ?? "",
+      );
 
     const correctAnswer =
       getCorrectAnswer(formula);
@@ -8584,11 +8654,13 @@ const columns =
       visitorAnswer !== null &&
       correctAnswer !== null &&
       Math.abs(
-        visitorAnswer - correctAnswer,
+        visitorAnswer -
+          correctAnswer,
       ) < 0.000000001;
 
     setFeedback((current) => ({
       ...current,
+
       [formulaId]: isCorrect
         ? "correct"
         : "incorrect",
@@ -8605,12 +8677,14 @@ const columns =
           padding: `${padding}px`,
 
           transform:
-            typeof data.rotation === "number" &&
+            typeof data.rotation ===
+              "number" &&
             data.rotation !== 0
               ? `rotate(${data.rotation}deg)`
               : undefined,
 
-          transformOrigin: "center",
+          transformOrigin:
+            "center",
         }}
       >
         {data.showHeading !== false &&
@@ -8649,18 +8723,26 @@ const columns =
           }}
         >
           {formulas.map(
-            (formula: any, index: number) => {
+            (
+              formula: any,
+              index: number,
+            ) => {
               const formulaId =
-                formula.id || `formula-${index}`;
+                formula.id ||
+                `formula-${index}`;
 
               const hasDiagram =
                 typeof formula.diagramUrl ===
                   "string" &&
-                formula.diagramUrl.trim().length > 0;
+                formula.diagramUrl
+                  .trim()
+                  .length > 0;
 
               const equation =
                 isSkillsChallenge
-                  ? getEquation(formula)
+                  ? getEquation(
+                      formula,
+                    )
                   : formula.formula;
 
               const currentFeedback =
@@ -8672,7 +8754,8 @@ const columns =
                   className={[
                     "min-w-0 border p-4",
 
-                    data.cardShadow !== false
+                    data.cardShadow !==
+                    false
                       ? "shadow-sm"
                       : "",
                   ].join(" ")}
@@ -8696,7 +8779,8 @@ const columns =
                     borderStyle:
                       typeof cardStyle.borderWidth ===
                         "number" &&
-                      cardStyle.borderWidth > 0
+                      cardStyle.borderWidth >
+                        0
                         ? cardStyle.borderStyle ??
                           "solid"
                         : undefined,
@@ -8727,7 +8811,9 @@ const columns =
                     {formula.title ? (
                       <div
                         className="whitespace-normal break-words font-semibold"
-                        style={formulaTitleStyle}
+                        style={
+                          formulaTitleStyle
+                        }
                       >
                         {formula.title}
                       </div>
@@ -8739,37 +8825,50 @@ const columns =
                         style={{
                           ...getPanelStyle(
                             formulaPanelStyle,
+
                             data.formulaBackgroundColor ??
                               "#F8FAFC",
                           ),
                         }}
                       >
-                        <div style={formulaStyle}>
+                        <div
+                          style={
+                            formulaStyle
+                          }
+                        >
                           {equation}
                         </div>
 
                         {isSkillsChallenge ? (
-<form
-  className="mt-4 pointer-events-auto relative z-20"
-  onPointerDown={(event) => {
-    event.stopPropagation();
-  }}
-  onMouseDown={(event) => {
-    event.stopPropagation();
-  }}
-  onClick={(event) => {
-    event.stopPropagation();
-  }}
-  onSubmit={(event) => {
-    event.preventDefault();
-    event.stopPropagation();
+                          <form
+                            className="pointer-events-auto relative z-20 mt-4"
+                            onPointerDown={(
+                              event,
+                            ) => {
+                              event.stopPropagation();
+                            }}
+                            onMouseDown={(
+                              event,
+                            ) => {
+                              event.stopPropagation();
+                            }}
+                            onClick={(
+                              event,
+                            ) => {
+                              event.stopPropagation();
+                            }}
+                            onSubmit={(
+                              event,
+                            ) => {
+                              event.preventDefault();
+                              event.stopPropagation();
 
-    submitAnswer(
-      formulaId,
-      formula,
-    );
-  }}
->
+                              submitAnswer(
+                                formulaId,
+                                formula,
+                              );
+                            }}
+                          >
                             <label
                               htmlFor={`formula-answer-${block.id}-${formulaId}`}
                               className="mb-2 block text-sm font-medium text-neutral-700"
@@ -8777,107 +8876,140 @@ const columns =
                               Your answer
                             </label>
 
-<input
-  id={`formula-answer-${block.id}-${formulaId}`}
-  type="text"
-  inputMode="decimal"
-  value={answers[formulaId] ?? ""}
-  onPointerDown={(event) => {
-    console.log("FORMULA INPUT POINTER DOWN");
-    event.stopPropagation();
-  }}
-  onMouseDown={(event) => {
-    console.log("FORMULA INPUT MOUSE DOWN");
-    event.stopPropagation();
-  }}
-  onClick={(event) => {
-    console.log("FORMULA INPUT CLICK");
-    event.stopPropagation();
-  }}
-  onFocus={() => {
-    console.log("FORMULA INPUT FOCUSED");
-  }}
-  onChange={(event) => {
-    const value = event.target.value;
+                            <input
+                              id={`formula-answer-${block.id}-${formulaId}`}
+                              type="text"
+                              inputMode="decimal"
+                              value={
+                                answers[
+                                  formulaId
+                                ] ?? ""
+                              }
+                              onPointerDown={(
+                                event,
+                              ) => {
+                                event.stopPropagation();
+                              }}
+                              onMouseDown={(
+                                event,
+                              ) => {
+                                event.stopPropagation();
+                              }}
+                              onClick={(
+                                event,
+                              ) => {
+                                event.stopPropagation();
+                              }}
+                              onChange={(
+                                event,
+                              ) => {
+                                const value =
+                                  event
+                                    .target
+                                    .value;
 
-    console.log("FORMULA INPUT CHANGED", value);
+                                setAnswers(
+                                  (
+                                    current,
+                                  ) => ({
+                                    ...current,
 
-    setAnswers((current) => ({
-      ...current,
-      [formulaId]: value,
-    }));
+                                    [formulaId]:
+                                      value,
+                                  }),
+                                );
 
-    if (feedback[formulaId]) {
-      setFeedback((current) => ({
-        ...current,
-        [formulaId]: undefined,
-      }));
-    }
-  }}
-  className="pointer-events-auto relative z-20 w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-base text-neutral-900 outline-none transition focus:border-neutral-500 focus:ring-2 focus:ring-neutral-200"
-  placeholder="Enter your answer"
-  autoComplete="off"
-/>
+                                if (
+                                  feedback[
+                                    formulaId
+                                  ]
+                                ) {
+                                  setFeedback(
+                                    (
+                                      current,
+                                    ) => ({
+                                      ...current,
 
-<button
-  type="submit"
-  onPointerDown={(event) => {
-    event.stopPropagation();
-  }}
-  onMouseDown={(event) => {
-    event.stopPropagation();
-  }}
-  onClick={(event) => {
-    event.stopPropagation();
-  }}
-  className="pointer-events-auto relative z-20 mt-3 inline-flex min-h-10 items-center justify-center px-4 py-2 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-neutral-400 focus:ring-offset-2"
-  style={{
-    color:
-      submitButtonStyle.color ??
-      "#FFFFFF",
+                                      [formulaId]:
+                                        undefined,
+                                    }),
+                                  );
+                                }
+                              }}
+                              className="pointer-events-auto relative z-20 w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-base text-neutral-900 outline-none transition focus:border-neutral-500 focus:ring-2 focus:ring-neutral-200"
+                              placeholder="Enter your answer"
+                              autoComplete="off"
+                            />
 
-    backgroundColor:
-      submitButtonStyle.backgroundColor ??
-      "#111827",
+                            <button
+                              type="submit"
+                              onPointerDown={(
+                                event,
+                              ) => {
+                                event.stopPropagation();
+                              }}
+                              onMouseDown={(
+                                event,
+                              ) => {
+                                event.stopPropagation();
+                              }}
+                              onClick={(
+                                event,
+                              ) => {
+                                event.stopPropagation();
+                              }}
+                              className="pointer-events-auto relative z-20 mt-3 inline-flex min-h-10 items-center justify-center px-4 py-2 transition focus:outline-none focus:ring-2 focus:ring-neutral-400 focus:ring-offset-2"
+                              style={{
+                                ...submitButtonTextStyle,
 
-    borderColor:
-      submitButtonStyle.borderColor ??
-      "#111827",
+                                color:
+                                  submitButtonTextStyle.color ??
+                                  submitButtonStyle.color ??
+                                  "#FFFFFF",
 
-    borderWidth:
-      typeof submitButtonStyle.borderWidth ===
-      "number"
-        ? `${submitButtonStyle.borderWidth}px`
-        : "1px",
+                                backgroundColor:
+                                  submitButtonStyle.backgroundColor ??
+                                  "#111827",
 
-    borderStyle:
-      typeof submitButtonStyle.borderWidth ===
-        "number" &&
-      submitButtonStyle.borderWidth > 0
-        ? submitButtonStyle.borderStyle ??
-          "solid"
-        : "solid",
+                                borderColor:
+                                  submitButtonStyle.borderColor ??
+                                  "#111827",
 
-    borderRadius:
-      typeof submitButtonStyle.borderRadius ===
-      "number"
-        ? `${submitButtonStyle.borderRadius}px`
-        : "8px",
+                                borderWidth:
+                                  typeof submitButtonStyle.borderWidth ===
+                                  "number"
+                                    ? `${submitButtonStyle.borderWidth}px`
+                                    : "1px",
 
-    boxShadow:
-      submitButtonStyle.boxShadow ??
-      undefined,
+                                borderStyle:
+                                  typeof submitButtonStyle.borderWidth ===
+                                    "number" &&
+                                  submitButtonStyle.borderWidth >
+                                    0
+                                    ? submitButtonStyle.borderStyle ??
+                                      "solid"
+                                    : "solid",
 
-    opacity:
-      typeof submitButtonStyle.opacity ===
-      "number"
-        ? submitButtonStyle.opacity
-        : undefined,
-  }}
->
-  {data.submitButtonText ||
-    "Submit Answer"}
-</button>
+                                borderRadius:
+                                  typeof submitButtonStyle.borderRadius ===
+                                  "number"
+                                    ? `${submitButtonStyle.borderRadius}px`
+                                    : "8px",
+
+                                boxShadow:
+                                  submitButtonStyle.boxShadow ??
+                                  undefined,
+
+                                opacity:
+                                  typeof submitButtonStyle.opacity ===
+                                  "number"
+                                    ? submitButtonStyle.opacity
+                                    : undefined,
+                              }}
+                            >
+                              {data.submitButtonText ||
+                                "Submit Answer"}
+                            </button>
 
                             {currentFeedback ===
                             "correct" ? (
@@ -8923,9 +9055,13 @@ const columns =
                     formula.description ? (
                       <div
                         className="whitespace-pre-wrap break-words leading-relaxed"
-                        style={descriptionStyle}
+                        style={
+                          descriptionStyle
+                        }
                       >
-                        {formula.description}
+                        {
+                          formula.description
+                        }
                       </div>
                     ) : null}
 
@@ -8951,7 +9087,8 @@ const columns =
                           borderStyle:
                             typeof diagramStyle.borderWidth ===
                               "number" &&
-                            diagramStyle.borderWidth > 0
+                            diagramStyle.borderWidth >
+                              0
                               ? diagramStyle.borderStyle ??
                                 "solid"
                               : undefined,
@@ -8974,7 +9111,9 @@ const columns =
                         }}
                       >
                         <img
-                          src={formula.diagramUrl}
+                          src={
+                            formula.diagramUrl
+                          }
                           alt={
                             formula.title
                               ? `${formula.title} diagram`
@@ -8992,6 +9131,7 @@ const columns =
                         style={{
                           ...getPanelStyle(
                             variablesPanelStyle,
+
                             data.variablesBackgroundColor ??
                               "#F9FAFB",
                           ),
@@ -8999,7 +9139,9 @@ const columns =
                           ...variablesStyle,
                         }}
                       >
-                        {formula.variables}
+                        {
+                          formula.variables
+                        }
                       </div>
                     ) : null}
 
@@ -9010,6 +9152,7 @@ const columns =
                         style={{
                           ...getPanelStyle(
                             examplePanelStyle,
+
                             data.exampleBackgroundColor ??
                               "#EFF6FF",
                           ),
@@ -9017,7 +9160,9 @@ const columns =
                           ...exampleStyle,
                         }}
                       >
-                        {formula.example}
+                        {
+                          formula.example
+                        }
                       </div>
                     ) : null}
                   </div>
