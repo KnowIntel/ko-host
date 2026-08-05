@@ -5,7 +5,8 @@ export type FormulaBoardTextTarget =
   | "formula"
   | "description"
   | "variables"
-  | "example";
+  | "example"
+  | "submitButton";
 
 export type FormulaBoardStyleTarget =
   | "card"
@@ -48,6 +49,9 @@ function getTextStyleKey(
 
     case "example":
       return "exampleStyle";
+
+    case "submitButton":
+      return "submitButtonTextStyle";
   }
 }
 
