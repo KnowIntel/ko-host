@@ -8406,18 +8406,24 @@ function FormulaBoardLive({
     data.examplePanelStyle ?? {};
   const diagramStyle = data.diagramStyle ?? {};
 
+  const submitButtonStyle =
+  data.submitButtonStyle ?? {};
+
   const formulas = Array.isArray(data.formulas)
     ? data.formulas
     : [];
 
   const layout = data.layout ?? "grid";
 
-  const columns =
-    data.columns === 1 ||
-    data.columns === 2 ||
-    data.columns === 3
-      ? data.columns
-      : 2;
+const columns =
+  data.columns === 1 ||
+  data.columns === 2 ||
+  data.columns === 3 ||
+  data.columns === 4 ||
+  data.columns === 5 ||
+  data.columns === 6
+    ? data.columns
+    : 2;
 
   const padding =
     typeof data.padding === "number" &&
@@ -8824,11 +8830,54 @@ function FormulaBoardLive({
   onClick={(event) => {
     event.stopPropagation();
   }}
-  className="pointer-events-auto relative z-20 mt-3 inline-flex min-h-10 items-center justify-center rounded-lg bg-neutral-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-neutral-400 focus:ring-offset-2"
+  className="pointer-events-auto relative z-20 mt-3 inline-flex min-h-10 items-center justify-center px-4 py-2 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-neutral-400 focus:ring-offset-2"
+  style={{
+    color:
+      submitButtonStyle.color ??
+      "#FFFFFF",
+
+    backgroundColor:
+      submitButtonStyle.backgroundColor ??
+      "#111827",
+
+    borderColor:
+      submitButtonStyle.borderColor ??
+      "#111827",
+
+    borderWidth:
+      typeof submitButtonStyle.borderWidth ===
+      "number"
+        ? `${submitButtonStyle.borderWidth}px`
+        : "1px",
+
+    borderStyle:
+      typeof submitButtonStyle.borderWidth ===
+        "number" &&
+      submitButtonStyle.borderWidth > 0
+        ? submitButtonStyle.borderStyle ??
+          "solid"
+        : "solid",
+
+    borderRadius:
+      typeof submitButtonStyle.borderRadius ===
+      "number"
+        ? `${submitButtonStyle.borderRadius}px`
+        : "8px",
+
+    boxShadow:
+      submitButtonStyle.boxShadow ??
+      undefined,
+
+    opacity:
+      typeof submitButtonStyle.opacity ===
+      "number"
+        ? submitButtonStyle.opacity
+        : undefined,
+  }}
 >
-                              {data.submitButtonText ||
-                                "Submit Answer"}
-                            </button>
+  {data.submitButtonText ||
+    "Submit Answer"}
+</button>
 
                             {currentFeedback ===
                             "correct" ? (

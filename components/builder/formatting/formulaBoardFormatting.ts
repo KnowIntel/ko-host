@@ -13,6 +13,7 @@ export type FormulaBoardStyleTarget =
   | "variablesPanel"
   | "examplePanel"
   | "diagram"
+  | "submitButton"
   | "block";
 
 type StylePatch = Record<string, any>;
@@ -51,7 +52,10 @@ function getTextStyleKey(
 }
 
 function getStyleKey(
-  target: Exclude<FormulaBoardStyleTarget, "block">,
+  target: Exclude<
+    FormulaBoardStyleTarget,
+    "block"
+  >,
 ) {
   switch (target) {
     case "card":
@@ -68,14 +72,23 @@ function getStyleKey(
 
     case "diagram":
       return "diagramStyle";
+
+    case "submitButton":
+      return "submitButtonStyle";
   }
 }
 
 export function getFormulaBoardTextStyle(
-  block: FormulaBoardBlockShape | null | undefined,
+  block:
+    | FormulaBoardBlockShape
+    | null
+    | undefined,
   target: FormulaBoardTextTarget,
 ) {
-  if (!block || block.type !== "formula_board") {
+  if (
+    !block ||
+    block.type !== "formula_board"
+  ) {
     return {};
   }
 

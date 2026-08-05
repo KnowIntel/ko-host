@@ -616,7 +616,15 @@ export function FormulaBoardInspector({
             </>
           ) : null}
 
-          <option value="block">Block</option>
+          {isSkillsChallenge ? (
+  <option value="submitButton">
+    Submit Button
+  </option>
+) : null}
+
+<option value="block">
+  Block
+</option>
         </select>
       </div>
 
