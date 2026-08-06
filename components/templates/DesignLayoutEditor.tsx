@@ -4663,6 +4663,7 @@ function applyPageTextBoxBackground(value: string) {
 }
 
 function applyFillColor(value: string) {
+  
   if (selectedBlock?.type === "enrollment_board") {
     applyAppearancePatch({ backgroundColor: value });
     pushRecentColor(value);
@@ -6024,6 +6025,21 @@ function clearSelectedBackground() {
 }
 
 function applyAppearancePatch(patch: AppearancePatch) {
+
+  if (selectedBlock?.type === "form_field") {
+  updateSelectedBlock((block) =>
+    block.type !== "form_field"
+      ? block
+      : applyFormFieldStylePatch(
+          block,
+          formFieldStyleTarget,
+          patch,
+        ),
+  );
+
+  return;
+}
+
   if (selectedBlock?.type === "process_flow") {
     updateSelectedBlock((block) =>
       block.type !== "process_flow"

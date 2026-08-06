@@ -13880,10 +13880,26 @@ function FormFieldPreview() {
         : ((block.data as any).fieldBorderColor ??
           inputStyle.borderColor ??
           undefined),
-    borderWidth:
-      (block.data as any).fieldBorderEnabled === false ? "0px" : "1px",
-    borderStyle:
-      (block.data as any).fieldBorderEnabled === false ? "none" : "solid",
+borderWidth:
+  (block.data as any).fieldBorderEnabled === false
+    ? "0px"
+    : `${
+        Number(
+          inputStyle.borderWidth ??
+            (block.data as any).fieldBorderWidth ??
+            1,
+        ) || 0
+      }px`,
+borderStyle:
+  (block.data as any).fieldBorderEnabled === false
+    ? "none"
+    : Number(
+          inputStyle.borderWidth ??
+            (block.data as any).fieldBorderWidth ??
+            1,
+        ) > 0
+      ? "solid"
+      : "none",
 
     borderRadius:
       typeof inputStyle.borderRadius === "number"
