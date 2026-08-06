@@ -70,16 +70,17 @@ export type TemplateKey =
   | "surprise_party"
   | "celebration_of_life"
   | "retirement_party"
-  | "holiday_party_invite"
+  // | "holiday_party_invite"
   //| "friendsgiving_event"
   | "learning_lab"
   | "housewarming_party"
-  | "bachelor_party"
-  | "bachelorette_party"
+  | "party_time"
+  // | "bachelorette_party"
   | "charity_gala_event"
   | "alumni_meetup"
   | "social_gathering"
   | "yard_sale"
+  | "product_showcase"
   | "sports_team_party"
   | "bridal_shower"
   | "baptism_event"
@@ -1041,7 +1042,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "retirement",
     defaultDraft: { title: "Retirement Party", slugSuggestion: "retirementparty" },
   }, */
-  {
+/*   {
     key: "holiday_party_invite",
     title: "Holiday Party",
     description: "Invite, schedule, and RSVP in one page.",
@@ -1049,7 +1050,16 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 2,
     demoSlug: "holiday",
     defaultDraft: { title: "Holiday Party", slugSuggestion: "holidayparty" },
-  },
+  }, */
+{
+  key: "party_time",
+  title: "Party Time",
+  description: "Plan your celebration, share the details, and collect RSVPs in one place.",
+  thumb: "partytime",
+  setupMins: 2,
+  demoSlug: "partytime",
+  defaultDraft: { title: "Party Time", slugSuggestion: "partytime" },
+},
 /*   {
     key: "friendsgiving_event",
     title: "Friendsgiving Event",
@@ -1077,16 +1087,16 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "housewarming",
     defaultDraft: { title: "Housewarming", slugSuggestion: "housewarming" },
   }, */
-  {
-    key: "bachelor_party",
+/*   {
+    key: "party_time",
     title: "Bachelor Party",
     description: "Itinerary, location, and group updates.",
     thumb: "bachelorparty",
     setupMins: 2,
     demoSlug: "bachelor",
     defaultDraft: { title: "Bachelor Party", slugSuggestion: "bachelorparty" },
-  },
-  {
+  }, */
+/*   {
     key: "bachelorette_party",
     title: "Bachelorette Party",
     description: "Itinerary, location, and group updates.",
@@ -1094,7 +1104,7 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     setupMins: 2,
     demoSlug: "bachelorette",
     defaultDraft: { title: "Bachelorette Party", slugSuggestion: "bacheloretteparty" },
-  },
+  }, */
 /*   {
     key: "charity_gala_event",
     title: "Charity Gala Event",
@@ -1131,6 +1141,18 @@ const RAW_TEMPLATE_DEFS: TemplateInput[] = [
     demoSlug: "yardsale",
     defaultDraft: { title: "Yard Sale", slugSuggestion: "yardsale" },
   },
+  {
+  key: "product_showcase",
+  title: "Product Showcase",
+  description: "Highlight product features, specifications, and interactive details in a polished presentation.",
+  thumb: "productshowcase",
+  setupMins: 2,
+  demoSlug: "productshowcase",
+  defaultDraft: {
+    title: "Product Showcase",
+    slugSuggestion: "productshowcase",
+  },
+},
 /*   {
     key: "sports_team_party",
     title: "Sports Team Party",
