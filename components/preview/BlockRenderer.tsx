@@ -7260,248 +7260,242 @@ function InteractiveHotspotsLive({
     );
   };
 
-  const canvas = (
-    <div
-      className="relative min-w-0 overflow-hidden"
-      style={{
-        height: `${canvasHeight}px`,
+const canvas = (
+  <div
+    className="relative min-w-0 overflow-hidden"
+    style={{
+      height: `${canvasHeight}px`,
 
-        backgroundColor:
-          canvasAppearanceStyle.backgroundColor ??
-          data.canvasBackgroundColor ??
-          "#F3F4F6",
+      backgroundColor:
+        canvasAppearanceStyle.backgroundColor ??
+        data.canvasBackgroundColor ??
+        "#F3F4F6",
 
-        backgroundImage:
-          data.backgroundImageUrl
-            ? `url("${data.backgroundImageUrl}")`
-            : undefined,
+      borderColor:
+        canvasAppearanceStyle.borderColor ??
+        "#E5E7EB",
 
-        backgroundPosition:
-          data.backgroundImageUrl
-            ? `${backgroundPositionX}% ${backgroundPositionY}%`
-            : undefined,
+      borderWidth:
+        typeof canvasAppearanceStyle.borderWidth ===
+        "number"
+          ? `${canvasAppearanceStyle.borderWidth}px`
+          : `${borderWidth}px`,
 
-        backgroundSize:
-          data.backgroundImageUrl
-            ? `${backgroundZoom * 100}%`
-            : undefined,
+      borderStyle:
+        canvasAppearanceStyle.borderStyle ??
+        "solid",
 
-        backgroundRepeat:
-          data.backgroundImageUrl
-            ? "no-repeat"
-            : undefined,
+      borderRadius:
+        typeof canvasAppearanceStyle.borderRadius ===
+        "number"
+          ? `${canvasAppearanceStyle.borderRadius}px`
+          : `${panelRadius}px`,
 
-        borderColor:
-          canvasAppearanceStyle.borderColor ??
-          "#E5E7EB",
+      boxShadow:
+        canvasAppearanceStyle.boxShadow ??
+        undefined,
+    }}
+  >
+    {data.backgroundImageUrl ? (
+      <img
+        src={data.backgroundImageUrl}
+        alt=""
+        className="pointer-events-none absolute inset-0 h-full w-full object-contain"
+        style={{
+          objectPosition: `${backgroundPositionX}% ${backgroundPositionY}%`,
+          transform: `scale(${backgroundZoom})`,
+          transformOrigin: "center center",
+        }}
+      />
+    ) : null}
 
-        borderWidth:
-          typeof canvasAppearanceStyle.borderWidth ===
-          "number"
-            ? `${canvasAppearanceStyle.borderWidth}px`
-            : `${borderWidth}px`,
+    {data.showConnectorLines !== false &&
+    activeHotspot ? (
+      <div
+        className="pointer-events-none absolute left-1/2 top-1/2 origin-left"
+        style={{
+          width: "50%",
 
-        borderStyle:
-          canvasAppearanceStyle.borderStyle ??
-          "solid",
+          height:
+            typeof connectorAppearanceStyle.borderWidth ===
+            "number"
+              ? `${Math.max(
+                  1,
+                  connectorAppearanceStyle.borderWidth,
+                )}px`
+              : "2px",
 
-        borderRadius:
-          typeof canvasAppearanceStyle.borderRadius ===
-          "number"
-            ? `${canvasAppearanceStyle.borderRadius}px`
-            : `${panelRadius}px`,
+          backgroundColor:
+            connectorAppearanceStyle.backgroundColor ??
+            connectorAppearanceStyle.borderColor ??
+            data.connectorColor ??
+            "#CBD5E1",
 
-        boxShadow:
-          canvasAppearanceStyle.boxShadow ??
-          undefined,
-      }}
-    >
-      {data.showConnectorLines !== false &&
-      activeHotspot ? (
-        <div
-          className="pointer-events-none absolute left-1/2 top-1/2 origin-left"
-          style={{
-            width: "50%",
+          opacity:
+            typeof connectorAppearanceStyle.opacity ===
+            "number"
+              ? connectorAppearanceStyle.opacity
+              : 0.8,
+        }}
+      />
+    ) : null}
 
-            height:
-              typeof connectorAppearanceStyle.borderWidth ===
-              "number"
-                ? `${Math.max(
-                    1,
-                    connectorAppearanceStyle.borderWidth,
-                  )}px`
-                : "2px",
+    {data.showMarkers !== false
+      ? hotspots.map(
+          (
+            hotspot: any,
+            index: number,
+          ) => {
+            const positionX =
+              typeof hotspot.positionX ===
+                "number"
+                ? Math.max(
+                    0,
+                    Math.min(
+                      100,
+                      hotspot.positionX,
+                    ),
+                  )
+                : 50;
 
-            backgroundColor:
-              connectorAppearanceStyle.backgroundColor ??
-              connectorAppearanceStyle.borderColor ??
-              data.connectorColor ??
-              "#CBD5E1",
+            const positionY =
+              typeof hotspot.positionY ===
+                "number"
+                ? Math.max(
+                    0,
+                    Math.min(
+                      100,
+                      hotspot.positionY,
+                    ),
+                  )
+                : 50;
 
-            opacity:
-              typeof connectorAppearanceStyle.opacity ===
-              "number"
-                ? connectorAppearanceStyle.opacity
-                : 0.8,
-          }}
-        />
-      ) : null}
+            const isActive =
+              hotspot.id ===
+              activeHotspotId;
 
-      {data.showMarkers !== false
-        ? hotspots.map(
-            (
-              hotspot: any,
-              index: number,
-            ) => {
-              const positionX =
-                typeof hotspot.positionX ===
-                  "number"
-                  ? Math.max(
-                      0,
-                      Math.min(
-                        100,
-                        hotspot.positionX,
-                      ),
-                    )
-                  : 50;
+            const markerBackgroundColor =
+              markerAppearanceStyle.backgroundColor ??
+              hotspot.markerBackgroundColor ??
+              "#2563EB";
 
-              const positionY =
-                typeof hotspot.positionY ===
-                  "number"
-                  ? Math.max(
-                      0,
-                      Math.min(
-                        100,
-                        hotspot.positionY,
-                      ),
-                    )
-                  : 50;
+            const markerColor =
+              markerAppearanceStyle.color ??
+              hotspot.markerColor ??
+              "#FFFFFF";
 
-              const isActive =
-                hotspot.id ===
-                activeHotspotId;
+            const markerBorderColor =
+              markerAppearanceStyle.borderColor ??
+              hotspot.markerBorderColor ??
+              "#FFFFFF";
 
-              const markerBackgroundColor =
-                markerAppearanceStyle.backgroundColor ??
-                hotspot.markerBackgroundColor ??
-                "#2563EB";
+            return (
+              <button
+                key={hotspot.id || index}
+                type="button"
+                aria-pressed={isActive}
+                aria-label={
+                  hotspot.title ||
+                  `Hotspot ${index + 1}`
+                }
+                className="absolute z-20 flex items-center justify-center rounded-full transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2"
+                style={{
+                  left: `${positionX}%`,
+                  top: `${positionY}%`,
 
-              const markerColor =
-                markerAppearanceStyle.color ??
-                hotspot.markerColor ??
-                "#FFFFFF";
+                  width: `${markerSize}px`,
+                  height: `${markerSize}px`,
 
-              const markerBorderColor =
-                markerAppearanceStyle.borderColor ??
-                hotspot.markerBorderColor ??
-                "#FFFFFF";
+                  transform:
+                    "translate(-50%, -50%)",
 
-              return (
-                <button
-                  key={hotspot.id || index}
-                  type="button"
-                  aria-pressed={isActive}
-                  aria-label={
-                    hotspot.title ||
-                    `Hotspot ${index + 1}`
-                  }
-                  className="absolute z-20 flex items-center justify-center rounded-full transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2"
-                  style={{
-                    left: `${positionX}%`,
-                    top: `${positionY}%`,
+                  color: markerColor,
 
-                    width: `${markerSize}px`,
-                    height: `${markerSize}px`,
+                  backgroundColor:
+                    markerBackgroundColor,
 
-                    transform:
-                      "translate(-50%, -50%)",
+                  borderColor:
+                    markerBorderColor,
 
-                    color: markerColor,
+                  borderWidth:
+                    typeof markerAppearanceStyle.borderWidth ===
+                    "number"
+                      ? `${markerAppearanceStyle.borderWidth}px`
+                      : `${markerBorderWidth}px`,
 
-                    backgroundColor:
-                      markerStyle === "dot"
-                        ? markerBackgroundColor
-                        : markerBackgroundColor,
+                  borderStyle:
+                    markerAppearanceStyle.borderStyle ??
+                    "solid",
 
-                    borderColor:
-                      markerBorderColor,
+                  boxShadow:
+                    markerAppearanceStyle.boxShadow ??
+                    (data.markerShadow !== false
+                      ? "0 6px 18px rgba(15, 23, 42, 0.22)"
+                      : undefined),
 
-                    borderWidth:
-                      typeof markerAppearanceStyle.borderWidth ===
-                      "number"
-                        ? `${markerAppearanceStyle.borderWidth}px`
-                        : `${markerBorderWidth}px`,
+                  opacity:
+                    typeof markerAppearanceStyle.opacity ===
+                    "number"
+                      ? markerAppearanceStyle.opacity
+                      : undefined,
 
-                    borderStyle:
-                      markerAppearanceStyle.borderStyle ??
-                      "solid",
+                  outline:
+                    isActive
+                      ? `3px solid ${
+                          hotspot.accentColor ??
+                          markerBackgroundColor
+                        }55`
+                      : undefined,
 
-                    boxShadow:
-                      markerAppearanceStyle.boxShadow ??
-                      (data.markerShadow !== false
-                        ? "0 6px 18px rgba(15, 23, 42, 0.22)"
-                        : undefined),
+                  animation:
+                    markerStyle === "pulse"
+                      ? "pulse 1.8s ease-in-out infinite"
+                      : undefined,
+                }}
+                onClick={(event) => {
+                  event.stopPropagation();
 
-                    opacity:
-                      typeof markerAppearanceStyle.opacity ===
-                      "number"
-                        ? markerAppearanceStyle.opacity
-                        : undefined,
+                  setActiveHotspotId(
+                    isActive
+                      ? null
+                      : hotspot.id,
+                  );
+                }}
+              >
+                {markerStyle === "icon" ? (
+                  <span className="text-sm font-bold">
+                    {getHotspotIcon(
+                      hotspot.iconName,
+                    )}
+                  </span>
+                ) : markerStyle === "dot" ? (
+                  <span className="h-2.5 w-2.5 rounded-full bg-current" />
+                ) : data.showMarkerLabels !==
+                  false ? (
+                  <span style={markerLabelStyle}>
+                    {hotspot.markerLabel ||
+                      String(index + 1)}
+                  </span>
+                ) : null}
+              </button>
+            );
+          },
+        )
+      : null}
 
-                    outline:
-                      isActive
-                        ? `3px solid ${hotspot.accentColor ?? markerBackgroundColor}55`
-                        : undefined,
-
-                    animation:
-                      markerStyle === "pulse"
-                        ? "pulse 1.8s ease-in-out infinite"
-                        : undefined,
-                  }}
-                  onClick={(event) => {
-                    event.stopPropagation();
-
-                    setActiveHotspotId(
-                      isActive
-                        ? null
-                        : hotspot.id,
-                    );
-                  }}
-                >
-                  {markerStyle === "icon" ? (
-                    <span className="text-sm font-bold">
-                      {getHotspotIcon(
-                        hotspot.iconName,
-                      )}
-                    </span>
-                  ) : markerStyle === "dot" ? (
-                    <span className="h-2.5 w-2.5 rounded-full bg-current" />
-                  ) : data.showMarkerLabels !==
-                    false ? (
-                    <span style={markerLabelStyle}>
-                      {hotspot.markerLabel ||
-                        String(index + 1)}
-                    </span>
-                  ) : null}
-                </button>
-              );
-            },
-          )
-        : null}
-
-      {panelPosition === "overlay" &&
-      activeHotspot ? (
-        <div
-          className="absolute bottom-4 right-4 z-30 max-h-[calc(100%-2rem)] overflow-auto"
-          style={{
-            width: `min(${panelWidth}px, calc(100% - 2rem))`,
-          }}
-        >
-          {renderPanel(activeHotspot)}
-        </div>
-      ) : null}
-    </div>
-  );
+    {panelPosition === "overlay" &&
+    activeHotspot ? (
+      <div
+        className="absolute bottom-4 right-4 z-30 max-h-[calc(100%-2rem)] overflow-auto"
+        style={{
+          width: `min(${panelWidth}px, calc(100% - 2rem))`,
+        }}
+      >
+        {renderPanel(activeHotspot)}
+      </div>
+    ) : null}
+  </div>
+);
 
   const mainContent =
     panelPosition === "bottom" ? (
