@@ -7002,6 +7002,36 @@ function InteractiveHotspotsLive({
         )
       : 1;
 
+      const overlayPanelPositionX =
+  typeof data.overlayPanelPositionX ===
+    "number" &&
+  Number.isFinite(
+    data.overlayPanelPositionX,
+  )
+    ? Math.max(
+        0,
+        Math.min(
+          100,
+          data.overlayPanelPositionX,
+        ),
+      )
+    : 75;
+
+const overlayPanelPositionY =
+  typeof data.overlayPanelPositionY ===
+    "number" &&
+  Number.isFinite(
+    data.overlayPanelPositionY,
+  )
+    ? Math.max(
+        0,
+        Math.min(
+          100,
+          data.overlayPanelPositionY,
+        ),
+      )
+    : 72;
+
   const getHotspotIcon = (
     iconName: string,
   ) => {
