@@ -7300,16 +7300,24 @@ const canvas = (
 <img
   src={data.backgroundImageUrl}
   alt=""
-  className="pointer-events-none absolute left-1/2 top-1/2 max-h-full max-w-full"
+  className="pointer-events-none absolute"
   style={{
-    transform: `
-      translate(
-        calc(-50% + ${(backgroundPositionX - 50) * 2}px),
-        calc(-50% + ${(backgroundPositionY - 50) * 2}px)
-      )
-      scale(${backgroundZoom})
-    `,
+    left: `${backgroundPositionX}%`,
+    top: `${backgroundPositionY}%`,
+
+    width: "auto",
+    height: "auto",
+
+    minWidth: "100%",
+    minHeight: "100%",
+
+    maxWidth: "none",
+    maxHeight: "none",
+
+    transform: `translate(-50%, -50%) scale(${backgroundZoom})`,
     transformOrigin: "center center",
+
+    objectFit: "contain",
   }}
 />
     ) : null}
