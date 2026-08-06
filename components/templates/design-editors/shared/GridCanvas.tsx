@@ -478,13 +478,18 @@ function getDropPreviewForNewTool(
   };
 }
 
-function getToolSurfaceClass(selected: boolean, resizing: boolean) {
+function getToolSurfaceClass(
+  selected: boolean,
+  resizing: boolean,
+) {
   return [
-    "group relative overflow-hidden rounded-xl border bg-transparent transition",
+    "group relative rounded-xl border bg-transparent transition",
     selected
       ? "border-blue-500 shadow-[0_0_0_2px_rgba(59,130,246,0.18)]"
       : "border-slate-300 hover:border-slate-400 hover:shadow-sm",
-    resizing ? "shadow-[0_0_0_3px_rgba(59,130,246,0.24)]" : "",
+    resizing
+      ? "shadow-[0_0_0_3px_rgba(59,130,246,0.24)]"
+      : "",
   ].join(" ");
 }
 
@@ -1229,11 +1234,13 @@ zIndex:
 className={[
   getToolSurfaceClass(selected, resizing),
   "pointer-events-auto",
+
   block.type === "schedule_agenda" ||
   block.type === "content_panel" ||
   block.type === "interactive_hotspots"
     ? "overflow-visible"
-    : "",
+    : "overflow-hidden",
+
   isPageTextOverlay && !selected
     ? "pointer-events-none"
     : "",
