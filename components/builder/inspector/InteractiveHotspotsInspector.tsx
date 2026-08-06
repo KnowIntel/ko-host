@@ -652,52 +652,147 @@ export function InteractiveHotspotsInspector({
           </select>
         </div>
 
-        <div className="mt-3">
-          <div className={inspectorLabelClass()}>
-            Detail Panel Position
-          </div>
+<div className="mt-3">
+  <div className={inspectorLabelClass()}>
+    Detail Panel Position
+  </div>
 
-          <select
-            value={
-              selectedBlock.data.panelPosition ??
-              "right"
-            }
-            onChange={(e) =>
-              updateSelectedBlock(
-                (block: any) =>
-                  block.type !==
-                  "interactive_hotspots"
-                    ? block
-                    : {
-                        ...block,
+  <select
+    value={
+      selectedBlock.data.panelPosition ??
+      "right"
+    }
+    onChange={(e) =>
+      updateSelectedBlock(
+        (block: any) =>
+          block.type !==
+          "interactive_hotspots"
+            ? block
+            : {
+                ...block,
 
-                        data: {
-                          ...block.data,
-                          panelPosition:
-                            e.target.value,
-                        },
-                      },
-              )
-            }
-            className={inspectorInputClass()}
-          >
-            <option value="left">
-              Left
-            </option>
+                data: {
+                  ...block.data,
+                  panelPosition:
+                    e.target.value,
+                },
+              },
+      )
+    }
+    className={inspectorInputClass()}
+  >
+    <option value="left">
+      Left
+    </option>
 
-            <option value="right">
-              Right
-            </option>
+    <option value="right">
+      Right
+    </option>
 
-            <option value="bottom">
-              Bottom
-            </option>
+    <option value="bottom">
+      Bottom
+    </option>
 
-            <option value="overlay">
-              Overlay
-            </option>
-          </select>
+    <option value="overlay">
+      Overlay
+    </option>
+  </select>
+
+  {selectedBlock.data.panelPosition ===
+  "overlay" ? (
+    <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+      <div className={inspectorLabelClass()}>
+        Overlay Panel Position
+      </div>
+
+      <div className="mt-3">
+        <div className={inspectorLabelClass()}>
+          Horizontal Position
         </div>
+
+        <input
+          type="range"
+          min={0}
+          max={100}
+          value={
+            selectedBlock.data
+              .overlayPanelPositionX ?? 75
+          }
+          onChange={(e) =>
+            updateSelectedBlock(
+              (block: any) =>
+                block.type !==
+                "interactive_hotspots"
+                  ? block
+                  : {
+                      ...block,
+
+                      data: {
+                        ...block.data,
+
+                        overlayPanelPositionX:
+                          Number(
+                            e.target.value,
+                          ),
+                      },
+                    },
+            )
+          }
+          className="mt-2 w-full"
+        />
+
+        <div className="mt-1 text-xs text-neutral-500">
+          {selectedBlock.data
+            .overlayPanelPositionX ?? 75}
+          %
+        </div>
+      </div>
+
+      <div className="mt-3">
+        <div className={inspectorLabelClass()}>
+          Vertical Position
+        </div>
+
+        <input
+          type="range"
+          min={0}
+          max={100}
+          value={
+            selectedBlock.data
+              .overlayPanelPositionY ?? 72
+          }
+          onChange={(e) =>
+            updateSelectedBlock(
+              (block: any) =>
+                block.type !==
+                "interactive_hotspots"
+                  ? block
+                  : {
+                      ...block,
+
+                      data: {
+                        ...block.data,
+
+                        overlayPanelPositionY:
+                          Number(
+                            e.target.value,
+                          ),
+                      },
+                    },
+            )
+          }
+          className="mt-2 w-full"
+        />
+
+        <div className="mt-1 text-xs text-neutral-500">
+          {selectedBlock.data
+            .overlayPanelPositionY ?? 72}
+          %
+        </div>
+      </div>
+    </div>
+  ) : null}
+</div>
       </div>
 
       {/* Visibility */}

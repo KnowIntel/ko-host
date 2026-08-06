@@ -7491,17 +7491,23 @@ const canvas = (
         )
       : null}
 
-    {panelPosition === "overlay" &&
-    activeHotspot ? (
-      <div
-        className="absolute bottom-4 right-4 z-30 max-h-[calc(100%-2rem)] overflow-auto"
-        style={{
-          width: `min(${panelWidth}px, calc(100% - 2rem))`,
-        }}
-      >
-        {renderPanel(activeHotspot)}
-      </div>
-    ) : null}
+{panelPosition === "overlay" &&
+activeHotspot ? (
+  <div
+    className="absolute z-30 max-h-[calc(100%-2rem)] overflow-auto"
+    style={{
+      left: `${overlayPanelPositionX}%`,
+      top: `${overlayPanelPositionY}%`,
+
+      width: `min(${panelWidth}px, calc(100% - 2rem))`,
+
+      transform:
+        "translate(-50%, -50%)",
+    }}
+  >
+    {renderPanel(activeHotspot)}
+  </div>
+) : null}
   </div>
 );
 

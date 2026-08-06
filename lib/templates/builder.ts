@@ -2413,9 +2413,12 @@ export type InteractiveHotspotsBlockData =
     backgroundImageSizeBytes?: number;
     backgroundImageOriginalSizeBytes?: number;
 
-    backgroundPositionX: number;
-    backgroundPositionY: number;
-    backgroundZoom: number;
+backgroundPositionX: number;
+backgroundPositionY: number;
+backgroundZoom: number;
+
+overlayPanelPositionX: number;
+overlayPanelPositionY: number;
 
     hotspots: InteractiveHotspotItem[];
 
@@ -6542,9 +6545,12 @@ case "interactive_hotspots":
       backgroundImageStoragePath: "",
       backgroundImageMimeType: "",
 
-      backgroundPositionX: 50,
-      backgroundPositionY: 50,
-      backgroundZoom: 1,
+backgroundPositionX: 50,
+backgroundPositionY: 50,
+backgroundZoom: 1,
+
+overlayPanelPositionX: 75,
+overlayPanelPositionY: 72,
 
       showHeading: true,
       showSubtitle: true,
