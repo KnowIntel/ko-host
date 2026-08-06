@@ -7264,7 +7264,9 @@ const canvas = (
   <div
     className="relative min-w-0 overflow-hidden"
     style={{
-      height: `${canvasHeight}px`,
+      minHeight: data.backgroundImageUrl
+  ? undefined
+  : `${canvasHeight}px`,
 
       backgroundColor:
         canvasAppearanceStyle.backgroundColor ??
@@ -7296,31 +7298,24 @@ const canvas = (
         undefined,
     }}
   >
-    {data.backgroundImageUrl ? (
-<img
-  src={data.backgroundImageUrl}
-  alt=""
-  className="pointer-events-none absolute"
-  style={{
-    left: `${backgroundPositionX}%`,
-    top: `${backgroundPositionY}%`,
+{data.backgroundImageUrl ? (
+  <img
+    src={data.backgroundImageUrl}
+    alt=""
+    className="pointer-events-none block h-auto w-full"
+    style={{
+      transform: `
+        translate(
+          ${(backgroundPositionX - 50) * 2}px,
+          ${(backgroundPositionY - 50) * 2}px
+        )
+        scale(${backgroundZoom})
+      `,
 
-    width: "auto",
-    height: "auto",
-
-    minWidth: "100%",
-    minHeight: "100%",
-
-    maxWidth: "none",
-    maxHeight: "none",
-
-    transform: `translate(-50%, -50%) scale(${backgroundZoom})`,
-    transformOrigin: "center center",
-
-    objectFit: "contain",
-  }}
-/>
-    ) : null}
+      transformOrigin: "center center",
+    }}
+  />
+) : null}
 
     {data.showConnectorLines !== false &&
     activeHotspot ? (
