@@ -7614,38 +7614,44 @@ function applyIconDefaults(
   };
 }
 
-function addBlock(type: BuilderBlockType, label?: string, iconName?: string) {
+function addBlock(
+  type: BuilderBlockType,
+  label?: string,
+  iconName?: string,
+) {
   let createdBlockId = "";
 
   setDraft((prev) => {
     const nextBlocks = addBlockTypeToDraft(prev.blocks, type);
 
     const created = nextBlocks.find(
-      (b) => !prev.blocks.some((p) => p.id === b.id),
+      (block) => !prev.blocks.some((previous) => previous.id === block.id),
     );
 
-    if (created) createdBlockId = created.id;
+    createdBlockId = created?.id ?? "";
 
-    if (created?.type === "icon") {
-  console.log("CREATED ICON BLOCK", {
-    label,
-    created,
-  });
-}
+    const updatedBlocks = nextBlocks.map((block) =>
+      created && block.id === created.id
+        ? applyIconDefaults(
+            block,
+            iconName ?? label,
+            `/media-icons/${iconName ?? "star"}.svg`,
+          )
+        : block,
+    );
 
     return {
       ...prev,
-      blocks: nextBlocks.map((block) =>
-        created && block.id === created.id
-  ? applyIconDefaults(block, iconName ?? label, `/media-icons/${iconName ?? "star"}.svg`)
-  : block,
-      ),
+      blocks: updatedBlocks,
     };
   });
 
-  if (createdBlockId) {
+  window.requestAnimationFrame(() => {
+    if (!createdBlockId) return;
+
+    setSelectedBlockIds([createdBlockId]);
     setSelection(selectionFromCanvasBlockId(createdBlockId));
-  }
+  });
 }
 
 function addShape(type: ShapeType) {
@@ -7879,56 +7885,85 @@ function removeCanvasBlocks(blockIds: string[]) {
   });
 }
 
-  function removeCanvasBlock(blockId: string) {
-    if (blockId === PAGE_TITLE_BLOCK_ID) {
-      setDraft((prev) => ({
-        ...(prev as DraftWithPageExtras),
-        pageVisibility: {
-          ...((prev as DraftWithPageExtras).pageVisibility ?? {}),
-          title: false,
-        },
-      }));
-      return;
-    }
+function removeCanvasBlock(blockId: string) {
+  const clearRemovedBlockSelection = () => {
+    setSelectedBlockIds((prev) => prev.filter((id) => id !== blockId));
 
-    if (blockId === PAGE_SUBTITLE_BLOCK_ID) {
-      setDraft((prev) => ({
-        ...(prev as DraftWithPageExtras),
-        pageVisibility: {
-          ...((prev as DraftWithPageExtras).pageVisibility ?? {}),
-          subtitle: false,
-        },
-      }));
-      return;
-    }
+    setSelection((prev) => {
+      const selectedCanvasBlockId =
+        (prev as any)?.canvasBlockId ??
+        (prev as any)?.blockId ??
+        (prev as any)?.id;
 
-    if (blockId === PAGE_SUBTEXT_BLOCK_ID) {
-      setDraft((prev) => ({
-        ...(prev as DraftWithPageExtras),
-        pageVisibility: {
-          ...((prev as DraftWithPageExtras).pageVisibility ?? {}),
-          subtext: false,
-        },
-      }));
-      return;
-    }
+      return selectedCanvasBlockId === blockId
+        ? createEmptySelection()
+        : prev;
+    });
+  };
 
-    if (blockId === PAGE_DESCRIPTION_BLOCK_ID) {
-      setDraft((prev) => ({
-        ...(prev as DraftWithPageExtras),
-        pageVisibility: {
-          ...((prev as DraftWithPageExtras).pageVisibility ?? {}),
-          description: false,
-        },
-      }));
-      return;
-    }
+  if (blockId === PAGE_TITLE_BLOCK_ID) {
+    clearRemovedBlockSelection();
 
     setDraft((prev) => ({
-      ...prev,
-      blocks: removeBlockFromDraft(prev.blocks, blockId),
+      ...(prev as DraftWithPageExtras),
+      pageVisibility: {
+        ...((prev as DraftWithPageExtras).pageVisibility ?? {}),
+        title: false,
+      },
     }));
+
+    return;
   }
+
+  if (blockId === PAGE_SUBTITLE_BLOCK_ID) {
+    clearRemovedBlockSelection();
+
+    setDraft((prev) => ({
+      ...(prev as DraftWithPageExtras),
+      pageVisibility: {
+        ...((prev as DraftWithPageExtras).pageVisibility ?? {}),
+        subtitle: false,
+      },
+    }));
+
+    return;
+  }
+
+  if (blockId === PAGE_SUBTEXT_BLOCK_ID) {
+    clearRemovedBlockSelection();
+
+    setDraft((prev) => ({
+      ...(prev as DraftWithPageExtras),
+      pageVisibility: {
+        ...((prev as DraftWithPageExtras).pageVisibility ?? {}),
+        subtext: false,
+      },
+    }));
+
+    return;
+  }
+
+  if (blockId === PAGE_DESCRIPTION_BLOCK_ID) {
+    clearRemovedBlockSelection();
+
+    setDraft((prev) => ({
+      ...(prev as DraftWithPageExtras),
+      pageVisibility: {
+        ...((prev as DraftWithPageExtras).pageVisibility ?? {}),
+        description: false,
+      },
+    }));
+
+    return;
+  }
+
+  clearRemovedBlockSelection();
+
+  setDraft((prev) => ({
+    ...prev,
+    blocks: removeBlockFromDraft(prev.blocks, blockId),
+  }));
+}
 
 function removeAllBlocks() {
   setRemoveAllModalOpen(true);
@@ -8107,16 +8142,15 @@ function handleCreateToolDrop(
 ) {
   console.log("TOOL DROP PAYLOAD", payload);
 
-  setSelection(createEmptySelection());
   setOpenToolMenu(null);
 
   if (payload.kind === "page") {
+    let createdPageId = "";
+
     setDraft((prev) => {
       const next = prev as DraftWithPageExtras;
       const pageVisibility = { ...(next.pageVisibility ?? {}) };
       const pageElements = { ...(next.pageElements ?? {}) };
-
-      let createdPageId = "";
 
       if (payload.type === "title") {
         pageVisibility.title = true;
@@ -8149,6 +8183,7 @@ function handleCreateToolDrop(
       };
 
       const items = buildCanvasItems(nextDraft, metadata);
+
       const updated = createdPageId
         ? bringCanvasItemToFront(items, createdPageId)
         : items;
@@ -8156,18 +8191,12 @@ function handleCreateToolDrop(
       return applyCanvasItemsToDraft(nextDraft, updated);
     });
 
-    if (payload.type === "title") {
-      setSelection(selectionFromCanvasBlockId(PAGE_TITLE_BLOCK_ID));
-    }
-    if (payload.type === "subtitle") {
-      setSelection(selectionFromCanvasBlockId(PAGE_SUBTITLE_BLOCK_ID));
-    }
-    if (payload.type === "tagline") {
-      setSelection(selectionFromCanvasBlockId(PAGE_SUBTEXT_BLOCK_ID));
-    }
-    if (payload.type === "description") {
-      setSelection(selectionFromCanvasBlockId(PAGE_DESCRIPTION_BLOCK_ID));
-    }
+    window.requestAnimationFrame(() => {
+      if (!createdPageId) return;
+
+      setSelectedBlockIds([createdPageId]);
+      setSelection(selectionFromCanvasBlockId(createdPageId));
+    });
 
     return;
   }
@@ -8177,18 +8206,20 @@ function handleCreateToolDrop(
 
     setDraft((prev) => {
       const nextBlocks = addShapeBlockToDraft(prev.blocks, payload.type);
+
       const nextDraft: BuilderDraft = {
         ...prev,
         blocks: nextBlocks,
       };
 
       const nextItems = buildCanvasItems(nextDraft, metadata);
+
       const createdItem = [...nextItems]
         .reverse()
         .find(
           (item) =>
             item.type === "shape" &&
-            !prev.blocks.some((b) => b.id === item.id),
+            !prev.blocks.some((block) => block.id === item.id),
         );
 
       if (!createdItem) return nextDraft;
@@ -8200,19 +8231,29 @@ function handleCreateToolDrop(
         rowSpan: patch.rowSpan,
       });
 
-      const withPosition = moveCanvasItemToCell(withSize, createdItem.id, {
-        colStart: patch.colStart,
-        rowStart: patch.rowStart,
-      });
+      const withPosition = moveCanvasItemToCell(
+        withSize,
+        createdItem.id,
+        {
+          colStart: patch.colStart,
+          rowStart: patch.rowStart,
+        },
+      );
 
-      const withFront = bringCanvasItemToFront(withPosition, createdItem.id);
+      const withFront = bringCanvasItemToFront(
+        withPosition,
+        createdItem.id,
+      );
 
       return applyCanvasItemsToDraft(nextDraft, withFront);
     });
 
-    if (createdShapeId) {
+    window.requestAnimationFrame(() => {
+      if (!createdShapeId) return;
+
+      setSelectedBlockIds([createdShapeId]);
       setSelection(selectionFromCanvasBlockId(createdShapeId));
-    }
+    });
 
     return;
   }
@@ -8221,28 +8262,36 @@ function handleCreateToolDrop(
     let createdBlockId = "";
 
     setDraft((prev) => {
-      const nextBlocks = addBlockTypeToDraft(prev.blocks, payload.type).map(
-        (block) =>
-          block.type === "icon" && !prev.blocks.some((prevBlock) => prevBlock.id === block.id)
-? applyIconDefaults(
-    block,
-    payload.label,
-    payload.iconUrl ?? `/media-icons/${payload.iconName ?? "star"}.svg`,
-  )
-            : block,
+      const nextBlocks = addBlockTypeToDraft(
+        prev.blocks,
+        payload.type,
+      ).map((block) =>
+        block.type === "icon" &&
+        !prev.blocks.some(
+          (previousBlock) => previousBlock.id === block.id,
+        )
+          ? applyIconDefaults(
+              block,
+              payload.label,
+              payload.iconUrl ??
+                `/media-icons/${payload.iconName ?? "star"}.svg`,
+            )
+          : block,
       );
+
       const nextDraft: BuilderDraft = {
         ...prev,
         blocks: nextBlocks,
       };
 
       const nextItems = buildCanvasItems(nextDraft, metadata);
+
       const createdItem = [...nextItems]
         .reverse()
         .find(
           (item) =>
             item.type === payload.type &&
-            !prev.blocks.some((b) => b.id === item.id),
+            !prev.blocks.some((block) => block.id === item.id),
         );
 
       if (!createdItem) return nextDraft;
@@ -8254,28 +8303,46 @@ function handleCreateToolDrop(
         rowSpan: patch.rowSpan,
       });
 
-      const withPosition = moveCanvasItemToCell(withSize, createdItem.id, {
-        colStart: patch.colStart,
-        rowStart: patch.rowStart,
-      });
+      const withPosition = moveCanvasItemToCell(
+        withSize,
+        createdItem.id,
+        {
+          colStart: patch.colStart,
+          rowStart: patch.rowStart,
+        },
+      );
 
-      const withFront = bringCanvasItemToFront(withPosition, createdItem.id);
+      const withFront = bringCanvasItemToFront(
+        withPosition,
+        createdItem.id,
+      );
 
-      const positionedDraft = applyCanvasItemsToDraft(nextDraft, withFront);
+      const positionedDraft = applyCanvasItemsToDraft(
+        nextDraft,
+        withFront,
+      );
 
       return {
         ...positionedDraft,
         blocks: positionedDraft.blocks.map((block) =>
           block.id === createdItem.id && block.type === "icon"
-            ? applyIconDefaults(block, payload.label, payload.iconUrl)
+            ? applyIconDefaults(
+                block,
+                payload.label,
+                payload.iconUrl ??
+                  `/media-icons/${payload.iconName ?? "star"}.svg`,
+              )
             : block,
         ),
       };
     });
 
-    if (createdBlockId) {
+    window.requestAnimationFrame(() => {
+      if (!createdBlockId) return;
+
+      setSelectedBlockIds([createdBlockId]);
       setSelection(selectionFromCanvasBlockId(createdBlockId));
-    }
+    });
   }
 }
 
