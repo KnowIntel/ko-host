@@ -7297,16 +7297,21 @@ const canvas = (
     }}
   >
     {data.backgroundImageUrl ? (
-      <img
-        src={data.backgroundImageUrl}
-        alt=""
-        className="pointer-events-none absolute inset-0 h-full w-full object-contain"
-        style={{
-          objectPosition: `${backgroundPositionX}% ${backgroundPositionY}%`,
-          transform: `scale(${backgroundZoom})`,
-          transformOrigin: "center center",
-        }}
-      />
+<img
+  src={data.backgroundImageUrl}
+  alt=""
+  className="pointer-events-none absolute left-1/2 top-1/2 max-h-full max-w-full"
+  style={{
+    transform: `
+      translate(
+        calc(-50% + ${(backgroundPositionX - 50) * 2}px),
+        calc(-50% + ${(backgroundPositionY - 50) * 2}px)
+      )
+      scale(${backgroundZoom})
+    `,
+    transformOrigin: "center center",
+  }}
+/>
     ) : null}
 
     {data.showConnectorLines !== false &&
