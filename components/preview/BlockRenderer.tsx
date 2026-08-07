@@ -7303,9 +7303,7 @@ const canvas = (
   <div
     className="pointer-events-auto relative min-w-0 overflow-hidden"
     style={{
-      minHeight: data.backgroundImageUrl
-  ? undefined
-  : `${canvasHeight}px`,
+height: `${canvasHeight}px`,
 
       backgroundColor:
         canvasAppearanceStyle.backgroundColor ??
@@ -7341,7 +7339,7 @@ const canvas = (
   <img
     src={data.backgroundImageUrl}
     alt=""
-    className="pointer-events-none block h-auto w-full"
+    className="pointer-events-none absolute inset-0 h-full w-full object-contain"
     style={{
       transform: `
         translate(
