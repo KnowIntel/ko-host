@@ -3681,11 +3681,20 @@ function renderProcessFlow(
     );
   };
 
-  return (
-    <div
-      className="h-full w-full overflow-auto"
-      style={appearanceStyle}
-    >
+return (
+  <div
+    className="pointer-events-auto h-full w-full overflow-auto"
+    style={appearanceStyle}
+    onPointerDown={(event) => {
+      event.stopPropagation();
+    }}
+    onMouseDown={(event) => {
+      event.stopPropagation();
+    }}
+    onClick={(event) => {
+      event.stopPropagation();
+    }}
+  >
       <div
         style={{
           padding: `${padding}px`,
@@ -7292,7 +7301,7 @@ const overlayPanelPositionY =
 
 const canvas = (
   <div
-    className="relative min-w-0 overflow-hidden"
+    className="pointer-events-auto relative min-w-0 overflow-hidden"
     style={{
       minHeight: data.backgroundImageUrl
   ? undefined
@@ -7490,15 +7499,18 @@ const canvas = (
                       ? "pulse 1.8s ease-in-out infinite"
                       : undefined,
                 }}
-                onClick={(event) => {
-                  event.stopPropagation();
+onPointerDown={(event) => {
+  event.stopPropagation();
+}}
+onMouseDown={(event) => {
+  event.stopPropagation();
+}}
+onClick={(event) => {
+  event.preventDefault();
+  event.stopPropagation();
 
-                  setActiveHotspotId(
-                    isActive
-                      ? null
-                      : hotspot.id,
-                  );
-                }}
+  setActiveHotspotId(hotspot.id);
+}}
               >
                 {markerStyle === "icon" ? (
                   <span className="text-sm font-bold">
