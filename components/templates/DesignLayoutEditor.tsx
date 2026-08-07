@@ -12933,7 +12933,7 @@ title={
                     0,
                 )
               : selectedBlock?.type === "form_field" &&
-                  formFieldTextTarget === "inputText"
+formFieldStyleTarget === "field"
                 ? Number(
                     ((selectedBlock.data as any).inputStyle ?? {}).borderWidth ??
                       0,
@@ -12967,7 +12967,7 @@ title={
                 ((selectedBlock.data as any).buttonStyle ?? {}).borderWidth ?? 0,
               )
             : selectedBlock?.type === "form_field" &&
-                formFieldTextTarget === "inputText"
+formFieldStyleTarget === "field"
               ? Number(
                   ((selectedBlock.data as any).inputStyle ?? {}).borderWidth ??
                     0,
@@ -13001,7 +13001,7 @@ title={
                     0,
                 )
               : selectedBlock?.type === "form_field" &&
-                  formFieldTextTarget === "inputText"
+formFieldStyleTarget === "field"
                 ? Number(
                     ((selectedBlock.data as any).inputStyle ?? {})
                       .borderRadius ?? 0,
@@ -13036,7 +13036,7 @@ title={
                   0,
               )
             : selectedBlock?.type === "form_field" &&
-                formFieldTextTarget === "inputText"
+formFieldStyleTarget === "field"
               ? Number(
                   ((selectedBlock.data as any).inputStyle ?? {}).borderRadius ??
                     0,
