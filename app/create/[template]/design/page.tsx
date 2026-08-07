@@ -141,6 +141,9 @@ const draftPageCountByTemplateDesignKey: Record<string, number> = {
 
   "book_club:bible": 2,
 
+  "product_showcase:comfort": 1,
+
+
 };
 
 const pageCount =
