@@ -1,5 +1,5 @@
 import type { TemplateLayoutRegistry } from "../../types";
-import comfort fro./comfortomfort";
+import comfort from "./comfort";
 
 const productShowcaseLayouts: TemplateLayoutRegistry = {
   templateKey: "product_showcase",
