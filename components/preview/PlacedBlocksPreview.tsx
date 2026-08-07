@@ -49,6 +49,8 @@ type DraftWithExtras = BuilderDraft & {
   | "3200"
   | "3600"
   | "4000"
+  | "4400"
+  | "5000"
   | "5600";
   pageVisibility?: Partial<{
     title: boolean;
@@ -100,6 +102,8 @@ function getPageLengthConfig(length?: DraftWithExtras["pageLength"]) {
   if (length === "3200") return { widthRatio: 1, pageHeight: 3200 };
   if (length === "3600") return { widthRatio: 1, pageHeight: 3600 };
   if (length === "4000") return { widthRatio: 1, pageHeight: 4000 };
+  if (length === "4400") return { widthRatio: 1, pageHeight: 4400 };
+  if (length === "5000") return { widthRatio: 1, pageHeight: 5000 };
 
   return { widthRatio: 1, pageHeight: 5600 };
 }

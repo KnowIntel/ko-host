@@ -521,6 +521,8 @@ type PageLengthOption =
   | "3200"
   | "3600"
   | "4000"
+  | "4400"
+  | "5000"
   | "5600";
 
 type DraftPageVisibility = Partial<{
@@ -1230,6 +1232,8 @@ function getPageLengthPx(length: PageLengthOption) {
   if (length === "3200") return 3200;
   if (length === "3600") return 3600;
   if (length === "4000") return 4000;
+  if (length === "4400") return 4400;
+  if (length === "5000") return 5000;
 
   return 5600;
 }
@@ -11215,6 +11219,8 @@ onDrop={async (e) => {
 <option value="3200">3200px</option>
 <option value="3600">3600px</option>
 <option value="4000">4000px</option>
+<option value="4400">4400px</option>
+<option value="5000">5000px</option>
 <option value="5600">5600px</option>
 </select>
 

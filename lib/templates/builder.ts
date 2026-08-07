@@ -2910,6 +2910,8 @@ export type BuilderDraft = {
   | "3200"
   | "3600"
   | "4000"
+  | "4400"
+  | "5000"
   | "5600";
   pageElements?: PageElements;
   pageBlockAppearance?: PageBlockAppearance;
@@ -10001,6 +10003,8 @@ pageLength:
   (draft as any).pageLength === "3200" ||
   (draft as any).pageLength === "3600" ||
   (draft as any).pageLength === "4000" ||
+  (draft as any).pageLength === "4400" ||
+  (draft as any).pageLength === "5000" ||
   (draft as any).pageLength === "5600"
     ? (draft as any).pageLength
     : "1800",
