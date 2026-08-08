@@ -14,6 +14,7 @@ import {
   ENROLLMENT_BOARD_PROFILE_EVENT,
   type EnrollmentBoardProfileEventDetail,
 } from "@/components/blocks/enrollmentBoardEvents";
+import { getFontFamily } from "@/lib/fonts";
 
 type SpeedDatingParticipant = {
   id: string;
@@ -270,137 +271,8 @@ const formatCurrency = (n: number) =>
     maximumFractionDigits: 2,
   }).format(n);
 
-const FONT_FAMILY_MAP: Record<string, string> = {
-  // Core / system-mapped
-  Inter: 'var(--font-inter), Inter, ui-sans-serif, system-ui, sans-serif',
-  "DM Sans":
-    'var(--font-dm-sans), "DM Sans", ui-sans-serif, system-ui, sans-serif',
-  Poppins:
-    'var(--font-poppins), Poppins, ui-sans-serif, system-ui, sans-serif',
-
-  "Playfair Display":
-    'var(--font-playfair-display), "Playfair Display", ui-serif, Georgia, serif',
-  "Cormorant Garamond":
-    'var(--font-cormorant), "Cormorant Garamond", ui-serif, Georgia, serif',
-  "Great Vibes": 'var(--font-great-vibes), "Great Vibes", cursive',
-
-  // Script / invitation (use NEXT FONT INSTANCES)
-  "Dancing Script": `${dancingScript.style.fontFamily}, cursive`,
-  Pacifico: `${pacifico.style.fontFamily}, cursive`,
-  Allura: `${allura.style.fontFamily}, cursive`,
-  Parisienne: `${parisienne.style.fontFamily}, cursive`,
-  Sacramento: `${sacramento.style.fontFamily}, cursive`,
-  Playball: `${playball.style.fontFamily}, cursive`,
-  Satisfy: `${satisfy.style.fontFamily}, cursive`,
-  Tangerine: `${tangerine.style.fontFamily}, cursive`,
-  
-
-  // Modern sans
-  Montserrat:
-    'var(--font-montserrat), Montserrat, ui-sans-serif, system-ui, sans-serif',
-  Lato: 'var(--font-lato), Lato, ui-sans-serif, system-ui, sans-serif',
-  "Open Sans":
-    'var(--font-open-sans), "Open Sans", ui-sans-serif, system-ui, sans-serif',
-  Roboto: 'var(--font-roboto), Roboto, ui-sans-serif, system-ui, sans-serif',
-  Oswald: 'var(--font-oswald), Oswald, ui-sans-serif, system-ui, sans-serif',
-  Raleway:
-    'var(--font-raleway), Raleway, ui-sans-serif, system-ui, sans-serif',
-  Nunito: 'var(--font-nunito), Nunito, ui-sans-serif, system-ui, sans-serif',
-  "Work Sans":
-    'var(--font-work-sans), "Work Sans", ui-sans-serif, system-ui, sans-serif',
-  "Source Sans 3":
-    'var(--font-source-sans-3), "Source Sans 3", ui-sans-serif, system-ui, sans-serif',
-  "PT Sans":
-    'var(--font-pt-sans), "PT Sans", ui-sans-serif, system-ui, sans-serif',
-  Figtree:
-    'var(--font-figtree), Figtree, ui-sans-serif, system-ui, sans-serif',
-  Manrope:
-    'var(--font-manrope), Manrope, ui-sans-serif, system-ui, sans-serif',
-  Rubik: 'var(--font-rubik), Rubik, ui-sans-serif, system-ui, sans-serif',
-  "Space Grotesk":
-    'var(--font-space-grotesk), "Space Grotesk", ui-sans-serif, system-ui, sans-serif',
-  "Bebas Neue":
-    'var(--font-bebas-neue), "Bebas Neue", ui-sans-serif, system-ui, sans-serif',
-  Quicksand:
-    'var(--font-quicksand), Quicksand, ui-sans-serif, system-ui, sans-serif',
-  "Josefin Sans":
-    'var(--font-josefin-sans), "Josefin Sans", ui-sans-serif, system-ui, sans-serif',
-  Mulish: 'var(--font-mulish), Mulish, ui-sans-serif, system-ui, sans-serif',
-  Karla: 'var(--font-karla), Karla, ui-sans-serif, system-ui, sans-serif',
-  Cabin: 'var(--font-cabin), Cabin, ui-sans-serif, system-ui, sans-serif',
-  Barlow: 'var(--font-barlow), Barlow, ui-sans-serif, system-ui, sans-serif',
-  Archivo:
-    'var(--font-archivo), Archivo, ui-sans-serif, system-ui, sans-serif',
-  "Plus Jakarta Sans":
-    'var(--font-plus-jakarta-sans), "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif',
-  "Libre Franklin":
-    'var(--font-libre-franklin), "Libre Franklin", ui-sans-serif, system-ui, sans-serif',
-  Hind: 'var(--font-hind), Hind, ui-sans-serif, system-ui, sans-serif',
-  "IBM Plex Sans":
-    'var(--font-ibm-plex-sans), "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif',
-
-  // Serif (use instances)
-  Merriweather: `${merriweather.style.fontFamily}, ui-serif, Georgia, serif`,
-  "Libre Baskerville": `${libreBaskerville.style.fontFamily}, ui-serif, Georgia, serif`,
-  "Abril Fatface": `${abril.style.fontFamily}, ui-serif, Georgia, serif`,
-  Cinzel: `${cinzel.style.fontFamily}, ui-serif, Georgia, serif`,
-  "Crimson Text": `${crimsonText.style.fontFamily}, ui-serif, Georgia, serif`,
-  Lora: `${lora.style.fontFamily}, ui-serif, Georgia, serif`,
-  Prata: `${prata.style.fontFamily}, ui-serif, Georgia, serif`,
-  Marcellus: `${marcellus.style.fontFamily}, ui-serif, Georgia, serif`,
-  "Bodoni Moda": `${bodoniModa.style.fontFamily}, ui-serif, Georgia, serif`,
-  "IBM Plex Serif":
-    'var(--font-ibm-plex-serif), "IBM Plex Serif", ui-serif, Georgia, serif',
-
-  // Display / stylized (use instances ONLY — no duplicates)
-  Anton: `${anton.style.fontFamily}, sans-serif`,
-  Bangers: `${bangers.style.fontFamily}, cursive`,
-  Orbitron: `${orbitron.style.fontFamily}, sans-serif`,
-  Righteous: `${righteous.style.fontFamily}, cursive`,
-  "Alfa Slab One": `${alfa.style.fontFamily}, serif`,
-  "Permanent Marker": `${marker.style.fontFamily}, cursive`,
-  Caveat: `${caveat.style.fontFamily}, cursive`,
-  "Indie Flower": `${indie.style.fontFamily}, cursive`,
-  "Exo 2": `${exo.style.fontFamily}, sans-serif`,
-  Rajdhani: `${rajdhani.style.fontFamily}, sans-serif`,
-  "Architects Daughter": `${architectsDaughter.style.fontFamily}, cursive`,
-  Bungee: `${bungee.style.fontFamily}, display, sans-serif`,
-  "Courier Prime": `${courierPrime.style.fontFamily}, "Courier New", monospace`,
-  "Gloria Hallelujah": `${gloriaHallelujah.style.fontFamily}, cursive`,
-  Handwritten: `${patrickHand.style.fontFamily}, ${architectsDaughter.style.fontFamily}, ${gloriaHallelujah.style.fontFamily}, ${caveat.style.fontFamily}, cursive`,
-  "Luckiest Guy": `${luckiestGuy.style.fontFamily}, display, sans-serif`,
-  "Modern UI": `${openSans.style.fontFamily}, ${sourceSans3.style.fontFamily}, ui-sans-serif, system-ui, sans-serif`,
-  "Montserrat SemiBold":
-    'var(--font-montserrat), Montserrat, ui-sans-serif, system-ui, sans-serif',
-  "Patrick Hand": `${patrickHand.style.fontFamily}, cursive`,
-  "Source Sans Pro": `${sourceSans3.style.fontFamily}, ui-sans-serif, system-ui, sans-serif`,
-  Typewriter: `${courierPrime.style.fontFamily}, "Courier New", monospace`,
-  Teko: `${teko.style.fontFamily}, sans-serif`,
-  Chewy: `${chewy.style.fontFamily}, cursive`,
-"Black Ops One": `${blackOpsOne.style.fontFamily}, sans-serif`,
-"Chelsea Market": `${chelseaMarket.style.fontFamily}, cursive`,
-"Smooch Sans": `${smoochSans.style.fontFamily}, sans-serif`,
-"Advent Pro": `${adventPro.style.fontFamily}, sans-serif`,
-"Amatic SC": `${amaticSc.style.fontFamily}, cursive`,
-"Titan One": `${titanOne.style.fontFamily}, sans-serif`,
-Creepster: `${creepster.style.fontFamily}, cursive`,
-"Rock Salt": `${rockSalt.style.fontFamily}, cursive`,
-"Josefin Slab": `${josefinSlab.style.fontFamily}, serif`,
-"Poiret One": `${poiretOne.style.fontFamily}, cursive`,
-"Saira Stencil": `${sairaStencil.style.fontFamily}, sans-serif`,
-"Six Caps": `${sixCaps.style.fontFamily}, sans-serif`,
-"Bungee Shade": `${bungeeShade.style.fontFamily}, sans-serif`,
-"Faster One": `${fasterOne.style.fontFamily}, cursive`,
-"Style Script": `${styleScript.style.fontFamily}, cursive`,
-"Grenze Gotisch": `${grenzeGotisch.style.fontFamily}, serif`,
-Wallpoet: `${wallpoet.style.fontFamily}, sans-serif`,
-  "Special Elite": 'var(--font-special-elite), "Special Elite", monospace',
-};
-
-
-function resolveFontFamily(fontFamily?: string) {
-  if (!fontFamily || fontFamily === "inherit") return "inherit";
-  return FONT_FAMILY_MAP[fontFamily] ?? fontFamily;
+function resolveFontFamily(fontFamily?: string | null) {
+  return getFontFamily(fontFamily);
 }
 
 function normalizePreviewHref(url?: string, micrositeSlug?: string | null) {

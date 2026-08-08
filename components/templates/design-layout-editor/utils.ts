@@ -19,15 +19,14 @@ import {
 } from "@/components/builder/canvas/canvasItemTransforms";
 
 import { getMetadata } from "@/components/builder/metadata/metadataResolver";
-import { FONT_FAMILY_MAP } from "./constants";
+import { getFontFamily } from "@/lib/fonts";
 
 export function cloneDraft<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
 }
 
 export function resolveFontFamily(fontFamily?: string) {
-  if (!fontFamily || fontFamily === "inherit") return "inherit";
-  return FONT_FAMILY_MAP[fontFamily] ?? fontFamily;
+  return getFontFamily(fontFamily);
 }
 
 export function makeClientId(prefix: string) {
