@@ -127,15 +127,6 @@ export function getSelectionTextStyle(
     case "page:title":
       return draft.titleStyle ?? createDefaultTextStyle();
 
-    case "page:subtitle":
-      return draft.subtitleStyle ?? createDefaultTextStyle();
-
-    case "page:subtext":
-      return draft.subtextStyle ?? createDefaultTextStyle();
-
-    case "page:description":
-      return draft.descriptionStyle ?? createDefaultTextStyle();
-
     case "page:countdownLabel":
       return draft.countdownLabelStyle ?? createDefaultTextStyle();
 
@@ -164,24 +155,6 @@ export function applyStylePatchToSelection(
       return {
         ...draft,
         titleStyle: updateTextStyle(draft.titleStyle, patch),
-      };
-
-    case "page:subtitle":
-      return {
-        ...draft,
-        subtitleStyle: updateTextStyle(draft.subtitleStyle, patch),
-      };
-
-    case "page:subtext":
-      return {
-        ...draft,
-        subtextStyle: updateTextStyle(draft.subtextStyle, patch),
-      };
-
-    case "page:description":
-      return {
-        ...draft,
-        descriptionStyle: updateTextStyle(draft.descriptionStyle, patch),
       };
 
     case "page:countdownLabel":
