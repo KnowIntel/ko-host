@@ -5,9 +5,6 @@ import type { CanvasGridItem } from "@/components/templates/design-editors/share
 import type { OverlayDesignMetadata } from "@/lib/templates/templateDesignOverlayMetadata";
 
 import {
-  PAGE_DESCRIPTION_BLOCK_ID,
-  PAGE_SUBTEXT_BLOCK_ID,
-  PAGE_SUBTITLE_BLOCK_ID,
   PAGE_TITLE_BLOCK_ID,
 } from "@/components/templates/design-editors/shared/EditorSelection";
 
@@ -114,19 +111,7 @@ export function buildPageCanvasItems(
     });
   }
 
-  if (pageVisibility.subtitle === true) {
-    items.push({
-      id: PAGE_SUBTITLE_BLOCK_ID,
-      type: "page:subtitle",
-      label: "Subtitle",
-      grid:
-        pageElements.subtitle ??
-        metadata?.page.subtitle?.grid ??
-        getDefaultPageElementGrid("subtitle"),
-    });
-  }
-
-  return items;
+return items;
 }
 
 export function applyCanvasItemsToDraft(
@@ -136,35 +121,19 @@ export function applyCanvasItemsToDraft(
   const draft = coerceDraft(prev);
 
   const titleGrid = canvasItems.find((i) => i.id === PAGE_TITLE_BLOCK_ID)?.grid;
-  const subtitleGrid = canvasItems.find((i) => i.id === PAGE_SUBTITLE_BLOCK_ID)?.grid;
-  const subtextGrid = canvasItems.find((i) => i.id === PAGE_SUBTEXT_BLOCK_ID)?.grid;
-  const descriptionGrid = canvasItems.find((i) => i.id === PAGE_DESCRIPTION_BLOCK_ID)?.grid;
 
-  const pageItems = {
-    ...(draft.pageElements ?? {}),
-    title: titleGrid
-      ? normalizeGrid(titleGrid, 1)
-      : draft.pageElements?.title ?? getDefaultPageElementGrid("title"),
-    subtitle: subtitleGrid
-      ? normalizeGrid(subtitleGrid, 2)
-      : draft.pageElements?.subtitle ?? getDefaultPageElementGrid("subtitle"),
-    subtext: subtextGrid
-      ? normalizeGrid(subtextGrid, 3)
-      : draft.pageElements?.subtext ?? getDefaultPageElementGrid("subtext"),
-    description: descriptionGrid
-      ? normalizeGrid(descriptionGrid, 4)
-      : draft.pageElements?.description ??
-        getDefaultPageElementGrid("description"),
-  };
+const pageItems = {
+  ...(draft.pageElements ?? {}),
+  title: titleGrid
+    ? normalizeGrid(titleGrid, 1)
+    : draft.pageElements?.title ?? getDefaultPageElementGrid("title"),
+};
 
   const blockGridMap = new Map<string, GridPlacementWithLayer>(
     canvasItems
       .filter(
         (item) =>
-          item.id !== PAGE_TITLE_BLOCK_ID &&
-          item.id !== PAGE_SUBTITLE_BLOCK_ID &&
-          item.id !== PAGE_SUBTEXT_BLOCK_ID &&
-          item.id !== PAGE_DESCRIPTION_BLOCK_ID,
+          item.id !== PAGE_TITLE_BLOCK_ID,
       )
       .map((item, index) => [
         item.id,
