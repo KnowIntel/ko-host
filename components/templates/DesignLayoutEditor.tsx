@@ -844,6 +844,8 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Barcode", type: "icon", iconName: "barcode" },
     { kind: "block", label: "Airplane", type: "icon", iconName: "airplane" },
     { kind: "block", label: "Accident", type: "icon", iconName: "accident" },
+    { kind: "block", label: "Identification Card Female", type: "icon", iconName: "identification-card-female" },
+    { kind: "block", label: "Identification Card Male", type: "icon", iconName: "identification-card-male" },
     // { kind: "block", label: "Globe", type: "icon", iconName: "globe" },
     { kind: "block", label: "Globe Earth", type: "icon", iconName: "globe-earth" },
     { kind: "block", label: "Message Thread", type: "icon", iconName: "message-thread" },
