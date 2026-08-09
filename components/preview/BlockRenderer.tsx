@@ -2360,6 +2360,18 @@ const completedMessageStyle = getContainerTextStyle(
         ? Math.max(-40, Math.min(40, data.stageUnitGap))
         : -24;
 
+    const valuesPositionY =
+  typeof data.valuesPositionY === "number" &&
+  Number.isFinite(data.valuesPositionY)
+    ? data.valuesPositionY
+    : 0;
+
+const unitsPositionY =
+  typeof data.unitsPositionY === "number" &&
+  Number.isFinite(data.unitsPositionY)
+    ? data.unitsPositionY
+    : 0;
+
     const rawAnimationStyle =
       (data.animationStyle as
         | "none"
@@ -2563,26 +2575,30 @@ const completedMessageStyle = getContainerTextStyle(
                 >
                   <span
                     className="inline-block font-bold leading-none"
-                    style={{
-                      ...valueStyle,
-                      fontSize: valueStyle.fontSize ?? "24px",
-                      transformOrigin: "center center",
-                      transformStyle: "preserve-3d",
-                      backfaceVisibility: "hidden",
-                      ...getAnimatedValueStyle(),
-                    }}
+style={{
+  ...valueStyle,
+  fontSize: valueStyle.fontSize ?? "24px",
+  transformOrigin: "center center",
+  transformStyle: "preserve-3d",
+  backfaceVisibility: "hidden",
+  ...getAnimatedValueStyle(),
+  position: "relative",
+  top: `${valuesPositionY}px`,
+}}
                   >
                     {part.value}
                   </span>
 
                   <span
                     className="uppercase tracking-[0.12em]"
-                    style={{
-                      ...unitStyle,
-                      fontSize: unitStyle.fontSize ?? "11px",
-                      marginTop:
-                        variant === "stage" ? `${stageUnitGap}px` : undefined,
-                    }}
+style={{
+  ...unitStyle,
+  fontSize: unitStyle.fontSize ?? "11px",
+  marginTop:
+    variant === "stage" ? `${stageUnitGap}px` : undefined,
+  position: "relative",
+  top: `${unitsPositionY}px`,
+}}
                   >
                     {part.label}
                   </span>
@@ -2591,10 +2607,12 @@ const completedMessageStyle = getContainerTextStyle(
                 {showSeparator && index < parts.length - 1 ? (
                   <span
                     className="flex items-center justify-center font-semibold"
-                    style={{
-                      ...unitStyle,
-                      minWidth: `${spacing}px`,
-                    }}
+style={{
+  ...unitStyle,
+  minWidth: `${spacing}px`,
+  position: "relative",
+  top: `${unitsPositionY}px`,
+}}
                   >
                     :
                   </span>
@@ -2704,17 +2722,19 @@ const completedMessageStyle = getContainerTextStyle(
 
                   <span
                     className="relative z-10 inline-flex font-bold leading-none"
-                    style={{
-                      ...valueStyle,
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: valueStyle.fontSize ?? "24px",
-                      transformOrigin: "center center",
-                      transformStyle: "preserve-3d",
-                      backfaceVisibility: "hidden",
-                      ...getAnimatedValueStyle(),
-                    }}
+style={{
+  ...valueStyle,
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  fontSize: valueStyle.fontSize ?? "24px",
+  transformOrigin: "center center",
+  transformStyle: "preserve-3d",
+  backfaceVisibility: "hidden",
+  ...getAnimatedValueStyle(),
+  position: "relative",
+  top: `${valuesPositionY}px`,
+}}
                   >
                     {part.value}
                   </span>
@@ -2722,10 +2742,12 @@ const completedMessageStyle = getContainerTextStyle(
 
                 <div
                   className="mt-1 uppercase tracking-[0.12em]"
-                  style={{
-                    ...unitStyle,
-                    fontSize: unitStyle.fontSize ?? "10px",
-                  }}
+style={{
+  ...unitStyle,
+  fontSize: unitStyle.fontSize ?? "10px",
+  position: "relative",
+  top: `${unitsPositionY}px`,
+}}
                 >
                   {part.label}
                 </div>

@@ -174,37 +174,7 @@ return (
         className={inspectorInputClass()}
       />
     </div>
-
-    <div className="mt-4">
-      <div className={inspectorLabelClass()}>
-        Countdown Style Target
-      </div>
-
-      <select
-        value={countdownStyleTarget}
-        onChange={(e) =>
-          setCountdownStyleTarget(
-            e.target.value as CountdownStyleTarget,
-          )
-        }
-        className={inspectorInputClass()}
-      >
-        <option value="background">Background</option>
-
-        {(((selectedBlock.data as any).styleVariant ?? "cards") === "cards" ||
-          ((selectedBlock.data as any).styleVariant ?? "cards") === "hero" ||
-          ((selectedBlock.data as any).styleVariant ?? "cards") === "default") ? (
-          <option value="tiles">Tiles</option>
-        ) : null}
-
-        <option value="values">Values</option>
-
-        <option value="units">Units</option>
-
-        <option value="heading">Heading</option>
-      </select>
-    </div>
-
+    
     <div className="mt-4">
       <div className={inspectorLabelClass()}>Alignment</div>
 
@@ -276,6 +246,74 @@ return (
         </div>
       </div>
     </div>
+
+    <div className="mt-4">
+  <div className="mb-1 flex items-center justify-between">
+    <div className={inspectorLabelClass()}>
+      Values Vertical Position
+    </div>
+
+    <div className="text-xs text-neutral-500">
+      {Number((selectedBlock.data as any).valuesPositionY ?? 0)}px
+    </div>
+  </div>
+
+  <input
+    type="range"
+    min={-100}
+    max={100}
+    step={1}
+    value={Number((selectedBlock.data as any).valuesPositionY ?? 0)}
+    onChange={(e) =>
+      updateSelectedBlock((block: any) =>
+        block.type !== "countdown"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                valuesPositionY: Number(e.target.value),
+              },
+            },
+      )
+    }
+    className="w-full"
+  />
+</div>
+
+<div className="mt-4">
+  <div className="mb-1 flex items-center justify-between">
+    <div className={inspectorLabelClass()}>
+      Units Vertical Position
+    </div>
+
+    <div className="text-xs text-neutral-500">
+      {Number((selectedBlock.data as any).unitsPositionY ?? 0)}px
+    </div>
+  </div>
+
+  <input
+    type="range"
+    min={-100}
+    max={100}
+    step={1}
+    value={Number((selectedBlock.data as any).unitsPositionY ?? 0)}
+    onChange={(e) =>
+      updateSelectedBlock((block: any) =>
+        block.type !== "countdown"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                unitsPositionY: Number(e.target.value),
+              },
+            },
+      )
+    }
+    className="w-full"
+  />
+</div>
 
         {((selectedBlock.data as any).styleVariant ?? "cards") === "stage" ? (
       <div className="mt-4">
