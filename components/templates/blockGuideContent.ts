@@ -2321,4 +2321,207 @@ rich_text: {
   ],
 },
 
+formula_board: {
+  title: "Formula Board",
+  subtitle:
+    "Present formulas, equations, reference material, or interactive math skills challenges in a structured visual board.",
+  sections: [
+    {
+      title: "Overview",
+      body:
+        "The Formula Board block organizes mathematical formulas, equations, variables, examples, and practice problems into configurable cards. It can function as a reference board or as an interactive skills challenge where visitors submit answers.",
+    },
+    {
+      title: "Objective",
+      bullets: [
+        "Present mathematical formulas and equations clearly.",
+        "Create reference material with variables, descriptions, and examples.",
+        "Generate interactive arithmetic practice problems.",
+        "Allow visitors to submit answers and receive immediate feedback.",
+        "Organize multiple formulas or problems into a visual grid or stacked layout.",
+      ],
+    },
+    {
+      title: "Board Configuration",
+      bullets: [
+        "Operation - determines whether the board is used for reference content or a skills challenge.",
+        "Heading - primary heading displayed above the board.",
+        "Subtitle - supporting text displayed below the heading.",
+        "Layout - arranges cards in a grid or stacked format.",
+        "Columns - controls the number of cards displayed across the board.",
+        "Padding - controls spacing around the board content.",
+        "Gap - controls spacing between formula cards.",
+        "Card Gap - controls spacing between content elements inside each card.",
+      ],
+    },
+    {
+      title: "Reference Mode",
+      body:
+        "Reference mode is designed for presenting formulas and supporting educational information rather than collecting visitor answers.",
+      bullets: [
+        "Formula Title - identifies the formula or concept.",
+        "Formula - displays the equation or mathematical expression.",
+        "Description - explains the formula or concept.",
+        "Variables - identifies variables and their meanings.",
+        "Example - provides a worked or practical example.",
+        "Diagram - optionally displays a supporting visual.",
+      ],
+    },
+    {
+      title: "Skills Challenge Mode",
+      body:
+        "Skills Challenge mode creates interactive arithmetic problems that visitors can solve directly on the microsite.",
+      bullets: [
+        "Addition - generates addition problems.",
+        "Subtraction - generates subtraction problems.",
+        "Multiplication - generates multiplication problems.",
+        "Division - generates division problems.",
+        "Visitors enter an answer and select the Submit Answer button.",
+        "Correct and incorrect responses can display customized feedback.",
+      ],
+    },
+    {
+      title: "Random Problem Generator",
+      bullets: [
+        "Minimum - establishes the lowest allowed value for generated operands.",
+        "Maximum - establishes the highest allowed value for generated operands.",
+        "Problem Count - determines how many problems are generated.",
+        "For division challenges, both the dividend and divisor remain within the selected minimum and maximum bounds.",
+      ],
+    },
+    {
+      title: "Appearance",
+      bullets: [
+        "Formula cards can be styled independently from the overall block.",
+        "Formula, Variables, and Example panels have individual appearance controls.",
+        "Diagram appearance can be customized separately.",
+        "Submit Button appearance can be customized for skills challenges.",
+        "Text targets provide independent formatting for supported text elements.",
+      ],
+    },
+    {
+      title: "Best Use Cases",
+      bullets: [
+        "Math lessons and study guides.",
+        "Formula reference sheets.",
+        "Homework practice.",
+        "Arithmetic drills.",
+        "Tutoring microsites.",
+        "Classroom review activities.",
+        "Interactive learning resources.",
+      ],
+    },
+  ],
+},
+
+interactive_hotspots: {
+  title: "Interactive Hotspots",
+  subtitle:
+    "Turn an image or visual canvas into an interactive experience using clickable markers and detailed information panels.",
+  sections: [
+    {
+      title: "Overview",
+      body:
+        "The Interactive Hotspots block places selectable markers over an image or visual canvas. Each hotspot can reveal its own title, subtitle, description, image, badge, and optional action button.",
+    },
+    {
+      title: "Objective",
+      bullets: [
+        "Make images and diagrams interactive.",
+        "Connect specific locations on an image to additional information.",
+        "Allow visitors to explore content without leaving the visual.",
+        "Present detailed information without permanently covering the entire image.",
+        "Create guided visual experiences using multiple hotspots.",
+      ],
+    },
+    {
+      title: "Canvas Configuration",
+      bullets: [
+        "Background Image - provides the main visual used by the hotspot canvas.",
+        "Canvas Height - controls the vertical size of the interactive canvas.",
+        "Background Position X - moves the background image horizontally.",
+        "Background Position Y - moves the background image vertically.",
+        "Background Zoom - enlarges or reduces the displayed background image.",
+        "Padding - controls spacing around the block content.",
+      ],
+    },
+    {
+      title: "Hotspots",
+      body:
+        "Each hotspot represents an interactive point positioned over the canvas.",
+      bullets: [
+        "Position X - controls the horizontal marker position.",
+        "Position Y - controls the vertical marker position.",
+        "Marker Label - provides text or numbering inside the marker.",
+        "Marker Style - displays markers as numbers, dots, icons, or pulsing indicators.",
+        "Accent Color - provides a hotspot-specific visual accent.",
+        "Hotspots can be individually selected by visitors to reveal their details.",
+      ],
+    },
+    {
+      title: "Hotspot Details",
+      bullets: [
+        "Title - primary name or heading for the hotspot.",
+        "Subtitle - supporting information beneath the title.",
+        "Description - detailed information associated with the hotspot.",
+        "Badge - optional short label or category.",
+        "Image - optional supporting image displayed inside the detail panel.",
+        "Button - optional call-to-action linked to a URL.",
+      ],
+    },
+    {
+      title: "Detail Panel",
+      body:
+        "The Detail Panel displays information associated with the currently selected hotspot.",
+      bullets: [
+        "Right - displays the panel beside the canvas on the right.",
+        "Left - displays the panel beside the canvas on the left.",
+        "Bottom - displays the panel beneath the canvas.",
+        "Overlay - positions the panel directly over the hotspot canvas.",
+        "Panel Width - controls the width of the detail panel.",
+        "Panel Padding - controls internal panel spacing.",
+        "Panel appearance can be customized independently from the canvas.",
+      ],
+    },
+    {
+      title: "Overlay Position",
+      body:
+        "When the Detail Panel is set to Overlay, its position can be adjusted independently over the canvas.",
+      bullets: [
+        "Position X - moves the overlay panel horizontally.",
+        "Position Y - moves the overlay panel vertically.",
+        "This allows the panel to be positioned where it does not obscure important parts of the image.",
+      ],
+    },
+    {
+      title: "Display Options",
+      bullets: [
+        "Show Markers - controls whether hotspot markers are visible.",
+        "Show Marker Labels - controls marker numbering or labels.",
+        "Show Connector Lines - displays supporting visual connector lines.",
+        "Show Hotspot Images - controls images inside detail panels.",
+        "Show Badges - controls hotspot badges.",
+        "Show Subtitles - controls hotspot subtitles.",
+        "Show Descriptions - controls hotspot descriptions.",
+        "Show Buttons - controls hotspot action buttons.",
+        "Open First Hotspot - determines whether the first hotspot is initially active.",
+      ],
+    },
+    {
+      title: "Best Use Cases",
+      bullets: [
+        "Product feature callouts.",
+        "Educational diagrams.",
+        "Maps and location guides.",
+        "Anatomy or science diagrams.",
+        "Property and room tours.",
+        "Infographics.",
+        "Historical images.",
+        "Equipment demonstrations.",
+        "Interactive instructions.",
+      ],
+    },
+  ],
+},
+
 };

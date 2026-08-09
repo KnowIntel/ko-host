@@ -1,5 +1,7 @@
 "use client";
 
+import { useMemo, useState } from "react";
+
 /**
  * Icon inspector section
  * Extracted from DesignLayoutEditor.
@@ -32,19 +34,74 @@ export function IconInspector({
   inspectorLabelClass,
   inspectorInputClass,
 }: IconInspectorProps) {
+  const [iconSearch, setIconSearch] = useState("");
+
+  const iconTools = useMemo(
+    () =>
+      (CATEGORY_BUTTONS.Icons ?? []).filter(
+        (tool: any) =>
+          tool.kind === "block" &&
+          tool.type === "icon",
+      ),
+    [CATEGORY_BUTTONS],
+  );
+
+  const filteredIconTools = useMemo(() => {
+    const query = iconSearch.trim().toLowerCase();
+
+    if (!query) return iconTools;
+
+    return iconTools.filter((tool: any) => {
+      const label = String(tool.label ?? "").toLowerCase();
+      const iconName = String(tool.iconName ?? "").toLowerCase();
+
+      return (
+        label.includes(query) ||
+        iconName.includes(query)
+      );
+    });
+  }, [iconSearch, iconTools]);
+
+  const selectedIconName = getIconNameFromUrl(
+    selectedBlock.data.icon.url,
+  );
+
   return (
     <div className={inspectorCardClass()}>
       <div className={inspectorLabelClass()}>Icon</div>
 
       <div className="mt-4">
+        <div className={inspectorLabelClass()}>Search Icons</div>
+
+        <input
+          type="text"
+          value={iconSearch}
+          onChange={(e) => setIconSearch(e.target.value)}
+          placeholder="Search icons..."
+          className={inspectorInputClass()}
+        />
+
+        {iconSearch ? (
+          <button
+            type="button"
+            onClick={() => setIconSearch("")}
+            className="mt-2 text-xs font-medium text-neutral-500 hover:text-neutral-900"
+          >
+            Clear search
+          </button>
+        ) : null}
+      </div>
+
+      <div className="mt-4">
+        <div className={inspectorLabelClass()}>Icon</div>
+
         <select
-          value={getIconNameFromUrl(selectedBlock.data.icon.url)}
+          value={selectedIconName}
           onChange={(e) => {
             const iconName = e.target.value;
-            const iconTool = CATEGORY_BUTTONS.Icons.find(
+
+            const iconTool = iconTools.find(
               (tool: any) =>
-                tool.kind === "block" &&
-                tool.type === "icon" &&
                 tool.iconName === iconName,
             );
 
@@ -60,7 +117,10 @@ export function IconInspector({
                         ...block.data.icon,
                         id: `/media-icons/${iconName}.svg`,
                         url: `/media-icons/${iconName}.svg`,
-                        alt: iconTool?.label ?? block.data.icon.alt ?? "Icon",
+                        alt:
+                          iconTool?.label ??
+                          block.data.icon.alt ??
+                          "Icon",
                       },
                     },
                   },
@@ -68,18 +128,31 @@ export function IconInspector({
           }}
           className={inspectorInputClass()}
         >
-          {CATEGORY_BUTTONS.Icons.filter(
-            (tool: any) => tool.kind === "block" && tool.type === "icon",
-          ).map((tool: any) => (
-            <option key={tool.iconName ?? tool.label} value={tool.iconName ?? "star"}>
-              {tool.label}
+          {filteredIconTools.length > 0 ? (
+            filteredIconTools.map((tool: any) => (
+              <option
+                key={tool.iconName ?? tool.label}
+                value={tool.iconName ?? "star"}
+              >
+                {tool.label}
+              </option>
+            ))
+          ) : (
+            <option value="" disabled>
+              No matching icons
             </option>
-          ))}
+          )}
         </select>
+
+        <div className="mt-1 text-xs text-neutral-500">
+          {filteredIconTools.length}{" "}
+          {filteredIconTools.length === 1 ? "icon" : "icons"} found
+        </div>
       </div>
 
       <div className="mt-4">
         <div className={inspectorLabelClass()}>Icon Color</div>
+
         <input
           type="color"
           value={selectedBlock.data.icon.color ?? "#111111"}
@@ -100,15 +173,22 @@ export function IconInspector({
         ).map(([label, key, min, max, suffix]) => {
           const rawValue =
             key === "zoom"
-              ? Math.round((selectedBlock.data.icon.zoom ?? 1) * 100)
+              ? Math.round(
+                  (selectedBlock.data.icon.zoom ?? 1) * 100,
+                )
               : key === "opacity"
-                ? Math.round((selectedBlock.data.icon.opacity ?? 1) * 100)
+                ? Math.round(
+                    (selectedBlock.data.icon.opacity ?? 1) * 100,
+                  )
                 : ((selectedBlock.data.icon as any)[key] ??
                   (key === "rotation" ? 0 : 50));
 
           return (
             <div key={String(key)}>
-              <div className={inspectorLabelClass()}>{label}</div>
+              <div className={inspectorLabelClass()}>
+                {label}
+              </div>
+
               <input
                 type="range"
                 min={Number(min)}
@@ -124,6 +204,7 @@ export function IconInspector({
                 }
                 className="mt-2 w-full"
               />
+
               <div className="mt-1 text-xs text-neutral-500">
                 {Number(rawValue)}
                 {suffix}

@@ -236,4 +236,20 @@ export const BUILDER_TOOL_GUIDES: BuilderToolGuide[] = [
     purpose: "Combines selected Listing items into one checkout.",
     howToUse: "Use this when visitors can choose multiple Listing items. Enable Add to Cart on Listing blocks, then add the Cart block to show items, quantities, totals, and checkout.",
   },
+
+  {
+  name: "Formula Board",
+  purpose:
+    "Displays formulas, mathematical references, or interactive arithmetic challenges.",
+  howToUse:
+    "Use this for lessons, study guides, formula references, tutoring, or math practice. Choose Reference mode to present formulas with descriptions, variables, examples, and diagrams, or choose a Skills Challenge to generate problems visitors can answer directly.",
+},
+
+{
+  name: "Interactive Hotspots",
+  purpose:
+    "Adds clickable information points to an image or visual canvas.",
+  howToUse:
+    "Use this for product features, diagrams, maps, tours, educational visuals, or interactive infographics. Add a background image, position hotspot markers over important areas, and configure the detail content visitors see when each marker is selected.",
+},
 ];
