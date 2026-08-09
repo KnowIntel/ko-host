@@ -11503,7 +11503,13 @@ const idsToExpand =
       top: fontMenuPosition.top,
     }}
   >
-    {FONT_FAMILY_OPTIONS.map((font) => (
+    {[...FONT_FAMILY_OPTIONS]
+  .sort((a, b) => {
+    if (a === "inherit") return -1;
+    if (b === "inherit") return 1;
+    return a.localeCompare(b);
+  })
+  .map((font) => (
       <button
         key={font}
         type="button"
