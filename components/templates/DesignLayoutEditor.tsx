@@ -405,9 +405,6 @@ import BlockRenderer from "@/components/preview/BlockRenderer";
 import RichTextTiptapEditor from "@/components/blocks/RichTextTiptapEditor";
 
 import {
-  PAGE_DESCRIPTION_BLOCK_ID,
-  PAGE_SUBTEXT_BLOCK_ID,
-  PAGE_SUBTITLE_BLOCK_ID,
   PAGE_TITLE_BLOCK_ID,
   createEmptySelection,
   isCanvasBlockSelected,
@@ -547,17 +544,18 @@ type DraftWithPageExtras = BuilderDraft & {
   pageColor?: string;
   pageBackgroundImage?: string;
   pageBackgroundImageFit?: "clip" | "zoom" | "stretch";
+
   pageVisibility?: DraftPageVisibility;
+
   pageElements?: Partial<{
     title: DraftPageElementLayout;
-    subtitle: DraftPageElementLayout;
-    subtext: DraftPageElementLayout;
-    description: DraftPageElementLayout;
   }>;
+
   pageLength?: PageLengthOption;
+
   pageBlockAppearance?: Partial<
     Record<
-      "title" | "subtitle" | "subtext" | "description",
+      "title",
       {
         backgroundColor?: string;
       }
@@ -594,7 +592,7 @@ type BottomCategory =
   | "Infographics"
   | "Premium";
 
-type PageBlockType = "title" | "subtitle" | "tagline" | "description";
+type PageBlockType = "title";
 
 type ToolDropPayload =
   | {
@@ -669,7 +667,6 @@ const CATEGORY_BUTTONS: Record<
 > = {
   Text: [
 { kind: "page", label: "Title", type: "title" },
-{ kind: "page", label: "Subtitle", type: "subtitle" },
 { kind: "block", label: "Label", type: "label" },
 { kind: "block", label: "TextFX", type: "text_fx" },
 { kind: "block", label: "Rich Text", type: "rich_text" },
@@ -1088,12 +1085,7 @@ const blockItems: CanvasGridItem[] = draft.blocks.map((block) => ({
   return normalizeCanvasItems([...pageItems, ...blockItems]);
 }
 function isPageBlockId(blockId: string) {
-  return (
-    blockId === PAGE_TITLE_BLOCK_ID ||
-    blockId === PAGE_SUBTITLE_BLOCK_ID ||
-    blockId === PAGE_SUBTEXT_BLOCK_ID ||
-    blockId === PAGE_DESCRIPTION_BLOCK_ID
-  );
+  return blockId === PAGE_TITLE_BLOCK_ID;
 }
 
 function isSingletonPageBlockId(blockId: string) {
@@ -1106,17 +1098,11 @@ function isSingletonPageBlockType(type: PageBlockType) {
 
 function getPageBlockIdForType(type: PageBlockType) {
   if (type === "title") return PAGE_TITLE_BLOCK_ID;
-  if (type === "subtitle") return PAGE_SUBTITLE_BLOCK_ID;
-  if (type === "tagline") return PAGE_SUBTEXT_BLOCK_ID;
-  if (type === "description") return PAGE_DESCRIPTION_BLOCK_ID;
   return null;
 }
 
 function getPageBlockLabel(type: PageBlockType) {
   if (type === "title") return "Title";
-  if (type === "subtitle") return "Subtitle";
-  if (type === "tagline") return "Tagline";
-  if (type === "description") return "Description";
   return "Page Text";
 }
 
@@ -1136,29 +1122,6 @@ function getSelectedContext(
     return { kind: "pageText", blockId: PAGE_TITLE_BLOCK_ID, label: "Title" };
   }
 
-  if (selection.type === "page:subtitle") {
-    return {
-      kind: "pageText",
-      blockId: PAGE_SUBTITLE_BLOCK_ID,
-      label: "Subtitle",
-    };
-  }
-
-  if (selection.type === "page:subtext") {
-    return {
-      kind: "pageText",
-      blockId: PAGE_SUBTEXT_BLOCK_ID,
-      label: "Tagline",
-    };
-  }
-
-  if (selection.type === "page:description") {
-    return {
-      kind: "pageText",
-      blockId: PAGE_DESCRIPTION_BLOCK_ID,
-      label: "Description",
-    };
-  }
 
 if (selection.type !== "block") {
   return { kind: "none", label: "Nothing selected" };
@@ -2060,15 +2023,10 @@ function getSelectedTextValue(
   draft: BuilderDraft,
   context: SelectedContext,
 ): string {
-  if (context.kind === "pageText") {
-    if (context.blockId === PAGE_TITLE_BLOCK_ID) return draft.title ?? "";
-    if (context.blockId === PAGE_SUBTITLE_BLOCK_ID) return draft.subtitle ?? "";
-    if (context.blockId === PAGE_SUBTEXT_BLOCK_ID) return draft.subtext ?? "";
-    if (context.blockId === PAGE_DESCRIPTION_BLOCK_ID) {
-      return draft.description ?? "";
-    }
-    return "";
-  }
+if (context.kind === "pageText") {
+  if (context.blockId === PAGE_TITLE_BLOCK_ID) return draft.title ?? "";
+  return "";
+}
 
   if (
   context.kind === "label" ||
@@ -2112,11 +2070,8 @@ function getInlineTextStyle(style?: TextStyle) {
 
 function getPageAppearanceKey(
   blockId: string,
-): "title" | "subtitle" | "subtext" | "description" | null {
+): "title" | null {
   if (blockId === PAGE_TITLE_BLOCK_ID) return "title";
-  if (blockId === PAGE_SUBTITLE_BLOCK_ID) return "subtitle";
-  if (blockId === PAGE_SUBTEXT_BLOCK_ID) return "subtext";
-  if (blockId === PAGE_DESCRIPTION_BLOCK_ID) return "description";
   return null;
 }
 
@@ -6418,21 +6373,6 @@ function updateTextByCanvasId(blockId: string, value: string) {
     return;
   }
 
-  if (blockId === PAGE_SUBTITLE_BLOCK_ID) {
-    setDraft((prev) => ({ ...prev, subtitle: value }));
-    return;
-  }
-
-  if (blockId === PAGE_SUBTEXT_BLOCK_ID) {
-    setDraft((prev) => ({ ...prev, subtext: value }));
-    return;
-  }
-
-  if (blockId === PAGE_DESCRIPTION_BLOCK_ID) {
-    setDraft((prev) => ({ ...prev, description: value }));
-    return;
-  }
-
   setDraft((prev) => ({
     ...prev,
     blocks: prev.blocks.map((block) => {
@@ -7517,22 +7457,6 @@ function addPageBlock(type: PageBlockType) {
       pageVisibility.title = true;
       createdPageId = PAGE_TITLE_BLOCK_ID;
     }
-
-    if (type === "subtitle") {
-      pageVisibility.subtitle = true;
-      createdPageId = PAGE_SUBTITLE_BLOCK_ID;
-    }
-
-    if (type === "tagline") {
-      pageVisibility.subtext = true;
-      createdPageId = PAGE_SUBTEXT_BLOCK_ID;
-    }
-
-    if (type === "description") {
-      pageVisibility.description = true;
-      createdPageId = PAGE_DESCRIPTION_BLOCK_ID;
-    }
-
     return {
       ...prev,
       pageVisibility,
@@ -7699,15 +7623,6 @@ function removeCanvasBlocks(blockIds: string[]) {
         title: idsToRemove.has(PAGE_TITLE_BLOCK_ID)
           ? false
           : (next.pageVisibility?.title ?? true),
-        subtitle: idsToRemove.has(PAGE_SUBTITLE_BLOCK_ID)
-          ? false
-          : (next.pageVisibility?.subtitle ?? true),
-        subtext: idsToRemove.has(PAGE_SUBTEXT_BLOCK_ID)
-          ? false
-          : (next.pageVisibility?.subtext ?? true),
-        description: idsToRemove.has(PAGE_DESCRIPTION_BLOCK_ID)
-          ? false
-          : (next.pageVisibility?.description ?? true),
       },
       blocks: prev.blocks.filter((block) => !idsToRemove.has(block.id)),
     };
@@ -7744,48 +7659,6 @@ function removeCanvasBlock(blockId: string) {
     return;
   }
 
-  if (blockId === PAGE_SUBTITLE_BLOCK_ID) {
-    clearRemovedBlockSelection();
-
-    setDraft((prev) => ({
-      ...(prev as DraftWithPageExtras),
-      pageVisibility: {
-        ...((prev as DraftWithPageExtras).pageVisibility ?? {}),
-        subtitle: false,
-      },
-    }));
-
-    return;
-  }
-
-  if (blockId === PAGE_SUBTEXT_BLOCK_ID) {
-    clearRemovedBlockSelection();
-
-    setDraft((prev) => ({
-      ...(prev as DraftWithPageExtras),
-      pageVisibility: {
-        ...((prev as DraftWithPageExtras).pageVisibility ?? {}),
-        subtext: false,
-      },
-    }));
-
-    return;
-  }
-
-  if (blockId === PAGE_DESCRIPTION_BLOCK_ID) {
-    clearRemovedBlockSelection();
-
-    setDraft((prev) => ({
-      ...(prev as DraftWithPageExtras),
-      pageVisibility: {
-        ...((prev as DraftWithPageExtras).pageVisibility ?? {}),
-        description: false,
-      },
-    }));
-
-    return;
-  }
-
   clearRemovedBlockSelection();
 
   setDraft((prev) => ({
@@ -7806,10 +7679,7 @@ function confirmRemoveAllBlocks() {
     blocks: [],
     pageVisibility: {
       ...((prev as DraftWithPageExtras).pageVisibility ?? {}),
-      title: false,
-      subtitle: false,
-      subtext: false,
-      description: false,
+      title: false
     },
   }));
 
@@ -7985,24 +7855,6 @@ function handleCreateToolDrop(
         pageVisibility.title = true;
         pageElements.title = { ...patch };
         createdPageId = PAGE_TITLE_BLOCK_ID;
-      }
-
-      if (payload.type === "subtitle") {
-        pageVisibility.subtitle = true;
-        pageElements.subtitle = { ...patch };
-        createdPageId = PAGE_SUBTITLE_BLOCK_ID;
-      }
-
-      if (payload.type === "tagline") {
-        pageVisibility.subtext = true;
-        pageElements.subtext = { ...patch };
-        createdPageId = PAGE_SUBTEXT_BLOCK_ID;
-      }
-
-      if (payload.type === "description") {
-        pageVisibility.description = true;
-        pageElements.description = { ...patch };
-        createdPageId = PAGE_DESCRIPTION_BLOCK_ID;
       }
 
       const nextDraft = {
@@ -8739,26 +8591,18 @@ return (
 );}
 
 function renderCanvasPreview(item: CanvasGridItem) {
-    console.log("CANVAS DRAFT BLOCK COUNT", draft.blocks.length);
+  console.log("CANVAS DRAFT BLOCK COUNT", draft.blocks.length);
 
-    if (isPageBlockId(item.id)) {
-  const textValue =
-    item.id === PAGE_TITLE_BLOCK_ID
-      ? draft.title || ""
-      : item.id === PAGE_SUBTITLE_BLOCK_ID
-        ? draft.subtitle || ""
-        : item.id === PAGE_SUBTEXT_BLOCK_ID
-          ? draft.subtext || ""
-          : draft.description || "";
+  if (isPageBlockId(item.id)) {
+    const textValue =
+      item.id === PAGE_TITLE_BLOCK_ID
+        ? draft.title || ""
+        : "";
 
-  const pageTextStyle =
-    item.id === PAGE_TITLE_BLOCK_ID
-      ? draft.titleStyle
-      : item.id === PAGE_SUBTITLE_BLOCK_ID
-        ? draft.subtitleStyle
-        : item.id === PAGE_SUBTEXT_BLOCK_ID
-          ? draft.subtextStyle
-          : draft.descriptionStyle;
+const pageTextStyle =
+  item.id === PAGE_TITLE_BLOCK_ID
+    ? draft.titleStyle
+    : undefined;
 
   const appearanceKey = getPageAppearanceKey(item.id);
   const pageBlockBg =
@@ -13213,27 +13057,27 @@ onSelect={(next, event) => {
 
   handleCanvasSelect(next as any, event as any);
 }}
-  onMoveBlock={handleMoveBlock}
-  onResizeBlock={handleResizeBlock}
-  onBringToFront={handleBringToFront}
-  onRemoveBlock={removeCanvasBlock}
-    onDuplicateBlock={undefined}
+onMoveBlock={handleMoveBlock}
+onResizeBlock={handleResizeBlock}
+onBringToFront={handleBringToFront}
+onRemoveBlock={removeCanvasBlock}
+onDuplicateBlock={undefined}
 onCreateToolDrop={handleCreateToolDrop}
 onMarqueeSelectMove={handleMarqueeSelectMove}
 onMarqueeSelectEnd={handleMarqueeSelectEnd}
 renderBlockPreview={renderCanvasPreview}
-  isItemSelected={(blockId, nextSelection) =>
-    selectedBlockIds.includes(blockId) ||
-    isCanvasBlockSelected(nextSelection as any, blockId)
-  }
-  dockedScrollRef={dockedScrollRef}
-  showGridLines={showGridLines}
-  pageSurfaceStyle={{
-    ...pageSurfaceStyle,
-    height: `${getPageLengthPx(selectedPageLength)}px`,
-    minWidth: `${getGridCanvasScrollableWidth()}px`,
-    width: `${getGridCanvasScrollableWidth()}px`,
-  }}
+isItemSelected={(blockId, nextSelection) =>
+  selectedBlockIds.includes(blockId) ||
+  isCanvasBlockSelected(nextSelection as any, blockId)
+}
+dockedScrollRef={dockedScrollRef}
+showGridLines={showGridLines}
+pageSurfaceStyle={{
+  ...pageSurfaceStyle,
+  height: `${getPageLengthPx(selectedPageLength)}px`,
+  minWidth: `${getGridCanvasScrollableWidth()}px`,
+  width: `${getGridCanvasScrollableWidth()}px`,
+}}
 />
         </div>
         </div>

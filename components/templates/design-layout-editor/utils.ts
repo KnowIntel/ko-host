@@ -4,9 +4,6 @@ import type { DraftWithPageExtras, SelectedContext, InspectorFocusTarget } from 
 import type { CanvasGridItem } from "@/components/templates/design-editors/shared/GridCanvas";
 
 import {
-  PAGE_DESCRIPTION_BLOCK_ID,
-  PAGE_SUBTEXT_BLOCK_ID,
-  PAGE_SUBTITLE_BLOCK_ID,
   PAGE_TITLE_BLOCK_ID,
 } from "@/components/templates/design-editors/shared/EditorSelection";
 
@@ -50,10 +47,7 @@ export function buildCanvasItems(
 
 export function isPageBlockId(blockId: string) {
   return (
-    blockId === PAGE_TITLE_BLOCK_ID ||
-    blockId === PAGE_SUBTITLE_BLOCK_ID ||
-    blockId === PAGE_SUBTEXT_BLOCK_ID ||
-    blockId === PAGE_DESCRIPTION_BLOCK_ID
+    blockId === PAGE_TITLE_BLOCK_ID
   );
 }
 
@@ -187,10 +181,7 @@ export function getSelectedTextValue(
   context: SelectedContext,
 ): string {
   if (context.kind === "pageText") {
-    if (context.blockId === PAGE_TITLE_BLOCK_ID) return draft.title ?? "";
-    if (context.blockId === PAGE_SUBTITLE_BLOCK_ID) return draft.subtitle ?? "";
-    if (context.blockId === PAGE_SUBTEXT_BLOCK_ID) return draft.subtext ?? "";
-    if (context.blockId === PAGE_DESCRIPTION_BLOCK_ID) {
+    if (context.blockId === PAGE_TITLE_BLOCK_ID) return draft.title ?? ""; {
       return draft.description ?? "";
     }
     return "";
@@ -229,9 +220,6 @@ export function getPageAppearanceKey(
   blockId: string,
 ): "title" | "subtitle" | "subtext" | "description" | null {
   if (blockId === PAGE_TITLE_BLOCK_ID) return "title";
-  if (blockId === PAGE_SUBTITLE_BLOCK_ID) return "subtitle";
-  if (blockId === PAGE_SUBTEXT_BLOCK_ID) return "subtext";
-  if (blockId === PAGE_DESCRIPTION_BLOCK_ID) return "description";
   return null;
 }
 

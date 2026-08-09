@@ -33,7 +33,7 @@ const WORKSPACE_SIDE_PADDING = 0;
 const WORKSPACE_TOP_PADDING = 32;
 const WORKSPACE_BOTTOM_PADDING = 48;
 
-type PageBlockType = "title" | "subtitle" | "description";
+type PageBlockType = "title";
 
 const DEFAULT_BLOCK_SIZES: Partial<
   Record<BuilderBlockType, { colSpan: number; rowSpan: number }>
@@ -68,8 +68,6 @@ const DEFAULT_PAGE_SIZES: Record<
   { colSpan: number; rowSpan: number }
 > = {
   title: { colSpan: 8, rowSpan: 2 },
-  subtitle: { colSpan: 7, rowSpan: 1 },
-  description: { colSpan: 8, rowSpan: 2 },
 };
 
 const GUIDE_TOLERANCE = 0.26;
