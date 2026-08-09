@@ -92,63 +92,74 @@ export function IconInspector({
         ) : null}
       </div>
 
-      <div className="mt-4">
-        <div className={inspectorLabelClass()}>Icon</div>
+<div className="mt-4">
+  <div className={inspectorLabelClass()}>Icon</div>
 
-        <select
-          value={selectedIconName}
-          onChange={(e) => {
-            const iconName = e.target.value;
+  <div className="mt-2 max-h-56 overflow-y-auto rounded-xl border border-neutral-200 bg-white p-2">
+    {filteredIconTools.length > 0 ? (
+      <div className="grid grid-cols-1 gap-1">
+        {filteredIconTools.map((tool: any) => {
+          const iconName = tool.iconName ?? "star";
+          const isActive = selectedIconName === iconName;
 
-            const iconTool = iconTools.find(
-              (tool: any) =>
-                tool.iconName === iconName,
-            );
-
-            updateSelectedBlock((block: any) =>
-              block.type !== "icon"
-                ? block
-                : {
-                    ...block,
-                    label: iconTool?.label ?? block.label,
-                    data: {
-                      ...block.data,
-                      icon: {
-                        ...block.data.icon,
-                        id: `/media-icons/${iconName}.svg`,
-                        url: `/media-icons/${iconName}.svg`,
-                        alt:
-                          iconTool?.label ??
-                          block.data.icon.alt ??
-                          "Icon",
+          return (
+            <button
+              key={iconName}
+              type="button"
+              onClick={() => {
+                updateSelectedBlock((block: any) =>
+                  block.type !== "icon"
+                    ? block
+                    : {
+                        ...block,
+                        label: tool.label ?? block.label,
+                        data: {
+                          ...block.data,
+                          icon: {
+                            ...block.data.icon,
+                            id: `/media-icons/${iconName}.svg`,
+                            url: `/media-icons/${iconName}.svg`,
+                            alt:
+                              tool.label ??
+                              block.data.icon.alt ??
+                              "Icon",
+                          },
+                        },
                       },
-                    },
-                  },
-            );
-          }}
-          className={inspectorInputClass()}
-        >
-          {filteredIconTools.length > 0 ? (
-            filteredIconTools.map((tool: any) => (
-              <option
-                key={tool.iconName ?? tool.label}
-                value={tool.iconName ?? "star"}
-              >
-                {tool.label}
-              </option>
-            ))
-          ) : (
-            <option value="" disabled>
-              No matching icons
-            </option>
-          )}
-        </select>
+                );
+              }}
+              className={[
+                "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm transition",
+                isActive
+                  ? "bg-neutral-900 text-white"
+                  : "text-neutral-800 hover:bg-neutral-100",
+              ].join(" ")}
+            >
+              <img
+                src={`/media-icons/${iconName}.svg`}
+                alt=""
+                className="h-5 w-5 shrink-0 object-contain"
+              />
 
-        <div className="mt-1 text-xs text-neutral-500">
-          {filteredIconTools.length}{" "}
-          {filteredIconTools.length === 1 ? "icon" : "icons"} found
-        </div>
+              <span className="min-w-0 flex-1 truncate">
+                {tool.label}
+              </span>
+            </button>
+          );
+        })}
       </div>
+    ) : (
+      <div className="px-3 py-4 text-center text-sm text-neutral-500">
+        No matching icons
+      </div>
+    )}
+  </div>
+
+  <div className="mt-1 text-xs text-neutral-500">
+    {filteredIconTools.length}{" "}
+    {filteredIconTools.length === 1 ? "icon" : "icons"} found
+  </div>
+</div>
 
       <div className="mt-4">
         <div className={inspectorLabelClass()}>Icon Color</div>
