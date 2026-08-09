@@ -143,6 +143,9 @@ const draftPageCountByTemplateDesignKey: Record<string, number> = {
 
   "product_showcase:comfort": 1,
 
+  "party_time:bachelor": 1,
+
+
 
 };
 
