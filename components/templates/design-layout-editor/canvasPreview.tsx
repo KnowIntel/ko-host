@@ -8,9 +8,6 @@ import type { DraftWithPageExtras, InspectorFocusTarget } from "./types";
 import type { CanvasGridItem } from "@/components/templates/design-editors/shared/GridCanvas";
 
 import {
-  PAGE_DESCRIPTION_BLOCK_ID,
-  PAGE_SUBTEXT_BLOCK_ID,
-  PAGE_SUBTITLE_BLOCK_ID,
   PAGE_TITLE_BLOCK_ID,
 } from "@/components/templates/design-editors/shared/EditorSelection";
 
@@ -47,24 +44,10 @@ export function renderCanvasPreview({
   BlockRenderer,
   ImageUploadDropzone,
 }: RenderCanvasPreviewArgs): ReactNode {
-  if (isPageBlockId(item.id)) {
-    const textValue =
-      item.id === PAGE_TITLE_BLOCK_ID
-        ? draft.title || ""
-        : item.id === PAGE_SUBTITLE_BLOCK_ID
-          ? draft.subtitle || ""
-          : item.id === PAGE_SUBTEXT_BLOCK_ID
-            ? draft.subtext || ""
-            : draft.description || "";
+if (isPageBlockId(item.id)) {
+  const textValue = draft.title || "";
 
-    const pageTextStyle =
-      item.id === PAGE_TITLE_BLOCK_ID
-        ? draft.titleStyle
-        : item.id === PAGE_SUBTITLE_BLOCK_ID
-          ? draft.subtitleStyle
-          : item.id === PAGE_SUBTEXT_BLOCK_ID
-            ? draft.subtextStyle
-            : draft.descriptionStyle;
+  const pageTextStyle = draft.titleStyle;
 
     const appearanceKey = getPageAppearanceKey(item.id);
     const pageBlockBg =
