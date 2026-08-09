@@ -872,7 +872,17 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Thumbs Up Outline", type: "icon", iconName: "thumbs-up-outline" },
     { kind: "block", label: "Thumbs Up Solid", type: "icon", iconName: "thumbs-up-solid" },
     { kind: "block", label: "Fire Flame", type: "icon", iconName: "fire-flame" },
-
+    { kind: "block", label: "Soccer Ball", type: "icon", iconName: "soccer-ball" },
+    { kind: "block", label: "Heel Shoe", type: "icon", iconName: "heel-shoe" },
+    { kind: "block", label: "Foot Prints", type: "icon", iconName: "foot-prints" },
+    { kind: "block", label: "Foot Ball", type: "icon", iconName: "foot-ball" },
+    { kind: "block", label: "Dress Shoe", type: "icon", iconName: "dress-shoe" },
+    { kind: "block", label: "Disco Ball", type: "icon", iconName: "disco-ball" },
+    { kind: "block", label: "Cocktail Drink", type: "icon", iconName: "cocktail-drink" },
+    { kind: "block", label: "Cap", type: "icon", iconName: "cap" },
+    { kind: "block", label: "Bull", type: "icon", iconName: "bull" },
+    { kind: "block", label: "Bowling Pin", type: "icon", iconName: "bowling-pin" },
+    { kind: "block", label: "Base Ball", type: "icon", iconName: "base-ball" },
 
 
     { kind: "block", label: "Photo Placeholder", type: "icon", iconName: "photo-placeholder" },
@@ -960,7 +970,7 @@ Premium: [
 
 const TOOL_DESCRIPTIONS: Record<string, string> = {
   Title: "Large headline text for pages",
-  Subtitle: "Supporting text under main titles",
+  // Subtitle: "Supporting text under main titles",
   Label: "Small text label or note",
   TextFX: "Stylized animated text effects",
   "Rich Text": "Formatted paragraph text block",
