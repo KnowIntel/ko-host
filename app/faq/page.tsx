@@ -1,5 +1,5 @@
 const faqCards = [
-  {
+  {/* 
     title: "Photo Gallery",
     image: "/designs/design-cards/design-card_photo_gallery_escape.webp",
     className: "left-[60px] top-[280px] rotate-[-8deg] hidden xl:block",
@@ -40,8 +40,108 @@ const faqCards = [
     title: "Open House",
     image: "/designs/design-cards/design-card_open_house_signature.webp",
     className: "left-[220px] top-[3080px] rotate-[-5deg] hidden 2xl:block",
-  },
+  }, */
 
+  {
+  title: "Bible Book Club",
+  image: "/designs/design-cards/design-card_book_club_bible.webp",
+  className: "left-[245px] top-[3080px] rotate-[7deg] hidden 2xl:block",
+},
+{
+  title: "City Council",
+  image: "/designs/design-cards/design-card_election_campaign_city.webp",
+  className: "left-[65px] top-[3480px] rotate-[-6deg] hidden 2xl:block",
+},
+{
+  title: "Playful Baby Shower",
+  image: "/designs/design-cards/design-card_baby_shower_playful.webp",
+  className: "left-[235px] top-[3880px] rotate-[-5deg] hidden 2xl:block",
+},
+{
+  title: "Digital Link Hub",
+  image: "/designs/design-cards/design-card_creator_link_hub_digital.webp",
+  className: "left-[50px] top-[4280px] rotate-[6deg] hidden 2xl:block",
+},
+{
+  title: "Birthday Blast",
+  image: "/designs/design-cards/design-card_birthday_party_blast.webp",
+  className: "left-[255px] top-[4680px] rotate-[8deg] hidden 2xl:block",
+},
+{
+  title: "Community Newsletter",
+  image: "/designs/design-cards/design-card_community_alert_newsletter.webp",
+  className: "left-[75px] top-[5080px] rotate-[-7deg] hidden 2xl:block",
+},
+{
+  title: "Forever Question",
+  image: "/designs/design-cards/design-card_engagement_announcement_forever.webp",
+  className: "left-[240px] top-[5480px] rotate-[-6deg] hidden 2xl:block",
+},
+{
+  title: "Professional Beta Testing",
+  image: "/designs/design-cards/design-card_beta_testing_professional.webp",
+  className: "left-[45px] top-[5880px] rotate-[5deg] hidden 2xl:block",
+},
+{
+  title: "Elegant Baby Shower",
+  image: "/designs/design-cards/design-card_baby_shower_elegant.webp",
+  className: "left-[250px] top-[6280px] rotate-[6deg] hidden 2xl:block",
+},
+{
+  title: "Perfect Moment",
+  image: "/designs/design-cards/design-card_engagement_announcement_perfect.webp",
+  className: "left-[60px] top-[6680px] rotate-[-5deg] hidden 2xl:block",
+},
+{
+  title: "Canvas Link Hub",
+  image: "/designs/design-cards/design-card_creator_link_hub_canvas.webp",
+  className: "left-[230px] top-[7080px] rotate-[-8deg] hidden 2xl:block",
+},
+{
+  title: "Golden Birthday",
+  image: "/designs/design-cards/design-card_birthday_golden.webp",
+  className: "left-[80px] top-[7480px] rotate-[7deg] hidden 2xl:block",
+},
+{
+  title: "Showcase Networking",
+  image: "/designs/design-cards/design-card_enthusiast_networking_showcase.webp",
+  className: "left-[245px] top-[7880px] rotate-[5deg] hidden 2xl:block",
+},
+{
+  title: "Easter Church Event",
+  image: "/designs/design-cards/design-card_church_event_easter.webp",
+  className: "left-[55px] top-[8280px] rotate-[-6deg] hidden 2xl:block",
+},
+{
+  title: "Tiny Treasure",
+  image: "/designs/design-cards/design-card_baby_shower_treasure.webp",
+  className: "left-[255px] top-[8680px] rotate-[-5deg] hidden 2xl:block",
+},
+{
+  title: "Elaborate Crowdfunding",
+  image: "/designs/design-cards/design-card_crowdfunding_elaborate.webp",
+  className: "left-[40px] top-[9080px] rotate-[8deg] hidden 2xl:block",
+},
+{
+  title: "Grown Birthday",
+  image: "/designs/design-cards/design-card_birthday_grown.webp",
+  className: "left-[235px] top-[9480px] rotate-[6deg] hidden 2xl:block",
+},
+{
+  title: "Direct Networking",
+  image: "/designs/design-cards/design-card_enthusiast_networking_direct.webp",
+  className: "left-[70px] top-[9880px] rotate-[-7deg] hidden 2xl:block",
+},
+{
+  title: "Studio Link Hub",
+  image: "/designs/design-cards/design-card_creator_link_hub_studio.webp",
+  className: "left-[250px] top-[10280px] rotate-[-6deg] hidden 2xl:block",
+},
+{
+  title: "Playful Birthday",
+  image: "/designs/design-cards/design-card_birthday_playful.webp",
+  className: "left-[50px] top-[10680px] rotate-[5deg] hidden 2xl:block",
+},
 
 
 
@@ -49,7 +149,7 @@ const faqCards = [
 
   {
   title: "Learning Lab",
-  image: "/designs/design-cards/design-card_learning_lab_worksheet.webp",
+  image: "/designs/design-cards/design-card_learning_lab_foundations.webp",
   className:
     "right-[60px] top-[280px] rotate-[7deg] hidden 2xl:block",
 },
@@ -76,12 +176,6 @@ const faqCards = [
 },
 
 {
-  title: "Restaurant",
-  image: "/designs/design-cards/design-card_restaurant_menu_deluxe.webp",
-  className: "right-[60] top-[1880px] rotate-[-4deg] hidden 2xl:block",
-},
-
-{
 title: "Graduation",
 image: "/designs/design-cards/design-card_graduation_prestige.webp",
 className: "right-[230] top-[2280px] rotate-[5deg] hidden 2xl:block",
@@ -99,6 +193,11 @@ image: "/designs/design-cards/design-card_watch_club_hangout.webp",
 className: "right-[250] top-[3080px] rotate-[5deg] hidden 2xl:block",
 },
 
+{
+  title: "Restaurant",
+  image: "/designs/design-cards/design-card_restaurant_menu_deluxe.webp",
+  className: "right-[60] top-[1880px] rotate-[-4deg] hidden 2xl:block",
+},
 
 
 
