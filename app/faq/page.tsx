@@ -128,59 +128,124 @@ const faqCards = [
 
 
 
+{
+  title: "Championship Run",
+  image: "/designs/design-cards/design-card_game_day_central_championship.webp",
+  className: "right-[60px] top-[280px] rotate-[5deg] hidden 2xl:block",
+},
+{
+  title: "Dice Roll",
+  image: "/designs/design-cards/design-card_game_night_roll.webp",
+  className: "right-[150px] top-[530px] rotate-[-4deg] hidden 2xl:block",
+},
+{
+  title: "Prestige Graduation",
+  image: "/designs/design-cards/design-card_graduation_prestige.webp",
+  className: "right-[70px] top-[780px] rotate-[7deg] hidden 2xl:block",
+},
+{
+  title: "Spotlight Graduation",
+  image: "/designs/design-cards/design-card_graduation_spotlight.webp",
+  className: "right-[160px] top-[1030px] rotate-[-6deg] hidden 2xl:block",
+},
+{
+  title: "Fabulous Fitness",
+  image: "/designs/design-cards/design-card_guided_tutorial_fabulous.webp",
+  className: "right-[60px] top-[1280px] rotate-[3deg] hidden 2xl:block",
+},
+{
+  title: "Algebra",
+  image: "/designs/design-cards/design-card_learning_lab_algebra.webp",
+  className: "right-[150px] top-[1530px] rotate-[-5deg] hidden 2xl:block",
+},
+{
+  title: "Atomic Review",
+  image: "/designs/design-cards/design-card_learning_lab_atomic.webp",
+  className: "right-[70px] top-[1780px] rotate-[6deg] hidden 2xl:block",
+},
 
-  {
-  title: "Learning Lab",
+{
+  title: "Learning Foundations",
   image: "/designs/design-cards/design-card_learning_lab_foundations.webp",
-  className:
-    "right-[60px] top-[280px] rotate-[7deg] hidden 2xl:block",
+  className: "right-[60px] top-[2030px] rotate-[-3deg] hidden 2xl:block",
 },
-
 {
-  title: "Memorial Tribute",
+  title: "Literary Foundations",
+  image: "/designs/design-cards/design-card_learning_lab_literary.webp",
+  className: "right-[150px] top-[2280px] rotate-[4deg] hidden 2xl:block",
+},
+{
+  title: "Adventure Discovery",
+  image: "/designs/design-cards/design-card_live_entertainment_adventure.webp",
+  className: "right-[70px] top-[2530px] rotate-[-7deg] hidden 2xl:block",
+},
+{
+  title: "Community Circle",
+  image: "/designs/design-cards/design-card_meet_and_greet_community.webp",
+  className: "right-[160px] top-[2780px] rotate-[5deg] hidden 2xl:block",
+},
+{
+  title: "Elegant Memorial",
+  image: "/designs/design-cards/design-card_memorial_tribute_elegant.webp",
+  className: "right-[60px] top-[3030px] rotate-[-4deg] hidden 2xl:block",
+},
+{
+  title: "Soft Memorial",
   image: "/designs/design-cards/design-card_memorial_tribute_soft.webp",
-  className:
-    "right-[240px] top-[680px] rotate-[-6deg] hidden 2xl:block",
+  className: "right-[150px] top-[3280px] rotate-[2deg] hidden 2xl:block",
+},
+{
+  title: "Timeless Memories",
+  image: "/designs/design-cards/design-card_memory_timeline_timeless.webp",
+  className: "right-[70px] top-[3530px] rotate-[-6deg] hidden 2xl:block",
 },
 
 {
-  title: "Wedding Story",
-  image: "/designs/design-cards/design-card_wedding_subtle.webp",
-  className:
-    "right-[50px] top-[1080px] rotate-[-5deg] hidden 2xl:block",
+  title: "Signature Open House",
+  image: "/designs/design-cards/design-card_open_house_signature.webp",
+  className: "right-[60px] top-[3780px] rotate-[7deg] hidden 2xl:block",
+},
+{
+  title: "Bachelor Weekend",
+  image: "/designs/design-cards/design-card_party_time_bachelor.webp",
+  className: "right-[150px] top-[4030px] rotate-[-5deg] hidden 2xl:block",
+},
+{
+  title: "Bachelorette Weekend",
+  image: "/designs/design-cards/design-card_party_time_bachelorette.webp",
+  className: "right-[70px] top-[4280px] rotate-[3deg] hidden 2xl:block",
+},
+{
+  title: "Pet Welcome",
+  image: "/designs/design-cards/design-card_pet_adoption_welcome.webp",
+  className: "right-[160px] top-[4530px] rotate-[-7deg] hidden 2xl:block",
+},
+{
+  title: "Photo Escape",
+  image: "/designs/design-cards/design-card_photo_gallery_escape.webp",
+  className: "right-[60px] top-[4780px] rotate-[4deg] hidden 2xl:block",
+},
+{
+  title: "Simplistic Launch",
+  image: "/designs/design-cards/design-card_product_launch_simplistic.webp",
+  className: "right-[150px] top-[5030px] rotate-[-3deg] hidden 2xl:block",
+},
+{
+  title: "Modern Comfort",
+  image: "/designs/design-cards/design-card_product_showcase_comfort.webp",
+  className: "right-[70px] top-[5280px] rotate-[6deg] hidden 2xl:block",
 },
 
 {
-  title: "Networking",
-  image: "/designs/design-cards/design-card_enthusiast_networking_direct.webp",
-  className:
-    "right-[260px] top-[1480px] rotate-[6deg] hidden 2xl:block",
+  title: "Hometown Restaurant",
+  image: "/designs/design-cards/design-card_restaurant_hometown.webp",
+  className: "right-[60px] top-[5530px] rotate-[-4deg] hidden 2xl:block",
 },
-
 {
-title: "Graduation",
-image: "/designs/design-cards/design-card_graduation_prestige.webp",
-className: "right-[230] top-[2280px] rotate-[5deg] hidden 2xl:block",
-},
-
-{
-title: "Creator Link Hub",
-image: "/designs/design-cards/design-card_creator_link_hub_canvas.webp",
-className: "right-[40px] top-[2680px] rotate-[-6deg] hidden 2xl:block",
-},
-
-{
-title: "Watch Club",
-image: "/designs/design-cards/design-card_watch_club_hangout.webp",
-className: "right-[250] top-[3080px] rotate-[5deg] hidden 2xl:block",
-},
-
-{
-  title: "Restaurant",
+  title: "Deluxe Menu",
   image: "/designs/design-cards/design-card_restaurant_menu_deluxe.webp",
-  className: "right-[60] top-[1880px] rotate-[-4deg] hidden 2xl:block",
+  className: "right-[150px] top-[5780px] rotate-[5deg] hidden 2xl:block",
 },
-
 
 
 
