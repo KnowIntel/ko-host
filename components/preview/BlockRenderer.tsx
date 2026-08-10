@@ -3265,96 +3265,152 @@ if (isJourney) {
 }
 
 function renderProcessFlow(
-  block: Extract<MicrositeBlock, { type: "process_flow" }>,
+  block: Extract<
+    MicrositeBlock,
+    { type: "process_flow" }
+  >,
   designKey?: string,
 ) {
   const data = block.data as any;
-  const appearanceStyle = getAppearanceStyle(block);
+  const appearanceStyle =
+    getAppearanceStyle(block);
 
-  const headingStyle = getContainerTextStyle(
-    data.headingStyle ?? {},
-    designKey,
-  );
+  const headingStyle =
+    getContainerTextStyle(
+      data.headingStyle ?? {},
+      designKey,
+    );
 
-  const subtitleStyle = getContainerTextStyle(
-    data.subtitleStyle ?? {},
-    designKey,
-  );
+  const subtitleStyle =
+    getContainerTextStyle(
+      data.subtitleStyle ?? {},
+      designKey,
+    );
 
-  const stepNumberStyle = getContainerTextStyle(
-    data.stepNumberStyle ?? {},
-    designKey,
-  );
+  const stepNumberStyle =
+    getContainerTextStyle(
+      data.stepNumberStyle ?? {},
+      designKey,
+    );
 
-  const stepHeadingStyle = getContainerTextStyle(
-    data.stepHeadingStyle ?? {},
-    designKey,
-  );
+  const stepHeadingStyle =
+    getContainerTextStyle(
+      data.stepHeadingStyle ?? {},
+      designKey,
+    );
 
-  const stepDescriptionStyle = getContainerTextStyle(
-    data.stepDescriptionStyle ?? {},
-    designKey,
-  );
+  const stepDescriptionStyle =
+    getContainerTextStyle(
+      data.stepDescriptionStyle ?? {},
+      designKey,
+    );
 
-  const badgeStyle = getContainerTextStyle(
-    data.badgeStyle ?? {},
-    designKey,
-  );
+  const badgeStyle =
+    getContainerTextStyle(
+      data.badgeStyle ?? {},
+      designKey,
+    );
 
-  const durationStyle = getContainerTextStyle(
-    data.durationStyle ?? {},
-    designKey,
-  );
+  const durationStyle =
+    getContainerTextStyle(
+      data.durationStyle ?? {},
+      designKey,
+    );
 
-  const cardStyle = data.cardStyle ?? {};
-  const stepIconStyle = data.stepIconStyle ?? {};
+  const cardStyle =
+    data.cardStyle ?? {};
+
+  const stepIconStyle =
+    data.stepIconStyle ?? {};
+
   const connectorAppearanceStyle =
     data.connectorAppearanceStyle ?? {};
 
-  const steps = Array.isArray(data.steps) ? data.steps : [];
-  const layout = data.layout ?? "horizontal";
+  const steps = Array.isArray(
+    data.steps,
+  )
+    ? data.steps
+    : [];
 
-  const isVertical = layout === "vertical";
-  const isZigZag = layout === "zig_zag";
+  const layout =
+    data.layout ?? "horizontal";
+
+  const isVertical =
+    layout === "vertical";
+
+  const isZigZag =
+    layout === "zig_zag";
 
   const gap =
-    typeof data.gap === "number" && Number.isFinite(data.gap)
-      ? Math.max(0, Math.min(80, data.gap))
+    typeof data.gap === "number" &&
+    Number.isFinite(data.gap)
+      ? Math.max(
+          0,
+          Math.min(80, data.gap),
+        )
       : 16;
 
-const horizontalGap =
-  typeof data.horizontalGap === "number" &&
-  Number.isFinite(data.horizontalGap)
-    ? Math.max(
-        0,
-        Math.min(80, data.horizontalGap),
-      )
-    : gap;
+  const horizontalGap =
+    typeof data.horizontalGap ===
+      "number" &&
+    Number.isFinite(
+      data.horizontalGap,
+    )
+      ? Math.max(
+          0,
+          Math.min(
+            80,
+            data.horizontalGap,
+          ),
+        )
+      : gap;
 
-const verticalGap =
-  typeof data.verticalGap === "number" &&
-  Number.isFinite(data.verticalGap)
-    ? Math.max(
-        0,
-        Math.min(80, data.verticalGap),
-      )
-    : gap;
+  const verticalGap =
+    typeof data.verticalGap ===
+      "number" &&
+    Number.isFinite(
+      data.verticalGap,
+    )
+      ? Math.max(
+          0,
+          Math.min(
+            80,
+            data.verticalGap,
+          ),
+        )
+      : gap;
 
   const padding =
-    typeof data.padding === "number" && Number.isFinite(data.padding)
-      ? Math.max(0, Math.min(80, data.padding))
+    typeof data.padding === "number" &&
+    Number.isFinite(data.padding)
+      ? Math.max(
+          0,
+          Math.min(80, data.padding),
+        )
       : 20;
 
   const legacyCardRadius =
-    typeof data.cardRadius === "number" &&
-    Number.isFinite(data.cardRadius)
-      ? Math.max(0, Math.min(48, data.cardRadius))
+    typeof data.cardRadius ===
+      "number" &&
+    Number.isFinite(
+      data.cardRadius,
+    )
+      ? Math.max(
+          0,
+          Math.min(
+            48,
+            data.cardRadius,
+          ),
+        )
       : 18;
 
-  const connectorStyle = data.connectorStyle ?? "arrow";
+  const connectorStyle =
+    data.connectorStyle ?? "arrow";
 
   const connectorBorderStyle =
-    connectorStyle === "dashed" ? "dashed" : "solid";
+    connectorStyle === "dashed"
+      ? "dashed"
+      : "solid";
 
   const connectorColor =
     connectorAppearanceStyle.borderColor ??
@@ -3363,7 +3419,8 @@ const verticalGap =
     "#CBD5E1";
 
   const connectorWidth =
-    typeof connectorAppearanceStyle.borderWidth === "number"
+    typeof connectorAppearanceStyle.borderWidth ===
+    "number"
       ? connectorAppearanceStyle.borderWidth
       : 2;
 
@@ -3373,23 +3430,37 @@ const verticalGap =
     data.accentColor ??
     "#2563EB";
 
-  const renderConnector = (index: number) => {
-    if (index >= steps.length - 1) {
+  const renderConnector = (
+    index: number,
+  ) => {
+    if (
+      index >=
+      steps.length - 1
+    ) {
       return null;
     }
 
-    if (isVertical || isZigZag) {
+    if (
+      isVertical ||
+      isZigZag
+    ) {
       return (
         <div
           className="mx-auto h-8 border-l"
           style={{
-            borderColor: connectorColor,
+            borderColor:
+              connectorColor,
+
             borderLeftStyle:
               connectorAppearanceStyle.borderStyle ??
               connectorBorderStyle,
-            borderLeftWidth: `${connectorWidth}px`,
+
+            borderLeftWidth:
+              `${connectorWidth}px`,
+
             opacity:
-              typeof connectorAppearanceStyle.opacity === "number"
+              typeof connectorAppearanceStyle.opacity ===
+              "number"
                 ? connectorAppearanceStyle.opacity
                 : undefined,
           }}
@@ -3402,27 +3473,41 @@ const verticalGap =
         <div
           className="h-0 w-full border-t"
           style={{
-            borderColor: connectorColor,
+            borderColor:
+              connectorColor,
+
             borderTopStyle:
               connectorAppearanceStyle.borderStyle ??
               connectorBorderStyle,
-            borderTopWidth: `${connectorWidth}px`,
+
+            borderTopWidth:
+              `${connectorWidth}px`,
+
             opacity:
-              typeof connectorAppearanceStyle.opacity === "number"
+              typeof connectorAppearanceStyle.opacity ===
+              "number"
                 ? connectorAppearanceStyle.opacity
                 : undefined,
           }}
         />
 
-        {connectorStyle === "arrow" ? (
+        {connectorStyle ===
+        "arrow" ? (
           <div
             className="-ml-1 h-2 w-2 rotate-45 border-r-2 border-t-2"
             style={{
-              borderColor: connectorColor,
-              borderRightWidth: `${connectorWidth}px`,
-              borderTopWidth: `${connectorWidth}px`,
+              borderColor:
+                connectorColor,
+
+              borderRightWidth:
+                `${connectorWidth}px`,
+
+              borderTopWidth:
+                `${connectorWidth}px`,
+
               opacity:
-                typeof connectorAppearanceStyle.opacity === "number"
+                typeof connectorAppearanceStyle.opacity ===
+                "number"
                   ? connectorAppearanceStyle.opacity
                   : undefined,
             }}
@@ -3432,17 +3517,33 @@ const verticalGap =
     );
   };
 
-  const renderStepCard = (step: any, index: number) => {
+  const renderStepCard = (
+    step: any,
+    index: number,
+  ) => {
     const hasImage =
-      typeof step.imageUrl === "string" &&
-      step.imageUrl.trim().length > 0;
+      typeof step.imageUrl ===
+        "string" &&
+      step.imageUrl.trim().length >
+        0;
+
+    const hasIconUrl =
+      typeof step.iconUrl ===
+        "string" &&
+      step.iconUrl.trim().length >
+        0;
 
     return (
       <div
-        key={step.id || index}
+        key={
+          step.id ||
+          index
+        }
         className={[
           "relative min-w-0 border p-4",
-          data.cardShadow !== false ? "shadow-sm" : "",
+          data.cardShadow !== false
+            ? "shadow-sm"
+            : "",
         ].join(" ")}
         style={{
           backgroundColor:
@@ -3456,18 +3557,22 @@ const verticalGap =
             "#E5E7EB",
 
           borderWidth:
-            typeof cardStyle.borderWidth === "number"
+            typeof cardStyle.borderWidth ===
+            "number"
               ? `${cardStyle.borderWidth}px`
               : undefined,
 
           borderStyle:
-            typeof cardStyle.borderWidth === "number" &&
+            typeof cardStyle.borderWidth ===
+              "number" &&
             cardStyle.borderWidth > 0
-              ? cardStyle.borderStyle ?? "solid"
+              ? cardStyle.borderStyle ??
+                "solid"
               : undefined,
 
           borderRadius:
-            typeof cardStyle.borderRadius === "number"
+            typeof cardStyle.borderRadius ===
+            "number"
               ? `${cardStyle.borderRadius}px`
               : `${legacyCardRadius}px`,
 
@@ -3476,7 +3581,8 @@ const verticalGap =
             undefined,
 
           opacity:
-            typeof cardStyle.opacity === "number"
+            typeof cardStyle.opacity ===
+            "number"
               ? cardStyle.opacity
               : undefined,
         }}
@@ -3498,18 +3604,23 @@ const verticalGap =
                 accentColor,
 
               borderWidth:
-                typeof stepIconStyle.borderWidth === "number"
+                typeof stepIconStyle.borderWidth ===
+                "number"
                   ? `${stepIconStyle.borderWidth}px`
                   : undefined,
 
               borderStyle:
-                typeof stepIconStyle.borderWidth === "number" &&
-                stepIconStyle.borderWidth > 0
-                  ? stepIconStyle.borderStyle ?? "solid"
+                typeof stepIconStyle.borderWidth ===
+                  "number" &&
+                stepIconStyle.borderWidth >
+                  0
+                  ? stepIconStyle.borderStyle ??
+                    "solid"
                   : undefined,
 
               borderRadius:
-                typeof stepIconStyle.borderRadius === "number"
+                typeof stepIconStyle.borderRadius ===
+                "number"
                   ? `${stepIconStyle.borderRadius}px`
                   : undefined,
 
@@ -3518,7 +3629,8 @@ const verticalGap =
                 undefined,
 
               opacity:
-                typeof stepIconStyle.opacity === "number"
+                typeof stepIconStyle.opacity ===
+                "number"
                   ? stepIconStyle.opacity
                   : undefined,
             }}
@@ -3529,15 +3641,25 @@ const verticalGap =
                 alt=""
                 className="h-full w-full object-cover"
               />
+            ) : hasIconUrl ? (
+              <img
+                src={step.iconUrl}
+                alt=""
+                className="h-7 w-7 object-contain"
+              />
             ) : (
-              <span>{step.icon || "•"}</span>
+              <span>
+                {step.icon || "•"}
+              </span>
             )}
           </div>
 
           {step.number ? (
             <div
               className="mb-1 whitespace-normal break-words text-xs font-semibold uppercase tracking-[0.16em]"
-              style={stepNumberStyle}
+              style={
+                stepNumberStyle
+              }
             >
               {step.number}
             </div>
@@ -3546,7 +3668,9 @@ const verticalGap =
           {step.heading ? (
             <div
               className="whitespace-normal break-words font-semibold leading-tight"
-              style={stepHeadingStyle}
+              style={
+                stepHeadingStyle
+              }
             >
               {step.heading}
             </div>
@@ -3555,9 +3679,13 @@ const verticalGap =
           {step.description ? (
             <div
               className="mt-2 whitespace-normal break-words text-sm leading-relaxed"
-              style={stepDescriptionStyle}
+              style={
+                stepDescriptionStyle
+              }
             >
-              {step.description}
+              {
+                step.description
+              }
             </div>
           ) : null}
 
@@ -3567,11 +3695,15 @@ const verticalGap =
                 className="rounded-full border px-2 py-1 text-[11px] font-semibold"
                 style={{
                   ...badgeStyle,
+
                   borderColor:
-                    (badgeStyle as any).borderColor ??
+                    (badgeStyle as any)
+                      .borderColor ??
                     accentColor,
+
                   backgroundColor:
-                    (badgeStyle as any).backgroundColor ??
+                    (badgeStyle as any)
+                      .backgroundColor ??
                     `${accentColor}10`,
                 }}
               >
@@ -3582,9 +3714,13 @@ const verticalGap =
             {step.duration ? (
               <span
                 className="rounded-full bg-neutral-100 px-2 py-1 text-[11px]"
-                style={durationStyle}
+                style={
+                  durationStyle
+                }
               >
-                {step.duration}
+                {
+                  step.duration
+                }
               </span>
             ) : null}
           </div>
@@ -3593,129 +3729,144 @@ const verticalGap =
     );
   };
 
-return (
-  <div
-    className="pointer-events-auto h-full w-full overflow-auto"
-    style={appearanceStyle}
-    onPointerDown={(event) => {
-      event.stopPropagation();
-    }}
-    onMouseDown={(event) => {
-      event.stopPropagation();
-    }}
-    onClick={(event) => {
-      event.stopPropagation();
-    }}
-  >
+  return (
+    <div
+      className="pointer-events-auto h-full w-full overflow-auto"
+      style={appearanceStyle}
+      onPointerDown={(
+        event,
+      ) => {
+        event.stopPropagation();
+      }}
+      onMouseDown={(
+        event,
+      ) => {
+        event.stopPropagation();
+      }}
+      onClick={(
+        event,
+      ) => {
+        event.stopPropagation();
+      }}
+    >
       <div
         style={{
-          padding: `${padding}px`,
+          padding:
+            `${padding}px`,
+
           transform:
-            typeof data.rotation === "number" &&
+            typeof data.rotation ===
+              "number" &&
             data.rotation !== 0
               ? `rotate(${data.rotation}deg)`
               : undefined,
-          transformOrigin: "center",
+
+          transformOrigin:
+            "center",
         }}
       >
-        {data.showHeading !== false && data.heading ? (
+        {data.showHeading !== false &&
+        data.heading ? (
           <div
             className="mb-2 whitespace-normal break-words"
-            style={headingStyle}
+            style={
+              headingStyle
+            }
           >
             {data.heading}
           </div>
         ) : null}
 
-        {data.showSubtitle !== false && data.subtitle ? (
+        {data.showSubtitle !== false &&
+        data.subtitle ? (
           <div
             className="mb-5 whitespace-normal break-words"
-            style={subtitleStyle}
+            style={
+              subtitleStyle
+            }
           >
             {data.subtitle}
           </div>
         ) : null}
 
-{isVertical || isZigZag ? (
-  <div
-    className="flex flex-col"
-    style={{
-      gap: `${verticalGap}px`,
-    }}
-  >
-    {steps.map((step: any, index: number) => (
-      <div
-        key={step.id || index}
-        className={[
-          "flex flex-col",
-          isZigZag && index % 2 === 1
-            ? "items-end"
-            : "items-start",
-        ].join(" ")}
-      >
-        <div className="w-full max-w-[420px]">
-          {renderStepCard(step, index)}
-        </div>
+        {isVertical ||
+        isZigZag ? (
+          <div
+            className="flex flex-col"
+            style={{
+              gap:
+                `${verticalGap}px`,
+            }}
+          >
+            {steps.map(
+              (
+                step: any,
+                index: number,
+              ) => (
+                <div
+                  key={
+                    step.id ||
+                    index
+                  }
+                  className={[
+                    "flex flex-col",
 
-        {renderConnector(index)}
-      </div>
-    ))}
-  </div>
-) : (
-  <div
-    className="flex flex-col sm:flex-row sm:items-stretch"
-    style={{
-      columnGap: `${horizontalGap}px`,
-      rowGap: `${verticalGap}px`,
-    }}
-  >
-    {steps.map((step: any, index: number) => (
-      <div
-        key={step.id || index}
-        className="contents"
-      >
-        <div className="min-w-0 flex-1">
-          {renderStepCard(step, index)}
-        </div>
+                    isZigZag &&
+                    index % 2 === 1
+                      ? "items-end"
+                      : "items-start",
+                  ].join(" ")}
+                >
+                  <div className="w-full max-w-[420px]">
+                    {renderStepCard(
+                      step,
+                      index,
+                    )}
+                  </div>
 
-        {renderConnector(index)}
-      </div>
-    ))}
-  </div>
-)}
->
-            {steps.map((step: any, index: number) => (
-              <div
-                key={step.id || index}
-                className={[
-                  "flex flex-col",
-                  isZigZag && index % 2 === 1
-                    ? "items-end"
-                    : "items-start",
-                ].join(" ")}
-              >
-                <div className="w-full max-w-[420px]">
-                  {renderStepCard(step, index)}
+                  {renderConnector(
+                    index,
+                  )}
                 </div>
-
-                {renderConnector(index)}
-              </div>
-            ))}
+              ),
+            )}
           </div>
         ) : (
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-stretch">
-            {steps.map((step: any, index: number) => (
-              <div
-                key={step.id || index}
-                className="contents"
-              >
-                <div className="min-w-0 flex-1">
-                  {renderStepCard(step, index)}
-                </div>
+          <div
+            className="flex flex-col sm:flex-row sm:items-stretch"
+            style={{
+              columnGap:
+                `${horizontalGap}px`,
 
-                {renderConnector(index)}
-              </div>
-            ))}
+              rowGap:
+                `${verticalGap}px`,
+            }}
+          >
+            {steps.map(
+              (
+                step: any,
+                index: number,
+              ) => (
+                <div
+                  key={
+                    step.id ||
+                    index
+                  }
+                  className="contents"
+                >
+                  <div className="min-w-0 flex-1">
+                    {renderStepCard(
+                      step,
+                      index,
+                    )}
+                  </div>
+
+                  {renderConnector(
+                    index,
+                  )}
+                </div>
+              ),
+            )}
           </div>
         )}
       </div>
