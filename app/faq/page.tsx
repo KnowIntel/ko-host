@@ -1,51 +1,8 @@
 const faqCards = [
-  {/* 
-    title: "Photo Gallery",
-    image: "/designs/design-cards/design-card_photo_gallery_escape.webp",
-    className: "left-[60px] top-[280px] rotate-[-8deg] hidden xl:block",
-  },
-  {
-    title: "Wedding",
-    image: "/designs/design-cards/design-card_wedding_evergreen.webp",
-    className: "left-[260px] top-[680px] rotate-[8deg] hidden xl:block",
-  },
-  {
-    title: "Product Launch",
-    image: "/designs/design-cards/design-card_product_launch_simplistic.webp",
-    className: "left-[80px] top-[1080px] rotate-[6deg] hidden 2xl:block",
-  },
-  {
-    title: "Creator Link Hub",
-    image: "/designs/design-cards/design-card_creator_link_hub_studio.webp",
-    className: "left-[240px] top-[1480px] rotate-[-7deg] hidden 2xl:block",
-  },
-  {
-    title: "Sweepstakes",
-    image: "/designs/design-cards/design-card_sweepstakes_inclusive.webp",
-    className: "left-[40px] top-[1880px] rotate-[5deg] hidden 2xl:block",
-  },
-  {
-    title: "Baby Shower",
-    image: "/designs/design-cards/design-card_baby_shower_elegant.webp",
-    className: "left-[230px] top-[2280px] rotate-[-5deg] hidden 2xl:block",
-  },
-
-  {
-    title: "Vehicle Listing",
-    image: "/designs/design-cards/design-card_for_sale_by_owner_auto.webp",
-    className: "left-[50px] top-[2680px] rotate-[-5deg] hidden 2xl:block",
-  },
-
-  {
-    title: "Open House",
-    image: "/designs/design-cards/design-card_open_house_signature.webp",
-    className: "left-[220px] top-[3080px] rotate-[-5deg] hidden 2xl:block",
-  }, */
-
-  {
-  title: "Bible Book Club",
-  image: "/designs/design-cards/design-card_book_club_bible.webp",
-  className: "left-[245px] top-[3080px] rotate-[7deg] hidden 2xl:block",
+{
+title: "Bible Book Club",
+image: "/designs/design-cards/design-card_book_club_bible.webp",
+className: "left-[245px] top-[3080px] rotate-[7deg] hidden 2xl:block",
 },
 {
   title: "City Council",
@@ -142,6 +99,23 @@ const faqCards = [
   image: "/designs/design-cards/design-card_birthday_playful.webp",
   className: "left-[50px] top-[10680px] rotate-[5deg] hidden 2xl:block",
 },
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
