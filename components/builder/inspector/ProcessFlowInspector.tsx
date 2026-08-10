@@ -56,7 +56,6 @@ export function ProcessFlowInspector({
 
   toolSetButtonClass,
 }: ProcessFlowInspectorProps) {
-  void uploadImageToSelectedBlock;
 
   return (
     <div
@@ -208,121 +207,510 @@ export function ProcessFlowInspector({
         </select>
       </div>
 
-      {/* Steps */}
+{/* Steps */}
 
-      <div className="mt-5">
-        <div className={inspectorLabelClass()}>
-          Steps
+<div className="mt-5">
+  <div className={inspectorLabelClass()}>
+    Steps
+  </div>
+
+  {(selectedBlock.data.steps ?? []).map(
+    (
+      step: any,
+      stepIndex: number,
+    ) => (
+      <div
+        key={step.id}
+        className="mt-3 rounded-xl border border-neutral-200 bg-neutral-50 p-3"
+      >
+        <div className="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+          Step {stepIndex + 1}
         </div>
 
-        {(selectedBlock.data.steps ?? []).map(
-          (step: any) => (
-            <div
-              key={step.id}
-              className="mt-3 rounded-xl border border-neutral-200 bg-neutral-50 p-3"
-            >
-              <div className={inspectorLabelClass()}>
-                Step Heading
-              </div>
+        {/* Step Number */}
 
-              <input
-                value={step.heading ?? ""}
-                onChange={(e) =>
-                  updateSelectedBlock((block: any) =>
-                    block.type !== "process_flow"
+        <div className="mt-3">
+          <div
+            className={inspectorLabelClass()}
+          >
+            Step Number
+          </div>
+
+          <input
+            value={step.number ?? ""}
+            onChange={(e) =>
+              updateSelectedBlock(
+                (block: any) =>
+                  block.type !==
+                  "process_flow"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+
+                          steps: (
+                            block.data.steps ??
+                            []
+                          ).map(
+                            (item: any) =>
+                              item.id ===
+                              step.id
+                                ? {
+                                    ...item,
+                                    number:
+                                      e.target
+                                        .value,
+                                  }
+                                : item,
+                          ),
+                        },
+                      },
+              )
+            }
+            className={inspectorInputClass()}
+          />
+        </div>
+
+        {/* Step Heading */}
+
+        <div className="mt-3">
+          <div
+            className={inspectorLabelClass()}
+          >
+            Step Heading
+          </div>
+
+          <input
+            value={step.heading ?? ""}
+            onChange={(e) =>
+              updateSelectedBlock(
+                (block: any) =>
+                  block.type !==
+                  "process_flow"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+
+                          steps: (
+                            block.data.steps ??
+                            []
+                          ).map(
+                            (item: any) =>
+                              item.id ===
+                              step.id
+                                ? {
+                                    ...item,
+                                    heading:
+                                      e.target
+                                        .value,
+                                  }
+                                : item,
+                          ),
+                        },
+                      },
+              )
+            }
+            className={inspectorInputClass()}
+          />
+        </div>
+
+        {/* Description */}
+
+        <div className="mt-3">
+          <div
+            className={inspectorLabelClass()}
+          >
+            Description
+          </div>
+
+          <textarea
+            value={
+              step.description ?? ""
+            }
+            onChange={(e) =>
+              updateSelectedBlock(
+                (block: any) =>
+                  block.type !==
+                  "process_flow"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+
+                          steps: (
+                            block.data.steps ??
+                            []
+                          ).map(
+                            (item: any) =>
+                              item.id ===
+                              step.id
+                                ? {
+                                    ...item,
+                                    description:
+                                      e.target
+                                        .value,
+                                  }
+                                : item,
+                          ),
+                        },
+                      },
+              )
+            }
+            className={inspectorTextareaClass()}
+          />
+        </div>
+
+        {/* Pills */}
+
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <div>
+            <div
+              className={inspectorLabelClass()}
+            >
+              Pill Label
+            </div>
+
+            <input
+              value={step.badge ?? ""}
+              onChange={(e) =>
+                updateSelectedBlock(
+                  (block: any) =>
+                    block.type !==
+                    "process_flow"
                       ? block
                       : {
                           ...block,
                           data: {
                             ...block.data,
-                            steps: block.data.steps.map(
-                              (item: any) =>
-                                item.id === step.id
+
+                            steps: (
+                              block.data
+                                .steps ?? []
+                            ).map(
+                              (
+                                item: any,
+                              ) =>
+                                item.id ===
+                                step.id
                                   ? {
                                       ...item,
-                                      heading:
-                                        e.target.value,
+                                      badge:
+                                        e
+                                          .target
+                                          .value,
                                     }
                                   : item,
                             ),
                           },
                         },
+                )
+              }
+              placeholder="Step 1"
+              className={inspectorInputClass()}
+            />
+          </div>
+
+          <div>
+            <div
+              className={inspectorLabelClass()}
+            >
+              Secondary Pill
+            </div>
+
+            <input
+              value={
+                step.duration ?? ""
+              }
+              onChange={(e) =>
+                updateSelectedBlock(
+                  (block: any) =>
+                    block.type !==
+                    "process_flow"
+                      ? block
+                      : {
+                          ...block,
+                          data: {
+                            ...block.data,
+
+                            steps: (
+                              block.data
+                                .steps ?? []
+                            ).map(
+                              (
+                                item: any,
+                              ) =>
+                                item.id ===
+                                step.id
+                                  ? {
+                                      ...item,
+                                      duration:
+                                        e
+                                          .target
+                                          .value,
+                                    }
+                                  : item,
+                            ),
+                          },
+                        },
+                )
+              }
+              placeholder="5 min"
+              className={inspectorInputClass()}
+            />
+          </div>
+        </div>
+
+        {/* Icon */}
+
+        <div className="mt-3">
+          <div
+            className={inspectorLabelClass()}
+          >
+            Icon
+          </div>
+
+          <input
+            value={step.icon ?? ""}
+            onChange={(e) =>
+              updateSelectedBlock(
+                (block: any) =>
+                  block.type !==
+                  "process_flow"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+
+                          steps: (
+                            block.data.steps ??
+                            []
+                          ).map(
+                            (item: any) =>
+                              item.id ===
+                              step.id
+                                ? {
+                                    ...item,
+                                    icon:
+                                      e.target
+                                        .value,
+                                  }
+                                : item,
+                          ),
+                        },
+                      },
+              )
+            }
+            placeholder="⭐"
+            className={inspectorInputClass()}
+          />
+
+          <div className="mt-1 text-xs text-neutral-500">
+            Enter an emoji or symbol. An
+            uploaded image will replace the
+            icon when present.
+          </div>
+        </div>
+
+        {/* Step Image */}
+
+        <div className="mt-4">
+          <div
+            className={inspectorLabelClass()}
+          >
+            Step Image
+          </div>
+
+          <div className="mt-2 flex flex-wrap gap-2">
+            <button
+              type="button"
+              className={toolSetButtonClass(
+                "front",
+              )}
+              onClick={() =>
+                uploadImageToSelectedBlock(
+                  selectedBlock.id,
+                  step.id,
+                )
+              }
+            >
+              {step.imageUrl
+                ? "Replace Image"
+                : "Upload Image"}
+            </button>
+
+            {step.imageUrl ? (
+              <button
+                type="button"
+                className={toolSetButtonClass(
+                  "remove",
+                )}
+                onClick={() =>
+                  updateSelectedBlock(
+                    (block: any) =>
+                      block.type !==
+                      "process_flow"
+                        ? block
+                        : {
+                            ...block,
+                            data: {
+                              ...block.data,
+
+                              steps: (
+                                block.data
+                                  .steps ?? []
+                              ).map(
+                                (
+                                  item: any,
+                                ) =>
+                                  item.id ===
+                                  step.id
+                                    ? {
+                                        ...item,
+                                        imageUrl:
+                                          "",
+                                        imageStoragePath:
+                                          "",
+                                        imageMimeType:
+                                          "",
+                                        imageSizeBytes:
+                                          undefined,
+                                        imageOriginalSizeBytes:
+                                          undefined,
+                                      }
+                                    : item,
+                              ),
+                            },
+                          },
                   )
                 }
-                className={inspectorInputClass()}
-              />
+              >
+                Remove Image
+              </button>
+            ) : null}
+          </div>
 
-              <div className="mt-3">
-                <button
-                  type="button"
-                  className={toolSetButtonClass(
-                    "remove",
-                  )}
-                  onClick={() =>
-                    updateSelectedBlock(
-                      (block: any) =>
-                        block.type !==
-                        "process_flow"
-                          ? block
-                          : {
-                              ...block,
-                              data: {
-                                ...block.data,
-                                steps:
-                                  block.data.steps.filter(
-                                    (item: any) =>
-                                      item.id !==
-                                      step.id,
-                                  ),
-                              },
-                            },
-                    )
-                  }
-                >
-                  Remove Step
-                </button>
-              </div>
+          {step.imageUrl ? (
+            <div className="mt-3 flex h-24 w-full items-center justify-center overflow-hidden rounded-xl border border-neutral-200 bg-white">
+              <img
+                src={step.imageUrl}
+                alt={
+                  step.heading
+                    ? `${step.heading} preview`
+                    : `Step ${stepIndex + 1} preview`
+                }
+                className="h-full w-full object-contain"
+              />
             </div>
-          ),
-        )}
+          ) : null}
+        </div>
+
+        {/* Remove */}
 
         <button
           type="button"
-          className={toolSetButtonClass("front")}
+          className={`${toolSetButtonClass(
+            "remove",
+          )} mt-4 w-full`}
           onClick={() =>
-            updateSelectedBlock((block: any) =>
-              block.type !== "process_flow"
-                ? block
-                : {
-                    ...block,
-                    data: {
-                      ...block.data,
-                      steps: [
-                        ...(block.data.steps ?? []),
-                        {
-                          id: makeClientId(
-                            "processstep",
-                          ),
-                          number: String(
-                            (block.data.steps ?? [])
-                              .length + 1,
-                          ).padStart(2, "0"),
-                          icon: "⭐",
-                          imageUrl: "",
-                          heading: "New Step",
-                          description: "",
-                          badge: "",
-                          duration: "",
-                        },
-                      ],
+            updateSelectedBlock(
+              (block: any) =>
+                block.type !==
+                "process_flow"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+
+                        steps: (
+                          block.data.steps ??
+                          []
+                        ).filter(
+                          (item: any) =>
+                            item.id !==
+                            step.id,
+                        ),
+                      },
                     },
-                  },
             )
           }
         >
-          Add Step
+          Remove Step
         </button>
       </div>
+    ),
+  )}
+
+  <button
+    type="button"
+    className={`${toolSetButtonClass(
+      "front",
+    )} mt-3`}
+    onClick={() =>
+      updateSelectedBlock(
+        (block: any) =>
+          block.type !== "process_flow"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+
+                  steps: [
+                    ...(block.data.steps ??
+                      []),
+
+                    {
+                      id: makeClientId(
+                        "processstep",
+                      ),
+
+                      number: String(
+                        (
+                          block.data.steps ??
+                          []
+                        ).length + 1,
+                      ).padStart(
+                        2,
+                        "0",
+                      ),
+
+                      icon: "⭐",
+
+                      imageUrl: "",
+                      imageStoragePath:
+                        "",
+                      imageMimeType: "",
+
+                      heading:
+                        "New Step",
+
+                      description:
+                        "Describe what happens during this step.",
+
+                      badge: `Step ${
+                        (
+                          block.data.steps ??
+                          []
+                        ).length + 1
+                      }`,
+
+                      duration: "",
+                    },
+                  ],
+                },
+              },
+      )
+    }
+  >
+    Add Step
+  </button>
+</div>
     </div>
   );
 }

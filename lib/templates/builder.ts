@@ -2039,8 +2039,13 @@ export type ProcessFlowBlockData = InfographicBaseBlockData & {
     id: string;
     number: string;
     icon: string;
-    imageUrl: string;
-    heading: string;
+imageUrl: string;
+imageStoragePath?: string;
+imageMimeType?: string;
+imageSizeBytes?: number;
+imageOriginalSizeBytes?: number;
+
+heading: string;
     description: string;
     badge: string;
     duration: string;
