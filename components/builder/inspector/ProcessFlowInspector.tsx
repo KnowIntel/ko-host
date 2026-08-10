@@ -1,6 +1,11 @@
 "use client";
 
-import type { Dispatch, SetStateAction } from "react";
+import {
+  useMemo,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
 
 import type {
   ProcessFlowStyleTarget,
@@ -28,6 +33,9 @@ type ProcessFlowInspectorProps = {
     itemId?: string,
   ) => Promise<any> | void;
 
+  CATEGORY_BUTTONS: any;
+  getIconNameFromUrl: (url: string) => string;
+
   inspectorCardClass: () => string;
   inspectorLabelClass: () => string;
   inspectorInputClass: () => string;
@@ -49,6 +57,9 @@ export function ProcessFlowInspector({
   makeClientId,
   uploadImageToSelectedBlock,
 
+  CATEGORY_BUTTONS,
+  getIconNameFromUrl,
+
   inspectorCardClass,
   inspectorLabelClass,
   inspectorInputClass,
@@ -56,6 +67,50 @@ export function ProcessFlowInspector({
 
   toolSetButtonClass,
 }: ProcessFlowInspectorProps) {
+
+  const [stepIconSearch, setStepIconSearch] =
+  useState<Record<string, string>>({});
+
+const iconTools = useMemo(
+  () =>
+    (CATEGORY_BUTTONS.Icons ?? []).filter(
+      (tool: any) =>
+        tool.kind === "block" &&
+        tool.type === "icon",
+    ),
+  [CATEGORY_BUTTONS],
+);
+
+const getFilteredStepIcons = (
+  stepId: string,
+) => {
+  const query = (
+    stepIconSearch[stepId] ?? ""
+  )
+    .trim()
+    .toLowerCase();
+
+  if (!query) {
+    return iconTools;
+  }
+
+  return iconTools.filter(
+    (tool: any) => {
+      const label = String(
+        tool.label ?? "",
+      ).toLowerCase();
+
+      const iconName = String(
+        tool.iconName ?? "",
+      ).toLowerCase();
+
+      return (
+        label.includes(query) ||
+        iconName.includes(query)
+      );
+    },
+  );
+};
 
   return (
     <div
@@ -213,17 +268,58 @@ export function ProcessFlowInspector({
   <div className={inspectorLabelClass()}>
     Card Spacing
   </div>
+  <div className="mt-3">
+  <div className={inspectorLabelClass()}>
+    Card Width
+  </div>
+
+  <input
+    type="range"
+    min={120}
+    max={600}
+    step={5}
+    value={
+      selectedBlock.data.cardWidth ??
+      260
+    }
+    onChange={(e) =>
+      updateSelectedBlock(
+        (block: any) =>
+          block.type !==
+          "process_flow"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+
+                  cardWidth: Number(
+                    e.target.value,
+                  ),
+                },
+              },
+      )
+    }
+    className="mt-2 w-full"
+  />
+
+  <div className="mt-1 text-xs text-neutral-500">
+    {selectedBlock.data.cardWidth ??
+      260}
+    px
+  </div>
+</div>
 
   <div className="mt-3">
     <div className={inspectorLabelClass()}>
       Horizontal Spacing
     </div>
 
-    <input
-      type="range"
-      min={0}
-      max={80}
-      step={1}
+<input
+  type="range"
+  min={0}
+  max={160}
+  step={1}
       value={
         selectedBlock.data.horizontalGap ??
         selectedBlock.data.gap ??
@@ -264,7 +360,7 @@ export function ProcessFlowInspector({
     <input
       type="range"
       min={0}
-      max={80}
+      max={160}
       step={1}
       value={
         selectedBlock.data.verticalGap ??
@@ -558,16 +654,77 @@ export function ProcessFlowInspector({
 
         {/* Icon */}
 
-        <div className="mt-3">
-          <div
-            className={inspectorLabelClass()}
-          >
-            Icon
-          </div>
+{/* Icon Library */}
 
-          <input
-            value={step.icon ?? ""}
-            onChange={(e) =>
+<div className="mt-4">
+  <div className={inspectorLabelClass()}>
+    Icon
+  </div>
+
+  <input
+    type="text"
+    value={
+      stepIconSearch[step.id] ?? ""
+    }
+    onChange={(e) =>
+      setStepIconSearch(
+        (current) => ({
+          ...current,
+          [step.id]:
+            e.target.value,
+        }),
+      )
+    }
+    placeholder="Search icons..."
+    className={inspectorInputClass()}
+  />
+
+  {stepIconSearch[step.id] ? (
+    <button
+      type="button"
+      onClick={() =>
+        setStepIconSearch(
+          (current) => ({
+            ...current,
+            [step.id]: "",
+          }),
+        )
+      }
+      className="mt-2 text-xs font-medium text-neutral-500 hover:text-neutral-900"
+    >
+      Clear search
+    </button>
+  ) : null}
+
+  <div className="mt-2 max-h-48 overflow-y-auto rounded-xl border border-neutral-200 bg-white p-1">
+    {getFilteredStepIcons(
+      step.id,
+    ).length ? (
+      getFilteredStepIcons(
+        step.id,
+      ).map((tool: any) => {
+        const iconName =
+          tool.iconName;
+
+        const iconUrl =
+          `/media-icons/${iconName}.svg`;
+
+        const selectedIconName =
+          step.iconUrl
+            ? getIconNameFromUrl(
+                step.iconUrl,
+              )
+            : "";
+
+        const isActive =
+          selectedIconName ===
+          iconName;
+
+        return (
+          <button
+            key={iconName}
+            type="button"
+            onClick={() =>
               updateSelectedBlock(
                 (block: any) =>
                   block.type !==
@@ -587,9 +744,13 @@ export function ProcessFlowInspector({
                               step.id
                                 ? {
                                     ...item,
-                                    icon:
-                                      e.target
-                                        .value,
+
+                                    iconUrl,
+
+                                    imageUrl:
+                                      "",
+                                    imageStoragePath:
+                                      "",
                                   }
                                 : item,
                           ),
@@ -597,16 +758,125 @@ export function ProcessFlowInspector({
                       },
               )
             }
-            placeholder="⭐"
-            className={inspectorInputClass()}
-          />
+            className={[
+              "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm transition",
 
-          <div className="mt-1 text-xs text-neutral-500">
-            Enter an emoji or symbol. An
-            uploaded image will replace the
-            icon when present.
-          </div>
-        </div>
+              isActive
+                ? "bg-neutral-900 text-white"
+                : "text-neutral-800 hover:bg-neutral-100",
+            ].join(" ")}
+          >
+            <img
+              src={iconUrl}
+              alt=""
+              className="h-5 w-5 shrink-0 object-contain"
+            />
+
+            <span className="min-w-0 flex-1 truncate">
+              {tool.label}
+            </span>
+          </button>
+        );
+      })
+    ) : (
+      <div className="px-3 py-4 text-center text-sm text-neutral-500">
+        No matching icons
+      </div>
+    )}
+  </div>
+
+  {step.iconUrl ? (
+    <button
+      type="button"
+      className={`${toolSetButtonClass(
+        "remove",
+      )} mt-2`}
+      onClick={() =>
+        updateSelectedBlock(
+          (block: any) =>
+            block.type !==
+            "process_flow"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+
+                    steps: (
+                      block.data.steps ??
+                      []
+                    ).map(
+                      (item: any) =>
+                        item.id ===
+                        step.id
+                          ? {
+                              ...item,
+                              iconUrl: "",
+                            }
+                          : item,
+                    ),
+                  },
+                },
+        )
+      }
+    >
+      Remove Icon
+    </button>
+  ) : null}
+
+  <div className="mt-3">
+    <div className={inspectorLabelClass()}>
+      Icon Size
+    </div>
+
+    <input
+      type="range"
+      min={12}
+      max={96}
+      step={1}
+      value={
+        step.iconSize ?? 28
+      }
+      onChange={(e) =>
+        updateSelectedBlock(
+          (block: any) =>
+            block.type !==
+            "process_flow"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+
+                    steps: (
+                      block.data.steps ??
+                      []
+                    ).map(
+                      (item: any) =>
+                        item.id ===
+                        step.id
+                          ? {
+                              ...item,
+                              iconSize:
+                                Number(
+                                  e.target
+                                    .value,
+                                ),
+                            }
+                          : item,
+                    ),
+                  },
+                },
+        )
+      }
+      className="mt-2 w-full"
+    />
+
+    <div className="mt-1 text-xs text-neutral-500">
+      {step.iconSize ?? 28}px
+    </div>
+  </div>
+</div>
 
         {/* Step Image */}
 
@@ -738,70 +1008,47 @@ export function ProcessFlowInspector({
     ),
   )}
 
-  <button
-    type="button"
-    className={`${toolSetButtonClass(
-      "front",
-    )} mt-3`}
-    onClick={() =>
-      updateSelectedBlock(
-        (block: any) =>
-          block.type !== "process_flow"
-            ? block
-            : {
-                ...block,
-                data: {
-                  ...block.data,
+<button
+  type="button"
+  className={toolSetButtonClass("front")}
+  onClick={() =>
+    updateSelectedBlock((block: any) =>
+      block.type !== "process_flow"
+        ? block
+        : {
+            ...block,
+            data: {
+              ...block.data,
+              steps: [
+                ...(block.data.steps ?? []),
+                {
+                  id: makeClientId(
+                    "processstep",
+                  ),
+                  number: String(
+                    (block.data.steps ?? [])
+                      .length + 1,
+                  ).padStart(2, "0"),
 
-                  steps: [
-                    ...(block.data.steps ??
-                      []),
+                  icon: "⭐",
+                  iconUrl: "",
+                  iconSize: 28,
 
-                    {
-                      id: makeClientId(
-                        "processstep",
-                      ),
+                  imageUrl: "",
 
-                      number: String(
-                        (
-                          block.data.steps ??
-                          []
-                        ).length + 1,
-                      ).padStart(
-                        2,
-                        "0",
-                      ),
-
-                      icon: "⭐",
-
-                      imageUrl: "",
-                      imageStoragePath:
-                        "",
-                      imageMimeType: "",
-
-                      heading:
-                        "New Step",
-
-                      description:
-                        "Describe what happens during this step.",
-
-                      badge: `Step ${
-                        (
-                          block.data.steps ??
-                          []
-                        ).length + 1
-                      }`,
-
-                      duration: "",
-                    },
-                  ],
+                  heading: "New Step",
+                  description: "",
+                  badge: "",
+                  duration: "",
                 },
-              },
-      )
-    }
-  >
-    Add Step
-  </button>
+              ],
+            },
+          },
+    )
+  }
+>
+  Add Step
+</button>
 </div>
     </div>
   );

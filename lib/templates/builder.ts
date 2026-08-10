@@ -2032,49 +2032,76 @@ export interface InfographicBaseBlockData {
   style: TextStyle;
 }
 
-export type ProcessFlowBlockData = InfographicBaseBlockData & {
-  layout: "horizontal" | "vertical" | "zig_zag";
-  connectorStyle: "straight" | "curved" | "dashed" | "arrow";
-steps: Array<{
-  id: string;
+export type ProcessFlowBlockData =
+  InfographicBaseBlockData & {
+    layout:
+      | "horizontal"
+      | "vertical"
+      | "zig_zag";
 
-  number: string;
+    connectorStyle:
+      | "straight"
+      | "curved"
+      | "dashed"
+      | "arrow";
 
-  icon: string;
-  iconUrl: string;
+    steps: Array<{
+      id: string;
 
-  imageUrl: string;
-  imageStoragePath?: string;
-  imageMimeType?: string;
-  imageSizeBytes?: number;
-  imageOriginalSizeBytes?: number;
+      number: string;
 
-  heading: string;
-  description: string;
+      icon: string;
+      iconUrl: string;
+      iconSize: number;
 
-  badge: string;
-  duration: string;
-}>;
-  cardBackgroundColor: string;
-  cardBorderColor: string;
-  accentColor: string;
-  connectorColor: string;
-  headingStyle: TextStyle;
-  subtitleStyle: TextStyle;
-  stepNumberStyle: TextStyle;
-  stepHeadingStyle: TextStyle;
-  stepDescriptionStyle: TextStyle;
-  badgeStyle: TextStyle;
-  durationStyle: TextStyle;
-  padding: number;
-  gap: number;
-  horizontalGap: number;
-  verticalGap: number;
-  cardRadius: number;
-  cardShadow: boolean;
-  rotation: number;
-  animationStyle: "none" | "fade" | "slide" | "pop";
-};
+      imageUrl: string;
+      imageStoragePath?: string;
+      imageMimeType?: string;
+      imageSizeBytes?: number;
+      imageOriginalSizeBytes?: number;
+
+      heading: string;
+      description: string;
+
+      badge: string;
+      duration: string;
+    }>;
+
+    cardBackgroundColor: string;
+    cardBorderColor: string;
+
+    accentColor: string;
+    connectorColor: string;
+
+    headingStyle: TextStyle;
+    subtitleStyle: TextStyle;
+
+    stepNumberStyle: TextStyle;
+    stepHeadingStyle: TextStyle;
+    stepDescriptionStyle: TextStyle;
+
+    badgeStyle: TextStyle;
+    durationStyle: TextStyle;
+
+    padding: number;
+
+    gap: number;
+    horizontalGap: number;
+    verticalGap: number;
+
+    cardWidth: number;
+
+    cardRadius: number;
+    cardShadow: boolean;
+
+    rotation: number;
+
+    animationStyle:
+      | "none"
+      | "fade"
+      | "slide"
+      | "pop";
+  };
 
 export type DataPyramidLayout =
   | "centered"
@@ -5040,68 +5067,71 @@ case "process_flow":
       layout: "horizontal",
       connectorStyle: "arrow",
 
-      steps: [
-        {
-          id: makeId("processstep"),
-          number: "01",
+steps: [
+  {
+    id: makeId("processstep"),
+    number: "01",
 
-          icon: "✨",
-          iconUrl: "",
+    icon: "✨",
+    iconUrl: "",
+    iconSize: 28,
 
-          imageUrl: "",
-          imageStoragePath: "",
-          imageMimeType: "",
-          imageSizeBytes: undefined,
-          imageOriginalSizeBytes: undefined,
+    imageUrl: "",
+    imageStoragePath: "",
+    imageMimeType: "",
+    imageSizeBytes: undefined,
+    imageOriginalSizeBytes: undefined,
 
-          heading: "Start",
-          description:
-            "Introduce the first step in the process.",
+    heading: "Start",
+    description:
+      "Introduce the first step in the process.",
 
-          badge: "Step 1",
-          duration: "5 min",
-        },
-        {
-          id: makeId("processstep"),
-          number: "02",
+    badge: "Step 1",
+    duration: "5 min",
+  },
+  {
+    id: makeId("processstep"),
+    number: "02",
 
-          icon: "📌",
-          iconUrl: "",
+    icon: "📌",
+    iconUrl: "",
+    iconSize: 28,
 
-          imageUrl: "",
-          imageStoragePath: "",
-          imageMimeType: "",
-          imageSizeBytes: undefined,
-          imageOriginalSizeBytes: undefined,
+    imageUrl: "",
+    imageStoragePath: "",
+    imageMimeType: "",
+    imageSizeBytes: undefined,
+    imageOriginalSizeBytes: undefined,
 
-          heading: "Review",
-          description:
-            "Explain what happens during the middle step.",
+    heading: "Review",
+    description:
+      "Explain what happens during the middle step.",
 
-          badge: "Step 2",
-          duration: "10 min",
-        },
-        {
-          id: makeId("processstep"),
-          number: "03",
+    badge: "Step 2",
+    duration: "10 min",
+  },
+  {
+    id: makeId("processstep"),
+    number: "03",
 
-          icon: "✅",
-          iconUrl: "",
+    icon: "✅",
+    iconUrl: "",
+    iconSize: 28,
 
-          imageUrl: "",
-          imageStoragePath: "",
-          imageMimeType: "",
-          imageSizeBytes: undefined,
-          imageOriginalSizeBytes: undefined,
+    imageUrl: "",
+    imageStoragePath: "",
+    imageMimeType: "",
+    imageSizeBytes: undefined,
+    imageOriginalSizeBytes: undefined,
 
-          heading: "Complete",
-          description:
-            "Describe the final result or action.",
+    heading: "Complete",
+    description:
+      "Describe the final result or action.",
 
-          badge: "Step 3",
-          duration: "Done",
-        },
-      ],
+    badge: "Step 3",
+    duration: "Done",
+  },
+],
 
       cardBackgroundColor: "#FFFFFF",
       cardBorderColor: "#E5E7EB",
@@ -5166,6 +5196,8 @@ case "process_flow":
       gap: 16,
       horizontalGap: 16,
       verticalGap: 16,
+
+      cardWidth: 260,
 
       cardRadius: 18,
       cardShadow: true,

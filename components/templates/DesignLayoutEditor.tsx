@@ -13387,21 +13387,29 @@ pageSurfaceStyle={{
   />
 ) : null}
 {!isMultiSelection && selectedBlock?.type === "process_flow" ? (
-  <ProcessFlowInspector
-    selectedBlock={selectedBlock}
-    updateSelectedBlock={updateSelectedBlock}
-    processFlowTextTarget={processFlowTextTarget}
-    setProcessFlowTextTarget={setProcessFlowTextTarget}
-    processFlowStyleTarget={processFlowStyleTarget}
-    setProcessFlowStyleTarget={setProcessFlowStyleTarget}
-    makeClientId={makeClientId}
-    uploadImageToSelectedBlock={uploadImageToSelectedBlock}
-    inspectorCardClass={inspectorCardClass}
-    inspectorLabelClass={inspectorLabelClass}
-    inspectorInputClass={inspectorInputClass}
-    inspectorTextareaClass={inspectorTextareaClass}
-    toolSetButtonClass={toolSetButtonClass}
-  />
+<ProcessFlowInspector
+  selectedBlock={selectedBlock}
+  updateSelectedBlock={updateSelectedBlock}
+
+  processFlowTextTarget={processFlowTextTarget}
+  setProcessFlowTextTarget={setProcessFlowTextTarget}
+
+  processFlowStyleTarget={processFlowStyleTarget}
+  setProcessFlowStyleTarget={setProcessFlowStyleTarget}
+
+  makeClientId={makeClientId}
+  uploadImageToSelectedBlock={uploadImageToSelectedBlock}
+
+  CATEGORY_BUTTONS={CATEGORY_BUTTONS}
+  getIconNameFromUrl={getIconNameFromUrl}
+
+  inspectorCardClass={inspectorCardClass}
+  inspectorLabelClass={inspectorLabelClass}
+  inspectorInputClass={inspectorInputClass}
+  inspectorTextareaClass={inspectorTextareaClass}
+
+  toolSetButtonClass={toolSetButtonClass}
+/>
 ) : null}
 
 {!isMultiSelection &&

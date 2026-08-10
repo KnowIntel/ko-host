@@ -3350,20 +3350,17 @@ function renderProcessFlow(
         )
       : 16;
 
-  const horizontalGap =
-    typeof data.horizontalGap ===
-      "number" &&
-    Number.isFinite(
-      data.horizontalGap,
-    )
-      ? Math.max(
-          0,
-          Math.min(
-            80,
-            data.horizontalGap,
-          ),
-        )
-      : gap;
+const horizontalGap =
+  typeof data.horizontalGap === "number" &&
+  Number.isFinite(data.horizontalGap)
+    ? Math.max(
+        0,
+        Math.min(
+          160,
+          data.horizontalGap,
+        ),
+      )
+    : gap;
 
   const verticalGap =
     typeof data.verticalGap ===
@@ -3379,6 +3376,21 @@ function renderProcessFlow(
           ),
         )
       : gap;
+
+const cardWidth =
+  typeof data.cardWidth ===
+    "number" &&
+  Number.isFinite(
+    data.cardWidth,
+  )
+    ? Math.max(
+        120,
+        Math.min(
+          600,
+          data.cardWidth,
+        ),
+      )
+    : 260;
 
   const padding =
     typeof data.padding === "number" &&
@@ -3641,12 +3653,16 @@ function renderProcessFlow(
                 alt=""
                 className="h-full w-full object-cover"
               />
-            ) : hasIconUrl ? (
-              <img
-                src={step.iconUrl}
-                alt=""
-                className="h-7 w-7 object-contain"
-              />
+) : hasIconUrl ? (
+  <img
+    src={step.iconUrl}
+    alt=""
+    className="object-contain"
+    style={{
+      width: `${step.iconSize ?? 28}px`,
+      height: `${step.iconSize ?? 28}px`,
+    }}
+  />
             ) : (
               <span>
                 {step.icon || "•"}
@@ -3817,12 +3833,17 @@ function renderProcessFlow(
                       : "items-start",
                   ].join(" ")}
                 >
-                  <div className="w-full max-w-[420px]">
-                    {renderStepCard(
-                      step,
-                      index,
-                    )}
-                  </div>
+<div
+  className="w-full"
+  style={{
+    maxWidth: `${cardWidth}px`,
+  }}
+>
+  {renderStepCard(
+    step,
+    index,
+  )}
+</div>
 
                   {renderConnector(
                     index,
@@ -3854,12 +3875,18 @@ function renderProcessFlow(
                   }
                   className="contents"
                 >
-                  <div className="min-w-0 flex-1">
-                    {renderStepCard(
-                      step,
-                      index,
-                    )}
-                  </div>
+<div
+  className="min-w-0 shrink-0"
+  style={{
+    width: `${cardWidth}px`,
+    maxWidth: "100%",
+  }}
+>
+  {renderStepCard(
+    step,
+    index,
+  )}
+</div>
 
                   {renderConnector(
                     index,

@@ -226,4 +226,4 @@ export function IconInspector({
       </div>
     </div>
   );
-}
+} 
