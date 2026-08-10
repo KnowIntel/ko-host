@@ -12,4 +12,4 @@ export default createLayoutPreset({
     "/designs/design-cards/design-card_wedding_subtle.webp",
 
   recommended: true,
-});
+}); 
