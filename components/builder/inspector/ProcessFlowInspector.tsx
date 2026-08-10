@@ -207,6 +207,98 @@ export function ProcessFlowInspector({
         </select>
       </div>
 
+{/* Card Spacing */}
+
+<div className="mt-5">
+  <div className={inspectorLabelClass()}>
+    Card Spacing
+  </div>
+
+  <div className="mt-3">
+    <div className={inspectorLabelClass()}>
+      Horizontal Spacing
+    </div>
+
+    <input
+      type="range"
+      min={0}
+      max={80}
+      step={1}
+      value={
+        selectedBlock.data.horizontalGap ??
+        selectedBlock.data.gap ??
+        16
+      }
+      onChange={(e) =>
+        updateSelectedBlock(
+          (block: any) =>
+            block.type !== "process_flow"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    horizontalGap: Number(
+                      e.target.value,
+                    ),
+                  },
+                },
+        )
+      }
+      className="mt-2 w-full"
+    />
+
+    <div className="mt-1 text-xs text-neutral-500">
+      {selectedBlock.data.horizontalGap ??
+        selectedBlock.data.gap ??
+        16}
+      px
+    </div>
+  </div>
+
+  <div className="mt-3">
+    <div className={inspectorLabelClass()}>
+      Vertical Spacing
+    </div>
+
+    <input
+      type="range"
+      min={0}
+      max={80}
+      step={1}
+      value={
+        selectedBlock.data.verticalGap ??
+        selectedBlock.data.gap ??
+        16
+      }
+      onChange={(e) =>
+        updateSelectedBlock(
+          (block: any) =>
+            block.type !== "process_flow"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    verticalGap: Number(
+                      e.target.value,
+                    ),
+                  },
+                },
+        )
+      }
+      className="mt-2 w-full"
+    />
+
+    <div className="mt-1 text-xs text-neutral-500">
+      {selectedBlock.data.verticalGap ??
+        selectedBlock.data.gap ??
+        16}
+      px
+    </div>
+  </div>
+</div>
+
 {/* Steps */}
 
 <div className="mt-5">

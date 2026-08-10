@@ -3322,6 +3322,24 @@ function renderProcessFlow(
       ? Math.max(0, Math.min(80, data.gap))
       : 16;
 
+const horizontalGap =
+  typeof data.horizontalGap === "number" &&
+  Number.isFinite(data.horizontalGap)
+    ? Math.max(
+        0,
+        Math.min(80, data.horizontalGap),
+      )
+    : gap;
+
+const verticalGap =
+  typeof data.verticalGap === "number" &&
+  Number.isFinite(data.verticalGap)
+    ? Math.max(
+        0,
+        Math.min(80, data.verticalGap),
+      )
+    : gap;
+
   const padding =
     typeof data.padding === "number" && Number.isFinite(data.padding)
       ? Math.max(0, Math.min(80, data.padding))
@@ -3618,11 +3636,54 @@ return (
           </div>
         ) : null}
 
-        {isVertical || isZigZag ? (
-          <div
-            className="flex flex-col"
-            style={{ gap: `${gap}px` }}
-          >
+{isVertical || isZigZag ? (
+  <div
+    className="flex flex-col"
+    style={{
+      gap: `${verticalGap}px`,
+    }}
+  >
+    {steps.map((step: any, index: number) => (
+      <div
+        key={step.id || index}
+        className={[
+          "flex flex-col",
+          isZigZag && index % 2 === 1
+            ? "items-end"
+            : "items-start",
+        ].join(" ")}
+      >
+        <div className="w-full max-w-[420px]">
+          {renderStepCard(step, index)}
+        </div>
+
+        {renderConnector(index)}
+      </div>
+    ))}
+  </div>
+) : (
+  <div
+    className="flex flex-col sm:flex-row sm:items-stretch"
+    style={{
+      columnGap: `${horizontalGap}px`,
+      rowGap: `${verticalGap}px`,
+    }}
+  >
+    {steps.map((step: any, index: number) => (
+      <div
+        key={step.id || index}
+        className="contents"
+      >
+        <div className="min-w-0 flex-1">
+          {renderStepCard(step, index)}
+        </div>
+
+        {renderConnector(index)}
+      </div>
+    ))}
+  </div>
+)}
+>
             {steps.map((step: any, index: number) => (
               <div
                 key={step.id || index}

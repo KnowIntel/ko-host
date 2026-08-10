@@ -2035,21 +2035,26 @@ export interface InfographicBaseBlockData {
 export type ProcessFlowBlockData = InfographicBaseBlockData & {
   layout: "horizontal" | "vertical" | "zig_zag";
   connectorStyle: "straight" | "curved" | "dashed" | "arrow";
-  steps: Array<{
-    id: string;
-    number: string;
-    icon: string;
-imageUrl: string;
-imageStoragePath?: string;
-imageMimeType?: string;
-imageSizeBytes?: number;
-imageOriginalSizeBytes?: number;
+steps: Array<{
+  id: string;
 
-heading: string;
-    description: string;
-    badge: string;
-    duration: string;
-  }>;
+  number: string;
+
+  icon: string;
+  iconUrl: string;
+
+  imageUrl: string;
+  imageStoragePath?: string;
+  imageMimeType?: string;
+  imageSizeBytes?: number;
+  imageOriginalSizeBytes?: number;
+
+  heading: string;
+  description: string;
+
+  badge: string;
+  duration: string;
+}>;
   cardBackgroundColor: string;
   cardBorderColor: string;
   accentColor: string;
@@ -2063,6 +2068,8 @@ heading: string;
   durationStyle: TextStyle;
   padding: number;
   gap: number;
+  horizontalGap: number;
+  verticalGap: number;
   cardRadius: number;
   cardShadow: boolean;
   rotation: number;
@@ -5007,124 +5014,166 @@ data: {
 },
       };
 
-          case "process_flow":
-      return {
-        id: makeId("infographicprocessflow"),
-        type: "process_flow",
-        label: "Process Flow",
-        grid: {
-          ...grid,
-          colSpan: 8,
-          rowSpan: 5,
+case "process_flow":
+  return {
+    id: makeId("infographicprocessflow"),
+    type: "process_flow",
+    label: "Process Flow",
+    grid: {
+      ...grid,
+      colSpan: 8,
+      rowSpan: 5,
+    },
+    appearance: {
+      ...createDefaultBlockAppearance(),
+      backgroundColor: "#FFFFFF",
+      borderColor: "#E5E7EB",
+      borderWidth: 1,
+      borderRadius: 24,
+    },
+    data: {
+      heading: "How It Works",
+      subtitle: "Follow each step in the process.",
+      showHeading: true,
+      showSubtitle: true,
+
+      layout: "horizontal",
+      connectorStyle: "arrow",
+
+      steps: [
+        {
+          id: makeId("processstep"),
+          number: "01",
+
+          icon: "✨",
+          iconUrl: "",
+
+          imageUrl: "",
+          imageStoragePath: "",
+          imageMimeType: "",
+          imageSizeBytes: undefined,
+          imageOriginalSizeBytes: undefined,
+
+          heading: "Start",
+          description:
+            "Introduce the first step in the process.",
+
+          badge: "Step 1",
+          duration: "5 min",
         },
-        appearance: {
-          ...createDefaultBlockAppearance(),
-          backgroundColor: "#FFFFFF",
-          borderColor: "#E5E7EB",
-          borderWidth: 1,
-          borderRadius: 24,
+        {
+          id: makeId("processstep"),
+          number: "02",
+
+          icon: "📌",
+          iconUrl: "",
+
+          imageUrl: "",
+          imageStoragePath: "",
+          imageMimeType: "",
+          imageSizeBytes: undefined,
+          imageOriginalSizeBytes: undefined,
+
+          heading: "Review",
+          description:
+            "Explain what happens during the middle step.",
+
+          badge: "Step 2",
+          duration: "10 min",
         },
-        data: {
-          heading: "How It Works",
-          subtitle: "Follow each step in the process.",
-          showHeading: true,
-          showSubtitle: true,
+        {
+          id: makeId("processstep"),
+          number: "03",
 
-          layout: "horizontal",
-          connectorStyle: "arrow",
+          icon: "✅",
+          iconUrl: "",
 
-          steps: [
-            {
-              id: makeId("processstep"),
-              number: "01",
-              icon: "✨",
-              imageUrl: "",
-              heading: "Start",
-              description: "Introduce the first step in the process.",
-              badge: "Step 1",
-              duration: "5 min",
-            },
-            {
-              id: makeId("processstep"),
-              number: "02",
-              icon: "📌",
-              imageUrl: "",
-              heading: "Review",
-              description: "Explain what happens during the middle step.",
-              badge: "Step 2",
-              duration: "10 min",
-            },
-            {
-              id: makeId("processstep"),
-              number: "03",
-              icon: "✅",
-              imageUrl: "",
-              heading: "Complete",
-              description: "Describe the final result or action.",
-              badge: "Step 3",
-              duration: "Done",
-            },
-          ],
+          imageUrl: "",
+          imageStoragePath: "",
+          imageMimeType: "",
+          imageSizeBytes: undefined,
+          imageOriginalSizeBytes: undefined,
 
-          cardBackgroundColor: "#FFFFFF",
-          cardBorderColor: "#E5E7EB",
-          accentColor: "#2563EB",
-          connectorColor: "#CBD5E1",
+          heading: "Complete",
+          description:
+            "Describe the final result or action.",
 
-          style: createDefaultTextStyle(),
-          headingStyle: {
-            ...createDefaultTextStyle(),
-            fontSize: 26,
-            bold: true,
-            align: "center",
-          },
-          subtitleStyle: {
-            ...createDefaultTextStyle(),
-            fontSize: 14,
-            color: "#6B7280",
-            align: "center",
-          },
-          stepNumberStyle: {
-            ...createDefaultTextStyle(),
-            fontSize: 13,
-            bold: true,
-            color: "#2563EB",
-            align: "center",
-          },
-          stepHeadingStyle: {
-            ...createDefaultTextStyle(),
-            fontSize: 16,
-            bold: true,
-            align: "center",
-          },
-          stepDescriptionStyle: {
-            ...createDefaultTextStyle(),
-            fontSize: 13,
-            color: "#4B5563",
-            align: "center",
-          },
-          badgeStyle: {
-            ...createDefaultTextStyle(),
-            fontSize: 11,
-            bold: true,
-            color: "#1D4ED8",
-            align: "center",
-          },
-          durationStyle: {
-            ...createDefaultTextStyle(),
-            fontSize: 11,
-            color: "#6B7280",
-            align: "center",
-          },
-
-          padding: 20,
-          gap: 16,
-          cardRadius: 18,
-          cardShadow: true,
-          rotation: 0,
-          animationStyle: "none",
+          badge: "Step 3",
+          duration: "Done",
         },
-      };
+      ],
+
+      cardBackgroundColor: "#FFFFFF",
+      cardBorderColor: "#E5E7EB",
+      accentColor: "#2563EB",
+      connectorColor: "#CBD5E1",
+
+      style: createDefaultTextStyle(),
+
+      headingStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 26,
+        bold: true,
+        align: "center",
+      },
+
+      subtitleStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 14,
+        color: "#6B7280",
+        align: "center",
+      },
+
+      stepNumberStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 13,
+        bold: true,
+        color: "#2563EB",
+        align: "center",
+      },
+
+      stepHeadingStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 16,
+        bold: true,
+        align: "center",
+      },
+
+      stepDescriptionStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 13,
+        color: "#4B5563",
+        align: "center",
+      },
+
+      badgeStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 11,
+        bold: true,
+        color: "#1D4ED8",
+        align: "center",
+      },
+
+      durationStyle: {
+        ...createDefaultTextStyle(),
+        fontSize: 11,
+        color: "#6B7280",
+        align: "center",
+      },
+
+      padding: 20,
+
+      gap: 16,
+      horizontalGap: 16,
+      verticalGap: 16,
+
+      cardRadius: 18,
+      cardShadow: true,
+
+      rotation: 0,
+      animationStyle: "none",
+    },
+  };
 
 case "statistic_cards":
   return {
