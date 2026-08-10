@@ -1,160 +1,122 @@
 const faqCards = [
 {
-  title: "Championship Run",
-  image: "/designs/design-cards/design-card_game_day_central_championship.webp",
+  title: "Elegant Baby Shower",
+  image: "/designs/design-cards/design-card_baby_shower_elegant.webp",
   className: "left-[60px] top-[280px] rotate-[-6deg] hidden 2xl:block",
-},
-{
-  title: "Perfect Moment",
-  image: "/designs/design-cards/design-card_engagement_announcement_perfect.webp",
-  className: "left-[100px] top-[530px] rotate-[-4deg] hidden 2xl:block",
 },
 {
   title: "Playful Baby Shower",
   image: "/designs/design-cards/design-card_baby_shower_playful.webp",
-  className: "left-[70px] top-[780px] rotate-[-7deg] hidden 2xl:block",
-},
-{
-  title: "Algebra",
-  image: "/designs/design-cards/design-card_learning_lab_algebra.webp",
-  className: "left-[110px] top-[1030px] rotate-[-5deg] hidden 2xl:block",
-},
-{
-  title: "Casual Family Reunion",
-  image: "/designs/design-cards/design-card_family_reunion_casual.webp",
-  className: "left-[60px] top-[1280px] rotate-[-8deg] hidden 2xl:block",
-},
-{
-  title: "Digital Pulse",
-  image: "/designs/design-cards/design-card_creator_link_hub_digital.webp",
-  className: "left-[100px] top-[1530px] rotate-[-6deg] hidden 2xl:block",
-},
-{
-  title: "Birthday Blast",
-  image: "/designs/design-cards/design-card_birthday_party_blast.webp",
-  className: "left-[70px] top-[1780px] rotate-[-4deg] hidden 2xl:block",
-},
-
-{
-  title: "Professional Beta Testing",
-  image: "/designs/design-cards/design-card_beta_testing_professional.webp",
-  className: "left-[60px] top-[2030px] rotate-[-7deg] hidden 2xl:block",
-},
-{
-  title: "Bible Book Club",
-  image: "/designs/design-cards/design-card_book_club_bible.webp",
-  className: "left-[100px] top-[2280px] rotate-[-5deg] hidden 2xl:block",
-},
-{
-  title: "Prestige Graduation",
-  image: "/designs/design-cards/design-card_graduation_prestige.webp",
-  className: "left-[70px] top-[2530px] rotate-[-8deg] hidden 2xl:block",
-},
-{
-  title: "Elegant Baby Shower",
-  image: "/designs/design-cards/design-card_baby_shower_elegant.webp",
-  className: "left-[110px] top-[2780px] rotate-[-4deg] hidden 2xl:block",
-},
-{
-  title: "Direct Networking",
-  image: "/designs/design-cards/design-card_enthusiast_networking_direct.webp",
-  className: "left-[60px] top-[3030px] rotate-[-6deg] hidden 2xl:block",
-},
-{
-  title: "Golden Birthday",
-  image: "/designs/design-cards/design-card_birthday_golden.webp",
-  className: "left-[100px] top-[3280px] rotate-[-7deg] hidden 2xl:block",
-},
-{
-  title: "Atomic Review",
-  image: "/designs/design-cards/design-card_learning_lab_atomic.webp",
-  className: "left-[70px] top-[3530px] rotate-[-5deg] hidden 2xl:block",
-},
-
-{
-  title: "Studio Link Hub",
-  image: "/designs/design-cards/design-card_creator_link_hub_studio.webp",
-  className: "left-[60px] top-[3780px] rotate-[-8deg] hidden 2xl:block",
-},
-{
-  title: "City Council",
-  image: "/designs/design-cards/design-card_election_campaign_city.webp",
-  className: "left-[100px] top-[4030px] rotate-[-6deg] hidden 2xl:block",
-},
-{
-  title: "Game Night",
-  image: "/designs/design-cards/design-card_game_night_roll.webp",
-  className: "left-[70px] top-[4280px] rotate-[-4deg] hidden 2xl:block",
-},
-{
-  title: "Forever Question",
-  image: "/designs/design-cards/design-card_engagement_announcement_forever.webp",
-  className: "left-[110px] top-[4530px] rotate-[-7deg] hidden 2xl:block",
-},
-{
-  title: "Warm Family Reunion",
-  image: "/designs/design-cards/design-card_family_reunion_warm.webp",
-  className: "left-[60px] top-[4780px] rotate-[-5deg] hidden 2xl:block",
-},
-{
-  title: "Fabulous Fitness",
-  image: "/designs/design-cards/design-card_guided_tutorial_fabulous.webp",
-  className: "left-[100px] top-[5030px] rotate-[-8deg] hidden 2xl:block",
+  className: "left-[150px] top-[530px] rotate-[4deg] hidden 2xl:block",
 },
 {
   title: "Tiny Treasure",
   image: "/designs/design-cards/design-card_baby_shower_treasure.webp",
-  className: "left-[70px] top-[5280px] rotate-[-6deg] hidden 2xl:block",
-},
-
-{
-  title: "Vehicle Listing",
-  image: "/designs/design-cards/design-card_for_sale_by_owner_auto.webp",
-  className: "left-[60px] top-[5530px] rotate-[-4deg] hidden 2xl:block",
+  className: "left-[70px] top-[780px] rotate-[-3deg] hidden 2xl:block",
 },
 {
-  title: "Community Newsletter",
-  image: "/designs/design-cards/design-card_community_alert_newsletter.webp",
-  className: "left-[100px] top-[5780px] rotate-[-7deg] hidden 2xl:block",
+  title: "Professional Beta Testing",
+  image: "/designs/design-cards/design-card_beta_testing_professional.webp",
+  className: "left-[160px] top-[1030px] rotate-[6deg] hidden 2xl:block",
 },
 {
-  title: "Showcase Networking",
-  image: "/designs/design-cards/design-card_enthusiast_networking_showcase.webp",
-  className: "left-[70px] top-[6030px] rotate-[-5deg] hidden 2xl:block",
+  title: "Golden Birthday",
+  image: "/designs/design-cards/design-card_birthday_golden.webp",
+  className: "left-[60px] top-[1280px] rotate-[-5deg] hidden 2xl:block",
 },
 {
   title: "Grown Birthday",
   image: "/designs/design-cards/design-card_birthday_grown.webp",
-  className: "left-[110px] top-[6280px] rotate-[-8deg] hidden 2xl:block",
+  className: "left-[150px] top-[1530px] rotate-[3deg] hidden 2xl:block",
 },
 {
-  title: "Canvas Link Hub",
-  image: "/designs/design-cards/design-card_creator_link_hub_canvas.webp",
-  className: "left-[60px] top-[6530px] rotate-[-6deg] hidden 2xl:block",
-},
-{
-  title: "Spotlight Graduation",
-  image: "/designs/design-cards/design-card_graduation_spotlight.webp",
-  className: "left-[100px] top-[6780px] rotate-[-4deg] hidden 2xl:block",
-},
-{
-  title: "Elaborate Crowdfunding",
-  image: "/designs/design-cards/design-card_crowdfunding_elaborate.webp",
-  className: "left-[70px] top-[7030px] rotate-[-7deg] hidden 2xl:block",
+  title: "Birthday Blast",
+  image: "/designs/design-cards/design-card_birthday_party_blast.webp",
+  className: "left-[70px] top-[1780px] rotate-[-7deg] hidden 2xl:block",
 },
 
 {
   title: "Playful Birthday",
   image: "/designs/design-cards/design-card_birthday_playful.webp",
-  className: "left-[60px] top-[7280px] rotate-[-5deg] hidden 2xl:block",
+  className: "left-[60px] top-[2030px] rotate-[5deg] hidden 2xl:block",
+},
+{
+  title: "Bible Book Club",
+  image: "/designs/design-cards/design-card_book_club_bible.webp",
+  className: "left-[150px] top-[2280px] rotate-[-4deg] hidden 2xl:block",
 },
 {
   title: "Easter Church Event",
   image: "/designs/design-cards/design-card_church_event_easter.webp",
-  className: "left-[100px] top-[7530px] rotate-[-8deg] hidden 2xl:block",
+  className: "left-[70px] top-[2530px] rotate-[7deg] hidden 2xl:block",
+},
+{
+  title: "Community Newsletter",
+  image: "/designs/design-cards/design-card_community_alert_newsletter.webp",
+  className: "left-[160px] top-[2780px] rotate-[-2deg] hidden 2xl:block",
+},
+{
+  title: "Canvas Link Hub",
+  image: "/designs/design-cards/design-card_creator_link_hub_canvas.webp",
+  className: "left-[60px] top-[3030px] rotate-[4deg] hidden 2xl:block",
+},
+{
+  title: "Digital Pulse",
+  image: "/designs/design-cards/design-card_creator_link_hub_digital.webp",
+  className: "left-[150px] top-[3280px] rotate-[-6deg] hidden 2xl:block",
+},
+{
+  title: "Studio Link Hub",
+  image: "/designs/design-cards/design-card_creator_link_hub_studio.webp",
+  className: "left-[70px] top-[3530px] rotate-[2deg] hidden 2xl:block",
 },
 
+{
+  title: "Elaborate Crowdfunding",
+  image: "/designs/design-cards/design-card_crowdfunding_elaborate.webp",
+  className: "left-[60px] top-[3780px] rotate-[-5deg] hidden 2xl:block",
+},
+{
+  title: "City Council",
+  image: "/designs/design-cards/design-card_election_campaign_city.webp",
+  className: "left-[150px] top-[4030px] rotate-[6deg] hidden 2xl:block",
+},
+{
+  title: "Forever Question",
+  image: "/designs/design-cards/design-card_engagement_announcement_forever.webp",
+  className: "left-[70px] top-[4280px] rotate-[-3deg] hidden 2xl:block",
+},
+{
+  title: "Perfect Moment",
+  image: "/designs/design-cards/design-card_engagement_announcement_perfect.webp",
+  className: "left-[160px] top-[4530px] rotate-[5deg] hidden 2xl:block",
+},
+{
+  title: "Direct Networking",
+  image: "/designs/design-cards/design-card_enthusiast_networking_direct.webp",
+  className: "left-[60px] top-[4780px] rotate-[-7deg] hidden 2xl:block",
+},
+{
+  title: "Showcase Networking",
+  image: "/designs/design-cards/design-card_enthusiast_networking_showcase.webp",
+  className: "left-[150px] top-[5030px] rotate-[3deg] hidden 2xl:block",
+},
+{
+  title: "Casual Family Reunion",
+  image: "/designs/design-cards/design-card_family_reunion_casual.webp",
+  className: "left-[70px] top-[5280px] rotate-[-4deg] hidden 2xl:block",
+},
 
+{
+  title: "Warm Family Reunion",
+  image: "/designs/design-cards/design-card_family_reunion_warm.webp",
+  className: "left-[60px] top-[5530px] rotate-[7deg] hidden 2xl:block",
+},
+{
+  title: "Vehicle Listing",
+  image: "/designs/design-cards/design-card_for_sale_by_owner_auto.webp",
+  className: "left-[150px] top-[5780px] rotate-[-5deg] hidden 2xl:block",
+},
 
 
 
