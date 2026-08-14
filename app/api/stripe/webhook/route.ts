@@ -1027,18 +1027,150 @@ const micrositePayload = {
             })()
           : null;
 
-      if (!publishedDraft) {
-        return NextResponse.json(
-          {
-            ok: false,
-            error: "Pending checkout is missing published draft data.",
-          },
-          { status: 500 },
-        );
-      }
+if (!publishedDraft) {
+  return NextResponse.json(
+    {
+      ok: false,
+      error: "Pending checkout is missing published draft data.",
+    },
+    { status: 500 },
+  );
+}
 
-      const { data: existingHomePage, error: existingHomePageError } =
-        await supabaseAdmin
+/*
+ * ============================================================
+ * PROFESSIONAL CALENDAR SLOT SYNC
+ * ============================================================
+ *
+ * This handles first-time publishing as well as the conflicting
+ * microsite update path above because both branches converge on
+ * publishedMicrositeId.
+ */
+
+const professionalCalendarBlocks = Array.isArray(
+  (publishedDraft as any)?.blocks,
+)
+  ? (publishedDraft as any).blocks.filter(
+      (block: any) =>
+        block?.type === "calendar_event" &&
+        block?.data?.variant === "professional",
+    )
+  : [];
+
+/*
+ * Disable all previously synchronized slots for this microsite.
+ *
+ * Any slots still present in the current published draft are
+ * immediately re-enabled by the upsert below.
+ *
+ * We do not delete old slots because historical bookings may
+ * reference them.
+ */
+const { error: disableCalendarSlotsError } = await supabaseAdmin
+  .from("calendar_booking_slots")
+  .update({
+    enabled: false,
+    updated_at: nowIso,
+  })
+  .eq("microsite_id", publishedMicrositeId);
+
+if (disableCalendarSlotsError) {
+  console.error(
+    "STRIPE WEBHOOK ERROR: Professional calendar slots disable failed",
+    disableCalendarSlotsError,
+  );
+
+  return NextResponse.json(
+    {
+      ok: false,
+      error: disableCalendarSlotsError.message,
+    },
+    { status: 500 },
+  );
+}
+
+const professionalCalendarSlotRows = professionalCalendarBlocks.flatMap(
+  (calendarBlock: any) => {
+    const slots = Array.isArray(
+      calendarBlock?.data?.professionalSlots,
+    )
+      ? calendarBlock.data.professionalSlots
+      : [];
+
+    return slots
+      .filter((slot: any) => {
+        const validId =
+          typeof slot?.id === "string" &&
+          slot.id.trim().length > 0;
+
+        const validDate =
+          typeof slot?.date === "string" &&
+          /^\d{4}-\d{2}-\d{2}$/.test(slot.date);
+
+        const validStartTime =
+          typeof slot?.startTime === "string" &&
+          /^\d{2}:\d{2}$/.test(slot.startTime);
+
+        const validEndTime =
+          !slot?.endTime ||
+          (typeof slot.endTime === "string" &&
+            /^\d{2}:\d{2}$/.test(slot.endTime));
+
+        return (
+          validId &&
+          validDate &&
+          validStartTime &&
+          validEndTime
+        );
+      })
+      .map((slot: any) => ({
+        microsite_id: publishedMicrositeId,
+
+        block_id: calendarBlock.id,
+
+        source_slot_id: slot.id,
+
+        booking_date: slot.date,
+        start_time: slot.startTime,
+        end_time: slot.endTime || null,
+
+        enabled: slot.enabled !== false,
+
+        updated_at: nowIso,
+      }));
+  },
+);
+
+if (professionalCalendarSlotRows.length > 0) {
+  const { error: upsertCalendarSlotsError } =
+    await supabaseAdmin
+      .from("calendar_booking_slots")
+      .upsert(
+        professionalCalendarSlotRows,
+        {
+          onConflict:
+            "microsite_id,block_id,source_slot_id",
+        },
+      );
+
+  if (upsertCalendarSlotsError) {
+    console.error(
+      "STRIPE WEBHOOK ERROR: Professional calendar slots sync failed",
+      upsertCalendarSlotsError,
+    );
+
+    return NextResponse.json(
+      {
+        ok: false,
+        error: upsertCalendarSlotsError.message,
+      },
+      { status: 500 },
+    );
+  }
+}
+
+const { data: existingHomePage, error: existingHomePageError } =
+  await supabaseAdmin
           .from("microsite_pages")
           .select("id")
           .eq("microsite_id", publishedMicrositeId)
@@ -1434,19 +1566,156 @@ return NextResponse.json({ ok: true });
         })
         .eq("id", micrositeRow.id);
 
-      if (updateExistingMicrositeError) {
-        console.error(
-          "STRIPE WEBHOOK ERROR: Existing microsite update failed",
-          updateExistingMicrositeError,
-        );
-        return NextResponse.json(
-          { ok: false, error: updateExistingMicrositeError.message },
-          { status: 500 },
-        );
-      }
+if (updateExistingMicrositeError) {
+  console.error(
+    "STRIPE WEBHOOK ERROR: Existing microsite update failed",
+    updateExistingMicrositeError,
+  );
+  return NextResponse.json(
+    { ok: false, error: updateExistingMicrositeError.message },
+    { status: 500 },
+  );
+}
 
-      const { data: existingHomePage, error: existingHomePageError } =
-        await supabaseAdmin
+/*
+ * ============================================================
+ * PROFESSIONAL CALENDAR SLOT SYNC
+ * ============================================================
+ *
+ * The BuilderDraft remains the owner's source of truth for configured
+ * Professional Calendar slots.
+ *
+ * Existing database slots are first disabled, then all currently
+ * configured Professional slots are upserted below.
+ *
+ * We intentionally do NOT delete old slot rows because existing
+ * calendar_bookings may still reference them.
+ */
+
+const effectivePublishedDraft =
+  publishedDraft ?? micrositeRow.draft ?? null;
+
+const professionalCalendarBlocks = Array.isArray(
+  (effectivePublishedDraft as any)?.blocks,
+)
+  ? (effectivePublishedDraft as any).blocks.filter(
+      (block: any) =>
+        block?.type === "calendar_event" &&
+        block?.data?.variant === "professional",
+    )
+  : [];
+
+/*
+ * Disable previously synchronized slots first.
+ *
+ * Slots that still exist in the BuilderDraft will immediately be
+ * re-enabled/upserted below. Slots removed by the owner stay disabled.
+ */
+const { error: disableCalendarSlotsError } = await supabaseAdmin
+  .from("calendar_booking_slots")
+  .update({
+    enabled: false,
+    updated_at: nowIso,
+  })
+  .eq("microsite_id", micrositeRow.id);
+
+if (disableCalendarSlotsError) {
+  console.error(
+    "STRIPE WEBHOOK ERROR: Professional calendar slots disable failed",
+    disableCalendarSlotsError,
+  );
+
+  return NextResponse.json(
+    {
+      ok: false,
+      error: disableCalendarSlotsError.message,
+    },
+    { status: 500 },
+  );
+}
+
+const professionalCalendarSlotRows = professionalCalendarBlocks.flatMap(
+  (calendarBlock: any) => {
+    const slots = Array.isArray(
+      calendarBlock?.data?.professionalSlots,
+    )
+      ? calendarBlock.data.professionalSlots
+      : [];
+
+    return slots
+      .filter((slot: any) => {
+        const validId =
+          typeof slot?.id === "string" &&
+          slot.id.trim().length > 0;
+
+        const validDate =
+          typeof slot?.date === "string" &&
+          /^\d{4}-\d{2}-\d{2}$/.test(slot.date);
+
+        const validStartTime =
+          typeof slot?.startTime === "string" &&
+          /^\d{2}:\d{2}$/.test(slot.startTime);
+
+        const validEndTime =
+          !slot?.endTime ||
+          (typeof slot.endTime === "string" &&
+            /^\d{2}:\d{2}$/.test(slot.endTime));
+
+        return (
+          validId &&
+          validDate &&
+          validStartTime &&
+          validEndTime
+        );
+      })
+      .map((slot: any) => ({
+        microsite_id: micrositeRow.id,
+
+        block_id: calendarBlock.id,
+
+        source_slot_id: slot.id,
+
+        booking_date: slot.date,
+        start_time: slot.startTime,
+        end_time: slot.endTime || null,
+
+        enabled: slot.enabled !== false,
+
+        updated_at: nowIso,
+      }));
+  },
+);
+
+if (professionalCalendarSlotRows.length > 0) {
+  const { error: upsertCalendarSlotsError } =
+    await supabaseAdmin
+      .from("calendar_booking_slots")
+      .upsert(
+        professionalCalendarSlotRows,
+        {
+          onConflict:
+            "microsite_id,block_id,source_slot_id",
+        },
+      );
+
+  if (upsertCalendarSlotsError) {
+    console.error(
+      "STRIPE WEBHOOK ERROR: Professional calendar slots sync failed",
+      upsertCalendarSlotsError,
+    );
+
+    return NextResponse.json(
+      {
+        ok: false,
+        error: upsertCalendarSlotsError.message,
+      },
+      { status: 500 },
+    );
+  }
+}
+
+const { data: existingHomePage, error: existingHomePageError } =
+  await supabaseAdmin
           .from("microsite_pages")
           .select("id")
           .eq("microsite_id", micrositeRow.id)

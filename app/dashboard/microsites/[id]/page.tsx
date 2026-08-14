@@ -742,45 +742,52 @@ href={`/api/qr?text=${encodeURIComponent(
     </div>
   </div>
 
-  <div className="mt-5 grid gap-3 md:grid-cols-3">
-    {site.template_key === "wedding_rsvp" ? (
-      <Link
-        href={`/dashboard/microsites/${site.id}/rsvp`}
-        className="inline-flex items-center justify-center rounded-xl border border-violet-300 bg-white px-4 py-3 text-sm font-medium text-violet-700 hover:border-violet-500"
-      >
-        View RSVP Submissions
-      </Link>
-    ) : (
-      <button
-        type="button"
-        disabled
-        className="inline-flex items-center justify-center rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm font-medium text-neutral-400"
-      >
-        RSVP Submissions
-      </button>
-    )}
-
+<div className="mt-5 grid gap-3 md:grid-cols-3">
+  {site.template_key === "wedding_rsvp" ? (
     <Link
-      href={`/dashboard/microsites/${site.id}/entries`}
-      className="inline-flex items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 py-3 text-sm font-medium text-neutral-900 hover:border-neutral-900"
+      href={`/dashboard/microsites/${site.id}/rsvp`}
+      className="inline-flex items-center justify-center rounded-xl border border-violet-300 bg-white px-4 py-3 text-sm font-medium text-violet-700 hover:border-violet-500"
     >
-      View Text Entries
+      View RSVP Submissions
     </Link>
-
-    <Link
-      href={`/dashboard/microsites/${site.id}/uploads`}
-      className="inline-flex items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 py-3 text-sm font-medium text-neutral-900 hover:border-neutral-900"
+  ) : (
+    <button
+      type="button"
+      disabled
+      className="inline-flex items-center justify-center rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm font-medium text-neutral-400"
     >
-      View Media Uploads
-    </Link>
+      RSVP Submissions
+    </button>
+  )}
 
-    <Link
-  href={`/dashboard/microsites/${site.id}/enrollments`}
-  className="inline-flex items-center justify-center rounded-xl border border-emerald-300 bg-white px-4 py-3 text-sm font-medium text-emerald-700 hover:border-emerald-500"
->
-  Enrollment Board
-</Link>
-  </div>
+  <Link
+    href={`/dashboard/microsites/${site.id}/calendar-bookings`}
+    className="inline-flex items-center justify-center rounded-xl border border-blue-300 bg-white px-4 py-3 text-sm font-medium text-blue-700 hover:border-blue-500"
+  >
+    Calendar Bookings
+  </Link>
+
+  <Link
+    href={`/dashboard/microsites/${site.id}/entries`}
+    className="inline-flex items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 py-3 text-sm font-medium text-neutral-900 hover:border-neutral-900"
+  >
+    View Text Entries
+  </Link>
+
+  <Link
+    href={`/dashboard/microsites/${site.id}/uploads`}
+    className="inline-flex items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 py-3 text-sm font-medium text-neutral-900 hover:border-neutral-900"
+  >
+    View Media Uploads
+  </Link>
+
+  <Link
+    href={`/dashboard/microsites/${site.id}/enrollments`}
+    className="inline-flex items-center justify-center rounded-xl border border-emerald-300 bg-white px-4 py-3 text-sm font-medium text-emerald-700 hover:border-emerald-500"
+  >
+    Enrollment Board
+  </Link>
+</div>
 </div>
 
       <div className="mt-6 rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">

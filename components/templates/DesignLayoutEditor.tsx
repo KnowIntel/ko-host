@@ -170,6 +170,7 @@ import {
 import {
   applyCalendarEventStylePatch,
   applyCalendarEventTextStylePatch,
+  getCalendarEventStyle,
   getCalendarEventTextStyle,
   type CalendarEventStyleTarget,
   type CalendarEventTextTarget,
@@ -2888,7 +2889,13 @@ const selectedStyle =
 
                       : getSelectionTextStyle(draft, selection);
 
-  const selectedAppearance = getSelectionBlockAppearance(draft, selection);
+  const selectedAppearance =
+  selectedBlockFromDraft?.type === "calendar_event"
+    ? getCalendarEventStyle(
+        selectedBlockFromDraft,
+        calendarEventStyleTarget,
+      )
+    : getSelectionBlockAppearance(draft, selection);
   const resolvedPageColor =
     (draft as DraftWithPageExtras).pageColor ||
     getResolvedPageColor(draft, designKey, metadata);
@@ -4710,6 +4717,23 @@ function eyedropperButtonClass() {
 
 
 function applyBorderColor(value: string) {
+  if (selectedBlock?.type === "calendar_event") {
+    updateSelectedBlock((block) =>
+      block.type !== "calendar_event"
+        ? block
+        : applyCalendarEventStylePatch(
+            block,
+            calendarEventStyleTarget,
+            {
+              borderColor: value,
+            },
+          ),
+    );
+
+    pushRecentColor(value);
+    return;
+  }
+
   if (selectedBlock?.type === "enrollment_board") {
     applyAppearancePatch({ borderColor: value });
     pushRecentColor(value);
@@ -11728,112 +11752,127 @@ const idsToExpand =
       />
     </button>
 
-    <button
-      type="button"
-      className={topBarButtonClass(
-        selectedBlock.type === "poll"
-          ? pollStyleTarget === "field"
-            ? ((selectedBlock.data as any).fieldBackgroundColor === "transparent" ||
-                (selectedBlock.data as any).optionBackgroundColor === "transparent")
-            : selectedBlock.appearance?.backgroundColor === "transparent"
-          : selectedBlock.appearance?.backgroundColor === "transparent",
-      )}
-      onClick={() => {
-        if (!selectedBlock) return;
+<button
+  type="button"
+  className={topBarButtonClass(
+    selectedBlock.type === "poll"
+      ? pollStyleTarget === "field"
+        ? ((selectedBlock.data as any).fieldBackgroundColor === "transparent" ||
+            (selectedBlock.data as any).optionBackgroundColor === "transparent")
+        : selectedBlock.appearance?.backgroundColor === "transparent"
+      : selectedAppearance.backgroundColor === "transparent",
+  )}
+  onClick={() => {
+    if (!selectedBlock) return;
 
-        if (selectedBlock.type === "poll") {
-          applyAppearancePatch({
-            backgroundColor: "transparent",
-            backgroundOpacity: 0,
-          } as any);
+    if (selectedBlock.type === "poll") {
+      applyAppearancePatch({
+        backgroundColor: "transparent",
+        backgroundOpacity: 0,
+      } as any);
 
-          return;
-        }
+      return;
+    }
 
+    updateSelectedBlock((block) =>
+      block.type !== "calendar_event"
+        ? block
+        : applyCalendarEventStylePatch(
+            block,
+            calendarEventStyleTarget,
+            {
+              backgroundColor: "transparent",
+              backgroundOpacity: 0,
+            },
+          ),
+    );
+  }}
+  title={
+    selectedBlock.type === "poll"
+      ? pollStyleTarget === "field"
+        ? "Transparent poll field background"
+        : "Transparent poll block background"
+      : "Transparent selected calendar style target"
+  }
+>
+  ☐
+</button>
+
+<div className={topBarSliderWrapClass()}>
+  <span>BG Opacity</span>
+
+  <input
+    type="range"
+    min={0}
+    max={100}
+    value={
+      selectedBlock.type === "poll" && pollStyleTarget === "field"
+        ? Math.round(
+            Number(
+              ((selectedBlock.data as any).fieldStyle?.backgroundOpacity ??
+                (selectedBlock.data as any).fieldBackgroundOpacity ??
+                (selectedBlock.data as any).optionBackgroundOpacity ??
+                1),
+            ) * 100,
+          )
+        : Math.round(
+            Number(
+              (selectedAppearance as any).backgroundOpacity ?? 1,
+            ) * 100,
+          )
+    }
+    onChange={(e) => {
+      const backgroundOpacity =
+        Number(e.target.value) / 100;
+
+      if (selectedBlock.type === "calendar_event") {
         updateSelectedBlock((block) =>
-          block.type === "calendar_event"
-            ? {
-                ...block,
-                appearance: {
-                  ...(block.appearance ?? {}),
-                  backgroundColor: "transparent",
-                  backgroundOpacity: 0,
-                } as any,
-                data: {
-                  ...block.data,
-                  calendarStyle: {
-                    ...(block.data.calendarStyle ?? {}),
-                    formBackgroundColor: "transparent",
-                  },
+          block.type !== "calendar_event"
+            ? block
+            : applyCalendarEventStylePatch(
+                block,
+                calendarEventStyleTarget,
+                {
+                  backgroundOpacity,
                 },
-              }
-            : block,
+              ),
         );
-      }}
-      title={
-        selectedBlock.type === "poll"
-          ? pollStyleTarget === "field"
-            ? "Transparent poll field background"
-            : "Transparent poll block background"
-          : "Transparent calendar background"
-      }
-    >
-      ☐
-    </button>
 
-    <div className={topBarSliderWrapClass()}>
-      <span>BG Opacity</span>
-      <input
-        type="range"
-        min={0}
-        max={100}
-        value={
-          selectedBlock.type === "poll" && pollStyleTarget === "field"
-            ? Math.round(
-                Number(
-                  ((selectedBlock.data as any).fieldStyle?.backgroundOpacity ??
-                    (selectedBlock.data as any).fieldBackgroundOpacity ??
-                    (selectedBlock.data as any).optionBackgroundOpacity ??
-                    1),
-                ) * 100,
-              )
-            : Math.round(
-                (((selectedAppearance as any).backgroundOpacity ?? 1) * 100),
-              )
-        }
-        onChange={(e) =>
-          applyAppearancePatch({
-            backgroundOpacity:
-              selectedBlock.type === "poll" && pollStyleTarget === "field"
-                ? Number(e.target.value) / 100
-                : Number(e.target.value) / 100,
-          } as any)
-        }
-        className={topBarSliderClass()}
-        title={
-          selectedBlock.type === "poll"
-            ? pollStyleTarget === "field"
-              ? "Poll field background transparency"
-              : "Poll block background transparency"
-            : "Calendar background transparency"
-        }
-      />
-      <span>
-        {selectedBlock.type === "poll" && pollStyleTarget === "field"
-          ? Math.round(
-              Number(
-                ((selectedBlock.data as any).fieldStyle?.backgroundOpacity ??
-                  (selectedBlock.data as any).fieldBackgroundOpacity ??
-                  (selectedBlock.data as any).optionBackgroundOpacity ??
-                  1),
-              ) * 100,
-            )
-          : Math.round(
-              (((selectedAppearance as any).backgroundOpacity ?? 1) * 100),
-            )}
-        %
-      </span>
-    </div>
+        return;
+      }
+
+      applyAppearancePatch({
+        backgroundOpacity,
+      } as any);
+    }}
+    className={topBarSliderClass()}
+    title={
+      selectedBlock.type === "poll"
+        ? pollStyleTarget === "field"
+          ? "Poll field background transparency"
+          : "Poll block background transparency"
+        : "Selected calendar style target background opacity"
+    }
+  />
+
+  <span>
+    {selectedBlock.type === "poll" && pollStyleTarget === "field"
+      ? Math.round(
+          Number(
+            ((selectedBlock.data as any).fieldStyle?.backgroundOpacity ??
+              (selectedBlock.data as any).fieldBackgroundOpacity ??
+              (selectedBlock.data as any).optionBackgroundOpacity ??
+              1),
+          ) * 100,
+        )
+      : Math.round(
+          Number(
+            (selectedAppearance as any).backgroundOpacity ?? 1,
+          ) * 100,
+        )}
+    %
+  </span>
+</div>
   </>
 ) : null}
 
@@ -12621,6 +12660,7 @@ title={
   <>
     <div className={topBarSliderWrapClass()}>
       <span>Border</span>
+
       <input
         type="range"
         min={0}
@@ -12629,19 +12669,20 @@ title={
           selectedBlock?.type === "post_board" &&
           postBoardStyleTarget === "card"
             ? Number(
-                ((selectedBlock.data as any).cardStyle ?? {}).borderWidth ?? 0,
+                ((selectedBlock.data as any).cardStyle ?? {})
+                  .borderWidth ?? 0,
               )
             : selectedBlock?.type === "post_board" &&
                 postBoardStyleTarget === "buttons"
               ? Number(
-                  ((selectedBlock.data as any).buttonStyle ?? {}).borderWidth ??
-                    0,
+                  ((selectedBlock.data as any).buttonStyle ?? {})
+                    .borderWidth ?? 0,
                 )
               : selectedBlock?.type === "form_field" &&
-formFieldStyleTarget === "field"
+                  formFieldStyleTarget === "field"
                 ? Number(
-                    ((selectedBlock.data as any).inputStyle ?? {}).borderWidth ??
-                      0,
+                    ((selectedBlock.data as any).inputStyle ?? {})
+                      .borderWidth ?? 0,
                   )
                 : selectedBlock?.type === "enrollment_board" &&
                     enrollmentBoardStyleTarget === "field"
@@ -12649,46 +12690,76 @@ formFieldStyleTarget === "field"
                       ((selectedBlock.data as any).fieldStyle ?? {})
                         .borderWidth ?? 0,
                     )
-                  : selectedAppearance.borderWidth ?? 0
+                  : Number(
+                      selectedAppearance.borderWidth ?? 0,
+                    )
         }
-        onChange={(e) =>
+        onChange={(e) => {
+          const borderWidth =
+            Number(e.target.value) || 0;
+
+          if (selectedBlock?.type === "calendar_event") {
+            updateSelectedBlock((block) =>
+              block.type !== "calendar_event"
+                ? block
+                : applyCalendarEventStylePatch(
+                    block,
+                    calendarEventStyleTarget,
+                    {
+                      borderWidth,
+                    },
+                  ),
+            );
+
+            return;
+          }
+
           applyAppearancePatch({
-            borderWidth: Number(e.target.value) || 0,
-          })
-        }
+            borderWidth,
+          });
+        }}
         className={topBarSliderClass()}
-        title="Border width"
+        title={
+          selectedBlock?.type === "calendar_event"
+            ? "Selected calendar style target border width"
+            : "Border width"
+        }
       />
 
       <span>
         {selectedBlock?.type === "post_board" &&
         postBoardStyleTarget === "card"
           ? Number(
-              ((selectedBlock.data as any).cardStyle ?? {}).borderWidth ?? 0,
+              ((selectedBlock.data as any).cardStyle ?? {})
+                .borderWidth ?? 0,
             )
           : selectedBlock?.type === "post_board" &&
               postBoardStyleTarget === "buttons"
             ? Number(
-                ((selectedBlock.data as any).buttonStyle ?? {}).borderWidth ?? 0,
+                ((selectedBlock.data as any).buttonStyle ?? {})
+                  .borderWidth ?? 0,
               )
             : selectedBlock?.type === "form_field" &&
-formFieldStyleTarget === "field"
+                formFieldStyleTarget === "field"
               ? Number(
-                  ((selectedBlock.data as any).inputStyle ?? {}).borderWidth ??
-                    0,
+                  ((selectedBlock.data as any).inputStyle ?? {})
+                    .borderWidth ?? 0,
                 )
               : selectedBlock?.type === "enrollment_board" &&
                   enrollmentBoardStyleTarget === "field"
                 ? Number(
-                    ((selectedBlock.data as any).fieldStyle ?? {}).borderWidth ??
-                      0,
+                    ((selectedBlock.data as any).fieldStyle ?? {})
+                      .borderWidth ?? 0,
                   )
-                : selectedAppearance.borderWidth ?? 0}
+                : Number(
+                    selectedAppearance.borderWidth ?? 0,
+                  )}
       </span>
     </div>
 
     <div className={topBarSliderWrapClass()}>
       <span>Radius</span>
+
       <input
         type="range"
         min={0}
@@ -12697,16 +12768,17 @@ formFieldStyleTarget === "field"
           selectedBlock?.type === "post_board" &&
           postBoardStyleTarget === "card"
             ? Number(
-                ((selectedBlock.data as any).cardStyle ?? {}).borderRadius ?? 0,
+                ((selectedBlock.data as any).cardStyle ?? {})
+                  .borderRadius ?? 0,
               )
             : selectedBlock?.type === "post_board" &&
                 postBoardStyleTarget === "buttons"
               ? Number(
-                  ((selectedBlock.data as any).buttonStyle ?? {}).borderRadius ??
-                    0,
+                  ((selectedBlock.data as any).buttonStyle ?? {})
+                    .borderRadius ?? 0,
                 )
               : selectedBlock?.type === "form_field" &&
-formFieldStyleTarget === "field"
+                  formFieldStyleTarget === "field"
                 ? Number(
                     ((selectedBlock.data as any).inputStyle ?? {})
                       .borderRadius ?? 0,
@@ -12717,34 +12789,60 @@ formFieldStyleTarget === "field"
                       ((selectedBlock.data as any).fieldStyle ?? {})
                         .borderRadius ?? 0,
                     )
-                  : selectedAppearance.borderRadius ?? 0
+                  : Number(
+                      selectedAppearance.borderRadius ?? 0,
+                    )
         }
-        onChange={(e) =>
+        onChange={(e) => {
+          const borderRadius =
+            Number(e.target.value) || 0;
+
+          if (selectedBlock?.type === "calendar_event") {
+            updateSelectedBlock((block) =>
+              block.type !== "calendar_event"
+                ? block
+                : applyCalendarEventStylePatch(
+                    block,
+                    calendarEventStyleTarget,
+                    {
+                      borderRadius,
+                    },
+                  ),
+            );
+
+            return;
+          }
+
           applyAppearancePatch({
-            borderRadius: Number(e.target.value) || 0,
-          })
-        }
+            borderRadius,
+          });
+        }}
         className={topBarSliderClass()}
-        title="Corner radius"
+        title={
+          selectedBlock?.type === "calendar_event"
+            ? "Selected calendar style target corner radius"
+            : "Corner radius"
+        }
       />
 
       <span>
         {selectedBlock?.type === "post_board" &&
         postBoardStyleTarget === "card"
           ? Number(
-              ((selectedBlock.data as any).cardStyle ?? {}).borderRadius ?? 0,
+              ((selectedBlock.data as any).cardStyle ?? {})
+                .borderRadius ?? 0,
             )
           : selectedBlock?.type === "post_board" &&
               postBoardStyleTarget === "buttons"
             ? Number(
-                ((selectedBlock.data as any).buttonStyle ?? {}).borderRadius ??
-                  0,
+                ((selectedBlock.data as any).buttonStyle ?? {})
+                  .borderRadius ?? 0,
               )
             : selectedBlock?.type === "form_field" &&
-formFieldStyleTarget === "field"
+                formFieldStyleTarget === "field"
               ? Number(
-                  ((selectedBlock.data as any).inputStyle ?? {}).borderRadius ??
-                    0,
+                  ((selectedBlock.data as any).inputStyle ?? {})
+                    .borderRadius ?? 0,
                 )
               : selectedBlock?.type === "enrollment_board" &&
                   enrollmentBoardStyleTarget === "field"
@@ -12752,7 +12850,9 @@ formFieldStyleTarget === "field"
                     ((selectedBlock.data as any).fieldStyle ?? {})
                       .borderRadius ?? 0,
                   )
-                : selectedAppearance.borderRadius ?? 0}
+                : Number(
+                    selectedAppearance.borderRadius ?? 0,
+                  )}
       </span>
     </div>
   </>

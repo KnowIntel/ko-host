@@ -63,76 +63,148 @@ export function CalendarEventInspector({
       {/* Formatting */}
       <div className={inspectorLabelClass()}>Formatting</div>
 
-      <div className="mt-4">
-        <div className={inspectorLabelClass()}>Text Target</div>
+<div className="mt-4">
+  <div className={inspectorLabelClass()}>Text Target</div>
 
-        <select
-          value={calendarEventTextTarget}
-          onChange={(e) =>
-            setCalendarEventTextTarget(
-              e.target.value as CalendarEventTextTarget,
-            )
-          }
-          className={inspectorInputClass()}
-        >
-          <option value="heading">Heading</option>
-          <option value="subtitle">Subtitle</option>
-          <option value="monthYearLabel">Month/Year Label</option>
-          <option value="weeklyDayLabels">Weekly Day Labels</option>
-          <option value="monthlyDateLabels">Monthly Date Labels</option>
-          <option value="monthArrows">Month Arrows</option>
-          <option value="emptyStateText">Empty State Text</option>
-          <option value="scheduledLabel">Scheduled Label</option>
-          <option value="eventDot">Event Dot</option>
-          <option value="eventTitle">Event Title</option>
-          <option value="eventSubtitle">Event Subtitle</option>
-          <option value="eventDate">Event Date</option>
-          <option value="eventMeetingMethod">
-            Event Meeting Method
-          </option>
-          <option value="eventLocation">Event Location</option>
-          <option value="eventAddress">Event Address</option>
-          <option value="virtualMeetingLink">
-            Virtual Meeting Link
-          </option>
-          <option value="eventDescription">
-            Event Description
-          </option>
-          <option value="capacity">Capacity</option>
-          <option value="categoryHostTags">
-            Category &amp; Host Tags
-          </option>
-          <option value="ctaButton">CTA Button</option>
-        </select>
-      </div>
+  <select
+    value={calendarEventTextTarget}
+    onChange={(e) =>
+      setCalendarEventTextTarget(
+        e.target.value as CalendarEventTextTarget,
+      )
+    }
+    className={inspectorInputClass()}
+  >
+    <optgroup label="Calendar">
+      <option value="heading">Heading</option>
+      <option value="subtitle">Subtitle</option>
+      <option value="monthYearLabel">Month/Year Label</option>
+      <option value="weeklyDayLabels">Weekly Day Labels</option>
+      <option value="monthlyDateLabels">Monthly Date Labels</option>
+      <option value="monthArrows">Month Arrows</option>
+      <option value="emptyStateText">Empty State Text</option>
+      <option value="scheduledLabel">Scheduled Label</option>
+      <option value="eventDot">Event Dot</option>
+    </optgroup>
 
-      <div className="mt-4">
-        <div className={inspectorLabelClass()}>Style Target</div>
+    <optgroup label="Event">
+      <option value="eventTitle">Event Title</option>
+      <option value="eventSubtitle">Event Subtitle</option>
+      <option value="eventDate">Event Date</option>
+      <option value="eventMeetingMethod">
+        Event Meeting Method
+      </option>
+      <option value="eventLocation">Event Location</option>
+      <option value="eventAddress">Event Address</option>
+      <option value="virtualMeetingLink">
+        Virtual Meeting Link
+      </option>
+      <option value="eventDescription">
+        Event Description
+      </option>
+      <option value="capacity">Capacity</option>
+      <option value="categoryHostTags">
+        Category &amp; Host Tags
+      </option>
+      <option value="ctaButton">CTA Button</option>
+    </optgroup>
 
-        <select
-          value={calendarEventStyleTarget}
-          onChange={(e) =>
-            setCalendarEventStyleTarget(
-              e.target.value as CalendarEventStyleTarget,
-            )
-          }
-          className={inspectorInputClass()}
-        >
-          <option value="calendar">Calendar</option>
-          <option value="eventCard">Event Card</option>
-          <option value="selectedDateCard">
-            Selected Date Card
-          </option>
-          <option value="calendarDateCircles">
-            Calendar Date Circles
-          </option>
-          <option value="monthArrowCircles">
-            Month Arrow Circles
-          </option>
-          <option value="ctaButton">CTA Button</option>
-          <option value="block">Block</option>
-        </select>
-      </div>
+    <optgroup label="Professional Scheduling">
+      <option value="professionalDetailsHeading">
+        Visitor Details Heading
+      </option>
+
+      <option value="professionalFieldText">
+        Form Field Text
+      </option>
+
+      <option value="professionalChoiceText">
+        Appointment Choice Text
+      </option>
+
+      <option value="professionalTimesHeading">
+        Available Times Heading
+      </option>
+
+      <option value="professionalTimeSlotText">
+        Time Slot Text
+      </option>
+
+      <option value="professionalBookingButton">
+        Booking Button Text
+      </option>
+
+      <option value="professionalConfirmationHeading">
+        Confirmation Heading
+      </option>
+
+      <option value="professionalConfirmationMessage">
+        Confirmation Message
+      </option>
+    </optgroup>
+  </select>
+</div>
+
+<div className="mt-4">
+  <div className={inspectorLabelClass()}>Style Target</div>
+
+  <select
+    value={calendarEventStyleTarget}
+    onChange={(e) =>
+      setCalendarEventStyleTarget(
+        e.target.value as CalendarEventStyleTarget,
+      )
+    }
+    className={inspectorInputClass()}
+  >
+    <optgroup label="Calendar">
+      <option value="calendar">Calendar</option>
+      <option value="eventCard">Event Card</option>
+      <option value="selectedDateCard">
+        Selected Date Card
+      </option>
+      <option value="calendarDateCircles">
+        Calendar Date Circles
+      </option>
+      <option value="monthArrowCircles">
+        Month Arrow Circles
+      </option>
+      <option value="ctaButton">CTA Button</option>
+    </optgroup>
+
+    <optgroup label="Professional Scheduling">
+      <option value="professionalDetailsPanel">
+        Visitor Details Panel
+      </option>
+
+      <option value="professionalField">
+        Form Fields
+      </option>
+
+      <option value="professionalChoiceButton">
+        Appointment Choice Buttons
+      </option>
+
+      <option value="professionalTimesPanel">
+        Available Times Panel
+      </option>
+
+      <option value="professionalTimeSlotButton">
+        Time Slot Buttons
+      </option>
+
+      <option value="professionalBookingButton">
+        Booking Button
+      </option>
+
+      <option value="professionalConfirmationPanel">
+        Confirmation Panel
+      </option>
+    </optgroup>
+
+    <option value="block">Entire Block</option>
+  </select>
+</div>
 
       {/* Calendar Event */}
       <div className="mt-6">
@@ -271,35 +343,38 @@ export function CalendarEventInspector({
       />
     </div>
 
-    <div className="mt-4">
-      <div className={inspectorLabelClass()}>Style Variant</div>
-      <select
-        value={selectedBlock.data.variant}
-        onChange={(e) =>
-          updateSelectedBlock((block: any) =>
-            block.type !== "calendar_event"
-              ? block
-              : {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    variant: e.target.value as
-  | "standard"
-  | "formal"
-  | "simplified"
-  | "compact",
-                  },
-                },
-          )
-        }
-        className={inspectorInputClass()}
-      >
-<option value="standard">Standard</option>
-<option value="formal">Formal</option>
-<option value="simplified">Simplified</option>
-<option value="compact">Compact</option>
-      </select>
-    </div>
+<div className="mt-4">
+  <div className={inspectorLabelClass()}>Style Variant</div>
+
+  <select
+    value={selectedBlock.data.variant}
+    onChange={(e) =>
+      updateSelectedBlock((block: any) =>
+        block.type !== "calendar_event"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                variant: e.target.value as
+                  | "standard"
+                  | "formal"
+                  | "simplified"
+                  | "compact"
+                  | "professional",
+              },
+            },
+      )
+    }
+    className={inspectorInputClass()}
+  >
+    <option value="standard">Standard</option>
+    <option value="formal">Formal</option>
+    <option value="simplified">Simplified</option>
+    <option value="compact">Compact</option>
+    <option value="professional">Professional</option>
+  </select>
+</div>
 
     {selectedBlock.data.variant === "compact" ? (
   <div className="mt-4 space-y-3">
@@ -520,6 +595,945 @@ export function CalendarEventInspector({
   </>
 ) : null}
 </div>
+) : null}
+
+{selectedBlock.data.variant === "professional" ? (
+  <div className="mt-4 space-y-5">
+    <div className={inspectorLabelClass()}>
+      Professional Scheduling
+    </div>
+
+    {/* BOOKING DETAILS */}
+    <div className="space-y-3 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+      <div className="text-xs font-semibold uppercase tracking-[0.08em] text-neutral-500">
+        Booking Details
+      </div>
+
+      <div>
+        <div className={inspectorLabelClass()}>
+          Booking Subject / Event Name
+        </div>
+
+        <input
+          type="text"
+          value={
+            selectedBlock.data.professionalBookingSubject ??
+            "Appointment"
+          }
+          onChange={(e) =>
+            updateSelectedBlock((block: any) =>
+              block.type !== "calendar_event"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      professionalBookingSubject: e.target.value,
+                    },
+                  },
+            )
+          }
+          className={inspectorInputClass()}
+          placeholder="Appointment"
+        />
+      </div>
+
+      <div>
+        <div className={inspectorLabelClass()}>
+          Phone Field
+        </div>
+
+        <select
+          value={
+            selectedBlock.data.professionalPhoneMode ??
+            "optional"
+          }
+          onChange={(e) =>
+            updateSelectedBlock((block: any) =>
+              block.type !== "calendar_event"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      professionalPhoneMode:
+                        e.target.value as
+                          | "hidden"
+                          | "optional"
+                          | "required",
+                    },
+                  },
+            )
+          }
+          className={inspectorInputClass()}
+        >
+          <option value="hidden">Hidden</option>
+          <option value="optional">Optional</option>
+          <option value="required">Required</option>
+        </select>
+      </div>
+    </div>
+
+    {/* APPOINTMENT CHOICES */}
+    <div className="space-y-3 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+      <div className="flex items-center justify-between gap-3">
+        <div className="text-xs font-semibold uppercase tracking-[0.08em] text-neutral-500">
+          Appointment Choices
+        </div>
+
+        <button
+          type="button"
+          className={toolSetButtonClass("back")}
+          onClick={() =>
+            updateSelectedBlock((block: any) =>
+              block.type !== "calendar_event"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      professionalChoices: [
+                        ...(Array.isArray(
+                          block.data.professionalChoices,
+                        )
+                          ? block.data.professionalChoices
+                          : []),
+                        {
+                          id: makeClientId("calendarchoice"),
+                          label: "New Choice",
+                          description: "",
+                          durationMinutes: 60,
+                          enabled: true,
+                        },
+                      ],
+                    },
+                  },
+            )
+          }
+        >
+          + Add Choice
+        </button>
+      </div>
+
+      <div>
+        <div className={inspectorLabelClass()}>
+          Choice Section Label
+        </div>
+
+        <input
+          type="text"
+          value={
+            selectedBlock.data.professionalChoiceSectionLabel ??
+            "Appointment Type"
+          }
+          onChange={(e) =>
+            updateSelectedBlock((block: any) =>
+              block.type !== "calendar_event"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      professionalChoiceSectionLabel:
+                        e.target.value,
+                    },
+                  },
+            )
+          }
+          className={inspectorInputClass()}
+        />
+      </div>
+
+      {(selectedBlock.data.professionalChoices ?? []).length ? (
+        <div className="space-y-3">
+          {(selectedBlock.data.professionalChoices ?? []).map(
+            (choice: any, choiceIndex: number) => (
+              <div
+                key={choice.id}
+                className="space-y-3 rounded-xl border border-neutral-200 bg-white p-3"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div className="text-xs font-semibold text-neutral-700">
+                    Choice {choiceIndex + 1}
+                  </div>
+
+                  <label className="flex items-center gap-2 text-xs text-neutral-600">
+                    <input
+                      type="checkbox"
+                      checked={choice.enabled !== false}
+                      onChange={(e) =>
+                        updateSelectedBlock((block: any) =>
+                          block.type !== "calendar_event"
+                            ? block
+                            : {
+                                ...block,
+                                data: {
+                                  ...block.data,
+                                  professionalChoices: (
+                                    block.data
+                                      .professionalChoices ?? []
+                                  ).map((entry: any) =>
+                                    entry.id === choice.id
+                                      ? {
+                                          ...entry,
+                                          enabled:
+                                            e.target.checked,
+                                        }
+                                      : entry,
+                                  ),
+                                },
+                              },
+                        )
+                      }
+                    />
+                    Enabled
+                  </label>
+                </div>
+
+                <input
+                  type="text"
+                  value={choice.label ?? ""}
+                  placeholder="Choice label"
+                  onChange={(e) =>
+                    updateSelectedBlock((block: any) =>
+                      block.type !== "calendar_event"
+                        ? block
+                        : {
+                            ...block,
+                            data: {
+                              ...block.data,
+                              professionalChoices: (
+                                block.data
+                                  .professionalChoices ?? []
+                              ).map((entry: any) =>
+                                entry.id === choice.id
+                                  ? {
+                                      ...entry,
+                                      label:
+                                        e.target.value,
+                                    }
+                                  : entry,
+                              ),
+                            },
+                          },
+                    )
+                  }
+                  className={inspectorInputClass()}
+                />
+
+                <textarea
+                  value={choice.description ?? ""}
+                  placeholder="Description"
+                  onChange={(e) =>
+                    updateSelectedBlock((block: any) =>
+                      block.type !== "calendar_event"
+                        ? block
+                        : {
+                            ...block,
+                            data: {
+                              ...block.data,
+                              professionalChoices: (
+                                block.data
+                                  .professionalChoices ?? []
+                              ).map((entry: any) =>
+                                entry.id === choice.id
+                                  ? {
+                                      ...entry,
+                                      description:
+                                        e.target.value,
+                                    }
+                                  : entry,
+                              ),
+                            },
+                          },
+                    )
+                  }
+                  className={`${inspectorInputClass()} min-h-[64px] resize-none`}
+                />
+
+                <div>
+                  <div className={inspectorLabelClass()}>
+                    Duration (Minutes)
+                  </div>
+
+                  <input
+                    type="number"
+                    min={5}
+                    max={1440}
+                    step={5}
+                    value={choice.durationMinutes ?? 60}
+                    onChange={(e) =>
+                      updateSelectedBlock((block: any) =>
+                        block.type !== "calendar_event"
+                          ? block
+                          : {
+                              ...block,
+                              data: {
+                                ...block.data,
+                                professionalChoices: (
+                                  block.data
+                                    .professionalChoices ?? []
+                                ).map((entry: any) =>
+                                  entry.id === choice.id
+                                    ? {
+                                        ...entry,
+                                        durationMinutes:
+                                          Math.max(
+                                            5,
+                                            Number(
+                                              e.target.value,
+                                            ) || 60,
+                                          ),
+                                      }
+                                    : entry,
+                                ),
+                              },
+                            },
+                      )
+                    }
+                    className={inspectorInputClass()}
+                  />
+                </div>
+
+                <div className="flex flex-wrap justify-end gap-2">
+                  <button
+                    type="button"
+                    disabled={choiceIndex === 0}
+                    className={toolSetButtonClass("back")}
+                    onClick={() =>
+                      updateSelectedBlock((block: any) => {
+                        if (
+                          block.type !== "calendar_event" ||
+                          choiceIndex === 0
+                        ) {
+                          return block;
+                        }
+
+                        const nextChoices = [
+                          ...(block.data.professionalChoices ??
+                            []),
+                        ];
+
+                        [
+                          nextChoices[choiceIndex - 1],
+                          nextChoices[choiceIndex],
+                        ] = [
+                          nextChoices[choiceIndex],
+                          nextChoices[choiceIndex - 1],
+                        ];
+
+                        return {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            professionalChoices:
+                              nextChoices,
+                          },
+                        };
+                      })
+                    }
+                  >
+                    Up
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={
+                      choiceIndex ===
+                      (selectedBlock.data
+                        .professionalChoices?.length ?? 0) -
+                        1
+                    }
+                    className={toolSetButtonClass("back")}
+                    onClick={() =>
+                      updateSelectedBlock((block: any) => {
+                        if (
+                          block.type !== "calendar_event"
+                        ) {
+                          return block;
+                        }
+
+                        const nextChoices = [
+                          ...(block.data.professionalChoices ??
+                            []),
+                        ];
+
+                        if (
+                          choiceIndex >=
+                          nextChoices.length - 1
+                        ) {
+                          return block;
+                        }
+
+                        [
+                          nextChoices[choiceIndex],
+                          nextChoices[choiceIndex + 1],
+                        ] = [
+                          nextChoices[choiceIndex + 1],
+                          nextChoices[choiceIndex],
+                        ];
+
+                        return {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            professionalChoices:
+                              nextChoices,
+                          },
+                        };
+                      })
+                    }
+                  >
+                    Down
+                  </button>
+
+                  <button
+                    type="button"
+                    className={toolSetButtonClass("back")}
+                    onClick={() =>
+                      updateSelectedBlock((block: any) =>
+                        block.type !== "calendar_event"
+                          ? block
+                          : {
+                              ...block,
+                              data: {
+                                ...block.data,
+                                professionalChoices: [
+                                  ...(block.data
+                                    .professionalChoices ?? []),
+                                  {
+                                    ...choice,
+                                    id: makeClientId(
+                                      "calendarchoice",
+                                    ),
+                                    label: `${
+                                      choice.label ||
+                                      "Choice"
+                                    } Copy`,
+                                  },
+                                ],
+                              },
+                            },
+                      )
+                    }
+                  >
+                    Duplicate
+                  </button>
+
+                  <button
+                    type="button"
+                    className={toolSetButtonClass("remove")}
+                    onClick={() =>
+                      updateSelectedBlock((block: any) =>
+                        block.type !== "calendar_event"
+                          ? block
+                          : {
+                              ...block,
+                              data: {
+                                ...block.data,
+                                professionalChoices: (
+                                  block.data
+                                    .professionalChoices ?? []
+                                ).filter(
+                                  (entry: any) =>
+                                    entry.id !== choice.id,
+                                ),
+                              },
+                            },
+                      )
+                    }
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            ),
+          )}
+        </div>
+      ) : (
+        <div className="rounded-xl border border-dashed border-neutral-300 bg-white px-3 py-4 text-center text-xs text-neutral-500">
+          No choices configured. Visitors will book a time
+          without selecting an appointment type.
+        </div>
+      )}
+    </div>
+
+    {/* AVAILABLE TIME SLOTS */}
+    <div className="space-y-3 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+      <div className="flex items-center justify-between gap-3">
+        <div className="text-xs font-semibold uppercase tracking-[0.08em] text-neutral-500">
+          Available Time Slots
+        </div>
+
+        <button
+          type="button"
+          className={toolSetButtonClass("back")}
+          onClick={() =>
+            updateSelectedBlock((block: any) => {
+              if (block.type !== "calendar_event") {
+                return block;
+              }
+
+              const fallbackDate =
+                block.data.defaultSelectedDate ||
+                new Date().toISOString().slice(0, 10);
+
+              return {
+                ...block,
+                data: {
+                  ...block.data,
+                  professionalSlots: [
+                    ...(Array.isArray(
+                      block.data.professionalSlots,
+                    )
+                      ? block.data.professionalSlots
+                      : []),
+                    {
+                      id: makeClientId("calendarslot"),
+                      date: fallbackDate,
+                      startTime: "09:00",
+                      endTime: "10:00",
+                      enabled: true,
+                    },
+                  ],
+                },
+              };
+            })
+          }
+        >
+          + Add Slot
+        </button>
+      </div>
+
+      <label className="flex items-center gap-2 text-sm text-neutral-700">
+        <input
+          type="checkbox"
+          checked={
+            selectedBlock.data
+              .professionalShowUnavailableSlots === true
+          }
+          onChange={(e) =>
+            updateSelectedBlock((block: any) =>
+              block.type !== "calendar_event"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      professionalShowUnavailableSlots:
+                        e.target.checked,
+                    },
+                  },
+            )
+          }
+        />
+        Show booked/unavailable slots to visitors
+      </label>
+
+      {(selectedBlock.data.professionalSlots ?? []).length ? (
+        <div className="space-y-3">
+          {(selectedBlock.data.professionalSlots ?? []).map(
+            (slot: any, slotIndex: number) => (
+              <div
+                key={slot.id}
+                className="space-y-3 rounded-xl border border-neutral-200 bg-white p-3"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div className="text-xs font-semibold text-neutral-700">
+                    Slot {slotIndex + 1}
+                  </div>
+
+                  <label className="flex items-center gap-2 text-xs text-neutral-600">
+                    <input
+                      type="checkbox"
+                      checked={slot.enabled !== false}
+                      onChange={(e) =>
+                        updateSelectedBlock((block: any) =>
+                          block.type !== "calendar_event"
+                            ? block
+                            : {
+                                ...block,
+                                data: {
+                                  ...block.data,
+                                  professionalSlots: (
+                                    block.data
+                                      .professionalSlots ?? []
+                                  ).map((entry: any) =>
+                                    entry.id === slot.id
+                                      ? {
+                                          ...entry,
+                                          enabled:
+                                            e.target.checked,
+                                        }
+                                      : entry,
+                                  ),
+                                },
+                              },
+                        )
+                      }
+                    />
+                    Enabled
+                  </label>
+                </div>
+
+                <div>
+                  <div className={inspectorLabelClass()}>
+                    Date
+                  </div>
+
+                  <input
+                    type="date"
+                    value={slot.date ?? ""}
+                    onChange={(e) =>
+                      updateSelectedBlock((block: any) =>
+                        block.type !== "calendar_event"
+                          ? block
+                          : {
+                              ...block,
+                              data: {
+                                ...block.data,
+                                professionalSlots: (
+                                  block.data
+                                    .professionalSlots ?? []
+                                ).map((entry: any) =>
+                                  entry.id === slot.id
+                                    ? {
+                                        ...entry,
+                                        date:
+                                          e.target.value,
+                                      }
+                                    : entry,
+                                ),
+                              },
+                            },
+                      )
+                    }
+                    className={inspectorInputClass()}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <div className={inspectorLabelClass()}>
+                      Start Time
+                    </div>
+
+                    <input
+                      type="time"
+                      value={slot.startTime ?? ""}
+                      onChange={(e) =>
+                        updateSelectedBlock((block: any) =>
+                          block.type !== "calendar_event"
+                            ? block
+                            : {
+                                ...block,
+                                data: {
+                                  ...block.data,
+                                  professionalSlots: (
+                                    block.data
+                                      .professionalSlots ?? []
+                                  ).map((entry: any) =>
+                                    entry.id === slot.id
+                                      ? {
+                                          ...entry,
+                                          startTime:
+                                            e.target.value,
+                                        }
+                                      : entry,
+                                  ),
+                                },
+                              },
+                        )
+                      }
+                      className={inspectorInputClass()}
+                    />
+                  </div>
+
+                  <div>
+                    <div className={inspectorLabelClass()}>
+                      End Time
+                    </div>
+
+                    <input
+                      type="time"
+                      value={slot.endTime ?? ""}
+                      onChange={(e) =>
+                        updateSelectedBlock((block: any) =>
+                          block.type !== "calendar_event"
+                            ? block
+                            : {
+                                ...block,
+                                data: {
+                                  ...block.data,
+                                  professionalSlots: (
+                                    block.data
+                                      .professionalSlots ?? []
+                                  ).map((entry: any) =>
+                                    entry.id === slot.id
+                                      ? {
+                                          ...entry,
+                                          endTime:
+                                            e.target.value,
+                                        }
+                                      : entry,
+                                  ),
+                                },
+                              },
+                        )
+                      }
+                      className={inspectorInputClass()}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap justify-end gap-2">
+                  <button
+                    type="button"
+                    disabled={slotIndex === 0}
+                    className={toolSetButtonClass("back")}
+                    onClick={() =>
+                      updateSelectedBlock((block: any) => {
+                        if (
+                          block.type !== "calendar_event" ||
+                          slotIndex === 0
+                        ) {
+                          return block;
+                        }
+
+                        const nextSlots = [
+                          ...(block.data.professionalSlots ??
+                            []),
+                        ];
+
+                        [
+                          nextSlots[slotIndex - 1],
+                          nextSlots[slotIndex],
+                        ] = [
+                          nextSlots[slotIndex],
+                          nextSlots[slotIndex - 1],
+                        ];
+
+                        return {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            professionalSlots: nextSlots,
+                          },
+                        };
+                      })
+                    }
+                  >
+                    Up
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={
+                      slotIndex ===
+                      (selectedBlock.data
+                        .professionalSlots?.length ?? 0) -
+                        1
+                    }
+                    className={toolSetButtonClass("back")}
+                    onClick={() =>
+                      updateSelectedBlock((block: any) => {
+                        if (
+                          block.type !== "calendar_event"
+                        ) {
+                          return block;
+                        }
+
+                        const nextSlots = [
+                          ...(block.data.professionalSlots ??
+                            []),
+                        ];
+
+                        if (
+                          slotIndex >= nextSlots.length - 1
+                        ) {
+                          return block;
+                        }
+
+                        [
+                          nextSlots[slotIndex],
+                          nextSlots[slotIndex + 1],
+                        ] = [
+                          nextSlots[slotIndex + 1],
+                          nextSlots[slotIndex],
+                        ];
+
+                        return {
+                          ...block,
+                          data: {
+                            ...block.data,
+                            professionalSlots: nextSlots,
+                          },
+                        };
+                      })
+                    }
+                  >
+                    Down
+                  </button>
+
+                  <button
+                    type="button"
+                    className={toolSetButtonClass("back")}
+                    onClick={() =>
+                      updateSelectedBlock((block: any) =>
+                        block.type !== "calendar_event"
+                          ? block
+                          : {
+                              ...block,
+                              data: {
+                                ...block.data,
+                                professionalSlots: [
+                                  ...(block.data
+                                    .professionalSlots ?? []),
+                                  {
+                                    ...slot,
+                                    id: makeClientId(
+                                      "calendarslot",
+                                    ),
+                                  },
+                                ],
+                              },
+                            },
+                      )
+                    }
+                  >
+                    Duplicate
+                  </button>
+
+                  <button
+                    type="button"
+                    className={toolSetButtonClass("remove")}
+                    onClick={() =>
+                      updateSelectedBlock((block: any) =>
+                        block.type !== "calendar_event"
+                          ? block
+                          : {
+                              ...block,
+                              data: {
+                                ...block.data,
+                                professionalSlots: (
+                                  block.data
+                                    .professionalSlots ?? []
+                                ).filter(
+                                  (entry: any) =>
+                                    entry.id !== slot.id,
+                                ),
+                              },
+                            },
+                      )
+                    }
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            ),
+          )}
+        </div>
+      ) : (
+        <div className="rounded-xl border border-dashed border-neutral-300 bg-white px-3 py-4 text-center text-xs text-neutral-500">
+          No available booking slots have been configured.
+        </div>
+      )}
+    </div>
+
+    {/* BUTTON + CONFIRMATION */}
+    <div className="space-y-3 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+      <div className="text-xs font-semibold uppercase tracking-[0.08em] text-neutral-500">
+        Booking Confirmation
+      </div>
+
+      <div>
+        <div className={inspectorLabelClass()}>
+          Submit Button Text
+        </div>
+
+        <input
+          type="text"
+          value={
+            selectedBlock.data.professionalSubmitButtonText ??
+            "Book Appointment"
+          }
+          onChange={(e) =>
+            updateSelectedBlock((block: any) =>
+              block.type !== "calendar_event"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      professionalSubmitButtonText:
+                        e.target.value,
+                    },
+                  },
+            )
+          }
+          className={inspectorInputClass()}
+        />
+      </div>
+
+      <div>
+        <div className={inspectorLabelClass()}>
+          Confirmation Heading
+        </div>
+
+        <input
+          type="text"
+          value={
+            selectedBlock.data.professionalConfirmationHeading ??
+            "Appointment Confirmed"
+          }
+          onChange={(e) =>
+            updateSelectedBlock((block: any) =>
+              block.type !== "calendar_event"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      professionalConfirmationHeading:
+                        e.target.value,
+                    },
+                  },
+            )
+          }
+          className={inspectorInputClass()}
+        />
+      </div>
+
+      <div>
+        <div className={inspectorLabelClass()}>
+          Confirmation Message
+        </div>
+
+        <textarea
+          value={
+            selectedBlock.data.professionalConfirmationMessage ??
+            "Your appointment has been scheduled successfully."
+          }
+          onChange={(e) =>
+            updateSelectedBlock((block: any) =>
+              block.type !== "calendar_event"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+                      professionalConfirmationMessage:
+                        e.target.value,
+                    },
+                  },
+            )
+          }
+          className={`${inspectorInputClass()} min-h-[80px] resize-none`}
+        />
+      </div>
+    </div>
+  </div>
 ) : null}
 
     <div className="mt-5">
@@ -804,6 +1818,422 @@ export function CalendarEventInspector({
 
     <div className="mt-5 space-y-3">
       <div className={inspectorLabelClass()}>Events</div>
+
+{selectedBlock.data.variant === "professional" ? (
+  <div className="mb-5 space-y-5">
+    <div className="rounded-xl border border-neutral-200 bg-white p-3">
+      <div className={inspectorLabelClass()}>
+        Professional Choices
+      </div>
+
+      <div className="mt-3 space-y-3">
+        {(selectedBlock.data.professionalChoices ?? []).map(
+          (choice: any, choiceIndex: number) => (
+            <div
+              key={choice.id}
+              className="rounded-xl border border-neutral-200 bg-neutral-50 p-3"
+            >
+              <div className="space-y-2">
+                <input
+                  type="text"
+                  value={choice.label ?? ""}
+                  placeholder="Choice label"
+                  onChange={(e) =>
+                    updateSelectedBlock((block: any) =>
+                      block.type !== "calendar_event"
+                        ? block
+                        : {
+                            ...block,
+                            data: {
+                              ...block.data,
+                              professionalChoices: (
+                                block.data.professionalChoices ?? []
+                              ).map((entry: any) =>
+                                entry.id === choice.id
+                                  ? {
+                                      ...entry,
+                                      label: e.target.value,
+                                    }
+                                  : entry,
+                              ),
+                            },
+                          },
+                    )
+                  }
+                  className={inspectorInputClass()}
+                />
+
+                <input
+                  type="text"
+                  value={choice.description ?? ""}
+                  placeholder="Optional description"
+                  onChange={(e) =>
+                    updateSelectedBlock((block: any) =>
+                      block.type !== "calendar_event"
+                        ? block
+                        : {
+                            ...block,
+                            data: {
+                              ...block.data,
+                              professionalChoices: (
+                                block.data.professionalChoices ?? []
+                              ).map((entry: any) =>
+                                entry.id === choice.id
+                                  ? {
+                                      ...entry,
+                                      description: e.target.value,
+                                    }
+                                  : entry,
+                              ),
+                            },
+                          },
+                    )
+                  }
+                  className={inspectorInputClass()}
+                />
+
+                <div>
+                  <div className={inspectorLabelClass()}>
+                    Duration (minutes)
+                  </div>
+
+                  <input
+                    type="number"
+                    min={5}
+                    max={1440}
+                    step={5}
+                    value={choice.durationMinutes ?? 60}
+                    onChange={(e) =>
+                      updateSelectedBlock((block: any) =>
+                        block.type !== "calendar_event"
+                          ? block
+                          : {
+                              ...block,
+                              data: {
+                                ...block.data,
+                                professionalChoices: (
+                                  block.data.professionalChoices ?? []
+                                ).map((entry: any) =>
+                                  entry.id === choice.id
+                                    ? {
+                                        ...entry,
+                                        durationMinutes: Math.max(
+                                          5,
+                                          Number(e.target.value) || 60,
+                                        ),
+                                      }
+                                    : entry,
+                                ),
+                              },
+                            },
+                      )
+                    }
+                    className={inspectorInputClass()}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between gap-3">
+                  <label className="flex items-center gap-2 text-sm text-neutral-700">
+                    <input
+                      type="checkbox"
+                      checked={choice.enabled !== false}
+                      onChange={(e) =>
+                        updateSelectedBlock((block: any) =>
+                          block.type !== "calendar_event"
+                            ? block
+                            : {
+                                ...block,
+                                data: {
+                                  ...block.data,
+                                  professionalChoices: (
+                                    block.data.professionalChoices ?? []
+                                  ).map((entry: any) =>
+                                    entry.id === choice.id
+                                      ? {
+                                          ...entry,
+                                          enabled: e.target.checked,
+                                        }
+                                      : entry,
+                                  ),
+                                },
+                              },
+                        )
+                      }
+                    />
+                    Enabled
+                  </label>
+
+                  <button
+                    type="button"
+                    className={toolSetButtonClass("remove")}
+                    onClick={() =>
+                      updateSelectedBlock((block: any) =>
+                        block.type !== "calendar_event"
+                          ? block
+                          : {
+                              ...block,
+                              data: {
+                                ...block.data,
+                                professionalChoices: (
+                                  block.data.professionalChoices ?? []
+                                ).filter(
+                                  (entry: any) => entry.id !== choice.id,
+                                ),
+                              },
+                            },
+                      )
+                    }
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            </div>
+          ),
+        )}
+      </div>
+
+      <button
+        type="button"
+        className={`${toolSetButtonClass("front")} mt-3`}
+        onClick={() =>
+          updateSelectedBlock((block: any) =>
+            block.type !== "calendar_event"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    professionalChoices: [
+                      ...(block.data.professionalChoices ?? []),
+                      {
+                        id: makeClientId("calendarchoice"),
+                        label: "New Choice",
+                        description: "",
+                        durationMinutes: 60,
+                        enabled: true,
+                      },
+                    ],
+                  },
+                },
+          )
+        }
+      >
+        Add Choice
+      </button>
+    </div>
+
+    <div className="rounded-xl border border-neutral-200 bg-white p-3">
+      <div className={inspectorLabelClass()}>
+        Available Time Slots
+      </div>
+
+      <div className="mt-3 space-y-3">
+        {(selectedBlock.data.professionalSlots ?? []).map(
+          (slot: any) => (
+            <div
+              key={slot.id}
+              className="rounded-xl border border-neutral-200 bg-neutral-50 p-3"
+            >
+              <div className="grid grid-cols-1 gap-2">
+                <div>
+                  <div className={inspectorLabelClass()}>
+                    Date
+                  </div>
+
+                  <input
+                    type="date"
+                    value={slot.date ?? ""}
+                    onChange={(e) =>
+                      updateSelectedBlock((block: any) =>
+                        block.type !== "calendar_event"
+                          ? block
+                          : {
+                              ...block,
+                              data: {
+                                ...block.data,
+                                professionalSlots: (
+                                  block.data.professionalSlots ?? []
+                                ).map((entry: any) =>
+                                  entry.id === slot.id
+                                    ? {
+                                        ...entry,
+                                        date: e.target.value,
+                                      }
+                                    : entry,
+                                ),
+                              },
+                            },
+                      )
+                    }
+                    className={inspectorInputClass()}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <div className={inspectorLabelClass()}>
+                      Start Time
+                    </div>
+
+                    <input
+                      type="time"
+                      value={slot.startTime ?? ""}
+                      onChange={(e) =>
+                        updateSelectedBlock((block: any) =>
+                          block.type !== "calendar_event"
+                            ? block
+                            : {
+                                ...block,
+                                data: {
+                                  ...block.data,
+                                  professionalSlots: (
+                                    block.data.professionalSlots ?? []
+                                  ).map((entry: any) =>
+                                    entry.id === slot.id
+                                      ? {
+                                          ...entry,
+                                          startTime: e.target.value,
+                                        }
+                                      : entry,
+                                  ),
+                                },
+                              },
+                        )
+                      }
+                      className={inspectorInputClass()}
+                    />
+                  </div>
+
+                  <div>
+                    <div className={inspectorLabelClass()}>
+                      End Time
+                    </div>
+
+                    <input
+                      type="time"
+                      value={slot.endTime ?? ""}
+                      onChange={(e) =>
+                        updateSelectedBlock((block: any) =>
+                          block.type !== "calendar_event"
+                            ? block
+                            : {
+                                ...block,
+                                data: {
+                                  ...block.data,
+                                  professionalSlots: (
+                                    block.data.professionalSlots ?? []
+                                  ).map((entry: any) =>
+                                    entry.id === slot.id
+                                      ? {
+                                          ...entry,
+                                          endTime: e.target.value,
+                                        }
+                                      : entry,
+                                  ),
+                                },
+                              },
+                        )
+                      }
+                      className={inspectorInputClass()}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between gap-3">
+                  <label className="flex items-center gap-2 text-sm text-neutral-700">
+                    <input
+                      type="checkbox"
+                      checked={slot.enabled !== false}
+                      onChange={(e) =>
+                        updateSelectedBlock((block: any) =>
+                          block.type !== "calendar_event"
+                            ? block
+                            : {
+                                ...block,
+                                data: {
+                                  ...block.data,
+                                  professionalSlots: (
+                                    block.data.professionalSlots ?? []
+                                  ).map((entry: any) =>
+                                    entry.id === slot.id
+                                      ? {
+                                          ...entry,
+                                          enabled: e.target.checked,
+                                        }
+                                      : entry,
+                                  ),
+                                },
+                              },
+                        )
+                      }
+                    />
+                    Available
+                  </label>
+
+                  <button
+                    type="button"
+                    className={toolSetButtonClass("remove")}
+                    onClick={() =>
+                      updateSelectedBlock((block: any) =>
+                        block.type !== "calendar_event"
+                          ? block
+                          : {
+                              ...block,
+                              data: {
+                                ...block.data,
+                                professionalSlots: (
+                                  block.data.professionalSlots ?? []
+                                ).filter(
+                                  (entry: any) => entry.id !== slot.id,
+                                ),
+                              },
+                            },
+                      )
+                    }
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            </div>
+          ),
+        )}
+      </div>
+
+      <button
+        type="button"
+        className={`${toolSetButtonClass("front")} mt-3`}
+        onClick={() =>
+          updateSelectedBlock((block: any) =>
+            block.type !== "calendar_event"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    professionalSlots: [
+                      ...(block.data.professionalSlots ?? []),
+                      {
+                        id: makeClientId("calendarslot"),
+                        date:
+                          block.data.defaultSelectedDate ||
+                          new Date().toISOString().slice(0, 10),
+                        startTime: "09:00",
+                        endTime: "10:00",
+                        enabled: true,
+                      },
+                    ],
+                  },
+                },
+          )
+        }
+      >
+        Add Time Slot
+      </button>
+    </div>
+  </div>
+) : null}
 
 {selectedBlock.data.events.map((event: any, eventIndex: number) => (
   <div

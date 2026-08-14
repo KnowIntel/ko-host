@@ -18,7 +18,17 @@ export type CalendarEventTextTarget =
   | "eventDescription"
   | "capacity"
   | "categoryHostTags"
-  | "ctaButton";
+  | "ctaButton"
+
+  // Professional variant
+  | "professionalDetailsHeading"
+  | "professionalFieldText"
+  | "professionalChoiceText"
+  | "professionalTimesHeading"
+  | "professionalTimeSlotText"
+  | "professionalBookingButton"
+  | "professionalConfirmationHeading"
+  | "professionalConfirmationMessage";
 
 export type CalendarEventStyleTarget =
   | "calendar"
@@ -27,6 +37,16 @@ export type CalendarEventStyleTarget =
   | "calendarDateCircles"
   | "monthArrowCircles"
   | "ctaButton"
+
+  // Professional variant
+  | "professionalDetailsPanel"
+  | "professionalField"
+  | "professionalChoiceButton"
+  | "professionalTimesPanel"
+  | "professionalTimeSlotButton"
+  | "professionalBookingButton"
+  | "professionalConfirmationPanel"
+
   | "block";
 
 type StylePatch = Record<string, any>;
@@ -100,7 +120,53 @@ function getCalendarEventTextStyleKey(
 
     case "ctaButton":
       return "ctaButtonTextStyle";
+
+    case "professionalDetailsHeading":
+      return "professionalDetailsHeadingStyle";
+
+    case "professionalFieldText":
+      return "professionalFieldTextStyle";
+
+    case "professionalChoiceText":
+      return "professionalChoiceTextStyle";
+
+    case "professionalTimesHeading":
+      return "professionalTimesHeadingStyle";
+
+    case "professionalTimeSlotText":
+      return "professionalTimeSlotTextStyle";
+
+    case "professionalBookingButton":
+      return "professionalBookingButtonTextStyle";
+
+    case "professionalConfirmationHeading":
+      return "professionalConfirmationHeadingStyle";
+
+    case "professionalConfirmationMessage":
+      return "professionalConfirmationMessageStyle";
   }
+}
+
+
+export function getCalendarEventStyle(
+  block: CalendarEventBlock,
+  target: CalendarEventStyleTarget,
+): StylePatch {
+  if (block.type !== "calendar_event") {
+    return {};
+  }
+
+  if (target === "block") {
+    return {
+      ...(block.appearance ?? {}),
+    };
+  }
+
+  const styleKey = getCalendarEventStyleKey(target);
+
+  return {
+    ...((block.data as any)[styleKey] ?? {}),
+  };
 }
 
 function getCalendarEventStyleKey(
@@ -124,6 +190,27 @@ function getCalendarEventStyleKey(
 
     case "ctaButton":
       return "ctaButtonStyle";
+
+    case "professionalDetailsPanel":
+      return "professionalDetailsPanelStyle";
+
+    case "professionalField":
+      return "professionalFieldStyle";
+
+    case "professionalChoiceButton":
+      return "professionalChoiceButtonStyle";
+
+    case "professionalTimesPanel":
+      return "professionalTimesPanelStyle";
+
+    case "professionalTimeSlotButton":
+      return "professionalTimeSlotButtonStyle";
+
+    case "professionalBookingButton":
+      return "professionalBookingButtonStyle";
+
+    case "professionalConfirmationPanel":
+      return "professionalConfirmationPanelStyle";
   }
 }
 

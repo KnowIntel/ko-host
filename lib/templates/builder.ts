@@ -1804,7 +1804,13 @@ export type CalendarEventBlock = BaseBlock & {
   data: {
     heading?: string;
     subtitle?: string;
-    variant: "standard" | "formal" | "simplified" | "compact";
+    variant:
+      | "standard"
+      | "formal"
+      | "simplified"
+      | "compact"
+      | "professional";
+
     defaultSelectedDate?: string;
     defaultMonth?: string;
 
@@ -1834,12 +1840,49 @@ export type CalendarEventBlock = BaseBlock & {
     headingStyle?: TextStyle;
     subtitleStyle?: TextStyle;
     eventTitleStyle?: TextStyle;
+    eventSubtitleStyle?: TextStyle;
     eventDateStyle?: TextStyle;
     eventDetailsStyle?: TextStyle;
 
     timeFormat?: "12h" | "24h";
+
     showHeadingImage?: boolean;
+    headingImageUrl?: string;
+    headingImageStoragePath?: string;
+    headingImageAlt?: string;
     headingImageSize?: number;
+
+    /*
+     * Professional scheduling variant
+     */
+    professionalBookingSubject?: string;
+
+    professionalPhoneMode?: "hidden" | "optional" | "required";
+
+    professionalChoiceSectionLabel?: string;
+
+    professionalChoices?: Array<{
+      id: string;
+      label: string;
+      description?: string;
+      durationMinutes?: number;
+      enabled?: boolean;
+    }>;
+
+    professionalSlots?: Array<{
+      id: string;
+      date: string;
+      startTime: string;
+      endTime?: string;
+      enabled?: boolean;
+    }>;
+
+    professionalShowUnavailableSlots?: boolean;
+
+    professionalSubmitButtonText?: string;
+
+    professionalConfirmationHeading?: string;
+    professionalConfirmationMessage?: string;
 
     calendarStyle?: {
       backgroundColor?: string;
@@ -1855,6 +1898,7 @@ export type CalendarEventBlock = BaseBlock & {
       selectedDateBorderColor?: string;
       formBackgroundColor?: string;
     };
+
     detailStyle?: {
       backgroundColor?: string;
       borderColor?: string;
@@ -1862,6 +1906,7 @@ export type CalendarEventBlock = BaseBlock & {
       shadowEnabled?: boolean;
       textColor?: string;
     };
+
     buttonStyle?: Record<string, any>;
   };
 };
@@ -7999,125 +8044,173 @@ data: {
         },
       };
 
-    case "calendar_event":
-      return {
-        id: makeId("calendar"),
-        type: "calendar_event",
-        label: "Calendar Event",
-        grid: {
-          ...grid,
-          rowSpan: 6,
-        },
-        appearance: createDefaultBlockAppearance(),
-        data: {
-          heading: "Event Calendar",
-          subtitle: "Select a date to view event details.",
-          variant: "standard",
+case "calendar_event":
+  return {
+    id: makeId("calendar"),
+    type: "calendar_event",
+    label: "Calendar Event",
+    grid: {
+      ...grid,
+      rowSpan: 6,
+    },
+    appearance: createDefaultBlockAppearance(),
+    data: {
+      heading: "Event Calendar",
+      subtitle: "Select a date to view event details.",
+      variant: "standard",
 
-          defaultSelectedDate: "2026-06-24",
-          defaultMonth: "2026-06",
+      defaultSelectedDate: "2026-06-24",
+      defaultMonth: "2026-06",
 
-          showHeading: true,
+      showHeading: true,
+      showSubtitle: true,
+      showCalendarHeading: true,
+      showEventCount: true,
+      showEmptyState: true,
+
+      showCategoryBadge: true,
+      showHost: true,
+      showCapacity: true,
+      showRsvpBadge: true,
+      showEventImages: true,
+      showCtaButtons: true,
+
+      compactDateFormat: "weekday",
+      compactMaxVisibleEvents: 4,
+      compactViewAllText: "View All Events",
+      compactViewAllUrl: "",
+      showCompactImages: true,
+
+      emptyStateText: "No events scheduled for this date.",
+
+      events: [
+        {
+          id: makeId("calendarevent"),
+          title: "Community Meetup",
+          subtitle: "Monthly gathering and updates",
+          date: "2026-06-24",
+          startTime: "18:00",
+          endTime: "19:30",
+          meetingMethod: "In Person",
+          location: "Main Hall",
+          address: "",
+          virtualLink: "",
+          notes:
+            "Join us for announcements, networking, and upcoming schedule details.",
+          host: "Event Host",
+          category: "Featured",
+          capacity: "",
+          rsvpRequired: false,
+
+          imageUrl: "",
+          imageStoragePath: "",
+          imageAlt: "",
+          imagePosition: "right",
+
+          buttonText: "View Details",
+          buttonUrl: "",
+          addToCalendarText: "Add to Calendar",
+          addToCalendarUrl: "",
+
+          showLive: false,
+          showStartTime: true,
+          showEndTime: true,
           showSubtitle: true,
-          showCalendarHeading: true,
-          showEventCount: true,
-          showEmptyState: true,
-
-          showCategoryBadge: true,
-          showHost: true,
-          showCapacity: true,
-          showRsvpBadge: true,
-          showEventImages: true,
-          showCtaButtons: true,
-
-          compactDateFormat: "weekday",
-          compactMaxVisibleEvents: 4,
-          compactViewAllText: "View All Events",
-          compactViewAllUrl: "",
-          showCompactImages: true,
-
-          emptyStateText: "No events scheduled for this date.",
-
-          events: [
-            {
-              id: makeId("calendarevent"),
-              title: "Community Meetup",
-              subtitle: "Monthly gathering and updates",
-              date: "2026-06-24",
-              startTime: "6:00 PM",
-              endTime: "7:30 PM",
-              meetingMethod: "In Person",
-              location: "Main Hall",
-              address: "",
-              virtualLink: "",
-              notes:
-                "Join us for announcements, networking, and upcoming schedule details.",
-              host: "Event Host",
-              category: "Featured",
-              capacity: "",
-              rsvpRequired: false,
-              imageUrl: "",
-              imageStoragePath: "",
-              imageAlt: "",
-              imagePosition: "right",
-              buttonText: "View Details",
-              buttonUrl: "",
-              addToCalendarText: "Add to Calendar",
-              addToCalendarUrl: "",
-
-              showLive: false,
-
-              showStartTime: true,
-              showEndTime: true,
-
-              showSubtitle: true,
-
-              headingImageUrl: "",
-              headingImageStoragePath: "",
-
-              imageSize: 64,
-            },
-          ],
-
-          style: createDefaultTextStyle(),
-          headingStyle: createDefaultTextStyle(),
-          subtitleStyle: createDefaultTextStyle(),
-          eventTitleStyle: createDefaultTextStyle(),
-          eventDateStyle: createDefaultTextStyle(),
-          eventDetailsStyle: createDefaultTextStyle(),
-
-          timeFormat: "12h",
-
-          showHeadingImage: false,
-          headingImageSize: 64,
-
-          calendarStyle: {
-            backgroundColor: "",
-            textColor: "",
-            activeDateColor: "",
-            todayBorderColor: "",
-            eventDotColor: "",
-            dateBorderColor: "",
-            scheduledLabelColor: "",
-            monthLabelColor: "",
-            monthArrowColor: "",
-            selectedDateBackgroundColor: "",
-            selectedDateBorderColor: "",
-            formBackgroundColor: "",
-          },
-
-          detailStyle: {
-            backgroundColor: "",
-            borderColor: "",
-            borderRadius: 16,
-            shadowEnabled: false,
-            textColor: "",
-          },
-
-          buttonStyle: {},
         },
-      };
-    case "map_location":
+      ],
+
+      style: createDefaultTextStyle(),
+      headingStyle: createDefaultTextStyle(),
+      subtitleStyle: createDefaultTextStyle(),
+      eventTitleStyle: createDefaultTextStyle(),
+      eventSubtitleStyle: createDefaultTextStyle(),
+      eventDateStyle: createDefaultTextStyle(),
+      eventDetailsStyle: createDefaultTextStyle(),
+
+      timeFormat: "12h",
+
+      showHeadingImage: false,
+      headingImageUrl: "",
+      headingImageStoragePath: "",
+      headingImageAlt: "",
+      headingImageSize: 64,
+
+      // Professional scheduling defaults
+      professionalBookingSubject: "Appointment",
+      professionalPhoneMode: "optional",
+
+      professionalChoiceSectionLabel: "Appointment Type",
+
+      professionalChoices: [
+        {
+          id: makeId("calendarchoice"),
+          label: "Consultation",
+          description: "",
+          durationMinutes: 60,
+          enabled: true,
+        },
+      ],
+
+      professionalSlots: [
+        {
+          id: makeId("calendarslot"),
+          date: "2026-06-24",
+          startTime: "09:00",
+          endTime: "10:00",
+          enabled: true,
+        },
+        {
+          id: makeId("calendarslot"),
+          date: "2026-06-24",
+          startTime: "10:30",
+          endTime: "11:30",
+          enabled: true,
+        },
+        {
+          id: makeId("calendarslot"),
+          date: "2026-06-24",
+          startTime: "12:00",
+          endTime: "13:00",
+          enabled: true,
+        },
+      ],
+
+      professionalShowUnavailableSlots: false,
+
+      professionalSubmitButtonText: "Book Appointment",
+
+      professionalConfirmationHeading: "Appointment Confirmed",
+      professionalConfirmationMessage:
+        "Your appointment has been scheduled successfully.",
+
+      calendarStyle: {
+        backgroundColor: "",
+        textColor: "",
+        activeDateColor: "",
+        todayBorderColor: "",
+        eventDotColor: "",
+        dateBorderColor: "",
+        scheduledLabelColor: "",
+        monthLabelColor: "",
+        monthArrowColor: "",
+        selectedDateBackgroundColor: "",
+        selectedDateBorderColor: "",
+        formBackgroundColor: "",
+      },
+
+      detailStyle: {
+        backgroundColor: "",
+        borderColor: "",
+        borderRadius: 16,
+        shadowEnabled: false,
+        textColor: "",
+      },
+
+      buttonStyle: {},
+    },
+  };
+  
+      case "map_location":
       return {
         id: makeId("map"),
         type: "map_location",

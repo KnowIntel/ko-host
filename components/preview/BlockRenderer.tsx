@@ -11418,6 +11418,7 @@ function renderPostBoard(
   block: Extract<MicrositeBlock, { type: "post_board" }>,
   designKey?: string,
   micrositeId?: string | null,
+  micrositeSlug?: string | null,
 ) {
   const posts = Array.isArray(block.data.posts) ? block.data.posts : [];
 
@@ -11521,7 +11522,7 @@ useEffect(() => {
       setCommunityLoading(true);
 
 const params = new URLSearchParams({
-  micrositeId: micrositeId ?? "",
+  micrositeSlug: micrositeSlug ?? "",
   blockId: block.id,
 });
 
@@ -19200,6 +19201,7 @@ function renderScheduleAgenda(
 function renderCalendarEvent(
   block: Extract<MicrositeBlock, { type: "calendar_event" }>,
   designKey?: string,
+  micrositeSlug?: string | null,
 ) {
   const events = Array.isArray(block.data.events)
     ? block.data.events.map((event) => ({
@@ -19351,6 +19353,113 @@ const monthArrowCirclesStyle =
 const ctaButtonStyle =
   ((block.data as any).ctaButtonStyle ?? {}) as Record<string, any>;
 
+/*
+ * Professional Calendar appearance targets
+ */
+const professionalDetailsPanelStyle =
+  ((block.data as any).professionalDetailsPanelStyle ?? {}) as Record<string, any>;
+
+const professionalFieldStyle =
+  ((block.data as any).professionalFieldStyle ?? {}) as Record<string, any>;
+
+const professionalChoiceButtonStyle =
+  ((block.data as any).professionalChoiceButtonStyle ?? {}) as Record<string, any>;
+
+const professionalTimesPanelStyle =
+  ((block.data as any).professionalTimesPanelStyle ?? {}) as Record<string, any>;
+
+const professionalTimeSlotButtonStyle =
+  ((block.data as any).professionalTimeSlotButtonStyle ?? {}) as Record<string, any>;
+
+const professionalBookingButtonStyle =
+  ((block.data as any).professionalBookingButtonStyle ?? {}) as Record<string, any>;
+
+const professionalConfirmationPanelStyle =
+  ((block.data as any).professionalConfirmationPanelStyle ?? {}) as Record<string, any>;
+
+function getProfessionalBackgroundColor(
+  style: Record<string, any>,
+  fallbackColor?: string,
+) {
+  const color =
+    typeof style.backgroundColor === "string" &&
+    style.backgroundColor
+      ? style.backgroundColor
+      : fallbackColor;
+
+  if (!color) return undefined;
+  if (color === "transparent") return "transparent";
+
+  const opacity =
+    typeof style.backgroundOpacity === "number" &&
+    Number.isFinite(style.backgroundOpacity)
+      ? Math.max(0, Math.min(1, style.backgroundOpacity))
+      : 1;
+
+  if (opacity >= 1) {
+    return color;
+  }
+
+  if (opacity <= 0) {
+    return "transparent";
+  }
+
+  return `color-mix(in srgb, ${color} ${Math.round(
+    opacity * 100,
+  )}%, transparent)`;
+}
+
+/*
+ * Professional Calendar text targets
+ */
+const professionalDetailsHeadingTextStyle = getContainerTextStyle(
+  (block.data as any).professionalDetailsHeadingStyle ??
+    block.data.style,
+  designKey,
+);
+
+const professionalFieldTextStyle = getContainerTextStyle(
+  (block.data as any).professionalFieldTextStyle ??
+    block.data.style,
+  designKey,
+);
+
+const professionalChoiceTextStyle = getContainerTextStyle(
+  (block.data as any).professionalChoiceTextStyle ??
+    block.data.style,
+  designKey,
+);
+
+const professionalTimesHeadingTextStyle = getContainerTextStyle(
+  (block.data as any).professionalTimesHeadingStyle ??
+    block.data.style,
+  designKey,
+);
+
+const professionalTimeSlotTextStyle = getContainerTextStyle(
+  (block.data as any).professionalTimeSlotTextStyle ??
+    block.data.style,
+  designKey,
+);
+
+const professionalBookingButtonTextStyle = getContainerTextStyle(
+  (block.data as any).professionalBookingButtonTextStyle ??
+    block.data.style,
+  designKey,
+);
+
+const professionalConfirmationHeadingTextStyle = getContainerTextStyle(
+  (block.data as any).professionalConfirmationHeadingStyle ??
+    block.data.style,
+  designKey,
+);
+
+const professionalConfirmationMessageTextStyle = getContainerTextStyle(
+  (block.data as any).professionalConfirmationMessageStyle ??
+    block.data.style,
+  designKey,
+);
+
 const headingTextStyle = getContainerTextStyle(
   (block.data as any).headingStyle ?? block.data.style,
   designKey,
@@ -19455,13 +19564,206 @@ const ctaButtonTextStyle = getContainerTextStyle(
 
   const [copiedEventId, setCopiedEventId] = useState<string | null>(null);
 
-  const todayDate = new Date();
-  const todayKey = todayDate.toISOString().slice(0, 10);
+const [professionalName, setProfessionalName] = useState("");
+const [professionalEmail, setProfessionalEmail] = useState("");
+const [professionalPhone, setProfessionalPhone] = useState("");
 
-  const fallbackSelectedDate =
-    block.data.defaultSelectedDate || events[0]?.date || todayKey;
+const [professionalChoiceId, setProfessionalChoiceId] = useState<string | null>(
+  null,
+);
 
-  const [selectedDate, setSelectedDate] = useState(fallbackSelectedDate);
+const [professionalSlotId, setProfessionalSlotId] = useState<string | null>(
+  null,
+);
+
+const [professionalSubmitting, setProfessionalSubmitting] = useState(false);
+
+const [professionalSubmitState, setProfessionalSubmitState] = useState<
+  "idle" | "success" | "error"
+>("idle");
+
+const [professionalSubmitMessage, setProfessionalSubmitMessage] =
+  useState("");
+
+const [professionalConfirmedBooking, setProfessionalConfirmedBooking] =
+  useState<{
+    bookingId: string;
+    subject: string;
+    date: string;
+    startTime: string;
+    endTime: string;
+    choiceLabel: string;
+  } | null>(null);
+
+const [professionalUnavailableSlotIds, setProfessionalUnavailableSlotIds] =
+  useState<Set<string>>(() => new Set());
+
+const professionalChoices = (
+  block.data.professionalChoices ?? []
+).filter((choice) => choice.enabled !== false);
+
+const configuredProfessionalSlots = (
+  block.data.professionalSlots ?? []
+).filter((slot) => slot.enabled !== false);
+
+const showUnavailableProfessionalSlots =
+  block.data.professionalShowUnavailableSlots === true;
+
+const professionalSlots = configuredProfessionalSlots.filter(
+  (slot) =>
+    showUnavailableProfessionalSlots ||
+    !professionalUnavailableSlotIds.has(slot.id),
+);
+
+const selectedProfessionalChoice =
+  professionalChoices.find(
+    (choice) => choice.id === professionalChoiceId,
+  ) ?? null;
+
+const selectedProfessionalSlot =
+  configuredProfessionalSlots.find(
+    (slot) =>
+      slot.id === professionalSlotId &&
+      !professionalUnavailableSlotIds.has(slot.id),
+  ) ?? null;
+
+const todayDate = new Date();
+const todayKey = todayDate.toISOString().slice(0, 10);
+
+const fallbackSelectedDate =
+  block.data.defaultSelectedDate ||
+  block.data.professionalSlots?.find(
+    (slot) => slot.enabled !== false,
+  )?.date ||
+  events[0]?.date ||
+  todayKey;
+
+const [selectedDate, setSelectedDate] = useState(fallbackSelectedDate);
+
+const professionalSlotsForSelectedDate = professionalSlots.filter(
+  (slot) => slot.date === selectedDate,
+);
+
+async function refreshProfessionalAvailability(
+  signal?: AbortSignal,
+): Promise<Set<string> | null> {
+  if (
+    block.data.variant !== "professional" ||
+    !micrositeSlug
+  ) {
+    return null;
+  }
+
+  try {
+    const params = new URLSearchParams({
+      micrositeSlug,
+      blockId: block.id,
+    });
+
+    const res = await fetch(
+      `/api/public/calendar-booking?${params.toString()}`,
+      {
+        method: "GET",
+        cache: "no-store",
+        signal,
+      },
+    );
+
+    const result = await res.json().catch(() => null);
+
+    if (!res.ok || !result?.ok) {
+      return null;
+    }
+
+    const bookedSlotIds = Array.isArray(result.bookedSlotIds)
+      ? result.bookedSlotIds.filter(
+          (slotId: unknown): slotId is string =>
+            typeof slotId === "string" &&
+            slotId.length > 0,
+        )
+      : [];
+
+    const unavailableSlotIds = new Set<string>(bookedSlotIds);
+
+    setProfessionalUnavailableSlotIds(
+      unavailableSlotIds,
+    );
+
+    setProfessionalSlotId((currentSlotId) =>
+      currentSlotId &&
+      unavailableSlotIds.has(currentSlotId)
+        ? null
+        : currentSlotId,
+    );
+
+    return unavailableSlotIds;
+  } catch (error) {
+    if (
+      error instanceof DOMException &&
+      error.name === "AbortError"
+    ) {
+      return null;
+    }
+
+    console.error(
+      "Unable to load professional calendar availability",
+      error,
+    );
+
+    return null;
+  }
+}
+
+useEffect(() => {
+  if (
+    block.data.variant !== "professional" ||
+    !micrositeSlug
+  ) {
+    return;
+  }
+
+  const controller = new AbortController();
+
+  void refreshProfessionalAvailability(
+    controller.signal,
+  );
+
+  function handleVisibilityChange() {
+    if (document.visibilityState !== "visible") {
+      return;
+    }
+
+    void refreshProfessionalAvailability();
+  }
+
+  window.addEventListener(
+    "focus",
+    handleVisibilityChange,
+  );
+
+  document.addEventListener(
+    "visibilitychange",
+    handleVisibilityChange,
+  );
+
+  return () => {
+    controller.abort();
+
+    window.removeEventListener(
+      "focus",
+      handleVisibilityChange,
+    );
+
+    document.removeEventListener(
+      "visibilitychange",
+      handleVisibilityChange,
+    );
+  };
+}, [
+  block.id,
+  block.data.variant,
+  micrositeSlug,
+]);
 
   const initialMonthDate = (() => {
     const monthSource =
@@ -20363,6 +20665,891 @@ style={{
     </div>
   );
 
+  const professionalPanel = (
+    <div className="grid min-h-0 gap-5 lg:grid-cols-[minmax(220px,0.9fr)_minmax(320px,1.35fr)_minmax(180px,0.75fr)]">
+      {/* LEFT: VISITOR DETAILS */}
+<div
+  className="rounded-2xl border p-4"
+  style={{
+backgroundColor: getProfessionalBackgroundColor(
+  professionalDetailsPanelStyle,
+  eventCardStyle.backgroundColor,
+),
+
+    borderColor:
+      professionalDetailsPanelStyle.borderColor ||
+      eventCardStyle.borderColor ||
+      undefined,
+
+    borderWidth:
+      typeof professionalDetailsPanelStyle.borderWidth === "number"
+        ? professionalDetailsPanelStyle.borderWidth
+        : undefined,
+
+    borderRadius:
+      typeof professionalDetailsPanelStyle.borderRadius === "number"
+        ? professionalDetailsPanelStyle.borderRadius
+        : typeof eventCardStyle.borderRadius === "number"
+          ? eventCardStyle.borderRadius
+          : 18,
+
+    boxShadow:
+      professionalDetailsPanelStyle.boxShadow || undefined,
+
+    color:
+      professionalDetailsPanelStyle.textColor ||
+      eventCardStyle.textColor ||
+      baseTextStyle.color ||
+      undefined,
+  }}
+>
+  <div
+    className="text-sm font-bold uppercase tracking-[0.08em]"
+    style={professionalDetailsHeadingTextStyle}
+  >
+    Your Details
+  </div>
+
+        <div className="mt-4 space-y-3">
+          <div>
+            <label className="mb-1 block text-xs font-semiboldf">
+              Name *
+            </label>
+
+<input
+  type="text"
+  value={professionalName}
+  onChange={(e) => setProfessionalName(e.target.value)}
+  className="w-full rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 outline-none focus:border-neutral-900"
+  placeholder="Your name"
+  style={{
+    ...professionalFieldTextStyle,
+
+backgroundColor: getProfessionalBackgroundColor(
+  professionalFieldStyle,
+),
+
+    borderColor:
+      professionalFieldStyle.borderColor || undefined,
+
+    borderWidth:
+      typeof professionalFieldStyle.borderWidth === "number"
+        ? professionalFieldStyle.borderWidth
+        : undefined,
+
+    borderRadius:
+      typeof professionalFieldStyle.borderRadius === "number"
+        ? professionalFieldStyle.borderRadius
+        : undefined,
+
+    boxShadow:
+      professionalFieldStyle.boxShadow || undefined,
+
+    color:
+      professionalFieldTextStyle.color ||
+      professionalFieldStyle.textColor ||
+      undefined,
+  }}
+/>
+          </div>
+
+          <div>
+            <label className="mb-1 block text-xs font-semibold">
+              Email *
+            </label>
+
+<input
+  type="email"
+  value={professionalEmail}
+  onChange={(e) => setProfessionalEmail(e.target.value)}
+  className="w-full rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 outline-none focus:border-neutral-900"
+  placeholder="you@example.com"
+  style={{
+    ...professionalFieldTextStyle,
+
+    backgroundColor:
+      professionalFieldStyle.backgroundColor || undefined,
+
+    borderColor:
+      professionalFieldStyle.borderColor || undefined,
+
+    borderWidth:
+      typeof professionalFieldStyle.borderWidth === "number"
+        ? professionalFieldStyle.borderWidth
+        : undefined,
+
+    borderRadius:
+      typeof professionalFieldStyle.borderRadius === "number"
+        ? professionalFieldStyle.borderRadius
+        : undefined,
+
+    boxShadow:
+      professionalFieldStyle.boxShadow || undefined,
+
+    color:
+      professionalFieldTextStyle.color ||
+      professionalFieldStyle.textColor ||
+      undefined,
+  }}
+/>
+          </div>
+
+          {block.data.professionalPhoneMode !== "hidden" ? (
+            <div>
+              <label className="mb-1 block text-xs font-semibold">
+                Phone
+                {block.data.professionalPhoneMode === "required"
+                  ? " *"
+                  : " (optional)"}
+              </label>
+
+<input
+  type="tel"
+  value={professionalPhone}
+  onChange={(e) => setProfessionalPhone(e.target.value)}
+  className="w-full rounded-xl border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 outline-none focus:border-neutral-900"
+  placeholder="Phone number"
+  style={{
+    ...professionalFieldTextStyle,
+
+    backgroundColor:
+      professionalFieldStyle.backgroundColor || undefined,
+
+    borderColor:
+      professionalFieldStyle.borderColor || undefined,
+
+    borderWidth:
+      typeof professionalFieldStyle.borderWidth === "number"
+        ? professionalFieldStyle.borderWidth
+        : undefined,
+
+    borderRadius:
+      typeof professionalFieldStyle.borderRadius === "number"
+        ? professionalFieldStyle.borderRadius
+        : undefined,
+
+    boxShadow:
+      professionalFieldStyle.boxShadow || undefined,
+
+    color:
+      professionalFieldTextStyle.color ||
+      professionalFieldStyle.textColor ||
+      undefined,
+  }}
+/>
+            </div>
+          ) : null}
+        </div>
+
+        {professionalChoices.length ? (
+          <div className="mt-6">
+            <div className="text-xs font-bold uppercase tracking-[0.08em] opacity-70">
+              {block.data.professionalChoiceSectionLabel ||
+                "Appointment Type"}
+            </div>
+
+            <div className="mt-3 space-y-2">
+              {professionalChoices.map((choice) => {
+                const isActive =
+                  professionalChoiceId === choice.id;
+
+                return (
+<button
+  key={choice.id}
+  type="button"
+  onClick={() =>
+    setProfessionalChoiceId(choice.id)
+  }
+  className={[
+    "w-full rounded-xl border px-3 py-3 text-left transition",
+    isActive
+      ? "border-neutral-950 bg-neutral-950 text-white shadow-sm"
+      : "border-neutral-200 bg-white text-neutral-900 hover:border-neutral-400",
+  ].join(" ")}
+  style={{
+    ...professionalChoiceTextStyle,
+
+backgroundColor: getProfessionalBackgroundColor(
+  professionalChoiceButtonStyle,
+  isActive
+    ? professionalChoiceButtonStyle.activeBackgroundColor ||
+        professionalChoiceButtonStyle.backgroundColor
+    : professionalChoiceButtonStyle.backgroundColor,
+),
+
+    borderColor: isActive
+      ? professionalChoiceButtonStyle.activeBorderColor ||
+        professionalChoiceButtonStyle.borderColor ||
+        undefined
+      : professionalChoiceButtonStyle.borderColor ||
+        undefined,
+
+    borderWidth:
+      typeof professionalChoiceButtonStyle.borderWidth === "number"
+        ? professionalChoiceButtonStyle.borderWidth
+        : undefined,
+
+    borderRadius:
+      typeof professionalChoiceButtonStyle.borderRadius === "number"
+        ? professionalChoiceButtonStyle.borderRadius
+        : undefined,
+
+    boxShadow:
+      professionalChoiceButtonStyle.boxShadow ||
+      undefined,
+
+    color: isActive
+      ? professionalChoiceButtonStyle.activeTextColor ||
+        professionalChoiceTextStyle.color ||
+        undefined
+      : professionalChoiceTextStyle.color ||
+        professionalChoiceButtonStyle.textColor ||
+        undefined,
+  }}
+>
+                    <div className="text-sm font-semibold">
+                      {choice.label}
+                    </div>
+
+                    {choice.description ? (
+                      <div className="mt-1 text-xs opacity-70">
+                        {choice.description}
+                      </div>
+                    ) : null}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ) : null}
+      </div>
+
+      {/* CENTER: CALENDAR */}
+      <div
+        className="rounded-2xl border p-4"
+        style={{
+          backgroundColor:
+            calendarStyle.backgroundColor || undefined,
+          borderColor:
+            calendarStyle.borderColor || undefined,
+          borderWidth:
+            typeof calendarStyle.borderWidth === "number"
+              ? calendarStyle.borderWidth
+              : undefined,
+          borderRadius:
+            typeof calendarStyle.borderRadius === "number"
+              ? calendarStyle.borderRadius
+              : 18,
+        }}
+      >
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <button
+            type="button"
+            onClick={() => moveMonth(-1)}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full border"
+            style={{
+              ...monthArrowsTextStyle,
+              borderColor:
+                monthArrowCirclesStyle.borderColor || undefined,
+              backgroundColor:
+                monthArrowCirclesStyle.backgroundColor || undefined,
+            }}
+          >
+            ‹
+          </button>
+
+          <div
+            className="flex-1 text-center text-sm font-bold"
+            style={{
+              ...monthYearLabelTextStyle,
+              textAlign: "center",
+            }}
+          >
+            {monthLabel}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => moveMonth(1)}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full border"
+            style={{
+              ...monthArrowsTextStyle,
+              borderColor:
+                monthArrowCirclesStyle.borderColor || undefined,
+              backgroundColor:
+                monthArrowCirclesStyle.backgroundColor || undefined,
+            }}
+          >
+            ›
+          </button>
+        </div>
+
+        <div
+          className="grid grid-cols-7 gap-1 text-center text-[10px] font-bold uppercase tracking-[0.12em] opacity-60"
+          style={weeklyDayLabelsTextStyle}
+        >
+          {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
+            (day) => (
+              <div key={day} className="py-1">
+                {day}
+              </div>
+            ),
+          )}
+        </div>
+
+        <div className="mt-2 grid grid-cols-7 gap-1.5">
+          {calendarCells.map((cell, index) => {
+            if (!cell) {
+              return (
+                <div
+                  key={`professional-empty-${index}`}
+                  className="aspect-square"
+                />
+              );
+            }
+
+const dateSlots = professionalSlots.filter(
+  (slot) => slot.date === cell.dateKey,
+);
+
+const availableDateSlots =
+  configuredProfessionalSlots.filter(
+    (slot) =>
+      slot.date === cell.dateKey &&
+      !professionalUnavailableSlotIds.has(slot.id),
+  );
+
+const hasAvailableSlots =
+  availableDateSlots.length > 0;
+
+const hasVisibleSlots =
+  dateSlots.length > 0;
+
+const canSelectDate =
+  hasAvailableSlots;
+
+const isSelected =
+  selectedDate === cell.dateKey;
+
+return (
+  <button
+    key={cell.dateKey}
+    type="button"
+    disabled={!canSelectDate}
+    onClick={async () => {
+      setSelectedDate(cell.dateKey);
+      setProfessionalSlotId(null);
+
+      await refreshProfessionalAvailability();
+    }}
+    className={[
+      "relative flex aspect-square items-center justify-center rounded-full border text-xs font-semibold transition",
+      isSelected
+        ? "border-neutral-950 bg-neutral-950 text-white shadow-sm"
+: canSelectDate
+  ? "border-neutral-200 bg-white hover:border-neutral-500"
+  : hasVisibleSlots
+    ? "cursor-not-allowed border-neutral-200 bg-neutral-50 opacity-50"
+    : "cursor-default border-transparent opacity-30",
+    ].join(" ")}
+    style={{
+      ...(isSelected
+        ? selectedDateCardStyle
+        : calendarDateCirclesStyle),
+    }}
+  >
+    <span style={monthlyDateLabelsTextStyle}>
+      {cell.dayNumber}
+    </span>
+
+    {hasVisibleSlots ? (
+      <span
+        className="absolute bottom-1 h-1.5 w-1.5 rounded-full"
+        style={{
+          backgroundColor:
+            calendarStyle.eventDotColor ||
+            "#111827",
+        }}
+      />
+    ) : null}
+  </button>
+);
+          })}
+        </div>
+      </div>
+
+      {/* RIGHT: AVAILABLE TIMES */}
+<div
+  className="flex min-h-0 flex-col rounded-2xl border p-4"
+  style={{
+backgroundColor: getProfessionalBackgroundColor(
+  professionalTimesPanelStyle,
+  eventCardStyle.backgroundColor,
+),
+
+    borderColor:
+      professionalTimesPanelStyle.borderColor ||
+      eventCardStyle.borderColor ||
+      undefined,
+
+    borderWidth:
+      typeof professionalTimesPanelStyle.borderWidth === "number"
+        ? professionalTimesPanelStyle.borderWidth
+        : undefined,
+
+    borderRadius:
+      typeof professionalTimesPanelStyle.borderRadius === "number"
+        ? professionalTimesPanelStyle.borderRadius
+        : typeof eventCardStyle.borderRadius === "number"
+          ? eventCardStyle.borderRadius
+          : 18,
+
+    boxShadow:
+      professionalTimesPanelStyle.boxShadow ||
+      undefined,
+
+    color:
+      professionalTimesPanelStyle.textColor ||
+      eventCardStyle.textColor ||
+      baseTextStyle.color ||
+      undefined,
+  }}
+>
+  <div
+    className="text-sm font-bold uppercase tracking-[0.08em]"
+    style={professionalTimesHeadingTextStyle}
+  >
+    Available Times
+  </div>
+
+        <div className="mt-1 text-xs opacity-60">
+          {formatEventDate(selectedDate)}
+        </div>
+
+<div className="mt-4 space-y-2">
+  {professionalSlotsForSelectedDate.length ? (
+    professionalSlotsForSelectedDate.map((slot) => {
+      const isUnavailable =
+        professionalUnavailableSlotIds.has(slot.id);
+
+      const isActive =
+        !isUnavailable &&
+        professionalSlotId === slot.id;
+
+      return (
+<button
+  key={slot.id}
+  type="button"
+  disabled={isUnavailable}
+  onClick={() => {
+    if (isUnavailable) return;
+
+    setProfessionalSlotId(slot.id);
+    setProfessionalSubmitState("idle");
+    setProfessionalSubmitMessage("");
+  }}
+  className={[
+    "relative w-full rounded-xl border px-4 py-3 text-center text-sm font-semibold transition",
+    isUnavailable
+      ? "cursor-not-allowed border-neutral-200 bg-neutral-100 text-neutral-400 opacity-75"
+      : isActive
+        ? "border-2 border-neutral-950 bg-white text-neutral-950 shadow-sm"
+        : "border-neutral-200 bg-white text-neutral-900 hover:border-neutral-500",
+  ].join(" ")}
+  style={{
+    ...professionalTimeSlotTextStyle,
+
+backgroundColor: getProfessionalBackgroundColor(
+  professionalTimeSlotButtonStyle,
+  isUnavailable
+    ? professionalTimeSlotButtonStyle.disabledBackgroundColor ||
+        professionalTimeSlotButtonStyle.backgroundColor
+    : isActive
+      ? professionalTimeSlotButtonStyle.activeBackgroundColor ||
+        professionalTimeSlotButtonStyle.backgroundColor
+      : professionalTimeSlotButtonStyle.backgroundColor,
+),
+
+    borderColor: isUnavailable
+      ? professionalTimeSlotButtonStyle.disabledBorderColor ||
+        professionalTimeSlotButtonStyle.borderColor ||
+        undefined
+      : isActive
+        ? professionalTimeSlotButtonStyle.activeBorderColor ||
+          professionalTimeSlotButtonStyle.borderColor ||
+          undefined
+        : professionalTimeSlotButtonStyle.borderColor ||
+          undefined,
+
+    borderWidth:
+      typeof professionalTimeSlotButtonStyle.borderWidth === "number"
+        ? professionalTimeSlotButtonStyle.borderWidth
+        : undefined,
+
+    borderRadius:
+      typeof professionalTimeSlotButtonStyle.borderRadius === "number"
+        ? professionalTimeSlotButtonStyle.borderRadius
+        : undefined,
+
+    boxShadow:
+      professionalTimeSlotButtonStyle.boxShadow ||
+      undefined,
+
+    color: isUnavailable
+      ? professionalTimeSlotButtonStyle.disabledTextColor ||
+        undefined
+      : isActive
+        ? professionalTimeSlotButtonStyle.activeTextColor ||
+          professionalTimeSlotTextStyle.color ||
+          undefined
+        : professionalTimeSlotTextStyle.color ||
+          professionalTimeSlotButtonStyle.textColor ||
+          undefined,
+  }}
+>
+          <span>
+            {formatEventTime(slot.startTime)}
+
+            {slot.endTime
+              ? ` - ${formatEventTime(slot.endTime)}`
+              : ""}
+          </span>
+
+          {isUnavailable ? (
+            <span className="ml-2 inline-flex rounded-full bg-neutral-200 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.08em] text-neutral-500">
+              Unavailable
+            </span>
+          ) : null}
+        </button>
+      );
+    })
+  ) : (
+    <div className="rounded-xl border border-dashed border-neutral-300 px-3 py-5 text-center text-xs opacity-60">
+      No available times for this date.
+    </div>
+  )}
+</div>
+
+<button
+  type="button"
+  disabled={
+    professionalSubmitting ||
+    !professionalName.trim() ||
+    !professionalEmail.trim() ||
+    !selectedProfessionalSlot ||
+    (professionalChoices.length > 0 &&
+      !selectedProfessionalChoice) ||
+    (block.data.professionalPhoneMode === "required" &&
+      !professionalPhone.trim())
+  }
+onClick={async () => {
+  if (
+    professionalSubmitting ||
+    !professionalName.trim() ||
+    !professionalEmail.trim() ||
+    !selectedProfessionalSlot
+  ) {
+    return;
+  }
+
+  if (!micrositeSlug) {
+    setProfessionalSubmitState("error");
+    setProfessionalSubmitMessage(
+      "Unable to determine the microsite.",
+    );
+    return;
+  }
+
+  setProfessionalSubmitting(true);
+  setProfessionalSubmitState("idle");
+  setProfessionalSubmitMessage("");
+  setProfessionalConfirmedBooking(null);
+
+try {
+  const currentSlot = selectedProfessionalSlot;
+  const currentChoice = selectedProfessionalChoice;
+
+  /*
+   * Perform one fresh availability check immediately before booking.
+   *
+   * refreshProfessionalAvailability() also updates the visible calendar,
+   * but we use its returned Set here instead of waiting for React state
+   * to update.
+   */
+  const unavailableSlotIds =
+    await refreshProfessionalAvailability();
+
+  if (unavailableSlotIds?.has(currentSlot.id)) {
+    setProfessionalSlotId(null);
+
+    setProfessionalSubmitState("error");
+    setProfessionalSubmitMessage(
+      "That time is no longer available. Please choose another slot.",
+    );
+
+    return;
+  }
+
+  const res = await fetch("/api/public/calendar-booking", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      micrositeSlug,
+      blockId: block.id,
+      sourceSlotId: currentSlot.id,
+
+      bookingSubject:
+        block.data.professionalBookingSubject || "Appointment",
+
+      visitorName: professionalName.trim(),
+      visitorEmail: professionalEmail.trim(),
+      visitorPhone: professionalPhone.trim(),
+
+      choiceId: currentChoice?.id || "",
+      choiceLabel: currentChoice?.label || "",
+
+      bookingDate: currentSlot.date,
+      startTime: currentSlot.startTime,
+      endTime: currentSlot.endTime || "",
+
+      company: "",
+    }),
+  });
+
+  const result = await res.json().catch(() => null);
+
+  if (!res.ok || !result?.ok) {
+    /*
+     * The POST endpoint remains the final authority.
+     *
+     * Even if the availability GET said the slot was available,
+     * another visitor could book it during the tiny interval between
+     * the GET and this POST.
+     */
+    if (
+      res.status === 409 ||
+      result?.code === "SLOT_TAKEN"
+    ) {
+      setProfessionalUnavailableSlotIds((current) => {
+        const next = new Set(current);
+        next.add(currentSlot.id);
+        return next;
+      });
+
+      setProfessionalSlotId(null);
+
+      setProfessionalSubmitState("error");
+      setProfessionalSubmitMessage(
+        result?.error ||
+          "That time is no longer available. Please choose another slot.",
+      );
+
+      return;
+    }
+
+    setProfessionalSubmitState("error");
+    setProfessionalSubmitMessage(
+      result?.error ||
+        "Unable to book the appointment.",
+    );
+
+    return;
+  }
+
+  setProfessionalConfirmedBooking({
+    bookingId:
+      typeof result?.booking?.id === "string"
+        ? result.booking.id
+        : "",
+
+    subject:
+      typeof result?.booking?.bookingSubject === "string"
+        ? result.booking.bookingSubject
+        : block.data.professionalBookingSubject ||
+          "Appointment",
+
+    date:
+      typeof result?.booking?.bookingDate === "string"
+        ? result.booking.bookingDate
+        : currentSlot.date,
+
+    startTime:
+      typeof result?.booking?.startTime === "string"
+        ? result.booking.startTime
+        : currentSlot.startTime,
+
+    endTime:
+      typeof result?.booking?.endTime === "string"
+        ? result.booking.endTime
+        : currentSlot.endTime || "",
+
+    choiceLabel: currentChoice?.label || "",
+  });
+
+  /*
+   * Immediately remove/disable the newly booked slot locally.
+   */
+  setProfessionalUnavailableSlotIds((current) => {
+    const next = new Set(current);
+    next.add(currentSlot.id);
+    return next;
+  });
+
+  setProfessionalSubmitState("success");
+  setProfessionalSubmitMessage(
+    block.data.professionalConfirmationMessage ||
+      "Your appointment has been scheduled successfully.",
+  );
+
+  setProfessionalName("");
+  setProfessionalEmail("");
+  setProfessionalPhone("");
+  setProfessionalChoiceId(null);
+  setProfessionalSlotId(null);
+} catch (error) {
+  console.error(
+    "Professional calendar booking failed",
+    error,
+  );
+
+  setProfessionalSubmitState("error");
+  setProfessionalSubmitMessage(
+    "Unable to book the appointment. Please try again.",
+  );
+} finally {
+  setProfessionalSubmitting(false);
+}}}
+  className="mt-5 rounded-xl bg-neutral-950 px-4 py-3 text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-35"
+  style={{
+    ...professionalBookingButtonTextStyle,
+
+backgroundColor: getProfessionalBackgroundColor(
+  professionalBookingButtonStyle,
+),
+
+    borderColor:
+      professionalBookingButtonStyle.borderColor ||
+      undefined,
+
+    borderWidth:
+      typeof professionalBookingButtonStyle.borderWidth === "number"
+        ? professionalBookingButtonStyle.borderWidth
+        : undefined,
+
+    borderRadius:
+      typeof professionalBookingButtonStyle.borderRadius === "number"
+        ? professionalBookingButtonStyle.borderRadius
+        : undefined,
+
+    boxShadow:
+      professionalBookingButtonStyle.boxShadow ||
+      undefined,
+
+    color:
+      professionalBookingButtonTextStyle.color ||
+      professionalBookingButtonStyle.textColor ||
+      undefined,
+  }}
+>
+  {professionalSubmitting
+    ? "Booking..."
+    : block.data.professionalSubmitButtonText || "Book Appointment"}
+</button>
+
+{professionalSubmitState === "success" &&
+professionalConfirmedBooking ? (
+<div
+  className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-900"
+  style={{
+backgroundColor: getProfessionalBackgroundColor(
+  professionalConfirmationPanelStyle,
+),
+
+    borderColor:
+      professionalConfirmationPanelStyle.borderColor ||
+      undefined,
+
+    borderWidth:
+      typeof professionalConfirmationPanelStyle.borderWidth === "number"
+        ? professionalConfirmationPanelStyle.borderWidth
+        : undefined,
+
+    borderRadius:
+      typeof professionalConfirmationPanelStyle.borderRadius === "number"
+        ? professionalConfirmationPanelStyle.borderRadius
+        : undefined,
+
+    boxShadow:
+      professionalConfirmationPanelStyle.boxShadow ||
+      undefined,
+
+    color:
+      professionalConfirmationPanelStyle.textColor ||
+      undefined,
+  }}
+>
+  <div
+    className="text-sm font-semibold"
+    style={professionalConfirmationHeadingTextStyle}
+  >
+    {block.data.professionalConfirmationHeading ||
+      "Appointment Confirmed"}
+  </div>
+
+  {professionalSubmitMessage ? (
+    <div
+      className="mt-1 text-xs leading-5"
+      style={professionalConfirmationMessageTextStyle}
+    >
+      {professionalSubmitMessage}
+    </div>
+  ) : null}
+
+    <div className="mt-3 space-y-1 text-xs">
+      <div>
+        <span className="font-semibold">Event:</span>{" "}
+        {professionalConfirmedBooking.subject}
+      </div>
+
+      {professionalConfirmedBooking.choiceLabel ? (
+        <div>
+          <span className="font-semibold">Selection:</span>{" "}
+          {professionalConfirmedBooking.choiceLabel}
+        </div>
+      ) : null}
+
+      <div>
+        <span className="font-semibold">Date:</span>{" "}
+        {formatEventDate(professionalConfirmedBooking.date)}
+      </div>
+
+      <div>
+        <span className="font-semibold">Time:</span>{" "}
+        {formatEventTime(
+          professionalConfirmedBooking.startTime,
+        )}
+        {professionalConfirmedBooking.endTime
+          ? ` - ${formatEventTime(
+              professionalConfirmedBooking.endTime,
+            )}`
+          : ""}
+      </div>
+    </div>
+  </div>
+) : professionalSubmitState === "error" &&
+professionalSubmitMessage ? (
+  <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 p-4 text-xs font-medium text-red-700">
+    {professionalSubmitMessage}
+  </div>
+) : null}
+
+
+      </div>
+    </div>
+  );
+
   return (
 <Surface
   block={block}
@@ -20421,9 +21608,11 @@ style={{
   </div>
 ) : null}
 
-        {block.data.variant === "compact" ? (
-          <div className="mt-4">{compactList}</div>
-        ) : block.data.variant === "simplified" ? (
+{block.data.variant === "professional" ? (
+  <div className="mt-4">{professionalPanel}</div>
+) : block.data.variant === "compact" ? (
+  <div className="mt-4">{compactList}</div>
+) : block.data.variant === "simplified" ? (
           <div className="mt-4">{eventCards}</div>
         ) : block.data.variant === "formal" ? (
           <div className="mt-4 space-y-4">
@@ -22597,7 +23786,13 @@ case "formula_board":
       );
 
 case "post_board":
-  return renderPostBoard(block, designKey, micrositeId);
+  return renderPostBoard(
+    block,
+    designKey,
+    micrositeId,
+    micrositeSlug,
+  );
+
     case "padding":
       return <div className="h-full w-full" />;
     case "showcase":
@@ -22649,8 +23844,12 @@ case "post_board":
       return renderScheduleAgenda(block, designKey);
     case "tournament_display":
       return <TournamentDisplayBlock block={block} designKey={designKey} />;
-    case "calendar_event":
-      return renderCalendarEvent(block, designKey);
+case "calendar_event":
+  return renderCalendarEvent(
+    block,
+    designKey,
+    micrositeSlug,
+  );
     case "map_location":
       return renderMapLocation(block, designKey);
     case "file_share":
