@@ -674,6 +674,263 @@ export function CalendarEventInspector({
       </div>
     </div>
 
+{/* CALENDAR DATE APPEARANCE */}
+<div className="space-y-3 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+  <div className="text-xs font-semibold uppercase tracking-[0.08em] text-neutral-500">
+    Calendar Date Appearance
+  </div>
+
+  <div>
+    <div className={inspectorLabelClass()}>
+      Selected Date Color
+    </div>
+
+    <div className="mt-2 flex items-center gap-3">
+      <input
+        type="color"
+        value={
+          selectedBlock.data.calendarStyle
+            ?.selectedDateBackgroundColor ||
+          "#111827"
+        }
+        onChange={(e) =>
+          updateSelectedBlock((block: any) =>
+            block.type !== "calendar_event"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    calendarStyle: {
+                      ...(block.data.calendarStyle ?? {}),
+                      selectedDateBackgroundColor:
+                        e.target.value,
+                    },
+                  },
+                },
+          )
+        }
+        className="h-10 w-14 cursor-pointer rounded-lg border border-neutral-300 bg-white p-1"
+      />
+
+      <input
+        type="text"
+        value={
+          selectedBlock.data.calendarStyle
+            ?.selectedDateBackgroundColor ||
+          "#111827"
+        }
+        onChange={(e) =>
+          updateSelectedBlock((block: any) =>
+            block.type !== "calendar_event"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    calendarStyle: {
+                      ...(block.data.calendarStyle ?? {}),
+                      selectedDateBackgroundColor:
+                        e.target.value,
+                    },
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+        placeholder="#111827"
+      />
+    </div>
+  </div>
+
+  <div>
+  <div className={inspectorLabelClass()}>
+    Selected Date Text Color
+  </div>
+
+  <div className="mt-2 flex items-center gap-3">
+    <input
+      type="color"
+      value={
+        selectedBlock.data.calendarStyle
+          ?.activeDateColor ||
+        "#ffffff"
+      }
+      onChange={(e) =>
+        updateSelectedBlock((block: any) =>
+          block.type !== "calendar_event"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  calendarStyle: {
+                    ...(block.data.calendarStyle ?? {}),
+                    activeDateColor: e.target.value,
+                  },
+                },
+              },
+        )
+      }
+      className="h-10 w-14 cursor-pointer rounded-lg border border-neutral-300 bg-white p-1"
+    />
+
+    <input
+      type="text"
+      value={
+        selectedBlock.data.calendarStyle
+          ?.activeDateColor ||
+        "#ffffff"
+      }
+      onChange={(e) =>
+        updateSelectedBlock((block: any) =>
+          block.type !== "calendar_event"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  calendarStyle: {
+                    ...(block.data.calendarStyle ?? {}),
+                    activeDateColor: e.target.value,
+                  },
+                },
+              },
+        )
+      }
+      className={inspectorInputClass()}
+      placeholder="#ffffff"
+    />
+  </div>
+</div>
+
+  <div>
+    <div className={inspectorLabelClass()}>
+      Selected Date Border Color
+    </div>
+
+    <div className="mt-2 flex items-center gap-3">
+      <input
+        type="color"
+        value={
+          selectedBlock.data.calendarStyle
+            ?.selectedDateBorderColor ||
+          "#111827"
+        }
+        onChange={(e) =>
+          updateSelectedBlock((block: any) =>
+            block.type !== "calendar_event"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    calendarStyle: {
+                      ...(block.data.calendarStyle ?? {}),
+                      selectedDateBorderColor:
+                        e.target.value,
+                    },
+                  },
+                },
+          )
+        }
+        className="h-10 w-14 cursor-pointer rounded-lg border border-neutral-300 bg-white p-1"
+      />
+
+      <input
+        type="text"
+        value={
+          selectedBlock.data.calendarStyle
+            ?.selectedDateBorderColor ||
+          "#111827"
+        }
+        onChange={(e) =>
+          updateSelectedBlock((block: any) =>
+            block.type !== "calendar_event"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    calendarStyle: {
+                      ...(block.data.calendarStyle ?? {}),
+                      selectedDateBorderColor:
+                        e.target.value,
+                    },
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+        placeholder="#111827"
+      />
+    </div>
+  </div>
+
+  <div>
+    <div className={inspectorLabelClass()}>
+      Regular Date Border Color
+    </div>
+
+    <div className="mt-2 flex items-center gap-3">
+      <input
+        type="color"
+        value={
+          selectedBlock.data.calendarStyle
+            ?.dateBorderColor ||
+          "#e5e7eb"
+        }
+        onChange={(e) =>
+          updateSelectedBlock((block: any) =>
+            block.type !== "calendar_event"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    calendarStyle: {
+                      ...(block.data.calendarStyle ?? {}),
+                      dateBorderColor:
+                        e.target.value,
+                    },
+                  },
+                },
+          )
+        }
+        className="h-10 w-14 cursor-pointer rounded-lg border border-neutral-300 bg-white p-1"
+      />
+
+      <input
+        type="text"
+        value={
+          selectedBlock.data.calendarStyle
+            ?.dateBorderColor ||
+          "#e5e7eb"
+        }
+        onChange={(e) =>
+          updateSelectedBlock((block: any) =>
+            block.type !== "calendar_event"
+              ? block
+              : {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    calendarStyle: {
+                      ...(block.data.calendarStyle ?? {}),
+                      dateBorderColor:
+                        e.target.value,
+                    },
+                  },
+                },
+          )
+        }
+        className={inspectorInputClass()}
+        placeholder="#e5e7eb"
+      />
+    </div>
+  </div>
+</div>
+
     {/* APPOINTMENT CHOICES */}
     <div className="space-y-3 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
       <div className="flex items-center justify-between gap-3">

@@ -20081,7 +20081,7 @@ style={{
         ))}
       </div>
 
-      <div className="mt-2 grid grid-cols-7 gap-1.5">
+      <div className="mt-2 grid grid-cols-7 gap-0 overflow-hidden rounded-lg border border-neutral-200">
         {calendarCells.map((cell, index) => {
           if (!cell) {
             return <div key={`empty-${index}`} className="aspect-square" />;
@@ -20999,14 +20999,14 @@ backgroundColor: getProfessionalBackgroundColor(
 
         <div className="mt-2 grid grid-cols-7 gap-1.5">
           {calendarCells.map((cell, index) => {
-            if (!cell) {
-              return (
-                <div
-                  key={`professional-empty-${index}`}
-                  className="aspect-square"
-                />
-              );
-            }
+if (!cell) {
+  return (
+    <div
+      key={`professional-empty-${index}`}
+      className="min-h-[58px] border border-neutral-100 bg-neutral-50/40"
+    />
+  );
+}
 
 const dateSlots = professionalSlots.filter(
   (slot) => slot.date === cell.dateKey,
@@ -21025,9 +21025,6 @@ const hasAvailableSlots =
 const hasVisibleSlots =
   dateSlots.length > 0;
 
-const canSelectDate =
-  hasAvailableSlots;
-
 const isSelected =
   selectedDate === cell.dateKey;
 
@@ -21035,27 +21032,69 @@ return (
   <button
     key={cell.dateKey}
     type="button"
-    disabled={!canSelectDate}
     onClick={async () => {
       setSelectedDate(cell.dateKey);
       setProfessionalSlotId(null);
+      setProfessionalSubmitState("idle");
+      setProfessionalSubmitMessage("");
 
       await refreshProfessionalAvailability();
     }}
     className={[
-      "relative flex aspect-square items-center justify-center rounded-full border text-xs font-semibold transition",
+      "relative flex min-h-[58px] w-full items-center justify-center border text-xs font-semibold transition focus:z-10 focus:outline-none",
       isSelected
-        ? "border-neutral-950 bg-neutral-950 text-white shadow-sm"
-: canSelectDate
-  ? "border-neutral-200 bg-white hover:border-neutral-500"
-  : hasVisibleSlots
-    ? "cursor-not-allowed border-neutral-200 bg-neutral-50 opacity-50"
-    : "cursor-default border-transparent opacity-30",
+        ? "shadow-sm"
+        : "hover:bg-neutral-50",
     ].join(" ")}
     style={{
-      ...(isSelected
-        ? selectedDateCardStyle
-        : calendarDateCirclesStyle),
+      backgroundColor: isSelected
+        ? selectedDateCardStyle.backgroundColor ||
+          calendarStyle.selectedDateBackgroundColor ||
+          "#111827"
+        : calendarDateCirclesStyle.backgroundColor ||
+          "#ffffff",
+
+      borderColor: isSelected
+        ? selectedDateCardStyle.borderColor ||
+          calendarStyle.selectedDateBorderColor ||
+          "#111827"
+        : calendarDateCirclesStyle.borderColor ||
+          calendarStyle.dateBorderColor ||
+          "#e5e7eb",
+
+      borderWidth:
+        typeof (
+          isSelected
+            ? selectedDateCardStyle.borderWidth
+            : calendarDateCirclesStyle.borderWidth
+        ) === "number"
+          ? (
+              isSelected
+                ? selectedDateCardStyle.borderWidth
+                : calendarDateCirclesStyle.borderWidth
+            )
+          : 1,
+
+      borderRadius:
+        typeof (
+          isSelected
+            ? selectedDateCardStyle.borderRadius
+            : calendarDateCirclesStyle.borderRadius
+        ) === "number"
+          ? (
+              isSelected
+                ? selectedDateCardStyle.borderRadius
+                : calendarDateCirclesStyle.borderRadius
+            )
+          : 6,
+
+color: isSelected
+  ? selectedDateCardStyle.textColor ||
+    calendarStyle.activeDateColor ||
+    "#ffffff"
+  : calendarDateCirclesStyle.textColor ||
+    baseTextStyle.color ||
+    undefined,
     }}
   >
     <span style={monthlyDateLabelsTextStyle}>
@@ -21064,11 +21103,12 @@ return (
 
     {hasVisibleSlots ? (
       <span
-        className="absolute bottom-1 h-1.5 w-1.5 rounded-full"
+        className="absolute bottom-1.5 h-1.5 w-1.5 rounded-full"
         style={{
-          backgroundColor:
-            calendarStyle.eventDotColor ||
-            "#111827",
+          backgroundColor: hasAvailableSlots
+            ? calendarStyle.eventDotColor ||
+              "#111827"
+            : "#9ca3af",
         }}
       />
     ) : null}
