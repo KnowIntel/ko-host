@@ -206,6 +206,39 @@ export function CalendarEventInspector({
   </select>
 </div>
 
+<div className="mt-4">
+  <div className={inspectorLabelClass()}>Style Variant</div>
+
+  <select
+    value={selectedBlock.data.variant}
+    onChange={(e) =>
+      updateSelectedBlock((block: any) =>
+        block.type !== "calendar_event"
+          ? block
+          : {
+              ...block,
+              data: {
+                ...block.data,
+                variant: e.target.value as
+                  | "standard"
+                  | "formal"
+                  | "simplified"
+                  | "compact"
+                  | "professional",
+              },
+            },
+      )
+    }
+    className={inspectorInputClass()}
+  >
+    <option value="standard">Standard</option>
+    <option value="formal">Formal</option>
+    <option value="simplified">Simplified</option>
+    <option value="compact">Compact</option>
+    <option value="professional">Professional</option>
+  </select>
+</div>
+
       {/* Calendar Event */}
       <div className="mt-6">
         <div className={inspectorLabelClass()}>Calendar Event</div>
@@ -342,39 +375,6 @@ export function CalendarEventInspector({
         className={inspectorInputClass()}
       />
     </div>
-
-<div className="mt-4">
-  <div className={inspectorLabelClass()}>Style Variant</div>
-
-  <select
-    value={selectedBlock.data.variant}
-    onChange={(e) =>
-      updateSelectedBlock((block: any) =>
-        block.type !== "calendar_event"
-          ? block
-          : {
-              ...block,
-              data: {
-                ...block.data,
-                variant: e.target.value as
-                  | "standard"
-                  | "formal"
-                  | "simplified"
-                  | "compact"
-                  | "professional",
-              },
-            },
-      )
-    }
-    className={inspectorInputClass()}
-  >
-    <option value="standard">Standard</option>
-    <option value="formal">Formal</option>
-    <option value="simplified">Simplified</option>
-    <option value="compact">Compact</option>
-    <option value="professional">Professional</option>
-  </select>
-</div>
 
     {selectedBlock.data.variant === "compact" ? (
   <div className="mt-4 space-y-3">
