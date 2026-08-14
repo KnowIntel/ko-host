@@ -19627,6 +19627,20 @@ const selectedProfessionalSlot =
       !professionalUnavailableSlotIds.has(slot.id),
   ) ?? null;
 
+  const professionalCanSubmit =
+  !professionalSubmitting &&
+  professionalName.trim().length > 0 &&
+  professionalEmail.trim().length > 0 &&
+  Boolean(selectedProfessionalSlot) &&
+  (
+    professionalChoices.length === 0 ||
+    Boolean(selectedProfessionalChoice)
+  ) &&
+  (
+    block.data.professionalPhoneMode !== "required" ||
+    professionalPhone.trim().length > 0
+  );
+
 const todayDate = new Date();
 const todayKey = todayDate.toISOString().slice(0, 10);
 
@@ -20873,8 +20887,9 @@ backgroundColor: getProfessionalBackgroundColor(
   professionalChoiceButtonStyle,
   isActive
     ? professionalChoiceButtonStyle.activeBackgroundColor ||
-        professionalChoiceButtonStyle.backgroundColor
-    : professionalChoiceButtonStyle.backgroundColor,
+        "#111827"
+    : professionalChoiceButtonStyle.backgroundColor ||
+        "#ffffff",
 ),
 
     borderColor: isActive
@@ -20898,13 +20913,12 @@ backgroundColor: getProfessionalBackgroundColor(
       professionalChoiceButtonStyle.boxShadow ||
       undefined,
 
-    color: isActive
-      ? professionalChoiceButtonStyle.activeTextColor ||
-        professionalChoiceTextStyle.color ||
-        undefined
-      : professionalChoiceTextStyle.color ||
-        professionalChoiceButtonStyle.textColor ||
-        undefined,
+color: isActive
+  ? professionalChoiceButtonStyle.activeTextColor ||
+    "#ffffff"
+  : professionalChoiceTextStyle.color ||
+    professionalChoiceButtonStyle.textColor ||
+    "#111827",
   }}
 >
                     <div className="text-sm font-semibold">
