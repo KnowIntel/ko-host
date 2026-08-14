@@ -1228,7 +1228,33 @@ zIndex:
     ? Math.max(2000, grid.zIndex)
     : grid.zIndex,
   }}
-  onClick={(e) => onSelect(selectBlock(block.id), e)}
+  onClick={(e) => {
+  const target = e.target as HTMLElement;
+
+  const interactiveElement = target.closest(
+    [
+      "button",
+      "input",
+      "textarea",
+      "select",
+      "option",
+      "a",
+      "[contenteditable='true']",
+      "[role='button']",
+      "[data-canvas-interactive='true']",
+    ].join(","),
+  );
+
+  /*
+   * Interactive controls inside a block must receive the click
+   * themselves instead of the canvas re-selecting the block.
+   */
+  if (interactiveElement) {
+    return;
+  }
+
+  onSelect(selectBlock(block.id), e);
+}}
 className={[
   getToolSurfaceClass(selected, resizing),
   "pointer-events-auto",
