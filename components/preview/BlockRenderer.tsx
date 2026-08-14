@@ -21097,9 +21097,21 @@ color: isSelected
     undefined,
     }}
   >
-    <span style={monthlyDateLabelsTextStyle}>
-      {cell.dayNumber}
-    </span>
+<span
+  style={{
+    ...monthlyDateLabelsTextStyle,
+    color: isSelected
+      ? selectedDateCardStyle.textColor ||
+        calendarStyle.activeDateColor ||
+        "#ffffff"
+      : monthlyDateLabelsTextStyle.color ||
+        calendarDateCirclesStyle.textColor ||
+        baseTextStyle.color ||
+        undefined,
+  }}
+>
+  {cell.dayNumber}
+</span>
 
     {hasVisibleSlots ? (
       <span
