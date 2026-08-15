@@ -865,7 +865,7 @@ zIndex:
         ? "auto"
         : "hidden",
     WebkitOverflowScrolling: "touch",
-    overscrollBehavior: isScrollableBlock ? "contain" : "auto",
+    overscrollBehavior: "auto",
     ...(showVerticalScrollbar || showHorizontalScrollbar
       ? {}
       : HIDE_PREVIEW_SCROLLBAR_STYLE),
@@ -878,11 +878,7 @@ zIndex:
             ? "auto"
             : "none",
   }}
-  onWheel={(event) => {
-    if (isScrollableBlock) {
-      event.stopPropagation();
-    }
-  }}
+
   onTouchMove={(event) => {
     if (isScrollableBlock) {
       event.stopPropagation();
