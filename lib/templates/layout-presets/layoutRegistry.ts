@@ -36,6 +36,7 @@ import gameNightLayouts from "./templates/game_night";
 import bookLayouts from "./templates/book_club";
 import productLayouts from "./templates/product_showcase";
 import partyLayouts from "./templates/party_time";
+import mediationLayouts from "./templates/mediation";
 
 
 import blankLayout from "./layouts/blank";
@@ -76,6 +77,7 @@ const registry: Record<string, TemplateLayoutRegistry> = {
   book_club: bookLayouts,
   product_showcase: productLayouts,
   party_time: partyLayouts,
+  mediation: mediationLayouts,
 
   
 };

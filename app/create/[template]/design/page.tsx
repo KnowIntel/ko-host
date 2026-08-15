@@ -146,6 +146,9 @@ const draftPageCountByTemplateDesignKey: Record<string, number> = {
   "party_time:bachelor": 1,
   "party_time:bachelorette": 1,
 
+  "mediation:shared": 2,
+
+
 
 
 
