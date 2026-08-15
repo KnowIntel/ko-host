@@ -18691,11 +18691,88 @@ function renderRegistry(
   );
 }
 
-function renderChecklist(
-  block: Extract<MicrositeBlock, { type: "checklist" }>,
-  designKey?: string,
-) {
+function ProfessionalChecklistView({
+  block,
+  designKey,
+}: {
+  block: Extract<MicrositeBlock, { type: "checklist" }>;
+  designKey?: string;
+}) {
   const items = Array.isArray(block.data.items) ? block.data.items : [];
+
+  const [visitorCheckedState, setVisitorCheckedState] = useState<
+    Record<string, boolean>
+  >(() =>
+    Object.fromEntries(
+      items.map((item) => [item.id, Boolean(item.checked)]),
+    ),
+  );
+
+  useEffect(() => {
+    setVisitorCheckedState((current) => {
+      const next: Record<string, boolean> = {};
+
+      for (const item of items) {
+        next[item.id] =
+          current[item.id] !== undefined
+            ? current[item.id]
+            : Boolean(item.checked);
+      }
+
+      return next;
+    });
+  }, [block.data.items]);
+
+  const headingStyle = {
+    ...getContainerTextStyle(block.data.style, designKey),
+    ...getContainerTextStyle(block.data.headingStyle, designKey),
+  };
+
+  const columnHeaderStyle = {
+    ...getContainerTextStyle(block.data.style, designKey),
+    ...getContainerTextStyle(block.data.columnHeaderStyle, designKey),
+  };
+
+  const timeStyle = {
+    ...getContainerTextStyle(block.data.style, designKey),
+    ...getContainerTextStyle(block.data.timeStyle, designKey),
+  };
+
+  const titleStyle = {
+    ...getContainerTextStyle(block.data.style, designKey),
+    ...getContainerTextStyle(block.data.titleStyle, designKey),
+  };
+
+  const subtitleStyle = {
+    ...getContainerTextStyle(block.data.style, designKey),
+    ...getContainerTextStyle(block.data.subtitleStyle, designKey),
+  };
+
+  const detailsStyle = {
+    ...getContainerTextStyle(block.data.style, designKey),
+    ...getContainerTextStyle(block.data.detailsStyle, designKey),
+  };
+
+  const completedTextStyle = {
+    ...getContainerTextStyle(block.data.style, designKey),
+    ...getContainerTextStyle(block.data.completedTextStyle, designKey),
+  };
+
+  const rowStyle = block.data.rowStyle ?? {};
+  const completedRowStyle = block.data.completedRowStyle ?? {};
+  const iconCellStyle = block.data.iconCellStyle ?? {};
+  const statusStyle = block.data.statusStyle ?? {};
+
+  const completedTintColor =
+    block.data.completedTintColor ?? "#e8f1eb";
+
+  const completedTextColor =
+    block.data.completedTextColor ?? "#365c43";
+
+  const iconSize = Math.max(
+    16,
+    Math.min(64, Number(block.data.iconSize ?? 28)),
+  );
 
   return (
     <Surface
@@ -18703,65 +18780,375 @@ function renderChecklist(
       designKey={designKey}
       className={getSoftSurfaceClass(designKey)}
     >
-      <div
-        className="mb-3 text-base font-semibold"
-        style={getContainerTextStyle(block.data.style, designKey)}
-      >
-        {block.data.heading || "Checklist"}
-      </div>
+      {block.data.heading ? (
+        <div
+          className="mb-5 text-lg font-semibold"
+          style={headingStyle}
+        >
+          {block.data.heading}
+        </div>
+      ) : null}
 
-      {items.length ? (
-        <div className="space-y-3">
-          {items.map((item, index) => (
+      <div className="w-full overflow-x-auto">
+        <div className="min-w-[720px]">
+          {block.data.showColumnHeaders !== false ? (
             <div
-              key={item.id}
-              className={[
-                "flex items-center gap-3 rounded-xl border px-3 py-3",
-                isLightDesign(designKey)
-                  ? "border-neutral-200 bg-white"
-                  : "border-white/10 bg-white/5",
-              ].join(" ")}
+              className="grid items-center gap-3 px-3 pb-2"
+              style={{
+                gridTemplateColumns:
+                  "64px minmax(100px,0.85fr) minmax(220px,2fr) minmax(180px,1.5fr) 64px",
+              }}
             >
+              <div />
+
               <div
-                className={[
-                  "flex h-6 w-6 shrink-0 items-center justify-center rounded-md border text-xs font-bold",
-                  Boolean(item.checked)
-                    ? isLightDesign(designKey)
-                      ? "border-neutral-900 bg-neutral-900 text-white"
-                      : "border-white bg-white text-neutral-900"
-                    : isLightDesign(designKey)
-                      ? "border-neutral-300 bg-white text-neutral-400"
-                      : "border-white/20 bg-transparent text-white/40",
-                ].join(" ")}
+                className="text-xs font-semibold uppercase tracking-[0.12em]"
+                style={columnHeaderStyle}
               >
-                {item.checked ? "✓" : index + 1}
+                {block.data.timeColumnLabel ?? "TIME"}
               </div>
 
               <div
-                className={Boolean(item.checked) ? "opacity-70" : ""}
-                style={{
-                  ...getContainerTextStyle(block.data.style, designKey),
-                  textDecoration: item.checked ? "line-through" : "none",
-                }}
+                className="text-xs font-semibold uppercase tracking-[0.12em]"
+                style={columnHeaderStyle}
               >
-                {item.label || "Checklist item"}
+                {block.data.actionColumnLabel ?? "ACTION"}
+              </div>
+
+              <div
+                className="text-xs font-semibold uppercase tracking-[0.12em]"
+                style={columnHeaderStyle}
+              >
+                {block.data.detailsColumnLabel ?? "DETAILS"}
+              </div>
+
+              <div
+                className="text-center text-xs font-semibold uppercase tracking-[0.12em]"
+                style={columnHeaderStyle}
+              >
+                {block.data.statusColumnLabel ?? ""}
               </div>
             </div>
-          ))}
+          ) : null}
+
+          {items.length ? (
+            <div className="space-y-3">
+              {items.map((item) => {
+                const checked =
+                  visitorCheckedState[item.id] ??
+                  Boolean(item.checked);
+
+                const effectiveRowStyle = checked
+                  ? {
+                      ...rowStyle,
+                      ...completedRowStyle,
+                      backgroundColor:
+                        completedRowStyle.backgroundColor ??
+                        completedTintColor,
+                    }
+                  : rowStyle;
+
+                const checkedTextPatch = checked
+                  ? {
+                      ...completedTextStyle,
+                      color:
+                        completedTextStyle.color ??
+                        completedTextColor,
+                    }
+                  : {};
+
+                return (
+                  <div
+                    key={item.id}
+                    className="grid items-center gap-3 px-3 py-3 transition-all duration-200"
+                    style={{
+                      gridTemplateColumns:
+                        "64px minmax(100px,0.85fr) minmax(220px,2fr) minmax(180px,1.5fr) 64px",
+
+                      backgroundColor:
+                        effectiveRowStyle.backgroundColor ??
+                        undefined,
+
+                      borderColor:
+                        effectiveRowStyle.borderColor ??
+                        undefined,
+
+                      borderWidth:
+                        typeof effectiveRowStyle.borderWidth === "number"
+                          ? `${effectiveRowStyle.borderWidth}px`
+                          : undefined,
+
+                      borderStyle:
+                        typeof effectiveRowStyle.borderWidth === "number" &&
+                        effectiveRowStyle.borderWidth > 0
+                          ? "solid"
+                          : undefined,
+
+                      borderRadius:
+                        typeof effectiveRowStyle.borderRadius === "number"
+                          ? `${effectiveRowStyle.borderRadius}px`
+                          : undefined,
+                    }}
+                  >
+                    {/* ICON */}
+                    <div
+                      className="flex h-12 w-12 items-center justify-center overflow-hidden"
+                      style={{
+                        backgroundColor:
+                          iconCellStyle.backgroundColor ?? undefined,
+
+                        borderColor:
+                          iconCellStyle.borderColor ?? undefined,
+
+                        borderWidth:
+                          typeof iconCellStyle.borderWidth === "number"
+                            ? `${iconCellStyle.borderWidth}px`
+                            : undefined,
+
+                        borderStyle:
+                          typeof iconCellStyle.borderWidth === "number" &&
+                          iconCellStyle.borderWidth > 0
+                            ? "solid"
+                            : undefined,
+
+                        borderRadius:
+                          typeof iconCellStyle.borderRadius === "number"
+                            ? `${iconCellStyle.borderRadius}px`
+                            : undefined,
+                      }}
+                    >
+                      {item.iconUrl ? (
+                        <img
+                          src={item.iconUrl}
+                          alt=""
+                          className="object-contain"
+                          style={{
+                            width: iconSize,
+                            height: iconSize,
+                          }}
+                        />
+                      ) : (
+                        <span className="text-neutral-400">•</span>
+                      )}
+                    </div>
+
+                    {/* TIME */}
+                    <div
+                      className={checked ? "opacity-80" : ""}
+                      style={{
+                        ...timeStyle,
+                        ...checkedTextPatch,
+                      }}
+                    >
+                      {item.time || ""}
+                    </div>
+
+                    {/* ACTION */}
+                    <div className="min-w-0">
+                      <div
+                        className="font-semibold"
+                        style={{
+                          ...titleStyle,
+                          ...checkedTextPatch,
+                          textDecoration: checked
+                            ? "line-through"
+                            : titleStyle.textDecoration,
+                        }}
+                      >
+                        {item.title ||
+                          item.label ||
+                          "Checklist item"}
+                      </div>
+
+                      {item.subtitle ? (
+                        <div
+                          className="mt-1 text-sm opacity-75"
+                          style={{
+                            ...subtitleStyle,
+                            ...checkedTextPatch,
+                          }}
+                        >
+                          {item.subtitle}
+                        </div>
+                      ) : null}
+                    </div>
+
+                    {/* DETAILS */}
+                    <div
+                      className="min-w-0 text-sm"
+                      style={{
+                        ...detailsStyle,
+                        ...checkedTextPatch,
+                      }}
+                    >
+                      {item.details || ""}
+                    </div>
+
+                    {/* VISITOR CHECKBOX */}
+                    <div className="flex justify-center">
+                      <button
+                        type="button"
+                        aria-label={
+                          checked
+                            ? "Mark item incomplete"
+                            : "Mark item complete"
+                        }
+                        aria-pressed={checked}
+                        onClick={(event) => {
+                          event.stopPropagation();
+
+                          setVisitorCheckedState((current) => ({
+                            ...current,
+                            [item.id]: !checked,
+                          }));
+                        }}
+                        className="flex h-10 w-10 items-center justify-center transition-all duration-200"
+                        style={{
+                          backgroundColor: checked
+                            ? statusStyle.backgroundColor ?? "#416a50"
+                            : "transparent",
+
+                          borderColor:
+                            statusStyle.borderColor ?? "#416a50",
+
+                          borderWidth:
+                            typeof statusStyle.borderWidth === "number"
+                              ? `${statusStyle.borderWidth}px`
+                              : "2px",
+
+                          borderStyle: "solid",
+
+                          borderRadius:
+                            typeof statusStyle.borderRadius === "number"
+                              ? `${statusStyle.borderRadius}px`
+                              : "999px",
+
+                          color: checked
+                            ? "#ffffff"
+                            : statusStyle.borderColor ?? "#416a50",
+                        }}
+                      >
+                        {checked ? "✓" : ""}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div
+              className={[
+                "rounded-xl border border-dashed px-4 py-6 text-sm",
+                isLightDesign(designKey)
+                  ? "border-neutral-300 bg-neutral-50 text-neutral-500"
+                  : "border-white/15 bg-white/5 text-white/60",
+              ].join(" ")}
+            >
+              No checklist items yet.
+            </div>
+          )}
         </div>
-      ) : (
-        <div
-          className={[
-            "rounded-xl border border-dashed px-4 py-6 text-sm",
-            isLightDesign(designKey)
-              ? "border-neutral-300 bg-neutral-50 text-neutral-500"
-              : "border-white/15 bg-white/5 text-white/60",
-          ].join(" ")}
-        >
-          No checklist items yet.
-        </div>
-      )}
+      </div>
     </Surface>
+  );
+}
+
+function renderChecklist(
+  block: Extract<MicrositeBlock, { type: "checklist" }>,
+  designKey?: string,
+) {
+  const items = Array.isArray(block.data.items) ? block.data.items : [];
+  const styleVariant =
+    block.data.styleVariant === "professional"
+      ? "professional"
+      : "standard";
+
+  const isProfessional = styleVariant === "professional";
+
+  /*
+   * STANDARD
+   *
+   * Preserve the existing Checklist rendering exactly.
+   */
+  if (!isProfessional) {
+    return (
+      <Surface
+        block={block}
+        designKey={designKey}
+        className={getSoftSurfaceClass(designKey)}
+      >
+        <div
+          className="mb-3 text-base font-semibold"
+          style={getContainerTextStyle(block.data.style, designKey)}
+        >
+          {block.data.heading || "Checklist"}
+        </div>
+
+        {items.length ? (
+          <div className="space-y-3">
+            {items.map((item, index) => (
+              <div
+                key={item.id}
+                className={[
+                  "flex items-center gap-3 rounded-xl border px-3 py-3",
+                  isLightDesign(designKey)
+                    ? "border-neutral-200 bg-white"
+                    : "border-white/10 bg-white/5",
+                ].join(" ")}
+              >
+                <div
+                  className={[
+                    "flex h-6 w-6 shrink-0 items-center justify-center rounded-md border text-xs font-bold",
+                    Boolean(item.checked)
+                      ? isLightDesign(designKey)
+                        ? "border-neutral-900 bg-neutral-900 text-white"
+                        : "border-white bg-white text-neutral-900"
+                      : isLightDesign(designKey)
+                        ? "border-neutral-300 bg-white text-neutral-400"
+                        : "border-white/20 bg-transparent text-white/40",
+                  ].join(" ")}
+                >
+                  {item.checked ? "✓" : index + 1}
+                </div>
+
+                <div
+                  className={Boolean(item.checked) ? "opacity-70" : ""}
+                  style={{
+                    ...getContainerTextStyle(
+                      block.data.style,
+                      designKey,
+                    ),
+                    textDecoration: item.checked
+                      ? "line-through"
+                      : "none",
+                  }}
+                >
+                  {item.label || "Checklist item"}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div
+            className={[
+              "rounded-xl border border-dashed px-4 py-6 text-sm",
+              isLightDesign(designKey)
+                ? "border-neutral-300 bg-neutral-50 text-neutral-500"
+                : "border-white/15 bg-white/5 text-white/60",
+            ].join(" ")}
+          >
+            No checklist items yet.
+          </div>
+        )}
+      </Surface>
+    );
+  }
+
+  return (
+    <ProfessionalChecklistView
+      block={block}
+      designKey={designKey}
+    />
   );
 }
 

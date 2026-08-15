@@ -1,17 +1,19 @@
 "use client";
 
-/**
- * Checklist inspector section
- * Extracted from DesignLayoutEditor.
- *
- * DesignLayoutEditor remains the middleman and only renders this when:
- * selectedBlock?.type === "checklist"
- */
+import { useMemo, useState } from "react";
+
 type ChecklistInspectorProps = {
   selectedBlock: any;
   updateSelectedBlock: any;
 
   makeClientId: (prefix: string) => string;
+
+  /*
+   * Reuses the existing Icon category from DesignLayoutEditor.
+   * Optional for now so this file remains compile-safe until we wire
+   * CATEGORY_BUTTONS into this inspector.
+   */
+  CATEGORY_BUTTONS?: any;
 
   inspectorCardClass: () => string;
   inspectorLabelClass: () => string;
@@ -20,152 +22,862 @@ type ChecklistInspectorProps = {
   toolSetButtonClass: (position?: any) => string;
 };
 
+function getIconTools(CATEGORY_BUTTONS: any) {
+  return (CATEGORY_BUTTONS?.Icons ?? []).filter(
+    (tool: any) => tool.kind === "block" && tool.type === "icon",
+  );
+}
+
 export function ChecklistInspector({
   selectedBlock,
   updateSelectedBlock,
   makeClientId,
+  CATEGORY_BUTTONS,
   inspectorCardClass,
   inspectorLabelClass,
   inspectorInputClass,
   toolSetButtonClass,
 }: ChecklistInspectorProps) {
-  return (
-    <div className={inspectorCardClass()}>
-      {/* Checklist */}
-    <div className={inspectorLabelClass()}>Checklist</div>
+  const [expandedIconPickerId, setExpandedIconPickerId] = useState<
+    string | null
+  >(null);
 
-    <div className="mt-4">
-      <div className={inspectorLabelClass()}>Heading</div>
-      <input
-        type="text"
-        value={selectedBlock.data.heading ?? ""}
-        onChange={(e) =>
-          updateSelectedBlock((block: any) =>
-            block.type !== "checklist"
-              ? block
-              : {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    heading: e.target.value,
-                  },
+  const [iconSearchByItem, setIconSearchByItem] = useState<
+    Record<string, string>
+  >({});
+
+  const styleVariant =
+    selectedBlock?.data?.styleVariant === "professional"
+      ? "professional"
+      : "standard";
+
+  const isProfessional = styleVariant === "professional";
+
+  const iconTools = useMemo(
+    () => getIconTools(CATEGORY_BUTTONS),
+    [CATEGORY_BUTTONS],
+  );
+
+  function updateChecklistData(patch: Record<string, any>) {
+    updateSelectedBlock((block: any) =>
+      block.type !== "checklist"
+        ? block
+        : {
+            ...block,
+            data: {
+              ...block.data,
+              ...patch,
+            },
+          },
+    );
+  }
+
+  function updateChecklistItem(
+    itemId: string,
+    patch: Record<string, any>,
+  ) {
+    updateSelectedBlock((block: any) =>
+      block.type !== "checklist"
+        ? block
+        : {
+            ...block,
+            data: {
+              ...block.data,
+              items: block.data.items.map((entry: any) =>
+                entry.id === itemId
+                  ? {
+                      ...entry,
+                      ...patch,
+                    }
+                  : entry,
+              ),
+            },
+          },
+    );
+  }
+
+  function removeChecklistItem(itemId: string) {
+    updateSelectedBlock((block: any) =>
+      block.type !== "checklist"
+        ? block
+        : {
+            ...block,
+            data: {
+              ...block.data,
+              items:
+                block.data.items.length > 1
+                  ? block.data.items.filter(
+                      (entry: any) => entry.id !== itemId,
+                    )
+                  : block.data.items,
+            },
+          },
+    );
+  }
+
+  function addChecklistItem() {
+    updateSelectedBlock((block: any) =>
+      block.type !== "checklist"
+        ? block
+        : {
+            ...block,
+            data: {
+              ...block.data,
+              items: [
+                ...block.data.items,
+                {
+                  id: makeClientId("check"),
+                  label: "New item",
+                  checked: false,
+
+                  iconName: "",
+                  iconUrl: "",
+
+                  time: "",
+                  title: "New item",
+                  subtitle: "",
+                  details: "",
                 },
-          )
-        }
-        className={inspectorInputClass()}
-      />
-    </div>
+              ],
+            },
+          },
+    );
+  }
 
-    <div className="mt-4 space-y-3">
-      {selectedBlock.data.items.map((item: any) => (
-        <div
-          key={item.id}
-          className="rounded-xl border border-neutral-200 bg-neutral-50 p-3"
-        >
-          <div className="flex items-center gap-3">
+  function getFilteredIconTools(itemId: string) {
+    const query = String(
+      iconSearchByItem[itemId] ?? "",
+    )
+      .trim()
+      .toLowerCase();
+
+    if (!query) return iconTools;
+
+    return iconTools.filter((tool: any) => {
+      const label = String(tool.label ?? "").toLowerCase();
+      const iconName = String(tool.iconName ?? "").toLowerCase();
+
+      return (
+        label.includes(query) ||
+        iconName.includes(query)
+      );
+    });
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* ------------------------------------------------------------------ */}
+      {/* MAIN CHECKLIST SETTINGS */}
+      {/* ------------------------------------------------------------------ */}
+
+      <div className={inspectorCardClass()}>
+        <div className={inspectorLabelClass()}>Checklist</div>
+
+        <div className="mt-4">
+          <div className={inspectorLabelClass()}>
+            Style Variant
+          </div>
+
+          <select
+            value={styleVariant}
+            onChange={(e) =>
+              updateChecklistData({
+                styleVariant:
+                  e.target.value === "professional"
+                    ? "professional"
+                    : "standard",
+              })
+            }
+            className={inspectorInputClass()}
+          >
+            <option value="standard">
+              Standard
+            </option>
+
+            <option value="professional">
+              Professional
+            </option>
+          </select>
+        </div>
+
+        <div className="mt-4">
+          <div className={inspectorLabelClass()}>
+            Heading
+          </div>
+
+          <input
+            type="text"
+            value={selectedBlock.data.heading ?? ""}
+            onChange={(e) =>
+              updateChecklistData({
+                heading: e.target.value,
+              })
+            }
+            className={inspectorInputClass()}
+          />
+        </div>
+      </div>
+
+      {/* ------------------------------------------------------------------ */}
+      {/* PROFESSIONAL LAYOUT SETTINGS */}
+      {/* ------------------------------------------------------------------ */}
+
+      {isProfessional ? (
+        <div className={inspectorCardClass()}>
+          <div className={inspectorLabelClass()}>
+            Professional Layout
+          </div>
+
+          <label className="mt-4 flex items-center justify-between gap-4 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3">
+            <div>
+              <div className="text-sm font-medium text-neutral-800">
+                Column Headers
+              </div>
+
+              <div className="mt-1 text-xs text-neutral-500">
+                Display headings above the checklist columns.
+              </div>
+            </div>
+
             <input
               type="checkbox"
-              checked={Boolean(item.checked)}
+              checked={
+                selectedBlock.data.showColumnHeaders !== false
+              }
               onChange={(e) =>
-                updateSelectedBlock((block: any) =>
-                  block.type !== "checklist"
-                    ? block
-                    : {
-                        ...block,
-                        data: {
-                          ...block.data,
-                          items: block.data.items.map((entry: any) =>
-                            entry.id === item.id
-                              ? { ...entry, checked: e.target.checked }
-                              : entry,
-                          ),
-                        },
-                      },
-                )
+                updateChecklistData({
+                  showColumnHeaders: e.target.checked,
+                })
               }
             />
+          </label>
 
-            <input
-              type="text"
-              value={item.label}
-              onChange={(e) =>
-                updateSelectedBlock((block: any) =>
-                  block.type !== "checklist"
-                    ? block
-                    : {
-                        ...block,
-                        data: {
-                          ...block.data,
-                          items: block.data.items.map((entry: any) =>
-                            entry.id === item.id
-                              ? { ...entry, label: e.target.value }
-                              : entry,
-                          ),
-                        },
-                      },
-                )
-              }
-              className={inspectorInputClass()}
-            />
-          </div>
+          {selectedBlock.data.showColumnHeaders !== false ? (
+            <div className="mt-4 grid grid-cols-1 gap-3">
+              <div>
+                <div className={inspectorLabelClass()}>
+                  Time Column
+                </div>
 
-          <div className="mt-3 flex justify-end">
-            <button
-              type="button"
-              className={toolSetButtonClass("remove")}
-              onClick={() =>
-                updateSelectedBlock((block: any) =>
-                  block.type !== "checklist"
-                    ? block
-                    : {
-                        ...block,
-                        data: {
-                          ...block.data,
-                          items:
-                            block.data.items.length > 1
-                              ? block.data.items.filter(
-                                  (entry: any) => entry.id !== item.id,
-                                )
-                              : block.data.items,
-                        },
-                      },
-                )
-              }
-              title="Remove checklist item"
-            >
-              ×
-            </button>
+                <input
+                  type="text"
+                  value={
+                    selectedBlock.data.timeColumnLabel ??
+                    "TIME"
+                  }
+                  onChange={(e) =>
+                    updateChecklistData({
+                      timeColumnLabel: e.target.value,
+                    })
+                  }
+                  className={inspectorInputClass()}
+                />
+              </div>
+
+              <div>
+                <div className={inspectorLabelClass()}>
+                  Action Column
+                </div>
+
+                <input
+                  type="text"
+                  value={
+                    selectedBlock.data.actionColumnLabel ??
+                    "ACTION"
+                  }
+                  onChange={(e) =>
+                    updateChecklistData({
+                      actionColumnLabel: e.target.value,
+                    })
+                  }
+                  className={inspectorInputClass()}
+                />
+              </div>
+
+              <div>
+                <div className={inspectorLabelClass()}>
+                  Details Column
+                </div>
+
+                <input
+                  type="text"
+                  value={
+                    selectedBlock.data.detailsColumnLabel ??
+                    "DETAILS"
+                  }
+                  onChange={(e) =>
+                    updateChecklistData({
+                      detailsColumnLabel: e.target.value,
+                    })
+                  }
+                  className={inspectorInputClass()}
+                />
+              </div>
+
+              <div>
+                <div className={inspectorLabelClass()}>
+                  Status Column
+                </div>
+
+                <input
+                  type="text"
+                  value={
+                    selectedBlock.data.statusColumnLabel ??
+                    ""
+                  }
+                  onChange={(e) =>
+                    updateChecklistData({
+                      statusColumnLabel: e.target.value,
+                    })
+                  }
+                  placeholder="Optional"
+                  className={inspectorInputClass()}
+                />
+              </div>
+            </div>
+          ) : null}
+
+          <div className="mt-5 grid grid-cols-1 gap-4">
+            <div>
+              <div className={inspectorLabelClass()}>
+                Completed Row Tint
+              </div>
+
+              <input
+                type="color"
+                value={
+                  selectedBlock.data.completedTintColor ??
+                  "#e8f1eb"
+                }
+                onChange={(e) =>
+                  updateChecklistData({
+                    completedTintColor: e.target.value,
+                    completedRowStyle: {
+                      ...(
+                        selectedBlock.data
+                          .completedRowStyle ?? {}
+                      ),
+                      backgroundColor:
+                        e.target.value,
+                    },
+                  })
+                }
+                className="mt-2 h-11 w-full cursor-pointer rounded-xl border border-neutral-300 bg-white p-1"
+              />
+            </div>
+
+            <div>
+              <div className={inspectorLabelClass()}>
+                Completed Text Color
+              </div>
+
+              <input
+                type="color"
+                value={
+                  selectedBlock.data.completedTextColor ??
+                  "#365c43"
+                }
+                onChange={(e) =>
+                  updateChecklistData({
+                    completedTextColor: e.target.value,
+                  })
+                }
+                className="mt-2 h-11 w-full cursor-pointer rounded-xl border border-neutral-300 bg-white p-1"
+              />
+            </div>
+
+            <div>
+              <div className={inspectorLabelClass()}>
+                Icon Size
+              </div>
+
+              <input
+                type="range"
+                min={16}
+                max={64}
+                value={
+                  selectedBlock.data.iconSize ?? 28
+                }
+                onChange={(e) =>
+                  updateChecklistData({
+                    iconSize: Math.max(
+                      16,
+                      Math.min(
+                        64,
+                        Number(e.target.value) || 28,
+                      ),
+                    ),
+                  })
+                }
+                className="mt-2 w-full"
+              />
+
+              <div className="mt-1 text-xs text-neutral-500">
+                {selectedBlock.data.iconSize ?? 28}px
+              </div>
+            </div>
           </div>
         </div>
-      ))}
+      ) : null}
 
-      <button
-        type="button"
-        className={toolSetButtonClass("front")}
-        onClick={() =>
-          updateSelectedBlock((block: any) =>
-            block.type !== "checklist"
-              ? block
-              : {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    items: [
-                      ...block.data.items,
-                      {
-                        id: makeClientId("check"),
-                        label: "New item",
-                        checked: false,
-                      },
-                    ],
-                  },
-                },
-          )
-        }
-      >
-        Add Item
-      </button>
-    </div>
+      {/* ------------------------------------------------------------------ */}
+      {/* ITEMS */}
+      {/* ------------------------------------------------------------------ */}
+
+      <div className={inspectorCardClass()}>
+        <div className="flex items-center justify-between gap-3">
+          <div className={inspectorLabelClass()}>
+            Checklist Items
+          </div>
+
+          <div className="text-xs text-neutral-500">
+            {selectedBlock.data.items.length}{" "}
+            {selectedBlock.data.items.length === 1
+              ? "item"
+              : "items"}
+          </div>
+        </div>
+
+        <div className="mt-4 space-y-4">
+          {selectedBlock.data.items.map(
+            (item: any, index: number) => {
+              const filteredIcons =
+                getFilteredIconTools(item.id);
+
+              const selectedIconName =
+                item.iconName ||
+                (
+                  String(item.iconUrl ?? "")
+                    .split("/")
+                    .pop() ?? ""
+                ).replace(/\.svg$/i, "");
+
+              return (
+                <div
+                  key={item.id}
+                  className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <div className="text-sm font-semibold text-neutral-900">
+                        Item {index + 1}
+                      </div>
+
+                      <div className="mt-1 text-xs text-neutral-500">
+                        {isProfessional
+                          ? "Professional checklist row"
+                          : "Standard checklist item"}
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      className={toolSetButtonClass(
+                        "remove",
+                      )}
+                      onClick={() =>
+                        removeChecklistItem(item.id)
+                      }
+                      title="Remove checklist item"
+                    >
+                      ×
+                    </button>
+                  </div>
+
+                  {/* ------------------------------------------------------ */}
+                  {/* STANDARD */}
+                  {/* ------------------------------------------------------ */}
+
+                  {!isProfessional ? (
+                    <div className="mt-4">
+                      <div className="flex items-start gap-3">
+                        <input
+                          type="checkbox"
+                          checked={Boolean(
+                            item.checked,
+                          )}
+                          onChange={(e) =>
+                            updateChecklistItem(
+                              item.id,
+                              {
+                                checked:
+                                  e.target.checked,
+                              },
+                            )
+                          }
+                          className="mt-4"
+                        />
+
+                        <div className="min-w-0 flex-1">
+                          <div
+                            className={
+                              inspectorLabelClass()
+                            }
+                          >
+                            Label
+                          </div>
+
+                          <input
+                            type="text"
+                            value={
+                              item.label ?? ""
+                            }
+                            onChange={(e) =>
+                              updateChecklistItem(
+                                item.id,
+                                {
+                                  label:
+                                    e.target.value,
+                                  title:
+                                    item.title ||
+                                    e.target.value,
+                                },
+                              )
+                            }
+                            className={
+                              inspectorInputClass()
+                            }
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      {/* -------------------------------------------------- */}
+                      {/* PROFESSIONAL */}
+                      {/* -------------------------------------------------- */}
+
+                      <div className="mt-4">
+                        <label className="flex items-center justify-between gap-4 rounded-xl border border-neutral-200 bg-white px-3 py-3">
+                          <div>
+                            <div className="text-sm font-medium text-neutral-800">
+                              Default Completed
+                            </div>
+
+                            <div className="mt-1 text-xs text-neutral-500">
+                              Initial checked state
+                              before a visitor changes
+                              it.
+                            </div>
+                          </div>
+
+                          <input
+                            type="checkbox"
+                            checked={Boolean(
+                              item.checked,
+                            )}
+                            onChange={(e) =>
+                              updateChecklistItem(
+                                item.id,
+                                {
+                                  checked:
+                                    e.target.checked,
+                                },
+                              )
+                            }
+                          />
+                        </label>
+                      </div>
+
+                      {/* ICON */}
+
+                      <div className="mt-4">
+                        <div
+                          className={
+                            inspectorLabelClass()
+                          }
+                        >
+                          Icon
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setExpandedIconPickerId(
+                              (
+                                current,
+                              ) =>
+                                current === item.id
+                                  ? null
+                                  : item.id,
+                            )
+                          }
+                          className="mt-2 flex h-12 w-full items-center gap-3 rounded-xl border border-neutral-300 bg-white px-3 text-left text-sm text-neutral-800 hover:bg-neutral-100"
+                        >
+                          {item.iconUrl ? (
+                            <img
+                              src={item.iconUrl}
+                              alt=""
+                              className="h-7 w-7 shrink-0 object-contain"
+                            />
+                          ) : (
+                            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-neutral-100 text-xs text-neutral-400">
+                              +
+                            </div>
+                          )}
+
+                          <span className="min-w-0 flex-1 truncate">
+                            {selectedIconName
+                              ? selectedIconName
+                              : "Choose icon"}
+                          </span>
+
+                          <span className="text-neutral-400">
+                            {expandedIconPickerId ===
+                            item.id
+                              ? "▲"
+                              : "▼"}
+                          </span>
+                        </button>
+
+                        {expandedIconPickerId ===
+                        item.id ? (
+                          <div className="mt-2 overflow-hidden rounded-xl border border-neutral-200 bg-white">
+                            <div className="border-b border-neutral-200 p-2">
+                              <input
+                                type="text"
+                                value={
+                                  iconSearchByItem[
+                                    item.id
+                                  ] ?? ""
+                                }
+                                onChange={(e) =>
+                                  setIconSearchByItem(
+                                    (current) => ({
+                                      ...current,
+                                      [item.id]:
+                                        e.target
+                                          .value,
+                                    }),
+                                  )
+                                }
+                                placeholder="Search icons..."
+                                className={
+                                  inspectorInputClass()
+                                }
+                              />
+                            </div>
+
+                            {iconTools.length ? (
+                              <div className="max-h-56 overflow-y-auto p-2">
+                                {filteredIcons.length ? (
+                                  <div className="grid grid-cols-1 gap-1">
+                                    {filteredIcons.map(
+                                      (
+                                        tool: any,
+                                      ) => {
+                                        const iconName =
+                                          tool.iconName ??
+                                          "star";
+
+                                        const active =
+                                          selectedIconName ===
+                                          iconName;
+
+                                        return (
+                                          <button
+                                            key={
+                                              iconName
+                                            }
+                                            type="button"
+                                            onClick={() => {
+                                              updateChecklistItem(
+                                                item.id,
+                                                {
+                                                  iconName,
+                                                  iconUrl: `/media-icons/${iconName}.svg`,
+                                                },
+                                              );
+
+                                              setExpandedIconPickerId(
+                                                null,
+                                              );
+                                            }}
+                                            className={[
+                                              "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm transition",
+                                              active
+                                                ? "bg-neutral-900 text-white"
+                                                : "text-neutral-800 hover:bg-neutral-100",
+                                            ].join(
+                                              " ",
+                                            )}
+                                          >
+                                            <img
+                                              src={`/media-icons/${iconName}.svg`}
+                                              alt=""
+                                              className="h-5 w-5 shrink-0 object-contain"
+                                            />
+
+                                            <span className="min-w-0 flex-1 truncate">
+                                              {
+                                                tool.label
+                                              }
+                                            </span>
+                                          </button>
+                                        );
+                                      },
+                                    )}
+                                  </div>
+                                ) : (
+                                  <div className="px-3 py-5 text-center text-sm text-neutral-500">
+                                    No matching
+                                    icons
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="px-4 py-5 text-sm text-neutral-500">
+                                Icon library will
+                                appear here after
+                                CATEGORY_BUTTONS is
+                                connected to the
+                                Checklist inspector.
+                              </div>
+                            )}
+                          </div>
+                        ) : null}
+                      </div>
+
+                      {/* TIME */}
+
+                      <div className="mt-4">
+                        <div
+                          className={
+                            inspectorLabelClass()
+                          }
+                        >
+                          Time
+                        </div>
+
+                        <input
+                          type="text"
+                          value={
+                            item.time ?? ""
+                          }
+                          onChange={(e) =>
+                            updateChecklistItem(
+                              item.id,
+                              {
+                                time: e.target.value,
+                              },
+                            )
+                          }
+                          placeholder="9:00 AM"
+                          className={
+                            inspectorInputClass()
+                          }
+                        />
+                      </div>
+
+                      {/* TITLE */}
+
+                      <div className="mt-4">
+                        <div
+                          className={
+                            inspectorLabelClass()
+                          }
+                        >
+                          Title
+                        </div>
+
+                        <input
+                          type="text"
+                          value={
+                            item.title ??
+                            item.label ??
+                            ""
+                          }
+                          onChange={(e) =>
+                            updateChecklistItem(
+                              item.id,
+                              {
+                                title: e.target.value,
+                                label: e.target.value,
+                              },
+                            )
+                          }
+                          className={
+                            inspectorInputClass()
+                          }
+                        />
+                      </div>
+
+                      {/* SUBTITLE */}
+
+                      <div className="mt-4">
+                        <div
+                          className={
+                            inspectorLabelClass()
+                          }
+                        >
+                          Subtitle
+                        </div>
+
+                        <input
+                          type="text"
+                          value={
+                            item.subtitle ?? ""
+                          }
+                          onChange={(e) =>
+                            updateChecklistItem(
+                              item.id,
+                              {
+                                subtitle:
+                                  e.target.value,
+                              },
+                            )
+                          }
+                          placeholder="Optional supporting text"
+                          className={
+                            inspectorInputClass()
+                          }
+                        />
+                      </div>
+
+                      {/* DETAILS */}
+
+                      <div className="mt-4">
+                        <div
+                          className={
+                            inspectorLabelClass()
+                          }
+                        >
+                          Details
+                        </div>
+
+                        <textarea
+                          value={
+                            item.details ?? ""
+                          }
+                          onChange={(e) =>
+                            updateChecklistItem(
+                              item.id,
+                              {
+                                details:
+                                  e.target.value,
+                              },
+                            )
+                          }
+                          placeholder="Add instructions, notes, or other details..."
+                          className="mt-2 min-h-[90px] w-full resize-y rounded-xl border border-neutral-300 bg-white px-3 py-3 text-sm text-neutral-900 outline-none"
+                        />
+                      </div>
+                    </>
+                  )}
+                </div>
+              );
+            },
+          )}
+
+          <button
+            type="button"
+            className={toolSetButtonClass("front")}
+            onClick={addChecklistItem}
+          >
+            Add Item
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

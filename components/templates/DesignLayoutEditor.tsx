@@ -14006,15 +14006,16 @@ selectedBlock?.type === "comparison_table" ? (
 ) : null}
 
 {!isMultiSelection && selectedBlock?.type === "checklist" ? (
-  <ChecklistInspector
-    selectedBlock={selectedBlock}
-    updateSelectedBlock={updateSelectedBlock}
-    makeClientId={makeClientId}
-    inspectorCardClass={inspectorCardClass}
-    inspectorLabelClass={inspectorLabelClass}
-    inspectorInputClass={inspectorInputClass}
-    toolSetButtonClass={toolSetButtonClass}
-  />
+<ChecklistInspector
+  selectedBlock={selectedBlock}
+  updateSelectedBlock={updateSelectedBlock}
+  makeClientId={makeClientId}
+  CATEGORY_BUTTONS={CATEGORY_BUTTONS}
+  inspectorCardClass={inspectorCardClass}
+  inspectorLabelClass={inspectorLabelClass}
+  inspectorInputClass={inspectorInputClass}
+  toolSetButtonClass={toolSetButtonClass}
+/>
 ) : null}
 
 {!isMultiSelection && selectedBlock?.type === "calendar_event" ? (

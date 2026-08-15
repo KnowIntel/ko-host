@@ -1538,12 +1538,63 @@ export type ChecklistBlock = BaseBlock & {
   type: "checklist";
   data: {
     heading?: string;
+
+    styleVariant?: "standard" | "professional";
+
+    showColumnHeaders?: boolean;
+    timeColumnLabel?: string;
+    actionColumnLabel?: string;
+    detailsColumnLabel?: string;
+    statusColumnLabel?: string;
+
+    completedTintColor?: string;
+    completedTextColor?: string;
+
+    iconSize?: number;
+
     items: Array<{
       id: string;
+
+      /*
+       * Existing Standard checklist field.
+       * Professional also uses this as the primary title fallback.
+       */
       label: string;
+
       checked?: boolean;
+
+      /*
+       * Professional variant fields.
+       */
+      iconName?: string;
+      iconUrl?: string;
+
+      time?: string;
+      title?: string;
+      subtitle?: string;
+      details?: string;
     }>;
+
     style?: TextStyle;
+
+    /*
+     * Professional formatting targets.
+     */
+    headingStyle?: TextStyle;
+    columnHeaderStyle?: TextStyle;
+    timeStyle?: TextStyle;
+    titleStyle?: TextStyle;
+    subtitleStyle?: TextStyle;
+    detailsStyle?: TextStyle;
+    completedTextStyle?: TextStyle;
+
+    /*
+     * Professional appearance settings.
+     */
+    rowStyle?: Partial<BlockAppearance>;
+    completedRowStyle?: Partial<BlockAppearance>;
+    iconCellStyle?: Partial<BlockAppearance>;
+    statusStyle?: Partial<BlockAppearance>;
   };
 };
 
@@ -7587,26 +7638,102 @@ data: {
         },
       };
 
-    case "checklist":
-      return {
-        id: makeId("checklist"),
-        type: "checklist",
-        label: "Checklist",
-        grid: {
-          ...grid,
-          rowSpan: 4,
-        },
-        appearance: createDefaultBlockAppearance(),
-        data: {
-          heading: "Checklist",
-          items: [
-            { id: makeId("check"), label: "Item 1", checked: false },
-            { id: makeId("check"), label: "Item 2", checked: false },
-          ],
-          style: createDefaultTextStyle(),
-        },
-      };
+case "checklist":
+  return {
+    id: makeId("checklist"),
+    type: "checklist",
+    label: "Checklist",
+    grid: {
+      ...grid,
+      rowSpan: 4,
+    },
+    appearance: createDefaultBlockAppearance(),
 
+    data: {
+      heading: "Checklist",
+
+      styleVariant: "standard",
+
+      showColumnHeaders: true,
+      timeColumnLabel: "TIME",
+      actionColumnLabel: "ACTION",
+      detailsColumnLabel: "DETAILS",
+      statusColumnLabel: "",
+
+      completedTintColor: "#e8f1eb",
+      completedTextColor: "#365c43",
+
+      iconSize: 28,
+
+      items: [
+        {
+          id: makeId("check"),
+          label: "Item 1",
+          checked: false,
+
+          iconName: "calendar",
+          iconUrl: "/media-icons/calendar.svg",
+
+          time: "9:00 AM",
+          title: "Item 1",
+          subtitle: "",
+          details: "",
+        },
+        {
+          id: makeId("check"),
+          label: "Item 2",
+          checked: false,
+
+          iconName: "check",
+          iconUrl: "/media-icons/check.svg",
+
+          time: "10:00 AM",
+          title: "Item 2",
+          subtitle: "",
+          details: "",
+        },
+      ],
+
+      style: createDefaultTextStyle(),
+
+      headingStyle: createDefaultTextStyle(),
+      columnHeaderStyle: createDefaultTextStyle(),
+      timeStyle: createDefaultTextStyle(),
+      titleStyle: createDefaultTextStyle(),
+      subtitleStyle: createDefaultTextStyle(),
+      detailsStyle: createDefaultTextStyle(),
+      completedTextStyle: createDefaultTextStyle(),
+
+      rowStyle: {
+        backgroundColor: "#ffffff",
+        borderColor: "#e5e7eb",
+        borderWidth: 1,
+        borderRadius: 14,
+      },
+
+      completedRowStyle: {
+        backgroundColor: "#e8f1eb",
+        borderColor: "#b9cfbf",
+        borderWidth: 1,
+        borderRadius: 14,
+      },
+
+      iconCellStyle: {
+        backgroundColor: "#f5f1e8",
+        borderColor: "transparent",
+        borderWidth: 0,
+        borderRadius: 12,
+      },
+
+      statusStyle: {
+        backgroundColor: "#416a50",
+        borderColor: "#416a50",
+        borderWidth: 1,
+        borderRadius: 999,
+      },
+    },
+  };
+  
     case "schedule_agenda":
       return {
         id: makeId("agenda"),
