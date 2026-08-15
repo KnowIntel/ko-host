@@ -21512,12 +21512,8 @@ backgroundColor: professionalCanSubmit
       professionalBookingButtonStyle.boxShadow ||
       undefined,
 
-color: professionalCanSubmit
-  ? professionalBookingButtonTextStyle.color ||
-    professionalBookingButtonStyle.textColor ||
-    "#ffffff"
-  : professionalBookingButtonStyle.disabledTextColor ||
-    "#ffffff",
+color: "#ffffff",
+WebkitTextFillColor: "#ffffff",
   }}
 >
   {professionalSubmitting
