@@ -148,10 +148,11 @@ export function ChecklistInspector({
                   label: "New item",
                   checked: false,
 
-                  iconName: "",
-                  iconUrl: "",
+iconName: "",
+iconUrl: "",
+iconSize: 28,
 
-                  time: "",
+time: "",
                   title: "New item",
                   subtitle: "",
                   details: "",
@@ -366,263 +367,244 @@ export function ChecklistInspector({
       {/* PROFESSIONAL LAYOUT */}
       {/* ================================================================ */}
 
-      {isProfessional ? (
-        <div className={inspectorCardClass()}>
+{isProfessional ? (
+  <div className={inspectorCardClass()}>
+    <div className={inspectorLabelClass()}>
+      Professional Layout
+    </div>
+
+    <label className="mt-4 flex items-center justify-between gap-4 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3">
+      <div>
+        <div className="text-sm font-medium text-neutral-800">
+          Column Headers
+        </div>
+
+        <div className="mt-1 text-xs text-neutral-500">
+          Display headings above the checklist columns.
+        </div>
+      </div>
+
+      <input
+        type="checkbox"
+        checked={
+          selectedBlock.data.showColumnHeaders !== false
+        }
+        onChange={(e) =>
+          updateChecklistData({
+            showColumnHeaders: e.target.checked,
+          })
+        }
+      />
+    </label>
+
+    {selectedBlock.data.showColumnHeaders !== false ? (
+      <div className="mt-4 grid grid-cols-1 gap-3">
+        <div>
           <div className={inspectorLabelClass()}>
-            Professional Layout
+            Time Column
           </div>
 
-          <label className="mt-4 flex items-center justify-between gap-4 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3">
-            <div>
-              <div className="text-sm font-medium text-neutral-800">
-                Column Headers
-              </div>
+          <input
+            type="text"
+            value={
+              selectedBlock.data.timeColumnLabel ??
+              "TIME"
+            }
+            onChange={(e) =>
+              updateChecklistData({
+                timeColumnLabel: e.target.value,
+              })
+            }
+            className={inspectorInputClass()}
+          />
+        </div>
 
-              <div className="mt-1 text-xs text-neutral-500">
-                Display headings above the
-                checklist columns.
-              </div>
-            </div>
+        <div>
+          <div className={inspectorLabelClass()}>
+            Action Column
+          </div>
 
-            <input
-              type="checkbox"
-              checked={
-                selectedBlock.data
-                  .showColumnHeaders !== false
-              }
-              onChange={(e) =>
-                updateChecklistData({
-                  showColumnHeaders:
-                    e.target.checked,
-                })
-              }
-            />
-          </label>
+          <input
+            type="text"
+            value={
+              selectedBlock.data.actionColumnLabel ??
+              "ACTION"
+            }
+            onChange={(e) =>
+              updateChecklistData({
+                actionColumnLabel: e.target.value,
+              })
+            }
+            className={inspectorInputClass()}
+          />
+        </div>
 
-          {selectedBlock.data
-            .showColumnHeaders !== false ? (
-            <div className="mt-4 grid grid-cols-1 gap-3">
-              <div>
-                <div
-                  className={
-                    inspectorLabelClass()
-                  }
-                >
-                  Time Column
-                </div>
+        <div>
+          <div className={inspectorLabelClass()}>
+            Details Column
+          </div>
 
-                <input
-                  type="text"
-                  value={
-                    selectedBlock.data
-                      .timeColumnLabel ??
-                    "TIME"
-                  }
-                  onChange={(e) =>
-                    updateChecklistData({
-                      timeColumnLabel:
-                        e.target.value,
-                    })
-                  }
-                  className={
-                    inspectorInputClass()
-                  }
-                />
-              </div>
+          <input
+            type="text"
+            value={
+              selectedBlock.data.detailsColumnLabel ??
+              "DETAILS"
+            }
+            onChange={(e) =>
+              updateChecklistData({
+                detailsColumnLabel: e.target.value,
+              })
+            }
+            className={inspectorInputClass()}
+          />
+        </div>
 
-              <div>
-                <div
-                  className={
-                    inspectorLabelClass()
-                  }
-                >
-                  Action Column
-                </div>
+        <div>
+          <div className={inspectorLabelClass()}>
+            Status Column
+          </div>
 
-                <input
-                  type="text"
-                  value={
-                    selectedBlock.data
-                      .actionColumnLabel ??
-                    "ACTION"
-                  }
-                  onChange={(e) =>
-                    updateChecklistData({
-                      actionColumnLabel:
-                        e.target.value,
-                    })
-                  }
-                  className={
-                    inspectorInputClass()
-                  }
-                />
-              </div>
+          <input
+            type="text"
+            value={
+              selectedBlock.data.statusColumnLabel ??
+              ""
+            }
+            onChange={(e) =>
+              updateChecklistData({
+                statusColumnLabel: e.target.value,
+              })
+            }
+            placeholder="Optional"
+            className={inspectorInputClass()}
+          />
+        </div>
+      </div>
+    ) : null}
 
-              <div>
-                <div
-                  className={
-                    inspectorLabelClass()
-                  }
-                >
-                  Details Column
-                </div>
+    <div className="mt-5 grid grid-cols-1 gap-4">
+      <div>
+        <div className={inspectorLabelClass()}>
+          Completed Row Tint
+        </div>
 
-                <input
-                  type="text"
-                  value={
-                    selectedBlock.data
-                      .detailsColumnLabel ??
-                    "DETAILS"
-                  }
-                  onChange={(e) =>
-                    updateChecklistData({
-                      detailsColumnLabel:
-                        e.target.value,
-                    })
-                  }
-                  className={
-                    inspectorInputClass()
-                  }
-                />
-              </div>
+        <input
+          type="color"
+          value={
+            selectedBlock.data.completedTintColor ??
+            "#e8f1eb"
+          }
+          onChange={(e) =>
+            updateChecklistData({
+              completedTintColor: e.target.value,
 
-              <div>
-                <div
-                  className={
-                    inspectorLabelClass()
-                  }
-                >
-                  Status Column
-                </div>
+              completedRowStyle: {
+                ...(
+                  selectedBlock.data.completedRowStyle ??
+                  {}
+                ),
 
-                <input
-                  type="text"
-                  value={
-                    selectedBlock.data
-                      .statusColumnLabel ??
-                    ""
-                  }
-                  onChange={(e) =>
-                    updateChecklistData({
-                      statusColumnLabel:
-                        e.target.value,
-                    })
-                  }
-                  placeholder="Optional"
-                  className={
-                    inspectorInputClass()
-                  }
-                />
-              </div>
-            </div>
-          ) : null}
+                backgroundColor: e.target.value,
+              },
+            })
+          }
+          className="mt-2 h-11 w-full cursor-pointer rounded-xl border border-neutral-300 bg-white p-1"
+        />
+      </div>
 
-          <div className="mt-5 grid grid-cols-1 gap-4">
-            <div>
-              <div
-                className={
-                  inspectorLabelClass()
-                }
-              >
-                Completed Row Tint
-              </div>
+      <div>
+        <div className={inspectorLabelClass()}>
+          Completed Text Color
+        </div>
 
-              <input
-                type="color"
-                value={
-                  selectedBlock.data
-                    .completedTintColor ??
-                  "#e8f1eb"
-                }
-                onChange={(e) =>
-                  updateChecklistData({
-                    completedTintColor:
-                      e.target.value,
+        <input
+          type="color"
+          value={
+            selectedBlock.data.completedTextColor ??
+            "#365c43"
+          }
+          onChange={(e) =>
+            updateChecklistData({
+              completedTextColor: e.target.value,
+            })
+          }
+          className="mt-2 h-11 w-full cursor-pointer rounded-xl border border-neutral-300 bg-white p-1"
+        />
+      </div>
 
-                    completedRowStyle: {
-                      ...(
-                        selectedBlock.data
-                          .completedRowStyle ??
-                        {}
-                      ),
+      <div>
+        <div className="flex items-center justify-between gap-3">
+          <div className={inspectorLabelClass()}>
+            All Icon Sizes
+          </div>
 
-                      backgroundColor:
-                        e.target.value,
-                    },
-                  })
-                }
-                className="mt-2 h-11 w-full cursor-pointer rounded-xl border border-neutral-300 bg-white p-1"
-              />
-            </div>
-
-            <div>
-              <div
-                className={
-                  inspectorLabelClass()
-                }
-              >
-                Completed Text Color
-              </div>
-
-              <input
-                type="color"
-                value={
-                  selectedBlock.data
-                    .completedTextColor ??
-                  "#365c43"
-                }
-                onChange={(e) =>
-                  updateChecklistData({
-                    completedTextColor:
-                      e.target.value,
-                  })
-                }
-                className="mt-2 h-11 w-full cursor-pointer rounded-xl border border-neutral-300 bg-white p-1"
-              />
-            </div>
-
-            <div>
-              <div
-                className={
-                  inspectorLabelClass()
-                }
-              >
-                Icon Size
-              </div>
-
-              <input
-                type="range"
-                min={16}
-                max={64}
-                value={
-                  selectedBlock.data
-                    .iconSize ?? 28
-                }
-                onChange={(e) =>
-                  updateChecklistData({
-                    iconSize: Math.max(
-                      16,
-                      Math.min(
-                        64,
-                        Number(
-                          e.target.value,
-                        ) || 28,
-                      ),
-                    ),
-                  })
-                }
-                className="mt-2 w-full"
-              />
-
-              <div className="mt-1 text-xs text-neutral-500">
-                {selectedBlock.data
-                  .iconSize ?? 28}
-                px
-              </div>
-            </div>
+          <div className="text-xs text-neutral-500">
+            {Math.max(
+              16,
+              Math.min(
+                64,
+                Number(
+                  selectedBlock.data.iconSize ?? 28,
+                ),
+              ),
+            )}
+            px
           </div>
         </div>
-      ) : null}
+
+        <input
+          type="range"
+          min={16}
+          max={64}
+          value={Math.max(
+            16,
+            Math.min(
+              64,
+              Number(
+                selectedBlock.data.iconSize ?? 28,
+              ),
+            ),
+          )}
+          onChange={(e) => {
+            const nextIconSize = Math.max(
+              16,
+              Math.min(
+                64,
+                Number(e.target.value) || 28,
+              ),
+            );
+
+            updateSelectedBlock((block: any) =>
+              block.type !== "checklist"
+                ? block
+                : {
+                    ...block,
+                    data: {
+                      ...block.data,
+
+                      iconSize: nextIconSize,
+
+                      items: block.data.items.map(
+                        (item: any) => ({
+                          ...item,
+                          iconSize: nextIconSize,
+                        }),
+                      ),
+                    },
+                  },
+            );
+          }}
+          className="mt-2 w-full"
+        />
+
+        <div className="mt-1 text-xs leading-5 text-neutral-500">
+          Sets all Professional checklist icons to the same size.
+          Individual item icon sizes can be adjusted separately below.
+        </div>
+      </div>
+    </div>
+  </div>
+) : null}
 
       {/* ================================================================ */}
       {/* CHECKLIST ITEMS */}

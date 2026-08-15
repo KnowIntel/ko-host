@@ -1568,6 +1568,7 @@ export type ChecklistBlock = BaseBlock & {
        */
       iconName?: string;
       iconUrl?: string;
+      iconSize?: number;
 
       time?: string;
       title?: string;
@@ -7663,6 +7664,10 @@ case "checklist":
       completedTintColor: "#e8f1eb",
       completedTextColor: "#365c43",
 
+      /*
+       * Global fallback icon size.
+       * Individual Professional items can override this with item.iconSize.
+       */
       iconSize: 28,
 
       items: [
@@ -7673,12 +7678,14 @@ case "checklist":
 
           iconName: "calendar",
           iconUrl: "/media-icons/calendar.svg",
+          iconSize: 28,
 
           time: "9:00 AM",
           title: "Item 1",
           subtitle: "",
           details: "",
         },
+
         {
           id: makeId("check"),
           label: "Item 2",
@@ -7686,6 +7693,7 @@ case "checklist":
 
           iconName: "check",
           iconUrl: "/media-icons/check.svg",
+          iconSize: 28,
 
           time: "10:00 AM",
           title: "Item 2",
@@ -7733,7 +7741,6 @@ case "checklist":
       },
     },
   };
-  
     case "schedule_agenda":
       return {
         id: makeId("agenda"),

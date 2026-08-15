@@ -18831,22 +18831,30 @@ function ProfessionalChecklistView({
             </div>
           ) : null}
 
-          {items.length ? (
-            <div className="space-y-3">
-              {items.map((item) => {
-                const checked =
-                  visitorCheckedState[item.id] ??
-                  Boolean(item.checked);
+{items.length ? (
+  <div className="space-y-3">
+    {items.map((item) => {
+      const checked =
+        visitorCheckedState[item.id] ??
+        Boolean(item.checked);
 
-                const effectiveRowStyle = checked
-                  ? {
-                      ...rowStyle,
-                      ...completedRowStyle,
-                      backgroundColor:
-                        completedRowStyle.backgroundColor ??
-                        completedTintColor,
-                    }
-                  : rowStyle;
+      const itemIconSize = Math.max(
+        16,
+        Math.min(
+          64,
+          Number(item.iconSize ?? iconSize),
+        ),
+      );
+
+      const effectiveRowStyle = checked
+        ? {
+            ...rowStyle,
+            ...completedRowStyle,
+            backgroundColor:
+              completedRowStyle.backgroundColor ??
+              completedTintColor,
+          }
+        : rowStyle;
 
                 const checkedTextPatch = checked
                   ? {
@@ -18918,15 +18926,15 @@ function ProfessionalChecklistView({
                       }}
                     >
                       {item.iconUrl ? (
-                        <img
-                          src={item.iconUrl}
-                          alt=""
-                          className="object-contain"
-                          style={{
-                            width: iconSize,
-                            height: iconSize,
-                          }}
-                        />
+<img
+  src={item.iconUrl}
+  alt=""
+  className="object-contain"
+  style={{
+    width: itemIconSize,
+    height: itemIconSize,
+  }}
+/>
                       ) : (
                         <span className="text-neutral-400">•</span>
                       )}
