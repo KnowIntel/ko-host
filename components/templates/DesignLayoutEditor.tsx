@@ -8104,9 +8104,13 @@ function handleMarqueeSelectMove(rect: {
   document.querySelectorAll("[data-canvas-block-id]").forEach((node) => {
     const el = node as HTMLElement;
     const blockId = el.dataset.canvasBlockId;
+
     if (!blockId) return;
 
-    const parent = el.closest("[data-kht-page-surface='true']") as HTMLElement | null;
+    const parent = el.closest(
+      "[data-kht-page-surface='true']",
+    ) as HTMLElement | null;
+
     if (!parent) return;
 
     const parentRect = parent.getBoundingClientRect();
@@ -8119,13 +8123,51 @@ function handleMarqueeSelectMove(rect: {
       height: blockRect.height,
     };
 
-    const intersects =
-      rect.x < blockBox.x + blockBox.width &&
-      rect.x + rect.width > blockBox.x &&
-      rect.y < blockBox.y + blockBox.height &&
-      rect.y + rect.height > blockBox.y;
+    const overlapLeft = Math.max(rect.x, blockBox.x);
+    const overlapTop = Math.max(rect.y, blockBox.y);
 
-    if (intersects) {
+    const overlapRight = Math.min(
+      rect.x + rect.width,
+      blockBox.x + blockBox.width,
+    );
+
+    const overlapBottom = Math.min(
+      rect.y + rect.height,
+      blockBox.y + blockBox.height,
+    );
+
+    const overlapWidth = Math.max(
+      0,
+      overlapRight - overlapLeft,
+    );
+
+    const overlapHeight = Math.max(
+      0,
+      overlapBottom - overlapTop,
+    );
+
+    const overlapArea = overlapWidth * overlapHeight;
+    const blockArea = blockBox.width * blockBox.height;
+
+    const overlapRatio =
+      blockArea > 0 ? overlapArea / blockArea : 0;
+
+    const blockCenterX =
+      blockBox.x + blockBox.width / 2;
+
+    const blockCenterY =
+      blockBox.y + blockBox.height / 2;
+
+    const centerInsideMarquee =
+      blockCenterX >= rect.x &&
+      blockCenterX <= rect.x + rect.width &&
+      blockCenterY >= rect.y &&
+      blockCenterY <= rect.y + rect.height;
+
+    const shouldSelect =
+      centerInsideMarquee || overlapRatio >= 0.5;
+
+    if (shouldSelect) {
       selectedIds.push(blockId);
     }
   });
