@@ -2813,10 +2813,12 @@ const selectedStyle =
     ) as TextStyle)
 
 : selectedBlockFromDraft?.type === "checklist"
-  ? (getChecklistTextStyle(
-      selectedBlockFromDraft,
-      checklistTextTarget,
-    ) as TextStyle)
+  ? selectedBlockFromDraft.data.styleVariant === "professional"
+    ? (getChecklistTextStyle(
+        selectedBlockFromDraft,
+        checklistTextTarget,
+      ) as TextStyle)
+    : ((selectedBlockFromDraft.data.style ?? {}) as TextStyle)
 
 : selectedBlockFromDraft?.type === "donation"
         ? donationStyleTarget === "buttons"
@@ -5022,19 +5024,34 @@ function applyStylePatch(patch: Partial<TextStyle>) {
     return;
   }
 
-  if (selectedBlock?.type === "checklist") {
-    updateSelectedBlock((block) =>
-      block.type !== "checklist"
-        ? block
-        : applyChecklistTextStylePatch(
-            block,
-            checklistTextTarget,
-            patch,
-          ),
-    );
+if (selectedBlock?.type === "checklist") {
+  updateSelectedBlock((block) => {
+    if (block.type !== "checklist") {
+      return block;
+    }
 
-    return;
-  }
+    if (block.data.styleVariant === "professional") {
+      return applyChecklistTextStylePatch(
+        block,
+        checklistTextTarget,
+        patch,
+      );
+    }
+
+    return {
+      ...block,
+      data: {
+        ...block.data,
+        style: {
+          ...(block.data.style ?? {}),
+          ...patch,
+        },
+      },
+    };
+  });
+
+  return;
+}
 
   if (selectedBlock?.type === "statistic_cards") {
     updateSelectedBlock((block) =>
@@ -5900,19 +5917,31 @@ function applyAppearancePatch(patch: AppearancePatch) {
     return;
   }
 
-  if (selectedBlock?.type === "checklist") {
-    updateSelectedBlock((block) =>
-      block.type !== "checklist"
-        ? block
-        : applyChecklistStylePatch(
-            block,
-            checklistStyleTarget,
-            patch,
-          ),
-    );
+if (selectedBlock?.type === "checklist") {
+  updateSelectedBlock((block) => {
+    if (block.type !== "checklist") {
+      return block;
+    }
 
-    return;
-  }
+    if (block.data.styleVariant === "professional") {
+      return applyChecklistStylePatch(
+        block,
+        checklistStyleTarget,
+        patch,
+      );
+    }
+
+    return {
+      ...block,
+      appearance: {
+        ...(block.appearance ?? {}),
+        ...patch,
+      },
+    };
+  });
+
+  return;
+}
 
   if (selectedBlock?.type === "statistic_cards") {
     updateSelectedBlock((block) =>
