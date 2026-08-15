@@ -291,6 +291,14 @@ import {
 } from "@/components/builder/formatting/rsvpFormatting";
 
 import {
+  applyChecklistStylePatch,
+  applyChecklistTextStylePatch,
+  getChecklistTextStyle,
+  type ChecklistStyleTarget,
+  type ChecklistTextTarget,
+} from "@/components/builder/formatting/checklistFormatting";
+
+import {
   applyPollStylePatch,
   applyPollTextStylePatch,
   getPollTextStyle,
@@ -2374,6 +2382,12 @@ const [rsvpTextTarget, setRsvpTextTarget] =
 const [rsvpStyleTarget, setRsvpStyleTarget] =
   useState<RsvpStyleTarget>("field");
 
+const [checklistTextTarget, setChecklistTextTarget] =
+  useState<ChecklistTextTarget>("heading");
+
+const [checklistStyleTarget, setChecklistStyleTarget] =
+  useState<ChecklistStyleTarget>("row");
+
 const [pollTextTarget, setPollTextTarget] =
   useState<PollTextTarget>("question");
 
@@ -2797,7 +2811,14 @@ const selectedStyle =
       selectedBlockFromDraft,
       rsvpTextTarget,
     ) as TextStyle)
-      : selectedBlockFromDraft?.type === "donation"
+
+: selectedBlockFromDraft?.type === "checklist"
+  ? (getChecklistTextStyle(
+      selectedBlockFromDraft,
+      checklistTextTarget,
+    ) as TextStyle)
+
+: selectedBlockFromDraft?.type === "donation"
         ? donationStyleTarget === "buttons"
           ? (((selectedBlockFromDraft.data as any).buttonStyle ??
               (selectedBlockFromDraft.data as any).style ??
@@ -2879,7 +2900,6 @@ const selectedStyle =
                         selectedBlockFromDraft?.type === "cta" ||
                         selectedBlockFromDraft?.type === "image" ||
                         (selectedBlockFromDraft as any)?.type === "gallery" ||
-                        selectedBlockFromDraft?.type === "checklist" ||
                         selectedBlockFromDraft?.type === "speed_dating" ||
                         selectedBlockFromDraft?.type === "rich_text" ||
                         selectedBlockFromDraft?.type === "links"
@@ -5002,6 +5022,20 @@ function applyStylePatch(patch: Partial<TextStyle>) {
     return;
   }
 
+  if (selectedBlock?.type === "checklist") {
+    updateSelectedBlock((block) =>
+      block.type !== "checklist"
+        ? block
+        : applyChecklistTextStylePatch(
+            block,
+            checklistTextTarget,
+            patch,
+          ),
+    );
+
+    return;
+  }
+
   if (selectedBlock?.type === "statistic_cards") {
     updateSelectedBlock((block) =>
       block.type !== "statistic_cards"
@@ -5482,26 +5516,6 @@ if (selectedBlock?.type === "donation") {
   return;
 }
 
-  if (selectedBlock?.type === "checklist") {
-    setDraft((prev) => ({
-      ...prev,
-      blocks: prev.blocks.map((block) =>
-        block.id === selectedBlock.id && block.type === "checklist"
-          ? {
-              ...block,
-              data: {
-                ...block.data,
-                style: {
-                  ...(block.data.style ?? {}),
-                  ...patch,
-                },
-              },
-            }
-          : block,
-      ),
-    }));
-    return;
-  }
 
 if (selectedBlock?.type === "map_location") {
   updateSelectedBlock((block) =>
@@ -5879,6 +5893,20 @@ function applyAppearancePatch(patch: AppearancePatch) {
         : applyProcessFlowStylePatch(
             block,
             processFlowStyleTarget,
+            patch,
+          ),
+    );
+
+    return;
+  }
+
+  if (selectedBlock?.type === "checklist") {
+    updateSelectedBlock((block) =>
+      block.type !== "checklist"
+        ? block
+        : applyChecklistStylePatch(
+            block,
+            checklistStyleTarget,
             patch,
           ),
     );
@@ -14011,6 +14039,13 @@ selectedBlock?.type === "comparison_table" ? (
   updateSelectedBlock={updateSelectedBlock}
   makeClientId={makeClientId}
   CATEGORY_BUTTONS={CATEGORY_BUTTONS}
+
+  checklistTextTarget={checklistTextTarget}
+  setChecklistTextTarget={setChecklistTextTarget}
+
+  checklistStyleTarget={checklistStyleTarget}
+  setChecklistStyleTarget={setChecklistStyleTarget}
+
   inspectorCardClass={inspectorCardClass}
   inspectorLabelClass={inspectorLabelClass}
   inspectorInputClass={inspectorInputClass}
