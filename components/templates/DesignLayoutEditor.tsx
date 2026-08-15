@@ -9680,62 +9680,17 @@ style={{
   );
 }
 
-    if (block.type === "checklist") {
-      return (
-        <div
-          className="h-full w-full rounded-xl p-4"
-          style={{
-            backgroundColor:
-              block.appearance?.backgroundColor &&
-              block.appearance.backgroundColor !== "transparent"
-                ? block.appearance.backgroundColor
-                : "transparent",
-            borderColor: block.appearance?.borderColor || undefined,
-            borderWidth:
-              typeof block.appearance?.borderWidth === "number"
-                ? `${block.appearance.borderWidth}px`
-                : undefined,
-            borderStyle:
-              typeof block.appearance?.borderWidth === "number" &&
-              block.appearance.borderWidth > 0
-                ? "solid"
-                : undefined,
-            borderRadius:
-              typeof block.appearance?.borderRadius === "number"
-                ? `${block.appearance.borderRadius}px`
-                : undefined,
-          }}
-        >
-          <div
-            className="mb-3 text-base font-semibold text-neutral-900"
-            style={getInlineTextStyle(block.data.style)}
-          >
-            {block.data.heading || "Checklist"}
-          </div>
-
-          <div className="space-y-2">
-            {block.data.items.slice(0, 5).map((item) => (
-              <label
-                key={item.id}
-                className="flex items-center gap-3 rounded-lg border border-neutral-200 bg-white px-3 py-2"
-              >
-                <input
-                  type="checkbox"
-                  checked={Boolean(item.checked)}
-                  readOnly
-                />
-                <span
-                  className="text-sm text-neutral-900"
-                  style={getInlineTextStyle(block.data.style)}
-                >
-                  {item.label || "Checklist item"}
-                </span>
-              </label>
-            ))}
-          </div>
-        </div>
-      );
-    }
+if (block.type === "checklist") {
+  return (
+    <div className="h-full w-full">
+      <BlockRenderer
+        block={block}
+        blocks={draft.blocks}
+        designKey={designKey}
+      />
+    </div>
+  );
+}
 
 if (block.type === "schedule_agenda") {
   const data = block.data as any;
