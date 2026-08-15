@@ -1279,7 +1279,7 @@ export function CalendarEventInspector({
 
                   <button
                     type="button"
-                    className={toolSetButtonClass("remove")}
+                    className={`${toolSetButtonClass("remove")} inline-flex min-w-fit shrink-0 items-center justify-center whitespace-nowrap px-3`}
                     onClick={() =>
                       updateSelectedBlock((block: any) =>
                         block.type !== "calendar_event"
