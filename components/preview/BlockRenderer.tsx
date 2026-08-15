@@ -20679,6 +20679,8 @@ style={{
     </div>
   );
 
+  
+
   const professionalPanel = (
     <div className="grid min-h-0 gap-5 lg:grid-cols-[minmax(220px,0.9fr)_minmax(320px,1.35fr)_minmax(180px,0.75fr)]">
       {/* LEFT: VISITOR DETAILS */}
@@ -21298,25 +21300,14 @@ backgroundColor: getProfessionalBackgroundColor(
 
 <button
   type="button"
-  disabled={
-    professionalSubmitting ||
-    !professionalName.trim() ||
-    !professionalEmail.trim() ||
-    !selectedProfessionalSlot ||
-    (professionalChoices.length > 0 &&
-      !selectedProfessionalChoice) ||
-    (block.data.professionalPhoneMode === "required" &&
-      !professionalPhone.trim())
-  }
+disabled={!professionalCanSubmit}
 onClick={async () => {
-  if (
-    professionalSubmitting ||
-    !professionalName.trim() ||
-    !professionalEmail.trim() ||
-    !selectedProfessionalSlot
-  ) {
-    return;
-  }
+if (
+  !professionalCanSubmit ||
+  !selectedProfessionalSlot
+) {
+  return;
+}
 
   if (!micrositeSlug) {
     setProfessionalSubmitState("error");
@@ -21487,13 +21478,21 @@ try {
 } finally {
   setProfessionalSubmitting(false);
 }}}
-  className="mt-5 rounded-xl bg-neutral-950 px-4 py-3 text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-35"
+  className={[
+  "mt-5 rounded-xl px-4 py-3 text-sm font-semibold text-white transition",
+  professionalCanSubmit
+    ? "cursor-pointer hover:brightness-95"
+    : "cursor-not-allowed",
+].join(" ")}
   style={{
     ...professionalBookingButtonTextStyle,
 
-backgroundColor: getProfessionalBackgroundColor(
-  professionalBookingButtonStyle,
-),
+backgroundColor: professionalCanSubmit
+  ? getProfessionalBackgroundColor(
+      professionalBookingButtonStyle,
+    ) || "#171717"
+  : professionalBookingButtonStyle.disabledBackgroundColor ||
+    "#9ca3af",
 
     borderColor:
       professionalBookingButtonStyle.borderColor ||
@@ -21513,10 +21512,12 @@ backgroundColor: getProfessionalBackgroundColor(
       professionalBookingButtonStyle.boxShadow ||
       undefined,
 
-    color:
-      professionalBookingButtonTextStyle.color ||
-      professionalBookingButtonStyle.textColor ||
-      undefined,
+color: professionalCanSubmit
+  ? professionalBookingButtonTextStyle.color ||
+    professionalBookingButtonStyle.textColor ||
+    "#ffffff"
+  : professionalBookingButtonStyle.disabledTextColor ||
+    "#ffffff",
   }}
 >
   {professionalSubmitting
