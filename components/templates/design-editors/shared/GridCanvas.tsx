@@ -826,41 +826,56 @@ function handleMouseMove(event: MouseEvent) {
 
   const start = marqueeStart;
 
-  function handleMouseMove(event: MouseEvent) {
-    const pageSurface = document.querySelector(
-      '[data-kht-page-surface="true"]',
-    ) as HTMLDivElement | null;
+function handleMouseMove(event: MouseEvent) {
+  event.preventDefault();
+  window.getSelection()?.removeAllRanges();
 
-    if (!pageSurface) return;
+  const pageSurface = document.querySelector(
+    '[data-kht-page-surface="true"]',
+  ) as HTMLDivElement | null;
 
-    const rect = pageSurface.getBoundingClientRect();
+  if (!pageSurface) return;
 
-    const currentX = event.clientX - rect.left;
-    const currentY = event.clientY - rect.top;
+  pageSurface.style.userSelect = "none";
+  pageSurface.style.webkitUserSelect = "none";
 
-    const nextRect = {
-      x: Math.min(start.x, currentX),
-      y: Math.min(start.y, currentY),
-      width: Math.abs(currentX - start.x),
-      height: Math.abs(currentY - start.y),
-    };
+  const rect = pageSurface.getBoundingClientRect();
 
-    setMarqueeRect(nextRect);
-    onMarqueeSelectMove?.(nextRect);
+  const currentX = event.clientX - rect.left;
+  const currentY = event.clientY - rect.top;
+
+  const nextRect = {
+    x: Math.min(start.x, currentX),
+    y: Math.min(start.y, currentY),
+    width: Math.abs(currentX - start.x),
+    height: Math.abs(currentY - start.y),
+  };
+
+  setMarqueeRect(nextRect);
+  onMarqueeSelectMove?.(nextRect);
+}
+
+function handleMouseUp() {
+  suppressNextCanvasClickRef.current = true;
+
+  const pageSurface = document.querySelector(
+    '[data-kht-page-surface="true"]',
+  ) as HTMLDivElement | null;
+
+  if (pageSurface) {
+    pageSurface.style.userSelect = "";
+    pageSurface.style.webkitUserSelect = "";
   }
 
-  function handleMouseUp() {
-suppressNextCanvasClickRef.current = true;
+  onMarqueeSelectEnd?.();
 
-onMarqueeSelectEnd?.();
+  setIsMarqueeSelecting(false);
+  setMarqueeStart(null);
 
-setIsMarqueeSelecting(false);
-setMarqueeStart(null);
-
-window.setTimeout(() => {
-  setMarqueeRect(null);
-}, 0);
-  }
+  window.setTimeout(() => {
+    setMarqueeRect(null);
+  }, 0);
+}
 
   window.addEventListener("mousemove", handleMouseMove);
   window.addEventListener("mouseup", handleMouseUp);
