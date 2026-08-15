@@ -1,5 +1,5 @@
 import type { TemplateLayoutRegistry } from "../../types";
-import shared from./sharedared";
+import shared from "./shared";
 
 const mediationLayouts: TemplateLayoutRegistry = {
   templateKey: "mediation",
