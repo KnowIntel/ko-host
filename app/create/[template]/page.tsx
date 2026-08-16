@@ -406,10 +406,15 @@ function buildDraftWithPages(currentDraft: BuilderDraft = liveDraftRef.current) 
 async function handleSaveDraft(draft: BuilderDraft): Promise<void> {
   const draftToSave = buildDraftWithPages(draft);
 
-  const savedPages = (draftToSave as BuilderDraft & { pages?: LocalBuilderPage[] }).pages;
+  const savedPages = (
+    draftToSave as BuilderDraft & {
+      pages?: LocalBuilderPage[];
+    }
+  ).pages;
 
   if (Array.isArray(savedPages)) {
-    builderPagesRef.current = savedPages as LocalBuilderPage[];
+    builderPagesRef.current =
+      savedPages as LocalBuilderPage[];
   }
 
   setHydratedDraft(draft);
@@ -424,12 +429,17 @@ async function handleSaveDraft(draft: BuilderDraft): Promise<void> {
     return;
   }
 
-  const safeTemplateKey = resolveSafeTemplateKey(draftToSave);
-  const safeDesignKey = resolveSafeDesignKey(draftToSave);
+  const safeTemplateKey =
+    resolveSafeTemplateKey(draftToSave);
+
+  const safeDesignKey =
+    resolveSafeDesignKey(draftToSave);
 
   if (!safeTemplateKey) {
     setSaveState("error");
-    setSaveMessage("Draft could not be saved because the template key is missing.");
+    setSaveMessage(
+      "Draft could not be saved because the template key is missing.",
+    );
     queueSaveStateReset();
     return;
   }
@@ -441,10 +451,28 @@ async function handleSaveDraft(draft: BuilderDraft): Promise<void> {
     console.log("SAVE DEBUG", {
       hasDraft: !!draftToSave,
       draftType: typeof draftToSave,
-      hasBlocks: Array.isArray(draftToSave?.blocks),
-      hasPages: Array.isArray((draftToSave as BuilderDraft & { pages?: unknown[] }).pages),
-      pageCount: Array.isArray((draftToSave as BuilderDraft & { pages?: unknown[] }).pages)
-        ? (draftToSave as BuilderDraft & { pages?: unknown[] }).pages?.length
+      hasBlocks: Array.isArray(
+        draftToSave?.blocks,
+      ),
+      hasPages: Array.isArray(
+        (
+          draftToSave as BuilderDraft & {
+            pages?: unknown[];
+          }
+        ).pages,
+      ),
+      pageCount: Array.isArray(
+        (
+          draftToSave as BuilderDraft & {
+            pages?: unknown[];
+          }
+        ).pages,
+      )
+        ? (
+            draftToSave as BuilderDraft & {
+              pages?: unknown[];
+            }
+          ).pages?.length
         : 0,
       templateKey: safeTemplateKey,
       designKey: safeDesignKey,
@@ -453,7 +481,9 @@ async function handleSaveDraft(draft: BuilderDraft): Promise<void> {
 
     const res = await fetch("/api/drafts", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
         templateKey: safeTemplateKey,
         designKey: safeDesignKey,
@@ -461,14 +491,21 @@ async function handleSaveDraft(draft: BuilderDraft): Promise<void> {
       }),
     });
 
-    const data = await res.json().catch(() => ({}));
+    const data = await res
+      .json()
+      .catch(() => ({}));
 
     if (!res.ok) {
-      const recoverable = Boolean(data?.recoverable || data?.skipped);
+      const recoverable = Boolean(
+        data?.recoverable ||
+          data?.skipped,
+      );
 
       if (recoverable) {
         setSaveState("error");
-        setSaveMessage("Dashboard save was skipped. No local draft was saved.");
+        setSaveMessage(
+          "Dashboard save was skipped. No local draft was saved.",
+        );
       } else {
         setSaveState("error");
         setSaveMessage(
@@ -482,18 +519,55 @@ async function handleSaveDraft(draft: BuilderDraft): Promise<void> {
       return;
     }
 
-    lastSavedDraftRef.current = JSON.stringify(draftToSave);
+    lastSavedDraftRef.current =
+      JSON.stringify(draftToSave);
+
     setSaveState("saved");
-    setSaveMessage("Draft saved to your Dashboard and Blueprint saved to local Downloads Folder.");
+
+    setSaveMessage(
+      "Draft saved to your Dashboard and Blueprint saved to local Downloads Folder.",
+    );
+
     queueSaveStateReset();
   } catch (error) {
     const message =
-      error instanceof Error ? error.message : "Failed to save draft.";
+      error instanceof Error
+        ? error.message
+        : "Failed to save draft.";
 
     setSaveState("error");
-    setSaveMessage(`Dashboard save failed: ${message}`);
+
+    setSaveMessage(
+      `Dashboard save failed: ${message}`,
+    );
+
     queueSaveStateReset();
   }
+}
+
+async function saveDraftBeforePublish(
+  draft: BuilderDraft,
+): Promise<boolean> {
+  if (!isSignedIn) {
+    setSaveState("signin-required");
+    setSaveMessage(
+      "Sign in to save this draft to your dashboard. Unsaved changes are temporary.",
+    );
+    setShowSignInPrompt(true);
+    return false;
+  }
+
+  const safeTemplateKey = resolveSafeTemplateKey(
+    buildDraftWithPages(draft),
+  );
+
+  if (!safeTemplateKey) {
+    return false;
+  }
+
+  await handleSaveDraft(draft);
+
+  return true;
 }
 
   function continueToSignIn() {
@@ -527,11 +601,19 @@ async function handleSaveDraft(draft: BuilderDraft): Promise<void> {
     setShowPublishWarning(false);
   }
 
-  async function continueToPublish() {
-    setShowPublishWarning(false);
-    await handleSaveDraft(liveDraft);
-    router.push(publishHref);
+async function continueToPublish() {
+  setShowPublishWarning(false);
+
+  const saved = await saveDraftBeforePublish(
+    liveDraftRef.current,
+  );
+
+  if (!saved) {
+    return;
   }
+
+  window.location.assign(publishHref);
+}
 
   function normalizePageSlug(input: string) {
   return input
