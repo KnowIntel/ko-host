@@ -728,7 +728,7 @@ const isScrollableBlock =
 
 const isInteractiveBlock =
   block.type === "schedule_agenda" ||
-  block.type === "calendar_event" ||
+  block.type === "checklist" ||
   block.type === "rsvp" ||
   block.type === "form_field" ||
   block.type === "poll" ||
