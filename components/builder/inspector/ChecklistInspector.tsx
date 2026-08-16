@@ -113,6 +113,57 @@ export function ChecklistInspector({
     );
   }
 
+function moveChecklistItem(
+  itemId: string,
+  direction: "up" | "down",
+) {
+  updateSelectedBlock((block: any) => {
+    if (block.type !== "checklist") {
+      return block;
+    }
+
+    const items = [...block.data.items];
+    const currentIndex = items.findIndex(
+      (item: any) => item.id === itemId,
+    );
+
+    if (currentIndex < 0) {
+      return block;
+    }
+
+    const nextIndex =
+      direction === "up"
+        ? currentIndex - 1
+        : currentIndex + 1;
+
+    if (
+      nextIndex < 0 ||
+      nextIndex >= items.length
+    ) {
+      return block;
+    }
+
+    const [movedItem] = items.splice(
+      currentIndex,
+      1,
+    );
+
+    items.splice(
+      nextIndex,
+      0,
+      movedItem,
+    );
+
+    return {
+      ...block,
+      data: {
+        ...block.data,
+        items,
+      },
+    };
+  });
+}
+
   function removeChecklistItem(itemId: string) {
     updateSelectedBlock((block: any) =>
       block.type !== "checklist"
@@ -627,30 +678,82 @@ time: "",
             key={item.id}
             className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4"
           >
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <div className="text-sm font-semibold text-neutral-900">
-                  Item {index + 1}
-                </div>
+<div className="flex items-center justify-between gap-3">
+  <div>
+    <div className="text-sm font-semibold text-neutral-900">
+      Item {index + 1}
+    </div>
 
-                <div className="mt-1 text-xs text-neutral-500">
-                  {isProfessional
-                    ? "Professional checklist row"
-                    : "Standard checklist item"}
-                </div>
-              </div>
+    <div className="mt-1 text-xs text-neutral-500">
+      {isProfessional
+        ? "Professional checklist row"
+        : "Standard checklist item"}
+    </div>
+  </div>
 
-              <button
-                type="button"
-                className={toolSetButtonClass("remove")}
-                onClick={() =>
-                  removeChecklistItem(item.id)
-                }
-                title="Remove checklist item"
-              >
-                ×
-              </button>
-            </div>
+  <div className="flex items-center gap-1">
+    <button
+      type="button"
+      onClick={() =>
+        moveChecklistItem(
+          item.id,
+          "up",
+        )
+      }
+      disabled={index === 0}
+      title="Move item up"
+      aria-label={`Move item ${index + 1} up`}
+      className={[
+        "flex h-8 w-8 items-center justify-center rounded-lg border text-sm font-semibold transition",
+        index === 0
+          ? "cursor-not-allowed border-neutral-200 bg-neutral-100 text-neutral-300"
+          : "border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-100",
+      ].join(" ")}
+    >
+      ↑
+    </button>
+
+    <button
+      type="button"
+      onClick={() =>
+        moveChecklistItem(
+          item.id,
+          "down",
+        )
+      }
+      disabled={
+        index ===
+        selectedBlock.data.items.length - 1
+      }
+      title="Move item down"
+      aria-label={`Move item ${index + 1} down`}
+      className={[
+        "flex h-8 w-8 items-center justify-center rounded-lg border text-sm font-semibold transition",
+        index ===
+        selectedBlock.data.items.length - 1
+          ? "cursor-not-allowed border-neutral-200 bg-neutral-100 text-neutral-300"
+          : "border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-100",
+      ].join(" ")}
+    >
+      ↓
+    </button>
+
+    <button
+      type="button"
+      className={toolSetButtonClass(
+        "remove",
+      )}
+      onClick={() =>
+        removeChecklistItem(
+          item.id,
+        )
+      }
+      title="Remove checklist item"
+    >
+      ×
+    </button>
+  </div>
+</div>
 
             {/* ====================================================== */}
             {/* STANDARD ITEM */}
