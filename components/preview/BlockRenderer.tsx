@@ -18833,21 +18833,26 @@ function ProfessionalChecklistView({
 
 {items.length ? (
   <div className="space-y-3">
-    {items.map((item) => {
-      const checked =
-        visitorCheckedState[item.id] ??
-        Boolean(item.checked);
+{items.map((item) => {
+  const checked =
+    visitorCheckedState[item.id] ??
+    Boolean(item.checked);
 
-      const itemIconSize = Math.max(
-        16,
-        Math.min(
-          64,
-          Number(item.iconSize ?? iconSize),
-        ),
-      );
+  const itemIconSize = Math.max(
+    16,
+    Math.min(
+      64,
+      Number(item.iconSize ?? iconSize),
+    ),
+  );
 
-      const effectiveRowStyle = checked
-        ? {
+  const itemIconColor =
+    typeof item.iconColor === "string" && item.iconColor.trim()
+      ? item.iconColor
+      : "#111111";
+
+  const effectiveRowStyle = checked
+    ? {
             ...rowStyle,
             ...completedRowStyle,
             backgroundColor:
@@ -18925,19 +18930,38 @@ function ProfessionalChecklistView({
                             : undefined,
                       }}
                     >
-                      {item.iconUrl ? (
-<img
-  src={item.iconUrl}
-  alt=""
-  className="object-contain"
-  style={{
-    width: itemIconSize,
-    height: itemIconSize,
-  }}
-/>
-                      ) : (
-                        <span className="text-neutral-400">•</span>
-                      )}
+{item.iconUrl ? (
+  <div
+    aria-hidden="true"
+    style={{
+      width: itemIconSize,
+      height: itemIconSize,
+      flexShrink: 0,
+
+      backgroundColor: itemIconColor,
+
+      WebkitMaskImage: `url("${item.iconUrl}")`,
+      maskImage: `url("${item.iconUrl}")`,
+
+      WebkitMaskRepeat: "no-repeat",
+      maskRepeat: "no-repeat",
+
+      WebkitMaskPosition: "center",
+      maskPosition: "center",
+
+      WebkitMaskSize: "contain",
+      maskSize: "contain",
+    }}
+  />
+) : (
+  <span
+    style={{
+      color: itemIconColor,
+    }}
+  >
+    •
+  </span>
+)}
                     </div>
 
                     {/* TIME */}
