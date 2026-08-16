@@ -154,6 +154,14 @@ type FormFieldValueEventDetail = {
 type Props = {
   block: MicrositeBlock;
   blocks?: MicrositeBlock[];
+
+  pages?: Array<{
+    id: string;
+    slug: string;
+    title?: string | null;
+    display_order?: number | null;
+  }>;
+
   optionButtonSelections?: Record<string, string[]>;
   onOptionButtonSelectionChange?: (change: OptionButtonSelectionChange) => void;
   designKey?: string;
@@ -165,8 +173,13 @@ type Props = {
   cartSubtotal?: number;
   listingQuantities?: Record<string, number>;
   onChangeListingQuantity?: (listingId: string, nextQuantity: number) => void;
-  onDownloadFrame?: (block: Extract<MicrositeBlock, { type: "frame" }>) => void;
-  onFocusTimelineEntry?: (blockId: string, entryId: string) => void;
+  onDownloadFrame?: (
+    block: Extract<MicrositeBlock, { type: "frame" }>,
+  ) => void;
+  onFocusTimelineEntry?: (
+    blockId: string,
+    entryId: string,
+  ) => void;
 };
 
 type ThreadAttachment = {
@@ -1987,6 +2000,12 @@ function renderCta(
   block: Extract<MicrositeBlock, { type: "cta" }>,
   designKey?: string,
   micrositeSlug?: string | null,
+  pages?: Array<{
+    id: string;
+    slug: string;
+    title?: string | null;
+    display_order?: number | null;
+  }>,
 ) {
   function CtaButtonLive() {
     const [submitted, setSubmitted] = useState(false);
@@ -2055,6 +2074,92 @@ function renderCta(
           ? softStyle
           : solidStyle;
 
+          function resolveCtaDestination() {
+  const linkType =
+    (block.data as any).linkType === "page"
+      ? "page"
+      : "url";
+
+  if (linkType === "page") {
+    const pageId = String(
+      (block.data as any).pageId ?? "",
+    ).trim();
+
+    if (!pageId) {
+      return "";
+    }
+
+    const linkedPage = pages?.find(
+      (page) => page.id === pageId,
+    );
+
+    if (!linkedPage) {
+      return "";
+    }
+
+    const slug = String(
+      linkedPage.slug ?? "",
+    )
+      .trim()
+      .replace(/^\/+|\/+$/g, "");
+
+    if (!slug || slug === "home") {
+      return "/";
+    }
+
+    return `/${slug}`;
+  }
+
+  return String(
+    block.data.buttonUrl ?? "",
+  ).trim();
+}
+
+function navigateCtaDestination() {
+  const destination =
+    resolveCtaDestination();
+
+  if (!destination) {
+    return;
+  }
+
+  /*
+   * Internal microsite page.
+   */
+  if (destination.startsWith("/")) {
+    window.location.assign(destination);
+    return;
+  }
+
+  /*
+   * Same-page bookmark.
+   */
+  if (destination.startsWith("#")) {
+    document
+      .querySelector(destination)
+      ?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+
+    return;
+  }
+
+  /*
+   * External destination.
+   */
+  const href = normalizePreviewHref(
+    destination,
+    micrositeSlug,
+  );
+
+  window.open(
+    href,
+    "_blank",
+    "noopener,noreferrer",
+  );
+}
+
 async function handleLinkedFieldSubmit() {
   if (submitting) return;
 
@@ -2064,23 +2169,10 @@ async function handleLinkedFieldSubmit() {
     >(`[data-linked-button="${block.id}"]`),
   );
 
-  if (!fields.length) {
-    if (block.data.buttonUrl?.trim()) {
-      const href = normalizePreviewHref(block.data.buttonUrl, micrositeSlug);
-
-      if (href.startsWith("#")) {
-        document.querySelector(href)?.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
-        });
-      } else {
-        window.open(href, "_blank");
-      }
-    }
-
-    return;
-  }
-
+if (!fields.length) {
+  navigateCtaDestination();
+  return;
+}
   const checkboxFields = fields.filter(
     (field): field is HTMLInputElement =>
       field instanceof HTMLInputElement && field.type === "checkbox",
@@ -24126,6 +24218,7 @@ const spin = () => {
 export default function BlockRenderer({
   block,
   blocks,
+  pages,
   optionButtonSelections,
   onOptionButtonSelectionChange,
   designKey,
@@ -24203,8 +24296,14 @@ case "spreadsheet":
 
     case "checkout":
       return renderCheckout(block, designKey, micrositeId);
+
 case "cta":
-  return renderCta(block, designKey, micrositeSlug);
+  return renderCta(
+    block,
+    designKey,
+    micrositeSlug,
+    pages,
+  );
 
     case "countdown":
       return renderCountdown(block, designKey, serverNow);

@@ -628,13 +628,19 @@ export type CtaBlock = BaseBlock & {
   data: {
     heading?: string;
     body?: string;
+
     buttonText: string;
     buttonUrl: string;
+
+    linkType?: "url" | "page";
+    pageId?: string;
+
     buttonImageUrl?: string;
     buttonImageSize?: number;
     buttonPaddingY?: number;
     buttonPaddingX?: number;
     buttonImagePlacement?: "before" | "above" | "after";
+
     style?: TextStyle;
     styleType?: "solid" | "outline" | "soft";
   };
@@ -4463,27 +4469,32 @@ data: {
         },
       };
 
-    case "cta":
-      return {
-        id: makeId("cta"),
-        type: "cta",
-        label: "Button",
-        grid,
-        appearance: createDefaultBlockAppearance(),
-        data: {
-          heading: "",
-          body: "",
-          buttonText: "Learn More",
-          buttonUrl: "#",
-          buttonImageUrl: "",
-          buttonImageSize: 20,
-          buttonPaddingY: 8,
-          buttonPaddingX: 20,
-          buttonImagePlacement: "before",
-          style: createDefaultTextStyle(),
-        },
-      };
+case "cta":
+  return {
+    id: makeId("cta"),
+    type: "cta",
+    label: "Button",
+    grid,
+    appearance: createDefaultBlockAppearance(),
+    data: {
+      heading: "",
+      body: "",
 
+      buttonText: "Learn More",
+      buttonUrl: "#",
+
+      linkType: "url",
+      pageId: "",
+
+      buttonImageUrl: "",
+      buttonImageSize: 20,
+      buttonPaddingY: 8,
+      buttonPaddingX: 20,
+      buttonImagePlacement: "before",
+
+      style: createDefaultTextStyle(),
+    },
+  };
     case "countdown":
       return {
         id: makeId("countdown"),

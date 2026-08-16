@@ -38,32 +38,44 @@ type DraftWithExtras = BuilderDraft & {
   pageColor?: string;
   pageBackgroundImage?: string;
   pageBackgroundImageFit?: "clip" | "zoom" | "stretch";
+
   pageLength?:
-  | "1200"
-  | "1400"
-  | "1600"
-  | "1800"
-  | "2000"
-  | "2400"
-  | "2800"
-  | "3200"
-  | "3600"
-  | "4000"
-  | "4400"
-  | "5000"
-  | "5600";
+    | "1200"
+    | "1400"
+    | "1600"
+    | "1800"
+    | "2000"
+    | "2400"
+    | "2800"
+    | "3200"
+    | "3600"
+    | "4000"
+    | "4400"
+    | "5000"
+    | "5600";
+
+  pages?: Array<{
+    id: string;
+    slug: string;
+    title?: string | null;
+    display_order?: number | null;
+    draft?: BuilderDraft;
+  }>;
+
   pageVisibility?: Partial<{
     title: boolean;
     subtitle: boolean;
     subtext: boolean;
     description: boolean;
   }>;
+
   pageElements?: {
     title?: Partial<GridPlacement>;
     subtitle?: Partial<GridPlacement>;
     subtext?: Partial<GridPlacement>;
     description?: Partial<GridPlacement>;
   };
+
   pageBlockAppearance?: Partial<
     Record<
       "title" | "subtitle" | "subtext" | "description",
@@ -926,40 +938,41 @@ zIndex:
         })()
       : block;
 
-  return (
-    <BlockRenderer
-      key={`${previewBlock.id}-${JSON.stringify(previewBlock.data)}`}
-      block={previewBlock}
-      blocks={draft.blocks}
-      designKey={designKey}
-      micrositeId={micrositeId}
-      micrositeSlug={
-        micrositeSlug ||
-        (draft as any).slug ||
-        (draft as any).siteSlug ||
-        (draft as any).micrositeSlug ||
-        null
-      }
-      serverNow={serverNow}
-      previewMode={previewMode}
-      cartItems={cartItems}
-      cartSubtotal={cartSubtotal}
-      listingQuantities={listingQuantities}
-      onDownloadFrame={handleDownloadFrame as any}
-      onChangeListingQuantity={(
-        listingId: string,
-        nextQuantity: number,
-      ) => {
-        setListingQuantities((prev) => ({
-          ...prev,
-          [listingId]: Math.max(
-            0,
-            Math.floor(nextQuantity || 0),
-          ),
-        }));
-      }}
-    />
-  );
+return (
+  <BlockRenderer
+    key={`${previewBlock.id}-${JSON.stringify(previewBlock.data)}`}
+    block={previewBlock}
+    blocks={draft.blocks}
+    pages={typedDraft.pages}
+    designKey={designKey}
+    micrositeId={micrositeId}
+    micrositeSlug={
+      micrositeSlug ||
+      (draft as any).slug ||
+      (draft as any).siteSlug ||
+      (draft as any).micrositeSlug ||
+      null
+    }
+    serverNow={serverNow}
+    previewMode={previewMode}
+    cartItems={cartItems}
+    cartSubtotal={cartSubtotal}
+    listingQuantities={listingQuantities}
+    onDownloadFrame={handleDownloadFrame as any}
+    onChangeListingQuantity={(
+      listingId: string,
+      nextQuantity: number,
+    ) => {
+      setListingQuantities((prev) => ({
+        ...prev,
+        [listingId]: Math.max(
+          0,
+          Math.floor(nextQuantity || 0),
+        ),
+      }));
+    }}
+  />
+);
 })()}
     </div>
     </div>

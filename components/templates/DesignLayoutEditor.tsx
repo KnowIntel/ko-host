@@ -10292,10 +10292,11 @@ if (block.type === "formula_board") {
   );
 }
 
-    return (
+return (
   <BlockRenderer
     block={block}
     blocks={draft.blocks}
+    pages={pages}
     designKey={designKey}
     optionButtonSelections={optionButtonSelections}
     onOptionButtonSelectionChange={(change) =>
@@ -14462,8 +14463,78 @@ selectedBlock?.type === "comparison_table" ? (
       />
     </label>
 
+<div className="space-y-3">
+  <label className="block">
+    <span className="text-xs font-medium text-neutral-600">
+      Link To
+    </span>
+
+    <select
+      value={(selectedBlock.data as any).linkType ?? "url"}
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type === "cta"
+            ? {
+                ...block,
+                data: {
+                  ...block.data,
+                  linkType:
+                    e.target.value === "page"
+                      ? "page"
+                      : "url",
+                },
+              }
+            : block,
+        )
+      }
+      className="mt-1 h-10 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-900 outline-none"
+    >
+      <option value="url">Web Address</option>
+      <option value="page">Site Page</option>
+    </select>
+  </label>
+
+  {((selectedBlock.data as any).linkType ?? "url") === "page" ? (
     <label className="block">
-      <span className="text-xs font-medium text-neutral-600">Button Link</span>
+      <span className="text-xs font-medium text-neutral-600">
+        Site Page
+      </span>
+
+      <select
+        value={(selectedBlock.data as any).pageId ?? ""}
+        onChange={(e) =>
+          updateSelectedBlock((block) =>
+            block.type === "cta"
+              ? {
+                  ...block,
+                  data: {
+                    ...block.data,
+                    pageId: e.target.value,
+                  },
+                }
+              : block,
+          )
+        }
+        className="mt-1 h-10 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-900 outline-none"
+      >
+        <option value="">Select a page...</option>
+
+        {(pages ?? []).map((page) => (
+          <option
+            key={page.id}
+            value={page.id}
+          >
+            {page.title || page.slug || "Untitled Page"}
+          </option>
+        ))}
+      </select>
+    </label>
+  ) : (
+    <label className="block">
+      <span className="text-xs font-medium text-neutral-600">
+        Button Link
+      </span>
+
       <input
         type="text"
         value={selectedBlock.data.buttonUrl || ""}
@@ -14480,10 +14551,12 @@ selectedBlock?.type === "comparison_table" ? (
               : block,
           )
         }
-        placeholder="https://example.com or /schedule"
+        placeholder="https://example.com"
         className="mt-1 h-10 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-900 outline-none"
       />
     </label>
+  )}
+</div>
 
     <div>
       <div className="text-xs font-medium text-neutral-600">Button Image</div>
