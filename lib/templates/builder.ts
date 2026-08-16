@@ -1566,9 +1566,10 @@ export type ChecklistBlock = BaseBlock & {
       /*
        * Professional variant fields.
        */
-      iconName?: string;
-      iconUrl?: string;
-      iconSize?: number;
+iconName?: string;
+iconUrl?: string;
+iconSize?: number;
+iconColor?: string;
 
       time?: string;
       title?: string;
@@ -7676,9 +7677,10 @@ case "checklist":
           label: "Item 1",
           checked: false,
 
-          iconName: "calendar",
-          iconUrl: "/media-icons/calendar.svg",
-          iconSize: 28,
+iconName: "calendar",
+iconUrl: "/media-icons/calendar.svg",
+iconSize: 28,
+iconColor: "#111111",
 
           time: "9:00 AM",
           title: "Item 1",
@@ -7691,9 +7693,10 @@ case "checklist":
           label: "Item 2",
           checked: false,
 
-          iconName: "check",
-          iconUrl: "/media-icons/check.svg",
-          iconSize: 28,
+iconName: "check",
+iconUrl: "/media-icons/check.svg",
+iconSize: 28,
+iconColor: "#111111",
 
           time: "10:00 AM",
           title: "Item 2",
