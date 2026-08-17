@@ -328,7 +328,7 @@ const H = isDesktop ? DESKTOP_H : MOBILE_H;
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex items-center justify-between gap-3">
-            <div className="whitespace-nowrap text-[13px] font-semibold text-neutral-600">
+            <div className="whitespace-nowrap text-[10px] font-semibold text-neutral-600 lg:text-[13px]">
               {designCount ?? 1}{" "}
               {(designCount ?? 1) === 1
                 ? "design"
@@ -338,7 +338,7 @@ const H = isDesktop ? DESKTOP_H : MOBILE_H;
             <button
               type="button"
               onClick={handlePreviewClick}
-              className="rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-[13px] font-semibold text-neutral-900 transition hover:bg-neutral-50"
+              className="rounded-lg border border-neutral-200 bg-white px-2 py-1 text-[10px] font-semibold text-neutral-900 transition hover:bg-neutral-50 lg:px-3 lg:py-1.5 lg:text-[13px]"
             >
               Preview
             </button>
@@ -349,7 +349,7 @@ const H = isDesktop ? DESKTOP_H : MOBILE_H;
 
         <div className="px-4 pb-4 pt-3">
           <div
-            className="text-[18px] font-semibold tracking-tight text-neutral-900"
+            className="text-[12px] font-semibold tracking-tight text-neutral-900 lg:text-[18px]"
             style={{
               lineHeight: "1.3",
               minHeight: "24px",
@@ -363,7 +363,7 @@ const H = isDesktop ? DESKTOP_H : MOBILE_H;
           </div>
 
           <div
-            className="mt-2 text-[14px] font-medium text-neutral-500"
+            className="mt-1 text-[10px] font-medium text-neutral-500 lg:mt-2 lg:text-[14px]"
             style={{
               lineHeight: "1.4",
               minHeight: "20px",
