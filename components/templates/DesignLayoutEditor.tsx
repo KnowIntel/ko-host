@@ -14464,6 +14464,8 @@ selectedBlock?.type === "comparison_table" ? (
     </label>
 
 <div className="space-y-3">
+  {/* LINK TYPE */}
+
   <label className="block">
     <span className="text-xs font-medium text-neutral-600">
       Link To
@@ -14471,28 +14473,46 @@ selectedBlock?.type === "comparison_table" ? (
 
     <select
       value={(selectedBlock.data as any).linkType ?? "url"}
-      onChange={(e) =>
-        updateSelectedBlock((block) =>
-          block.type === "cta"
-            ? {
-                ...block,
-                data: {
-                  ...block.data,
-                  linkType:
-                    e.target.value === "page"
-                      ? "page"
-                      : "url",
-                },
-              }
-            : block,
-        )
-      }
+      onChange={(e) => {
+        const nextLinkType =
+          e.target.value === "page"
+            ? "page"
+            : "url";
+
+        updateSelectedBlock((block) => {
+          if (block.type !== "cta") {
+            return block;
+          }
+
+          /*
+           * Switching to Web Address makes the Button Link
+           * editable again.
+           *
+           * Switching to Site Page preserves any existing
+           * page selection until the owner chooses another page.
+           */
+          return {
+            ...block,
+            data: {
+              ...block.data,
+              linkType: nextLinkType,
+            },
+          };
+        });
+      }}
       className="mt-1 h-10 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-900 outline-none"
     >
-      <option value="url">Web Address</option>
-      <option value="page">Site Page</option>
+      <option value="url">
+        Web Address
+      </option>
+
+      <option value="page">
+        Site Page
+      </option>
     </select>
   </label>
+
+  {/* SITE PAGE */}
 
   {((selectedBlock.data as any).linkType ?? "url") === "page" ? (
     <label className="block">
@@ -14502,60 +14522,158 @@ selectedBlock?.type === "comparison_table" ? (
 
       <select
         value={(selectedBlock.data as any).pageId ?? ""}
-        onChange={(e) =>
+        onChange={(e) => {
+          const nextPageId = e.target.value;
+
+          const selectedPage =
+            (pages ?? []).find(
+              (page) => page.id === nextPageId,
+            );
+
+          const selectedPageSlug = String(
+            selectedPage?.slug ?? "",
+          )
+            .trim()
+            .toLowerCase()
+            .replace(/^\/+|\/+$/g, "");
+
+          const nextButtonUrl =
+            !selectedPageSlug ||
+            selectedPageSlug === "home"
+              ? "/"
+              : `/${selectedPageSlug}`;
+
           updateSelectedBlock((block) =>
-            block.type === "cta"
-              ? {
+            block.type !== "cta"
+              ? block
+              : {
                   ...block,
                   data: {
                     ...block.data,
-                    pageId: e.target.value,
+
+                    linkType: "page",
+
+                    pageId: nextPageId,
+
+                    /*
+                     * Keep a readable/resolved URL on the block too.
+                     * pageId remains the authoritative internal link.
+                     */
+                    buttonUrl:
+                      nextPageId
+                        ? nextButtonUrl
+                        : "",
                   },
-                }
-              : block,
-          )
-        }
+                },
+          );
+        }}
         className="mt-1 h-10 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-900 outline-none"
       >
-        <option value="">Select a page...</option>
+        <option value="">
+          Select a page...
+        </option>
 
-        {(pages ?? []).map((page) => (
-          <option
-            key={page.id}
-            value={page.id}
-          >
-            {page.title || page.slug || "Untitled Page"}
-          </option>
-        ))}
+        {(pages ?? []).map((page) => {
+          const slug = String(
+            page.slug ?? "",
+          )
+            .trim()
+            .replace(/^\/+|\/+$/g, "");
+
+          const rawTitle = String(
+            page.title ?? "",
+          ).trim();
+
+          /*
+           * Some existing secondary pages can carry a stale
+           * "Home" title even though their slug is correct.
+           *
+           * For those, use the slug as the display name.
+           */
+          const slugLabel =
+            slug === "home"
+              ? "Home"
+              : slug
+                  .replace(/[-_]+/g, " ")
+                  .replace(/\s+/g, " ")
+                  .trim()
+                  .replace(/\b\w/g, (char) =>
+                    char.toUpperCase(),
+                  );
+
+          const pageLabel =
+            rawTitle &&
+            !(
+              rawTitle.toLowerCase() === "home" &&
+              slug !== "home"
+            )
+              ? rawTitle
+              : slugLabel || "Untitled Page";
+
+          return (
+            <option
+              key={page.id}
+              value={page.id}
+            >
+              {pageLabel}
+            </option>
+          );
+        })}
       </select>
     </label>
-  ) : (
-    <label className="block">
-      <span className="text-xs font-medium text-neutral-600">
-        Button Link
-      </span>
+  ) : null}
 
-      <input
-        type="text"
-        value={selectedBlock.data.buttonUrl || ""}
-        onChange={(e) =>
-          updateSelectedBlock((block) =>
-            block.type === "cta"
-              ? {
-                  ...block,
-                  data: {
-                    ...block.data,
-                    buttonUrl: e.target.value,
-                  },
-                }
-              : block,
-          )
-        }
-        placeholder="https://example.com"
-        className="mt-1 h-10 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-900 outline-none"
-      />
-    </label>
-  )}
+  {/* BUTTON LINK — ALWAYS VISIBLE */}
+
+  <label className="block">
+    <span className="text-xs font-medium text-neutral-600">
+      Button Link
+    </span>
+
+    <input
+      type="text"
+      value={selectedBlock.data.buttonUrl || ""}
+      disabled={
+        ((selectedBlock.data as any).linkType ?? "url") ===
+        "page"
+      }
+      onChange={(e) =>
+        updateSelectedBlock((block) =>
+          block.type !== "cta"
+            ? block
+            : {
+                ...block,
+                data: {
+                  ...block.data,
+                  buttonUrl: e.target.value,
+                },
+              },
+        )
+      }
+      placeholder={
+        ((selectedBlock.data as any).linkType ?? "url") ===
+        "page"
+          ? "Select a site page above"
+          : "https://example.com"
+      }
+      className={[
+        "mt-1 h-10 w-full rounded-xl border px-3 text-sm outline-none",
+
+        ((selectedBlock.data as any).linkType ?? "url") ===
+        "page"
+          ? "cursor-not-allowed border-neutral-200 bg-neutral-100 text-neutral-500"
+          : "border-neutral-300 bg-white text-neutral-900",
+      ].join(" ")}
+    />
+
+    {((selectedBlock.data as any).linkType ?? "url") ===
+    "page" ? (
+      <div className="mt-1 text-xs text-neutral-500">
+        This address is generated automatically from the selected
+        site page.
+      </div>
+    ) : null}
+  </label>
 </div>
 
     <div>
