@@ -1,10 +1,14 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import type { KeyboardEvent, MouseEvent } from "react";
 
-const W = 210;
-const H = 158;
+const MOBILE_W = 140;
+const MOBILE_H = 105;
+
+const DESKTOP_W = 210;
+const DESKTOP_H = 158;
 
 function formatLabel(title: string) {
   return (title || "").trim();
@@ -118,6 +122,25 @@ export default function TemplateCard(props: {
   designCount?: number;
 }) {
   const router = useRouter();
+
+  const [isDesktop, setIsDesktop] = useState(false);
+
+useEffect(() => {
+  function updateSize() {
+    setIsDesktop(window.innerWidth >= 1024);
+  }
+
+  updateSize();
+
+  window.addEventListener("resize", updateSize);
+
+  return () => {
+    window.removeEventListener("resize", updateSize);
+  };
+}, []);
+
+const W = isDesktop ? DESKTOP_W : MOBILE_W;
+const H = isDesktop ? DESKTOP_H : MOBILE_H;
 
   const {
     templateKey,
