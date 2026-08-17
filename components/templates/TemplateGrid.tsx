@@ -15,8 +15,11 @@ function thumbToImageUrl(thumb: string) {
   return `/templates/${thumb}.webp`;
 }
 
-const CARD = 152;
-const GAP = 12;
+const MOBILE_CARD = 152;
+const DESKTOP_CARD = 228;
+
+const MOBILE_GAP = 12;
+const DESKTOP_GAP = 18;
 const CUSTOM_TEMPLATE_KEY = "custom_template";
 
 export type Category =
@@ -267,19 +270,36 @@ export default function TemplateGrid(props: {
     return () => window.removeEventListener("resize", compute);
   }, []);
 
-  const gridStyle = useMemo(() => {
-    return {
-      display: "grid" as const,
-      gap: `${GAP}px`,
-      justifyContent: "center" as const,
-      paddingLeft: "12px",
-      paddingRight: "12px",
-      gridTemplateColumns:
-        isDesktop || isLandscapeMobile
-          ? `repeat(auto-fit, ${CARD}px)`
-          : `repeat(2, ${CARD}px)`,
-    };
-  }, [isDesktop, isLandscapeMobile]);
+const gridStyle = useMemo(() => {
+  const useLargeCards =
+    isDesktop || isLandscapeMobile;
+
+  const cardWidth = useLargeCards
+    ? DESKTOP_CARD
+    : MOBILE_CARD;
+
+  const gap = useLargeCards
+    ? DESKTOP_GAP
+    : MOBILE_GAP;
+
+  return {
+    display: "grid" as const,
+    gap: `${gap}px`,
+    justifyContent: "center" as const,
+
+    paddingLeft: useLargeCards
+      ? "18px"
+      : "12px",
+
+    paddingRight: useLargeCards
+      ? "18px"
+      : "12px",
+
+    gridTemplateColumns: useLargeCards
+      ? `repeat(auto-fit, ${cardWidth}px)`
+      : `repeat(2, ${cardWidth}px)`,
+  };
+}, [isDesktop, isLandscapeMobile]);
 
   return (
     <div className="mt-6 w-full">

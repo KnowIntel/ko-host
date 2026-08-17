@@ -1,12 +1,10 @@
-// components\templates\TemplateCard.tsx
-
 "use client";
 
 import { useRouter } from "next/navigation";
 import type { KeyboardEvent, MouseEvent } from "react";
 
-const W = 140;
-const H = 105;
+const W = 210;
+const H = 158;
 
 function formatLabel(title: string) {
   return (title || "").trim();
@@ -20,10 +18,14 @@ function notify(name: "kht:recent" | "kht:stats") {
 
 function readStringArray(key: string): string[] {
   if (typeof window === "undefined") return [];
+
   try {
     const raw = window.localStorage.getItem(key);
     const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed.filter((x) => typeof x === "string") : [];
+
+    return Array.isArray(parsed)
+      ? parsed.filter((x) => typeof x === "string")
+      : [];
   } catch {
     return [];
   }
@@ -38,19 +40,35 @@ function writeStringArray(key: string, arr: string[]) {
 function markRecentlyViewed(templateKey: string) {
   const key = "kht:recent";
   const prev = readStringArray(key);
-  const next = [templateKey, ...prev.filter((k) => k !== templateKey)].slice(0, 12);
+
+  const next = [
+    templateKey,
+    ...prev.filter((k) => k !== templateKey),
+  ].slice(0, 12);
+
   writeStringArray(key, next);
   notify("kht:recent");
 }
 
-type StatsMap = Record<string, { views: number; creates: number; updatedAt: number }>;
+type StatsMap = Record<
+  string,
+  {
+    views: number;
+    creates: number;
+    updatedAt: number;
+  }
+>;
 
 function readStats(): StatsMap {
   if (typeof window === "undefined") return {};
+
   try {
     const raw = window.localStorage.getItem("kht:stats");
     const parsed = raw ? JSON.parse(raw) : {};
-    return parsed && typeof parsed === "object" ? parsed : {};
+
+    return parsed && typeof parsed === "object"
+      ? parsed
+      : {};
   } catch {
     return {};
   }
@@ -58,12 +76,19 @@ function readStats(): StatsMap {
 
 function writeStats(stats: StatsMap) {
   try {
-    window.localStorage.setItem("kht:stats", JSON.stringify(stats));
+    window.localStorage.setItem(
+      "kht:stats",
+      JSON.stringify(stats),
+    );
   } catch {}
 }
 
-function bumpStat(templateKey: string, field: "views" | "creates") {
+function bumpStat(
+  templateKey: string,
+  field: "views" | "creates",
+) {
   const stats = readStats();
+
   const cur = stats[templateKey] || {
     views: 0,
     creates: 0,
@@ -107,7 +132,8 @@ export default function TemplateCard(props: {
     designCount,
   } = props;
 
-  const src = thumbnailUrl || "/templates/placeholder.webp";
+  const src =
+    thumbnailUrl || "/templates/placeholder.webp";
 
   function trackCreate() {
     markRecentlyViewed(templateKey);
@@ -119,36 +145,49 @@ export default function TemplateCard(props: {
     bumpStat(templateKey, "views");
   }
 
-function goToDesignSelection() {
-  trackCreate();
+  function goToDesignSelection() {
+    trackCreate();
 
-  if (templateKey === "custom_template") {
-    router.push(`/create/${encodeURIComponent(templateKey)}`);
-    return;
+    if (templateKey === "custom_template") {
+      router.push(
+        `/create/${encodeURIComponent(templateKey)}`,
+      );
+      return;
+    }
+
+    router.push(
+      `/create/${encodeURIComponent(
+        templateKey,
+      )}/design`,
+    );
   }
 
-  router.push(`/create/${encodeURIComponent(templateKey)}/design`);
-}
-
   function stopAll(
-    e: MouseEvent<HTMLElement> | KeyboardEvent<HTMLElement>,
+    e: MouseEvent<HTMLElement> |
+      KeyboardEvent<HTMLElement>,
   ) {
     e.preventDefault();
     e.stopPropagation();
   }
 
-  function handleFavoriteClick(e: MouseEvent<HTMLButtonElement>) {
+  function handleFavoriteClick(
+    e: MouseEvent<HTMLButtonElement>,
+  ) {
     stopAll(e);
     onToggleFavorite?.(templateKey);
   }
 
-  function handlePreviewClick(e: MouseEvent<HTMLButtonElement>) {
+  function handlePreviewClick(
+    e: MouseEvent<HTMLButtonElement>,
+  ) {
     stopAll(e);
     trackPreview();
     onPreview?.(templateKey);
   }
 
-  function handleCardKeyDown(e: KeyboardEvent<HTMLDivElement>) {
+  function handleCardKeyDown(
+    e: KeyboardEvent<HTMLDivElement>,
+  ) {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       goToDesignSelection();
@@ -163,7 +202,7 @@ function goToDesignSelection() {
         maxWidth: W,
         minWidth: W,
         contentVisibility: "auto",
-        containIntrinsicSize: "180px 220px",
+        containIntrinsicSize: "270px 330px",
       }}
       onClick={goToDesignSelection}
       role="button"
@@ -175,13 +214,23 @@ function goToDesignSelection() {
         className={[
           "relative overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm",
           "transition-all duration-200 ease-out transform-gpu",
-          "group-hover:-translate-y-[4px] group-hover:shadow-xl",
+          "group-hover:-translate-y-[5px] group-hover:shadow-xl",
         ].join(" ")}
-        style={{ width: W, maxWidth: W, minWidth: W }}
+        style={{
+          width: W,
+          maxWidth: W,
+          minWidth: W,
+        }}
       >
+        {/* THUMBNAIL */}
+
         <div
           className="relative bg-neutral-100"
-          style={{ width: W, height: H, overflow: "hidden" }}
+          style={{
+            width: W,
+            height: H,
+            overflow: "hidden",
+          }}
         >
           <img
             src={src}
@@ -201,18 +250,16 @@ function goToDesignSelection() {
 
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-black/0 to-black/0 opacity-70" />
 
-{/*           <div className="pointer-events-none absolute left-2 top-2 z-10">
-            <div className="rounded-full bg-white/90 px-2 py-1 text-[10px] font-semibold text-neutral-900 backdrop-blur">
-              $12
-            </div>
-          </div> */}
+          {/* BADGE */}
 
-          <div className="absolute right-2 top-2 z-20">
+          <div className="absolute right-3 top-3 z-20">
             {badge ? (
               <div
                 className={[
-                  "rounded-full px-2 py-1 text-[10px] font-semibold text-white backdrop-blur",
-                  badge === "Popular" ? "bg-neutral-900/90" : "bg-emerald-600/90",
+                  "rounded-full px-3 py-1.5 text-[13px] font-semibold text-white backdrop-blur",
+                  badge === "Popular"
+                    ? "bg-neutral-900/90"
+                    : "bg-emerald-600/90",
                 ].join(" ")}
               >
                 {badge}
@@ -220,43 +267,69 @@ function goToDesignSelection() {
             ) : null}
           </div>
 
-          <div className="absolute bottom-2 right-2 z-20">
+          {/* FAVORITE */}
+
+          <div className="absolute bottom-3 right-3 z-20">
             <button
               type="button"
               onClick={handleFavoriteClick}
-              className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/90 backdrop-blur shadow-sm hover:bg-white"
-              aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
-              title={isFavorite ? "Favorited" : "Favorite"}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-lg backdrop-blur shadow-sm transition hover:bg-white"
+              aria-label={
+                isFavorite
+                  ? "Remove from favorites"
+                  : "Add to favorites"
+              }
+              title={
+                isFavorite
+                  ? "Favorited"
+                  : "Favorite"
+              }
             >
-              <span className={isFavorite ? "text-amber-500" : "text-neutral-400"}>
+              <span
+                className={
+                  isFavorite
+                    ? "text-amber-500"
+                    : "text-neutral-400"
+                }
+              >
                 ★
               </span>
             </button>
           </div>
         </div>
 
-        <div className="px-2 pt-2" onClick={(e) => e.stopPropagation()}>
-          <div className="flex items-center justify-between">
-            <div className="whitespace-nowrap text-[10px] font-semibold text-neutral-600">
-              {designCount ?? 1} {(designCount ?? 1) === 1 ? "design" : "designs"}
+        {/* DESIGN COUNT / PREVIEW */}
+
+        <div
+          className="px-3 pt-3"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex items-center justify-between gap-3">
+            <div className="whitespace-nowrap text-[13px] font-semibold text-neutral-600">
+              {designCount ?? 1}{" "}
+              {(designCount ?? 1) === 1
+                ? "design"
+                : "designs"}
             </div>
 
             <button
               type="button"
               onClick={handlePreviewClick}
-              className="rounded-lg border border-neutral-200 bg-white px-2 py-1 text-[10px] font-semibold text-neutral-900 hover:bg-neutral-50"
+              className="rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-[13px] font-semibold text-neutral-900 transition hover:bg-neutral-50"
             >
               Preview
             </button>
           </div>
         </div>
 
-        <div className="px-3 py-2">
+        {/* TEXT */}
+
+        <div className="px-4 pb-4 pt-3">
           <div
-            className="text-[12px] font-semibold tracking-tight text-neutral-900"
+            className="text-[18px] font-semibold tracking-tight text-neutral-900"
             style={{
-              lineHeight: "1.35",
-              minHeight: "17px",
+              lineHeight: "1.3",
+              minHeight: "24px",
               whiteSpace: "nowrap",
               overflow: "hidden",
               textOverflow: "ellipsis",
@@ -267,17 +340,19 @@ function goToDesignSelection() {
           </div>
 
           <div
-            className="mt-1 text-[10px] font-medium text-neutral-500"
+            className="mt-2 text-[14px] font-medium text-neutral-500"
             style={{
-              lineHeight: "1.3",
-              minHeight: "13px",
+              lineHeight: "1.4",
+              minHeight: "20px",
               whiteSpace: "nowrap",
               overflow: "hidden",
               textOverflow: "ellipsis",
             }}
             title={description || ""}
           >
-            {description?.trim() ? description.trim() : " "}
+            {description?.trim()
+              ? description.trim()
+              : " "}
           </div>
         </div>
       </div>
