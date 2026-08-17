@@ -175,6 +175,9 @@ export type LinkItem = {
   label: string;
   url: string;
 
+  linkType?: "url" | "page";
+  pageId?: string;
+
   description?: string;
   showUrl?: boolean;
   logoUrl?: string;
@@ -4453,22 +4456,29 @@ data: {
 },
       };
 
-    case "links":
-      return {
-        id: makeId("links"),
-        type: "links",
-        label: "Navigation Link",
-        grid,
-        appearance: createDefaultBlockAppearance(),
-        data: {
-          heading: "",
-          items: [{ id: makeId("link"), label: "Home", url: "#" }],
-          style: createDefaultTextStyle(),
-          backgroundColor: "#ffffff",
-          transparentBackground: true,
+case "links":
+  return {
+    id: makeId("links"),
+    type: "links",
+    label: "Navigation Link",
+    grid,
+    appearance: createDefaultBlockAppearance(),
+    data: {
+      heading: "",
+      items: [
+        {
+          id: makeId("link"),
+          label: "Home",
+          url: "#",
+          linkType: "url",
+          pageId: "",
         },
-      };
-
+      ],
+      style: createDefaultTextStyle(),
+      backgroundColor: "#ffffff",
+      transparentBackground: true,
+    },
+  };
 case "cta":
   return {
     id: makeId("cta"),

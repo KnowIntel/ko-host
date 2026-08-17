@@ -14290,18 +14290,23 @@ selectedBlock?.type === "comparison_table" ? (
 ) : null}
 
 {!isMultiSelection && selectedBlock?.type === "links" ? (
-  <LinksInspector
-    selectedBlock={selectedBlock}
-    updateSelectedBlock={updateSelectedBlock}
-    makeClientId={makeClientId}
-    linksHeadingInputRef={linksHeadingInputRef}
-    linksItemLabelInputRefs={linksItemLabelInputRefs}
-    linksItemUrlInputRefs={linksItemUrlInputRefs}
-    inspectorCardClass={inspectorCardClass}
-    inspectorLabelClass={inspectorLabelClass}
-    inspectorInputClass={inspectorInputClass}
-    toolSetButtonClass={toolSetButtonClass}
-  />
+<LinksInspector
+  selectedBlock={selectedBlock}
+  updateSelectedBlock={updateSelectedBlock}
+  makeClientId={makeClientId}
+
+  pages={pages}
+  currentSiteSlug={currentSiteSlug}
+
+  linksHeadingInputRef={linksHeadingInputRef}
+  linksItemLabelInputRefs={linksItemLabelInputRefs}
+  linksItemUrlInputRefs={linksItemUrlInputRefs}
+
+  inspectorCardClass={inspectorCardClass}
+  inspectorLabelClass={inspectorLabelClass}
+  inspectorInputClass={inspectorInputClass}
+  toolSetButtonClass={toolSetButtonClass}
+/>
 ) : null}
 
 {!isMultiSelection && selectedBlock?.type === "listing" ? (

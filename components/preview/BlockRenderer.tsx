@@ -9519,6 +9519,12 @@ function renderLinks(
   designKey?: string,
   previewMode = false,
   micrositeSlug?: string | null,
+  pages?: Array<{
+    id: string;
+    slug: string;
+    title?: string | null;
+    display_order?: number | null;
+  }>,
 ) {
   const typedBlock = block as typeof block & {
     data: typeof block.data & {
@@ -9561,10 +9567,47 @@ function renderLinks(
 
       <div className={listClass}>
         {block.data.items.map((item: LinkItem) => {
-          const rawUrl =
-            typeof item.url === "string" ? item.url.trim() : "";
+          const linkType =
+  (item as any).linkType === "page"
+    ? "page"
+    : "url";
 
-const normalizedHref = rawUrl ? normalizePreviewHref(rawUrl, micrositeSlug) : "";
+let normalizedHref = "";
+
+if (linkType === "page") {
+  const pageId = String(
+    (item as any).pageId ?? "",
+  ).trim();
+
+  const linkedPage = pages?.find(
+    (page) => page.id === pageId,
+  );
+
+  if (linkedPage) {
+    const pageSlug = String(
+      linkedPage.slug ?? "",
+    )
+      .trim()
+      .replace(/^\/+|\/+$/g, "");
+
+    normalizedHref =
+      !pageSlug || pageSlug === "home"
+        ? "/"
+        : `/${pageSlug}`;
+  }
+} else {
+  const rawUrl =
+    typeof item.url === "string"
+      ? item.url.trim()
+      : "";
+
+  normalizedHref = rawUrl
+    ? normalizePreviewHref(
+        rawUrl,
+        micrositeSlug,
+      )
+    : "";
+}
 
           const content = item.label || "Link";
 
@@ -9606,22 +9649,25 @@ const className =
 
 const Tag = previewMode ? "span" : "a";
 
+const isExternalLink =
+  linkType === "url" &&
+  (
+    normalizedHref.startsWith("http://") ||
+    normalizedHref.startsWith("https://")
+  );
+
 return (
   <Tag
     key={item.id}
     {...(!previewMode
       ? {
           href: normalizedHref,
-          target:
-            normalizedHref.startsWith("http://") ||
-            normalizedHref.startsWith("https://")
-              ? "_blank"
-              : undefined,
-          rel:
-            normalizedHref.startsWith("http://") ||
-            normalizedHref.startsWith("https://")
-              ? "noreferrer noopener"
-              : undefined,
+          target: isExternalLink
+            ? "_blank"
+            : undefined,
+          rel: isExternalLink
+            ? "noreferrer noopener"
+            : undefined,
         }
       : {})}
     className={className}
@@ -24343,8 +24389,14 @@ case "formula_board":
 
     case "frame":
       return renderFrame(block, onDownloadFrame);
-    case "links":
-      return renderLinks(block, designKey, previewMode, micrositeSlug);
+case "links":
+  return renderLinks(
+    block,
+    designKey,
+    previewMode,
+    micrositeSlug,
+    pages,
+  );
     case "video":
       return renderVideo(block, designKey);
     case "gallery":
