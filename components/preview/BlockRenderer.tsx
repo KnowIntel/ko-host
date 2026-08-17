@@ -18832,91 +18832,296 @@ function renderRegistry(
 function ProfessionalChecklistView({
   block,
   designKey,
+  micrositeId,
 }: {
   block: Extract<MicrositeBlock, { type: "checklist" }>;
   designKey?: string;
+  micrositeId?: string | null;
 }) {
-  const items = Array.isArray(block.data.items) ? block.data.items : [];
+  const items = Array.isArray(block.data.items)
+    ? block.data.items
+    : [];
 
-  const [visitorCheckedState, setVisitorCheckedState] = useState<
-    Record<string, boolean>
-  >(() =>
-    Object.fromEntries(
-      items.map((item) => [item.id, Boolean(item.checked)]),
-    ),
-  );
+  const [
+    visitorCheckedState,
+    setVisitorCheckedState,
+  ] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    setVisitorCheckedState((current) => {
-      const next: Record<string, boolean> = {};
+    let cancelled = false;
 
-      for (const item of items) {
-        next[item.id] =
-          current[item.id] !== undefined
-            ? current[item.id]
-            : Boolean(item.checked);
+    async function loadSharedChecklistState() {
+      try {
+        const hostname =
+          typeof window !== "undefined"
+            ? window.location.hostname
+            : "";
+
+        const params = new URLSearchParams();
+
+        if (micrositeId) {
+          params.set(
+            "micrositeId",
+            micrositeId,
+          );
+        }
+
+        if (hostname) {
+          params.set(
+            "hostname",
+            hostname,
+          );
+        }
+
+        params.set(
+          "blockId",
+          block.id,
+        );
+
+        const res = await fetch(
+          `/api/public/checklist-state?${params.toString()}`,
+          {
+            method: "GET",
+            cache: "no-store",
+          },
+        );
+
+        const data = await res
+          .json()
+          .catch(() => ({}));
+
+        if (
+          cancelled ||
+          !res.ok ||
+          !data?.ok
+        ) {
+          return;
+        }
+
+        const savedItems =
+          data.items &&
+          typeof data.items === "object" &&
+          !Array.isArray(data.items)
+            ? data.items
+            : {};
+
+        setVisitorCheckedState(
+          savedItems,
+        );
+      } catch (error) {
+        console.error(
+          "Unable to load shared checklist state",
+          error,
+        );
       }
+    }
 
-      return next;
-    });
-  }, [block.data.items]);
+    void loadSharedChecklistState();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    block.id,
+    micrositeId,
+  ]);
+
+  async function updateSharedChecklistItem(
+    itemId: string,
+    nextChecked: boolean,
+  ) {
+    const previousChecked =
+      visitorCheckedState[itemId];
+
+    /*
+     * Optimistic UI update.
+     */
+    setVisitorCheckedState(
+      (current) => ({
+        ...current,
+        [itemId]: nextChecked,
+      }),
+    );
+
+    try {
+      const res = await fetch(
+        "/api/public/checklist-state",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          body: JSON.stringify({
+            micrositeId:
+              micrositeId ?? "",
+
+            hostname:
+              typeof window !== "undefined"
+                ? window.location.hostname
+                : "",
+
+            blockId: block.id,
+            itemId,
+            checked: nextChecked,
+          }),
+        },
+      );
+
+      const data = await res
+        .json()
+        .catch(() => ({}));
+
+      if (!res.ok || !data?.ok) {
+        throw new Error(
+          data?.error ||
+            "Unable to save checklist state",
+        );
+      }
+    } catch (error) {
+      console.error(
+        "Unable to save shared checklist state",
+        error,
+      );
+
+      /*
+       * Revert if the server save failed.
+       */
+      setVisitorCheckedState(
+        (current) => {
+          const next = {
+            ...current,
+          };
+
+          if (
+            previousChecked === undefined
+          ) {
+            delete next[itemId];
+          } else {
+            next[itemId] =
+              previousChecked;
+          }
+
+          return next;
+        },
+      );
+    }
+  }
 
   const headingStyle = {
-    ...getContainerTextStyle(block.data.style, designKey),
-    ...getContainerTextStyle(block.data.headingStyle, designKey),
+    ...getContainerTextStyle(
+      block.data.style,
+      designKey,
+    ),
+    ...getContainerTextStyle(
+      block.data.headingStyle,
+      designKey,
+    ),
   };
 
   const columnHeaderStyle = {
-    ...getContainerTextStyle(block.data.style, designKey),
-    ...getContainerTextStyle(block.data.columnHeaderStyle, designKey),
+    ...getContainerTextStyle(
+      block.data.style,
+      designKey,
+    ),
+    ...getContainerTextStyle(
+      block.data.columnHeaderStyle,
+      designKey,
+    ),
   };
 
   const timeStyle = {
-    ...getContainerTextStyle(block.data.style, designKey),
-    ...getContainerTextStyle(block.data.timeStyle, designKey),
+    ...getContainerTextStyle(
+      block.data.style,
+      designKey,
+    ),
+    ...getContainerTextStyle(
+      block.data.timeStyle,
+      designKey,
+    ),
   };
 
   const titleStyle = {
-    ...getContainerTextStyle(block.data.style, designKey),
-    ...getContainerTextStyle(block.data.titleStyle, designKey),
+    ...getContainerTextStyle(
+      block.data.style,
+      designKey,
+    ),
+    ...getContainerTextStyle(
+      block.data.titleStyle,
+      designKey,
+    ),
   };
 
   const subtitleStyle = {
-    ...getContainerTextStyle(block.data.style, designKey),
-    ...getContainerTextStyle(block.data.subtitleStyle, designKey),
+    ...getContainerTextStyle(
+      block.data.style,
+      designKey,
+    ),
+    ...getContainerTextStyle(
+      block.data.subtitleStyle,
+      designKey,
+    ),
   };
 
   const detailsStyle = {
-    ...getContainerTextStyle(block.data.style, designKey),
-    ...getContainerTextStyle(block.data.detailsStyle, designKey),
+    ...getContainerTextStyle(
+      block.data.style,
+      designKey,
+    ),
+    ...getContainerTextStyle(
+      block.data.detailsStyle,
+      designKey,
+    ),
   };
 
   const completedTextStyle = {
-    ...getContainerTextStyle(block.data.style, designKey),
-    ...getContainerTextStyle(block.data.completedTextStyle, designKey),
+    ...getContainerTextStyle(
+      block.data.style,
+      designKey,
+    ),
+    ...getContainerTextStyle(
+      block.data.completedTextStyle,
+      designKey,
+    ),
   };
 
-  const rowStyle = block.data.rowStyle ?? {};
-  const completedRowStyle = block.data.completedRowStyle ?? {};
-  const iconCellStyle = block.data.iconCellStyle ?? {};
-  const statusStyle = block.data.statusStyle ?? {};
+  const rowStyle =
+    block.data.rowStyle ?? {};
+
+  const completedRowStyle =
+    block.data.completedRowStyle ?? {};
+
+  const iconCellStyle =
+    block.data.iconCellStyle ?? {};
+
+  const statusStyle =
+    block.data.statusStyle ?? {};
 
   const completedTintColor =
-    block.data.completedTintColor ?? "#e8f1eb";
+    block.data.completedTintColor ??
+    "#e8f1eb";
 
   const completedTextColor =
-    block.data.completedTextColor ?? "#365c43";
+    block.data.completedTextColor ??
+    "#365c43";
 
   const iconSize = Math.max(
     16,
-    Math.min(64, Number(block.data.iconSize ?? 28)),
+    Math.min(
+      64,
+      Number(
+        block.data.iconSize ?? 28,
+      ),
+    ),
   );
 
   return (
     <Surface
       block={block}
       designKey={designKey}
-      className={getSoftSurfaceClass(designKey)}
+      className={getSoftSurfaceClass(
+        designKey,
+      )}
     >
       {block.data.heading ? (
         <div
@@ -18929,7 +19134,8 @@ function ProfessionalChecklistView({
 
       <div className="w-full overflow-x-auto">
         <div className="min-w-[720px]">
-          {block.data.showColumnHeaders !== false ? (
+          {block.data.showColumnHeaders !==
+          false ? (
             <div
               className="grid items-center gap-3 px-3 pb-2"
               style={{
@@ -18943,70 +19149,94 @@ function ProfessionalChecklistView({
                 className="text-xs font-semibold uppercase tracking-[0.12em]"
                 style={columnHeaderStyle}
               >
-                {block.data.timeColumnLabel ?? "TIME"}
+                {block.data
+                  .timeColumnLabel ??
+                  "TIME"}
               </div>
 
               <div
                 className="text-xs font-semibold uppercase tracking-[0.12em]"
                 style={columnHeaderStyle}
               >
-                {block.data.actionColumnLabel ?? "ACTION"}
+                {block.data
+                  .actionColumnLabel ??
+                  "ACTION"}
               </div>
 
               <div
                 className="text-xs font-semibold uppercase tracking-[0.12em]"
                 style={columnHeaderStyle}
               >
-                {block.data.detailsColumnLabel ?? "DETAILS"}
+                {block.data
+                  .detailsColumnLabel ??
+                  "DETAILS"}
               </div>
 
               <div
                 className="text-center text-xs font-semibold uppercase tracking-[0.12em]"
                 style={columnHeaderStyle}
               >
-                {block.data.statusColumnLabel ?? ""}
+                {block.data
+                  .statusColumnLabel ??
+                  ""}
               </div>
             </div>
           ) : null}
 
-{items.length ? (
-  <div className="space-y-3">
-{items.map((item) => {
-  const checked =
-    visitorCheckedState[item.id] ??
-    Boolean(item.checked);
+          {items.length ? (
+            <div className="space-y-3">
+              {items.map((item) => {
+                const checked =
+                  visitorCheckedState[
+                    item.id
+                  ] ??
+                  Boolean(
+                    item.checked,
+                  );
 
-  const itemIconSize = Math.max(
-    16,
-    Math.min(
-      64,
-      Number(item.iconSize ?? iconSize),
-    ),
-  );
+                const itemIconSize =
+                  Math.max(
+                    16,
+                    Math.min(
+                      64,
+                      Number(
+                        item.iconSize ??
+                          iconSize,
+                      ),
+                    ),
+                  );
 
-  const itemIconColor =
-    typeof item.iconColor === "string" && item.iconColor.trim()
-      ? item.iconColor
-      : "#111111";
+                const itemIconColor =
+                  typeof item.iconColor ===
+                    "string" &&
+                  item.iconColor.trim()
+                    ? item.iconColor
+                    : "#111111";
 
-  const effectiveRowStyle = checked
-    ? {
-            ...rowStyle,
-            ...completedRowStyle,
-            backgroundColor:
-              completedRowStyle.backgroundColor ??
-              completedTintColor,
-          }
-        : rowStyle;
+                const effectiveRowStyle =
+                  checked
+                    ? {
+                        ...rowStyle,
+                        ...completedRowStyle,
 
-                const checkedTextPatch = checked
-                  ? {
-                      ...completedTextStyle,
-                      color:
-                        completedTextStyle.color ??
-                        completedTextColor,
-                    }
-                  : {};
+                        backgroundColor:
+                          completedRowStyle
+                            .backgroundColor ??
+                          completedTintColor,
+                      }
+                    : rowStyle;
+
+                const checkedTextPatch =
+                  checked
+                    ? {
+                        ...completedTextStyle,
+
+                        color:
+                          completedTextStyle
+                            .color ??
+                          completedTextColor,
+                      }
+                    : {};
 
                 return (
                   <div
@@ -19017,94 +19247,126 @@ function ProfessionalChecklistView({
                         "64px minmax(100px,0.85fr) minmax(220px,2fr) minmax(180px,1.5fr) 64px",
 
                       backgroundColor:
-                        effectiveRowStyle.backgroundColor ??
+                        effectiveRowStyle
+                          .backgroundColor ??
                         undefined,
 
                       borderColor:
-                        effectiveRowStyle.borderColor ??
+                        effectiveRowStyle
+                          .borderColor ??
                         undefined,
 
                       borderWidth:
-                        typeof effectiveRowStyle.borderWidth === "number"
+                        typeof effectiveRowStyle.borderWidth ===
+                        "number"
                           ? `${effectiveRowStyle.borderWidth}px`
                           : undefined,
 
                       borderStyle:
-                        typeof effectiveRowStyle.borderWidth === "number" &&
-                        effectiveRowStyle.borderWidth > 0
+                        typeof effectiveRowStyle.borderWidth ===
+                          "number" &&
+                        effectiveRowStyle.borderWidth >
+                          0
                           ? "solid"
                           : undefined,
 
                       borderRadius:
-                        typeof effectiveRowStyle.borderRadius === "number"
+                        typeof effectiveRowStyle.borderRadius ===
+                        "number"
                           ? `${effectiveRowStyle.borderRadius}px`
                           : undefined,
                     }}
                   >
                     {/* ICON */}
+
                     <div
                       className="flex h-12 w-12 items-center justify-center overflow-hidden"
                       style={{
                         backgroundColor:
-                          iconCellStyle.backgroundColor ?? undefined,
+                          iconCellStyle
+                            .backgroundColor ??
+                          undefined,
 
                         borderColor:
-                          iconCellStyle.borderColor ?? undefined,
+                          iconCellStyle
+                            .borderColor ??
+                          undefined,
 
                         borderWidth:
-                          typeof iconCellStyle.borderWidth === "number"
+                          typeof iconCellStyle.borderWidth ===
+                          "number"
                             ? `${iconCellStyle.borderWidth}px`
                             : undefined,
 
                         borderStyle:
-                          typeof iconCellStyle.borderWidth === "number" &&
-                          iconCellStyle.borderWidth > 0
+                          typeof iconCellStyle.borderWidth ===
+                            "number" &&
+                          iconCellStyle.borderWidth >
+                            0
                             ? "solid"
                             : undefined,
 
                         borderRadius:
-                          typeof iconCellStyle.borderRadius === "number"
+                          typeof iconCellStyle.borderRadius ===
+                          "number"
                             ? `${iconCellStyle.borderRadius}px`
                             : undefined,
                       }}
                     >
-{item.iconUrl ? (
-  <div
-    aria-hidden="true"
-    style={{
-      width: itemIconSize,
-      height: itemIconSize,
-      flexShrink: 0,
+                      {item.iconUrl ? (
+                        <div
+                          aria-hidden="true"
+                          style={{
+                            width:
+                              itemIconSize,
 
-      backgroundColor: itemIconColor,
+                            height:
+                              itemIconSize,
 
-      WebkitMaskImage: `url("${item.iconUrl}")`,
-      maskImage: `url("${item.iconUrl}")`,
+                            flexShrink: 0,
 
-      WebkitMaskRepeat: "no-repeat",
-      maskRepeat: "no-repeat",
+                            backgroundColor:
+                              itemIconColor,
 
-      WebkitMaskPosition: "center",
-      maskPosition: "center",
+                            WebkitMaskImage: `url("${item.iconUrl}")`,
+                            maskImage: `url("${item.iconUrl}")`,
 
-      WebkitMaskSize: "contain",
-      maskSize: "contain",
-    }}
-  />
-) : (
-  <span
-    style={{
-      color: itemIconColor,
-    }}
-  >
-    •
-  </span>
-)}
+                            WebkitMaskRepeat:
+                              "no-repeat",
+                            maskRepeat:
+                              "no-repeat",
+
+                            WebkitMaskPosition:
+                              "center",
+                            maskPosition:
+                              "center",
+
+                            WebkitMaskSize:
+                              "contain",
+                            maskSize:
+                              "contain",
+                          }}
+                        />
+                      ) : (
+                        <span
+                          style={{
+                            color:
+                              itemIconColor,
+                          }}
+                        >
+                          •
+                        </span>
+                      )}
                     </div>
 
                     {/* TIME */}
+
                     <div
-                      className={checked ? "opacity-80" : ""}
+                      className={
+                        checked
+                          ? "opacity-80"
+                          : ""
+                      }
                       style={{
                         ...timeStyle,
                         ...checkedTextPatch,
@@ -19114,15 +19376,18 @@ function ProfessionalChecklistView({
                     </div>
 
                     {/* ACTION */}
+
                     <div className="min-w-0">
                       <div
                         className="font-semibold"
                         style={{
                           ...titleStyle,
                           ...checkedTextPatch,
-                          textDecoration: checked
-                            ? "line-through"
-                            : titleStyle.textDecoration,
+
+                          textDecoration:
+                            checked
+                              ? "line-through"
+                              : titleStyle.textDecoration,
                         }}
                       >
                         {item.title ||
@@ -19144,6 +19409,7 @@ function ProfessionalChecklistView({
                     </div>
 
                     {/* DETAILS */}
+
                     <div
                       className="min-w-0 text-sm"
                       style={{
@@ -19154,7 +19420,8 @@ function ProfessionalChecklistView({
                       {item.details || ""}
                     </div>
 
-                    {/* VISITOR CHECKBOX */}
+                    {/* SHARED VISITOR CHECKBOX */}
+
                     <div className="flex justify-center">
                       <button
                         type="button"
@@ -19163,42 +19430,59 @@ function ProfessionalChecklistView({
                             ? "Mark item incomplete"
                             : "Mark item complete"
                         }
-                        aria-pressed={checked}
-                        onClick={(event) => {
+                        aria-pressed={
+                          checked
+                        }
+                        onClick={(
+                          event,
+                        ) => {
                           event.stopPropagation();
 
-                          setVisitorCheckedState((current) => ({
-                            ...current,
-                            [item.id]: !checked,
-                          }));
+                          void updateSharedChecklistItem(
+                            item.id,
+                            !checked,
+                          );
                         }}
                         className="flex h-10 w-10 items-center justify-center transition-all duration-200"
                         style={{
-                          backgroundColor: checked
-                            ? statusStyle.backgroundColor ?? "#416a50"
-                            : "transparent",
+                          backgroundColor:
+                            checked
+                              ? statusStyle
+                                  .backgroundColor ??
+                                "#416a50"
+                              : "transparent",
 
                           borderColor:
-                            statusStyle.borderColor ?? "#416a50",
+                            statusStyle
+                              .borderColor ??
+                            "#416a50",
 
                           borderWidth:
-                            typeof statusStyle.borderWidth === "number"
+                            typeof statusStyle.borderWidth ===
+                            "number"
                               ? `${statusStyle.borderWidth}px`
                               : "2px",
 
-                          borderStyle: "solid",
+                          borderStyle:
+                            "solid",
 
                           borderRadius:
-                            typeof statusStyle.borderRadius === "number"
+                            typeof statusStyle.borderRadius ===
+                            "number"
                               ? `${statusStyle.borderRadius}px`
                               : "999px",
 
-                          color: checked
-                            ? "#ffffff"
-                            : statusStyle.borderColor ?? "#416a50",
+                          color:
+                            checked
+                              ? "#ffffff"
+                              : statusStyle
+                                  .borderColor ??
+                                "#416a50",
                         }}
                       >
-                        {checked ? "✓" : ""}
+                        {checked
+                          ? "✓"
+                          : ""}
                       </button>
                     </div>
                   </div>
@@ -19209,7 +19493,10 @@ function ProfessionalChecklistView({
             <div
               className={[
                 "rounded-xl border border-dashed px-4 py-6 text-sm",
-                isLightDesign(designKey)
+
+                isLightDesign(
+                  designKey,
+                )
                   ? "border-neutral-300 bg-neutral-50 text-neutral-500"
                   : "border-white/15 bg-white/5 text-white/60",
               ].join(" ")}
@@ -19226,6 +19513,7 @@ function ProfessionalChecklistView({
 function renderChecklist(
   block: Extract<MicrositeBlock, { type: "checklist" }>,
   designKey?: string,
+  micrositeId?: string | null,
 ) {
   const items = Array.isArray(block.data.items) ? block.data.items : [];
   const styleVariant =
@@ -19315,10 +19603,11 @@ function renderChecklist(
   }
 
   return (
-    <ProfessionalChecklistView
-      block={block}
-      designKey={designKey}
-    />
+<ProfessionalChecklistView
+  block={block}
+  designKey={designKey}
+  micrositeId={micrositeId}
+/>
   );
 }
 
@@ -24469,8 +24758,12 @@ case "post_board":
       return renderDonation(block, designKey, micrositeId);
     case "link_hub":
       return renderLinkHub(block, designKey);
-    case "checklist":
-      return renderChecklist(block, designKey);
+case "checklist":
+  return renderChecklist(
+    block,
+    designKey,
+    micrositeId,
+  );
     case "registry":
       return renderRegistry(block, designKey);
     case "schedule_agenda":
