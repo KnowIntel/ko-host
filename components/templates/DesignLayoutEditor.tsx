@@ -14464,216 +14464,234 @@ selectedBlock?.type === "comparison_table" ? (
     </label>
 
 <div className="space-y-3">
-  {/* LINK TYPE */}
+  {(() => {
+    const linkType =
+      ((selectedBlock.data as any).linkType ?? "url") as
+        | "url"
+        | "page";
 
-  <label className="block">
-    <span className="text-xs font-medium text-neutral-600">
-      Link To
-    </span>
+    const siteBaseUrl = `https://${currentSiteSlug}.ko-host.com`;
 
-    <select
-      value={(selectedBlock.data as any).linkType ?? "url"}
-      onChange={(e) => {
-        const nextLinkType =
-          e.target.value === "page"
-            ? "page"
-            : "url";
+    const currentButtonUrl =
+      String(selectedBlock.data.buttonUrl ?? "").trim();
 
-        updateSelectedBlock((block) => {
-          if (block.type !== "cta") {
-            return block;
-          }
+    const resolvedButtonUrl =
+      currentButtonUrl.startsWith("http://") ||
+      currentButtonUrl.startsWith("https://")
+        ? currentButtonUrl
+        : currentButtonUrl === "/" || !currentButtonUrl
+          ? siteBaseUrl
+          : currentButtonUrl.startsWith("/")
+            ? `${siteBaseUrl}${currentButtonUrl}`
+            : currentButtonUrl;
 
-          /*
-           * Switching to Web Address makes the Button Link
-           * editable again.
-           *
-           * Switching to Site Page preserves any existing
-           * page selection until the owner chooses another page.
-           */
-          return {
-            ...block,
-            data: {
-              ...block.data,
-              linkType: nextLinkType,
-            },
-          };
-        });
-      }}
-      className="mt-1 h-10 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-900 outline-none"
-    >
-      <option value="url">
-        Web Address
-      </option>
+    return (
+      <>
+        {/* LINK TYPE */}
 
-      <option value="page">
-        Site Page
-      </option>
-    </select>
-  </label>
+        <label className="block">
+          <span className="text-xs font-medium text-neutral-600">
+            Link To
+          </span>
 
-  {/* SITE PAGE */}
+          <select
+            value={linkType}
+            onChange={(e) => {
+              const nextLinkType =
+                e.target.value === "page"
+                  ? "page"
+                  : "url";
 
-  {((selectedBlock.data as any).linkType ?? "url") === "page" ? (
-    <label className="block">
-      <span className="text-xs font-medium text-neutral-600">
-        Site Page
-      </span>
+              updateSelectedBlock((block) => {
+                if (block.type !== "cta") {
+                  return block;
+                }
 
-      <select
-        value={(selectedBlock.data as any).pageId ?? ""}
-        onChange={(e) => {
-          const nextPageId = e.target.value;
+                const existingUrl = String(
+                  block.data.buttonUrl ?? "",
+                ).trim();
 
-          const selectedPage =
-            (pages ?? []).find(
-              (page) => page.id === nextPageId,
-            );
+                const normalizedUrl =
+                  existingUrl.startsWith("http://") ||
+                  existingUrl.startsWith("https://")
+                    ? existingUrl
+                    : existingUrl === "/" || !existingUrl
+                      ? siteBaseUrl
+                      : existingUrl.startsWith("/")
+                        ? `${siteBaseUrl}${existingUrl}`
+                        : existingUrl;
 
-          const selectedPageSlug = String(
-            selectedPage?.slug ?? "",
-          )
-            .trim()
-            .toLowerCase()
-            .replace(/^\/+|\/+$/g, "");
-
-          const nextButtonUrl =
-            !selectedPageSlug ||
-            selectedPageSlug === "home"
-              ? "/"
-              : `/${selectedPageSlug}`;
-
-          updateSelectedBlock((block) =>
-            block.type !== "cta"
-              ? block
-              : {
+                return {
                   ...block,
                   data: {
                     ...block.data,
 
-                    linkType: "page",
-
-                    pageId: nextPageId,
+                    linkType: nextLinkType,
 
                     /*
-                     * Keep a readable/resolved URL on the block too.
-                     * pageId remains the authoritative internal link.
+                     * Always keep Button Link as a full URL.
                      */
-                    buttonUrl:
-                      nextPageId
-                        ? nextButtonUrl
-                        : "",
+                    buttonUrl: normalizedUrl,
                   },
-                },
-          );
-        }}
-        className="mt-1 h-10 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-900 outline-none"
-      >
-        <option value="">
-          Select a page...
-        </option>
+                };
+              });
+            }}
+            className="mt-1 h-10 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-900 outline-none"
+          >
+            <option value="url">
+              Web Address
+            </option>
 
-        {(pages ?? []).map((page) => {
-          const slug = String(
-            page.slug ?? "",
-          )
-            .trim()
-            .replace(/^\/+|\/+$/g, "");
+            <option value="page">
+              Site Page
+            </option>
+          </select>
+        </label>
 
-          const rawTitle = String(
-            page.title ?? "",
-          ).trim();
+        {/* SITE PAGE */}
 
-          /*
-           * Some existing secondary pages can carry a stale
-           * "Home" title even though their slug is correct.
-           *
-           * For those, use the slug as the display name.
-           */
-          const slugLabel =
-            slug === "home"
-              ? "Home"
-              : slug
-                  .replace(/[-_]+/g, " ")
-                  .replace(/\s+/g, " ")
-                  .trim()
-                  .replace(/\b\w/g, (char) =>
-                    char.toUpperCase(),
+        {linkType === "page" ? (
+          <label className="block">
+            <span className="text-xs font-medium text-neutral-600">
+              Site Page
+            </span>
+
+            <select
+              value={(selectedBlock.data as any).pageId ?? ""}
+              onChange={(e) => {
+                const nextPageId = e.target.value;
+
+                const selectedPage =
+                  (pages ?? []).find(
+                    (page) => page.id === nextPageId,
                   );
 
-          const pageLabel =
-            rawTitle &&
-            !(
-              rawTitle.toLowerCase() === "home" &&
-              slug !== "home"
-            )
-              ? rawTitle
-              : slugLabel || "Untitled Page";
+                const selectedPageSlug = String(
+                  selectedPage?.slug ?? "",
+                )
+                  .trim()
+                  .toLowerCase()
+                  .replace(/^\/+|\/+$/g, "");
 
-          return (
-            <option
-              key={page.id}
-              value={page.id}
+                const nextButtonUrl =
+                  !selectedPageSlug ||
+                  selectedPageSlug === "home"
+                    ? siteBaseUrl
+                    : `${siteBaseUrl}/${selectedPageSlug}`;
+
+                updateSelectedBlock((block) =>
+                  block.type !== "cta"
+                    ? block
+                    : {
+                        ...block,
+                        data: {
+                          ...block.data,
+
+                          linkType: "page",
+
+                          pageId: nextPageId,
+
+                          buttonUrl:
+                            nextPageId
+                              ? nextButtonUrl
+                              : siteBaseUrl,
+                        },
+                      },
+                );
+              }}
+              className="mt-1 h-10 w-full rounded-xl border border-neutral-300 bg-white px-3 text-sm text-neutral-900 outline-none"
             >
-              {pageLabel}
-            </option>
-          );
-        })}
-      </select>
-    </label>
-  ) : null}
+              <option value="">
+                Select a page...
+              </option>
 
-  {/* BUTTON LINK — ALWAYS VISIBLE */}
+              {(pages ?? []).map((page) => {
+                const slug = String(
+                  page.slug ?? "",
+                )
+                  .trim()
+                  .replace(/^\/+|\/+$/g, "");
 
-  <label className="block">
-    <span className="text-xs font-medium text-neutral-600">
-      Button Link
-    </span>
+                const rawTitle = String(
+                  page.title ?? "",
+                ).trim();
 
-    <input
-      type="text"
-      value={selectedBlock.data.buttonUrl || ""}
-      disabled={
-        ((selectedBlock.data as any).linkType ?? "url") ===
-        "page"
-      }
-      onChange={(e) =>
-        updateSelectedBlock((block) =>
-          block.type !== "cta"
-            ? block
-            : {
-                ...block,
-                data: {
-                  ...block.data,
-                  buttonUrl: e.target.value,
-                },
-              },
-        )
-      }
-      placeholder={
-        ((selectedBlock.data as any).linkType ?? "url") ===
-        "page"
-          ? "Select a site page above"
-          : "https://example.com"
-      }
-      className={[
-        "mt-1 h-10 w-full rounded-xl border px-3 text-sm outline-none",
+                const slugLabel =
+                  slug === "home"
+                    ? "Home"
+                    : slug
+                        .replace(/[-_]+/g, " ")
+                        .replace(/\s+/g, " ")
+                        .trim()
+                        .replace(/\b\w/g, (char) =>
+                          char.toUpperCase(),
+                        );
 
-        ((selectedBlock.data as any).linkType ?? "url") ===
-        "page"
-          ? "cursor-not-allowed border-neutral-200 bg-neutral-100 text-neutral-500"
-          : "border-neutral-300 bg-white text-neutral-900",
-      ].join(" ")}
-    />
+                const pageLabel =
+                  rawTitle &&
+                  !(
+                    rawTitle.toLowerCase() === "home" &&
+                    slug !== "home"
+                  )
+                    ? rawTitle
+                    : slugLabel || "Untitled Page";
 
-    {((selectedBlock.data as any).linkType ?? "url") ===
-    "page" ? (
-      <div className="mt-1 text-xs text-neutral-500">
-        This address is generated automatically from the selected
-        site page.
-      </div>
-    ) : null}
-  </label>
+                return (
+                  <option
+                    key={page.id}
+                    value={page.id}
+                  >
+                    {pageLabel}
+                  </option>
+                );
+              })}
+            </select>
+          </label>
+        ) : null}
+
+        {/* BUTTON LINK — ALWAYS VISIBLE */}
+
+        <label className="block">
+          <span className="text-xs font-medium text-neutral-600">
+            Button Link
+          </span>
+
+          <input
+            type="text"
+            value={resolvedButtonUrl}
+            disabled={linkType === "page"}
+            onChange={(e) =>
+              updateSelectedBlock((block) =>
+                block.type !== "cta"
+                  ? block
+                  : {
+                      ...block,
+                      data: {
+                        ...block.data,
+                        buttonUrl: e.target.value,
+                      },
+                    },
+              )
+            }
+            placeholder={siteBaseUrl}
+            className={[
+              "mt-1 h-10 w-full rounded-xl border px-3 text-sm outline-none",
+
+              linkType === "page"
+                ? "cursor-not-allowed border-neutral-200 bg-neutral-100 text-neutral-500"
+                : "border-neutral-300 bg-white text-neutral-900",
+            ].join(" ")}
+          />
+
+          {linkType === "page" ? (
+            <div className="mt-1 text-xs text-neutral-500">
+              This address is generated automatically from the selected site page.
+            </div>
+          ) : null}
+        </label>
+      </>
+    );
+  })()}
 </div>
 
     <div>
