@@ -859,6 +859,10 @@ const CATEGORY_BUTTONS: Record<
     { kind: "block", label: "Person", type: "icon", iconName: "person" },
     { kind: "block", label: "People", type: "icon", iconName: "people" },
     { kind: "block", label: "People Group", type: "icon", iconName: "people-group" },
+    { kind: "block", label: "Paper Edit List", type: "icon", iconName: "paper-edit-list" },
+    { kind: "block", label: "Paper Set List", type: "icon", iconName: "paper-set-list" },
+    { kind: "block", label: "Paper Survey List", type: "icon", iconName: "paper-survey-list" },
+    { kind: "block", label: "Paper Wrong Files", type: "icon", iconName: "paper-wrong-files" },
     { kind: "block", label: "Alarm Clock", type: "icon", iconName: "alarm-clock" },
     { kind: "block", label: "Apple Fruit", type: "icon", iconName: "apple-fruit" },
     { kind: "block", label: "Arm Flex Muscle", type: "icon", iconName: "arm-flex-muscle" },
@@ -9724,96 +9728,15 @@ if (block.type === "checklist") {
 }
 
 if (block.type === "schedule_agenda") {
-  const data = block.data as any;
-
-  const headingStyle = getInlineTextStyle(data.headingStyle ?? {});
-  const timeStyle = getInlineTextStyle(data.timeStyle ?? {});
-  const titleStyle = getInlineTextStyle(data.titleStyle ?? {});
-  const descriptionStyle = getInlineTextStyle(
-    data.descriptionStyle ?? {},
-  );
-  const panelStyle = data.panelStyle ?? {};
-
   return (
-    <div
-      className="h-full w-full rounded-xl p-4"
-      style={{
-        backgroundColor:
-          block.appearance?.backgroundColor &&
-          block.appearance.backgroundColor !== "transparent"
-            ? block.appearance.backgroundColor
-            : "transparent",
-        borderColor: block.appearance?.borderColor || undefined,
-        borderWidth:
-          typeof block.appearance?.borderWidth === "number"
-            ? `${block.appearance.borderWidth}px`
-            : undefined,
-        borderStyle:
-          typeof block.appearance?.borderWidth === "number" &&
-          block.appearance.borderWidth > 0
-            ? "solid"
-            : undefined,
-        borderRadius:
-          typeof block.appearance?.borderRadius === "number"
-            ? `${block.appearance.borderRadius}px`
-            : undefined,
-      }}
-    >
-      <div
-        className="mb-3 text-base font-semibold text-neutral-900"
-        style={headingStyle}
-      >
-        {data.heading || "Schedule"}
-      </div>
-
-      <div className="space-y-2">
-        {data.items.slice(0, 5).map((item: any) => (
-          <div
-            key={item.id}
-            className="rounded-lg border border-neutral-200 bg-white px-3 py-2"
-            style={{
-              backgroundColor: panelStyle.backgroundColor,
-              borderColor: panelStyle.borderColor,
-              borderWidth:
-                typeof panelStyle.borderWidth === "number"
-                  ? `${panelStyle.borderWidth}px`
-                  : undefined,
-              borderStyle:
-                typeof panelStyle.borderWidth === "number" &&
-                panelStyle.borderWidth > 0
-                  ? "solid"
-                  : undefined,
-              borderRadius:
-                typeof panelStyle.borderRadius === "number"
-                  ? `${panelStyle.borderRadius}px`
-                  : undefined,
-            }}
-          >
-            <div
-              className="text-xs text-neutral-500"
-              style={timeStyle}
-            >
-              {item.time || "Time"}
-            </div>
-
-            <div
-              className="text-sm font-medium text-neutral-900"
-              style={titleStyle}
-            >
-              {item.title || "Event"}
-            </div>
-
-            {item.description ? (
-              <div
-                className="mt-1 text-xs text-neutral-600"
-                style={descriptionStyle}
-              >
-                {item.description}
-              </div>
-            ) : null}
-          </div>
-        ))}
-      </div>
+    <div className="h-full w-full">
+      <BlockRenderer
+        block={block}
+        blocks={draft.blocks}
+        pages={pages}
+        designKey={designKey}
+        micrositeSlug={micrositeSlug}
+      />
     </div>
   );
 }

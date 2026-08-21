@@ -19905,50 +19905,483 @@ function renderScheduleAgenda(
   designKey?: string,
 ) {
   const data = block.data as any;
-  const items = Array.isArray(block.data.items) ? block.data.items : [];
 
-  const headingStyle = getContainerTextStyle(
-    data.headingStyle ?? data.style ?? {},
-    designKey,
-  );
+  const items = Array.isArray(block.data.items)
+    ? block.data.items
+    : [];
 
-  const timeStyle = getContainerTextStyle(
-    data.timeStyle ?? data.style ?? {},
-    designKey,
-  );
+  const styleVariant =
+    data.styleVariant === "professional"
+      ? "professional"
+      : "standard";
 
-  const titleStyle = getContainerTextStyle(
-    data.titleStyle ?? data.style ?? {},
-    designKey,
-  );
+  const isProfessional =
+    styleVariant === "professional";
 
-  const descriptionStyle = getContainerTextStyle(
-    data.descriptionStyle ?? data.style ?? {},
-    designKey,
-  );
+  const headingStyle =
+    getContainerTextStyle(
+      data.headingStyle ??
+        data.style ??
+        {},
+      designKey,
+    );
 
-  const panelStyle = getContainerTextStyle(
-    data.panelStyle ?? {},
-    designKey,
-  );
+  const headerNoteStyle =
+    getContainerTextStyle(
+      data.headerNoteStyle ??
+        data.style ??
+        {},
+      designKey,
+    );
+
+  const columnHeaderStyle =
+    getContainerTextStyle(
+      data.columnHeaderStyle ??
+        data.style ??
+        {},
+      designKey,
+    );
+
+  const dateStyle =
+    getContainerTextStyle(
+      data.dateStyle ??
+        data.style ??
+        {},
+      designKey,
+    );
+
+  const timeStyle =
+    getContainerTextStyle(
+      data.timeStyle ??
+        data.style ??
+        {},
+      designKey,
+    );
+
+  const titleStyle =
+    getContainerTextStyle(
+      data.titleStyle ??
+        data.style ??
+        {},
+      designKey,
+    );
+
+  const descriptionStyle =
+    getContainerTextStyle(
+      data.descriptionStyle ??
+        data.style ??
+        {},
+      designKey,
+    );
+
+  const locationStyle =
+    getContainerTextStyle(
+      data.locationStyle ??
+        data.style ??
+        {},
+      designKey,
+    );
+
+  const panelStyle =
+    data.panelStyle ?? {};
+
+  const professionalRowStyle =
+    data.professionalRowStyle ?? {};
+
+  /*
+   * Owner-controlled professional column order.
+   *
+   * The indicator-dot column always stays fixed
+   * on the far left.
+   */
+  const defaultColumnOrder = [
+    "date",
+    "event",
+    "location",
+    "time",
+  ] as const;
+
+  const rawColumnOrder =
+    Array.isArray(data.columnOrder)
+      ? data.columnOrder
+      : [];
+
+  const validColumnKeys = new Set([
+    "date",
+    "event",
+    "location",
+    "time",
+  ]);
+
+  const columnOrder = [
+    ...new Set(
+      rawColumnOrder.filter(
+        (key: unknown) =>
+          typeof key === "string" &&
+          validColumnKeys.has(key),
+      ),
+    ),
+  ];
+
+  for (const key of defaultColumnOrder) {
+    if (!columnOrder.includes(key)) {
+      columnOrder.push(key);
+    }
+  }
+
+  const finalColumnOrder =
+    columnOrder.slice(0, 4) as Array<
+      "date" |
+      "event" |
+      "location" |
+      "time"
+    >;
+
+  /*
+   * The Event / Activity column receives the most
+   * room regardless of where the owner positions it.
+   */
+  function getProfessionalColumnWidth(
+    key:
+      | "date"
+      | "event"
+      | "location"
+      | "time",
+  ) {
+    if (key === "event") {
+      return "minmax(240px,2fr)";
+    }
+
+    if (key === "location") {
+      return "minmax(140px,1.15fr)";
+    }
+
+    if (key === "date") {
+      return "minmax(105px,0.85fr)";
+    }
+
+    return "minmax(110px,0.9fr)";
+  }
+
+  const professionalGridTemplate = [
+    "28px",
+    ...finalColumnOrder.map(
+      getProfessionalColumnWidth,
+    ),
+  ].join(" ");
+
+  function getColumnLabel(
+    key:
+      | "date"
+      | "event"
+      | "location"
+      | "time",
+  ) {
+    if (key === "date") {
+      return (
+        data.dateColumnLabel ??
+        "DATE"
+      );
+    }
+
+    if (key === "event") {
+      return (
+        data.eventColumnLabel ??
+        "EVENT / ACTIVITY"
+      );
+    }
+
+    if (key === "location") {
+      return (
+        data.locationColumnLabel ??
+        "LOCATION"
+      );
+    }
+
+    return (
+      data.timeColumnLabel ??
+      "TIME"
+    );
+  }
+
+  function renderProfessionalCell(
+    item: any,
+    key:
+      | "date"
+      | "event"
+      | "location"
+      | "time",
+  ) {
+    if (key === "date") {
+      return (
+        <div
+          key={`${item.id}-date`}
+          className="min-w-0 text-sm"
+          style={dateStyle}
+        >
+          {item.date || ""}
+        </div>
+      );
+    }
+
+    if (key === "event") {
+      return (
+        <div
+          key={`${item.id}-event`}
+          className="min-w-0"
+        >
+          <div
+            className="font-semibold"
+            style={titleStyle}
+          >
+            {item.title || "Event"}
+          </div>
+
+          {item.description ? (
+            <div
+              className="mt-1 text-sm"
+              style={descriptionStyle}
+            >
+              {item.description}
+            </div>
+          ) : null}
+        </div>
+      );
+    }
+
+    if (key === "location") {
+      return (
+        <div
+          key={`${item.id}-location`}
+          className="min-w-0 text-sm"
+          style={locationStyle}
+        >
+          {item.location || ""}
+        </div>
+      );
+    }
+
+    return (
+      <div
+        key={`${item.id}-time`}
+        className="min-w-0 text-sm"
+        style={timeStyle}
+      >
+        {item.time || ""}
+      </div>
+    );
+  }
+
+  /*
+   * ================================================================
+   * STANDARD
+   * ================================================================
+   *
+   * Preserve the existing Schedule / Agenda appearance.
+   */
+
+  if (!isProfessional) {
+    return (
+      <Surface
+        block={block}
+        designKey={designKey}
+        className={`${getSoftSurfaceClass(
+          designKey,
+        )} overflow-y-auto`}
+      >
+        <div
+          className="mb-3 text-base font-semibold"
+          style={headingStyle}
+        >
+          {block.data.heading || "Schedule"}
+        </div>
+
+        {Boolean(
+          data.allowUserEngagement,
+        ) ? (
+          <div
+            className={[
+              "mb-4 rounded-xl border p-3",
+              isLightDesign(designKey)
+                ? "border-neutral-200 bg-neutral-50 text-neutral-800"
+                : "border-white/10 bg-white/5 text-white/80",
+            ].join(" ")}
+          >
+            <div className="mb-2 text-xs font-semibold uppercase tracking-[0.12em]">
+              Add to schedule
+            </div>
+
+            <ScheduleAgendaSubmitForm
+              block={block}
+            />
+
+            <div className="mt-2 text-[11px] opacity-70">
+              Public schedule submissions UI enabled.
+            </div>
+          </div>
+        ) : null}
+
+        {items.length ? (
+          <div className="space-y-3">
+            {items.map(
+              (item, index) => (
+                <div
+                  key={item.id}
+                  className={[
+                    "rounded-xl border px-3 py-3",
+                    isLightDesign(
+                      designKey,
+                    )
+                      ? "border-neutral-200 bg-white"
+                      : "border-white/10 bg-white/5",
+                  ].join(" ")}
+                  style={{
+                    backgroundColor:
+                      panelStyle.backgroundColor,
+                    borderColor:
+                      panelStyle.borderColor,
+                    borderWidth:
+                      typeof panelStyle.borderWidth ===
+                      "number"
+                        ? `${panelStyle.borderWidth}px`
+                        : undefined,
+                    borderStyle:
+                      typeof panelStyle.borderWidth ===
+                        "number" &&
+                      panelStyle.borderWidth >
+                        0
+                        ? "solid"
+                        : undefined,
+                    borderRadius:
+                      typeof panelStyle.borderRadius ===
+                      "number"
+                        ? `${panelStyle.borderRadius}px`
+                        : undefined,
+                  }}
+                >
+                  <div className="flex items-start gap-3">
+                    <div
+                      className={[
+                        "flex min-h-[48px] min-w-[72px] shrink-0 flex-col items-center justify-center rounded-lg px-2 py-2 text-center",
+                        isLightDesign(
+                          designKey,
+                        )
+                          ? "bg-neutral-100"
+                          : "bg-white/10",
+                      ].join(" ")}
+                    >
+                      <div
+                        className={`text-[10px] font-semibold uppercase tracking-[0.12em] ${getMutedTextClass(
+                          designKey,
+                        )}`}
+                      >
+                        Item
+                      </div>
+
+                      <div
+                        className="mt-1 text-sm font-semibold"
+                        style={timeStyle}
+                      >
+                        {item.time ||
+                          `${index + 1}`}
+                      </div>
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <div
+                        className="font-medium"
+                        style={titleStyle}
+                      >
+                        {item.title ||
+                          "Event"}
+                      </div>
+
+                      {item.description ? (
+                        <div
+                          className="mt-1 text-sm"
+                          style={
+                            descriptionStyle
+                          }
+                        >
+                          {
+                            item.description
+                          }
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
+                </div>
+              ),
+            )}
+          </div>
+        ) : (
+          <div
+            className={[
+              "rounded-xl border border-dashed px-4 py-6 text-sm",
+              isLightDesign(designKey)
+                ? "border-neutral-300 bg-neutral-50 text-neutral-500"
+                : "border-white/15 bg-white/5 text-white/60",
+            ].join(" ")}
+          >
+            No schedule items yet.
+          </div>
+        )}
+
+        {Boolean(
+          data.allowUserEngagement,
+        ) ? (
+          <ScheduleAgendaSubmissions
+            block={block}
+            designKey={designKey}
+          />
+        ) : null}
+      </Surface>
+    );
+  }
+
+  /*
+   * ================================================================
+   * PROFESSIONAL
+   * ================================================================
+   */
 
   return (
     <Surface
       block={block}
       designKey={designKey}
-      className={`${getSoftSurfaceClass(designKey)} overflow-y-auto`}
+      className={`${getSoftSurfaceClass(
+        designKey,
+      )} overflow-y-auto`}
     >
-      <div
-        className="mb-3 text-base font-semibold"
-        style={headingStyle}
-      >
-        {block.data.heading || "Schedule"}
+      {/* HEADER */}
+
+      <div className="mb-5 flex items-start justify-between gap-6">
+        <div
+          className="min-w-0 text-lg font-semibold uppercase tracking-[0.18em]"
+          style={headingStyle}
+        >
+          {block.data.heading ||
+            "Itinerary at a Glance"}
+        </div>
+
+        {String(
+          data.headerNote ?? "",
+        ).trim() ? (
+          <div
+            className="shrink-0 text-right text-xs"
+            style={headerNoteStyle}
+          >
+            {data.headerNote}
+          </div>
+        ) : null}
       </div>
 
-      {Boolean((block.data as any)?.allowUserEngagement) ? (
+      {Boolean(
+        data.allowUserEngagement,
+      ) ? (
         <div
           className={[
-            "mb-4 rounded-xl border p-3",
+            "mb-5 rounded-xl border p-3",
             isLightDesign(designKey)
               ? "border-neutral-200 bg-neutral-50 text-neutral-800"
               : "border-white/10 bg-white/5 text-white/80",
@@ -19958,7 +20391,9 @@ function renderScheduleAgenda(
             Add to schedule
           </div>
 
-          <ScheduleAgendaSubmitForm block={block} />
+          <ScheduleAgendaSubmitForm
+            block={block}
+          />
 
           <div className="mt-2 text-[11px] opacity-70">
             Public schedule submissions UI enabled.
@@ -19966,80 +20401,154 @@ function renderScheduleAgenda(
         </div>
       ) : null}
 
-      {items.length ? (
-        <div className="space-y-3">
-          {items.map((item, index) => (
+      <div className="w-full overflow-x-auto">
+        <div className="min-w-[760px]">
+          {/* COLUMN HEADERS */}
+
+          {data.showColumnHeaders !==
+          false ? (
             <div
-              key={item.id}
-              className={[
-                "rounded-xl border px-3 py-3",
-                isLightDesign(designKey)
-                  ? "border-neutral-200 bg-white"
-                  : "border-white/10 bg-white/5",
-              ].join(" ")}
-              style={panelStyle}
+              className="grid items-end gap-4 border-b px-2 pb-3"
+              style={{
+                gridTemplateColumns:
+                  professionalGridTemplate,
+
+                borderColor:
+                  professionalRowStyle.borderColor ??
+                  "#e5e7eb",
+              }}
             >
-              <div className="flex items-start gap-3">
-                <div
-                  className={[
-                    "flex min-h-[48px] min-w-[72px] shrink-0 flex-col items-center justify-center rounded-lg px-2 py-2 text-center",
-                    isLightDesign(designKey)
-                      ? "bg-neutral-100"
-                      : "bg-white/10",
-                  ].join(" ")}
-                >
-                  <div
-                    className={`text-[10px] font-semibold uppercase tracking-[0.12em] ${getMutedTextClass(designKey)}`}
-                  >
-                    Item
-                  </div>
+              {/* Fixed indicator column */}
+              <div />
 
+              {finalColumnOrder.map(
+                (columnKey) => (
                   <div
-                    className="mt-1 text-sm font-semibold"
-                    style={timeStyle}
+                    key={`schedule-header-${columnKey}`}
+                    className="min-w-0 text-xs font-semibold uppercase tracking-[0.12em]"
+                    style={
+                      columnHeaderStyle
+                    }
                   >
-                    {item.time || `${index + 1}`}
+                    {getColumnLabel(
+                      columnKey,
+                    )}
                   </div>
-                </div>
-
-                <div className="min-w-0 flex-1">
-                  <div
-                    className="font-medium"
-                    style={titleStyle}
-                  >
-                    {item.title || "Event"}
-                  </div>
-
-{item.description ? (
-  <div
-    className="mt-1 text-sm"
-    style={descriptionStyle}
-  >
-    {item.description}
-  </div>
-) : null}
-                </div>
-              </div>
+                ),
+              )}
             </div>
-          ))}
-        </div>
-      ) : (
-        <div
-          className={[
-            "rounded-xl border border-dashed px-4 py-6 text-sm",
-            isLightDesign(designKey)
-              ? "border-neutral-300 bg-neutral-50 text-neutral-500"
-              : "border-white/15 bg-white/5 text-white/60",
-          ].join(" ")}
-        >
-          No schedule items yet.
-        </div>
-      )}
+          ) : null}
 
-{Boolean((block.data as any)?.allowUserEngagement) ? (
-  <ScheduleAgendaSubmissions block={block} designKey={designKey} />
-) : null}
+          {/* ROWS */}
 
+          {items.length ? (
+            <div>
+              {items.map(
+                (item: any) => {
+                  const indicatorColor =
+                    typeof item.indicatorColor ===
+                      "string" &&
+                    item.indicatorColor.trim()
+                      ? item.indicatorColor
+                      : "#4f83b6";
+
+                  return (
+                    <div
+                      key={item.id}
+                      className="grid items-center gap-4 border-b px-2 py-4"
+                      style={{
+                        gridTemplateColumns:
+                          professionalGridTemplate,
+
+                        backgroundColor:
+                          professionalRowStyle.backgroundColor ??
+                          "transparent",
+
+                        borderColor:
+                          professionalRowStyle.borderColor ??
+                          "#e5e7eb",
+
+                        borderWidth:
+                          typeof professionalRowStyle.borderWidth ===
+                          "number"
+                            ? professionalRowStyle.borderWidth >
+                              0
+                              ? `${professionalRowStyle.borderWidth}px`
+                              : undefined
+                            : undefined,
+
+                        borderBottomWidth:
+                          typeof professionalRowStyle.borderWidth ===
+                            "number" &&
+                          professionalRowStyle.borderWidth >
+                            0
+                            ? `${professionalRowStyle.borderWidth}px`
+                            : "1px",
+
+                        borderStyle:
+                          "solid",
+
+                        borderRadius:
+                          typeof professionalRowStyle.borderRadius ===
+                          "number" &&
+                          professionalRowStyle.borderRadius >
+                            0
+                            ? `${professionalRowStyle.borderRadius}px`
+                            : undefined,
+                      }}
+                    >
+                      {/* COLOR INDICATOR */}
+
+                      <div className="flex items-center justify-center">
+                        <span
+                          aria-hidden="true"
+                          className="block h-3 w-3 shrink-0 rounded-full"
+                          style={{
+                            backgroundColor:
+                              indicatorColor,
+                          }}
+                        />
+                      </div>
+
+                      {/* OWNER-ORDERED COLUMNS */}
+
+                      {finalColumnOrder.map(
+                        (columnKey) =>
+                          renderProfessionalCell(
+                            item,
+                            columnKey,
+                          ),
+                      )}
+                    </div>
+                  );
+                },
+              )}
+            </div>
+          ) : (
+            <div
+              className={[
+                "mt-3 rounded-xl border border-dashed px-4 py-6 text-sm",
+                isLightDesign(
+                  designKey,
+                )
+                  ? "border-neutral-300 bg-neutral-50 text-neutral-500"
+                  : "border-white/15 bg-white/5 text-white/60",
+              ].join(" ")}
+            >
+              No schedule items yet.
+            </div>
+          )}
+        </div>
+      </div>
+
+      {Boolean(
+        data.allowUserEngagement,
+      ) ? (
+        <ScheduleAgendaSubmissions
+          block={block}
+          designKey={designKey}
+        />
+      ) : null}
     </Surface>
   );
 }
