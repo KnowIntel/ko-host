@@ -573,41 +573,70 @@ return (
             inspectorCardClass()
           }
         >
-          <div
-            className={
-              inspectorLabelClass()
-            }
-          >
-            Professional Layout
-          </div>
+<div
+  className={
+    inspectorLabelClass()
+  }
+>
+  Professional Layout
+</div>
 
-          <label className="mt-4 flex items-center justify-between gap-4 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3">
-            <div>
-              <div className="text-sm font-medium text-neutral-800">
-                Column Headers
-              </div>
+<label className="mt-4 flex items-center justify-between gap-4 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3">
+  <div>
+    <div className="text-sm font-medium text-neutral-800">
+      Column Headers
+    </div>
 
-              <div className="mt-1 text-xs text-neutral-500">
-                Show labels above
-                the schedule columns.
-              </div>
-            </div>
+    <div className="mt-1 text-xs text-neutral-500">
+      Show labels above
+      the schedule columns.
+    </div>
+  </div>
 
-            <input
-              type="checkbox"
-              checked={
-                selectedBlock.data
-                  .showColumnHeaders !==
-                false
-              }
-              onChange={(e) =>
-                updateScheduleData({
-                  showColumnHeaders:
-                    e.target.checked,
-                })
-              }
-            />
-          </label>
+  <input
+    type="checkbox"
+    checked={
+      selectedBlock.data
+        .showColumnHeaders !==
+      false
+    }
+    onChange={(e) =>
+      updateScheduleData({
+        showColumnHeaders:
+          e.target.checked,
+      })
+    }
+  />
+</label>
+
+<label className="mt-4 flex items-center justify-between gap-4 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3">
+  <div>
+    <div className="text-sm font-medium text-neutral-800">
+      Color Indicators
+    </div>
+
+    <div className="mt-1 text-xs text-neutral-500">
+      Show the color-coded
+      circle indicator for each
+      schedule row.
+    </div>
+  </div>
+
+  <input
+    type="checkbox"
+    checked={
+      selectedBlock.data
+        .showColorIndicators !==
+      false
+    }
+    onChange={(e) =>
+      updateScheduleData({
+        showColorIndicators:
+          e.target.checked,
+      })
+    }
+  />
+</label>
 
           <div className="mt-4">
             <div

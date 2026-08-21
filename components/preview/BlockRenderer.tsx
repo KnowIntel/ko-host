@@ -20063,12 +20063,16 @@ function renderScheduleAgenda(
     return "minmax(110px,0.9fr)";
   }
 
-  const professionalGridTemplate = [
-    "28px",
-    ...finalColumnOrder.map(
-      getProfessionalColumnWidth,
-    ),
-  ].join(" ");
+const showColorIndicators =
+  data.showColorIndicators !== false;
+
+const professionalGridTemplate = [
+  ...(showColorIndicators ? ["28px"] : []),
+
+  ...finalColumnOrder.map(
+    getProfessionalColumnWidth,
+  ),
+].join(" ");
 
   function getColumnLabel(
     key:
@@ -20413,8 +20417,8 @@ function renderScheduleAgenda(
                   "#e5e7eb",
               }}
             >
-              {/* Fixed indicator column */}
-              <div />
+{/* Fixed indicator column */}
+{showColorIndicators ? <div /> : null}
 
               {finalColumnOrder.map(
                 (columnKey) => (
@@ -20492,18 +20496,20 @@ function renderScheduleAgenda(
                             : undefined,
                       }}
                     >
-                      {/* COLOR INDICATOR */}
+{/* COLOR INDICATOR */}
 
-                      <div className="flex items-center justify-center">
-                        <span
-                          aria-hidden="true"
-                          className="block h-3 w-3 shrink-0 rounded-full"
-                          style={{
-                            backgroundColor:
-                              indicatorColor,
-                          }}
-                        />
-                      </div>
+{showColorIndicators ? (
+  <div className="flex items-center justify-center">
+    <span
+      aria-hidden="true"
+      className="block h-3 w-3 shrink-0 rounded-full"
+      style={{
+        backgroundColor:
+          indicatorColor,
+      }}
+    />
+  </div>
+) : null}
 
                       {/* OWNER-ORDERED COLUMNS */}
 

@@ -1238,10 +1238,7 @@ const isPageTextOverlay =
   data-canvas-block-label={block.label ?? ""}
   style={{
     ...getItemStyle(grid),
-zIndex:
-  block.type === "schedule_agenda"
-    ? Math.max(2000, grid.zIndex)
-    : grid.zIndex,
+    zIndex: grid.zIndex,
   }}
   onClick={(e) => {
   const target = e.target as HTMLElement;

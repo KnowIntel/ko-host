@@ -1633,7 +1633,7 @@ export type ScheduleAgendaBlock = BaseBlock & {
      * Professional header settings
      */
     showColumnHeaders?: boolean;
-
+    showColorIndicators?: boolean;
     headerNote?: string;
 
     dateColumnLabel?: string;
@@ -7864,7 +7864,7 @@ case "schedule_agenda":
       allowUserEngagement: false,
 
       showColumnHeaders: true,
-
+      showColorIndicators: true,
       headerNote: "All times local",
 
       dateColumnLabel: "DATE",
@@ -7941,7 +7941,7 @@ case "schedule_agenda":
       },
     },
   };
-  
+
     case "tournament_display":
       return {
         id: makeId("tournament"),
