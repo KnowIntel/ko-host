@@ -336,232 +336,232 @@ export function ScheduleAgendaInspector({
     );
   }
 
-  return (
-    <div className="space-y-4">
-      {/* ================================================================ */}
-      {/* GENERAL */}
-      {/* ================================================================ */}
+return (
+  <div className="space-y-4">
+    {/* ================================================================ */}
+    {/* FORMATTING */}
+    {/* ================================================================ */}
 
+    <div
+      className={
+        inspectorCardClass()
+      }
+    >
       <div
         className={
-          inspectorCardClass()
+          inspectorLabelClass()
         }
       >
+        Formatting
+      </div>
+
+      <div className="mt-4">
         <div
           className={
             inspectorLabelClass()
           }
         >
-          Schedule / Agenda
+          Text Target
         </div>
 
-        <div className="mt-4">
-          <div
-            className={
-              inspectorLabelClass()
-            }
-          >
-            Style Variant
-          </div>
-
-          <select
-            value={styleVariant}
-            onChange={(e) =>
-              updateScheduleData({
-                styleVariant:
-                  e.target.value ===
-                  "professional"
-                    ? "professional"
-                    : "standard",
-              })
-            }
-            className={
-              inspectorInputClass()
-            }
-          >
-            <option value="standard">
-              Standard
-            </option>
-
-            <option value="professional">
-              Professional
-            </option>
-          </select>
-        </div>
-
-        <div className="mt-4">
-          <div
-            className={
-              inspectorLabelClass()
-            }
-          >
+        <select
+          value={
+            scheduleAgendaTextTarget
+          }
+          onChange={(e) =>
+            setScheduleAgendaTextTarget(
+              e.target
+                .value as ScheduleAgendaTextTarget,
+            )
+          }
+          className={
+            inspectorInputClass()
+          }
+        >
+          <option value="heading">
             Heading
-          </div>
+          </option>
 
-          <input
-            type="text"
-            value={
-              selectedBlock.data
-                .heading ?? ""
-            }
-            onChange={(e) =>
-              updateScheduleData({
-                heading:
-                  e.target.value,
-              })
-            }
-            className={
-              inspectorInputClass()
-            }
-          />
-        </div>
+          {isProfessional ? (
+            <>
+              <option value="headerNote">
+                Header Note
+              </option>
 
-        <label className="mt-4 flex items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm text-neutral-700">
-          <input
-            type="checkbox"
-            checked={Boolean(
-              selectedBlock.data
-                .allowUserEngagement,
-            )}
-            onChange={(e) =>
-              updateScheduleData({
-                allowUserEngagement:
-                  e.target.checked,
-              })
-            }
-          />
+              <option value="columnHeader">
+                Column Headers
+              </option>
 
-          Allow user engagement
-        </label>
+              <option value="date">
+                Date
+              </option>
+
+              <option value="title">
+                Event Title
+              </option>
+
+              <option value="description">
+                Event Description
+              </option>
+
+              <option value="location">
+                Location
+              </option>
+
+              <option value="time">
+                Time
+              </option>
+            </>
+          ) : (
+            <>
+              <option value="time">
+                Time
+              </option>
+
+              <option value="title">
+                Title
+              </option>
+
+              <option value="description">
+                Description
+              </option>
+            </>
+          )}
+        </select>
       </div>
 
-      {/* ================================================================ */}
-      {/* FORMATTING */}
-      {/* ================================================================ */}
-
-      <div
-        className={
-          inspectorCardClass()
-        }
-      >
+      <div className="mt-4">
         <div
           className={
             inspectorLabelClass()
           }
         >
-          Formatting
+          Style Target
         </div>
 
-        <div className="mt-4">
-          <div
-            className={
-              inspectorLabelClass()
-            }
-          >
-            Text Target
-          </div>
+        <select
+          value={
+            scheduleAgendaStyleTarget
+          }
+          onChange={(e) =>
+            setScheduleAgendaStyleTarget(
+              e.target
+                .value as ScheduleAgendaStyleTarget,
+            )
+          }
+          className={
+            inspectorInputClass()
+          }
+        >
+          <option value="block">
+            Block
+          </option>
 
-          <select
-            value={
-              scheduleAgendaTextTarget
-            }
-            onChange={(e) =>
-              setScheduleAgendaTextTarget(
-                e.target
-                  .value as ScheduleAgendaTextTarget,
-              )
-            }
-            className={
-              inspectorInputClass()
-            }
-          >
-            <option value="heading">
-              Heading
-            </option>
-
-            {isProfessional ? (
-              <>
-                <option value="headerNote">
-                  Header Note
-                </option>
-
-                <option value="columnHeader">
-                  Column Headers
-                </option>
-
-                <option value="date">
-                  Date
-                </option>
-
-                <option value="title">
-                  Event Title
-                </option>
-
-                <option value="description">
-                  Event Description
-                </option>
-
-                <option value="location">
-                  Location
-                </option>
-
-                <option value="time">
-                  Time
-                </option>
-              </>
-            ) : (
-              <>
-                <option value="time">
-                  Time
-                </option>
-
-                <option value="title">
-                  Title
-                </option>
-
-                <option value="description">
-                  Description
-                </option>
-              </>
-            )}
-          </select>
-        </div>
-
-        <div className="mt-4">
-          <div
-            className={
-              inspectorLabelClass()
-            }
-          >
-            Style Target
-          </div>
-
-          <select
-            value={
-              scheduleAgendaStyleTarget
-            }
-            onChange={(e) =>
-              setScheduleAgendaStyleTarget(
-                e.target
-                  .value as ScheduleAgendaStyleTarget,
-              )
-            }
-            className={
-              inspectorInputClass()
-            }
-          >
-            <option value="block">
-              Block
-            </option>
-
-            <option value="panel">
-              {isProfessional
-                ? "Rows"
-                : "Panel"}
-            </option>
-          </select>
-        </div>
+          <option value="panel">
+            {isProfessional
+              ? "Rows"
+              : "Panel"}
+          </option>
+        </select>
       </div>
+    </div>
+
+    {/* ================================================================ */}
+    {/* SCHEDULE / AGENDA */}
+    {/* ================================================================ */}
+
+    <div
+      className={
+        inspectorCardClass()
+      }
+    >
+      <div
+        className={
+          inspectorLabelClass()
+        }
+      >
+        Schedule / Agenda
+      </div>
+
+      <div className="mt-4">
+        <div
+          className={
+            inspectorLabelClass()
+          }
+        >
+          Style Variant
+        </div>
+
+        <select
+          value={styleVariant}
+          onChange={(e) =>
+            updateScheduleData({
+              styleVariant:
+                e.target.value ===
+                "professional"
+                  ? "professional"
+                  : "standard",
+            })
+          }
+          className={
+            inspectorInputClass()
+          }
+        >
+          <option value="standard">
+            Standard
+          </option>
+
+          <option value="professional">
+            Professional
+          </option>
+        </select>
+      </div>
+
+      <div className="mt-4">
+        <div
+          className={
+            inspectorLabelClass()
+          }
+        >
+          Heading
+        </div>
+
+        <input
+          type="text"
+          value={
+            selectedBlock.data
+              .heading ?? ""
+          }
+          onChange={(e) =>
+            updateScheduleData({
+              heading:
+                e.target.value,
+            })
+          }
+          className={
+            inspectorInputClass()
+          }
+        />
+      </div>
+
+      <label className="mt-4 flex items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm text-neutral-700">
+        <input
+          type="checkbox"
+          checked={Boolean(
+            selectedBlock.data
+              .allowUserEngagement,
+          )}
+          onChange={(e) =>
+            updateScheduleData({
+              allowUserEngagement:
+                e.target.checked,
+            })
+          }
+        />
+
+        Allow user engagement
+      </label>
+    </div>
 
       {/* ================================================================ */}
       {/* PROFESSIONAL LAYOUT */}
